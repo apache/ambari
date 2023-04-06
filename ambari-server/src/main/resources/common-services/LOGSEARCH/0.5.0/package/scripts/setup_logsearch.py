@@ -33,7 +33,7 @@ def setup_logsearch():
   import params
 
   Directory([params.logsearch_log_dir, params.logsearch_pid_dir],
-            mode=0755,
+            mode=0o755,
             cd_access='a',
             owner=params.logsearch_user,
             group=params.user_group,
@@ -41,7 +41,7 @@ def setup_logsearch():
             )
 
   Directory([params.logsearch_dir, params.logsearch_server_conf, params.logsearch_config_set_dir],
-            mode=0755,
+            mode=0o755,
             cd_access='a',
             owner=params.logsearch_user,
             group=params.user_group,
@@ -51,12 +51,12 @@ def setup_logsearch():
 
   Directory(params.logsearch_server_keys_folder,
             cd_access='a',
-            mode=0755,
+            mode=0o755,
             owner=params.logsearch_user,
             group=params.user_group)
 
   File(format("{logsearch_log_dir}/{logsearch_log}"),
-       mode=0644,
+       mode=0o644,
        owner=params.logsearch_user,
        group=params.user_group,
        content=''
@@ -79,13 +79,13 @@ def setup_logsearch():
   else:
     File(format("{logsearch_server_keys_folder}/ks_pass.txt"),
          content=params.logsearch_keystore_password,
-         mode=0600,
+         mode=0o600,
          owner= params.logsearch_user,
          group=params.user_group
          )
     File(format("{logsearch_server_keys_folder}/ts_pass.txt"),
          content=params.logsearch_truststore_password,
-         mode=0600,
+         mode=0o600,
          owner= params.logsearch_user,
          group=params.user_group
          )
@@ -108,7 +108,7 @@ def setup_logsearch():
 
   File(format("{logsearch_server_conf}/logsearch-env.sh"),
        content=InlineTemplate(params.logsearch_env_content),
-       mode=0755,
+       mode=0o755,
        owner=params.logsearch_user,
        group=params.user_group
        )

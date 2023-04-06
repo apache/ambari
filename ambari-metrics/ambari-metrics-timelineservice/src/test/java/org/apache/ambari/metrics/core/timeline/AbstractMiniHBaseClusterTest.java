@@ -133,7 +133,7 @@ public abstract class AbstractMiniHBaseClusterTest extends BaseTest {
   @AfterClass
   public static void doTeardown() throws Exception {
     dropNonSystemTables();
-    tearDownMiniCluster();
+    tearDownMiniCluster(1);
   }
 
   @Before

@@ -42,7 +42,7 @@ class TestKafkaBroker(RMFTestCase):
                               owner = 'kafka',
                               group = 'hadoop',
                               create_parents = True,
-                              mode = 0755,
+                              mode = 0o755,
                               cd_access = 'a',
                               recursive_ownership = True,
     )
@@ -51,7 +51,7 @@ class TestKafkaBroker(RMFTestCase):
                               owner = 'kafka',
                               group = 'hadoop',
                               create_parents = True,
-                              mode = 0755,
+                              mode = 0o755,
                               cd_access = 'a',
                               recursive_ownership = True,
     )
@@ -60,7 +60,7 @@ class TestKafkaBroker(RMFTestCase):
                               owner = 'kafka',
                               group = 'hadoop',
                               create_parents = True,
-                              mode = 0755,
+                              mode = 0o755,
                               cd_access = 'a',
                               recursive_ownership = True,
     )
@@ -68,7 +68,7 @@ class TestKafkaBroker(RMFTestCase):
                               owner = 'kafka',
                               create_parents = True,
                               group = 'hadoop',
-                              mode = 0755,
+                              mode = 0o755,
                               cd_access = 'a',
                               recursive_ownership = True,
     )
@@ -90,7 +90,7 @@ class TestKafkaBroker(RMFTestCase):
                               owner = 'kafka',
                               group = 'hadoop',
                               create_parents = True,
-                              mode = 0755,
+                              mode = 0o755,
                               cd_access = 'a',
                               recursive_ownership = True,
     )
@@ -99,7 +99,7 @@ class TestKafkaBroker(RMFTestCase):
                               owner = 'kafka',
                               group = 'hadoop',
                               create_parents = True,
-                              mode = 0755,
+                              mode = 0o755,
                               cd_access = 'a',
                               recursive_ownership = True,
     )
@@ -108,7 +108,7 @@ class TestKafkaBroker(RMFTestCase):
                               owner = 'kafka',
                               group = 'hadoop',
                               create_parents = True,
-                              mode = 0755,
+                              mode = 0o755,
                               cd_access = 'a',
                               recursive_ownership = True,
     )
@@ -117,7 +117,7 @@ class TestKafkaBroker(RMFTestCase):
                               owner = 'kafka',
                               create_parents = True,
                               group = 'hadoop',
-                              mode = 0755,
+                              mode = 0o755,
                               cd_access = 'a',
                               recursive_ownership = True,
     )

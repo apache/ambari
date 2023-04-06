@@ -49,7 +49,7 @@ class KerberosServiceCheck(Script):
     if ((params.smoke_test_principal is not None) and
           (params.smoke_test_keytab_file is not None) and
           os.path.isfile(params.smoke_test_keytab_file)):
-      print "Performing kinit using %s" % params.smoke_test_principal
+      print("Performing kinit using %s" % params.smoke_test_principal)
 
       ccache_file_name = HASH_ALGORITHM("{0}|{1}".format(params.smoke_test_principal, params.smoke_test_keytab_file)).hexdigest()
       ccache_file_path = "{0}{1}kerberos_service_check_cc_{2}".format(params.tmp_dir, os.sep, ccache_file_name)
@@ -76,10 +76,10 @@ class KerberosServiceCheck(Script):
       raise Fail(err_msg)
     else:
       # Ambari is not managing identities so if the smoke user does not exist, indicate why....
-      print "Skipping this service check since Ambari is not managing Kerberos identities and the smoke user " \
+      print("Skipping this service check since Ambari is not managing Kerberos identities and the smoke user " \
             "credentials are not available. To execute this service check, the smoke user principal name " \
             "and keytab file location must be set in the cluster_env and the smoke user's keytab file must" \
-            "exist in the configured location."
+            "exist in the configured location.")
 
 
 if __name__ == "__main__":

@@ -20,7 +20,7 @@ Ambari Agent
 
 """
 
-from __future__ import with_statement
+
 
 import re
 import os
@@ -79,7 +79,7 @@ def _ensure_metadata(path, user, group, mode=None, cd_access=None, recursive_own
       raise Fail("'recursion_follow_links' value should be a dictionary with 'f' and(or) 'd' key (for file and directory permission flags)")
     
     regexp_to_match = "^({0},)*({0})$".format("[ugoa]+[+=-][rwx]+" )
-    for key, flags in recursive_mode_flags.iteritems():
+    for key, flags in recursive_mode_flags.items():
       if key != 'd' and key != 'f':
         raise Fail("'recursive_mode_flags' with value '%s' has unknown key '%s', only keys 'f' and 'd' are valid" % (str(recursive_mode_flags), str(key)))
           
@@ -154,7 +154,7 @@ class FileProvider(Provider):
     content = self.resource.content
     if content is None:
       return None
-    elif isinstance(content, basestring):
+    elif isinstance(content, str):
       return content
     elif hasattr(content, "__call__"):
       return content()
@@ -182,13 +182,13 @@ class DirectoryProvider(Provider):
           Logger.info("Following the link {0} to {1} to create the directory".format(self.resource.path, path))
 
       if self.resource.create_parents:
-        sudo.makedirs(path, self.resource.mode or 0755)
+        sudo.makedirs(path, self.resource.mode or 0o755)
       else:
         dirname = os.path.dirname(path)
         if not sudo.path_isdir(dirname):
           raise Fail("Applying %s failed, parent directory %s doesn't exist" % (self.resource, dirname))
         
-        sudo.makedir(path, self.resource.mode or 0755)
+        sudo.makedir(path, self.resource.mode or 0o755)
       
     if not sudo.path_isdir(path):
       raise Fail("Applying %s failed, file %s already exists" % (self.resource, path))

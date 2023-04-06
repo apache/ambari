@@ -78,7 +78,7 @@ class ServiceCheckDefault(ServiceCheck):
     try_count = 1
     if params.nimbus_hosts and len(params.nimbus_hosts) > 1:
       try_count = 3
-      print("Nimbus HA is enabled. The check may be retried up to %d times in order to wait for the Nimbus leader selection" % try_count)
+      print(("Nimbus HA is enabled. The check may be retried up to %d times in order to wait for the Nimbus leader selection" % try_count))
     Execute(cmd,
             logoutput=True,
             path=params.storm_bin_dir,

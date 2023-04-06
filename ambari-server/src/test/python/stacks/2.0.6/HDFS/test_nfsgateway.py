@@ -61,7 +61,7 @@ class TestNFSGateway(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/hadoop',
                               owner = 'root',
                               group = 'root',
-                              mode = 0755
+                              mode = 0o755
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/root',
                               owner = 'root',
@@ -71,7 +71,7 @@ class TestNFSGateway(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/log/hadoop/root',
                               owner = 'root',
                               group = 'hadoop',
-                              mode = 0775
+                              mode = 0o775
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/root/hadoop_privileged_nfs3.pid',
         action = ['delete'],
@@ -79,9 +79,9 @@ class TestNFSGateway(RMFTestCase):
     )
     self.assertResourceCalled('Execute', 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start nfs3',
         environment = {'HADOOP_LIBEXEC_DIR': '/usr/lib/hadoop/libexec',
-           'HADOOP_PRIVILEGED_NFS_LOG_DIR': u'/var/log/hadoop/root',
-           'HADOOP_PRIVILEGED_NFS_PID_DIR': u'/var/run/hadoop/root',
-           'HADOOP_PRIVILEGED_NFS_USER': u'hdfs'},
+           'HADOOP_PRIVILEGED_NFS_LOG_DIR': '/var/log/hadoop/root',
+           'HADOOP_PRIVILEGED_NFS_PID_DIR': '/var/run/hadoop/root',
+           'HADOOP_PRIVILEGED_NFS_USER': 'hdfs'},
         not_if = "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop/root/hadoop_privileged_nfs3.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop/root/hadoop_privileged_nfs3.pid",
     )
     self.assertNoMoreResources()
@@ -96,9 +96,9 @@ class TestNFSGateway(RMFTestCase):
     )
     self.assertResourceCalled('Execute', 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop nfs3',
         environment = {'HADOOP_LIBEXEC_DIR': '/usr/lib/hadoop/libexec',
-           'HADOOP_PRIVILEGED_NFS_LOG_DIR': u'/var/log/hadoop/root',
-           'HADOOP_PRIVILEGED_NFS_PID_DIR': u'/var/run/hadoop/root',
-           'HADOOP_PRIVILEGED_NFS_USER': u'hdfs'},
+           'HADOOP_PRIVILEGED_NFS_LOG_DIR': '/var/log/hadoop/root',
+           'HADOOP_PRIVILEGED_NFS_PID_DIR': '/var/run/hadoop/root',
+           'HADOOP_PRIVILEGED_NFS_USER': 'hdfs'},
         only_if = "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop/root/hadoop_privileged_nfs3.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop/root/hadoop_privileged_nfs3.pid")
 
     self.assertResourceCalled('File', '/var/run/hadoop/root/hadoop_privileged_nfs3.pid', action = ['delete'])
@@ -129,7 +129,7 @@ class TestNFSGateway(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/hadoop',
                               owner = 'root',
                               group = 'root',
-                              mode = 0755
+                              mode = 0o755
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/root',
                               owner = 'root',
@@ -139,7 +139,7 @@ class TestNFSGateway(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/log/hadoop/root',
                               owner = 'root',
                               group = 'hadoop',
-                              mode = 0775
+                              mode = 0o775
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/root/hadoop_privileged_nfs3.pid',
         action = ['delete'],
@@ -147,9 +147,9 @@ class TestNFSGateway(RMFTestCase):
     )
     self.assertResourceCalled('Execute', 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start nfs3',
         environment = {'HADOOP_LIBEXEC_DIR': '/usr/lib/hadoop/libexec',
-           'HADOOP_PRIVILEGED_NFS_LOG_DIR': u'/var/log/hadoop/root',
-           'HADOOP_PRIVILEGED_NFS_PID_DIR': u'/var/run/hadoop/root',
-           'HADOOP_PRIVILEGED_NFS_USER': u'hdfs'},
+           'HADOOP_PRIVILEGED_NFS_LOG_DIR': '/var/log/hadoop/root',
+           'HADOOP_PRIVILEGED_NFS_PID_DIR': '/var/run/hadoop/root',
+           'HADOOP_PRIVILEGED_NFS_USER': 'hdfs'},
         not_if = "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop/root/hadoop_privileged_nfs3.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop/root/hadoop_privileged_nfs3.pid",
     )
     self.assertNoMoreResources()
@@ -164,9 +164,9 @@ class TestNFSGateway(RMFTestCase):
     )
     self.assertResourceCalled('Execute', 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop nfs3',
         environment = {'HADOOP_LIBEXEC_DIR': '/usr/lib/hadoop/libexec',
-           'HADOOP_PRIVILEGED_NFS_LOG_DIR': u'/var/log/hadoop/root',
-           'HADOOP_PRIVILEGED_NFS_PID_DIR': u'/var/run/hadoop/root',
-           'HADOOP_PRIVILEGED_NFS_USER': u'hdfs'},
+           'HADOOP_PRIVILEGED_NFS_LOG_DIR': '/var/log/hadoop/root',
+           'HADOOP_PRIVILEGED_NFS_PID_DIR': '/var/run/hadoop/root',
+           'HADOOP_PRIVILEGED_NFS_USER': 'hdfs'},
         only_if = "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop/root/hadoop_privileged_nfs3.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop/root/hadoop_privileged_nfs3.pid")
 
     self.assertResourceCalled('File', '/var/run/hadoop/root/hadoop_privileged_nfs3.pid', action = ['delete'])
@@ -194,7 +194,7 @@ class TestNFSGateway(RMFTestCase):
                               content = Template('hdfs.conf.j2'),
                               owner = 'root',
                               group = 'root',
-                              mode = 0644,
+                              mode = 0o644,
                               )
     self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
                               owner = 'hdfs',
@@ -209,7 +209,7 @@ class TestNFSGateway(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               configurations = self.getConfig()['configurations']['core-site'],
                               configuration_attributes = self.getConfig()['configurationAttributes']['core-site'],
-                              mode = 0644
+                              mode = 0o644
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/slaves',
                               content = Template('slaves.j2'),
@@ -243,7 +243,7 @@ class TestNFSGateway(RMFTestCase):
                               content = Template('hdfs.conf.j2'),
                               owner = 'root',
                               group = 'root',
-                              mode = 0644,
+                              mode = 0o644,
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/hdfs_dn_jaas.conf',
                               content = Template('hdfs_dn_jaas.conf.j2'),
@@ -268,7 +268,7 @@ class TestNFSGateway(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               configurations = self.getConfig()['configurations']['core-site'],
                               configuration_attributes = self.getConfig()['configurationAttributes']['core-site'],
-                              mode = 0644
+                              mode = 0o644
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/slaves',
                               content = Template('slaves.j2'),

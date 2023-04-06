@@ -87,7 +87,7 @@ if 0 != len(ganglia_server_hosts):
   ganglia_server_host = ganglia_server_hosts[0]
 
 hostname = None
-if config['agentLevelParams'].has_key('hostname'):
+if 'hostname' in config['agentLevelParams']:
   hostname = config['agentLevelParams']['hostname']
 
 set_instanceId = "false"

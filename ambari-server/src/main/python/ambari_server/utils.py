@@ -24,8 +24,9 @@ import socket
 import sys
 import time
 import glob
-from ambari_commons import subprocess32
+import subprocess
 import logging
+import distro
 import platform
 import xml.etree.ElementTree as ET
 
@@ -57,6 +58,8 @@ def get_pg_hba_init_files():
     return '/etc/rc.d/init.d/postgresql'
   elif OSCheck.is_suse_family():
     return '/etc/init.d/postgresql'
+  elif OSCheck.is_openeuler_family():
+    return '/etc/pam.d/postgresql'
   else:
     raise Exception("Unsupported OS family '{0}'".format(OSCheck.get_os_family()))
 
@@ -172,7 +175,7 @@ def wait_for_ui_start(ambari_server_ui_port, pid, timeout=1):
       sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
       sock.settimeout(1)
       sock.connect(('localhost', ambari_server_ui_port))
-      print "\nServer started listening on " + str(ambari_server_ui_port)
+      print("\nServer started listening on " + str(ambari_server_ui_port))
       return True
     except Exception as e:
       #print str(e)
@@ -215,7 +218,7 @@ def looking_for_pid(pattern, wait_time=1):
     found_pids = []  # clear list
     for pid in pids:
       try:
-        arg = open(os.path.join(PROC_DIR, pid, PROC_CMDLINE), 'rb').read()
+        arg = open(os.path.join(PROC_DIR, pid, PROC_CMDLINE), 'rt').read()
         if pattern in arg:
           found_pids += [{
             "pid": pid,
@@ -272,10 +275,10 @@ def get_postgre_hba_dir(OS_FAMILY):
     pg_hba_init_basename = os.path.basename(get_pg_hba_init_files())
     # Get postgres_data location (default: /var/lib/pgsql/data)
     cmd = "alias basename='echo {0}; true' ; alias exit=return; source {1} status &>/dev/null; echo $PGDATA".format(pg_hba_init_basename, get_pg_hba_init_files())
-    p = subprocess32.Popen(cmd,
-                         stdout=subprocess32.PIPE,
-                         stdin=subprocess32.PIPE,
-                         stderr=subprocess32.PIPE,
+    p = subprocess.Popen(cmd,
+                         stdout=subprocess.PIPE,
+                         stdin=subprocess.PIPE,
+                         stderr=subprocess.PIPE,
                          shell=True)
     (PG_HBA_ROOT, err) = p.communicate()
 
@@ -320,6 +323,8 @@ def compare_versions(version1, version2):
     if pos > 0:
       v = v[0:pos]
     return [int(x) for x in re.sub(r'(\.0+)*$', '', v).split(".")]
+  def cmp(a, b):
+    return (a > b) - (a < b)
   return cmp(normalize(version1), normalize(version2))
   pass
 

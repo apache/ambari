@@ -18,7 +18,7 @@ limitations under the License.
 
 """
 
-from accumulo_script import AccumuloScript
+from .accumulo_script import AccumuloScript
 
 if __name__ == "__main__":
   AccumuloScript('master').execute()

@@ -63,11 +63,11 @@ def convert_to_datetime(input):
         return input
     elif isinstance(input, date):
         return datetime.fromordinal(input.toordinal())
-    elif isinstance(input, basestring):
+    elif isinstance(input, str):
         m = _DATE_REGEX.match(input)
         if not m:
             raise ValueError('Invalid date string')
-        values = [(k, int(v or 0)) for k, v in m.groupdict().items()]
+        values = [(k, int(v or 0)) for k, v in list(m.groupdict().items())]
         values = dict(values)
         return datetime(**values)
     raise TypeError('Unsupported input type: %s' % type(input))
@@ -125,7 +125,7 @@ def combine_opts(global_config, prefix, local_config={}):
     """
     prefixlen = len(prefix)
     subconf = {}
-    for key, value in global_config.items():
+    for key, value in list(global_config.items()):
         if key.startswith(prefix):
             key = key[prefixlen:]
             subconf[key] = value
@@ -177,7 +177,7 @@ def ref_to_obj(ref):
     """
     Returns the object pointed to by ``ref``.
     """
-    if not isinstance(ref, basestring):
+    if not isinstance(ref, str):
         raise TypeError('References must be strings')
     if not ':' in ref:
         raise ValueError('Invalid reference')
@@ -219,12 +219,12 @@ def to_unicode(string, encoding='ascii'):
 
 
 if sys.version_info < (3, 0):  # pragma: nocover
-    iteritems = lambda d: d.iteritems()
-    itervalues = lambda d: d.itervalues()
+    iteritems = lambda d: iter(d.items())
+    itervalues = lambda d: iter(d.values())
     xrange = xrange
-    basestring = basestring
+    str = str
 else:  # pragma: nocover
-    iteritems = lambda d: d.items()
-    itervalues = lambda d: d.values()
+    iteritems = lambda d: list(d.items())
+    itervalues = lambda d: list(d.values())
     xrange = range
-    basestring = str
+    str = str

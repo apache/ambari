@@ -64,7 +64,7 @@ class HawqMaster(Script):
 
 
   def status(self, env):
-    from hawqstatus import assert_component_running
+    from .hawqstatus import assert_component_running
     assert_component_running(hawq_constants.MASTER)
 
 
@@ -74,7 +74,7 @@ class HawqMaster(Script):
 
   def hawq_clear_cache(self, env):
     import params
-    from utils import exec_psql_cmd
+    from .utils import exec_psql_cmd
     cmd = "SELECT gp_metadata_cache_clear()"
     Logger.info("Clearing HAWQ's HDFS Metadata cache ...")
     exec_psql_cmd(cmd, params.hawqmaster_host, params.hawq_master_address_port)

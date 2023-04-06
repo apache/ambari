@@ -14,9 +14,9 @@
 # limitations under the License.
 
 
-from urlparse import urlparse
+from urllib.parse import urlparse
 import logging
-import httplib
+import http.client
 import ssl
 from ssl import SSLError
 from ambari_agent.AmbariConfig import AmbariConfig
@@ -68,9 +68,9 @@ class NetUtil:
 
       # hasattr being true means that current python version has default cert verification enabled.
       if hasattr(ssl, '_create_unverified_context') and not ssl_verify_cert:
-          ca_connection = httplib.HTTPSConnection(parsedurl[1], context=ssl._create_unverified_context())
+          ca_connection = http.client.HTTPSConnection(parsedurl[1], context=ssl._create_unverified_context())
       else:
-          ca_connection = httplib.HTTPSConnection(parsedurl[1])
+          ca_connection = http.client.HTTPSConnection(parsedurl[1])
 
       ca_connection.request("GET", parsedurl[2])
       response = ca_connection.getresponse()
@@ -88,7 +88,7 @@ class NetUtil:
       logger.error(ERROR_SSL_WRONG_VERSION)
       return False, responseBody
 
-    except Exception, e:
+    except Exception as e:
       logger.warning("Failed to connect to " + str(url) + " due to " + str(e) + "  ")
       return False, responseBody
 

@@ -57,7 +57,7 @@ class OozieUpgrade(Script):
       params.version_for_stack_feature_checks)
 
     # ensure the directory exists
-    Directory(params.oozie_libext_dir, mode = 0777)
+    Directory(params.oozie_libext_dir, mode = 0o777)
 
     # get all hadooplzo* JAR files
     # <stack-selector-tool> set hadoop-client has not run yet, therefore we cannot use
@@ -115,7 +115,7 @@ class OozieUpgrade(Script):
           Logger.info("Copying {0} to {1}".format(source_ext_zip_path, params.oozie_libext_dir))
           Execute(("cp", source_ext_zip_path, params.oozie_libext_dir), sudo=True)
           Execute(("chown", format("{oozie_user}:{user_group}"), oozie_ext_zip_target_path), sudo=True)
-          File(oozie_ext_zip_target_path, mode=0644)
+          File(oozie_ext_zip_target_path, mode=0o644)
           break
 
     # ExtJS was expected to the be on the system, but was not found
@@ -240,7 +240,7 @@ class OozieUpgrade(Script):
       type = "directory",
       owner = params.oozie_user,
       group = params.user_group,
-      mode = 0755,
+      mode = 0o755,
       recursive_chmod = True)
 
     params.HdfsResource(None, action = "execute")

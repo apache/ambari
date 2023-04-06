@@ -52,7 +52,7 @@ class TestHcatClient(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'hive-site.xml',
       owner = 'hive',
       group = 'hadoop',
-      mode = 0644,
+      mode = 0o644,
       conf_dir = '/usr/hdp/current/hive-server2/conf',
       configurations = self.getConfig()['configurations']['hive-site'],
       configuration_attributes = self.getConfig()['configurationAttributes']['hive-site']
@@ -91,7 +91,7 @@ class TestHcatClient(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'hive-site.xml',
       owner = 'hive',
       group = 'hadoop',
-      mode = 0644,
+      mode = 0o644,
       conf_dir = '/usr/hdp/current/hive-server2/conf',
       configurations = self.getConfig()['configurations']['hive-site'],
       configuration_attributes = self.getConfig()['configurationAttributes']['hive-site']

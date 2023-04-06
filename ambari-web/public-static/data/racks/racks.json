@@ -1,0 +1,12 @@
+{
+  "href": "http://localhost:8080/api/racks?fields=*",
+  "items": [
+    {
+      "href": "http://localhost:8080/api/racks/1",
+      "Racks": {
+        "id": 1,
+        "name": "Default Rack"
+      }
+    }
+  ]
+}

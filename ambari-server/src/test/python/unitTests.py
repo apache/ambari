@@ -22,7 +22,7 @@ import os
 import sys
 import re
 import traceback
-from Queue import Empty
+from queue import Empty
 from random import shuffle
 import fnmatch
 import tempfile
@@ -147,7 +147,7 @@ def resolve_paths_to_import_from_common_services(metainfo_file, base_stack_folde
       if os.path.isdir(inherited_from_older_version_path):
         paths_to_import += resolve_paths_to_import_from_common_services(metainfo_file, inherited_from_older_version_path, common_services_parent_dir, service)
   else:
-    print "Service %s. Could not get extract <extends></extends> from metainfo file: %s. This may prevent modules from being imported." % (service, str(metainfo_file))
+    print("Service %s. Could not get extract <extends></extends> from metainfo file: %s. This may prevent modules from being imported." % (service, str(metainfo_file)))
 
   return paths_to_import
 

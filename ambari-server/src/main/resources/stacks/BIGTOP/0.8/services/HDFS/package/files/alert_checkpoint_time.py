@@ -19,7 +19,7 @@ limitations under the License.
 """
 
 import time
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import json
 
 LABEL = 'Last Checkpoint: [{h} hours, {m} minutes, {tx} transactions]'
@@ -139,7 +139,7 @@ def execute(configurations={}, parameters={}, host_name=None):
     elif (transaction_difference > int(checkpoint_tx)) and (float(delta) / int(checkpoint_period)*100 >= int(percent_warning)):
       result_code = 'WARNING'
 
-  except Exception, e:
+  except Exception as e:
     label = str(e)
     result_code = 'UNKNOWN'
         
@@ -155,7 +155,7 @@ def get_value_from_jmx(query, jmx_property, connection_timeout):
   response = None
   
   try:
-    response = urllib2.urlopen(query, timeout=connection_timeout)
+    response = urllib.request.urlopen(query, timeout=connection_timeout)
     data = response.read()
 
     data_dict = json.loads(data)

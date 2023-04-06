@@ -26,7 +26,7 @@ build: clean
 	$(PYTHON) setup.py build
 
 install: build
-	if test $(PYTHON) = python2.4; then \
+	if test $(PYTHON) = python3; then \
 		$(PYTHON) setup.py install; \
 	elif test $(PYTHON) = python2.5; then \
 		$(PYTHON) setup.py install; \
@@ -35,8 +35,8 @@ install: build
 	fi
 
 uninstall:
-	if test $(PYTHON) = python2.4; then \
-		pip-2.4 uninstall -y -v psutil; \
+	if test $(PYTHON) = python3; then \
+		pip3 uninstall -y -v psutil; \
 	else \
 		cd ..; $(PYTHON) -m pip uninstall -y -v psutil; \
 	fi

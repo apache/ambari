@@ -287,11 +287,11 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     putHDFSProperty = self.putProperty(configurations, "hadoop-env", services)
     putHDFSSiteProperty = self.putProperty(configurations, "hdfs-site", services)
     putHDFSSitePropertyAttributes = self.putPropertyAttribute(configurations, "hdfs-site")
-    putHDFSProperty('namenode_heapsize', max(int(clusterData['totalAvailableRam'] / 2), 1024))
+    putHDFSProperty('namenode_heapsize', max(int(clusterData['totalAvailableRam'] // 2), 1024))
     putHDFSProperty = self.putProperty(configurations, "hadoop-env", services)
-    putHDFSProperty('namenode_opt_newsize', max(int(clusterData['totalAvailableRam'] / 8), 128))
+    putHDFSProperty('namenode_opt_newsize', max(int(clusterData['totalAvailableRam'] // 8), 128))
     putHDFSProperty = self.putProperty(configurations, "hadoop-env", services)
-    putHDFSProperty('namenode_opt_maxnewsize', max(int(clusterData['totalAvailableRam'] / 8), 256))
+    putHDFSProperty('namenode_opt_maxnewsize', max(int(clusterData['totalAvailableRam'] // 8), 256))
 
     # Check if NN HA is enabled and recommend removing dfs.namenode.rpc-address
     hdfsSiteProperties = getServicesSiteProperties(services, "hdfs-site")
@@ -325,15 +325,15 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     # dfs.datanode.du.reserved should be set to 10-15% of volume size
     # For each host selects maximum size of the volume. Then gets minimum for all hosts.
     # This ensures that each host will have at least one data dir with available space.
-    reservedSizeRecommendation = 0l #kBytes
+    reservedSizeRecommendation = 0 #kBytes
     for host in hosts["items"]:
       mountPoints = []
       mountPointDiskAvailableSpace = [] #kBytes
       for diskInfo in host["Hosts"]["disk_info"]:
         mountPoints.append(diskInfo["mountpoint"])
-        mountPointDiskAvailableSpace.append(long(diskInfo["size"]))
+        mountPointDiskAvailableSpace.append(int(diskInfo["size"]))
 
-      maxFreeVolumeSizeForHost = 0l #kBytes
+      maxFreeVolumeSizeForHost = 0 #kBytes
       for dataDir in dataDirs:
         mp = self.getMountPointForDir(dataDir, mountPoints)
         for i in range(len(mountPoints)):
@@ -345,7 +345,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         reservedSizeRecommendation = maxFreeVolumeSizeForHost
 
     if reservedSizeRecommendation:
-      reservedSizeRecommendation = max(reservedSizeRecommendation * 1024 / 8, 1073741824) # At least 1Gb is reserved
+      reservedSizeRecommendation = max(reservedSizeRecommendation * 1024 // 8, 1073741824) # At least 1Gb is reserved
       putHDFSSiteProperty('dfs.datanode.du.reserved', reservedSizeRecommendation) #Bytes
 
     # recommendations for "hadoop.proxyuser.*.hosts", "hadoop.proxyuser.*.groups" properties in core-site
@@ -616,7 +616,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     # Dictionary from component name to list of dictionary with keys: config-name, property, default.
     heapSizeProperties = self.get_heap_size_properties(services)
     for component in components:
-      if component in heapSizeProperties.keys():
+      if component in list(heapSizeProperties.keys()):
         heapSizePropertiesForComp = heapSizeProperties[component]
         for heapSizeProperty in heapSizePropertiesForComp:
           try:
@@ -720,7 +720,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
                 if nmHostName in component["StackServiceComponents"]["hostnames"]:
                   componentNames.append(component["StackServiceComponents"]["component_name"])
           requiredMemory = self.getMemorySizeRequired(services, componentNames, configurations)
-          unusedMemory = int((nmHost["Hosts"]["total_mem"] * 1024 - requiredMemory)/ (1024 * 1024)) # in MB
+          unusedMemory = int((nmHost["Hosts"]["total_mem"] * 1024 - requiredMemory)// (1024 * 1024)) # in MB
           if nmMemory > unusedMemory:
             nmLowMemoryHosts.append(nmHostName)
 
@@ -803,7 +803,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     return []
 
   def mergeValidators(self, parentValidators, childValidators):
-    for service, configsDict in childValidators.iteritems():
+    for service, configsDict in childValidators.items():
       if service not in parentValidators:
         parentValidators[service] = {}
       parentValidators[service].update(configsDict)
@@ -831,7 +831,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
 def getUserOperationContext(services, contextName):
   if services:
-    if 'user-context' in services.keys():
+    if 'user-context' in list(services.keys()):
       userContext = services["user-context"]
       if contextName in userContext:
         return userContext[contextName]
@@ -840,7 +840,7 @@ def getUserOperationContext(services, contextName):
 # if serviceName is being added
 def isServiceBeingAdded(services, serviceName):
   if services:
-    if 'user-context' in services.keys():
+    if 'user-context' in list(services.keys()):
       userContext = services["user-context"]
       if DefaultStackAdvisor.OPERATION in userContext and \
               'AddService' == userContext[DefaultStackAdvisor.OPERATION] and \

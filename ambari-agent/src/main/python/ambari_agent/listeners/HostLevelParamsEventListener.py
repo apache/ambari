@@ -50,7 +50,7 @@ class HostLevelParamsEventListener(EventListener):
 
     if message['clusters']:
       # FIXME: Recovery manager does not support multiple cluster as of now.
-      cluster_id = message['clusters'].keys()[0]
+      cluster_id = list(message['clusters'].keys())[0]
 
       if 'recoveryConfig' in message['clusters'][cluster_id]:
         logging.info("Updating recoveryConfig from hostLevelParams")

@@ -13,7 +13,7 @@ import sys
 import time
 
 from psutil._common import sdiskusage, usage_percent, memoize
-from psutil._compat import PY3, unicode
+from psutil._compat import PY3, str
 
 
 class TimeoutExpired(Exception):
@@ -120,7 +120,7 @@ def disk_usage(path):
     try:
         st = os.statvfs(path)
     except UnicodeEncodeError:
-        if not PY3 and isinstance(path, unicode):
+        if not PY3 and isinstance(path, str):
             # this is a bug with os.statvfs() and unicode on
             # Python 2, see:
             # - https://code.google.com/p/psutil/issues/detail?id=416

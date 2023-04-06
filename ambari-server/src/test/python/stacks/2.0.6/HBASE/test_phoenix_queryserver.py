@@ -20,12 +20,13 @@ limitations under the License.
 import json
 import sys
 import unittest
+import distro
 
 from mock.mock import MagicMock, patch
 from stacks.utils.RMFTestCase import *
 
 
-@patch("platform.linux_distribution", new = MagicMock(return_value = "Linux"))
+@patch("distro.linux_distribution", new = MagicMock(return_value = "Linux"))
 @patch("os.path.exists", new = MagicMock(return_value = True))
 class TestPhoenixQueryServer(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "HBASE/0.96.0.2.0/package"
@@ -168,7 +169,7 @@ class TestPhoenixQueryServer(RMFTestCase):
       target = RMFTestCase.TARGET_COMMON_SERVICES)
 
     self.assertResourceCalled('Directory', '/etc/hbase',
-      mode = 0755)
+      mode = 0o755)
 
     self.assertResourceCalled('Directory',
       '/usr/hdp/current/hbase-regionserver/conf',
@@ -209,7 +210,7 @@ class TestPhoenixQueryServer(RMFTestCase):
 
     self.assertResourceCalled('File',
       '/usr/lib/phoenix/bin/log4j.properties',
-      mode = 0644,
+      mode = 0o644,
       group = 'hadoop',
       owner = 'hbase',
       content = 'log4jproperties\nline2')
@@ -223,7 +224,7 @@ class TestPhoenixQueryServer(RMFTestCase):
 
   def assert_configure_default(self):
     self.assertResourceCalled('Directory', '/etc/hbase',
-      mode = 0755
+      mode = 0o755
     )
     self.assertResourceCalled('Directory',
       '/usr/hdp/current/hbase-regionserver/conf',
@@ -233,13 +234,13 @@ class TestPhoenixQueryServer(RMFTestCase):
     )
     self.assertResourceCalled('Directory', '/tmp',
       create_parents = True,
-      mode = 0777
+      mode = 0o777
     )
     self.assertResourceCalled('Directory', '/hadoop',
                               create_parents = True,
                               cd_access = 'a',
                               )
-    self.assertResourceCalled('Execute', ('chmod', '1777', u'/hadoop'),
+    self.assertResourceCalled('Execute', ('chmod', '1777', '/hadoop'),
                               sudo = True,
                               )
     self.assertResourceCalled('XmlConfig', 'hbase-site.xml',
@@ -290,7 +291,7 @@ class TestPhoenixQueryServer(RMFTestCase):
       content = Template('hbase.conf.j2'),
       owner = 'root',
       group = 'root',
-      mode = 0644,
+      mode = 0o644,
     )    
     self.assertResourceCalled('TemplateConfig',
       '/usr/hdp/current/hbase-regionserver/conf/hadoop-metrics2-hbase.properties',
@@ -305,18 +306,18 @@ class TestPhoenixQueryServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/hbase',
       owner = 'hbase',
       create_parents = True,
-      mode = 0755,
+      mode = 0o755,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/hbase',
       owner = 'hbase',
       create_parents = True,
-      mode = 0755,
+      mode = 0o755,
       cd_access = 'a',
     )
     self.assertResourceCalled('File',
       '/usr/hdp/current/hbase-regionserver/conf/log4j.properties',
-      mode = 0644,
+      mode = 0o644,
       group = 'hadoop',
       owner = 'hbase',
       content = InlineTemplate('log4jproperties\nline2')
@@ -324,7 +325,7 @@ class TestPhoenixQueryServer(RMFTestCase):
 
   def assert_configure_secured(self):
     self.assertResourceCalled('Directory', '/etc/hbase',
-      mode = 0755
+      mode = 0o755
     )
     self.assertResourceCalled('Directory',
       '/usr/hdp/current/hbase-regionserver/conf',
@@ -334,13 +335,13 @@ class TestPhoenixQueryServer(RMFTestCase):
     )
     self.assertResourceCalled('Directory', '/tmp',
       create_parents = True,
-      mode = 0777
+      mode = 0o777
     )
     self.assertResourceCalled('Directory', '/hadoop',
                               create_parents = True,
                               cd_access = 'a',
                               )
-    self.assertResourceCalled('Execute', ('chmod', '1777', u'/hadoop'),
+    self.assertResourceCalled('Execute', ('chmod', '1777', '/hadoop'),
                               sudo = True,
                               )
     self.assertResourceCalled('XmlConfig', 'hbase-site.xml',
@@ -391,7 +392,7 @@ class TestPhoenixQueryServer(RMFTestCase):
       content = Template('hbase.conf.j2'),
       owner = 'root',
       group = 'root',
-      mode = 0644,
+      mode = 0o644,
     )
     self.assertResourceCalled('TemplateConfig',
       '/usr/hdp/current/hbase-regionserver/conf/hadoop-metrics2-hbase.properties',
@@ -411,18 +412,18 @@ class TestPhoenixQueryServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/hbase',
       owner = 'hbase',
       create_parents = True,
-      mode = 0755,
+      mode = 0o755,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/hbase',
       owner = 'hbase',
       create_parents = True,
-      mode = 0755,
+      mode = 0o755,
       cd_access = 'a',
     )
     self.assertResourceCalled('File',
       '/usr/hdp/current/hbase-regionserver/conf/log4j.properties',
-      mode = 0644,
+      mode = 0o644,
       group = 'hadoop',
       owner = 'hbase',
       content = InlineTemplate('log4jproperties\nline2')

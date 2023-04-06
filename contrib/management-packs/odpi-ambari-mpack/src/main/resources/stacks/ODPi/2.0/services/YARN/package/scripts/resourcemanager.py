@@ -40,11 +40,11 @@ from resource_management import is_empty
 from resource_management import shell
 
 
-from yarn import yarn
-from service import service
+from .yarn import yarn
+from .service import service
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
-from setup_ranger_yarn import setup_ranger_yarn
+from .setup_ranger_yarn import setup_ranger_yarn
 
 
 class Resourcemanager(Script):
@@ -52,12 +52,12 @@ class Resourcemanager(Script):
     self.install_packages(env)
 
   def stop(self, env, upgrade_type=None):
-    import params
+    from . import params
     env.set_params(params)
     service('resourcemanager', action='stop')
 
   def configure(self, env):
-    import params
+    from . import params
     env.set_params(params)
     yarn(name='resourcemanager')
 
@@ -69,7 +69,7 @@ class Resourcemanager(Script):
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class ResourcemanagerWindows(Resourcemanager):
   def start(self, env):
-    import params
+    from . import params
     env.set_params(params)
     self.configure(env)
     service('resourcemanager', action='start')
@@ -78,7 +78,7 @@ class ResourcemanagerWindows(Resourcemanager):
     service('resourcemanager', action='status')
 
   def decommission(self, env):
-    import params
+    from . import params
 
     env.set_params(params)
     yarn_user = params.yarn_user
@@ -110,14 +110,14 @@ class ResourcemanagerDefault(Resourcemanager):
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing Stack Upgrade post-restart")
-    import params
+    from . import params
     env.set_params(params)
 
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
       stack_select.select("hadoop-yarn-resourcemanager", params.version)
 
   def start(self, env, upgrade_type=None):
-    import params
+    from . import params
 
     env.set_params(params)
     self.configure(env) # FOR SECURITY
@@ -132,14 +132,14 @@ class ResourcemanagerDefault(Resourcemanager):
     service('resourcemanager', action='start')
 
   def status(self, env):
-    import status_params
+    from . import status_params
 
     env.set_params(status_params)
     check_process_status(status_params.resourcemanager_pid_file)
     pass
 
   def security_status(self, env):
-    import status_params
+    from . import status_params
     env.set_params(status_params)
     if status_params.security_enabled:
       props_value_check = {"yarn.timeline-service.http-authentication.type": "kerberos",
@@ -199,7 +199,7 @@ class ResourcemanagerDefault(Resourcemanager):
       self.put_structured_out({"securityState": "UNSECURED"})
 
   def refreshqueues(self, env):
-    import params
+    from . import params
 
     self.configure(env)
     env.set_params(params)
@@ -209,7 +209,7 @@ class ResourcemanagerDefault(Resourcemanager):
     )
 
   def decommission(self, env):
-    import params
+    from . import params
 
     env.set_params(params)
     rm_kinit_cmd = params.rm_kinit_cmd
@@ -243,7 +243,7 @@ class ResourcemanagerDefault(Resourcemanager):
 
 
   def wait_for_dfs_directories_created(self, *dirs):
-    import params
+    from . import params
 
     ignored_dfs_dirs = HdfsResourceProvider.get_ignored_resources_list(params.hdfs_resource_ignore_file)
 
@@ -261,7 +261,7 @@ class ResourcemanagerDefault(Resourcemanager):
 
   @retry(times=8, sleep_time=20, backoff_factor=1, err_class=Fail)
   def wait_for_dfs_directory_created(self, dir_path, ignored_dfs_dirs):
-    import params
+    from . import params
 
 
     if not is_empty(dir_path):
@@ -291,11 +291,11 @@ class ResourcemanagerDefault(Resourcemanager):
         Logger.info("DFS directory '" + dir_path + "' exists.")
 
   def get_log_folder(self):
-    import params
+    from . import params
     return params.yarn_log_dir
   
   def get_user(self):
-    import params
+    from . import params
     return params.yarn_user
   
 if __name__ == "__main__":

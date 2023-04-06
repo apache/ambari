@@ -21,7 +21,7 @@ limitations under the License.
 import threading
 import subprocess
 import logging
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 
 logger = logging.getLogger()
 class Aggregator(threading.Thread):
@@ -82,11 +82,11 @@ class AggregatorWatchdog(threading.Thread):
       if 0 == self._stop_handler.wait(self.SLEEP_TIME):
         break
       try:
-        conn = urllib2.urlopen(self.URL, timeout=self.CONNECTION_TIMEOUT)
+        conn = urllib.request.urlopen(self.URL, timeout=self.CONNECTION_TIMEOUT)
         self.set_is_ok(True)
       except (KeyboardInterrupt, SystemExit):
         raise
-      except Exception, e:
+      except Exception as e:
         self.set_is_ok(False)
         continue
       if conn.code != 200:

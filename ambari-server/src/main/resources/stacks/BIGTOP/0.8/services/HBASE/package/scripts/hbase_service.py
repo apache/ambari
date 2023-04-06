@@ -24,7 +24,7 @@ def hbase_service(
   name,
   action = 'start'): # 'start' or 'stop' or 'status'
     
-    import params
+    from . import params
   
     role = name
     cmd = format("{daemon_script} --config {hbase_conf_dir}")

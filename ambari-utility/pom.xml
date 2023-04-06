@@ -29,7 +29,6 @@
 
   <artifactId>ambari-utility</artifactId>
   <groupId>org.apache.ambari</groupId>
-  <version>1.0.0.0-SNAPSHOT</version>
 
   <dependencies>
     <dependency>
@@ -49,6 +48,10 @@
         <exclusion>
           <groupId>com.fasterxml.jackson.dataformat</groupId>
           <artifactId>jackson-dataformat-xml</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.commons</groupId>
+          <artifactId>commons-lang3</artifactId>
         </exclusion>
       </exclusions>
     </dependency>

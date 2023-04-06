@@ -126,7 +126,7 @@ latex_documents = [
 
 # Additional stuff for the LaTeX preamble.
 latex_preamble = '''
-\usepackage{palatino}
+\\usepackage{palatino}
 \definecolor{TitleColor}{rgb}{0.7,0,0}
 \definecolor{InnerLinkColor}{rgb}{0.7,0,0}
 \definecolor{OuterLinkColor}{rgb}{0.8,0,0}

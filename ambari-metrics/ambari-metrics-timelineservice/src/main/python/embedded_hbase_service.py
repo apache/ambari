@@ -80,9 +80,9 @@ class EmbeddedHBaseService:
 
   @classmethod
   def Install(cls, startupMode = "auto", username = None, password = None):
-    print "Installing service %s" % (cls._svc_name_)
+    print("Installing service %s" % (cls._svc_name_))
 
-    # Configure master.xml, which drives the java subprocess32
+    # Configure master.xml, which drives the java subprocess
     java_path = get_java_exe_path()
     java_args = _build_master_java_args(username)
 
@@ -120,18 +120,18 @@ class EmbeddedHBaseService:
                                         None,
                                         username,
                                         password)
-        print "Service installed"
+        print("Service installed")
         win32service.CloseServiceHandle(hs)
       finally:
         win32service.CloseServiceHandle(hscm)
-    except win32service.error, exc:
+    except win32service.error as exc:
       if exc.winerror==winerror.ERROR_SERVICE_EXISTS:
         cls.Update(username, password)
       else:
-        print "Error installing service: %s (%d)" % (exc.strerror, exc.winerror)
+        print("Error installing service: %s (%d)" % (exc.strerror, exc.winerror))
         err = exc.winerror
-    except ValueError, msg: # Can be raised by custom option handler.
-      print "Error installing service: %s" % str(msg)
+    except ValueError as msg: # Can be raised by custom option handler.
+      print("Error installing service: %s" % str(msg))
       err = -1
       # xxx - maybe I should remove after _any_ failed install - however,
       # xxx - it may be useful to help debug to leave the service as it failed.
@@ -141,7 +141,7 @@ class EmbeddedHBaseService:
       try:
         RemoveService(cls._svc_name_)
       except win32api.error:
-        print "Warning - could not remove the partially installed service."
+        print("Warning - could not remove the partially installed service.")
 
   @classmethod
   def Update(cls, startupMode = "auto", username = None, password = None):
@@ -170,7 +170,7 @@ class EmbeddedHBaseService:
                                          username,
                                          password,
                                          cls._svc_display_name_)
-        print "Service updated"
+        print("Service updated")
       finally:
         win32service.CloseServiceHandle(hs)
     finally:

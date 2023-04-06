@@ -25,9 +25,9 @@ import sys
 import signal
 from ambari_commons.os_utils import remove_file
 
-from core.controller import Controller
-from core.config_reader import Configuration, PID_OUT_FILE
-from core.stop_handler import bind_signal_handlers
+from .core.controller import Controller
+from .core.config_reader import Configuration, PID_OUT_FILE
+from .core.stop_handler import bind_signal_handlers
 
 
 logger = logging.getLogger()
@@ -66,8 +66,8 @@ def server_process_main(stop_handler, scmStatus=None):
   logger.info('Starting Server RPC Thread: %s' % ' '.join(sys.argv))
   controller.start()
 
-  print "Server out at: " + main_config.ams_monitor_out_file()
-  print "Server log at: " + main_config.ams_monitor_log_file()
+  print("Server out at: " + main_config.ams_monitor_out_file())
+  print("Server log at: " + main_config.ams_monitor_log_file())
 
   save_pid(os.getpid(), PID_OUT_FILE)
 

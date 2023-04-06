@@ -103,7 +103,7 @@ class AlertStatusReporter(threading.Thread):
     """
     This needs to be done to remove information about clusters which where deleted (e.g. ambari-server reset)
     """
-    for cluster_id in self.reported_alerts.keys():
+    for cluster_id in list(self.reported_alerts.keys()):
       if not cluster_id in self.alert_definitions_cache.get_cluster_ids():
         del self.reported_alerts[cluster_id]
 

@@ -68,8 +68,8 @@ class SSH:
                                stderr=subprocess.PIPE)
         log = sshstat.communicate()
         if sshstat.returncode != 0:
-          print "Executing SSH command on {0} failed: {1}".format(self.host, log)
-          print "\nRetrying SSH command one more time!"
+          print("Executing SSH command on {0} failed: {1}".format(self.host, log))
+          print("\nRetrying SSH command one more time!")
           if i >= 3:
             break
           i += 1
@@ -77,19 +77,19 @@ class SSH:
           continue
         break
       except:
-        print "Could not SSH to {0}, waiting for it to start".format(self.host)
+        print("Could not SSH to {0}, waiting for it to start".format(self.host))
         i += 1
         time.sleep(10)
 
     if i >= 3:
-      print "Could not execute remote ssh command: " + ' '.join(sshcommand)
+      print("Could not execute remote ssh command: " + ' '.join(sshcommand))
       raise Exception("Could not connect to {0}. Giving up with erros: {1}".format(self.host, log))
 
     errorMsg = log[1]
     if self.errorMessage and sshstat.returncode != 0:
       errorMsg = self.errorMessage + "\n" + errorMsg
 
-    print "SSH command execution finished"
+    print("SSH command execution finished")
 
     return {"exitstatus": sshstat.returncode, "log": log, "errormsg": errorMsg}
 
@@ -123,8 +123,8 @@ class SCP:
                                    stderr=subprocess.PIPE)
         log = scpstat.communicate()
         if scpstat.returncode != 0:
-          print "Executing SCP command on {0} failed: {1}".format(self.host, log)
-          print "\nRetrying SCP command one more time!"
+          print("Executing SCP command on {0} failed: {1}".format(self.host, log))
+          print("\nRetrying SCP command one more time!")
           if i >= 3:
             break
           i += 1
@@ -132,19 +132,19 @@ class SCP:
           continue
         break
       except:
-        print "Could not SCP to {0}, waiting for it to start".format(self.host)
+        print("Could not SCP to {0}, waiting for it to start".format(self.host))
         i += 1
         time.sleep(10)
 
       if i >= 3:
-        print "Could not execute remote scp command: " + ' '.join(scpcommand)
+        print("Could not execute remote scp command: " + ' '.join(scpcommand))
         raise Exception("Could not connect to {0}. Giving up with erros: {1}".format(self.host, log))
 
     errorMsg = log[1]
     if self.errorMessage and scpstat.returncode != 0:
       errorMsg = self.errorMessage + "\n" + errorMsg
 
-    print "SCP command execution finished"
+    print("SCP command execution finished")
 
     return {"exitstatus": scpstat.returncode, "log": log, "errormsg": errorMsg}
 
@@ -215,34 +215,34 @@ def deploy_cluster(args):
   create_vms(args, number_of_nodes)
 
   # getting list of vms information like hostname and ip address
-  print "Getting list of virtual machines from cluster..."
+  print("Getting list of virtual machines from cluster...")
   # Dictionary from host name to IP
   (server_dict, agents_dict) = get_vms_list(args)
 
   # check number of nodes in cluster to be the same as user asked
-  print "Checking count of created nodes in cluster..."
+  print("Checking count of created nodes in cluster...")
   if not agents_dict or len(agents_dict) < number_of_nodes:
     raise Exception("Cannot bring up enough nodes. Requested {0}, but got {1}. Probably not enough resources!".format(number_of_nodes, len(agents_dict)))
 
-  print "GCE cluster was successfully created!\n"
+  print("GCE cluster was successfully created!\n")
 
   # installing/starting ambari-server and ambari-agents on each host
-  server_item = server_dict.items()[0]
+  server_item = list(server_dict.items())[0]
   server_host_name = server_item[0]
   server_ip = server_item[1]
-  print "=========================="
-  print "Server Hostname: %s" % server_host_name
-  print "Server IP: %s" % server_ip
-  print "==========================\n"
+  print("==========================")
+  print("Server Hostname: %s" % server_host_name)
+  print("Server IP: %s" % server_ip)
+  print("==========================\n")
 
   # Sort the agents by hostname into a list.
   sorted_agents = sort_hosts(agents_dict)
   pretty_print_vms(sorted_agents)
 
-  print "Creating server.sh script (which will be executed on server to install/configure/start ambari-server)..."
+  print("Creating server.sh script (which will be executed on server to install/configure/start ambari-server)...")
   create_server_script(server_host_name)
 
-  print "Creating agent.sh script (which will be executed on agent hosts to install/configure/start ambari-agent..."
+  print("Creating agent.sh script (which will be executed on agent hosts to install/configure/start ambari-agent...")
   create_agent_script(server_host_name)
 
   time.sleep(10)
@@ -257,8 +257,8 @@ def deploy_cluster(args):
   for (hostname, ip) in sorted_agents:
     num_agents_on_this_host = min(num_agents_left_to_create, NUMBER_OF_AGENTS_ON_HOST)
 
-    print "=========================="
-    print "Working on VM {0} that will contain hosts {1} - {2}".format(hostname, start_num, start_num + num_agents_on_this_host - 1)
+    print("==========================")
+    print("Working on VM {0} that will contain hosts {1} - {2}".format(hostname, start_num, start_num + num_agents_on_this_host - 1))
 
     # The agent multiplier config will be different on each VM.
 
@@ -269,8 +269,8 @@ def deploy_cluster(args):
     prepare_agent(args, hostname, ip, cmd_generate_multiplier_conf)
 
   pass
-  print "All scripts where successfully copied and started on all hosts. " \
-        "\nPay attention that server.sh script need 5 minutes to finish and agent.sh need 3 minutes!"
+  print("All scripts where successfully copied and started on all hosts. " \
+        "\nPay attention that server.sh script need 5 minutes to finish and agent.sh need 3 minutes!")
 
 
 def create_vms(args, number_of_nodes):
@@ -279,13 +279,13 @@ def create_vms(args, number_of_nodes):
   :param args: Command line args
   :param number_of_nodes: Number of VMs to request.
   """
-  print "Creating server VM {0}-server-{1} with xxlarge nodes on centos7...".format(cluster_prefix, args.cluster_suffix)
+  print("Creating server VM {0}-server-{1} with xxlarge nodes on centos7...".format(cluster_prefix, args.cluster_suffix))
   execute_command(args, args.controller, "/opt/gce-utils/gce up {0}-server-{1} 1 --centos7 --xxlarge --ex --disk-xxlarge --ssd".format(cluster_prefix, args.cluster_suffix),
                   "Failed to create server, probably not enough resources!", "-tt")
   time.sleep(10)
 
   # trying to create cluster with needed params
-  print "Creating agent VMs {0}-agent-{1} with {2} xlarge nodes on centos7...".format(cluster_prefix, args.cluster_suffix, str(number_of_nodes))
+  print("Creating agent VMs {0}-agent-{1} with {2} xlarge nodes on centos7...".format(cluster_prefix, args.cluster_suffix, str(number_of_nodes)))
   execute_command(args, args.controller, "/opt/gce-utils/gce up {0}-agent-{1} {2} --centos7 --xlarge --ex --disk-xlarge".format(cluster_prefix, args.cluster_suffix, str(number_of_nodes)),
                   "Failed to create cluster VMs, probably not enough resources!", "-tt")
 
@@ -296,10 +296,10 @@ def create_vms(args, number_of_nodes):
 def prepare_server(args, hostname, ip):
   remote_path = "/server.sh"
   local_path = "server.sh"
-  print "Copying server.sh to {0}...".format(hostname)
+  print("Copying server.sh to {0}...".format(hostname))
   put_file(args, ip, local_path, remote_path, "Failed to copy file!")
 
-  print "Executing remote ssh command (set correct permissions and start executing server.sh in separate process) on {0}...".format(hostname)
+  print("Executing remote ssh command (set correct permissions and start executing server.sh in separate process) on {0}...".format(hostname))
   execute_command(args, ip, "cd /; chmod 777 server.sh; nohup ./server.sh >/server.log 2>&1 &",
                   "Install/configure/start server script failed!")
 
@@ -307,13 +307,13 @@ def prepare_server(args, hostname, ip):
 def prepare_agent(args, hostname, ip, cmd_generate_multiplier_conf):
   remote_path = "/agent.sh"
   local_path = "agent.sh"
-  print "Copying agent.sh to {0}...".format(hostname)
+  print("Copying agent.sh to {0}...".format(hostname))
   put_file(args, ip, local_path, remote_path, "Failed to copy file!")
 
-  print "Generating agent-multiplier.conf"
+  print("Generating agent-multiplier.conf")
   execute_command(args, ip, cmd_generate_multiplier_conf, "Failed to generate agent-multiplier.conf on host {0}".format(hostname))
 
-  print "Executing remote ssh command (set correct permissions and start executing agent.sh in separate process) on {0}...".format(hostname)
+  print("Executing remote ssh command (set correct permissions and start executing agent.sh in separate process) on {0}...".format(hostname))
   execute_command(args, ip, "cd /; chmod 777 agent.sh; nohup ./agent.sh >/agent.log 2>&1 &",
                   "Install/configure start agent script failed!")
 
@@ -504,7 +504,7 @@ def sort_hosts(hosts):
   :param hosts: Dictionary from host name (e.g., perf-9-test, perf-62-test), to the IP
   :return: Sorted list of tuples
   """
-  host_names = hosts.keys()
+  host_names = list(hosts.keys())
   sorted_host_tuples = [(None, None),] * len(hosts)
 
   pattern = re.compile(".*?-agent-.*?(\d+)")
@@ -523,11 +523,11 @@ def pretty_print_vms(vms):
   Pretty print the VMs hostnames
   :param vms: List of tuples (hostname, ip)
   """
-  print "=========================="
-  print "Hostnames of nodes in cluster:"
+  print("==========================")
+  print("Hostnames of nodes in cluster:")
   for (hostname, ip) in vms:
-    print hostname
-  print "==========================\n"
+    print(hostname)
+  print("==========================\n")
 
 
 if __name__ == "__main__":

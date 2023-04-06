@@ -70,7 +70,7 @@ class FlumeHandler(Script):
     # the service should report STARTED (green) ONLY if the desired state is started.  otherwise, INSTALLED (red)
     if len(expected_agents) > 0:
       for proc in processes:
-        if not proc.has_key('status') or proc['status'] == 'NOT_RUNNING':
+        if 'status' not in proc or proc['status'] == 'NOT_RUNNING':
           raise ComponentIsNotRunning()
     elif len(expected_agents) == 0 and 'INSTALLED' == get_desired_state():
       raise ComponentIsNotRunning()

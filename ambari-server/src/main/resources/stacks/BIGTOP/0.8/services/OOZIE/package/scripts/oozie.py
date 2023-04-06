@@ -42,7 +42,7 @@ def oozie(is_server=False # TODO: see if see can remove this
     configuration_attributes=params.config['configurationAttributes']['oozie-site'],
     owner = params.oozie_user,
     group = params.user_group,
-    mode = 0664
+    mode = 0o664
   )
   File(format("{conf_dir}/oozie-env.sh"),
     owner=params.oozie_user,
@@ -58,19 +58,19 @@ def oozie(is_server=False # TODO: see if see can remove this
     content = Template("catalina.properties.j2"),
     owner = params.oozie_user,
     group = params.user_group,
-    mode = 0755
+    mode = 0o755
   )
 
   if (params.log4j_props != None):
     File(format("{params.conf_dir}/oozie-log4j.properties"),
-      mode=0644,
+      mode=0o644,
       group=params.user_group,
       owner=params.oozie_user,
       content=params.log4j_props
     )
   elif (os.path.exists(format("{params.conf_dir}/oozie-log4j.properties"))):
     File(format("{params.conf_dir}/oozie-log4j.properties"),
-      mode=0644,
+      mode=0o644,
       group=params.user_group,
       owner=params.oozie_user
     )
@@ -136,7 +136,7 @@ def oozie_server_specific(
   oozie_server_directorties = [params.oozie_pid_dir, params.oozie_log_dir, params.oozie_tmp_dir, params.oozie_data_dir, params.oozie_lib_dir, params.oozie_webapps_dir, params.oozie_webapps_conf_dir, params.oozie_server_dir]
   Directory( oozie_server_directorties,
     owner = params.oozie_user,
-    mode = 0755,
+    mode = 0o755,
     create_parents = True
   )
 

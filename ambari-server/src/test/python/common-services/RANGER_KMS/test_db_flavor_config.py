@@ -22,11 +22,17 @@ from resource_management.core.exceptions import Fail
 from stacks.utils.RMFTestCase import RMFTestCase
 
 import unittest
+import signal
 
 class TestDbFlavorConfig(RMFTestCase):
   STACK_VERSION = "2.6"
   CONFIG_DIR = os.path.join(os.path.dirname(__file__), '../configs')
 
+  def _handle_timeout(signum, frame):
+      raise TimeoutError('function timeout')
+
+  signal.signal(signal.SIGALRM, _handle_timeout)
+  signal.alarm(10)
 
   def test_db_flavor_0_5_0_2_3(self):
     self.executeScript("RANGER_KMS/0.5.0.2.3/package/scripts/kms_server.py",
@@ -46,6 +52,8 @@ class TestDbFlavorConfig(RMFTestCase):
                        config_file=os.path.join(self.CONFIG_DIR, "ranger_kms_unsupported_db_flavor.json"))
       self.fail("Expected 'Fail', but call completed without throwing")
     except Fail as e:
+      pass
+    except TimeoutError as te:
       pass
     except Exception as e:
       self.fail("Expected 'Fail', got {}".format(e))

@@ -67,7 +67,7 @@ class TestAlertMetricsDeviation(RMFTestCase):
       'metric.deviation.critical.threshold': 200.0,
       'appId': 'NAMENODE',
       'minimumValue': 30.0,
-      'kerberos.kinit.timer': 14400000L,
+      'kerberos.kinit.timer': 14400000,
       'metricName': 'metric1',
       'metric.units': 'ms'
     }
@@ -83,7 +83,7 @@ class TestAlertMetricsDeviation(RMFTestCase):
     self.assertTrue('is a required parameter for the script' in messages[0])
 
   @patch.object(ambari_metrics_helper, 'get_metric_collectors_from_properties_file', new = MagicMock(return_value='c6401.ambari.apache.org:6188'))
-  @patch("httplib.HTTPConnection")
+  @patch("http.client.HTTPConnection")
   def test_alert(self, conn_mock):
     configs = {
       '{{hdfs-site/dfs.namenode.https-address}}': 'c6401.ambari.apache.org:50470',
@@ -108,7 +108,7 @@ class TestAlertMetricsDeviation(RMFTestCase):
     }
     self.make_alert_tests(configs, conn_mock)
 
-  @patch("httplib.HTTPConnection")
+  @patch("http.client.HTTPConnection")
   def test_alert_vip(self, conn_mock):
     configs = {
       '{{hdfs-site/dfs.namenode.https-address}}': 'c6401.ambari.apache.org:50470',
@@ -136,7 +136,7 @@ class TestAlertMetricsDeviation(RMFTestCase):
     self.make_alert_tests(configs, conn_mock)
 
   @patch.object(ambari_metrics_helper, 'get_metric_collectors_from_properties_file', new = MagicMock(return_value='c6401.ambari.apache.org:6188'))
-  @patch("httplib.HTTPConnection")
+  @patch("http.client.HTTPConnection")
   def test_alert_ha(self, conn_mock):
     configs = {
       '{{hdfs-site/dfs.namenode.https-address}}': 'c6401.ambari.apache.org:50470',
@@ -172,7 +172,7 @@ class TestAlertMetricsDeviation(RMFTestCase):
     self.make_alert_tests(configs, conn_mock)
 
   @patch.object(ambari_metrics_helper, 'get_metric_collectors_from_properties_file', new = MagicMock(return_value='c6401.ambari.apache.org:6188'))
-  @patch("httplib.HTTPConnection")
+  @patch("http.client.HTTPConnection")
   def test_alert_federation(self, conn_mock):
     configs = {
       '{{hdfs-site/dfs.namenode.https-address}}': 'c6401.ambari.apache.org:50470',
@@ -237,28 +237,28 @@ class TestAlertMetricsDeviation(RMFTestCase):
     [status, messages] = alert.execute(configurations=configs, parameters=parameters, host_name=_host_name)
     self.assertEqual(status, RESULT_STATE_OK)
     self.assertTrue(messages is not None and len(messages) == 1)
-    self.assertEquals('There were no data points above the minimum threshold of 30 seconds',messages[0])
+    self.assertEqual('There were no data points above the minimum threshold of 30 seconds',messages[0])
 
     # Unable to calculate the standard deviation for 1 data point
     response.read.return_value = '{"metrics":[{"metricname":"metric1","metrics":{"1459966360838":40000}}]}'
     [status, messages] = alert.execute(configurations=configs, parameters=parameters, host_name=_host_name)
     self.assertEqual(status, RESULT_STATE_SKIPPED)
     self.assertTrue(messages is not None and len(messages) == 1)
-    self.assertEquals('There are not enough data points to calculate the standard deviation (1 sampled)', messages[0])
+    self.assertEqual('There are not enough data points to calculate the standard deviation (1 sampled)', messages[0])
 
     # OK
     response.read.return_value = '{"metrics":[{"metricname":"metric1","metrics":{"1459966360838":40000,"1459966370838":50000}}]}'
     [status, messages] = alert.execute(configurations=configs, parameters=parameters, host_name=_host_name)
     self.assertEqual(status, RESULT_STATE_OK)
     self.assertTrue(messages is not None and len(messages) == 1)
-    self.assertEquals('The variance for this alert is 7071ms which is within 100% of the 45000ms average (45000ms is the limit)', messages[0])
+    self.assertEqual('The variance for this alert is 7071ms which is within 100% of the 45000ms average (45000ms is the limit)', messages[0])
 
     # Warning
     response.read.return_value = '{"metrics":[{"metricname":"metric1","metrics":{"1459966360838":40000,"1459966370838":1000000}}]}'
     [status, messages] = alert.execute(configurations=configs, parameters=parameters, host_name=_host_name)
     self.assertEqual(status, RESULT_STATE_WARNING)
     self.assertTrue(messages is not None and len(messages) == 1)
-    self.assertEquals('The variance for this alert is 678823ms which is 131% of the 520000ms average (520000ms is the limit)', messages[0])
+    self.assertEqual('The variance for this alert is 678823ms which is 131% of the 520000ms average (520000ms is the limit)', messages[0])
 
     # HTTP request to AMS failed
     response.read.return_value = ''
@@ -266,11 +266,11 @@ class TestAlertMetricsDeviation(RMFTestCase):
     [status, messages] = alert.execute(configurations=configs, parameters=parameters, host_name=_host_name)
     self.assertEqual(status, RESULT_STATE_UNKNOWN)
     self.assertTrue(messages is not None and len(messages) == 1)
-    self.assertEquals('Unable to retrieve metrics from the Ambari Metrics service.', messages[0])
+    self.assertEqual('Unable to retrieve metrics from the Ambari Metrics service.', messages[0])
 
     # Unable to connect to AMS
     conn_mock.side_effect = Exception('Unable to connect to AMS')
     [status, messages] = alert.execute(configurations=configs, parameters=parameters, host_name=_host_name)
     self.assertEqual(status, RESULT_STATE_UNKNOWN)
     self.assertTrue(messages is not None and len(messages) == 1)
-    self.assertEquals('Unable to retrieve metrics from the Ambari Metrics service.', messages[0])
+    self.assertEqual('Unable to retrieve metrics from the Ambari Metrics service.', messages[0])

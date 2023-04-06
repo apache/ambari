@@ -144,7 +144,7 @@ if (('oozie-log4j' in config['configurations']) and ('content' in config['config
 else:
   log4j_props = None
 
-oozie_hdfs_user_mode = 0775
+oozie_hdfs_user_mode = 0o775
 #for create_hdfs_directory
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']

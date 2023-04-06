@@ -48,13 +48,13 @@ def request_cluster(argv):
                                 with_ambari_server, cluster_name)
 
     time_to_wait = Config.ATTRIBUTES["gce_boot_time"]
-    print "wait ", str(time_to_wait), " seconds for the cluster to boot ... ..."
+    print("wait ", str(time_to_wait), " seconds for the cluster to boot ... ...")
     time.sleep(int(time_to_wait))
 
     data = Data()
     data.add_new_cluster(cluster)
 
-    print "complete"
+    print("complete")
 
 
 def up_cluster(argv):
@@ -72,21 +72,21 @@ def up_cluster(argv):
     cluster = Cluster.load_from_json(cluster_name)
 
     if cluster is None:
-        print cluster_name, " cluster not found"
+        print(cluster_name, " cluster not found")
         exit(1)
 
     if cluster.state != Cluster.STATE_FREE:
-        print cluster_name, " cluster is already running"
+        print(cluster_name, " cluster is already running")
         exit(1)
 
     ambari_server = cluster.get_ambari_server_vm()
     if ambari_server is None:
-        print "Unable to run cluster", cluster_name,\
-            " no Ambari-server in this cluster, you can only merge this cluster into another one"
+        print("Unable to run cluster", cluster_name,\
+            " no Ambari-server in this cluster, you can only merge this cluster into another one")
         exit(1)
 
-    print "Configuring cluster"
-    print "Check output folder: ", Config.ATTRIBUTES["output_folder"]
+    print("Configuring cluster")
+    print("Check output folder: ", Config.ATTRIBUTES["output_folder"])
 
     cluster.run_cluster(ambari_server.weave_internal_ip, ambari_server.external_ip)
     data = Data()
@@ -96,7 +96,7 @@ def up_cluster(argv):
     # This is an unsolved minor issue.
     subprocess.call(["reset"])
 
-    print "Complete"
+    print("Complete")
 
 
 def merge_cluster(argv):
@@ -112,11 +112,11 @@ def merge_cluster(argv):
     merged_cluster_name = argv[2]
     merged_cluster = Cluster.load_from_json(merged_cluster_name)
     if merged_cluster is None:
-        print merged_cluster_name, " cluster not found"
+        print(merged_cluster_name, " cluster not found")
         exit(1)
 
     if merged_cluster.state != Cluster.STATE_FREE:
-        print merged_cluster_name, " cluster is already running"
+        print(merged_cluster_name, " cluster is already running")
         exit(1)
 
     weave_ip = ""
@@ -126,14 +126,14 @@ def merge_cluster(argv):
         extended_cluster_name = argv[3]
         extended_cluster = Cluster.load_from_json(extended_cluster_name)
         if extended_cluster is None:
-            print extended_cluster_name, " cluster not found"
+            print(extended_cluster_name, " cluster not found")
             exit(1)
 
         if extended_cluster.state != Cluster.STATE_RUNNING:
             if extended_cluster.state == Cluster.STATE_FREE:
-                print extended_cluster_name, " cluster is not running, can't be extended"
+                print(extended_cluster_name, " cluster is not running, can't be extended")
             elif extended_cluster.state.startswith(Cluster.STATE_MERGE):
-                print extended_cluster_name, " cluster is merged to another cluster, can't be extended"
+                print(extended_cluster_name, " cluster is merged to another cluster, can't be extended")
             exit(1)
 
         ambari_server = extended_cluster.get_ambari_server_vm()
@@ -149,10 +149,10 @@ def merge_cluster(argv):
         exit(1)
 
     if merged_cluster.get_ambari_server_vm() is not None:
-        print merged_cluster, " cluster has one VM to install Ambari-server, which will NOT be merged"
+        print(merged_cluster, " cluster has one VM to install Ambari-server, which will NOT be merged")
 
-    print "Configuring cluster"
-    print "Check output folder: ", Config.ATTRIBUTES["output_folder"]
+    print("Configuring cluster")
+    print("Check output folder: ", Config.ATTRIBUTES["output_folder"])
     merged_cluster.run_cluster(weave_ip, external_ip)
 
     data = Data()
@@ -161,7 +161,7 @@ def merge_cluster(argv):
     # reset terminal. The SSH subprocess call of the program cause the terminal display to be abnormal.
     # This is an unsolved minor issue.
     subprocess.call(["reset"])
-    print "Complete"
+    print("Complete")
 
 
 def list_cluster():
@@ -186,7 +186,7 @@ def show_cluster(argv):
     cluster = Cluster.load_from_json(cluster_name)
 
     if cluster is None:
-        print cluster_name, " cluster not found"
+        print(cluster_name, " cluster not found")
         exit(1)
 
     cluster.print_description()
@@ -197,41 +197,41 @@ def print_help():
     print help information
     :return: None
     """
-    print "usage:"
-    print
+    print("usage:")
+    print()
 
-    print "request", "  ", "--request a cluster from GCE, generate the configuration for the cluster"
-    print "\t\t", "<the name of the cluster>"
-    print "\t\t", "<number of VMs>"
-    print "\t\t", "<number of dockers each VM>"
-    print "\t\t", "<number of service servers>, directly install Ambari-Agent, not inside Dockers"
-    print "\t\t", "<number of ambari-server>, either 0 or 1"
-    print
+    print("request", "  ", "--request a cluster from GCE, generate the configuration for the cluster")
+    print("\t\t", "<the name of the cluster>")
+    print("\t\t", "<number of VMs>")
+    print("\t\t", "<number of dockers each VM>")
+    print("\t\t", "<number of service servers>, directly install Ambari-Agent, not inside Dockers")
+    print("\t\t", "<number of ambari-server>, either 0 or 1")
+    print()
 
-    print "up", "  ", "--run all Ambari-agents and Ambari-server of the cluster"
-    print "\t\t", "<the name of the cluster>"
-    print
+    print("up", "  ", "--run all Ambari-agents and Ambari-server of the cluster")
+    print("\t\t", "<the name of the cluster>")
+    print()
 
-    print "merge", "  ", "--run one cluster, and add to another cluster"
-    print "\t\t", "<the name of the cluster to be merged>"
-    print "\t\t", "<the name of the cluster to be extended>"
-    print
+    print("merge", "  ", "--run one cluster, and add to another cluster")
+    print("\t\t", "<the name of the cluster to be merged>")
+    print("\t\t", "<the name of the cluster to be extended>")
+    print()
 
-    print "merge", "  ", "--run one cluster, and add to another cluster"
-    print "\t\t", "<the name of the cluster to be merged>"
-    print "\t\t", "<Weave IP of the Ambari-server>"
-    print "\t\t", "<External IP of the Ambari-server>"
-    print
+    print("merge", "  ", "--run one cluster, and add to another cluster")
+    print("\t\t", "<the name of the cluster to be merged>")
+    print("\t\t", "<Weave IP of the Ambari-server>")
+    print("\t\t", "<External IP of the Ambari-server>")
+    print()
 
-    print "list", "  ", "--list all the cluster"
-    print
+    print("list", "  ", "--list all the cluster")
+    print()
 
-    print "show", "  ", "--show cluster information"
-    print "\t\t", "<the name of the cluster>"
-    print
+    print("show", "  ", "--show cluster information")
+    print("\t\t", "<the name of the cluster>")
+    print()
 
-    print "help", "  ", "help info"
-    print
+    print("help", "  ", "help info")
+    print()
 
 
 def main(argv):

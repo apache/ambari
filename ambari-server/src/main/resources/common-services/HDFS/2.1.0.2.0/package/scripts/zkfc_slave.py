@@ -80,7 +80,7 @@ class ZkfcSlaveDefault(ZkfcSlave):
     env.set_params(params)
     ZkfcSlave.configure_static(env)
     Directory(params.hadoop_pid_dir_prefix,
-              mode=0755,
+              mode=0o755,
               owner=params.hdfs_user,
               group=params.user_group
     )

@@ -53,7 +53,7 @@ class TestRangerAdmin(RMFTestCase):
       properties = {'db_password': '_', 'db_root_password': '_', 'audit_db_password': '_'}
     )
     self.assertResourceCalled('Execute', '/usr/bin/ranger-admin-start',
-        environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+        environment = {'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},
         not_if = 'ps -ef | grep proc_rangeradmin | grep -v grep',
         user = 'ranger',
     )
@@ -68,7 +68,7 @@ class TestRangerAdmin(RMFTestCase):
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', '/usr/bin/ranger-admin-stop',
-        environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+        environment = {'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},
         user = 'ranger'
     )
     self.assertNoMoreResources()
@@ -98,7 +98,7 @@ class TestRangerAdmin(RMFTestCase):
       properties = {'db_password': '_', 'db_root_password': '_', 'audit_db_password': '_'}
     )
     self.assertResourceCalled('Execute', '/usr/bin/ranger-admin-start',
-        environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+        environment = {'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},
         not_if = 'ps -ef | grep proc_rangeradmin | grep -v grep',
         user = 'ranger',
     )
@@ -114,7 +114,7 @@ class TestRangerAdmin(RMFTestCase):
     )
     self.assertResourceCalled('Execute', '/usr/bin/ranger-admin-stop',
         user = 'ranger',
-        environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'}
+        environment = {'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'}
     )
     self.assertNoMoreResources()
 
@@ -123,7 +123,7 @@ class TestRangerAdmin(RMFTestCase):
                               environment = {})
     self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
         content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/mysql-connector-java.jar'),
-        mode = 0644
+        mode = 0o644
     )
     self.assertResourceCalled('Execute', ('cp',
      '--remove-destination',
@@ -133,7 +133,7 @@ class TestRangerAdmin(RMFTestCase):
         path = ['/bin', '/usr/bin/'],
     )
     self.assertResourceCalled('File', '/usr/share/java/mysql-connector-java.jar',
-      mode = 0644
+      mode = 0o644
     )
     self.assertResourceCalled('ModifyPropertiesFile', '/usr/hdp/current/ranger-admin/install.properties',
         properties = self.getConfig()['configurations']['admin-properties'],
@@ -149,13 +149,13 @@ class TestRangerAdmin(RMFTestCase):
     )
     self.assertResourceCalled('Execute', 'cd /usr/hdp/current/ranger-admin && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E /usr/hdp/current/ranger-admin/setup.sh',
         logoutput = True,
-        environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+        environment = {'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},
     )
     self.assertResourceCalled('ModifyPropertiesFile', '/etc/ranger/admin/conf/xa_system.properties',
         properties = self.getConfig()['configurations']['ranger-site'],
     )
     self.assertResourceCalled('ModifyPropertiesFile', '/etc/ranger/admin/conf/ranger_webserver.properties',
-        mode = 0744,
+        mode = 0o744,
         properties = self.getConfig()['configurations']['ranger-site']
     )
     self.assertResourceCalled('Directory', '/var/log/ranger/admin',
@@ -168,7 +168,7 @@ class TestRangerAdmin(RMFTestCase):
                               environment = {})
     self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
         content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/mysql-connector-java.jar'),
-        mode = 0644
+        mode = 0o644
     )
     self.assertResourceCalled('Execute', ('cp',
      '--remove-destination',
@@ -178,7 +178,7 @@ class TestRangerAdmin(RMFTestCase):
         path = ['/bin', '/usr/bin/'],
     )
     self.assertResourceCalled('File', '/usr/share/java/mysql-connector-java.jar',
-      mode = 0644
+      mode = 0o644
     )
     self.assertResourceCalled('ModifyPropertiesFile', '/usr/hdp/current/ranger-admin/install.properties',
         properties = self.getConfig()['configurations']['admin-properties'],
@@ -194,13 +194,13 @@ class TestRangerAdmin(RMFTestCase):
     )
     self.assertResourceCalled('Execute', 'cd /usr/hdp/current/ranger-admin && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E /usr/hdp/current/ranger-admin/setup.sh',
         logoutput = True,
-        environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+        environment = {'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},
     )
     self.assertResourceCalled('ModifyPropertiesFile', '/etc/ranger/admin/conf/xa_system.properties',
         properties = self.getConfig()['configurations']['ranger-site'],
     )
     self.assertResourceCalled('ModifyPropertiesFile', '/etc/ranger/admin/conf/ranger_webserver.properties',
-        mode = 0744,
+        mode = 0o744,
         properties = self.getConfig()['configurations']['ranger-site']
     )
     self.assertResourceCalled('Directory', '/var/log/ranger/admin',

@@ -77,7 +77,7 @@ class TestHawqMaster(HawqBaseTestCase):
 
     self.assertResourceCalled('HdfsResource', '/hawq_data',
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
-        default_fs = u'hdfs://c6401.ambari.apache.org:8020',
+        default_fs = 'hdfs://c6401.ambari.apache.org:8020',
         hadoop_bin_dir = '/usr/phd/current/hadoop-client/bin',
         hadoop_conf_dir = '/usr/phd/current/hadoop-client/conf',
         hdfs_site = self.getConfig()['configurations']['hdfs-site'],
@@ -85,7 +85,7 @@ class TestHawqMaster(HawqBaseTestCase):
         action = ['create_on_execute'],
         owner = self.GPADMIN,
         group = self.GPADMIN,
-        user = u'hdfs',
+        user = 'hdfs',
         mode = 493,
         security_enabled = False,
         kinit_path_local = '/usr/bin/kinit',
@@ -97,12 +97,12 @@ class TestHawqMaster(HawqBaseTestCase):
 
     self.assertResourceCalled('HdfsResource', None,
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
-        default_fs = u'hdfs://c6401.ambari.apache.org:8020',
+        default_fs = 'hdfs://c6401.ambari.apache.org:8020',
         hadoop_bin_dir = '/usr/phd/current/hadoop-client/bin',
         hadoop_conf_dir = '/usr/phd/current/hadoop-client/conf',
         hdfs_site = self.getConfig()['configurations']['hdfs-site'],
         action = ['execute'],
-        user = u'hdfs',
+        user = 'hdfs',
         security_enabled = False,
         kinit_path_local = '/usr/bin/kinit',
         keytab = UnknownConfigurationMock(),
@@ -174,7 +174,7 @@ class TestHawqMaster(HawqBaseTestCase):
         content = InlineTemplate("{% for host in hawq_all_hosts %}{{host}}\n{% endfor %}"),
         group = self.GPADMIN,
         owner = self.GPADMIN,
-        mode = 0644
+        mode = 0o644
         )
 
     self.assertResourceCalled('Execute', expectedCommand,

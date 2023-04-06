@@ -162,7 +162,7 @@ class TestAMBARI_METRICS010ServiceAdvisor(TestCase):
                                                                                  'proxyuser_group': 'users'}}}
 
     self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, clusterData, services1, hosts)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
     services1 = {
       "services": [
@@ -226,7 +226,7 @@ class TestAMBARI_METRICS010ServiceAdvisor(TestCase):
                   'hadoop-env': {'properties': {'hdfs_user': 'hdfs',
                                                                                  'proxyuser_group': 'users'}}}
     self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, clusterData, services1, hosts)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
 
   def test_validateAmsSiteConfigurations(self):
@@ -348,7 +348,7 @@ class TestAMBARI_METRICS010ServiceAdvisor(TestCase):
                     'level': 'ERROR',
                     'message': "Correct value should be 'distributed' for clusters with more then 1 Metrics collector",
                     'type': 'configuration'}]
-    self.assertEquals(res, expected)
+    self.assertEqual(res, expected)
 
 
     services = {
@@ -389,7 +389,7 @@ class TestAMBARI_METRICS010ServiceAdvisor(TestCase):
     }
     res = self.serviceAdvisor.getAMBARI_METRICSValidator().validateAmsSiteConfigurationsFromHDP206(properties, recommendedDefaults, configurations, services, hosts)
     expected = []
-    self.assertEquals(res, expected)
+    self.assertEqual(res, expected)
 
   def test_validateAmsHbaseSiteConfigurations(self):
     configurations = {
@@ -487,7 +487,7 @@ class TestAMBARI_METRICS010ServiceAdvisor(TestCase):
     # only 1 partition, enough disk space, no warnings
     res = self.serviceAdvisor.getAMBARI_METRICSValidator().validateAmsHbaseSiteConfigurationsFromHDP206(properties, recommendedDefaults, configurations, services, hosts)
     expected = []
-    self.assertEquals(res, expected)
+    self.assertEqual(res, expected)
 
 
     # 1 partition, no enough disk space
@@ -508,7 +508,7 @@ class TestAMBARI_METRICS010ServiceAdvisor(TestCase):
        'type': 'configuration'
       }
     ]
-    self.assertEquals(res, expected)
+    self.assertEqual(res, expected)
 
     # 2 partitions
     host['Hosts']['disk_info'] = [
@@ -535,7 +535,7 @@ class TestAMBARI_METRICS010ServiceAdvisor(TestCase):
     }
     res = self.serviceAdvisor.getAMBARI_METRICSValidator().validateAmsHbaseSiteConfigurationsFromHDP206(properties, recommendedDefaults, configurations, services, hosts)
     expected = []
-    self.assertEquals(res, expected)
+    self.assertEqual(res, expected)
 
     # dfs.dir & hbase.rootdir crosscheck + root partition + hbase.rootdir == hbase.tmp.dir warnings
     properties = {
@@ -570,7 +570,7 @@ class TestAMBARI_METRICS010ServiceAdvisor(TestCase):
         'type': 'configuration'
       }
     ]
-    self.assertEquals(res, expected)
+    self.assertEqual(res, expected)
 
     # incorrect hbase.rootdir in distributed mode
     properties = {
@@ -596,4 +596,4 @@ class TestAMBARI_METRICS010ServiceAdvisor(TestCase):
         'type': 'configuration'
       }
     ]
-    self.assertEquals(res, expected)
+    self.assertEqual(res, expected)

@@ -23,7 +23,7 @@ from stacks.utils.RMFTestCase import *
 import resource_management.libraries.functions.get_unique_id_and_date
 
 @patch("os.path.exists", new = MagicMock(return_value=True))
-@patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
+@patch("distro.linux_distribution", new = MagicMock(return_value="Linux"))
 class TestZookeeperServer(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "ZOOKEEPER/3.4.5/package"
   STACK_VERSION = "2.0.6"
@@ -148,29 +148,29 @@ class TestZookeeperServer(RMFTestCase):
       owner = 'zookeeper',
       group = 'hadoop',
       create_parents = True,
-      mode = 0755,
+      mode = 0o755,
     )
     self.assertResourceCalled('Directory', '/var/log/zookeeper',
       owner = 'zookeeper',
       group = 'hadoop',
       create_parents = True,
-      mode = 0755,
+      mode = 0o755,
     )
     self.assertResourceCalled('Directory', '/hadoop/zookeeper',
       owner = 'zookeeper',
       group = 'hadoop',
       create_parents = True,
       cd_access='a',
-      mode = 0755,
+      mode = 0o755,
     )
     self.assertResourceCalled('File', '/hadoop/zookeeper/myid',
       content = '1',
-      mode = 0644,
+      mode = 0o644,
     )
     self.assertResourceCalled('File',
                               '/etc/zookeeper/conf/log4j.properties',
                               content=InlineTemplate(self.getConfig()['configurations']['zookeeper-log4j']['content']),
-                              mode=0644,
+                              mode=0o644,
                               group='hadoop',
                               owner='zookeeper'
     )
@@ -206,28 +206,28 @@ class TestZookeeperServer(RMFTestCase):
       owner = 'zookeeper',
       group = 'hadoop',
       create_parents = True,
-      mode = 0755,
+      mode = 0o755,
     )
     self.assertResourceCalled('Directory', '/var/log/zookeeper',
       owner = 'zookeeper',
       group = 'hadoop',
       create_parents = True,
-      mode = 0755,
+      mode = 0o755,
     )
     self.assertResourceCalled('Directory', '/hadoop/zookeeper',
       owner = 'zookeeper',
       group = 'hadoop',
       create_parents = True,
       cd_access='a',
-      mode = 0755,
+      mode = 0o755,
     )
     self.assertResourceCalled('File', '/hadoop/zookeeper/myid',
       content = '1',
-      mode = 0644,
+      mode = 0o644,
     )
     self.assertResourceCalled('File',
                               '/etc/zookeeper/conf/log4j.properties',
-                              mode=0644,
+                              mode=0o644,
                               owner='zookeeper',
                               content=InlineTemplate(self.getConfig()['configurations']['zookeeper-log4j']['content']),
                               group='hadoop'

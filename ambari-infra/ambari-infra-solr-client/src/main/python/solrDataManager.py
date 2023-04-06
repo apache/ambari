@@ -31,7 +31,7 @@ import tarfile
 import time
 from datetime import datetime, timedelta
 from subprocess import call, Popen, PIPE
-from urllib import quote, unquote
+from urllib.parse import quote, unquote
 from zipfile import ZipFile, ZIP_DEFLATED
 
 VERSION = "1.0"
@@ -98,45 +98,45 @@ def parse_arguments():
 
   for r in ["mode", "solr_url", "collection"]:
     if options.__dict__[r] is None:
-      print "argument '{0}' is mandatory".format(r)
+      print("argument '{0}' is mandatory".format(r))
       parser.print_help()
       sys.exit()
 
   if not options.skip_date_usage:
     if options.filter_field is None:
-      print "argument 'filter_field' is mandatory"
+      print("argument 'filter_field' is mandatory")
       parser.print_help()
       sys.exit()
 
   mode_values = ["archive", "delete", "save"]
   if options.mode not in mode_values:
-    print "mode must be one of {0}".format(" | ".join(mode_values))
+    print("mode must be one of {0}".format(" | ".join(mode_values)))
     parser.print_help()
     sys.exit()
 
   if options.mode == "delete":
     for r in ["name", "hdfs_keytab", "hdfs_principal", "hdfs_user", "hdfs_path", "key_file_path", "bucket", "key_prefix", "local_path"]:
       if options.__dict__[r] is not None:
-        print "argument '{0}' may not be specified in delete mode".format(r)
+        print("argument '{0}' may not be specified in delete mode".format(r))
         parser.print_help()
         sys.exit()
 
   if not options.skip_date_usage and options.__dict__["end"] is None and options.__dict__["days"] is None or \
           options.__dict__["end"] is not None and options.__dict__["days"] is not None:
-    print "exactly one of 'end' or 'days' must be specfied"
+    print("exactly one of 'end' or 'days' must be specfied")
     parser.print_help()
     sys.exit()
 
   is_any_solr_kerberos_property = options.__dict__["solr_keytab"] is not None or options.__dict__["solr_principal"] is not None
   is_all_solr_kerberos_property = options.__dict__["solr_keytab"] is not None and options.__dict__["solr_principal"] is not None
   if is_any_solr_kerberos_property and not is_all_solr_kerberos_property:
-    print "either both 'solr-keytab' and 'solr-principal' must be specfied, or neither of them"
+    print("either both 'solr-keytab' and 'solr-principal' must be specfied, or neither of them")
     parser.print_help()
     sys.exit()
 
   compression_values = ["none", "tar.gz", "tar.bz2", "zip", "gz"]
   if options.compression not in compression_values:
-    print "compression must be one of {0}".format(" | ".join(compression_values))
+    print("compression must be one of {0}".format(" | ".join(compression_values)))
     parser.print_help()
     sys.exit()
 
@@ -145,14 +145,14 @@ def parse_arguments():
   is_any_hdfs_kerberos_property = options.__dict__["hdfs_keytab"] is not None or options.__dict__["hdfs_principal"] is not None
   is_all_hdfs_kerberos_property = options.__dict__["hdfs_keytab"] is not None and options.__dict__["hdfs_principal"] is not None
   if is_any_hdfs_kerberos_property and not is_all_hdfs_kerberos_property:
-    print "either both 'hdfs_keytab' and 'hdfs_principal' must be specfied, or neither of them"
+    print("either both 'hdfs_keytab' and 'hdfs_principal' must be specfied, or neither of them")
     parser.print_help()
     sys.exit()
 
   is_any_hdfs_property = options.__dict__["hdfs_user"] is not None or options.__dict__["hdfs_path"] is not None
   is_all_hdfs_property = options.__dict__["hdfs_user"] is not None and options.__dict__["hdfs_path"] is not None
   if is_any_hdfs_property and not is_all_hdfs_property:
-    print "either both 'hdfs_user' and 'hdfs_path' must be specfied, or neither of them"
+    print("either both 'hdfs_user' and 'hdfs_path' must be specfied, or neither of them")
     parser.print_help()
     sys.exit()
 
@@ -161,7 +161,7 @@ def parse_arguments():
   is_all_s3_property = options.__dict__["key_file_path"] is not None and options.__dict__["bucket"] is not None and \
                        options.__dict__["key_prefix"] is not None
   if is_any_s3_property and not is_all_s3_property:
-    print "either all the S3 arguments ('key_file_path', 'bucket', 'key_prefix') must be specfied, or none of them"
+    print("either all the S3 arguments ('key_file_path', 'bucket', 'key_prefix') must be specfied, or none of them")
     parser.print_help()
     sys.exit()
 
@@ -169,70 +169,70 @@ def parse_arguments():
     count = (1 if is_any_solr_output_property else 0) + (1 if is_any_hdfs_property else 0) + \
             (1 if is_any_s3_property else 0) + (1 if options.__dict__["local_path"] is not None else 0)
     if count != 1:
-      print "exactly one of the HDFS arguments ('hdfs_user', 'hdfs_path') or the S3 arguments ('key_file_path', 'bucket', 'key_prefix') or the solr arguments ('solr_output_collection') or the 'local_path' argument must be specified"
+      print("exactly one of the HDFS arguments ('hdfs_user', 'hdfs_path') or the S3 arguments ('key_file_path', 'bucket', 'key_prefix') or the solr arguments ('solr_output_collection') or the 'local_path' argument must be specified")
       parser.print_help()
       sys.exit()
 
   if options.__dict__["hdfs_keytab"] is not None and options.__dict__["hdfs_user"] is None:
-    print "HDFS kerberos keytab and principal may only be specified if the upload target is HDFS"
+    print("HDFS kerberos keytab and principal may only be specified if the upload target is HDFS")
     parser.print_help()
     sys.exit()
 
-  print("You are running Solr Data Manager {0} with arguments:".format(VERSION))
-  print("  mode: " + options.mode)
-  print("  solr-url: " + options.solr_url)
-  print("  collection: " + options.collection)
+  print(("You are running Solr Data Manager {0} with arguments:".format(VERSION)))
+  print(("  mode: " + options.mode))
+  print(("  solr-url: " + options.solr_url))
+  print(("  collection: " + options.collection))
   if options.__dict__["filter_field"] is not None:
-    print("  filter-field: " + options.filter_field)
+    print(("  filter-field: " + options.filter_field))
   if options.mode in ["archive", "save"]:
-    print("  id-field: " + options.id_field)
+    print(("  id-field: " + options.id_field))
   if options.__dict__["exclude_fields"] is not None:
-    print("  exclude fields: " + options.exclude_fields)
+    print(("  exclude fields: " + options.exclude_fields))
   if options.__dict__["end"] is not None:
-    print("  end: " + options.end)
+    print(("  end: " + options.end))
   else:
-    print("  days: " + str(options.days))
-    print("  date-format: " + options.date_format)
+    print(("  days: " + str(options.days)))
+    print(("  date-format: " + options.date_format))
   if options.__dict__["additional_filter"] is not None:
-    print("  additional-filter: " + str(options.additional_filter))
+    print(("  additional-filter: " + str(options.additional_filter)))
   if options.__dict__["name"] is not None:
-    print("  name: " + str(options.name))
+    print(("  name: " + str(options.name)))
   if options.mode in ["archive", "save"]:
-    print("  read-block-size: " + str(options.read_block_size))
-    print("  write-block-size: " + str(options.write_block_size))
-    print("  ignore-unfinished-uploading: " + str(options.ignore_unfinished_uploading))
+    print(("  read-block-size: " + str(options.read_block_size)))
+    print(("  write-block-size: " + str(options.write_block_size)))
+    print(("  ignore-unfinished-uploading: " + str(options.ignore_unfinished_uploading)))
   if (options.__dict__["solr_keytab"] is not None):
-    print("  solr-keytab: " + options.solr_keytab)
-    print("  solr-principal: " + options.solr_principal)
+    print(("  solr-keytab: " + options.solr_keytab))
+    print(("  solr-principal: " + options.solr_principal))
   if options.mode in ["archive", "save"]:
-    print("  output: " + ("json" if options.json_file else "line-delimited-json"))
-    print("  compression: " + options.compression)
+    print(("  output: " + ("json" if options.json_file else "line-delimited-json")))
+    print(("  compression: " + options.compression))
   if options.__dict__["solr_output_collection"] is not None:
-    print("  solr output collection: " + options.solr_output_collection)
+    print(("  solr output collection: " + options.solr_output_collection))
   if options.__dict__["solr_output_url"] is not None:
-    print("  solr output url: " + options.solr_output_collection)
+    print(("  solr output url: " + options.solr_output_collection))
   if (options.__dict__["hdfs_keytab"] is not None):
-    print("  hdfs-keytab: " + options.hdfs_keytab)
-    print("  hdfs-principal: " + options.hdfs_principal)
+    print(("  hdfs-keytab: " + options.hdfs_keytab))
+    print(("  hdfs-principal: " + options.hdfs_principal))
   if (options.__dict__["hdfs_user"] is not None):
-    print("  hdfs-user: " + options.hdfs_user)
-    print("  hdfs-path: " + options.hdfs_path)
+    print(("  hdfs-user: " + options.hdfs_user))
+    print(("  hdfs-path: " + options.hdfs_path))
   if (options.__dict__["key_file_path"] is not None):
-    print("  key-file-path: " + options.key_file_path)
-    print("  bucket: " + options.bucket)
-    print("  key-prefix: " + options.key_prefix)
+    print(("  key-file-path: " + options.key_file_path))
+    print(("  bucket: " + options.bucket))
+    print(("  key-prefix: " + options.key_prefix))
   if (options.__dict__["local_path"] is not None):
-    print("  local-path: " + options.local_path)
-  print ("  skip-date-usage: " + str(options.skip_date_usage))
-  print("  verbose: " + str(options.verbose))
-  print
+    print(("  local-path: " + options.local_path))
+  print(("  skip-date-usage: " + str(options.skip_date_usage)))
+  print(("  verbose: " + str(options.verbose)))
+  print()
 
   if options.__dict__["additional_filter"] is not None and options.__dict__["name"] is None:
     go = False
     while not go:
       sys.stdout.write("It is recommended to set --name in case of any additional filter is set.\n")
       sys.stdout.write("Are you sure that you want to proceed without a name (yes/no)? ")
-      choice = raw_input().lower()
+      choice = input().lower()
       if choice in ['yes', 'ye', 'y']:
         go = True
       elif choice in ['no', 'n']:
@@ -311,13 +311,13 @@ def ensure_hdfs_path(hdfs_kinit_command, hdfs_user, hdfs_path):
     logger.debug("Ensuring that the HDFS path %s exists:\n%s", hdfs_path, hdfs_create_dir_command)
     result = call(hdfs_create_dir_command.split())
   except Exception as e:
-    print
+    print()
     logger.warn("Could not execute hdfs ensure dir command:\n%s", hdfs_create_dir_command)
     logger.warn(str(e))
     sys.exit()
 
   if result != 0:
-    print
+    print()
     logger.warn("Could not ensure HDFS dir command:\n%s", hdfs_create_dir_command)
     logger.warn(str(err))
     sys.exit()
@@ -341,12 +341,12 @@ def handle_unfinished_uploading(solr_kinit_command, hdfs_kinit_command, curl_pre
     with open(command_json_path) as command_file:
       command = json.load(command_file)
 
-    if "upload" in command.keys() and ignore_unfinished_uploading:
+    if "upload" in list(command.keys()) and ignore_unfinished_uploading:
       logger.info("Ignoring unfinished uploading left by previous run")
       os.remove(command_json_path)
       return
 
-    if "upload" in command.keys():
+    if "upload" in list(command.keys()):
       logger.info("Previous run has left unfinished uploading")
       logger.info("You may try to run the program with '-g' or '--ignore-unfinished-uploading' to ignore it if it keeps on failing")
 
@@ -365,7 +365,7 @@ def handle_unfinished_uploading(solr_kinit_command, hdfs_kinit_command, curl_pre
         logger.warn("Unknown upload type: %s", command["upload"]["type"])
         sys.exit()
 
-    if "delete" in command.keys():
+    if "delete" in list(command.keys()):
       delete_data(solr_kinit_command, curl_prefix, command["delete"]["command"], command["delete"]["collection"],
                   command["delete"]["filter_field"], command["delete"]["id_field"], command["delete"]["prev_lot_end_value"],
                   command["delete"]["prev_lot_end_id"], skip_date_usage)
@@ -469,7 +469,7 @@ def create_block(tmp_file_path, solr_kinit_command, curl_prefix, solr_query_url_
     sys.stdout.write("\r{0} records are written".format(records))
     sys.stdout.flush()
     if verbose and records < write_block_size:
-      print
+      print()
       logger.debug("Collecting next lot of data")
 
   finish_file(tmp_file, json_file)
@@ -672,7 +672,7 @@ def upload_file_hdfs(hdfs_kinit_command, upload_command, upload_file_path, hdfs_
     logger.debug("Checking if file already exists on hdfs:\n%s", hdfs_file_exists_command)
     hdfs_file_exists = (0 == call(hdfs_file_exists_command.split()))
   except Exception as e:
-    print
+    print()
     logger.warn("Could not execute command to check if file already exists on HDFS:\n%s", hdfs_file_exists_command)
     logger.warn(str(e))
     sys.exit()
@@ -682,7 +682,7 @@ def upload_file_hdfs(hdfs_kinit_command, upload_command, upload_file_path, hdfs_
       logger.debug("Uploading file to hdfs:\n%s", upload_command)
       result = call(upload_command.split())
     except Exception as e:
-      print
+      print()
       logger.warn("Could not execute command to upload file to HDFS:\n%s", upload_command)
       logger.warn(str(e))
       sys.exit()
@@ -700,7 +700,7 @@ def upload_file_s3(upload_command, upload_file_path, bucket, key_prefix):
       logger.debug("Uploading file to s3:\n%s", upload_command)
       result = call(upload_command.split())
     except Exception as e:
-      print
+      print()
       logger.warn("Could not execute command to upload file to S3:\n%s", upload_command)
       logger.warn(str(e))
       sys.exit()
@@ -725,7 +725,7 @@ def upload_file_local(upload_command, upload_file_path, local_path):
     call(upload_command.split())
     logger.info("File %s was moved to local directory %s", os.path.basename(upload_file_path), local_path)
   except Exception as e:
-    print
+    print()
     logger.warn("Could not execute move command command:\n%s", upload_command)
     logger.warn(str(e))
     sys.exit()
@@ -758,14 +758,14 @@ def query_solr(solr_kinit_command, url, curl_command, action, data=None):
     logger.debug("%s data from solr:\n%s", action, ' '.join(cmd))
     process = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)
   except Exception as e:
-    print
+    print()
     logger.warn("Could not execute curl command:\n%s", ' '.join(cmd))
     logger.warn(str(e))
     sys.exit()
 
   out, err = process.communicate()
   if process.returncode != 0:
-    print
+    print()
     logger.warn("Could not execute curl command:\n%s", ' '.join(cmd))
     logger.warn(str(err))
     sys.exit()
@@ -773,7 +773,7 @@ def query_solr(solr_kinit_command, url, curl_command, action, data=None):
   true = True # needed to be able to eval 'true' in the returned json
   rsp = eval(str(out))
   if rsp["responseHeader"]["status"] != 0:
-    print
+    print()
     logger.warn("Could not execute solr query:\n%s", unquote(url))
     logger.warn(rsp["error"]["msg"])
     sys.exit()
@@ -785,13 +785,13 @@ def run_kinit(kinit_command, program):
     logger.debug("Running kinit for %s:\n%s", program, kinit_command)
     result = call(kinit_command.split())
   except Exception as e:
-    print
+    print()
     logger.warn("Could not execute %s kinit command:\n%s", program, kinit_command)
     logger.warn(str(e))
     sys.exit()
 
   if result != 0:
-    print
+    print()
     logger.warn("%s kinit command was not successful:\n%s", program, kinit_command)
     sys.exit()
 
@@ -817,7 +817,7 @@ if __name__ == '__main__':
     else:
       logger.warn("Unknown mode: %s", options.mode)
 
-    print("--- %s seconds ---" % (time.time() - start_time))
+    print(("--- %s seconds ---" % (time.time() - start_time)))
   except KeyboardInterrupt:
-    print
+    print()
     sys.exit(128 + signal.SIGINT)

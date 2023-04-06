@@ -87,8 +87,8 @@ class CertificateAuthority(Script):
         recursive_ownership=True
     )
 
-    File(ca_server_script, mode=0755)
-    File(run_ca_script, mode=0755) 
+    File(ca_server_script, mode=0o755)
+    File(run_ca_script, mode=0o755) 
     Execute((run_ca_script, params.jdk64_home, ca_server_script, params.nifi_config_dir + '/nifi-certificate-authority.json', params.nifi_ca_log_file_stdout, params.nifi_ca_log_file_stderr, status_params.nifi_ca_pid_file), user=params.nifi_user)
     if not os.path.isfile(status_params.nifi_ca_pid_file):
       raise Exception('Expected pid file to exist')

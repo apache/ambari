@@ -34,7 +34,7 @@ try:
     service_advisor = imp.load_module('service_advisor', fp, PARENT_FILE, ('.py', 'rb', imp.PY_SOURCE))
 except Exception as e:
   traceback.print_exc()
-  print "Failed to load parent"
+  print("Failed to load parent")
 
 class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
 
@@ -77,7 +77,7 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
     # colocate HAWQSEGMENT with DATANODE, if no hosts have been allocated for HAWQSEGMENT
     hawqSegment = [component for component in serviceComponents if component["StackServiceComponents"]["component_name"] == "HAWQSEGMENT"][0]
     if not self.isComponentHostsPopulated(hawqSegment):
-      for hostName in hostsComponentsMap.keys():
+      for hostName in list(hostsComponentsMap.keys()):
         hostComponents = hostsComponentsMap[hostName]
         if {"name": "DATANODE"} in hostComponents and {"name": "HAWQSEGMENT"} not in hostComponents:
           hostsComponentsMap[hostName].append( { "name": "HAWQSEGMENT" } )
@@ -137,7 +137,7 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
       hdfs_site = services["configurations"]["hdfs-site"]["properties"]
       putHdfsSiteProperty = self.putProperty(configurations, "hdfs-site", services)
 
-      for property, desired_value in self.getHDFSSiteDesiredValues(self.isSecurityEnabled(services)).iteritems():
+      for property, desired_value in self.getHDFSSiteDesiredValues(self.isSecurityEnabled(services)).items():
         if property not in hdfs_site or hdfs_site[property] != desired_value:
           putHdfsSiteProperty(property, desired_value)
 
@@ -146,7 +146,7 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
       core_site = services["configurations"]["core-site"]["properties"]
       putCoreSiteProperty = self.putProperty(configurations, "core-site", services)
 
-      for property, desired_value in self.getCORESiteDesiredValues().iteritems():
+      for property, desired_value in self.getCORESiteDesiredValues().items():
         if property not in core_site or core_site[property] != desired_value:
           putCoreSiteProperty(property, desired_value)
 
@@ -207,7 +207,7 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
         factor_min = 1
         factor_max = 6
         limit = int(hawq_site["hawq_rm_nvseg_perquery_limit"])
-        factor = limit / numSegments
+        factor = limit // numSegments
         # if too many segments or default limit is too low --> stick with the limit
         if factor < factor_min:
           buckets = limit
@@ -228,7 +228,7 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
       # update YARN RM urls with the values from yarn-site if YARN is installed
       if "YARN" in servicesList and "yarn-site" in services["configurations"]:
         yarn_site = services["configurations"]["yarn-site"]["properties"]
-        for hs_prop, ys_prop in self.getHAWQYARNPropertyMapping().items():
+        for hs_prop, ys_prop in list(self.getHAWQYARNPropertyMapping().items()):
           if hs_prop in hawq_site and ys_prop in yarn_site:
             putHawqSiteProperty(hs_prop, yarn_site[ys_prop])
 
@@ -251,7 +251,7 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
         "hawq_rm_yarn_address": True
       }
 
-      for property, visibility in yarn_mode_properties_visibility.iteritems():
+      for property, visibility in yarn_mode_properties_visibility.items():
         putHawqSitePropertyAttribute(property, "visible", str(visibility if YARN_MODE else not visibility).lower())
 
       putHawqSitePropertyAttribute("default_hash_table_bucket_number", "maximum", numSegments * 16 if numSegments * 16 < 10000 else 10000)
@@ -330,7 +330,7 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
                     'hawq_segment_directory': 'HAWQ Segment directory',
                     'hawq_segment_temp_directory': 'HAWQ Segment temp directory'
                   }
-    for property_name, display_name in directories.iteritems():
+    for property_name, display_name in directories.items():
       self.validateIfRootDir(properties, validationItems, property_name, display_name)
 
     # 2.1 Check if any master or segment directories has multiple values
@@ -338,7 +338,7 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
                     'hawq_master_directory': 'HAWQ Master directory',
                     'hawq_segment_directory': 'HAWQ Segment directory'
                   }
-    for property_name, display_name in directories.iteritems():
+    for property_name, display_name in directories.items():
       self.checkForMultipleDirs(properties, validationItems, property_name, display_name)
 
     # 3. Check YARN RM address properties
@@ -346,7 +346,7 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     if YARN in servicesList and "yarn-site" in configurations:
       yarn_site = self.getSiteProperties(configurations, "yarn-site")
-      for hs_prop, ys_prop in self.getHAWQYARNPropertyMapping().items():
+      for hs_prop, ys_prop in list(self.getHAWQYARNPropertyMapping().items()):
         if hs_prop in hawq_site and ys_prop in yarn_site and hawq_site[hs_prop] != yarn_site[ys_prop]:
           message = "Expected value: {0} (this property should have the same value as the property {1} in yarn-site)".format(yarn_site[ys_prop], ys_prop)
           validationItems.append({"config-name": hs_prop, "item": self.getWarnItem(message)})
@@ -401,7 +401,7 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
   def validateHDFSSiteConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     hdfs_site = properties
     validationItems = []
-    for property, desired_value in self.getHDFSSiteDesiredValues(self.isSecurityEnabled(services)).iteritems():
+    for property, desired_value in self.getHDFSSiteDesiredValues(self.isSecurityEnabled(services)).items():
       if property not in hdfs_site or hdfs_site[property] != desired_value:
         message = "HAWQ requires this property to be set to the recommended value of " + desired_value
         item = self.getErrorItem(message) if property == "dfs.allow.truncate" else self.getWarnItem(message)
@@ -411,7 +411,7 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
   def validateCORESiteConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     core_site = properties
     validationItems = []
-    for property, desired_value in self.getCORESiteDesiredValues().iteritems():
+    for property, desired_value in self.getCORESiteDesiredValues().items():
       if property not in core_site or core_site[property] != desired_value:
         message = "HAWQ requires this property to be set to the recommended value of " + desired_value
         validationItems.append({"config-name": property, "item": self.getWarnItem(message)})

@@ -115,5 +115,5 @@ def link_configs(struct_out_file):
 
   # On parallel command execution this should be executed by a single process at a time.
   with FcntlBasedProcessLock(params.link_configs_lock_file, enabled = params.is_parallel_execution_enabled, skip_fcntl_failures = True):
-    for k, v in conf_select.get_package_dirs().iteritems():
+    for k, v in conf_select.get_package_dirs().items():
       conf_select.convert_conf_directories_to_symlinks(k, json_version, v)

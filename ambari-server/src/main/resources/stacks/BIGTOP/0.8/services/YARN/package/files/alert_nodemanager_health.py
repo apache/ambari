@@ -20,7 +20,7 @@ limitations under the License.
 
 import json
 import socket
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 from ambari_commons import OSCheck
 from ambari_commons.inet_utils import resolve_address
 
@@ -117,13 +117,13 @@ def execute(configurations={}, parameters={}, host_name=None):
 
   try:
     # execute the query for the JSON that includes templeton status
-    url_response = urllib2.urlopen(query, timeout=connection_timeout)
-  except urllib2.HTTPError, httpError:
+    url_response = urllib.request.urlopen(query, timeout=connection_timeout)
+  except urllib.error.HTTPError as httpError:
     label = CRITICAL_HTTP_STATUS_MESSAGE.format(str(httpError.code), query,
       str(httpError))
 
     return (RESULT_CODE_CRITICAL, [label])
-  except Exception, exception:
+  except Exception as exception:
     label = CRITICAL_CONNECTION_MESSAGE.format(query, str(exception))
     return (RESULT_CODE_CRITICAL, [label])
 

@@ -147,7 +147,7 @@ class TestMySqlServer(RMFTestCase):
     )
     self.assertResourceCalled('File', '/tmp/addMysqlUser.sh',
       content = StaticFile('addMysqlUser.sh'),
-      mode = 0755,
+      mode = 0o755,
     )
     self.assertResourceCalled('Execute', 'bash -x /tmp/addMysqlUser.sh mysql hive \'!`"\'"\'"\' 1\' c6402.ambari.apache.org',
       path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
@@ -165,7 +165,7 @@ class TestMySqlServer(RMFTestCase):
     )
     self.assertResourceCalled('File', '/tmp/addMysqlUser.sh',
       content = StaticFile('addMysqlUser.sh'),
-      mode = 0755,
+      mode = 0o755,
     )
     self.assertResourceCalled('Execute', 'bash -x /tmp/addMysqlUser.sh mysql hive \'!`"\'"\'"\' 1\' c6402.ambari.apache.org',
       path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
@@ -177,7 +177,7 @@ class TestMySqlServer(RMFTestCase):
   def assert_clean_default(self):
     self.assertResourceCalled('File', '/tmp/removeMysqlUser.sh',
                               content = StaticFile('removeMysqlUser.sh'),
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('Execute', 'bash -x /tmp/removeMysqlUser.sh mysql hive c6402.ambari.apache.org',
                               path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
@@ -188,7 +188,7 @@ class TestMySqlServer(RMFTestCase):
   def assert_clean_secured(self):
     self.assertResourceCalled('File', '/tmp/removeMysqlUser.sh',
                               content = StaticFile('removeMysqlUser.sh'),
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('Execute', 'bash -x /tmp/removeMysqlUser.sh mysql hive c6402.ambari.apache.org',
                               path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],

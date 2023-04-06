@@ -95,9 +95,9 @@ class HDF20StackAdvisor(DefaultStackAdvisor):
     changedConfigs = []
     # if services parameter, prefer values, set by user
     if services:
-      if 'configurations' in services.keys():
+      if 'configurations' in list(services.keys()):
         userConfigs = services['configurations']
-      if 'changed-configurations' in services.keys():
+      if 'changed-configurations' in list(services.keys()):
         changedConfigs = services["changed-configurations"]
 
     if configType not in config:
@@ -225,7 +225,7 @@ class HDF20StackAdvisor(DefaultStackAdvisor):
     else:
       colon_count = db_host.count(':')
       if colon_count == 0:
-        if DB_TYPE_DEFAULT_PORT_MAP.has_key(db_type):
+        if db_type in DB_TYPE_DEFAULT_PORT_MAP:
           connection_string = db_host + ":" + DB_TYPE_DEFAULT_PORT_MAP[db_type]
         else:
           connection_string = db_host
@@ -497,8 +497,8 @@ class HDF20StackAdvisor(DefaultStackAdvisor):
     total_sinks_count = 0
     # minimum heap size
     hbase_heapsize = 500
-    for serviceName, componentsDict in schMemoryMap.items():
-      for componentName, multiplier in componentsDict.items():
+    for serviceName, componentsDict in list(schMemoryMap.items()):
+      for componentName, multiplier in list(componentsDict.items()):
         schCount = len(
           self.getHostsWithComponent(serviceName, componentName, services,
                                      hosts))
@@ -1315,7 +1315,7 @@ class HDF20StackAdvisor(DefaultStackAdvisor):
           if component["StackServiceComponents"]["hostnames"] is not None:
             for hostName in component["StackServiceComponents"]["hostnames"]:
               if self.isMasterComponent(component):
-                if hostName not in hostMasterComponents.keys():
+                if hostName not in list(hostMasterComponents.keys()):
                   hostMasterComponents[hostName] = []
                 hostMasterComponents[hostName].append(component["StackServiceComponents"]["component_name"])
 
@@ -1506,13 +1506,13 @@ class HDF20StackAdvisor(DefaultStackAdvisor):
     mountPoints = {}
     for mountPoint in hostInfo["disk_info"]:
       mountPoints[mountPoint["mountpoint"]] = to_number(mountPoint["available"])
-    mountPoint = getMountPointForDir(dir, mountPoints.keys())
+    mountPoint = getMountPointForDir(dir, list(mountPoints.keys()))
 
     if not mountPoints:
       return self.getErrorItem("No disk info found on host %s" % hostInfo["host_name"])
 
     if mountPoint is None:
-      return self.getErrorItem("No mount point in directory %s. Mount points: %s" % (dir, ', '.join(mountPoints.keys())))
+      return self.getErrorItem("No mount point in directory %s. Mount points: %s" % (dir, ', '.join(list(mountPoints.keys()))))
 
     if mountPoints[mountPoint] < reqiuredDiskSpace:
       msg = "Ambari Metrics disk space requirements not met. \n" \
@@ -1641,9 +1641,9 @@ class HDF20StackAdvisor(DefaultStackAdvisor):
       with open(login_defs, 'r') as f:
         data = f.read().split('\n')
         # look for uid_min_tag in file
-        uid = filter(lambda x: uid_min_tag in x, data)
+        uid = [x for x in data if uid_min_tag in x]
         # filter all lines, where uid_min_tag was found in comments
-        uid = filter(lambda x: x.find(comment_tag) > x.find(uid_min_tag) or x.find(comment_tag) == -1, uid)
+        uid = [x for x in uid if x.find(comment_tag) > x.find(uid_min_tag) or x.find(comment_tag) == -1]
 
       if uid is not None and len(uid) > 0:
         uid = uid[0]
@@ -1665,7 +1665,7 @@ class HDF20StackAdvisor(DefaultStackAdvisor):
     return uid_min
 
   def mergeValidators(self, parentValidators, childValidators):
-    for service, configsDict in childValidators.iteritems():
+    for service, configsDict in childValidators.items():
       if service not in parentValidators:
         parentValidators[service] = {}
       parentValidators[service].update(configsDict)
@@ -1686,7 +1686,7 @@ class HDF20StackAdvisor(DefaultStackAdvisor):
 
 def getOldValue(self, services, configType, propertyName):
   if services:
-    if 'changed-configurations' in services.keys():
+    if 'changed-configurations' in list(services.keys()):
       changedConfigs = services["changed-configurations"]
       for changedConfig in changedConfigs:
         if changedConfig["type"] == configType and changedConfig["name"]== propertyName and "old_value" in changedConfig:
@@ -1810,7 +1810,7 @@ def getHeapsizeProperties():
 def getMemorySizeRequired(components, configurations):
   totalMemoryRequired = 512*1024*1024 # 512Mb for OS needs
   for component in components:
-    if component in getHeapsizeProperties().keys():
+    if component in list(getHeapsizeProperties().keys()):
       heapSizeProperties = getHeapsizeProperties()[component]
       for heapSizeProperty in heapSizeProperties:
         try:

@@ -82,7 +82,7 @@ def find_properties_file():
   if conf_file is None:
     err = 'File %s not found in search path $%s: %s' % (AMS_PROPERTIES_FILE,
                                                         AMS_CONF_VAR, get_conf_dir())
-    print err
+    print(err)
     raise FatalException(1, err)
   else:
     print_info_msg('Loading properties from ' + conf_file)
@@ -96,8 +96,8 @@ def get_properties():
   try:
     properties = Properties()
     properties.load(open(conf_file))
-  except (Exception), e:
-    print 'Could not read "%s": %s' % (conf_file, e)
+  except (Exception) as e:
+    print('Could not read "%s": %s' % (conf_file, e))
     return -1
   return properties
 

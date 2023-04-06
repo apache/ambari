@@ -40,7 +40,7 @@ template = '''
     "master": "local[*]",
     "spark.app.name": "Zeppelin",
     "zeppelin.R.image.width": "100%",
-    "zeppelin.R.render.options": "out.format \u003d \u0027html\u0027, comment \u003d NA, echo \u003d FALSE, results \u003d \u0027asis\u0027, message \u003d F, warning \u003d F",
+    "zeppelin.R.render.options": "out.format \\u003d \\u0027html\\u0027, comment \\u003d NA, echo \\u003d FALSE, results \\u003d \\u0027asis\\u0027, message \\u003d F, warning \\u003d F",
     "zeppelin.R.cmd": "R"
   },
   "status": "READY",

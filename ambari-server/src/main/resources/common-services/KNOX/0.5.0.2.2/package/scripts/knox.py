@@ -98,7 +98,7 @@ def knox():
               group = params.knox_group,
               create_parents = True,
               cd_access = "a",
-              mode = 0755,
+              mode = 0o755,
               recursive_ownership = True,
     )
 
@@ -111,7 +111,7 @@ def knox():
     )
 
     File(format("{params.knox_conf_dir}/gateway-log4j.properties"),
-         mode=0644,
+         mode=0o644,
          group=params.knox_group,
          owner=params.knox_user,
          content=InlineTemplate(params.gateway_log4j)
@@ -187,6 +187,6 @@ def update_knox_logfolder_permissions():
             group = params.knox_group,
             create_parents = True,
             cd_access = "a",
-            mode = 0755,
+            mode = 0o755,
             recursive_ownership = True,
   )

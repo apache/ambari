@@ -17,7 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 import os
 
@@ -47,7 +47,7 @@ def hbase(name=None):
             configuration_attributes=params.config['configurationAttributes']['hbase-site']
   )
 
-  if params.service_map.has_key(name):
+  if name in params.service_map:
     # Manually overriding service logon user & password set by the installation package
     service_name = params.service_map[name]
     ServiceConfig(service_name,
@@ -64,7 +64,7 @@ def hbase(name=None):
   lzo_utils.install_lzo_if_needed()
 
   Directory( params.etc_prefix_dir,
-      mode=0755
+      mode=0o755
   )
 
   Directory( params.hbase_conf_dir,
@@ -75,7 +75,7 @@ def hbase(name=None):
    
   Directory(params.java_io_tmpdir,
       create_parents = True,
-      mode=0777
+      mode=0o777
   )
 
   # If a file location is specified in ioengine parameter,
@@ -90,7 +90,7 @@ def hbase(name=None):
           owner = params.hbase_user,
           group = params.user_group,
           create_parents = True,
-          mode = 0755
+          mode = 0o755
       )
   
   parent_dir = os.path.dirname(params.tmp_dir)
@@ -167,7 +167,7 @@ def hbase(name=None):
   File(os.path.join(params.limits_conf_dir, 'hbase.conf'),
        owner='root',
        group='root',
-       mode=0644,
+       mode=0o644,
        content=Template("hbase.conf.j2")
        )
     
@@ -185,26 +185,26 @@ def hbase(name=None):
       owner = params.hbase_user,
       create_parents = True,
       cd_access = "a",
-      mode = 0755,
+      mode = 0o755,
     )
   
     Directory (params.log_dir,
       owner = params.hbase_user,
       create_parents = True,
       cd_access = "a",
-      mode = 0755,
+      mode = 0o755,
     )
 
   if (params.log4j_props != None):
     File(format("{params.hbase_conf_dir}/log4j.properties"),
-         mode=0644,
+         mode=0o644,
          group=params.user_group,
          owner=params.hbase_user,
          content=InlineTemplate(params.log4j_props)
     )
   elif (os.path.exists(format("{params.hbase_conf_dir}/log4j.properties"))):
     File(format("{params.hbase_conf_dir}/log4j.properties"),
-      mode=0644,
+      mode=0o644,
       group=params.user_group,
       owner=params.hbase_user
     )
@@ -219,14 +219,14 @@ def hbase(name=None):
                          type="directory",
                          action="create_on_execute",
                          owner=params.hbase_user,
-                         mode=0711
+                         mode=0o711
     )
     if params.create_hbase_home_directory:
       params.HdfsResource(params.hbase_home_directory,
                           type="directory",
                           action="create_on_execute",
                           owner=params.hbase_user,
-                          mode=0755
+                          mode=0o755
       )
     params.HdfsResource(None, action="execute")
 
@@ -235,7 +235,7 @@ def hbase(name=None):
       owner = params.hbase_user,
       create_parents = True,
       cd_access = "a",
-      mode = 0711,
+      mode = 0o711,
     )
 
   if params.phoenix_enabled:

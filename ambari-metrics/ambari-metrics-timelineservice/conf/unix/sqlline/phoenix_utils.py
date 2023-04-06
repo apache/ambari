@@ -175,18 +175,18 @@ def shell_quote(args):
 
 if __name__ == "__main__":
     setPath()
-    print "phoenix_class_path:", phoenix_class_path
-    print "hbase_conf_dir:", hbase_conf_dir
-    print "hbase_conf_path:", hbase_conf_path
-    print "current_dir:", current_dir
-    print "phoenix_jar_path:", phoenix_jar_path
-    print "phoenix_client_jar:", phoenix_client_jar
-    print "phoenix_test_jar_path:", phoenix_test_jar_path
-    print "hadoop_common_jar_path:", hadoop_common_jar_path
-    print "hadoop_common_jar:", hadoop_common_jar
-    print "hadoop_hdfs_jar_path:", hadoop_hdfs_jar_path
-    print "hadoop_hdfs_jar:", hadoop_hdfs_jar
-    print "testjar:", testjar
-    print "phoenix_queryserver_jar:", phoenix_queryserver_jar
-    print "phoenix_thin_client_jar:", phoenix_thin_client_jar
-    print "hadoop_classpath:", hadoop_classpath
+    print("phoenix_class_path:", phoenix_class_path)
+    print("hbase_conf_dir:", hbase_conf_dir)
+    print("hbase_conf_path:", hbase_conf_path)
+    print("current_dir:", current_dir)
+    print("phoenix_jar_path:", phoenix_jar_path)
+    print("phoenix_client_jar:", phoenix_client_jar)
+    print("phoenix_test_jar_path:", phoenix_test_jar_path)
+    print("hadoop_common_jar_path:", hadoop_common_jar_path)
+    print("hadoop_common_jar:", hadoop_common_jar)
+    print("hadoop_hdfs_jar_path:", hadoop_hdfs_jar_path)
+    print("hadoop_hdfs_jar:", hadoop_hdfs_jar)
+    print("testjar:", testjar)
+    print("phoenix_queryserver_jar:", phoenix_queryserver_jar)
+    print("phoenix_thin_client_jar:", phoenix_thin_client_jar)
+    print("hadoop_classpath:", hadoop_classpath)

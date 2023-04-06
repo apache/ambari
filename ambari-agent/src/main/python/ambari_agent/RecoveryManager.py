@@ -247,7 +247,7 @@ class RecoveryManager:
       report["componentReports"] = recovery_states
       self.__status_lock.acquire()
       try:
-        for component in self.actions.keys():
+        for component in list(self.actions.keys()):
           action = self.actions[component]
           recovery_state = {
             "name": component,
@@ -276,7 +276,7 @@ class RecoveryManager:
     INSTALLED_FAILED --> STARTED
     """
     commands = []
-    for component in self.statuses.keys():
+    for component in list(self.statuses.keys()):
       if self.configured_for_recovery(component) and self.requires_recovery(component) and self.may_execute(component):
         status = copy.deepcopy(self.statuses[component])
         command = None

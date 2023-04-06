@@ -23,7 +23,7 @@ import os
 import glob
 
 def install_tez_jars():
-  import params
+  from . import params
 
   destination_hdfs_dirs = get_tez_hdfs_dir_paths(params.tez_lib_uris)
 
@@ -34,7 +34,7 @@ def install_tez_jars():
                            type="directory",
                            action="create_on_execute",
                            owner=params.tez_user,
-                           mode=0755
+                           mode=0o755
       )
 
     app_dir_path = None
@@ -56,25 +56,25 @@ def install_tez_jars():
     if lib_dir_path:
       tez_jars[params.tez_local_lib_jars] = lib_dir_path
 
-    for src_file_regex, dest_dir in tez_jars.iteritems():
+    for src_file_regex, dest_dir in tez_jars.items():
       for src_filepath in glob.glob(src_file_regex):
         src_filename = os.path.basename(src_filepath)
         params.HdfsResource(format("{dest_dir}/{src_filename}"),
                             type="file",
                             action="create_on_execute",
                             source=src_filepath,
-                            mode=0755,
+                            mode=0o755,
                             owner=params.tez_user
          )
         
-    for src_file_regex, dest_dir in tez_jars.iteritems():
+    for src_file_regex, dest_dir in tez_jars.items():
       for src_filepath in glob.glob(src_file_regex):
         src_filename = os.path.basename(src_filepath)
         params.HdfsResource(format("{dest_dir}/{src_filename}"),
                             type="file",
                             action="create_on_execute",
                             source=src_filepath,
-                            mode=0755,
+                            mode=0o755,
                             owner=params.tez_user
          )
     params.HdfsResource(None, action="execute")

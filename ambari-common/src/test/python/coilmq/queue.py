@@ -126,7 +126,7 @@ class QueueManager(object):
         else:
             # total them up
             total = 0
-            for k in self._queues.keys():
+            for k in list(self._queues.keys()):
                 total += len(self._queues[k])
             return total
 
@@ -315,7 +315,7 @@ class QueueManager(object):
         if destination is None:
             # Find all destinations that have frames and that contain this
             # connection (subscriber).
-            eligible_queues = dict([(dest, q) for (dest, q) in self._queues.items()
+            eligible_queues = dict([(dest, q) for (dest, q) in list(self._queues.items())
                                     if connection in q and self.store.has_frames(dest)])
             destination = self.queue_scheduler.choice(
                 eligible_queues, connection)

@@ -19,7 +19,7 @@ limitations under the License.
 """
 
 from resource_management import *
-import status_params
+from . import status_params
 import os
 
 # server configurations
@@ -210,7 +210,7 @@ daemon_name = status_params.daemon_name
 hive_env_sh_template = config['configurations']['hive-env']['content']
 
 hive_hdfs_user_dir = format("/user/{hive_user}")
-hive_hdfs_user_mode = 0700
+hive_hdfs_user_mode = 0o700
 hive_apps_whs_dir = config['configurations']['hive-site']["hive.metastore.warehouse.dir"]
 #for create_hdfs_directory
 hostname = config["hostname"]
@@ -256,9 +256,9 @@ webhcat_server_host = config['clusterHostInfo']['webhcat_server_host']
 webhcat_apps_dir = "/apps/webhcat"
 
 hcat_hdfs_user_dir = format("/user/{hcat_user}")
-hcat_hdfs_user_mode = 0755
+hcat_hdfs_user_mode = 0o755
 webhcat_hdfs_user_dir = format("/user/{webhcat_user}")
-webhcat_hdfs_user_mode = 0755
+webhcat_hdfs_user_mode = 0o755
 #for create_hdfs_directory
 security_param = "true" if security_enabled else "false"
 

@@ -50,7 +50,7 @@ class HawqBaseTestCase(RMFTestCase):
 
     self.assertResourceCalled('User', self.GPADMIN,
         gid = self.GPADMIN,
-        groups = [self.GPADMIN, u'hadoop'],
+        groups = [self.GPADMIN, 'hadoop'],
         ignore_failures = True,
         password = crypt.crypt(self.config_dict['configurations']['hawq-env']['hawq_password'], "$1$salt$")
         )
@@ -61,7 +61,7 @@ class HawqBaseTestCase(RMFTestCase):
 
     self.assertResourceCalled('User', self.POSTGRES,
         gid = self.POSTGRES,
-        groups = [self.POSTGRES, u'hadoop'],
+        groups = [self.POSTGRES, 'hadoop'],
         ignore_failures = True
         )
 
@@ -75,7 +75,7 @@ class HawqBaseTestCase(RMFTestCase):
         configuration_attributes = self.getConfig()['configurationAttributes']['hdfs-client'],
         group = self.GPADMIN,
         owner = self.GPADMIN,
-        mode = 0644
+        mode = 0o644
         )
 
     self.assertResourceCalled('XmlConfig', 'yarn-client.xml',
@@ -84,7 +84,7 @@ class HawqBaseTestCase(RMFTestCase):
         configuration_attributes = self.getConfig()['configurationAttributes']['yarn-client'],
         group = self.GPADMIN,
         owner = self.GPADMIN,
-        mode = 0644
+        mode = 0o644
         )
 
     self.assertResourceCalled('XmlConfig', 'hawq-site.xml',
@@ -93,7 +93,7 @@ class HawqBaseTestCase(RMFTestCase):
         configuration_attributes = self.getConfig()['configurationAttributes']['hawq-site'],
         group = self.GPADMIN,
         owner = self.GPADMIN,
-        mode = 0644
+        mode = 0o644
         )
 
     if self.COMPONENT_TYPE == 'master':
@@ -101,14 +101,14 @@ class HawqBaseTestCase(RMFTestCase):
             content = self.getConfig()['configurations']['hawq-check-env']['content'],
             owner = self.GPADMIN,
             group = self.GPADMIN,
-            mode = 0644
+            mode = 0o644
             )
 
         self.assertResourceCalled('File', self.CONF_DIR + 'slaves',
             content = InlineTemplate('c6401.ambari.apache.org\nc6402.ambari.apache.org\nc6403.ambari.apache.org\n\n'),
             group = self.GPADMIN,
             owner = self.GPADMIN,
-            mode = 0644
+            mode = 0o644
             )
 
     self.assertResourceCalled('Directory', '/data/hawq/' + self.COMPONENT_TYPE,

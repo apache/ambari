@@ -18,7 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-from PythonExecutor import PythonExecutor
+from .PythonExecutor import PythonExecutor
 from resource_management.core.exceptions import ClientComponentHasNoStatus, ComponentIsNotRunning
 
 import imp
@@ -50,7 +50,7 @@ class PythonReflectiveExecutor(PythonExecutor):
       logger.debug("Running command reflectively %s", pprint.pformat(pythonCommand))
     
     script_dir = os.path.dirname(script)
-    self.open_subprocess32_files(tmp_out_file, tmp_err_file, override_output_files, backup_log_files)
+    self.open_subprocess_files(tmp_out_file, tmp_err_file, override_output_files, backup_log_files)
     returncode = 1
 
     try:

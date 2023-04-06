@@ -136,7 +136,7 @@ def svcstatus(options):
   options.exit_message = None
 
   statusStr = AMCollectorService.QueryStatus()
-  print "Ambari Metrics Collector is " + statusStr
+  print("Ambari Metrics Collector is " + statusStr)
 
 
 def setup(options):

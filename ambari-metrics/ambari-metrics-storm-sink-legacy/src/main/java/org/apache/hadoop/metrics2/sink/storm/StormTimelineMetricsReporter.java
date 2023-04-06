@@ -34,12 +34,10 @@ import org.apache.hadoop.metrics2.sink.timeline.UnableToConnectException;
 import backtype.storm.generated.ClusterSummary;
 import backtype.storm.generated.SupervisorSummary;
 import backtype.storm.generated.TopologySummary;
-import backtype.storm.metric.IClusterReporter;
 import backtype.storm.utils.NimbusClient;
 import backtype.storm.utils.Utils;
 
-public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
-    implements IClusterReporter {
+public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink {
 
   public static final String METRICS_COLLECTOR_CATEGORY = "metrics_collector";
   public static final String APP_ID = "appId";
@@ -113,7 +111,6 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
     return hostInMemoryAggregationProtocol;
   }
 
-  @Override
   public void prepare(Map conf) {
     LOG.info("Preparing Storm Metrics Reporter");
     try {

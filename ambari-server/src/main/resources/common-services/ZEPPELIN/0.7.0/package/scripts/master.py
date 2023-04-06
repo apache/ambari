@@ -87,7 +87,7 @@ class Master(Script):
                         source=spark_deps_full_path,
                         group=params.zeppelin_group,
                         owner=params.zeppelin_user,
-                        mode=0444,
+                        mode=0o444,
                         replace_existing_files=True,
                         )
 
@@ -101,7 +101,7 @@ class Master(Script):
               group=params.zeppelin_group,
               cd_access="a",
               create_parents=True,
-              mode=0755
+              mode=0o755
               )
 
   def create_zeppelin_hdfs_conf_dir(self, env):
@@ -112,7 +112,7 @@ class Master(Script):
               group=params.zeppelin_group,
               cd_access="a",
               create_parents=True,
-              mode=0755
+              mode=0o755
               )
 
   def chown_zeppelin_pid_dir(self, env):
@@ -134,13 +134,13 @@ class Master(Script):
               group=params.zeppelin_group,
               cd_access="a",
               create_parents=True,
-              mode=0755
+              mode=0o755
     )
     self.chown_zeppelin_pid_dir(env)
 
     # write out zeppelin-site.xml
     my_map = {}
-    for key, value in params.config['configurations']['zeppelin-config'].iteritems():
+    for key, value in params.config['configurations']['zeppelin-config'].items():
       my_map[key]=value
     my_map['zeppelin.server.kerberos.keytab']=params.zeppelin_kerberos_keytab
     my_map['zeppelin.server.kerberos.principal']=params.zeppelin_kerberos_principal
@@ -175,7 +175,7 @@ class Master(Script):
               configuration_attributes=params.config['configurationAttributes']['hbase-site'],
               owner=params.zeppelin_user,
               group=params.zeppelin_group,
-              mode=0644)
+              mode=0o644)
 
       XmlConfig("hdfs-site.xml",
                 conf_dir=params.external_dependency_conf,
@@ -183,7 +183,7 @@ class Master(Script):
                 configuration_attributes=params.config['configurationAttributes']['hdfs-site'],
                 owner=params.zeppelin_user,
                 group=params.zeppelin_group,
-                mode=0644)
+                mode=0o644)
 
       XmlConfig("core-site.xml",
                 conf_dir=params.external_dependency_conf,
@@ -191,7 +191,7 @@ class Master(Script):
                 configuration_attributes=params.config['configurationAttributes']['core-site'],
                 owner=params.zeppelin_user,
                 group=params.zeppelin_group,
-                mode=0644)
+                mode=0o644)
 
   def check_and_copy_notebook_in_hdfs(self, params):
     if params.config['configurations']['zeppelin-config']['zeppelin.notebook.dir'].startswith("/"):
@@ -294,7 +294,7 @@ class Master(Script):
     config_data = self.get_interpreter_settings()
     interpreter_settings = config_data['interpreterSettings']
 
-    for setting_key in interpreter_json_template.keys():
+    for setting_key in list(interpreter_json_template.keys()):
       if setting_key not in interpreter_settings:
         interpreter_settings[setting_key] = interpreter_json_template[
           setting_key]
@@ -430,7 +430,7 @@ class Master(Script):
     File(interpreter_config,
          group=params.zeppelin_group,
          owner=params.zeppelin_user,
-         mode=0644,
+         mode=0o644,
          content=json.dumps(config_data, indent=2))
 
     if params.conf_stored_in_hdfs:
@@ -504,7 +504,7 @@ class Master(Script):
 
     if params.zeppelin_interpreter:
       settings_to_delete = []
-      for settings_key, interpreter in interpreter_settings.items():
+      for settings_key, interpreter in list(interpreter_settings.items()):
         if interpreter['group'] not in params.zeppelin_interpreter:
           settings_to_delete.append(settings_key)
 
@@ -512,7 +512,7 @@ class Master(Script):
         del interpreter_settings[key]
 
     hive_interactive_properties_key = 'hive_interactive'
-    for setting_key in interpreter_settings.keys():
+    for setting_key in list(interpreter_settings.keys()):
       interpreter = interpreter_settings[setting_key]
       if interpreter['group'] == 'jdbc' and interpreter['name'] == 'jdbc':
         interpreter['dependencies'] = []
@@ -648,7 +648,7 @@ class Master(Script):
            content=interpreter_json,
            owner=params.zeppelin_user,
            group=params.zeppelin_group,
-           mode=0664)
+           mode=0o664)
 
       if params.conf_stored_in_hdfs:
         params.HdfsResource(self.get_zeppelin_conf_FS(params),

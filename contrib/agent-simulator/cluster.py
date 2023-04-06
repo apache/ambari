@@ -84,28 +84,28 @@ class Cluster:
         return interval_list
 
     def print_description(self):
-        print "cluster name: ", self.cluster_name
-        print "create time: ", self.create_time
-        print "state: ", self.state
-        print
+        print("cluster name: ", self.cluster_name)
+        print("create time: ", self.create_time)
+        print("state: ", self.state)
+        print()
 
-        print "Ambari Server: "
+        print("Ambari Server: ")
         ambari_server_vm = self.get_ambari_server_vm()
         if ambari_server_vm is None:
-            print "None"
+            print("None")
         else:
-            print ambari_server_vm.domain_name, " ", ambari_server_vm.external_ip, " ",\
-                ambari_server_vm.weave_internal_ip
-        print
+            print(ambari_server_vm.domain_name, " ", ambari_server_vm.external_ip, " ",\
+                ambari_server_vm.weave_internal_ip)
+        print()
 
-        print "Service Server with Ambari Agent directly installed: "
+        print("Service Server with Ambari Agent directly installed: ")
         if len(self.service_server_vm_list) == 0:
-            print "None"
+            print("None")
         for vm in self.service_server_vm_list:
-            print vm.weave_domain_name, " ", vm.external_ip, " ", vm.weave_internal_ip
-        print
+            print(vm.weave_domain_name, " ", vm.external_ip, " ", vm.weave_internal_ip)
+        print()
 
-        print "Ambari Agent in Docker Container: "
+        print("Ambari Agent in Docker Container: ")
         int_list = []
         for vm in self.ambari_agent_vm_list:
             for docker in vm.docker_list:
@@ -117,8 +117,8 @@ class Cluster:
                 interval_str = str(interval(0))
             else:
                 interval_str = "[{0}-{1}]".format(interval[0], interval[1])
-            print Docker.get_pattern_presentation(self.cluster_name, interval_str)
-        print
+            print(Docker.get_pattern_presentation(self.cluster_name, interval_str))
+        print()
 
     def get_agent_vm(self, vm_ip):
         """
@@ -406,7 +406,7 @@ class Cluster:
         base_ip = base_ip_str.split(".")
         new_ip = [int(base_ip[0]), int(base_ip[1]), int(base_ip[2]), int(base_ip[3])]
         new_ip[3] = new_ip[3] + increase
-        for index in reversed(range(0, 4)):
+        for index in reversed(list(range(0, 4))):
             if new_ip[index] > 255:
                 new_ip[index - 1] += (new_ip[index] / 256)
                 new_ip[index] %= 256

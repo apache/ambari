@@ -27,7 +27,7 @@ class KerberosClient(KerberosScript):
     if install_packages:
       self.install_packages(env)
     else:
-      print "Kerberos client packages are not being installed, manual installation is required."
+      print("Kerberos client packages are not being installed, manual installation is required.")
 
     self.configure(env)
 

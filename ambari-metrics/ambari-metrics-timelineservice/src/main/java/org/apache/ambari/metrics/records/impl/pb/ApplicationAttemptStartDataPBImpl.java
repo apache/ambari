@@ -150,10 +150,10 @@ public class ApplicationAttemptStartDataPBImpl extends
     return false;
   }
 
-  @Override
-  public String toString() {
-    return TextFormat.shortDebugString(getProto());
-  }
+  //@Override
+  //public String toString() {
+  //  return TextFormat.shortDebugString(getProto());
+  //}
 
   private void mergeLocalToBuilder() {
     if (this.applicationAttemptId != null

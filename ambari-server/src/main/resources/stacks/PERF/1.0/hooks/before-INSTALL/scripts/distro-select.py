@@ -51,7 +51,7 @@ def print_versions(args):
 
   with open(dest, 'r') as f:
     for line in f:
-      print line
+      print(line)
 
 
 def versions_file_destination():
@@ -69,11 +69,11 @@ def print_status(args):
     if len(args) >= 2:
       for line in f:
         if args[1] in line:
-          print line
+          print(line)
           pass
 
     for line in f:
-      print line
+      print(line)
 
 
 def set_version(args):

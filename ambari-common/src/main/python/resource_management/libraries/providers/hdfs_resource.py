@@ -26,7 +26,7 @@ import os
 import pwd
 import re
 import time
-from urlparse import urlparse
+from urllib.parse import urlparse
 from resource_management.core import shell
 from resource_management.core import sudo
 from resource_management.core.base import Fail
@@ -116,7 +116,7 @@ class HdfsResourceJar:
       env.config['hdfs_files'] = []
 
     # Put values in dictionary-resource
-    for field_name, json_field_name in RESOURCE_TO_JSON_FIELDS.iteritems():
+    for field_name, json_field_name in RESOURCE_TO_JSON_FIELDS.items():
       if field_name == 'action':
         resource[json_field_name] = action_name
       elif field_name == 'mode' and main_resource.resource.mode:
@@ -256,7 +256,7 @@ class WebHDFSUtil:
     if not self.security_enabled:
       request_args['user.name'] = self.run_user
     
-    for k,v in request_args.iteritems():
+    for k,v in request_args.items():
       url = format("{url}&{k}={v}")
     
     cmd = ["curl", "-sS","-L", "-w", "%{http_code}", "-X", method]

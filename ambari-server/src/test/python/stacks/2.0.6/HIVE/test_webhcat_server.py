@@ -207,13 +207,13 @@ class TestWebHCatServer(RMFTestCase):
                               owner = 'hcat',
                               group = 'hadoop',
                               create_parents = True,
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('Directory', '/var/log/webhcat',
                               owner = 'hcat',
                               group = 'hadoop',
                               create_parents = True,
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('Directory', '/usr/hdp/current/hive-webhcat/etc/webhcat',
                               owner = 'hcat',
@@ -241,7 +241,7 @@ class TestWebHCatServer(RMFTestCase):
                               content = InlineTemplate('log4jproperties\nline2'),
                               owner = 'hcat',
                               group = 'hadoop',
-                              mode = 0644,
+                              mode = 0o644,
                               )
 
   def assert_configure_secured(self):
@@ -249,13 +249,13 @@ class TestWebHCatServer(RMFTestCase):
                               owner = 'hcat',
                               group = 'hadoop',
                               create_parents = True,
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('Directory', '/var/log/webhcat',
                               owner = 'hcat',
                               group = 'hadoop',
                               create_parents = True,
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('Directory', '/usr/hdp/current/hive-webhcat/etc/webhcat',
                               owner = 'hcat',
@@ -284,7 +284,7 @@ class TestWebHCatServer(RMFTestCase):
                               content = InlineTemplate('log4jproperties\nline2'),
                               owner = 'hcat',
                               group = 'hadoop',
-                              mode = 0644,
+                              mode = 0o644,
                               )
 
   @patch("resource_management.core.sudo.path_isdir", new = MagicMock(return_value = True))
@@ -364,13 +364,13 @@ class TestWebHCatServer(RMFTestCase):
       owner = 'hcat',
       group = 'hadoop',
       create_parents = True,
-      mode = 0755)
+      mode = 0o755)
 
     self.assertResourceCalled('Directory', '/var/log/webhcat',
       owner = 'hcat',
       group = 'hadoop',
       create_parents = True,
-      mode = 0755)
+      mode = 0o755)
 
     self.assertResourceCalled('Directory', '/usr/hdp/current/hive-webhcat/etc/webhcat',
       owner = 'hcat',
@@ -389,18 +389,18 @@ class TestWebHCatServer(RMFTestCase):
         owner = 'hive',
         group = 'hadoop',
         conf_dir = '/usr/hdp/2.3.0.0-1234/hive/conf',
-        configuration_attributes = {u'final': {u'hive.optimize.bucketmapjoin.sortedmerge': u'true',
-                      u'javax.jdo.option.ConnectionDriverName': u'true',
-                      u'javax.jdo.option.ConnectionPassword': u'true'}},
+        configuration_attributes = {'final': {'hive.optimize.bucketmapjoin.sortedmerge': 'true',
+                      'javax.jdo.option.ConnectionDriverName': 'true',
+                      'javax.jdo.option.ConnectionPassword': 'true'}},
         configurations = self.getConfig()['configurations']['hive-site'],
     )
     self.assertResourceCalled('XmlConfig', 'yarn-site.xml',
         owner = 'yarn',
         group = 'hadoop',
         conf_dir = '/usr/hdp/2.3.0.0-1234/hadoop/conf',
-        configuration_attributes = {u'final': {u'yarn.nodemanager.container-executor.class': u'true',
-                      u'yarn.nodemanager.disk-health-checker.min-healthy-disks': u'true',
-                      u'yarn.nodemanager.local-dirs': u'true'}},
+        configuration_attributes = {'final': {'yarn.nodemanager.container-executor.class': 'true',
+                      'yarn.nodemanager.disk-health-checker.min-healthy-disks': 'true',
+                      'yarn.nodemanager.local-dirs': 'true'}},
         configurations = self.getConfig()['configurations']['yarn-site'],
     )
     
@@ -417,7 +417,7 @@ class TestWebHCatServer(RMFTestCase):
                               content = InlineTemplate('log4jproperties\nline2'),
                               owner = 'hcat',
                               group = 'hadoop',
-                              mode = 0644)
+                              mode = 0o644)
 
     self.assertNoMoreResources()
 

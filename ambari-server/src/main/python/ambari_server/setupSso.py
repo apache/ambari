@@ -18,7 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 import re
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 
 import sys
 from ambari_commons.exceptions import FatalException, NonFatalException
@@ -142,7 +142,7 @@ def eligible(service_info):
 def get_eligible_services(properties, admin_login, admin_password, cluster_name):
   print_info_msg("Fetching SSO enabled services")
 
-  safe_cluster_name = urllib2.quote(cluster_name)
+  safe_cluster_name = urllib.parse.quote(cluster_name)
 
   response_code, json_data = get_json_via_rest_api(properties, admin_login, admin_password,
                                                    FETCH_SERVICES_FOR_SSO_ENTRYPOINT % safe_cluster_name)
@@ -170,8 +170,8 @@ def populate_service_management(options, properties, ambari_properties, admin_lo
 
       if not options.sso_provider_url:
         stored_manage_services = get_boolean_from_dictionary(properties, SSO_MANAGE_SERVICES, False)
-        print("Manage SSO configurations for eligible services [y/n] ({0})? {1}"
-              .format('y' if stored_manage_services else 'n', 'y' if manage_services else 'n'))
+        print(("Manage SSO configurations for eligible services [y/n] ({0})? {1}"
+              .format('y' if stored_manage_services else 'n', 'y' if manage_services else 'n')))
 
     if manage_services:
       enabled_services = get_value_from_dictionary(properties, SSO_ENABLED_SERVICES, "").upper().split(',')
@@ -220,7 +220,7 @@ def get_sso_properties(properties, admin_login, admin_password):
 
   try:
     response_code, json_data = get_json_via_rest_api(properties, admin_login, admin_password, SSO_CONFIG_API_ENTRYPOINT)
-  except urllib2.HTTPError as http_error:
+  except urllib.error.HTTPError as http_error:
     if http_error.code == 404:
       # This means that there is no SSO configuration in the database yet -> we can not fetch the
       # property (but this is NOT an error)

@@ -24,14 +24,14 @@ import os
 
 
 def hive(name=None):
-  import params
+  from . import params
 
   if name == 'hiveserver2':
 
     params.HdfsDirectory(params.hive_apps_whs_dir,
                          action="create_delayed",
                          owner=params.hive_user,
-                         mode=0777
+                         mode=0o777
     )
     params.HdfsDirectory(params.hive_hdfs_user_dir,
                          action="create_delayed",
@@ -51,7 +51,7 @@ def hive(name=None):
             configuration_attributes=params.config['configurationAttributes']['hive-site'],
             owner=params.hive_user,
             group=params.user_group,
-            mode=0644)
+            mode=0o644)
 
   File(format("{hive_config_dir}/hive-env.sh"),
        owner=params.hive_user,
@@ -77,7 +77,7 @@ def hive(name=None):
 
   if name == 'metastore':
     File(params.start_metastore_path,
-         mode=0755,
+         mode=0o755,
          content=StaticFile('startMetastore.sh')
     )
     if params.init_metastore_schema:
@@ -98,7 +98,7 @@ def hive(name=None):
       )
   elif name == 'hiveserver2':
     File(params.start_hiveserver2_path,
-         mode=0755,
+         mode=0o755,
          content=Template(format('{start_hiveserver2_script}'))
     )
 
@@ -108,7 +108,7 @@ def hive(name=None):
     crt_directory(params.hive_var_lib)
 
 def fill_conf_dir(component_conf_dir):
-  import params
+  from . import params
   
   Directory(component_conf_dir,
             owner=params.hive_user,
@@ -122,7 +122,7 @@ def fill_conf_dir(component_conf_dir):
             configuration_attributes=params.config['configurationAttributes']['mapred-site'],
             owner=params.hive_user,
             group=params.user_group,
-            mode=0644)
+            mode=0o644)
 
 
   crt_file(format("{component_conf_dir}/hive-default.xml.template"))
@@ -131,14 +131,14 @@ def fill_conf_dir(component_conf_dir):
   log4j_exec_filename = 'hive-exec-log4j.properties'
   if (params.log4j_exec_props != None):
     File(format("{component_conf_dir}/{log4j_exec_filename}"),
-         mode=0644,
+         mode=0o644,
          group=params.user_group,
          owner=params.hive_user,
          content=params.log4j_exec_props
     )
   elif (os.path.exists("{component_conf_dir}/{log4j_exec_filename}.template")):
     File(format("{component_conf_dir}/{log4j_exec_filename}"),
-         mode=0644,
+         mode=0o644,
          group=params.user_group,
          owner=params.hive_user,
          content=StaticFile(format("{component_conf_dir}/{log4j_exec_filename}.template"))
@@ -147,14 +147,14 @@ def fill_conf_dir(component_conf_dir):
   log4j_filename = 'hive-log4j.properties'
   if (params.log4j_props != None):
     File(format("{component_conf_dir}/{log4j_filename}"),
-         mode=0644,
+         mode=0o644,
          group=params.user_group,
          owner=params.hive_user,
          content=params.log4j_props
     )
   elif (os.path.exists("{component_conf_dir}/{log4j_filename}.template")):
     File(format("{component_conf_dir}/{log4j_filename}"),
-         mode=0644,
+         mode=0o644,
          group=params.user_group,
          owner=params.hive_user,
          content=StaticFile(format("{component_conf_dir}/{log4j_filename}.template"))
@@ -162,17 +162,17 @@ def fill_conf_dir(component_conf_dir):
 
 
 def crt_directory(name):
-  import params
+  from . import params
 
   Directory(name,
             create_parents = True,
             owner=params.hive_user,
             group=params.user_group,
-            mode=0755)
+            mode=0o755)
 
 
 def crt_file(name):
-  import params
+  from . import params
 
   File(name,
        owner=params.hive_user,
@@ -181,7 +181,7 @@ def crt_file(name):
 
 
 def jdbc_connector():
-  import params
+  from . import params
 
   if params.hive_jdbc_driver == "com.mysql.jdbc.Driver":
     cmd = format("hive mkdir -p {artifact_dir} ; cp /usr/share/java/{jdbc_jar_name} {target}")

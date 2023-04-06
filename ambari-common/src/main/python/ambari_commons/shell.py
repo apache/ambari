@@ -22,7 +22,7 @@ import logging
 import os
 import string
 import signal
-from ambari_commons import subprocess32 as subprocess
+import subprocess as subprocess
 import threading
 from contextlib import contextmanager
 import copy
@@ -180,7 +180,7 @@ class PopenEx(subprocess.Popen):
   Same nice Popen with stdout handles hack to allow pty instead of pipe. This will allow to control terminal geometry
   to eliminate some applications bugs with output formatting according to terminal width.
 
-  TODO: move the code directly to subprocess32.py
+  TODO: move the code directly to subprocess.py
   """
 
   def _get_handles(self, stdin, stdout, stderr):
@@ -227,7 +227,7 @@ def quote_bash_args(command):
   if not command:
     return "''"
 
-  if not isinstance(command, basestring):
+  if not isinstance(command, str):
     raise ValueError("Command should be a list of strings, found '{0}' in command list elements".format(str(command)))
 
   valid = set(string.ascii_letters + string.digits + '@%_-+=:,./')
@@ -649,7 +649,7 @@ def kill_process_with_children(base_pid):
   all_child_pids = [item[0] for item in full_child_pids if item[1].lower() not in exception_list and item[0] != os.getpid()]
   error_log = []
 
-  for sig_name, sig in signals_to_post.items():
+  for sig_name, sig in list(signals_to_post.items()):
     # we need to kill processes from the bottom of the tree
     pids_to_kill = sorted(get_existing_pids(all_child_pids), reverse=True)
     for pid in pids_to_kill:

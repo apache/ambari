@@ -22,7 +22,7 @@ import resource_management.libraries.functions
 from mock.mock import MagicMock, call, patch
 
 @patch("glob.glob", new = MagicMock(return_value="/usr/something/oozie-client/lib"))
-@patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
+@patch("distro.linux_distribution", new = MagicMock(return_value="Linux"))
 class TestServiceCheck(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "OOZIE/4.0.0.2.0/package"
   STACK_VERSION = "2.0.6"
@@ -56,11 +56,11 @@ class TestServiceCheck(RMFTestCase):
   def assert_service_check(self):
     self.assertResourceCalled('File', '/tmp/oozieSmoke2.sh',
         content = StaticFile('oozieSmoke2.sh'),
-        mode = 0755,
+        mode = 0o755,
     )
     self.assertResourceCalled('File', '/tmp/prepareOozieHdfsDirectories.sh',
         content = StaticFile('prepareOozieHdfsDirectories.sh'),
-        mode = 0755,
+        mode = 0o755,
     )
     self.assertResourceCalled('Execute', ('/tmp/prepareOozieHdfsDirectories.sh', '/etc/oozie/conf', '/', '/etc/hadoop/conf', 'c6402.ambari.apache.org:8050', 'hdfs://c6401.ambari.apache.org:8020', 'default', 'no-op'),
         logoutput = True,
@@ -75,7 +75,7 @@ class TestServiceCheck(RMFTestCase):
                               kinit_path_local = '/usr/bin/kinit',
                               user = 'hdfs',
                               dfs_type = '',
-                              mode = 0770,
+                              mode = 0o770,
                               owner = 'ambari-qa',
                               action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
                               hadoop_conf_dir = '/etc/hadoop/conf',

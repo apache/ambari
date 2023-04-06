@@ -19,24 +19,24 @@ limitations under the License.
 """
 
 from resource_management import *
-from hive import hive
-from hive_service import hive_service
-from install_jars import install_tez_jars
+from .hive import hive
+from .hive_service import hive_service
+from .install_jars import install_tez_jars
 
 class HiveServer(Script):
 
   def install(self, env):
-    import params
+    from . import params
     self.install_packages(env, exclude_packages=params.hive_exclude_packages)
 
   def configure(self, env):
-    import params
+    from . import params
     env.set_params(params)
 
     hive(name='hiveserver2')
 
   def start(self, env):
-    import params
+    from . import params
     env.set_params(params)
     self.configure(env) # FOR SECURITY
     
@@ -47,7 +47,7 @@ class HiveServer(Script):
     )
 
   def stop(self, env):
-    import params
+    from . import params
     env.set_params(params)
 
     hive_service( 'hiveserver2',
@@ -55,7 +55,7 @@ class HiveServer(Script):
     )
 
   def status(self, env):
-    import status_params
+    from . import status_params
     env.set_params(status_params)
     pid_file = format("{hive_pid_dir}/{hive_pid}")
     # Recursively check all existing gmetad pid files

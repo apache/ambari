@@ -120,7 +120,7 @@ class PXFServiceCheck(Script):
       if not "PXFFragments" in response:
         Logger.error("Unable to find PXFFragments in the response. Response received from the server:\n{0}".format(response))
         raise
-    except Exception, ex:
+    except Exception as ex:
       raise Fail("PXF data read failed: {0}".format(ex))
     Logger.info("PXF data read successful")
 
@@ -171,7 +171,7 @@ class PXFServiceCheck(Script):
       self.__check_pxf_hdfs_read()
       self.__check_pxf_hdfs_write()
 
-    except Exception, ex:
+    except Exception as ex:
       self.checks_failed += 1
       Logger.error("HDFS test Failed: Exception occurred in HDFS test: {0}".format(ex))
 
@@ -188,7 +188,7 @@ class PXFServiceCheck(Script):
       params.HdfsResource(pxf_constants.pxf_hdfs_test_dir,
           type="directory",
           action="create_on_execute",
-          mode=0777
+          mode=0o777
       )
       params.HdfsResource(pxf_constants.pxf_hdfs_read_test_file,
           type="file",
@@ -196,7 +196,7 @@ class PXFServiceCheck(Script):
           action="create_on_execute"
       )
       params.HdfsResource(None, action="execute")
-    except Exception, ex:
+    except Exception as ex:
       raise Fail("HDFS Write: Exception occurred when writing to hdfs:  {0} ".format(ex))
 
   def __check_pxf_hdfs_read(self):
@@ -270,7 +270,7 @@ class PXFServiceCheck(Script):
       self.__run_hbase_script(pxf_constants.hbase_populate_data_script, kinit_cmd, message)
       self.__check_pxf_hbase_read()
 
-    except Exception, ex:
+    except Exception as ex:
       self.checks_failed += 1
       Logger.error("HBASE test Failed: Exception occurred in HBASE test: {0}".format(ex))
 
@@ -299,7 +299,7 @@ class PXFServiceCheck(Script):
       File("{0}".format(os.path.join(params.exec_tmp_dir, pxf_constants.hbase_cleanup_data_script)),
            content=InlineTemplate("{0}".format(hbase_cleanup_data_cmds)))
 
-    except Exception, ex:
+    except Exception as ex:
       raise Fail("Create HBASE Script: Could not create hbase_scripts: {0}".format(ex))
 
   def __run_hbase_script(self, script, kinit_cmd, message):
@@ -360,7 +360,7 @@ class PXFServiceCheck(Script):
       self.__write_hive_data(beeline_conn_cmd)
       self.__check_pxf_hive_read()
 
-    except Exception, ex:
+    except Exception as ex:
       self.checks_failed += 1
       Logger.error("HIVE test Failed: Exception occurred in HIVE test: {0}".format(ex))
 
@@ -377,7 +377,7 @@ class PXFServiceCheck(Script):
       cmd = "{0} -f {1}".format(beeline_conn_cmd, os.path.join(params.exec_tmp_dir, pxf_constants.hive_populate_data_script))
       Execute(cmd, logoutput=True, user=params.hdfs_user)
 
-    except Exception, ex:
+    except Exception as ex:
       raise Fail("HIVE write: Could not write hive data: {0} \n command = {1}".format(ex, cmd))
 
   def __check_pxf_hive_read(self):

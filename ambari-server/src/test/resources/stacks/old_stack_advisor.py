@@ -408,7 +408,7 @@ class DefaultStackAdvisor(StackAdvisor):
     host_groups = recommendations["blueprint"]["host_groups"]
     bindings = recommendations["blueprint_cluster_binding"]["host_groups"]
     index = 0
-    for key in hostsComponentsMap.keys():
+    for key in list(hostsComponentsMap.keys()):
       index += 1
       host_group_name = "host-group-{0}".format(index)
       host_groups.append( { "name": host_group_name, "components": hostsComponentsMap[key] } )
@@ -538,8 +538,8 @@ class DefaultStackAdvisor(StackAdvisor):
     if len(hostsList) != 1:
       scheme = self.getComponentLayoutScheme(componentName)
       if scheme is not None:
-        for key in scheme.keys():
-          if isinstance(key, ( int, long )):
+        for key in list(scheme.keys()):
+          if isinstance(key, int):
             if len(hostsList) < key:
               return hostsList[scheme[key]]
         return hostsList[scheme['else']]

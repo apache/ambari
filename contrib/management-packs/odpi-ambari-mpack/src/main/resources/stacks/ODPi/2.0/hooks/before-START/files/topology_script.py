@@ -19,7 +19,7 @@ limitations under the License.
 
 import sys, os
 from string import join
-import ConfigParser
+import configparser
 
 
 DEFAULT_RACK = "/default-rack"
@@ -31,10 +31,10 @@ class TopologyScript():
   def load_rack_map(self):
     try:
       #RACK_MAP contains both host name vs rack and ip vs rack mappings
-      mappings = ConfigParser.ConfigParser()
+      mappings = configparser.ConfigParser()
       mappings.read(DATA_FILE_NAME)
       return dict(mappings.items(SECTION_NAME))
-    except ConfigParser.NoSectionError:
+    except configparser.NoSectionError:
       return {}
 
   def get_racks(self, rack_map, args):
@@ -60,7 +60,7 @@ class TopologyScript():
   def execute(self, args):
     rack_map = self.load_rack_map()
     rack = self.get_racks(rack_map, args)
-    print rack
+    print(rack)
 
 if __name__ == "__main__":
   TopologyScript().execute(sys.argv)

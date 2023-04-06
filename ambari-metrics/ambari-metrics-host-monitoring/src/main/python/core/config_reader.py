@@ -18,8 +18,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import ConfigParser
-import StringIO
+import configparser
+import io
 import json
 import os
 from ambari_commons import OSConst
@@ -76,7 +76,7 @@ class ConfigDefaultsLinux(ConfigDefaults):
 
 configDefaults = ConfigDefaults()
 
-config = ConfigParser.RawConfigParser()
+config = configparser.RawConfigParser()
 
 CONFIG_DIR = configDefaults.get_config_dir()
 CONFIG_FILE_PATH = configDefaults.get_config_file_path()
@@ -169,17 +169,17 @@ class Configuration:
 
   def __init__(self):
     global config_content
-    self.config = ConfigParser.RawConfigParser()
+    self.config = configparser.RawConfigParser()
     if os.path.exists(CONFIG_FILE_PATH):
       self.config.read(CONFIG_FILE_PATH)
     else:
-      self.config.readfp(StringIO.StringIO(config_content))
+      self.config.readfp(io.StringIO(config_content))
     pass
     if os.path.exists(METRIC_FILE_PATH):
       with open(METRIC_FILE_PATH, 'r') as f:
         self.metric_groups = json.load(f)
     else:
-      print 'No metric configs found at {0}'.format(METRIC_FILE_PATH)
+      print('No metric configs found at {0}'.format(METRIC_FILE_PATH))
       self.metric_groups = \
       {
         'host_metric_groups': [],
@@ -188,7 +188,7 @@ class Configuration:
     pass
     self._ca_cert_file_path = CA_CERTS_FILE_PATH
     self.hostname_script = None
-    ambari_agent_config = ConfigParser.RawConfigParser()
+    ambari_agent_config = configparser.RawConfigParser()
     if os.path.exists(AMBARI_AGENT_CONF):
       try:
         ambari_agent_config.read(AMBARI_AGENT_CONF)

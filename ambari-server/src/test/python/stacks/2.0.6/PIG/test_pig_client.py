@@ -43,19 +43,19 @@ class TestPigClient(RMFTestCase):
     )
     self.assertResourceCalled('File', '/etc/pig/conf/pig-env.sh',
       owner = 'hdfs',
-      mode=0755,
+      mode=0o755,
       content = InlineTemplate(self.getConfig()['configurations']['pig-env']['content'])
     )
     self.assertResourceCalled('File', '/etc/pig/conf/pig.properties',
       owner = 'hdfs',
       group = 'hadoop',
-      mode = 0644,
+      mode = 0o644,
       content = 'pigproperties\nline2'
     )
     self.assertResourceCalled('File', '/etc/pig/conf/log4j.properties',
       owner = 'hdfs',
       group = 'hadoop',
-      mode = 0644,
+      mode = 0o644,
       content = 'log4jproperties\nline2'
     )
     self.assertNoMoreResources()
@@ -78,19 +78,19 @@ class TestPigClient(RMFTestCase):
     )
     self.assertResourceCalled('File', '/etc/pig/conf/pig-env.sh',
       owner = 'hdfs',
-      mode=0755,
+      mode=0o755,
       content = InlineTemplate(self.getConfig()['configurations']['pig-env']['content'])
     )
     self.assertResourceCalled('File', '/etc/pig/conf/pig.properties',
       owner = 'hdfs',
       group = 'hadoop',
-      mode = 0644,
+      mode = 0o644,
       content = 'pigproperties\nline2'
     )
     self.assertResourceCalled('File', '/etc/pig/conf/log4j.properties',
       owner = 'hdfs',
       group = 'hadoop',
-      mode = 0644,
+      mode = 0o644,
       content = 'log4jproperties\nline2'
     )
     self.assertNoMoreResources()
@@ -118,19 +118,19 @@ class TestPigClient(RMFTestCase):
     )
     self.assertResourceCalled('File', '/usr/hdp/current/pig-client/conf/pig-env.sh',
                               owner = 'hdfs',
-                              mode=0755,
+                              mode=0o755,
                               content = InlineTemplate(self.getConfig()['configurations']['pig-env']['content'])
     )
     self.assertResourceCalled('File', '/usr/hdp/current/pig-client/conf/pig.properties',
                               owner = 'hdfs',
                               group = 'hadoop',
-                              mode = 0644,
+                              mode = 0o644,
                               content = 'pigproperties\nline2'
     )
     self.assertResourceCalled('File', '/usr/hdp/current/pig-client/conf/log4j.properties',
                               owner = 'hdfs',
                               group = 'hadoop',
-                              mode = 0644,
+                              mode = 0o644,
                               content = 'log4jproperties\nline2'
     )
     self.assertNoMoreResources()

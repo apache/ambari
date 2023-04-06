@@ -21,12 +21,12 @@
 unset PYTHON
 
 # checking for preferable python versions
-if [ -a /usr/bin/python2.7 ] && [ -z "$PYTHON" ]; then
-  PYTHON=/usr/bin/python2.7
+if [ -a /usr/bin/python3 ] && [ -z "$PYTHON" ]; then
+  PYTHON=/usr/bin/python3
 fi
 
-if [ -a /usr/bin/python2.6 ] && [ -z "$PYTHON" ]; then
-  PYTHON=/usr/bin/python2.6
+if [ -a /usr/bin/python3.9 ] && [ -z "$PYTHON" ]; then
+  PYTHON=/usr/bin/python3.9
 fi
 
 # if no preferable python versions found, try to use system one

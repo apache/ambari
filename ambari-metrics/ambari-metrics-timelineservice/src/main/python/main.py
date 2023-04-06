@@ -19,7 +19,7 @@ limitations under the License.
 '''
 
 import os
-from ambari_commons import subprocess32
+import subprocess
 import sys
 
 from ambari_commons.exceptions import FatalException, NonFatalException
@@ -70,7 +70,7 @@ def exec_ams_env_cmd(options):
   ams_env_cmd = os.path.join(options.conf_dir, AMS_ENV_CMD)
   if os.path.exists(ams_env_cmd):
     cmds = ["cmd.exe", "/C", ams_env_cmd]
-    procAms = subprocess32.Popen(cmds, env=os.environ)
+    procAms = subprocess.Popen(cmds, env=os.environ)
     out, err = procAms.communicate()
     if err is not None and err is not "":
       print_warning_msg(AMS_ENV_CMD + " error output: " + err)
@@ -122,17 +122,17 @@ def server_process_main(options, scmStatus=None):
   suspend_mode = 'y' if SUSPEND_START_MODE else 'n'
   command = command_base.format(java_class_path, java_heap_max, suspend_mode)
   if not os.path.exists(PID_DIR):
-    os.makedirs(PID_DIR, 0755)
+    os.makedirs(PID_DIR, 0o755)
 
   #Ignore the requirement to run as root. In Windows, by default the child process inherits the security context
   # and the environment from the parent process.
   param_list = java_exe + " " + command
 
   print_info_msg("Running server: " + str(param_list))
-  procJava = subprocess32.Popen(param_list, env=os.environ)
+  procJava = subprocess.Popen(param_list, env=os.environ)
 
   #wait for server process for SERVER_START_TIMEOUT seconds
-  print "Waiting for server start..."
+  print("Waiting for server start...")
 
   pidJava = procJava.pid
   if pidJava <= 0:
@@ -146,9 +146,9 @@ def server_process_main(options, scmStatus=None):
     raise FatalException(-1, AMC_DIE_MSG.format(exitcode, SERVER_OUT_FILE))
   else:
     save_pid(pidJava, PID_OUT_FILE)
-    print "Server PID at: " + PID_OUT_FILE
-    print "Server out at: " + SERVER_OUT_FILE
-    print "Server log at: " + SERVER_LOG_FILE
+    print("Server PID at: " + PID_OUT_FILE)
+    print("Server out at: " + SERVER_OUT_FILE)
+    print("Server log at: " + SERVER_LOG_FILE)
 
   if scmStatus is not None:
     scmStatus.reportStarted()
@@ -167,7 +167,7 @@ def main():
   init_service_debug(options)
 
   if len(args) == 0:
-    print parser.print_help()
+    print(parser.print_help())
     parser.error("No action entered")
 
   action = args[0]
@@ -203,7 +203,7 @@ def main():
       print_warning_msg(e.reason)
 
   if options.exit_message is not None:
-    print options.exit_message
+    print(options.exit_message)
 
 
 if __name__ == "__main__":

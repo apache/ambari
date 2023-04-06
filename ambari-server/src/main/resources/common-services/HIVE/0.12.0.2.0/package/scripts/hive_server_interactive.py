@@ -18,7 +18,7 @@ limitations under the License.
 
 """
 # Python Imports
-from ambari_commons import subprocess32
+import subprocess
 import os
 import re
 import time
@@ -168,7 +168,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
 
       stop_cmd = ["slider", "stop", params.llap_app_name]
 
-      code, output, error = shell.call(stop_cmd, user=params.hive_user, stderr=subprocess32.PIPE, logoutput=True)
+      code, output, error = shell.call(stop_cmd, user=params.hive_user, stderr=subprocess.PIPE, logoutput=True)
       if code == 0:
         Logger.info(format("Stopped {params.llap_app_name} application on Slider successfully"))
       elif code == 69 and output is not None and "Unknown application instance" in output:
@@ -226,7 +226,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
         # starts containers one by one and excludes the nodes it gets (adding a delay of ~2sec./machine). When the LLAP
         # container memory size configuration is more than half of YARN node memory, AA is implicit and should be avoided.
         slider_placement = 4
-        if long(params.llap_daemon_container_size) > (0.5 * long(params.yarn_nm_mem)):
+        if int(params.llap_daemon_container_size) > (0.5 * int(params.yarn_nm_mem)):
           slider_placement = 0
           Logger.info("Setting slider_placement : 0, as llap_daemon_container_size : {0} > 0.5 * "
                       "YARN NodeManager Memory({1})".format(params.llap_daemon_container_size, params.yarn_nm_mem))
@@ -264,7 +264,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       run_file_path = None
       try:
         Logger.info(format("LLAP start command: {cmd}"))
-        code, output, error = shell.checked_call(cmd, user=params.hive_user, quiet = True, stderr=subprocess32.PIPE, logoutput=True)
+        code, output, error = shell.checked_call(cmd, user=params.hive_user, quiet = True, stderr=subprocess.PIPE, logoutput=True)
 
         if code != 0 or output is None:
           raise Fail("Command failed with either non-zero return code or no output.")
@@ -370,7 +370,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       LLAP_APP_STATUS_CMD_TIMEOUT = 0
 
       llap_status_cmd = format("{stack_root}/current/hive-server2-hive2/bin/hive --service llapstatus --name {app_name} --findAppTimeout {LLAP_APP_STATUS_CMD_TIMEOUT}")
-      code, output, error = shell.checked_call(llap_status_cmd, user=status_params.hive_user, stderr=subprocess32.PIPE,
+      code, output, error = shell.checked_call(llap_status_cmd, user=status_params.hive_user, stderr=subprocess.PIPE,
                                                logoutput=False)
       Logger.info("Received 'llapstatus' command 'output' : {0}".format(output))
       if code == 0:
@@ -401,7 +401,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       llap_status_cmd = format("{stack_root}/current/hive-server2-hive2/bin/hive --service llapstatus -w -r {percent_desired_instances_to_be_up} -i {refresh_rate} -t {total_timeout}")
       Logger.info("\n\n\n\n\n");
       Logger.info("LLAP status command : {0}".format(llap_status_cmd))
-      code, output, error = shell.checked_call(llap_status_cmd, user=status_params.hive_user, quiet=True, stderr=subprocess32.PIPE,
+      code, output, error = shell.checked_call(llap_status_cmd, user=status_params.hive_user, quiet=True, stderr=subprocess.PIPE,
                                                logoutput=True)
 
       if code == 0:
@@ -531,7 +531,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       try:
         status = do_retries()
         return status
-      except Exception, e:
+      except Exception as e:
         Logger.info("LLAP app '{0}' did not come up after a wait of {1} seconds.".format(llap_app_name,
                                                                                           time.time() - curr_time))
         traceback.print_exc()
@@ -548,7 +548,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       try:
         return self._verify_llap_app_status(llap_app_info, llap_app_name, return_immediately_if_stopped, curr_time)
       except Exception as e:
-        Logger.info(e.message)
+        Logger.info(repr(e))
         return False
 
     def get_log_folder(self):

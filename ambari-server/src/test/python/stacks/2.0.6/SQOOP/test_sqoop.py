@@ -86,11 +86,11 @@ class TestSqoop(RMFTestCase):
                               )
     self.assertResourceCalled('File', '/usr/lib/sqoop/lib/test-postgres-jdbc.jar',
                               content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/test-postgres-jdbc.jar'),
-                              mode = 0644,
+                              mode = 0o644,
                               )
     self.assertResourceCalled('File', '/usr/lib/sqoop/lib/oracle-jdbc-driver.jar',
                               content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/oracle-jdbc-driver.jar'),
-                              mode = 0644,
+                              mode = 0o644,
                               )
     self.assertResourceCalled('Directory', '/usr/lib/sqoop/conf',
                               owner = 'sqoop',

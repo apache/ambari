@@ -41,7 +41,7 @@ def downloadjar(cs_lib_path, jdk_location):
     credential_util_url =  jdk_location + '/' + credential_util_jar
     File(credential_util_path,
          content = DownloadSource(credential_util_url),
-         mode = 0755,
+         mode = 0o755,
          )
 
 def get_password_from_credential_store(alias, provider_path, cs_lib_path, java_home, jdk_location):

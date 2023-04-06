@@ -13,7 +13,7 @@
     :license: BSD, see LICENSE for more details.
 """
 import operator
-from itertools import chain, izip
+from itertools import chain
 from collections import deque
 from ambari_jinja2.utils import Markup, MethodType, FunctionType
 
@@ -101,7 +101,7 @@ def get_eval_context(node, ctx):
     return ctx
 
 
-class Node(object):
+class Node(object, metaclass=NodeType):
     """Baseclass for all Jinja2 nodes.  There are a number of nodes available
     of different types.  There are three major types:
 
@@ -117,7 +117,6 @@ class Node(object):
     The `environment` attribute is set at the end of the parsing process for
     all nodes automatically.
     """
-    __metaclass__ = NodeType
     fields = ()
     attributes = ('lineno', 'environment')
     abstract = True
@@ -135,13 +134,13 @@ class Node(object):
                     len(self.fields),
                     len(self.fields) != 1 and 's' or ''
                 ))
-            for name, arg in izip(self.fields, fields):
+            for name, arg in zip(self.fields, fields):
                 setattr(self, name, arg)
         for attr in self.attributes:
             setattr(self, attr, attributes.pop(attr, None))
         if attributes:
             raise TypeError('unknown attribute %r' %
-                            iter(attributes).next())
+                            next(iter(attributes)))
 
     def iter_fields(self, exclude=None, only=None):
         """This method iterates over all fields that are defined and yields
@@ -431,7 +430,7 @@ class Const(Literal):
         constant value in the generated code, otherwise it will raise
         an `Impossible` exception.
         """
-        from compiler import has_safe_repr
+        from .compiler import has_safe_repr
         if not has_safe_repr(value):
             raise Impossible()
         return cls(value, lineno=lineno, environment=environment)
@@ -678,7 +677,7 @@ class Concat(Expr):
 
     def as_const(self, eval_ctx=None):
         eval_ctx = get_eval_context(self, eval_ctx)
-        return ''.join(unicode(x.as_const(eval_ctx)) for x in self.nodes)
+        return ''.join(str(x.as_const(eval_ctx)) for x in self.nodes)
 
 
 class Compare(Expr):

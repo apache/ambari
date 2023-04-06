@@ -92,7 +92,7 @@ def write_actual_version_to_history_file(repository_version, actual_version):
         wrote_value = True
     if wrote_value:
       Logger.info("Appended value \"{0}\" to file {1} to track this as a new version.".format(value, REPO_VERSION_HISTORY_FILE))
-  except Exception, err:
+  except Exception as err:
     Logger.error("Failed to write to file {0} the value: {1}. Error: {2}".format(REPO_VERSION_HISTORY_FILE, value, str(err)))
 
   return wrote_value

@@ -54,7 +54,7 @@ def get_component_repository_version(service_name = None, component_name = None,
     return component_versions[component_name]
 
   # fall back to the first one for the service
-  return component_versions.values()[0]
+  return list(component_versions.values())[0]
 
 
 def _get_component_repositories(config):

@@ -109,10 +109,10 @@ def dump_functions(mapping):
     def directive(dirname, arguments, options, content, lineno,
                       content_offset, block_text, state, state_machine):
         reverse_mapping = {}
-        for name, func in mapping.iteritems():
+        for name, func in mapping.items():
             reverse_mapping.setdefault(func, []).append(name)
         filters = []
-        for func, names in reverse_mapping.iteritems():
+        for func, names in reverse_mapping.items():
             aliases = sorted(names, key=lambda x: len(x))
             name = aliases.pop()
             filters.append((name, aliases, func))
@@ -144,7 +144,7 @@ def jinja_nodes(dirname, arguments, options, content, lineno,
         doc.append(p + '.. autoclass:: %s(%s)' % (node.__name__, sig), '')
         if node.abstract:
             members = []
-            for key, name in node.__dict__.iteritems():
+            for key, name in node.__dict__.items():
                 if not key.startswith('_') and \
                    not hasattr(node.__base__, key) and callable(name):
                     members.append(key)
@@ -168,10 +168,10 @@ def inject_toc(app, doctree, docname):
     titleiter = iter(doctree.traverse(nodes.title))
     try:
         # skip first title, we are not interested in that one
-        titleiter.next()
-        title = titleiter.next()
+        next(titleiter)
+        title = next(titleiter)
         # and check if there is at least another title
-        titleiter.next()
+        next(titleiter)
     except StopIteration:
         return
     tocnode = nodes.section('')

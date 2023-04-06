@@ -615,7 +615,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     else:
       colon_count = db_host.count(':')
       if colon_count == 0:
-        if DB_TYPE_DEFAULT_PORT_MAP.has_key(db_type):
+        if db_type in DB_TYPE_DEFAULT_PORT_MAP:
           connection_string = db_host + ":" + DB_TYPE_DEFAULT_PORT_MAP[db_type]
         else:
           connection_string = db_host

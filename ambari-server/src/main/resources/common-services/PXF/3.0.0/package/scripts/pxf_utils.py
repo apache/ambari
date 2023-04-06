@@ -18,9 +18,9 @@ limitations under the License.
 from resource_management.core.logger import Logger
 
 import socket
-import urllib2
-import urllib
-from ambari_commons import subprocess32
+import urllib.request, urllib.error, urllib.parse
+import urllib.request, urllib.parse, urllib.error
+import subprocess
 
 def makeHTTPCall(url, header={}, body=None):
   # timeout in seconds
@@ -30,13 +30,13 @@ def makeHTTPCall(url, header={}, body=None):
   try:
     data = None
     if body:
-      data = urllib.urlencode(body)
-    req = urllib2.Request(url, data, header)
+      data = urllib.parse.urlencode(body)
+    req = urllib.request.Request(url, data, header)
 
-    response = urllib2.urlopen(req)
+    response = urllib.request.urlopen(req)
     responseContent = response.read()
     return responseContent
-  except urllib2.URLError as e:
+  except urllib.error.URLError as e:
     if hasattr(e, 'reason'):
       Logger.error( 'Reason' + str(e.reason))
     if hasattr(e, 'code'):
@@ -45,5 +45,5 @@ def makeHTTPCall(url, header={}, body=None):
     
 
 def runLocalCmd(cmd):
-  return subprocess32.call(cmd, shell=True)  
+  return subprocess.call(cmd, shell=True)  
 

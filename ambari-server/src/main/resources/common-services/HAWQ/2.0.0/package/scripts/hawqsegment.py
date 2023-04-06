@@ -53,7 +53,7 @@ class HawqSegment(Script):
     common.stop_component(hawq_constants.SEGMENT, mode)
 
   def status(self, env):
-    from hawqstatus import assert_component_running
+    from .hawqstatus import assert_component_running
     assert_component_running(hawq_constants.SEGMENT)
 
   def immediate_stop_hawq_segment(self, env):

@@ -48,12 +48,12 @@ class TestSliderClient(RMFTestCase):
                               'slider-client.xml',
                               conf_dir='/usr/hdp/current/slider-client/conf',
                               configurations=self.getConfig()['configurations']['slider-client'],
-                              mode=0644
+                              mode=0o644
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/slider-client/conf/slider-env.sh',
                               content = InlineTemplate(self.getConfig()['configurations']['slider-env']['content']),
-                              mode = 0755,
+                              mode = 0o755,
                               )
 
     self.assertResourceCalled('Directory',
@@ -63,12 +63,12 @@ class TestSliderClient(RMFTestCase):
 
     self.assertResourceCalled('File', '/usr/hdp/current/storm-slider-client/conf/storm-slider-env.sh',
                               content=Template('storm-slider-env.sh.j2'),
-                              mode = 0755,
+                              mode = 0o755,
                               )
 
     self.assertResourceCalled('File',
                               '/usr/hdp/current/slider-client/conf/log4j.properties',
-                              mode=0644,
+                              mode=0o644,
                               content='log4jproperties\nline2'
     )
     self.assertResourceCalled('File', '/usr/hdp/current/slider-client/lib/slider.tar.gz',
@@ -107,17 +107,17 @@ class TestSliderClient(RMFTestCase):
                               'slider-client.xml',
                               conf_dir='/usr/hdp/current/slider-client/conf',
                               configurations=self.getConfig()['configurations']['slider-client'],
-                              mode=0644
+                              mode=0o644
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/slider-client/conf/slider-env.sh',
                               content = InlineTemplate(self.getConfig()['configurations']['slider-env']['content']),
-                              mode = 0755,
+                              mode = 0o755,
                               )
 
     self.assertResourceCalled('File',
                               '/usr/hdp/current/slider-client/conf/log4j.properties',
-                              mode=0644,
+                              mode=0o644,
                               content='log4jproperties\nline2'
     )
     self.assertResourceCalled('File', '/usr/hdp/current/slider-client/lib/slider.tar.gz',

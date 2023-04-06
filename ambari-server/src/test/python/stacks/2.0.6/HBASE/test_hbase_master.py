@@ -21,7 +21,7 @@ import json
 from mock.mock import MagicMock, patch
 from stacks.utils.RMFTestCase import *
 
-@patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
+@patch("distro.linux_distribution", new = MagicMock(return_value="Linux"))
 @patch("os.path.exists", new = MagicMock(return_value=True))
 class TestHBaseMaster(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "HBASE/0.96.0.2.0/package"
@@ -190,7 +190,7 @@ class TestHBaseMaster(RMFTestCase):
 
     self.assertResourceCalled('File', '/usr/lib/hbase/bin/draining_servers.rb',
                               content = StaticFile('draining_servers.rb'),
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('Execute', ' HBASE_OPTS="$HBASE_OPTS " /usr/lib/hbase/bin/hbase --config /etc/hbase/conf org.jruby.Main /usr/lib/hbase/bin/draining_servers.rb add host1',
                               logoutput = True,
@@ -221,7 +221,7 @@ class TestHBaseMaster(RMFTestCase):
 
     self.assertResourceCalled('File', '/usr/lib/hbase/bin/draining_servers.rb',
                               content = StaticFile('draining_servers.rb'),
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('Execute', ' HBASE_OPTS="$HBASE_OPTS " /usr/lib/hbase/bin/hbase --config /etc/hbase/conf org.jruby.Main /usr/lib/hbase/bin/draining_servers.rb remove host1',
                               logoutput = True,
@@ -289,7 +289,7 @@ class TestHBaseMaster(RMFTestCase):
 
     self.assertResourceCalled('File', '/usr/lib/hbase/bin/draining_servers.rb',
                               content = StaticFile('draining_servers.rb'),
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hbase.service.keytab hbase/c6401.ambari.apache.org@EXAMPLE.COM; HBASE_OPTS="$HBASE_OPTS -Djava.security.auth.login.config=/etc/hbase/conf/hbase_master_jaas.conf" /usr/lib/hbase/bin/hbase --config /etc/hbase/conf org.jruby.Main /usr/lib/hbase/bin/draining_servers.rb add host1',
                               logoutput = True,
@@ -303,7 +303,7 @@ class TestHBaseMaster(RMFTestCase):
 
   def assert_configure_default(self, bucketcache_ioengine_as_file=False):
     self.assertResourceCalled('Directory', '/etc/hbase',
-      mode = 0755
+      mode = 0o755
     )
     self.assertResourceCalled('Directory', '/etc/hbase/conf',
       owner = 'hbase',
@@ -312,21 +312,21 @@ class TestHBaseMaster(RMFTestCase):
     )
     self.assertResourceCalled('Directory', '/tmp',
       create_parents = True,
-      mode = 0777
+      mode = 0o777
     )
     if bucketcache_ioengine_as_file:
       self.assertResourceCalled('Directory', '/mnt/bucket',
                                 create_parents = True,
                                 owner = 'hbase',
                                 group = 'hadoop',
-                                mode = 0755
+                                mode = 0o755
       )
       pass
     self.assertResourceCalled('Directory', '/hadoop',
                               create_parents = True,
                               cd_access = 'a',
                               )
-    self.assertResourceCalled('Execute', ('chmod', '1777', u'/hadoop'),
+    self.assertResourceCalled('Execute', ('chmod', '1777', '/hadoop'),
                               sudo = True,
                               )
     self.assertResourceCalled('XmlConfig', 'hbase-site.xml',
@@ -368,7 +368,7 @@ class TestHBaseMaster(RMFTestCase):
       content = Template('hbase.conf.j2'),
       owner = 'root',
       group = 'root',
-      mode = 0644,
+      mode = 0o644,
     )
     self.assertResourceCalled('TemplateConfig', '/etc/hbase/conf/hadoop-metrics2-hbase.properties',
       owner = 'hbase',
@@ -381,18 +381,18 @@ class TestHBaseMaster(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/hbase',
       owner = 'hbase',
       create_parents = True,
-      mode = 0755,
+      mode = 0o755,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/hbase',
       owner = 'hbase',
       create_parents = True,
-      mode = 0755,
+      mode = 0o755,
       cd_access = 'a',
     )
     self.assertResourceCalled('File',
                               '/etc/hbase/conf/log4j.properties',
-                              mode=0644,
+                              mode=0o644,
                               group='hadoop',
                               owner='hbase',
                               content=InlineTemplate('log4jproperties\nline2')
@@ -425,7 +425,7 @@ class TestHBaseMaster(RMFTestCase):
         hadoop_bin_dir = '/usr/bin',
         type = 'directory',
         action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
-        mode = 0711,
+        mode = 0o711,
     )
     self.assertResourceCalled('HdfsResource', None,
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
@@ -442,7 +442,7 @@ class TestHBaseMaster(RMFTestCase):
 
   def assert_configure_secured(self):
     self.assertResourceCalled('Directory', '/etc/hbase',
-      mode = 0755
+      mode = 0o755
     )
     self.assertResourceCalled('Directory', '/etc/hbase/conf',
       owner = 'hbase',
@@ -451,13 +451,13 @@ class TestHBaseMaster(RMFTestCase):
     )
     self.assertResourceCalled('Directory', '/tmp',
       create_parents = True,
-      mode = 0777
+      mode = 0o777
     )
     self.assertResourceCalled('Directory', '/hadoop',
                               create_parents = True,
                               cd_access = 'a',
                               )
-    self.assertResourceCalled('Execute', ('chmod', '1777', u'/hadoop'),
+    self.assertResourceCalled('Execute', ('chmod', '1777', '/hadoop'),
                               sudo = True,
                               )
     self.assertResourceCalled('XmlConfig', 'hbase-site.xml',
@@ -499,7 +499,7 @@ class TestHBaseMaster(RMFTestCase):
       content = Template('hbase.conf.j2'),
       owner = 'root',
       group = 'root',
-      mode = 0644,
+      mode = 0o644,
     )
     self.assertResourceCalled('TemplateConfig', '/etc/hbase/conf/hadoop-metrics2-hbase.properties',
       owner = 'hbase',
@@ -516,18 +516,18 @@ class TestHBaseMaster(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/hbase',
       owner = 'hbase',
       create_parents = True,
-      mode = 0755,
+      mode = 0o755,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/hbase',
       owner = 'hbase',
       create_parents = True,
-      mode = 0755,
+      mode = 0o755,
       cd_access = 'a',
     )
     self.assertResourceCalled('File',
                               '/etc/hbase/conf/log4j.properties',
-                              mode=0644,
+                              mode=0o644,
                               group='hadoop',
                               owner='hbase',
                               content=InlineTemplate('log4jproperties\nline2')
@@ -559,7 +559,7 @@ class TestHBaseMaster(RMFTestCase):
         hadoop_bin_dir = '/usr/bin',
         type = 'directory',
         action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='hdfs', default_fs='hdfs://c6401.ambari.apache.org:8020',
-        mode = 0711,
+        mode = 0o711,
     )
     self.assertResourceCalled('HdfsResource', None,
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
@@ -583,7 +583,7 @@ class TestHBaseMaster(RMFTestCase):
                    target = RMFTestCase.TARGET_COMMON_SERVICES)
     
     self.assertResourceCalled('Directory', '/etc/hbase',
-      mode = 0755)
+      mode = 0o755)
 
     self.assertResourceCalled('Directory', '/usr/hdp/current/hbase-master/conf',
       owner = 'hbase',
@@ -591,14 +591,14 @@ class TestHBaseMaster(RMFTestCase):
       create_parents = True)
     self.assertResourceCalled('Directory', '/tmp',
       create_parents = True,
-      mode = 0777
+      mode = 0o777
     )
     self.assertResourceCalled('Directory', '/hadoop',
                               create_parents = True,
                               cd_access = 'a',
                               )
 
-    self.assertResourceCalled('Execute', ('chmod', '1777', u'/hadoop'),
+    self.assertResourceCalled('Execute', ('chmod', '1777', '/hadoop'),
                               sudo = True,
                               )
 
@@ -644,7 +644,7 @@ class TestHBaseMaster(RMFTestCase):
       content = Template('hbase.conf.j2'),
       owner = 'root',
       group = 'root',
-      mode = 0644,
+      mode = 0o644,
     )
     self.assertResourceCalled('TemplateConfig', '/usr/hdp/current/hbase-master/conf/hadoop-metrics2-hbase.properties',
       owner = 'hbase',
@@ -657,20 +657,20 @@ class TestHBaseMaster(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/hbase',
       owner = 'hbase',
       create_parents = True,
-      mode = 0755,
+      mode = 0o755,
       cd_access = 'a',
     )
 
     self.assertResourceCalled('Directory', '/var/log/hbase',
       owner = 'hbase',
       create_parents = True,
-      mode = 0755,
+      mode = 0o755,
       cd_access = 'a',
     )
 
     self.assertResourceCalled('File',
                               '/usr/hdp/current/hbase-master/conf/log4j.properties',
-                              mode=0644,
+                              mode=0o644,
                               group='hadoop',
                               owner='hbase',
                               content=InlineTemplate('log4jproperties\nline2'))
@@ -706,7 +706,7 @@ class TestHBaseMaster(RMFTestCase):
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
         action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
-        mode = 0711,
+        mode = 0o711,
     )
     self.assertResourceCalled('HdfsResource', None,
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,

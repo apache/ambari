@@ -58,7 +58,7 @@ class TestSNamenode(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/hadoop',
                               owner = 'hdfs',
                               group = 'hadoop',
-                              mode = 0755
+                              mode = 0o755
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
@@ -128,7 +128,7 @@ class TestSNamenode(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/hadoop',
                               owner = 'hdfs',
                               group = 'hadoop',
-                              mode = 0755
+                              mode = 0o755
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
@@ -187,7 +187,7 @@ class TestSNamenode(RMFTestCase):
                               content = Template('hdfs.conf.j2'),
                               owner = 'root',
                               group = 'root',
-                              mode = 0644,
+                              mode = 0o644,
                               )
     self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
                               owner = 'hdfs',
@@ -202,7 +202,7 @@ class TestSNamenode(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               configurations = self.getConfig()['configurations']['core-site'],
                               configuration_attributes = self.getConfig()['configurationAttributes']['core-site'],
-                              mode = 0644
+                              mode = 0o644
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/slaves',
                               content = Template('slaves.j2'),
@@ -212,14 +212,14 @@ class TestSNamenode(RMFTestCase):
     self.assertResourceCalled('Directory', '/hadoop/hdfs/namesecondary',
                               owner = 'hdfs',
                               group = 'hadoop',
-                              mode = 0755,
+                              mode = 0o755,
                               create_parents = True,
                               cd_access='a'
                               )
     self.assertResourceCalled('Directory', '/hadoop/hdfs/namesecondary2',
                               owner = 'hdfs',
                               group = 'hadoop',
-                              mode = 0755,
+                              mode = 0o755,
                               create_parents = True,
                               cd_access='a'
     )
@@ -246,7 +246,7 @@ class TestSNamenode(RMFTestCase):
                               content = Template('hdfs.conf.j2'),
                               owner = 'root',
                               group = 'root',
-                              mode = 0644,
+                              mode = 0o644,
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/hdfs_dn_jaas.conf',
                               content = Template('hdfs_dn_jaas.conf.j2'),
@@ -271,7 +271,7 @@ class TestSNamenode(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               configurations = self.getConfig()['configurations']['core-site'],
                               configuration_attributes = self.getConfig()['configurationAttributes']['core-site'],
-                              mode = 0644
+                              mode = 0o644
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/slaves',
                               content = Template('slaves.j2'),
@@ -281,7 +281,7 @@ class TestSNamenode(RMFTestCase):
     self.assertResourceCalled('Directory', '/hadoop/hdfs/namesecondary',
                               owner = 'hdfs',
                               group = 'hadoop',
-                              mode = 0755,
+                              mode = 0o755,
                               create_parents = True,
                               cd_access='a'
                               )

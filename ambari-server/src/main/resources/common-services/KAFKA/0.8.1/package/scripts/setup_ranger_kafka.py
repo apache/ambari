@@ -38,7 +38,7 @@ def setup_ranger_kafka():
                            action="create_on_execute",
                            owner=params.hdfs_user,
                            group=params.hdfs_user,
-                           mode=0755,
+                           mode=0o755,
                            recursive_chmod=True
         )
         params.HdfsResource("/ranger/audit/kafka",
@@ -46,7 +46,7 @@ def setup_ranger_kafka():
                            action="create_on_execute",
                            owner=params.kafka_user,
                            group=params.kafka_user,
-                           mode=0700,
+                           mode=0o700,
                            recursive_chmod=True
         )
         params.HdfsResource(None, action="execute")
@@ -79,7 +79,7 @@ def setup_ranger_kafka():
       File(params.setup_ranger_env_sh_target,
         owner = params.kafka_user,
         group = params.user_group,
-        mode = 0755
+        mode = 0o755
       )
     if params.stack_supports_core_site_for_ranger_plugin and params.enable_ranger_kafka and params.kerberos_security_enabled:
       if params.has_namenode:

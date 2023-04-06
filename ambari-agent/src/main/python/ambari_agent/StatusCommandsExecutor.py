@@ -17,7 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import Queue
+import queue
 import logging
 import multiprocessing
 import os
@@ -48,7 +48,7 @@ class SingleProcessStatusCommandsExecutor(StatusCommandsExecutor):
   def __init__(self, config, actionQueue):
     self.config = config
     self.actionQueue = actionQueue
-    self.statusCommandQueue = Queue.Queue()
+    self.statusCommandQueue = queue.Queue()
     self.need_relaunch = (False, None) #  tuple (bool, str|None) with flag to relaunch and reason of relaunch
 
   def put_commands(self, commands):
@@ -75,7 +75,7 @@ class SingleProcessStatusCommandsExecutor(StatusCommandsExecutor):
       try:
         command = self.statusCommandQueue.get(False)
         self.actionQueue.process_status_command_result(self.actionQueue.execute_status_command_and_security_status(command))
-      except Queue.Empty:
+      except queue.Empty:
         pass
 
   def relaunch(self, reason=None):

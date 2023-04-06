@@ -31,7 +31,7 @@ try:
     service_advisor = imp.load_module('service_advisor', fp, PARENT_FILE, ('.py', 'rb', imp.PY_SOURCE))
 except Exception as e:
   traceback.print_exc()
-  print "Failed to load parent"
+  print("Failed to load parent")
 
 class PXF300ServiceAdvisor(service_advisor.ServiceAdvisor):
 
@@ -39,7 +39,7 @@ class PXF300ServiceAdvisor(service_advisor.ServiceAdvisor):
     # colocate PXF with NAMENODE and DATANODE, if no hosts have been allocated for PXF
     pxf = [component for component in serviceComponents if component["StackServiceComponents"]["component_name"] == "PXF"][0]
     if not self.isComponentHostsPopulated(pxf):
-      for hostName in hostsComponentsMap.keys():
+      for hostName in list(hostsComponentsMap.keys()):
         hostComponents = hostsComponentsMap[hostName]
         if ({"name": "NAMENODE"} in hostComponents or {"name": "DATANODE"} in hostComponents) \
             and {"name": "PXF"} not in hostComponents:

@@ -54,7 +54,7 @@ class TestClusterBlueprint(TestCase):
     pass
 
 
-  @patch("__builtin__.open")
+  @patch("builtins.open")
   @patch.object(AmbariBlueprint, "performGetOperation")
   @patch.object(cluster_blueprint, "get_server_info")
   def test_exportBlueprint(self, get_server_info_mock,

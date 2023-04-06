@@ -33,5 +33,5 @@ if not IS_WINDOWS:
 try:
   import psutil
 except ImportError:
-  print 'psutil binaries need to be built by running, psutil/build.py ' \
-        'manually or by running a, mvn clean package, command.'
+  print('psutil binaries need to be built by running, psutil/build.py ' \
+        'manually or by running a, mvn clean package, command.')

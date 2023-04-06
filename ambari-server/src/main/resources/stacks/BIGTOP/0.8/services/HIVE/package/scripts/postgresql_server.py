@@ -21,7 +21,7 @@ limitations under the License.
 import sys
 from resource_management import *
 
-from postgresql_service import postgresql_service
+from .postgresql_service import postgresql_service
 
 class PostgreSQLServer(Script):
 
@@ -30,7 +30,7 @@ class PostgreSQLServer(Script):
     self.configure(env)
 
   def configure(self, env):
-    import params
+    from . import params
     env.set_params(params)
 
     # init the database, the ':' makes the command always return 0 in case the database has
@@ -51,7 +51,7 @@ class PostgreSQLServer(Script):
 
     # create the database and hive_metastore_user
     File(params.postgresql_adduser_path,
-         mode=0755,
+         mode=0o755,
          content=StaticFile(format("{postgresql_adduser_file}"))
     )
 
@@ -64,23 +64,23 @@ class PostgreSQLServer(Script):
     )
 
   def start(self, env):
-    import params
+    from . import params
     env.set_params(params)
 
     postgresql_service(postgresql_daemon_name=params.postgresql_daemon_name, action = 'start')
 
   def stop(self, env):
-    import params
+    from . import params
     env.set_params(params)
 
     postgresql_service(postgresql_daemon_name=params.postgresql_daemon_name, action = 'stop')
 
   def status(self, env):
-    import status_params
+    from . import status_params
     postgresql_service(postgresql_daemon_name=status_params.postgresql_daemon_name, action = 'status')
 
   def update_postgresql_conf(self, env):
-    import params
+    from . import params
     env.set_params(params)
 
     # change the listen_address to *
@@ -92,7 +92,7 @@ class PostgreSQLServer(Script):
     Execute(format("echo \"standard_conforming_strings = off\" | tee -a {postgresql_conf_path}"))
 
   def update_pghda_conf(self, env):
-    import params
+    from . import params
     env.set_params(params)
 
     # trust hive_metastore_user and postgres locally

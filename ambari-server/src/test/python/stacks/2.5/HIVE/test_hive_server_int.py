@@ -106,7 +106,7 @@ class TestHiveServerInteractive(RMFTestCase):
 
     self.assertResourceCalled('Execute',
                               '/home/hive/llap-slider-05Apr2016/run.sh',
-                              logoutput= True, user=u'hive'
+                              logoutput= True, user='hive'
     )
     self.assertResourceCalled('Execute',
                               'hive --config /usr/hdp/current/hive-server2-hive2/conf/conf.server --service metatool -updateLocation hdfs://c6401.ambari.apache.org:8020 OK.',
@@ -116,7 +116,7 @@ class TestHiveServerInteractive(RMFTestCase):
     self.assertResourceCalled('Execute',
                               '/tmp/start_hiveserver2_interactive_script /var/run/hive/hive-server2-interactive.out /var/log/hive/hive-server2-interactive.err /var/run/hive/hive-interactive.pid /usr/hdp/current/hive-server2-hive2/conf/conf.server /var/log/hive',
                               environment={'HIVE_BIN': '/usr/hdp/current/hive-server2-hive2/bin/hive2',
-                                           'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+                                           'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},
                               not_if="ls /var/run/hive/hive-interactive.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1",
                               user='hive',
                               path=['/bin:/usr/hdp/current/hive-server2-hive2/bin:/usr/hdp/current/hadoop-client/bin'],
@@ -178,7 +178,7 @@ class TestHiveServerInteractive(RMFTestCase):
     self.assertResourceCalled('Execute',
                               '/tmp/start_hiveserver2_interactive_script /var/run/hive/hive-server2-interactive.out /var/log/hive/hive-server2-interactive.err /var/run/hive/hive-interactive.pid /usr/hdp/current/hive-server2-hive2/conf/conf.server /var/log/hive',
                               environment={'HIVE_BIN': '/usr/hdp/current/hive-server2-hive2/bin/hive2',
-                                           'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+                                           'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},
                               not_if="ls /var/run/hive/hive-interactive.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1",
                               user='hive',
                               path=['/bin:/usr/hdp/current/hive-server2-hive2/bin:/usr/hdp/current/hadoop-client/bin'],
@@ -226,7 +226,7 @@ class TestHiveServerInteractive(RMFTestCase):
     self.assertResourceCalled('Execute',
                               '/tmp/start_hiveserver2_interactive_script /var/run/hive/hive-server2-interactive.out /var/log/hive/hive-server2-interactive.err /var/run/hive/hive-interactive.pid /usr/hdp/current/hive-server2-hive2/conf/conf.server /var/log/hive',
                               environment={'HIVE_BIN': '/usr/hdp/current/hive-server2-hive2/bin/hive2',
-                                           'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+                                           'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},
                               not_if="ls /var/run/hive/hive-interactive.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1",
                               user='hive',
                               path=['/bin:/usr/hdp/current/hive-server2-hive2/bin:/usr/hdp/current/hadoop-client/bin'],
@@ -289,7 +289,7 @@ class TestHiveServerInteractive(RMFTestCase):
     self.assertResourceCalled('File', '/var/run/hive/hive-interactive.pid',
                               action=['delete'],
                               )
-    self.assertResourceCalled('Execute', ('slider', 'destroy', u'llap0', '--force'),
+    self.assertResourceCalled('Execute', ('slider', 'destroy', 'llap0', '--force'),
         ignore_failures = True,
         user = 'hive',
         timeout = 30,
@@ -299,7 +299,7 @@ class TestHiveServerInteractive(RMFTestCase):
 
     self.assertResourceCalled('Execute',
                               '/home/hive/llap-slider-05Apr2016/run.sh',
-                              logoutput= True, user=u'hive'
+                              logoutput= True, user='hive'
     )
     self.assertResourceCalled('Execute',
                               'hive --config /usr/hdp/current/hive-server2-hive2/conf/conf.server --service metatool -updateLocation hdfs://c6401.ambari.apache.org:8020 OK.',
@@ -309,7 +309,7 @@ class TestHiveServerInteractive(RMFTestCase):
     self.assertResourceCalled('Execute',
                               '/tmp/start_hiveserver2_interactive_script /var/run/hive/hive-server2-interactive.out /var/log/hive/hive-server2-interactive.err /var/run/hive/hive-interactive.pid /usr/hdp/current/hive-server2-hive2/conf/conf.server /var/log/hive',
                               environment={'HIVE_BIN': '/usr/hdp/current/hive-server2-hive2/bin/hive2',
-                                           'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+                                           'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},
                               not_if="ls /var/run/hive/hive-interactive.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1",
                               user='hive',
                               path=['/bin:/usr/hdp/current/hive-server2-hive2/bin:/usr/hdp/current/hadoop-client/bin'],
@@ -357,7 +357,7 @@ class TestHiveServerInteractive(RMFTestCase):
 
     self.assertResourceCalled('Execute',
                               '/home/hive/llap-slider-05Apr2016/run.sh',
-                              logoutput= True, user=u'hive'
+                              logoutput= True, user='hive'
                               )
     self.assertResourceCalled('Execute',
                               'hive --config /usr/hdp/current/hive-server2-hive2/conf/conf.server --service metatool -updateLocation hdfs://c6401.ambari.apache.org:8020 OK.',
@@ -367,7 +367,7 @@ class TestHiveServerInteractive(RMFTestCase):
     self.assertResourceCalled('Execute',
                               '/tmp/start_hiveserver2_interactive_script /var/run/hive/hive-server2-interactive.out /var/log/hive/hive-server2-interactive.err /var/run/hive/hive-interactive.pid /usr/hdp/current/hive-server2-hive2/conf/conf.server /var/log/hive',
                               environment={'HIVE_BIN': '/usr/hdp/current/hive-server2-hive2/bin/hive2',
-                                           'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+                                           'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},
                               not_if="ls /var/run/hive/hive-interactive.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1",
                               user='hive',
                               path=['/bin:/usr/hdp/current/hive-server2-hive2/bin:/usr/hdp/current/hadoop-client/bin'],
@@ -417,7 +417,7 @@ class TestHiveServerInteractive(RMFTestCase):
     self.assertNoMoreResources()
 
 
-  def assert_configure_default(self, no_tmp=False, default_fs_default=u'hdfs://c6401.ambari.apache.org:8020', with_cs_enabled=False):
+  def assert_configure_default(self, no_tmp=False, default_fs_default='hdfs://c6401.ambari.apache.org:8020', with_cs_enabled=False):
     self.assertResourceCalled('HdfsResource', '/apps/hive/warehouse',
                               immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
                               security_enabled = False,
@@ -431,7 +431,7 @@ class TestHiveServerInteractive(RMFTestCase):
                               hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
                               type = 'directory',
                               action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='missing_principal', default_fs=default_fs_default,
-                              mode = 0777,
+                              mode = 0o777,
     )
 
     self.assertResourceCalled('HdfsResource', '/user/hive',
@@ -446,36 +446,36 @@ class TestHiveServerInteractive(RMFTestCase):
                               hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
                               type = 'directory',
                               action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='missing_principal', default_fs=default_fs_default,
-                              mode = 0755,
+                              mode = 0o755,
                               )
 
     self.assertResourceCalled('Directory', '/etc/hive2',
-                              mode=0755,
+                              mode=0o755,
     )
     self.assertResourceCalled('Directory', '/usr/hdp/current/hive-server2-hive2/conf',
                               owner='hive',
                               group='hadoop',
                               create_parents=True,
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
                               group='hadoop',
                               conf_dir='/usr/hdp/current/hive-server2-hive2/conf',
-                              mode=0644,
-                              configuration_attributes={u'final': {u'mapred.healthChecker.script.path': u'true',
-                                                                   u'mapreduce.jobtracker.staging.root.dir': u'true'}},
+                              mode=0o644,
+                              configuration_attributes={'final': {'mapred.healthChecker.script.path': 'true',
+                                                                   'mapreduce.jobtracker.staging.root.dir': 'true'}},
                               owner='hive',
                               configurations=self.getConfig()['configurations']['mapred-site'],
     )
     self.assertResourceCalled('File', '/usr/hdp/current/hive-server2-hive2/conf/hive-default.xml.template',
                               owner='hive',
                               group='hadoop',
-                              mode = 0644,
+                              mode = 0o644,
     )
     self.assertResourceCalled('File', '/usr/hdp/current/hive-server2-hive2/conf/hive-env.sh.template',
                               owner='hive',
                               group='hadoop',
-                              mode = 0644,
+                              mode = 0o644,
     )
     hive_site_conf = {}
     hive_site_conf.update(self.getConfig()['configurations']['hive-site'])
@@ -484,7 +484,7 @@ class TestHiveServerInteractive(RMFTestCase):
     del hive_site_conf['hive.enforce.bucketing']
     del hive_site_conf['hive.enforce.sorting']
     del hive_site_conf['hive.llap.io.memory.size']
-    hive_site_conf['hive.llap.io.memory.size'] = 357564416L
+    hive_site_conf['hive.llap.io.memory.size'] = 357564416
 
     hiveserver2_site_conf = {}
     hiveserver2_site_conf.update(self.getConfig()['configurations']['hiveserver2-site'])
@@ -494,34 +494,34 @@ class TestHiveServerInteractive(RMFTestCase):
     mapred_site_conf.update(self.getConfig()['configurations']['mapred-site'])
 
     self.assertResourceCalled("Directory", "/usr/hdp/current/hive-server2-hive2/conf/conf.server",
-                              owner=u"hive",
-                              group=u"hadoop",
+                              owner="hive",
+                              group="hadoop",
                               create_parents=True,
-                              mode = 0700)
+                              mode = 0o700)
 
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
                               group='hadoop',
                               conf_dir='/usr/hdp/current/hive-server2-hive2/conf/conf.server',
-                              mode=0600,
-                              configuration_attributes={u'final': {u'mapred.healthChecker.script.path': u'true',
-                                                                   u'mapreduce.jobtracker.staging.root.dir': u'true'}},
+                              mode=0o600,
+                              configuration_attributes={'final': {'mapred.healthChecker.script.path': 'true',
+                                                                   'mapreduce.jobtracker.staging.root.dir': 'true'}},
                               owner='hive',
                               configurations=mapred_site_conf,
     )
 
     self.assertResourceCalled("File", "/usr/hdp/current/hive-server2-hive2/conf/conf.server/hive-default.xml.template",
-                              owner=u"hive",
-                              group=u"hadoop",
-                              mode = 0600)
+                              owner="hive",
+                              group="hadoop",
+                              mode = 0o600)
 
     self.assertResourceCalled("File", "/usr/hdp/current/hive-server2-hive2/conf/conf.server/hive-env.sh.template",
-                              owner=u"hive",
-                              group=u"hadoop",
-                              mode = 0600)
+                              owner="hive",
+                              group="hadoop",
+                              mode = 0o600)
     self.assertResourceCalled('XmlConfig', 'tez-site.xml',
                               group='hadoop',
                               conf_dir='/etc/tez_hive2/conf',
-                              mode=0664,
+                              mode=0o664,
                               configuration_attributes=UnknownConfigurationMock(),
                               owner='tez',
                               configurations=self.getConfig()['configurations']['tez-interactive-site'],
@@ -543,10 +543,10 @@ class TestHiveServerInteractive(RMFTestCase):
           self.assertResourceCalled('XmlConfig', 'hive-site.xml',
                                     group='hadoop',
                                     conf_dir=conf_dir,
-                                    mode=0644,
-                                    configuration_attributes={u'final': {u'hive.optimize.bucketmapjoin.sortedmerge': u'true',
-                                                                         u'javax.jdo.option.ConnectionDriverName': u'true',
-                                                                         u'javax.jdo.option.ConnectionPassword': u'true'}},
+                                    mode=0o644,
+                                    configuration_attributes={'final': {'hive.optimize.bucketmapjoin.sortedmerge': 'true',
+                                                                         'javax.jdo.option.ConnectionDriverName': 'true',
+                                                                         'javax.jdo.option.ConnectionPassword': 'true'}},
                                     owner='hive',
                                     configurations=hive_site_conf_for_client,
           )
@@ -556,17 +556,17 @@ class TestHiveServerInteractive(RMFTestCase):
                                       content=StaticFile('/var/lib/ambari-agent/data/abc.jceks'),
                                       owner='hive',
                                       group='hadoop',
-                                      mode = 0640,
+                                      mode = 0o640,
                                       )
             self.assertTrue('hadoop.security.credential.provider.path' in hive_site_conf)
             hive_site_conf['hadoop.security.credential.provider.path'] = 'jceks://file/usr/hdp/current/hive-server2-hive2/conf/conf.server/hive-site.jceks'
           self.assertResourceCalled('XmlConfig', 'hive-site.xml',
                                     group='hadoop',
                                     conf_dir=conf_dir,
-                                    mode=0600,
-                                    configuration_attributes={u'final': {u'hive.optimize.bucketmapjoin.sortedmerge': u'true',
-                                                                         u'javax.jdo.option.ConnectionDriverName': u'true',
-                                                                         u'javax.jdo.option.ConnectionPassword': u'true'}},
+                                    mode=0o600,
+                                    configuration_attributes={'final': {'hive.optimize.bucketmapjoin.sortedmerge': 'true',
+                                                                         'javax.jdo.option.ConnectionDriverName': 'true',
+                                                                         'javax.jdo.option.ConnectionPassword': 'true'}},
                                     owner='hive',
                                     configurations=hive_site_conf,
                                     )
@@ -575,7 +575,7 @@ class TestHiveServerInteractive(RMFTestCase):
           self.assertResourceCalled('XmlConfig', 'hiveserver2-site.xml',
                                     group='hadoop',
                                     conf_dir=conf_dir,
-                                    mode=0600,
+                                    mode=0o600,
                                     configuration_attributes={},
                                     owner='hive',
                                     configurations=hiveserver2_site_conf,
@@ -584,63 +584,63 @@ class TestHiveServerInteractive(RMFTestCase):
                                     content=InlineTemplate(self.getConfig()['configurations']['hive-interactive-env']['content']),
                                     owner='hive',
                                     group='hadoop',
-                                    mode = 0600,
+                                    mode = 0o600,
                                     )
           self.assertResourceCalled('File', os.path.join(conf_dir, 'llap-daemon-log4j2.properties'),
                                     content=InlineTemplate('con\ntent'),
                                     owner='hive',
                                     group='hadoop',
-                                    mode=0600,
+                                    mode=0o600,
                                     )
           self.assertResourceCalled('File', os.path.join(conf_dir, 'llap-cli-log4j2.properties'),
                                     content=InlineTemplate('con\ntent'),
                                     owner='hive',
                                     group='hadoop',
-                                    mode=0600,
+                                    mode=0o600,
                                     )
           self.assertResourceCalled('File', os.path.join(conf_dir, 'hive-log4j2.properties'),
                                     content=InlineTemplate('con\ntent'),  # Test new line
                                     owner='hive',
                                     group='hadoop',
-                                    mode=0600,
+                                    mode=0o600,
                                     )
           self.assertResourceCalled('File', os.path.join(conf_dir, 'hive-exec-log4j2.properties'),
                                     content=InlineTemplate('con\ntent'),  # Test new line
                                     owner='hive',
                                     group='hadoop',
-                                    mode=0600,
+                                    mode=0o600,
                                     )
           self.assertResourceCalled('File', os.path.join(conf_dir, 'beeline-log4j2.properties'),
                                     content=InlineTemplate('con\ntent'),  # Test new line
                                     owner='hive',
                                     group='hadoop',
-                                    mode=0600,
+                                    mode=0o600,
                                     )
           self.assertResourceCalled('File', os.path.join(conf_dir, 'hadoop-metrics2-hiveserver2.properties'),
                                     content=Template("hadoop-metrics2-hiveserver2.properties.j2"),
                                     owner='hive',
                                     group='hadoop',
-                                    mode = 0600,
+                                    mode = 0o600,
                                     )
 
           self.assertResourceCalled('File', os.path.join(conf_dir, 'hadoop-metrics2-llapdaemon.properties'),
                                     content=Template("hadoop-metrics2-llapdaemon.j2"),
                                     owner='hive',
                                     group='hadoop',
-                                    mode = 0600
+                                    mode = 0o600
           )
 
           self.assertResourceCalled('File', os.path.join(conf_dir, 'hadoop-metrics2-llaptaskscheduler.properties'),
                                     content=Template("hadoop-metrics2-llaptaskscheduler.j2"),
                                     owner='hive',
                                     group='hadoop',
-                                    mode = 0600
+                                    mode = 0o600
           )
         else:
           self.assertResourceCalled('XmlConfig', 'hiveserver2-site.xml',
                                     group='hadoop',
                                     conf_dir=conf_dir,
-                                    mode=0644,
+                                    mode=0o644,
                                     configuration_attributes={},
                                     owner='hive',
                                     configurations=hiveserver2_site_conf,
@@ -649,57 +649,57 @@ class TestHiveServerInteractive(RMFTestCase):
                                     content=InlineTemplate(self.getConfig()['configurations']['hive-interactive-env']['content']),
                                     owner='hive',
                                     group='hadoop',
-                                    mode = 0644,
+                                    mode = 0o644,
           )
           self.assertResourceCalled('File', os.path.join(conf_dir, 'llap-daemon-log4j2.properties'),
                                     content=InlineTemplate('con\ntent'),
                                     owner='hive',
                                     group='hadoop',
-                                    mode=0644,
+                                    mode=0o644,
           )
           self.assertResourceCalled('File', os.path.join(conf_dir, 'llap-cli-log4j2.properties'),
                                     content=InlineTemplate('con\ntent'),
                                     owner='hive',
                                     group='hadoop',
-                                    mode=0644,
+                                    mode=0o644,
           )
           self.assertResourceCalled('File', os.path.join(conf_dir, 'hive-log4j2.properties'),
                                     content=InlineTemplate('con\ntent'),  # Test new line
                                     owner='hive',
                                     group='hadoop',
-                                    mode=0644,
+                                    mode=0o644,
           )
           self.assertResourceCalled('File', os.path.join(conf_dir, 'hive-exec-log4j2.properties'),
                                     content=InlineTemplate('con\ntent'),  # Test new line
                                     owner='hive',
                                     group='hadoop',
-                                    mode=0644,
+                                    mode=0o644,
           )
           self.assertResourceCalled('File', os.path.join(conf_dir, 'beeline-log4j2.properties'),
                                     content=InlineTemplate('con\ntent'),  # Test new line
                                     owner='hive',
                                     group='hadoop',
-                                    mode=0644,
+                                    mode=0o644,
           )
           self.assertResourceCalled('File', os.path.join(conf_dir, 'hadoop-metrics2-hiveserver2.properties'),
                                     content=Template("hadoop-metrics2-hiveserver2.properties.j2"),
                                     owner='hive',
                                     group='hadoop',
-                                    mode = 0644,
+                                    mode = 0o644,
                                     )
 
           self.assertResourceCalled('File', os.path.join(conf_dir, 'hadoop-metrics2-llapdaemon.properties'),
                                     content=Template("hadoop-metrics2-llapdaemon.j2"),
                                     owner='hive',
                                     group='hadoop',
-                                    mode = 0644
+                                    mode = 0o644
           )
 
           self.assertResourceCalled('File', os.path.join(conf_dir, 'hadoop-metrics2-llaptaskscheduler.properties'),
                                     content=Template("hadoop-metrics2-llaptaskscheduler.j2"),
                                     owner='hive',
                                     group='hadoop',
-                                    mode = 0644
+                                    mode = 0o644
           )
         pass
 
@@ -712,7 +712,7 @@ class TestHiveServerInteractive(RMFTestCase):
                               content=Template('hive.conf.j2'),
                               owner='root',
                               group='root',
-                              mode=0644,
+                              mode=0o644,
     )
     self.assertResourceCalled('File',
                               '/tmp/mysql-connector-java.jar',
@@ -726,34 +726,34 @@ class TestHiveServerInteractive(RMFTestCase):
                               sudo=True,
     )
     self.assertResourceCalled('File', '/usr/hdp/current/hive-server2-hive2/lib/mysql-connector-java.jar',
-                              mode=0644,
+                              mode=0o644,
     )
     self.assertResourceCalled('File', '/usr/lib/ambari-agent/DBConnectionVerification.jar',
                               content=DownloadSource('http://c6401.ambari.apache.org:8080/resources'
                                                      '/DBConnectionVerification.jar'),
-                              mode=0644,
+                              mode=0o644,
     )
     self.assertResourceCalled('File', '/tmp/start_hiveserver2_interactive_script',
                               content=Template('startHiveserver2Interactive.sh.j2'),
-                              mode=0755,
+                              mode=0o755,
     )
     self.assertResourceCalled('Directory', '/var/run/hive',
                               owner='hive',
-                              mode=0755,
+                              mode=0o755,
                               group='hadoop',
                               create_parents=True,
                               cd_access='a',
     )
     self.assertResourceCalled('Directory', '/var/log/hive',
                               owner='hive',
-                              mode=0755,
+                              mode=0o755,
                               group='hadoop',
                               create_parents=True,
                               cd_access='a',
     )
     self.assertResourceCalled('Directory', '/var/lib/hive2',
                               owner='hive',
-                              mode=0755,
+                              mode=0o755,
                               group='hadoop',
                               create_parents=True,
                               cd_access='a',

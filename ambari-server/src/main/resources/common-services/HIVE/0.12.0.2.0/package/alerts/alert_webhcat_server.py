@@ -21,7 +21,7 @@ limitations under the License.
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import socket
 import time
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import traceback
 import logging
 
@@ -187,11 +187,11 @@ def execute(configurations={}, parameters={}, host_name=None):
     try:
       # execute the query for the JSON that includes WebHCat status
       start_time = time.time()
-      url_response = urllib2.urlopen(query_url, timeout=connection_timeout)
+      url_response = urllib.request.urlopen(query_url, timeout=connection_timeout)
       total_time = time.time() - start_time
 
       json_response = json.loads(url_response.read())
-    except urllib2.HTTPError as httpError:
+    except urllib.error.HTTPError as httpError:
       label = CRITICAL_HTTP_MESSAGE.format(httpError.code, query_url, traceback.format_exc())
       return (RESULT_CODE_CRITICAL, [label])
     except:

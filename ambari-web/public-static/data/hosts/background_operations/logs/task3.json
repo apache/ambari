@@ -1,0 +1,13 @@
+{
+  "taskId": 3,
+  "stageId":4,
+  "hostname":"host3.com",
+  "role":"DATANODE",
+  "command":"STOP",
+  "status":"PENDING",
+  "exitcode": "exitcode",
+  "stderror": "stderror",
+  "stdout": "stdout",
+  "startTime": "",
+  "attemptCount": 8
+}

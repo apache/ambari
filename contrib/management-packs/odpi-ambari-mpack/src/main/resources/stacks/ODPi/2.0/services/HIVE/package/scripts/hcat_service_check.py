@@ -26,7 +26,7 @@ from ambari_commons import OSConst
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def hcat_service_check():
-  import params
+  from . import params
   smoke_cmd = os.path.join(params.stack_root, "Run-SmokeTests.cmd")
   service = "HCatalog"
   Execute(format("cmd /C {smoke_cmd} {service}"), user=params.hcat_user, logoutput=True)
@@ -34,7 +34,7 @@ def hcat_service_check():
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def hcat_service_check():
-    import params
+    from . import params
     unique = get_unique_id_and_date()
     output_file = format("{hive_apps_whs_dir}/hcatsmoke{unique}")
     test_cmd = format("fs -test -e {output_file}")
@@ -47,7 +47,7 @@ def hcat_service_check():
 
     File(format("{tmp_dir}/hcatSmoke.sh"),
          content=StaticFile("hcatSmoke.sh"),
-         mode=0755
+         mode=0o755
     )
 
     prepare_cmd = format("{kinit_cmd}env JAVA_HOME={java64_home} {tmp_dir}/hcatSmoke.sh hcatsmoke{unique} prepare {purge_tables}")

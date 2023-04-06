@@ -90,7 +90,7 @@ def start_ambari_agent(wait_until_registered = True):
 	retcode += proc.wait()
 	if wait_until_registered:
 		if not wait_until_ambari_agent_registered():
-			print "ERROR: ambari-agent was not registered."
+			print("ERROR: ambari-agent was not registered.")
 			sys.exit(1)
 
 	return retcode
@@ -133,9 +133,9 @@ def create_cluster():
 
 # Loop to not to exit Docker container
 def no_exit():
-	print ""
-	print "loop to not to exit docker container..."
-	print ""
+	print("")
+	print("loop to not to exit docker container...")
+	print("")
 	while True:
 		time.sleep(NO_EXIT_SLEEP_TIME)
 
@@ -205,7 +205,7 @@ def parse(argv):
 if __name__ == "__main__":
 
 	if len(sys.argv) == 1:
-		print "specify one of test, server, agent or deploy"
+		print("specify one of test, server, agent or deploy")
 		sys.exit(1)
 
 	start = datetime.datetime.utcnow()
@@ -227,8 +227,8 @@ if __name__ == "__main__":
 	if parsed_args.is_test:
 		retcode = ambariUnitTest()
 		end = datetime.datetime.utcnow()
-		print ""
-		print "Duration: " + str((end-start).seconds) + " seconds"
+		print("")
+		print("Duration: " + str((end-start).seconds) + " seconds")
 		sys.exit(retcode)
 
 	if parsed_args.is_rebuild:
@@ -261,7 +261,7 @@ if __name__ == "__main__":
 
 	end = datetime.datetime.utcnow()
 
-	print ""
-	print "Duration: " + str((end-start).seconds) + " seconds"
-	print "Parameters: " + str(sys.argv)
+	print("")
+	print("Duration: " + str((end-start).seconds) + " seconds")
+	print("Parameters: " + str(sys.argv))
 	no_exit()

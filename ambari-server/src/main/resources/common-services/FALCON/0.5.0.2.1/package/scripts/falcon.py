@@ -52,14 +52,14 @@ def falcon(type, action = None, upgrade_type=None):
     Directory(params.falcon_pid_dir,
       owner = params.falcon_user,
       create_parents = True,
-      mode = 0755,
+      mode = 0o755,
       cd_access = "a",
     )
 
     Directory(params.falcon_log_dir,
       owner = params.falcon_user,
       create_parents = True,
-      mode = 0755,
+      mode = 0o755,
       cd_access = "a",
     )
 
@@ -72,7 +72,7 @@ def falcon(type, action = None, upgrade_type=None):
       create_parents = True)
 
     Directory(params.etc_prefix_dir,
-      mode = 0755,
+      mode = 0o755,
       create_parents = True)
 
     Directory(params.falcon_conf_dir,
@@ -87,30 +87,30 @@ def falcon(type, action = None, upgrade_type=None):
 
     PropertiesFile(params.falcon_conf_dir + '/client.properties',
       properties = params.falcon_client_properties,
-      mode = 0644,
+      mode = 0o644,
       owner = params.falcon_user)
 
     PropertiesFile(params.falcon_conf_dir + '/runtime.properties',
       properties = params.falcon_runtime_properties,
-      mode = 0644,
+      mode = 0o644,
       owner = params.falcon_user)
 
     PropertiesFile(params.falcon_conf_dir + '/startup.properties',
       properties = params.falcon_startup_properties,
-      mode = 0644,
+      mode = 0o644,
       owner = params.falcon_user)
 
     File(params.falcon_conf_dir + '/log4j.properties',
       content = InlineTemplate(params.falcon_log4j),
       group = params.user_group,
-      mode = 0644,
+      mode = 0o644,
       owner = params.falcon_user)
 
     if params.falcon_graph_storage_directory:
       Directory(params.falcon_graph_storage_directory,
         owner = params.falcon_user,
         group = params.user_group,
-        mode = 0775,
+        mode = 0o775,
         create_parents = True,
         cd_access = "a")
 
@@ -118,7 +118,7 @@ def falcon(type, action = None, upgrade_type=None):
       Directory(params.falcon_graph_serialize_path,
         owner = params.falcon_user,
         group = params.user_group,
-        mode = 0775,
+        mode = 0o775,
         create_parents = True,
         cd_access = "a")
 
@@ -144,7 +144,7 @@ def falcon(type, action = None, upgrade_type=None):
           type = "directory",
           action = "create_on_execute",
           owner = params.falcon_user,
-          mode = 0755)
+          mode = 0o755)
       elif params.store_uri[0:4] == "file":
         Directory(params.store_uri[7:],
           owner = params.falcon_user,
@@ -155,7 +155,7 @@ def falcon(type, action = None, upgrade_type=None):
         type = "directory",
         action = "create_on_execute",
         owner = params.falcon_user,
-        mode = 0777)
+        mode = 0o777)
 
       # In HDP 2.4 and earlier, the data-mirroring directory was copied to HDFS.
       if params.supports_data_mirroring:
@@ -166,7 +166,7 @@ def falcon(type, action = None, upgrade_type=None):
           group = params.proxyuser_group,
           recursive_chown = True,
           recursive_chmod = True,
-          mode = 0770,
+          mode = 0o770,
           source = params.local_data_mirroring_dir)
 
       # Falcon Extensions were supported in HDP 2.5 and higher.
@@ -181,7 +181,7 @@ def falcon(type, action = None, upgrade_type=None):
                             group = params.proxyuser_group,
                             recursive_chown = True,
                             recursive_chmod = True,
-                            mode = 0755,
+                            mode = 0o755,
                             source = params.falcon_extensions_source_dir)
         # Create the extensons HiveDR store
         params.HdfsResource(os.path.join(params.falcon_extensions_dest_dir, "mirroring"),
@@ -189,7 +189,7 @@ def falcon(type, action = None, upgrade_type=None):
                             action = "create_on_execute",
                             owner = params.falcon_user,
                             group = params.proxyuser_group,
-                            mode = 0770)
+                            mode = 0o770)
 
       # At least one HDFS Dir should be created, so execute the change now.
       params.HdfsResource(None, action = "execute")
@@ -227,7 +227,7 @@ def falcon(type, action = None, upgrade_type=None):
         try :
           File(params.target_jar_file,
            content = DownloadSource(params.bdb_resource_name),
-           mode = 0755)
+           mode = 0o755)
         except :
            exc_msg = traceback.format_exc()
            exception_message = format("Caught Exception while downloading {bdb_resource_name}:\n{exc_msg}")

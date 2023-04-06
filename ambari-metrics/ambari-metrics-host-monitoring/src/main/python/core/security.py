@@ -21,17 +21,17 @@ limitations under the License.
 import logging
 import ssl
 import socket
-import httplib
+import http.client
 
 logger = logging.getLogger()
 
 # TODO merge this with security.py in ambari-agent and move to ambrari commons
 
-class VerifiedHTTPSConnection(httplib.HTTPSConnection):
+class VerifiedHTTPSConnection(http.client.HTTPSConnection):
   """ Connecting using ssl wrapped sockets """
 
   def __init__(self, host, port, timeout, ca_certs):
-    httplib.HTTPSConnection.__init__(self, host, port=port, timeout=timeout)
+    http.client.HTTPSConnection.__init__(self, host, port=port, timeout=timeout)
     self.ca_certs = ca_certs
 
   def connect(self):
@@ -85,7 +85,7 @@ class CachedHTTPConnection:
     return self.httpconn.getresponse()
 
   def create_connection(self):
-    return httplib.HTTPConnection(self.host, self.port, self.timeout)
+    return http.client.HTTPConnection(self.host, self.port, self.timeout)
 
 class CachedHTTPSConnection(CachedHTTPConnection):
   """ Caches an ssl socket and uses a single https connection to the server. """

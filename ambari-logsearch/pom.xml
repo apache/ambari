@@ -47,7 +47,7 @@
     <solr.version>7.7.0</solr.version>
     <hadoop.version>3.0.0</hadoop.version>
     <common.io.version>2.5</common.io.version>
-    <zookeeper.version>3.4.6.2.3.0.0-2557</zookeeper.version>
+    <zookeeper.version>3.4.6</zookeeper.version>
     <forkCount>4</forkCount>
     <reuseForks>false</reuseForks>
     <surefire.argLine>-Xmx1024m -Xms512m</surefire.argLine>
@@ -71,16 +71,6 @@
   </issueManagement>
 
   <repositories>
-    <repository>
-      <id>apache-hadoop</id>
-      <name>hdp</name>
-      <url>https://repo.hortonworks.com/content/groups/public/</url>
-    </repository>
-    <repository>
-      <id>oss.sonatype.org</id>
-      <name>OSS Sonatype Staging</name>
-      <url>https://oss.sonatype.org/content/groups/staging</url>
-    </repository>
     <repository>
       <id>spring-milestones</id>
       <name>Spring Milestones</name>

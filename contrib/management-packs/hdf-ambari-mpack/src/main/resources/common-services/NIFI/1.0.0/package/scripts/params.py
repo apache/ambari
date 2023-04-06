@@ -296,8 +296,8 @@ java_share_dir = '/usr/share/java'
 
 if has_ranger_admin:
   enable_ranger_nifi = (config['configurations']['ranger-nifi-plugin-properties']['ranger-nifi-plugin-enabled'].lower() == 'yes')
-  xa_audit_db_password = unicode(config['configurations']['admin-properties']['audit_db_password']) if stack_supports_ranger_audit_db else None
-  repo_config_password = unicode(config['configurations']['ranger-nifi-plugin-properties']['REPOSITORY_CONFIG_PASSWORD'])
+  xa_audit_db_password = str(config['configurations']['admin-properties']['audit_db_password']) if stack_supports_ranger_audit_db else None
+  repo_config_password = str(config['configurations']['ranger-nifi-plugin-properties']['REPOSITORY_CONFIG_PASSWORD'])
   xa_audit_db_flavor = (config['configurations']['admin-properties']['DB_FLAVOR']).lower()
   previous_jdbc_jar_name= None
 
@@ -339,8 +339,8 @@ if has_ranger_admin:
   previous_jdbc_jar = format("{stack_root}/current/nifi/ext/{previous_jdbc_jar_name}") if stack_supports_ranger_audit_db else None
   sql_connector_jar = ''
 
-  ssl_keystore_password = unicode(config['configurations']['ranger-nifi-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.password']) if xml_configurations_supported else None
-  ssl_truststore_password = unicode(config['configurations']['ranger-nifi-policymgr-ssl']['xasecure.policymgr.clientssl.truststore.password']) if xml_configurations_supported else None
+  ssl_keystore_password = str(config['configurations']['ranger-nifi-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.password']) if xml_configurations_supported else None
+  ssl_truststore_password = str(config['configurations']['ranger-nifi-policymgr-ssl']['xasecure.policymgr.clientssl.truststore.password']) if xml_configurations_supported else None
   credential_file = format('/etc/ranger/{repo_name}/cred.jceks') if xml_configurations_supported else None
   credential_file_type = 'jceks'
   ranger_admin_username = config['configurations']['ranger-env']['ranger_admin_username']

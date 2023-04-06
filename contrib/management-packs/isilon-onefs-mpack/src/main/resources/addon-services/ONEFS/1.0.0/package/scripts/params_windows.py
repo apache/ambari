@@ -21,7 +21,7 @@ import os
 
 #Used in subsequent imports from params
 from install_params import exclude_packages
-from status_params import *
+from .status_params import *
 
 config = Script.get_config()
 hadoop_conf_dir = None

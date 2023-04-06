@@ -11,7 +11,7 @@ __all__ = ["PY3", "int", "long", "xrange", "exec_", "callable", "namedtuple",
 
 import sys
 try:
-    import __builtin__
+    import builtins
 except ImportError:
     import builtins as __builtin__  # py3
 
@@ -21,7 +21,7 @@ if PY3:
     int = int
     long = int
     xrange = range
-    unicode = str
+    str = str
     exec_ = getattr(__builtin__, "exec")
     print_ = getattr(__builtin__, "print")
 
@@ -32,12 +32,12 @@ if PY3:
         return s.encode("latin-1")
 else:
     int = int
-    long = long
+    long = int
     xrange = xrange
-    unicode = unicode
+    str = str
 
     def u(s):
-        return unicode(s, "unicode_escape")
+        return str(s, "unicode_escape")
 
     def b(s):
         return s
@@ -82,7 +82,7 @@ except ImportError:
         """A collections.namedtuple implementation, see:
         http://docs.python.org/library/collections.html#namedtuple
         """
-        if isinstance(field_names, basestring):
+        if isinstance(field_names, str):
             field_names = field_names.replace(',', ' ').split()
         field_names = tuple(map(str, field_names))
         if rename:
@@ -176,9 +176,7 @@ except ImportError:
 if hasattr(property, 'setter'):
     property = property
 else:
-    class property(__builtin__.property):
-        __metaclass__ = type
-
+    class property(__builtin__.property, metaclass=type):
         def __init__(self, fget, *args, **kwargs):
             super(property, self).__init__(fget, *args, **kwargs)
             self.__doc__ = fget.__doc__
@@ -230,7 +228,7 @@ except ImportError:
                 args = tuple()
             else:
                 args = self.default_factory,
-            return type(self), args, None, None, self.items()
+            return type(self), args, None, None, list(self.items())
 
         def copy(self):
             return self.__copy__()
@@ -241,7 +239,7 @@ except ImportError:
         def __deepcopy__(self, memo):
             import copy
             return type(self)(self.default_factory,
-                              copy.deepcopy(self.items()))
+                              copy.deepcopy(list(self.items())))
 
         def __repr__(self):
             return 'defaultdict(%s, %s)' % (self.default_factory,

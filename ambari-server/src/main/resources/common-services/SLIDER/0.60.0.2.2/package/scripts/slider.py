@@ -60,11 +60,11 @@ def slider():
   XmlConfig("slider-client.xml",
             conf_dir=params.slider_conf_dir,
             configurations=slider_client_config,
-            mode=0644
+            mode=0o644
   )
 
   File(format("{slider_conf_dir}/slider-env.sh"),
-       mode=0755,
+       mode=0o755,
        content=InlineTemplate(params.slider_env_sh_template)
   )
 
@@ -76,18 +76,18 @@ def slider():
     )
 
     File(format("{storm_slider_conf_dir}/storm-slider-env.sh"),
-         mode=0755,
+         mode=0o755,
          content=Template('storm-slider-env.sh.j2')
     )
 
   if (params.log4j_props != None):
     File(format("{params.slider_conf_dir}/log4j.properties"),
-         mode=0644,
+         mode=0o644,
          content=params.log4j_props
     )
   elif (os.path.exists(format("{params.slider_conf_dir}/log4j.properties"))):
     File(format("{params.slider_conf_dir}/log4j.properties"),
-         mode=0644
+         mode=0o644
     )
   if params.stack_version_formatted and check_stack_feature(StackFeature.COPY_TARBALL_TO_HDFS, params.stack_version_formatted):
     File(params.slider_tar_gz,

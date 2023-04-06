@@ -151,7 +151,7 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     # There are 4 available hosts in the cluster
     # Recommend HAWQSTANDBY on next available host, c6402.ambari.apache.org
     standbyHosts = self.serviceAdvisor.getHostsForMasterComponent(services, None, component, hostsList)
-    self.assertEquals(standbyHosts, ["c6402.ambari.apache.org"])
+    self.assertEqual(standbyHosts, ["c6402.ambari.apache.org"])
 
     # Case 2:
     # Ambari Server is placed on c6401.ambari.apache.org
@@ -160,7 +160,7 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     # Recommend HAWQSTANDBY on next available host, c6403.ambari.apache.org
     services["services"][0]["components"][0]["StackServiceComponents"]["hostnames"] = ["c6402.ambari.apache.org"]
     standbyHosts = self.serviceAdvisor.getHostsForMasterComponent(services, None, component, hostsList)
-    self.assertEquals(standbyHosts, ["c6403.ambari.apache.org"])
+    self.assertEqual(standbyHosts, ["c6403.ambari.apache.org"])
 
     # Case 3:
     # Ambari Server is placed on c6401.ambari.apache.org
@@ -169,7 +169,7 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     # Recommend HAWQSTANDBY on a host which does not have HAWQMASTER, c6401.ambari.apache.org
     hostsList = ["c6401.ambari.apache.org", "c6402.ambari.apache.org"]
     standbyHosts = self.serviceAdvisor.getHostsForMasterComponent(services, None, component, hostsList)
-    self.assertEquals(standbyHosts, ["c6401.ambari.apache.org"])
+    self.assertEqual(standbyHosts, ["c6401.ambari.apache.org"])
 
     # Case 4:
     # Ambari Server is placed on c6401.ambari.apache.org
@@ -179,7 +179,7 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     hostsList = ["c6401.ambari.apache.org"]
     services["services"][0]["components"][0]["StackServiceComponents"]["hostnames"] = ["c6401.ambari.apache.org"]
     standbyHosts = self.serviceAdvisor.getHostsForMasterComponent(services, None, component, hostsList)
-    self.assertEquals(standbyHosts, [])
+    self.assertEqual(standbyHosts, [])
 
     # Case 5:
     # Ambari Server is placed on c6401.ambari.apache.org
@@ -191,7 +191,7 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     services["services"][0]["components"][0]["StackServiceComponents"]["hostnames"] = ["c6402.ambari.apache.org"]
     services["services"][0]["components"][1]["StackServiceComponents"]["hostnames"] = ["c6401.ambari.apache.org"]
     standbyHosts = self.serviceAdvisor.getHostsForMasterComponent(services, None, component, hostsList)
-    self.assertEquals(standbyHosts, ["c6401.ambari.apache.org"])
+    self.assertEqual(standbyHosts, ["c6401.ambari.apache.org"])
 
   def setupToTestConfigurationRecommendations(self):
     configurations = {
@@ -316,9 +316,9 @@ class TestHAWQ200ServiceAdvisor(TestCase):
 
     self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, None, services, hosts)
     hdfs_site_desired_values = self.getDesiredHDFSSiteValues(False)
-    for property, value in hdfs_site_desired_values.iteritems():
-      self.assertEquals(configurations["hdfs-site"]["properties"][property], value)
-    self.assertEquals(configurations["core-site"]["properties"]["ipc.server.listen.queue.size"], "3300")
+    for property, value in hdfs_site_desired_values.items():
+      self.assertEqual(configurations["hdfs-site"]["properties"][property], value)
+    self.assertEqual(configurations["core-site"]["properties"]["ipc.server.listen.queue.size"], "3300")
 
     # Case 2: Security is  enabled
     # Kerberos causes 1 property to be recommended differently
@@ -327,9 +327,9 @@ class TestHAWQ200ServiceAdvisor(TestCase):
 
     self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, None, services, hosts)
     hdfs_site_desired_values = self.getDesiredHDFSSiteValues(True)
-    for property, value in hdfs_site_desired_values.iteritems():
-      self.assertEquals(configurations["hdfs-site"]["properties"][property], value)
-    self.assertEquals(configurations["core-site"]["properties"]["ipc.server.listen.queue.size"], "3300")
+    for property, value in hdfs_site_desired_values.items():
+      self.assertEqual(configurations["hdfs-site"]["properties"][property], value)
+    self.assertEqual(configurations["core-site"]["properties"]["ipc.server.listen.queue.size"], "3300")
 
     ## Test if hawq_master_address_port is blanked out when HAWQMASTER is placed on Ambari Server host
     with patch.object(self.serviceAdvisor.__class__, 'isLocalHost', side_effect=self.isLocalHost_sideEffect):
@@ -337,7 +337,7 @@ class TestHAWQ200ServiceAdvisor(TestCase):
       # Blank out hawq_master_address_port
       services, configurations, hosts = self.setupToTestConfigurationRecommendations()
       self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, None, services, hosts)
-      self.assertEquals(configurations["hawq-site"]["properties"]["hawq_master_address_port"], "")
+      self.assertEqual(configurations["hawq-site"]["properties"]["hawq_master_address_port"], "")
 
       # Case 2: HAWQMASTER is not placed on Ambari Server Host
       # Retain hawq_master_address_port from existing configurations
@@ -345,7 +345,7 @@ class TestHAWQ200ServiceAdvisor(TestCase):
       services["services"][0]["components"][0]["StackServiceComponents"]["hostnames"] = ["c6404.ambari.apache.org"]  # Set HAWQMASTER Host
       original_hawq_master_address_port = configurations["hawq-site"]["properties"]["hawq_master_address_port"]
       self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, None, services, hosts)
-      self.assertEquals(configurations["hawq-site"]["properties"]["hawq_master_address_port"], original_hawq_master_address_port)
+      self.assertEqual(configurations["hawq-site"]["properties"]["hawq_master_address_port"], original_hawq_master_address_port)
 
     ## Test if hawq_rm_nvcore_limit_perseg is set according to the hosts core count
 
@@ -355,7 +355,7 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     # Set hawq_rm_nvcore_limit_perseg to 2
     services, configurations, hosts = self.setupToTestConfigurationRecommendations()
     self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, None, services, hosts)
-    self.assertEquals(configurations["hawq-site"]["properties"]["hawq_rm_nvcore_limit_perseg"], "2")
+    self.assertEqual(configurations["hawq-site"]["properties"]["hawq_rm_nvcore_limit_perseg"], "2")
 
     # Case 2: User is coming to configs page for first time
     # HAWQ Hosts Core Count: c6401.ambari.apache.org - 2, c6402.ambari.apache.org - 1, c6404.ambari.apache.org - 2
@@ -364,7 +364,7 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     services, configurations, hosts = self.setupToTestConfigurationRecommendations()
     hosts["items"][1]["Hosts"]["cpu_count"] = 1  # Set c6402 cpu_count to 1
     self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, None, services, hosts)
-    self.assertEquals(configurations["hawq-site"]["properties"]["hawq_rm_nvcore_limit_perseg"], "1")
+    self.assertEqual(configurations["hawq-site"]["properties"]["hawq_rm_nvcore_limit_perseg"], "1")
 
     ## Test if vm.overcommit_memory is set correctly
 
@@ -372,14 +372,14 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     # Set vm.overcommit_memory as 2
     services, configurations, hosts = self.setupToTestConfigurationRecommendations()
     self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, None, services, hosts)
-    self.assertEquals(configurations["hawq-sysctl-env"]["properties"]["vm.overcommit_memory"], "2")
+    self.assertEqual(configurations["hawq-sysctl-env"]["properties"]["vm.overcommit_memory"], "2")
 
     # Case 2: One machine has total_mem below 32GB
     # Set vm.overcommit_memory as 1
     services, configurations, hosts = self.setupToTestConfigurationRecommendations()
     hosts["items"][0]["Hosts"]["total_mem"] = 33554431
     self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, None, services, hosts)
-    self.assertEquals(configurations["hawq-sysctl-env"]["properties"]["vm.overcommit_memory"], "1")
+    self.assertEqual(configurations["hawq-sysctl-env"]["properties"]["vm.overcommit_memory"], "1")
 
     ## Test if vm.overcommit_ratio is set correctly
 
@@ -405,7 +405,7 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     services, configurations, hosts = self.setupToTestConfigurationRecommendations()
     hosts["items"][0]["Hosts"]["total_mem"] = 2097152
     self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, None, services, hosts)
-    self.assertEquals(configurations["hawq-sysctl-env"]["properties"]["vm.overcommit_memory"], "1")
+    self.assertEqual(configurations["hawq-sysctl-env"]["properties"]["vm.overcommit_memory"], "1")
     self.assertEqual(configurations["hawq-site"]["properties"]["hawq_rm_memory_limit_perseg"], "1536MB")
 
     # Case 2: Minimum host memory is 16GB
@@ -416,7 +416,7 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     hosts["items"][1]["Hosts"]["total_mem"] = 26777216
     hosts["items"][3]["Hosts"]["total_mem"] = 36777216
     self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, None, services, hosts)
-    self.assertEquals(configurations["hawq-sysctl-env"]["properties"]["vm.overcommit_memory"], "1")
+    self.assertEqual(configurations["hawq-sysctl-env"]["properties"]["vm.overcommit_memory"], "1")
     self.assertEqual(configurations["hawq-site"]["properties"]["hawq_rm_memory_limit_perseg"], "12GB")
 
     # Case 3: Minimum host memory is 64GB
@@ -429,8 +429,8 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     hosts["items"][3]["Hosts"]["total_mem"] = 87108864
     services["configurations"]["hawq-sysctl-env"]["properties"]["vm.overcommit_ratio"] = "50"
     self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, None, services, hosts)
-    self.assertEquals(configurations["hawq-sysctl-env"]["properties"]["vm.overcommit_memory"], "2")
-    self.assertEquals(configurations["hawq-sysctl-env"]["properties"]["vm.overcommit_ratio"], "50")
+    self.assertEqual(configurations["hawq-sysctl-env"]["properties"]["vm.overcommit_memory"], "2")
+    self.assertEqual(configurations["hawq-sysctl-env"]["properties"]["vm.overcommit_ratio"], "50")
     self.assertEqual(configurations["hawq-site"]["properties"]["hawq_rm_memory_limit_perseg"], "24GB")
 
     # Case 4: Minimum host memory is 512GB
@@ -443,9 +443,9 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     hosts["items"][3]["Hosts"]["total_mem"] = 736870912
     services["configurations"]["hawq-sysctl-env"]["properties"]["vm.overcommit_ratio"] = "50"
     self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, None, services, hosts)
-    self.assertEquals(configurations["hawq-sysctl-env"]["properties"]["vm.overcommit_memory"], "2")
-    self.assertEquals(configurations["hawq-sysctl-env"]["properties"]["vm.overcommit_ratio"], "50")
-    self.assertEquals(configurations["hawq-site"]["properties"]["hawq_rm_memory_limit_perseg"], "218GB")
+    self.assertEqual(configurations["hawq-sysctl-env"]["properties"]["vm.overcommit_memory"], "2")
+    self.assertEqual(configurations["hawq-sysctl-env"]["properties"]["vm.overcommit_ratio"], "50")
+    self.assertEqual(configurations["hawq-site"]["properties"]["hawq_rm_memory_limit_perseg"], "218GB")
 
     # Case 5: Minimum host memory is 1024GB
     # Set vm.overcommit_memory set to 2
@@ -457,8 +457,8 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     hosts["items"][3]["Hosts"]["total_mem"] = 3073741824
     services["configurations"]["hawq-sysctl-env"]["properties"]["vm.overcommit_ratio"] = "50"
     self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, None, services, hosts)
-    self.assertEquals(configurations["hawq-sysctl-env"]["properties"]["vm.overcommit_memory"], "2")
-    self.assertEquals(configurations["hawq-sysctl-env"]["properties"]["vm.overcommit_ratio"], "50")
+    self.assertEqual(configurations["hawq-sysctl-env"]["properties"]["vm.overcommit_memory"], "2")
+    self.assertEqual(configurations["hawq-sysctl-env"]["properties"]["vm.overcommit_ratio"], "50")
     self.assertEqual(configurations["hawq-site"]["properties"]["hawq_rm_memory_limit_perseg"], "436GB")
 
     # Case 6: Minimum host memory is 1024GB
@@ -471,8 +471,8 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     hosts["items"][3]["Hosts"]["total_mem"] = 3073741824
     services["configurations"]["hawq-sysctl-env"]["properties"]["vm.overcommit_ratio"] = "75"
     self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, None, services, hosts)
-    self.assertEquals(configurations["hawq-sysctl-env"]["properties"]["vm.overcommit_memory"], "2")
-    self.assertEquals(configurations["hawq-sysctl-env"]["properties"]["vm.overcommit_ratio"], "75")
+    self.assertEqual(configurations["hawq-sysctl-env"]["properties"]["vm.overcommit_memory"], "2")
+    self.assertEqual(configurations["hawq-sysctl-env"]["properties"]["vm.overcommit_ratio"], "75")
     self.assertEqual(configurations["hawq-site"]["properties"]["hawq_rm_memory_limit_perseg"], "730GB")
 
     ## Test if default_hash_table_bucket_number and hawq_rm_nvseg_perquery_perseg_limit are set correctly
@@ -482,9 +482,9 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     services, configurations, hosts = self.setupToTestConfigurationRecommendations()
     componentsList = self.getComponentsListFromServices(services)
     hawqSegmentHosts = self.getHosts(componentsList, "HAWQSEGMENT")
-    self.assertEquals(len(hawqSegmentHosts["hostnames"]), 2)
+    self.assertEqual(len(hawqSegmentHosts["hostnames"]), 2)
     self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, None, services, hosts)
-    self.assertEquals(configurations["hawq-site"]["properties"]["default_hash_table_bucket_number"], "12")
+    self.assertEqual(configurations["hawq-site"]["properties"]["default_hash_table_bucket_number"], "12")
 
     # Case 2: No. of HAWQSEGMENTs - 100
     # Set default_hash_table_bucket_number to 500
@@ -492,9 +492,9 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     componentsList = self.getComponentsListFromServices(services)
     hawqSegmentHosts = self.getHosts(componentsList, "HAWQSEGMENT")
     hawqSegmentHosts["hostnames"] = ["host" + str(i) for i in range(100)]
-    self.assertEquals(len(hawqSegmentHosts["hostnames"]), 100)
+    self.assertEqual(len(hawqSegmentHosts["hostnames"]), 100)
     self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, None, services, hosts)
-    self.assertEquals(configurations["hawq-site"]["properties"]["default_hash_table_bucket_number"], "500")
+    self.assertEqual(configurations["hawq-site"]["properties"]["default_hash_table_bucket_number"], "500")
 
     # Case 3: No. of HAWQSEGMENTs - 512
     # Set default_hash_table_bucket_number to 512
@@ -502,9 +502,9 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     componentsList = self.getComponentsListFromServices(services)
     hawqSegmentHosts = self.getHosts(componentsList, "HAWQSEGMENT")
     hawqSegmentHosts["hostnames"] = ["host" + str(i) for i in range(512)]
-    self.assertEquals(len(hawqSegmentHosts["hostnames"]), 512)
+    self.assertEqual(len(hawqSegmentHosts["hostnames"]), 512)
     self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, None, services, hosts)
-    self.assertEquals(configurations["hawq-site"]["properties"]["default_hash_table_bucket_number"], "512")
+    self.assertEqual(configurations["hawq-site"]["properties"]["default_hash_table_bucket_number"], "512")
 
     # Case 4: No. of HAWQSEGMENTs - 513
     # Set default_hash_table_bucket_number to 512
@@ -512,9 +512,9 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     componentsList = self.getComponentsListFromServices(services)
     hawqSegmentHosts = self.getHosts(componentsList, "HAWQSEGMENT")
     hawqSegmentHosts["hostnames"] = ["host" + str(i) for i in range(513)]
-    self.assertEquals(len(hawqSegmentHosts["hostnames"]), 513)
+    self.assertEqual(len(hawqSegmentHosts["hostnames"]), 513)
     self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, None, services, hosts)
-    self.assertEquals(configurations["hawq-site"]["properties"]["default_hash_table_bucket_number"], "512")
+    self.assertEqual(configurations["hawq-site"]["properties"]["default_hash_table_bucket_number"], "512")
 
     # Case 5: No. of HAWQSEGMENTs - 3 and minimum host memory is 1.5GB
     # Set default_hash_table_bucket_number to 12
@@ -523,9 +523,9 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     componentsList = self.getComponentsListFromServices(services)
     hawqSegmentHosts = self.getHosts(componentsList, "HAWQSEGMENT")
     hawqSegmentHosts["hostnames"] = ["host" + str(i) for i in range(3)]
-    self.assertEquals(len(hawqSegmentHosts["hostnames"]), 3)
+    self.assertEqual(len(hawqSegmentHosts["hostnames"]), 3)
     self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, None, services, hosts)
-    self.assertEquals(configurations["hawq-site"]["properties"]["default_hash_table_bucket_number"], "12")
+    self.assertEqual(configurations["hawq-site"]["properties"]["default_hash_table_bucket_number"], "12")
 
     # Case 6: No. of HAWQSEGMENTs - 513 and minimum host memory is 1.5GB
     # Set default_hash_table_bucket_number to 12
@@ -534,9 +534,9 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     componentsList = self.getComponentsListFromServices(services)
     hawqSegmentHosts = self.getHosts(componentsList, "HAWQSEGMENT")
     hawqSegmentHosts["hostnames"] = ["host" + str(i) for i in range(513)]
-    self.assertEquals(len(hawqSegmentHosts["hostnames"]), 513)
+    self.assertEqual(len(hawqSegmentHosts["hostnames"]), 513)
     self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, None, services, hosts)
-    self.assertEquals(configurations["hawq-site"]["properties"]["default_hash_table_bucket_number"], "512")
+    self.assertEqual(configurations["hawq-site"]["properties"]["default_hash_table_bucket_number"], "512")
 
     # Case 7: No. of HAWQSEGMENTs - 0
     # Set default_hash_table_bucket_number to 12
@@ -545,9 +545,9 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     hawqSegmentHosts = self.getHosts(componentsList, "HAWQSEGMENT")
     hawqSegmentHosts["hostnames"] = []
     original_default_hash_table_bucket_number = services["configurations"]["hawq-site"]["properties"]["default_hash_table_bucket_number"]
-    self.assertEquals(len(hawqSegmentHosts["hostnames"]), 0)
+    self.assertEqual(len(hawqSegmentHosts["hostnames"]), 0)
     self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, None, services, hosts)
-    self.assertEquals(configurations["hawq-site"]["properties"]["default_hash_table_bucket_number"], original_default_hash_table_bucket_number)
+    self.assertEqual(configurations["hawq-site"]["properties"]["default_hash_table_bucket_number"], original_default_hash_table_bucket_number)
 
     ## Test if output.replace-datanode-on-failure correctly
 
@@ -557,9 +557,9 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     componentsList = self.getComponentsListFromServices(services)
     hawqSegmentHosts = self.getHosts(componentsList, "HAWQSEGMENT")
     hawqSegmentHosts["hostnames"] = ["host" + str(i) for i in range(3)]
-    self.assertEquals(len(hawqSegmentHosts["hostnames"]), 3)
+    self.assertEqual(len(hawqSegmentHosts["hostnames"]), 3)
     self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, None, services, hosts)
-    self.assertEquals(configurations["hdfs-client"]["properties"]["output.replace-datanode-on-failure"], "false")
+    self.assertEqual(configurations["hdfs-client"]["properties"]["output.replace-datanode-on-failure"], "false")
 
     # Case 2: No. of HAWQSEGMENTs - 4
     # Set output.replace-datanode-on-failure to true
@@ -567,9 +567,9 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     componentsList = self.getComponentsListFromServices(services)
     hawqSegmentHosts = self.getHosts(componentsList, "HAWQSEGMENT")
     hawqSegmentHosts["hostnames"] = ["host" + str(i) for i in range(4)]
-    self.assertEquals(len(hawqSegmentHosts["hostnames"]), 4)
+    self.assertEqual(len(hawqSegmentHosts["hostnames"]), 4)
     self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, None, services, hosts)
-    self.assertEquals(configurations["hdfs-client"]["properties"]["output.replace-datanode-on-failure"], "true")
+    self.assertEqual(configurations["hdfs-client"]["properties"]["output.replace-datanode-on-failure"], "true")
 
     ## Test if RM properties visibility is set correctly
 
@@ -585,7 +585,7 @@ class TestHAWQ200ServiceAdvisor(TestCase):
       "hawq_rm_yarn_address": "true"
     }
     self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, None, services, hosts)
-    for property, status in properties_visibility.iteritems():
+    for property, status in properties_visibility.items():
       self.assertEqual(configurations["hawq-site"]["property_attributes"][property]["visible"], status)
 
     # Case 2: When hawq_global_rm_type is none
@@ -600,7 +600,7 @@ class TestHAWQ200ServiceAdvisor(TestCase):
       "hawq_rm_yarn_address": "false"
     }
     self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, None, services, hosts)
-    for property, status in properties_visibility.iteritems():
+    for property, status in properties_visibility.items():
       self.assertEqual(configurations["hawq-site"]["property_attributes"][property]["visible"], status)
 
     ## Test if maximum range of default_hash_table_bucket_number is set correctly
@@ -611,9 +611,9 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     componentsList = self.getComponentsListFromServices(services)
     hawqSegmentHosts = self.getHosts(componentsList, "HAWQSEGMENT")
     hawqSegmentHosts["hostnames"] = ["host" + str(i) for i in range(624)]
-    self.assertEquals(len(hawqSegmentHosts["hostnames"]), 624)
+    self.assertEqual(len(hawqSegmentHosts["hostnames"]), 624)
     self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, None, services, hosts)
-    self.assertEquals(configurations["hawq-site"]["property_attributes"]["default_hash_table_bucket_number"]["maximum"], "9984")
+    self.assertEqual(configurations["hawq-site"]["property_attributes"]["default_hash_table_bucket_number"]["maximum"], "9984")
 
     # Case 2: No. of HAWQSEGMENTs - 1000
     # Set default_hash_table_bucket_number maximum range  to 10000
@@ -621,9 +621,9 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     componentsList = self.getComponentsListFromServices(services)
     hawqSegmentHosts = self.getHosts(componentsList, "HAWQSEGMENT")
     hawqSegmentHosts["hostnames"] = ["host" + str(i) for i in range(1000)]
-    self.assertEquals(len(hawqSegmentHosts["hostnames"]), 1000)
+    self.assertEqual(len(hawqSegmentHosts["hostnames"]), 1000)
     self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, None, services, hosts)
-    self.assertEquals(configurations["hawq-site"]["property_attributes"]["default_hash_table_bucket_number"]["maximum"], "10000")
+    self.assertEqual(configurations["hawq-site"]["property_attributes"]["default_hash_table_bucket_number"]["maximum"], "10000")
 
   def test_createComponentLayoutRecommendations_hawq_3_Hosts(self):
     """ Test that HAWQSTANDBY is recommended on a 3-node cluster """
@@ -634,7 +634,7 @@ class TestHAWQ200ServiceAdvisor(TestCase):
 
     hosts = self.load_json("hosts-3-hosts.json")
     hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
-    self.assertEquals(len(hostsList), 3)
+    self.assertEqual(len(hostsList), 3)
 
     self.insertHAWQServiceAdvisorInfo(services)
     recommendations = self.serviceAdvisor.recommendComponentLayout(services, hosts)
@@ -658,7 +658,7 @@ class TestHAWQ200ServiceAdvisor(TestCase):
 
     hosts = self.load_json("hosts-1-host.json")
     hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
-    self.assertEquals(len(hostsList), 1)
+    self.assertEqual(len(hostsList), 1)
 
     self.insertHAWQServiceAdvisorInfo(services)
     recommendations = self.serviceAdvisor.recommendComponentLayout(services, hosts)
@@ -678,7 +678,7 @@ class TestHAWQ200ServiceAdvisor(TestCase):
 
     hosts = self.load_json("hosts-3-hosts.json")
     hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
-    self.assertEquals(len(hostsList), 3)
+    self.assertEqual(len(hostsList), 3)
 
     self.insertHAWQServiceAdvisorInfo(services)
     recommendations = self.serviceAdvisor.recommendComponentLayout(services, hosts)
@@ -730,7 +730,7 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     self.insertHAWQServiceAdvisorInfo(services)
     recommendations = self.serviceAdvisor.createComponentLayoutRecommendations(services, hosts)
     hostNames = self.getHostsFromRecommendations(recommendations, "HAWQSEGMENT")
-    self.assertEquals(set(hostNames), hawqSegmentHosts)
+    self.assertEqual(set(hostNames), hawqSegmentHosts)
 
   def test_createComponentLayoutRecommendations_hawqsegment_add_service_wizard_to_be_installed(self):
     """ Test that HAWQSEGMENT gets recommended correctly during Add Service Wizard, when HAWQ is selected for installation """
@@ -775,7 +775,7 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     self.insertHAWQServiceAdvisorInfo(services)
     recommendations = self.serviceAdvisor.createComponentLayoutRecommendations(services, hosts)
     hostNames = self.getHostsFromRecommendations(recommendations, "HAWQSEGMENT")
-    self.assertEquals(set(hostNames), hawqSegmentHosts)
+    self.assertEqual(set(hostNames), hawqSegmentHosts)
 
   def test_createComponentLayoutRecommendations_hawqsegment_add_service_wizard_already_installed(self):
     """ Test that HAWQSEGMENT does not get recommended during Add Service Wizard, when HAWQ has already been installed """
@@ -835,7 +835,7 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     self.insertHAWQServiceAdvisorInfo(services)
     recommendations = self.serviceAdvisor.createComponentLayoutRecommendations(services, hosts)
     hostNames = self.getHostsFromRecommendations(recommendations, "HAWQSEGMENT")
-    self.assertEquals(set(hostNames), hawqSegmentHosts)
+    self.assertEqual(set(hostNames), hawqSegmentHosts)
 
   def test_getComponentLayoutValidations_hawqsegment_not_co_located_with_datanode(self):
     """ Test validation warning for HAWQ segment not colocated with DATANODE """
@@ -857,11 +857,11 @@ class TestHAWQ200ServiceAdvisor(TestCase):
       'component-name': 'HAWQSEGMENT',
       'message': 'HAWQ Segment must be installed on all DataNodes. The following 2 host(s) do not satisfy the colocation recommendation: c6401.ambari.apache.org, c6402.ambari.apache.org',
     }
-    self.assertEquals(validations[0], expected)
+    self.assertEqual(validations[0], expected)
 
     datanodeComponent["hostnames"] = ['c6401.ambari.apache.org']
     validations = self.serviceAdvisor.getComponentLayoutValidations(services, hosts)
-    self.assertEquals(len(validations), 0)
+    self.assertEqual(len(validations), 0)
 
   @patch('socket.getfqdn', side_effect=fqdn_mock_result)
   def test_getComponentLayoutValidations_hawq_3_Hosts(self, socket_mock):
@@ -872,30 +872,30 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     componentsList = self.getComponentsListFromServices(services)
     hawqMasterHosts = self.getHosts(componentsList, "HAWQMASTER")["hostnames"]
     hawqStandbyHosts = self.getHosts(componentsList, "HAWQSTANDBY")["hostnames"]
-    self.assertEquals(len(hawqMasterHosts), 1)
-    self.assertEquals(len(hawqStandbyHosts), 1)
-    self.assertNotEquals(hawqMasterHosts[0], hawqStandbyHosts[0])
+    self.assertEqual(len(hawqMasterHosts), 1)
+    self.assertEqual(len(hawqStandbyHosts), 1)
+    self.assertNotEqual(hawqMasterHosts[0], hawqStandbyHosts[0])
 
     hosts = self.load_json("hosts-3-hosts.json")
     hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
-    self.assertEquals(len(hostsList), 3)
+    self.assertEqual(len(hostsList), 3)
 
     self.insertHAWQServiceAdvisorInfo(services)
     validations = self.serviceAdvisor.getComponentLayoutValidations(services, hosts)
-    self.assertEquals(len(validations), 0)
+    self.assertEqual(len(validations), 0)
 
     # case-2: HAWQ masters are collocated
     services = self.load_json("services-master_standby_colo-3-hosts.json")
     componentsList = self.getComponentsListFromServices(services)
     hawqMasterHosts = self.getHosts(componentsList, "HAWQMASTER")["hostnames"]
     hawqStandbyHosts = self.getHosts(componentsList, "HAWQSTANDBY")["hostnames"]
-    self.assertEquals(len(hawqMasterHosts), 1)
-    self.assertEquals(len(hawqStandbyHosts), 1)
-    self.assertEquals(hawqMasterHosts[0], hawqStandbyHosts[0])
+    self.assertEqual(len(hawqMasterHosts), 1)
+    self.assertEqual(len(hawqStandbyHosts), 1)
+    self.assertEqual(hawqMasterHosts[0], hawqStandbyHosts[0])
 
     self.insertHAWQServiceAdvisorInfo(services)
     validations = self.serviceAdvisor.getComponentLayoutValidations(services, hosts)
-    self.assertEquals(len(validations), 1)
+    self.assertEqual(len(validations), 1)
     expected = {
       'component-name': 'HAWQSTANDBY',
       'message': 'HAWQ Master and HAWQ Standby Master cannot be deployed on the same host.',
@@ -903,21 +903,21 @@ class TestHAWQ200ServiceAdvisor(TestCase):
       'host': 'c6403.ambari.apache.org',
       'level': 'ERROR'
     }
-    self.assertEquals(validations[0], expected)
+    self.assertEqual(validations[0], expected)
 
     # case-3: HAWQ Master and Ambari Server are collocated
     services = self.load_json("services-master_ambari_colo-3-hosts.json")
     componentsList = self.getComponentsListFromServices(services)
     hawqMasterHosts = self.getHosts(componentsList, "HAWQMASTER")["hostnames"]
     hawqStandbyHosts = self.getHosts(componentsList, "HAWQSTANDBY")["hostnames"]
-    self.assertEquals(len(hawqMasterHosts), 1)
-    self.assertEquals(len(hawqStandbyHosts), 1)
-    self.assertNotEquals(hawqMasterHosts[0], hawqStandbyHosts[0])
-    self.assertEquals(hawqMasterHosts[0], "c6401.ambari.apache.org")
+    self.assertEqual(len(hawqMasterHosts), 1)
+    self.assertEqual(len(hawqStandbyHosts), 1)
+    self.assertNotEqual(hawqMasterHosts[0], hawqStandbyHosts[0])
+    self.assertEqual(hawqMasterHosts[0], "c6401.ambari.apache.org")
 
     self.insertHAWQServiceAdvisorInfo(services)
     validations = self.serviceAdvisor.getComponentLayoutValidations(services, hosts)
-    self.assertEquals(len(validations), 1)
+    self.assertEqual(len(validations), 1)
     expected = {
       'component-name': 'HAWQMASTER',
       'message': 'The default Postgres port (5432) on the Ambari Server conflicts with the default HAWQ Masters port. ' +
@@ -927,21 +927,21 @@ class TestHAWQ200ServiceAdvisor(TestCase):
       'host': 'c6401.ambari.apache.org',
       'level': 'WARN'
     }
-    self.assertEquals(validations[0], expected)
+    self.assertEqual(validations[0], expected)
 
     # case-4: HAWQ Standby and Ambari Server are collocated
     services = self.load_json("services-standby_ambari_colo-3-hosts.json")
     componentsList = self.getComponentsListFromServices(services)
     hawqMasterHosts = self.getHosts(componentsList, "HAWQMASTER")["hostnames"]
     hawqStandbyHosts = self.getHosts(componentsList, "HAWQSTANDBY")["hostnames"]
-    self.assertEquals(len(hawqMasterHosts), 1)
-    self.assertEquals(len(hawqStandbyHosts), 1)
-    self.assertNotEquals(hawqMasterHosts[0], hawqStandbyHosts[0])
-    self.assertEquals(hawqStandbyHosts[0], "c6401.ambari.apache.org")
+    self.assertEqual(len(hawqMasterHosts), 1)
+    self.assertEqual(len(hawqStandbyHosts), 1)
+    self.assertNotEqual(hawqMasterHosts[0], hawqStandbyHosts[0])
+    self.assertEqual(hawqStandbyHosts[0], "c6401.ambari.apache.org")
 
     self.insertHAWQServiceAdvisorInfo(services)
     validations = self.serviceAdvisor.getComponentLayoutValidations(services, hosts)
-    self.assertEquals(len(validations), 1)
+    self.assertEqual(len(validations), 1)
     expected = {
       'component-name': 'HAWQSTANDBY',
       'message': 'The default Postgres port (5432) on the Ambari Server conflicts with the default HAWQ Masters port. ' +
@@ -951,7 +951,7 @@ class TestHAWQ200ServiceAdvisor(TestCase):
       'host': 'c6401.ambari.apache.org',
       'level': 'WARN'
     }
-    self.assertEquals(validations[0], expected)
+    self.assertEqual(validations[0], expected)
 
   @patch('socket.getfqdn', side_effect=fqdn_mock_result)
   def test_getComponentLayoutValidations_nohawq_3_Hosts(self, socket_mock):
@@ -962,16 +962,16 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     componentsList = self.getComponentsListFromServices(services)
     hawqMasterHosts = self.getHosts(componentsList, "HAWQMASTER")
     hawqStandbyHosts = self.getHosts(componentsList, "HAWQSTANDBY")
-    self.assertEquals(len(hawqMasterHosts), 0)
-    self.assertEquals(len(hawqStandbyHosts), 0)
+    self.assertEqual(len(hawqMasterHosts), 0)
+    self.assertEqual(len(hawqStandbyHosts), 0)
 
     hosts = self.load_json("hosts-3-hosts.json")
     hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
-    self.assertEquals(len(hostsList), 3)
+    self.assertEqual(len(hostsList), 3)
 
     self.insertHAWQServiceAdvisorInfo(services)
     validations = self.serviceAdvisor.getComponentLayoutValidations(services, hosts)
-    self.assertEquals(len(validations), 0)
+    self.assertEqual(len(validations), 0)
 
   def test_validateHAWQSiteConfigurations(self):
     services = self.load_json("services-hawq-3-hosts.json")
@@ -1282,7 +1282,7 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     self.assertEqual(len(problems), 10)
 
     # check individual properties
-    for property in desired_values.keys():
+    for property in list(desired_values.keys()):
       # populate all properties as to desired configuration
       configurations["hdfs-site"]["properties"] = desired_values.copy()
       # test when the given property is missing

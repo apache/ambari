@@ -82,7 +82,7 @@ def execute(configurations={}, parameters={}, host_name=None):
     text_arr = []
 
     for process in processes:
-      if not process.has_key('status') or process['status'] == 'NOT_RUNNING':
+      if 'status' not in process or process['status'] == 'NOT_RUNNING':
         critical.append(process['name'])
       else:
         ok.append(process['name'])

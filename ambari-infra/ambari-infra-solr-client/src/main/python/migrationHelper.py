@@ -18,7 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import ConfigParser
+import configparser
 import base64
 import copy
 import glob
@@ -31,7 +31,7 @@ import ssl
 import sys
 import time
 import traceback
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 from datetime import datetime, timedelta
 from random import randrange, randint
 from subprocess import Popen, PIPE
@@ -99,19 +99,19 @@ def api_accessor(host, username, password, protocol, port):
       if request_body:
         logger.debug('Request body: {0}'.format(request_body))
       admin_auth = base64.encodestring('%s:%s' % (username, password)).replace('\n', '')
-      request = urllib2.Request(url)
+      request = urllib.request.Request(url)
       request.add_header('Authorization', 'Basic %s' % admin_auth)
       request.add_header('X-Requested-By', 'ambari')
-      request.add_data(request_body)
+      request.data=json.dumps(request_body)
       request.get_method = lambda: request_type
       response = None
       if protocol == 'https':
         ctx = ssl.create_default_context()
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
-        response = urllib2.urlopen(request, context=ctx)
+        response = urllib.request.urlopen(request, context=ctx)
       else:
-        response = urllib2.urlopen(request)
+        response = urllib.request.urlopen(request)
       response_body = response.read()
     except Exception as exc:
       raise Exception('Problem with accessing api. Reason: {0}'.format(exc))
@@ -136,7 +136,7 @@ def retry(func, *args, **kwargs):
       logger.error("Error occurred during {0} operation: {1}".format(context, str(traceback.format_exc())))
     logger.info("\n{0}: waiting for {1} seconds before retyring again (retry count: {2})".format(context, delay, r+1))
     time.sleep(delay)
-  print '{0} operation {1}FAILED{2}'.format(context, colors.FAIL, colors.ENDC)
+  print('{0} operation {1}FAILED{2}'.format(context, colors.FAIL, colors.ENDC))
   sys.exit(1)
 
 def get_keytab_and_principal(config):
@@ -224,7 +224,7 @@ def get_random_solr_url(solr_urls, options = None):
 def format_json(dictionary, tab_level=0):
   output = ''
   tab = ' ' * 2 * tab_level
-  for key, value in dictionary.iteritems():
+  for key, value in dictionary.items():
     output += ',\n{0}"{1}": '.format(tab, key)
     if isinstance(value, dict):
       output += '{\n' + format_json(value, tab_level + 1) + tab + '}'
@@ -399,12 +399,12 @@ def fill_parameters(options, config, collection, index_location, hdfs_path=None,
 def validte_common_options(options, parser, config):
   if not options.index_location:
     parser.print_help()
-    print 'index-location option is required'
+    print('index-location option is required')
     sys.exit(1)
 
   if not options.collection:
     parser.print_help()
-    print 'collection option is required'
+    print('collection option is required')
     sys.exit(1)
 
 def get_service_components(options, accessor, cluster, service, component):
@@ -485,16 +485,16 @@ def upgrade_solr_instances(options, accessor, parser, config):
   request_id = get_request_id(response)
   sys.stdout.write(colors.OKGREEN + 'DONE\n' + colors.ENDC)
   sys.stdout.flush()
-  print 'Upgrade command request id: {0}'.format(request_id)
+  print('Upgrade command request id: {0}'.format(request_id))
   if options.async:
-    print "Upgrade request sent to Ambari server. Check Ambari UI about the results."
+    print("Upgrade request sent to Ambari server. Check Ambari UI about the results.")
     sys.exit(0)
   else:
     sys.stdout.write("Start monitoring Ambari request with id {0} ...".format(request_id))
     sys.stdout.flush()
     cluster = config.get('ambari_server', 'cluster')
     monitor_request(options, accessor, cluster, request_id, context)
-    print "{0}... {1} DONE{2}".format(context, colors.OKGREEN, colors.ENDC)
+    print("{0}... {1} DONE{2}".format(context, colors.OKGREEN, colors.ENDC))
 
 def upgrade_solr_clients(options, accessor, parser, config):
   """
@@ -518,16 +518,16 @@ def upgrade_solr_clients(options, accessor, parser, config):
   request_id = get_request_id(response)
   sys.stdout.write(colors.OKGREEN + 'DONE\n' + colors.ENDC)
   sys.stdout.flush()
-  print 'Upgrade command request id: {0}'.format(request_id)
+  print('Upgrade command request id: {0}'.format(request_id))
   if options.async:
-    print "Upgrade request sent to Ambari server. Check Ambari UI about the results."
+    print("Upgrade request sent to Ambari server. Check Ambari UI about the results.")
     sys.exit(0)
   else:
     sys.stdout.write("Start monitoring Ambari request with id {0} ...".format(request_id))
     sys.stdout.flush()
     cluster = config.get('ambari_server', 'cluster')
     monitor_request(options, accessor, cluster, request_id, context)
-    print "{0}... {1}DONE{2}".format(context, colors.OKGREEN, colors.ENDC)
+    print("{0}... {1}DONE{2}".format(context, colors.OKGREEN, colors.ENDC))
 
 def upgrade_logfeeders(options, accessor, parser, config):
   """
@@ -545,16 +545,16 @@ def upgrade_logfeeders(options, accessor, parser, config):
   request_id = get_request_id(response)
   sys.stdout.write(colors.OKGREEN + 'DONE\n' + colors.ENDC)
   sys.stdout.flush()
-  print 'Upgrade command request id: {0}'.format(request_id)
+  print('Upgrade command request id: {0}'.format(request_id))
   if options.async:
-    print "Upgrade request sent to Ambari server. Check Ambari UI about the results."
+    print("Upgrade request sent to Ambari server. Check Ambari UI about the results.")
     sys.exit(0)
   else:
     sys.stdout.write("Start monitoring Ambari request with id {0} ...".format(request_id))
     sys.stdout.flush()
     cluster = config.get('ambari_server', 'cluster')
     monitor_request(options, accessor, cluster, request_id, context)
-    print "{0}... {1} DONE{2}".format(context, colors.OKGREEN, colors.ENDC)
+    print("{0}... {1} DONE{2}".format(context, colors.OKGREEN, colors.ENDC))
 
 def upgrade_logsearch_portal(options, accessor, parser, config):
   """
@@ -572,16 +572,16 @@ def upgrade_logsearch_portal(options, accessor, parser, config):
   request_id = get_request_id(response)
   sys.stdout.write(colors.OKGREEN + 'DONE\n' + colors.ENDC)
   sys.stdout.flush()
-  print 'Upgrade command request id: {0}'.format(request_id)
+  print('Upgrade command request id: {0}'.format(request_id))
   if options.async:
-    print "Upgrade request sent to Ambari server. Check Ambari UI about the results."
+    print("Upgrade request sent to Ambari server. Check Ambari UI about the results.")
     sys.exit(0)
   else:
     sys.stdout.write("Start monitoring Ambari request with id {0} ...".format(request_id))
     sys.stdout.flush()
     cluster = config.get('ambari_server', 'cluster')
     monitor_request(options, accessor, cluster, request_id, context)
-    print "{0}... {1} DONE{2}".format(context, colors.OKGREEN, colors.ENDC)
+    print("{0}... {1} DONE{2}".format(context, colors.OKGREEN, colors.ENDC))
 
 def service_components_command(options, accessor, parser, config, service, component, command, command_str):
   """
@@ -599,16 +599,16 @@ def service_components_command(options, accessor, parser, config, service, compo
   request_id = get_request_id(response)
   sys.stdout.write(colors.OKGREEN + 'DONE\n' + colors.ENDC)
   sys.stdout.flush()
-  print '{0} command request id: {1}'.format(command_str, request_id)
+  print('{0} command request id: {1}'.format(command_str, request_id))
   if options.async:
-    print "{0} request sent to Ambari server. Check Ambari UI about the results.".format(command_str)
+    print("{0} request sent to Ambari server. Check Ambari UI about the results.".format(command_str))
     sys.exit(0)
   else:
     sys.stdout.write("Start monitoring Ambari request with id {0} ...".format(request_id))
     sys.stdout.flush()
     cluster = config.get('ambari_server', 'cluster')
     monitor_request(options, accessor, cluster, request_id, context)
-    print "{0}... {1} DONE{2}".format(context, colors.OKGREEN, colors.ENDC)
+    print("{0}... {1} DONE{2}".format(context, colors.OKGREEN, colors.ENDC))
 
 def monitor_request(options, accessor, cluster, request_id, context):
   while True:
@@ -618,10 +618,10 @@ def monitor_request(options, accessor, cluster, request_id, context):
       logger.debug("\nMonitoring '{0}' request (id: '{1}') status is {2}".format(context, request_id, request_status))
       if request_status in ['FAILED', 'TIMEDOUT', 'ABORTED', 'COMPLETED', 'SKIPPED_FAILED']:
         if request_status == 'COMPLETED':
-          print "\nRequest (id: {0}) {1}COMPLETED{2}".format(request_id, colors.OKGREEN, colors.ENDC)
+          print("\nRequest (id: {0}) {1}COMPLETED{2}".format(request_id, colors.OKGREEN, colors.ENDC))
           time.sleep(4)
         else:
-          print "\nRequest (id: {0}) {1}FAILED{2} (checkout Ambari UI about the failed tasks)\n".format(request_id, colors.FAIL, colors.ENDC)
+          print("\nRequest (id: {0}) {1}FAILED{2} (checkout Ambari UI about the failed tasks)\n".format(request_id, colors.FAIL, colors.ENDC))
           sys.exit(1)
         break
       else:
@@ -631,7 +631,7 @@ def monitor_request(options, accessor, cluster, request_id, context):
         logger.debug("Sleep 5 seconds ...")
         time.sleep(5)
     else:
-      print "'Requests' or 'request_status' cannot be found in JSON response: {0}".format(request_response)
+      print("'Requests' or 'request_status' cannot be found in JSON response: {0}".format(request_response))
       sys.exit(1)
 
 def get_request_id(json_response):
@@ -680,7 +680,7 @@ def set_solr_security_management(infra_solr_props, accessor, enable = True):
     post_configuration = create_configs('infra-solr-security-json', security_props, 'Turn {0} security.json manaul management by migrationHelper.py'.format(turn_status))
     apply_configs(config, accessor, post_configuration)
   else:
-    print "Configuration 'infra-solr-security-json/infra_solr_security_manually_managed' has already set to '{0}'".format(set_value)
+    print("Configuration 'infra-solr-security-json/infra_solr_security_manually_managed' has already set to '{0}'".format(set_value))
 
 def set_solr_name_rules(infra_solr_props, accessor, add = False):
   """
@@ -692,22 +692,22 @@ def set_solr_name_rules(infra_solr_props, accessor, add = False):
 
   if 'content' in infra_solr_env_props and (name_rules_param not in infra_solr_env_props['content']) is add:
     if add:
-      print "Adding 'SOLR_KERB_NAME_RULES' to 'infra-solr-env/content'"
+      print("Adding 'SOLR_KERB_NAME_RULES' to 'infra-solr-env/content'")
       new_content = insert_string_before(infra_solr_env_props['content'], "SOLR_KERB_KEYTAB", name_rules_param)
       infra_solr_env_props['content'] = new_content
       post_configuration = create_configs('infra-solr-env', infra_solr_env_props, 'Add "SOLR_KERB_NAME_RULES" by migrationHelper.py')
       apply_configs(config, accessor, post_configuration)
     else:
-      print "Removing 'SOLR_KERB_NAME_RULES' from 'infra-solr-env/content'"
+      print("Removing 'SOLR_KERB_NAME_RULES' from 'infra-solr-env/content'")
       new_content = infra_solr_env_props['content'].replace(name_rules_param, '')
       infra_solr_env_props['content'] = new_content
       post_configuration = create_configs('infra-solr-env', infra_solr_env_props, 'Remove "SOLR_KERB_NAME_RULES" by migrationHelper.py')
       apply_configs(config, accessor, post_configuration)
   else:
     if add:
-      print "'SOLR_KERB_NAME_RULES' has already set in configuration 'infra-solr-env/content'"
+      print("'SOLR_KERB_NAME_RULES' has already set in configuration 'infra-solr-env/content'")
     else:
-      print "Configuration 'infra-solr-env/content' does not contain 'SOLR_KERB_NAME_RULES'"
+      print("Configuration 'infra-solr-env/content' does not contain 'SOLR_KERB_NAME_RULES'")
 
 def apply_configs(config, accessor, post_configuration):
   cluster = config.get('ambari_server', 'cluster')
@@ -801,9 +801,9 @@ def get_input_output_solr_url(src_solr_urls, target_solr_urls):
   output_solr_urls = target_solr_urls
   hostname = socket.getfqdn()
   if any(hostname in s for s in input_solr_urls):
-    input_solr_urls = filter(lambda x: hostname in x, input_solr_urls)
+    input_solr_urls = [x for x in input_solr_urls if hostname in x]
   if any(hostname in s for s in output_solr_urls):
-    output_solr_urls = filter(lambda x: hostname in x, output_solr_urls)
+    output_solr_urls = [x for x in output_solr_urls if hostname in x]
   common_url_list = intersect(input_solr_urls, output_solr_urls)
   if common_url_list:
     input_solr_urls = common_url_list
@@ -872,13 +872,13 @@ def monitor_solr_async_request(options, config, status_request, request_id):
 
   if async_request_failed:
     if async_request_timed_out:
-      print async_request_timeout_msg
+      print(async_request_timeout_msg)
       sys.exit(1)
     else:
-      print async_request_fail_msg
+      print(async_request_fail_msg)
       sys.exit(1)
   else:
-    print async_request_success_msg
+    print(async_request_success_msg)
     return request_id
 
 
@@ -894,7 +894,7 @@ def delete_collection(options, config, collection, solr_urls, response_data_map)
     raise Exception("{0} command failed: {1}".format(delete_collection_json_cmd, str(err)))
   response=json.loads(str(out))
   if 'requestid' in response:
-    print 'Deleting collection {0} request sent. {1}DONE{2}'.format(collection, colors.OKGREEN, colors.ENDC)
+    print('Deleting collection {0} request sent. {1}DONE{2}'.format(collection, colors.OKGREEN, colors.ENDC))
     response_data_map['request_id']=response['requestid']
     response_data_map['status_request']=REQUEST_STATUS_SOLR_COLLECTION_URL.format(solr_url, response['requestid'])
     return collection
@@ -911,7 +911,7 @@ def create_collection(options, config, solr_urls, collection, config_set, shards
     raise Exception("{0} command failed: {1}".format(create_collection_json_cmd, str(err)))
   response=json.loads(str(out))
   if 'success' in response:
-    print 'Creating collection {0} was {1}SUCCESSFUL{2}'.format(collection, colors.OKGREEN, colors.ENDC)
+    print('Creating collection {0} was {1}SUCCESSFUL{2}'.format(collection, colors.OKGREEN, colors.ENDC))
     return collection
   else:
     raise Exception("CREATE collection ('{0}') failed. ({1}) Response: {1}".format(collection, str(out)))
@@ -926,7 +926,7 @@ def reload_collection(options, config, solr_urls, collection):
     raise Exception("{0} command failed: {1}".format(reload_collection_json_cmd, str(err)))
   response=json.loads(str(out))
   if 'success' in response:
-    print 'Reloading collection {0} was {1}SUCCESSFUL{2}'.format(collection, colors.OKGREEN, colors.ENDC)
+    print('Reloading collection {0} was {1}SUCCESSFUL{2}'.format(collection, colors.OKGREEN, colors.ENDC))
     return collection
   else:
     raise Exception("RELOAD collection ('{0}') failed. ({1}) Response: {1}".format(collection, str(out)))
@@ -1014,9 +1014,9 @@ def list_collections(options, config, output_file, include_number_of_docs=False)
       if output_file.endswith(dump_json_file):
         skip_dump=True
   if skip_dump:
-    print 'Skipping collection dump file generation: {0}'.format(output_file)
+    print('Skipping collection dump file generation: {0}'.format(output_file))
     if not os.path.exists(output_file):
-      print "{0}FAIL{1}: Collection dump file '{2}' does not exist.".format(colors.FAIL, colors.ENDC, output_file)
+      print("{0}FAIL{1}: Collection dump file '{2}' does not exist.".format(colors.FAIL, colors.ENDC, output_file))
       sys.exit(1)
   else:
     command_suffix = '--dump-collections --output {0}'.format(output_file)
@@ -1036,7 +1036,7 @@ def list_collections(options, config, output_file, include_number_of_docs=False)
     sys.stdout.flush()
     logger.debug(str(out))
   collections_data = get_collections_data(output_file)
-  return collections_data.keys() if collections_data is not None else []
+  return list(collections_data.keys()) if collections_data is not None else []
 
 def get_collections_data(output_file):
   return read_json(output_file)
@@ -1055,7 +1055,7 @@ def delete_logsearch_collections(options, config, collections_json_location, col
     retry(monitor_solr_async_request, options, config, response_map['status_request'], response_map['request_id'],
           context="[Monitor Solr async request, id: {0}]".format(response_map['request_id']))
   else:
-    print 'Collection {0} does not exist or filtered out. Skipping delete operation.'.format(service_logs_collection)
+    print('Collection {0} does not exist or filtered out. Skipping delete operation.'.format(service_logs_collection))
   if audit_logs_collection in collections:
     solr_urls = get_solr_urls(options, config, audit_logs_collection, collections_json_location)
     response_map={}
@@ -1063,7 +1063,7 @@ def delete_logsearch_collections(options, config, collections_json_location, col
     retry(monitor_solr_async_request, options, config, response_map['status_request'], response_map['request_id'],
           context="[Monitor Solr async request, id: {0}]".format(response_map['request_id']))
   else:
-    print 'Collection {0} does not exist or filtered out. Skipping delete operation.'.format(audit_logs_collection)
+    print('Collection {0} does not exist or filtered out. Skipping delete operation.'.format(audit_logs_collection))
   if history_collection in collections:
     solr_urls = get_solr_urls(options, config, history_collection, collections_json_location)
     response_map={}
@@ -1071,7 +1071,7 @@ def delete_logsearch_collections(options, config, collections_json_location, col
     retry(monitor_solr_async_request, options, config, response_map['status_request'], response_map['request_id'],
           context="[Monitor Solr async request, id: {0}]".format(response_map['request_id']))
   else:
-    print 'Collection {0} does not exist or filtered out. Skipping delete operation.'.format(history_collection)
+    print('Collection {0} does not exist or filtered out. Skipping delete operation.'.format(history_collection))
 
 def delete_atlas_collections(options, config, collections_json_location, collections):
   fulltext_collection = config.get('atlas_collections', 'fulltext_index_name')
@@ -1084,7 +1084,7 @@ def delete_atlas_collections(options, config, collections_json_location, collect
     retry(monitor_solr_async_request, options, config, response_map['status_request'], response_map['request_id'],
           context="[Monitor Solr async request, id: {0}]".format(response_map['request_id']))
   else:
-    print 'Collection {0} does not exist or filtered out. Skipping delete operation.'.format(fulltext_collection)
+    print('Collection {0} does not exist or filtered out. Skipping delete operation.'.format(fulltext_collection))
   if edge_index_collection in collections:
     solr_urls = get_solr_urls(options, config, edge_index_collection, collections_json_location)
     response_map={}
@@ -1092,7 +1092,7 @@ def delete_atlas_collections(options, config, collections_json_location, collect
     retry(monitor_solr_async_request, options, config, response_map['status_request'], response_map['request_id'],
           context="[Monitor Solr async request, id: {0}]".format(response_map['request_id']))
   else:
-    print 'Collection {0} does not exist or filtered out. Skipping delete operation.'.format(edge_index_collection)
+    print('Collection {0} does not exist or filtered out. Skipping delete operation.'.format(edge_index_collection))
   if vertex_index_collection in collections:
     solr_urls = get_solr_urls(options, config, vertex_index_collection, collections_json_location)
     response_map={}
@@ -1100,7 +1100,7 @@ def delete_atlas_collections(options, config, collections_json_location, collect
     retry(monitor_solr_async_request, options, config, response_map['status_request'], response_map['request_id'],
           context="[Monitor Solr async request, id: {0}]".format(response_map['request_id']))
   else:
-    print 'Collection {0} does not exist or filtered out. Skipping delete operation.'.format(vertex_index_collection)
+    print('Collection {0} does not exist or filtered out. Skipping delete operation.'.format(vertex_index_collection))
 
 def delete_ranger_collection(options, config, collections_json_location, collections):
   ranger_collection_name = config.get('ranger_collection', 'ranger_collection_name')
@@ -1111,7 +1111,7 @@ def delete_ranger_collection(options, config, collections_json_location, collect
     retry(monitor_solr_async_request, options, config, response_map['status_request'], response_map['request_id'],
           context="[Monitor Solr async request, id: {0}]".format(response_map['request_id']))
   else:
-    print 'Collection {0} does not exist or filtered out. Skipping delete operation'.format(ranger_collection_name)
+    print('Collection {0} does not exist or filtered out. Skipping delete operation'.format(ranger_collection_name))
 
 def delete_collections(options, config, service_filter):
   collections_json_location = COLLECTIONS_DATA_JSON_LOCATION.format("delete_collections.json")
@@ -1158,30 +1158,30 @@ def evaluate_check_shard_result(collection, result, skip_index_size = False):
   active_shards = result['active_shards']
   all_shards = result['all_shards']
   warnings = 0
-  print 30 * "-"
-  print "Number of shards: {0}".format(str(len(all_shards)))
+  print(30 * "-")
+  print("Number of shards: {0}".format(str(len(all_shards))))
   for shard in all_shards:
     if shard in active_shards:
-      print "{0}OK{1}: Found active leader replica for {2}" \
-        .format(colors.OKGREEN, colors.ENDC, shard)
+      print("{0}OK{1}: Found active leader replica for {2}" \
+        .format(colors.OKGREEN, colors.ENDC, shard))
     else:
       warnings=warnings+1
-      print "{0}WARNING{1}: Not found any active leader replicas for {2}, migration will probably fail, fix or delete the shard if it is possible." \
-        .format(colors.WARNING, colors.ENDC, shard)
+      print("{0}WARNING{1}: Not found any active leader replicas for {2}, migration will probably fail, fix or delete the shard if it is possible." \
+        .format(colors.WARNING, colors.ENDC, shard))
 
   if not skip_index_size:
     index_size_map = result['index_size_map']
     host_index_size_map = result['host_index_size_map']
     if index_size_map:
-      print "Index size per shard for {0}:".format(collection)
+      print("Index size per shard for {0}:".format(collection))
       for shard in index_size_map:
-        print " - {0}: {1}".format(shard, human_size(index_size_map[shard]))
+        print(" - {0}: {1}".format(shard, human_size(index_size_map[shard])))
     if host_index_size_map:
-      print "Index size per host for {0} (consider this for backup): ".format(collection)
+      print("Index size per host for {0} (consider this for backup): ".format(collection))
       for host in host_index_size_map:
-        print " - {0}: {1}".format(host, human_size(host_index_size_map[host]))
+        print(" - {0}: {1}".format(host, human_size(host_index_size_map[host])))
       evaluate_result['host_index_size_map'] = host_index_size_map
-  print 30 * "-"
+  print(30 * "-")
   evaluate_result['warnings'] = warnings
   return evaluate_result
 
@@ -1192,7 +1192,7 @@ def check_shard_for_collection(config, collection, skip_index_size = False):
   index_size_map = {}
   host_index_size_map = {}
   collections_data = get_collections_data(COLLECTIONS_DATA_JSON_LOCATION.format("check_collections.json"))
-  print "Checking available shards for '{0}' collection...".format(collection)
+  print("Checking available shards for '{0}' collection...".format(collection))
   if collection in collections_data:
     collection_details = collections_data[collection]
     if 'shards' in collection_details:
@@ -1271,7 +1271,7 @@ def is_collection_empty(docs_map, collection):
   if collection in docs_map:
     num_docs=docs_map[collection]
     if num_docs == -1:
-      print "Number of documents: -1. That means the number of docs was not provided in the collection dump."
+      print("Number of documents: -1. That means the number of docs was not provided in the collection dump.")
     elif num_docs == 0:
       result = True
   return result
@@ -1333,7 +1333,7 @@ def update_state_json(original_collection, collection, config, options):
       ulog_dir = core_data['ulogDir'] if 'ulogDir' in core_data else None
 
       if cores_to_skip and (core in cores_to_skip or (core in core_pairs and core_pairs[core] in cores_to_skip)):
-        print "Skipping core '{0}' as it is in skip-cores list (or its original pair: '{1}')".format(core, core_pairs[core])
+        print("Skipping core '{0}' as it is in skip-cores list (or its original pair: '{1}')".format(core, core_pairs[core]))
       elif replica in core_details:
         old_core_node=core_details[replica]['core_node']
         new_core_node=core_details[replica]['new_core_node']
@@ -1378,16 +1378,16 @@ def do_backup_request(options, accessor, parser, config, collection, index_locat
   request_id = get_request_id(response)
   sys.stdout.write(colors.OKGREEN + 'DONE\n' + colors.ENDC)
   sys.stdout.flush()
-  print 'Backup command request id: {0}'.format(request_id)
+  print('Backup command request id: {0}'.format(request_id))
   if options.async:
-    print "Backup {0} collection request sent to Ambari server. Check Ambari UI about the results.".format(collection)
+    print("Backup {0} collection request sent to Ambari server. Check Ambari UI about the results.".format(collection))
     sys.exit(0)
   else:
     sys.stdout.write("Start monitoring Ambari request with id {0} ...".format(request_id))
     sys.stdout.flush()
     cluster = config.get('ambari_server', 'cluster')
     monitor_request(options, accessor, cluster, request_id, 'Backup Solr collection: ' + collection)
-    print "Backup collection '{0}'... {1}DONE{2}".format(collection, colors.OKGREEN, colors.ENDC)
+    print("Backup collection '{0}'... {1}DONE{2}".format(collection, colors.OKGREEN, colors.ENDC))
 
 def do_migrate_request(options, accessor, parser, config, collection, index_location):
   sys.stdout.write("Sending migrate collection request ('{0}') to Ambari to process (migrate folder: '{1}')..."
@@ -1397,16 +1397,16 @@ def do_migrate_request(options, accessor, parser, config, collection, index_loca
   request_id = get_request_id(response)
   sys.stdout.write(colors.OKGREEN + 'DONE\n' + colors.ENDC)
   sys.stdout.flush()
-  print 'Migrate command request id: {0}'.format(request_id)
+  print('Migrate command request id: {0}'.format(request_id))
   if options.async:
-    print "Migrate {0} collection index request sent to Ambari server. Check Ambari UI about the results.".format(collection)
+    print("Migrate {0} collection index request sent to Ambari server. Check Ambari UI about the results.".format(collection))
     sys.exit(0)
   else:
     sys.stdout.write("Start monitoring Ambari request with id {0} ...".format(request_id))
     sys.stdout.flush()
     cluster = config.get('ambari_server', 'cluster')
     monitor_request(options, accessor, cluster, request_id, 'Migrate Solr collection index: ' + collection)
-    print "Migrate index '{0}'... {1}DONE{2}".format(collection, colors.OKGREEN, colors.ENDC)
+    print("Migrate index '{0}'... {1}DONE{2}".format(collection, colors.OKGREEN, colors.ENDC))
 
 def do_restore_request(options, accessor, parser, config, original_collection, collection, config_set, index_location, shards, hdfs_path):
   sys.stdout.write("Sending restore collection request ('{0}') to Ambari to process (backup location: '{1}')..."
@@ -1416,16 +1416,16 @@ def do_restore_request(options, accessor, parser, config, original_collection, c
   request_id = get_request_id(response)
   sys.stdout.write(colors.OKGREEN + 'DONE\n' + colors.ENDC)
   sys.stdout.flush()
-  print 'Restore command request id: {0}'.format(request_id)
+  print('Restore command request id: {0}'.format(request_id))
   if options.async:
-    print "Restore {0} collection request sent to Ambari server. Check Ambari UI about the results.".format(collection)
+    print("Restore {0} collection request sent to Ambari server. Check Ambari UI about the results.".format(collection))
     sys.exit(0)
   else:
     sys.stdout.write("Start monitoring Ambari request with id {0} ...".format(request_id))
     sys.stdout.flush()
     cluster = config.get('ambari_server', 'cluster')
     monitor_request(options, accessor, cluster, request_id, 'Restore Solr collection: ' + collection)
-    print "Restoring collection '{0}'... {1}DONE{2}".format(collection, colors.OKGREEN, colors.ENDC)
+    print("Restoring collection '{0}'... {1}DONE{2}".format(collection, colors.OKGREEN, colors.ENDC))
 
 def get_ranger_index_location(collection, config, options):
   ranger_index_location = None
@@ -1436,8 +1436,8 @@ def get_ranger_index_location(collection, config, options):
   elif config.has_option('ranger_collection', 'backup_path'):
     ranger_index_location = config.get('ranger_collection', 'backup_path')
   else:
-    print "'backup_path'is missing from config file and --index-location or --ranger-index-location options are missing as well. Backup collection {0} {1}FAILED{2}." \
-      .format(collection, colors.FAIL, colors.ENDC)
+    print("'backup_path'is missing from config file and --index-location or --ranger-index-location options are missing as well. Backup collection {0} {1}FAILED{2}." \
+      .format(collection, colors.FAIL, colors.ENDC))
     sys.exit(1)
   return ranger_index_location
 
@@ -1450,8 +1450,8 @@ def get_atlas_index_location(collection, config, options):
   elif config.has_option('atlas_collections', 'backup_path'):
     atlas_index_location = os.path.join(config.get('atlas_collections', 'backup_path'), collection)
   else:
-    print "'backup_path'is missing from config file and --index-location or --atlas-index-location options are missing as well. Backup collection {0} {1}FAILED{2}." \
-      .format(collection, colors.FAIL, colors.ENDC)
+    print("'backup_path'is missing from config file and --index-location or --atlas-index-location options are missing as well. Backup collection {0} {1}FAILED{2}." \
+      .format(collection, colors.FAIL, colors.ENDC))
     sys.exit(1)
   return atlas_index_location
 
@@ -1463,40 +1463,40 @@ def backup_collections(options, accessor, parser, config, service_filter):
     collection_name = config.get('ranger_collection', 'ranger_collection_name')
     if collection_name in collections:
       if is_collection_empty(num_docs_map, collection_name):
-        print "Collection '{0}' is empty. Backup is not required.".format(collection_name)
+        print("Collection '{0}' is empty. Backup is not required.".format(collection_name))
       else:
         ranger_index_location=get_ranger_index_location(collection_name, config, options)
         do_backup_request(options, accessor, parser, config, collection_name, ranger_index_location)
     else:
-      print 'Collection {0} does not exist or filtered out. Skipping backup operation.'.format(collection_name)
+      print('Collection {0} does not exist or filtered out. Skipping backup operation.'.format(collection_name))
   if is_atlas_available(config, service_filter):
     fulltext_index_collection = config.get('atlas_collections', 'fulltext_index_name')
     if fulltext_index_collection in collections:
       if is_collection_empty(num_docs_map, fulltext_index_collection):
-        print "Collection '{0}' is empty. Backup is not required.".format(fulltext_index_collection)
+        print("Collection '{0}' is empty. Backup is not required.".format(fulltext_index_collection))
       else:
         fulltext_index_location = get_atlas_index_location(fulltext_index_collection, config, options)
         do_backup_request(options, accessor, parser, config, fulltext_index_collection, fulltext_index_location)
     else:
-      print 'Collection {0} does not exist or filtered out. Skipping backup operation.'.format(fulltext_index_collection)
+      print('Collection {0} does not exist or filtered out. Skipping backup operation.'.format(fulltext_index_collection))
     vertex_index_collection = config.get('atlas_collections', 'vertex_index_name')
     if vertex_index_collection in collections:
       if is_collection_empty(num_docs_map, vertex_index_collection):
-        print "Collection '{0}' is empty. Backup is not required.".format(vertex_index_collection)
+        print("Collection '{0}' is empty. Backup is not required.".format(vertex_index_collection))
       else:
         vertex_index_location = get_atlas_index_location(vertex_index_collection, config, options)
         do_backup_request(options, accessor, parser, config, vertex_index_collection, vertex_index_location)
     else:
-      print 'Collection {0} does not exist or filtered out. Skipping backup operation.'.format(vertex_index_collection)
+      print('Collection {0} does not exist or filtered out. Skipping backup operation.'.format(vertex_index_collection))
     edge_index_collection = config.get('atlas_collections', 'edge_index_name')
     if edge_index_collection in collections:
       if is_collection_empty(num_docs_map, edge_index_collection):
-        print "Collection '{0}' is empty. Backup is not required.".format(edge_index_collection)
+        print("Collection '{0}' is empty. Backup is not required.".format(edge_index_collection))
       else:
         edge_index_location = get_atlas_index_location(edge_index_collection, config, options)
         do_backup_request(options, accessor, parser, config, edge_index_collection, edge_index_location)
     else:
-      print 'Collection {0} does not exist or filtered out. Skipping backup operation.'.format(edge_index_collection)
+      print('Collection {0} does not exist or filtered out. Skipping backup operation.'.format(edge_index_collection))
 
 def migrate_snapshots(options, accessor, parser, config, service_filter):
   if is_ranger_available(config, service_filter):
@@ -1505,26 +1505,26 @@ def migrate_snapshots(options, accessor, parser, config, service_filter):
       ranger_index_location=get_ranger_index_location(collection_name, config, options)
       do_migrate_request(options, accessor, parser, config, collection_name, ranger_index_location)
     else:
-      print "Collection '{0}' backup index has filtered out. Skipping migrate operation.".format(collection_name)
+      print("Collection '{0}' backup index has filtered out. Skipping migrate operation.".format(collection_name))
   if is_atlas_available(config, service_filter):
     fulltext_index_collection = config.get('atlas_collections', 'fulltext_index_name')
     if options.collection is None or options.collection == fulltext_index_collection:
       fulltext_index_location=get_atlas_index_location(fulltext_index_collection, config, options)
       do_migrate_request(options, accessor, parser, config, fulltext_index_collection, fulltext_index_location)
     else:
-      print "Collection '{0}' backup index has filtered out. Skipping migrate operation.".format(fulltext_index_collection)
+      print("Collection '{0}' backup index has filtered out. Skipping migrate operation.".format(fulltext_index_collection))
     vertex_index_collection = config.get('atlas_collections', 'vertex_index_name')
     if options.collection is None or options.collection == vertex_index_collection:
       vertex_index_location=get_atlas_index_location(vertex_index_collection, config, options)
       do_migrate_request(options, accessor, parser, config, vertex_index_collection, vertex_index_location)
     else:
-      print "Collection '{0}' backup index has filtered out. Skipping migrate operation.".format(vertex_index_collection)
+      print("Collection '{0}' backup index has filtered out. Skipping migrate operation.".format(vertex_index_collection))
     edge_index_collection = config.get('atlas_collections', 'edge_index_name')
     if options.collection is None or options.collection == edge_index_collection:
       edge_index_location=get_atlas_index_location(edge_index_collection, config, options)
       do_migrate_request(options, accessor, parser, config, edge_index_collection, edge_index_location)
     else:
-      print "Collection '{0}' backup index has filtered out. Skipping migrate operation.".format(edge_index_collection)
+      print("Collection '{0}' backup index has filtered out. Skipping migrate operation.".format(edge_index_collection))
 
 def create_backup_collections(options, accessor, parser, config, service_filter):
   collections_json_location = COLLECTIONS_DATA_JSON_LOCATION.format("before_restore_collections.json")
@@ -1536,11 +1536,11 @@ def create_backup_collections(options, accessor, parser, config, service_filter)
     backup_ranger_collection = config.get('ranger_collection', 'backup_ranger_collection_name')
     if original_ranger_collection in collections:
       if is_collection_empty(num_docs_map, original_ranger_collection):
-        print "Collection '{0}' was empty during backup. It won't need a backup collection.".format(original_ranger_collection)
+        print("Collection '{0}' was empty during backup. It won't need a backup collection.".format(original_ranger_collection))
       else:
         if backup_ranger_collection not in collections:
           if options.collection is not None and options.collection != backup_ranger_collection:
-            print "Collection {0} has filtered out. Skipping create operation.".format(backup_ranger_collection)
+            print("Collection {0} has filtered out. Skipping create operation.".format(backup_ranger_collection))
           else:
             solr_urls = get_solr_urls(options, config, backup_ranger_collection, collections_json_location)
             backup_ranger_config_set = config.get('ranger_collection', 'backup_ranger_config_set_name')
@@ -1549,18 +1549,18 @@ def create_backup_collections(options, accessor, parser, config, service_filter)
             retry(create_collection, options, config, solr_urls, backup_ranger_collection, backup_ranger_config_set,
                         backup_ranger_shards, replica_number, backup_ranger_max_shards, context="[Create Solr Collections]")
         else:
-          print "Collection {0} has already exist. Skipping create operation.".format(backup_ranger_collection)
+          print("Collection {0} has already exist. Skipping create operation.".format(backup_ranger_collection))
   if is_atlas_available(config, service_filter):
     backup_atlas_config_set = config.get('atlas_collections', 'config_set')
     backup_fulltext_index_name = config.get('atlas_collections', 'backup_fulltext_index_name')
     original_fulltext_index_name = config.get('atlas_collections', 'fulltext_index_name')
     if original_fulltext_index_name in collections:
       if is_collection_empty(num_docs_map, original_fulltext_index_name):
-        print "Collection '{0}' was empty during backup. It won't need a backup collection.".format(original_fulltext_index_name)
+        print("Collection '{0}' was empty during backup. It won't need a backup collection.".format(original_fulltext_index_name))
       else:
         if backup_fulltext_index_name not in collections:
           if options.collection is not None and options.collection != backup_fulltext_index_name:
-            print "Collection {0} has filtered out. Skipping create operation.".format(backup_fulltext_index_name)
+            print("Collection {0} has filtered out. Skipping create operation.".format(backup_fulltext_index_name))
           else:
             solr_urls = get_solr_urls(options, config, backup_fulltext_index_name, collections_json_location)
             backup_fulltext_index_shards = config.get('atlas_collections', 'fulltext_index_shards')
@@ -1568,17 +1568,17 @@ def create_backup_collections(options, accessor, parser, config, service_filter)
             retry(create_collection, options, config, solr_urls, backup_fulltext_index_name, backup_atlas_config_set,
                         backup_fulltext_index_shards, replica_number, backup_fulltext_index_max_shards, context="[Create Solr Collections]")
         else:
-          print "Collection {0} has already exist. Skipping create operation.".format(backup_fulltext_index_name)
+          print("Collection {0} has already exist. Skipping create operation.".format(backup_fulltext_index_name))
 
     backup_edge_index_name = config.get('atlas_collections', 'backup_edge_index_name')
     original_edge_index_name = config.get('atlas_collections', 'edge_index_name')
     if original_edge_index_name in collections:
       if is_collection_empty(num_docs_map, original_edge_index_name):
-        print "Collection '{0}' was empty during backup. It won't need a backup collection.".format(original_edge_index_name)
+        print("Collection '{0}' was empty during backup. It won't need a backup collection.".format(original_edge_index_name))
       else:
         if backup_edge_index_name not in collections:
           if options.collection is not None and options.collection != backup_edge_index_name:
-            print "Collection {0} has filtered out. Skipping create operation.".format(backup_edge_index_name)
+            print("Collection {0} has filtered out. Skipping create operation.".format(backup_edge_index_name))
           else:
             solr_urls = get_solr_urls(options, config, backup_edge_index_name, collections_json_location)
             backup_edge_index_shards = config.get('atlas_collections', 'edge_index_shards')
@@ -1586,17 +1586,17 @@ def create_backup_collections(options, accessor, parser, config, service_filter)
             retry(create_collection, options, config, solr_urls, backup_edge_index_name, backup_atlas_config_set,
                         backup_edge_index_shards, replica_number, backup_edge_index_max_shards, context="[Create Solr Collections]")
         else:
-          print "Collection {0} has already exist. Skipping create operation.".format(backup_edge_index_name)
+          print("Collection {0} has already exist. Skipping create operation.".format(backup_edge_index_name))
 
     backup_vertex_index_name = config.get('atlas_collections', 'backup_vertex_index_name')
     original_vertex_index_name = config.get('atlas_collections', 'vertex_index_name')
     if original_vertex_index_name in collections:
       if is_collection_empty(num_docs_map, original_vertex_index_name):
-        print "Collection '{0}' was empty during backup. It won't need a backup collection.".format(original_vertex_index_name)
+        print("Collection '{0}' was empty during backup. It won't need a backup collection.".format(original_vertex_index_name))
       else:
         if backup_vertex_index_name not in collections:
           if options.collection is not None and options.collection != backup_vertex_index_name:
-            print "Collection {0} has filtered out. Skipping create operation.".format(backup_vertex_index_name)
+            print("Collection {0} has filtered out. Skipping create operation.".format(backup_vertex_index_name))
           else:
             solr_urls = get_solr_urls(options, config, backup_vertex_index_name, collections_json_location)
             backup_vertex_index_shards = config.get('atlas_collections', 'vertex_index_shards')
@@ -1604,7 +1604,7 @@ def create_backup_collections(options, accessor, parser, config, service_filter)
             retry(create_collection, options, config, solr_urls, backup_vertex_index_name, backup_atlas_config_set,
                         backup_vertex_index_shards, replica_number, backup_vertex_index_max_shards, context="[Create Solr Collections]")
         else:
-          print "Collection {0} has already exist. Skipping create operation.".format(backup_fulltext_index_name)
+          print("Collection {0} has already exist. Skipping create operation.".format(backup_fulltext_index_name))
 
 def restore_collections(options, accessor, parser, config, service_filter):
   collections=list_collections(options, config, COLLECTIONS_DATA_JSON_LOCATION.format("restore_collections.json"))
@@ -1627,7 +1627,7 @@ def restore_collections(options, accessor, parser, config, service_filter):
       ranger_index_location=get_ranger_index_location(collection_name, config, options)
       do_restore_request(options, accessor, parser, config, collection_name, backup_ranger_collection, backup_ranger_config_set_name, ranger_index_location, backup_ranger_shards, hdfs_base_path)
     else:
-      print "Collection '{0}' does not exist or filtered out. Skipping restore operation.".format(backup_ranger_collection)
+      print("Collection '{0}' does not exist or filtered out. Skipping restore operation.".format(backup_ranger_collection))
 
   if is_atlas_available(config, service_filter):
     hdfs_base_path = None
@@ -1646,7 +1646,7 @@ def restore_collections(options, accessor, parser, config, service_filter):
       fulltext_index_location=get_atlas_index_location(fulltext_index_collection, config, options)
       do_restore_request(options, accessor, parser, config, fulltext_index_collection, backup_fulltext_index_name, atlas_config_set, fulltext_index_location, backup_fulltext_index_shards, hdfs_base_path)
     else:
-      print "Collection '{0}' does not exist or filtered out. Skipping restore operation.".format(fulltext_index_collection)
+      print("Collection '{0}' does not exist or filtered out. Skipping restore operation.".format(fulltext_index_collection))
 
     edge_index_collection = config.get('atlas_collections', 'edge_index_name')
     backup_edge_index_name = config.get('atlas_collections', 'backup_edge_index_name')
@@ -1655,7 +1655,7 @@ def restore_collections(options, accessor, parser, config, service_filter):
       edge_index_location=get_atlas_index_location(edge_index_collection, config, options)
       do_restore_request(options, accessor, parser, config, edge_index_collection, backup_edge_index_name, atlas_config_set, edge_index_location, backup_edge_index_shards, hdfs_base_path)
     else:
-      print "Collection '{0}' does not exist or filtered out. Skipping restore operation.".format(edge_index_collection)
+      print("Collection '{0}' does not exist or filtered out. Skipping restore operation.".format(edge_index_collection))
 
     vertex_index_collection = config.get('atlas_collections', 'vertex_index_name')
     backup_vertex_index_name = config.get('atlas_collections', 'backup_vertex_index_name')
@@ -1664,7 +1664,7 @@ def restore_collections(options, accessor, parser, config, service_filter):
       vertex_index_location=get_atlas_index_location(vertex_index_collection, config, options)
       do_restore_request(options, accessor, parser, config, vertex_index_collection, backup_vertex_index_name, atlas_config_set, vertex_index_location, backup_vertex_index_shards, hdfs_base_path)
     else:
-      print "Collection '{0}' does not exist or filtered out. Skipping restore operation.".format(vertex_index_collection)
+      print("Collection '{0}' does not exist or filtered out. Skipping restore operation.".format(vertex_index_collection))
 
 def reload_collections(options, accessor, parser, config, service_filter):
   collections_json_location = COLLECTIONS_DATA_JSON_LOCATION.format("reload_collections.json")
@@ -1676,35 +1676,35 @@ def reload_collections(options, accessor, parser, config, service_filter):
       solr_urls = get_solr_urls(options, config, backup_ranger_collection, collections_json_location)
       retry(reload_collection, options, config, solr_urls, backup_ranger_collection, context="[Reload Solr Collections]")
     else:
-      print "Collection '{0}' does not exist or filtered out. Skipping reload operation.".format(backup_ranger_collection)
+      print("Collection '{0}' does not exist or filtered out. Skipping reload operation.".format(backup_ranger_collection))
   if is_atlas_available(config, service_filter):
     backup_fulltext_index_name = config.get('atlas_collections', 'backup_fulltext_index_name')
     if backup_fulltext_index_name in collections:
       solr_urls = get_solr_urls(options, config, backup_fulltext_index_name, collections_json_location)
       retry(reload_collection, options, config, solr_urls, backup_fulltext_index_name, context="[Reload Solr Collections]")
     else:
-      print "Collection '{0}' does not exist or filtered out. Skipping reload operation.".format(backup_fulltext_index_name)
+      print("Collection '{0}' does not exist or filtered out. Skipping reload operation.".format(backup_fulltext_index_name))
     backup_edge_index_name = config.get('atlas_collections', 'backup_edge_index_name')
     if backup_edge_index_name in collections:
       solr_urls = get_solr_urls(options, config, backup_edge_index_name, collections_json_location)
       retry(reload_collection, options, config, solr_urls, backup_edge_index_name, context="[Reload Solr Collections]")
     else:
-      print "Collection '{0}' does not exist or filtered out. Skipping reload operation.".format(backup_edge_index_name)
+      print("Collection '{0}' does not exist or filtered out. Skipping reload operation.".format(backup_edge_index_name))
     backup_vertex_index_name = config.get('atlas_collections', 'backup_vertex_index_name')
     if backup_vertex_index_name in collections:
       solr_urls = get_solr_urls(options, config, backup_vertex_index_name, collections_json_location)
       retry(reload_collection, options, config, solr_urls, backup_vertex_index_name, context="[Reload Solr Collections]")
     else:
-      print "Collection '{0}' does not exist or filtered out. Skipping reload operation.".format(backup_fulltext_index_name)
+      print("Collection '{0}' does not exist or filtered out. Skipping reload operation.".format(backup_fulltext_index_name))
 
 def validate_ini_file(options, parser):
   if options.ini_file is None:
     parser.print_help()
-    print 'ini-file option is missing'
+    print('ini-file option is missing')
     sys.exit(1)
   elif not os.path.isfile(options.ini_file):
     parser.print_help()
-    print 'ini file ({0}) does not exist'.format(options.ini_file)
+    print('ini file ({0}) does not exist'.format(options.ini_file))
     sys.exit(1)
 
 def rolling_restart(options, accessor, parser, config, service_name, component_name, context):
@@ -1714,7 +1714,7 @@ def rolling_restart(options, accessor, parser, config, service_name, component_n
   fault_tolerance = options.batch_fault_tolerance
   request_body = create_batch_command("RESTART", component_hosts, cluster, service_name, component_name, interval_secs, fault_tolerance, "Rolling restart Infra Solr Instances")
   post_json(accessor, BATCH_REQUEST_API_URL.format(cluster), request_body)
-  print "{0} request sent. (check Ambari UI about the requests)".format(context)
+  print("{0} request sent. (check Ambari UI about the requests)".format(context))
 
 def update_state_jsons(options, accessor, parser, config, service_filter):
   collections=list_collections(options, config, COLLECTIONS_DATA_JSON_LOCATION.format("collections.json"))
@@ -1725,26 +1725,26 @@ def update_state_jsons(options, accessor, parser, config, service_filter):
     if backup_ranger_collection in collections:
       update_state_json(original_ranger_collection, backup_ranger_collection, config, options)
     else:
-      print "Collection '{0}' does not exist or filtered out. Skipping update collection state operation.".format(backup_ranger_collection)
+      print("Collection '{0}' does not exist or filtered out. Skipping update collection state operation.".format(backup_ranger_collection))
   if is_atlas_available(config, service_filter):
     original_fulltext_index_name = config.get('atlas_collections', 'fulltext_index_name')
     backup_fulltext_index_name = config.get('atlas_collections', 'backup_fulltext_index_name')
     if backup_fulltext_index_name in collections:
       update_state_json(original_fulltext_index_name, backup_fulltext_index_name, config, options)
     else:
-      print "Collection '{0}' does not exist or filtered out. Skipping update collection state operation.".format(backup_fulltext_index_name)
+      print("Collection '{0}' does not exist or filtered out. Skipping update collection state operation.".format(backup_fulltext_index_name))
     original_edge_index_name = config.get('atlas_collections', 'edge_index_name')
     backup_edge_index_name = config.get('atlas_collections', 'backup_edge_index_name')
     if backup_edge_index_name in collections:
       update_state_json(original_edge_index_name, backup_edge_index_name, config, options)
     else:
-      print "Collection '{0}' does not exist or filtered out. Skipping update collection state operation.".format(backup_edge_index_name)
+      print("Collection '{0}' does not exist or filtered out. Skipping update collection state operation.".format(backup_edge_index_name))
     original_vertex_index_name = config.get('atlas_collections', 'vertex_index_name')
     backup_vertex_index_name = config.get('atlas_collections', 'backup_vertex_index_name')
     if backup_vertex_index_name in collections:
       update_state_json(original_vertex_index_name, backup_vertex_index_name, config, options)
     else:
-      print "Collection '{0}' does not exist or filtered out. Skipping update collection state operation.".format(backup_fulltext_index_name)
+      print("Collection '{0}' does not exist or filtered out. Skipping update collection state operation.".format(backup_fulltext_index_name))
 
 def set_solr_authorization(options, accessor, parser, config, enable_authorization, fix_kerberos_config = False):
   solr_znode='/infra-solr'
@@ -1756,12 +1756,12 @@ def set_solr_authorization(options, accessor, parser, config, enable_authorizati
   if kerberos_enabled == 'true':
     infra_solr_props = get_infra_solr_props(config, accessor)
     if enable_authorization:
-      print "Enable Solr security.json management by Ambari ... "
+      print("Enable Solr security.json management by Ambari ... ")
       set_solr_security_management(infra_solr_props, accessor, enable = False)
       if fix_kerberos_config:
         set_solr_name_rules(infra_solr_props, accessor, False)
     else:
-      print "Disable Solr authorization by uploading a new security.json and turn on security.json management by Ambari..."
+      print("Disable Solr authorization by uploading a new security.json and turn on security.json management by Ambari...")
       set_solr_security_management(infra_solr_props, accessor, enable = True)
       copy_znode(options, config, COLLECTIONS_DATA_JSON_LOCATION.format("security-without-authr.json"),
              "{0}/security.json".format(solr_znode), copy_from_local=True)
@@ -1769,9 +1769,9 @@ def set_solr_authorization(options, accessor, parser, config, enable_authorizati
         set_solr_name_rules(infra_solr_props, accessor, True)
   else:
     if fix_kerberos_config:
-      print "Security is not enabled. Skipping enable/disable Solr authorization + fix infra-solr-env kerberos config operation."
+      print("Security is not enabled. Skipping enable/disable Solr authorization + fix infra-solr-env kerberos config operation.")
     else:
-      print "Security is not enabled. Skipping enable/disable Solr authorization operation."
+      print("Security is not enabled. Skipping enable/disable Solr authorization operation.")
 
 def summarize_shard_check_result(check_results, skip_warnings = False, skip_index_size = False):
   warnings = 0
@@ -1788,16 +1788,16 @@ def summarize_shard_check_result(check_results, skip_warnings = False, skip_inde
           index_size_per_host[host]=host_index_size_map[host]
       pass
   if not skip_index_size and index_size_per_host:
-    print "Full index size per hosts: (consider this for backup)"
+    print("Full index size per hosts: (consider this for backup)")
     for host in index_size_per_host:
-      print " - {0}: {1}".format(host, human_size(index_size_per_host[host]))
+      print(" - {0}: {1}".format(host, human_size(index_size_per_host[host])))
 
-  print "All warnings: {0}".format(warnings)
+  print("All warnings: {0}".format(warnings))
   if warnings != 0 and not skip_warnings:
-    print "Check shards - {0}FAILED{1} (warnings: {2}, fix warnings or use --skip-warnings flag to PASS) ".format(colors.FAIL, colors.ENDC, warnings)
+    print("Check shards - {0}FAILED{1} (warnings: {2}, fix warnings or use --skip-warnings flag to PASS) ".format(colors.FAIL, colors.ENDC, warnings))
     sys.exit(1)
   else:
-    print "Check shards - {0}PASSED{1}".format(colors.OKGREEN, colors.ENDC)
+    print("Check shards - {0}PASSED{1}".format(colors.OKGREEN, colors.ENDC))
 
 def check_shards(options, accessor, parser, config, backup_shards = False):
   collections=list_collections(options, config, COLLECTIONS_DATA_JSON_LOCATION.format("check_collections.json"))
@@ -1810,7 +1810,7 @@ def check_shards(options, accessor, parser, config, backup_shards = False):
       ranger_collection_details = check_shard_for_collection(config, ranger_collection, options.skip_index_size)
       check_results[ranger_collection]=evaluate_check_shard_result(ranger_collection, ranger_collection_details, options.skip_index_size)
     else:
-      print "Collection '{0}' does not exist or filtered out. Skipping check collection operation.".format(ranger_collection)
+      print("Collection '{0}' does not exist or filtered out. Skipping check collection operation.".format(ranger_collection))
   if is_atlas_available(config, service_filter):
     fulltext_index_name = config.get('atlas_collections', 'backup_fulltext_index_name') if backup_shards \
       else config.get('atlas_collections', 'fulltext_index_name')
@@ -1818,32 +1818,32 @@ def check_shards(options, accessor, parser, config, backup_shards = False):
       fulltext_collection_details = check_shard_for_collection(config, fulltext_index_name, options.skip_index_size)
       check_results[fulltext_index_name]=evaluate_check_shard_result(fulltext_index_name, fulltext_collection_details, options.skip_index_size)
     else:
-      print "Collection '{0}' does not exist or filtered out. Skipping check collection operation.".format(fulltext_index_name)
+      print("Collection '{0}' does not exist or filtered out. Skipping check collection operation.".format(fulltext_index_name))
     edge_index_name = config.get('atlas_collections', 'backup_edge_index_name') if backup_shards \
       else config.get('atlas_collections', 'edge_index_name')
     if edge_index_name in collections:
       edge_collection_details = check_shard_for_collection(config, edge_index_name, options.skip_index_size)
       check_results[edge_index_name]=evaluate_check_shard_result(edge_index_name, edge_collection_details, options.skip_index_size)
     else:
-      print "Collection '{0}' does not exist or filtered out. Skipping check collection operation.".format(edge_index_name)
+      print("Collection '{0}' does not exist or filtered out. Skipping check collection operation.".format(edge_index_name))
     vertex_index_name = config.get('atlas_collections', 'backup_vertex_index_name') if backup_shards \
       else config.get('atlas_collections', 'vertex_index_name')
     if vertex_index_name in collections:
       vertex_collection_details = check_shard_for_collection(config, vertex_index_name, options.skip_index_size)
       check_results[vertex_index_name]=evaluate_check_shard_result(vertex_index_name, vertex_collection_details, options.skip_index_size)
     else:
-      print "Collection '{0}' does not exist or filtered out. Skipping check collection operation.".format(fulltext_index_name)
+      print("Collection '{0}' does not exist or filtered out. Skipping check collection operation.".format(fulltext_index_name))
     summarize_shard_check_result(check_results, options.skip_warnings, options.skip_index_size)
 
 def check_docs(options, accessor, parser, config):
   collections=list_collections(options, config, COLLECTIONS_DATA_JSON_LOCATION.format("check_docs_collections.json"), include_number_of_docs=True)
   if collections:
-    print "Get the number of documents per collections ..."
+    print("Get the number of documents per collections ...")
     docs_map = get_number_of_docs_map(COLLECTIONS_DATA_JSON_LOCATION.format("check_docs_collections.json"))
     for collection_docs_data in docs_map:
-      print "Collection: '{0}' - Number of docs: {1}".format(collection_docs_data, docs_map[collection_docs_data])
+      print("Collection: '{0}' - Number of docs: {1}".format(collection_docs_data, docs_map[collection_docs_data]))
   else:
-    print "Check number of documents - Not found any collections."
+    print("Check number of documents - Not found any collections.")
 
 def run_solr_data_manager_on_collection(options, config, collections, src_collection, target_collection,
                                         collections_json_location, num_docs, skip_date_usage = True):
@@ -1851,15 +1851,15 @@ def run_solr_data_manager_on_collection(options, config, collections, src_collec
     source_solr_urls = get_solr_urls(options, config, src_collection, collections_json_location)
     target_solr_urls = get_solr_urls(options, config, target_collection, collections_json_location)
     if is_collection_empty(num_docs, src_collection):
-      print "Collection '{0}' is empty. Skipping transport data operation.".format(target_collection)
+      print("Collection '{0}' is empty. Skipping transport data operation.".format(target_collection))
     else:
       src_solr_url, target_solr_url = get_input_output_solr_url(source_solr_urls, target_solr_urls)
       keytab, principal = get_keytab_and_principal(config)
       date_format = "%Y-%m-%dT%H:%M:%S.%fZ"
       d = datetime.now() + timedelta(days=365)
       end = d.strftime(date_format)
-      print "Running solrDataManager.py (solr input collection: {0}, solr output collection: {1})"\
-        .format(src_collection, target_collection)
+      print("Running solrDataManager.py (solr input collection: {0}, solr output collection: {1})"\
+        .format(src_collection, target_collection))
       solr_data_manager.verbose = options.verbose
       solr_data_manager.set_log_level(True)
       solr_data_manager.save("archive", src_solr_url, src_collection, "evtTime", "id", end,
@@ -1868,7 +1868,7 @@ def run_solr_data_manager_on_collection(options, config, collections, src_collec
                              None, None, None, None, None, target_collection,
                              target_solr_url, "_version_", skip_date_usage)
   else:
-    print "Collection '{0}' or {1} does not exist or filtered out. Skipping transport data operation.".format(target_collection, src_collection)
+    print("Collection '{0}' or {1} does not exist or filtered out. Skipping transport data operation.".format(target_collection, src_collection))
 
 def transfer_old_data(options, accessor, parser, config):
   collections_json_location = COLLECTIONS_DATA_JSON_LOCATION.format("transport_collections.json")
@@ -1941,11 +1941,11 @@ if __name__=="__main__":
   set_log_level(options.verbose)
 
   if options.verbose:
-    print "Run command with args: {0}".format(str(sys.argv))
+    print("Run command with args: {0}".format(str(sys.argv)))
 
   validate_ini_file(options, parser)
 
-  config = ConfigParser.RawConfigParser()
+  config = configparser.RawConfigParser()
   config.read(options.ini_file)
 
   command_start_time = time.time()
@@ -1954,7 +1954,7 @@ if __name__=="__main__":
 
   if options.action is None:
      parser.print_help()
-     print 'action option is missing'
+     print('action option is missing')
      sys.exit(1)
   else:
     if config.has_section('ambari_server'):
@@ -1969,8 +1969,8 @@ if __name__=="__main__":
         local_host = socket.getfqdn()
         solr_hosts = config.get('infra_solr', 'hosts')
         if solr_hosts and local_host not in solr_hosts.split(","):
-          print "{0}WARNING{1}: Host '{2}' is not found in Infra Solr hosts ({3}). Migration commands won't work from here." \
-            .format(colors.WARNING, colors.ENDC, local_host, solr_hosts)
+          print("{0}WARNING{1}: Host '{2}' is not found in Infra Solr hosts ({3}). Migration commands won't work from here." \
+            .format(colors.WARNING, colors.ENDC, local_host, solr_hosts))
       if options.action.lower() == 'backup':
         backup_ranger_configs(options, config, service_filter)
         backup_collections(options, accessor, parser, config, service_filter)
@@ -2006,18 +2006,18 @@ if __name__=="__main__":
         if is_logsearch_available(config, service_filter):
           upgrade_logsearch_portal(options, accessor, parser, config)
         else:
-          print "LOGSEARCH service has not found in the config or filtered out."
+          print("LOGSEARCH service has not found in the config or filtered out.")
       elif options.action.lower() == 'upgrade-logfeeders':
         if is_logsearch_available(config, service_filter):
           upgrade_logfeeders(options, accessor, parser, config)
         else:
-          print "LOGSEARCH service has not found in the config or filtered out."
+          print("LOGSEARCH service has not found in the config or filtered out.")
       elif options.action.lower() == 'stop-logsearch':
         if is_logsearch_available(config, service_filter):
           service_components_command(options, accessor, parser, config, LOGSEARCH_SERVICE_NAME, LOGSEARCH_SERVER_COMPONENT_NAME, "STOP", "Stop")
           service_components_command(options, accessor, parser, config, LOGSEARCH_SERVICE_NAME, LOGSEARCH_LOGFEEDER_COMPONENT_NAME, "STOP", "Stop")
         else:
-          print "LOGSEARCH service has not found in the config or filtered out."
+          print("LOGSEARCH service has not found in the config or filtered out.")
       elif options.action.lower() == 'restart-solr':
         service_components_command(options, accessor, parser, config, SOLR_SERVICE_NAME, SOLR_COMPONENT_NAME, "RESTART", "Restart")
       elif options.action.lower() == 'restart-logsearch':
@@ -2025,27 +2025,27 @@ if __name__=="__main__":
           service_components_command(options, accessor, parser, config, LOGSEARCH_SERVICE_NAME, LOGSEARCH_SERVER_COMPONENT_NAME, "RESTART", "Restart")
           service_components_command(options, accessor, parser, config, LOGSEARCH_SERVICE_NAME, LOGSEARCH_LOGFEEDER_COMPONENT_NAME, "RESTART", "Restart")
         else:
-          print "LOGSEARCH service has not found in the config or filtered out."
+          print("LOGSEARCH service has not found in the config or filtered out.")
       elif options.action.lower() == 'restart-atlas':
         if is_atlas_available(config, service_filter):
           service_components_command(options, accessor, parser, config, ATLAS_SERVICE_NAME, ATLAS_SERVER_COMPONENT_NAME, "RESTART", "Restart")
         else:
-          print "ATLAS service has not found in the config or filtered out."
+          print("ATLAS service has not found in the config or filtered out.")
       elif options.action.lower() == 'restart-ranger':
         if is_ranger_available(config, service_filter):
           service_components_command(options, accessor, parser, config, RANGER_SERVICE_NAME, RANGER_ADMIN_COMPONENT_NAME, "RESTART", "Restart")
         else:
-          print "RANGER service has not found in the config or filtered out."
+          print("RANGER service has not found in the config or filtered out.")
       elif options.action.lower() == 'rolling-restart-ranger':
         if is_ranger_available(config, service_filter):
           rolling_restart(options, accessor, parser, config, RANGER_SERVICE_NAME, RANGER_ADMIN_COMPONENT_NAME, "Rolling Restart Ranger Admin Instances")
         else:
-          print "RANGER service has not found in the config or filtered out."
+          print("RANGER service has not found in the config or filtered out.")
       elif options.action.lower() == 'rolling-restart-atlas':
         if is_atlas_available(config, service_filter):
           rolling_restart(options, accessor, parser, config, ATLAS_SERVICE_NAME, ATLAS_SERVER_COMPONENT_NAME, "Rolling Restart Atlas Server Instances")
         else:
-          print "ATLAS service has not found in the config or filtered out."
+          print("ATLAS service has not found in the config or filtered out.")
       elif options.action.lower() == 'rolling-restart-solr':
         rolling_restart(options, accessor, parser, config, SOLR_SERVICE_NAME, SOLR_COMPONENT_NAME, "Rolling Restart Infra Solr Instances")
       elif options.action.lower() == 'enable-solr-authorization':
@@ -2068,15 +2068,15 @@ if __name__=="__main__":
         check_docs(options, accessor, parser, config)
       else:
         parser.print_help()
-        print 'action option is invalid (available actions: delete-collections | backup | cleanup-znodes | backup-and-cleanup | migrate | restore |' \
+        print('action option is invalid (available actions: delete-collections | backup | cleanup-znodes | backup-and-cleanup | migrate | restore |' \
               ' rolling-restart-solr | rolling-restart-ranger | rolling-restart-atlas | check-shards | check-backup-shards | check-docs | enable-solr-authorization |'\
               ' disable-solr-authorization | fix-solr5-kerberos-config | fix-solr7-kerberos-config | upgrade-solr-clients | upgrade-solr-instances | upgrade-logsearch-portal |' \
               ' upgrade-logfeeders | stop-logsearch | restart-solr |' \
-              ' restart-logsearch | restart-ranger | restart-atlas | transport-old-data )'
+              ' restart-logsearch | restart-ranger | restart-atlas | transport-old-data )')
         sys.exit(1)
       command_elapsed_time = time.time() - command_start_time
       time_to_print = time.strftime("%H:%M:%S", time.gmtime(command_elapsed_time))
-      print 30 * "-"
-      print "Command elapsed time: {0}".format(time_to_print)
-      print 30 * "-"
-      print "Migration helper command {0}FINISHED{1}".format(colors.OKGREEN, colors.ENDC)
+      print(30 * "-")
+      print("Command elapsed time: {0}".format(time_to_print))
+      print(30 * "-")
+      print("Migration helper command {0}FINISHED{1}".format(colors.OKGREEN, colors.ENDC))

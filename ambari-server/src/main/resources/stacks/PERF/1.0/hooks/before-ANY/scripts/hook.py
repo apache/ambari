@@ -23,7 +23,7 @@ from shared_initialization import *
 class BeforeAnyHook(Hook):
 
   def hook(self, env):
-    print "Before Any Hook"
+    print("Before Any Hook")
     import params
     env.set_params(params)
 

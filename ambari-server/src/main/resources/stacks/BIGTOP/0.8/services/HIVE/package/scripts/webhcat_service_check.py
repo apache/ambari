@@ -21,10 +21,10 @@ limitations under the License.
 from resource_management import *
 
 def webhcat_service_check():
-  import params
+  from . import params
   File(format("{tmp_dir}/templetonSmoke.sh"),
        content= StaticFile('templetonSmoke.sh'),
-       mode=0755
+       mode=0o755
   )
 
   cmd = format("{tmp_dir}/templetonSmoke.sh {webhcat_server_host[0]} {smokeuser} {smokeuser_keytab}"

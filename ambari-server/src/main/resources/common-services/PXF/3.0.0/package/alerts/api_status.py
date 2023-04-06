@@ -21,8 +21,8 @@ limitations under the License.
 import logging
 import json
 import socket
-import urllib2
-import urllib
+import urllib.request, urllib.error, urllib.parse
+import urllib.request, urllib.parse, urllib.error
 
 from resource_management.core import shell
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
@@ -96,13 +96,13 @@ def _makeHTTPCall(url, header={}, body=None):
   try:
     data = None
     if body:
-      data = urllib.urlencode(body)
-    req = urllib2.Request(url, data, header)
+      data = urllib.parse.urlencode(body)
+    req = urllib.request.Request(url, data, header)
 
-    response = urllib2.urlopen(req)
+    response = urllib.request.urlopen(req)
     responseContent = response.read()
     return responseContent
-  except urllib2.URLError as e:
+  except urllib.error.URLError as e:
     if hasattr(e, 'reason'):
       logger.error( 'Reason: ' + str(e.reason))
     if hasattr(e, 'code'):

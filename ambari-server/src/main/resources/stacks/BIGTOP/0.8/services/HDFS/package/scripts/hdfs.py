@@ -37,12 +37,12 @@ def hdfs(name=None):
   File(os.path.join(params.limits_conf_dir, 'hdfs.conf'),
        owner='root',
        group='root',
-       mode=0644,
+       mode=0o644,
        content=Template("hdfs.conf.j2")
   )
 
   if params.security_enabled:
-    tc_mode = 0644
+    tc_mode = 0o644
     tc_owner = "root"
   else:
     tc_mode = None
@@ -71,7 +71,7 @@ def hdfs(name=None):
             configuration_attributes=params.config['configurationAttributes']['core-site'],
             owner=params.hdfs_user,
             group=params.user_group,
-            mode=0644
+            mode=0o644
   )
 
   File(os.path.join(params.hadoop_conf_dir, 'slaves'),

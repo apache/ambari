@@ -60,7 +60,7 @@ def flume(action = None):
     if params.flume_conf_content is not None:
       flume_agents = build_flume_topology(params.flume_conf_content)
 
-    for agent in flume_agents.keys():
+    for agent in list(flume_agents.keys()):
       flume_agent_conf_dir = os.path.join(params.flume_conf_dir, agent)
       flume_agent_conf_file = os.path.join(flume_agent_conf_dir, 'flume.conf')
       flume_agent_meta_file = os.path.join(flume_agent_conf_dir, 'ambari-meta.json')
@@ -115,14 +115,14 @@ def flume(action = None):
               owner=params.flume_user,
               create_parents=True,
               cd_access="a",
-              mode=0755,
+              mode=0o755,
     )
 
     flume_agents = {}
     if params.flume_conf_content is not None:
       flume_agents = build_flume_topology(params.flume_conf_content)
 
-    for agent in flume_agents.keys():
+    for agent in list(flume_agents.keys()):
       flume_agent_conf_dir = os.path.join(params.flume_conf_dir, agent)
       flume_agent_conf_file = os.path.join(flume_agent_conf_dir, 'flume.conf')
       flume_agent_meta_file = os.path.join(flume_agent_conf_dir, 'ambari-meta.json')
@@ -136,17 +136,17 @@ def flume(action = None):
       PropertiesFile(flume_agent_conf_file,
         properties=flume_agents[agent],
         owner=params.flume_user,
-        mode = 0644)
+        mode = 0o644)
 
       File(flume_agent_log4j_file,
         content=InlineTemplate(params.flume_log4j_content,agent_name=agent),
         owner=params.flume_user,
-        mode = 0644)
+        mode = 0o644)
 
       File(flume_agent_meta_file,
         content = json.dumps(ambari_meta(agent, flume_agents[agent])),
         owner=params.flume_user,
-        mode = 0644)
+        mode = 0o644)
 
       File(flume_agent_env_file,
            owner=params.flume_user,
@@ -273,13 +273,13 @@ def build_flume_topology(content):
       if lhs.endswith(".sources"):
         agent_names.append(part0)
 
-      if not result.has_key(part0):
+      if part0 not in result:
         result[part0] = {}
 
       result[part0][lhs] = rhs
 
   # trim out non-agents
-  for k in result.keys():
+  for k in list(result.keys()):
     if not k in agent_names:
       del result[k]
 

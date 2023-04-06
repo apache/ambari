@@ -63,12 +63,12 @@ class MarkupLeakTestCase(JinjaTestCase):
 
     def test_markup_leaks(self):
         counts = set()
-        for count in xrange(20):
-            for item in xrange(1000):
+        for count in range(20):
+            for item in range(1000):
                 escape("foo")
                 escape("<foo>")
-                escape(u"foo")
-                escape(u"<foo>")
+                escape("foo")
+                escape("<foo>")
             counts.add(len(gc.get_objects()))
         assert len(counts) == 1, 'ouch, c extension seems to leak objects'
 

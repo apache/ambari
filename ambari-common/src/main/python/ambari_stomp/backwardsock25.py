@@ -25,8 +25,8 @@ def get_socket(host, port, timeout=None):
             sock.connect(sa)
             return sock
 
-        except error, msg:
+        except error as msg:
             if sock is not None:
                 sock.close()
 
-    raise error, ERRMSG
+    raise error(ERRMSG)

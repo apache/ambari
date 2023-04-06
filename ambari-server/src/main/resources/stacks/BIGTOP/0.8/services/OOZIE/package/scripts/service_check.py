@@ -37,7 +37,7 @@ def oozie_smoke_shell_file(
 
   File( format("{tmp_dir}/{file_name}"),
     content = StaticFile(file_name),
-    mode = 0755
+    mode = 0o755
   )
   
   os_family = System.get_instance().os_family

@@ -21,7 +21,7 @@ limitations under the License.
 # This script transforms SQLServer "create" SQL to idempotent SQL for AzureDB.
 # It is a filter, ie. it expects input on stdin, and prints output on stdout.
 
-from __future__ import print_function
+
 import fileinput
 import re
 from textwrap import dedent

@@ -27,7 +27,7 @@ def hive_service(
     name,
     action='start'):
 
-  import params
+  from . import params
 
   if name == 'metastore':
     pid_file = format("{hive_pid_dir}/{hive_metastore_pid}")
@@ -73,7 +73,7 @@ def hive_service(
       end_time = start_time + SOCKET_WAIT_SECONDS
 
       is_service_socket_valid = False
-      print "Waiting for the Hive server to start..."
+      print("Waiting for the Hive server to start...")
       while time.time() < end_time:
         if check_thrift_port_sasl(address, port, 2, security_enabled=params.security_enabled):
           is_service_socket_valid = True
@@ -86,7 +86,7 @@ def hive_service(
       if is_service_socket_valid == False: 
         raise Fail("Connection to Hive server %s on port %s failed after %d seconds" % (address, port, elapsed_time))
       
-      print "Successfully connected to Hive at %s on port %s after %d seconds" % (address, port, elapsed_time)    
+      print("Successfully connected to Hive at %s on port %s after %d seconds" % (address, port, elapsed_time))    
             
   elif action == 'stop':
     demon_cmd = format("kill `cat {pid_file}` >/dev/null 2>&1 && rm -f {pid_file}")
@@ -95,7 +95,7 @@ def hive_service(
     )
 
 def check_fs_root():
-  import params  
+  from . import params  
   fs_root_url = format("{fs_root}{hive_apps_whs_dir}")
   cmd = format("metatool -listFSRoot 2>/dev/null | grep hdfs://")
   code, out = call(cmd, user=params.hive_user)

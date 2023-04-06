@@ -73,7 +73,7 @@ class TestHDP23StackAdvisor(TestCase):
       hosts["items"].append(nextHost)
     return hosts
 
-  @patch('__builtin__.open')
+  @patch('builtins.open')
   @patch('os.path.exists')
   def get_system_min_uid_magic(self, exists_mock, open_mock):
     class MagicFile(object):
@@ -109,12 +109,12 @@ class TestHDP23StackAdvisor(TestCase):
 
     sparkTS = [component["StackServiceComponents"]["hostnames"] for component in componentsList if component["StackServiceComponents"]["component_name"] == "SPARK_THRIFTSERVER"]
     hiveMetaStore = [component["StackServiceComponents"]["hostnames"] for component in componentsList if component["StackServiceComponents"]["component_name"] == "HIVE_METASTORE"]
-    self.assertEquals(len(sparkTS), 1)
-    self.assertEquals(len(hiveMetaStore), 0)
+    self.assertEqual(len(sparkTS), 1)
+    self.assertEqual(len(hiveMetaStore), 0)
 
     validations = self.stackAdvisor.getComponentLayoutValidations(services, hosts)
     expected = {'component-name': 'SPARK_THRIFTSERVER', 'message': 'Spark Thrift Server requires HIVE_METASTORE to be present in the cluster.', 'type': 'host-component', 'level': 'ERROR'}
-    self.assertEquals(validations[0], expected)
+    self.assertEqual(validations[0], expected)
 
 
   @patch('socket.getfqdn', side_effect=fqdn_mock_result)
@@ -128,11 +128,11 @@ class TestHDP23StackAdvisor(TestCase):
 
     sparkTS = [component["StackServiceComponents"]["hostnames"] for component in componentsList if component["StackServiceComponents"]["component_name"] == "SPARK_THRIFTSERVER"]
     hiveMetaStore = [component["StackServiceComponents"]["hostnames"] for component in componentsList if component["StackServiceComponents"]["component_name"] == "HIVE_METASTORE"]
-    self.assertEquals(len(sparkTS), 1)
-    self.assertEquals(len(hiveMetaStore), 1)
+    self.assertEqual(len(sparkTS), 1)
+    self.assertEqual(len(hiveMetaStore), 1)
 
     validations = self.stackAdvisor.getComponentLayoutValidations(services, hosts)
-    self.assertEquals(len(validations), 0)
+    self.assertEqual(len(validations), 0)
 
 
   def test_recommendHDFSConfigurations(self):
@@ -185,14 +185,14 @@ class TestHDP23StackAdvisor(TestCase):
 
     # Test with Ranger HDFS plugin disabled
     self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations['hdfs-site']['property_attributes']['dfs.namenode.inode.attributes.provider.class'], {'delete': 'true'}, "Test with Ranger HDFS plugin is disabled")
+    self.assertEqual(configurations['hdfs-site']['property_attributes']['dfs.namenode.inode.attributes.provider.class'], {'delete': 'true'}, "Test with Ranger HDFS plugin is disabled")
 
     # Test with Ranger HDFS plugin is enabled
     configurations['hdfs-site']['properties'] = {}
     configurations['hdfs-site']['property_attributes'] = {}
     services['configurations']['ranger-hdfs-plugin-properties']['properties']['ranger-hdfs-plugin-enabled'] = 'Yes'
     self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations['hdfs-site']['properties']['dfs.namenode.inode.attributes.provider.class'], 'org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer', "Test with Ranger HDFS plugin is enabled")
+    self.assertEqual(configurations['hdfs-site']['properties']['dfs.namenode.inode.attributes.provider.class'], 'org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer', "Test with Ranger HDFS plugin is enabled")
 
   def test_recommendYARNConfigurations(self):
     configurations = {}
@@ -256,14 +256,14 @@ class TestHDP23StackAdvisor(TestCase):
     clusterData = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, None)
     # Test with Ranger YARN plugin disabled
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, None)
-    self.assertEquals(configurations['yarn-site']['property_attributes']['yarn.authorization-provider'], {'delete': 'true'}, "Test with Ranger HDFS plugin is disabled")
+    self.assertEqual(configurations['yarn-site']['property_attributes']['yarn.authorization-provider'], {'delete': 'true'}, "Test with Ranger HDFS plugin is disabled")
 
     # Test with Ranger YARN plugin is enabled
     configurations['yarn-site']['properties'] = {}
     configurations['yarn-site']['property_attributes'] = {}
     services['configurations']['ranger-yarn-plugin-properties']['properties']['ranger-yarn-plugin-enabled'] = 'Yes'
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, None)
-    self.assertEquals(configurations['yarn-site']['properties']['yarn.authorization-provider'], 'org.apache.ranger.authorization.yarn.authorizer.RangerYarnAuthorizer', "Test with Ranger YARN plugin enabled")
+    self.assertEqual(configurations['yarn-site']['properties']['yarn.authorization-provider'], 'org.apache.ranger.authorization.yarn.authorizer.RangerYarnAuthorizer', "Test with Ranger YARN plugin enabled")
 
 
   def test_recommendKAFKAConfigurations(self):
@@ -360,7 +360,7 @@ class TestHDP23StackAdvisor(TestCase):
     # Test authorizer.class.name with Ranger Kafka plugin disabled in non-kerberos environment
     services['configurations']['cluster-env']['properties']['security_enabled'] = "false"
     self.stackAdvisor.recommendKAFKAConfigurations(configurations, clusterData, services, None)
-    self.assertEquals(configurations['kafka-broker']['property_attributes']['authorizer.class.name'], {'delete': 'true'}, "Test authorizer.class.name with Ranger Kafka plugin is disabled in non-kerberos environment")
+    self.assertEqual(configurations['kafka-broker']['property_attributes']['authorizer.class.name'], {'delete': 'true'}, "Test authorizer.class.name with Ranger Kafka plugin is disabled in non-kerberos environment")
 
     # Test authorizer.class.name with Ranger Kafka plugin disabled in kerberos environment
     services['configurations']['cluster-env']['properties']['security_enabled'] = "true"
@@ -369,7 +369,7 @@ class TestHDP23StackAdvisor(TestCase):
     services['configurations']['kafka-broker']['properties']['security.inter.broker.protocol'] = 'PLAINTEXTSASL'
     services['configurations']['kafka-broker']['properties']['authorizer.class.name'] = 'org.apache.ranger.authorization.kafka.authorizer.RangerKafkaAuthorizer'
     self.stackAdvisor.recommendKAFKAConfigurations(configurations, clusterData, services, None)
-    self.assertEquals(configurations['kafka-broker']['properties']['authorizer.class.name'], 'kafka.security.auth.SimpleAclAuthorizer' , "Test authorizer.class.name with Ranger Kafka plugin disabled in kerberos environment")
+    self.assertEqual(configurations['kafka-broker']['properties']['authorizer.class.name'], 'kafka.security.auth.SimpleAclAuthorizer' , "Test authorizer.class.name with Ranger Kafka plugin disabled in kerberos environment")
 
     # Advise 'PLAINTEXTSASL' for secure cluster by default
     services['configurations']['cluster-env']['properties']['security_enabled'] = "true"
@@ -395,7 +395,7 @@ class TestHDP23StackAdvisor(TestCase):
     services['configurations']['kafka-broker']['properties']['authorizer.class.name'] = 'kafka.security.auth.SimpleAclAuthorizer'
     services['configurations']['ranger-kafka-plugin-properties']['properties']['ranger-kafka-plugin-enabled'] = 'Yes'
     self.stackAdvisor.recommendKAFKAConfigurations(configurations, clusterData, services, None)
-    self.assertEquals(configurations['kafka-broker']['properties']['authorizer.class.name'], 'org.apache.ranger.authorization.kafka.authorizer.RangerKafkaAuthorizer', "Test authorizer.class.name with Ranger Kafka plugin enabled in kerberos environment")
+    self.assertEqual(configurations['kafka-broker']['properties']['authorizer.class.name'], 'org.apache.ranger.authorization.kafka.authorizer.RangerKafkaAuthorizer', "Test authorizer.class.name with Ranger Kafka plugin enabled in kerberos environment")
 
     services['configurations']['cluster-env']['properties']['security_enabled'] = "false"
     configurations['kafka-broker']['properties'] = {}
@@ -404,8 +404,8 @@ class TestHDP23StackAdvisor(TestCase):
     services['configurations']['kafka-broker']['properties']['authorizer.class.name'] = 'kafka.security.auth.SimpleAclAuthorizer'
     services['configurations']['ranger-kafka-plugin-properties']['properties']['ranger-kafka-plugin-enabled'] = 'Yes'
     self.stackAdvisor.recommendKAFKAConfigurations(configurations, clusterData, services, None)
-    self.assertEquals(configurations['kafka-broker']['properties']['authorizer.class.name'], 'org.apache.ranger.authorization.kafka.authorizer.RangerKafkaAuthorizer', "Test authorizer.class.name with Ranger Kafka plugin enabled in kerberos environment")
-    self.assertEquals(configurations['ranger-kafka-plugin-properties']['properties']['zookeeper.connect'], 'host1:2181')
+    self.assertEqual(configurations['kafka-broker']['properties']['authorizer.class.name'], 'org.apache.ranger.authorization.kafka.authorizer.RangerKafkaAuthorizer', "Test authorizer.class.name with Ranger Kafka plugin enabled in kerberos environment")
+    self.assertEqual(configurations['ranger-kafka-plugin-properties']['properties']['zookeeper.connect'], 'host1:2181')
     self.assertTrue('security.inter.broker.protocol' not in configurations['kafka-broker']['properties'])
 
     # Test kafka-log4j content when Ranger plugin for Kafka is enabled
@@ -417,7 +417,7 @@ class TestHDP23StackAdvisor(TestCase):
                      "=org.apache.log4j.PatternLayout\nlog4j.appender.rangerAppender.layout.ConversionPattern=%d{ISO8601} %p [%t] %C{6} (%F:%L) - %m%n\n" \
                      "log4j.logger.org.apache.ranger=INFO, rangerAppender"
     expectedLog4jContent = log4jContent + newRangerLog4content
-    self.assertEquals(configurations['kafka-log4j']['properties']['content'], expectedLog4jContent, "Test kafka-log4j content when Ranger plugin for Kafka is enabled")
+    self.assertEqual(configurations['kafka-log4j']['properties']['content'], expectedLog4jContent, "Test kafka-log4j content when Ranger plugin for Kafka is enabled")
 
     # Test kafka.metrics.reporters when AMBARI_METRICS is present in services
     self.stackAdvisor.recommendKAFKAConfigurations(configurations, clusterData, services, None)
@@ -580,7 +580,7 @@ class TestHDP23StackAdvisor(TestCase):
 
     # Test
     self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
     # Test
     clusterData['hbaseRam'] = '4'
@@ -591,16 +591,16 @@ class TestHDP23StackAdvisor(TestCase):
     expected["hbase-env"]["properties"]["hbase_master_heapsize"] = "1024"
     expected["hbase-env"]["properties"]["hbase_regionserver_heapsize"] = "4096"
     self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
     # Test - default recommendations should have certain configs deleted. HAS TO BE LAST TEST.
     services["configurations"] = {"hbase-site": {"properties": {"phoenix.functions.allowUserDefinedFunctions": '', "hbase.rpc.controllerfactory.class": '', "hbase.region.server.rpc.scheduler.factory.class": ''}}}
     configurations = {}
     self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
-    self.assertEquals(configurations['hbase-site']['property_attributes']['phoenix.functions.allowUserDefinedFunctions'], {'delete': 'true'})
-    self.assertEquals(configurations['hbase-site']['property_attributes']['hbase.rpc.controllerfactory.class'], {'delete': 'true'})
-    self.assertEquals(configurations['hbase-site']['property_attributes']['hbase.region.server.rpc.scheduler.factory.class'], {'delete': 'true'})
-    self.assertEquals(configurations['hbase-site']['properties']['hbase.regionserver.wal.codec'], "org.apache.hadoop.hbase.regionserver.wal.WALCellCodec")
+    self.assertEqual(configurations['hbase-site']['property_attributes']['phoenix.functions.allowUserDefinedFunctions'], {'delete': 'true'})
+    self.assertEqual(configurations['hbase-site']['property_attributes']['hbase.rpc.controllerfactory.class'], {'delete': 'true'})
+    self.assertEqual(configurations['hbase-site']['property_attributes']['hbase.region.server.rpc.scheduler.factory.class'], {'delete': 'true'})
+    self.assertEqual(configurations['hbase-site']['properties']['hbase.regionserver.wal.codec'], "org.apache.hadoop.hbase.regionserver.wal.WALCellCodec")
 
 
   def test_recommendHiveConfigurations(self):
@@ -861,24 +861,24 @@ class TestHDP23StackAdvisor(TestCase):
     }
 
     self.stackAdvisor.recommendHIVEConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
     # Test JDK1.7
     services['ambari-server-properties'] = {'java.home': '/usr/jdk64/jdk1.7.3_23'}
     self.stackAdvisor.recommendHIVEConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
     # Test JDK1.8
     services['ambari-server-properties'] = {'java.home': '/usr/jdk64/jdk1.8_44'}
     expected['hive-site']['properties']['hive.tez.java.opts'] = "-server -Djava.net.preferIPv4Stack=true -XX:NewRatio=8 -XX:+UseNUMA -XX:+UseG1GC -XX:+ResizeTLAB -XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps"
     self.stackAdvisor.recommendHIVEConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
     # Test JDK1.9
     services['ambari-server-properties'] = {'java.home': '/usr/jdk64/jdk1.9.2_44'}
     expected['hive-site']['properties']['hive.tez.java.opts'] = "-server -Djava.net.preferIPv4Stack=true -XX:NewRatio=8 -XX:+UseNUMA -XX:+UseG1GC -XX:+ResizeTLAB -XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps"
     self.stackAdvisor.recommendHIVEConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
   def test_recommendHiveConfigurations_with_atlas(self):
     self.maxDiff = None
@@ -1162,7 +1162,7 @@ class TestHDP23StackAdvisor(TestCase):
     }
 
     self.stackAdvisor.recommendHIVEConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
   @patch('os.path.exists')
   @patch('os.path.isdir')
@@ -1346,7 +1346,7 @@ class TestHDP23StackAdvisor(TestCase):
     }
 
     self.stackAdvisor.recommendTezConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
     server_host = socket.getfqdn()
     for host in hosts["items"]:
@@ -1358,7 +1358,7 @@ class TestHDP23StackAdvisor(TestCase):
     services['ambari-server-properties'] = {'java.home': '/usr/jdk64/jdk1.7.3_23'}
     expected['tez-site']['properties']['tez.tez-ui.history-url.base'] = tez_ui_url
     self.stackAdvisor.recommendTezConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
     # Test JDK1.8
     services['ambari-server-properties'] = {'java.home': '/usr/jdk64/jdk1.8_44'}
@@ -1366,7 +1366,7 @@ class TestHDP23StackAdvisor(TestCase):
     expected['tez-site']['properties']['tez.task.launch.cmd-opts'] = "-XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps -XX:+UseNUMA -XX:+UseG1GC -XX:+ResizeTLAB"
     expected['tez-site']['properties']['tez.tez-ui.history-url.base'] = tez_ui_url
     self.stackAdvisor.recommendTezConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
     # Test JDK1.9
     services['ambari-server-properties'] = {'java.home': '/usr/jdk64/jdk1.9.2_44'}
@@ -1374,7 +1374,7 @@ class TestHDP23StackAdvisor(TestCase):
     expected['tez-site']['properties']['tez.task.launch.cmd-opts'] = "-XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps -XX:+UseNUMA -XX:+UseG1GC -XX:+ResizeTLAB"
     expected['tez-site']['properties']['tez.tez-ui.history-url.base'] = tez_ui_url
     self.stackAdvisor.recommendTezConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
   def test_validateHiveConfigurations(self):
     properties = {"hive_security_authorization": "None",
@@ -1400,7 +1400,7 @@ class TestHDP23StackAdvisor(TestCase):
     # Test for 'ranger-hive-plugin-properties' not being in configs
     res_expected = []
     res = self.stackAdvisor.validateHiveConfigurations(properties, recommendedDefaults, configurations, services, {})
-    self.assertEquals(res, res_expected)
+    self.assertEqual(res, res_expected)
 
   # This test intentionally calls all validate methods with
   # incorrect parameters (empty configs)
@@ -1460,10 +1460,10 @@ class TestHDP23StackAdvisor(TestCase):
     validators = self.stackAdvisor.getServiceConfigurationValidators()
 
     # Setting up empty configs and services info
-    for serviceName, validator in validators.items():
+    for serviceName, validator in list(validators.items()):
       services["services"].extend([{"StackServices": {"service_name": serviceName},
                                     "components": []}])
-      for siteName in validator.keys():
+      for siteName in list(validator.keys()):
         configurations[siteName] = {"properties": {}}
 
     # Emulate enabled RANGER
@@ -1603,7 +1603,7 @@ class TestHDP23StackAdvisor(TestCase):
 
     recommendedConfigurations = {}
     self.stackAdvisor.recommendRangerConfigurations(recommendedConfigurations, clusterData, services, None)
-    self.assertEquals(recommendedConfigurations, expected)
+    self.assertEqual(recommendedConfigurations, expected)
 
     # Recommend ranger.audit.solr.zookeepers when solrCloud is disabled
     services['configurations']['ranger-env'] = {
@@ -1614,7 +1614,7 @@ class TestHDP23StackAdvisor(TestCase):
 
     recommendedConfigurations = {}
     self.stackAdvisor.recommendRangerConfigurations(recommendedConfigurations, clusterData, services, None)
-    self.assertEquals(recommendedConfigurations['ranger-admin-site']['properties']['ranger.audit.solr.zookeepers'], 'NONE')
+    self.assertEqual(recommendedConfigurations['ranger-admin-site']['properties']['ranger.audit.solr.zookeepers'], 'NONE')
 
   def test_recommendRangerKMSConfigurations(self):
     clusterData = {}
@@ -1709,7 +1709,7 @@ class TestHDP23StackAdvisor(TestCase):
     # non kerberized cluster. There should be no proxyuser configs
     recommendedConfigurations = {}
     self.stackAdvisor.recommendRangerKMSConfigurations(recommendedConfigurations, clusterData, services, None)
-    self.assertEquals(recommendedConfigurations, expected)
+    self.assertEqual(recommendedConfigurations, expected)
 
     # kerberized cluster
     services['services'].append({
@@ -1757,7 +1757,7 @@ class TestHDP23StackAdvisor(TestCase):
     # on kerberized cluster property should be recommended
     recommendedConfigurations = {}
     self.stackAdvisor.recommendRangerKMSConfigurations(recommendedConfigurations, clusterData, services, None)
-    self.assertEquals(recommendedConfigurations, expected)
+    self.assertEqual(recommendedConfigurations, expected)
 
     recommendedConfigurations = {}
     services['changed-configurations'] = [
@@ -1782,7 +1782,7 @@ class TestHDP23StackAdvisor(TestCase):
 
     # kms_user was changed, old property should be removed
     self.stackAdvisor.recommendRangerKMSConfigurations(recommendedConfigurations, clusterData, services, None)
-    self.assertEquals(recommendedConfigurations, expected)
+    self.assertEqual(recommendedConfigurations, expected)
 
   def test_recommendStormConfigurations(self):
     self.maxDiff = None
@@ -1893,16 +1893,16 @@ class TestHDP23StackAdvisor(TestCase):
     }
 
     self.stackAdvisor.recommendStormConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
     services['ambari-server-properties'] = {'java.home': '/usr/jdk64/jdk1.7.3_23'}
     self.stackAdvisor.recommendStormConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
     services["services"] = []
     services["configurations"]["storm-site"]["properties"]["storm.topology.submission.notifier.plugin.class"] = "org.apache.atlas.storm.hook.StormAtlasHook"
     self.stackAdvisor.recommendStormConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(True, "storm.topology.submission.notifier.plugin.class" in configurations["storm-site"]["property_attributes"])
+    self.assertEqual(True, "storm.topology.submission.notifier.plugin.class" in configurations["storm-site"]["property_attributes"])
 
   def test_recommendSqoopConfigurations(self):
     self.maxDiff = None
@@ -1994,11 +1994,11 @@ class TestHDP23StackAdvisor(TestCase):
     }
 
     self.stackAdvisor.recommendSqoopConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
     services['ambari-server-properties'] = {'java.home': '/usr/jdk64/jdk1.7.3_23'}
     self.stackAdvisor.recommendSqoopConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
   def test_validateRangerConfigurationsEnv(self):
     properties = {
@@ -2037,11 +2037,11 @@ class TestHDP23StackAdvisor(TestCase):
     # Test with ranger plugin enabled, validation fails
     res_expected = [{'config-type': 'ranger-env', 'message': 'Ranger Kafka plugin should not be enabled in non-kerberos environment.', 'type': 'configuration', 'config-name': 'ranger-kafka-plugin-enabled', 'level': 'WARN'}]
     res = self.stackAdvisor.validateRangerConfigurationsEnv(properties, recommendedDefaults, configurations, services, {})
-    self.assertEquals(res, res_expected)
+    self.assertEqual(res, res_expected)
 
     # Test for security_enabled is true
     services['configurations']['cluster-env']['properties']['security_enabled'] = "true"
     configurations['cluster-env']['properties']['security_enabled'] = "true"
     res_expected = []
     res = self.stackAdvisor.validateRangerConfigurationsEnv(properties, recommendedDefaults, configurations, services, {})
-    self.assertEquals(res, res_expected)
+    self.assertEqual(res, res_expected)

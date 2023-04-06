@@ -73,7 +73,7 @@ class TestAlertCheckpointTime(RMFTestCase):
       'checkpoint.txns.multiplier.critical.threshold': 4.0
     }
 
-  @patch("urllib2.urlopen")
+  @patch("urllib.request.urlopen")
   def test_uncommitted_txn_exceeded(self, urlopen_mock):
     current_time = int(round(time.time() * 1000))
 

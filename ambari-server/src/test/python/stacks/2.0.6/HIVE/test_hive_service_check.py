@@ -54,7 +54,7 @@ class TestServiceCheck(RMFTestCase):
                               )
     self.assertResourceCalled('File', '/tmp/hcatSmoke.sh',
                         content = StaticFile('hcatSmoke.sh'),
-                        mode = 0755,
+                        mode = 0o755,
     )
     self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/hcatSmoke.sh hcatsmoke prepare false',
         logoutput = True,
@@ -86,7 +86,7 @@ class TestServiceCheck(RMFTestCase):
     )
     self.assertResourceCalled('File', '/tmp/templetonSmoke.sh',
                               content = StaticFile('templetonSmoke.sh'),
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('File', '/tmp/idtest.ambari-qa.1431110511.43.pig',
         content = Template('templeton_smoke.pig.j2', templeton_test_input='/tmp/idtest.ambari-qa.1431110511.43.in', templeton_test_output='/tmp/idtest.ambari-qa.1431110511.43.out'),
@@ -173,7 +173,7 @@ class TestServiceCheck(RMFTestCase):
                               )
     self.assertResourceCalled('File', '/tmp/hcatSmoke.sh',
                         content = StaticFile('hcatSmoke.sh'),
-                        mode = 0755,
+                        mode = 0o755,
     )
     self.maxDiff = None
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa@EXAMPLE.COM; env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/hcatSmoke.sh hcatsmoke prepare false',
@@ -205,7 +205,7 @@ class TestServiceCheck(RMFTestCase):
     )
     self.assertResourceCalled('File', '/tmp/templetonSmoke.sh',
                               content = StaticFile('templetonSmoke.sh'),
-                              mode = 0755,
+                              mode = 0o755,
                               )
 
     self.assertResourceCalled('File', '/tmp/idtest.ambari-qa.1431110511.43.pig',
@@ -292,7 +292,7 @@ class TestServiceCheck(RMFTestCase):
 
     self.assertResourceCalled('File', '/tmp/hcatSmoke.sh',
       content = StaticFile('hcatSmoke.sh'),
-      mode = 0755)
+      mode = 0o755)
 
     self.assertResourceCalled('Execute', "env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/hcatSmoke.sh hcatsmoke prepare true",
         logoutput = True,

@@ -24,7 +24,7 @@ import sys
 
 class ServiceCheck(Script):
   def service_check(self, env):
-    import params
+    from . import params
     env.set_params(params)
 
     run_yarn_check_cmd = format("yarn --config {hadoop_conf_dir} node -list")
@@ -48,7 +48,7 @@ class ServiceCheck(Script):
 
     File(validateStatusFilePath,
          content=StaticFile(validateStatusFileName),
-         mode=0755
+         mode=0o755
     )
 
     Execute(smoke_cmd,

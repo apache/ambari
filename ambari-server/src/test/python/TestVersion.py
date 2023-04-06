@@ -59,8 +59,11 @@ class TestVersion(TestCase):
 
   def test_comparison(self):
     # All versions to compare, from 1.0.0.0 to 3.0.0.0, and only include elements that are a multiple of 7.
-    versions = range(1000, 3000, 7)
+    versions = list(range(1000, 3000, 7))
     versions = [".".join(list(str(elem))) for elem in versions]
+
+    def cmp(a, b):
+      return (a > b) - (a < b)
 
     for idx, x in enumerate(versions):
       for idy, y in enumerate(versions):

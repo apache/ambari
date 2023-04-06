@@ -23,7 +23,7 @@ import sys
 
 
 def hcat():
-  import params
+  from . import params
 
   Directory(params.hive_conf_dir,
             create_parents = True,
@@ -49,7 +49,7 @@ def hcat():
             configuration_attributes=params.config['configurationAttributes']['hive-site'],
             owner=params.hive_user,
             group=params.user_group,
-            mode=0644)
+            mode=0o644)
 
   File(format("{hcat_conf_dir}/hcat-env.sh"),
        owner=params.hcat_user,

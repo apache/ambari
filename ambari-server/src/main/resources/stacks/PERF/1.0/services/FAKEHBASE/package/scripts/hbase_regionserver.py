@@ -39,7 +39,7 @@ class HBaseFAKERegionServer(Dummy):
     self.keytab_name = "hbase.regionserver.keytab.file"
 
   def decommission(self, env):
-    print "Decommission"
+    print("Decommission")
 
 if __name__ == "__main__":
   HBaseFAKERegionServer().execute()

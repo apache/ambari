@@ -26,7 +26,7 @@ from resource_management.libraries.functions import get_klist_path
 from ambari_commons.os_check import OSConst, OSCheck
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 import os
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 RESULT_CODE_OK = 'OK'
 RESULT_CODE_CRITICAL = 'CRITICAL'
@@ -139,7 +139,7 @@ def execute(configurations={}, parameters={}, host_name=None):
     Execute(command, environment=env)
 
     return (RESULT_CODE_OK, ["Successful connection to {0}".format(oozie_url)])
-  except KerberosPropertiesNotFound, ex:
+  except KerberosPropertiesNotFound as ex:
     return (RESULT_CODE_UNKNOWN, [str(ex)])
-  except Exception, ex:
+  except Exception as ex:
     return (RESULT_CODE_CRITICAL, [str(ex)])

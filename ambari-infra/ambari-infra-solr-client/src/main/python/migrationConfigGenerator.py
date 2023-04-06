@@ -24,12 +24,12 @@ import signal
 import sys
 import time
 import traceback
-import urllib2, ssl
+import urllib.request, urllib.error, urllib.parse, ssl
 import logging
 import json
 import base64
 import optparse
-import ConfigParser
+import configparser
 from subprocess import Popen, PIPE
 from random import randrange
 
@@ -71,19 +71,19 @@ def api_accessor(host, username, password, protocol, port):
       if request_body:
         logger.debug('Request body: {0}'.format(request_body))
       admin_auth = base64.encodestring('%s:%s' % (username, password)).replace('\n', '')
-      request = urllib2.Request(url)
+      request = urllib.request.Request(url)
       request.add_header('Authorization', 'Basic %s' % admin_auth)
       request.add_header('X-Requested-By', 'ambari')
-      request.add_data(request_body)
+      request.data = json.dumps(request_body)
       request.get_method = lambda: request_type
       response = None
       if protocol == 'https':
         ctx = ssl.create_default_context()
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
-        response = urllib2.urlopen(request, context=ctx)
+        response = urllib.request.urlopen(request, context=ctx)
       else:
-        response = urllib2.urlopen(request)
+        response = urllib.request.urlopen(request)
       response_body = response.read()
     except Exception as exc:
       raise Exception('Problem with accessing api. Reason: {0}'.format(exc))
@@ -121,7 +121,7 @@ def retry(func, *args, **kwargs):
 
 def get_shard_numbers_per_collections(state_json_data):
   collection_shard_map={}
-  for key,val in state_json_data.iteritems():
+  for key,val in state_json_data.items():
     if 'shards' in val:
       shard_count=len(val['shards'])
       collection_shard_map[key]=shard_count
@@ -129,7 +129,7 @@ def get_shard_numbers_per_collections(state_json_data):
 
 def get_max_shards_for_collections(state_json_data):
   collection_max_shard_map={}
-  for key,val in state_json_data.iteritems():
+  for key,val in state_json_data.items():
     if 'maxShardsPerNode' in val:
       collection_max_shard_map[key]=val['maxShardsPerNode']
   return collection_max_shard_map
@@ -261,9 +261,9 @@ def get_installed_components(blueprint):
 
 def generate_ambari_solr_migration_ini_file(options, accessor, protocol):
 
-  print "Start generating config file: {0} ...".format(options.ini_file)
+  print("Start generating config file: {0} ...".format(options.ini_file))
 
-  config = ConfigParser.RawConfigParser()
+  config = configparser.RawConfigParser()
 
   config.add_section('ambari_server')
   config.set('ambari_server', 'host', options.host)
@@ -273,34 +273,34 @@ def generate_ambari_solr_migration_ini_file(options, accessor, protocol):
   config.set('ambari_server', 'username', options.username)
   config.set('ambari_server', 'password', options.password)
 
-  print "Get Ambari cluster details ..."
+  print("Get Ambari cluster details ...")
   blueprint = get_json(accessor, CLUSTERS_URL.format(options.cluster) + BLUEPRINT_CONFIG_URL)
   installed_components = get_installed_components(blueprint)
 
-  print "Set JAVA_HOME: {0}".format(options.java_home)
+  print("Set JAVA_HOME: {0}".format(options.java_home))
   host = socket.getfqdn()
 
   cluster_config = get_cluster_configs(blueprint)
   solr_hosts = get_solr_hosts(options, accessor)
 
   if solr_hosts and host not in solr_hosts:
-    print "{0}WARNING{1}: Host '{2}' is not found in Infra Solr hosts ({3}). Migration commands won't work from here."\
-      .format(colors.WARNING, colors.ENDC, host, ','.join(solr_hosts))
+    print("{0}WARNING{1}: Host '{2}' is not found in Infra Solr hosts ({3}). Migration commands won't work from here."\
+      .format(colors.WARNING, colors.ENDC, host, ','.join(solr_hosts)))
 
   zookeeper_hosts = get_zookeeper_server_hosts(options, accessor)
 
   security_enabled = is_security_enabled(cluster_config)
   zk_connect_string = get_zookeeper_connection_string(cluster_config, zookeeper_hosts)
   if zk_connect_string:
-    print "Service detected: " + colors.OKGREEN + "ZOOKEEPER" + colors.ENDC
-    print "Zookeeper connection string: {0}".format(str(zk_connect_string))
+    print("Service detected: " + colors.OKGREEN + "ZOOKEEPER" + colors.ENDC)
+    print("Zookeeper connection string: {0}".format(str(zk_connect_string)))
   solr_protocol = get_solr_protocol(cluster_config)
   solr_urls = get_solr_urls(cluster_config, solr_hosts, solr_protocol)
   if solr_urls:
-    print "Service detected: " + colors.OKGREEN + "AMBARI_INFRA_SOLR" + colors.ENDC
+    print("Service detected: " + colors.OKGREEN + "AMBARI_INFRA_SOLR" + colors.ENDC)
   solr_znode = get_solr_znode(cluster_config)
   if solr_znode:
-    print "Infra Solr znode: {0}".format(solr_znode)
+    print("Infra Solr znode: {0}".format(solr_znode))
   infra_solr_env_props = get_config_props(cluster_config, 'infra-solr-env')
 
   infra_solr_user = infra_solr_env_props['infra_solr_user'] if 'infra_solr_user' in infra_solr_env_props else 'infra-solr'
@@ -340,7 +340,7 @@ def generate_ambari_solr_migration_ini_file(options, accessor, protocol):
     default_zk_quorum = "{zookeeper_quorum}"
     external_zk_connection_string = infra_solr_env_props['infra_solr_zookeeper_quorum'] if 'infra_solr_zookeeper_quorum' in infra_solr_env_props else default_zk_quorum
     if default_zk_quorum != external_zk_connection_string:
-      print "Found external zk connection string: {0}".format(external_zk_connection_string)
+      print("Found external zk connection string: {0}".format(external_zk_connection_string))
       config.set('infra_solr', 'external_zk_connect_string', external_zk_connection_string)
     config.set('infra_solr', 'zk_principal_user', zk_principal_user)
 
@@ -350,7 +350,7 @@ def generate_ambari_solr_migration_ini_file(options, accessor, protocol):
 
   config.add_section('ranger_collection')
   if "RANGER_ADMIN" in installed_components and not options.skip_ranger:
-    print "Service detected: " + colors.OKGREEN + "RANGER" + colors.ENDC
+    print("Service detected: " + colors.OKGREEN + "RANGER" + colors.ENDC)
     ranger_env_props = get_config_props(cluster_config, 'ranger-env')
     if "is_solrCloud_enabled" in ranger_env_props and ranger_env_props['is_solrCloud_enabled'] == 'true':
       if "is_external_solrCloud_enabled" in ranger_env_props and ranger_env_props['is_external_solrCloud_enabled'] == 'true' and not options.force_ranger:
@@ -367,7 +367,7 @@ def generate_ambari_solr_migration_ini_file(options, accessor, protocol):
            config.set('ranger_collection', 'ranger_collection_max_shards_per_node', max_shards_map[ranger_collection_name])
         config.set('ranger_collection', 'backup_ranger_config_set_name', 'old_ranger_audits')
         config.set('ranger_collection', 'backup_ranger_collection_name', 'old_ranger_audits')
-        print 'Ranger Solr collection: ' + ranger_collection_name
+        print('Ranger Solr collection: ' + ranger_collection_name)
         ranger_backup_path = None
         if options.backup_base_path:
           ranger_backup_path = os.path.join(options.backup_base_path, "ranger")
@@ -375,7 +375,7 @@ def generate_ambari_solr_migration_ini_file(options, accessor, protocol):
           ranger_backup_path = options.backup_ranger_base_path
         if ranger_backup_path is not None:
           config.set('ranger_collection', 'backup_path', ranger_backup_path)
-          print 'Ranger backup path: ' + ranger_backup_path
+          print('Ranger backup path: ' + ranger_backup_path)
         if options.ranger_hdfs_base_path:
           config.set('ranger_collection', 'hdfs_base_path', options.ranger_hdfs_base_path)
         elif options.hdfs_base_path:
@@ -387,7 +387,7 @@ def generate_ambari_solr_migration_ini_file(options, accessor, protocol):
 
   config.add_section('atlas_collections')
   if "ATLAS_SERVER" in installed_components and not options.skip_atlas:
-    print "Service detected: " + colors.OKGREEN + "ATLAS" + colors.ENDC
+    print("Service detected: " + colors.OKGREEN + "ATLAS" + colors.ENDC)
     config.set('atlas_collections', 'enabled', 'true')
     config.set('atlas_collections', 'config_set', 'atlas_configs')
     config.set('atlas_collections', 'fulltext_index_name', 'fulltext_index')
@@ -408,7 +408,7 @@ def generate_ambari_solr_migration_ini_file(options, accessor, protocol):
       config.set('atlas_collections', 'vertex_index_shards', coll_shard_map['vertex_index'])
     if 'vertex_index' in max_shards_map:
       config.set('atlas_collections', 'vertex_index_max_shards_per_node', max_shards_map['vertex_index'])
-    print 'Atlas Solr collections: fulltext_index, edge_index, vertex_index'
+    print('Atlas Solr collections: fulltext_index, edge_index, vertex_index')
     atlas_backup_path = None
     if options.backup_base_path:
       atlas_backup_path = os.path.join(options.backup_base_path, "atlas")
@@ -416,7 +416,7 @@ def generate_ambari_solr_migration_ini_file(options, accessor, protocol):
       atlas_backup_path = options.backup_atlas_base_path
     if atlas_backup_path is not None:
       config.set('atlas_collections', 'backup_path', atlas_backup_path)
-      print 'Atlas backup path: ' + atlas_backup_path
+      print('Atlas backup path: ' + atlas_backup_path)
     if options.atlas_hdfs_base_path:
       config.set('atlas_collections', 'hdfs_base_path', options.atlas_hdfs_base_path)
     elif options.hdfs_base_path:
@@ -426,7 +426,7 @@ def generate_ambari_solr_migration_ini_file(options, accessor, protocol):
 
   config.add_section('logsearch_collections')
   if "LOGSEARCH_SERVER" in installed_components:
-    print "Service detected: " + colors.OKGREEN + "LOGSEARCH" + colors.ENDC
+    print("Service detected: " + colors.OKGREEN + "LOGSEARCH" + colors.ENDC)
 
     logsearch_props = get_config_props(cluster_config, 'logsearch-properties')
 
@@ -437,19 +437,19 @@ def generate_ambari_solr_migration_ini_file(options, accessor, protocol):
     config.set('logsearch_collections', 'hadoop_logs_collection_name', logsearch_hadoop_logs_coll_name)
     config.set('logsearch_collections', 'audit_logs_collection_name', logsearch_audit_logs_coll_name)
     config.set('logsearch_collections', 'history_collection_name', 'history')
-    print 'Log Search Solr collections: {0}, {1}, history'.format(logsearch_hadoop_logs_coll_name, logsearch_audit_logs_coll_name)
+    print('Log Search Solr collections: {0}, {1}, history'.format(logsearch_hadoop_logs_coll_name, logsearch_audit_logs_coll_name))
   else:
     config.set('logsearch_collections', 'enabled', 'false')
 
   if security_enabled == 'true':
-    print "Kerberos: enabled"
+    print("Kerberos: enabled")
   else:
-    print "Kerberos: disabled"
+    print("Kerberos: disabled")
 
   with open(options.ini_file, 'w') as f:
     config.write(f)
 
-  print "Config file generation has finished " + colors.OKGREEN + "successfully" + colors.ENDC
+  print("Config file generation has finished " + colors.OKGREEN + "successfully" + colors.ENDC)
 
 def validate_inputs(options):
   errors=[]
@@ -500,10 +500,10 @@ if __name__=="__main__":
     errors = validate_inputs(options)
 
     if errors:
-      print 'Errors'
+      print('Errors')
       for error in errors:
-        print '- {0}'.format(error)
-      print ''
+        print('- {0}'.format(error))
+      print('')
       parser.print_help()
     else:
       protocol = 'https' if options.ssl else 'http'
@@ -511,8 +511,8 @@ if __name__=="__main__":
       try:
         generate_ambari_solr_migration_ini_file(options, accessor, protocol)
       except Exception as exc:
-        print traceback.format_exc()
-        print 'Config file generation ' + colors.FAIL + 'failed' + colors.ENDC
+        print(traceback.format_exc())
+        print('Config file generation ' + colors.FAIL + 'failed' + colors.ENDC)
   except KeyboardInterrupt:
-    print
+    print()
     sys.exit(128 + signal.SIGINT)

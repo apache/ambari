@@ -18,7 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-from ambari_commons.subprocess32 import call
+from ambari_commons.subprocess import call
 import sys
 import os
 import shutil
@@ -37,7 +37,7 @@ def build():
   cwd = os.getcwd()
   os.chdir(path)
 
-  print 'Executing make at location: %s ' % path
+  print('Executing make at location: %s ' % path)
 
   if sys.platform.startswith("win"):
     # Windows
@@ -50,7 +50,7 @@ def build():
   os.chdir(cwd)
 
   if returncode != 0:
-    print 'psutil build failed. Please find build output at: %s' % build_out_path
+    print('psutil build failed. Please find build output at: %s' % build_out_path)
   pass
 
 if __name__ == '__main__':

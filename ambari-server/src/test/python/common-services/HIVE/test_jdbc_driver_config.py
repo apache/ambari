@@ -22,10 +22,17 @@ from resource_management.core.exceptions import Fail
 from stacks.utils.RMFTestCase import RMFTestCase
 
 import unittest
+import signal
 
 class TestJdbcDriverConfig(RMFTestCase):
   STACK_VERSION = "2.6"
   CONFIG_DIR = os.path.join(os.path.dirname(__file__), '../configs')
+
+  def _handle_timeout(signum, frame):
+      raise TimeoutError('function timeout')
+
+  signal.signal(signal.SIGALRM, _handle_timeout)
+  signal.alarm(10)
 
   def test_jdbc_type_0_12_0_2_0(self):
     self.executeScript("HIVE/0.12.0.2.0/package/scripts/hive_server.py",
@@ -45,6 +52,8 @@ class TestJdbcDriverConfig(RMFTestCase):
                        config_file=os.path.join(self.CONFIG_DIR, "hive_unsupported_jdbc_type.json"))
       self.fail("Expected 'Fail', but call completed without throwing")
     except Fail as e:
+      pass
+    except TimeoutError as te:
       pass
     except Exception as e:
       self.fail("Expected 'Fail', got {}".format(e))

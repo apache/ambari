@@ -34,7 +34,7 @@ def setup_ranger_yarn():
                          action="create_on_execute",
                          owner=params.hdfs_user,
                          group=params.hdfs_user,
-                         mode=0755,
+                         mode=0o755,
                          recursive_chmod=True
       )
       params.HdfsResource("/ranger/audit/yarn",
@@ -42,7 +42,7 @@ def setup_ranger_yarn():
                          action="create_on_execute",
                          owner=params.yarn_user,
                          group=params.yarn_user,
-                         mode=0700,
+                         mode=0o700,
                          recursive_chmod=True
       )
       params.HdfsResource(None, action="execute")

@@ -79,27 +79,27 @@ class TestRangerKMS(RMFTestCase):
       owner = 'kms',
       group = 'kms',
       content = '<ranger>\n<enabled>{0}</enabled>\n</ranger>'.format(current_datetime),
-      mode = 0644
+      mode = 0o644
     )
 
     self.assertResourceCalled('Directory', '/etc/ranger/c1_kms',
       owner = 'kms',
       group = 'kms',
-      mode = 0775,
+      mode = 0o775,
       create_parents = True
     )
 
     self.assertResourceCalled('Directory', '/etc/ranger/c1_kms/policycache',
       owner = 'kms',
       group = 'kms',
-      mode = 0775,
+      mode = 0o775,
       create_parents = True
     )
 
     self.assertResourceCalled('File', '/etc/ranger/c1_kms/policycache/kms_c1_kms.json',
       owner = 'kms',
       group = 'kms',
-      mode = 0644
+      mode = 0o644
     )
 
     plugin_audit_properties_copy = {}
@@ -109,7 +109,7 @@ class TestRangerKMS(RMFTestCase):
       plugin_audit_properties_copy['xasecure.audit.destination.db.password'] = "crypted"
 
     self.assertResourceCalled('XmlConfig', 'ranger-kms-audit.xml',
-      mode = 0744,
+      mode = 0o744,
       owner = 'kms',
       group = 'kms',
       conf_dir = '/usr/hdp/current/ranger-kms/conf',
@@ -118,7 +118,7 @@ class TestRangerKMS(RMFTestCase):
     )
 
     self.assertResourceCalled('XmlConfig', 'ranger-kms-security.xml',
-      mode = 0744,
+      mode = 0o744,
       owner = 'kms',
       group = 'kms',
       conf_dir = '/usr/hdp/current/ranger-kms/conf',
@@ -134,7 +134,7 @@ class TestRangerKMS(RMFTestCase):
         ranger_kms_policymgr_ssl_copy[prop] = "crypted"
 
     self.assertResourceCalled('XmlConfig', 'ranger-policymgr-ssl.xml',
-      mode = 0744,
+      mode = 0o744,
       owner = 'kms',
       group = 'kms',
       conf_dir = '/usr/hdp/current/ranger-kms/conf',
@@ -143,13 +143,13 @@ class TestRangerKMS(RMFTestCase):
     )
 
     self.assertResourceCalled('Execute', ('/usr/hdp/current/ranger-kms/ranger_credential_helper.py', '-l', '/usr/hdp/current/ranger-kms/cred/lib/*', '-f', '/etc/ranger/c1_kms/cred.jceks', '-k', 'sslKeyStore', '-v', 'myKeyFilePassword', '-c', '1'),
-     environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+     environment = {'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},
       logoutput=True, 
       sudo=True
     )
 
     self.assertResourceCalled('Execute', ('/usr/hdp/current/ranger-kms/ranger_credential_helper.py', '-l', '/usr/hdp/current/ranger-kms/cred/lib/*', '-f', '/etc/ranger/c1_kms/cred.jceks', '-k', 'sslTrustStore', '-v', 'changeit', '-c', '1'),
-     environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+     environment = {'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},
       logoutput=True, 
       sudo=True
     )
@@ -158,14 +158,14 @@ class TestRangerKMS(RMFTestCase):
       owner = 'kms',
       group = 'kms',
       only_if = "test -e /etc/ranger/c1_kms/cred.jceks",
-      mode = 0640
+      mode = 0o640
     )
 
     self.assertResourceCalled('File', '/etc/ranger/c1_kms/.cred.jceks.crc',
       owner = 'kms',
       group = 'kms',
       only_if = "test -e /etc/ranger/c1_kms/.cred.jceks.crc",
-      mode = 0640
+      mode = 0o640
     )
     
     self.assertResourceCalled('HdfsResource', '/ranger/audit',
@@ -173,7 +173,7 @@ class TestRangerKMS(RMFTestCase):
                         action = ['create_on_execute'],
                         owner = 'hdfs',
                         group = 'hdfs',
-                        mode = 0755,
+                        mode = 0o755,
                         recursive_chmod = True,
                         user = 'hdfs',
                         security_enabled = False,
@@ -192,7 +192,7 @@ class TestRangerKMS(RMFTestCase):
                         action = ['create_on_execute'],
                         owner = 'kms',
                         group = 'kms',
-                        mode = 0750,
+                        mode = 0o750,
                         recursive_chmod = True,
                         user = 'hdfs',
                         security_enabled = False,
@@ -230,7 +230,7 @@ class TestRangerKMS(RMFTestCase):
 
     self.assertResourceCalled('File', '/tmp/jce_dir/UnlimitedJCEPolicyJDK7.zip',
       content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/UnlimitedJCEPolicyJDK7.zip'),
-      mode = 0644,
+      mode = 0o644,
     )
 
     self.assertResourceCalled('File', '/usr/jdk64/jdk1.7.0_45/jre/lib/security/local_policy.jar',
@@ -253,7 +253,7 @@ class TestRangerKMS(RMFTestCase):
     )
 
     self.assertResourceCalled('Execute', '/usr/hdp/current/ranger-kms/ranger-kms start',
-        environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+        environment = {'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},
         not_if = 'ps -ef | grep proc_rangerkms | grep -v grep',
         user = 'kms'
     )
@@ -270,7 +270,7 @@ class TestRangerKMS(RMFTestCase):
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', '/usr/hdp/current/ranger-kms/ranger-kms stop',
-        environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+        environment = {'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},
         user = 'kms'
     )
     self.assertResourceCalled('File', '/var/run/ranger_kms/rangerkms.pid',
@@ -302,11 +302,11 @@ class TestRangerKMS(RMFTestCase):
 
     self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
       content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/mysql-connector-java.jar'),
-      mode = 0644
+      mode = 0o644
     )
 
     self.assertResourceCalled('Directory', '/usr/hdp/current/ranger-kms/ews/lib',
-      mode = 0755
+      mode = 0o755
     )
 
     self.assertResourceCalled('Execute', ('cp', '--remove-destination', '/tmp/mysql-connector-java.jar',
@@ -316,7 +316,7 @@ class TestRangerKMS(RMFTestCase):
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/ews/webapp/lib/mysql-connector-java.jar',
-      mode = 0644
+      mode = 0o644
     )
 
     self.assertResourceCalled('ModifyPropertiesFile', '/usr/hdp/current/ranger-kms/install.properties',
@@ -331,7 +331,7 @@ class TestRangerKMS(RMFTestCase):
 
     self.assertResourceCalled('File', '/usr/lib/ambari-agent/DBConnectionVerification.jar',
       content=DownloadSource('http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar'),
-      mode=0644,
+      mode=0o644,
     )
 
     self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/ranger-kms/ews/webapp/lib/mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6401.ambari.apache.org:3306/rangerkms01\' rangerkms01 rangerkms01 com.mysql.jdbc.Driver',
@@ -339,7 +339,7 @@ class TestRangerKMS(RMFTestCase):
     )
 
     self.assertResourceCalled('Directory', '/usr/hdp/current/ranger-kms/ews/webapp/WEB-INF/classes/lib',
-      mode = 0755,
+      mode = 0o755,
       owner = 'kms',
       group = 'kms'
     )
@@ -351,7 +351,7 @@ class TestRangerKMS(RMFTestCase):
     )
 
     self.assertResourceCalled('File', '/etc/init.d/ranger-kms',
-      mode=0755,
+      mode=0o755,
     )
 
     self.assertResourceCalled('Directory', '/usr/hdp/current/ranger-kms/',
@@ -361,7 +361,7 @@ class TestRangerKMS(RMFTestCase):
     )
 
     self.assertResourceCalled('Directory', '/var/run/ranger_kms',
-      mode=0755,
+      mode=0o755,
       owner = 'kms',
       group = 'hadoop',
       cd_access = "a",
@@ -372,14 +372,14 @@ class TestRangerKMS(RMFTestCase):
       content = 'export JAVA_HOME=/usr/jdk64/jdk1.7.0_45',
       owner = 'kms',
       group = 'kms',
-      mode = 0755
+      mode = 0o755
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/conf/ranger-kms-env-piddir.sh',
       content = 'export RANGER_KMS_PID_DIR_PATH=/var/run/ranger_kms\nexport KMS_USER=kms',
       owner = 'kms',
       group = 'kms',
-      mode = 0755
+      mode = 0o755
     )
 
     self.assertResourceCalled('Directory', '/var/log/ranger/kms',
@@ -387,14 +387,14 @@ class TestRangerKMS(RMFTestCase):
       group = 'kms',
       cd_access = 'a',
       create_parents = True,
-      mode = 0755
+      mode = 0o755
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/conf/ranger-kms-env-logdir.sh',
       content = format("export RANGER_KMS_LOG_DIR=/var/log/ranger/kms"),
       owner = 'kms',
       group = 'kms',
-      mode=0755
+      mode=0o755
     )
 
     self.assertResourceCalled('Execute', ('ln', '-sf', '/usr/hdp/current/ranger-kms/ranger-kms', '/usr/bin/ranger-kms'),
@@ -404,7 +404,7 @@ class TestRangerKMS(RMFTestCase):
     )
 
     self.assertResourceCalled('File', '/usr/bin/ranger-kms',
-      mode=0755
+      mode=0o755
     )
 
     self.assertResourceCalled('Execute', ('ln', '-sf', '/usr/hdp/current/ranger-kms/ranger-kms', '/usr/bin/ranger-kms-services.sh'),
@@ -414,7 +414,7 @@ class TestRangerKMS(RMFTestCase):
     )
 
     self.assertResourceCalled('File', '/usr/bin/ranger-kms-services.sh',
-      mode=0755
+      mode=0o755
     )
 
     self.assertResourceCalled('Execute', ('ln', '-sf', '/usr/hdp/current/ranger-kms/ranger-kms-initd', '/usr/hdp/current/ranger-kms/ranger-kms-services.sh'),
@@ -424,17 +424,17 @@ class TestRangerKMS(RMFTestCase):
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/ranger-kms-services.sh',
-      mode=0755
+      mode=0o755
     )
 
     self.assertResourceCalled('Directory', '/var/log/ranger/kms',
       owner = 'kms',
       group = 'kms',
-      mode = 0775
+      mode = 0o775
     )
 
     self.assertResourceCalled('Execute', ('/usr/jdk64/jdk1.7.0_45/bin/java', '-cp', '/usr/hdp/current/ranger-kms/cred/lib/*', 'org.apache.ranger.credentialapi.buildks', 'create', 'ranger.ks.jdbc.password', '-value', 'rangerkms01', '-provider', 'jceks://file/etc/ranger/kms/rangerkms.jceks'),
-      environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+      environment = {'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},
       logoutput=True,
       sudo=True
     )
@@ -443,18 +443,18 @@ class TestRangerKMS(RMFTestCase):
       owner = 'kms',
       group = 'kms',
       only_if = 'test -e /etc/ranger/kms/rangerkms.jceks',
-      mode = 0640
+      mode = 0o640
     )
 
     self.assertResourceCalled('File', '/etc/ranger/kms/.rangerkms.jceks.crc',
       owner = 'kms',
       group = 'kms',
       only_if = 'test -e /etc/ranger/kms/.rangerkms.jceks.crc',
-      mode = 0640
+      mode = 0o640
     )
 
     self.assertResourceCalled('Execute', ('/usr/jdk64/jdk1.7.0_45/bin/java', '-cp', '/usr/hdp/current/ranger-kms/cred/lib/*', 'org.apache.ranger.credentialapi.buildks', 'create', 'ranger.ks.masterkey.password', '-value', 'StrongPassword01', '-provider', 'jceks://file/etc/ranger/kms/rangerkms.jceks'),
-      environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+      environment = {'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},
       logoutput=True,
       sudo=True
     )
@@ -463,14 +463,14 @@ class TestRangerKMS(RMFTestCase):
       owner = 'kms',
       group = 'kms',
       only_if = 'test -e /etc/ranger/kms/rangerkms.jceks',
-      mode = 0640
+      mode = 0o640
     )
 
     self.assertResourceCalled('File', '/etc/ranger/kms/.rangerkms.jceks.crc',
       owner = 'kms',
       group = 'kms',
       only_if = 'test -e /etc/ranger/kms/.rangerkms.jceks.crc',
-      mode = 0640
+      mode = 0o640
     )
 
     dbks_site_copy = {}
@@ -480,7 +480,7 @@ class TestRangerKMS(RMFTestCase):
         dbks_site_copy[prop] = "_"
 
     self.assertResourceCalled('XmlConfig', 'dbks-site.xml',
-      mode=0644,
+      mode=0o644,
       owner = 'kms',
       group = 'kms',
       conf_dir = '/usr/hdp/current/ranger-kms/conf',
@@ -489,7 +489,7 @@ class TestRangerKMS(RMFTestCase):
     )
 
     self.assertResourceCalled('XmlConfig', 'ranger-kms-site.xml',
-      mode = 0644,
+      mode = 0o644,
       owner = 'kms',
       group = 'kms',
       conf_dir = '/usr/hdp/current/ranger-kms/conf',
@@ -498,7 +498,7 @@ class TestRangerKMS(RMFTestCase):
     )
 
     self.assertResourceCalled('XmlConfig', 'kms-site.xml',
-      mode = 0644,
+      mode = 0o644,
       owner = 'kms',
       group = 'kms',
       conf_dir = '/usr/hdp/current/ranger-kms/conf',
@@ -507,7 +507,7 @@ class TestRangerKMS(RMFTestCase):
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/conf/kms-log4j.properties',
-      mode = 0644,
+      mode = 0o644,
       owner = 'kms',
       group = 'kms',
       content = InlineTemplate(self.getConfig()['configurations']['kms-log4j']['content'])
@@ -554,27 +554,27 @@ class TestRangerKMS(RMFTestCase):
       owner = 'kms',
       group = 'kms',
       content = '<ranger>\n<enabled>{0}</enabled>\n</ranger>'.format(current_datetime),
-      mode = 0644
+      mode = 0o644
     )
 
     self.assertResourceCalled('Directory', '/etc/ranger/c1_kms',
       owner = 'kms',
       group = 'kms',
-      mode = 0775,
+      mode = 0o775,
       create_parents = True
     )
 
     self.assertResourceCalled('Directory', '/etc/ranger/c1_kms/policycache',
       owner = 'kms',
       group = 'kms',
-      mode = 0775,
+      mode = 0o775,
       create_parents = True
     )
 
     self.assertResourceCalled('File', '/etc/ranger/c1_kms/policycache/kms_c1_kms.json',
       owner = 'kms',
       group = 'kms',
-      mode = 0644
+      mode = 0o644
     )
 
     plugin_audit_properties_copy = {}
@@ -584,7 +584,7 @@ class TestRangerKMS(RMFTestCase):
       plugin_audit_properties_copy['xasecure.audit.destination.db.password'] = "crypted"
 
     self.assertResourceCalled('XmlConfig', 'ranger-kms-audit.xml',
-      mode = 0744,
+      mode = 0o744,
       owner = 'kms',
       group = 'kms',
       conf_dir = '/usr/hdp/current/ranger-kms/conf',
@@ -593,7 +593,7 @@ class TestRangerKMS(RMFTestCase):
     )
 
     self.assertResourceCalled('XmlConfig', 'ranger-kms-security.xml',
-      mode = 0744,
+      mode = 0o744,
       owner = 'kms',
       group = 'kms',
       conf_dir = '/usr/hdp/current/ranger-kms/conf',
@@ -609,7 +609,7 @@ class TestRangerKMS(RMFTestCase):
         ranger_kms_policymgr_ssl_copy[prop] = "crypted"
 
     self.assertResourceCalled('XmlConfig', 'ranger-policymgr-ssl.xml',
-      mode = 0744,
+      mode = 0o744,
       owner = 'kms',
       group = 'kms',
       conf_dir = '/usr/hdp/current/ranger-kms/conf',
@@ -618,13 +618,13 @@ class TestRangerKMS(RMFTestCase):
     )
 
     self.assertResourceCalled('Execute', ('/usr/hdp/current/ranger-kms/ranger_credential_helper.py', '-l', '/usr/hdp/current/ranger-kms/cred/lib/*', '-f', '/etc/ranger/c1_kms/cred.jceks', '-k', 'sslKeyStore', '-v', 'myKeyFilePassword', '-c', '1'),
-     environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+     environment = {'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},
       logoutput=True, 
       sudo=True
     )
 
     self.assertResourceCalled('Execute', ('/usr/hdp/current/ranger-kms/ranger_credential_helper.py', '-l', '/usr/hdp/current/ranger-kms/cred/lib/*', '-f', '/etc/ranger/c1_kms/cred.jceks', '-k', 'sslTrustStore', '-v', 'changeit', '-c', '1'),
-     environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+     environment = {'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},
       logoutput=True, 
       sudo=True
     )
@@ -633,14 +633,14 @@ class TestRangerKMS(RMFTestCase):
       owner = 'kms',
       group = 'kms',
       only_if = 'test -e /etc/ranger/c1_kms/cred.jceks',
-      mode = 0640
+      mode = 0o640
     )
 
     self.assertResourceCalled('File', '/etc/ranger/c1_kms/.cred.jceks.crc',
       owner = 'kms',
       group = 'kms',
       only_if = 'test -e /etc/ranger/c1_kms/.cred.jceks.crc',
-      mode = 0640
+      mode = 0o640
     )
 
     self.assertResourceCalled('HdfsResource', '/ranger/audit',
@@ -648,7 +648,7 @@ class TestRangerKMS(RMFTestCase):
                         action = ['create_on_execute'],
                         owner = 'hdfs',
                         group = 'hdfs',
-                        mode = 0755,
+                        mode = 0o755,
                         recursive_chmod = True,
                         user = 'hdfs',
                         security_enabled = True,
@@ -667,7 +667,7 @@ class TestRangerKMS(RMFTestCase):
                         action = ['create_on_execute'],
                         owner = 'kms',
                         group = 'kms',
-                        mode = 0750,
+                        mode = 0o750,
                         recursive_chmod = True,
                         user = 'hdfs',
                         security_enabled = True,
@@ -705,7 +705,7 @@ class TestRangerKMS(RMFTestCase):
 
     self.assertResourceCalled('File', '/tmp/jce_dir/UnlimitedJCEPolicyJDK7.zip',
       content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/UnlimitedJCEPolicyJDK7.zip'),
-      mode = 0644,
+      mode = 0o644,
     )
 
     self.assertResourceCalled('File', '/usr/jdk64/jdk1.7.0_45/jre/lib/security/local_policy.jar',
@@ -728,7 +728,7 @@ class TestRangerKMS(RMFTestCase):
     )
 
     self.assertResourceCalled('Execute', '/usr/hdp/current/ranger-kms/ranger-kms start',
-        environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+        environment = {'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},
         not_if = 'ps -ef | grep proc_rangerkms | grep -v grep',
         user = 'kms'
     )
@@ -760,11 +760,11 @@ class TestRangerKMS(RMFTestCase):
 
     self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
       content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/mysql-connector-java.jar'),
-      mode = 0644
+      mode = 0o644
     )
 
     self.assertResourceCalled('Directory', '/usr/hdp/current/ranger-kms/ews/lib',
-      mode = 0755
+      mode = 0o755
     )
 
     self.assertResourceCalled('Execute', ('cp', '--remove-destination', '/tmp/mysql-connector-java.jar',
@@ -774,7 +774,7 @@ class TestRangerKMS(RMFTestCase):
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/ews/webapp/lib/mysql-connector-java.jar',
-      mode = 0644
+      mode = 0o644
     )
 
     self.assertResourceCalled('ModifyPropertiesFile', '/usr/hdp/current/ranger-kms/install.properties',
@@ -789,7 +789,7 @@ class TestRangerKMS(RMFTestCase):
 
     self.assertResourceCalled('File', '/usr/lib/ambari-agent/DBConnectionVerification.jar',
       content=DownloadSource('http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar'),
-      mode=0644,
+      mode=0o644,
     )
 
     self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/ranger-kms/ews/webapp/lib/mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6401.ambari.apache.org:3306/rangerkms01\' rangerkms01 rangerkms01 com.mysql.jdbc.Driver',
@@ -797,7 +797,7 @@ class TestRangerKMS(RMFTestCase):
     )
 
     self.assertResourceCalled('Directory', '/usr/hdp/current/ranger-kms/ews/webapp/WEB-INF/classes/lib',
-      mode = 0755,
+      mode = 0o755,
       owner = 'kms',
       group = 'kms'
     )
@@ -809,7 +809,7 @@ class TestRangerKMS(RMFTestCase):
     )
 
     self.assertResourceCalled('File', '/etc/init.d/ranger-kms',
-      mode=0755,
+      mode=0o755,
     )
 
     self.assertResourceCalled('Directory', '/usr/hdp/current/ranger-kms/',
@@ -819,7 +819,7 @@ class TestRangerKMS(RMFTestCase):
     )
 
     self.assertResourceCalled('Directory', '/var/run/ranger_kms',
-      mode=0755,
+      mode=0o755,
       owner = 'kms',
       group = 'hadoop',
       cd_access = "a",
@@ -830,14 +830,14 @@ class TestRangerKMS(RMFTestCase):
       content = 'export JAVA_HOME=/usr/jdk64/jdk1.7.0_45',
       owner = 'kms',
       group = 'kms',
-      mode = 0755
+      mode = 0o755
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/conf/ranger-kms-env-piddir.sh',
       content = 'export RANGER_KMS_PID_DIR_PATH=/var/run/ranger_kms\nexport KMS_USER=kms',
       owner = 'kms',
       group = 'kms',
-      mode = 0755
+      mode = 0o755
     )
 
     self.assertResourceCalled('Directory', '/var/log/ranger/kms',
@@ -845,14 +845,14 @@ class TestRangerKMS(RMFTestCase):
       group = 'kms',
       cd_access = 'a',
       create_parents = True,
-      mode = 0755
+      mode = 0o755
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/conf/ranger-kms-env-logdir.sh',
       content = format("export RANGER_KMS_LOG_DIR=/var/log/ranger/kms"),
       owner = 'kms',
       group = 'kms',
-      mode=0755
+      mode=0o755
     )
 
     self.assertResourceCalled('Execute', ('ln', '-sf', '/usr/hdp/current/ranger-kms/ranger-kms', '/usr/bin/ranger-kms'),
@@ -862,7 +862,7 @@ class TestRangerKMS(RMFTestCase):
     )
 
     self.assertResourceCalled('File', '/usr/bin/ranger-kms',
-      mode=0755
+      mode=0o755
     )
 
     self.assertResourceCalled('Execute', ('ln', '-sf', '/usr/hdp/current/ranger-kms/ranger-kms', '/usr/bin/ranger-kms-services.sh'),
@@ -872,7 +872,7 @@ class TestRangerKMS(RMFTestCase):
     )
 
     self.assertResourceCalled('File', '/usr/bin/ranger-kms-services.sh',
-      mode=0755
+      mode=0o755
     )
 
     self.assertResourceCalled('Execute', ('ln', '-sf', '/usr/hdp/current/ranger-kms/ranger-kms-initd', '/usr/hdp/current/ranger-kms/ranger-kms-services.sh'),
@@ -882,17 +882,17 @@ class TestRangerKMS(RMFTestCase):
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/ranger-kms-services.sh',
-      mode=0755
+      mode=0o755
     )
 
     self.assertResourceCalled('Directory', '/var/log/ranger/kms',
       owner = 'kms',
       group = 'kms',
-      mode = 0775
+      mode = 0o775
     )
 
     self.assertResourceCalled('Execute', ('/usr/jdk64/jdk1.7.0_45/bin/java', '-cp', '/usr/hdp/current/ranger-kms/cred/lib/*', 'org.apache.ranger.credentialapi.buildks', 'create', 'ranger.ks.jdbc.password', '-value', 'rangerkms01', '-provider', 'jceks://file/etc/ranger/kms/rangerkms.jceks'),
-      environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+      environment = {'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},
       logoutput=True,
       sudo=True
     )
@@ -901,18 +901,18 @@ class TestRangerKMS(RMFTestCase):
       owner = 'kms',
       group = 'kms',
       only_if = 'test -e /etc/ranger/kms/rangerkms.jceks',
-      mode = 0640
+      mode = 0o640
     )
 
     self.assertResourceCalled('File', '/etc/ranger/kms/.rangerkms.jceks.crc',
       owner = 'kms',
       group = 'kms',
       only_if = 'test -e /etc/ranger/kms/.rangerkms.jceks.crc',
-      mode = 0640
+      mode = 0o640
     )
 
     self.assertResourceCalled('Execute', ('/usr/jdk64/jdk1.7.0_45/bin/java', '-cp', '/usr/hdp/current/ranger-kms/cred/lib/*', 'org.apache.ranger.credentialapi.buildks', 'create', 'ranger.ks.masterkey.password', '-value', 'StrongPassword01', '-provider', 'jceks://file/etc/ranger/kms/rangerkms.jceks'),
-      environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+      environment = {'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},
       logoutput=True,
       sudo=True
     )
@@ -921,14 +921,14 @@ class TestRangerKMS(RMFTestCase):
       owner = 'kms',
       group = 'kms',
       only_if = 'test -e /etc/ranger/kms/rangerkms.jceks',
-      mode = 0640
+      mode = 0o640
     )
 
     self.assertResourceCalled('File', '/etc/ranger/kms/.rangerkms.jceks.crc',
       owner = 'kms',
       group = 'kms',
       only_if = 'test -e /etc/ranger/kms/.rangerkms.jceks.crc',
-      mode = 0640
+      mode = 0o640
     )
 
     dbks_site_copy = {}
@@ -938,7 +938,7 @@ class TestRangerKMS(RMFTestCase):
         dbks_site_copy[prop] = "_"
 
     self.assertResourceCalled('XmlConfig', 'dbks-site.xml',
-      mode=0644,
+      mode=0o644,
       owner = 'kms',
       group = 'kms',
       conf_dir = '/usr/hdp/current/ranger-kms/conf',
@@ -947,7 +947,7 @@ class TestRangerKMS(RMFTestCase):
     )
 
     self.assertResourceCalled('XmlConfig', 'ranger-kms-site.xml',
-      mode = 0644,
+      mode = 0o644,
       owner = 'kms',
       group = 'kms',
       conf_dir = '/usr/hdp/current/ranger-kms/conf',
@@ -956,7 +956,7 @@ class TestRangerKMS(RMFTestCase):
     )
 
     self.assertResourceCalled('XmlConfig', 'kms-site.xml',
-      mode = 0644,
+      mode = 0o644,
       owner = 'kms',
       group = 'kms',
       conf_dir = '/usr/hdp/current/ranger-kms/conf',
@@ -965,7 +965,7 @@ class TestRangerKMS(RMFTestCase):
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/conf/kms-log4j.properties',
-      mode = 0644,
+      mode = 0o644,
       owner = 'kms',
       group = 'kms',
       content = InlineTemplate(self.getConfig()['configurations']['kms-log4j']['content'])
@@ -977,6 +977,6 @@ class TestRangerKMS(RMFTestCase):
       conf_dir = '/usr/hdp/current/ranger-kms/conf',
       configurations = self.getConfig()['configurations']['core-site'],
       configuration_attributes = self.getConfig()['configurationAttributes']['core-site'],
-      mode = 0644
+      mode = 0o644
     )
 

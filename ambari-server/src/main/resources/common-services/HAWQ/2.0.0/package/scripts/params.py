@@ -48,14 +48,14 @@ hdfs_superuser = config['configurations']['hadoop-env']['hdfs_user']
 user_group = config['configurations']['cluster-env']['user_group']
 
 # Convert hawq_password to unicode for crypt() function in case user enters a numeric password
-hawq_password = unicode(config['configurations']['hawq-env']['hawq_password'])
+hawq_password = str(config['configurations']['hawq-env']['hawq_password'])
 
 
 # HAWQ Hostnames
 hawqmaster_host = __get_component_host('hawqmaster_hosts')
 hawqstandby_host = __get_component_host('hawqstandby_hosts')
 hawqsegment_hosts = sorted(default('/clusterHostInfo/hawqsegment_hosts', []))
-hawq_master_hosts = [host for host in hawqmaster_host, hawqstandby_host if host]
+hawq_master_hosts = [host for host in (hawqmaster_host, hawqstandby_host) if host]
 hawq_all_hosts = sorted(set(hawq_master_hosts + hawqsegment_hosts))
 
 
@@ -94,14 +94,14 @@ HdfsResource = functools.partial(HdfsResource,
 File = functools.partial(File,
                          owner=hawq_constants.hawq_user,
                          group=hawq_constants.hawq_group,
-                         mode=0644)
+                         mode=0o644)
 
 # XMLConfig partial function
 XmlConfig = functools.partial(XmlConfig,
                               conf_dir=hawq_constants.hawq_config_dir,
                               owner=hawq_constants.hawq_user,
                               group=hawq_constants.hawq_group,
-                              mode=0644)
+                              mode=0o644)
 
 # For service Check
 is_pxf_installed = __get_component_host("pxf_hosts") is not None

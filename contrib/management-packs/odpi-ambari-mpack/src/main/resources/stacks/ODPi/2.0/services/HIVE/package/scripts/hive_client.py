@@ -23,14 +23,14 @@ from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
-from hive import hive
+from .hive import hive
 from ambari_commons.os_family_impl import OsFamilyImpl
 from ambari_commons import OSConst
 from resource_management.core.exceptions import ClientComponentHasNoStatus
 
 class HiveClient(Script):
   def install(self, env):
-    import params
+    from . import params
     self.install_packages(env)
     self.configure(env)
 
@@ -38,7 +38,7 @@ class HiveClient(Script):
     raise ClientComponentHasNoStatus()
 
   def configure(self, env):
-    import params
+    from . import params
     env.set_params(params)
     hive(name='client')
 
@@ -56,7 +56,7 @@ class HiveClientDefault(HiveClient):
   def pre_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing Hive client Stack Upgrade pre-restart")
 
-    import params
+    from . import params
     env.set_params(params)
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
       stack_select.select("hadoop-client", params.version)

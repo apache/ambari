@@ -46,7 +46,7 @@ class ApplicationMetricMap:
 
   def put_metric(self, application_id, metric_id_to_value_map, timestamp):
     with self.lock:
-      for metric_name, value in metric_id_to_value_map.iteritems():
+      for metric_name, value in metric_id_to_value_map.items():
       
         metric_map = self.app_metric_map.get(application_id)
         if not metric_map:
@@ -79,7 +79,7 @@ class ApplicationMetricMap:
       local_metric_map = {}
   
       if application_id:
-        if self.app_metric_map.has_key(application_id):
+        if application_id in self.app_metric_map:
           local_metric_map = { application_id : self.app_metric_map[application_id] }
         else:
           logger.info("application_id: {0}, not present in the map.".format(application_id))
@@ -87,8 +87,8 @@ class ApplicationMetricMap:
         local_metric_map = self.app_metric_map.copy()
       pass
   
-      for appId, metrics in local_metric_map.iteritems():
-        for metricId, metricData in dict(metrics).iteritems():
+      for appId, metrics in local_metric_map.items():
+        for metricId, metricData in dict(metrics).items():
           # Create a timeline metric object
           result_instanceid = ""
           if set_instanceid:
@@ -115,14 +115,14 @@ class ApplicationMetricMap:
 
   def get_start_time(self, app_id, metric_id):
     with self.lock:
-      if self.cached_metric_map.has_key(app_id):
-        if self.cached_metric_map.get(app_id).has_key(metric_id):
+      if app_id in self.cached_metric_map:
+        if metric_id in self.cached_metric_map.get(app_id):
           metrics = self.cached_metric_map.get(app_id).get(metric_id)
-          return min(metrics.iterkeys())
-      if self.app_metric_map.has_key(app_id):
-        if self.app_metric_map.get(app_id).has_key(metric_id):
+          return min(metrics.keys())
+      if app_id in self.app_metric_map:
+        if metric_id in self.app_metric_map.get(app_id):
           metrics = self.app_metric_map.get(app_id).get(metric_id)
-          return min(metrics.iterkeys())
+          return min(metrics.keys())
   pass
 
   def format_app_id(self, app_id, instance_id = None):
@@ -163,11 +163,11 @@ class ApplicationMetricMap:
       # check if needs to be cached
       # in case there can't be any more datapoints in last minute just post the metrics,
       # otherwise need to cut off and cache the last uncompleted minute
-      max_time = max(metricData.iterkeys())
+      max_time = max(metricData.keys())
       if max_time % 60000 <= 60000 - 10000:
         max_minute = max_time / 60000
         metric_data_copy = metricData.copy()
-        for time,value in metric_data_copy.iteritems():
+        for time,value in metric_data_copy.items():
           if time / 60000 == max_minute:
             cached_metric_map = self.cached_metric_map.get(appId)
             if not cached_metric_map:

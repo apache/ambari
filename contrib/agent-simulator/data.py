@@ -89,7 +89,7 @@ class Data:
                  cluster_name, state, agent_number,
                  service_server_num, ambari_server_num, create_time
         """
-        print "(cluster_name, state, agent_number, service_server_num, ambari_server_num, create_time)"
+        print("(cluster_name, state, agent_number, service_server_num, ambari_server_num, create_time)")
 
         json_data = self._load_data()
         for cluster in json_data["clusters"]:
@@ -101,4 +101,4 @@ class Data:
                 agent_number += len(agent_vm["docker_list"])
             service_server_num = len(cluster["service_server_vm_list"])
             ambari_server_num = len(cluster["ambari_server_vm"])
-            print cluster_name, state, agent_number, service_server_num, ambari_server_num, create_time
+            print(cluster_name, state, agent_number, service_server_num, ambari_server_num, create_time)

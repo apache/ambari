@@ -33,14 +33,14 @@ falcon_data_dir = "."
 falcon_home = None
 falcon_log_dir = "."
 
-if os.environ.has_key("HADOOP_HOME"):
+if "HADOOP_HOME" in os.environ:
   stack_root = os.path.abspath(os.path.join(os.environ["HADOOP_HOME"], ".."))
 
-if os.environ.has_key("FALCON_CONF_DIR"):
+if "FALCON_CONF_DIR" in os.environ:
   falcon_conf_dir = os.environ["FALCON_CONF_DIR"]
-if os.environ.has_key("FALCON_DATA_DIR"):
+if "FALCON_DATA_DIR" in os.environ:
   falcon_data_dir = os.environ["FALCON_DATA_DIR"]
-if os.environ.has_key("FALCON_HOME"):
+if "FALCON_HOME" in os.environ:
   falcon_home = os.environ["FALCON_HOME"]
-if os.environ.has_key("FALCON_LOG_DIR"):
+if "FALCON_LOG_DIR" in os.environ:
   falcon_log_dir = os.environ["FALCON_LOG_DIR"]

@@ -158,11 +158,11 @@ def execute(configurations={}, parameters={}, host_name=None):
       result_code = 'OK'
       total_time = time.time() - start_time
       label = OK_MESSAGE.format(total_time, port)
-    except Exception, exception:
+    except Exception as exception:
       result_code = 'CRITICAL'
       label = CRITICAL_MESSAGE.format(host_name, port, str(exception))
 
-  except Exception, e:
+  except Exception as e:
     label = str(e)
     result_code = 'UNKNOWN'
 

@@ -97,15 +97,15 @@ def oozie_service(action = 'start', upgrade_type=None):
 
     if upgrade_type is None:
       if not os.path.isfile(path_to_jdbc) and params.jdbc_driver_name == "org.postgresql.Driver":
-        print format("ERROR: jdbc file {target} is unavailable. Please, follow next steps:\n" \
+        print(format("ERROR: jdbc file {target} is unavailable. Please, follow next steps:\n" \
           "1) Download postgresql-9.0-801.jdbc4.jar.\n2) Create needed directory: mkdir -p {oozie_home}/libserver/\n" \
           "3) Copy postgresql-9.0-801.jdbc4.jar to newly created dir: cp /path/to/jdbc/postgresql-9.0-801.jdbc4.jar " \
           "{oozie_home}/libserver/\n4) Copy postgresql-9.0-801.jdbc4.jar to libext: cp " \
-          "/path/to/jdbc/postgresql-9.0-801.jdbc4.jar {oozie_home}/libext/\n")
+          "/path/to/jdbc/postgresql-9.0-801.jdbc4.jar {oozie_home}/libext/\n"))
         exit(1)
 
       if db_connection_check_command:
-        sudo.chmod(params.check_db_connection_jar, 0755)
+        sudo.chmod(params.check_db_connection_jar, 0o755)
         Execute( db_connection_check_command, 
                  tries=5, 
                  try_sleep=10,
@@ -134,7 +134,7 @@ def oozie_service(action = 'start', upgrade_type=None):
         params.HdfsResource(format("{hdfs_share_dir}/lib/spark/hive-site.xml"),
                             action="create_on_execute",
                             type = 'file',
-                            mode=0444,
+                            mode=0o444,
                             owner=params.oozie_user,
                             group=params.user_group,
                             source=format("{hive_conf_dir}/hive-site.xml"),
@@ -160,7 +160,7 @@ def oozie_service(action = 'start', upgrade_type=None):
         params.HdfsResource(format("{oozie_hdfs_user_dir}/share"),
                              type="directory",
                              action="create_on_execute",
-                             mode=0755,
+                             mode=0o755,
                              recursive_chmod=True,
         )
         params.HdfsResource(None, action="execute")

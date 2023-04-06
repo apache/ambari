@@ -196,12 +196,12 @@ class HeartbeatThread(threading.Thread):
     # exitstatus = 0 (OK - Default)
     # exitstatus = 1 (Registration failed because different version of agent and server)
     exitstatus = 0
-    if 'exitstatus' in response.keys():
+    if 'exitstatus' in list(response.keys()):
       exitstatus = int(response['exitstatus'])
 
     if exitstatus != 0:
       # log - message, which will be printed to agents log
-      if 'log' in response.keys():
+      if 'log' in list(response.keys()):
         error_message = "Registration failed due to: {0}".format(response['log'])
       else:
         error_message = "Registration failed"

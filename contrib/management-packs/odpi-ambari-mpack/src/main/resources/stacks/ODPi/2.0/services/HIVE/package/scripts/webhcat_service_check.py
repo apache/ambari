@@ -17,7 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 
 from resource_management import *
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
@@ -28,7 +28,7 @@ import time
 def webhcat_service_check():
   Logger.info("Webhcat smoke test - service status")
 
-  import params
+  from . import params
   # AMBARI-11633 [WinTP2] Webhcat service check fails
   # Hive doesn't pass the environment variables correctly to child processes, which fails the smoke test.
   # Reducing the amount of URLs checked to the minimum required.
@@ -55,7 +55,7 @@ def webhcat_service_check():
 
     try:
       # execute the query for the JSON that includes WebHCat status
-      url_response = urllib2.urlopen(url_request, timeout=30)
+      url_response = urllib.request.urlopen(url_request, timeout=30)
 
       status = url_response.getcode()
       response = url_response.read()
@@ -63,7 +63,7 @@ def webhcat_service_check():
       if status != 200:
         Logger.warning("Webhcat service check status: {0}".format(status))
       Logger.info("Webhcat service check response: {0}".format(response))
-    except urllib2.HTTPError as he:
+    except urllib.error.HTTPError as he:
       raise Fail("Webhcat check {0} failed: {1}".format(url_request, he.msg))
     finally:
       if url_response is not None:
@@ -75,10 +75,10 @@ def webhcat_service_check():
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def webhcat_service_check():
-  import params
+  from . import params
   File(format("{tmp_dir}/templetonSmoke.sh"),
        content= StaticFile('templetonSmoke.sh'),
-       mode=0755
+       mode=0o755
   )
 
   if params.security_enabled:

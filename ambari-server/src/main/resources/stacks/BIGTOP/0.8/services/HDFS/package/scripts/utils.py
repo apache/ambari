@@ -104,7 +104,7 @@ def service(action=None, name=None, user=None, create_pid_dir=False,
 
 
   hadoop_env_exports_str = ''
-  for exp in hadoop_env_exports.items():
+  for exp in list(hadoop_env_exports.items()):
     hadoop_env_exports_str += "export {0}={1} && ".format(exp[0], exp[1])
 
   hadoop_daemon = format(

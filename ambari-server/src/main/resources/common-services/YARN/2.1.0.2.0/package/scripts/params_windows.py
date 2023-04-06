@@ -25,7 +25,7 @@ from resource_management.libraries.functions.format import format
 from resource_management.libraries import functions
 from resource_management.libraries.functions import is_empty
 import os
-from status_params import *
+from .status_params import *
 
 # server configurations
 config = Script.get_config()

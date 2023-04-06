@@ -29,20 +29,20 @@ def setup_logfeeder():
   import params
 
   Directory([params.logfeeder_log_dir, params.logfeeder_pid_dir, params.logfeeder_checkpoint_folder],
-            mode=0755,
+            mode=0o755,
             cd_access='a',
             create_parents=True
             )
 
   Directory([params.logfeeder_dir, params.logsearch_logfeeder_conf],
-            mode=0755,
+            mode=0o755,
             cd_access='a',
             create_parents=True,
             recursive_ownership=True
             )
 
   File(format("{logfeeder_log_dir}/{logfeeder_log}"),
-       mode=0644,
+       mode=0o644,
        content=''
        )
 
@@ -63,21 +63,21 @@ def setup_logfeeder():
   else:
     Directory(params.logsearch_logfeeder_keys_folder,
               cd_access='a',
-              mode=0755,
+              mode=0o755,
               owner=params.logsearch_user,
               group=params.user_group
               )
    
     File(format("{logsearch_logfeeder_keys_folder}/ks_pass.txt"),
          content=params.logfeeder_keystore_password,
-         mode=0600,
+         mode=0o600,
          owner=params.logsearch_user,
          group=params.user_group
          )
 
     File(format("{logsearch_logfeeder_keys_folder}/ts_pass.txt"),
          content=params.logfeeder_truststore_password,
-         mode=0600,
+         mode=0o600,
          owner=params.logsearch_user,
          group=params.user_group
          )
@@ -88,7 +88,7 @@ def setup_logfeeder():
 
   File(format("{logsearch_logfeeder_conf}/logfeeder-env.sh"),
        content=InlineTemplate(params.logfeeder_env_content),
-       mode=0755
+       mode=0o755
        )
 
   File(format("{logsearch_logfeeder_conf}/log4j.xml"),

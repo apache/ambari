@@ -140,7 +140,7 @@ def __update_limits_file():
 
   # Generate limits for hawq user
   limits_file_content = "#### HAWQ Limits Parameters  ###########\n"
-  for key, value in params.hawq_limits.iteritems():
+  for key, value in params.hawq_limits.items():
     if not __valid_input(value):
       raise Exception("Value {0} for parameter {1} contains non-numeric characters which are not allowed (except whitespace), please fix the value and retry".format(value, key))
     """
@@ -167,7 +167,7 @@ def __convert_sysctl_dict_to_text():
   """
   import params
   sysctl_file_content = "### HAWQ System Parameters ###########\n"
-  for key, value in params.hawq_sysctl.iteritems():
+  for key, value in params.hawq_sysctl.items():
     if not __valid_input(value):
       raise Exception("Value {0} for parameter {1} contains non-numeric characters which are not allowed (except whitespace), please fix the value and retry".format(value, key))
     sysctl_file_content += "{0} = {1}\n".format(key, value)
@@ -292,7 +292,7 @@ def start_component(component_name, port, data_dir):
                           owner=data_dir_owner,
                           group=hawq_constants.hawq_group,
                           recursive_chown=True,
-                          mode=0755)
+                          mode=0o755)
       params.HdfsResource(None, action="execute")
 
   options_str = "{0} -a -v".format(component_name)

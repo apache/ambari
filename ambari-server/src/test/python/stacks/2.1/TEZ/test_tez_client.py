@@ -40,7 +40,7 @@ class TestTezClient(RMFTestCase):
     )
 
     self.assertResourceCalled('Directory', '/etc/tez',
-      mode = 0755
+      mode = 0o755
     )
 
     self.assertResourceCalled('Directory', '/etc/tez/conf',
@@ -55,13 +55,13 @@ class TestTezClient(RMFTestCase):
       conf_dir = '/etc/tez/conf',
       configurations = self.getConfig()['configurations']['tez-site'],
       configuration_attributes = self.getConfig()['configurationAttributes']['tez-site'],
-      mode = 0664
+      mode = 0o664
     )
 
     self.assertResourceCalled('File', '/etc/tez/conf/tez-env.sh',
       owner = 'tez',
       content = InlineTemplate(self.getConfig()['configurations']['tez-env']['content']),
-      mode=0555
+      mode=0o555
     )
 
     self.assertNoMoreResources()

@@ -36,7 +36,7 @@ def druid(upgrade_type=None, nodeType=None):
   File(format("{params.druid_conf_dir}/druid-env.sh"),
        owner=params.druid_user,
        content=InlineTemplate(params.druid_env_sh_template),
-       mode = 0700
+       mode = 0o700
        )
 
   # common config
@@ -64,12 +64,12 @@ def druid(upgrade_type=None, nodeType=None):
                  properties=druid_common_config,
                  owner=params.druid_user,
                  group=params.user_group,
-                 mode = 0600
+                 mode = 0o600
                  )
   Logger.info("Created common.runtime.properties")
 
   File(format("{params.druid_common_conf_dir}/druid-log4j.xml"),
-       mode=0644,
+       mode=0o644,
        owner=params.druid_user,
        group=params.user_group,
        content=InlineTemplate(params.log4j_props)
@@ -77,7 +77,7 @@ def druid(upgrade_type=None, nodeType=None):
   Logger.info("Created log4j file")
 
   File("/etc/logrotate.d/druid",
-       mode=0644,
+       mode=0o644,
        owner='root',
        group='root',
        content=InlineTemplate(params.logrotate_props)
@@ -97,7 +97,7 @@ def druid(upgrade_type=None, nodeType=None):
                    properties=node_config,
                    owner=params.druid_user,
                    group=params.user_group,
-                   mode = 0600
+                   mode = 0o600
                    )
     Logger.info(format("Created druid-{node_type_lowercase} runtime.properties"))
 
@@ -134,7 +134,7 @@ def druid(upgrade_type=None, nodeType=None):
 
 def mutable_config_dict(config):
   rv = {}
-  for key, value in config.iteritems():
+  for key, value in config.items():
     rv[key] = value
   return rv
 
@@ -166,7 +166,7 @@ def ensure_hadoop_directories():
                         )
 
     # create the segment storage dir, users like hive from group hadoop need to write to this directory
-    create_hadoop_directory(storage_dir, mode=0775)
+    create_hadoop_directory(storage_dir, mode=0o775)
 
   # Create HadoopIndexTask hadoopWorkingPath
   hadoop_working_path = druid_middlemanager_config['druid.indexer.task.hadoopWorkingPath']
@@ -176,9 +176,9 @@ def ensure_hadoop_directories():
                             type="directory",
                             action="create_on_execute",
                             owner=params.hdfs_user,
-                            mode=0777,
+                            mode=0o777,
                             )
-    create_hadoop_directory(hadoop_working_path, mode=0775)
+    create_hadoop_directory(hadoop_working_path, mode=0o775)
 
   # If HDFS is used for storing logs, create Index Task log directory
   indexer_logs_type = druid_common_config['druid.indexer.logs.type']
@@ -187,7 +187,7 @@ def ensure_hadoop_directories():
     create_hadoop_directory(indexer_logs_directory)
 
 
-def create_hadoop_directory(hadoop_dir, mode=0755):
+def create_hadoop_directory(hadoop_dir, mode=0o755):
   import params
   params.HdfsResource(hadoop_dir,
                       type="directory",
@@ -203,7 +203,7 @@ def ensure_base_directories():
   import params
   Directory(
     [params.druid_log_dir, params.druid_pid_dir],
-    mode=0755,
+    mode=0o755,
     owner=params.druid_user,
     group=params.user_group,
     create_parents=True,
@@ -215,7 +215,7 @@ def ensure_base_directories():
      params.druid_broker_conf_dir, params.druid_middlemanager_conf_dir, params.druid_historical_conf_dir,
      params.druid_overlord_conf_dir, params.druid_router_conf_dir, params.druid_segment_infoDir,
      params.druid_tasks_dir],
-    mode=0700,
+    mode=0o700,
     cd_access='a',
     owner=params.druid_user,
     group=params.user_group,
@@ -227,7 +227,7 @@ def ensure_base_directories():
   for segment_cache_location in segment_cache_locations:
     Directory(
       segment_cache_location["path"],
-      mode=0700,
+      mode=0o700,
       owner=params.druid_user,
       group=params.user_group,
       create_parents=True,
@@ -256,7 +256,7 @@ def pulldeps():
       # Make sure druid user has permissions to write dependencies
       Directory(
         [params.druid_extensions_dir, params.druid_hadoop_dependencies_dir],
-        mode=0755,
+        mode=0o755,
         cd_access='a',
         owner=params.druid_user,
         group=params.user_group,

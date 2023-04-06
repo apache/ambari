@@ -44,7 +44,7 @@ def storm(name=None):
               owner=params.storm_user
   )
 
-  if params.service_map.has_key(name):
+  if name in params.service_map:
     service_name = params.service_map[name]
     ServiceConfig(service_name,
                   action="change_user",
@@ -60,7 +60,7 @@ def storm(name=None):
   Directory(params.log_dir,
             owner=params.storm_user,
             group=params.user_group,
-            mode=0777,
+            mode=0o777,
             create_parents = True,
             cd_access="a",
   )
@@ -70,7 +70,7 @@ def storm(name=None):
             group=params.user_group,
             create_parents = True,
             cd_access="a",
-            mode=0755,
+            mode=0o755,
   )
 
   Directory(params.conf_dir,
@@ -82,7 +82,7 @@ def storm(name=None):
   File(format("{limits_conf_dir}/storm.conf"),
        owner='root',
        group='root',
-       mode=0644,
+       mode=0o644,
        content=Template("storm.conf.j2")
   )
 
@@ -139,7 +139,7 @@ def storm(name=None):
     Directory(params.log4j_dir,
               owner=params.storm_user,
               group=params.user_group,
-              mode=0755,
+              mode=0o755,
               create_parents = True
     )
     
@@ -155,14 +155,14 @@ def storm(name=None):
   if params.security_enabled:
     TemplateConfig(format("{conf_dir}/storm_jaas.conf"),
                    owner=params.storm_user,
-                   mode=0644
+                   mode=0o644
     )
     if params.stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.stack_version_formatted):
       TemplateConfig(format("{conf_dir}/client_jaas.conf"),
                      owner=params.storm_user,
-                     mode=0644
+                     mode=0o644
       )
-      minRuid = configurations['_storm.min.ruid'] if configurations.has_key('_storm.min.ruid') else ''
+      minRuid = configurations['_storm.min.ruid'] if '_storm.min.ruid' in configurations else ''
       
       min_user_ruid = int(minRuid) if minRuid.isdigit() else _find_real_user_min_uid()
       

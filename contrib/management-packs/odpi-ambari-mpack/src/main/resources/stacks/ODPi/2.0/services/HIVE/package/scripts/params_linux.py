@@ -18,11 +18,11 @@ limitations under the License.
 
 """
 
-import status_params
+from . import status_params
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import os
 
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from ambari_commons.os_check import OSCheck
@@ -181,7 +181,7 @@ sqoop_tar_source = "{0}/{1}/sqoop/sqoop.tar.gz".format(STACK_ROOT_PATTERN, STACK
 hadoop_streaming_tar_dest_dir = "/{0}/apps/{1}/mapreduce/".format(STACK_NAME_PATTERN,STACK_VERSION_PATTERN)
 sqoop_tar_dest_dir = "/{0}/apps/{1}/sqoop/".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)
 
-tarballs_mode = 0444
+tarballs_mode = 0o444
 
 purge_tables = "false"
 # Starting from stack version for feature hive_purge_table drop should be executed with purge
@@ -203,7 +203,7 @@ hive_metastore_user_name = config['configurations']['hive-site']['javax.jdo.opti
 hive_jdbc_connection_url = config['configurations']['hive-site']['javax.jdo.option.ConnectionURL']
 
 hive_metastore_user_passwd = config['configurations']['hive-site']['javax.jdo.option.ConnectionPassword']
-hive_metastore_user_passwd = unicode(hive_metastore_user_passwd) if not is_empty(hive_metastore_user_passwd) else hive_metastore_user_passwd
+hive_metastore_user_passwd = str(hive_metastore_user_passwd) if not is_empty(hive_metastore_user_passwd) else hive_metastore_user_passwd
 hive_metastore_db_type = config['configurations']['hive-env']['hive_database_type']
 
 #HACK Temporarily use dbType=azuredb while invoking schematool
@@ -446,7 +446,7 @@ process_name = status_params.process_name
 hive_env_sh_template = config['configurations']['hive-env']['content']
 
 hive_hdfs_user_dir = format("/user/{hive_user}")
-hive_hdfs_user_mode = 0755
+hive_hdfs_user_mode = 0o755
 hive_apps_whs_dir = config['configurations']['hive-site']["hive.metastore.warehouse.dir"]
 whs_dir_protocol = urlparse(hive_apps_whs_dir).scheme
 hive_exec_scratchdir = config['configurations']['hive-site']["hive.exec.scratchdir"]
@@ -547,9 +547,9 @@ templeton_jar = config['configurations']['webhcat-site']['templeton.jar']
 webhcat_server_host = config['clusterHostInfo']['webhcat_server_host']
 
 hcat_hdfs_user_dir = format("/user/{hcat_user}")
-hcat_hdfs_user_mode = 0755
+hcat_hdfs_user_mode = 0o755
 webhcat_hdfs_user_dir = format("/user/{webhcat_user}")
-webhcat_hdfs_user_mode = 0755
+webhcat_hdfs_user_mode = 0o755
 #for create_hdfs_directory
 security_param = "true" if security_enabled else "false"
 
@@ -649,7 +649,7 @@ if security_enabled:
 #For curl command in ranger plugin to get db connector
 if has_ranger_admin:
   enable_ranger_hive = (config['configurations']['hive-env']['hive_security_authorization'].lower() == 'ranger')
-  repo_config_password = unicode(config['configurations']['ranger-hive-plugin-properties']['REPOSITORY_CONFIG_PASSWORD'])
+  repo_config_password = str(config['configurations']['ranger-hive-plugin-properties']['REPOSITORY_CONFIG_PASSWORD'])
   xa_audit_db_flavor = (config['configurations']['admin-properties']['DB_FLAVOR']).lower()
   ranger_previous_jdbc_jar_name = None
 
@@ -727,13 +727,13 @@ if has_ranger_admin:
   xa_audit_db_is_enabled = False
   xa_audit_db_password = ''
   if not is_empty(config['configurations']['admin-properties']['audit_db_password']) and stack_supports_ranger_audit_db:
-    xa_audit_db_password = unicode(config['configurations']['admin-properties']['audit_db_password'])
+    xa_audit_db_password = str(config['configurations']['admin-properties']['audit_db_password'])
   ranger_audit_solr_urls = config['configurations']['ranger-admin-site']['ranger.audit.solr.urls']
   if xml_configurations_supported and stack_supports_ranger_audit_db:
     xa_audit_db_is_enabled = config['configurations']['ranger-hive-audit']['xasecure.audit.destination.db']
   xa_audit_hdfs_is_enabled = config['configurations']['ranger-hive-audit']['xasecure.audit.destination.hdfs'] if xml_configurations_supported else None
-  ssl_keystore_password = unicode(config['configurations']['ranger-hive-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.password']) if xml_configurations_supported else None
-  ssl_truststore_password = unicode(config['configurations']['ranger-hive-policymgr-ssl']['xasecure.policymgr.clientssl.truststore.password']) if xml_configurations_supported else None
+  ssl_keystore_password = str(config['configurations']['ranger-hive-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.password']) if xml_configurations_supported else None
+  ssl_truststore_password = str(config['configurations']['ranger-hive-policymgr-ssl']['xasecure.policymgr.clientssl.truststore.password']) if xml_configurations_supported else None
   credential_file = format('/etc/ranger/{repo_name}/cred.jceks') if xml_configurations_supported else None
 
   #For SQLA explicitly disable audit to DB for Ranger

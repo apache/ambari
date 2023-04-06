@@ -50,7 +50,7 @@ class StaleAlertsMonitor():
     if not self.alert_definitions_cache:
       return []
 
-    for cluster_id, command in self.alert_definitions_cache.iteritems():
+    for cluster_id, command in self.alert_definitions_cache.items():
       # the cluster has not yet initialized staleAlertsAlert
       if not 'staleIntervalMultiplier' in command:
         continue

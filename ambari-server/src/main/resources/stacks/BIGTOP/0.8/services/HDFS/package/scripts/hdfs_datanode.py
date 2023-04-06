@@ -29,7 +29,7 @@ def create_dirs(data_dir, params):
   """
   Directory(data_dir,
             create_parents = True,
-            mode=0755,
+            mode=0o755,
             owner=params.hdfs_user,
             group=params.user_group,
             ignore_failures=True
@@ -41,7 +41,7 @@ def datanode(action=None):
   if action == "configure":
     Directory(params.dfs_domain_socket_dir,
               create_parents = True,
-              mode=0751,
+              mode=0o751,
               owner=params.hdfs_user,
               group=params.user_group)
 

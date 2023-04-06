@@ -46,19 +46,19 @@ def mahout():
             configuration_attributes=params.config['configurationAttributes']['yarn-site'],
             owner=params.yarn_user,
             group=params.user_group,
-            mode=0644
+            mode=0o644
   )
 
   if not is_empty(params.log4j_props):
     File(format("{params.mahout_conf_dir}/log4j.properties"),
-         mode=0644,
+         mode=0o644,
          group=params.user_group,
          owner=params.mahout_user,
          content=params.log4j_props
     )
   elif (os.path.exists(format("{params.mahout_conf_dir}/log4j.properties"))):
     File(format("{params.mahout_conf_dir}/log4j.properties"),
-         mode=0644,
+         mode=0o644,
          group=params.user_group,
          owner=params.mahout_user
     )

@@ -76,6 +76,6 @@ def wait_process_stopped(pid_file):
       check_process_status(pid_file)
       time.sleep(1)
       counter += 1
-    except ComponentIsNotRunning, e:
+    except ComponentIsNotRunning as e:
       Logger.logger.debug(" reports ComponentIsNotRunning")
       component_is_stopped = True

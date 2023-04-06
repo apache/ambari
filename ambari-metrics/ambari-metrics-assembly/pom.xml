@@ -39,7 +39,6 @@
     <grafana.dir>${project.basedir}/../ambari-metrics-grafana</grafana.dir>
     <hadoop-sink.dir>${project.basedir}/../ambari-metrics-hadoop-sink</hadoop-sink.dir>
     <storm-sink.dir>${project.basedir}/../ambari-metrics-storm-sink</storm-sink.dir>
-    <storm-sink-legacy.dir>${project.basedir}/../ambari-metrics-storm-sink-legacy</storm-sink-legacy.dir>
     <flume-sink.dir>${project.basedir}/../ambari-metrics-flume-sink</flume-sink.dir>
     <kafka-sink.dir>${project.basedir}/../ambari-metrics-kafka-sink</kafka-sink.dir>
     <python.ver>python &gt;= 2.6</python.ver>
@@ -53,7 +52,6 @@
     <deb.dependency.list>${deb.python.ver},python-dev,gcc</deb.dependency.list>
     <hadoop.sink.jar>ambari-metrics-hadoop-sink-with-common-${project.version}.jar</hadoop.sink.jar>
     <storm.sink.jar>ambari-metrics-storm-sink-with-common-${project.version}.jar</storm.sink.jar>
-    <storm.sink.legacy.jar>ambari-metrics-storm-sink-legacy-with-common-${project.version}.jar</storm.sink.legacy.jar>
     <flume.sink.jar>ambari-metrics-flume-sink-with-common-${project.version}.jar</flume.sink.jar>
     <kafka.sink.jar>ambari-metrics-kafka-sink-with-common-${project.version}.jar</kafka.sink.jar>
   </properties>
@@ -200,7 +198,7 @@
             <version>2.0.1</version>
             <configuration>
               <group>Development</group>
-              <needarch>x86_64</needarch>
+              <needarch>aarch64</needarch>
               <copyright>2012, Apache Software Foundation</copyright>
               <version>${package-version}</version>
               <release>${package-release}</release>
@@ -424,14 +422,6 @@
                       </sources>
                     </mapping>
                     <mapping>
-                      <directory>/usr/lib/storm/lib</directory>
-                      <sources>
-                        <source>
-                          <location>${storm-sink-legacy.dir}/target/ambari-metrics-storm-sink-legacy-with-common-${project.version}.jar</location>
-                        </source>
-                      </sources>
-                    </mapping>
-                    <mapping>
                       <directory>/usr/lib/ambari-metrics-kafka-sink</directory>
                       <sources>
                         <source>
@@ -462,7 +452,7 @@
                 <configuration>
                   <name>ambari-metrics-grafana</name>
                   <group>Development</group>
-                  <needarch>x86_64</needarch>
+                  <needarch>aarch64</needarch>
                   <autoRequires>false</autoRequires>
                   <mappings>
                     <mapping>
@@ -554,7 +544,7 @@
                 <configuration>
                   <name>ambari-metrics-monitor</name>
                   <group>Development</group>
-                  <needarch>x86_64</needarch>
+                  <needarch>aarch64</needarch>
                   <autoRequires>false</autoRequires>
                   <requires>
                     <require>${python.ver}</require>
@@ -1041,16 +1031,6 @@
                     <prefix>/usr/lib/storm/lib</prefix>
                   </mapper>
                 </data>
-                <data>
-                  <src>${storm-sink-legacy.dir}/target/${storm.sink.legacy.jar}</src>
-                  <type>file</type>
-                  <mapper>
-                    <type>perm</type>
-                    <filemode>644</filemode>
-                    <dirmode>755</dirmode>
-                    <prefix>/usr/lib/storm/lib</prefix>
-                  </mapper>
-                </data>
 
                 <!-- kafka sink -->
 
@@ -1355,11 +1335,6 @@
     <dependency>
       <groupId>org.apache.ambari</groupId>
       <artifactId>ambari-metrics-storm-sink</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.ambari</groupId>
-      <artifactId>ambari-metrics-storm-sink-legacy</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

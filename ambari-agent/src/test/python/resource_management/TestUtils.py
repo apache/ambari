@@ -35,5 +35,5 @@ class TestUtils(TestCase):
     for test in test_set:
       test_pattern, expected, initial_val = test
       bitmask = attr_to_bitmask(test_pattern, initial_bitmask= initial_val)
-      self.assertEquals(expected, bitmask, "Test set \"{0}\" failed, expected: {1} but got {2}".format(
+      self.assertEqual(expected, bitmask, "Test set \"{0}\" failed, expected: {1} but got {2}".format(
         test_pattern, expected, bitmask))

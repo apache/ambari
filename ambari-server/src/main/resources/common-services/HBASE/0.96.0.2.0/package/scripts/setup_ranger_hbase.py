@@ -40,7 +40,7 @@ def setup_ranger_hbase(upgrade_type=None, service_name="hbase-master"):
                          action="create_on_execute",
                          owner=params.hdfs_user,
                          group=params.hdfs_user,
-                         mode=0755,
+                         mode=0o755,
                          recursive_chmod=True
       )
       params.HdfsResource("/ranger/audit/hbaseMaster",
@@ -48,7 +48,7 @@ def setup_ranger_hbase(upgrade_type=None, service_name="hbase-master"):
                          action="create_on_execute",
                          owner=params.hbase_user,
                          group=params.hbase_user,
-                         mode=0700,
+                         mode=0o700,
                          recursive_chmod=True
       )
       params.HdfsResource("/ranger/audit/hbaseRegional",
@@ -56,7 +56,7 @@ def setup_ranger_hbase(upgrade_type=None, service_name="hbase-master"):
                          action="create_on_execute",
                          owner=params.hbase_user,
                          group=params.hbase_user,
-                         mode=0700,
+                         mode=0o700,
                          recursive_chmod=True
       )
       params.HdfsResource(None, action="execute")

@@ -10,7 +10,7 @@ running processes and system utilization (CPU, memory, disks, network)
 in Python.
 """
 
-from __future__ import division
+
 
 __author__ = "Giampaolo Rodola'"
 __version__ = "2.1.1"
@@ -44,7 +44,7 @@ import time
 import signal
 import warnings
 import errno
-from ambari_commons import subprocess32
+import subprocess
 try:
     import pwd
 except ImportError:
@@ -299,7 +299,7 @@ class Process(object):
         if pid is None:
             pid = os.getpid()
         else:
-            if not _PY3 and not isinstance(pid, (int, long)):
+            if not _PY3 and not isinstance(pid, int):
                 raise TypeError('pid must be an integer (got %r)' % pid)
             if pid < 0:
                 raise ValueError('pid must be a positive integer (got %s)'
@@ -754,7 +754,7 @@ class Process(object):
                         pass
             else:
                 # Windows only (faster)
-                for pid, ppid in ppid_map.items():
+                for pid, ppid in list(ppid_map.items()):
                     if ppid == self.pid:
                         try:
                             child = Process(pid)
@@ -775,7 +775,7 @@ class Process(object):
                     except NoSuchProcess:
                         pass
             else:
-                for pid, ppid in ppid_map.items():
+                for pid, ppid in list(ppid_map.items()):
                     try:
                         p = Process(pid)
                         table[ppid].append(p)
@@ -925,7 +925,7 @@ class Process(object):
                 path = tupl[2]
                 nums = tupl[3:]
                 try:
-                    d[path] = map(lambda x, y: x + y, d[path], nums)
+                    d[path] = list(map(lambda x, y: x + y, d[path], nums))
                 except KeyError:
                     d[path] = nums
             nt = _psplatform.pmmap_grouped
@@ -1163,14 +1163,14 @@ class Process(object):
 # =====================================================================
 
 class Popen(Process):
-    """A more convenient interface to stdlib subprocess32 module.
+    """A more convenient interface to stdlib subprocess module.
     It starts a sub process and deals with it exactly as when using
-    subprocess32.Popen class but in addition also provides all the
+    subprocess.Popen class but in addition also provides all the
     properties and methods of psutil.Process class as a unified
     interface:
 
       >>> import psutil
-      >>> from ambari_commons.subprocess32 import PIPE
+      >>> from ambari_commons.subprocess import PIPE
       >>> p = psutil.Popen(["python", "-c", "print 'hi'"], stdout=PIPE)
       >>> p.name()
       'python'
@@ -1188,24 +1188,24 @@ class Popen(Process):
     For method names common to both classes such as kill(), terminate()
     and wait(), psutil.Process implementation takes precedence.
 
-    Unlike subprocess32.Popen this class pre-emptively checks wheter PID
+    Unlike subprocess.Popen this class pre-emptively checks wheter PID
     has been reused on send_signal(), terminate() and kill() so that
     you don't accidentally terminate another process, fixing
     http://bugs.python.org/issue6973.
 
     For a complete documentation refer to:
-    http://docs.python.org/library/subprocess32.html
+    http://docs.python.org/library/subprocess.html
     """
 
     def __init__(self, *args, **kwargs):
         # Explicitly avoid to raise NoSuchProcess in case the process
-        # spawned by subprocess32.Popen terminates too quickly, see:
+        # spawned by subprocess.Popen terminates too quickly, see:
         # https://code.google.com/p/psutil/issues/detail?id=193
-        self.__subproc = subprocess32.Popen(*args, **kwargs)
+        self.__subproc = subprocess.Popen(*args, **kwargs)
         self._init(self.__subproc.pid, _ignore_nsp=True)
 
     def __dir__(self):
-        return sorted(set(dir(Popen) + dir(subprocess32.Popen)))
+        return sorted(set(dir(Popen) + dir(subprocess.Popen)))
 
     def __getattribute__(self, name):
         try:
@@ -1725,11 +1725,11 @@ def disk_io_counters(perdisk=False):
     if not rawdict:
         raise RuntimeError("couldn't find any physical disk")
     if perdisk:
-        for disk, fields in rawdict.items():
+        for disk, fields in list(rawdict.items()):
             rawdict[disk] = _nt_sys_diskio(*fields)
         return rawdict
     else:
-        return _nt_sys_diskio(*[sum(x) for x in zip(*rawdict.values())])
+        return _nt_sys_diskio(*[sum(x) for x in zip(*list(rawdict.values()))])
 
 
 # =====================================================================
@@ -1759,11 +1759,11 @@ def net_io_counters(pernic=False):
     if not rawdict:
         raise RuntimeError("couldn't find any network interface")
     if pernic:
-        for nic, fields in rawdict.items():
+        for nic, fields in list(rawdict.items()):
             rawdict[nic] = _nt_sys_netio(*fields)
         return rawdict
     else:
-        return _nt_sys_netio(*[sum(x) for x in zip(*rawdict.values())])
+        return _nt_sys_netio(*[sum(x) for x in zip(*list(rawdict.values()))])
 
 
 def net_connections(kind='inet'):

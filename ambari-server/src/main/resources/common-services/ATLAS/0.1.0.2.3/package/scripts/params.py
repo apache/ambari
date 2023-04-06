@@ -178,7 +178,7 @@ else:
 # This can be None, True, or False
 is_atlas_ha_enabled = default("/configurations/application-properties/atlas.server.ha.enabled", None)
 additional_ha_props = configs_for_ha(atlas_hosts, metadata_port, is_atlas_ha_enabled, metadata_protocol)
-for k,v in additional_ha_props.iteritems():
+for k,v in additional_ha_props.items():
   application_properties[k] = v
 
 
@@ -399,7 +399,7 @@ if stack_supports_atlas_ranger_plugin and enable_ranger_atlas:
 
   atlas_repository_configuration = {
     'username' : config['configurations']['ranger-atlas-plugin-properties']['REPOSITORY_CONFIG_USERNAME'],
-    'password' : unicode(config['configurations']['ranger-atlas-plugin-properties']['REPOSITORY_CONFIG_PASSWORD']),
+    'password' : str(config['configurations']['ranger-atlas-plugin-properties']['REPOSITORY_CONFIG_PASSWORD']),
     'atlas.rest.address' : metadata_server_url,
     'commonNameForCertificate' : config['configurations']['ranger-atlas-plugin-properties']['common.name.for.certificate'],
     'ambari.service.check.user' : policy_user

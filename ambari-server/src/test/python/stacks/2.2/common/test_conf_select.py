@@ -149,7 +149,7 @@ class TestConfSelect(RMFTestCase):
     shell_call_mock.side_effect = mock_call
     conf_select.convert_conf_directories_to_symlinks("hadoop", "2.3.0.0-1234", packages["hadoop"])
 
-    self.assertEqual(pprint.pformat(self.env.resource_list[0]), "Execute[('cp', '-R', '-p', u'/etc/hadoop/conf', u'/etc/hadoop/conf.backup')]")
+    self.assertEqual(pprint.pformat(self.env.resource_list[0]), "Execute[('cp', '-R', '-p', '/etc/hadoop/conf', '/etc/hadoop/conf.backup')]")
     self.assertEqual(pprint.pformat(self.env.resource_list[1]), "Directory['/etc/hadoop/conf']")
     self.assertEqual(pprint.pformat(self.env.resource_list[2]), "Link['/etc/hadoop/conf']")
 

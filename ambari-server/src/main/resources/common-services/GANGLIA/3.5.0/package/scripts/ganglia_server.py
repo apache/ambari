@@ -87,11 +87,11 @@ def change_permission():
   import params
 
   Directory(os.path.abspath(os.path.join(params.ganglia_runtime_dir, "..")),
-            mode=0755,
+            mode=0o755,
             create_parents = True
   )
   Directory(params.dwoo_path,
-            mode=0755,
+            mode=0o755,
             create_parents = True,
             owner = params.web_user,
             recursive_ownership = True,
@@ -108,21 +108,21 @@ def server_files():
   TemplateConfig(rrd_py_file_path,
                  owner="root",
                  group="root",
-                 mode=0755
+                 mode=0o755
   )
   rrd_file_owner = params.gmetad_user
 
   Directory(params.rrdcached_base_dir,
             owner=rrd_file_owner,
             group=rrd_file_owner,
-            mode=0755,
+            mode=0o755,
             create_parents = True
   )
   
   if OSCheck.is_suse_family() or OSCheck.is_ubuntu_family():
     File( params.ganglia_apache_config_file,
       content = Template("ganglia.conf.j2"),
-      mode = 0644
+      mode = 0o644
     )
 
 

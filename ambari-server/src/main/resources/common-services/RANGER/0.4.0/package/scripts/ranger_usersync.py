@@ -44,7 +44,7 @@ class RangerUsersync(Script):
       File(params.ugsync_policymgr_keystore,
         owner = params.unix_user,
         group = params.unix_group,
-        mode = 0640
+        mode = 0o640
       )
 
     self.configure(env)
@@ -74,7 +74,7 @@ class RangerUsersync(Script):
     if upgrade_type == UPGRADE_TYPE_NON_ROLLING and params.upgrade_direction == Direction.UPGRADE:
       if params.stack_supports_usersync_non_root and os.path.isfile(params.usersync_services_file):
         File(params.usersync_services_file,
-          mode = 0755
+          mode = 0o755
         )
         Execute(('ln','-sf', format('{usersync_services_file}'),'/usr/bin/ranger-usersync'),
           not_if=format("ls /usr/bin/ranger-usersync"),

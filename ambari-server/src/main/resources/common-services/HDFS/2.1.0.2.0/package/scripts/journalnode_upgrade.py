@@ -54,7 +54,7 @@ def post_upgrade_check():
 
   try:
     namenode_ha = namenode_ha_state.NamenodeHAState()
-  except ValueError, err:
+  except ValueError as err:
     raise Fail("Could not retrieve Namenode HA addresses. Error: " + str(err))
 
   Logger.info(str(namenode_ha))

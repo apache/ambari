@@ -83,8 +83,8 @@ class TestAlertSchedulerHandler(TestCase):
 
     self.assertTrue(callable_result is not None)
     self.assertTrue(isinstance(callable_result, MetricAlert))
-    self.assertEquals(callable_result.alert_meta, json_definition)
-    self.assertEquals(callable_result.alert_source_meta, json_definition['source'])
+    self.assertEqual(callable_result.alert_meta, json_definition)
+    self.assertEqual(callable_result.alert_source_meta, json_definition['source'])
 
   def test_json_to_callable_ams(self):
     initializer_module = InitializerModule()
@@ -102,8 +102,8 @@ class TestAlertSchedulerHandler(TestCase):
 
     self.assertTrue(callable_result is not None)
     self.assertTrue(isinstance(callable_result, AmsAlert))
-    self.assertEquals(callable_result.alert_meta, json_definition)
-    self.assertEquals(callable_result.alert_source_meta, json_definition['source'])
+    self.assertEqual(callable_result.alert_meta, json_definition)
+    self.assertEqual(callable_result.alert_source_meta, json_definition['source'])
 
   def test_json_to_callable_port(self):
     json_definition = {
@@ -121,8 +121,8 @@ class TestAlertSchedulerHandler(TestCase):
 
     self.assertTrue(callable_result is not None)
     self.assertTrue(isinstance(callable_result, PortAlert))
-    self.assertEquals(callable_result.alert_meta, json_definition)
-    self.assertEquals(callable_result.alert_source_meta, json_definition['source'])
+    self.assertEqual(callable_result.alert_meta, json_definition)
+    self.assertEqual(callable_result.alert_source_meta, json_definition['source'])
 
   def test_json_to_callable_web(self):
 
@@ -140,8 +140,8 @@ class TestAlertSchedulerHandler(TestCase):
 
     self.assertTrue(callable_result is not None)
     self.assertTrue(isinstance(callable_result, WebAlert))
-    self.assertEquals(callable_result.alert_meta, json_definition)
-    self.assertEquals(callable_result.alert_source_meta, json_definition['source'])
+    self.assertEqual(callable_result.alert_meta, json_definition)
+    self.assertEqual(callable_result.alert_source_meta, json_definition['source'])
 
   def test_json_to_callable_none(self):
     json_definition = {
@@ -305,7 +305,7 @@ class TestAlertSchedulerHandler(TestCase):
 
     definitions = scheduler._AlertSchedulerHandler__load_definitions()
 
-    self.assertEquals(definitions, [])
+    self.assertEqual(definitions, [])
 
   def __test_start(self):
     execution_commands = [

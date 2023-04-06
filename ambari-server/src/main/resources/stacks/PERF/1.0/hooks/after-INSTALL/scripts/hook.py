@@ -22,7 +22,7 @@ from resource_management.libraries.script import Hook
 class AfterInstallHook(Hook):
 
   def hook(self, env):
-    print "After Install Hook"
+    print("After Install Hook")
 
 if __name__ == "__main__":
   AfterInstallHook().execute()

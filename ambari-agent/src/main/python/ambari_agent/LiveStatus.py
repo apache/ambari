@@ -19,7 +19,7 @@ limitations under the License.
 """
 
 import logging
-from ActualConfigHandler import ActualConfigHandler
+from .ActualConfigHandler import ActualConfigHandler
 
 
 class LiveStatus:
