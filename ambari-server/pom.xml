@@ -1790,7 +1790,7 @@
     <dependency>
       <groupId>org.apache.ambari</groupId>
       <artifactId>ambari-serviceadvisor</artifactId>
-      <version>1.0.0.0-SNAPSHOT</version>
+      <version>${revision}</version>
       <exclusions>
         <exclusion>
           <groupId>commons-httpclient</groupId>
