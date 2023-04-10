@@ -1,36 +1,29 @@
-# Ambari_2.7.5_python3
+﻿# Ambari_2.7.5_python3
+
+
 
 #### Description
-Ambari 2.7.5 适配 Python3.
+
+
+Ambari 2.7.5 deprecates python2 and supports python3. Python 3.7 or later is recommended to avoid great changes in Python3.
+
+
 
 #### Software Architecture
-Software architecture description
-
-#### Installation
-
-1.  xxxx
-2.  xxxx
-3.  xxxx
-
-#### Instructions
-
-1.  xxxx
-2.  xxxx
-3.  xxxx
-
-#### Contribution
-
-1.  Fork the repository
-2.  Create Feat_xxx branch
-3.  Commit your code
-4.  Create Pull Request
 
 
-#### Gitee Feature
 
-1.  You can use Readme\_XXX.md to support different languages, such as Readme\_en.md, Readme\_zh.md
-2.  Gitee blog [blog.gitee.com](https://blog.gitee.com)
-3.  Explore open source project [https://gitee.com/explore](https://gitee.com/explore)
-4.  The most valuable open source project [GVP](https://gitee.com/gvp)
-5.  The manual of Gitee [https://gitee.com/help](https://gitee.com/help)
-6.  The most popular members  [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+1. Dynamic compilation of x86_64 and arrch64 is supported. The default value is x86_64.
+
+
+
+2. Compiling processes corresponding to different systems are supported.
+
+
+
+#### Installation Instructions
+
+
+
+1. Add the compilation script build-ambari.sh and run it directly. If there are new compilation requirements, modify the script accordingly.
+

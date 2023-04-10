@@ -560,7 +560,7 @@
             <scriptFile>src/main/package/rpm/postremove.sh</scriptFile>
             <fileEncoding>utf-8</fileEncoding>
           </postremoveScriptlet>
-          <needarch>aarch64</needarch>
+          <needarch>x86_64</needarch>
           <mappings>
             <mapping>
               <directory>/etc</directory>

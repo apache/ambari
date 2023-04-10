@@ -198,7 +198,7 @@
             <version>2.0.1</version>
             <configuration>
               <group>Development</group>
-              <needarch>aarch64</needarch>
+              <needarch>x86_64</needarch>
               <copyright>2012, Apache Software Foundation</copyright>
               <version>${package-version}</version>
               <release>${package-release}</release>
@@ -452,7 +452,7 @@
                 <configuration>
                   <name>ambari-metrics-grafana</name>
                   <group>Development</group>
-                  <needarch>aarch64</needarch>
+                  <needarch>x86_64</needarch>
                   <autoRequires>false</autoRequires>
                   <mappings>
                     <mapping>
@@ -544,7 +544,7 @@
                 <configuration>
                   <name>ambari-metrics-monitor</name>
                   <group>Development</group>
-                  <needarch>aarch64</needarch>
+                  <needarch>x86_64</needarch>
                   <autoRequires>false</autoRequires>
                   <requires>
                     <require>${python.ver}</require>
