@@ -450,10 +450,8 @@ hive_site_config["hive.hook.proto.base-directory"] = hive_hook_proto_base_direct
 core_site_config = dict(config['configurations']['core-site'])
 if format("hadoop.proxyuser.{hive_user}.hosts") not in core_site_config and format("hadoop.proxyuser.{hive_user}.groups") not in core_site_config:
   hive_site_config["hive.metastore.event.db.notification.api.auth"] = "false"
-  hive_site_config["hive.server2.enable.doAs"] = "false"
 else:
   hive_site_config["hive.metastore.event.db.notification.api.auth"] = "true"
-  hive_site_config["hive.server2.enable.doAs"] = "true"
 
 ########################################################
 ############# AMS related params #####################
