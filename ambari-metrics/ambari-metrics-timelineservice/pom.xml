@@ -873,6 +873,11 @@
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
     </dependency>
+    <dependency>
+      <groupId>sqlline</groupId>
+        <artifactId>sqlline</artifactId>
+        <version>1.12.0</version>
+    </dependency>
   </dependencies>
 
   <profiles>
