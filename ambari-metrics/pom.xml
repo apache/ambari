@@ -130,6 +130,11 @@
         <artifactId>guava</artifactId>
         <version>28.0-jre</version>
       </dependency>
+      <dependency>
+        <groupId>sqlline</groupId>
+        <artifactId>sqlline</artifactId>
+        <version>1.12.0</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
     <build>
