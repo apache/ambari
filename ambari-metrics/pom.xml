@@ -76,7 +76,7 @@
     <repository>
       <id>apache-hadoop</id>
       <name>hdp</name>
-      <url>https://repo.hortonworks.com/content/groups/public/</url>
+      <url>https://repo.hortonworks.com/content/groups/releases/</url>
     </repository>
     <repository>
       <id>apache-snapshots</id>
