@@ -194,6 +194,10 @@
       <metricsFileName>YARN_metrics.json</metricsFileName>
       <themes>
         <theme>
+          <fileName>theme.json</fileName>
+          <default>true</default>
+        </theme>
+        <theme>
           <fileName>directories.json</fileName>
           <default>true</default>
         </theme>
@@ -331,6 +335,10 @@
 
       <themes-dir>themes-mapred</themes-dir>
       <themes>
+        <theme>
+          <fileName>theme.json</fileName>
+          <default>true</default>
+        </theme>
         <theme>
           <fileName>directories.json</fileName>
           <default>true</default>
