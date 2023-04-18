@@ -30,7 +30,7 @@
     <solr.version>5.5.2</solr.version>
     <ambari.dir>${project.parent.basedir}</ambari.dir>
     <powermock.version>1.6.3</powermock.version>
-    <jetty.version>9.4.12.v20180830</jetty.version>
+    <jetty.version>10.0.14</jetty.version>
     <ldap-api.version>1.0.0</ldap-api.version>
     <checkstyle.version>8.9</checkstyle.version>
     <swagger.version>1.6.8</swagger.version>
