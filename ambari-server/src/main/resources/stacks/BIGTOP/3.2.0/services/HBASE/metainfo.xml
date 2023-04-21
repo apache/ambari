@@ -172,6 +172,9 @@
             <package>
               <name>hbase_${stack_version}</name>
             </package>
+            <package>
+              <name>ranger_${stack_version}-hbase-plugin</name>
+            </package>
           </packages>
         </osSpecific>
       </osSpecifics>

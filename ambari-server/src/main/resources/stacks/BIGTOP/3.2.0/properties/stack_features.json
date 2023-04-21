@@ -55,6 +55,121 @@
         "name": "kafka_listeners",
         "description": "Kafka listeners (AMBARI-10984)",
         "min_version": "3.2.0"
+      },
+      {
+        "name": "remove_ranger_hdfs_plugin_env",
+        "description": "HDFS removes Ranger env files (AMBARI-14299)",
+        "min_version": "2.3.0.0"
+      },
+      {
+        "name": "ranger",
+        "description": "Ranger Service support",
+        "min_version": "2.2.0.0"
+      },
+      {
+        "name": "ranger_tagsync_component",
+        "description": "Ranger Tagsync component support (AMBARI-14383)",
+        "min_version": "2.5.0.0"
+      },
+      {
+        "name": "ranger_all_admin_change_default_password",
+        "description": "Supports Ranger All admin's password change in one go instead of multiple calls",
+        "min_version": "3.1.0.0"
+      },
+      {
+        "name": "kafka_env_include_ranger_script",
+        "description": "Need to include Ranger Kafka plugin script if stack version is lower than 3.1.0.0",
+        "max_version": "3.1.0.99"
+      },
+      {
+        "name": "ranger_support_security_zone_feature",
+        "description": "Need to add zoneName field in Ranger Audit Solr Collection",
+        "min_version": "3.1.1.0"
+      },
+      {
+        "name": "core_site_for_ranger_plugins",
+        "description": "Adding core-site.xml in when Ranger plugin is enabled for Storm, Kafka, and Knox.",
+        "min_version": "2.6.0.0"
+      },
+      {
+        "name": "secure_ranger_ssl_password",
+        "description": "Securing Ranger Admin and Usersync SSL and Trustore related passwords in jceks",
+        "min_version": "2.6.0.0"
+      },
+      {
+        "name": "ranger_kms_ssl",
+        "description": "Ranger KMS SSL properties in ambari stack",
+        "min_version": "2.6.0.0"
+      },
+      {
+        "name": "ranger_tagsync_ssl_xml_support",
+        "description": "Ranger Tagsync ssl xml support.",
+        "min_version": "2.6.0.0"
+      },
+      {
+        "name": "ranger_xml_configuration",
+        "description": "Ranger code base support xml configurations",
+        "min_version": "2.3.0.0"
+      },
+      {
+        "name": "kafka_ranger_plugin_support",
+        "description": "Ambari stack changes for Ranger Kafka Plugin (AMBARI-11299)",
+        "min_version": "2.3.0.0"
+      },
+      {
+        "name": "yarn_ranger_plugin_support",
+        "description": "Implement Stack changes for Ranger Yarn Plugin integration (AMBARI-10866)",
+        "min_version": "2.3.0.0"
+      },
+      {
+        "name": "ranger_solr_config_support",
+        "description": "Showing Ranger solrconfig.xml on UI",
+        "min_version": "2.6.0.0"
+      },
+      {
+        "name": "ranger_hive_plugin_jdbc_url",
+        "description": "Handle Ranger hive repo config jdbc url change for stack 2.5 (AMBARI-18386)",
+        "min_version": "2.5.0.0"
+      },
+      {
+        "name": "ranger_pid_support",
+        "description": "Ranger Service support pid generation AMBARI-16756",
+        "min_version": "2.5.0.0"
+      },
+      {
+        "name": "ranger_kms_pid_support",
+        "description": "Ranger KMS Service support pid generation",
+        "min_version": "2.5.0.0"
+      },
+      {
+        "name": "ranger_admin_password_change",
+        "description": "Allow ranger admin credentials to be specified during cluster creation (AMBARI-17000)",
+        "min_version": "2.5.0.0"
+      },
+      {
+        "name": "ranger_setup_db_on_start",
+        "description": "Allows setup of ranger db and java patches to be called multiple times on each START",
+        "min_version": "2.6.0.0"
+      },
+      {
+        "name": "ranger_kms_hsm_support",
+        "description": "Ranger KMS HSM support (AMBARI-15752)",
+        "min_version": "2.5.0.0"
+      },
+      {
+        "name": "ranger_log4j_support",
+        "description": "Ranger supporting log-4j properties (AMBARI-15681)",
+        "min_version": "2.5.0.0"
+      },
+      {
+        "name": "ranger_kerberos_support",
+        "description": "Ranger Kerberos support",
+        "min_version": "2.5.0.0"
+      },
+      {
+        "name": "ranger_usersync_password_jceks",
+        "description": "Saving Ranger Usersync credentials in jceks",
+        "min_version": "2.5.0.0"
       }
     ]
   }

@@ -30,7 +30,7 @@ from resource_management.libraries.functions import upgrade_summary
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.show_logs import show_logs
 from kafka import ensure_base_directories
-
+from setup_ranger_kafka import setup_ranger_kafka
 import upgrade
 from kafka import kafka
 
@@ -77,6 +77,8 @@ class KafkaBroker(Script):
         kafka_kinit_cmd = format("{kinit_path_local} -kt {kafka_keytab_path} {kafka_jaas_principal};")
         Execute(kafka_kinit_cmd, user=params.kafka_user)
 
+    if params.is_supported_kafka_ranger:
+      setup_ranger_kafka() #Ranger Kafka Plugin related call
     daemon_cmd = format('source {params.conf_dir}/kafka-env.sh ; {params.kafka_start_cmd} >>/dev/null 2>>{params.kafka_err_file} & echo $!>{params.kafka_pid_file}')
     no_op_test = format('ls {params.kafka_pid_file}>/dev/null 2>&1 && ps -p `cat {params.kafka_pid_file}`>/dev/null 2>&1')
     try:

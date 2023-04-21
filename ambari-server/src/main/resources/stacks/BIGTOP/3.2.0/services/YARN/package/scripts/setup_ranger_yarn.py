@@ -47,7 +47,7 @@ def setup_ranger_yarn():
       )
       params.HdfsResource(None, action="execute")
 
-    setup_ranger_plugin('hadoop-yarn-resourcemanager', 'yarn', params.previous_jdbc_jar,
+    setup_ranger_plugin('hadoop-yarn-resourcemanager', params.service_name, params.previous_jdbc_jar,
                         params.downloaded_custom_connector, params.driver_curl_source,
                         params.driver_curl_target, params.java64_home,
                         params.repo_name, params.yarn_ranger_plugin_repo,
@@ -65,7 +65,7 @@ def setup_ranger_yarn():
                         is_security_enabled = params.security_enabled,
                         is_stack_supports_ranger_kerberos = params.stack_supports_ranger_kerberos,
                         component_user_principal=params.rm_principal_name if params.security_enabled else None,
-                        component_user_keytab=params.rm_keytab if params.security_enabled else None
+                        component_user_keytab=params.rm_keytab if params.security_enabled else None, plugin_home=params.ranger_plugin_home
       )
   else:
     Logger.info('Ranger Yarn plugin is not enabled')
