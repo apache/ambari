@@ -119,7 +119,7 @@ class HbaseMasterDefault(HbaseMaster):
   def stop_replication(self, env, upgrade_type=None):
     import params
     env.set_params(params)
-    File(params.hbase_replication, content=StaticFile("hbase_replication.rb"), owner=params.hbase_user, mode=0755)
+    File(params.hbase_replication, content=StaticFile("hbase_replication.rb"), owner=params.hbase_user, mode=0o755)
     remove_replication_values = "remove {0}".format(params.hbase_replication_peers)
     replication_cmd = format(
       "{kinit_cmd} {hbase_cmd} --config {hbase_conf_dir} {master_security_config} org.jruby.Main {hbase_replication} "
@@ -129,7 +129,7 @@ class HbaseMasterDefault(HbaseMaster):
   def update_replication(self, env, upgrade_type=None):
     import params
     env.set_params(params)
-    File(params.hbase_replication, content=StaticFile("hbase_replication.rb"), owner=params.hbase_user, mode=0755)
+    File(params.hbase_replication, content=StaticFile("hbase_replication.rb"), owner=params.hbase_user, mode=0o755)
     update_replication_values = "update {0} {1}".format(params.hbase_replication_peers,
                                                         params.hbase_replication_cluster_keys)
     update_replication_cmd = format(
