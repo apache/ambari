@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 
 import javax.annotation.Nullable;
@@ -95,8 +96,8 @@ public class AgentCommandsPublisher {
 
   public void sendAgentCommand(Multimap<Long, AgentCommand> agentCommands) throws AmbariRuntimeException {
     if (agentCommands != null && !agentCommands.isEmpty()) {
-      Map<Long, TreeMap<String, ExecutionCommandsCluster>> executionCommandsClusters = new TreeMap<>();
-      Map<Long, Map<String, DesiredConfig>> clusterDesiredConfigs = new HashMap<>();
+      Map<Long, TreeMap<String, ExecutionCommandsCluster>> executionCommandsClusters = new ConcurrentHashMap<>();
+      Map<Long, Map<String, DesiredConfig>> clusterDesiredConfigs = new ConcurrentHashMap<>();
 
       try {
         threadPools.getAgentPublisherCommandsPool().submit(() -> {
