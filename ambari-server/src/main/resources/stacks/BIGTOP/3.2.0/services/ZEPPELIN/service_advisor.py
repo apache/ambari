@@ -222,17 +222,17 @@ class ZeppelinRecommender(service_advisor.ServiceAdvisor):
         if "ZEPPELIN_INTP_CLASSPATH_OVERRIDES" in line:
           if sac_enabled:
             if line.lstrip().startswith("#"):
-              line = "export ZEPPELIN_INTP_CLASSPATH_OVERRIDES=\"{{external_dependency_conf}}:/usr/hdp/current/spark-atlas-connector/*\""
+              line = "export ZEPPELIN_INTP_CLASSPATH_OVERRIDES=\"{{external_dependency_conf}}:/usr/bigtop/current/spark-atlas-connector/*\""
             elif "{{external_dependency_conf}}" in line:
-              line = line.replace("{{external_dependency_conf}}", "{{external_dependency_conf}}:/usr/hdp/current/spark-atlas-connector/*")
+              line = line.replace("{{external_dependency_conf}}", "{{external_dependency_conf}}:/usr/bigtop/current/spark-atlas-connector/*")
             else:
               k = line.rfind("\"")
-              line = line[:k] + ":/usr/hdp/current/spark-atlas-connector/*\"" + line[k+1:]
+              line = line[:k] + ":/usr/bigtop/current/spark-atlas-connector/*\"" + line[k+1:]
           else:
-            if ":/usr/hdp/current/spark-atlas-connector" in line:
-              line = line.replace(":/usr/hdp/current/spark-atlas-connector/*", "")
-            elif "/usr/hdp/current/spark-atlas-connector" in line:
-              line = line.replace("/usr/hdp/current/spark-atlas-connector/*", "")
+            if ":/usr/bigtop/current/spark-atlas-connector" in line:
+              line = line.replace(":/usr/bigtop/current/spark-atlas-connector/*", "")
+            elif "/usr/bigtop/current/spark-atlas-connector" in line:
+              line = line.replace("/usr/bigtop/current/spark-atlas-connector/*", "")
 
         result_list.append(line)
 

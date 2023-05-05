@@ -243,9 +243,9 @@ class Spark2Recommender(service_advisor.ServiceAdvisor):
 
       if spark2_sac_enabled:
 
-        self.setOrAddValueToProperty(putSpark2DefautlsProperty, spark2_defaults_properties, "spark.driver.extraClassPath", "/usr/hdp/current/spark-atlas-connector/*", ":")
+        self.setOrAddValueToProperty(putSpark2DefautlsProperty, spark2_defaults_properties, "spark.driver.extraClassPath", "/usr/bigtop/current/spark-atlas-connector/*", ":")
         self.setOrAddValueToProperty(putSpark2DefautlsProperty, spark2_defaults_properties, "spark.yarn.dist.files", "/etc/spark2/conf/atlas-application.properties.yarn#atlas-application.properties", ",")
-        self.setOrAddValueToProperty(putSpark2ThriftSparkConfProperty, spark2_thriftspark_conf_properties, "spark.driver.extraClassPath", "/usr/hdp/current/spark-atlas-connector/*", ":")
+        self.setOrAddValueToProperty(putSpark2ThriftSparkConfProperty, spark2_thriftspark_conf_properties, "spark.driver.extraClassPath", "/usr/bigtop/current/spark-atlas-connector/*", ":")
 
         self.setOrAddValueToProperty(putSpark2DefautlsProperty, spark2_defaults_properties, "spark.extraListeners", "com.hortonworks.spark.atlas.SparkAtlasEventTracker", ",")
         self.setOrAddValueToProperty(putSpark2DefautlsProperty, spark2_defaults_properties, "spark.sql.queryExecutionListeners", "com.hortonworks.spark.atlas.SparkAtlasEventTracker", ",")
@@ -259,9 +259,9 @@ class Spark2Recommender(service_advisor.ServiceAdvisor):
 
       else:
 
-        self.removeValueFromProperty(putSpark2DefautlsProperty, spark2_defaults_properties, "spark.driver.extraClassPath", "/usr/hdp/current/spark-atlas-connector/*", ":")
+        self.removeValueFromProperty(putSpark2DefautlsProperty, spark2_defaults_properties, "spark.driver.extraClassPath", "/usr/bigtop/current/spark-atlas-connector/*", ":")
         self.removeValueFromProperty(putSpark2DefautlsProperty, spark2_defaults_properties, "spark.yarn.dist.files", "/etc/spark2/conf/atlas-application.properties.yarn#atlas-application.properties", ",")
-        self.removeValueFromProperty(putSpark2ThriftSparkConfProperty, spark2_thriftspark_conf_properties, "spark.driver.extraClassPath", "/usr/hdp/current/spark-atlas-connector/*", ":")
+        self.removeValueFromProperty(putSpark2ThriftSparkConfProperty, spark2_thriftspark_conf_properties, "spark.driver.extraClassPath", "/usr/bigtop/current/spark-atlas-connector/*", ":")
 
         self.removeValueFromProperty(putSpark2DefautlsProperty, spark2_defaults_properties, "spark.extraListeners", "com.hortonworks.spark.atlas.SparkAtlasEventTracker", ",")
         self.removeValueFromProperty(putSpark2DefautlsProperty, spark2_defaults_properties, "spark.sql.queryExecutionListeners", "com.hortonworks.spark.atlas.SparkAtlasEventTracker", ",")
