@@ -158,6 +158,10 @@
           "subsection-name": "subsection-hbase-memory-col1"
         },
         {
+          "config": "hbase-site/hbase.regionserver.global.memstore.size",
+          "subsection-name": "subsection-hbase-memory-col1"
+        },
+        {
           "config": "hbase-site/hbase.hregion.memstore.flush.size",
           "subsection-name": "subsection-hbase-memory-col2"
         },
