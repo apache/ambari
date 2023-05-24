@@ -147,7 +147,7 @@ class SparkServiceAdvisor(service_advisor.ServiceAdvisor):
     return validator.validateListOfConfigUsingMethod(configurations, recommendedDefaults, services, hosts, validator.validators)
 
   def isComponentUsingCardinalityForLayout(self, componentName):
-    return componentName in ('SPARK_THRIFTSERVER', 'LIVY2_SERVER')
+    return componentName in ('SPARK_THRIFTSERVER')
 
   @staticmethod
   def isKerberosEnabled(services, configurations):
@@ -214,8 +214,6 @@ class SparkRecommender(service_advisor.ServiceAdvisor):
         putSparkDafaultsProperty('spark.history.ui.admin.acls', '')
 
 
-    self.__addZeppelinToLivy2SuperUsers(configurations, services)
-
 
   def recommendSPARKConfigurationsFromHDP30(self, configurations, clusterData, services, hosts):
 
@@ -276,41 +274,6 @@ class SparkRecommender(service_advisor.ServiceAdvisor):
     else:
       putConfigProperty(propertyName, str(config[propertyName]).replace(separator + propertyValue, ""))
 
-  def __addZeppelinToLivy2SuperUsers(self, configurations, services):
-    """
-    If Kerberos is enabled AND Zeppelin is installed AND Spark Livy Server is installed, then set
-    livy2-conf/livy.superusers to contain the Zeppelin principal name from
-    zeppelin-site/zeppelin.server.kerberos.principal
-
-    :param configurations:
-    :param services:
-    """
-    if SparkServiceAdvisor.isKerberosEnabled(services, configurations):
-      zeppelin_site = self.getServicesSiteProperties(services, "zeppelin-site")
-
-      if zeppelin_site and 'zeppelin.server.kerberos.principal' in zeppelin_site:
-        zeppelin_principal = zeppelin_site['zeppelin.server.kerberos.principal']
-        zeppelin_user = zeppelin_principal.split('@')[0] if zeppelin_principal else None
-
-        if zeppelin_user:
-          livy2_conf = self.getServicesSiteProperties(services, 'livy2-conf')
-
-          if livy2_conf:
-            superusers = livy2_conf['livy.superusers'] if livy2_conf and 'livy.superusers' in livy2_conf else None
-
-            # add the Zeppelin user to the set of users
-            if superusers:
-              _superusers = superusers.split(',')
-              _superusers = [x.strip() for x in _superusers]
-              _superusers = filter(None, _superusers)  # Removes empty string elements from array
-            else:
-              _superusers = []
-
-            if zeppelin_user not in _superusers:
-              _superusers.append(zeppelin_user)
-
-              putLivy2ConfProperty = self.putProperty(configurations, 'livy2-conf', services)
-              putLivy2ConfProperty('livy.superusers', ','.join(_superusers))
 
 
 class SparkValidator(service_advisor.ServiceAdvisor):
