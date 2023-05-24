@@ -85,6 +85,7 @@ if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE,
   daemon_script = format('{stack_root}/current/hbase-client/bin/hbase-daemon.sh')
   region_mover = format('{stack_root}/current/hbase-client/bin/region_mover.rb')
   region_drainer = format('{stack_root}/current/hbase-client/bin/draining_servers.rb')
+  region_drainer2 = format('{stack_root}/current/hbase-client/bin/draining_servers2.rb')
   hbase_cmd = format('{stack_root}/current/hbase-client/bin/hbase')
 
   hbase_max_direct_memory_size  = default('configurations/hbase-env/hbase_max_direct_memory_size', None)
@@ -92,6 +93,7 @@ if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE,
   daemon_script=format("{stack_root}/current/{component_directory}/bin/hbase-daemon.sh")
   region_mover = format("{stack_root}/current/{component_directory}/bin/region_mover.rb")
   region_drainer = format("{stack_root}/current/{component_directory}/bin/draining_servers.rb")
+  region_drainer2 = format("{stack_root}/current/{component_directory}/bin/draining_servers2.rb")
   hbase_replication = format("{stack_root}/current/{component_directory}/bin/hbase_replication.rb")
   hbase_cmd = format("{stack_root}/current/{component_directory}/bin/hbase")
 
