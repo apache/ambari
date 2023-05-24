@@ -78,7 +78,7 @@ class SparkServiceAdvisor(service_advisor.ServiceAdvisor):
     Must be overriden in child class.
 
     """
-    self.heap_size_properties = {"SPARK2_JOBHISTORYSERVER":
+    self.heap_size_properties = {"SPARK_JOBHISTORYSERVER":
                                    [{"config-name": "spark-env",
                                      "property": "spark_daemon_memory",
                                      "default": "2048m"}]}
@@ -115,7 +115,7 @@ class SparkServiceAdvisor(service_advisor.ServiceAdvisor):
     Must be overriden in child class.
     """
 
-    return self.getServiceComponentCardinalityValidations(services, hosts, "SPARK2")
+    return self.getServiceComponentCardinalityValidations(services, hosts, "SPARK")
 
   def getServiceConfigurationRecommendations(self, configurations, clusterData, services, hosts):
     """
@@ -127,8 +127,8 @@ class SparkServiceAdvisor(service_advisor.ServiceAdvisor):
 
     recommender = SparkRecommender()
     recommender.recommendSparkConfigurationsFromHDP25(configurations, clusterData, services, hosts)
-    recommender.recommendSPARK2ConfigurationsFromHDP26(configurations, clusterData, services, hosts)
-    recommender.recommendSPARK2ConfigurationsFromHDP30(configurations, clusterData, services, hosts)
+    recommender.recommendSPARKConfigurationsFromHDP26(configurations, clusterData, services, hosts)
+    recommender.recommendSPARKConfigurationsFromHDP30(configurations, clusterData, services, hosts)
 
 
 
@@ -147,7 +147,7 @@ class SparkServiceAdvisor(service_advisor.ServiceAdvisor):
     return validator.validateListOfConfigUsingMethod(configurations, recommendedDefaults, services, hosts, validator.validators)
 
   def isComponentUsingCardinalityForLayout(self, componentName):
-    return componentName in ('SPARK2_THRIFTSERVER', 'LIVY2_SERVER')
+    return componentName in ('SPARK_THRIFTSERVER', 'LIVY2_SERVER')
 
   @staticmethod
   def isKerberosEnabled(services, configurations):
@@ -194,7 +194,7 @@ class SparkRecommender(service_advisor.ServiceAdvisor):
     if spark_queue is not None:
       putSparkProperty("spark.yarn.queue", spark_queue)
 
-  def recommendSPARK2ConfigurationsFromHDP26(self, configurations, clusterData, services, hosts):
+  def recommendSPARKConfigurationsFromHDP26(self, configurations, clusterData, services, hosts):
     """
     :type configurations dict
     :type clusterData dict
@@ -217,7 +217,7 @@ class SparkRecommender(service_advisor.ServiceAdvisor):
     self.__addZeppelinToLivy2SuperUsers(configurations, services)
 
 
-  def recommendSPARK2ConfigurationsFromHDP30(self, configurations, clusterData, services, hosts):
+  def recommendSPARKConfigurationsFromHDP30(self, configurations, clusterData, services, hosts):
 
     # SAC
     if "spark-atlas-application-properties-override" in services["configurations"]:
