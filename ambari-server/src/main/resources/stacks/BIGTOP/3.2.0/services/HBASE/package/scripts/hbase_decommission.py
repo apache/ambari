@@ -22,12 +22,15 @@ from resource_management.core.source import StaticFile
 from resource_management.libraries.functions.format import format
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
+from resource_management.core.logger import Logger
+
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def hbase_decommission(env):
   import params
 
   env.set_params(params)
+  File(params.region_drainer, content=StaticFile("draining_servers.rb"), owner=params.hbase_user, mode="f")
 
   hosts = params.hbase_excluded_hosts.split(",")
   for host in hosts:
@@ -37,7 +40,7 @@ def hbase_decommission(env):
         Execute(regiondrainer_cmd, user=params.hbase_user, logoutput=True)
       else:
         regiondrainer_cmd = format("cmd /c {hbase_executable} org.jruby.Main {region_drainer} add {host}")
-        regionmover_cmd = format("cmd /c {hbase_executable} org.jruby.Main {region_mover} -o unload -r {host}")
+        regionmover_cmd = format("cmd /c {hbase_executable} org.jruby.Main {region_mover} -m 24 -o unload -r {host}")
         Execute(regiondrainer_cmd, user=params.hbase_user, logoutput=True)
         Execute(regionmover_cmd, user=params.hbase_user, logoutput=True)
 
@@ -49,6 +52,15 @@ def hbase_decommission(env):
   env.set_params(params)
   kinit_cmd = params.kinit_cmd_master
 
+  File(params.region_drainer,
+       content=StaticFile("draining_servers.rb"),
+       mode=0755
+       )
+  File(params.region_drainer2,
+       content=StaticFile("draining_servers2.rb"),
+       mode=0755
+       )
+
   if params.hbase_excluded_hosts and params.hbase_excluded_hosts.split(","):
     hosts = params.hbase_excluded_hosts.split(",")
   elif params.hbase_included_hosts and params.hbase_included_hosts.split(","):
@@ -57,32 +69,65 @@ def hbase_decommission(env):
   if params.hbase_drain_only:
     for host in hosts:
       if host:
-        regiondrainer_cmd = format(
-          "{kinit_cmd} HBASE_SERVER_JAAS_OPTS=\"{master_security_config}\" {hbase_cmd} --config {hbase_conf_dir} {hbase_decommission_auth_config} org.jruby.Main {region_drainer} remove {host}")
-        Execute(regiondrainer_cmd,
-                user=params.hbase_user,
-                logoutput=True
-        )
-        pass
+        try:
+          regiondrainer_cmd = format(
+            "{kinit_cmd} HBASE_SERVER_JAAS_OPTS=\"{master_security_config}\" {hbase_cmd} --config {hbase_conf_dir} {hbase_decommission_auth_config} org.jruby.Main {region_drainer} remove {host}")
+          Execute(regiondrainer_cmd,
+                  user=params.hbase_user,
+                  logoutput=True
+                  )
+          pass
+        except Exception as e:
+          # Execute HBase 2 scripts if HBase 1 scripts fail.
+          # If the Exception is genuine, it will fail here because HBase 1 scripts work only for HBase 1
+          # and HBase 2 scripts work only for HBase 2 cluster.
+          Logger.info("HBase 1 RegionMover failed. Will try with HBase 2 RegionMover." + str(e))
+          regiondrainer_cmd = format(
+            "{kinit_cmd} HBASE_SERVER_JAAS_OPTS=\"{master_security_config}\" {hbase_cmd} --config {hbase_conf_dir} {hbase_decommission_auth_config} org.jruby.Main {region_drainer2} remove {host}")
+          Execute(regiondrainer_cmd,
+                  user=params.hbase_user,
+                  logoutput=True
+                  )
+          pass
     pass
 
   else:
     for host in hosts:
       if host:
-        regiondrainer_cmd = format(
-          "{kinit_cmd} HBASE_SERVER_JAAS_OPTS=\"{master_security_config}\" {hbase_cmd} --config {hbase_conf_dir} {hbase_decommission_auth_config} org.jruby.Main {region_drainer} add {host}")
-        regionmover_cmd = format(
-          "{kinit_cmd} HBASE_SERVER_JAAS_OPTS=\"{master_security_config}\" {hbase_cmd} --config {hbase_conf_dir} {hbase_decommission_auth_config} org.jruby.Main {region_mover} -o unload -r {host}")
+        try:
+          regiondrainer_cmd = format(
+            "{kinit_cmd} HBASE_SERVER_JAAS_OPTS=\"{master_security_config}\" {hbase_cmd} --config {hbase_conf_dir} {hbase_decommission_auth_config} org.jruby.Main {region_drainer} add {host}")
+          regionmover_cmd = format(
+            "{kinit_cmd} HBASE_SERVER_JAAS_OPTS=\"{master_security_config}\" {hbase_cmd} --config {hbase_conf_dir} {hbase_decommission_auth_config} org.jruby.Main {region_mover} -m 24 unload {host}")
 
-        Execute(regiondrainer_cmd,
-                user=params.hbase_user,
-                logoutput=True
-        )
+          Execute(regiondrainer_cmd,
+                  user=params.hbase_user,
+                  logoutput=True
+                  )
 
-        Execute(regionmover_cmd,
-                user=params.hbase_user,
-                logoutput=True
-        )
+          Execute(regionmover_cmd,
+                  user=params.hbase_user,
+                  logoutput=True
+                  )
+        except Exception as e:
+          # Execute HBase 2 scripts if HBase 1 scripts fail.
+          # If the Exception is genuine, it will fail here because HBase 1 scripts work only for HBase 1
+          # and HBase 2 scripts work only for HBase 2 cluster.
+          Logger.info("HBase 1 Region unload failed. Will try with HBase 2." + str(e))
+          regiondrainer_cmd = format(
+            "{kinit_cmd} HBASE_SERVER_JAAS_OPTS=\"{master_security_config}\" {hbase_cmd} --config {hbase_conf_dir} {hbase_decommission_auth_config} org.jruby.Main {region_drainer2} add {host}")
+          regionmover_cmd = format(
+            "{kinit_cmd} HBASE_SERVER_JAAS_OPTS=\"{master_security_config}\" {hbase_cmd} --config {hbase_conf_dir} {hbase_decommission_auth_config} org.jruby.Main {region_mover} -m 24 -o unload -r {host}")
+
+          Execute(regiondrainer_cmd,
+                  user=params.hbase_user,
+                  logoutput=True
+                  )
+
+          Execute(regionmover_cmd,
+                  user=params.hbase_user,
+                  logoutput=True
+                  )
       pass
     pass
   pass
