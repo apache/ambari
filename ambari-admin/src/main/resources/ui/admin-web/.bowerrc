@@ -1,3 +1,4 @@
 {
-    "directory": "app/bower_components"
+    "directory": "app/bower_components",
+    "registry": "https://bower.herokuapp.com"
 }

@@ -97,14 +97,21 @@
                   "row-index": "2",
                   "column-index": "0",
                   "row-span": "1",
-                  "column-span": "1",
-                  "section-columns": "1",
+                  "column-span": "2",
+                  "section-columns": "2",
                   "section-rows": "1",
                   "subsections": [
                     {
                       "name": "subsection-hbase-timeouts-col1",
                       "row-index": "0",
                       "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    },
+                    {
+                      "name": "subsection-hbase-timeouts-col2",
+                      "row-index": "0",
+                      "column-index": "1",
                       "row-span": "1",
                       "column-span": "1"
                     }
@@ -114,25 +121,6 @@
                   "name": "section-hbase-security",
                   "display-name": "Security",
                   "row-index": "2",
-                  "column-index": "1",
-                  "row-span": "1",
-                  "column-span": "1",
-                  "section-columns": "1",
-                  "section-rows": "1",
-                  "subsections": [
-                    {
-                      "name": "subsection-hbase-security-col1",
-                      "row-index": "0",
-                      "column-index": "0",
-                      "row-span": "1",
-                      "column-span": "1"
-                    }
-                  ]
-                },
-                {
-                  "name": "section-hbase-phoenix",
-                  "display-name": "Phoenix SQL",
-                  "row-index": "2",
                   "column-index": "2",
                   "row-span": "1",
                   "column-span": "1",
@@ -140,7 +128,7 @@
                   "section-rows": "1",
                   "subsections": [
                     {
-                      "name": "subsection-hbase-phoenix-col1",
+                      "name": "subsection-hbase-security-col1",
                       "row-index": "0",
                       "column-index": "0",
                       "row-span": "1",
@@ -167,6 +155,10 @@
         },
         {
           "config": "hbase-site/hfile.block.cache.size",
+          "subsection-name": "subsection-hbase-memory-col1"
+        },
+        {
+          "config": "hbase-site/hbase.regionserver.global.memstore.size",
           "subsection-name": "subsection-hbase-memory-col1"
         },
         {
@@ -207,7 +199,7 @@
         },
         {
           "config": "hbase-site/hbase.rpc.timeout",
-          "subsection-name": "subsection-hbase-timeouts-col1"
+          "subsection-name": "subsection-hbase-timeouts-col2"
         },
         {
           "config": "hbase-site/hbase.security.authentication",
@@ -216,18 +208,6 @@
         {
           "config": "hbase-site/hbase.security.authorization",
           "subsection-name": "subsection-hbase-security-col1"
-        },
-        {
-          "config": "hbase-env/phoenix_sql_enabled",
-          "subsection-name": "subsection-hbase-phoenix-col1"
-        },
-        {
-          "config": "hbase-site/phoenix.query.timeoutMs",
-          "subsection-name": "subsection-hbase-phoenix-col1"
-        },
-        {
-          "config": "hbase-site/phoenix.rpc.index.handler.count",
-          "subsection-name": "subsection-hbase-phoenix-col1"
         }
       ]
     },
@@ -387,36 +367,7 @@
         "widget": {
           "type": "toggle"
         }
-      },
-      {
-        "config": "hbase-env/phoenix_sql_enabled",
-        "widget": {
-          "type": "toggle"
-        }
-      },
-      {
-        "config": "hbase-site/phoenix.query.timeoutMs",
-        "widget": {
-          "type": "time-interval-spinner",
-          "units": [
-            {
-              "unit-name": "minutes,seconds"
-            }
-          ]
-        }
-      },
-      {
-        "config": "hbase-site/phoenix.rpc.index.handler.count",
-        "widget": {
-          "type": "slider",
-          "units": [
-            {
-              "unit-name": "int"
-            }
-          ]
-        }
       }
     ]
   }
 }
-
