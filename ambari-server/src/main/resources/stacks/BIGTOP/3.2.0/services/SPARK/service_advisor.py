@@ -128,9 +128,6 @@ class SparkServiceAdvisor(service_advisor.ServiceAdvisor):
     recommender = SparkRecommender()
     recommender.recommendSparkConfigurationsFromHDP25(configurations, clusterData, services, hosts)
     recommender.recommendSPARKConfigurationsFromHDP26(configurations, clusterData, services, hosts)
-    recommender.recommendSPARKConfigurationsFromHDP30(configurations, clusterData, services, hosts)
-
-
 
   def getServiceConfigurationsValidationItems(self, configurations, recommendedDefaults, services, hosts):
     """
@@ -212,52 +209,6 @@ class SparkRecommender(service_advisor.ServiceAdvisor):
         putSparkDafaultsProperty('spark.admin.acls', '')
         putSparkDafaultsProperty('spark.history.ui.acls.enable', 'true')
         putSparkDafaultsProperty('spark.history.ui.admin.acls', '')
-
-
-
-  def recommendSPARKConfigurationsFromHDP30(self, configurations, clusterData, services, hosts):
-
-    # SAC
-    if "spark-atlas-application-properties-override" in services["configurations"]:
-      spark_atlas_application_properties_override = self.getServicesSiteProperties(services, "spark-atlas-application-properties-override")
-      spark_defaults_properties = self.getServicesSiteProperties(services, "spark-defaults")
-      putSparkDefautlsProperty = self.putProperty(configurations, "spark-defaults", services)
-      putSparkDefaultsPropertyAttribute = self.putPropertyAttribute(configurations,"spark-defaults")
-      putSparkAtlasHookProperty = self.putProperty(configurations, "spark-atlas-application-properties-override", services)
-      putSparkAtlasHookPropertyAttribute = self.putPropertyAttribute(configurations,"spark-atlas-application-properties-override")
-      spark_sac_enabled = None
-      if self.checkSiteProperties(spark_atlas_application_properties_override, "atlas.spark.enabled"):
-        spark_sac_enabled = spark_atlas_application_properties_override["atlas.spark.enabled"]
-        spark_sac_enabled = str(spark_sac_enabled).upper() == 'TRUE'
-
-      if spark_sac_enabled:
-        self.setOrAddValueToProperty(putSparkDefautlsProperty, spark_defaults_properties, "spark.driver.extraClassPath", "/usr/bigtop/current/spark-atlas-connector/*", ":")
-        self.setOrAddValueToProperty(putSparkDefautlsProperty, spark_defaults_properties, "spark.yarn.dist.files", "/etc/spark/conf/atlas-application.properties.yarn#atlas-application.properties", ",")
-        self.setOrAddValueToProperty(putSparkDefautlsProperty, spark_defaults_properties, "spark.driver.extraClassPath", "/usr/bigtop/current/spark-atlas-connector/*", ":")
-        self.setOrAddValueToProperty(putSparkDefautlsProperty, spark_defaults_properties, "spark.extraListeners", "com.hortonworks.spark.atlas.SparkAtlasEventTracker", ",")
-        self.setOrAddValueToProperty(putSparkDefautlsProperty, spark_defaults_properties, "spark.sql.queryExecutionListeners", "com.hortonworks.spark.atlas.SparkAtlasEventTracker", ",")
-        self.setOrAddValueToProperty(putSparkDefautlsProperty, spark_defaults_properties, "spark.extraListeners", "com.hortonworks.spark.atlas.SparkAtlasEventTracker", ",")
-        self.setOrAddValueToProperty(putSparkDefautlsProperty, spark_defaults_properties, "spark.sql.queryExecutionListeners", "com.hortonworks.spark.atlas.SparkAtlasEventTracker", ",")
-
-        self.setOrAddValueToProperty(putSparkDefautlsProperty, spark_defaults_properties, "spark.sql.streaming.streamingQueryListeners", "com.hortonworks.spark.atlas.SparkAtlasStreamingQueryEventTracker", ",")
-        self.setOrAddValueToProperty(putSparkDefautlsProperty, spark_defaults_properties, "spark.sql.streaming.streamingQueryListeners", "com.hortonworks.spark.atlas.SparkAtlasStreamingQueryEventTracker", ",")
-
-        putSparkAtlasHookProperty("atlas.client.checkModelInStart", "false")
-
-      else:
-        self.removeValueFromProperty(putSparkDefautlsProperty, spark_defaults_properties, "spark.driver.extraClassPath", "/usr/bigtop/current/spark-atlas-connector/*", ":")
-        self.removeValueFromProperty(putSparkDefautlsProperty, spark_defaults_properties, "spark.yarn.dist.files", "/etc/spark/conf/atlas-application.properties.yarn#atlas-application.properties", ",")
-        self.removeValueFromProperty(putSparkDefautlsProperty, spark_defaults_properties, "spark.driver.extraClassPath", "/usr/bigtop/current/spark-atlas-connector/*", ":")
-        self.removeValueFromProperty(putSparkDefautlsProperty, spark_defaults_properties, "spark.extraListeners", "com.hortonworks.spark.atlas.SparkAtlasEventTracker", ",")
-        self.removeValueFromProperty(putSparkDefautlsProperty, spark_defaults_properties, "spark.sql.queryExecutionListeners", "com.hortonworks.spark.atlas.SparkAtlasEventTracker", ",")
-        self.removeValueFromProperty(putSparkDefautlsProperty, spark_defaults_properties, "spark.extraListeners", "com.hortonworks.spark.atlas.SparkAtlasEventTracker", ",")
-        self.removeValueFromProperty(putSparkDefautlsProperty, spark_defaults_properties, "spark.sql.queryExecutionListeners", "com.hortonworks.spark.atlas.SparkAtlasEventTracker", ",")
-
-        self.removeValueFromProperty(putSparkDefautlsProperty, spark_defaults_properties, "spark.sql.streaming.streamingQueryListeners", "com.hortonworks.spark.atlas.SparkAtlasStreamingQueryEventTracker", ",")
-        self.removeValueFromProperty(putSparkDefautlsProperty, spark_defaults_properties, "spark.sql.streaming.streamingQueryListeners", "com.hortonworks.spark.atlas.SparkAtlasStreamingQueryEventTracker", ",")
-
-        putSparkAtlasHookPropertyAttribute("atlas.client.checkModelInStart", "delete", "true")
-
 
 
   def setOrAddValueToProperty(self, putConfigProperty, config, propertyName, propertyValue, separator):
