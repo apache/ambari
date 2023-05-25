@@ -72,6 +72,7 @@ hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 daemon_script = "/usr/lib/hbase/bin/hbase-daemon.sh"
 region_mover = "/usr/lib/hbase/bin/region_mover.rb"
 region_drainer = "/usr/lib/hbase/bin/draining_servers.rb"
+region_drainer2 = "/usr/lib/hbase/bin/draining_servers2.rb"
 hbase_cmd = "/usr/lib/hbase/bin/hbase"
 hbase_max_direct_memory_size = None
 
