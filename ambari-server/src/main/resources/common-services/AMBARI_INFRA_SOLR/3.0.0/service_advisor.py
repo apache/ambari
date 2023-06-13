@@ -23,7 +23,7 @@ import os
 import traceback
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-STACKS_DIR = os.path.join(SCRIPT_DIR, '../../../../../stacks/')
+STACKS_DIR = os.path.join(SCRIPT_DIR, '../../../stacks/')
 PARENT_FILE = os.path.join(STACKS_DIR, 'service_advisor.py')
 if "BASE_SERVICE_ADVISOR" in os.environ:
   PARENT_FILE = os.environ["BASE_SERVICE_ADVISOR"]
@@ -35,10 +35,10 @@ except Exception as e:
   traceback.print_exc()
   print "Failed to load parent"
 
-class SolrServiceAdvisor(service_advisor.ServiceAdvisor):
+class Ambari_Infra_SolrServiceAdvisor(service_advisor.ServiceAdvisor):
 
   def __init__(self, *args, **kwargs):
-    self.as_super = super(SolrServiceAdvisor, self)
+    self.as_super = super(Ambari_Infra_SolrServiceAdvisor, self)
     self.as_super.__init__(*args, **kwargs)
 
     # Always call these methods
@@ -104,7 +104,7 @@ class SolrServiceAdvisor(service_advisor.ServiceAdvisor):
     Must be overriden in child class.
     """
 
-    return self.getServiceComponentCardinalityValidations(services, hosts, "SOLR")
+    return self.getServiceComponentCardinalityValidations(services, hosts, "AMBARI_INFRA_SOLR")
 
   def getServiceConfigurationRecommendations(self, configurations, clusterData, services, hosts):
     """

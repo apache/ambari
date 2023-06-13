@@ -170,6 +170,11 @@
         "name": "ranger_usersync_password_jceks",
         "description": "Saving Ranger Usersync credentials in jceks",
         "min_version": "3.3.0"
+      },
+      {
+        "name": "ranger_install_infra_client",
+        "description": "Ambari Infra Service support",
+        "min_version": "3.3.0"
       }
     ]
   }
