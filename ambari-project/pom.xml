@@ -43,7 +43,7 @@
     <spring.security.version>5.7.2</spring.security.version>
     <fasterxml.jackson.version>2.12.7</fasterxml.jackson.version>
     <fasterxml.jackson.databind.version>2.12.7.1</fasterxml.jackson.databind.version>
-    <postgres.version>42.2.2</postgres.version>
+    <postgres.version>42.3.8</postgres.version>
     <testContainers.version>1.17.6</testContainers.version>
     <forkCount>4</forkCount>
     <reuseForks>false</reuseForks>
