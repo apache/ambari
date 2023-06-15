@@ -1,0 +1,14 @@
+<configuration supports_adding_forbidden="true">
+    <property>
+        <name>content</name>
+        <display-name>tagsync-logback-xml template</display-name>
+        <description>This is the jinja template for ranger tagsync logback.xml file</description>
+        <value/>
+        <property-type>VALUE_FROM_PROPERTY_FILE</property-type>
+        <value-attributes>
+            <property-file-name>tagsync-logback.xml.j2</property-file-name>
+            <property-file-type>xml</property-file-type>
+        </value-attributes>
+        <on-ambari-upgrade add="false" update="true"/>
+    </property>
+</configuration>

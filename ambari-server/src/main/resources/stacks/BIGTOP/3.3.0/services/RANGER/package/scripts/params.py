@@ -66,7 +66,6 @@ stack_supports_config_versioning = check_stack_feature(StackFeature.CONFIG_VERSI
 stack_supports_usersync_non_root = check_stack_feature(StackFeature.RANGER_USERSYNC_NON_ROOT, version_for_stack_feature_checks)
 stack_supports_ranger_tagsync = check_stack_feature(StackFeature.RANGER_TAGSYNC_COMPONENT, version_for_stack_feature_checks)
 stack_supports_ranger_audit_db = check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, version_for_stack_feature_checks)
-stack_supports_ranger_log4j = check_stack_feature(StackFeature.RANGER_LOG4J_SUPPORT, version_for_stack_feature_checks)
 stack_supports_ranger_kerberos = check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, version_for_stack_feature_checks)
 stack_supports_usersync_passwd = check_stack_feature(StackFeature.RANGER_USERSYNC_PASSWORD_JCEKS, version_for_stack_feature_checks)
 stack_supports_infra_client = check_stack_feature(StackFeature.RANGER_INSTALL_INFRA_CLIENT, version_for_stack_feature_checks)
@@ -96,7 +95,7 @@ ranger_tagsync_conf = format('{ranger_tagsync_home}/conf')
 tagsync_services_file = format('{ranger_tagsync_home}/ranger-tagsync-services.sh')
 
 security_store_path = '/etc/security/serverKeys'
-tagsync_etc_path = '/etc/ranger-tagsync'
+tagsync_etc_path = '/etc/ranger/tagsync'
 ranger_tagsync_credential_file = os.path.join(tagsync_etc_path, 'rangercred.jceks')
 atlas_tagsync_credential_file = os.path.join(tagsync_etc_path, 'atlascred.jceks')
 ranger_tagsync_keystore_password = config['configurations']['ranger-tagsync-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.password']
@@ -126,9 +125,7 @@ admin_log_dir = default("/configurations/ranger-admin-site/ranger.logs.base.dir"
 ranger_admin_default_file = format('{ranger_conf}/ranger-admin-default-site.xml')
 security_app_context_file = format('{ranger_conf}/security-applicationContext.xml')
 ranger_ugsync_default_file = format('{ranger_ugsync_conf}/ranger-ugsync-default.xml')
-usgsync_log4j_file = format('{ranger_ugsync_conf}/log4j.xml')
-if stack_supports_ranger_log4j:
-  usgsync_log4j_file = format('{ranger_ugsync_conf}/log4j.properties')
+
 cred_validator_file = format('{usersync_home}/native/credValidator.uexe')
 pam_cred_validator_file = format('{usersync_home}/native/pamCredValidator.uexe')
 
@@ -260,17 +257,11 @@ tagsync_application_properties = dict(config["configurations"]["tagsync-applicat
 tagsync_pid_file = format('{ranger_pid_dir}/tagsync.pid')
 tagsync_cred_lib = os.path.join(ranger_tagsync_home, "lib", "*")
 
-ranger_usersync_log_maxfilesize = default('/configurations/usersync-log4j/ranger_usersync_log_maxfilesize',256)
-ranger_usersync_log_maxbackupindex = default('/configurations/usersync-log4j/ranger_usersync_log_maxbackupindex',20)
-ranger_tagsync_log_maxfilesize = default('/configurations/tagsync-log4j/ranger_tagsync_log_maxfilesize',256)
-ranger_tagsync_log_number_of_backup_files = default('/configurations/tagsync-log4j/ranger_tagsync_log_number_of_backup_files',20)
-ranger_xa_log_maxfilesize = default('/configurations/admin-log4j/ranger_xa_log_maxfilesize',256)
-ranger_xa_log_maxbackupindex = default('/configurations/admin-log4j/ranger_xa_log_maxbackupindex',20)
 
-# ranger log4j.properties
-admin_log4j = config['configurations']['admin-log4j']['content']
-usersync_log4j = config['configurations']['usersync-log4j']['content']
-tagsync_log4j = config['configurations']['tagsync-log4j']['content']
+# ranger logback.xml
+admin_logback_content = config['configurations']['admin-logback']['content']
+usersync_logback_content = config['configurations']['usersync-logback']['content']
+tagsync_logback_content = config['configurations']['tagsync-logback']['content']
 
 # ranger kerberos
 security_enabled = config['configurations']['cluster-env']['security_enabled']

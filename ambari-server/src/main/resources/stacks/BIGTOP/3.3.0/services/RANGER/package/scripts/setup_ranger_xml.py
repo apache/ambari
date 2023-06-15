@@ -203,13 +203,12 @@ def setup_ranger_admin(upgrade_type=None):
     group=params.unix_group,
   )
 
-  if params.stack_supports_ranger_log4j:
-    File(format('{ranger_home}/ews/webapp/WEB-INF/log4j.properties'),
-      owner=params.unix_user,
-      group=params.unix_group,
-      content=InlineTemplate(params.admin_log4j),
-      mode=0644
-    )
+  File(format("{params.ranger_conf}/logback.xml"),
+       content=InlineTemplate(params.admin_logback_content),
+       owner=params.unix_user,
+       group=params.unix_group,
+       mode=0644
+       )
 
   do_keystore_setup(upgrade_type=upgrade_type)
 
@@ -436,17 +435,12 @@ def setup_usersync(upgrade_type=None):
     dst_file = format('{usersync_home}/conf/ranger-ugsync-default.xml')
     Execute(('cp', '-f', src_file, dst_file), sudo=True)
 
-  if params.stack_supports_ranger_log4j:
-    File(format('{usersync_home}/conf/log4j.properties'),
-      owner=params.unix_user,
-      group=params.unix_group,
-      content=InlineTemplate(params.usersync_log4j),
-      mode=0644
-    )
-  elif upgrade_type is not None and not params.stack_supports_ranger_log4j:
-    src_file = format('{usersync_home}/conf.dist/log4j.xml')
-    dst_file = format('{usersync_home}/conf/log4j.xml')
-    Execute(('cp', '-f', src_file, dst_file), sudo=True)
+  File(format("{params.ranger_ugsync_conf}/logback.xml"),
+       content=InlineTemplate(params.usersync_logback_content),
+       owner=params.unix_user,
+       group=params.unix_group,
+       mode=0644
+       )
 
   # remove plain-text password from xml configs
   ranger_ugsync_site_copy = {}
@@ -465,9 +459,6 @@ def setup_usersync(upgrade_type=None):
 
   if os.path.isfile(params.ranger_ugsync_default_file):
     File(params.ranger_ugsync_default_file, owner=params.unix_user, group=params.unix_group)
-
-  if os.path.isfile(params.usgsync_log4j_file):
-    File(params.usgsync_log4j_file, owner=params.unix_user, group=params.unix_group)
 
   if os.path.isfile(params.cred_validator_file):
     File(params.cred_validator_file, group=params.unix_group, mode=0750)
@@ -566,12 +557,12 @@ def setup_tagsync(upgrade_type=None):
     group=params.unix_group
   )
 
-  File(format('{ranger_tagsync_conf}/log4j.properties'),
-    owner=params.unix_user,
-    group=params.unix_group,
-    content=InlineTemplate(params.tagsync_log4j),
-    mode=0644
-  )
+  File(format("{params.ranger_tagsync_conf}/logback.xml"),
+       content=InlineTemplate(params.tagsync_logback_content),
+       owner=params.unix_user,
+       group=params.unix_group,
+       mode=0644
+       )
 
   File(params.tagsync_services_file,
     mode = 0755,

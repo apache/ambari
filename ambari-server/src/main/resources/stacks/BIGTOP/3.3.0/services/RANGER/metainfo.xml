@@ -50,7 +50,7 @@
           </commandScript>
           <configuration-dependencies>
             <config-type>admin-properties</config-type>
-            <config-type>admin-log4j</config-type>
+            <config-type>admin-logback</config-type>
             <config-type>ranger-solr-configuration</config-type>
           </configuration-dependencies>
           <logs>
@@ -80,7 +80,7 @@
             <config-type>tagsync-application-properties</config-type>
             <config-type>ranger-tagsync-policymgr-ssl</config-type>
             <config-type>atlas-tagsync-ssl</config-type>
-            <config-type>tagsync-log4j</config-type>
+            <config-type>tagsync-logback</config-type>
           </configuration-dependencies>
         </component>
 
@@ -107,7 +107,7 @@
           </logs>
           <configuration-dependencies>
             <config-type>ranger-ugsync-site</config-type>
-            <config-type>usersync-log4j</config-type>
+            <config-type>usersync-logback</config-type>
           </configuration-dependencies>
         </component>
 

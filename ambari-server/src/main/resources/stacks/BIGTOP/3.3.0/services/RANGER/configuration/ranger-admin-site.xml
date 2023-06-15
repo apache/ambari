@@ -164,7 +164,7 @@
   </property>
   <property>
     <name>ranger.credential.provider.path</name>
-    <value>/etc/ranger-admin/rangeradmin.jceks</value>
+    <value>/etc/ranger/admin/rangeradmin.jceks</value>
     <description>File for credential store, provide full file path</description>
     <on-ambari-upgrade add="false"/>
   </property>
@@ -560,7 +560,7 @@
   </property>
   <property>
     <name>ranger.truststore.file</name>
-    <value>/etc/ranger-admin/conf/ranger-admin-keystore.jks</value>
+    <value>/etc/ranger/admin/conf/ranger-admin-keystore.jks</value>
     <display-name>ranger.truststore.file</display-name>
     <description>Ranger trust-store file-path</description>
     <on-ambari-upgrade add="true"/>
