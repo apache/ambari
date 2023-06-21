@@ -1040,7 +1040,7 @@ public class AmbariCustomCommandExecutionHelper {
     }
   }
 
-  private Set<String> calculateDecommissionedNodes(Service service, String slaveCompType) throws AmbariException {
+  Set<String> calculateDecommissionedNodes(Service service, String slaveCompType) throws AmbariException {
     Set<String> decommissionedHostsSet = new HashSet<>();
     ServiceComponent serviceComponent = service.getServiceComponent(slaveCompType);
     for (ServiceComponentHost serviceComponentHost : serviceComponent.getServiceComponentHosts().values()) {
@@ -1151,6 +1151,15 @@ public class AmbariCustomCommandExecutionHelper {
           extraParams.put(componentName, requestParams.get(componentName));
         }
 
+        if (resourceFilter.getComponentName().equals(Role.RESOURCEMANAGER.name())){
+          extraParams.putIfAbsent(ALL_DECOMMISSIONED_HOSTS, StringUtils.join(calculateDecommissionedNodes(
+            clusters.getCluster(actionExecutionContext.getClusterName()).getService(Service.Type.YARN.name()),
+              Role.NODEMANAGER.name()), ','));
+        } else if (resourceFilter.getComponentName().equals(Role.NAMENODE.name())){
+          extraParams.putIfAbsent(ALL_DECOMMISSIONED_HOSTS, StringUtils.join(calculateDecommissionedNodes(
+            clusters.getCluster(actionExecutionContext.getClusterName()).getService(Service.Type.HDFS.name()),
+              Role.DATANODE.name()), ','));
+        }
         // If command should be retried upon failure then add the option and also the default duration for retry
         if (requestParams.containsKey(KeyNames.COMMAND_RETRY_ENABLED)) {
           extraParams.put(KeyNames.COMMAND_RETRY_ENABLED, requestParams.get(KeyNames.COMMAND_RETRY_ENABLED));
