@@ -834,16 +834,22 @@ class TestHiveServer(RMFTestCase):
 
   @patch("resource_management.libraries.script.Script.post_start")
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
+  @patch("resource_management.libraries.functions.upgrade_summary.get_source_version", new = MagicMock(return_value="1.2.1.2.2.1.0.2065"))
   @patch("os.path.exists", new = MagicMock(return_value=True))
   @patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
   def test_stop_during_upgrade(self, copy_to_hdfs_mock, post_start_mock):
 
-    hiveServerVersionOutput = """WARNING: Use "yarn jar" to launch YARN applications.
+    hiveServerVersionOutput_before_upgrade = """WARNING: Use "yarn jar" to launch YARN applications.
+Hive 1.2.1.2.2.1.0-2065
+Subversion git://ip-10-0-0-90.ec2.internal/grid/0/jenkins/workspace/HDP-dal-centos6/bigtop/build/hive/rpm/BUILD/hive-1.2.1.2.2.1.0 -r a77a00ae765a73b2957337e96ed5a12122102065
+Compiled by jenkins on Sat Jun 20 11:50:41 EDT 2015
+From source with checksum 150f554beae04f76f814f12122102065"""
+    hiveServerVersionOutput_after_upgrade = """WARNING: Use "yarn jar" to launch YARN applications.
 Hive 1.2.1.2.3.0.0-2434
 Subversion git://ip-10-0-0-90.ec2.internal/grid/0/jenkins/workspace/HDP-dal-centos6/bigtop/build/hive/rpm/BUILD/hive-1.2.1.2.3.0.0 -r a77a00ae765a73b2957337e96ed5a0dbb2e60dfb
 Compiled by jenkins on Sat Jun 20 11:50:41 EDT 2015
 From source with checksum 150f554beae04f76f814f59549dead8b"""
-    call_side_effects = [(0, hiveServerVersionOutput), (0, hiveServerVersionOutput)] * 4
+    call_side_effects = [(0, hiveServerVersionOutput_before_upgrade), (0, hiveServerVersionOutput_after_upgrade)]
     copy_to_hdfs_mock.return_value = True
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
@@ -854,7 +860,7 @@ From source with checksum 150f554beae04f76f814f59549dead8b"""
     )
 
     # ensure deregister is called
-    self.assertResourceCalledIgnoreEarlier('Execute', 'hive --config /usr/hdp/current/hive-server2/conf/conf.server --service hiveserver2 --deregister 1.2.1.2.3.0.0-2434',
+    self.assertResourceCalledIgnoreEarlier('Execute', 'hive --config /usr/hdp/current/hive-server2/conf/conf.server --service hiveserver2 --deregister 1.2.1.2.2.1.0-2065',
       path=['/bin:/usr/hdp/current/hive-server2/bin:mock_hadoop_dir'],
       tries=1, user='hive')
 
@@ -870,13 +876,19 @@ From source with checksum 150f554beae04f76f814f59549dead8b"""
 
   @patch("resource_management.libraries.script.Script.post_start")
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
+  @patch("resource_management.libraries.functions.upgrade_summary.get_source_version", new = MagicMock(return_value="1.2.1.2.2.1.0.2065"))
   def test_stop_during_upgrade_with_default_conf_server(self, copy_to_hdfs_mock, post_start_mock):
-    hiveServerVersionOutput = """WARNING: Use "yarn jar" to launch YARN applications.
+    hiveServerVersionOutput_before_upgrade = """WARNING: Use "yarn jar" to launch YARN applications.
+Hive 1.2.1.2.2.1.0-2065
+Subversion git://ip-10-0-0-90.ec2.internal/grid/0/jenkins/workspace/HDP-dal-centos6/bigtop/build/hive/rpm/BUILD/hive-1.2.1.2.2.1.0 -r a77a00ae765a73b2957337e96ed5a12122102065
+Compiled by jenkins on Sat Jun 20 11:50:41 EDT 2015
+From source with checksum 150f554beae04f76f814f12122102065"""
+    hiveServerVersionOutput_after_upgrade = """WARNING: Use "yarn jar" to launch YARN applications.
 Hive 1.2.1.2.3.0.0-2434
 Subversion git://ip-10-0-0-90.ec2.internal/grid/0/jenkins/workspace/HDP-dal-centos6/bigtop/build/hive/rpm/BUILD/hive-1.2.1.2.3.0.0 -r a77a00ae765a73b2957337e96ed5a0dbb2e60dfb
 Compiled by jenkins on Sat Jun 20 11:50:41 EDT 2015
 From source with checksum 150f554beae04f76f814f59549dead8b"""
-    call_side_effects = [(0, hiveServerVersionOutput), (0, hiveServerVersionOutput)] * 4
+    call_side_effects = [(0, hiveServerVersionOutput_before_upgrade), (0, hiveServerVersionOutput_after_upgrade)]
     copy_to_hdfs_mock.return_value = True
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
@@ -887,7 +899,7 @@ From source with checksum 150f554beae04f76f814f59549dead8b"""
     )
 
     # ensure that deregister is called
-    self.assertResourceCalledIgnoreEarlier( 'Execute', 'hive --config /usr/hdp/current/hive-server2/conf/conf.server --service hiveserver2 --deregister 1.2.1.2.3.0.0-2434',
+    self.assertResourceCalledIgnoreEarlier( 'Execute', 'hive --config /usr/hdp/current/hive-server2/conf/conf.server --service hiveserver2 --deregister 1.2.1.2.2.1.0-2065',
       path=['/bin:/usr/hdp/current/hive-server2/bin:mock_hadoop_dir'],
       tries=1, user='hive')
 
