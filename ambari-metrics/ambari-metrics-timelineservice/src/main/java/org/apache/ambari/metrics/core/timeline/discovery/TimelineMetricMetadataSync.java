@@ -200,7 +200,8 @@ public class TimelineMetricMetadataSync implements Runnable {
       Map<String, TimelineMetricHostMetadata> cachedData = cacheManager.getHostedAppsCache();
 
       for (Map.Entry<String, TimelineMetricHostMetadata> storeEntry : hostedAppsDataFromStore.entrySet()) {
-        if (!cachedData.containsKey(storeEntry.getKey())) {
+        if (!cachedData.containsKey(storeEntry.getKey()) ||
+                !cachedData.get(storeEntry.getKey()).getHostedApps().keySet().containsAll(storeEntry.getValue().getHostedApps().keySet())) {
           cachedData.put(storeEntry.getKey(), storeEntry.getValue());
         }
       }
