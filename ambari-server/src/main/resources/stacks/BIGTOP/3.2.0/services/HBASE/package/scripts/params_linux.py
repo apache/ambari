@@ -49,6 +49,7 @@ config = Script.get_config()
 exec_tmp_dir = Script.get_tmp_dir()
 sudo = AMBARI_SUDO_BINARY
 
+service_name = 'hbase'
 stack_name = status_params.stack_name
 agent_stack_retry_on_unavailability = config['ambariLevelParams']['agent_stack_retry_on_unavailability']
 agent_stack_retry_count = expect("/ambariLevelParams/agent_stack_retry_count", int)
@@ -69,26 +70,17 @@ stack_supports_ranger_audit_db = check_stack_feature(StackFeature.RANGER_AUDIT_D
 # hadoop default parameters
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
-daemon_script = "/usr/lib/hbase/bin/hbase-daemon.sh"
-region_mover = "/usr/lib/hbase/bin/region_mover.rb"
-region_drainer = "/usr/lib/hbase/bin/draining_servers.rb"
-hbase_cmd = "/usr/lib/hbase/bin/hbase"
 hbase_max_direct_memory_size = None
-
+hbase_home = '/usr/lib/hbase'
 # hadoop parameters for stacks supporting rolling_upgrade
 if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
-  daemon_script = format('{stack_root}/current/hbase-client/bin/hbase-daemon.sh')
-  region_mover = format('{stack_root}/current/hbase-client/bin/region_mover.rb')
-  region_drainer = format('{stack_root}/current/hbase-client/bin/draining_servers.rb')
-  hbase_cmd = format('{stack_root}/current/hbase-client/bin/hbase')
-
+  hbase_home = format("{stack_root}/current/{component_directory}")
   hbase_max_direct_memory_size  = default('configurations/hbase-env/hbase_max_direct_memory_size', None)
 
-  daemon_script=format("{stack_root}/current/{component_directory}/bin/hbase-daemon.sh")
-  region_mover = format("{stack_root}/current/{component_directory}/bin/region_mover.rb")
-  region_drainer = format("{stack_root}/current/{component_directory}/bin/draining_servers.rb")
-  hbase_cmd = format("{stack_root}/current/{component_directory}/bin/hbase")
-
+daemon_script = format("{hbase_home}/bin/hbase-daemon.sh")
+region_mover = format("{hbase_home}/bin/region_mover.rb")
+region_drainer = format("{hbase_home}/bin/draining_servers.rb")
+hbase_cmd = format("{hbase_home}/bin/hbase")
 
 hbase_conf_dir = status_params.hbase_conf_dir
 limits_conf_dir = status_params.limits_conf_dir
@@ -429,7 +421,8 @@ if enable_ranger_hbase:
 cluster_name = config['clusterName']
 
 # ranger hbase plugin section end
-
+stack_version_formatted_major = status_params.stack_version_formatted
+ranger_plugin_home = format("{hbase_home}/../ranger-{service_name}-plugin")
 create_hbase_home_directory = check_stack_feature(StackFeature.HBASE_HOME_DIRECTORY, stack_version_formatted)
 hbase_home_directory = format("/user/{hbase_user}")
 

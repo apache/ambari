@@ -154,6 +154,9 @@
             <package>
               <name>hadoop_${stack_version}-hdfs</name>
             </package>
+            <package>
+              <name>ranger_${stack_version}-yarn-plugin</name>
+            </package>
           </packages>
         </osSpecific>
       </osSpecifics>

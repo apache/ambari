@@ -51,6 +51,7 @@ tmp_dir = Script.get_tmp_dir()
 
 architecture = get_architecture()
 
+service_name = 'hdfs'
 stack_name = status_params.stack_name
 stack_root = Script.get_stack_root()
 upgrade_direction = default("/commandParams/upgrade_direction", None)
@@ -439,7 +440,7 @@ is_https_enabled = is_https_enabled_in_hdfs(config['configurations']['hdfs-site'
                                             config['configurations']['hdfs-site']['dfs.https.enable'])
 
 # ranger hdfs plugin section start
-
+ranger_plugin_home = format("{hadoop_home}/../ranger-{service_name}-plugin")
 # ranger host
 ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
 has_ranger_admin = not len(ranger_admin_hosts) == 0

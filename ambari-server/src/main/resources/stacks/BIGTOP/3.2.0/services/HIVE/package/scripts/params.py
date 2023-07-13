@@ -62,7 +62,7 @@ retryAble = default("/commandParams/command_retry_enabled", False)
 
 # log4j version is 2 for hive3; put config files under /etc/hive/conf
 log4j_version = '2'
-
+service_name = 'hive'
 # server configurations
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
@@ -443,17 +443,6 @@ hive_site_config["hive.execution.engine"] = "tez"
 hive_site_config["hive.metastore.db.type"] = hive_metastore_db_type.upper()
 hive_site_config["hive.hook.proto.base-directory"] = hive_hook_proto_base_directory
 
-########################################################
-# https://issues.apache.org/jira/browse/HIVE-19740
-# This is not a bug but after 2.x hive.metastore.event.db.notification.api.auth is true by default so if you just upgrade the version in a kerberized cluster, hiverserver2 will probably not be able to connect to the metastore. As specified here this can solved by setting hive.metastore.event.db.notification.api.auth to false or adding something like this to your core.xml or hive-site.xml:
-########################################################
-core_site_config = dict(config['configurations']['core-site'])
-if format("hadoop.proxyuser.{hive_user}.hosts") not in core_site_config and format("hadoop.proxyuser.{hive_user}.groups") not in core_site_config:
-  hive_site_config["hive.metastore.event.db.notification.api.auth"] = "false"
-  hive_site_config["hive.server2.enable.doAs"] = "false"
-else:
-  hive_site_config["hive.metastore.event.db.notification.api.auth"] = "true"
-  hive_site_config["hive.server2.enable.doAs"] = "true"
 
 ########################################################
 ############# AMS related params #####################
@@ -644,6 +633,7 @@ doAs = config["configurations"]["hive-site"]["hive.server2.enable.doAs"]
 # ranger support xml_configuration flag, instead of depending on ranger xml_configurations_supported/ranger-env, using stack feature
 xml_configurations_supported = check_stack_feature(StackFeature.RANGER_XML_CONFIGURATION, version_for_stack_feature_checks)
 
+ranger_plugin_home = format("{hive_home}/../ranger-{service_name}-plugin")
 # get ranger hive properties if enable_ranger_hive is True
 if enable_ranger_hive:
   # get ranger policy url

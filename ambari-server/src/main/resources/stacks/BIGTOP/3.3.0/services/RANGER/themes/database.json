@@ -1,0 +1,286 @@
+{
+  "name": "database",
+  "configuration": {
+    "placement": {
+      "configuration-layout": "database",
+      "configs": [
+        {
+          "config": "admin-properties/DB_FLAVOR",
+          "subsection-name": "subsection-ranger-db-row1-col1"
+        },
+        {
+          "config": "admin-properties/db_name",
+          "subsection-name": "subsection-ranger-db-row1-col1"
+        },
+        {
+          "config": "admin-properties/db_user",
+          "subsection-name": "subsection-ranger-db-row1-col1"
+        },
+        {
+          "config": "ranger-admin-site/ranger.jpa.jdbc.url",
+          "subsection-name": "subsection-ranger-db-row1-col1"
+        },
+        {
+          "config": "admin-properties/db_host",
+          "subsection-name": "subsection-ranger-db-row1-col2"
+        },
+        {
+          "config": "ranger-admin-site/ranger.jpa.jdbc.driver",
+          "subsection-name": "subsection-ranger-db-row1-col2"
+        },
+        {
+          "config": "admin-properties/db_password",
+          "subsection-name": "subsection-ranger-db-row1-col2"
+        },
+        {
+          "config": "ranger-env/create_db_dbuser",
+          "subsection-name": "subsection-ranger-db-row2"
+        },
+        {
+          "config": "ranger-env/test_db_connection",
+          "subsection-name": "subsection-ranger-db-row2",
+          "property_value_attributes": {
+            "ui_only_property": true
+          },
+          "depends-on": [
+            {
+              "configs":[
+                "ranger-env/create_db_dbuser"
+              ],
+              "if": "${ranger-env/create_db_dbuser}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "admin-properties/db_root_user",
+          "subsection-name": "subsection-ranger-db-root-user-col1"
+        },
+        {
+          "config": "ranger-env/ranger_privelege_user_jdbc_url",
+          "subsection-name": "subsection-ranger-db-root-user-col1"
+        },
+        {
+          "config": "admin-properties/db_root_password",
+          "subsection-name": "subsection-ranger-db-root-user-col2"
+        },
+        {
+          "config": "ranger-env/test_root_db_connection",
+          "subsection-name": "subsection-ranger-db-root-user-col1",
+          "property_value_attributes": {
+            "ui_only_property": true
+          }
+        }
+      ]
+    },
+    "widgets": [
+      {
+        "config": "admin-properties/DB_FLAVOR",
+        "widget": {
+          "type": "combo"
+        }
+      },
+      {
+        "config": "admin-properties/db_user",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "admin-properties/db_name",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "ranger-admin-site/ranger.jpa.jdbc.url",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "ranger-admin-site/ranger.jpa.jdbc.driver",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "admin-properties/db_host",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "admin-properties/db_password",
+        "widget": {
+          "type": "password"
+        }
+      },
+      {
+        "config": "ranger-env/test_db_connection",
+        "widget": {
+          "type": "test-db-connection",
+          "display-name": "Test Connection",
+          "required-properties": {
+            "jdbc.driver.class": "ranger-admin-site/ranger.jpa.jdbc.driver",
+            "jdbc.driver.url": "ranger-admin-site/ranger.jpa.jdbc.url",
+            "db.connection.source.host": "ranger-site/ranger_admin_hosts",
+            "db.type": "admin-properties/DB_FLAVOR",
+            "db.connection.destination.host": "admin-properties/db_host",
+            "db.connection.user": "admin-properties/db_user",
+            "db.connection.password": "admin-properties/db_password"
+          }
+        }
+      },
+      {
+        "config": "ranger-env/create_db_dbuser",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "ranger-env/ranger_privelege_user_jdbc_url",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "admin-properties/db_root_user",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "admin-properties/db_root_password",
+        "widget": {
+          "type": "password"
+        }
+      },
+      {
+        "config": "ranger-env/test_root_db_connection",
+        "widget": {
+          "type": "test-db-connection",
+          "display-name": "Test Connection",
+          "required-properties": {
+            "jdbc.driver.class": "ranger-admin-site/ranger.jpa.jdbc.driver",
+            "jdbc.driver.url": "ranger-env/ranger_privelege_user_jdbc_url",
+            "db.connection.source.host": "ranger-site/ranger_admin_hosts",
+            "db.type": "admin-properties/DB_FLAVOR",
+            "db.connection.destination.host": "admin-properties/db_host",
+            "db.connection.user": "admin-properties/db_root_user",
+            "db.connection.password": "admin-properties/db_root_password"
+          }
+        }
+      }
+    ],
+    "layouts": [
+      {
+        "name": "database",
+        "tabs": [
+          {
+            "name": "ranger_database",
+            "display-name": "Ranger",
+            "layout": {
+              "tab-columns": "2",
+              "tab-rows": "2",
+              "sections": [
+                {
+                  "name": "section-ranger-admin",
+                  "removed" : false,
+                  "row-index": "0",
+                  "column-index": "0",
+                  "row-span": "3",
+                  "column-span": "2",
+                  "section-columns": "2",
+                  "section-rows": "3",
+                  "subsections": [
+                    {
+                      "name": "subsection-ranger-db-row1-col1",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    },
+                    {
+                      "name": "subsection-ranger-db-row1-col2",
+                      "row-index": "0",
+                      "column-index": "1",
+                      "row-span": "1",
+                      "column-span": "1"
+                    },
+                    {
+                      "name": "subsection-ranger-db-row2",
+                      "row-index": "1",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "2"
+                    },
+                    {
+                      "name": "subsection-ranger-db-root-user-col1",
+                      "row-index": "2",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1",
+                      "depends-on": [
+                        {
+                          "configs":[
+                            "ranger-env/create_db_dbuser"
+                          ],
+                          "if": "${ranger-env/create_db_dbuser}",
+                          "then": {
+                            "property_value_attributes": {
+                              "visible": true
+                            }
+                          },
+                          "else": {
+                            "property_value_attributes": {
+                              "visible": false
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "name": "subsection-ranger-db-root-user-col2",
+                      "row-index": "2",
+                      "column-index": "1",
+                      "row-span": "1",
+                      "column-span": "1",
+                      "depends-on": [
+                        {
+                          "configs":[
+                            "ranger-env/create_db_dbuser"
+                          ],
+                          "if": "${ranger-env/create_db_dbuser}",
+                          "then": {
+                            "property_value_attributes": {
+                              "visible": true
+                            }
+                          },
+                          "else": {
+                            "property_value_attributes": {
+                              "visible": false
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

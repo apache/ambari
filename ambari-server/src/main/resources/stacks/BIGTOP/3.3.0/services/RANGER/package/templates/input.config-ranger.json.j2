@@ -1,0 +1,79 @@
+{#
+ # Licensed to the Apache Software Foundation (ASF) under one
+ # or more contributor license agreements.  See the NOTICE file
+ # distributed with this work for additional information
+ # regarding copyright ownership.  The ASF licenses this file
+ # to you under the Apache License, Version 2.0 (the
+ # "License"); you may not use this file except in compliance
+ # with the License.  You may obtain a copy of the License at
+ #
+ #   http://www.apache.org/licenses/LICENSE-2.0
+ #
+ # Unless required by applicable law or agreed to in writing, software
+ # distributed under the License is distributed on an "AS IS" BASIS,
+ # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+ #}
+{
+  "input":[
+    {
+      "type":"ranger_admin",
+      "rowtype":"service",
+      "path":"{{default('/configurations/ranger-admin-site/ranger.logs.base.dir', '/var/log/ranger/admin')}}/xa_portal.log"
+    },
+    {
+      "type":"ranger_dbpatch",
+      "rowtype":"service",
+      "path":"{{default('/configurations/ranger-admin-site/ranger.logs.base.dir', '/var/log/ranger/admin')}}/ranger_db_patch.log"
+    },
+    {
+      "type":"ranger_usersync",
+      "rowtype":"service",
+      "path":"{{default('/configurations/ranger-ugsync-site/ranger.usersync.logdir', '/var/log/ranger/usersync')}}/usersync.log"
+    }
+  ],
+  "filter":[
+    {
+      "filter":"grok",
+      "conditions":{
+        "fields":{
+          "type":[
+            "ranger_admin",
+            "ranger_dbpatch"
+          ]
+        }
+      },
+      "log4j_format":"%d [%t] %-5p %C{6} (%F:%L) - %m%n",
+      "multiline_pattern":"^(%{TIMESTAMP_ISO8601:logtime})",
+      "message_pattern":"(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}\\[%{DATA:thread_name}\\]%{SPACE}%{LOGLEVEL:level}%{SPACE}%{JAVACLASS:logger_name}%{SPACE}\\(%{JAVAFILE:file}:%{INT:line_number}\\)%{SPACE}-%{SPACE}%{GREEDYDATA:log_message}",
+      "post_map_values":{
+        "logtime":{
+          "map_date":{
+            "target_date_pattern":"yyyy-MM-dd HH:mm:ss,SSS"
+          }
+        }
+      }
+    },
+    {
+      "filter":"grok",
+      "conditions":{
+        "fields":{
+          "type":[
+            "ranger_usersync"
+          ]
+        }
+      },
+      "log4j_format":"%d{dd MMM yyyy HH:mm:ss} %5p %c{1} [%t] - %m%n",
+      "multiline_pattern":"^(%{USER_SYNC_DATE:logtime})",
+      "message_pattern":"(?m)^%{USER_SYNC_DATE:logtime}%{SPACE}%{LOGLEVEL:level}%{SPACE}%{JAVACLASS:logger_name}%{SPACE}\\[%{DATA:thread_name}\\]%{SPACE}-%{SPACE}%{GREEDYDATA:log_message}",
+      "post_map_values":{
+        "logtime":{
+          "map_date":{
+            "target_date_pattern":"dd MMM yyyy HH:mm:ss"
+          }
+        }
+      }
+    }
+  ]
+}

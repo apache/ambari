@@ -64,7 +64,7 @@ def setup_ranger_hive(upgrade_type = None):
 
     api_version='v2'
 
-    setup_ranger_plugin('hive-server2', 'hive', params.ranger_previous_jdbc_jar,
+    setup_ranger_plugin('hive-server2', params.service_name, params.ranger_previous_jdbc_jar,
                         params.ranger_downloaded_custom_connector, params.ranger_driver_curl_source,
                         params.ranger_driver_curl_target, params.java64_home,
                         params.repo_name, params.hive_ranger_plugin_repo,
@@ -82,7 +82,7 @@ def setup_ranger_hive(upgrade_type = None):
                         is_security_enabled = params.security_enabled,
                         is_stack_supports_ranger_kerberos = params.stack_supports_ranger_kerberos,
                         component_user_principal=params.hive_principal if params.security_enabled else None,
-                        component_user_keytab=params.hive_server2_keytab if params.security_enabled else None)
+                        component_user_keytab=params.hive_server2_keytab if params.security_enabled else None,plugin_home=params.ranger_plugin_home)
   else:
     Logger.info('Ranger Hive plugin is not enabled')
 

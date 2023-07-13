@@ -12,10 +12,20 @@
         {
           "kafka-broker": {
             "authorizer.class.name": "kafka.security.auth.SimpleAclAuthorizer",
-            "principal.to.local.class": "kafka.security.auth.KerberosPrincipalToLocal",
+            "principal.to.local.class":"kafka.security.auth.KerberosPrincipalToLocal",
             "super.users": "user:${kafka-env/kafka_user}",
             "security.inter.broker.protocol": "SASL_PLAINTEXT",
             "zookeeper.set.acl": "true"
+          }
+        },
+        {
+          "ranger-kafka-audit": {
+            "xasecure.audit.jaas.Client.loginModuleName": "com.sun.security.auth.module.Krb5LoginModule",
+            "xasecure.audit.jaas.Client.loginModuleControlFlag": "required",
+            "xasecure.audit.jaas.Client.option.useKeyTab": "true",
+            "xasecure.audit.jaas.Client.option.storeKey": "false",
+            "xasecure.audit.jaas.Client.option.serviceName": "solr",
+            "xasecure.audit.destination.solr.force.use.inmemory.jaas.config": "true"
           }
         }
       ],
@@ -47,13 +57,20 @@
               }
             },
             {
+              "name": "kafka_kafka_broker_kafka_broker",
+              "reference": "/KAFKA/KAFKA_BROKER/kafka_broker",
+              "principal": {
+                "configuration": "ranger-kafka-audit/xasecure.audit.jaas.Client.option.principal"
+              },
+              "keytab": {
+                "configuration": "ranger-kafka-audit/xasecure.audit.jaas.Client.option.keyTab"
+              }
+            },
+            {
               "name": "kafka_kafka_broker_hdfs",
               "reference": "/HDFS/NAMENODE/hdfs",
-              "when": {
-                "contains": [
-                  "services",
-                  "HDFS"
-                ]
+              "when" : {
+                "contains" : ["services", "HDFS"]
               }
             }
           ]

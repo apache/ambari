@@ -1,0 +1,588 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_final="true" supports_adding_forbidden="true">
+  <property>
+    <name>ranger_user</name>
+    <value>ranger</value>
+    <property-type>USER</property-type>
+    <display-name>Ranger User</display-name>
+    <description>Ranger username</description>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+      <user-groups>
+        <property>
+          <type>ranger-env</type>
+          <name>ranger_group</name>
+        </property>
+        <property>
+          <type>cluster-env</type>
+          <name>user_group</name>
+        </property>
+      </user-groups>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>ranger_group</name>
+    <value>ranger</value>
+    <property-type>GROUP</property-type>
+    <display-name>Ranger Group</display-name>
+    <description>Ranger group</description>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>ranger_admin_username</name>
+    <value>amb_ranger_admin</value>
+    <property-type>TEXT</property-type>
+    <display-name>Ranger Admin username for Ambari</display-name>
+    <description>This is the ambari user created for creating repositories and policies in Ranger Admin for each plugin</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property require-input="true">
+    <name>ranger_admin_password</name>
+    <value/>
+    <property-type>PASSWORD</property-type>
+    <display-name>Ranger Admin user's password for Ambari</display-name>
+    <description>This is the ambari user password created for creating repositories and policies in Ranger Admin for each plugin. Password should be minimum 8 characters with minimum one alphabet and one numeric. Unsupported special characters are &quot; &apos; &#92; &#96; &#180;.</description>
+    <value-attributes>
+      <type>password</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>admin_username</name>
+    <value>admin</value>
+    <display-name>Ranger Admin username</display-name>
+    <description>This is the username for default admin user that is used for creating ambari user in Ranger Admin</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property require-input="true">
+    <name>admin_password</name>
+    <value></value>
+    <property-type>PASSWORD</property-type>
+    <display-name>Ranger Admin user's password</display-name>
+    <description>This is the password for default admin user that is used for creating ambari user in Ranger Admin. Password should be minimum 8 characters with minimum one alphabet and one numeric. Unsupported special characters are &quot; &apos; &#92; &#96; &#180;.</description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>ranger_pid_dir</name>
+    <display-name>Ranger PID Dir</display-name>
+    <value>/var/run/ranger</value>
+    <description/>
+    <value-attributes>
+      <type>directory</type>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>ranger-hdfs-plugin-enabled</name>
+    <value>No</value>
+    <display-name>HDFS Ranger Plugin</display-name>
+    <description>Enable HDFS Ranger plugin</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>Yes</value>
+          <label>ON</label>
+        </entry>
+        <entry>
+          <value>No</value>
+          <label>OFF</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>ranger-hive-plugin-enabled</name>
+    <value>No</value>
+    <display-name>Hive Ranger Plugin</display-name>
+    <description>Enable Hive Ranger plugin</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>Yes</value>
+          <label>ON</label>
+        </entry>
+        <entry>
+          <value>No</value>
+          <label>OFF</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>ranger-hbase-plugin-enabled</name>
+    <value>No</value>
+    <display-name>Hbase Ranger Plugin</display-name>
+    <description>Enable HBase Ranger plugin</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>Yes</value>
+          <label>ON</label>
+        </entry>
+        <entry>
+          <value>No</value>
+          <label>OFF</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>ranger-storm-plugin-enabled</name>
+    <value>No</value>
+    <display-name>Storm Ranger Plugin</display-name>
+    <description>Enable Storm Ranger plugin</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>Yes</value>
+          <label>ON</label>
+        </entry>
+        <entry>
+          <value>No</value>
+          <label>OFF</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>ranger-knox-plugin-enabled</name>
+    <value>No</value>
+    <display-name>Knox Ranger Plugin</display-name>
+    <description>Enable Knox Ranger plugin</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>Yes</value>
+          <label>ON</label>
+        </entry>
+        <entry>
+          <value>No</value>
+          <label>OFF</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>xml_configurations_supported</name>
+    <value>true</value>
+    <description/>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>create_db_dbuser</name>
+    <value>true</value>
+    <display-name>Setup Database and Database User</display-name>
+    <description>If set to Yes, Ambari will create and setup Ranger Database and Database User. This will require to specify Database Admin user and password</description>
+    <value-attributes>
+      <type>value-list</type>
+      <overridable>false</overridable>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>Yes</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>No</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>ranger_privelege_user_jdbc_url</name>
+    <display-name>JDBC connect string for root user</display-name>
+    <description>JDBC connect string - auto populated based on other values. This is to be used by root user</description>
+    <value>jdbc:mysql://localhost</value>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>admin-properties</type>
+        <name>DB_FLAVOR</name>
+      </property>
+      <property>
+        <type>admin-properties</type>
+        <name>db_host</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>ranger-yarn-plugin-enabled</name>
+    <value>No</value>
+    <display-name>YARN Ranger Plugin</display-name>
+    <description>Enable YARN Ranger plugin</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>Yes</value>
+          <label>ON</label>
+        </entry>
+        <entry>
+          <value>No</value>
+          <label>OFF</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>ranger-kafka-plugin-enabled</name>
+    <value>No</value>
+    <display-name>Kafka Ranger Plugin</display-name>
+    <description>Enable Kafka Ranger plugin</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>Yes</value>
+          <label>ON</label>
+        </entry>
+        <entry>
+          <value>No</value>
+          <label>OFF</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>xasecure.audit.destination.solr</name>
+    <value>true</value>
+    <display-name>Audit to Solr</display-name>
+    <description>Enable Audit to Solr for all ranger supported services. This property is overridable at service level</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>ON</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>OFF</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>is_solrCloud_enabled</name>
+    <display-name>SolrCloud</display-name>
+    <description>SolrCloud uses zookeeper for distributed search and indexing</description>
+    <value>false</value>
+    <value-attributes>
+      <type>value-list</type>
+      <overridable>false</overridable>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>ON</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>OFF</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>xasecure.audit.destination.hdfs</name>
+    <value>true</value>
+    <display-name>Audit to HDFS</display-name>
+    <description>Enable Audit to HDFS for all ranger supported services. This property is overridable at service level</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>ON</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>OFF</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>xasecure.audit.destination.hdfs.dir</name>
+    <value>hdfs://localhost:8020</value>
+    <display-name>Destination HDFS Directory</display-name>
+    <description>HDFS folder to write audit to, make sure all service user has required permissions. This property is overridable at service level</description>
+    <depends-on>
+      <property>
+        <type>core-site</type>
+        <name>fs.defaultFS</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>ranger_solr_config_set</name>
+    <value>ranger_audits</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>ranger_solr_collection_name</name>
+    <value>ranger_audits</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>ranger_solr_shards</name>
+    <value>1</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>ranger_solr_replication_factor</name>
+    <value>1</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>ranger-atlas-plugin-enabled</name>
+    <value>No</value>
+    <display-name>Atlas Ranger Plugin</display-name>
+    <description>Enable Atlas Ranger plugin</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>Yes</value>
+          <label>ON</label>
+        </entry>
+        <entry>
+          <value>No</value>
+          <label>OFF</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>is_external_solrCloud_enabled</name>
+    <display-name>External SolrCloud</display-name>
+    <value>false</value>
+    <description>Using Externally managed solr cloud ?</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>ON</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>OFF</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>is_external_solrCloud_kerberos</name>
+    <display-name>External SolrCloud kerberos</display-name>
+    <value>false</value>
+    <description>Is Externally managed solr cloud kerberos ?</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>ON</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>OFF</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>ranger-nifi-plugin-enabled</name>
+    <value>No</value>
+    <display-name>NIFI Ranger Plugin</display-name>
+    <description>Enable NIFI Ranger plugin</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>Yes</value>
+          <label>ON</label>
+        </entry>
+        <entry>
+          <value>No</value>
+          <label>OFF</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>is_nested_groupsync_enabled</name>
+    <display-name>Sync Nested Groups</display-name>
+    <description/>
+    <value>false</value>
+    <value-attributes>
+      <type>value-list</type>
+      <overridable>false</overridable>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>Yes</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>No</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>content</name>
+    <display-name>ranger-env template</display-name>
+    <description>This is the jinja template for Ranger env</description>
+    <value/>
+    <property-type>VALUE_FROM_PROPERTY_FILE</property-type>
+    <value-attributes>
+      <property-file-name>ranger-env.sh.j2</property-file-name>
+      <property-file-type>text</property-file-type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property require-input="true">
+    <name>rangerusersync_user_password</name>
+    <value></value>
+    <property-type>PASSWORD</property-type>
+    <display-name>Ranger Usersync user's password</display-name>
+    <description>This is the rangerusersync user password. Password should be minimum 8 characters with minimum one alphabet and one numeric. Unsupported special characters are &quot; &apos; &#92; &#96; &#180;.</description>
+    <value-attributes>
+      <type>password</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property require-input="true">
+    <name>rangertagsync_user_password</name>
+    <value></value>
+    <property-type>PASSWORD</property-type>
+    <display-name>Ranger Tagsync user's password</display-name>
+    <description>This is the rangertagsync user password. Password should be minimum 8 characters with minimum one alphabet and one numeric. Unsupported special characters are &quot; &apos; &#92; &#96; &#180;.</description>
+    <value-attributes>
+      <type>password</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property require-input="true">
+    <name>keyadmin_user_password</name>
+    <value></value>
+    <property-type>PASSWORD</property-type>
+    <display-name>Ranger KMS keyadmin user's password</display-name>
+    <description>This is the keyadmin user password. Password should be minimum 8 characters with minimum one alphabet and one numeric. Unsupported special characters are &quot; &apos; &#92; &#96; &#180;.</description>
+    <value-attributes>
+      <type>password</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>ranger_admin_max_heap_size</name>
+    <value>1g</value>
+    <display-name>Ranger Admin heap size.</display-name>
+    <description>Ranger Admin maximum heap size limit.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>ranger_usersync_max_heap_size</name>
+    <value>1g</value>
+    <display-name>Ranger Usersync max heap size.</display-name>
+    <description>Ranger Usersync maximum heap size limit.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>ranger_tagsync_max_heap_size</name>
+    <value>1g</value>
+    <display-name>Ranger Tagsync max heap size.</display-name>
+    <description>Ranger Tagsync maximum heap size limit.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+</configuration>

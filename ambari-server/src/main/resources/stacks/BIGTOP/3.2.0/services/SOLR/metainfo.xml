@@ -69,6 +69,9 @@
             <package>
               <name>solr_${stack_version}</name>
             </package>
+            <package>
+              <name>ranger_${stack_version}-solr-plugin</name>
+            </package>
           </packages>
         </osSpecific>
       </osSpecifics>
