@@ -40,145 +40,146 @@ from resource_management.core import shell
 CURL_CONNECTION_TIMEOUT = '5'
 
 class ServiceCheck(Script):
-  def service_check(self, env):
-    pass
+    def service_check(self, env):
+        pass
 
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class ServiceCheckWindows(ServiceCheck):
-  def service_check(self, env):
-    import params
-    env.set_params(params)
+    def service_check(self, env):
+        import params
+        env.set_params(params)
 
-    yarn_exe = os_utils.quote_path(os.path.join(params.yarn_home, "bin", "yarn.cmd"))
+        yarn_exe = os_utils.quote_path(os.path.join(params.yarn_home, "bin", "yarn.cmd"))
 
-    run_yarn_check_cmd = "cmd /C %s node -list" % yarn_exe
+        run_yarn_check_cmd = "cmd /C %s node -list" % yarn_exe
 
-    component_type = 'rm'
-    if params.hadoop_ssl_enabled:
-      component_address = params.rm_webui_https_address
-    else:
-      component_address = params.rm_webui_address
+        component_type = 'rm'
+        if params.hadoop_ssl_enabled:
+            component_address = params.rm_webui_https_address
+        else:
+            component_address = params.rm_webui_address
 
-    #temp_dir = os.path.abspath(os.path.join(params.hadoop_home, os.pardir)), "/tmp"
-    temp_dir = os.path.join(os.path.dirname(params.hadoop_home), "temp")
-    validateStatusFileName = "validateYarnComponentStatusWindows.py"
-    validateStatusFilePath = os.path.join(temp_dir, validateStatusFileName)
-    python_executable = sys.executable
-    validateStatusCmd = "%s %s %s -p %s -s %s" % (python_executable, validateStatusFilePath, component_type, component_address, params.hadoop_ssl_enabled)
+        #temp_dir = os.path.abspath(os.path.join(params.hadoop_home, os.pardir)), "/tmp"
+        temp_dir = os.path.join(os.path.dirname(params.hadoop_home), "temp")
+        validateStatusFileName = "validateYarnComponentStatusWindows.py"
+        validateStatusFilePath = os.path.join(temp_dir, validateStatusFileName)
+        python_executable = sys.executable
+        validateStatusCmd = "%s %s %s -p %s -s %s" % (python_executable, validateStatusFilePath, component_type, component_address, params.hadoop_ssl_enabled)
 
-    if params.security_enabled:
-      kinit_cmd = "%s -kt %s %s;" % (params.kinit_path_local, params.smoke_user_keytab, params.smokeuser)
-      smoke_cmd = kinit_cmd + ' ' + validateStatusCmd
-    else:
-      smoke_cmd = validateStatusCmd
+        if params.security_enabled:
+            kinit_cmd = "%s -kt %s %s;" % (params.kinit_path_local, params.smoke_user_keytab, params.smokeuser)
+            smoke_cmd = kinit_cmd + ' ' + validateStatusCmd
+        else:
+            smoke_cmd = validateStatusCmd
 
-    File(validateStatusFilePath,
-         content=StaticFile(validateStatusFileName)
-    )
+        File(validateStatusFilePath,
+             content=StaticFile(validateStatusFileName)
+             )
 
-    Execute(smoke_cmd,
-            tries=3,
-            try_sleep=5,
-            logoutput=True
-    )
+        Execute(smoke_cmd,
+                tries=3,
+                try_sleep=5,
+                logoutput=True
+                )
 
-    Execute(run_yarn_check_cmd, logoutput=True)
+        Execute(run_yarn_check_cmd, logoutput=True)
 
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class ServiceCheckDefault(ServiceCheck):
-  def service_check(self, env):
-    import params
-    env.set_params(params)
+    def service_check(self, env):
+        import params
+        env.set_params(params)
 
-    params.HdfsResource(format("/user/{smokeuser}"),
-                        type="directory",
-                        action="create_on_execute",
-                        owner=params.smokeuser,
-                        mode=params.smoke_hdfs_user_mode,
-                        )
+        params.HdfsResource(format("/user/{smokeuser}"),
+                            type="directory",
+                            action="create_on_execute",
+                            owner=params.smokeuser,
+                            mode=params.smoke_hdfs_user_mode,
+                            )
 
-    if params.stack_version_formatted_major and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.stack_version_formatted_major):
-      path_to_distributed_shell_jar = format("{stack_root}/current/hadoop-yarn-client/hadoop-yarn-applications-distributedshell.jar")
-    else:
-      path_to_distributed_shell_jar = "/usr/lib/hadoop-yarn/hadoop-yarn-applications-distributedshell*.jar"
-    yarn_distrubuted_shell_check_params = ["yarn org.apache.hadoop.yarn.applications.distributedshell.Client",
-                                           "-shell_command", "ls", "-num_containers", "{number_of_nm}",
-                                           "-jar", "{path_to_distributed_shell_jar}", "-timeout", "300000",
-                                           "--queue", "{service_check_queue_name}"]
-    yarn_distrubuted_shell_check_cmd = format(" ".join(yarn_distrubuted_shell_check_params))
+        if params.stack_version_formatted_major and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.stack_version_formatted_major):
+            path_to_distributed_shell_jar = format("{stack_root}/current/hadoop-yarn-client/hadoop-yarn-applications-distributedshell.jar")
+        else:
+            path_to_distributed_shell_jar = "/usr/lib/hadoop-yarn/hadoop-yarn-applications-distributedshell*.jar"
 
-    if params.security_enabled:
-      kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal};")
-      smoke_cmd = format("{kinit_cmd} {yarn_distrubuted_shell_check_cmd}")
-    else:
-      smoke_cmd = yarn_distrubuted_shell_check_cmd
+        yarn_distrubuted_shell_check_params = ["yarn org.apache.hadoop.yarn.applications.distributedshell.Client",
+                                               "-shell_command", "ls", "-num_containers", "{number_of_nm}",
+                                               "-jar", "{path_to_distributed_shell_jar}", "-timeout", "300000",
+                                               "--queue", "{service_check_queue_name}"]
+        yarn_distrubuted_shell_check_cmd = format(" ".join(yarn_distrubuted_shell_check_params))
 
-    #return_code, out = shell.checked_call(smoke_cmd,
-    #                                      path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
-    #                                      user=params.smokeuser,
-    #                                      )
+        if params.security_enabled:
+            kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal};")
+            smoke_cmd = format("{kinit_cmd} {yarn_distrubuted_shell_check_cmd}")
+        else:
+            smoke_cmd = yarn_distrubuted_shell_check_cmd
 
-    #m = re.search("appTrackingUrl=(.*),\s", out)
-    #app_url = m.group(1)
+        return_code, out = shell.checked_call(smoke_cmd,
+                                              path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
+                                              user=params.smokeuser,
+                                              )
 
-    #splitted_app_url = str(app_url).split('/')
+        m = re.search("appTrackingUrl=(.*),\s", out)
+        app_url = m.group(1)
 
-    #for item in splitted_app_url:
-    #  if "application" in item:
-    #    application_name = item
+        splitted_app_url = str(app_url).split('/')
 
-    # Find out the active RM from RM list
-    # Raise an exception if the active rm cannot be determined
-    #active_rm_webapp_address = self.get_active_rm_webapp_address()
-    #Logger.info("Active Resource Manager web app address is : " + active_rm_webapp_address);
+        for item in splitted_app_url:
+            if "application" in item:
+                application_name = item
 
-    # Verify job state from active resource manager via rest api
-    #info_app_url = params.scheme + "://" + active_rm_webapp_address + "/ws/v1/cluster/apps/" + application_name
-    #get_app_info_cmd = "curl --negotiate -u : -ks --location-trusted --connect-timeout " + CURL_CONNECTION_TIMEOUT + " " + info_app_url
+        # Find out the active RM from RM list
+        # Raise an exception if the active rm cannot be determined
+        active_rm_webapp_address = self.get_active_rm_webapp_address()
+        Logger.info("Active Resource Manager web app address is : " + active_rm_webapp_address);
 
-    #return_code, stdout, _ = get_user_call_output(get_app_info_cmd,
-    #                                              user=params.smokeuser,
-    #                                              path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
-    #                                              )
+        # Verify job state from active resource manager via rest api
+        info_app_url = params.scheme + "://" + active_rm_webapp_address + "/ws/v1/cluster/apps/" + application_name
+        get_app_info_cmd = "curl --negotiate -u : -ks --location-trusted --connect-timeout " + CURL_CONNECTION_TIMEOUT + " " + info_app_url
 
-    #try:
-    #  json_response = json.loads(stdout)
-    #except Exception as e:
-    #  raise Fail(format("Response from YARN API was not a valid JSON. Response: {stdout}"))
+        return_code, stdout, _ = get_user_call_output(get_app_info_cmd,
+                                                      user=params.smokeuser,
+                                                      path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
+                                                      )
 
-    #if json_response is None or 'app' not in json_response or \
-    #        'state' not in json_response['app'] or 'finalStatus' not in json_response['app']:
-    #  raise Fail("Application " + app_url + " returns invalid data.")
-
-    #if json_response['app']['state'] != "FINISHED" or json_response['app']['finalStatus'] != "SUCCEEDED":
-    #  raise Fail("Application " + app_url + " state/status is not valid. Should be FINISHED/SUCCEEDED.")
-
-  def get_active_rm_webapp_address(self):
-    import params
-    active_rm_webapp_address = None
-    rm_webapp_addresses = params.rm_webapp_addresses_list
-    if rm_webapp_addresses is not None and len(rm_webapp_addresses) > 0:
-      for rm_webapp_address in rm_webapp_addresses:
-        rm_state_url = params.scheme + "://" + rm_webapp_address + "/ws/v1/cluster/info"
-        get_cluster_info_cmd = "curl --negotiate -u : -ks --location-trusted --connect-timeout " + CURL_CONNECTION_TIMEOUT + " " + rm_state_url
         try:
-          return_code, stdout, _ = get_user_call_output(get_cluster_info_cmd,
-                                                        user=params.smokeuser,
-                                                        path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
-                                                        )
-          json_response = json.loads(stdout)
-          if json_response is not None and 'clusterInfo' in json_response \
-            and json_response['clusterInfo']['haState'] == "ACTIVE":
-              active_rm_webapp_address = rm_webapp_address
-              break
+            json_response = json.loads(stdout)
         except Exception as e:
-          Logger.warning(format("Cluster info is not available from calling {get_cluster_info_cmd}"))
+            raise Fail(format("Response from YARN API was not a valid JSON. Response: {stdout}"))
 
-    if active_rm_webapp_address is None:
-      raise Fail('Resource Manager state is not available. Failed to determine the active Resource Manager web application address from {0}'.format(','.join(rm_webapp_addresses)));
-    return active_rm_webapp_address
+        if json_response is None or 'app' not in json_response or \
+                'state' not in json_response['app'] or 'finalStatus' not in json_response['app']:
+            raise Fail("Application " + app_url + " returns invalid data.")
+
+        if json_response['app']['state'] != "FINISHED" or json_response['app']['finalStatus'] != "SUCCEEDED":
+            raise Fail("Application " + app_url + " state/status is not valid. Should be FINISHED/SUCCEEDED.")
+
+    def get_active_rm_webapp_address(self):
+        import params
+        active_rm_webapp_address = None
+        rm_webapp_addresses = params.rm_webapp_addresses_list
+        if rm_webapp_addresses is not None and len(rm_webapp_addresses) > 0:
+            for rm_webapp_address in rm_webapp_addresses:
+                rm_state_url = params.scheme + "://" + rm_webapp_address + "/ws/v1/cluster/info"
+                get_cluster_info_cmd = "curl --negotiate -u : -ks --location-trusted --connect-timeout " + CURL_CONNECTION_TIMEOUT + " " + rm_state_url
+                try:
+                    return_code, stdout, _ = get_user_call_output(get_cluster_info_cmd,
+                                                                  user=params.smokeuser,
+                                                                  path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
+                                                                  )
+                    json_response = json.loads(stdout)
+                    if json_response is not None and 'clusterInfo' in json_response \
+                            and json_response['clusterInfo']['haState'] == "ACTIVE":
+                        active_rm_webapp_address = rm_webapp_address
+                        break
+                except Exception as e:
+                    Logger.warning(format("Cluster info is not available from calling {get_cluster_info_cmd}"))
+
+        if active_rm_webapp_address is None:
+            raise Fail('Resource Manager state is not available. Failed to determine the active Resource Manager web application address from {0}'.format(','.join(rm_webapp_addresses)));
+        return active_rm_webapp_address
 
 if __name__ == "__main__":
-  ServiceCheck().execute()
+    ServiceCheck().execute()

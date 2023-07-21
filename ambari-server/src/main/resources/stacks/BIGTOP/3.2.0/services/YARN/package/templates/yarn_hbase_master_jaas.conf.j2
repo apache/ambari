@@ -17,20 +17,20 @@
 #}
 
 Client {
-    com.sun.security.auth.module.Krb5LoginModule required
-    useKeyTab=true
-    storeKey=true
-    useTicketCache=false
-    keyTab="{{nodemanager_keytab}}"
-    principal="{{nodemanager_principal_name}}";
+com.sun.security.auth.module.Krb5LoginModule required
+useKeyTab=true
+storeKey=true
+useTicketCache=false
+keyTab="{{yarn_hbase_master_keytab}}"
+principal="{{yarn_hbase_master_principal_name}}";
 };
 com.sun.security.jgss.krb5.initiate {
-    com.sun.security.auth.module.Krb5LoginModule required
-    renewTGT=false
-    doNotPrompt=true
-    useKeyTab=true
-    keyTab="{{nodemanager_keytab}}"
-    principal="{{nodemanager_principal_name}}"
-    storeKey=true
-    useTicketCache=false;
+com.sun.security.auth.module.Krb5LoginModule required
+renewTGT=false
+doNotPrompt=true
+useKeyTab=true
+storeKey=true
+useTicketCache=false
+keyTab="{{yarn_hbase_master_keytab}}"
+principal="{{yarn_hbase_master_principal_name}}";
 };

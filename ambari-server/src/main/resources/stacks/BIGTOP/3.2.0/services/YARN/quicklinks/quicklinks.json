@@ -20,7 +20,7 @@
         "label": "ResourceManager UI",
         "requires_user_name": "false",
         "component_name": "RESOURCEMANAGER",
-        "url": "%@://%@:%@",
+        "url": "%@://%@:%@/ui2",
         "port":{
           "http_property": "yarn.resourcemanager.webapp.address",
           "http_default_port": "8088",
