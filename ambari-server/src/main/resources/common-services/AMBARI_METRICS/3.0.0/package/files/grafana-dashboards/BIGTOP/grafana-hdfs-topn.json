@@ -802,7 +802,7 @@
       },
       {
         "allFormat": "glob",
-        "current": null,
+        "current": {},
         "datasource": null,
         "includeAll": false,
         "label": "Cluster",
@@ -811,7 +811,7 @@
         "name": "cluster",
         "options": [],
         "query": "cluster",
-        "refresh": true,
+        "refresh": 1,
         "regex": "",
         "type": "query"
       },
@@ -835,7 +835,7 @@
         ],
         "label": "Hosts",
         "query": "hosts.$cluster",
-        "refresh": true,
+        "refresh": 1,
         "regex": "",
         "type": "query"
       }

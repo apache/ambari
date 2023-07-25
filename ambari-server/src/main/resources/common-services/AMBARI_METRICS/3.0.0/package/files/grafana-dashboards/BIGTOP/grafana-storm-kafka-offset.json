@@ -191,7 +191,7 @@
         "options": [
         ],
         "query": "topologies",
-        "refresh": true,
+        "refresh": 1,
         "regex": "",
         "type": "query"
       },
@@ -210,7 +210,7 @@
           
         ],
         "query": "$topologies.stormTopic",
-        "refresh": true,
+        "refresh": 1,
         "regex": "",
         "type": "query"
       },
@@ -233,7 +233,7 @@
           }
         ],
         "query": "$topic.stormPartition",
-        "refresh": true,
+        "refresh": 1,
         "type": "query"
       }
     ]

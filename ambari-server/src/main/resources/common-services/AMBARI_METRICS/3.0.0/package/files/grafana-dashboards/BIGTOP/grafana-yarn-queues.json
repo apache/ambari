@@ -1495,7 +1495,7 @@
           }
         ],
         "query": "yarnqueues",
-        "refresh": true,
+        "refresh": 1,
         "regex": "",
         "type": "query"
       }

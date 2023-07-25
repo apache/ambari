@@ -1170,7 +1170,7 @@
           }
         ],
         "query": "hosts.$cluster",
-        "refresh": true,
+        "refresh": 1,
         "type": "query"
       }
     ]

@@ -2259,7 +2259,7 @@
           }
         ],
         "query": "hbase-tables",
-        "refresh": true,
+        "refresh": 1,
         "regex": "",
         "type": "query"
       }
