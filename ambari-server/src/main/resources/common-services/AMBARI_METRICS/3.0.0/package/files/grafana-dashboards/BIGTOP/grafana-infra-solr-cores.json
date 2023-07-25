@@ -2098,7 +2098,7 @@
           }
         ],
         "query": "infra_solr_core",
-        "refresh": true,
+        "refresh": 1,
         "type": "query"
       }
     ]

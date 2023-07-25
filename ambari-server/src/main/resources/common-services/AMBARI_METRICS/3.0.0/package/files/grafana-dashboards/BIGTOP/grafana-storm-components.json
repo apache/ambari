@@ -534,7 +534,7 @@
           
         ],
         "query": "topologies",
-        "refresh": true,
+        "refresh": 1,
         "regex": "",
         "type": "query"
       },
@@ -553,7 +553,7 @@
           
         ],
         "query": "$topologies.stormComponent",
-        "refresh": true,
+        "refresh": 1,
         "regex": "",
         "type": "query"
       }

@@ -244,7 +244,7 @@
           }
         ],
         "query": "callers",
-        "refresh": true,
+        "refresh": 1,
         "regex": "",
         "type": "query"
       }

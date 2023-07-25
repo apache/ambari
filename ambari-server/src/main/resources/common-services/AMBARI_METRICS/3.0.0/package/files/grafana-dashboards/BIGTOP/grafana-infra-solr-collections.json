@@ -2073,7 +2073,7 @@
           }
         ],
         "query": "infra_solr_collection",
-        "refresh": true,
+        "refresh": 1,
         "type": "query"
       }
     ]
