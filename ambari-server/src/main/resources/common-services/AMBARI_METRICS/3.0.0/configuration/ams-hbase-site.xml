@@ -642,4 +642,16 @@
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>phoenix.mutate.maxSizeBytes</name>
+    <value>267386880</value>
+    <description>
+      Maximum amount of batch data size in bytes beyond which client requests are not accepted.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <unit>Bytes</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
 </configuration>
