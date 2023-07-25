@@ -19,6 +19,7 @@ package org.apache.ambari.metrics.core.timeline.discovery;
 
 import junit.framework.Assert;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata;
 import org.apache.ambari.metrics.core.timeline.PhoenixHBaseAccessor;
 import org.junit.Test;
@@ -27,6 +28,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import static com.mongodb.util.MyAsserts.assertNotNull;
 import static org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata.MetricType.GAUGE;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TIMELINE_METRIC_METADATA_FILTERS;
 import static org.easymock.EasyMock.createNiceMock;
@@ -122,5 +124,42 @@ public class TestMetadataSync {
 
     Assert.assertEquals(1, metadata.size());
     Assert.assertEquals("xxx.pqr.zzz", metadata.keySet().iterator().next().getMetricName());
+  }
+
+  @Test
+  public void testRefreshHostAppsOnWrite() throws Exception {
+    Configuration configuration = createNiceMock(Configuration.class);
+    PhoenixHBaseAccessor hBaseAccessor = createNiceMock(PhoenixHBaseAccessor.class);
+    Map<String, TimelineMetricHostMetadata> hostedApps = new HashMap<String, TimelineMetricHostMetadata>() {{
+      put("host1", new TimelineMetricHostMetadata(new HashSet<>(Arrays.asList("app1", "app2", "app3"))));
+    }};
+
+    expect(configuration.get("timeline.metrics.service.operation.mode")).andReturn("distributed");
+    expect(hBaseAccessor.getHostedAppsMetadata()).andReturn(hostedApps);
+    replay(configuration, hBaseAccessor);
+
+    // register host1 --> (app1,app2)
+    TimelineMetricMetadataManager metadataManager = new TimelineMetricMetadataManager(configuration, hBaseAccessor);
+    TimelineMetric tm1=new TimelineMetric("metric1","host1","app1",null );
+    TimelineMetric tm2=new TimelineMetric("metric2","host1","app2",null );
+    byte[] uuid1 = metadataManager.getUuid(tm1, true);
+    assertNotNull(uuid1);
+    byte[] uuid2 = metadataManager.getUuid(tm2, true);
+    assertNotNull(uuid2);
+    metadataManager.markSuccessOnSyncHostedAppsMetadata();
+
+    hostedApps = metadataManager.getHostedAppsCache();
+    // Before other collector's host app data is synced
+    Assert.assertEquals(2, hostedApps.get("host1").getHostedApps().size());
+
+    metadataManager.metricMetadataSync = new TimelineMetricMetadataSync(metadataManager);
+    metadataManager.metricMetadataSync.run();
+
+    verify(configuration, hBaseAccessor);
+
+    hostedApps = metadataManager.getHostedAppsCache();
+    Assert.assertEquals(1, hostedApps.size());
+    // After other collector's host app data is synced
+    Assert.assertEquals("Host app list is not synced properly",3, hostedApps.get("host1").getHostedApps().size());
   }
 }
