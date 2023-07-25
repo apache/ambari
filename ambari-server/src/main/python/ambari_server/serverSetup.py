@@ -26,6 +26,7 @@ import sys
 from ambari_commons import subprocess32
 import getpass
 import logging
+import shlex
 
 from ambari_commons.exceptions import FatalException
 from ambari_commons.firewall import Firewall
@@ -846,11 +847,11 @@ class JDKSetupLinux(JDKSetup):
 
     cmd = " && ".join(cmds)
 
-    process = subprocess32.Popen(cmd,
+    process = subprocess32.Popen(shlex.split(cmd),
                            stdout=subprocess32.PIPE,
                            stdin=subprocess32.PIPE,
                            stderr=subprocess32.PIPE,
-                           shell=True
+                           shell=False
                            )
     (stdoutdata, stderrdata) = process.communicate()
 
@@ -1281,11 +1282,11 @@ def check_ambari_java_version_is_valid(java_home, java_bin, min_version, propert
   print 'Check JDK version for Ambari Server...'
   try:
     command = JDK_VERSION_CHECK_CMD.format(os.path.join(java_home, 'bin', java_bin))
-    process = subprocess32.Popen(command,
+    process = subprocess32.Popen(shlex.split(command),
                                stdout=subprocess32.PIPE,
                                stdin=subprocess32.PIPE,
                                stderr=subprocess32.PIPE,
-                               shell=True
+                               shell=False
                                )
     (out, err) = process.communicate()
     if process.returncode != 0:

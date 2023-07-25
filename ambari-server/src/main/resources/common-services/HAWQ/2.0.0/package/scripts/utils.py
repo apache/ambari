@@ -20,6 +20,7 @@ from ambari_commons import subprocess32
 from resource_management.core.resources.system import Execute, Directory
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
+import shlex
 
 import hawq_constants
 
@@ -83,7 +84,11 @@ def exec_ssh_cmd(hostname, cmd):
   # Only gpadmin should be allowed to run command via ssh, thus not exposing user as a parameter
   cmd = "su - {0} -c \"ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {1} \\\"{2} \\\" \"".format(hawq_constants.hawq_user, hostname, cmd)
   Logger.info("Command executed: {0}".format(cmd))
-  process = subprocess32.Popen(cmd, stdout=subprocess32.PIPE, stdin=subprocess32.PIPE, stderr=subprocess32.PIPE, shell=True)
+  process = subprocess32.Popen(shlex.split(cmd),
+                               stdout=subprocess32.PIPE,
+                               stdin=subprocess32.PIPE,
+                               stderr=subprocess32.PIPE,
+                               shell=False)
   (stdout, stderr) = process.communicate()
   return process.returncode, stdout, stderr
 

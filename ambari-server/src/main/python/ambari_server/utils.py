@@ -28,6 +28,7 @@ from ambari_commons import subprocess32
 import logging
 import platform
 import xml.etree.ElementTree as ET
+import shlex
 
 from ambari_commons import OSConst,OSCheck
 from ambari_commons.logging_utils import print_error_msg
@@ -272,11 +273,11 @@ def get_postgre_hba_dir(OS_FAMILY):
     pg_hba_init_basename = os.path.basename(get_pg_hba_init_files())
     # Get postgres_data location (default: /var/lib/pgsql/data)
     cmd = "alias basename='echo {0}; true' ; alias exit=return; source {1} status &>/dev/null; echo $PGDATA".format(pg_hba_init_basename, get_pg_hba_init_files())
-    p = subprocess32.Popen(cmd,
+    p = subprocess32.Popen(shlex.split(cmd),
                          stdout=subprocess32.PIPE,
                          stdin=subprocess32.PIPE,
                          stderr=subprocess32.PIPE,
-                         shell=True)
+                         shell=False)
     (PG_HBA_ROOT, err) = p.communicate()
 
     if PG_HBA_ROOT and len(PG_HBA_ROOT.strip()) > 0:

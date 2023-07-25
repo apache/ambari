@@ -21,6 +21,7 @@ import socket
 import urllib2
 import urllib
 from ambari_commons import subprocess32
+import shlex
 
 def makeHTTPCall(url, header={}, body=None):
   # timeout in seconds
@@ -45,5 +46,5 @@ def makeHTTPCall(url, header={}, body=None):
     
 
 def runLocalCmd(cmd):
-  return subprocess32.call(cmd, shell=True)  
+  return subprocess32.call(shlex.split(cmd), shell=False)
 

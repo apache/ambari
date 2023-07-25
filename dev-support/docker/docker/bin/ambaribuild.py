@@ -16,6 +16,7 @@ import subprocess, time, sys
 import json
 import datetime
 from optparse import OptionParser
+import shlex
 
 SKIP_TEST="-DskipTests"
 AMBARI_AUTH_HEADERS = "--header 'Authorization:Basic YWRtaW46YWRtaW4=' --header 'X-Requested-By: PIVOTAL'"
@@ -24,14 +25,14 @@ NO_EXIT_SLEEP_TIME=60
 RETRY_MAX=20
 
 def git_deep_cleaning():
-	proc = subprocess.Popen("git clean -xdf",
-			shell=True,
+	proc = subprocess.Popen(shlex.split("git clean -xdf"),
+			shell=False,
 			cwd="/tmp/ambari")
 	return proc.wait()
 
 def ambariUnitTest():
-	proc = subprocess.Popen("mvn -fae clean install",
-			shell=True,
+	proc = subprocess.Popen(shlex.split("mvn -fae clean install"),
+			shell=False,
 			cwd="/tmp/ambari")
 	return proc.wait()
 
@@ -39,54 +40,54 @@ def buildAmbari(stack_distribution):
 	stack_distribution_param = ""
 	if stack_distribution is not None:
 		stack_distribution_param = "-Dstack.distribution=" + stack_distribution
-	proc = subprocess.Popen("mvn -B clean install package rpm:rpm -Dmaven.clover.skip=true -Dfindbugs.skip=true "
+	proc = subprocess.Popen(shlex.split("mvn -B clean install package rpm:rpm -Dmaven.clover.skip=true -Dfindbugs.skip=true "
 						+ SKIP_TEST + " "
-						+ stack_distribution_param + " -Dpython.ver=\"python >= 2.6\"",
-			shell=True,
+						+ stack_distribution_param + " -Dpython.ver=\"python >= 2.6\""),
+			shell=False,
 			cwd="/tmp/ambari")
 	return proc.wait()
 
 def install_ambari_server():
-	proc = subprocess.Popen("sudo yum install -y ambari-server-*.x86_64.rpm",
-			shell=True,
+	proc = subprocess.Popen(shlex.split("sudo yum install -y ambari-server-*.x86_64.rpm"),
+			shell=False,
 			cwd="/tmp/ambari/ambari-server/target/rpm/ambari-server/RPMS/x86_64")
 	return proc.wait()
 
 def install_ambari_agent():
-	proc = subprocess.Popen("sudo yum install -y ambari-agent-*.x86_64.rpm",
-			shell=True,
+	proc = subprocess.Popen(shlex.split("sudo yum install -y ambari-agent-*.x86_64.rpm"),
+			shell=False,
 			cwd="/tmp/ambari/ambari-agent/target/rpm/ambari-agent/RPMS/x86_64")
 	return proc.wait()
 
 def setup_ambari_server():
-	proc = subprocess.Popen("echo -e '\n\n\n\n' | sudo ambari-server setup",
-			shell=True)
+	proc = subprocess.Popen(shlex.split("echo -e '\n\n\n\n' | sudo ambari-server setup"),
+			shell=False)
 	return proc.wait()
 
 def start_ambari_server(debug=False):
-	proc = subprocess.Popen("sudo ambari-server start" + (" --debug" if debug else ""),
-			shell=True)
+	proc = subprocess.Popen(shlex.split("sudo ambari-server start" + (" --debug" if debug else "")),
+			shell=False)
 	return proc.wait()
 
 def start_dependant_services():
 	retcode = 0
-	proc = subprocess.Popen("sudo service sshd start", shell=True)
+	proc = subprocess.Popen(shlex.split("sudo service sshd start"), shell=False)
 	retcode += proc.wait()
-	proc = subprocess.Popen("sudo service ntpd start", shell=True)
+	proc = subprocess.Popen(shlex.split("sudo service ntpd start"), shell=False)
 	retcode += proc.wait()
 	return retcode
 
 def configure_ambari_agent():
-	proc = subprocess.Popen("hostname -f", stdout=subprocess.PIPE, shell=True)
+	proc = subprocess.Popen(shlex.split("hostname -f"), stdout=subprocess.PIPE, shell=False)
 	hostname = proc.stdout.read().rstrip()
-	proc = subprocess.Popen("sudo sed -i 's/hostname=localhost/hostname=" + hostname + "/g' /etc/ambari-agent/conf/ambari-agent.ini",
-			shell=True)
+	proc = subprocess.Popen(shlex.split("sudo sed -i 's/hostname=localhost/hostname=" + hostname + "/g' /etc/ambari-agent/conf/ambari-agent.ini"),
+			shell=False)
 	return proc.wait()
 
 def start_ambari_agent(wait_until_registered = True):
 	retcode = 0
-	proc = subprocess.Popen("service ambari-agent start",
-			shell=True)
+	proc = subprocess.Popen(shlex.split("service ambari-agent start"),
+			shell=False)
 	retcode += proc.wait()
 	if wait_until_registered:
 		if not wait_until_ambari_agent_registered():
@@ -103,11 +104,11 @@ def wait_until_ambari_agent_registered():
 	count = 0
 	while count < RETRY_MAX:
 		count += 1
-		proc = subprocess.Popen("curl " +
+		proc = subprocess.Popen(shlex.split("curl " +
 				"http://localhost:8080/api/v1/hosts " +
-				AMBARI_AUTH_HEADERS,
+				AMBARI_AUTH_HEADERS),
 				stdout=subprocess.PIPE,
-				shell=True)
+				shell=False)
 		hosts_result_string = proc.stdout.read()
 		hosts_result_json = json.loads(hosts_result_string)
 		if len(hosts_result_json["items"]) != 0:
@@ -116,19 +117,19 @@ def wait_until_ambari_agent_registered():
 	return False
 
 def post_blueprint():
-	proc = subprocess.Popen("curl -X POST -D - " +
+	proc = subprocess.Popen(shlex.split("curl -X POST -D - " +
 			"-d @single-node-HDP-2.1-blueprint1.json http://localhost:8080/api/v1/blueprints/myblueprint1 " +
-			AMBARI_AUTH_HEADERS ,
+			AMBARI_AUTH_HEADERS ),
 			cwd=AMBARI_BUILD_DOCKER_ROOT + "/blueprints",
-			shell=True)
+			shell=False)
 	return proc.wait()
 
 def create_cluster():
-	proc = subprocess.Popen("curl -X POST -D - " +
+	proc = subprocess.Popen(shlex.split("curl -X POST -D - " +
 			"-d @single-node-hostmapping1.json http://localhost:8080/api/v1/clusters/mycluster1 " +
-			AMBARI_AUTH_HEADERS ,
+			AMBARI_AUTH_HEADERS ),
 			cwd=AMBARI_BUILD_DOCKER_ROOT + "/blueprints",
-			shell=True)
+			shell=False)
 	return proc.wait()
 
 # Loop to not to exit Docker container

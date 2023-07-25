@@ -18,6 +18,7 @@ from psutil._common import (conn_tmap, usage_percent, isfile_strict)
 from psutil._compat import namedtuple, PY3
 import _psutil_posix
 import _psutil_sunos as cext
+import shlex
 
 
 __extra__all__ = ["CONN_IDLE", "CONN_BOUND"]
@@ -433,8 +434,10 @@ class Process(object):
         # TODO: rewrite this in C (...but the damn netstat source code
         # does not include this part! Argh!!)
         cmd = "pfiles %s" % pid
-        p = subprocess32.Popen(cmd, shell=True, stdout=subprocess32.PIPE,
-                             stderr=subprocess32.PIPE)
+        p = subprocess32.Popen(shlex.split(cmd),
+                               shell=False,
+                               stdout=subprocess32.PIPE,
+                               stderr=subprocess32.PIPE)
         stdout, stderr = p.communicate()
         if PY3:
             stdout, stderr = [x.decode(sys.stdout.encoding)
