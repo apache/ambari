@@ -297,6 +297,9 @@
               <skipUpgrade>true</skipUpgrade>
               <condition>should_install_mysql</condition>
             </package>
+            <package>
+              <name>ranger_${stack_version}-hive-plugin</name>
+            </package>
           </packages>
         </osSpecific>
       </osSpecifics>
