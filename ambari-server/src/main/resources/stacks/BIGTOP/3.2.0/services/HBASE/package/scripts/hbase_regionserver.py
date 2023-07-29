@@ -83,28 +83,15 @@ class HbaseRegionServer(Script):
     kinit_cmd = params.kinit_cmd_master
     host = params.hostname
 
-    regionmover_cmd = format(
-      "{kinit_cmd} HBASE_SERVER_JAAS_OPTS=\"{master_security_config}\" {hbase_cmd} --config {hbase_conf_dir} {hbase_decommission_auth_config} org.jruby.Main {region_mover} -m 24 load {host}")
-
     try:
+      regionmover_cmd = format(
+        "{kinit_cmd} HBASE_SERVER_JAAS_OPTS=\"{master_security_config}\" {hbase_cmd} --config {hbase_conf_dir} {hbase_decommission_auth_config} org.jruby.Main {region_mover} -m 24 -o load -r {host}")
       Execute(regionmover_cmd,
               user=params.hbase_user,
               logoutput=True
               )
-    except Exception as e:
-      Logger.info("HBase 1: region_mover failed while loading regions back to source RS." + str(e))
-      # Execute HBase 2 scripts if HBase 1 scripts fail.
-      # If the Exception is genuine, it will fail here because HBase 1 scripts work only for HBase 1
-      # and HBase 2 scripts work only for HBase 2 cluster.
-      try:
-        regionmover_cmd = format(
-          "{kinit_cmd} HBASE_SERVER_JAAS_OPTS=\"{master_security_config}\" {hbase_cmd} --config {hbase_conf_dir} {hbase_decommission_auth_config} org.jruby.Main {region_mover} -m 24 -o load -r {host}")
-        Execute(regionmover_cmd,
-                user=params.hbase_user,
-                logoutput=True
-                )
-      except Exception as ex:
-        Logger.info("HBase 2: region_mover failed while loading regions back to source RS." + str(ex))
+    except Exception as ex:
+      Logger.info("HBase 2: region_mover failed while loading regions back to source RS." + str(ex))
 
 
 
