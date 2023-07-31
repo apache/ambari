@@ -192,11 +192,15 @@ class TestHBaseMaster(RMFTestCase):
                               content = StaticFile('draining_servers.rb'),
                               mode = 0755,
                               )
+    self.assertResourceCalled('File', '/usr/lib/hbase/bin/draining_servers2.rb',
+                              content = StaticFile('draining_servers2.rb'),
+                              mode = 0755,
+                              )
     self.assertResourceCalled('Execute', ' /usr/lib/hbase/bin/hbase --config /etc/hbase/conf  org.jruby.Main /usr/lib/hbase/bin/draining_servers.rb add host1',
                               logoutput = True,
                               user = 'hbase',
                               )
-    self.assertResourceCalled('Execute', ' /usr/lib/hbase/bin/hbase --config /etc/hbase/conf  org.jruby.Main /usr/lib/hbase/bin/region_mover.rb unload host1',
+    self.assertResourceCalled('Execute', ' /usr/lib/hbase/bin/hbase --config /etc/hbase/conf  org.jruby.Main /usr/lib/hbase/bin/region_mover.rb -m 24 unload host1',
                               logoutput = True,
                               user = 'hbase',
                               )
@@ -204,7 +208,7 @@ class TestHBaseMaster(RMFTestCase):
                               logoutput = True,
                               user = 'hbase',
                               )
-    self.assertResourceCalled('Execute', ' /usr/lib/hbase/bin/hbase --config /etc/hbase/conf  org.jruby.Main /usr/lib/hbase/bin/region_mover.rb unload host2',
+    self.assertResourceCalled('Execute', ' /usr/lib/hbase/bin/hbase --config /etc/hbase/conf  org.jruby.Main /usr/lib/hbase/bin/region_mover.rb -m 24 unload host2',
                               logoutput = True,
                               user = 'hbase',
                               )
@@ -221,6 +225,10 @@ class TestHBaseMaster(RMFTestCase):
 
     self.assertResourceCalled('File', '/usr/lib/hbase/bin/draining_servers.rb',
                               content = StaticFile('draining_servers.rb'),
+                              mode = 0755,
+                              )
+    self.assertResourceCalled('File', '/usr/lib/hbase/bin/draining_servers2.rb',
+                              content = StaticFile('draining_servers2.rb'),
                               mode = 0755,
                               )
     self.assertResourceCalled('Execute', ' /usr/lib/hbase/bin/hbase --config /etc/hbase/conf  org.jruby.Main /usr/lib/hbase/bin/draining_servers.rb remove host1',
@@ -291,11 +299,15 @@ class TestHBaseMaster(RMFTestCase):
                               content = StaticFile('draining_servers.rb'),
                               mode = 0755,
                               )
+    self.assertResourceCalled('File', '/usr/lib/hbase/bin/draining_servers2.rb',
+                              content = StaticFile('draining_servers2.rb'),
+                              mode = 0755,
+                              )
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hbase.service.keytab hbase/c6401.ambari.apache.org@EXAMPLE.COM; /usr/lib/hbase/bin/hbase --config /etc/hbase/conf -Djava.security.auth.login.config=/etc/hbase/conf/hbase_client_jaas.conf org.jruby.Main /usr/lib/hbase/bin/draining_servers.rb add host1',
                               logoutput = True,
                               user = 'hbase',
                               )
-    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hbase.service.keytab hbase/c6401.ambari.apache.org@EXAMPLE.COM; /usr/lib/hbase/bin/hbase --config /etc/hbase/conf -Djava.security.auth.login.config=/etc/hbase/conf/hbase_client_jaas.conf org.jruby.Main /usr/lib/hbase/bin/region_mover.rb unload host1',
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hbase.service.keytab hbase/c6401.ambari.apache.org@EXAMPLE.COM; /usr/lib/hbase/bin/hbase --config /etc/hbase/conf -Djava.security.auth.login.config=/etc/hbase/conf/hbase_client_jaas.conf org.jruby.Main /usr/lib/hbase/bin/region_mover.rb -m 24 unload host1',
                               logoutput = True,
                               user = 'hbase',
                               )
