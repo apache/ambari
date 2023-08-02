@@ -85,6 +85,7 @@ public class AggregatorWebServiceTest extends JerseyTest {
         TimelineMetrics timelineMetrics = TimelineMetricsHolderTest.getTimelineMetricsWithAppID("appid");
         WebResource r = resource();
         ClientResponse response = r.path("ws").path("v1").path("timeline").path("metrics")
+                .type(MediaType.APPLICATION_JSON)
                 .accept(MediaType.TEXT_PLAIN)
                 .post(ClientResponse.class, timelineMetrics);
         assertEquals(200, response.getStatus());

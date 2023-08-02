@@ -568,6 +568,7 @@ public class TestActionDBAccessorImpl {
     clusters.addHost("host2");
     clusters.addHost("host3");
     clusters.addHost("host4");
+    clusters.addHost("host5");
 
     s.addHostRoleExecutionCommand("host1", Role.HBASE_MASTER,
         RoleCommand.START,
@@ -589,13 +590,20 @@ public class TestActionDBAccessorImpl {
         RoleCommand.START,
         new ServiceComponentHostStartEvent(Role.HBASE_REGIONSERVER
             .toString(), "host4", System.currentTimeMillis()), "cluster1", "HBASE", false, false);
+    s.addHostRoleExecutionCommand(
+        "host5",
+        Role.HBASE_REGIONSERVER,
+        RoleCommand.START,
+        new ServiceComponentHostStartEvent(Role.HBASE_REGIONSERVER
+            .toString(), "host5", System.currentTimeMillis()), "cluster1", "HBASE", false, false);
     List<Stage> stages = new ArrayList<>();
     stages.add(s);
     s.getOrderedHostRoleCommands().get(0).setStatus(HostRoleStatus.PENDING);
     s.getOrderedHostRoleCommands().get(1).setStatus(HostRoleStatus.IN_PROGRESS);
-    s.getOrderedHostRoleCommands().get(2).setStatus(HostRoleStatus.QUEUED);
+    s.getOrderedHostRoleCommands().get(2).setStatus(HostRoleStatus.HOLDING_FAILED);
+    s.getOrderedHostRoleCommands().get(3).setStatus(HostRoleStatus.QUEUED);
 
-    HostRoleCommand cmd = s.getOrderedHostRoleCommands().get(3);
+    HostRoleCommand cmd = s.getOrderedHostRoleCommands().get(4);
     String hostName = cmd.getHostName();
     cmd.setStatus(HostRoleStatus.COMPLETED);
 

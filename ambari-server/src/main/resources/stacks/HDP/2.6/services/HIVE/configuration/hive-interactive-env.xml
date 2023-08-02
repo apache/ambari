@@ -65,8 +65,8 @@
   <property>
     <name>num_llap_nodes_for_llap_daemons</name>
     <value>1</value>
-    <description>Number of Node(s) on which Hive LLAP daemon runs.</description>
-    <display-name>Number of Node(s) for running Hive LLAP daemon</display-name>
+    <description>Number of Node(s) on which Hive LLAP daemon runs. Defaults to num_llap_nodes, but may be overridden</description>
+    <display-name>Actual number of Node(s) for running Hive LLAP daemon</display-name>
     <value-attributes>
       <type>int</type>
       <minimum>1</minimum>

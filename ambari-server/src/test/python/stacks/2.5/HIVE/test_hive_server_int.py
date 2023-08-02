@@ -30,6 +30,7 @@ from resource_management.libraries.script.config_dictionary import UnknownConfig
 from hive_server_interactive import HiveServerInteractiveDefault
 from resource_management.libraries.script.script import Script
 from resource_management.core import shell
+from resource_management.core.utils import PasswordString
 
 @patch("resource_management.libraries.Script.get_tmp_dir", new=MagicMock(return_value=('/var/lib/ambari-agent/tmp')))
 @patch.object(functions, "get_stack_version", new=MagicMock(return_value="2.0.0.0-1234"))

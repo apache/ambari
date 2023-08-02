@@ -183,4 +183,115 @@ describe('App.AddHawqStandbyWizardStep3Controller', function () {
     });
   });
 
+  describe("#loadStep()", function () {
+
+    beforeEach(function() {
+      sinon.stub(controller, 'renderConfigs')
+    });
+
+    afterEach(function() {
+      controller.renderConfigs.restore();
+    });
+
+    it("should execute renderConfigs function", function() {
+      controller.loadStep();
+      expect(controller.renderConfigs.calledOnce).to.be.true;
+    });
+  });
+
+  describe("#submit()", function () {
+
+    beforeEach(function() {
+      dataDir = '';
+      hawqStandby = '';
+      sinon.stub(App, 'showConfirmationPopup');
+    });
+    afterEach(function() {
+      App.showConfirmationPopup.restore();
+    });
+
+    it('confirmation popup should be called', function() {
+      controller.set('isLoaded', true);
+      controller.set('hawqProps', {items: [{properties: {hawq_master_directory: '/dir'}}]});
+      controller.submit();
+      expect(App.showConfirmationPopup.calledOnce).to.be.true;
+    });
+
+    it('confirmation popup should not be called', function() {
+      controller.set('isLoaded', false);
+      controller.set('hawqProps', {items: [{properties: {hawq_master_directory: '/dir'}}]});
+      controller.submit();
+      expect(App.showConfirmationPopup.calledOnce).to.be.false;
+    });
+  });
+
+  describe("#renderConfigProperties()", function () {
+
+    beforeEach(function() {
+      sinon.stub(App.ServiceConfigProperty, 'create', function(obj) {
+        return obj;
+      });
+    });
+
+    afterEach(function() {
+      App.ServiceConfigProperty.create.restore();
+    });
+
+    it("config should be added", function() {
+      var componentConfig = {
+        configs: []
+      };
+      var _componentConfig = {
+        configs: [
+          Em.Object.create({
+            isReconfigurable: true
+          })
+        ]
+      };
+      controller.renderConfigProperties(_componentConfig, componentConfig);
+      expect(componentConfig.configs[0].get('isEditable')).to.be.true;
+    });
+  });
+
+  describe("#renderConfigs()", function () {
+
+    beforeEach(function() {
+      sinon.stub(App.ServiceConfigProperty, 'create', function(obj) {
+        return obj;
+      });
+      sinon.stub(App.HostComponent, 'find').returns([
+        Em.Object.create({
+          componentName: 'HAWQSTANDBY',
+          hostName: 'host1'
+        })
+      ]);
+      sinon.stub(controller, 'renderConfigProperties');
+      this.mock = sinon.stub(App.Service, 'find');
+    });
+
+    afterEach(function() {
+      App.ServiceConfigProperty.create.restore();
+      App.HostComponent.find.restore();
+      controller.renderConfigProperties.restore();
+      this.mock.restore();
+    });
+
+    it("configs should be rendered{1}", function() {
+      this.mock.returns([
+        {serviceName: 'HAWQ'},
+        {serviceName: 'YARN'}
+      ]);
+      controller.renderConfigs();
+      expect(controller.renderConfigProperties.calledOnce).to.be.true;
+    });
+
+    it("configs should be rendered{2}", function() {
+      this.mock.returns([
+        {serviceName: 'YARN'}
+      ]);
+      controller.renderConfigs();
+      expect(controller.renderConfigProperties.calledOnce).to.be.true;
+    });
+  });
+
 });

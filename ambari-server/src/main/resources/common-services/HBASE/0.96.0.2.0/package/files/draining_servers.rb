@@ -100,15 +100,16 @@ end
 
 def removeServers(options, hostOrServers)
   config = HBaseConfiguration.create()
-  servers = getServerNames(hostOrServers, config)
-  
   zkw = org.apache.hadoop.hbase.zookeeper.ZooKeeperWatcher.new(config, "draining_servers", nil)
   parentZnode = zkw.drainingZNode
-  
+  servers = ZKUtil.listChildrenNoWatch(zkw, parentZnode)
+
   begin
     for server in servers
-      node = ZKUtil.joinZNode(parentZnode, server)
-      ZKUtil.deleteNodeFailSilent(zkw, node)
+      if hostOrServers.include?(server.split(',')[0])
+        node = ZKUtil.joinZNode(parentZnode, server)
+        ZKUtil.deleteNodeFailSilent(zkw, node)
+      end
     end
   ensure
     zkw.close()

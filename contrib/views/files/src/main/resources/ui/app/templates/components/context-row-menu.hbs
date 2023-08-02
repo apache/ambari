@@ -34,6 +34,6 @@
       {{open-preview-modal closeModalAction="modalClosed" name="ctx-open"}}
       {{rename-modal closeModalAction="modalClosed" refreshAction="refreshCurrentRoute" name="ctx-rename"}}
       {{delete-modal closeModalAction="modalClosed" refreshAction="refreshCurrentRoute" name="ctx-delete" currentPathIsTrash=currentPathIsTrash}}
-      {{permission-modal closeModalAction="modalClosed" name="ctx-permission"}}
+      {{permission-modal closeModalAction="modalClosed" refreshAction="refreshCurrentRoute" name="ctx-permission"}}
     </div>
 {{/if}}

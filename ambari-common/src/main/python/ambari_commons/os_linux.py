@@ -84,3 +84,10 @@ def os_set_open_files_limit(maxOpenFiles):
 
 def os_getpass(prompt):
   return getpass.unix_getpass(prompt)
+
+def os_is_service_exist(serviceName):
+  if os.path.exists('/run/systemd/system/'):
+    return os.popen('systemctl list-units --full -all | grep "%s.service"' % serviceName).read().strip() != ''
+
+  status = os.system("service %s status >/dev/null 2>&1" % serviceName)
+  return status != 256

@@ -161,9 +161,6 @@ class TestCheckHost(TestCase):
 
     self.assertEqual(structured_out_mock.call_args[0][0], {'db_connection_check': {'message': 'test message',
                                                                                     'exit_code': 1}})
-    self.assertEqual(format_mock.call_args[0][0],'{java_exec} -cp {check_db_connection_path}{class_path_delimiter}'
-            '{jdbc_jar_path} -Djava.library.path={java_library_path} org.apache.ambari.server.DBConnectionVerification'
-            ' "{db_connection_url}" "{user_name}" {user_passwd!p} {jdbc_driver_class}')
 
     # test, db connection success
     download_file_mock.reset_mock()
@@ -234,11 +231,11 @@ class TestCheckHost(TestCase):
     
     structured_out_mock.assert_called_with({'host_resolution_check': 
       {'failures': [
-                    {'cause': (), 'host': 'c6401.ambari.apache.org', 'type': 'FORWARD_LOOKUP'}, 
-                    {'cause': (), 'host': 'c6402.ambari.apache.org', 'type': 'FORWARD_LOOKUP'}, 
-                    {'cause': (), 'host': 'c6403.ambari.apache.org', 'type': 'FORWARD_LOOKUP'}, 
-                    {'cause': (), 'host': 'foobar', 'type': 'FORWARD_LOOKUP'}, 
-                    {'cause': (), 'host': '!!!', 'type': 'FORWARD_LOOKUP'}], 
+                    {'cause': (), 'host': 'c6401.ambari.apache.org', 'type': 'FORWARD_LOOKUP'},
+                    {'cause': (), 'host': 'c6402.ambari.apache.org', 'type': 'FORWARD_LOOKUP'},
+                    {'cause': (), 'host': 'c6403.ambari.apache.org', 'type': 'FORWARD_LOOKUP'},
+                    {'cause': (), 'host': 'foobar', 'type': 'FORWARD_LOOKUP'},
+                    {'cause': (), 'host': '!!!', 'type': 'FORWARD_LOOKUP'}],
        'message': 'There were 5 host(s) that could not resolve to an IP address.', 
        'failed_count': 5, 'success_count': 0, 'exit_code': 0, 'hosts_with_failures': ['c6401.ambari.apache.org',
                                                                                       'c6402.ambari.apache.org',

@@ -101,7 +101,7 @@ public class ConfigureAmbariIdentitiesServerActionTest extends EasyMockSupport {
     result.created = true;
     result.kkp = kkp;
 
-    expect(kerberosKeytabPrincipalDAO.findOrCreate(anyObject(), eq(hostEntity), anyObject())).andReturn(result).once();
+    expect(kerberosKeytabPrincipalDAO.findOrCreate(anyObject(), eq(hostEntity), anyObject(), anyObject())).andReturn(result).once();
     expect(kerberosKeytabPrincipalDAO.merge(kkp)).andReturn(createNiceMock(KerberosKeytabPrincipalEntity.class)).once();
 
     // Mock the methods that do the actual file manipulation to avoid having to deal with ambari-sudo.sh used in

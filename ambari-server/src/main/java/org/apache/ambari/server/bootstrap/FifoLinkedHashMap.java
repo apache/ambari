@@ -29,6 +29,7 @@ import java.util.Map;
 public class FifoLinkedHashMap<K, V> extends
 LinkedHashMap<K, V> {
   public static final int MAX_ENTRIES = 100;
+  @Override
   protected boolean removeEldestEntry(Map.Entry<K,
       V> eldest) {
     return size() > MAX_ENTRIES;

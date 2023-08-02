@@ -166,18 +166,19 @@ metric_truststore_path = default("/configurations/ams-ssl-client/ssl.client.trus
 metric_truststore_type = default("/configurations/ams-ssl-client/ssl.client.truststore.type", "")
 metric_truststore_password = default("/configurations/ams-ssl-client/ssl.client.truststore.password", "")
 
-ams_collector_hosts = default("/clusterHostInfo/metrics_collector_hosts", [])
+set_instanceId = "false"
 if 'cluster-env' in config['configurations'] and \
-    'metrics_collector_external_hosts' in config['configurations']['cluster-env']:
+        'metrics_collector_external_hosts' in config['configurations']['cluster-env']:
   ams_collector_hosts = config['configurations']['cluster-env']['metrics_collector_external_hosts']
   set_instanceId = "true"
 else:
   ams_collector_hosts = ",".join(default("/clusterHostInfo/metrics_collector_hosts", []))
-has_metric_collector = not len(ams_collector_hosts) == 0
+
+has_metric_collector = len(ams_collector_hosts) > 0
 
 if has_metric_collector:
   metric_emitter_type = "ambari-metrics"
-  metric_collector_host = ams_collector_hosts[0]
+  metric_collector_host = ams_collector_hosts.split(",")[0]
   if 'cluster-env' in config['configurations'] and \
       'metrics_collector_external_port' in config['configurations']['cluster-env']:
     metric_collector_port = config['configurations']['cluster-env']['metrics_collector_external_port']

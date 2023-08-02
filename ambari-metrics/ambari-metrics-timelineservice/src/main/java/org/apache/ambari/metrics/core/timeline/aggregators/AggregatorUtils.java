@@ -49,7 +49,7 @@ public class AggregatorUtils {
     if (metricValues != null && !metricValues.isEmpty()) {
       for (Double value : metricValues.values()) {
         // TODO: Some nulls in data - need to investigate null values from host
-        if (value != null) {
+        if (value != null && !value.isNaN()) {
           if (value > max) {
             max = value;
           }

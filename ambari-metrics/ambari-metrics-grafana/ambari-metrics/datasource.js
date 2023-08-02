@@ -564,35 +564,47 @@ define([
             //Templatized Dashboards for Storm Components
             if (templateSrv.variables[0].query === "topologies" && templateSrv.variables[1] &&
                 templateSrv.variables[1].name === "component") {
-              if (templateSrv._values) {
-                var selectedTopology = templateSrv._values.topologies;
-                var selectedComponent = templateSrv._values.component;
 
-                metricsPromises.push(_.map(options.targets, function(target) {
-                  target.sTopology = selectedTopology;
-                  target.sComponent = selectedComponent;
-                  target.sTopoMetric = target.metric.replace('*', target.sTopology).replace('*', target.sComponent);
+              var allTopologies = templateSrv.variables.filter(function(variable) {
+                return variable.name === "topologies";
+              });
+              var allComponents = templateSrv.variables.filter(function(variable) {
+                return variable.name === "component";
+              });
+
+              var selectedTopology = (_.isEmpty(allTopologies)) ? "" : allTopologies[0].current.text;
+              var selectedComponent = (_.isEmpty(allComponents)) ? "" : allComponents[0].current.text;
+
+              metricsPromises.push(_.map(options.targets, function(target) {
+                target.sTopology = selectedTopology;
+                target.sComponent = selectedComponent;
+                target.sTopoMetric = target.metric.replace('*', target.sTopology).replace('*', target.sComponent);
                     return getStormData(target);
-                }));
-              }
+              }));
             }
 
             //Templatized Dashboard for Storm Kafka Offset
             if (templateSrv.variables[0].query === "topologies" && templateSrv.variables[1] &&
                 templateSrv.variables[1].name === "topic") {
-              if (templateSrv._values) {
-                var selectedTopology = templateSrv._values.topologies;
-                var selectedTopic = templateSrv._values.topic;
 
-                metricsPromises.push(_.map(options.targets, function(target) {
-                  target.sTopology = selectedTopology;
-                  target.sTopic = selectedTopic;
-                  target.sPartition = options.scopedVars.partition.value;
-                  target.sTopoMetric = target.metric.replace('*', target.sTopology).replace('*', target.sTopic)
-                      .replace('*', target.sPartition);
-                  return getStormData(target);
-                }));
-              }
+              var allTopologies = templateSrv.variables.filter(function(variable) {
+                return variable.name === "topologies";
+              });
+              var allTopics = templateSrv.variables.filter(function(variable) {
+                return variable.name === "topic";
+              });
+
+              var selectedTopology = (_.isEmpty(allTopologies)) ? "" : allTopologies[0].current.text;
+              var selectedTopic = (_.isEmpty(allTopics)) ? "" : allTopics[0].current.text;
+
+              metricsPromises.push(_.map(options.targets, function(target) {
+                target.sTopology = selectedTopology;
+                target.sTopic = selectedTopic;
+                target.sPartition = options.scopedVars.partition.value;
+                target.sTopoMetric = target.metric.replace('*', target.sTopology).replace('*', target.sTopic)
+                    .replace('*', target.sPartition);
+                return getStormData(target);
+              }));
             }
 
             //Templatized Dashboards for Druid
@@ -694,7 +706,7 @@ define([
         this.metricFindQuery = function (query) {
           var interpolated;
           try {
-            interpolated = query.split('.')[0];
+            interpolated = templateSrv.replace(query);
           } catch (err) {
             return $q.reject(err);
           }
@@ -762,15 +774,28 @@ define([
           if(interpolated === "kafka-topics") {
             return this.initMetricAppidMapping()
               .then(function () {
-                var kafkaTopics = getMetrics(allMetrics, "kafka_broker");
-                var extractTopics = kafkaTopics.filter(/./.test.bind(new RegExp("\\b.log.Log.\\b", 'g')));
-                var topics =_.map(extractTopics, function (topic) {
-                  var topicPrefix = "topic.";
-                  return topic.substring(topic.lastIndexOf(topicPrefix)+topicPrefix.length, topic.length);
+                // patterns to check possible kafka topics
+                var kafkaTopicPatterns = ['^kafka\\.server.*\\.topic\\.(.*)\\.[\\d\\w]*$',
+                  '^kafka\\.log\\.Log\\..*.topic\\.(.*)$',
+                  '^kafka\\.cluster.*\\.topic\\.(.*)$'];
+
+                var kafkaMetrics = getMetrics(allMetrics, "kafka_broker");
+                var topics = []
+
+                // filter metrics that can contain topic name
+                var topicMetrics = kafkaMetrics.filter(function(metric) {
+                  return metric.indexOf(".topic.") > 0;
                 });
-                topics = _.sortBy(_.uniq(topics));
-                var i = topics.indexOf("ambari_kafka_service_check");
-                if(i != -1) { topics.splice(i, 1);}
+
+                _.forEach(kafkaTopicPatterns, function(topicPattern) {
+                  _.forEach(topicMetrics, function(checkTopic) {
+                      var topicMatch = checkTopic.match(RegExp(topicPattern));
+                      var topicName = topicMatch ? topicMatch[1] : null;
+                      if (topicName && topicName != "ambari_kafka_service_check" && topics.indexOf(topicName) < 0) {
+                        topics.push(topicName);
+                      }
+                  })
+                })
                 return _.map(topics, function (topics) {
                   return {
                     text: topics
@@ -926,24 +951,28 @@ define([
           if (interpolated.indexOf("stormTopic") >= 0) {
             var topicName = interpolated.substring(0,interpolated.indexOf('.'));
             return this.getStormEntities().then(function () {
-              var topicNames = Object.keys(stormEntities[topicName]);
-              return _.map(topicNames, function(names){
-                return {
-                  text: names
-                };
-              });
+              if(!_.isEmpty(stormEntities) && !_.isEmpty(stormEntities[topicName])) {
+                var topicNames = Object.keys(stormEntities[topicName]);
+                return _.map(topicNames, function(names){
+                  return {
+                    text: names
+                  };
+                });
+              } else return[];
             });
           }
           //Templated Variables for Storm Partitions per Topic
           if (interpolated.indexOf("stormPartition") >= 0) {
             var topicN, topologyN;
             return this.getStormEntities().then(function () {
-              var partitionNames = _.uniq(stormEntities[topologyN][topicN]);
-              return _.map(partitionNames, function(names){
-                return {
-                  text: names
-                };
-              });
+              if(!_.isEmpty(stormEntities) && !_.isEmpty(stormEntities[topologyN]) && !_.isEmpty(stormEntities[topologyN][topicN])) {
+                var partitionNames = _.uniq(stormEntities[topologyN][topicN]);
+                return _.map(partitionNames, function(names){
+                  return {
+                    text: names
+                  };
+                });
+              } else return [];
             });
           }
           // Templated Variable for YARN Queues.
@@ -1028,7 +1057,7 @@ define([
               });
           }
 
-          if (interpolated == 'hosts') {
+          if (interpolated.indexOf("hosts") >= 0) {
             return this.suggestHosts(tComponent, templatedCluster);
           } else if (interpolated == 'cluster') {
             return this.suggestClusters(tComponent)

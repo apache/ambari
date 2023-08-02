@@ -448,9 +448,7 @@ class ActionScheduler implements Runnable {
         // Commands that will be scheduled in current scheduler wakeup
         List<ExecutionCommand> commandsToSchedule = new ArrayList<>();
         Multimap<Long, AgentCommand> commandsToEnqueue = ArrayListMultimap.create();
-
-        Map<String, RoleStats> roleStats =
-          processInProgressStage(stage, commandsToSchedule, commandsToEnqueue);
+        Map<String, RoleStats> roleStats = processInProgressStage(stage, commandsToSchedule, commandsToEnqueue);
 
         // Check if stage is failed
         boolean failed = false;
@@ -1234,9 +1232,9 @@ class ActionScheduler implements Runnable {
           cancelHostRoleCommands(tasksToDequeue, reason);
         }
 
-        // abort any stages in progress that belong to this request; don't execute this for all stages since
-        // that could lead to OOM errors on large requests, like those for
-        // upgrades
+        // abort any stages in progress and holding states that belong to this request;
+        // don't execute this for all stages since that could lead to OOM errors on large requests,
+        // like those for upgrades
         List<Stage> stagesInProgress = db.getStagesInProgressForRequest(requestId);
         for (Stage stageInProgress : stagesInProgress) {
           abortOperationsForStage(stageInProgress);
@@ -1268,12 +1266,6 @@ class ActionScheduler implements Runnable {
           cancelCommand.setReason(reason);
           agentCommandsPublisher.sendAgentCommand(hostRoleCommand.getHostId(), cancelCommand);
         }
-      }
-
-      if (hostRoleCommand.getStatus().isHoldingState()) {
-        db.abortHostRole(hostRoleCommand.getHostName(),
-            hostRoleCommand.getRequestId(),
-            hostRoleCommand.getStageId(), hostRoleCommand.getRole().name());
       }
 
       // If host role is an Action, we have to send an event

@@ -22,6 +22,8 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 
+import org.apache.commons.collections.ListUtils;
+
 public enum HostRoleStatus {
   /**
    * Not queued for a host.
@@ -85,6 +87,8 @@ public enum HostRoleStatus {
       HOLDING_TIMEDOUT);
 
   public static List<HostRoleStatus> SCHEDULED_STATES = Arrays.asList(PENDING, QUEUED, IN_PROGRESS);
+
+  public static List<HostRoleStatus> STATES_TO_ABORT = ListUtils.union(SCHEDULED_STATES, HOLDING_STATES);
 
   /**
    * The {@link HostRoleStatus}s that represent any commands which are

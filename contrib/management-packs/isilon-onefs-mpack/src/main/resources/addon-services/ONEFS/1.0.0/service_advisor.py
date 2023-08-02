@@ -116,8 +116,14 @@ else:
         putHdfsSiteProperty("dfs.namenode.http-address", Uri.http_namenode(services).fix_host(onefs_host))
         putHdfsSiteProperty("dfs.namenode.https-address", Uri.https_namenode(services).fix_host(onefs_host))
         # self.updateYarnConfig(configs, services) TODO doesn't work possibly due to a UI bug (Couldn't retrieve 'capacity-scheduler' from services)
+        self.updateHbaseConfig(configs, services)
       except KeyError as e:
         self.logger.info('Cannot get OneFS properties from config. KeyError: %s' % e)
+
+    def updateHbaseConfig(self, configs, services):
+      if not 'HBASE' in self.installedServices(services): return
+      putHbaseSiteProperty = self.putProperty(configs, "hbase-site", services)
+      putHbaseSiteProperty("hbase.wal.provider", "filesystem")
 
     def updateYarnConfig(self, configs, services):
       if not 'YARN' in self.installedServices(services): return

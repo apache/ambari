@@ -76,7 +76,7 @@ describe('App.StompClient', function () {
     });
     it('should return WebSocket instance', function() {
       sinon.stub(stomp, 'getPort').returns(':8080');
-      expect(stomp.getSocket().URL).to.be.equal('ws://test:8080/api/stomp/v1/websocket');
+      expect(stomp.getSocket().url).to.be.equal('ws://test:8080/api/stomp/v1/websocket');
     });
     it('should return SockJS instance', function() {
       sinon.stub(stomp, 'getPort').returns('');

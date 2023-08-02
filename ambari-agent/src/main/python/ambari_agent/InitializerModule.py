@@ -76,26 +76,24 @@ class InitializerModule:
     self.action_queue = None
     self.alert_scheduler_handler = None
 
-    self.init()
-
   def init(self):
     """
     Initialize properties
     """
     self.is_registered = False
 
+    self.recovery_manager = RecoveryManager(self)
     self.metadata_cache = ClusterMetadataCache(self.config.cluster_cache_dir)
     self.topology_cache = ClusterTopologyCache(self.config.cluster_cache_dir, self.config)
-    self.host_level_params_cache = ClusterHostLevelParamsCache(self.config.cluster_cache_dir)
-    self.configurations_cache = ClusterConfigurationCache(self.config.cluster_cache_dir)
+    self.host_level_params_cache = ClusterHostLevelParamsCache(self.config.cluster_cache_dir, self)
+    self.configurations_cache = ClusterConfigurationCache(self.config.cluster_cache_dir, self)
     self.alert_definitions_cache = ClusterAlertDefinitionsCache(self.config.cluster_cache_dir)
     self.configuration_builder = ConfigurationBuilder(self)
     self.stale_alerts_monitor = StaleAlertsMonitor(self)
     self.server_responses_listener = ServerResponsesListener(self)
     self.file_cache = FileCache(self.config)
-    self.customServiceOrchestrator = CustomServiceOrchestrator(self)
     self.hooks_orchestrator = HooksOrchestrator(self)
-    self.recovery_manager = RecoveryManager(self)
+    self.customServiceOrchestrator = CustomServiceOrchestrator(self)
     self.commandStatuses = CommandStatusDict(self)
 
     self.init_threads()

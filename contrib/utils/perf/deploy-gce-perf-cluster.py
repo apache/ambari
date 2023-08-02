@@ -339,7 +339,7 @@ def create_server_script(server_host_name):
   "sed -i -f /home/ambari/ambari-server/src/main/resources/stacks/PERF/install_packages.sed /var/lib/ambari-agent/cache/custom_actions/scripts/install_packages.py\n" + \
   "\n" + \
   "\n" + \
-  "cd /; wget http://central.maven.org/maven2/mysql/mysql-connector-java/5.1.40/mysql-connector-java-5.1.40.jar;\n" + \
+  "cd /; wget https://repo1.maven.org/maven2/mysql/mysql-connector-java/5.1.40/mysql-connector-java-5.1.40.jar;\n" + \
   "mkdir /usr/share/java; chmod 777 /usr/share/java;" + \
   "cp mysql-connector-java-5.1.40.jar /usr/share/java/; chmod 777 /usr/share/java/mysql-connector-java-5.1.40.jar;\n" + \
   "ln -s /usr/share/java/mysql-connector-java-5.1.40.jar /usr/share/java/mysql-connector-java.jar;\n" + \

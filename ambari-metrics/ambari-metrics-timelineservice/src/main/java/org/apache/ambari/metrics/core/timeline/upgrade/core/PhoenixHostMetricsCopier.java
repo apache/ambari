@@ -23,7 +23,8 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.metrics2.sink.timeline.MetricHostAggregate;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 
-import java.io.FileWriter;
+
+import java.io.Writer;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -32,9 +33,9 @@ import java.util.Set;
 
 public class PhoenixHostMetricsCopier extends AbstractPhoenixMetricsCopier {
   private static final Log LOG = LogFactory.getLog(PhoenixHostMetricsCopier.class);
-  private Map<TimelineMetric, MetricHostAggregate> aggregateMap = new HashMap<>();
+  private final Map<TimelineMetric, MetricHostAggregate> aggregateMap = new HashMap<>();
 
-  PhoenixHostMetricsCopier(String inputTableName, String outputTableName, PhoenixHBaseAccessor hBaseAccessor, Set<String> metricNames, Long startTime, FileWriter processedMetricsFileWriter) {
+  PhoenixHostMetricsCopier(String inputTableName, String outputTableName, PhoenixHBaseAccessor hBaseAccessor, Set<String> metricNames, long startTime, Writer processedMetricsFileWriter) {
     super(inputTableName, outputTableName, hBaseAccessor, metricNames, startTime, processedMetricsFileWriter);
   }
 
@@ -54,7 +55,7 @@ public class PhoenixHostMetricsCopier extends AbstractPhoenixMetricsCopier {
   @Override
   protected void saveMetrics() throws SQLException {
     LOG.debug(String.format("Saving %s results read from %s into %s", aggregateMap.size(), inputTable, outputTable));
-    hBaseAccessor.saveHostAggregateRecords(aggregateMap, outputTable);
+    this.hBaseAccessor.saveHostAggregateRecords(aggregateMap, outputTable);
   }
 
   @Override
@@ -66,12 +67,8 @@ public class PhoenixHostMetricsCopier extends AbstractPhoenixMetricsCopier {
     timelineMetric.setInstanceId(rs.getString("INSTANCE_ID"));
     timelineMetric.setStartTime(rs.getLong("SERVER_TIME"));
 
-    MetricHostAggregate metricHostAggregate = new MetricHostAggregate();
-    metricHostAggregate.setSum(rs.getDouble("METRIC_SUM"));
-    metricHostAggregate.setNumberOfSamples(rs.getLong("METRIC_COUNT"));
-    metricHostAggregate.setMax(rs.getDouble("METRIC_MAX"));
-    metricHostAggregate.setMin(rs.getDouble("METRIC_MIN"));
+    MetricHostAggregate metricHostAggregate = extractMetricHostAggregate(rs);
 
-    aggregateMap.put(timelineMetric, metricHostAggregate);
+    this.aggregateMap.put(timelineMetric, metricHostAggregate);
   }
 }

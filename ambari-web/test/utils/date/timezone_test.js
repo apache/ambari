@@ -139,7 +139,7 @@ describe('timezoneUtils', function () {
     it('Detect UTC+1', function () {
       mockTimezoneOffset(0, 60);
       var tz = timezoneUtils.detectUserTimezone();
-      expect(tz).to.contain('0-60|Africa');
+      expect(tz).to.contain('0-60|Atlantic');
     });
 
     it('Detect UTC+1 for Europe', function () {

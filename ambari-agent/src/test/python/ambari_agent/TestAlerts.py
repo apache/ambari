@@ -1335,7 +1335,7 @@ class TestAlerts(TestCase):
     """
     with patch("builtins.open") as open_mock:
       open_mock.side_effect = self.open_side_effect
-      cluster_configuration = ClusterConfigurationCache("/tmp/test_cache")
+      cluster_configuration = ClusterConfigurationCache("/tmp/test_cache", None)
       return cluster_configuration
 
 

@@ -31,7 +31,7 @@ import pwd
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.logging_utils import get_silent, get_verbose, print_error_msg, print_info_msg, print_warning_msg
 from ambari_commons.exceptions import NonFatalException, FatalException
-from ambari_commons.os_utils import copy_files, find_in_path, is_root, remove_file, run_os_command
+from ambari_commons.os_utils import copy_files, find_in_path, is_root, remove_file, run_os_command, is_service_exist
 from ambari_server.dbConfiguration import DBMSConfig, USERNAME_PATTERN, SETUP_DB_CONNECT_ATTEMPTS, \
     SETUP_DB_CONNECT_TIMEOUT, STORAGE_TYPE_LOCAL, DEFAULT_USERNAME, DEFAULT_PASSWORD
 from ambari_server.serverConfiguration import encrypt_password, store_password_file, \
@@ -385,11 +385,25 @@ class PGConfig(LinuxDBMSConfig):
     PG_HBA_RELOAD_CMD = AMBARI_SUDO_BINARY + " %s reload %s" % (SERVICE_CMD, PG_SERVICE_NAME)
   else:
     SERVICE_CMD = "/usr/bin/env service"
-    PG_ST_CMD = "%s %s status" % (SERVICE_CMD, PG_SERVICE_NAME)
     if os.path.isfile("/usr/bin/postgresql-setup"):
         PG_INITDB_CMD = "/usr/bin/postgresql-setup initdb"
     else:
-        PG_INITDB_CMD = "%s %s initdb" % (SERVICE_CMD, PG_SERVICE_NAME)
+      PG_INITDB_CMD = "%s %s initdb" % (SERVICE_CMD, PG_SERVICE_NAME)
+
+      if OSCheck.is_suse_family() and not is_service_exist(PG_SERVICE_NAME):
+        versioned_script_paths = glob.glob("/usr/pgsql-*/bin/postgresql*-setup")
+        if versioned_script_paths:
+          versioned_script_path_tps = map(lambda path: (re.search(r'pgsql-([0-9]+\.?[0-9]*)', path).group(1), path), versioned_script_paths)
+          versioned_script_path_tps.sort(key = lambda t: float(t[0]), reverse = True)
+          for versioned_script_path_tp in versioned_script_path_tps:
+            pgsql_service_file_name = "postgresql-%s" % versioned_script_path_tp[0]
+            if is_service_exist(pgsql_service_file_name):
+              PG_SERVICE_NAME = pgsql_service_file_name
+              PG_INITDB_CMD = "%s initdb" % versioned_script_path_tp[1]
+              PG_HBA_DIR = "/var/lib/pgsql/%s/data" % versioned_script_path_tp[0]
+              break
+
+    PG_ST_CMD = "%s %s status" % (SERVICE_CMD, PG_SERVICE_NAME)
 
     PG_START_CMD = AMBARI_SUDO_BINARY + " %s %s start" % (SERVICE_CMD, PG_SERVICE_NAME)
     PG_RESTART_CMD = AMBARI_SUDO_BINARY + " %s %s restart" % (SERVICE_CMD, PG_SERVICE_NAME)
@@ -433,7 +447,8 @@ class PGConfig(LinuxDBMSConfig):
 
     if self.persistence_type == STORAGE_TYPE_LOCAL:
       PGConfig.PG_STATUS_RUNNING = get_postgre_running_status()
-      PGConfig.PG_HBA_DIR = get_postgre_hba_dir(OS_FAMILY)
+      if not PGConfig.PG_HBA_DIR:
+        PGConfig.PG_HBA_DIR = get_postgre_hba_dir(OS_FAMILY)
 
       PGConfig.PG_HBA_CONF_FILE = os.path.join(PGConfig.PG_HBA_DIR, "pg_hba.conf")
       PGConfig.PG_HBA_CONF_FILE_BACKUP = os.path.join(PGConfig.PG_HBA_DIR, "pg_hba_bak.conf.old")

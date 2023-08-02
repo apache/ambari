@@ -509,6 +509,11 @@ def upgrade_solr_clients(options, accessor, parser, config):
   host = socket.gethostname()
   if host in solr_client_hosts:
     solr_client_hosts.remove(host)
+
+  if not len(solr_client_hosts):
+    print 'The Solr Clients upgrade request has been aborted because no other host can be upgraded.'
+    sys.exit(0)
+
   context = "Upgrade Solr Clients"
   sys.stdout.write("Sending upgrade request: [{0}] ".format(context))
   sys.stdout.flush()
@@ -1914,7 +1919,7 @@ if __name__=="__main__":
   parser.add_option("--atlas-index-location", dest="atlas_index_location", type="string", help="location of the index backups (for atlas). required only if no backup path in the ini file")
   parser.add_option("--ranger-index-location", dest="ranger_index_location", type="string", help="location of the index backups (for ranger). required only if no backup path in the ini file")
 
-  parser.add_option("--version", dest="index_version", type="string", default="6.6.2", help="lucene index version for migration (6.6.2 or 7.7.0)")
+  parser.add_option("--version", dest="index_version", type="string", default="6.6.2", help="lucene index version for migration (6.6.2 or 7.7.3)")
   parser.add_option("--solr-async-request-tries", dest="solr_async_request_tries", type="int", default=400,  help="number of max tries for async Solr requests (e.g.: delete operation)")
   parser.add_option("--request-tries", dest="request_tries", type="int", help="number of tries for BACKUP/RESTORE status api calls in the request")
   parser.add_option("--request-time-interval", dest="request_time_interval", type="int", help="time interval between BACKUP/RESTORE status api calls in the request")

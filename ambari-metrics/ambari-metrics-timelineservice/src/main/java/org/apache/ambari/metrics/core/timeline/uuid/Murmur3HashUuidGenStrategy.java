@@ -22,7 +22,7 @@ import com.google.common.hash.Hashing;
 import org.apache.ambari.metrics.core.timeline.aggregators.TimelineClusterMetric;
 import org.apache.commons.lang.StringUtils;
 
-public class Murmur3HashUuidGenStrategy implements MetricUuidGenStrategy{
+public class Murmur3HashUuidGenStrategy extends MetricUuidGenNullRestrictedStrategy {
 
   /**
    * Compute Murmur3Hash 16 byte UUID for a Metric-App-Instance.
@@ -30,7 +30,7 @@ public class Murmur3HashUuidGenStrategy implements MetricUuidGenStrategy{
    * @param maxLength Max length of returned UUID. (Will always be 16 for this technique)
    * @return 16 byte UUID.
    */  @Override
-  public byte[] computeUuid(TimelineClusterMetric timelineClusterMetric, int maxLength) {
+  byte[] computeUuidInternal(TimelineClusterMetric timelineClusterMetric, int maxLength) {
 
     String metricString = timelineClusterMetric.getMetricName() + timelineClusterMetric.getAppId();
     if (StringUtils.isNotEmpty(timelineClusterMetric.getInstanceId())) {
@@ -47,7 +47,7 @@ public class Murmur3HashUuidGenStrategy implements MetricUuidGenStrategy{
    * @return 4 byte UUID.
    */
   @Override
-  public byte[] computeUuid(String value, int maxLength) {
+  byte[] computeUuidInternal(String value, int maxLength) {
     byte[] valueBytes = value.getBytes();
     return Hashing.murmur3_32().hashBytes(valueBytes).asBytes();
   }

@@ -75,7 +75,7 @@
               "app": "hivemetastore",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "default.General.init_total_count_dbs",
+              "metric": "default.General.total_count_dbs",
               "precision": "default",
               "refId": "A"
             }
@@ -131,7 +131,7 @@
               "app": "hivemetastore",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "default.General.init_total_count_tables",
+              "metric": "default.General.total_count_tables",
               "precision": "default",
               "refId": "A"
             }
@@ -187,7 +187,7 @@
               "app": "hivemetastore",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "default.General.init_total_count_partitions",
+              "metric": "default.General.total_count_partitions",
               "precision": "default",
               "refId": "A"
             }
@@ -263,7 +263,7 @@
               "app": "hivemetastore",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "default.General.api_create_table_count",
+              "metric": "default.General.api_create_table_req_count",
               "precision": "default",
               "refId": "B"
             },
@@ -433,7 +433,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "hosts": "",
-              "metric": "default.General.memory.heap.max",
+              "metric": "default.General.heap.max",
               "precision": "default",
               "refId": "A"
             },
@@ -444,7 +444,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "hosts": "",
-              "metric": "default.General.memory.heap.used",
+              "metric": "default.General.heap.used",
               "precision": "default",
               "refId": "B"
             },
@@ -455,7 +455,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "hosts": "",
-              "metric": "default.General.memory.heap.committed",
+              "metric": "default.General.heap.committed",
               "precision": "default",
               "refId": "C"
             }
@@ -621,7 +621,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "hosts": "",
-              "metric": "default.General.memory.non-heap.max",
+              "metric": "default.General.non-heap.max",
               "precision": "default",
               "refId": "A"
             },
@@ -632,7 +632,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "hosts": "",
-              "metric": "default.General.memory.non-heap.used",
+              "metric": "default.General.non-heap.used",
               "precision": "default",
               "refId": "B"
             },
@@ -643,7 +643,7 @@
               "downsampleAggregator": "avg",
               "errors": {},
               "hosts": "",
-              "metric": "default.General.memory.non-heap.committed",
+              "metric": "default.General.non-heap.committed",
               "precision": "default",
               "refId": "C"
             }
@@ -954,7 +954,7 @@
               "app": "hivemetastore",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "default.General.api_get_all_databases_75thpercentile",
+              "metric": "default.General.api_get_databases_75thpercentile",
               "precision": "default",
               "refId": "A"
             },
@@ -964,7 +964,7 @@
               "app": "hivemetastore",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "default.General.api_get_all_databases_999thpercentile",
+              "metric": "default.General.api_get_databases_999thpercentile",
               "precision": "default",
               "refId": "B"
             }
@@ -1033,7 +1033,7 @@
               "app": "hivemetastore",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "default.General.api_get_partitions_by_names_75thpercentile",
+              "metric": "default.General.api_get_partitions_75thpercentile",
               "precision": "default",
               "refId": "A"
             },
@@ -1043,7 +1043,7 @@
               "app": "hivemetastore",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "default.General.api_get_partitions_by_names_999thpercentile",
+              "metric": "default.General.api_get_partitions_999thpercentile",
               "precision": "default",
               "refId": "B"
             }
@@ -1105,7 +1105,7 @@
     "list": []
   },
   "schemaVersion": 8,
-  "version": 51,
+  "version": 52,
   "links": [
     {
       "asDropdown": true,

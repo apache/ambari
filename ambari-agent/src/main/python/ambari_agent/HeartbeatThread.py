@@ -38,9 +38,13 @@ from ambari_agent.listeners.HostLevelParamsEventListener import HostLevelParamsE
 from ambari_agent.listeners.AlertDefinitionsEventListener import AlertDefinitionsEventListener
 from ambari_agent import security
 from ambari_stomp.adapter.websocket import ConnectionIsAlreadyClosed
+from ambari_commons.os_utils import get_used_ram
 
 HEARTBEAT_INTERVAL = 10
 REQUEST_RESPONSE_TIMEOUT = 10
+
+AGENT_AUTO_RESTART_EXIT_CODE = 77
+AGENT_RAM_OVERUSE_MESSAGE = "Ambari-agent RAM usage {used_ram} MB went above {config_name}={max_ram} MB. Restarting ambari-agent to clean the RAM."
 
 logger = logging.getLogger(__name__)
 
@@ -93,6 +97,8 @@ class HeartbeatThread(threading.Thread):
       try:
         if not self.initializer_module.is_registered:
           self.register()
+
+        self.check_for_memory_leak()
 
         heartbeat_body = self.get_heartbeat_body()
         logger.debug("Heartbeat body is {0}".format(heartbeat_body))
@@ -276,3 +282,14 @@ class HeartbeatThread(threading.Thread):
       return self.server_responses_listener.responses.blocking_pop(correlation_id, timeout=timeout)
     except BlockingDictionary.DictionaryPopTimeout:
       raise Exception("{0} seconds timeout expired waiting for response from server at {1} to message from {2}".format(timeout, Constants.SERVER_RESPONSES_TOPIC, destination))
+
+  def check_for_memory_leak(self):
+    used_ram = get_used_ram()/1000
+    # dealing with a possible memory leaks
+    if self.config.max_ram_soft and used_ram >= self.config.max_ram_soft and not self.initializer_module.action_queue.tasks_in_progress_or_pending():
+      logger.error(AGENT_RAM_OVERUSE_MESSAGE.format(used_ram=used_ram, config_name="memory_threshold_soft_mb", max_ram=self.config.max_ram_soft))
+      Utils.restartAgent(self.stop_event)
+    if self.config.max_ram_hard and used_ram >= self.config.max_ram_hard:
+      logger.error(AGENT_RAM_OVERUSE_MESSAGE.format(used_ram=used_ram, config_name="memory_threshold_hard_mb", max_ram=self.config.max_ram_hard))
+      Utils.restartAgent(self.stop_event)
+  

@@ -45,12 +45,17 @@ public class AtlasMigrationPropertyCheck extends AbstractCheckDescriptor {
     /**
      * Default constructor
      */
-    public AtlasMigrationPropertyCheck(){  super(CheckDescription.ATLAS_MIGRATION_PROPERTY_CHECK); }
+    public AtlasMigrationPropertyCheck() {
+        super(CheckDescription.ATLAS_MIGRATION_PROPERTY_CHECK);
+    }
 
     /**
      * {@inheritDoc}
      */
-    public Set<String> getApplicableServices() { return Sets.newHashSet(serviceName); }
+    @Override
+    public Set<String> getApplicableServices() {
+        return Sets.newHashSet(serviceName);
+    }
 
     /**
      * {@inheritDoc}

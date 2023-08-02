@@ -29,7 +29,7 @@ App.SingleNumericThresholdMixin = Em.Mixin.create({
       widgetView: this,
 
       sliderHandlersManager: App.EditDashboardWidgetPopup.SingleHandler.create({
-        thresholdMin: this.get('thresholdMin'),
+        thresholdMin: Number(this.get('thresholdMin')),
         maxValue: parseFloat(this.get('maxValue'))
       }),
 

@@ -39,6 +39,7 @@ from resource_management.core.exceptions import Fail
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from resource_management.core import shell
 from resource_management.core.logger import Logger
+from resource_management.core.utils import PasswordString
 
 
 # WARNING. If you are adding a new host check that is used by cleanup, add it to BEFORE_CLEANUP_HOST_CHECKS
@@ -445,9 +446,9 @@ class CheckHost(Script):
       user_name = "SYS AS SYSDBA"
 
     # try to connect to db
-    db_connection_check_command = format("{java_exec} -cp {check_db_connection_path}{class_path_delimiter}" \
-           "{jdbc_jar_path} -Djava.library.path={java_library_path} org.apache.ambari.server.DBConnectionVerification \"{db_connection_url}\" " \
-           "\"{user_name}\" {user_passwd!p} {jdbc_driver_class}")
+    db_connection_check_command = (java_exec, '-cp', format("{check_db_connection_path}{class_path_delimiter}{jdbc_jar_path}"),
+                                   format("-Djava.library.path={java_library_path}"), "org.apache.ambari.server.DBConnectionVerification",
+                                   db_connection_url, user_name, PasswordString(user_passwd), jdbc_driver_class)
 
     if db_name == DB_SQLA:
       db_connection_check_command = "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:{0}{1} {2}".format(agent_cache_dir,

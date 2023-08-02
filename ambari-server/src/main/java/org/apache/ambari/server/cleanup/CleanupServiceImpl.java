@@ -73,6 +73,7 @@ public class CleanupServiceImpl implements CleanupService<TimeBasedCleanupPolicy
    * @param cleanupPolicy the policy based on which the cleanup is done
    * @return the number of affected rows
    */
+  @Override
   public CleanupResult cleanup(TimeBasedCleanupPolicy cleanupPolicy) {
     long affectedRows = 0;
     int errorCount = 0;

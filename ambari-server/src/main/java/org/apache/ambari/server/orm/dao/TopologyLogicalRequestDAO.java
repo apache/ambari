@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.orm.dao;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -25,6 +26,8 @@ import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.TopologyLogicalRequestEntity;
+import org.apache.ambari.server.orm.helpers.SQLConstants;
+import org.apache.ambari.server.orm.helpers.SQLOperations;
 
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
@@ -68,11 +71,15 @@ public class TopologyLogicalRequestDAO {
   @RequiresSession
   public Set<Long> findRequestIdsByIds(Set<Long> ids) {
     EntityManager entityManager = entityManagerProvider.get();
-    TypedQuery<Long> topologyLogicalRequestQuery =
-            entityManager.createNamedQuery("TopologyLogicalRequestEntity.findRequestIds", Long.class);
+    final Set<Long> result = new HashSet<>();
+    final TypedQuery<Long> topologyLogicalRequestQuery =
+      entityManager.createNamedQuery("TopologyLogicalRequestEntity.findRequestIds", Long.class);
 
-    topologyLogicalRequestQuery.setParameter("ids", ids);
-
-    return Sets.newHashSet(daoUtils.selectList(topologyLogicalRequestQuery));
+    SQLOperations.batch(ids, SQLConstants.IN_ARGUMENT_MAX_SIZE, (chunk, currentBatch, totalBatches, totalSize) -> {
+      topologyLogicalRequestQuery.setParameter("ids", chunk);
+      result.addAll(daoUtils.selectList(topologyLogicalRequestQuery));
+      return 0;
+    });
+    return Sets.newHashSet(result);
   }
 }

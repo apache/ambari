@@ -31,7 +31,7 @@ delimiter ;
 set @version_short = substring_index(@@version, '.', 2);
 set @major = cast(substring_index(@version_short, '.', 1) as SIGNED);
 set @minor = cast(substring_index(@version_short, '.', -1) as SIGNED);
-set @engine_stmt = IF(@major >= 5 AND @minor>=6, 'SET default_storage_engine=INNODB', 'SET storage_engine=INNODB');
+set @engine_stmt = IF((@major >= 5 AND @minor>=6) or @major >= 8, 'SET default_storage_engine=INNODB', 'SET storage_engine=INNODB');
 prepare statement from @engine_stmt;
 execute statement;
 DEALLOCATE PREPARE statement;
@@ -339,7 +339,7 @@ CREATE TABLE user_authentication (
   CONSTRAINT FK_user_authentication_users FOREIGN KEY (user_id) REFERENCES users (user_id)
 );
 
-CREATE TABLE groups (
+CREATE TABLE `groups` (
   group_id INTEGER,
   principal_id BIGINT NOT NULL,
   group_name VARCHAR(255) NOT NULL,
@@ -354,7 +354,7 @@ CREATE TABLE members (
   group_id INTEGER NOT NULL,
   user_id INTEGER NOT NULL,
   CONSTRAINT PK_members PRIMARY KEY (member_id),
-  CONSTRAINT FK_members_group_id FOREIGN KEY (group_id) REFERENCES groups (group_id),
+  CONSTRAINT FK_members_group_id FOREIGN KEY (group_id) REFERENCES `groups` (group_id),
   CONSTRAINT FK_members_user_id FOREIGN KEY (user_id) REFERENCES users (user_id),
   CONSTRAINT UNQ_members_0 UNIQUE (group_id, user_id));
 

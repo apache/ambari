@@ -471,6 +471,16 @@ def wait_for_pid_wmi(processName, parentPid, pattern, timeout):
   return 0
 
 
+def os_is_service_exist(serviceName):
+  try:
+    win32serviceutil.QueryServiceStatus(serviceName)
+  except:
+    # "Windows service NOT installed"
+    return False
+  else:
+    # "Windows service installed"
+    return True
+
 #need this for redirecting output form python process to file
 class SyncStreamWriter(object):
   def __init__(self, stream, hMutexWrite):

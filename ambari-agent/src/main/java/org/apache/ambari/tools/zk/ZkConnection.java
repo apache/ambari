@@ -40,11 +40,9 @@ public class ZkConnection {
     throws IOException, InterruptedException, IllegalStateException
   {
     final CountDownLatch connSignal = new CountDownLatch(1);
-    ZooKeeper zooKeeper = new ZooKeeper(serverAddress, sessionTimeoutMillis, new Watcher() {
-      public void process(WatchedEvent event) {
-        if (event.getState() == SyncConnected) {
-          connSignal.countDown();
-        }
+    ZooKeeper zooKeeper = new ZooKeeper(serverAddress, sessionTimeoutMillis, event -> {
+      if (event.getState() == SyncConnected) {
+        connSignal.countDown();
       }
     });
     connSignal.await(connectionTimeoutMillis, MILLISECONDS);

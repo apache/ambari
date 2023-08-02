@@ -39,7 +39,6 @@ import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.agent.HeartBeatHandler;
-import org.apache.ambari.server.agent.rest.AgentResource;
 import org.apache.ambari.server.api.AmbariErrorHandler;
 import org.apache.ambari.server.api.AmbariPersistFilter;
 import org.apache.ambari.server.api.ContentTypeOverrideFilter;
@@ -200,6 +199,7 @@ public class AmbariServer {
    */
   public static final EnumSet<DispatcherType> DISPATCHER_TYPES = EnumSet.of(DispatcherType.REQUEST);
   private static final int DEFAULT_ACCEPTORS_COUNT = 1;
+  private static final String[] DEPRECATED_SSL_PROTOCOLS = new String[] {"TLSv1"};
 
   static {
     Velocity.setProperty("runtime.log.logsystem.log4j.logger", VELOCITY_LOG_CATEGORY);
@@ -495,7 +495,7 @@ public class AmbariServer {
       agentroot.addServlet(agent, "/agent/v1/*");
       agent.setInitOrder(3);
 
-      AgentResource.startHeartBeatHandler();
+      injector.getInstance(HeartBeatHandler.class).start();
       LOG.info("********** Started Heartbeat handler **********");
 
       ServletHolder cert = new ServletHolder(ServletContainer.class);
@@ -802,9 +802,9 @@ public class AmbariServer {
    * at server properties)
    */
   private void disableInsecureProtocols(SslContextFactory factory) {
-    // by default all protocols should be available
-    factory.setExcludeProtocols();
-    factory.setIncludeProtocols(new String[] {"SSLv2Hello","SSLv3","TLSv1","TLSv1.1","TLSv1.2"});
+    // by default all protocols should be available, excluding TLSv1.0
+    factory.setExcludeProtocols(DEPRECATED_SSL_PROTOCOLS);
+    factory.setIncludeProtocols(new String[] {"SSLv2Hello","SSLv3","TLSv1.1","TLSv1.2"});
 
     if (!configs.getSrvrDisabledCiphers().isEmpty()) {
       String[] masks = configs.getSrvrDisabledCiphers().split(DISABLED_ENTRIES_SPLITTER);
@@ -826,7 +826,11 @@ public class AmbariServer {
     configureHandlerCompression(root);
     configureAdditionalContentTypes(root);
     root.setContextPath(CONTEXT_PATH);
-    root.setErrorHandler(injector.getInstance(AmbariErrorHandler.class));
+
+    AmbariErrorHandler ambariErrorHandler = injector.getInstance(AmbariErrorHandler.class);
+    ambariErrorHandler.setShowStacks(configs.isServerShowErrorStacks());
+    root.setErrorHandler(ambariErrorHandler);
+
     root.setMaxFormContentSize(-1);
 
     /* Configure web app context */
@@ -908,7 +912,6 @@ public class AmbariServer {
    */
   @Deprecated
   public void performStaticInjection() {
-    AgentResource.init(injector.getInstance(HeartBeatHandler.class));
     CertificateDownload.init(injector.getInstance(CertificateManager.class));
     ConnectionInfo.init(injector.getInstance(Configuration.class));
     CertificateSign.init(injector.getInstance(CertificateManager.class));

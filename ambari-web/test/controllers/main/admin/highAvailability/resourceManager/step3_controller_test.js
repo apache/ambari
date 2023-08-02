@@ -378,7 +378,7 @@ describe('App.RMHighAvailabilityWizardStep3Controller', function () {
     beforeEach(function() {
       sinon.stub(controller, 'renderConfigProperties');
       sinon.stub(App.Service, 'find').returns([Em.Object.create({
-        serviceName: 'S1'
+        serviceName: 'HAWQ'
       })]);
       controller.renderConfigs();
     });

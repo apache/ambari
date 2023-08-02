@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.orm.dao.KerberosKeytabDAO;
@@ -36,6 +38,7 @@ import org.apache.ambari.server.orm.entities.KerberosKeytabPrincipalEntity;
 import org.apache.ambari.server.orm.entities.KerberosPrincipalEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
@@ -88,7 +91,7 @@ public class KerberosKeytabController {
    * @return found keytab or null
    */
   public ResolvedKerberosKeytab getKeytabByFile(String file, boolean resolvePrincipals) {
-    return fromKeytabEntity(kerberosKeytabDAO.find(file), resolvePrincipals);
+    return fromKeytabEntity(kerberosKeytabDAO.find(file), resolvePrincipals, false);
   }
 
   /**
@@ -97,7 +100,7 @@ public class KerberosKeytabController {
    * @return all keytabs
    */
   public Set<ResolvedKerberosKeytab> getAllKeytabs() {
-    return fromKeytabEntities(kerberosKeytabDAO.findAll());
+    return fromKeytabEntities(kerberosKeytabDAO.findAll(), false);
   }
 
   /**
@@ -107,10 +110,17 @@ public class KerberosKeytabController {
    * @return set of keytabs found
    */
   public Set<ResolvedKerberosKeytab> getFromPrincipal(ResolvedKerberosPrincipal rkp) {
-    List<KerberosKeytabEntity> keytabs = kerberosKeytabDAO.findByPrincipalAndHost(
-        rkp.getPrincipal(), rkp.getHostId());
+    return fromKeytabEntities(kerberosKeytabDAO.findByPrincipalAndHost(rkp.getPrincipal(), rkp.getHostId()), false);
+  }
 
-    return fromKeytabEntities(keytabs);
+  /**
+   * Returns all keytabs that contains given principal without service mapping.
+   *
+   * @param rkp principal to filter keytabs by
+   * @return set of keytabs found
+   */
+  public Set<ResolvedKerberosKeytab> getFromPrincipalExceptServiceMapping(ResolvedKerberosPrincipal rkp) {
+    return fromKeytabEntities(kerberosKeytabDAO.findByPrincipalAndHost(rkp.getPrincipal(), rkp.getHostId()), true);
   }
 
   /**
@@ -132,7 +142,7 @@ public class KerberosKeytabController {
       filter.setPrincipals(identityFilter);
     }
 
-    Set<ResolvedKerberosPrincipal> filteredPrincipals = fromPrincipalEntities(kerberosKeytabPrincipalDAO.findByFilters(filters));
+    Set<ResolvedKerberosPrincipal> filteredPrincipals = fromPrincipalEntities(kerberosKeytabPrincipalDAO.findByFilters(filters), false);
     HashMap<String, ResolvedKerberosKeytab> resultMap = new HashMap<>();
     for (ResolvedKerberosPrincipal principal : filteredPrincipals) {
       if (!resultMap.containsKey(principal.getKeytabPath())) {
@@ -204,8 +214,9 @@ public class KerberosKeytabController {
     return Lists.newArrayList(KerberosKeytabPrincipalDAO.KerberosKeytabPrincipalFilter.createEmptyFilter());
   }
 
-  private ResolvedKerberosKeytab fromKeytabEntity(KerberosKeytabEntity kke, boolean resolvePrincipals) {
-    Set<ResolvedKerberosPrincipal> principals = resolvePrincipals ? fromPrincipalEntities(kke.getKerberosKeytabPrincipalEntities()) : new HashSet<>();
+  private ResolvedKerberosKeytab fromKeytabEntity(KerberosKeytabEntity kke, boolean resolvePrincipals, boolean exceptServiceMapping) {
+    Set<ResolvedKerberosPrincipal> principals = resolvePrincipals ?
+        fromPrincipalEntities(kke.getKerberosKeytabPrincipalEntities(), exceptServiceMapping) : new HashSet<>();
     return new ResolvedKerberosKeytab(
       kke.getKeytabPath(),
       kke.getOwnerName(),
@@ -219,18 +230,18 @@ public class KerberosKeytabController {
   }
 
   private ResolvedKerberosKeytab fromKeytabEntity(KerberosKeytabEntity kke) {
-    return fromKeytabEntity(kke, true);
+    return fromKeytabEntity(kke, true, false);
   }
 
-  private Set<ResolvedKerberosKeytab> fromKeytabEntities(Collection<KerberosKeytabEntity> keytabEntities) {
+  private Set<ResolvedKerberosKeytab> fromKeytabEntities(Collection<KerberosKeytabEntity> keytabEntities, boolean exceptServiceMapping) {
     ImmutableSet.Builder<ResolvedKerberosKeytab> builder = ImmutableSet.builder();
-    for (KerberosKeytabEntity kkpe : keytabEntities) {
-      builder.add(fromKeytabEntity(kkpe));
+    for (KerberosKeytabEntity kke : keytabEntities) {
+      builder.add(fromKeytabEntity(kke, true, exceptServiceMapping));
     }
     return builder.build();
   }
 
-  private Set<ResolvedKerberosPrincipal> fromPrincipalEntities(Collection<KerberosKeytabPrincipalEntity> principalEntities) {
+  private Set<ResolvedKerberosPrincipal> fromPrincipalEntities(Collection<KerberosKeytabPrincipalEntity> principalEntities, boolean exceptServiceMapping) {
     ImmutableSet.Builder<ResolvedKerberosPrincipal> builder = ImmutableSet.builder();
     for (KerberosKeytabPrincipalEntity kkpe : principalEntities) {
       KerberosPrincipalEntity kpe = kkpe.getKerberosPrincipalEntity();
@@ -243,7 +254,7 @@ public class KerberosKeytabController {
             kpe.isService(),
             kpe.getCachedKeytabPath(),
             kkpe.getKeytabPath(),
-            kkpe.getServiceMappingAsMultimap());
+            exceptServiceMapping ? null : kkpe.getServiceMappingAsMultimap());
         builder.add(rkp);
       }
     }
@@ -290,37 +301,40 @@ public class KerberosKeytabController {
     return adjustedFilter;
   }
 
-  public Collection<KerberosIdentityDescriptor> getServiceIdentities(String clusterName, Collection<String> services) throws AmbariException {
+  public Collection<KerberosIdentityDescriptor> getServiceIdentities(String clusterName, Collection<String> services,
+                                                                     @Nullable Map<String, DesiredConfig> desiredConfigs)
+    throws AmbariException {
+
     final Collection<KerberosIdentityDescriptor> serviceIdentities = new ArrayList<>();
     Cluster cluster = clusters.getCluster(clusterName);
+
+    if (desiredConfigs == null) {
+      desiredConfigs = cluster.getDesiredConfigs();
+    }
+
     KerberosDescriptor kerberosDescriptor = kerberosHelper.getKerberosDescriptor(cluster, false);
+    KerberosDescriptor userDescriptor = kerberosHelper.getKerberosDescriptorUpdates(cluster);
     Map<String, Map<String, Map<String, String>>> hostConfigurations = new HashMap<>();
     Map<String, Host> hostMap = clusters.getHostsForCluster(clusterName);
     Set<String> hosts = new HashSet<>(hostMap.keySet());
+    Map<String, String> componentHosts = new HashMap<>();
 
+    for (String hostName: hosts) {
+      hostConfigurations.put(
+        hostName,
+        kerberosHelper.calculateConfigurations(cluster, hostName, kerberosDescriptor, userDescriptor,
+          false,false, componentHosts, desiredConfigs)
+      );
+    }
+
+    // ambari-agent may not be installed on ambari-server. Add ambari-server after calculating configurations.
+    // If not, HostNotFoundException will raise
     String ambariServerHostname = StageUtils.getHostName();
-    if (!hosts.contains(ambariServerHostname)) {
-      hosts.add(ambariServerHostname);
-    }
-    for( String hostName : hosts ) {
-      Map<String, Map<String, String>> configurations = kerberosHelper.calculateConfigurations(
-        cluster, hostName, kerberosDescriptor, false, false);
-      hostConfigurations.put(hostName, configurations);
-    }
-    for (String service : services) {
-      Collection<Collection<KerberosIdentityDescriptor>> identities = kerberosHelper.getActiveIdentities(
-        clusterName,
-       null,
-        service,
-       null,
-       true,
-        hostConfigurations,
-        kerberosDescriptor
-      ).values();
+    hosts.add(ambariServerHostname);
 
-      for (Collection<KerberosIdentityDescriptor> activeIdentities : identities) {
-        serviceIdentities.addAll(activeIdentities);
-      }
+    for (String service: services) {
+      kerberosHelper.getActiveIdentities(clusterName,null, service, null,true,
+        hostConfigurations,kerberosDescriptor, desiredConfigs).values().forEach(serviceIdentities::addAll);
     }
     return serviceIdentities;
   }

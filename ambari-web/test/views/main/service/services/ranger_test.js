@@ -44,4 +44,20 @@ describe('App.MainDashboardServiceRangerView', function () {
       expect(view.get('controller.isRangerUpdateWorking')).to.be.false;
     });
   });
+
+  describe('#isRangerTagsyncCreated', function () {
+
+    beforeEach(function () {
+      sinon.stub(view, 'isServiceComponentCreated').withArgs('RANGER_TAGSYNC').returns(true);
+    });
+
+    afterEach(function () {
+      view.isServiceComponentCreated.restore();
+    });
+
+    it('should return true', function () {
+      view.propertyDidChange('isRangerTagsyncCreated');
+      expect(view.get('isRangerTagsyncCreated')).to.be.true;
+    });
+  });
 });

@@ -20,12 +20,12 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.ambari</groupId>
   <artifactId>ambari-infra</artifactId>
-  <version>2.7.5.0.0</version>
+  <version>2.7.8.0.0</version>
   <packaging>pom</packaging>
 
   <properties>
     <jdk.version>1.8</jdk.version>
-    <solr.version>7.7.2</solr.version>
+    <solr.version>7.7.3</solr.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <python.ver>python &gt;= 2.6</python.ver>
     <deb.python.ver>python (&gt;= 2.6)</deb.python.ver>
@@ -58,7 +58,7 @@
     <repository>
       <id>apache-hadoop</id>
       <name>hdp</name>
-      <url>https://repo.hortonworks.com/content/groups/public/</url>
+      <url>https://repo.hortonworks.com/content/groups/releases/</url>
     </repository>
     <repository>
       <id>oss.sonatype.org</id>
@@ -86,6 +86,11 @@
       <releases>
         <enabled>false</enabled>
       </releases>
+    </repository>
+    <repository>
+      <id>maven-restlet</id>
+      <name>Public online Restlet repository</name>
+      <url>https://maven.restlet.com</url>
     </repository>
   </repositories>
 
