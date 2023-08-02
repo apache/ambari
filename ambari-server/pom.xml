@@ -1776,7 +1776,7 @@
     <dependency>
       <groupId>org.apache.ambari</groupId>
       <artifactId>ambari-serviceadvisor</artifactId>
-      <version>2.7.5.0.0</version>
+      <version>1.0.0.0-SNAPSHOT</version>
       <exclusions>
         <exclusion>
           <groupId>commons-httpclient</groupId>
@@ -1789,7 +1789,7 @@
     <dependency>
       <groupId>org.apache.ambari</groupId>
       <artifactId>ambari-utility</artifactId>
-      <version>2.7.5.0.0</version>
+      <version>1.0.0.0-SNAPSHOT</version>
       <scope>provided</scope> <!-- for @ApiIgnore -->
       <exclusions>
         <exclusion>
@@ -1855,5 +1855,13 @@
       </exclusions>
     </dependency>
   </dependencies>
+
+  <pluginRepositories>
+    <pluginRepository>
+      <id>oss.sonatype.org</id>
+      <name>OSS Sonatype Staging</name>
+      <url>https://oss.sonatype.org/content/groups/staging</url>
+    </pluginRepository>
+  </pluginRepositories>
 
 </project>

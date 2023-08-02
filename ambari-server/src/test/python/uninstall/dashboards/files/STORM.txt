@@ -1,7 +1,1 @@
-Supervisors
-Total Tasks
-Total Slots
-Used Slots
-Topologies
-Total Executors
-Free Slots
+../../../mpacks/mystack-ambari-mpack-1.0.0.1/stacks/MYSTACK/3.0/services/SERVICEC/dashboards/service-metrics/STORM.txt

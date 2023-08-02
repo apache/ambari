@@ -1,0 +1,4 @@
+logs/*.log
+shipper-conf/input.config-*.json
+!shipper-conf/input.config-sample.json
+

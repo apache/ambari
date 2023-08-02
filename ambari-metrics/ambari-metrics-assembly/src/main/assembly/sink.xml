@@ -66,6 +66,11 @@
     </file>
     <file>
       <fileMode>644</fileMode>
+      <source>${storm-sink-legacy.dir}/target/ambari-metrics-storm-sink-legacy-with-common-${project.version}.jar</source>
+      <outputDirectory>hadoop-sink</outputDirectory>
+    </file>
+    <file>
+      <fileMode>644</fileMode>
       <source>${kafka-sink.dir}/target/ambari-metrics-kafka-sink-with-common-${project.version}.jar</source>
       <outputDirectory>hadoop-sink</outputDirectory>
     </file>

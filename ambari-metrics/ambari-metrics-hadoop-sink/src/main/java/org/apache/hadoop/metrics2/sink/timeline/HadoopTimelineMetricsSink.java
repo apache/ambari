@@ -19,7 +19,7 @@ package org.apache.hadoop.metrics2.sink.timeline;
 
 import org.apache.commons.configuration2.SubsetConfiguration;
 import org.apache.commons.configuration2.convert.DefaultListDelimiterHandler;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.metrics2.AbstractMetric;

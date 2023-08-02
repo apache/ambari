@@ -65,6 +65,17 @@
   </properties>
   <pluginRepositories>
     <pluginRepository>
+      <id>maven2-repository.dev.java.net</id>
+      <name>Java.net Repository for Maven</name>
+      <url>https://download.java.net/maven/2/</url>
+      <layout>default</layout>
+    </pluginRepository>
+    <pluginRepository>
+      <id>maven2-glassfish-repository.dev.java.net</id>
+      <name>Java.net Repository for Maven</name>
+      <url>https://download.java.net/maven/glassfish/</url>
+    </pluginRepository>
+    <pluginRepository>
       <id>maven2-repository.atlassian</id>
       <name>Atlassian Maven Repository</name>
       <url>https://maven.atlassian.com/repository/public</url>
@@ -93,6 +104,11 @@
 
   <repositories>
     <repository>
+      <id>oss.sonatype.org</id>
+      <name>OSS Sonatype Staging</name>
+      <url>https://oss.sonatype.org/content/groups/staging</url>
+    </repository>
+    <repository>
       <id>spring-milestones</id>
       <name>Spring Milestones</name>
       <url>https://repo.spring.io/milestone</url>
@@ -114,6 +130,19 @@
         <enabled>false</enabled>
       </releases>
     </repository>
+    <!-- ToDo: remove after moving the Metrics HDP dependencies to the public nexus -->
+    <repository>
+      <id>private-nexus</id>
+      <name>private-nexus</name>
+      <url>https://nexus-private.hortonworks.com/nexus/content/groups/public/</url>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+    </repository>
+    <!-- //ToDo: END -->
   </repositories>
 
   <build>
