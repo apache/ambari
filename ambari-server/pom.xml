@@ -375,6 +375,8 @@
             <exclude>**/repo_ubuntu.j2</exclude>
             <exclude>**/.pydev*</exclude>
             <exclude>**/.hash</exclude>
+            <exclude>**/SERVICEA</exclude>
+            <exclude>**/SERVICEB</exclude>
             <!--gitignore content -->
             <exclude>src/main/resources/db/newcerts/**</exclude>
 

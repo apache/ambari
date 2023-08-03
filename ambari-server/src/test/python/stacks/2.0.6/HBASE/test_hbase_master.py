@@ -194,7 +194,7 @@ class TestHBaseMaster(RMFTestCase):
                               )
     self.assertResourceCalled('File', '/usr/lib/hbase/bin/draining_servers2.rb',
                               content = StaticFile('draining_servers2.rb'),
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('Execute', ' /usr/lib/hbase/bin/hbase --config /etc/hbase/conf  org.jruby.Main /usr/lib/hbase/bin/draining_servers.rb add host1',
                               logoutput = True,
@@ -229,7 +229,7 @@ class TestHBaseMaster(RMFTestCase):
                               )
     self.assertResourceCalled('File', '/usr/lib/hbase/bin/draining_servers2.rb',
                               content = StaticFile('draining_servers2.rb'),
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('Execute', ' /usr/lib/hbase/bin/hbase --config /etc/hbase/conf  org.jruby.Main /usr/lib/hbase/bin/draining_servers.rb remove host1',
                               logoutput = True,
@@ -301,7 +301,7 @@ class TestHBaseMaster(RMFTestCase):
                               )
     self.assertResourceCalled('File', '/usr/lib/hbase/bin/draining_servers2.rb',
                               content = StaticFile('draining_servers2.rb'),
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hbase.service.keytab hbase/c6401.ambari.apache.org@EXAMPLE.COM; /usr/lib/hbase/bin/hbase --config /etc/hbase/conf -Djava.security.auth.login.config=/etc/hbase/conf/hbase_client_jaas.conf org.jruby.Main /usr/lib/hbase/bin/draining_servers.rb add host1',
                               logoutput = True,

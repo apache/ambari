@@ -46,7 +46,7 @@ with patch.object(distro, "linux_distribution", return_value = MagicMock(return_
               with patch("glob.glob", return_value = ['/etc/init.d/postgresql-9.3']):
                 _ambari_server_ = __import__('ambari-server')
                 os_utils.search_file = _search_file
-                with patch("builtin.open"):
+                with patch("builtins.open"):
                   from ambari_commons.exceptions import FatalException, NonFatalException
                   from ambari_server import serverConfiguration
                   serverConfiguration.search_file = _search_file

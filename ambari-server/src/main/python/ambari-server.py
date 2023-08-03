@@ -1028,7 +1028,7 @@ def main(options, args, parser):
 def mainBody():
   parser = optparse.OptionParser(usage="usage: %prog action [options]",)
   if len(sys.argv) < 2:
-        print parser.print_help()
+        print(parser.print_help())
         parser.error("No action entered")
   action = sys.argv[1]
 

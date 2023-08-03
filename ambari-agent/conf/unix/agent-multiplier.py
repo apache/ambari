@@ -321,21 +321,21 @@ class Multiplier:
     for host in self.hosts:
       cmd = "ambari-agent start --home %s" % (host.home_dir)
       os.environ['AMBARI_AGENT_CONF_DIR'] = os.path.join(host.home_dir, "etc/ambari-agent/conf")
-      subprocess32.call(cmd, shell=True, env=os.environ)
+      subprocess.call(cmd, shell=True, env=os.environ)
 
   def cmd_stop(self):
     print("Stopping %d host(s)" % len(self.hosts))
     for host in self.hosts:
       cmd = "ambari-agent stop --home %s" % (host.home_dir)
       os.environ['AMBARI_AGENT_CONF_DIR'] = os.path.join(host.home_dir, "etc/ambari-agent/conf")
-      subprocess32.call(cmd, shell=True, env=os.environ)
+      subprocess.call(cmd, shell=True, env=os.environ)
 
   def cmd_restart(self):
     print("Restarting %d host(s)" % len(self.hosts))
     for host in self.hosts:
       cmd = "ambari-agent restart --home %s" % (host.home_dir)
       os.environ['AMBARI_AGENT_CONF_DIR'] = os.path.join(host.home_dir, "etc/ambari-agent/conf")
-      subprocess32.call(cmd, shell=True, env=os.environ)
+      subprocess.call(cmd, shell=True, env=os.environ)
 
   def cmd_status(self):
     print("Summary of Agent Status:")

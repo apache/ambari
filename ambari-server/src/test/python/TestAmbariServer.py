@@ -73,7 +73,7 @@ with patch.object(distro, "linux_distribution", return_value = MagicMock(return_
             with patch.object(os_utils, "is_service_exist", return_value = True):
               with patch("glob.glob", return_value = ['/etc/init.d/postgresql-9.3']):
                 _ambari_server_ = __import__('ambari-server')
-                with patch("builtin.open"):
+                with patch("builtins.open"):
                   from ambari_commons.firewall import Firewall
                   from ambari_commons.os_check import OSCheck, OSConst
                   from ambari_commons.os_family_impl import OsFamilyImpl, OsFamilyFuncImpl
