@@ -60,7 +60,7 @@ def search_file_proxy(filename, searchpatch, pathsep=os.pathsep):
 
 os_utils.search_file = search_file_proxy
 
-with patch.object(platform, "linux_distribution", return_value = MagicMock(return_value=('Redhat', '7.4', 'Final'))):
+with patch.object(distro, "linux_distribution", return_value = MagicMock(return_value=('Redhat', '7.4', 'Final'))):
   with patch("os.path.isdir", return_value = MagicMock(return_value=True)):
     with patch("os.access", return_value = MagicMock(return_value=True)):
       with patch.object(os_utils, "parse_log4j_file", return_value={'ambari.log.dir': '/var/log/ambari-server'}):
