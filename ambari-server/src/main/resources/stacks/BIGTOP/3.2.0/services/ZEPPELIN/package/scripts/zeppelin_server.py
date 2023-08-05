@@ -122,6 +122,7 @@ class ZeppelinServer(Script):
               group=params.zeppelin_group,
               cd_access="a",
               create_parents=True,
+              recursive_ownership=True,
               mode=0755
     )
     self.chown_zeppelin_pid_dir(env)
