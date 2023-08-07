@@ -63,8 +63,6 @@ limitations under the License.
       <str name="filter">os.systemCpuLoad</str>
       <str name="filter">os.openFileDescriptorCount</str>
     </reporter>
-  </metrics>
-  <metrics>
     <reporter name="ambariInfraCore" group="core" class="org.apache.ambari.infra.solr.metrics.reporters.SimpleAMSReporter">
       <int name="period">60</int>
       <str name="amsCollectorHosts">{{ams_collector_hosts}}</str>
@@ -89,8 +87,6 @@ limitations under the License.
       <str name="filter">QUERY./query.requestTimes</str>
       <str name="filter">INDEX.sizeInBytes</str>
     </reporter>
-  </metrics>
-  <metrics>
     <reporter name="ambariInfraCache" group="core" class="org.apache.ambari.infra.solr.metrics.reporters.AMSCacheReporter">
       <int name="period">60</int>
       <str name="amsCollectorHosts">{{ams_collector_hosts}}</str>
@@ -104,8 +100,6 @@ limitations under the License.
       <str name="filter">CACHE.searcher.documentCache</str>
       <str name="fields">hitratio, size, warmupTime</str>
     </reporter>
-  </metrics>
-  <metrics>
     <reporter name="ambariInfraFieldCache" group="core" class="org.apache.ambari.infra.solr.metrics.reporters.AMSCacheReporter">
       <int name="period">60</int>
       <str name="amsCollectorHosts">{{ams_collector_hosts}}</str>
