@@ -22,7 +22,7 @@ import static org.apache.helix.model.IdealState.RebalanceMode.FULL_AUTO;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
@@ -298,7 +298,7 @@ public class MetricCollectorHAController {
   }
 
   public Map<String, String> getAggregationSummary() {
-    Map<String, String> summary = new HashMap<>();
+    Map<String, String> summary = new LinkedHashMap<>();
 
     CheckpointManager checkpointManager = aggregationTaskRunner.getCheckpointManager();
 
@@ -306,6 +306,8 @@ public class MetricCollectorHAController {
       new Date(checkpointManager.readCheckpoint(AggregationTaskRunner.AGGREGATOR_NAME.METRIC_RECORD_MINUTE)).toString());
     summary.put(ACTUAL_AGGREGATOR_NAMES.get(AggregationTaskRunner.AGGREGATOR_NAME.METRIC_RECORD_HOURLY),
       new Date(checkpointManager.readCheckpoint(AggregationTaskRunner.AGGREGATOR_NAME.METRIC_RECORD_HOURLY)).toString());
+    summary.put(ACTUAL_AGGREGATOR_NAMES.get(AggregationTaskRunner.AGGREGATOR_NAME.METRIC_RECORD_DAILY),
+      new Date(checkpointManager.readCheckpoint(AggregationTaskRunner.AGGREGATOR_NAME.METRIC_RECORD_DAILY)).toString());
 
     summary.put(ACTUAL_AGGREGATOR_NAMES.get(AggregationTaskRunner.AGGREGATOR_NAME.METRIC_AGGREGATE_SECOND),
       new Date(checkpointManager.readCheckpoint(AggregationTaskRunner.AGGREGATOR_NAME.METRIC_AGGREGATE_SECOND)).toString());
@@ -313,6 +315,8 @@ public class MetricCollectorHAController {
       new Date(checkpointManager.readCheckpoint(AggregationTaskRunner.AGGREGATOR_NAME.METRIC_AGGREGATE_MINUTE)).toString());
     summary.put(ACTUAL_AGGREGATOR_NAMES.get(AggregationTaskRunner.AGGREGATOR_NAME.METRIC_AGGREGATE_HOURLY),
       new Date(checkpointManager.readCheckpoint(AggregationTaskRunner.AGGREGATOR_NAME.METRIC_AGGREGATE_HOURLY)).toString());
+    summary.put(ACTUAL_AGGREGATOR_NAMES.get(AggregationTaskRunner.AGGREGATOR_NAME.METRIC_AGGREGATE_DAILY),
+      new Date(checkpointManager.readCheckpoint(AggregationTaskRunner.AGGREGATOR_NAME.METRIC_AGGREGATE_DAILY)).toString());
 
     return summary;
   }
