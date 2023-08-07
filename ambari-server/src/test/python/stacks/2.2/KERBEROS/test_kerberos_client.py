@@ -373,6 +373,6 @@ class TestKerberosClient(RMFTestCase):
                        stack_version=self.STACK_VERSION,
                        target=RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertEqual(Script.structuredOut['missing_keytabs'], [OrderedDict({
-      'keytab_file_path' : '/deleted_keytab',
-      'principal' : 'HTTP/c6401.ambari.apache.org@EXAMPLE.COM'
+      'principal' : 'HTTP/c6401.ambari.apache.org@EXAMPLE.COM',
+      'keytab_file_path' : '/deleted_keytab'
     })])
