@@ -20,8 +20,7 @@
 # /etc/init.d/ambari-agent
 set -u # fail on unset variables
 VERSION="${ambariVersion}"
-#HASH="${buildNumber}"
-HASH="${VERSION}"
+HASH="${buildNumber}"
 
 case "${1:-}" in
   --version)

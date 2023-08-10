@@ -41,11 +41,11 @@ LOG_FILE=/dev/null
 
 CLEANUP_MODULES="resource_management;ambari_commons;ambari_agent;ambari_ws4py;ambari_stomp;ambari_jinja2;ambari_simplejson"
 
-OLD_COMMON_DIR="/usr/lib/python3.9/site-packages/ambari_commons"
-OLD_RESOURCE_MANAGEMENT_DIR="/usr/lib/python3.9/site-packages/resource_management"
-OLD_JINJA_DIR="/usr/lib/python3.9/site-packages/ambari_jinja2"
-OLD_SIMPLEJSON_DIR="/usr/lib/python3.9/site-packages/ambari_simplejson"
-OLD_AMBARI_AGENT_DIR="/usr/lib/python3.9/site-packages/ambari_agent"
+OLD_COMMON_DIR="/usr/lib/python2.6/site-packages/ambari_commons"
+OLD_RESOURCE_MANAGEMENT_DIR="/usr/lib/python2.6/site-packages/resource_management"
+OLD_JINJA_DIR="/usr/lib/python2.6/site-packages/ambari_jinja2"
+OLD_SIMPLEJSON_DIR="/usr/lib/python2.6/site-packages/ambari_simplejson"
+OLD_AMBARI_AGENT_DIR="/usr/lib/python2.6/site-packages/ambari_agent"
 
 
 resolve_log_file(){
@@ -131,7 +131,7 @@ locate_python(){
   local python_binaries="/usr/bin/python;/usr/bin/python3;/usr/bin/python3.9"
 
   echo ${python_binaries}| tr ';' '\n' | while read python_binary; do
-    ${python_binary} -c "import sys ; ver = sys.version_info ; sys.exit(not (ver >= (2,7)))" 1>>${LOG_FILE} 2>/dev/null
+    ${python_binary} -c "import sys ; ver = sys.version_info ; sys.exit(not (ver >= (3,0)))" 1>>${LOG_FILE} 2>/dev/null
 
     if [ $? -eq 0 ]; then
       echo "${python_binary}"

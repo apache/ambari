@@ -49,8 +49,8 @@ check_python_version ()
   majversion=`${PYTHON} -V 2>&1 | awk '{print $2}' | cut -d'.' -f1`
   minversion=`${PYTHON} -V 2>&1 | awk '{print $2}' | cut -d'.' -f2`
   numversion=$(( 10 * $majversion + $minversion))
-  if (( $numversion < 26 )); then
-    echo "ERROR: Found Python version $majversion.$minversion. Ambari Metric Monitor requires Python version > 2.6"
+  if (( $numversion < 30 )); then
+    echo "ERROR: Found Python version $majversion.$minversion. Ambari Metric Monitor requires Python version > 3.0"
     return ${NOTOK}
   fi
   echo "Using python " ${PYTHON}

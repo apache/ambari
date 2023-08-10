@@ -51,15 +51,6 @@
           9
         ]
       },
-      "openeuler": {
-        "extends" : "openeuler",
-        "distro": [
-          "openeuler"
-        ],
-        "versions": [
-          22
-        ]
-      },
       "ubuntu": {
         "distro": [
           "ubuntu"

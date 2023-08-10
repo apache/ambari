@@ -24,7 +24,7 @@ AMBARI_PYTHON=""
 python_binaries=( "/usr/bin/python" "/usr/bin/python3" "/usr/bin/python3.9" )
 for python_binary in "${python_binaries[@]}"
 do
-  $python_binary -c "import sys ; ver = sys.version_info ; sys.exit(not (ver >= (2,6)))" 1>/dev/null 2>/dev/null
+  $python_binary -c "import sys ; ver = sys.version_info ; sys.exit(not (ver >= (3,0)))" 1>/dev/null 2>/dev/null
 
   if [ $? -eq 0 ] ; then
     AMBARI_PYTHON="$python_binary"

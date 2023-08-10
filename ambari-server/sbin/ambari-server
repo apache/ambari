@@ -31,8 +31,7 @@
 # /etc/init.d/ambari-server
 set -u # fail on unset variables
 VERSION="${ambariFullVersion}"
-#HASH="${buildNumber}"
-HASH="${VERSION}"
+HASH="${buildNumber}"
 
 case "${1:-}" in
   --version)

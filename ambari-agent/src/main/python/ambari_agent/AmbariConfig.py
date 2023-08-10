@@ -107,6 +107,12 @@ class AmbariConfig:
     global content
     self.config = configparser.RawConfigParser()
     self.config.readfp(io.StringIO(content))
+    self._cluster_cache_dir = os.path.join(self.cache_dir, FileCache.CLUSTER_CACHE_DIRECTORY)
+    self._alerts_cachedir = os.path.join(self.cache_dir, FileCache.ALERTS_CACHE_DIRECTORY)
+    self._stacks_dir = os.path.join(self.cache_dir, FileCache.STACKS_CACHE_DIRECTORY)
+    self._common_services_dir = os.path.join(self.cache_dir, FileCache.COMMON_SERVICES_DIRECTORY)
+    self._extensions_dir = os.path.join(self.cache_dir, FileCache.EXTENSIONS_CACHE_DIRECTORY)
+    self._host_scripts_dir = os.path.join(self.cache_dir, FileCache.HOST_SCRIPTS_CACHE_DIRECTORY)
 
   def get(self, section, value, default=None):
     try:
@@ -208,27 +214,51 @@ class AmbariConfig:
 
   @property
   def cluster_cache_dir(self):
-    return os.path.join('ambari_agent', 'dummy_files')
+    return self._cluster_cache_dir
+
+  @cluster_cache_dir.setter
+  def cluster_cache_dir(self, new_dir):
+    self._cluster_cache_dir = new_dir
 
   @property
   def alerts_cachedir(self):
-    return os.path.join('ambari_agent', 'dummy_files')
+    return self._alerts_cachedir
+
+  @alerts_cachedir.setter
+  def alerts_cachedir(self, new_dir):
+    self._alerts_cachedir = new_dir
 
   @property
   def stacks_dir(self):
-    return os.path.join('ambari_agent', 'dummy_files')
+    return self._stacks_dir
+
+  @stacks_dir.setter
+  def stacks_dir(self, new_dir):
+    self._stacks_dir = new_dir
 
   @property
   def common_services_dir(self):
-    return os.path.join('ambari_agent', 'dummy_files')
+    return self._common_services_dir
+
+  @common_services_dir.setter
+  def common_services_dir(self, new_dir):
+    self._common_services_dir = new_dir
 
   @property
   def extensions_dir(self):
-    return os.path.join('ambari_agent', 'dummy_files')
+    return self._extensions_dir
+
+  @extensions_dir.setter
+  def extensions_dir(self, new_dir):
+    self._extensions_dir = new_dir
 
   @property
   def host_scripts_dir(self):
-    return os.path.join('ambari_agent', 'dummy_files')
+    return self._host_scripts_dir
+
+  @host_scripts_dir.setter
+  def host_scripts_dir(self, new_dir):
+    self._host_scripts_dir = new_dir
 
   @property
   def command_file_retention_policy(self):

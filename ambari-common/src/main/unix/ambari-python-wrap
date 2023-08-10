@@ -24,10 +24,13 @@ if [ -a /usr/bin/python3 ] && [ -z "$PYTHON" ]; then
   PYTHON=/usr/bin/python3
 fi
 
-
-# if no preferable python versions found, try to use system one. Hoping it's Python 3
 if [ -a /usr/bin/python3.9 ] && [ -z "$PYTHON" ]; then
   PYTHON=/usr/bin/python3.9
+fi
+
+# if no preferable python versions found, try to use system one. Hoping it's Python 3
+if [ -a /usr/bin/python ] && [ -z "$PYTHON" ]; then
+  PYTHON=/usr/bin/python
 fi
 
 # execute script

@@ -62,14 +62,31 @@ class TestAlerts(TestCase):
   @patch.object(Scheduler, "add_interval_job")
   @patch.object(Scheduler, "start")
   def test_start(self, aps_add_interval_job_mock, aps_start_mock):
+    test_file_path = os.path.join('ambari_agent', 'dummy_files')
+    test_stack_path = os.path.join('ambari_agent', 'dummy_files')
+    test_common_services_path = os.path.join('ambari_agent', 'dummy_files')
+    test_extensions_path = os.path.join('ambari_agent', 'dummy_files')
+    test_host_scripts_path = os.path.join('ambari_agent', 'dummy_files')
+
     cluster_configuration = self.__get_cluster_configuration()
+
 
     initializer_module = InitializerModule()
     
+    initializer_module.config.cluster_cache_dir = test_file_path
+    initializer_module.config.stacks_dir = test_stack_path
+    initializer_module.config.common_services_dir = test_common_services_path
+    initializer_module.config.extensions_dir = test_extensions_path
+    initializer_module.config.host_scripts_dir = test_host_scripts_path
+
     initializer_module.init()
     
     ash = AlertSchedulerHandler(initializer_module)
     
+    #ash = AlertSchedulerHandler(test_file_path, test_stack_path,
+    #  test_common_services_path, test_extensions_path, test_host_scripts_path, cluster_configuration,
+    #  self.config, None)
+
     ash.start()
 
     self.assertTrue(aps_add_interval_job_mock.called)
@@ -633,14 +650,30 @@ class TestAlerts(TestCase):
     self.assertEqual('(Unit Tests) ok: {code}'.format(code=code), alerts[0]['text'])
 
   def test_reschedule(self):
+    test_file_path = os.path.join('ambari_agent', 'dummy_files')
+    test_stack_path = os.path.join('ambari_agent', 'dummy_files')
+    test_common_services_path = os.path.join('ambari_agent', 'dummy_files')
+    test_extensions_path = os.path.join('ambari_agent', 'dummy_files')
+    test_host_scripts_path = os.path.join('ambari_agent', 'dummy_files')
+
     cluster_configuration = self.__get_cluster_configuration()
 
     initializer_module = InitializerModule()
     
+    initializer_module.config.cluster_cache_dir = test_file_path
+    initializer_module.config.stacks_dir = test_stack_path
+    initializer_module.config.common_services_dir = test_common_services_path
+    initializer_module.config.extensions_dir = test_extensions_path
+    initializer_module.config.host_scripts_dir = test_host_scripts_path
+
     initializer_module.init()
     
     ash = AlertSchedulerHandler(initializer_module)
     
+    #ash = AlertSchedulerHandler(test_file_path, test_stack_path,
+    #  test_common_services_path, test_extensions_path, test_host_scripts_path, cluster_configuration,
+    #  self.config, None)
+
     ash.start()
 
     self.assertEqual(1, ash.get_job_count())
@@ -680,12 +713,30 @@ class TestAlerts(TestCase):
 
 
   def test_disabled_definitions(self):
+    test_file_path = os.path.join('ambari_agent', 'dummy_files')
+    test_stack_path = os.path.join('ambari_agent', 'dummy_files')
+    test_common_services_path = os.path.join('ambari_agent', 'dummy_files')
+    test_extensions_path = os.path.join('ambari_agent', 'dummy_files')
+    test_host_scripts_path = os.path.join('ambari_agent', 'dummy_files')
+
     cluster_configuration = self.__get_cluster_configuration()
 
     initializer_module = InitializerModule()
+
+    initializer_module.config.cluster_cache_dir = test_file_path
+    initializer_module.config.stacks_dir = test_stack_path
+    initializer_module.config.common_services_dir = test_common_services_path
+    initializer_module.config.extensions_dir = test_extensions_path
+    initializer_module.config.host_scripts_dir = test_host_scripts_path
+
     initializer_module.init()
     
     ash = AlertSchedulerHandler(initializer_module)
+    """
+      test_file_path, test_stack_path,
+      test_common_services_path, test_extensions_path, test_host_scripts_path, cluster_configuration,
+      self.config, None)
+    """
     ash.start()
     
     """
@@ -718,13 +769,30 @@ class TestAlerts(TestCase):
     self.assertEqual(3, ash.get_job_count())
 
   def test_immediate_alert(self):
+    test_file_path = os.path.join('ambari_agent', 'dummy_files')
+    test_stack_path = os.path.join('ambari_agent', 'dummy_files')
+    test_common_services_path = os.path.join('ambari_agent', 'dummy_files')
+    test_extensions_path = os.path.join('ambari_agent', 'dummy_files')
+    test_host_scripts_path = os.path.join('ambari_agent', 'dummy_files')
+
     cluster_configuration = self.__get_cluster_configuration()
     
     initializer_module = InitializerModule()
+
+    initializer_module.config.cluster_cache_dir = test_file_path
+    initializer_module.config.stacks_dir = test_stack_path
+    initializer_module.config.common_services_dir = test_common_services_path
+    initializer_module.config.extensions_dir = test_extensions_path
+    initializer_module.config.host_scripts_dir = test_host_scripts_path
+
     initializer_module.init()
     
     ash = AlertSchedulerHandler(initializer_module)
     
+    #ash = AlertSchedulerHandler(test_file_path, test_stack_path,
+    #  test_common_services_path, test_extensions_path, test_host_scripts_path, cluster_configuration,
+    #  self.config, None)
+
     ash.start()
 
     self.assertEqual(1, ash.get_job_count())

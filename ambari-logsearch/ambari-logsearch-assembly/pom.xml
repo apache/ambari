@@ -62,7 +62,7 @@
               <description>Maven Recipe: RPM Package.</description>
               <autoRequires>false</autoRequires>
               <prefix>/</prefix>
-              <needarch>x86_64</needarch>
+              <needarch>noarch</needarch>
               <targetOS>linux</targetOS>
 
               <version>${package-version}</version>

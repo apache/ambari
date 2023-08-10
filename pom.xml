@@ -315,7 +315,7 @@
             <!--Simplejson library (MIT license)-->
             <exclude>ambari-common/src/main/python/ambari_simplejson/**</exclude>
             <!--Subprocess32 library (PSF license)-->
-            <exclude>ambari-common/src/main/python/ambari_commons/subprocess.py</exclude>
+            <exclude>ambari-common/src/main/python/ambari_commons/subprocess32.py</exclude>
             <exclude>ambari-common/src/main/python/ambari_commons/_posixsubprocess.so</exclude>
             <!--Stomp library (Apache license)-->
             <exclude>ambari-common/src/main/python/ambari_stomp/**</exclude>
