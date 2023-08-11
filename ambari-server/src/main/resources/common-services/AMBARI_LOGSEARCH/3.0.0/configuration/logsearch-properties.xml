@@ -1,0 +1,317 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration>
+  <property>
+    <name>logsearch.http.port</name>
+    <value>61888</value>
+    <description>Default port for Log Search UI (HTTP)</description>
+    <display-name>Log Search UI Http Port</display-name>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch.https.port</name>
+    <value>61888</value>
+    <description>Default port for Log Search UI (HTTPS)</description>
+    <display-name>Log Search UI Https Port</display-name>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch.protocol</name>
+    <value>http</value>
+    <description>Protocol (http or https)</description>
+    <display-name>Log Search UI Protocol</display-name>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch.collection.service.logs.numshards</name>
+    <value>4</value>
+    <display-name>Log Search Solr Service Logs Shards</display-name>
+    <description>Number of shards for Service Logs collection</description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1</minimum>
+      <maximum>20</maximum>
+      <unit>int</unit>
+      <increment-step>1</increment-step>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch.collection.service.logs.replication.factor</name>
+    <value>2</value>
+    <display-name>Log Search Solr Service Logs Replication Factor</display-name>
+    <description>Replication factor for Service Logs Solr collection</description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1</minimum>
+      <maximum>10</maximum>
+      <unit>int</unit>
+      <increment-step>1</increment-step>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch.collection.audit.logs.numshards</name>
+    <value>4</value>
+    <display-name>Log Search Solr Audit Logs Shards</display-name>
+    <description>Number of shards for Audit Logs collection</description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1</minimum>
+      <maximum>20</maximum>
+      <unit>int</unit>
+      <increment-step>1</increment-step>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch.collection.audit.logs.replication.factor</name>
+    <value>2</value>
+    <display-name>Log Search Solr Audit Logs Replication Factor</display-name>
+    <description>Replication factor for Audit Logs Solr collection</description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1</minimum>
+      <maximum>10</maximum>
+      <unit>int</unit>
+      <increment-step>1</increment-step>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch.solr.collection.service.logs</name>
+    <value>hadoop_logs</value>
+    <display-name>Log Search Solr Service Logs Collection</display-name>
+    <description>Name for the service logs collection</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch.solr.collection.audit.logs</name>
+    <value>audit_logs</value>
+    <display-name>Log Search Solr Audit Logs Collection</display-name>
+    <description>Name for the audit logs collection</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch.service.logs.fields</name>
+    <value>logtime,level,event_count,ip,type,seq_num,path,file,line_number,host,log_message,id</value>
+    <display-name>Log Search Solr Service Logs Fields</display-name>
+    <description>Solr fields for service logs</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch.web.service_logs.component.labels</name>
+    <value>hst_agent:HST Agent,hst_server:HST Server,activity_analyser:Activity Analyzer,ams_hbase_master:AMS HBase Master,ams_hbase_regionserver:AMS HBase RegionServer,ams_collector:AMS Metrics Collector,ams_monitor:AMS Metric Monitor,ams_grafana:AMS Grafana,ranger_kms:Ranger KMS,mapred_historyserver:MapReduce History Server,zookeeper:ZooKeeper Server,logsearch_app:Log Search Server,logsearch_feeder:Log Feeder,logsearch_perf:Log Search Performance,zeppelin:Zeppelin Notebook,spark2_jobhistory_server:Spark History Server,spark2_thriftserver:Spark Thrift Server,livy2_server:Spark Livy Server,ranger_dbpatch:Ranger DB Patch,ambari_config_changes:Ambari Config Change,ambari_eclipselink:Ambari EclipseLink,ambari_server_check_database:Ambari Check DB,storm_drpc:Storm DRPC,storm_ui:Storm UI,oozie_app:Oozie Server,kafka_logcleaner:Kafka Log Cleaner,kafka_server:Kafka Server,kafka_statechange:Kafka State Change,hbase_master:HBase Master,hbase_regionserver:HBase RegionServer,hbase_phoenix_server:HBase Phoenix Query Server,atlas_app:Atlas Metadata Server,yarn_nodemanager:YARN NodeManager,yarn_resourcemanager:YARN ResourceManager,yarn_timelineserver:YARN Timeline Server,yarn_historyserver:YARN History Server,yarn_jobsummary:YARN Job Summary,knox_cli:Knox CLI,knox_ldap:Knox LDAP,hive_server:HiveServer2,hive_server_interactive:HiveServer2 Interactive,hdfs_datanode:HDFS DataNode,hdfs_namenode:HDFS NameNode,hdfs_journalnode:HDFS JournalNode,hdfs_secondary_namenode:HDFS Secondary NameNode,hdfs_zkfc:HDFS ZKFailoverController,hdfs_nfs3:HDFS NFSGateway</value>
+    <display-name>Log Search Component Names</display-name>
+    <description>Component name mapping for the Log Search UI (mycomponent1:My Label1,mycomponent2:My Label2), by default _ are replaced with spaces and first letters and latters after undersocre transformed to uppercase latters </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch.service.logs.split.interval.mins</name>
+    <value>15</value>
+    <display-name>Log Search Service Logs split interval</display-name>
+    <description>Will create multiple collections and use alias. Valid values are single,hour_week</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch.audit.logs.split.interval.mins</name>
+    <value>15</value>
+    <display-name>Log Search Audit Logs split interval</display-name>
+    <description>Will switch the shard after the interval specified. Valid values are none and greater than 1
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch.solr.implicit.routing</name>
+    <value>false</value>
+    <description>
+      Use implicit routing for Solr Collections.
+    </description>
+    <display-name>Log Search Solr implicit routing</display-name>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch.solr.audit.logs.use.ranger</name>
+    <value>false</value>
+    <display-name>Ranger Audit Logs Enabled</display-name>
+    <description>Use Ranger Audit collection. This is supported only if Ranger Solr is installed in SolrCloud mode</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch.ranger.audit.logs.collection.name</name>
+    <value>ranger_audits</value>
+    <display-name>Log Search Solr Ranger Audit Logs Collection</display-name>
+    <description>Name for the ranger audit logs collection</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch.solr.metrics.collector.hosts</name>
+    <value>{metrics_collector_hosts}</value>
+    <description>Metrics collector hosts for pushing metrics by Log Search Solr</description>
+    <display-name>Metrics collector hosts</display-name>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch.auth.external_auth.enabled</name>
+    <value>true</value>
+    <display-name>External authentication</display-name>
+    <description>Enable external authentication</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>logsearch.auth.external_auth.host_url</name>
+    <value>{ambari_server_auth_host_url}</value>
+    <display-name>External authentication url - host and port</display-name>
+    <description>The host and port of the external server used to authenticate</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>logsearch.auth.external_auth.login_url</name>
+    <value>/api/v1/users/$USERNAME/privileges?fields=*</value>
+    <display-name>External authentication url - path and query</display-name>
+    <description>The path and query of the external server used to authenticate</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>logsearch.roles.allowed</name>
+    <value>AMBARI.ADMINISTRATOR,CLUSTER.ADMINISTRATOR</value>
+    <display-name>Roles allowed</display-name>
+    <description>Comma separated roles for external authentication</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch.auth.jwt.enabled</name>
+    <value>false</value>
+    <display-name>JWT authentication enabled</display-name>
+    <description>Enable JWT based authentication for Log Search portal</description>
+    <value-attributes>
+      <type>value-list</type>
+      <overridable>false</overridable>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>ON</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>OFF</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch.auth.jwt.provider_url</name>
+    <value/>
+    <display-name>JWT authentication provider url</display-name>
+    <description>URL to the JWT authentication server</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch.auth.jwt.query.param.original_url</name>
+    <value>originalUrl</value>
+    <display-name>JWT original url query param</display-name>
+    <description>Name of the original request URL which is used to redirect to Log Search Portal</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch.auth.jwt.cookie.name</name>
+    <value>hadoop-jwt</value>
+    <display-name>JWT cookie name</display-name>
+    <description>The name of the cookie that contains the JWT token</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch.auth.jwt.audiances</name>
+    <value/>
+    <display-name>JWT expected audiances</display-name>
+    <description>Comma separated list of acceptable audiences for the JWT token</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch.auth.jwt.public_key</name>
+    <value/>
+    <display-name>JWT authentication signing key</display-name>
+    <description>PEM formatted public key for JWT token without the header and the footer</description>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch.spnego.kerberos.enabled</name>
+    <value>false</value>
+    <display-name>Http Spnego enabled</display-name>
+    <description>Enable SPNEGO based authentication on the Log Search UI</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch.spnego.kerberos.principal</name>
+    <value/>
+    <display-name>Http Spnego principal</display-name>
+    <description>Principal for SPNEGO authentication for Http requests</description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch.spnego.kerberos.keytab</name>
+    <value/>
+    <display-name>Http Spnego keytab</display-name>
+    <description>Keytab for SPNEGO authentication for Http requests</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch.spnego.kerberos.host</name>
+    <value>_HOST</value>
+    <display-name>Http Spnego hostname</display-name>
+    <description>Fully-qualified host name in the Kerberos service principal name (SPN) that is used by SPNEGO</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>
