@@ -18,6 +18,9 @@
 package org.apache.ambari.metrics.core.timeline.discovery;
 
 import junit.framework.Assert;
+import org.apache.ambari.metrics.core.timeline.aggregators.TimelineClusterMetric;
+import org.apache.ambari.metrics.core.timeline.uuid.MetricUuidGenStrategy;
+import org.apache.ambari.metrics.core.timeline.uuid.Murmur3HashUuidGenStrategy;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata;
@@ -37,6 +40,7 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
 public class TestMetadataSync {
+  private MetricUuidGenStrategy uuidGenStrategy = new Murmur3HashUuidGenStrategy();
   @Test
   public void testRefreshMetadataOnWrite() throws Exception {
     Configuration configuration = createNiceMock(Configuration.class);
@@ -44,8 +48,10 @@ public class TestMetadataSync {
 
     final TimelineMetricMetadata testMetadata1 = new TimelineMetricMetadata(
       "m1", "a1", null, "", GAUGE.name(), System.currentTimeMillis(), true, false);
+    setMetricsUuid(testMetadata1);
     final TimelineMetricMetadata testMetadata2 = new TimelineMetricMetadata(
       "m2", "a2", null, "", GAUGE.name(), System.currentTimeMillis(), true, false);
+    setMetricsUuid(testMetadata2);
 
     Map<TimelineMetricMetadataKey, TimelineMetricMetadata> metadata =
       new HashMap<TimelineMetricMetadataKey, TimelineMetricMetadata>() {{
@@ -82,6 +88,9 @@ public class TestMetadataSync {
     Assert.assertEquals(2, metadata.size());
     Assert.assertTrue(metadata.containsKey(new TimelineMetricMetadataKey("m1", "a1", null)));
     Assert.assertTrue(metadata.containsKey(new TimelineMetricMetadataKey("m2", "a2", null)));
+    // Check if synced metrics can be found with uuid
+    Assert.assertNotNull("metrics not found with testMetadata1 uuid", metadataManager.getMetricFromUuid(testMetadata1.getUuid()));
+    Assert.assertNotNull("metrics not found with testMetadata2 uuid", metadataManager.getMetricFromUuid(testMetadata2.getUuid()));
 
     hostedApps = metadataManager.getHostedAppsCache();
     Assert.assertEquals(2, hostedApps.size());
@@ -95,6 +104,11 @@ public class TestMetadataSync {
 
   }
 
+  private void setMetricsUuid(TimelineMetricMetadata tmm) {
+    byte[] uuidBytes = uuidGenStrategy.computeUuid(new TimelineClusterMetric(tmm.getMetricName(), tmm.getAppId(),
+            tmm.getInstanceId(), tmm.getSeriesStartTime()), TimelineMetricMetadataManager.TIMELINE_METRIC_UUID_LENGTH);
+    tmm.setUuid(uuidBytes);
+  }
   @Test
   public void testFilterByRegexOnMetricName() throws Exception {
     Configuration configuration = createNiceMock(Configuration.class);

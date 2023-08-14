@@ -110,6 +110,7 @@ public class TimelineMetricMetadataSync implements Runnable {
       for (Map.Entry<TimelineMetricMetadataKey, TimelineMetricMetadata> metadataEntry : metadataFromStore.entrySet()) {
         if (!cachedMetadata.containsKey(metadataEntry.getKey())) {
           cachedMetadata.put(metadataEntry.getKey(), metadataEntry.getValue());
+          cacheManager.addMetricsInUuidMap(metadataEntry.getValue().getUuid(), metadataEntry.getKey());
         }
       }
     }

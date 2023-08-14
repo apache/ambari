@@ -423,6 +423,16 @@ public class TimelineMetricMetadataManager {
   }
 
   /**
+   * Add uuid to metrics metadata mapping.
+   *
+   * @param uuid        metrics uuid
+   * @param metadataKey metrics metadata key
+   */
+  public void addMetricsInUuidMap(byte[] uuid, TimelineMetricMetadataKey metadataKey) {
+    uuidKeyMap.put(new TimelineMetricUuid(uuid), metadataKey);
+  }
+
+  /**
    * Returns the UUID gen strategy.
    * @param configuration the config
    * @return the UUID generator of type org.apache.ambari.metrics.core.timeline.uuid.MetricUuidGenStrategy
