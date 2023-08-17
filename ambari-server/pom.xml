@@ -48,7 +48,7 @@
     <stackHooksLocation>src/main/resources/stack-hooks</stackHooksLocation>
     <stacksSrcLocation>src/main/resources/stacks/${stack.distribution}</stacksSrcLocation>
     <tarballResourcesFolder>src/main/resources</tarballResourcesFolder>
-    <hadoop.version>2.7.2</hadoop.version>
+    <hadoop.version>3.2.3</hadoop.version>
     <ambari.metrics.version>2.7.0.0.0</ambari.metrics.version>
     <empty.dir>src/main/package</empty.dir> <!-- any directory in project with not very big amount of files (not to waste-load them) -->
     <el.log>ALL</el.log> <!-- log level for EclipseLink eclipselink-staticweave-maven-plugin -->
