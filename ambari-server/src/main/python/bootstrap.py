@@ -107,8 +107,9 @@ class SCP:
     scpstat = subprocess.Popen(scpcommand, stdout=subprocess.PIPE,
                                stderr=subprocess.PIPE)
     log = scpstat.communicate()
-    errorMsg = log[1]
-    log = log[0] + "\n" + log[1]
+    log_value0 = log[0].decode()
+    errorMsg = log[1].decode()
+    log = log_value0 + "\n" + errorMsg
     self.host_log.write(log)
     self.host_log.write("scp " + self.inputFile)
     self.host_log.write("host=" + self.host + ", exitcode=" + str(scpstat.returncode) )
@@ -145,10 +146,11 @@ class SSH:
     sshstat = subprocess.Popen(sshcommand, stdout=subprocess.PIPE,
                                stderr=subprocess.PIPE)
     log = sshstat.communicate()
-    errorMsg = log[1]
+    log_value0 = log[0].decode()
+    errorMsg = log[1].decode()
     if self.errorMessage and sshstat.returncode != 0:
       errorMsg = self.errorMessage + "\n" + errorMsg
-    log = log[0] + "\n" + errorMsg
+    log = log_value0 + "\n" + errorMsg
     self.host_log.write(log)
     self.host_log.write("SSH command execution finished")
     self.host_log.write("host=" + self.host + ", exitcode=" + str(sshstat.returncode))

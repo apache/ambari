@@ -222,9 +222,9 @@ def getOptimalVersion(initialProjectVersion):
 def getOptimalVersion(initialProjectVersion):
   optimalVersion = initialProjectVersion
   ret = findNearestAgentPackageVersion(optimalVersion)
-  if ret["exitstatus"] == 0 and ret["log"][0].strip() != "" \
-     and ret["log"][0].strip() == initialProjectVersion:
-    optimalVersion = ret["log"][0].strip()
+  if ret["exitstatus"] == 0 and ret["log"][0].decode().strip() != "" \
+     and ret["log"][0].decode().strip() == initialProjectVersion:
+    optimalVersion = ret["log"][0].decode().strip()
     retcode = 0
   else:
     ret = getAvailableAgentPackageVersions()
@@ -252,7 +252,7 @@ def findNearestAgentPackageVersion(projectVersion):
                projectVersion + "'|tr -d '\\n'|sed -s 's/[-|~][A-Za-z0-9]*//'"]
   else:
     Command = ["bash", "-c", "yum -q list all ambari-agent | grep '" + projectVersion +
-                              "' | sed -re 's/\s+/ /g' | cut -d ' ' -f 2 | head -n1 | sed -e 's/-\w[^:]*//1' "]
+                              "' | sed -re 's/\s+/ /g' | awk -F ' ' '{print $2}'  | awk -F '-' '{print $1}' | head -n1 | sed -e 's/-\w[^:]*//1' "]
   return execOsCommand(Command)
 
 def isAgentPackageAlreadyInstalled(projectVersion):
@@ -363,7 +363,7 @@ def run_setup(argv=None):
       return {"exitstatus": 1, "log": "Desired version ("+projectVersion+") of ambari-agent package"
                                         " is not available."
                                         " Repository has following "
-                                        "versions of ambari-agent:"+retcode["log"][0].strip()}
+                                        "versions of ambari-agent:"+retcode["log"][0].decode().strip()}
     else:
       # We are here because ambari-agent is not installed and version cannot be obtained from the repo file
       logmessage = "Desired version ("+projectVersion+") of ambari-agent package is not available."

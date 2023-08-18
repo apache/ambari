@@ -51,7 +51,7 @@ if os.path.isfile(CONFIG_FILE_BACKUP):
             agent_config.add_section(section)
             agent_config.set(section, property_name, property_val)
 
-    with (open(CONFIG_FILE, "wb")) as new_agent_config:
+    with (open(CONFIG_FILE, "w")) as new_agent_config:
       agent_config.write(new_agent_config)
   else:
     print("Values are not updated, configs {0} is not found".format(CONFIG_FILE))

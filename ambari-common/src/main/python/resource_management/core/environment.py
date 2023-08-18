@@ -108,20 +108,14 @@ class Environment(object):
     
     for variable, value in variables.items():
       # don't include system variables, methods, classes, modules
-      
-     boolRes = True
-     try:
-       boolRes = not variable.startswith("__") and not hasattr(value, '__call__')and not hasattr(value, '__file__')
-     except Exception as e:
-       logging.warn("An exception occurred when calling the hasattr method......")
-       boolRes = False
-     if boolRes:
-       self.config.params[variable] = value
-     #if not variable.startswith("__") and \
-     #    not hasattr(value, '__call__')and \
-     #     not hasattr(value, '__file__'):
-     #   self.config.params[variable] = value
-        
+      try:
+        if not variable.startswith("__") and \
+            not hasattr(value, '__call__')and \
+            not hasattr(value, '__file__'):
+          self.config.params[variable] = value
+      except Exception as e:
+        Logger.info("Skipping param: {0}, due to {1}".format(variable, e))
+
   def run_action(self, resource, action):
     provider_class = find_provider(self, resource.__class__.__name__,
                                    resource.provider)
