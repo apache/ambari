@@ -222,9 +222,9 @@ def getOptimalVersion(initialProjectVersion):
 def getOptimalVersion(initialProjectVersion):
   optimalVersion = initialProjectVersion
   ret = findNearestAgentPackageVersion(optimalVersion)
-  if ret["exitstatus"] == 0 and ret["log"][0].decode().strip() != "" \
-     and ret["log"][0].decode().strip() == initialProjectVersion:
-    optimalVersion = ret["log"][0].decode().strip()
+  if ret["exitstatus"] == 0 and ret["log"][0].strip() != "" \
+     and ret["log"][0].strip() == initialProjectVersion:
+    optimalVersion = ret["log"][0].strip()
     retcode = 0
   else:
     ret = getAvailableAgentPackageVersions()
@@ -363,7 +363,7 @@ def run_setup(argv=None):
       return {"exitstatus": 1, "log": "Desired version ("+projectVersion+") of ambari-agent package"
                                         " is not available."
                                         " Repository has following "
-                                        "versions of ambari-agent:"+retcode["log"][0].decode().strip()}
+                                        "versions of ambari-agent:"+retcode["log"][0].strip()}
     else:
       # We are here because ambari-agent is not installed and version cannot be obtained from the repo file
       logmessage = "Desired version ("+projectVersion+") of ambari-agent package is not available."
