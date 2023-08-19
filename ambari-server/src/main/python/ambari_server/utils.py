@@ -279,7 +279,8 @@ def get_postgre_hba_dir(OS_FAMILY):
                          stdout=subprocess.PIPE,
                          stdin=subprocess.PIPE,
                          stderr=subprocess.PIPE,
-                         shell=True)
+                         shell=True,
+                         universal_newlines=True)
     (PG_HBA_ROOT, err) = p.communicate()
 
     if PG_HBA_ROOT and len(PG_HBA_ROOT.strip()) > 0:

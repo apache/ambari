@@ -131,7 +131,7 @@ class TestHostname(TestCase):
 
       config.set('agent', 'hostname_script', tmpname)
 
-      self.assertEqual(hostname.hostname(config).decode(), 'test.example.com', "expected hostname 'test.example.com'")
+      self.assertEqual(hostname.hostname(config), 'test.example.com', "expected hostname 'test.example.com'")
     finally:
       os.remove(tmpname)
       config.remove_option('agent', 'hostname_script')

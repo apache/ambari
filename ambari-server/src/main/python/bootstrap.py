@@ -105,11 +105,10 @@ class SCP:
     self.host_log.write("==========================")
     self.host_log.write("\nCommand start time " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     scpstat = subprocess.Popen(scpcommand, stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE)
+                               stderr=subprocess.PIPE, universal_newlines=True)
     log = scpstat.communicate()
-    log_value0 = log[0].decode()
-    errorMsg = log[1].decode()
-    log = log_value0 + "\n" + errorMsg
+    errorMsg = log[1]
+    log = log[0] + "\n" + log[1]
     self.host_log.write(log)
     self.host_log.write("scp " + self.inputFile)
     self.host_log.write("host=" + self.host + ", exitcode=" + str(scpstat.returncode) )
@@ -144,13 +143,12 @@ class SSH:
     self.host_log.write("==========================")
     self.host_log.write("\nCommand start time " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     sshstat = subprocess.Popen(sshcommand, stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE)
+                               stderr=subprocess.PIPE, universal_newlines=True)
     log = sshstat.communicate()
-    log_value0 = log[0].decode()
-    errorMsg = log[1].decode()
+    errorMsg = log[1]
     if self.errorMessage and sshstat.returncode != 0:
       errorMsg = self.errorMessage + "\n" + errorMsg
-    log = log_value0 + "\n" + errorMsg
+    log = log[0] + "\n" + errorMsg
     self.host_log.write(log)
     self.host_log.write("SSH command execution finished")
     self.host_log.write("host=" + self.host + ", exitcode=" + str(sshstat.returncode))

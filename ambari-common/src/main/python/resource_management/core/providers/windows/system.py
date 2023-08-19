@@ -211,7 +211,7 @@ def _call_command(command, logoutput=False, cwd=None, env=None, wait_for_finish=
     current_env = CreateEnvironmentBlock(cur_token, False)
     current_env = _merge_env(current_env, env)
     proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                            cwd=cwd, env=current_env, shell=False)
+                            cwd=cwd, env=current_env, shell=False, universal_newlines=True)
     out, err = proc.communicate()
     code = proc.returncode
 

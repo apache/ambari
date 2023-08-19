@@ -65,7 +65,7 @@ class SSH:
     while True:
       try:
         sshstat = subprocess.Popen(sshcommand, stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE)
+                               stderr=subprocess.PIPE, universal_newlines=True)
         log = sshstat.communicate()
         if sshstat.returncode != 0:
           print("Executing SSH command on {0} failed: {1}".format(self.host, log))
@@ -120,7 +120,7 @@ class SCP:
     while True:
       try:
         scpstat = subprocess.Popen(scpcommand, stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE)
+                                   stderr=subprocess.PIPE, universal_newlines=True)
         log = scpstat.communicate()
         if scpstat.returncode != 0:
           print("Executing SCP command on {0} failed: {1}".format(self.host, log))

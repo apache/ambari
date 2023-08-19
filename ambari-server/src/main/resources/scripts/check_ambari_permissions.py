@@ -234,7 +234,8 @@ def os_run_os_command(cmd, env=None, shell=False, cwd=None):
                              stderr=subprocess.PIPE,
                              env=env,
                              cwd=cwd,
-                             shell=shell
+                             shell=shell,
+                             universal_newlines=True
   )
 
   (stdoutdata, stderrdata) = process.communicate()

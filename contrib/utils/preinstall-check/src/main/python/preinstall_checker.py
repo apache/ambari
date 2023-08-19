@@ -309,7 +309,7 @@ def execute_curl_command(url, headers=[], request_type=DEFAULT_HTTP_REQUEST_TYPE
       curl_cmd_array.append(request_body)
   curl_cmd_array.append(url)
   logger.debug('Curl command: {0}'.format(' '.join(curl_cmd_array)))
-  exeProcess = subprocess.Popen(curl_cmd_array, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  exeProcess = subprocess.Popen(curl_cmd_array, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
   out, err = exeProcess.communicate()
   exit_code = exeProcess.returncode
   return out, err, exit_code

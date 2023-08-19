@@ -58,7 +58,7 @@ class Utils:
       stdout = stderr = None
     
     logger.info("Running '{0}'".format(command))
-    proc = subprocess.Popen(command, shell=shell, stdout=stdout, stderr=stderr, env=env)
+    proc = subprocess.Popen(command, shell=shell, stdout=stdout, stderr=stderr, env=env, universal_newlines=True)
       
     if not print_output:
       out = proc.communicate()[0].strip('\n')

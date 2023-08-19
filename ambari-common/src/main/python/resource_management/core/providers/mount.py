@@ -35,8 +35,8 @@ def get_mounted():
   """
   :return: Return a list of mount objects (dictionary type) that contain the device, mount point, and other options.
   """
-  p = Popen("mount", stdout=PIPE, stderr=STDOUT, shell=True)
-  out = p.communicate()[0].decode()
+  p = Popen("mount", stdout=PIPE, stderr=STDOUT, shell=True, universal_newlines=True)
+  out = p.communicate()[0]
   if p.wait() != 0:
     raise Fail("Getting list of mounts (calling mount) failed")
 

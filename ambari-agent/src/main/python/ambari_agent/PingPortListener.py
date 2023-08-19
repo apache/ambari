@@ -54,7 +54,8 @@ class PingPortListener(threading.Thread):
     process = subprocess.Popen(command, stdout=subprocess.PIPE,
               stdin=subprocess.PIPE,
               stderr=subprocess.PIPE,
-              shell=True)
+              shell=True,
+              universal_newlines=True)
     return process.communicate()
 
   def __del__(self):

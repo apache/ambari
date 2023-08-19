@@ -681,7 +681,8 @@ class PGConfig(LinuxDBMSConfig):
         process = subprocess.Popen(PGConfig.PG_START_CMD.split(' '),
                                    stdout=subprocess.PIPE,
                                    stdin=subprocess.PIPE,
-                                   stderr=subprocess.PIPE
+                                   stderr=subprocess.PIPE,
+                                   universal_newlines=True
         )
         out, err = process.communicate()
         retcode = process.returncode
@@ -1246,7 +1247,8 @@ class SQLAConfig(LinuxDBMSConfig):
     process = subprocess.Popen(cmd.split(' '),
                                stdout=subprocess.PIPE,
                                stdin=subprocess.PIPE,
-                               stderr=subprocess.PIPE
+                               stderr=subprocess.PIPE,
+                               universal_newlines=True
     )
 
     out, err = process.communicate()

@@ -858,7 +858,8 @@ class JDKSetupLinux(JDKSetup):
                            stdout=subprocess.PIPE,
                            stdin=subprocess.PIPE,
                            stderr=subprocess.PIPE,
-                           shell=True
+                           shell=True,
+                           universal_newlines=True
                            )
     (stdoutdata, stderrdata) = process.communicate()
 
@@ -1293,7 +1294,8 @@ def check_ambari_java_version_is_valid(java_home, java_bin, min_version, propert
                                stdout=subprocess.PIPE,
                                stdin=subprocess.PIPE,
                                stderr=subprocess.PIPE,
-                               shell=True
+                               shell=True,
+                               universal_newlines=True
                                )
     (out, err) = process.communicate()
     if process.returncode != 0:

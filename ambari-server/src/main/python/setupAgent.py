@@ -109,7 +109,7 @@ def execOsCommand(osCommand, tries=1, try_sleep=0, ret=None, cwd=None):
     if i>0:
       time.sleep(try_sleep)
 
-    osStat = subprocess.Popen(osCommand, stdout=subprocess.PIPE, cwd=cwd)
+    osStat = subprocess.Popen(osCommand, stdout=subprocess.PIPE, cwd=cwd, universal_newlines=True)
     log = osStat.communicate(0)
     ret = {"exitstatus": osStat.returncode, "log": log}
 
