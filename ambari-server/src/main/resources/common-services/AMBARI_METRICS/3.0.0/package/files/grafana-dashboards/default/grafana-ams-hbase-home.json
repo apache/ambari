@@ -656,11 +656,11 @@
             },
             {
               "aggregator": "avg",
-              "alias": "mutateCount",
+              "alias": "putCount",
               "app": "ams-hbase",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "regionserver.Server.Mutate_num_ops",
+              "metric": "regionserver.Server.Put_num_ops",
               "precision": "default",
               "refId": "C",
               "transform": "rate"
@@ -1492,7 +1492,7 @@
           "renderer": "flot",
           "seriesOverrides": [
             {
-              "alias": "regionserver.Server.Mutate_num_ops",
+              "alias": "regionserver.Server.Put_num_ops",
               "yaxis": 2
             }
           ],
@@ -1502,81 +1502,81 @@
           "targets": [
             {
               "aggregator": "avg",
-              "alias": "Mutate_mean",
+              "alias": "Put_mean",
               "app": "ams-hbase",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "regionserver.Server.Mutate_mean",
+              "metric": "regionserver.Server.Put_mean",
               "precision": "default",
               "refId": "A"
             },
             {
               "aggregator": "avg",
-              "alias": "Mutate_median",
+              "alias": "Put_median",
               "app": "ams-hbase",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "regionserver.Server.Mutate_median",
+              "metric": "regionserver.Server.Put_median",
               "precision": "default",
               "refId": "B"
             },
             {
               "aggregator": "avg",
-              "alias": "Mutate_75th_percentile",
+              "alias": "Put_75th_percentile",
               "app": "ams-hbase",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "regionserver.Server.Mutate_75th_percentile",
+              "metric": "regionserver.Server.Put_75th_percentile",
               "precision": "default",
               "refId": "E"
             },
             {
               "aggregator": "avg",
-              "alias": "Mutate_95th_percentile",
+              "alias": "Put_95th_percentile",
               "app": "ams-hbase",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "regionserver.Server.Mutate_95th_percentile",
+              "metric": "regionserver.Server.Put_95th_percentile",
               "precision": "default",
               "refId": "D"
             },
             {
               "aggregator": "avg",
-              "alias": "Mutate_99th_percentile",
+              "alias": "Put_99th_percentile",
               "app": "ams-hbase",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "regionserver.Server.Mutate_99th_percentile",
+              "metric": "regionserver.Server.Put_99th_percentile",
               "precision": "default",
               "refId": "C"
             },
             {
               "aggregator": "avg",
-              "alias": "Mutate_max",
+              "alias": "Put_max",
               "app": "ams-hbase",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "regionserver.Server.Mutate_max",
+              "metric": "regionserver.Server.Put_max",
               "precision": "default",
               "refId": "G"
             },
             {
               "aggregator": "avg",
-              "alias": "Mutate_min",
+              "alias": "Put_min",
               "app": "ams-hbase",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "regionserver.Server.Mutate_min",
+              "metric": "regionserver.Server.Put_min",
               "precision": "default",
               "refId": "F"
             },
             {
               "aggregator": "avg",
-              "alias": "Mutate_num_ops",
+              "alias": "Put_num_ops",
               "app": "ams-hbase",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "regionserver.Server.Mutate_num_ops",
+              "metric": "regionserver.Server.Put_num_ops",
               "precision": "default",
               "refId": "H",
               "transform": "rate"
@@ -1584,7 +1584,7 @@
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Mutate Latencies - Average",
+          "title": "Put Latencies - Average",
           "tooltip": {
             "shared": true,
             "value_type": "cumulative"
@@ -1599,7 +1599,7 @@
         }
       ],
       "showTitle": true,
-      "title": "Operation Latencies - Get / Mutate"
+      "title": "Operation Latencies - Get / Put"
     },
     {
       "collapse": true,

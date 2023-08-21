@@ -688,7 +688,7 @@
               "app": "hbase",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "regionserver.Server.Mutate_num_ops",
+              "metric": "regionserver.Server.Put_num_ops",
               "precision": "default",
               "refId": "C",
               "transform": "rate",
@@ -697,7 +697,7 @@
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Num Mutate Requests /s",
+          "title": "Num Put Requests /s",
           "tooltip": {
             "shared": false,
             "value_type": "cumulative"
@@ -782,7 +782,7 @@
         }
       ],
       "showTitle": true,
-      "title": "Num Requests - Mutate / Delete"
+      "title": "Num Requests - Put / Delete"
     },
     {
       "collapse": true,
@@ -2759,7 +2759,7 @@
               "app": "hbase",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "regionserver.Server.Mutate_mean",
+              "metric": "regionserver.Server.Put_mean",
               "precision": "default",
               "refId": "A",
               "templatedHost": ""
@@ -2767,7 +2767,7 @@
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Mutate Latencies - Mean",
+          "title": "Put Latencies - Mean",
           "tooltip": {
             "shared": false,
             "value_type": "cumulative"
@@ -2828,7 +2828,7 @@
               "app": "hbase",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "regionserver.Server.Mutate_median",
+              "metric": "regionserver.Server.Put_median",
               "precision": "default",
               "refId": "B",
               "templatedHost": ""
@@ -2836,7 +2836,7 @@
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Mutate Latencies - Median",
+          "title": "Put Latencies - Median",
           "tooltip": {
             "shared": false,
             "value_type": "cumulative"
@@ -2897,7 +2897,7 @@
               "app": "hbase",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "regionserver.Server.Mutate_75th_percentile",
+              "metric": "regionserver.Server.Put_75th_percentile",
               "precision": "default",
               "refId": "B",
               "templatedHost": ""
@@ -2905,7 +2905,7 @@
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Mutate Latencies - 75th Percentile",
+          "title": "Put Latencies - 75th Percentile",
           "tooltip": {
             "shared": false,
             "value_type": "cumulative"
@@ -2966,7 +2966,7 @@
               "app": "hbase",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "regionserver.Server.Mutate_95th_percentile",
+              "metric": "regionserver.Server.Put_95th_percentile",
               "precision": "default",
               "refId": "B",
               "templatedHost": ""
@@ -2974,7 +2974,7 @@
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Mutate Latencies - 95th Percentile",
+          "title": "Put Latencies - 95th Percentile",
           "tooltip": {
             "shared": false,
             "value_type": "cumulative"
@@ -3035,7 +3035,7 @@
               "app": "hbase",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "regionserver.Server.Mutate_99th_percentile",
+              "metric": "regionserver.Server.Put_99th_percentile",
               "precision": "default",
               "refId": "B",
               "templatedHost": ""
@@ -3043,7 +3043,7 @@
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Mutate Latencies - 99th Percentile",
+          "title": "Put Latencies - 99th Percentile",
           "tooltip": {
             "shared": false,
             "value_type": "cumulative"
@@ -3104,7 +3104,7 @@
               "app": "hbase",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "regionserver.Server.Mutate_max",
+              "metric": "regionserver.Server.Put_max",
               "precision": "default",
               "refId": "B",
               "templatedHost": ""
@@ -3112,7 +3112,7 @@
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Mutate Latencies - Max",
+          "title": "Put Latencies - Max",
           "tooltip": {
             "shared": false,
             "value_type": "cumulative"
@@ -3127,7 +3127,7 @@
         }
       ],
       "showTitle": true,
-      "title": "Operation Latencies - Mutate"
+      "title": "Operation Latencies - Put"
     },
     {
       "collapse": true,
