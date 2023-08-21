@@ -17,9 +17,9 @@
  */
 package org.apache.ambari.server.agent.stomp;
 
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
@@ -46,7 +46,7 @@ public class AgentsRegistrationQueue {
 
   public AgentsRegistrationQueue(Injector injector) {
     Configuration configuration = injector.getInstance(Configuration.class);
-    registrationQueue = new ArrayBlockingQueue<>(configuration.getAgentsRegistrationQueueSize());
+    registrationQueue = new LinkedBlockingQueue<>(configuration.getAgentsRegistrationQueueSize());
   }
 
   public boolean offer(String sessionId) {
