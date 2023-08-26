@@ -171,6 +171,11 @@ class Properties(object):
     except KeyError:
       if hasattr(self._props, name):
         return getattr(self._props, name)
+      else:
+        raise NotImplementedError("The method '{}' is not implemented.".format(name))
+
+  def __contains__(self, key):
+    return  key in self._props
 
   def sort_props(self):
     tmp_props = {}
