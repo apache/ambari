@@ -411,8 +411,6 @@ class JDKSetup(object):
   # Downloads and installs the JDK and the JCE policy archive
   #
   def download_and_install_jdk(self, args, properties, ambariOnly = False):
-    conf_file = properties.fileName
-
     jcePolicyWarn = "JCE Policy files are required for configuring Kerberos security. If you plan to use Kerberos," \
                     "please make sure JCE Unlimited Strength Jurisdiction Policy Files are valid on all hosts."
 
