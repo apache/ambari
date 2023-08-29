@@ -21,11 +21,13 @@ import junit.framework.Assert;
 import org.apache.ambari.metrics.core.timeline.aggregators.TimelineClusterMetric;
 import org.apache.ambari.metrics.core.timeline.uuid.MetricUuidGenStrategy;
 import org.apache.ambari.metrics.core.timeline.uuid.Murmur3HashUuidGenStrategy;
+import org.apache.ambari.metrics.core.timeline.uuid.TimelineMetricUuid;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata;
 import org.apache.ambari.metrics.core.timeline.PhoenixHBaseAccessor;
 import org.junit.Test;
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -175,5 +177,41 @@ public class TestMetadataSync {
     Assert.assertEquals(1, hostedApps.size());
     // After other collector's host app data is synced
     Assert.assertEquals("Host app list is not synced properly",3, hostedApps.get("host1").getHostedApps().size());
+  }
+
+  @Test
+  public void testSyncHostUuid() throws Exception {
+    Configuration configuration = createNiceMock(Configuration.class);
+    PhoenixHBaseAccessor hBaseAccessor = createNiceMock(PhoenixHBaseAccessor.class);
+    TimelineMetricHostMetadata hostMeta = new TimelineMetricHostMetadata(new HashSet<>(Arrays.asList("app1", "app2", "app3")));
+    byte[] hostUuid = uuidGenStrategy.computeUuid("host1", TimelineMetricMetadataManager.HOSTNAME_UUID_LENGTH);
+    hostMeta.setUuid(hostUuid);
+    Map<String, TimelineMetricHostMetadata> hostedApps = new HashMap<String, TimelineMetricHostMetadata>() {{
+      put("host1", hostMeta);
+    }};
+
+    expect(configuration.get("timeline.metrics.service.operation.mode")).andReturn("distributed");
+    expect(hBaseAccessor.getHostedAppsMetadata()).andReturn(hostedApps);
+    replay(configuration, hBaseAccessor);
+
+    TimelineMetricMetadataManager metadataManager = new TimelineMetricMetadataManager(configuration, hBaseAccessor);
+    metadataManager.markSuccessOnSyncHostedAppsMetadata();
+    hostedApps = metadataManager.getHostedAppsCache();
+    // Before other collector's host app data is synced
+    Assert.assertNull(hostedApps.get("host1"));
+
+    metadataManager.metricMetadataSync = new TimelineMetricMetadataSync(metadataManager);
+    metadataManager.metricMetadataSync.run();
+
+    verify(configuration, hBaseAccessor);
+
+    hostedApps = metadataManager.getHostedAppsCache();
+    Assert.assertEquals(1, hostedApps.size());
+    Field field = TimelineMetricMetadataManager.class.getDeclaredField("uuidHostMap");
+    field.setAccessible(true);
+
+    Map<TimelineMetricUuid, String> uuidHostMap = (Map<TimelineMetricUuid, String>) field.get(metadataManager);
+    TimelineMetricUuid timelineMetricUuid = new TimelineMetricUuid(hostUuid);
+    Assert.assertTrue("Host uuid was not synced", uuidHostMap.containsKey(timelineMetricUuid));
   }
 }
