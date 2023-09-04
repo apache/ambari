@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -57,96 +57,96 @@ class TestHookBeforeInstall(RMFTestCase):
     self.assertResourceCalled('User', 'hive',
                               gid = 'hadoop',
                               uid = None,
-                              groups = [u'hadoop'],
+                              groups = ['hadoop'],
                               fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('User', 'oozie',
                               gid = 'hadoop',
                               uid = None,
-                              groups = [u'hadoop',u'users'],
+                              groups = ['hadoop','users'],
                               fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('User', 'nobody',
                               gid = 'hadoop',
                               uid = None,
-                              groups = [u'hadoop',u'nobody'],
+                              groups = ['hadoop','nobody'],
                               fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('User', 'ambari-qa',
                               gid = 'hadoop',
                               uid = None,
-                              groups = [u'hadoop',u'users'],
+                              groups = ['hadoop','users'],
                               fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('User', 'flume',
                               gid = 'hadoop',
                               uid = None,
-                              groups = [u'hadoop'],
+                              groups = ['hadoop'],
                               fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('User', 'hdfs',
                               gid = 'hadoop',
                               uid = None,
-                              groups = [u'hadoop'],
+                              groups = ['hadoop'],
                               fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('User', 'storm',
                               gid = 'hadoop',
                               uid = None,
-                              groups = [u'hadoop'],
+                              groups = ['hadoop'],
                               fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('User', 'mapred',
                               gid = 'hadoop',
                               uid = None,
-                              groups = [u'hadoop'],
+                              groups = ['hadoop'],
                               fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('User', 'hbase',
                               gid = 'hadoop',
                               uid = None,
-                              groups = [u'hadoop'],
+                              groups = ['hadoop'],
                               fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('User', 'tez',
                               gid = 'hadoop',
                               uid = None,
-                              groups = [u'hadoop',u'users'],
+                              groups = ['hadoop','users'],
                               fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('User', 'zookeeper',
                               gid = 'hadoop',
                               uid = None,
-                              groups = [u'hadoop'],
+                              groups = ['hadoop'],
                               fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('User', 'falcon',
                               gid = 'hadoop',
                               uid = None,
-                              groups = [u'hadoop',u'users'],
+                              groups = ['hadoop','users'],
                               fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('User', 'sqoop',
                               gid = 'hadoop',
                               uid = None,
-                              groups = [u'hadoop'],
+                              groups = ['hadoop'],
                               fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('User', 'yarn',
                               gid = 'hadoop',
                               uid = None,
-                              groups = [u'hadoop'],
+                              groups = ['hadoop'],
                               fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('User', 'hcat',
                               gid = 'hadoop',
                               uid = None,
-                              groups = [u'hadoop'],
+                              groups = ['hadoop'],
                               fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('File', '/tmp/changeUid.sh',
                               content = StaticFile('changeToSecureUid.sh'),
-                              mode = 0555,
+                              mode = 0o555,
                               )
     self.assertResourceCalled('Execute', '/tmp/changeUid.sh ambari-qa /tmp/hadoop-ambari-qa,/tmp/hsperfdata_ambari-qa,/home/ambari-qa,/tmp/ambari-qa,/tmp/sqoop-ambari-qa 0',
                               not_if = '(test $(id -u ambari-qa) -gt 1000) || (false)',
@@ -154,16 +154,16 @@ class TestHookBeforeInstall(RMFTestCase):
     self.assertResourceCalled('Directory', '/tmp/hbase-hbase',
                               owner = 'hbase',
                               create_parents = True,
-                              mode = 0775,
+                              mode = 0o775,
                               cd_access = 'a',
                               )
     self.assertResourceCalled('File', '/tmp/changeUid.sh',
                               content = StaticFile('changeToSecureUid.sh'),
-                              mode = 0555,
+                              mode = 0o555,
                               )
     self.assertResourceCalled('File', '/tmp/changeUid.sh',
                               content = StaticFile('changeToSecureUid.sh'),
-                              mode = 0555,
+                              mode = 0o555,
                               )
     self.assertResourceCalled('Execute', '/tmp/changeUid.sh hbase /home/hbase,/tmp/hbase,/usr/bin/hbase,/var/log/hbase,/tmp/hbase-hbase 1000',
                               not_if = '(test $(id -u hbase) -gt 1000) || (false)',
@@ -178,10 +178,10 @@ class TestHookBeforeInstall(RMFTestCase):
     self.assertResourceCalled('Group', 'test_group',)
     self.assertResourceCalled('User', 'hdfs',
                               fetch_nonlocal_groups = True,
-                              groups = [u'hadoop', u'hdfs', u'test_group'],
+                              groups = ['hadoop', 'hdfs', 'test_group'],
                               )
     self.assertResourceCalled('Directory', '/etc/hadoop',
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/hadoop-env.sh',
                               content = InlineTemplate(self.getConfig()['configurations']['hadoop-env']['content']),
@@ -191,7 +191,7 @@ class TestHookBeforeInstall(RMFTestCase):
     self.assertResourceCalled('Directory', '/tmp/hadoop_java_io_tmpdir',
                               owner = 'hdfs',
                               group = 'hadoop',
-                              mode = 01777,
+                              mode = 0o1777,
                               )
     self.assertResourceCalled('Directory', '/tmp/AMBARI-artifacts/',
                               create_parents = True,
@@ -201,10 +201,10 @@ class TestHookBeforeInstall(RMFTestCase):
                               not_if = 'test -f /tmp/jdk-7u67-linux-x64.tar.gz',
                               )
     self.assertResourceCalled('File', '/tmp/jdk-7u67-linux-x64.tar.gz',
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('Directory', '/usr/jdk64',)
-    self.assertResourceCalled('Execute', ('chmod', 'a+x', u'/usr/jdk64'),
+    self.assertResourceCalled('Execute', ('chmod', 'a+x', '/usr/jdk64'),
                               sudo = True,
                               )
     self.assertResourceCalled('Execute', 'cd /tmp/jdk_tmp_dir && tar -xf /tmp/jdk-7u67-linux-x64.tar.gz && ambari-sudo.sh cp -rp /tmp/jdk_tmp_dir/* /usr/jdk64',)
@@ -212,10 +212,10 @@ class TestHookBeforeInstall(RMFTestCase):
                               action = ['delete'],
                               )
     self.assertResourceCalled('File', '/usr/jdk64/jdk1.7.0_45/bin/java',
-                              mode = 0755,
+                              mode = 0o755,
                               cd_access = 'a',
                               )
-    self.assertResourceCalled('Execute', ('chmod', '-R', '755', u'/usr/jdk64/jdk1.7.0_45'),
+    self.assertResourceCalled('Execute', ('chmod', '-R', '755', '/usr/jdk64/jdk1.7.0_45'),
                               sudo = True,
                               )
     self.assertNoMoreResources()

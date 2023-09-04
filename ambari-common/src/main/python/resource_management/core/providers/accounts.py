@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -20,7 +20,7 @@ Ambari Agent
 
 """
 
-from __future__ import with_statement
+
 
 import grp
 import pwd
@@ -52,7 +52,7 @@ class UserProvider(Provider):
       creating_user = False
       command = ['usermod']
       
-      for option_name, attributes in self.options.iteritems():
+      for option_name, attributes in self.options.items():
         if getattr(self.resource, option_name) != None and getattr(self.resource, option_name) != attributes[0](self):
           # groups on system contain the one we need
           if attributes[1] == "-G" and set(getattr(self.resource, option_name)).issubset(set(attributes[0](self))):
@@ -66,7 +66,7 @@ class UserProvider(Provider):
     if self.resource.system and not self.user:
       command.append("--system")
       
-    for option_name, attributes in self.options.iteritems():   
+    for option_name, attributes in self.options.items():
       if attributes[1] == "-G":
         groups = self.resource.groups
         if self.user and self.user_groups:
@@ -145,7 +145,7 @@ class GroupProvider(Provider):
     else:
       command = ['groupmod']
       
-      for option_name, attributes in self.options.iteritems():
+      for option_name, attributes in self.options.items():
         if getattr(self.resource, option_name) != None and getattr(self.resource, option_name) != attributes[0](self):
           break
       else:
@@ -153,7 +153,7 @@ class GroupProvider(Provider):
       
       Logger.info("Modifying group %s" % (self.resource.group_name))
 
-    for option_name, attributes in self.options.iteritems():
+    for option_name, attributes in self.options.items():
       option_value = getattr(self.resource, option_name)
       if attributes[1] and option_value:
         command += [attributes[1], str(option_value)]

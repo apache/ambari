@@ -21,6 +21,7 @@ os.environ["ROOT"] = ""
 
 from mock.mock import patch, MagicMock
 from unittest import TestCase
+import distro
 import platform
 import socket 
 import ssl
@@ -31,7 +32,7 @@ import shutil
 project_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),os.path.normpath("../../../../"))
 shutil.copyfile(project_dir+"/ambari-server/conf/unix/ambari.properties", "/tmp/ambari.properties")
 
-with patch.object(platform, "linux_distribution", return_value = MagicMock(return_value=('Redhat', '6.4', 'Final'))):
+with patch.object(distro, "linux_distribution", return_value = MagicMock(return_value=('Redhat', '6.4', 'Final'))):
   with patch("os.path.isdir", return_value = MagicMock(return_value=True)):
     with patch("os.access", return_value = MagicMock(return_value=True)):
       with patch.object(os_utils, "parse_log4j_file", return_value={'ambari.log.dir': '/var/log/ambari-server'}):
@@ -39,7 +40,7 @@ with patch.object(platform, "linux_distribution", return_value = MagicMock(retur
           is_api_ssl_enabled, get_ssl_context
         from ambari_server.serverConfiguration import CLIENT_API_PORT, CLIENT_API_PORT_PROPERTY, SSL_API, DEFAULT_SSL_API_PORT, SSL_API_PORT
 
-@patch.object(platform, "linux_distribution", new = MagicMock(return_value=('Redhat', '6.4', 'Final')))
+@patch.object(distro, "linux_distribution", new = MagicMock(return_value=('Redhat', '6.4', 'Final')))
 class TestServerUtils(TestCase):
 
   def test_get_ambari_server_api_base(self):
@@ -50,7 +51,7 @@ class TestServerUtils(TestCase):
       CLIENT_API_PORT_PROPERTY: None
     })
     result = get_ambari_server_api_base(properties)
-    self.assertEquals(result, 'http://127.0.0.1:8080/api/v1/')
+    self.assertEqual(result, 'http://127.0.0.1:8080/api/v1/')
 
     # Test case of using http protocol and custom port
     properties = FakeProperties({
@@ -58,7 +59,7 @@ class TestServerUtils(TestCase):
       CLIENT_API_PORT_PROPERTY: "8033"
       })
     result = get_ambari_server_api_base(properties)
-    self.assertEquals(result, 'http://127.0.0.1:8033/api/v1/')
+    self.assertEqual(result, 'http://127.0.0.1:8033/api/v1/')
 
     # Test case of using https protocol (and ssl port)
     fqdn = socket.getfqdn()
@@ -70,7 +71,7 @@ class TestServerUtils(TestCase):
       CLIENT_API_PORT_PROPERTY: None
     })
     result = get_ambari_server_api_base(properties)
-    self.assertEquals(result, 'https://{0}:8443/api/v1/'.format(fqdn))
+    self.assertEqual(result, 'https://{0}:8443/api/v1/'.format(fqdn))
 
 
   def test_get_ambari_admin_credentials_from_cli_options(self):
@@ -80,8 +81,8 @@ class TestServerUtils(TestCase):
     options.ambari_admin_username = user_name
     options.ambari_admin_password = password
     user, pw = get_ambari_admin_username_password_pair(options)
-    self.assertEquals(user, user_name)
-    self.assertEquals(pw, password)
+    self.assertEqual(user, user_name)
+    self.assertEqual(pw, password)
     
   @patch("ambari_server.serverUtils.get_validated_string_input")
   def test_get_ambari_admin_credentials_from_user_input(self, get_validated_string_input_mock):
@@ -97,8 +98,8 @@ class TestServerUtils(TestCase):
     get_validated_string_input_mock.side_effect = valid_input_side_effect
 
     user, pw = get_ambari_admin_username_password_pair(options)
-    self.assertEquals(user, user_name)
-    self.assertEquals(pw, password)
+    self.assertEqual(user, user_name)
+    self.assertEqual(pw, password)
 
   def test_is_api_ssl_enabled(self):
     properties = FakeProperties({

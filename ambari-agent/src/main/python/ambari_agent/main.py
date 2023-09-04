@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -18,67 +18,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-def fix_encoding_reimport_bug():
-  """
-  Fix https://bugs.python.org/issue14847
-  """
-  b'x'.decode('utf-8')
-  b'x'.decode('ascii')
-
-def fix_subprocess_racecondition():
-  """
-  subprocess in Python has race condition with enabling/disabling gc. Which may lead to turning off python garbage collector.
-  This leads to a memory leak.
-  This function monkey patches subprocess to fix the issue.
-
-  !!! PLEASE NOTE THIS SHOULD BE CALLED BEFORE ANY OTHER INITIALIZATION was done to avoid already created links to subprocess or subprocess.gc or gc
-  """
-  # monkey patching subprocess
-  import subprocess
-  subprocess.gc.isenabled = lambda: True
-
-  # re-importing gc to have correct isenabled for non-subprocess contexts
-  import sys
-  del sys.modules['gc']
-  import gc
-
-
-"""
-# this might cause some unexcepted problems
-def fix_subprocess_popen():
-  '''
-  Workaround for race condition in starting subprocesses concurrently from
-  multiple threads via the subprocess and multiprocessing modules.
-  See http://bugs.python.org/issue19809 for details and repro script.
-  '''
-  import os
-  import sys
-
-  if os.name == 'posix' and sys.version_info[0] < 3:
-    from multiprocessing import forking
-    from ambari_commons import subprocess
-    import threading
-
-    sp_original_init = subprocess.Popen.__init__
-    mp_original_init = forking.Popen.__init__
-    lock = threading.RLock() # guards subprocess creation
-
-    def sp_locked_init(self, *a, **kw):
-      with lock:
-        sp_original_init(self, *a, **kw)
-
-    def mp_locked_init(self, *a, **kw):
-      with lock:
-        mp_original_init(self, *a, **kw)
-
-    subprocess.Popen.__init__ = sp_locked_init
-    forking.Popen.__init__ = mp_locked_init
-"""
-
-#fix_subprocess_popen()
-fix_subprocess_racecondition()
-fix_encoding_reimport_bug()
-
 import logging.handlers
 import logging.config
 from optparse import OptionParser
@@ -87,21 +26,21 @@ import os
 import time
 import locale
 import platform
-import ConfigParser
-import signal
+import configparser
 import resource
+import signal
 from logging.handlers import SysLogHandler
-import AmbariConfig
-from NetUtil import NetUtil
-from PingPortListener import PingPortListener
-import hostname
-from DataCleaner import DataCleaner
+from ambari_agent import AmbariConfig
+from ambari_agent.NetUtil import NetUtil
+from ambari_agent.PingPortListener import PingPortListener
+from ambari_agent import hostname
+from ambari_agent.DataCleaner import DataCleaner
 from ambari_agent.ExitHelper import ExitHelper
 import socket
 from ambari_commons import OSConst, OSCheck
 from ambari_commons.shell import shellRunner
 #from ambari_commons.network import reconfigure_urllib2_opener
-from HeartbeatHandlers import bind_signal_handlers
+from ambari_agent.HeartbeatHandlers import bind_signal_handlers
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from resource_management.core.logger import Logger
 #from resource_management.core.resources.system import File
@@ -154,7 +93,7 @@ def setup_logging(logger, filename, logging_level):
 
   logging.basicConfig(format=formatstr, level=logging_level, filename=filename)
   logger.setLevel(logging_level)
-  logger.info("loglevel=logging.{0}".format(logging._levelNames[logging_level]))
+  logger.info("loglevel=logging.{0}".format(logging._levelToName[logging_level]))
 
 GRACEFUL_STOP_TRIES = 300
 GRACEFUL_STOP_TRIES_SLEEP = 0.1
@@ -195,7 +134,7 @@ def update_log_level(config):
           logging.basicConfig(format=formatstr, level=logging.INFO, filename=AmbariConfig.AmbariConfig.getLogFile())
           logger.setLevel(logging.INFO)
           logger.debug("Newloglevel=logging.INFO")
-    except Exception, err:
+    except Exception as err:
       logger.info("Default loglevel=DEBUG")
 
 
@@ -214,7 +153,7 @@ def resolve_ambari_config():
     else:
       raise Exception("No config found at {0}, use default".format(configPath))
 
-  except Exception, err:
+  except Exception as err:
     logger.warn(err)
 
 def check_sudo():
@@ -250,7 +189,7 @@ def update_open_files_ulimit(config):
     try:
       resource.setrlimit(resource.RLIMIT_NOFILE, (soft_limit, open_files_ulimit))
       logger.info('open files ulimit = {0}'.format(open_files_ulimit))
-    except ValueError, err:
+    except ValueError as err:
       logger.error('Unable to set open files ulimit to {0}: {1}'.format(open_files_ulimit, str(err)))
       logger.info('open files ulimit = {0}'.format(hard_limit))
 
@@ -272,7 +211,7 @@ def perform_prestart_checks(expected_hostname):
       sys.exit(1)
   # Check if there is another instance running
   if os.path.isfile(agent_pidfile) and not OSCheck.get_os_family() == OSConst.WINSRV_FAMILY:
-    print("%s already exists, exiting" % agent_pidfile)
+    print(("%s already exists, exiting" % agent_pidfile))
     sys.exit(1)
   # check if ambari prefix exists
   elif config.has_option('agent', 'prefix') and not os.path.isdir(os.path.abspath(config.get('agent', 'prefix'))):
@@ -292,7 +231,8 @@ def perform_prestart_checks(expected_hostname):
 
 def daemonize():
   pid = str(os.getpid())
-  file(agent_pidfile, 'w').write(pid)
+  with open(agent_pidfile,'w') as f:
+    f.write(pid)
 
 def stop_agent():
 # stop existing Ambari agent
@@ -312,7 +252,7 @@ def stop_agent():
       time.sleep(GRACEFUL_STOP_TRIES_SLEEP)
     logger.info("Agent not going to die gracefully, going to execute kill -9")
     raise Exception("Agent is running")
-  except Exception, err:
+  except Exception as err:
     #raise
     if pid == -1:
       print ("Agent process is not running")
@@ -328,26 +268,26 @@ def reset_agent(options):
   global home_dir
   try:
     # update agent config file
-    agent_config = ConfigParser.ConfigParser()
+    agent_config = configparser.ConfigParser()
     # TODO AMBARI-18733, calculate configFile based on home_dir
     agent_config.read(configFile)
     server_host = agent_config.get('server', 'hostname')
     new_host = options[2]
     if new_host is not None and server_host != new_host:
-      print "Updating server host from " + server_host + " to " + new_host
+      print("Updating server host from " + server_host + " to " + new_host)
       agent_config.set('server', 'hostname', new_host)
       with (open(configFile, "wb")) as new_agent_config:
         agent_config.write(new_agent_config)
 
     # clear agent certs
     agent_keysdir = agent_config.get('security', 'keysdir')
-    print "Removing Agent certificates..."
+    print("Removing Agent certificates...")
     for root, dirs, files in os.walk(agent_keysdir, topdown=False):
       for name in files:
         os.remove(os.path.join(root, name))
       for name in dirs:
         os.rmdir(os.path.join(root, name))
-  except Exception, err:
+  except Exception as err:
     print("A problem occurred while trying to reset the agent: " + str(err))
     sys.exit(1)
 

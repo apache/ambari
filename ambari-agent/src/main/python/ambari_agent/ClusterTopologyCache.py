@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 Licensed to the Apache Software Foundation (ASF) under one
@@ -62,7 +62,7 @@ class ClusterTopologyCache(ClusterCache):
     hosts_to_id = defaultdict(lambda:{})
     components_by_key = defaultdict(lambda:{})
 
-    for cluster_id, cluster_topology in self.iteritems():
+    for cluster_id, cluster_topology in self.items():
       self.current_host_ids_to_cluster[cluster_id] = None
       if 'hosts' in cluster_topology:
         for host_dict in cluster_topology.hosts:
@@ -76,7 +76,7 @@ class ClusterTopologyCache(ClusterCache):
           key = "{0}/{1}".format(component_dict.serviceName, component_dict.componentName)
           components_by_key[cluster_id][key] = component_dict
 
-    for cluster_id, cluster_topology in self.iteritems():
+    for cluster_id, cluster_topology in self.items():
       self.cluster_local_components[cluster_id] = []
       self.component_version_map[cluster_id] = defaultdict(lambda:defaultdict(lambda: {}))
 
@@ -203,7 +203,7 @@ class ClusterTopologyCache(ClusterCache):
     """
     mutable_dict = self._get_mutable_copy()
 
-    for cluster_id, cluster_updates_dict in cache_update.iteritems():
+    for cluster_id, cluster_updates_dict in cache_update.items():
       # adding a new cluster via UPDATE
       if not cluster_id in mutable_dict:
         mutable_dict[cluster_id] = cluster_updates_dict
@@ -253,7 +253,7 @@ class ClusterTopologyCache(ClusterCache):
     mutable_dict = self._get_mutable_copy()
     clusters_ids_to_delete = []
 
-    for cluster_id, cluster_updates_dict in cache_update.iteritems():
+    for cluster_id, cluster_updates_dict in cache_update.items():
       if not cluster_id in mutable_dict:
         logger.error("Cannot do topology delete for cluster cluster_id={0}, because do not have information about the cluster".format(cluster_id))
         continue

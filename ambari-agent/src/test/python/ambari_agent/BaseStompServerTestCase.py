@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -32,7 +32,7 @@ import threading
 try:
     from queue import Queue, Empty
 except ImportError:
-    from Queue import Queue, Empty
+    from queue import Queue, Empty
 
 from coilmq.util.frames import Frame, FrameBuffer
 from coilmq.queue import QueueManager

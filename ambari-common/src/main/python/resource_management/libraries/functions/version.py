@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -78,7 +78,8 @@ def compare_versions(version1, version2, format=False):
   """
   v1 = version1 if not format else format_stack_version(version1)
   v2 = version2 if not format else format_stack_version(version2)
-
+  def cmp(a, b):
+    return (a > b) - (a < b)
   max_segments = max(len(v1.split(".")), len(v2.split(".")))
   return cmp(_normalize(v1, desired_segments=max_segments), _normalize(v2, desired_segments=max_segments))
 

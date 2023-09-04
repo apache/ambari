@@ -21,6 +21,7 @@ limitations under the License.
 import sys
 import zipfile
 import os
+import logging
 from ambari_server.ambariPath import AmbariPath
 
 # Default values are hardcoded here
@@ -61,7 +62,7 @@ class BackupRestore:
       # Use allowZip64=True to allow sizes greater than 4GB
       zipf = zipfile.ZipFile(self.zip_folder_path + self.zipname, 'w', allowZip64=True)
       zipdir(zipf, self.state_file_list, self.zipname)
-    except Exception, e:
+    except Exception as e:
       sys.exit("Could not create zip file. Details: " + str(e))
 
     print("Zip file created at " + self.zip_folder_path + self.zipname)
@@ -74,7 +75,7 @@ class BackupRestore:
     try:
       print("Extracting the archive " + self.zip_folder_path + self.zipname)
       unzip(self.zip_folder_path + self.zipname, '/')
-    except Exception, e:
+    except Exception as e:
       sys.exit("Could not extract the zipfile " + self.zip_folder_path + self.zipname
                + " Details: " + str(e))
 
@@ -89,7 +90,7 @@ def unzip(source_filename, dest_dir):
   zf = zipfile.ZipFile(source_filename)
   try:
     zf.extractall(dest_dir)
-  except Exception, e:
+  except Exception as e:
     print("A problem occurred while unzipping. Details: " + str(e))
     raise e
   finally:
@@ -110,7 +111,7 @@ def zipdir(zipf, state_file_list, zipname):
         for file in files:
           if not file == zipname:
             zipf.write(os.path.join(root, file))
-  except Exception, e:
+  except Exception as e:
     print("A problem occurred while unzipping. Details: " + str(e))
     raise e
   finally:
@@ -145,7 +146,7 @@ def retrieve_path_and_zipname(archive_absolute_path):
     if elements is not None and len(elements)>0:
       target['zipname'] = elements[len(elements)-1]
       target['path'] = archive_absolute_path.replace(elements[len(elements)-1], "")
-  except Exception, e:
+  except Exception as e:
     sys.exit("Could not retrieve path and zipname from the absolute path " + archive_absolute_path + ". Please check arguments."
              + " Details: " + str(e))
 
@@ -162,7 +163,7 @@ def main(argv=None):
       sys.exit("Unsupported process type: " + process_type)
     # if no archive is specified
     if len(argv) == 2:
-      print "No path specified. Will use " + DEFAULT_ARCHIVE
+      print("No path specified. Will use " + DEFAULT_ARCHIVE)
       location_data = retrieve_path_and_zipname(DEFAULT_ARCHIVE)
     else:
       location_data = retrieve_path_and_zipname(argv[2])

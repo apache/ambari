@@ -33,7 +33,7 @@ def backup_collection(env):
   env.set_params(command_commons)
 
   Directory(command_commons.index_location,
-            mode=0755,
+            mode=0o755,
             cd_access='a',
             create_parents=True,
             owner=params.infra_solr_user,
@@ -138,7 +138,7 @@ def restore_collection(env):
 
     if command_commons.solr_hdfs_path:
       Directory([core_root_dir],
-                mode=0755,
+                mode=0o755,
                 cd_access='a',
                 create_parents=True,
                 owner=params.infra_solr_user,
@@ -149,7 +149,7 @@ def restore_collection(env):
       Directory([format("{core_root_dir}/data/index"),
                  format("{core_root_dir}/data/tlog"),
                  format("{core_root_dir}/data/snapshot_metadata")],
-                mode=0755,
+                mode=0o755,
                 cd_access='a',
                 create_parents=True,
                 owner=params.infra_solr_user,
@@ -179,7 +179,7 @@ def restore_collection(env):
                                    action="create_on_execute",
                                    source=source_folder,
                                    owner=params.infra_solr_user,
-                                   mode=0755,
+                                   mode=0o755,
                                    recursive_chown=True,
                                    recursive_chmod=True
                                    )
@@ -187,13 +187,13 @@ def restore_collection(env):
                                    type="directory",
                                    action="create_on_execute",
                                    owner=params.infra_solr_user,
-                                   mode=0755
+                                   mode=0o755
                                    )
         command_commons.HdfsResource(format("{hdfs_solr_node_folder}/data/snapshot_metadata"),
                                    type="directory",
                                    action="create_on_execute",
                                    owner=params.infra_solr_user,
-                                   mode=0755
+                                   mode=0o755
                                    )
     else:
       copy_cmd = format("cp -r {index_location}/snapshot.{src_core}/* {core_root_dir}/data/index/") if command_commons.solr_keep_backup \
@@ -209,7 +209,7 @@ def restore_collection(env):
       properties=core_properties,
       owner=params.infra_solr_user,
       group=params.user_group,
-      mode=0644,
+      mode=0o644,
       only_if=only_if_cmd
     )
 
@@ -281,7 +281,7 @@ def restore_collection(env):
 
     Directory(
       [format("{core_root_without_backup_dir}")],
-      mode=0755,
+      mode=0o755,
       cd_access='a',
       create_parents=True,
       owner=params.infra_solr_user,

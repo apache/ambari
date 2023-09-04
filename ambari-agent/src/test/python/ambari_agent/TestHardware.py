@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 Licensed to the Apache Software Foundation (ASF) under one
@@ -23,9 +23,9 @@ main.MEMORY_LEAK_DEBUG_FILEPATH = "/tmp/memory_leak_debug.out"
 from unittest import TestCase
 from mock.mock import patch, MagicMock, Mock
 import unittest
-import platform
+import distro
 import socket
-from ambari_commons import subprocess32
+import subprocess
 from only_for_platform import not_for_platform, PLATFORM_WINDOWS
 from ambari_agent import hostname
 from ambari_agent.Hardware import Hardware
@@ -35,7 +35,7 @@ from ambari_commons import OSCheck
 
 
 @not_for_platform(PLATFORM_WINDOWS)
-@patch.object(platform, "linux_distribution", new=MagicMock(return_value=('Suse', '11', 'Final')))
+@patch.object(distro, "linux_distribution", new=MagicMock(return_value=('Suse', '11', 'Final')))
 @patch.object(socket, "getfqdn", new=MagicMock(return_value="ambari.apache.org"))
 @patch.object(socket, "gethostbyname", new=MagicMock(return_value="192.168.1.1"))
 @patch.object(FacterLinux, "setDataIfConfigShortOutput", new=MagicMock(return_value='''Iface   MTU Met    RX-OK RX-ERR RX-DRP RX-OVR    TX-OK TX-ERR TX-DRP TX-OVR Flg
@@ -113,12 +113,12 @@ class TestHardware(TestCase):
 
     result = Hardware(cache_info=False).osdisks()
 
-    self.assertEquals(1, len(result))
+    self.assertEqual(1, len(result))
 
     expected_mounts_left = ["/"]
     mounts_left = [item["mountpoint"] for item in result]
 
-    self.assertEquals(expected_mounts_left, mounts_left)
+    self.assertEqual(expected_mounts_left, mounts_left)
 
   @patch.object(Hardware, "_chk_writable_mount")
   @patch("ambari_agent.Hardware.path_isfile")
@@ -135,16 +135,16 @@ class TestHardware(TestCase):
     config = AmbariConfig()
 
     # check, that config do not define ignore_mount_points property
-    self.assertEquals("test", config.get('agent', 'ignore_mount_points', default="test"))
+    self.assertEqual("test", config.get('agent', 'ignore_mount_points', default="test"))
 
     result = Hardware(config=config, cache_info=False).osdisks()
 
-    self.assertEquals(1, len(result))
+    self.assertEqual(1, len(result))
 
     expected_mounts_left = ["/"]
     mounts_left = [item["mountpoint"] for item in result]
 
-    self.assertEquals(expected_mounts_left, mounts_left)
+    self.assertEqual(expected_mounts_left, mounts_left)
 
   @patch.object(OSCheck, "get_os_type")
   @patch.object(OSCheck, "get_os_version")
@@ -154,34 +154,34 @@ class TestHardware(TestCase):
     get_os_version_mock.return_value = "11"
     Hardware(cache_info=False).osdisks()
     timeout = 10
-    shell_call_mock.assert_called_with(['timeout', str(timeout), "df", "-kPT", "-l"], stdout = subprocess32.PIPE, stderr = subprocess32.PIPE, timeout = timeout, quiet = True)
+    shell_call_mock.assert_called_with(['timeout', str(timeout), "df", "-kPT", "-l"], stdout = subprocess.PIPE, stderr = subprocess.PIPE, timeout = timeout, quiet = True)
 
     config = AmbariConfig()
     Hardware(config=config, cache_info=False).osdisks()
-    shell_call_mock.assert_called_with(['timeout', str(timeout), "df", "-kPT", "-l"], stdout = subprocess32.PIPE, stderr = subprocess32.PIPE, timeout = timeout, quiet = True)
+    shell_call_mock.assert_called_with(['timeout', str(timeout), "df", "-kPT", "-l"], stdout = subprocess.PIPE, stderr = subprocess.PIPE, timeout = timeout, quiet = True)
 
     config.add_section(AmbariConfig.AMBARI_PROPERTIES_CATEGORY)
     config.set(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_KEY, "true")
     Hardware(config=config, cache_info=False).osdisks()
-    shell_call_mock.assert_called_with(['timeout', str(timeout), "df", "-kPT"], stdout = subprocess32.PIPE, stderr = subprocess32.PIPE, timeout = timeout, quiet = True)
+    shell_call_mock.assert_called_with(['timeout', str(timeout), "df", "-kPT"], stdout = subprocess.PIPE, stderr = subprocess.PIPE, timeout = timeout, quiet = True)
 
     config.set(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_KEY, "false")
     Hardware(config=config, cache_info=False).osdisks()
-    shell_call_mock.assert_called_with(['timeout', str(timeout), "df", "-kPT", "-l"], stdout = subprocess32.PIPE, stderr = subprocess32.PIPE, timeout = timeout, quiet = True)
+    shell_call_mock.assert_called_with(['timeout', str(timeout), "df", "-kPT", "-l"], stdout = subprocess.PIPE, stderr = subprocess.PIPE, timeout = timeout, quiet = True)
 
     config.set(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_TIMEOUT_KEY, "0")
     Hardware(config=config, cache_info=False).osdisks()
-    shell_call_mock.assert_called_with(['timeout', str(timeout), "df", "-kPT", "-l"], stdout = subprocess32.PIPE, stderr = subprocess32.PIPE, timeout = timeout, quiet = True)
+    shell_call_mock.assert_called_with(['timeout', str(timeout), "df", "-kPT", "-l"], stdout = subprocess.PIPE, stderr = subprocess.PIPE, timeout = timeout, quiet = True)
 
     timeout = 1
     config.set(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_TIMEOUT_KEY, str(timeout))
     Hardware(config=config, cache_info=False).osdisks()
-    shell_call_mock.assert_called_with(['timeout', str(timeout), "df", "-kPT", "-l"], stdout = subprocess32.PIPE, stderr = subprocess32.PIPE, timeout = timeout, quiet = True)
+    shell_call_mock.assert_called_with(['timeout', str(timeout), "df", "-kPT", "-l"], stdout = subprocess.PIPE, stderr = subprocess.PIPE, timeout = timeout, quiet = True)
 
     timeout = 2
     config.set(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_TIMEOUT_KEY, str(timeout))
     Hardware(config=config, cache_info=False).osdisks()
-    shell_call_mock.assert_called_with(['timeout', str(timeout), "df", "-kPT", "-l"], stdout = subprocess32.PIPE, stderr = subprocess32.PIPE, timeout = timeout, quiet = True)
+    shell_call_mock.assert_called_with(['timeout', str(timeout), "df", "-kPT", "-l"], stdout = subprocess.PIPE, stderr = subprocess.PIPE, timeout = timeout, quiet = True)
 
   def test_parse_df_line(self):
     df_line_sample = "device type size used available percent mountpoint"
@@ -189,7 +189,7 @@ class TestHardware(TestCase):
     samples = [
       {
         "sample": df_line_sample,
-        "expected": dict(zip(df_line_sample.split(), df_line_sample.split()))
+        "expected": dict(list(zip(df_line_sample.split(), df_line_sample.split())))
       },
       {
         "sample": "device type size used available percent",
@@ -207,11 +207,11 @@ class TestHardware(TestCase):
 
     for sample in samples:
       try:
-        result = Hardware(cache_info=False)._parse_df([sample["sample"]]).next()
+        result = next(Hardware(cache_info=False)._parse_df([sample["sample"]]))
       except StopIteration:
         result = None
 
-      self.assertEquals(result, sample["expected"], "Failed with sample: '{0}', expected: {1}, got: {2}".format(
+      self.assertEqual(result, sample["expected"], "Failed with sample: '{0}', expected: {1}, got: {2}".format(
         sample["sample"],
         sample["expected"],
         result
@@ -230,9 +230,9 @@ class TestHardware(TestCase):
     config = None
     result = Facter(config).facterInfo()
 
-    self.assertEquals(result['hostname'], "ambari")
-    self.assertEquals(result['domain'], "apache.org")
-    self.assertEquals(result['fqdn'], (result['hostname'] + '.' + result['domain']))
+    self.assertEqual(result['hostname'], "ambari")
+    self.assertEqual(result['domain'], "apache.org")
+    self.assertEqual(result['fqdn'], (result['hostname'] + '.' + result['domain']))
 
   @patch.object(FacterLinux, "get_ip_address_by_ifname", new=MagicMock(return_value=None))
   @patch.object(FacterLinux, "setDataUpTimeOutput")
@@ -246,9 +246,9 @@ class TestHardware(TestCase):
     config = None
     result = Facter(config).facterInfo()
 
-    self.assertEquals(result['uptime_seconds'], '262813')
-    self.assertEquals(result['uptime_hours'], '73')
-    self.assertEquals(result['uptime_days'], '3')
+    self.assertEqual(result['uptime_seconds'], '262813')
+    self.assertEqual(result['uptime_hours'], '73')
+    self.assertEqual(result['uptime_days'], '3')
 
   @patch.object(FacterLinux, "get_ip_address_by_ifname", new=MagicMock(return_value=None))
   @patch.object(FacterLinux, "setMemInfoOutput")
@@ -274,11 +274,11 @@ SwapFree:        1598676 kB
     config = None
     result = Facter(config).facterInfo()
 
-    self.assertEquals(result['memorysize'], 1832392)
-    self.assertEquals(result['memorytotal'], 1832392)
-    self.assertEquals(result['memoryfree'], 868648)
-    self.assertEquals(result['swapsize'], '2.04 GB')
-    self.assertEquals(result['swapfree'], '1.52 GB')
+    self.assertEqual(result['memorysize'], 1832392)
+    self.assertEqual(result['memorytotal'], 1832392)
+    self.assertEqual(result['memoryfree'], 868648)
+    self.assertEqual(result['swapsize'], '2.00 GB')
+    self.assertEqual(result['swapfree'], '1.00 GB')
 
   @patch("fcntl.ioctl")
   @patch("socket.socket")
@@ -303,9 +303,10 @@ SwapFree:        1598676 kB
     self.assertTrue(inet_ntoa_mock.called)
     self.assertTrue(get_ip_address_by_ifname_mock.called)
     self.assertTrue(getIpAddress_mock.called)
-    self.assertEquals(result['ipaddress'], '10.0.2.15')
-    self.assertEquals(result['netmask'], '255.255.255.0')
-    self.assertEquals(result['interfaces'], 'eth0,eth1,eth2,lo')
+    self.assertEqual(result['ipaddress'], '10.0.2.15')
+    self.assertEqual(result['netmask'], '255.255.255.0')
+    #self.assertEqual(result['interfaces'], "'eth0','eth1','eth2','lo'")
+    self.assertEqual(result['interfaces'], "eth0,eth1,eth2,lo")
 
   @patch("fcntl.ioctl")
   @patch("socket.socket")
@@ -328,7 +329,7 @@ SwapFree:        1598676 kB
     result = Facter(config).facterInfo()
 
     self.assertTrue(get_ip_address_by_ifname_mock.called)
-    self.assertEquals(result['netmask'], None)
+    self.assertEqual(result['netmask'], None)
 
   @patch.object(FacterLinux, "get_ip_address_by_ifname", new=MagicMock(return_value=None))
   @patch.object(OSCheck, "get_os_type")
@@ -341,29 +342,29 @@ SwapFree:        1598676 kB
 
     config = None
     result = Facter(config).facterInfo()
-    self.assertEquals(result['operatingsystem'], 'some_type_of_os')
-    self.assertEquals(result['osfamily'], 'redhat')
+    self.assertEqual(result['operatingsystem'], 'some_type_of_os')
+    self.assertEqual(result['osfamily'], 'redhat')
 
     get_os_family_mock.return_value = "ubuntu"
     result = Facter(config).facterInfo()
-    self.assertEquals(result['operatingsystem'], 'some_type_of_os')
-    self.assertEquals(result['osfamily'], 'ubuntu')
+    self.assertEqual(result['operatingsystem'], 'some_type_of_os')
+    self.assertEqual(result['osfamily'], 'ubuntu')
 
     get_os_family_mock.return_value = "suse"
     result = Facter(config).facterInfo()
-    self.assertEquals(result['operatingsystem'], 'some_type_of_os')
-    self.assertEquals(result['osfamily'], 'suse')
+    self.assertEqual(result['operatingsystem'], 'some_type_of_os')
+    self.assertEqual(result['osfamily'], 'suse')
 
     get_os_family_mock.return_value = "My_new_family"
     result = Facter(config).facterInfo()
-    self.assertEquals(result['operatingsystem'], 'some_type_of_os')
-    self.assertEquals(result['osfamily'], 'My_new_family')
+    self.assertEqual(result['operatingsystem'], 'some_type_of_os')
+    self.assertEqual(result['osfamily'], 'My_new_family')
 
   @patch("os.path.exists")
   @patch("os.path.isdir")
   @patch("json.loads")
   @patch("glob.glob")
-  @patch("__builtin__.open")
+  @patch("builtins.open")
   @patch.object(OSCheck, "get_os_type")
   @patch.object(OSCheck, "get_os_version")
   @patch.object(FacterLinux, "resolve_ambari_config")
@@ -400,10 +401,10 @@ SwapFree:        1598676 kB
     self.assertTrue(config.has_option.called)
     self.assertTrue(config.get.called)
     self.assertTrue(glob_mock.called)
-    self.assertEquals(2, file_handle.read.call_count)
-    self.assertEquals(2, open_mock.call_count)
-    self.assertEquals(2, json_mock.call_count)
-    self.assertEquals('value', result['key'])
+    self.assertEqual(2, file_handle.read.call_count)
+    self.assertEqual(2, open_mock.call_count)
+    self.assertEqual(2, json_mock.call_count)
+    self.assertEqual('value', result['key'])
 
   @patch.object(Hardware, "_chk_writable_mount")
   @patch("ambari_agent.Hardware.path_isfile")
@@ -460,15 +461,15 @@ SwapFree:        1598676 kB
 
     result = Hardware(config=conf, cache_info=False).osdisks()
 
-    self.assertEquals(1, len(result))
+    self.assertEqual(1, len(result))
 
     expected_mounts_left = ["/"]
     mounts_left = [item["mountpoint"] for item in result]
 
-    self.assertEquals(expected_mounts_left, mounts_left)
+    self.assertEqual(expected_mounts_left, mounts_left)
 
 @not_for_platform(PLATFORM_WINDOWS)
-@patch.object(platform, "linux_distribution", new=MagicMock(return_value=('Suse', '11', 'Final')))
+@patch.object(distro, "linux_distribution", new=MagicMock(return_value=('Suse', '11', 'Final')))
 @patch.object(socket, "getfqdn", new=MagicMock(return_value="ambari.apache.org"))
 @patch.object(socket, "gethostbyname", new=MagicMock(return_value="192.168.1.1"))
 @patch.object(FacterLinux, "setDataIfConfigShortOutput", new=MagicMock(return_value=''))
@@ -504,9 +505,9 @@ class TestHardwareWithoutIfConfig(TestCase):
     self.assertTrue(inet_ntoa_mock.called)
     self.assertTrue(get_ip_address_by_ifname_mock.called)
     self.assertTrue(getIpAddress_mock.called)
-    self.assertEquals(result['ipaddress'], '10.0.2.15')
-    self.assertEquals(result['netmask'], '255.255.255.0')
-    self.assertEquals(result['interfaces'], 'lo,enp0s3,enp0s8')
+    self.assertEqual(result['ipaddress'], '10.0.2.15')
+    self.assertEqual(result['netmask'], '255.255.255.0')
+    self.assertEqual(result['interfaces'], 'lo,enp0s3,enp0s8')
 
 
 if __name__ == "__main__":

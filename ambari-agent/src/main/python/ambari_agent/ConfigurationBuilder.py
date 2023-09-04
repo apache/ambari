@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -18,7 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import hostname
+from ambari_agent import hostname
 
 
 class ConfigurationBuilder:

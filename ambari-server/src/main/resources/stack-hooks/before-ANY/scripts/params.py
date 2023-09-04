@@ -234,7 +234,7 @@ namenode_rpc = None
 dfs_ha_namemodes_ids_list = []
 other_namenode_id = None
 
-for ns, dfs_ha_namenode_ids in dfs_ha_namenode_ids_all_ns.iteritems():
+for ns, dfs_ha_namenode_ids in dfs_ha_namenode_ids_all_ns.items():
   found = False
   if not is_empty(dfs_ha_namenode_ids):
     dfs_ha_namemodes_ids_list = dfs_ha_namenode_ids.split(",")
@@ -284,7 +284,7 @@ user_to_groups_dict = {}
 #Append new user-group mapping to the dict
 try:
   user_group_map = ast.literal_eval(config['clusterLevelParams']['user_groups'])
-  for key in user_group_map.iterkeys():
+  for key in user_group_map.keys():
     user_to_groups_dict[key] = user_group_map[key]
 except ValueError:
   print('User Group mapping (user_group) is missing in the hostLevelParams')

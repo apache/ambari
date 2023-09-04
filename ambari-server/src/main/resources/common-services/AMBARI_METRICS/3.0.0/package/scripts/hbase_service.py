@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -25,7 +25,7 @@ def hbase_service(
   name,
   action = 'start'): # 'start' or 'stop' or 'status'
     
-    import params
+    from scripts import params
   
     role = name
     cmd = format("{daemon_script} --config {hbase_conf_dir}")

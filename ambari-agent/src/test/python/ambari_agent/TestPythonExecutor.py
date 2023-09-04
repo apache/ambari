@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -33,7 +33,7 @@ from mock.mock import MagicMock, patch
 from ambari_commons import OSCheck
 from only_for_platform import os_distro_value
 
-@patch.object(PythonExecutor, "open_subprocess32_files", new=MagicMock(return_value =("", "")))
+@patch.object(PythonExecutor, "open_subprocess_files", new=MagicMock(return_value =("", "")))
 class TestPythonExecutor(TestCase):
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
@@ -42,7 +42,7 @@ class TestPythonExecutor(TestCase):
     """
     Tests whether watchdog works
     """
-    subproc_mock = self.subprocess32_mockup()
+    subproc_mock = self.subprocess_mockup()
     executor = PythonExecutor("/tmp", AmbariConfig())
     _, tmpoutfile = tempfile.mkstemp()
     _, tmperrfile = tempfile.mkstemp()
@@ -50,11 +50,11 @@ class TestPythonExecutor(TestCase):
     PYTHON_TIMEOUT_SECONDS = 0.1
     kill_process_with_children_mock.side_effect = lambda pid : subproc_mock.terminate()
 
-    def launch_python_subprocess32_method(command, tmpout, tmperr):
+    def launch_python_subprocess_method(command, tmpout, tmperr):
       subproc_mock.tmpout = tmpout
       subproc_mock.tmperr = tmperr
       return subproc_mock
-    executor.launch_python_subprocess32 = launch_python_subprocess32_method
+    executor.launch_python_subprocess = launch_python_subprocess_method
     runShellKillPgrp_method = MagicMock()
     runShellKillPgrp_method.side_effect = lambda python : python.terminate()
     executor.runShellKillPgrp = runShellKillPgrp_method
@@ -66,7 +66,7 @@ class TestPythonExecutor(TestCase):
     thread.start()
     time.sleep(0.1)
     subproc_mock.finished_event.wait()
-    self.assertEquals(subproc_mock.was_terminated, True, "subprocess32 should be terminated due to timeout")
+    self.assertEqual(subproc_mock.was_terminated, True, "subprocess should be terminated due to timeout")
     self.assertTrue(callback_method.called)
 
 
@@ -75,18 +75,18 @@ class TestPythonExecutor(TestCase):
     """
     Tries to catch false positive watchdog invocations
     """
-    subproc_mock = self.subprocess32_mockup()
+    subproc_mock = self.subprocess_mockup()
     executor = PythonExecutor("/tmp", AmbariConfig())
     _, tmpoutfile = tempfile.mkstemp()
     _, tmperrfile = tempfile.mkstemp()
     _, tmpstrucout = tempfile.mkstemp()
     PYTHON_TIMEOUT_SECONDS =  5
 
-    def launch_python_subprocess32_method(command, tmpout, tmperr):
+    def launch_python_subprocess_method(command, tmpout, tmperr):
       subproc_mock.tmpout = tmpout
       subproc_mock.tmperr = tmperr
       return subproc_mock
-    executor.launch_python_subprocess32 = launch_python_subprocess32_method
+    executor.launch_python_subprocess = launch_python_subprocess_method
     runShellKillPgrp_method = MagicMock()
     runShellKillPgrp_method.side_effect = lambda python : python.terminate()
     executor.runShellKillPgrp = runShellKillPgrp_method
@@ -100,13 +100,13 @@ class TestPythonExecutor(TestCase):
     time.sleep(0.1)
     subproc_mock.should_finish_event.set()
     subproc_mock.finished_event.wait()
-    self.assertEquals(subproc_mock.was_terminated, False, "subprocess32 should not be terminated before timeout")
-    self.assertEquals(subproc_mock.returncode, 0, "subprocess32 should not be terminated before timeout")
+    self.assertEqual(subproc_mock.was_terminated, False, "subprocess should not be terminated before timeout")
+    self.assertEqual(subproc_mock.returncode, 0, "subprocess should not be terminated before timeout")
     self.assertTrue(callback_method.called)
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   def test_execution_results(self):
-    subproc_mock = self.subprocess32_mockup()
+    subproc_mock = self.subprocess_mockup()
     executor = PythonExecutor("/tmp", AmbariConfig())
     _, tmpoutfile = tempfile.mkstemp()
     _, tmperrfile = tempfile.mkstemp()
@@ -117,11 +117,11 @@ class TestPythonExecutor(TestCase):
 
     PYTHON_TIMEOUT_SECONDS = 5
 
-    def launch_python_subprocess32_method(command, tmpout, tmperr):
+    def launch_python_subprocess_method(command, tmpout, tmperr):
       subproc_mock.tmpout = tmpout
       subproc_mock.tmperr = tmperr
       return subproc_mock
-    executor.launch_python_subprocess32 = launch_python_subprocess32_method
+    executor.launch_python_subprocess = launch_python_subprocess_method
     runShellKillPgrp_method = MagicMock()
     runShellKillPgrp_method.side_effect = lambda python : python.terminate()
     executor.runShellKillPgrp = runShellKillPgrp_method
@@ -131,7 +131,7 @@ class TestPythonExecutor(TestCase):
     result = executor.run_file("file", ["arg1", "arg2"],
                                tmpoutfile, tmperrfile, PYTHON_TIMEOUT_SECONDS,
                                tmpstructuredoutfile, callback_method, "1-1")
-    self.assertEquals(result, {'exitcode': 0, 'stderr': '', 'stdout': '',
+    self.assertEqual(result, {'exitcode': 0, 'stderr': '', 'stdout': '',
                                'structuredOut': {}})
     self.assertTrue(callback_method.called)
 
@@ -154,8 +154,8 @@ class TestPythonExecutor(TestCase):
     command = executor.python_command("script", ["script_param1"])
     self.assertEqual(3, len(command))
     self.assertTrue("python" in command[0].lower())
-    self.assertEquals("script", command[1])
-    self.assertEquals("script_param1", command[2])
+    self.assertEqual("script", command[1])
+    self.assertEqual("script_param1", command[2])
 
   @patch.object(os.path, "isfile")
   @patch.object(os, "rename")
@@ -166,8 +166,8 @@ class TestPythonExecutor(TestCase):
     log_file = "/var/lib/ambari-agent/data/output-13.txt"
     executor = PythonExecutor("/tmp", AmbariConfig())
     executor.back_up_log_file_if_exists(log_file)
-    self.assertEquals(isfile_mock.called, True)
-    self.assertEquals(rename_mock.called, False)
+    self.assertEqual(isfile_mock.called, True)
+    self.assertEqual(rename_mock.called, False)
 
     isfile_mock.reset_mock()
 
@@ -176,13 +176,13 @@ class TestPythonExecutor(TestCase):
     log_file = "/var/lib/ambari-agent/data/output-13.txt"
     executor = PythonExecutor("/tmp", AmbariConfig())
     executor.back_up_log_file_if_exists(log_file)
-    self.assertEquals(isfile_mock.called, True)
-    self.assertEquals(rename_mock.call_args_list[0][0][0], "/var/lib/ambari-agent/data/output-13.txt")
-    self.assertEquals(rename_mock.call_args_list[0][0][1], "/var/lib/ambari-agent/data/output-13.txt.2")
+    self.assertEqual(isfile_mock.called, True)
+    self.assertEqual(rename_mock.call_args_list[0][0][0], "/var/lib/ambari-agent/data/output-13.txt")
+    self.assertEqual(rename_mock.call_args_list[0][0][1], "/var/lib/ambari-agent/data/output-13.txt.2")
     pass
 
 
-  class subprocess32_mockup():
+  class subprocess_mockup():
     """
     It's not trivial to use PyMock instead of class here because we need state
     and complex logics

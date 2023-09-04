@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -59,4 +59,4 @@ try:
 except:
   pass
 
-from service_mapping import *
+from scripts.service_mapping import *

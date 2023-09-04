@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -46,7 +46,7 @@ def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
 
     File(downloaded_custom_connector,
         content = DownloadSource(driver_curl_source),
-        mode = 0644
+        mode = 0o644
     )
 
     Execute(('cp', '--remove-destination', downloaded_custom_connector, driver_curl_target),
@@ -54,7 +54,7 @@ def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
             sudo=True
     )
 
-    File(driver_curl_target, mode=0644)
+    File(driver_curl_target, mode=0o644)
 
   if policymgr_mgr_url.endswith('/'):
     policymgr_mgr_url = policymgr_mgr_url.rstrip('/')

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -60,8 +60,8 @@ class HbaseClientDefault(HbaseClient):
       try:
         stack_select.select_packages(params.version)
       except Exception as e:
-        print "Ignoring error due to missing phoenix-client"
-        print str(e)
+        print("Ignoring error due to missing phoenix-client")
+        print(str(e))
 
 
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -30,13 +30,13 @@ def ensure_decrypted(value, encryption_key=None):
     return value
 
 def decrypt(encrypted_value, encryption_key):
-  salt, iv, data = [each.decode('hex') for each in encrypted_value.decode('hex').split('::')]
+  salt, iv, data = [bytes.fromhex(each) for each in bytes.fromhex(encrypted_value).decode().split('::')]
   key = PBKDF2(encryption_key, salt, iterations=65536).read(16)
   aes = ambari_pyaes.AESModeOfOperationCBC(key, iv=iv)
   return ambari_pyaes.util.strip_PKCS7_padding(aes.decrypt(data))
 
 def is_encrypted(value):
-  return isinstance(value, basestring) and value.startswith('${enc=aes256_hex, value=') # XXX: ideally it shouldn't be hardcoded but currently only one enc type is supported
+  return isinstance(value, str) and value.startswith('${enc=aes256_hex, value=') # XXX: ideally it shouldn't be hardcoded but currently only one enc type is supported
 
 def encrypted_value(value):
   return value.split('value=')[1][:-1]

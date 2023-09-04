@@ -18,7 +18,7 @@ def escape(s):
     """
     if hasattr(s, '__html__'):
         return s.__html__()
-    return Markup(unicode(s)
+    return Markup(str(s)
         .replace('&', '&amp;')
         .replace('>', '&gt;')
         .replace('<', '&lt;')
@@ -40,6 +40,6 @@ def soft_unicode(s):
     """Make a string unicode if it isn't already.  That way a markup
     string is not converted back to unicode.
     """
-    if not isinstance(s, unicode):
-        s = unicode(s)
+    if not isinstance(s, str):
+        s = str(s)
     return s

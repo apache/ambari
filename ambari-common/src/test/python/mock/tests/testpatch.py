@@ -14,7 +14,7 @@ from mock import (
     DEFAULT, call, _get_target
 )
 
-builtin_string = '__builtin__'
+builtin_string = 'builtins'
 if inPy3k:
     builtin_string = 'builtins'
     unicode = str
@@ -1528,7 +1528,7 @@ class PatchTest(unittest2.TestCase):
 
 
     def test_patch_multiple_string_subclasses(self):
-        for base in (str, unicode):
+        for base in (str, str):
             Foo = type('Foo', (base,), {'fish': 'tasty'})
             foo = Foo()
             @patch.multiple(foo, fish='nearly gone')

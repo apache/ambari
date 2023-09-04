@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -31,9 +31,9 @@ from ambari_agent.Facter import FacterLinux
 @not_for_platform(PLATFORM_WINDOWS)
 class TestRegistration(TestCase):
 
-  @patch("subprocess32.Popen")
+  @patch("subprocess.Popen")
   @patch.object(Hardware, "_chk_writable_mount", new = MagicMock(return_value=True))
-  @patch("__builtin__.open", new=MagicMock())
+  @patch("builtins.open", new=MagicMock())
   @patch.object(FacterLinux, "facterInfo", new = MagicMock(return_value={}))
   @patch.object(FacterLinux, "__init__", new = MagicMock(return_value = None))
   @patch("resource_management.core.shell.call")
@@ -52,14 +52,14 @@ class TestRegistration(TestCase):
     from ambari_agent.Register import Register
     register = Register(config)
     data = register.build()
-    self.assertEquals(len(data['hardwareProfile']) > 0, True, "hardwareProfile should contain content")
-    self.assertEquals(data['hostname'] != "", True, "hostname should not be empty")
-    self.assertEquals(data['publicHostname'] != "", True, "publicHostname should not be empty")
-    self.assertEquals(data['id'], -1)
-    self.assertEquals(data['timestamp'] > 1353678475465L, True, "timestamp should not be empty")
-    self.assertEquals(len(data['agentEnv']) > 0, True, "agentEnv should not be empty")
-    self.assertEquals(not data['agentEnv']['umask']== "", True, "agents umask should not be empty")
-    self.assertEquals(data['prefix'], config.get('agent', 'prefix'), 'The prefix path does not match')
-    self.assertEquals(len(data), 10)
+    self.assertEqual(len(data['hardwareProfile']) > 0, True, "hardwareProfile should contain content")
+    self.assertEqual(data['hostname'] != "", True, "hostname should not be empty")
+    self.assertEqual(data['publicHostname'] != "", True, "publicHostname should not be empty")
+    self.assertEqual(data['id'], -1)
+    self.assertEqual(data['timestamp'] > 1353678475465, True, "timestamp should not be empty")
+    self.assertEqual(len(data['agentEnv']) > 0, True, "agentEnv should not be empty")
+    self.assertEqual(not data['agentEnv']['umask']== "", True, "agents umask should not be empty")
+    self.assertEqual(data['prefix'], config.get('agent', 'prefix'), 'The prefix path does not match')
+    self.assertEqual(len(data), 10)
 
 

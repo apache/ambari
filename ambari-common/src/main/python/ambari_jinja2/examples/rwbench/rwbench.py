@@ -56,7 +56,7 @@ class User(object):
         self.username = username
 
 
-users = map(User, [u'John Doe', u'Jane Doe', u'Peter Somewhat'])
+users = map(User, ['John Doe', 'Jane Doe', 'Peter Somewhat'])
 articles = map(Article, range(20))
 navigation = [
     ('index',           'Index'),
@@ -104,7 +104,7 @@ if __name__ == '__main__':
         sys.stdout.write('\r    %-20s%.4f seconds\n' % (test, t.timeit(number=200) / 200))
 
     if '-p' in sys.argv:
-        print 'Jinja profile'
+        print('Jinja profile')
         p = Profile()
         p.runcall(test_jinja)
         stats = Stats(p)

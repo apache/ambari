@@ -16,13 +16,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import StringIO
+import io
 import imp
 import os
 import sys
 import json
 from mock.mock import patch, MagicMock
 from unittest import TestCase
+import urllib.request, urllib.parse, urllib.error
 
 def get_configs():
   test_directory = os.path.dirname(os.path.abspath(__file__))
@@ -34,7 +35,7 @@ configs = get_configs()
 
 class TestConfigs(TestCase):
   def setUp(self):
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
   def tearDown(self):
@@ -53,13 +54,13 @@ class TestConfigs(TestCase):
           response.read.side_effect = [response_data]
         request_check = req_type.get('request_assertion', None)
         if request_check is not None:
-          request_body = json.loads(request.get_data())
+          request_body = json.loads(json.loads(request.data))
           request_check.get(request_url, lambda x: None)(request_body)
       return response
     return urlopen_side_effect
 
   @patch.object(configs, 'output_to_file')
-  @patch('urllib2.urlopen')
+  @patch('urllib.request.urlopen')
   def test_get_config_to_file(self, urlopen_method, to_file_method):
     response_mapping = {
       'GET': {
@@ -70,14 +71,14 @@ class TestConfigs(TestCase):
       }
     }
     def config_assertion(config):
-      self.assertEquals(config['properties'], {'config1': 'value1', 'config2': 'value2'})
+      self.assertEqual(config['properties'], {'config1': 'value1', 'config2': 'value2'})
     urlopen_method.side_effect = self.get_url_open_side_effect(response_mapping)
     to_file_method.return_value = config_assertion
     sys.argv = ['configs.py', '-u', 'user', '-p', 'password', '-t', '8081', '-s', 'http', '-a', 'get', '-l','localhost','-n', 'cluster1', '-c','hdfs-site']
     configs.main()
 
   @patch.object(configs, 'output_to_file')
-  @patch('urllib2.urlopen')
+  @patch('urllib.request.urlopen')
   def test_update_specific_config(self, urlopen_method, to_file_method):
     response_mapping = {
       'GET': {
@@ -89,7 +90,7 @@ class TestConfigs(TestCase):
       'PUT': {
         'request_assertion': {
           'https://localhost:8081/api/v1/clusters/cluster1':
-            lambda request_body: self.assertEquals(request_body['Clusters']['desired_configs']['properties'], {"config1": "value3", "config2": "value2"})
+            lambda request_body: self.assertEqual(request_body['Clusters']['desired_configs']['properties'], {"config1": "value3", "config2": "value2"})
         }
       }
     }
@@ -98,7 +99,7 @@ class TestConfigs(TestCase):
     configs.main()
 
   @patch.object(configs, 'output_to_file')
-  @patch('urllib2.urlopen')
+  @patch('urllib.request.urlopen')
   def test_update_from_file(self, urlopen_method, to_file_method):
     response_mapping = {
       'GET': {
@@ -110,7 +111,7 @@ class TestConfigs(TestCase):
       'PUT': {
         'request_assertion': {
           'https://localhost:8081/api/v1/clusters/cluster1':
-            lambda request_body: self.assertEquals(request_body['Clusters']['desired_configs']['properties'], {"config1": "value3", "config2": "value2"})
+            lambda request_body: self.assertEqual(request_body['Clusters']['desired_configs']['properties'], {"config1": "value3", "config2": "value2"})
         }
       }
     }
@@ -119,11 +120,11 @@ class TestConfigs(TestCase):
     configs.main()
 
   @patch.object(configs, 'output_to_file')
-  @patch('urllib2.urlopen')
+  @patch('urllib.request.urlopen')
   def test_update_specific_config_with_attributes(self, urlopen_method, to_file_method):
     def update_check(request_body):
-      self.assertEquals(request_body['Clusters']['desired_configs']['properties'], {"config1": "value4", "config2": "value2", "config3": "value3"})
-      self.assertEquals(request_body['Clusters']['desired_configs']['properties_attributes'], {"final":{"config1": "true", "config3": "true"}})
+      self.assertEqual(request_body['Clusters']['desired_configs']['properties'], {"config1": "value4", "config2": "value2", "config3": "value3"})
+      self.assertEqual(request_body['Clusters']['desired_configs']['properties_attributes'], {"final":{"config1": "true", "config3": "true"}})
     response_mapping = {
       'GET': {
         'body': {
@@ -142,7 +143,7 @@ class TestConfigs(TestCase):
     configs.main()
 
   @patch.object(configs, 'output_to_file')
-  @patch('urllib2.urlopen')
+  @patch('urllib.request.urlopen')
   def test_delete_config(self, urlopen_method, to_file_method):
     response_mapping = {
       'GET': {
@@ -154,7 +155,7 @@ class TestConfigs(TestCase):
       'PUT': {
         'request_assertion': {
           'https://localhost:8081/api/v1/clusters/cluster1':
-            lambda request_body: self.assertEquals(request_body['Clusters']['desired_configs']['properties'], {"config2": "value2"})
+            lambda request_body: self.assertEqual(request_body['Clusters']['desired_configs']['properties'], {"config2": "value2"})
         }
       }
     }
@@ -164,11 +165,11 @@ class TestConfigs(TestCase):
     configs.main()
 
   @patch.object(configs, 'output_to_file')
-  @patch('urllib2.urlopen')
+  @patch('urllib.request.urlopen')
   def test_delete_config_with_attributes(self, urlopen_method, to_file_method):
     def delete_check(request_body):
-      self.assertEquals(request_body['Clusters']['desired_configs']['properties'], {"config2": "value2", "config3": "value3"})
-      self.assertEquals(request_body['Clusters']['desired_configs']['properties_attributes'], {"final":{"config3": "true"}})
+      self.assertEqual(request_body['Clusters']['desired_configs']['properties'], {"config2": "value2", "config3": "value3"})
+      self.assertEqual(request_body['Clusters']['desired_configs']['properties_attributes'], {"final":{"config3": "true"}})
     response_mapping = {
       'GET': {
         'body': {
@@ -187,7 +188,7 @@ class TestConfigs(TestCase):
     configs.main()
 
   @patch.object(configs, 'output_to_file')
-  @patch('urllib2.urlopen')
+  @patch('urllib.request.urlopen')
   def test_set_properties_from_xml(self, urlopen_method, to_file_method):
     response_mapping = {
       'GET': {
@@ -199,7 +200,7 @@ class TestConfigs(TestCase):
       'PUT': {
         'request_assertion': {
           'https://localhost:8081/api/v1/clusters/cluster1':
-            lambda request_body: self.assertEquals(request_body['Clusters']['desired_configs']['properties'], {"config1": "value1", "config2": "value2"})
+            lambda request_body: self.assertEqual(request_body['Clusters']['desired_configs']['properties'], {"config1": "value1", "config2": "value2"})
         }
       }
     }

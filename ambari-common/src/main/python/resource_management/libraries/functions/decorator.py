@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -52,7 +52,7 @@ def retry(times=3, sleep_time=1, max_sleep_time=8, backoff_factor=1, err_class=E
         _times -= 1
         try:
           return function(*args, **kwargs)
-        except _err_class, err:
+        except _err_class as err:
           Logger.info("Will retry %d time(s), caught exception: %s. Sleeping for %d sec(s)" % (_times, str(err), _sleep_time))
           time.sleep(_sleep_time)
 
@@ -93,7 +93,7 @@ def safe_retry(times=3, sleep_time=1, max_sleep_time=8, backoff_factor=1, err_cl
         _times -= 1
         try:
           return function(*args, **kwargs)
-        except _err_class, err:
+        except _err_class as err:
           Logger.info("Will retry %d time(s), caught exception: %s. Sleeping for %d sec(s)" % (_times, str(err), _sleep_time))
           time.sleep(_sleep_time)
         if(_sleep_time * _backoff_factor <= max_sleep_time):
@@ -101,7 +101,7 @@ def safe_retry(times=3, sleep_time=1, max_sleep_time=8, backoff_factor=1, err_cl
 
       try:
         return function(*args, **kwargs)
-      except _err_class, err:
+      except _err_class as err:
         Logger.error(str(err))
         return _return_on_fail
 

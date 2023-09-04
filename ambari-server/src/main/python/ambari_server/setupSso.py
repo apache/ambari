@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -18,7 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 import re
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 
 import sys
 from ambari_commons.exceptions import FatalException, NonFatalException
@@ -172,7 +172,7 @@ def populate_service_management(options, properties, ambari_properties, admin_lo
 
             services = ','.join(service_list)
           else:
-            print ("   There are no eligible services installed.")
+            print("   There are no eligible services installed.")
             services = ""
         else:
           services = ""
@@ -195,7 +195,7 @@ def get_sso_properties(properties, admin_login, admin_password):
 
   try:
     response_code, json_data = get_json_via_rest_api(properties, admin_login, admin_password, SSO_CONFIG_API_ENTRYPOINT)
-  except urllib2.HTTPError as http_error:
+  except urllib.error.HTTPError as http_error:
     if http_error.code == 404:
       # This means that there is no SSO configuration in the database yet -> we can not fetch the
       # property (but this is NOT an error)

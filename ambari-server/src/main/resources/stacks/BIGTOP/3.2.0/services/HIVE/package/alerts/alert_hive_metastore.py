@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 Licensed to the Apache Software Foundation (ASF) under one
@@ -23,7 +23,7 @@ import os
 import socket
 import time
 import traceback
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 from resource_management.core import global_lock
 from resource_management.core.resources import Execute

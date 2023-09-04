@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -96,8 +96,7 @@ class AlertStatusReporter(threading.Thread):
       alert_name = alert['name']
       alert_state = alert['state']
 
-      alert_definitions = filter(lambda definition: definition['name'] == alert_name,
-                                self.alert_definitions_cache[cluster_id]['alertDefinitions'])
+      alert_definitions = [definition for definition in self.alert_definitions_cache[cluster_id]['alertDefinitions'] if definition['name'] == alert_name]
       if alert_definitions:
         alert_definition = alert_definitions[0]
         definition_tolerance_enabled = alert_definition['repeat_tolerance_enabled']

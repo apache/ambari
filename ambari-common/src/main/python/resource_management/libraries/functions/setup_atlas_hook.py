@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -140,7 +140,7 @@ def setup_atlas_hook(service_name, service_props, atlas_hook_filepath, owner, gr
            properties = merged_props,
            owner = owner,
            group = group,
-           mode = 0644)
+           mode = 0o644)
 
 
 def setup_atlas_jar_symlinks(hook_name, jar_source_dir):

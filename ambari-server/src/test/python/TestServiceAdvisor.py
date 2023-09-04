@@ -54,19 +54,19 @@ class TestServiceAdvisor(TestCase):
     hosts = self.load_json("validation-hosts.json")
 
     validations = self.serviceAdvisor.getServiceComponentCardinalityValidations(services, hosts, "HDFS")
-    self.assertEquals(len(validations), 1)
+    self.assertEqual(len(validations), 1)
     expected = {
       "type": 'host-component',
       "level": 'ERROR',
       "component-name": 'DATANODE',
       "message": 'You have selected 0 DataNode components. Please consider that at least 1 DataNode components should be installed in cluster.'
     }
-    self.assertEquals(validations[0], expected)
+    self.assertEqual(validations[0], expected)
 
     validations = self.serviceAdvisor.getServiceComponentCardinalityValidations(services, hosts, "HBASE")
-    self.assertEquals(len(validations), 0)
+    self.assertEqual(len(validations), 0)
 
     services["services"][0]["components"][0]["StackServiceComponents"]["hostnames"].append("c7402.ambari.apache.org")
 
     validations = self.serviceAdvisor.getServiceComponentCardinalityValidations(services, hosts, "HDFS")
-    self.assertEquals(len(validations), 0)
+    self.assertEqual(len(validations), 0)

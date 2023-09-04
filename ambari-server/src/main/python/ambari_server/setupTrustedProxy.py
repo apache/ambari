@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -19,10 +19,10 @@ limitations under the License.
 '''
 
 import ambari_simplejson as json
-import httplib
+import http.client
 import os
 import re
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 
 from ambari_commons.exceptions import FatalException, NonFatalException
 from ambari_commons.logging_utils import get_silent, print_info_msg
@@ -49,8 +49,8 @@ def get_trusted_proxy_properties(ambari_properties, admin_login, admin_password)
 
   try:
     response_code, json_data = get_json_via_rest_api(ambari_properties, admin_login, admin_password, TPROXY_CONFIG_API_ENTRYPOINT)
-  except urllib2.HTTPError as http_error:
-    if http_error.code == httplib.NOT_FOUND:
+  except urllib.error.HTTPError as http_error:
+    if http_error.code == http.client.NOT_FOUND:
       # This means that there is no Trusted Proxy configuration in the database yet -> we can not fetch the properties; but this is NOT an error
       json_data = None
     else:

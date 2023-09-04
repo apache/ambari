@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -21,7 +21,7 @@ limitations under the License.
 import os
 import socket
 import sys
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import tempfile
 import random
 from alerts.ams_alert import AmsAlert
@@ -43,7 +43,7 @@ from collections import namedtuple
 from mock.mock import MagicMock, patch
 from unittest import TestCase
 
-from AmbariConfig import AmbariConfig
+from ambari_agent.AmbariConfig import AmbariConfig
 from ambari_agent.InitializerModule import InitializerModule
 from ambari_agent.ConfigurationBuilder import ConfigurationBuilder
 
@@ -78,7 +78,7 @@ class TestAlerts(TestCase):
     initializer_module.config.common_services_dir = test_common_services_path
     initializer_module.config.extensions_dir = test_extensions_path
     initializer_module.config.host_scripts_dir = test_host_scripts_path
-    
+
     initializer_module.init()
     
     ash = AlertSchedulerHandler(initializer_module)
@@ -117,13 +117,13 @@ class TestAlerts(TestCase):
     alert = RecoveryAlert(definition_json, definition_json['source'], self.config, rm)
     alert.set_helpers(collector, cluster_configuration, MagicMock())
     alert.set_cluster("c1", "0", "c6401.ambari.apache.org")
-    self.assertEquals(1, alert.interval())
+    self.assertEqual(1, alert.interval())
 
     #  OK - "count": 0
     alert.collect()
     alerts = collector.alerts()
-    self.assertEquals(0, len(collector.alerts()))
-    self.assertEquals('OK', alerts[0]['state'])
+    self.assertEqual(0, len(collector.alerts()))
+    self.assertEqual('OK', alerts[0]['state'])
 
     #  WARN - "count": 1
     rm_get_actions_mock.return_value = {
@@ -139,8 +139,8 @@ class TestAlerts(TestCase):
     }
     alert.collect()
     alerts = collector.alerts()
-    self.assertEquals(0, len(collector.alerts()))
-    self.assertEquals('WARNING', alerts[0]['state'])
+    self.assertEqual(0, len(collector.alerts()))
+    self.assertEqual('WARNING', alerts[0]['state'])
 
     #  CRIT - "count": 5
     rm_get_actions_mock.return_value = {
@@ -156,16 +156,16 @@ class TestAlerts(TestCase):
     }
     alert.collect()
     alerts = collector.alerts()
-    self.assertEquals(0, len(collector.alerts()))
-    self.assertEquals('CRITICAL', alerts[0]['state'])
+    self.assertEqual(0, len(collector.alerts()))
+    self.assertEqual('CRITICAL', alerts[0]['state'])
 
     # OK again, after recovery manager window expired
     is_stale_mock.return_value = True
 
     alert.collect()
     alerts = collector.alerts()
-    self.assertEquals(0, len(collector.alerts()))
-    self.assertEquals('OK', alerts[0]['state'])
+    self.assertEqual(0, len(collector.alerts()))
+    self.assertEqual('OK', alerts[0]['state'])
 
     #  CRIT, after recovery manager window expired,
     # but max_lifetime_count reached, warnedThresholdReached == True
@@ -185,8 +185,8 @@ class TestAlerts(TestCase):
 
     alert.collect()
     alerts = collector.alerts()
-    self.assertEquals(0, len(collector.alerts()))
-    self.assertEquals('CRITICAL', alerts[0]['state'])
+    self.assertEqual(0, len(collector.alerts()))
+    self.assertEqual('CRITICAL', alerts[0]['state'])
 
 
   @patch.object(ConfigurationBuilder, "get_configuration")
@@ -212,14 +212,14 @@ class TestAlerts(TestCase):
     # use a URI that has commas to verify that we properly parse it
     alert.set_helpers(collector, cluster_configuration, initializer_module.configuration_builder)
     alert.set_cluster("c1", "0", "c6401.ambari.apache.org")
-    self.assertEquals(6, alert.interval())
+    self.assertEqual(6, alert.interval())
 
     alert.collect()
 
     alerts = collector.alerts()
-    self.assertEquals(0, len(collector.alerts()))
+    self.assertEqual(0, len(collector.alerts()))
 
-    self.assertEquals('OK', alerts[0]['state'])
+    self.assertEqual('OK', alerts[0]['state'])
     self.assertTrue('(Unit Tests)' in alerts[0]['text'])
     self.assertTrue('response time on port 2181' in alerts[0]['text'])
 
@@ -255,7 +255,7 @@ class TestAlerts(TestCase):
     alert.set_helpers(AlertCollector(), cluster_configuration, MagicMock())
     alert.set_cluster("c1", "0", "c6401.ambari.apache.org")
 
-    self.assertEquals('http://c6401.ambari.apache.org', alert.uri)
+    self.assertEqual('http://c6401.ambari.apache.org', alert.uri)
 
     alert.collect()
 
@@ -285,19 +285,19 @@ class TestAlerts(TestCase):
     alert.set_helpers(collector, cluster_configuration, initializer_module.configuration_builder)
     alert.set_cluster("c1", "0", "c6401.ambari.apache.org")
 
-    self.assertEquals(definition_json['source']['path'], alert.path)
-    self.assertEquals(definition_json['source']['stacks_directory'], alert.stacks_dir)
-    self.assertEquals(definition_json['source']['extensions_directory'], alert.extensions_dir)
-    self.assertEquals(definition_json['source']['common_services_directory'], alert.common_services_dir)
-    self.assertEquals(definition_json['source']['host_scripts_directory'], alert.host_scripts_dir)
+    self.assertEqual(definition_json['source']['path'], alert.path)
+    self.assertEqual(definition_json['source']['stacks_directory'], alert.stacks_dir)
+    self.assertEqual(definition_json['source']['extensions_directory'], alert.extensions_dir)
+    self.assertEqual(definition_json['source']['common_services_directory'], alert.common_services_dir)
+    self.assertEqual(definition_json['source']['host_scripts_directory'], alert.host_scripts_dir)
 
     alert.collect()
 
     alerts = collector.alerts()
-    self.assertEquals(0, len(collector.alerts()))
+    self.assertEqual(0, len(collector.alerts()))
 
-    self.assertEquals('WARNING', alerts[0]['state'])
-    self.assertEquals('bar is rendered-bar, baz is rendered-baz', alerts[0]['text'])
+    self.assertEqual('WARNING', alerts[0]['state'])
+    self.assertEqual('bar is rendered-bar, baz is rendered-baz', alerts[0]['text'])
 
 
   @patch.object(ConfigurationBuilder, "get_configuration")
@@ -325,19 +325,19 @@ class TestAlerts(TestCase):
     alert.set_helpers(collector, cluster_configuration, initializer_module.configuration_builder)
     alert.set_cluster("c1", "0", "c6401.ambari.apache.org")
 
-    self.assertEquals(definition_json['source']['path'], alert.path)
-    self.assertEquals(definition_json['source']['stacks_directory'], alert.stacks_dir)
-    self.assertEquals(definition_json['source']['common_services_directory'], alert.common_services_dir)
-    self.assertEquals(definition_json['source']['extensions_directory'], alert.extensions_dir)
-    self.assertEquals(definition_json['source']['host_scripts_directory'], alert.host_scripts_dir)
+    self.assertEqual(definition_json['source']['path'], alert.path)
+    self.assertEqual(definition_json['source']['stacks_directory'], alert.stacks_dir)
+    self.assertEqual(definition_json['source']['common_services_directory'], alert.common_services_dir)
+    self.assertEqual(definition_json['source']['extensions_directory'], alert.extensions_dir)
+    self.assertEqual(definition_json['source']['host_scripts_directory'], alert.host_scripts_dir)
 
     alert.collect()
 
     alerts = collector.alerts()
-    self.assertEquals(0, len(collector.alerts()))
+    self.assertEqual(0, len(collector.alerts()))
 
-    self.assertEquals('OK', alerts[0]['state'])
-    self.assertEquals('Script parameter detected: foo bar baz', alerts[0]['text'])
+    self.assertEqual('OK', alerts[0]['state'])
+    self.assertEqual('Script parameter detected: foo bar baz', alerts[0]['text'])
 
 
   @patch.object(ConfigurationBuilder, "get_configuration")
@@ -364,27 +364,27 @@ class TestAlerts(TestCase):
 
     alert.collect()
     alerts = collector.alerts()
-    self.assertEquals(0, len(collector.alerts()))
-    self.assertEquals('OK', alerts[0]['state'])
-    self.assertEquals('(Unit Tests) OK: 1 25 125', alerts[0]['text'])
+    self.assertEqual(0, len(collector.alerts()))
+    self.assertEqual('OK', alerts[0]['state'])
+    self.assertEqual('(Unit Tests) OK: 1 25 125', alerts[0]['text'])
 
     # trip a warning
     ma_load_jmx_mock.return_value = ([1, 75], None)
 
     alert.collect()
     alerts = collector.alerts()
-    self.assertEquals(0, len(collector.alerts()))
-    self.assertEquals('WARNING', alerts[0]['state'])
-    self.assertEquals('(Unit Tests) Warning: 1 75 175', alerts[0]['text'])
+    self.assertEqual(0, len(collector.alerts()))
+    self.assertEqual('WARNING', alerts[0]['state'])
+    self.assertEqual('(Unit Tests) Warning: 1 75 175', alerts[0]['text'])
 
     # trip a critical now
     ma_load_jmx_mock.return_value = ([1, 150], None)
 
     alert.collect()
     alerts = collector.alerts()
-    self.assertEquals(0, len(collector.alerts()))
-    self.assertEquals('CRITICAL', alerts[0]['state'])
-    self.assertEquals('(Unit Tests) Critical: 1 150 250', alerts[0]['text'])
+    self.assertEqual(0, len(collector.alerts()))
+    self.assertEqual('CRITICAL', alerts[0]['state'])
+    self.assertEqual('(Unit Tests) Critical: 1 150 250', alerts[0]['text'])
 
     del definition_json['source']['jmx']['value']
     collector = AlertCollector()
@@ -398,9 +398,9 @@ class TestAlerts(TestCase):
 
     alert.collect()
     alerts = collector.alerts()
-    self.assertEquals(0, len(collector.alerts()))
-    self.assertEquals('OK', alerts[0]['state'])
-    self.assertEquals('(Unit Tests) OK: 1 25 None', alerts[0]['text'])
+    self.assertEqual(0, len(collector.alerts()))
+    self.assertEqual('OK', alerts[0]['state'])
+    self.assertEqual('(Unit Tests) OK: 1 25 None', alerts[0]['text'])
 
 
   @patch.object(ConfigurationBuilder, "get_configuration")
@@ -428,27 +428,27 @@ class TestAlerts(TestCase):
 
     alert.collect()
     alerts = collector.alerts()
-    self.assertEquals(0, len(collector.alerts()))
-    self.assertEquals('OK', alerts[0]['state'])
-    self.assertEquals('(Unit Tests) OK: the mean used heap size is 150 MB.', alerts[0]['text'])
+    self.assertEqual(0, len(collector.alerts()))
+    self.assertEqual('OK', alerts[0]['state'])
+    self.assertEqual('(Unit Tests) OK: the mean used heap size is 150.0 MB.', alerts[0]['text'])
 
     # trip a warning
     ma_load_metric_mock.return_value = ([{1:800,2:800,3:900,4:900}], None)
 
     alert.collect()
     alerts = collector.alerts()
-    self.assertEquals(0, len(collector.alerts()))
-    self.assertEquals('WARNING', alerts[0]['state'])
-    self.assertEquals('(Unit Tests) Warning: the mean used heap size is 850 MB.', alerts[0]['text'])
+    self.assertEqual(0, len(collector.alerts()))
+    self.assertEqual('WARNING', alerts[0]['state'])
+    self.assertEqual('(Unit Tests) Warning: the mean used heap size is 850.0 MB.', alerts[0]['text'])
 
     # trip a critical now
     ma_load_metric_mock.return_value = ([{1:1000,2:1000,3:2000,4:2000}], None)
 
     alert.collect()
     alerts = collector.alerts()
-    self.assertEquals(0, len(collector.alerts()))
-    self.assertEquals('CRITICAL', alerts[0]['state'])
-    self.assertEquals('(Unit Tests) Critical: the mean used heap size is 1500 MB.', alerts[0]['text'])
+    self.assertEqual(0, len(collector.alerts()))
+    self.assertEqual('CRITICAL', alerts[0]['state'])
+    self.assertEqual('(Unit Tests) Critical: the mean used heap size is 1500.0 MB.', alerts[0]['text'])
 
   @patch.object(ConfigurationBuilder, "get_configuration")
   @patch.object(MetricAlert, "_load_jmx")
@@ -466,7 +466,7 @@ class TestAlerts(TestCase):
     alert.set_cluster("c1", "0", "c6401.ambari.apache.org")
     alert.collect()
 
-    self.assertEquals('UNKNOWN', collector.alerts()[0]['state'])
+    self.assertEqual('UNKNOWN', collector.alerts()[0]['state'])
 
     # set properties that make no sense wihtout the main URI properties
     configuration = {'hdfs-site' :
@@ -482,7 +482,7 @@ class TestAlerts(TestCase):
     alert.set_cluster("c1", "0", "c6401.ambari.apache.org")
     alert.collect()
 
-    self.assertEquals('UNKNOWN', collector.alerts()[0]['state'])
+    self.assertEqual('UNKNOWN', collector.alerts()[0]['state'])
 
     # set an actual property key (http)
     configuration = {'hdfs-site' :
@@ -501,7 +501,7 @@ class TestAlerts(TestCase):
     alert.set_cluster("c1", "0", "c6401.ambari.apache.org")
     alert.collect()
 
-    self.assertEquals('OK', collector.alerts()[0]['state'])
+    self.assertEqual('OK', collector.alerts()[0]['state'])
 
     # set an actual property key (https)
     configuration = {'hdfs-site' :
@@ -517,7 +517,7 @@ class TestAlerts(TestCase):
     alert.set_cluster("c1", "0", "c6401.ambari.apache.org")
     alert.collect()
 
-    self.assertEquals('OK', collector.alerts()[0]['state'])
+    self.assertEqual('OK', collector.alerts()[0]['state'])
 
     # set both (http and https)
     configuration = {'hdfs-site' :
@@ -534,7 +534,7 @@ class TestAlerts(TestCase):
     alert.set_cluster("c1", "0", "c6401.ambari.apache.org")
     alert.collect()
 
-    self.assertEquals('OK', collector.alerts()[0]['state'])
+    self.assertEqual('OK', collector.alerts()[0]['state'])
 
   def create_initializer_module(self):
     initializer_module = InitializerModule()
@@ -574,10 +574,10 @@ class TestAlerts(TestCase):
     alert.collect()
 
     alerts = collector.alerts()
-    self.assertEquals(0, len(collector.alerts()))
+    self.assertEqual(0, len(collector.alerts()))
 
-    self.assertEquals('(Unit Tests) ok: 200', alerts[0]['text'])
-    self.assertEquals('OK', alerts[0]['state'])
+    self.assertEqual('(Unit Tests) ok: 200', alerts[0]['text'])
+    self.assertEqual('OK', alerts[0]['state'])
 
     # run the alert and check HTTP 500
     wa_make_web_request_mock.return_value = WebResponse(500,1.234,"Internal Server Error")
@@ -588,10 +588,10 @@ class TestAlerts(TestCase):
     alert.collect()
 
     alerts = collector.alerts()
-    self.assertEquals(0, len(collector.alerts()))
+    self.assertEqual(0, len(collector.alerts()))
 
-    self.assertEquals('WARNING', alerts[0]['state'])
-    self.assertEquals('(Unit Tests) warning: 500 (Internal Server Error)', alerts[0]['text'])
+    self.assertEqual('WARNING', alerts[0]['state'])
+    self.assertEqual('(Unit Tests) warning: 500 (Internal Server Error)', alerts[0]['text'])
 
     # run the alert and check critical
     wa_make_web_request_mock.return_value = WebResponse(0,0,'error message')
@@ -603,11 +603,11 @@ class TestAlerts(TestCase):
     alert.collect()
 
     alerts = collector.alerts()
-    self.assertEquals(0, len(collector.alerts()))
+    self.assertEqual(0, len(collector.alerts()))
 
     # http assertion indicating that we properly determined non-SSL
-    self.assertEquals('CRITICAL', alerts[0]['state'])
-    self.assertEquals('(Unit Tests) critical: http://c6401.ambari.apache.org:80. error message', alerts[0]['text'])
+    self.assertEqual('CRITICAL', alerts[0]['state'])
+    self.assertEqual('(Unit Tests) critical: http://c6401.ambari.apache.org:80. error message', alerts[0]['text'])
 
     configuration = {'hdfs-site' :
       { 'dfs.http.policy' : 'HTTPS_ONLY',
@@ -626,11 +626,11 @@ class TestAlerts(TestCase):
     alert.collect()
 
     alerts = collector.alerts()
-    self.assertEquals(0, len(collector.alerts()))
+    self.assertEqual(0, len(collector.alerts()))
 
     # SSL assertion
-    self.assertEquals('CRITICAL', alerts[0]['state'])
-    self.assertEquals('(Unit Tests) critical: https://c6401.ambari.apache.org:443/test/path. error message', alerts[0]['text'])
+    self.assertEqual('CRITICAL', alerts[0]['state'])
+    self.assertEqual('(Unit Tests) critical: https://c6401.ambari.apache.org:443/test/path. error message', alerts[0]['text'])
 
     # test custom codes
     code = random.choice((600, 700, 800))
@@ -642,10 +642,10 @@ class TestAlerts(TestCase):
     alert.collect()
 
     alerts = collector.alerts()
-    self.assertEquals(0, len(collector.alerts()))
+    self.assertEqual(0, len(collector.alerts()))
 
-    self.assertEquals('OK', alerts[0]['state'])
-    self.assertEquals('(Unit Tests) ok: {code}'.format(code=code), alerts[0]['text'])
+    self.assertEqual('OK', alerts[0]['state'])
+    self.assertEqual('(Unit Tests) ok: {code}'.format(code=code), alerts[0]['text'])
 
   def test_reschedule(self):
     test_file_path = os.path.join('ambari_agent', 'dummy_files')
@@ -663,7 +663,7 @@ class TestAlerts(TestCase):
     initializer_module.config.common_services_dir = test_common_services_path
     initializer_module.config.extensions_dir = test_extensions_path
     initializer_module.config.host_scripts_dir = test_host_scripts_path
-    
+
     initializer_module.init()
     
     ash = AlertSchedulerHandler(initializer_module)
@@ -674,9 +674,9 @@ class TestAlerts(TestCase):
 
     ash.start()
 
-    self.assertEquals(1, ash.get_job_count())
+    self.assertEqual(1, ash.get_job_count())
     ash.reschedule()
-    self.assertEquals(1, ash.get_job_count())
+    self.assertEqual(1, ash.get_job_count())
 
   @patch.object(ConfigurationBuilder, "get_configuration")
   def test_alert_collector_purge(self, get_configuration_mock):
@@ -696,18 +696,18 @@ class TestAlerts(TestCase):
     alert = PortAlert(definition_json, definition_json['source'], self.config)
     alert.set_helpers(collector, cluster_configuration, initializer_module.configuration_builder)
     alert.set_cluster("c1", "0", "c6401.ambari.apache.org")
-    self.assertEquals(6, alert.interval())
+    self.assertEqual(6, alert.interval())
 
     res = alert.collect()
 
     alerts = collector.alerts()
-    self.assertEquals(0, len(collector.alerts()))
+    self.assertEqual(0, len(collector.alerts()))
 
     self.assertTrue(alerts[0] is not None)
-    self.assertEquals('CRITICAL', alerts[0]['state'])
+    self.assertEqual('CRITICAL', alerts[0]['state'])
 
     collector.remove_by_uuid('c1f73191-4481-4435-8dae-fd380e4c0be1')
-    self.assertEquals(0,len(collector.alerts()))
+    self.assertEqual(0,len(collector.alerts()))
 
 
   def test_disabled_definitions(self):
@@ -720,13 +720,13 @@ class TestAlerts(TestCase):
     cluster_configuration = self.__get_cluster_configuration()
 
     initializer_module = InitializerModule()
-    
+
     initializer_module.config.cluster_cache_dir = test_file_path
     initializer_module.config.stacks_dir = test_stack_path
     initializer_module.config.common_services_dir = test_common_services_path
     initializer_module.config.extensions_dir = test_extensions_path
     initializer_module.config.host_scripts_dir = test_host_scripts_path
-    
+
     initializer_module.init()
     
     ash = AlertSchedulerHandler(initializer_module)
@@ -743,28 +743,28 @@ class TestAlerts(TestCase):
       in_minutes=True):
     """
 
-    self.assertEquals(1, ash.get_job_count())
+    self.assertEqual(1, ash.get_job_count())
 
     definition_json = self._get_port_alert_definition()
 
     alert = PortAlert(definition_json, definition_json['source'], self.config)
     ash.schedule_definition(alert)
 
-    self.assertEquals(2, ash.get_job_count())
+    self.assertEqual(2, ash.get_job_count())
 
     definition_json['enabled'] = False
     alert = PortAlert(definition_json, definition_json['source'], self.config)
     ash.schedule_definition(alert)
 
     # verify disabled alert not scheduled
-    self.assertEquals(2, ash.get_job_count())
+    self.assertEqual(2, ash.get_job_count())
 
     definition_json['enabled'] = True
     pa = PortAlert(definition_json, definition_json['source'], self.config)
     ash.schedule_definition(pa)
 
     # verify enabled alert was scheduled
-    self.assertEquals(3, ash.get_job_count())
+    self.assertEqual(3, ash.get_job_count())
 
   def test_immediate_alert(self):
     test_file_path = os.path.join('ambari_agent', 'dummy_files')
@@ -776,13 +776,13 @@ class TestAlerts(TestCase):
     cluster_configuration = self.__get_cluster_configuration()
     
     initializer_module = InitializerModule()
-    
+
     initializer_module.config.cluster_cache_dir = test_file_path
     initializer_module.config.stacks_dir = test_stack_path
     initializer_module.config.common_services_dir = test_common_services_path
     initializer_module.config.extensions_dir = test_extensions_path
     initializer_module.config.host_scripts_dir = test_host_scripts_path
-    
+
     initializer_module.init()
     
     ash = AlertSchedulerHandler(initializer_module)
@@ -793,8 +793,8 @@ class TestAlerts(TestCase):
 
     ash.start()
 
-    self.assertEquals(1, ash.get_job_count())
-    self.assertEquals(0, len(ash._collector.alerts()))
+    self.assertEqual(1, ash.get_job_count())
+    self.assertEqual(0, len(ash._collector.alerts()))
 
     execution_commands = [ {
       "clusterName": "c1",
@@ -804,7 +804,7 @@ class TestAlerts(TestCase):
 
     # execute the alert immediately and verify that the collector has the result
     ash.execute_alert(execution_commands)
-    self.assertEquals(1, len(ash._collector.alerts()))
+    self.assertEqual(1, len(ash._collector.alerts()))
 
 
   def test_skipped_alert(self):
@@ -832,49 +832,49 @@ class TestAlerts(TestCase):
 
     alert.collect()
 
-    self.assertEquals(definition_json['source']['path'], alert.path)
-    self.assertEquals(definition_json['source']['stacks_directory'], alert.stacks_dir)
-    self.assertEquals(definition_json['source']['extensions_directory'], alert.extensions_dir)
-    self.assertEquals(definition_json['source']['common_services_directory'], alert.common_services_dir)
-    self.assertEquals(definition_json['source']['host_scripts_directory'], alert.host_scripts_dir)
+    self.assertEqual(definition_json['source']['path'], alert.path)
+    self.assertEqual(definition_json['source']['stacks_directory'], alert.stacks_dir)
+    self.assertEqual(definition_json['source']['extensions_directory'], alert.extensions_dir)
+    self.assertEqual(definition_json['source']['common_services_directory'], alert.common_services_dir)
+    self.assertEqual(definition_json['source']['host_scripts_directory'], alert.host_scripts_dir)
 
     # ensure that the skipped alert was still placed into the collector; it's up to
     # the server to decide how to handle skipped alerts
-    self.assertEquals(1,len(collector.alerts()))
+    self.assertEqual(1,len(collector.alerts()))
 
 
   def test_default_reporting_text(self):
     definition_json = self._get_script_alert_definition()
 
     alert = ScriptAlert(definition_json, definition_json['source'], self.config)
-    self.assertEquals(alert._get_reporting_text(alert.RESULT_OK), '{0}')
-    self.assertEquals(alert._get_reporting_text(alert.RESULT_WARNING), '{0}')
-    self.assertEquals(alert._get_reporting_text(alert.RESULT_CRITICAL), '{0}')
+    self.assertEqual(alert._get_reporting_text(alert.RESULT_OK), '{0}')
+    self.assertEqual(alert._get_reporting_text(alert.RESULT_WARNING), '{0}')
+    self.assertEqual(alert._get_reporting_text(alert.RESULT_CRITICAL), '{0}')
 
     definition_json['source']['type'] = 'PORT'
     alert = PortAlert(definition_json, definition_json['source'], self.config)
-    self.assertEquals(alert._get_reporting_text(alert.RESULT_OK), 'TCP OK - {0:.4f} response on port {1}')
-    self.assertEquals(alert._get_reporting_text(alert.RESULT_WARNING), 'TCP OK - {0:.4f} response on port {1}')
-    self.assertEquals(alert._get_reporting_text(alert.RESULT_CRITICAL), 'Connection failed: {0} to {1}:{2}')
+    self.assertEqual(alert._get_reporting_text(alert.RESULT_OK), 'TCP OK - {0:.4f} response on port {1}')
+    self.assertEqual(alert._get_reporting_text(alert.RESULT_WARNING), 'TCP OK - {0:.4f} response on port {1}')
+    self.assertEqual(alert._get_reporting_text(alert.RESULT_CRITICAL), 'Connection failed: {0} to {1}:{2}')
 
     definition_json['source']['type'] = 'WEB'
     alert = WebAlert(definition_json, definition_json['source'], self.config)
-    self.assertEquals(alert._get_reporting_text(alert.RESULT_OK), 'HTTP {0} response in {2:.4f} seconds')
-    self.assertEquals(alert._get_reporting_text(alert.RESULT_WARNING), 'HTTP {0} response in {2:.4f} seconds')
-    self.assertEquals(alert._get_reporting_text(alert.RESULT_CRITICAL), 'Connection failed to {1}')
+    self.assertEqual(alert._get_reporting_text(alert.RESULT_OK), 'HTTP {0} response in {2:.4f} seconds')
+    self.assertEqual(alert._get_reporting_text(alert.RESULT_WARNING), 'HTTP {0} response in {2:.4f} seconds')
+    self.assertEqual(alert._get_reporting_text(alert.RESULT_CRITICAL), 'Connection failed to {1}')
 
     definition_json['source']['type'] = 'METRIC'
     alert = MetricAlert(definition_json, definition_json['source'], self.config)
-    self.assertEquals(alert._get_reporting_text(alert.RESULT_OK), '{0}')
-    self.assertEquals(alert._get_reporting_text(alert.RESULT_WARNING), '{0}')
-    self.assertEquals(alert._get_reporting_text(alert.RESULT_CRITICAL), '{0}')
+    self.assertEqual(alert._get_reporting_text(alert.RESULT_OK), '{0}')
+    self.assertEqual(alert._get_reporting_text(alert.RESULT_WARNING), '{0}')
+    self.assertEqual(alert._get_reporting_text(alert.RESULT_CRITICAL), '{0}')
 
     rm = RecoveryManager(MagicMock())
     definition_json['source']['type'] = 'RECOVERY'
     alert = RecoveryAlert(definition_json, definition_json['source'], self.config, rm)
-    self.assertEquals(alert._get_reporting_text(alert.RESULT_OK), 'No recovery operations executed for {2}{0}.')
-    self.assertEquals(alert._get_reporting_text(alert.RESULT_WARNING), '{1} recovery operations executed for {2}{0}.')
-    self.assertEquals(alert._get_reporting_text(alert.RESULT_CRITICAL), '{1} recovery operations executed for {2}{0}.')
+    self.assertEqual(alert._get_reporting_text(alert.RESULT_OK), 'No recovery operations executed for {2}{0}.')
+    self.assertEqual(alert._get_reporting_text(alert.RESULT_WARNING), '{1} recovery operations executed for {2}{0}.')
+    self.assertEqual(alert._get_reporting_text(alert.RESULT_CRITICAL), '{1} recovery operations executed for {2}{0}.')
 
 
   @patch.object(ConfigurationBuilder, "get_configuration")
@@ -906,10 +906,10 @@ class TestAlerts(TestCase):
     alert.collect()
 
     alerts = collector.alerts()
-    self.assertEquals(0, len(collector.alerts()))
+    self.assertEqual(0, len(collector.alerts()))
 
-    self.assertEquals('WARNING', alerts[0]['state'])
-    self.assertEquals('bar is rendered-bar, baz is rendered-baz', alerts[0]['text'])
+    self.assertEqual('WARNING', alerts[0]['state'])
+    self.assertEqual('bar is rendered-bar, baz is rendered-baz', alerts[0]['text'])
 
     # now update only the configs and run the same alert again and check
     # for different output
@@ -924,10 +924,10 @@ class TestAlerts(TestCase):
     alert.collect()
 
     alerts = collector.alerts()
-    self.assertEquals(0, len(collector.alerts()))
+    self.assertEqual(0, len(collector.alerts()))
 
-    self.assertEquals('WARNING', alerts[0]['state'])
-    self.assertEquals('bar is rendered-bar2, baz is rendered-baz2', alerts[0]['text'])
+    self.assertEqual('WARNING', alerts[0]['state'])
+    self.assertEqual('bar is rendered-bar2, baz is rendered-baz2', alerts[0]['text'])
 
 
   @patch.object(ConfigurationBuilder, "get_configuration")
@@ -1093,7 +1093,7 @@ class TestAlerts(TestCase):
 
 
   @patch.object(ConfigurationBuilder, "get_configuration")
-  @patch('httplib.HTTPConnection')
+  @patch('http.client.HTTPConnection')
   @patch.object(RefreshHeaderProcessor, 'http_response')
   def test_metric_alert_uses_refresh_processor(self, http_response_mock, http_connection_mock, get_configuration_mock):
     """
@@ -1106,7 +1106,7 @@ class TestAlerts(TestCase):
     http_conn.getresponse.return_value = MagicMock(status=200)
     http_response_mock.return_value = MagicMock(code=200)
 
-    url_opener = urllib2.build_opener(RefreshHeaderProcessor())
+    url_opener = urllib.request.build_opener(RefreshHeaderProcessor())
     response = url_opener.open("http://foo.bar.baz/jmx")
 
     self.assertFalse(response is None)
@@ -1145,7 +1145,7 @@ class TestAlerts(TestCase):
 
 
   def test_urllib2_refresh_header_processor(self):
-    from urllib2 import Request
+    from urllib.request import Request
 
     # setup the original request
     original_url = "http://foo.bar.baz/jmx?qry=someQuery"
@@ -1225,13 +1225,13 @@ class TestAlerts(TestCase):
     # the web alert will have a timeout value
     definition_json = self._get_web_alert_definition()
     alert = WebAlert(definition_json, definition_json['source'], self.config)
-    self.assertEquals(5.678, alert.connection_timeout)
-    self.assertEquals(5, alert.curl_connection_timeout)
+    self.assertEqual(5.678, alert.connection_timeout)
+    self.assertEqual(5, alert.curl_connection_timeout)
 
     # the metric definition will not and should default to 5.0
     definition_json = self._get_metric_alert_definition()
     alert = MetricAlert(definition_json, definition_json['source'], self.config)
-    self.assertEquals(5.0, alert.connection_timeout)
+    self.assertEqual(5.0, alert.connection_timeout)
 
   @patch.object(ConfigurationBuilder, "get_configuration")
   def test_get_configuration_values(self, get_configuration_mock):
@@ -1265,21 +1265,21 @@ class TestAlerts(TestCase):
     alert.set_helpers(collector, cluster_configuration, initializer_module.configuration_builder)
     alert.set_cluster("c1", "0", "c6401.ambari.apache.org")
 
-    self.assertEquals("constant", alert._get_configuration_value(configuration_full, "constant"))
-    self.assertEquals("value1", alert._get_configuration_value(configuration_full, "{{foo-site/foo-key1}}"))
-    self.assertEquals("value2", alert._get_configuration_value(configuration_full, "{{foo-site/foo-key2}}"))
-    self.assertEquals("asterisk", alert._get_configuration_value(configuration_full, "{{foo-site/special-character-*}}"))
-    self.assertEquals("dollar sign", alert._get_configuration_value(configuration_full, "{{foo-site/special-character-$}}"))
-    self.assertEquals("hash", alert._get_configuration_value(configuration_full, "{{foo-site/special-character-#}}"))
-    self.assertEquals("bang", alert._get_configuration_value(configuration_full, "{{foo-site/special-character-!}}"))
-    self.assertEquals("ampersand", alert._get_configuration_value(configuration_full, "{{foo-site/special-character-&}}"))
+    self.assertEqual("constant", alert._get_configuration_value(configuration_full, "constant"))
+    self.assertEqual("value1", alert._get_configuration_value(configuration_full, "{{foo-site/foo-key1}}"))
+    self.assertEqual("value2", alert._get_configuration_value(configuration_full, "{{foo-site/foo-key2}}"))
+    self.assertEqual("asterisk", alert._get_configuration_value(configuration_full, "{{foo-site/special-character-*}}"))
+    self.assertEqual("dollar sign", alert._get_configuration_value(configuration_full, "{{foo-site/special-character-$}}"))
+    self.assertEqual("hash", alert._get_configuration_value(configuration_full, "{{foo-site/special-character-#}}"))
+    self.assertEqual("bang", alert._get_configuration_value(configuration_full, "{{foo-site/special-character-!}}"))
+    self.assertEqual("ampersand", alert._get_configuration_value(configuration_full, "{{foo-site/special-character-&}}"))
 
     # try a mix of parameter and constant
-    self.assertEquals("http://value1/servlet", alert._get_configuration_value(configuration_full, "http://{{foo-site/foo-key1}}/servlet"))
-    self.assertEquals("http://value1/servlet/value2", alert._get_configuration_value(configuration_full, "http://{{foo-site/foo-key1}}/servlet/{{foo-site/foo-key2}}"))
+    self.assertEqual("http://value1/servlet", alert._get_configuration_value(configuration_full, "http://{{foo-site/foo-key1}}/servlet"))
+    self.assertEqual("http://value1/servlet/value2", alert._get_configuration_value(configuration_full, "http://{{foo-site/foo-key1}}/servlet/{{foo-site/foo-key2}}"))
 
     # try to request a dictionary object instead of a property
-    self.assertEquals(configuration["foo-site"], alert._get_configuration_value(configuration_full, "{{foo-site}}"))
+    self.assertEqual(configuration["foo-site"], alert._get_configuration_value(configuration_full, "{{foo-site}}"))
 
   @patch.object(ConfigurationBuilder, "get_configuration")
   @patch.object(MetricAlert, "_load_jmx")
@@ -1304,9 +1304,9 @@ class TestAlerts(TestCase):
 
     alert.collect()
     alerts = collector.alerts()
-    self.assertEquals(0, len(collector.alerts()))
-    self.assertEquals('OK', alerts[0]['state'])
-    self.assertEquals('(Unit Tests) OK: 10 5 2.0', alerts[0]['text'])
+    self.assertEqual(0, len(collector.alerts()))
+    self.assertEqual('OK', alerts[0]['state'])
+    self.assertEqual('(Unit Tests) OK: 10 5 2.0', alerts[0]['text'])
 
 
 
@@ -1339,16 +1339,16 @@ class TestAlerts(TestCase):
     # use a URI that has commas to verify that we properly parse it
     alert.set_helpers(collector, cluster_configuration, initializer_module.configuration_builder)
     alert.set_cluster("c1", "0", "c6401.ambari.apache.org")
-    self.assertEquals(6, alert.interval())
+    self.assertEqual(6, alert.interval())
 
     # the collect should catch the invalid text in the definition
     # ValueError: Unknown format code 'd' for object of type 'float'
     alert.collect()
 
     alerts = collector.alerts()
-    self.assertEquals(0, len(collector.alerts()))
+    self.assertEqual(0, len(collector.alerts()))
 
-    self.assertEquals('OK', alerts[0]['state'])
+    self.assertEqual('OK', alerts[0]['state'])
     self.assertTrue('(Unit Tests) TCP OK' in alerts[0]['text'])
 
 
@@ -1381,16 +1381,16 @@ class TestAlerts(TestCase):
     # use a URI that has commas to verify that we properly parse it
     alert.set_helpers(collector, cluster_configuration, initializer_module.configuration_builder)
     alert.set_cluster("c1", "0", "c6401.ambari.apache.org")
-    self.assertEquals(6, alert.interval())
+    self.assertEqual(6, alert.interval())
 
     # the collect should catch the invalid text in the definition
     # ValueError: Unknown format code 'd' for object of type 'float'
     alert.collect()
 
     alerts = collector.alerts()
-    self.assertEquals(0, len(collector.alerts()))
+    self.assertEqual(0, len(collector.alerts()))
 
-    self.assertEquals('UNKNOWN', alerts[0]['state'])
+    self.assertEqual('UNKNOWN', alerts[0]['state'])
     self.assertTrue('There is a problem with the alert definition' in alerts[0]['text'])
 
   def __get_cluster_configuration(self):
@@ -1399,7 +1399,7 @@ class TestAlerts(TestCase):
     operations have been mocked out
     :return:
     """
-    with patch("__builtin__.open") as open_mock:
+    with patch("builtins.open") as open_mock:
       open_mock.side_effect = self.open_side_effect
       cluster_configuration = ClusterConfigurationCache("/tmp/test_cache")
       return cluster_configuration

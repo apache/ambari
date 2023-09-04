@@ -12,18 +12,18 @@ import re
 import sys
 import errno
 try:
-    from thread import allocate_lock
+    from _thread import allocate_lock
 except ImportError:
-    from dummy_thread import allocate_lock
+    from _dummy_thread import allocate_lock
 from collections import deque
-from itertools import imap
+
 
 
 _word_split_re = re.compile(r'(\s+)')
 _punctuation_re = re.compile(
     '^(?P<lead>(?:%s)*)(?P<middle>.*?)(?P<trail>(?:%s)*)$' % (
-        '|'.join(imap(re.escape, ('(', '<', '&lt;'))),
-        '|'.join(imap(re.escape, ('.', ',', ')', '>', '\n', '&gt;')))
+        '|'.join(map(re.escape, ('(', '<', '&lt;'))),
+        '|'.join(map(re.escape, ('.', ',', ')', '>', '\n', '&gt;')))
     )
 )
 _simple_email_re = re.compile(r'^\S+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+$')
@@ -42,13 +42,13 @@ internal_code = set()
 # concatenate a list of strings and convert them to unicode.
 # unfortunately there is a bug in python 2.4 and lower that causes
 # unicode.join trash the traceback.
-_concat = u''.join
+_concat = ''.join
 try:
     def _test_gen_bug():
         raise TypeError(_test_gen_bug)
         yield None
     _concat(_test_gen_bug())
-except TypeError, _error:
+except TypeError as _error:
     if not _error.args or _error.args[0] is not _test_gen_bug:
         def concat(gen):
             try:
@@ -57,7 +57,7 @@ except TypeError, _error:
                 # this hack is needed so that the current frame
                 # does not show up in the traceback.
                 exc_type, exc_value, tb = sys.exc_info()
-                raise exc_type, exc_value, tb.tb_next
+                raise exc_type(exc_value).with_traceback(tb.tb_next)
     else:
         concat = _concat
     del _test_gen_bug, _error
@@ -69,7 +69,7 @@ try:
     next = next
 except NameError:
     def next(x):
-        return x.next()
+        return x.__next__()
 
 
 # if this python version is unable to deal with unicode filenames
@@ -79,7 +79,7 @@ except NameError:
 # 3.x because compile cannot handle bytes
 if sys.version_info < (3, 0):
     def _encode_filename(filename):
-        if isinstance(filename, unicode):
+        if isinstance(filename, str):
             return filename.encode('utf-8')
         return filename
 else:
@@ -101,7 +101,7 @@ def _func():
 FunctionType = type(_func)
 GeneratorType = type(_func())
 MethodType = type(_C.method)
-CodeType = type(_C.method.func_code)
+CodeType = type(_C.method.__code__)
 try:
     raise TypeError()
 except TypeError:
@@ -152,7 +152,7 @@ def environmentfunction(f):
 
 def internalcode(f):
     """Marks the function as internally used"""
-    internal_code.add(f.func_code)
+    internal_code.add(f.__code__)
     return f
 
 
@@ -222,7 +222,7 @@ def open_if_exists(filename, mode='rb'):
     """
     try:
         return open(filename, mode)
-    except IOError, e:
+    except IOError as e:
         if e.errno not in (errno.ENOENT, errno.EISDIR):
             raise
 
@@ -271,7 +271,7 @@ def urlize(text, trim_url_limit=None, nofollow=False):
     trim_url = lambda x, limit=trim_url_limit: limit is not None \
                          and (x[:limit] + (len(x) >=limit and '...'
                          or '')) or x
-    words = _word_split_re.split(unicode(escape(text)))
+    words = _word_split_re.split(str(escape(text)))
     nofollow_attr = nofollow and ' rel="nofollow"' or ''
     for i, word in enumerate(words):
         match = _punctuation_re.match(word)
@@ -297,7 +297,7 @@ def urlize(text, trim_url_limit=None, nofollow=False):
                 middle = '<a href="mailto:%s">%s</a>' % (middle, middle)
             if lead + middle + trail != word:
                 words[i] = lead + middle + trail
-    return u''.join(words)
+    return ''.join(words)
 
 
 def generate_lorem_ipsum(n=5, html=True, min=20, max=100):
@@ -307,7 +307,7 @@ def generate_lorem_ipsum(n=5, html=True, min=20, max=100):
     words = LOREM_IPSUM_WORDS.split()
     result = []
 
-    for _ in xrange(n):
+    for _ in range(n):
         next_capitalized = True
         last_comma = last_fullstop = 0
         word = None
@@ -315,7 +315,7 @@ def generate_lorem_ipsum(n=5, html=True, min=20, max=100):
         p = []
 
         # each paragraph contains out of 20 to 100 words.
-        for idx, _ in enumerate(xrange(randrange(min, max))):
+        for idx, _ in enumerate(range(randrange(min, max))):
             while True:
                 word = choice(words)
                 if word != last:
@@ -337,7 +337,7 @@ def generate_lorem_ipsum(n=5, html=True, min=20, max=100):
             p.append(word)
 
         # ensure that the paragraph ends with a dot.
-        p = u' '.join(p)
+        p = ' '.join(p)
         if p.endswith(','):
             p = p[:-1] + '.'
         elif not p.endswith('.'):
@@ -345,8 +345,8 @@ def generate_lorem_ipsum(n=5, html=True, min=20, max=100):
         result.append(p)
 
     if not html:
-        return u'\n\n'.join(result)
-    return Markup(u'\n'.join(u'<p>%s</p>' % escape(x) for x in result))
+        return '\n\n'.join(result)
+    return Markup('\n'.join('<p>%s</p>' % escape(x) for x in result))
 
 
 class LRUCache(object):
@@ -556,7 +556,7 @@ class Cycler(object):
         """Returns the current item."""
         return self.items[self.pos]
 
-    def next(self):
+    def __next__(self):
         """Goes one item ahead and returns it."""
         rv = self.current
         self.pos = (self.pos + 1) % len(self.items)
@@ -566,14 +566,14 @@ class Cycler(object):
 class Joiner(object):
     """A joining helper for templates."""
 
-    def __init__(self, sep=u', '):
+    def __init__(self, sep=', '):
         self.sep = sep
         self.used = False
 
     def __call__(self):
         if not self.used:
             self.used = True
-            return u''
+            return ''
         return self.sep
 
 

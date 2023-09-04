@@ -47,7 +47,7 @@ def __create_solr_cloud_cli_prefix(zookeeper_quorum, solr_znode, java64_home, ja
   return solr_cli_prefix
 
 def __append_flags_if_exists(command, flagsDict):
-  for key, value in flagsDict.iteritems():
+  for key, value in flagsDict.items():
     if value is not None:
         command+= " %s %s" % (key, value)
   return command
@@ -221,7 +221,7 @@ def copy_solr_znode_from_local(zookeeper_quorum, solr_znode, java64_home, jaas_f
   Execute(copy_znode_cmd)
 
 def default_config(config, name, default_value):
-  subdicts = filter(None, name.split('/'))
+  subdicts = [_f for _f in name.split('/') if _f]
   if not config:
     return default_value
   for x in subdicts:
@@ -239,19 +239,19 @@ def setup_solr_client(config, custom_log4j = True, custom_log_location = None, l
     solr_client_log_maxbackupindex =  default_config(config, 'configurations/infra-solr-client-log4j/infra_client_log_maxbackupindex', 60)
 
     Directory(solr_client_log_dir,
-                mode=0755,
+                mode=0o755,
                 cd_access='a',
                 create_parents=True
                 )
     Directory(solr_client_dir,
-                mode=0755,
+                mode=0o755,
                 cd_access='a',
                 create_parents=True,
                 recursive_ownership=True
                 )
     solrCliFilename = format("{solr_client_dir}/solrCloudCli.sh")
     File(solrCliFilename,
-         mode=0755,
+         mode=0o755,
          content=StaticFile(solrCliFilename)
          )
     if custom_log4j:
@@ -270,15 +270,15 @@ def setup_solr_client(config, custom_log4j = True, custom_log_location = None, l
 
       File(format("{solr_client_dir}/log4j.properties"),
              content=template.render(context),
-             mode=0644
+             mode=0o644
              )
     else:
         File(format("{solr_client_dir}/log4j.properties"),
-             mode=0644
+             mode=0o644
              )
 
     File(solr_client_log,
-         mode=0664,
+         mode=0o664,
          content=''
          )
 

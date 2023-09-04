@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -22,7 +22,7 @@ import optparse
 from optparse import OptionGroup
 from collections import OrderedDict
 import sys
-import urllib2, ssl
+import urllib.request, urllib.error, urllib.parse, ssl
 import time
 import json
 import base64
@@ -80,20 +80,20 @@ def api_accessor(host, login, password, protocol, port, unsafe=None):
   def do_request(api_url, request_type=GET_REQUEST_TYPE, request_body=''):
     try:
       url = '{0}://{1}:{2}{3}'.format(protocol, host, port, api_url)
-      admin_auth = base64.encodestring('%s:%s' % (login, password)).replace('\n', '')
-      request = urllib2.Request(url)
+      admin_auth = base64.encodebytes(('%s:%s' % (login, password)).encode()).decode().replace('\n', '')
+      request = urllib.request.Request(url)
       request.add_header('Authorization', 'Basic %s' % admin_auth)
       request.add_header('X-Requested-By', 'ambari')
-      request.add_data(request_body)
+      request.data=json.dumps(request_body)
       request.get_method = lambda: request_type
 
       if unsafe:
         ctx = ssl.create_default_context()
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
-        response = urllib2.urlopen(request, context=ctx)
+        response = urllib.request.urlopen(request, context=ctx)
       else:
-        response = urllib2.urlopen(request)
+        response = urllib.request.urlopen(request)
 
       response_body = response.read()
     except Exception as exc:
@@ -161,7 +161,7 @@ def read_xml_data_to_map(path):
   properties_attributes = {}
   tree = ET.parse(path)
   root = tree.getroot()
-  for properties in root.getiterator('property'):
+  for properties in root.iter('property'):
     name = properties.find('name')
     value = properties.find('value')
     final = properties.find('final')
@@ -218,7 +218,7 @@ def output_to_file(filename):
   return output
 
 def output_to_console(config):
-  print json.dumps(config, indent=2)
+  print(json.dumps(config, indent=2))
 
 def get_config(cluster, config_type, accessor, output):
   properties, attributes = get_current_config(cluster, config_type, accessor)
@@ -316,7 +316,7 @@ def main():
       try:
         with open(options.credentials_file) as credentials_file:
           file_content = credentials_file.read()
-          login_lines = filter(None, file_content.splitlines())
+          login_lines = [_f for _f in file_content.splitlines() if _f]
           if len(login_lines) == 2:
             user = login_lines[0]
             password = login_lines[1]

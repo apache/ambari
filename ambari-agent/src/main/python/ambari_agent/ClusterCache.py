@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 Licensed to the Apache Software Foundation (ASF) under one
@@ -80,7 +80,7 @@ class ClusterCache(dict):
     return self[ClusterCache.COMMON_DATA_CLUSTER]
 
   def get_cluster_ids(self):
-    cluster_ids = self.keys()[:]
+    cluster_ids = list(self.keys())[:]
     if ClusterCache.COMMON_DATA_CLUSTER in cluster_ids:
       cluster_ids.remove(ClusterCache.COMMON_DATA_CLUSTER)
     return cluster_ids
@@ -91,7 +91,7 @@ class ClusterCache(dict):
       if not existing_cluster_id in cache:
         cache_ids_to_delete.append(existing_cluster_id)
 
-    for cluster_id, cluster_cache in cache.iteritems():
+    for cluster_id, cluster_cache in cache.items():
       self.rewrite_cluster_cache(cluster_id, cluster_cache)
 
     with self._cache_lock:

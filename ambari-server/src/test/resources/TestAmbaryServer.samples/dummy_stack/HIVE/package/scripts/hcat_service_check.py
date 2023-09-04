@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -21,7 +21,7 @@ limitations under the License.
 from resource_management import *
 
 def hcat_service_check():
-    import params
+    from scripts import params
 
     unique = get_unique_id_and_date()
     output_file = format("/apps/hive/warehouse/hcatsmoke{unique}")
@@ -35,7 +35,7 @@ def hcat_service_check():
 
     File('/tmp/hcatSmoke.sh',
          content=StaticFile("hcatSmoke.sh"),
-         mode=0755
+         mode=0o755
     )
 
     prepare_cmd = format("{kinit_cmd}sh /tmp/hcatSmoke.sh hcatsmoke{unique} prepare")

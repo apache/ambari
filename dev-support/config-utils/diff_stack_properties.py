@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -35,13 +35,13 @@ def main():
   """ Parse arguments from user, check that all required args are passed in and start work."""
 
   if len(sys.argv) != 3:
-    print "usage: diff_stack_properties.py [first_stack_dir] [second_stack_dir]"
+    print("usage: diff_stack_properties.py [first_stack_dir] [second_stack_dir]")
     sys.exit(-1)
 
   args = sys.argv[1:]
 
   if not os.path.exists(args[0]) or not os.path.exists(args[1]):
-    print "usage: diff_stack_properties.py [first_stack_dir] [second_stack_dir]"
+    print("usage: diff_stack_properties.py [first_stack_dir] [second_stack_dir]")
     sys.exit(-1)
 
   args = sys.argv[1:]
@@ -63,7 +63,7 @@ def do_work(args):
 
 
 def compare_stacks(new_stacks, old_stacks):
-  print "#############[{}]#############".format(STACKS)
+  print("#############[{}]#############".format(STACKS))
   for stack in [stack for stack in os.listdir(os.path.join(new_stacks, STACKS)) if
                 os.path.isdir(os.path.join(new_stacks, STACKS, stack))]:
     for version in os.listdir(os.path.join(new_stacks, STACKS, stack)):
@@ -71,29 +71,29 @@ def compare_stacks(new_stacks, old_stacks):
         diff = compare_config_dirs(os.path.join(new_stacks, STACKS, stack, version, CONFIG_DIR),
                                    os.path.join(old_stacks, STACKS, stack, version, CONFIG_DIR))
         if diff != "":
-          print "#############{}.{}#############".format(stack, version)
-          print diff
+          print("#############{}.{}#############".format(stack, version))
+          print(diff)
       if os.path.exists(os.path.join(new_stacks, STACKS, stack, version, SERVICES_DIR)):
-        print "#############{}.{}#############".format(stack, version)
+        print("#############{}.{}#############".format(stack, version))
         for service_name in os.listdir(os.path.join(new_stacks, STACKS, stack, version, SERVICES_DIR)):
           new_configs_dir = os.path.join(new_stacks, STACKS, stack, version, SERVICES_DIR, service_name, CONFIG_DIR)
           old_configs_dir = os.path.join(old_stacks, STACKS, stack, version, SERVICES_DIR, service_name, CONFIG_DIR)
           diff = compare_config_dirs(new_configs_dir, old_configs_dir)
           if diff != "":
-            print "=========={}==========".format(service_name)
-            print diff
+            print("=========={}==========".format(service_name))
+            print(diff)
 
 
 def compare_common(new_stacks, old_stacks):
-  print "#############[{}]#############".format(COMMON)
+  print("#############[{}]#############".format(COMMON))
   for service_name in os.listdir(os.path.join(new_stacks, COMMON)):
     for version in os.listdir(os.path.join(new_stacks, COMMON, service_name)):
       new_configs_dir = os.path.join(new_stacks, COMMON, service_name, version, CONFIG_DIR)
       old_configs_dir = os.path.join(old_stacks, COMMON, service_name, version, CONFIG_DIR)
       diff = compare_config_dirs(new_configs_dir, old_configs_dir)
       if diff != "":
-        print "=========={}.{}==========".format(service_name, version)
-        print diff
+        print("=========={}.{}==========".format(service_name, version))
+        print(diff)
 
 
 def compare_config_dirs(new_configs_dir, old_configs_dir):

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -92,7 +92,7 @@ def run_db_purge(options):
   current_user = ensure_can_start_under_current_user(ambari_user)
   environ = generate_env(options, ambari_user, current_user)
 
-  print "Purging historical data from the database ..."
+  print("Purging historical data from the database ...")
   if DEBUG_MODE and DEBUG_MODE == "y":
     command = DB_DEBUG_CLEANUP_CMD.format(
       jdk_path,
@@ -114,17 +114,17 @@ def run_db_purge(options):
 
   print_info_msg("Return code from database cleanup command, retcode = " + str(retcode))
   if stdout:
-    print "Console output from database purge-history command:"
-    print stdout
-    print
+    print("Console output from database purge-history command:")
+    print(stdout)
+    print()
   if stderr:
-    print "Error output from database purge-history command:"
-    print stderr
-    print
+    print("Error output from database purge-history command:")
+    print(stderr)
+    print()
   if retcode > 0:
     print_error_msg("Error encountered while purging the Ambari Server Database. Check the ambari-server.log for details.")
   else:
-    print "Purging historical data completed. Check the ambari-server.log for details."
+    print("Purging historical data completed. Check the ambari-server.log for details.")
   return retcode
 
 

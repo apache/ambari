@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -27,8 +27,8 @@ import os
 
 import time
 
-from get_kinit_path import get_kinit_path
-from get_klist_path import get_klist_path
+from .get_kinit_path import get_kinit_path
+from .get_klist_path import get_klist_path
 from resource_management.core import global_lock
 from resource_management.core import shell
 from resource_management.core.exceptions import Fail
@@ -103,7 +103,7 @@ def curl_krb_request(tmp_dir, keytab, principal, url, cache_file_prefix,
   curl_krb_cache_path = os.path.join(tmp_dir, "curl_krb_cache")
   if not os.path.exists(curl_krb_cache_path):
     os.makedirs(curl_krb_cache_path)
-  os.chmod(curl_krb_cache_path, 01777)
+  os.chmod(curl_krb_cache_path, 0o1777)
 
   ccache_file_path = "{0}{1}{2}_{3}_cc_{4}".format(curl_krb_cache_path, os.sep, cache_file_prefix, user, ccache_file_name)
   kerberos_env = {'KRB5CCNAME': ccache_file_path}
@@ -124,7 +124,7 @@ def curl_krb_request(tmp_dir, keytab, principal, url, cache_file_prefix,
     # kinit if it's time; this helps to avoid problems approaching ticket boundary when
     # executing a klist and then a curl
     last_kinit_time = _KINIT_CACHE_TIMES.get(ccache_file_name, 0)
-    current_time = long(time.time())
+    current_time = int(time.time())
     if current_time - kinit_timer_ms > last_kinit_time:
       is_kinit_required = True
 

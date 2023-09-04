@@ -21,7 +21,7 @@ limitations under the License.
 __all__ = ["Hook"]
 
 from resource_management.libraries.script import Script
-from ambari_commons import subprocess32
+import subprocess
 import sys
 
 
@@ -58,6 +58,6 @@ class Hook(Script):
     cmd = [sys.executable]
     cmd.extend(args)
 
-    if subprocess32.call(cmd) != 0:
+    if subprocess.call(cmd) != 0:
       self.fail_with_error("Error: Unable to run the custom hook script " + cmd.__str__())
 

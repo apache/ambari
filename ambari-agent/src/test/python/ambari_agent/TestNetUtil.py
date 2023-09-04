@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -55,7 +55,7 @@ class TestNetUtil:#(unittest.TestCase):
 
   @not_for_platform(PLATFORM_WINDOWS)
   @patch("time.sleep")
-  @patch.object(threading._Event, "wait")
+  @patch.object(threading.Event, "wait")
   def test_try_to_connect(self, event_mock,
                             sleepMock):
     event_mock.return_value = False

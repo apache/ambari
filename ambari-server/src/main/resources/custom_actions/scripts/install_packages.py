@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -188,7 +188,7 @@ class InstallPackages(Script):
     else:
       Logger.info("Restricting conf-select packages to {0}".format(restricted_packages))
 
-    for package_name, directories in conf_select.get_package_dirs().iteritems():
+    for package_name, directories in conf_select.get_package_dirs().items():
       Logger.info("Attempting to fix the default conf links for {0}".format(package_name))
       Logger.info("The following directories will be fixed for {0}: {1}".format(package_name, str(directories)))
 
@@ -244,7 +244,7 @@ class InstallPackages(Script):
     else:
       Logger.info("Restricting conf-select packages to {0}".format(restricted_packages))
 
-    for package_name, directories in conf_select.get_package_dirs().iteritems():
+    for package_name, directories in conf_select.get_package_dirs().items():
       if 0 == len(restricted_packages) or package_name in restricted_packages:
         conf_select.convert_conf_directories_to_symlinks(package_name, stack_version, directories)
 
@@ -350,7 +350,7 @@ class InstallPackages(Script):
     normalized_repo_version = repo_version.split('-')[0]
 
     # Find all versions that match the normalized repo version
-    match_versions = filter(lambda x: x.startswith(normalized_repo_version), versions)
+    match_versions = [x for x in versions if x.startswith(normalized_repo_version)]
     if match_versions:
 
       if len(match_versions) == 1:

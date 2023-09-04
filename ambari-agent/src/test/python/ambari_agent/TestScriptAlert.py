@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -23,7 +23,7 @@ from alerts.script_alert import ScriptAlert
 from mock.mock import Mock, MagicMock, patch
 import os
 
-from AmbariConfig import AmbariConfig
+from ambari_agent.AmbariConfig import AmbariConfig
 
 DUMMY_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dummy_files')
 
@@ -54,9 +54,9 @@ class TestScriptAlert(TestCase):
     expected_text = 'bar is 12, baz is asd'
 
     def collector_side_effect(clus, data):
-      self.assertEquals(data['name'], alert_meta['name'])
-      self.assertEquals(data['clusterId'], cluster_id)
-      self.assertEquals(clus, cluster)
+      self.assertEqual(data['name'], alert_meta['name'])
+      self.assertEqual(data['clusterId'], cluster_id)
+      self.assertEqual(clus, cluster)
 
     mock_collector = MagicMock()
     mock_collector.put = Mock(side_effect=collector_side_effect)

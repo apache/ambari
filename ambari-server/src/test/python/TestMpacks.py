@@ -15,11 +15,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
+import logging
 import os
 import platform
+import distro
 from mock.mock import patch, MagicMock, call
 from unittest import TestCase
 from ambari_commons.exceptions import FatalException
+import importlib
 
 os.environ["ROOT"] = ""
 
@@ -33,17 +36,17 @@ shutil.copyfile(project_dir+"/ambari-server/conf/unix/ambari.properties", "/tmp/
 # We have to use this import HACK because the filename contains a dash
 _search_file = os_utils.search_file
 os_utils.search_file = MagicMock(return_value="/tmp/ambari.properties")
-with patch.object(platform, "linux_distribution", return_value = MagicMock(return_value=('Redhat', '6.4', 'Final'))):
+with patch.object(distro, "linux_distribution", return_value = MagicMock(return_value=('Redhat', '6.4', 'Final'))):
   with patch("os.path.isdir", return_value = MagicMock(return_value=True)):
     with patch("os.access", return_value = MagicMock(return_value=True)):
       with patch.object(os_utils, "parse_log4j_file", return_value={'ambari.log.dir': '/var/log/ambari-server'}):
-        with patch("platform.linux_distribution", return_value = os_distro_value):
+        with patch("distro.linux_distribution", return_value = os_distro_value):
           with patch("os.symlink"):
             with patch.object(os_utils, "is_service_exist", return_value = True):
               with patch("glob.glob", return_value = ['/etc/init.d/postgresql-9.3']):
                 _ambari_server_ = __import__('ambari-server')
                 os_utils.search_file = _search_file
-                with patch("__builtin__.open"):
+                with patch("builtins.open"):
                   from ambari_commons.exceptions import FatalException, NonFatalException
                   from ambari_server import serverConfiguration
                   serverConfiguration.search_file = _search_file
@@ -56,7 +59,7 @@ from ambari_server.setupMpacks import install_mpack, upgrade_mpack, replay_mpack
 
 with patch.object(os, "geteuid", new=MagicMock(return_value=0)):
   from resource_management.core import sudo
-  reload(sudo)
+  importlib.reload(sudo)
 
 def get_configs():
   test_directory = os.path.dirname(os.path.abspath(__file__))
@@ -83,7 +86,7 @@ class TestMpacks(TestCase):
     try:
       install_mpack(options)
     except FatalException as e:
-      self.assertEquals("Management pack not specified!", e.reason)
+      self.assertEqual("Management pack not specified!", e.reason)
       fail = True
     self.assertTrue(fail)
 
@@ -97,7 +100,7 @@ class TestMpacks(TestCase):
     try:
       install_mpack(options)
     except FatalException as e:
-      self.assertEquals("Management pack could not be downloaded!", e.reason)
+      self.assertEqual("Management pack could not be downloaded!", e.reason)
       fail = True
     self.assertTrue(fail)
 
@@ -232,7 +235,7 @@ class TestMpacks(TestCase):
     try:
       install_mpack(options)
     except FatalException as e:
-      self.assertEquals("Malformed management pack. Root directory missing!", e.reason)
+      self.assertEqual("Malformed management pack. Root directory missing!", e.reason)
       fail = True
     self.assertTrue(fail)
 
@@ -243,7 +246,7 @@ class TestMpacks(TestCase):
     try:
       install_mpack(options)
     except FatalException as e:
-      self.assertEquals("Malformed management pack. Failed to expand management pack!", e.reason)
+      self.assertEqual("Malformed management pack. Failed to expand management pack!", e.reason)
       fail = True
     self.assertTrue(fail)
 
@@ -254,7 +257,7 @@ class TestMpacks(TestCase):
     try:
       install_mpack(options)
     except FatalException as e:
-      self.assertEquals("Malformed management pack {0}. Metadata file missing!".format(options.mpack_path), e.reason)
+      self.assertEqual("Malformed management pack {0}. Metadata file missing!".format(options.mpack_path), e.reason)
       fail = True
     self.assertTrue(fail)
 
@@ -326,7 +329,7 @@ class TestMpacks(TestCase):
     try:
       install_mpack(options)
     except Exception as e:
-      print e
+      print(e)
 
     stacks_directory = configs[serverConfiguration.STACK_LOCATION_KEY]
     common_services_directory = configs[serverConfiguration.COMMON_SERVICES_PATH_PROPERTY]
@@ -420,7 +423,6 @@ class TestMpacks(TestCase):
   @patch("ambari_server.setupMpacks.expand_mpack")
   @patch("ambari_server.setupMpacks.download_mpack")
   @patch("ambari_server.setupMpacks.set_file_permissions")
-
   def test_install_extension_mpack(self, set_file_permissions_mock, download_mpack_mock, expand_mpack_mock, add_replay_log_mock,
       purge_stacks_and_mpacks_mock, get_ambari_properties_mock, get_ambari_version_mock,
       create_symlink_mock, read_ambari_user_mock, os_mkdir_mock, shutil_move_mock, os_path_exists_mock):
@@ -430,7 +432,7 @@ class TestMpacks(TestCase):
     download_mpack_mock.return_value = "/tmp/myextension.tar.gz"
     expand_mpack_mock.return_value = "mpacks/myextension-ambari-mpack-1.0.0.0"
     get_ambari_version_mock.return_value = "2.4.0.0"
-    
+
     os_path_exists_mock.side_effect = [True, True, True, True, False, True, False, False, False,
                                        False, True, True, False, False, False]
     get_ambari_properties_mock.return_value = configs
@@ -590,7 +592,6 @@ class TestMpacks(TestCase):
   @patch("ambari_server.setupMpacks.download_mpack")
   @patch("ambari_server.setupMpacks.run_os_command")
   @patch("ambari_server.setupMpacks.set_file_permissions")
-
   def test_upgrade_stack_mpack(self, set_file_permissions_mock, run_os_command_mock, download_mpack_mock, expand_mpack_mock, purge_stacks_and_mpacks_mock,
                                _uninstall_mpack_mock, add_replay_log_mock, get_ambari_properties_mock,
                                get_ambari_version_mock, create_symlink_mock, read_ambari_user_mock, os_mkdir_mock, shutil_move_mock,
@@ -771,7 +772,7 @@ class TestMpacks(TestCase):
     run_os_command_mock.assert_has_calls(run_os_command_calls)
     os_mkdir_mock.assert_has_calls(os_mkdir_calls)
     create_symlink_mock.assert_has_calls(create_symlink_calls)
-    self.assertEqual(18, create_symlink_mock.call_count) 
+    self.assertEqual(18, create_symlink_mock.call_count)
     create_symlink_using_path_mock.assert_has_calls(create_symlink_using_path_calls)
     self.assertEqual(1, create_symlink_using_path_mock.call_count)
     _uninstall_mpack_mock.assert_has_calls([call("mystack-ambari-mpack", "1.0.0.0")])

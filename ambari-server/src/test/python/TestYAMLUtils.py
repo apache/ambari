@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -31,36 +31,36 @@ class TestYAMLUtils(TestCase):
 
     expected_values.append("c6401.ambari.apache.org")
     values = yaml_utils.get_values_from_yaml_array("['c6401.ambari.apache.org']")
-    self.assertEquals(expected_values, values)
+    self.assertEqual(expected_values, values)
 
     expected_values.append("c6402.ambari.apache.org")
     values = yaml_utils.get_values_from_yaml_array("['c6401.ambari.apache.org', 'c6402.ambari.apache.org']")
-    self.assertEquals(expected_values, values)
+    self.assertEqual(expected_values, values)
 
     values = yaml_utils.get_values_from_yaml_array('["c6401.ambari.apache.org", "c6402.ambari.apache.org"]')
-    self.assertEquals(expected_values, values)
+    self.assertEqual(expected_values, values)
 
     values = yaml_utils.get_values_from_yaml_array('[\'c6401.ambari.apache.org\', "c6402.ambari.apache.org"]')
-    self.assertEquals(expected_values, values)
+    self.assertEqual(expected_values, values)
 
 
   def test_yaml_property_escaping(self):
     """
     Tests that YAML values are escaped with quotes properly when needed
     """
-    self.assertEquals("True", yaml_utils.escape_yaml_property("True"))
-    self.assertEquals("FALSE", yaml_utils.escape_yaml_property("FALSE"))
-    self.assertEquals("yes", yaml_utils.escape_yaml_property("yes"))
-    self.assertEquals("NO", yaml_utils.escape_yaml_property("NO"))
-    self.assertEquals("28", yaml_utils.escape_yaml_property("28"))
-    self.assertEquals("28.0", yaml_utils.escape_yaml_property("28.0"))
-    self.assertEquals("[a,b,c]", yaml_utils.escape_yaml_property("[a,b,c]"))
-    self.assertEquals("{ foo : bar }", yaml_utils.escape_yaml_property("{ foo : bar }"))
+    self.assertEqual("True", yaml_utils.escape_yaml_property("True"))
+    self.assertEqual("FALSE", yaml_utils.escape_yaml_property("FALSE"))
+    self.assertEqual("yes", yaml_utils.escape_yaml_property("yes"))
+    self.assertEqual("NO", yaml_utils.escape_yaml_property("NO"))
+    self.assertEqual("28", yaml_utils.escape_yaml_property("28"))
+    self.assertEqual("28.0", yaml_utils.escape_yaml_property("28.0"))
+    self.assertEqual("[a,b,c]", yaml_utils.escape_yaml_property("[a,b,c]"))
+    self.assertEqual("{ foo : bar }", yaml_utils.escape_yaml_property("{ foo : bar }"))
 
     # some strings which should be escaped
-    self.assertEquals("'5f'", yaml_utils.escape_yaml_property("5f"))
-    self.assertEquals("'28.O'", yaml_utils.escape_yaml_property("28.O"))
-    self.assertEquals("'This is a test of a string'", yaml_utils.escape_yaml_property("This is a test of a string"))
+    self.assertEqual("'5f'", yaml_utils.escape_yaml_property("5f"))
+    self.assertEqual("'28.O'", yaml_utils.escape_yaml_property("28.O"))
+    self.assertEqual("'This is a test of a string'", yaml_utils.escape_yaml_property("This is a test of a string"))
 
     # test maps
     map = """

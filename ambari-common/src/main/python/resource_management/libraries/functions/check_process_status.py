@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -76,6 +76,6 @@ def wait_process_stopped(pid_file):
       check_process_status(pid_file)
       time.sleep(1)
       counter += 1
-    except ComponentIsNotRunning, e:
+    except ComponentIsNotRunning as e:
       Logger.logger.debug(" reports ComponentIsNotRunning")
       component_is_stopped = True

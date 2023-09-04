@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -24,9 +24,9 @@ from resource_management.libraries.functions.format import format
 from ambari_commons import OSCheck
 
 if OSCheck.is_windows_family():
-  from params_windows import *
+  from scripts.params_windows import *
 else:
-  from params_linux import *
+  from scripts.params_linux import *
 
 hbase_pid_dir = config['configurations']['ams-hbase-env']['hbase_pid_dir']
 hbase_user = ams_user

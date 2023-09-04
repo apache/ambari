@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -26,7 +26,7 @@ import copy
 import ambari_simplejson as json
 
 from collections import defaultdict
-from Grep import Grep
+from ambari_agent.Grep import Grep
 
 from ambari_agent import Constants
 from ambari_agent.models.commands import CommandStatus, AgentCommand
@@ -182,7 +182,7 @@ class CommandStatusDict():
     files_to_read = [report['tmpout'], report['tmperr'], report['structuredOut']]
     files_content = ['...', '...', '{}']
 
-    for i in xrange(len(files_to_read)):
+    for i in range(len(files_to_read)):
       filename = files_to_read[i]
       if os.path.exists(filename):
         with open(filename, 'r') as fp:

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -35,7 +35,7 @@ class _singleton(type):
     return cls._instances[cls]
 
 
-class ExitHelper(object):
+class ExitHelper(object, metaclass=_singleton):
   """
   Class to cleanup resources before exiting. Replacement for atexit module. sys.exit(code) works only from threads and
   os._exit(code) will ignore atexit and cleanup will be ignored.
@@ -43,7 +43,6 @@ class ExitHelper(object):
   WARNING: always import as `ambari_agent.ExitHelper import ExitHelper`, otherwise it will be imported twice and nothing
   will work as expected.
   """
-  __metaclass__ = _singleton
 
   def __init__(self):
     self.exit_functions = []
@@ -74,10 +73,10 @@ class ExitHelper(object):
 
 if __name__ == '__main__':
   def func1():
-    print "1"
+    print("1")
 
   def func2():
-    print "2"
+    print("2")
 
   ExitHelper().register(func1)
   ExitHelper().register(func2)

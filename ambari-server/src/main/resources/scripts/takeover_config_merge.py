@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 '''
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -28,8 +28,8 @@ import base64
 import time
 import xml
 import xml.etree.ElementTree as ET
-import StringIO
-import ConfigParser
+import io
+import configparser
 from optparse import OptionGroup
 
 logger = logging.getLogger('AmbariTakeoverConfigMerge')
@@ -84,7 +84,7 @@ class YamlParser(Parser): # Used Yaml parser to read data into a map
     configurations = {}
     with open(path, 'r') as file:
       try:
-        for name, value in yaml.load(file).iteritems():
+        for name, value in yaml.load(file).items():
           if name != None:
             configurations[name] = str(value)
       except:
@@ -97,17 +97,17 @@ class PropertiesParser(Parser): # Used ConfigParser parser to read data into a m
     configurations = {}
     try :
       #Adding dummy section to properties file content for use ConfigParser
-      properties_file_content = StringIO.StringIO()
+      properties_file_content = io.StringIO()
       properties_file_content.write('[dummysection]\n')
       properties_file_content.write(open(path).read())
       properties_file_content.seek(0, os.SEEK_SET)
 
-      cp = ConfigParser.ConfigParser()
+      cp = configparser.ConfigParser()
       cp.optionxform = str
       cp.readfp(properties_file_content)
 
       for section in cp._sections:
-        for name, value in cp._sections[section].iteritems():
+        for name, value in cp._sections[section].items():
           if name != None:
             configurations[name] = value
         del configurations['__name__']
@@ -190,7 +190,7 @@ class ConfigMerge:
           config_name = None
 
           if ConfigMerge.UNKNOWN_FILES_MAPPING_FILE:
-            for path_regex, name in ConfigMerge.CONTENT_UNKNOWN_FILES_MAPPING_FILE.iteritems():
+            for path_regex, name in ConfigMerge.CONTENT_UNKNOWN_FILES_MAPPING_FILE.items():
               match = re.match(path_regex, os.path.relpath(file_path, ConfigMerge.INPUT_DIR))
               if match:
                 config_name = name
@@ -218,8 +218,8 @@ class ConfigMerge:
     property_name_to_value_to_filepaths = {}
     merged_configurations = {}
 
-    for path, configurations in filepath_to_configurations.iteritems():
-      for configuration_name, value in configurations.iteritems():
+    for path, configurations in filepath_to_configurations.items():
+      for configuration_name, value in configurations.items():
         if not configuration_name in property_name_to_value_to_filepaths:
           property_name_to_value_to_filepaths[configuration_name] = {}
         if not value in property_name_to_value_to_filepaths[configuration_name]:
@@ -234,7 +234,7 @@ class ConfigMerge:
   @staticmethod
   def format_for_blueprint(configurations, attributes):
     all_configs = []
-    for configuration_type, configuration_properties in configurations.iteritems():
+    for configuration_type, configuration_properties in configurations.items():
       is_content = False
       all_configs.append({})
 
@@ -245,13 +245,13 @@ class ConfigMerge:
 
       if is_content:
         content = LICENSE
-        for property_name, property_value in configuration_properties.iteritems():
+        for property_name, property_value in configuration_properties.items():
           content+=property_name + "=" + property_value + "\n"
         all_configs[-1][configuration_type] = {'properties': {"content" : content}}
       else:
         all_configs[-1][configuration_type] = {'properties' :configuration_properties}
 
-      for configuration_type_attributes, properties_attributes in attributes.iteritems():
+      for configuration_type_attributes, properties_attributes in attributes.items():
         if properties_attributes and configuration_type == configuration_type_attributes:
           all_configs[-1][configuration_type].update({"properties_attributes" : {"final" : properties_attributes}})
 
@@ -264,12 +264,12 @@ class ConfigMerge:
   @staticmethod
   def format_conflicts_output(property_name_to_value_to_filepaths):
     output = ""
-    for property_name, value_to_filepaths in property_name_to_value_to_filepaths.iteritems():
+    for property_name, value_to_filepaths in property_name_to_value_to_filepaths.items():
       if len(value_to_filepaths) == 1:
         continue
 
       first_item = False
-      for value, filepaths in value_to_filepaths.iteritems():
+      for value, filepaths in value_to_filepaths.items():
         if not first_item:
           first_item = True
           output += "\n\n=== {0} | {1} | {2} |\nHas conflicts with:\n\n".format(property_name,filepaths[0], value)
@@ -283,7 +283,7 @@ class ConfigMerge:
     result_configurations = {}
     result_property_attributes = {}
     has_conflicts = False
-    for filename, paths_and_parsers in self.config_files_map.iteritems():
+    for filename, paths_and_parsers in self.config_files_map.items():
       filepath_to_configurations = {}
       filepath_to_property_attributes = {}
       configuration_type = os.path.splitext(filename)[0]
@@ -380,14 +380,14 @@ class ConfigMerge:
 
     if configurations_conflicts:
       output += "\n\n======= Property diff conflicts ====== "
-      for config_name, property in configurations_conflicts.iteritems():
+      for config_name, property in configurations_conflicts.items():
           if property:
             output+= "\n\n||| " + config_name + " |||\n"
             output+= "\n".join(str(p) for p in property)
 
     if attributes_conflicts:
       output += "\n\n======= Final attribute diff conflicts ====== "
-      for config_name, property_with_attribute in attributes_conflicts.iteritems():
+      for config_name, property_with_attribute in attributes_conflicts.items():
         if property_with_attribute:
           output+= "\n\n||| " + config_name + " |||\n"
           output+= "\n".join(str(p) for p in property_with_attribute)
@@ -426,8 +426,8 @@ class ConfigMerge:
   def get_conflicts_and_matches(left_items, right_items, left_path, right_path):
     matches = []
     conflicts = []
-    for left_key, left_value in left_items.iteritems():
-      for right_key, right_value in right_items.iteritems():
+    for left_key, left_value in left_items.items():
+      for right_key, right_value in right_items.items():
         if left_key == right_key:
           matches.append(right_key)
           if left_value != right_value:
@@ -437,7 +437,7 @@ class ConfigMerge:
   @staticmethod
   def get_missing_attributes(attributes, matches, file_path):
     conflicts = []
-    for key, value in attributes.iteritems():
+    for key, value in attributes.items():
       if not key in matches:
         conflicts.append({key : "Final attribute is missing in {0} file".format(file_path)})
     return conflicts
@@ -445,7 +445,7 @@ class ConfigMerge:
   @staticmethod
   def get_missing_properties(configurations, matches, file_path):
     conflicts = []
-    for key, value in configurations.iteritems():
+    for key, value in configurations.items():
       if not key in matches:
         conflicts.append({key : "Property is missing in {0} file".format(file_path)})
     return conflicts

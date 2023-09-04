@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -21,14 +21,14 @@ limitations under the License.
 try: import readline  # For readline input support
 except: pass
 
-import sys, signal, os, traceback, codeop, cStringIO, cPickle, tempfile
+import sys, signal, os, traceback, codeop, io, pickle, tempfile
 
 def bind_debug_signal_handlers():
   signal.signal(signal.SIGUSR1, print_threads_stack_traces) # prints process threads current stack trace to the err stream. (can be found in ambari-agent.out)
   signal.signal(signal.SIGUSR2, remote_debug) # provide a read-only python shell, which represent the process state at time of signal arrival.
 
 def print_threads_stack_traces(sig, frame):
-  print >> sys.stderr, "\n*** STACKTRACE - START ***\n"
+  print("\n*** STACKTRACE - START ***\n", file=sys.stderr)
   code = []
   for threadId, stack in sys._current_frames().items():
     code.append("\n# ThreadID: %s" % threadId)
@@ -39,15 +39,15 @@ def print_threads_stack_traces(sig, frame):
         code.append("  %s" % (line.strip()))
 
   for line in code:
-    print >> sys.stderr, line
-  print >> sys.stderr, "\n*** STACKTRACE - END ***\n"
+    print(line, file=sys.stderr)
+  print("\n*** STACKTRACE - END ***\n", file=sys.stderr)
 
 def pipename(pid):
   """Return name of pipe to use"""
   return os.path.join(tempfile.gettempdir(), 'debug-%d' % pid)
 
 class NamedPipe(object):
-  def __init__(self, name, end=0, mode=0666):
+  def __init__(self, name, end=0, mode=0o666):
     """Open a pair of pipes, name.in and name.out for communication
     with another process.  One process should pass 1 for end, and the
     other 0.  Data is marshalled with pickle."""
@@ -72,7 +72,7 @@ class NamedPipe(object):
     
   def put(self,msg):
     if self.is_open():
-      data = cPickle.dumps(msg,1)
+      data = pickle.dumps(msg,1)
       self.out.write("%d\n" % len(data))
       self.out.write(data)
       self.out.flush()
@@ -87,7 +87,7 @@ class NamedPipe(object):
       l = int(txt)
       data=self.inp.read(l)
       if len(data) < l: self.inp.close()
-      return cPickle.loads(data)  # Convert back to python object.
+      return pickle.loads(data)  # Convert back to python object.
       
   def close(self):
     self.inp.close()
@@ -129,16 +129,16 @@ def remote_debug(sig,frame):
         try:
           code = codeop.compile_command(txt)
           if code:
-            sys.stdout = cStringIO.StringIO()
+            sys.stdout = io.StringIO()
             sys.stderr = sys.stdout
-            exec code in globs,locs
+            exec(code, globs,locs)
             txt = ''
             pipe.put(sys.stdout.getvalue() + '>>> ')
           else:
             pipe.put('... ')
         except:
           txt='' # May be syntax err.
-          sys.stdout = cStringIO.StringIO()
+          sys.stdout = io.StringIO()
           sys.stderr = sys.stdout
           traceback.print_exc()
           pipe.put(sys.stdout.getvalue() + '>>> ')

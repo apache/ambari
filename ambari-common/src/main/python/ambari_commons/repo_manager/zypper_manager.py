@@ -190,7 +190,7 @@ class ZypperManager(GenericManager):
         active_base_repos = self.get_active_base_repos()
         if 'base' in context.use_repos:
           # Remove 'base' from use_repos list
-          use_repos = filter(lambda x: x != 'base', context.use_repos)
+          use_repos = [x for x in context.use_repos if x != 'base']
           use_repos.extend(active_base_repos)
         use_repos_options = []
         for repo in sorted(context.use_repos):
@@ -257,7 +257,7 @@ class ZypperManager(GenericManager):
     regex = re.compile(name_regex)
 
     for package in packages:
-      if regex.match(package['name']):
+      if regex.match(package['name'].decode()):
         return True
     return False
 

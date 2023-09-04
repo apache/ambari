@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -20,8 +20,8 @@ limitations under the License.
 
 import sys
 
-from hbase import hbase
-from hbase_service import hbase_service
+from scripts.hbase import hbase
+from scripts.hbase_service import hbase_service
 from resource_management.libraries.functions.check_process_status import check_process_status
 
          
@@ -30,13 +30,13 @@ class HbaseRegionServer(Script):
     self.install_packages(env)
     
   def configure(self, env, action = None):
-    import params
+    from scripts import params
     env.set_params(params)
 
     hbase('regionserver', action)
       
   def start(self, env):
-    import params
+    from scripts import params
     env.set_params(params)
     self.configure(env, action = 'start') # for security
 
@@ -45,7 +45,7 @@ class HbaseRegionServer(Script):
     )
     
   def stop(self, env):
-    import params
+    from scripts import params
     env.set_params(params)
 
     hbase_service( 'regionserver',
@@ -53,13 +53,13 @@ class HbaseRegionServer(Script):
     )
 
   def status(self, env):
-    import status_params
+    from scripts import status_params
     env.set_params(status_params)
     pid_file = format("{pid_dir}/hbase-{hbase_user}-regionserver.pid")
     check_process_status(pid_file)
     
   def decommission(self, env):
-    print "Decommission not yet implemented!"
+    print("Decommission not yet implemented!")
     
 
 if __name__ == "__main__":

@@ -27,7 +27,7 @@ stomppy_version = 'Stomp.py Version %s.%s.%s' % stomp.__version__
 try:
     import uuid
 except ImportError:
-    from backward import uuid
+    from .backward import uuid
 
 
 class SubscriptionInfo(object):

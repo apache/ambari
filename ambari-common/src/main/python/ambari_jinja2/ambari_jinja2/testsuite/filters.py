@@ -163,7 +163,7 @@ class FilterTestCase(JinjaTestCase):
     def test_string(self):
         x = [1, 2, 3, 4, 5]
         tmpl = env.from_string('''{{ obj|string }}''')
-        assert tmpl.render(obj=x) == unicode(x)
+        assert tmpl.render(obj=x) == str(x)
 
     def test_title(self):
         tmpl = env.from_string('''{{ "foo bar"|title }}''')
@@ -271,7 +271,7 @@ class FilterTestCase(JinjaTestCase):
 
     def test_forceescape(self):
         tmpl = env.from_string('{{ x|forceescape }}')
-        assert tmpl.render(x=Markup('<div />')) == u'&lt;div /&gt;'
+        assert tmpl.render(x=Markup('<div />')) == '&lt;div /&gt;'
 
     def test_safe(self):
         env = Environment(autoescape=True)

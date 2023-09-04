@@ -56,7 +56,7 @@ class TestFcntlBasedProcessLock(TestCase):
 
       for p in process_list:
         p.join(2)
-        self.assertEquals(p.exitcode, 0)
+        self.assertEqual(p.exitcode, 0)
 
     finally:
       shutil.rmtree(test_temp_dir)

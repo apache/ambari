@@ -40,13 +40,13 @@ class TestPackageResource(TestCase):
     shell_mock.return_value.__enter__.return_value = []
     sys.modules['rpm'] = MagicMock()
     sys.modules['rpm'].TransactionSet.return_value = MagicMock()
-    sys.modules['rpm'].TransactionSet.return_value.dbMatch.return_value = [{'name':'some_packag'}]
+    sys.modules['rpm'].TransactionSet.return_value.dbMatch.return_value = [{'name': b'some_packag'}]
     with Environment('/') as env:
       Package("some_package*",
         logoutput = False
       )
 
-    self.assertEquals(shell_mock.call_args_list[0][0][0],['/usr/bin/yum', '-d', '0', '-e', '0', '-y', 'install', 'some_package*'])
+    self.assertEqual(shell_mock.call_args_list[0][0][0],['/usr/bin/yum', '-d', '0', '-e', '0', '-y', 'install', 'some_package*'])
 
   @patch.object(ac_shell, "process_executor")
   @patch.object(ManagerFactory, "get", new=MagicMock(return_value=ManagerFactory.get_new_instance(OSConst.REDHAT_FAMILY)))
@@ -55,7 +55,7 @@ class TestPackageResource(TestCase):
     sys.modules['yum'] = MagicMock()
     sys.modules['yum'].YumBase.return_value = MagicMock()
     sys.modules['yum'].YumBase.return_value.rpmdb = MagicMock()
-    sys.modules['yum'].YumBase.return_value.rpmdb.simplePkgList.return_value = [('some_package_1_2_3',)]
+    sys.modules['yum'].YumBase.return_value.rpmdb.simplePkgList.return_value = [( b'some_package_1_2_3',)]
     with Environment('/') as env:
       Package("some_package*",
               logoutput = False
@@ -71,14 +71,14 @@ class TestPackageResource(TestCase):
               )
     call_mock.assert_has_calls([call("installed_pkgs=`rpm -qa 'some_package*'` ; [ ! -z \"$installed_pkgs\" ]"),
                                 call("zypper --non-interactive search --type package --uninstalled-only --match-exact 'some_package*'")])
-    self.assertEquals(shell_mock.call_args_list[0][0][0],['/usr/bin/zypper', '--quiet', 'install', '--auto-agree-with-licenses', '--no-confirm', 'some_package*'])
+    self.assertEqual(shell_mock.call_args_list[0][0][0],['/usr/bin/zypper', '--quiet', 'install', '--auto-agree-with-licenses', '--no-confirm', 'some_package*'])
 
   @patch.object(ac_shell, "process_executor")
   @patch.object(ManagerFactory, "get", new=MagicMock(return_value=ManagerFactory.get_new_instance(OSConst.SUSE_FAMILY)))
   def test_action_install_pattern_suse(self, shell_mock):
     sys.modules['rpm'] = MagicMock()
     sys.modules['rpm'].TransactionSet.return_value = MagicMock()
-    sys.modules['rpm'].TransactionSet.return_value.dbMatch.return_value = [{'name':'some_packagetest'}]
+    sys.modules['rpm'].TransactionSet.return_value.dbMatch.return_value = [{'name': b'some_packagetest'}]
     with Environment('/') as env:
       Package("some_package*",
               )
@@ -89,7 +89,7 @@ class TestPackageResource(TestCase):
   def test_action_install_existent_rhel(self, shell_mock):
     sys.modules['rpm'] = MagicMock()
     sys.modules['rpm'].TransactionSet.return_value = MagicMock()
-    sys.modules['rpm'].TransactionSet.return_value.dbMatch.return_value = [{'name':'some_package'}]
+    sys.modules['rpm'].TransactionSet.return_value.dbMatch.return_value = [{'name': b'some_package'}]
     with Environment('/') as env:
       Package("some_package",
               )
@@ -100,7 +100,7 @@ class TestPackageResource(TestCase):
   def test_action_install_existent_suse(self, shell_mock):
     sys.modules['rpm'] = MagicMock()
     sys.modules['rpm'].TransactionSet.return_value = MagicMock()
-    sys.modules['rpm'].TransactionSet.return_value.dbMatch.return_value = [{'name':'some_package'}]
+    sys.modules['rpm'].TransactionSet.return_value.dbMatch.return_value = [{'name': b'some_package'}]
     with Environment('/') as env:
       Package("some_package",
               )
@@ -111,13 +111,13 @@ class TestPackageResource(TestCase):
   def test_action_remove_rhel(self, shell_mock):
     sys.modules['rpm'] = MagicMock()
     sys.modules['rpm'].TransactionSet.return_value = MagicMock()
-    sys.modules['rpm'].TransactionSet.return_value.dbMatch.return_value = [{'name':'some_package'}]
+    sys.modules['rpm'].TransactionSet.return_value.dbMatch.return_value = [{'name': b'some_package'}]
     with Environment('/') as env:
       Package("some_package",
               action = "remove",
               logoutput = False
       )
-    self.assertEquals(shell_mock.call_args_list[0][0][0], ['/usr/bin/yum', '-d', '0', '-e', '0', '-y', 'erase', 'some_package'])
+    self.assertEqual(shell_mock.call_args_list[0][0][0], ['/usr/bin/yum', '-d', '0', '-e', '0', '-y', 'erase', 'some_package'])
 
 
   @replace_underscores

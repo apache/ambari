@@ -130,9 +130,9 @@ class YumParser(GenericParser):
     bash.x86_64                              4.1.2-48.el6                @CentOS/6.9
     bind-libs.x86_64                         32:9.8.2-0.62.rc1.el6_9.4   @Updates/6.9
     """
-
+    remove_chars_map = str.maketrans('', '', REMOVE_CHARS)
     for line in stream:
-      line = ANSI_ESCAPE.sub('', line).translate(None, REMOVE_CHARS)  # strip sh control seq. and ascii control ch.
+      line = ANSI_ESCAPE.sub('', line).translate(remove_chars_map)  # strip sh control seq. and ascii control ch.
       pkg_name, _, line = line.lstrip().partition(" ")
       pkg_name, _, _ = str(pkg_name).rpartition(".")  # cut architecture from package name
       pkg_version, _, line = line.lstrip().partition(" ")

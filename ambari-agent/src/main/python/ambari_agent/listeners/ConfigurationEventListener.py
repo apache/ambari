@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -52,7 +52,7 @@ class ConfigurationEventListener(EventListener):
 
     if message['clusters']:
       # FIXME: Recovery manager does not support multiple cluster as of now.
-      self.recovery_manager.cluster_id = message['clusters'].keys()[0]
+      self.recovery_manager.cluster_id = list(message['clusters'].keys())[0]
       self.recovery_manager.on_config_update()
 
   def get_handled_path(self):

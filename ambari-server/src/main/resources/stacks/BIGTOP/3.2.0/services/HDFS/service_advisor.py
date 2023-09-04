@@ -38,7 +38,7 @@ try:
     service_advisor = imp.load_module('service_advisor', fp, PARENT_FILE, ('.py', 'rb', imp.PY_SOURCE))
 except Exception as e:
   traceback.print_exc()
-  print "Failed to load parent."
+  print("Failed to load parent.")
 
 
 class HDFSServiceAdvisor(service_advisor.ServiceAdvisor):
@@ -240,15 +240,15 @@ class HDFSRecommender(service_advisor.ServiceAdvisor):
     # dfs.datanode.du.reserved should be set to 10-15% of volume size
     # For each host selects maximum size of the volume. Then gets minimum for all hosts.
     # This ensures that each host will have at least one data dir with available space.
-    reservedSizeRecommendation = 0l #kBytes
+    reservedSizeRecommendation = 0 #kBytes
     for host in hosts["items"]:
       mountPoints = []
       mountPointDiskAvailableSpace = [] #kBytes
       for diskInfo in host["Hosts"]["disk_info"]:
         mountPoints.append(diskInfo["mountpoint"])
-        mountPointDiskAvailableSpace.append(long(diskInfo["size"]))
+        mountPointDiskAvailableSpace.append(int(diskInfo["size"]))
 
-      maxFreeVolumeSizeForHost = 0l #kBytes
+      maxFreeVolumeSizeForHost = 0 #kBytes
       for dataDir in dataDirs:
         mp = HDFSRecommender.getMountPointForDir(dataDir, mountPoints)
         for i in range(len(mountPoints)):
@@ -264,7 +264,7 @@ class HDFSRecommender(service_advisor.ServiceAdvisor):
 
     if reservedSizeRecommendation:
       reservedSizeRecommendation = max(reservedSizeRecommendation * 1024 / 8, 1073741824) # At least 1Gb is reserved
-      putHDFSSiteProperty('dfs.datanode.du.reserved', reservedSizeRecommendation) #Bytes
+      putHDFSSiteProperty('dfs.datanode.du.reserved', int(reservedSizeRecommendation)) #Bytes
 
     # recommendations for "hadoop.proxyuser.*.hosts", "hadoop.proxyuser.*.groups" properties in core-site
     self.recommendHadoopProxyUsers(configurations, services, hosts)
@@ -325,18 +325,18 @@ class HDFSRecommender(service_advisor.ServiceAdvisor):
         nn_max_heapsize = min(int(namenodeHosts[0]["Hosts"]["total_mem"]),
                               int(namenodeHosts[1]["Hosts"]["total_mem"])) / 1024
         masters_at_host = max(
-          self.getHostComponentsByCategories(namenodeHosts[0]["Hosts"]["host_name"], ["MASTER"], services, hosts),
-          self.getHostComponentsByCategories(namenodeHosts[1]["Hosts"]["host_name"], ["MASTER"], services, hosts))
+          len(self.getHostComponentsByCategories(namenodeHosts[0]["Hosts"]["host_name"], ["MASTER"], services, hosts)),
+          len(self.getHostComponentsByCategories(namenodeHosts[1]["Hosts"]["host_name"], ["MASTER"], services, hosts)))
       else:
         nn_max_heapsize = int(namenodeHosts[0]["Hosts"]["total_mem"] / 1024)  # total_mem in kb
-        masters_at_host = self.getHostComponentsByCategories(namenodeHosts[0]["Hosts"]["host_name"], ["MASTER"],
-                                                             services, hosts)
+        masters_at_host = len(self.getHostComponentsByCategories(namenodeHosts[0]["Hosts"]["host_name"], ["MASTER"],
+                                                             services, hosts))
 
       putHdfsEnvPropertyAttribute('namenode_heapsize', 'maximum', max(nn_max_heapsize, 1024))
 
       nn_heapsize_limit = nn_max_heapsize
       nn_heapsize_limit -= clusterData["reservedRam"]
-      if len(masters_at_host) > 1:
+      if masters_at_host > 1:
         nn_heapsize_limit = int(nn_heapsize_limit / 2)
 
       putHdfsEnvProperty('namenode_heapsize', max(nn_heapsize_limit, 1024))
@@ -870,7 +870,7 @@ class HDFSValidator(service_advisor.ServiceAdvisor):
       try:
         if hdfs_site['dfs.namenode.inode.attributes.provider.class'].lower() != 'org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer'.lower():
           raise ValueError()
-      except (KeyError, ValueError), e:
+      except (KeyError, ValueError) as e:
         message = "dfs.namenode.inode.attributes.provider.class needs to be set to 'org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer' if Ranger HDFS Plugin is enabled."
         validationItems.append({"config-name": 'dfs.namenode.inode.attributes.provider.class',
                                 "item": self.getWarnItem(message)})

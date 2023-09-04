@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -20,7 +20,7 @@ limitations under the License.
 
 from unittest import TestCase
 from alerts.base_alert import BaseAlert
-from AmbariConfig import AmbariConfig
+from ambari_agent.AmbariConfig import AmbariConfig
 
 class TestBaseAlert(TestCase):
 
@@ -33,7 +33,7 @@ class TestBaseAlert(TestCase):
 
     alert = BaseAlert(alert_meta, alert_source_meta, self.config)
     interval = alert.interval()
-    self.assertEquals(interval, 1)
+    self.assertEqual(interval, 1)
 
   def test_interval_zero(self):
     alert_meta = {'interval': 0}
@@ -41,7 +41,7 @@ class TestBaseAlert(TestCase):
 
     alert = BaseAlert(alert_meta, alert_source_meta, self.config)
     interval = alert.interval()
-    self.assertEquals(interval, 1)
+    self.assertEqual(interval, 1)
 
   def test_interval(self):
     alert_meta = {'interval': 5}
@@ -49,7 +49,7 @@ class TestBaseAlert(TestCase):
 
     alert = BaseAlert(alert_meta, alert_source_meta, self.config)
     interval = alert.interval()
-    self.assertEquals(interval, 5)
+    self.assertEqual(interval, 5)
 
   def test_isEnabled(self):
     alert_meta = {'enabled': 'true'}
@@ -57,7 +57,7 @@ class TestBaseAlert(TestCase):
 
     alert = BaseAlert(alert_meta, alert_source_meta, self.config)
     enabled = alert.is_enabled()
-    self.assertEquals(enabled, 'true')
+    self.assertEqual(enabled, 'true')
 
   def test_getName(self):
     alert_meta = {'name': 'ambari'}
@@ -65,7 +65,7 @@ class TestBaseAlert(TestCase):
 
     alert = BaseAlert(alert_meta, alert_source_meta, self.config)
     name = alert.get_name()
-    self.assertEquals(name, 'ambari')
+    self.assertEqual(name, 'ambari')
 
   def test_getUuid(self):
     alert_meta = {'uuid': '123'}
@@ -73,7 +73,7 @@ class TestBaseAlert(TestCase):
 
     alert = BaseAlert(alert_meta, alert_source_meta, self.config)
     uuid = alert.get_uuid()
-    self.assertEquals(uuid, '123')
+    self.assertEqual(uuid, '123')
 
   def test_setCluster(self):
     alert_meta = {}
@@ -84,5 +84,5 @@ class TestBaseAlert(TestCase):
 
     alert = BaseAlert(alert_meta, alert_source_meta, self.config)
     alert.set_cluster(cluster, cluster_id, host)
-    self.assertEquals(alert.cluster_name, cluster)
-    self.assertEquals(alert.host_name, host)
+    self.assertEqual(alert.cluster_name, cluster)
+    self.assertEqual(alert.host_name, host)

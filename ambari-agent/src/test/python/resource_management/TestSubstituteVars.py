@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -21,12 +21,12 @@ limitations under the License.
 from unittest import TestCase, main
 from resource_management.libraries.functions.substitute_vars import substitute_vars
 
-import StringIO, sys
+import io, sys
 
 class TestSubstituteVars(TestCase):
   def setUp(self):
     # disable stdout
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
   def test_substitute_vars(self):

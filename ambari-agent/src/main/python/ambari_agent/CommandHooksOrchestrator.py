@@ -19,8 +19,8 @@ limitations under the License.
 import os
 import logging
 
-from models.commands import AgentCommand
-from models.hooks import HookPrefix
+from ambari_agent.models.commands import AgentCommand
+from ambari_agent.models.hooks import HookPrefix
 
 __all__ = ["ResolvedHooks", "HooksOrchestrator"]
 

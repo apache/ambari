@@ -107,7 +107,7 @@ class TestStackSelectSetAll(RMFTestCase):
     ru_execute = UpgradeSetAll()
     ru_execute.actionexecute(None)
 
-    call_mock.assert_called_with(('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'all', u'2.5.9.9-9999'), sudo=True)
+    call_mock.assert_called_with(('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'all', '2.5.9.9-9999'), sudo=True)
 
 
   @patch("os.path.exists")
@@ -159,7 +159,7 @@ class TestStackSelectSetAll(RMFTestCase):
     ru_execute = UpgradeSetAll()
     ru_execute.actionexecute(None)
 
-    call_mock.assert_called_with(('ambari-python-wrap', u'/usr/bin/hdp-select', 'versions'), sudo = True)
+    call_mock.assert_called_with(('ambari-python-wrap', '/usr/bin/hdp-select', 'versions'), sudo = True)
     self.assertEqual(call_mock.call_count, 1)
 
   @patch("os.path.exists")
@@ -211,7 +211,7 @@ class TestStackSelectSetAll(RMFTestCase):
     ru_execute = UpgradeSetAll()
     ru_execute.actionexecute(None)
 
-    call_mock.assert_called_with(('ambari-python-wrap', u'/usr/bin/hdp-select', 'versions'), sudo = True)
+    call_mock.assert_called_with(('ambari-python-wrap', '/usr/bin/hdp-select', 'versions'), sudo = True)
     self.assertEqual(call_mock.call_count, 1)
 
   @patch("os.path.exists")

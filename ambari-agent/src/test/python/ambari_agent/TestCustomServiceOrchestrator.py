@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -17,7 +17,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-import ConfigParser
+import configparser
 from multiprocessing.pool import ThreadPool
 import os
 
@@ -34,7 +34,7 @@ import traceback
 from threading import Thread
 
 from mock.mock import MagicMock, patch
-import StringIO
+import io
 import sys
 
 from ambari_agent.ActionQueue import ActionQueue
@@ -54,13 +54,13 @@ class TestCustomServiceOrchestrator:#(TestCase):
 
   def setUp(self):
     # disable stdout
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
     # generate sample config
     tmpdir = tempfile.gettempdir()
     exec_tmp_dir = os.path.join(tmpdir, 'tmp')
     self.config = AmbariConfig()
-    self.config.config = ConfigParser.RawConfigParser()
+    self.config.config = configparser.RawConfigParser()
     self.config.add_section('agent')
     self.config.set('agent', 'prefix', tmpdir)
     self.config.set('agent', 'cache_dir', "/cachedir")
@@ -79,21 +79,21 @@ class TestCustomServiceOrchestrator:#(TestCase):
     hostname_mock.return_value = "test.hst"
     command = {
       'commandType': 'EXECUTION_COMMAND',
-      'role': u'DATANODE',
-      'roleCommand': u'INSTALL',
+      'role': 'DATANODE',
+      'roleCommand': 'INSTALL',
       'commandId': '1-1',
       'taskId': 3,
-      'clusterName': u'cc',
-      'serviceName': u'HDFS',
+      'clusterName': 'cc',
+      'serviceName': 'HDFS',
       'configurations':{'global' : {}},
       'configurationTags':{'global' : { 'tag': 'v1' }},
       'clusterHostInfo':{'namenode_host' : ['1'],
                          'slave_hosts'   : ['0', '1'],
-                         'all_racks'   : [u'/default-rack:0'],
+                         'all_racks'   : ['/default-rack:0'],
                          'ambari_server_host' : 'a.b.c',
                          'ambari_server_port' : '123',
                          'ambari_server_use_ssl' : 'false',
-                         'all_ipv4_ips'   : [u'192.168.12.101:0'],
+                         'all_ipv4_ips'   : ['192.168.12.101:0'],
                          'all_hosts'     : ['h1.hortonworks.com', 'h2.hortonworks.com'],
                          'all_ping_ports': ['8670:0,1']},
       'hostLevelParams':{}
@@ -110,7 +110,7 @@ class TestCustomServiceOrchestrator:#(TestCase):
     self.assertTrue(os.path.exists(json_file))
     self.assertTrue(os.path.getsize(json_file) > 0)
     if get_platform() != PLATFORM_WINDOWS:
-      self.assertEqual(oct(os.stat(json_file).st_mode & 0777), '0600')
+      self.assertEqual(oct(os.stat(json_file).st_mode & 0o777), '0600')
     self.assertTrue(json_file.endswith("command-3.json"))
     os.unlink(json_file)
     # Test dumping STATUS_COMMAND
@@ -118,11 +118,11 @@ class TestCustomServiceOrchestrator:#(TestCase):
     self.assertTrue(os.path.exists(json_file))
     self.assertTrue(os.path.getsize(json_file) > 0)
     if get_platform() != PLATFORM_WINDOWS:
-      self.assertEqual(oct(os.stat(json_file).st_mode & 0777), '0600')
+      self.assertEqual(oct(os.stat(json_file).st_mode & 0o777), '0600')
     self.assertTrue(json_file.endswith("command-3.json"))
     os.unlink(json_file)
     # Testing side effect of dump_command_to_json
-    self.assertNotEquals(command['clusterHostInfo'], {})
+    self.assertNotEqual(command['clusterHostInfo'], {})
     self.assertTrue(unlink_mock.called)
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
@@ -241,10 +241,10 @@ class TestCustomServiceOrchestrator:#(TestCase):
     ret = orchestrator.runCommand(command, "out.txt", "err.txt",
               forced_command_name=CustomServiceOrchestrator.SCRIPT_TYPE_PYTHON)
     ## Check that override_output_files was true only during first call
-    print run_file_mock
-    self.assertEquals(run_file_mock.call_args_list[0][0][8], True)
-    self.assertEquals(run_file_mock.call_args_list[1][0][8], False)
-    self.assertEquals(run_file_mock.call_args_list[2][0][8], False)
+    print(run_file_mock)
+    self.assertEqual(run_file_mock.call_args_list[0][0][8], True)
+    self.assertEqual(run_file_mock.call_args_list[1][0][8], False)
+    self.assertEqual(run_file_mock.call_args_list[2][0][8], False)
     ## Check that forced_command_name was taken into account
     self.assertEqual(run_file_mock.call_args_list[0][0][1][0],
                                   CustomServiceOrchestrator.SCRIPT_TYPE_PYTHON)
@@ -334,11 +334,11 @@ class TestCustomServiceOrchestrator:#(TestCase):
     ret = async_result.get()
 
     self.assertEqual(ret['exitcode'], 1)
-    self.assertEquals(ret['stdout'], 'killed\nCommand aborted. Reason: \'reason\'')
-    self.assertEquals(ret['stderr'], 'killed\nCommand aborted. Reason: \'reason\'')
+    self.assertEqual(ret['stdout'], 'killed\nCommand aborted. Reason: \'reason\'')
+    self.assertEqual(ret['stderr'], 'killed\nCommand aborted. Reason: \'reason\'')
 
     self.assertTrue(kill_process_with_children_mock.called)
-    self.assertFalse(command['taskId'] in orchestrator.commands_in_progress.keys())
+    self.assertFalse(command['taskId'] in list(orchestrator.commands_in_progress.keys()))
     self.assertTrue(os.path.exists(out))
     self.assertTrue(os.path.exists(err))
     try:
@@ -415,7 +415,7 @@ class TestCustomServiceOrchestrator:#(TestCase):
       complete_done.notifyAll()
 
     with lock:
-      self.assertTrue(complete_was_called.has_key('visited'))
+      self.assertTrue('visited' in complete_was_called)
 
     time.sleep(.1)
 

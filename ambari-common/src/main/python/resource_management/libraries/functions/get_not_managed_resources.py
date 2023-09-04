@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -36,7 +36,7 @@ def get_not_managed_resources():
   not_managed_hdfs_path_list = json.loads(config['clusterLevelParams']['not_managed_hdfs_path_list'])[:]
   if 'managed_hdfs_resource_property_names' in config['configurations']['cluster-env']:
     managed_hdfs_resource_property_names = config['configurations']['cluster-env']['managed_hdfs_resource_property_names']
-    managed_hdfs_resource_property_list = filter(None, [property.strip() for property in managed_hdfs_resource_property_names.split(',')])
+    managed_hdfs_resource_property_list = [_f for _f in [property.strip() for property in managed_hdfs_resource_property_names.split(',')] if _f]
 
     for property_name in managed_hdfs_resource_property_list:
       property_value = default('/configurations/' + property_name, None)

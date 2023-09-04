@@ -198,10 +198,10 @@ class TestAmbariConfiguration(TestCase):
 
     ambari_sso_details = ambari_configuration.get_ambari_sso_details()
     self.assertIsNotNone(ambari_sso_details)
-    self.assertEquals('', ambari_sso_details.get_jwt_audiences())
-    self.assertEquals('hadoop-jwt', ambari_sso_details.get_jwt_cookie_name())
-    self.assertEquals('https://knox.ambari.apache.org', ambari_sso_details.get_sso_provider_url())
-    self.assertEquals('MIICVTCCAb6gAwIBAg...2G2Vhj8vTYptEVg==',
+    self.assertEqual('', ambari_sso_details.get_jwt_audiences())
+    self.assertEqual('hadoop-jwt', ambari_sso_details.get_jwt_cookie_name())
+    self.assertEqual('https://knox.ambari.apache.org', ambari_sso_details.get_sso_provider_url())
+    self.assertEqual('MIICVTCCAb6gAwIBAg...2G2Vhj8vTYptEVg==',
                       ambari_sso_details.get_sso_provider_certificate())
 
   def testCertWithHeaderAndFooter(self):
@@ -220,26 +220,26 @@ class TestAmbariConfiguration(TestCase):
     ambari_configuration = self.ambari_configuration_class(services_json)
     ambari_sso_details = ambari_configuration.get_ambari_sso_details()
 
-    self.assertEquals('-----BEGIN CERTIFICATE-----\n'
+    self.assertEqual('-----BEGIN CERTIFICATE-----\n'
                       'MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD\n'
                       '................................................................\n'
                       'dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy\n'
                       '-----END CERTIFICATE-----',
                       ambari_sso_details.get_sso_provider_certificate(True, False))
 
-    self.assertEquals('-----BEGIN CERTIFICATE-----'
+    self.assertEqual('-----BEGIN CERTIFICATE-----'
                       'MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD'
                       '................................................................'
                       'dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy'
                       '-----END CERTIFICATE-----',
                       ambari_sso_details.get_sso_provider_certificate(True, True))
 
-    self.assertEquals('MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD\n'
+    self.assertEqual('MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD\n'
                       '................................................................\n'
                       'dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy',
                       ambari_sso_details.get_sso_provider_certificate(False, False))
 
-    self.assertEquals('MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD'
+    self.assertEqual('MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD'
                       '................................................................'
                       'dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy',
                       ambari_sso_details.get_sso_provider_certificate(False, True))
@@ -258,26 +258,26 @@ class TestAmbariConfiguration(TestCase):
     ambari_configuration = self.ambari_configuration_class(services_json)
     ambari_sso_details = ambari_configuration.get_ambari_sso_details()
 
-    self.assertEquals('-----BEGIN CERTIFICATE-----\n'
+    self.assertEqual('-----BEGIN CERTIFICATE-----\n'
                       'MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD\n'
                       '................................................................\n'
                       'dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy\n'
                       '-----END CERTIFICATE-----',
                       ambari_sso_details.get_sso_provider_certificate(True, False))
 
-    self.assertEquals('-----BEGIN CERTIFICATE-----'
+    self.assertEqual('-----BEGIN CERTIFICATE-----'
                       'MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD'
                       '................................................................'
                       'dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy'
                       '-----END CERTIFICATE-----',
                       ambari_sso_details.get_sso_provider_certificate(True, True))
 
-    self.assertEquals('MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD\n'
+    self.assertEqual('MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD\n'
                       '................................................................\n'
                       'dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy',
                       ambari_sso_details.get_sso_provider_certificate(False, False))
 
-    self.assertEquals('MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD'
+    self.assertEqual('MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD'
                       '................................................................'
                       'dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy',
                       ambari_sso_details.get_sso_provider_certificate(False, True))
@@ -372,38 +372,38 @@ class TestAmbariConfiguration(TestCase):
     self.assertIsNotNone(ambari_ldap_details)
 
     self.assertTrue(ambari_ldap_details.is_ldap_enabled())
-    self.assertEquals(ambari_ldap_details.get_server_host(), "host1")
-    self.assertEquals(ambari_ldap_details.get_server_port(), 336)
-    self.assertEquals(ambari_ldap_details.get_server_url(), "host1:336")
-    self.assertEquals(ambari_ldap_details.get_secondary_server_host(), "host2")
-    self.assertEquals(ambari_ldap_details.get_secondary_server_port(), 337)
-    self.assertEquals(ambari_ldap_details.get_secondary_server_url(), "host2:337")
+    self.assertEqual(ambari_ldap_details.get_server_host(), "host1")
+    self.assertEqual(ambari_ldap_details.get_server_port(), 336)
+    self.assertEqual(ambari_ldap_details.get_server_url(), "host1:336")
+    self.assertEqual(ambari_ldap_details.get_secondary_server_host(), "host2")
+    self.assertEqual(ambari_ldap_details.get_secondary_server_port(), 337)
+    self.assertEqual(ambari_ldap_details.get_secondary_server_url(), "host2:337")
     self.assertTrue(ambari_ldap_details.is_use_ssl())
     self.assertTrue(ambari_ldap_details.is_anonymous_bind())
-    self.assertEquals(ambari_ldap_details.get_bind_dn(), "bind_dn")
-    self.assertEquals(ambari_ldap_details.get_bind_password(), "bind_password")
-    self.assertEquals(ambari_ldap_details.get_dn_attribute(), "dn_attr")
-    self.assertEquals(ambari_ldap_details.get_user_object_class(), "user.object_class")
-    self.assertEquals(ambari_ldap_details.get_user_name_attribute(), "user.name_attr")
-    self.assertEquals(ambari_ldap_details.get_user_search_base(), "user.search_base")
-    self.assertEquals(ambari_ldap_details.get_group_object_class(), "group.object_class")
-    self.assertEquals(ambari_ldap_details.get_group_name_attribute(), "group.name_attr")
-    self.assertEquals(ambari_ldap_details.get_group_member_attribute(), "group.member_attr")
-    self.assertEquals(ambari_ldap_details.get_group_search_base(), "group.search_base")
-    self.assertEquals(ambari_ldap_details.get_group_mapping_rules(), "group_mapping_rules")
-    self.assertEquals(ambari_ldap_details.get_user_search_filter(), "user_search_filter")
-    self.assertEquals(ambari_ldap_details.get_user_member_replace_pattern(), "user_member_replace_pattern")
-    self.assertEquals(ambari_ldap_details.get_user_member_filter(), "user_member_filter")
-    self.assertEquals(ambari_ldap_details.get_group_search_filter(), "group_search_filter")
-    self.assertEquals(ambari_ldap_details.get_group_member_replace_pattern(), "group_member_replace_pattern")
-    self.assertEquals(ambari_ldap_details.get_group_member_filter(), "group_member_filter")
+    self.assertEqual(ambari_ldap_details.get_bind_dn(), "bind_dn")
+    self.assertEqual(ambari_ldap_details.get_bind_password(), "bind_password")
+    self.assertEqual(ambari_ldap_details.get_dn_attribute(), "dn_attr")
+    self.assertEqual(ambari_ldap_details.get_user_object_class(), "user.object_class")
+    self.assertEqual(ambari_ldap_details.get_user_name_attribute(), "user.name_attr")
+    self.assertEqual(ambari_ldap_details.get_user_search_base(), "user.search_base")
+    self.assertEqual(ambari_ldap_details.get_group_object_class(), "group.object_class")
+    self.assertEqual(ambari_ldap_details.get_group_name_attribute(), "group.name_attr")
+    self.assertEqual(ambari_ldap_details.get_group_member_attribute(), "group.member_attr")
+    self.assertEqual(ambari_ldap_details.get_group_search_base(), "group.search_base")
+    self.assertEqual(ambari_ldap_details.get_group_mapping_rules(), "group_mapping_rules")
+    self.assertEqual(ambari_ldap_details.get_user_search_filter(), "user_search_filter")
+    self.assertEqual(ambari_ldap_details.get_user_member_replace_pattern(), "user_member_replace_pattern")
+    self.assertEqual(ambari_ldap_details.get_user_member_filter(), "user_member_filter")
+    self.assertEqual(ambari_ldap_details.get_group_search_filter(), "group_search_filter")
+    self.assertEqual(ambari_ldap_details.get_group_member_replace_pattern(), "group_member_replace_pattern")
+    self.assertEqual(ambari_ldap_details.get_group_member_filter(), "group_member_filter")
     self.assertTrue(ambari_ldap_details.is_force_lower_case_user_names())
     self.assertTrue(ambari_ldap_details.is_pagination_enabled())
     self.assertTrue(ambari_ldap_details.is_follow_referral_handling())
     self.assertTrue(ambari_ldap_details.is_disable_endpoint_identification())
     self.assertTrue(ambari_ldap_details.is_ldap_alternate_user_search_enabled())
-    self.assertEquals(ambari_ldap_details.get_alternate_user_search_filter(), "alternate_user_search_filter")
-    self.assertEquals(ambari_ldap_details.get_sync_collision_handling_behavior(), "collision_behavior")
+    self.assertEqual(ambari_ldap_details.get_alternate_user_search_filter(), "alternate_user_search_filter")
+    self.assertEqual(ambari_ldap_details.get_sync_collision_handling_behavior(), "collision_behavior")
 
   def testAmbariNotMangingLdapConfiguration(self):
     ## Case 1: missing the boolean flag indicating that Ambari manages LDAP configuration

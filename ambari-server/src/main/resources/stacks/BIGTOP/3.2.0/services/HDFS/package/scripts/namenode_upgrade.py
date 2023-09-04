@@ -83,7 +83,7 @@ def prepare_upgrade_enter_safe_mode(hdfs_binary):
     Logger.info("Transition successful: {0}, original state: {1}".format(str(safemode_transition_successful), str(original_state)))
     if not safemode_transition_successful:
       raise Fail("Could not transition to safemode state %s. Please check logs to make sure namenode is up." % str(desired_state))
-  except Exception, e:
+  except Exception as e:
     message = "Could not enter safemode. Error: {0}. As the HDFS user, call this command: {1}".format(str(e), safe_mode_enter_cmd)
     Logger.error(message)
     raise Fail(message)
@@ -100,7 +100,7 @@ def prepare_upgrade_save_namespace(hdfs_binary):
   try:
     Logger.info("Checkpoint the current namespace.")
     as_user(save_namespace_cmd, params.hdfs_user, env={'PATH': params.hadoop_bin_dir})
-  except Exception, e:
+  except Exception as e:
     message = format("Could not save the NameSpace. As the HDFS user, call this command: {save_namespace_cmd}")
     Logger.error(message)
     raise Fail(message)
@@ -130,7 +130,7 @@ def prepare_upgrade_backup_namenode_dir():
         Execute(('cp', '-ar', namenode_current_image, backup_current_folder),
                 sudo=True
         )
-      except Exception, e:
+      except Exception as e:
         failed_paths.append(namenode_current_image)
   if len(failed_paths) > 0:
     Logger.error("Could not backup the NameNode Name Dir(s) to {0}, make sure that the destination path is "
@@ -156,7 +156,7 @@ def prepare_upgrade_finalize_previous_upgrades(hdfs_binary):
         Logger.warning('Finalize command did not contain substring: %s' % expected_substring)
     else:
       Logger.warning("Finalize command did not return any output.")
-  except Exception, e:
+  except Exception as e:
     Logger.warning("Ensure no upgrades are in progress.")
 
 def reach_safemode_state(user, safemode_state, in_ha, hdfs_binary):

@@ -145,7 +145,7 @@ class Scheduler(object):
 
     @property
     def running(self):
-        thread_alive = self._thread and self._thread.isAlive()
+        thread_alive = self._thread and self._thread.is_alive()
         standalone = getattr(self, 'standalone', False)
         return not self._stopped and (standalone or thread_alive)
 

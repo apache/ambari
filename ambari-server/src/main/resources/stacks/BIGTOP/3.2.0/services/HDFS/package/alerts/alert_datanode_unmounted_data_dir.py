@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 Licensed to the Apache Software Foundation (ASF) under one
@@ -20,7 +20,7 @@ limitations under the License.
 
 import os
 import logging
-import urlparse
+import urllib.parse
 
 from resource_management.libraries.functions import file_system
 from resource_management.libraries.functions import mounted_dirs_helper
@@ -101,7 +101,7 @@ def execute(configurations={}, parameters={}, host_name=None):
         continue
 
     # parse the path in case it contains a URI scheme
-    data_dir = urlparse.urlparse(data_dir).path
+    data_dir = urllib.parse.urlparse(data_dir).path
 
     normalized_data_dirs.add(data_dir)
 

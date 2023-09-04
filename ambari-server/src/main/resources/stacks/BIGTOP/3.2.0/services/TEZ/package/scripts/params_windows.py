@@ -50,5 +50,5 @@ def refresh_tez_state_dependent_params():
   stack_version_formatted = get_stack_version("tez")
 
 
-if os.environ.has_key("TEZ_HOME"):
+if "TEZ_HOME" in os.environ:
   refresh_tez_state_dependent_params()

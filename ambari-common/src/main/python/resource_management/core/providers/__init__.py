@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -38,7 +38,7 @@ class Provider(object):
     return self.__unicode__()
 
   def __unicode__(self):
-    return u"%s[%s]" % (self.__class__.__name__, self.resource)
+    return "%s[%s]" % (self.__class__.__name__, self.resource)
 
 
 PROVIDERS = dict(

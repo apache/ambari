@@ -59,23 +59,23 @@ class LexerTestCase(JinjaTestCase):
                                              "<li>1</li>\n  <li>2</li>\n</ul>")
 
     def test_string_escapes(self):
-        for char in u'\0', u'\u2668', u'\xe4', u'\t', u'\r', u'\n':
+        for char in '\0', '\\u2668', '\xe4', '\t', '\r', '\n':
             tmpl = env.from_string('{{ %s }}' % jinja_string_repr(char))
             assert tmpl.render() == char
-        assert env.from_string('{{ "\N{HOT SPRINGS}" }}').render() == u'\u2668'
+        assert env.from_string('{{ "\N{HOT SPRINGS}" }}').render() == '\\u2668'
 
     def test_bytefallback(self):
         from pprint import pformat
-        tmpl = env.from_string(u'''{{ 'foo'|pprint }}|{{ 'bär'|pprint }}''')
-        assert tmpl.render() == pformat('foo') + '|' + pformat(u'bär')
+        tmpl = env.from_string('''{{ 'foo'|pprint }}|{{ 'bär'|pprint }}''')
+        assert tmpl.render() == pformat('foo') + '|' + pformat('bär')
 
     def test_operators(self):
         from ambari_jinja2.lexer import operators
-        for test, expect in operators.iteritems():
+        for test, expect in operators.items():
             if test in '([{}])':
                 continue
             stream = env.lexer.tokenize('{{ %s }}' % test)
-            stream.next()
+            next(stream)
             assert stream.current.type == expect
 
     def test_normalizing(self):
@@ -95,7 +95,7 @@ class ParserTestCase(JinjaTestCase):
 <? for item in seq -?>
     <?= item ?>
 <?- endfor ?>''')
-        assert tmpl.render(seq=range(5)) == '01234'
+        assert tmpl.render(seq=list(range(5))) == '01234'
 
     def test_erb_syntax(self):
         env = Environment('<%', '%>', '<%=', '%>', '<%#', '%>')
@@ -169,7 +169,7 @@ and bar comment #}
         def assert_error(code, expected):
             try:
                 Template(code)
-            except TemplateSyntaxError, e:
+            except TemplateSyntaxError as e:
                 assert str(e) == expected, 'unexpected error message'
             else:
                 assert False, 'that was suposed to be an error'
@@ -338,16 +338,16 @@ class SyntaxTestCase(JinjaTestCase):
         assert tmpl.render() == 'foobarbaz'
 
     def test_notin(self):
-        bar = xrange(100)
+        bar = range(100)
         tmpl = env.from_string('''{{ not 42 in bar }}''')
-        assert tmpl.render(bar=bar) == unicode(not 42 in bar)
+        assert tmpl.render(bar=bar) == str(not 42 in bar)
 
     def test_implicit_subscribed_tuple(self):
         class Foo(object):
             def __getitem__(self, x):
                 return x
         t = env.from_string('{{ foo[1, 2] }}')
-        assert t.render(foo=Foo()) == u'(1, 2)'
+        assert t.render(foo=Foo()) == '(1, 2)'
 
     def test_raw2(self):
         tmpl = env.from_string('{% raw %}{{ FOO }} and {% BAR %}{% endraw %}')

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -24,8 +24,8 @@ Run this file to interrupt a running python process and open an interactive shel
 
 import os
 import signal
-from RemoteDebugUtils import NamedPipe
-from RemoteDebugUtils import pipename
+from ambari_agent.RemoteDebugUtils import NamedPipe
+from ambari_agent.RemoteDebugUtils import pipename
 
 def debug_process(pid):
   """Interrupt a running process and debug it."""
@@ -33,7 +33,7 @@ def debug_process(pid):
   pipe = NamedPipe(pipename(pid), 1)
   try:
     while pipe.is_open():
-      txt=raw_input(pipe.get()) + '\n'
+      txt=input(pipe.get()) + '\n'
       pipe.put(txt)
   except EOFError:
     pass # Exit.

@@ -34,7 +34,7 @@ from resource_management.core.providers import Provider
 def safe_open_scmanager():
   try:
     _schSCManager = win32service.OpenSCManager(None, None, win32service.SC_MANAGER_ALL_ACCESS)
-  except win32api.error, details:
+  except win32api.error as details:
     raise Fail("Error opening Service Control Manager on the local machine: {0}".format(details.winerror))
 
   return _schSCManager
@@ -43,7 +43,7 @@ def safe_open_service(hSCM, service_name):
   try:
     hSvc = win32serviceutil.SmartOpenService(hSCM, service_name,
                                              win32service.SERVICE_ALL_ACCESS)
-  except win32api.error, details:
+  except win32api.error as details:
     if details.winerror == winerror.ERROR_SERVICE_DOES_NOT_EXIST:
       err_msg = "Invalid service name: {0}".format(service_name)
     else:
@@ -95,7 +95,7 @@ class ServiceProvider(Provider):
                                          None,
                                          None)
       win32service.CloseServiceHandle(hSvc)
-    except win32api.error, details:
+    except win32api.error as details:
       raise Fail("Error enabling service {0}: {1}".format(self.resource.service_name, details.winerror))
     finally:
       win32service.CloseServiceHandle(hSCM)
@@ -145,7 +145,7 @@ class ServiceConfigProvider(Provider):
           pass    ## ChangeServiceConfig2 and description do not exist on NT
 
       win32service.CloseServiceHandle(hSvc)
-    except win32api.error, details:
+    except win32api.error as details:
       raise Fail("Error creating service {0}: {1}".format(self.resource.service_name, details.winerror))
     finally:
       win32service.CloseServiceHandle(hSCM)
@@ -175,7 +175,7 @@ class ServiceConfigProvider(Provider):
             win32service.ChangeServiceConfig2(hSvc, win32service.SERVICE_CONFIG_DESCRIPTION, self.resource.description)
           except NotImplementedError:
             pass    ## ChangeServiceConfig2 and description do not exist on NT
-      except win32api.error, details:
+      except win32api.error as details:
         raise Fail("Error configuring service {0}: {1}".format(self.resource.service_name, details.winerror))
       finally:
         win32service.CloseServiceHandle(hSvc)
@@ -202,7 +202,7 @@ class ServiceConfigProvider(Provider):
                                          self.resource.username,
                                          self.resource.password,
                                          None)
-      except win32api.error, details:
+      except win32api.error as details:
         raise Fail("Error changing user for service {0}: {1}".format(self.resource.service_name, details.winerror))
       finally:
         win32service.CloseServiceHandle(hSvc)
@@ -216,7 +216,7 @@ class ServiceConfigProvider(Provider):
       try:
         hSvc = win32serviceutil.SmartOpenService(hSCM, self.resource.service_name,
                                                  win32service.SERVICE_ALL_ACCESS)
-      except win32api.error, details:
+      except win32api.error as details:
         if details.winerror == winerror.ERROR_SERVICE_DOES_NOT_EXIST:
           # Nothing to do
           return

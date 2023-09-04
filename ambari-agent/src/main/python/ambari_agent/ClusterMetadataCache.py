@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 Licensed to the Apache Software Foundation (ASF) under one
@@ -52,7 +52,7 @@ class ClusterMetadataCache(ClusterCache):
     mutable_dict = self._get_mutable_copy()
     clusters_ids_to_delete = []
 
-    for cluster_id, cluster_updates_dict in cache_update.iteritems():
+    for cluster_id, cluster_updates_dict in cache_update.items():
       if cluster_updates_dict != {}:
         raise Exception("Deleting cluster subvalues is not supported")
 

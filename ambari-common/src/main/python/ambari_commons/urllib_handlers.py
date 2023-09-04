@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 Licensed to the Apache Software Foundation (ASF) under one
@@ -21,10 +21,10 @@ limitations under the License.
 import logging
 import string
 
-from urllib2 import BaseHandler
-from urlparse import urlparse
-from urlparse import urlunparse
-from urlparse import ParseResult
+from urllib.request import BaseHandler
+from urllib.parse import urlparse
+from urllib.parse import urlunparse
+from urllib.parse import ParseResult
 
 logger = logging.getLogger()
 
@@ -77,7 +77,7 @@ class RefreshHeaderProcessor(BaseHandler):
 
       # at this point the header should resemble
       # Refresh: 3; url=http://c6403.ambari.apache.org:8088/
-      semicolon_index = string.find(refresh_header, ';')
+      semicolon_index = str.find(refresh_header, ';')
 
       # slice the redirect URL out of
       # 3; url=http://c6403.ambari.apache.org:8088/jmx"
@@ -86,7 +86,7 @@ class RefreshHeaderProcessor(BaseHandler):
       else:
         redirect_url_key_value_pair = refresh_header
 
-      equals_index = string.find(redirect_url_key_value_pair, '=')
+      equals_index = str.find(redirect_url_key_value_pair, '=')
       key = redirect_url_key_value_pair[:equals_index]
       redirect_url = redirect_url_key_value_pair[equals_index+1:]
 
@@ -109,7 +109,7 @@ class RefreshHeaderProcessor(BaseHandler):
 
       # follow the new new and return the response
       return self.parent.open(redirect_url)
-    except Exception,exception:
+    except Exception as exception:
       logger.error("Unable to follow refresh header {0}. {1}".format(
         refresh_header, str(exception)))
 

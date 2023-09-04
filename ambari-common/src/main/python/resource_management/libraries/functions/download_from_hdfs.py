@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -32,7 +32,7 @@ from resource_management.core import shell
 from resource_management.core.logger import Logger
 
 
-def download_from_hdfs(source_file, dest_path, user_group, owner, download_type="file", file_mode=0444, force_execute=False,
+def download_from_hdfs(source_file, dest_path, user_group, owner, download_type="file", file_mode=0o444, force_execute=False,
                        replace_existing_files=False):
   """
   :param source_file: the source file path

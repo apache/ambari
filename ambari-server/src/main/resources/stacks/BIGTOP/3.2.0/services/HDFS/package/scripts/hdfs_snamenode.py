@@ -32,7 +32,7 @@ def snamenode(action=None, format=False):
       Directory(fs_checkpoint_dir,
                 create_parents = True,
                 cd_access="a",
-                mode=0755,
+                mode=0o755,
                 owner=params.hdfs_user,
                 group=params.user_group)
     File(params.exclude_file_path,

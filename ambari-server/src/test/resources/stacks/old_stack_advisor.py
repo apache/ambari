@@ -539,7 +539,7 @@ class DefaultStackAdvisor(StackAdvisor):
       scheme = self.getComponentLayoutScheme(componentName)
       if scheme is not None:
         for key in scheme.keys():
-          if isinstance(key, ( int, long )):
+          if isinstance(key, int):
             if len(hostsList) < key:
               return hostsList[scheme[key]]
         return hostsList[scheme['else']]

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -167,26 +167,26 @@ def stop(args):
   if status:
     try:
       os.kill(pid, signal.SIGTERM)
-    except OSError, e:
+    except OSError as e:
       err = "Unable to stop Ambari Server - " + str(e)
       print_info_msg(err)
       raise FatalException(1, err)
 
-    print "Waiting for server stop..."
+    print("Waiting for server stop...")
     logger.info("Waiting for server stop...")
 
     if not wait_for_server_to_stop(SERVER_STOP_TIMEOUT):
       err = "Ambari-server failed to stop gracefully. Sending SIGKILL to it"
-      print err
+      print(err)
       logger.error(err)
       os.kill(pid, signal.SIGKILL)
 
     pid_file_path = os.path.join(configDefaults.PID_DIR, PID_NAME)
     os.remove(pid_file_path)
-    print "Ambari Server stopped"
+    print("Ambari Server stopped")
     logger.info("Ambari Server stopped")
   else:
-    print "Ambari Server is not running"
+    print("Ambari Server is not running")
     logger.info("Ambari Server is not running")
 
 
@@ -215,7 +215,7 @@ def status(args):
   args.exit_message = None
   status, statusStr = is_server_runing()
 
-  print "Ambari Server is " + statusStr
+  print("Ambari Server is " + statusStr)
 
   if status:
     args.exit_code = 0
@@ -233,13 +233,13 @@ def status(args):
   pid_file_path = os.path.join(configDefaults.PID_DIR, PID_NAME)
   if status:
     args.exit_code = 0
-    print "Ambari Server running"
-    print "Found Ambari Server PID: " + str(pid) + " at: " + pid_file_path
+    print("Ambari Server running")
+    print("Found Ambari Server PID: " + str(pid) + " at: " + pid_file_path)
   else:
     if os.path.exists(pid_file_path):
-      print "Ambari Server not running. Stale PID File at: " + pid_file_path
+      print("Ambari Server not running. Stale PID File at: " + pid_file_path)
     else:
-      print "Ambari Server not running."
+      print("Ambari Server not running.")
     args.exit_code = 3
 
 
@@ -283,13 +283,13 @@ def setup_security(args):
         choice = optionCounter
   if choice is None:
     # Print menu options
-    print '=' * 75
-    print 'Choose one of the following options: '
+    print('=' * 75)
+    print('Choose one of the following options: ')
     iAction = 0
     for actionDesc in actions:
       iAction += 1
-      print '  [{0}] {1}'.format(iAction, actionDesc[1])
-    print '=' * 75
+      print('  [{0}] {1}'.format(iAction, actionDesc[1]))
+    print('=' * 75)
 
     choice_prompt = 'Enter choice, (1-{0}): '.format(iAction)
     choice_re = '[1-{0}]'.format(iAction)
@@ -319,7 +319,7 @@ def get_backup_path(args):
 
 def backup(args):
   logger.info("Backup.")
-  print "Backup requested."
+  print("Backup requested.")
   backup_command = ["BackupRestore", 'backup']
   path = get_backup_path(args)
   if not path is None:
@@ -329,7 +329,7 @@ def backup(args):
 
 def restore(args):
   logger.info("Restore.")
-  print "Restore requested."
+  print("Restore requested.")
   restore_command = ["BackupRestore", 'restore']
   path = get_backup_path(args)
   if not path is None:
@@ -359,13 +359,13 @@ def print_action_arguments_help(action):
       required_options = _action_option_dependence_map[action][0]
     optional_options = _action_option_dependence_map[action][1]
     if required_options or optional_options:
-      print "Options used by action {0}:".format(action)
+      print("Options used by action {0}:".format(action))
     if required_options:
-      print "  required:{0}".format(
-          ";".join([print_opt for print_opt, _ in required_options]))
+      print("  required:{0}".format(
+          ";".join([print_opt for print_opt, _ in required_options])))
     if optional_options:
-      print "  optional:{0}".format(
-            ";".join([print_opt for print_opt, _ in optional_options]))
+      print("  optional:{0}".format(
+            ";".join([print_opt for print_opt, _ in optional_options])))
 
 @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
 def init_action_parser(action, parser):
@@ -775,8 +775,8 @@ def fix_database_options(options, parser):
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def fix_database_options(options, parser):
   if options.dbms == 'embedded':
-    print "WARNING: HostName for postgres server " + options.database_host + \
-          " will be ignored: using localhost."
+    print("WARNING: HostName for postgres server " + options.database_host + \
+          " will be ignored: using localhost.")
     options.database_host = "localhost"
     options.dbms = 'postgres'
     options.persistence_type = 'local'
@@ -797,8 +797,8 @@ def fix_database_options(options, parser):
     parser.error("Option --jdbc-driver is used only in pair with --jdbc-db")
 
   if options.sid_or_sname.lower() not in ["sid", "sname"]:
-    print "WARNING: Valid values for sid_or_sname are 'sid' or 'sname'. Use 'sid' if the db identifier type is " \
-          "Service ID. Use 'sname' if the db identifier type is Service Name"
+    print("WARNING: Valid values for sid_or_sname are 'sid' or 'sname'. Use 'sid' if the db identifier type is " \
+          "Service ID. Use 'sname' if the db identifier type is Service Name")
     parser.print_help()
     exit(-1)
   else:
@@ -925,7 +925,7 @@ def setup_logging(logger, filename, logging_level):
 
   logging.basicConfig(format=formatstr, level=logging_level, filename=filename)
   logger.setLevel(logging_level)
-  logger.info("loglevel=logging.{0}".format(logging._levelNames[logging_level]))
+  logger.info("loglevel=logging.{0}".format(logging._levelToName[logging_level]))
 
 def init_logging():
   # init logger
@@ -968,7 +968,7 @@ def main(options, args, parser):
   options.warnings = []
 
   if len(args) == 0:
-    print parser.print_help()
+    print(parser.print_help())
     parser.error("No action entered")
 
   action_map = create_user_action_map(args, options)
@@ -996,7 +996,7 @@ def main(options, args, parser):
     matches += int(len(args) == args_number_required)
 
   if matches == 0:
-    print parser.print_help()
+    print(parser.print_help())
     possible_args = ' or '.join(str(x) for x in action_obj.possible_args_numbers)
     parser.error("Invalid number of arguments. Entered: " + str(len(args)) + ", required: " + possible_args)
 
@@ -1008,17 +1008,17 @@ def main(options, args, parser):
       required, optional = _action_option_dependence_map[action]
       for opt_str, opt_dest in required:
         if hasattr(options, opt_dest) and getattr(options, opt_dest) is None:
-          print "Missing option {0} for action {1}".format(opt_str, action)
+          print("Missing option {0} for action {1}".format(opt_str, action))
           print_action_arguments_help(action)
-          print "Run ambari-server.py --help to see detailed description of each option"
+          print("Run ambari-server.py --help to see detailed description of each option")
           raise FatalException(1, "Missing option")
     action_obj.execute()
 
     if action_obj.need_restart:
       pstatus, pid = is_server_runing()
       if pstatus:
-        print 'NOTE: Restart Ambari Server to apply changes' + \
-              ' ("ambari-server restart|stop+start")'
+        print('NOTE: Restart Ambari Server to apply changes' + \
+              ' ("ambari-server restart|stop+start")')
 
     if options.warnings:
       for warning in options.warnings:
@@ -1037,13 +1037,16 @@ def main(options, args, parser):
       print_warning_msg(e.reason)
 
   if options.exit_message is not None:
-    print options.exit_message
+    print(options.exit_message)
 
   if options.exit_code is not None:  # not all actions may return a system exit code
     sys.exit(options.exit_code)
 
 def mainBody():
   parser = optparse.OptionParser(usage="usage: %prog action [options]",)
+  if len(sys.argv) < 2:
+        print(parser.print_help())
+        parser.error("No action entered")
   action = sys.argv[1]
 
   init_action_parser(action, parser)
@@ -1085,7 +1088,7 @@ def enable_stack(options, args):
   if retcode == 0:
      status, pid = is_server_runing()
      if status:
-        print "restarting ambari server"
+        print("restarting ambari server")
         stop(options)
         start(options)
       

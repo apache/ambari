@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 Licensed to the Apache Software Foundation (ASF) under one
@@ -18,7 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import logging
 
@@ -203,7 +203,7 @@ def get_jmx(query, connection_timeout):
   response = None
   
   try:
-    response = urllib2.urlopen(query, timeout=connection_timeout)
+    response = urllib.request.urlopen(query, timeout=connection_timeout)
     json_data = response.read()
     return json_data
   finally:

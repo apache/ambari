@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -19,20 +19,20 @@ limitations under the License.
 """
 
 from resource_management.libraries.script.script import Script
-from ams import ams
-from ams_service import ams_service
-from status import check_service_status
+from scripts.ams import ams
+from scripts.ams_service import ams_service
+from scripts.status import check_service_status
 from ambari_commons.repo_manager.repo_manager_helper import check_installed_metrics_hadoop_sink_version
 
 class AmsMonitor(Script):
   def install(self, env):
-    import params
+    from scripts import params
     env.set_params(params)
     self.install_packages(env)
     self.configure(env) # for security
 
   def configure(self, env):
-    import params
+    from . import params
     env.set_params(params)
     ams(name='monitor')
 
@@ -44,7 +44,7 @@ class AmsMonitor(Script):
     )
 
   def stop(self, env, upgrade_type=None):
-    import params
+    from scripts import params
     env.set_params(params)
 
     ams_service( 'monitor',
@@ -52,24 +52,24 @@ class AmsMonitor(Script):
     )
 
   def status(self, env):
-    import status_params
+    from scripts import status_params
     env.set_params(status_params)
     check_service_status(env, name='monitor')
     
   def get_log_folder(self):
-    import params
+    from scripts import params
     return params.ams_monitor_log_dir
 
   def get_pid_files(self):
-    import status_params
+    from scripts import status_params
     return [status_params.monitor_pid_file]
 
   def get_user(self):
-    import params
+    from scripts import params
     return params.ams_user
 
   def check_hadoop_sink_version(self, env):
-    import params
+    from scripts import params
     check_installed_metrics_hadoop_sink_version(checked_version=params.min_hadoop_sink_version,
                                                 less_valid=False,
                                                 equal_valid=True)

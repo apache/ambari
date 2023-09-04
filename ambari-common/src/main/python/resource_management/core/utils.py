@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -25,7 +25,7 @@ import os
 import contextlib
 import sys
 import signal
-import cStringIO
+import io
 from functools import wraps
 
 import re
@@ -77,7 +77,7 @@ class AttributeDictionary(object):
     return self._dict.items()
   
   def iteritems(self):
-    return self._dict.iteritems()
+    return self._dict.items()
 
   def values(self):
     return self._dict.values()
@@ -126,11 +126,11 @@ def checked_unite(dict1, dict2):
 @contextlib.contextmanager
 def suppress_stdout():
   save_stdout = sys.stdout
-  sys.stdout = cStringIO.StringIO()
+  sys.stdout = io.StringIO()
   yield
   sys.stdout = save_stdout
 
-class PasswordString(unicode):
+class PasswordString(str):
   """
   Logger replaces this strings with [PROTECTED]
   """

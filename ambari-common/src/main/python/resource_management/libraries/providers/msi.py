@@ -20,7 +20,7 @@ Ambari Agent
 
 
 from resource_management import *
-import urlparse
+import urllib.parse
 from ambari_commons.inet_utils import download_file
 import os
 
@@ -42,7 +42,7 @@ class MsiProvider(Provider):
 
     # build string from passed arguments to Msi resource
     dict_args_str = ' ALLUSERS="1"'
-    for k, v in dict_args.iteritems():
+    for k, v in dict_args.items():
       dict_args_str += " " + str(k)+"="+str(v)
     list_args_str = ''
     for a in list_args:
@@ -50,7 +50,7 @@ class MsiProvider(Provider):
 
     # if http source present we download msi and then execute it
     if http_source:
-      download_url = urlparse.urljoin(http_source, name)
+      download_url = urllib.parse.urljoin(http_source, name)
       msi_file_path = os.path.join(working_dir, msi_filename)
       download_file(download_url, msi_file_path)
     if not os.path.exists(marker_file):

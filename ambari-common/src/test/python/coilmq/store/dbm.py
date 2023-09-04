@@ -19,7 +19,7 @@ from datetime import datetime, timedelta
 try:
     from configparser import ConfigParser
 except ImportError:
-    from ConfigParser import ConfigParser
+    from configparser import ConfigParser
 
 
 from coilmq.store import QueueStore

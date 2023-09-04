@@ -104,7 +104,7 @@ class TestBasicAdvisor(TestCase):
     filtered_hosts = self.stackAdvisor.filterHostMounts(hosts, services)
 
     for host in filtered_hosts["items"]:
-      self.assertEquals(False, filtered_mount in host["Hosts"]["disk_info"])
+      self.assertEqual(False, filtered_mount in host["Hosts"]["disk_info"])
 
   def test_getMountPathVariations(self):
 
@@ -169,9 +169,9 @@ class TestBasicAdvisor(TestCase):
     hosts = self.stackAdvisor.filterHostMounts(hosts, services)
     avail_mounts = self.stackAdvisor.getMountPathVariations("/test/folder", "DATANODE", services, hosts)
 
-    self.assertEquals(True, avail_mounts is not None)
-    self.assertEquals(1, len(avail_mounts))
-    self.assertEquals("/test/folder", avail_mounts[0])
+    self.assertEqual(True, avail_mounts is not None)
+    self.assertEqual(1, len(avail_mounts))
+    self.assertEqual("/test/folder", avail_mounts[0])
 
   def test_updateMountProperties(self):
     hosts = {
@@ -242,4 +242,4 @@ class TestBasicAdvisor(TestCase):
 
     self.stackAdvisor.updateMountProperties("some-site", pathProperties, configurations, services, hosts)
 
-    self.assertEquals("/test,/data/test", configurations["some-site"]["properties"]["path_prop"])
+    self.assertEqual("/test,/data/test", configurations["some-site"]["properties"]["path_prop"])

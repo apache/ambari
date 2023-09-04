@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -55,16 +55,16 @@ class HbaseServiceCheckDefault(HbaseServiceCheck):
 
     File( format("{exec_tmp_dir}/hbaseSmokeVerify.sh"),
       content = StaticFile("hbaseSmokeVerify.sh"),
-      mode = 0755
+      mode = 0o755
     )
 
     File(hbase_servicecheck_cleanup_file,
       content = StaticFile("hbase-smoke-cleanup.sh"),
-      mode = 0755
+      mode = 0o755
     )
   
     File( hbase_servicecheck_file,
-      mode = 0755,
+      mode = 0o755,
       content = Template('hbase-smoke.sh.j2')
     )
     
@@ -75,7 +75,7 @@ class HbaseServiceCheckDefault(HbaseServiceCheck):
       File( hbase_grant_premissions_file,
         owner   = params.hbase_user,
         group   = params.user_group,
-        mode    = 0755,
+        mode    = 0o755,
         content = Template('hbase_grant_permissions.j2')
       )
 

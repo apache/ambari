@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -21,7 +21,7 @@ limitations under the License.
 import sys
 from resource_management import *
 
-from mysql_service import mysql_service
+from scripts.mysql_service import mysql_service
 
 class MysqlServer(Script):
 
@@ -35,13 +35,13 @@ class MysqlServer(Script):
     self.configure(env)
 
   def configure(self, env):
-    import params
+    from scripts import params
     env.set_params(params)
 
     mysql_service(daemon_name=self.daemon_name, action='start')
 
     File(params.mysql_adduser_path,
-         mode=0755,
+         mode=0o755,
          content=StaticFile('addMysqlUser.sh')
     )
 
@@ -59,13 +59,13 @@ class MysqlServer(Script):
     mysql_service(daemon_name=self.daemon_name, action='stop')
 
   def start(self, env):
-    import params
+    from scripts import params
     env.set_params(params)
 
     mysql_service(daemon_name=self.daemon_name, action = 'start')
 
   def stop(self, env):
-    import params
+    from scripts import params
     env.set_params(params)
 
     mysql_service(daemon_name=self.daemon_name, action = 'stop')

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -43,7 +43,7 @@ def get_user_call_output(command, user, quiet=False, is_checked_call=True, **cal
     
     # other user should be able to write to it
     for f in out_files:
-      os.chmod(f.name, 0666)
+      os.chmod(f.name, 0o666)
     
     command_string += " 1>" + out_files[0].name
     command_string += " 2>" + out_files[1].name

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -49,7 +49,7 @@ class _named_dict(dict):
       return _list
 
     dict.__init__(self, _dict)
-    for key, value in self.iteritems():
+    for key, value in self.items():
       if isinstance(value, dict):
         self[key] = _named_dict(value)
       if isinstance(value, list):
@@ -117,18 +117,18 @@ def process_replacements(file_path, config_data, stack_version_changes):
   # it can be dangerous to replace versions in xml files, because it can be a part of version of some package or service
   # eg 2.1.2.1 with stack version change 2.1->3.0 will result in 3.0.3.0
   if not file_path.endswith(".xml"):
-    for _from, _to in stack_version_changes.iteritems():
+    for _from, _to in stack_version_changes.items():
       file_data = file_data.replace(_from, _to)
       file_data = process_version_replace(file_data, _from, _to)
   # preform common replacements
   if 'performCommonReplacements' in config_data and config_data.performCommonReplacements:
-    for from_version, to_version in stack_version_changes.iteritems():
+    for from_version, to_version in stack_version_changes.items():
       file_data = file_data.replace('HDP-'+from_version, config_data.stackName+"-"+to_version)
       file_data = file_data.replace('HDP '+from_version, config_data.stackName+" "+to_version)
     file_data = file_data.replace('hdp', config_data.stackName.lower())
     file_data = file_data.replace('HDP', config_data.stackName)
   if preserved_map:
-    for _from, _to in preserved_map.iteritems():
+    for _from, _to in preserved_map.items():
       file_data = file_data.replace(_from, _to)
   with open(file_path, "w") as target:
     target.write(file_data.encode('utf-8'))
@@ -237,7 +237,7 @@ def process_metainfo(file_path, config_data, stack_version_changes, common_servi
                     for package in item['packages']:
                       package_tag = ET.SubElement(packages_tag, 'package')
                       name_tag = ET.SubElement(package_tag, 'name')
-                      if isinstance(package, basestring):
+                      if isinstance(package, str):
                         name_tag.text = package
                       else:
                         name_tag.text = package['name']
@@ -315,7 +315,7 @@ def process_repoinfo_xml(file_path, config_data, stack_version_changes, stack):
       latest_tag = ET.SubElement(root, 'latest')
       latest_tag.text = stack.repoinfo.latest
     if 'os' in stack.repoinfo:
-      for family, repos in stack.repoinfo.os.iteritems():
+      for family, repos in stack.repoinfo.os.items():
         os_tag = ET.SubElement(root, 'os')
         os_tag.set('family', family)
         for repo in repos:
@@ -656,11 +656,11 @@ def main(argv):
   try:
     opts, args = getopt.getopt(argv, "hc:o:r:", ["config=", "out=", "resources="])
   except getopt.GetoptError:
-    print HELP_STRING
+    print(HELP_STRING)
     sys.exit(2)
   for opt, arg in opts:
     if opt == '-h':
-      print HELP_STRING
+      print(HELP_STRING)
       sys.exit()
     elif opt in ("-c", "--config"):
       config = arg
@@ -669,7 +669,7 @@ def main(argv):
     elif opt in ("-o", "--out"):
       output_folder = arg
   if not config or not resources_folder or not output_folder:
-    print HELP_STRING
+    print(HELP_STRING)
     sys.exit(2)
 
   config_data = _named_dict(json.load(open(config, "r")))

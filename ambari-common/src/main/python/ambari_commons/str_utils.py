@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -80,7 +80,7 @@ def split_on_chunks(text, chunk_max_size):
       chunk = ""
       # if a single line itself is bigger than the max chunk size, split the line.
       if len(lines[0]) > chunk_max_size:
-        line_fragments = [lines[0][x:x+chunk_max_size] for x in xrange(0, len(lines[0]), chunk_max_size)]
+        line_fragments = [lines[0][x:x+chunk_max_size] for x in range(0, len(lines[0]), chunk_max_size)]
         for line_fragment in line_fragments:
           chunks.append(line_fragment)
         lines.pop(0)

@@ -17,15 +17,16 @@ limitations under the License.
 '''
 import os
 import platform
+import distro
 import sys
 import unittest
-import StringIO
+import io
 
 from mock.mock import patch, MagicMock
 
 from only_for_platform import os_distro_value
 from ambari_commons import os_utils
-from urllib2 import HTTPError
+from urllib.error import HTTPError
 
 import shutil
 
@@ -58,16 +59,16 @@ def search_file_proxy(filename, searchpatch, pathsep=os.pathsep):
 
 os_utils.search_file = search_file_proxy
 
-with patch.object(platform, "linux_distribution", return_value = MagicMock(return_value=('Redhat', '6.4', 'Final'))):
+with patch.object(distro, "linux_distribution", return_value = MagicMock(return_value=('Redhat', '6.4', 'Final'))):
   with patch("os.path.isdir", return_value = MagicMock(return_value=True)):
     with patch("os.access", return_value = MagicMock(return_value=True)):
       with patch.object(os_utils, "parse_log4j_file", return_value={'ambari.log.dir': '/var/log/ambari-server'}):
-        with patch("platform.linux_distribution", return_value = os_distro_value):
+        with patch("distro.linux_distribution", return_value = os_distro_value):
           with patch("os.symlink"):
             with patch.object(os_utils, "is_service_exist", return_value = True):
               with patch("glob.glob", return_value = ['/etc/init.d/postgresql-9.3']):
                 _ambari_server_ = __import__('ambari-server')
-                with patch("__builtin__.open"):
+                with patch("builtins.open"):
                   from ambari_commons.exceptions import FatalException, NonFatalException
                   from ambari_server.properties import Properties
                   from ambari_server.setupSso import setup_sso, AMBARI_SSO_AUTH_ENABLED, \
@@ -77,7 +78,7 @@ with patch.object(platform, "linux_distribution", return_value = MagicMock(retur
 class TestSetupSso(unittest.TestCase):
   @patch("ambari_server.setupSso.is_server_runing")
   def test_sso_setup_should_fail_if_server_is_not_running(self, is_server_runing_mock):
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
     is_server_runing_mock.return_value = (False, 0)
@@ -96,7 +97,7 @@ class TestSetupSso(unittest.TestCase):
   @patch("ambari_server.setupSso.get_silent")
   @patch("ambari_server.setupSso.is_server_runing")
   def test_silent_mode_is_not_allowed(self, is_server_runing_mock, get_silent_mock):
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
     is_server_runing_mock.return_value = (True, 0)
@@ -117,7 +118,7 @@ class TestSetupSso(unittest.TestCase):
   @patch("ambari_server.setupSso.get_silent")
   @patch("ambari_server.setupSso.is_server_runing")
   def test_invalid_sso_enabled_cli_option_should_result_in_error(self, is_server_runing_mock, get_silent_mock):
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
     is_server_runing_mock.return_value = (True, 0)
@@ -139,7 +140,7 @@ class TestSetupSso(unittest.TestCase):
   @patch("ambari_server.setupSso.get_silent")
   @patch("ambari_server.setupSso.is_server_runing")
   def test_missing_sso_provider_url_cli_option_when_enabling_sso_should_result_in_error(self, is_server_runing_mock, get_silent_mock):
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
     is_server_runing_mock.return_value = (True, 0)
@@ -162,7 +163,7 @@ class TestSetupSso(unittest.TestCase):
   @patch("ambari_server.setupSso.get_silent")
   @patch("ambari_server.setupSso.is_server_runing")
   def test_missing_sso_public_cert_file_cli_option_when_enabling_sso_should_result_in_error(self, is_server_runing_mock, get_silent_mock):
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
     is_server_runing_mock.return_value = (True, 0)
@@ -185,7 +186,7 @@ class TestSetupSso(unittest.TestCase):
   @patch("ambari_server.setupSso.get_silent")
   @patch("ambari_server.setupSso.is_server_runing")
   def test_invalid_sso_provider_url_cli_option_when_enabling_sso_should_result_in_error(self, is_server_runing_mock, get_silent_mock):
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
     is_server_runing_mock.return_value = (True, 0)
@@ -226,14 +227,14 @@ class TestSetupSso(unittest.TestCase):
   @patch("ambari_server.setupSso.get_silent")
   @patch("ambari_server.setupSso.is_server_runing")
   @patch("ambari_server.setupSso.get_json_via_rest_api")
-  @patch('__builtin__.open')
+  @patch('builtins.open')
   def test_all_cli_options_are_collected_when_enabling_sso(self, open_mock,
                                                            get_json_via_rest_api_mock,
                                                            is_server_runing_mock,
                                                            get_silent_mock,
                                                            get_ambari_properties_mock,
                                                            perform_changes_via_rest_api_mock):
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
     certificate_data = '-----BEGIN CERTIFICATE-----\n' \
@@ -289,14 +290,14 @@ class TestSetupSso(unittest.TestCase):
   @patch("ambari_server.setupSso.get_silent")
   @patch("ambari_server.setupSso.is_server_runing")
   @patch("ambari_server.setupSso.get_json_via_rest_api")
-  @patch('__builtin__.open')
+  @patch('builtins.open')
   def test_only_sso_enabled_cli_option_is_collected_when_disabling_sso(self, open_mock,
                                                                        get_json_via_rest_api_mock,
                                                                        is_server_runing_mock,
                                                                        get_silent_mock,
                                                                        get_ambari_properties_mock,
                                                                        perform_changes_via_rest_api_mock):
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
     certificate_data = '-----BEGIN CERTIFICATE-----\n' \
@@ -345,7 +346,7 @@ class TestSetupSso(unittest.TestCase):
   @patch("ambari_server.setupSso.get_silent")
   @patch("ambari_server.setupSso.is_server_runing")
   @patch("ambari_server.setupSso.get_json_via_rest_api")
-  @patch('__builtin__.open')
+  @patch('builtins.open')
   def test_sso_is_enabled_for_all_services_via_user_input(self, open_mock,
                                                           get_json_via_rest_api_mock,
                                                           is_server_runing_mock,
@@ -353,7 +354,7 @@ class TestSetupSso(unittest.TestCase):
                                                           get_ambari_properties_mock,
                                                           get_YN_input_mock,
                                                           perform_changes_via_rest_api_mock):
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
     certificate_data = '-----BEGIN CERTIFICATE-----\n' \
@@ -417,13 +418,13 @@ class TestSetupSso(unittest.TestCase):
     pass
 
   @patch("ambari_server.setupSso.perform_changes_via_rest_api")
-  @patch("urllib2.urlopen")
+  @patch("urllib.request.urlopen")
   @patch("ambari_server.setupSso.get_cluster_name")
   @patch("ambari_server.setupSso.get_YN_input")
   @patch("ambari_server.setupSso.get_ambari_properties")
   @patch("ambari_server.setupSso.get_silent")
   @patch("ambari_server.setupSso.is_server_runing")
-  @patch('__builtin__.open')
+  @patch('builtins.open')
   def test_setup_sso_should_not_fail_when_sso_config_cannot_be_loaded_due_to_404_error(self, open_mock,
                                                                                        is_server_runing_mock,
                                                                                        get_silent_mock,
@@ -432,7 +433,7 @@ class TestSetupSso(unittest.TestCase):
                                                                                        get_cluster_name_mock,
                                                                                        urlopen_mock,
                                                                                        perform_changes_via_rest_api_mock):
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
     certificate_data = '-----BEGIN CERTIFICATE-----\n' \
@@ -483,7 +484,7 @@ class TestSetupSso(unittest.TestCase):
     self.assertEqual(ssoProperties[SSO_ENABLED_SERVICES], "*")
 
 
-  @patch("urllib2.urlopen")
+  @patch("urllib.request.urlopen")
   @patch("ambari_server.setupSso.perform_changes_via_rest_api")
   @patch("ambari_server.setupSso.get_cluster_name")
   @patch("ambari_server.setupSso.get_YN_input")
@@ -491,7 +492,7 @@ class TestSetupSso(unittest.TestCase):
   @patch("ambari_server.setupSso.get_silent")
   @patch("ambari_server.setupSso.is_server_runing")
   @patch("ambari_server.setupSso.get_json_via_rest_api")
-  @patch('__builtin__.open')
+  @patch('builtins.open')
   def test_sso_enabled_services_are_collected_via_user_input(self, open_mock,
                                                              get_json_via_rest_api_mock,
                                                              is_server_runing_mock,
@@ -501,7 +502,7 @@ class TestSetupSso(unittest.TestCase):
                                                              get_cluster_name_mock,
                                                              perform_changes_via_rest_api_mock,
                                                              urlopen_mock):
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
     certificate_data = '-----BEGIN CERTIFICATE-----\n' \
@@ -621,4 +622,3 @@ class TestSetupSso(unittest.TestCase):
     options.sso_jwt_cookie_name = None
     options.sso_jwt_audience_list = None
     return options
-    

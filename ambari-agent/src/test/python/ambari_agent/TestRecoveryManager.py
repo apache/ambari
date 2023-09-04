@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -302,24 +302,24 @@ class _TestRecoveryManager(TestCase):
 
     rm = RecoveryManager(MagicMock())
     rec_st = rm.get_recovery_status()
-    self.assertEquals(rec_st, {"summary": "DISABLED"})
+    self.assertEqual(rec_st, {"summary": "DISABLED"})
 
     rm.update_config(2, 5, 1, 4, True, True, False)
     rec_st = rm.get_recovery_status()
-    self.assertEquals(rec_st, {"summary": "RECOVERABLE", "componentReports": []})
+    self.assertEqual(rec_st, {"summary": "RECOVERABLE", "componentReports": []})
 
     rm.execute("PUMA")
     rec_st = rm.get_recovery_status()
-    self.assertEquals(rec_st, {"summary": "RECOVERABLE",
+    self.assertEqual(rec_st, {"summary": "RECOVERABLE",
                                "componentReports": [{"name": "PUMA", "numAttempts": 1, "limitReached": False}]})
     rm.execute("PUMA")
     rm.execute("LION")
 
     rec_st = rm.get_recovery_status()
-    self.assertEquals(rec_st, {"summary": "RECOVERABLE",
+    self.assertEqual(rec_st, {"summary": "RECOVERABLE",
                                "componentReports": [
-                                 {"name": "LION", "numAttempts": 1, "limitReached": False},
-                                 {"name": "PUMA", "numAttempts": 2, "limitReached": False}
+                                 {"name": "PUMA", "numAttempts": 2, "limitReached": False},
+                                 {"name": "LION", "numAttempts": 1, "limitReached": False}
                                ]})
     rm.execute("PUMA")
     rm.execute("LION")
@@ -327,18 +327,18 @@ class _TestRecoveryManager(TestCase):
     rm.execute("PUMA")
     rm.execute("LION")
     rec_st = rm.get_recovery_status()
-    self.assertEquals(rec_st, {"summary": "PARTIALLY_RECOVERABLE",
+    self.assertEqual(rec_st, {"summary": "PARTIALLY_RECOVERABLE",
                                "componentReports": [
-                                 {"name": "LION", "numAttempts": 3, "limitReached": False},
-                                 {"name": "PUMA", "numAttempts": 4, "limitReached": True}
+                                 {"name": "PUMA", "numAttempts": 4, "limitReached": True},
+                                 {"name": "LION", "numAttempts": 3, "limitReached": False}
                                ]})
 
     rm.execute("LION")
     rec_st = rm.get_recovery_status()
-    self.assertEquals(rec_st, {"summary": "UNRECOVERABLE",
+    self.assertEqual(rec_st, {"summary": "UNRECOVERABLE",
                                "componentReports": [
-                                 {"name": "LION", "numAttempts": 4, "limitReached": True},
-                                 {"name": "PUMA", "numAttempts": 4, "limitReached": True}
+                                 {"name": "PUMA", "numAttempts": 4, "limitReached": True},
+                                 {"name": "LION", "numAttempts": 4, "limitReached": True}
                                ]})
 
   @patch.object(RecoveryManager, "_now_")
@@ -434,14 +434,14 @@ class _TestRecoveryManager(TestCase):
 
     rm.execute("COMPONENT")
     actions = rm.get_actions_copy()["COMPONENT"]
-    self.assertEquals(actions['lastReset'], 1000)
+    self.assertEqual(actions['lastReset'], 1000)
     rm.execute("COMPONENT")
     actions = rm.get_actions_copy()["COMPONENT"]
-    self.assertEquals(actions['lastReset'], 1000)
+    self.assertEqual(actions['lastReset'], 1000)
     #reset if window_in_sec seconds passed since last attempt
     rm.execute("COMPONENT")
     actions = rm.get_actions_copy()["COMPONENT"]
-    self.assertEquals(actions['lastReset'], 1372)
+    self.assertEqual(actions['lastReset'], 1372)
 
 
   @patch.object(RecoveryManager, "_now_")

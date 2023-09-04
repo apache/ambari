@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -113,6 +113,8 @@ class RemovePreviousStacks(Script):
     """
     vesion1_sections = re.findall(r"[\w']+", version1)
     vesion2_sections = re.findall(r"[\w']+", version2)
+    def cmp(a, b):
+      return (a > b) - (a < b)
     return cmp(vesion1_sections, vesion2_sections)
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -17,15 +17,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-import StringIO
+import io
 import sys
-from ambari_commons import subprocess32
+import subprocess
 from mock.mock import MagicMock, patch, ANY
 import mock.mock
 import unittest
 import logging
 import signal
-import ConfigParser
+import configparser
 import ssl
 import os
 import tempfile
@@ -33,7 +33,7 @@ import tempfile
 from ambari_commons import OSCheck
 from only_for_platform import os_distro_value
 
-with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
+with patch("distro.linux_distribution", return_value = ('Suse','11','Final')):
   from ambari_agent import NetUtil
   from ambari_agent.security import CertificateManager
   from ambari_agent.AmbariConfig import AmbariConfig
@@ -45,7 +45,7 @@ class TestSecurity(unittest.TestCase):
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   def setUp(self):
     # disable stdout
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
     # Create config
     self.config = AmbariConfig()
@@ -114,7 +114,7 @@ class TestSecurity(unittest.TestCase):
       httpsconn_mock.read.side_effect = side_eff
       responce = self.cachedHTTPSConnection.request(dummy_request)
       self.fail("Should raise IOError")
-    except Exception, err:
+    except Exception as err:
       # Expected
       pass
 
@@ -128,7 +128,7 @@ class TestSecurity(unittest.TestCase):
     self.config.set('security', 'keysdir', '/dummy-keysdir')
     man = CertificateManager(self.config, "active_server")
     res = man.getAgentKeyName()
-    self.assertEquals(res, os.path.abspath("/dummy-keysdir/dummy.hostname.key"))
+    self.assertEqual(res, os.path.abspath("/dummy-keysdir/dummy.hostname.key"))
 
 
   @patch("ambari_agent.hostname.hostname")
@@ -137,7 +137,7 @@ class TestSecurity(unittest.TestCase):
     self.config.set('security', 'keysdir', '/dummy-keysdir')
     man = CertificateManager(self.config, "active_server")
     res = man.getAgentCrtName()
-    self.assertEquals(res, os.path.abspath("/dummy-keysdir/dummy.hostname.crt"))
+    self.assertEqual(res, os.path.abspath("/dummy-keysdir/dummy.hostname.crt"))
 
 
   @patch("ambari_agent.hostname.hostname")
@@ -146,14 +146,14 @@ class TestSecurity(unittest.TestCase):
     self.config.set('security', 'keysdir', '/dummy-keysdir')
     man = CertificateManager(self.config, "active_server")
     res = man.getAgentCrtReqName()
-    self.assertEquals(res, os.path.abspath("/dummy-keysdir/dummy.hostname.csr"))
+    self.assertEqual(res, os.path.abspath("/dummy-keysdir/dummy.hostname.csr"))
 
 
   def test_getSrvrCrtName(self):
     self.config.set('security', 'keysdir', '/dummy-keysdir')
     man = CertificateManager(self.config, "active_server")
     res = man.getSrvrCrtName()
-    self.assertEquals(res, os.path.abspath("/dummy-keysdir/ca.crt"))
+    self.assertEqual(res, os.path.abspath("/dummy-keysdir/ca.crt"))
 
 
   @patch("os.path.exists")
@@ -203,7 +203,7 @@ class TestSecurity(unittest.TestCase):
 
 
 
-  @patch("urllib2.OpenerDirector.open")
+  @patch("urllib.request.OpenerDirector.open")
   @patch.object(security.CertificateManager, "getSrvrCrtName")
   def test_loadSrvrCrt(self, getSrvrCrtName_mock, urlopen_mock):
     read_mock = MagicMock(create=True)
@@ -225,11 +225,11 @@ class TestSecurity(unittest.TestCase):
 
 
   @patch("ambari_agent.hostname.hostname")
-  @patch('__builtin__.open', create=True, autospec=True)
+  @patch('builtins.open', create=True, autospec=True)
   @patch.dict('os.environ', {'DUMMY_PASSPHRASE': 'dummy-passphrase'})
   @patch('ambari_simplejson.dumps')
-  @patch('urllib2.Request')
-  @patch("urllib2.OpenerDirector.open")
+  @patch('urllib.request.Request')
+  @patch("urllib.request.OpenerDirector.open")
   @patch('ambari_simplejson.loads')
   def test_reqSignCrt(self, loads_mock, urlopen_mock, request_mock, dumps_mock, open_mock, hostname_mock):
     self.config.set('security', 'keysdir', '/dummy-keysdir')
@@ -276,7 +276,7 @@ class TestSecurity(unittest.TestCase):
     try:
       man.reqSignCrt()
       self.fail("Expected exception here")
-    except Exception, err:
+    except Exception as err:
       # expected
       pass
 
@@ -290,12 +290,12 @@ class TestSecurity(unittest.TestCase):
       pass
     self.assertFalse(open_mock.return_value.write.called)
 
-  @patch.object(subprocess32, "Popen")
-  @patch("subprocess32.Popen.communicate")
+  @patch.object(subprocess, "Popen")
+  @patch("subprocess.Popen.communicate")
   @patch.object(os, "chmod")
   def test_genAgentCrtReq(self, chmod_mock, communicate_mock, popen_mock):
     man = CertificateManager(self.config, "active_server")
-    p = MagicMock(spec=subprocess32.Popen)
+    p = MagicMock(spec=subprocess.Popen)
     p.communicate = communicate_mock
     popen_mock.return_value = p
     man.genAgentCrtReq('/dummy-keysdir/hostname.key')
@@ -304,8 +304,8 @@ class TestSecurity(unittest.TestCase):
     self.assertTrue(communicate_mock.called)
 
   @patch("ambari_agent.hostname.hostname")
-  @patch('__builtin__.open', create=True, autospec=True)
-  @patch("urllib2.OpenerDirector.open")
+  @patch('builtins.open', create=True, autospec=True)
+  @patch("urllib.request.OpenerDirector.open")
   @patch.dict('os.environ', {'DUMMY_PASSPHRASE': 'dummy-passphrase'})
   def test_reqSignCrt_malformedJson(self, urlopen_mock, open_mock, hostname_mock):
     hostname_mock.return_value = "dummy-hostname"
@@ -320,7 +320,7 @@ class TestSecurity(unittest.TestCase):
       man.reqSignCrt()
     except ssl.SSLError:
       self.fail("Unexpected exception!")
-    open_mock.return_value.write.assert_called_with(u'dummy')
+    open_mock.return_value.write.assert_called_with('dummy')
 
     # test malformed JSON response
     open_mock.return_value.write.reset_mock()

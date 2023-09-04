@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -19,7 +19,7 @@ limitations under the License.
 '''
 import json
 import os
-from ambari_commons import subprocess32
+import subprocess
 import select
 
 from stacks.utils.RMFTestCase import *
@@ -42,7 +42,7 @@ subproc_mock.return_value.stdout = subproc_stdout
 @patch.object(select, "select", new=MagicMock(return_value=([subproc_stdout], None, None)))
 @patch("pty.openpty", new = MagicMock(return_value=(1,5)))
 @patch.object(os, "close", new=MagicMock())
-@patch.object(subprocess32, "Popen", new=subproc_mock)
+@patch.object(subprocess, "Popen", new=subproc_mock)
 class TestInstallPackages(RMFTestCase):
 
   def setUp(self):
@@ -78,7 +78,7 @@ class TestInstallPackages(RMFTestCase):
     with patch("ambari_commons.shell.subprocess_executor") as checked_call_mock:
       checked_call_mock.return_value = r
       expected_version = pkg_manager.get_installed_package_version("test")
-      self.assertEquals("3.1.0.0-54", expected_version)
+      self.assertEqual("3.1.0.0-54", expected_version)
 
 
   @patch("ambari_commons.repo_manager.ManagerFactory.get")
@@ -125,22 +125,22 @@ class TestInstallPackages(RMFTestCase):
                          os_type=('Redhat', '6.4', 'Final'),
       )
       self.assertTrue(put_structured_out_mock.called)
-      self.assertEquals(put_structured_out_mock.call_args[0][0],
+      self.assertEqual(put_structured_out_mock.call_args[0][0],
                         {'package_installation_result': 'SUCCESS',
                          'repository_version_id': 1,
                          'actual_version': VERSION_STUB})
       self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.20',
-                                base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
+                                base_url='http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                                 action=['prepare'],
-                                components=[u'HDP-UTILS', 'main'],
+                                components=['HDP-UTILS', 'main'],
                                 repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                                 repo_file_name=repo_file_name,
                                 mirror_list=None,
       )
       self.assertResourceCalled('Repository', 'HDP-2.2',
-                                base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
+                                base_url='http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                                 action=['prepare'],
-                                components=[u'HDP', 'main'],
+                                components=['HDP', 'main'],
                                 repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                                 repo_file_name=repo_file_name,
                                 mirror_list=None,
@@ -196,7 +196,7 @@ class TestInstallPackages(RMFTestCase):
                            os_type=('Redhat', '6.4', 'Final'),
         )
       except Fail as e:
-        self.assertEquals(e.message, "Failed to distribute repositories/install packages")
+        self.assertEqual(str(e), "Failed to distribute repositories/install packages")
       else:
         self.assertFalse("Packages can't be installed without repos")
 
@@ -246,23 +246,23 @@ class TestInstallPackages(RMFTestCase):
                          os_type=('Suse', '11', 'SP1'),
                          )
       self.assertTrue(put_structured_out_mock.called)
-      self.assertEquals(put_structured_out_mock.call_args[0][0],
+      self.assertEqual(put_structured_out_mock.call_args[0][0],
                         {'package_installation_result': 'SUCCESS',
                          'repository_version_id': 1,
                          'actual_version': VERSION_STUB})
       self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.20',
-                                base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
+                                base_url='http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                                 action=['prepare'],
-                                components=[u'HDP-UTILS', 'main'],
+                                components=['HDP-UTILS', 'main'],
                                 repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                                 repo_file_name=repo_file_name,
                                 mirror_list=None,
                                 )
       self.assertResourceCalled('Repository', 'HDP-2.2',
-                                base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
+                                base_url='http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                                 action=['prepare'],
-                                components=[u'HDP', 'main'],
-                                repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
+                                components=['HDP', 'main'],
+                                repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                                 repo_file_name=repo_file_name,
                                 mirror_list=None,
                                 )
@@ -315,23 +315,23 @@ class TestInstallPackages(RMFTestCase):
                          os_type=('Redhat', '6.4', 'Final'),
       )
       self.assertTrue(put_structured_out_mock.called)
-      self.assertEquals(put_structured_out_mock.call_args[0][0],
+      self.assertEqual(put_structured_out_mock.call_args[0][0],
                         {'package_installation_result': 'SUCCESS',
                          'repository_version_id': 1,
                          'actual_version': VERSION_STUB})
       self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.20',
-                                base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
+                                base_url='http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                                 action=['prepare'],
-                                components=[u'HDP-UTILS', 'main'],
-                                repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
+                                components=['HDP-UTILS', 'main'],
+                                repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                                 repo_file_name=repo_file_name,
                                 mirror_list=None,
       )
       self.assertResourceCalled('Repository', 'HDP-2.2',
                                 base_url='http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                                 action=['prepare'],
-                                components=[u'HDP', 'main'],
-                                repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
+                                components=['HDP', 'main'],
+                                repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                                 repo_file_name=repo_file_name,
                                 mirror_list=None,
       )
@@ -401,23 +401,23 @@ class TestInstallPackages(RMFTestCase):
                         os_type=('Redhat', '6.4', 'Final'))
 
       self.assertTrue(put_structured_out_mock.called)
-      self.assertEquals(put_structured_out_mock.call_args[0][0],
+      self.assertEqual(put_structured_out_mock.call_args[0][0],
                         {'repository_version_id': 1,
                         'package_installation_result': 'FAIL'})
       self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.20',
-                                base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
+                                base_url='http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                                 action=['prepare'],
-                                components=[u'HDP-UTILS', 'main'],
-                                repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
-                                repo_file_name=u'ambari-hdp-1',
+                                components=['HDP-UTILS', 'main'],
+                                repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
+                                repo_file_name='ambari-hdp-1',
                                 mirror_list=None,
                                 )
       self.assertResourceCalled('Repository', 'HDP-2.2',
-                                base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
+                                base_url='http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                                 action=['prepare'],
-                                components=[u'HDP', 'main'],
-                                repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
-                                repo_file_name=u'ambari-hdp-1',
+                                components=['HDP', 'main'],
+                                repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
+                                repo_file_name='ambari-hdp-1',
                                 mirror_list=None,
                                 )
       self.assertResourceCalled('Repository', None,
@@ -473,23 +473,23 @@ class TestInstallPackages(RMFTestCase):
                          os_type=('Suse', '11', 'Final'),
                          )
       self.assertTrue(put_structured_out_mock.called)
-      self.assertEquals(put_structured_out_mock.call_args[0][0],
+      self.assertEqual(put_structured_out_mock.call_args[0][0],
                         {'package_installation_result': 'SUCCESS',
                          'repository_version_id': 1,
                          'actual_version': VERSION_STUB})
       self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.20',
-                                base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
+                                base_url='http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                                 action=['prepare'],
-                                components=[u'HDP-UTILS', 'main'],
-                                repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
+                                components=['HDP-UTILS', 'main'],
+                                repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                                 repo_file_name=repo_file_name,
                                 mirror_list=None,
                                 )
       self.assertResourceCalled('Repository', 'HDP-2.2',
-                                base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
+                                base_url='http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                                 action=['prepare'],
-                                components=[u'HDP', 'main'],
-                                repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
+                                components=['HDP', 'main'],
+                                repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                                 repo_file_name=repo_file_name,
                                 mirror_list=None,
                                 )
@@ -553,23 +553,23 @@ class TestInstallPackages(RMFTestCase):
                          os_type=('Suse', '11', 'Final'),
                          )
       self.assertTrue(put_structured_out_mock.called)
-      self.assertEquals(put_structured_out_mock.call_args[0][0],
+      self.assertEqual(put_structured_out_mock.call_args[0][0],
                         {'package_installation_result': 'SUCCESS',
                          'repository_version_id': 4,
                          'actual_version': VERSION_STUB})
       self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.20-repo-4',
-                                base_url=u'http://repo1/HDP-UTILS/centos5/2.x/updates/2.2.0.0',
+                                base_url='http://repo1/HDP-UTILS/centos5/2.x/updates/2.2.0.0',
                                 action=['prepare'],
-                                components=[u'HDP-UTILS', 'main'],
-                                repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
+                                components=['HDP-UTILS', 'main'],
+                                repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                                 repo_file_name=repo_file_name,
                                 mirror_list=None,
                                 )
       self.assertResourceCalled('Repository', 'HDP-2.2-repo-4',
-                                base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
+                                base_url='http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                                 action=['prepare'],
-                                components=[u'HDP', 'main'],
-                                repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
+                                components=['HDP', 'main'],
+                                repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                                 repo_file_name=repo_file_name,
                                 mirror_list=None,
                                 )
@@ -624,12 +624,12 @@ class TestInstallPackages(RMFTestCase):
                          os_type=('Redhat', '6.4', 'Final'),
                          )
       self.assertTrue(put_structured_out_mock.called)
-      self.assertEquals(put_structured_out_mock.call_args[0][0],
+      self.assertEqual(put_structured_out_mock.call_args[0][0],
                         {'package_installation_result': 'SUCCESS',
                          'repository_version_id': 1,
                          'actual_version': VERSION_STUB})
       self.assertTrue(write_actual_version_to_history_file_mock.called)
-      self.assertEquals(write_actual_version_to_history_file_mock.call_args[0], (VERSION_STUB_WITHOUT_BUILD_NUMBER, VERSION_STUB))
+      self.assertEqual(write_actual_version_to_history_file_mock.call_args[0], (VERSION_STUB_WITHOUT_BUILD_NUMBER, VERSION_STUB))
 
       stack_versions_mock.reset_mock()
       write_actual_version_to_history_file_mock.reset_mock()
@@ -659,7 +659,7 @@ class TestInstallPackages(RMFTestCase):
                          os_type=('Redhat', '6.4', 'Final'),
                          )
       self.assertTrue(put_structured_out_mock.called)
-      self.assertEquals(put_structured_out_mock.call_args[0][0],
+      self.assertEqual(put_structured_out_mock.call_args[0][0],
                         {'package_installation_result': 'SUCCESS',
                          'repository_version_id': 1,
                          'actual_version': VERSION_STUB})
@@ -726,7 +726,7 @@ class TestInstallPackages(RMFTestCase):
 
 
       self.assertTrue(put_structured_out_mock.called)
-      self.assertEquals(put_structured_out_mock.call_args_list[-1][0][0],
+      self.assertEqual(put_structured_out_mock.call_args_list[-1][0][0],
                         { 'actual_version': '2.2.0.1-885',
                           'package_installation_result': 'FAIL',
                           'repository_version_id': 1})
@@ -795,7 +795,7 @@ class TestInstallPackages(RMFTestCase):
         pass  # Expected
 
       self.assertTrue(put_structured_out_mock.called)
-      self.assertEquals(put_structured_out_mock.call_args_list[-1][0][0],
+      self.assertEqual(put_structured_out_mock.call_args_list[-1][0][0],
                         {'package_installation_result': 'FAIL',
                          'repository_version_id': 1})
 
@@ -835,7 +835,7 @@ class TestInstallPackages(RMFTestCase):
         pass  # Expected
 
       self.assertTrue(put_structured_out_mock.called)
-      self.assertEquals(put_structured_out_mock.call_args[0][0],
+      self.assertEqual(put_structured_out_mock.call_args[0][0],
                         {'package_installation_result': 'FAIL',
                          'repository_version_id': 1,
                          'actual_version': VERSION_STUB})
@@ -890,12 +890,12 @@ class TestInstallPackages(RMFTestCase):
                          os_type=('Redhat', '6.4', 'Final'),
                          )
       self.assertTrue(put_structured_out_mock.called)
-      self.assertEquals(put_structured_out_mock.call_args[0][0],
+      self.assertEqual(put_structured_out_mock.call_args[0][0],
                         {'package_installation_result': 'SUCCESS',
                          'repository_version_id': 1,
                          'actual_version': VERSION_STUB})
       self.assertTrue(write_actual_version_to_history_file_mock.called)
-      self.assertEquals(write_actual_version_to_history_file_mock.call_args[0], (VERSION_STUB_WITHOUT_BUILD_NUMBER, VERSION_STUB))
+      self.assertEqual(write_actual_version_to_history_file_mock.call_args[0], (VERSION_STUB_WITHOUT_BUILD_NUMBER, VERSION_STUB))
 
       stack_versions_mock.reset_mock()
       write_actual_version_to_history_file_mock.reset_mock()
@@ -925,7 +925,7 @@ class TestInstallPackages(RMFTestCase):
                          os_type=('Redhat', '6.4', 'Final'),
                          )
       self.assertTrue(put_structured_out_mock.called)
-      self.assertEquals(put_structured_out_mock.call_args[0][0],
+      self.assertEqual(put_structured_out_mock.call_args[0][0],
                         {'package_installation_result': 'SUCCESS',
                          'repository_version_id': 1,
                          'actual_version': VERSION_STUB})
@@ -980,12 +980,12 @@ class TestInstallPackages(RMFTestCase):
                          os_type=('Redhat', '6.4', 'Final'),
                          )
       self.assertTrue(put_structured_out_mock.called)
-      self.assertEquals(put_structured_out_mock.call_args[0][0],
+      self.assertEqual(put_structured_out_mock.call_args[0][0],
                         {'package_installation_result': 'SUCCESS',
                          'repository_version_id': 1,
                          'actual_version': VERSION_STUB})
       self.assertTrue(write_actual_version_to_history_file_mock.called)
-      self.assertEquals(write_actual_version_to_history_file_mock.call_args[0], ('2.2.0.1', VERSION_STUB))
+      self.assertEqual(write_actual_version_to_history_file_mock.call_args[0], ('2.2.0.1', VERSION_STUB))
 
       stack_versions_mock.reset_mock()
       write_actual_version_to_history_file_mock.reset_mock()
@@ -1015,7 +1015,7 @@ class TestInstallPackages(RMFTestCase):
                          os_type=('Redhat', '6.4', 'Final'),
                          )
       self.assertTrue(put_structured_out_mock.called)
-      self.assertEquals(put_structured_out_mock.call_args[0][0],
+      self.assertEqual(put_structured_out_mock.call_args[0][0],
                         {'package_installation_result': 'SUCCESS',
                          'repository_version_id': 1,
                          'actual_version': VERSION_STUB})
@@ -1079,7 +1079,7 @@ class TestInstallPackages(RMFTestCase):
         pass  # Expected
 
       self.assertTrue(put_structured_out_mock.called)
-      self.assertEquals(put_structured_out_mock.call_args_list[-1][0][0],
+      self.assertEqual(put_structured_out_mock.call_args_list[-1][0][0],
                         {'package_installation_result': 'FAIL',
                          'repository_version_id': 1})
 
@@ -1119,7 +1119,7 @@ class TestInstallPackages(RMFTestCase):
         pass  # Expected
 
       self.assertTrue(put_structured_out_mock.called)
-      self.assertEquals(put_structured_out_mock.call_args[0][0],
+      self.assertEqual(put_structured_out_mock.call_args[0][0],
                         {'package_installation_result': 'FAIL',
                          'repository_version_id': 1,
                          'actual_version': VERSION_STUB})
@@ -1174,12 +1174,12 @@ class TestInstallPackages(RMFTestCase):
                          os_type=('Redhat', '6.4', 'Final'),
                          )
       self.assertTrue(put_structured_out_mock.called)
-      self.assertEquals(put_structured_out_mock.call_args[0][0],
+      self.assertEqual(put_structured_out_mock.call_args[0][0],
                         {'package_installation_result': 'SUCCESS',
                          'repository_version_id': 1,
                          'actual_version': VERSION_STUB})
       self.assertTrue(write_actual_version_to_history_file_mock.called)
-      self.assertEquals(write_actual_version_to_history_file_mock.call_args[0], (VERSION_STUB_WITHOUT_BUILD_NUMBER, VERSION_STUB))
+      self.assertEqual(write_actual_version_to_history_file_mock.call_args[0], (VERSION_STUB_WITHOUT_BUILD_NUMBER, VERSION_STUB))
 
       stack_versions_mock.reset_mock()
       write_actual_version_to_history_file_mock.reset_mock()
@@ -1210,7 +1210,7 @@ class TestInstallPackages(RMFTestCase):
                          os_type=('Redhat', '6.4', 'Final'),
                          )
       self.assertTrue(put_structured_out_mock.called)
-      self.assertEquals(put_structured_out_mock.call_args[0][0],
+      self.assertEqual(put_structured_out_mock.call_args[0][0],
                         {'package_installation_result': 'SUCCESS',
                          'repository_version_id': 1,
                          'actual_version': VERSION_STUB})
@@ -1261,23 +1261,23 @@ class TestInstallPackages(RMFTestCase):
                          os_type=('Redhat', '6.4', 'Final'),
       )
       self.assertTrue(put_structured_out_mock.called)
-      self.assertEquals(put_structured_out_mock.call_args[0][0],
+      self.assertEqual(put_structured_out_mock.call_args[0][0],
                         {'package_installation_result': 'SUCCESS',
                          'repository_version_id': 4,
                          'actual_version': VERSION_STUB})
 
       self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.20-repo-4',
-                                base_url=u'http://repo1/HDP-UTILS/centos5/2.x/updates/2.2.0.0',
+                                base_url='http://repo1/HDP-UTILS/centos5/2.x/updates/2.2.0.0',
                                 action=['prepare'],
-                                components=[u'HDP-UTILS', 'main'],
+                                components=['HDP-UTILS', 'main'],
                                 repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                                 repo_file_name=repo_file_name,
                                 mirror_list=None,
       )
       self.assertResourceCalled('Repository', 'HDP-2.2-repo-4',
-                                base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
+                                base_url='http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                                 action=['prepare'],
-                                components=[u'HDP', 'main'],
+                                components=['HDP', 'main'],
                                 repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                                 repo_file_name=repo_file_name,
                                 mirror_list=None,
@@ -1290,6 +1290,6 @@ class TestInstallPackages(RMFTestCase):
   def test_os_family_check_with_inheritance(self):
     from ambari_commons.os_check import OSConst
     from ambari_commons.repo_manager import ManagerFactory
-    self.assertEquals(
+    self.assertEqual(
       ManagerFactory.get_new_instance(OSConst.DEBIAN_FAMILY).__class__,
       ManagerFactory.get_new_instance(OSConst.UBUNTU_FAMILY).__class__)

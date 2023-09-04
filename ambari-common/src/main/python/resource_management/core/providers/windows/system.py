@@ -26,7 +26,7 @@ from resource_management.core.base import Fail
 from resource_management.core import ExecuteTimeoutException
 import time
 import os
-from ambari_commons import subprocess32
+import subprocess
 import shutil
 from resource_management.libraries.script import Script
 import win32con
@@ -46,7 +46,7 @@ def _create_tmp_files(env=None):
     env = os.environ
 
   for env_var_name in 'TMPDIR', 'TEMP', 'TMP':
-    if env.has_key(env_var_name):
+    if env_var_name in env:
       dirname = env[env_var_name]
       if dirname and os.path.exists(dirname):
         break
@@ -103,12 +103,12 @@ def _merge_env(env1, env2, merge_keys=['PYTHONPATH']):
   """
   env1 = dict(env1)  # copy to new dict in case env1 is os.environ
   if env2:
-    for key, value in env2.iteritems():
+    for key, value in env2.items():
       if not key in merge_keys:
         env1[key] = value
   # strnsform keys and values to str(windows can not accept unicode)
   result_env = {}
-  for key, value in env1.iteritems():
+  for key, value in env1.items():
     if not key in merge_keys:
       result_env[str(key)] = str(value)
   #merge keys from merge_keys
@@ -210,8 +210,8 @@ def _call_command(command, logoutput=False, cwd=None, env=None, wait_for_finish=
     cur_token = OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY)
     current_env = CreateEnvironmentBlock(cur_token, False)
     current_env = _merge_env(current_env, env)
-    proc = subprocess32.Popen(command, stdout=subprocess32.PIPE, stderr=subprocess32.STDOUT,
-                            cwd=cwd, env=current_env, shell=False)
+    proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                            cwd=cwd, env=current_env, shell=False, universal_newlines=True)
     out, err = proc.communicate()
     code = proc.returncode
 
@@ -285,7 +285,7 @@ class FileProvider(Provider):
     content = self.resource.content
     if content is None:
       return None
-    elif isinstance(content, basestring):
+    elif isinstance(content, str):
       return content
     elif hasattr(content, "__call__"):
       return content()

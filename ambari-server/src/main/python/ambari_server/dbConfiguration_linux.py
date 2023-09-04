@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -23,7 +23,7 @@ import os
 import re
 import shutil
 import socket
-from ambari_commons import subprocess32
+import subprocess
 import sys
 import time
 import pwd
@@ -160,7 +160,7 @@ class LinuxDBMSConfig(DBMSConfig):
       raise FatalException(-1, err)
 
     if self.ensure_jdbc_driver_installed(properties):
-      print 'Configuring remote database connection properties...'
+      print('Configuring remote database connection properties...')
       retcode = self._setup_remote_db()
       if retcode == -1:
         err = "Remote database setup aborted."
@@ -188,7 +188,7 @@ class LinuxDBMSConfig(DBMSConfig):
 
   def _install_jdbc_driver(self, properties, files_list):
     if type(files_list) is not int:
-      print 'Copying JDBC drivers to server resources...'
+      print('Copying JDBC drivers to server resources...')
       resources_dir = get_resources_location(properties)
 
       db_name = self.dbms_full_name.lower()
@@ -393,7 +393,7 @@ class PGConfig(LinuxDBMSConfig):
       if OSCheck.is_suse_family() and not is_service_exist(PG_SERVICE_NAME):
         versioned_script_paths = glob.glob("/usr/pgsql-*/bin/postgresql*-setup")
         if versioned_script_paths:
-          versioned_script_path_tps = map(lambda path: (re.search(r'postgresql-([0-9]+\.?[0-9]*)', path).group(1), path), versioned_script_paths)
+          versioned_script_path_tps = [(re.search(r'postgresql-([0-9]+\.?[0-9]*)', path).group(1), path) for path in versioned_script_paths]
           versioned_script_path_tps.sort(key = lambda t: float(t[0]), reverse = True)
           for versioned_script_path_tp in versioned_script_path_tps:
             pgsql_service_file_name = "postgresql-%s" % versioned_script_path_tp[0]
@@ -476,9 +476,9 @@ class PGConfig(LinuxDBMSConfig):
           err = 'Unable to start PostgreSQL server. Status {0}. {1}. Exiting'.format(pg_status, err)
           raise FatalException(retcode, err)
       else:
-        print "Unable to check PostgreSQL server status when starting " \
-              "without root privileges."
-        print "Please do not forget to start PostgreSQL server."
+        print("Unable to check PostgreSQL server status when starting " \
+              "without root privileges.")
+        print("Please do not forget to start PostgreSQL server.")
 
   #
   # Private implementation
@@ -487,7 +487,7 @@ class PGConfig(LinuxDBMSConfig):
   def _setup_local_server(self, properties, options):
     # check if jdbc user is changed
     self._is_user_changed = PGConfig._is_jdbc_user_changed(self.database_username)
-    print 'Default properties detected. Using built-in database.'
+    print('Default properties detected. Using built-in database.')
     self._store_local_properties(properties, options)
 
   def _create_postgres_lock_directory(self):
@@ -495,33 +495,33 @@ class PGConfig(LinuxDBMSConfig):
     try:
       postgres_user_uid = pwd.getpwnam("postgres").pw_uid
     except KeyError:
-      print "WARNING: Unable to create /var/run/postgresql directory, because user [postgres] doesn't exist. Potentially," \
-            " postgresql service start can be failed."
+      print("WARNING: Unable to create /var/run/postgresql directory, because user [postgres] doesn't exist. Potentially," \
+            " postgresql service start can be failed.")
       return
 
     try:
       if not os.path.isdir("/var/run/postgresql"):
         os.mkdir("/var/run/postgresql")
     except Exception as e:
-      print "WARNING: Unable to create /var/run/postgresql directory. Potentially," \
-            " postgresql service start can be failed."
-      print "Unexpected error: " + str(e)
+      print("WARNING: Unable to create /var/run/postgresql directory. Potentially," \
+            " postgresql service start can be failed.")
+      print("Unexpected error: " + str(e))
       return
 
     if postgres_user_uid:
       os.chown("/var/run/postgresql", postgres_user_uid, -1)
 
   def _setup_local_database(self):
-    print 'Checking PostgreSQL...'
+    print('Checking PostgreSQL...')
     (pg_status, retcode, out, err) = PGConfig._check_postgre_up()
     if not retcode == 0:
       err = 'Unable to start PostgreSQL server. Exiting'
       raise FatalException(retcode, err)
-    print 'Configuring local database...'
+    print('Configuring local database...')
     if self._is_user_changed:
       #remove backup for pg_hba in order to reconfigure postgres
       remove_file(PGConfig.PG_HBA_CONF_FILE_BACKUP)
-    print 'Configuring PostgreSQL...'
+    print('Configuring PostgreSQL...')
     retcode, out, err = self._configure_postgres()
     if not retcode == 0:
       err = 'Unable to configure PostgreSQL server. Exiting'
@@ -544,7 +544,7 @@ class PGConfig(LinuxDBMSConfig):
       err = "Ambari Server 'reset' cancelled"
       raise FatalException(1, err)
 
-    print "Resetting the Server database..."
+    print("Resetting the Server database...")
 
     dbname = self.database_name
     filename = self.drop_tables_script_file
@@ -672,16 +672,17 @@ class PGConfig(LinuxDBMSConfig):
     else:
       # run initdb only on non ubuntu systems as ubuntu does not have initdb cmd.
       if not OSCheck.is_ubuntu_family():
-        print "Running initdb: This may take up to a minute."
+        print("Running initdb: This may take up to a minute.")
         retcode, out, err = run_os_command(PGConfig.PG_INITDB_CMD)
         if retcode == 0:
-          print out
-      print "About to start PostgreSQL"
+          print(out)
+      print("About to start PostgreSQL")
       try:
-        process = subprocess32.Popen(PGConfig.PG_START_CMD.split(' '),
-                                   stdout=subprocess32.PIPE,
-                                   stdin=subprocess32.PIPE,
-                                   stderr=subprocess32.PIPE
+        process = subprocess.Popen(PGConfig.PG_START_CMD.split(' '),
+                                   stdout=subprocess.PIPE,
+                                   stdin=subprocess.PIPE,
+                                   stderr=subprocess.PIPE,
+                                   universal_newlines=True
         )
         out, err = process.communicate()
         retcode = process.returncode
@@ -694,7 +695,7 @@ class PGConfig(LinuxDBMSConfig):
         if pg_status == PGConfig.PG_STATUS_RUNNING:
           print_info_msg("Postgres process is running. Returning...")
           return pg_status, 0, out, err
-      except (Exception), e:
+      except (Exception) as e:
         pg_status, retcode, out, err = PGConfig._get_postgre_status()
         if pg_status == PGConfig.PG_STATUS_RUNNING:
           return pg_status, 0, out, err
@@ -733,23 +734,23 @@ class PGConfig(LinuxDBMSConfig):
     :return: (code, out, err)
     """
     for i in range(SETUP_DB_CONNECT_ATTEMPTS):
-      print message
+      print(message)
       retcode, outdata, errdata = run_os_command(command)
       if retcode == 0:
-        print 'done.'
+        print('done.')
         return retcode, outdata, errdata
       if (i+1) < SETUP_DB_CONNECT_ATTEMPTS:
         print_error_msg("Failed to execute command:" + str(command))
         print_error_msg("stderr:" + errdata)
         print_error_msg("stdout:" + outdata)
-        print 'failed to execute queries ...retrying (%d)' % (i+1)
+        print('failed to execute queries ...retrying (%d)' % (i+1))
         time.sleep(SETUP_DB_CONNECT_TIMEOUT)
     return retcode, outdata, errdata
 
   @staticmethod
   def _configure_pg_hba_ambaridb_users(conf_file, database_username):
     conf_file_content_in = sudo.read_file(conf_file)
-    conf_file_content_out = conf_file_content_in
+    conf_file_content_out = conf_file_content_in.decode()
     conf_file_content_out += "\n"
     conf_file_content_out += "local  all  " + database_username + ",mapred md5"
     conf_file_content_out += "\n"
@@ -766,17 +767,17 @@ class PGConfig(LinuxDBMSConfig):
   def _configure_pg_hba_postgres_user():
     postgresString = "all   postgres"
     pg_hba_conf_file_content_in = sudo.read_file(PGConfig.PG_HBA_CONF_FILE)
-    pg_hba_conf_file_content_out = re.sub('all\s*all', postgresString, pg_hba_conf_file_content_in)
+    pg_hba_conf_file_content_out = re.sub('all\s*all', postgresString, pg_hba_conf_file_content_in.decode())
     sudo.create_file(PGConfig.PG_HBA_CONF_FILE, pg_hba_conf_file_content_out)
-    sudo.chmod(PGConfig.PG_HBA_CONF_FILE, 0644)
+    sudo.chmod(PGConfig.PG_HBA_CONF_FILE, 0o644)
 
   @staticmethod
   def _configure_postgresql_conf():
     listenAddress = "listen_addresses = '*'        #"
     postgresql_conf_file_in = sudo.read_file(PGConfig.POSTGRESQL_CONF_FILE)
-    postgresql_conf_file_out = re.sub('#+listen_addresses.*?(#|$)', listenAddress, postgresql_conf_file_in)
+    postgresql_conf_file_out = re.sub('#+listen_addresses.*?(#|$)', listenAddress, postgresql_conf_file_in.decode())
     sudo.create_file(PGConfig.POSTGRESQL_CONF_FILE, postgresql_conf_file_out)
-    sudo.chmod(PGConfig.POSTGRESQL_CONF_FILE, 0644)
+    sudo.chmod(PGConfig.POSTGRESQL_CONF_FILE, 0o644)
 
   def _configure_postgres(self):
     if os.path.isfile(PGConfig.PG_HBA_CONF_FILE):
@@ -784,11 +785,11 @@ class PGConfig(LinuxDBMSConfig):
         sudo.copy(PGConfig.PG_HBA_CONF_FILE, PGConfig.PG_HBA_CONF_FILE_BACKUP)
       else:
         #Postgres has been configured before, must not override backup
-        print "Backup for pg_hba found, reconfiguration not required"
+        print("Backup for pg_hba found, reconfiguration not required")
         return 0, "", ""
     PGConfig._configure_pg_hba_postgres_user()
     PGConfig._configure_pg_hba_ambaridb_users(PGConfig.PG_HBA_CONF_FILE, self.database_username)
-    sudo.chmod(PGConfig.PG_HBA_CONF_FILE, 0644)
+    sudo.chmod(PGConfig.PG_HBA_CONF_FILE, 0o644)
     PGConfig._configure_postgresql_conf()
     #restart postgresql if already running
     pg_status, retcode, out, err = PGConfig._get_postgre_status()
@@ -799,11 +800,11 @@ class PGConfig(LinuxDBMSConfig):
 
   @staticmethod
   def _restart_postgres():
-    print "Restarting PostgreSQL"
-    process = subprocess32.Popen(PGConfig.PG_RESTART_CMD.split(' '),
-                               stdout=subprocess32.PIPE,
-                               stdin=subprocess32.PIPE,
-                               stderr=subprocess32.PIPE
+    print("Restarting PostgreSQL")
+    process = subprocess.Popen(PGConfig.PG_RESTART_CMD.split(' '),
+                               stdout=subprocess.PIPE,
+                               stdin=subprocess.PIPE,
+                               stderr=subprocess.PIPE
     )
     time.sleep(5)
     result = process.poll()
@@ -1243,10 +1244,11 @@ class SQLAConfig(LinuxDBMSConfig):
     cmd = SQLAConfig.EXTRACT_CMD.format(files[0], get_resources_location(properties))
 
 
-    process = subprocess32.Popen(cmd.split(' '),
-                               stdout=subprocess32.PIPE,
-                               stdin=subprocess32.PIPE,
-                               stderr=subprocess32.PIPE
+    process = subprocess.Popen(cmd.split(' '),
+                               stdout=subprocess.PIPE,
+                               stdin=subprocess.PIPE,
+                               stderr=subprocess.PIPE,
+                               universal_newlines=True
     )
 
     out, err = process.communicate()

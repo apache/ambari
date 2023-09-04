@@ -11,7 +11,7 @@ def input_prompt(prompt):
 
     :rtype: str
     """
-    return raw_input(prompt)
+    return input(prompt)
 
 
 def decode(byte_data):
@@ -33,7 +33,7 @@ def encode(char_data):
 
     :rtype: bytes
     """
-    if type(char_data) is unicode:
+    if type(char_data) is str:
         return char_data.encode('utf-8')
     else:
         return char_data

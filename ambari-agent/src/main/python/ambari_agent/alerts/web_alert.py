@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 Licensed to the Apache Software Foundation (ASF) under one
@@ -20,9 +20,9 @@ limitations under the License.
 
 import logging
 import time
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 
-from urllib2 import HTTPError
+from urllib.error import HTTPError
 
 from tempfile import gettempdir
 from alerts.base_alert import BaseAlert
@@ -68,7 +68,7 @@ class WebAlert(BaseAlert):
     self.curl_connection_timeout = int(connection_timeout)
 
     # will force a kinit even if klist says there are valid tickets (4 hour default)
-    self.kinit_timeout = long(config.get('agent', 'alert_kinit_timeout', BaseAlert._DEFAULT_KINIT_TIMEOUT))
+    self.kinit_timeout = int(config.get('agent', 'alert_kinit_timeout', BaseAlert._DEFAULT_KINIT_TIMEOUT))
 
 
   def _collect(self):
@@ -197,7 +197,7 @@ class WebAlert(BaseAlert):
       return WebResponse(status_code=response_code, time_millis=time_millis,
         error_msg=error_msg)
 
-    except Exception, exception:
+    except Exception as exception:
       if logger.isEnabledFor(logging.DEBUG):
         logger.exception("[Alert][{0}] Unable to make a web request.".format(self.get_name()))
 
@@ -216,12 +216,12 @@ class WebAlert(BaseAlert):
     start_time = time.time()
 
     try:
-      response = urllib2.urlopen(url, timeout=self.connection_timeout)
+      response = urllib.request.urlopen(url, timeout=self.connection_timeout)
       response_code = response.getcode()
       time_millis = time.time() - start_time
 
       return response_code, time_millis, error_message
-    except HTTPError, httpError:
+    except HTTPError as httpError:
       time_millis = time.time() - start_time
       error_message = str(httpError)
 
@@ -230,7 +230,7 @@ class WebAlert(BaseAlert):
       if response is not None:
         try:
           response.close()
-        except Exception, exception:
+        except Exception as exception:
           if logger.isEnabledFor(logging.DEBUG):
             logger.exception("[Alert][{0}] Unable to close socket connection".format(self.get_name()))
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -18,7 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 import os
-from ambari_commons import subprocess32
+import subprocess
 import sys
 import logging
 import time
@@ -133,8 +133,8 @@ def ensure_server_security_is_configured():
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def ensure_server_security_is_configured():
   if not is_root():
-    print "Unable to check firewall status when starting without root privileges."
-    print "Please do not forget to disable or adjust firewall if needed"
+    print("Unable to check firewall status when starting without root privileges.")
+    print("Please do not forget to disable or adjust firewall if needed")
 
 
 def get_ulimit_open_files(properties):
@@ -181,8 +181,8 @@ def generate_child_process_param_list(ambari_user, java_exe, class_path,
   param_list = [locate_file('sh', '/bin'), "-c"]
   if is_root() and ambari_user != "root":
     # To inherit exported environment variables (especially AMBARI_PASSPHRASE),
-    # from subprocess32, we have to skip --login option of su command. That's why
-    # we change dir to / (otherwise subprocess32 can face with 'permission denied'
+    # from subprocess, we have to skip --login option of su command. That's why
+    # we change dir to / (otherwise subprocess can face with 'permission denied'
     # errors while trying to list current directory
     cmd = "{ulimit_cmd} ; {su} {ambari_user} -s {sh_shell} -c '. {ambari_env_file} && {command}'".format(ulimit_cmd=ulimit_cmd,
                                                                                 su=locate_file('su', '/bin'), ambari_user=ambari_user,
@@ -248,18 +248,18 @@ def wait_for_server_start(pidFile, scmStatus):
 
   if os.path.isfile(configDefaults.SERVER_OUT_FILE):
     if 'DB_CHECK_ERROR' in open(configDefaults.SERVER_OUT_FILE).read():
-      print "\nDB configs consistency check failed. Run \"ambari-server start --skip-database-check\" to skip. " \
+      print("\nDB configs consistency check failed. Run \"ambari-server start --skip-database-check\" to skip. " \
         "You may try --auto-fix-database flag to attempt to fix issues automatically. " \
         "If you use this \"--skip-database-check\" option, do not make any changes to your cluster topology " \
         "or perform a cluster upgrade until you correct the database consistency issues. See " + \
-        configDefaults.DB_CHECK_LOG + " for more details on the consistency issues."
+        configDefaults.DB_CHECK_LOG + " for more details on the consistency issues.")
     elif 'DB_CHECK_WARNING' in open(configDefaults.SERVER_OUT_FILE).read():
-      print "\nDB configs consistency check found warnings. See " + configDefaults.DB_CHECK_LOG + " for more details."
+      print("\nDB configs consistency check found warnings. See " + configDefaults.DB_CHECK_LOG + " for more details.")
     # Only presume that DB check was successful if it explicitly appears in the log. An unexpected error may prevent
     # the consistency check from running at all, so missing error/warning message in the log cannot imply the check was
     # successful
     elif 'DB_CHECK_SUCCESS' in open(configDefaults.SERVER_OUT_FILE).read():
-      print "\nDB configs consistency check: no errors and warnings were found."
+      print("\nDB configs consistency check: no errors and warnings were found.")
   else:
     sys.stdout.write(configDefaults.SERVER_OUT_FILE + " does not exist")
 
@@ -322,7 +322,7 @@ def server_process_main(options, scmStatus=None):
 
   # Preparations
   if is_root():
-    print configDefaults.MESSAGE_SERVER_RUNNING_AS_ROOT
+    print(configDefaults.MESSAGE_SERVER_RUNNING_AS_ROOT)
 
   ensure_jdbc_driver_is_installed(options, properties)
 
@@ -356,12 +356,12 @@ def server_process_main(options, scmStatus=None):
   if options.skip_database_check:
     global jvm_args
     jvm_args += " -DskipDatabaseConsistencyCheck"
-    print "Ambari Server is starting with the database consistency check skipped. Do not make any changes to your cluster " \
+    print("Ambari Server is starting with the database consistency check skipped. Do not make any changes to your cluster " \
           "topology or perform a cluster upgrade until you correct the database consistency issues. See \"" \
-          + configDefaults.DB_CHECK_LOG + "\" for more details on the consistency issues."
+          + configDefaults.DB_CHECK_LOG + "\" for more details on the consistency issues.")
     properties.process_pair(CHECK_DATABASE_SKIPPED_PROPERTY, "true")
   else:
-    print "Ambari database consistency check started..."
+    print("Ambari database consistency check started...")
     if options.fix_database_consistency:
       jvm_args += " -DfixDatabaseConsistency"
     properties.process_pair(CHECK_DATABASE_SKIPPED_PROPERTY, "false")
@@ -379,12 +379,12 @@ def server_process_main(options, scmStatus=None):
     if processId > 0:
       try:
         os.setpgid(processId, processId)
-      except OSError, e:
+      except OSError as e:
         print_warning_msg('setpgid({0}, {0}) failed - {1}'.format(pidJava, str(e)))
         pass
 
   print_info_msg("Running server: " + str(param_list))
-  procJava = subprocess32.Popen(param_list, env=environ, preexec_fn=make_process_independent)
+  procJava = subprocess.Popen(param_list, env=environ, preexec_fn=make_process_independent)
 
   pidJava = procJava.pid
   if pidJava <= 0:
@@ -400,9 +400,9 @@ def server_process_main(options, scmStatus=None):
   else:
     pidfile = os.path.join(configDefaults.PID_DIR, PID_NAME)
 
-    print "Server PID at: "+pidfile
-    print "Server out at: "+configDefaults.SERVER_OUT_FILE
-    print "Server log at: "+configDefaults.SERVER_LOG_FILE
+    print("Server PID at: "+pidfile)
+    print("Server out at: "+configDefaults.SERVER_OUT_FILE)
+    print("Server log at: "+configDefaults.SERVER_LOG_FILE)
 
     wait_for_server_start(pidfile, scmStatus)
 

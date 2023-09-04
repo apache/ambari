@@ -24,12 +24,12 @@ from resource_management.libraries.functions.show_logs import show_logs
 from resource_management.libraries.functions.format import format
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
-from hbase_service import hbase_service
+from scripts.hbase_service import hbase_service
 import os
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def ams_service(name, action):
-  import params
+  from scripts import params
   if name == 'collector':
     Service(params.ams_embedded_hbase_win_service_name, action=action)
     Service(params.ams_collector_win_service_name, action=action)
@@ -38,7 +38,7 @@ def ams_service(name, action):
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def ams_service(name, action):
-  import params
+  from scripts import params
 
   if name == 'collector':
     cmd = format("{ams_collector_script} --config {ams_collector_conf_dir}")

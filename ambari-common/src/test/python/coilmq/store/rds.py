@@ -4,7 +4,7 @@ except ImportError:  # pragma: no cover
     import sys; sys.exit('please, install redis-py package to use redis-store')
 import threading
 try:
-    import cPickle as pickle
+    import pickle as pickle
 except ImportError:
     import pickle
 

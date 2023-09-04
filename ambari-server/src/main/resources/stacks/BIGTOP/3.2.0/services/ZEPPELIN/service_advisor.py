@@ -39,7 +39,7 @@ try:
     service_advisor = imp.load_module('service_advisor', fp, PARENT_FILE, ('.py', 'rb', imp.PY_SOURCE))
 except Exception as e:
   traceback.print_exc()
-  print "Failed to load parent"
+  print("Failed to load parent")
 
 class ZeppelinServiceAdvisor(service_advisor.ServiceAdvisor):
 
@@ -270,7 +270,7 @@ class ZeppelinRecommender(service_advisor.ServiceAdvisor):
       if superusers:
         _superusers = superusers.split(',')
         _superusers = [x.strip() for x in _superusers]
-        _superusers = filter(None, _superusers)  # Removes empty string elements from array
+        _superusers = [_f for _f in _superusers if _f]  # Removes empty string elements from array
       else:
         _superusers = []
 

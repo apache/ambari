@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -83,9 +83,9 @@ def check_database(options):
     raise FatalException(int(retcode), "Database check failed to complete: {0}. \nPlease check {1} and {2} for more "
                                        "information.".format(stdout+stderr, configDefaults.SERVER_LOG_FILE, configDefaults.DB_CHECK_LOG))
   else:
-    print str(stdout)
+    print(str(stdout))
     if not stdout.startswith("No errors"):
-      print "Ambari Server 'check-database' completed"
+      print("Ambari Server 'check-database' completed")
       sys.exit(1)
 
 

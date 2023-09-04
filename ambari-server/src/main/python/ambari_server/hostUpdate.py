@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -49,17 +49,17 @@ def update_host_names(args, options):
   logger.info("Update host names.")
   services_stopped = userInput.get_YN_input("Please, confirm Ambari services are stopped [y/n] (n)? ", False)
   if not services_stopped:
-    print 'Exiting...'
+    print('Exiting...')
     sys.exit(1)
 
   pending_commands = userInput.get_YN_input("Please, confirm there are no pending commands on cluster [y/n] (n)? ", False)
   if not pending_commands:
-    print 'Exiting...'
+    print('Exiting...')
     sys.exit(1)
 
   db_backup_done = userInput.get_YN_input("Please, confirm you have made backup of the Ambari db [y/n] (n)? ", False)
   if not db_backup_done:
-    print 'Exiting...'
+    print('Exiting...')
     sys.exit(1)
 
   status, pid = serverUtils.is_server_runing()

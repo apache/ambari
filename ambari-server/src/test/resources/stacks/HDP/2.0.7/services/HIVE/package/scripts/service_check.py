@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -36,7 +36,7 @@ class HiveServiceCheck(Script):
 
     File(params.smoke_test_path,
          content=StaticFile('hiveserver2Smoke.sh'),
-         mode=0755
+         mode=0o755
     )
 
     File(params.smoke_test_sql,

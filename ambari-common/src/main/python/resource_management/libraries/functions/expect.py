@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -31,7 +31,7 @@ def expect(name, expected_type, default_value=None):
 
   Optionally if the configuration is not found default_value for it can be returned.
   """
-  subdicts = filter(None, name.split('/'))
+  subdicts = [_f for _f in name.split('/') if _f]
 
   curr_dict = Script.get_config()
   for x in subdicts:
@@ -46,7 +46,7 @@ def expect(name, expected_type, default_value=None):
   if expected_type == bool:
     if isinstance(value, bool):
       return value
-    elif isinstance(value, basestring):
+    elif isinstance(value, str):
       if value != None and value.lower() == "true":
         value = True
       elif value != None and value.lower() == "false":
@@ -56,7 +56,7 @@ def expect(name, expected_type, default_value=None):
     else:
       type_name = type(value).__name__
       raise Fail("Configuration {0} expected to be boolean (true or false), but found instance of unknown type '{1}'".format(name, type_name))
-  elif expected_type in [int, long, float]:
+  elif expected_type in [int, int, float]:
     try:
       value = expected_type(value)
     except (ValueError, TypeError):
@@ -80,7 +80,7 @@ def expect_v2(name, expected_type, default_value=None):
   if expected_type == bool:
     if isinstance(value, bool):
       return value
-    elif isinstance(value, basestring):
+    elif isinstance(value, str):
       if value != None and value.lower() == "true":
         value = True
       elif value != None and value.lower() == "false":
@@ -92,7 +92,7 @@ def expect_v2(name, expected_type, default_value=None):
       raise Fail(
         "Configuration {0} expected to be boolean (true or false), but found instance of unknown type '{1}'".format(
           name, type_name))
-  elif expected_type in [int, long, float]:
+  elif expected_type in [int, int, float]:
     try:
       value = expected_type(value)
     except (ValueError, TypeError):

@@ -133,7 +133,7 @@ class Configurator:
   def chooseConfInitType(self):
     "Type of how to get paths to configuration files"
     "Configuration types are base on Configuration.CONFIG_INIT_TYPE tuple"
-    return int(raw_input("\tInput configuration type:\n" +
+    return int(input("\tInput configuration type:\n" +
                          "0)Current path contains all required configuration files.\n" +
                          "1)Enter path for each conf file manually.\n" +
                          "Choose:"
@@ -145,7 +145,7 @@ class Configurator:
     "Input alternative file paths for resources"
     if self.configurationType != 0:
       for service in self.servicesPath.keys():
-        path = raw_input("Please enter path for " + service + "(if there is no such service type \"no\") :")
+        path = input("Please enter path for " + service + "(if there is no such service type \"no\") :")
         if len(path) > 0 and not path == "no":
           self.servicesPath[service] = path
         elif path == "no":

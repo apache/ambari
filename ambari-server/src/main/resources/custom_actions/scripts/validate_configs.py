@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -363,7 +363,7 @@ class ValidateConfigs(Script):
     validation_passed = self.check_users(params) and self.check_directories(params)
 
     if validation_passed:
-      print 'All configurations validated!'
+      print('All configurations validated!')
     else:
       self.fail_with_error('Configurations validation failed!')
 

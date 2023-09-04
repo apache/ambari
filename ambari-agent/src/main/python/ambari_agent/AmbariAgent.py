@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 Licensed to the Apache Software Foundation (ASF) under one
@@ -20,7 +20,7 @@ limitations under the License.
 
 import os
 import sys
-from ambari_commons import subprocess32
+import subprocess
 
 AGENT_AUTO_RESTART_EXIT_CODE = 77
 
@@ -66,9 +66,6 @@ def check_native_libs_support():
   if not c_extension.is_loaded():
     not_loaded_extensions.append("simplejson")
 
-  if subprocess32._posixsubprocess is None:
-    not_loaded_extensions.append("subprocess32")
-
   if not_loaded_extensions:
     logger.warning("Some native extensions not available for module(s): {}, it may affect execution performance".format(",".join(not_loaded_extensions)))
 
@@ -89,9 +86,9 @@ def main():
 
   while status == AGENT_AUTO_RESTART_EXIT_CODE:
     check_native_libs_support()
-    main_process = subprocess32.Popen(merged_args)
-    main_process.communicate()
-    status = main_process.returncode
+    mainProcess = subprocess.Popen(merged_args)
+    mainProcess.communicate()
+    status = mainProcess.returncode
     if os.path.isfile(AGENT_PID_FILE) and status == AGENT_AUTO_RESTART_EXIT_CODE:
       os.remove(AGENT_PID_FILE)
 

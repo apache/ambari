@@ -18,6 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+import distro
 import platform
 import datetime
 import os
@@ -46,7 +47,7 @@ utils = __import__('ambari_server.utils').utils
 with patch("os.path.isdir", return_value = MagicMock(return_value=True)):
   with patch("os.access", return_value = MagicMock(return_value=True)):
     with patch.object(os_utils, "parse_log4j_file", return_value={'ambari.log.dir': '/var/log/ambari-server'}):
-      with patch("platform.linux_distribution", return_value = os_distro_value_linux):
+      with patch("distro.linux_distribution", return_value = os_distro_value_linux):
         with patch.object(OSCheck, "os_distribution", return_value = os_distro_value):
           with patch.object(os_utils, "is_service_exist", return_value = True):
             with patch.object(utils, "get_postgre_hba_dir"):
@@ -55,7 +56,7 @@ with patch("os.path.isdir", return_value = MagicMock(return_value=True)):
 
               from ambari_server.serverConfiguration import update_ambari_properties, configDefaults
 
-@patch.object(platform, "linux_distribution", new = MagicMock(return_value=('Redhat', '6.4', 'Final')))
+@patch.object(distro, "linux_distribution", new = MagicMock(return_value=('Redhat', '6.4', 'Final')))
 class TestOSCheck(TestCase):
   @patch.object(OSCheck, "os_distribution")
   @patch("ambari_commons.os_check._is_oracle_linux")
@@ -65,7 +66,7 @@ class TestOSCheck(TestCase):
     mock_is_oracle_linux.return_value = False
     mock_linux_distribution.return_value = ('my_os', '2015.09', '')
     result = OSCheck.get_os_type()
-    self.assertEquals(result, 'my_os')
+    self.assertEqual(result, 'my_os')
 
     # 2 - Negative case
     mock_linux_distribution.return_value = ('', 'aaaa', 'bbbbb')
@@ -74,37 +75,37 @@ class TestOSCheck(TestCase):
       self.fail("Should throw exception in OSCheck.get_os_type()")
     except Exception as e:
       # Expected
-      self.assertEquals("Cannot detect os type. Exiting...", str(e))
+      self.assertEqual("Cannot detect os type. Exiting...", str(e))
       pass
 
     # 3 - path exist: '/etc/oracle-release'
     mock_is_oracle_linux.return_value = True
     mock_linux_distribution.return_value = ('some_os', '1234', '')
     result = OSCheck.get_os_type()
-    self.assertEquals(result, 'oraclelinux')
+    self.assertEqual(result, 'oraclelinux')
 
     # 4 - Common system
     mock_is_oracle_linux.return_value = False
     mock_linux_distribution.return_value = ('CenToS', '4.56', '')
     result = OSCheck.get_os_type()
-    self.assertEquals(result, 'centos')
+    self.assertEqual(result, 'centos')
 
     # 5 - Red Hat Enterprise Linux
     mock_is_oracle_linux.return_value = False
     # Red Hat Enterprise Linux Server release 6.5 (Santiago)
     mock_linux_distribution.return_value = ('Red Hat Enterprise Linux Server', '6.5', 'Santiago')
     result = OSCheck.get_os_type()
-    self.assertEquals(result, 'redhat')
+    self.assertEqual(result, 'redhat')
 
     # Red Hat Enterprise Linux Workstation release 6.4 (Santiago)
     mock_linux_distribution.return_value = ('Red Hat Enterprise Linux Workstation', '6.4', 'Santiago')
     result = OSCheck.get_os_type()
-    self.assertEquals(result, 'redhat')
+    self.assertEqual(result, 'redhat')
 
     # Red Hat Enterprise Linux AS release 4 (Nahant Update 3)
     mock_linux_distribution.return_value = ('Red Hat Enterprise Linux AS', '4', 'Nahant Update 3')
     result = OSCheck.get_os_type()
-    self.assertEquals(result, 'redhat')
+    self.assertEqual(result, 'redhat')
 
   @patch.object(OSCheck, "os_distribution")
   @patch("os.path.exists")
@@ -114,31 +115,31 @@ class TestOSCheck(TestCase):
     mock_exists.return_value = False
     mock_linux_distribution.return_value = ('MY_os', '5.6.7', '')
     result = OSCheck.get_os_family()
-    self.assertEquals(result, 'my_os')
+    self.assertEqual(result, 'my_os')
 
     # 2 - Redhat
     mock_exists.return_value = False
     mock_linux_distribution.return_value = ('Centos Linux', '2.4', '')
     result = OSCheck.get_os_family()
-    self.assertEquals(result, 'redhat')
+    self.assertEqual(result, 'redhat')
 
     # 3 - Ubuntu
     mock_exists.return_value = False
     mock_linux_distribution.return_value = ('Ubuntu', '14.04', '')
     result = OSCheck.get_os_family()
-    self.assertEquals(result, 'ubuntu')
+    self.assertEqual(result, 'ubuntu')
 
     # 4 - Suse
     mock_exists.return_value = False
     mock_linux_distribution.return_value = (
     'suse linux enterprise server', '11.3', '')
     result = OSCheck.get_os_family()
-    self.assertEquals(result, 'suse')
+    self.assertEqual(result, 'suse')
 
     mock_exists.return_value = False
     mock_linux_distribution.return_value = ('SLED', '1.2.3.4.5', '')
     result = OSCheck.get_os_family()
-    self.assertEquals(result, 'suse')
+    self.assertEqual(result, 'suse')
 
     # 5 - Negative case
     mock_linux_distribution.return_value = ('', '111', '2222')
@@ -147,7 +148,7 @@ class TestOSCheck(TestCase):
       self.fail("Should throw exception in OSCheck.get_os_family()")
     except Exception as e:
       # Expected
-      self.assertEquals("Cannot detect os type. Exiting...", str(e))
+      self.assertEqual("Cannot detect os type. Exiting...", str(e))
       pass
 
   @patch.object(OSCheck, "os_distribution")
@@ -156,7 +157,7 @@ class TestOSCheck(TestCase):
     # 1 - Any system
     mock_linux_distribution.return_value = ('some_os', '123.45', '')
     result = OSCheck.get_os_version()
-    self.assertEquals(result, '123.45')
+    self.assertEqual(result, '123.45')
 
     # 2 - Negative case
     mock_linux_distribution.return_value = ('ssss', '', 'ddddd')
@@ -165,7 +166,7 @@ class TestOSCheck(TestCase):
       self.fail("Should throw exception in OSCheck.get_os_version()")
     except Exception as e:
       # Expected
-      self.assertEquals("Cannot detect os version. Exiting...", str(e))
+      self.assertEqual("Cannot detect os version. Exiting...", str(e))
       pass
 
   @patch.object(OSCheck, "os_distribution")
@@ -174,12 +175,12 @@ class TestOSCheck(TestCase):
     # 1
     mock_linux_distribution.return_value = ('abcd_os', '123.45.67', '')
     result = OSCheck.get_os_major_version()
-    self.assertEquals(result, '123')
+    self.assertEqual(result, '123')
 
     # 2
     mock_linux_distribution.return_value = ('Suse', '11', '')
     result = OSCheck.get_os_major_version()
-    self.assertEquals(result, '11')
+    self.assertEqual(result, '11')
     
   @patch.object(OSCheck, "os_distribution")
   def test_aliases(self, mock_linux_distribution):
@@ -191,10 +192,10 @@ class TestOSCheck(TestCase):
     
     mock_linux_distribution.return_value = ('qwerty_os', '123.45.67', '')
     
-    self.assertEquals(OSCheck.get_os_type(), 'aliased_os')
-    self.assertEquals(OSCheck.get_os_major_version(), '5')
-    self.assertEquals(OSCheck.get_os_version(), '5.45.67')
-    self.assertEquals(OSCheck.get_os_family(), 'aliased_os_family')
+    self.assertEqual(OSCheck.get_os_type(), 'aliased_os')
+    self.assertEqual(OSCheck.get_os_major_version(), '5')
+    self.assertEqual(OSCheck.get_os_version(), '5.45.67')
+    self.assertEqual(OSCheck.get_os_family(), 'aliased_os_family')
 
   @patch.object(OSCheck, "os_distribution")
   def test_get_os_release_name(self, mock_linux_distribution):
@@ -202,7 +203,7 @@ class TestOSCheck(TestCase):
     # 1 - Any system
     mock_linux_distribution.return_value = ('', '', 'MY_NEW_RELEASE')
     result = OSCheck.get_os_release_name()
-    self.assertEquals(result, 'my_new_release')
+    self.assertEqual(result, 'my_new_release')
 
     # 2 - Negative case
     mock_linux_distribution.return_value = ('aaaa', 'bbbb', '')
@@ -211,7 +212,7 @@ class TestOSCheck(TestCase):
       self.fail("Should throw exception in OSCheck.get_os_release_name()")
     except Exception as e:
       # Expected
-      self.assertEquals("Cannot detect os release name. Exiting...", str(e))
+      self.assertEqual("Cannot detect os release name. Exiting...", str(e))
       pass
 
   @patch("ambari_server.serverConfiguration.get_conf_dir")
@@ -262,10 +263,10 @@ class TestOSCheck(TestCase):
         else:
           pass
 
-    self.assertEquals(count, 9)
+    self.assertEqual(count, 9)
     # Command should not fail if *.rpmsave file is missing
     result = update_ambari_properties()
-    self.assertEquals(result, 0)
+    self.assertEqual(result, 0)
     pass
 
   @patch.object(OSCheck, "os_distribution")
@@ -280,7 +281,7 @@ class TestOSCheck(TestCase):
       os_check_type.main()
     except SystemExit as e:
       # exit_code=0
-      self.assertEquals("0", str(e))
+      self.assertEqual("0", str(e))
 
     # 2 - server and agent os is not compatible
     mock_linux_distribution.return_value = ('ddd', '33', 'bb')
@@ -291,7 +292,7 @@ class TestOSCheck(TestCase):
       os_check_type.main()
       self.fail("Must fail because os's not compatible.")
     except Exception as e:
-      self.assertEquals(
+      self.assertEqual(
         "Local OS is not compatible with cluster primary OS family. Please perform manual bootstrap on this host.",
         str(e))
       pass

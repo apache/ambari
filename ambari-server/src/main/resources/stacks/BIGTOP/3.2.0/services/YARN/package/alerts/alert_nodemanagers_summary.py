@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 Licensed to the Apache Software Foundation (ASF) under one
@@ -18,7 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import logging
 import traceback
@@ -140,7 +140,7 @@ def execute(configurations={}, parameters={}, host_name=None):
       try:
         url_response_json = json.loads(url_response)
         live_nodemanagers = json.loads(find_value_in_jmx(url_response_json, "LiveNodeManagers", live_nodemanagers_qry))
-      except ValueError, error:
+      except ValueError as error:
         convert_to_json_failed = True
         logger.exception("[Alert][{0}] Convert response to json failed or json doesn't contain needed data: {1}".
         format("NodeManager Health Summary", str(error)))
@@ -191,7 +191,7 @@ def get_value_from_jmx(query, jmx_property, connection_timeout):
   try:
     # use a customer header process that will look for the non-standard
     # "Refresh" header and attempt to follow the redirect
-    url_opener = urllib2.build_opener(RefreshHeaderProcessor())
+    url_opener = urllib.request.build_opener(RefreshHeaderProcessor())
     response = url_opener.open(query, timeout=connection_timeout)
 
     data = response.read()

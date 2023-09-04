@@ -2,7 +2,7 @@ from ambari_jinja2 import Environment
 from ambari_jinja2.loaders import DictLoader
 
 env = Environment(loader=DictLoader({
-'child.html': u'''\
+'child.html': '''\
 {% extends master_layout or 'master.html' %}
 {% include helpers = 'helpers.html' %}
 {% macro get_the_answer() %}42{% endmacro %}
@@ -12,16 +12,16 @@ env = Environment(loader=DictLoader({
     {{ helpers.conspirate() }}
 {% endblock %}
 ''',
-'master.html': u'''\
+'master.html': '''\
 <!doctype html>
 <title>{{ title }}</title>
 {% block body %}{% endblock %}
 ''',
-'helpers.html': u'''\
+'helpers.html': '''\
 {% macro conspirate() %}23{% endmacro %}
 '''
 }))
 
 
 tmpl = env.get_template("child.html")
-print tmpl.render()
+print(tmpl.render())

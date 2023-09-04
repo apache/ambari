@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 '''
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -21,9 +21,9 @@ import re
 import os
 import sys
 import logging
-from ambari_commons import subprocess32
+import subprocess
 from optparse import OptionParser
-import ConfigParser
+import configparser
 
 USAGE = "Usage: %prog [OPTION]... URL"
 DESCRIPTION = "URL should point to full tar.gz location e.g.: https://public-repo-1.hortonworks.com/something/ambari-server.tar.gz"
@@ -52,13 +52,13 @@ class Utils:
     print_output = logoutput==True or (logoutput==None and Utils.verbose)
     
     if not print_output:
-      stdout = subprocess32.PIPE
-      stderr = subprocess32.STDOUT
+      stdout = subprocess.PIPE
+      stderr = subprocess.STDOUT
     else:
       stdout = stderr = None
     
     logger.info("Running '{0}'".format(command))
-    proc = subprocess32.Popen(command, shell=shell, stdout=stdout, stderr=stderr, env=env)
+    proc = subprocess.Popen(command, shell=shell, stdout=stdout, stderr=stderr, env=env, universal_newlines=True)
       
     if not print_output:
       out = proc.communicate()[0].strip('\n')
@@ -156,7 +156,7 @@ class Installer:
     is_rpm = not OSCheck.is_ubuntu_family()
     property_prefix = RPM_DEPENDENCIES_PROPERTY if is_rpm else DEB_DEPENDENCIES_PROPERTY
     
-    cp = ConfigParser.SafeConfigParser()
+    cp = configparser.SafeConfigParser()
     with open(OS_PACKAGE_DEPENDENCIES) as fp:
       cp.readfp(FakePropertiesHeader(fp))
       
@@ -183,7 +183,7 @@ class Installer:
     packages_string = re.sub('[()]','',packages_string)
     
     if self.skip_dependencies:
-      var = raw_input("Please confirm you have the following packages installed {0} (y/n): ".format(packages_string))
+      var = input("Please confirm you have the following packages installed {0} (y/n): ".format(packages_string))
       if var.lower() != "y" and var.lower() != "yes":
         raise Exception("User canceled the installation.")
       return

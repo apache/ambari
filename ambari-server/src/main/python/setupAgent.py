@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -23,14 +23,14 @@ import time
 import sys
 import logging
 import os
-from ambari_commons import subprocess32
+import subprocess
 
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons.os_utils import get_ambari_repo_file_full_name
 
 if OSCheck.is_windows_family():
-  import urllib2
+  import urllib.request, urllib.error, urllib.parse
 
   from ambari_commons.exceptions import FatalException
   from ambari_commons.os_utils import run_os_command
@@ -109,7 +109,7 @@ def execOsCommand(osCommand, tries=1, try_sleep=0, ret=None, cwd=None):
     if i>0:
       time.sleep(try_sleep)
 
-    osStat = subprocess32.Popen(osCommand, stdout=subprocess32.PIPE, cwd=cwd)
+    osStat = subprocess.Popen(osCommand, stdout=subprocess.PIPE, cwd=cwd, universal_newlines=True)
     log = osStat.communicate(0)
     ret = {"exitstatus": osStat.returncode, "log": log}
 
@@ -169,7 +169,7 @@ def runAgent(passPhrase, expected_hostname, user_run_as, verbose, ret=None):
     vo = " -v"
   cmd = ['su', user_run_as, '-l', '-c', '/usr/sbin/ambari-agent restart --expected-hostname=%1s %2s' % (expected_hostname, vo)]
   log = ""
-  p = subprocess32.Popen(cmd, stdout=subprocess32.PIPE)
+  p = subprocess.Popen(cmd, stdout=subprocess.PIPE, universal_newlines=True)
   p.communicate()
   agent_retcode = p.returncode
   for i in range(3):
@@ -180,7 +180,7 @@ def runAgent(passPhrase, expected_hostname, user_run_as, verbose, ret=None):
         log = ret['log']
       except Exception:
         log = "Log not found"
-      print log
+      print(log)
       break
   return {"exitstatus": agent_retcode, "log": log}
 
@@ -252,7 +252,7 @@ def findNearestAgentPackageVersion(projectVersion):
                projectVersion + "'|tr -d '\\n'|sed -s 's/[-|~][A-Za-z0-9]*//'"]
   else:
     Command = ["bash", "-c", "yum -q list all ambari-agent | grep '" + projectVersion +
-                              "' | sed -re 's/\s+/ /g' | cut -d ' ' -f 2 | head -n1 | sed -e 's/-\w[^:]*//1' "]
+                              "' | sed -re 's/\s+/ /g' | awk -F ' ' '{print $2}'  | awk -F '-' '{print $1}' | head -n1 | sed -e 's/-\w[^:]*//1' "]
   return execOsCommand(Command)
 
 def isAgentPackageAlreadyInstalled(projectVersion):
@@ -389,7 +389,7 @@ def main(argv=None):
   else:
     try:
       exitcode = run_setup(argv)
-    except Exception, e:
+    except Exception as e:
       exitcode = {"exitstatus": -1, "log": str(e)}
   return exitcode
 
@@ -397,5 +397,5 @@ if __name__ == '__main__':
   logging.basicConfig(level=logging.DEBUG)
   ret = main(sys.argv)
   retcode = ret["exitstatus"]
-  print ret["log"]
+  print(ret["log"])
   sys.exit(retcode)

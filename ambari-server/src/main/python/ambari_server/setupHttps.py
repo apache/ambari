@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -26,7 +26,7 @@ import socket
 import string
 import datetime
 import tempfile
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 from ambari_commons.exceptions import FatalException, NonFatalException
 from ambari_commons.logging_utils import get_silent, print_warning_msg, print_error_msg
 from ambari_commons.os_utils import is_root, run_os_command, copy_file, set_file_permissions, remove_file
@@ -166,7 +166,7 @@ def import_cert_and_key(security_server_keys_dir, options):
   retcode = 0
   err = ''
   if not pem_password:
-    print 'Generating random password for HTTPS keystore...done.'
+    print('Generating random password for HTTPS keystore...done.')
     pem_password = generate_random_string()
     retcode, out, err = run_os_command(CHANGE_KEY_PWD_CND.format(
         import_key_path, pem_password))
@@ -199,7 +199,7 @@ def import_cert_and_key(security_server_keys_dir, options):
     retcode, out, err = run_os_command(EXPRT_KSTR_CMD.format(import_cert_path, \
                                                              import_key_path, passwordFilePath, passinFilePath, keystoreFilePathTmp))
   if retcode == 0:
-    print 'Importing and saving Certificate...done.'
+    print('Importing and saving Certificate...done.')
     import_file_to_keystore(keystoreFilePathTmp, keystoreFilePath)
     import_file_to_keystore(passFilePathTmp, passFilePath)
 
@@ -216,16 +216,16 @@ def import_cert_and_key(security_server_keys_dir, options):
     remove_file(passwordFilePath)
 
     if not retcode == 0:
-      print 'Error during keystore validation occured!:'
-      print err
+      print('Error during keystore validation occured!:')
+      print(err)
       return False
 
     return True
   else:
     print_error_msg('Could not import Certificate and Private Key.')
-    print 'SSL error on exporting keystore: ' + err.rstrip() + \
+    print('SSL error on exporting keystore: ' + err.rstrip() + \
         '.\nPlease ensure that provided Private Key password is correct and ' + \
-        're-import Certificate.'
+        're-import Certificate.')
 
     return False
 
@@ -244,14 +244,14 @@ def get_cert_info(path):
   retcode, out, err = run_os_command(GET_CRT_INFO_CMD.format(path))
 
   if retcode != 0:
-    print 'Error getting Certificate info'
-    print err
+    print('Error getting Certificate info')
+    print(err)
     return None
 
   if out:
     certInfolist = out.split(os.linesep)
   else:
-    print 'Empty Certificate info'
+    print('Empty Certificate info')
     return None
 
   notBefore = None
@@ -274,7 +274,7 @@ def get_cert_info(path):
     subjList = pattern.findall(subject)
     keys = [item.split('=')[0] for item in subjList]
     values = [item.split('=')[1] for item in subjList]
-    subjDict = dict(zip(keys, values))
+    subjDict = dict(list(zip(keys, values)))
 
     result = subjDict
     result['notBefore'] = notBefore
@@ -287,13 +287,13 @@ def get_cert_info(path):
 
 
 def is_valid_cert_exp(certInfoDict):
-  if certInfoDict.has_key(NOT_BEFORE_ATTR):
+  if NOT_BEFORE_ATTR in certInfoDict:
     notBefore = certInfoDict[NOT_BEFORE_ATTR]
   else:
     print_warning_msg('There is no Not Before value in Certificate')
     return False
 
-  if certInfoDict.has_key(NOT_AFTER_ATTR):
+  if NOT_AFTER_ATTR in certInfoDict:
     notAfter = certInfoDict['notAfter']
   else:
     print_warning_msg('There is no Not After value in Certificate')
@@ -316,7 +316,7 @@ def is_valid_cert_exp(certInfoDict):
 
 
 def is_valid_cert_host(certInfoDict):
-  if certInfoDict.has_key(COMMON_NAME_ATTR):
+  if COMMON_NAME_ATTR in certInfoDict:
     commonName = certInfoDict[COMMON_NAME_ATTR]
   else:
     print_warning_msg('There is no Common Name in Certificate')
@@ -338,12 +338,12 @@ def is_valid_cert_host(certInfoDict):
 def get_fqdn(timeout=2):
   properties = get_ambari_properties()
   if properties == -1:
-    print "Error reading ambari properties"
+    print("Error reading ambari properties")
     return None
 
   get_fqdn_service_url = properties[GET_FQDN_SERVICE_URL]
   try:
-    handle = urllib2.urlopen(get_fqdn_service_url, '', timeout)
+    handle = urllib.request.urlopen(get_fqdn_service_url, '', timeout)
     str = handle.read()
     handle.close()
     return str
@@ -354,7 +354,7 @@ def get_fqdn(timeout=2):
 def is_valid_https_port(port):
   properties = get_ambari_properties()
   if properties == -1:
-    print "Error getting ambari properties"
+    print("Error getting ambari properties")
     return False
 
   one_way_port = properties[SRVR_ONE_WAY_SSL_PORT_PROPERTY]
@@ -366,11 +366,11 @@ def is_valid_https_port(port):
     two_way_port = SRVR_TWO_WAY_SSL_PORT
 
   if port.strip() == one_way_port.strip():
-    print "Port for https can't match the port for one way authentication port(" + one_way_port + ")"
+    print("Port for https can't match the port for one way authentication port(" + one_way_port + ")")
     return False
 
   if port.strip() == two_way_port.strip():
-    print "Port for https can't match the port for two way authentication port(" + two_way_port + ")"
+    print("Port for https can't match the port for two way authentication port(" + two_way_port + ")")
     return False
 
   return True
@@ -397,7 +397,7 @@ def setup_https(options):
   if not is_root():
     warn = 'ambari-server setup-https is run as ' \
           'non-root user, some sudo privileges might be required'
-    print warn
+    print(warn)
   options.exit_message = None
   if not get_silent():
     properties = get_ambari_properties()
@@ -439,7 +439,7 @@ def setup_https(options):
           return False
 
       if cert_must_import and not cert_was_imported:
-        print 'Setup of HTTPS failed. Exiting.'
+        print('Setup of HTTPS failed. Exiting.')
         return False
 
       conf_file = find_properties_file()
@@ -448,14 +448,14 @@ def setup_https(options):
 
       if api_ssl_old_value != properties.get_property(SSL_API) \
           or client_api_ssl_port_old_value != properties.get_property(SSL_API_PORT):
-        print "Ambari server URL changed. To make use of the Tez View in Ambari " \
-              "please update the property tez.tez-ui.history-url.base in tez-site"
+        print("Ambari server URL changed. To make use of the Tez View in Ambari " \
+              "please update the property tez.tez-ui.history-url.base in tez-site")
 
       ambari_user = read_ambari_user()
       if ambari_user:
         adjust_directory_permissions(ambari_user)
       return True
-    except (KeyError), e:
+    except (KeyError) as e:
         err = 'Property ' + str(e) + ' is not defined'
         raise FatalException(1, err)
   else:
@@ -515,4 +515,4 @@ def setup_truststore(options, import_cert=False):
     f = open(conf_file, 'w')
     properties.store(f, "Changed by 'ambari-server setup-security' command")
   else:
-    print "setup-security is not enabled in silent mode."
+    print("setup-security is not enabled in silent mode.")

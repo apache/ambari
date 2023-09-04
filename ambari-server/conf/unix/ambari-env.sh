@@ -20,7 +20,7 @@ export PATH=$PATH:$ROOT/var/lib/ambari-server
 export PYTHONPATH=$ROOT/usr/lib/ambari-server/lib:$PYTHONPATH
 
 # customize python binary for ambari
-# export PYTHON=/usr/bin/python2
+# export PYTHON=/usr/bin/python3
 
 # to add additional directory or jar to server classpath use SERVER_CLASSPATH variable
 # export SERVER_CLASSPATH=/etc/hadoop/conf/secure

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -20,25 +20,25 @@ limitations under the License.
 
 from resource_management import Script, Execute
 from resource_management.libraries.functions import format
-from status import check_service_status
-from ams import ams
+from scripts.status import check_service_status
+from scripts.ams import ams
 from resource_management.core.logger import Logger
 from resource_management.core import sudo
 
 class AmsGrafana(Script):
   def install(self, env):
-    import params
+    from scripts import params
     env.set_params(params)
     self.install_packages(env)
     self.configure(env) # for security
 
   def configure(self, env, action = None):
-    import params
+    from scripts import params
     env.set_params(params)
     ams(name='grafana', action=action)
 
   def start(self, env, upgrade_type=None):
-    import params
+    from scripts import params
     env.set_params(params)
     self.configure(env, action = 'start')
 
@@ -53,7 +53,7 @@ class AmsGrafana(Script):
     else:
       Logger.info("Grafana Server has started with pid: {0}".format(sudo.read_file(pidfile).strip()))
 
-    from metrics_grafana_util import create_ams_datasource, create_ams_dashboards, create_grafana_admin_pwd
+    from scripts.metrics_grafana_util import create_ams_datasource, create_ams_dashboards, create_grafana_admin_pwd
 
     #Set Grafana admin pwd
     create_grafana_admin_pwd()
@@ -63,7 +63,7 @@ class AmsGrafana(Script):
     create_ams_dashboards()
 
   def stop(self, env, upgrade_type=None):
-    import params
+    from scripts import params
     env.set_params(params)
     self.configure(env, action = 'stop')
     Execute((format("{ams_grafana_script}"), 'stop'),
@@ -72,12 +72,12 @@ class AmsGrafana(Script):
             )
 
   def status(self, env):
-    import status_params
+    from scripts import status_params
     env.set_params(status_params)
     check_service_status(env, name='grafana')
 
   def get_pid_files(self):
-    import status_params
+    from scripts import status_params
     return [status_params.grafana_pid_file]
 
 if __name__ == "__main__":

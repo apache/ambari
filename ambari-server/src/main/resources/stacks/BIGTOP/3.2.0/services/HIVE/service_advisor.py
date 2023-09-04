@@ -39,7 +39,7 @@ try:
     service_advisor = imp.load_module("service_advisor", fp, PARENT_FILE, (".py", "rb", imp.PY_SOURCE))
 except Exception as e:
   traceback.print_exc()
-  print "Failed to load parent"
+  print("Failed to load parent")
 
 class HiveServiceAdvisor(service_advisor.ServiceAdvisor):
 
@@ -987,9 +987,9 @@ class HiveValidator(service_advisor.ServiceAdvisor):
       if llap_queue_cap and "hive.server2.tez.sessions.per.default.queue" in hsi_site:
         num_tez_sessions = hsi_site["hive.server2.tez.sessions.per.default.queue"]
         if num_tez_sessions:
-          num_tez_sessions = long(num_tez_sessions)
-          yarn_min_container_size = long(self.get_yarn_min_container_size(services, configurations))
-          tez_am_container_size = self.calculate_tez_am_container_size(services, long(total_cluster_cap))
+          num_tez_sessions = int(num_tez_sessions)
+          yarn_min_container_size = int(self.get_yarn_min_container_size(services, configurations))
+          tez_am_container_size = self.calculate_tez_am_container_size(services, int(total_cluster_cap))
           normalized_tez_am_container_size = self._normalizeUp(tez_am_container_size, yarn_min_container_size)
           llap_selected_queue_cap_remaining = llap_queue_cap - (normalized_tez_am_container_size * num_tez_sessions)
           if llap_selected_queue_cap_remaining <= llap_queue_cap/2:
@@ -1133,9 +1133,9 @@ class HiveValidator(service_advisor.ServiceAdvisor):
     total_queue_size_at_20_perc = 20.0 / 100 * total_cluster_cap
 
     # Calculate based on minimum size required by containers.
-    yarn_min_container_size = long(self.get_yarn_min_container_size(services, configurations))
-    hive_tez_container_size = long(self.get_hive_tez_container_size(services))
-    tez_am_container_size = self.calculate_tez_am_container_size(services, long(total_cluster_cap))
+    yarn_min_container_size = int(self.get_yarn_min_container_size(services, configurations))
+    hive_tez_container_size = int(self.get_hive_tez_container_size(services))
+    tez_am_container_size = self.calculate_tez_am_container_size(services, int(total_cluster_cap))
     normalized_val = self._normalizeUp(hive_tez_container_size, yarn_min_container_size) \
                      + self._normalizeUp(tez_am_container_size, yarn_min_container_size)
 

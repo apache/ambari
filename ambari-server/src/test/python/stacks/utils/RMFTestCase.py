@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -28,10 +28,10 @@ import sys
 import pprint
 import itertools
 from mock.mock import MagicMock, patch
-import platform
+import distro
 import re
 
-with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
+with patch("distro.linux_distribution", return_value = ('Suse','11','Final')):
   with patch("os.geteuid", return_value=45000):  # required to mock sudo and run tests with right scenario
     from resource_management.core import sudo
     from resource_management.core.environment import Environment
@@ -110,7 +110,7 @@ class RMFTestCase(TestCase):
       self.config_dict["configurations"]["cluster-env"]["stack_packages"] = RMFTestCase.get_stack_packages()
 
     if config_overrides:
-      for key, value in config_overrides.iteritems():
+      for key, value in config_overrides.items():
         self.config_dict[key] = value
 
     self.config_dict = ConfigDictionary(self.config_dict)
@@ -122,7 +122,7 @@ class RMFTestCase(TestCase):
     
     # get method to execute
     try:
-      with patch.object(platform, 'linux_distribution', return_value=os_type):
+      with patch.object(distro, 'linux_distribution', return_value=os_type):
         script_module = imp.load_source(classname, script_path)
         Script.instance = None
         script_class_inst = RMFTestCase._get_attr(script_module, classname)()
@@ -130,7 +130,7 @@ class RMFTestCase(TestCase):
         script_class_inst.available_packages_in_repos = available_packages_in_repos
         Script.repository_util = RepositoryUtil(self.config_dict)
         method = RMFTestCase._get_attr(script_class_inst, command)
-    except IOError, err:
+    except IOError as err:
       raise RuntimeError("Cannot load class %s from %s: %s" % (classname, norm_path, err.message))
     
     # Reload params import, otherwise it won't change properties during next import
@@ -154,7 +154,7 @@ class RMFTestCase(TestCase):
             with patch.object(Script, 'get_tmp_dir', return_value="/tmp") as mocks_dict['get_tmp_dir']:
               with patch.object(Script, 'post_start') as mocks_dict['post_start']:
                 with patch('resource_management.libraries.functions.get_kinit_path', return_value=kinit_path_local) as mocks_dict['get_kinit_path']:
-                  with patch.object(platform, 'linux_distribution', return_value=os_type) as mocks_dict['linux_distribution']:
+                  with patch.object(distro, 'linux_distribution', return_value=os_type) as mocks_dict['linux_distribution']:
                     with patch('resource_management.libraries.functions.stack_select.is_package_supported', return_value=True):
                       with patch('resource_management.libraries.functions.stack_select.get_supported_packages', return_value=MagicMock()):
                         with patch.object(os, "environ", new=os_env) as mocks_dict['environ']:
@@ -288,7 +288,7 @@ class RMFTestCase(TestCase):
       s = "'{0}', {1},".format(
         resource.__class__.__name__, self._ppformat(resource.name))
       has_arguments = False
-      for k,v in resource.arguments.iteritems():
+      for k,v in resource.arguments.items():
         has_arguments = True
         # correctly output octal mode numbers
         if k == 'mode' and isinstance( v, int ):
@@ -317,7 +317,7 @@ class RMFTestCase(TestCase):
       s = "self.assertResourceCalled({0}{1})".format(s, before_bracket)
       # Intendation
       s = self.reindent(s, intendation)
-      print s
+      print(s)
     print(self.reindent("self.assertNoMoreResources()", intendation))
 
   def assertResourceCalledIgnoreEarlier(self, resource_type, name, **kwargs):
@@ -334,9 +334,9 @@ class RMFTestCase(TestCase):
         # take the next resource and try it out
         resource = RMFTestCase.env.resource_list.pop(0)
         try:
-          self.assertEquals(resource_type, resource.__class__.__name__)
-          self.assertEquals(name, resource.name)
-          self.assertEquals(kwargs, resource.arguments)
+          self.assertEqual(resource_type, resource.__class__.__name__)
+          self.assertEqual(name, resource.name)
+          self.assertEqual(kwargs, resource.arguments)
           break
         except AssertionError:
           pass
@@ -346,43 +346,44 @@ class RMFTestCase(TestCase):
       self.assertNotEqual(len(RMFTestCase.env.resource_list), 0, "There were no more resources executed!")
       resource = RMFTestCase.env.resource_list.pop(0)
 
-      self.assertEquals(resource_type, resource.__class__.__name__)
-      self.assertEquals(name, resource.name)
-      self.assertEquals(kwargs, resource.arguments)
+      self.assertEqual(resource_type, resource.__class__.__name__)
+      self.assertEqual(name, resource.name)
+      self.assertEqual(kwargs, resource.arguments)
 
   def assertResourceCalledRegexp(self, resource_type, name, **kwargs):
     with patch.object(UnknownConfiguration, '__getattr__', return_value=lambda: "UnknownConfiguration()"):
       self.assertNotEqual(len(RMFTestCase.env.resource_list), 0, "There were no more resources executed!")
       resource = RMFTestCase.env.resource_list.pop(0)
       
-      self.assertRegexpMatches(resource.__class__.__name__, resource_type)
-      self.assertRegexpMatches(resource.name, name)
+      self.assertRegex(resource.__class__.__name__, resource_type)
+      self.assertRegex(resource.name, name)
       for key in set(resource.arguments.keys()) | set(kwargs.keys()):
         resource_value = resource.arguments.get(key, '')
         actual_value = kwargs.get(key, '')
         if self.isstring(resource_value):
-          self.assertRegexpMatches(resource_value, actual_value,
+          self.assertRegex(resource_value, actual_value,
                                    msg="Key '%s': '%s' does not match with '%s'" % (key, resource_value, actual_value))
         else: # check only the type of a custom object
-          self.assertEquals(resource_value.__class__.__name__, actual_value.__class__.__name__)
+          self.assertEqual(resource_value.__class__.__name__, actual_value.__class__.__name__)
 
   def assertRegexpMatches(self, value, pattern, msg=None):
     if not re.match(pattern, value):
-      raise AssertionError, msg or 'pattern %s does not match %s' % (pattern, value)
+      if msg is None:
+        raise AssertionError('pattern %s does not match %s' % (pattern, value))
 
   def isstring(self, s):
     if (sys.version_info[0] == 3):
       return isinstance(s, str)
-    return isinstance(s, basestring)
+    return isinstance(s, str)
 
   def assertNoMoreResources(self):
-    self.assertEquals(len(RMFTestCase.env.resource_list), 0, "There were other resources executed!")
+    self.assertEqual(len(RMFTestCase.env.resource_list), 0, "There were other resources executed!")
     
   def assertResourceCalledByIndex(self, index, resource_type, name, **kwargs):
     resource = RMFTestCase.env.resource_list[index]
-    self.assertEquals(resource_type, resource.__class__.__name__)
-    self.assertEquals(name, resource.name)
-    self.assertEquals(kwargs, resource.arguments)
+    self.assertEqual(resource_type, resource.__class__.__name__)
+    self.assertEqual(name, resource.name)
+    self.assertEqual(kwargs, resource.arguments)
 
 
 # HACK: This is used to check Templates, StaticFile, InlineTemplate in testcases    

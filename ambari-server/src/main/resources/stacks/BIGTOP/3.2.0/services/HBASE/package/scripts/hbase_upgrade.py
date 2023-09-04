@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -36,7 +36,7 @@ class HbaseMasterUpgrade(Script):
 
   def restore_snapshot(self, env):
     import params
-    print "TODO AMBARI-12698"
+    print("TODO AMBARI-12698")
 
 if __name__ == "__main__":
   HbaseMasterUpgrade().execute()

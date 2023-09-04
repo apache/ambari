@@ -16,6 +16,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 import os
+import importlib
 import sys
 
 from ambari_commons.exceptions import FatalException
@@ -23,11 +24,11 @@ from mock.mock import patch, MagicMock, call
 
 with patch.object(os, "geteuid", new=MagicMock(return_value=0)):
   from resource_management.core import sudo
-  reload(sudo)
+  importlib.reload(sudo)
 
 import operator
-import platform
-import StringIO
+import distro
+import io
 from unittest import TestCase
 os.environ["ROOT"] = ""
 
@@ -55,15 +56,15 @@ def search_file_proxy(filename, searchpatch, pathsep=os.pathsep):
 
 
 os_utils.search_file = search_file_proxy
-with patch.object(platform, "linux_distribution", return_value = MagicMock(return_value=('Redhat', '6.4', 'Final'))):
+with patch.object(distro, "linux_distribution", return_value = MagicMock(return_value=('Redhat', '6.4', 'Final'))):
   with patch("os.path.isdir", return_value = MagicMock(return_value=True)):
     with patch("os.access", return_value = MagicMock(return_value=True)):
       with patch.object(os_utils, "parse_log4j_file", return_value={'ambari.log.dir': '/var/log/ambari-server'}):
-        with patch("platform.linux_distribution", return_value = os_distro_value):
+        with patch("distro.linux_distribution", return_value = os_distro_value):
           with patch("os.symlink"):
             with patch("glob.glob", return_value = ['/etc/init.d/postgresql-9.3']):
               _ambari_server_ = __import__('ambari-server')
-              with patch("__builtin__.open"):
+              with patch("builtins.open"):
                 from ambari_server.properties import Properties
                 from ambari_server.serverConfiguration import configDefaults, JDBC_RCA_PASSWORD_FILE_PROPERTY, JDBC_PASSWORD_PROPERTY, \
   JDBC_RCA_PASSWORD_ALIAS, SSL_TRUSTSTORE_PASSWORD_PROPERTY, SECURITY_IS_ENCRYPTION_ENABLED, \
@@ -72,12 +73,12 @@ with patch.object(platform, "linux_distribution", return_value = MagicMock(retur
                 from ambari_server.serverClassPath import ServerClassPath
 
 
-@patch.object(platform, "linux_distribution", new = MagicMock(return_value=('Redhat', '6.4', 'Final')))
+@patch.object(distro, "linux_distribution", new = MagicMock(return_value=('Redhat', '6.4', 'Final')))
 @patch("ambari_server.dbConfiguration_linux.get_postgre_hba_dir", new = MagicMock(return_value = "/var/lib/pgsql/data"))
 @patch("ambari_server.dbConfiguration_linux.get_postgre_running_status", new = MagicMock(return_value = "running"))
 class TestSensitiveDataEncryption(TestCase):
   def setUp(self):
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
 
@@ -87,11 +88,13 @@ class TestSensitiveDataEncryption(TestCase):
   @patch("os.path.isdir", new = MagicMock(return_value=True))
   @patch("os.access", new = MagicMock(return_value=True))
   @patch.object(ServerClassPath, "get_full_ambari_classpath_escaped_for_shell", new = MagicMock(return_value = 'test' + os.pathsep + 'path12'))
+  @patch('ambari_server.serverConfiguration.find_properties_file')
   @patch("ambari_server.setupSecurity.find_jdk")
   @patch("ambari_server.setupSecurity.get_ambari_properties")
   @patch("ambari_server.setupSecurity.run_os_command")
-  def test_sensitive_data_encryption(self, run_os_command_mock, get_ambari_properties_method, find_jdk_mock):
+  def test_sensitive_data_encryption(self, run_os_command_mock, get_ambari_properties_method, find_jdk_mock, find_properties_file_mock):
     find_jdk_mock.return_value = "/"
+    find_properties_file_mock.return_value = "/tmp/ambari.properties"
     environ = os.environ.copy()
 
     run_os_command_mock.return_value = 0,"",""
@@ -109,7 +112,7 @@ class TestSensitiveDataEncryption(TestCase):
 
     options = self._create_empty_options_mock()
     code = sensitive_data_encryption(options, "encription")
-    self.assertEquals(code, 1)
+    self.assertEqual(code, 1)
     print_mock.assert_called_with("No JDK found, please run the \"setup\" "
                                   "command to install a JDK automatically or install any "
                                   "JDK manually to " + configDefaults.JDK_INSTALL_DIR)
@@ -118,11 +121,13 @@ class TestSensitiveDataEncryption(TestCase):
   @patch("os.path.isdir", new = MagicMock(return_value=True))
   @patch("os.access", new = MagicMock(return_value=True))
   @patch.object(ServerClassPath, "get_full_ambari_classpath_escaped_for_shell", new = MagicMock(return_value = 'test' + os.pathsep + 'path12'))
+  @patch('ambari_server.serverConfiguration.find_properties_file')
   @patch("ambari_server.setupSecurity.find_jdk")
   @patch("ambari_server.setupSecurity.get_ambari_properties")
   @patch("ambari_server.setupSecurity.run_os_command")
-  def test_sensitive_data_decryption_not_persisted(self, run_os_command_mock, get_ambari_properties_method, find_jdk_mock):
+  def test_sensitive_data_decryption_not_persisted(self, run_os_command_mock, get_ambari_properties_method, find_jdk_mock,find_properties_file_mock):
     find_jdk_mock.return_value = "/"
+    find_properties_file_mock.return_value = "/tmp/ambari.properties"
     environ = os.environ.copy()
     master = "master"
     environ[SECURITY_KEY_ENV_VAR_NAME] = master
@@ -205,10 +210,10 @@ class TestSensitiveDataEncryption(TestCase):
                        SECURITY_IS_ENCRYPTION_ENABLED: 'true',
                        SECURITY_SENSITIVE_DATA_ENCRYPTON_ENABLED: 'true'}
 
-    sorted_x = sorted(result_expected.iteritems(), key=operator.itemgetter(0))
-    sorted_y = sorted(update_properties_method.call_args[0][1].iteritems(),
+    sorted_x = sorted(result_expected.items(), key=operator.itemgetter(0))
+    sorted_y = sorted(update_properties_method.call_args[0][1].items(),
                       key=operator.itemgetter(0))
-    self.assertEquals(sorted_x, sorted_y)
+    self.assertEqual(sorted_x, sorted_y)
     pass
 
   @patch("ambari_server.setupSecurity.get_is_persisted")
@@ -278,10 +283,10 @@ class TestSensitiveDataEncryption(TestCase):
                        SECURITY_IS_ENCRYPTION_ENABLED: 'true',
                        SECURITY_SENSITIVE_DATA_ENCRYPTON_ENABLED: 'true'}
 
-    sorted_x = sorted(result_expected.iteritems(), key=operator.itemgetter(0))
-    sorted_y = sorted(update_properties_method.call_args[0][1].iteritems(),
+    sorted_x = sorted(result_expected.items(), key=operator.itemgetter(0))
+    sorted_y = sorted(update_properties_method.call_args[0][1].items(),
                       key=operator.itemgetter(0))
-    self.assertEquals(sorted_x, sorted_y)
+    self.assertEqual(sorted_x, sorted_y)
     pass
 
   @patch("ambari_server.setupSecurity.get_is_persisted")
@@ -396,7 +401,7 @@ class TestSensitiveDataEncryption(TestCase):
     self.assertTrue(update_properties_method.called)
     self.assertFalse(save_master_key_method.called)
     self.assertTrue(save_passwd_for_alias_method.called)
-    self.assertEquals(2, save_passwd_for_alias_method.call_count)
+    self.assertEqual(2, save_passwd_for_alias_method.call_count)
     self.assertTrue(remove_password_file_method.called)
     self.assertTrue(adjust_directory_permissions_mock.called)
     sensitive_data_encryption_metod.assert_called_with(options, "encryption", master_key)
@@ -410,10 +415,10 @@ class TestSensitiveDataEncryption(TestCase):
                        SECURITY_IS_ENCRYPTION_ENABLED: 'true',
                        SECURITY_SENSITIVE_DATA_ENCRYPTON_ENABLED: 'true'}
 
-    sorted_x = sorted(result_expected.iteritems(), key=operator.itemgetter(0))
-    sorted_y = sorted(update_properties_method.call_args[0][1].iteritems(),
+    sorted_x = sorted(result_expected.items(), key=operator.itemgetter(0))
+    sorted_y = sorted(update_properties_method.call_args[0][1].items(),
                       key=operator.itemgetter(0))
-    self.assertEquals(sorted_x, sorted_y)
+    self.assertEqual(sorted_x, sorted_y)
     pass
 
   @patch("ambari_server.setupSecurity.save_passwd_for_alias")
@@ -469,10 +474,10 @@ class TestSensitiveDataEncryption(TestCase):
                        SECURITY_IS_ENCRYPTION_ENABLED: 'true',
                        SECURITY_SENSITIVE_DATA_ENCRYPTON_ENABLED: 'true'}
 
-    sorted_x = sorted(result_expected.iteritems(), key=operator.itemgetter(0))
-    sorted_y = sorted(update_properties_method.call_args[0][1].iteritems(),
+    sorted_x = sorted(result_expected.items(), key=operator.itemgetter(0))
+    sorted_y = sorted(update_properties_method.call_args[0][1].items(),
                       key=operator.itemgetter(0))
-    self.assertEquals(sorted_x, sorted_y)
+    self.assertEqual(sorted_x, sorted_y)
     pass
 
   @patch("ambari_server.setupSecurity.read_master_key")
@@ -542,10 +547,10 @@ class TestSensitiveDataEncryption(TestCase):
                        SECURITY_IS_ENCRYPTION_ENABLED: 'true',
                        SECURITY_SENSITIVE_DATA_ENCRYPTON_ENABLED: 'true'}
 
-    sorted_x = sorted(result_expected.iteritems(), key=operator.itemgetter(0))
-    sorted_y = sorted(update_properties_method.call_args[0][1].iteritems(),
+    sorted_x = sorted(result_expected.items(), key=operator.itemgetter(0))
+    sorted_y = sorted(update_properties_method.call_args[0][1].items(),
                       key=operator.itemgetter(0))
-    self.assertEquals(sorted_x, sorted_y)
+    self.assertEqual(sorted_x, sorted_y)
     pass
 
   @patch("os.path.exists")
@@ -604,10 +609,10 @@ class TestSensitiveDataEncryption(TestCase):
                        SECURITY_IS_ENCRYPTION_ENABLED: 'false',
                        SECURITY_SENSITIVE_DATA_ENCRYPTON_ENABLED: 'false'}
 
-    sorted_x = sorted(result_expected.iteritems(), key=operator.itemgetter(0))
-    sorted_y = sorted(update_properties_method.call_args[0][1].iteritems(),
+    sorted_x = sorted(result_expected.items(), key=operator.itemgetter(0))
+    sorted_y = sorted(update_properties_method.call_args[0][1].items(),
                       key=operator.itemgetter(0))
-    self.assertEquals(sorted_x, sorted_y)
+    self.assertEqual(sorted_x, sorted_y)
     pass
 
   def _create_empty_options_mock(self):

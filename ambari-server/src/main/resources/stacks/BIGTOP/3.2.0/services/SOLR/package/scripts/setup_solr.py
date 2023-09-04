@@ -32,7 +32,7 @@ def setup_solr(name = None):
   if name == 'server':
     Directory([params.solr_log_dir, params.solr_piddir,
                params.solr_datadir, params.solr_data_resources_dir],
-              mode=0755,
+              mode=0o755,
               cd_access='a',
               create_parents=True,
               owner=params.solr_user,
@@ -40,7 +40,7 @@ def setup_solr(name = None):
               )
 
     Directory([params.solr_dir, params.solr_conf],
-              mode=0755,
+              mode=0o755,
               cd_access='a',
               owner=params.solr_user,
               group=params.user_group,
@@ -49,7 +49,7 @@ def setup_solr(name = None):
               )
 
     File(params.solr_log,
-         mode=0644,
+         mode=0o644,
          owner=params.solr_user,
          group=params.user_group,
          content=''
@@ -57,7 +57,7 @@ def setup_solr(name = None):
 
     File(format("{solr_conf}/solr-env.sh"),
          content=InlineTemplate(params.solr_env_content),
-         mode=0755,
+         mode=0o755,
          owner=params.solr_user,
          group=params.user_group
          )
@@ -79,7 +79,7 @@ def setup_solr(name = None):
          content=InlineTemplate(params.solr_security_json_content),
          owner=params.solr_user,
          group=params.user_group,
-         mode=0640
+         mode=0o640
          )
 
     if params.security_enabled:
@@ -91,12 +91,12 @@ def setup_solr(name = None):
            content=Template("solr-security.json.j2"),
            owner=params.solr_user,
            group=params.user_group,
-           mode=0640)
+           mode=0o640)
     if os.path.exists(params.limits_conf_dir):
       File(os.path.join(params.limits_conf_dir, 'solr.conf'),
            owner='root',
            group='root',
-           mode=0644,
+           mode=0o644,
            content=Template("solr.conf.j2")
       )
 

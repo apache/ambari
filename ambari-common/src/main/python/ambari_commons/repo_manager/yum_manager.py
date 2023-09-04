@@ -16,7 +16,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import ConfigParser
+import configparser
 import glob
 
 from .generic_manager import GenericManagerProperties, GenericManager
@@ -26,7 +26,7 @@ from resource_management.core.logger import Logger
 from resource_management.core.utils import suppress_stdout
 from resource_management.core import sudo
 
-from StringIO import StringIO
+from io import StringIO
 
 import re
 import os
@@ -327,7 +327,7 @@ class YumManager(GenericManager):
     # if there are any matches, it means the repo already exists and we should use it to search
     # for packages to install
     for repo_file in glob.glob(os.path.join(YumManagerProperties.repo_definition_location, "*.repo")):
-      config_parser = ConfigParser.ConfigParser()
+      config_parser = configparser.ConfigParser()
       config_parser.read(repo_file)
       sections = config_parser.sections()
       for section in sections:
@@ -352,7 +352,7 @@ class YumManager(GenericManager):
     regex = re.compile(name_regex)
 
     for package in packages:
-      if regex.match(package['name']):
+      if regex.match(package['name'].decode()):
         return True
     return False
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -18,7 +18,7 @@ limitations under the License.
 
 """
 
-import ConfigParser
+import configparser
 import os
 import re
 
@@ -33,15 +33,15 @@ from resource_management.libraries.functions.get_not_managed_resources import ge
 from resource_management.libraries.functions.substitute_vars import substitute_vars
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 
-import status_params
-from functions import calc_xmn_from_xms
-from functions import check_append_heap_property
-from functions import trim_heap_property
+from scripts import status_params
+from scripts.functions import calc_xmn_from_xms
+from scripts.functions import check_append_heap_property
+from scripts.functions import trim_heap_property
 
 if OSCheck.is_windows_family():
-  from params_windows import *
+  from scripts.params_windows import *
 else:
-  from params_linux import *
+  from scripts.params_linux import *
 # server configurations
 config = Script.get_config()
 exec_tmp_dir = Script.get_tmp_dir()
@@ -136,7 +136,7 @@ def get_grafana_dashboard_defs():
 def get_ambari_version():
   ambari_version = None
   AMBARI_AGENT_CONF = '/etc/ambari-agent/conf/ambari-agent.ini'
-  ambari_agent_config = ConfigParser.RawConfigParser()
+  ambari_agent_config = configparser.RawConfigParser()
   if os.path.exists(AMBARI_AGENT_CONF):
     try:
       ambari_agent_config.read(AMBARI_AGENT_CONF)
@@ -145,7 +145,7 @@ def get_ambari_version():
       f = open(ver_file, "r")
       ambari_version = f.read().strip()
       f.close()
-    except Exception, e:
+    except Exception as e:
       Logger.info('Unable to determine ambari version from version file.')
       Logger.debug('Exception: %s' % str(e))
       # No hostname script identified in the ambari agent conf
@@ -159,7 +159,7 @@ ams_collector_log_dir = config['configurations']['ams-env']['metrics_collector_l
 ams_collector_conf_dir = "/etc/ambari-metrics-collector/conf"
 ams_monitor_log_dir = config['configurations']['ams-env']['metrics_monitor_log_dir']
 
-ams_monitor_dir = "/usr/lib/python2.6/site-packages/resource_monitoring"
+ams_monitor_dir = "/usr/lib/python3.9/site-packages/resource_monitoring"
 ams_monitor_conf_dir = "/etc/ambari-metrics-monitor/conf"
 ams_monitor_pid_dir = status_params.ams_monitor_pid_dir
 ams_monitor_script = "/usr/sbin/ambari-metrics-monitor"

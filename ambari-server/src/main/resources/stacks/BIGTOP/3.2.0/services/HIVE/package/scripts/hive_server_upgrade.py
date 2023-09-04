@@ -124,7 +124,7 @@ def _get_current_hiveserver_version():
       version_hive_bin = format('{stack_root}/{source_version}/usr/lib/hive/bin')
     command = format('{version_hive_bin}/hive --version')
     return_code, output = shell.call(command, user=params.hive_user, path=hive_execute_path)
-  except Exception, e:
+  except Exception as e:
     Logger.error(str(e))
     raise Fail('Unable to execute hive --version command to retrieve the hiveserver2 version.')
 

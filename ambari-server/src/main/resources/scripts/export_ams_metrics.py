@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 '''
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -21,7 +21,7 @@ import optparse
 import sys
 import os
 import logging
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import json
 import datetime
 import time
@@ -94,10 +94,10 @@ class Utils:
 
   @staticmethod
   def get_data_from_url(collector_uri):
-    req = urllib2.Request(collector_uri)
+    req = urllib.request.Request(collector_uri)
     connection = None
     try:
-      connection = urllib2.urlopen(req)
+      connection = urllib.request.urlopen(req)
     except Exception as e:
       logger.error('Error on metrics GET request: %s' % collector_uri)
       logger.error(str(e))
@@ -376,7 +376,7 @@ def main():
   d = datetime.datetime.now()
   time_suffix = '{0}-{1}-{2}-{3}-{4}-{5}'.format(d.year, d.month, d.day,
                                                  d.hour, d.minute, d.second)
-  print 'Time: %s' % time_suffix
+  print('Time: %s' % time_suffix)
 
   logfile = os.path.join('/tmp', 'ambari_metrics_export.out')
 

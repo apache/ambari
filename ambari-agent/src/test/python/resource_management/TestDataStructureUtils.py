@@ -28,20 +28,20 @@ class TestDictUtils(TestCase):
     dict_ = {1: {2: {3: 'data'}}}
     empty_dict = {}
 
-    self.assertEquals('data', get_from_dict(dict_, (1, 2, 3)))
-    self.assertEquals('data', get_from_dict(dict_, [1, 2, 3]))
+    self.assertEqual('data', get_from_dict(dict_, (1, 2, 3)))
+    self.assertEqual('data', get_from_dict(dict_, [1, 2, 3]))
 
-    self.assertEquals({3: 'data'}, get_from_dict(dict_, (1, 2)))
+    self.assertEqual({3: 'data'}, get_from_dict(dict_, (1, 2)))
 
-    self.assertEquals({2: {3: 'data'}}, get_from_dict(dict_, 1))
+    self.assertEqual({2: {3: 'data'}}, get_from_dict(dict_, 1))
 
-    self.assertEquals(KeyNotFound, get_from_dict(dict_, (1, 2, 0)))
-    self.assertEquals(KeyNotFound, get_from_dict(dict_, [1, 2, 0]))
-    self.assertEquals(KeyNotFound, get_from_dict(dict_, (1, 0, 3)))
-    self.assertEquals(KeyNotFound, get_from_dict(dict_, (1, 2, 3, 4)))
-    self.assertEquals(KeyNotFound, get_from_dict(dict_, (0, 2)))
+    self.assertEqual(KeyNotFound, get_from_dict(dict_, (1, 2, 0)))
+    self.assertEqual(KeyNotFound, get_from_dict(dict_, [1, 2, 0]))
+    self.assertEqual(KeyNotFound, get_from_dict(dict_, (1, 0, 3)))
+    self.assertEqual(KeyNotFound, get_from_dict(dict_, (1, 2, 3, 4)))
+    self.assertEqual(KeyNotFound, get_from_dict(dict_, (0, 2)))
 
-    self.assertEquals('default', get_from_dict(dict_, (0, 2, 3), default_value='default'))
-    self.assertEquals('default', get_from_dict(empty_dict, (0, 2, 3), default_value='default'))
+    self.assertEqual('default', get_from_dict(dict_, (0, 2, 3), default_value='default'))
+    self.assertEqual('default', get_from_dict(empty_dict, (0, 2, 3), default_value='default'))
 
-    self.assertEquals(KeyNotFound, get_from_dict(empty_dict, [1]))
+    self.assertEqual(KeyNotFound, get_from_dict(empty_dict, [1]))

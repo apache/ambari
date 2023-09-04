@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -37,7 +37,7 @@ class TestAlertCollector(TestCase):
     }
     collector.put(cluster, alert)
 
-    self.assertEquals(collector._AlertCollector__buckets, {'TestCluster': {'AlertName': alert}, 'TestCluster2': {}})
+    self.assertEqual(collector._AlertCollector__buckets, {'TestCluster': {'AlertName': alert}, 'TestCluster2': {}})
 
   def test_put_clusterExists(self):
     cluster = 'TestCluster'
@@ -51,7 +51,7 @@ class TestAlertCollector(TestCase):
     }
     collector.put(cluster, alert)
 
-    self.assertEquals(collector._AlertCollector__buckets, {'TestCluster': {'AlertName': alert}})
+    self.assertEqual(collector._AlertCollector__buckets, {'TestCluster': {'AlertName': alert}})
 
   def test_put_alertExists(self):
     cluster = 'TestCluster'
@@ -69,7 +69,7 @@ class TestAlertCollector(TestCase):
     }
     collector.put(cluster, alert)
 
-    self.assertEquals(collector._AlertCollector__buckets, {'TestCluster': {'AlertName': alert}})
+    self.assertEqual(collector._AlertCollector__buckets, {'TestCluster': {'AlertName': alert}})
 
   def test_remove(self):
     alert1 = {
@@ -89,7 +89,7 @@ class TestAlertCollector(TestCase):
     }
     controller.remove('TestCluster', 'AlertName1')
 
-    self.assertEquals(controller._AlertCollector__buckets, {'TestCluster': {'AlertName2': alert2}})
+    self.assertEqual(controller._AlertCollector__buckets, {'TestCluster': {'AlertName2': alert2}})
 
   def test_remove_noCluster(self):
     alert1 = {
@@ -109,7 +109,7 @@ class TestAlertCollector(TestCase):
     }
     controller.remove('TestCluster', 'AlertName1')
 
-    self.assertEquals(controller._AlertCollector__buckets, {'TestCluster2': {'AlertName1': alert1, 'AlertName2': alert2}})
+    self.assertEqual(controller._AlertCollector__buckets, {'TestCluster2': {'AlertName1': alert1, 'AlertName2': alert2}})
 
   def test_remove_noAlert(self):
     alert2 = {
@@ -124,7 +124,7 @@ class TestAlertCollector(TestCase):
     }
     controller.remove('TestCluster', 'AlertName1')
 
-    self.assertEquals(controller._AlertCollector__buckets, {'TestCluster2': {'AlertName2': alert2}})
+    self.assertEqual(controller._AlertCollector__buckets, {'TestCluster2': {'AlertName2': alert2}})
 
   def test_remove_by_uuid(self):
     alert1 = {
@@ -144,7 +144,7 @@ class TestAlertCollector(TestCase):
     }
     controller.remove_by_uuid('11')
 
-    self.assertEquals(controller._AlertCollector__buckets, {'TestCluster2': {'AlertName2': alert2}})
+    self.assertEqual(controller._AlertCollector__buckets, {'TestCluster2': {'AlertName2': alert2}})
 
   def test_remove_by_uuid_absent(self):
     alert1 = {
@@ -164,7 +164,7 @@ class TestAlertCollector(TestCase):
     }
     controller.remove_by_uuid('13')
 
-    self.assertEquals(controller._AlertCollector__buckets, {'TestCluster': {'AlertName1': alert1, 'AlertName2': alert2}})
+    self.assertEqual(controller._AlertCollector__buckets, {'TestCluster': {'AlertName1': alert1, 'AlertName2': alert2}})
 
   def test_alerts(self):
     alert1 = {
@@ -196,8 +196,8 @@ class TestAlertCollector(TestCase):
     }
     list = controller.alerts()
 
-    self.assertEquals(controller._AlertCollector__buckets, {})
-    self.assertEquals(list.sort(), [alert1, alert2, alert3, alert4].sort())
+    self.assertEqual(controller._AlertCollector__buckets, {})
+    self.assertEqual(list.sort(key=lambda k: (k.get('name', 0))), [alert1, alert2, alert3, alert4].sort(key=lambda k: (k.get('name', 0))))
 
 
 
