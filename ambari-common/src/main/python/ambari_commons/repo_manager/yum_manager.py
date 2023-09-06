@@ -276,29 +276,7 @@ class YumManager(GenericManager):
     if not name:
       raise ValueError("Package name can't be empty")
 
-    if os.geteuid() == 0:
-      return self.yum_check_package_available(name)
-    else:
-      return self.rpm_check_package_available(name)
-
-  def yum_check_package_available(self, name):
-    """
-    Does the same as rpm_check_package_avaiable, but faster.
-    However need root permissions.
-    """
-    import yum  # Python Yum API is much faster then other check methods. (even then "import rpm")
-    yb = yum.YumBase()
-    name_regex = re.escape(name).replace("\\?", ".").replace("\\*", ".*") + '$'
-    regex = re.compile(name_regex)
-
-    with suppress_stdout():
-      package_list = yb.rpmdb.simplePkgList()
-
-    for package in package_list:
-      if regex.match(package[0]):
-        return True
-
-    return False
+    return self.rpm_check_package_available(name)
 
   @staticmethod
   def _build_repos_ids(repos):
