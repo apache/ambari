@@ -1085,7 +1085,7 @@ Because the resource is managed through the Ambari API framework, it may be quer
 
 #####Grant view privileges
 
-To grant privileges to access the restricted resource we can create a privilege sub-resource for the view instance.  The following API will grant RESTICTED permission to the user 'bob' for the view instance 'INSTANCE_1' of the 'RESTRICTED' view. 
+To grant privileges to access the restricted resource we can create a privilege sub-resource for the view instance.  The following API will grant RESTRICTED permission to the user 'bob' for the view instance 'INSTANCE_1' of the 'RESTRICTED' view. 
 
     POST http://<server>/api/v1/views/RESTRICTED/versions/1.0.0/instances/INSTANCE_1
     
