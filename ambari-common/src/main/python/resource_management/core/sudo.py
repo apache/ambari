@@ -145,7 +145,7 @@ if os.geteuid() == 0:
     _create_file(filename, content, encoding=encoding, sudo=False, on_file_created=on_file_created)
 
   def read_file(filename, encoding=None):
-    with open(filename, 'rb', encoding=encoding) as fp:
+    with open(filename, 'rb') as fp:
       content = fp.read()
 
     return content
