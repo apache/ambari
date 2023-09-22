@@ -38,6 +38,6 @@ https://cwiki.apache.org/confluence/display/AMBARI/Technology+Stack
 
 https://cwiki.apache.org/confluence/display/AMBARI/How+to+Contribute
 
-## License
+## License URLs
 
 http://ambari.apache.org/license.html
