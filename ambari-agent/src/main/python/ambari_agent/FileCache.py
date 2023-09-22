@@ -24,7 +24,6 @@ import os
 import shutil
 import zipfile
 import urllib.request, urllib.error, urllib.parse
-import urllib.request, urllib.parse, urllib.error
 import time
 import threading
 

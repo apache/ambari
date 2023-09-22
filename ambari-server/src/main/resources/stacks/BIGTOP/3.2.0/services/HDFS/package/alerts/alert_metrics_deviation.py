@@ -21,7 +21,6 @@ import http.client
 import locale
 import json
 import logging
-import urllib.request, urllib.parse, urllib.error
 import time
 import urllib.request, urllib.error, urllib.parse
 import os

@@ -32,7 +32,6 @@ __all__ = ["Source", "Template", "InlineTemplate", "StaticFile", "DownloadSource
 import os
 import time
 import urllib.request, urllib.error, urllib.parse
-import urllib.parse
 
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
