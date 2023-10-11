@@ -196,8 +196,10 @@ public class BackgroundCustomCommandExecutionTest {
     createService("c1", "HDFS", null);
     createService("c1", "HBASE", null);
     createServiceComponent("c1", "HDFS", "NAMENODE", State.INIT);
+    createServiceComponent("c1", "HDFS", "DATANODE", State.INIT);
     createServiceComponent("c1", "HBASE", "HBASE_MASTER", State.INIT);
     createServiceComponentHost("c1", "HDFS", "NAMENODE", "c6401", null);
+    createServiceComponentHost("c1", "HDFS", "DATANODE", "c6401", null);
     createServiceComponentHost("c1", "HBASE", "HBASE_MASTER", "c7007", null);
   }
   private void addHost(String hostname, String clusterName) throws AmbariException {
