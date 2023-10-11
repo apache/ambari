@@ -451,17 +451,27 @@ def create_ams_dashboards():
         if "id" in dashboard_def:
           dashboard_def['id'] = None
         # Set correct tags
+
+        dashboardVersion='-1'
+        if 'version' in dashboard_def:
+          dashboardVersion = str(dashboard_def['version'])
+
         if 'tags' in dashboard_def:
           dashboard_def['tags'].append('builtin')
           dashboard_def['tags'].append(version)
+          dashboard_def['tags'].append(dashboardVersion)
         else:
-          dashboard_def['tags'] = [ 'builtin', version ]
-        
+          dashboard_def['tags'] = [ 'builtin', version, dashboardVersion ]
         for dashboard in existing_dashboards:
           if dashboard.title == dashboard_def['title']:
             if version not in dashboard.tags:
-              # Found existing dashboard with wrong version - update dashboard
+              # Found existing dashboard with wrong ambari version - update dashboard
               update_def = True
+            elif dashboardVersion not in dashboard.tags:
+              # Found existing dashboard with wrong dashboard version - update dashboard
+              update_def = True
+              Logger.info("Dashboard definition for %s with tags: %s will be updated as the dashboard version is changed to %s" %
+                      (dashboard.title, dashboard.tags, dashboardVersion))
             else:
               update_def = False # Skip update
         pass
