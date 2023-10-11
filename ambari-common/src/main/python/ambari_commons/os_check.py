@@ -24,6 +24,7 @@ import sys
 import platform
 import distro
 
+
 def _get_windows_version():
   """
   Get's the OS major and minor versions.  Returns a tuple of
@@ -78,6 +79,7 @@ VER_NT_SERVER = 3
 # Linux specific releases, caching them since they are execution invariants
 _IS_ORACLE_LINUX = os.path.exists('/etc/oracle-release')
 _IS_REDHAT_LINUX = os.path.exists('/etc/redhat-release')
+_IS_OPENEULER_LINUX = os.path.exists('/etc/openEuler-release')
 
 OS_RELEASE_FILE = "/etc/os-release"
 
@@ -89,6 +91,9 @@ def _is_redhat_linux():
 
 def _is_powerpc():
   return platform.processor() == 'powerpc' or platform.machine().startswith('ppc')
+
+def _is_openEuler_linux():
+  return _IS_OPENEULER_LINUX
 
 def advanced_check(distribution):
   distribution = list(distribution)
@@ -194,7 +199,16 @@ class OSCheck:
         distribution = ("", "", "")
     else:
       # linux distribution
-      distribution = distro.linux_distribution()
+      PYTHON_VER = sys.version_info[0] * 10 + sys.version_info[1]
+
+      if PYTHON_VER <= 26:
+        raise RuntimeError("Python 2.6 or less not supported")
+      elif _is_redhat_linux():
+        distribution = platform.dist()
+      elif _is_openEuler_linux():
+        distribution = platform.linux_distribution()
+      else:
+        distribution = platform.linux_distribution()
 
     if distribution[0] == '':
       distribution = advanced_check(distribution)
@@ -248,6 +262,10 @@ class OSCheck:
       operatingSystem = 'sles'
     elif operatingSystem.startswith('red hat enterprise linux'):
       operatingSystem = 'redhat'
+    elif operatingSystem.startswith('openEuler release'):
+      operatingSystem = 'openeuler'
+    elif operatingSystem.startswith('openeuler'):
+      operatingSystem = 'openeuler'
     elif operatingSystem.startswith('darwin'):
       operatingSystem = 'mac'
 
@@ -357,6 +375,15 @@ class OSCheck:
      This is safe check for redhat family, doesn't generate exception
     """
     return OSCheck.is_in_family(OSCheck.get_os_family(), OSConst.REDHAT_FAMILY)
+ 
+  @staticmethod
+  def is_openeuler_family():
+    """
+     Return true if it is so or false if not
+
+     This is safe check for openeuler family, doesn't generate exception
+    """
+    return OSCheck.is_in_family(OSCheck.get_os_family(), OSConst.OPENEULER_FAMILY)
   
   @staticmethod
   def is_in_family(current_family, family):

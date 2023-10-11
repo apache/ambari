@@ -64,6 +64,7 @@
       <xs:enumeration value="ubuntu18" />
       <xs:enumeration value="suse11" />
       <xs:enumeration value="suse12" />
+      <xs:enumeration value="openeuler22" />
       <xs:enumeration value="amazonlinux2" />
     </xs:restriction>
   </xs:simpleType>
