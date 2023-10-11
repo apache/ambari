@@ -148,6 +148,9 @@ export SPARK_DIST_CLASSPATH=$(${HADOOP_HOME}/bin/hadoop classpath)
 # The java implementation to use.
 export JAVA_HOME={{java_home}}
 
+# Add hadoop native libraries support for better performance
+export LD_LIBRARY_PATH=$HADOOP_HOME/lib/native/:$LD_LIBRARY_PATH
+
 </value>
     <value-attributes>
       <type>content</type>
