@@ -1743,15 +1743,22 @@ public class ConfigHelper {
       String type = changedConfigType.getKey();
       stale |= (serviceInfo.hasConfigDependency(type) || componentInfo.hasConfigType(type));
       if (stale) {
-        changedProperties.addAll(changedConfigType.getValue());
+        for (String propertyName : changedConfigType.getValue()) {
+          changedProperties.add(type + "/" + propertyName);
+        }
       }
     }
 
     String refreshCommand = calculateRefreshCommand(stackInfo.getRefreshCommandConfiguration(), sch, changedProperties);
 
+    Map<String, HostConfig> actual = sch.getActualConfigs();
+
+    Map<String, Map<String, String>> desired = getEffectiveDesiredTags(cluster, sch.getHostName(),cluster.getDesiredConfigs());
+
     if (STALE_CONFIGS_CACHE_ENABLED) {
       if (refreshCommand != null) {
-        int staleHash = Objects.hashCode(cluster.getDesiredConfigs().hashCode(),
+        int staleHash = Objects.hashCode(actual.hashCode(),
+            desired.hashCode(),
             sch.getHostName(),
             sch.getServiceComponentName(),
             sch.getServiceName());

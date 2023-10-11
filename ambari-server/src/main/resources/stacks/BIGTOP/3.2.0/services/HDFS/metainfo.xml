@@ -129,6 +129,13 @@
                 <scriptType>PYTHON</scriptType>
               </commandScript>
             </customCommand>
+            <customCommand>
+              <name>RECONFIGURE</name>
+              <commandScript>
+                <script>scripts/namenode.py</script>
+                <scriptType>PYTHON</scriptType>
+              </commandScript>
+            </customCommand>
           </customCommands>
         </component>
 
