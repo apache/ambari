@@ -201,7 +201,7 @@
         <item name="Events"          href="https://www.apache.org/events/current-event" />
         <item name="License"         href="https://www.apache.org/licenses/" />
         <item name="Sponsorship"     href="https://www.apache.org/foundation/sponsorship" />
-        <item name="Security"        href="https://www.apache.org/security" />
+        <item name="Security"        href="https://ambari.apache.org/issue-tracking.html" />
         <item name="Thanks"          href="https://www.apache.org/foundation/thanks" />
         <item name="Code of Conduct" href="https://www.apache.org/foundation/policies/conduct" />
     </menu>

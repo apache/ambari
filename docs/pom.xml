@@ -1746,7 +1746,11 @@
               <reports>
                 <report>project-team</report>
                 <report>mailing-list</report>
+<!-- we have our own page until we can integrate the
+     security reporting page in the project-info-reports plugin
+     https://issues.apache.org/jira/browse/MNG-7905
                 <report>issue-tracking</report>
+-->
                 <report>license</report>
 <!-- for now
                 <report>modules</report>
