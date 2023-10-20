@@ -39,7 +39,6 @@ import org.apache.ambari.funtest.server.utils.RestApiUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpStatus;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.gson.JsonElement;
@@ -47,7 +46,6 @@ import com.google.gson.JsonElement;
 /**
  * Tests operations with users with different levels of privileges
  */
-@Ignore
 public class RoleBasedAccessControlBasicTest extends ServerTestBase {
 
     private String clusterName = "c1";

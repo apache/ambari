@@ -264,6 +264,9 @@ public class DatabaseConsistencyCheckHelper {
    */
   static void checkForLargeTables() {
     LOG.info("Checking for tables with large physical size");
+    if (dbAccessor.getDbType() == DBAccessor.DbType.H2) {
+      return;
+    }
 
     ensureConnection();
 

@@ -19,15 +19,21 @@
 package org.apache.ambari.funtest.server.tests;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.SQLNonTransientConnectionException;
 import java.util.Properties;
 
+import com.google.common.base.Charsets;
 import org.apache.ambari.funtest.server.LocalAmbariServer;
+import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;
+import org.apache.ambari.server.ldap.LdapModule;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
@@ -96,14 +102,11 @@ public class ServerTestBase {
     @BeforeClass
     public static void setupTest() throws Exception {
         if (!isInitialized) {
-            Properties properties = new Properties();
+            Properties properties = readConfigFile();
             properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE.getKey(), "remote");
             properties.setProperty(Configuration.SERVER_JDBC_URL.getKey(), Configuration.JDBC_IN_MEMORY_URL);
             properties.setProperty(Configuration.SERVER_JDBC_DRIVER.getKey(), Configuration.JDBC_IN_MEMORY_DRIVER);
-            properties.setProperty(Configuration.METADATA_DIR_PATH.getKey(), "src/test/resources/stacks");
-            properties.setProperty(Configuration.SERVER_VERSION_FILE.getKey(), "src/test/resources/version");
-            properties.setProperty(Configuration.OS_VERSION.getKey(), "centos6");
-            properties.setProperty(Configuration.SHARED_RESOURCES_DIR.getKey(), "src/test/resources/");
+            properties.setProperty(Configuration.OS_VERSION.getKey(), "centos7");
 
             properties.setProperty(Configuration.AGENT_USE_SSL.getKey(), "false");
             properties.setProperty(Configuration.CLIENT_API_PORT.getKey(), Integer.toString(serverPort));
@@ -113,7 +116,7 @@ public class ServerTestBase {
 
             ControllerModule testModule = new ControllerModule(properties);
 
-            injector = Guice.createInjector(testModule);
+            injector = Guice.createInjector(testModule, new AuditLoggerModule(), new LdapModule());
             injector.getInstance(PersistService.class).start();
             initDB();
 
@@ -174,7 +177,7 @@ public class ServerTestBase {
     private static void createSourceDatabase() throws IOException, SQLException {
         //create database
         File projectDir = new File(System.getProperty("user.dir"));
-        File ddlFile = new File(projectDir.getParentFile(), "ambari-server/src/main/resources/Ambari-DDL-Derby-CREATE.sql");
+        File ddlFile = new File(projectDir.getParentFile(), "ambari-server/src/main/resources/Ambari-DDL-H2-CREATE.sql");
         String ddlFilename = ddlFile.getPath();
         DBAccessor dbAccessor = injector.getInstance(DBAccessor.class);
         dbAccessor.executeScript(ddlFilename);
@@ -262,5 +265,26 @@ public class ServerTestBase {
      */
     @After
     public void teardown() throws Exception {
+    }
+
+    private static Properties readConfigFile() {
+        Properties properties = new Properties();
+        String configFileName = "ambari.properties";
+        //Get property file stream from classpath
+        InputStream inputStream = Configuration.class.getClassLoader().getResourceAsStream(configFileName);
+        if (inputStream == null) {
+            throw new RuntimeException(configFileName + " not found in classpath");
+        }
+        // load the properties
+        try {
+            properties.load(new InputStreamReader(inputStream, Charsets.UTF_8));
+            inputStream.close();
+        } catch (FileNotFoundException fnf) {
+            LOG.info("No configuration file " + configFileName + " found in classpath.", fnf);
+        } catch (IOException ie) {
+            throw new IllegalArgumentException("Can't read configuration file " +
+                    configFileName, ie);
+        }
+        return properties;
     }
 }

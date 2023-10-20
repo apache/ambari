@@ -139,11 +139,13 @@
             <message>This is a manual task with a placeholder of {{foo/bar}}</message>
           </task>
         </pre-upgrade>
+        <pre-downgrade/>
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
         <post-upgrade>
         </post-upgrade>
+        <post-downgrade/>
       </component>
     </service>
     
@@ -158,6 +160,7 @@
             <message>{{direction.verb.proper}} your database</message>
           </task>
         </pre-upgrade>
+        <pre-downgrade/>
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -166,6 +169,7 @@
             <command>ls</command>
           </task>
         </post-upgrade>
+        <post-downgrade/>
       </component>
       <component name="DATANODE">
         <pre-downgrade />
@@ -187,6 +191,7 @@
             <command>ls</command>
           </task>
         </pre-upgrade>
+        <pre-downgrade/>
       </component>
       <component name="NODEMANAGER">
         <pre-upgrade>
@@ -194,6 +199,7 @@
             <command>ls</command>
           </task>
         </pre-upgrade>
+        <pre-downgrade/>
       </component>
     </service>
     
@@ -207,6 +213,7 @@
 
           <task xsi:type="configure" id="hdp_2_1_1_test_properties"/>
         </pre-upgrade>
+        <pre-downgrade/>
        </component>
      </service>    
   </processing>

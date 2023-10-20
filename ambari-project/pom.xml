@@ -27,6 +27,7 @@
   <packaging>pom</packaging>
   <properties>
     <skipPythonTests>false</skipPythonTests>
+    <skipFunctionalTests>true</skipFunctionalTests>
     <solr.version>5.5.2</solr.version>
     <ambari.dir>${project.parent.basedir}</ambari.dir>
     <powermock.version>1.6.3</powermock.version>
