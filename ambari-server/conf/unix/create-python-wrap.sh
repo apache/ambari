@@ -21,7 +21,7 @@ PYTHON_WRAPER_TARGET="${PYTHON_WRAPER_DIR}/ambari-python-wrap"
 rm -f "$PYTHON_WRAPER_TARGET"
 
 AMBARI_PYTHON=""
-python_binaries=( "/usr/bin/python" "/usr/bin/python3" "/usr/bin/python3.9" )
+python_binaries=("/usr/bin/python3" "/usr/bin/python3.9" )
 for python_binary in "${python_binaries[@]}"
 do
   $python_binary -c "import sys ; ver = sys.version_info ; sys.exit(not (ver >= (3,0)))" 1>/dev/null 2>/dev/null

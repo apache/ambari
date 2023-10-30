@@ -68,7 +68,7 @@ class RangeradminV2:
     try:
       search_repo_url = self.url_repos_pub + "?name=" + name + "&type=" + component + "&status=" + status
       request = urllib.request.Request(search_repo_url)
-      base_64_string = base64.encodestring(usernamepassword).replace('\n', '')
+      base_64_string = base64.b64encode(usernamepassword.encode()).decode().replace('\n', '')
       request.add_header("Content-Type", "application/json")
       request.add_header("Accept", "application/json")
       request.add_header("Authorization", "Basic {0}".format(base_64_string))
@@ -166,12 +166,12 @@ class RangeradminV2:
     """
     try:
       search_repo_url = self.url_repos_pub
-      base_64_string = base64.encodestring('{0}'.format(usernamepassword)).replace('\n', '')
+      base_64_string = base64.b64encode('{0}'.format(usernamepassword).encode()).decode().replace('\n', '')
       headers = {
         'Accept': 'application/json',
         "Content-Type": "application/json"
       }
-      request = urllib.request.Request(search_repo_url, data, headers)
+      request = urllib.request.Request(search_repo_url, data.encode(), headers)
       request.add_header("Authorization", "Basic {0}".format(base_64_string))
       result = openurl(request, timeout=20)
       response_code = result.getcode()
@@ -228,7 +228,7 @@ class RangeradminV2:
     try:
       url =  self.url_users + '?name=' + str(ambari_admin_username)
       request = urllib.request.Request(url)
-      base_64_string = base64.encodestring(usernamepassword).replace('\n', '')
+      base_64_string = base64.b64encode(usernamepassword.encode()).decode().replace('\n', '')
       request.add_header("Content-Type", "application/json")
       request.add_header("Accept", "application/json")
       request.add_header("Authorization", "Basic {0}".format(base_64_string))
@@ -257,12 +257,12 @@ class RangeradminV2:
           admin_user['description'] = ambari_admin_username
           admin_user['firstName'] = ambari_admin_username
           data =  json.dumps(admin_user)
-          base_64_string = base64.encodestring('{0}'.format(usernamepassword)).replace('\n', '')
+          base_64_string = base64.b64encode('{0}'.format(usernamepassword).encode()).decode().replace('\n', '')
           headers = {
             'Accept': 'application/json',
             "Content-Type": "application/json"
           }
-          request = urllib.request.Request(url, data, headers)
+          request = urllib.request.Request(url, data.encode(), headers)
           request.add_header("Authorization", "Basic {0}".format(base_64_string))
           result = openurl(request, timeout=20)
           response_code = result.getcode()
@@ -402,12 +402,12 @@ class RangeradminV2:
         update_repo_url = update_repo_url + "?forceRename=true"
       repo_update_data = json.dumps(repo_properties)
       usernamepassword = admin_user + ":" + admin_password
-      base_64_string = base64.encodestring("{0}".format(usernamepassword)).replace("\n", "")
+      base_64_string = base64.b64encode("{0}".format(usernamepassword).encode()).decode().replace("\n", "")
       headers = {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       }
-      request = urllib.request.Request(update_repo_url, repo_update_data, headers)
+      request = urllib.request.Request(update_repo_url, repo_update_data.encode(), headers)
       request.add_header("Authorization", "Basic {0}".format(base_64_string))
       request.get_method = lambda: 'PUT'
       result = openurl(request, timeout=20)

@@ -15,12 +15,6 @@ limitations under the License.
 Ambari Agent
 """
 
-def get_encoded_string(data):
-  try:
-    return data.encode("utf8")
-  except UnicodeDecodeError:
-    return data
-
 def unicode_walk(top, topdown=True, onerror=None, followlinks=False):
   """
   Unicode tolerant version of os.walk. Can(and must) be used environments with messed locales(and other encoding-related

@@ -306,7 +306,7 @@ def get_ldap_property_from_db(properties, admin_login, admin_password, property_
 def get_ldap_properties_from_db(properties, admin_login, admin_password):
   ldap_properties = None
   url = get_ambari_server_api_base(properties) + SETUP_LDAP_CONFIG_URL
-  admin_auth = base64.encodestring('%s:%s' % (admin_login, admin_password)).replace('\n', '')
+  admin_auth = base64.b64encode('{}:{}'.format(admin_login, admin_password).encode()).decode().replace('\n', '')
   request = urllib.request.Request(url)
   request.add_header('Authorization', 'Basic %s' % admin_auth)
   request.add_header('X-Requested-By', 'ambari')

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: ascii -*-
 ###########################################################################
 # pbkdf2 - PKCS#5 v2.0 Password-Based Key Derivation

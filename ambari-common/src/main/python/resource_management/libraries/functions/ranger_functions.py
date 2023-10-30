@@ -69,7 +69,7 @@ class Rangeradmin:
     try:
       searchRepoURL = self.urlReposPub + "?name=" + name + "&type=" + component + "&status=" + status
       request = urllib.request.Request(searchRepoURL)
-      base64string = base64.encodestring(usernamepassword).replace('\n', '')
+      base64string = base64.b64encode(usernamepassword.encode()).decode().replace('\n', '')
       request.add_header("Content-Type", "application/json")
       request.add_header("Accept", "application/json")
       request.add_header("Authorization", "Basic {0}".format(base64string))
@@ -152,7 +152,7 @@ class Rangeradmin:
     """
     try:
       searchRepoURL = self.urlReposPub
-      base64string = base64.encodestring('{0}'.format(usernamepassword)).replace('\n', '')
+      base64string = base64.b64encode('{0}'.format(usernamepassword).encode()).decode().replace('\n', '')
       headers = {
         'Accept': 'application/json',
         "Content-Type": "application/json"
@@ -235,7 +235,7 @@ class Rangeradmin:
     try:
       searchPolicyURL = self.urlPolicies + "?repositoryName=" + name + "&repositoryType=" + component + "&isEnabled=" + status
       request = urllib.request.Request(searchPolicyURL)
-      base64string = base64.encodestring(usernamepassword).replace('\n', '')
+      base64string = base64.b64encode(usernamepassword.encode()).decode().replace('\n', '')
       request.add_header("Content-Type", "application/json")
       request.add_header("Accept", "application/json")
       request.add_header("Authorization", "Basic {0}".format(base64string))
@@ -266,7 +266,7 @@ class Rangeradmin:
     """
     try:
       searchRepoURL = self.urlPolicies + "/" + str(policyId)
-      base64string = base64.encodestring('{0}'.format(usernamepassword)).replace('\n', '')
+      base64string = base64.b64encode('{0}'.format(usernamepassword).encode()).decode().replace('\n', '')
       headers = {
         'Accept': 'application/json',
         "Content-Type": "application/json"
@@ -333,7 +333,7 @@ class Rangeradmin:
     try:
       url =  self.urlUsers + '?name=' + str(ambari_admin_username)
       request = urllib.request.Request(url)
-      base64string = base64.encodestring(usernamepassword).replace('\n', '')
+      base64string = base64.b64encode(usernamepassword.encode()).decode().replace('\n', '')
       request.add_header("Content-Type", "application/json")
       request.add_header("Accept", "application/json")
       request.add_header("Authorization", "Basic {0}".format(base64string))
@@ -362,7 +362,7 @@ class Rangeradmin:
           admin_user['description'] = ambari_admin_username
           admin_user['firstName'] = ambari_admin_username
           data = json.dumps(admin_user)
-          base64string = base64.encodestring('{0}'.format(usernamepassword)).replace('\n', '')
+          base64string = base64.b64encode('{0}'.format(usernamepassword).encode()).decode().replace('\n', '')
           headers = {
             'Accept': 'application/json',
             "Content-Type": "application/json"

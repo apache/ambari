@@ -40,7 +40,7 @@ class ModifyPropertiesFileProvider(Provider):
     final_content_lines = ""
     
     if sudo.path_isfile(filename):
-      file_content = sudo.read_file(filename, encoding=self.resource.encoding)
+      file_content = sudo.read_file(filename, encoding=self.resource.encoding).decode()
       new_content_lines += file_content.split('\n')
 
       Logger.info(format("Modifying existing properties file: {filename}"))
