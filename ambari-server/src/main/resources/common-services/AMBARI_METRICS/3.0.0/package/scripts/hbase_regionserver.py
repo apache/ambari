@@ -20,8 +20,8 @@ limitations under the License.
 
 import sys
 
-from scripts.hbase import hbase
-from scripts.hbase_service import hbase_service
+from hbase import hbase
+from hbase_service import hbase_service
 from resource_management.libraries.functions.check_process_status import check_process_status
 
          
@@ -30,13 +30,13 @@ class HbaseRegionServer(Script):
     self.install_packages(env)
     
   def configure(self, env, action = None):
-    from scripts import params
+    import params
     env.set_params(params)
 
     hbase('regionserver', action)
       
   def start(self, env):
-    from scripts import params
+    import params
     env.set_params(params)
     self.configure(env, action = 'start') # for security
 
@@ -45,7 +45,7 @@ class HbaseRegionServer(Script):
     )
     
   def stop(self, env):
-    from scripts import params
+    import params
     env.set_params(params)
 
     hbase_service( 'regionserver',
@@ -53,7 +53,7 @@ class HbaseRegionServer(Script):
     )
 
   def status(self, env):
-    from scripts import status_params
+    import status_params
     env.set_params(status_params)
     pid_file = format("{pid_dir}/hbase-{hbase_user}-regionserver.pid")
     check_process_status(pid_file)

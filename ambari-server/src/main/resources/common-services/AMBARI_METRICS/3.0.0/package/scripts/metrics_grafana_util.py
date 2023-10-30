@@ -20,7 +20,7 @@ limitations under the License.
 import http.client
 
 from ambari_commons.parallel_processing import PrallelProcessResult, execute_in_parallel, SUCCESS
-from scripts.service_check import post_metrics_to_collector
+from service_check import post_metrics_to_collector
 from resource_management.core.logger import Logger
 from resource_management.core.base import Fail
 from resource_management.libraries.script.script import Script
@@ -44,7 +44,7 @@ METRICS_GRAFANA_DATASOURCE_NAME = "AMBARI_METRICS"
 Server = namedtuple('Server', [ 'protocol', 'host', 'port', 'user', 'password' ])
 
 def perform_grafana_get_call(url, server):
-  from scripts import params
+  import params
 
   grafana_https_enabled = server.protocol.lower() == 'https'
   response = None
@@ -62,7 +62,7 @@ def perform_grafana_get_call(url, server):
         ssl_version=Script.get_force_https_protocol_value()
       )
 
-      userAndPass = b64encode('{0}:{1}'.format(server.user, server.password))
+      userAndPass = b64encode('{0}:{1}'.format(server.user, server.password).encode()).decode()
       headers = { 'Authorization' : 'Basic %s' %  userAndPass }
 
       Logger.info("Connecting (GET) to %s:%s%s" % (server.host, server.port, url))
@@ -84,11 +84,11 @@ def perform_grafana_get_call(url, server):
   return response
 
 def perform_grafana_put_call(url, id, payload, server):
-  from scripts import params
+  import params
 
   response = None
   data = None
-  userAndPass = b64encode('{0}:{1}'.format(server.user, server.password))
+  userAndPass = b64encode('{0}:{1}'.format(server.user, server.password).encode()).decode()
   headers = {"Content-Type": "application/json",
              'Authorization' : 'Basic %s' %  userAndPass }
   grafana_https_enabled = server.protocol.lower() == 'https'
@@ -125,11 +125,11 @@ def perform_grafana_put_call(url, id, payload, server):
   return (response, data)
 
 def perform_grafana_post_call(url, payload, server):
-  from scripts import params
+  import params
 
   response = None
   data = None
-  userAndPass = b64encode('{0}:{1}'.format(server.user, server.password))
+  userAndPass = b64encode('{0}:{1}'.format(server.user, server.password).encode()).decode()
   Logger.debug('POST payload: %s' % payload)
   headers = {"Content-Type": "application/json", "Content-Length" : len(payload),
              'Authorization' : 'Basic %s' %  userAndPass}
@@ -176,7 +176,7 @@ def perform_grafana_post_call(url, payload, server):
   return (response, data)
 
 def perform_grafana_delete_call(url, server):
-  from scripts import params
+  import params
 
   grafana_https_enabled = server.protocol.lower() == 'https'
   response = None
@@ -194,7 +194,7 @@ def perform_grafana_delete_call(url, server):
         ssl_version=Script.get_force_https_protocol_value()
       )
 
-      userAndPass = b64encode('{0}:{1}'.format(server.user, server.password))
+      userAndPass = b64encode('{0}:{1}'.format(server.user, server.password).encode()).decode()
       headers = { 'Authorization' : 'Basic %s' %  userAndPass }
 
       Logger.info("Connecting (DELETE) to %s:%s%s" % (server.host, server.port, url))
@@ -216,7 +216,7 @@ def perform_grafana_delete_call(url, server):
   return response
 
 def is_unchanged_datasource_url(grafana_datasource_url, new_datasource_host):
-  from scripts import params
+  import params
   parsed_url = urlparse(grafana_datasource_url)
   Logger.debug("parsed url: scheme = %s, host = %s, port = %s" % (
     parsed_url.scheme, parsed_url.hostname, parsed_url.port))
@@ -243,7 +243,7 @@ def do_ams_collector_post(metric_collector_host, params):
                                 metric_json, headers, ca_certs)
 
 def create_grafana_admin_pwd():
-  from scripts import params
+  import params
 
   serverCall1 = Server(protocol = params.ams_grafana_protocol.strip(),
                        host = params.ams_grafana_host.strip(),
@@ -284,7 +284,7 @@ def create_grafana_admin_pwd():
   pass
 
 def create_ams_datasource():
-  from scripts import params
+  import params
   server = Server(protocol = params.ams_grafana_protocol.strip(),
                   host = params.ams_grafana_host.strip(),
                   port = params.ams_grafana_port,
@@ -393,7 +393,7 @@ def create_ams_dashboards():
   """
   Create dashboards in grafana from the json files
   """
-  from scripts import params
+  import params
   server = Server(protocol = params.ams_grafana_protocol.strip(),
                   host = params.ams_grafana_host.strip(),
                   port = params.ams_grafana_port,

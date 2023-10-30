@@ -59,4 +59,4 @@ try:
 except:
   pass
 
-from scripts.service_mapping import *
+from service_mapping import *

@@ -33,15 +33,15 @@ from resource_management.libraries.functions.get_not_managed_resources import ge
 from resource_management.libraries.functions.substitute_vars import substitute_vars
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 
-from scripts import status_params
-from scripts.functions import calc_xmn_from_xms
-from scripts.functions import check_append_heap_property
-from scripts.functions import trim_heap_property
+import status_params
+from functions import calc_xmn_from_xms
+from functions import check_append_heap_property
+from functions import trim_heap_property
 
 if OSCheck.is_windows_family():
-  from scripts.params_windows import *
+  from params_windows import *
 else:
-  from scripts.params_linux import *
+  from params_linux import *
 # server configurations
 config = Script.get_config()
 exec_tmp_dir = Script.get_tmp_dir()

@@ -49,7 +49,7 @@ class AMSServiceCheck(Script):
   @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
   def service_check(self, env):
     from resource_management.libraries.functions.windows_service_utils import check_windows_service_exists
-    from scripts import params
+    import params
 
     env.set_params(params)
 
@@ -167,7 +167,7 @@ class AMSServiceCheck(Script):
 
   @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
   def service_check(self, env):
-    from scripts import params
+    import params
 
     Logger.info("Ambari Metrics service check was started.")
     env.set_params(params)

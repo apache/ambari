@@ -20,8 +20,8 @@ limitations under the License.
 
 import sys
 
-from scripts.hbase import hbase
-from scripts.hbase_service import hbase_service
+from hbase import hbase
+from hbase_service import hbase_service
 from hbase_decommission import hbase_decommission
 from resource_management.libraries.functions.check_process_status import check_process_status
 
@@ -31,13 +31,13 @@ class HbaseMaster(Script):
     self.install_packages(env)
     
   def configure(self, env, action = None):
-    from scripts import params
+    import params
     env.set_params(params)
 
     hbase('master', action)
     
   def start(self, env):
-    from scripts import params
+    import params
     env.set_params(params)
     self.configure(env, action = 'start') # for security
 
@@ -46,7 +46,7 @@ class HbaseMaster(Script):
     )
     
   def stop(self, env):
-    from scripts import params
+    import params
     env.set_params(params)
 
     hbase_service( 'master',
@@ -54,13 +54,13 @@ class HbaseMaster(Script):
     )
 
   def status(self, env):
-    from scripts import status_params
+    import status_params
     env.set_params(status_params)
     pid_file = format("{pid_dir}/hbase-{hbase_user}-master.pid")
     check_process_status(pid_file)
 
   def decommission(self, env):
-    from scripts import params
+    import params
     env.set_params(params)
 
     hbase_decommission(env)

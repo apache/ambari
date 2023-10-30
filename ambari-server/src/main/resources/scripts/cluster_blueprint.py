@@ -127,7 +127,7 @@ class PreemptiveBasicAuthHandler(urllib.request.BaseHandler):
     user = USERNAME
     pw = PASSWORD
     raw = "%s:%s" % (user, pw)
-    auth = 'Basic %s' % base64.b64encode(raw).strip()
+    auth = 'Basic %s' % base64.b64encode(raw.encode()).decode().strip()
     req.add_unredirected_header('Authorization', auth)
     return req
 

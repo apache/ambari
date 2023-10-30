@@ -32,7 +32,7 @@ import os
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def ams(name=None):
-  from scripts import params
+  import params
   if name == 'collector':
     if not check_windows_service_exists(params.ams_collector_win_service_name):
       Execute(format("cmd /C cd {ams_collector_home_dir} & ambari-metrics-collector.cmd setup"))
@@ -208,7 +208,7 @@ def ams(name=None):
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def ams(name=None, action=None):
-  from scripts import params
+  import params
 
   if name == 'collector':
     Directory(params.ams_collector_conf_dir,
@@ -572,7 +572,7 @@ def is_redhat_centos_6_plus():
 def export_ca_certs(dir_path):
   # export ca certificates on every restart to handle changed truststore content
 
-  from scripts import params
+  import params
   import tempfile
 
   ca_certs_path = os.path.join(dir_path, params.metric_truststore_ca_certs)

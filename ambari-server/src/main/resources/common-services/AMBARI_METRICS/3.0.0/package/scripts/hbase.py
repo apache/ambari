@@ -28,7 +28,7 @@ from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def hbase(name=None, action = None):
-  from scripts import params
+  import params
   Directory(params.hbase_conf_dir,
             owner = params.hadoop_user,
             create_parents = True
@@ -93,7 +93,7 @@ def hbase(name=None, action = None):
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def hbase(name=None # 'master' or 'regionserver' or 'client'
           , action=None):
-  from scripts import params
+  import params
 
   Directory(params.hbase_conf_dir,
       owner = params.hbase_user,
@@ -284,7 +284,7 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
     )
 
 def hbase_TemplateConfig(name, tag=None, user=None):
-  from scripts import params
+  import params
 
   TemplateConfig( os.path.join(params.hbase_conf_dir, name),
       owner = user,
