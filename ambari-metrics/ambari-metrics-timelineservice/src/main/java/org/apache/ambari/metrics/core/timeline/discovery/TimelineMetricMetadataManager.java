@@ -433,6 +433,17 @@ public class TimelineMetricMetadataManager {
   }
 
   /**
+   * Add host with uuid into uuidHostMap
+   *
+   * @param hostName       host name
+   * @param tmHostMetadata TimelineMetricHostMetadata
+   */
+  public void addHostInUuidHostMap(String hostName, TimelineMetricHostMetadata tmHostMetadata) {
+    TimelineMetricUuid timelineMetricUuid = new TimelineMetricUuid(tmHostMetadata.getUuid());
+    uuidHostMap.put(timelineMetricUuid, hostName);
+  }
+
+  /**
    * Returns the UUID gen strategy.
    * @param configuration the config
    * @return the UUID generator of type org.apache.ambari.metrics.core.timeline.uuid.MetricUuidGenStrategy
