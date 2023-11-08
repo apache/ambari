@@ -25,7 +25,7 @@ import copy
 from ambari_stomp.adapter.websocket import ConnectionIsAlreadyClosed
 from ambari_agent import Constants
 from ambari_agent.Utils import Utils
-from Queue import Queue
+from queue import Queue
 import threading
 
 logger = logging.getLogger(__name__)

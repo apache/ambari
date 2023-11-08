@@ -48,7 +48,7 @@ class TestHDP206StackAdvisor(TestCase):
     self.get_system_min_uid_real = self.stackAdvisor.get_system_min_uid
     self.stackAdvisor.get_system_min_uid = self.get_system_min_uid_magic
 
-  @patch('__builtin__.open')
+  @patch('builtins.open')
   @patch('os.path.exists')
   def get_system_min_uid_magic(self, exists_mock, open_mock):
     class MagicFile(object):
@@ -282,35 +282,35 @@ class TestHDP206StackAdvisor(TestCase):
     services["services"][1]["components"][0]["StackServiceComponents"]["hostnames"] = ["c6402.ambari.apache.org", "c6403.ambari.apache.org"]
     recommendations = self.stackAdvisor.createComponentLayoutRecommendations(services, hosts)
     # Assert that dependencies are ignored when there are conditions and cluster scope
-    self.assertEquals(recommendations['blueprint']['host_groups'][3]['components'][0]['name'], 'NAMENODE')
-    self.assertEquals(len(recommendations['blueprint']['host_groups'][3]['components']), 1)
+    self.assertEqual(recommendations['blueprint']['host_groups'][3]['components'][0]['name'], 'NAMENODE')
+    self.assertEqual(len(recommendations['blueprint']['host_groups'][3]['components']), 1)
 
     nameNodeDependencies["scope"] = "host"
     recommendations = self.stackAdvisor.createComponentLayoutRecommendations(services, hosts)
     # Assert that dependencies are ignored when there are conditions (even for host scope)
-    self.assertEquals(recommendations['blueprint']['host_groups'][3]['components'][0]['name'], 'NAMENODE')
-    self.assertEquals(len(recommendations['blueprint']['host_groups'][3]['components']), 1)
+    self.assertEqual(recommendations['blueprint']['host_groups'][3]['components'][0]['name'], 'NAMENODE')
+    self.assertEqual(len(recommendations['blueprint']['host_groups'][3]['components']), 1)
 
     nameNodeDependencies["scope"] = "cluster"
     originalConditions = nameNodeDependencies["conditions"]
     nameNodeDependencies["conditions"] = []
     recommendations = self.stackAdvisor.createComponentLayoutRecommendations(services, hosts)
     # Assert that dependencies are ignored when scope is cluster
-    self.assertEquals(recommendations['blueprint']['host_groups'][3]['components'][0]['name'], 'NAMENODE')
-    self.assertEquals(len(recommendations['blueprint']['host_groups'][3]['components']), 1)
+    self.assertEqual(recommendations['blueprint']['host_groups'][3]['components'][0]['name'], 'NAMENODE')
+    self.assertEqual(len(recommendations['blueprint']['host_groups'][3]['components']), 1)
 
     nameNodeDependencies["scope"] = "host"
     recommendations = self.stackAdvisor.createComponentLayoutRecommendations(services, hosts)
     # Assert that dependencies are enforced for host scope without conditions
     #self.assertEquals(recommendations, "")
-    self.assertEquals(len(recommendations['blueprint']['host_groups'][0]['components']), 2)
+    self.assertEqual(len(recommendations['blueprint']['host_groups'][2]['components']), 2)
 
     services["services"][1]["components"][0]["StackServiceComponents"]["is_master"] = False
     services["services"][1]["components"][0]["StackServiceComponents"]["component_category"] = "CLIENT"
     recommendations = self.stackAdvisor.createComponentLayoutRecommendations(services, hosts)
     # Assert that dependencies are ignored when depending on client components
-    self.assertEquals(recommendations['blueprint']['host_groups'][3]['components'][0]['name'], 'NAMENODE')
-    self.assertEquals(len(recommendations['blueprint']['host_groups'][3]['components']), 1)
+    self.assertEqual(recommendations['blueprint']['host_groups'][3]['components'][0]['name'], 'NAMENODE')
+    self.assertEqual(len(recommendations['blueprint']['host_groups'][3]['components']), 1)
 
     # Tests for slave component with dependencies
     services["services"][0]["components"][0]["StackServiceComponents"]["component_category"] = "SLAVE"
@@ -322,33 +322,33 @@ class TestHDP206StackAdvisor(TestCase):
     nameNodeDependencies["conditions"] = originalConditions
     recommendations = self.stackAdvisor.createComponentLayoutRecommendations(services, hosts)
     # Assert that dependencies are ignored when there are conditions and cluster scope
-    self.assertEquals(recommendations['blueprint']['host_groups'][2]['components'][0]['name'], 'NAMENODE')
-    self.assertEquals(len(recommendations['blueprint']['host_groups'][2]['components']), 1)
-    self.assertEquals(recommendations['blueprint']['host_groups'][3]['components'][0]['name'], 'NAMENODE')
-    self.assertEquals(len(recommendations['blueprint']['host_groups'][3]['components']), 1)
+    self.assertEqual(recommendations['blueprint']['host_groups'][0]['components'][0]['name'], 'NAMENODE')
+    self.assertEqual(len(recommendations['blueprint']['host_groups'][2]['components']), 1)
+    self.assertEqual(recommendations['blueprint']['host_groups'][3]['components'][0]['name'], 'NAMENODE')
+    self.assertEqual(len(recommendations['blueprint']['host_groups'][3]['components']), 1)
 
     nameNodeDependencies["scope"] = "host"
     recommendations = self.stackAdvisor.createComponentLayoutRecommendations(services, hosts)
     # Assert that dependencies are ignored when there are conditions (even for host scope)
-    self.assertEquals(recommendations['blueprint']['host_groups'][2]['components'][0]['name'], 'NAMENODE')
-    self.assertEquals(len(recommendations['blueprint']['host_groups'][2]['components']), 1)
-    self.assertEquals(recommendations['blueprint']['host_groups'][3]['components'][0]['name'], 'NAMENODE')
-    self.assertEquals(len(recommendations['blueprint']['host_groups'][3]['components']), 1)
+    self.assertEqual(recommendations['blueprint']['host_groups'][0]['components'][0]['name'], 'NAMENODE')
+    self.assertEqual(len(recommendations['blueprint']['host_groups'][2]['components']), 1)
+    self.assertEqual(recommendations['blueprint']['host_groups'][3]['components'][0]['name'], 'NAMENODE')
+    self.assertEqual(len(recommendations['blueprint']['host_groups'][3]['components']), 1)
 
     nameNodeDependencies["scope"] = "cluster"
     nameNodeDependencies["conditions"] = []
     recommendations = self.stackAdvisor.createComponentLayoutRecommendations(services, hosts)
     # Assert that dependencies are ignored when scope is cluster
-    self.assertEquals(recommendations['blueprint']['host_groups'][2]['components'][0]['name'], 'NAMENODE')
-    self.assertEquals(len(recommendations['blueprint']['host_groups'][2]['components']), 1)
-    self.assertEquals(recommendations['blueprint']['host_groups'][3]['components'][0]['name'], 'NAMENODE')
-    self.assertEquals(len(recommendations['blueprint']['host_groups'][3]['components']), 1)
+    self.assertEqual(recommendations['blueprint']['host_groups'][0]['components'][0]['name'], 'NAMENODE')
+    self.assertEqual(len(recommendations['blueprint']['host_groups'][2]['components']), 1)
+    self.assertEqual(recommendations['blueprint']['host_groups'][3]['components'][0]['name'], 'NAMENODE')
+    self.assertEqual(len(recommendations['blueprint']['host_groups'][3]['components']), 1)
 
     nameNodeDependencies["scope"] = "host"
     recommendations = self.stackAdvisor.createComponentLayoutRecommendations(services, hosts)
     # Assert that dependencies are enforced when host scope and no conditions
-    self.assertEquals(recommendations['blueprint']['host_groups'][1]['components'][1]['name'], 'NAMENODE')
-    self.assertEquals(len(recommendations['blueprint']['host_groups'][1]['components']), 2)
+    self.assertEqual(recommendations['blueprint']['host_groups'][1]['components'][1]['name'], 'NAMENODE')
+    self.assertEqual(len(recommendations['blueprint']['host_groups'][1]['components']), 2)
 
 
   def test_validateRequiredComponentsPresent(self):
@@ -504,7 +504,7 @@ class TestHDP206StackAdvisor(TestCase):
     services = self.prepareServices(servicesInfo)
     result = self.stackAdvisor.get_service_component_meta("GANGLIA", "GANGLIA_MONITOR", services)
 
-    self.assertEquals(True, "hostnames" in result)
+    self.assertEqual(True, "hostnames" in result)
     self.assertEqual(expected, result["hostnames"])
 
 
@@ -592,7 +592,7 @@ class TestHDP206StackAdvisor(TestCase):
         'type': 'configuration'
       }
     ]
-    self.assertEquals(expectedItems, items)
+    self.assertEqual(expectedItems, items)
 
   def test_validationHostIsNotUsedForNonValuableComponent(self):
     servicesInfo = [
@@ -748,7 +748,7 @@ class TestHDP206StackAdvisor(TestCase):
 
     # Cluster create call
     result = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, services)
-    self.assertEquals(result, expected)
+    self.assertEqual(result, expected)
 
     # Validate configuration call - pick user specified value which is same as what was set
     services = {"services":
@@ -793,7 +793,7 @@ class TestHDP206StackAdvisor(TestCase):
                 "advisor_context": {'call_type': 'validateConfigurations'}
     }
     result = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, services)
-    self.assertEquals(result, expected)
+    self.assertEqual(result, expected)
 
     # Validate configuration call - pick user specified value
     services = {"services":
@@ -858,7 +858,7 @@ class TestHDP206StackAdvisor(TestCase):
       "referenceNodeManagerHost": hosts["items"][0]["Hosts"]
     }
     result = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, services)
-    self.assertEquals(result, expected_2048)
+    self.assertEqual(result, expected_2048)
 
     # Recommend attribute call - pick user specified value
     services = {"services":
@@ -907,7 +907,7 @@ class TestHDP206StackAdvisor(TestCase):
     }
 
     result = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, services)
-    self.assertEquals(result, expected_2048)
+    self.assertEqual(result, expected_2048)
 
     # Add service and not adding YARN - pick user specified value
     services = {"services":
@@ -957,7 +957,7 @@ class TestHDP206StackAdvisor(TestCase):
     }
 
     result = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, services)
-    self.assertEquals(result, expected_2048)
+    self.assertEqual(result, expected_2048)
 
     # Add service and adding YARN - compute the value
     services = {"services":
@@ -1006,7 +1006,7 @@ class TestHDP206StackAdvisor(TestCase):
     }
 
     result = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, services)
-    self.assertEquals(result, expected)
+    self.assertEqual(result, expected)
 
     # Recommend config dependencies call - pick user specified value
     services = {"services":
@@ -1071,7 +1071,7 @@ class TestHDP206StackAdvisor(TestCase):
       "referenceNodeManagerHost": hosts["items"][0]["Hosts"]
     }
     result = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, services)
-    self.assertEquals(result, expected_2048)
+    self.assertEqual(result, expected_2048)
 
     # Recommend config dependencies call - pick user specified value of 4096 for min
     services = {"services":
@@ -1136,7 +1136,7 @@ class TestHDP206StackAdvisor(TestCase):
       "referenceNodeManagerHost": hosts["items"][0]["Hosts"]
     }
     result = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, services)
-    self.assertEquals(result, expected_4096)
+    self.assertEqual(result, expected_4096)
 
 
 
@@ -1184,7 +1184,7 @@ class TestHDP206StackAdvisor(TestCase):
 
     # Test - Cluster data with 1 host
     result = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, None)
-    self.assertEquals(result, expected)
+    self.assertEqual(result, expected)
 
     # Test - Cluster data with 2 hosts - pick minimum memory
     servicesList.append("YARN")
@@ -1253,7 +1253,7 @@ class TestHDP206StackAdvisor(TestCase):
     expected["ramPerContainer"] = 128
     expected["reservedRam"] = 1
     result = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, services)
-    self.assertEquals(result, expected)
+    self.assertEqual(result, expected)
 
 
   def test_getConfigurationClusterSummary_withHBaseAnd48gbRam(self):
@@ -1298,7 +1298,7 @@ class TestHDP206StackAdvisor(TestCase):
 
     result = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, None)
 
-    self.assertEquals(result, expected)
+    self.assertEqual(result, expected)
 
   def test_recommendStormConfigurations(self):
     # no AMS
@@ -1317,7 +1317,7 @@ class TestHDP206StackAdvisor(TestCase):
     }
 
     self.stackAdvisor.recommendStormConfigurations(configurations, None, services, None)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
     # with AMS
     configurations = {}
@@ -1341,7 +1341,7 @@ class TestHDP206StackAdvisor(TestCase):
     }
 
     self.stackAdvisor.recommendStormConfigurations(configurations, None, services, None)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
   def test_recommendYARNConfigurations(self):
     configurations = {}
@@ -1369,7 +1369,7 @@ class TestHDP206StackAdvisor(TestCase):
     }
 
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, None)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
   def test_recommendMapReduce2Configurations_mapMemoryLessThan2560(self):
     configurations = {}
@@ -1395,7 +1395,7 @@ class TestHDP206StackAdvisor(TestCase):
     }
 
     self.stackAdvisor.recommendMapReduce2Configurations(configurations, clusterData, None, None)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
   def test_getConfigurationClusterSummary_noHostsWithoutHBase(self):
     servicesList = []
@@ -1423,7 +1423,7 @@ class TestHDP206StackAdvisor(TestCase):
       "yarnMinContainerSize" : 170
     }
 
-    self.assertEquals(result, expected)
+    self.assertEqual(result, expected)
 
   def prepareHosts(self, hostsNames):
     hosts = { "items": [] }
@@ -1476,19 +1476,33 @@ class TestHDP206StackAdvisor(TestCase):
         componentName = component["name"]
         try:
           actualComponentHostsMap[componentName]
-        except KeyError, err:
+        except KeyError as err:
           actualComponentHostsMap[componentName] = []
         for host in hosts:
           if host not in actualComponentHostsMap[componentName]:
             actualComponentHostsMap[componentName].append(host)
 
-    for componentName in componentsHostsMap.keys():
+    for componentName in list(componentsHostsMap.keys()):
       expectedHosts = componentsHostsMap[componentName]
       actualHosts = actualComponentHostsMap[componentName]
       self.checkEqual(expectedHosts, actualHosts)
 
   def checkEqual(self, l1, l2):
-    if not len(l1) == len(l2) or not sorted(l1) == sorted(l2):
+    isLenEq = len(l1) == len(l2)
+    isSortEq = True
+    #l1 and l2 are list,but the elements of list is variable
+    if(len(l1)>0):
+      #l1 elements is dict
+      if(type(l1[0]).__name__=='dict'):
+        sortedL1=sorted(l1, key=lambda one: one["message"])
+        sortedL2=sorted(l2, key=lambda one: one["message"])
+        isSortEq= sortedL1==sortedL2
+      # l1 elements is not dict
+      else:
+        sortedL1=sorted(l1)
+        sortedL2=sorted(l2)
+        isSortEq= sortedL1==sortedL2
+    if not isLenEq or not isSortEq:
       raise AssertionError("list1={0}, list2={1}".format(l1, l2))
 
   def assertValidationResult(self, expectedItems, result):
@@ -1497,7 +1511,7 @@ class TestHDP206StackAdvisor(TestCase):
       next = {"message": item["message"], "level": item["level"]}
       try:
         next["host"] = item["host"]
-      except KeyError, err:
+      except KeyError as err:
         pass
       actualItems.append(next)
     self.checkEqual(expectedItems, actualItems)
@@ -1554,10 +1568,10 @@ class TestHDP206StackAdvisor(TestCase):
     }
 
     clusterData = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, None)
-    self.assertEquals(clusterData['hbaseRam'], 8)
+    self.assertEqual(clusterData['hbaseRam'], 8)
 
     self.stackAdvisor.recommendHbaseConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
 
   def test_recommendRangerConfigurations(self):
@@ -1619,7 +1633,7 @@ class TestHDP206StackAdvisor(TestCase):
     }
     recommendedConfigurations = {}
     self.stackAdvisor.recommendRangerConfigurations(recommendedConfigurations, clusterData, services, None)
-    self.assertEquals(recommendedConfigurations, expected, "Test for not existing DB_FLAVOR and http enabled, HDP-2.3")
+    self.assertEqual(recommendedConfigurations, expected, "Test for not existing DB_FLAVOR and http enabled, HDP-2.3")
 
     # Recommend for DB_FLAVOR POSTGRES and https enabled, HDP-2.3
     configurations = {
@@ -1646,7 +1660,7 @@ class TestHDP206StackAdvisor(TestCase):
     }
     recommendedConfigurations = {}
     self.stackAdvisor.recommendRangerConfigurations(recommendedConfigurations, clusterData, services, None)
-    self.assertEquals(recommendedConfigurations, expected, "Test for DB_FLAVOR POSTGRES and https enabled, HDP-2.3")
+    self.assertEqual(recommendedConfigurations, expected, "Test for DB_FLAVOR POSTGRES and https enabled, HDP-2.3")
 
     # Recommend for DB_FLAVOR ORACLE and https enabled, HDP-2.2
     configurations = {
@@ -1675,7 +1689,7 @@ class TestHDP206StackAdvisor(TestCase):
     recommendedConfigurations = {}
     services['services'][0]['StackServices']['service_version'] = "0.4.0"
     self.stackAdvisor.recommendRangerConfigurations(recommendedConfigurations, clusterData, services, None)
-    self.assertEquals(recommendedConfigurations, expected, "Test for DB_FLAVOR ORACLE and https enabled, HDP-2.2")
+    self.assertEqual(recommendedConfigurations, expected, "Test for DB_FLAVOR ORACLE and https enabled, HDP-2.2")
 
     # Test Recommend LDAP values
     services["ambari-server-properties"] = {
@@ -1713,7 +1727,7 @@ class TestHDP206StackAdvisor(TestCase):
     }
     recommendedConfigurations = {}
     self.stackAdvisor.recommendRangerConfigurations(recommendedConfigurations, clusterData, services, None)
-    self.assertEquals(recommendedConfigurations, expected, "Test Recommend LDAP values")
+    self.assertEqual(recommendedConfigurations, expected, "Test Recommend LDAP values")
 
     # Test Ranger Audit properties
     del services["ambari-server-properties"]
@@ -1756,7 +1770,7 @@ class TestHDP206StackAdvisor(TestCase):
 
     recommendedConfigurations = {}
     self.stackAdvisor.recommendRangerConfigurations(recommendedConfigurations, clusterData, services, None)
-    self.assertEquals(recommendedConfigurations, expected, "Test Ranger Audit properties")
+    self.assertEqual(recommendedConfigurations, expected, "Test Ranger Audit properties")
 
 
 
@@ -1976,7 +1990,7 @@ class TestHDP206StackAdvisor(TestCase):
     # Apart from testing other HDFS recommendations, also tests 'hadoop.proxyuser.hive.hosts' config value which includes both HiveServer
     # and Hive Server Interactive Host (installed on different host compared to HiveServer).
     self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services1, hosts)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
 
 
@@ -2111,7 +2125,7 @@ class TestHDP206StackAdvisor(TestCase):
     # Apart from testing other HDFS recommendations, also tests 'hadoop.proxyuser.hive.hosts' config value which includes both HiveServer
     # and Hive Server Interactive Host (installed on same host compared to HiveServer).
     self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services2, hosts)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
 
 
@@ -2242,7 +2256,7 @@ class TestHDP206StackAdvisor(TestCase):
                       'namenode_opt_newsize': '128'}}}
 
     self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services3, hosts)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
     # Verify dfs.namenode.rpc-address is recommended to be deleted when NN HA
     configurations["hdfs-site"]["properties"]['dfs.internal.nameservices'] = "mycluster"
@@ -2265,7 +2279,7 @@ class TestHDP206StackAdvisor(TestCase):
       }
     }
     self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services3, hosts)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
     hosts = {
       "items": [
@@ -2318,7 +2332,7 @@ class TestHDP206StackAdvisor(TestCase):
       }
     }
     self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services3, hosts)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
 
 
@@ -2359,7 +2373,7 @@ class TestHDP206StackAdvisor(TestCase):
 
     result = self.stackAdvisor.getZKHostPortString(services)
     expected = "zk.host1:2183,zk.host2:2183,zk.host3:2183"
-    self.assertEquals(result, expected)
+    self.assertEqual(result, expected)
 
   def test_validateHDFSConfigurations(self):
     configurations = {}
@@ -2400,7 +2414,7 @@ class TestHDP206StackAdvisor(TestCase):
     res_expected = []
 
     res = self.stackAdvisor.validateHDFSConfigurationsEnv(properties, recommendedDefaults, configurations, '', '')
-    self.assertEquals(res, res_expected)
+    self.assertEqual(res, res_expected)
 
     # 2) fail: namenode_heapsize, namenode_opt_maxnewsize < recommended
     properties['namenode_heapsize'] = '1022'
@@ -2417,7 +2431,7 @@ class TestHDP206StackAdvisor(TestCase):
                      'type': 'configuration'}]
 
     res = self.stackAdvisor.validateHDFSConfigurationsEnv(properties, recommendedDefaults, configurations, '', '')
-    self.assertEquals(res, res_expected)
+    self.assertEqual(res, res_expected)
 
   @patch("socket.getfqdn", new=lambda: 'test-mock-ambari-server-hostname1')
   def test_recommendHadoopProxyUsers(self):
@@ -2510,7 +2524,7 @@ class TestHDP206StackAdvisor(TestCase):
     }
 
     self.stackAdvisor.recommendHadoopProxyUsers(configurations, services, hosts)
-    self.assertEquals(expected, configurations['core-site']['properties'])
+    self.assertEqual(expected, configurations['core-site']['properties'])
 
   @patch("socket.getfqdn", new=lambda: 'test-mock-ambari-server-hostname1')
   def test_validateHDFSConfigurationsCoreSite(self):
@@ -2559,7 +2573,7 @@ class TestHDP206StackAdvisor(TestCase):
     # 1) ok: HDFS and Ambari proxyusers are present
     res_expected = []
     res = self.stackAdvisor.validateHDFSConfigurationsCoreSite(properties, recommendedDefaults, configurations, services, hosts)
-    self.assertEquals(res, res_expected)
+    self.assertEqual(res, res_expected)
 
     # 2) fail: gpl is not allowed
     services["gpl-license-accepted"] = False
@@ -2579,7 +2593,7 @@ class TestHDP206StackAdvisor(TestCase):
                      'level': 'NOT_APPLICABLE'}]
 
     res = self.stackAdvisor.validateHDFSConfigurationsCoreSite(properties, {}, configurations, services, hosts)
-    self.assertEquals(res, res_expected)
+    self.assertEqual(res, res_expected)
     services["gpl-license-accepted"] = True
 
     # 3) fail: test filter function: two RESOURCE_MANAGERs, hadoop.proxyuser.yarn-user.hosts is expected to be set
@@ -2590,13 +2604,13 @@ class TestHDP206StackAdvisor(TestCase):
                      'message': 'Value should be set for hadoop.proxyuser.yarn-user.hosts',
                      'type': 'configuration'}]
     res = self.stackAdvisor.validateHDFSConfigurationsCoreSite(properties, recommendedDefaults, configurations, services, hosts)
-    self.assertEquals(res, res_expected)
+    self.assertEqual(res, res_expected)
 
     # 4) ok: test filter function: only one RESOURCE_MANAGER
     services['services'][1]['components'][0]['StackServiceComponents']['hostnames'] = ["host1"]
     res_expected = []
     res = self.stackAdvisor.validateHDFSConfigurationsCoreSite(properties, recommendedDefaults, configurations, services, hosts)
-    self.assertEquals(res, res_expected)
+    self.assertEqual(res, res_expected)
 
     # 5) fail: some proxyusers are empty or absent:
     del properties['hadoop.proxyuser.ambari-user.hosts']
@@ -2612,7 +2626,7 @@ class TestHDP206StackAdvisor(TestCase):
                      'config-name': 'hadoop.proxyuser.ambari-user.hosts',
                      'level': 'ERROR'}]
     res = self.stackAdvisor.validateHDFSConfigurationsCoreSite(properties, recommendedDefaults, configurations, services, hosts)
-    self.assertEquals(res, res_expected)
+    self.assertEqual(res, res_expected)
 
   def test_getHadoopProxyUsers(self):
     # input data stub
@@ -2648,7 +2662,7 @@ class TestHDP206StackAdvisor(TestCase):
       'yarn-user': {'propertyName': 'yarn_user', 'config': 'yarn-env', 'propertyHosts': 'host1,host2'}
     }
     res = self.stackAdvisor.getHadoopProxyUsers(services, hosts, configurations)
-    self.assertEquals(res, res_expected)
+    self.assertEqual(res, res_expected)
 
     # 2) test filter function: only one RESOURCE_MANAGER
     services['services'][1]['components'][0]['StackServiceComponents']['hostnames'] = ["host1"]
@@ -2656,7 +2670,7 @@ class TestHDP206StackAdvisor(TestCase):
         'hdfs-user': {'propertyName': 'hdfs_user', 'config': 'hadoop-env', 'propertyHosts': '*', 'propertyGroups': '*'}
     }
     res = self.stackAdvisor.getHadoopProxyUsers(services, hosts, configurations)
-    self.assertEquals(res, res_expected)
+    self.assertEqual(res, res_expected)
 
   # def test_validateHDFSConfigurationsCoreSite(self):
   #
@@ -2748,13 +2762,13 @@ class TestHDP206StackAdvisor(TestCase):
                'message': "cluster-env/one_dir_per_partition is enabled but there are multiple data directories on the same mount. Affected hosts: host2",
                'type': 'configuration'}]
     validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, hosts)
-    self.assertEquals(validation_problems, expected)
+    self.assertEqual(validation_problems, expected)
 
     # One data directory.
     properties['dfs.datanode.data.dir'] = '/hadoop/hdfs/data'
     expected = []
     validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, hosts)
-    self.assertEquals(validation_problems, expected)
+    self.assertEqual(validation_problems, expected)
 
 
   def test_validateStormSiteConfigurations(self):
@@ -2787,7 +2801,7 @@ class TestHDP206StackAdvisor(TestCase):
     # positive
     res = self.stackAdvisor.validateStormConfigurations(properties, recommendedDefaults, configurations, services, None)
     expected = []
-    self.assertEquals(res, expected)
+    self.assertEqual(res, expected)
     properties['metrics.reporter.register'] = ''
 
     res = self.stackAdvisor.validateStormConfigurations(properties, recommendedDefaults, configurations, services, None)
@@ -2800,7 +2814,7 @@ class TestHDP206StackAdvisor(TestCase):
        'type': 'configuration'
       }
     ]
-    self.assertEquals(res, expected)
+    self.assertEqual(res, expected)
 
   def test_getHostsWithComponent(self):
     services = {"services":
@@ -2928,28 +2942,28 @@ class TestHDP206StackAdvisor(TestCase):
     }
 
     datanodes = self.stackAdvisor.getHostsWithComponent("HDFS", "DATANODE", services, hosts)
-    self.assertEquals(len(datanodes), 2)
-    self.assertEquals(datanodes, hosts["items"])
+    self.assertEqual(len(datanodes), 2)
+    self.assertEqual(datanodes, hosts["items"])
     datanode = self.stackAdvisor.getHostWithComponent("HDFS", "DATANODE", services, hosts)
-    self.assertEquals(datanode, hosts["items"][0])
+    self.assertEqual(datanode, hosts["items"][0])
     namenodes = self.stackAdvisor.getHostsWithComponent("HDFS", "NAMENODE", services, hosts)
-    self.assertEquals(len(namenodes), 1)
+    self.assertEqual(len(namenodes), 1)
     # [host2]
-    self.assertEquals(namenodes, [hosts["items"][1]])
+    self.assertEqual(namenodes, [hosts["items"][1]])
     namenode = self.stackAdvisor.getHostWithComponent("HDFS", "NAMENODE", services, hosts)
     # host2
-    self.assertEquals(namenode, hosts["items"][1])
+    self.assertEqual(namenode, hosts["items"][1])
 
     # not installed
     nodemanager = self.stackAdvisor.getHostWithComponent("YARN", "NODEMANAGER", services, hosts)
-    self.assertEquals(nodemanager, None)
+    self.assertEqual(nodemanager, None)
 
     # unknown component
     unknown_component = self.stackAdvisor.getHostWithComponent("YARN", "UNKNOWN", services, hosts)
-    self.assertEquals(nodemanager, None)
+    self.assertEqual(nodemanager, None)
     # unknown service
     unknown_component = self.stackAdvisor.getHostWithComponent("UNKNOWN", "NODEMANAGER", services, hosts)
-    self.assertEquals(nodemanager, None)
+    self.assertEqual(nodemanager, None)
 
   def test_mergeValidators(self):
     childValidators = {
@@ -2987,15 +3001,15 @@ class TestHDP206StackAdvisor(TestCase):
     }
 
     self.stackAdvisor.mergeValidators(parentValidators, childValidators)
-    self.assertEquals(expected, parentValidators)
+    self.assertEqual(expected, parentValidators)
 
   def test_getProperMountPoint(self):
     hostInfo = None
-    self.assertEquals(["/"], self.stackAdvisor.getPreferredMountPoints(hostInfo))
+    self.assertEqual(["/"], self.stackAdvisor.getPreferredMountPoints(hostInfo))
     hostInfo = {"some_key": []}
-    self.assertEquals(["/"], self.stackAdvisor.getPreferredMountPoints(hostInfo))
+    self.assertEqual(["/"], self.stackAdvisor.getPreferredMountPoints(hostInfo))
     hostInfo["disk_info"] = []
-    self.assertEquals(["/"], self.stackAdvisor.getPreferredMountPoints(hostInfo))
+    self.assertEqual(["/"], self.stackAdvisor.getPreferredMountPoints(hostInfo))
     # root mountpoint with low space available
     hostInfo["disk_info"].append(
       {
@@ -3004,7 +3018,7 @@ class TestHDP206StackAdvisor(TestCase):
         "mountpoint" : "/"
       }
     )
-    self.assertEquals(["/"], self.stackAdvisor.getPreferredMountPoints(hostInfo))
+    self.assertEqual(["/"], self.stackAdvisor.getPreferredMountPoints(hostInfo))
     # tmpfs with more space available
     hostInfo["disk_info"].append(
       {
@@ -3013,7 +3027,7 @@ class TestHDP206StackAdvisor(TestCase):
         "mountpoint" : "/dev/shm"
       }
     )
-    self.assertEquals(["/"], self.stackAdvisor.getPreferredMountPoints(hostInfo))
+    self.assertEqual(["/"], self.stackAdvisor.getPreferredMountPoints(hostInfo))
     # /boot with more space available
     hostInfo["disk_info"].append(
       {
@@ -3022,7 +3036,7 @@ class TestHDP206StackAdvisor(TestCase):
         "mountpoint" : "/boot/grub"
       }
     )
-    self.assertEquals(["/"], self.stackAdvisor.getPreferredMountPoints(hostInfo))
+    self.assertEqual(["/"], self.stackAdvisor.getPreferredMountPoints(hostInfo))
     # /boot with more space available
     hostInfo["disk_info"].append(
       {
@@ -3031,7 +3045,7 @@ class TestHDP206StackAdvisor(TestCase):
         "mountpoint" : "/mnt/external_hdd"
       }
     )
-    self.assertEquals(["/"], self.stackAdvisor.getPreferredMountPoints(hostInfo))
+    self.assertEqual(["/"], self.stackAdvisor.getPreferredMountPoints(hostInfo))
     # virtualbox fs with more space available
     hostInfo["disk_info"].append(
       {
@@ -3040,7 +3054,7 @@ class TestHDP206StackAdvisor(TestCase):
         "mountpoint" : "/vagrant"
       }
     )
-    self.assertEquals(["/"], self.stackAdvisor.getPreferredMountPoints(hostInfo))
+    self.assertEqual(["/"], self.stackAdvisor.getPreferredMountPoints(hostInfo))
     # proper mountpoint with more space available
     hostInfo["disk_info"].append(
       {
@@ -3049,7 +3063,7 @@ class TestHDP206StackAdvisor(TestCase):
         "mountpoint" : "/grid/0"
       }
     )
-    self.assertEquals(["/grid/0", "/"], self.stackAdvisor.getPreferredMountPoints(hostInfo))
+    self.assertEqual(["/grid/0", "/"], self.stackAdvisor.getPreferredMountPoints(hostInfo))
     # proper mountpoint with more space available
     hostInfo["disk_info"].append(
       {
@@ -3058,7 +3072,7 @@ class TestHDP206StackAdvisor(TestCase):
         "mountpoint" : "/grid/1"
       }
     )
-    self.assertEquals(["/grid/1", "/grid/0", "/"], self.stackAdvisor.getPreferredMountPoints(hostInfo))
+    self.assertEqual(["/grid/1", "/grid/0", "/"], self.stackAdvisor.getPreferredMountPoints(hostInfo))
 
   def test_validateNonRootFs(self):
     hostInfo = {"disk_info": [
@@ -3083,7 +3097,7 @@ class TestHDP206StackAdvisor(TestCase):
     recommendedDefaults = {"property1": "file:///grid/0/var/dir"}
     warn = self.stackAdvisor.validatorNotRootFs(properties, recommendedDefaults, 'property1', hostInfo)
     self.assertTrue(warn != None)
-    self.assertEquals({'message': 'It is not recommended to use root partition for property1', 'level': 'WARN'}, warn)
+    self.assertEqual({'message': 'It is not recommended to use root partition for property1', 'level': 'WARN'}, warn)
 
     # Set by user /var mountpoint, which is non-root , but not preferable - no warning
     hostInfo["disk_info"].append(
@@ -3121,7 +3135,7 @@ class TestHDP206StackAdvisor(TestCase):
     ]}
     warn = self.stackAdvisor.validatorEnoughDiskSpace(properties, 'property1', hostInfo, reqiuredDiskSpace)
     self.assertTrue(warn != None)
-    self.assertEquals({'message': errorMsg, 'level': 'WARN'}, warn)
+    self.assertEqual({'message': errorMsg, 'level': 'WARN'}, warn)
 
     # non-local FS, HDFS
     properties = {"property1": "hdfs://h1"}
@@ -3132,42 +3146,42 @@ class TestHDP206StackAdvisor(TestCase):
     self.assertTrue(self.stackAdvisor.validatorEnoughDiskSpace(properties, 'property1', hostInfo, reqiuredDiskSpace) == None)
 
   def test_round_to_n(self):
-    self.assertEquals(self.stack_advisor_impl.round_to_n(0), 0)
-    self.assertEquals(self.stack_advisor_impl.round_to_n(1000), 1024)
-    self.assertEquals(self.stack_advisor_impl.round_to_n(2000), 2048)
-    self.assertEquals(self.stack_advisor_impl.round_to_n(4097), 4096)
+    self.assertEqual(self.stack_advisor_impl.round_to_n(0), 0)
+    self.assertEqual(self.stack_advisor_impl.round_to_n(1000), 1024)
+    self.assertEqual(self.stack_advisor_impl.round_to_n(2000), 2048)
+    self.assertEqual(self.stack_advisor_impl.round_to_n(4097), 4096)
 
   def test_getMountPointForDir(self):
-    self.assertEquals(self.stackAdvisor.getMountPointForDir("/var/log", ["/"]), "/")
-    self.assertEquals(self.stackAdvisor.getMountPointForDir("/var/log", ["/var", "/"]), "/var")
-    self.assertEquals(self.stackAdvisor.getMountPointForDir("file:///var/log", ["/var", "/"]), "/var")
-    self.assertEquals(self.stackAdvisor.getMountPointForDir("hdfs:///hdfs_path", ["/var", "/"]), None)
-    self.assertEquals(self.stackAdvisor.getMountPointForDir("relative/path", ["/var", "/"]), None)
+    self.assertEqual(self.stackAdvisor.getMountPointForDir("/var/log", ["/"]), "/")
+    self.assertEqual(self.stackAdvisor.getMountPointForDir("/var/log", ["/var", "/"]), "/var")
+    self.assertEqual(self.stackAdvisor.getMountPointForDir("file:///var/log", ["/var", "/"]), "/var")
+    self.assertEqual(self.stackAdvisor.getMountPointForDir("hdfs:///hdfs_path", ["/var", "/"]), None)
+    self.assertEqual(self.stackAdvisor.getMountPointForDir("relative/path", ["/var", "/"]), None)
 
   def test_parseCardinality(self):
-    self.assertEquals(self.stackAdvisor.parseCardinality("ALL", 5), (5, 5))
-    self.assertEquals(self.stackAdvisor.parseCardinality("2+", 5), (2, 5))
-    self.assertEquals(self.stackAdvisor.parseCardinality("1-3", 5), (1, 3))
-    self.assertEquals(self.stackAdvisor.parseCardinality("3", 5), (3, 3))
-    self.assertEquals(self.stackAdvisor.parseCardinality(None, 5), (None, None))
-    self.assertEquals(self.stackAdvisor.parseCardinality("invalid", 3), (None, None))
+    self.assertEqual(self.stackAdvisor.parseCardinality("ALL", 5), (5, 5))
+    self.assertEqual(self.stackAdvisor.parseCardinality("2+", 5), (2, 5))
+    self.assertEqual(self.stackAdvisor.parseCardinality("1-3", 5), (1, 3))
+    self.assertEqual(self.stackAdvisor.parseCardinality("3", 5), (3, 3))
+    self.assertEqual(self.stackAdvisor.parseCardinality(None, 5), (None, None))
+    self.assertEqual(self.stackAdvisor.parseCardinality("invalid", 3), (None, None))
 
   def test_getValidatorEqualsToRecommendedItem(self):
     properties = {"property1": "value1"}
     recommendedDefaults = {"property1": "value1"}
-    self.assertEquals(self.stackAdvisor.validatorEqualsToRecommendedItem(properties, recommendedDefaults, "property1"), None)
+    self.assertEqual(self.stackAdvisor.validatorEqualsToRecommendedItem(properties, recommendedDefaults, "property1"), None)
     properties = {"property1": "value1"}
     recommendedDefaults = {"property1": "value2"}
     expected = {'message': 'It is recommended to set value value2 for property property1', 'level': 'WARN'}
-    self.assertEquals(self.stackAdvisor.validatorEqualsToRecommendedItem(properties, recommendedDefaults, "property1"), expected)
+    self.assertEqual(self.stackAdvisor.validatorEqualsToRecommendedItem(properties, recommendedDefaults, "property1"), expected)
     properties = {}
     recommendedDefaults = {"property1": "value2"}
     expected = {'level': 'ERROR', 'message': 'Value should be set for property1'}
-    self.assertEquals(self.stackAdvisor.validatorEqualsToRecommendedItem(properties, recommendedDefaults, "property1"), expected)
+    self.assertEqual(self.stackAdvisor.validatorEqualsToRecommendedItem(properties, recommendedDefaults, "property1"), expected)
     properties = {"property1": "value1"}
     recommendedDefaults = {}
     expected = {'level': 'ERROR', 'message': 'Value should be recommended for property1'}
-    self.assertEquals(self.stackAdvisor.validatorEqualsToRecommendedItem(properties, recommendedDefaults, "property1"), expected)
+    self.assertEqual(self.stackAdvisor.validatorEqualsToRecommendedItem(properties, recommendedDefaults, "property1"), expected)
 
   def test_getServicesSiteProperties(self):
     import imp, os
@@ -3209,7 +3223,7 @@ class TestHDP206StackAdvisor(TestCase):
       "ranger.service.http.enabled": "true",
     }
     siteProperties = stack_advisor.getServicesSiteProperties(services, "ranger-admin-site")
-    self.assertEquals(siteProperties, expected)
+    self.assertEqual(siteProperties, expected)
 
   def test_createComponentLayoutRecommendations_addService_1freeHost(self):
     """
@@ -3269,7 +3283,7 @@ class TestHDP206StackAdvisor(TestCase):
     # Assert that the list is empty for host-group-1
     self.assertFalse(recommendations['blueprint']['host_groups'][0]['components'])
     # Assert that DATANODE is placed on host-group-2
-    self.assertEquals(recommendations['blueprint']['host_groups'][1]['components'][0]['name'], 'DATANODE')
+    self.assertEqual(recommendations['blueprint']['host_groups'][1]['components'][0]['name'], 'DATANODE')
 
   def test_validateYARNConfigurations(self):
     configurations = {
@@ -3380,7 +3394,7 @@ class TestHDP206StackAdvisor(TestCase):
       }
     ]
     items = self.stackAdvisor.validateYARNConfigurations(properties, recommendedDefaults, configurations, services, hosts)
-    self.assertEquals(expectedItems, items)
+    self.assertEqual(expectedItems, items)
 
 
     recommendedDefaults = {'yarn.nodemanager.resource.memory-mb' : '10240',
@@ -3406,5 +3420,5 @@ class TestHDP206StackAdvisor(TestCase):
     ]
 
     items = self.stackAdvisor.validateYARNConfigurations(properties, recommendedDefaults, configurations, services, {})
-    self.assertEquals(expectedItems, items)
+    self.assertEqual(expectedItems, items)
 

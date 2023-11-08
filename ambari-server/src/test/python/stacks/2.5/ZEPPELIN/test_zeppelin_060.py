@@ -37,24 +37,24 @@ class TestZeppelin060(RMFTestCase):
         owner = 'zeppelin',
         group = 'zeppelin',
         create_parents = True,
-        mode = 0755,
+        mode = 0o755,
         cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/run/zeppelin',
         owner = 'zeppelin',
         create_parents = True,
         group = 'zeppelin',
-        mode = 0755,
+        mode = 0o755,
         cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/usr/hdp/current/zeppelin-server',
         owner = 'zeppelin',
         group = 'zeppelin',
         create_parents = True,
-        mode = 0755,
+        mode = 0o755,
         cd_access = 'a',
     )
-    self.assertResourceCalled('Execute', ('chown', '-R', u'zeppelin:zeppelin', '/var/run/zeppelin'), sudo = True)
+    self.assertResourceCalled('Execute', ('chown', '-R', 'zeppelin:zeppelin', '/var/run/zeppelin'), sudo = True)
     self.assertResourceCalled('XmlConfig', 'zeppelin-site.xml',
         owner = 'zeppelin',
         group = 'zeppelin',
@@ -72,15 +72,15 @@ class TestZeppelin060(RMFTestCase):
         group = 'zeppelin',
     )
     self.assertResourceCalled('File', '/etc/zeppelin/conf/log4j.properties',
-        owner = u'zeppelin',
-        content = u'log4j.rootLogger = INFO, dailyfile',
-        group = u'zeppelin',
+        owner = 'zeppelin',
+        content = 'log4j.rootLogger = INFO, dailyfile',
+        group = 'zeppelin',
     )
     self.assertResourceCalled('Directory', '/etc/zeppelin/conf/external-dependency-conf',
         owner = 'zeppelin',
         group = 'zeppelin',
         create_parents = True,
-        mode = 0755,
+        mode = 0o755,
         cd_access = 'a',
     )
 
@@ -89,24 +89,24 @@ class TestZeppelin060(RMFTestCase):
         owner = 'zeppelin',
         group = 'zeppelin',
         create_parents = True,
-        mode = 0755,
+        mode = 0o755,
         cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/run/zeppelin',
         owner = 'zeppelin',
         create_parents = True,
         group = 'zeppelin',
-        mode = 0755,
+        mode = 0o755,
         cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/usr/hdp/current/zeppelin-server',
         owner = 'zeppelin',
         group = 'zeppelin',
         create_parents = True,
-        mode = 0755,
+        mode = 0o755,
         cd_access = 'a',
     )
-    self.assertResourceCalled('Execute', ('chown', '-R', u'zeppelin:zeppelin', '/var/run/zeppelin'), sudo = True)
+    self.assertResourceCalled('Execute', ('chown', '-R', 'zeppelin:zeppelin', '/var/run/zeppelin'), sudo = True)
     self.assertResourceCalled('XmlConfig', 'zeppelin-site.xml',
         owner = 'zeppelin',
         group = 'zeppelin',
@@ -124,15 +124,15 @@ class TestZeppelin060(RMFTestCase):
         group = 'zeppelin',
     )
     self.assertResourceCalled('File', '/etc/zeppelin/conf/log4j.properties',
-        owner = u'zeppelin',
-        content = u'log4j.rootLogger = INFO, dailyfile',
-        group = u'zeppelin',
+        owner = 'zeppelin',
+        content = 'log4j.rootLogger = INFO, dailyfile',
+        group = 'zeppelin',
     )
     self.assertResourceCalled('Directory', '/etc/zeppelin/conf/external-dependency-conf',
         owner = 'zeppelin',
         group = 'zeppelin',
         create_parents = True,
-        mode = 0755,
+        mode = 0o755,
         cd_access = 'a',
     )
 
@@ -170,10 +170,10 @@ class TestZeppelin060(RMFTestCase):
         owner = 'zeppelin',
         group = 'zeppelin',
         create_parents = True,
-        mode = 0755,
+        mode = 0o755,
         cd_access = 'a',
     )
-    self.assertResourceCalled('Execute', ('chown', '-R', u'zeppelin:zeppelin', '/var/run/zeppelin'),
+    self.assertResourceCalled('Execute', ('chown', '-R', 'zeppelin:zeppelin', '/var/run/zeppelin'),
         sudo = True,
     )
     self.assertResourceCalled('Execute', '/usr/hdp/current/zeppelin-server/bin/zeppelin-daemon.sh stop >> /var/log/zeppelin/zeppelin-setup.log',
@@ -193,10 +193,10 @@ class TestZeppelin060(RMFTestCase):
         owner = 'zeppelin',
         group = 'zeppelin',
         create_parents = True,
-        mode = 0755,
+        mode = 0o755,
         cd_access = 'a',
     )
-    self.assertResourceCalled('Execute', ('chown', '-R', u'zeppelin:zeppelin', '/var/run/zeppelin'),
+    self.assertResourceCalled('Execute', ('chown', '-R', 'zeppelin:zeppelin', '/var/run/zeppelin'),
         sudo = True,
     )
     self.assertResourceCalled('Execute', '/usr/hdp/current/zeppelin-server/bin/zeppelin-daemon.sh stop >> /var/log/zeppelin/zeppelin-setup.log',
@@ -213,7 +213,7 @@ class TestZeppelin060(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
-    self.assertResourceCalled('Execute', ('chown', '-R', u'zeppelin:zeppelin', '/etc/zeppelin'),
+    self.assertResourceCalled('Execute', ('chown', '-R', 'zeppelin:zeppelin', '/etc/zeppelin'),
         sudo = True,
     )
 
@@ -227,7 +227,7 @@ class TestZeppelin060(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
-    self.assertResourceCalled('Execute', ('chown', '-R', u'zeppelin:zeppelin', '/etc/zeppelin'),
+    self.assertResourceCalled('Execute', ('chown', '-R', 'zeppelin:zeppelin', '/etc/zeppelin'),
         sudo = True,
     )
     self.assertResourceCalled('Execute', ('chown', '-R', 'zeppelin:zeppelin', '/usr/hdp/current/zeppelin-server/notebook'),
@@ -242,7 +242,7 @@ class TestZeppelin060(RMFTestCase):
         keytab = UnknownConfigurationMock(),
         default_fs = 'hdfs://c6401.ambari.apache.org:8020',
         hdfs_resource_ignore_file = '/var/lib/ambari-agent/data/.hdfs_resource_ignore',
-        hdfs_site = {u'a': u'b'},
+        hdfs_site = {'a': 'b'},
         kinit_path_local = '/usr/bin/kinit',
         principal_name = UnknownConfigurationMock(),
         user = 'hdfs',
@@ -260,7 +260,7 @@ class TestZeppelin060(RMFTestCase):
         keytab = UnknownConfigurationMock(),
         default_fs = 'hdfs://c6401.ambari.apache.org:8020',
         hdfs_resource_ignore_file = '/var/lib/ambari-agent/data/.hdfs_resource_ignore',
-        hdfs_site = {u'a': u'b'},
+        hdfs_site = {'a': 'b'},
         kinit_path_local = '/usr/bin/kinit',
         principal_name = UnknownConfigurationMock(),
         user = 'hdfs',
@@ -278,7 +278,7 @@ class TestZeppelin060(RMFTestCase):
         keytab = UnknownConfigurationMock(),
         default_fs = 'hdfs://c6401.ambari.apache.org:8020',
         hdfs_resource_ignore_file = '/var/lib/ambari-agent/data/.hdfs_resource_ignore',
-        hdfs_site = {u'a': u'b'},
+        hdfs_site = {'a': 'b'},
         kinit_path_local = '/usr/bin/kinit',
         principal_name = UnknownConfigurationMock(),
         user = 'hdfs',
@@ -298,7 +298,7 @@ class TestZeppelin060(RMFTestCase):
         default_fs = 'hdfs://c6401.ambari.apache.org:8020',
         replace_existing_files = True,
         hdfs_resource_ignore_file = '/var/lib/ambari-agent/data/.hdfs_resource_ignore',
-        hdfs_site = {u'a': u'b'},
+        hdfs_site = {'a': 'b'},
         kinit_path_local = '/usr/bin/kinit',
         principal_name = UnknownConfigurationMock(),
         user = 'hdfs',
@@ -307,7 +307,7 @@ class TestZeppelin060(RMFTestCase):
         hadoop_conf_dir = '/usr/hdp/2.2.1.0-2067/hadoop/conf',
         type = 'file',
         action = ['create_on_execute'],
-        mode = 0444,
+        mode = 0o444,
         dfs_type='',
     )
     self.assertResourceCalled('HdfsResource', None,
@@ -316,7 +316,7 @@ class TestZeppelin060(RMFTestCase):
         keytab = UnknownConfigurationMock(),
         default_fs = 'hdfs://c6401.ambari.apache.org:8020',
         hdfs_resource_ignore_file = '/var/lib/ambari-agent/data/.hdfs_resource_ignore',
-        hdfs_site = {u'a': u'b'},
+        hdfs_site = {'a': 'b'},
         kinit_path_local = '/usr/bin/kinit',
         principal_name = UnknownConfigurationMock(),
         user = 'hdfs',

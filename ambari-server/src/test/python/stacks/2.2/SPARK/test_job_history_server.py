@@ -62,7 +62,7 @@ class TestJobHistoryServer(RMFTestCase):
         hadoop_bin_dir = '/usr/hdp/2.2.1.0-2067/hadoop/bin',
         keytab = UnknownConfigurationMock(),
         default_fs = 'hdfs://c6401.ambari.apache.org:8020',
-        hdfs_site = {u'a': u'b'},
+        hdfs_site = {'a': 'b'},
         kinit_path_local = '/usr/bin/kinit',
         principal_name = UnknownConfigurationMock(),
         user = 'hdfs',
@@ -71,7 +71,7 @@ class TestJobHistoryServer(RMFTestCase):
         hadoop_conf_dir = '/etc/hadoop/conf',
     )
     self.assertResourceCalled('Execute', '/usr/hdp/current/spark-client/sbin/start-history-server.sh',
-        environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+        environment = {'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},
         not_if = 'ls /var/run/spark/spark-spark-org.apache.spark.deploy.history.HistoryServer-1.pid >/dev/null 2>&1 && ps -p `cat /var/run/spark/spark-spark-org.apache.spark.deploy.history.HistoryServer-1.pid` >/dev/null 2>&1',
         user = 'spark',
     )
@@ -86,7 +86,7 @@ class TestJobHistoryServer(RMFTestCase):
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', '/usr/hdp/current/spark-client/sbin/stop-history-server.sh',
-        environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+        environment = {'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},
         user = 'spark',
     )
     self.assertResourceCalled('File', '/var/run/spark/spark-spark-org.apache.spark.deploy.history.HistoryServer-1.pid',
@@ -137,7 +137,7 @@ class TestJobHistoryServer(RMFTestCase):
     )
 
     self.assertResourceCalled('Execute', '/usr/hdp/current/spark-client/sbin/start-history-server.sh',
-        environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+        environment = {'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},
         not_if = 'ls /var/run/spark/spark-spark-org.apache.spark.deploy.history.HistoryServer-1.pid >/dev/null 2>&1 && ps -p `cat /var/run/spark/spark-spark-org.apache.spark.deploy.history.HistoryServer-1.pid` >/dev/null 2>&1',
         user = 'spark',
     )
@@ -152,7 +152,7 @@ class TestJobHistoryServer(RMFTestCase):
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', '/usr/hdp/current/spark-client/sbin/stop-history-server.sh',
-        environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+        environment = {'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},
         user = 'spark',
     )
     self.assertResourceCalled('File', '/var/run/spark/spark-spark-org.apache.spark.deploy.history.HistoryServer-1.pid',
@@ -165,14 +165,14 @@ class TestJobHistoryServer(RMFTestCase):
         owner = 'spark',
         group = 'hadoop',
         create_parents = True,
-        mode = 0775,
+        mode = 0o775,
         cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/spark',
         owner = 'spark',
         group = 'hadoop',
         create_parents = True,
-        mode = 0775,
+        mode = 0o775,
         cd_access = 'a',
     )
     self.assertResourceCalled('HdfsResource', '/user/spark',
@@ -181,7 +181,7 @@ class TestJobHistoryServer(RMFTestCase):
         hadoop_bin_dir = '/usr/hdp/2.2.1.0-2067/hadoop/bin',
         keytab = UnknownConfigurationMock(),
         default_fs = 'hdfs://c6401.ambari.apache.org:8020',
-        hdfs_site = {u'a': u'b'},
+        hdfs_site = {'a': 'b'},
         kinit_path_local = '/usr/bin/kinit',
         principal_name = UnknownConfigurationMock(),
         user = 'hdfs',
@@ -190,7 +190,7 @@ class TestJobHistoryServer(RMFTestCase):
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
         action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
-        mode = 0775,
+        mode = 0o775,
     )
     self.assertResourceCalled('HdfsResource', None,
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
@@ -198,7 +198,7 @@ class TestJobHistoryServer(RMFTestCase):
         hadoop_bin_dir = '/usr/hdp/2.2.1.0-2067/hadoop/bin',
         keytab = UnknownConfigurationMock(),
         default_fs = 'hdfs://c6401.ambari.apache.org:8020',
-        hdfs_site = {u'a': u'b'},
+        hdfs_site = {'a': 'b'},
         kinit_path_local = '/usr/bin/kinit',
         principal_name = UnknownConfigurationMock(),
         user = 'hdfs',
@@ -211,36 +211,36 @@ class TestJobHistoryServer(RMFTestCase):
         key_value_delimiter = ' ',
         group = 'spark',
         properties = self.getConfig()['configurations']['spark-defaults'],
-        mode = 0644
+        mode = 0o644
     )
     self.assertResourceCalled('File', '/usr/hdp/current/spark-client/conf/spark-env.sh',
         content = InlineTemplate(self.getConfig()['configurations']['spark-env']['content']),
         owner = 'spark',
         group = 'spark',
-        mode = 0644,
+        mode = 0o644,
     )
     self.assertResourceCalled('File', '/usr/hdp/current/spark-client/conf/log4j.properties',
         content = '\n# Set everything to be logged to the console\nlog4j.rootCategory=INFO, console\nlog4j.appender.console=org.apache.log4j.ConsoleAppender\nlog4j.appender.console.target=System.err\nlog4j.appender.console.layout=org.apache.log4j.PatternLayout\nlog4j.appender.console.layout.ConversionPattern=%d{yy/MM/dd HH:mm:ss} %p %c{1}: %m%n\n\n# Settings to quiet third party logs that are too verbose\nlog4j.logger.org.eclipse.jetty=WARN\nlog4j.logger.org.eclipse.jetty.util.component.AbstractLifeCycle=ERROR\nlog4j.logger.org.apache.spark.repl.SparkIMain$exprTyper=INFO\nlog4j.logger.org.apache.spark.repl.SparkILoop$SparkILoopInterpreter=INFO',
         owner = 'spark',
         group = 'spark',
-        mode = 0644,
+        mode = 0o644,
     )
     self.assertResourceCalled('File', '/usr/hdp/current/spark-client/conf/metrics.properties',
         content = InlineTemplate(self.getConfig()['configurations']['spark-metrics-properties']['content']),
         owner = 'spark',
         group = 'spark',
-        mode = 0644
+        mode = 0o644
     )
     self.assertResourceCalled('Directory', '/usr/hdp/current/spark-client/logs',
         owner = 'spark',
         group = 'spark',
-        mode = 0755,
+        mode = 0o755,
     )
     self.assertResourceCalled('File', '/usr/hdp/current/spark-client/conf/java-opts',
         content = InlineTemplate('  -Dhdp.version=None'),
         owner = 'spark',
         group = 'spark',
-        mode = 0644
+        mode = 0o644
     )
 
   def assert_configure_secured(self):
@@ -248,14 +248,14 @@ class TestJobHistoryServer(RMFTestCase):
         owner = 'spark',
         group = 'hadoop',
         create_parents = True,
-        mode = 0775,
+        mode = 0o775,
         cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/spark',
         owner = 'spark',
         group = 'hadoop',
         create_parents = True,
-        mode = 0775,
+        mode = 0o775,
         cd_access = 'a',
     )
     self.assertResourceCalled('HdfsResource', '/user/spark',
@@ -273,7 +273,7 @@ class TestJobHistoryServer(RMFTestCase):
         dfs_type = '',
         type = 'directory',
         action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
-        mode = 0775,
+        mode = 0o775,
     )
     self.assertResourceCalled('HdfsResource', None,
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
@@ -294,36 +294,36 @@ class TestJobHistoryServer(RMFTestCase):
         key_value_delimiter = ' ',
         group = 'spark',
         properties = self.getConfig()['configurations']['spark-defaults'],
-        mode = 0644
+        mode = 0o644
     )
     self.assertResourceCalled('File', '/usr/hdp/current/spark-client/conf/spark-env.sh',
         content = InlineTemplate(self.getConfig()['configurations']['spark-env']['content']),
         owner = 'spark',
         group = 'spark',
-        mode = 0644,
+        mode = 0o644,
     )
     self.assertResourceCalled('File', '/usr/hdp/current/spark-client/conf/log4j.properties',
         content = '\n# Set everything to be logged to the console\nlog4j.rootCategory=INFO, console\nlog4j.appender.console=org.apache.log4j.ConsoleAppender\nlog4j.appender.console.target=System.err\nlog4j.appender.console.layout=org.apache.log4j.PatternLayout\nlog4j.appender.console.layout.ConversionPattern=%d{yy/MM/dd HH:mm:ss} %p %c{1}: %m%n\n\n# Settings to quiet third party logs that are too verbose\nlog4j.logger.org.eclipse.jetty=WARN\nlog4j.logger.org.eclipse.jetty.util.component.AbstractLifeCycle=ERROR\nlog4j.logger.org.apache.spark.repl.SparkIMain$exprTyper=INFO\nlog4j.logger.org.apache.spark.repl.SparkILoop$SparkILoopInterpreter=INFO',
         owner = 'spark',
         group = 'spark',
-        mode = 0644,
+        mode = 0o644,
     )
     self.assertResourceCalled('File', '/usr/hdp/current/spark-client/conf/metrics.properties',
         content = InlineTemplate(self.getConfig()['configurations']['spark-metrics-properties']['content']),
         owner = 'spark',
         group = 'spark',
-        mode = 0644
+        mode = 0o644
     )
     self.assertResourceCalled('Directory', '/usr/hdp/current/spark-client/logs',
         owner = 'spark',
         group = 'spark',
-        mode = 0755,
+        mode = 0o755,
     )
     self.assertResourceCalled('File', '/usr/hdp/current/spark-client/conf/java-opts',
         content = InlineTemplate('  -Dhdp.version=None'),
         owner = 'spark',
         group = 'spark',
-        mode = 0644
+        mode = 0o644
     )
 
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")

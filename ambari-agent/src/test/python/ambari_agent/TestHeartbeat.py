@@ -22,13 +22,13 @@ from unittest import TestCase
 import unittest
 import tempfile
 from mock.mock import patch, MagicMock, call
-import StringIO
+import io
 import sys
 import multiprocessing
 from ambari_agent.RecoveryManager import RecoveryManager
 
 
-with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
+with patch("distro.linux_distribution", return_value = ('Suse','11','Final')):
   from ambari_agent.Hardware import Hardware
   from ambari_agent.Heartbeat import Heartbeat
   from ambari_agent.ActionQueue import ActionQueue
@@ -43,7 +43,7 @@ class TestHeartbeat:#(TestCase):
 
   def setUp(self):
     # disable stdout
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
 
@@ -62,19 +62,19 @@ class TestHeartbeat:#(TestCase):
     actionQueue = ActionQueue(config, dummy_controller)
     heartbeat = Heartbeat(actionQueue)
     result = heartbeat.build(100)
-    print "Heartbeat: " + str(result)
-    self.assertEquals(result['hostname'] != '', True, "hostname should not be empty")
-    self.assertEquals(result['responseId'], 100)
-    self.assertEquals(result['componentStatus'] is not None, True, "Heartbeat should contain componentStatus")
-    self.assertEquals(result['reports'] is not None, True, "Heartbeat should contain reports")
-    self.assertEquals(result['timestamp'] >= 1353679373880L, True)
-    self.assertEquals(result['recoveryTimestamp'], -1)
-    self.assertEquals(len(result['nodeStatus']), 2)
-    self.assertEquals(result['nodeStatus']['cause'], "NONE")
-    self.assertEquals(result['nodeStatus']['status'], "HEALTHY")
+    print("Heartbeat: " + str(result))
+    self.assertEqual(result['hostname'] != '', True, "hostname should not be empty")
+    self.assertEqual(result['responseId'], 100)
+    self.assertEqual(result['componentStatus'] is not None, True, "Heartbeat should contain componentStatus")
+    self.assertEqual(result['reports'] is not None, True, "Heartbeat should contain reports")
+    self.assertEqual(result['timestamp'] >= 1353679373880, True)
+    self.assertEqual(result['recoveryTimestamp'], -1)
+    self.assertEqual(len(result['nodeStatus']), 2)
+    self.assertEqual(result['nodeStatus']['cause'], "NONE")
+    self.assertEqual(result['nodeStatus']['status'], "HEALTHY")
     # result may or may NOT have an agentEnv structure in it
-    self.assertEquals((len(result) is 7) or (len(result) is 8), True)
-    self.assertEquals(not heartbeat.reports, True, "Heartbeat should not contain task in progress")
+    self.assertEqual((len(result) is 7) or (len(result) is 8), True)
+    self.assertEqual(not heartbeat.reports, True, "Heartbeat should not contain task in progress")
 
   @patch("subprocess.Popen")
   @patch.object(Hardware, "_chk_writable_mount", new = MagicMock(return_value=True))
@@ -85,10 +85,10 @@ class TestHeartbeat:#(TestCase):
       'reports': [{'status': 'IN_PROGRESS',
                    'stderr': 'Read from /tmp/errors-3.txt',
                    'stdout': 'Read from /tmp/output-3.txt',
-                   'clusterName': u'cc',
-                   'roleCommand': u'INSTALL',
-                   'serviceName': u'HDFS',
-                   'role': u'DATANODE',
+                   'clusterName': 'cc',
+                   'roleCommand': 'INSTALL',
+                   'serviceName': 'HDFS',
+                   'role': 'DATANODE',
                    'actionId': '1-1',
                    'taskId': 3,
                    'exitCode': 777}],
@@ -121,10 +121,10 @@ class TestHeartbeat:#(TestCase):
       'reports': [{'status': 'IN_PROGRESS',
             'stderr': 'Read from /tmp/errors-3.txt',
             'stdout': 'Read from /tmp/output-3.txt',
-            'clusterName': u'cc',
-            'roleCommand': u'INSTALL',
-            'serviceName': u'HDFS',
-            'role': u'DATANODE',
+            'clusterName': 'cc',
+            'roleCommand': 'INSTALL',
+            'serviceName': 'HDFS',
+            'role': 'DATANODE',
             'actionId': '1-1',
             'taskId': 3,
             'exitCode': 777},
@@ -143,10 +143,10 @@ class TestHeartbeat:#(TestCase):
             {'status': 'FAILED',
              'stderr': 'stderr',
              'stdout': 'out',
-             'clusterName': u'cc',
-             'roleCommand': u'INSTALL',
-             'serviceName': u'HDFS',
-             'role': u'DATANODE',
+             'clusterName': 'cc',
+             'roleCommand': 'INSTALL',
+             'serviceName': 'HDFS',
+             'role': 'DATANODE',
              'actionId': '1-1',
              'taskId': 3,
              'exitCode': 13},
@@ -154,11 +154,11 @@ class TestHeartbeat:#(TestCase):
             {'status': 'COMPLETED',
              'stderr': 'stderr',
              'stdout': 'out',
-             'clusterName': u'cc',
+             'clusterName': 'cc',
              'configurationTags': {'global': {'tag': 'v1'}},
-             'roleCommand': u'INSTALL',
-             'serviceName': u'HDFS',
-             'role': u'DATANODE',
+             'roleCommand': 'INSTALL',
+             'serviceName': 'HDFS',
+             'role': 'DATANODE',
              'actionId': '1-1',
              'taskId': 3,
              'exitCode': 0}
@@ -180,27 +180,27 @@ class TestHeartbeat:#(TestCase):
                 'recoveryTimestamp': -1,
                 'timestamp': 'timestamp', 'hostname': 'hostname',
                 'responseId': 10, 'reports': [
-      {'status': 'IN_PROGRESS', 'roleCommand': u'INSTALL',
-       'serviceName': u'HDFS', 'role': u'DATANODE', 'actionId': '1-1',
+      {'status': 'IN_PROGRESS', 'roleCommand': 'INSTALL',
+       'serviceName': 'HDFS', 'role': 'DATANODE', 'actionId': '1-1',
        'stderr': 'Read from /tmp/errors-3.txt',
-       'stdout': 'Read from /tmp/output-3.txt', 'clusterName': u'cc',
+       'stdout': 'Read from /tmp/output-3.txt', 'clusterName': 'cc',
        'taskId': 3, 'exitCode': 777},
       {'status': 'COMPLETED', 'roleCommand': 'UPGRADE',
        'serviceName': 'serviceName', 'role': 'role', 'actionId': 17,
        'stderr': 'stderr', 'stdout': 'out', 'clusterName': 'clusterName',
        'taskId': 'taskId', 'exitCode': 0},
-      {'status': 'FAILED', 'roleCommand': u'INSTALL', 'serviceName': u'HDFS',
-       'role': u'DATANODE', 'actionId': '1-1', 'stderr': 'stderr',
-       'stdout': 'out', 'clusterName': u'cc', 'taskId': 3, 'exitCode': 13},
+      {'status': 'FAILED', 'roleCommand': 'INSTALL', 'serviceName': 'HDFS',
+       'role': 'DATANODE', 'actionId': '1-1', 'stderr': 'stderr',
+       'stdout': 'out', 'clusterName': 'cc', 'taskId': 3, 'exitCode': 13},
       {'status': 'COMPLETED', 'stdout': 'out',
        'configurationTags': {'global': {'tag': 'v1'}}, 'taskId': 3,
-       'exitCode': 0, 'roleCommand': u'INSTALL', 'clusterName': u'cc',
-       'serviceName': u'HDFS', 'role': u'DATANODE', 'actionId': '1-1',
+       'exitCode': 0, 'roleCommand': 'INSTALL', 'clusterName': 'cc',
+       'serviceName': 'HDFS', 'role': 'DATANODE', 'actionId': '1-1',
        'stderr': 'stderr'}], 'componentStatus': [
       {'status': 'HEALTHY', 'componentName': 'DATANODE'},
       {'status': 'UNHEALTHY', 'componentName': 'NAMENODE'}]}
     self.assertEqual.__self__.maxDiff = None
-    self.assertEquals(hb, expected)
+    self.assertEqual(hb, expected)
 
   @patch("subprocess.Popen")
   @patch.object(Hardware, "_chk_writable_mount", new = MagicMock(return_value=True))

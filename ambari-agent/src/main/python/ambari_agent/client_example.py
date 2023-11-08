@@ -35,17 +35,17 @@ def get_headers():
 
 class MyListener(ambari_stomp.ConnectionListener):
   def on_message(self, headers, message):
-    print('MyListener:\nreceived a message "{0}"\n'.format(message))
+    print(('MyListener:\nreceived a message "{0}"\n'.format(message)))
     global read_messages
-    print headers
-    print message
+    print(headers)
+    print(message)
     read_messages.append({'id': headers['message-id'], 'subscription':headers['subscription']})
 
 
 class MyStatsListener(ambari_stomp.StatsListener):
   def on_disconnected(self):
     super(MyStatsListener, self).on_disconnected()
-    print('MyStatsListener:\n{0}\n'.format(self))
+    print(('MyStatsListener:\n{0}\n'.format(self)))
 
 read_messages = []
 

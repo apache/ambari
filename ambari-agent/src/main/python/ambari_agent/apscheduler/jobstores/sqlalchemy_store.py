@@ -69,7 +69,7 @@ class SQLAlchemyJobStore(JobStore):
         for row in self.engine.execute(select([self.jobs_t])):
             try:
                 job = Job.__new__(Job)
-                job_dict = dict(row.items())
+                job_dict = dict(list(row.items()))
                 job.__setstate__(job_dict)
                 jobs.append(job)
             except Exception:

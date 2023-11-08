@@ -59,7 +59,7 @@ class TestDatanode(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/hadoop',
                               owner = 'hdfs',
                               group = 'hadoop',
-                              mode = 0755
+                              mode = 0o755
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
@@ -129,7 +129,7 @@ class TestDatanode(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/hadoop',
                               owner = 'hdfs',
                               group = 'hadoop',
-                              mode = 0755
+                              mode = 0o755
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
@@ -169,7 +169,7 @@ class TestDatanode(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/hadoop',
                               owner = 'hdfs',
                               group = 'hadoop',
-                              mode = 0755
+                              mode = 0o755
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
@@ -212,7 +212,7 @@ class TestDatanode(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/hadoop',
                               owner = 'hdfs',
                               group = 'hadoop',
-                              mode = 0755
+                              mode = 0o755
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
@@ -343,7 +343,7 @@ class TestDatanode(RMFTestCase):
                               content = Template('hdfs.conf.j2'),
                               owner = 'root',
                               group = 'root',
-                              mode = 0644,
+                              mode = 0o644,
                               )
     self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
                               owner = 'hdfs',
@@ -358,7 +358,7 @@ class TestDatanode(RMFTestCase):
                               conf_dir = '/usr/hdp/current/hadoop-client/conf',
                               configurations = self.getConfig()['configurations']['core-site'],
                               configuration_attributes = self.getConfig()['configurationAttributes']['core-site'],
-                              mode = 0644
+                              mode = 0o644
                               )
     self.assertResourceCalled('File', '/usr/hdp/current/hadoop-client/conf/slaves',
                               content = Template('slaves.j2'),
@@ -368,18 +368,18 @@ class TestDatanode(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/lib/hadoop-hdfs',
                               owner = 'hdfs',
                               group = 'hadoop',
-                              mode = 0751,
+                              mode = 0o751,
                               create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/lib/ambari-agent/data/datanode',
-                              mode = 0755,
+                              mode = 0o755,
                               create_parents = True
     )
     self.assertResourceCalled('Directory', '/hadoop/hdfs/data',
                               owner = 'hdfs',
                               ignore_failures = True,
                               group = 'hadoop',
-                              mode = 0750,
+                              mode = 0o750,
                               create_parents = True,
                               cd_access='a'
                               )
@@ -387,7 +387,7 @@ class TestDatanode(RMFTestCase):
     self.assertResourceCalled('File', '/var/lib/ambari-agent/data/datanode/dfs_data_dir_mount.hist',
                               owner = 'hdfs',
                               group = 'hadoop',
-                              mode = 0644,
+                              mode = 0o644,
                               content = content
                               )
 
@@ -418,7 +418,7 @@ class TestDatanode(RMFTestCase):
                               content = Template('hdfs.conf.j2'),
                               owner = 'root',
                               group = 'root',
-                              mode = 0644,
+                              mode = 0o644,
                               )
     self.assertResourceCalled('File', conf_dir + '/hdfs_dn_jaas.conf',
                               content = Template('hdfs_dn_jaas.conf.j2'),
@@ -444,7 +444,7 @@ class TestDatanode(RMFTestCase):
                               conf_dir = conf_dir,
                               configurations = self.getConfig()['configurations']['core-site'],
                               configuration_attributes = self.getConfig()['configurationAttributes']['core-site'],
-                              mode = 0644
+                              mode = 0o644
     )
     self.assertResourceCalled('File', conf_dir + '/slaves',
                               content = Template('slaves.j2'),
@@ -454,18 +454,18 @@ class TestDatanode(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/lib/hadoop-hdfs',
                               owner = 'hdfs',
                               group = 'hadoop',
-                              mode = 0751,
+                              mode = 0o751,
                               create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/lib/ambari-agent/data/datanode',
-                              mode = 0755,
+                              mode = 0o755,
                               create_parents = True
     )
     self.assertResourceCalled('Directory', '/hadoop/hdfs/data',
                               owner = 'hdfs',
                               ignore_failures = True,
                               group = 'hadoop',
-                              mode = 0750,
+                              mode = 0o750,
                               create_parents = True,
                               cd_access='a'
                               )
@@ -473,7 +473,7 @@ class TestDatanode(RMFTestCase):
     self.assertResourceCalled('File', '/var/lib/ambari-agent/data/datanode/dfs_data_dir_mount.hist',
                               owner = 'hdfs',
                               group = 'hadoop',
-                              mode = 0644,
+                              mode = 0o644,
                               content = content
                               )
 
@@ -573,7 +573,7 @@ class TestDatanode(RMFTestCase):
                          mocks_dict = mocks_dict
       )
       self.fail('Missing DataNode should have caused a failure')
-    except Fail,fail:
+    except Fail as fail:
       self.assertTrue(mocks_dict['call'].called)
       self.assertEqual(mocks_dict['call'].call_count,30)
 
@@ -594,7 +594,7 @@ class TestDatanode(RMFTestCase):
                          mocks_dict = mocks_dict
       )
       self.fail('Invalid return code should cause a failure')
-    except Fail,fail:
+    except Fail as fail:
       self.assertTrue(mocks_dict['call'].called)
       self.assertEqual(mocks_dict['call'].call_count,30)
 
@@ -624,12 +624,12 @@ class TestDatanode(RMFTestCase):
         command_args=["rolling"])
 
       raise Fail("Expected a fail since datanode didn't report a shutdown")
-    except Exception, err:
+    except Exception as err:
       expected_message = "DataNode has not yet deregistered from the NameNode..."
-      if str(err.message) != expected_message:
+      if str(err) != expected_message:
         self.fail("Expected this exception to be thrown. " + expected_message + ". Got this instead, " + str(err.message))
 
-    self.assertEquals(
+    self.assertEqual(
       ('hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -D ipc.client.connect.max.retries=5 -D ipc.client.connect.retry.interval=1000 -getDatanodeInfo 0.0.0.0:8010'),
       mocks_dict['checked_call'].call_args_list[0][0][0])
 
@@ -658,12 +658,12 @@ class TestDatanode(RMFTestCase):
                          command_args=["rolling"])
 
       raise Fail("Expected a fail since datanode didn't report a shutdown")
-    except Exception, err:
+    except Exception as err:
       expected_message = "DataNode has not yet deregistered from the NameNode..."
-      if str(err.message) != expected_message:
-        self.fail("Expected this exception to be thrown. " + expected_message + ". Got this instead, " + str(err.message))
+      if str(err) != expected_message:
+        self.fail("Expected this exception to be thrown. " + expected_message + ". Got this instead, " + str(err))
 
-    self.assertEquals(
+    self.assertEqual(
       ('hdfs dfsadmin -fs hdfs://ns1 -D ipc.client.connect.max.retries=5 -D ipc.client.connect.retry.interval=1000 -getDatanodeInfo 0.0.0.0:8010'),
       mocks_dict['checked_call'].call_args_list[0][0][0])
 

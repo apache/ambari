@@ -48,14 +48,14 @@ def setup_ranger_admin(upgrade_type=None):
 
   File(params.downloaded_custom_connector,
       content = DownloadSource(params.driver_curl_source),
-      mode = 0644
+      mode = 0o644
   )
 
   Execute(('cp', '--remove-destination', params.downloaded_custom_connector, params.driver_curl_target),
           path=["/bin", "/usr/bin/"],
           sudo=True)
 
-  File(params.driver_curl_target, mode=0644)
+  File(params.driver_curl_target, mode=0o644)
 
   ModifyPropertiesFile(format("{ranger_home}/install.properties"),
     properties = params.config['configurations']['admin-properties']
@@ -91,7 +91,7 @@ def setup_ranger_admin(upgrade_type=None):
 
   ModifyPropertiesFile(format("{ranger_conf}/ranger_webserver.properties"),
     properties = params.config['configurations']['ranger-site'],
-    mode=0744
+    mode=0o744
   )
 
   Directory(params.admin_log_dir,
@@ -121,7 +121,7 @@ def setup_usersync(upgrade_type=None):
        owner = params.unix_user
   )
   File(params.usersync_services_file,
-    mode = 0755,
+    mode = 0o755,
   )
 
   Directory(params.usersync_log_dir,

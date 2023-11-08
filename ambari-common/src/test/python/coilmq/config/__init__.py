@@ -20,7 +20,7 @@ import io
 try:
     from configparser import ConfigParser
 except ImportError:
-    from ConfigParser import ConfigParser
+    from configparser import ConfigParser
 
 
 from pkg_resources import resource_filename, resource_stream

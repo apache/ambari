@@ -26,30 +26,30 @@ from resource_management.libraries.functions.stack_features import check_stack_f
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
   FILE_TYPE_XML
-from webhcat import webhcat
-from webhcat_service import webhcat_service
+from .webhcat import webhcat
+from .webhcat_service import webhcat_service
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
 
 
 class WebHCatServer(Script):
   def install(self, env):
-    import params
+    from . import params
     self.install_packages(env)
 
   def start(self, env, upgrade_type=None):
-    import params
+    from . import params
     env.set_params(params)
     self.configure(env) # FOR SECURITY
     webhcat_service(action='start', upgrade_type=upgrade_type)
 
   def stop(self, env, upgrade_type=None):
-    import params
+    from . import params
     env.set_params(params)
     webhcat_service(action='stop')
 
   def configure(self, env):
-    import params
+    from . import params
     env.set_params(params)
     webhcat()
 
@@ -57,7 +57,7 @@ class WebHCatServer(Script):
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class WebHCatServerWindows(WebHCatServer):
   def status(self, env):
-    import status_params
+    from . import status_params
     env.set_params(status_params)
     check_windows_service_status(status_params.webhcat_server_win_service_name)
 
@@ -68,13 +68,13 @@ class WebHCatServerDefault(WebHCatServer):
     return "hive-webhcat"
 
   def status(self, env):
-    import status_params
+    from . import status_params
     env.set_params(status_params)
     check_process_status(status_params.webhcat_pid_file)
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing WebHCat Stack Upgrade pre-restart")
-    import params
+    from . import params
     env.set_params(params)
 
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version): 
@@ -82,7 +82,7 @@ class WebHCatServerDefault(WebHCatServer):
       stack_select.select("hive-webhcat", params.version)
 
   def security_status(self, env):
-    import status_params
+    from . import status_params
     env.set_params(status_params)
 
     if status_params.security_enabled:
@@ -151,11 +151,11 @@ class WebHCatServerDefault(WebHCatServer):
       self.put_structured_out({"securityState": "UNSECURED"})
 
   def get_log_folder(self):
-    import params
+    from . import params
     return params.hcat_log_dir
   
   def get_user(self):
-    import params
+    from . import params
     return params.webhcat_user
 
 if __name__ == "__main__":

@@ -22,7 +22,7 @@ Ambari Agent
 import sys
 from resource_management import *
 
-from yarn import yarn
+from .yarn import yarn
 
 class MapReduce2Client(Script):
 
@@ -31,7 +31,7 @@ class MapReduce2Client(Script):
     self.configure(env)
 
   def configure(self, env):
-    import params
+    from . import params
     env.set_params(params)
     yarn()
 

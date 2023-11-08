@@ -53,7 +53,7 @@ import sys
 
 from ambari_ws4py.websocket import WebSocket
 from ambari_ws4py.exc import HandshakeError
-from ambari_ws4py.compat import unicode, py3k
+from ambari_ws4py.compat import str, py3k
 from ambari_ws4py import WS_VERSION, WS_KEY, format_addresses
 
 logger = logging.getLogger('ambari_ws4py')
@@ -110,7 +110,7 @@ class WebSocketWSGIApplication(object):
                 raise HandshakeError("WebSocket key's length is invalid")
 
         version = environ.get('HTTP_SEC_WEBSOCKET_VERSION')
-        supported_versions = b', '.join([unicode(v).encode('utf-8') for v in WS_VERSION])
+        supported_versions = b', '.join([str(v).encode('utf-8') for v in WS_VERSION])
         version_is_valid = False
         if version:
             try: version = int(version)
@@ -118,7 +118,7 @@ class WebSocketWSGIApplication(object):
             else: version_is_valid = version in WS_VERSION
 
         if not version_is_valid:
-            environ['websocket.version'] = unicode(version).encode('utf-8')
+            environ['websocket.version'] = str(version).encode('utf-8')
             raise HandshakeError('Unhandled or missing WebSocket version')
 
         ws_protocols = []

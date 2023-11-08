@@ -41,7 +41,7 @@ from resource_management.libraries.functions.version import get_major_version
 
 from resource_management.core.utils import PasswordString
 from ambari_commons.credential_store_helper import get_password_from_credential_store
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 import status_params
 import os
@@ -144,7 +144,7 @@ execute_path = oozie_bin_dir + os.pathsep + hadoop_bin_dir
 oozie_user = config['configurations']['oozie-env']['oozie_user']
 smokeuser = config['configurations']['cluster-env']['smokeuser']
 smokeuser_principal = config['configurations']['cluster-env']['smokeuser_principal_name']
-smoke_hdfs_user_mode = 0770
+smoke_hdfs_user_mode = 0o770
 service_check_queue_name = default('/configurations/yarn-env/service_check.queue.name', 'default')
 
 # This config actually contains {oozie_user}
@@ -343,7 +343,7 @@ if (('oozie-log4j' in config['configurations']) and ('content' in config['config
 else:
   log4j_props = None
 
-oozie_hdfs_user_mode = 0775
+oozie_hdfs_user_mode = 0o775
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']

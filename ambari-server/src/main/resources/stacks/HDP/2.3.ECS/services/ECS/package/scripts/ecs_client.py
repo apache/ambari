@@ -58,7 +58,7 @@ class ECSClient(Script):
               only_if=format("ls {hadoop_conf_dir}"))
 
     File(format("{ambari_libs_dir}/fast-hdfs-resource.jar"),
-           mode=0644,
+           mode=0o644,
            content=StaticFile("/var/lib/ambari-agent/cache/stack-hooks/before-START/files/fast-hdfs-resource.jar")
     )
 
@@ -72,7 +72,7 @@ class ECSClient(Script):
       tc_owner = params.hdfs_user
 
     # create /etc/hadoop
-    Directory(params.hadoop_dir, mode=0755)
+    Directory(params.hadoop_dir, mode=0o755)
 
     # write out hadoop-env.sh, but only if the directory exists
     if os.path.exists(params.hadoop_conf_dir):
@@ -85,7 +85,7 @@ class ECSClient(Script):
     Directory(params.hadoop_java_io_tmpdir,
               owner=params.hdfs_user,
               group=params.user_group,
-              mode=0777
+              mode=0o777
     )
 
   def create_dirs(self,env):
@@ -95,7 +95,7 @@ class ECSClient(Script):
                        type="directory",
                        action="create_on_execute",
                        owner=params.hdfs_user,
-                       mode=0777
+                       mode=0o777
     )
     params.HdfsResource(params.smoke_hdfs_user_dir,
                        type="directory",

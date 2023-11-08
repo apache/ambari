@@ -178,9 +178,9 @@ class HDPWIN21StackAdvisor(DefaultStackAdvisor):
     changedConfigs = []
     # if services parameter, prefer values, set by user
     if services:
-      if 'configurations' in services.keys():
+      if 'configurations' in list(services.keys()):
         userConfigs = services['configurations']
-      if 'changed-configurations' in services.keys():
+      if 'changed-configurations' in list(services.keys()):
         changedConfigs = services["changed-configurations"]
 
     if configType not in config:
@@ -207,9 +207,9 @@ class HDPWIN21StackAdvisor(DefaultStackAdvisor):
 
   def recommendHDFSConfigurations(self, configurations, clusterData, services, hosts):
     putHDFSProperty = self.putProperty(configurations, "hadoop-env", services)
-    putHDFSProperty('namenode_heapsize', max(int(clusterData['totalAvailableRam'] / 2), 1024))
-    putHDFSProperty('namenode_opt_newsize', max(int(clusterData['totalAvailableRam'] / 8), 128))
-    putHDFSProperty('namenode_opt_maxnewsize', max(int(clusterData['totalAvailableRam'] / 8), 256))
+    putHDFSProperty('namenode_heapsize', max(int(clusterData['totalAvailableRam'] // 2), 1024))
+    putHDFSProperty('namenode_opt_newsize', max(int(clusterData['totalAvailableRam'] // 8), 128))
+    putHDFSProperty('namenode_opt_maxnewsize', max(int(clusterData['totalAvailableRam'] // 8), 256))
 
   def recommendYARNConfigurations(self, configurations, clusterData, services, hosts):
     putYarnProperty = self.putProperty(configurations, "yarn-site", services)
@@ -242,7 +242,7 @@ class HDPWIN21StackAdvisor(DefaultStackAdvisor):
     containerSize = clusterData['mapMemory'] if clusterData['mapMemory'] > 2048 else int(clusterData['reduceMemory'])
     containerSize = min(clusterData['containers'] * clusterData['ramPerContainer'], containerSize)
     putHiveProperty = self.putProperty(configurations, "hive-site", services)
-    putHiveProperty('hive.auto.convert.join.noconditionaltask.size', int(round(containerSize / 3)) * 1048576)
+    putHiveProperty('hive.auto.convert.join.noconditionaltask.size', int(round(containerSize // 3)) * 1048576)
     putHiveProperty('hive.tez.java.opts', "-server -Xmx" + str(int(round(0.8 * containerSize)))
                     + "m -Djava.net.preferIPv4Stack=true -XX:NewRatio=8 -XX:+UseNUMA -XX:+UseParallelGC")
     putHiveProperty('hive.tez.container.size', containerSize)
@@ -333,7 +333,7 @@ class HDPWIN21StackAdvisor(DefaultStackAdvisor):
       host = hosts["items"][0]["Hosts"]
       cluster["cpu"] = host["cpu_count"]
       cluster["disk"] = len(host["disk_info"])
-      cluster["ram"] = int(host["total_mem"] / (1024 * 1024))
+      cluster["ram"] = int(host["total_mem"] // (1024 * 1024))
 
     ramRecommendations = [
       {"os":1, "hbase":1},
@@ -381,11 +381,11 @@ class HDPWIN21StackAdvisor(DefaultStackAdvisor):
                                     min(ceil(1.8 * cluster["disk"]),
                                             cluster["totalAvailableRam"] / cluster["minContainerSize"]))))
 
-    '''ramPerContainers = max(2GB, RAM - reservedRam - hBaseRam) / containers'''
-    cluster["ramPerContainer"] = abs(cluster["totalAvailableRam"] / cluster["containers"])
+    '''ramPerContainers = max(2GB, RAM - reservedRam - hBaseRam) // containers'''
+    cluster["ramPerContainer"] = abs(cluster["totalAvailableRam"] // cluster["containers"])
     '''If greater than 1GB, value will be in multiples of 512.'''
     if cluster["ramPerContainer"] > 1024:
-      cluster["ramPerContainer"] = int(cluster["ramPerContainer"] / 512) * 512
+      cluster["ramPerContainer"] = int(cluster["ramPerContainer"] // 512) * 512
 
     cluster["mapMemory"] = int(cluster["ramPerContainer"])
     cluster["reduceMemory"] = cluster["ramPerContainer"]
@@ -405,7 +405,7 @@ class HDPWIN21StackAdvisor(DefaultStackAdvisor):
       serviceName = service["StackServices"]["service_name"]
       validator = self.validateServiceConfigurations(serviceName)
       if validator is not None:
-        for siteName, method in validator.items():
+        for siteName, method in list(validator.items()):
           if siteName in recommendedDefaults:
             siteProperties = getSiteProperties(configurations, siteName)
             if siteProperties is not None:
@@ -668,7 +668,7 @@ class HDPWIN21StackAdvisor(DefaultStackAdvisor):
     mountPoints = {}
     for mountPoint in hostInfo["disk_info"]:
       mountPoints[mountPoint["mountpoint"]] = to_number(mountPoint["available"])
-    mountPoint = getMountPointForDir(dir, mountPoints.keys())
+    mountPoint = getMountPointForDir(dir, list(mountPoints.keys()))
 
     if not mountPoints:
       return self.getErrorItem("No disk info found on host {0}", hostInfo["host_name"])
@@ -676,7 +676,7 @@ class HDPWIN21StackAdvisor(DefaultStackAdvisor):
     if mountPoints[mountPoint] < reqiuredDiskSpace:
       msg = "Ambari Metrics disk space requirements not met. \n" \
             "Recommended disk space for partition {0} is {1}G"
-      return self.getWarnItem(msg.format(mountPoint, reqiuredDiskSpace/1048576)) # in Gb
+      return self.getWarnItem(msg.format(mountPoint, reqiuredDiskSpace//1048576)) # in Gb
     return None
 
   def validateAmsHbaseEnvConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
@@ -695,7 +695,7 @@ class HDPWIN21StackAdvisor(DefaultStackAdvisor):
           if component["StackServiceComponents"]["hostnames"] is not None:
             for hostName in component["StackServiceComponents"]["hostnames"]:
               if self.isMasterComponent(component):
-                if hostName not in hostMasterComponents.keys():
+                if hostName not in list(hostMasterComponents.keys()):
                   hostMasterComponents[hostName] = []
                 hostMasterComponents[hostName].append(component["StackServiceComponents"]["component_name"])
 
@@ -877,7 +877,7 @@ def getHeapsizeProperties():
 def getMemorySizeRequired(components, configurations):
   totalMemoryRequired = 512*1024*1024 # 512Mb for OS needs
   for component in components:
-    if component in getHeapsizeProperties().keys():
+    if component in list(getHeapsizeProperties().keys()):
       heapSizeProperties = getHeapsizeProperties()[component]
       for heapSizeProperty in heapSizeProperties:
         try:

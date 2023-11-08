@@ -45,7 +45,7 @@ class Superset(Script):
     import params
     Directory(
       [params.superset_pid_dir, params.superset_log_dir, params.superset_config_dir, params.superset_home_dir],
-      mode=0755,
+      mode=0o755,
       cd_access='a',
       owner=params.superset_user,
       group=params.user_group,
@@ -54,7 +54,7 @@ class Superset(Script):
     )
 
     File(format("{params.superset_config_dir}/superset-env.sh"),
-         mode=0755,
+         mode=0o755,
          owner=params.superset_user,
          group=params.user_group,
          content=InlineTemplate(params.superset_env_sh_template)
@@ -63,7 +63,7 @@ class Superset(Script):
     File(os.path.join(params.superset_bin_dir, 'superset.sh'),
          owner=params.superset_user,
          group=params.user_group,
-         mode=0755,
+         mode=0o755,
          content=Template("superset.sh")
          )
     superset_config =  mutable_config_dict(params.config["configurations"]["superset"])
@@ -145,13 +145,13 @@ class Superset(Script):
 
 def mutable_config_dict(config):
   rv = {}
-  for key, value in config.iteritems():
+  for key, value in config.items():
     rv[key] = value
   return rv
 
 def quote_string_values(config):
   rv = {}
-  for key, value in config.iteritems():
+  for key, value in config.items():
     rv[key] = quote_string_value(value)
   return rv
 

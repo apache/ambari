@@ -19,10 +19,10 @@ limitations under the License.
 """
 
 from resource_management import *
-import mysql_users
+from . import mysql_users
 
 def mysql_configure():
-  import params
+  from . import params
 
   # required for running hive
   replace_bind_address = ('sed','-i','s|^bind-address[ \t]*=.*|bind-address = 0.0.0.0|',params.mysql_configname)

@@ -41,13 +41,13 @@ class TestFalconClient(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/falcon',
                               owner = 'falcon',
                               create_parents = True,
-                              mode = 0755,
+                              mode = 0o755,
                               cd_access = "a",
                               )
     self.assertResourceCalled('Directory', '/var/log/falcon',
                               owner = 'falcon',
                               create_parents = True,
-                              mode = 0755,
+                              mode = 0o755,
                               cd_access = "a",
                               )
     self.assertResourceCalled('Directory', '/usr/hdp/current/falcon-client/webapp',
@@ -59,7 +59,7 @@ class TestFalconClient(RMFTestCase):
                               create_parents = True
                               )
     self.assertResourceCalled('Directory', '/etc/falcon',
-                              mode = 0755,
+                              mode = 0o755,
                               create_parents = True
                               )
     self.assertResourceCalled('Directory', '/etc/falcon/conf',
@@ -73,16 +73,16 @@ class TestFalconClient(RMFTestCase):
                               )
     self.assertResourceCalled('PropertiesFile', '/etc/falcon/conf/client.properties',
                               owner = 'falcon',
-                              mode = 0644,
-                              properties= {u'falcon.url': u'http://{{falcon_host}}:{{falcon_port}}'}
+                              mode = 0o644,
+                              properties= {'falcon.url': 'http://{{falcon_host}}:{{falcon_port}}'}
                               )
     self.assertResourceCalled('PropertiesFile', '/etc/falcon/conf/runtime.properties',
-                              mode = 0644,
+                              mode = 0o644,
                               properties = self.getConfig()['configurations']['falcon-runtime.properties'],
                               owner = 'falcon'
                               )
     self.assertResourceCalled('PropertiesFile', '/etc/falcon/conf/startup.properties',
-                              mode = 0644,
+                              mode = 0o644,
                               properties = self.getConfig()['configurations']['falcon-startup.properties'],
                               owner = 'falcon'
                               )
@@ -90,7 +90,7 @@ class TestFalconClient(RMFTestCase):
                           content=InlineTemplate(self.getConfig()['configurations']['falcon-log4j']['content']),
                           owner='falcon',
                           group='hadoop',
-                          mode= 0644
+                          mode= 0o644
                           )
     self.assertNoMoreResources()
 

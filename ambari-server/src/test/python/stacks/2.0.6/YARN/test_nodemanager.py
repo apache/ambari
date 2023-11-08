@@ -24,9 +24,10 @@ from stacks.utils.RMFTestCase import *
 from resource_management.core.exceptions import Fail
 from resource_management.core import shell
 import resource_management.libraries.functions
+import distro
 
 origin_exists = os.path.exists
-@patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
+@patch("distro.linux_distribution", new = MagicMock(return_value="Linux"))
 @patch.object(os.path, "exists", new=MagicMock(
   side_effect=lambda *args: origin_exists(args[0])
   if args[0][-2:] == "j2" else True))
@@ -187,14 +188,14 @@ class TestNodeManager(RMFTestCase):
 
     self.assertResourceCalled('Directory', '/var/lib/ambari-agent/data/yarn',
         create_parents = True,
-        mode = 0755,
+        mode = 0o755,
     )
     self.assertResourceCalled('Directory', '/hadoop/yarn/log',
         group = 'hadoop',
         cd_access = 'a',
         create_parents = True,
         ignore_failures = True,
-        mode = 0775,
+        mode = 0o775,
         owner = 'yarn',
     )
     self.assertResourceCalled('Directory', '/hadoop/yarn/log1',
@@ -202,23 +203,23 @@ class TestNodeManager(RMFTestCase):
         cd_access = 'a',
         create_parents = True,
         ignore_failures = True,
-        mode = 0775,
+        mode = 0o775,
         owner = 'yarn',
     )
     self.assertResourceCalled('File', '/var/lib/ambari-agent/data/yarn/yarn_log_dir_mount.hist',
         content = '\n# This file keeps track of the last known mount-point for each dir.\n# It is safe to delete, since it will get regenerated the next time that the component of the service starts.\n# However, it is not advised to delete this file since Ambari may\n# re-create a dir that used to be mounted on a drive but is now mounted on the root.\n# Comments begin with a hash (#) symbol\n# dir,mount_point\n',
         owner = 'hdfs',
         group = 'hadoop',
-        mode = 0644,
+        mode = 0o644,
     )
     self.assertResourceCalled('Directory', '/var/lib/ambari-agent/data/yarn',
         create_parents = True,
-        mode = 0755,
+        mode = 0o755,
     )
     self.assertResourceCalled('Directory', '/hadoop/yarn/local',
                               owner = 'yarn',
                               group = 'hadoop',
-                              mode = 0755,
+                              mode = 0o755,
                               create_parents = True,
                               ignore_failures = True,
                               cd_access='a'
@@ -228,20 +229,20 @@ class TestNodeManager(RMFTestCase):
                               create_parents = True,
                               group = 'hadoop',
                               ignore_failures = True,
-                              mode = 0755,
+                              mode = 0o755,
                               cd_access='a'
                               )
     self.assertResourceCalled('File', '/var/lib/ambari-agent/data/yarn/yarn_local_dir_mount.hist',
         content = '\n# This file keeps track of the last known mount-point for each dir.\n# It is safe to delete, since it will get regenerated the next time that the component of the service starts.\n# However, it is not advised to delete this file since Ambari may\n# re-create a dir that used to be mounted on a drive but is now mounted on the root.\n# Comments begin with a hash (#) symbol\n# dir,mount_point\n',
         owner = 'hdfs',
         group = 'hadoop',
-        mode = 0644,
+        mode = 0o644,
     )
 
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
       owner = 'hdfs',
       group = 'hadoop',
-      mode = 0644,
+      mode = 0o644,
       conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['core-site'],
       configuration_attributes = self.getConfig()['configurationAttributes']['core-site']
@@ -249,7 +250,7 @@ class TestNodeManager(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
       owner = 'hdfs',
       group = 'hadoop',
-      mode = 0644,
+      mode = 0o644,
       conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['hdfs-site'],
       configuration_attributes = self.getConfig()['configurationAttributes']['hdfs-site']
@@ -257,7 +258,7 @@ class TestNodeManager(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
       owner = 'yarn',
       group = 'hadoop',
-      mode = 0644,
+      mode = 0o644,
       conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['mapred-site'],
       configuration_attributes = self.getConfig()['configurationAttributes']['mapred-site']
@@ -265,7 +266,7 @@ class TestNodeManager(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'yarn-site.xml',
       owner = 'yarn',
       group = 'hadoop',
-      mode = 0644,
+      mode = 0o644,
       conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['yarn-site'],
       configuration_attributes = self.getConfig()['configurationAttributes']['yarn-site']
@@ -273,43 +274,43 @@ class TestNodeManager(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'capacity-scheduler.xml',
       owner = 'yarn',
       group = 'hadoop',
-      mode = 0644,
+      mode = 0o644,
       conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['capacity-scheduler'],
       configuration_attributes = self.getConfig()['configurationAttributes']['capacity-scheduler']
     )
     self.assertResourceCalled('File', '/etc/security/limits.d/yarn.conf',
       content = Template('yarn.conf.j2'),
-      mode = 0644,
+      mode = 0o644,
     )
     self.assertResourceCalled('File', '/etc/security/limits.d/mapreduce.conf',
       content = Template('mapreduce.conf.j2'),
-      mode = 0644,
+      mode = 0o644,
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/yarn-env.sh',
       content = InlineTemplate(self.getConfig()['configurations']['yarn-env']['content']),
       owner = 'yarn',
       group = 'hadoop',
-      mode = 0755,
+      mode = 0o755,
     )
     self.assertResourceCalled('File', '/usr/lib/hadoop-yarn/bin/container-executor',
                               group = 'hadoop',
-                              mode = 02050,
+                              mode = 0o2050,
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/container-executor.cfg',
                               content = InlineTemplate(self.getConfig()['configurations']['container-executor']['content']),
                               group = 'hadoop',
-                              mode = 0644,
+                              mode = 0o644,
                               )
     self.assertResourceCalled('Directory', '/cgroups_test/cpu',
                               group = 'hadoop',
                               create_parents = True,
-                              mode = 0755,
+                              mode = 0o755,
                               cd_access="a"
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/mapred-env.sh',
                               content = InlineTemplate(self.getConfig()['configurations']['mapred-env']['content']),
-                              mode = 0755,
+                              mode = 0o755,
                               owner = 'hdfs',
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/taskcontroller.cfg',
@@ -406,32 +407,32 @@ class TestNodeManager(RMFTestCase):
     )
     self.assertResourceCalled('Directory', '/var/lib/ambari-agent/data/yarn',
         create_parents = True,
-        mode = 0755,
+        mode = 0o755,
     )
     self.assertResourceCalled('Directory', '/hadoop/yarn/log',
                               owner = 'yarn',
                               group = 'hadoop',
                               create_parents = True,
                               ignore_failures = True,
-                              mode = 0775,
+                              mode = 0o775,
                               cd_access='a',
                               )
     self.assertResourceCalled('File', '/var/lib/ambari-agent/data/yarn/yarn_log_dir_mount.hist',
         content = '\n# This file keeps track of the last known mount-point for each dir.\n# It is safe to delete, since it will get regenerated the next time that the component of the service starts.\n# However, it is not advised to delete this file since Ambari may\n# re-create a dir that used to be mounted on a drive but is now mounted on the root.\n# Comments begin with a hash (#) symbol\n# dir,mount_point\n',
         owner = 'hdfs',
         group = 'hadoop',
-        mode = 0644,
+        mode = 0o644,
     )
     self.assertResourceCalled('Directory', '/var/lib/ambari-agent/data/yarn',
         create_parents = True,
-        mode = 0755,
+        mode = 0o755,
     )
     self.assertResourceCalled('Directory', '/hadoop/yarn/local',
                               owner = 'yarn',
                               group = 'hadoop',
                               create_parents = True,
                               ignore_failures = True,
-                              mode = 0755,
+                              mode = 0o755,
                               cd_access='a',
                               recursive_mode_flags = {'d': 'a+rwx', 'f': 'a+rw'},
                               )
@@ -439,13 +440,13 @@ class TestNodeManager(RMFTestCase):
         content = '\n# This file keeps track of the last known mount-point for each dir.\n# It is safe to delete, since it will get regenerated the next time that the component of the service starts.\n# However, it is not advised to delete this file since Ambari may\n# re-create a dir that used to be mounted on a drive but is now mounted on the root.\n# Comments begin with a hash (#) symbol\n# dir,mount_point\n',
         owner = 'hdfs',
         group = 'hadoop',
-        mode = 0644,
+        mode = 0o644,
     )
 
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
       owner = 'hdfs',
       group = 'hadoop',
-      mode = 0644,
+      mode = 0o644,
       conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['core-site'],
       configuration_attributes = self.getConfig()['configurationAttributes']['core-site']
@@ -453,7 +454,7 @@ class TestNodeManager(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
       owner = 'hdfs',
       group = 'hadoop',
-      mode = 0644,
+      mode = 0o644,
       conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['hdfs-site'],
       configuration_attributes = self.getConfig()['configurationAttributes']['hdfs-site']
@@ -461,7 +462,7 @@ class TestNodeManager(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
       owner = 'yarn',
       group = 'hadoop',
-      mode = 0644,
+      mode = 0o644,
       conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['mapred-site'],
       configuration_attributes = self.getConfig()['configurationAttributes']['mapred-site']
@@ -469,7 +470,7 @@ class TestNodeManager(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'yarn-site.xml',
       owner = 'yarn',
       group = 'hadoop',
-      mode = 0644,
+      mode = 0o644,
       conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['yarn-site'],
       configuration_attributes = self.getConfig()['configurationAttributes']['yarn-site']
@@ -477,55 +478,55 @@ class TestNodeManager(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'capacity-scheduler.xml',
       owner = 'yarn',
       group = 'hadoop',
-      mode = 0644,
+      mode = 0o644,
       conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['capacity-scheduler'],
       configuration_attributes = self.getConfig()['configurationAttributes']['capacity-scheduler']
     )
     self.assertResourceCalled('File', '/etc/security/limits.d/yarn.conf',
       content = Template('yarn.conf.j2'),
-      mode = 0644,
+      mode = 0o644,
     )
     self.assertResourceCalled('File', '/etc/security/limits.d/mapreduce.conf',
       content = Template('mapreduce.conf.j2'),
-      mode = 0644,
+      mode = 0o644,
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/yarn-env.sh',
       content = InlineTemplate(self.getConfig()['configurations']['yarn-env']['content']),
       owner = 'yarn',
       group = 'hadoop',
-      mode = 0755,
+      mode = 0o755,
     )
     self.assertResourceCalled('File', '/usr/lib/hadoop-yarn/bin/container-executor',
       group = 'hadoop',
-      mode = 06050,
+      mode = 0o6050,
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/container-executor.cfg',
       content = InlineTemplate(self.getConfig()['configurations']['container-executor']['content']),
       group = 'hadoop',
-      mode = 0644,
+      mode = 0o644,
     )
     self.assertResourceCalled('Directory', '/cgroups_test/cpu',
                               group = 'hadoop',
                               create_parents = True,
-                              mode = 0755,
+                              mode = 0o755,
                               cd_access="a"
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/mapred-env.sh',
                               content = InlineTemplate(self.getConfig()['configurations']['mapred-env']['content']),
-                              mode = 0755,
+                              mode = 0o755,
                               owner = 'root',
                               )
     self.assertResourceCalled('File', '/usr/lib/hadoop/sbin/task-controller',
                               owner = 'root',
                               group = 'hadoop',
-                              mode = 06050,
+                              mode = 0o6050,
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/taskcontroller.cfg',
                               content = Template('taskcontroller.cfg.j2'),
                               owner = 'root',
                               group = 'hadoop',
-                              mode = 0644,
+                              mode = 0o644,
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/yarn_jaas.conf',
                               content = Template('yarn_jaas.conf.j2'),
@@ -593,11 +594,11 @@ class TestNodeManager(RMFTestCase):
     self.assertTrue(mocks_dict['checked_call'].called)
     self.assertEqual(mocks_dict['checked_call'].call_count,1)
 
-    self.assertEquals(
+    self.assertEqual(
       "yarn node -list -states=RUNNING",
        mocks_dict['checked_call'].call_args_list[0][0][0])
 
-    self.assertEquals( {'user': u'yarn'}, mocks_dict['checked_call'].call_args_list[0][1])
+    self.assertEqual( {'user': 'yarn'}, mocks_dict['checked_call'].call_args_list[0][1])
 
 
   @patch('time.sleep')
@@ -619,7 +620,7 @@ class TestNodeManager(RMFTestCase):
                          mocks_dict = mocks_dict,
       )
       self.fail('Missing NodeManager should have caused a failure')
-    except Fail,fail:
+    except Fail as fail:
       self.assertTrue(mocks_dict['call'].called)
       self.assertEqual(mocks_dict['call'].call_count,12)
 
@@ -643,7 +644,7 @@ class TestNodeManager(RMFTestCase):
                          mocks_dict = mocks_dict,
       )
       self.fail('Invalid return code should cause a failure')
-    except Fail,fail:
+    except Fail as fail:
       self.assertTrue(mocks_dict['call'].called)
       self.assertEqual(mocks_dict['call'].call_count,1)
 

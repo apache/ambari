@@ -22,7 +22,7 @@ import math
 import os
 import re
 import sys
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 # Local Imports
 
@@ -136,16 +136,16 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
     putHdfsEnvProperty = self.putProperty(configurations, "hadoop-env", services)
     putHdfsEnvPropertyAttribute = self.putPropertyAttribute(configurations, "hadoop-env")
 
-    putHdfsEnvProperty('namenode_heapsize', max(int(clusterData['totalAvailableRam'] / 2), 1024))
+    putHdfsEnvProperty('namenode_heapsize', max(int(clusterData['totalAvailableRam'] // 2), 1024))
 
     nn_heapsize_limit = None
     if (namenodeHosts is not None and len(namenodeHosts) > 0):
       if len(namenodeHosts) > 1:
-        nn_max_heapsize = min(int(namenodeHosts[0]["Hosts"]["total_mem"]), int(namenodeHosts[1]["Hosts"]["total_mem"])) / 1024
+        nn_max_heapsize = min(int(namenodeHosts[0]["Hosts"]["total_mem"]), int(namenodeHosts[1]["Hosts"]["total_mem"])) // 1024
         masters_at_host = max(self.getHostComponentsByCategories(namenodeHosts[0]["Hosts"]["host_name"], ["MASTER"], services, hosts),
                               self.getHostComponentsByCategories(namenodeHosts[1]["Hosts"]["host_name"], ["MASTER"], services, hosts))
       else:
-        nn_max_heapsize = int(namenodeHosts[0]["Hosts"]["total_mem"] / 1024) # total_mem in kb
+        nn_max_heapsize = int(namenodeHosts[0]["Hosts"]["total_mem"] // 1024) # total_mem in kb
         masters_at_host = self.getHostComponentsByCategories(namenodeHosts[0]["Hosts"]["host_name"], ["MASTER"], services, hosts)
 
       putHdfsEnvPropertyAttribute('namenode_heapsize', 'maximum', max(nn_max_heapsize, 1024))
@@ -204,8 +204,8 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
       putHdfsEnvPropertyAttribute('dtnode_heapsize', 'maximum', int(min_datanode_ram_kb/1024))
 
     nn_heapsize = int(configurations["hadoop-env"]["properties"]["namenode_heapsize"])
-    putHdfsEnvProperty('namenode_opt_newsize', max(int(nn_heapsize / 8), 128))
-    putHdfsEnvProperty('namenode_opt_maxnewsize', max(int(nn_heapsize / 8), 128))
+    putHdfsEnvProperty('namenode_opt_newsize', max(int(nn_heapsize // 8), 128))
+    putHdfsEnvProperty('namenode_opt_maxnewsize', max(int(nn_heapsize // 8), 128))
 
     putHdfsSitePropertyAttribute = self.putPropertyAttribute(configurations, "hdfs-site")
     putHdfsSitePropertyAttribute('dfs.datanode.failed.volumes.tolerated', 'maximum', dataDirsCount)
@@ -226,7 +226,7 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
       cpuLimit = max(1, int(floor(nodeManagerHost["Hosts"]["cpu_count"] * (cpuPercentageLimit / 100.0))))
       putYarnProperty('yarn.nodemanager.resource.cpu-vcores', str(cpuLimit))
       putYarnProperty('yarn.scheduler.maximum-allocation-vcores', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.cpu-vcores"])
-      putYarnPropertyAttribute('yarn.nodemanager.resource.memory-mb', 'maximum', int(nodeManagerHost["Hosts"]["total_mem"] / 1024)) # total_mem in kb
+      putYarnPropertyAttribute('yarn.nodemanager.resource.memory-mb', 'maximum', int(nodeManagerHost["Hosts"]["total_mem"] // 1024)) # total_mem in kb
       putYarnPropertyAttribute('yarn.nodemanager.resource.cpu-vcores', 'maximum', nodeManagerHost["Hosts"]["cpu_count"] * 2)
       putYarnPropertyAttribute('yarn.scheduler.minimum-allocation-vcores', 'maximum', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.cpu-vcores"])
       putYarnPropertyAttribute('yarn.scheduler.maximum-allocation-vcores', 'maximum', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.cpu-vcores"])
@@ -389,7 +389,7 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
     container_size = configurations["hive-site"]["properties"]["hive.tez.container.size"]
     container_size_bytes = int(container_size)*1024*1024
     # Memory
-    putHiveSiteProperty("hive.auto.convert.join.noconditionaltask.size", int(container_size_bytes/3))
+    putHiveSiteProperty("hive.auto.convert.join.noconditionaltask.size", int(container_size_bytes//3))
     putHiveSitePropertyAttribute("hive.auto.convert.join.noconditionaltask.size", "maximum", container_size_bytes)
     putHiveSiteProperty("hive.exec.reducers.bytes.per.reducer", "67108864")
 

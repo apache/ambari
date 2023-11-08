@@ -38,12 +38,12 @@ class BeforeInstallHook(Hook):
 
   def hook(self, env):
     self.run_custom_hook('before-ANY')
-    print "Before Install Hook"
+    print("Before Install Hook")
     cache_dir = self.extrakt_var_from_pythonpath(AMBARI_AGENT_CACHE_DIR)
 
     # this happens if PythonExecutor.py.sed hack was not done.
     if not cache_dir:
-      print "WARN: Cache dir for the agent could not be detected. Using default cache dir"
+      print("WARN: Cache dir for the agent could not be detected. Using default cache dir")
       cache_dir = DEFAULT_AMBARI_AGENT_CACHE_DIR
 
     conf_select = os.path.join(cache_dir, CONF_SELECT_PY)

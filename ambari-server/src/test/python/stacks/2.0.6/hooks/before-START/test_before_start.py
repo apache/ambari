@@ -24,7 +24,7 @@ from resource_management import Hook
 from resource_management.core.exceptions import Fail
 import json
 
-@patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
+@patch("distro.linux_distribution", new = MagicMock(return_value="Linux"))
 @patch("os.path.exists", new = MagicMock(return_value=True))
 @patch.object(Hook, "run_custom_hook", new = MagicMock())
 class TestHookBeforeStart(RMFTestCase):
@@ -45,7 +45,7 @@ class TestHookBeforeStart(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/log/hadoop',
                               owner = 'root',
                               group = 'hadoop',
-                              mode = 0775,
+                              mode = 0o775,
                               create_parents = True,
                               cd_access = 'a',
                               )
@@ -75,14 +75,14 @@ class TestHookBeforeStart(RMFTestCase):
                               )
     self.assertResourceCalled('File',
                               '/etc/hadoop/conf/log4j.properties',
-                              mode=0644,
+                              mode=0o644,
                               group='hadoop',
                               owner='hdfs',
                               content=InlineTemplate('log4jproperties\nline2log4jproperties\nline2')
                               )
     self.assertResourceCalled('File', '/var/lib/ambari-agent/lib/fast-hdfs-resource.jar',
                               content = StaticFile('fast-hdfs-resource.jar'),
-                              mode = 0644,
+                              mode = 0o644,
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/hadoop-metrics2.properties',
                               content = InlineTemplate(self.getConfig()['configurations']['hadoop-metrics2.properties']['content']),
@@ -91,7 +91,7 @@ class TestHookBeforeStart(RMFTestCase):
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/task-log4j.properties',
                               content = StaticFile('task-log4j.properties'),
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/configuration.xsl',
       owner = 'hdfs',
@@ -104,13 +104,13 @@ class TestHookBeforeStart(RMFTestCase):
     self.assertResourceCalled('File', '/etc/hadoop/conf/topology_mappings.data',
                               owner = 'hdfs',
                               content = Template('topology_mappings.data.j2'),
-                              mode = 0644,
+                              mode = 0o644,
                               group = 'hadoop',
                               only_if = 'test -d /etc/hadoop/conf',
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/topology_script.py',
                               content = StaticFile('topology_script.py'),
-                              mode = 0755,
+                              mode = 0o755,
                               only_if = 'test -d /etc/hadoop/conf',
                               )
     self.assertNoMoreResources()
@@ -131,7 +131,7 @@ class TestHookBeforeStart(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/log/hadoop',
                               owner = 'root',
                               group = 'hadoop',
-                              mode = 0775,
+                              mode = 0o775,
                               create_parents = True,
                               cd_access = 'a',
                               )
@@ -160,14 +160,14 @@ class TestHookBeforeStart(RMFTestCase):
                               )
     self.assertResourceCalled('File',
                               '/etc/hadoop/conf/log4j.properties',
-                              mode=0644,
+                              mode=0o644,
                               group='hadoop',
                               owner='hdfs',
                               content=InlineTemplate('log4jproperties\nline2log4jproperties\nline2')
                               )
     self.assertResourceCalled('File', '/var/lib/ambari-agent/lib/fast-hdfs-resource.jar',
                               content = StaticFile('fast-hdfs-resource.jar'),
-                              mode = 0644,
+                              mode = 0o644,
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/hadoop-metrics2.properties',
                               content = InlineTemplate(self.getConfig()['configurations']['hadoop-metrics2.properties']['content']),
@@ -176,7 +176,7 @@ class TestHookBeforeStart(RMFTestCase):
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/task-log4j.properties',
                               content = StaticFile('task-log4j.properties'),
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/configuration.xsl',
                               owner = 'hdfs',
@@ -190,12 +190,12 @@ class TestHookBeforeStart(RMFTestCase):
                               owner = 'hdfs',
                               content = Template('topology_mappings.data.j2'),
                               group = 'hadoop',
-                              mode = 0644,
+                              mode = 0o644,
                               only_if = 'test -d /etc/hadoop/conf',
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/topology_script.py',
                               content = StaticFile('topology_script.py'),
-                              mode = 0755,
+                              mode = 0o755,
                               only_if = 'test -d /etc/hadoop/conf',
                               )
     self.assertNoMoreResources()
@@ -221,7 +221,7 @@ class TestHookBeforeStart(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/log/hadoop',
                               owner = 'root',
                               group = 'hadoop',
-                              mode = 0775,
+                              mode = 0o775,
                               create_parents = True,
                               cd_access = 'a',
                               )
@@ -250,14 +250,14 @@ class TestHookBeforeStart(RMFTestCase):
                               )
     self.assertResourceCalled('File',
                               '/etc/hadoop/conf/log4j.properties',
-                              mode=0644,
+                              mode=0o644,
                               group='hadoop',
                               owner='hdfs',
                               content=InlineTemplate('log4jproperties\nline2log4jproperties\nline2')
     )
     self.assertResourceCalled('File', '/var/lib/ambari-agent/lib/fast-hdfs-resource.jar',
                               content = StaticFile('fast-hdfs-resource.jar'),
-                              mode = 0644,
+                              mode = 0o644,
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/hadoop-metrics2.properties',
                               content = InlineTemplate(self.getConfig()['configurations']['hadoop-metrics2.properties']['content']),
@@ -266,7 +266,7 @@ class TestHookBeforeStart(RMFTestCase):
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/task-log4j.properties',
                               content = StaticFile('task-log4j.properties'),
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/configuration.xsl',
                               owner = 'hdfs',
@@ -280,12 +280,12 @@ class TestHookBeforeStart(RMFTestCase):
                               owner = 'hdfs',
                               content = Template('topology_mappings.data.j2'),
                               group = 'hadoop',
-                              mode = 0644,
+                              mode = 0o644,
                               only_if = 'test -d /etc/hadoop/conf',
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/topology_script.py',
                               content = StaticFile('topology_script.py'),
-                              mode = 0755,
+                              mode = 0o755,
                               only_if = 'test -d /etc/hadoop/conf',
                               )
     self.assertNoMoreResources()
@@ -313,7 +313,7 @@ class TestHookBeforeStart(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/log/hadoop',
                               owner = 'root',
                               group = 'hadoop',
-                              mode = 0775,
+                              mode = 0o775,
                               create_parents = True,
                               cd_access = 'a',
                               )
@@ -342,14 +342,14 @@ class TestHookBeforeStart(RMFTestCase):
                               )
     self.assertResourceCalled('File',
                               '/etc/hadoop/conf/log4j.properties',
-                              mode=0644,
+                              mode=0o644,
                               group='hadoop',
                               owner='hdfs',
                               content=InlineTemplate('log4jproperties\nline2log4jproperties\nline2')
     )
     self.assertResourceCalled('File', '/var/lib/ambari-agent/lib/fast-hdfs-resource.jar',
                               content = StaticFile('fast-hdfs-resource.jar'),
-                              mode = 0644,
+                              mode = 0o644,
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/hadoop-metrics2.properties',
                               content = InlineTemplate(self.getConfig()['configurations']['hadoop-metrics2.properties']['content']),
@@ -358,7 +358,7 @@ class TestHookBeforeStart(RMFTestCase):
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/task-log4j.properties',
                               content = StaticFile('task-log4j.properties'),
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/configuration.xsl',
                               owner = 'hdfs',
@@ -372,12 +372,12 @@ class TestHookBeforeStart(RMFTestCase):
                               owner = 'hdfs',
                               content = Template('topology_mappings.data.j2'),
                               group = 'hadoop',
-                              mode = 0644,
+                              mode = 0o644,
                               only_if = 'test -d /etc/hadoop/conf',
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/topology_script.py',
                               content = StaticFile('topology_script.py'),
-                              mode = 0755,
+                              mode = 0o755,
                               only_if = 'test -d /etc/hadoop/conf',
                               )
     self.assertNoMoreResources()

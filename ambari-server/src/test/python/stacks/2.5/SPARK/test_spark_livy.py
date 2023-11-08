@@ -46,13 +46,13 @@ class TestSparkClient(RMFTestCase):
                                   owner = 'livy',
                                   group = 'hadoop',
                                   create_parents = True,
-                                  mode = 0775
+                                  mode = 0o775
                                   )
         self.assertResourceCalled('Directory', '/var/log/livy',
                                   owner = 'livy',
                                   group = 'hadoop',
                                   create_parents = True,
-                                  mode = 0775
+                                  mode = 0o775
                                   )
         self.assertResourceCalled('HdfsResource', '/user/livy',
                                   immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
@@ -60,7 +60,7 @@ class TestSparkClient(RMFTestCase):
                                   hadoop_bin_dir = '/usr/hdp/2.5.0.0-1235/hadoop/bin',
                                   keytab = UnknownConfigurationMock(),
                                   default_fs = 'hdfs://c6401.ambari.apache.org:8020',
-                                  hdfs_site = {u'a': u'b'},
+                                  hdfs_site = {'a': 'b'},
                                   kinit_path_local = '/usr/bin/kinit',
                                   principal_name = UnknownConfigurationMock(),
                                   user = 'hdfs',
@@ -69,7 +69,7 @@ class TestSparkClient(RMFTestCase):
                                   type = 'directory',
                                   action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
                                   dfs_type = '',
-                                  mode = 0775,
+                                  mode = 0o775,
                                   )
         self.assertResourceCalled('HdfsResource', None,
                                   immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
@@ -77,7 +77,7 @@ class TestSparkClient(RMFTestCase):
                                   hadoop_bin_dir = '/usr/hdp/2.5.0.0-1235/hadoop/bin',
                                   keytab = UnknownConfigurationMock(),
                                   default_fs = 'hdfs://c6401.ambari.apache.org:8020',
-                                  hdfs_site = {u'a': u'b'},
+                                  hdfs_site = {'a': 'b'},
                                   kinit_path_local = '/usr/bin/kinit',
                                   principal_name = UnknownConfigurationMock(),
                                   user = 'hdfs',
@@ -91,7 +91,7 @@ class TestSparkClient(RMFTestCase):
                                   hadoop_bin_dir = '/usr/hdp/2.5.0.0-1235/hadoop/bin',
                                   keytab = UnknownConfigurationMock(),
                                   default_fs = 'hdfs://c6401.ambari.apache.org:8020',
-                                  hdfs_site = {u'a': u'b'},
+                                  hdfs_site = {'a': 'b'},
                                   kinit_path_local = '/usr/bin/kinit',
                                   principal_name = UnknownConfigurationMock(),
                                   user = 'hdfs',
@@ -100,7 +100,7 @@ class TestSparkClient(RMFTestCase):
                                   type = 'directory',
                                   action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
                                   dfs_type = '',
-                                  mode = 0700,
+                                  mode = 0o700,
                                   )
         self.assertResourceCalled('HdfsResource', None,
                                   immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
@@ -108,7 +108,7 @@ class TestSparkClient(RMFTestCase):
                                   hadoop_bin_dir = '/usr/hdp/2.5.0.0-1235/hadoop/bin',
                                   keytab = UnknownConfigurationMock(),
                                   default_fs = 'hdfs://c6401.ambari.apache.org:8020',
-                                  hdfs_site = {u'a': u'b'},
+                                  hdfs_site = {'a': 'b'},
                                   kinit_path_local = '/usr/bin/kinit',
                                   principal_name = UnknownConfigurationMock(),
                                   user = 'hdfs',
@@ -120,7 +120,7 @@ class TestSparkClient(RMFTestCase):
                                   content = InlineTemplate(self.getConfig()['configurations']['livy-env']['content']),
                                   owner = 'livy',
                                   group = 'livy',
-                                  mode = 0644,
+                                  mode = 0o644,
                                   )
         self.assertResourceCalled('PropertiesFile', '/usr/hdp/current/livy-server/conf/livy.conf',
                                   owner = 'livy',
@@ -132,18 +132,18 @@ class TestSparkClient(RMFTestCase):
                                   content = '\n            # Set everything to be logged to the console\n            log4j.rootCategory=INFO, console\n            log4j.appender.console=org.apache.log4j.ConsoleAppender\n            log4j.appender.console.target=System.err\n            log4j.appender.console.layout=org.apache.log4j.PatternLayout\n            log4j.appender.console.layout.ConversionPattern=%d{yy/MM/dd HH:mm:ss} %p %c{1}: %m%n\n\n            log4j.logger.org.eclipse.jetty=WARN',
                                   owner = 'livy',
                                   group = 'livy',
-                                  mode = 0644,
+                                  mode = 0o644,
                                   )
         self.assertResourceCalled('File', '/usr/hdp/current/livy-server/conf/spark-blacklist.conf',
                                   content = self.getConfig()['configurations']['livy-spark-blacklist']['content'],
                                   owner = 'livy',
                                   group = 'livy',
-                                  mode = 0644,
+                                  mode = 0o644,
                                   )
         self.assertResourceCalled('Directory', '/usr/hdp/current/livy-server/logs',
                                   owner = 'livy',
                                   group = 'livy',
-                                  mode = 0755,
+                                  mode = 0o755,
                                   )
         self.assertResourceCalled('Execute', '/usr/hdp/current/livy-server/bin/livy-server start',
                                   environment = {'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},

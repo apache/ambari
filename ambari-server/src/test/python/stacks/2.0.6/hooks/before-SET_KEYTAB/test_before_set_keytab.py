@@ -23,7 +23,7 @@ from mock.mock import MagicMock, patch
 from resource_management import Hook
 import itertools
 
-@patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
+@patch("distro.linux_distribution", new = MagicMock(return_value="Linux"))
 @patch("os.path.exists", new = MagicMock(return_value=True))
 @patch.object(Hook, "run_custom_hook")
 class TestHookBeforeSetKeytab(RMFTestCase):

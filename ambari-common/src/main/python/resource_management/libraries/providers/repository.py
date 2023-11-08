@@ -46,7 +46,7 @@ class RepositoryProvider(Provider):
   def action_create(self):
     with tempfile.NamedTemporaryFile() as tmpf:
       with tempfile.NamedTemporaryFile() as old_repo_tmpf:
-        for repo_file_path, repo_file_content in RepositoryProvider.repo_files_content.iteritems():
+        for repo_file_path, repo_file_content in RepositoryProvider.repo_files_content.items():
           repo_file_content = repo_file_content.strip()
 
           File(tmpf.name,
@@ -142,6 +142,7 @@ class UbuntuRepositoryProvider(RepositoryProvider):
 
   def update(self, repo_file_path):
     repo_file_name = os.path.basename(repo_file_path)
+    self.update_cmd[4]='Dir::Etc::sourcelist=sources.list.d/%s' % repo_file_name
     update_cmd_formatted = [format(x) for x in self.update_cmd]
     update_failed_exception = None
 

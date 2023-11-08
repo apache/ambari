@@ -54,7 +54,7 @@ class TestHDP22StackAdvisor(TestCase):
     self.get_system_min_uid_real = self.stackAdvisor.get_system_min_uid
     self.stackAdvisor.get_system_min_uid = self.get_system_min_uid_magic
 
-  @patch('__builtin__.open')
+  @patch('builtins.open')
   @patch('os.path.exists')
   def get_system_min_uid_magic(self, exists_mock, open_mock):
     class MagicFile(object):
@@ -175,7 +175,7 @@ class TestHDP22StackAdvisor(TestCase):
     expected['tez-site']['properties']['tez.tez-ui.history-url.base'] = tez_ui_url
 
     self.stackAdvisor.recommendTezConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
   def test_recommendTezConfigurations_amMemoryMoreThan3072(self):
     configurations = {
@@ -261,7 +261,7 @@ class TestHDP22StackAdvisor(TestCase):
     }
 
     self.stackAdvisor.recommendTezConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
   def test_recommendTezConfigurations_mapMemoryLessThan768(self):
     configurations = {
@@ -347,7 +347,7 @@ class TestHDP22StackAdvisor(TestCase):
     }
 
     self.stackAdvisor.recommendTezConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
 
   def test_validateHDFSConfigurations(self):
@@ -393,7 +393,7 @@ class TestHDP22StackAdvisor(TestCase):
                 }
     expected = []  # No warnings
     validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, None)
-    self.assertEquals(validation_problems, expected)
+    self.assertEqual(validation_problems, expected)
 
     # TEST CASE: Unsecured cluster, unsecure ports
     properties = {  # hdfs-site
@@ -425,7 +425,7 @@ class TestHDP22StackAdvisor(TestCase):
                 "configurations": {}
             }
     validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, None)
-    self.assertEquals(validation_problems, expected)
+    self.assertEqual(validation_problems, expected)
 
     # TEST CASE: Secure cluster, invalid dfs.http.policy value
     properties = {  # hdfs-site
@@ -462,7 +462,7 @@ class TestHDP22StackAdvisor(TestCase):
              "configurations": {}
         }
     validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, None)
-    self.assertEquals(validation_problems, expected)
+    self.assertEqual(validation_problems, expected)
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, https address not defined
     properties = {  # hdfs-site
@@ -494,7 +494,7 @@ class TestHDP22StackAdvisor(TestCase):
             "configurations": {}
         }
     validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, None)
-    self.assertEquals(validation_problems, expected)
+    self.assertEqual(validation_problems, expected)
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, https address defined and secure
     properties = {  # hdfs-site
@@ -527,7 +527,7 @@ class TestHDP22StackAdvisor(TestCase):
              "configurations": {}
         }
     validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, None)
-    self.assertEquals(validation_problems, expected)
+    self.assertEqual(validation_problems, expected)
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, https address defined and non secure
     properties = {  # hdfs-site
@@ -560,7 +560,7 @@ class TestHDP22StackAdvisor(TestCase):
              "configurations": {}
         }
     validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, None)
-    self.assertEquals(validation_problems, expected)
+    self.assertEqual(validation_problems, expected)
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, non secure dfs port, https property not defined
     properties = {  # hdfs-site
@@ -612,7 +612,7 @@ class TestHDP22StackAdvisor(TestCase):
                  'type': 'configuration'}
     ]
     validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, None)
-    self.assertEquals(validation_problems, expected)
+    self.assertEqual(validation_problems, expected)
 
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, non secure dfs port, https defined and secure
@@ -664,7 +664,7 @@ class TestHDP22StackAdvisor(TestCase):
                  'type': 'configuration'}
     ]
     validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, None)
-    self.assertEquals(validation_problems, expected)
+    self.assertEqual(validation_problems, expected)
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, valid non-root configuration
     properties = {  # hdfs-site
@@ -690,7 +690,7 @@ class TestHDP22StackAdvisor(TestCase):
     }
     expected = []
     validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, None)
-    self.assertEquals(validation_problems, expected)
+    self.assertEqual(validation_problems, expected)
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTP_ONLY, insecure port
     properties = {  # hdfs-site
@@ -733,7 +733,7 @@ class TestHDP22StackAdvisor(TestCase):
                  'type': 'configuration'}
                 ]
     validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, None)
-    self.assertEquals(validation_problems, expected)
+    self.assertEqual(validation_problems, expected)
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTP_ONLY, valid configuration
     properties = {  # hdfs-site
@@ -758,7 +758,7 @@ class TestHDP22StackAdvisor(TestCase):
     }
     expected = []
     validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, None)
-    self.assertEquals(validation_problems, expected)
+    self.assertEqual(validation_problems, expected)
 
     # TEST CASE: Secure cluster, absent dfs.http.policy (typical situation)
     properties = {  # hdfs-site
@@ -782,7 +782,7 @@ class TestHDP22StackAdvisor(TestCase):
     }
     expected = []
     validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, None)
-    self.assertEquals(validation_problems, expected)
+    self.assertEqual(validation_problems, expected)
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTP_ONLY, misusage of dfs.data.transfer.protection warning
     properties = {  # hdfs-site
@@ -813,7 +813,7 @@ class TestHDP22StackAdvisor(TestCase):
                             "set to any value other then HTTPS_ONLY. Tip: When dfs.http.policy property is not defined, it defaults to HTTP_ONLY",
                  'type': 'configuration'}]
     validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, None)
-    self.assertEquals(validation_problems, expected)
+    self.assertEqual(validation_problems, expected)
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, wrong dfs.data.transfer.protection value
     properties = {  # hdfs-site
@@ -843,7 +843,7 @@ class TestHDP22StackAdvisor(TestCase):
                  'message': "Invalid property value: WRONG_VALUE. Valid values are ['authentication', 'integrity', 'privacy'].",
                  'type': 'configuration'}]
     validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, None)
-    self.assertEquals(validation_problems, expected)
+    self.assertEqual(validation_problems, expected)
 
     # TEST CASE: Hadoop wire encryption enabled
 
@@ -869,7 +869,7 @@ class TestHDP22StackAdvisor(TestCase):
     }
     expected = []  # No warnings
     validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, None)
-    self.assertEquals(validation_problems, expected)
+    self.assertEqual(validation_problems, expected)
 
   def test_recommendYARNConfigurations(self):
     configurations = {}
@@ -919,7 +919,7 @@ class TestHDP22StackAdvisor(TestCase):
     }
 
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, None)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
   def test_recommendSPARKConfigurations(self):
     configurations = {}
@@ -946,7 +946,7 @@ class TestHDP22StackAdvisor(TestCase):
     }
 
     self.stackAdvisor.recommendSparkConfigurations(configurations, clusterData, services, None)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
   def test_recommendYARNConfigurationAttributes(self):
     configurations = {
@@ -1139,7 +1139,7 @@ class TestHDP22StackAdvisor(TestCase):
     }
 
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
     # Test host NodeManager CPU cores
     hosts["items"][2]["Hosts"]["cpu_count"] = 6
@@ -1155,7 +1155,7 @@ class TestHDP22StackAdvisor(TestCase):
     expected["yarn-site"]["property_attributes"]["yarn.scheduler.minimum-allocation-vcores"]["maximum"] = '4'
     expected["yarn-site"]["property_attributes"]["yarn.scheduler.maximum-allocation-vcores"]["maximum"] = '4'
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
     # Test host NodeManager CPU cores and 'yarn.nodemanager.resource.percentage-physical-cpu-limit'
     hosts["items"][2]["Hosts"]["cpu_count"] = 10
@@ -1173,7 +1173,7 @@ class TestHDP22StackAdvisor(TestCase):
     expected["yarn-site"]["property_attributes"]["yarn.scheduler.minimum-allocation-vcores"]["maximum"] = '5'
     expected["yarn-site"]["property_attributes"]["yarn.scheduler.maximum-allocation-vcores"]["maximum"] = '5'
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
     services.pop("changed-configurations", None)
     services["changed-configurations"] = [{
@@ -1190,7 +1190,7 @@ class TestHDP22StackAdvisor(TestCase):
     expected["yarn-site"]["property_attributes"]["yarn.scheduler.maximum-allocation-mb"]["maximum"] = '4321'
     expected["yarn-site"]["property_attributes"]["yarn.scheduler.minimum-allocation-mb"]["maximum"] = '4321'
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
     services["changed-configurations"].append({
         "type": "yarn-site",
@@ -1204,7 +1204,7 @@ class TestHDP22StackAdvisor(TestCase):
     expected["yarn-site"]["property_attributes"]["yarn.scheduler.maximum-allocation-vcores"]["maximum"] = '9'
     expected["yarn-site"]["property_attributes"]["yarn.scheduler.minimum-allocation-vcores"]["maximum"] = '9'
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
   def test_multipleDependsOn(self):
     configurations = {
@@ -1256,10 +1256,10 @@ class TestHDP22StackAdvisor(TestCase):
     # changed-configurations contain only "yarn.scheduler.maximum-allocation-mb".
     # Ensure that user provided value (350) for "yarn.scheduler.minimum-allocation-mb" is used.
     # The recommended default for "yarn.scheduler.minimum-allocation-mb" is 256.
-    self.assertEquals(configurations['mapred-site']['properties']['mapreduce.map.memory.mb'], '350') # should not be 256
+    self.assertEqual(configurations['mapred-site']['properties']['mapreduce.map.memory.mb'], '350') # should not be 256
 
     # assert that not requested property was not changed
-    self.assertEquals(configurations['mapred-site']['properties']['mapreduce.reduce.memory.mb'], '111')
+    self.assertEqual(configurations['mapred-site']['properties']['mapreduce.reduce.memory.mb'], '111')
 
   def test_recommendHiveConfigurationAttributes(self):
     self.maxDiff = None
@@ -1624,7 +1624,7 @@ class TestHDP22StackAdvisor(TestCase):
     }
 
     self.stackAdvisor.recommendHIVEConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
     #test recommendations
     services["configurations"]["hive-site"]["properties"]["hive.cbo.enable"] = "false"
@@ -1642,7 +1642,7 @@ class TestHDP22StackAdvisor(TestCase):
     expected["hiveserver2-site"]["properties"]["hive.conf.restricted.list"]="hive.security.authenticator.manager,hive.security.authorization.manager,hive.security.metastore.authorization.manager,hive.security.metastore.authenticator.manager,hive.users.in.admin.role,hive.server2.xsrf.filter.enabled,hive.security.authorization.enabled"
 
     self.stackAdvisor.recommendHIVEConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
 
     # test 'hive_security_authorization'=='sqlstdauth' => 'hive.server2.enable.doAs'=='false'
@@ -1653,7 +1653,7 @@ class TestHDP22StackAdvisor(TestCase):
     expected["hive-site"]["properties"]["hive.security.metastore.authorization.manager"]=\
       "org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider"
     self.stackAdvisor.recommendHIVEConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
     # test 'hive.server2.tez.default.queues' leaf queues
     services["configurations"]['capacity-scheduler']['properties'] = {
@@ -1711,21 +1711,21 @@ class TestHDP22StackAdvisor(TestCase):
            'entries': [{'value': 'a1', 'label': 'a1 queue'}, {'value': 'a2', 'label': 'a2 queue'}, {'value': 'b', 'label': 'b queue'}]
           }
     self.stackAdvisor.recommendHIVEConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations['hive-site']['property_attributes']['hive.server2.tez.default.queues'], expected['hive-site']['property_attributes']['hive.server2.tez.default.queues'])
-    self.assertEquals(configurations['hive-site']['properties']['hive.server2.tez.default.queues'], expected['hive-site']['properties']['hive.server2.tez.default.queues'])
+    self.assertEqual(configurations['hive-site']['property_attributes']['hive.server2.tez.default.queues'], expected['hive-site']['property_attributes']['hive.server2.tez.default.queues'])
+    self.assertEqual(configurations['hive-site']['properties']['hive.server2.tez.default.queues'], expected['hive-site']['properties']['hive.server2.tez.default.queues'])
 
     # Hive heapsize properties
     self.stackAdvisor.recommendHIVEConfigurations(configurations, clusterData, hiveService, hosts)
 
     # Recommended default values
-    self.assertEquals(configurations["hive-env"]["properties"]["hive.metastore.heapsize"], "512")
-    self.assertEquals(configurations["hive-env"]["properties"]["hive.heapsize"], "703")
-    self.assertEquals(configurations["hive-env"]["properties"]["hive.client.heapsize"], "1024")
+    self.assertEqual(configurations["hive-env"]["properties"]["hive.metastore.heapsize"], "512")
+    self.assertEqual(configurations["hive-env"]["properties"]["hive.heapsize"], "703")
+    self.assertEqual(configurations["hive-env"]["properties"]["hive.client.heapsize"], "1024")
 
     # Recommended attributes for maximum values, minimum values defined in stack definition
-    self.assertEquals(configurations["hive-env"]["property_attributes"]["hive.heapsize"]["maximum"], "1877")
-    self.assertEquals(configurations["hive-env"]["property_attributes"]["hive.metastore.heapsize"]["maximum"], "1877")
-    self.assertEquals(configurations["hive-env"]["property_attributes"]["hive.client.heapsize"]["maximum"], "1877")
+    self.assertEqual(configurations["hive-env"]["property_attributes"]["hive.heapsize"]["maximum"], "1877")
+    self.assertEqual(configurations["hive-env"]["property_attributes"]["hive.metastore.heapsize"]["maximum"], "1877")
+    self.assertEqual(configurations["hive-env"]["property_attributes"]["hive.client.heapsize"]["maximum"], "1877")
 
     # test 'hive_security_authorization'=='ranger'
     services["configurations"]["hive-env"]["properties"]["hive_security_authorization"] = "ranger"
@@ -1734,7 +1734,7 @@ class TestHDP22StackAdvisor(TestCase):
     expected["hiveserver2-site"]["properties"]["hive.security.authorization.enabled"] = "true"
     expected["hiveserver2-site"]["properties"]["hive.conf.restricted.list"]="hive.security.authenticator.manager,hive.security.authorization.manager,hive.security.metastore.authorization.manager,hive.security.metastore.authenticator.manager,hive.users.in.admin.role,hive.server2.xsrf.filter.enabled,hive.security.authorization.enabled"
     self.stackAdvisor.recommendHIVEConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations['hiveserver2-site'], expected["hiveserver2-site"])
+    self.assertEqual(configurations['hiveserver2-site'], expected["hiveserver2-site"])
 
 
   def test_recommendMapredConfigurationAttributesWithPigService(self):
@@ -2010,7 +2010,7 @@ class TestHDP22StackAdvisor(TestCase):
     }
 
     self.stackAdvisor.recommendMapReduce2Configurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
   def test_recommendMapredConfigurationAttributes(self):
     configurations = {
@@ -2251,7 +2251,7 @@ class TestHDP22StackAdvisor(TestCase):
     }
 
     self.stackAdvisor.recommendMapReduce2Configurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
     configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"] = "700"
 
@@ -2305,7 +2305,7 @@ class TestHDP22StackAdvisor(TestCase):
         }
     }
     self.stackAdvisor.recommendMapReduce2Configurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
 
   def test_recommendHbaseConfigurations(self):
@@ -2361,10 +2361,10 @@ class TestHDP22StackAdvisor(TestCase):
     }
 
     clusterData = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, None)
-    self.assertEquals(clusterData['hbaseRam'], 8)
+    self.assertEqual(clusterData['hbaseRam'], 8)
 
     self.stackAdvisor.recommendHbaseConfigurations(configurations, clusterData, services, None)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
   def test_recommendKnoxConfigurations(self):
     servicesList = ["KNOX"]
@@ -2462,39 +2462,40 @@ class TestHDP22StackAdvisor(TestCase):
                      {'ranger-knox-plugin-enabled': 'Yes'}},
                 'topology':
                   {'properties':
-                     {'content': '<topology> <gateway>  <provider><role>authorization</role><name>XASecurePDPKnox</name><enabled>true</enabled></provider></gateway> </topology>'}}}
+                     {'content': "b'<topology> <gateway>  <provider><role>authorization</role><name>XASecurePDPKnox</name><enabled>true</enabled></provider></gateway> </topology>'"}}}
 
     expected2 = {'ranger-knox-plugin-properties':
                    {'properties':
                       {'ranger-knox-plugin-enabled': 'No'}},
                  'topology':
                    {'properties':
-                      {'content': '<topology> <gateway>  <provider><role>authorization</role><name>AclsAuthz</name><enabled>true</enabled></provider></gateway> </topology>'}}}
+                      {'content': "b'<topology> <gateway>  <provider><role>authorization</role><name>AclsAuthz</name><enabled>true</enabled></provider></gateway> </topology>'"}}}
+
     expected3 = {'ranger-knox-plugin-properties':
                    {'properties':
                       {'ranger-knox-plugin-enabled': 'No'}},
                  'topology':
                    {'properties':
-                      {'content': '<topology> <gateway> <provider> <role>aaa</role><name>r</name><enabled>t</enabled></provider> <provider><role>authorization</role><name>AclsAuthz</name><enabled>true</enabled> </provider><provider><role>bbb</role><name>y</name><enabled>u</enabled></provider> </gateway> </topology>'}}}
+                      {'content': "b'<topology> <gateway> <provider> <role>aaa</role><name>r</name><enabled>t</enabled></provider> <provider><role>authorization</role><name>AclsAuthz</name><enabled>true</enabled> </provider><provider><role>bbb</role><name>y</name><enabled>u</enabled></provider> </gateway> </topology>'"}}}
 
     expected4 = {'ranger-knox-plugin-properties':
                    {'properties':
                       {'ranger-knox-plugin-enabled': 'Yes'}},
                  'topology':
                    {'properties':
-                      {'content': '<topology> <gateway> <provider><role>authorization</role><name>XASecurePDPKnox</name><enabled>true</enabled></provider> </gateway> </topology>'}}}
+                      {'content': "b'<topology> <gateway> <provider><role>authorization</role><name>XASecurePDPKnox</name><enabled>true</enabled></provider> </gateway> </topology>'"}}}
 
     self.stackAdvisor.recommendKnoxConfigurations(configurations, None, services_without_auth_provider_ranger_plugin_enabled, None)
-    self.assertEquals(configurations, expected1)
+    self.assertEqual(configurations, expected1)
 
     self.stackAdvisor.recommendKnoxConfigurations(configurations, None, services_without_auth_provider_ranger_plugin_disabled, None)
-    self.assertEquals(configurations, expected2)
+    self.assertEqual(configurations, expected2)
 
     self.stackAdvisor.recommendKnoxConfigurations(configurations, None, services_with_auth_provider_ranger_plugin_disabled, None)
-    self.assertEquals(configurations, expected3)
+    self.assertEqual(configurations, expected3)
 
     self.stackAdvisor.recommendKnoxConfigurations(configurations, None, services_with_auth_provider_ranger_plugin_enabled, None)
-    self.assertEquals(configurations, expected4)
+    self.assertEqual(configurations, expected4)
 
 
   def test_recommendHbaseSiteConfigurations(self):
@@ -2603,11 +2604,11 @@ class TestHDP22StackAdvisor(TestCase):
     }
 
     clusterData = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, None)
-    self.assertEquals(clusterData['hbaseRam'], 8)
+    self.assertEqual(clusterData['hbaseRam'], 8)
 
     # Test when phoenix_sql_enabled = true
     self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
-    self.assertEquals(configurations, expected, "Test when Phoenix sql is enabled")
+    self.assertEqual(configurations, expected, "Test when Phoenix sql is enabled")
 
     # Test when phoenix_sql_enabled = false
     services['configurations']['hbase-env']['properties']['phoenix_sql_enabled'] = 'false'
@@ -2616,7 +2617,7 @@ class TestHDP22StackAdvisor(TestCase):
     expected['hbase-site']['property_attributes']['hbase.coprocessor.regionserver.classes'] = {'delete': 'true'}
     expected['hbase-site']['property_attributes']['phoenix.functions.allowUserDefinedFunctions'] = {'delete': 'true'}
     self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
-    self.assertEquals(configurations, expected, "Test when Phoenix sql is disabled")
+    self.assertEqual(configurations, expected, "Test when Phoenix sql is disabled")
 
     # Test hbase_master_heapsize maximum
     hosts['items'][0]['Hosts']['host_name'] = 'host1'
@@ -2651,19 +2652,19 @@ class TestHDP22StackAdvisor(TestCase):
     expected['hbase-site']['property_attributes']['phoenix.functions.allowUserDefinedFunctions'] = {'delete': 'true'}
     expected['hbase-env']['property_attributes']['hbase_master_heapsize'] = {'maximum': '49152'}
     self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations, expected, "Test with Phoenix disabled")
+    self.assertEqual(configurations, expected, "Test with Phoenix disabled")
 
     # Test when hbase.security.authentication = kerberos
     services['configurations']['hbase-site']['properties']['hbase.security.authentication'] = 'kerberos'
-    expected['hbase-site']['properties']['hbase.coprocessor.region.classes'] = 'org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint'
+    expected['hbase-site']['properties']['hbase.coprocessor.region.classes'] = 'org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint,org.apache.hadoop.hbase.security.token.TokenProvider'
     self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
-    self.assertEquals(configurations, expected, "Test with Kerberos enabled")
+    self.assertEqual(configurations, expected, "Test with Kerberos enabled")
 
     # Test when hbase.security.authentication = simple
     services['configurations']['hbase-site']['properties']['hbase.security.authentication'] = 'simple'
     expected['hbase-site']['properties']['hbase.coprocessor.region.classes'] = 'org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint'
     self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
-    self.assertEquals(configurations, expected, "Test with Kerberos disabled")
+    self.assertEqual(configurations, expected, "Test with Kerberos disabled")
 
     # Test when Ranger plugin HBase is enabled in non-kerberos environment
     configurations['hbase-site']['properties'].pop('hbase.coprocessor.region.classes', None)
@@ -2680,7 +2681,7 @@ class TestHDP22StackAdvisor(TestCase):
     expected['hbase-site']['properties']['hbase.coprocessor.master.classes'] = 'com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor'
     expected['hbase-site']['properties']['hbase.coprocessor.regionserver.classes'] = 'com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor'
     self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
-    self.assertEquals(configurations, expected, "Test when Ranger plugin HBase is enabled in non-kerberos environment")
+    self.assertEqual(configurations, expected, "Test when Ranger plugin HBase is enabled in non-kerberos environment")
 
     # Test when hbase.security.authentication = kerberos AND class already there
     configurations['hbase-site']['properties'].pop('hbase.coprocessor.region.classes', None)
@@ -2692,12 +2693,12 @@ class TestHDP22StackAdvisor(TestCase):
     services['configurations']['hbase-site']['properties']['hbase.security.authentication'] = 'kerberos'
     services['configurations']['hbase-site']['properties']['hbase.coprocessor.master.classes'] = ''
     services['configurations']['hbase-site']['properties']['hbase.coprocessor.region.classes'] = 'a.b.c.d, {{hbase_coprocessor_region_classes}}'
-    expected['hbase-site']['properties']['hbase.coprocessor.region.classes'] = 'a.b.c.d,org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint'
+    expected['hbase-site']['properties']['hbase.coprocessor.region.classes'] = 'a.b.c.d,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint,org.apache.hadoop.hbase.security.token.TokenProvider'
     expected['hbase-site']['properties']['hbase.coprocessor.master.classes'] = ''
     expected['hbase-site']['properties']['hbase.coprocessor.regionserver.classes'] = ''
     del expected['hbase-site']['properties']['hbase.security.authorization']
     self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
-    self.assertEquals(configurations, expected, "Test with Kerberos enabled and hbase.coprocessor.region.classes predefined")
+    self.assertEqual(configurations, expected, "Test with Kerberos enabled and hbase.coprocessor.region.classes predefined")
 
     # Test when hbase.security.authentication = kerberos AND authorization = true
     configurations['hbase-site']['properties'].pop('hbase.coprocessor.region.classes', None)
@@ -2705,10 +2706,10 @@ class TestHDP22StackAdvisor(TestCase):
     services['configurations']['hbase-site']['properties']['hbase.security.authentication'] = 'kerberos'
     services['configurations']['hbase-site']['properties']['hbase.security.authorization'] = 'true'
     expected['hbase-site']['properties']['hbase.coprocessor.master.classes'] = "org.apache.hadoop.hbase.security.access.AccessController"
-    expected['hbase-site']['properties']['hbase.coprocessor.region.classes'] = 'org.apache.hadoop.hbase.security.access.AccessController,org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint'
+    expected['hbase-site']['properties']['hbase.coprocessor.region.classes'] = 'org.apache.hadoop.hbase.security.access.AccessController,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint,org.apache.hadoop.hbase.security.token.TokenProvider'
     expected['hbase-site']['properties']['hbase.coprocessor.regionserver.classes'] = "org.apache.hadoop.hbase.security.access.AccessController"
     self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
-    self.assertEquals(configurations, expected, "Test with Kerberos enabled and authorization is true")
+    self.assertEqual(configurations, expected, "Test with Kerberos enabled and authorization is true")
 
     # Test when Ranger plugin HBase is enabled in kerberos environment
     configurations['hbase-site']['properties'].pop('hbase.coprocessor.region.classes', None)
@@ -2720,17 +2721,17 @@ class TestHDP22StackAdvisor(TestCase):
     expected['hbase-site']['properties']['hbase.security.authorization']  = 'true'
     expected['hbase-site']['properties']['hbase.coprocessor.master.classes'] = 'com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor'
     expected['hbase-site']['properties']['hbase.coprocessor.regionserver.classes'] = "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor"
-    expected['hbase-site']['properties']['hbase.coprocessor.region.classes'] = 'org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint,com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor'
+    expected['hbase-site']['properties']['hbase.coprocessor.region.classes'] = 'org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint,org.apache.hadoop.hbase.security.token.TokenProvider,com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor'
     self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
-    self.assertEquals(configurations, expected, "Test with Kerberos enabled and HBase ranger plugin enabled")
+    self.assertEqual(configurations, expected, "Test with Kerberos enabled and HBase ranger plugin enabled")
 
     # Test - default recommendations should have certain configs deleted. HAS TO BE LAST TEST.
     services["configurations"] = {"hbase-site": {"properties": {"phoenix.functions.allowUserDefinedFunctions": '', "hbase.rpc.controllerfactory.class": ''}}}
     configurations = {}
     self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
-    self.assertEquals(configurations['hbase-site']['property_attributes']['phoenix.functions.allowUserDefinedFunctions'], {'delete': 'true'})
-    self.assertEquals(configurations['hbase-site']['property_attributes']['hbase.rpc.controllerfactory.class'], {'delete': 'true'})
-    self.assertEquals(configurations['hbase-site']['properties']['hbase.regionserver.wal.codec'], "org.apache.hadoop.hbase.regionserver.wal.WALCellCodec")
+    self.assertEqual(configurations['hbase-site']['property_attributes']['phoenix.functions.allowUserDefinedFunctions'], {'delete': 'true'})
+    self.assertEqual(configurations['hbase-site']['property_attributes']['hbase.rpc.controllerfactory.class'], {'delete': 'true'})
+    self.assertEqual(configurations['hbase-site']['properties']['hbase.regionserver.wal.codec'], "org.apache.hadoop.hbase.regionserver.wal.WALCellCodec")
 
 
   def test_recommendStormConfigurations(self):
@@ -2786,14 +2787,14 @@ class TestHDP22StackAdvisor(TestCase):
 
     # Test nimbus.authorizer with Ranger Storm plugin disabled in non-kerberos environment
     self.stackAdvisor.recommendStormConfigurations(configurations, clusterData, services, None)
-    self.assertEquals(configurations['storm-site']['property_attributes']['nimbus.authorizer'], {'delete': 'true'}, "Test nimbus.authorizer with Ranger Storm plugin disabled in non-kerberos environment")
+    self.assertEqual(configurations['storm-site']['property_attributes']['nimbus.authorizer'], {'delete': 'true'}, "Test nimbus.authorizer with Ranger Storm plugin disabled in non-kerberos environment")
 
     # Test nimbus.authorizer with Ranger Storm plugin enabled in non-kerberos environment
     configurations['storm-site']['properties'] = {}
     configurations['storm-site']['property_attributes'] = {}
     services['configurations']['ranger-storm-plugin-properties']['properties']['ranger-storm-plugin-enabled'] = 'Yes'
     self.stackAdvisor.recommendStormConfigurations(configurations, clusterData, services, None)
-    self.assertEquals(configurations['storm-site']['property_attributes']['nimbus.authorizer'], {'delete': 'true'}, "Test nimbus.authorizer with Ranger Storm plugin enabled in non-kerberos environment")
+    self.assertEqual(configurations['storm-site']['property_attributes']['nimbus.authorizer'], {'delete': 'true'}, "Test nimbus.authorizer with Ranger Storm plugin enabled in non-kerberos environment")
 
     # Test nimbus.authorizer with Ranger Storm plugin being enabled in kerberos environment
     configurations['storm-site']['properties'] = {}
@@ -2803,7 +2804,7 @@ class TestHDP22StackAdvisor(TestCase):
     services['configurations']['storm-site']['properties']['storm.zookeeper.superACL'] = 'sasl:{{storm_bare_jaas_principal}}'
     services['configurations']['cluster-env']['properties']['security_enabled'] = 'true'
     self.stackAdvisor.recommendStormConfigurations(configurations, clusterData, services, None)
-    self.assertEquals(configurations['storm-site']['properties']['nimbus.authorizer'], 'com.xasecure.authorization.storm.authorizer.XaSecureStormAuthorizer', "Test nimbus.authorizer with Ranger Storm plugin enabled in kerberos environment")
+    self.assertEqual(configurations['storm-site']['properties']['nimbus.authorizer'], 'com.xasecure.authorization.storm.authorizer.XaSecureStormAuthorizer', "Test nimbus.authorizer with Ranger Storm plugin enabled in kerberos environment")
 
     # Test nimbus.authorizer with Ranger Storm plugin being disabled in kerberos environment
     configurations['storm-site']['properties'] = {}
@@ -2813,7 +2814,7 @@ class TestHDP22StackAdvisor(TestCase):
     services['configurations']['storm-site']['properties']['nimbus.authorizer'] = 'com.xasecure.authorization.storm.authorizer.XaSecureStormAuthorizer'
     services['configurations']['cluster-env']['properties']['security_enabled'] = 'true'
     self.stackAdvisor.recommendStormConfigurations(configurations, clusterData, services, None)
-    self.assertEquals(configurations['storm-site']['properties']['nimbus.authorizer'], 'backtype.storm.security.auth.authorizer.SimpleACLAuthorizer', "Test nimbus.authorizer with Ranger Storm plugin being disabled in kerberos environment")
+    self.assertEqual(configurations['storm-site']['properties']['nimbus.authorizer'], 'backtype.storm.security.auth.authorizer.SimpleACLAuthorizer', "Test nimbus.authorizer with Ranger Storm plugin being disabled in kerberos environment")
 
 
   def test_recommendHDFSConfigurations(self):
@@ -3015,11 +3016,11 @@ class TestHDP22StackAdvisor(TestCase):
     }
 
     self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
     # Test 1 - namenode heapsize depends on # of datanodes
     datanode_hostnames = services["services"][0]["components"][0]["StackServiceComponents"]["hostnames"] # datanode hostnames
-    for i in xrange(10):
-      hostname = "datanode" + `i`
+    for i in range(10):
+      hostname = "datanode" + repr(i)
       datanode_hostnames.append(hostname)
       hosts['items'].append(
         {
@@ -3041,12 +3042,12 @@ class TestHDP22StackAdvisor(TestCase):
         }
       )
     self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations["hadoop-env"]["properties"]["namenode_heapsize"], "3072")
-    self.assertEquals(configurations["hadoop-env"]["properties"]["namenode_opt_maxnewsize"], "384")
-    self.assertEquals(configurations["hadoop-env"]["properties"]["namenode_opt_maxnewsize"], "384")
+    self.assertEqual(configurations["hadoop-env"]["properties"]["namenode_heapsize"], "3072")
+    self.assertEqual(configurations["hadoop-env"]["properties"]["namenode_opt_maxnewsize"], "384")
+    self.assertEqual(configurations["hadoop-env"]["properties"]["namenode_opt_maxnewsize"], "384")
     # Test 2 - add more datanodes
-    for i in xrange(11,30):
-      hostname = "datanode" + `i`
+    for i in range(11,30):
+      hostname = "datanode" + repr(i)
       datanode_hostnames.append(hostname)
       hosts['items'].append(
         {
@@ -3070,12 +3071,12 @@ class TestHDP22StackAdvisor(TestCase):
     # namenode_heapsize depends on number of disks used used by datanode
     configurations["hdfs-site"]["properties"]["dfs.datanode.data.dir"] = "/path1,/path2,/path3,/path4"
     self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations["hadoop-env"]["properties"]["namenode_heapsize"], "9984")
-    self.assertEquals(configurations["hadoop-env"]["properties"]["namenode_opt_maxnewsize"], "1248")
-    self.assertEquals(configurations["hadoop-env"]["properties"]["namenode_opt_maxnewsize"], "1248")
+    self.assertEqual(configurations["hadoop-env"]["properties"]["namenode_heapsize"], "9984")
+    self.assertEqual(configurations["hadoop-env"]["properties"]["namenode_opt_maxnewsize"], "1248")
+    self.assertEqual(configurations["hadoop-env"]["properties"]["namenode_opt_maxnewsize"], "1248")
     # Test 3 - more datanodes than host can handle
-    for i in xrange(31, 90):
-      hostname = "datanode" + `i`
+    for i in range(31, 90):
+      hostname = "datanode" + repr(i)
       datanode_hostnames.append(hostname)
       hosts['items'].append(
         {
@@ -3097,9 +3098,9 @@ class TestHDP22StackAdvisor(TestCase):
         }
       )
     self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations["hadoop-env"]["properties"]["namenode_heapsize"], "10112")
-    self.assertEquals(configurations["hadoop-env"]["properties"]["namenode_opt_maxnewsize"], "1264")
-    self.assertEquals(configurations["hadoop-env"]["properties"]["namenode_opt_maxnewsize"], "1264")
+    self.assertEqual(configurations["hadoop-env"]["properties"]["namenode_heapsize"], "10112")
+    self.assertEqual(configurations["hadoop-env"]["properties"]["namenode_opt_maxnewsize"], "1264")
+    self.assertEqual(configurations["hadoop-env"]["properties"]["namenode_opt_maxnewsize"], "1264")
 
     # Test 4 - KMS empty test from previous call
     self.assertTrue("dfs.encryption.key.provider.uri" not in configurations["hdfs-site"]["properties"])
@@ -3211,7 +3212,7 @@ class TestHDP22StackAdvisor(TestCase):
                      'type': 'configuration'}]
 
     res = self.stackAdvisor.validateTezConfigurations(properties, recommendedDefaults, configurations, '', '')
-    self.assertEquals(res_expected, res)
+    self.assertEqual(res_expected, res)
 
 
   def test_validateHDFSConfigurationsEnv(self):
@@ -3227,7 +3228,7 @@ class TestHDP22StackAdvisor(TestCase):
     res_expected = []
 
     res = self.stackAdvisor.validateHDFSConfigurationsEnv(properties, recommendedDefaults, configurations, '', '')
-    self.assertEquals(res, res_expected)
+    self.assertEqual(res, res_expected)
 
     # 2) fail: namenode_heapsize, namenode_opt_maxnewsize < recommended
     properties['namenode_heapsize'] = '1022'
@@ -3244,7 +3245,7 @@ class TestHDP22StackAdvisor(TestCase):
                      'type': 'configuration'}]
 
     res = self.stackAdvisor.validateHDFSConfigurationsEnv(properties, recommendedDefaults, configurations, '', '')
-    self.assertEquals(res, res_expected)
+    self.assertEqual(res, res_expected)
 
   def test_validateYARNConfigurationsEnv(self):
     configurations = {}
@@ -3260,7 +3261,7 @@ class TestHDP22StackAdvisor(TestCase):
     res_expected = []
 
     res = self.stackAdvisor.validateYARNEnvConfigurations(properties, recommendedDefaults, configurations, services, '')
-    self.assertEquals(res, res_expected)
+    self.assertEqual(res, res_expected)
 
     # 2) ok: yarn_cgroups_enabled=false, but security enabled
     properties['yarn_cgroups_enabled'] = 'false'
@@ -3274,13 +3275,13 @@ class TestHDP22StackAdvisor(TestCase):
     }
     res_expected = []
     res = self.stackAdvisor.validateYARNEnvConfigurations(properties, recommendedDefaults, configurations, services, '')
-    self.assertEquals(res, res_expected)
+    self.assertEqual(res, res_expected)
 
     # 3) ok: yarn_cgroups_enabled=true, but security enabled
     properties['yarn_cgroups_enabled'] = 'true'
     res_expected = []
     res = self.stackAdvisor.validateYARNEnvConfigurations(properties, recommendedDefaults, configurations, services, '')
-    self.assertEquals(res, res_expected)
+    self.assertEqual(res, res_expected)
 
     # 4) fail: yarn_cgroups_enabled=true, but security disabled
     configurations['core-site']['properties']['hadoop.security.authorization'] = 'false'
@@ -3290,7 +3291,7 @@ class TestHDP22StackAdvisor(TestCase):
                      'config-name': 'yarn_cgroups_enabled',
                      'level': 'WARN'}]
     res = self.stackAdvisor.validateYARNEnvConfigurations(properties, recommendedDefaults, configurations, services, '')
-    self.assertEquals(res, res_expected)
+    self.assertEqual(res, res_expected)
 
   def test_validateMR2XmxOptsEnv(self):
 
@@ -3330,7 +3331,7 @@ class TestHDP22StackAdvisor(TestCase):
                      'level': 'WARN'}]
 
     res = self.stackAdvisor.validateMapReduce2Configurations(properties, recommendedDefaults, {}, '', '')
-    self.assertEquals(res_expected, res)
+    self.assertEqual(res_expected, res)
 
   def test_validateHiveConfigurationsEnv(self):
     properties = {"hive_security_authorization": "None"}
@@ -3364,7 +3365,7 @@ class TestHDP22StackAdvisor(TestCase):
     }
 
     res = self.stackAdvisor.validateHiveConfigurationsEnv(properties, {}, configurations, services, {})
-    self.assertEquals(res, res_expected)
+    self.assertEqual(res, res_expected)
 
     # 2) fail: hive_security_authorization=Ranger but ranger plugin is disabled in ranger-env
     properties = {"hive_security_authorization": "Ranger"}
@@ -3401,7 +3402,7 @@ class TestHDP22StackAdvisor(TestCase):
                      'level': 'WARN'}]
 
     res = self.stackAdvisor.validateHiveConfigurationsEnv(properties, {}, configurations, services, {})
-    self.assertEquals(res, res_expected)
+    self.assertEqual(res, res_expected)
 
 
   def test_validateHiveConfigurations(self):
@@ -3432,7 +3433,7 @@ class TestHDP22StackAdvisor(TestCase):
                    'then hive.server2.authentication.ldap.baseDN!', 'type': 'configuration', 'config-name':
                   'hive.server2.authentication', 'level': 'WARN'}]
     res = self.stackAdvisor.validateHiveConfigurations(properties, recommendedDefaults, configurations, services, {})
-    self.assertEquals(res, res_expected)
+    self.assertEqual(res, res_expected)
 
     pass
 
@@ -3466,7 +3467,7 @@ class TestHDP22StackAdvisor(TestCase):
     # Test with ranger plugin enabled, validation fails
     res_expected = [{'config-type': 'hiveserver2-site', 'message': 'If Ranger Hive Plugin is enabled. hive.security.authorization.manager under hiveserver2-site needs to be set to com.xasecure.authorization.hive.authorizer.XaSecureHiveAuthorizerFactory', 'type': 'configuration', 'config-name': 'hive.security.authorization.manager', 'level': 'WARN'}, {'config-type': 'hiveserver2-site', 'message': 'If Ranger Hive Plugin is enabled. hive.security.authenticator.manager under hiveserver2-site needs to be set to org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator', 'type': 'configuration', 'config-name': 'hive.security.authenticator.manager', 'level': 'WARN'}, {'config-type': 'hiveserver2-site', 'message': 'If Ranger Hive Plugin is enabled. hive.conf.restricted.list under hiveserver2-site needs to contain missing value hive.security.authorization.enabled,hive.security.authorization.manager,hive.security.authenticator.manager', 'type': 'configuration', 'config-name': 'hive.conf.restricted.list', 'level': 'WARN'}]
     res = self.stackAdvisor.validateHiveServer2Configurations(properties, recommendedDefaults, configurations, services, {})
-    self.assertEquals(res, res_expected)
+    self.assertEqual(res, res_expected)
 
   def test_recommendYarnCGroupConfigurations(self):
     servicesList = ["YARN"]
@@ -3571,11 +3572,11 @@ class TestHDP22StackAdvisor(TestCase):
     }
 
     clusterData = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, None)
-    self.assertEquals(clusterData['hbaseRam'], 8)
+    self.assertEqual(clusterData['hbaseRam'], 8)
 
     # Test when yarn_cgroups_enabled = true
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
     # Test when yarn_cgroups_enabled = false
     services['configurations']['yarn-env']['properties']['yarn_cgroups_enabled'] = 'false'
@@ -3641,7 +3642,7 @@ class TestHDP22StackAdvisor(TestCase):
       }
     }
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations, expected)
+    self.assertEqual(configurations, expected)
 
   def test_validateHDFSRangerPluginConfigurations(self):
     configurations = {}
@@ -3674,7 +3675,7 @@ class TestHDP22StackAdvisor(TestCase):
     res_expected = []
 
     res = self.stackAdvisor.validateHDFSRangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
-    self.assertEquals(res, res_expected)
+    self.assertEqual(res, res_expected)
 
     # 2) fail: ranger plugin is disabled in ranger-env
     services['configurations']['ranger-env']['properties']['ranger-hdfs-plugin-enabled'] = 'No'
@@ -3685,7 +3686,7 @@ class TestHDP22StackAdvisor(TestCase):
                      'level': 'WARN'}]
 
     res = self.stackAdvisor.validateHDFSRangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
-    self.assertEquals(res, res_expected)
+    self.assertEqual(res, res_expected)
 
   def test_validateYARNRangerPluginConfigurations(self):
     configurations = {}
@@ -3718,7 +3719,7 @@ class TestHDP22StackAdvisor(TestCase):
     res_expected = []
 
     res = self.stackAdvisor.validateYARNRangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
-    self.assertEquals(res, res_expected)
+    self.assertEqual(res, res_expected)
 
     # 2) fail: ranger plugin is disabled in ranger-env
     services['configurations']['ranger-env']['properties']['ranger-yarn-plugin-enabled'] = 'No'
@@ -3729,7 +3730,7 @@ class TestHDP22StackAdvisor(TestCase):
                      'level': 'WARN'}]
 
     res = self.stackAdvisor.validateYARNRangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
-    self.assertEquals(res, res_expected)
+    self.assertEqual(res, res_expected)
 
   def test_validateHBASERangerPluginConfigurations(self):
     configurations = {}
@@ -3762,7 +3763,7 @@ class TestHDP22StackAdvisor(TestCase):
     res_expected = []
 
     res = self.stackAdvisor.validateHBASERangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
-    self.assertEquals(res, res_expected)
+    self.assertEqual(res, res_expected)
 
     # 2) fail: ranger plugin is disabled in ranger-env
     services['configurations']['ranger-env']['properties']['ranger-hbase-plugin-enabled'] = 'No'
@@ -3773,7 +3774,7 @@ class TestHDP22StackAdvisor(TestCase):
                      'level': 'WARN'}]
 
     res = self.stackAdvisor.validateHBASERangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
-    self.assertEquals(res, res_expected)
+    self.assertEqual(res, res_expected)
 
   def test_validateKnoxRangerPluginConfigurations(self):
     configurations = {}
@@ -3806,7 +3807,7 @@ class TestHDP22StackAdvisor(TestCase):
     res_expected = []
 
     res = self.stackAdvisor.validateKnoxRangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
-    self.assertEquals(res, res_expected)
+    self.assertEqual(res, res_expected)
 
     # 2) fail: ranger plugin is disabled in ranger-env
     services['configurations']['ranger-env']['properties']['ranger-knox-plugin-enabled'] = 'No'
@@ -3817,7 +3818,7 @@ class TestHDP22StackAdvisor(TestCase):
                      'level': 'WARN'}]
 
     res = self.stackAdvisor.validateKnoxRangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
-    self.assertEquals(res, res_expected)
+    self.assertEqual(res, res_expected)
 
   def test_validateKafkaRangerPluginConfigurations(self):
     configurations = {}
@@ -3854,7 +3855,7 @@ class TestHDP22StackAdvisor(TestCase):
     }
     res_expected = []
     res = self.stackAdvisor.validateKafkaRangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
-    self.assertEquals(res, res_expected)
+    self.assertEqual(res, res_expected)
 
     # 2) fail: ranger plugin is disabled in ranger-env
     services['configurations']['ranger-env']['properties']['ranger-kafka-plugin-enabled'] = 'No'
@@ -3868,10 +3869,10 @@ class TestHDP22StackAdvisor(TestCase):
     services['configurations']['cluster-env']['properties']['security_enabled'] = "false"
     res_expected.append({'config-type': 'ranger-kafka-plugin-properties', 'message': 'Ranger Kafka plugin should not be enabled in non-kerberos environment.', 'type': 'configuration', 'config-name': 'ranger-kafka-plugin-enabled', 'level': 'WARN'})
     res = self.stackAdvisor.validateKafkaRangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
-    self.assertEquals(res, res_expected)
+    self.assertEqual(res, res_expected)
 
     res = self.stackAdvisor.validateKafkaRangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
-    self.assertEquals(res, res_expected)
+    self.assertEqual(res, res_expected)
 
   def test_validateStormRangerPluginConfigurations(self):
     configurations = {}
@@ -3908,7 +3909,7 @@ class TestHDP22StackAdvisor(TestCase):
     }
     res_expected = []
     res = self.stackAdvisor.validateStormRangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
-    self.assertEquals(res, res_expected)
+    self.assertEqual(res, res_expected)
 
     # 2) fail: ranger plugin is disabled in ranger-env
     services['configurations']['ranger-env']['properties']['ranger-storm-plugin-enabled'] = 'No'
@@ -3919,13 +3920,13 @@ class TestHDP22StackAdvisor(TestCase):
                      'level': 'WARN'}]
 
     res = self.stackAdvisor.validateStormRangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
-    self.assertEquals(res, res_expected)
+    self.assertEqual(res, res_expected)
 
     # Test to check security_enabled is false
     services['configurations']['cluster-env']['properties']['security_enabled'] = "false"
     res_expected.append({'config-type': 'ranger-storm-plugin-properties', 'message': 'Ranger Storm plugin should not be enabled in non-kerberos environment.', 'type': 'configuration', 'config-name': 'ranger-storm-plugin-enabled', 'level': 'WARN'})
     res = self.stackAdvisor.validateStormRangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
-    self.assertEquals(res, res_expected)
+    self.assertEqual(res, res_expected)
 
   def test_recommendRangerConfigurations(self):
     clusterData = {}
@@ -3965,7 +3966,7 @@ class TestHDP22StackAdvisor(TestCase):
 
     recommendedConfigurations = {}
     self.stackAdvisor.recommendRangerConfigurations(recommendedConfigurations, clusterData, services, None)
-    self.assertEquals(recommendedConfigurations, expected)
+    self.assertEqual(recommendedConfigurations, expected)
 
   def test_validateRangerConfigurationsEnv(self):
     properties = {
@@ -3996,7 +3997,7 @@ class TestHDP22StackAdvisor(TestCase):
     res_expected = [{'config-type': 'ranger-env', 'message': 'Ranger Storm plugin should not be enabled in non-kerberos environment.', 'type': 'configuration', 'config-name': 'ranger-storm-plugin-enabled', 'level': 'WARN'}]
 
     res = self.stackAdvisor.validateRangerConfigurationsEnv(properties, recommendedDefaults, configurations, services, {})
-    self.assertEquals(res, res_expected)
+    self.assertEqual(res, res_expected)
 
   def test_validateSparkDefaults(self):
     properties = {}
@@ -4019,4 +4020,4 @@ class TestHDP22StackAdvisor(TestCase):
     res_expected = []
 
     res = self.stackAdvisor.validateSparkDefaults(properties, recommendedDefaults, configurations, services, {})
-    self.assertEquals(res_expected, res)
+    self.assertEqual(res_expected, res)

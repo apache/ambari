@@ -24,7 +24,7 @@ limitations under the License."""
 lock = threading.RLock()
 
 
-class QueueStore(object):
+class QueueStore(object, metaclass=abc.ABCMeta):
     """
     Abstract base class for queue storage. 
 
@@ -33,7 +33,6 @@ class QueueStore(object):
     @ivar log: A logger for this class.
     @type log: C{logging.Logger}
     """
-    __metaclass__ = abc.ABCMeta
 
     def __init__(self):
         """
@@ -164,7 +163,7 @@ class QueueFrameIterator(object):
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         return self.__next__()
 
     def __next__(self):

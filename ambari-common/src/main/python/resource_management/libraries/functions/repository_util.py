@@ -127,7 +127,7 @@ class CommandRepository(object):
 
     if isinstance(repo_object, dict):
       json_dict = dict(repo_object)   # strict dict(from ConfigDict) to avoid hidden type conversions
-    elif isinstance(repo_object, basestring):
+    elif isinstance(repo_object, str):
       json_dict = json.loads(repo_object)
     else:
       raise Fail("Cannot deserialize command repository {0}".format(str(repo_object)))

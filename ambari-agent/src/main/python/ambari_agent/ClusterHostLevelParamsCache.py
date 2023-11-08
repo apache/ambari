@@ -43,7 +43,7 @@ class ClusterHostLevelParamsCache(ClusterCache):
     super(ClusterHostLevelParamsCache, self).__init__(cluster_cache_dir)
 
   def on_cache_update(self):
-    for cluster_id, host_level_params in self.iteritems():
+    for cluster_id, host_level_params in self.items():
       # FIXME: Recovery manager does not support multiple cluster as of now.
       if 'recoveryConfig' in host_level_params:
         logger.info("Updating recoveryConfig from hostLevelParams")

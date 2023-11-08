@@ -103,7 +103,7 @@ try:
     service_advisor = imp.load_module('service_advisor', fp, PARENT_FILE, ('.py', 'rb', imp.PY_SOURCE))
 except Exception as e:
   traceback.print_exc()
-  print "Failed to load parent"
+  print("Failed to load parent")
 else:
   class ONEFSServiceAdvisor(service_advisor.ServiceAdvisor):
     def getServiceConfigurationRecommendations(self, configs, clusterData, services, hosts):
@@ -137,7 +137,7 @@ else:
           putCapSchedProperty('yarn.scheduler.capacity.node-locality-delay', '0')
 
     def concatenated(self, capacity_scheduler_dict):
-      return ''.join('%s=%s\n' % (k,v) for k,v in capacity_scheduler_dict.items())
+      return ''.join('%s=%s\n' % (k,v) for k,v in list(capacity_scheduler_dict.items()))
 
     def installedServices(self, services):
       return [service['StackServices']['service_name'] for service in services['services']]

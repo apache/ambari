@@ -41,7 +41,7 @@ class TestPigServiceCheck(RMFTestCase):
                               kinit_path_local = '/usr/bin/kinit',
                               user = 'hdfs',
                               dfs_type = '',
-                              mode = 0770,
+                              mode = 0o770,
                               owner = 'ambari-qa',
                               action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
                               hadoop_conf_dir = '/etc/hadoop/conf',
@@ -97,7 +97,7 @@ class TestPigServiceCheck(RMFTestCase):
        
     self.assertResourceCalled('File', '/tmp/pigSmoke.sh',
       content = StaticFile('pigSmoke.sh'),
-      mode = 0755,
+      mode = 0o755,
     )
        
     self.assertResourceCalled('Execute', 'pig /tmp/pigSmoke.sh',
@@ -131,7 +131,7 @@ class TestPigServiceCheck(RMFTestCase):
                               kinit_path_local = '/usr/bin/kinit',
                               user = 'hdfs',
                               dfs_type = '',
-                              mode = 0770,
+                              mode = 0o770,
                               owner = 'ambari-qa',
                               action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='hdfs', default_fs='hdfs://c6401.ambari.apache.org:8020',
                               hadoop_conf_dir = '/etc/hadoop/conf',
@@ -190,7 +190,7 @@ class TestPigServiceCheck(RMFTestCase):
        
     self.assertResourceCalled('File', '/tmp/pigSmoke.sh',
       content = StaticFile('pigSmoke.sh'),
-      mode = 0755,
+      mode = 0o755,
     )
        
     self.assertResourceCalled('Execute', 'pig /tmp/pigSmoke.sh',

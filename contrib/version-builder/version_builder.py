@@ -53,7 +53,8 @@ class VersionBuilder:
     """
     Saves the XML file
     """
-    p = subprocess.Popen(['xmllint', '--format', '--output', self.filename, '-'], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+    p = subprocess.Popen(['xmllint', '--format', '--output', self.filename, '-'],
+                         stdout=subprocess.PIPE, stdin=subprocess.PIPE, universal_newlines=True)
     (stdout, stderr) = p.communicate(input=ET.tostring(self.root_element))
 
   def finalize(self, xsd_file):
@@ -62,17 +63,18 @@ class VersionBuilder:
     """
     args = ['xmllint', '--noout', '--load-trace', '--schema', xsd_file, self.filename]
 
-    p = subprocess.Popen(args, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.Popen(args, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE,
+                         universal_newlines=True)
     (stdout, stderr) = p.communicate()
 
     if p.returncode != 0:
       raise Exception(stderr)
 
     if len(stdout) > 0:
-      print(stdout.decode("UTF-8"))
+      print((stdout.decode("UTF-8")))
 
     if len(stderr) > 0:
-      print(stderr.decode("UTF-8"))
+      print((stderr.decode("UTF-8")))
 
   def set_release(self, type=None, stack=None, version=None, build=None, notes=None, display=None,
     compatible=None):
@@ -224,7 +226,8 @@ class VersionBuilder:
     Verifies utility xmllint is available
     """
     try:
-      p = subprocess.Popen(['xmllint', '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
+      p = subprocess.Popen(['xmllint', '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False,
+                           universal_newlines=True)
       (stdout, stderr) = p.communicate()
 
       if p.returncode != 0:

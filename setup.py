@@ -51,7 +51,7 @@ def create_package_dir_map():
 __version__ = "3.0.0.dev0"
 def get_version():
   ambari_version = os.environ["AMBARI_VERSION"] if "AMBARI_VERSION" in os.environ else __version__
-  print ambari_version
+  print(ambari_version)
   return ambari_version
 
 """

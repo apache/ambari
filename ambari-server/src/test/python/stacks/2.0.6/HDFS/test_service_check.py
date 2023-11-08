@@ -74,7 +74,7 @@ class TestServiceCheck(RMFTestCase):
         action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
-        mode = 0777,
+        mode = 0o777,
     )
     self.assertResourceCalled('HdfsResource', '/tmp/',
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,

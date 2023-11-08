@@ -20,7 +20,7 @@ limitations under the License.
 # Python Imports
 import math
 from math import floor
-from urlparse import urlparse
+from urllib.parse import urlparse
 import os
 import fnmatch
 import socket
@@ -225,16 +225,16 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     putHdfsEnvProperty = self.putProperty(configurations, "hadoop-env", services)
     putHdfsEnvPropertyAttribute = self.putPropertyAttribute(configurations, "hadoop-env")
 
-    putHdfsEnvProperty('namenode_heapsize', max(int(clusterData['totalAvailableRam'] / 2), 1024))
+    putHdfsEnvProperty('namenode_heapsize', max(int(clusterData['totalAvailableRam'] // 2), 1024))
 
     nn_heapsize_limit = None
     if (namenodeHosts is not None and len(namenodeHosts) > 0):
       if len(namenodeHosts) > 1:
-        nn_max_heapsize = min(int(namenodeHosts[0]["Hosts"]["total_mem"]), int(namenodeHosts[1]["Hosts"]["total_mem"])) / 1024
+        nn_max_heapsize = min(int(namenodeHosts[0]["Hosts"]["total_mem"]), int(namenodeHosts[1]["Hosts"]["total_mem"])) // 1024
         masters_at_host = max(self.getHostComponentsByCategories(namenodeHosts[0]["Hosts"]["host_name"], ["MASTER"], services, hosts),
                               self.getHostComponentsByCategories(namenodeHosts[1]["Hosts"]["host_name"], ["MASTER"], services, hosts))
       else:
-        nn_max_heapsize = int(namenodeHosts[0]["Hosts"]["total_mem"] / 1024) # total_mem in kb
+        nn_max_heapsize = int(namenodeHosts[0]["Hosts"]["total_mem"] // 1024) # total_mem in kb
         masters_at_host = self.getHostComponentsByCategories(namenodeHosts[0]["Hosts"]["host_name"], ["MASTER"], services, hosts)
 
       putHdfsEnvPropertyAttribute('namenode_heapsize', 'maximum', max(nn_max_heapsize, 1024))
@@ -293,8 +293,8 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       putHdfsEnvPropertyAttribute('dtnode_heapsize', 'maximum', int(min_datanode_ram_kb/1024))
 
     nn_heapsize = int(configurations["hadoop-env"]["properties"]["namenode_heapsize"])
-    putHdfsEnvProperty('namenode_opt_newsize', max(int(nn_heapsize / 8), 128))
-    putHdfsEnvProperty('namenode_opt_maxnewsize', max(int(nn_heapsize / 8), 128))
+    putHdfsEnvProperty('namenode_opt_newsize', max(int(nn_heapsize // 8), 128))
+    putHdfsEnvProperty('namenode_opt_maxnewsize', max(int(nn_heapsize // 8), 128))
 
     putHdfsSitePropertyAttribute = self.putPropertyAttribute(configurations, "hdfs-site")
     putHdfsSitePropertyAttribute('dfs.datanode.failed.volumes.tolerated', 'maximum', dataDirsCount)
@@ -453,7 +453,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       container_size = configurations["hive-site"]["properties"]["hive.tez.container.size"]
       container_size_bytes = int(int(container_size)*0.8*1024*1024) # Xmx == 80% of container
       # Memory
-      putHiveSiteProperty("hive.auto.convert.join.noconditionaltask.size", int(round(container_size_bytes/3)))
+      putHiveSiteProperty("hive.auto.convert.join.noconditionaltask.size", int(round(container_size_bytes//3)))
       putHiveSitePropertyAttribute("hive.auto.convert.join.noconditionaltask.size", "maximum", container_size_bytes)
       putHiveSiteProperty("hive.exec.reducers.bytes.per.reducer", "67108864")
 
@@ -648,7 +648,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     hive_client_hosts = self.getHostsWithComponent("HIVE", "HIVE_CLIENT", services, hosts)
 
     if hive_server_hosts is not None and len(hive_server_hosts):
-      hs_host_ram = hive_server_hosts[0]["Hosts"]["total_mem"]/1024
+      hs_host_ram = hive_server_hosts[0]["Hosts"]["total_mem"]//1024
       putHiveEnvProperty("hive.metastore.heapsize", max(512, int(hs_host_ram*hm_heapsize_multiplier)))
       putHiveEnvProperty("hive.heapsize", max(512, int(hs_host_ram*hs_heapsize_multiplier)))
       putHiveEnvPropertyAttributes("hive.metastore.heapsize", "maximum", max(1024, hs_host_ram))
@@ -813,11 +813,11 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     #Remove duplicates
     for key in hbaseCoProcessorConfigs:
       uniqueCoprocessorRegionClassList = []
-      [uniqueCoprocessorRegionClassList.append(i)
+      [uniqueCoprocessorRegionClassList.insert(0,i)
        for i in hbaseCoProcessorConfigs[key] if
        not i in uniqueCoprocessorRegionClassList
        and (i.strip() not in ['{{hbase_coprocessor_region_classes}}', '{{hbase_coprocessor_master_classes}}', '{{hbase_coprocessor_regionserver_classes}}'])]
-      putHbaseSiteProperty(key, ','.join(set(uniqueCoprocessorRegionClassList)))
+      putHbaseSiteProperty(key, ','.join(sorted(set(uniqueCoprocessorRegionClassList))))
 
 
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
@@ -831,7 +831,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       rangerClass = 'org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor'
 
     nonRangerClass = 'org.apache.hadoop.hbase.security.access.AccessController'
-    hbaseClassConfigs =  hbaseCoProcessorConfigs.keys()
+    hbaseClassConfigs =  list(hbaseCoProcessorConfigs.keys())
 
     for item in range(len(hbaseClassConfigs)):
       if 'hbase-site' in services['configurations']:
@@ -841,7 +841,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
           else:
             coprocessorConfig = services['configurations']['hbase-site']['properties'][hbaseClassConfigs[item]]
           coprocessorClasses = coprocessorConfig.split(",")
-          coprocessorClasses = filter(None, coprocessorClasses) # Removes empty string elements from array
+          coprocessorClasses = [_f for _f in coprocessorClasses if _f] # Removes empty string elements from array
           if rangerPluginEnabled and rangerPluginEnabled.lower() == 'Yes'.lower():
             if nonRangerClass in coprocessorClasses:
               coprocessorClasses.remove(nonRangerClass)
@@ -1088,7 +1088,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     putMapredProperty = self.putProperty(configurations, "mapred-site", services)
     nodemanagerMinRam = 1048576 # 1TB in mb
     if "referenceNodeManagerHost" in clusterData:
-      nodemanagerMinRam = min(clusterData["referenceNodeManagerHost"]["total_mem"]/1024, nodemanagerMinRam)
+      nodemanagerMinRam = min(clusterData["referenceNodeManagerHost"]["total_mem"]//1024, nodemanagerMinRam)
     putMapredProperty('yarn.app.mapreduce.am.resource.mb', max(int(clusterData['ramPerContainer']),int(configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"])))
     putMapredProperty('yarn.app.mapreduce.am.command-opts', "-Xmx" + str(int(0.8 * int(configurations["mapred-site"]["properties"]["yarn.app.mapreduce.am.resource.mb"]))) + "m" + " -Dhdp.version=${hdp.version}")
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]

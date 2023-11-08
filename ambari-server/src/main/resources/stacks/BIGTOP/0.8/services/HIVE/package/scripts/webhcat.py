@@ -25,12 +25,12 @@ import glob
 
 
 def webhcat():
-  import params
+  from . import params
 
   params.HdfsDirectory(params.webhcat_apps_dir,
                        action="create_delayed",
                        owner=params.webhcat_user,
-                       mode=0755
+                       mode=0o755
   )
   if params.hcat_hdfs_user_dir != params.webhcat_hdfs_user_dir:
     params.HdfsDirectory(params.hcat_hdfs_user_dir,
@@ -47,13 +47,13 @@ def webhcat():
 
   Directory(params.templeton_pid_dir,
             owner=params.webhcat_user,
-            mode=0755,
+            mode=0o755,
             group=params.user_group,
             create_parents = True)
 
   Directory(params.templeton_log_dir,
             owner=params.webhcat_user,
-            mode=0755,
+            mode=0o755,
             group=params.user_group,
             create_parents = True)
 
@@ -89,7 +89,7 @@ def webhcat():
 
   CopyFromLocal(params.hadoop_streeming_jars,
                 owner=params.webhcat_user,
-                mode=0755,
+                mode=0o755,
                 dest_dir=params.webhcat_apps_dir,
                 kinnit_if_needed=kinit_if_needed,
                 hdfs_user=params.hdfs_user,
@@ -100,7 +100,7 @@ def webhcat():
   if (os.path.isfile(params.pig_tar_file)):
     CopyFromLocal(params.pig_tar_file,
                   owner=params.webhcat_user,
-                  mode=0755,
+                  mode=0o755,
                   dest_dir=params.webhcat_apps_dir,
                   kinnit_if_needed=kinit_if_needed,
                   hdfs_user=params.hdfs_user,
@@ -111,7 +111,7 @@ def webhcat():
   if (os.path.isfile(params.hive_tar_file)):
     CopyFromLocal(params.hive_tar_file,
                   owner=params.webhcat_user,
-                  mode=0755,
+                  mode=0o755,
                   dest_dir=params.webhcat_apps_dir,
                   kinnit_if_needed=kinit_if_needed,
                   hdfs_user=params.hdfs_user,
@@ -122,7 +122,7 @@ def webhcat():
   if (len(glob.glob(params.sqoop_tar_file)) > 0):
     CopyFromLocal(params.sqoop_tar_file,
                   owner=params.webhcat_user,
-                  mode=0755,
+                  mode=0o755,
                   dest_dir=params.webhcat_apps_dir,
                   kinnit_if_needed=kinit_if_needed,
                   hdfs_user=params.hdfs_user,

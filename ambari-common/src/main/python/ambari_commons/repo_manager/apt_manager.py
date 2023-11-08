@@ -260,7 +260,7 @@ class AptManager(GenericManager):
       is_tmp_dir_created = False
       if context.use_repos:
         if 'base' in context.use_repos:
-          use_repos = set([v for k, v in context.use_repos.items() if k != 'base'])
+          use_repos = set([v for k, v in list(context.use_repos.items()) if k != 'base'])
         else:
           cmd = cmd + ['-o', 'Dir::Etc::SourceList={0}'.format(self.properties.empty_file)]
           use_repos = set(context.use_repos.values())

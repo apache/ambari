@@ -88,81 +88,81 @@ class TestGangliaServer(RMFTestCase):
     )
     self.assertResourceCalled('File', '/etc/init.d/hdp-gmetad',
         content = StaticFile('gmetad.init'),
-        mode = 0755,
+        mode = 0o755,
     )
     self.assertResourceCalled('File', '/etc/init.d/hdp-gmond',
         content = StaticFile('gmond.init'),
-        mode = 0755,
+        mode = 0o755,
     )
     self.assertResourceCalled('File', '/usr/libexec/hdp/ganglia/checkGmond.sh',
         content = StaticFile('checkGmond.sh'),
-        mode = 0755,
+        mode = 0o755,
     )
     self.assertResourceCalled('File', '/usr/libexec/hdp/ganglia/checkRrdcached.sh',
         content = StaticFile('checkRrdcached.sh'),
-        mode = 0755,
+        mode = 0o755,
     )
     self.assertResourceCalled('File', '/usr/libexec/hdp/ganglia/gmetadLib.sh',
         content = StaticFile('gmetadLib.sh'),
-        mode = 0755,
+        mode = 0o755,
     )
     self.assertResourceCalled('File', '/usr/libexec/hdp/ganglia/gmondLib.sh',
         content = StaticFile('gmondLib.sh'),
-        mode = 0755,
+        mode = 0o755,
     )
     self.assertResourceCalled('File', '/usr/libexec/hdp/ganglia/rrdcachedLib.sh',
         content = StaticFile('rrdcachedLib.sh'),
-        mode = 0755,
+        mode = 0o755,
     )
     self.assertResourceCalled('File', '/usr/libexec/hdp/ganglia/setupGanglia.sh',
         content = StaticFile('setupGanglia.sh'),
-        mode = 0755,
+        mode = 0o755,
     )
     self.assertResourceCalled('File', '/usr/libexec/hdp/ganglia/startGmetad.sh',
         content = StaticFile('startGmetad.sh'),
-        mode = 0755,
+        mode = 0o755,
     )
     self.assertResourceCalled('File', '/usr/libexec/hdp/ganglia/startGmond.sh',
         content = StaticFile('startGmond.sh'),
-        mode = 0755,
+        mode = 0o755,
     )
     self.assertResourceCalled('File', '/usr/libexec/hdp/ganglia/startRrdcached.sh',
         content = StaticFile('startRrdcached.sh'),
-        mode = 0755,
+        mode = 0o755,
     )
     self.assertResourceCalled('File', '/usr/libexec/hdp/ganglia/stopGmetad.sh',
         content = StaticFile('stopGmetad.sh'),
-        mode = 0755,
+        mode = 0o755,
     )
     self.assertResourceCalled('File', '/usr/libexec/hdp/ganglia/stopGmond.sh',
         content = StaticFile('stopGmond.sh'),
-        mode = 0755,
+        mode = 0o755,
     )
     self.assertResourceCalled('File', '/usr/libexec/hdp/ganglia/stopRrdcached.sh',
         content = StaticFile('stopRrdcached.sh'),
-        mode = 0755,
+        mode = 0o755,
     )
     self.assertResourceCalled('File', '/usr/libexec/hdp/ganglia/teardownGanglia.sh',
         content = StaticFile('teardownGanglia.sh'),
-        mode = 0755,
+        mode = 0o755,
     )
     self.assertResourceCalled('TemplateConfig', '/usr/libexec/hdp/ganglia/gangliaClusters.conf',
         owner = 'root',
         template_tag = None,
         group = 'root',
-        mode = 0755,
+        mode = 0o755,
     )
     self.assertResourceCalled('TemplateConfig', '/usr/libexec/hdp/ganglia/gangliaEnv.sh',
         owner = 'root',
         template_tag = None,
         group = 'root',
-        mode = 0755,
+        mode = 0o755,
     )
     self.assertResourceCalled('TemplateConfig', '/usr/libexec/hdp/ganglia/gangliaLib.sh',
         owner = 'root',
         template_tag = None,
         group = 'root',
-        mode = 0755,
+        mode = 0o755,
     )
     self.assertResourceCalled('Execute', '/usr/libexec/hdp/ganglia/setupGanglia.sh -t -o root -g hadoop',
         path = ['/usr/libexec/hdp/ganglia',
@@ -172,14 +172,14 @@ class TestGangliaServer(RMFTestCase):
            '/usr/bin'],
     )
     self.assertResourceCalled('Directory', '/var/run/ganglia',
-        mode=0755,
+        mode=0o755,
         create_parents = True
     )
     self.assertResourceCalled('Directory', '/var/lib/ganglia-web/dwoo',
         owner = 'wwwrun',
         create_parents = True,
         recursive_ownership = True,
-        mode = 0755,
+        mode = 0o755,
     )
     self.assertResourceCalled('Directory', '/srv/www/cgi-bin',
         create_parents = True,
@@ -187,17 +187,17 @@ class TestGangliaServer(RMFTestCase):
     self.assertResourceCalled('TemplateConfig', '/srv/www/cgi-bin/rrd.py',
                               owner = "root",
                               group = "root",
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('Directory', '/var/lib/ganglia/rrds',
                               owner = 'nobody',
                               group = 'nobody',
                               create_parents = True,
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('File', '/etc/apache2/conf.d/ganglia.conf',
                               content = Template('ganglia.conf.j2'),
-                              mode = 0644,
+                              mode = 0o644,
                               )
     self.assertResourceCalled('File', '/etc/ganglia/gmetad.conf',
         owner = 'root',

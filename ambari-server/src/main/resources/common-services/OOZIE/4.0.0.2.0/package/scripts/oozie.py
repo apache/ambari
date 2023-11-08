@@ -131,7 +131,7 @@ def oozie(is_server=False, upgrade_type=None):
     configuration_attributes=params.config['configurationAttributes']['oozie-site'],
     owner = params.oozie_user,
     group = params.user_group,
-    mode = 0664
+    mode = 0o664
   )
   File(format("{conf_dir}/oozie-env.sh"),
     owner=params.oozie_user,
@@ -149,27 +149,27 @@ def oozie(is_server=False, upgrade_type=None):
   File(os.path.join(params.limits_conf_dir, 'oozie.conf'),
        owner='root',
        group='root',
-       mode=0644,
+       mode=0o644,
        content=Template("oozie.conf.j2")
   )
 
   if (params.log4j_props != None):
     File(format("{params.conf_dir}/oozie-log4j.properties"),
-      mode=0644,
+      mode=0o644,
       group=params.user_group,
       owner=params.oozie_user,
       content=InlineTemplate(params.log4j_props)
     )
   elif (os.path.exists(format("{params.conf_dir}/oozie-log4j.properties"))):
     File(format("{params.conf_dir}/oozie-log4j.properties"),
-      mode=0644,
+      mode=0o644,
       group=params.user_group,
       owner=params.oozie_user
     )
 
   if params.stack_version_formatted and check_stack_feature(StackFeature.OOZIE_ADMIN_USER, params.stack_version_formatted):
     File(format("{params.conf_dir}/adminusers.txt"),
-      mode=0644,
+      mode=0o644,
       group=params.user_group,
       owner=params.oozie_user,
       content=Template('adminusers.txt.j2', oozie_admin_users=params.oozie_admin_users)
@@ -256,7 +256,7 @@ def oozie_server_specific(upgrade_type):
   Directory( oozie_server_directories,
     owner = params.oozie_user,
     group = params.user_group,
-    mode = 0755,
+    mode = 0o755,
     create_parents = True,
     cd_access="a",
   )
@@ -315,7 +315,7 @@ def oozie_server_specific(upgrade_type):
   prepare_war(params)
 
   File(hashcode_file,
-       mode = 0644,
+       mode = 0o644,
   )
 
   if params.stack_version_formatted and check_stack_feature(StackFeature.OOZIE_CREATE_HIVE_TEZ_CONFIGS, params.stack_version_formatted):
@@ -338,7 +338,7 @@ def oozie_server_specific(upgrade_type):
         configuration_attributes=params.config['configurationAttributes']['hive-site'],
         owner=params.oozie_user,
         group=params.user_group,
-        mode=0644
+        mode=0o644
     )
     if 'tez-site' in params.config['configurations']:
       XmlConfig( "tez-site.xml",
@@ -347,7 +347,7 @@ def oozie_server_specific(upgrade_type):
         configuration_attributes=params.config['configurationAttributes']['tez-site'],
         owner = params.oozie_user,
         group = params.user_group,
-        mode = 0664
+        mode = 0o664
     )
 
     # If Atlas is also installed, need to generate Atlas Hive hook (hive-atlas-application.properties file) in directory
@@ -454,7 +454,7 @@ def copy_atlas_hive_hook_to_dfs_share_lib(upgrade_type=None, upgrade_direction=N
                       user=params.hdfs_user,
                       owner=params.oozie_user,
                       group=params.hdfs_user,
-                      mode=0755,
+                      mode=0o755,
                       recursive_chown=True,
                       recursive_chmod=True,
                       replace_existing_files=True
@@ -469,7 +469,7 @@ def copy_atlas_hive_hook_to_dfs_share_lib(upgrade_type=None, upgrade_direction=N
                       action="create_on_execute",
                       owner=params.oozie_user,
                       group=params.hdfs_user,
-                      mode=0755,
+                      mode=0o755,
                       replace_existing_files=True
                       )
   params.HdfsResource(None, action="execute")

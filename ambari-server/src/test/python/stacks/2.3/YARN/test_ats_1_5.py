@@ -24,9 +24,10 @@ from stacks.utils.RMFTestCase import *
 from resource_management.libraries.functions import version
 from resource_management.libraries.script.script import Script
 from resource_management.libraries import functions
+import distro
 
 origin_exists = os.path.exists
-@patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
+@patch("distro.linux_distribution", new = MagicMock(return_value="Linux"))
 @patch.object(os.path, "exists", new=MagicMock(
   side_effect=lambda *args: origin_exists(args[0])
   if args[0][-2:] == "j2" else True))
@@ -122,7 +123,7 @@ class TestAts(RMFTestCase):
                               hadoop_conf_dir = '/etc/hadoop/conf',
                               type = 'directory',
                               action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('HdfsResource', '/ats/done',
                               immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
@@ -140,7 +141,7 @@ class TestAts(RMFTestCase):
                               hadoop_conf_dir = '/etc/hadoop/conf',
                               type = 'directory',
                               action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
-                              mode = 0700,
+                              mode = 0o700,
                               )
     self.assertResourceCalled('HdfsResource', '/ats',
                               immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
@@ -159,7 +160,7 @@ class TestAts(RMFTestCase):
                               hadoop_conf_dir = '/etc/hadoop/conf',
                               type = 'directory',
                               action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('HdfsResource', '/ats/active',
                               immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
@@ -177,7 +178,7 @@ class TestAts(RMFTestCase):
                               hadoop_conf_dir = '/etc/hadoop/conf',
                               type = 'directory',
                               action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
-                              mode = 01777,
+                              mode = 0o1777,
                               )
     self.assertResourceCalled('HdfsResource', None,
                               immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
@@ -196,82 +197,82 @@ class TestAts(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
                               group = 'hadoop',
                               conf_dir = '/etc/hadoop/conf',
-                              mode = 0644,
-                              configuration_attributes = {u'final': {u'hadoop.proxyuser.hive.groups': u'true',
-                                                                     u'hadoop.proxyuser.oozie.hosts': u'true',
-                                                                     u'webinterface.private.actions': u'true'}},
+                              mode = 0o644,
+                              configuration_attributes = {'final': {'hadoop.proxyuser.hive.groups': 'true',
+                                                                     'hadoop.proxyuser.oozie.hosts': 'true',
+                                                                     'webinterface.private.actions': 'true'}},
                               owner = 'hdfs',
                               configurations = self.getConfig()['configurations']['core-site'],
                               )
     self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
                               group = 'hadoop',
                               conf_dir = '/etc/hadoop/conf',
-                              mode = 0644,
-                              configuration_attributes = {u'final': {u'dfs.cluster.administrators': u'true',
-                                                                     u'dfs.support.append': u'true',
-                                                                     u'dfs.web.ugi': u'true'}},
+                              mode = 0o644,
+                              configuration_attributes = {'final': {'dfs.cluster.administrators': 'true',
+                                                                     'dfs.support.append': 'true',
+                                                                     'dfs.web.ugi': 'true'}},
                               owner = 'hdfs',
                               configurations = self.getConfig()['configurations']['hdfs-site'],
                               )
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
                               group = 'hadoop',
                               conf_dir = '/etc/hadoop/conf',
-                              mode = 0644,
-                              configuration_attributes = {u'final': {u'mapred.healthChecker.script.path': u'true',
-                                                                     u'mapreduce.jobtracker.staging.root.dir': u'true'}},
+                              mode = 0o644,
+                              configuration_attributes = {'final': {'mapred.healthChecker.script.path': 'true',
+                                                                     'mapreduce.jobtracker.staging.root.dir': 'true'}},
                               owner = 'yarn',
                               configurations = self.getConfig()['configurations']['mapred-site'],
                               )
     self.assertResourceCalled('XmlConfig', 'yarn-site.xml',
                               group = 'hadoop',
                               conf_dir = '/etc/hadoop/conf',
-                              mode = 0644,
-                              configuration_attributes = {u'final': {u'yarn.nodemanager.container-executor.class': u'true',
-                                                                     u'yarn.nodemanager.disk-health-checker.min-healthy-disks': u'true',
-                                                                     u'yarn.nodemanager.local-dirs': u'true'}},
+                              mode = 0o644,
+                              configuration_attributes = {'final': {'yarn.nodemanager.container-executor.class': 'true',
+                                                                     'yarn.nodemanager.disk-health-checker.min-healthy-disks': 'true',
+                                                                     'yarn.nodemanager.local-dirs': 'true'}},
                               owner = 'yarn',
                               configurations = self.getConfig()['configurations']['yarn-site'],
                               )
     self.assertResourceCalled('XmlConfig', 'capacity-scheduler.xml',
                               group = 'hadoop',
                               conf_dir = '/etc/hadoop/conf',
-                              mode = 0644,
-                              configuration_attributes = {u'final': {u'yarn.scheduler.capacity.node-locality-delay': u'true'}},
+                              mode = 0o644,
+                              configuration_attributes = {'final': {'yarn.scheduler.capacity.node-locality-delay': 'true'}},
                               owner = 'yarn',
                               configurations = self.getConfig()['configurations']['capacity-scheduler'],
                               )
     self.assertResourceCalled('File', '/etc/security/limits.d/yarn.conf',
                               content = Template('yarn.conf.j2'),
-                              mode = 0644,
+                              mode = 0o644,
                               )
     self.assertResourceCalled('File', '/etc/security/limits.d/mapreduce.conf',
                               content = Template('mapreduce.conf.j2'),
-                              mode = 0644,
+                              mode = 0o644,
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/yarn-env.sh',
                               content = InlineTemplate(self.getConfig()['configurations']['yarn-env']['content']),
                               owner = 'yarn',
                               group = 'hadoop',
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('File', '/usr/lib/hadoop-yarn/bin/container-executor',
                               group = 'hadoop',
-                              mode = 02050,
+                              mode = 0o2050,
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/container-executor.cfg',
                               content = InlineTemplate(self.getConfig()['configurations']['container-executor']['content']),
                               group = 'hadoop',
-                              mode = 0644,
+                              mode = 0o644,
                               )
     self.assertResourceCalled('Directory', '/cgroups_test/cpu',
-                              mode = 0755,
+                              mode = 0o755,
                               group = 'hadoop',
                               create_parents = True,
                               cd_access = 'a',
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/mapred-env.sh',
                               content = InlineTemplate(self.getConfig()['configurations']['mapred-env']['content']),
-                              mode = 0755,
+                              mode = 0o755,
                               owner = 'hdfs',
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/taskcontroller.cfg',
@@ -282,15 +283,15 @@ class TestAts(RMFTestCase):
                               owner = 'mapred',
                               group = 'hadoop',
                               conf_dir = '/etc/hadoop/conf',
-                              configuration_attributes = {u'final': {u'mapred.healthChecker.script.path': u'true',
-                                                                     u'mapreduce.jobtracker.staging.root.dir': u'true'}},
+                              configuration_attributes = {'final': {'mapred.healthChecker.script.path': 'true',
+                                                                     'mapreduce.jobtracker.staging.root.dir': 'true'}},
                               configurations = self.getConfig()['configurations']['mapred-site'],
                               )
     self.assertResourceCalled('XmlConfig', 'capacity-scheduler.xml',
                               owner = 'hdfs',
                               group = 'hadoop',
                               conf_dir = '/etc/hadoop/conf',
-                              configuration_attributes = {u'final': {u'yarn.scheduler.capacity.node-locality-delay': u'true'}},
+                              configuration_attributes = {'final': {'yarn.scheduler.capacity.node-locality-delay': 'true'}},
                               configurations = self.getConfig()['configurations']['capacity-scheduler'],
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/fair-scheduler.xml',

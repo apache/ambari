@@ -31,14 +31,14 @@ class TestLogSearch(RMFTestCase):
                               group = 'hadoop',
                               create_parents = True,
                               cd_access = 'a',
-                              mode = 0755
+                              mode = 0o755
     )
     self.assertResourceCalled('Directory', '/var/run/ambari-logsearch-portal',
                               owner = 'logsearch',
                               group = 'hadoop',
                               create_parents = True,
                               cd_access = 'a',
-                              mode = 0755
+                              mode = 0o755
     )
     self.assertResourceCalled('Directory', '/usr/lib/ambari-logsearch-portal',
                               owner = 'logsearch',
@@ -46,7 +46,7 @@ class TestLogSearch(RMFTestCase):
                               create_parents = True,
                               recursive_ownership = True,
                               cd_access = 'a',
-                              mode = 0755
+                              mode = 0o755
     )
     self.assertResourceCalled('Directory', '/usr/lib/ambari-logsearch-portal/conf',
                               owner = 'logsearch',
@@ -54,7 +54,7 @@ class TestLogSearch(RMFTestCase):
                               create_parents = True,
                               recursive_ownership = True,
                               cd_access = 'a',
-                              mode = 0755
+                              mode = 0o755
     )
     self.assertResourceCalled('Directory', '/usr/lib/ambari-logsearch-portal/conf/solr_configsets',
                               owner = 'logsearch',
@@ -62,19 +62,19 @@ class TestLogSearch(RMFTestCase):
                               create_parents = True,
                               recursive_ownership = True,
                               cd_access = 'a',
-                              mode = 0755
+                              mode = 0o755
                               )
     self.assertResourceCalled('Directory', '/usr/lib/ambari-logsearch-portal/conf/keys',
                               owner = 'logsearch',
                               group = 'hadoop',
                               cd_access = 'a',
-                              mode = 0755
+                              mode = 0o755
                               )
 
     self.assertResourceCalled('File', '/var/log/ambari-logsearch-portal/logsearch.out',
                               owner = 'logsearch',
                               group = 'hadoop',
-                              mode = 0644,
+                              mode = 0o644,
                               content = ''
     )
     self.assertResourceCalled('File', '/usr/lib/ambari-logsearch-portal/conf/keys/ks_pass.txt',
@@ -128,7 +128,7 @@ class TestLogSearch(RMFTestCase):
     )
     self.assertResourceCalled('File', '/usr/lib/ambari-logsearch-portal/conf/logsearch-env.sh',
                               content = InlineTemplate(self.getConfig()['configurations']['logsearch-env']['content']),
-                              mode = 0755,
+                              mode = 0o755,
                               owner = "logsearch",
                               group='hadoop'
     )
@@ -154,11 +154,11 @@ class TestLogSearch(RMFTestCase):
     self.assertResourceCalled('Directory', '/usr/lib/ambari-logsearch-logfeeder/conf',
                               create_parents = True,
                               cd_access = 'a',
-                              mode = 0755
+                              mode = 0o755
                               )
 
     self.assertResourceCalled('File', '/usr/lib/ambari-logsearch-logfeeder/conf/input.config-logsearch.json',
-                              mode=0644,
+                              mode=0o644,
                               content = Template('input.config-logsearch.json.j2', extra_imports=[default])
                               )
 

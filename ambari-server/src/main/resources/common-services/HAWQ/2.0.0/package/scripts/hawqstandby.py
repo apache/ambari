@@ -50,7 +50,7 @@ class HawqStandby(Script):
     common.stop_component(hawq_constants.STANDBY, hawq_constants.FAST)
 
   def status(self, env):
-    from hawqstatus import assert_component_running
+    from .hawqstatus import assert_component_running
     assert_component_running(hawq_constants.STANDBY)
 
   def activate_hawq_standby(self, env):

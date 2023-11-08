@@ -89,8 +89,8 @@ db_flavor = (config['configurations']['kms-properties']['DB_FLAVOR']).lower()
 db_host = config['configurations']['kms-properties']['db_host']
 db_name = config['configurations']['kms-properties']['db_name']
 db_user = config['configurations']['kms-properties']['db_user']
-db_password = unicode(config['configurations']['kms-properties']['db_password'])
-kms_master_key_password = unicode(config['configurations']['kms-properties']['KMS_MASTER_KEY_PASSWD'])
+db_password = str(config['configurations']['kms-properties']['db_password'])
+kms_master_key_password = str(config['configurations']['kms-properties']['KMS_MASTER_KEY_PASSWD'])
 credential_provider_path = config['configurations']['dbks-site']['ranger.ks.jpa.jdbc.credential.provider.path']
 jdbc_alias = config['configurations']['dbks-site']['ranger.ks.jpa.jdbc.credential.alias']
 masterkey_alias = config['configurations']['dbks-site']['ranger.ks.masterkey.credential.alias']
@@ -220,7 +220,7 @@ if has_ranger_admin:
   xa_previous_jdbc_jar = format("{kms_home}/ews/webapp/lib/{previous_jdbc_jar_name}") if stack_supports_ranger_audit_db else None
 
 repo_config_username = config['configurations']['kms-properties']['REPOSITORY_CONFIG_USERNAME']
-repo_config_password = unicode(config['configurations']['kms-properties']['REPOSITORY_CONFIG_PASSWORD'])
+repo_config_password = str(config['configurations']['kms-properties']['REPOSITORY_CONFIG_PASSWORD'])
 
 kms_plugin_config = {
   'username' : repo_config_username,
@@ -231,8 +231,8 @@ kms_plugin_config = {
 xa_audit_db_is_enabled = False
 if stack_supports_ranger_audit_db:
   xa_audit_db_is_enabled = config['configurations']['ranger-kms-audit']['xasecure.audit.destination.db']
-ssl_keystore_password = unicode(config['configurations']['ranger-kms-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.password'])
-ssl_truststore_password = unicode(config['configurations']['ranger-kms-policymgr-ssl']['xasecure.policymgr.clientssl.truststore.password'])
+ssl_keystore_password = str(config['configurations']['ranger-kms-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.password'])
+ssl_truststore_password = str(config['configurations']['ranger-kms-policymgr-ssl']['xasecure.policymgr.clientssl.truststore.password'])
 
 #For SQLA explicitly disable audit to DB for Ranger
 if xa_audit_db_flavor == 'sqla':

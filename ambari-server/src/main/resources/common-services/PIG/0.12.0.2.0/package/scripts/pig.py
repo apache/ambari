@@ -43,13 +43,13 @@ def pig():
 
   File(format("{pig_conf_dir}/pig-env.sh"),
     owner=params.hdfs_user,
-    mode=0755,
+    mode=0o755,
     content=InlineTemplate(params.pig_env_sh_template)
   )
 
   # pig_properties is always set to a default even if it's not in the payload
   File(format("{params.pig_conf_dir}/pig.properties"),
-              mode=0644,
+              mode=0o644,
               group=params.user_group,
               owner=params.hdfs_user,
               content=params.pig_properties
@@ -57,14 +57,14 @@ def pig():
 
   if (params.log4j_props is not None):
     File(format("{params.pig_conf_dir}/log4j.properties"),
-      mode=0644,
+      mode=0o644,
       group=params.user_group,
       owner=params.hdfs_user,
       content=params.log4j_props
     )
   elif (os.path.exists(format("{params.pig_conf_dir}/log4j.properties"))):
     File(format("{params.pig_conf_dir}/log4j.properties"),
-      mode=0644,
+      mode=0o644,
       group=params.user_group,
       owner=params.hdfs_user
     )

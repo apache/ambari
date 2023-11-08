@@ -19,14 +19,14 @@ limitations under the License.
 '''
 
 import logging
-import httplib
+import http.client
 import os
 
 logger = logging.getLogger()
 try:
   import kerberos
 except ImportError:
-  import krberr as kerberos
+  from . import krberr as kerberos
   logger.warn('import kerberos exception: %s' % str(ImportError))
 pass
 
@@ -70,7 +70,7 @@ class SPNEGOKerberosAuth:
     try:
       connection.request(method, service_url, body, headers)
       response = connection.getresponse()
-    except Exception, e:
+    except Exception as e:
       logger.warn('2nd HTTP request exception from server: %s' % str(e))
       return None
     pass
@@ -88,7 +88,7 @@ class SPNEGOKerberosAuth:
       if result == -1:
         logger.warn('authGSSClientInit result: {0}'.format(result))
         return None
-    except kerberos.GSSError, e:
+    except kerberos.GSSError as e:
       logger.warn('authGSSClientInit exception: %s' % str(e))
       return None
     pass
@@ -99,7 +99,7 @@ class SPNEGOKerberosAuth:
       if result == -1:
         logger.warn('authGSSClientStep result for authenticate client: {0}'.format(result))
         return None
-    except kerberos.GSSError, e:
+    except kerberos.GSSError as e:
       logger.warn('authGSSClientStep exception for authenticate client: %s' % str(e))
       return None
     pass
@@ -108,7 +108,7 @@ class SPNEGOKerberosAuth:
     try:
       negotiate_value = kerberos.authGSSClientResponse(self.krb_context)
       logger.debug("authGSSClientResponse response:{0}".format(negotiate_value))
-    except kerberos.GSSError, e:
+    except kerberos.GSSError as e:
       logger.warn('authGSSClientResponse exception: %s' % str(e))
       return None
     pass
@@ -127,7 +127,7 @@ class SPNEGOKerberosAuth:
       result = kerberos.authGSSClientStep(self.krb_context, negotiate_value)
       if result == -1:
         logger.warn('authGSSClientStep result for authenticate server: {0}'.format(result))
-    except kerberos.GSSError, e:
+    except kerberos.GSSError as e:
       logger.warn('authGSSClientStep exception for authenticate server: %s' % str(e))
       result = -1
     pass
@@ -138,7 +138,7 @@ class SPNEGOKerberosAuth:
     try:
       result = kerberos.authGSSClientClean(self.krb_context)
       logger.debug("authGSSClientClean result:{0}".format(result))
-    except kerberos.GSSError, e:
+    except kerberos.GSSError as e:
       logger.warn('authGSSClientClean exception: %s' % str(e))
       result = -1
     pass

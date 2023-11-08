@@ -41,7 +41,7 @@ def post_upgrade_deregister():
   This function will obtain the Kerberos ticket if security is enabled.
   :return:
   """
-  import params
+  from . import params
 
   Logger.info('HiveServer2 executing "deregister" command to complete upgrade...')
 
@@ -73,7 +73,7 @@ def _get_hive_execute_path(stack_version_formatted):
   :param stack_version_formatted: Exact stack-version to use in the new path
   :return: Hive execute path for the exact stack-version
   """
-  import params
+  from . import params
 
   hive_execute_path = params.execute_path
   formatted_stack_version = format_stack_version(stack_version_formatted)
@@ -97,7 +97,7 @@ def _get_current_hiveserver_version():
 
   :return:  the hiveserver2 version, returned by "hive --version"
   """
-  import params
+  from . import params
 
   try:
     source_version = params.version_for_stack_feature_checks
@@ -108,7 +108,7 @@ def _get_current_hiveserver_version():
       version_hive_bin = format('{stack_root}/{source_version}/hive/bin')
     command = format('{version_hive_bin}/hive --version')
     return_code, output = shell.call(command, user=params.hive_user, path=hive_execute_path)
-  except Exception, e:
+  except Exception as e:
     Logger.error(str(e))
     raise Fail('Unable to execute hive --version command to retrieve the hiveserver2 version.')
 

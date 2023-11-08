@@ -36,7 +36,7 @@ class HbaseMasterUpgrade(Script):
 
   def restore_snapshot(self, env):
     import params
-    print "TODO AMBARI-12698"
+    print("TODO AMBARI-12698")
 
 if __name__ == "__main__":
   HbaseMasterUpgrade().execute()

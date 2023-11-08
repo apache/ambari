@@ -33,7 +33,7 @@ class TestStormBase(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/log/storm',
       owner = 'storm',
       group = 'hadoop',
-      mode = 0777,
+      mode = 0o777,
       create_parents = True,
       cd_access='a',
     )
@@ -42,14 +42,14 @@ class TestStormBase(RMFTestCase):
       group = 'hadoop',
       create_parents = True,
       cd_access='a',
-      mode=0755,
+      mode=0o755,
     )
     self.assertResourceCalled('Directory', '/hadoop/storm',
       owner = 'storm',
       group = 'hadoop',
       create_parents = True,
       cd_access='a',
-      mode=0755,
+      mode=0o755,
     )
     self.assertResourceCalled('Directory', confDir,
       group = 'hadoop',
@@ -60,7 +60,7 @@ class TestStormBase(RMFTestCase):
         content = Template('storm.conf.j2'),
         owner = 'root',
         group = 'root',
-        mode = 0644,
+        mode = 0o644,
     )
     self.assertResourceCalled('File', confDir + '/config.yaml',
       owner = 'storm',
@@ -112,7 +112,7 @@ class TestStormBase(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/log/storm',
       owner = 'storm',
       group = 'hadoop',
-      mode = 0777,
+      mode = 0o777,
       create_parents = True,
       cd_access='a',
     )
@@ -121,14 +121,14 @@ class TestStormBase(RMFTestCase):
       group = 'hadoop',
       create_parents = True,
       cd_access='a',
-      mode=0755,
+      mode=0o755,
     )
     self.assertResourceCalled('Directory', '/hadoop/storm',
       owner = 'storm',
       group = 'hadoop',
       create_parents = True,
       cd_access='a',
-      mode=0755,
+      mode=0o755,
     )
     self.assertResourceCalled('Directory', confDir,
       group = 'hadoop',
@@ -139,7 +139,7 @@ class TestStormBase(RMFTestCase):
         content = Template('storm.conf.j2'),
         owner = 'root',
         group = 'root',
-        mode = 0644,
+        mode = 0o644,
     )
     self.assertResourceCalled('File', confDir + '/config.yaml',
       owner = 'storm',
@@ -156,7 +156,7 @@ class TestStormBase(RMFTestCase):
                               )
     self.assertResourceCalled('TemplateConfig', confDir + '/storm_jaas.conf',
       owner = 'storm',
-      mode = 0644
+      mode = 0o644
     )
     return storm_yarn_content
 

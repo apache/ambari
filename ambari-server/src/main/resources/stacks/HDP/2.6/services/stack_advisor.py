@@ -215,12 +215,12 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
               processingThreads = 1
               if totalAvailableCpu > 1:
                   processingThreads = totalAvailableCpu - 1
-              numMergeBuffers = max(2, processingThreads/4)
+              numMergeBuffers = max(2, processingThreads//4)
               putComponentProperty('druid.processing.numThreads', processingThreads)
-              putComponentProperty('druid.server.http.numThreads', max(10, (totalAvailableCpu * 17) / 16 + 2) + 30)
+              putComponentProperty('druid.server.http.numThreads', max(10, (totalAvailableCpu * 17) // 16 + 2) + 30)
               putComponentProperty('druid.processing.numMergeBuffers', numMergeBuffers)
-              totalAvailableMemInMb = self.getMinMemory(component_hosts) / 1024
-              maxAvailableBufferSizeInMb = totalAvailableMemInMb/(processingThreads + numMergeBuffers)
+              totalAvailableMemInMb = self.getMinMemory(component_hosts) // 1024
+              maxAvailableBufferSizeInMb = totalAvailableMemInMb//(processingThreads + numMergeBuffers)
               putComponentProperty('druid.processing.buffer.sizeBytes', self.getDruidProcessingBufferSizeInMb(maxAvailableBufferSizeInMb) * 1024 * 1024)
 
 
@@ -362,7 +362,7 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
     if host_mem < 4096:
       ats_heapsize = 1024
     else:
-      ats_heapsize = long(min(math.floor(host_mem/2), long(yarn_timeline_app_cache_size) * 500 + 3072))
+      ats_heapsize = int(min(math.floor(host_mem/2), int(yarn_timeline_app_cache_size) * 500 + 3072))
     return ats_heapsize
 
   """
@@ -427,7 +427,7 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
                         "DRUID_COORDINATOR"]:
           component_hosts = self.getHostsWithComponent("DRUID", component, services, hosts)
           if component_hosts is not None and len(component_hosts) > 0:
-              totalAvailableMem = self.getMinMemory(component_hosts) / 1024  # In MB
+              totalAvailableMem = self.getMinMemory(component_hosts) // 1024  # In MB
               nodeType = self.DRUID_COMPONENT_NODE_TYPE_MAP[component]
               putEnvPropertyAttribute(format('druid.{nodeType}.jvm.heap.memory'), 'maximum',
                                       max(totalAvailableMem, 1024))
@@ -473,7 +473,7 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
       envProperties = services['configurations']['druid-env']['properties']
       for nodeType in ['broker', 'historical']:
           properties = services['configurations'][format('druid-{nodeType}')]['properties']
-          intermediateBufferSize = int(properties['druid.processing.buffer.sizeBytes']) / (1024 * 1024)  # In MBs
+          intermediateBufferSize = int(properties['druid.processing.buffer.sizeBytes']) // (1024 * 1024)  # In MBs
           processingThreads = int(properties['druid.processing.numThreads'])
           directMemory = int(envProperties[format('druid.{nodeType}.jvm.direct.memory')])
           if directMemory < (processingThreads + 1) * intermediateBufferSize:
@@ -792,7 +792,7 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
             if superusers:
               _superusers = superusers.split(',')
               _superusers = [x.strip() for x in _superusers]
-              _superusers = filter(None, _superusers)  # Removes empty string elements from array
+              _superusers = [_f for _f in _superusers if _f]  # Removes empty string elements from array
             else:
               _superusers = []
 

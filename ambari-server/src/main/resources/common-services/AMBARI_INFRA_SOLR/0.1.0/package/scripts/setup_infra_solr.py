@@ -31,7 +31,7 @@ def setup_infra_solr(name = None):
   if name == 'server':
     Directory([params.infra_solr_log_dir, params.infra_solr_piddir,
                params.infra_solr_datadir, params.infra_solr_data_resources_dir],
-              mode=0755,
+              mode=0o755,
               cd_access='a',
               create_parents=True,
               owner=params.infra_solr_user,
@@ -39,7 +39,7 @@ def setup_infra_solr(name = None):
               )
 
     Directory([params.solr_dir, params.infra_solr_conf],
-              mode=0755,
+              mode=0o755,
               cd_access='a',
               owner=params.infra_solr_user,
               group=params.user_group,
@@ -48,7 +48,7 @@ def setup_infra_solr(name = None):
               )
 
     File(params.infra_solr_log,
-         mode=0644,
+         mode=0o644,
          owner=params.infra_solr_user,
          group=params.user_group,
          content=''
@@ -56,7 +56,7 @@ def setup_infra_solr(name = None):
 
     File(format("{infra_solr_conf}/infra-solr-env.sh"),
          content=InlineTemplate(params.solr_env_content),
-         mode=0755,
+         mode=0o755,
          owner=params.infra_solr_user,
          group=params.user_group
          )
@@ -78,7 +78,7 @@ def setup_infra_solr(name = None):
          content=InlineTemplate(params.infra_solr_security_json_content),
          owner=params.infra_solr_user,
          group=params.user_group,
-         mode=0640
+         mode=0o640
          )
 
     if params.security_enabled:
@@ -90,12 +90,12 @@ def setup_infra_solr(name = None):
            content=Template("infra-solr-security.json.j2"),
            owner=params.infra_solr_user,
            group=params.user_group,
-           mode=0640)
+           mode=0o640)
     if os.path.exists(params.limits_conf_dir):
       File(os.path.join(params.limits_conf_dir, 'infra-solr.conf'),
            owner='root',
            group='root',
-           mode=0644,
+           mode=0o644,
            content=Template("infra-solr.conf.j2")
       )
 

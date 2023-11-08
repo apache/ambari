@@ -16,7 +16,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import os, sys
+import os, sys, io
 import tempfile
 from unittest import TestCase
 from mock.mock import patch, MagicMock
@@ -31,6 +31,8 @@ from resource_management.libraries.resources.repository import Repository
 
 if get_platform() != PLATFORM_WINDOWS:
   from resource_management.libraries.providers import repository
+
+file_spec = list(set(dir(io.TextIOWrapper)).union(set(dir(io.BytesIO))))
 
 class DummyTemplate(object):
 
@@ -201,7 +203,7 @@ class TestRepositoryResource(TestCase):
       is_redhat_family.return_value = False
       is_ubuntu_family.return_value = True
       is_suse_family.return_value = False
-      tempfile_mock.return_value = MagicMock(spec=file)
+      tempfile_mock.return_value = MagicMock(spec=file_spec)
       tempfile_mock.return_value.__enter__.return_value.name = "/tmp/1.txt"
       call_mock.return_value = 0, "The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 123ABCD"
       
@@ -219,8 +221,8 @@ class TestRepositoryResource(TestCase):
       template_name = call_content[0][0]
       template_content = call_content[1]['content']
       
-      self.assertEquals(template_name, '/tmp/1.txt')
-      self.assertEquals(template_content, 'deb http://download.base_url.org/rpm/ a b c')
+      self.assertEqual(template_name, '/tmp/1.txt')
+      self.assertEqual(template_content, 'deb http://download.base_url.org/rpm/ a b c')
       
       copy_item0 = str(file_mock.call_args_list[1])
       copy_item1 = str(file_mock.call_args_list[2])
@@ -245,7 +247,7 @@ class TestRepositoryResource(TestCase):
       """
       Checks that GPG key is extracted from output without \r sign
       """
-      tempfile_mock.return_value = MagicMock(spec=file)
+      tempfile_mock.return_value = MagicMock(spec=file_spec)
       tempfile_mock.return_value.__enter__.return_value.name = "/tmp/1.txt"
       call_mock.return_value = 0, "The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 123ABCD\r\n"
 
@@ -263,8 +265,8 @@ class TestRepositoryResource(TestCase):
       template_name = call_content[0][0]
       template_content = call_content[1]['content']
 
-      self.assertEquals(template_name, '/tmp/1.txt')
-      self.assertEquals(template_content, 'deb http://download.base_url.org/rpm/ a b c')
+      self.assertEqual(template_name, '/tmp/1.txt')
+      self.assertEqual(template_content, 'deb http://download.base_url.org/rpm/ a b c')
 
       copy_item0 = str(file_mock.call_args_list[1])
       copy_item1 = str(file_mock.call_args_list[2])
@@ -283,7 +285,7 @@ class TestRepositoryResource(TestCase):
     @patch.object(System, "os_release_name", new='precise')        
     @patch.object(System, "os_family", new='ubuntu')
     def test_create_repo_ubuntu_doesnt_repo_exist(self, file_mock, execute_mock, tempfile_mock):
-      tempfile_mock.return_value = MagicMock(spec=file)
+      tempfile_mock.return_value = MagicMock(spec=file_spec)
       tempfile_mock.return_value.__enter__.return_value.name = "/tmp/1.txt"
       
       with Environment('/') as env:
@@ -300,8 +302,8 @@ class TestRepositoryResource(TestCase):
       template_name = call_content[0][0]
       template_content = call_content[1]['content']
       
-      self.assertEquals(template_name, '/tmp/1.txt')
-      self.assertEquals(template_content, 'deb http://download.base_url.org/rpm/ a b c')
+      self.assertEqual(template_name, '/tmp/1.txt')
+      self.assertEqual(template_content, 'deb http://download.base_url.org/rpm/ a b c')
       
       self.assertEqual(file_mock.call_count, 2)
       self.assertEqual(execute_mock.call_count, 0)

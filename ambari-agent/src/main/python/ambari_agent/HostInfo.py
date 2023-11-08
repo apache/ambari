@@ -25,7 +25,7 @@ import pwd
 import re
 import shlex
 import socket
-from ambari_commons import subprocess32
+import subprocess
 import time
 
 from ambari_commons import OSCheck, OSConst
@@ -34,9 +34,9 @@ from ambari_commons.os_family_impl import OsFamilyImpl
 from resource_management.core import shell
 
 from ambari_agent.HostCheckReportFileHandler import HostCheckReportFileHandler
-from AmbariConfig import AmbariConfig
+from .AmbariConfig import AmbariConfig
 from resource_management.core.resources.jcepolicyinfo import JcePolicyInfo
-import Hardware
+from . import Hardware
 
 logger = logging.getLogger()
 
@@ -107,7 +107,7 @@ class HostInfo(object):
             svcCheckResult['desc'] = err
         else:
           svcCheckResult['status'] = "Healthy"
-      except Exception, e:
+      except Exception as e:
         svcCheckResult['status'] = "Unhealthy"
         svcCheckResult['desc'] = repr(e)
       result.append(svcCheckResult)
@@ -257,6 +257,7 @@ class HostInfoLinux(HostInfo):
             for filter in self.PROC_FILTER:
               if filter in cmd:
                 metrics['hadoop'] = True
+            metrics['command'] = str(cmd.strip(), errors='ignore')
             for line in open(os.path.join('/proc', pid, 'status')):
               if line.startswith('Uid:'):
                 uid = int(line.split()[1])
@@ -369,7 +370,7 @@ class HostInfoLinux(HostInfo):
     service_check_live = list(self.SERVICE_STATUS_CMD_LIST)
     service_check_live[1] = service_name
     try:
-      code, out, err = shell.call(service_check_live, stdout = subprocess32.PIPE, stderr = subprocess32.PIPE, timeout = 5, quiet = True)
+      code, out, err = shell.call(service_check_live, stdout = subprocess.PIPE, stderr = subprocess.PIPE, timeout = 5, quiet = True)
       return out, err, code
     except Exception as ex:
       logger.warn("Checking service {0} status failed".format(service_name))
@@ -390,7 +391,7 @@ class HostInfoWindows(HostInfo):
   def checkUsers(self, user_mask, results):
     get_users_cmd = ["powershell", '-noProfile', '-NonInteractive', '-nologo', "-Command", self.GET_USERS_CMD.format(user_mask)]
     try:
-      osStat = subprocess32.Popen(get_users_cmd, stdout=subprocess32.PIPE, stderr=subprocess32.PIPE)
+      osStat = subprocess.Popen(get_users_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
       out, err = osStat.communicate()
     except:
       raise Exception("Failed to get users.")
@@ -475,7 +476,7 @@ def main(argv=None):
   h = HostInfo()
   struct = {}
   h.register(struct)
-  print struct
+  print(struct)
 
 
 if __name__ == '__main__':

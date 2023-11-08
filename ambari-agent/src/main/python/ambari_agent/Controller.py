@@ -26,17 +26,17 @@ import os
 import socket
 import time
 import threading
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import pprint
 from random import randint
 import re
-from ambari_commons import subprocess32
+import subprocess
 import functools
 
-import hostname
-import security
+from . import hostname
+from . import security
 import ssl
-import AmbariConfig
+from . import AmbariConfig
 
 from ambari_agent.Heartbeat import Heartbeat
 from ambari_agent.Register import Register
@@ -185,12 +185,12 @@ class Controller(threading.Thread):
         # exitstatus = 0 (OK - Default)
         # exitstatus = 1 (Registration failed because different version of agent and server)
         exitstatus = 0
-        if 'exitstatus' in ret.keys():
+        if 'exitstatus' in list(ret.keys()):
           exitstatus = int(ret['exitstatus'])
 
         if exitstatus == 1:
           # log - message, which will be printed to agents log
-          if 'log' in ret.keys():
+          if 'log' in list(ret.keys()):
             log = ret['log']
             logger.error(log)
           self.isRegistered = False
@@ -213,7 +213,7 @@ class Controller(threading.Thread):
         # in order to receive up to date agent config.
         self.statusCommandsExecutor.relaunch("REGISTER_WITH_SERVER")
 
-        if 'statusCommands' in ret.keys():
+        if 'statusCommands' in list(ret.keys()):
           logger.debug("Got status commands on registration.")
           self.addToStatusQueue(ret['statusCommands'])
         else:
@@ -225,7 +225,7 @@ class Controller(threading.Thread):
         self.repeatRegistration = False
         self.isRegistered = False
         return
-      except Exception, ex:
+      except Exception as ex:
         # try a reconnect only after a certain amount of random time
         delay = randint(0, self.max_reconnect_retry_delay)
         logger.error("Unable to connect to: " + self.registerUrl, exc_info=True)
@@ -236,7 +236,7 @@ class Controller(threading.Thread):
     return ret
 
   def update_caches_from_heartbeat(self, heartbeat):
-    heartbeat_keys = heartbeat.keys()
+    heartbeat_keys = list(heartbeat.keys())
 
     if self.EXECUTION_COMMANDS in heartbeat_keys:
       execution_commands = heartbeat[self.EXECUTION_COMMANDS]
@@ -269,7 +269,7 @@ class Controller(threading.Thread):
     if commands:
       try:
         self.actionQueue.cancel(commands)
-      except Exception, err:
+      except Exception as err:
         logger.error("Exception occurred on commands cancel: %s", err.message)
 
   def addToQueue(self, commands):
@@ -281,7 +281,7 @@ class Controller(threading.Thread):
     else:
       """Only add to the queue if not empty list """
       logger.info("Adding %s commands. Heartbeat id = %s", len(commands), self.responseId)
-      if 'clusterName' in commands[0].keys():
+      if 'clusterName' in list(commands[0].keys()):
         self.updateComponents(commands[0]['clusterName'])
       self.actionQueue.put(commands)
 
@@ -290,7 +290,7 @@ class Controller(threading.Thread):
       logger.debug("No status commands received from %s", self.serverHostname)
     else:
       logger.info("Adding %s status commands. Heartbeat id = %s", len(commands), self.responseId)
-      if 'clusterName' in commands[0].keys():
+      if 'clusterName' in list(commands[0].keys()):
         self.updateComponents(commands[0]['clusterName'])
       self.recovery_manager.process_status_commands(commands)
       self.actionQueue.put_status(commands)
@@ -356,7 +356,7 @@ class Controller(threading.Thread):
         response = self.sendRequest(self.heartbeatUrl, data)
 
         exitStatus = 0
-        if 'exitstatus' in response.keys():
+        if 'exitstatus' in list(response.keys()):
           exitStatus = int(response['exitstatus'])
 
         if exitStatus != 0:
@@ -366,7 +366,7 @@ class Controller(threading.Thread):
 
         logger.log(logging_level, 'Heartbeat response received (id = %s)', serverId)
 
-        cluster_size = int(response['clusterSize']) if 'clusterSize' in response.keys() else -1
+        cluster_size = int(response['clusterSize']) if 'clusterSize' in list(response.keys()) else -1
 
         # TODO: this needs to be revised if hosts can be shared across multiple clusters
         heartbeat_interval = self.get_heartbeat_interval(cluster_size) \
@@ -375,14 +375,14 @@ class Controller(threading.Thread):
 
         logger.log(logging_level, "Heartbeat interval is %s seconds", heartbeat_interval)
 
-        if 'hasMappedComponents' in response.keys():
+        if 'hasMappedComponents' in list(response.keys()):
           self.hasMappedComponents = response['hasMappedComponents'] is not False
 
-        if 'hasPendingTasks' in response.keys():
+        if 'hasPendingTasks' in list(response.keys()):
           has_pending_tasks = bool(response['hasPendingTasks'])
           self.recovery_manager.set_paused(has_pending_tasks)
 
-        if 'registrationCommand' in response.keys():
+        if 'registrationCommand' in list(response.keys()):
           # check if the registration command is None. If none skip
           if response['registrationCommand'] is not None:
             logger.info("RegistrationCommand received - repeat agent registration")
@@ -414,7 +414,7 @@ class Controller(threading.Thread):
         logger.log(logging_level, "Updating configurations from heartbeat")
         self.update_caches_from_heartbeat(response)
 
-        response_keys = response.keys()
+        response_keys = list(response.keys())
 
         # there's case when canceled task can be processed in Action Queue.execute before adding rescheduled task to queue
         # this can cause command failure instead result suppression
@@ -476,7 +476,7 @@ class Controller(threading.Thread):
         self.isRegistered = False
         logger.exception("SSLError while trying to heartbeat.")
         return
-      except Exception, err:
+      except Exception as err:
         if "code" in err:
           logger.error(err.code)
         else:
@@ -527,8 +527,8 @@ class Controller(threading.Thread):
       self.register = Register(self.config)
       self.heartbeat = Heartbeat(self.actionQueue, self.config, self.alert_scheduler_handler.collector())
 
-      opener = urllib2.build_opener()
-      urllib2.install_opener(opener)
+      opener = urllib.request.build_opener()
+      urllib.request.install_opener(opener)
 
       while True:
         self.repeatRegistration = False
@@ -574,11 +574,11 @@ class Controller(threading.Thread):
     try:
       if self.cachedconnect is None: # Lazy initialization
         self.cachedconnect = security.CachedHTTPSConnection(self.config, self.serverHostname)
-      req = urllib2.Request(url, data, {'Content-Type': 'application/json',
+      req = urllib.request.Request(url, data, {'Content-Type': 'application/json',
                                         'Accept-encoding': 'gzip'})
       response = self.cachedconnect.request(req)
       return json.loads(response)
-    except Exception, exception:
+    except Exception as exception:
       if response is None:
         raise IOError('Request to {0} failed due to {1}'.format(url, str(exception)))
       else:
@@ -597,9 +597,9 @@ class Controller(threading.Thread):
     logger.debug("Response from %s was %s", self.serverHostname, response)
 
     services, client_components, server_components = [], [], []
-    for service, components in response['components'].items():
+    for service, components in list(response['components'].items()):
       services.append(service)
-      for component, category in components.items():
+      for component, category in list(components.items()):
         service_component = {"serviceName": service, "componentName": component}
         if category == 'CLIENT':
           client_components.append(service_component)
@@ -633,14 +633,14 @@ class Controller(threading.Thread):
         if os.path.exists(source_file) and not os.path.exists(destination_file):
           command = "mkdir -p %s" % os.path.dirname(destination_file)
           logger.info("Moving Data Dir Mount History file. Executing command: %s" % command)
-          return_code = subprocess32.call(command, shell=True)
+          return_code = subprocess.call(command, shell=True)
           logger.info("Return code: %d" % return_code)
 
           command = "mv %s %s" % (source_file, destination_file)
           logger.info("Moving Data Dir Mount History file. Executing command: %s" % command)
-          return_code = subprocess32.call(command, shell=True)
+          return_code = subprocess.call(command, shell=True)
           logger.info("Return code: %d" % return_code)
-    except Exception, e:
+    except Exception as e:
       logger.error("Exception in move_data_dir_mount_file(). Error: {0}".format(str(e)))
 
   def get_version(self):

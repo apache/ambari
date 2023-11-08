@@ -28,7 +28,7 @@ from resource_management.libraries.functions import conf_select, stack_select
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.core.exceptions import ClientComponentHasNoStatus
-from yarn import yarn
+from .yarn import yarn
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
 from resource_management.core.logger import Logger
@@ -36,7 +36,7 @@ from resource_management.core.logger import Logger
 
 class MapReduce2Client(Script):
   def install(self, env):
-    import params
+    from . import params
     self.install_packages(env)
     self.configure(env)
 
@@ -45,7 +45,7 @@ class MapReduce2Client(Script):
     :param env: Python environment
     :param config_dir: During rolling upgrade, which config directory to save configs to.
     """
-    import params
+    from . import params
     env.set_params(params)
     yarn(config_dir=config_dir)
 
@@ -58,7 +58,7 @@ class MapReduce2Client(Script):
     careful to only call configure() on the directory of the new version.
     :param env:
     """
-    import params
+    from . import params
     env.set_params(params)
 
     conf_select_name = "hadoop"
@@ -85,7 +85,7 @@ class MapReduce2ClientDefault(MapReduce2Client):
     return "hadoop-client"
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
-    import params
+    from . import params
     env.set_params(params)
 
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):

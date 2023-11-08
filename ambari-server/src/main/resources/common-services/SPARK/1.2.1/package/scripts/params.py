@@ -252,9 +252,9 @@ if check_stack_feature(StackFeature.SPARK_LIVY, version_for_stack_feature_checks
 
   # ats 1.5 properties
   entity_groupfs_active_dir = config['configurations']['yarn-site']['yarn.timeline-service.entity-group-fs-store.active-dir']
-  entity_groupfs_active_dir_mode = 01777
+  entity_groupfs_active_dir_mode = 0o1777
   entity_groupfs_store_dir = config['configurations']['yarn-site']['yarn.timeline-service.entity-group-fs-store.done-dir']
-  entity_groupfs_store_dir_mode = 0700
+  entity_groupfs_store_dir_mode = 0o700
   is_webhdfs_enabled = hdfs_site['dfs.webhdfs.enabled']
 
   if len(livy_livyserver_hosts) > 0:

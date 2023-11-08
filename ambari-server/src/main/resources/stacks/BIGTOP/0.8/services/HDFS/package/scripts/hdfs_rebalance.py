@@ -43,7 +43,7 @@ class HdfsParser():
 class HdfsLine():
   
   class LineType:
-    HeaderStart, Progress, ProgressEnd, Unknown = range(4)
+    HeaderStart, Progress, ProgressEnd, Unknown = list(range(4))
   
   
   MEMORY_SUFFIX = ['B','KB','MB','GB','TB','PB','EB']

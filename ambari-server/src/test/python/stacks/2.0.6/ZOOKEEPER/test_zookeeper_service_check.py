@@ -37,7 +37,7 @@ class TestServiceCheck(RMFTestCase):
     )
     self.assertResourceCalled('File', '/tmp/zkSmoke.sh',
                        content = StaticFile('zkSmoke.sh'),
-                       mode = 0755,
+                       mode = 0o755,
     )
     self.assertResourceCalled('Execute', '/tmp/zkSmoke.sh /usr/lib/zookeeper/bin/zkCli.sh ambari-qa /etc/zookeeper/conf 2181 False /usr/bin/kinit no_keytab no_principal /tmp/zkSmoke.out',
                        logoutput = True,
@@ -60,7 +60,7 @@ class TestServiceCheck(RMFTestCase):
     )
     self.assertResourceCalled('File', '/tmp/zkSmoke.sh',
                        content = StaticFile('zkSmoke.sh'),
-                       mode = 0755,
+                       mode = 0o755,
     )
     self.assertResourceCalled('Execute', '/tmp/zkSmoke.sh /usr/lib/zookeeper/bin/zkCli.sh ambari-qa /etc/zookeeper/conf 2181 True /usr/bin/kinit /etc/security/keytabs/smokeuser.headless.keytab ambari-qa@EXAMPLE.COM /tmp/zkSmoke.out',
                        logoutput = True,
@@ -83,7 +83,7 @@ class TestServiceCheck(RMFTestCase):
     )
     self.assertResourceCalled('File', '/tmp/zkSmoke.sh',
                        content = StaticFile('zkSmoke.sh'),
-                       mode = 0755,
+                       mode = 0o755,
     )
     self.assertResourceCalled('Execute', '/tmp/zkSmoke.sh /usr/hdp/current/zookeeper-client/bin/zkCli.sh ambari-qa /usr/hdp/current/zookeeper-client/conf 2181 False /usr/bin/kinit no_keytab no_principal /tmp/zkSmoke.out',
                        logoutput = True,

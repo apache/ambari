@@ -67,11 +67,11 @@ class TestRemoveStackVersion(RMFTestCase):
                        os_type=('Redhat', '6.4', 'Final')
                        )
     self.assertTrue(stack_versions_mock.called)
-    self.assertEquals(stack_versions_mock.call_args[0][0], '/usr/hdp')
+    self.assertEqual(stack_versions_mock.call_args[0][0], '/usr/hdp')
 
     self.assertResourceCalled('Package', "pkg12_1_0_0_400", action=["remove"])
     self.assertTrue(put_structured_out_mock.called)
-    self.assertEquals(put_structured_out_mock.call_args[0][0],
+    self.assertEqual(put_structured_out_mock.call_args[0][0],
                       {'remove_previous_stacks': {'exit_code': 0,
                        'message': 'Stack version 2.1.0.0-400 successfully removed!'}})
     self.assertResourceCalled('Execute', ('rm', '-f', '/usr/hdp2.1.0.0-400'),
@@ -109,7 +109,7 @@ class TestRemoveStackVersion(RMFTestCase):
                        os_type=('Redhat', '6.4', 'Final')
                        )
     self.assertTrue(stack_versions_mock.called)
-    self.assertEquals(stack_versions_mock.call_args[0][0], '/usr/hdp')
+    self.assertEqual(stack_versions_mock.call_args[0][0], '/usr/hdp')
     self.assertNoMoreResources()
 
   @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
@@ -143,10 +143,10 @@ class TestRemoveStackVersion(RMFTestCase):
                        os_type=('Redhat', '6.4', 'Final')
                        )
       self.fail("Should throw exception")
-    except Fail, e:
-      self.assertEquals(str(e), '/usr/hdp/current/ contains symlink to version for remove! 2.1.0.0-400')
+    except Fail as e:
+      self.assertEqual(str(e), '/usr/hdp/current/ contains symlink to version for remove! 2.1.0.0-400')
       pass  # Expected
 
     self.assertTrue(stack_versions_mock.called)
-    self.assertEquals(stack_versions_mock.call_args[0][0], '/usr/hdp')
+    self.assertEqual(stack_versions_mock.call_args[0][0], '/usr/hdp')
     self.assertNoMoreResources()

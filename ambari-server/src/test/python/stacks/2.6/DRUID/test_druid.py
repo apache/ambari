@@ -328,7 +328,7 @@ class TestDruid(RMFTestCase):
   def assert_configure_default(self, role):
 
     self.assertResourceCalled('Directory', '/var/log/druid',
-                              mode=0755,
+                              mode=0o755,
                               owner='druid',
                               group='hadoop',
                               create_parents=True,
@@ -336,7 +336,7 @@ class TestDruid(RMFTestCase):
                               )
 
     self.assertResourceCalled('Directory', '/var/run/druid',
-                              mode=0755,
+                              mode=0o755,
                               owner='druid',
                               group='hadoop',
                               create_parents=True,
@@ -344,7 +344,7 @@ class TestDruid(RMFTestCase):
                               )
 
     self.assertResourceCalled('Directory', format('/usr/hdp/current/{role}/conf'),
-                              mode=0700,
+                              mode=0o700,
                               owner='druid',
                               group='hadoop',
                               create_parents=True,
@@ -353,7 +353,7 @@ class TestDruid(RMFTestCase):
                               )
 
     self.assertResourceCalled('Directory', format('/usr/hdp/current/{role}/conf/_common'),
-                              mode=0700,
+                              mode=0o700,
                               owner='druid',
                               group='hadoop',
                               create_parents=True,
@@ -362,7 +362,7 @@ class TestDruid(RMFTestCase):
                               )
 
     self.assertResourceCalled('Directory', format('/usr/hdp/current/{role}/conf/coordinator'),
-                              mode=0700,
+                              mode=0o700,
                               owner='druid',
                               group='hadoop',
                               create_parents=True,
@@ -371,7 +371,7 @@ class TestDruid(RMFTestCase):
                               )
 
     self.assertResourceCalled('Directory', format('/usr/hdp/current/{role}/conf/broker'),
-                              mode=0700,
+                              mode=0o700,
                               owner='druid',
                               group='hadoop',
                               create_parents=True,
@@ -380,7 +380,7 @@ class TestDruid(RMFTestCase):
                               )
 
     self.assertResourceCalled('Directory', format('/usr/hdp/current/{role}/conf/middleManager'),
-                              mode=0700,
+                              mode=0o700,
                               owner='druid',
                               group='hadoop',
                               create_parents=True,
@@ -389,7 +389,7 @@ class TestDruid(RMFTestCase):
                               )
 
     self.assertResourceCalled('Directory', format('/usr/hdp/current/{role}/conf/historical'),
-                              mode=0700,
+                              mode=0o700,
                               owner='druid',
                               group='hadoop',
                               create_parents=True,
@@ -398,7 +398,7 @@ class TestDruid(RMFTestCase):
                               )
 
     self.assertResourceCalled('Directory', format('/usr/hdp/current/{role}/conf/overlord'),
-                              mode=0700,
+                              mode=0o700,
                               owner='druid',
                               group='hadoop',
                               create_parents=True,
@@ -407,7 +407,7 @@ class TestDruid(RMFTestCase):
                               )
 
     self.assertResourceCalled('Directory', format('/usr/hdp/current/{role}/conf/router'),
-                              mode=0700,
+                              mode=0o700,
                               owner='druid',
                               group='hadoop',
                               create_parents=True,
@@ -416,7 +416,7 @@ class TestDruid(RMFTestCase):
                               )
 
     self.assertResourceCalled('Directory', '/apps/druid/segmentCache/info_dir',
-                              mode=0700,
+                              mode=0o700,
                               owner='druid',
                               group='hadoop',
                               create_parents=True,
@@ -425,7 +425,7 @@ class TestDruid(RMFTestCase):
                               )
 
     self.assertResourceCalled('Directory', '/apps/druid/tasks',
-                              mode=0700,
+                              mode=0o700,
                               owner='druid',
                               group='hadoop',
                               create_parents=True,
@@ -434,7 +434,7 @@ class TestDruid(RMFTestCase):
                               )
 
     self.assertResourceCalled('Directory', '/apps/druid/segmentCache',
-                              mode=0700,
+                              mode=0o700,
                               owner='druid',
                               group='hadoop',
                               create_parents=True,
@@ -445,7 +445,7 @@ class TestDruid(RMFTestCase):
     self.assertResourceCalled('File', format('/usr/hdp/current/{role}/conf/druid-env.sh'),
                               owner = 'druid',
                               content = InlineTemplate(self.getConfig()['configurations']['druid-env']['content']),
-                              mode = 0700
+                              mode = 0o700
                               )
     druid_common_config = mutable_config_dict(self.getConfig()['configurations']['druid-common'])
     druid_common_config['druid.host'] = 'c6401.ambari.apache.org'
@@ -461,18 +461,18 @@ class TestDruid(RMFTestCase):
                               properties=druid_common_config,
                               owner='druid',
                               group='hadoop',
-                              mode = 0600
+                              mode = 0o600
                               )
 
     self.assertResourceCalled('File', format('/usr/hdp/current/{role}/conf/_common/druid-log4j.xml'),
-                              mode=0644,
+                              mode=0o644,
                               owner = 'druid',
                               group = 'hadoop',
                               content = InlineTemplate(self.getConfig()['configurations']['druid-log4j']['content'])
                               )
 
     self.assertResourceCalled('File', '/etc/logrotate.d/druid',
-                              mode=0644,
+                              mode=0o644,
                               owner = 'root',
                               group = 'root',
                               content = InlineTemplate(self.getConfig()['configurations']['druid-logrotate']['content'])
@@ -483,7 +483,7 @@ class TestDruid(RMFTestCase):
                               properties=self.getConfig()['configurations']['druid-coordinator'],
                               owner='druid',
                               group='hadoop',
-                              mode = 0600
+                              mode = 0o600
                               )
 
     self.assertResourceCalled('File', format("/usr/hdp/current/{role}/conf/coordinator/jvm.config"),
@@ -502,7 +502,7 @@ class TestDruid(RMFTestCase):
                               properties=self.getConfig()['configurations']['druid-overlord'],
                               owner='druid',
                               group='hadoop',
-                              mode = 0600
+                              mode = 0o600
                               )
 
     self.assertResourceCalled('File', format("/usr/hdp/current/{role}/conf/overlord/jvm.config"),
@@ -521,7 +521,7 @@ class TestDruid(RMFTestCase):
                               properties=self.getConfig()['configurations']['druid-historical'],
                               owner='druid',
                               group='hadoop',
-                              mode = 0600
+                              mode = 0o600
                               )
 
     self.assertResourceCalled('File', format("/usr/hdp/current/{role}/conf/historical/jvm.config"),
@@ -541,7 +541,7 @@ class TestDruid(RMFTestCase):
                           properties=self.getConfig()['configurations']['druid-broker'],
                           owner='druid',
                           group='hadoop',
-                          mode = 0600
+                          mode = 0o600
                           )
 
     self.assertResourceCalled('File', format("/usr/hdp/current/{role}/conf/broker/jvm.config"),
@@ -561,7 +561,7 @@ class TestDruid(RMFTestCase):
                           properties=self.getConfig()['configurations']['druid-middlemanager'],
                           owner='druid',
                           group='hadoop',
-                          mode = 0600
+                          mode = 0o600
                           )
 
     self.assertResourceCalled('File', format("/usr/hdp/current/{role}/conf/middleManager/jvm.config"),
@@ -580,7 +580,7 @@ class TestDruid(RMFTestCase):
                               properties=self.getConfig()['configurations']['druid-router'],
                               owner='druid',
                               group='hadoop',
-                              mode = 0600
+                              mode = 0o600
                               )
 
     self.assertResourceCalled('File', format("/usr/hdp/current/{role}/conf/router/jvm.config"),
@@ -600,7 +600,7 @@ class TestDruid(RMFTestCase):
                               hadoop_bin_dir = '/usr/hdp/2.5.0.0-1235/hadoop/bin',
                               keytab = UnknownConfigurationMock(),
                               default_fs = 'hdfs://c6401.ambari.apache.org:8020',
-                              hdfs_site = {u'a': u'b'},
+                              hdfs_site = {'a': 'b'},
                               kinit_path_local = '/usr/bin/kinit',
                               principal_name = 'missing_principal',
                               user = 'hdfs',
@@ -620,7 +620,7 @@ class TestDruid(RMFTestCase):
                               hadoop_bin_dir = '/usr/hdp/2.5.0.0-1235/hadoop/bin',
                               keytab = UnknownConfigurationMock(),
                               default_fs = 'hdfs://c6401.ambari.apache.org:8020',
-                              hdfs_site = {u'a': u'b'},
+                              hdfs_site = {'a': 'b'},
                               kinit_path_local = '/usr/bin/kinit',
                               principal_name = 'missing_principal',
                               user = 'hdfs',
@@ -630,7 +630,7 @@ class TestDruid(RMFTestCase):
                               action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
                               dfs_type = '',
                               group='hadoop',
-                              mode=0775
+                              mode=0o775
                               )
     self.assertResourceCalled('HdfsResource', '/tmp',
         security_enabled = False,
@@ -639,7 +639,7 @@ class TestDruid(RMFTestCase):
         dfs_type = '',
         default_fs = 'hdfs://c6401.ambari.apache.org:8020',
         hdfs_resource_ignore_file = '/var/lib/ambari-agent/data/.hdfs_resource_ignore',
-        hdfs_site = {u'a': u'b'},
+        hdfs_site = {'a': 'b'},
         kinit_path_local = '/usr/bin/kinit',
         principal_name = 'missing_principal',
         user = 'hdfs',
@@ -647,12 +647,12 @@ class TestDruid(RMFTestCase):
         hadoop_conf_dir = '/usr/hdp/2.5.0.0-1235/hadoop/conf',
         type = 'directory',
         action = ['create_on_execute'],
-        immutable_paths = [u'/apps/hive/warehouse',
-           u'/apps/falcon',
-           u'/mr-history/done',
-           u'/app-logs',
-           u'/tmp'],
-        mode = 0777,
+        immutable_paths = ['/apps/hive/warehouse',
+           '/apps/falcon',
+           '/mr-history/done',
+           '/app-logs',
+           '/tmp'],
+        mode = 0o777,
     )
     self.assertResourceCalled('HdfsResource', '/tmp/druid-indexing',
                               immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
@@ -660,7 +660,7 @@ class TestDruid(RMFTestCase):
                               hadoop_bin_dir = '/usr/hdp/2.5.0.0-1235/hadoop/bin',
                               keytab = UnknownConfigurationMock(),
                               default_fs = 'hdfs://c6401.ambari.apache.org:8020',
-                              hdfs_site = {u'a': u'b'},
+                              hdfs_site = {'a': 'b'},
                               kinit_path_local = '/usr/bin/kinit',
                               principal_name = 'missing_principal',
                               user = 'hdfs',
@@ -670,7 +670,7 @@ class TestDruid(RMFTestCase):
                               type = 'directory',
                               action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
                               dfs_type = '',
-                              mode=0775
+                              mode=0o775
                               )
 
     self.assertResourceCalled('HdfsResource', '/user/druid/logs',
@@ -679,7 +679,7 @@ class TestDruid(RMFTestCase):
                               hadoop_bin_dir = '/usr/hdp/2.5.0.0-1235/hadoop/bin',
                               keytab = UnknownConfigurationMock(),
                               default_fs = 'hdfs://c6401.ambari.apache.org:8020',
-                              hdfs_site = {u'a': u'b'},
+                              hdfs_site = {'a': 'b'},
                               kinit_path_local = '/usr/bin/kinit',
                               principal_name = 'missing_principal',
                               user = 'hdfs',
@@ -689,7 +689,7 @@ class TestDruid(RMFTestCase):
                               type = 'directory',
                               action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
                               dfs_type = '',
-                              mode=0755
+                              mode=0o755
                               )
                               
     self.assertResourceCalled('File', format("/usr/lib/ambari-agent/DBConnectionVerification.jar"),
@@ -711,7 +711,7 @@ class TestDruid(RMFTestCase):
                               )
 
     self.assertResourceCalled('Directory', format('/usr/hdp/current/{role}/extensions'),
-                              mode=0755,
+                              mode=0o755,
                               cd_access='a',
                               owner='druid',
                               group='hadoop',
@@ -720,7 +720,7 @@ class TestDruid(RMFTestCase):
                               )
 
     self.assertResourceCalled('Directory', format('/usr/hdp/current/{role}/hadoop-dependencies'),
-                              mode=0755,
+                              mode=0o755,
                               cd_access='a',
                               owner='druid',
                               group='hadoop',
@@ -735,6 +735,6 @@ class TestDruid(RMFTestCase):
 
 def mutable_config_dict(config):
   rv = {}
-  for key, value in config.iteritems():
+  for key, value in config.items():
     rv[key] = value
   return rv

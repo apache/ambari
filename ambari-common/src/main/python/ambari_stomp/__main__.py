@@ -27,7 +27,7 @@ stomppy_version = 'Stomp.py Version %s.%s.%s' % stomp.__version__
 try:
     import uuid
 except ImportError:
-    from backward import uuid
+    from .backward import uuid
 
 
 class SubscriptionInfo(object):
@@ -87,7 +87,7 @@ class StompCLI(Cmd, ConnectionListener):
         self.__sysout("\r  \r", end='')
         if self.verbose:
             self.__sysout(frame_type)
-            for k, v in headers.items():
+            for k, v in list(headers.items()):
                 self.__sysout('%s: %s' % (k, v))
         if self.prompt != '':
             self.__sysout('')

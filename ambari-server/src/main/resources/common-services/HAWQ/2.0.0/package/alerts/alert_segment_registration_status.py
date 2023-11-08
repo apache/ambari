@@ -81,7 +81,7 @@ def execute(configurations={}, parameters={}, host_name=None):
     logger.error(" [Alert HAWQ] Segments Unregistered: {0} are unregistered/down.".format(list(segment_diff)))
     return (RESULT_STATE_WARNING, [msg + " Try restarting HAWQ service if a segment has been added/removed. Check the log file in /var/log/ambari-agent/ambari-alerts.log for more details on unregistered hosts."])
 
-  except Exception, ex:
+  except Exception as ex:
     logger.error('[Alert HAWQ]  Could not find HAWQ Segments registration status on {0}'.format(host_name))
     logger.exception(str(ex))
 

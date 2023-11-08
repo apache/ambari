@@ -44,7 +44,7 @@ def setup_ranger_knox(upgrade_type=None):
                            action="create_on_execute",
                            owner=params.hdfs_user,
                            group=params.hdfs_user,
-                           mode=0755,
+                           mode=0o755,
                            recursive_chmod=True
         )
         params.HdfsResource("/ranger/audit/knox",
@@ -52,7 +52,7 @@ def setup_ranger_knox(upgrade_type=None):
                            action="create_on_execute",
                            owner=params.knox_user,
                            group=params.knox_user,
-                           mode=0700,
+                           mode=0o700,
                            recursive_chmod=True
         )
         params.HdfsResource(None, action="execute")
@@ -65,7 +65,7 @@ def setup_ranger_knox(upgrade_type=None):
             configuration_attributes=params.config['configurationAttributes']['hdfs-site'],
             owner=params.knox_user,
             group=params.knox_group,
-            mode=0644
+            mode=0o644
           )
         else:
           File(format('{knox_conf_dir}/hdfs-site.xml'), action="delete")

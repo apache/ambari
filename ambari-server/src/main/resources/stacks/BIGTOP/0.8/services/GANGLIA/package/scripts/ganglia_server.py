@@ -81,7 +81,7 @@ def change_permission():
   import params
 
   Directory(params.dwoo_path,
-            mode=0755,
+            mode=0o755,
             create_parents = True
   )
   Execute(format("chown -R {web_user} {dwoo_path}"))
@@ -97,21 +97,21 @@ def server_files():
   TemplateConfig(rrd_py_file_path,
                  owner="root",
                  group="root",
-                 mode=0755
+                 mode=0o755
   )
   rrd_file_owner = params.gmetad_user
 
   Directory(params.rrdcached_base_dir,
             owner=rrd_file_owner,
             group=rrd_file_owner,
-            mode=0755,
+            mode=0o755,
             create_parents = True
   )
   
   if System.get_instance().os_family in ["ubuntu","suse"]:
     File( params.ganglia_apache_config_file,
       content = Template("ganglia.conf.j2"),
-      mode = 0644
+      mode = 0o644
     )
 
 

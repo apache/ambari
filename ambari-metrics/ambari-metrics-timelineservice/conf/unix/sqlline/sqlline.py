@@ -57,9 +57,9 @@ def find_java():
 #phoenix_utils.setPath()
 
 if len(sys.argv) < 2:
-    print "Zookeeper not specified. \nUsage: sqlline.py <zookeeper> \
+    print("Zookeeper not specified. \nUsage: sqlline.py <zookeeper> \
 <optional_sql_file> \nExample: \n 1. sqlline.py localhost:2181:/hbase \n 2. sqlline.py \
-localhost:2181:/hbase ../examples/stock_symbol.sql"
+localhost:2181:/hbase ../examples/stock_symbol.sql")
     sys.exit()
 
 sqlfile = ""
@@ -79,7 +79,7 @@ hadoop_classpath = os.environ.get('HADOOP_CLASSPATH', '/usr/lib/ams-hbase/lib')
 
 PATH_PREFIX = '/usr/lib/ambari-metrics-collector/'
 if not os.path.exists(PATH_PREFIX):
-  print 'Fatal Error: ' + PATH_PREFIX + ' not a valid path.'
+  print('Fatal Error: ' + PATH_PREFIX + ' not a valid path.')
   sys.exit(1)
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -93,7 +93,7 @@ java_cmd = find_java() + ' -cp "' + phoenix_client_path + \
     " -n none -p none --color=" + colorSetting + " --fastConnect=false --verbose=true \
 --isolation=TRANSACTION_READ_COMMITTED " + sqlfile
 
-print 'java command: %s' % str(java_cmd)
+print('java command: %s' % str(java_cmd))
 
 childProc = subprocess.Popen(java_cmd, shell=True)
 #Wait for child process exit

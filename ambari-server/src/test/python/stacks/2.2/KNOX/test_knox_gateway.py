@@ -23,9 +23,10 @@ from resource_management import *
 from stacks.utils.RMFTestCase import *
 from mock.mock import patch
 from mock.mock import MagicMock
+import distro
 
 @patch.object(tempfile, "gettempdir", new=MagicMock(return_value="/tmp"))
-@patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
+@patch("distro.linux_distribution", new = MagicMock(return_value="Linux"))
 class TestKnoxGateway(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "KNOX/0.5.0.2.2/package"
   STACK_VERSION = "2.2"
@@ -43,7 +44,7 @@ class TestKnoxGateway(RMFTestCase):
                               owner = 'knox',
                               group = 'knox',
                               create_parents = True,
-                              mode = 0755,
+                              mode = 0o755,
                               cd_access = "a",
                               recursive_ownership = True,
     )
@@ -51,7 +52,7 @@ class TestKnoxGateway(RMFTestCase):
                               owner = 'knox',
                               group = 'knox',
                               create_parents = True,
-                              mode = 0755,
+                              mode = 0o755,
                               cd_access = "a",
                               recursive_ownership = True,
     )
@@ -59,7 +60,7 @@ class TestKnoxGateway(RMFTestCase):
                               owner = 'knox',
                               group = 'knox',
                               create_parents = True,
-                              mode = 0755,
+                              mode = 0o755,
                               cd_access = "a",
                               recursive_ownership = True,
     )
@@ -67,7 +68,7 @@ class TestKnoxGateway(RMFTestCase):
                               owner = 'knox',
                               group = 'knox',
                               create_parents = True,
-                              mode = 0755,
+                              mode = 0o755,
                               cd_access = "a",
                               recursive_ownership = True,
     )
@@ -75,7 +76,7 @@ class TestKnoxGateway(RMFTestCase):
                               owner = 'knox',
                               group = 'knox',
                               create_parents = True,
-                              mode = 0755,
+                              mode = 0o755,
                               cd_access = "a",
                               recursive_ownership = True,
     )
@@ -89,7 +90,7 @@ class TestKnoxGateway(RMFTestCase):
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/knox-server/conf/gateway-log4j.properties',
-                              mode=0644,
+                              mode=0o644,
                               group='knox',
                               owner = 'knox',
                               content = InlineTemplate(self.getConfig()['configurations']['gateway-log4j']['content'])
@@ -105,12 +106,12 @@ class TestKnoxGateway(RMFTestCase):
                               content = InlineTemplate(self.getConfig()['configurations']['admin-topology']['content'])
     )
     self.assertResourceCalled('Execute', '/usr/hdp/current/knox-server/bin/knoxcli.sh create-master --master sa',
-        environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+        environment = {'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},
         not_if = "ambari-sudo.sh su knox -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]test -f /usr/hdp/current/knox-server/data/security/master'",
         user = 'knox',
     )
     self.assertResourceCalled('Execute', '/usr/hdp/current/knox-server/bin/knoxcli.sh create-cert --hostname c6401.ambari.apache.org',
-        environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+        environment = {'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},
         not_if = "ambari-sudo.sh su knox -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]test -f /usr/hdp/current/knox-server/data/security/keystores/gateway.jks'",
         user = 'knox',
     )
@@ -118,13 +119,13 @@ class TestKnoxGateway(RMFTestCase):
         content = InlineTemplate('\n        # Licensed to the Apache Software Foundation (ASF) under one\n        # or more contributor license agreements.  See the NOTICE file\n        # distributed with this work for additional information\n        # regarding copyright ownership.  The ASF licenses this file\n        # to you under the Apache License, Version 2.0 (the\n        # "License"); you may not use this file except in compliance\n        # with the License.  You may obtain a copy of the License at\n        #\n        #     http://www.apache.org/licenses/LICENSE-2.0\n        #\n        # Unless required by applicable law or agreed to in writing, software\n        # distributed under the License is distributed on an "AS IS" BASIS,\n        # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n        # See the License for the specific language governing permissions and\n        # limitations under the License.\n        #testing\n\n        app.log.dir=${launcher.dir}/../logs\n        app.log.file=${launcher.name}.log\n\n        log4j.rootLogger=ERROR, drfa\n        log4j.logger.org.apache.directory.server.ldap.LdapServer=INFO\n        log4j.logger.org.apache.directory=WARN\n\n        log4j.appender.stdout=org.apache.log4j.ConsoleAppender\n        log4j.appender.stdout.layout=org.apache.log4j.PatternLayout\n        log4j.appender.stdout.layout.ConversionPattern=%d{yy/MM/dd HH:mm:ss} %p %c{2}: %m%n\n\n        log4j.appender.drfa=org.apache.log4j.DailyRollingFileAppender\n        log4j.appender.drfa.File=${app.log.dir}/${app.log.file}\n        log4j.appender.drfa.DatePattern=.yyyy-MM-dd\n        log4j.appender.drfa.layout=org.apache.log4j.PatternLayout\n        log4j.appender.drfa.layout.ConversionPattern=%d{ISO8601} %-5p %c{2} (%F:%M(%L)) - %m%n'),
         owner = 'knox',
         group = 'knox',
-        mode = 0644,
+        mode = 0o644,
     )
     self.assertResourceCalled('File', '/usr/hdp/current/knox-server/conf/users.ldif',
         content = '\n            # Licensed to the Apache Software Foundation (ASF) under one\n            # or more contributor license agreements.  See the NOTICE file\n            # distributed with this work for additional information\n            # regarding copyright ownership.  The ASF licenses this file\n            # to you under the Apache License, Version 2.0 (the\n            # "License"); you may not use this file except in compliance\n            # with the License.  You may obtain a copy of the License at\n            #\n            #     http://www.apache.org/licenses/LICENSE-2.0\n            #\n            # Unless required by applicable law or agreed to in writing, software\n            # distributed under the License is distributed on an "AS IS" BASIS,\n            # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n            # See the License for the specific language governing permissions and\n            # limitations under the License.\n\n            version: 1\n\n            # Please replace with site specific values\n            dn: dc=hadoop,dc=apache,dc=org\n            objectclass: organization\n            objectclass: dcObject\n            o: Hadoop\n            dc: hadoop\n\n            # Entry for a sample people container\n            # Please replace with site specific values\n            dn: ou=people,dc=hadoop,dc=apache,dc=org\n            objectclass:top\n            objectclass:organizationalUnit\n            ou: people\n\n            # Entry for a sample end user\n            # Please replace with site specific values\n            dn: uid=guest,ou=people,dc=hadoop,dc=apache,dc=org\n            objectclass:top\n            objectclass:person\n            objectclass:organizationalPerson\n            objectclass:inetOrgPerson\n            cn: Guest\n            sn: User\n            uid: guest\n            userPassword:guest-password\n\n            # entry for sample user admin\n            dn: uid=admin,ou=people,dc=hadoop,dc=apache,dc=org\n            objectclass:top\n            objectclass:person\n            objectclass:organizationalPerson\n            objectclass:inetOrgPerson\n            cn: Admin\n            sn: Admin\n            uid: admin\n            userPassword:admin-password\n\n            # entry for sample user sam\n            dn: uid=sam,ou=people,dc=hadoop,dc=apache,dc=org\n            objectclass:top\n            objectclass:person\n            objectclass:organizationalPerson\n            objectclass:inetOrgPerson\n            cn: sam\n            sn: sam\n            uid: sam\n            userPassword:sam-password\n\n            # entry for sample user tom\n            dn: uid=tom,ou=people,dc=hadoop,dc=apache,dc=org\n            objectclass:top\n            objectclass:person\n            objectclass:organizationalPerson\n            objectclass:inetOrgPerson\n            cn: tom\n            sn: tom\n            uid: tom\n            userPassword:tom-password\n\n            # create FIRST Level groups branch\n            dn: ou=groups,dc=hadoop,dc=apache,dc=org\n            objectclass:top\n            objectclass:organizationalUnit\n            ou: groups\n            description: generic groups branch\n\n            # create the analyst group under groups\n            dn: cn=analyst,ou=groups,dc=hadoop,dc=apache,dc=org\n            objectclass:top\n            objectclass: groupofnames\n            cn: analyst\n            description:analyst  group\n            member: uid=sam,ou=people,dc=hadoop,dc=apache,dc=org\n            member: uid=tom,ou=people,dc=hadoop,dc=apache,dc=org\n\n\n            # create the scientist group under groups\n            dn: cn=scientist,ou=groups,dc=hadoop,dc=apache,dc=org\n            objectclass:top\n            objectclass: groupofnames\n            cn: scientist\n            description: scientist group\n            member: uid=sam,ou=people,dc=hadoop,dc=apache,dc=org',
         owner = 'knox',
         group = 'knox',
-        mode = 0644,
+        mode = 0o644,
     )
     self.assertNoMoreResources()
 
@@ -352,7 +353,7 @@ class TestKnoxGateway(RMFTestCase):
                               owner = 'knox',
                               group = 'knox',
                               create_parents = True,
-                              mode = 0755,
+                              mode = 0o755,
                               cd_access = "a",
                               recursive_ownership = True,
     )
@@ -360,7 +361,7 @@ class TestKnoxGateway(RMFTestCase):
                               owner = 'knox',
                               group = 'knox',
                               create_parents = True,
-                              mode = 0755,
+                              mode = 0o755,
                               cd_access = "a",
                               recursive_ownership = True,
     )
@@ -368,7 +369,7 @@ class TestKnoxGateway(RMFTestCase):
                               owner = 'knox',
                               group = 'knox',
                               create_parents = True,
-                              mode = 0755,
+                              mode = 0o755,
                               cd_access = "a",
                               recursive_ownership = True,
     )
@@ -376,7 +377,7 @@ class TestKnoxGateway(RMFTestCase):
                               owner = 'knox',
                               group = 'knox',
                               create_parents = True,
-                              mode = 0755,
+                              mode = 0o755,
                               cd_access = "a",
                               recursive_ownership = True,
     )
@@ -384,7 +385,7 @@ class TestKnoxGateway(RMFTestCase):
                               owner = 'knox',
                               group = 'knox',
                               create_parents = True,
-                              mode = 0755,
+                              mode = 0o755,
                               cd_access = "a",
                               recursive_ownership = True,
     )
@@ -398,7 +399,7 @@ class TestKnoxGateway(RMFTestCase):
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/knox-server/conf/gateway-log4j.properties',
-                              mode=0644,
+                              mode=0o644,
                               group='knox',
                               owner = 'knox',
                               content = InlineTemplate(self.getConfig()['configurations']['gateway-log4j']['content'])
@@ -414,23 +415,23 @@ class TestKnoxGateway(RMFTestCase):
                               content = InlineTemplate(self.getConfig()['configurations']['admin-topology']['content'])
     )
     self.assertResourceCalled('Execute', '/usr/hdp/current/knox-server/bin/knoxcli.sh create-master --master sa',
-                              environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+                              environment = {'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},
                               not_if = "ambari-sudo.sh su knox -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]test -f /usr/hdp/current/knox-server/data/security/master'",
                               user = 'knox',
                               )
     self.assertResourceCalled('Execute', '/usr/hdp/current/knox-server/bin/knoxcli.sh create-cert --hostname c6401.ambari.apache.org',
-                              environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+                              environment = {'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},
                               not_if = "ambari-sudo.sh su knox -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]test -f /usr/hdp/current/knox-server/data/security/keystores/gateway.jks'",
                               user = 'knox',
                               )
     self.assertResourceCalled('File', '/usr/hdp/current/knox-server/conf/ldap-log4j.properties',
-                              mode=0644,
+                              mode=0o644,
                               group='knox',
                               owner = 'knox',
                               content = InlineTemplate(self.getConfig()['configurations']['ldap-log4j']['content'])
     )
     self.assertResourceCalled('File', '/usr/hdp/current/knox-server/conf/users.ldif',
-                              mode=0644,
+                              mode=0o644,
                               group='knox',
                               owner = 'knox',
                               content = self.getConfig()['configurations']['users-ldif']['content']
@@ -440,16 +441,16 @@ class TestKnoxGateway(RMFTestCase):
     )
     self.assertResourceCalled('Directory', '/var/log/knox',
                               owner = 'knox',
-                              mode = 0755,
+                              mode = 0o755,
                               group = 'knox',
                               create_parents = True,
                               cd_access = 'a',
                               recursive_ownership = True,
                               )
     self.assertResourceCalled("Execute", "/usr/hdp/current/knox-server/bin/gateway.sh start",
-                              environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
-                              not_if = u'ls /var/run/knox/gateway.pid >/dev/null 2>&1 && ps -p `cat /var/run/knox/gateway.pid` >/dev/null 2>&1',
-                              user = u'knox',)
+                              environment = {'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},
+                              not_if = 'ls /var/run/knox/gateway.pid >/dev/null 2>&1 && ps -p `cat /var/run/knox/gateway.pid` >/dev/null 2>&1',
+                              user = 'knox',)
     self.assertTrue(islink_mock.called)
     self.assertNoMoreResources()
 

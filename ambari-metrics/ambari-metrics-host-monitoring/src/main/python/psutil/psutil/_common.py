@@ -6,7 +6,7 @@
 
 """Common objects shared by all _ps* modules."""
 
-from __future__ import division
+
 import errno
 import os
 import socket

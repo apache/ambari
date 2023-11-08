@@ -39,7 +39,7 @@ def setup_hadoop():
               create_parents = True,
               owner='root',
               group=params.user_group,
-              mode=0775
+              mode=0o775
     )
     Directory(params.hadoop_pid_dir_prefix,
               create_parents = True,
@@ -71,14 +71,14 @@ def setup_hadoop():
     log4j_filename = os.path.join(params.hadoop_conf_dir, "log4j.properties")
     if (params.log4j_props != None):
       File(log4j_filename,
-           mode=0644,
+           mode=0o644,
            group=params.user_group,
            owner=params.hdfs_user,
            content=params.log4j_props
       )
     elif (os.path.exists(format("{params.hadoop_conf_dir}/log4j.properties"))):
       File(log4j_filename,
-           mode=0644,
+           mode=0o644,
            group=params.user_group,
            owner=params.hdfs_user,
       )
@@ -123,7 +123,7 @@ def setup_configs():
   if params.has_namenode:
     File(params.task_log4j_properties_location,
          content=StaticFile("task-log4j.properties"),
-         mode=0755
+         mode=0o755
     )
 
     if os.path.exists(os.path.join(params.hadoop_conf_dir, 'configuration.xsl')):

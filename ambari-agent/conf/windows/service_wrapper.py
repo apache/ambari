@@ -15,7 +15,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-import ConfigParser
+import configparser
 import os
 import optparse
 import sys
@@ -51,13 +51,13 @@ def parse_options():
       name, value = line[4:].split("=")
       os.environ[name] = value.rstrip()
   # checking env variables, and fallback to working dir if no env var was founded
-  if not os.environ.has_key("AMBARI_AGENT_CONF_DIR"):
+  if "AMBARI_AGENT_CONF_DIR" not in os.environ:
     os.environ["AMBARI_AGENT_CONF_DIR"] = os.getcwd()
-  if not os.environ.has_key("AMBARI_AGENT_LOG_DIR"):
+  if "AMBARI_AGENT_LOG_DIR" not in os.environ:
     os.environ["AMBARI_AGENT_LOG_DIR"] = os.path.join("\\", "var", "log", "ambari-agent")
   if not os.path.exists(os.environ["AMBARI_AGENT_LOG_DIR"]):
     os.makedirs(os.environ["AMBARI_AGENT_LOG_DIR"])
-  if not os.environ.has_key("PYTHON_EXE"):
+  if "PYTHON_EXE" not in os.environ:
     os.environ["PYTHON_EXE"] = find_in_path("python.exe")
 
 
@@ -162,7 +162,7 @@ def svcstatus(options):
   options.exit_message = None
 
   statusStr = AmbariAgentService.QueryStatus()
-  print "Ambari Agent is " + statusStr
+  print("Ambari Agent is " + statusStr)
 
 
 def svcdebug(options):
@@ -201,7 +201,7 @@ def agent_main():
   options.warnings = []
 
   if len(args) == 0:
-    print parser.print_help()
+    print(parser.print_help())
     parser.error("No action entered")
 
   action = args[0]
@@ -212,7 +212,7 @@ def agent_main():
     matches += int(len(args) == args_number_required)
 
   if matches == 0:
-    print parser.print_help()
+    print(parser.print_help())
     possible_args = ' or '.join(str(x) for x in possible_args_numbers)
     parser.error("Invalid number of arguments. Entered: " + str(len(args)) + ", required: " + possible_args)
 
@@ -247,7 +247,7 @@ def agent_main():
       print_warning_msg(e.reason)
 
   if options.exit_message is not None:
-    print options.exit_message
+    print(options.exit_message)
 
 
 if __name__ == '__main__':

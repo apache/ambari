@@ -77,7 +77,7 @@ class AptParser(GenericParser):
                       MD5: 000000000000000000000000000
     """
     fields = {"Package": 0, "Version": 1, "File": 2}
-    field_names = fields.keys()
+    field_names = list(fields.keys())
     field_count = len(field_names)
     item_set = [None] * field_count
 

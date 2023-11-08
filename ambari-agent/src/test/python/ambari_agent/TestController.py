@@ -19,7 +19,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import StringIO
+import io
 import os
 import ssl
 import tempfile
@@ -94,7 +94,7 @@ class TestController:#(unittest.TestCase):
   def test_registerWithServer(self, LiveStatus_mock, randintMock, pformatMock, sleepMock,
                               dumpsMock):
 
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
     LiveStatus_mock.SERVICES = ["foo"]
@@ -109,7 +109,7 @@ class TestController:#(unittest.TestCase):
     dumpsMock.return_value = '{"valid_object": true}'
     self.controller.sendRequest.return_value = {"log":"Error text", "exitstatus":"1"}
 
-    self.assertEqual({u'exitstatus': u'1', u'log': u'Error text'}, self.controller.registerWithServer())
+    self.assertEqual({'exitstatus': '1', 'log': 'Error text'}, self.controller.registerWithServer())
     self.assertEqual(LiveStatus_mock.SERVICES, [])
     self.assertEqual(LiveStatus_mock.CLIENT_COMPONENTS, [])
     self.assertEqual(LiveStatus_mock.COMPONENTS, [])
@@ -402,8 +402,8 @@ class TestController:#(unittest.TestCase):
     try:
       self.controller.sendRequest(url, data)
       self.fail("Should throw exception!")
-    except IOError, e: # Expected
-      self.assertEquals('Response parsing failed! Request data: ' + data +
+    except IOError as e: # Expected
+      self.assertEqual('Response parsing failed! Request data: ' + data +
                         '; Response: {invalid_object}', str(e))
 
     exceptionMessage = "Connection Refused"
@@ -411,31 +411,31 @@ class TestController:#(unittest.TestCase):
     try:
       self.controller.sendRequest(url, data)
       self.fail("Should throw exception!")
-    except IOError, e: # Expected
-      self.assertEquals('Request to ' + url + ' failed due to ' +
+    except IOError as e: # Expected
+      self.assertEqual('Request to ' + url + ' failed due to ' +
                         exceptionMessage, str(e))
 
 
   def test_getVersion(self):
     self.controller.version = "1.2.3.4_MyAgent"
     version = self.controller.get_version()
-    self.assertEquals('1.2.3.4', version)
+    self.assertEqual('1.2.3.4', version)
     self.controller.version = "1.2.3-MyAgent"
     version = self.controller.get_version()
-    self.assertEquals('1.2.3', version)
+    self.assertEqual('1.2.3', version)
     self.controller.version = "11.2.3-MyAgent"
     version = self.controller.get_version()
-    self.assertEquals('11.2.3', version)
+    self.assertEqual('11.2.3', version)
     self.controller.version = "11.2.13.10_MyAgent"
     version = self.controller.get_version()
-    self.assertEquals('11.2.13.10', version)
+    self.assertEqual('11.2.13.10', version)
 
   @patch.object(ExitHelper, "exit")
-  @patch.object(threading._Event, "wait")
+  @patch.object(threading.Event, "wait")
   @patch("time.sleep")
   @patch("ambari_simplejson.dumps")
   def test_heartbeatWithServer(self, dumpsMock, sleepMock, event_mock, exit_mock):
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
     hearbeat = MagicMock()
@@ -628,18 +628,18 @@ class TestController:#(unittest.TestCase):
                                                 "JOBTRACKER":"MASTER","TASKTRACKER":"SLAVE"}}}
     self.controller.updateComponents("dummy_cluster_name")
     sendRequest.assert_called_with('foo_url/dummy_cluster_name', None)
-    services_expected = [u'MAPREDUCE', u'PIG']
+    services_expected = ['MAPREDUCE', 'PIG']
     client_components_expected = [
-      {'serviceName':u'MAPREDUCE','componentName':u'MAPREDUCE_CLIENT'},
-      {'serviceName':u'PIG','componentName':u'PIG'}
+      {'serviceName':'MAPREDUCE','componentName':'MAPREDUCE_CLIENT'},
+      {'serviceName':'PIG','componentName':'PIG'}
     ]
     components_expected = [
-      {'serviceName':u'MAPREDUCE','componentName':u'TASKTRACKER'},
-      {'serviceName':u'MAPREDUCE','componentName':u'JOBTRACKER'}
+      {'serviceName':'MAPREDUCE','componentName':'TASKTRACKER'},
+      {'serviceName':'MAPREDUCE','componentName':'JOBTRACKER'}
     ]
-    self.assertEquals(LiveStatus_mock.SERVICES, services_expected)
-    self.assertEquals(LiveStatus_mock.CLIENT_COMPONENTS, client_components_expected)
-    self.assertEquals(LiveStatus_mock.COMPONENTS, components_expected)
+    self.assertEqual(LiveStatus_mock.SERVICES, services_expected)
+    self.assertEqual(LiveStatus_mock.CLIENT_COMPONENTS, client_components_expected)
+    self.assertEqual(LiveStatus_mock.COMPONENTS, components_expected)
 
   @patch("socket.gethostbyname")
   @patch("ambari_simplejson.dumps")
@@ -649,13 +649,13 @@ class TestController:#(unittest.TestCase):
   @patch.object(Controller, "LiveStatus")
   def test_recoveryRegConfig(self, LiveStatus_mock, randintMock, pformatMock, sleepMock,
                     dumpsMock, socketGhbnMock):
-    self.assertEquals(self.controller.recovery_manager.recovery_enabled, False)
-    self.assertEquals(self.controller.recovery_manager.auto_start_only, False)
-    self.assertEquals(self.controller.recovery_manager.max_count, 6)
-    self.assertEquals(self.controller.recovery_manager.window_in_min, 60)
-    self.assertEquals(self.controller.recovery_manager.retry_gap, 5)
+    self.assertEqual(self.controller.recovery_manager.recovery_enabled, False)
+    self.assertEqual(self.controller.recovery_manager.auto_start_only, False)
+    self.assertEqual(self.controller.recovery_manager.max_count, 6)
+    self.assertEqual(self.controller.recovery_manager.window_in_min, 60)
+    self.assertEqual(self.controller.recovery_manager.retry_gap, 5)
 
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
 
@@ -681,12 +681,12 @@ class TestController:#(unittest.TestCase):
     self.controller.isRegistered = False
     self.controller.registerWithServer()
 
-    self.assertEquals(self.controller.recovery_manager.recovery_enabled, True)
-    self.assertEquals(self.controller.recovery_manager.auto_start_only, False)
-    self.assertEquals(self.controller.recovery_manager.max_count, 5)
-    self.assertEquals(self.controller.recovery_manager.window_in_min, 50)
-    self.assertEquals(self.controller.recovery_manager.retry_gap, 3)
-    self.assertEquals(self.controller.recovery_manager.max_lifetime_count, 7)
+    self.assertEqual(self.controller.recovery_manager.recovery_enabled, True)
+    self.assertEqual(self.controller.recovery_manager.auto_start_only, False)
+    self.assertEqual(self.controller.recovery_manager.max_count, 5)
+    self.assertEqual(self.controller.recovery_manager.window_in_min, 50)
+    self.assertEqual(self.controller.recovery_manager.retry_gap, 3)
+    self.assertEqual(self.controller.recovery_manager.max_lifetime_count, 7)
 
     sys.stdout = sys.__stdout__
 
@@ -695,12 +695,12 @@ class TestController:#(unittest.TestCase):
     pass
 
   @patch.object(ExitHelper, "exit")
-  @patch.object(threading._Event, "wait")
+  @patch.object(threading.Event, "wait")
   @patch("time.sleep")
   @patch("ambari_simplejson.dumps")
   def test_recoveryHbCmd(self, dumpsMock, sleepMock, event_mock, exit_mock):
 
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
     hearbeat = MagicMock()

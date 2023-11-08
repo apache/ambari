@@ -47,7 +47,7 @@ class TestKerberosClient(RMFTestCase):
     self.assertResourceCalled('Directory', use_cases.get_krb5_conf_dir(json_data),
                               owner='root',
                               group='root',
-                              mode=0755,
+                              mode=0o755,
                               create_parents = True)
 
     file_path = (use_cases.get_krb5_conf_dir(json_data) +
@@ -57,7 +57,7 @@ class TestKerberosClient(RMFTestCase):
                               content=InlineTemplate(use_cases.get_krb5_conf_template(json_data)),
                               owner='root',
                               group='root',
-                              mode=0644)
+                              mode=0o644)
 
   def test_configure_unmanaged_kdc(self):
     json_data = use_cases.get_unmanged_kdc_use_case()
@@ -73,7 +73,7 @@ class TestKerberosClient(RMFTestCase):
     self.assertResourceCalled('Directory', use_cases.get_krb5_conf_dir(json_data),
                               owner='root',
                               group='root',
-                              mode=0755,
+                              mode=0o755,
                               create_parents = True)
 
     file_path = (use_cases.get_krb5_conf_dir(json_data) +
@@ -83,7 +83,7 @@ class TestKerberosClient(RMFTestCase):
                               content=InlineTemplate(use_cases.get_krb5_conf_template(json_data)),
                               owner='root',
                               group='root',
-                              mode=0644)
+                              mode=0o644)
 
   def test_configure_unmanaged_ad(self):
     json_data = use_cases.get_unmanged_ad_use_case()
@@ -99,7 +99,7 @@ class TestKerberosClient(RMFTestCase):
     self.assertResourceCalled('Directory', use_cases.get_krb5_conf_dir(json_data),
                               owner='root',
                               group='root',
-                              mode=0755,
+                              mode=0o755,
                               create_parents = True)
 
     file_path = (use_cases.get_krb5_conf_dir(json_data) +
@@ -109,7 +109,7 @@ class TestKerberosClient(RMFTestCase):
                               content=InlineTemplate(use_cases.get_krb5_conf_template(json_data)),
                               owner='root',
                               group='root',
-                              mode=0644)
+                              mode=0o644)
 
   def test_configure_cross_realm_trust(self):
     json_data = use_cases.get_cross_realm_use_case()
@@ -125,7 +125,7 @@ class TestKerberosClient(RMFTestCase):
     self.assertResourceCalled('Directory', use_cases.get_krb5_conf_dir(json_data),
                               owner='root',
                               group='root',
-                              mode=0755,
+                              mode=0o755,
                               create_parents = True)
 
     file_path = (use_cases.get_krb5_conf_dir(json_data) +
@@ -135,7 +135,7 @@ class TestKerberosClient(RMFTestCase):
                               content=InlineTemplate(use_cases.get_krb5_conf_template(json_data)),
                               owner='root',
                               group='root',
-                              mode=0644)
+                              mode=0o644)
 
 
   def test_get_property(self):
@@ -146,13 +146,13 @@ class TestKerberosClient(RMFTestCase):
 
     d = {
       'non_empty' : "Nonempty value",
-      'unicode_non_empty' : u"Nonempty value",
+      'unicode_non_empty' : "Nonempty value",
       'number' : 33,
       'number_string' : "33",
       'empty' : "",
-      'unicode_empty' : u"",
+      'unicode_empty' : "",
       'whitespace' : "    ",
-      'unicode_whitespace' : u"    ",
+      'unicode_whitespace' : "    ",
       'none' : None,
       }
 
@@ -259,13 +259,13 @@ class TestKerberosClient(RMFTestCase):
     self.assertResourceCalled('Directory', "/etc/security/keytabs",
                               owner='root',
                               group='root',
-                              mode=0755,
+                              mode=0o755,
                               create_parents = True)
 
     self.assertResourceCalled('File', "/etc/security/keytabs/spnego.service.keytab",
                               owner='root',
                               group='hadoop',
-                              mode=0440,
+                              mode=0o440,
                               content=CallFunctionMock(call_result=base64.b64decode("BQIAAABbAAIAC0VYQU1QTEUuQ09NAARIVFRQABdjNjU"
                                                        "wMS5hbWJhcmkuYXBhY2hlLm9yZwAAAAFUodgKAQASAC"
                                                        "A5N4gKUJsizCzwRD11Q/6sdZhJjlJmuuMeMKw/WefIb"
@@ -284,13 +284,13 @@ class TestKerberosClient(RMFTestCase):
     self.assertResourceCalled('Directory', "/etc/security/keytabs",
                               owner='root',
                               group='root',
-                              mode=0755,
+                              mode=0o755,
                               create_parents = True)
 
     self.assertResourceCalled('File', "/etc/security/keytabs/smokeuser.headless.keytab",
                           owner='ambari-qa',
                           group='hadoop',
-                          mode=0400,
+                          mode=0o400,
                           content=CallFunctionMock(call_result=base64.b64decode("BQIAAABHAAEAC0VYQU1QTEUuQ09NAAlhbWJhcmktcWEAAAA"
                                                    "BVKHYCgEAEgAg3OBDOecGoznTHZiPwmlmK4TI6bdRdrl/6q"
                                                    "TV8Kml2TAAAAA/AAEAC0VYQU1QTEUuQ09NAAlhbWJhcmktc"
@@ -350,11 +350,11 @@ class TestKerberosClient(RMFTestCase):
                        )
 
     # The kdc_hosts is expected to be taken from the JSON configuration data as-is
-    self.assertEquals('c6401.ambari.apache.org, c6402.ambari.apache.org', sys.modules['params'].kdc_hosts)
+    self.assertEqual('c6401.ambari.apache.org, c6402.ambari.apache.org', sys.modules['params'].kdc_hosts)
 
     # The kdc_host is expected to generated using kdc_hosts, but only the first host is used since
     # previous versions only knew how to handle a single KDC host
-    self.assertEquals('c6401.ambari.apache.org', sys.modules['params'].kdc_host)
+    self.assertEqual('c6401.ambari.apache.org', sys.modules['params'].kdc_host)
 
   @patch("resource_management.core.sudo.path_exists")
   def test_find_missing_keytabs(self, path_exists):
@@ -372,7 +372,7 @@ class TestKerberosClient(RMFTestCase):
                        config_dict=json_data,
                        stack_version=self.STACK_VERSION,
                        target=RMFTestCase.TARGET_COMMON_SERVICES)
-    self.assertEquals(Script.structuredOut['missing_keytabs'], [OrderedDict({
-      'keytab_file_path' : '/deleted_keytab',
-      'principal' : 'HTTP/c6401.ambari.apache.org@EXAMPLE.COM'
+    self.assertEqual(Script.structuredOut['missing_keytabs'], [OrderedDict({
+      'principal' : 'HTTP/c6401.ambari.apache.org@EXAMPLE.COM',
+      'keytab_file_path' : '/deleted_keytab'
     })])

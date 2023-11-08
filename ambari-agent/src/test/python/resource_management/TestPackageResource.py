@@ -46,7 +46,7 @@ class TestPackageResource(TestCase):
         logoutput = False
       )
 
-    self.assertEquals(shell_mock.call_args_list[0][0][0],['/usr/bin/yum', '-d', '0', '-e', '0', '-y', 'install', 'some_package*'])
+    self.assertEqual(shell_mock.call_args_list[0][0][0],['/usr/bin/yum', '-d', '0', '-e', '0', '-y', 'install', 'some_package*'])
 
   @patch.object(ac_shell, "process_executor")
   @patch.object(ManagerFactory, "get", new=MagicMock(return_value=ManagerFactory.get_new_instance(OSConst.REDHAT_FAMILY)))
@@ -71,7 +71,7 @@ class TestPackageResource(TestCase):
               )
     call_mock.assert_has_calls([call("installed_pkgs=`rpm -qa 'some_package*'` ; [ ! -z \"$installed_pkgs\" ]"),
                                 call("zypper --non-interactive search --type package --uninstalled-only --match-exact 'some_package*'")])
-    self.assertEquals(shell_mock.call_args_list[0][0][0],['/usr/bin/zypper', '--quiet', 'install', '--auto-agree-with-licenses', '--no-confirm', 'some_package*'])
+    self.assertEqual(shell_mock.call_args_list[0][0][0],['/usr/bin/zypper', '--quiet', 'install', '--auto-agree-with-licenses', '--no-confirm', 'some_package*'])
 
   @patch.object(ac_shell, "process_executor")
   @patch.object(ManagerFactory, "get", new=MagicMock(return_value=ManagerFactory.get_new_instance(OSConst.SUSE_FAMILY)))
@@ -117,7 +117,7 @@ class TestPackageResource(TestCase):
               action = "remove",
               logoutput = False
       )
-    self.assertEquals(shell_mock.call_args_list[0][0][0], ['/usr/bin/yum', '-d', '0', '-e', '0', '-y', 'erase', 'some_package'])
+    self.assertEqual(shell_mock.call_args_list[0][0][0], ['/usr/bin/yum', '-d', '0', '-e', '0', '-y', 'erase', 'some_package'])
 
 
   @replace_underscores

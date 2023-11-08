@@ -363,14 +363,14 @@ class ValidateConfigs(Script):
     validation_passed = self.check_users(params) and self.check_directories(params)
 
     if validation_passed:
-      print 'All configurations validated!'
+      print('All configurations validated!')
     else:
       self.fail_with_error('Configurations validation failed!')
 
   def check_directories(self, params):
     validation_failed = False
     properties_to_check = self.flatten_dict(PROPERTIES_TO_CHECK)
-    for property, value in params.items():
+    for property, value in list(params.items()):
       if property in properties_to_check:
         if self.dir_exists_or_not_empty_or_cant_be_created(self.get_value(property, params)):
           validation_failed = True
@@ -378,7 +378,7 @@ class ValidateConfigs(Script):
 
   def check_users(self, params):
     validation_passed = True
-    for user, group in self.dict_to_list(USERS_TO_GROUP_MAPPING).items():
+    for user, group in list(self.dict_to_list(USERS_TO_GROUP_MAPPING).items()):
       if user in params and group in params:
         username = self.get_value(user, params)
         groupname = self.get_value(group, params)
@@ -393,7 +393,7 @@ class ValidateConfigs(Script):
 
   def flatten_dict(self, dic, prefix=CONFIG_PARAM_PREFIX, separator=CONFIG_PARAM_SEPARATOR):
     result = []
-    for key, val in dic.items():
+    for key, val in list(dic.items()):
       sum_key = prefix + separator + key
       if isinstance(val, dict):
         result += self.flatten_dict(val, sum_key, separator)
@@ -422,7 +422,7 @@ class ValidateConfigs(Script):
 
   def dict_to_list(self, dic, prefix=CONFIG_PARAM_PREFIX, separator=CONFIG_PARAM_SEPARATOR):
     result = {}
-    for key, val in dic.items():
+    for key, val in list(dic.items()):
       sum_key = prefix + separator + key
       if isinstance(val, dict):
         result.update(self.dict_to_list(val, sum_key, separator))

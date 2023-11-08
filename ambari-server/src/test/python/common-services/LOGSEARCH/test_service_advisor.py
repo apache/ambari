@@ -143,7 +143,7 @@ class TestLOGSEARCH050ServiceAdvisor(TestCase):
       return ["c6401.ambari.apache.org", "c6402.ambari.apache.org"]
     self.serviceAdvisor.getComponentHostNames = return_c6401_hostname
     self.serviceAdvisor.getServiceConfigurationRecommendations(self.configurations, self.clusterData, services, self.hosts)
-    self.assertEquals(self.configurations, expected)
+    self.assertEqual(self.configurations, expected)
 
   def test_recommendLogsearchConfigurationWhenSolrIsExternal(self):
     expected = {
@@ -199,4 +199,4 @@ class TestLOGSEARCH050ServiceAdvisor(TestCase):
         return []
     self.serviceAdvisor.getComponentHostNames = return_c6401_hostname
     self.serviceAdvisor.getServiceConfigurationRecommendations(self.configurations, self.clusterData, services, self.hosts)
-    self.assertEquals(self.configurations, expected)
+    self.assertEqual(self.configurations, expected)

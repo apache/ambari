@@ -25,8 +25,8 @@ from stacks.utils.RMFTestCase import *
 curl_returns = [(0, "{\"clusterInfo\":{\"id\": \"1471586271500\",\"haState\": \"ACTIVE\"}}",''),
                          (0, "{\"app\":{\"state\": \"FINISHED\",\"finalStatus\":\"SUCCEEDED\"}}",'')]
 
-@patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
-@patch("sys.executable", new = '/usr/bin/python2.6')
+@patch("distro.linux_distribution", new = MagicMock(return_value="Linux"))
+@patch("sys.executable", new = '/usr/bin/python3.9')
 class TestServiceCheck(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "YARN/2.1.0.2.0/package"
   STACK_VERSION = "2.0.6"
@@ -56,7 +56,7 @@ class TestServiceCheck(RMFTestCase):
                                   kinit_path_local = '/usr/bin/kinit',
                                   user = 'hdfs',
                                   dfs_type = '',
-                                  mode = 0770,
+                                  mode = 0o770,
                                   owner = 'ambari-qa',
                                   action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
                                   hadoop_conf_dir = '/etc/hadoop/conf',
@@ -89,7 +89,7 @@ class TestServiceCheck(RMFTestCase):
                                   kinit_path_local = '/usr/bin/kinit',
                                   user = 'hdfs',
                                   dfs_type = '',
-                                  mode = 0770,
+                                  mode = 0o770,
                                   owner = 'ambari-qa',
                                   action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='hdfs', default_fs='hdfs://c6401.ambari.apache.org:8020',
                                   hadoop_conf_dir = '/etc/hadoop/conf',

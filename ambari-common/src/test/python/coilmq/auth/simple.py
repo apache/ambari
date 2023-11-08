@@ -4,7 +4,7 @@ A simple config-file based authentication module.
 try:
     from configparser import ConfigParser
 except ImportError:
-    from ConfigParser import ConfigParser
+    from configparser import ConfigParser
     ConfigParser.read_file = ConfigParser.readfp
 
 from coilmq.auth import Authenticator

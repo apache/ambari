@@ -18,7 +18,7 @@ limitations under the License.
 """
 
 import os
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 
 from ambari_commons.inet_utils import download_file
 from resource_management import *

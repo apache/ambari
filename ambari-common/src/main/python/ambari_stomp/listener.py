@@ -287,7 +287,7 @@ class HeartbeatListener(ConnectionListener):
                     self.transport.set_connected(False)
                     self.transport.disconnect_socket()
                     self.transport.stop()
-                    for listener in self.transport.listeners.values():
+                    for listener in list(self.transport.listeners.values()):
                         listener.on_heartbeat_timeout()
         self.heartbeat_thread = None
 
@@ -419,14 +419,14 @@ class PrintingListener(ConnectionListener):
         """
         :param (str,int) host_and_port:
         """
-        print('on_connecting %s %s' % host_and_port)
+        print(('on_connecting %s %s' % host_and_port))
 
     def on_connected(self, headers, body):
         """
         :param dict headers:
         :param body:
         """
-        print('on_connected %s %s' % (headers, body))
+        print(('on_connected %s %s' % (headers, body)))
 
     def on_disconnected(self):
         print('on_disconnected')
@@ -439,7 +439,7 @@ class PrintingListener(ConnectionListener):
         :param dict headers:
         :param body:
         """
-        print('on_before_message %s %s' % (headers, body))
+        print(('on_before_message %s %s' % (headers, body)))
         return headers, body
 
     def on_message(self, headers, body):
@@ -447,27 +447,27 @@ class PrintingListener(ConnectionListener):
         :param dict headers:
         :param body:
         """
-        print('on_message %s %s' % (headers, body))
+        print(('on_message %s %s' % (headers, body)))
 
     def on_receipt(self, headers, body):
         """
         :param dict headers:
         :param body:
         """
-        print('on_receipt %s %s' % (headers, body))
+        print(('on_receipt %s %s' % (headers, body)))
 
     def on_error(self, headers, body):
         """
         :param dict headers:
         :param body:
         """
-        print('on_error %s %s' % (headers, body))
+        print(('on_error %s %s' % (headers, body)))
 
     def on_send(self, frame):
         """
         :param Frame frame:
         """
-        print('on_send %s %s %s' % (frame.cmd, frame.headers, frame.body))
+        print(('on_send %s %s %s' % (frame.cmd, frame.headers, frame.body)))
 
     def on_heartbeat(self):
         print('on_heartbeat')

@@ -17,8 +17,8 @@ if sys.version_info >= (3, 0):
     py3k = True
     from urllib.parse import urlsplit
     range = range
-    unicode = str
-    basestring = (bytes, str)
+    str = str
+    str = (bytes, str)
     _ord = ord
 
     def get_connection(fileobj):
@@ -33,10 +33,10 @@ if sys.version_info >= (3, 0):
         return _ord(c)
 else:
     py3k = False
-    from urlparse import urlsplit
+    from urllib.parse import urlsplit
     range = xrange
-    unicode = unicode
-    basestring = basestring
+    str = str
+    str = str
     ord = ord
 
     def get_connection(fileobj):

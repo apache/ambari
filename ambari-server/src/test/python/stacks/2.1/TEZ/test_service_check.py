@@ -36,7 +36,7 @@ class TestTezServiceCheck(RMFTestCase):
     )
     self.assertResourceCalled('File', '/tmp/sample-tez-test',
         content = 'foo\nbar\nfoo\nbar\nfoo',
-        mode = 0755,
+        mode = 0o755,
     )
 
     self.assertResourceCalled('HdfsResource', '/tmp/tezsmokeoutput',
@@ -118,7 +118,7 @@ class TestTezServiceCheck(RMFTestCase):
 
     self.assertResourceCalled('File', '/tmp/sample-tez-test',
                               content = 'foo\nbar\nfoo\nbar\nfoo',
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('HdfsResource', '/tmp/tezsmokeoutput',
                               immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,

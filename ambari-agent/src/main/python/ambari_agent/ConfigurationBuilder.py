@@ -18,7 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import hostname
+from . import hostname
 
 class ConfigurationBuilder:
   def __init__(self, initializer_module):

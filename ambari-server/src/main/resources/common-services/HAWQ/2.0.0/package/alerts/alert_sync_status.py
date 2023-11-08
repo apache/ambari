@@ -67,7 +67,7 @@ def execute(configurations={}, parameters={}, host_name=None):
       return (RESULT_STATE_OK, ['HAWQSTANDBY is in sync with HAWQMASTER.'])
     elif summary_state == 'Not Synchronized':
       return (RESULT_STATE_WARNING, ['HAWQSTANDBY is not in sync with HAWQMASTER. ERROR: ' + error_message])
-  except Exception, e:
+  except Exception as e:
     logger.exception('[Alert] Retrieving HAWQSTANDBY sync status from HAWQMASTER fails on host, {0}:'.format(host_name))
     logger.exception(str(e))
 

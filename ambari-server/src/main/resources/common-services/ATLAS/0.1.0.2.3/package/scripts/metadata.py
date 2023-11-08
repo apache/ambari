@@ -41,7 +41,7 @@ def metadata(type='server'):
 
     # Needed by both Server and Client
     Directory(params.conf_dir,
-              mode=0755,
+              mode=0o755,
               cd_access='a',
               owner=params.metadata_user,
               group=params.user_group,
@@ -50,14 +50,14 @@ def metadata(type='server'):
 
     if type == "server":
       Directory([params.pid_dir],
-                mode=0755,
+                mode=0o755,
                 cd_access='a',
                 owner=params.metadata_user,
                 group=params.user_group,
                 create_parents = True
       )
       Directory(format('{conf_dir}/solr'),
-                mode=0755,
+                mode=0o755,
                 cd_access='a',
                 owner=params.metadata_user,
                 group=params.user_group,
@@ -65,21 +65,21 @@ def metadata(type='server'):
                 recursive_ownership=True
       )
       Directory(params.log_dir,
-                mode=0755,
+                mode=0o755,
                 cd_access='a',
                 owner=params.metadata_user,
                 group=params.user_group,
                 create_parents = True
       )
       Directory(params.data_dir,
-                mode=0644,
+                mode=0o644,
                 cd_access='a',
                 owner=params.metadata_user,
                 group=params.user_group,
                 create_parents = True
       )
       Directory(params.expanded_war_dir,
-                mode=0644,
+                mode=0o644,
                 cd_access='a',
                 owner=params.metadata_user,
                 group=params.user_group,
@@ -93,7 +93,7 @@ def metadata(type='server'):
               not_if = war_source == war_target)
 
       File(format("{conf_dir}/atlas-log4j.xml"),
-           mode=0644,
+           mode=0o644,
            owner=params.metadata_user,
            group=params.user_group,
            content=InlineTemplate(params.metadata_log4j_content)
@@ -101,7 +101,7 @@ def metadata(type='server'):
       File(format("{conf_dir}/atlas-env.sh"),
            owner=params.metadata_user,
            group=params.user_group,
-           mode=0755,
+           mode=0o755,
            content=InlineTemplate(params.metadata_env_content)
       )
 
@@ -124,7 +124,7 @@ def metadata(type='server'):
 
       if params.metadata_solrconfig_content:
         File(format("{conf_dir}/solr/solrconfig.xml"),
-             mode=0644,
+             mode=0o644,
              owner=params.metadata_user,
              group=params.user_group,
              content=InlineTemplate(params.metadata_solrconfig_content)
@@ -133,7 +133,7 @@ def metadata(type='server'):
     # Needed by both Server and Client
     PropertiesFile(format('{conf_dir}/{conf_file}'),
          properties = params.application_properties,
-         mode=0600,
+         mode=0o600,
          owner=params.metadata_user,
          group=params.user_group
     )
@@ -196,7 +196,7 @@ def metadata(type='server'):
                 configuration_attributes=params.config['configurationAttributes']['hdfs-site'],
                 owner=params.metadata_user,
                 group=params.user_group,
-                mode=0644
+                mode=0o644
                 )
     else:
       File(format('{conf_dir}/hdfs-site.xml'), action="delete")
@@ -215,7 +215,7 @@ def metadata(type='server'):
         configuration_attributes=params.config['configurationAttributes']['core-site'],
         owner=params.metadata_user,
         group=params.user_group,
-        mode=0644
+        mode=0o644
       )
 
     Directory(format('{metadata_home}/'),

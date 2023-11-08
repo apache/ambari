@@ -44,7 +44,7 @@ hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 
 smoke_user =  config['configurations']['cluster-env']['smokeuser']
 smoke_hdfs_user_dir = format("/user/{smoke_user}")
-smoke_hdfs_user_mode = 0770
+smoke_hdfs_user_mode = 0o770
 
 java64_home = config['ambariLevelParams']['java_home']
 java_version = int(config['ambariLevelParams']['java_version'])

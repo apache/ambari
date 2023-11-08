@@ -29,7 +29,7 @@ import json
 import sys
 import logging
 from math import ceil, floor
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 # Local imports
 from ambari_configuration import AmbariConfiguration
@@ -809,7 +809,7 @@ class DefaultStackAdvisor(StackAdvisor):
         if hasattr(advisor, "heap_size_properties"):
           # Override the values in "default" with those from the service advisor
           default.update(advisor.heap_size_properties)
-    except Exception, e:
+    except Exception as e:
       self.logger.exception()
     return default
 
@@ -894,11 +894,11 @@ class DefaultStackAdvisor(StackAdvisor):
     host_groups = recommendations["blueprint"]["host_groups"]
     bindings = recommendations["blueprint_cluster_binding"]["host_groups"]
     index = 0
-    for key in hostsComponentsMap.keys():
+    for key in list(hostsComponentsMap.keys()):
       index += 1
       host_group_name = "host-group-{0}".format(index)
-      host_groups.append( { "name": host_group_name, "components": hostsComponentsMap[key] } )
-      bindings.append( { "name": host_group_name, "hosts": [{ "fqdn": key }] } )
+      host_groups.insert(0, { "name": host_group_name, "components": hostsComponentsMap[key] } )
+      bindings.insert(0, {"name": host_group_name, "hosts": [{"fqdn": key}]})
 
     return recommendations
 
@@ -1013,7 +1013,7 @@ class DefaultStackAdvisor(StackAdvisor):
         if (requiredComponent is not None) and (requiredComponent["component_category"] != "CLIENT"):
           scope = "cluster" if "scope" not in dependency["Dependencies"] else dependency["Dependencies"]["scope"]
           if scope == "host":
-            for host, hostComponents in hostsComponentsMap.iteritems():
+            for host, hostComponents in hostsComponentsMap.items():
               isRequiredIncluded = False
               for hostComponent in hostComponents:
                 currentComponentName = None if "name" not in hostComponent else hostComponent["name"]
@@ -1307,21 +1307,21 @@ class DefaultStackAdvisor(StackAdvisor):
     cluster["containers"] = int(round(max(3,
                                           min(2 * cluster["cpu"],
                                               min(ceil(1.8 * cluster["disk"]),
-                                                  cluster["totalAvailableRam"] / cluster["minContainerSize"])))))
+                                                  cluster["totalAvailableRam"] // cluster["minContainerSize"])))))
     self.logger.info("Containers per node - cluster[containers]: " + str(cluster["containers"]))
 
     if cluster["containers"] * cluster["minContainerSize"] > cluster["totalAvailableRam"]:
-      cluster["containers"] = int(ceil(cluster["totalAvailableRam"] / cluster["minContainerSize"]))
+      cluster["containers"] = int(ceil(cluster["totalAvailableRam"] // cluster["minContainerSize"]))
       self.logger.info("Modified number of containers based on provided value for yarn.scheduler.minimum-allocation-mb")
       pass
 
-    cluster["ramPerContainer"] = int(abs(cluster["totalAvailableRam"] / cluster["containers"]))
+    cluster["ramPerContainer"] = int(abs(cluster["totalAvailableRam"] // cluster["containers"]))
     cluster["yarnMinContainerSize"] = min(suggestedMinContainerRam, cluster["ramPerContainer"])
     self.logger.info("Ram per containers before normalization - cluster[ramPerContainer]: " + str(cluster["ramPerContainer"]))
 
     '''If greater than cluster["yarnMinContainerSize"], value will be in multiples of cluster["yarnMinContainerSize"]'''
     if cluster["ramPerContainer"] > cluster["yarnMinContainerSize"]:
-      cluster["ramPerContainer"] = int(cluster["ramPerContainer"] / cluster["yarnMinContainerSize"]) * cluster["yarnMinContainerSize"]
+      cluster["ramPerContainer"] = int(cluster["ramPerContainer"] // cluster["yarnMinContainerSize"]) * cluster["yarnMinContainerSize"]
 
 
     cluster["mapMemory"] = int(cluster["ramPerContainer"])
@@ -1347,7 +1347,7 @@ class DefaultStackAdvisor(StackAdvisor):
   # if serviceName is being added
   def isServiceBeingAdded(self, services, serviceName):
     if services:
-      if 'user-context' in services.keys():
+      if 'user-context' in list(services.keys()):
         userContext = services["user-context"]
         if DefaultStackAdvisor.OPERATION in userContext and \
               'AddService' == userContext[DefaultStackAdvisor.OPERATION] and \
@@ -1359,7 +1359,7 @@ class DefaultStackAdvisor(StackAdvisor):
 
   def getUserOperationContext(self, services, contextName):
     if services:
-      if 'user-context' in services.keys():
+      if 'user-context' in list(services.keys()):
         userContext = services["user-context"]
         if contextName in userContext:
           return userContext[contextName]
@@ -1376,9 +1376,9 @@ class DefaultStackAdvisor(StackAdvisor):
       with open(login_defs, 'r') as f:
         data = f.read().split('\n')
         # look for uid_min_tag in file
-        uid = filter(lambda x: uid_min_tag in x, data)
+        uid = [x for x in data if uid_min_tag in x]
         # filter all lines, where uid_min_tag was found in comments
-        uid = filter(lambda x: x.find(comment_tag) > x.find(uid_min_tag) or x.find(comment_tag) == -1, uid)
+        uid = [x for x in uid if x.find(comment_tag) > x.find(uid_min_tag) or x.find(comment_tag) == -1]
 
       if uid is not None and len(uid) > 0:
         uid = uid[0]
@@ -1511,7 +1511,7 @@ class DefaultStackAdvisor(StackAdvisor):
     serviceName = service["StackServices"]["service_name"]
     validator = self.validateServiceConfigurations(serviceName)
     if validator is not None:
-      for siteName, method in validator.items():
+      for siteName, method in list(validator.items()):
         resultItems = self.validateConfigurationsForSite(configurations, recommendedDefaults, services, hosts, siteName, method)
         items.extend(resultItems)
 
@@ -1528,7 +1528,7 @@ class DefaultStackAdvisor(StackAdvisor):
 
       # Override configuration with the config group values
       cgServices = services.copy()
-      for configName in configGroup["configurations"].keys():
+      for configName in list(configGroup["configurations"].keys()):
         if configName in cgServices["configurations"]:
           cgServices["configurations"][configName]["properties"].update(
             configGroup["configurations"][configName]['properties'])
@@ -1574,15 +1574,15 @@ class DefaultStackAdvisor(StackAdvisor):
         cgRecommendation)
 
       # Parse results.
-      for config in configurations.keys():
+      for config in list(configurations.keys()):
         cgRecommendation["configurations"][config] = {}
         cgRecommendation["dependent_configurations"][config] = {}
         # property + property_attributes
-        for configElement in configurations[config].keys():
+        for configElement in list(configurations[config].keys()):
           cgRecommendation["configurations"][config][configElement] = {}
           cgRecommendation["dependent_configurations"][config][
             configElement] = {}
-          for property, value in configurations[config][configElement].items():
+          for property, value in list(configurations[config][configElement].items()):
             if config in configGroup["configurations"]:
               cgRecommendation["configurations"][config][configElement][
                 property] = value
@@ -1898,7 +1898,7 @@ class DefaultStackAdvisor(StackAdvisor):
     if len(hostsList) != 1:
       scheme = self.getComponentLayoutSchemes().get(componentName, None)
       if scheme is not None:
-        hostIndex = next((index for key, index in scheme.iteritems() if isinstance(key, (int, long)) and len(hostsList) < key), scheme['else'])
+        hostIndex = next((index for key, index in scheme.items() if isinstance(key, int) and len(hostsList) < key), scheme['else'])
       else:
         hostIndex = 0
       for host in hostsList[hostIndex:]:
@@ -1979,22 +1979,22 @@ class DefaultStackAdvisor(StackAdvisor):
   def filterConfigs(self, configs, requestedProperties):
 
     filteredConfigs = {}
-    for type, names in configs.items():
-      if 'properties' in names.keys():
+    for type, names in list(configs.items()):
+      if 'properties' in list(names.keys()):
         for name in names['properties']:
-          if type in requestedProperties.keys() and \
+          if type in list(requestedProperties.keys()) and \
                   name in requestedProperties[type]:
-            if type not in filteredConfigs.keys():
+            if type not in list(filteredConfigs.keys()):
               filteredConfigs[type] = {'properties': {}}
             filteredConfigs[type]['properties'][name] = \
               configs[type]['properties'][name]
-      if 'property_attributes' in names.keys():
+      if 'property_attributes' in list(names.keys()):
         for name in names['property_attributes']:
-          if type in requestedProperties.keys() and \
+          if type in list(requestedProperties.keys()) and \
                   name in requestedProperties[type]:
-            if type not in filteredConfigs.keys():
+            if type not in list(filteredConfigs.keys()):
               filteredConfigs[type] = {'property_attributes': {}}
-            elif 'property_attributes' not in filteredConfigs[type].keys():
+            elif 'property_attributes' not in list(filteredConfigs[type].keys()):
               filteredConfigs[type]['property_attributes'] = {}
             filteredConfigs[type]['property_attributes'][name] = \
               configs[type]['property_attributes'][name]
@@ -2072,9 +2072,9 @@ class DefaultStackAdvisor(StackAdvisor):
     changedConfigs = []
     # if services parameter, prefer values, set by user
     if services:
-      if 'configurations' in services.keys():
+      if 'configurations' in list(services.keys()):
         userConfigs = services['configurations']
-      if 'changed-configurations' in services.keys():
+      if 'changed-configurations' in list(services.keys()):
         changedConfigs = services["changed-configurations"]
 
     if configType not in config:
@@ -2112,9 +2112,9 @@ class DefaultStackAdvisor(StackAdvisor):
     changedConfigs = []
     # if services parameter, prefer values, set by user
     if services:
-      if 'configurations' in services.keys():
+      if 'configurations' in list(services.keys()):
         userConfigs = services['configurations']
-      if 'changed-configurations' in services.keys():
+      if 'changed-configurations' in list(services.keys()):
         changedConfigs = services["changed-configurations"]
 
     if configType not in config:
@@ -2548,7 +2548,7 @@ class DefaultStackAdvisor(StackAdvisor):
   def getHadoopProxyUsersValidationItems(self, properties, services, hosts, configurations):
     validationItems = []
     users = self.getHadoopProxyUsers(services, hosts, configurations)
-    for user_name, user_properties in users.iteritems():
+    for user_name, user_properties in users.items():
       props = ["hadoop.proxyuser.{0}.hosts".format(user_name)]
       if "propertyGroups" in user_properties:
         props.append("hadoop.proxyuser.{0}.groups".format(user_name))
@@ -2568,7 +2568,7 @@ class DefaultStackAdvisor(StackAdvisor):
     servicesList = self.get_services_list(services)
     users = {}
 
-    for serviceName, serviceUserComponents in self.getServiceHadoopProxyUsersConfigurationDict().iteritems():
+    for serviceName, serviceUserComponents in self.getServiceHadoopProxyUsersConfigurationDict().items():
       users.update(self._getHadoopProxyUsersForService(serviceName, serviceUserComponents, services, hosts, configurations))
 
     return users
@@ -2637,10 +2637,10 @@ class DefaultStackAdvisor(StackAdvisor):
         if user:
           usersComponents[user] = (userNameConfig, userNameProperty, hostSelectorMap)
 
-      for user, (userNameConfig, userNameProperty, hostSelectorMap) in usersComponents.iteritems():
+      for user, (userNameConfig, userNameProperty, hostSelectorMap) in usersComponents.items():
         proxyUsers = {"config": userNameConfig, "propertyName": userNameProperty}
-        for proxyPropertyName, hostSelector in hostSelectorMap.iteritems():
-          componentHostNamesString = hostSelector if isinstance(hostSelector, basestring) else '*'
+        for proxyPropertyName, hostSelector in hostSelectorMap.items():
+          componentHostNamesString = hostSelector if isinstance(hostSelector, str) else '*'
           if isinstance(hostSelector, (list, tuple)):
             _, componentHostNames = self.get_data_for_proxyuser(user, services, configurations) # preserve old values
             for component in hostSelector:
@@ -2678,7 +2678,7 @@ class DefaultStackAdvisor(StackAdvisor):
       if hive_user and get_from_dict(users, (hive_user, "propertyHosts"), default_value=None):
         services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.hosts".format(hive_user)})
 
-    for user_name, user_properties in users.iteritems():
+    for user_name, user_properties in users.items():
 
       # Add properties "hadoop.proxyuser.*.hosts", "hadoop.proxyuser.*.groups" to core-site for all users
       self.put_proxyuser_value(user_name, user_properties["propertyHosts"], services=services, configurations=configurations, put_function=putCoreSiteProperty)
@@ -2766,7 +2766,7 @@ class DefaultStackAdvisor(StackAdvisor):
     :param replacement_dict:
     :return:
     """
-    for replacement, original in replacement_dict.iteritems():
+    for replacement, original in replacement_dict.items():
       data.remove(replacement)
       data.add(original)
 
@@ -2824,7 +2824,7 @@ class DefaultStackAdvisor(StackAdvisor):
   def merge_proxyusers_values(self, first, second):
     result = set()
     def append(data):
-      if isinstance(data, str) or isinstance(data, unicode):
+      if isinstance(data, str) or isinstance(data, str):
         if data != "*":
           result.update(data.split(","))
       else:
@@ -2835,7 +2835,7 @@ class DefaultStackAdvisor(StackAdvisor):
 
   def getOldValue(self, services, configType, propertyName):
     if services:
-      if 'changed-configurations' in services.keys():
+      if 'changed-configurations' in list(services.keys()):
         changedConfigs = services["changed-configurations"]
         for changedConfig in changedConfigs:
           if changedConfig["type"] == configType and changedConfig["name"]== propertyName and "old_value" in changedConfig:
@@ -2996,18 +2996,18 @@ class DefaultStackAdvisor(StackAdvisor):
     mountPoints = {}
     for mountPoint in hostInfo["disk_info"]:
       mountPoints[mountPoint["mountpoint"]] = self.to_number(mountPoint["available"])
-    mountPoint = DefaultStackAdvisor.getMountPointForDir(dir, mountPoints.keys())
+    mountPoint = DefaultStackAdvisor.getMountPointForDir(dir, list(mountPoints.keys()))
 
     if not mountPoints:
       return self.getErrorItem("No disk info found on host %s" % hostInfo["host_name"])
 
     if mountPoint is None:
-      return self.getErrorItem("No mount point in directory %s. Mount points: %s" % (dir, ', '.join(mountPoints.keys())))
+      return self.getErrorItem("No mount point in directory %s. Mount points: %s" % (dir, ', '.join(list(mountPoints.keys()))))
 
     if mountPoints[mountPoint] < reqiuredDiskSpace:
       msg = "Ambari Metrics disk space requirements not met. \n" \
             "Recommended disk space for partition {0} is {1}G"
-      return self.getWarnItem(msg.format(mountPoint, reqiuredDiskSpace/1048576)) # in Gb
+      return self.getWarnItem(msg.format(mountPoint, reqiuredDiskSpace//1048576)) # in Gb
     return None
 
   @classmethod
@@ -3124,14 +3124,14 @@ class DefaultStackAdvisor(StackAdvisor):
       self.logger.error("Couldn't retrieve 'capacity-scheduler' from services.")
 
     self.logger.info("Retrieved 'capacity-scheduler' received as dictionary : '{0}'. configs : {1}" \
-                .format(received_as_key_value_pair, capacity_scheduler_properties.items()))
+                .format(received_as_key_value_pair, list(capacity_scheduler_properties.items())))
     return capacity_scheduler_properties, received_as_key_value_pair
 
   def getAllYarnLeafQueues(self, capacitySchedulerProperties):
     """
     Gets all YARN leaf queues.
     """
-    config_list = capacitySchedulerProperties.keys()
+    config_list = list(capacitySchedulerProperties.keys())
     yarn_queues = None
     leafQueueNames = set()
     if 'yarn.scheduler.capacity.root.queues' in config_list:
@@ -3156,7 +3156,7 @@ class DefaultStackAdvisor(StackAdvisor):
           #     (3). 'yarn.scheduler.capacity.root.default,
           # Added leaf queues names are as : d1, c2 and default for the 3 leaf queues.
           leafQueuePathSplits = queue.split(".")
-          if leafQueuePathSplits > 0:
+          if len(leafQueuePathSplits) > 0:
             leafQueueName = leafQueuePathSplits[-1]
             leafQueueNames.add(leafQueueName)
     return leafQueueNames

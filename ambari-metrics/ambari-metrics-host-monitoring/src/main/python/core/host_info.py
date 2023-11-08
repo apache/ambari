@@ -69,7 +69,7 @@ class HostInfo():
       'cpu_intr': cpu_times.irq if hasattr(cpu_times, 'irq') else 0,
       'cpu_sintr': cpu_times.softirq if hasattr(cpu_times, 'softirq') else 0,
       'cpu_steal': cpu_times.steal if hasattr(cpu_times, 'steal') else 0,
-      'boottime': long(boot_time) if boot_time else 0
+      'boottime': int(boot_time) if boot_time else 0
     }
     if platform.system() != "Windows":
       load_avg = os.getloadavg()
@@ -157,7 +157,7 @@ class HostInfo():
     skip_virtual_interfaces = self.get_virtual_network_interfaces() if self.__config.get_virtual_interfaces_skip() == 'True' else []
     skip_network_patterns = self.__config.get_network_interfaces_skip_pattern()
     skip_network_patterns_list = skip_network_patterns.split(',') if skip_network_patterns and skip_network_patterns != 'None' else []
-    for interface, values in net_stats.iteritems():
+    for interface, values in net_stats.items():
       if interface != 'lo' and not interface in skip_virtual_interfaces:
         ignore_network = False
         for p in skip_network_patterns_list:
@@ -171,8 +171,8 @@ class HostInfo():
           }
 
     with self.__last_network_lock:
-      result = dict((k, (v - self.__last_network_data.get(k, 0)) / delta) for k, v in new_net_stats.iteritems())
-      result = dict((k, 0 if v < 0 else v) for k, v in result.iteritems())
+      result = dict((k, (v - self.__last_network_data.get(k, 0)) / delta) for k, v in new_net_stats.items())
+      result = dict((k, 0 if v < 0 else v) for k, v in result.items())
       self.__last_network_data = new_net_stats
 
     return result
@@ -199,7 +199,7 @@ class HostInfo():
       pass
       try:
         usage = psutil.disk_usage(part.mountpoint)
-      except Exception, e:
+      except Exception as e:
         logger.debug('Failed to read disk_usage for a mountpoint : ' + str(e))
         continue
 
@@ -267,7 +267,7 @@ class HostInfo():
     logger.debug('skip_disk_patterns: %s' % skip_disk_patterns)
     if not skip_disk_patterns or skip_disk_patterns == 'None':
       io_counters = psutil.disk_io_counters()
-      print io_counters
+      print(io_counters)
     else:
       sdiskio = namedtuple('sdiskio', ['read_count', 'write_count',
                                        'read_bytes', 'write_bytes',
@@ -277,14 +277,14 @@ class HostInfo():
       if not rawdict:
         raise RuntimeError("Couldn't find any physical disk")
       trimmed_dict = {}
-      for disk, fields in rawdict.items():
+      for disk, fields in list(rawdict.items()):
         ignore_disk = False
         for p in skip_disk_pattern_list:
           if re.match(p, disk):
             ignore_disk = True
         if not ignore_disk:
           trimmed_dict[disk] = sdiskio(*fields)
-      io_counters = sdiskio(*[sum(x) for x in zip(*trimmed_dict.values())])
+      io_counters = sdiskio(*[sum(x) for x in zip(*list(trimmed_dict.values()))])
 
     new_disk_stats = {
         'read_count' : io_counters.read_count if hasattr(io_counters, 'read_count') else 0,
@@ -309,7 +309,7 @@ class HostInfo():
     disk_io_counters = psutil.disk_io_counters(True)
     per_disk_io_counters = {}
 
-    sortByKey = lambda x: sorted(x.items(), key=operator.itemgetter(0))
+    sortByKey = lambda x: sorted(list(x.items()), key=operator.itemgetter(0))
 
     disk_counter = 0
     if disk_io_counters:

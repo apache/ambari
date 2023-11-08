@@ -63,8 +63,8 @@ class AlertCollector():
     """
     self.__lock.acquire()
     try:
-      for cluster,alert_map in self.__buckets.iteritems():
-        for alert_name in alert_map.keys():
+      for cluster,alert_map in self.__buckets.items():
+        for alert_name in list(alert_map.keys()):
           alert = alert_map[alert_name]
           if alert['uuid'] == alert_uuid:
             self.remove(cluster, alert_name)
@@ -80,8 +80,8 @@ class AlertCollector():
     self.__lock.acquire()
     try:
       alerts = []
-      for clustermap in self.__buckets.values()[:]:
-        alerts.extend(clustermap.values())
+      for clustermap in list(self.__buckets.values())[:]:
+        alerts.extend(list(clustermap.values()))
 
       self.__buckets.clear()
       return alerts

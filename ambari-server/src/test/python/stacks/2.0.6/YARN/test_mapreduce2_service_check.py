@@ -20,9 +20,10 @@ limitations under the License.
 from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
 import os
+import distro
 
 origin_exists = os.path.exists
-@patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
+@patch("distro.linux_distribution", new = MagicMock(return_value="Linux"))
 @patch.object(os.path, "exists", new=MagicMock(
   side_effect=lambda *args: origin_exists(args[0])
   if args[0][-2:] == "j2" else True))
@@ -48,7 +49,7 @@ class TestServiceCheck(RMFTestCase):
                               kinit_path_local = '/usr/bin/kinit',
                               user = 'hdfs',
                               dfs_type = '',
-                              mode = 0770,
+                              mode = 0o770,
                               owner = 'ambari-qa',
                               action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
                               hadoop_conf_dir = '/etc/hadoop/conf',
@@ -122,7 +123,7 @@ class TestServiceCheck(RMFTestCase):
                               kinit_path_local = '/usr/bin/kinit',
                               user = 'hdfs',
                               dfs_type = '',
-                              mode = 0770,
+                              mode = 0o770,
                               owner = 'ambari-qa',
                               action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='hdfs', default_fs='hdfs://c6401.ambari.apache.org:8020',
                               hadoop_conf_dir = '/etc/hadoop/conf',

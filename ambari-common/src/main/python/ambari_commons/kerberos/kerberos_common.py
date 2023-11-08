@@ -86,7 +86,7 @@ def write_krb5_conf(params):
             owner='root',
             create_parents=True,
             group='root',
-            mode=0755
+            mode=0o755
             )
 
   content = InlineTemplate(params.krb5_conf_template)
@@ -95,7 +95,7 @@ def write_krb5_conf(params):
        content=content,
        owner='root',
        group='root',
-       mode=0644
+       mode=0o644
        )
 
 
@@ -116,7 +116,7 @@ def write_keytab_file(params, output_hook=lambda principal, keytab_file_path: No
         if (keytab_file_path is not None) and (len(keytab_file_path) > 0):
           head, tail = os.path.split(keytab_file_path)
           if head:
-            Directory(head, create_parents=True, mode=0755, owner="root", group="root")
+            Directory(head, create_parents=True, mode=0o755, owner="root", group="root")
 
           owner = get_property_value(item, 'keytab_file_owner_name')
           if not owner:

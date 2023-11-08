@@ -52,7 +52,7 @@ class TestFileResource(TestCase):
       with Environment('/') as env:
         File('/existent_directory',
              action='create',
-             mode=0777,
+             mode=0o777,
              content='file-content'
         )
       
@@ -75,7 +75,7 @@ class TestFileResource(TestCase):
       with Environment('/') as env:
         File('/non_existent_directory/file',
              action='create',
-             mode=0777,
+             mode=0o777,
              content='file-content'
         )
       
@@ -100,7 +100,7 @@ class TestFileResource(TestCase):
     with Environment('/') as env:
       File('/directory/file',
            action='create',
-           mode=0777,
+           mode=0o777,
            content='file-content'
       )
     
@@ -125,7 +125,7 @@ class TestFileResource(TestCase):
     with Environment('/') as env:
       File('/directory/file',
            action='create',
-           mode=0777,
+           mode=0o777,
            backup=False,
            content='new-content'
       )
@@ -147,7 +147,7 @@ class TestFileResource(TestCase):
       with Environment('/') as env:
         File('/directory/file',
              action='delete',
-             mode=0777,
+             mode=0o777,
              backup=False,
              content='new-content'
         )
@@ -172,7 +172,7 @@ class TestFileResource(TestCase):
     with Environment('/') as env:
       File('/directory/file',
            action='delete',
-           mode=0777,
+           mode=0o777,
            backup=False,
            content='new-content'
       )
@@ -194,7 +194,7 @@ class TestFileResource(TestCase):
       with Environment('/') as env:
         File('/existent_directory',
              action='create',
-             mode=0777,
+             mode=0o777,
              content='file-content'
         )
       
@@ -220,7 +220,7 @@ class TestFileResource(TestCase):
     with Environment('/') as env:
       File('/directory/file',
            action='create',
-           mode=0777,
+           mode=0o777,
            backup=False,
            content='new-content'
       )
@@ -231,7 +231,7 @@ class TestFileResource(TestCase):
     with Environment('/') as env:
       File('/directory/file',
            action='create',
-           mode=0777,
+           mode=0o777,
            backup=True,
            content='new-content'
       )
@@ -242,7 +242,7 @@ class TestFileResource(TestCase):
 
 
   @patch("resource_management.core.providers.system._ensure_metadata")
-  @patch("__builtin__.open")
+  @patch("builtins.open")
   @patch("resource_management.core.sudo.path_exists")
   @patch("resource_management.core.sudo.path_isdir")
   def test_attribute_replace(self, isdir_mock, exists_mock, open_mock, ensure_mock):
@@ -258,7 +258,7 @@ class TestFileResource(TestCase):
     with Environment('/') as env:
       File('/directory/file',
            action='create',
-           mode=0777,
+           mode=0o777,
            backup=False,
            content='new-content',
            replace=False
@@ -289,7 +289,7 @@ class TestFileResource(TestCase):
 
     class stat():
       def __init__(self):
-        self.st_mode = 0666
+        self.st_mode = 0o666
         self.st_uid = 1
         self.st_gid = 1
 
@@ -302,7 +302,7 @@ class TestFileResource(TestCase):
     with Environment('/') as env:
       File('/directory/file',
            action='create',
-           mode=0777,
+           mode=0o777,
            content='file-content',
            owner='root',
            group='hdfs'
@@ -327,7 +327,7 @@ class TestFileResource(TestCase):
     with Environment('/') as env:
       File('/directory/file',
            action='create',
-           mode=0777,
+           mode=0o777,
            content='file-content',
            owner='root',
            group='hdfs'
@@ -354,7 +354,7 @@ class TestFileResource(TestCase):
     with Environment('/') as env:
       File('/directory/file',
            action='create',
-           mode=0777,
+           mode=0o777,
            content='file-content',
            encoding = "UTF-8"
       )

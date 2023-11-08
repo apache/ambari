@@ -36,7 +36,7 @@ def tez():
             configuration_attributes=params.config['configurationAttributes']['tez-site'],
             owner = params.tez_user,
             group = params.user_group,
-            mode = 0664
+            mode = 0o664
   )
 
   tez_TemplateConfig( ['tez-env.sh'])

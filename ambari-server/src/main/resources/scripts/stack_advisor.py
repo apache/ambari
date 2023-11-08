@@ -170,18 +170,18 @@ def instantiateStackAdvisor(stackName, stackVersion, parentVersions):
         with open(path, 'rb') as fp:
           stack_advisor = imp.load_module('stack_advisor_impl', fp, path, ('.py', 'rb', imp.PY_SOURCE))
         className = STACK_ADVISOR_IMPL_CLASS_TEMPLATE.format(stackName, version.replace('.', ''))
-        print "StackAdvisor implementation for stack {0}, version {1} was loaded".format(stackName, version)
+        print("StackAdvisor implementation for stack {0}, version {1} was loaded".format(stackName, version))
     except IOError: # file not found
       traceback.print_exc()
-      print "StackAdvisor implementation for stack {0}, version {1} was not found".format(stackName, version)
+      print("StackAdvisor implementation for stack {0}, version {1} was not found".format(stackName, version))
 
   try:
     clazz = getattr(stack_advisor, className)
-    print "Returning " + className + " implementation"
+    print("Returning " + className + " implementation")
     return clazz()
   except Exception as e:
     traceback.print_exc()
-    print "Returning default implementation"
+    print("Returning default implementation")
     return default_stack_advisor.DefaultStackAdvisor()
 
 
@@ -190,10 +190,10 @@ if __name__ == '__main__':
     main(sys.argv)
   except StackAdvisorException as stack_exception:
     traceback.print_exc()
-    print "Error occured in stack advisor.\nError details: {0}".format(str(stack_exception))
+    print("Error occured in stack advisor.\nError details: {0}".format(str(stack_exception)))
     sys.exit(1)
   except Exception as e:
     traceback.print_exc()
-    print "Error occured in stack advisor.\nError details: {0}".format(str(e))
+    print("Error occured in stack advisor.\nError details: {0}".format(str(e)))
     sys.exit(2)
 

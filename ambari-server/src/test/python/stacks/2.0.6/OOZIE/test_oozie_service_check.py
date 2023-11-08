@@ -23,7 +23,7 @@ from resource_management.libraries.script.script import Script
 import json
 
 @patch.object(Script, 'format_package_name', new = MagicMock())
-@patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
+@patch("distro.linux_distribution", new = MagicMock(return_value="Linux"))
 class TestOozieServiceCheck(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "OOZIE/4.0.0.2.0/package"
   STACK_VERSION = "2.0.6"
@@ -58,12 +58,12 @@ class TestOozieServiceCheck(RMFTestCase):
     self.assertResourceCalled('File',
       "/tmp/oozieSmoke2.sh",
       content = StaticFile("oozieSmoke2.sh"),
-      mode = 0755)
+      mode = 0o755)
 
     self.assertResourceCalled('File',
       "/tmp/prepareOozieHdfsDirectories.sh",
       content = StaticFile("prepareOozieHdfsDirectories.sh"),
-      mode = 0755)
+      mode = 0o755)
 
     self.assertResourceCalled('Execute',
       ('/tmp/prepareOozieHdfsDirectories.sh', '/usr/hdp/current/oozie-client/conf', 'examples-dir', '/usr/hdp/2.3.0.0-1234/hadoop/conf', 'c6402.ambari.apache.org:8050', 'hdfs://c6401.ambari.apache.org:8020', 'default', 'map-reduce'),

@@ -16,7 +16,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import ConfigParser
+import configparser
 import os
 
 
@@ -38,7 +38,7 @@ class Config:
         load configuration from file, add all configuration to the map ATTRIBUTES
         :return: None
         """
-        config = ConfigParser.RawConfigParser()
+        config = configparser.RawConfigParser()
         # keep file case sensitive
         config.optionxform = str
         config.read(Config.RELATIVE_CONFIG_FILE_PATH)
@@ -64,7 +64,7 @@ class Config:
         :param value: the value
         :return: None
         """
-        config = ConfigParser.RawConfigParser()
+        config = configparser.RawConfigParser()
         config.read(Config.RELATIVE_CONFIG_FILE_PATH)
         config.set(section, key, value)
         with open(Config.RELATIVE_CONFIG_FILE_PATH, 'wb') as configfile:

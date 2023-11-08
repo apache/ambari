@@ -33,7 +33,7 @@ def post_upgrade_check():
   This function will obtain the Kerberos ticket if security is enabled.
   :return:
   '''
-  import params
+  from . import params
 
   Logger.info('NodeManager executing "yarn node -list -states=RUNNING" to verify the node has rejoined the cluster...')
   if params.security_enabled and params.nodemanager_kinit_cmd:
@@ -55,7 +55,7 @@ def _check_nodemanager_startup():
   automatically.
   :return:
   '''
-  import params
+  from . import params
   import socket
 
   command = 'yarn node -list -states=RUNNING'

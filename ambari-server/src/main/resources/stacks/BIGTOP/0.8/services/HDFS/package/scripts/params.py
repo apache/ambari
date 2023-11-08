@@ -137,7 +137,7 @@ namenode_dirs_created_stub_dir = format("{hdfs_log_dir_prefix}/{hdfs_user}")
 namenode_dirs_stub_filename = "namenode_dirs_created"
 
 smoke_hdfs_user_dir = format("/user/{smoke_user}")
-smoke_hdfs_user_mode = 0770
+smoke_hdfs_user_mode = 0o770
 
 namenode_formatted_old_mark_dir = format("{hadoop_pid_dir_prefix}/hdfs/namenode/formatted/")
 namenode_formatted_mark_dir = format("/var/lib/hdfs/namenode/formatted/")

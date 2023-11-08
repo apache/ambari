@@ -22,7 +22,7 @@ import json
 from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
 
-@patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
+@patch("distro.linux_distribution", new = MagicMock(return_value="Linux"))
 @patch("os.path.exists", new = MagicMock(return_value=True))
 class TestHBaseClient(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "HBASE/0.96.0.2.0/package"
@@ -41,7 +41,7 @@ class TestHBaseClient(RMFTestCase):
     )
 
     self.assertResourceCalled('Directory', '/etc/hbase',
-      mode = 0755
+      mode = 0o755
     )
     self.assertResourceCalled('Directory', '/etc/hbase/conf',
       owner = 'hbase',
@@ -50,13 +50,13 @@ class TestHBaseClient(RMFTestCase):
     )
     self.assertResourceCalled('Directory', '/tmp',
       create_parents = True,
-      mode = 0777
+      mode = 0o777
     )
     self.assertResourceCalled('Directory', '/hadoop',
                               create_parents = True,
                               cd_access = 'a',
                               )
-    self.assertResourceCalled('Execute', ('chmod', '1777', u'/hadoop'),
+    self.assertResourceCalled('Execute', ('chmod', '1777', '/hadoop'),
                               sudo = True,
                               )
     self.assertResourceCalled('XmlConfig', 'hbase-site.xml',
@@ -98,7 +98,7 @@ class TestHBaseClient(RMFTestCase):
       content = Template('hbase.conf.j2'),
       owner = 'root',
       group = 'root',
-      mode = 0644,
+      mode = 0o644,
     )
     self.assertResourceCalled('TemplateConfig', '/etc/hbase/conf/hadoop-metrics2-hbase.properties',
       owner = 'hbase',
@@ -114,7 +114,7 @@ class TestHBaseClient(RMFTestCase):
     )
     self.assertResourceCalled('File',
                               '/etc/hbase/conf/log4j.properties',
-                              mode=0644,
+                              mode=0o644,
                               group='hadoop',
                               owner='hbase',
                               content=InlineTemplate('log4jproperties\nline2')
@@ -130,7 +130,7 @@ class TestHBaseClient(RMFTestCase):
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Directory', '/etc/hbase',
-      mode = 0755
+      mode = 0o755
     )
     self.assertResourceCalled('Directory', '/etc/hbase/conf',
       owner = 'hbase',
@@ -139,13 +139,13 @@ class TestHBaseClient(RMFTestCase):
     )
     self.assertResourceCalled('Directory', '/tmp',
       create_parents = True,
-      mode = 0777
+      mode = 0o777
     )
     self.assertResourceCalled('Directory', '/hadoop',
                               create_parents = True,
                               cd_access = 'a',
                               )
-    self.assertResourceCalled('Execute', ('chmod', '1777', u'/hadoop'),
+    self.assertResourceCalled('Execute', ('chmod', '1777', '/hadoop'),
                               sudo = True,
                               )
     self.assertResourceCalled('XmlConfig', 'hbase-site.xml',
@@ -187,7 +187,7 @@ class TestHBaseClient(RMFTestCase):
       content = Template('hbase.conf.j2'),
       owner = 'root',
       group = 'root',
-      mode = 0644,
+      mode = 0o644,
     )
     self.assertResourceCalled('TemplateConfig', '/etc/hbase/conf/hadoop-metrics2-hbase.properties',
       owner = 'hbase',
@@ -199,7 +199,7 @@ class TestHBaseClient(RMFTestCase):
     )
     self.assertResourceCalled('File',
                               '/etc/hbase/conf/log4j.properties',
-                              mode=0644,
+                              mode=0o644,
                               group='hadoop',
                               owner='hbase',
                               content=InlineTemplate('log4jproperties\nline2')

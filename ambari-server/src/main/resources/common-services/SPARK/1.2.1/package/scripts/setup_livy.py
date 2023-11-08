@@ -28,7 +28,7 @@ def setup_livy(env, type, upgrade_type = None, action = None):
   Directory([params.livy_pid_dir, params.livy_log_dir],
             owner=params.livy_user,
             group=params.user_group,
-            mode=0775,
+            mode=0o775,
             create_parents = True
   )
   if type == 'server' and action == 'config':
@@ -36,7 +36,7 @@ def setup_livy(env, type, upgrade_type = None, action = None):
                        type="directory",
                        action="create_on_execute",
                        owner=params.livy_user,
-                       mode=0775
+                       mode=0o775
     )
     params.HdfsResource(None, action="execute")
 
@@ -44,7 +44,7 @@ def setup_livy(env, type, upgrade_type = None, action = None):
                        type="directory",
                        action="create_on_execute",
                        owner=params.livy_user,
-                       mode=0700
+                       mode=0o700
     )
     params.HdfsResource(None, action="execute")
 
@@ -53,7 +53,7 @@ def setup_livy(env, type, upgrade_type = None, action = None):
        owner=params.livy_user,
        group=params.livy_group,
        content=InlineTemplate(params.livy_env_sh),
-       mode=0644,
+       mode=0o644,
        )
 
   # create livy.conf in etc/conf dir
@@ -69,7 +69,7 @@ def setup_livy(env, type, upgrade_type = None, action = None):
        owner=params.livy_user,
        group=params.livy_group,
        content=params.livy_log4j_properties,
-       mode=0644,
+       mode=0o644,
   )
 
   # create spark-blacklist.properties in etc/conf dir
@@ -77,11 +77,11 @@ def setup_livy(env, type, upgrade_type = None, action = None):
        owner=params.livy_user,
        group=params.livy_group,
        content=params.livy_spark_blacklist_properties,
-       mode=0644,
+       mode=0o644,
        )
 
   Directory(params.livy_logs_dir,
        owner=params.livy_user,
        group=params.livy_group,
-       mode=0755,
+       mode=0o755,
   )

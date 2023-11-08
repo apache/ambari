@@ -60,9 +60,9 @@ def setup_ranger_nifi(upgrade_type=None):
                             component_user_keytab=params.ranger_nifi_keytab if params.security_enabled else None)
                             
         #change permissions of ranger xml that were written to 0400
-        File(os.path.join(params.nifi_config_dir, 'ranger-nifi-audit.xml'), owner=params.nifi_user, group=params.nifi_group, mode=0400)
-        File(os.path.join(params.nifi_config_dir, 'ranger-nifi-security.xml'), owner=params.nifi_user, group=params.nifi_group, mode=0400)
-        File(os.path.join(params.nifi_config_dir, 'ranger-policymgr-ssl.xml'), owner=params.nifi_user, group=params.nifi_group, mode=0400)        
+        File(os.path.join(params.nifi_config_dir, 'ranger-nifi-audit.xml'), owner=params.nifi_user, group=params.nifi_group, mode=0o400)
+        File(os.path.join(params.nifi_config_dir, 'ranger-nifi-security.xml'), owner=params.nifi_user, group=params.nifi_group, mode=0o400)
+        File(os.path.join(params.nifi_config_dir, 'ranger-policymgr-ssl.xml'), owner=params.nifi_user, group=params.nifi_group, mode=0o400)        
 
     else:
         Logger.info('Ranger admin not installed')

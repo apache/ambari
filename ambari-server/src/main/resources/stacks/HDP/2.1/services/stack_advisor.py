@@ -174,6 +174,11 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
           dbConnection = self.getDBConnectionString(oozieEnvProperties['oozie_database']).format(oozieServerHost['Hosts']['host_name'], oozieSiteProperties['oozie.db.schema.name'])
           putOozieProperty('oozie.service.JPAService.jdbc.url', dbConnection)
 
+  def py2Round(self, value):
+    if round(value + 1) - round(value) != 1:
+      return value + abs(value) / value * 0.5
+    return round(value)
+
   def recommendHiveConfigurations(self, configurations, clusterData, services, hosts):
     hiveSiteProperties = self.getSiteProperties(services['configurations'], 'hive-site')
     hiveEnvProperties = self.getSiteProperties(services['configurations'], 'hive-env')
@@ -182,8 +187,8 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
     container_size_bytes = int(containerSize)*1024*1024
     putHiveEnvProperty = self.putProperty(configurations, "hive-env", services)
     putHiveProperty = self.putProperty(configurations, "hive-site", services)
-    putHiveProperty('hive.auto.convert.join.noconditionaltask.size', int(round(container_size_bytes / 3)))
-    putHiveProperty('hive.tez.java.opts', "-server -Xmx" + str(int(round((0.8 * containerSize) + 0.5)))
+    putHiveProperty('hive.auto.convert.join.noconditionaltask.size', int(self.py2Round(container_size_bytes // 3)))
+    putHiveProperty('hive.tez.java.opts', "-server -Xmx" + str(int(self.py2Round((0.8 * containerSize) + 0.5)))
                     + "m -Djava.net.preferIPv4Stack=true -XX:NewRatio=8 -XX:+UseNUMA -XX:+UseParallelGC -XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps")
     putHiveProperty('hive.tez.container.size', containerSize)
 

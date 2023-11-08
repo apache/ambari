@@ -95,7 +95,7 @@ def update_config_permissions(names):
 
 def jdbc_connector():
   import params
-  from urllib2 import HTTPError
+  from urllib.error import HTTPError
   from resource_management import Fail
   for jar_name in params.sqoop_jdbc_drivers_dict:
     if not jar_name or 'mysql' in jar_name:
@@ -113,7 +113,7 @@ def jdbc_connector():
 
       File(downloaded_custom_connector,
            content = DownloadSource(driver_curl_source),
-           mode = 0644,
+           mode = 0o644,
       )
     except HTTPError:
       error_string = format("Could not download {driver_curl_source}\n\

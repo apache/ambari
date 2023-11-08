@@ -376,9 +376,9 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       if llap_queue_cap and 'hive.server2.tez.sessions.per.default.queue' in hsi_site:
         num_tez_sessions = hsi_site['hive.server2.tez.sessions.per.default.queue']
         if num_tez_sessions:
-          num_tez_sessions = long(num_tez_sessions)
-          yarn_min_container_size = long(self.get_yarn_min_container_size(services, configurations))
-          tez_am_container_size = self.calculate_tez_am_container_size(services, long(total_cluster_cap))
+          num_tez_sessions = int(num_tez_sessions)
+          yarn_min_container_size = int(self.get_yarn_min_container_size(services, configurations))
+          tez_am_container_size = self.calculate_tez_am_container_size(services, int(total_cluster_cap))
           normalized_tez_am_container_size = self._normalizeUp(tez_am_container_size, yarn_min_container_size)
           llap_selected_queue_cap_remaining = llap_queue_cap - (normalized_tez_am_container_size * num_tez_sessions)
           if llap_selected_queue_cap_remaining <= llap_queue_cap/2:
@@ -726,7 +726,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       if atlas_server_metadata_size >= 1000000:
         atlas_server_xmx = 1024*16
 
-      atlas_server_max_new_size = (atlas_server_xmx / 100) * 30
+      atlas_server_max_new_size = (atlas_server_xmx // 100) * 30
 
       putAtlasEnvProperty("atlas_server_xmx", atlas_server_xmx)
       putAtlasEnvProperty("atlas_server_max_new_size", atlas_server_max_new_size)
@@ -884,7 +884,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     self.setLlapDaemonQueuePropAttributes(services, configurations)
 
     if not services["changed-configurations"]:
-      read_llap_daemon_yarn_cont_mb = long(self.get_yarn_min_container_size(services, configurations))
+      read_llap_daemon_yarn_cont_mb = int(self.get_yarn_min_container_size(services, configurations))
       putHiveInteractiveSiteProperty("hive.llap.daemon.yarn.container.mb", read_llap_daemon_yarn_cont_mb)
 
     if hsi_site and "hive.llap.daemon.queue.name" in hsi_site:
@@ -961,7 +961,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     # or 'hive.llap.daemon.queue.name' has change in value selection.
     # OR
     # services['changed-configurations'] is empty implying that this is the Blueprint call. (1st invocation)
-    if 'changed-configurations' in services.keys():
+    if 'changed-configurations' in list(services.keys()):
       config_names_to_be_checked = set(['num_llap_nodes', 'enable_hive_interactive'])
       changed_configs_in_hive_int_env = self.isConfigPropertiesChanged(services, "hive-interactive-env", config_names_to_be_checked, False)
 
@@ -983,7 +983,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     self.logger.info("DBG: Calculated total_cluster_capacity : {0}, using following : node_manager_cnt : {1}, "
                 "yarn_nm_mem_in_mb : {2}".format(total_cluster_capacity, node_manager_cnt, yarn_nm_mem_in_mb))
     yarn_min_container_size = float(self.get_yarn_min_container_size(services, configurations))
-    tez_am_container_size = self.calculate_tez_am_container_size(services, long(total_cluster_capacity), is_cluster_create_opr,
+    tez_am_container_size = self.calculate_tez_am_container_size(services, int(total_cluster_capacity), is_cluster_create_opr,
                                                                  changed_configs_has_enable_hive_int)
     normalized_tez_am_container_size = self._normalizeUp(tez_am_container_size, yarn_min_container_size)
 
@@ -1074,7 +1074,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
                     "yarn_min_container_size : {2}".format(total_llap_mem_normalized, total_llap_mem, yarn_min_container_size))
 
       # What percent is 'total_llap_mem' of 'total_cluster_capacity' ?
-      llap_named_queue_cap_fraction = math.ceil(total_llap_mem_normalized / total_cluster_capacity * 100)
+      llap_named_queue_cap_fraction = float(math.ceil(total_llap_mem_normalized / total_cluster_capacity * 100))
       self.logger.info("DBG: Calculated '{0}' queue capacity percent = {1}.".format(llap_queue_name, llap_named_queue_cap_fraction))
 
       if llap_named_queue_cap_fraction > 100:
@@ -1128,7 +1128,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
         self.logger.info("DBG: Readjusted 'llap_concurrency' to : 1. Earlier calculated value : 0")
 
       if llap_concurrency * normalized_tez_am_container_size > hive_tez_am_cap_available:
-        llap_concurrency = long(math.floor(hive_tez_am_cap_available / normalized_tez_am_container_size))
+        llap_concurrency = int(math.floor(hive_tez_am_cap_available / normalized_tez_am_container_size))
         self.logger.info("DBG: Readjusted 'llap_concurrency' to : {0}, as llap_concurrency({1}) * normalized_tez_am_container_size({2}) > hive_tez_am_cap_available({3}))"
                     .format(llap_concurrency, llap_concurrency, normalized_tez_am_container_size, hive_tez_am_cap_available))
 
@@ -1141,7 +1141,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     else:
       # Read current value
       if 'hive.server2.tez.sessions.per.default.queue' in hsi_site:
-        llap_concurrency = long(hsi_site['hive.server2.tez.sessions.per.default.queue'])
+        llap_concurrency = int(hsi_site['hive.server2.tez.sessions.per.default.queue'])
         if llap_concurrency <= 0:
           self.logger.warning("'hive.server2.tez.sessions.per.default.queue' current value : {0}. Expected value : >= 1".format(llap_concurrency))
           self.recommendDefaultLlapConfiguration(configurations, services, hosts)
@@ -1159,7 +1159,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
                   ": {2}, MIN_EXECUTOR_TO_AM_RATIO : {3}, MAX_CONCURRENT_QUERIES : {4}".format(max_llap_concurreny_limit, max_executors_per_node,
                                                                                                num_llap_nodes_requested, MIN_EXECUTOR_TO_AM_RATIO,
                                                                                                MAX_CONCURRENT_QUERIES))
-    max_llap_concurreny = long(min(max_llap_concurreny_limit, math.floor(llap_mem_for_tezAm_and_daemons / (MIN_EXECUTOR_TO_AM_RATIO *
+    max_llap_concurreny = int(min(max_llap_concurreny_limit, math.floor(llap_mem_for_tezAm_and_daemons / (MIN_EXECUTOR_TO_AM_RATIO *
                                                                                                       mem_per_thread_for_llap + normalized_tez_am_container_size))))
     self.logger.info("DBG: Calculated 'max_llap_concurreny' : {0}, using following : max_llap_concurreny_limit : {1}, llap_mem_for_tezAm_and_daemons : "
                   "{2}, MIN_EXECUTOR_TO_AM_RATIO : {3}, mem_per_thread_for_llap : {4}, normalized_tez_am_container_size : "
@@ -1266,10 +1266,10 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     self.logger.info("DBG: Calculated 'Cache per node' : {0}, using following : llap_daemon_mem_per_node : {1}, total_mem_for_executors_per_node : {2}"
                 .format(cache_mem_per_node, llap_daemon_mem_per_node, total_mem_for_executors_per_node))
 
-    tez_runtime_io_sort_mb = (long((0.8 * mem_per_thread_for_llap) / 3))
-    tez_runtime_unordered_output_buffer_size = long(0.8 * 0.075 * mem_per_thread_for_llap)
+    tez_runtime_io_sort_mb = (int((0.8 * mem_per_thread_for_llap) / 3))
+    tez_runtime_unordered_output_buffer_size = int(0.8 * 0.075 * mem_per_thread_for_llap)
     # 'hive_auto_convert_join_noconditionaltask_size' value is in bytes. Thus, multiplying it by 1048576.
-    hive_auto_convert_join_noconditionaltask_size = (long((0.8 * mem_per_thread_for_llap) / 3)) * MB_TO_BYTES
+    hive_auto_convert_join_noconditionaltask_size = (int((0.8 * mem_per_thread_for_llap) / 3)) * MB_TO_BYTES
 
     # Calculate value for prop 'llap_heap_size'
     llap_xmx = max(total_mem_for_executors_per_node * 0.8, total_mem_for_executors_per_node - self.get_llap_headroom_space(services, configurations))
@@ -1282,7 +1282,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       # If its None, read the base service YARN's NODEMANAGER node memory, as are host are considered homogenous.
       hive_server_interactive_hosts = self.getHostsWithComponent("YARN", "NODEMANAGER", services, hosts)
     if hive_server_interactive_hosts is not None and len(hive_server_interactive_hosts) > 0:
-      host_mem = long(hive_server_interactive_hosts[0]["Hosts"]["total_mem"])
+      host_mem = int(hive_server_interactive_hosts[0]["Hosts"]["total_mem"])
       hive_server_interactive_heapsize = min(max(2048.0, 400.0*llap_concurrency), 3.0/8 * host_mem)
       self.logger.info("DBG: Calculated 'hive_server_interactive_heapsize' : {0}, using following : llap_concurrency : {1}, host_mem : "
                     "{2}".format(hive_server_interactive_heapsize, llap_concurrency, host_mem))
@@ -1291,13 +1291,13 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     self.logger.info("DBG: Applying the calculated values....")
 
     if is_cluster_create_opr or changed_configs_has_enable_hive_int:
-      normalized_tez_am_container_size = long(normalized_tez_am_container_size)
+      normalized_tez_am_container_size = int(normalized_tez_am_container_size)
       putTezInteractiveSiteProperty('tez.am.resource.memory.mb', normalized_tez_am_container_size)
       self.logger.info("DBG: Setting 'tez.am.resource.memory.mb' config value as : {0}".format(normalized_tez_am_container_size))
 
     if not llap_concurrency_in_changed_configs:
       min_llap_concurrency = 1
-      putHiveInteractiveSiteProperty('hive.server2.tez.sessions.per.default.queue', long(llap_concurrency))
+      putHiveInteractiveSiteProperty('hive.server2.tez.sessions.per.default.queue', int(llap_concurrency))
       putHiveInteractiveSitePropertyAttribute('hive.server2.tez.sessions.per.default.queue', "minimum", min_llap_concurrency)
 
     # Check if 'max_llap_concurreny' < 'llap_concurrency'.
@@ -1305,9 +1305,9 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       self.logger.info("DBG: Adjusting 'max_llap_concurreny' to : {0}, based on 'llap_concurrency' : {1} and "
                        "earlier 'max_llap_concurreny' : {2}. ".format(llap_concurrency, llap_concurrency, max_llap_concurreny))
       max_llap_concurreny = llap_concurrency
-    putHiveInteractiveSitePropertyAttribute('hive.server2.tez.sessions.per.default.queue', "maximum", long(max_llap_concurreny))
+    putHiveInteractiveSitePropertyAttribute('hive.server2.tez.sessions.per.default.queue', "maximum", int(max_llap_concurreny))
 
-    num_llap_nodes = long(num_llap_nodes)
+    num_llap_nodes = int(num_llap_nodes)
 
     putHiveInteractiveEnvPropertyAttribute('num_llap_nodes', "minimum", min_nodes_required)
     putHiveInteractiveEnvPropertyAttribute('num_llap_nodes', "maximum", node_manager_cnt)
@@ -1324,13 +1324,13 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       putHiveInteractiveEnvProperty('num_llap_nodes_for_llap_daemons', num_llap_nodes)
       self.logger.info("DBG: Setting config 'num_llap_nodes_for_llap_daemons' as : {0}".format(num_llap_nodes))
 
-    llap_container_size = long(llap_daemon_mem_per_node)
+    llap_container_size = int(llap_daemon_mem_per_node)
     putHiveInteractiveSiteProperty('hive.llap.daemon.yarn.container.mb', llap_container_size)
 
     # Set 'hive.tez.container.size' only if it is read as "SET_ON_FIRST_INVOCATION", implying initialization.
     # Else, we don't (1). Override the previous calculated value or (2). User provided value.
     if is_cluster_create_opr or changed_configs_has_enable_hive_int:
-      mem_per_thread_for_llap = long(mem_per_thread_for_llap)
+      mem_per_thread_for_llap = int(mem_per_thread_for_llap)
       putHiveInteractiveSiteProperty('hive.tez.container.size', mem_per_thread_for_llap)
       self.logger.info("DBG: Setting 'hive.tez.container.size' config value as : {0}".format(mem_per_thread_for_llap))
 
@@ -1343,15 +1343,15 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     putTezInteractiveSiteProperty('tez.runtime.unordered.output.buffer.size-mb', tez_runtime_unordered_output_buffer_size)
     putHiveInteractiveSiteProperty('hive.auto.convert.join.noconditionaltask.size', hive_auto_convert_join_noconditionaltask_size)
 
-    num_executors_per_node = long(num_executors_per_node)
+    num_executors_per_node = int(num_executors_per_node)
     self.logger.info("DBG: Putting num_executors_per_node as {0}".format(num_executors_per_node))
     putHiveInteractiveSiteProperty('hive.llap.daemon.num.executors', num_executors_per_node)
     putHiveInteractiveSitePropertyAttribute('hive.llap.daemon.num.executors', "minimum", 1)
-    putHiveInteractiveSitePropertyAttribute('hive.llap.daemon.num.executors', "maximum", long(num_executors_per_node_max))
+    putHiveInteractiveSitePropertyAttribute('hive.llap.daemon.num.executors', "maximum", int(num_executors_per_node_max))
 
     # 'hive.llap.io.threadpool.size' config value is to be set same as value calculated for
     # 'hive.llap.daemon.num.executors' at all times.
-    cache_mem_per_node = long(cache_mem_per_node)
+    cache_mem_per_node = int(cache_mem_per_node)
 
     putHiveInteractiveSiteProperty('hive.llap.io.threadpool.size', num_executors_per_node)
     putHiveInteractiveSiteProperty('hive.llap.io.memory.size', cache_mem_per_node)
@@ -1359,11 +1359,11 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     if hive_server_interactive_heapsize is not None:
       putHiveInteractiveEnvProperty("hive_heapsize", int(hive_server_interactive_heapsize))
 
-    llap_io_enabled = 'true' if long(cache_mem_per_node) >= 64 else 'false'
+    llap_io_enabled = 'true' if int(cache_mem_per_node) >= 64 else 'false'
     putHiveInteractiveSiteProperty('hive.llap.io.enabled', llap_io_enabled)
 
-    putHiveInteractiveEnvProperty('llap_heap_size', long(llap_xmx))
-    putHiveInteractiveEnvProperty('slider_am_container_mb', long(slider_am_container_size))
+    putHiveInteractiveEnvProperty('llap_heap_size', int(llap_xmx))
+    putHiveInteractiveEnvProperty('slider_am_container_mb', int(slider_am_container_size))
     self.logger.info("DBG: Done putting all configs")
 
   #TODO: What is this doing? What error will be displayed on the UI if something like this is hit?
@@ -1375,8 +1375,8 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     putHiveInteractiveEnvProperty = self.putProperty(configurations, "hive-interactive-env", services)
     putHiveInteractiveEnvPropertyAttribute = self.putPropertyAttribute(configurations, "hive-interactive-env")
 
-    yarn_min_container_size = long(self.get_yarn_min_container_size(services, configurations))
-    slider_am_container_size = long(self.calculate_slider_am_size(yarn_min_container_size))
+    yarn_min_container_size = int(self.get_yarn_min_container_size(services, configurations))
+    slider_am_container_size = int(self.calculate_slider_am_size(yarn_min_container_size))
 
     node_manager_host_list = self.getHostsForComponent(services, "YARN", "NODEMANAGER")
     node_manager_cnt = len(node_manager_host_list)
@@ -1586,10 +1586,10 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     total_queue_size_at_20_perc = 20.0 / 100 * total_cluster_cap
 
     # Calculate based on minimum size required by containers.
-    yarn_min_container_size = long(self.get_yarn_min_container_size(services, configurations))
+    yarn_min_container_size = int(self.get_yarn_min_container_size(services, configurations))
     slider_am_size = self.calculate_slider_am_size(float(yarn_min_container_size))
-    hive_tez_container_size = long(self.get_hive_tez_container_size(services))
-    tez_am_container_size = self.calculate_tez_am_container_size(services, long(total_cluster_cap))
+    hive_tez_container_size = int(self.get_hive_tez_container_size(services))
+    tez_am_container_size = self.calculate_tez_am_container_size(services, int(total_cluster_cap))
     normalized_val = self._normalizeUp(slider_am_size, yarn_min_container_size) \
                      + self._normalizeUp(hive_tez_container_size, yarn_min_container_size) \
                      + self._normalizeUp(tez_am_container_size, yarn_min_container_size)
@@ -1612,7 +1612,14 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     """
     Normalize up 'val2' with respect to 'val1'.
     """
-    tmp = math.ceil(val1 / val2)
+  
+    res = 0
+    if isinstance(val1,float) or isinstance(val2,float):
+      res = val1 / val2
+    else:
+      res = val1 // val2
+
+    tmp = math.ceil(res)
     return tmp * val2
 
   def checkAndManageLlapQueue(self, services, configurations, hosts, llap_queue_name, llap_queue_cap_perc):
@@ -1632,7 +1639,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     capacity_scheduler_properties, received_as_key_value_pair = self.getCapacitySchedulerProperties(services)
     if capacity_scheduler_properties:
       leafQueueNames = self.getAllYarnLeafQueues(capacity_scheduler_properties)
-      cap_sched_config_keys = capacity_scheduler_properties.keys()
+      cap_sched_config_keys = list(capacity_scheduler_properties.keys())
 
       yarn_default_queue_capacity = -1
       if 'yarn.scheduler.capacity.root.default.capacity' in cap_sched_config_keys:
@@ -1675,7 +1682,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
         # one concatenated string.
         updated_cap_sched_configs_as_dict = False
         if not received_as_key_value_pair:
-          for prop, val in capacity_scheduler_properties.items():
+          for prop, val in list(capacity_scheduler_properties.items()):
             if llap_queue_name not in prop:
               if prop == 'yarn.scheduler.capacity.root.queues':
                 updated_cap_sched_configs_str = updated_cap_sched_configs_str \
@@ -1711,7 +1718,7 @@ yarn.scheduler.capacity.root.{0}.maximum-am-resource-percent=1""".format(llap_qu
           # If capacity-scheduler configs are received as a  dictionary (generally 1st time), we deposit the changed
           # values back as dictionary itself.
           # Update existing configs in 'capacity-scheduler'.
-          for prop, val in capacity_scheduler_properties.items():
+          for prop, val in list(capacity_scheduler_properties.items()):
             if llap_queue_name not in prop:
               if prop == 'yarn.scheduler.capacity.root.queues':
                 putCapSchedProperty(prop, 'default,llap')
@@ -1780,14 +1787,14 @@ yarn.scheduler.capacity.root.{0}.maximum-am-resource-percent=1""".format(llap_qu
       if len(leafQueueNames) == 2 and llap_queue_name in leafQueueNames and 'default' in leafQueueNames:
         # Get 'llap' queue state
         currLlapQueueState = 'STOPPED'
-        if 'yarn.scheduler.capacity.root.'+llap_queue_name+'.state' in capacity_scheduler_properties.keys():
+        if 'yarn.scheduler.capacity.root.'+llap_queue_name+'.state' in list(capacity_scheduler_properties.keys()):
           currLlapQueueState = capacity_scheduler_properties.get('yarn.scheduler.capacity.root.'+llap_queue_name+'.state')
         else:
           self.logger.error("{0} queue 'state' property not present in capacity scheduler. Skipping adjusting queues.".format(llap_queue_name))
           return
         if currLlapQueueState == 'RUNNING':
           DEFAULT_MAX_CAPACITY = '100'
-          for prop, val in capacity_scheduler_properties.items():
+          for prop, val in list(capacity_scheduler_properties.items()):
             # Update 'default' related configs in 'updated_default_queue_configs'
             if llap_queue_name not in prop:
               if prop == 'yarn.scheduler.capacity.root.default.capacity':
@@ -1898,7 +1905,7 @@ yarn.scheduler.capacity.root.{0}.maximum-am-resource-percent=1""".format(llap_qu
     Retrieves the passed in queue's 'capacity' related key from Capacity Scheduler.
     """
     # Identify the key which contains the capacity for 'llap_daemon_selected_queue_name'.
-    cap_sched_keys = capacity_scheduler_properties.keys()
+    cap_sched_keys = list(capacity_scheduler_properties.keys())
     llap_selected_queue_cap_key =  None
     current_selected_queue_for_llap_cap = None
     for key in cap_sched_keys:
@@ -1914,7 +1921,7 @@ yarn.scheduler.capacity.root.{0}.maximum-am-resource-percent=1""".format(llap_qu
     Retrieves the passed in queue's 'state' from Capacity Scheduler.
     """
     # Identify the key which contains the state for 'llap_daemon_selected_queue_name'.
-    cap_sched_keys = capacity_scheduler_properties.keys()
+    cap_sched_keys = list(capacity_scheduler_properties.keys())
     llap_selected_queue_state_key =  None
     llap_selected_queue_state = None
     for key in cap_sched_keys:
@@ -1930,7 +1937,7 @@ yarn.scheduler.capacity.root.{0}.maximum-am-resource-percent=1""".format(llap_qu
     pertaining to passed-in queue is not present.
     """
     # Identify the key which contains the AM fraction for 'llap_daemon_selected_queue_name'.
-    cap_sched_keys = capacity_scheduler_properties.keys()
+    cap_sched_keys = list(capacity_scheduler_properties.keys())
     llap_selected_queue_am_percent_key = None
     for key in cap_sched_keys:
       if key.endswith("."+llap_daemon_selected_queue_name+".maximum-am-resource-percent"):
@@ -2201,7 +2208,7 @@ yarn.scheduler.capacity.root.{0}.maximum-am-resource-percent=1""".format(llap_qu
             if superusers:
               _superusers = superusers.split(',')
               _superusers = [x.strip() for x in _superusers]
-              _superusers = filter(None, _superusers)  # Removes empty string elements from array
+              _superusers = [_f for _f in _superusers if _f]  # Removes empty string elements from array
             else:
               _superusers = []
 

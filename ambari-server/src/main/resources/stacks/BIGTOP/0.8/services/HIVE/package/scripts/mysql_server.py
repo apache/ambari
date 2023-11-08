@@ -21,24 +21,24 @@ limitations under the License.
 import sys
 from resource_management import *
 
-from mysql_service import mysql_service
+from .mysql_service import mysql_service
 
 class MysqlServer(Script):
 
   def install(self, env):
-    import params
+    from . import params
     
     self.install_packages(env, exclude_packages=params.hive_exclude_packages)
     self.configure(env)
 
   def configure(self, env):
-    import params
+    from . import params
     env.set_params(params)
 
     mysql_service(daemon_name=params.daemon_name, action='start')
 
     File(params.mysql_adduser_path,
-         mode=0755,
+         mode=0o755,
          content=StaticFile('addMysqlUser.sh')
     )
 
@@ -51,19 +51,19 @@ class MysqlServer(Script):
     )
 
   def start(self, env):
-    import params
+    from . import params
     env.set_params(params)
 
     mysql_service(daemon_name=params.daemon_name, action = 'start')
 
   def stop(self, env):
-    import params
+    from . import params
     env.set_params(params)
 
     mysql_service(daemon_name=params.daemon_name, action = 'stop')
 
   def status(self, env):
-    import status_params
+    from . import status_params
     mysql_service(daemon_name=status_params.daemon_name, action = 'status')
 
 if __name__ == "__main__":

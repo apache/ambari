@@ -52,12 +52,12 @@ def setup_conf_dir(name=None): # 'master' or 'tserver' or 'monitor' or 'gc' or '
               configuration_attributes=params.config['configurationAttributes']['accumulo-site'],
               owner = params.accumulo_user,
               group = params.user_group,
-              mode = 0644
+              mode = 0o644
     )
 
     # create env file
     File(format("{dest_conf_dir}/accumulo-env.sh"),
-         mode=0644,
+         mode=0o644,
          group=params.user_group,
          owner=params.accumulo_user,
          content=InlineTemplate(params.env_sh_template)
@@ -66,7 +66,7 @@ def setup_conf_dir(name=None): # 'master' or 'tserver' or 'monitor' or 'gc' or '
     dest_conf_dir = params.server_conf_dir
     # create server conf directory
     Directory( params.server_conf_dir,
-               mode=0700,
+               mode=0o700,
                owner = params.accumulo_user,
                group = params.user_group,
                create_parents = True
@@ -82,7 +82,7 @@ def setup_conf_dir(name=None): # 'master' or 'tserver' or 'monitor' or 'gc' or '
                configuration_attributes=params.config['configurationAttributes']['accumulo-site'],
                owner = params.accumulo_user,
                group = params.user_group,
-               mode = 0600
+               mode = 0o600
     )
 
     # create pid dir
@@ -91,7 +91,7 @@ def setup_conf_dir(name=None): # 'master' or 'tserver' or 'monitor' or 'gc' or '
                group = params.user_group,
                create_parents = True,
                cd_access = "a",
-               mode = 0755,
+               mode = 0o755,
     )
 
     # create log dir
@@ -100,12 +100,12 @@ def setup_conf_dir(name=None): # 'master' or 'tserver' or 'monitor' or 'gc' or '
                group = params.user_group,
                create_parents = True,
                cd_access = "a",
-               mode = 0755,
+               mode = 0o755,
     )
 
     # create env file
     File(format("{dest_conf_dir}/accumulo-env.sh"),
-         mode=0644,
+         mode=0o644,
          group=params.user_group,
          owner=params.accumulo_user,
          content=InlineTemplate(params.server_env_sh_template)
@@ -128,7 +128,7 @@ def setup_conf_dir(name=None): # 'master' or 'tserver' or 'monitor' or 'gc' or '
   copy_site_property(configs, 'instance.zookeeper.timeout')
   copy_site_property(configs, 'trace.span.receivers')
   copy_site_property(configs, 'trace.zookeeper.path')
-  for key,value in params.config['configurations']['accumulo-site'].iteritems():
+  for key,value in params.config['configurations']['accumulo-site'].items():
     if key.startswith("trace.span.receiver."):
       configs[key] = value
   PropertiesFile(format("{dest_conf_dir}/client.conf"),
@@ -140,14 +140,14 @@ def setup_conf_dir(name=None): # 'master' or 'tserver' or 'monitor' or 'gc' or '
   # create log4j.properties files
   if (params.log4j_props != None):
     File(format("{dest_conf_dir}/log4j.properties"),
-         mode=0644,
+         mode=0o644,
          group=params.user_group,
          owner=params.accumulo_user,
          content=params.log4j_props
     )
   else:
     File(format("{dest_conf_dir}/log4j.properties"),
-         mode=0644,
+         mode=0o644,
          group=params.user_group,
          owner=params.hbase_user
     )
@@ -175,13 +175,13 @@ def setup_conf_dir(name=None): # 'master' or 'tserver' or 'monitor' or 'gc' or '
                          type="directory",
                          action="create_on_execute",
                          owner=params.accumulo_user,
-                         mode=0700
+                         mode=0o700
     )
     params.HdfsResource(format("{params.parent_dir}"),
                          type="directory",
                          action="create_on_execute",
                          owner=params.accumulo_user,
-                         mode=0700
+                         mode=0o700
     )
     params.HdfsResource(None, action="execute")
     if params.security_enabled and params.has_secure_user_auth:
@@ -203,7 +203,7 @@ def setup_conf_dir(name=None): # 'master' or 'tserver' or 'monitor' or 'gc' or '
       passfile = format("{params.exec_tmp_dir}/pass")
       try:
         File(passfile,
-             mode=0600,
+             mode=0o600,
              group=params.user_group,
              owner=params.accumulo_user,
              content=InlineTemplate('{{root_password}}\n'
@@ -258,7 +258,7 @@ def setup_conf_dir(name=None): # 'master' or 'tserver' or 'monitor' or 'gc' or '
     cmdfile = format("{params.exec_tmp_dir}/resetcmds")
     try:
       File(cmdfile,
-           mode=0600,
+           mode=0o600,
            group=params.user_group,
            owner=params.accumulo_user,
            content=InlineTemplate('grant -t trace -u {{trace_user}} Table.ALTER_TABLE\n'
@@ -281,7 +281,7 @@ def setup_conf_dir(name=None): # 'master' or 'tserver' or 'monitor' or 'gc' or '
                  user=params.accumulo_user)
       else:
         File(rpassfile,
-             mode=0600,
+             mode=0o600,
              group=params.user_group,
              owner=params.accumulo_user,
              content=InlineTemplate('{{root_password}}\n\n')
@@ -315,7 +315,7 @@ def create_user(user, password):
   cmdfile = format("{params.exec_tmp_dir}/cmds")
   try:
     File(cmdfile,
-         mode=0600,
+         mode=0o600,
          group=params.user_group,
          owner=params.accumulo_user,
          content=InlineTemplate(format("createuser {user}\n"
@@ -331,13 +331,13 @@ def create_user(user, password):
                user=params.accumulo_user)
     else:
       File(rpassfile,
-           mode=0600,
+           mode=0o600,
            group=params.user_group,
            owner=params.accumulo_user,
            content=InlineTemplate('{{root_password}}\n\n')
       )
       File(passfile,
-           mode=0600,
+           mode=0o600,
            group=params.user_group,
            owner=params.accumulo_user,
            content=InlineTemplate(format("{params.root_password}\n"
@@ -377,7 +377,7 @@ def accumulo_StaticFile(name, dest_conf_dir):
   import params
 
   File(format("{dest_conf_dir}/{name}"),
-    mode=0644,
+    mode=0o644,
     group=params.user_group,
     owner=params.accumulo_user,
     content=StaticFile(name)

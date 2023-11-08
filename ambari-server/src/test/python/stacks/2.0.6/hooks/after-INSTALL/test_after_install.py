@@ -61,7 +61,7 @@ class TestHookAfterInstall(RMFTestCase):
                               xml_include_file=None)
     self.assertResourceCalled('Directory',
                               '/usr/lib/ambari-logsearch-logfeeder/conf',
-                              mode = 0755,
+                              mode = 0o755,
                               cd_access = 'a',
                               create_parents = True)
     self.assertNoMoreResources()
@@ -110,12 +110,12 @@ class TestHookAfterInstall(RMFTestCase):
 
     self.assertResourceCalled('Directory',
                               '/usr/lib/ambari-logsearch-logfeeder/conf',
-                              mode = 0755,
+                              mode = 0o755,
                               cd_access = 'a',
                               create_parents = True)
 
     package_dirs = conf_select.get_package_dirs();
-    for package, dir_defs in package_dirs.iteritems():
+    for package, dir_defs in package_dirs.items():
       for dir_def in dir_defs:
         conf_dir = dir_def['conf_dir']
         conf_backup_dir = conf_dir + ".backup"
@@ -179,12 +179,12 @@ class TestHookAfterInstall(RMFTestCase):
 
     self.assertResourceCalled('Directory',
                               '/usr/lib/ambari-logsearch-logfeeder/conf',
-                              mode = 0755,
+                              mode = 0o755,
                               cd_access = 'a',
                               create_parents = True)
 
     package_dirs = conf_select.get_package_dirs();
-    for package, dir_defs in package_dirs.iteritems():
+    for package, dir_defs in package_dirs.items():
       for dir_def in dir_defs:
         conf_dir = dir_def['conf_dir']
         conf_backup_dir = conf_dir + ".backup"
@@ -283,12 +283,12 @@ class TestHookAfterInstall(RMFTestCase):
 
     self.assertResourceCalled('Directory',
                               '/usr/lib/ambari-logsearch-logfeeder/conf',
-                              mode = 0755,
+                              mode = 0o755,
                               cd_access = 'a',
                               create_parents = True)
 
     package_dirs = conf_select.get_package_dirs();
-    for package, dir_defs in package_dirs.iteritems():
+    for package, dir_defs in package_dirs.items():
       for dir_def in dir_defs:
         conf_dir = dir_def['conf_dir']
         conf_backup_dir = conf_dir + ".backup"

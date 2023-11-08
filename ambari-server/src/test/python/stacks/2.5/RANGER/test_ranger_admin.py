@@ -53,26 +53,26 @@ class TestRangerAdmin(RMFTestCase):
 
     self.assertResourceCalled('Directory', '/var/log/ambari-infra-solr-client',
         create_parents = True,
-        mode = 0755,
+        mode = 0o755,
         cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/usr/lib/ambari-infra-solr-client',
         cd_access = 'a',
         create_parents = True,
-        mode = 0755,
+        mode = 0o755,
         recursive_ownership = True,
     )
     self.assertResourceCalled('File', '/usr/lib/ambari-infra-solr-client/solrCloudCli.sh',
         content = StaticFile('/usr/lib/ambari-infra-solr-client/solrCloudCli.sh'),
-        mode = 0755,
+        mode = 0o755,
     )
     self.assertResourceCalled('File', '/usr/lib/ambari-infra-solr-client/log4j.properties',
         content = self.getConfig()['configurations']['infra-solr-client-log4j']['content'],
-        mode = 0644,
+        mode = 0o644,
     )
     self.assertResourceCalled('File', '/var/log/ambari-infra-solr-client/solr-client.log',
         content = '',
-        mode = 0664,
+        mode = 0o664,
     )
     self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181 --znode /infra-solr --check-znode --retry 5 --interval 10')
     self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --download-config --config-dir /tmp/solr_config_ranger_audits_0.[0-9]* --config-set ranger_audits --retry 30 --interval 5')
@@ -89,7 +89,7 @@ class TestRangerAdmin(RMFTestCase):
     )
 
     self.assertResourceCalled('Execute', '/usr/bin/ranger-admin-start',
-      environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+      environment = {'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},
       not_if = 'ps -ef | grep proc_rangeradmin | grep -v grep',
       user = 'ranger',
     )
@@ -106,7 +106,7 @@ class TestRangerAdmin(RMFTestCase):
       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', '/usr/bin/ranger-admin-stop',
-      environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+      environment = {'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},
       user = 'ranger'
     )
     self.assertResourceCalled('File', '/var/run/ranger/rangeradmin.pid',
@@ -140,26 +140,26 @@ class TestRangerAdmin(RMFTestCase):
 
     self.assertResourceCalled('Directory', '/var/log/ambari-infra-solr-client',
         create_parents = True,
-        mode = 0755,
+        mode = 0o755,
         cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/usr/lib/ambari-infra-solr-client',
         cd_access = 'a',
         create_parents = True,
-        mode = 0755,
+        mode = 0o755,
         recursive_ownership = True,
     )
     self.assertResourceCalled('File', '/usr/lib/ambari-infra-solr-client/solrCloudCli.sh',
         content = StaticFile('/usr/lib/ambari-infra-solr-client/solrCloudCli.sh'),
-        mode = 0755,
+        mode = 0o755,
     )
     self.assertResourceCalled('File', '/usr/lib/ambari-infra-solr-client/log4j.properties',
         content = self.getConfig()['configurations']['infra-solr-client-log4j']['content'],
-        mode = 0644,
+        mode = 0o644,
     )
     self.assertResourceCalled('File', '/var/log/ambari-infra-solr-client/solr-client.log',
         content = '',
-        mode = 0664,
+        mode = 0o664,
     )
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-admin/conf/ranger_solr_jaas.conf',
       content = Template('ranger_solr_jaas_conf.j2'),
@@ -175,7 +175,7 @@ class TestRangerAdmin(RMFTestCase):
     self.assertResourceCalled('Execute', "/usr/bin/kinit -kt /etc/security/keytabs/infra-solr.service.keytab infra-solr/c6401.ambari.apache.org@EXAMPLE.COM; curl -k -s --negotiate -u : http://c6401.ambari.apache.org:8886/solr/admin/authorization | grep authorization.enabled && /usr/bin/kinit -kt /etc/security/keytabs/infra-solr.service.keytab infra-solr/c6401.ambari.apache.org@EXAMPLE.COM; curl -H 'Content-type:application/json' -d '{\"set-user-role\": {\"rangeradmin@EXAMPLE.COM\": [\"ranger_user\", \"ranger_audit_user\", \"dev\"]}}' -s -o /dev/null -w'%{http_code}' --negotiate -u: -k http://c6401.ambari.apache.org:8886/solr/admin/authorization | grep 200",
                               logoutput = True, tries = 30, try_sleep = 10, user='infra-solr')
     self.assertResourceCalled('Execute', "/usr/bin/kinit -kt /etc/security/keytabs/infra-solr.service.keytab infra-solr/c6401.ambari.apache.org@EXAMPLE.COM; curl -k -s --negotiate -u : http://c6401.ambari.apache.org:8886/solr/admin/authorization | grep authorization.enabled && /usr/bin/kinit -kt /etc/security/keytabs/infra-solr.service.keytab infra-solr/c6401.ambari.apache.org@EXAMPLE.COM; curl -H \'Content-type:application/json\' -d "
-                                         "\'{\"set-user-role\": {\"hbase@EXAMPLE.COM\": [\"ranger_audit_user\", \"dev\"], \"nn@EXAMPLE.COM\": [\"ranger_audit_user\", \"dev\"], \"knox@EXAMPLE.COM\": [\"ranger_audit_user\", \"dev\"], \"rangerkms@EXAMPLE.COM\": [\"ranger_audit_user\", \"dev\"], \"kafka@EXAMPLE.COM\": [\"ranger_audit_user\", \"dev\"], \"hive@EXAMPLE.COM\": [\"ranger_audit_user\", \"dev\"], \"nifi@EXAMPLE.COM\": [\"ranger_audit_user\", \"dev\"], \"storm@EXAMPLE.COM\": [\"ranger_audit_user\", \"dev\"], \"yarn@EXAMPLE.COM\": [\"ranger_audit_user\", \"dev\"]}}\' -s -o /dev/null -w\'%{http_code}\' --negotiate -u: -k http://c6401.ambari.apache.org:8886/solr/admin/authorization | grep 200",
+                                         "\'{\"set-user-role\": {\"nn@EXAMPLE.COM\": [\"ranger_audit_user\", \"dev\"], \"hbase@EXAMPLE.COM\": [\"ranger_audit_user\", \"dev\"], \"hive@EXAMPLE.COM\": [\"ranger_audit_user\", \"dev\"], \"kafka@EXAMPLE.COM\": [\"ranger_audit_user\", \"dev\"], \"rangerkms@EXAMPLE.COM\": [\"ranger_audit_user\", \"dev\"], \"knox@EXAMPLE.COM\": [\"ranger_audit_user\", \"dev\"], \"nifi@EXAMPLE.COM\": [\"ranger_audit_user\", \"dev\"], \"storm@EXAMPLE.COM\": [\"ranger_audit_user\", \"dev\"], \"yarn@EXAMPLE.COM\": [\"ranger_audit_user\", \"dev\"]}}\' -s -o /dev/null -w\'%{http_code}\' --negotiate -u: -k http://c6401.ambari.apache.org:8886/solr/admin/authorization | grep 200",
                               logoutput = True, tries = 30, try_sleep = 10, user='infra-solr')
 
     self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/ambari-solr --jaas-file /usr/hdp/current/ranger-admin/conf/ranger_solr_jaas.conf --create-collection --collection ranger_audits --config-set ranger_audits --shards 1 --replication 1 --max-shards 1 --retry 5 --interval 10')
@@ -189,7 +189,7 @@ class TestRangerAdmin(RMFTestCase):
     )
 
     self.assertResourceCalled('Execute', '/usr/bin/ranger-admin-start',
-      environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+      environment = {'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},
       not_if = 'ps -ef | grep proc_rangeradmin | grep -v grep',
       user = 'ranger',
     )
@@ -210,7 +210,7 @@ class TestRangerAdmin(RMFTestCase):
 
     self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
       content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/mysql-connector-java.jar'),
-      mode = 0644
+      mode = 0o644
     )
 
     self.assertResourceCalled('Execute', ('cp', '--remove-destination', '/tmp/mysql-connector-java.jar', '/usr/hdp/current/ranger-admin/ews/lib'),
@@ -219,7 +219,7 @@ class TestRangerAdmin(RMFTestCase):
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-admin/ews/lib/mysql-connector-java.jar',
-      mode = 0644
+      mode = 0o644
     )
 
     self.assertResourceCalled('ModifyPropertiesFile', '/usr/hdp/current/ranger-admin/install.properties',
@@ -234,7 +234,7 @@ class TestRangerAdmin(RMFTestCase):
 
     self.assertResourceCalled('File', '/usr/lib/ambari-agent/DBConnectionVerification.jar',
       content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar'),
-      mode = 0644
+      mode = 0o644
     )
 
     self.assertResourceCalled('Execute',
@@ -258,7 +258,7 @@ class TestRangerAdmin(RMFTestCase):
     )
 
     self.assertResourceCalled('Directory', '/var/run/ranger',
-      mode=0755,
+      mode=0o755,
       owner = 'ranger',
       group = 'hadoop',
       cd_access = "a",
@@ -269,14 +269,14 @@ class TestRangerAdmin(RMFTestCase):
       content = 'export JAVA_HOME=/usr/jdk64/jdk1.7.0_45',
       owner = 'ranger',
       group = 'ranger',
-      mode = 0755
+      mode = 0o755
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-admin/conf/ranger-admin-env-piddir.sh',
       content = 'export RANGER_PID_DIR_PATH=/var/run/ranger\nexport RANGER_USER=ranger',
       owner = 'ranger',
       group = 'ranger',
-      mode = 0755
+      mode = 0o755
     )
 
     self.assertResourceCalled('Directory', '/var/log/ranger/admin',
@@ -284,14 +284,14 @@ class TestRangerAdmin(RMFTestCase):
       group='ranger',
       create_parents = True,
       cd_access = 'a',
-      mode = 0755
+      mode = 0o755
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-admin/conf/ranger-admin-env-logdir.sh',
       content = 'export RANGER_ADMIN_LOG_DIR=/var/log/ranger/admin',
       owner = 'ranger',
       group = 'ranger',
-      mode = 0755
+      mode = 0o755
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-admin/conf/ranger-admin-default-site.xml',
@@ -322,24 +322,24 @@ class TestRangerAdmin(RMFTestCase):
       conf_dir = '/usr/hdp/current/ranger-admin/conf',
       configurations = ranger_admin_site_copy,
       configuration_attributes = self.getConfig()['configurationAttributes']['ranger-admin-site'],
-      mode = 0644
+      mode = 0o644
     )
 
     self.assertResourceCalled('Directory', '/usr/hdp/current/ranger-admin/conf/ranger_jaas',
       owner ='ranger',
       group ='ranger',
-      mode = 0700
+      mode = 0o700
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-admin/ews/webapp/WEB-INF/log4j.properties',
       owner = 'ranger',
       group = 'ranger',
       content = InlineTemplate(self.getConfig()['configurations']['admin-log4j']['content']),
-      mode = 0644
+      mode = 0o644
     )
 
     self.assertResourceCalled('Execute', ('/usr/jdk64/jdk1.7.0_45/bin/java', '-cp', '/usr/hdp/current/ranger-admin/cred/lib/*', 'org.apache.ranger.credentialapi.buildks', 'create', 'rangeradmin', '-value', 'rangeradmin01', '-provider', 'jceks://file/etc/ranger/admin/rangeradmin.jceks'),
-      environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+      environment = {'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},
       logoutput=True,
       sudo = True
     )
@@ -348,14 +348,14 @@ class TestRangerAdmin(RMFTestCase):
       owner = 'ranger',
       group = 'ranger',
       only_if = 'test -e /etc/ranger/admin/rangeradmin.jceks',
-      mode = 0640
+      mode = 0o640
     )
 
     self.assertResourceCalled('File', '/etc/ranger/admin/.rangeradmin.jceks.crc',
       owner = 'ranger',
       group = 'ranger',
       only_if = 'test -e /etc/ranger/admin/.rangeradmin.jceks.crc',
-      mode = 0640
+      mode = 0o640
     )
 
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
@@ -364,7 +364,7 @@ class TestRangerAdmin(RMFTestCase):
       conf_dir = '/usr/hdp/current/ranger-admin/conf',
       configurations = self.getConfig()['configurations']['core-site'],
       configuration_attributes = self.getConfig()['configurationAttributes']['core-site'],
-      mode = 0644
+      mode = 0o644
     )
 
   def assert_configure_secured(self):
@@ -381,7 +381,7 @@ class TestRangerAdmin(RMFTestCase):
 
     self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
       content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/mysql-connector-java.jar'),
-      mode = 0644
+      mode = 0o644
     )
 
     self.assertResourceCalled('Execute', ('cp', '--remove-destination', '/tmp/mysql-connector-java.jar', '/usr/hdp/current/ranger-admin/ews/lib'),
@@ -390,7 +390,7 @@ class TestRangerAdmin(RMFTestCase):
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-admin/ews/lib/mysql-connector-java.jar',
-      mode = 0644
+      mode = 0o644
     )
 
     self.assertResourceCalled('ModifyPropertiesFile', '/usr/hdp/current/ranger-admin/install.properties',
@@ -405,7 +405,7 @@ class TestRangerAdmin(RMFTestCase):
 
     self.assertResourceCalled('File', '/usr/lib/ambari-agent/DBConnectionVerification.jar',
       content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar'),
-      mode = 0644
+      mode = 0o644
     )
 
     self.assertResourceCalled('Execute',
@@ -429,7 +429,7 @@ class TestRangerAdmin(RMFTestCase):
     )
 
     self.assertResourceCalled('Directory', '/var/run/ranger',
-      mode=0755,
+      mode=0o755,
       owner = 'ranger',
       group = 'hadoop',
       cd_access = "a",
@@ -440,14 +440,14 @@ class TestRangerAdmin(RMFTestCase):
       content = 'export JAVA_HOME=/usr/jdk64/jdk1.7.0_45',
       owner = 'ranger',
       group = 'ranger',
-      mode = 0755
+      mode = 0o755
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-admin/conf/ranger-admin-env-piddir.sh',
       content = 'export RANGER_PID_DIR_PATH=/var/run/ranger\nexport RANGER_USER=ranger',
       owner = 'ranger',
       group = 'ranger',
-      mode = 0755
+      mode = 0o755
     )
 
     self.assertResourceCalled('Directory', '/var/log/ranger/admin',
@@ -455,14 +455,14 @@ class TestRangerAdmin(RMFTestCase):
       group='ranger',
       create_parents = True,
       cd_access = 'a',
-      mode = 0755
+      mode = 0o755
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-admin/conf/ranger-admin-env-logdir.sh',
       content = 'export RANGER_ADMIN_LOG_DIR=/var/log/ranger/admin',
       owner = 'ranger',
       group = 'ranger',
-      mode = 0755
+      mode = 0o755
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-admin/conf/ranger-admin-default-site.xml',
@@ -493,24 +493,24 @@ class TestRangerAdmin(RMFTestCase):
       conf_dir = '/usr/hdp/current/ranger-admin/conf',
       configurations = ranger_admin_site_copy,
       configuration_attributes = self.getConfig()['configurationAttributes']['ranger-admin-site'],
-      mode = 0644
+      mode = 0o644
     )
 
     self.assertResourceCalled('Directory', '/usr/hdp/current/ranger-admin/conf/ranger_jaas',
       owner ='ranger',
       group ='ranger',
-      mode = 0700
+      mode = 0o700
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-admin/ews/webapp/WEB-INF/log4j.properties',
       owner = 'ranger',
       group = 'ranger',
       content = InlineTemplate(self.getConfig()['configurations']['admin-log4j']['content']),
-      mode = 0644
+      mode = 0o644
     )
 
     self.assertResourceCalled('Execute', ('/usr/jdk64/jdk1.7.0_45/bin/java', '-cp', '/usr/hdp/current/ranger-admin/cred/lib/*', 'org.apache.ranger.credentialapi.buildks', 'create', 'rangeradmin', '-value', 'rangeradmin01', '-provider', 'jceks://file/etc/ranger/admin/rangeradmin.jceks'),
-      environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+      environment = {'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},
       logoutput=True,
       sudo = True
     )
@@ -519,14 +519,14 @@ class TestRangerAdmin(RMFTestCase):
       owner = 'ranger',
       group = 'ranger',
       only_if = 'test -e /etc/ranger/admin/rangeradmin.jceks',
-      mode = 0640
+      mode = 0o640
     )
 
     self.assertResourceCalled('File', '/etc/ranger/admin/.rangeradmin.jceks.crc',
       owner = 'ranger',
       group = 'ranger',
       only_if = 'test -e /etc/ranger/admin/.rangeradmin.jceks.crc',
-      mode = 0640
+      mode = 0o640
     )
 
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
@@ -535,5 +535,5 @@ class TestRangerAdmin(RMFTestCase):
       conf_dir = '/usr/hdp/current/ranger-admin/conf',
       configurations = self.getConfig()['configurations']['core-site'],
       configuration_attributes = self.getConfig()['configurationAttributes']['core-site'],
-      mode = 0644
+      mode = 0o644
     )    

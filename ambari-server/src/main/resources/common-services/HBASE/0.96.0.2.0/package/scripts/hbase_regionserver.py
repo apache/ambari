@@ -53,7 +53,7 @@ class HbaseRegionServer(Script):
     hbase(name='regionserver')
 
   def decommission(self, env):
-    print "Decommission not yet implemented!"
+    print("Decommission not yet implemented!")
 
   def graceful_stop(self, env, upgrade_type=None):
     import params

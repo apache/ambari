@@ -39,7 +39,7 @@ class HBaseMaster(Dummy):
     self.keytab_name = "hbase.master.keytab.file"
 
   def decommission(self, env):
-    print "Decommission"
+    print("Decommission")
 
 if __name__ == "__main__":
   HBaseMaster().execute()

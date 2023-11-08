@@ -41,11 +41,11 @@ def make_tarfile(output_filename, source_dir):
   parent_dir=os.path.dirname(output_filename)
   if not os.path.exists(parent_dir):
     os.makedirs(parent_dir)
-  os.chmod(parent_dir, 0711)
+  os.chmod(parent_dir, 0o711)
   with closing(tarfile.open(output_filename, "w:gz")) as tar:
     for file in os.listdir(source_dir):
       tar.add(os.path.join(source_dir,file),arcname=file)
-  os.chmod(output_filename, 0644)
+  os.chmod(output_filename, 0o644)
 
 
 def spark_service(name, upgrade_type=None, action=None):
@@ -70,7 +70,7 @@ def spark_service(name, upgrade_type=None, action=None):
                           action="create_on_execute",
                           owner=params.spark_user,
                           group=params.user_group,
-                          mode=0777,
+                          mode=0o777,
                           recursive_chmod=True
                           )
       params.HdfsResource(None, action="execute")

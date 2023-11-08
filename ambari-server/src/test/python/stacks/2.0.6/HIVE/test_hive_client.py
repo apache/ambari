@@ -37,18 +37,18 @@ class TestHiveClient(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Directory', '/etc/hive',
-        mode = 0755
+        mode = 0o755
     )
     self.assertResourceCalled('Directory', '/usr/hdp/current/hive-client/conf',
         owner = 'hive',
         group = 'hadoop',
         create_parents = True,
-        mode = 0755,
+        mode = 0o755,
     )
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
         group = 'hadoop',
         conf_dir = '/usr/hdp/current/hive-client/conf',
-        mode = 0644,
+        mode = 0o644,
         configuration_attributes = self.getConfig()['configurationAttributes']['mapred-site'],
         owner = 'hive',
         configurations = self.getConfig()['configurations']['mapred-site'],
@@ -56,29 +56,29 @@ class TestHiveClient(RMFTestCase):
     self.assertResourceCalled('File', '/usr/hdp/current/hive-client/conf/hive-default.xml.template',
         owner = 'hive',
         group = 'hadoop',
-        mode = 0644,
+        mode = 0o644,
     )
     self.assertResourceCalled('File', '/usr/hdp/current/hive-client/conf/hive-env.sh.template',
         owner = 'hive',
         group = 'hadoop',
-        mode = 0644,
+        mode = 0o644,
     )
     self.assertResourceCalled('File', '/usr/hdp/current/hive-client/conf/hive-exec-log4j.properties',
         content = InlineTemplate('log4jproperties\nline2'),
         owner = 'hive',
         group = 'hadoop',
-        mode = 0644,
+        mode = 0o644,
     )
     self.assertResourceCalled('File', '/usr/hdp/current/hive-client/conf/hive-log4j.properties',
         content = InlineTemplate('log4jproperties\nline2'),
         owner = 'hive',
         group = 'hadoop',
-        mode = 0644,
+        mode = 0o644,
     )
     self.assertResourceCalled('XmlConfig', 'hive-site.xml',
                               group = 'hadoop',
                               conf_dir = '/usr/hdp/current/hive-client/conf',
-                              mode = 0644,
+                              mode = 0o644,
                               configuration_attributes = self.getConfig()['configurationAttributes']['hive-site'],
                               owner = 'hive',
                               configurations = self.getConfig()['configurations']['hive-site'],
@@ -87,7 +87,7 @@ class TestHiveClient(RMFTestCase):
                               content = InlineTemplate(self.getConfig()['configurations']['hive-env']['content']),
                               owner = 'hive',
                               group = 'hadoop',
-                              mode = 0644,
+                              mode = 0o644,
                               )
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner = 'root',
@@ -98,11 +98,11 @@ class TestHiveClient(RMFTestCase):
                               content = Template('hive.conf.j2'),
                               owner = 'root',
                               group = 'root',
-                              mode = 0644,
+                              mode = 0o644,
                               )
     self.assertResourceCalled('File', '/usr/lib/ambari-agent/DBConnectionVerification.jar',
         content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar'),
-        mode = 0644,
+        mode = 0o644,
     )
     self.assertNoMoreResources()
 
@@ -118,18 +118,18 @@ class TestHiveClient(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Directory', '/etc/hive',
-        mode = 0755
+        mode = 0o755
     )
     self.assertResourceCalled('Directory', '/usr/hdp/current/hive-client/conf',
         owner = 'hive',
         group = 'hadoop',
         create_parents = True,
-        mode = 0755,
+        mode = 0o755,
     )
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
         group = 'hadoop',
         conf_dir = '/usr/hdp/current/hive-client/conf',
-        mode = 0644,
+        mode = 0o644,
         configuration_attributes = self.getConfig()['configurationAttributes']['mapred-site'],
         owner = 'hive',
         configurations = self.getConfig()['configurations']['mapred-site'],
@@ -137,29 +137,29 @@ class TestHiveClient(RMFTestCase):
     self.assertResourceCalled('File', '/usr/hdp/current/hive-client/conf/hive-default.xml.template',
         owner = 'hive',
         group = 'hadoop',
-        mode = 0644,
+        mode = 0o644,
     )
     self.assertResourceCalled('File', '/usr/hdp/current/hive-client/conf/hive-env.sh.template',
         owner = 'hive',
         group = 'hadoop',
-        mode = 0644,
+        mode = 0o644,
     )
     self.assertResourceCalled('File', '/usr/hdp/current/hive-client/conf/hive-exec-log4j.properties',
         content = InlineTemplate('log4jproperties\nline2'),
         owner = 'hive',
         group = 'hadoop',
-        mode = 0644,
+        mode = 0o644,
     )
     self.assertResourceCalled('File', '/usr/hdp/current/hive-client/conf/hive-log4j.properties',
         content = InlineTemplate('log4jproperties\nline2'),
         owner = 'hive',
         group = 'hadoop',
-        mode = 0644,
+        mode = 0o644,
     )
     self.assertResourceCalled('XmlConfig', 'hive-site.xml',
                               group = 'hadoop',
                               conf_dir = '/usr/hdp/current/hive-client/conf',
-                              mode = 0644,
+                              mode = 0o644,
                               configuration_attributes = self.getConfig()['configurationAttributes']['hive-site'],
                               owner = 'hive',
                               configurations = self.getConfig()['configurations']['hive-site'],
@@ -168,7 +168,7 @@ class TestHiveClient(RMFTestCase):
                               content = InlineTemplate(self.getConfig()['configurations']['hive-env']['content']),
                               owner = 'hive',
                               group = 'hadoop',
-                              mode = 0644,
+                              mode = 0o644,
                               )
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner = 'root',
@@ -179,7 +179,7 @@ class TestHiveClient(RMFTestCase):
                               content = Template('hive.conf.j2'),
                               owner = 'root',
                               group = 'root',
-                              mode = 0644,
+                              mode = 0o644,
                               )
     self.assertResourceCalled('File', '/usr/hdp/current/hive-client/conf/zkmigrator_jaas.conf',
                               content = Template('zkmigrator_jaas.conf.j2'),
@@ -188,7 +188,7 @@ class TestHiveClient(RMFTestCase):
                               )
     self.assertResourceCalled('File', '/usr/lib/ambari-agent/DBConnectionVerification.jar',
         content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar'),
-        mode = 0644,
+        mode = 0o644,
     )
     self.assertNoMoreResources()
 

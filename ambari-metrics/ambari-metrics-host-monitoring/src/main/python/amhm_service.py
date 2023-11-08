@@ -26,10 +26,10 @@ from ambari_commons.ambari_service import AmbariService
 from ambari_commons.exceptions import FatalException, NonFatalException
 from ambari_commons.logging_utils import print_warning_msg, print_error_msg
 from ambari_commons.os_windows import SvcStatusCallback
-from core.config_reader import SERVICE_USERNAME_KEY, SERVICE_PASSWORD_KEY, \
+from .core.config_reader import SERVICE_USERNAME_KEY, SERVICE_PASSWORD_KEY, \
   SETUP_ACTION, START_ACTION, STOP_ACTION, RESTART_ACTION, STATUS_ACTION
-from core.stop_handler import bind_signal_handlers, StopHandler
-from main import server_process_main, main_config
+from .core.stop_handler import bind_signal_handlers, StopHandler
+from .main import server_process_main, main_config
 
 
 #
@@ -117,7 +117,7 @@ def svcstatus(options):
   options.exit_message = None
 
   statusStr = AMHostMonitoringService.QueryStatus()
-  print "Ambari Metrics Collector is " + statusStr
+  print("Ambari Metrics Collector is " + statusStr)
 
 
 def init_options_parser():
@@ -141,7 +141,7 @@ def win_main():
     sys.frozen = 'windows_exe' # Fake py2exe so we can debug
 
   if len(args) == 0:
-    print parser.print_help()
+    print(parser.print_help())
     parser.error("No action entered")
 
   action = args[0]
@@ -177,7 +177,7 @@ def win_main():
       print_warning_msg(e.reason)
 
   if options.exit_message is not None:
-    print options.exit_message
+    print(options.exit_message)
 
   sys.exit(0)
 

@@ -32,7 +32,7 @@ import threading
 try:
     from queue import Queue, Empty
 except ImportError:
-    from Queue import Queue, Empty
+    from queue import Queue, Empty
 
 from coilmq.util.frames import Frame, FrameBuffer
 from coilmq.queue import QueueManager

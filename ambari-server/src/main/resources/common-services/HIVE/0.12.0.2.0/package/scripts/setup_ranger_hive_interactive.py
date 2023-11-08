@@ -40,7 +40,7 @@ def setup_ranger_hive_interactive(upgrade_type = None):
                          action="create_on_execute",
                          owner=params.hdfs_user,
                          group=params.hdfs_user,
-                         mode=0755,
+                         mode=0o755,
                          recursive_chmod=True
       )
       params.HdfsResource("/ranger/audit/hive2",
@@ -48,7 +48,7 @@ def setup_ranger_hive_interactive(upgrade_type = None):
                          action="create_on_execute",
                          owner=params.hive_user,
                          group=params.hive_user,
-                         mode=0700,
+                         mode=0o700,
                          recursive_chmod=True
       )
       params.HdfsResource(None, action="execute")

@@ -118,7 +118,7 @@ def main(argv=None):
   ctl = Controller(cfg)
   actionQueue = ActionQueue(cfg, ctl)
   heartbeat = Heartbeat(actionQueue)
-  print json.dumps(heartbeat.build('3',3))
+  print(json.dumps(heartbeat.build('3',3)))
 
 
 if __name__ == '__main__':

@@ -197,10 +197,10 @@ class TestAmbariConfiguration(TestCase):
 
     ambari_sso_details = ambari_configuration.get_ambari_sso_details()
     self.assertIsNotNone(ambari_sso_details)
-    self.assertEquals('', ambari_sso_details.get_jwt_audiences())
-    self.assertEquals('hadoop-jwt', ambari_sso_details.get_jwt_cookie_name())
-    self.assertEquals('https://knox.ambari.apache.org', ambari_sso_details.get_sso_provider_url())
-    self.assertEquals('MIICVTCCAb6gAwIBAg...2G2Vhj8vTYptEVg==',
+    self.assertEqual('', ambari_sso_details.get_jwt_audiences())
+    self.assertEqual('hadoop-jwt', ambari_sso_details.get_jwt_cookie_name())
+    self.assertEqual('https://knox.ambari.apache.org', ambari_sso_details.get_sso_provider_url())
+    self.assertEqual('MIICVTCCAb6gAwIBAg...2G2Vhj8vTYptEVg==',
                       ambari_sso_details.get_sso_provider_certificate())
 
   def testCertWithHeaderAndFooter(self):
@@ -219,26 +219,26 @@ class TestAmbariConfiguration(TestCase):
     ambari_configuration = self.ambari_configuration_class(services_json)
     ambari_sso_details = ambari_configuration.get_ambari_sso_details()
 
-    self.assertEquals('-----BEGIN CERTIFICATE-----\n'
+    self.assertEqual('-----BEGIN CERTIFICATE-----\n'
                       'MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD\n'
                       '................................................................\n'
                       'dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy\n'
                       '-----END CERTIFICATE-----',
                       ambari_sso_details.get_sso_provider_certificate(True, False))
 
-    self.assertEquals('-----BEGIN CERTIFICATE-----'
+    self.assertEqual('-----BEGIN CERTIFICATE-----'
                       'MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD'
                       '................................................................'
                       'dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy'
                       '-----END CERTIFICATE-----',
                       ambari_sso_details.get_sso_provider_certificate(True, True))
 
-    self.assertEquals('MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD\n'
+    self.assertEqual('MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD\n'
                       '................................................................\n'
                       'dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy',
                       ambari_sso_details.get_sso_provider_certificate(False, False))
 
-    self.assertEquals('MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD'
+    self.assertEqual('MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD'
                       '................................................................'
                       'dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy',
                       ambari_sso_details.get_sso_provider_certificate(False, True))
@@ -257,26 +257,26 @@ class TestAmbariConfiguration(TestCase):
     ambari_configuration = self.ambari_configuration_class(services_json)
     ambari_sso_details = ambari_configuration.get_ambari_sso_details()
 
-    self.assertEquals('-----BEGIN CERTIFICATE-----\n'
+    self.assertEqual('-----BEGIN CERTIFICATE-----\n'
                       'MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD\n'
                       '................................................................\n'
                       'dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy\n'
                       '-----END CERTIFICATE-----',
                       ambari_sso_details.get_sso_provider_certificate(True, False))
 
-    self.assertEquals('-----BEGIN CERTIFICATE-----'
+    self.assertEqual('-----BEGIN CERTIFICATE-----'
                       'MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD'
                       '................................................................'
                       'dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy'
                       '-----END CERTIFICATE-----',
                       ambari_sso_details.get_sso_provider_certificate(True, True))
 
-    self.assertEquals('MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD\n'
+    self.assertEqual('MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD\n'
                       '................................................................\n'
                       'dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy',
                       ambari_sso_details.get_sso_provider_certificate(False, False))
 
-    self.assertEquals('MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD'
+    self.assertEqual('MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD'
                       '................................................................'
                       'dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy',
                       ambari_sso_details.get_sso_provider_certificate(False, True))

@@ -28,7 +28,7 @@ NEWLINE_SEQUENCE = '\n'
 from ambari_jinja2.filters import FILTERS as DEFAULT_FILTERS
 from ambari_jinja2.tests import TESTS as DEFAULT_TESTS
 DEFAULT_NAMESPACE = {
-    'range':        xrange,
+    'range':        range,
     'dict':         lambda **kw: kw,
     'lipsum':       generate_lorem_ipsum,
     'cycler':       Cycler,
@@ -37,4 +37,4 @@ DEFAULT_NAMESPACE = {
 
 
 # export all constants
-__all__ = tuple(x for x in locals().keys() if x.isupper())
+__all__ = tuple(x for x in list(locals().keys()) if x.isupper())

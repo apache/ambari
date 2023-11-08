@@ -78,7 +78,7 @@ class ConfigurationFormatter(Formatter):
   
   def _convert_field(self, value, conversion, is_protected):
     if conversion == 'e':
-      return quote_bash_args(unicode(value))
+      return quote_bash_args(str(value))
     elif conversion == 'h':
       return utils.PASSWORDS_HIDE_STRING if is_protected else value
     elif conversion == 'p':

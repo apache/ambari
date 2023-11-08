@@ -109,7 +109,7 @@
                 <configuration>
                   <group>Development</group>
                   <name>${solr.client.package.name}</name>
-                  <needarch>noarch</needarch>
+                  <needarch>x86_64</needarch>
                   <targetOS>linux</targetOS>
                   <postinstallScriptlet>
                     <scriptFile>${project.basedir}/src/main/package/rpm/solr-client/postinstall.sh</scriptFile>

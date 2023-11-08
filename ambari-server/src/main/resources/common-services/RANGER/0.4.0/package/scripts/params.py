@@ -159,11 +159,11 @@ ranger_auditdb_name = default('/configurations/admin-properties/audit_db_name', 
 
 sql_command_invoker = config['configurations']['admin-properties']['SQL_COMMAND_INVOKER']
 db_root_user = config['configurations']['admin-properties']['db_root_user']
-db_root_password = unicode(config['configurations']['admin-properties']['db_root_password'])
+db_root_password = str(config['configurations']['admin-properties']['db_root_password'])
 db_host =  config['configurations']['admin-properties']['db_host']
 ranger_db_user = config['configurations']['admin-properties']['db_user']
 ranger_audit_db_user = default('/configurations/admin-properties/audit_db_user', 'rangerlogger')
-ranger_db_password = unicode(config['configurations']['admin-properties']['db_password'])
+ranger_db_password = str(config['configurations']['admin-properties']['db_password'])
 
 #ranger-env properties
 oracle_home = default("/configurations/ranger-env/oracle_home", "-")
@@ -228,12 +228,12 @@ ranger_jdbc_driver = config["configurations"]["ranger-admin-site"]["ranger.jpa.j
 
 ranger_credential_provider_path = config["configurations"]["ranger-admin-site"]["ranger.credential.provider.path"]
 ranger_jpa_jdbc_credential_alias = config["configurations"]["ranger-admin-site"]["ranger.jpa.jdbc.credential.alias"]
-ranger_ambari_db_password = unicode(config["configurations"]["admin-properties"]["db_password"])
+ranger_ambari_db_password = str(config["configurations"]["admin-properties"]["db_password"])
 
 ranger_jpa_audit_jdbc_credential_alias = default('/configurations/ranger-admin-site/ranger.jpa.audit.jdbc.credential.alias', 'rangeraudit')
 ranger_ambari_audit_db_password = ''
 if not is_empty(config["configurations"]["admin-properties"]["audit_db_password"]) and stack_supports_ranger_audit_db:
-  ranger_ambari_audit_db_password = unicode(config["configurations"]["admin-properties"]["audit_db_password"])
+  ranger_ambari_audit_db_password = str(config["configurations"]["admin-properties"]["audit_db_password"])
 
 ugsync_jceks_path = config["configurations"]["ranger-ugsync-site"]["ranger.usersync.credstore.filename"]
 ugsync_cred_lib = os.path.join(usersync_home,"lib","*")
@@ -242,9 +242,9 @@ cred_setup_prefix = (format('{ranger_home}/ranger_credential_helper.py'), '-l', 
 ranger_audit_source_type = config["configurations"]["ranger-admin-site"]["ranger.audit.source.type"]
 
 if xml_configurations_supported:
-  ranger_usersync_keystore_password = unicode(config["configurations"]["ranger-ugsync-site"]["ranger.usersync.keystore.password"])
-  ranger_usersync_ldap_ldapbindpassword = unicode(config["configurations"]["ranger-ugsync-site"]["ranger.usersync.ldap.ldapbindpassword"])
-  ranger_usersync_truststore_password = unicode(config["configurations"]["ranger-ugsync-site"]["ranger.usersync.truststore.password"])
+  ranger_usersync_keystore_password = str(config["configurations"]["ranger-ugsync-site"]["ranger.usersync.keystore.password"])
+  ranger_usersync_ldap_ldapbindpassword = str(config["configurations"]["ranger-ugsync-site"]["ranger.usersync.ldap.ldapbindpassword"])
+  ranger_usersync_truststore_password = str(config["configurations"]["ranger-ugsync-site"]["ranger.usersync.truststore.password"])
   ranger_usersync_keystore_file = config["configurations"]["ranger-ugsync-site"]["ranger.usersync.keystore.file"]
   default_dn_name = 'cn=unixauthservice,ou=authenticator,o=mycompany,c=US'
 

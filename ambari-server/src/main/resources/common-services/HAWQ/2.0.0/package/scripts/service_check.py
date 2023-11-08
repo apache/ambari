@@ -19,7 +19,7 @@ limitations under the License.
 import sys
 import common
 import hawq_constants
-from utils import exec_psql_cmd, exec_ssh_cmd
+from .utils import exec_psql_cmd, exec_ssh_cmd
 from resource_management.libraries.script import Script
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger

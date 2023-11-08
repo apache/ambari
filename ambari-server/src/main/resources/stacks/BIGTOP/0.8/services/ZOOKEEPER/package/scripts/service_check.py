@@ -23,11 +23,11 @@ from resource_management import *
 
 class ZookeeperServiceCheck(Script):
   def service_check(self, env):
-    import params
+    from . import params
     env.set_params(params)
 
     File(format("{tmp_dir}/zkSmoke.sh"),
-         mode=0755,
+         mode=0o755,
          content=StaticFile('zkSmoke.sh')
     )
 

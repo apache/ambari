@@ -32,7 +32,7 @@ from resource_management.libraries.functions.version import format_stack_version
 import socket
 import os
 import glob
-import urlparse
+import urllib.parse
 
 
 __all__ = ['install_windows_msi']
@@ -182,7 +182,7 @@ def install_windows_msi(url_base, save_dir, save_files, hadoop_user, hadoop_pass
     for save_file in save_files:
       if save_file.lower().endswith(".msi"):
         msi_file = save_file
-      file_url = urlparse.urljoin(url_base, save_file)
+      file_url = urllib.parse.urljoin(url_base, save_file)
       try:
         download_file(file_url, os.path.join(msi_save_dir, save_file))
       except:

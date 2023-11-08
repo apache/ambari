@@ -25,9 +25,7 @@ VALID_COMMANDS = ['message', 'connect', 'connected', 'error', 'send',
                   'subscribe', 'unsubscribe', 'begin', 'commit', 'abort', 'ack', 'disconnect', 'nack', 'stomp']
 
 
-class STOMP(object):
-
-    __metaclass__ = abc.ABCMeta
+class STOMP(object, metaclass=abc.ABCMeta):
 
     def __init__(self, engine):
         self.engine = engine
@@ -293,7 +291,7 @@ class STOMP11(STOMP10):
         self._negotiate_protocol(frame, connected_frame)
         heart_beat = frame.headers.get('heart-beat', '0,0')
         if heart_beat:
-            self.enable_heartbeat(*map(int, heart_beat.split(',')), response=connected_frame)
+            self.enable_heartbeat(*list(map(int, heart_beat.split(','))), response=connected_frame)
         super(STOMP11, self).connect(frame, response=connected_frame)
 
     def nack(self, frame):

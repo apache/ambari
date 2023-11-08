@@ -46,7 +46,7 @@ def setup_ranger_storm(upgrade_type=None):
                            action="create_on_execute",
                            owner=params.hdfs_user,
                            group=params.hdfs_user,
-                           mode=0755,
+                           mode=0o755,
                            recursive_chmod=True
         )
         params.HdfsResource("/ranger/audit/storm",
@@ -54,7 +54,7 @@ def setup_ranger_storm(upgrade_type=None):
                            action="create_on_execute",
                            owner=params.storm_user,
                            group=params.storm_user,
-                           mode=0700,
+                           mode=0o700,
                            recursive_chmod=True
         )
         params.HdfsResource(None, action="execute")
@@ -106,7 +106,7 @@ def setup_ranger_storm(upgrade_type=None):
     Directory(site_files_create_path,
             owner = params.storm_user,
             group = params.user_group,
-            mode=0775,
+            mode=0o775,
             create_parents = True,
             cd_access = 'a'
             )

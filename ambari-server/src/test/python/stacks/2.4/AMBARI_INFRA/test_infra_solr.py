@@ -36,28 +36,28 @@ class TestInfraSolr(RMFTestCase):
                                 group = 'hadoop',
                                 create_parents = True,
                                 cd_access = 'a',
-                                mode = 0755
+                                mode = 0o755
       )
       self.assertResourceCalled('Directory', '/var/run/ambari-infra-solr',
                                 owner = 'solr',
                                 group = 'hadoop',
                                 create_parents = True,
                                 cd_access = 'a',
-                                mode = 0755
+                                mode = 0o755
       )
       self.assertResourceCalled('Directory', '/var/lib/ambari-infra-solr/data',
                                 owner = 'solr',
                                 group = 'hadoop',
                                 create_parents = True,
                                 cd_access = 'a',
-                                mode = 0755
+                                mode = 0o755
       )
       self.assertResourceCalled('Directory', '/var/lib/ambari-infra-solr/data/resources',
                                 owner = 'solr',
                                 group = 'hadoop',
                                 create_parents = True,
                                 cd_access = 'a',
-                                mode = 0755
+                                mode = 0o755
       )
       self.assertResourceCalled('Directory', '/usr/lib/ambari-infra-solr',
                                 owner = 'solr',
@@ -65,7 +65,7 @@ class TestInfraSolr(RMFTestCase):
                                 create_parents = True,
                                 recursive_ownership = True,
                                 cd_access = 'a',
-                                mode = 0755
+                                mode = 0o755
                                 )
       self.assertResourceCalled('Directory', '/etc/ambari-infra-solr/conf',
                                 owner = 'solr',
@@ -73,19 +73,19 @@ class TestInfraSolr(RMFTestCase):
                                 create_parents = True,
                                 recursive_ownership = True,
                                 cd_access = 'a',
-                                mode = 0755
+                                mode = 0o755
                                 )
       
       self.assertResourceCalled('File', '/var/log/ambari-infra-solr/solr-install.log',
                                 owner = 'solr',
                                 group = 'hadoop',
-                                mode = 0644,
+                                mode = 0o644,
                                 content = ''
       )
       self.assertResourceCalled('File', '/etc/ambari-infra-solr/conf/infra-solr-env.sh',
                                 owner = 'solr',
                                 group='hadoop',
-                                mode = 0755,
+                                mode = 0o755,
                                 content = InlineTemplate(self.getConfig()['configurations']['infra-solr-env']['content'])
       )
       self.assertResourceCalled('File', '/var/lib/ambari-infra-solr/data/solr.xml',
@@ -103,7 +103,7 @@ class TestInfraSolr(RMFTestCase):
                                 owner = 'solr',
                                 group='hadoop',
                                 content = InlineTemplate(self.getConfig()['configurations']['infra-solr-security-json']['content']),
-                                mode = 0640
+                                mode = 0o640
                                 )
       self.assertResourceCalled('File', '/etc/security/limits.d/infra-solr.conf',
                                 owner = 'root',
@@ -113,11 +113,11 @@ class TestInfraSolr(RMFTestCase):
       self.assertResourceCalled('Directory', '/usr/lib/ambari-logsearch-logfeeder/conf',
                                 create_parents = True,
                                 cd_access = 'a',
-                                mode = 0755
+                                mode = 0o755
                                 )
 
       self.assertResourceCalled('File', '/usr/lib/ambari-logsearch-logfeeder/conf/input.config-logsearch.json',
-                          mode=0644,
+                          mode=0o644,
                           content = Template('input.config-logsearch.json.j2', extra_imports=[default])
                           )
 

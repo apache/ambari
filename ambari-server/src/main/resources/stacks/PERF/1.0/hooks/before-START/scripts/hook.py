@@ -23,7 +23,7 @@ class BeforeStartHook(Hook):
 
   def hook(self, env):
     self.run_custom_hook('before-ANY')
-    print "Before Start Hook"
+    print("Before Start Hook")
 
 if __name__ == "__main__":
   BeforeStartHook().execute()

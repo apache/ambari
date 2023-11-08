@@ -39,10 +39,10 @@ class Resourcemanager(Dummy):
     self.keytab_name = "yarn.resourcemanager.keytab"
 
   def decommission(self, env):
-    print "Decommission"
+    print("Decommission")
 
   def refreshqueues(self, env):
-    print "Refresh Queues"
+    print("Refresh Queues")
 
 if __name__ == "__main__":
   Resourcemanager().execute()

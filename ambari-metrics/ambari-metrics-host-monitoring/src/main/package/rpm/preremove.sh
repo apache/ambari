@@ -17,7 +17,7 @@
 # during package update. See http://www.ibm.com/developerworks/library/l-rpm2/
 # for details
 
-RESOURCE_MONITORING_DIR=/usr/lib/python2.6/site-packages/resource_monitoring
+RESOURCE_MONITORING_DIR=/usr/lib/python3.9/site-packages/resource_monitoring
 PSUTIL_DIR="${RESOURCE_MONITORING_DIR}/psutil"
 
 

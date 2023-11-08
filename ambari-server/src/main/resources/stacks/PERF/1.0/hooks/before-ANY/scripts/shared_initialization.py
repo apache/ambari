@@ -72,7 +72,7 @@ def __setup_java(custom_java_home, custom_jdk_name):
          )
 
     File(jdk_curl_target,
-         mode = 0755,
+         mode = 0o755,
          )
 
     tmp_java_dir = tempfile.mkdtemp(prefix="jdk_tmp_", dir=params.tmp_dir)
@@ -99,7 +99,7 @@ def __setup_java(custom_java_home, custom_jdk_name):
       Directory(tmp_java_dir, action="delete")
 
     File(format("{custom_java_home}/bin/java"),
-         mode=0755,
+         mode=0o755,
          cd_access="a",
          )
     Execute(('chmod', '-R', '755', params.java_home),

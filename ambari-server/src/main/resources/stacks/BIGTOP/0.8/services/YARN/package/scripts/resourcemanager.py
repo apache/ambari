@@ -22,8 +22,8 @@ Ambari Agent
 import sys
 from resource_management import *
 
-from yarn import yarn
-from service import service
+from .yarn import yarn
+from .service import service
 
 
 class Resourcemanager(Script):
@@ -32,13 +32,13 @@ class Resourcemanager(Script):
     self.configure(env)
 
   def configure(self, env):
-    import params
+    from . import params
 
     env.set_params(params)
     yarn(name='resourcemanager')
 
   def start(self, env):
-    import params
+    from . import params
 
     env.set_params(params)
     self.configure(env) # FOR SECURITY
@@ -47,7 +47,7 @@ class Resourcemanager(Script):
     )
 
   def stop(self, env):
-    import params
+    from . import params
 
     env.set_params(params)
 
@@ -56,14 +56,14 @@ class Resourcemanager(Script):
     )
 
   def status(self, env):
-    import status_params
+    from . import status_params
 
     env.set_params(status_params)
     check_process_status(status_params.resourcemanager_pid_file)
     pass
 
   def refreshqueues(self, env):
-    import params
+    from . import params
 
     self.configure(env)
     env.set_params(params)
@@ -73,7 +73,7 @@ class Resourcemanager(Script):
     )
 
   def decommission(self, env):
-    import params
+    from . import params
 
     env.set_params(params)
     rm_kinit_cmd = params.rm_kinit_cmd

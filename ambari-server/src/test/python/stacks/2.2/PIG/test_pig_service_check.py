@@ -58,7 +58,7 @@ class TestPigServiceCheck(RMFTestCase):
                               keytab = '/etc/security/keytabs/hdfs.headless.keytab',
                               kinit_path_local = '/usr/bin/kinit',
                               user = 'hdfs',
-                              mode = 0770,
+                              mode = 0o770,
                               owner = 'ambari-qa',
                               action = ['create_on_execute'],
                               hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
@@ -120,7 +120,7 @@ class TestPigServiceCheck(RMFTestCase):
     )
     self.assertResourceCalled("File", "/tmp/pigSmoke.sh",
       content=StaticFile("pigSmoke.sh"),
-      mode=0755
+      mode=0o755
     )
     self.assertResourceCalled("Execute", "pig /tmp/pigSmoke.sh",
       path=["/usr/hdp/current/pig-client/bin:/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin"],

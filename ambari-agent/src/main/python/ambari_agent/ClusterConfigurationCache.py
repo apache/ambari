@@ -40,7 +40,7 @@ class ClusterConfigurationCache(ClusterCache):
     super(ClusterConfigurationCache, self).__init__(cluster_cache_dir)
   
   def on_cache_update(self):
-    for cluster_id, configurations in self.iteritems():
+    for cluster_id, configurations in self.items():
       # FIXME: Recovery manager does not support multiple cluster as of now.
       self.initializer_module.recovery_manager.cluster_id = cluster_id
       self.initializer_module.recovery_manager.on_config_update(configurations)

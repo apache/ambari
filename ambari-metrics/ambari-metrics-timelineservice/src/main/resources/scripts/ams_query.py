@@ -18,7 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import signal
 import sys
 import optparse
@@ -92,11 +92,11 @@ def main(argv=None):
   (options, args) = parser.parse_args()
 
   if options.host is None:
-    print "Ambari Metrics host name is required (--host or -h)"
+    print("Ambari Metrics host name is required (--host or -h)")
     exit(-1)
 
   if options.node_names is None:
-    print "cluster nodes are required (--nodes or -n)"
+    print("cluster nodes are required (--nodes or -n)")
     exit(3)
 
   global start_time_secs, metrics_test_host, hostnames
@@ -121,8 +121,8 @@ def run():
   hostname = ','.join(hostnames)
   qs = QuerySender(metrics_test_host, True)
   for metric_name in all_metrics:
-    print
-    print 'Querying for ' + metric_name + ' metrics'
+    print()
+    print('Querying for ' + metric_name + ' metrics')
     current_time_secs = start_time_secs
     qs.query_all_app_metrics(hostname, metric_name,
                              all_metrics[metric_name],
@@ -136,7 +136,7 @@ def add_query_metrics_for_app_id(app_id, metric_timing):
 
 
 def print_all_metrics(metrics):
-  print 'Metrics Summary'
+  print('Metrics Summary')
   for app_id in sorted(metrics):
     first = True
     for single_query_metrics in metrics[app_id]:
@@ -147,12 +147,12 @@ def print_all_metrics(metrics):
 def print_app_metrics(app_id, metric_timing, header=False):
   #header
   if header:
-    print app_id + ': ' + ','.join(sorted(metric_timing.keys()))
+    print(app_id + ': ' + ','.join(sorted(metric_timing.keys())))
   #vals
-  print app_id + ':',
+  print(app_id + ':', end=' ')
   for key in sorted(metric_timing):
-    print '%.3f,' % metric_timing[key],
-  print
+    print('%.3f,' % metric_timing[key], end=' ')
+  print()
 
 
 class QuerySender:
@@ -163,14 +163,14 @@ class QuerySender:
   def query_all_app_metrics(self, hostname, app_id, metrics, current_time_secs):
     metric_timing = {}
     for key in metrics:
-      print 'Getting metrics for', key
+      print('Getting metrics for', key)
       query_time = time.time()
 
       metric_names = ','.join(metrics[key])
       self.query(hostname, app_id, metric_names, current_time_secs)
       query_time_elapsed = time.time() - query_time
 
-      print 'Query for "%s" took %s' % (key, query_time_elapsed)
+      print('Query for "%s" took %s' % (key, query_time_elapsed))
       metric_timing[key] = query_time_elapsed
 
     add_query_metrics_for_app_id(app_id, metric_timing)
@@ -179,21 +179,21 @@ class QuerySender:
 
   def query(self, hostname, app_id, metric_names, current_time_secs):
     url = self.create_url(hostname, metric_names, app_id, current_time_secs)
-    print url
+    print(url)
     response = self.send(url)
     if self.print_responses:
-      print response
+      print(response)
     pass
 
   def send(self, url):
-    request = urllib2.Request(url)
+    request = urllib.request.Request(url)
     try:
-      response = urllib2.urlopen(request, timeout=int(30))
+      response = urllib.request.urlopen(request, timeout=int(30))
       response = response.read()
       return response
 
-    except urllib2.URLError as e:
-      print e.reason
+    except urllib.error.URLError as e:
+      print(e.reason)
 
   def create_url(self, hostname, metric_names, app_id, current_time_secs):
     server = AMS_URL.format(self.metrics_address,

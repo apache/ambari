@@ -60,8 +60,8 @@ class HbaseClientDefault(HbaseClient):
       try:
         stack_select.select_packages(params.version)
       except Exception as e:
-        print "Ignoring error due to missing phoenix-client"
-        print str(e)
+        print("Ignoring error due to missing phoenix-client")
+        print(str(e))
 
 if __name__ == "__main__":
   HbaseClient().execute()

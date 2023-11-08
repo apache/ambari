@@ -72,7 +72,7 @@ class DruidBase(Script):
       db_connection_check_command = None
 
     if db_connection_check_command:
-      sudo.chmod(params.check_db_connection_jar, 0755)
+      sudo.chmod(params.check_db_connection_jar, 0o755)
       Execute( db_connection_check_command,
                tries=5,
                try_sleep=10,

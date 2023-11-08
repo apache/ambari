@@ -175,8 +175,8 @@ def backup_log(filePath):
     backup_file = filePath + "." + timestamp.strftime(simpleformat)
     try:
       shutil.move(filePath, backup_file)
-    except Exception, err:
-      print('Failed to backup "{0}": {1}'.format(str(filePath), str(err)))
+    except Exception as err:
+      print(('Failed to backup "{0}": {1}'.format(str(filePath), str(err))))
       return '', CODE_WARNING
     return backup_file, CODE_SUCCESS
   else:
@@ -263,7 +263,7 @@ def get_ambari_server_property(key):
       if len(tokens) == 2:
         if tokens[0] == key:
           return tokens[1]
-  except Exception, err:
+  except Exception as err:
     logger.error(str(err))
     return None
   return None
@@ -309,7 +309,7 @@ def execute_curl_command(url, headers=[], request_type=DEFAULT_HTTP_REQUEST_TYPE
       curl_cmd_array.append(request_body)
   curl_cmd_array.append(url)
   logger.debug('Curl command: {0}'.format(' '.join(curl_cmd_array)))
-  exeProcess = subprocess.Popen(curl_cmd_array, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  exeProcess = subprocess.Popen(curl_cmd_array, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
   out, err = exeProcess.communicate()
   exit_code = exeProcess.returncode
   return out, err, exit_code
@@ -1059,7 +1059,7 @@ def main():
     try:
       ec = run(options)
       sys.exit(ec)
-    except Exception, e:
+    except Exception as e:
       logger.exception(e)
       sys.exit(CODE_ERROR)
 

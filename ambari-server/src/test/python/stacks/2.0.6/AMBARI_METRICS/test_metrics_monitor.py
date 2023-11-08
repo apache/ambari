@@ -23,7 +23,7 @@ from stacks.utils.RMFTestCase import *
 
 @patch("tempfile.mkdtemp", new = MagicMock(return_value='/some_tmp_dir'))
 @patch("os.path.exists", new = MagicMock(return_value=True))
-@patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
+@patch("distro.linux_distribution", new = MagicMock(return_value="Linux"))
 class TestMetricsMonitor(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "AMBARI_METRICS/0.1.0/package"
   STACK_VERSION = "2.0.6"
@@ -43,7 +43,7 @@ class TestMetricsMonitor(RMFTestCase):
                               )
     self.assertResourceCalled('Execute', 'ambari-sudo.sh openssl pkcs12 -in /some_tmp_dir/truststore.p12 -out /etc/ambari-metrics-monitor/conf/ca.pem -cacerts -nokeys -passin pass:bigdata',
                               )
-    self.assertResourceCalled('Execute', ('chown', u'ams:hadoop', '/etc/ambari-metrics-monitor/conf/ca.pem'),
+    self.assertResourceCalled('Execute', ('chown', 'ams:hadoop', '/etc/ambari-metrics-monitor/conf/ca.pem'),
                               sudo=True
                               )
     self.assertResourceCalled('Execute', ('chmod', '644', '/etc/ambari-metrics-monitor/conf/ca.pem'),
@@ -81,7 +81,7 @@ class TestMetricsMonitor(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/log/ambari-metrics-monitor',
                               owner = 'ams',
                               group = 'hadoop',
-                              mode = 0755,
+                              mode = 0o755,
                               create_parents = True
                               )
 
@@ -90,7 +90,7 @@ class TestMetricsMonitor(RMFTestCase):
                                 owner = 'ams',
                                 group = 'hadoop',
                                 content = InlineTemplate(self.getConfig()['configurations']['ams-log4j']['content']),
-                                mode=0644,
+                                mode=0o644,
                                 )
       self.assertResourceCalled('XmlConfig', 'ams-site.xml',
                                 owner = 'ams',
@@ -113,18 +113,18 @@ class TestMetricsMonitor(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/ambari-metrics-monitor',
                               owner = 'ams',
                               group = 'hadoop',
-                              mode = 0755,
+                              mode = 0o755,
                               cd_access = 'a',
                               create_parents = True
                               )
-    self.assertResourceCalled('Directory', '/usr/lib/python2.6/site-packages/resource_monitoring/psutil/build',
+    self.assertResourceCalled('Directory', '/usr/lib/python3.9/site-packages/resource_monitoring/psutil/build',
                               owner = 'ams',
                               group = 'hadoop',
                               cd_access = 'a',
                               create_parents = True
                               )
 
-    self.assertResourceCalled('Execute', 'ambari-sudo.sh chown -R ams:hadoop /usr/lib/python2.6/site-packages/resource_monitoring')
+    self.assertResourceCalled('Execute', 'ambari-sudo.sh chown -R ams:hadoop /usr/lib/python3.9/site-packages/resource_monitoring')
     self.assertResourceCalled('TemplateConfig', '/etc/ambari-metrics-monitor/conf/metric_monitor.ini',
                               owner = 'ams',
                               group = 'hadoop',

@@ -21,10 +21,10 @@ limitations under the License.
 import logging
 import threading
 
-from security import CachedHTTPSConnection, CachedHTTPConnection
-from blacklisted_set import BlacklistedSet
-from config_reader import ROUND_ROBIN_FAILOVER_STRATEGY
-from spnego_kerberos_auth import SPNEGOKerberosAuth
+from .security import CachedHTTPSConnection, CachedHTTPConnection
+from .blacklisted_set import BlacklistedSet
+from .config_reader import ROUND_ROBIN_FAILOVER_STRATEGY
+from .spnego_kerberos_auth import SPNEGOKerberosAuth
 
 logger = logging.getLogger()
 
@@ -80,7 +80,7 @@ class Emitter(threading.Thread):
     while True:
       try:
         self.submit_metrics()
-      except Exception, e:
+      except Exception as e:
         logger.warn('Unable to emit events. %s' % str(e))
         self.cookie_cached = {}
       pass
@@ -129,7 +129,7 @@ class Emitter(threading.Thread):
       if self.cookie_cached[connection.host]:
         headers["Cookie"] = self.cookie_cached[connection.host]
         logger.debug("Cookie: %s" % self.cookie_cached[connection.host])
-    except Exception, e:
+    except Exception as e:
       self.cookie_cached = {}
     pass
 
@@ -197,7 +197,7 @@ class Emitter(threading.Thread):
                      .format(response.status, response.reason))
         logger.debug(str(response.read()))
       return response
-    except Exception, e:
+    except Exception as e:
       logger.warn('Error sending metrics to server. %s' % str(e))
       self.cookie_cached = {}
       return None
@@ -213,7 +213,7 @@ class Emitter(threading.Thread):
   def compute_hash(self, hostname):
     hash = 11987
     length = len(hostname)
-    for i in xrange(0, length - 1):
+    for i in range(0, length - 1):
       hash = 31*hash + ord(hostname[i])
     return hash
 

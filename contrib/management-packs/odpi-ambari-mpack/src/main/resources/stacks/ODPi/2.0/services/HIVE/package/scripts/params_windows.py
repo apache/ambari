@@ -19,7 +19,7 @@ limitations under the License.
 """
 
 from resource_management import *
-from status_params import *
+from .status_params import *
 
 # server configurations
 config = Script.get_config()

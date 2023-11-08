@@ -48,7 +48,7 @@ class TezServiceCheckLinux(TezServiceCheck):
 
     File(format("{tmp_dir}/sample-tez-test"),
       content = "foo\nbar\nfoo\nbar\nfoo",
-      mode = 0755
+      mode = 0o755
     )
 
     params.HdfsResource("/tmp/tezsmokeoutput",

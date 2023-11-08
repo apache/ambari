@@ -22,6 +22,7 @@ import re
 import os
 import sys
 import platform
+import distro
 
 def _get_windows_version():
   """
@@ -77,6 +78,7 @@ VER_NT_SERVER = 3
 # Linux specific releases, caching them since they are execution invariants
 _IS_ORACLE_LINUX = os.path.exists('/etc/oracle-release')
 _IS_REDHAT_LINUX = os.path.exists('/etc/redhat-release')
+_IS_OPENEULER_LINUX = os.path.exists('/etc/openEuler-release')
 
 OS_RELEASE_FILE = "/etc/os-release"
 
@@ -85,6 +87,9 @@ def _is_oracle_linux():
 
 def _is_redhat_linux():
   return _IS_REDHAT_LINUX
+
+def _is_openEuler_linux():
+  return _IS_OPENEULER_LINUX
 
 def _is_powerpc():
   return platform.processor() == 'powerpc' or platform.machine().startswith('ppc')
@@ -164,9 +169,7 @@ class OS_CONST_TYPE(type):
     raise Exception("Unknown class property '%s'" % name)
 
 
-class OSConst:
-  __metaclass__ = OS_CONST_TYPE
-
+class OSConst(metaclass=OS_CONST_TYPE):
   systemd_redhat_os_major_versions = ["7"]
 
 
@@ -198,11 +201,13 @@ class OSCheck:
       PYTHON_VER = sys.version_info[0] * 10 + sys.version_info[1]
 
       if PYTHON_VER < 26:
-        distribution = platform.dist()
+        distribution = distro.linux_distribution()
       elif _is_redhat_linux():
-        distribution = platform.dist()
+        distribution = distro.linux_distribution()
+      elif _is_openEuler_linux():
+        distribution = distro.linux_distribution()
       else:
-        distribution = platform.linux_distribution()
+        distribution = distro.linux_distribution()
         
     
 
@@ -258,6 +263,8 @@ class OSCheck:
       operatingSystem = 'sles'
     elif operatingSystem.startswith('red hat enterprise linux'):
       operatingSystem = 'redhat'
+    elif operatingSystem.startswith('openEuler release 22.03 LTS'):
+      operatingSystem = 'openEuler'
     elif operatingSystem.startswith('darwin'):
       operatingSystem = 'mac'
 
@@ -367,6 +374,15 @@ class OSCheck:
      This is safe check for redhat family, doesn't generate exception
     """
     return OSCheck.is_in_family(OSCheck.get_os_family(), OSConst.REDHAT_FAMILY)
+  
+  @staticmethod
+  def is_openeuler_family():
+    """
+     Return true if it is so or false if not
+
+     This is safe check for openeuler family, doesn't generate exception
+    """
+    return OSCheck.is_in_family(OSCheck.get_os_family(), OSConst.OPENEULER_FAMILY)
   
   @staticmethod
   def is_in_family(current_family, family):

@@ -31,14 +31,14 @@ def mysql_service(daemon_name=None, action='start'):
     except Fail:
       raise ComponentIsNotRunning()
   elif action == 'stop':
-    import params
+    from . import params
     Execute(cmd,
             logoutput = True,
             only_if = status_cmd,
             sudo = True,
     )
   elif action == 'start':
-    import params   
+    from . import params   
     Execute(cmd,
       logoutput = True,
       not_if = status_cmd,

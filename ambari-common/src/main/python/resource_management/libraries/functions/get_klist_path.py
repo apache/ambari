@@ -21,7 +21,7 @@ Ambari Agent
 """
 
 __all__ = ["get_klist_path"]
-from find_executable import find_executable
+from .find_executable import find_executable
 
 
 def get_klist_path(search_directories=None):

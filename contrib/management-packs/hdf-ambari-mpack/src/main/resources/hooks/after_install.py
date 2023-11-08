@@ -26,7 +26,7 @@ from resource_management.core import sudo
 def main():
   properties = get_ambari_properties()
   if properties == -1:
-    print >> sys.stderr, "Error getting ambari properties"
+    print("Error getting ambari properties", file=sys.stderr)
     return -1
 
   resources_location = get_resources_location(properties)
@@ -36,12 +36,12 @@ def main():
     path = os.path.join(views_dir, file)
     if os.path.isfile(path):
       if "ambari-admin" in path or "storm-view" in path:
-        print "Keeping views jar : " + path
+        print("Keeping views jar : " + path)
       else:
-        print "Deleting views jar : " + path
+        print("Deleting views jar : " + path)
         sudo.unlink(path)
     else:
-      print "Deleting views directory : " + path
+      print("Deleting views directory : " + path)
       sudo.rmtree(path)
   return 0
 

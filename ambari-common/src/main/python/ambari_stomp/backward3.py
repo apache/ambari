@@ -13,7 +13,7 @@ def input_prompt(prompt):
 
     :rtype: str
     """
-    return input(prompt)
+    return eval(input(prompt))
 
 
 def decode(byte_data):

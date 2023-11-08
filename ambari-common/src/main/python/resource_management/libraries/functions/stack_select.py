@@ -42,6 +42,7 @@ from resource_management.libraries.functions.version_select_util import get_vers
 from resource_management.libraries.functions import stack_features
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions import upgrade_summary
+import importlib
 
 STACK_SELECT_PREFIX = 'ambari-python-wrap'
 
@@ -320,7 +321,7 @@ def select(component, version):
   for moduleName in param_modules:
     if moduleName in modules:
       module = modules.get(moduleName)
-      reload(module)
+      importlib.reload(module)
       Logger.info("After {0}, reloaded module {1}".format(command, moduleName))
 
 

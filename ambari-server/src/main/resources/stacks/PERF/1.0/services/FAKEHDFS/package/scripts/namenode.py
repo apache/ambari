@@ -45,7 +45,7 @@ class FAKEHNameNode(Dummy):
     self.keytab_name = "dfs.namenode.keytab.file"
 
   def rebalancehdfs(self, env):
-    print "Rebalance FAKEHDFS"
+    print("Rebalance FAKEHDFS")
 
     threshold = 10
     if "namenode" in self.config["commandParams"]:
@@ -54,10 +54,10 @@ class FAKEHNameNode(Dummy):
         name_node_parameters = json.loads(name_node_params)
         threshold = name_node_parameters['threshold']
 
-    print "Threshold: %s" % str(threshold)
+    print("Threshold: %s" % str(threshold))
 
   def decommission(self):
-    print "Rebalance FAKEHDFS"
+    print("Rebalance FAKEHDFS")
 
   def get_component_name(self):
     return "hadoop-hdfs-namenode"

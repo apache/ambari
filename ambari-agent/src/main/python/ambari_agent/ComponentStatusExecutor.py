@@ -135,7 +135,7 @@ class ComponentStatusExecutor(threading.Thread):
       reports_to_discard = self.reports_to_discard[:]
 
     new_cluster_reports = defaultdict(lambda:[])
-    for cluster_id, cluster_reports in cluster_reports.iteritems():
+    for cluster_id, cluster_reports in cluster_reports.items():
       for cluster_report in cluster_reports:
         for discarded_report in reports_to_discard:
           if Utils.are_dicts_equal(cluster_report, discarded_report, keys_to_skip=['status']):
@@ -199,10 +199,10 @@ class ComponentStatusExecutor(threading.Thread):
     cluster_reports = defaultdict(lambda:[])
 
     with self.reported_component_status_lock:
-      for cluster_id, component_to_command_dict in self.reported_component_status.iteritems():
-        for service_and_component_name, commands_status in component_to_command_dict.iteritems():
+      for cluster_id, component_to_command_dict in self.reported_component_status.items():
+        for service_and_component_name, commands_status in component_to_command_dict.items():
           service_name, component_name = service_and_component_name.split("/")
-          for command_name, status in commands_status.iteritems():
+          for command_name, status in commands_status.items():
             report = {
               'serviceName': service_name,
               'componentName': component_name,
@@ -224,7 +224,7 @@ class ComponentStatusExecutor(threading.Thread):
 
   def save_reported_component_status(self, cluster_reports):
     with self.reported_component_status_lock:
-      for cluster_id, reports in cluster_reports.iteritems():
+      for cluster_id, reports in cluster_reports.items():
         for report in reports:
           component_name = report['componentName']
           service_name = report['serviceName']
@@ -238,6 +238,6 @@ class ComponentStatusExecutor(threading.Thread):
     This needs to be done to remove information about clusters which where deleted (e.g. ambari-server reset)
     """
     with self.reported_component_status_lock:
-      for cluster_id in self.reported_component_status.keys():
+      for cluster_id in list(self.reported_component_status.keys()):
         if cluster_id not in self.topology_cache.get_cluster_ids():
           del self.reported_component_status[cluster_id]

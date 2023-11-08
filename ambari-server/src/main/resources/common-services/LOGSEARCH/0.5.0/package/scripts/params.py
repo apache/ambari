@@ -272,9 +272,9 @@ logsearch_properties['logsearch.auth.simple.enabled'] = 'false'
 
 # load config values
 
-logsearch_properties = dict(logsearch_properties.items() +\
-                       dict(config['configurations']['logsearch-common-properties']).items() +\
-                       dict(config['configurations']['logsearch-properties']).items())
+logsearch_properties = dict(list(logsearch_properties.items()) +\
+                       list(dict(config['configurations']['logsearch-common-properties']).items()) +\
+                       list(dict(config['configurations']['logsearch-properties']).items()))
 
 # load derivated values
 
@@ -374,9 +374,9 @@ logfeeder_properties['logfeeder.solr.core.config.name'] = 'history'
 
 # load config values
 
-logfeeder_properties = dict(logfeeder_properties.items() +\
-                       dict(config['configurations']['logsearch-common-properties']).items() +\
-                       dict(config['configurations']['logfeeder-properties']).items())
+logfeeder_properties = dict(list(logfeeder_properties.items()) +\
+                       list(dict(config['configurations']['logsearch-common-properties']).items()) +\
+                       list(dict(config['configurations']['logfeeder-properties']).items()))
 
 # load derivated values
 

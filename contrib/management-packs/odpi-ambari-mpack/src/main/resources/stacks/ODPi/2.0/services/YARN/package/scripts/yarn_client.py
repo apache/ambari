@@ -25,7 +25,7 @@ from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
-from yarn import yarn
+from .yarn import yarn
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
 
@@ -36,7 +36,7 @@ class YarnClient(Script):
     self.configure(env)
 
   def configure(self, env):
-    import params
+    from . import params
     env.set_params(params)
     yarn()
 
@@ -55,7 +55,7 @@ class YarnClientDefault(YarnClient):
     return "hadoop-client"
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
-    import params
+    from . import params
     env.set_params(params)
 
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):

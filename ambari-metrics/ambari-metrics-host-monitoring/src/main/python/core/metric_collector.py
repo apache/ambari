@@ -20,8 +20,8 @@ limitations under the License.
 
 import logging
 from time import time
-from host_info import HostInfo
-from event_definition import HostMetricCollectEvent, ProcessMetricCollectEvent
+from .host_info import HostInfo
+from .event_definition import HostMetricCollectEvent, ProcessMetricCollectEvent
 
 logger = logging.getLogger()
 

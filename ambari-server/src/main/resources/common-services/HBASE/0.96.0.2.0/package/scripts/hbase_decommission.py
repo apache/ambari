@@ -54,11 +54,11 @@ def hbase_decommission(env):
 
   File(params.region_drainer,
        content=StaticFile("draining_servers.rb"),
-       mode=0755
+       mode=0o755
   )
   File(params.region_drainer2,
        content=StaticFile("draining_servers2.rb"),
-       mode=0755
+       mode=0o755
        )
 
   if params.hbase_excluded_hosts and params.hbase_excluded_hosts.split(","):

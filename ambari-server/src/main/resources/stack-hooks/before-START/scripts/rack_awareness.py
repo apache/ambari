@@ -30,7 +30,7 @@ def create_topology_mapping():
        content=Template("topology_mappings.data.j2"),
        owner=params.hdfs_user,
        group=params.user_group,
-       mode=0644,
+       mode=0o644,
        only_if=format("test -d {net_topology_script_dir}"))
 
 def create_topology_script():
@@ -38,7 +38,7 @@ def create_topology_script():
 
   File(params.net_topology_script_file_path,
        content=StaticFile('topology_script.py'),
-       mode=0755,
+       mode=0o755,
        only_if=format("test -d {net_topology_script_dir}"))
 
 def create_topology_script_and_mapping():

@@ -26,7 +26,7 @@ from resource_management.libraries.script.config_dictionary import UnknownConfig
 from resource_management.core.logger import Logger
 
 def default(name, default_value):
-  subdicts = filter(None, name.split('/'))
+  subdicts = [_f for _f in name.split('/') if _f]
 
   curr_dict = Script.get_config()
   if not curr_dict:

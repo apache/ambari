@@ -44,7 +44,7 @@ class CommandsEventListener(EventListener):
     ""
     commands = []
     cancel_commands = []
-    for cluster_id in message['clusters'].keys():
+    for cluster_id in list(message['clusters'].keys()):
       cluster_dict = message['clusters'][cluster_id]
 
       if 'commands' in cluster_dict:

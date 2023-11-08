@@ -43,27 +43,27 @@ class TestSecurityCommons(TestCase):
     configuration_rules["config_file"]["value_checks"]["property1"] = ["firstCase"]
     configuration_rules["config_file"]["value_checks"]["property2"] = ["secondCase"]
 
-    self.assertEquals(not validate_security_config_properties(params, configuration_rules),
+    self.assertEqual(not validate_security_config_properties(params, configuration_rules),
                       True)  # issues is empty
 
     #Testing with correct empty_checks
     configuration_rules["config_file"]["empty_checks"] = ["property3", "property4"]
 
-    self.assertEquals(not validate_security_config_properties(params, configuration_rules),
+    self.assertEqual(not validate_security_config_properties(params, configuration_rules),
                       True)  # issues is empty
 
     # Testing with correct read_checks
     configuration_rules["config_file"]["read_checks"] = ["property5", "property6"]
 
     os_path_isfile_mock.return_value = True
-    self.assertEquals(not validate_security_config_properties(params, configuration_rules),
+    self.assertEqual(not validate_security_config_properties(params, configuration_rules),
                       True)  # issues is empty
 
     # Testing with wrong values_checks
     configuration_rules["config_file"]["value_checks"]["property1"] = ["failCase"]
     configuration_rules["config_file"]["value_checks"]["property2"] = ["failCase2"]
 
-    self.assertEquals(not validate_security_config_properties(params, configuration_rules),
+    self.assertEqual(not validate_security_config_properties(params, configuration_rules),
                       False)  # Doesn't return an empty issues
 
     configuration_rules["config_file"]["value_checks"]["property1"] = ["firstCase"]
@@ -72,7 +72,7 @@ class TestSecurityCommons(TestCase):
     # Testing with a property which doesn't exist in params
     configuration_rules["config_file"]["empty_checks"].append("property7")
 
-    self.assertEquals(not validate_security_config_properties(params, configuration_rules),
+    self.assertEqual(not validate_security_config_properties(params, configuration_rules),
                       False)  # Doesn't return an empty list
 
     configuration_rules["config_file"]["empty_checks"].remove("property7")
@@ -80,7 +80,7 @@ class TestSecurityCommons(TestCase):
     # Testing with a property which doesn't exist in params
     configuration_rules["config_file"]["read_checks"].append("property8")
 
-    self.assertEquals(not validate_security_config_properties(params, configuration_rules),
+    self.assertEqual(not validate_security_config_properties(params, configuration_rules),
                       False)  # Doesn't return an empty list
 
     configuration_rules["config_file"]["read_checks"].remove("property8")
@@ -93,7 +93,7 @@ class TestSecurityCommons(TestCase):
     params["config_file"]["property5"] = [""]
     params["config_file"]["property6"] = [""]
 
-    self.assertEquals(not validate_security_config_properties(params, configuration_rules),
+    self.assertEqual(not validate_security_config_properties(params, configuration_rules),
                       False)  # Doesn't return an empty list
 
 
@@ -111,14 +111,14 @@ class TestSecurityCommons(TestCase):
 
     result = build_expectations(config_file, value_checks, empty_checks, read_checks)
 
-    self.assertEquals(len(result[config_file]['value_checks']), len(value_checks))
-    self.assertEquals(len(result[config_file]['empty_checks']), len(empty_checks))
-    self.assertEquals(len(result[config_file]['read_checks']), len(read_checks))
+    self.assertEqual(len(result[config_file]['value_checks']), len(value_checks))
+    self.assertEqual(len(result[config_file]['empty_checks']), len(empty_checks))
+    self.assertEqual(len(result[config_file]['read_checks']), len(read_checks))
 
     # Testing that returns empty dict if is called without values
     result = build_expectations(config_file, [], [], [])
 
-    self.assertEquals(not result[config_file].items(), True)
+    self.assertEqual(not list(result[config_file].items()), True)
 
   def test_get_params_from_filesystem_JAAS(self):
     conf_dir = gettempdir()
@@ -155,11 +155,11 @@ class TestSecurityCommons(TestCase):
       }
     }
 
-    self.assertEquals(expected, result)
+    self.assertEqual(expected, result)
 
     os.unlink(jaas_file_path)
 
-    print result
+    print(result)
 
   @patch('xml.etree.ElementTree.parse')
   @patch('os.path.isfile')
@@ -204,8 +204,8 @@ class TestSecurityCommons(TestCase):
     et_parser_mock.assert_called_with(conf_dir + os.sep + "config.xml")
 
     #Testing that the dictionary and the list from the result are not empty
-    self.assertEquals(not result, False)
-    self.assertEquals(not result[result.keys()[0]], False)
+    self.assertEqual(not result, False)
+    self.assertEqual(not result[list(result.keys())[0]], False)
 
     #Testing that returns an empty dictionary if is called with no props
     empty_props = []
@@ -214,15 +214,15 @@ class TestSecurityCommons(TestCase):
 
     result = get_params_from_filesystem(conf_dir, config_file)
 
-    self.assertEquals(not result, False)
-    self.assertEquals(not result['config'].items(), True)
+    self.assertEqual(not result, False)
+    self.assertEqual(not list(result['config'].items()), True)
 
     #Testing that returns an empty dictionary if is called with empty config_files
     empty_config_file = {}
 
     result = get_params_from_filesystem(conf_dir, empty_config_file)
 
-    self.assertEquals(not result, True)
+    self.assertEqual(not result, True)
 
     #Test that params returns an exception
     et_parser_mock.reset_mock()
@@ -238,7 +238,7 @@ class TestSecurityCommons(TestCase):
   @patch('os.path.isfile')
   @patch('ambari_simplejson.load')
   @patch('resource_management.libraries.functions.security_commons.new_cached_exec')
-  @patch('__builtin__.open')
+  @patch('builtins.open')
   def test_cached_executor(self, open_file_mock, new_cached_exec_mock, ambari_simplejson_load_mock,
                            os_isfile_mock, os_makedirs_mock, os_path_exists_mock):
 

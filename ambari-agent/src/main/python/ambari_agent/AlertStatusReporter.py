@@ -96,8 +96,8 @@ class AlertStatusReporter(threading.Thread):
       alert_name = alert['name']
       alert_state = alert['state']
 
-      alert_definitions = filter(lambda definition: definition['name'] == alert_name,
-                                self.alert_definitions_cache[cluster_id]['alertDefinitions'])
+      alert_definitions = list(filter(lambda definition: definition['name'] == alert_name,
+                                self.alert_definitions_cache[cluster_id]['alertDefinitions']))
       if alert_definitions:
         alert_definition = alert_definitions[0]
         definition_tolerance_enabled = alert_definition['repeat_tolerance_enabled']
@@ -124,7 +124,7 @@ class AlertStatusReporter(threading.Thread):
     """
     This needs to be done to remove information about clusters which where deleted (e.g. ambari-server reset)
     """
-    for cluster_id in self.reported_alerts.keys():
+    for cluster_id in list(self.reported_alerts.keys()):
       if not cluster_id in self.alert_definitions_cache.get_cluster_ids():
         del self.reported_alerts[cluster_id]
 

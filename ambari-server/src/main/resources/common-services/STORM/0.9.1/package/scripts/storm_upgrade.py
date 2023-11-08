@@ -152,7 +152,7 @@ class StormUpgrade(Script):
         else:
           Logger.info("The marker file differs from the new value. Will proceed to delete Storm local dir, "
                       "and generate new file. Current marker file: {0}".format(str(existing_json_map)))
-      except Exception, e:
+      except Exception as e:
         Logger.error("The marker file {0} appears to be corrupt; removing it. Error: {1}".format(marker_file, str(e)))
         File(marker_file, action="delete")
     else:
@@ -165,7 +165,7 @@ class StormUpgrade(Script):
 
     # Recreate storm local directory
     Logger.info("Recreating storm local directory, {0}".format(storm_local_directory))
-    Directory(storm_local_directory, mode=0755, owner=params.storm_user,
+    Directory(storm_local_directory, mode=0o755, owner=params.storm_user,
       group=params.user_group, create_parents = True)
 
     # The file doesn't exist, so create it

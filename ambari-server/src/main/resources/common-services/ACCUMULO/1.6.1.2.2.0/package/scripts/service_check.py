@@ -35,7 +35,7 @@ class AccumuloServiceCheck(Script):
     cmdfile = format("{exec_tmp_dir}/cmds")
     try:
       File(cmdfile,
-           mode=0600,
+           mode=0o600,
            group=params.user_group,
            owner=params.smoke_test_user,
            content=InlineTemplate('createtable testtable\n'

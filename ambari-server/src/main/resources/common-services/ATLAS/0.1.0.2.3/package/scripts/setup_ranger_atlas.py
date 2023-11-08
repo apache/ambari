@@ -35,7 +35,7 @@ def setup_ranger_atlas(upgrade_type=None):
                             action="create_on_execute",
                             owner=params.metadata_user,
                             group=params.user_group,
-                            mode=0755,
+                            mode=0o755,
                             recursive_chmod=True
         )
         params.HdfsResource("/ranger/audit/atlas",
@@ -43,7 +43,7 @@ def setup_ranger_atlas(upgrade_type=None):
                             action="create_on_execute",
                             owner=params.metadata_user,
                             group=params.user_group,
-                            mode=0700,
+                            mode=0o700,
                             recursive_chmod=True
         )
         params.HdfsResource(None, action="execute")

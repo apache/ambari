@@ -37,7 +37,7 @@ def create_topology_script():
 
   File(params.net_topology_script_file_path,
        content=StaticFile('topology_script.py'),
-       mode=0755,
+       mode=0o755,
        only_if=format("test -d {net_topology_script_dir}"))
 
 def create_topology_script_and_mapping():

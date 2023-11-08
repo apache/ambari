@@ -44,7 +44,7 @@ class AtlasServiceCheck(Script):
       try:
         Execute(smoke_cmd , user=params.smoke_test_user, tries = 5,
               try_sleep = 10)
-      except Exception, err:
+      except Exception as err:
         atlas_host_call_count =  atlas_host_call_count + 1
         Logger.error("ATLAS service check failed for host {0} with error {1}".format(atlas_host,err))
     if atlas_host_call_count == len(params.atlas_hosts):

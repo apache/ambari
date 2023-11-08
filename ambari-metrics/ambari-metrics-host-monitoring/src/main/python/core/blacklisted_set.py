@@ -62,12 +62,12 @@ if __name__ == "__main__":
   hosts = [1, 2, 3, 4]
   bs = BlacklistedSet(hosts)
   bs.blacklist(4)
-  print bs
+  print(bs)
   for a in bs:
-    print a
+    print(a)
   time.sleep(2)
 
   bs.blacklist(1)
   bs.blacklist(5)
   for a in bs:
-    print a
+    print(a)

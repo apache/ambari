@@ -105,8 +105,8 @@ __all__ = [
 
 __author__ = 'Bob Ippolito <bob@redivi.com>'
 
-from decoder import JSONDecoder
-from encoder import JSONEncoder
+from .decoder import JSONDecoder
+from .encoder import JSONEncoder
 
 _default_encoder = JSONEncoder(
     skipkeys=False,

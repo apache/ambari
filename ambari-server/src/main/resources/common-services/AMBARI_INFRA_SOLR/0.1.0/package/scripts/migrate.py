@@ -58,5 +58,5 @@ def migrate_index(env):
   if command_commons.delete_lock_on_start:
     for write_lock_file in deleted_write_locks:
       Logger.info(format("Put '{write_lock_file}' file back"))
-      File(write_lock_file, action="create", mode = 0644, owner=params.infra_solr_user, group=params.user_group, not_if=format("test -f {write_lock_file}"))
+      File(write_lock_file, action="create", mode = 0o644, owner=params.infra_solr_user, group=params.user_group, not_if=format("test -f {write_lock_file}"))
 

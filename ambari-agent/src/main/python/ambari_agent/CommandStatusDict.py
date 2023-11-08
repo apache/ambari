@@ -108,7 +108,7 @@ class CommandStatusDict():
   def split_reports(self, result_reports, size):
     part = defaultdict(lambda:[])
     prev_part = defaultdict(lambda:[])
-    for cluster_id, cluster_reports in result_reports.items():
+    for cluster_id, cluster_reports in list(result_reports.items()):
       for report in cluster_reports:
         prev_part[cluster_id].append(report)
         if self.size_approved(prev_part, size):
@@ -140,7 +140,7 @@ class CommandStatusDict():
 
     with self.lock:
       result_reports = defaultdict(lambda:[])
-      for key, item in self.current_state.items():
+      for key, item in list(self.current_state.items()):
         command = item[0]
         report = item[1]
         cluster_id = report['clusterId']
@@ -168,7 +168,7 @@ class CommandStatusDict():
       self.reported_reports = self.reported_reports.difference(keys_to_remove)
 
   def has_report_with_taskid(self, task_id, result_reports):
-    for cluster_reports in result_reports.values():
+    for cluster_reports in list(result_reports.values()):
       for report in cluster_reports:
         if report['taskId'] == task_id:
           return True
@@ -182,7 +182,7 @@ class CommandStatusDict():
     files_to_read = [report['tmpout'], report['tmperr'], report['structuredOut']]
     files_content = ['...', '...', '{}']
 
-    for i in xrange(len(files_to_read)):
+    for i in range(len(files_to_read)):
       filename = files_to_read[i]
       if os.path.exists(filename):
         with open(filename, 'r') as fp:

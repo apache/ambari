@@ -19,8 +19,8 @@ limitations under the License.
 """
 
 import os
-import urllib2
-import httplib
+import urllib.request, urllib.error, urllib.parse
+import http.client
 
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions.format import format
@@ -48,15 +48,15 @@ class NifiServiceCheck(Script):
   @retry(times=15, sleep_time=5, max_sleep_time=20, backoff_factor=2, err_class=Fail)
   def check_nifi_portal(url):
     try:
-      request = urllib2.Request(url)
+      request = urllib.request.Request(url)
       result = openurl(request, timeout=20)
       response_code = result.getcode()
       if response_code == 200 or response_code == 401:
         Logger.info("Nifi portal {0} is up. Response code {1}".format(url, response_code))
       else:
         raise Fail("Error connecting to {0}. Response code {1}".format(url, response_code))
-    except urllib2.URLError, e:
-      if isinstance(e, urllib2.HTTPError):
+    except urllib.error.URLError as e:
+      if isinstance(e, urllib.error.HTTPError):
         if e.code == 401:
           Logger.info("Nifi portal {0} is up. Response code {1}".format(url, e.code))
         else:
@@ -66,7 +66,7 @@ class NifiServiceCheck(Script):
         pass
       else:
         raise Fail("Error connecting to {0}. Reason - {1}.".format(url, e.reason))
-    except httplib.BadStatusLine:
+    except http.client.BadStatusLine:
       raise Fail("Error connecting to {0}. Reason - Not Reachable".format(url))
     except TimeoutError:
       raise Fail("Error connecting to {0}. Reason - Timeout".format(url))

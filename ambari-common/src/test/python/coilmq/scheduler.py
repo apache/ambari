@@ -25,9 +25,8 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 
-class SubscriberPriorityScheduler(object):
+class SubscriberPriorityScheduler(object, metaclass=abc.ABCMeta):
     """ Abstract base class for choosing which recipient (subscriber) should receive a message. """
-    __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
     def choice(self, subscribers, message):

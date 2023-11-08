@@ -21,7 +21,7 @@ import base64
 import getpass
 import os
 import string
-from ambari_commons import subprocess32
+import subprocess
 import sys
 import tempfile
 from tempfile import gettempdir
@@ -66,7 +66,7 @@ class KerberosScript(Script):
       output_file.write('[%s]\n' % section_name)
 
       if section_data is not None:
-        for key, value in section_data.iteritems():
+        for key, value in section_data.items():
           output_file.write(" %s = %s\n" % (key, value))
 
 
@@ -86,7 +86,7 @@ class KerberosScript(Script):
       output_file.write(" %s = {\n" % realm_name)
 
       if realm_data is not None:
-        for key, value in realm_data.iteritems():
+        for key, value in realm_data.items():
           if key in KerberosScript.KRB5_REALM_PROPERTIES:
             output_file.write("  %s = %s\n" % (key, value))
 
@@ -98,7 +98,7 @@ class KerberosScript(Script):
       output_file.write('[%s]\n' % section_name)
 
       if realms_data is not None:
-        for realm, realm_data in realms_data.iteritems():
+        for realm, realm_data in realms_data.items():
           KerberosScript._write_conf_realm(output_file, realm, realm_data)
           output_file.write('\n')
 
@@ -110,7 +110,7 @@ class KerberosScript(Script):
               owner='root',
               create_parents = True,
               group='root',
-              mode=0755
+              mode=0o755
     )
 
     content = InlineTemplate(params.krb5_conf_template)
@@ -119,7 +119,7 @@ class KerberosScript(Script):
          content=content,
          owner='root',
          group='root',
-         mode=0644
+         mode=0o644
     )
 
   @staticmethod
@@ -354,7 +354,7 @@ class KerberosScript(Script):
 
       # If no keytab data is available and a password was supplied, simply use it.
       elif password is not None:
-        process = subprocess32.Popen([kinit_path_local, principal], stdin=subprocess32.PIPE)
+        process = subprocess.Popen([kinit_path_local, principal], stdin=subprocess.PIPE)
         stdout, stderr = process.communicate(password)
         if process.returncode:
           err_msg = Logger.filter_text("Execution of kinit returned %d. %s" % (process.returncode, stderr))
@@ -380,7 +380,7 @@ class KerberosScript(Script):
             keytab_file_path = keytab_file_path.replace("_HOST", params.hostname)
             head, tail = os.path.split(keytab_file_path)
             if head:
-              Directory(head, create_parents = True, mode=0755, owner="root", group="root")
+              Directory(head, create_parents = True, mode=0o755, owner="root", group="root")
 
             owner = "root"
             group = "root"

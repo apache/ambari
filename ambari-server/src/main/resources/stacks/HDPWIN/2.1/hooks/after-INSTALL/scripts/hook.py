@@ -35,7 +35,7 @@ class AfterInstallHook(Hook):
                                          params.config["hostLevelParams"]["agentCacheDir"],
                                          params.config['ambariLevelParams']['jdk_location'],
                                          ["sqljdbc4.jar", "sqljdbc_auth.dll"])
-    except Exception, e:
+    except Exception as e:
       raise Fail("Unable to deploy the required JDBC driver in the class path. Error info: {0}".format(e.message))
 
     XmlConfig("core-site.xml",

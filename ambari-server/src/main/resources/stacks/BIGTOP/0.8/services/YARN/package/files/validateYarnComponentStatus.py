@@ -47,7 +47,7 @@ def getResponse(path, address, ssl_enabled):
   (stdout, stderr) = proc.communicate()
   response = json.loads(stdout)
   if response == None:
-    print 'There is no response for url: ' + str(url)
+    print('There is no response for url: ' + str(url))
     raise Exception('There is no response for url: ' + str(url))
   return response
 
@@ -58,12 +58,12 @@ def validateAvailability(component, path, addresses, ssl_enabled):
     try:
       responses[address] = getResponse(path, address, ssl_enabled)
     except Exception as e:
-      print 'Error checking availability status of component.', e
+      print('Error checking availability status of component.', e)
 
   if not responses:
     exit(1)
 
-  is_valid = validateAvailabilityResponse(component, responses.values()[0])
+  is_valid = validateAvailabilityResponse(component, list(responses.values())[0])
   if not is_valid:
     exit(1)
 
@@ -75,7 +75,7 @@ def validateAvailabilityResponse(component, response):
       if rm_state == STARTED_STATE:
         return True
       else:
-        print 'Resourcemanager is not started'
+        print('Resourcemanager is not started')
         return False
 
     elif component == NODEMANAGER:
@@ -93,7 +93,7 @@ def validateAvailabilityResponse(component, response):
     else:
       return False
   except Exception as e:
-    print 'Error validation of availability response for ' + str(component), e
+    print('Error validation of availability response for ' + str(component), e)
     return False
 
 #Verify that component has required resources to work
@@ -103,12 +103,12 @@ def validateAbility(component, path, addresses, ssl_enabled):
     try:
       responses[address] = getResponse(path, address, ssl_enabled)
     except Exception as e:
-      print 'Error checking ability of component.', e
+      print('Error checking ability of component.', e)
 
   if not responses:
     exit(1)
 
-  is_valid = validateAbilityResponse(component, responses.values()[0])
+  is_valid = validateAbilityResponse(component, list(responses.values())[0])
   if not is_valid:
     exit(1)
 
@@ -117,24 +117,24 @@ def validateAbilityResponse(component, response):
   try:
     if component == RESOURCEMANAGER:
       nodes = []
-      if response.has_key('nodes') and not response['nodes'] == None and response['nodes'].has_key('node'):
+      if 'nodes' in response and not response['nodes'] == None and 'node' in response['nodes']:
         nodes = response['nodes']['node']
       connected_nodes_count = len(nodes)
       if connected_nodes_count == 0:
-        print 'There is no connected nodemanagers to resourcemanager'
+        print('There is no connected nodemanagers to resourcemanager')
         return False
-      active_nodes = filter(lambda x: x['state'] == RUNNING_STATE, nodes)
+      active_nodes = [x for x in nodes if x['state'] == RUNNING_STATE]
       active_nodes_count = len(active_nodes)
 
       if connected_nodes_count == 0:
-        print 'There is no connected active nodemanagers to resourcemanager'
+        print('There is no connected active nodemanagers to resourcemanager')
         return False
       else:
         return True
     else:
       return False
   except Exception as e:
-    print 'Error validation of ability response', e
+    print('Error validation of ability response', e)
     return False
 
 #

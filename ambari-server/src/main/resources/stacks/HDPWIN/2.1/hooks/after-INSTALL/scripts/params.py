@@ -18,7 +18,7 @@ limitations under the License.
 """
 from resource_management import *
 import os
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 config = Script.get_config()
 hadoop_conf_dir = None
@@ -27,15 +27,15 @@ hadoop_user = config["configurations"]["cluster-env"]["hadoop.user.name"]
 hdfs_user = hadoop_user
 hadoop_common_bin = "bin"
 
-if os.environ.has_key("HADOOP_CONF_DIR"):
+if "HADOOP_CONF_DIR" in os.environ:
   hadoop_conf_dir = os.environ["HADOOP_CONF_DIR"]
-if os.environ.has_key("HADOOP_COMMON_HOME"):
+if "HADOOP_COMMON_HOME" in os.environ:
   hadoop_common_dir = os.path.join(os.environ["HADOOP_COMMON_HOME"], "share", "hadoop", "common", "lib")
   hadoop_common_bin = os.path.join(os.environ["HADOOP_COMMON_HOME"], "bin")
-if os.environ.has_key("HBASE_HOME"):
+if "HBASE_HOME" in os.environ:
   hbase_lib_dir = os.path.join(os.environ["HBASE_HOME"], "lib")
 
-if os.environ.has_key("HADOOP_NODE_INSTALL_ROOT"):
+if "HADOOP_NODE_INSTALL_ROOT" in os.environ:
   hadoop_install_root = os.environ["HADOOP_NODE_INSTALL_ROOT"]
 
 

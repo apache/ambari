@@ -36,7 +36,7 @@ class MahoutServiceCheck(Script):
     
     File( format("{tmp_dir}/sample-mahout-test.txt"),
         content = "Test text which will be converted to sequence file.",
-        mode = 0755
+        mode = 0o755
     )
 
     params.HdfsResource(format("/user/{smokeuser}"),

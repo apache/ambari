@@ -20,11 +20,11 @@ Ambari Agent
 
 """
 
-from __future__ import with_statement
+
 
 import os
 import re
-from ambari_commons.subprocess32 import Popen, PIPE, STDOUT
+from subprocess import Popen, PIPE, STDOUT
 
 from resource_management.core.base import Fail
 from resource_management.core.providers import Provider
@@ -35,7 +35,7 @@ def get_mounted():
   """
   :return: Return a list of mount objects (dictionary type) that contain the device, mount point, and other options.
   """
-  p = Popen("mount", stdout=PIPE, stderr=STDOUT, shell=True)
+  p = Popen("mount", stdout=PIPE, stderr=STDOUT, shell=True, universal_newlines=True)
   out = p.communicate()[0]
   if p.wait() != 0:
     raise Fail("Getting list of mounts (calling mount) failed")

@@ -30,7 +30,7 @@ from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
 
 # Local Imports
-from hive_service import check_fs_root
+from .hive_service import check_fs_root
 
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
@@ -40,7 +40,7 @@ def hive_service_interactive(name, action='start', upgrade_type=None):
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def hive_service_interactive(name, action='start', upgrade_type=None):
-  import params
+  from . import params
 
   pid_file = format("{hive_pid_dir}/{hive_interactive_pid}")
   cmd = format("{start_hiveserver2_interactive_path} {hive_pid_dir}/hive-server2-interactive.out {hive_log_dir}/hive-server2-interactive.err {pid_file} {hive_server_interactive_conf_dir} {hive_log_dir}")

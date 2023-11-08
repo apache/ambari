@@ -121,7 +121,7 @@ def download_extensions(owner_user, owner_group, hdfs_source_dir, local_target_d
     extensions_tmp_dir=format("{tmp_dir}/custom_extensions")
     Directory(local_target_dir,
               owner="root",
-              mode=0755,
+              mode=0o755,
               group="root",
               create_parents=True)
 
@@ -130,11 +130,11 @@ def download_extensions(owner_user, owner_group, hdfs_source_dir, local_target_d
                         action="create_on_execute",
                         owner=owner_user,
                         group=owner_group,
-                        mode=0755)
+                        mode=0o755)
 
     Directory(extensions_tmp_dir,
               owner=params.hdfs_user,
-              mode=0755,
+              mode=0o755,
               create_parents=True)
 
     # copy from hdfs to /tmp
@@ -143,7 +143,7 @@ def download_extensions(owner_user, owner_group, hdfs_source_dir, local_target_d
                         action="download_on_execute",
                         source=hdfs_source_dir,
                         user=params.hdfs_user,
-                        mode=0644,
+                        mode=0o644,
                         replace_existing_files=True)
 
     # Execute command is not quoting correctly.
