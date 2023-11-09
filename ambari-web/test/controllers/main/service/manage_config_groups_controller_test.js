@@ -511,6 +511,7 @@ describe('App.ManageConfigGroupsController', function() {
       c._onLoadPropertiesSuccess(data, null, params);
       expect(JSON.stringify(c.get('configGroups'))).to.equal(JSON.stringify([
         Em.Object.create({
+          name: 'group1',
           properties: [
             {
               name: 'prop1',
@@ -523,9 +524,9 @@ describe('App.ManageConfigGroupsController', function() {
               type: 'type1'
             }
           ],
-          name: 'group1'
         }),
         Em.Object.create({
+          name: 'group2',
           properties: [
             {
               name: 'prop3',
@@ -533,9 +534,9 @@ describe('App.ManageConfigGroupsController', function() {
               type: 'type1'
             }
           ],
-          name: 'group2'
         }),
         Em.Object.create({
+          name: 'group3',
           properties: [
             {
               name: 'prop4',
@@ -543,11 +544,10 @@ describe('App.ManageConfigGroupsController', function() {
               type: 'type2'
             }
           ],
-          name: 'group3'
         }),
         Em.Object.create({
-          properties: [],
-          name: 'group4'
+          name: 'group4',
+          properties: []
         })
       ]));
     });

@@ -24,8 +24,6 @@
     "karma-chrome-launcher": "0.1.4",
     "karma-jasmine": "^1.1.2",
     "karma-ng-html2js-preprocessor": "^1.0.0",
-    "karma-phantomjs-launcher": "^1.0.4",
-    "phantomjs": "^2.1.7",
     "protractor": "1.0.0"
   },
   "scripts": {
