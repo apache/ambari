@@ -132,12 +132,14 @@
             <message>This is a manual task with a placeholder of {{foo/bar}}</message>
           </task>
         </pre-upgrade>
+        <pre-downgrade/>
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
         <post-upgrade>
           <task xsi:type="configure" id="2.2.0" />
         </post-upgrade>
+        <post-downgrade/>
       </component>
     </service>
     
@@ -152,6 +154,7 @@
             <message>{{direction.verb.proper}} your database</message>
           </task>
         </pre-upgrade>
+        <pre-downgrade/>
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -160,6 +163,7 @@
             <command>ls</command>
           </task>
         </post-upgrade>
+        <post-downgrade/>
       </component>
       <component name="DATANODE">
         <pre-downgrade />
@@ -181,6 +185,7 @@
             <command>ls</command>
           </task>
         </pre-upgrade>
+        <pre-downgrade/>
       </component>
       <component name="NODEMANAGER">
         <pre-upgrade>
@@ -189,6 +194,7 @@
           </task>
           <task xsi:type="configure" id="hdp_2_1_1_nm_pre_upgrade"/>
         </pre-upgrade>
+        <pre-downgrade/>
       </component>
     </service>
     
@@ -205,6 +211,7 @@
           <task xsi:type="configure" id="hdp_2_1_1_hive_server_foo"/>
 
         </pre-upgrade>
+        <pre-downgrade/>
        </component>
      </service>    
   </processing>

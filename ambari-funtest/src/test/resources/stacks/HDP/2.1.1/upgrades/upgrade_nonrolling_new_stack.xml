@@ -929,6 +929,7 @@
             <function>delete_storm_local_data</function>
           </task>
         </pre-upgrade>
+        <pre-downgrade/>
 
         <upgrade>
           <task xsi:type="restart-task"/>
@@ -942,6 +943,7 @@
             <function>delete_storm_local_data</function>
           </task>
         </pre-upgrade>
+        <pre-downgrade/>
 
         <upgrade>
           <task xsi:type="restart-task"/>
@@ -952,6 +954,7 @@
             <message>Please rebuild your topology using the new Storm version dependencies and resubmit it using the newly created jar.</message>
           </task>
         </post-upgrade>
+        <post-downgrade/>
       </component>
     </service>
 

@@ -31,7 +31,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.gson.JsonArray;
@@ -43,7 +42,6 @@ import com.google.gson.stream.JsonReader;
 /**
  * Simple test to get the list of stacks. Does not touch the DB.
  */
-@Ignore
 public class GetStacksTest extends ServerTestBase {
   /**
    * Waits for the ambari server to startup and then checks it's

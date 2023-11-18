@@ -63,12 +63,14 @@
             <message>This is a manual task with a placeholder of {{foo/bar}}</message>
           </task>
         </pre-upgrade>
+        <pre-downgrade/>
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
         <post-upgrade>
           <task xsi:type="configure"/>
         </post-upgrade>
+        <post-downgrade/>
       </component>
     </service>
   </processing>

@@ -56,6 +56,7 @@
           </task>
           
         </pre-upgrade>
+        <pre-downgrade/>
         
         <post-upgrade>
           <task xsi:type="execute">
@@ -79,6 +80,7 @@
           </task>
           
         </post-upgrade>
+        <post-downgrade/>
         
         
       </component>
