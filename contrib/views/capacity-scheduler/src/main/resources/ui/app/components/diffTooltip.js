@@ -52,8 +52,8 @@ App.DiffTooltipComponent = Em.Component.extend({
 
           caption += fmtString.fmt(
               [prefix,item].compact().join('.'),
-              (oldV != null && '\'%@\''.fmt(oldV)) || emptyValue,
-              (newV != null && '\'%@\''.fmt(newV)) || emptyValue
+              Handlebars.Utils.escapeExpression((oldV != null && '\'%@\''.fmt(oldV))) || emptyValue,
+              Handlebars.Utils.escapeExpression((newV != null && '\'%@\''.fmt(newV))) || emptyValue
             );
         },
         initialLabels,
@@ -79,7 +79,7 @@ App.DiffTooltipComponent = Em.Component.extend({
         oldV = ((isAllChanged && changes._accessAllLabels.objectAt(0)) || (queue.get('accessAllLabels') && !isAllChanged))?'*':initialLabels.map(idsToNames).join(',') || emptyValue;
         newV = ((isAllChanged && changes._accessAllLabels.objectAt(1)) || (queue.get('accessAllLabels') && !isAllChanged))?'*':currentLabels.map(idsToNames).join(',') || emptyValue;
 
-        caption += fmtString.fmt('accessible-node-labels', oldV, newV);
+        caption += fmtString.fmt('accessible-node-labels', Handlebars.Utils.escapeExpression(oldV), Handlebars.Utils.escapeExpression(newV));
       }
 
       queue.get('labels').forEach(function (label) {

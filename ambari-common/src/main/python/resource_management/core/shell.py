@@ -104,7 +104,7 @@ def checked_call(command, quiet=False, logoutput=None, stdout=subprocess32.PIPE,
 @log_function_call
 def call(command, quiet=False, logoutput=None, stdout=subprocess32.PIPE,stderr=subprocess32.STDOUT,
          cwd=None, env=None, preexec_fn=preexec_fn, user=None, wait_for_finish=True, timeout=None, on_timeout=None,
-         path=None, sudo=False, on_new_line=None, tries=1, try_sleep=0, timeout_kill_strategy=TerminateStrategy.TERMINATE_PARENT, returns=[0]):
+         path=None, sudo=False, on_new_line=None, tries=1, try_sleep=0, timeout_kill_strategy=TerminateStrategy.TERMINATE_PARENT, shell=True, returns=[0]):
   """
   Execute the shell command despite failures.
   @return: return_code, output
@@ -112,7 +112,7 @@ def call(command, quiet=False, logoutput=None, stdout=subprocess32.PIPE,stderr=s
   return _call_wrapper(command, logoutput=logoutput, throw_on_failure=False, stdout=stdout, stderr=stderr,
                               cwd=cwd, env=env, preexec_fn=preexec_fn, user=user, wait_for_finish=wait_for_finish, 
                               on_timeout=on_timeout, timeout=timeout, path=path, sudo=sudo, on_new_line=on_new_line,
-                              tries=tries, try_sleep=try_sleep, timeout_kill_strategy=timeout_kill_strategy, returns=returns)
+                              tries=tries, try_sleep=try_sleep, timeout_kill_strategy=timeout_kill_strategy, shell=shell, returns=returns)
 
 @log_function_call
 def non_blocking_call(command, quiet=False, stdout=None, stderr=None,
@@ -166,7 +166,7 @@ def _call_wrapper(command, **kwargs):
 
 def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess32.PIPE,stderr=subprocess32.STDOUT,
          cwd=None, env=None, preexec_fn=preexec_fn, user=None, wait_for_finish=True, timeout=None, on_timeout=None, 
-         path=None, sudo=False, on_new_line=None, tries=1, try_sleep=0, timeout_kill_strategy=TerminateStrategy.TERMINATE_PARENT, returns=[0]):
+         path=None, sudo=False, on_new_line=None, tries=1, try_sleep=0, timeout_kill_strategy=TerminateStrategy.TERMINATE_PARENT, shell=True, returns=[0]):
   """
   Execute shell command
   
@@ -200,18 +200,23 @@ def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess32.PI
     command = as_sudo(command, env=env)
   elif user:
     command = as_user(command, user, env=env)
-    
-  # convert to string and escape
-  if isinstance(command, (list, tuple)):
-    command = string_cmd_from_args_list(command)
-    
+
+  if isinstance(command, basestring):
+    subprocess32_command = [command]
+  elif shell:
+    # TODO: Remove this condition after reviewing 'shell' flag requirement where shell.call() is being used.
+    subprocess32_command = [string_cmd_from_args_list(command)]
+  else:
+    subprocess32_command = command
+
   # replace placeholder from as_sudo / as_user if present
   env_str = _get_environment_str(env)
   for placeholder, replacement in PLACEHOLDERS_TO_STR.iteritems():
-    command = command.replace(placeholder, replacement.format(env_str=env_str))
+    subprocess32_command = [cmd.replace(placeholder, replacement.format(env_str=env_str)) for cmd in subprocess32_command]
 
-  # --noprofile is used to preserve PATH set for ambari-agent
-  subprocess32_command = ["/bin/bash","--login","--noprofile","-c", command]
+  if shell:
+    # --noprofile is used to preserve PATH set for ambari-agent
+    subprocess32_command = ["/bin/bash","--login","--noprofile","-c"] + subprocess32_command
 
   # don't create stdout and stderr pipes, because forked process will not be able to use them if current process dies
   # creating pipes may lead to the forked process silent crash

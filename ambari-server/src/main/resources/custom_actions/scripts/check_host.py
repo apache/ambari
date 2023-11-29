@@ -40,6 +40,7 @@ from ambari_commons.constants import AMBARI_SUDO_BINARY
 from resource_management.core import shell
 from resource_management.core.logger import Logger
 from resource_management.core.utils import PasswordString
+from shlex import split
 
 
 # WARNING. If you are adding a new host check that is used by cleanup, add it to BEFORE_CLEANUP_HOST_CHECKS
@@ -454,7 +455,7 @@ class CheckHost(Script):
       db_connection_check_command = "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:{0}{1} {2}".format(agent_cache_dir,
                                                                 LIBS_PATH_IN_ARCHIVE_SQLA, db_connection_check_command)
 
-    code, out = shell.call(db_connection_check_command)
+    code, out = shell.call(split(db_connection_check_command, comments=True), shell=False)
 
     if code == 0:
       db_connection_check_structured_output = {"exit_code" : 0, "message": "DB connection check completed successfully!" }

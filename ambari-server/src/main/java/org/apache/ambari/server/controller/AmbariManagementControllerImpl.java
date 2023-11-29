@@ -245,6 +245,7 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
@@ -4084,7 +4085,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     String requestContext = "";
 
     if (requestProperties != null) {
-      requestContext = requestProperties.get(REQUEST_CONTEXT_PROPERTY);
+      requestContext = StringEscapeUtils.escapeHtml4(requestProperties.get(REQUEST_CONTEXT_PROPERTY));
       if (requestContext == null) {
         // guice needs a non-null value as there is no way to mark this parameter @Nullable
         requestContext = "";

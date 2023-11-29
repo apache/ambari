@@ -20,7 +20,7 @@
 Ember.Handlebars.helper('escapeACL', function(value) {
   var output = '';
 
-  value = value || '';
+  value = Handlebars.Utils.escapeExpression(value || '');
 
   if (value.trim() == '') {
     output = '<span class="label label-danger"> <i class="fa fa-ban fa-fw"></i>  Nobody </span> ';

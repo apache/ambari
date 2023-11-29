@@ -53,6 +53,7 @@ import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.alert.AlertGroup;
 import org.apache.ambari.server.state.alert.AlertTarget;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -275,7 +276,7 @@ public class AlertTargetResourceProvider extends
   private void createAlertTargets(Set<Map<String, Object>> requestMaps, Map<String, String> requestInfoProps)
       throws AmbariException {
     for (Map<String, Object> requestMap : requestMaps) {
-      String name = (String) requestMap.get(ALERT_TARGET_NAME);
+      String name = StringEscapeUtils.escapeHtml4((String) requestMap.get(ALERT_TARGET_NAME));
       String description = (String) requestMap.get(ALERT_TARGET_DESCRIPTION);
       String notificationType = (String) requestMap.get(ALERT_TARGET_NOTIFICATION_TYPE);
       Collection<String> alertStates = (Collection<String>) requestMap.get(ALERT_TARGET_STATES);
