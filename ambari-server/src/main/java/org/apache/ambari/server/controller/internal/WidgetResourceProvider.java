@@ -49,9 +49,15 @@ import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.springframework.security.access.AccessDeniedException;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSerializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonPrimitive;
 import com.google.inject.Inject;
 
 /**
@@ -116,8 +122,17 @@ public class WidgetResourceProvider extends AbstractControllerResourceProvider {
   @Inject
   private static WidgetDAO widgetDAO;
 
-  @Inject
-  private static Gson gson;
+  private static Gson gson = new GsonBuilder().enableComplexMapKeySerialization().disableHtmlEscaping()
+          .serializeNulls().setPrettyPrinting().registerTypeAdapter(
+                  String.class,
+                  new JsonSerializer<String>(){
+                    @Override
+                    public JsonElement serialize(String src, java.lang.reflect.Type typeOfSrc, JsonSerializationContext context) {
+                      return new JsonPrimitive(StringEscapeUtils.escapeHtml4(src));
+                    }
+                  })
+          .create();
+
 
   /**
    * Create a new resource provider.
@@ -160,7 +175,7 @@ public class WidgetResourceProvider extends AbstractControllerResourceProvider {
             throw new AccessDeniedException("Only cluster operator can create widgets with cluster scope");
           }
 
-          entity.setWidgetName(properties.get(WIDGET_WIDGET_NAME_PROPERTY_ID).toString());
+          entity.setWidgetName(StringEscapeUtils.escapeHtml4(properties.get(WIDGET_WIDGET_NAME_PROPERTY_ID).toString()));
           entity.setWidgetType(properties.get(WIDGET_WIDGET_TYPE_PROPERTY_ID).toString());
           entity.setClusterId(getManagementController().getClusters().getCluster(clusterName).getClusterId());
           entity.setScope(scope);
@@ -172,7 +187,7 @@ public class WidgetResourceProvider extends AbstractControllerResourceProvider {
           entity.setAuthor(getAuthorName(properties));
 
           String description = (properties.containsKey(WIDGET_DESCRIPTION_PROPERTY_ID)) ?
-                  properties.get(WIDGET_DESCRIPTION_PROPERTY_ID).toString() : null;
+                  StringEscapeUtils.escapeHtml4(properties.get(WIDGET_DESCRIPTION_PROPERTY_ID).toString()) : null;
           entity.setDescription(description);
 
           String values = (properties.containsKey(WIDGET_VALUES_PROPERTY_ID)) ?
@@ -290,7 +305,7 @@ public class WidgetResourceProvider extends AbstractControllerResourceProvider {
           }
 
           if (StringUtils.isNotBlank(ObjectUtils.toString(propertyMap.get(WIDGET_WIDGET_NAME_PROPERTY_ID)))) {
-            entity.setWidgetName(propertyMap.get(WIDGET_WIDGET_NAME_PROPERTY_ID).toString());
+            entity.setWidgetName(StringEscapeUtils.escapeHtml4(propertyMap.get(WIDGET_WIDGET_NAME_PROPERTY_ID).toString()));
           }
 
           if (StringUtils.isNotBlank(ObjectUtils.toString(propertyMap.get(WIDGET_WIDGET_TYPE_PROPERTY_ID)))) {
@@ -304,7 +319,7 @@ public class WidgetResourceProvider extends AbstractControllerResourceProvider {
           entity.setAuthor(getAuthorName(propertyMap));
 
           if (StringUtils.isNotBlank(ObjectUtils.toString(propertyMap.get(WIDGET_DESCRIPTION_PROPERTY_ID)))) {
-            entity.setDescription(propertyMap.get(WIDGET_DESCRIPTION_PROPERTY_ID).toString());
+            entity.setDescription(StringEscapeUtils.escapeHtml4(propertyMap.get(WIDGET_DESCRIPTION_PROPERTY_ID).toString()));
           }
 
           if (StringUtils.isNotBlank(ObjectUtils.toString(propertyMap.get(WIDGET_SCOPE_PROPERTY_ID)))) {
