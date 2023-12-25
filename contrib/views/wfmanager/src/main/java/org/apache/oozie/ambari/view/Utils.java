@@ -58,9 +58,20 @@ import org.xml.sax.SAXException;
 public class Utils {
 	private static final String XML_INDENT_SPACES = "4";
 	private static final String XML_INDENT_AMT_PROP_NAME = "{http://xml.apache.org/xslt}indent-amount";
+	private final String FEATURES_DISALLOW_DOCTYPE = "http://apache.org/xml/features/disallow-doctype-decl";
 	private final static Logger LOGGER = LoggerFactory
 			.getLogger(Utils.class);
 	private final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+	Utils() {
+		// Refer to https://docs.oracle.com/javase/8/docs/api/javax/xml/parsers/DocumentBuilderFactory.html#setFeature-java.lang.String-boolean-
+		try{
+			dbf.setFeature(FEATURES_DISALLOW_DOCTYPE, true);
+			LOGGER.info("Setting feature disallow doctype to true");
+		} catch (ParserConfigurationException | TransformerFactoryConfigurationError e) {
+			LOGGER.error("Error in formatting xml", e);
+			throw new RuntimeException(e);
+		}
+	}
 	public String formatXml(String xml) {
 
 		try {
