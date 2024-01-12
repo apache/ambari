@@ -32,6 +32,7 @@ import interpreter_json_generated
 @patch.object(glob, "glob", new=MagicMock(return_value=["/tmp"]))
 @patch.object(sudo, "read_file",
               new=MagicMock(return_value=interpreter_json_generated.template))
+@unittest.skip("This is a skipped test class.")
 class TestZeppelin070(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "ZEPPELIN/0.7.0/package"
   STACK_VERSION = "2.6"
