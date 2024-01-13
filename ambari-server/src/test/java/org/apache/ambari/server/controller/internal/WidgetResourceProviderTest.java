@@ -257,9 +257,22 @@ public class WidgetResourceProviderTest {
     Assert.assertEquals(null, entity.getDefaultSectionName());
     Assert.assertEquals("GAUGE", entity.getWidgetType());
     Assert.assertEquals("admin", entity.getAuthor());
-    Assert.assertEquals("[{\"name\":\"value\",\"name2\":\"value2\"}]", entity.getMetrics());
-    Assert.assertEquals("[{\"name\":\"value\",\"name2\":\"value2\"}]", entity.getWidgetValues());
-    Assert.assertEquals("{\"property2\":\"value2\",\"property1\":\"value1\"}", entity.getProperties());
+    Assert.assertEquals("[\n" +
+            "  {\n" +
+            "    \"name\": \"value\",\n" +
+            "    \"name2\": \"value2\"\n" +
+            "  }\n" +
+            "]", entity.getMetrics());
+    Assert.assertEquals("[\n" +
+            "  {\n" +
+            "    \"name\": \"value\",\n" +
+            "    \"name2\": \"value2\"\n" +
+            "  }\n" +
+            "]", entity.getWidgetValues());
+    Assert.assertEquals("{\n" +
+            "  \"property2\": \"value2\",\n" +
+            "  \"property1\": \"value1\"\n" +
+            "}", entity.getProperties());
 
     verify(amc, clusters, cluster, dao);
   }
@@ -350,7 +363,12 @@ public class WidgetResourceProviderTest {
     Assert.assertFalse(oldName.equals(entity.getWidgetName()));
     Assert.assertFalse(oldMetrics.equals(entity.getMetrics()));
     Assert.assertFalse(oldProperties.equals(entity.getProperties()));
-    Assert.assertEquals("[{\"name\":\"new_value\",\"new_name\":\"new_value2\"}]",entity.getMetrics());
+    Assert.assertEquals("[\n" +
+            "  {\n" +
+            "    \"name\": \"new_value\",\n" +
+            "    \"new_name\": \"new_value2\"\n" +
+            "  }\n" +
+            "]",entity.getMetrics());
     // Depends on hashing, string representation can be different
     Assert.assertTrue(CollectionPresentationUtils.isJsonsEquals("{\"new_property\":\"new_value2\",\"property1\":\"new_value1\"}", entity.getProperties()));
     Assert.assertEquals("widget name2",entity.getWidgetName());
