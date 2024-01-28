@@ -70,7 +70,7 @@ def has_safe_repr(value):
     if value is None or value is NotImplemented or value is Ellipsis:
         return True
     if isinstance(value, (bool, int, float, complex, str,
-                          xrange, Markup)):
+                          range, Markup)):
         return True
     if isinstance(value, (tuple, list, set, frozenset)):
         for item in value:

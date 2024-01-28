@@ -133,7 +133,7 @@ def server_hostnames(config):
 def main(argv=None):
   print(hostname())
   print(public_hostname())
-  print(server_hostname())
+  print(server_hostnames())
 
 if __name__ == '__main__':
   main()

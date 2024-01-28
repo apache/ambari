@@ -83,13 +83,6 @@ class TemplateSyntaxError(TemplateError):
         self.translated = False
 
     def __str__(self):
-        return str(self).encode('utf-8')
-
-    # unicode goes after __str__ because we configured 2to3 to rename
-    # __unicode__ to __str__.  because the 2to3 tree is not designed to
-    # remove nodes from it, we leave the above __str__ around and let
-    # it override at runtime.
-    def __unicode__(self):
         # for translated errors we only return the message
         if self.translated:
             return self.message

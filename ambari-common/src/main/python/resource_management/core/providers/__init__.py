@@ -35,9 +35,9 @@ class Provider(object):
     pass
 
   def __repr__(self):
-    return self.__unicode__()
+    return self.__str__()
 
-  def __unicode__(self):
+  def __str__(self):
     return "%s[%s]" % (self.__class__.__name__, self.resource)
 
 
