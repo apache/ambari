@@ -29,6 +29,7 @@ App.InstallComponent = Em.Mixin.create({
       return App.ajax.send({
         name: 'host.host_component.add_new_component',
         sender: self,
+        dataType:'text',
         data: {
           hostName: hostName,
           component: component,
@@ -131,12 +132,13 @@ App.InstallComponent = Em.Mixin.create({
     } else {
       return App.ajax.send({
         name: 'common.create_component',
+        dataType:'text',
         sender: this,
         data: {
           componentName: componentName,
           serviceName: App.StackServiceComponent.find().findProperty('componentName', componentName).get('serviceName')
         }
-      }).complete(function () {
+      }).then(function () {
         dfd.resolve();
       });
     }

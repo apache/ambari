@@ -151,7 +151,7 @@ App.ajaxQueue = Em.Object.extend({
     var r = App.ajax.send(queue.shift());
     this.propertyDidChange('queue');
     if (r) {
-      r.complete(this._complete.bind(this));
+      r.then(this._complete.bind(this));
     }
     else {
       if (this.get('abortOnError')) {

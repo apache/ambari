@@ -828,7 +828,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     var body = Em.I18n.t('admin.stackUpgrade.state.paused.fail.body');
     if (data && data.responseText) {
       try {
-        var json = $.parseJSON(data.responseText);
+        var json = JSON.parse(data.responseText);
         body = body + ' ' + json.message;
       } catch (err) {}
     }
@@ -844,7 +844,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     var body = Em.I18n.t('admin.stackDowngrade.state.paused.fail.body');
     if(data && data.responseText){
       try {
-        var json = $.parseJSON(data.responseText);
+        var json = JSON.parse(data.responseText);
         body = body + ' ' + json.message;
       } catch (err) {}
     }
@@ -932,7 +932,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     var body = "";
     if (data && data.responseText) {
       try {
-        var json = $.parseJSON(data.responseText);
+        var json = JSON.parse(data.responseText);
         body = json.message;
       } catch (err) {}
     }
@@ -1878,7 +1878,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     var body = "";
     if (data && data.responseText) {
       try {
-        var json = $.parseJSON(data.responseText);
+        var json = JSON.parse(data.responseText);
         body = json.message;
       } catch (err) {}
     }

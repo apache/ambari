@@ -39,14 +39,14 @@
           <div class="col-md-6">
             {{#havePermissions "HOST.ADD_DELETE_COMPONENTS"}}
               <div class="dropdown pull-right">
-                <button id="add_component" data-toggle="dropdown" {{bindAttr class="view.addComponentDisabled:disabled :btn :btn-default :dropdown-toggle" disabled="App.router.wizardWatcherController.isNonWizardUser"}}>
+                <button id="add_component" data-bs-toggle="dropdown" {{bindAttr class="view.addComponentDisabled:disabled :btn :btn-default :dropdown-toggle" disabled="App.router.wizardWatcherController.isNonWizardUser"}}>
                   <span class="glyphicon glyphicon-plus"></span>&nbsp;{{t add}}
                 </button>
                 {{#unless App.router.wizardWatcherController.isNonWizardUser}}
                   <ul class="dropdown-menu">
                     {{#each component in view.addableComponents}}
                       <li>
-                        <a href="javascript:void(null)" data-toggle="modal" {{action addComponentWithCheck component target="controller"}}>
+                        <a href="javascript:void(null)" data-bs-toggle="modal" {{action addComponentWithCheck component target="controller"}}>
                           {{component.displayName}}
                         </a>
                       </li>

@@ -19,12 +19,12 @@
 {{#if view.showPencil}}
   {{#if view.isWidgetViewAllowed}}
     <a href="#"
-       data-toggle="tooltip" {{translateAttr data-original-title="common.edit"}}
+       data-bs-toggle=="tooltip" {{translateAttr data-original-title="common.edit"}}
       {{bindAttr class=":glyphicon :glyphicon-pencil :widget-action :widget-action-switch-view view.config.showAsTextBox::active"}}
       {{action "toggleWidgetView" target="view"}}>
     </a>
   {{else}}
     <i class="icon-pencil widget-action widget-action-switch-view text-danger"
-       data-toggle="tooltip" {{bindAttr data-original-title="view.issueMessage"}}></i>
+       data-bs-toggle=="tooltip" {{bindAttr data-original-title="view.issueMessage"}}></i>
   {{/if}}
 {{/if}}

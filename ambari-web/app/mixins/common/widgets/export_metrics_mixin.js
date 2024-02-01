@@ -16,14 +16,13 @@
  * limitations under the License.
  */
 
-var App = require('app');
+var App = require("app");
 
-require('views/common/export_metrics_menu_view');
-var stringUtils = require('utils/string_utils');
-var fileUtils = require('utils/file_utils');
+require("views/common/export_metrics_menu_view");
+var stringUtils = require("utils/string_utils");
+var fileUtils = require("utils/file_utils");
 
 App.ExportMetricsMixin = Em.Mixin.create({
-
   /**
    * Used as argument passed from template to indicate that resulting format is CSV instead of JSON
    */
@@ -36,45 +35,58 @@ App.ExportMetricsMixin = Em.Mixin.create({
   exportMetricsMenuView: App.ExportMetricsMenuView.extend(),
 
   targetView: function () {
-    return this.get('exportTargetView') || this;
+    return this.get("exportTargetView") || this;
   }.property(),
 
   hideMenuForNoData: function () {
-    if (this.get('isExportButtonHidden')) {
-      this.set('isExportMenuHidden', true);
+    if (this.get("isExportButtonHidden")) {
+      this.set("isExportMenuHidden", true);
     }
-  }.observes('isExportButtonHidden'),
+  }.observes("isExportButtonHidden"),
 
   toggleFormatsList: function () {
-    this.toggleProperty('isExportMenuHidden');
+    this.toggleProperty("isExportMenuHidden");
   },
 
   exportGraphData: function (event) {
-    this.set('isExportMenuHidden', true);
-    var ajaxIndex = this.get('targetView.ajaxIndex');
+    this.set("isExportMenuHidden", true);
+    var ajaxIndex = this.get("targetView.ajaxIndex");
     App.ajax.send({
       name: ajaxIndex,
-      data: $.extend(this.get('targetView').getDataForAjaxRequest(), {
-        isCSV: !!event.context
+      data: $.extend(this.get("targetView").getDataForAjaxRequest(), {
+        isCSV: !!event.context,
       }),
       sender: this,
-      success: 'exportGraphDataSuccessCallback',
-      error: 'exportGraphDataErrorCallback'
+      success: "exportGraphDataSuccessCallback",
+      error: "exportGraphDataErrorCallback",
     });
   },
 
   getCustomFileName: function () {
-    return this.get('targetView.title').replace(/\s+/g, '_').toLowerCase();
+    if (this.get("targetView.title").replace(/\s+/g, "_")) {
+      return this.get("targetView.title").replace(/\s+/g, "_").toLowerCase();
+    }
+    return this.get("targetView.title").replace(/\s+/g, "_");
   },
 
   exportGraphDataSuccessCallback: function (response, request, params) {
-    var seriesData = this.get('targetView').getData(response);
+    var seriesData = this.get("targetView").getData(response);
     if (!seriesData.length) {
-      App.showAlertPopup(Em.I18n.t('graphs.noData.title'), Em.I18n.t('graphs.noData.tooltip.title'));
+      App.showAlertPopup(
+        Em.I18n.t("graphs.noData.title"),
+        Em.I18n.t("graphs.noData.tooltip.title")
+      );
     } else {
-      var fileType = params.isCSV ? 'csv' : 'json',
-          fileName = (Em.isEmpty(this.get('targetView.title')) ? 'data' : this.getCustomFileName()) + '.' + fileType,
-          data = params.isCSV ? this.prepareCSV(seriesData) : JSON.stringify(seriesData, this.jsonReplacer(), 4);
+      var fileType = params.isCSV ? "csv" : "json",
+        fileName =
+          (Em.isEmpty(this.get("targetView.title"))
+            ? "data"
+            : this.getCustomFileName()) +
+          "." +
+          fileType,
+        data = params.isCSV
+          ? this.prepareCSV(seriesData)
+          : JSON.stringify(seriesData, this.jsonReplacer(), 4);
 
       fileUtils.downloadTextFile(data, fileType, fileName);
     }
@@ -85,37 +97,38 @@ App.ExportMetricsMixin = Em.Mixin.create({
   },
 
   prepareCSV: function (data) {
-    var displayUnit = this.get('targetView.displayUnit'),
+    var displayUnit = this.get("targetView.displayUnit"),
       titles,
       ticksNumber,
       metricsNumber,
       metricsArray;
     this.checkGraphDataForValidity(data);
     titles = data.map(function (item) {
-      return displayUnit ? item.name + ' (' + displayUnit + ')' : item.name;
+      return displayUnit ? item.name + " (" + displayUnit + ")" : item.name;
     }, this);
-    titles.unshift(Em.I18n.t('common.timestamp'));
+    titles.unshift(Em.I18n.t("common.timestamp"));
     ticksNumber = data[0].data.length;
     metricsNumber = data.length;
     metricsArray = [titles];
     for (var i = 0; i < ticksNumber; i++) {
       metricsArray.push([data[0].data[i][1]]);
       for (var j = 0; j < metricsNumber; j++) {
-         metricsArray[i + 1].push(data[j].data[i][0]);
-      };
-    };
+        metricsArray[i + 1].push(data[j].data[i][0]);
+      }
+    }
     return stringUtils.arrayToCSV(metricsArray);
   },
 
   checkGraphDataForValidity: function (data) {
     data.sort(function (a, b) {
-      return b.data.length - a.data.length
+      return b.data.length - a.data.length;
     });
 
     var maxLength = data[0].data.length;
 
-    for (var i = 1; i < data.length; i ++) {
-      if (data[i].data.length !== maxLength) this.fillGraphDataArrayWithMockedData(data[i], maxLength);
+    for (var i = 1; i < data.length; i++) {
+      if (data[i].data.length !== maxLength)
+        this.fillGraphDataArrayWithMockedData(data[i], maxLength);
     }
   },
 
@@ -131,12 +144,13 @@ App.ExportMetricsMixin = Em.Mixin.create({
   },
 
   jsonReplacer: function () {
-    var displayUnit = this.get('targetView.displayUnit');
+    var displayUnit = this.get("targetView.displayUnit");
     return function (key, value) {
-      if (['name', 'data'].contains(key) || (!isNaN(key))) {
-        return key == 'name' && displayUnit ? value + ' (' + displayUnit + ')' : value;
+      if (["name", "data"].contains(key) || !isNaN(key)) {
+        return key == "name" && displayUnit
+          ? value + " (" + displayUnit + ")"
+          : value;
       }
-    }
-  }
-
+    };
+  },
 });

@@ -16,7 +16,7 @@
 * limitations under the License.
 }}
 
-<button class="btn btn-success dropdown-toggle" data-toggle="dropdown" href="#" {{bindAttr disabled="App.router.wizardWatcherController.isNonWizardUser"}}>{{t common.actions}} <span class="caret"></span></button>
+<button class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown" href="#" {{bindAttr disabled="App.router.wizardWatcherController.isNonWizardUser"}}>{{t common.actions}} <span class="caret"></span></button>
 {{#unless App.router.wizardWatcherController.isNonWizardUser}}
 <ul class="dropdown-menu">
   {{#isAuthorized "HOST.ADD_DELETE_HOSTS"}}

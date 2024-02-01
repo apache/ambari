@@ -44,7 +44,7 @@ App.ThemesMappingMixin = Em.Mixin.create({
           stackVersionUrl: App.get('stackVersionURL')
         },
         success: '_saveThemeToModel'
-      }).complete(dfd.resolve);
+      }).then(dfd.resolve);
     }
     return dfd.promise();
   },

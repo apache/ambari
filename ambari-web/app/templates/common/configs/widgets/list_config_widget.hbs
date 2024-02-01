@@ -19,7 +19,7 @@
 <div {{bindAttr class="view.config.isHiddenByFilter:hide view.isOriginalSCP:original-widget"}}>
   {{template "templates/common/configs/widgets/config_label"}}
   <div class="pull-left btn-group">
-    <a {{bindAttr class=":btn :btn-default :dropdown-toggle view.config.isEditable::disabled view.doNotShowWidget:hide"}} data-toggle="dropdown">{{view.displayVal}} <span class="caret"></span></a>
+    <a {{bindAttr class=":btn :btn-default :dropdown-toggle view.config.isEditable::disabled view.doNotShowWidget:hide"}} data-bs-toggle=="dropdown">{{view.displayVal}} <span class="caret"></span></a>
     <ul class="dropdown-menu">
       {{#each option in view.options}}
         <li>

@@ -144,7 +144,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     var self = this;
     var stackServices = App.StackService.find().mapProperty('serviceName');
     if (!(stackServices.length && App.StackService.find().objectAt(0).get('stackVersion') === App.get('currentStackVersionNumber'))) {
-      this.loadServiceComponents().complete(function () {
+      this.loadServiceComponents().then(function () {
         self.set('content.services', App.StackService.find().forEach(function (item) {
           // user the service version from VersionDefinition
           var serviceInStack = App.Stack.find().findProperty('isSelected').get('stackServices').findProperty('name', item.get('serviceName'));
@@ -239,7 +239,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         sender: this,
         success: 'loadStacksSuccessCallback',
         error: 'loadStacksErrorCallback'
-      }).complete(function () {
+      }).then(function () {
         dfd.resolve(false);
       });
     }
@@ -688,7 +688,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     var body = '';
     if(request && request.responseText) {
       try {
-        var json = $.parseJSON(request.responseText);
+        var json = JSON.parse(request.responseText);
         body = json.message;
       } catch (err) {}
     }
@@ -809,7 +809,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     var body = "";
     if(request && request.responseText){
       try {
-        var json = $.parseJSON(request.responseText);
+        var json = JSON.parse(request.responseText);
         body = json.message;
       } catch (err) {}
     }
@@ -908,6 +908,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
               this.set('content.isCheckInProgress', true);
               App.ajax.send({
                 name: 'wizard.advanced_repositories.valid_url',
+                dataType:'text',
                 sender: this,
                 data: {
                   stackName: stackName,
@@ -965,7 +966,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       var repo = os.get('repositories').findProperty('repoId', params.repoId);
       if (repo) {
         var title = Ember.Handlebars.Utils.escapeExpression(request.status + ":" + request.statusText);
-        var content =  Ember.Handlebars.Utils.escapeExpression($.parseJSON(request.responseText) ? $.parseJSON(request.responseText).message : "");
+        var content =  Ember.Handlebars.Utils.escapeExpression(JSON.parse(request.responseText) ? JSON.parse(request.responseText).message : "");
         repo.setProperties({
           validation: 'INVALID',
           errorTitle: title,

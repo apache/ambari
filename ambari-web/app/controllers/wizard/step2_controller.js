@@ -412,6 +412,7 @@ App.WizardStep2Controller = Em.Controller.extend({
       header: Em.I18n.t('common.warning'),
       primary: Em.I18n.t('common.continue'),
       primaryClass: 'btn-warning',
+      id:"warning-modal",
       onPrimary: function () {
         this.hide();
         self.proceedNext(true);

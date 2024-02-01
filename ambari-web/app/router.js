@@ -284,8 +284,8 @@ App.Router = Em.Router.extend({
     var dfd = $.Deferred();
     var self = this;
     var auth = App.db.getAuthenticated();
-    this.getClusterDataRequest().complete(function (xhr) {
-      if (xhr.state() === 'resolved') {
+    this.getClusterDataRequest().then(function (xhr) {
+      if (xhr) {
         // if server knows the user and user authenticated by UI
         if (auth) {
           dfd.resolve(self.get('loggedIn'));
@@ -421,6 +421,7 @@ App.Router = Em.Router.extend({
     App.ajax.send({
       name: 'router.login',
       sender: this,
+      dataType:'text',
       data: {
         auth: "Basic " + hash,
         usr: usr,

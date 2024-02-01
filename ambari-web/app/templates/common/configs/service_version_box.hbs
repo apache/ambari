@@ -28,7 +28,7 @@
       <div class="stack-label">{{view.serviceVersion.stackVersion}}</div>
       {{#if view.serviceVersion.isCurrent}}
         <div class="current-label">
-          <span class="label label-success label-current glyphicon glyphicon-ok" data-toggle="tooltip" {{translateAttr title="common.current"}}>
+          <span class="label label-success label-current glyphicon glyphicon-ok" data-bs-toggle="tooltip" {{translateAttr title="common.current"}}>
             <i {{bindAttr class=":glyphicon :glyphicon-refresh :restart-required-service view.serviceVersion.isRestartRequired::hidden"}}></i>
           </span>
         </div>
@@ -39,7 +39,7 @@
       <div class="content">
         <span class="label label-info">{{view.serviceVersion.versionText}}</span> <span class="pull-right"><strong>{{view.serviceVersion.configGroupName}}</strong></span>
         <span class="stack">{{view.serviceVersion.stackVersion}}</span>
-        <div class="date"><strong data-toggle="tooltip" {{bindAttr data-original-title="view.serviceVersion.author"}}>{{view.serviceVersion.authorFormatted}}</strong>&nbsp;{{t dashboard.configHistory.info-bar.authoredOn}}&nbsp;<strong>{{view.serviceVersion.createdDate}}</strong></div>
+        <div class="date"><strong data-bs-toggle="tooltip" {{bindAttr data-original-title="view.serviceVersion.author"}}>{{view.serviceVersion.authorFormatted}}</strong>&nbsp;{{t dashboard.configHistory.info-bar.authoredOn}}&nbsp;<strong>{{view.serviceVersion.createdDate}}</strong></div>
         <div class="notes">{{view.serviceVersion.fullNotes}}</div>
       </div>
       <div class="version-operations-buttons">
