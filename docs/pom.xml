@@ -222,6 +222,18 @@
             </organization>
         </developer>
         <developer>
+            <id>arshad</id>
+            <name>Mohammad Arshad</name>
+            <email>arshad@apache.org</email>
+            <timezone>+5.5</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                VISA
+            </organization>
+        </developer>
+        <developer>
             <id>atkach</id>
             <name>Andrii Tkach</name>
             <email>atkach@apache.org</email>
