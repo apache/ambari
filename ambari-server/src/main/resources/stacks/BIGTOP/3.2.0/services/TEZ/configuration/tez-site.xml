@@ -528,7 +528,12 @@
   <property>
     <name>yarn.timeline-service.enabled</name>
     <value>false</value>
-    <description>Timeline service version we&#x2019;re currently using.</description>
+    <description>Indicate to clients whether timeline service is enabled or not.
+      If enabled, clients will put entities and events to the timeline server.
+    </description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
     <on-ambari-upgrade add="false"/>
   </property>
 </configuration>
