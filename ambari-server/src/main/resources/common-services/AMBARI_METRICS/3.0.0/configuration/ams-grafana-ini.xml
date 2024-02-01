@@ -393,6 +393,9 @@ org_name = Main Org.
 ;enabled = false
 ;path = /var/lib/grafana/dashboards
 path = /usr/lib/ambari-metrics-grafana/public/dashboards
+
+[plugins]
+allow_loading_unsigned_plugins = ambari-metrics
     </value>
     <on-ambari-upgrade add="true"/>
   </property>

@@ -2750,6 +2750,17 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     execCmd.setRoleParams(roleParams);
     execCmd.setCommandParams(commandParams);
 
+    String role = execCmd.getRole();
+    if (role.equals(Role.RESOURCEMANAGER.name())) {
+      commandParams.putIfAbsent(AmbariCustomCommandExecutionHelper.ALL_DECOMMISSIONED_HOSTS,
+        StringUtils.join(customCommandExecutionHelper.calculateDecommissionedNodes(
+          clusterService, Role.NODEMANAGER.name()), ','));
+    } else if (role.equals(Role.NAMENODE.name())) {
+      commandParams.putIfAbsent(AmbariCustomCommandExecutionHelper.ALL_DECOMMISSIONED_HOSTS,
+        StringUtils.join(customCommandExecutionHelper.calculateDecommissionedNodes(
+          clusterService, Role.DATANODE.name()), ','));
+    }
+
     CommandRepository commandRepository;
     try {
       commandRepository = repoVersionHelper.getCommandRepository(cluster, component, host);

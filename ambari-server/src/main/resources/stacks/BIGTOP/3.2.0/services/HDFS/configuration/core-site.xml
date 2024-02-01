@@ -194,7 +194,7 @@ DEFAULT
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>hadoop.proxyuser.*</name>
+    <name>hadoop.proxyuser</name>
     <value/>
     <description>
       This * property is not configured it's used just to define refresh commands for all properties
@@ -203,6 +203,9 @@ DEFAULT
     <supported-refresh-commands>
       <refresh-command componentName="NAMENODE" command="reloadproxyusers" />
     </supported-refresh-commands>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
     <on-ambari-upgrade add="false"/>
   </property>
   <property>

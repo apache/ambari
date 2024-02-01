@@ -129,6 +129,13 @@
                 <scriptType>PYTHON</scriptType>
               </commandScript>
             </customCommand>
+            <customCommand>
+              <name>RECONFIGURE</name>
+              <commandScript>
+                <script>scripts/namenode.py</script>
+                <scriptType>PYTHON</scriptType>
+              </commandScript>
+            </customCommand>
           </customCommands>
         </component>
 
@@ -331,6 +338,10 @@
       </quickLinksConfigurations>
 
       <themes>
+        <theme>
+          <fileName>theme.json</fileName>
+          <default>true</default>
+        </theme>
         <theme>
           <fileName>directories.json</fileName>
           <default>true</default>

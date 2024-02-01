@@ -2122,7 +2122,11 @@ public class AmbariManagementControllerTest {
 
       for (String host : stage.getHosts()) {
         for (ExecutionCommandWrapper ecw : stage.getExecutionCommands(host)) {
-          Assert.assertNotNull(ecw.getExecutionCommand().getRepositoryFile());
+          ExecutionCommand execCmd = ecw.getExecutionCommand();
+	  if (execCmd.getRole().equals(Role.NAMENODE)) {
+            Assert.assertTrue(execCmd.getCommandParams().containsKey("all_decommissioned_hosts"));
+	  }
+          Assert.assertNotNull(execCmd.getRepositoryFile());
         }
       }
     }
@@ -6194,6 +6198,7 @@ public class AmbariManagementControllerTest {
     hdfs.addServiceComponent(Role.DATANODE.name());
 
     mapred.addServiceComponent(Role.RESOURCEMANAGER.name());
+    mapred.addServiceComponent(Role.NODEMANAGER.name());
 
     hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).addServiceComponentHost(host1);
     hdfs.getServiceComponent(Role.NAMENODE.name()).addServiceComponentHost(host1);
@@ -6201,6 +6206,7 @@ public class AmbariManagementControllerTest {
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(host2);
 
     mapred.getServiceComponent(Role.RESOURCEMANAGER.name()).addServiceComponentHost(host2);
+    mapred.getServiceComponent(Role.NODEMANAGER.name()).addServiceComponentHost(host2);
 
     Map<String, String> params = new HashMap<String, String>() {{
       put("test", "test");
@@ -6232,6 +6238,9 @@ public class AmbariManagementControllerTest {
       Assert.assertEquals("RESTART", hrc.getCustomCommandName());
 
       Map<String, String> cParams = hrc.getExecutionCommandWrapper().getExecutionCommand().getCommandParams();
+      if (hrc.getRole().equals(Role.RESOURCEMANAGER)) {
+        Assert.assertTrue(cParams.containsKey("all_decommissioned_hosts"));
+      }
       Assert.assertEquals("Expect retry to be set", true, cParams.containsKey("command_retry_enabled"));
       Assert.assertEquals("Expect max duration to be set", true, cParams.containsKey("max_duration_for_retries"));
       Assert.assertEquals("Expect max duration to be 600", "600", cParams.get("max_duration_for_retries"));
@@ -10224,10 +10233,13 @@ public class AmbariManagementControllerTest {
     String serviceName = "HDFS";
     createService(cluster1, serviceName, null);
     String componentName1 = "NAMENODE";
+    String componentName2 = "DATANODE";
 
     createServiceComponent(cluster1, serviceName, componentName1, State.INIT);
+    createServiceComponent(cluster1, serviceName, componentName2, State.INIT);
 
     createServiceComponentHost(cluster1, serviceName, componentName1, host1, null);
+    createServiceComponentHost(cluster1, serviceName, componentName2, host1, null);
 
     // Install
     installService(cluster1, serviceName, false, false);
