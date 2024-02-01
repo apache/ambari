@@ -124,7 +124,7 @@ def curl_krb_request(tmp_dir, keytab, principal, url, cache_file_prefix,
     # kinit if it's time; this helps to avoid problems approaching ticket boundary when
     # executing a klist and then a curl
     last_kinit_time = _KINIT_CACHE_TIMES.get(ccache_file_name, 0)
-    current_time = long(time.time())
+    current_time = long(time.time() * 1000)
     if current_time - kinit_timer_ms > last_kinit_time:
       is_kinit_required = True
 
