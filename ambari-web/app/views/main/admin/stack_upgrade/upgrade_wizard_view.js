@@ -314,7 +314,7 @@ App.upgradeWizardView = Em.View.extend({
             upgradeId: this.get('controller.upgradeId')
           },
           success: 'getSkippedServiceChecksSuccessCallback'
-        }).complete(function () {
+        }).then(function () {
             self.set('controller.areSkippedServiceChecksLoaded', true);
           });
       }
@@ -352,7 +352,7 @@ App.upgradeWizardView = Em.View.extend({
     if (this.get('isSlaveComponentFailuresItem')) {
       if (!this.get('controller.areSlaveComponentFailuresHostsLoaded')) {
         var item = this.get('activeGroup.upgradeItems') && this.get('activeGroup.upgradeItems').findProperty('context', this.get("controller.slaveFailuresContext"));
-        controller.getUpgradeItem(item, 'getSlaveComponentItemSuccessCallback').complete(function () {
+        controller.getUpgradeItem(item, 'getSlaveComponentItemSuccessCallback').then(function () {
           controller.set('areSlaveComponentFailuresHostsLoaded', true);
         });
       }
@@ -368,7 +368,7 @@ App.upgradeWizardView = Em.View.extend({
     var controller = this.get('controller');
     if (this.get('isServiceCheckFailuresItem')) {
       if (!this.get('controller.areServiceCheckFailuresServicenamesLoaded')) {
-        controller.getUpgradeItem(this.get('manualItem'), 'getServiceCheckItemSuccessCallback').complete(function () {
+        controller.getUpgradeItem(this.get('manualItem'), 'getServiceCheckItemSuccessCallback').then(function () {
             controller.set('areServiceCheckFailuresServicenamesLoaded', true);
           });
       }
@@ -419,7 +419,7 @@ App.upgradeWizardView = Em.View.extend({
     var request = this.get('prevItemRequest');
     if ( request ) request.abort();
     if (item && this.get('isDetailsOpened')) {
-      request = this.get('controller').getUpgradeItem(item).complete(function () {
+      request = this.get('controller').getUpgradeItem(item).then(function () {
         self.set('upgradeItemTimer', setTimeout(function () {
           self.doUpgradeItemPolling();
         }, App.bgOperationsUpdateInterval));

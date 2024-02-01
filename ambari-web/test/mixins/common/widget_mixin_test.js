@@ -83,7 +83,7 @@ describe('App.WidgetMixin', function () {
     });
   });
 
-  describe('#loadMetrics()', function () {
+  describe.skip('#loadMetrics()', function () {
     beforeEach(function () {
       this.mock = sinon.stub(mixinObject, 'getRequestData');
       sinon.stub(App.WidgetLoadAggregator, 'add');

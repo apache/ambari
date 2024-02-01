@@ -19,7 +19,7 @@
 {{#unless view.isOriginalSCP}}
   {{#unless view.disabled}}
     {{#isAuthorized "SERVICE.MODIFY_CONFIGS"}}
-      <a {{bindAttr class=":widget-action :widget-action-remove"}} href="#" data-toggle="tooltip"
+      <a {{bindAttr class=":widget-action :widget-action-remove"}} href="#" data-bs-toggle=="tooltip"
         {{action "removeOverride" view.config target="view.parentView"}}
         {{translateAttr data-original-title="common.remove"}}>
         <i class="glyphicon glyphicon-minus-sign"></i>

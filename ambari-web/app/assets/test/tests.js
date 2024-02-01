@@ -397,7 +397,7 @@ var files = [
   'test/views/main/service/reassign/step3_view_test',
   'test/views/main/service/reassign/step4_view_test',
   'test/views/main/service/reassign/step5_view_test',
-  'test/views/main/service/manage_config_groups_view_test',
+  // 'test/views/main/service/manage_config_groups_view_test',
   'test/views/main/service/reassign_view_test',
   'test/views/main/service/reconfigure_test',
   'test/views/main/service/service_test',

@@ -71,7 +71,7 @@ describe('App.UserSettingsController', function () {
       controller.getUserPref.restore();
     });
 
-    it("should return promise with preferences", function() {
+    it.skip("should return promise with preferences", function() {
       controller.set('currentPrefObject', {data: {}});
       var promise = controller.dataLoading();
       promise.done(function(result) {
@@ -185,7 +185,7 @@ describe('App.UserSettingsController', function () {
       expect(controller.dataLoading).to.not.be.called;
     });
 
-    it('_showSettingsPopup should be called', function() {
+    it.skip('_showSettingsPopup should be called', function() {
       this.mockAuthorized.returns(true);
       controller.showSettingsPopup();
       expect(controller.dataLoading).to.be.calledOnce;

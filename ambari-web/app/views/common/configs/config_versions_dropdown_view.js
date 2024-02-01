@@ -42,12 +42,12 @@ App.ConfigVersionsDropdownView = Em.View.extend({
       } else {
         versionsBlock.removeClass('bottom-shadow');
       }
-      App.tooltip(this.$('[data-toggle="tooltip"]'));
+      App.tooltip(this.$('[data-bs-toggle="tooltip"]'));
     });
   },
 
   willDestroyElement: function() {
-    this.$('[data-toggle="tooltip"]').tooltip('destroy');
+    this.$('[data-bs-toggle="tooltip"]').tooltip('destroy');
   },
 
   mainClickAction: function (event) {

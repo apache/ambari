@@ -130,7 +130,7 @@ App.ConfigurationController = Em.Controller.extend({
           loadedConfigs.push(item);
         });
       }
-    }).complete(function () {
+    }).then(function () {
       self.saveToDB(loadedConfigs);
       dfd.resolve(loadedConfigs);
     });

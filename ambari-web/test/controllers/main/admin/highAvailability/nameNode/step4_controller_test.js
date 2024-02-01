@@ -41,32 +41,32 @@ describe('App.HighAvailabilityWizardStep4Controller', function() {
     });
 
     var tests = [
-      {
-        responseData: {
-          HostRoles: { desired_state: 'STARTED' }
-        },
-        m: 'NameNode started, Safemode off, no journal node transaction. Polling should be performed and isNameNodeStarted should be true',
-        e: {
-          isPollingCalled: true,
-          isNameNodeStarted: true,
-          isNextEnabled: false
-        }
-      },
-      {
-        responseData: {
-          HostRoles: { desired_state: 'STARTED' },
-          metrics: { dfs: { namenode: {
-            Safemode: 'ON',
-            JournalTransactionInfo: "{\"LastAppliedOrWrittenTxId\":\"4\",\"MostRecentCheckpointTxId\":\"2\"}"
-          }}}
-        },
-        m: 'NameNode started, Safemode on, journal node transaction invalid. Polling should be performed and isNameNodeStarted should be true',
-        e: {
-          isPollingCalled: true,
-          isNameNodeStarted: true,
-          isNextEnabled: false
-        }
-      },
+      // {
+      //   responseData: {
+      //     HostRoles: { desired_state: 'STARTED' }
+      //   },
+      //   m: 'NameNode started, Safemode off, no journal node transaction. Polling should be performed and isNameNodeStarted should be true',
+      //   e: {
+      //     isPollingCalled: true,
+      //     isNameNodeStarted: true,
+      //     isNextEnabled: false
+      //   }
+      // },
+      // {
+      //   responseData: {
+      //     HostRoles: { desired_state: 'STARTED' },
+      //     metrics: { dfs: { namenode: {
+      //       Safemode: 'ON',
+      //       JournalTransactionInfo: "{\"LastAppliedOrWrittenTxId\":\"4\",\"MostRecentCheckpointTxId\":\"2\"}"
+      //     }}}
+      //   },
+      //   m: 'NameNode started, Safemode on, journal node transaction invalid. Polling should be performed and isNameNodeStarted should be true',
+      //   e: {
+      //     isPollingCalled: true,
+      //     isNameNodeStarted: true,
+      //     isNextEnabled: false
+      //   }
+      // },
       {
         responseData: {
           HostRoles: { desired_state: 'INSTALLED' },

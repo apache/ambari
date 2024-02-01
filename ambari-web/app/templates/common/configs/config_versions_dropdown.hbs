@@ -16,7 +16,7 @@
 * limitations under the License.
 }}
 
-<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true"
+<button type="button" class="btn btn-default dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true"
         aria-expanded="false">
   {{t common.version}}:
   <span><strong>{{view.displayedServiceVersion.version}}</strong><span class="caret"></span></span>
@@ -58,7 +58,7 @@
           </div>
         </div>
         {{#unless view.isCompareMode}}
-          <button data-toggle="tooltip" data-placement="right"
+          <button data-bs-toggle="tooltip" data-placement="right"
             {{bindAttr class="item.isDisplayed:hide :compare-button :btn :btn-default"}}
             {{action compare item target="view.parentView"}}
             {{translateAttr title="dashboard.configHistory.info-bar.compare.tooltip"

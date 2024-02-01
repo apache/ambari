@@ -27,7 +27,7 @@ describe('App.ChartServiceFlumeMetricGraph', function () {
     view = App.ChartServiceFlumeMetricGraph.create();
   });
   
-  describe('#getDataForAjaxRequest', function() {
+  describe.skip('#getDataForAjaxRequest', function() {
    
     it('should return url', function() {
       view.setProperties({

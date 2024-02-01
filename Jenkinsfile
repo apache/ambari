@@ -94,14 +94,13 @@ pipeline {
 
         stage('Parallel Unit Tests') {
             parallel {
-                stage('Ambari WebUI Tests') {
+                 stage('Ambari WebUI Tests') {
                     steps {
                         withEnv(['CHROME_BIN=/usr/bin/chromium-browser']) {
                             sh 'mvn -T 2C -am test -pl ambari-web,ambari-admin -Dmaven.artifact.threads=10 -Drat.skip'
                         }
                     }
                 }
-
                 stage('Ambari Agent Tests') {
                     steps {
                         sh 'pip3 install distro'

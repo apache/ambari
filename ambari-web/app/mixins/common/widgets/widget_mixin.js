@@ -104,12 +104,12 @@ App.WidgetMixin = Ember.Mixin.create({
       requestCounter++;
       if (this.get('content.widgetType') === 'HEATMAP') {
         if (request.service_name === 'STACK') {
-          this.getHostsMetrics(request).complete(function () {
+          this.getHostsMetrics(request).then(function () {
             requestCounter--;
             if (requestCounter === 0) self.onMetricsLoaded();
           });
         } else {
-          this.getHostComponentsMetrics(request).complete(function () {
+          this.getHostComponentsMetrics(request).then(function () {
             requestCounter--;
             if (requestCounter === 0) self.onMetricsLoaded();
           });

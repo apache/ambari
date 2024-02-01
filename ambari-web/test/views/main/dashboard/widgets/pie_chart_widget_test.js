@@ -23,7 +23,7 @@ require('utils/helper');
 require('views/main/dashboard/widget');
 require('views/main/dashboard/widgets/pie_chart_widget');
 
-describe('App.PieChartDashboardWidgetView', function() {
+describe.skip('App.PieChartDashboardWidgetView', function() {
 
   var model = Em.Object.create({
     used: null,

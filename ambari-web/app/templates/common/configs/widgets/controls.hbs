@@ -73,7 +73,7 @@
     {{#if controller.selectedConfigGroup.isDefault}}
       <span class="label label-info">{{t dashboard.configHistory.table.version.prefix}}{{controller.selectedVersion}}</span>
       {{#if controller.isCurrentSelected}}
-        <span class="label label-success glyphicon glyphicon-ok label-current" data-toggle="tooltip" {{translateAttr title="common.current"}}></span>
+        <span class="label label-success glyphicon glyphicon-ok label-current" data-bs-toggle=="tooltip" {{translateAttr title="common.current"}}></span>
       {{/if}}
       {{#if view.config.supportsFinal}}
         <i {{bindAttr class=":glyphicon :glyphicon-lock view.config.isFinal::hidden" }}></i>

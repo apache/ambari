@@ -27,7 +27,7 @@
           <h2 class="table-title col-sm-6">{{view view.parentView.titleClass}}</h2>
           <div class="table-controls col-sm-6">
             <div class="btn-group pull-right status-dropdown">
-              <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true"
+              <button type="button" class="btn btn-default dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true"
                       aria-expanded="false">
                 {{view.serviceCategory.label}} <span class="caret"></span>
               </button>
@@ -117,7 +117,7 @@
           <h2 class="table-title col-sm-2">{{t common.hosts}}</h2>
           <div class="table-controls col-sm-10">
             <div class="btn-group pull-right status-dropdown">
-              <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true"
+              <button type="button" class="btn btn-default dropdown-toggle" data-bs-toggle=="dropdown" aria-haspopup="true"
                       aria-expanded="false">
                 {{view.hostCategory.label}} <span class="caret"></span>
               </button>
@@ -203,7 +203,7 @@
           <h2 class="table-title col-sm-2">{{t common.tasks}}</h2>
           <div class="table-controls col-sm-10">
             <div class="btn-group pull-right status-dropdown">
-              <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true"
+              <button type="button" class="btn btn-default dropdown-toggle" data-bs-toggle=="dropdown" aria-haspopup="true"
                       aria-expanded="false">
                 {{view.taskCategory.label}} <span class="caret"></span>
               </button>
@@ -289,12 +289,12 @@
         <ul {{bindAttr class="view.hostComponentLogsExists::hide :nav :nav-tabs :task-detail-nav"}}>
           <li {{bindAttr class="view.isLevelLoaded:active"}}>
             <a href="#" data-target="#task-log-tab"
-               data-toggle="tab" {{action setActiveTaskLogTab target="view"}}>{{t app.name}} stdout/stderr</a>
+               data-bs-toggle=="tab" {{action setActiveTaskLogTab target="view"}}>{{t app.name}} stdout/stderr</a>
           </li>
           {{#each hostLog in view.hostComponentLogs}}
             <li>
               <a href="#" {{action setActiveLogTab hostLog target="view"}} {{bindAttr data-target="hostLog.tabClassNameSelector"}}
-                 data-toggle="tab">{{hostLog.displayedFileName}}</a>
+                 data-bs-toggle=="tab">{{hostLog.displayedFileName}}</a>
             </li>
           {{/each}}
         </ul>

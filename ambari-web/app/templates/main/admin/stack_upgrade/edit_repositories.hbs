@@ -59,7 +59,7 @@
   {{#view view.skipCheckBox labelTranslate="installer.step1.advancedRepo.skipValidation.message"
     checkedBinding="view.parentView.skipValidation"}}
     <i class="glyphicon glyphicon-question-sign" rel="skip-validation-tooltip"
-       data-toggle="tooltip" {{translateAttr title="installer.step1.advancedRepo.skipValidation.tooltip"}}>
+       data-bs-toggle=="tooltip" {{translateAttr title="installer.step1.advancedRepo.skipValidation.tooltip"}}>
      </i>
   {{/view}}
 </div>
@@ -68,7 +68,7 @@
     labelTranslate="installer.step1.advancedRepo.useRedhatSatellite.message"
     checkedBinding="view.content.useRedhatSatellite"}}
     <i class="glyphicon glyphicon-question-sign" rel="use-redhat-tooltip"
-       data-toggle="tooltip" {{translateAttr title="installer.step1.advancedRepo.useRedhatSatellite.tooltip"}}>
+       data-bs-toggle=="tooltip" {{translateAttr title="installer.step1.advancedRepo.useRedhatSatellite.tooltip"}}>
     </i>
    {{/view}}
 </div>

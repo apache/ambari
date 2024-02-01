@@ -138,7 +138,7 @@ App.MainAlertDefinitionActionsController = Em.ArrayController.extend({
           if (xhr && errorThrown) {
             var error = xhr.status + "(" + errorThrown + ") ";
             try {
-              var json = $.parseJSON(xhr.responseText);
+              var json = JSON.parse(xhr.responseText);
               error += json.message;
             } catch (err) {
             }
@@ -239,6 +239,7 @@ App.MainAlertDefinitionActionsController = Em.ArrayController.extend({
         App.ajax.send({
           name: 'admin.save_configs',
           sender: controller,
+          dataType:'text',
           data: {
             siteName: 'cluster-env',
             properties: configProperties
@@ -246,6 +247,9 @@ App.MainAlertDefinitionActionsController = Em.ArrayController.extend({
           error: 'manageSettingsErrorCallback'
         });
         this.hide();
+        if(window&&window.location){
+          window.location.reload();
+        }
       },
       bodyClass: Ember.View.extend({
         templateName: require('templates/common/modal_popups/prompt_popup'),
@@ -260,7 +264,7 @@ App.MainAlertDefinitionActionsController = Em.ArrayController.extend({
     var error = Em.I18n.t('alerts.actions.manageSettings.error');
     if(data && data.responseText){
       try {
-        var json = $.parseJSON(data.responseText);
+        var json = JSON.parse(data.responseText);
         error += json.message;
       } catch (err) {
       }

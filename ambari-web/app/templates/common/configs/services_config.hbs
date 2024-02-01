@@ -74,7 +74,7 @@
 {{#if controller.isInstallWizard}}
   {{#if issuesCounter}}
     <div class="notifications-group align-right installer-all-configs-notifications">
-      <span class="alerts-label dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+      <span class="alerts-label dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
         <span id="issues-bell" {{bindAttr class=":glyphicon :glyphicon-bell controller.hasErrors:important:warning"}}></span>
         <span id="issues-counter">
           {{view App.AlertBadgeView

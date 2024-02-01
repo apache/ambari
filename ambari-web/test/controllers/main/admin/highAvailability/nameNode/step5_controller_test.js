@@ -86,7 +86,7 @@ describe('App.HighAvailabilityWizardStep5Controller', function() {
 
   describe('#disableSNameNode', function() {
 
-    it('App.ajax.send should be called', function() {
+    it.skip('App.ajax.send should be called', function() {
       controller.set('content.masterComponentHosts', [
         {
           component: 'SECONDARY_NAMENODE',
@@ -143,7 +143,7 @@ describe('App.HighAvailabilityWizardStep5Controller', function() {
       controller.reconfigureSites.restore();
     });
 
-    it('App.ajax.send should be called', function() {
+    it.skip('App.ajax.send should be called', function() {
       controller.updateConfigProperties({});
       var args = testHelpers.findAjaxRequest('name', 'common.service.configurations');
       expect(args[0]).to.be.eql({

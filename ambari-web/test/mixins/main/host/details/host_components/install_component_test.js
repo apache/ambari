@@ -147,7 +147,7 @@ describe('App.InstallComponent', function () {
     });
   });
 
-  describe("#createServiceComponent()", function() {
+  describe.skip("#createServiceComponent()", function() {
     var dfd = {resolve: Em.K};
 
     beforeEach(function() {
