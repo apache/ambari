@@ -745,6 +745,26 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   }
 
   @Override
+  public List<HostRoleCommand> getTaskStatusRoles(Collection<Long> taskIds) {
+    if (taskIds.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    Map<Long, HostRoleCommand> cached = hostRoleCommandCache.getAllPresent(taskIds);
+    List<HostRoleCommand> commands = new ArrayList<>(cached.values());
+
+    List<Long> absent = new ArrayList<>(taskIds);
+    absent.removeAll(cached.keySet());
+
+    if (!absent.isEmpty()) {
+      for (HostRoleCommandEntity commandEntity : hostRoleCommandDAO.findStatusRolesByPKs(absent)) {
+        commands.add(hostRoleCommandFactory.createExisting(commandEntity, true));
+      }
+    }
+    return commands;
+  }
+
+  @Override
   public List<HostRoleCommand> getTasksByHostRoleAndStatus(String hostname, String role, HostRoleStatus status) {
     return getTasks(hostRoleCommandDAO.findTaskIdsByHostRoleAndStatus(hostname, role, status));
   }

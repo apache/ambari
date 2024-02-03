@@ -86,7 +86,18 @@ public class HostRoleCommandFactoryImpl implements HostRoleCommandFactory {
    */
   @Override
   public HostRoleCommand createExisting(HostRoleCommandEntity hostRoleCommandEntity) {
-    return new HostRoleCommand(hostRoleCommandEntity,
+    return createExisting(hostRoleCommandEntity, false);
+  }
+
+  /**
+   * Constructor via factory
+   * @param hostRoleCommandEntity Object to copy fields from.
+   * @param loadStatusRolesOnly should we initialize only command role and status fields.
+   * @return An instance constructed from the input object.
+   */
+  @Override
+  public HostRoleCommand createExisting(HostRoleCommandEntity hostRoleCommandEntity, boolean loadStatusRolesOnly) {
+    return new HostRoleCommand(hostRoleCommandEntity, loadStatusRolesOnly,
         injector.getInstance(HostDAO.class),
         injector.getInstance(ExecutionCommandDAO.class),
         injector.getInstance(ExecutionCommandWrapperFactory.class));
