@@ -52,6 +52,10 @@
     <reuseForks>false</reuseForks>
     <surefire.argLine>-Xmx1024m -Xms512m</surefire.argLine>
     <skipSurefireTests>false</skipSurefireTests>
+    <ambari.web.skip>${skipTests}</ambari.web.skip>
+    <frontend-maven-plugin.version>1.12.0</frontend-maven-plugin.version>
+    <node.version>v8.17.0</node.version>
+    <yarn.version>v1.22.10</yarn.version>
   </properties>
 
   <licenses>
@@ -370,5 +374,4 @@
       </dependency>
     </dependencies>
   </dependencyManagement>
-
 </project>

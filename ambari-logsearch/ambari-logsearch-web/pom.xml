@@ -29,8 +29,6 @@
 
   <properties>
     <logsearch.npm.config.tmp>/tmp/logsearch_npm_config_tmp</logsearch.npm.config.tmp>
-    <node.version>v8.6.0</node.version>
-    <yarn.version>v1.1.0</yarn.version>
   </properties>
 
   <build>
@@ -38,8 +36,9 @@
       <plugin>
         <groupId>com.github.eirslett</groupId>
         <artifactId>frontend-maven-plugin</artifactId>
-        <version>1.6</version>
+        <version>${frontend-maven-plugin.version}</version>
         <configuration>
+          <skip>${ambari.web.skip}</skip>
           <nodeVersion>${node.version}</nodeVersion>
           <yarnVersion>${yarn.version}</yarnVersion>
           <workingDirectory>${project.build.directory}/webapp-build</workingDirectory>
@@ -57,6 +56,9 @@
             <goals>
               <goal>install-node-and-yarn</goal>
             </goals>
+            <configuration>
+              <skip>${ambari.web.skip}</skip>
+            </configuration>
           </execution>
           <execution>
             <id>yarn install</id>
@@ -65,6 +67,7 @@
               <goal>yarn</goal>
             </goals>
             <configuration>
+              <skip>${ambari.web.skip}</skip>
               <arguments>install --ignore-engines --pure-lockfile</arguments>
             </configuration>
           </execution>
@@ -76,6 +79,7 @@
             <!-- optional: the default phase is "generate-resources" -->
             <phase>generate-resources</phase>
             <configuration>
+              <skip>${ambari.web.skip}</skip>
               <environmentVariables>
                 <NODE_ENV>production</NODE_ENV>
               </environmentVariables>
@@ -91,8 +95,8 @@
             <goal>yarn</goal>
            </goals>
            <configuration>
+            <skip>${ambari.web.skip}</skip>
             <arguments>test</arguments>
-            <skip>${skipTests}</skip>
            </configuration>
           </execution>
         </executions>

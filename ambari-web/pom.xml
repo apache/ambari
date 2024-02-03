@@ -90,10 +90,11 @@
             <plugin>
                 <groupId>com.github.eirslett</groupId>
                 <artifactId>frontend-maven-plugin</artifactId>
-                <version>1.4</version>
+                <version>${frontend-maven-plugin.version}</version>
                 <configuration>
-                    <nodeVersion>v4.5.0</nodeVersion>
-                    <yarnVersion>v0.23.2</yarnVersion>
+                    <skip>${ambari.web.skip}</skip>
+                    <nodeVersion>${node.version}</nodeVersion>
+                    <yarnVersion>${yarn.version}</yarnVersion>
                     <workingDirectory>${basedir}</workingDirectory>
                     <npmInheritsProxyConfigFromMaven>false</npmInheritsProxyConfigFromMaven>
                     <!-- setting npm_config_tmp environment variable is a workaround for
@@ -109,6 +110,9 @@
                         <goals>
                             <goal>install-node-and-yarn</goal>
                         </goals>
+                        <configuration>
+                            <skip>${ambari.web.skip}</skip>
+                        </configuration>
                     </execution>
                     <execution>
                         <id>yarn install</id>
@@ -117,6 +121,7 @@
                             <goal>yarn</goal>
                         </goals>
                         <configuration>
+                            <skip>${ambari.web.skip}</skip>
                             <arguments>install --ignore-engines --pure-lockfile</arguments>
                         </configuration>
                     </execution>
@@ -134,6 +139,7 @@
                             <goal>exec</goal>
                         </goals>
                         <configuration>
+                            <skip>${ambari.web.skip}</skip>
                             <executable>${executable.rmdir}</executable>
                             <workingDirectory>${basedir}</workingDirectory>
                             <commandlineArgs>${args.rm.clean} public ${nodemodules.dir}</commandlineArgs>
@@ -151,6 +157,7 @@
                             <goal>exec</goal>
                         </goals>
                         <configuration>
+                            <skip>${ambari.web.skip}</skip>
                             <executable>${executable.mkdir}</executable>
                             <workingDirectory>${basedir}</workingDirectory>
                             <commandlineArgs>${args.mkdir} public</commandlineArgs>
@@ -163,6 +170,7 @@
                             <goal>exec</goal>
                         </goals>
                         <configuration>
+                            <skip>${ambari.web.skip}</skip>
                             <workingDirectory>${basedir}</workingDirectory>
                             <executable>${basedir}/node/${node.executable}</executable>
                             <arguments>
@@ -178,6 +186,7 @@
                             <goal>exec</goal>
                         </goals>
                         <configuration>
+                            <skip>${ambari.web.skip}</skip>
                             <!-- sets Ambari version to make it accessible from code -->
                             <executable>${executable.shell}</executable>
                             <workingDirectory>${basedir}</workingDirectory>
@@ -217,7 +226,7 @@
                             <goal>exec</goal>
                         </goals>
                         <configuration>
-                            <skip>${skipTests}</skip>
+                            <skip>${ambari.web.skip}</skip>
                             <executable>${executable.npm}</executable>
                             <workingDirectory>${basedir}</workingDirectory>
                             <commandlineArgs>${args.npm} test</commandlineArgs>
@@ -237,6 +246,7 @@
                             <goal>run</goal>
                         </goals>
                         <configuration>
+                            <skip>${ambari.web.skip}</skip>
                             <tasks>
                                 <apply executable="${executable.gzip}">
                                     <arg value="-f"/>
