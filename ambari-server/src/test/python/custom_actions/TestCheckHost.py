@@ -88,7 +88,8 @@ class TestCheckHost(TestCase):
                                                    "user_name" : "test_user_name",
                                                    "user_passwd" : "test_user_passwd",
                                                    "jdk_name" : "test_jdk_name"},
-                                "ambariLevelParams": {"custom_mysql_jdbc_name" : "mysql-connector-java.jar"},
+                                "ambariLevelParams" : {"custom_mysql_jdbc_name" : "mysql-connector-java.jar",
+                                                       "jdk_location" : "jdk_location"},
                                 "agentLevelParams":{"agentCacheDir": "/nonexistent_tmp"}
                                 }
     get_tmp_dir_mock.return_value = "/tmp"
@@ -104,7 +105,8 @@ class TestCheckHost(TestCase):
 
     self.assertEquals(structured_out_mock.call_args[0][0], {'db_connection_check': {'message': 'Error downloading ' \
                      'DBConnectionVerification.jar from Ambari Server resources. Check network access to Ambari ' \
-                     'Server.\ntest exception', 'exit_code': 1}})
+                     'Server.\nurl test_jdk_location/DBConnectionVerification.jar got error Exception: test ' \
+                     'exception; url jdk_location/DBConnectionVerification.jar got error Exception: test exception', 'exit_code': 1}})
 
     # test, download jdbc driver failed
     mock_config.return_value = {"commandParams" : {"check_execute_list" : "db_connection_check",
@@ -117,7 +119,8 @@ class TestCheckHost(TestCase):
                                                    "user_passwd" : "test_user_passwd",
                                                    "jdk_name" : "test_jdk_name"},
                                 "agentLevelParams": { "agentCacheDir": "/nonexistent_tmp"},
-                                "ambariLevelParams": { "custom_oracle_jdbc_name" : "oracle-jdbc-driver.jar"}}
+                                "ambariLevelParams": { "custom_oracle_jdbc_name" : "oracle-jdbc-driver.jar",
+                                                       "jdk_location" : "jdk_location"}}
     format_mock.reset_mock()
     download_file_mock.reset_mock()
     p = MagicMock()
@@ -147,7 +150,8 @@ class TestCheckHost(TestCase):
                                                    "user_passwd" : "test_user_passwd",
                                                    "jdk_name" : "test_jdk_name"},
                                 "agentLevelParams": { "agentCacheDir": "/nonexistent_tmp"},
-                                "ambariLevelParams": { "custom_postgres_jdbc_name" : "oracle-jdbc-driver.jar"}}
+                                "ambariLevelParams": { "custom_postgres_jdbc_name" : "oracle-jdbc-driver.jar",
+                                                       "jdk_location" : "jdk_location"}}
     format_mock.reset_mock()
     download_file_mock.reset_mock()
     download_file_mock.side_effect = [p, p]
@@ -182,7 +186,8 @@ class TestCheckHost(TestCase):
                                                    "user_passwd" : "test_user_passwd",
                                                    "db_name" : "postgres"},
                                 "agentLevelParams": { "agentCacheDir": "/nonexistent_tmp"},
-                                "ambariLevelParams": { "custom_postgres_jdbc_name" : "test-postgres-jdbc.jar"}}
+                                "ambariLevelParams": { "custom_postgres_jdbc_name" : "test-postgres-jdbc.jar",
+                                                       "jdk_location" : "jdk_location"}}
 
     isfile_mock.return_value = False
 
@@ -428,6 +433,7 @@ class TestCheckHost(TestCase):
                                                    "user_name" : "test_user_name",
                                                    "user_passwd" : "test_user_passwd",
                                                    "jdk_name" : "test_jdk_name"},
+                                "ambariLevelParams" : {"jdk_location" : "jdk_location"},
                                 "hostLevelParams": { "agentCacheDir": "/nonexistent_tmp",
                                                      "custom_mysql_jdbc_name" : "mysql-connector-java.jar"}
                                 }
