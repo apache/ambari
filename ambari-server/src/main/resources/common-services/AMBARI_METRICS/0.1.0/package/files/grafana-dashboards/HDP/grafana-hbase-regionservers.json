@@ -609,7 +609,7 @@
               "app": "hbase",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "regionserver.Server.ScanNext_num_ops",
+              "metric": "regionserver.Server.ScanSize_num_ops",
               "precision": "default",
               "refId": "B",
               "transform": "rate",
