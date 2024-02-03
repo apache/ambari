@@ -20,6 +20,7 @@ package org.apache.ambari.server.api.resources;
 
 import static org.junit.Assert.assertEquals;
 
+import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.junit.Test;
 
@@ -52,7 +53,8 @@ public class UpgradeResourceDefinitionTest {
   public void testGetCreateDirectives() {
     ResourceDefinition resourceDefinition = new UpgradeResourceDefinition();
 
-    assertEquals(Sets.newHashSet(UpgradeResourceDefinition.SKIP_SERVICE_CHECKS_DIRECTIVE),
+    assertEquals(Sets.newHashSet(UpgradeResourceDefinition.SKIP_SERVICE_CHECKS_DIRECTIVE,
+                                  Request.DIRECTIVE_FORCE_METRICS_FETCH),
         resourceDefinition.getCreateDirectives());
   }
 }

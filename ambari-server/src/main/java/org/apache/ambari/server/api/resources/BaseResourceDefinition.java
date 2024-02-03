@@ -41,10 +41,15 @@ import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.commons.codec.EncoderException;
 import org.apache.commons.codec.net.URLCodec;
 
+import com.google.common.collect.Sets;
+
 /**
  * Base resource definition.  Contains behavior common to all resource types.
  */
 public abstract class BaseResourceDefinition implements ResourceDefinition {
+
+  private static final Set<String> DEFAULT_DIRECTIVES =
+    Sets.newHashSet(org.apache.ambari.server.controller.spi.Request.DIRECTIVE_FORCE_METRICS_FETCH);
 
   /**
    * Resource type.  One of {@link Resource.Type}
@@ -241,7 +246,7 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
    * @param directives the map of directives from which to copy
    */
   private void initializeDirectives(DirectiveType type, Map<DirectiveType, ? extends Collection<String>> directives) {
-    HashSet<String> requestDirectives = new HashSet<>();
+    HashSet<String> requestDirectives = new HashSet<>(DEFAULT_DIRECTIVES);
 
     if ((directives != null) && directives.get(type) != null) {
       requestDirectives.addAll(directives.get(type));

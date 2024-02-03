@@ -290,14 +290,24 @@ public class MetricsRetrievalService extends AbstractService {
    *
    * @see #getCachedJMXMetric(String)
    */
+
   public void submitRequest(MetricSourceType type, StreamProvider streamProvider, String url) {
+    this.submitRequest(type, streamProvider, url, false);
+  }
+
+  /**
+   * @param forceImmediateMetricsFetch
+   *          if set to true the cache will be skipped and the metrics will be
+   *          fetched directly from the source in current thread
+   */
+  public void submitRequest(MetricSourceType type, StreamProvider streamProvider, String url, boolean forceImmediateMetricsFetch) {
     // check to ensure that the request isn't already queued
-    if (m_queuedUrls.contains(url)) {
+    if (m_queuedUrls.contains(url) && !forceImmediateMetricsFetch) {
       return;
     }
 
     // check to ensure that the request wasn't made too recently
-    if (null != m_ttlUrlCache && null != m_ttlUrlCache.getIfPresent(url)) {
+    if (null != m_ttlUrlCache && null != m_ttlUrlCache.getIfPresent(url) && !forceImmediateMetricsFetch) {
       return;
     }
 
@@ -328,7 +338,14 @@ public class MetricsRetrievalService extends AbstractService {
     }
 
     if (null != runnable) {
-      m_threadPoolExecutor.execute(runnable);
+      if (forceImmediateMetricsFetch) {
+        LOG.info("Starting immediate metrics fetch for {}", url);
+        Executor e = Runnable::run;
+        e.execute(runnable);
+        LOG.info("Finished immediate metrics fetch for {}", url);
+      } else {
+        m_threadPoolExecutor.execute(runnable);
+      }
     }
   }
 

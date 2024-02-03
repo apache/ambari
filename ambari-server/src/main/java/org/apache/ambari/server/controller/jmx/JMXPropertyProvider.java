@@ -264,8 +264,10 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
         // build the URL
         String jmxUrl = getSpec(protocol, hostName, port, "/jmx");
 
+        boolean forceImmediateMetricsFetch = request.isForceMetricsFetchRequest();
+
         // always submit a request to cache the latest data
-        metricsRetrievalService.submitRequest(MetricSourceType.JMX, streamProvider, jmxUrl);
+        metricsRetrievalService.submitRequest(MetricSourceType.JMX, streamProvider, jmxUrl, forceImmediateMetricsFetch);
 
         // check to see if there is a cached value and use it if there is
         JMXMetricHolder jmxMetricHolder = metricsRetrievalService.getCachedJMXMetric(jmxUrl);
@@ -275,7 +277,7 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
           String publicJmxUrl = getSpec(protocol, publicHostName, port, "/jmx");
 
           // always submit a request to cache the latest data
-          metricsRetrievalService.submitRequest(MetricSourceType.JMX, streamProvider, publicJmxUrl);
+          metricsRetrievalService.submitRequest(MetricSourceType.JMX, streamProvider, publicJmxUrl, forceImmediateMetricsFetch);
 
           // check to see if there is a cached value and use it if there is
           jmxMetricHolder = metricsRetrievalService.getCachedJMXMetric(publicJmxUrl);
@@ -300,7 +302,7 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
               }
               if (queryURL != null) {
                 String adHocUrl = getSpec(protocol, hostName, port, queryURL);
-                metricsRetrievalService.submitRequest(MetricSourceType.JMX, streamProvider, adHocUrl);
+                metricsRetrievalService.submitRequest(MetricSourceType.JMX, streamProvider, adHocUrl, forceImmediateMetricsFetch);
                 JMXMetricHolder adHocJMXMetricHolder = metricsRetrievalService.getCachedJMXMetric(adHocUrl);
 
                 if( adHocJMXMetricHolder == null && !hostName.equalsIgnoreCase(publicHostName)) {
@@ -308,7 +310,7 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
                   String publicAdHocUrl = getSpec(protocol, publicHostName, port, queryURL);
 
                   // always submit a request to cache the latest data
-                  metricsRetrievalService.submitRequest(MetricSourceType.JMX, streamProvider, publicAdHocUrl);
+                  metricsRetrievalService.submitRequest(MetricSourceType.JMX, streamProvider, publicAdHocUrl, forceImmediateMetricsFetch);
 
                   // check to see if there is a cached value and use it if there is
                   adHocJMXMetricHolder = metricsRetrievalService.getCachedJMXMetric(publicAdHocUrl);
