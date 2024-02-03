@@ -24,6 +24,7 @@ import urllib2
 import logging
 import traceback
 import sys
+import shlex
 
 logger = logging.getLogger(__name__)
 
@@ -80,7 +81,10 @@ def public_hostname(config):
   try:
     if config.has_option('agent', 'public_hostname_script'):
       scriptname = config.get('agent', 'public_hostname_script')
-      output = subprocess32.Popen(scriptname, stdout=subprocess32.PIPE, stderr=subprocess32.PIPE, shell=True)
+      output = subprocess32.Popen(shlex.split(scriptname),
+                                  stdout=subprocess32.PIPE,
+                                  stderr=subprocess32.PIPE,
+                                  shell=False)
       out, err = output.communicate()
       if (0 == output.returncode and 0 != len(out.strip())):
         cached_public_hostname = out.strip().lower()

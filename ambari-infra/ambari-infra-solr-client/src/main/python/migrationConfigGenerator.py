@@ -32,6 +32,7 @@ import optparse
 import ConfigParser
 from subprocess import Popen, PIPE
 from random import randrange
+import shlex
 
 SOLR_SERVICE_NAME = 'AMBARI_INFRA_SOLR'
 SOLR_COMPONENT_NAME ='INFRA_SOLR'
@@ -138,7 +139,7 @@ def get_state_json_map(solr_urls, user='infra-solr', kerberos_enabled='false', k
   state_json_data={}
   request = GET_STATE_JSON_URL.format(get_random_solr_url(solr_urls))
   get_state_json_cmd=create_solr_api_request_command(request, user, kerberos_enabled, keytab, principal)
-  process = Popen(get_state_json_cmd, stdout=PIPE, stderr=PIPE, shell=True)
+  process = Popen(shlex.split(get_state_json_cmd), stdout=PIPE, stderr=PIPE, shell=False)
   out, err = process.communicate()
   if process.returncode != 0:
     logger.error(str(err))

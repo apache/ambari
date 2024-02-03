@@ -25,6 +25,7 @@ import sys
 import phoenix_utils
 import atexit
 import fnmatch
+import shlex
 
 # Set JAVA_HOME or JDK_HOME before running sqlline.py
 # Example: ./sqlline.py localhost:61181:/ams-hbase-unsecure
@@ -95,7 +96,7 @@ java_cmd = find_java() + ' -cp "' + phoenix_client_path + \
 
 print 'java command: %s' % str(java_cmd)
 
-childProc = subprocess.Popen(java_cmd, shell=True)
+childProc = subprocess.Popen(shlex.split(java_cmd), shell=False)
 #Wait for child process exit
 (output, error) = childProc.communicate()
 returncode = childProc.returncode

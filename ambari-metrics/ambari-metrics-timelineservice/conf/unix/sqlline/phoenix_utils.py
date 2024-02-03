@@ -22,6 +22,7 @@
 import os
 import fnmatch
 import subprocess
+import shlex
 
 def find(pattern, classPaths):
     paths = classPaths.split(os.pathsep)
@@ -62,7 +63,7 @@ def which(file):
 def findClasspath(file):
     aPath = which(file)
     command = "%s%s" %(aPath, ' classpath')
-    return subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).stdout.read()
+    return subprocess.Popen(shlex.split(command), shell=False, stdout=subprocess.PIPE).stdout.read()
 
 def setPath():
     PHOENIX_CLIENT_JAR_PATTERN = "phoenix-*-client.jar"

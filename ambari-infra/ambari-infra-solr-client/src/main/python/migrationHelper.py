@@ -37,6 +37,7 @@ from random import randrange, randint
 from subprocess import Popen, PIPE
 
 import solrDataManager as solr_data_manager
+import shlex
 
 HTTP_PROTOCOL = 'http'
 HTTPS_PROTOCOL = 'https'
@@ -843,7 +844,7 @@ def monitor_solr_async_request(options, config, status_request, request_id):
   async_request_timed_out = False
   while not async_request_finished:
     tries = tries + 1
-    process = Popen(request_status_json_cmd, stdout=PIPE, stderr=PIPE, shell=True)
+    process = Popen(shlex.split(request_status_json_cmd), stdout=PIPE, stderr=PIPE, shell=False)
     out, err = process.communicate()
     if process.returncode != 0:
       raise Exception("{0} command failed: {1}".format(request_status_json_cmd, str(err)))
@@ -893,7 +894,7 @@ def delete_collection(options, config, collection, solr_urls, response_data_map)
   request = DELETE_SOLR_COLLECTION_URL.format(solr_url, collection, async_id)
   logger.debug("Solr request: {0}".format(request))
   delete_collection_json_cmd=create_solr_api_request_command(request, config)
-  process = Popen(delete_collection_json_cmd, stdout=PIPE, stderr=PIPE, shell=True)
+  process = Popen(shlex.split(delete_collection_json_cmd), stdout=PIPE, stderr=PIPE, shell=False)
   out, err = process.communicate()
   if process.returncode != 0:
     raise Exception("{0} command failed: {1}".format(delete_collection_json_cmd, str(err)))
@@ -910,7 +911,7 @@ def create_collection(options, config, solr_urls, collection, config_set, shards
   request = CREATE_SOLR_COLLECTION_URL.format(get_random_solr_url(solr_urls, options), collection, config_set, shards, replica, max_shards_per_node)
   logger.debug("Solr request: {0}".format(request))
   create_collection_json_cmd=create_solr_api_request_command(request, config)
-  process = Popen(create_collection_json_cmd, stdout=PIPE, stderr=PIPE, shell=True)
+  process = Popen(shlex.split(create_collection_json_cmd), stdout=PIPE, stderr=PIPE, shell=False)
   out, err = process.communicate()
   if process.returncode != 0:
     raise Exception("{0} command failed: {1}".format(create_collection_json_cmd, str(err)))
@@ -925,7 +926,7 @@ def reload_collection(options, config, solr_urls, collection):
   request = RELOAD_SOLR_COLLECTION_URL.format(get_random_solr_url(solr_urls, options), collection)
   logger.debug("Solr request: {0}".format(request))
   reload_collection_json_cmd=create_solr_api_request_command(request, config)
-  process = Popen(reload_collection_json_cmd, stdout=PIPE, stderr=PIPE, shell=True)
+  process = Popen(shlex.split(reload_collection_json_cmd), stdout=PIPE, stderr=PIPE, shell=False)
   out, err = process.communicate()
   if process.returncode != 0:
     raise Exception("{0} command failed: {1}".format(reload_collection_json_cmd, str(err)))
@@ -962,7 +963,7 @@ def get_replica_index_size(config, core_url, replica):
   request = CORE_DETAILS_URL.format(core_url)
   logger.debug("Solr request: {0}".format(request))
   get_core_detaul_json_cmd=create_solr_api_request_command(request, config)
-  process = Popen(get_core_detaul_json_cmd, stdout=PIPE, stderr=PIPE, shell=True)
+  process = Popen(shlex.split(get_core_detaul_json_cmd), stdout=PIPE, stderr=PIPE, shell=False)
   out, err = process.communicate()
   if process.returncode != 0:
     raise Exception("{0} command failed: {1}".format(get_core_detaul_json_cmd, str(err)))
@@ -980,7 +981,7 @@ def delete_znode(options, config, znode):
   logger.debug("Solr cli command: {0}".format(solr_cli_command))
   sys.stdout.write('Deleting znode {0} ... '.format(znode))
   sys.stdout.flush()
-  process = Popen(solr_cli_command, stdout=PIPE, stderr=PIPE, shell=True)
+  process = Popen(shlex.split(solr_cli_command), stdout=PIPE, stderr=PIPE, shell=False)
   out, err = process.communicate()
   if process.returncode != 0:
     sys.stdout.write(colors.FAIL + 'FAILED\n' + colors.ENDC)
@@ -999,7 +1000,7 @@ def copy_znode(options, config, copy_src, copy_dest, copy_from_local=False, copy
   logger.debug("Solr cli command: {0}".format(solr_cli_command))
   sys.stdout.write('Transferring data from {0} to {1} ... '.format(copy_src, copy_dest))
   sys.stdout.flush()
-  process = Popen(solr_cli_command, stdout=PIPE, stderr=PIPE, shell=True)
+  process = Popen(shlex.split(solr_cli_command), stdout=PIPE, stderr=PIPE, shell=False)
   out, err = process.communicate()
   if process.returncode != 0:
     sys.stdout.write(colors.FAIL + 'FAILED\n' + colors.ENDC)
@@ -1031,7 +1032,7 @@ def list_collections(options, config, output_file, include_number_of_docs=False)
     logger.debug("Solr cli command: {0}".format(solr_cli_command))
     sys.stdout.write('Dumping collections data to {0} ... '.format(output_file))
     sys.stdout.flush()
-    process = Popen(solr_cli_command, stdout=PIPE, stderr=PIPE, shell=True)
+    process = Popen(shlex.split(solr_cli_command), stdout=PIPE, stderr=PIPE, shell=False)
     out, err = process.communicate()
     if process.returncode != 0:
       sys.stdout.write(colors.FAIL + 'FAILED\n' + colors.ENDC)
