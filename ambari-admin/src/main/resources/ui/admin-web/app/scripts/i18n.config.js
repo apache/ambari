@@ -485,7 +485,7 @@ angular.module('ambariAdminConsole')
     'exportBlueprint.dataLoaded': 'Data loaded...',
 
     'remoteClusters.ambariClusterName': 'Ambari Cluster Name',
-    'remoteClusters.clusterURLPlaceholder': 'http://ambari.server:8080/api/v1/clusters/c1',
+    'remoteClusters.clusterURLPlaceholder': 'http://ambari.server:8080/api/v1/clusters/clusterName',
 
     'remoteClusters.alerts.fetchError': 'Error in fetching remote clusters.'
   });

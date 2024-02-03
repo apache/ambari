@@ -25,6 +25,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
@@ -37,6 +39,10 @@ import javax.persistence.TableGenerator;
   , pkColumnValue = "remote_cluster_service_id_seq"
   , initialValue = 1
 )
+@NamedQueries({
+        @NamedQuery(name = "deleteRemoteClusterOldService", query = "DELETE FROM RemoteAmbariClusterServiceEntity remoteambariclusterservice " +
+                "WHERE remoteambariclusterservice.clusterId= :clusterId AND remoteambariclusterservice.id <= :id"),
+})
 @Entity
 public class RemoteAmbariClusterServiceEntity {
 
@@ -52,6 +58,9 @@ public class RemoteAmbariClusterServiceEntity {
   @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false)
   private RemoteAmbariClusterEntity cluster;
 
+  @Column(name = "cluster_id", nullable = false, insertable = false, updatable = false, length = 10)
+  private Long clusterId;
+  
   /**
    * Get Id
    *
@@ -88,6 +97,14 @@ public class RemoteAmbariClusterServiceEntity {
     this.cluster = cluster;
   }
 
+  public Long getClusterId() {
+    return clusterId;
+  }
+
+  public void setClusterId(Long clusterId) {
+    this.clusterId = clusterId;
+  }
+  
   /**
    * Get service name
    *

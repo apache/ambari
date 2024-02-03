@@ -81,6 +81,7 @@ public class RemoteClusterResourceProvider extends AbstractAuthorizedResourcePro
    */
   private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.RemoteCluster, CLUSTER_NAME_PROPERTY_ID)
+      .put(Resource.Type.Service, SERVICES_PROPERTY_ID)
       .build();
 
   /**
