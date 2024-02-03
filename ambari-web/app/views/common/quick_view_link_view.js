@@ -520,6 +520,15 @@ App.QuickLinksView = Em.View.extend({
       } else {
         quickLinks.set('publicHostNameLabel', host.publicHostName);
       }
+      if(host.hasOwnProperty("started")){
+        quickLinks.set("serverComponentStopped",!host.started);
+      }
+      if(host.started&&host.status&&host.status===Em.I18n.t('quick.links.label.active')){
+        quickLinks.set("activeClass","text-success");
+      }
+      else{
+        quickLinks.set("activeClass","")
+      }
       quickLinksArray.push(quickLinks);
     }, this);
     return quickLinksArray;
@@ -623,8 +632,16 @@ App.QuickLinksView = Em.View.extend({
    * @method processHbaseHosts
    */
   processHbaseHosts: function (hosts, response) {
+    var activeHbaseServers=this.get('content.hostComponents')
+    .filterProperty('componentName', 'HBASE_MASTER')
+    .filterProperty('workStatus', 'STARTED')
+    .mapProperty('hostName');
     return hosts.map(function (host) {
+      let isActiveServerHost=false;
       var isActiveMaster;
+      if(host&&host.hostName){
+        isActiveServerHost=activeHbaseServers.includes(host.hostName);
+      }
       response.items.filterProperty('Hosts.host_name', host.hostName).filter(function (item) {
         var hbaseMaster = item.host_components.findProperty('HostRoles.component_name', 'HBASE_MASTER');
         isActiveMaster = hbaseMaster && Em.get(hbaseMaster, 'metrics.hbase.master.IsActiveMaster');
@@ -636,6 +653,7 @@ App.QuickLinksView = Em.View.extend({
         if (isActiveMaster === 'false') {
           host.status = Em.I18n.t('quick.links.label.standby');
         }
+        host.started=isActiveServerHost;
       return host;
     }, this);
   },
