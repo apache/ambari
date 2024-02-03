@@ -357,6 +357,7 @@ public class Stage {
     ExecutionCommand cmd = new ExecutionCommand();
     ExecutionCommandWrapper wrapper = ecwFactory.createFromCommand(cmd);
     hrc.setExecutionCommandWrapper(wrapper);
+    cmd.setClusterId(Long.toString(clusterId));
     cmd.setHostname(hostName);
     cmd.setClusterName(clusterName);
     cmd.setRequestAndStage(requestId, stageId);
