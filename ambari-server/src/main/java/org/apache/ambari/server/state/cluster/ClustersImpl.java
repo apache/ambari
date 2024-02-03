@@ -777,9 +777,6 @@ public class ClustersImpl implements Clusters {
       }
 
       unmapHostClusterEntities(hostname, cluster.getClusterId());
-
-      getHostClustersMap().get(hostname).remove(cluster);
-      getClusterHostsMap().get(cluster.getClusterName()).remove(host);
     }
 
     deleteConfigGroupHostMapping(hostEntity.getHostId());
@@ -828,7 +825,8 @@ public class ClustersImpl implements Clusters {
       throw new HostNotFoundException(hostname);
     }
 
-    deleteHostEntityRelationships(hostname);
+    Host host = deleteHostEntityRelationships(hostname);
+    deleteHostFromMap(host);
   }
 
   @Override
@@ -849,7 +847,7 @@ public class ClustersImpl implements Clusters {
    * @throws AmbariException
    */
   @Transactional
-  void deleteHostEntityRelationships(String hostname) throws AmbariException {
+  Host deleteHostEntityRelationships(String hostname) throws AmbariException {
     if (!getHostsByName().containsKey(hostname)) {
       throw new HostNotFoundException("Could not find host " + hostname);
     }
@@ -857,7 +855,7 @@ public class ClustersImpl implements Clusters {
     HostEntity entity = hostDAO.findByName(hostname);
 
     if (entity == null) {
-      return;
+      return null;
     }
 
     // Remove from all clusters in the cluster_host_mapping table.
@@ -902,10 +900,25 @@ public class ClustersImpl implements Clusters {
     getHostsById().remove(entity.getHostId());
 
     hostDAO.remove(entity);
-
+    return host;
     // Note, if the host is still heartbeating, then new records will be
     // re-inserted
     // into the hosts and hoststate tables
+  }
+
+  public void deleteHostFromMap(Host host) throws AmbariException {
+    // Remove from dictionaries
+    Long hostId = host.getHostId();
+    String hostname = host.getHostName();
+    Set<Cluster> clusters = getHostClustersMap().get(hostname);
+    for (Cluster cluster : clusters) {
+      LOG.info("Deleting cache for cluster: {} and hostName: {}", cluster.getClusterName(), hostname);
+      getHostClustersMap().get(hostname).remove(cluster);
+      getClusterHostsMap().get(cluster.getClusterName()).remove(host);
+    }
+    getHostsByName().remove(hostname);
+    getHostsById().remove(hostId);
+    LOG.info("Deleted Host From Map for hostName: {}, hostId: {}", hostname, hostId);
   }
 
   @Override
