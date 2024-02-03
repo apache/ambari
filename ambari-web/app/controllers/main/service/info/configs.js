@@ -463,7 +463,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
         configs.findProperty('name', 'kdc_hosts').set('isVisible', false);
         configs.findProperty('name', 'admin_server_host').set('isVisible', false);
         configs.findProperty('name', 'domains').set('isVisible', false);
-      } else if (kdc_type.get('value') === 'active-directory') {
+      } else if (kdc_type.get('value') === 'active-directory' || kdc_type.get('value') === 'directory-server') {
         configs.findProperty('name', 'container_dn').set('isVisible', true);
         configs.findProperty('name', 'ldap_url').set('isVisible', true);
       } else if (kdc_type.get('value') === 'ipa') {

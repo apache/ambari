@@ -23,7 +23,7 @@
   <property require-input="true">
     <name>kdc_type</name>
     <description>
-      The type of KDC being used. Either mit-kdc, ipa, or active-directory
+      The type of KDC being used. Either mit-kdc, ipa, active-directory, or apache directory server
     </description>
     <value>mit-kdc</value>
     <display-name>KDC type</display-name>
@@ -126,7 +126,7 @@
     <description>
       The supported list of session key encryption types that should be returned by the KDC.
     </description>
-    <value>aes des3-cbc-sha1 rc4 des-cbc-md5</value>
+    <value>aes des3-cbc-sha1 des-cbc-md5</value>
     <value-attributes>
       <type>multiLine</type>
       <overridable>false</overridable>
@@ -328,6 +328,45 @@
   "accountExpires": "0",
   "userAccountControl": "66048"
 }
+    </value>
+    <value-attributes>
+      <type>content</type>
+      <empty-value-valid>true</empty-value-valid>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>ds_create_attributes_template</name>
+    <display-name>Account Attribute Template</display-name>
+    <description>
+      A Velocity template to use to generate a JSON-formatted document containing the set of
+      attribute names and values needed to create a new Kerberos identity in the relevant
+      Apache Directory Server.
+      Variables include:
+      principal_name, principal_primary, principal_instance, realm, realm_lowercase,
+      normalized_principal, principal digest, password, is_service, container_dn
+    </description>
+    <value>
+      {
+      "objectClass": ["top", "krb5KDCEntry", "krb5Principal", "uidObject",
+      #if( $is_service )
+      "organizationalUnit"
+      #else
+      "organizationalPerson"
+      #end
+      ],
+      #if( $is_service )
+      "ou": "$principal_name",
+      #else
+      "cn": "$principal_name",
+      "sn": "$principal_name",
+      #end
+      "uid": "$principal_name",
+      "krb5KeyVersionNumber": "1",
+      "krb5PrincipalName": "$normalized_principal",
+      "userPassword": "$password"
+      }
     </value>
     <value-attributes>
       <type>content</type>

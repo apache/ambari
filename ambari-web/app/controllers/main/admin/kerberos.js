@@ -61,6 +61,7 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
   kdcTypesValues: {
     'mit-kdc': Em.I18n.t('admin.kerberos.wizard.step1.option.kdc'),
     'active-directory': Em.I18n.t('admin.kerberos.wizard.step1.option.ad'),
+    'directory-server': Em.I18n.t('admin.kerberos.wizard.step1.option.ds'),
     'ipa': Em.I18n.t('admin.kerberos.wizard.step1.option.ipa'),
     'none': Em.I18n.t('admin.kerberos.wizard.step1.option.manual')
   },

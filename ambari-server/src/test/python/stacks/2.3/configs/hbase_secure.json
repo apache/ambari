@@ -266,7 +266,7 @@
             "realm": "EXAMPLE.COM", 
             "container_dn": "", 
             "ldap_url": "", 
-            "encryption_types": "aes des3-cbc-sha1 rc4 des-cbc-md5", 
+            "encryption_types": "aes des3-cbc-sha1 des-cbc-md5",
             "admin_server_host": "c6405.ambari.apache.org", 
             "executable_search_paths": "/usr/bin, /usr/kerberos/bin, /usr/sbin, /usr/lib/mit/bin, /usr/lib/mit/sbin", 
             "kdc_type": "mit-kdc", 

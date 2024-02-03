@@ -47,6 +47,8 @@ will be created and the keytab files are distributed manually
   - Ambari is to integrate with an MIT KDC
 - `active-directory`
   - Ambari is to integrate with an Active Directory
+- `directory-server`
+  - Ambari is to integrate with an Apache Directory Server
 - `ipa` 
   - Ambari is to integrate with a FreeIPA server
 
@@ -107,7 +109,7 @@ If the `kdc_type` is `active-directory`, this property is mandatory.
 
 The supported (space-delimited) list of session key encryption types that should be returned by the KDC.
 
-_Default value:_ aes des3-cbc-sha1 rc4 des-cbc-md5
+_Default value:_ aes des3-cbc-sha1 des-cbc-md5
 
 ##### realm
 
@@ -244,6 +246,58 @@ _Default value:_
 ```
 
 This property is mandatory and only used if the `kdc_type` is `active-directory`
+
+##### ds_create_attributes_template
+
+A Velocity template to use to generate a JSON-formatted document containing the set of attribute
+names and values needed to create a new Kerberos identity in the relevant Apache Directory Server.
+
+Variables include:
+
+- `principal_name` - the components (primary and instance) portion of the principal
+- `principal_primary` - the _primary component_ of the principal name
+- `principal_instance` - the _instance component_ of the principal name
+- `realm` - the `realm` portion of the principal
+- `realm_lowercase` - the lowercase form of the `realm` of the principal
+- `normalized_principal` - the full principal value, including the component and realms parts
+- `principal_digest` - a binhexed-encoded SHA1 digest of the normalized principal
+- `principal_digest_256` - a binhexed-encoded SHA256 digest of the normalized principal
+- `principal_digest_512` - a binhexed-encoded SHA512 digest of the normalized principal
+- `password` - the generated password
+- `is_service` - `true` if the principal is a _service_ principal, `false` if the principal is a _user_ principal
+- `container_dn` - the `kerberos-env/container_dn` property value
+
+_Note_: A principal is made up of the following parts:  primary component, instances component
+(optional), and realm:
+
+* User principal: **_`primary_component`_**@**_`realm`_**
+* Service principal: **_`primary_component`_**/**_`instance_component`_**@**_`realm`_**
+
+_Default value:_
+
+```
+{
+"objectClass": ["top", "krb5KDCEntry", "krb5Principal", "uidObject",
+#if( $is_service )
+"organizationalUnit"
+#else
+"organizationalPerson"
+#end
+],
+#if( $is_service )
+"ou": "$principal_name",
+#else
+"cn": "$principal_name",
+"sn": "$principal_name",
+#end
+"uid": "$principal_name",
+"krb5KeyVersionNumber": "1",
+"krb5PrincipalName": "$normalized_principal",
+"userPassword": "$password"
+}
+```
+
+This property is mandatory and only used if the `kdc_type` is `directory-server`
 
 ##### kdc_create_attributes
 

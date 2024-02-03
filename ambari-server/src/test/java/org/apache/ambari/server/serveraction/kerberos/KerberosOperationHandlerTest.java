@@ -49,7 +49,7 @@ public abstract class KerberosOperationHandlerTest extends EasyMockSupport {
 
   static {
     Map<String, String> map = new HashMap<>();
-    map.put(KerberosOperationHandler.KERBEROS_ENV_ENCRYPTION_TYPES, "aes des3-cbc-sha1 rc4 des-cbc-md5");
+    map.put(KerberosOperationHandler.KERBEROS_ENV_ENCRYPTION_TYPES, "aes des3-cbc-sha1 des-cbc-md5");
     map.put(IPAKerberosOperationHandler.KERBEROS_ENV_KDC_HOSTS, "localhost");
     map.put(IPAKerberosOperationHandler.KERBEROS_ENV_ADMIN_SERVER_HOST, "localhost");
     DEFAULT_KERBEROS_ENV_MAP = Collections.unmodifiableMap(map);
