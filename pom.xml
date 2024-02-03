@@ -389,6 +389,9 @@
             <exclude>ambari_python.egg-info/**</exclude>
             <exclude>dist/**</exclude>
             <exclude>build/**</exclude>
+            <!--For ambari-logsearch and ambari-infra RAT is handled in respective submodules -->
+            <exclude>ambari-logsearch/**</exclude>
+            <exclude>ambari-infra/**</exclude>
           </excludes>
         </configuration>
         <executions>
@@ -454,8 +457,6 @@
         <module>ambari-server</module>
         <module>ambari-funtest</module>
         <module>ambari-agent</module>
-        <module>ambari-logsearch</module>
-        <module>ambari-infra</module>
       </modules>
     </profile>
     <profile>
@@ -488,8 +489,6 @@
         <module>ambari-server</module>
         <module>ambari-funtest</module>
         <module>ambari-agent</module>
-        <module>ambari-logsearch</module>
-        <module>ambari-infra</module>
         <module>ambari-serviceadvisor</module>
       </modules>
     </profile>
@@ -509,8 +508,6 @@
         <module>ambari-server</module>
         <module>ambari-funtest</module>
         <module>ambari-agent</module>
-        <module>ambari-logsearch</module>
-        <module>ambari-infra</module>
         <module>ambari-serviceadvisor</module>
         </modules>
     </profile>
@@ -524,6 +521,18 @@
       <id>ambari-serviceadvisor</id>
       <modules>
         <module>ambari-serviceadvisor</module>
+      </modules>
+    </profile>
+    <profile>
+      <id>ambari-logsearch</id>
+      <modules>
+        <module>ambari-logsearch</module>
+      </modules>
+    </profile>
+    <profile>
+      <id>ambari-infra</id>
+      <modules>
+        <module>ambari-infra</module>
       </modules>
     </profile>
     <profile>
