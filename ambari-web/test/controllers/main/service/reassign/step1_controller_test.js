@@ -232,4 +232,39 @@ describe('App.ReassignMasterWizardStep1Controller', function () {
       });
     });
   });
+
+  describe("#saveConfigs()", function () {
+    var mock = {
+      saveConfigs: Em.K
+    }
+
+    beforeEach(function () {
+      sinon.stub(App.router, 'get').returns(mock);
+      sinon.spy(mock, 'saveConfigs');
+    });
+    afterEach(function () {
+      App.router.get.restore();
+      mock.saveConfigs.restore();
+    });
+
+    it("should save configs", function () {
+      controller.set('content.controllerName', 'ct1');
+      controller.saveConfigs({});
+      expect(mock.saveConfigs.calledOnce).to.be.true;
+    });
+  });
+
+  describe("#isExistingDb()", function () {
+
+    it("should return true", function () {
+      var configs = {
+        'hive-env': {
+          hive_database: 'Existing PostgreSQL Database'
+        }
+      };
+
+      controller.set('content.reassign.service_id', 'HIVE');
+      expect(controller.isExistingDb(configs)).to.be.true;
+    });
+  });
 });

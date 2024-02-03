@@ -38,7 +38,7 @@ describe('App.ReassignMasterWizardStep6Controller', function () {
   describe('#initializeTasks()', function () {
     it('No commands', function () {
       controller.set('commands', []);
-      controller.set('hostComponents', []);
+      controller.set('hostComponents', ['comp1', 'ZKFC']);
       controller.initializeTasks();
 
       expect(controller.get('tasks')).to.be.empty;
@@ -341,6 +341,107 @@ describe('App.ReassignMasterWizardStep6Controller', function () {
     it("startServices is called with valid arguments", function () {
       controller.startAllServices();
       expect(controller.startServices.calledWith(true)).to.be.true;
+    });
+  });
+
+  describe('#stopHostComponentsInMaintenanceMode()', function () {
+
+    beforeEach(function () {
+      sinon.stub(controller, 'updateComponentsState');
+    });
+    afterEach(function () {
+      controller.updateComponentsState.restore();
+    });
+
+    it('should call "updateComponentsState"', function () {
+      controller.reopen({
+        content: Em.Object.create({
+          reassignComponentsInMM: ['c1'],
+          reassign: Em.Object.create({
+            service_id: 's1'
+          }),
+          reassignHosts: Em.Object.create({
+            source: 'host1'
+          })
+        })
+      });
+      controller.stopHostComponentsInMaintenanceMode();
+      expect(controller.get('multiTaskCounter')).to.equal(1);
+      expect(controller.updateComponentsState.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#startDatanodes()', function () {
+
+    beforeEach(function () {
+      sinon.stub(controller, 'updateComponent');
+    });
+    afterEach(function () {
+      controller.updateComponent.restore();
+    });
+
+    it('should call "updateComponent"', function () {
+      controller.startDatanodes();
+      expect(controller.updateComponent.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#installPxf()', function () {
+
+    beforeEach(function () {
+      sinon.stub(controller, 'createInstallComponentTask');
+    });
+    afterEach(function () {
+      controller.createInstallComponentTask.restore();
+    });
+
+    it('should call "createInstallComponentTask"', function () {
+      controller.installPxf();
+      expect(controller.createInstallComponentTask.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#removeUnneededTasks()', function () {
+    var isHaEnabled = false;
+
+    beforeEach(function () {
+      sinon.stub(App, 'get', function () {
+        return isHaEnabled;
+      });
+      sinon.stub(controller, 'removeTasks');
+    });
+
+    afterEach(function () {
+      App.get.restore();
+      controller.removeTasks.restore();
+    });
+
+    it('reassign component is Mysql Server', function () {
+      isHaEnabled = false;
+      controller.set('content.reassign.component_name', 'MYSQL_SERVER');
+      controller.removeUnneededTasks();
+      expect(controller.removeTasks.calledWith(['putHostComponentsInMaintenanceMode', 'stopMysqlService'])).to.be.false;
+      expect(controller.removeTasks.calledWith(['stopHostComponentsInMaintenanceMode'])).to.be.true;
+      expect(controller.removeTasks.calledWith(['startDatanodes'])).to.be.true;
+    });
+
+    it('reassign component is NAMENODE and HA enabled', function () {
+      isHaEnabled = true;
+      controller.set('content.reassign.component_name', 'NAMENODE');
+      controller.removeUnneededTasks();
+      expect(controller.removeTasks.calledWith(['putHostComponentsInMaintenanceMode', 'stopMysqlService'])).to.be.true;
+      expect(controller.removeTasks.calledWith(['stopHostComponentsInMaintenanceMode'])).to.be.true;
+      expect(controller.removeTasks.calledWith(['startDatanodes'])).to.be.false;
+    });
+
+    it('reassign component is NAMENODE and HA disabled and reassignComponentsInMM > 0', function () {
+      isHaEnabled = false;
+      controller.set('content.reassign.component_name', 'NAMENODE');
+      controller.set('content.reassignComponentsInMM', ['c1']);
+      controller.removeUnneededTasks();
+      expect(controller.removeTasks.calledWith(['putHostComponentsInMaintenanceMode', 'stopMysqlService'])).to.be.true;
+      expect(controller.removeTasks.calledWith(['stopHostComponentsInMaintenanceMode'])).to.be.false;
+      expect(controller.removeTasks.calledWith(['startDatanodes'])).to.be.true;
     });
   });
 });

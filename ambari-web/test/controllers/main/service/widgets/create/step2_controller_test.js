@@ -868,4 +868,75 @@ describe('App.WidgetWizardStep2Controller', function () {
       expect(App.router.send.calledWith('next')).to.be.true;
     });
   });
+
+  describe("#isAnyExpressionInvalid()", function () {
+
+    beforeEach(function () {
+      sinon.stub(controller, 'checkIfIsLabelValid');
+    });
+    afterEach(function () {
+      controller.checkIfIsLabelValid.restore();
+    });
+
+    it("content type is NUMBER", function () {
+      controller.set('content.widgetType', 'NUMBER');
+      controller.set('expressions', [Em.Object.create({isEmpty: false})]);
+      controller.set('dataSets', []);
+      controller.propertyDidChange('isAnyExpressionInvalid');
+      expect(controller.get('isAnyExpressionInvalid')).to.be.true;
+    });
+
+    it("content type is GRAPH", function () {
+      controller.set('content.widgetType', 'GRAPH');
+      controller.set('expressions', [Em.Object.create({isEmpty: false})]);
+      controller.set('dataSets', [
+        Em.Object.create({
+          expression: Em.Object.create({data: [{}]})
+        })
+      ]);
+      controller.propertyDidChange('isAnyExpressionInvalid');
+      expect(controller.get('isAnyExpressionInvalid')).to.be.true;
+    });
+  });
+
+  describe("#convertData()", function () {
+
+    beforeEach(function () {
+      sinon.stub(controller, 'parseValue').returns([1,2]);
+    });
+    afterEach(function () {
+      controller.parseValue.restore();
+    });
+
+    it("content type is NUMBER", function () {
+      controller.set('content.widgetType', 'NUMBER');
+      controller.get('content').setProperties({
+        widgetValues: [{value: '1'}],
+        widgetMetrics: [2]
+      });
+      controller.convertData();
+      expect(JSON.stringify(controller.get('expressions'))).to.equal('[{"id":1,"isRemovable":false,"data":1,"alias":"{{Expression1}}","isInvalid":false}]');
+    });
+
+    it("content type is TEMPLATE", function () {
+      controller.set('content.widgetType', 'TEMPLATE');
+      controller.get('content').setProperties({
+        widgetValues: [{value: '1'}],
+        widgetMetrics: [2]
+      });
+      controller.convertData();
+      expect(JSON.stringify(controller.get('expressions'))).to.equal('[{"id":1,"isRemovable":false,"data":1,"alias":"{{Expression1}}","isInvalid":false},{"id":2,"isRemovable":true,"data":2,"alias":"{{Expression2}}","isInvalid":false}]');
+      expect(controller.get('templateValue')).to.equal('1');
+    });
+
+    it("content type is GRAPH", function () {
+      controller.set('content.widgetType', 'GRAPH');
+      controller.get('content').setProperties({
+        widgetValues: [{value: '1'}],
+        widgetMetrics: [2]
+      });
+      controller.convertData();
+      expect(JSON.stringify(controller.get('dataSets'))).to.equal('[{"id":1,"isRemovable":false,"expression":{"id":1,"data":1,"isInvalid":false}}]');
+    });
+  });
 });
