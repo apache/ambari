@@ -520,7 +520,8 @@ public class TimelineWebServices {
     List<String> list = new ArrayList<String>(split.length);
     for (String s : split) {
       if (!s.trim().isEmpty()){
-        list.add(s);
+        String metricName = s.startsWith("jvm.RegionServer.JvmMetrics.") ? s.replace("jvm.RegionServer", "jvm") : s;
+        list.add(metricName);
       }
     }
 
