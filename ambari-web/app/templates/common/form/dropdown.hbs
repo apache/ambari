@@ -16,14 +16,14 @@
 * limitations under the License.
 }}
 
-<div class="dropdown dropdown-select" {{QAAttr "{view.qaAttr}"}}>
-  <button {{bindAttr class=":btn :btn-default :dropdown-toggle view.disabled:disabled"}} type="button" data-toggle="dropdown">
+<div class="dropdown" {{QAAttr "{view.qaAttr}"}}>
+  <button {{bindAttr class=":btn :btn-default :dropdown-toggle view.disabled:disabled"}} type="button" data-bs-toggle="dropdown">
     <span class="caret pull-caret-right"></span>
     {{view App.DropdownOptionView optionBinding="view.selection" optionLabelPathBinding="view.optionLabelPath" class="selected-item"}}
   </button>
   <ul class="dropdown-menu">
     {{#each option in view.content}}
-      <li><a href="#" {{action "selectOption" option target="view"}}>{{view App.DropdownOptionView optionBinding="option" optionLabelPathBinding="view.optionLabelPath"}}</a></li>
+      <li><a class="dropdown-item" href="#" {{action "selectOption" option target="view"}}>{{view App.DropdownOptionView optionBinding="option" optionLabelPathBinding="view.optionLabelPath"}}</a></li>
     {{/each}}
   </ul>
 </div>

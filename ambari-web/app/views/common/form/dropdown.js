@@ -21,6 +21,7 @@ var App = require('app');
 App.DropdownView = Em.View.extend({
 
   templateName: require('templates/common/form/dropdown'),
+  bind:['data-bs-toggle','dropdown'],
 
   qaAttr: '',
 
@@ -31,6 +32,8 @@ App.DropdownView = Em.View.extend({
   optionValuePath: '',
 
   optionLabelPath: '',
+
+  dropdownOpen: false,
 
   /**
    * Used to prevent infinite loop because of cyclic updating of value and selection
@@ -64,6 +67,10 @@ App.DropdownView = Em.View.extend({
   selectOption: function (option) {
     this.set('selection', option.context);
     this.change();
+  },
+
+  toggleDropdown(){
+    this.toggleProperty("dropdownOpen")
   },
 
   /**

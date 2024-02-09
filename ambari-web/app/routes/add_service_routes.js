@@ -128,7 +128,7 @@ module.exports = App.WizardRoute.extend({
         controller.loadAllPriorSteps().done(function () {
           var wizardStep4Controller = router.get('wizardStep4Controller');
           wizardStep4Controller.set('wizardController', controller);
-          controller.loadServiceVersionFromVersionDefinitions().complete(function () {
+          controller.loadServiceVersionFromVersionDefinitions().then(function () {
             controller.set('content.services', App.StackService.find().forEach(function (item) {
               // user the service version from VersionDefinition
               Ember.set(item, 'serviceVersionDisplay', controller.get('serviceVersionsMap')[item.get('serviceName')]);

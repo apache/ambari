@@ -384,7 +384,7 @@
         newMock.resolveWith( callbackContext, [mockHandler.responseText] );
       }
       else{
-        newMock.resolveWith( callbackContext, [$.parseJSON( mockHandler.responseText )] );
+        newMock.resolveWith( callbackContext, [JSON.parse( mockHandler.responseText )] );
       }
     }
     return newMock;

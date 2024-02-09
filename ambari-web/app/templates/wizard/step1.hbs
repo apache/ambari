@@ -35,7 +35,7 @@
         <div class="stacks-options">
           <div class="details-panel">
             <div class="btn-group" {{QAAttr "select-version"}}>
-              <button type="button" data-toggle="dropdown"
+              <button type="button" data-bs-toggle="dropdown"
                       class="btn dropdown-toggle btn-default" {{QAAttr "select-version-button"}}>{{controller.selectedStack.displayName}}
                 <span class="caret"></span></button>
               <ul class="dropdown-menu">
@@ -116,7 +116,7 @@
                         <button
                           type="button" {{bindAttr data-original-title="view.addOsButtonTooltip" class=":btn :btn-default :dropdown-toggle :add-os-button view.isAddOsButtonDisabled:disabled"}}
                           {{QAAttr "add-os-button"}}
-                          data-toggle="dropdown">
+                          data-bs-toggle="dropdown">
                           <i class="glyphicon glyphicon-plus"></i> {{t common.add}} &nbsp;<span class="caret"></span>
                         </button>
                         <ul class="dropdown-menu">
@@ -208,7 +208,7 @@
                   labelIdentifier="skip-validation"
                   }}
                     <i class="glyphicon glyphicon-question-sign" rel="skip-validation-tooltip"
-                       data-toggle="tooltip" {{translateAttr data-original-title="installer.step1.advancedRepo.skipValidation.tooltip"}}>
+                       data-bs-toggle="tooltip" {{translateAttr data-original-title="installer.step1.advancedRepo.skipValidation.tooltip"}}>
                     </i>
                   {{/view}}
                   <div class="clearfix"></div>
@@ -223,7 +223,7 @@
                   labelClassNamesBinding="controller.selectedStack.usePublicRepo:disabled"
                   }}
                     <i class="glyphicon glyphicon-question-sign" rel="use-redhat-tooltip"
-                       data-toggle="tooltip" {{translateAttr data-original-title="installer.step1.advancedRepo.useRedhatSatellite.tooltip"}}>
+                       data-bs-toggle="tooltip" {{translateAttr data-original-title="installer.step1.advancedRepo.useRedhatSatellite.tooltip"}}>
                     </i>
                   {{/view}}
                 </div>

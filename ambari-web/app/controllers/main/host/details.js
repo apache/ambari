@@ -389,7 +389,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    */
   checkNnLastCheckpointTime: function(callback, hostName) {
     var self = this;
-    this.pullNnCheckPointTime(hostName).complete(function () {
+    this.pullNnCheckPointTime(hostName).then(function () {
       var isNNCheckpointTooOld = self.get('isNNCheckpointTooOld');
       self.set('isNNCheckpointTooOld', null);
       if (isNNCheckpointTooOld) {
@@ -891,6 +891,9 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @method installNewComponentSuccessCallback
    */
   installNewComponentSuccessCallback: function (data, opt, params) {
+    if(typeof data==="string"){
+      data=JSON.parse(data)
+    }
     if (!data || !data.Requests || !data.Requests.id) {
       return false;
     }
@@ -3068,7 +3071,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     var error = Em.I18n.t('services.service.actions.run.executeCustomCommand.error');
     if(data && data.responseText){
       try {
-        var json = $.parseJSON(data.responseText);
+        var json = JSON.parse(data.responseText);
         error += json.message;
       } catch (err) {}
     }

@@ -151,7 +151,7 @@ App.MainServiceInfoMetricsView = Em.View.extend(App.Persist, App.TimeRangeMixin,
     }
 
     // load time range(currentTimeRangeIndex) for current service from server
-    this.getUserPref(self.get('persistKey')).complete(function () {
+    this.getUserPref(self.get('persistKey')).then(function () {
       var result = [], graphObjects = [], chunkSize = self.get('chunkSize');
       if (graphNames) {
         graphNames.forEach(function (graphName) {

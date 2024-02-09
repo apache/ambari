@@ -27,7 +27,7 @@ App.FilterComboCleanableView = Ember.View.extend({
   templateName: require('templates/common/filter_combo_cleanable'),
 
   classNames: ['filter-combobox', 'input-group'],
-
+  filter: null,
   didInsertElement: function() {
     App.popover(this.$("input[type=text]"), {
       title: this.get('popoverDescription')[0],
@@ -77,6 +77,8 @@ App.FilterComboCleanableView = Ember.View.extend({
    * clear Filter textfield
    */
   clearFilter: function() {
+    const filterInput=document.querySelector(".filter-input");
+    filterInput.value="";
     this.set('filter', '');
   }
 });

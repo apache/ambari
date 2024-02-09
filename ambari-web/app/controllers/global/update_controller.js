@@ -711,7 +711,7 @@ App.UpdateController = Em.Controller.extend({
   },
 
   updateWizardWatcher: function(callback) {
-    App.router.get('wizardWatcherController').getUser().complete(callback);
+    App.router.get('wizardWatcherController').getUser().then(callback);
   },
 
   /**

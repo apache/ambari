@@ -475,6 +475,7 @@ App.ManageAlertGroupsController = Em.Controller.extend({
     var sendData = {
       name: 'alert_groups.create',
       data: data,
+      dataType:'text',
       success: 'successFunction',
       error: 'errorFunction',
       successFunction: function () {
