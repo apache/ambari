@@ -65,6 +65,9 @@ class TestVersion(TestCase):
     versions = range(1000, 3000, 7)
     versions = [".".join(list(str(elem))) for elem in versions]
 
+    def cmp(a, b):
+      return (a > b) - (a < b)
+
     for idx, x in enumerate(versions):
       for idy, y in enumerate(versions):
         # Expected value will either be -1, 0, 1, and it relies on the fact
@@ -198,7 +201,7 @@ class TestVersion(TestCase):
     version = self.version_module.get_current_component_version()
 
     self.assertFalse(get_role_component_current_stack_version_mock.called)
-    self.assertEquals(ver1, version)
+    self.assertEqual(ver1, version)
 
     # case 2. version not come with commands params but repository is resolved
     get_role_component_current_stack_version_mock.reset_mock()
@@ -206,7 +209,7 @@ class TestVersion(TestCase):
     version = self.version_module.get_current_component_version()
 
     self.assertFalse(get_role_component_current_stack_version_mock.called)
-    self.assertEquals(ver2, version)
+    self.assertEqual(ver2, version)
 
     # case 3. same as case 2 but repository is not resolved
     get_role_component_current_stack_version_mock.reset_mock()

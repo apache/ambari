@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -149,16 +149,16 @@ class TestAgentStompResponses:#(BaseStompServerTestCase):
     action_queue.join()
 
     self.assertTrue('mounts' in host_status_report)
-    self.assertEquals(self.initializer_module.topology_cache['0']['hosts'][0]['hostName'], 'c6401.ambari.apache.org')
-    self.assertEquals(self.initializer_module.metadata_cache['0']['status_commands_to_run'], ('STATUS',))
-    self.assertEquals(self.initializer_module.configurations_cache['0']['configurations']['zoo.cfg']['clientPort'], '2181')
-    self.assertEquals(dn_install_in_progress_frame['clusters']['0'][0]['roleCommand'], 'INSTALL')
-    self.assertEquals(dn_install_in_progress_frame['clusters']['0'][0]['role'], 'DATANODE')
-    self.assertEquals(dn_install_in_progress_frame['clusters']['0'][0]['status'], 'IN_PROGRESS')
-    self.assertEquals(dn_install_failed_frame['clusters']['0'][0]['status'], 'FAILED')
-    self.assertEquals(dn_recovery_in_progress_frame['clusters']['0'][0]['roleCommand'], 'INSTALL')
-    self.assertEquals(dn_recovery_in_progress_frame['clusters']['0'][0]['role'], 'DATANODE')
-    self.assertEquals(dn_recovery_in_progress_frame['clusters']['0'][0]['status'], 'IN_PROGRESS')
+    self.assertEqual(self.initializer_module.topology_cache['0']['hosts'][0]['hostName'], 'c6401.ambari.apache.org')
+    self.assertEqual(self.initializer_module.metadata_cache['0']['status_commands_to_run'], ('STATUS',))
+    self.assertEqual(self.initializer_module.configurations_cache['0']['configurations']['zoo.cfg']['clientPort'], '2181')
+    self.assertEqual(dn_install_in_progress_frame['clusters']['0'][0]['roleCommand'], 'INSTALL')
+    self.assertEqual(dn_install_in_progress_frame['clusters']['0'][0]['role'], 'DATANODE')
+    self.assertEqual(dn_install_in_progress_frame['clusters']['0'][0]['status'], 'IN_PROGRESS')
+    self.assertEqual(dn_install_failed_frame['clusters']['0'][0]['status'], 'FAILED')
+    self.assertEqual(dn_recovery_in_progress_frame['clusters']['0'][0]['roleCommand'], 'INSTALL')
+    self.assertEqual(dn_recovery_in_progress_frame['clusters']['0'][0]['role'], 'DATANODE')
+    self.assertEqual(dn_recovery_in_progress_frame['clusters']['0'][0]['status'], 'IN_PROGRESS')
 
     #============================================================================================
     #============================================================================================

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -21,7 +21,7 @@ limitations under the License.
 from unittest import TestCase
 from ambari_agent.LiveStatus import LiveStatus
 from ambari_agent.AmbariConfig import AmbariConfig
-import os, sys, StringIO
+import os, sys, io
 from ambari_agent import ActualConfigHandler
 from mock.mock import patch, MagicMock
 import pprint
@@ -33,7 +33,7 @@ class TestLiveStatus(TestCase):
 
   def setUp(self):
     # disable stdout
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
   def tearDown(self):

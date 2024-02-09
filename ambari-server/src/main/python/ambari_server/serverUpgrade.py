@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -23,7 +23,7 @@ import os
 import sys
 import shutil
 import base64
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import re
 import glob
 import optparse
@@ -167,13 +167,13 @@ def run_schema_upgrade(args):
   if stdout:
     print_info_msg("Console output from schema upgrade command:", True)
     print_info_msg(stdout, True)
-    print
+    print()
   if retcode > 0:
     print_error_msg("Error executing schema upgrade, please check the server logs.")
     if stderr:
       print_error_msg("Error output from schema upgrade command:")
       print_error_msg(stderr)
-      print
+      print()
   else:
     print_info_msg('Schema upgrade completed', True)
   return retcode
@@ -199,7 +199,7 @@ def move_user_custom_actions():
 
   try:
     resources_dir = properties[RESOURCES_DIR_PROPERTY]
-  except (KeyError), e:
+  except (KeyError) as e:
     conf_file = properties.fileName
     err = 'Property ' + str(e) + ' is not defined at ' + conf_file
     print_error_msg(err)
@@ -318,12 +318,12 @@ def upgrade(args):
 
   json_url = get_json_url_from_repo_file()
   if json_url:
-    print "Ambari repo file contains latest json url {0}, updating stacks repoinfos with it...".format(json_url)
+    print("Ambari repo file contains latest json url {0}, updating stacks repoinfos with it...".format(json_url))
     properties = get_ambari_properties()
     stack_root = get_stack_location(properties)
     update_latest_in_repoinfos_for_stacks(stack_root, json_url)
   else:
-    print "Ambari repo file doesn't contain latest json url, skipping repoinfos modification"
+    print("Ambari repo file doesn't contain latest json url, skipping repoinfos modification")
 
 
 def add_jdbc_properties(properties):
@@ -371,8 +371,8 @@ def set_current(options):
 
   base_url = get_ambari_server_api_base(properties)
   url = base_url + "clusters/{0}/stack_versions".format(finalize_options.cluster_name)
-  admin_auth = base64.encodestring('%s:%s' % (admin_login, admin_password)).replace('\n', '')
-  request = urllib2.Request(url)
+  admin_auth = base64.encodebytes(('%s:%s' % (admin_login, admin_password)).encode()).decode().replace('\n', '')
+  request = urllib.request.Request(url)
   request.add_header('Authorization', 'Basic %s' % admin_auth)
   request.add_header('X-Requested-By', 'ambari')
 
@@ -387,12 +387,12 @@ def set_current(options):
   if get_verbose():
     sys.stdout.write('\nCalling API ' + url + ' : ' + str(data) + '\n')
 
-  request.add_data(json.dumps(data))
+  request.data=json.dumps(data)
   request.get_method = lambda: 'PUT'
 
   try:
-    response = urllib2.urlopen(request, context=get_ssl_context(properties))
-  except urllib2.HTTPError, e:
+    response = urllib.request.urlopen(request, context=get_ssl_context(properties))
+  except urllib.error.HTTPError as e:
     code = e.getcode()
     content = e.read()
     err = 'Error during setting current version. Http status code - {0}. \n {1}'.format(
@@ -419,7 +419,7 @@ def restore_custom_services():
 
   try:
     resources_dir = properties[RESOURCES_DIR_PROPERTY]
-  except (KeyError), e:
+  except (KeyError) as e:
     conf_file = properties.fileName
     err = 'Property ' + str(e) + ' is not defined at ' + conf_file
     print_error_msg(err)

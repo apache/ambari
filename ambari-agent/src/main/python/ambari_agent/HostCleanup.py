@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -25,12 +25,12 @@ sys.path.append("/usr/lib/ambari-agent/lib/")
 
 import os
 import string
-from ambari_commons import subprocess32
+import subprocess
 import logging
 import shutil
 import platform
 import fnmatch
-import ConfigParser
+import configparser
 import optparse
 import shlex
 import datetime
@@ -38,7 +38,7 @@ import tempfile
 import glob
 import pwd
 import re
-from AmbariConfig import AmbariConfig
+from ambari_agent.AmbariConfig import AmbariConfig
 from ambari_commons.constants import AGENT_TMP_DIR
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.constants import AMBARI_SUDO_BINARY
@@ -115,7 +115,7 @@ class HostCleanup:
       else:
         raise Exception("No config found, use default")
 
-    except Exception, err:
+    except Exception as err:
       logger.warn(err)
     return config
 
@@ -126,7 +126,7 @@ class HostCleanup:
       dirList.add(os.path.dirname(patern))
 
     for folder in dirList:
-      for dirs in os.walk(folder):
+      for dirs in repr(os.walk(folder)):
         for dir in dirs:
           for patern in DIRNAME_PATTERNS:
             if patern in dir:
@@ -192,14 +192,14 @@ class HostCleanup:
     try:
       with open(config_file_path, 'r'):
         pass
-    except Exception, e:
+    except Exception as e:
       logger.error("Host check result not found at: " + str(config_file_path))
       return None
 
     try:
-      config = ConfigParser.RawConfigParser()
+      config = configparser.RawConfigParser()
       config.read(config_file_path)
-    except Exception, e:
+    except Exception as e:
       logger.error("Cannot read host check result: " + str(e))
       return None
 
@@ -267,8 +267,8 @@ class HostCleanup:
     command = ALT_DISP_CMD.format(alt_name)
     out = None
     try:
-      p1 = subprocess32.Popen(shlex.split(command), stdout=subprocess32.PIPE)
-      p2 = subprocess32.Popen(["grep", "priority"], stdin=p1.stdout, stdout=subprocess32.PIPE)
+      p1 = subprocess.Popen(shlex.split(command), stdout=subprocess.PIPE)
+      p2 = subprocess.Popen(["grep", "priority"], stdin=p1.stdout, stdout=subprocess.PIPE, universal_newlines=True)
       p1.stdout.close()
       out = p2.communicate()[0]
       logger.debug('alternatives --display ' + alt_name + '\n, out = ' + out)
@@ -571,10 +571,11 @@ class HostCleanup:
     logger.info('Executing command: ' + str(cmd))
     if type(cmd) == str:
       cmd = shlex.split(cmd)
-    process = subprocess32.Popen(cmd,
-                               stdout=subprocess32.PIPE,
-                               stdin=subprocess32.PIPE,
-                               stderr=subprocess32.PIPE
+    process = subprocess.Popen(cmd,
+                               stdout=subprocess.PIPE,
+                               stdin=subprocess.PIPE,
+                               stderr=subprocess.PIPE,
+                               universal_newlines=True
     )
     (stdoutdata, stderrdata) = process.communicate()
     return process.returncode, stdoutdata, stderrdata
@@ -599,7 +600,7 @@ def backup_file(filePath):
     format = '%Y%m%d%H%M%S'
     try:
       shutil.copyfile(filePath, filePath + "." + timestamp.strftime(format))
-    except (Exception), e:
+    except (Exception) as e:
       logger.warn('Could not backup file "%s": %s' % (str(filePath, e)))
   return 0
 
@@ -611,7 +612,7 @@ def get_YN_input(prompt, default):
 
 
 def get_choice_string_input(prompt, default, firstChoice, secondChoice):
-  choice = raw_input(prompt).lower()
+  choice = input(prompt).lower()
   if choice in firstChoice:
     return True
   elif choice in secondChoice:
@@ -619,7 +620,7 @@ def get_choice_string_input(prompt, default, firstChoice, secondChoice):
   elif choice is "": # Just enter pressed
     return default
   else:
-    print "input not recognized, please try again: "
+    print("input not recognized, please try again: ")
     return get_choice_string_input(prompt, default, firstChoice, secondChoice)
   pass
 
@@ -680,7 +681,7 @@ def main():
       delete_users = get_YN_input('You have elected to remove all users as well. If it is not intended then use '
                                'option --skip \"users\". Do you want to continue [y/n] (y)', True)
       if not delete_users:
-        print 'Exiting. Use option --skip="users" to skip deleting users'
+        print('Exiting. Use option --skip="users" to skip deleting users')
         sys.exit(1)
 
   hostcheckfile, hostcheckfileca  = options.inputfiles.split(",")
@@ -688,7 +689,7 @@ def main():
   # Manage non UI install
   if not os.path.exists(hostcheckfileca):
     if options.silent:
-      print 'Host Check results not found. There is no {0}. Running host checks.'.format(hostcheckfileca)
+      print('Host Check results not found. There is no {0}. Running host checks.'.format(hostcheckfileca))
       h.run_check_hosts()
     else:
       run_check_hosts_input = get_YN_input('Host Check results not found. There is no {0}. Do you want to run host checks [y/n] (y)'.format(hostcheckfileca), True)
@@ -709,7 +710,7 @@ def main():
   if os.path.exists(config.get('agent', 'cache_dir')):
     h.do_clear_cache(config.get('agent', 'cache_dir'))
 
-  logger.info('Clean-up completed. The output is at %s' % (str(options.outputfile)))
+  logging.info('Clean-up completed. The output is at %s' % (str(options.outputfile)))
 
 
 if __name__ == '__main__':

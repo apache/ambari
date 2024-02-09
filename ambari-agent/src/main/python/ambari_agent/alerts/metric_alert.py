@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 Licensed to the Apache Software Foundation (ASF) under one
@@ -22,7 +22,7 @@ import imp
 import ambari_simplejson as json
 import logging
 import re
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import uuid
 
 from  tempfile import gettempdir
@@ -66,7 +66,7 @@ class MetricAlert(BaseAlert):
     self.curl_connection_timeout = int(connection_timeout)
 
     # will force a kinit even if klist says there are valid tickets (4 hour default)
-    self.kinit_timeout = long(config.get('agent', 'alert_kinit_timeout', BaseAlert._DEFAULT_KINIT_TIMEOUT))
+    self.kinit_timeout = int(config.get('agent', 'alert_kinit_timeout', BaseAlert._DEFAULT_KINIT_TIMEOUT))
 
 
   def _collect(self):
@@ -194,7 +194,7 @@ class MetricAlert(BaseAlert):
     if "0.0.0.0" in str(host):
       host = self.host_name
 
-    for jmx_property_key, jmx_property_value in jmx_metric.property_map.iteritems():
+    for jmx_property_key, jmx_property_value in jmx_metric.property_map.items():
       url = "{0}://{1}:{2}/jmx?qry={3}".format(
         "https" if ssl else "http", host, str(port), jmx_property_key)
 
@@ -217,10 +217,10 @@ class MetricAlert(BaseAlert):
 
           content = response
         else:
-          url_opener = urllib2.build_opener(RefreshHeaderProcessor())
+          url_opener = urllib.request.build_opener(RefreshHeaderProcessor())
           response = url_opener.open(url, timeout=self.connection_timeout)
           content = response.read()
-      except Exception, exception:
+      except Exception as exception:
         if logger.isEnabledFor(logging.DEBUG):
           logger.exception("[Alert][{0}] Unable to make a web request: {1}".format(self.get_name(), str(exception)))
       finally:
@@ -236,7 +236,7 @@ class MetricAlert(BaseAlert):
       try:
         json_response = json.loads(content)
         json_data = json_response['beans'][0]
-      except Exception, exception:
+      except Exception as exception:
         json_is_valid = False
         if logger.isEnabledFor(logging.DEBUG):
           logger.exception("[Alert][{0}] Convert response to json failed or json doesn't contain needed data: {1}".
@@ -293,7 +293,7 @@ def f(args):
 
       self.custom_module =  imp.new_module(str(uuid.uuid4()))
       code = self.DYNAMIC_CODE_TEMPLATE.format(realcode)
-      exec code in self.custom_module.__dict__
+      exec(code, self.custom_module.__dict__)
 
     for p in self.property_list:
       parts = p.split('/')

@@ -31,24 +31,24 @@ def setup_flink(env, type, upgrade_type = None, action = None):
   Directory(params.flink_pid_dir,
             owner=params.flink_user,
             group=params.user_group,
-            mode=0775,
+            mode=0o775,
             create_parents = True
   )
 
-  Directory(params.flink_etc_dir, mode=0755)
+  Directory(params.flink_etc_dir, mode=0o755)
   Directory(params.flink_config_dir,
             owner = params.flink_user,
             group = params.user_group,
             create_parents = True)
 
-  Directory(params.flink_log_dir,mode=0767)
+  Directory(params.flink_log_dir,mode=0o767)
 
   if type == 'historyserver' and action == 'config':
     params.HdfsResource(params.flink_hdfs_user_dir,
                      type="directory",
                      action="create_on_execute",
                      owner=params.flink_user,
-                     mode=0775
+                     mode=0o775
     )
 
     params.HdfsResource(None, action="execute")
@@ -58,14 +58,14 @@ def setup_flink(env, type, upgrade_type = None, action = None):
        owner=params.flink_user,
        group = params.flink_group,
        content=InlineTemplate(params.flink_conf_template),
-       mode=0755)
+       mode=0o755)
 
   #create log4j.properties in /etc/conf dir
   File(os.path.join(params.flink_config_dir, 'log4j.properties'),
        owner=params.flink_user,
        group=params.flink_group,
        content=params.flink_log4j_properties,
-       mode=0644,
+       mode=0o644,
   )
 
   #create log4j-cli.properties in /etc/conf dir
@@ -73,7 +73,7 @@ def setup_flink(env, type, upgrade_type = None, action = None):
        owner=params.flink_user,
        group=params.flink_group,
        content=params.flink_log4j_cli_properties,
-       mode=0644,
+       mode=0o644,
   )
 
   #create log4j-console.properties in /etc/conf dir
@@ -81,7 +81,7 @@ def setup_flink(env, type, upgrade_type = None, action = None):
        owner=params.flink_user,
        group=params.flink_group,
        content=params.flink_log4j_console_properties,
-       mode=0644,
+       mode=0o644,
   )
 
   #create log4j-session.properties in /etc/conf dir
@@ -89,5 +89,5 @@ def setup_flink(env, type, upgrade_type = None, action = None):
        owner=params.flink_user,
        group=params.flink_group,
        content=params.flink_log4j_session_properties,
-       mode=0644,
+       mode=0o644,
   )

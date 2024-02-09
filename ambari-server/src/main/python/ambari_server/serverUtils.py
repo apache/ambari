@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -21,7 +21,7 @@ import base64
 import os
 import socket
 import ssl
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 from contextlib import closing
 
 import time
@@ -52,7 +52,7 @@ def is_server_runing():
   if os.path.exists(pid_file_path):
     try:
       f = open(pid_file_path, "r")
-    except IOError, ex:
+    except IOError as ex:
       raise FatalException(1, str(ex))
 
     pid = f.readline().strip()
@@ -110,10 +110,10 @@ def refresh_stack_hash(properties):
   resource_files_keeper = ResourceFilesKeeper(resources_location, stacks_location)
 
   try:
-    print "Organizing resource files at {0}...".format(resources_location,
-                                                       verbose=get_verbose())
+    print("Organizing resource files at {0}...".format(resources_location,
+                                                       verbose=get_verbose()))
     resource_files_keeper.perform_housekeeping()
-  except KeeperException, ex:
+  except KeeperException as ex:
     msg = "Can not organize resource files at {0}: {1}".format(
       resources_location, str(ex))
     raise FatalException(-1, msg)
@@ -193,15 +193,15 @@ def get_json_via_rest_api(properties, admin_login, admin_password, entry_point):
   :return: HTTP status, JSON data
   """
   url = get_ambari_server_api_base(properties) + entry_point
-  admin_auth = base64.encodestring('%s:%s' % (admin_login, admin_password)).replace('\n', '')
-  request = urllib2.Request(url)
+  admin_auth = base64.encodebytes(('%s:%s' % (admin_login, admin_password)).encode()).decode().replace('\n', '')
+  request = urllib.request.Request(url)
   request.add_header('Authorization', 'Basic %s' % admin_auth)
   request.add_header('X-Requested-By', 'ambari')
   request.get_method = lambda: 'GET'
 
   print_info_msg("Fetching information from Ambari's REST API")
 
-  with closing(urllib2.urlopen(request, context=get_ssl_context(properties))) as response:
+  with closing(urllib.request.urlopen(request, context=get_ssl_context(properties))) as response:
     response_status_code = response.getcode()
     json_data = None
     print_info_msg(
@@ -216,15 +216,15 @@ def get_json_via_rest_api(properties, admin_login, admin_password, entry_point):
 def perform_changes_via_rest_api(properties, admin_login, admin_password, url_postfix, get_method,
                                  request_data=None):
   url = get_ambari_server_api_base(properties) + url_postfix
-  admin_auth = base64.encodestring('%s:%s' % (admin_login, admin_password)).replace('\n', '')
-  request = urllib2.Request(url)
+  admin_auth = base64.encodebytes(('%s:%s' % (admin_login, admin_password)).encode()).decode().replace('\n', '')
+  request = urllib.request.Request(url)
   request.add_header('Authorization', 'Basic %s' % admin_auth)
   request.add_header('X-Requested-By', 'ambari')
   if request_data is not None:
-    request.add_data(json.dumps(request_data))
+    request.data=json.dumps(request_data)
   request.get_method = lambda: get_method
 
-  with closing(urllib2.urlopen(request, context=get_ssl_context(properties))) as response:
+  with closing(urllib.request.urlopen(request, context=get_ssl_context(properties))) as response:
     response_status_code = response.getcode()
     if response_status_code not in (200, 201):
       err = 'Error while performing changes via Ambari REST API. Http status code - ' + str(
@@ -305,7 +305,7 @@ def eligible(service_info, is_sso_integration):
 def get_eligible_services(properties, admin_login, admin_password, cluster_name, entry_point, service_qualifier):
   print_info_msg("Fetching %s enabled services" % service_qualifier)
 
-  safe_cluster_name = urllib2.quote(cluster_name)
+  safe_cluster_name = urllib.parse.quote(cluster_name)
 
   response_code, json_data = get_json_via_rest_api(properties, admin_login, admin_password, entry_point % safe_cluster_name)
 

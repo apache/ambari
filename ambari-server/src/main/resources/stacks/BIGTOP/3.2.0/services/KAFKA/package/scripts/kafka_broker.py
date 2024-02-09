@@ -111,8 +111,8 @@ class KafkaBroker(Script):
     for i in range(max_wait):
       Logger.info("Waiting for Kafka Broker stop, current pid: {0}, seconds: {1}s".format(pid, i + 1))
       try:
-        sudo.kill(pid, signal.SIGTERM)
-      except OSError, e:
+        sudo.kill(pid, signal.SIGTERM.value)
+      except OSError as e:
         Logger.info("Kafka Broker is not running, delete pid file: {0}".format(params.kafka_pid_file))
         File(params.kafka_pid_file, action = "delete")
         return
@@ -121,7 +121,7 @@ class KafkaBroker(Script):
 
       try:
         check_process_status(params.kafka_pid_file)
-      except ComponentIsNotRunning, e:
+      except ComponentIsNotRunning as e:
         File(params.kafka_pid_file, action = "delete")
         return
     

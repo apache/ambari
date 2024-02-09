@@ -21,11 +21,12 @@ from mock.mock import patch, MagicMock
 from only_for_platform import get_platform, not_for_platform, os_distro_value, PLATFORM_WINDOWS
 
 import os
+import importlib
 
 if get_platform() != PLATFORM_WINDOWS:
   with patch.object(os, "geteuid", return_value=0):
     from resource_management.core import sudo
-    reload(sudo)
+    importlib.reload(sudo)
 
 from ambari_commons.os_check import OSCheck
 
@@ -37,7 +38,7 @@ from resource_management.core.source import Template
 from resource_management.core.source import InlineTemplate
 
 from ambari_jinja2 import UndefinedError, TemplateNotFound
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 
 
 @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
@@ -79,8 +80,8 @@ class TestContentSources(TestCase):
     self.assertEqual(join_mock.call_count, 1)
     join_mock.assert_called_with('/base', 'files', 'relative/path/file')
 
-  @patch.object(urllib2, "build_opener")
-  @patch.object(urllib2, "Request")
+  @patch.object(urllib.request, "build_opener")
+  @patch.object(urllib.request, "Request")
   @patch.object(os.path, "exists")
   def test_download_source_get_content_nocache(self, exists_mock, request_mock, opener_mock):
     """
@@ -100,9 +101,9 @@ class TestContentSources(TestCase):
     request_mock.assert_called_with('http://download/source')
     self.assertEqual(web_file_mock.read.call_count, 1)
 
-  @patch("__builtin__.open")
-  @patch.object(urllib2, "Request")
-  @patch.object(urllib2, "build_opener")
+  @patch("builtins.open")
+  @patch.object(urllib.request, "Request")
+  @patch.object(urllib.request, "build_opener")
   @patch.object(os, "makedirs")
   @patch.object(os.path, "exists")
   @patch("resource_management.core.sudo.create_file")
@@ -129,7 +130,7 @@ class TestContentSources(TestCase):
     request_mock.assert_called_with('http://download/source')
     self.assertEqual(web_file_mock.read.call_count, 1)
 
-  @patch("__builtin__.open")
+  @patch("builtins.open")
   @patch.object(os.path, "exists")
   def test_download_source_get_content_cache_existent(self, exists_mock, open_mock):
     """
@@ -151,7 +152,7 @@ class TestContentSources(TestCase):
     self.assertEqual(open_mock.call_count, 1)
     self.assertEqual(file_mock.read.call_count, 1)
     
-  @patch("__builtin__.open")
+  @patch("builtins.open")
   @patch.object(os.path, "getmtime")
   @patch.object(os.path, "exists")
   def test_template_loader(self, exists_mock, getmtime_mock, open_mock):
@@ -169,7 +170,7 @@ class TestContentSources(TestCase):
       template = Template("test.j2")
 
     self.assertEqual(open_mock.call_count, 1)
-    open_mock.assert_called_with('/base/templates/test.j2', 'rb')
+    open_mock.assert_called_with('/base/templates/test.j2', 'rt')
     self.assertEqual(getmtime_mock.call_count, 1)
     getmtime_mock.assert_called_with('/base/templates/test.j2')
 
@@ -189,7 +190,7 @@ class TestContentSources(TestCase):
 
 
 
-  @patch("__builtin__.open")
+  @patch("builtins.open")
   @patch.object(os.path, "getmtime")
   @patch.object(os.path, "exists")
   def test_template_loader_absolute_path(self, exists_mock, getmtime_mock, open_mock):
@@ -207,11 +208,11 @@ class TestContentSources(TestCase):
       template = Template("/absolute/path/test.j2")
 
     self.assertEqual(open_mock.call_count, 1)
-    open_mock.assert_called_with('/absolute/path/test.j2', 'rb')
+    open_mock.assert_called_with('/absolute/path/test.j2', 'rt')
     self.assertEqual(getmtime_mock.call_count, 1)
     getmtime_mock.assert_called_with('/absolute/path/test.j2')
 
-  @patch("__builtin__.open")
+  @patch("builtins.open")
   @patch.object(os.path, "getmtime")
   @patch.object(os.path, "exists")
   def test_template_loader_arguments(self, exists_mock, getmtime_mock, open_mock):
@@ -230,8 +231,8 @@ class TestContentSources(TestCase):
       content = template.get_content()
     self.assertEqual(open_mock.call_count, 1)
 
-    self.assertEqual(u'test template content', content)
-    open_mock.assert_called_with('/absolute/path/test.j2', 'rb')
+    self.assertEqual('test template content', content)
+    open_mock.assert_called_with('/absolute/path/test.j2', 'rt')
     self.assertEqual(getmtime_mock.call_count, 1)
     getmtime_mock.assert_called_with('/absolute/path/test.j2')
 
@@ -243,7 +244,7 @@ class TestContentSources(TestCase):
       template = InlineTemplate("{{test_arg1}} template content", [], test_arg1 = "test")
       content = template.get_content()
 
-    self.assertEqual(u'test template content', content)
+    self.assertEqual('test template content', content)
 
   def test_template_imports(self):
     """
@@ -259,4 +260,4 @@ class TestContentSources(TestCase):
     with Environment("/base") as env:
       template = InlineTemplate("{{test_arg1}} template content {{os.path.join(path[0],path[1])}}", [os], test_arg1 = "test", path = ["/one","two"])
       content = template.get_content()
-    self.assertEqual(u'test template content /one/two', content)
+    self.assertEqual('test template content /one/two', content)

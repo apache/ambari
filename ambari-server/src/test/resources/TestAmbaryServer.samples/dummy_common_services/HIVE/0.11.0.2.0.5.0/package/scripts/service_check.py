@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -20,11 +20,11 @@ limitations under the License.
 
 from resource_management import *
 
-from hcat_service_check import hcat_service_check
+from scripts.hcat_service_check import hcat_service_check
 
 class HiveServiceCheck(Script):
   def service_check(self, env):
-    import params
+    from scripts import params
     env.set_params(params)
     if params.security_enabled:
       kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser};")
@@ -36,7 +36,7 @@ class HiveServiceCheck(Script):
 
     File(params.smoke_test_path,
          content=StaticFile('hiveserver2Smoke.sh'),
-         mode=0755
+         mode=0o755
     )
 
     File(params.smoke_test_sql,

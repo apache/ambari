@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -22,7 +22,7 @@ import getpass
 import os
 import pwd
 import shlex
-from ambari_commons import subprocess32
+import subprocess
 
 from ambari_commons.logging_utils import print_info_msg, print_warning_msg
 
@@ -38,13 +38,14 @@ def os_run_os_command(cmd, env=None, shell=False, cwd=None):
   print_info_msg('about to run command: ' + str(cmd))
   if type(cmd) == str:
     cmd = shlex.split(cmd)
-  process = subprocess32.Popen(cmd,
-                             stdout=subprocess32.PIPE,
-                             stdin=subprocess32.PIPE,
-                             stderr=subprocess32.PIPE,
+  process = subprocess.Popen(cmd,
+                             stdout=subprocess.PIPE,
+                             stdin=subprocess.PIPE,
+                             stderr=subprocess.PIPE,
                              env=env,
                              cwd=cwd,
-                             shell=shell
+                             shell=shell,
+                             universal_newlines=True
   )
   print_info_msg("\nprocess_pid=" + str(process.pid))
   (stdoutdata, stderrdata) = process.communicate()

@@ -161,7 +161,7 @@ class NamenodeHAState:
     :param hostname: Host name
     :return: Returns the appropriate address (HTTP if no encryption, HTTPS otherwise) for the given host.
     """
-    for id, addresses in self.nn_unique_id_to_addresses.iteritems():
+    for id, addresses in self.nn_unique_id_to_addresses.items():
       if addresses and len(addresses) == 2:
         if ":" in addresses[0]:
           nn_hostname = addresses[0].split(":")[0].strip()

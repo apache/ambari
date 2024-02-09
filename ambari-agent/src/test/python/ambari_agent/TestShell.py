@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 """
@@ -23,7 +23,7 @@ import signal
 from mock.mock import patch, MagicMock, call
 from ambari_commons import shell
 from ambari_commons import OSCheck
-from StringIO import StringIO
+from io import StringIO
 
 ROOT_PID = 10
 ROOT_PID_CHILDREN = [10, 11, 12, 13]
@@ -91,18 +91,18 @@ def _open_mock_yum(path, open_mode):
 
 class TestShell(unittest.TestCase):
 
-  @patch("__builtin__.open", new=MagicMock(side_effect=_open_mock))
+  @patch("builtins.open", new=MagicMock(side_effect=_open_mock))
   def test_get_all_children(self):
 
     pid_list = [item[0] for item in shell.get_all_children(ROOT_PID)]
 
-    self.assertEquals(len(ROOT_PID_CHILDREN), len(pid_list))
-    self.assertEquals(ROOT_PID, pid_list[0])
+    self.assertEqual(len(ROOT_PID_CHILDREN), len(pid_list))
+    self.assertEqual(ROOT_PID, pid_list[0])
 
     for i in ROOT_PID_CHILDREN:
-      self.assertEquals(True, i in pid_list)
+      self.assertEqual(True, i in pid_list)
 
-  @patch("__builtin__.open", new=MagicMock(side_effect=_open_mock))
+  @patch("builtins.open", new=MagicMock(side_effect=_open_mock))
   @patch.object(OSCheck, "get_os_family", new=MagicMock(return_value="redhat"))
   @patch.object(shell, "signal", new_callable=FakeSignals)
   @patch("os.listdir")
@@ -117,8 +117,8 @@ class TestShell(unittest.TestCase):
 
     # test pid kill by SIGTERM
     os_kill_pids = [item[0][0] for item in os_kill_mock.call_args_list]
-    self.assertEquals(len(os_kill_pids), len(pid_list))
-    self.assertEquals(reverse_pid_list, os_kill_pids)
+    self.assertEqual(len(os_kill_pids), len(pid_list))
+    self.assertEqual(reverse_pid_list, os_kill_pids)
 
     os_kill_mock.reset_mock()
     os_list_dir_mock.reset_mock()
@@ -128,10 +128,10 @@ class TestShell(unittest.TestCase):
 
     # test pid kill by SIGKILL
     os_kill_pids = [item[0][0] for item in os_kill_mock.call_args_list]
-    self.assertEquals(len(os_kill_pids), len(pid_list)*2)
-    self.assertEquals(reverse_pid_list + reverse_pid_list, os_kill_pids)
+    self.assertEqual(len(os_kill_pids), len(pid_list)*2)
+    self.assertEqual(reverse_pid_list + reverse_pid_list, os_kill_pids)
 
-  @patch("__builtin__.open", new=MagicMock(side_effect=_open_mock_yum))
+  @patch("builtins.open", new=MagicMock(side_effect=_open_mock_yum))
   @patch.object(OSCheck, "get_os_family", new=MagicMock(return_value="redhat"))
   @patch.object(shell, "signal", new_callable=FakeSignals)
   @patch("os.listdir")
@@ -142,5 +142,5 @@ class TestShell(unittest.TestCase):
 
     # test clean pid by SIGTERM
     os_kill_pids = [item[0][0] for item in os_kill_mock.call_args_list]
-    self.assertEquals(len(os_kill_pids), 1)
-    self.assertEquals([10], os_kill_pids)
+    self.assertEqual(len(os_kill_pids), 1)
+    self.assertEqual([10], os_kill_pids)

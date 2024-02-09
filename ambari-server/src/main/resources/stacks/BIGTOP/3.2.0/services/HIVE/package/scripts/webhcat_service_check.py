@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -17,7 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
@@ -33,7 +33,7 @@ def webhcat_service_check():
   import params
   File(format("{tmp_dir}/templetonSmoke.sh"),
        content= StaticFile('templetonSmoke.sh'),
-       mode=0755
+       mode=0o755
   )
 
   if params.security_enabled:

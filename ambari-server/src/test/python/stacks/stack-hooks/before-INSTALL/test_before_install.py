@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -38,7 +38,7 @@ class TestHookBeforeInstall(RMFTestCase):
     self.assertResourceCalled('Repository', 'HDP-2.6-repo-1',
         base_url = 'http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.6.4.0-60',
         action = ['prepare'],
-        components = [u'HDP', 'main'],
+        components = ['HDP', 'main'],
         repo_template = '[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
         repo_file_name = None,
         mirror_list = None,
@@ -46,7 +46,7 @@ class TestHookBeforeInstall(RMFTestCase):
     self.assertResourceCalled('Repository', 'HDP-2.6-GPL-repo-1',
         base_url = 'http://s3.amazonaws.com/dev.hortonworks.com/HDP-GPL/centos6/2.x/BUILDS/2.6.4.0-60',
         action = ['prepare'],
-        components = [u'HDP-GPL', 'main'],
+        components = ['HDP-GPL', 'main'],
         repo_template = '[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
         repo_file_name = None,
         mirror_list = None,
@@ -54,7 +54,7 @@ class TestHookBeforeInstall(RMFTestCase):
     self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.22-repo-1',
         base_url = 'http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.22/repos/centos6',
         action = ['prepare'],
-        components = [u'HDP-UTILS', 'main'],
+        components = ['HDP-UTILS', 'main'],
         repo_template = '[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
         repo_file_name = None,
         mirror_list = None,

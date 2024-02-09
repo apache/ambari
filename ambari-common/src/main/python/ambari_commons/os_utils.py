@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -57,7 +57,7 @@ def get_used_ram():
 
 def is_valid_filepath(filepath):
   if not filepath or not os.path.exists(filepath) or os.path.isdir(filepath):
-    print 'Invalid path, please provide the absolute file path.'
+    print('Invalid path, please provide the absolute file path.')
     return False
   else:
     return True
@@ -75,7 +75,7 @@ def trim_uri(file_uri):
   return file_uri
 
 def _search_file(filename, search_path, pathsep):
-  for path in string.split(search_path, pathsep):
+  for path in str.split(search_path, pathsep):
     candidate = os.path.join(path, filename)
     if os.path.exists(candidate):
       return os.path.abspath(candidate)
@@ -88,9 +88,9 @@ def search_file(filename, search_path, pathsep=os.pathsep):
 def copy_file(src, dest_file):
   try:
     shutil.copyfile(src, dest_file)
-  except Exception, e:
+  except Exception as e:
     err = "Can not copy file {0} to {1} due to: {2} . Please check file " \
-              "permissions and free disk space.".format(src, dest_file, e.message)
+              "permissions and free disk space.".format(src, dest_file, e)
     raise FatalException(1, err)
 
 def copy_files(files, dest_dir):
@@ -105,7 +105,7 @@ def remove_file(filePath):
   if os.path.exists(filePath):
     try:
       os.remove(filePath)
-    except Exception, e:
+    except Exception as e:
       print_warning_msg('Unable to remove file: ' + str(e))
       return 1
   pass
@@ -200,7 +200,7 @@ def parse_log4j_file(filename):
   properties = {}
   
   Template.idpattern = r'[_a-z][_a-z0-9\.]*'
-  with open(filename, "rb") as fp:
+  with open(filename, "rt") as fp:
     lines = fp.readlines()
     
   for line in lines:

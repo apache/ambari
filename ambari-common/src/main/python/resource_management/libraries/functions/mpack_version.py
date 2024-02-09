@@ -63,7 +63,7 @@ class MpackVersion(object):
       self.__build
     ]
 
-  def __cmp__(self, other):
+  def cmp_version(self, other):
     """
     :type other MpackVersion
 
@@ -81,7 +81,19 @@ class MpackVersion(object):
       if r != 0:
         break
 
-    return 1 if r > 0 else -1 if r < 0 else 0
+    return r
+
+  def __lt__(self, other):
+    r = self.cmp_version(other)
+    return r < 0
+
+  def __gt__(self, other):
+    r = self.cmp_version(other)
+    return r > 0
+
+  def __eq__(self, other):
+    r = self.cmp_version(other)
+    return r == 0
 
   @classmethod
   def parse(cls, mpack_version):

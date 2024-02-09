@@ -1,11 +1,11 @@
 """Implementation of JSONDecoder
 """
-from __future__ import absolute_import
+
 import re
 import sys
 import struct
-from .compat import PY3, unichr
-from .scanner import make_scanner, JSONDecodeError
+from ambari_simplejson.compat import PY3, unichr
+from ambari_simplejson.scanner import make_scanner, JSONDecodeError
 
 
 def _import_c_scanstring():
@@ -48,14 +48,14 @@ _CONSTANTS = {
 
 STRINGCHUNK = re.compile(r'(.*?)(["\\\x00-\x1f])', FLAGS)
 BACKSLASH = {
-    '"': u'"', '\\': u'\\', '/': u'/',
-    'b': u'\b', 'f': u'\f', 'n': u'\n', 'r': u'\r', 't': u'\t',
+    '"': '"', '\\': '\\', '/': '/',
+    'b': '\b', 'f': '\f', 'n': '\n', 'r': '\r', 't': '\t',
 }
 
 DEFAULT_ENCODING = "utf-8"
 
 def py_scanstring(s, end, encoding=None, strict=True,
-        _b=BACKSLASH, _m=STRINGCHUNK.match, _join=u''.join,
+        _b=BACKSLASH, _m=STRINGCHUNK.match, _join=''.join,
         _PY3=PY3, _maxunicode=sys.maxunicode):
     """Scan the string s for a JSON string. End is the index of the
     character in s after the quote that started the JSON string.
@@ -79,8 +79,8 @@ def py_scanstring(s, end, encoding=None, strict=True,
         content, terminator = chunk.groups()
         # Content is contains zero or more unescaped string characters
         if content:
-            if not _PY3 and not isinstance(content, unicode):
-                content = unicode(content, encoding)
+            if not _PY3 and not isinstance(content, str):
+                content = str(content, encoding)
             _append(content)
         # Terminator is the end of string, a literal control character,
         # or a backslash denoting that an escape sequence follows
@@ -135,7 +135,7 @@ def py_scanstring(s, end, encoding=None, strict=True,
                         uni = 0x10000 + (((uni - 0xd800) << 10) |
                                          (uni2 - 0xdc00))
                         end += 6
-            char = unichr(uni)
+            char = chr(uni)
         # Append the unescaped character
         _append(char)
     return _join(chunks), end

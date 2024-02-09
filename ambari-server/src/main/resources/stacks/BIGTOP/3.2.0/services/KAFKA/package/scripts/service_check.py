@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -67,7 +67,7 @@ class ServiceCheck(Script):
     import params
 
     kafka_config = {}
-    content = sudo.read_file(params.conf_dir + "/server.properties")
+    content = sudo.read_file(params.conf_dir + "/server.properties").decode()
     for line in content.splitlines():
       if line.startswith("#") or not line.strip():
         continue

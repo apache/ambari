@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -30,7 +30,7 @@ import stat
 import sys
 import tempfile
 import time
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 from ambari_commons.exceptions import FatalException, NonFatalException
 from ambari_commons.logging_utils import print_warning_msg, print_error_msg, print_info_msg, get_verbose
 from ambari_commons.os_check import OSConst
@@ -60,7 +60,7 @@ from ambari_server.setupActions import SETUP_ACTION, LDAP_SETUP_ACTION
 from ambari_server.userInput import get_validated_string_input, get_prompt_default, read_password, get_YN_input, \
   quit_if_has_answer
 from contextlib import closing
-from urllib2 import HTTPError
+from urllib.error import HTTPError
 
 logger = logging.getLogger(__name__)
 
@@ -118,14 +118,14 @@ def read_master_key(isReset=False, options = None):
                                            True, True, answer = options.master_key)
 
     if not masterKey:
-      print "Master Key cannot be empty!"
+      print("Master Key cannot be empty!")
       continue
 
     masterKey2 = get_validated_string_input("Re-enter master key: ", passwordDefault, passwordPattern, passwordDescr,
                                             True, True, answer = options.master_key)
 
     if masterKey != masterKey2:
-      print "Master key did not match!"
+      print("Master key did not match!")
       continue
 
     input = False
@@ -162,7 +162,7 @@ def adjust_directory_permissions(ambari_user):
   if not os.path.exists(bootstrap_dir):
     try:
       os.makedirs(bootstrap_dir)
-    except Exception, ex:
+    except Exception as ex:
       print_warning_msg("Failed recreating the bootstrap directory: {0}".format(str(ex)))
       pass
   else:
@@ -211,7 +211,7 @@ def adjust_directory_permissions(ambari_user):
         configDefaults.NR_ADJUST_OWNERSHIP_LIST.append((ambari_repo_file, "644", ambari_repo_file_owner, False))
 
 
-  print "Adjusting ambari-server permissions and ownership..."
+  print("Adjusting ambari-server permissions and ownership...")
 
   for pack in configDefaults.NR_ADJUST_OWNERSHIP_LIST:
     file = pack[0]
@@ -306,8 +306,8 @@ def get_ldap_property_from_db(properties, admin_login, admin_password, property_
 def get_ldap_properties_from_db(properties, admin_login, admin_password):
   ldap_properties = None
   url = get_ambari_server_api_base(properties) + SETUP_LDAP_CONFIG_URL
-  admin_auth = base64.encodestring('%s:%s' % (admin_login, admin_password)).replace('\n', '')
-  request = urllib2.Request(url)
+  admin_auth = base64.b64encode('{}:{}'.format(admin_login, admin_password).encode()).decode().replace('\n', '')
+  request = urllib.request.Request(url)
   request.add_header('Authorization', 'Basic %s' % admin_auth)
   request.add_header('X-Requested-By', 'ambari')
   request.get_method = lambda: 'GET'
@@ -323,7 +323,7 @@ def get_ldap_properties_from_db(properties, admin_login, admin_password):
     sys.stdout.flush()
 
     try:
-      with closing(urllib2.urlopen(request, context=get_ssl_context(properties))) as response:
+      with closing(urllib.request.urlopen(request, context=get_ssl_context(properties))) as response:
         response_status_code = response.getcode()
         if response_status_code != 200:
           request_in_progress = False
@@ -397,8 +397,8 @@ def sync_ldap(options):
     raise FatalException(1, err)
 
   url = get_ambari_server_api_base(properties) + SERVER_API_LDAP_URL
-  admin_auth = base64.encodestring('%s:%s' % (admin_login, admin_password)).replace('\n', '')
-  request = urllib2.Request(url)
+  admin_auth = base64.encodebytes(('%s:%s' % (admin_login, admin_password)).encode()).decode().replace('\n', '')
+  request = urllib.request.Request(url)
   request.add_header('Authorization', 'Basic %s' % admin_auth)
   request.add_header('X-Requested-By', 'ambari')
 
@@ -429,11 +429,11 @@ def sync_ldap(options):
   if get_verbose():
     sys.stdout.write('\nCalling API ' + url + ' : ' + str(bodies) + '\n')
 
-  request.add_data(json.dumps(bodies))
+  request.data=json.dumps(bodies)
   request.get_method = lambda: 'POST'
 
   try:
-    response = urllib2.urlopen(request, context=get_ssl_context(properties))
+    response = urllib.request.urlopen(request, context=get_ssl_context(properties))
   except Exception as e:
     err = 'Sync event creation failed. Error details: %s' % e
     raise FatalException(1, err)
@@ -445,11 +445,11 @@ def sync_ldap(options):
   response_body = json.loads(response.read())
 
   url = response_body['resources'][0]['href']
-  request = urllib2.Request(url)
+  request = urllib.request.Request(url)
   request.add_header('Authorization', 'Basic %s' % admin_auth)
   request.add_header('X-Requested-By', 'ambari')
   body = [{"LDAP":{"synced_groups":"*","synced_users":"*"}}]
-  request.add_data(json.dumps(body))
+  request.data=json.dumps(body)
   request.get_method = lambda: 'GET'
   request_in_progress = True
 
@@ -458,7 +458,7 @@ def sync_ldap(options):
     sys.stdout.flush()
 
     try:
-      response = urllib2.urlopen(request, context=get_ssl_context(properties))
+      response = urllib.request.urlopen(request, context=get_ssl_context(properties))
     except Exception as e:
       request_in_progress = False
       err = 'Sync event check failed. Error details: %s' % e
@@ -474,12 +474,12 @@ def sync_ldap(options):
     if sync_info['status'] == 'ERROR':
       raise FatalException(1, str(sync_info['status_detail']))
     elif sync_info['status'] == 'COMPLETE':
-      print '\n\nCompleted LDAP Sync.'
-      print 'Summary:'
-      for principal_type, summary in sync_info['summary'].iteritems():
-        print '  {0}:'.format(principal_type)
-        for action, amount in summary.iteritems():
-          print '    {0} = {1!s}'.format(action, amount)
+      print('\n\nCompleted LDAP Sync.')
+      print('Summary:')
+      for principal_type, summary in sync_info['summary'].items():
+        print('  {0}:'.format(principal_type))
+        for action, amount in summary.items():
+          print('    {0} = {1!s}'.format(action, amount))
       request_in_progress = False
     else:
       time.sleep(1)
@@ -506,7 +506,7 @@ def setup_sensitive_data_encryption(options):
   if not is_root():
     warn = 'ambari-server encrypt-passwords is run as ' \
           'non-root user, some sudo privileges might be required'
-    print warn
+    print(warn)
 
   properties = get_ambari_properties()
   if properties == -1:
@@ -517,7 +517,7 @@ def setup_sensitive_data_encryption(options):
   db_password = properties.get_property(JDBC_PASSWORD_PROPERTY)
   # Encrypt passwords cannot be called before setup
   if db_sql_auth and not db_password:
-    print 'Please call "setup" before "encrypt-passwords". Exiting...'
+    print('Please call "setup" before "encrypt-passwords". Exiting...')
     return 1
 
   # Check configuration for location of master key
@@ -535,7 +535,7 @@ def setup_sensitive_data_encryption(options):
   masterKey = None
 
   if isSecure:
-    print "Password encryption is enabled."
+    print("Password encryption is enabled.")
     decrypt = get_YN_input("Do you want to decrypt passwords managed by Ambari? [y/n] (n): ", False)
     if not decrypt:
       resetKey = get_YN_input("Do you want to reset Master Key? [y/n] (n): ", False)
@@ -545,7 +545,7 @@ def setup_sensitive_data_encryption(options):
     if isPersisted:
       sensitive_data_encryption(options, "decryption")
     else:
-      print "Master Key not persisted."
+      print("Master Key not persisted.")
       masterKey = get_original_master_key(properties, options)
       # Unable get the right master key or skipped question <enter>
       if not masterKey:
@@ -567,7 +567,7 @@ def setup_sensitive_data_encryption(options):
       if not isPersisted:
         # For encrypting of only unencrypted passwords without resetting the key ask
         # for master key if not persisted.
-        print "Master Key not persisted."
+        print("Master Key not persisted.")
         masterKey = get_original_master_key(properties, options)
     encrypt_sensitive_data(db_password, masterKey, options, isPersisted, properties, ts_password)
 
@@ -597,7 +597,7 @@ def encrypt_sensitive_data(db_password, masterKey, options, persist, properties,
   if db_password and not is_alias_string(db_password):
     retCode = save_passwd_for_alias(JDBC_RCA_PASSWORD_ALIAS, db_password, masterKey)
     if retCode != 0:
-      print 'Failed to save secure database password.'
+      print('Failed to save secure database password.')
     else:
       propertyMap[JDBC_PASSWORD_PROPERTY] = get_alias_string(JDBC_RCA_PASSWORD_ALIAS)
       remove_password_file(JDBC_PASSWORD_FILENAME)
@@ -607,7 +607,7 @@ def encrypt_sensitive_data(db_password, masterKey, options, persist, properties,
   if ts_password and not is_alias_string(ts_password):
     retCode = save_passwd_for_alias(SSL_TRUSTSTORE_PASSWORD_ALIAS, ts_password, masterKey)
     if retCode != 0:
-      print 'Failed to save secure TrustStore password.'
+      print('Failed to save secure TrustStore password.')
     else:
       propertyMap[SSL_TRUSTSTORE_PASSWORD_PROPERTY] = get_alias_string(SSL_TRUSTSTORE_PASSWORD_ALIAS)
 
@@ -635,8 +635,8 @@ def setup_master_key(masterKeyFile, options, properties, resetKey):
       os.remove(masterKeyFile)
       print_info_msg("Deleting master key file at location: " + str(
         masterKeyFile))
-    except Exception, e:
-      print 'ERROR: Could not remove master key file. %s' % e
+    except Exception as e:
+      print('ERROR: Could not remove master key file. %s' % e)
   # Blow up the credential store made with previous key, if any
   store_file = get_credential_store_location(properties)
   if os.path.exists(store_file):
@@ -656,24 +656,24 @@ def deryptPasswordsConfigs(db_password, db_sql_auth, masterKey, ts_password):
 
 
 def printManualDecryptionWarning(db_password, db_sql_auth, ts_password):
-  print "To disable encryption, do the following:"
-  print "- Edit " + os.path.join(get_conf_dir(), AMBARI_PROPERTIES_FILE) + \
+  print("To disable encryption, do the following:")
+  print("- Edit " + os.path.join(get_conf_dir(), AMBARI_PROPERTIES_FILE) + \
         " and set " + SECURITY_IS_ENCRYPTION_ENABLED + " = " + "false." + \
         " and set " + SECURITY_SENSITIVE_DATA_ENCRYPTON_ENABLED + " = " + "false." + \
-        " and set all passwords and sensitive data in service configs to right value."
+        " and set all passwords and sensitive data in service configs to right value.")
   err = "{0} is already encrypted. Please call {1} to store unencrypted" \
         " password and call 'encrypt-passwords' again."
   if db_sql_auth and db_password and is_alias_string(db_password):
-    print err.format('- Database password', "'" + SETUP_ACTION + "'")
+    print(err.format('- Database password', "'" + SETUP_ACTION + "'"))
   if ts_password and is_alias_string(ts_password):
-    print err.format('TrustStore password', "'" + LDAP_SETUP_ACTION + "'")
+    print(err.format('TrustStore password', "'" + LDAP_SETUP_ACTION + "'"))
 
 
 def setup_ambari_krb5_jaas(options):
   jaas_conf_file = search_file(SECURITY_KERBEROS_JASS_FILENAME, get_conf_dir())
   if os.path.exists(jaas_conf_file):
-    print 'Setting up Ambari kerberos JAAS configuration to access ' + \
-          'secured Hadoop daemons...'
+    print('Setting up Ambari kerberos JAAS configuration to access ' + \
+          'secured Hadoop daemons...')
     principal = get_validated_string_input('Enter ambari server\'s kerberos '
                                  'principal name (ambari@EXAMPLE.COM): ', 'ambari@EXAMPLE.COM', '.*', '', False,
                                  False, answer = options.jaas_principal)
@@ -685,7 +685,7 @@ def setup_ambari_krb5_jaas(options):
     for line in fileinput.FileInput(jaas_conf_file, inplace=1):
       line = re.sub('keyTab=.*$', 'keyTab="' + keytab + '"', line)
       line = re.sub('principal=.*$', 'principal="' + principal + '"', line)
-      print line,
+      print(line, end=' ')
 
     write_property(CHECK_AMBARI_KRB_JAAS_CONFIGURATION_PROPERTY, "true")
   else:
@@ -930,7 +930,7 @@ def setup_ldap(options):
             if os.path.exists(ts_path):
               break
             else:
-              print 'File not found.'
+              print('File not found.')
               hasAnswer = options.trust_store_path is not None and options.trust_store_path
               quit_if_has_answer(hasAnswer)
 
@@ -941,10 +941,10 @@ def setup_ldap(options):
           ldap_property_values_in_ambari_properties[SSL_TRUSTSTORE_PASSWORD_PROPERTY] = ts_password
           pass
         elif properties.get_property(SSL_TRUSTSTORE_TYPE_PROPERTY):
-          print 'The TrustStore is already configured: '
-          print '  ' + SSL_TRUSTSTORE_TYPE_PROPERTY + ' = ' + properties.get_property(SSL_TRUSTSTORE_TYPE_PROPERTY)
-          print '  ' + SSL_TRUSTSTORE_PATH_PROPERTY + ' = ' + properties.get_property(SSL_TRUSTSTORE_PATH_PROPERTY)
-          print '  ' + SSL_TRUSTSTORE_PASSWORD_PROPERTY + ' = ' + properties.get_property(SSL_TRUSTSTORE_PASSWORD_PROPERTY)
+          print('The TrustStore is already configured: ')
+          print('  ' + SSL_TRUSTSTORE_TYPE_PROPERTY + ' = ' + properties.get_property(SSL_TRUSTSTORE_TYPE_PROPERTY))
+          print('  ' + SSL_TRUSTSTORE_PATH_PROPERTY + ' = ' + properties.get_property(SSL_TRUSTSTORE_PATH_PROPERTY))
+          print('  ' + SSL_TRUSTSTORE_PASSWORD_PROPERTY + ' = ' + properties.get_property(SSL_TRUSTSTORE_PASSWORD_PROPERTY))
           if get_YN_input("Do you want to remove these properties [y/n] (y)? ", True, options.trust_store_reconfigure):
             properties.removeOldProp(SSL_TRUSTSTORE_TYPE_PROPERTY)
             properties.removeOldProp(SSL_TRUSTSTORE_PATH_PROPERTY)
@@ -955,22 +955,22 @@ def setup_ldap(options):
   populate_ambari_requires_ldap(options, ldap_property_value_map)
   populate_service_management(options, ldap_property_value_map, properties, admin_login, admin_password)
 
-  print '=' * 20
-  print 'Review Settings'
-  print '=' * 20
+  print('=' * 20)
+  print('Review Settings')
+  print('=' * 20)
   for property in ldap_property_list_reqd:
-    if ldap_property_value_map.has_key(property.prop_name):
+    if property.prop_name in ldap_property_value_map:
       print("%s %s" % (property.get_prompt_text(ldap_type), ldap_property_value_map[property.prop_name]))
 
   for property in ldap_property_list_opt:
-    if ldap_property_value_map.has_key(property):
+    if property in ldap_property_value_map:
       if property not in ldap_property_list_passwords:
         print("%s: %s" % (property, ldap_property_value_map[property]))
       else:
         print("%s: %s" % (property, BLIND_PASSWORD))
 
   for property in ldap_property_list_opt:
-    if ldap_property_values_in_ambari_properties.has_key(property):
+    if property in ldap_property_values_in_ambari_properties:
       if property not in ldap_property_list_passwords:
         print("%s: %s" % (property, ldap_property_values_in_ambari_properties[property]))
       else:
@@ -985,7 +985,7 @@ def setup_ldap(options):
         if ts_password != encrypted_passwd:
           ldap_property_values_in_ambari_properties[SSL_TRUSTSTORE_PASSWORD_PROPERTY] = encrypted_passwd
 
-    print 'Saving LDAP properties...'
+    print('Saving LDAP properties...')
 
     #Saving LDAP configuration in Ambari DB using the REST API
     update_ldap_configuration(admin_login, admin_password, properties, ldap_property_value_map)
@@ -994,7 +994,7 @@ def setup_ldap(options):
     ldap_property_values_in_ambari_properties[CLIENT_SECURITY] = 'ldap'
     update_properties_2(properties, ldap_property_values_in_ambari_properties)
 
-    print 'Saving LDAP properties finished'
+    print('Saving LDAP properties finished')
 
   return 0
 
@@ -1119,7 +1119,7 @@ def setup_pam(options):
                       "Please create it before restarting Ambari.".format(pam_config_file))
 
   update_properties_2(properties, pam_property_value_map)
-  print 'Saving...done'
+  print('Saving...done')
   return 0
 
 #
@@ -1153,7 +1153,7 @@ def migrate_ldap_pam(args):
 
   ensure_jdbc_driver_is_installed(args, properties)
 
-  print 'Migrating LDAP Users & Groups to PAM'
+  print('Migrating LDAP Users & Groups to PAM')
 
   serverClassPath = ServerClassPath(properties, args)
   class_path = serverClassPath.get_full_ambari_classpath_escaped_for_shell()
@@ -1167,13 +1167,13 @@ def migrate_ldap_pam(args):
   (retcode, stdout, stderr) = run_os_command(command, env=environ)
   print_info_msg("Return code from LDAP to PAM migration command, retcode = " + str(retcode))
   if stdout:
-    print "Console output from LDAP to PAM migration command:"
-    print stdout
-    print
+    print("Console output from LDAP to PAM migration command:")
+    print(stdout)
+    print()
   if stderr:
-    print "Error output from LDAP to PAM migration command:"
-    print stderr
-    print
+    print("Error output from LDAP to PAM migration command:")
+    print(stderr)
+    print()
   if retcode > 0:
     print_error_msg("Error executing LDAP to PAM migration, please check the server logs.")
   else:
@@ -1226,7 +1226,7 @@ def populate_service_management(options, properties, ambari_properties, admin_lo
 
             services = ','.join(service_list)
           else:
-            print ("   There are no eligible services installed.")
+            print("   There are no eligible services installed.")
   else:
     if options.ldap_manage_services:
       manage_services = 'true' == options.ldap_manage_services

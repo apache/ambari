@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -30,11 +30,11 @@ class TestEncryptionTypes(TestCase):
       'aes256-cts-hmac-sha384-192',
       'aes128-cts-hmac-sha256-128',
       'rc4-hmac'])
-    self.assertEquals(expected, resolve_encryption_family_list(['rc4', 'aes']))
+    self.assertEqual(expected, resolve_encryption_family_list(['rc4', 'aes']))
 
   def test_no_resolve_if_no_family_is_given(self):
     expected = set(['aes256-cts-hmac-sha1-96', 'rc4-hmac'])
-    self.assertEquals(expected, resolve_encryption_family_list(['rc4-hmac', 'aes256-cts-hmac-sha1-96']))
+    self.assertEqual(expected, resolve_encryption_family_list(['rc4-hmac', 'aes256-cts-hmac-sha1-96']))
 
   def test_eliminates_duplications(self):
     expected = set([
@@ -42,7 +42,7 @@ class TestEncryptionTypes(TestCase):
       'aes128-cts-hmac-sha1-96',
       'aes256-cts-hmac-sha384-192',
       'aes128-cts-hmac-sha256-128'])
-    self.assertEquals(expected, resolve_encryption_family_list(['aes', 'aes128-cts-hmac-sha1-96']))
+    self.assertEqual(expected, resolve_encryption_family_list(['aes', 'aes128-cts-hmac-sha1-96']))
 
   def test_translate_str(self):
-    self.assertEquals('rc4-hmac', resolve_encryption_families('rc4'))
+    self.assertEqual('rc4-hmac', resolve_encryption_families('rc4'))

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
@@ -15,20 +15,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from StringIO import StringIO
+from io import StringIO
 import gzip
-import httplib
-import urllib2
+import http.client
+import urllib.request, urllib.error, urllib.parse
 import socket
 import copy
 import ssl
 import os
 import logging
-from ambari_commons import subprocess32
+import subprocess
 import ambari_simplejson as json
 import pprint
 import traceback
-import hostname
+from ambari_agent import hostname
 import platform
 import ambari_stomp
 import threading
@@ -242,8 +242,8 @@ class CertificateManager():
   def loadSrvrCrt(self):
     get_ca_url = self.server_url + '/cert/ca/'
     logger.info("Downloading server cert from " + get_ca_url)
-    proxy_handler = urllib2.ProxyHandler({})
-    opener = urllib2.build_opener(proxy_handler)
+    proxy_handler = urllib.request.ProxyHandler({})
+    opener = urllib.request.build_opener(proxy_handler)
     stream = opener.open(get_ca_url)
     response = stream.read()
     stream.close()
@@ -262,12 +262,12 @@ class CertificateManager():
     register_data = {'csr': agent_crt_req_content,
                      'passphrase': passphrase}
     data = json.dumps(register_data)
-    proxy_handler = urllib2.ProxyHandler({})
-    opener = urllib2.build_opener(proxy_handler)
-    urllib2.install_opener(opener)
-    req = urllib2.Request(sign_crt_req_url, data,
+    proxy_handler = urllib.request.ProxyHandler({})
+    opener = urllib.request.build_opener(proxy_handler)
+    urllib.request.install_opener(opener)
+    req = urllib.request.Request(sign_crt_req_url, data,
                           {'Content-Type': 'application/json'})
-    f = urllib2.urlopen(req)
+    f = urllib.request.urlopen(req)
     response = f.read()
     f.close()
     try:
@@ -300,14 +300,14 @@ class CertificateManager():
 
     logger.info(generate_script)
     if platform.system() == 'Windows':
-      p = subprocess32.Popen(generate_script, stdout=subprocess32.PIPE)
+      p = subprocess.Popen(generate_script, stdout=subprocess.PIPE)
       p.communicate()
     else:
-      p = subprocess32.Popen([generate_script], shell=True,
-                           stdout=subprocess32.PIPE)
+      p = subprocess.Popen([generate_script], shell=True,
+                           stdout=subprocess.PIPE)
       p.communicate()
     # this is required to be 600 for security concerns.
-    os.chmod(keyname, 0600)
+    os.chmod(keyname, 0o600)
 
   def initSecurity(self):
     self.checkCertExists()

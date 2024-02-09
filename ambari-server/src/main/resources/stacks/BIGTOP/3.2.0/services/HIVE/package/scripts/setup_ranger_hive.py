@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -47,7 +47,7 @@ def setup_ranger_hive(upgrade_type = None):
                            action="create_on_execute",
                            owner=params.hdfs_user,
                            group=params.hdfs_user,
-                           mode=0755,
+                           mode=0o755,
                            recursive_chmod=True
         )
         params.HdfsResource("/ranger/audit/hiveServer2",
@@ -55,11 +55,11 @@ def setup_ranger_hive(upgrade_type = None):
                            action="create_on_execute",
                            owner=params.hive_user,
                            group=params.hive_user,
-                           mode=0700,
+                           mode=0o700,
                            recursive_chmod=True
         )
         params.HdfsResource(None, action="execute")
-      except Exception, err:
+      except Exception as err:
         Logger.exception("Audit directory creation in HDFS for HIVE Ranger plugin failed with error:\n{0}".format(err))
 
     api_version='v2'

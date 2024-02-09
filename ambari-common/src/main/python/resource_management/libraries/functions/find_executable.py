@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -21,7 +21,7 @@ Ambari Agent
 """
 
 __all__ = ["find_executable"]
-from find_path import find_path
+from resource_management.libraries.functions.find_path import find_path
 
 
 def find_executable(search_directories, filename):
@@ -38,10 +38,8 @@ def find_executable(search_directories, filename):
   @param filename: the name of the file for which to search
   @return: the absolute path to the specified executable; or, if not found just the specified executable name
   """
-  if isinstance(search_directories, unicode):
-    search_directories = map(str.strip, search_directories.encode("ascii").split(","))
-  elif isinstance(search_directories, str):
-    search_directories = map(str.strip, search_directories.split(","))
+  if isinstance(search_directories, str):
+    search_directories = list(map(str.strip, search_directories.split(",")))
   elif not isinstance(search_directories, list):
     search_directories = ["/usr/bin", "/usr/kerberos/bin", "/usr/sbin", '/usr/lib/mit/bin',
                           '/usr/lib/mit/sbin']

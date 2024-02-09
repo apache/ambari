@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -137,7 +137,7 @@ template = '''
         "zeppelin.R.render.options": {
           "type": "string", 
           "name": "zeppelin.R.render.options", 
-          "value": "out.format \u003d \u0027html\u0027, comment \u003d NA, echo \u003d FALSE, results \u003d \u0027asis\u0027, message \u003d F, warning \u003d F"
+          "value": "out.format \\u003d \\u0027html\\u0027, comment \\u003d NA, echo \\u003d FALSE, results \\u003d \\u0027asis\\u0027, message \\u003d F, warning \\u003d F"
         },
         "zeppelin.R.cmd": {
           "type": "string", 

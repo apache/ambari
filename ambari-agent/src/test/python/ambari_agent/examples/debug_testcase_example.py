@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -25,11 +25,11 @@ from ambari_agent.Heartbeat import Heartbeat
 from ambari_agent.ActionQueue import ActionQueue
 from ambari_agent import AmbariConfig
 from ambari_agent.NetUtil import NetUtil
-import socket, ConfigParser, logging
+import socket, configparser, logging
 import os, pprint, json, sys, unittest
 from threading import Thread
 import time
-import Queue
+import queue
 
 logger = logging.getLogger()
 

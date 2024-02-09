@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -18,7 +18,7 @@ limitations under the License.
 
 """
 
-import ConfigParser
+import configparser
 import os
 import re
 
@@ -136,7 +136,7 @@ def get_grafana_dashboard_defs():
 def get_ambari_version():
   ambari_version = None
   AMBARI_AGENT_CONF = '/etc/ambari-agent/conf/ambari-agent.ini'
-  ambari_agent_config = ConfigParser.RawConfigParser()
+  ambari_agent_config = configparser.RawConfigParser()
   if os.path.exists(AMBARI_AGENT_CONF):
     try:
       ambari_agent_config.read(AMBARI_AGENT_CONF)
@@ -145,7 +145,7 @@ def get_ambari_version():
       f = open(ver_file, "r")
       ambari_version = f.read().strip()
       f.close()
-    except Exception, e:
+    except Exception as e:
       Logger.info('Unable to determine ambari version from version file.')
       Logger.debug('Exception: %s' % str(e))
       # No hostname script identified in the ambari agent conf
@@ -159,7 +159,7 @@ ams_collector_log_dir = config['configurations']['ams-env']['metrics_collector_l
 ams_collector_conf_dir = "/etc/ambari-metrics-collector/conf"
 ams_monitor_log_dir = config['configurations']['ams-env']['metrics_monitor_log_dir']
 
-ams_monitor_dir = "/usr/lib/python2.6/site-packages/resource_monitoring"
+ams_monitor_dir = "/usr/lib/python3.9/site-packages/resource_monitoring"
 ams_monitor_conf_dir = "/etc/ambari-metrics-monitor/conf"
 ams_monitor_pid_dir = status_params.ams_monitor_pid_dir
 ams_monitor_script = "/usr/sbin/ambari-metrics-monitor"

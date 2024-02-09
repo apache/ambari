@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -170,12 +170,12 @@ class MSSQLConfig(DBMSConfig):
     pass
 
   def _setup_remote_database(self):
-    print 'Populating the {0} database structure...'.format(self.db_title)
+    print('Populating the {0} database structure...'.format(self.db_title))
 
     self._populate_database_structure()
 
   def _reset_remote_database(self):
-    print 'Resetting the {0} database structure...'.format(self.db_title)
+    print('Resetting the {0} database structure...'.format(self.db_title))
 
     self._populate_database_structure()
 

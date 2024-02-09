@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -79,7 +79,7 @@ def resolve_ambari_config():
       agent_config.read(config_path)
     else:
       raise Exception("No config found at %s" % str(config_path))
-  except Exception, err:
+  except Exception as err:
     traceback.print_exc()
     Logger.warning(err)
 

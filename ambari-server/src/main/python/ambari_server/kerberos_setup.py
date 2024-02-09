@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -77,7 +77,7 @@ def setup_kerberos(options):
         if input is not None and input != "":
             kerberos_property_value_map[kerberos_property.prop_name] = input
 
-    print "Properties to be updated / written into ambari properties:"
+    print("Properties to be updated / written into ambari properties:")
     pp = pprint.PrettyPrinter()
     pp.pprint(kerberos_property_value_map)
 
@@ -85,9 +85,9 @@ def setup_kerberos(options):
     save = get_YN_input("Save settings [y/n] (y)? ", True)
     if save:
         update_properties_2(properties, kerberos_property_value_map)
-        print "Kerberos authentication settings successfully saved. Please restart the server in order for the new settings to take effect."
+        print("Kerberos authentication settings successfully saved. Please restart the server in order for the new settings to take effect.")
     else:
-        print "Kerberos authentication settings aborted."
+        print("Kerberos authentication settings aborted.")
 
     return 0;
 

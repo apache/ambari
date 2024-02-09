@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -97,7 +97,7 @@ class _named_dict(dict):
       return _list
 
     dict.__init__(self, _dict)
-    for key, value in self.iteritems():
+    for key, value in self.items():
       if isinstance(value, dict):
         self[key] = _named_dict(value)
       if isinstance(value, list):
@@ -116,7 +116,7 @@ def _get_temp_dir():
     return -1
   tmpdir = get_server_temp_location(properties)
   if not os.path.exists(tmpdir):
-    sudo.makedirs(tmpdir, 0755)
+    sudo.makedirs(tmpdir, 0o755)
   return tmpdir
 
 def download_mpack(mpack_path):
@@ -179,7 +179,9 @@ def read_mpack_metadata(mpack_dir):
     print_error_msg("Malformed management pack. Metadata file missing!")
     return None
 
-  mpack_metadata = _named_dict(json.load(open(mpack_metafile, "r")))
+  with open(mpack_metafile,"r") as file:
+    mpack_metadata = _named_dict(json.load(file))
+
   return mpack_metadata
 
 def get_mpack_properties():
@@ -316,8 +318,6 @@ def validate_purge(options, purge_list, mpack_dir, mpack_metadata, replay_mode=F
   :param replay_mode: Flag to indicate if purging in replay mode
   """
   # Get ambari mpacks config properties
-  stack_location, extension_location, service_definitions_location, mpacks_staging_location, dashboard_location = get_mpack_properties()
-
   if not purge_list:
     return
 
@@ -346,7 +346,7 @@ def validate_purge(options, purge_list, mpack_dir, mpack_metadata, replay_mode=F
         raise FatalException(1, stderr)
 
   if not replay_mode:
-    purge_resources = set((v) for k, v in RESOURCE_FRIENDLY_NAMES.iteritems() if k in purge_list)
+    purge_resources = set((v) for k, v in RESOURCE_FRIENDLY_NAMES.items() if k in purge_list)
     answer = 'yes' if options.silent else 'no'
     warn_msg = "CAUTION: You have specified the --purge option with --purge-list={0}. " \
                "This will replace all existing {1} currently installed.\n" \
@@ -391,7 +391,7 @@ def purge_stacks_and_mpacks(purge_list, replay_mode=False):
   if MPACKS_RESOURCE_NAME in purge_list and not replay_mode and os.path.exists(mpacks_staging_location):
     print_info_msg("Purging mpacks staging location: " + mpacks_staging_location)
     sudo.rmtree(mpacks_staging_location)
-    sudo.makedir(mpacks_staging_location, 0755)
+    sudo.makedir(mpacks_staging_location, 0o755)
 
 def process_stack_definitions_artifact(artifact, artifact_source_dir, options):
   """
@@ -410,7 +410,7 @@ def process_stack_definitions_artifact(artifact, artifact_source_dir, options):
       src_stack_dir = os.path.join(artifact_source_dir, file)
       dest_stack_dir = os.path.join(stack_location, file)
       if not os.path.exists(dest_stack_dir):
-        sudo.makedir(dest_stack_dir, 0755)
+        sudo.makedir(dest_stack_dir, 0o755)
       for file in sorted(os.listdir(src_stack_dir)):
         if os.path.isfile(os.path.join(src_stack_dir, file)):
           create_symlink(src_stack_dir, dest_stack_dir, file, options.force)
@@ -418,13 +418,13 @@ def process_stack_definitions_artifact(artifact, artifact_source_dir, options):
           src_stack_version_dir = os.path.join(src_stack_dir, file)
           dest_stack_version_dir = os.path.join(dest_stack_dir, file)
           if not os.path.exists(dest_stack_version_dir):
-            sudo.makedir(dest_stack_version_dir, 0755)
+            sudo.makedir(dest_stack_version_dir, 0o755)
           for file in sorted(os.listdir(src_stack_version_dir)):
             if file == SERVICES_DIRNAME:
               src_stack_services_dir = os.path.join(src_stack_version_dir, file)
               dest_stack_services_dir = os.path.join(dest_stack_version_dir, file)
               if not os.path.exists(dest_stack_services_dir):
-                sudo.makedir(dest_stack_services_dir, 0755)
+                sudo.makedir(dest_stack_services_dir, 0o755)
               for file in sorted(os.listdir(src_stack_services_dir)):
                 create_symlink(src_stack_services_dir, dest_stack_services_dir, file, options.force)
                 src_service_dir = os.path.join(src_stack_services_dir, file)
@@ -481,7 +481,7 @@ def process_extension_definitions_artifact(artifact, artifact_source_dir, option
   # Get ambari mpack properties
   stack_location, extension_location, service_definitions_location, mpacks_staging_location, dashboard_location = get_mpack_properties()
   if not os.path.exists(extension_location):
-    sudo.makedir(extension_location, 0755)
+    sudo.makedir(extension_location, 0o755)
   for file in sorted(os.listdir(artifact_source_dir)):
     if os.path.isfile(os.path.join(artifact_source_dir, file)):
       # Example: /var/lib/ambari-server/resources/extensions/README.txt
@@ -490,7 +490,7 @@ def process_extension_definitions_artifact(artifact, artifact_source_dir, option
       src_extension_dir = os.path.join(artifact_source_dir, file)
       dest_extension_dir = os.path.join(extension_location, file)
       if not os.path.exists(dest_extension_dir):
-        sudo.makedir(dest_extension_dir, 0755)
+        sudo.makedir(dest_extension_dir, 0o755)
       for file in sorted(os.listdir(src_extension_dir)):
         create_symlink(src_extension_dir, dest_extension_dir, file, options.force)
         src_extension_version_dir = os.path.join(src_extension_dir, file)
@@ -514,7 +514,7 @@ def process_service_definitions_artifact(artifact, artifact_source_dir, options)
     src_service_definitions_dir = os.path.join(artifact_source_dir, file)
     dest_service_definitions_dir = os.path.join(service_definitions_location, file)
     if not os.path.exists(dest_service_definitions_dir):
-      sudo.makedir(dest_service_definitions_dir, 0755)
+      sudo.makedir(dest_service_definitions_dir, 0o755)
     for file in sorted(os.listdir(src_service_definitions_dir)):
       create_symlink(src_service_definitions_dir, dest_service_definitions_dir, file, options.force)
       src_service_version_dir = os.path.join(src_service_definitions_dir, file)
@@ -552,7 +552,7 @@ def process_stack_addon_service_definitions_artifact(artifact, artifact_source_d
             dest_link = os.path.join(dest_stack_services_path, service_name)
             if os.path.exists(dest_stack_path) and os.path.exists(dest_stack_version_path):
               if not os.path.exists(dest_stack_services_path):
-                sudo.makedir(dest_stack_services_path, 0755)
+                sudo.makedir(dest_stack_services_path, 0o755)
               if options.force and os.path.islink(dest_link):
                 sudo.unlink(dest_link)
               sudo.symlink(source_service_version_path, dest_link)
@@ -731,29 +731,29 @@ def _install_mpack(options, replay_mode=False, is_upgrade=False):
   mpacks_cache_location = os.path.join(mpacks_staging_location, MPACKS_CACHE_DIRNAME)
   # Create directories
   if not os.path.exists(stack_location):
-    sudo.makedir(stack_location, 0755)
+    sudo.makedir(stack_location, 0o755)
   adjust_ownership_list.append((stack_location, "0755", "{0}", True))
   change_ownership_list.append((stack_location,"{0}",True))
   if not os.path.exists(extension_location):
-    sudo.makedir(extension_location, 0755)
+    sudo.makedir(extension_location, 0o755)
   adjust_ownership_list.append((extension_location, "0755", "{0}", True))
   change_ownership_list.append((extension_location,"{0}",True))
   if not os.path.exists(service_definitions_location):
-    sudo.makedir(service_definitions_location, 0755)
+    sudo.makedir(service_definitions_location, 0o755)
   adjust_ownership_list.append((service_definitions_location, "0755", "{0}", True))
   change_ownership_list.append((service_definitions_location,"{0}",True))
   if not os.path.exists(mpacks_staging_location):
-    sudo.makedir(mpacks_staging_location, 0755)
+    sudo.makedir(mpacks_staging_location, 0o755)
   adjust_ownership_list.append((mpacks_staging_location, "0755", "{0}", True))
   change_ownership_list.append((mpacks_staging_location,"{0}",True))
   if not os.path.exists(mpacks_cache_location):
-    sudo.makedir(mpacks_cache_location, 0755)
+    sudo.makedir(mpacks_cache_location, 0o755)
   adjust_ownership_list.append((mpacks_cache_location, "0755", "{0}", True))
   change_ownership_list.append((mpacks_cache_location,"{0}",True))
   if not os.path.exists(dashboard_location):
-    sudo.makedir(dashboard_location, 0755)
-    sudo.makedir(os.path.join(dashboard_location, GRAFANA_DASHBOARDS_DIRNAME), 0755)
-    sudo.makedir(os.path.join(dashboard_location, SERVICE_METRICS_DIRNAME), 0755)
+    sudo.makedir(dashboard_location, 0o755)
+    sudo.makedir(os.path.join(dashboard_location, GRAFANA_DASHBOARDS_DIRNAME), 0o755)
+    sudo.makedir(os.path.join(dashboard_location, SERVICE_METRICS_DIRNAME), 0o755)
   adjust_ownership_list.append((dashboard_location, "0755", "{0}", True))
   change_ownership_list.append((dashboard_location,"{0}",True))
 

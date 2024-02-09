@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -53,7 +53,7 @@ class ExecutionCommand(object):
         :param default_value: if key does not exist, return this value
         :return: the value maps to query key
         """
-        sub_keys = filter(None, key.split('/'))
+        sub_keys = [_f for _f in key.split('/') if _f]
         value = self.__execution_command
         try:
             for sub_key in sub_keys:

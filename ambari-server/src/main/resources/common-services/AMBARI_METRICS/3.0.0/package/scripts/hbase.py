@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -123,7 +123,7 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
              owner = params.hbase_user,
              group = params.user_group,
              cd_access="a",
-             mode=0775,
+             mode=0o775,
              create_parents = True
   )
 
@@ -162,7 +162,7 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
   if not os.path.exists(params.phoenix_server_spool_dir):
     Directory(params.phoenix_server_spool_dir,
               owner=params.ams_user,
-              mode = 0755,
+              mode = 0o755,
               group=params.user_group,
               cd_access="a",
               create_parents = True
@@ -212,14 +212,14 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
                owner = params.hbase_user,
                create_parents = True,
                cd_access = "a",
-               mode = 0755,
+               mode = 0o755,
     )
 
     Directory (params.hbase_log_dir,
                owner = params.hbase_user,
                create_parents = True,
                cd_access = "a",
-               mode = 0755,
+               mode = 0o755,
     )
 
   if name == "master":
@@ -232,7 +232,7 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
                              type="directory",
                              action="create_on_execute",
                              owner=params.hbase_user,
-                             mode=0775,
+                             mode=0o775,
                              dfs_type=params.dfs_type
         )
 
@@ -240,7 +240,7 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
                              type="directory",
                              action="create_on_execute",
                              owner=params.hbase_user,
-                             mode=0711,
+                             mode=0o711,
                              dfs_type=params.dfs_type
         )
 
@@ -248,7 +248,7 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
 
       if params.is_hbase_distributed:
         #Workaround for status commands not aware of operating mode
-        File(format("{params.hbase_pid_dir}/distributed_mode"), action="create", mode=0644, owner=params.hbase_user)
+        File(format("{params.hbase_pid_dir}/distributed_mode"), action="create", mode=0o644, owner=params.hbase_user)
 
       pass
 
@@ -271,14 +271,14 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
 
   if params.hbase_log4j_props is not None:
     File(format("{params.hbase_conf_dir}/log4j.properties"),
-         mode=0644,
+         mode=0o644,
          group=params.user_group,
          owner=params.hbase_user,
          content=InlineTemplate(params.hbase_log4j_props)
     )
   elif os.path.exists(format("{params.hbase_conf_dir}/log4j.properties")):
     File(format("{params.hbase_conf_dir}/log4j.properties"),
-      mode=0644,
+      mode=0o644,
       group=params.user_group,
       owner=params.hbase_user
     )

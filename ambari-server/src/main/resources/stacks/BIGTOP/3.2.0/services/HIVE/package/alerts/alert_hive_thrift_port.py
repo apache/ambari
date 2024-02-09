@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 Licensed to the Apache Software Foundation (ASF) under one
@@ -214,12 +214,12 @@ def execute(configurations={}, parameters={}, host_name=None):
       result_code = 'OK'
       total_time = time.time() - start_time
       label = OK_MESSAGE.format(total_time, port)
-    except:
+    except Exception as exception:
       result_code = 'CRITICAL'
       label = CRITICAL_MESSAGE.format(host_name, port, traceback.format_exc())
 
-  except:
-    label = traceback.format_exc()
+  except Exception as e:
+    label = str(e)
     result_code = 'UNKNOWN'
 
   return (result_code, [label])

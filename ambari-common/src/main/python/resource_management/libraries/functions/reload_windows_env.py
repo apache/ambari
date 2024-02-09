@@ -19,7 +19,7 @@ Ambari Agent
 
 """
 
-from _winreg import (OpenKey, EnumValue, HKEY_LOCAL_MACHINE, KEY_READ, CloseKey)
+from winreg import (OpenKey, EnumValue, HKEY_LOCAL_MACHINE, KEY_READ, CloseKey)
 import os
 
 default_whitelist = ["FALCON_CONF_DIR", "FALCON_DATA_DIR", "FALCON_HOME", "FALCON_LOG_DIR", "FLUME_HOME",

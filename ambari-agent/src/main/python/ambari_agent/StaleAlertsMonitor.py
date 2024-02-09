@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
@@ -50,7 +50,7 @@ class StaleAlertsMonitor():
     if not self.alert_definitions_cache:
       return []
 
-    for cluster_id, command in self.alert_definitions_cache.iteritems():
+    for cluster_id, command in self.alert_definitions_cache.items():
       # the cluster has not yet initialized staleAlertsAlert
       if not 'staleIntervalMultiplier' in command:
         continue

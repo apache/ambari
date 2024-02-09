@@ -19,7 +19,7 @@ limitations under the License.
 import copy
 import logging
 
-from Queue import Queue
+from queue import Queue
 
 from ambari_stomp.connect import BaseConnection
 from ambari_stomp.protocol import Protocol12
@@ -89,7 +89,7 @@ class WsTransport(Transport):
     self.ws.connect()
 
   def send(self, encoded_frame):
-    logger.debug("Outgoing STOMP message:\n>>> " + encoded_frame)
+    logger.debug("Outgoing STOMP message:\n>>> " + encoded_frame.decode())
     if self.ws.terminated:
       raise ConnectionIsAlreadyClosed("Connection is already closed cannot send data")
 

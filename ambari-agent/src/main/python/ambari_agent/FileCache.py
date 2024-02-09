@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -17,14 +17,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-import StringIO
+import io
 
 import logging
 import os
 import shutil
 import zipfile
-import urllib2
-import urllib
+import urllib.request, urllib.error, urllib.parse
 import time
 import threading
 
@@ -134,7 +133,7 @@ class FileCache():
                                   self.get_server_url_prefix(command))
 
   def auto_cache_update_enabled(self):
-    from AmbariConfig import AmbariConfig
+    from ambari_agent.AmbariConfig import AmbariConfig
     if self.config and \
         self.config.has_option(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, FileCache.ENABLE_AUTO_AGENT_CACHE_UPDATE_KEY) and \
             self.config.get(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, FileCache.ENABLE_AUTO_AGENT_CACHE_UPDATE_KEY).lower() == "false":
@@ -219,7 +218,7 @@ class FileCache():
     filename - file inside directory we are trying to fetch
     """
     return "{0}/{1}/{2}".format(server_url_prefix,
-                                urllib.pathname2url(directory), filename)
+                                urllib.request.pathname2url(directory), filename)
 
   def fetch_url(self, url):
     """
@@ -228,9 +227,9 @@ class FileCache():
     """
     logger.debug("Trying to download {0}".format(url))
     try:
-      memory_buffer = StringIO.StringIO()
-      proxy_handler = urllib2.ProxyHandler({})
-      opener = urllib2.build_opener(proxy_handler)
+      memory_buffer = io.BytesIO()
+      proxy_handler = urllib.request.ProxyHandler({})
+      opener = urllib.request.build_opener(proxy_handler)
       u = opener.open(url, timeout=self.SOCKET_TIMEOUT)
       logger.debug("Connected with {0} with code {1}".format(u.geturl(),
                                                              u.getcode()))
@@ -251,7 +250,7 @@ class FileCache():
     """
     hash_file = os.path.join(directory, self.HASH_SUM_FILE)
     try:
-      with open(hash_file) as fh:
+      with open(hash_file,'rb') as fh:
         return fh.readline().strip()
     except:
       return None
@@ -263,7 +262,7 @@ class FileCache():
     """
     hash_file = os.path.join(directory, self.HASH_SUM_FILE)
     try:
-      with open(hash_file, "w") as fh:
+      with open(hash_file, "wb") as fh:
         fh.write(new_hash)
       os.chmod(hash_file, 0o644)
     except Exception as err:

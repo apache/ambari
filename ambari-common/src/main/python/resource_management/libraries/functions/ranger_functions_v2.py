@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -20,12 +20,12 @@ limitations under the License.
 import re
 import time
 import sys
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import base64
-import httplib
+import http.client
 # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import ambari_simplejson as json
-from StringIO import StringIO as BytesIO
+from io import StringIO as BytesIO
 from ambari_commons.inet_utils import openurl
 from resource_management.core.logger import Logger
 from ambari_commons.exceptions import TimeoutError
@@ -67,8 +67,8 @@ class RangeradminV2:
     """
     try:
       search_repo_url = self.url_repos_pub + "?name=" + name + "&type=" + component + "&status=" + status
-      request = urllib2.Request(search_repo_url)
-      base_64_string = base64.encodestring(usernamepassword).replace('\n', '')
+      request = urllib.request.Request(search_repo_url)
+      base_64_string = base64.b64encode(usernamepassword.encode()).decode().replace('\n', '')
       request.add_header("Content-Type", "application/json")
       request.add_header("Accept", "application/json")
       request.add_header("Authorization", "Basic {0}".format(base_64_string))
@@ -83,12 +83,12 @@ class RangeradminV2:
         return None
       else:
         return None
-    except urllib2.URLError, e:
-      if isinstance(e, urllib2.HTTPError):
+    except urllib.error.URLError as e:
+      if isinstance(e, urllib.error.HTTPError):
         raise Fail("Error getting {0} repository for component {1}. Http status code - {2}. \n {3}".format(name, component, e.code, e.read()))
       else:
         raise Fail("Error getting {0} repository for component {1}. Reason - {2}.".format(name, component, e.reason))
-    except httplib.BadStatusLine:
+    except http.client.BadStatusLine:
       raise Fail("Ranger Admin service is not reachable, please restart the service and then try again")
     except TimeoutError:
       raise Fail("Connection to Ranger Admin failed. Reason - timeout")
@@ -100,8 +100,8 @@ class RangeradminV2:
     if not is_stack_supports_ranger_kerberos or not is_security_enabled:
       response_code = self.check_ranger_login_urllib2(self.base_url)
       repo_data = json.dumps(repo_properties)
-      ambari_ranger_password = unicode(ambari_ranger_password)
-      admin_password = unicode(admin_password)
+      ambari_ranger_password = str(ambari_ranger_password)
+      admin_password = str(admin_password)
       ambari_username_password_for_ranger = format('{ambari_ranger_admin}:{ambari_ranger_password}')
 
 
@@ -166,12 +166,12 @@ class RangeradminV2:
     """
     try:
       search_repo_url = self.url_repos_pub
-      base_64_string = base64.encodestring('{0}'.format(usernamepassword)).replace('\n', '')
+      base_64_string = base64.b64encode('{0}'.format(usernamepassword).encode()).decode().replace('\n', '')
       headers = {
         'Accept': 'application/json',
         "Content-Type": "application/json"
       }
-      request = urllib2.Request(search_repo_url, data, headers)
+      request = urllib.request.Request(search_repo_url, data.encode(), headers)
       request.add_header("Authorization", "Basic {0}".format(base_64_string))
       result = openurl(request, timeout=20)
       response_code = result.getcode()
@@ -182,12 +182,12 @@ class RangeradminV2:
         return response
       else:
         raise Fail('Repository creation failed')
-    except urllib2.URLError, e:
-      if isinstance(e, urllib2.HTTPError):
+    except urllib.error.URLError as e:
+      if isinstance(e, urllib.error.HTTPError):
         raise Fail("Error creating repository. Http status code - {0}. \n {1}".format(e.code, e.read()))
       else:
         raise Fail("Error creating repository. Reason - {0}.".format(e.reason))
-    except httplib.BadStatusLine:
+    except http.client.BadStatusLine:
       raise Fail("Ranger Admin service is not reachable, please restart the service and then try again")
     except TimeoutError:
       raise Fail("Connection to Ranger Admin failed. Reason - timeout")
@@ -203,12 +203,12 @@ class RangeradminV2:
       response = openurl(url, timeout=20)
       response_code = response.getcode()
       return response_code
-    except urllib2.URLError, e:
-      if isinstance(e, urllib2.HTTPError):
+    except urllib.error.URLError as e:
+      if isinstance(e, urllib.error.HTTPError):
         raise Fail("Connection failed to Ranger Admin. Http status code - {0}. \n {1}".format(e.code, e.read()))
       else:
         raise Fail("Connection failed to Ranger Admin. Reason - {0}.".format(e.reason))
-    except httplib.BadStatusLine, e:
+    except http.client.BadStatusLine as e:
       raise Fail("Ranger Admin service is not reachable, please restart the service and then try again")
     except TimeoutError:
       raise Fail("Connection failed to Ranger Admin. Reason - timeout")
@@ -227,8 +227,8 @@ class RangeradminV2:
       raise Fail('Invalid password given for Ranger Admin user for Ambari')
     try:
       url =  self.url_users + '?name=' + str(ambari_admin_username)
-      request = urllib2.Request(url)
-      base_64_string = base64.encodestring(usernamepassword).replace('\n', '')
+      request = urllib.request.Request(url)
+      base_64_string = base64.b64encode(usernamepassword.encode()).decode().replace('\n', '')
       request.add_header("Content-Type", "application/json")
       request.add_header("Accept", "application/json")
       request.add_header("Authorization", "Basic {0}".format(base_64_string))
@@ -257,12 +257,12 @@ class RangeradminV2:
           admin_user['description'] = ambari_admin_username
           admin_user['firstName'] = ambari_admin_username
           data =  json.dumps(admin_user)
-          base_64_string = base64.encodestring('{0}'.format(usernamepassword)).replace('\n', '')
+          base_64_string = base64.b64encode('{0}'.format(usernamepassword).encode()).decode().replace('\n', '')
           headers = {
             'Accept': 'application/json',
             "Content-Type": "application/json"
           }
-          request = urllib2.Request(url, data, headers)
+          request = urllib.request.Request(url, data.encode(), headers)
           request.add_header("Authorization", "Basic {0}".format(base_64_string))
           result = openurl(request, timeout=20)
           response_code = result.getcode()
@@ -275,12 +275,12 @@ class RangeradminV2:
             return None
       else:
         return None
-    except urllib2.URLError, e:
-      if isinstance(e, urllib2.HTTPError):
+    except urllib.error.URLError as e:
+      if isinstance(e, urllib.error.HTTPError):
         raise Fail("Error creating ambari admin user. Http status code - {0}. \n {1}".format(e.code, e.read()))
       else:
         raise Fail("Error creating ambari admin user. Reason - {0}.".format(e.reason))
-    except httplib.BadStatusLine:
+    except http.client.BadStatusLine:
       raise Fail("Ranger Admin service is not reachable, please restart the service and then try again")
     except TimeoutError:
       raise Fail("Connection to Ranger Admin failed. Reason - timeout")
@@ -306,7 +306,7 @@ class RangeradminV2:
     return response, error_msg, time_millis
 
   @safe_retry(times=75, sleep_time=8, backoff_factor=1, err_class=Fail, return_on_fail=None)
-  def check_ranger_login_curl(self, component_user,component_user_keytab,component_user_principal,base_url,True):
+  def check_ranger_login_curl(self, component_user,component_user_keytab,component_user_principal,base_url,Boolean_True):
     """
     :param url: ranger admin host url
     :param usernamepassword: user credentials using which repository needs to be searched.
@@ -317,7 +317,7 @@ class RangeradminV2:
     time_millis = 0
     try:
       response,error_msg,time_millis = self.call_curl_request(component_user,component_user_keytab,component_user_principal,base_url,True)
-    except Fail,fail:
+    except Fail as fail:
       raise Fail(fail.args)
 
     return response, error_msg,time_millis
@@ -348,7 +348,7 @@ class RangeradminV2:
           return None
       else:
         return None
-    except Exception, err:
+    except Exception as err:
       raise Fail('Error in call for getting Ranger service:\n {0}'.format(err))
 
   @safe_retry(times=5, sleep_time=8, backoff_factor=1.5, err_class=Fail, return_on_fail=None)
@@ -383,7 +383,7 @@ class RangeradminV2:
       else:
         Logger.info('Repository creation failed')
         return None
-    except Exception, err:
+    except Exception as err:
       raise Fail('Error in call for creating Ranger service:\n {0}'.format(err))
 
   @safe_retry(times=5, sleep_time=8, backoff_factor=1.5, err_class=Fail, return_on_fail=None)
@@ -402,12 +402,12 @@ class RangeradminV2:
         update_repo_url = update_repo_url + "?forceRename=true"
       repo_update_data = json.dumps(repo_properties)
       usernamepassword = admin_user + ":" + admin_password
-      base_64_string = base64.encodestring("{0}".format(usernamepassword)).replace("\n", "")
+      base_64_string = base64.b64encode("{0}".format(usernamepassword).encode()).decode().replace("\n", "")
       headers = {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       }
-      request = urllib2.Request(update_repo_url, repo_update_data, headers)
+      request = urllib.request.Request(update_repo_url, repo_update_data.encode(), headers)
       request.add_header("Authorization", "Basic {0}".format(base_64_string))
       request.get_method = lambda: 'PUT'
       result = openurl(request, timeout=20)
@@ -419,12 +419,12 @@ class RangeradminV2:
         return response
       else:
         raise Fail("Service name {0} updation failed on Ranger Admin for service {1}".format(repo_name, component))
-    except urllib2.URLError, e:
-      if isinstance(e, urllib2.HTTPError):
+    except urllib.error.URLError as e:
+      if isinstance(e, urllib.error.HTTPError):
         raise Fail("Error updating service name {0} on Ranger Admin for service {1}. Http status code - {2} \n {3}".format(repo_name, component, e.code, e.read()))
       else:
         raise Fail("Error updating service name {0} on Ranger Admin for service {1}. Reason - {2}".format(repo_name, component, e.reason))
-    except httplib.BadStatusLine:
+    except http.client.BadStatusLine:
       raise Fail("Ranger Admin is not reachable for updating service name {0} for service {1}".format(repo_name, component))
     except TimeoutError:
       raise Fail("Connection to Ranger Admin failed. Reason - timeout")
@@ -460,5 +460,5 @@ class RangeradminV2:
       else:
         Logger.info("Service name {0} updation failed on Ranger Admin for service {1}".format(repo_name, component))
         return None
-    except Exception, err:
+    except Exception as err:
       raise Fail('Error updating service name {0} on Ranger Admin for service {1}.\n Reason - {2}'.format(repo_name, component, err))

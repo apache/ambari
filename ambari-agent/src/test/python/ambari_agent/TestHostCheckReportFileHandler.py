@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -25,7 +25,7 @@ import os
 import tempfile
 from ambari_agent.HostCheckReportFileHandler import HostCheckReportFileHandler
 import logging
-import ConfigParser
+import configparser
 
 class TestHostCheckReportFileHandler(TestCase):
 
@@ -34,7 +34,7 @@ class TestHostCheckReportFileHandler(TestCase):
   def test_write_host_check_report_really_empty(self):
     tmpfile = tempfile.mktemp()
 
-    config = ConfigParser.RawConfigParser()
+    config = configparser.RawConfigParser()
     config.add_section('agent')
     config.set('agent', 'prefix', os.path.dirname(tmpfile))
 
@@ -42,12 +42,12 @@ class TestHostCheckReportFileHandler(TestCase):
     mydict = {}
     handler.writeHostCheckFile(mydict)
 
-    configValidator = ConfigParser.RawConfigParser()
+    configValidator = configparser.RawConfigParser()
     configPath = os.path.join(os.path.dirname(tmpfile), HostCheckReportFileHandler.HOST_CHECK_FILE)
     configValidator.read(configPath)
     if configValidator.has_section('users'):
       users = configValidator.get('users', 'usr_list')
-      self.assertEquals(users, '')
+      self.assertEqual(users, '')
 
 
   @patch("os.path.exists")
@@ -57,7 +57,7 @@ class TestHostCheckReportFileHandler(TestCase):
     exists_mock.return_value = False
     list_mock.return_value = []
 
-    config = ConfigParser.RawConfigParser()
+    config = configparser.RawConfigParser()
     config.add_section('agent')
     config.set('agent', 'prefix', os.path.dirname(tmpfile))
 
@@ -73,22 +73,22 @@ class TestHostCheckReportFileHandler(TestCase):
 
     handler.writeHostCheckFile(mydict)
 
-    configValidator = ConfigParser.RawConfigParser()
+    configValidator = configparser.RawConfigParser()
     configPath = os.path.join(os.path.dirname(tmpfile), HostCheckReportFileHandler.HOST_CHECK_FILE)
     configValidator.read(configPath)
     users = configValidator.get('users', 'usr_list')
     users = configValidator.get('users', 'usr_homedir_list')
-    self.assertEquals(users, '')
+    self.assertEqual(users, '')
     names = configValidator.get('alternatives', 'symlink_list')
     targets = configValidator.get('alternatives', 'target_list')
-    self.assertEquals(names, '')
-    self.assertEquals(targets, '')
+    self.assertEqual(names, '')
+    self.assertEqual(targets, '')
 
     paths = configValidator.get('directories', 'dir_list')
-    self.assertEquals(paths, '')
+    self.assertEqual(paths, '')
 
     procs = configValidator.get('processes', 'proc_list')
-    self.assertEquals(procs, '')
+    self.assertEqual(procs, '')
 
     time = configValidator.get('metadata', 'created')
     self.assertTrue(time != None)
@@ -100,7 +100,7 @@ class TestHostCheckReportFileHandler(TestCase):
     exists_mock.return_value = False
     list_mock.return_value = []
 
-    config = ConfigParser.RawConfigParser()
+    config = configparser.RawConfigParser()
     config.add_section('agent')
     config.set('agent', 'prefix', os.path.dirname(tmpfile))
 
@@ -120,13 +120,13 @@ class TestHostCheckReportFileHandler(TestCase):
     ]
     handler.writeHostCheckFile(mydict)
 
-    configValidator = ConfigParser.RawConfigParser()
+    configValidator = configparser.RawConfigParser()
     configPath = os.path.join(os.path.dirname(tmpfile), HostCheckReportFileHandler.HOST_CHECK_FILE)
     configValidator.read(configPath)
     users = configValidator.get('users', 'usr_list')
     homedirs = configValidator.get('users', 'usr_homedir_list')
-    self.assertEquals(users, 'user1')
-    self.assertEquals(homedirs, '/var/log')
+    self.assertEqual(users, 'user1')
+    self.assertEqual(homedirs, '/var/log')
 
     names = configValidator.get('alternatives', 'symlink_list')
     targets = configValidator.get('alternatives', 'target_list')
@@ -147,7 +147,7 @@ class TestHostCheckReportFileHandler(TestCase):
     mydict['existing_repos'] = ['HDP', 'HDP-epel']
     
     handler.writeHostChecksCustomActionsFile(mydict)
-    configValidator = ConfigParser.RawConfigParser()
+    configValidator = configparser.RawConfigParser()
     configPath_ca = os.path.join(os.path.dirname(tmpfile), HostCheckReportFileHandler.HOST_CHECK_CUSTOM_ACTIONS_FILE)
     configValidator.read(configPath_ca)
     
@@ -168,7 +168,7 @@ class TestHostCheckReportFileHandler(TestCase):
 
     tmpfile = tempfile.mktemp()
 
-    config = ConfigParser.RawConfigParser()
+    config = configparser.RawConfigParser()
     config.add_section('agent')
     config.set('agent', 'prefix', os.path.dirname(tmpfile))
 
@@ -180,7 +180,7 @@ class TestHostCheckReportFileHandler(TestCase):
 
     handler.writeHostCheckFile(mydict)
 
-    configValidator = ConfigParser.RawConfigParser()
+    configValidator = configparser.RawConfigParser()
     configPath = os.path.join(os.path.dirname(tmpfile), HostCheckReportFileHandler.HOST_CHECK_FILE)
     configValidator.read(configPath)
 
@@ -193,7 +193,7 @@ class TestHostCheckReportFileHandler(TestCase):
     items.sort()
     items1Str = ','.join(items1)
     items2Str = ','.join(items)
-    self.assertEquals(items2Str, items1Str)
+    self.assertEqual(items2Str, items1Str)
 
 if __name__ == "__main__":
   unittest.main(verbosity=2)

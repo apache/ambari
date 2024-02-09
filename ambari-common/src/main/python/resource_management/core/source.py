@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -20,7 +20,7 @@ Ambari Agent
 
 """
 
-from __future__ import with_statement
+
 from resource_management.core.environment import Environment
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
@@ -31,8 +31,7 @@ __all__ = ["Source", "Template", "InlineTemplate", "StaticFile", "DownloadSource
 
 import os
 import time
-import urllib2
-import urlparse
+import urllib.request, urllib.error, urllib.parse
 
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
@@ -116,8 +115,8 @@ else:
       if not os.path.exists(path):
         raise TemplateNotFound("%s at %s" % (template_name, path))
       mtime = os.path.getmtime(path)
-      with open(path, "rb") as fp:
-        source = fp.read().decode('utf-8')
+      with open(path, "rt") as fp:
+        source = fp.read()
       return source, path, lambda: mtime == os.path.getmtime(path)
 
   class Template(Source):
@@ -137,7 +136,7 @@ else:
       self.template = self.template_env.get_template(self.name)     
     
     def get_content(self):
-      default_variables = { 'env':self.env, 'repr':repr, 'str':str, 'bool':bool, 'unicode':unicode }
+      default_variables = { 'env':self.env, 'repr':repr, 'str':str, 'bool':bool, 'unicode':str }
       variables = checked_unite(default_variables, self.imports_dict)
       self.context.update(variables)
       
@@ -174,8 +173,8 @@ class DownloadSource(Source):
     if self.download_path and not os.path.exists(self.download_path):
       raise Fail("Directory {0} doesn't exist, please provide valid download path".format(self.download_path))
     
-    if urlparse.urlparse(self.url).path:
-      filename = os.path.basename(urlparse.urlparse(self.url).path)
+    if urllib.parse.urlparse(self.url).path:
+      filename = os.path.basename(urllib.parse.urlparse(self.url).path)
     else:
       filename = 'index.html.{0}'.format(time.time())
       
@@ -185,15 +184,15 @@ class DownloadSource(Source):
       Logger.info("Downloading the file from {0}".format(self.url))
       
       if self.ignore_proxy:
-        opener = urllib2.build_opener(urllib2.ProxyHandler({}))
+        opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
       else:
-        opener = urllib2.build_opener()
+        opener = urllib.request.build_opener()
       
-      req = urllib2.Request(self.url)
+      req = urllib.request.Request(self.url)
       
       try:
         web_file = opener.open(req)
-      except urllib2.HTTPError as ex:
+      except urllib.error.HTTPError as ex:
         raise Fail("Failed to download file from {0} due to HTTP error: {1}".format(self.url, str(ex)))
       
       content = web_file.read()

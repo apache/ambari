@@ -300,7 +300,7 @@ hdfs_principal_name = default('/configurations/hadoop-env/hdfs_principal_name', 
 hdfs_site = config['configurations']['hdfs-site']
 smoke_user =  config['configurations']['cluster-env']['smokeuser']
 smoke_hdfs_user_dir = format("/user/{smoke_user}")
-smoke_hdfs_user_mode = 0770
+smoke_hdfs_user_mode = 0o770
 
 
 ##### Namenode RPC ports - metrics config section start #####

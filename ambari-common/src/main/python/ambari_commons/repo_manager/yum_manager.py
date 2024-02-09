@@ -16,7 +16,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import ConfigParser
+import configparser
 import glob
 
 from .generic_manager import GenericManagerProperties, GenericManager
@@ -26,7 +26,7 @@ from resource_management.core.logger import Logger
 from resource_management.core.utils import suppress_stdout
 from resource_management.core import sudo
 
-from StringIO import StringIO
+from io import StringIO
 
 import re
 import os
@@ -276,29 +276,7 @@ class YumManager(GenericManager):
     if not name:
       raise ValueError("Package name can't be empty")
 
-    if os.geteuid() == 0:
-      return self.yum_check_package_available(name)
-    else:
-      return self.rpm_check_package_available(name)
-
-  def yum_check_package_available(self, name):
-    """
-    Does the same as rpm_check_package_avaiable, but faster.
-    However need root permissions.
-    """
-    import yum  # Python Yum API is much faster then other check methods. (even then "import rpm")
-    yb = yum.YumBase()
-    name_regex = re.escape(name).replace("\\?", ".").replace("\\*", ".*") + '$'
-    regex = re.compile(name_regex)
-
-    with suppress_stdout():
-      package_list = yb.rpmdb.simplePkgList()
-
-    for package in package_list:
-      if regex.match(package[0]):
-        return True
-
-    return False
+    return self.rpm_check_package_available(name)
 
   @staticmethod
   def _build_repos_ids(repos):
@@ -327,7 +305,7 @@ class YumManager(GenericManager):
     # if there are any matches, it means the repo already exists and we should use it to search
     # for packages to install
     for repo_file in glob.glob(os.path.join(YumManagerProperties.repo_definition_location, "*.repo")):
-      config_parser = ConfigParser.ConfigParser()
+      config_parser = configparser.ConfigParser()
       config_parser.read(repo_file)
       sections = config_parser.sections()
       for section in sections:
@@ -352,7 +330,8 @@ class YumManager(GenericManager):
     regex = re.compile(name_regex)
 
     for package in packages:
-      if regex.match(package['name']):
+      pkg_name = package['name'].decode() if isinstance(package['name'], bytes) else package['name']
+      if regex.match(pkg_name):
         return True
     return False
 

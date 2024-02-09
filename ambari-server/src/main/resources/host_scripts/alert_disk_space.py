@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 Licensed to the Apache Software Foundation (ASF) under one
@@ -33,7 +33,7 @@ PERCENT_USED_WARNING_KEY = "percent.used.space.warning.threshold"
 PERCENT_USED_CRITICAL_KEY = "percent.free.space.critical.threshold"
 
 # defaults in case no script parameters are passed
-MIN_FREE_SPACE_DEFAULT = 5000000000L
+MIN_FREE_SPACE_DEFAULT = 5000000000
 PERCENT_USED_WARNING_DEFAULT = 50
 PERCENT_USED_CRITICAL_DEFAULT = 80
 
@@ -74,7 +74,7 @@ def execute(configurations={}, parameters={}, host_name=None):
   try:
     disk_usage = _get_disk_usage(path)
     result_code, label = _get_warnings_for_partition(parameters, disk_usage)
-  except NotImplementedError, platform_error:
+  except NotImplementedError as platform_error:
     return 'CRITICAL', [str(platform_error)]
 
   return result_code, [label]
@@ -90,7 +90,7 @@ def _get_warnings_for_partition(parameters, disk_usage):
   # parse script parameters
   if MIN_FREE_SPACE_KEY in parameters:
     # long(float(5e9)) seems like gson likes scientific notation
-    min_free_space = long(float(parameters[MIN_FREE_SPACE_KEY]))
+    min_free_space = int(float(parameters[MIN_FREE_SPACE_KEY]))
 
   if PERCENT_USED_WARNING_KEY in parameters:
     warning_percent = float(parameters[PERCENT_USED_WARNING_KEY])
@@ -139,7 +139,7 @@ def execute(configurations={}, parameters={}, host_name=None):
   try:
     disk_usage = _get_disk_usage()
     result = _get_warnings_for_partition(parameters, disk_usage)
-  except NotImplementedError, platform_error:
+  except NotImplementedError as platform_error:
     result = ('CRITICAL', [str(platform_error)])
   return result
 
@@ -212,4 +212,4 @@ def _get_formatted_size(bytes):
     return '%.1f' % (bytes / 1000000000000.0) + ' TB'
 
 if __name__ == '__main__':
-    print _get_disk_usage(os.getcwd())
+    print(_get_disk_usage(os.getcwd()))

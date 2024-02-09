@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -17,7 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-import httplib
+import http.client
 
 from ambari_commons.parallel_processing import PrallelProcessResult, execute_in_parallel, SUCCESS
 from service_check import post_metrics_to_collector
@@ -26,7 +26,7 @@ from resource_management.core.base import Fail
 from resource_management.libraries.script.script import Script
 from resource_management import Template
 from collections import namedtuple
-from urlparse import urlparse
+from urllib.parse import urlparse
 from base64 import b64encode
 import random
 import time
@@ -52,7 +52,7 @@ def perform_grafana_get_call(url, server):
   if grafana_https_enabled:
     ca_certs = params.ams_grafana_ca_cert
 
-  for i in xrange(0, params.grafana_connect_attempts):
+  for i in range(0, params.grafana_connect_attempts):
     try:
       conn = network.get_http_connection(
         server.host,
@@ -62,7 +62,7 @@ def perform_grafana_get_call(url, server):
         ssl_version=Script.get_force_https_protocol_value()
       )
 
-      userAndPass = b64encode('{0}:{1}'.format(server.user, server.password))
+      userAndPass = b64encode('{0}:{1}'.format(server.user, server.password).encode()).decode()
       headers = { 'Authorization' : 'Basic %s' %  userAndPass }
 
       Logger.info("Connecting (GET) to %s:%s%s" % (server.host, server.port, url))
@@ -71,7 +71,7 @@ def perform_grafana_get_call(url, server):
       response = conn.getresponse()
       Logger.info("Http response: %s %s" % (response.status, response.reason))
       break
-    except (httplib.HTTPException, socket.error) as ex:
+    except (http.client.HTTPException, socket.error) as ex:
       if i < params.grafana_connect_attempts - 1:
         Logger.info("Connection to Grafana failed. Next retry in %s seconds."
                     % (params.grafana_connect_retry_delay))
@@ -88,7 +88,7 @@ def perform_grafana_put_call(url, id, payload, server):
 
   response = None
   data = None
-  userAndPass = b64encode('{0}:{1}'.format(server.user, server.password))
+  userAndPass = b64encode('{0}:{1}'.format(server.user, server.password).encode()).decode()
   headers = {"Content-Type": "application/json",
              'Authorization' : 'Basic %s' %  userAndPass }
   grafana_https_enabled = server.protocol.lower() == 'https'
@@ -97,7 +97,7 @@ def perform_grafana_put_call(url, id, payload, server):
   if grafana_https_enabled:
     ca_certs = params.ams_grafana_ca_cert
 
-  for i in xrange(0, params.grafana_connect_attempts):
+  for i in range(0, params.grafana_connect_attempts):
     try:
       conn = network.get_http_connection(
         server.host,
@@ -112,7 +112,7 @@ def perform_grafana_put_call(url, id, payload, server):
       Logger.info("Http data: %s" % data)
       conn.close()
       break
-    except (httplib.HTTPException, socket.error) as ex:
+    except (http.client.HTTPException, socket.error) as ex:
       if i < params.grafana_connect_attempts - 1:
         Logger.info("Connection to Grafana failed. Next retry in %s seconds."
                     % (params.grafana_connect_retry_delay))
@@ -129,7 +129,7 @@ def perform_grafana_post_call(url, payload, server):
 
   response = None
   data = None
-  userAndPass = b64encode('{0}:{1}'.format(server.user, server.password))
+  userAndPass = b64encode('{0}:{1}'.format(server.user, server.password).encode()).decode()
   Logger.debug('POST payload: %s' % payload)
   headers = {"Content-Type": "application/json", "Content-Length" : len(payload),
              'Authorization' : 'Basic %s' %  userAndPass}
@@ -139,7 +139,7 @@ def perform_grafana_post_call(url, payload, server):
   if grafana_https_enabled:
     ca_certs = params.ams_grafana_ca_cert
 
-  for i in xrange(0, params.grafana_connect_attempts):
+  for i in range(0, params.grafana_connect_attempts):
     try:
       Logger.info("Connecting (POST) to %s:%s%s" % (server.host, server.port, url))
       conn = network.get_http_connection(
@@ -163,7 +163,7 @@ def perform_grafana_post_call(url, payload, server):
       Logger.info("Http data: %s" % data)
       conn.close()
       break
-    except (httplib.HTTPException, socket.error) as ex:
+    except (http.client.HTTPException, socket.error) as ex:
       if i < params.grafana_connect_attempts - 1:
         Logger.info("Connection to Grafana failed. Next retry in %s seconds."
                     % (params.grafana_connect_retry_delay))
@@ -185,7 +185,7 @@ def perform_grafana_delete_call(url, server):
   if grafana_https_enabled:
     ca_certs = params.ams_grafana_ca_cert
 
-  for i in xrange(0, params.grafana_connect_attempts):
+  for i in range(0, params.grafana_connect_attempts):
     try:
       conn = network.get_http_connection(
         server.host,
@@ -194,7 +194,7 @@ def perform_grafana_delete_call(url, server):
         ssl_version=Script.get_force_https_protocol_value()
       )
 
-      userAndPass = b64encode('{0}:{1}'.format(server.user, server.password))
+      userAndPass = b64encode('{0}:{1}'.format(server.user, server.password).encode()).decode()
       headers = { 'Authorization' : 'Basic %s' %  userAndPass }
 
       Logger.info("Connecting (DELETE) to %s:%s%s" % (server.host, server.port, url))
@@ -203,7 +203,7 @@ def perform_grafana_delete_call(url, server):
       response = conn.getresponse()
       Logger.info("Http response: %s %s" % (response.status, response.reason))
       break
-    except (httplib.HTTPException, socket.error) as ex:
+    except (http.client.HTTPException, socket.error) as ex:
       if i < params.grafana_connect_attempts - 1:
         Logger.info("Connection to Grafana failed. Next retry in %s seconds."
                     % (params.grafana_connect_retry_delay))
@@ -323,7 +323,7 @@ def create_ams_datasource():
   if response and response.status == 200:
     datasources = response.read()
     datasources_json = json.loads(datasources)
-    for i in xrange(0, len(datasources_json)):
+    for i in range(0, len(datasources_json)):
       datasource_name = datasources_json[i]["name"]
       if datasource_name == METRICS_GRAFANA_DATASOURCE_NAME:
         create_datasource = False # datasource already exists
@@ -440,7 +440,7 @@ def create_ams_dashboards():
       try:
         with open(dashboard_file, 'r') as file:
           dashboard_def = json.load(file)
-      except Exception, e:
+      except Exception as e:
         Logger.error('Unable to load dashboard json file %s' % dashboard_file)
         Logger.error(str(e))
         continue

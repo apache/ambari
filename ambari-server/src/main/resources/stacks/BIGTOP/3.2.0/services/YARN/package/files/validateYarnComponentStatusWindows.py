@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -19,9 +19,9 @@ limitations under the License.
 '''
 
 import optparse
-from ambari_commons import subprocess32
+import subprocess
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 
 RESOURCEMANAGER = 'rm'
 NODEMANAGER = 'nm'
@@ -38,16 +38,16 @@ def getResponse(path, address, ssl_enabled):
     url = 'http://' + address + path
 
   try:
-    handle = urllib2.urlopen(url)
+    handle = urllib.request.urlopen(url)
     output = handle.read()
     handle.close()
     response = json.loads(output)
     if response == None:
-      print 'There is no response for url: ' + str(url)
+      print('There is no response for url: ' + str(url))
       exit(1)
     return response
   except Exception as e:
-    print 'Error getting response for url:' + str(url), e
+    print('Error getting response for url:' + str(url), e)
     exit(1)
 
 #Verify that REST api is available for given component
@@ -59,7 +59,7 @@ def validateAvailability(component, path, address, ssl_enabled):
     if not is_valid:
       exit(1)
   except Exception as e:
-    print 'Error checking availability status of component', e
+    print('Error checking availability status of component', e)
     exit(1)
 
 #Validate component-specific response
@@ -70,7 +70,7 @@ def validateAvailabilityResponse(component, response):
       if rm_state == STARTED_STATE:
         return True
       else:
-        print 'Resourcemanager is not started'
+        print('Resourcemanager is not started')
         return False
 
     elif component == NODEMANAGER:
@@ -88,7 +88,7 @@ def validateAvailabilityResponse(component, response):
     else:
       return False
   except Exception as e:
-    print 'Error validation of availability response for ' + str(component), e
+    print('Error validation of availability response for ' + str(component), e)
     return False
 
 #Verify that component has required resources to work
@@ -100,7 +100,7 @@ def validateAbility(component, path, address, ssl_enabled):
     if not is_valid:
       exit(1)
   except Exception as e:
-    print 'Error checking ability of component', e
+    print('Error checking ability of component', e)
     exit(1)
 
 #Validate component-specific response that it has required resources to work
@@ -108,24 +108,24 @@ def validateAbilityResponse(component, response):
   try:
     if component == RESOURCEMANAGER:
       nodes = []
-      if response.has_key('nodes') and not response['nodes'] == None and response['nodes'].has_key('node'):
+      if 'nodes' in response and not response['nodes'] == None and 'node' in response['nodes']:
         nodes = response['nodes']['node']
       connected_nodes_count = len(nodes)
       if connected_nodes_count == 0:
-        print 'There is no connected nodemanagers to resourcemanager'
+        print('There is no connected nodemanagers to resourcemanager')
         return False
-      active_nodes = filter(lambda x: x['state'] == RUNNING_STATE, nodes)
+      active_nodes = [x for x in nodes if x['state'] == RUNNING_STATE]
       active_nodes_count = len(active_nodes)
 
       if connected_nodes_count == 0:
-        print 'There is no connected active nodemanagers to resourcemanager'
+        print('There is no connected active nodemanagers to resourcemanager')
         return False
       else:
         return True
     else:
       return False
   except Exception as e:
-    print 'Error validation of ability response', e
+    print('Error validation of ability response', e)
     return False
 
 #

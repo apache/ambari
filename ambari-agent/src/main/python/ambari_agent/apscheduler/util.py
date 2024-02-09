@@ -63,7 +63,7 @@ def convert_to_datetime(input):
         return input
     elif isinstance(input, date):
         return datetime.fromordinal(input.toordinal())
-    elif isinstance(input, basestring):
+    elif isinstance(input, str):
         m = _DATE_REGEX.match(input)
         if not m:
             raise ValueError('Invalid date string')
@@ -177,7 +177,7 @@ def ref_to_obj(ref):
     """
     Returns the object pointed to by ``ref``.
     """
-    if not isinstance(ref, basestring):
+    if not isinstance(ref, str):
         raise TypeError('References must be strings')
     if not ':' in ref:
         raise ValueError('Invalid reference')

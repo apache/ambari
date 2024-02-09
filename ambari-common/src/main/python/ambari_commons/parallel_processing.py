@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -90,6 +90,6 @@ def func (elem, params):
 if __name__ == "__main__":
     results = execute_in_parallel(func, ['F', 'BF', 'S'], None)
     for result in results:
-        print results[result].element
-        print results[result].status
-        print results[result].result
+        print(results[result].element)
+        print(results[result].status)
+        print(results[result].result)

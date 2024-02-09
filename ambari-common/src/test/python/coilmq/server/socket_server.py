@@ -4,11 +4,11 @@ The default/recommended SocketServer-based server implementation.
 import logging
 import socket
 import threading
-import Queue
+import queue
 try:
     from socketserver import BaseRequestHandler, TCPServer, ThreadingMixIn
 except ImportError:
-    from SocketServer import BaseRequestHandler, TCPServer, ThreadingMixIn
+    from socketserver import BaseRequestHandler, TCPServer, ThreadingMixIn
 
 
 from coilmq.util.frames import FrameBuffer
@@ -156,7 +156,7 @@ class StompServer(TCPServer):
         self.queue_manager = queue_manager
         self.topic_manager = topic_manager
         self.protocol = protocol
-        self.frames_queue = Queue.Queue()
+        self.frames_queue = queue.Queue()
         self._serving_event = threading.Event()
         self._shutdown_request_event = threading.Event()
         TCPServer.__init__(self, server_address, RequestHandlerClass)

@@ -35,7 +35,7 @@ try:
     service_advisor = imp.load_module('service_advisor', fp, PARENT_FILE, ('.py', 'rb', imp.PY_SOURCE))
 except Exception as e:
   traceback.print_exc()
-  print "Failed to load parent"
+  print("Failed to load parent")
 
 class HBASEServiceAdvisor(service_advisor.ServiceAdvisor):
 
@@ -573,7 +573,7 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
 
       if hbase_coprocessor_classes:
         # Split string into an array with non-empty elements
-        hbaseCoProcessorConfigs[key] = filter(None, hbase_coprocessor_classes.split(','))
+        hbaseCoProcessorConfigs[key] = [_f for _f in hbase_coprocessor_classes.split(',') if _f]
 
     # Authorization
     # If configurations has it - it has priority as it is calculated.

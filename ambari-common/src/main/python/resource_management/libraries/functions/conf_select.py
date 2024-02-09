@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -22,7 +22,7 @@ __all__ = ["select", "create", "get_hadoop_conf_dir", "get_hadoop_dir", "get_pac
 
 # Python Imports
 import os
-from ambari_commons import subprocess32
+import subprocess
 import ambari_simplejson as json
 
 # Local Imports
@@ -77,7 +77,7 @@ def get_package_dirs():
   package_dirs = data[conf_select_key]
 
   stack_root = Script.get_stack_root()
-  for package_name, directories in package_dirs.iteritems():
+  for package_name, directories in package_dirs.items():
     for dir in directories:
       current_dir = dir['current_dir']
       current_dir =  current_dir.format(stack_root)
@@ -107,7 +107,7 @@ def create(stack_name, package, version, dry_run = False):
 
   command = "dry-run-create" if dry_run else "create-conf-dir"
 
-  code, stdout, stderr = shell.call(_get_cmd(command, package, version), logoutput=False, quiet=False, sudo=True, stderr = subprocess32.PIPE)
+  code, stdout, stderr = shell.call(_get_cmd(command, package, version), logoutput=False, quiet=False, sudo=True, stderr = subprocess.PIPE)
 
   # <conf-selector-tool> can set more than one directory
   # per package, so return that list, especially for dry_run
@@ -123,7 +123,7 @@ def create(stack_name, package, version, dry_run = False):
   if not code and stdout and not dry_run:
     # take care of permissions if directories were created
     for directory in created_directories:
-      Directory(directory, mode=0755, cd_access='a', create_parents=True)
+      Directory(directory, mode=0o755, cd_access='a', create_parents=True)
 
     # seed the new directories with configurations from the old (current) directories
     _seed_new_configuration_directories(package, created_directories)
@@ -147,7 +147,7 @@ def select(stack_name, package, version, ignore_errors=False):
 
     create(stack_name, package, version)
     shell.checked_call(_get_cmd("set-conf-dir", package, version), logoutput=False, quiet=False, sudo=True)
-  except Exception, exception:
+  except Exception as exception:
     if ignore_errors is True:
       Logger.warning("Could not select the directory for package {0}. Error: {1}".format(package,
         str(exception)))
@@ -284,7 +284,7 @@ def convert_conf_directories_to_symlinks(package, version, dirs):
           # Normal path for other packages
           Link(old_conf, to = current_dir)
 
-    except Exception, e:
+    except Exception as e:
       Logger.warning("Could not change symlink for package {0} to point to current directory. Error: {1}".format(package, e))
 
 
@@ -308,7 +308,7 @@ def get_restricted_packages():
   service_names = []
 
   # pick out the services that are targeted
-  for servicename, servicedetail in cluster_version_summary.iteritems():
+  for servicename, servicedetail in cluster_version_summary.items():
     if servicedetail['upgrade']:
       service_names.append(servicename)
 
@@ -395,7 +395,7 @@ def _seed_new_configuration_directories(package, created_directories):
             target_seed_directory = created_directory
             _copy_configurations(source_seed_directory, target_seed_directory)
 
-  except Exception, e:
+  except Exception as e:
     Logger.warning("Unable to seed new configuration directories for {0}. {1}".format(package, str(e)))
 
 

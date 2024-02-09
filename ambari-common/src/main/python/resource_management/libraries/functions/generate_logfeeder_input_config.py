@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -32,7 +32,7 @@ def generate_logfeeder_input_config(type, content):
   """
   import params
   Directory(LOGFEEDER_CONF_DIR,
-            mode=0755,
+            mode=0o755,
             cd_access='a',
             create_parents=True
             )
@@ -40,5 +40,5 @@ def generate_logfeeder_input_config(type, content):
   Logger.info("Generate Log Feeder config file: " + os.path.join(LOGFEEDER_CONF_DIR, input_file_name))
   File(os.path.join(LOGFEEDER_CONF_DIR, input_file_name),
        content=content,
-       mode=0644
+       mode=0o644
        )

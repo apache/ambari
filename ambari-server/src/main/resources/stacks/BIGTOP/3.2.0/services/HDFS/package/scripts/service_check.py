@@ -66,7 +66,7 @@ class HdfsServiceCheckDefault(HdfsServiceCheck):
     params.HdfsResource(dir,
                         type="directory",
                         action="create_on_execute",
-                        mode=0777
+                        mode=0o777
     )
     params.HdfsResource(tmp_file,
                         type="file",
@@ -102,7 +102,7 @@ class HdfsServiceCheckDefault(HdfsServiceCheck):
         checkWebUICmd = format("ambari-python-wrap {checkWebUIFilePath} -m {comma_sep_jn_hosts} -p {journalnode_port} -s {https_only} -o {script_https_protocol}")
         File(checkWebUIFilePath,
              content=StaticFile(checkWebUIFileName),
-             mode=0775)
+             mode=0o775)
 
         Execute(checkWebUICmd,
                 logoutput=True,

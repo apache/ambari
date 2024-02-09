@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: ascii -*-
 ###########################################################################
 # pbkdf2 - PKCS#5 v2.0 Password-Based Key Derivation
@@ -74,13 +74,13 @@ except ImportError:
 #
 
 if sys.version_info[0] == 2:
-    _0xffffffffL = long(1) << 32
+    _0xffffffffL = int(1) << 32
     def isunicode(s):
-        return isinstance(s, unicode)
+        return isinstance(s, str)
     def isbytes(s):
         return isinstance(s, str)
     def isinteger(n):
-        return isinstance(n, (int, long))
+        return isinstance(n, int)
     def b(s):
         return s
     def binxor(a, b):
@@ -172,7 +172,7 @@ class PBKDF2(object):
         assert 1 <= i <= _0xffffffffL
         U = self.__prf(self.__passphrase, self.__salt + pack("!L", i))
         result = U
-        for j in xrange(2, 1+self.__iterations):
+        for j in range(2, 1+self.__iterations):
             U = self.__prf(self.__passphrase, U)
             result = binxor(result, U)
         return result

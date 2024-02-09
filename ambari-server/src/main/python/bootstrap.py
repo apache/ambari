@@ -19,7 +19,7 @@ limitations under the License.
 '''
 
 import sys
-sys.path.append("/usr/lib/ambari-server/lib/") # this file can be run with python2.7 that why we need this
+sys.path.append("/usr/lib/ambari-server/lib/") # this file can be run with python3 that why we need this
 
 # On Linux, the bootstrap process is supposed to run on hosts that may have installed Python 2.4 and above (CentOS 5).
 # Hence, the whole bootstrap code needs to comply with Python 2.4 instead of Python 2.6. Most notably, @-decorators and
@@ -29,7 +29,7 @@ import time
 import logging
 import pprint
 import os
-from ambari_commons import subprocess32
+import subprocess
 import threading
 import traceback
 import re
@@ -104,11 +104,11 @@ class SCP:
       self.host_log.write("Running scp command " + ' '.join(scpcommand))
     self.host_log.write("==========================")
     self.host_log.write("\nCommand start time " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-    scpstat = subprocess32.Popen(scpcommand, stdout=subprocess32.PIPE,
-                               stderr=subprocess32.PIPE)
+    scpstat = subprocess.Popen(scpcommand, stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE, universal_newlines=True)
     log = scpstat.communicate()
     errorMsg = log[1]
-    log = log[0] + "\n" + log[1]
+    log = log[0] + "\n" + errorMsg
     self.host_log.write(log)
     self.host_log.write("scp " + self.inputFile)
     self.host_log.write("host=" + self.host + ", exitcode=" + str(scpstat.returncode) )
@@ -142,8 +142,8 @@ class SSH:
       self.host_log.write("Running ssh command " + ' '.join(sshcommand))
     self.host_log.write("==========================")
     self.host_log.write("\nCommand start time " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-    sshstat = subprocess32.Popen(sshcommand, stdout=subprocess32.PIPE,
-                               stderr=subprocess32.PIPE)
+    sshstat = subprocess.Popen(sshcommand, stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE, universal_newlines=True)
     log = sshstat.communicate()
     errorMsg = log[1]
     if self.errorMessage and sshstat.returncode != 0:
@@ -411,7 +411,7 @@ class BootstrapDefault(Bootstrap):
   def getRemoteName(self, filename):
     full_name = os.path.join(self.TEMP_FOLDER, filename)
     remote_files = self.shared_state.remote_files
-    if not remote_files.has_key(full_name):
+    if full_name not in remote_files:
       remote_files[full_name] = self.generateRandomFileName(full_name)
     return remote_files[full_name]
 
@@ -891,10 +891,10 @@ def main(argv=None):
 
   if not OSCheck.is_windows_family():
     # ssh doesn't like open files
-    subprocess32.Popen(["chmod", "600", sshkey_file], stdout=subprocess32.PIPE)
+    subprocess.Popen(["chmod", "600", sshkey_file], stdout=subprocess.PIPE)
 
     if passwordFile is not None and passwordFile != 'null':
-      subprocess32.Popen(["chmod", "600", passwordFile], stdout=subprocess32.PIPE)
+      subprocess.Popen(["chmod", "600", passwordFile], stdout=subprocess.PIPE)
 
   logging.info("BootStrapping hosts " + pprint.pformat(hostList) +
                " using " + scriptDir + " cluster primary OS: " + cluster_os_type +

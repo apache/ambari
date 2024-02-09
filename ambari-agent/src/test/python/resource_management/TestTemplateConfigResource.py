@@ -36,18 +36,18 @@ class TestTemplateConfigResource(TestCase):
     with Environment() as env:
       TemplateConfig("path",
                      action="create",
-                     mode=0755,
+                     mode=0o755,
                      owner="owner",
                      group="group",
                      extra_imports=["extra_imports"]
       )
       defined_arguments = env.resources['TemplateConfig']['path'].arguments
-      expected_arguments = {'group': 'group', 'extra_imports': ['extra_imports'], 'action': ['create'], 'mode': 0755, 'owner': 'owner'}
+      expected_arguments = {'group': 'group', 'extra_imports': ['extra_imports'], 'action': ['create'], 'mode': 0o755, 'owner': 'owner'}
       self.assertEqual(defined_arguments,expected_arguments)
       self.assertEqual(file_mock.call_args[0][0],'path')
       call_args = file_mock.call_args[1].copy()
       del call_args['content']
-      self.assertEqual(call_args,{'owner': 'owner', 'group': 'group', 'mode': 0755})
+      self.assertEqual(call_args,{'owner': 'owner', 'group': 'group', 'mode': 0o755})
       self.assertEqual(template_mock.call_args[0][0],'path.j2')
       self.assertEqual(template_mock.call_args[1],{'extra_imports': ['extra_imports']})
 

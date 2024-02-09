@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -28,9 +28,9 @@ from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons.parallel_processing import PrallelProcessResult, execute_in_parallel, SUCCESS
 
-import httplib
+import http.client
 import ambari_commons.network as network
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import os
 import random
@@ -102,7 +102,7 @@ class AMSServiceCheck(Script):
         "precision": "seconds",
         "grouped": "false",
       }
-      encoded_get_metrics_parameters = urllib.urlencode(get_metrics_parameters)
+      encoded_get_metrics_parameters = urllib.parse.urlencode(get_metrics_parameters)
 
       if is_spnego_enabled(params):
         method = 'GET'
@@ -115,7 +115,7 @@ class AMSServiceCheck(Script):
         Logger.info("Connecting (GET) to %s:%s%s" % (metric_collector_host,
                                                      params.metric_collector_port,
                                                      self.AMS_METRICS_GET_URL % encoded_get_metrics_parameters))
-        for i in xrange(0, self.AMS_READ_TRIES):
+        for i in range(0, self.AMS_READ_TRIES):
           conn = network.get_http_connection(
             metric_collector_host,
             int(params.metric_collector_port),
@@ -196,7 +196,7 @@ def call_curl_krb_request(tmp_dir, user_keytab, user_princ, uri, kinit_path, use
   if method == 'POST':
     Logger.info("Generated metrics for %s:\n%s" % (uri, metric_json))
 
-  for i in xrange(0, tries):
+  for i in range(0, tries):
     try:
       Logger.info("Connecting (%s) to %s" % (method, uri));
 
@@ -208,7 +208,7 @@ def call_curl_krb_request(tmp_dir, user_keytab, user_princ, uri, kinit_path, use
                                                        kinit_path, False, "AMS Service Check", user,
                                                        connection_timeout=connection_timeout, kinit_timer_ms=0,
                                                        method=method, body=metric_json, header=header)
-    except Exception, exception:
+    except Exception as exception:
       if i < tries - 1:  #range/xrange returns items from start to end-1
         time.sleep(connection_timeout)
         Logger.info("Connection failed for %s. Next retry in %s seconds."
@@ -257,7 +257,7 @@ def call_curl_krb_request(tmp_dir, user_keytab, user_princ, uri, kinit_path, use
 
 def post_metrics_to_collector(ams_metrics_post_url, metric_collector_host, metric_collector_port, metric_collector_https_enabled,
                               metric_json, headers, ca_certs, tries = 1, connect_timeout = 10):
-  for i in xrange(0, tries):
+  for i in range(0, tries):
     try:
       Logger.info("Generated metrics for host %s :\n%s" % (metric_collector_host, metric_json))
 
@@ -275,7 +275,7 @@ def post_metrics_to_collector(ams_metrics_post_url, metric_collector_host, metri
 
       response = conn.getresponse()
       Logger.info("Http response for host %s: %s %s" % (metric_collector_host, response.status, response.reason))
-    except (httplib.HTTPException, socket.error) as ex:
+    except (http.client.HTTPException, socket.error) as ex:
       if i < tries - 1:  #range/xrange returns items from start to end-1
         time.sleep(connect_timeout)
         Logger.info("Connection failed for host %s. Next retry in %s seconds."

@@ -77,7 +77,7 @@ class SandboxTestCase(JinjaTestCase):
         # adding two strings should escape the unsafe one
         unsafe = '<script type="application/x-some-script">alert("foo");</script>'
         safe = Markup('<em>username</em>')
-        assert unsafe + safe == unicode(escape(unsafe)) + unicode(safe)
+        assert unsafe + safe == str(escape(unsafe)) + str(safe)
 
         # string interpolations are safe to use too
         assert Markup('<em>%s</em>') % '<bad user>' == \
@@ -116,7 +116,7 @@ class SandboxTestCase(JinjaTestCase):
                             '{{ say_hello("<blink>foo</blink>") }}')
         escaped_out = '<p>Hello &lt;blink&gt;foo&lt;/blink&gt;!</p>'
         assert t.render() == escaped_out
-        assert unicode(t.module) == escaped_out
+        assert str(t.module) == escaped_out
         assert escape(t.module) == escaped_out
         assert t.module.say_hello('<blink>foo</blink>') == escaped_out
         assert escape(t.module.say_hello('<blink>foo</blink>')) == escaped_out

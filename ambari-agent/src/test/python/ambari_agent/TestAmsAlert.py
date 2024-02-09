@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -21,14 +21,14 @@ limitations under the License.
 from unittest import TestCase
 from alerts.ams_alert import AmsAlert
 from mock.mock import Mock, MagicMock, patch
-from AmbariConfig import AmbariConfig
+from ambari_agent.AmbariConfig import AmbariConfig
 
 class TestAmsAlert(TestCase):
 
   def setUp(self):
     self.config = AmbariConfig()
 
-  @patch("httplib.HTTPConnection")
+  @patch("http.client.HTTPConnection")
   def test_collect_ok(self, conn_mock):
     alert_meta = {
       'name': 'alert1',
@@ -73,15 +73,15 @@ class TestAmsAlert(TestCase):
     expected_text = 'OK: 2'
 
     def collector_side_effect(clus, data):
-      self.assertEquals(data['name'], alert_meta['name'])
-      self.assertEquals(data['label'], alert_meta['label'])
-      self.assertEquals(data['text'], expected_text)
-      self.assertEquals(data['service'], alert_meta['serviceName'])
-      self.assertEquals(data['component'], alert_meta['componentName'])
-      self.assertEquals(data['uuid'], alert_meta['uuid'])
-      self.assertEquals(data['enabled'], alert_meta['enabled'])
-      self.assertEquals(data['cluster'], cluster)
-      self.assertEquals(clus, cluster)
+      self.assertEqual(data['name'], alert_meta['name'])
+      self.assertEqual(data['label'], alert_meta['label'])
+      self.assertEqual(data['text'], expected_text)
+      self.assertEqual(data['service'], alert_meta['serviceName'])
+      self.assertEqual(data['component'], alert_meta['componentName'])
+      self.assertEqual(data['uuid'], alert_meta['uuid'])
+      self.assertEqual(data['enabled'], alert_meta['enabled'])
+      self.assertEqual(data['cluster'], cluster)
+      self.assertEqual(clus, cluster)
 
     ca_connection = MagicMock()
     response = MagicMock()
@@ -99,7 +99,7 @@ class TestAmsAlert(TestCase):
 
     alert.collect()
 
-  @patch("httplib.HTTPConnection")
+  @patch("http.client.HTTPConnection")
   def test_collect_warn(self, conn_mock):
     alert_meta = {
       'definitionId': 1,
@@ -143,13 +143,13 @@ class TestAmsAlert(TestCase):
     cluster = 'c1'
     host = 'host1'
     cluster_id = '0'
-    expected_text = 'Warn: 4'
+    expected_text = 'Warn: 4.0'
 
     def collector_side_effect(clus, data):
-      self.assertEquals(data['name'], alert_meta['name'])
-      self.assertEquals(data['text'], expected_text)
-      self.assertEquals(data['clusterId'], cluster_id)
-      self.assertEquals(clus, cluster)
+      self.assertEqual(data['name'], alert_meta['name'])
+      self.assertEqual(data['text'], expected_text)
+      self.assertEqual(data['clusterId'], cluster_id)
+      self.assertEqual(clus, cluster)
 
     ca_connection = MagicMock()
     response = MagicMock()
@@ -167,7 +167,7 @@ class TestAmsAlert(TestCase):
 
     alert.collect()
 
-  @patch("httplib.HTTPConnection")
+  @patch("http.client.HTTPConnection")
   def test_collect_ok(self, conn_mock):
     alert_meta = {
       'definitionId': 1,
@@ -211,13 +211,13 @@ class TestAmsAlert(TestCase):
     cluster = 'c1'
     host = 'host1'
     cluster_id = '0'
-    expected_text = 'Crit: 10'
+    expected_text = 'Crit: 10.0'
 
     def collector_side_effect(clus, data):
-      self.assertEquals(data['name'], alert_meta['name'])
-      self.assertEquals(data['text'], expected_text)
-      self.assertEquals(data['clusterId'], cluster_id)
-      self.assertEquals(clus, cluster)
+      self.assertEqual(data['name'], alert_meta['name'])
+      self.assertEqual(data['text'], expected_text)
+      self.assertEqual(data['clusterId'], cluster_id)
+      self.assertEqual(clus, cluster)
 
     ca_connection = MagicMock()
     response = MagicMock()

@@ -16,7 +16,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import Queue
+import queue
 
 import logging
 import threading
@@ -27,7 +27,7 @@ import time
 import signal
 import re
 
-from AgentException import AgentException
+from .AgentException import AgentException
 from ambari_agent.BackgroundCommandExecutionHandle import BackgroundCommandExecutionHandle
 from ambari_agent.models.commands import AgentCommand, CommandStatus
 from ambari_commons.str_utils import split_on_chunks
@@ -60,8 +60,8 @@ class ActionQueue(threading.Thread):
 
   def __init__(self, initializer_module):
     super(ActionQueue, self).__init__()
-    self.commandQueue = Queue.Queue()
-    self.backgroundCommandQueue = Queue.Queue()
+    self.commandQueue = queue.Queue()
+    self.backgroundCommandQueue = queue.Queue()
     self.commandStatuses = initializer_module.commandStatuses
     self.config = initializer_module.config
     self.recovery_manager = initializer_module.recovery_manager
@@ -105,11 +105,11 @@ class ActionQueue(threading.Thread):
       reason = command['reason']
 
       # Remove from the command queue by task_id
-      queue = self.commandQueue
-      self.commandQueue = Queue.Queue()
+      tmp_queue = self.commandQueue
+      self.commandQueue = queue.Queue()
 
-      while not queue.empty():
-        queued_command = queue.get(False)
+      while not tmp_queue.empty():
+        queued_command = tmp_queue.get(False)
         if queued_command['taskId'] != task_id:
           self.commandQueue.put(queued_command)
         else:
@@ -159,7 +159,7 @@ class ActionQueue(threading.Thread):
                 break
               pass
             pass
-        except Queue.Empty:
+        except queue.Empty:
           pass
       except Exception:
         logger.exception("ActionQueue thread failed with exception. Re-running it")
@@ -175,7 +175,7 @@ class ActionQueue(threading.Thread):
         command = self.backgroundCommandQueue.get(False)
         if "__handle" in command and command["__handle"].status is None:
           self.process_command(command)
-      except Queue.Empty:
+      except queue.Empty:
         pass
 
   def create_command_handle(self, command):
@@ -344,8 +344,8 @@ class ActionQueue(threading.Thread):
 
     role_result = self.commandStatuses.generate_report_template(command)
     role_result.update({
-      'stdout': unicode(command_result['stdout'], errors='replace'),
-      'stderr': unicode(command_result['stderr'], errors='replace'),
+      'stdout': command_result['stdout'],
+      'stderr': command_result['stderr'],
       'exitCode': command_result['exitcode'],
       'status': status,
     })
@@ -375,7 +375,7 @@ class ActionQueue(threading.Thread):
 
     # let ambari know name of custom command
 
-    if 'commandParams' in command and command['commandParams'].has_key('custom_command'):
+    if 'commandParams' in command and 'custom_command' in command['commandParams']:
       role_result['customCommand'] = command['commandParams']['custom_command']
 
     if 'structuredOut' in command_result:

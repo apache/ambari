@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -60,15 +60,15 @@ def killpg_gracefully(proc, timeout=GRACEFUL_PG_KILL_TIMEOUT_SECONDS):
   if proc.poll() == None:
     try:
       pgid = os.getpgid(proc.pid)
-      sudo.kill(-pgid, signal.SIGTERM)
+      sudo.kill(-pgid, signal.SIGTERM.value)
 
-      for i in xrange(10*timeout):
+      for i in range(10*timeout):
         if proc.poll() is not None:
           break
         time.sleep(0.1)
       else:
         Logger.info("Cannot gracefully kill process group {0}. Resorting to SIGKILL.".format(pgid))
-        sudo.kill(-pgid, signal.SIGKILL)
+        sudo.kill(-pgid, signal.SIGKILL.value)
         proc.wait()
     # catch race condition if proc already dead
     except OSError:

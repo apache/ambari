@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -53,7 +53,7 @@ DEFAULT_SQL_DRIVER_PATH = "/var/lib/ambari-server/resources/sqljdbc41.jar"
 with Environment() as env:
   def get_stack_version():
     if not options.hdp_version:
-      # Ubuntu returns: "stdin: is not a tty", as subprocess32 output.
+      # Ubuntu returns: "stdin: is not a tty", as subprocess output.
       tmpfile = tempfile.NamedTemporaryFile()
       out = None
       with open(tmpfile.name, 'r+') as file:
@@ -213,7 +213,7 @@ with Environment() as env:
       params.HdfsResource(destination,
                     action="create_on_execute",
                     type = 'file',
-                    mode=0444,
+                    mode=0o444,
                     owner=file_owner,
                     group=group_owner,
                     source=source
@@ -259,34 +259,34 @@ with Environment() as env:
 
   def createHdfsResources():
     Logger.info("Creating hdfs directories...")
-    params.HdfsResource(format('{hdfs_path_prefix}/atshistory'), user='hdfs', change_permissions_for_parents=True, owner='yarn', group='hadoop', type='directory', action= ['create_on_execute'], mode=0755)
-    params.HdfsResource(format('{hdfs_path_prefix}/user/hcat'), owner='hcat', type='directory', action=['create_on_execute'], mode=0755)
-    params.HdfsResource(format('{hdfs_path_prefix}/hive/warehouse'), owner='hive', type='directory', action=['create_on_execute'], mode=0777)
-    params.HdfsResource(format('{hdfs_path_prefix}/warehouse/tablespace/external/hive'), owner='hive', type='directory', action=['create_on_execute'], mode=01777)
-    params.HdfsResource(format('{hdfs_path_prefix}/user/hive'), owner='hive', type='directory', action=['create_on_execute'], mode=0755)
-    params.HdfsResource(format('{hdfs_path_prefix}/user/hive/.yarn/package/LLAP'), owner='hive', type='directory', action=['create_on_execute'], mode=0755)
-    params.HdfsResource(format('{hdfs_path_prefix}/tmp'), mode=0777, action=['create_on_execute'], type='directory', owner='hdfs')
-    params.HdfsResource(format('{hdfs_path_prefix}/user/ambari-qa'), type='directory', action=['create_on_execute'], mode=0770)
-    params.HdfsResource(format('{hdfs_path_prefix}/user/oozie'), owner='oozie', type='directory', action=['create_on_execute'], mode=0775)
-    params.HdfsResource(format('{hdfs_path_prefix}/app-logs'), recursive_chmod=True, owner='yarn', group='hadoop', type='directory', action=['create_on_execute'], mode=0777)
+    params.HdfsResource(format('{hdfs_path_prefix}/atshistory'), user='hdfs', change_permissions_for_parents=True, owner='yarn', group='hadoop', type='directory', action= ['create_on_execute'], mode=0o755)
+    params.HdfsResource(format('{hdfs_path_prefix}/user/hcat'), owner='hcat', type='directory', action=['create_on_execute'], mode=0o755)
+    params.HdfsResource(format('{hdfs_path_prefix}/hive/warehouse'), owner='hive', type='directory', action=['create_on_execute'], mode=0o777)
+    params.HdfsResource(format('{hdfs_path_prefix}/warehouse/tablespace/external/hive'), owner='hive', type='directory', action=['create_on_execute'], mode=0o1777)
+    params.HdfsResource(format('{hdfs_path_prefix}/user/hive'), owner='hive', type='directory', action=['create_on_execute'], mode=0o755)
+    params.HdfsResource(format('{hdfs_path_prefix}/user/hive/.yarn/package/LLAP'), owner='hive', type='directory', action=['create_on_execute'], mode=0o755)
+    params.HdfsResource(format('{hdfs_path_prefix}/tmp'), mode=0o777, action=['create_on_execute'], type='directory', owner='hdfs')
+    params.HdfsResource(format('{hdfs_path_prefix}/user/ambari-qa'), type='directory', action=['create_on_execute'], mode=0o770)
+    params.HdfsResource(format('{hdfs_path_prefix}/user/oozie'), owner='oozie', type='directory', action=['create_on_execute'], mode=0o775)
+    params.HdfsResource(format('{hdfs_path_prefix}/app-logs'), recursive_chmod=True, owner='yarn', group='hadoop', type='directory', action=['create_on_execute'], mode=0o777)
     params.HdfsResource(format('{hdfs_path_prefix}/tmp/entity-file-history/active'), owner='yarn', group='hadoop', type='directory', action=['create_on_execute'])
     params.HdfsResource(format('{hdfs_path_prefix}/mapred'), owner='mapred', type='directory', action=['create_on_execute'])
     params.HdfsResource(format('{hdfs_path_prefix}/mapred/system'), owner='hdfs', type='directory', action=['create_on_execute'])
-    params.HdfsResource(format('{hdfs_path_prefix}/mr-history/done'), change_permissions_for_parents=True, owner='mapred', group='hadoop', type='directory', action=['create_on_execute'], mode=0777)
-    params.HdfsResource(format('{hdfs_path_prefix}/user/yarn-ats'), owner='yarn-ats', type='directory', action=['create_on_execute'], mode=0755)
-    params.HdfsResource(format('{hdfs_path_prefix}/atshistory/done'), owner='yarn', group='hadoop', type='directory', action=['create_on_execute'], mode=0700)
-    params.HdfsResource(format('{hdfs_path_prefix}/atshistory/active'), owner='yarn', group='hadoop', type='directory', action=['create_on_execute'], mode=01777)
-    params.HdfsResource(format('{hdfs_path_prefix}/ams/hbase'), owner='ams', type='directory', action=['create_on_execute'], mode=0775)
-    params.HdfsResource(format('{hdfs_path_prefix}/amshbase/staging'), owner='ams', type='directory', action=['create_on_execute'], mode=0711)
-    params.HdfsResource(format('{hdfs_path_prefix}/user/ams/hbase'), owner='ams', type='directory', action=['create_on_execute'], mode=0775)
-    params.HdfsResource(format('{hdfs_path_prefix}/hdp'), owner='hdfs', type='directory', action=['create_on_execute'], mode=0755)
-    params.HdfsResource(format('{hdfs_path_prefix}/user/spark'), owner='spark', group='hadoop', type='directory', action=['create_on_execute'], mode=0775)
-    params.HdfsResource(format('{hdfs_path_prefix}/user/livy'), owner='livy', group='hadoop', type='directory', action=['create_on_execute'], mode=0775)
-    params.HdfsResource(format('{hdfs_path_prefix}/hdp/spark-events'), owner='spark', group='hadoop', type='directory', action=['create_on_execute'], mode=0777)
-    params.HdfsResource(format('{hdfs_path_prefix}/hdp/spark2-events'), owner='spark', group='hadoop', type='directory', action=['create_on_execute'], mode=0777)
+    params.HdfsResource(format('{hdfs_path_prefix}/mr-history/done'), change_permissions_for_parents=True, owner='mapred', group='hadoop', type='directory', action=['create_on_execute'], mode=0o777)
+    params.HdfsResource(format('{hdfs_path_prefix}/user/yarn-ats'), owner='yarn-ats', type='directory', action=['create_on_execute'], mode=0o755)
+    params.HdfsResource(format('{hdfs_path_prefix}/atshistory/done'), owner='yarn', group='hadoop', type='directory', action=['create_on_execute'], mode=0o700)
+    params.HdfsResource(format('{hdfs_path_prefix}/atshistory/active'), owner='yarn', group='hadoop', type='directory', action=['create_on_execute'], mode=0o1777)
+    params.HdfsResource(format('{hdfs_path_prefix}/ams/hbase'), owner='ams', type='directory', action=['create_on_execute'], mode=0o775)
+    params.HdfsResource(format('{hdfs_path_prefix}/amshbase/staging'), owner='ams', type='directory', action=['create_on_execute'], mode=0o711)
+    params.HdfsResource(format('{hdfs_path_prefix}/user/ams/hbase'), owner='ams', type='directory', action=['create_on_execute'], mode=0o775)
+    params.HdfsResource(format('{hdfs_path_prefix}/hdp'), owner='hdfs', type='directory', action=['create_on_execute'], mode=0o755)
+    params.HdfsResource(format('{hdfs_path_prefix}/user/spark'), owner='spark', group='hadoop', type='directory', action=['create_on_execute'], mode=0o775)
+    params.HdfsResource(format('{hdfs_path_prefix}/user/livy'), owner='livy', group='hadoop', type='directory', action=['create_on_execute'], mode=0o775)
+    params.HdfsResource(format('{hdfs_path_prefix}/hdp/spark-events'), owner='spark', group='hadoop', type='directory', action=['create_on_execute'], mode=0o777)
+    params.HdfsResource(format('{hdfs_path_prefix}/hdp/spark2-events'), owner='spark', group='hadoop', type='directory', action=['create_on_execute'], mode=0o777)
     params.HdfsResource(format('{hdfs_path_prefix}/hbase'), owner='hbase', type='directory', action=['create_on_execute'])
-    params.HdfsResource(format('{hdfs_path_prefix}/apps/hbase/staging'), owner='hbase', type='directory', action=['create_on_execute'], mode=0711)
-    params.HdfsResource(format('{hdfs_path_prefix}/user/hbase'), owner='hbase', type='directory', action=['create_on_execute'], mode=0755)
+    params.HdfsResource(format('{hdfs_path_prefix}/apps/hbase/staging'), owner='hbase', type='directory', action=['create_on_execute'], mode=0o711)
+    params.HdfsResource(format('{hdfs_path_prefix}/user/hbase'), owner='hbase', type='directory', action=['create_on_execute'], mode=0o755)
     params.HdfsResource(format('{hdfs_path_prefix}/apps/zeppelin'), owner='zeppelin', group='hadoop', type='directory', action=['create_on_execute'])
     params.HdfsResource(format('{hdfs_path_prefix}/user/zeppelin'), owner='zeppelin', group='hadoop', type='directory', action=['create_on_execute'])
     params.HdfsResource(format('{hdfs_path_prefix}/user/zeppelin/test'), owner='zeppelin', group='hadoop', type='directory', action=['create_on_execute'])
@@ -315,7 +315,7 @@ with Environment() as env:
 
   def putSQLDriverToOozieShared():
     params.HdfsResource(hdfs_path_prefix + '/user/oozie/share/lib/sqoop/{0}'.format(sql_driver_filename),
-                        owner='hdfs', type='file', action=['create_on_execute'], mode=0644, source=options.sql_driver_path)
+                        owner='hdfs', type='file', action=['create_on_execute'], mode=0o644, source=options.sql_driver_path)
 
   def create_yarn_service_tarball():
     """
@@ -342,13 +342,13 @@ with Environment() as env:
   Directory('/var/lib/ambari-agent/tmp/hadoop_java_io_tmpdir',
             owner=params.hdfs_user,
             group=params.user_group,
-            mode=01777
+            mode=0o1777
   )
   Directory('/var/log/hadoop',
             create_parents = True,
             owner='root',
             group=params.user_group,
-            mode=0775,
+            mode=0o775,
             cd_access='a',
   )
   Directory('/var/run/hadoop',
@@ -368,7 +368,7 @@ with Environment() as env:
   )
   Directory('/tmp/hbase-hbase',
             owner='hbase',
-            mode=0775,
+            mode=0o775,
             create_parents = True,
             cd_access="a",
   )
@@ -396,7 +396,7 @@ with Environment() as env:
            )
 
   File(hashcode_file,
-       mode = 0644,
+       mode = 0o644,
   )
 
   prepare_war(params)
@@ -461,13 +461,13 @@ with Environment() as env:
         #          format("{oozie_shared_lib}/lib"),
         #          format("{oozie_shared_lib}/lib_{millis}")),
         #         sudo=True)
-      except Exception, e:
+      except Exception as e:
         Logger.warning('Exception occurred while preparing oozie share lib: '+ repr(e))
 
     params.HdfsResource(format("{oozie_hdfs_user_dir}/share"),
       action="create_on_execute",
       type = 'directory',
-      mode=0755,
+      mode=0o755,
       recursive_chmod = True,
       owner=oozie_user,
       source = oozie_shared_lib
@@ -494,7 +494,7 @@ with Environment() as env:
 
   # jar shouldn't be used before (read comment below)
   File(format("{ambari_libs_dir}/fast-hdfs-resource.jar"),
-       mode=0644,
+       mode=0o644,
        content=StaticFile("/var/lib/ambari-agent/cache/stack-hooks/before-START/files/fast-hdfs-resource.jar")
   )
   # Create everything in one jar call (this is fast).

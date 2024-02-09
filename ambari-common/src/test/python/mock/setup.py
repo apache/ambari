@@ -4,7 +4,7 @@
 # E-mail: fuzzyman AT voidspace DOT org DOT uk
 # http://www.voidspace.org.uk/python/mock/
 
-from mock import __version__
+from mocks.mock import __version__
 
 import os
 

@@ -18,7 +18,7 @@ limitations under the License.
 '''
 
 import os
-import ConfigParser
+import configparser
 
 PROPERTIES_TO_REWRITE = [
   ('heartbeat', 'dirs'),
@@ -33,13 +33,13 @@ CONFIG_FILE = '/etc/ambari-agent/conf/ambari-agent.ini'
 
 if os.path.isfile(CONFIG_FILE_BACKUP):
   if os.path.isfile(CONFIG_FILE):
-    print "Upgrading configs in {0}".format(CONFIG_FILE)
-    print "Values will be updated from {0} except the following list: {1}, {2}".format(CONFIG_FILE_BACKUP, PROPERTIES_TO_REWRITE, SECTIONS_TO_REMOVE)
+    print("Upgrading configs in {0}".format(CONFIG_FILE))
+    print("Values will be updated from {0} except the following list: {1}, {2}".format(CONFIG_FILE_BACKUP, PROPERTIES_TO_REWRITE, SECTIONS_TO_REMOVE))
 
-    agent_config_backup = ConfigParser.ConfigParser()
+    agent_config_backup = configparser.ConfigParser()
     agent_config_backup.read(CONFIG_FILE_BACKUP)
 
-    agent_config = ConfigParser.ConfigParser()
+    agent_config = configparser.ConfigParser()
     agent_config.read(CONFIG_FILE)
 
     for section in agent_config_backup.sections():
@@ -47,13 +47,13 @@ if os.path.isfile(CONFIG_FILE_BACKUP):
         if section not in SECTIONS_TO_REMOVE and (section, property_name) not in PROPERTIES_TO_REWRITE:
           try:
             agent_config.set(section, property_name, property_val)
-          except ConfigParser.NoSectionError:
+          except configparser.NoSectionError:
             agent_config.add_section(section)
             agent_config.set(section, property_name, property_val)
 
-    with (open(CONFIG_FILE, "wb")) as new_agent_config:
+    with (open(CONFIG_FILE, "w")) as new_agent_config:
       agent_config.write(new_agent_config)
   else:
-    print "Values are not updated, configs {0} is not found".format(CONFIG_FILE)
+    print("Values are not updated, configs {0} is not found".format(CONFIG_FILE))
 else:
-  print "Values are not updated, backup {0} is not found".format(CONFIG_FILE_BACKUP)
+  print("Values are not updated, backup {0} is not found".format(CONFIG_FILE_BACKUP))

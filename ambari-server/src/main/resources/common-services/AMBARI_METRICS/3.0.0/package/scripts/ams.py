@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -90,7 +90,7 @@ def ams(name=None):
             configuration_attributes=params.config['configurationAttributes']['hdfs-site'],
             owner=params.ams_user,
             group=params.user_group,
-            mode=0644
+            mode=0o644
       )
 
       XmlConfig("hdfs-site.xml",
@@ -99,7 +99,7 @@ def ams(name=None):
             configuration_attributes=params.config['configurationAttributes']['hdfs-site'],
             owner=params.ams_user,
             group=params.user_group,
-            mode=0644
+            mode=0o644
       )
 
       XmlConfig("core-site.xml",
@@ -108,7 +108,7 @@ def ams(name=None):
                 configuration_attributes=params.config['configurationAttributes']['core-site'],
                 owner=params.ams_user,
                 group=params.user_group,
-                mode=0644
+                mode=0o644
       )
 
       XmlConfig("core-site.xml",
@@ -117,7 +117,7 @@ def ams(name=None):
                 configuration_attributes=params.config['configurationAttributes']['core-site'],
                 owner=params.ams_user,
                 group=params.user_group,
-                mode=0644
+                mode=0o644
       )
 
     else:
@@ -241,15 +241,16 @@ def ams(name=None, action=None):
         else:
           continue
         if component_name in known_slave_components:
-          slave_components.append(component_name)
+          slave_components.insert(0, component_name)
         else:
-          master_components.append(component_name)
+          master_components.insert(0, component_name)
 
       if slave_components:
         new_ams_site['timeline.metrics.initial.configured.slave.components'] = ",".join(slave_components)
       if master_components:
         if 'ambari_server' not in master_components:
-          master_components.append('ambari_server')
+          master_components.insert(0,'ambari_server')
+        master_components=sorted(master_components)
         new_ams_site['timeline.metrics.initial.configured.master.components'] = ",".join(master_components)
 
     hbase_total_heapsize_with_trailing_m = params.hbase_heapsize
@@ -296,7 +297,7 @@ def ams(name=None, action=None):
 
     if (params.log4j_props != None):
       File(format("{params.ams_collector_conf_dir}/log4j.properties"),
-           mode=0644,
+           mode=0o644,
            group=params.user_group,
            owner=params.ams_user,
            content=InlineTemplate(params.log4j_props)
@@ -312,7 +313,7 @@ def ams(name=None, action=None):
               group=params.user_group,
               cd_access="a",
               create_parents = True,
-              mode=0755,
+              mode=0o755,
     )
 
     Directory(params.ams_collector_pid_dir,
@@ -320,13 +321,13 @@ def ams(name=None, action=None):
               group=params.user_group,
               cd_access="a",
               create_parents = True,
-              mode=0755,
+              mode=0o755,
     )
 
     # Hack to allow native HBase libs to be included for embedded hbase
     File(os.path.join(params.ams_hbase_home_dir, "bin", "hadoop"),
          owner=params.ams_user,
-         mode=0755
+         mode=0o755
     )
 
     # On some OS this folder could be not exists, so we will create it before pushing there files
@@ -340,7 +341,7 @@ def ams(name=None, action=None):
     File(os.path.join(params.limits_conf_dir, 'ams.conf'),
          owner='root',
          group='root',
-         mode=0644,
+         mode=0o644,
          content=Template("ams.conf.j2")
     )
 
@@ -348,7 +349,7 @@ def ams(name=None, action=None):
     if not os.path.exists(params.phoenix_client_spool_dir):
       Directory(params.phoenix_client_spool_dir,
                 owner=params.ams_user,
-                mode = 0755,
+                mode = 0o755,
                 group=params.user_group,
                 cd_access="a",
                 create_parents = True
@@ -363,7 +364,7 @@ def ams(name=None, action=None):
             configuration_attributes=params.config['configurationAttributes']['hdfs-site'],
             owner=params.ams_user,
             group=params.user_group,
-            mode=0644
+            mode=0o644
       )
 
       XmlConfig("hdfs-site.xml",
@@ -372,7 +373,7 @@ def ams(name=None, action=None):
             configuration_attributes=params.config['configurationAttributes']['hdfs-site'],
             owner=params.ams_user,
             group=params.user_group,
-            mode=0644
+            mode=0o644
       )
 
       # Remove spnego configs from core-site if platform does not have python-kerberos library
@@ -388,7 +389,7 @@ def ams(name=None, action=None):
                 configuration_attributes=params.config['configurationAttributes']['core-site'],
                 owner=params.ams_user,
                 group=params.user_group,
-                mode=0644
+                mode=0o644
       )
 
       XmlConfig("core-site.xml",
@@ -397,7 +398,7 @@ def ams(name=None, action=None):
                 configuration_attributes=params.config['configurationAttributes']['core-site'],
                 owner=params.ams_user,
                 group=params.user_group,
-                mode=0644
+                mode=0o644
       )
 
     if params.metric_collector_https_enabled:
@@ -423,13 +424,13 @@ def ams(name=None, action=None):
     Directory(params.ams_monitor_log_dir,
               owner=params.ams_user,
               group=params.user_group,
-              mode=0755,
+              mode=0o755,
               create_parents = True
     )
 
     if params.host_in_memory_aggregation and params.log4j_props is not None:
       File(format("{params.ams_monitor_conf_dir}/log4j.properties"),
-           mode=0644,
+           mode=0o644,
            group=params.user_group,
            owner=params.ams_user,
            content=InlineTemplate(params.log4j_props)
@@ -458,7 +459,7 @@ def ams(name=None, action=None):
               owner=params.ams_user,
               group=params.user_group,
               cd_access="a",
-              mode=0755,
+              mode=0o755,
               create_parents = True
     )
 
@@ -466,7 +467,7 @@ def ams(name=None, action=None):
               owner=params.ams_user,
               group=params.user_group,
               cd_access="a",
-              mode=0755,
+              mode=0o755,
               create_parents = True)
 
     Execute(format("{sudo} chown -R {ams_user}:{user_group} {ams_monitor_dir}")
@@ -505,7 +506,7 @@ def ams(name=None, action=None):
     File(os.path.join(params.limits_conf_dir, 'ams.conf'),
          owner='root',
          group='root',
-         mode=0644,
+         mode=0o644,
          content=Template("ams.conf.j2")
     )
 
@@ -523,7 +524,7 @@ def ams(name=None, action=None):
       Directory(ams_grafana_directory,
                 owner=params.ams_user,
                 group=params.user_group,
-                mode=0755,
+                mode=0o755,
                 create_parents = True,
                 recursive_ownership = True
                 )
@@ -538,7 +539,7 @@ def ams(name=None, action=None):
          owner=params.ams_user,
          group=params.user_group,
          content=InlineTemplate(params.ams_grafana_ini_template),
-         mode=0600
+         mode=0o600
          )
 
     if action != 'stop':

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -21,7 +21,7 @@ limitations under the License.
 from unittest import TestCase
 from alerts.port_alert import PortAlert
 from mock.mock import Mock, MagicMock, patch
-from AmbariConfig import AmbariConfig
+from ambari_agent.AmbariConfig import AmbariConfig
 
 class TestPortAlert(TestCase):
 
@@ -55,11 +55,11 @@ class TestPortAlert(TestCase):
     alert.configuration_builder = MagicMock()
 
     def collector_side_effect(clus, data):
-      self.assertEquals(data['name'], alert_meta['name'])
-      self.assertEquals(data['state'], expected_state)
-      self.assertEquals(data['text'], expected_text)
-      self.assertEquals(data['clusterId'], cluster_id)
-      self.assertEquals(clus, cluster)
+      self.assertEqual(data['name'], alert_meta['name'])
+      self.assertEqual(data['state'], expected_state)
+      self.assertEqual(data['text'], expected_text)
+      self.assertEqual(data['clusterId'], cluster_id)
+      self.assertEqual(clus, cluster)
 
     alert.collector = MagicMock()
     alert.collector.put = Mock(side_effect=collector_side_effect)
@@ -93,11 +93,11 @@ class TestPortAlert(TestCase):
     alert.configuration_builder = MagicMock()
     
     def collector_side_effect(clus, data):
-      self.assertEquals(data['name'], alert_meta['name'])
-      self.assertEquals(data['state'], expected_state)
-      self.assertEquals(data['text'], expected_text)
-      self.assertEquals(data['clusterId'], cluster_id)
-      self.assertEquals(clus, cluster)
+      self.assertEqual(data['name'], alert_meta['name'])
+      self.assertEqual(data['state'], expected_state)
+      self.assertEqual(data['text'], expected_text)
+      self.assertEqual(data['clusterId'], cluster_id)
+      self.assertEqual(clus, cluster)
 
     alert.collector = MagicMock()
     alert.collector.put = Mock(side_effect=collector_side_effect)
@@ -131,12 +131,12 @@ class TestPortAlert(TestCase):
     alert.configuration_builder = MagicMock()
 
     def collector_side_effect(clus, data):
-      print data
-      self.assertEquals(data['name'], alert_meta['name'])
-      self.assertEquals(data['state'], expected_state)
-      self.assertEquals(data['text'], expected_text)
-      self.assertEquals(data['clusterId'], cluster_id)
-      self.assertEquals(clus, cluster)
+      print(data)
+      self.assertEqual(data['name'], alert_meta['name'])
+      self.assertEqual(data['state'], expected_state)
+      self.assertEqual(data['text'], expected_text)
+      self.assertEqual(data['clusterId'], cluster_id)
+      self.assertEqual(clus, cluster)
 
     alert.collector = MagicMock()
     alert.collector.put = Mock(side_effect=collector_side_effect)
@@ -169,11 +169,11 @@ class TestPortAlert(TestCase):
     alert.configuration_builder = MagicMock()
 
     def collector_side_effect(clus, data):
-      self.assertEquals(data['name'], alert_meta['name'])
-      self.assertEquals(data['state'], expected_state)
-      self.assertEquals(data['text'], expected_text)
-      self.assertEquals(data['clusterId'], cluster_id)
-      self.assertEquals(clus, cluster)
+      self.assertEqual(data['name'], alert_meta['name'])
+      self.assertEqual(data['state'], expected_state)
+      self.assertEqual(data['text'], expected_text)
+      self.assertEqual(data['clusterId'], cluster_id)
+      self.assertEqual(clus, cluster)
 
     alert.collector = MagicMock()
     alert.collector.put = Mock(side_effect=collector_side_effect)
@@ -208,11 +208,11 @@ class TestPortAlert(TestCase):
     alert.configuration_builder = MagicMock()
 
     def collector_side_effect(clus, data):
-      self.assertEquals(data['name'], alert_meta['name'])
-      self.assertEquals(data['state'], expected_state)
-      self.assertEquals(data['text'], expected_text)
-      self.assertEquals(data['clusterId'], cluster_id)
-      self.assertEquals(clus, cluster)
+      self.assertEqual(data['name'], alert_meta['name'])
+      self.assertEqual(data['state'], expected_state)
+      self.assertEqual(data['text'], expected_text)
+      self.assertEqual(data['clusterId'], cluster_id)
+      self.assertEqual(clus, cluster)
 
     alert.collector = MagicMock()
     alert.collector.put = Mock(side_effect=collector_side_effect)
@@ -251,11 +251,11 @@ class TestPortAlert(TestCase):
     alert.configuration_builder = MagicMock()
     
     def collector_side_effect(clus, data):
-      self.assertEquals(data['name'], alert_meta['name'])
-      self.assertEquals(data['state'], expected_state)
-      self.assertEquals(data['text'], expected_text)
-      self.assertEquals(data['clusterId'], cluster_id)
-      self.assertEquals(clus, cluster)
+      self.assertEqual(data['name'], alert_meta['name'])
+      self.assertEqual(data['state'], expected_state)
+      self.assertEqual(data['text'], expected_text)
+      self.assertEqual(data['clusterId'], cluster_id)
+      self.assertEqual(clus, cluster)
 
     alert.collector = MagicMock()
     alert.collector.put = Mock(side_effect=collector_side_effect)
@@ -295,11 +295,11 @@ class TestPortAlert(TestCase):
     
     
     def collector_side_effect(clus, data):
-      self.assertEquals(data['name'], alert_meta['name'])
-      self.assertEquals(data['state'], expected_state)
-      self.assertEquals(data['text'], expected_text)
-      self.assertEquals(data['clusterId'], cluster_id)
-      self.assertEquals(clus, cluster)
+      self.assertEqual(data['name'], alert_meta['name'])
+      self.assertEqual(data['state'], expected_state)
+      self.assertEqual(data['text'], expected_text)
+      self.assertEqual(data['clusterId'], cluster_id)
+      self.assertEqual(clus, cluster)
 
     alert.collector = MagicMock()
     alert.collector.put = Mock(side_effect=collector_side_effect)
@@ -338,11 +338,11 @@ class TestPortAlert(TestCase):
     alert.configuration_builder = MagicMock()
     
     def collector_side_effect(clus, data):
-      self.assertEquals(data['name'], alert_meta['name'])
-      self.assertEquals(data['state'], expected_state)
-      self.assertEquals(data['text'], expected_text)
-      self.assertEquals(data['clusterId'], cluster_id)
-      self.assertEquals(clus, cluster)
+      self.assertEqual(data['name'], alert_meta['name'])
+      self.assertEqual(data['state'], expected_state)
+      self.assertEqual(data['text'], expected_text)
+      self.assertEqual(data['clusterId'], cluster_id)
+      self.assertEqual(clus, cluster)
 
     alert.collector = MagicMock()
     alert.collector.put = Mock(side_effect=collector_side_effect)
@@ -396,11 +396,11 @@ class TestPortAlert(TestCase):
     s.recv.return_value = "imok"
 
     def collector_side_effect(clus, data):
-      self.assertEquals(data['name'], alert_meta['name'])
-      self.assertEquals(data['state'], expected_state)
-      self.assertEquals(data['text'], expected_text)
-      self.assertEquals(data['clusterId'], cluster_id)
-      self.assertEquals(clus, cluster)
+      self.assertEqual(data['name'], alert_meta['name'])
+      self.assertEqual(data['state'], expected_state)
+      self.assertEqual(data['text'], expected_text)
+      self.assertEqual(data['clusterId'], cluster_id)
+      self.assertEqual(clus, cluster)
 
     alert.collector = MagicMock()
     alert.collector.put = Mock(side_effect=collector_side_effect)
@@ -454,11 +454,11 @@ class TestPortAlert(TestCase):
     s.recv.return_value = "imok"
 
     def collector_side_effect(clus, data):
-      self.assertEquals(data['name'], alert_meta['name'])
-      self.assertEquals(data['state'], expected_state)
-      self.assertEquals(data['text'], expected_text)
-      self.assertEquals(data['clusterId'], cluster_id)
-      self.assertEquals(clus, cluster)
+      self.assertEqual(data['name'], alert_meta['name'])
+      self.assertEqual(data['state'], expected_state)
+      self.assertEqual(data['text'], expected_text)
+      self.assertEqual(data['clusterId'], cluster_id)
+      self.assertEqual(clus, cluster)
 
     alert.collector = MagicMock()
     alert.collector.put = Mock(side_effect=collector_side_effect)
@@ -513,11 +513,11 @@ class TestPortAlert(TestCase):
     s.recv.return_value = "imok"
 
     def collector_side_effect(clus, data):
-      self.assertEquals(data['name'], alert_meta['name'])
-      self.assertEquals(data['state'], expected_state)
-      self.assertEquals(data['text'], expected_text)
-      self.assertEquals(data['clusterId'], cluster_id)
-      self.assertEquals(clus, cluster)
+      self.assertEqual(data['name'], alert_meta['name'])
+      self.assertEqual(data['state'], expected_state)
+      self.assertEqual(data['text'], expected_text)
+      self.assertEqual(data['clusterId'], cluster_id)
+      self.assertEqual(clus, cluster)
 
     alert.collector = MagicMock()
     alert.collector.put = Mock(side_effect=collector_side_effect)

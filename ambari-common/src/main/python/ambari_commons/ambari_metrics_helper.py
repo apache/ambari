@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -23,7 +23,7 @@ import ambari_simplejson as json
 import logging
 import os
 import random
-import urllib
+import urllib.request, urllib.parse, urllib.error
 from ambari_agent.AmbariConfig import AmbariConfig
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions.default import default
@@ -152,7 +152,7 @@ class AmsClient:
         metric_dict, http_code = self._load_metric(ams_collector_host, ams_metric, host_filter)
         if http_code == 200 and metric_dict:
           break
-      except Exception, exception:
+      except Exception as exception:
         if logger.isEnabledFor(logging.DEBUG):
           logger.exception("[Alert][{0}] Unable to retrieve metrics from AMS ({1}:{2}): {3}".format(self.alert_id, ams_collector_host, self.ams_collector_port, str(exception)))
 
@@ -174,7 +174,7 @@ class AmsClient:
       "precision": "seconds",
       "grouped": "true",
     }
-    encoded_get_metrics_parameters = urllib.urlencode(get_metrics_parameters)
+    encoded_get_metrics_parameters = urllib.parse.urlencode(get_metrics_parameters)
     url = AMS_METRICS_GET_URL % encoded_get_metrics_parameters
 
     _ssl_version = AmbariConfig.get_resolved_config().get_force_https_protocol_value()
@@ -197,7 +197,7 @@ class AmsClient:
       conn.request("GET", url)
       response = conn.getresponse()
       data = response.read()
-    except Exception, exception:
+    except Exception as exception:
       if logger.isEnabledFor(logging.DEBUG):
         logger.exception("[Alert][{0}] Unable to retrieve metrics from AMS: {1}".format(self.alert_id, str(exception)))
       status = response.status if response else None
@@ -218,7 +218,7 @@ class AmsClient:
     data_json = None
     try:
       data_json = json.loads(data)
-    except Exception, exception:
+    except Exception as exception:
       if logger.isEnabledFor(logging.DEBUG):
         logger.exception("[Alert][{0}] Convert response to json failed or json doesn't contain needed data: {1}".
                          format(self.alert_id, str(exception)))

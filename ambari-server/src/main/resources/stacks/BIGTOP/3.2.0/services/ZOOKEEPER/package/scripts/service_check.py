@@ -36,7 +36,7 @@ class ZookeeperServiceCheckLinux(ZookeeperServiceCheck):
     env.set_params(params)
 
     File(format("{zk_log_dir}/zookeeper.log"),
-         mode=0664,
+         mode=0o664,
          owner=params.zk_user,
          group=params.user_group,
     )
@@ -46,7 +46,7 @@ class ZookeeperServiceCheckLinux(ZookeeperServiceCheck):
     )
 
     File(format("{tmp_dir}/zkSmoke.sh"),
-         mode=0755,
+         mode=0o755,
          content=StaticFile('zkSmoke.sh')
     )
 

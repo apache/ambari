@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -35,7 +35,7 @@ class ConfigDictionary(dict):
     """
     Recursively turn dict to ConfigDictionary
     """
-    for k, v in dictionary.iteritems():
+    for k, v in dictionary.items():
       if isinstance(v, dict):
         dictionary[k] = ConfigDictionary(v)
         

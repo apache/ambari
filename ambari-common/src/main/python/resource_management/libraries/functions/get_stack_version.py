@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -75,7 +75,7 @@ def get_stack_version(package_name):
     command = 'ambari-python-wrap {stack_selector_path} status {package_name}'.format(
             stack_selector_path=stack_selector_path, package_name=package_name)
     return_code, stack_output = shell.call(command, timeout=20)
-  except Exception, e:
+  except Exception as e:
     Logger.error(str(e))
     raise Fail('Unable to execute ' + stack_selector_path + ' command to retrieve the version.')
 

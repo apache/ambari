@@ -15,7 +15,7 @@ class TemplateError(Exception):
 
     def __init__(self, message=None):
         if message is not None:
-            message = unicode(message).encode('utf-8')
+            message = str(message).encode('utf-8')
         Exception.__init__(self, message)
 
     @property
@@ -62,8 +62,8 @@ class TemplatesNotFound(TemplateNotFound):
 
     def __init__(self, names=(), message=None):
         if message is None:
-            message = u'non of the templates given were found: ' + \
-                      u', '.join(map(unicode, names))
+            message = 'non of the templates given were found: ' + \
+                      ', '.join(map(str, names))
         TemplateNotFound.__init__(self, names and names[-1] or None, message)
         self.templates = list(names)
 
@@ -83,13 +83,6 @@ class TemplateSyntaxError(TemplateError):
         self.translated = False
 
     def __str__(self):
-        return unicode(self).encode('utf-8')
-
-    # unicode goes after __str__ because we configured 2to3 to rename
-    # __unicode__ to __str__.  because the 2to3 tree is not designed to
-    # remove nodes from it, we leave the above __str__ around and let
-    # it override at runtime.
-    def __unicode__(self):
         # for translated errors we only return the message
         if self.translated:
             return self.message
@@ -110,7 +103,7 @@ class TemplateSyntaxError(TemplateError):
             if line:
                 lines.append('    ' + line.strip())
 
-        return u'\n'.join(lines)
+        return '\n'.join(lines)
 
 
 class TemplateAssertionError(TemplateSyntaxError):

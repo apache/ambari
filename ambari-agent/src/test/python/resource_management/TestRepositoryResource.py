@@ -16,8 +16,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import os, sys
+import os, sys, io
 import tempfile
+from io import RawIOBase
 from unittest import TestCase
 from mock.mock import patch, MagicMock
 from only_for_platform import get_platform, not_for_platform, PLATFORM_WINDOWS
@@ -31,6 +32,7 @@ from resource_management.libraries.resources.repository import Repository
 
 if get_platform() != PLATFORM_WINDOWS:
   from resource_management.libraries.providers import repository
+
 
 class DummyTemplate(object):
 
@@ -163,7 +165,7 @@ class TestRepositoryResource(TestCase):
             
             self.assertTrue(checked_call_mock.called)
 
-            expected_repo_file_content = "[hadoop]\nname=hadoop\nmirrorlist=https://mirrors.base_url.org/?repo=Repository&arch=$basearch\n\npath=/\nenabled=1\ngpgcheck=0"
+            expected_repo_file_content = b"[hadoop]\nname=hadoop\nmirrorlist=https://mirrors.base_url.org/?repo=Repository&arch=$basearch\n\npath=/\nenabled=1\ngpgcheck=0"
             template = file_mock.call_args_list[0][1]['content']
             self.assertEqual(expected_repo_file_content, template)
 
@@ -180,7 +182,7 @@ class TestRepositoryResource(TestCase):
 
             self.assertFalse(checked_call_mock.called)
 
-            expected_repo_file_content = "[hadoop]\nname=hadoop\nmirrorlist=https://mirrors.base_url.org/?repo=Repository&arch=$basearch\n\npath=/\nenabled=1\ngpgcheck=0"
+            expected_repo_file_content = b"[hadoop]\nname=hadoop\nmirrorlist=https://mirrors.base_url.org/?repo=Repository&arch=$basearch\n\npath=/\nenabled=1\ngpgcheck=0"
             template = file_mock.call_args_list[0][1]['content']
             self.assertEqual(expected_repo_file_content, template)
 
@@ -202,7 +204,7 @@ class TestRepositoryResource(TestCase):
       is_redhat_family.return_value = False
       is_ubuntu_family.return_value = True
       is_suse_family.return_value = False
-      tempfile_mock.return_value = MagicMock(spec=file)
+      tempfile_mock.return_value = MagicMock(spec=RawIOBase)
       tempfile_mock.return_value.__enter__.return_value.name = "/tmp/1.txt"
       call_mock.return_value = 0, "The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 123ABCD"
       
@@ -220,12 +222,12 @@ class TestRepositoryResource(TestCase):
       template_name = call_content[0][0]
       template_content = call_content[1]['content']
 
-      self.assertEquals(template_name, '/tmp/1.txt')
-      self.assertEquals(template_content, 'deb http://download.base_url.org/rpm/ a b c')
+      self.assertEqual(template_name, '/tmp/1.txt')
+      self.assertEqual(template_content, b'deb http://download.base_url.org/rpm/ a b c')
 
       copy_item0 = str(file_mock.call_args_list[1])
       copy_item1 = str(file_mock.call_args_list[2])
-      self.assertEqual(copy_item0, "call('/tmp/1.txt', owner='ambari-agent', content=StaticFile('/etc/apt/sources.list.d/HDP.list'))")
+      self.assertEqual(copy_item0, "call('/tmp/1.txt', content=StaticFile('/etc/apt/sources.list.d/HDP.list'), owner='ambari-agent')")
       self.assertEqual(copy_item1, "call('/etc/apt/sources.list.d/HDP.list', content=StaticFile('/tmp/1.txt'))")
       #'apt-get update -qq -o Dir::Etc::sourcelist="sources.list.d/HDP.list" -o APT::Get::List-Cleanup="0"')
       execute_command_item = execute_mock.call_args_list[0][0][0]
@@ -247,7 +249,7 @@ class TestRepositoryResource(TestCase):
       """
       Checks that GPG key is extracted from output without \r sign
       """
-      tempfile_mock.return_value = MagicMock(spec=file)
+      tempfile_mock.return_value = MagicMock(spec=RawIOBase)
       tempfile_mock.return_value.__enter__.return_value.name = "/tmp/1.txt"
       call_mock.return_value = 0, "The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 123ABCD\r\n"
 
@@ -265,12 +267,12 @@ class TestRepositoryResource(TestCase):
       template_name = call_content[0][0]
       template_content = call_content[1]['content']
 
-      self.assertEquals(template_name, '/tmp/1.txt')
-      self.assertEquals(template_content, 'deb http://download.base_url.org/rpm/ a b c')
+      self.assertEqual(template_name, '/tmp/1.txt')
+      self.assertEqual(template_content, b'deb http://download.base_url.org/rpm/ a b c')
 
       copy_item0 = str(file_mock.call_args_list[1])
       copy_item1 = str(file_mock.call_args_list[2])
-      self.assertEqual(copy_item0, "call('/tmp/1.txt', owner='ambari-agent', content=StaticFile('/etc/apt/sources.list.d/HDP.list'))")
+      self.assertEqual(copy_item0, "call('/tmp/1.txt', content=StaticFile('/etc/apt/sources.list.d/HDP.list'), owner='ambari-agent')")
       self.assertEqual(copy_item1, "call('/etc/apt/sources.list.d/HDP.list', content=StaticFile('/tmp/1.txt'))")
       execute_command_item = execute_mock.call_args_list[0][0][0]
 
@@ -285,7 +287,7 @@ class TestRepositoryResource(TestCase):
     @patch.object(System, "os_release_name", new='precise')        
     @patch.object(System, "os_family", new='ubuntu')
     def test_create_repo_ubuntu_doesnt_repo_exist(self, file_mock, execute_mock, tempfile_mock):
-      tempfile_mock.return_value = MagicMock(spec=file)
+      tempfile_mock.return_value = MagicMock(spec=RawIOBase)
       tempfile_mock.return_value.__enter__.return_value.name = "/tmp/1.txt"
       
       with Environment('/') as env:
@@ -302,8 +304,8 @@ class TestRepositoryResource(TestCase):
       template_name = call_content[0][0]
       template_content = call_content[1]['content']
       
-      self.assertEquals(template_name, '/tmp/1.txt')
-      self.assertEquals(template_content, 'deb http://download.base_url.org/rpm/ a b c')
+      self.assertEqual(template_name, '/tmp/1.txt')
+      self.assertEqual(template_content, b'deb http://download.base_url.org/rpm/ a b c')
       
       self.assertEqual(file_mock.call_count, 2)
       self.assertEqual(execute_mock.call_count, 0)

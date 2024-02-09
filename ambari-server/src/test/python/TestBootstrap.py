@@ -19,7 +19,7 @@ limitations under the License.
 from stacks.utils.RMFTestCase import *
 import bootstrap
 import time
-from ambari_commons import subprocess32
+import subprocess
 import os
 import logging
 import tempfile
@@ -28,7 +28,6 @@ import pprint
 from ambari_commons.os_check import OSCheck
 from bootstrap import PBootstrap, Bootstrap, BootstrapDefault, SharedState, HostLog, SCP, SSH
 from unittest import TestCase
-from ambari_commons.subprocess32 import Popen
 from bootstrap import AMBARI_PASSPHRASE_VAR_NAME
 from mock.mock import MagicMock, call
 from mock.mock import patch
@@ -50,14 +49,14 @@ class TestBootstrap:#(TestCase):
     utime2 = 12345
     bootstrap_obj.getUtime = MagicMock(return_value=utime1)
     remote1 = bootstrap_obj.getRemoteName("/tmp/setupAgent.sh")
-    self.assertEquals(remote1, "/tmp/setupAgent{0}.sh".format(utime1))
+    self.assertEqual(remote1, "/tmp/setupAgent{0}.sh".format(utime1))
 
     bootstrap_obj.getUtime.return_value=utime2
     remote1 = bootstrap_obj.getRemoteName("/tmp/setupAgent.sh")
-    self.assertEquals(remote1, "/tmp/setupAgent{0}.sh".format(utime1))
+    self.assertEqual(remote1, "/tmp/setupAgent{0}.sh".format(utime1))
 
     remote2 = bootstrap_obj.getRemoteName("/tmp/host_pass")
-    self.assertEquals(remote2, "/tmp/host_pass{0}".format(utime2))
+    self.assertEqual(remote2, "/tmp/host_pass{0}".format(utime2))
 
 
   # TODO: Test bootstrap timeout
@@ -69,19 +68,19 @@ class TestBootstrap:#(TestCase):
                                "setupAgentFile", "ambariServer", "centos6",
                                None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
-    self.assertEquals(bootstrap_obj.getAmbariPort(),"8440")
+    self.assertEqual(bootstrap_obj.getAmbariPort(),"8440")
     shared_state.server_port = None
     bootstrap_obj = Bootstrap("hostname", shared_state)
-    self.assertEquals(bootstrap_obj.getAmbariPort(),"null")
+    self.assertEqual(bootstrap_obj.getAmbariPort(),"null")
 
 
-  @patch.object(subprocess32, "Popen")
+  @patch.object(subprocess, "Popen")
   @patch("sys.stderr")
   @patch("sys.exit")
   @patch.object(PBootstrap, "run")
   @patch("os.path.dirname")
   @patch("os.path.realpath")
-  def test_bootstrap_main(self, dirname_mock, realpath_mock, run_mock, exit_mock, stderr_mock, subprocess32_Popen_mock):
+  def test_bootstrap_main(self, dirname_mock, realpath_mock, run_mock, exit_mock, stderr_mock, subprocess_Popen_mock):
     bootstrap.main(["bootstrap.py", "hostname,hostname2", "/tmp/bootstrap", "root", "123", "sshkey_file", "setupAgent.py", "ambariServer", \
                     "centos6", "1.1.1", "8440", "root", "passwordfile"])
     self.assertTrue(run_mock.called)
@@ -114,7 +113,7 @@ class TestBootstrap:#(TestCase):
     ret = bootstrap_obj.getRunSetupWithPasswordCommand("hostname")
     expected = "/var/lib/ambari-agent/tmp/ambari-sudo.sh -S python /var/lib/ambari-agent/tmp/setupAgent{0}.py hostname TEST_PASSPHRASE " \
                "ambariServer root  8440 < /var/lib/ambari-agent/tmp/host_pass{0}".format(utime)
-    self.assertEquals(ret, expected)
+    self.assertEqual(ret, expected)
 
 
   def test_generateRandomFileName(self):
@@ -137,19 +136,19 @@ class TestBootstrap:#(TestCase):
     is_redhat_family.return_value = False
     is_suse_family.return_value = True
     res = bootstrap_obj.getRepoDir()
-    self.assertEquals(res, "/etc/zypp/repos.d")
+    self.assertEqual(res, "/etc/zypp/repos.d")
     # non-Suse
     is_suse_family.return_value = False
     is_redhat_family.return_value = True
     res = bootstrap_obj.getRepoDir()
-    self.assertEquals(res, "/etc/yum.repos.d")
+    self.assertEqual(res, "/etc/yum.repos.d")
 
   def test_getSetupScript(self):
     shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
                                None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
-    self.assertEquals(bootstrap_obj.shared_state.script_dir, "scriptDir")
+    self.assertEqual(bootstrap_obj.shared_state.script_dir, "scriptDir")
 
 
   def test_run_setup_agent_command_ends_with_project_version(self):
@@ -186,26 +185,26 @@ class TestBootstrap:#(TestCase):
     with open(tmp_filename) as f:
       s = f.read()
       etalon = "a\nb\nc\n"
-      self.assertEquals(s, etalon)
+      self.assertEqual(s, etalon)
     # Next write
     dummy_log.write("Yet another string")
     # Read it
     with open(tmp_filename) as f:
       s = f.read()
       etalon = "a\nb\nc\nYet another string\n"
-      self.assertEquals(s, etalon)
+      self.assertEqual(s, etalon)
     # Should not append line end if it already exists
     dummy_log.write("line break->\n")
     # Read it
     with open(tmp_filename) as f:
       s = f.read()
       etalon = "a\nb\nc\nYet another string\nline break->\n"
-      self.assertEquals(s, etalon)
+      self.assertEqual(s, etalon)
     # Cleanup
     os.unlink(tmp_filename)
 
 
-  @patch.object(subprocess32, "Popen")
+  @patch.object(subprocess, "Popen")
   def test_SCP(self, popenMock):
     params = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                   "setupAgentFile", "ambariServer", "centos6",
@@ -232,7 +231,7 @@ class TestBootstrap:#(TestCase):
     self.assertTrue(log_sample in log['text'])
     self.assertTrue(error_sample in log['text'])
     command_str = str(popenMock.call_args[0][0])
-    self.assertEquals(command_str, "['scp', '-r', '-o', 'ConnectTimeout=60', '-o', "
+    self.assertEqual(command_str, "['scp', '-r', '-o', 'ConnectTimeout=60', '-o', "
         "'BatchMode=yes', '-o', 'StrictHostKeyChecking=no', '-P', '123', '-i', 'sshkey_file',"
         " 'src/file', 'root@dummy-host:dst/file']")
     self.assertEqual(retcode["exitstatus"], 0)
@@ -248,7 +247,7 @@ class TestBootstrap:#(TestCase):
     self.assertEqual(retcode["exitstatus"], 1)
 
 
-  @patch.object(subprocess32, "Popen")
+  @patch.object(subprocess, "Popen")
   def test_SSH(self, popenMock):
     params = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                   "setupAgentFile", "ambariServer", "centos6",
@@ -275,7 +274,7 @@ class TestBootstrap:#(TestCase):
     self.assertTrue(log_sample in log['text'])
     self.assertTrue(error_sample in log['text'])
     command_str = str(popenMock.call_args[0][0])
-    self.assertEquals(command_str, "['ssh', '-o', 'ConnectTimeOut=60', '-o', "
+    self.assertEqual(command_str, "['ssh', '-o', 'ConnectTimeOut=60', '-o', "
             "'StrictHostKeyChecking=no', '-o', 'BatchMode=yes', '-tt', '-i', "
             "'sshkey_file', '-p', '123', 'root@dummy-host', 'dummy-command']")
     self.assertEqual(retcode["exitstatus"], 0)
@@ -311,7 +310,7 @@ class TestBootstrap:#(TestCase):
                                None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
     ocs = bootstrap_obj.getOsCheckScript()
-    self.assertEquals(ocs, "scriptDir/os_check_type.py")
+    self.assertEqual(ocs, "scriptDir/os_check_type.py")
 
 
   @patch.object(BootstrapDefault, "getRemoteName")
@@ -323,7 +322,7 @@ class TestBootstrap:#(TestCase):
     v = "/tmp/os_check_type1374259902.py"
     getRemoteName_mock.return_value = v
     ocs = bootstrap_obj.getOsCheckScriptRemoteLocation()
-    self.assertEquals(ocs, v)
+    self.assertEqual(ocs, v)
 
 
   @patch.object(BootstrapDefault, "is_suse")
@@ -334,7 +333,7 @@ class TestBootstrap:#(TestCase):
     bootstrap_obj = Bootstrap("hostname", shared_state)
     is_suse_mock.return_value = False
     rf = bootstrap_obj.getRepoFile()
-    self.assertEquals(rf, "/etc/yum.repos.d/ambari.repo")
+    self.assertEqual(rf, "/etc/yum.repos.d/ambari.repo")
 
 
   @patch.object(SSH, "__init__")
@@ -350,7 +349,7 @@ class TestBootstrap:#(TestCase):
     init_mock.return_value = None
     run_mock.return_value = expected
     res = bootstrap_obj.createTargetDir()
-    self.assertEquals(res, expected)
+    self.assertEqual(res, expected)
     command = str(init_mock.call_args[0][4])
     self.assertEqual(command,
                      "SUDO=$([ \"$EUID\" -eq 0 ] && echo || echo sudo) ; $SUDO mkdir -p /var/lib/ambari-agent/tmp ; "
@@ -376,7 +375,7 @@ class TestBootstrap:#(TestCase):
     init_mock.return_value = None
     run_mock.return_value = expected
     res = bootstrap_obj.copyOsCheckScript()
-    self.assertEquals(res, expected)
+    self.assertEqual(res, expected)
     input_file = str(init_mock.call_args[0][4])
     remote_file = str(init_mock.call_args[0][5])
     self.assertEqual(input_file, "OsCheckScript")
@@ -400,12 +399,12 @@ class TestBootstrap:#(TestCase):
     hasPassword_mock.return_value = False
     getRemoteName_mock.return_value = "RemoteName"
     rf = bootstrap_obj.getMoveRepoFileCommand("target")
-    self.assertEquals(rf, "/var/lib/ambari-agent/tmp/ambari-sudo.sh mv RemoteName target/ambari.repo")
+    self.assertEqual(rf, "/var/lib/ambari-agent/tmp/ambari-sudo.sh mv RemoteName target/ambari.repo")
     # With password
     hasPassword_mock.return_value = True
     getRemoteName_mock.return_value = "RemoteName"
     rf = bootstrap_obj.getMoveRepoFileCommand("target")
-    self.assertEquals(rf, "/var/lib/ambari-agent/tmp/ambari-sudo.sh -S mv RemoteName target/ambari.repo < RemoteName")
+    self.assertEqual(rf, "/var/lib/ambari-agent/tmp/ambari-sudo.sh -S mv RemoteName target/ambari.repo < RemoteName")
 
   @patch("os.path.exists")
   @patch.object(OSCheck, "is_suse_family")
@@ -458,7 +457,7 @@ class TestBootstrap:#(TestCase):
     scp_run_mock.side_effect = [expected1, expected3]
     ssh_run_mock.side_effect = [expected2, expected4]
     res = bootstrap_obj.copyNeededFiles()
-    self.assertEquals(res, expected1["exitstatus"])
+    self.assertEqual(res, expected1["exitstatus"])
     input_file = str(scp_init_mock.call_args[0][4])
     remote_file = str(scp_init_mock.call_args[0][5])
     self.assertEqual(input_file, "setupAgentFile")
@@ -473,7 +472,7 @@ class TestBootstrap:#(TestCase):
     scp_run_mock.side_effect = [expected1, expected3]
     ssh_run_mock.side_effect = [expected2, expected4]
     res = bootstrap_obj.copyNeededFiles()
-    self.assertEquals(res, expected2["exitstatus"])
+    self.assertEqual(res, expected2["exitstatus"])
     # yet another order
     expected1 = {"exitstatus": 33, "log": "log33", "errormsg": "errorMsg"}
     expected2 = {"exitstatus": 17, "log": "log17", "errormsg": "errorMsg"}
@@ -482,7 +481,7 @@ class TestBootstrap:#(TestCase):
     scp_run_mock.side_effect = [expected1, expected3]
     ssh_run_mock.side_effect = [expected2, expected4]
     res = bootstrap_obj.copyNeededFiles()
-    self.assertEquals(res, expected3["exitstatus"])
+    self.assertEqual(res, expected3["exitstatus"])
 
     #
     #Ambari repo file does not exist
@@ -499,7 +498,7 @@ class TestBootstrap:#(TestCase):
     scp_run_mock.side_effect = [expectedResult]
     res = bootstrap_obj.copyNeededFiles()
     self.assertFalse(ssh_run_mock.called)
-    self.assertEquals(res, expectedResult["exitstatus"])
+    self.assertEqual(res, expectedResult["exitstatus"])
 
   @patch.object(BootstrapDefault, "getOsCheckScriptRemoteLocation")
   @patch.object(SSH, "__init__")
@@ -516,7 +515,7 @@ class TestBootstrap:#(TestCase):
     init_mock.return_value = None
     run_mock.return_value = expected
     res = bootstrap_obj.runOsCheckScript()
-    self.assertEquals(res, expected)
+    self.assertEqual(res, expected)
     command = str(init_mock.call_args[0][4])
     self.assertEqual(command,
                      "chmod a+x OsCheckScriptRemoteLocation && "
@@ -538,7 +537,7 @@ class TestBootstrap:#(TestCase):
     init_mock.return_value = None
     run_mock.return_value = expected
     res = bootstrap_obj.runSetupAgent()
-    self.assertEquals(res, expected)
+    self.assertEqual(res, expected)
     command = str(init_mock.call_args[0][4])
     self.assertEqual(command, "RunSetupCommand")
 
@@ -598,7 +597,7 @@ class TestBootstrap:#(TestCase):
     is_ubuntu_family.return_value = False
     is_suse_family.return_value = False
     res = bootstrap_obj.checkSudoPackage()
-    self.assertEquals(res, expected)
+    self.assertEqual(res, expected)
     command = str(init_mock.call_args[0][4])
     self.assertEqual(command, "[ \"$EUID\" -eq 0 ] || rpm -qa | grep -e '^sudo\-'")
 
@@ -621,7 +620,7 @@ class TestBootstrap:#(TestCase):
     init_mock.return_value = None
     run_mock.return_value = expected
     res = bootstrap_obj.checkSudoPackage()
-    self.assertEquals(res, expected)
+    self.assertEqual(res, expected)
     command = str(init_mock.call_args[0][4])
     self.assertEqual(command, "[ \"$EUID\" -eq 0 ] || dpkg --get-selections|grep -e '^sudo\s*install'")
 
@@ -641,7 +640,7 @@ class TestBootstrap:#(TestCase):
     init_mock.return_value = None
     run_mock.return_value = expected
     res = bootstrap_obj.deletePasswordFile()
-    self.assertEquals(res, expected)
+    self.assertEqual(res, expected)
     command = str(init_mock.call_args[0][4])
     self.assertEqual(command, "rm PasswordFile")
 
@@ -668,7 +667,7 @@ class TestBootstrap:#(TestCase):
     ssh_init_mock.return_value = None
     ssh_run_mock.return_value = expected2
     res = bootstrap_obj.copyPasswordFile()
-    self.assertEquals(res, expected1["exitstatus"])
+    self.assertEqual(res, expected1["exitstatus"])
     input_file = str(scp_init_mock.call_args[0][4])
     remote_file = str(scp_init_mock.call_args[0][4])
     self.assertEqual(input_file, "PasswordFile")
@@ -697,7 +696,7 @@ class TestBootstrap:#(TestCase):
     init_mock.return_value = None
     run_mock.return_value = expected
     res = bootstrap_obj.changePasswordFileModeOnHost()
-    self.assertEquals(res, expected)
+    self.assertEqual(res, expected)
     command = str(init_mock.call_args[0][4])
     self.assertEqual(command, "chmod 600 PasswordFile")
 
@@ -865,9 +864,9 @@ class TestBootstrap:#(TestCase):
 
     def status_get_item_mock(item):
       if item == "return_code":
-        return return_code_generator.next()
+        return next(return_code_generator)
       elif item == "start_time":
-        return start_time_generator.next()
+        return next(start_time_generator)
 
     dict_mock = MagicMock()
     dict_mock.__getitem__.side_effect = status_get_item_mock

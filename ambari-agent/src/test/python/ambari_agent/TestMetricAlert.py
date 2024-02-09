@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -21,14 +21,14 @@ limitations under the License.
 from unittest import TestCase
 from alerts.metric_alert import MetricAlert
 from mock.mock import Mock, MagicMock, patch
-from AmbariConfig import AmbariConfig
+from ambari_agent.AmbariConfig import AmbariConfig
 
 class TestMetricAlert(TestCase):
 
   def setUp(self):
     self.config = AmbariConfig()
 
-  @patch("urllib2.urlopen")
+  @patch("urllib.request.urlopen")
   def test_collect(self, urllib):
     alert_meta = {
       'name': 'alert1',
@@ -68,15 +68,15 @@ class TestMetricAlert(TestCase):
     expected_text = 'OK: 1'
 
     def collector_side_effect(clus, data):
-      self.assertEquals(data['name'], alert_meta['name'])
-      self.assertEquals(data['label'], alert_meta['label'])
-      self.assertEquals(data['text'], expected_text)
-      self.assertEquals(data['service'], alert_meta['serviceName'])
-      self.assertEquals(data['component'], alert_meta['componentName'])
-      self.assertEquals(data['uuid'], alert_meta['uuid'])
-      self.assertEquals(data['enabled'], alert_meta['enabled'])
-      self.assertEquals(data['cluster'], cluster)
-      self.assertEquals(clus, cluster)
+      self.assertEqual(data['name'], alert_meta['name'])
+      self.assertEqual(data['label'], alert_meta['label'])
+      self.assertEqual(data['text'], expected_text)
+      self.assertEqual(data['service'], alert_meta['serviceName'])
+      self.assertEqual(data['component'], alert_meta['componentName'])
+      self.assertEqual(data['uuid'], alert_meta['uuid'])
+      self.assertEqual(data['enabled'], alert_meta['enabled'])
+      self.assertEqual(data['cluster'], cluster)
+      self.assertEqual(clus, cluster)
 
     response = Mock()
     urllib.return_value = response
@@ -90,7 +90,7 @@ class TestMetricAlert(TestCase):
 
     alert.collect()
 
-  @patch("urllib2.urlopen")
+  @patch("urllib.request.urlopen")
   def test_collect(self, urllib):
     alert_meta = {
       'name': 'alert1',
@@ -130,15 +130,15 @@ class TestMetricAlert(TestCase):
     expected_text = 'Warn: 4'
 
     def collector_side_effect(clus, data):
-      self.assertEquals(data['name'], alert_meta['name'])
-      self.assertEquals(data['label'], alert_meta['label'])
-      self.assertEquals(data['text'], expected_text)
-      self.assertEquals(data['service'], alert_meta['serviceName'])
-      self.assertEquals(data['component'], alert_meta['componentName'])
-      self.assertEquals(data['uuid'], alert_meta['uuid'])
-      self.assertEquals(data['enabled'], alert_meta['enabled'])
-      self.assertEquals(data['cluster'], cluster)
-      self.assertEquals(clus, cluster)
+      self.assertEqual(data['name'], alert_meta['name'])
+      self.assertEqual(data['label'], alert_meta['label'])
+      self.assertEqual(data['text'], expected_text)
+      self.assertEqual(data['service'], alert_meta['serviceName'])
+      self.assertEqual(data['component'], alert_meta['componentName'])
+      self.assertEqual(data['uuid'], alert_meta['uuid'])
+      self.assertEqual(data['enabled'], alert_meta['enabled'])
+      self.assertEqual(data['cluster'], cluster)
+      self.assertEqual(clus, cluster)
 
     response = Mock()
     urllib.return_value = response
@@ -152,7 +152,7 @@ class TestMetricAlert(TestCase):
 
     alert.collect()
 
-  @patch("urllib2.urlopen")
+  @patch("urllib.request.urlopen")
   def test_collect(self, urllib):
     alert_meta = {
       'definitionId': 1,
@@ -194,9 +194,9 @@ class TestMetricAlert(TestCase):
     expected_text = 'Crit: 12'
 
     def collector_side_effect(clus, data):
-      self.assertEquals(data['name'], alert_meta['name'])
-      self.assertEquals(data['clusterId'], cluster_id)
-      self.assertEquals(clus, cluster)
+      self.assertEqual(data['name'], alert_meta['name'])
+      self.assertEqual(data['clusterId'], cluster_id)
+      self.assertEqual(clus, cluster)
 
     response = Mock()
     urllib.return_value = response

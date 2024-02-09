@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -17,7 +17,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-import ConfigParser
+import configparser
 import os
 
 import pprint
@@ -31,7 +31,7 @@ from threading import Thread
 from ambari_agent.FileCache import FileCache, CachingException
 from ambari_agent.AmbariConfig import AmbariConfig
 from mock.mock import MagicMock, patch
-import StringIO
+import io
 import sys
 import shutil
 
@@ -40,11 +40,11 @@ class TestFileCache(TestCase):
 
   def setUp(self):
     # disable stdout
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
     # generate sample config
     tmpdir = tempfile.gettempdir()
-    self.config = ConfigParser.RawConfigParser()
+    self.config = configparser.RawConfigParser()
     self.config.add_section('agent')
     self.config.add_section('agentConfig')
     self.config.set('agent', 'prefix', tmpdir)
@@ -73,12 +73,12 @@ class TestFileCache(TestCase):
       }
     }
     res = fileCache.get_service_base_dir(command)
-    self.assertEquals(
+    self.assertEqual(
       pprint.pformat(provide_directory_mock.call_args_list[0][0]),
       "('/var/lib/ambari-agent/cache',\n "
       "{0},\n"
       " 'server_url_pref')".format(pprint.pformat(os.path.join('stacks', 'HDP', '2.1.1', 'services', 'ZOOKEEPER', 'package'))))
-    self.assertEquals(res, "dummy value")
+    self.assertEqual(res, "dummy value")
 
 
   @patch.object(FileCache, "provide_directory")
@@ -108,12 +108,12 @@ class TestFileCache(TestCase):
     provide_directory_mock.return_value = "dummy value"
     fileCache = FileCache(self.config)
     res = fileCache.get_hook_base_dir(command)
-    self.assertEquals(
+    self.assertEqual(
       pprint.pformat(provide_directory_mock.call_args_list[0][0]),
       "('/var/lib/ambari-agent/cache', "
       "{0}, "
       "'server_url_pref')".format(pprint.pformat('stack-hooks')))
-    self.assertEquals(res, "dummy value")
+    self.assertEqual(res, "dummy value")
 
 
   @patch.object(FileCache, "provide_directory")
@@ -125,10 +125,10 @@ class TestFileCache(TestCase):
         'jdk_location': 'server_url_pref'
       }
     })
-    self.assertEquals(
+    self.assertEqual(
       pprint.pformat(provide_directory_mock.call_args_list[0][0]),
       "('/var/lib/ambari-agent/cache', 'custom_actions', 'server_url_pref')")
-    self.assertEquals(res, "dummy value")
+    self.assertEqual(res, "dummy value")
 
 
   @patch.object(FileCache, "provide_directory")
@@ -145,10 +145,10 @@ class TestFileCache(TestCase):
     }
 
     res = fileCache.get_custom_resources_subdir(command)
-    self.assertEquals(
+    self.assertEqual(
       pprint.pformat(provide_directory_mock.call_args_list[0][0]),
       "('/var/lib/ambari-agent/cache', 'dashboards', 'server_url_pref')")
-    self.assertEquals(res, "dummy value")
+    self.assertEqual(res, "dummy value")
 
 
   @patch.object(FileCache, "build_download_url")
@@ -161,7 +161,7 @@ class TestFileCache(TestCase):
       path = os.path.join("cache_path", "subdirectory")
       res = fileCache.provide_directory("cache_path", "subdirectory",
                                         "server_url_prefix")
-      self.assertEquals(res, path)
+      self.assertEqual(res, path)
       self.assertFalse(build_download_url_mock.called)
     finally:
       self.config.set(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, FileCache.ENABLE_AUTO_AGENT_CACHE_UPDATE_KEY, "true")
@@ -193,10 +193,10 @@ class TestFileCache(TestCase):
                                       "server_url_prefix")
     self.assertTrue(invalidate_directory_mock.called)
     self.assertTrue(write_hash_sum_mock.called)
-    self.assertEquals(fetch_url_mock.call_count, 2)
-    self.assertEquals(pprint.pformat(fileCache.uptodate_paths),
+    self.assertEqual(fetch_url_mock.call_count, 2)
+    self.assertEqual(pprint.pformat(fileCache.uptodate_paths),
                       pprint.pformat([path]))
-    self.assertEquals(res, path)
+    self.assertEqual(res, path)
 
     fetch_url_mock.reset_mock()
     write_hash_sum_mock.reset_mock()
@@ -212,11 +212,11 @@ class TestFileCache(TestCase):
                                       "server_url_prefix")
     self.assertFalse(invalidate_directory_mock.called)
     self.assertFalse(write_hash_sum_mock.called)
-    self.assertEquals(fetch_url_mock.call_count, 1)
+    self.assertEqual(fetch_url_mock.call_count, 1)
 
-    self.assertEquals(pprint.pformat(fileCache.uptodate_paths),
+    self.assertEqual(pprint.pformat(fileCache.uptodate_paths),
                       pprint.pformat([path]))
-    self.assertEquals(res, path)
+    self.assertEqual(res, path)
 
     fetch_url_mock.reset_mock()
     write_hash_sum_mock.reset_mock()
@@ -228,10 +228,10 @@ class TestFileCache(TestCase):
                                       "server_url_prefix")
     self.assertFalse(invalidate_directory_mock.called)
     self.assertFalse(write_hash_sum_mock.called)
-    self.assertEquals(fetch_url_mock.call_count, 0)
-    self.assertEquals(pprint.pformat(fileCache.uptodate_paths),
+    self.assertEqual(fetch_url_mock.call_count, 0)
+    self.assertEqual(pprint.pformat(fileCache.uptodate_paths),
                       pprint.pformat([path]))
-    self.assertEquals(res, path)
+    self.assertEqual(res, path)
 
     # Check exception handling when tolerance is disabled
     self.config.set('agent', 'tolerate_download_failures', "false")
@@ -243,7 +243,7 @@ class TestFileCache(TestCase):
       self.fail('CachingException not thrown')
     except CachingException:
       pass # Expected
-    except Exception, e:
+    except Exception as e:
       self.fail('Unexpected exception thrown:' + str(e))
 
     # Check that unexpected exceptions are still propagated when
@@ -265,7 +265,7 @@ class TestFileCache(TestCase):
     fileCache = FileCache(self.config)
     res = fileCache.provide_directory("cache_path", "subdirectory",
                                   "server_url_prefix")
-    self.assertEquals(res, path)
+    self.assertEqual(res, path)
 
     # Test empty archive
     fetch_url_mock.reset_mock()
@@ -284,13 +284,13 @@ class TestFileCache(TestCase):
     res = fileCache.provide_directory("cache_path", "subdirectory",
                                       "server_url_prefix")
     self.assertTrue(fetch_url_mock.return_value.strip() != read_hash_sum_mock.return_value.strip())
-    self.assertEquals(build_download_url_mock.call_count, 2)
-    self.assertEquals(fetch_url_mock.call_count, 2)
+    self.assertEqual(build_download_url_mock.call_count, 2)
+    self.assertEqual(fetch_url_mock.call_count, 2)
     self.assertFalse(invalidate_directory_mock.called)
     self.assertFalse(unpack_archive_mock.called)
     self.assertFalse(write_hash_sum_mock.called)
-    self.assertEquals(pprint.pformat(fileCache.uptodate_paths), pprint.pformat([path]))
-    self.assertEquals(res, path)
+    self.assertEqual(pprint.pformat(fileCache.uptodate_paths), pprint.pformat([path]))
+    self.assertEqual(res, path)
     pass
 
 
@@ -302,20 +302,20 @@ class TestFileCache(TestCase):
         'http://localhost:8080/resources/stacks/HDP/2.1.1/hooks/archive.zip')
 
 
-  @patch("urllib2.OpenerDirector.open")
+  @patch("urllib.request.OpenerDirector.open")
   def test_fetch_url(self, urlopen_mock):
     fileCache = FileCache(self.config)
     remote_url = "http://dummy-url/"
     # Test normal download
-    test_str = 'abc' * 100000 # Very long string
-    test_string_io = StringIO.StringIO(test_str)
+    test_str = b'abc' * 100000 # Very long string
+    test_string_io = io.BytesIO(test_str)
     test_buffer = MagicMock()
     test_buffer.read.side_effect = test_string_io.read
     urlopen_mock.return_value = test_buffer
 
     memory_buffer = fileCache.fetch_url(remote_url)
 
-    self.assertEquals(memory_buffer.getvalue(), test_str)
+    self.assertEqual(memory_buffer.getvalue(), test_str)
     self.assertEqual(test_buffer.read.call_count, 20) # depends on buffer size
     # Test exception handling
     test_buffer.read.side_effect = self.exc_side_effect
@@ -324,30 +324,30 @@ class TestFileCache(TestCase):
       self.fail('CachingException not thrown')
     except CachingException:
       pass # Expected
-    except Exception, e:
+    except Exception as e:
       self.fail('Unexpected exception thrown:' + str(e))
 
 
   def test_read_write_hash_sum(self):
     tmpdir = tempfile.mkdtemp()
-    dummyhash = "DUMMY_HASH"
+    dummyhash = b"DUMMY_HASH"
     fileCache = FileCache(self.config)
     fileCache.write_hash_sum(tmpdir, dummyhash)
     newhash = fileCache.read_hash_sum(tmpdir)
-    self.assertEquals(newhash, dummyhash)
+    self.assertEqual(newhash, dummyhash)
     shutil.rmtree(tmpdir)
     # Test read of not existing file
     newhash = fileCache.read_hash_sum(tmpdir)
-    self.assertEquals(newhash, None)
+    self.assertEqual(newhash, None)
     # Test write to not existing file
-    with patch("__builtin__.open") as open_mock:
+    with patch("builtins.open") as open_mock:
       open_mock.side_effect = self.exc_side_effect
       try:
         fileCache.write_hash_sum(tmpdir, dummyhash)
         self.fail('CachingException not thrown')
       except CachingException:
         pass # Expected
-      except Exception, e:
+      except Exception as e:
         self.fail('Unexpected exception thrown:' + str(e))
 
 
@@ -413,7 +413,7 @@ class TestFileCache(TestCase):
       self.fail('CachingException not thrown')
     except CachingException:
       pass # Expected
-    except Exception, e:
+    except Exception as e:
       self.fail('Unexpected exception thrown:' + str(e))
 
 
@@ -434,9 +434,9 @@ class TestFileCache(TestCase):
         fp = os.path.join(dirpath, f)
         total_size += os.path.getsize(fp)
         total_files += 1
-    self.assertEquals(total_size, 51258L)
-    self.assertEquals(total_files, 28)
-    self.assertEquals(total_dirs, 8)
+    self.assertEqual(total_size, 51258)
+    self.assertEqual(total_files, 28)
+    self.assertEqual(total_dirs, 8)
     shutil.rmtree(tmpdir)
 
     # Test exception handling
@@ -447,7 +447,7 @@ class TestFileCache(TestCase):
         self.fail('CachingException not thrown')
       except CachingException:
         pass # Expected
-      except Exception, e:
+      except Exception as e:
         self.fail('Unexpected exception thrown:' + str(e))
 
 

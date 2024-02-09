@@ -157,9 +157,9 @@ if stack_supports_timeline_state_store:
 
 # ats 1.5 properties
 entity_groupfs_active_dir = config['configurations']['yarn-site']['yarn.timeline-service.entity-group-fs-store.active-dir']
-entity_groupfs_active_dir_mode = 01777
+entity_groupfs_active_dir_mode = 0o1777
 entity_groupfs_store_dir = config['configurations']['yarn-site']['yarn.timeline-service.entity-group-fs-store.done-dir']
-entity_groupfs_store_dir_mode = 0700
+entity_groupfs_store_dir_mode = 0o700
 
 hadoop_conf_secure_dir = os.path.join(hadoop_conf_dir, "secure")
 
@@ -181,7 +181,7 @@ hdfs_tmp_dir = default("/configurations/hadoop-env/hdfs_tmp_dir", "/tmp")
 
 smokeuser = config['configurations']['cluster-env']['smokeuser']
 smokeuser_principal = config['configurations']['cluster-env']['smokeuser_principal_name']
-smoke_hdfs_user_mode = 0770
+smoke_hdfs_user_mode = 0o770
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 nm_security_marker_dir = "/var/lib/hadoop-yarn"
 nm_security_marker = format('{nm_security_marker_dir}/nm_security_enabled')
@@ -192,7 +192,7 @@ smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 yarn_executor_container_group = config['configurations']['yarn-site']['yarn.nodemanager.linux-container-executor.group']
 yarn_nodemanager_container_executor_class =  config['configurations']['yarn-site']['yarn.nodemanager.container-executor.class']
 is_linux_container_executor = (yarn_nodemanager_container_executor_class == 'org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor')
-container_executor_mode = 06050 if is_linux_container_executor else 02050
+container_executor_mode = 0o6050 if is_linux_container_executor else 0o2050
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 yarn_http_policy = config['configurations']['yarn-site']['yarn.http.policy']
 yarn_https_on = (yarn_http_policy.upper() == 'HTTPS_ONLY')
@@ -233,7 +233,7 @@ else:
   rm_webui_https_address = format("{rm_host}:{rm_https_port}")
 
 if security_enabled:
-  tc_mode = 0644
+  tc_mode = 0o644
   tc_owner = "root"
 else:
   tc_mode = None
@@ -499,7 +499,7 @@ if enable_ranger_yarn and is_supported_yarn_ranger:
 
   ranger_plugin_config = {
     'username' : config['configurations']['ranger-yarn-plugin-properties']['REPOSITORY_CONFIG_USERNAME'],
-    'password' : unicode(config['configurations']['ranger-yarn-plugin-properties']['REPOSITORY_CONFIG_PASSWORD']),
+    'password' : str(config['configurations']['ranger-yarn-plugin-properties']['REPOSITORY_CONFIG_PASSWORD']),
     'yarn.url' : format('{scheme}://{yarn_rest_url}'),
     'commonNameForCertificate' : config['configurations']['ranger-yarn-plugin-properties']['common.name.for.certificate']
   }

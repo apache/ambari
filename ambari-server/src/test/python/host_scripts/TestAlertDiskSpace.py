@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -38,8 +38,8 @@ class TestAlertDiskSpace(RMFTestCase):
 
     # / OK
     disk_usage_mock.return_value = alert_disk_space.DiskInfo(
-      total = 21673930752L, used = 5695861760L,
-      free = 15978068992L, path="/")
+      total = 21673930752, used = 5695861760,
+      free = 15978068992, path="/")
 
     configurations = {'{{cluster-env/stack_name}}': 'HDP',
       '{{cluster-env/stack_root}}': '{"HDP":"/usr/hdp"}'}
@@ -51,8 +51,8 @@ class TestAlertDiskSpace(RMFTestCase):
 
     # / WARNING
     disk_usage_mock.return_value = alert_disk_space.DiskInfo(
-      total = 21673930752L, used = 14521533603L,
-      free = 7152397149L, path="/")
+      total = 21673930752, used = 14521533603,
+      free = 7152397149, path="/")
 
     res = alert_disk_space.execute(configurations = configurations)
     self.assertEqual(res, (
@@ -61,7 +61,7 @@ class TestAlertDiskSpace(RMFTestCase):
 
     # / CRITICAL
     disk_usage_mock.return_value = alert_disk_space.DiskInfo(
-      total = 21673930752L, used = 20590234214L,
+      total = 21673930752, used = 20590234214,
       free = 1083696538, path="/")
 
     res = alert_disk_space.execute(configurations = configurations)
@@ -70,8 +70,8 @@ class TestAlertDiskSpace(RMFTestCase):
 
     # / OK but < 5GB
     disk_usage_mock.return_value = alert_disk_space.DiskInfo(
-      total = 5418482688L, used = 1625544806L,
-      free = 3792937882L, path="/")
+      total = 5418482688, used = 1625544806,
+      free = 3792937882, path="/")
 
     res = alert_disk_space.execute(configurations = configurations)
     self.assertEqual(res, ('WARNING', [
@@ -82,8 +82,8 @@ class TestAlertDiskSpace(RMFTestCase):
 
     # / OK
     disk_usage_mock.return_value = alert_disk_space.DiskInfo(
-      total = 21673930752L, used = 5695861760L,
-      free = 15978068992L, path="/usr/hdp")
+      total = 21673930752, used = 5695861760,
+      free = 15978068992, path="/usr/hdp")
 
     res = alert_disk_space.execute(configurations = configurations)
     self.assertEqual(res,
@@ -91,8 +91,8 @@ class TestAlertDiskSpace(RMFTestCase):
 
     # <stack-root> < 5GB
     disk_usage_mock.return_value = alert_disk_space.DiskInfo(
-      total = 5418482688L, used = 1625544806L,
-      free = 3792937882L, path="/usr/hdp")
+      total = 5418482688, used = 1625544806,
+      free = 3792937882, path="/usr/hdp")
 
     res = alert_disk_space.execute(configurations = configurations)
     self.assertEqual(res, (

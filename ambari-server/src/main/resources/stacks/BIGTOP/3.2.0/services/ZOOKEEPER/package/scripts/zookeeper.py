@@ -56,14 +56,14 @@ def zookeeper(type = None, upgrade_type=None):
             owner=params.zk_user,
             create_parents = True,
             group=params.user_group,
-            mode=0755,
+            mode=0o755,
   )
 
   Directory(params.zk_log_dir,
             owner=params.zk_user,
             create_parents = True,
             group=params.user_group,
-            mode=0755,
+            mode=0o755,
   )
 
   Directory(params.zk_data_dir,
@@ -71,27 +71,27 @@ def zookeeper(type = None, upgrade_type=None):
             create_parents = True,
             cd_access="a",
             group=params.user_group,
-            mode=0755,
+            mode=0o755,
   )
 
   if type == 'server':
     myid = str(sorted(params.zookeeper_hosts).index(params.hostname) + 1)
 
     File(os.path.join(params.zk_data_dir, "myid"),
-         mode = 0644,
+         mode = 0o644,
          content = myid
     )
 
   if (params.log4j_props != None):
     File(os.path.join(params.config_dir, "log4j.properties"),
-         mode=0644,
+         mode=0o644,
          group=params.user_group,
          owner=params.zk_user,
          content=InlineTemplate(params.log4j_props)
     )
   elif (os.path.exists(os.path.join(params.config_dir, "log4j.properties"))):
     File(os.path.join(params.config_dir, "log4j.properties"),
-         mode=0644,
+         mode=0o644,
          group=params.user_group,
          owner=params.zk_user
     )

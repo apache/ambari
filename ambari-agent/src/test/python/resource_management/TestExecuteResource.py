@@ -28,7 +28,7 @@ from resource_management.core.resources.system import Execute
 from resource_management.core.environment import Environment
 from resource_management.core.shell import quote_bash_args
 
-from ambari_commons import subprocess32
+import subprocess
 import logging
 import os
 from resource_management import Fail
@@ -45,7 +45,7 @@ class TestExecuteResource(TestCase):
   @patch.object(os, "read")
   @patch.object(select, "select")
   @patch.object(logging.Logger, "info")
-  @patch.object(subprocess32, "Popen")
+  @patch.object(subprocess, "Popen")
   def test_attribute_logoutput(self, popen_mock, info_mock, select_mock, os_read_mock):
     subproc_mock = MagicMock()
     subproc_mock.wait.return_value = MagicMock()
@@ -64,8 +64,8 @@ class TestExecuteResource(TestCase):
     info_mock.assert_called('1')
     self.assertTrue("call('2')" not in str(info_mock.mock_calls))
     
-  @patch('subprocess32.Popen.communicate')
-  @patch.object(subprocess32, "Popen")
+  @patch('subprocess.Popen.communicate')
+  @patch.object(subprocess, "Popen")
   def test_attribute_wait(self, popen_mock, proc_communicate_mock):
     with Environment("/") as env:
       Execute('echo "1"',
@@ -73,11 +73,11 @@ class TestExecuteResource(TestCase):
       Execute('echo "2"',
               wait_for_finish=False)
     
-    self.assertTrue(popen_mock.called, 'subprocess32.Popen should have been called!')
+    self.assertTrue(popen_mock.called, 'subprocess.Popen should have been called!')
     self.assertFalse(proc_communicate_mock.called, 'proc.communicate should not have been called!')
 
   @patch("resource_management.core.sudo.path_exists")
-  @patch.object(subprocess32, "Popen")
+  @patch.object(subprocess, "Popen")
   def test_attribute_creates(self, popen_mock, exists_mock):
     exists_mock.return_value = True
 
@@ -96,7 +96,7 @@ class TestExecuteResource(TestCase):
 
   @patch.object(os, "read")
   @patch.object(select, "select")
-  @patch.object(subprocess32, "Popen")
+  @patch.object(subprocess, "Popen")
   def test_attribute_path(self, popen_mock, select_mock, os_read_mock):
     subproc_mock = MagicMock()
     subproc_mock.wait.return_value = MagicMock()
@@ -116,7 +116,7 @@ class TestExecuteResource(TestCase):
   @patch.object(os, "read")
   @patch.object(select, "select")
   @patch('time.sleep')
-  @patch.object(subprocess32, "Popen")
+  @patch.object(subprocess, "Popen")
   def test_attribute_try_sleep_tries(self, popen_mock, time_mock, select_mock, os_read_mock):
     expected_call = "call('Retrying after %d seconds. Reason: %s', 1, 'Fail')"
     
@@ -157,7 +157,7 @@ class TestExecuteResource(TestCase):
 
   @patch.object(os, "read")
   @patch.object(select, "select")
-  @patch.object(subprocess32, "Popen")
+  @patch.object(subprocess, "Popen")
   def test_attribute_environment(self, popen_mock, select_mock, os_read_mock):
     expected_dict = {"JAVA_HOME": "/test/java/home"}
 
@@ -179,7 +179,7 @@ class TestExecuteResource(TestCase):
 
   @patch.object(os, "read")
   @patch.object(select, "select")
-  @patch.object(subprocess32, "Popen")
+  @patch.object(subprocess, "Popen")
   def test_attribute_environment_non_root(self, popen_mock, select_mock, os_read_mock):
     expected_user = 'test_user'
 
@@ -197,15 +197,15 @@ class TestExecuteResource(TestCase):
                                  environment={'JAVA_HOME': '/test/java/home',
                                               'PATH': "/bin"}
       )
-      
 
-    expected_command = ['/bin/bash', '--login', '--noprofile', '-c', 'ambari-sudo.sh su test_user -l -s /bin/bash -c ' + quote_bash_args('export  PATH=' + quote_bash_args(os.environ['PATH'] + ':/bin') + ' JAVA_HOME=/test/java/home ; echo "1"')]
+
+    expected_command = ['/bin/bash', '--login', '--noprofile', '-c', 'ambari-sudo.sh su test_user -l -s /bin/bash -c ' + quote_bash_args('export  JAVA_HOME=/test/java/home' + ' PATH=' + quote_bash_args(os.environ['PATH'] + ':/bin') + ' ; echo "1"')]
     self.assertEqual(popen_mock.call_args_list[0][0][0], expected_command)
 
 
   @patch.object(os, "read")
   @patch.object(select, "select")
-  @patch.object(subprocess32, "Popen")
+  @patch.object(subprocess, "Popen")
   def test_attribute_cwd(self, popen_mock, select_mock, os_read_mock):
     expected_cwd = "/test/work/directory"
 
@@ -226,7 +226,7 @@ class TestExecuteResource(TestCase):
 
   @patch.object(os, "read")
   @patch.object(select, "select")
-  @patch.object(subprocess32, "Popen")
+  @patch.object(subprocess, "Popen")
   def test_attribute_command_escaping(self, popen_mock, select_mock, os_read_mock):
     expected_command0 = "arg1 arg2 'quoted arg'"
     expected_command1 = "arg1 arg2 'command \"arg\"'"
@@ -266,7 +266,7 @@ class TestExecuteResource(TestCase):
 
   @patch.object(os, "read")
   @patch.object(select, "select")
-  @patch.object(subprocess32, "Popen")
+  @patch.object(subprocess, "Popen")
   def test_attribute_command_one_line(self, popen_mock, select_mock, os_read_mock):
     expected_command = "rm -rf /somedir"
 

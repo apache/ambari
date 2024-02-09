@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -21,7 +21,7 @@ limitations under the License.
 import unittest
 from mock.mock import patch, MagicMock, call, Mock
 from ambari_agent import PingPortListener
-from ambari_commons import subprocess32
+import subprocess
 import socket
 import sys
 
@@ -32,7 +32,7 @@ class TestPingPortListener(unittest.TestCase):
     self.config.get.return_value = 55000
     PingPortListener.logger = MagicMock()
 
-  @patch.object(subprocess32, "Popen")
+  @patch.object(subprocess, "Popen")
   @patch("socket.socket")
   def test_init_success(self,socketMock,popen_mock):
     procObj = MagicMock()
@@ -53,7 +53,7 @@ class TestPingPortListener(unittest.TestCase):
 
 
 
-  @patch.object(subprocess32, "Popen")
+  @patch.object(subprocess, "Popen")
   @patch.object(socket.socket,"bind")
   @patch.object(socket.socket,"listen")
   def test_init_warn(self,socketListenMock,socketBindMock,popen_mock):

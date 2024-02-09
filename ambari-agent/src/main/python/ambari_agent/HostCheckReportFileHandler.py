@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 Licensed to the Apache Software Foundation (ASF) under one
@@ -23,8 +23,8 @@ import os.path
 import logging
 import re
 import traceback
-from AmbariConfig import AmbariConfig
-import ConfigParser
+from ambari_agent.AmbariConfig import AmbariConfig
+import configparser
 
 HADOOP_ROOT_DIR = "/usr/hdp"
 HADOOP_PERM_REMOVE_LIST = ["current"]
@@ -43,8 +43,8 @@ class HostCheckReportFileHandler:
       config = self.resolve_ambari_config()
       
     hostCheckFileDir = config.get('agent', 'prefix')
-    self.hostCheckFilePath = os.path.join(hostCheckFileDir, self.HOST_CHECK_FILE)
-    self.hostCheckCustomActionsFilePath = os.path.join(hostCheckFileDir, self.HOST_CHECK_CUSTOM_ACTIONS_FILE)
+    self.hostCheckFilePath = os.path.join(str(hostCheckFileDir), self.HOST_CHECK_FILE)
+    self.hostCheckCustomActionsFilePath = os.path.join(str(hostCheckFileDir), self.HOST_CHECK_CUSTOM_ACTIONS_FILE)
     
   def resolve_ambari_config(self):
     try:
@@ -54,7 +54,7 @@ class HostCheckReportFileHandler:
       else:
         raise Exception("No config found, use default")
 
-    except Exception, err:
+    except Exception as err:
       logger.warn(err)
     return config
     
@@ -64,7 +64,7 @@ class HostCheckReportFileHandler:
     
     try:
       logger.info("Host check custom action report at " + self.hostCheckCustomActionsFilePath)
-      config = ConfigParser.RawConfigParser()
+      config = configparser.RawConfigParser()
       config.add_section('metadata')
       config.set('metadata', 'created', str(datetime.datetime.now()))
       
@@ -81,9 +81,9 @@ class HostCheckReportFileHandler:
         
       self.removeFile(self.hostCheckCustomActionsFilePath)
       self.touchFile(self.hostCheckCustomActionsFilePath)
-      with open(self.hostCheckCustomActionsFilePath, 'wb') as configfile:
+      with open(self.hostCheckCustomActionsFilePath, 'wt') as configfile:
         config.write(configfile)
-    except Exception, err:
+    except Exception as err:
       logger.error("Can't write host check file at %s :%s " % (self.hostCheckCustomActionsFilePath, err.message))
       traceback.print_exc()
 
@@ -123,7 +123,7 @@ class HostCheckReportFileHandler:
 
     try:
       logger.debug("Host check report at " + self.hostCheckFilePath)
-      config = ConfigParser.RawConfigParser()
+      config = configparser.RawConfigParser()
       config.add_section('metadata')
       config.set('metadata', 'created', str(datetime.datetime.now()))
 
@@ -165,9 +165,9 @@ class HostCheckReportFileHandler:
 
       self.removeFile(self.hostCheckFilePath)
       self.touchFile(self.hostCheckFilePath)
-      with open(self.hostCheckFilePath, 'wb') as configfile:
+      with open(self.hostCheckFilePath, 'wt') as configfile:
         config.write(configfile)
-    except Exception, err:
+    except Exception as err:
       logger.error("Can't write host check file at %s :%s " % (self.hostCheckFilePath, err.message))
       traceback.print_exc()
 

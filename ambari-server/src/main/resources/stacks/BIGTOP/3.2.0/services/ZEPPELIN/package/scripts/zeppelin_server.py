@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -89,7 +89,7 @@ class ZeppelinServer(Script):
               group=params.zeppelin_group,
               cd_access="a",
               create_parents=True,
-              mode=0755
+              mode=0o755
               )
 
   def create_zeppelin_hdfs_conf_dir(self, env):
@@ -100,7 +100,7 @@ class ZeppelinServer(Script):
               group=params.zeppelin_group,
               cd_access="a",
               create_parents=True,
-              mode=0755
+              mode=0o755
               )
 
   def chown_zeppelin_pid_dir(self, env):
@@ -123,7 +123,7 @@ class ZeppelinServer(Script):
               cd_access="a",
               create_parents=True,
               recursive_ownership=True,
-              mode=0755
+              mode=0o755
     )
     self.chown_zeppelin_pid_dir(env)
 
@@ -159,7 +159,7 @@ class ZeppelinServer(Script):
               configuration_attributes=params.config['configurationAttributes']['hbase-site'],
               owner=params.zeppelin_user,
               group=params.zeppelin_group,
-              mode=0644)
+              mode=0o644)
 
       XmlConfig("hdfs-site.xml",
                 conf_dir=params.external_dependency_conf,
@@ -167,7 +167,7 @@ class ZeppelinServer(Script):
                 configuration_attributes=params.config['configurationAttributes']['hdfs-site'],
                 owner=params.zeppelin_user,
                 group=params.zeppelin_group,
-                mode=0644)
+                mode=0o644)
 
       XmlConfig("core-site.xml",
                 conf_dir=params.external_dependency_conf,
@@ -175,7 +175,7 @@ class ZeppelinServer(Script):
                 configuration_attributes=params.config['configurationAttributes']['core-site'],
                 owner=params.zeppelin_user,
                 group=params.zeppelin_group,
-                mode=0644,
+                mode=0o644,
                 xml_include_file=params.mount_table_xml_inclusion_file_full_path)
 
       if params.mount_table_content:
@@ -183,7 +183,7 @@ class ZeppelinServer(Script):
              owner=params.zeppelin_user,
              group=params.zeppelin_group,
              content=params.mount_table_content,
-             mode=0644
+             mode=0o644
         )
 
   def check_and_copy_notebook_in_hdfs(self, params):
@@ -437,7 +437,7 @@ class ZeppelinServer(Script):
     File(interpreter_config,
          group=params.zeppelin_group,
          owner=params.zeppelin_user,
-         mode=0644,
+         mode=0o644,
          content=json.dumps(config_data, indent=2))
 
     if params.conf_stored_in_hdfs:
@@ -655,7 +655,7 @@ class ZeppelinServer(Script):
            content=interpreter_json,
            owner=params.zeppelin_user,
            group=params.zeppelin_group,
-           mode=0664)
+           mode=0o664)
 
       if params.conf_stored_in_hdfs:
         params.HdfsResource(self.get_zeppelin_conf_FS(params),

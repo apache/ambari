@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -17,7 +17,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-from Queue import Queue
+from queue import Queue
 
 from unittest import TestCase
 from ambari_agent.LiveStatus import LiveStatus
@@ -59,12 +59,12 @@ class TestActionQueue(TestCase):
 
   datanode_install_command = {
     'commandType': 'EXECUTION_COMMAND',
-    'role': u'DATANODE',
-    'roleCommand': u'INSTALL',
+    'role': 'DATANODE',
+    'roleCommand': 'INSTALL',
     'commandId': '1-1',
     'taskId': 3,
-    'clusterName': u'cc',
-    'serviceName': u'HDFS',
+    'clusterName': 'cc',
+    'serviceName': 'HDFS',
     'hostLevelParams': {},
     'configurations':{'global' : {}},
     'configurationTags':{'global' : { 'tag': 'v1' }},
@@ -76,12 +76,12 @@ class TestActionQueue(TestCase):
 
   datanode_install_no_retry_command = {
     'commandType': 'EXECUTION_COMMAND',
-    'role': u'DATANODE',
-    'roleCommand': u'INSTALL',
+    'role': 'DATANODE',
+    'roleCommand': 'INSTALL',
     'commandId': '1-1',
     'taskId': 3,
-    'clusterName': u'cc',
-    'serviceName': u'HDFS',
+    'clusterName': 'cc',
+    'serviceName': 'HDFS',
     'hostLevelParams': {},
     'configurations':{'global' : {}},
     'configurationTags':{'global' : { 'tag': 'v1' }},
@@ -93,12 +93,12 @@ class TestActionQueue(TestCase):
 
   datanode_auto_start_command = {
     'commandType': 'AUTO_EXECUTION_COMMAND',
-    'role': u'DATANODE',
-    'roleCommand': u'START',
+    'role': 'DATANODE',
+    'roleCommand': 'START',
     'commandId': '1-1',
     'taskId': 3,
-    'clusterName': u'cc',
-    'serviceName': u'HDFS',
+    'clusterName': 'cc',
+    'serviceName': 'HDFS',
     'hostLevelParams': {},
     'configurations':{'global' : {}},
     'configurationTags':{'global' : { 'tag': 'v1' }},
@@ -127,36 +127,36 @@ class TestActionQueue(TestCase):
 
   namenode_install_command = {
     'commandType': 'EXECUTION_COMMAND',
-    'role': u'NAMENODE',
-    'roleCommand': u'INSTALL',
+    'role': 'NAMENODE',
+    'roleCommand': 'INSTALL',
     'commandId': '1-1',
     'taskId': 4,
-    'clusterName': u'cc',
-    'serviceName': u'HDFS',
+    'clusterName': 'cc',
+    'serviceName': 'HDFS',
     'hostLevelParams': {},
     'clusterId': CLUSTER_ID,
     }
 
   snamenode_install_command = {
     'commandType': 'EXECUTION_COMMAND',
-    'role': u'SECONDARY_NAMENODE',
-    'roleCommand': u'INSTALL',
+    'role': 'SECONDARY_NAMENODE',
+    'roleCommand': 'INSTALL',
     'commandId': '1-1',
     'taskId': 5,
-    'clusterName': u'cc',
-    'serviceName': u'HDFS',
+    'clusterName': 'cc',
+    'serviceName': 'HDFS',
     'hostLevelParams': {},
     'clusterId': CLUSTER_ID,
     }
 
   hbase_install_command = {
     'commandType': 'EXECUTION_COMMAND',
-    'role': u'HBASE',
-    'roleCommand': u'INSTALL',
+    'role': 'HBASE',
+    'roleCommand': 'INSTALL',
     'commandId': '1-1',
     'taskId': 7,
-    'clusterName': u'cc',
-    'serviceName': u'HDFS',
+    'clusterName': 'cc',
+    'serviceName': 'HDFS',
     'hostLevelParams': {},
     'commandParams': {
       'command_retry_enabled': 'true'
@@ -176,12 +176,12 @@ class TestActionQueue(TestCase):
 
   datanode_restart_command = {
     'commandType': 'EXECUTION_COMMAND',
-    'role': u'DATANODE',
-    'roleCommand': u'CUSTOM_COMMAND',
+    'role': 'DATANODE',
+    'roleCommand': 'CUSTOM_COMMAND',
     'commandId': '1-1',
     'taskId': 9,
-    'clusterName': u'cc',
-    'serviceName': u'HDFS',
+    'clusterName': 'cc',
+    'serviceName': 'HDFS',
     'configurations':{'global' : {}},
     'configurationTags':{'global' : { 'tag': 'v123' }},
     'hostLevelParams':{'custom_command': 'RESTART', 'clientsToUpdateConfigs': []},
@@ -190,12 +190,12 @@ class TestActionQueue(TestCase):
 
   datanode_restart_command_no_logging = {
     'commandType': 'EXECUTION_COMMAND',
-    'role': u'DATANODE',
-    'roleCommand': u'CUSTOM_COMMAND',
+    'role': 'DATANODE',
+    'roleCommand': 'CUSTOM_COMMAND',
     'commandId': '1-1',
     'taskId': 9,
-    'clusterName': u'cc',
-    'serviceName': u'HDFS',
+    'clusterName': 'cc',
+    'serviceName': 'HDFS',
     'configurations': {'global': {}},
     'configurationTags': {'global': {'tag': 'v123'}},
     'commandParams': {
@@ -207,12 +207,12 @@ class TestActionQueue(TestCase):
 
   datanode_restart_command_no_clients_update = {
     'commandType': 'EXECUTION_COMMAND',
-    'role': u'DATANODE',
-    'roleCommand': u'CUSTOM_COMMAND',
+    'role': 'DATANODE',
+    'roleCommand': 'CUSTOM_COMMAND',
     'commandId': '1-1',
     'taskId': 9,
-    'clusterName': u'cc',
-    'serviceName': u'HDFS',
+    'clusterName': 'cc',
+    'serviceName': 'HDFS',
     'configurations':{'global' : {}},
     'configurationTags':{'global' : { 'tag': 'v123' }},
     'hostLevelParams':{'custom_command': 'RESTART'},
@@ -222,12 +222,12 @@ class TestActionQueue(TestCase):
   datanode_start_custom_command = {
     'clusterId': CLUSTER_ID,
     'commandType': 'EXECUTION_COMMAND',
-    'role': u'DATANODE',
-    'roleCommand': u'CUSTOM_COMMAND',
+    'role': 'DATANODE',
+    'roleCommand': 'CUSTOM_COMMAND',
     'commandId': '1-1',
     'taskId': 9,
-    'clusterName': u'cc',
-    'serviceName': u'HDFS',
+    'clusterName': 'cc',
+    'serviceName': 'HDFS',
     'configurations':{'global' : {}},
     'configurationTags':{'global' : { 'tag': 'v123' }},
     'hostLevelParams':{'custom_command': 'START'},
@@ -236,12 +236,12 @@ class TestActionQueue(TestCase):
 
   yarn_refresh_queues_custom_command = {
     'commandType': 'EXECUTION_COMMAND',
-    'role': u'RESOURCEMANAGER',
-    'roleCommand': u'CUSTOM_COMMAND',
+    'role': 'RESOURCEMANAGER',
+    'roleCommand': 'CUSTOM_COMMAND',
     'commandId': '1-1',
     'taskId': 9,
-    'clusterName': u'cc',
-    'serviceName': u'YARN',
+    'clusterName': 'cc',
+    'serviceName': 'YARN',
     'commandParams' : {'forceRefreshConfigTags' : 'capacity-scheduler'},
     'configurations':{'global' : {}},
     'configurationTags':{'global' : { 'tag': 'v123' }, 'capacity-scheduler' : {'tag': 'v123'}},
@@ -438,9 +438,9 @@ class TestActionQueue(TestCase):
                 'stdout': 'out\n\nCommand completed successfully!\n',
                 'clusterId': CLUSTER_ID,
                 'structuredOut': '""',
-                'roleCommand': u'CUSTOM_COMMAND',
-                'serviceName': u'HDFS',
-                'role': u'DATANODE',
+                'roleCommand': 'CUSTOM_COMMAND',
+                'serviceName': 'HDFS',
+                'role': 'DATANODE',
                 'actionId': '1-1',
                 'taskId': 9,
                 'exitCode': 0}
@@ -484,9 +484,9 @@ class TestActionQueue(TestCase):
                 'stdout': 'out\n\nCommand completed successfully!\n',
                 'clusterId': CLUSTER_ID,
                 'structuredOut': '""',
-                'roleCommand': u'CUSTOM_COMMAND',
-                'serviceName': u'HDFS',
-                'role': u'DATANODE',
+                'roleCommand': 'CUSTOM_COMMAND',
+                'serviceName': 'HDFS',
+                'role': 'DATANODE',
                 'actionId': '1-1',
                 'taskId': 9,
                 'exitCode': 0}
@@ -511,7 +511,7 @@ class TestActionQueue(TestCase):
     initializer_module.recovery_manager = RecoveryManager(MagicMock())
     initializer_module.recovery_manager.update_config(5, 5, 1, 11, True, False, False)
 
-    with patch("__builtin__.open") as open_mock:
+    with patch("builtins.open") as open_mock:
       # Make file read calls visible
       def open_side_effect(file, mode):
         if mode == 'r':
@@ -585,7 +585,7 @@ class TestActionQueue(TestCase):
     initializer_module.init()
     initializer_module.config = config
     
-    with patch("__builtin__.open") as open_mock:
+    with patch("builtins.open") as open_mock:
       # Make file read calls visible
       def open_side_effect(file, mode):
         if mode == 'r':
@@ -632,9 +632,9 @@ class TestActionQueue(TestCase):
                   'stdout': 'Read from {0}'.format(os.path.join(tempdir, "output-3.txt")),
                   'structuredOut' : 'Read from {0}'.format(os.path.join(tempdir, "structured-out-3.json")),
                   'clusterId': CLUSTER_ID,
-                  'roleCommand': u'INSTALL',
-                  'serviceName': u'HDFS',
-                  'role': u'DATANODE',
+                  'roleCommand': 'INSTALL',
+                  'serviceName': 'HDFS',
+                  'role': 'DATANODE',
                   'actionId': '1-1',
                   'taskId': 3,
                   'exitCode': 777}
@@ -652,9 +652,9 @@ class TestActionQueue(TestCase):
                   'stdout': 'out\n\nCommand completed successfully!\n',
                   'clusterId': CLUSTER_ID,
                   'structuredOut': '""',
-                  'roleCommand': u'INSTALL',
-                  'serviceName': u'HDFS',
-                  'role': u'DATANODE',
+                  'roleCommand': 'INSTALL',
+                  'serviceName': 'HDFS',
+                  'role': 'DATANODE',
                   'actionId': '1-1',
                   'taskId': 3,
                   'exitCode': 0}
@@ -689,9 +689,9 @@ class TestActionQueue(TestCase):
                   'stdout': 'out\n\nCommand completed successfully!\n\n\nCommand failed after 1 tries\n',
                   'clusterId': CLUSTER_ID,
                   'structuredOut': '""',
-                  'roleCommand': u'INSTALL',
-                  'serviceName': u'HDFS',
-                  'role': u'DATANODE',
+                  'roleCommand': 'INSTALL',
+                  'serviceName': 'HDFS',
+                  'role': 'DATANODE',
                   'actionId': '1-1',
                   'taskId': 3,
                   'exitCode': 13}
@@ -768,9 +768,9 @@ class TestActionQueue(TestCase):
                 'stderr': 'stderr',
                 'stdout': 'out\n\nCommand completed successfully!\n',
                 'structuredOut': '""',
-                'roleCommand': u'CUSTOM_COMMAND',
-                'serviceName': u'HDFS',
-                'role': u'DATANODE',
+                'roleCommand': 'CUSTOM_COMMAND',
+                'serviceName': 'HDFS',
+                'role': 'DATANODE',
                 'actionId': '1-1',
                 'taskId': 9,
                 'clusterId': CLUSTER_ID,
@@ -811,9 +811,9 @@ class TestActionQueue(TestCase):
                 'stdout': 'out\n\nCommand completed successfully!\n',
                 'clusterId': CLUSTER_ID,
                 'structuredOut': '""',
-                'roleCommand': u'CUSTOM_COMMAND',
-                'serviceName': u'HDFS',
-                'role': u'DATANODE',
+                'roleCommand': 'CUSTOM_COMMAND',
+                'serviceName': 'HDFS',
+                'role': 'DATANODE',
                 'actionId': '1-1',
                 'taskId': 9,
                 'exitCode': 0}
@@ -853,9 +853,9 @@ class TestActionQueue(TestCase):
                 'stdout': 'out\n\nCommand completed successfully!\n',
                 'clusterId': CLUSTER_ID,
                 'structuredOut': '""',
-                'roleCommand': u'CUSTOM_COMMAND',
-                'serviceName': u'YARN',
-                'role': u'RESOURCEMANAGER',
+                'roleCommand': 'CUSTOM_COMMAND',
+                'serviceName': 'YARN',
+                'role': 'RESOURCEMANAGER',
                 'actionId': '1-1',
                 'taskId': 9,
                 'exitCode': 0}
@@ -891,9 +891,9 @@ class TestActionQueue(TestCase):
                 'stderr': 'stderr',
                 'stdout': 'out\n\nCommand completed successfully!\n',
                 'structuredOut': '""',
-                'roleCommand': u'CUSTOM_COMMAND',
-                'serviceName': u'HDFS',
-                'role': u'DATANODE',
+                'roleCommand': 'CUSTOM_COMMAND',
+                'serviceName': 'HDFS',
+                'role': 'DATANODE',
                 'actionId': '1-1',
                 'taskId': 9,
                 'exitCode': 0,
@@ -918,12 +918,12 @@ class TestActionQueue(TestCase):
 
     tez_client_install_command = {
       'commandType': 'EXECUTION_COMMAND',
-      'role': u'TEZ_CLIENT',
-      'roleCommand': u'INSTALL',
+      'role': 'TEZ_CLIENT',
+      'roleCommand': 'INSTALL',
       'commandId': '1-1',
       'taskId': 9,
-      'clusterName': u'cc',
-      'serviceName': u'TEZ',
+      'clusterName': 'cc',
+      'serviceName': 'TEZ',
       'configurations': {'global' : {}},
       'configurationTags': {'global' : { 'tag': 'v123' }},
       'hostLevelParams': {},
@@ -1193,12 +1193,12 @@ def patch_output_file(pythonExecutor):
     with tmperr:
       tmperr.write('process_err')
     return proc
-  def open_subprocess32_files_win(fout, ferr, f):
+  def open_subprocess_files_win(fout, ferr, f):
     return MagicMock(), MagicMock()
   def read_result_from_files(out_path, err_path, structured_out_path):
     return 'process_out', 'process_err', '{"a": "b."}'
-  pythonExecutor.launch_python_subprocess32 = windows_py
-  pythonExecutor.open_subprocess32_files = open_subprocess32_files_win
+  pythonExecutor.launch_python_subprocess = windows_py
+  pythonExecutor.open_subprocess_files = open_subprocess_files_win
   pythonExecutor.read_result_from_files = read_result_from_files
 
 def wraped(func, before=None, after=None):

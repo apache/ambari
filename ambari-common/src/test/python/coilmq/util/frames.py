@@ -4,7 +4,7 @@ import logging
 from collections import OrderedDict
 import io
 
-import six
+from coilmq.util import six
 
 SEND = 'SEND'
 CONNECT = 'CONNECT'
@@ -42,9 +42,7 @@ def parse_headers(buff):
     """
     Parses buffer and returns command and headers as strings
     """
-    preamble_lines = list(map(
-        lambda x: six.u(x).decode(),
-        iter(lambda: buff.readline().strip(), b''))
+    preamble_lines = list([six.u(x).decode() for x in iter(lambda: buff.readline().strip(), b'')]
     )
     if not preamble_lines:
         raise EmptyBuffer()
@@ -355,5 +353,5 @@ class FrameBuffer(object):
             raise StopIteration()
         return msg
 
-    def next(self):
+    def __next__(self):
         return self.__next__()

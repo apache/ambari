@@ -101,7 +101,7 @@ class FindSplitPointsForAMSRegions():
       memstore_flush_size = format_Xmx_size_to_bytes(self.ams_hbase_site['hbase.hregion.memstore.flush.size'])
 
       max_inmemory_regions = (memstore_max_mem / memstore_flush_size) - other_region_static_count
-      print 'max_inmemory_regions: %s' % max_inmemory_regions
+      print('max_inmemory_regions: %s' % max_inmemory_regions)
 
       if max_inmemory_regions > 2:
         # Lets say total = 25, so we have 20 regions to allocate between
@@ -123,7 +123,7 @@ class FindSplitPointsForAMSRegions():
     self.gatherMetrics(metrics, self.customServiceMetricsDir)
 
     self.metrics = sorted(metrics)
-    print 'metrics length: %s' % len(self.metrics)
+    print('metrics length: %s' % len(self.metrics))
 
 
   def gatherMetrics(self, metrics, dir):
@@ -137,7 +137,7 @@ class FindSplitPointsForAMSRegions():
       # Process for stack services selected at deploy time or all stack services if
       # services arg is not passed
       if self.services is None or file.rstrip(metric_filename_ext) in self.services:
-        print 'Processing file: %s' % os.path.join(dir, file)
+        print('Processing file: %s' % os.path.join(dir, file))
         service_metrics = set()
         with open(os.path.join(dir, file), 'r') as f:
           for metric in f:
@@ -214,15 +214,15 @@ def main(argv = None):
       if services:
         services = str(services).split(',')
       pass
-    except Exception, ex:
+    except Exception as ex:
       sys.stderr.write(str(ex))
       sys.stderr.write("\nUsage: Expected items not found in input. Found "
                       " ams-hbase-site => {0}, ams-hbase-env => {1},"
                       " services => {2}".format(ams_hbase_site, ams_hbase_env, services))
       sys.exit(2)
 
-    print '--------- AMS Regions Split point finder ---------'
-    print 'Services: %s' % services
+    print('--------- AMS Regions Split point finder ---------')
+    print('Services: %s' % services)
 
     mode = 'distributed' if 'hbase.rootdir' in ams_hbase_site and \
                             'hdfs' in ams_hbase_site['hbase.rootdir'] else \
@@ -232,15 +232,15 @@ def main(argv = None):
       ams_hbase_site, ams_hbase_env, serviceMetricsDir, mode, services)
 
     result = split_point_finder.get_split_points()
-    print 'Split points for precision table : %s' % len(result.precision)
-    print 'precision: %s' % str(result.precision)
-    print 'Split points for aggregate table : %s' % len(result.aggregate)
-    print 'aggregate: %s' % str(result.aggregate)
+    print('Split points for precision table : %s' % len(result.precision))
+    print('precision: %s' % str(result.precision))
+    print('Split points for aggregate table : %s' % len(result.aggregate))
+    print('aggregate: %s' % str(result.aggregate))
 
     return 0
 
   else:
-    print 'Cannot find service metrics dir in %s' % scriptDir
+    print('Cannot find service metrics dir in %s' % scriptDir)
 
 if __name__ == '__main__':
   main(sys.argv)

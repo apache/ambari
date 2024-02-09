@@ -40,7 +40,7 @@ try:
     service_advisor = imp.load_module('service_advisor', fp, PARENT_FILE, ('.py', 'rb', imp.PY_SOURCE))
 except Exception as e:
   traceback.print_exc()
-  print "Failed to load parent"
+  print("Failed to load parent")
 
 class AMBARI_METRICSServiceAdvisor(service_advisor.ServiceAdvisor):
 
@@ -183,7 +183,7 @@ class AMBARI_METRICSServiceAdvisor(service_advisor.ServiceAdvisor):
                                      hosts))
         hbase_heapsize += int((schCount * multiplier))
         total_sinks_count += schCount
-    collector_heapsize = int(hbase_heapsize/3 if hbase_heapsize > 2048 else 512)
+    collector_heapsize = int(hbase_heapsize//3 if hbase_heapsize > 2048 else 512)
     hbase_heapsize = min(hbase_heapsize, 32768)
 
     return self.round_to_n(collector_heapsize), self.round_to_n(hbase_heapsize), total_sinks_count
@@ -385,7 +385,7 @@ class AMBARI_METRICSRecommender(service_advisor.ServiceAdvisor):
         putAmsHbaseSiteProperty("phoenix.coprocessor.maxMetaDataCacheSize", 20480000)
       pass
 
-    metrics_api_handlers = min(50, max(20, int(total_sinks_count / 100)))
+    metrics_api_handlers = min(50, max(20, int(total_sinks_count // 100)))
     putAmsSiteProperty("timeline.metrics.service.handler.thread.count", metrics_api_handlers)
 
     serviceAdvisor = AMBARI_METRICSServiceAdvisor()

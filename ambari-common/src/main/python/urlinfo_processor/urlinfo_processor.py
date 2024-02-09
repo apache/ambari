@@ -20,7 +20,7 @@ limitations under the License.
 
 import getopt
 import json
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import re
 from os import path
 import xml.etree.ElementTree as ET
@@ -56,7 +56,7 @@ XML_HEADER = """<?xml version="1.0"?>
 
 def get_json_content(path):
   try:
-    response = urllib2.urlopen(path)
+    response = urllib.request.urlopen(path)
     content = response.read()
   except:
     content = open(path, "r").read()
@@ -76,10 +76,10 @@ def replace_url_in_repoinfo_xml(repoinfo_xml_path, repo_id, repo_info):
         baseurl_tag = repo_tag.find("baseurl")
         if baseurl_tag is not None and family in repo_info:
           if family in repo_info:
-            print "URLINFO_PROCESSOR: replacing {0} to {1} for repo id:{2} and family:{3}".format(baseurl_tag.text,
+            print("URLINFO_PROCESSOR: replacing {0} to {1} for repo id:{2} and family:{3}".format(baseurl_tag.text,
                                                                                                   repo_info[family],
                                                                                                   repo_id,
-                                                                                                  family)
+                                                                                                  family))
             baseurl_tag.text = repo_info[family]
 
   with open(repoinfo_xml_path, "w") as out:
@@ -89,9 +89,9 @@ def replace_url_in_repoinfo_xml(repoinfo_xml_path, repo_id, repo_info):
 
 def replace_urls(stack_location, repo_version_path):
   repo_dict = get_json_content(repo_version_path)
-  repo_dict = {(json_stack_version_re.findall(ver)[0][1], ver): conf["latest"] for ver, conf in repo_dict.iteritems()}
+  repo_dict = {(json_stack_version_re.findall(ver)[0][1], ver): conf["latest"] for ver, conf in list(repo_dict.items())}
 
-  for version_info, repo_info in repo_dict.iteritems():
+  for version_info, repo_info in repo_dict.items():
     stack_version, repo_id = version_info
     repoinfo_xml_path = path.join(stack_location, stack_version, "repos", "repoinfo.xml")
     if path.exists(repoinfo_xml_path):
@@ -104,23 +104,23 @@ def main(argv):
   try:
     opts, args = getopt.getopt(argv, "u:s:", ["urlinfo=", "stack_folder="])
   except getopt.GetoptError:
-    print HELP_STRING
+    print(HELP_STRING)
     sys.exit(2)
   for opt, arg in opts:
     if opt == '-h':
-      print HELP_STRING
+      print(HELP_STRING)
       sys.exit()
     elif opt in ("-u", "--urlinfo"):
       urlinfo_path = arg
     elif opt in ("-s", "--stack_folder"):
       stack_folder = arg
   if not urlinfo_path or not stack_folder:
-    print HELP_STRING
+    print(HELP_STRING)
     sys.exit(2)
 
-  print "URLINFO_PROCESSOR: starting replacement of repo urls"
+  print("URLINFO_PROCESSOR: starting replacement of repo urls")
   replace_urls(stack_folder, urlinfo_path)
-  print "URLINFO_PROCESSOR: replacement finished"
+  print("URLINFO_PROCESSOR: replacement finished")
 
 
 if __name__ == "__main__":

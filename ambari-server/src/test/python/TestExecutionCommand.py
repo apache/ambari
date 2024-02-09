@@ -43,7 +43,7 @@ class TestExecutionCommand(TestCase):
 
     def test_get_module_name(self):
         module_name = self.__execution_command.get_module_name()
-        self.assertEquals(module_name, "HDFS")
+        self.assertEqual(module_name, "HDFS")
 
     # TODO : Check if this will be part of _hosts info in clusterHostInfo.
     '''
@@ -62,23 +62,23 @@ class TestExecutionCommand(TestCase):
 
     def test_get_module_configs(self):
         module_configs = self.__execution_command.get_module_configs()
-        self.assertNotEquals(module_configs, None)
+        self.assertNotEqual(module_configs, None)
 
         zookeeper_client_port = module_configs.get_property_value("zookeeper", "zoo.cfg", "clientPort")
-        self.assertEquals(int(zookeeper_client_port), 2181)
+        self.assertEqual(int(zookeeper_client_port), 2181)
 
         zookeeper_client_port_fake = module_configs.get_property_value("zookeeper", "zoo.cfg", "clientPort1")
-        self.assertEquals(zookeeper_client_port_fake, None)
+        self.assertEqual(zookeeper_client_port_fake, None)
 
         zookeeper_client_port_default_value = module_configs.get_property_value("zookeeper", "zoo.cfg", "clientPort1", 1111)
-        self.assertEquals(int(zookeeper_client_port_default_value), 1111)
+        self.assertEqual(int(zookeeper_client_port_default_value), 1111)
 
         zookeeper_empty_value = module_configs.get_all_properties("zookeeper", "zoo_fake")
-        self.assertEquals(zookeeper_empty_value, {})
+        self.assertEqual(zookeeper_empty_value, {})
 
         zookeeper_log_max_backup_size = module_configs.get_property_value('zookeeper', 'zookeeper-log4j',
                                                                           'zookeeper_log_max_backup_size', 10)
-        self.assertEquals(zookeeper_log_max_backup_size, u'10')
+        self.assertEqual(zookeeper_log_max_backup_size, '10')
 
         properties = module_configs.get_properties("zookeeper", "zoo.cfg", ['clientPort', 'dataDir', 'fake'])
         self.assertEqual(int(properties.get('clientPort')), 2181)
@@ -114,7 +114,7 @@ class TestExecutionCommand(TestCase):
         stack_settings = self.__execution_command.get_stack_settings()
 
         stack_name = stack_settings.get_mpack_name()
-        self.assertEquals(stack_name, "HDP")
+        self.assertEqual(stack_name, "HDP")
 
         stack_features = stack_settings.get_stack_features()
         self.assertTrue("snappy" in stack_features)
@@ -183,7 +183,7 @@ class TestExecutionCommand(TestCase):
         self.assertEqual(cluster_name, "c1")
 
         repo_file = exec_cmd.get_repository_file()
-        expected = {u'resolved': True, u'repoVersion': u'3.0.1.0-187', u'repositories': [{u'mirrorsList': None, u'tags': [], u'ambariManaged': True, u'baseUrl': u'http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos7/3.x/BUILDS/3.0.1.0-187', u'repoName': u'HDP', u'components': None, u'distribution': None, u'repoId': u'HDP-3.0-repo-1', u'applicableServices': []}, {u'mirrorsList': None, u'tags': [u'GPL'], u'ambariManaged': True, u'baseUrl': u'http://s3.amazonaws.com/dev.hortonworks.com/HDP-GPL/centos7/3.x/BUILDS/3.0.1.0-187', u'repoName': u'HDP-GPL', u'components': None, u'distribution': None, u'repoId': u'HDP-3.0-GPL-repo-1', u'applicableServices': []}, {u'mirrorsList': None, u'tags': [], u'ambariManaged': True, u'baseUrl': u'http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.22/repos/centos7', u'repoName': u'HDP-UTILS', u'components': None, u'distribution': None, u'repoId': u'HDP-UTILS-1.1.0.22-repo-1', u'applicableServices': []}], u'feature': {u'preInstalled': False, u'scoped': True}, u'stackName': u'HDP', u'repoVersionId': 1, u'repoFileName': u'ambari-hdp-1'}
+        expected = {'resolved': True, 'repoVersion': '3.0.1.0-187', 'repositories': [{'mirrorsList': None, 'tags': [], 'ambariManaged': True, 'baseUrl': 'http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos7/3.x/BUILDS/3.0.1.0-187', 'repoName': 'HDP', 'components': None, 'distribution': None, 'repoId': 'HDP-3.0-repo-1', 'applicableServices': []}, {'mirrorsList': None, 'tags': ['GPL'], 'ambariManaged': True, 'baseUrl': 'http://s3.amazonaws.com/dev.hortonworks.com/HDP-GPL/centos7/3.x/BUILDS/3.0.1.0-187', 'repoName': 'HDP-GPL', 'components': None, 'distribution': None, 'repoId': 'HDP-3.0-GPL-repo-1', 'applicableServices': []}, {'mirrorsList': None, 'tags': [], 'ambariManaged': True, 'baseUrl': 'http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.22/repos/centos7', 'repoName': 'HDP-UTILS', 'components': None, 'distribution': None, 'repoId': 'HDP-UTILS-1.1.0.22-repo-1', 'applicableServices': []}], 'feature': {'preInstalled': False, 'scoped': True}, 'stackName': 'HDP', 'repoVersionId': 1, 'repoFileName': 'ambari-hdp-1'}
         self.assertDictEqual(expected, repo_file)
 
         local_components = exec_cmd.get_local_components()
@@ -242,12 +242,12 @@ class TestExecutionCommand(TestCase):
         self.assertEqual(mpack_version, '3.0')
 
         user_groups = exec_cmd.get_user_groups()
-        self.assertEqual(user_groups, u'{"zookeeper":["hadoop"],"ambari-qa":["hadoop","users"],"hdfs":["hdfs","hadoop"]}')
+        self.assertEqual(user_groups, '{"zookeeper":["hadoop"],"ambari-qa":["hadoop","users"],"hdfs":["hdfs","hadoop"]}')
         group_list = exec_cmd.get_group_list()
-        self.assertEqual(group_list, u'["hdfs","hadoop","users"]')
+        self.assertEqual(group_list, '["hdfs","hadoop","users"]')
 
         user_list = exec_cmd.get_user_list()
-        self.assertEqual(user_list, u'["zookeeper","ambari-qa","hdfs"]')
+        self.assertEqual(user_list, '["zookeeper","ambari-qa","hdfs"]')
 
         host_name = exec_cmd.get_host_name()
         self.assertEqual(host_name, 'host-1.openstacklocal')

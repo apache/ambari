@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -41,6 +41,7 @@ from hbase_decommission import hbase_decommission
 from resource_management.core.logger import Logger
 
 
+
 class HbaseRegionServer(Script):
   def install(self, env):
     import params
@@ -53,7 +54,7 @@ class HbaseRegionServer(Script):
     hbase(name='regionserver')
 
   def decommission(self, env):
-    print "Decommission not yet implemented!"
+    print("Decommission not yet implemented!")
 
   def graceful_stop(self, env, upgrade_type=None):
     import params

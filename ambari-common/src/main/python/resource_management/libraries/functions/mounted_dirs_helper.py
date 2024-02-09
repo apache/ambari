@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -57,7 +57,7 @@ def get_dir_to_mount_from_file(history_filename):
           line_array = line.split(",")
           if line_array and len(line_array) == 2:
             dir_to_mount[line_array[0]] = line_array[1]
-    except Exception, e:
+    except Exception as e:
       Logger.error("Encountered error while attempting to read dir mount mount values from file %s" %
                    str(history_filename))
   return dir_to_mount
@@ -88,7 +88,7 @@ def handle_mounted_dirs(func, dirs_string, history_filename, update_cache=True):
   
   Directory(os.path.dirname(history_filename),
               create_parents = True,
-              mode=0755,
+              mode=0o755,
   )
 
   # Get the dirs that Ambari knows about and their last known mount point
@@ -179,7 +179,7 @@ def handle_mounted_dirs(func, dirs_string, history_filename, update_cache=True):
     Logger.error(header + msg + header)
 
   dir_to_mount = DIR_TO_MOUNT_HEADER
-  for kv in dir_to_mount_point.iteritems():
+  for kv in dir_to_mount_point.items():
     dir_to_mount += kv[0] + "," + kv[1] + "\n"
 
   return dir_to_mount
@@ -227,7 +227,7 @@ def get_mounts_with_multiple_data_dirs(mount_points, dirs):
     mount_dirs[mount_point].append(dir)
 
   partition_mounts_list = []
-  for mount_point, dir_list in mount_dirs.iteritems():
+  for mount_point, dir_list in mount_dirs.items():
     if len(dir_list) > 1:
       partition_mounts_list.append((mount_point, dir_list))
 

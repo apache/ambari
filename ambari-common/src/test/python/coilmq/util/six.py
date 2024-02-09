@@ -12,5 +12,5 @@ else:
   def b(s):
     return s
   def u(s):
-    return unicode(s.replace(r'\\', r'\\\\'), "unicode_escape")
+    return str(s.replace(r'\\', r'\\\\'), "unicode_escape")
   binary_type = str

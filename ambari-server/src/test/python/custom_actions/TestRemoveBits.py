@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -19,7 +19,7 @@ limitations under the License.
 '''
 import json
 import os
-from ambari_commons import subprocess32
+import subprocess
 import select
 import install_packages
 

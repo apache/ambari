@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 Licensed to the Apache Software Foundation (ASF) under one
@@ -20,7 +20,7 @@ limitations under the License.
 
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import socket
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import logging
 import traceback
 from ambari_commons import OSCheck
@@ -168,9 +168,9 @@ def execute(configurations={}, parameters={}, host_name=None):
       json_response = json.loads(url_response)
     else:
       # execute the query for the JSON that includes templeton status
-      url_response = urllib2.urlopen(query, timeout=connection_timeout)
+      url_response = urllib.request.urlopen(query, timeout=connection_timeout)
       json_response = json.loads(url_response.read())
-  except urllib2.HTTPError, httpError:
+  except urllib.error.HTTPError as httpError:
     label = CRITICAL_HTTP_STATUS_MESSAGE.format(str(httpError.code), query,
       str(httpError), traceback.format_exc())
 

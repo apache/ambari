@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -25,7 +25,7 @@ import sys
 import optparse
 import getpass
 import logging
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import re
 import json
 import base64
@@ -58,16 +58,16 @@ def get_validated_string_input(prompt, default, pattern, description,
   input = ""
   while not input:
     if SILENT:
-      print (prompt)
+      print(prompt)
       input = default
     elif is_pass:
       input = getpass.getpass(prompt)
     else:
-      input = raw_input(prompt)
+      input = input(prompt)
     if not input.strip():
       # Empty input - if default available use default
       if not allowEmpty and not default:
-        print 'Property cannot be blank.'
+        print('Property cannot be blank.')
         input = ""
         continue
       else:
@@ -79,7 +79,7 @@ def get_validated_string_input(prompt, default, pattern, description,
         break  # done here and picking up default
     else:
       if not pattern == None and not re.search(pattern, input.strip()):
-        print description
+        print(description)
         input = ""
 
       if validatorFunction:
@@ -114,10 +114,10 @@ def get_server_info(silent=False):
   pass
 
 
-class PreemptiveBasicAuthHandler(urllib2.BaseHandler):
+class PreemptiveBasicAuthHandler(urllib.request.BaseHandler):
 
   def __init__(self):
-    password_mgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
+    password_mgr = urllib.request.HTTPPasswordMgrWithDefaultRealm()
     password_mgr.add_password(None, getUrl(''), USERNAME, PASSWORD)
     self.passwd = password_mgr
     self.add_password = self.passwd.add_password
@@ -127,7 +127,7 @@ class PreemptiveBasicAuthHandler(urllib2.BaseHandler):
     user = USERNAME
     pw = PASSWORD
     raw = "%s:%s" % (user, pw)
-    auth = 'Basic %s' % base64.b64encode(raw).strip()
+    auth = 'Basic %s' % base64.b64encode(raw.encode()).decode().strip()
     req.add_unredirected_header('Authorization', auth)
     return req
 
@@ -135,9 +135,9 @@ class AmbariBlueprint:
 
   def __init__(self):
     handler = PreemptiveBasicAuthHandler()
-    opener = urllib2.build_opener(handler)
+    opener = urllib.request.build_opener(handler)
     # Install opener for all requests
-    urllib2.install_opener(opener)
+    urllib.request.install_opener(opener)
     self.urlOpener = opener
 
   def importBlueprint(self, blueprintLocation, hostsLocation, clusterName):
@@ -362,7 +362,7 @@ class AmbariBlueprint:
 
 
   def performPostOperation(self, url, data):
-    req = urllib2.Request(url, data)
+    req = urllib.request.Request(url, data)
     req.add_header("X-Requested-By", "ambari_scripts")
     req.get_method = lambda: 'POST'
 
@@ -379,13 +379,13 @@ class AmbariBlueprint:
           return retCode
         pass
       pass
-    except urllib2.HTTPError, e:
+    except urllib.error.HTTPError as e:
       logger.error("POST request failed.")
       logger.error('HTTPError : %s' % e.read())
       if e.code == 409:
         return '409'
       pass
-    except Exception, e:
+    except Exception as e:
       logger.error("POST request failed.")
       logger.error(e)
       if 'HTTP Error 409' in str(e):

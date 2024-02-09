@@ -51,7 +51,7 @@ def update_credential_provider_path(config, config_type, dest_provider_path, fil
     File(dest_provider_path,
         owner = file_owner,
         group = file_group,
-        mode = 0640,
+        mode = 0o640,
         content = StaticFile(src_provider_path)
     )
     # make a copy of the config dictionary since it is read-only
@@ -78,7 +78,7 @@ def validate_security_config_properties(params, configuration_rules):
 
   issues = {}
 
-  for config_file, rule_sets in configuration_rules.iteritems():
+  for config_file, rule_sets in configuration_rules.items():
     # Each configuration rule set may have 0 or more of the following rule sets:
     # - value_checks
     # - empty_checks
@@ -94,7 +94,7 @@ def validate_security_config_properties(params, configuration_rules):
       # The rules are expected to be a dictionary of property names to expected values
       rules = rule_sets['value_checks'] if 'value_checks' in rule_sets else None
       if rules:
-        for property_name, expected_value in rules.iteritems():
+        for property_name, expected_value in rules.items():
           actual_value = get_value(actual_values, property_name, '')
           if actual_value != expected_value:
             issues[config_file] = "Property %s contains an unexpected value. " \
@@ -156,10 +156,10 @@ def get_params_from_filesystem(conf_dir, config_files):
   """
   result = {}
   from xml.etree import ElementTree as ET
-  import ConfigParser, StringIO
+  import configparser, io
   import re
 
-  for config_file, file_type in config_files.iteritems():
+  for config_file, file_type in config_files.items():
     file_name, file_ext = os.path.splitext(config_file)
 
     config_filepath = conf_dir + os.sep + config_file
@@ -178,8 +178,8 @@ def get_params_from_filesystem(conf_dir, config_files):
     elif file_type == FILE_TYPE_PROPERTIES:
       with open(config_filepath, 'r') as f:
         config_string = '[root]\n' + f.read()
-      ini_fp = StringIO.StringIO(re.sub(r'\\\s*\n', '\\\n ', config_string))
-      config = ConfigParser.RawConfigParser()
+      ini_fp = io.StringIO(re.sub(r'\\\s*\n', '\\\n ', config_string))
+      config = configparser.RawConfigParser()
       config.readfp(ini_fp)
       props = config.items('root')
       result[file_name] = {}
@@ -265,7 +265,7 @@ def new_cached_exec(key, file_path, kinit_path, temp_dir, exec_user, keytab_file
 
   try:
     # Ensure the proper user owns this file
-    File(temp_kinit_cache_filename, owner=exec_user, mode=0600)
+    File(temp_kinit_cache_filename, owner=exec_user, mode=0o600)
 
     # Execute the kinit
     Execute(command, user=exec_user)

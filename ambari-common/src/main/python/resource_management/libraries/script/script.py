@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -26,7 +26,7 @@ import os
 import sys
 import ssl
 import logging
-import platform
+import distro as platform
 import inspect
 import tarfile
 import traceback
@@ -92,7 +92,7 @@ OUT_FILES_MASK = "*.out"
 AGENT_TASKS_LOG_FILE = "/var/log/ambari-agent/agent_tasks.log"
 
 def get_path_from_configuration(name, configuration):
-  subdicts = filter(None, name.split('/'))
+  subdicts = [_f for _f in name.split('/') if _f]
 
   for x in subdicts:
     if x in configuration:
@@ -164,7 +164,7 @@ class Script(object):
     try:
       with open(self.stroutfile, 'w') as fp:
         json.dump(Script.structuredOut, fp)
-    except IOError, err:
+    except IOError as err:
       Script.structuredOut.update({"errMsg" : "Unable to write to " + self.stroutfile})
 
 
@@ -287,8 +287,8 @@ class Script(object):
 
     # parse arguments
     if len(args) < 6:
-     print "Script expects at least 6 arguments"
-     print USAGE.format(os.path.basename(sys.argv[0])) # print to stdout
+     print("Script expects at least 6 arguments")
+     print(USAGE.format(os.path.basename(sys.argv[0]))) # print to stdout
      sys.exit(1)
 
     self.command_name = str.lower(sys.argv[1])
@@ -304,8 +304,7 @@ class Script(object):
     if len(sys.argv) >= 9:
       Script.ca_cert_file_path = sys.argv[8]
 
-    logging_level_str = logging._levelNames[self.logging_level]
-    Logger.initialize_logger(__name__, logging_level=logging_level_str)
+    Logger.initialize_logger(__name__, logging_level=self.logging_level)
 
     # on windows we need to reload some of env variables manually because there is no default paths for configs(like
     # /etc/something/conf on linux. When this env vars created by one of the Script execution, they can not be updated
@@ -333,7 +332,7 @@ class Script(object):
         Script.stack_settings = Script.execution_command.get_stack_settings()
         # load passwords here(used on windows to impersonate different users)
         Script.passwords = {}
-        for k, v in _PASSWORD_MAP.iteritems():
+        for k, v in _PASSWORD_MAP.items():
           if get_path_from_configuration(k, Script.config) and get_path_from_configuration(v, Script.config):
             Script.passwords[get_path_from_configuration(k, Script.config)] = get_path_from_configuration(v, Script.config)
 
@@ -358,7 +357,7 @@ class Script(object):
           self.execute_prefix_function(self.command_name, 'post', env)
 
     # catch this to avoid unhandled exception logs in /var/log/messages
-    except (ComponentIsNotRunning, ClientComponentHasNoStatus), e:
+    except (ComponentIsNotRunning, ClientComponentHasNoStatus) as e:
       traceback.print_exc()
       sys.exit(1)
     except Fail as ex:
@@ -432,7 +431,7 @@ class Script(object):
 
       pids.append(sudo.read_file(pid_file).strip())
 
-    Logger.info("Component has started with pid(s): {0}".format(', '.join(pids)))
+    Logger.info("Component has started with pid(s): {0}".format(', '.join([x.decode('utf-8') for x in pids])))
 
   def post_stop(self, env):
     """
@@ -453,10 +452,10 @@ class Script(object):
         status_method(env)
         time.sleep(0.1)
         counter += 1
-      except ComponentIsNotRunning, e:
+      except ComponentIsNotRunning as e:
         Logger.logger.debug("'status' reports ComponentIsNotRunning")
         component_is_stopped = True
-      except ClientComponentHasNoStatus, e:
+      except ClientComponentHasNoStatus as e:
         Logger.logger.debug("Client component has no status")
         component_is_stopped = True
 
@@ -869,7 +868,7 @@ class Script(object):
       package_list_str = config['commandParams']['package_list']
       agent_stack_retry_on_unavailability = bool(config['ambariLevelParams']['agent_stack_retry_on_unavailability'])
       agent_stack_retry_count = int(config['ambariLevelParams']['agent_stack_retry_count'])
-      if isinstance(package_list_str, basestring) and len(package_list_str) > 0:
+      if isinstance(package_list_str, str) and len(package_list_str) > 0:
         package_list = json.loads(package_list_str)
         for package in package_list:
           if self.check_package_condition(package):
@@ -1142,31 +1141,31 @@ class Script(object):
     Directory(self.get_tmp_dir(), create_parents = True)
 
     conf_tmp_dir = tempfile.mkdtemp(dir=self.get_tmp_dir())
-    os.chmod(conf_tmp_dir, 0700)
+    os.chmod(conf_tmp_dir, 0o700)
     output_filename = os.path.join(self.get_tmp_dir(), config['commandParams']['output_file'])
 
     try:
       for file_dict in xml_configs_list:
-        for filename, dict in file_dict.iteritems():
+        for filename, dict in file_dict.items():
           XmlConfig(filename,
                     conf_dir=conf_tmp_dir,
-                    mode=0644,
+                    mode=0o644,
                     **self.generate_configs_get_xml_file_content(filename, dict)
           )
       for file_dict in env_configs_list:
-        for filename,dicts in file_dict.iteritems():
+        for filename,dicts in file_dict.items():
           File(os.path.join(conf_tmp_dir, filename),
-               mode=0644,
+               mode=0o644,
                content=InlineTemplate(self.generate_configs_get_template_file_content(filename, dicts)))
 
       for file_dict in properties_configs_list:
-        for filename, dict in file_dict.iteritems():
+        for filename, dict in file_dict.items():
           PropertiesFile(os.path.join(conf_tmp_dir, filename),
-                         mode=0644,
+                         mode=0o644,
                          properties=self.generate_configs_get_xml_file_dict(filename, dict)
           )
       with closing(tarfile.open(output_filename, "w:gz")) as tar:
-        os.chmod(output_filename, 0600)
+        os.chmod(output_filename, 0o600)
         try:
           tar.add(conf_tmp_dir, arcname=os.path.basename("."))
         finally:

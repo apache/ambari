@@ -33,7 +33,7 @@ if sys.version_info >= (3, 0):
         return _ord(c)
 else:
     py3k = False
-    from urlparse import urlsplit
+    from urllib.parse import urlsplit
     range = xrange
     unicode = unicode
     basestring = basestring

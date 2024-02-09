@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -17,7 +17,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-import StringIO
+import io
 import sys
 import unittest
 import logging
@@ -25,7 +25,7 @@ import signal
 import os
 import socket
 import tempfile
-import ConfigParser
+import configparser
 import ambari_agent.hostname as hostname
 import resource
 
@@ -49,7 +49,7 @@ class TestMain:#(unittest.TestCase):
 
   def setUp(self):
     # disable stdout
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
 
@@ -140,7 +140,7 @@ class TestMain:#(unittest.TestCase):
     config.set_ulimit_open_files(open_files_ulimit)
     main.update_open_files_ulimit(config)
     (soft_limit, hard_limit) = resource.getrlimit(resource.RLIMIT_NOFILE)
-    self.assertEquals(hard_limit, open_files_ulimit)
+    self.assertEqual(hard_limit, open_files_ulimit)
 
   @not_for_platform(PLATFORM_WINDOWS)
   @patch("signal.signal")
@@ -151,9 +151,9 @@ class TestMain:#(unittest.TestCase):
     signal_mock.assert_any_call(signal.SIGTERM, HeartbeatHandlers.signal_handler)
 
 
-  @patch("platform.linux_distribution")
+  @patch("distro.linux_distribution")
   @patch("os.path.exists")
-  @patch("ConfigParser.RawConfigParser.read")
+  @patch("configparser.RawConfigParser.read")
   def test_resolve_ambari_config(self, read_mock, exists_mock, platform_mock):
     platform_mock.return_value = "Linux"
     # Trying case if conf file exists
@@ -243,7 +243,7 @@ class TestMain:#(unittest.TestCase):
         main.stop_agent()
         raise Exception("main.stop_agent() should raise sys.exit(0).")
       except SystemExit as e:
-        self.assertEquals(0, e.code);
+        self.assertEqual(0, e.code);
 
       kill_mock.assert_has_calls([call(['ambari-sudo.sh', 'kill', '-15', pid]),
                                  call(['ambari-sudo.sh', 'kill', '-0', pid])])
@@ -260,7 +260,7 @@ class TestMain:#(unittest.TestCase):
         main.stop_agent()
         raise Exception("main.stop_agent() should raise sys.exit(0).")
       except SystemExit as e:
-        self.assertEquals(0, e.code);
+        self.assertEqual(0, e.code);
 
       kill_mock.assert_has_calls([call(['ambari-sudo.sh', 'kill', '-15', pid]),
                                   call(['ambari-sudo.sh', 'kill', '-0', pid]),
@@ -272,8 +272,8 @@ class TestMain:#(unittest.TestCase):
 
   @patch("os.rmdir")
   @patch("os.path.join")
-  @patch('__builtin__.open')
-  @patch.object(ConfigParser, "ConfigParser")
+  @patch('builtins.open')
+  @patch.object(configparser, "configparser")
   @patch("sys.exit")
   @patch("os.walk")
   @patch("os.remove")
@@ -292,8 +292,8 @@ class TestMain:#(unittest.TestCase):
 
   @patch("os.rmdir")
   @patch("os.path.join")
-  @patch('__builtin__.open')
-  @patch.object(ConfigParser, "ConfigParser")
+  @patch('builtins.open')
+  @patch.object(configparser, "configparser")
   @patch("sys.exit")
   @patch("os.walk")
   @patch("os.remove")
@@ -398,6 +398,6 @@ class TestMain:#(unittest.TestCase):
     try_to_connect_mock.reset_mock()
     try_to_connect_mock.side_effect = try_to_connect_impl
     active_server = main.main()
-    self.assertEquals(active_server, 'host3')
+    self.assertEqual(active_server, 'host3')
     hostname.cached_server_hostnames = default_server_hostnames
     pass

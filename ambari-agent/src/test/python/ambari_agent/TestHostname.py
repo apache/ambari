@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -39,7 +39,7 @@ class TestHostname(TestCase):
     hostname.cached_hostname = None
     hostname.cached_public_hostname = None
     config = AmbariConfig()
-    self.assertEquals(hostname.hostname(config), socket.getfqdn().lower(),
+    self.assertEqual(hostname.hostname(config), socket.getfqdn().lower(),
                       "hostname should equal the socket-based hostname")
     pass
 
@@ -49,7 +49,7 @@ class TestHostname(TestCase):
     default_server_hostname = config.get('server', 'hostname')
     config.set('server', 'hostname', 'ambari-host')
     server_hostnames = hostname.server_hostnames(config)
-    self.assertEquals(['ambari-host'], server_hostnames,
+    self.assertEqual(['ambari-host'], server_hostnames,
                       "expected host name ['ambari-host']; got {0}".format(server_hostnames))
     config.set('server', 'hostname', default_server_hostname)
     pass
@@ -60,8 +60,8 @@ class TestHostname(TestCase):
     default_server_hostname = config.get('server', 'hostname')
     config.set('server', 'hostname', 'ambari-host, ambari-host2, ambari-host3')
     server_hostnames = hostname.server_hostnames(config)
-    self.assertEquals(len(server_hostnames), 3)
-    self.assertEquals(['ambari-host', 'ambari-host2', 'ambari-host3'], server_hostnames,
+    self.assertEqual(len(server_hostnames), 3)
+    self.assertEqual(['ambari-host', 'ambari-host2', 'ambari-host3'], server_hostnames,
                       "expected host name ['ambari-host']; got {0}".format(server_hostnames))
     config.set('server', 'hostname', default_server_hostname)
     pass
@@ -74,7 +74,7 @@ class TestHostname(TestCase):
     os.close(fd[0])
     os.chmod(tmpname, os.stat(tmpname).st_mode | stat.S_IXUSR)
 
-    tmpfile = file(tmpname, "w+")
+    tmpfile = open(tmpname, "w+")
     config = AmbariConfig()
     try:
       tmpfile.write("#!/bin/sh\n\necho 'test.example.com'")
@@ -83,7 +83,7 @@ class TestHostname(TestCase):
       config.set('server', 'hostname_script', tmpname)
 
       server_hostnames = hostname.server_hostnames(config)
-      self.assertEquals(server_hostnames, ['test.example.com'], "expected hostname ['test.example.com']; got {0}".format(server_hostnames))
+      self.assertEqual(server_hostnames, ['test.example.com'], "expected hostname ['test.example.com']; got {0}".format(server_hostnames))
     finally:
       os.remove(tmpname)
       config.remove_option('server', 'hostname_script')
@@ -98,7 +98,7 @@ class TestHostname(TestCase):
     os.close(fd[0])
     os.chmod(tmpname, os.stat(tmpname).st_mode | stat.S_IXUSR)
 
-    tmpfile = file(tmpname, "w+")
+    tmpfile = open(tmpname, "w+")
     config = AmbariConfig()
     try:
       tmpfile.write("#!/bin/sh\n\necho 'host1.example.com, host2.example.com, host3.example.com'")
@@ -108,7 +108,7 @@ class TestHostname(TestCase):
 
       expected_hostnames = ['host1.example.com', 'host2.example.com', 'host3.example.com']
       server_hostnames = hostname.server_hostnames(config)
-      self.assertEquals(server_hostnames, expected_hostnames, "expected hostnames {0}; got {1}".format(expected_hostnames, server_hostnames))
+      self.assertEqual(server_hostnames, expected_hostnames, "expected hostnames {0}; got {1}".format(expected_hostnames, server_hostnames))
     finally:
       os.remove(tmpname)
       config.remove_option('server', 'hostname_script')
@@ -123,7 +123,7 @@ class TestHostname(TestCase):
     os.close(fd[0])
     os.chmod(tmpname, os.stat(tmpname).st_mode | stat.S_IXUSR)
 
-    tmpfile = file(tmpname, "w+")
+    tmpfile = open(tmpname, "w+")
     config = AmbariConfig()
     try:
       tmpfile.write("#!/bin/sh\n\necho 'test.example.com'")
@@ -131,7 +131,7 @@ class TestHostname(TestCase):
 
       config.set('agent', 'hostname_script', tmpname)
 
-      self.assertEquals(hostname.hostname(config), 'test.example.com', "expected hostname 'test.example.com'")
+      self.assertEqual(hostname.hostname(config), 'test.example.com', "expected hostname 'test.example.com'")
     finally:
       os.remove(tmpname)
       config.remove_option('agent', 'hostname_script')
@@ -146,7 +146,7 @@ class TestHostname(TestCase):
     os.close(fd[0])
     os.chmod(tmpname, os.stat(tmpname).st_mode | stat.S_IXUSR)
 
-    tmpfile = file(tmpname, "w+")
+    tmpfile = open(tmpname, "w+")
 
     config = AmbariConfig()
     try:
@@ -155,7 +155,7 @@ class TestHostname(TestCase):
 
       config.set('agent', 'public_hostname_script', tmpname)
 
-      self.assertEquals(hostname.public_hostname(config), 'test.example.com',
+      self.assertEqual(hostname.public_hostname(config), 'test.example.com',
                         "expected hostname 'test.example.com'")
     finally:
       os.remove(tmpname)
@@ -169,8 +169,8 @@ class TestHostname(TestCase):
     hostname.cached_public_hostname = None
     config = AmbariConfig()
     getfqdn_mock.side_effect = ["test.example.com", "test2.example.com'"]
-    self.assertEquals(hostname.hostname(config), "test.example.com")
-    self.assertEquals(hostname.hostname(config), "test.example.com")
+    self.assertEqual(hostname.hostname(config), "test.example.com")
+    self.assertEqual(hostname.hostname(config), "test.example.com")
     self.assertEqual(getfqdn_mock.call_count, 1)
     pass
 

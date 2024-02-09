@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -100,7 +100,7 @@ def _copy_files(source_and_dest_pairs, component_user, file_owner, group_owner, 
                              action="create",
                              owner=file_owner,
                              hdfs_user=params.hdfs_user,   # this will be the user to run the commands as
-                             mode=0555
+                             mode=0o555
         )
 
         # Because CopyFromLocal does not guarantee synchronization, it's possible for two processes to first attempt to
@@ -114,7 +114,7 @@ def _copy_files(source_and_dest_pairs, component_user, file_owner, group_owner, 
         new_dest_file_name = orig_dest_file_name + "." + unique_string
         new_destination = os.path.join(destination_dir, new_dest_file_name)
         CopyFromLocal(source,
-                      mode=0444,
+                      mode=0o444,
                       owner=file_owner,
                       group=group_owner,
                       user=params.hdfs_user,               # this will be the user to run the commands as
@@ -132,7 +132,7 @@ def _copy_files(source_and_dest_pairs, component_user, file_owner, group_owner, 
                       bin_dir=params.hadoop_bin_dir,
                       conf_dir=params.hadoop_conf_dir
         )
-      except Exception, e:
+      except Exception as e:
         Logger.error("Failed to copy file. Source: %s, Destination: %s. Error: %s" % (source, destination, e.message))
         return_value = 1
   return return_value
@@ -171,7 +171,7 @@ def copy_tarballs_to_hdfs(tarball_prefix, stack_select_component_name, component
     Logger.warning("Could not find file: %s" % str(component_tar_source_file))
     return 1
 
-  # Ubuntu returns: "stdin: is not a tty", as subprocess32 output.
+  # Ubuntu returns: "stdin: is not a tty", as subprocess output.
   tmpfile = tempfile.NamedTemporaryFile()
   out = None
   (stack_selector_name, stack_selector_path, stack_selector_package) = stack_tools.get_stack_tool(stack_tools.STACK_SELECTOR_NAME)

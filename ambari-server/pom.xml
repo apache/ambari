@@ -920,7 +920,7 @@
         <envClassifier>win</envClassifier>
         <dirsep>\</dirsep>
         <pathsep>;</pathsep>
-        <executable.python>python</executable.python>
+        <executable.python>python3</executable.python>
         <executable.shell>cmd</executable.shell>
         <fileextension.shell>cmd</fileextension.shell>
         <fileextension.dot.shell-default>.cmd</fileextension.dot.shell-default>

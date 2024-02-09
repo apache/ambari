@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -39,33 +39,33 @@ class TestRepoVersionHistory(RMFTestCase):
       repo_version_history.REPO_VERSION_HISTORY_FILE = filename
       repo_version_history.Logger = logging.getLogger()
       result = repo_version_history.read_actual_version_from_history_file('2.3.2.0')
-      self.assertEquals(result, None)
+      self.assertEqual(result, None)
 
       # Check read of single value
       repo_version_history.write_actual_version_to_history_file('2.3.2.0', '2.3.2.0-210')
       result = repo_version_history.read_actual_version_from_history_file('2.3.2.0')
-      self.assertEquals(result, '2.3.2.0-210')
+      self.assertEqual(result, '2.3.2.0-210')
 
       # Check read after update
       repo_version_history.write_actual_version_to_history_file('2.3.2.0', '2.3.2.0-2716')
       result = repo_version_history.read_actual_version_from_history_file('2.3.2.0')
-      self.assertEquals(result, '2.3.2.0-2716')
+      self.assertEqual(result, '2.3.2.0-2716')
 
       # Check read after update
       repo_version_history.write_actual_version_to_history_file('2.3.2.0', '2.3.2.0-2758')
       result = repo_version_history.read_actual_version_from_history_file('2.3.2.0')
-      self.assertEquals(result, '2.3.2.0-2758')
+      self.assertEqual(result, '2.3.2.0-2758')
 
       # Check read after writing down version for another stack
       repo_version_history.write_actual_version_to_history_file('2.3.1.0', '2.3.1.0-27')
       result = repo_version_history.read_actual_version_from_history_file('2.3.1.0')
-      self.assertEquals(result, '2.3.1.0-27')
+      self.assertEqual(result, '2.3.1.0-27')
       result = repo_version_history.read_actual_version_from_history_file('2.3.2.0')
-      self.assertEquals(result, '2.3.2.0-2758')
+      self.assertEqual(result, '2.3.2.0-2758')
 
       # Check read of another stack
       result = repo_version_history.read_actual_version_from_history_file('2.3.0.0')
-      self.assertEquals(result, None)
+      self.assertEqual(result, None)
 
     finally:
       os.unlink(filename)

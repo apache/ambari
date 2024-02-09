@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -35,10 +35,10 @@ class Provider(object):
     pass
 
   def __repr__(self):
-    return self.__unicode__()
+    return self.__str__()
 
-  def __unicode__(self):
-    return u"%s[%s]" % (self.__class__.__name__, self.resource)
+  def __str__(self):
+    return "%s[%s]" % (self.__class__.__name__, self.resource)
 
 
 PROVIDERS = dict(

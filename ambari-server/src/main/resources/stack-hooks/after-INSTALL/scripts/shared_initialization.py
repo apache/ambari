@@ -97,7 +97,7 @@ def setup_config():
            )
 
   Directory(params.logsearch_logfeeder_conf,
-            mode=0755,
+            mode=0o755,
             cd_access='a',
             create_parents=True
             )
@@ -139,7 +139,7 @@ def link_configs(struct_out_file):
   if not params.sysprep_skip_conf_select or not os.path.exists(params.conf_select_marker_file):
     # On parallel command execution this should be executed by a single process at a time.
     with FcntlBasedProcessLock(params.link_configs_lock_file, enabled = params.is_parallel_execution_enabled, skip_fcntl_failures = True):
-      for package_name, directories in conf_select.get_package_dirs().iteritems():
+      for package_name, directories in conf_select.get_package_dirs().items():
         conf_select.convert_conf_directories_to_symlinks(package_name, json_version, directories)
 
       # create a file to mark that conf-selects were already done

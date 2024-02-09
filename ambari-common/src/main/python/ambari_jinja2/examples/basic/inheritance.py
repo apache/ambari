@@ -9,4 +9,4 @@ env = Environment(loader=DictLoader({
 }))
 
 
-print env.get_template('c').render()
+print(env.get_template('c').render())

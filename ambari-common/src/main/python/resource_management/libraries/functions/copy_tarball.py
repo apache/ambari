@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -64,8 +64,8 @@ def _prepare_tez_tarball():
   # create the temp staging directories ensuring that non-root agents using tarfile can work with them
   mapreduce_temp_dir = tempfile.mkdtemp(prefix="mapreduce-tarball-", dir=temp_dir)
   tez_temp_dir = tempfile.mkdtemp(prefix="tez-tarball-", dir=temp_dir)
-  sudo.chmod(mapreduce_temp_dir, 0777)
-  sudo.chmod(tez_temp_dir, 0777)
+  sudo.chmod(mapreduce_temp_dir, 0o777)
+  sudo.chmod(tez_temp_dir, 0o777)
 
   Logger.info("Extracting {0} to {1}".format(mapreduce_source_file, mapreduce_temp_dir))
   tar_archive.untar_archive(mapreduce_source_file, mapreduce_temp_dir)
@@ -109,7 +109,7 @@ def _prepare_tez_tarball():
 
   # ensure that the tez/lib directory is readable by non-root (which it typically is not)
   Directory(tez_lib_dir,
-    mode = 0755,
+    mode = 0o755,
     cd_access = 'a',
     recursive_ownership = True)
 
@@ -117,7 +117,7 @@ def _prepare_tez_tarball():
   tez_native_tarball_staging_dir = os.path.join(temp_dir, "tez-native-tarball-staging")
   if not os.path.exists(tez_native_tarball_staging_dir):
     Directory(tez_native_tarball_staging_dir,
-      mode = 0777,
+      mode = 0o777,
       cd_access='a',
       create_parents = True,
       recursive_ownership = True)
@@ -127,7 +127,7 @@ def _prepare_tez_tarball():
   tar_archive.archive_dir_via_temp_file(tez_tarball_with_native_lib, tez_temp_dir)
 
   # ensure that the tarball can be read and uploaded
-  sudo.chmod(tez_tarball_with_native_lib, 0744)
+  sudo.chmod(tez_tarball_with_native_lib, 0o744)
 
   # cleanup
   sudo.rmtree(mapreduce_temp_dir)
@@ -156,7 +156,7 @@ def _prepare_mapreduce_tarball():
 
   # create the temp staging directories ensuring that non-root agents using tarfile can work with them
   mapreduce_temp_dir = tempfile.mkdtemp(prefix="mapreduce-tarball-", dir=temp_dir)
-  sudo.chmod(mapreduce_temp_dir, 0777)
+  sudo.chmod(mapreduce_temp_dir, 0o777)
 
   # calculate the source directory for LZO
   hadoop_lib_native_source_dir = os.path.join(os.path.dirname(mapreduce_source_file), "lib", "native")
@@ -173,7 +173,7 @@ def _prepare_mapreduce_tarball():
 
   # ensure that the hadoop/lib/native directory is readable by non-root (which it typically is not)
   Directory(mapreduce_lib_dir,
-    mode = 0755,
+    mode = 0o755,
     cd_access = 'a',
     recursive_ownership = True)
 
@@ -181,7 +181,7 @@ def _prepare_mapreduce_tarball():
   mapreduce_native_tarball_staging_dir = os.path.join(temp_dir, "mapreduce-native-tarball-staging")
   if not os.path.exists(mapreduce_native_tarball_staging_dir):
     Directory(mapreduce_native_tarball_staging_dir,
-      mode = 0777,
+      mode = 0o777,
       cd_access = 'a',
       create_parents = True,
       recursive_ownership = True)
@@ -191,7 +191,7 @@ def _prepare_mapreduce_tarball():
   tar_archive.archive_dir_via_temp_file(mapreduce_tarball_with_native_lib, mapreduce_temp_dir)
 
   # ensure that the tarball can be read and uploaded
-  sudo.chmod(mapreduce_tarball_with_native_lib, 0744)
+  sudo.chmod(mapreduce_tarball_with_native_lib, 0o744)
 
   # cleanup
   sudo.rmtree(mapreduce_temp_dir)
@@ -379,7 +379,7 @@ def _get_single_version_from_stack_select():
   Call "<stack-selector> versions" and return the version string if only one version is available.
   :return: Returns a version string if successful, and None otherwise.
   """
-  # Ubuntu returns: "stdin: is not a tty", as subprocess32 output, so must use a temporary file to store the output.
+  # Ubuntu returns: "stdin: is not a tty", as subprocess output, so must use a temporary file to store the output.
   tmp_dir = Script.get_tmp_dir()
   tmp_file = os.path.join(tmp_dir, "copy_tarball_out.txt")
   stack_version = None
@@ -391,13 +391,13 @@ def _get_single_version_from_stack_select():
     code, stdoutdata = shell.call(get_stack_versions_cmd, logoutput=True)
     with open(tmp_file, 'r+') as file:
       out = file.read()
-  except Exception, e:
+  except Exception as e:
     Logger.logger.exception("Could not parse output of {0}. Error: {1}".format(str(tmp_file), str(e)))
   finally:
     try:
       if os.path.exists(tmp_file):
         os.remove(tmp_file)
-    except Exception, e:
+    except Exception as e:
       Logger.logger.exception("Could not remove file {0}. Error: {1}".format(str(tmp_file), str(e)))
 
   if code != 0 or out is None or out == "":
@@ -414,7 +414,7 @@ def _get_single_version_from_stack_select():
   return stack_version
 
 
-def copy_to_hdfs(name, user_group, owner, file_mode=0444, custom_source_file=None, custom_dest_file=None, force_execute=False,
+def copy_to_hdfs(name, user_group, owner, file_mode=0o444, custom_source_file=None, custom_dest_file=None, force_execute=False,
                  use_upgrading_version_during_upgrade=True, replace_existing_files=False, skip=False, skip_component_check=False):
   """
   :param name: Tarball name, e.g., tez, hive, pig, sqoop.
@@ -482,7 +482,7 @@ def copy_to_hdfs(name, user_group, owner, file_mode=0444, custom_source_file=Non
                       type="directory",
                       action="create_on_execute",
                       owner=owner,
-                      mode=0555
+                      mode=0o555
   )
 
   # If the file already exists, it is a NO-OP
@@ -492,7 +492,7 @@ def copy_to_hdfs(name, user_group, owner, file_mode=0444, custom_source_file=Non
                       source=source_file,
                       group=user_group,
                       owner=owner,
-                      mode=0444,
+                      mode=0o444,
                       replace_existing_files=replace_existing_files,
   )
   Logger.info("Will attempt to copy {0} tarball from {1} to DFS at {2}.".format(name, source_file, dest_file))

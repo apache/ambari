@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 Licensed to the Apache Software Foundation (ASF) under one
@@ -91,7 +91,7 @@ class Utils(object):
       if k in keys_to_skip:
         #print "skipping " + str(k)
         continue
-      if not d2.has_key(k):
+      if k not in d2:
         #print "don't have key="+str(k)
         return False
       else:
@@ -110,7 +110,7 @@ class Utils(object):
     """
     Update the dictionary 'd' and its sub-dictionaries with values of dictionary 'u' and its sub-dictionaries.
     """
-    for k, v in u.iteritems():
+    for k, v in u.items():
       if isinstance(d, collections.Mapping):
         if isinstance(v, collections.Mapping):
           r = Utils.update_nested(d.get(k, {}), v)
@@ -137,7 +137,7 @@ class Utils(object):
     if isinstance(param, dict):
       mutable_dict = {}
 
-      for k, v in param.iteritems():
+      for k, v in param.items():
         mutable_dict[k] = Utils.get_mutable_copy(v)
 
       return mutable_dict
@@ -172,7 +172,7 @@ class ImmutableDictionary(dict):
     Recursively turn dict to ImmutableDictionary
     """
     if not isinstance(dictionary, ImmutableDictionary):
-      for k, v in dictionary.iteritems():
+      for k, v in dictionary.items():
         dictionary[k] = Utils.make_immutable(v)
 
     super(ImmutableDictionary, self).__init__(dictionary)

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 Licensed to the Apache Software Foundation (ASF) under one
@@ -20,15 +20,15 @@ limitations under the License.
 
 import os.path
 import logging
-from ambari_commons import subprocess32
+import subprocess
 from resource_management.core import shell
 from resource_management.core.shell import call
 from resource_management.core.exceptions import ExecuteTimeoutException, Fail
 from ambari_commons.shell import shellRunner
-from Facter import Facter
+from ambari_agent.Facter import Facter
 from ambari_commons.os_check import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
-from AmbariConfig import AmbariConfig
+from ambari_agent.AmbariConfig import AmbariConfig
 from resource_management.core.sudo import path_isfile
 
 logger = logging.getLogger()
@@ -89,7 +89,7 @@ class Hardware:
       if len(line_split) != 7:
         continue
 
-      yield dict(zip(titles, line_split))
+      yield dict(list(zip(titles, line_split)))
 
   def _get_mount_check_timeout(self):
     """Return timeout for df call command"""
@@ -156,7 +156,7 @@ class Hardware:
       command.append("-l")
 
     try:
-      code, out, err = shell.call(command, stdout=subprocess32.PIPE, stderr=subprocess32.PIPE, timeout=int(timeout), quiet=True)
+      code, out, err = shell.call(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=int(timeout), quiet=True)
       dfdata = out
     except Exception as ex:
       logger.warn("Checking disk usage failed: " + str(ex))
@@ -246,7 +246,7 @@ def main():
   from resource_management.core.logger import Logger
   Logger.initialize_logger()
 
-  print Hardware().get()
+  print(Hardware().get())
 
 
 if __name__ == '__main__':

@@ -18,8 +18,8 @@ limitations under the License.
 """
 import os
 import re
-import urllib2
-from ambari_commons import subprocess32
+import urllib.request, urllib.error, urllib.parse
+import subprocess
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 
 from resource_management.core.resources.system import Directory, File, Execute
@@ -198,13 +198,13 @@ def service(action=None, name=None, user=None, options="", create_pid_dir=False,
   if action != "stop":
     if name == "nfs3":
       Directory(params.hadoop_pid_dir_prefix,
-                mode=0755,
+                mode=0o755,
                 owner=params.root_user,
                 group=params.root_group
       )
     else:
       Directory(params.hadoop_pid_dir_prefix,
-                  mode=0755,
+                  mode=0o755,
                   owner=params.hdfs_user,
                   group=params.user_group
       )
@@ -216,7 +216,7 @@ def service(action=None, name=None, user=None, options="", create_pid_dir=False,
     if create_log_dir:
       if name == "nfs3":
         Directory(log_dir,
-                  mode=0775,
+                  mode=0o775,
                   owner=params.root_user,
                   group=params.user_group)
       else:
@@ -295,7 +295,7 @@ def service(action=None, name=None, user=None, options="", create_pid_dir=False,
 
     # If stop didn't happen, kill it forcefully
     if code != 0:
-      code, out, err = shell.checked_call(("cat", pid_file), sudo=True, env=hadoop_env_exports, stderr=subprocess32.PIPE)
+      code, out, err = shell.checked_call(("cat", pid_file), sudo=True, env=hadoop_env_exports, stderr=subprocess.PIPE)
       pid = out
       Execute(("kill", "-9", pid), sudo=True)
 
@@ -326,7 +326,7 @@ def get_jmx_data(nn_address, modeler_type, metric, encrypted=False, security_ena
     data, error_msg, time_millis = curl_krb_request(params.tmp_dir, params.smoke_user_keytab, params.smokeuser_principal, nn_address,
                             "jn_upgrade", params.kinit_path_local, False, None, params.smoke_user)
   else:
-    data = urllib2.urlopen(nn_address).read()
+    data = urllib.request.urlopen(nn_address).read()
   my_data = None
   if data:
     data_dict = json.loads(data)
@@ -424,6 +424,6 @@ def set_up_zkfc_security(params):
     File(os.path.join(params.hadoop_conf_secure_dir, 'hdfs_jaas.conf'),
          owner=params.hdfs_user,
          group=params.user_group,
-         mode=0644,
+         mode=0o644,
          content=Template("hdfs_jaas.conf.j2")
          )

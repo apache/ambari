@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -74,7 +74,7 @@ class ActualConfigHandler:
         res = json.load(conf_file)
         if (0 == len(res)):
           res = None
-      except Exception, e:
+      except Exception as e:
         logger.error("Error parsing " + filename + ": " + repr(e))
         res = None
         pass

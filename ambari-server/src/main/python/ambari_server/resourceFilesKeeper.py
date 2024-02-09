@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -145,7 +145,7 @@ class ResourceFilesKeeper():
     """
     try:
       return self._list_metainfo_dirs(root_dir)
-    except Exception, err:
+    except Exception as err:
       raise KeeperException("Can not list stacks: {0}".format(str(err)))
 
   def list_common_services(self, root_dir):
@@ -154,7 +154,7 @@ class ResourceFilesKeeper():
     """
     try:
       return self._list_metainfo_dirs(root_dir)
-    except Exception, err:
+    except Exception as err:
       raise KeeperException("Can not list common services: {0}".format(str(err)))
 
   def list_extensions(self, root_dir):
@@ -163,7 +163,7 @@ class ResourceFilesKeeper():
     """
     try:
       return self._list_metainfo_dirs(root_dir)
-    except Exception, err:
+    except Exception as err:
       raise KeeperException("Can not list extensions: {0}".format(str(err)))
 
   def update_directory_archive(self, directory):
@@ -217,7 +217,7 @@ class ResourceFilesKeeper():
               break
             sha1.update(data)
       return sha1.hexdigest()
-    except Exception, err:
+    except Exception as err:
       raise KeeperException("Can not calculate directory "
                             "hash: {0}".format(str(err)))
 
@@ -232,7 +232,7 @@ class ResourceFilesKeeper():
       try:
         with open(hash_file) as fh:
           return fh.readline().strip()
-      except Exception, err:
+      except Exception as err:
         raise KeeperException("Can not read file {0} : {1}".format(hash_file,
                                                                    str(err)))
     else:
@@ -249,7 +249,7 @@ class ResourceFilesKeeper():
       with open(hash_file, "w") as fh:
         fh.write(new_hash)
       os.chmod(hash_file, 0o644)
-    except Exception, err:
+    except Exception as err:
       raise KeeperException("Can not write to file {0} : {1}".format(hash_file,
                                                                    str(err)))
 
@@ -279,7 +279,7 @@ class ResourceFilesKeeper():
             zf.write(absname, arcname)
       zf.close()
       os.chmod(zip_file_path, 0o755)
-    except Exception, err:
+    except Exception as err:
       raise KeeperException("Can not create zip archive of "
                             "directory {0} : {1}".format(directory, str(err)))
 
@@ -296,7 +296,7 @@ class ResourceFilesKeeper():
     if self.DEBUG:
       sys.stderr.write("{0}\n".format(text))
     if not self.DEBUG and self.verbose:
-      print text
+      print(text)
 
 
 def main(argv=None):

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -48,21 +48,21 @@ def get_choice_string_input(prompt, default, firstChoice, secondChoice, answer =
   if hasAnswer:
     print(prompt)
 
-  input = True
+  inputBool = True
   result = default
-  while input:
-    choice = str(answer) if hasAnswer else raw_input(prompt).lower()
+  while inputBool:
+    choice = str(answer) if hasAnswer else input(prompt).lower()
     if choice in firstChoice:
       result = True
-      input = False
+      inputBool = False
     elif choice in secondChoice:
       result = False
-      input = False
+      inputBool = False
     elif choice is "":  # Just enter pressed
       result = default
-      input = False
+      inputBool = False
     else:
-      print "input not recognized, please try again: "
+      print("inputBool not recognized, please try again: ")
       quit_if_has_answer(hasAnswer)
 
   return result
@@ -70,66 +70,66 @@ def get_choice_string_input(prompt, default, firstChoice, secondChoice, answer =
 
 def get_validated_string_input(prompt, default, pattern, description,
                                is_pass, allowEmpty=True, validatorFunction=None, answer = None):
-  input = ""
-  hasAnswer = answer is not None and (answer or allowEmpty)
+  inputBool = ""
+  hasAnswer = answer != None and (answer or allowEmpty)
   if hasAnswer:
-    print (prompt)
+    print(prompt)
 
-  while not input:
+  while not inputBool:
     if get_silent():
-      print (prompt)
-      input = default
+      print(prompt)
+      inputBool = default
     elif is_pass:
-      input = str(answer) if hasAnswer else get_password(prompt)
+      inputBool = str(answer) if hasAnswer else get_password(prompt)
     else:
-      input = str(answer) if hasAnswer else raw_input(prompt)
-    if not input.strip():
+      inputBool = str(answer) if hasAnswer else input(prompt)
+    if not inputBool.strip():
       # Empty input - if default available use default
       if not allowEmpty and not default:
-        msg = 'Property' if description is None or description is "" else description
+        msg = 'Property' if description == None or description == "" else description
         msg += ' cannot be blank.'
-        print msg
-        input = ""
+        print(msg)
+        inputBool = ""
         quit_if_has_answer(hasAnswer)
         continue
       else:
-        input = default
+        inputBool = default
         if validatorFunction:
-          if not validatorFunction(input):
-            input = ""
+          if not validatorFunction(inputBool):
+            inputBool = ""
             quit_if_has_answer(hasAnswer)
             continue
         break  # done here and picking up default
     else:
-      if not pattern == None and not re.search(pattern, input.strip()):
-        print description
-        input = ""
+      if not pattern == None and not re.search(pattern, inputBool.strip()):
+        print(description)
+        inputBool = ""
         quit_if_has_answer(hasAnswer)
 
       if validatorFunction:
-        if not validatorFunction(input):
-          input = ""
+        if not validatorFunction(inputBool):
+          inputBool = ""
           quit_if_has_answer(hasAnswer)
           continue
-  return input
+  return inputBool
 
 def get_validated_filepath_input(prompt, description, default = None, answer = None):
-  input = False
+  inputBool = False
   hasAnswer = answer is not None and answer
-  while not input:
+  while not inputBool:
     if get_silent():
-      print (prompt)
+      print(prompt)
       return default
     else:
-      input = str(answer) if hasAnswer else raw_input(prompt)
-      if not input == None:
-        input = input.strip()
-      if not input == None and not "" == input and os.path.isfile(input):
-        return input
+      inputBool = str(answer) if hasAnswer else input(prompt)
+      if not inputBool == None:
+        inputBool = inputBool.strip()
+      if not inputBool == None and not "" == inputBool and os.path.isfile(inputBool):
+        return inputBool
       else:
-        print description
+        print(description)
         quit_if_has_answer(hasAnswer)
-        input = False
+        inputBool = False
 
 
 def get_multi_line_input(prompt, end_line=""):
@@ -139,10 +139,10 @@ def get_multi_line_input(prompt, end_line=""):
   else:
     full_prompt += " (empty line to finish input):".format(end_line)
 
-  print full_prompt
+  print(full_prompt)
   user_input = None
   while True:
-    line = raw_input()
+    line = input()
     if line == end_line:  # no strip() here for purpose
       return user_input
     else:
@@ -163,8 +163,8 @@ def read_password(password_default,
                   answer=None,
                   confirm_password_prompt="Re-enter password: "):
 
-  input = True
-  while(input):
+  inputBool = True
+  while(inputBool):
     # setup password
     if password_prompt is None:
       password_prompt = 'Password (' + password_default + '): '
@@ -176,22 +176,22 @@ def read_password(password_default,
     password = get_validated_string_input(password_prompt, password_default,
                                           password_pattern, password_descr, True, answer = answer)
     if not password:
-      print 'Password cannot be blank.'
+      print('Password cannot be blank.')
       continue
 
     if password != password_default:
       password1 = get_validated_string_input(confirm_password_prompt, password_default, password_pattern,
                                              password_descr, True, answer = answer)
       if password != password1:
-        print "Passwords do not match"
+        print("Passwords do not match")
         continue
 
-    input = False
+    inputBool = False
 
   return password
 
 # quits from the application only if the input is provided with a flag ('--customInput=')
 def quit_if_has_answer(hasAnswer):
   if hasAnswer:
-    print "Validation has failed for the last input. Operation has interrupted."
+    print("Validation has failed for the last input. Operation has interrupted.")
     exit(1)

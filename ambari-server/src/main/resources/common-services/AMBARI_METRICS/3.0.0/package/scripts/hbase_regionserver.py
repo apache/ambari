@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -59,7 +59,7 @@ class HbaseRegionServer(Script):
     check_process_status(pid_file)
     
   def decommission(self, env):
-    print "Decommission not yet implemented!"
+    print("Decommission not yet implemented!")
     
 
 if __name__ == "__main__":

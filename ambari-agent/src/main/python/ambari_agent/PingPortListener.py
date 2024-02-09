@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -22,7 +22,7 @@ import sys
 import logging
 import threading
 import socket
-from ambari_commons import subprocess32
+import subprocess
 
 logger = logging.getLogger(__name__)
 FUSER_CMD = "timeout 10 fuser {0}/tcp 2>/dev/null | awk '{1}'"
@@ -54,10 +54,11 @@ class PingPortListener(threading.Thread):
 
 
   def run_os_command_in_shell(self, command):
-    process = subprocess32.Popen(command, stdout=subprocess32.PIPE,
-              stdin=subprocess32.PIPE,
-              stderr=subprocess32.PIPE,
-              shell=True)
+    process = subprocess.Popen(command, stdout=subprocess.PIPE,
+              stdin=subprocess.PIPE,
+              stderr=subprocess.PIPE,
+              shell=True,
+              universal_newlines=True)
     return process.communicate()
 
   def __del__(self):

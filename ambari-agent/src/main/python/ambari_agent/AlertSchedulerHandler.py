@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 Licensed to the Apache Software Foundation (ASF) under one
@@ -27,14 +27,14 @@ import os
 import sys
 import time
 
-from apscheduler.scheduler import Scheduler
-from alerts.collector import AlertCollector
-from alerts.metric_alert import MetricAlert
-from alerts.ams_alert import AmsAlert
-from alerts.port_alert import PortAlert
-from alerts.script_alert import ScriptAlert
-from alerts.web_alert import WebAlert
-from alerts.recovery_alert import RecoveryAlert
+from ambari_agent.apscheduler.scheduler import Scheduler
+from ambari_agent.alerts.collector import AlertCollector
+from ambari_agent.alerts.metric_alert import MetricAlert
+from ambari_agent.alerts.ams_alert import AmsAlert
+from ambari_agent.alerts.port_alert import PortAlert
+from ambari_agent.alerts.script_alert import ScriptAlert
+from ambari_agent.alerts.web_alert import WebAlert
+from ambari_agent.alerts.recovery_alert import RecoveryAlert
 from ambari_agent.ExitHelper import ExitHelper
 from ambari_agent.FileCache import FileCache
 from ambari_agent.Utils import Utils
@@ -113,7 +113,7 @@ class AlertSchedulerHandler():
     """
     # prune out things we don't want to store
     alert_definitions = []
-    for cluster_id, command in self.alert_definitions_cache.iteritems():
+    for cluster_id, command in self.alert_definitions_cache.items():
       command_copy = Utils.get_mutable_copy(command)
       alert_definitions.append(command_copy)
 
@@ -247,7 +247,7 @@ class AlertSchedulerHandler():
     :return:
     """
     definitions = []
-    for cluster_id, command_json in self.alert_definitions_cache.iteritems():
+    for cluster_id, command_json in self.alert_definitions_cache.items():
       clusterName = '' if not 'clusterName' in command_json else command_json['clusterName']
       hostName = '' if not 'hostName' in command_json else command_json['hostName']
       publicHostName = '' if not 'publicHostName' in command_json else command_json['publicHostName']
@@ -305,7 +305,7 @@ class AlertSchedulerHandler():
       if alert is not None:
         alert.set_cluster(clusterName, json_definition['clusterId'], hostName, publicHostName)
 
-    except Exception, exception:
+    except Exception as exception:
       logger.exception("[AlertScheduler] Unable to load an invalid alert definition. It will be skipped.")
 
     return alert
@@ -401,7 +401,7 @@ def main():
   except KeyboardInterrupt:
     pass
 
-  print str(ash.collector().alerts())
+  print(str(ash.collector().alerts()))
 
   ash.stop()
 

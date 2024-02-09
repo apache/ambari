@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -17,7 +17,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-import StringIO
+import io
 import sys, pprint
 from resource_management.libraries.script import Script
 from resource_management.core.environment import Environment
@@ -29,10 +29,10 @@ class TestScript(RMFTestCase):
 
   def setUp(self):
     # disable stdout
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
-  @patch("__builtin__.open")
+  @patch("builtins.open")
   def test_structured_out(self, open_mock):
     script = Script()
     script.stroutfile = ''
@@ -51,7 +51,7 @@ class TestScript(RMFTestCase):
     self.assertEqual(open_mock.call_count, 3)
     self.assertEqual(Script.structuredOut, {"1": "3", "2": "2"})
 
-  @patch("__builtin__.open")
+  @patch("builtins.open")
   def test_status_commands_clear_structured_out(self, open_mock):
     """
     Tests that status commands will clear any stored structured output from prior status commands.
@@ -83,7 +83,7 @@ class TestScript(RMFTestCase):
       pass
 
     self.assertTrue(open_mock.called)
-    self.assertEquals({}, Script.structuredOut)
+    self.assertEqual({}, Script.structuredOut)
 
 
   @patch.object(Logger, "error", new = MagicMock())
@@ -104,7 +104,7 @@ class TestScript(RMFTestCase):
     script.save_component_version_to_structured_out("start")
 
     self.assertEqual(pso_mock.call_count, 1)
-    self.assertEquals(pso_mock.call_args[0][0], {'version':'2.6.0.0-1234'})
+    self.assertEqual(pso_mock.call_args[0][0], {'version':'2.6.0.0-1234'})
 
 
   def tearDown(self):

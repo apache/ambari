@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -72,7 +72,7 @@ class TestClusterConfigurationCache:#(TestCase):
     operations have been mocked out
     :return:
     """
-    with patch("__builtin__.open") as open_mock:
+    with patch("builtins.open") as open_mock:
       open_mock.side_effect = self.open_side_effect
       cluster_configuration = ClusterConfigurationCache(os.path.join(os.sep, "tmp", "bar", "baz"))
       return cluster_configuration

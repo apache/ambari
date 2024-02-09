@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -19,9 +19,9 @@ limitations under the License.
 '''
 
 import logging
-import ConfigParser
-import StringIO
-import hostname
+import configparser
+import io
+from ambari_agent import hostname
 import ambari_simplejson as json
 import os
 import ssl
@@ -105,13 +105,19 @@ class AmbariConfig:
 
   def __init__(self):
     global content
-    self.config = ConfigParser.RawConfigParser()
-    self.config.readfp(StringIO.StringIO(content))
+    self.config = configparser.RawConfigParser()
+    self.config.readfp(io.StringIO(content))
+    self._cluster_cache_dir = os.path.join(self.cache_dir, FileCache.CLUSTER_CACHE_DIRECTORY)
+    self._alerts_cachedir = os.path.join(self.cache_dir, FileCache.ALERTS_CACHE_DIRECTORY)
+    self._stacks_dir = os.path.join(self.cache_dir, FileCache.STACKS_CACHE_DIRECTORY)
+    self._common_services_dir = os.path.join(self.cache_dir, FileCache.COMMON_SERVICES_DIRECTORY)
+    self._extensions_dir = os.path.join(self.cache_dir, FileCache.EXTENSIONS_CACHE_DIRECTORY)
+    self._host_scripts_dir = os.path.join(self.cache_dir, FileCache.HOST_SCRIPTS_CACHE_DIRECTORY)
 
   def get(self, section, value, default=None):
     try:
       return str(self.config.get(section, value)).strip()
-    except ConfigParser.Error as err:
+    except configparser.Error as err:
       if default is not None:
         return default
       raise err
@@ -143,7 +149,7 @@ class AmbariConfig:
       else:
         raise Exception("No config found at {0}, use default".format(configPath))
 
-    except Exception, err:
+    except Exception as err:
       logger.warn(err)
     setattr(cls, "_conf_cache", config)
     return config
@@ -200,27 +206,51 @@ class AmbariConfig:
 
   @property
   def cluster_cache_dir(self):
-    return os.path.join(self.cache_dir, FileCache.CLUSTER_CACHE_DIRECTORY)
+    return self._cluster_cache_dir
+
+  @cluster_cache_dir.setter
+  def cluster_cache_dir(self, new_dir):
+    self._cluster_cache_dir = new_dir
 
   @property
   def alerts_cachedir(self):
-    return os.path.join(self.cache_dir, FileCache.ALERTS_CACHE_DIRECTORY)
+    return self._alerts_cachedir
+
+  @alerts_cachedir.setter
+  def alerts_cachedir(self, new_dir):
+    self._alerts_cachedir = new_dir
 
   @property
   def stacks_dir(self):
-    return os.path.join(self.cache_dir, FileCache.STACKS_CACHE_DIRECTORY)
+    return self._stacks_dir
+
+  @stacks_dir.setter
+  def stacks_dir(self, new_dir):
+    self._stacks_dir = new_dir
 
   @property
   def common_services_dir(self):
-    return os.path.join(self.cache_dir, FileCache.COMMON_SERVICES_DIRECTORY)
+    return self._common_services_dir
+
+  @common_services_dir.setter
+  def common_services_dir(self, new_dir):
+    self._common_services_dir = new_dir
 
   @property
   def extensions_dir(self):
-    return os.path.join(self.cache_dir, FileCache.EXTENSIONS_CACHE_DIRECTORY)
+    return self._extensions_dir
+
+  @extensions_dir.setter
+  def extensions_dir(self, new_dir):
+    self._extensions_dir = new_dir
 
   @property
   def host_scripts_dir(self):
-    return os.path.join(self.cache_dir, FileCache.HOST_SCRIPTS_CACHE_DIRECTORY)
+    return self._host_scripts_dir
+
+  @host_scripts_dir.setter
+  def host_scripts_dir(self, new_dir):
+    self._host_scripts_dir = new_dir
 
   @property
   def command_file_retention_policy(self):
@@ -307,7 +337,7 @@ class AmbariConfig:
     return self.config.remove_option(section, option)
 
   def load(self, data):
-    self.config = ConfigParser.RawConfigParser(data)
+    self.config = configparser.RawConfigParser(data)
 
   def read(self, filename):
     self.config.read(filename)
@@ -424,19 +454,19 @@ def isSameHostList(hostlist1, hostlist2):
 
 def updateConfigServerHostname(configFile, new_hosts):
   # update agent config file
-  agent_config = ConfigParser.ConfigParser()
+  agent_config = configparser.ConfigParser()
   agent_config.read(configFile)
   server_hosts = agent_config.get('server', 'hostname')
   if new_hosts is not None:
-      new_host_names = hostname.arrayFromCsvString(new_hosts)
-      if not isSameHostList(server_hosts, new_host_names):
-        print "Updating server hostname from " + server_hosts + " to " + new_hosts
-        agent_config.set('server', 'hostname', new_hosts)
-        with (open(configFile, "wb")) as new_agent_config:
-          agent_config.write(new_agent_config)
+    new_host_names = hostname.arrayFromCsvString(new_hosts)
+    if not isSameHostList(server_hosts, new_host_names):
+      print("Updating server hostname from " + server_hosts + " to " + new_hosts)
+      agent_config.set('server', 'hostname', new_hosts)
+      with (open(configFile, "w")) as new_agent_config:
+        agent_config.write(new_agent_config)
 
 def main():
-  print AmbariConfig().config
+  print(AmbariConfig().config)
 
 if __name__ == "__main__":
   main()

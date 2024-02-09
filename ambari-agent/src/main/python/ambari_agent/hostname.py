@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -19,8 +19,8 @@ limitations under the License.
 '''
 
 import socket
-from ambari_commons import subprocess32
-import urllib2
+import subprocess
+import urllib.request, urllib.error, urllib.parse
 import logging
 import traceback
 import sys
@@ -49,7 +49,7 @@ def hostname(config):
   try:
     scriptname = config.get('agent', 'hostname_script')
     try:
-      osStat = subprocess32.Popen([scriptname], stdout=subprocess32.PIPE, stderr=subprocess32.PIPE)
+      osStat = subprocess.Popen([scriptname], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
       out, err = osStat.communicate()
       if (0 == osStat.returncode and 0 != len(out.strip())):
         cached_hostname = out.strip()
@@ -80,7 +80,7 @@ def public_hostname(config):
   try:
     if config.has_option('agent', 'public_hostname_script'):
       scriptname = config.get('agent', 'public_hostname_script')
-      output = subprocess32.Popen(scriptname, stdout=subprocess32.PIPE, stderr=subprocess32.PIPE, shell=True)
+      output = subprocess.Popen(scriptname, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True)
       out, err = output.communicate()
       if (0 == output.returncode and 0 != len(out.strip())):
         cached_public_hostname = out.strip().lower()
@@ -96,7 +96,7 @@ def public_hostname(config):
     logger.info("Defaulting to fqdn.")
 
   try:
-    handle = urllib2.urlopen('http://169.254.169.254/latest/meta-data/public-hostname', '', 2)
+    handle = urllib.request.urlopen('http://169.254.169.254/latest/meta-data/public-hostname', '', 2)
     str = handle.read()
     handle.close()
     cached_public_hostname = str.lower()
@@ -117,12 +117,12 @@ def server_hostnames(config):
   if config.has_option('server', 'hostname_script'):
     scriptname = config.get('server', 'hostname_script')
     try:
-      osStat = subprocess32.Popen([scriptname], stdout=subprocess32.PIPE, stderr=subprocess32.PIPE)
+      osStat = subprocess.Popen([scriptname], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
       out, err = osStat.communicate()
       if (0 == osStat.returncode and 0 != len(out.strip())):
         cached_server_hostnames = arrayFromCsvString(out)
         logger.info("Read server hostname '" + cached_server_hostnames + "' using server:hostname_script")
-    except Exception, err:
+    except Exception as err:
       logger.info("Unable to execute hostname_script for server hostname. " + str(err))
 
   if not cached_server_hostnames:
@@ -131,9 +131,9 @@ def server_hostnames(config):
 
 
 def main(argv=None):
-  print hostname()
-  print public_hostname()
-  print server_hostname()
+  print(hostname())
+  print(public_hostname())
+  print(server_hostnames())
 
 if __name__ == '__main__':
   main()

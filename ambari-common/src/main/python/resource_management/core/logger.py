@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -101,7 +101,7 @@ class Logger:
     """
     from resource_management.core.shell import PLACEHOLDERS_TO_STR
     
-    for unprotected_string, protected_string in Logger.sensitive_strings.iteritems():
+    for unprotected_string, protected_string in Logger.sensitive_strings.items():
       text = text.replace(unprotected_string, protected_string)
 
     for placeholder in PLACEHOLDERS_TO_STR.keys():
@@ -115,7 +115,7 @@ class Logger:
   
   @staticmethod
   def _get_resource_name_repr(name):
-    if isinstance(name, basestring) and not isinstance(name, PasswordString):
+    if isinstance(name, str) and not isinstance(name, PasswordString):
       name = "'" + name + "'" # print string cutely not with repr
     else:
       name = repr(name)
@@ -144,18 +144,18 @@ class Logger:
   
   @staticmethod
   def get_function_repr(name, arguments, resource=None):
-    logger_level = logging._levelNames[Logger.logger.level]
+    logger_level = logging._levelToName[Logger.logger.level]
 
     arguments_str = ""
-    for x,y in arguments.iteritems():
+    for x,y in arguments.items():
       # for arguments which want to override the output
       if resource and 'log_str' in dir(resource._arguments[x]):
         val = resource._arguments[x].log_str(x, y)
       # don't show long arguments
-      elif isinstance(y, basestring) and len(y) > MESSAGE_MAX_LEN:
+      elif isinstance(y, str) and len(y) > MESSAGE_MAX_LEN:
         val = '...'
       # strip unicode 'u' sign
-      elif isinstance(y, unicode):
+      elif isinstance(y, str):
         val = repr(y).lstrip('u')
       # don't show dicts of configurations
       # usually too long
@@ -181,4 +181,4 @@ class Logger:
     if arguments_str:
       arguments_str = arguments_str[:-2]
         
-    return unicode("{0} {{{1}}}", 'UTF-8').format(name, arguments_str)
+    return str("{0} {{{1}}}").format(name, arguments_str)

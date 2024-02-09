@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 Licensed to the Apache Software Foundation (ASF) under one
@@ -63,8 +63,8 @@ class AlertCollector():
     """
     self.__lock.acquire()
     try:
-      for cluster,alert_map in self.__buckets.iteritems():
-        for alert_name in alert_map.keys():
+      for cluster,alert_map in self.__buckets.items():
+        for alert_name in list(alert_map.keys()):
           alert = alert_map[alert_name]
 
           if not 'uuid' in alert:
@@ -85,8 +85,8 @@ class AlertCollector():
     self.__lock.acquire()
     try:
       alerts = []
-      for clustermap in self.__buckets.values()[:]:
-        alerts.extend(clustermap.values())
+      for clustermap in list(self.__buckets.values())[:]:
+        alerts.extend(list(clustermap.values()))
 
       self.__buckets.clear()
       return alerts

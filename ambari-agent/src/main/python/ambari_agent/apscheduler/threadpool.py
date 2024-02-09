@@ -12,7 +12,7 @@ from ambari_agent.ExitHelper import ExitHelper
 try:
     from queue import Queue, Empty
 except ImportError:
-    from Queue import Queue, Empty
+    from queue import Queue, Empty
 
 logger = logging.getLogger(__name__)
 _threadpools = set()

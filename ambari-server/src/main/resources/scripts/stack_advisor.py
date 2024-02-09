@@ -151,10 +151,10 @@ def instantiateStackAdvisor(stackName, stackVersion, parentVersions):
   """Instantiates StackAdvisor implementation for the specified Stack"""
   import imp
 
-  with open(AMBARI_CONFIGURATION_PATH, 'rb') as fp:
+  with open(AMBARI_CONFIGURATION_PATH, 'r') as fp:
     imp.load_module('ambari_configuration', fp, AMBARI_CONFIGURATION_PATH, ('.py', 'rb', imp.PY_SOURCE))
 
-  with open(STACK_ADVISOR_PATH, 'rb') as fp:
+  with open(STACK_ADVISOR_PATH, 'r') as fp:
     default_stack_advisor = imp.load_module('stack_advisor', fp, STACK_ADVISOR_PATH, ('.py', 'rb', imp.PY_SOURCE))
   className = STACK_ADVISOR_DEFAULT_IMPL_CLASS
   stack_advisor = default_stack_advisor
@@ -167,21 +167,21 @@ def instantiateStackAdvisor(stackName, stackVersion, parentVersions):
       path = STACK_ADVISOR_IMPL_PATH_TEMPLATE.format(stackName, version)
 
       if os.path.isfile(path):
-        with open(path, 'rb') as fp:
+        with open(path, 'r') as fp:
           stack_advisor = imp.load_module('stack_advisor_impl', fp, path, ('.py', 'rb', imp.PY_SOURCE))
         className = STACK_ADVISOR_IMPL_CLASS_TEMPLATE.format(stackName, version.replace('.', ''))
-        print "StackAdvisor implementation for stack {0}, version {1} was loaded".format(stackName, version)
+        print("StackAdvisor implementation for stack {0}, version {1} was loaded".format(stackName, version))
     except IOError: # file not found
       traceback.print_exc()
-      print "StackAdvisor implementation for stack {0}, version {1} was not found".format(stackName, version)
+      print("StackAdvisor implementation for stack {0}, version {1} was not found".format(stackName, version))
 
   try:
     clazz = getattr(stack_advisor, className)
-    print "Returning " + className + " implementation"
+    print("Returning " + className + " implementation")
     return clazz()
   except Exception as e:
     traceback.print_exc()
-    print "Returning default implementation"
+    print("Returning default implementation")
     return default_stack_advisor.DefaultStackAdvisor()
 
 
@@ -190,10 +190,10 @@ if __name__ == '__main__':
     main(sys.argv)
   except StackAdvisorException as stack_exception:
     traceback.print_exc()
-    print "Error occured in stack advisor.\nError details: {0}".format(str(stack_exception))
+    print("Error occured in stack advisor.\nError details: {0}".format(str(stack_exception)))
     sys.exit(1)
   except Exception as e:
     traceback.print_exc()
-    print "Error occured in stack advisor.\nError details: {0}".format(str(e))
+    print("Error occured in stack advisor.\nError details: {0}".format(str(e)))
     sys.exit(2)
 
