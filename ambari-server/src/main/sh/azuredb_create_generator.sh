@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Creates an idempotent SQL script for AzureDB from the SQLServer "create" scripts.
+# Creates an idempotent SQL script for AzureDB from the SQLServer "create" script.
 
 sql_dir="$1"/src/main/resources
 script_dir="$1"/src/main/python
