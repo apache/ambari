@@ -15,8 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-echo -e "\033[32mRemoving image ambari:trunk-centos-7\033[0m"
+echo -e "\033[32mRemoving image ambari:trunk-rocky-9\033[0m"
 docker rmi ambari/develop:trunk-rocky-9
 
-echo -e "\033[32mBuilding image ambari:trunk-centos-7\033[0m"
+echo -e "\033[32mBuilding image ambari:trunk-rocky-9\033[0m"
 docker build -t ambari/develop:trunk-rocky-9 .

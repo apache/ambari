@@ -471,7 +471,7 @@
           </execution>
         </executions>
       </plugin>
-      <plugin>
+  <!--    <plugin>
         <artifactId>eclipselink-staticweave-maven-plugin</artifactId>
         <groupId>au.com.alderaan</groupId>
         <version>1.0.4</version>
@@ -494,7 +494,7 @@
             <version>${eclipselink.version}</version>
           </dependency>
         </dependencies>
-      </plugin>
+      </plugin> -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>properties-maven-plugin</artifactId>

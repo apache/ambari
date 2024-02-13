@@ -17,7 +17,9 @@ FROM rockylinux:9
 
 RUN echo "assumeyes=1" >> /etc/yum.conf
 RUN yum install -y epel-release
-RUN yum -y install sudo wget openssh-clients openssh-server vim mariadb mariadb-server java-1.8.0-openjdk* net-tools chrony krb5-server krb5-libs krb5-workstation git rpm-build
+RUN yum -y install sudo wget openssh-clients openssh-server vim mariadb mariadb-server java-1.8.0-openjdk* net-tools chrony krb5-server krb5-libs krb5-workstation git rpm-build python3-pip perl python3-devel 
+RUN pip install speedups
+RUN pip install subprocess32
 RUN wget https://repo1.maven.org/maven2/mysql/mysql-connector-java/5.1.47/mysql-connector-java-5.1.47.jar -O /usr/share/java/mysql-connector-java.jar
 RUN wget https://dlcdn.apache.org/maven/maven-3/3.8.8/binaries/apache-maven-3.8.8-bin.tar.gz -O /tmp/apache-maven.tar.gz --no-check-certificate \
   && mkdir -p /usr/share/maven && tar -xzf /tmp/apache-maven.tar.gz -C /usr/share/maven --strip-components=1 \

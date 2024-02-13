@@ -20,7 +20,7 @@ if [[ -z $(docker ps -a --format "table {{.Names}}" | grep "ambari-rpm-build") ]
   docker run -it -d --name ambari-rpm-build --privileged=true -e "container=docker" \
     -v /sys/fs/cgroup:/sys/fs/cgroup:ro -v $PWD/../../../:/opt/ambari/ \
     -w /opt/ambari \
-    ambari/develop:trunk-centos-7
+    ambari/develop:trunk-rocky-9
 else
   docker start ambari-rpm-build
 fi
@@ -33,7 +33,7 @@ echo -e "\033[32mCreating network ambari\033[0m"
 docker network create --driver bridge ambari
 
 echo -e "\033[32mCreating container ambari-server\033[0m"
-docker run -d -p 3306:3306 -p 5005:5005 -p 8080:8080 --name ambari-server --hostname ambari-server --network ambari --privileged -e "container=docker" -v /sys/fs/cgroup:/sys/fs/cgroup:ro ambari/develop:trunk-centos-7 /usr/sbin/init
+docker run -d -p 3306:3306 -p 5005:5005 -p 8080:8080 --name ambari-server --hostname ambari-server --network ambari --privileged -e "container=docker" -v /sys/fs/cgroup:/sys/fs/cgroup:ro ambari/develop:trunk-rocky-9 /usr/sbin/init
 docker cp ../../../ambari-server/target/rpm/ambari-server/RPMS/x86_64/ambari-server*.rpm ambari-server:/root/ambari-server.rpm
 docker cp ../../../ambari-agent/target/rpm/ambari-agent/RPMS/x86_64/ambari-agent*.rpm ambari-server:/root/ambari-agent.rpm
 SERVER_PUB_KEY=`docker exec ambari-server /bin/cat /root/.ssh/id_rsa.pub`
@@ -65,7 +65,7 @@ docker exec ambari-server bash -c "ambari-server setup --jdbc-db=mysql --jdbc-dr
 docker exec ambari-server bash -c "ambari-server setup --java-home=/usr/lib/jvm/java --database=mysql --databasehost=localhost --databaseport=3306 --databasename=ambari --databaseusername=root --databasepassword=root -s"
 
 echo -e "\033[32mCreating container ambari-agent-01\033[0m"
-docker run -d -p 9995:9995 --name ambari-agent-01 --hostname ambari-agent-01 --network ambari --privileged -e "container=docker" -v /sys/fs/cgroup:/sys/fs/cgroup:ro ambari/develop:trunk-centos-7 /usr/sbin/init
+docker run -d -p 9995:9995 --name ambari-agent-01 --hostname ambari-agent-01 --network ambari --privileged -e "container=docker" -v /sys/fs/cgroup:/sys/fs/cgroup:ro ambari/develop:trunk-rocky-9 /usr/sbin/init
 docker cp ../../../ambari-agent/target/rpm/ambari-agent/RPMS/x86_64/ambari-agent*.rpm ambari-agent-01:/root/ambari-agent.rpm
 docker exec ambari-agent-01 bash -c "yum -y install /root/ambari-agent.rpm"
 docker exec ambari-agent-01 bash -c "echo '$SERVER_PUB_KEY' > /root/.ssh/authorized_keys"
@@ -73,7 +73,7 @@ docker exec ambari-agent-01 /bin/systemctl enable sshd
 docker exec ambari-agent-01 /bin/systemctl start sshd
 
 echo -e "\033[32mCreating container ambari-agent-02\033[0m"
-docker run -d -p 8088:8088 --name ambari-agent-02 --hostname ambari-agent-02 --network ambari --privileged -e "container=docker" -v /sys/fs/cgroup:/sys/fs/cgroup:ro ambari/develop:trunk-centos-7 /usr/sbin/init
+docker run -d -p 8088:8088 --name ambari-agent-02 --hostname ambari-agent-02 --network ambari --privileged -e "container=docker" -v /sys/fs/cgroup:/sys/fs/cgroup:ro ambari/develop:trunk-rocky-9 /usr/sbin/init
 docker cp ../../../ambari-agent/target/rpm/ambari-agent/RPMS/x86_64/ambari-agent*.rpm ambari-agent-02:/root/ambari-agent.rpm
 docker exec ambari-agent-02 bash -c "yum -y install /root/ambari-agent.rpm"
 docker exec ambari-agent-02 bash -c "echo '$SERVER_PUB_KEY' > /root/.ssh/authorized_keys"
