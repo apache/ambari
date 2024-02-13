@@ -22,13 +22,13 @@ set -e -u
 cd "$(dirname "$0")"
 
 # OS to build on
-: ${BUILD_OS:=centos7}
+: ${BUILD_OS:=rocky9}
 
 # Directory with Ambari source
 : ${AMBARI_DIR:=$(pwd -P)}
 
 # Maven version
-: ${MAVEN_VERSION:=3.6.0}
+: ${MAVEN_VERSION:=3.8.8}
 
 docker build -t ambari-build-base:${BUILD_OS} dev-support/docker/${BUILD_OS}
 docker build -t ambari-build:${BUILD_OS} --build-arg BUILD_OS="${BUILD_OS}" --build-arg MAVEN_VERSION="${MAVEN_VERSION}" dev-support/docker/common
