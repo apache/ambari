@@ -1,0 +1,4 @@
+.gitignore
+*.json
+*.ts
+!*.d.ts

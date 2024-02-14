@@ -1,0 +1,63 @@
+{
+  "name" : "xml2js",
+  "description" : "Simple XML to JavaScript object converter.",
+  "keywords" : ["xml", "json"],
+  "homepage" : "https://github.com/Leonidas-from-XIV/node-xml2js",
+  "version" : "0.4.4",
+  "author" : "Marek Kubica <marek@xivilization.net> (http://xivilization.net)",
+  "contributors" : [
+    "maqr <maqr.lollerskates@gmail.com> (https://github.com/maqr)",
+    "Ben Weaver (http://benweaver.com/)",
+    "Jae Kwon (https://github.com/jaekwon)",
+    "Jim Robert",
+    "Ștefan Rusu (http://www.saltwaterc.eu/)",
+    "Carter Cole <carter.cole@cartercole.com> (http://cartercole.com/)",
+    "Kurt Raschke <kurt@kurtraschke.com> (http://www.kurtraschke.com/)",
+    "Contra <contra@australia.edu> (https://github.com/Contra)",
+    "Marcelo Diniz <marudiniz@gmail.com> (https://github.com/mdiniz)",
+    "Michael Hart (https://github.com/mhart)",
+    "Zachary Scott <zachary@zacharyscott.net> (http://zacharyscott.net/)",
+    "Raoul Millais (https://github.com/raoulmillais)",
+    "Salsita Software (http://www.salsitasoft.com/)",
+    "Mike Schilling <mike@emotive.com> (http://www.emotive.com/)",
+    "Jackson Tian <shyvo1987@gmail.com> (http://weibo.com/shyvo)",
+    "Mikhail Zyatin <mikhail.zyatin@gmail.com> (https://github.com/Sitin)",
+    "Chris Tavares <ctavares@microsoft.com> (https://github.com/christav)",
+    "Frank Xu <yyfrankyy@gmail.com> (http://f2e.us/)",
+    "Guido D'Albore <guido@bitstorm.it> (http://www.bitstorm.it/)",
+    "Jack Senechal (http://jacksenechal.com/)",
+    "Matthias Hölzl <tc@xantira.com> (https://github.com/hoelzl)",
+    "Camille Reynders <info@creynders.be> (http://www.creynders.be/)",
+    "Taylor Gautier (https://github.com/tsgautier)",
+    "Todd Bryan (https://github.com/toddrbryan)",
+    "Leore Avidar <leore.avidar@gmail.com> (http://leoreavidar.com/)",
+    "Dave Aitken <dave.aitken@gmail.com> (http://www.actionshrimp.com/)"
+  ],
+  "main" : "./lib/xml2js",
+  "directories" : {
+    "lib": "./lib"
+  },
+  "scripts" : {
+    "test": "zap"
+  },
+  "repository" : {
+    "type" : "git",
+    "url" : "https://github.com/Leonidas-from-XIV/node-xml2js.git"
+  },
+  "dependencies" : {
+    "sax" : "0.6.x",
+    "xmlbuilder" : ">=1.0.0"
+  },
+  "devDependencies" : {
+    "coffee-script" : ">=1.7.1",
+    "zap" : ">=0.2.6",
+    "docco" : ">=0.6.2",
+    "diff" : ">=1.0.8"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://raw.github.com/Leonidas-from-XIV/node-xml2js/master/LICENSE"
+    }
+  ]
+}

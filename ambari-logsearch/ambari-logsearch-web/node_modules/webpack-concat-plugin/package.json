@@ -1,0 +1,27 @@
+{
+  "name": "webpack-concat-plugin",
+  "version": "1.4.0",
+  "description": "webpack file concat",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hxlniada/webpack-concat-plugin.git"
+  },
+  "keywords": [
+    "webpack",
+    "concat"
+  ],
+  "author": "huangxueliang",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hxlniada/webpack-concat-plugin/issues"
+  },
+  "homepage": "https://github.com/hxlniada/webpack-concat-plugin#readme",
+  "dependencies": {
+    "md5": "^2.2.1",
+    "uglify-js": "^2.8.29"
+  }
+}
