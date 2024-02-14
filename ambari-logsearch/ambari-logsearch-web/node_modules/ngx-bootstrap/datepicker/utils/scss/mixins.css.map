@@ -1,0 +1,12 @@
+{
+	"version": 3,
+	"file": "mixins.css",
+	"sources": [
+		"../../../../src/datepicker/utils/scss/mixins.scss"
+	],
+	"sourcesContent": [
+		"@mixin theming($name, $color) {\n  .theme-#{$name} {\n    .bs-datepicker-head {\n      background-color: $color;\n    }\n\n    .bs-datepicker-body {\n      table {\n        td {\n          span.selected,\n          &.selected span,\n          span[class*=\"select-\"]:after,\n          &[class*=\"select-\"] span:after {\n            background-color: $color;\n          }\n\n          &.week span {\n            color: $color;\n          }\n        }\n      }\n    }\n  }\n}\n"
+	],
+	"names": [],
+	"mappings": ""
+}

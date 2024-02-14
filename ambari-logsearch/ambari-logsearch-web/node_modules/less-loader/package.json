@@ -1,0 +1,81 @@
+{
+  "name": "less-loader",
+  "version": "4.0.5",
+  "author": "Johannes Ewald @jhnns",
+  "description": "Less loader for webpack. Compiles Less to CSS.",
+  "main": "dist/cjs.js",
+  "scripts": {
+    "create-spec": "babel-node test/helpers/createSpec.js",
+    "pretest": "npm run create-spec",
+    "test": "jest",
+    "posttest": "npm run lint",
+    "travis:test": "npm run test -- --runInBand",
+    "appveyor:test": "npm run test",
+    "lint": "eslint --cache src test",
+    "webpack-defaults": "webpack-defaults",
+    "start": "npm run build -- -w",
+    "build": "cross-env NODE_ENV=production babel src -d dist --ignore 'src/**/*.test.js'",
+    "lint-staged": "lint-staged",
+    "prebuild": "npm run clean",
+    "prepublish": "npm run build",
+    "release": "standard-version",
+    "security": "nsp check",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --collectCoverageFrom='src/**/*.js' --coverage",
+    "pretravis:coverage": "npm run pretest",
+    "travis:coverage": "npm run test:coverage -- --runInBand",
+    "travis:lint": "npm run lint && npm run security",
+    "clean": "del-cli dist"
+  },
+  "engines": {
+    "node": ">= 4.3 < 5.0.0 || >= 5.10"
+  },
+  "dependencies": {
+    "clone": "^2.1.1",
+    "loader-utils": "^1.1.0",
+    "pify": "^2.3.0"
+  },
+  "peerDependencies": {
+    "less": "^2.3.1",
+    "webpack": "^2.0.0 || ^3.0.0"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.24.0",
+    "babel-jest": "^20.0.3",
+    "babel-plugin-transform-object-rest-spread": "^6.23.0",
+    "babel-polyfill": "^6.23.0",
+    "babel-preset-env": "^1.2.2",
+    "cross-env": "^3.2.4",
+    "del-cli": "^0.2.1",
+    "eslint": "^3.18.0",
+    "eslint-config-webpack": "^1.2.1",
+    "eslint-plugin-import": "^2.2.0",
+    "inspect-loader": "^1.0.0",
+    "jest": "^20.0.3",
+    "less": "^2.3.1",
+    "lint-staged": "^3.4.0",
+    "nodemon": "^1.11.0",
+    "nsp": "^2.6.3",
+    "pre-commit": "^1.2.2",
+    "standard-version": "^4.0.0",
+    "webpack": "latest",
+    "webpack-defaults": "^1.0.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/webpack-contrib/less-loader.git"
+  },
+  "license": "MIT",
+  "files": [
+    "README.md",
+    "LICENSE",
+    "dist"
+  ],
+  "pre-commit": "lint-staged",
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix",
+      "git add"
+    ]
+  }
+}

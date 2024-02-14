@@ -1,0 +1,6 @@
+<%_ for(var i=0; i < packages.length; i++) { -%>
+<%- packages[i].packageJson.name %>@<%- packages[i].packageJson.version %>
+<%- packages[i].license.name %>
+<%- packages[i].license.text -%>
+<%- (i < (packages.length - 1)) ? '\n\n' : '' -%>
+<%_ } -%>
