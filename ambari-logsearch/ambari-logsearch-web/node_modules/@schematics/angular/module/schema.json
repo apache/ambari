@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "id": "SchematicsAngularModule",
+  "title": "Angular Module Options Schema",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "path": {
+      "type": "string",
+      "default": "app"
+    },
+    "sourceDir": {
+      "type": "string",
+      "default": "src"
+    },
+    "routing": {
+      "type": "boolean",
+      "default": false
+    },
+    "routingScope": {
+      "enum": ["Child", "Root"],
+      "type": "string",
+      "default": "Child"
+    },
+    "spec": {
+      "type": "boolean",
+      "default": true
+    },
+    "flat": {
+      "type": "boolean",
+      "default": false
+    },
+    "commonModule": {
+      "type": "boolean",
+      "default": true
+    },
+    "module":  {
+      "type": "string",
+      "description": "Allows specification of the declaring module.",
+      "alias": "m"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

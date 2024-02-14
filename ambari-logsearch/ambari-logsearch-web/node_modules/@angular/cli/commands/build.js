@@ -1,0 +1,209 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const config_1 = require("../models/config");
+const version_1 = require("../upgrade/version");
+const common_tags_1 = require("common-tags");
+const Command = require('../ember-cli/lib/models/command');
+const config = config_1.CliConfig.fromProject() || config_1.CliConfig.fromGlobal();
+const buildConfigDefaults = config.getPaths('defaults.build', [
+    'sourcemaps', 'baseHref', 'progress', 'poll', 'deleteOutputPath', 'preserveSymlinks',
+    'showCircularDependencies', 'commonChunk', 'namedChunks'
+]);
+// defaults for BuildOptions
+exports.baseBuildCommandOptions = [
+    {
+        name: 'target',
+        type: String,
+        default: 'development',
+        aliases: ['t', { 'dev': 'development' }, { 'prod': 'production' }],
+        description: 'Defines the build target.'
+    },
+    {
+        name: 'environment',
+        type: String,
+        aliases: ['e'],
+        description: 'Defines the build environment.'
+    },
+    {
+        name: 'output-path',
+        type: 'Path',
+        aliases: ['op'],
+        description: 'Path where output will be placed.'
+    },
+    {
+        name: 'aot',
+        type: Boolean,
+        description: 'Build using Ahead of Time compilation.'
+    },
+    {
+        name: 'sourcemaps',
+        type: Boolean,
+        aliases: ['sm', 'sourcemap'],
+        description: 'Output sourcemaps.',
+        default: buildConfigDefaults['sourcemaps']
+    },
+    {
+        name: 'vendor-chunk',
+        type: Boolean,
+        aliases: ['vc'],
+        description: 'Use a separate bundle containing only vendor libraries.'
+    },
+    {
+        name: 'common-chunk',
+        type: Boolean,
+        default: buildConfigDefaults['commonChunk'],
+        aliases: ['cc'],
+        description: 'Use a separate bundle containing code used across multiple bundles.'
+    },
+    {
+        name: 'base-href',
+        type: String,
+        aliases: ['bh'],
+        description: 'Base url for the application being built.',
+        default: buildConfigDefaults['baseHref']
+    },
+    {
+        name: 'deploy-url',
+        type: String,
+        aliases: ['d'],
+        description: 'URL where files will be deployed.'
+    },
+    {
+        name: 'verbose',
+        type: Boolean,
+        default: false,
+        aliases: ['v'],
+        description: 'Adds more details to output logging.'
+    },
+    {
+        name: 'progress',
+        type: Boolean,
+        aliases: ['pr'],
+        description: 'Log progress to the console while building.',
+        default: buildConfigDefaults['progress']
+    },
+    {
+        name: 'i18n-file',
+        type: String,
+        description: 'Localization file to use for i18n.'
+    },
+    {
+        name: 'i18n-format',
+        type: String,
+        description: 'Format of the localization file specified with --i18n-file.'
+    },
+    {
+        name: 'locale',
+        type: String,
+        description: 'Locale to use for i18n.'
+    },
+    {
+        name: 'missing-translation',
+        type: String,
+        description: 'How to handle missing translations for i18n.'
+    },
+    {
+        name: 'extract-css',
+        type: Boolean,
+        aliases: ['ec'],
+        description: 'Extract css from global styles onto css files instead of js ones.'
+    },
+    {
+        name: 'watch',
+        type: Boolean,
+        default: false,
+        aliases: ['w'],
+        description: 'Run build when files change.'
+    },
+    {
+        name: 'output-hashing',
+        type: String,
+        values: ['none', 'all', 'media', 'bundles'],
+        description: 'Define the output filename cache-busting hashing mode.',
+        aliases: ['oh']
+    },
+    {
+        name: 'poll',
+        type: Number,
+        description: 'Enable and define the file watching poll time period (milliseconds).',
+        default: buildConfigDefaults['poll']
+    },
+    {
+        name: 'app',
+        type: String,
+        aliases: ['a'],
+        description: 'Specifies app name or index to use.'
+    },
+    {
+        name: 'delete-output-path',
+        type: Boolean,
+        aliases: ['dop'],
+        description: 'Delete output path before build.',
+        default: buildConfigDefaults['deleteOutputPath'],
+    },
+    {
+        name: 'preserve-symlinks',
+        type: Boolean,
+        description: 'Do not use the real path when resolving modules.',
+        default: buildConfigDefaults['preserveSymlinks']
+    },
+    {
+        name: 'extract-licenses',
+        type: Boolean,
+        default: true,
+        description: 'Extract all licenses in a separate file, in the case of production builds only.'
+    },
+    {
+        name: 'show-circular-dependencies',
+        type: Boolean,
+        aliases: ['scd'],
+        description: 'Show circular dependency warnings on builds.',
+        default: buildConfigDefaults['showCircularDependencies']
+    },
+    {
+        name: 'build-optimizer',
+        type: Boolean,
+        default: false,
+        description: '(Experimental) Enables @angular-devkit/build-optimizer '
+            + 'optimizations when using `--aot`.'
+    },
+    {
+        name: 'named-chunks',
+        type: Boolean,
+        aliases: ['nc'],
+        description: 'Use file name for lazy loaded chunks.',
+        default: buildConfigDefaults['namedChunks']
+    }
+];
+const BuildCommand = Command.extend({
+    name: 'build',
+    description: 'Builds your app and places it into the output path (dist/ by default).',
+    aliases: ['b'],
+    availableOptions: exports.baseBuildCommandOptions.concat([
+        {
+            name: 'stats-json',
+            type: Boolean,
+            default: false,
+            description: common_tags_1.oneLine `Generates a \`stats.json\` file which can be analyzed using tools
+       such as: \`webpack-bundle-analyzer\` or https://webpack.github.io/analyse.`
+        }
+    ]),
+    run: function (commandOptions) {
+        // Check Angular and TypeScript versions.
+        version_1.Version.assertAngularVersionIs2_3_1OrHigher(this.project.root);
+        version_1.Version.assertTypescriptVersion(this.project.root);
+        // Default vendor chunk to false when build optimizer is on.
+        if (commandOptions.vendorChunk === undefined) {
+            commandOptions.vendorChunk = !commandOptions.buildOptimizer;
+        }
+        const BuildTask = require('../tasks/build').default;
+        const buildTask = new BuildTask({
+            project: this.project,
+            ui: this.ui,
+        });
+        return buildTask.run(commandOptions);
+    }
+});
+BuildCommand.overrideCore = true;
+exports.default = BuildCommand;
+//# sourceMappingURL=/users/hansl/sources/angular-cli/commands/build.js.map

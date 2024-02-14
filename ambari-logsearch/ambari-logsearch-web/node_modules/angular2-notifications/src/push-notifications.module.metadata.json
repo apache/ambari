@@ -1,0 +1,1 @@
+{"__symbolic":"module","version":1,"metadata":{"PushNotificationsModule":{"__symbolic":"class","decorators":[{"__symbolic":"call","expression":{"__symbolic":"reference","module":"@angular/core","name":"NgModule"},"arguments":[{"providers":[{"__symbolic":"reference","module":"./push-notifications.service","name":"PushNotificationsService"}]}]}]}}}

@@ -1,0 +1,1 @@
+{"__symbolic":"module","version":1,"metadata":{"AddPipe":{"__symbolic":"class","decorators":[{"__symbolic":"call","expression":{"__symbolic":"reference","module":"@angular/core","name":"Pipe"},"arguments":[{"name":"amAdd"}]}],"members":{"transform":[{"__symbolic":"method"}]}}}}

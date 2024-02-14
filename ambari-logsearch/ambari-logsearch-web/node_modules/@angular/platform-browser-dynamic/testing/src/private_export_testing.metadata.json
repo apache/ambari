@@ -1,0 +1,1 @@
+[{"__symbolic":"module","version":3,"metadata":{},"exports":[{"from":"./dom_test_component_renderer","export":[{"name":"DOMTestComponentRenderer","as":"ɵDOMTestComponentRenderer"}]}]},{"__symbolic":"module","version":1,"metadata":{},"exports":[{"from":"./dom_test_component_renderer","export":[{"name":"DOMTestComponentRenderer","as":"ɵDOMTestComponentRenderer"}]}]}]

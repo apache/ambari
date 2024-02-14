@@ -1,0 +1,31 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+/**
+* @license
+* Copyright Google Inc. All Rights Reserved.
+*
+* Use of this source code is governed by an MIT-style license that can be
+* found in the LICENSE file at https://angular.io/license
+*/
+const schematics_1 = require("@angular-devkit/schematics");
+const stringUtils = require("../strings");
+function default_1(options) {
+    options.type = !!options.type ? `.${options.type}` : '';
+    options.path = options.path ? schematics_1.normalizePath(options.path) : options.path;
+    const sourceDir = options.sourceDir;
+    if (!sourceDir) {
+        throw new schematics_1.SchematicsError(`sourceDir option is required.`);
+    }
+    const templateSource = schematics_1.apply(schematics_1.url('./files'), [
+        options.spec ? schematics_1.noop() : schematics_1.filter(path => !path.endsWith('.spec.ts')),
+        schematics_1.template(Object.assign({}, stringUtils, options)),
+        schematics_1.move(sourceDir),
+    ]);
+    return schematics_1.chain([
+        schematics_1.branchAndMerge(schematics_1.chain([
+            schematics_1.mergeWith(templateSource),
+        ])),
+    ]);
+}
+exports.default = default_1;
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiaW5kZXguanMiLCJzb3VyY2VSb290IjoiL1VzZXJzL2hhbnNsL1NvdXJjZXMvZGV2a2l0LyIsInNvdXJjZXMiOlsicGFja2FnZXMvc2NoZW1hdGljcy9hbmd1bGFyL2NsYXNzL2luZGV4LnRzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7O0FBQUE7Ozs7OztFQU1FO0FBQ0YsMkRBYW9DO0FBQ3BDLDBDQUEwQztBQUkxQyxtQkFBeUIsT0FBcUI7SUFDNUMsT0FBTyxDQUFDLElBQUksR0FBRyxDQUFDLENBQUMsT0FBTyxDQUFDLElBQUksR0FBRyxJQUFJLE9BQU8sQ0FBQyxJQUFJLEVBQUUsR0FBRyxFQUFFLENBQUM7SUFDeEQsT0FBTyxDQUFDLElBQUksR0FBRyxPQUFPLENBQUMsSUFBSSxHQUFHLDBCQUFhLENBQUMsT0FBTyxDQUFDLElBQUksQ0FBQyxHQUFHLE9BQU8sQ0FBQyxJQUFJLENBQUM7SUFDekUsTUFBTSxTQUFTLEdBQUcsT0FBTyxDQUFDLFNBQVMsQ0FBQztJQUNwQyxFQUFFLENBQUMsQ0FBQyxDQUFDLFNBQVMsQ0FBQyxDQUFDLENBQUM7UUFDZixNQUFNLElBQUksNEJBQWUsQ0FBQywrQkFBK0IsQ0FBQyxDQUFDO0lBQzdELENBQUM7SUFFRCxNQUFNLGNBQWMsR0FBRyxrQkFBSyxDQUFDLGdCQUFHLENBQUMsU0FBUyxDQUFDLEVBQUU7UUFDM0MsT0FBTyxDQUFDLElBQUksR0FBRyxpQkFBSSxFQUFFLEdBQUcsbUJBQU0sQ0FBQyxJQUFJLElBQUksQ0FBQyxJQUFJLENBQUMsUUFBUSxDQUFDLFVBQVUsQ0FBQyxDQUFDO1FBQ2xFLHFCQUFRLG1CQUNILFdBQVcsRUFDWCxPQUFpQixFQUNwQjtRQUNGLGlCQUFJLENBQUMsU0FBUyxDQUFDO0tBQ2hCLENBQUMsQ0FBQztJQUVILE1BQU0sQ0FBQyxrQkFBSyxDQUFDO1FBQ1gsMkJBQWMsQ0FBQyxrQkFBSyxDQUFDO1lBQ25CLHNCQUFTLENBQUMsY0FBYyxDQUFDO1NBQzFCLENBQUMsQ0FBQztLQUNKLENBQUMsQ0FBQztBQUNMLENBQUM7QUF0QkQsNEJBc0JDIiwic291cmNlc0NvbnRlbnQiOlsiLyoqXG4qIEBsaWNlbnNlXG4qIENvcHlyaWdodCBHb29nbGUgSW5jLiBBbGwgUmlnaHRzIFJlc2VydmVkLlxuKlxuKiBVc2Ugb2YgdGhpcyBzb3VyY2UgY29kZSBpcyBnb3Zlcm5lZCBieSBhbiBNSVQtc3R5bGUgbGljZW5zZSB0aGF0IGNhbiBiZVxuKiBmb3VuZCBpbiB0aGUgTElDRU5TRSBmaWxlIGF0IGh0dHBzOi8vYW5ndWxhci5pby9saWNlbnNlXG4qL1xuaW1wb3J0IHtcbiAgUnVsZSxcbiAgU2NoZW1hdGljc0Vycm9yLFxuICBhcHBseSxcbiAgYnJhbmNoQW5kTWVyZ2UsXG4gIGNoYWluLFxuICBmaWx0ZXIsXG4gIG1lcmdlV2l0aCxcbiAgbW92ZSxcbiAgbm9vcCxcbiAgbm9ybWFsaXplUGF0aCxcbiAgdGVtcGxhdGUsXG4gIHVybCxcbn0gZnJvbSAnQGFuZ3VsYXItZGV2a2l0L3NjaGVtYXRpY3MnO1xuaW1wb3J0ICogYXMgc3RyaW5nVXRpbHMgZnJvbSAnLi4vc3RyaW5ncyc7XG5pbXBvcnQgeyBTY2hlbWEgYXMgQ2xhc3NPcHRpb25zIH0gZnJvbSAnLi9zY2hlbWEnO1xuXG5cbmV4cG9ydCBkZWZhdWx0IGZ1bmN0aW9uIChvcHRpb25zOiBDbGFzc09wdGlvbnMpOiBSdWxlIHtcbiAgb3B0aW9ucy50eXBlID0gISFvcHRpb25zLnR5cGUgPyBgLiR7b3B0aW9ucy50eXBlfWAgOiAnJztcbiAgb3B0aW9ucy5wYXRoID0gb3B0aW9ucy5wYXRoID8gbm9ybWFsaXplUGF0aChvcHRpb25zLnBhdGgpIDogb3B0aW9ucy5wYXRoO1xuICBjb25zdCBzb3VyY2VEaXIgPSBvcHRpb25zLnNvdXJjZURpcjtcbiAgaWYgKCFzb3VyY2VEaXIpIHtcbiAgICB0aHJvdyBuZXcgU2NoZW1hdGljc0Vycm9yKGBzb3VyY2VEaXIgb3B0aW9uIGlzIHJlcXVpcmVkLmApO1xuICB9XG5cbiAgY29uc3QgdGVtcGxhdGVTb3VyY2UgPSBhcHBseSh1cmwoJy4vZmlsZXMnKSwgW1xuICAgIG9wdGlvbnMuc3BlYyA/IG5vb3AoKSA6IGZpbHRlcihwYXRoID0+ICFwYXRoLmVuZHNXaXRoKCcuc3BlYy50cycpKSxcbiAgICB0ZW1wbGF0ZSh7XG4gICAgICAuLi5zdHJpbmdVdGlscyxcbiAgICAgIC4uLm9wdGlvbnMgYXMgb2JqZWN0LFxuICAgIH0pLFxuICAgIG1vdmUoc291cmNlRGlyKSxcbiAgXSk7XG5cbiAgcmV0dXJuIGNoYWluKFtcbiAgICBicmFuY2hBbmRNZXJnZShjaGFpbihbXG4gICAgICBtZXJnZVdpdGgodGVtcGxhdGVTb3VyY2UpLFxuICAgIF0pKSxcbiAgXSk7XG59XG4iXX0=

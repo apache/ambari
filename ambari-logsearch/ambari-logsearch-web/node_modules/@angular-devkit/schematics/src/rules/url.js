@@ -1,0 +1,16 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ * @license
+ * Copyright Google Inc. All Rights Reserved.
+ *
+ * Use of this source code is governed by an MIT-style license that can be
+ * found in the LICENSE file at https://angular.io/license
+ */
+const url_1 = require("url");
+function url(urlString) {
+    const url = url_1.parse(urlString);
+    return (context) => context.engine.createSourceFromUrl(url)(context);
+}
+exports.url = url;
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoidXJsLmpzIiwic291cmNlUm9vdCI6Ii9Vc2Vycy9oYW5zbC9Tb3VyY2VzL2RldmtpdC8iLCJzb3VyY2VzIjpbInBhY2thZ2VzL2FuZ3VsYXJfZGV2a2l0L3NjaGVtYXRpY3Mvc3JjL3J1bGVzL3VybC50cyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiOztBQUFBOzs7Ozs7R0FNRztBQUNILDZCQUE0QjtBQUk1QixhQUFvQixTQUFpQjtJQUNuQyxNQUFNLEdBQUcsR0FBRyxXQUFLLENBQUMsU0FBUyxDQUFDLENBQUM7SUFFN0IsTUFBTSxDQUFDLENBQUMsT0FBeUIsS0FBSyxPQUFPLENBQUMsTUFBTSxDQUFDLG1CQUFtQixDQUFDLEdBQUcsQ0FBQyxDQUFDLE9BQU8sQ0FBQyxDQUFDO0FBQ3pGLENBQUM7QUFKRCxrQkFJQyIsInNvdXJjZXNDb250ZW50IjpbIi8qKlxuICogQGxpY2Vuc2VcbiAqIENvcHlyaWdodCBHb29nbGUgSW5jLiBBbGwgUmlnaHRzIFJlc2VydmVkLlxuICpcbiAqIFVzZSBvZiB0aGlzIHNvdXJjZSBjb2RlIGlzIGdvdmVybmVkIGJ5IGFuIE1JVC1zdHlsZSBsaWNlbnNlIHRoYXQgY2FuIGJlXG4gKiBmb3VuZCBpbiB0aGUgTElDRU5TRSBmaWxlIGF0IGh0dHBzOi8vYW5ndWxhci5pby9saWNlbnNlXG4gKi9cbmltcG9ydCB7IHBhcnNlIH0gZnJvbSAndXJsJztcbmltcG9ydCB7IFNjaGVtYXRpY0NvbnRleHQsIFNvdXJjZSB9IGZyb20gJy4uL2VuZ2luZS9pbnRlcmZhY2UnO1xuXG5cbmV4cG9ydCBmdW5jdGlvbiB1cmwodXJsU3RyaW5nOiBzdHJpbmcpOiBTb3VyY2Uge1xuICBjb25zdCB1cmwgPSBwYXJzZSh1cmxTdHJpbmcpO1xuXG4gIHJldHVybiAoY29udGV4dDogU2NoZW1hdGljQ29udGV4dCkgPT4gY29udGV4dC5lbmdpbmUuY3JlYXRlU291cmNlRnJvbVVybCh1cmwpKGNvbnRleHQpO1xufVxuIl19

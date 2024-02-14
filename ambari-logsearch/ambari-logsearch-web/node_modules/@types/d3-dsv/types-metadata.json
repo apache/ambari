@@ -1,0 +1,40 @@
+{
+    "name": "d3-dsv",
+    "libraryName": "D3JS d3-dsv module",
+    "sourceRepoURL": "https://www.github.com/DefinitelyTyped/DefinitelyTyped",
+    "data": {
+        "contributors": [
+            {
+                "name": "Tom Wanzek",
+                "url": "https://github.com/tomwanzek"
+            },
+            {
+                "name": "Alex Ford",
+                "url": "https://github.com/gustavderdrache"
+            },
+            {
+                "name": "Boris Yankov",
+                "url": "https://github.com/borisyankov"
+            }
+        ],
+        "dependencies": {},
+        "pathMappings": {},
+        "libraryMajorVersion": 1,
+        "libraryMinorVersion": 0,
+        "typeScriptVersion": "2.0",
+        "libraryName": "D3JS d3-dsv module",
+        "typingsPackageName": "d3-dsv",
+        "projectName": "https://github.com/d3/d3-dsv/",
+        "sourceRepoURL": "https://www.github.com/DefinitelyTyped/DefinitelyTyped",
+        "globals": [],
+        "declaredModules": [
+            "d3-dsv/."
+        ],
+        "files": [
+            "index.d.ts"
+        ],
+        "hasPackageJson": false,
+        "contentHash": "a6abf9cec7250ea44ac96c963190d5e298d401ff8aba24ae9fad201191c6a40e"
+    },
+    "isLatest": true
+}

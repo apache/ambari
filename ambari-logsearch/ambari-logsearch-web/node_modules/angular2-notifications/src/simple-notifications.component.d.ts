@@ -1,0 +1,37 @@
+import { EventEmitter, OnInit, OnDestroy } from '@angular/core';
+import { Notification } from './notification.type';
+import { NotificationsService } from './notifications.service';
+import { Options } from './options.type';
+export declare class SimpleNotificationsComponent implements OnInit, OnDestroy {
+    private _service;
+    options: Options;
+    onCreate: EventEmitter<{}>;
+    onDestroy: EventEmitter<{}>;
+    notifications: Notification[];
+    position: ['top' | 'bottom', 'right' | 'left'];
+    private lastNotificationCreated;
+    private listener;
+    private lastOnBottom;
+    private maxStack;
+    private preventLastDuplicates;
+    private preventDuplicates;
+    private timeOut;
+    private maxLength;
+    private clickToClose;
+    private showProgressBar;
+    private pauseOnHover;
+    private theClass;
+    private rtl;
+    private animate;
+    constructor(_service: NotificationsService);
+    ngOnInit(): void;
+    defaultBehavior(value: any): void;
+    add(item: Notification): void;
+    block(item: Notification): boolean;
+    checkStandard(checker: Notification, item: Notification): boolean;
+    checkHtml(checker: Notification, item: Notification): boolean;
+    attachChanges(options: any): void;
+    buildEmit(notification: Notification, to: boolean): Notification;
+    cleanSingle(id: string): void;
+    ngOnDestroy(): void;
+}

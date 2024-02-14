@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "target": "es2015",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "removeComments": true,
+    "sourceMap": true,
+    "declaration": true,
+    "types": [
+      "node"
+    ]
+  },
+  "angularCompilerOptions": {
+    "genDir": "aot",
+    "skipMetadataEmit": false
+  },
+  "compileOnSave": false,
+  "buildOnSave": false,
+  "files": [
+    "components.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

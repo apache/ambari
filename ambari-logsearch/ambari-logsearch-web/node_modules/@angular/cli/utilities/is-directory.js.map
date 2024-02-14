@@ -1,0 +1,1 @@
+{"version":3,"file":"is-directory.js","sourceRoot":"/users/hansl/sources/angular-cli/","sources":["utilities/is-directory.ts"],"names":[],"mappings":";;AAAA,yBAAyB;AAEzB,qBAA4B,IAAY;IACtC,IAAI,CAAC;QACH,MAAM,CAAC,EAAE,CAAC,QAAQ,CAAC,IAAI,CAAC,CAAC,WAAW,EAAE,CAAC;IACzC,CAAC;IAAC,KAAK,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC;QACX,MAAM,CAAC,KAAK,CAAC;IACf,CAAC;AACH,CAAC;AAND,kCAMC"}
