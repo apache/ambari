@@ -1,0 +1,28 @@
+{
+  "name": "istanbul-instrumenter-loader",
+  "version": "2.0.0",
+  "description": "Istanbul instrumenter loader for webpack",
+  "keywords": [
+    "webpack",
+    "loader",
+    "istanbul",
+    "coverage"
+  ],
+  "homepage": "https://github.com/deepsweet/istanbul-instrumenter-loader",
+  "repository": "deepsweet/istanbul-instrumenter-loader",
+  "author": "Kir Belevich <kir@soulshine.in> (https://github.com/deepsweet)",
+  "main": "index.js",
+  "files": [
+    "index.js"
+  ],
+  "dependencies": {
+    "convert-source-map": "^1.3.0",
+    "istanbul-lib-instrument": "^1.1.3",
+    "loader-utils": "^0.2.16",
+    "object-assign": "^4.1.0"
+  },
+  "engines": {
+    "node": ">=0.12.0"
+  },
+  "license": "MIT"
+}

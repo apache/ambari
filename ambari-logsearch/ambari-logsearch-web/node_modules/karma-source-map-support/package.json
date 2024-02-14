@@ -1,0 +1,42 @@
+{
+  "name": "karma-source-map-support",
+  "version": "1.2.0",
+  "description": "Karma plugin for inline sourcemap support",
+  "main": "lib/index.js",
+  "dependencies": {
+    "source-map-support": "^0.4.1"
+  },
+  "homepage": "https://github.com/tschaub/karma-source-map-support",
+  "author": {
+    "name": "Tim Schaub",
+    "url": "http://tschaub.net/"
+  },
+  "keywords": [
+    "karma-plugin",
+    "karma-framework",
+    "browserify",
+    "inline",
+    "sourcemap"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/tschaub/karma-source-map-support.git"
+  },
+  "bugs": {
+    "url": "https://github.com/tschaub/karma-source-map-support/issues"
+  },
+  "license": "MIT",
+  "scripts": {
+    "test": "eslint lib"
+  },
+  "eslintConfig": {
+    "extends": "tschaub",
+    "globals": {
+      "sourceMapSupport": false
+    }
+  },
+  "devDependencies": {
+    "eslint": "^3.4.0",
+    "eslint-config-tschaub": "^5.0.0"
+  }
+}

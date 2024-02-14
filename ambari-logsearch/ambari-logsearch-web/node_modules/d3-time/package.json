@@ -1,0 +1,38 @@
+{
+  "name": "d3-time",
+  "version": "1.0.7",
+  "description": "A calculator for humanity’s peculiar conventions of time.",
+  "keywords": [
+    "d3",
+    "d3-module",
+    "time",
+    "interval",
+    "calendar"
+  ],
+  "homepage": "https://d3js.org/d3-time/",
+  "license": "BSD-3-Clause",
+  "author": {
+    "name": "Mike Bostock",
+    "url": "http://bost.ocks.org/mike"
+  },
+  "main": "build/d3-time.js",
+  "module": "index",
+  "jsnext:main": "index",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/d3/d3-time.git"
+  },
+  "scripts": {
+    "pretest": "rm -rf build && mkdir build && rollup --banner \"$(preamble)\" -f umd -n d3 -o build/d3-time.js -- index.js",
+    "test": "TZ=America/Los_Angeles tape 'test/**/*-test.js' && test/test-time-zones && eslint index.js src",
+    "prepublish": "npm run test && uglifyjs -b beautify=false,preamble=\"'$(preamble)'\" build/d3-time.js -c -m -o build/d3-time.min.js",
+    "postpublish": "git push && git push --tags && cd ../d3.github.com && git pull && cp ../d3-time/build/d3-time.js d3-time.v1.js && cp ../d3-time/build/d3-time.min.js d3-time.v1.min.js && git add d3-time.v1.js d3-time.v1.min.js && git commit -m \"d3-time ${npm_package_version}\" && git push && cd - && zip -j build/d3-time.zip -- LICENSE README.md build/d3-time.js build/d3-time.min.js"
+  },
+  "devDependencies": {
+    "eslint": "4",
+    "package-preamble": "0.1",
+    "rollup": "0.43",
+    "tape": "4",
+    "uglify-js": "3"
+  }
+}

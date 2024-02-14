@@ -1,0 +1,45 @@
+{
+  "name": "d3-zoom",
+  "version": "1.5.0",
+  "description": "Pan and zoom SVG, HTML or Canvas using mouse or touch input.",
+  "keywords": [
+    "d3",
+    "d3-module",
+    "zoom",
+    "behavior",
+    "interaction"
+  ],
+  "homepage": "https://d3js.org/d3-zoom/",
+  "license": "BSD-3-Clause",
+  "author": {
+    "name": "Mike Bostock",
+    "url": "http://bost.ocks.org/mike"
+  },
+  "main": "build/d3-zoom.js",
+  "module": "index",
+  "jsnext:main": "index",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/d3/d3-zoom.git"
+  },
+  "scripts": {
+    "pretest": "rm -rf build && mkdir build && rollup -c --banner \"$(preamble)\" -g d3-dispatch:d3,d3-drag:d3,d3-interpolate:d3,d3-selection:d3,d3-transition:d3 -o build/d3-zoom.js",
+    "test": "tape 'test/**/*-test.js' && eslint index.js src",
+    "prepublish": "npm run test && uglifyjs -b beautify=false,preamble=\"'$(preamble)'\" build/d3-zoom.js -c -m -o build/d3-zoom.min.js",
+    "postpublish": "git push && git push --tags && cd ../d3.github.com && git pull && cp ../d3-zoom/build/d3-zoom.js d3-zoom.v1.js && cp ../d3-zoom/build/d3-zoom.min.js d3-zoom.v1.min.js && git add d3-zoom.v1.js d3-zoom.v1.min.js && git commit -m \"d3-zoom ${npm_package_version}\" && git push && cd - && zip -j build/d3-zoom.zip -- LICENSE README.md build/d3-zoom.js build/d3-zoom.min.js"
+  },
+  "dependencies": {
+    "d3-dispatch": "1",
+    "d3-drag": "1",
+    "d3-interpolate": "1",
+    "d3-selection": "1",
+    "d3-transition": "1"
+  },
+  "devDependencies": {
+    "eslint": "4",
+    "package-preamble": "0.1",
+    "rollup": "0.45",
+    "tape": "4",
+    "uglify-js": "3"
+  }
+}

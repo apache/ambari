@@ -1,0 +1,55 @@
+{
+  "name": "d3-dsv",
+  "version": "1.0.5",
+  "description": "A parser and formatter for delimiter-separated values, such as CSV and TSV",
+  "keywords": [
+    "d3",
+    "d3-module",
+    "dsv",
+    "csv",
+    "tsv"
+  ],
+  "homepage": "https://d3js.org/d3-dsv/",
+  "license": "BSD-3-Clause",
+  "author": {
+    "name": "Mike Bostock",
+    "url": "http://bost.ocks.org/mike"
+  },
+  "main": "build/d3-dsv.js",
+  "module": "index",
+  "jsnext:main": "index.js",
+  "bin": {
+    "csv2json": "bin/dsv2json",
+    "csv2tsv": "bin/dsv2dsv",
+    "dsv2dsv": "bin/dsv2dsv",
+    "dsv2json": "bin/dsv2json",
+    "json2csv": "bin/json2dsv",
+    "json2dsv": "bin/json2dsv",
+    "json2tsv": "bin/json2dsv",
+    "tsv2csv": "bin/dsv2dsv",
+    "tsv2json": "bin/dsv2json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/d3/d3-dsv.git"
+  },
+  "scripts": {
+    "pretest": "rm -rf build && mkdir build && rollup --banner \"$(preamble)\" -f umd -n d3 -o build/d3-dsv.js -- index.js",
+    "test": "tape 'test/**/*-test.js' && eslint index.js src",
+    "prepublish": "npm run test && uglifyjs --preamble \"$(preamble)\" build/d3-dsv.js -c -m -o build/d3-dsv.min.js",
+    "postpublish": "git push && git push --tags && cd ../d3.github.com && git pull && cp ../d3-dsv/build/d3-dsv.js d3-dsv.v1.js && cp ../d3-dsv/build/d3-dsv.min.js d3-dsv.v1.min.js && git add d3-dsv.v1.js d3-dsv.v1.min.js && git commit -m \"d3-dsv ${npm_package_version}\" && git push && cd - && zip -j build/d3-dsv.zip -- LICENSE README.md build/d3-dsv.js build/d3-dsv.min.js"
+  },
+  "dependencies": {
+    "commander": "2",
+    "iconv-lite": "0.4",
+    "rw": "1"
+  },
+  "devDependencies": {
+    "csv-spectrum": "1",
+    "eslint": "3",
+    "package-preamble": "0.0",
+    "rollup": "0.41",
+    "tape": "4",
+    "uglify-js": "^2.8.11"
+  }
+}

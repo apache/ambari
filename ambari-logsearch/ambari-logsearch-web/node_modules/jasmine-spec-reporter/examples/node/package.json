@@ -1,0 +1,14 @@
+{
+  "name": "node-example",
+  "version": "1.0.0",
+  "description": "a node example",
+  "scripts": {
+    "test": "jasmine"
+  },
+  "author": "Bastien Caudan",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "jasmine": "file:../../node_modules/jasmine",
+    "jasmine-spec-reporter": "file:../../"
+  }
+}

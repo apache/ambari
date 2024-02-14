@@ -1,0 +1,42 @@
+{
+  "name": "d3-collection",
+  "version": "1.0.4",
+  "description": "Handy data structures for elements keyed by string.",
+  "keywords": [
+    "d3",
+    "d3-module",
+    "nest",
+    "data",
+    "map",
+    "set",
+    "object",
+    "collection"
+  ],
+  "homepage": "https://d3js.org/d3-collection/",
+  "license": "BSD-3-Clause",
+  "author": {
+    "name": "Mike Bostock",
+    "url": "http://bost.ocks.org/mike"
+  },
+  "main": "build/d3-collection.js",
+  "module": "index",
+  "jsnext:main": "index",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/d3/d3-collection.git"
+  },
+  "scripts": {
+    "pretest": "rm -rf build && mkdir build && rollup --banner \"$(preamble)\" -f umd -n d3 -o build/d3-collection.js -- index.js",
+    "test": "tape 'test/**/*-test.js' && eslint index.js src",
+    "prepublish": "npm run test && uglifyjs -b beautify=false,preamble=\"'$(preamble)'\" build/d3-collection.js -c -m -o build/d3-collection.min.js",
+    "postpublish": "git push && git push --tags && cd ../d3.github.com && git pull && cp ../d3-collection/build/d3-collection.js d3-collection.v1.js && cp ../d3-collection/build/d3-collection.min.js d3-collection.v1.min.js && git add d3-collection.v1.js d3-collection.v1.min.js && git commit -m \"d3-collection ${npm_package_version}\" && git push && cd - && zip -j build/d3-collection.zip -- LICENSE README.md build/d3-collection.js build/d3-collection.min.js"
+  },
+  "devDependencies": {
+    "d3-array": "1",
+    "eslint": "4",
+    "package-preamble": "0.1",
+    "rollup": "0.43",
+    "tape": "4",
+    "uglify-js": "3"
+  }
+}

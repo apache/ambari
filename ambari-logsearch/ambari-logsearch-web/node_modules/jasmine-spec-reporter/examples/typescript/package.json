@@ -1,0 +1,17 @@
+{
+  "name": "typescript-example",
+  "version": "1.0.0",
+  "description": "a typescript example",
+  "scripts": {
+    "tsc": "node node_modules/typescript/bin/tsc",
+    "pretest": "npm run tsc",
+    "test": "jasmine"
+  },
+  "author": "Bastien Caudan",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "jasmine": "file:../../node_modules/jasmine",
+    "jasmine-spec-reporter": "file:../../",
+    "typescript": "file:../../node_modules/typescript"
+  }
+}
