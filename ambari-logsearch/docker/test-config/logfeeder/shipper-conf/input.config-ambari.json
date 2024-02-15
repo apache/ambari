@@ -1,0 +1,376 @@
+{
+  "input": [
+    {
+      "type": "ambari_audit",
+      "rowtype": "audit",
+      "add_fields": {
+        "logType": "AmbariAudit",
+        "enforcer": "ambari-acl",
+        "repoType": "1",
+        "repo": "ambari",
+        "level": "INFO"
+      },
+      "path": "/root/test-logs/ambari-server/ambari-audit.log"
+    }
+  ],
+  "filter": [
+    {
+      "filter": "grok",
+      "conditions": {
+        "fields": {
+          "type": [
+            "ambari_audit"
+          ]
+        }
+      },
+      "log4j_format": "%d{ISO8601} %-5p %c{2} (%F:%M(%L)) - %m%n",
+      "multiline_pattern": "^(%{TIMESTAMP_ISO8601:evtTime})",
+      "message_pattern": "(?m)^%{TIMESTAMP_ISO8601:evtTime},%{SPACE}%{GREEDYDATA:log_message}",
+      "post_map_values": {
+        "evtTime": {
+          "map_date": {
+            "target_date_pattern": "yyyy-MM-dd'T'HH:mm:ss.SSSXX"
+          }
+        }
+      }
+    },
+    {
+      "filter": "keyvalue",
+      "sort_order": 1,
+      "conditions": {
+        "fields": {
+          "type": [
+            "ambari_audit"
+          ]
+        }
+      },
+      "source_field": "log_message",
+      "field_split": ", ",
+      "value_borders": "()",
+      "post_map_values": {
+        "User": {
+          "map_field_value": {
+            "pre_value": "null",
+            "post_value": "unknown"
+          },
+          "map_field_name": {
+            "new_field_name": "reqUser"
+          }
+        },
+        "Hostname": {
+          "map_field_name": {
+            "new_field_name": "host"
+          }
+        },
+        "Host name": {
+          "map_field_name": {
+            "new_field_name": "host"
+          }
+        },
+        "RemoteIp": {
+          "map_field_name": {
+            "new_field_name": "cliIP"
+          }
+        },
+        "RequestType": {
+          "map_field_name": {
+            "new_field_name": "cliType"
+          }
+        },
+        "Operation": {
+          "map_field_name": {
+            "new_field_name": "action"
+          }
+        },
+        "url": {
+          "map_field_name": {
+            "new_field_name": "resource"
+          }
+        },
+        "ResourcePath": {
+          "map_field_name": {
+            "new_field_name": "resource"
+          }
+        },
+        "Cluster name": {
+          "map_field_name": {
+            "new_field_name": "cluster"
+          }
+        },
+        "Reason": {
+          "map_field_name": {
+            "new_field_name": "reason"
+          }
+        },
+        "Base URL": {
+          "map_field_name": {
+            "new_field_name": "ws_base_url"
+          }
+        },
+        "Command": {
+          "map_field_value": {
+            "pre_value": "null",
+            "post_value": "unknown"
+          },
+          "map_field_name": {
+            "new_field_name": "ws_command"
+          }
+        },
+        "Component": {
+          "map_field_name": {
+            "new_field_name": "ws_component"
+          }
+        },
+        "Details": {
+          "map_field_name": {
+            "new_field_name": "ws_details"
+          }
+        },
+        "Display name": {
+          "map_field_value": {
+            "pre_value": "null",
+            "post_value": "unknown"
+          },
+          "map_field_name": {
+            "new_field_name": "ws_display_name"
+          }
+        },
+        "OS": {
+          "map_field_name": {
+            "new_field_name": "ws_os"
+          }
+        },
+        "Repo id": {
+          "map_field_name": {
+            "new_field_name": "ws_repo_id"
+          }
+        },
+        "Repo version": {
+          "map_field_value": {
+            "pre_value": "null",
+            "post_value": "unknown"
+          },
+          "map_field_name": {
+            "new_field_name": "ws_repo_version"
+          }
+        },
+        "Repositories": {
+          "map_field_name": {
+            "new_field_name": "ws_repositories"
+          }
+        },
+        "RequestId": {
+          "map_field_name": {
+            "new_field_name": "ws_request_id"
+          }
+        },
+        "Roles": {
+          "map_field_name": {
+            "new_field_name": "ws_roles"
+          }
+        },
+        "Stack": {
+          "map_field_name": {
+            "new_field_name": "ws_stack"
+          }
+        },
+        "Stack version": {
+          "map_field_name": {
+            "new_field_name": "ws_stack_version"
+          }
+        },
+        "TaskId": {
+          "map_field_name": {
+            "new_field_name": "ws_task_id"
+          }
+        },
+        "VersionNote": {
+          "map_field_value": {
+            "pre_value": "null",
+            "post_value": "unknown"
+          },
+          "map_field_name": {
+            "new_field_name": "ws_version_note"
+          }
+        },
+        "VersionNumber": {
+          "map_field_value": {
+            "pre_value": "null",
+            "post_value": "unknown"
+          },
+          "map_field_name": {
+            "new_field_name": "ws_version_number"
+          }
+        },
+        "Status": [
+          {
+            "map_field_copy": {
+              "copy_name": "ws_status"
+            }
+          },
+          {
+            "map_field_value": {
+              "pre_value": "Success",
+              "post_value": "1"
+            }
+          },
+          {
+            "map_field_value": {
+              "pre_value": "Successfully queued",
+              "post_value": "1"
+            }
+          },
+          {
+            "map_field_value": {
+              "pre_value": "QUEUED",
+              "post_value": "1"
+            }
+          },
+          {
+            "map_field_value": {
+              "pre_value": "PENDING",
+              "post_value": "1"
+            }
+          },
+          {
+            "map_field_value": {
+              "pre_value": "COMPLETED",
+              "post_value": "1"
+            }
+          },
+          {
+            "map_field_value": {
+              "pre_value": "IN_PROGRESS",
+              "post_value": "1"
+            }
+          },
+          {
+            "map_field_value": {
+              "pre_value": "Failed",
+              "post_value": "0"
+            }
+          },
+          {
+            "map_field_value": {
+              "pre_value": "Failed to queue",
+              "post_value": "0"
+            }
+          },
+          {
+            "map_field_value": {
+              "pre_value": "HOLDING",
+              "post_value": "0"
+            }
+          },
+          {
+            "map_field_value": {
+              "pre_value": "HOLDING_FAILED",
+              "post_value": "0"
+            }
+          },
+          {
+            "map_field_value": {
+              "pre_value": "HOLDING_TIMEDOUT",
+              "post_value": "0"
+            }
+          },
+          {
+            "map_field_value": {
+              "pre_value": "FAILED",
+              "post_value": "0"
+            }
+          },
+          {
+            "map_field_value": {
+              "pre_value": "TIMEDOUT",
+              "post_value": "0"
+            }
+          },
+          {
+            "map_field_value": {
+              "pre_value": "ABORTED",
+              "post_value": "0"
+            }
+          },
+          {
+            "map_field_value": {
+              "pre_value": "SKIPPED_FAILED",
+              "post_value": "0"
+            }
+          },
+          {
+            "map_field_name": {
+              "new_field_name": "result"
+            }
+          }
+        ],
+        "ResultStatus": [
+          {
+            "map_field_copy": {
+              "copy_name": "ws_result_status"
+            }
+          },
+          {
+            "map_field_value": {
+              "pre_value": "200 OK",
+              "post_value": "1"
+            }
+          },
+          {
+            "map_field_value": {
+              "pre_value": "201 Created",
+              "post_value": "1"
+            }
+          },
+          {
+            "map_field_value": {
+              "pre_value": "202 Accepted",
+              "post_value": "1"
+            }
+          },
+          {
+            "map_field_value": {
+              "pre_value": "400 Bad Request",
+              "post_value": "0"
+            }
+          },
+          {
+            "map_field_value": {
+              "pre_value": "401 Unauthorized",
+              "post_value": "0"
+            }
+          },
+          {
+            "map_field_value": {
+              "pre_value": "403 Forbidden",
+              "post_value": "0"
+            }
+          },
+          {
+            "map_field_value": {
+              "pre_value": "404 Not Found",
+              "post_value": "0"
+            }
+          },
+          {
+            "map_field_value": {
+              "pre_value": "409 Resource Conflict",
+              "post_value": "0"
+            }
+          },
+          {
+            "map_field_value": {
+              "pre_value": "500 Internal Server Error",
+              "post_value": "0"
+            }
+          },
+          {
+            "map_field_name": {
+              "new_field_name": "result"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

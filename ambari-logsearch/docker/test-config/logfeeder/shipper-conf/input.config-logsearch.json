@@ -1,0 +1,21 @@
+{
+  "input": [
+    {
+      "type": "logsearch_app",
+      "rowtype": "service",
+      "path": "/root/test-logs/logsearch/logsearch-test-log.json"
+    }
+  ],
+  "filter": [
+    {
+      "filter": "json",
+      "conditions": {
+        "fields": {
+          "type": [
+            "logsearch_app"
+          ]
+        }
+      }
+    }
+  ]
+}

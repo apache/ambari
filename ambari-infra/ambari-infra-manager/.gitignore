@@ -1,0 +1,8 @@
+out/*
+*.pid
+Profile
+.env
+test-out
+test.db
+**/swagger/swagger.json
+**/swagger/swagger.yaml

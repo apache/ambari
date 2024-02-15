@@ -1,0 +1,42 @@
+{
+  "global": {
+    "add_fields": {
+      "cluster": "cluster_name"
+    },
+    "source": "file",
+    "tail": "true",
+    "gen_event_md5": "true"
+  },
+  "input": [{
+    "type": "logsearch",
+    "rowtype": "service",
+    "path": "{path}/src/test/resources/samples/jsonlogs/service_log.json"
+  }],
+  "filter": [{
+    "filter": "json",
+    "conditions": {
+      "fields": {
+        "type": [
+          "logsearch"
+        ]
+      }
+    }
+  }],
+  "output": [{
+    "comment": "Output to solr for service records",
+    "is_enabled": "true",
+    "destination": "solr",
+    "url": "http://localhost:8983/solr/hadoop_logs",
+    "collection": "hadoop_logs",
+    "number_of_shards": "1",
+    "splits_interval_mins": "100000",
+    "conditions": {
+      "fields": {
+        "rowtype": [
+          "service"
+        ]
+      }
+    }
+  }]
+
+}

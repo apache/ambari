@@ -1,0 +1,8 @@
+{
+  "users": [{
+    "name": "Test User Name",
+    "username": "testUserName",
+    "password": "testUserPassword",
+    "en_password": ""
+  }]
+}

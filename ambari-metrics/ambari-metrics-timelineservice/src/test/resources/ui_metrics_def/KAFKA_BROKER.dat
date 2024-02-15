@@ -1,0 +1,16 @@
+kafka.controller.KafkaController.ActiveControllerCount
+|startTime|endTime|
+kafka.controller.ControllerStats.LeaderElectionRateAndTimeMs.1MinuteRate
+kafka.controller.ControllerStats.UncleanLeaderElectionsPerSec.1MinuteRate
+|startTime|endTime|
+kafka.server.BrokerTopicMetrics.BytesInPerSec.1MinuteRate
+kafka.server.BrokerTopicMetrics.MessagesInPerSec.1MinuteRate
+kafka.server.BrokerTopicMetrics.BytesOutPerSec.1MinuteRate
+|startTime|endTime|
+kafka.server.ReplicaManager.UnderReplicatedPartitions
+kafka.server.ReplicaManager.PartitionCount
+|startTime|endTime|
+kafka.server.ReplicaFetcherManager.MaxLag.clientId.Replica
+|startTime|endTime|
+kafka.log.LogFlushStats.LogFlushRateAndTimeMs.1MinuteRate
+|startTime|endTime|

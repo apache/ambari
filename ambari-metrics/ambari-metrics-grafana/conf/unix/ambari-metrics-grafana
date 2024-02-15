@@ -1,0 +1,191 @@
+#!/usr/bin/env bash
+
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific
+
+# chkconfig: 2345 80 05
+# description: Grafana web server & backend
+# processname: grafana
+# config: /etc/grafana/ams-grafana.ini
+# pidfile: /var/run/ambari-metrics-grafana.pid
+
+### BEGIN INIT INFO
+# Provides:          grafana
+# Required-Start:    $all
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Start grafana at boot time
+### END INIT INFO
+
+#  tested on
+#  1. New lsb that define start-stop-daemon
+#  3. Centos with initscripts package installed
+
+PATH=/bin:/usr/bin:/sbin:/usr/sbin
+NAME=grafana-server
+DESC="Ambari Metrics Grafana"
+CONF_DIR=/etc/ambari-metrics-grafana/conf
+
+# execute ams-grafana-env.sh
+if [[ -f "${CONF_DIR}/ams-grafana-env.sh" ]]; then
+. "${CONF_DIR}/ams-grafana-env.sh"
+else
+echo "ERROR: Cannot execute ${CONF_DIR}/ams-grafana-env.sh." 2>&1
+exit 1
+fi
+
+GRAFANA_HOME=${AMS_GRAFANA_HOME_DIR}
+WORK_DIR=$GRAFANA_HOME
+DATA_DIR=${AMS_GRAFANA_DATA_DIR}
+LOG_DIR=${AMS_GRAFANA_LOG_DIR}
+LOG_FILE=$LOG_DIR/grafana.log
+CONF_FILE=$CONF_DIR/ams-grafana.ini
+MAX_OPEN_FILES=10000
+PID_FILE=${AMS_GRAFANA_PID_DIR}/$NAME.pid
+DAEMON=$GRAFANA_HOME/bin/$NAME
+OUT_FILE=${AMS_GRAFANA_LOG_DIR}/grafana.out
+STOP_TIMEOUT=5
+
+#if [ `id -u` -ne 0 ]; then
+#  echo "You need root privileges to run this script"
+#  exit 4
+#fi
+
+if [ ! -x $DAEMON ]; then
+  echo "Program not installed or not executable"
+  exit 5
+fi
+
+#
+# init.d / servicectl compatibility (openSUSE)
+#
+# if [ -f /etc/rc.status ]; then
+#    . /etc/rc.status
+#    rc_reset
+# fi
+
+#
+# Source function library.
+#
+# if [ -f /etc/rc.d/init.d/functions ]; then
+#    . /etc/rc.d/init.d/functions
+# fi
+
+# overwrite settings from default file
+# [ -e /etc/sysconfig/$NAME ] && . /etc/sysconfig/$NAME
+
+DAEMON_OPTS="--pidfile=${PID_FILE} --config=${CONF_FILE} cfg:default.paths.data=${DATA_DIR} cfg:default.paths.logs=${LOG_DIR}"
+
+function isRunning() {
+  status -p $PID_FILE $NAME > /dev/null 2>&1
+}
+
+case "$1" in
+  start)
+    echo $"$(date) Starting $DESC: .... " >> $LOG_FILE
+
+    isRunning
+    if [ $? -eq 0 ]; then
+      echo "Already running." >> $LOG_FILE
+      exit 0
+    fi
+
+    # Prepare environment
+    # mkdir -p "$LOG_DIR" "$DATA_DIR" && chown "$GRAFANA_USER":"$GRAFANA_GROUP" "$LOG_DIR" "$DATA_DIR"
+    touch "$PID_FILE" && chown "$GRAFANA_USER":"$GRAFANA_GROUP" "$PID_FILE"
+
+    # if [ -n "$MAX_OPEN_FILES" ]; then
+    #   ulimit -n $MAX_OPEN_FILES
+    # fi
+
+    # Start Daemon
+    cd $GRAFANA_HOME
+    nohup ${DAEMON} ${DAEMON_OPTS} > $OUT_FILE 2>&1 &
+    return=$?
+    if [ $return -eq 0 ]
+    then
+      for i in {1..10}
+      do
+        sleep 2
+        # check if pid file has been written to
+        if [ -s $PID_FILE ]; then
+          echo " $(date) pid_file has been written to" >> $LOG_FILE
+          break
+        else
+          echo " $(date) pid_file not yet written to" >> $LOG_FILE
+        fi
+      done
+      if ! [[ -s $PID_FILE ]]; then
+        echo " $(date) Start FAILED because daemon did not write pid in pid_file after 20 seconds" >> $LOG_FILE
+        exit 1
+      fi
+      i=0
+      timeout=60
+      # Wait for the process to be properly started before exiting
+      until { cat "$PID_FILE" | xargs kill -0; } >/dev/null 2>&1
+      do
+        sleep 1
+        i=$(($i + 1))
+        if [ $i -gt $timeout ]; then
+          echo "FAILED"
+          exit 1
+        fi
+      done
+    fi
+
+    echo "OK" >> $LOG_FILE
+    exit $return
+    ;;
+  stop)
+    echo -n "Stopping $DESC ..." >> $LOG_FILE
+
+    if [ -f "$PID_FILE" ]; then
+      pid=$(cat "$PID_FILE")
+
+      kill "${pid}" >/dev/null 2>&1
+      sleep "${STOP_TIMEOUT}"
+
+      if kill -0 "${pid}" > /dev/null 2>&1; then
+        echo "WARNING: $DESC did not stop gracefully after ${STOP_TIMEOUT} seconds: Trying to kill with kill -9" >> $LOG_FILE
+        kill -9 "${pid}" >/dev/null 2>&1
+      fi
+
+      if ps -p "${pid}" > /dev/null 2>&1; then
+        echo "ERROR: Unable to kill ${pid}" >> $LOG_FILE
+      else
+        rm -f "$PID_FILE" >/dev/null 2>&1
+      fi
+      echo "OK"
+    else
+      echo -n "(not running)" >> $LOG_FILE
+    fi
+    exit 0
+    ;;
+  status)
+    status -p $PID_FILE $NAME
+    exit $?
+    ;;
+  restart|force-reload)
+    if [ -f "$PID_FILE" ]; then
+      $0 stop
+      sleep 1
+    fi
+    $0 start
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|restart|force-reload|status}"
+    exit 3
+    ;;
+esac

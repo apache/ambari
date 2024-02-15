@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+Licensed to the Apache Software Foundation (ASF) under one or more
+contributor license agreements.  See the NOTICE file distributed with
+this work for additional information regarding copyright ownership.
+The ASF licenses this file to You under the Apache License, Version 2.0
+(the "License"); you may not use this file except in compliance with
+the License.  You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<solr>
+  <solrcloud>
+    <str name="host">${host:}</str>
+    <int name="hostPort">${jetty.port:}</int>
+    <str name="hostContext">${hostContext:solr}</str>
+    <int name="zkClientTimeout">${zkClientTimeout:15000}</int>
+    <bool name="genericCoreNodeNames">${genericCoreNodeNames:true}</bool>
+  </solrcloud>
+  <metrics>
+    <reporter name="ambariInfra" group="jvm" class="org.apache.ambari.infra.solr.metrics.reporters.SimpleAMSReporter">
+      <int name="period">5</int>
+      <str name="amsCollectorHosts">metrics_collector</str>
+      <int name="amsCollectorPort">6188</int>
+      <str name="amsCollectorProtocol">http</str>
+      <str name="filter">threads.count</str>
+      <str name="filter">threads.deadlock.count</str>
+      <str name="filter">memory.heap.used</str>
+      <str name="filter">memory.heap.max</str>
+      <str name="filter">memory.non-heap.used</str>
+      <str name="filter">memory.non-heap.max</str>
+      <str name="filter">memory.pools.CMS-Old-Gen.used</str>
+      <str name="filter">memory.pools.CMS-Old-Gen.max</str>
+      <str name="filter">gc.ConcurrentMarkSweep.count</str>
+      <str name="filter">gc.ConcurrentMarkSweep.time</str>
+      <str name="filter">gc.ParNew.count</str>
+      <str name="filter">gc.ParNew.time</str>
+      <str name="filter">memory.pools.Metaspace.used</str>
+      <str name="filter">memory.pools.Metaspace.max</str>
+      <str name="filter">memory.pools.Par-Eden-Space.used</str>
+      <str name="filter">memory.pools.Par-Eden-Space.max</str>
+      <str name="filter">memory.pools.Par-Survivor-Space.used</str>
+      <str name="filter">memory.pools.Par-Survivor-Space.max</str>
+      <str name="filter">gc.G1-Old-Generation.count</str>
+      <str name="filter">gc.G1-Old-Generation.time</str>
+      <str name="filter">gc.G1-Young-Generation.count</str>
+      <str name="filter">gc.G1-Young-Generation.time</str>
+      <str name="filter">memory.pools.G1-Eden-Space.used</str>
+      <str name="filter">memory.pools.G1-Eden-Space.max</str>
+      <str name="filter">memory.pools.G1-Survivor-Space.used</str>
+      <str name="filter">memory.pools.G1-Survivor-Space.max</str>
+      <str name="filter">os.processCpuLoad</str>
+      <str name="filter">os.systemCpuLoad</str>
+      <str name="filter">os.openFileDescriptorCount</str>
+    </reporter>
+  </metrics>
+  <metrics>
+    <reporter name="ambariInfra" group="core" class="org.apache.ambari.infra.solr.metrics.reporters.SimpleAMSReporter">
+      <int name="period">5</int>
+      <str name="amsCollectorHosts">metrics_collector</str>
+      <int name="amsCollectorPort">6188</int>
+      <str name="amsCollectorProtocol">http</str>
+      <str name="filter">UPDATE.updateHandler.adds</str>
+      <str name="filter">UPDATE.updateHandler.deletesById</str>
+      <str name="filter">UPDATE.updateHandler.errors</str>
+      <str name="filter">UPDATE.updateHandler.docsPending</str>
+      <str name="filter">QUERY./select.requests</str>
+      <str name="filter">QUERY./select.requestTimes</str>
+      <str name="filter">UPDATE./update.requests</str>
+      <str name="filter">UPDATE./update.requestTimes</str>
+      <str name="filter">QUERY./get.requests</str>
+      <str name="filter">QUERY./get.requestTimes</str>
+      <str name="filter">ADMIN./admin/luke.requests</str>
+      <str name="filter">ADMIN./admin/luke.requestTimes</str>
+      <str name="filter">QUERY./query.requests</str>
+      <str name="filter">QUERY./query.requestTimes</str>
+      <str name="filter">INDEX.sizeInBytes</str>
+    </reporter>
+  </metrics>
+  <metrics>
+    <reporter name="ambariInfraCache" group="core" class="org.apache.ambari.infra.solr.metrics.reporters.AMSCacheReporter">
+      <int name="period">5</int>
+      <str name="amsCollectorHosts">metrics_collector</str>
+      <int name="amsCollectorPort">6188</int>
+      <str name="amsCollectorProtocol">http</str>
+      <str name="filter">CACHE.searcher.filterCache</str>
+      <str name="filter">CACHE.searcher.queryResultCache</str>
+      <str name="filter">CACHE.searcher.documentCache</str>
+      <str name="fields">hitratio, size, warmupTime</str>
+    </reporter>
+  </metrics>
+  <metrics>
+    <reporter name="ambariInfraFieldCache" group="core" class="org.apache.ambari.infra.solr.metrics.reporters.AMSCacheReporter">
+      <int name="period">5</int>
+      <str name="amsCollectorHosts">metrics_collector</str>
+      <int name="amsCollectorPort">6188</int>
+      <str name="amsCollectorProtocol">http</str>
+      <str name="filter">CACHE.core.fieldCache</str>
+      <str name="fields">entries_count</str>
+    </reporter>
+  </metrics>
+</solr>

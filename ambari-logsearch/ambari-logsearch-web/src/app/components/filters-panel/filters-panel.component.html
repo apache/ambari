@@ -1,0 +1,57 @@
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<form [formGroup]="filtersForm">
+  <div class="form-inline filter-input-container col-md-8">
+    <search-box [parameterAddSubject]="queryParameterAdd" [parameterNameChangeSubject]="queryParameterNameChange"
+                class="filter-input" formControlName="query" [items]="searchBoxItems$ | async" [itemsOptions]="options"
+                [updateValueImmediately]="true" [updateValueSubject]="searchBoxValueUpdate"
+                defaultParameterName="log_message"></search-box>
+    <time-range-picker *ngIf="isFilterConditionDisplayed('timeRange')" formControlName="timeRange"
+                       class="filter-input"></time-range-picker>
+    <timezone-picker class="filter-input"></timezone-picker>
+    <button class="btn btn-success search-button" type="button" (click)="updateSearchBoxValue()">
+      <span class="fa fa-search"></span>
+    </button>
+  </div>
+  <div class="filter-buttons col-md-4">
+    <dropdown-button iconClass="fa fa-search-minus" label="{{'filter.exclude' | translate}}" [hideCaret]="true"
+                     [showSelectedValue]="false" [showCommonLabelWithSelection]="true"
+                     [options]="searchBoxItems$ | async" (selectItem)="proceedWithExclude($event)"></dropdown-button>
+    <filter-button *ngIf="isFilterConditionDisplayed('hosts')" formControlName="hosts"
+                   label="{{filters.hosts.label | translate}}" [iconClass]="filters.hosts.iconClass"
+                   [subItems]="filters.hosts.options" [isMultipleChoice]="true" [isRightAlign]="true"
+                   additionalLabelComponentSetter="getDataForHostsNodeBar"
+                   [class.disabled]="isServiceLogsFileView$ | async" [isDisabled]="isServiceLogsFileView$ | async"
+                   [useDropDownLocalFilter]="true"></filter-button>
+    <filter-button *ngIf="isFilterConditionDisplayed('users')" formControlName="users"
+                   label="{{filters.users.label | translate}}" [iconClass]="filters.users.iconClass"
+                   [subItems]="filters.users.options" [isMultipleChoice]="true" [isRightAlign]="true"
+                   [useDropDownLocalFilter]="true"></filter-button>
+    <filter-button *ngIf="isFilterConditionDisplayed('components')" formControlName="components"  [useDropDownLocalFilter]="true"
+                   label="{{filters.components.label | translate}}" [iconClass]="filters.components.iconClass"
+                   [subItems]="filters.components.options" [isMultipleChoice]="true" [isRightAlign]="true"
+                   [class.disabled]="isServiceLogsFileView$ | async" [isDisabled]="isServiceLogsFileView$ | async"
+                   additionalLabelComponentSetter="getDataForComponentsNodeBar"></filter-button>
+    <filter-button *ngIf="isFilterConditionDisplayed('levels')" formControlName="levels"
+                   label="{{filters.levels.label | translate}}" [iconClass]="filters.levels.iconClass"
+                   [subItems]="filters.levels.options" [isMultipleChoice]="true" [isRightAlign]="true"
+                   [useDropDownLocalFilter]="true"></filter-button>
+    <menu-button class="clear-filter-btn" iconClass="fa fa-times" label="{{'filters.clear' | translate}}"
+    (buttonClick)="onClearBtnClick($event)"></menu-button>
+  </div>
+</form>

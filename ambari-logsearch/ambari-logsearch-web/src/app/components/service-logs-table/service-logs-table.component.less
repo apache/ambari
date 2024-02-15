@@ -1,0 +1,305 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@import '../../modules/shared/mixins';
+
+:host {
+
+  .service-logs-table-controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    .layout-btn-group {
+      display: flex;
+      align-items: center;
+      .btn {
+        padding: .2em;
+        display: flex;
+        align-items: center;
+        i {
+          cursor: pointer;
+          margin: 0 .25em;
+          &.active {
+            color: @submit-color;
+          }
+        }
+      }
+    }
+  }
+
+  .panel-body {
+    width: 100%;
+  }
+  .log-list-table-container {
+    width: 100%;
+    overflow-x: hidden;
+  }
+  table {
+    min-width: 100%;
+    table-layout: fixed;
+    width: 100%;
+    empty-cells: hide;
+    /deep/ col {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      &.log-action {
+        overflow: visible;
+        padding-left: .25em;
+        padding-right: 0;
+        width: 1em;
+      }
+      &.log-time {
+        width: 7em;
+        padding-left: 0;
+        text-align: right;
+      }
+      &.log-level {
+        text-transform: uppercase;
+        width: 8em;
+      }
+      &.log-type {
+        color: @link-color;
+        width: 12em;
+      }
+      &.log-path {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        width: 20em;
+      }
+      &.log-message {
+        width: 100%;
+      }
+      &.col-default-fixed {
+        width: 8em;
+      }
+      &.log-event_count {
+        width: 3em !important;
+      }
+      &.col-checkpoint {
+        padding: 0;
+        width: 1px;
+      }
+    }
+    tfoot td {
+      overflow: visible;
+    }
+  }
+
+  tr.log-date-row, tr.log-date-row:hover {
+    background: @list-header-background-color;
+    border: none transparent;
+    th {
+      border: none transparent;
+    }
+  }
+  tr.log-item-row td {
+    background: none transparent;
+  }
+
+  table {
+    thead th {
+      text-transform: uppercase;
+    }
+    td {
+      text-overflow: ellipsis;
+      overflow: hidden;
+      word-wrap: break-word;
+      &.log-action {
+        overflow: visible;
+        padding-left: .25em;
+        padding-right: 0;
+        width: 1em;
+        /deep/ .btn, /deep/ .filter-label {
+          font-size: 1em;
+          height: auto;
+          line-height: 1em;
+          padding: 0;
+        }
+      }
+      &.log-time {
+        min-width: 7em;
+        padding-left: 0;
+        text-align: right;
+      }
+      &.log-level {
+        text-transform: uppercase;
+        min-width: 8em;
+        .log-colors;
+      }
+      &.log-type {
+        color: @link-color;
+      }
+      &.log-message {
+        width: 100%;
+      }
+      &.log-event_count {
+        width: 3em;
+      }
+    }
+  }
+
+  tr:hover td.log-action {
+    /deep/ .btn {
+      display: inline-block;
+    }
+  }
+
+  .table.table-hover > tbody > tr {
+    box-sizing: border-box;
+    border-width: 1px;
+    > td {
+      border-top: 0 none;
+    }
+    &:first-of-type {
+      border-top-color: transparent;
+    }
+    &:last-of-type {
+      border-bottom-color: transparent;
+    }
+  }
+
+  .list-layout-warning {
+    align-items: center;
+    color: @warning-color;
+    display: flex;
+    flex: 1;
+    font-size: .7em;
+    i {
+      margin-right: .6em;
+    }
+  }
+
+  /deep/ .tooltip {
+    font-size: .75em;
+    .tooltip-inner {
+      background-color: rgba(50, 50, 50, 1);
+    }
+    .tooltip-arrow {
+      border-top-color: rgba(50, 50, 50, 1);
+    }
+  }
+
+  .layout-flex {
+    .log-list {
+      color: @base-font-color;
+      border-bottom: 1px solid @log-list-border-color;
+      font-size: @table-font-size;
+      .log-date-row {
+        background: @list-header-background-color;
+        padding: @log-list-row-data-padding;
+      }
+      .log-row {
+        border: 1px solid transparent;
+        border-bottom: 1px solid @log-list-border-color;
+        display: block;
+        padding-bottom: .5em;
+        transition: all 100ms;
+        &:hover {
+          background: @log-list-row-hover-background-color;
+          border-color: @log-list-row-hover-border-color;
+          > div.log-header .log-action  /deep/ .btn {
+            opacity: 1;
+          }
+        }
+        &:first-of-type {
+          border-top-color: transparent;
+        }
+        &:last-of-type {
+          border-bottom-color: transparent;
+        }
+        div {
+          padding: (@log-list-row-data-padding / 2) @log-list-row-data-padding;
+        }
+        > div.log-header, > div.details {
+          padding: 0;
+        }
+        > div.log-header {
+          display: flex;
+          > div {
+            height: 2em;
+            text-overflow: ellipsis;
+            overflow: hidden;
+          }
+          .log-level {
+            align-items: center;
+            display: flex;
+            padding-right: 0;
+            text-transform: uppercase;
+            width: 7em;
+            .log-colors;
+          }
+          .log-type {
+            color: @link-color;
+          }
+          .log-time {
+            flex: 1 0 auto;
+            max-width: none;
+            min-width: 6em;
+            text-align: right;
+          }
+          .log-action {
+            display: flex;
+            justify-content: flex-end;
+            max-width: none;
+            overflow: visible;
+            padding-left: 5px;
+            padding-right: 0;
+            > * {
+              display: inline-block;
+            }
+            /deep/ .btn {
+              opacity: 0;
+              overflow: hidden;
+              transition: opacity 50ms;
+            }
+            /deep/ .btn, /deep/ .filter-label {
+              font-size: 1em;
+              height: auto;
+              line-height: 1em;
+              padding: 0;
+            }
+          }
+        }
+        .log-message {
+          flex: 1 1 auto;
+          max-width: none;
+          overflow: hidden;
+          padding: .25em 0;
+          width: 100%;
+        }
+        .log-path {
+          max-width: none;
+        }
+        label {
+          color: lighten(@base-font-color, 25%);
+          display: block;
+          font-size: .7em;
+          margin: 0;
+          padding: 0;
+        }
+      }
+      &.show-labels > .log-row > div.log-header > div {
+        height: 2.5em;
+      }
+    }
+  }
+
+  .context-menu {
+    position: fixed;
+  }
+
+}

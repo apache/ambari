@@ -1,0 +1,245 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration>
+  <property>
+    <name>hbase.defaults.for.version.skip</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>hbase.rootdir</name>
+    <value>file:///var/lib/hbase</value>
+    <description>
+      AMS service uses HBase as default storage backend. Set the rootdir for
+      HBase to either local filesystem path if using AMS in embedded mode or
+      to a HDFS dir, example: hdfs://namenode.example.org:9000/hbase.  By
+      default HBase writes into /tmp. Change this configuration else all data
+      will be lost on machine restart.
+    </description>
+  </property>
+  <property>
+    <name>hbase.tmp.dir</name>
+    <value>/tmp</value>
+    <description>
+      Temporary directory on the local filesystem.
+      Change this setting to point to a location more permanent
+      than '/tmp' (The '/tmp' directory is often cleared on
+      machine restart).
+    </description>
+  </property>
+  <property>
+    <name>hbase.local.dir</name>
+    <value>${hbase.tmp.dir}/local</value>
+    <description>Directory on the local filesystem to be used as a local storage
+    </description>
+  </property>
+  <property>
+    <name>hbase.cluster.distributed</name>
+    <value>true</value>
+    <description>
+      The mode the cluster will be in. Possible values are false for
+      standalone mode and true for distributed mode. If false, startup will run
+      all HBase and ZooKeeper daemons together in the one JVM.
+    </description>
+  </property>
+  <property>
+    <name>hbase.master.wait.on.regionservers.mintostart</name>
+    <value>1</value>
+    <description>
+      Ensure that HBase Master waits for # many region server to start.
+    </description>
+  </property>
+  <property>
+    <name>hbase.zookeeper.quorum</name>
+    <value>localhost</value>
+    <description>Comma separated list of servers in the ZooKeeper Quorum.
+      For example, "host1.mydomain.com,host2.mydomain.com,host3.mydomain.com".
+      By default this is set to localhost for local and pseudo-distributed modes
+      of operation. For a fully-distributed setup, this should be set to a full
+      list of ZooKeeper quorum servers. If HBASE_MANAGES_ZK is set in hbase-env.sh
+      this is the list of servers which we will start/stop ZooKeeper on.
+    </description>
+  </property>
+  <property>
+    <name>hbase.master.info.bindAddress</name>
+    <value>0.0.0.0</value>
+    <description>The bind address for the HBase Master web UI</description>
+  </property>
+  <property>
+    <name>hbase.master.info.port</name>
+    <value>90010</value>
+    <description>The port for the HBase Master web UI.</description>
+  </property>
+  <property>
+    <name>hbase.regionserver.info.port</name>
+    <value>90030</value>
+    <description>The port for the HBase RegionServer web UI.</description>
+  </property>
+  <property>
+    <name>hbase.hregion.majorcompaction</name>
+    <value>0</value>
+    <description>
+      The time (in milliseconds) between 'major' compactions of all
+      HStoreFiles in a region.
+      0 to disable automated major compactions.
+    </description>
+  </property>
+  <property>
+    <name>phoenix.query.spoolThresholdBytes</name>
+    <value>20971520</value>
+    <description>
+      Threshold size in bytes after which results from parallelly executed
+      query results are spooled to disk. Default is 20 mb.
+    </description>
+  </property>
+  <property>
+    <name>hbase.zookeeper.property.dataDir</name>
+    <value>${hbase.tmp.dir}/zookeeper</value>
+    <description>
+      Property from ZooKeeper's config zoo.cfg.
+      The directory where the snapshot is stored.
+    </description>
+  </property>
+  <property>
+    <name>hbase.client.scanner.caching</name>
+    <value>10000</value>
+    <description>
+      Number of rows that will be fetched when calling next on a scanner
+      if it is not served from (local, client) memory.
+    </description>
+  </property>
+  <property>
+    <name>hfile.block.cache.size</name>
+    <value>0.3</value>
+    <description>
+      Percentage of maximum heap (-Xmx setting) to allocate to block cache
+      used by a StoreFile. Default of 0.4 means allocate 40%.
+    </description>
+  </property>
+  <property>
+    <name>hbase.regionserver.global.memstore.upperLimit</name>
+    <value>0.5</value>
+    <description>
+      Maximum size of all memstores in a region server before new
+      updates are blocked and flushes are forced. Defaults to 40% of heap
+    </description>
+  </property>
+  <property>
+    <name>hbase.regionserver.global.memstore.lowerLimit</name>
+    <value>0.4</value>
+    <description>
+      When memstores are being forced to flush to make room in
+      memory, keep flushing until we hit this mark. Defaults to 35% of heap.
+      This value equal to hbase.regionserver.global.memstore.upperLimit causes
+      the minimum possible flushing to occur when updates are blocked due to
+      memstore limiting.
+    </description>
+  </property>
+  <property>
+    <name>phoenix.groupby.maxCacheSize</name>
+    <value>307200000</value>
+    <description>
+      Size in bytes of pages cached during GROUP BY spilling. Default is 100Mb.
+    </description>
+  </property>
+  <property>
+    <name>hbase.hregion.memstore.block.multiplier</name>
+    <value>4</value>
+    <description>
+      Block updates if memstore has hbase.hregion.memstore.block.multiplier
+      times hbase.hregion.memstore.flush.size bytes. Useful preventing runaway
+      memstore during spikes in update traffic.
+    </description>
+  </property>
+  <property>
+    <name>hbase.hstore.flusher.count</name>
+    <value>2</value>
+    <description>
+      The number of flush threads. With fewer threads, the MemStore flushes
+      will be queued. With more threads, the flushes will be executed in parallel,
+      increasing the load on HDFS, and potentially causing more compactions.
+    </description>
+  </property>
+  <property>
+    <name>phoenix.query.timeoutMs</name>
+    <value>1200000</value>
+    <description>
+      Number of milliseconds after which a query will timeout on the client.
+      Default is 10 min.
+    </description>
+  </property>
+  <property>
+    <name>hbase.client.scanner.timeout.period</name>
+    <value>900000</value>
+    <description>
+      Client scanner lease period in milliseconds.
+    </description>
+  </property>
+  <property>
+    <name>hbase.regionserver.thread.compaction.large</name>
+    <value>2</value>
+    <description>
+      Configuration key for the large compaction threads.
+    </description>
+  </property>
+  <property>
+    <name>hbase.regionserver.thread.compaction.small</name>
+    <value>3</value>
+    <description>
+      Configuration key for the small compaction threads.
+    </description>
+  </property>
+  <property>
+    <name>hbase.hstore.blockingStoreFiles</name>
+    <value>200</value>
+    <description>
+      If more than this number of StoreFiles exist in any one Store
+      (one StoreFile is written per flush of MemStore), updates are blocked for
+      this region until a compaction is completed, or until
+      hbase.hstore.blockingWaitTime has been exceeded.
+    </description>
+  </property>
+  <property>
+    <name>hbase.hregion.memstore.flush.size</name>
+    <value>134217728</value>
+    <description>
+      Memstore will be flushed to disk if size of the memstore exceeds this
+      number of bytes. Value is checked by a thread that runs every
+      hbase.server.thread.wakefrequency.
+    </description>
+  </property>
+  <property>
+    <name>hbase.snapshot.enabled</name>
+    <value>false</value>
+    <description>Enable/Disable HBase snapshots.</description>
+  </property>
+  <property>
+    <name>hbase.replication</name>
+    <value>false</value>
+    <description>Enable/Disable HBase replication.</description>
+  </property>
+  <property>
+    <name>zookeeper.session.timeout</name>
+    <value>120000</value>
+    <description>ZooKeeper session timeout in milliseconds.</description>
+  </property>
+</configuration>

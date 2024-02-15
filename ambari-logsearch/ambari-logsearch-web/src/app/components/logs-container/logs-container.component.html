@@ -1,0 +1,67 @@
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<div class="tabs-container container-fluid">
+  <div class="row">
+    <div class="col-md-12 tabs-menu-container">
+      <tabs [items]="tabs | async" (tabSwitched)="onSwitchTab($event)"
+        (tabClosed)="onCloseTab($event[0], $event[1])"
+        [switchMode]="'ROUTE_SEGMENT'" [basePathForRoutingMode]="routerPath" queryParamsHandling="merge"></tabs>
+      <action-menu></action-menu>
+    </div>
+  </div>
+</div>
+<div #container
+  [ngClass]="{'container-fluid': true, 'logs-container': true, 'fixed-filterbar': isFilterPanelFixedPostioned}">
+  <filters-panel class="row" [filtersForm]="filtersForm" #filtersPanel></filters-panel>
+  <div class="row events-count">
+    <div *ngIf="autoRefreshRemainingSeconds" class="col-md-12">
+      <div class="auto-refresh-message pull-right">
+        {{'filter.capture.triggeringRefresh' | translate: autoRefreshMessageParams}}
+      </div>
+    </div>
+
+    <!-- TODO use plugin for singular/plural -->
+    <div *ngIf="logsType === 'serviceLogs'" class="logs-header col-md-12">{{
+      (!totalEventsFoundMessageParams.totalCount ? 'logs.noEventFound' :
+        (totalEventsFoundMessageParams.totalCount === 1 ? 'logs.oneEventFound' : 'logs.totalEventFound'))
+            | translate: totalEventsFoundMessageParams
+    }}</div>
+  </div>
+  <ng-container [ngSwitch]="logsType">
+    <ng-container *ngSwitchCase="'serviceLogs'">
+      <collapsible-panel [class.hide]="isServiceLogsFileView$ | async" openTitle="logs.hideGraph" collapsedTitle="logs.showGraph">
+        <time-histogram (selectArea)="setCustomTimeRange($event[0], $event[1])" [data]="serviceLogsHistogramData"
+                        [colors]="serviceLogsHistogramColors" [allowFractionalYTicks]="false"
+                        svgId="service-logs-histogram"></time-histogram>
+      </collapsible-panel>
+      <service-logs-table [totalCount]="totalCount" [logs]="serviceLogs | async" [columns]="serviceLogsColumns | async"
+                          [filtersForm]="filtersForm"></service-logs-table>
+    </ng-container>
+    <ng-container *ngSwitchCase="'auditLogs'">
+      <collapsible-panel commonTitle="logs.duration">
+        <time-line-graph (selectArea)="setCustomTimeRange($event[0], $event[1])" [data]="auditLogsGraphData"
+                         [allowFractionalYTicks]="false" [skipZeroValuesInTooltip]="false"
+                         svgId="audit-logs-graph"></time-line-graph>
+      </collapsible-panel>
+      <audit-logs-entries [totalCount]="totalCount" [logs]="auditLogs | async" [columns]="auditLogsColumns | async"
+                          [filtersForm]="filtersForm"></audit-logs-entries>
+    </ng-container>
+  </ng-container>
+  <log-context *ngIf="isServiceLogContextView" [id]="activeLog.id" [hostName]="activeLog.host_name"
+               [componentName]="activeLog.component_name"></log-context>
+</div>
