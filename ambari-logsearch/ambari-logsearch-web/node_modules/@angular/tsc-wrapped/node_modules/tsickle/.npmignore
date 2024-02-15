@@ -1,7 +1,0 @@
-.clang-format
-.gitignore
-.idea
-.travis.yml
-.vscode
-test
-test_files

@@ -1,1 +1,0 @@
-require.context('./context/', false, /.*/);

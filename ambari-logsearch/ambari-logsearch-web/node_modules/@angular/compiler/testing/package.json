@@ -1,7 +1,0 @@
-{
-  "name": "@angular/compiler/testing",
-  "typings": "../testing.d.ts",
-  "main": "../bundles/compiler-testing.umd.js",
-  "module": "../@angular/compiler/testing.es5.js",
-  "es2015": "../@angular/compiler/testing.js"
-}
