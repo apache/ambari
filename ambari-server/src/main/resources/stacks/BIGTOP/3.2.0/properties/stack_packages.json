@@ -1,6 +1,32 @@
 {
   "BIGTOP": {
     "stack-select": {
+      "ALLUXIO": {
+        "ALLUXIO_MASTER": {
+          "STACK-SELECT-PACKAGE": "alluxio",
+          "INSTALL": [
+            "alluxio"
+          ],
+          "PATCH": [
+            "alluxio"
+          ],
+          "STANDARD": [
+            "alluxio"
+          ]
+        },
+        "ALLUXIO_WORKER": {
+          "STACK-SELECT-PACKAGE": "alluxio",
+          "INSTALL": [
+            "alluxio"
+          ],
+          "PATCH": [
+            "alluxio"
+          ],
+          "STANDARD": [
+            "alluxio"
+          ]
+        }
+      },
       "HBASE": {
         "HBASE_CLIENT": {
           "STACK-SELECT-PACKAGE": "hbase-client",
