@@ -367,7 +367,7 @@ class Rangeradmin:
             'Accept': 'application/json',
             "Content-Type": "application/json"
           }
-          request = urllib.request.Request(url, data, headers)
+          request = urllib.request.Request(url, data.encode(), headers)
           request.add_header("Authorization", "Basic {0}".format(base64string))
           result = openurl(request, timeout=20)
           response_code = result.getcode()

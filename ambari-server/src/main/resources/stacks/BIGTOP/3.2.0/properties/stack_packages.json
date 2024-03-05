@@ -524,6 +524,9 @@
       "MAPREDUCE2": {
         "packages": []
       },
+      "RANGER_KMS": {
+        "packages": ["ranger-kms"]
+      },
       "SPARK": {
         "packages": [
           "spark"
