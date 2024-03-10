@@ -86,7 +86,7 @@ describe('App.Router', function () {
 
   });
 
-  describe.skip('#adminViewInfoSuccessCallback', function () {
+  describe('#adminViewInfoSuccessCallback', function () {
     beforeEach(function () {
       sinon.stub(window.location, 'replace', Em.K);
     });

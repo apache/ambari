@@ -23,15 +23,14 @@ module.exports = function(config) {
     basePath: '',
 
     plugins: [
+      'karma-phantomjs-launcher',
       'karma-mocha',
       'karma-chai',
       'karma-sinon',
       'karma-coverage',
       'karma-ember-precompiler-brunch',
       'karma-commonjs-require',
-      'karma-babel-preprocessor',
-      'karma-chrome-launcher',
-      'karma-verbose-reporter'
+      'karma-babel-preprocessor'
     ],
 
     // frameworks to use
@@ -168,7 +167,7 @@ module.exports = function(config) {
     // - Opera (has to be installed with `npm install karma-opera-launcher`)
     // - Safari (only Mac; has to be installed with `npm install karma-safari-launcher`)
     // - IE (only Windows; has to be installed with `npm install karma-ie-launcher`)
-    browsers: ['ChromeHeadless'],
+    browsers: ['PhantomJS'],
 
     // If browser does not capture in given timeout [ms], kill it
     captureTimeout: 60000,

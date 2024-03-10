@@ -360,7 +360,7 @@ describe('App.mainAdminStackVersionsView', function () {
     });
   });
 
-  describe.skip("#selectCategory()", function() {
+  describe("#selectCategory()", function() {
     var event;
     beforeEach(function () {
       sinon.stub(view, 'filterVersions');
@@ -454,7 +454,7 @@ describe('App.mainAdminStackVersionsView', function () {
     });
   });
 
-  describe.skip("#goToVersions()", function() {
+  describe("#goToVersions()", function() {
     var data = {
       components: [{
         'RootServiceComponents': {
@@ -498,7 +498,7 @@ describe('App.mainAdminStackVersionsView', function () {
     });
   });
 
-  describe.skip("#goToVersionsCustomVersions", function() {
+  describe("#goToVersionsCustomVersions", function() {
     var data = {
       components: [{
         'RootServiceComponents': {

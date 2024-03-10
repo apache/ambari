@@ -18,10 +18,6 @@
 
 var App = require('app');
 
-beforeEach(()=>{
-  window.onbeforeunload=()=>console.log("Page reloaded");
-})
-
 describe('App.MainController', function () {
   var mainController = App.MainController.create();
 
