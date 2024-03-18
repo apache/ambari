@@ -53,6 +53,7 @@
     <xs:restriction base="xs:string">
       <xs:enumeration value="redhat6" />
       <xs:enumeration value="redhat7" />
+      <xs:enumeration value="redhat8" />
       <xs:enumeration value="redhat-ppc6" />
       <xs:enumeration value="redhat-ppc7" />
       <xs:enumeration value="debian6" />

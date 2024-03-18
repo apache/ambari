@@ -23,4 +23,11 @@
       <reponame>bigtop</reponame>
     </repo>
   </os>
+  <os family="redhat8">
+    <repo>
+      <baseurl>https://bigtop-snapshot.s3.amazonaws.com/centos-8/$basearch</baseurl>
+      <repoid>BIGTOP-3.2.0</repoid>
+      <reponame>bigtop</reponame>
+    </repo>
+  </os>
 </reposinfo>

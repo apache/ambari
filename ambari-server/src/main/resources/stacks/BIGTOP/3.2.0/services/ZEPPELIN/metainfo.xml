@@ -65,7 +65,7 @@ limitations under the License.
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat7</osFamily>
+          <osFamily>redhat7,redhat8</osFamily>
           <packages>
             <package>
               <name>zeppelin_${stack_version}</name>
