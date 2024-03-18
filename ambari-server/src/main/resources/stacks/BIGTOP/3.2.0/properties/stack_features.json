@@ -62,11 +62,6 @@
         "min_version": "2.5.0.0"
       },
       {
-        "name": "config_versioning",
-        "description": "Configurable versions support",
-        "min_version": "3.2.0"
-      },
-      {
         "name": "ranger_kms_ssl",
         "description": "Ranger KMS SSL properties in ambari stack",
         "min_version": "3.2.0"

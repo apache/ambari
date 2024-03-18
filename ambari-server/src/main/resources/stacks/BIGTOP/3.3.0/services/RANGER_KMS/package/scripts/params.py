@@ -62,6 +62,7 @@ security_enabled = config['configurations']['cluster-env']['security_enabled']
 #if stack_supports_config_versioning:
 kms_home = format('{stack_root}/current/ranger-kms')
 kms_conf_dir = format('{stack_root}/current/ranger-kms/conf')
+ranger_kms_setup_marker = os.path.join(kms_conf_dir, "kms_setup")
 
 kms_lib_path = format('{kms_home}/ews/lib/')
 kms_log_dir = default("/configurations/kms-env/kms_log_dir", "/var/log/ranger/kms")

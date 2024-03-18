@@ -55,6 +55,9 @@ def password_validation(password, key):
 
 def setup_kms_db(stack_version=None):
   import params
+  ranger_kms_setup_marker = params.ranger_kms_setup_marker
+  if os.path.exists(ranger_kms_setup_marker):
+    return
 
   if params.has_ranger_admin:
 
@@ -80,6 +83,13 @@ def setup_kms_db(stack_version=None):
     else:
       Logger.info('Separate DBA property not set. Assuming Ranger KMS DB and DB User exists!')
     Execute(db_setup, environment=env_dict, logoutput=True, user=params.kms_user, tries=5, try_sleep=10)
+
+    File(ranger_kms_setup_marker,
+           owner = params.kms_user,
+           group = params.kms_group,
+           mode = 0o640
+           )
+
 
 def setup_java_patch():
   import params
