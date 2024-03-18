@@ -1,0 +1,172 @@
+{
+  "input": [
+    {
+      "type": "hdfs_audit",
+      "rowtype": "audit",
+      "is_enabled": "true",
+      "add_fields": {
+        "logType": "HDFSAudit",
+        "enforcer": "hadoop-acl",
+        "repoType": "1",
+        "repo": "hdfs"
+      },
+      "path": "/root/test-logs/hdfs-audit/hdfs-audit.log"
+    }
+  ],
+  "filter": [
+    {
+      "filter":"grok",
+      "conditions":{
+        "fields":{
+          "type":[
+            "hdfs_audit"
+          ]
+
+        }
+
+      },
+      "log4j_format":"%d{ISO8601} %-5p %c{2} (%F:%M(%L)) - %m%n",
+      "multiline_pattern":"^(%{TIMESTAMP_ISO8601:evtTime})",
+      "message_pattern":"(?m)^%{TIMESTAMP_ISO8601:evtTime}%{SPACE}%{LOGLEVEL:level}%{SPACE}%{JAVACLASS:logger_name}:%{SPACE}%{GREEDYDATA:log_message}",
+      "post_map_values":{
+        "evtTime":{
+          "map_date":{
+            "target_date_pattern":"yyyy-MM-dd HH:mm:ss,SSS"
+          }
+
+        }
+
+      }
+
+    },
+    {
+      "filter":"keyvalue",
+      "sort_order":1,
+      "conditions":{
+        "fields":{
+          "type":[
+            "hdfs_audit"
+          ]
+
+        }
+
+      },
+      "source_field":"log_message",
+      "value_split":"=",
+      "field_split":"\t",
+      "post_map_values":{
+        "src":{
+          "map_field_name":{
+            "new_field_name":"resource"
+          }
+
+        },
+        "ip":{
+          "map_field_name":{
+            "new_field_name":"cliIP"
+          }
+
+        },
+        "allowed":[
+          {
+            "map_field_value":{
+              "pre_value":"true",
+              "post_value":"1"
+            }
+
+          },
+          {
+            "map_field_value":{
+              "pre_value":"false",
+              "post_value":"0"
+            }
+
+          },
+          {
+            "map_field_name":{
+              "new_field_name":"result"
+            }
+
+          }
+
+        ],
+        "cmd":{
+          "map_field_name":{
+            "new_field_name":"action"
+          }
+
+        },
+        "proto":{
+          "map_field_name":{
+            "new_field_name":"cliType"
+          }
+
+        },
+        "callerContext":{
+          "map_field_name":{
+            "new_field_name":"req_caller_id"
+          }
+
+        }
+
+      }
+
+    },
+    {
+      "filter":"grok",
+      "sort_order":2,
+      "source_field":"ugi",
+      "remove_source_field":"false",
+      "conditions":{
+        "fields":{
+          "type":[
+            "hdfs_audit"
+          ]
+
+        }
+
+      },
+      "message_pattern":"%{USERNAME:p_user}.+auth:%{USERNAME:p_authType}.+via %{USERNAME:k_user}.+auth:%{USERNAME:k_authType}|%{USERNAME:user}.+auth:%{USERNAME:authType}|%{USERNAME:x_user}",
+      "post_map_values":{
+        "user":{
+          "map_field_name":{
+            "new_field_name":"reqUser"
+          }
+
+        },
+        "x_user":{
+          "map_field_name":{
+            "new_field_name":"reqUser"
+          }
+
+        },
+        "p_user":{
+          "map_field_name":{
+            "new_field_name":"reqUser"
+          }
+
+        },
+        "k_user":{
+          "map_field_name":{
+            "new_field_name":"proxyUsers"
+          }
+
+        },
+        "p_authType":{
+          "map_field_name":{
+            "new_field_name":"authType"
+          }
+
+        },
+        "k_authType":{
+          "map_field_name":{
+            "new_field_name":"proxyAuthType"
+          }
+
+        }
+
+      }
+
+    }
+  ]
+}

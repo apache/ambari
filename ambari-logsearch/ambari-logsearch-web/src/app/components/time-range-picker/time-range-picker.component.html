@@ -1,0 +1,44 @@
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<button class="btn btn-link dropdown-toggle" data-toggle="dropdown">
+  <span *ngIf="selection">{{selection.label | translate}}</span>
+  <span class="caret"></span>
+</button>
+<div class="dropdown-menu row col-md-12">
+  <div class="col-md-4" (click)="$event.stopPropagation()">
+    <h4>{{'filter.timeRange' | translate}}</h4>
+    <div class="col-md-12 row text-uppercase">{{'filter.timeRange.from' | translate}}</div>
+    <date-picker class="col-md-12 row" [time]="startTime" (timeChange)="setStartTime($event)"></date-picker>
+    <div class="col-md-12 row text-uppercase">{{'filter.timeRange.to' | translate}}</div>
+    <date-picker class="col-md-12 row" [time]="endTime" (timeChange)="setEndTime($event)"></date-picker>
+    <button class="btn btn-success pull-right" type="button" (click)="setCustomTimeRange()"
+            [disabled]="!startTime || !endTime || startTime >= endTime">
+      {{'modal.apply' | translate}}
+    </button>
+  </div>
+  <div class="col-md-8 row">
+    <h4>{{'filter.timeRange.quick' | translate}}</h4>
+    <div *ngFor="let group of quickRanges" [ngClass]="'col-md-' + 12 / quickRanges.length">
+      <div *ngFor="let option of group">
+        <span class="time-range-name" (click)="setTimeRange(option.value, option.label)">
+          {{option.label | translate}}
+        </span>
+      </div>
+    </div>
+  </div>
+</div>

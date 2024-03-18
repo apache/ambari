@@ -1,0 +1,17 @@
+Aug 21 03:09:02 logsearch.apache.org rsyslogd: [origin software="rsyslogd" swVersion="5.8.10" x-pid="955" x-info="http://www.rsyslog.com"] rsyslogd was HUPed
+Aug 21 10:53:02 logsearch.apache.org dhclient[891]: DHCPREQUEST on eth0 to 172.22.112.67 port 67 (xid=0x2cb1d8ad)
+Aug 21 10:53:02 logsearch.apache.org dhclient[891]: DHCPACK from 172.22.112.67 (xid=0x2cb1d8ad)
+Aug 21 10:53:03 logsearch.apache.org dhclient[891]: bound to 172.22.89.76 -- renewal in 37432 seconds.
+Aug 21 21:16:55 logsearch.apache.org dhclient[891]: DHCPREQUEST on eth0 to 172.22.112.67 port 67 (xid=0x2cb1d8ad)
+Aug 21 21:16:55 logsearch.apache.org dhclient[891]: DHCPACK from 172.22.112.67 (xid=0x2cb1d8ad)
+Aug 21 21:16:56 logsearch.apache.org dhclient[891]: bound to 172.22.89.76 -- renewal in 35453 seconds.
+Aug 22 06:39:48 logsearch.apache.org rsyslogd-2177: imuxsock lost 369 messages from pid 5254 due to rate-limiting
+Aug 22 07:07:49 logsearch.apache.org dhclient[891]: DHCPREQUEST on eth0 to 172.22.112.67 port 67 (xid=0x2cb1d8ad)
+Aug 22 07:07:49 logsearch.apache.org dhclient[891]: DHCPACK from 172.22.112.67 (xid=0x2cb1d8ad)
+Aug 22 07:07:50 logsearch.apache.org dhclient[891]: bound to 172.22.89.76 -- renewal in 36355 seconds.
+Aug 22 17:13:45 logsearch.apache.org dhclient[891]: DHCPREQUEST on eth0 to 172.22.112.67 port 67 (xid=0x2cb1d8ad)
+Aug 22 17:13:45 logsearch.apache.org dhclient[891]: DHCPACK from 172.22.112.67 (xid=0x2cb1d8ad)
+Aug 22 17:13:46 logsearch.apache.org dhclient[891]: bound to 172.22.89.76 -- renewal in 37482 seconds.
+Aug 23 03:38:28 logsearch.apache.org dhclient[891]: DHCPREQUEST on eth0 to 172.22.112.67 port 67 (xid=0x2cb1d8ad)
+Aug 23 03:38:28 logsearch.apache.org dhclient[891]: DHCPACK from 172.22.112.67 (xid=0x2cb1d8ad)
+Aug 23 03:38:29 logsearch.apache.org dhclient[891]: bound to 172.22.89.76 -- renewal in 31187 seconds.

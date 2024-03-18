@@ -1,0 +1,75 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@import '../../modules/shared/mixins';
+@import '../../modules/shared/variables';
+:host {
+  div.log-index-filter-content {
+    table {
+      &.table-header {
+        background-color: #fff;
+        margin-bottom: 0;
+        position: sticky;
+        top: -1px;
+        z-index: 10;
+      }
+      .component-column {
+        width: 25%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .checkbox-column {
+        width: 7%;
+        padding: 4px 0;
+        /deep/ graph-legend-item {
+          padding-right: 1px;
+          @media (max-width: 1510px) {
+            .item-label {
+              display: block;
+            }
+          }
+        }
+      }
+
+      tr.component-default-row {
+        background-color: lighten(@grey-color, 10%);
+      }
+
+      .override-column {
+        width: 26%;
+        padding-right: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      th.override-column {
+        padding-left: 20px;
+      }
+
+      .overrides-toggle {
+        .clickable-item;
+      }
+
+      input[type=checkbox] + label {
+        font-size: @table-font-size;
+        top: 0;
+      }
+    }
+  }
+}

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<!-- Solr managed schema - automatically generated - DO NOT EDIT -->
+<schema name="history" version="1.6">
+
+  <uniqueKey>id</uniqueKey>
+
+  <fieldType name="binary" class="solr.BinaryField"/>
+  <fieldType name="boolean" class="solr.BoolField" sortMissingLast="true"/>
+  <fieldType name="booleans" class="solr.BoolField" sortMissingLast="true" multiValued="true"/>
+  <fieldType name="date" class="solr.DatePointField" docValues="true"/>
+  <fieldType name="double" class="solr.DoublePointField" docValues="true"/>
+  <fieldType name="float" class="solr.FloatPointField" docValues="true"/>
+  <fieldType name="ignored" class="solr.StrField" indexed="false" stored="false" multiValued="true"/>
+  <fieldType name="int" class="solr.IntPointField"/>
+  <fieldType name="ip_address" class="solr.TextField">
+    <analyzer>
+      <tokenizer class="solr.PathHierarchyTokenizerFactory" replace="." delimiter="."/>
+    </analyzer>
+  </fieldType>
+  <fieldType name="long" class="solr.LongPointField" docValues="true"/>
+  <fieldType name="random" class="solr.RandomSortField" indexed="true" docValues="true"/>
+  <fieldType name="string" class="solr.StrField" sortMissingLast="true" docValues="true"/>
+  <fieldType name="strings" class="solr.StrField" sortMissingLast="true" multiValued="true" docValues="true"/>
+  <fieldType name="tdate" class="solr.DatePointField" docValues="true"/>
+  <fieldType name="tdates" class="solr.DatePointField" multiValued="true" docValues="true"/>
+  <fieldType name="tdouble" class="solr.DoublePointField"/>
+  <fieldType name="tdoubles" class="solr.DoublePointField" multiValued="true" docValues="true"/>
+  <fieldType name="tfloat" class="solr.FloatPointField" docValues="true"/>
+  <fieldType name="tfloats" class="solr.FloatPointField" multiValued="true" docValues="true"/>
+  <fieldType name="tint" class="solr.IntPointField" docValues="true"/>
+  <fieldType name="tints" class="solr.IntPointField" multiValued="true" docValues="true"/>
+  <fieldType name="tlong" class="solr.LongPointField" docValues="true"/>
+  <fieldType name="tlongs" class="solr.LongPointField" multiValued="true" docValues="true"/>
+  <fieldType name="text_general" class="solr.TextField" multiValued="true">
+    <analyzer>
+      <tokenizer class="solr.StandardTokenizerFactory"/>
+      <filter class="solr.LowerCaseFilterFactory"/>
+    </analyzer>
+  </fieldType>
+  <fieldType name="n_gram" class="solr.TextField" sortMissingLast="true" omitNorms="true">
+    <analyzer>
+      <tokenizer class="solr.NGramTokenizerFactory"/>
+      <filter class="solr.LowerCaseFilterFactory"/>
+    </analyzer>
+  </fieldType>
+  <fieldType name="key_lower_case" class="solr.TextField" sortMissingLast="true" omitNorms="true">
+      <analyzer>
+        <tokenizer class="solr.KeywordTokenizerFactory"/>
+        <filter class="solr.LowerCaseFilterFactory" />
+      </analyzer>
+    </fieldType>
+  <fieldType name="text_std_token_lower_case" class="solr.TextField" positionIncrementGap="100" multiValued="true">
+    <analyzer>
+      <tokenizer class="solr.StandardTokenizerFactory"/>
+      <filter class="solr.LowerCaseFilterFactory"/>
+    </analyzer>
+  </fieldType>
+  <fieldType name="text_ws" class="solr.TextField" positionIncrementGap="100">
+    <analyzer>
+      <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+      <filter class="solr.LowerCaseFilterFactory"/>
+    </analyzer>
+  </fieldType>
+
+  <field name="_version_" type="long" indexed="false" stored="true"/>
+  <field name="filtername" type="key_lower_case" indexed="true" required="true" stored="true"/>
+  <field name="id" type="string" required="true"/>
+  <field name="jsons" type="string"/>
+  <field name="rowtype" type="string" required="true"/>
+  <field name="share_username_list" type="string" multiValued="true"/>
+  <field name="username" type="key_lower_case" indexed="true" required="true" stored="true"/>
+  <field name="text" type="text_std_token_lower_case" multiValued="true" indexed="true" stored="false"/>
+
+  <dynamicField name='ngram_*' type="n_gram" multiValued="false" stored="false"/>
+  <dynamicField name='std_*' type="text_std_token_lower_case" multiValued="false" stored="false"/>
+  <dynamicField name="*_string" type="string" multiValued="true" indexed="true" stored="true"/>
+
+</schema>

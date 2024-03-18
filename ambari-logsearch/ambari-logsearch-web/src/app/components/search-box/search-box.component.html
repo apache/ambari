@@ -1,0 +1,44 @@
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<ng-template #listItemTemplate let-item="item">
+  {{item.label | translate}}
+</ng-template>
+<ng-container *ngFor="let parameter of parameters">
+<label class="parameter-label" [class.exclude]="parameter.isExclude" [class.include]="!parameter.isExclude">
+  {{parameter.label | translate}}:
+  <span class="parameter-value">{{(parameter.name === 'type' ? (parameter.value | componentLabel | async) : parameter.value)}}</span>
+  <span class="fa toggle-parameter action-icon" [ngClass]="{'fa-search-minus': parameter.isExclude, 'fa-search-plus': !parameter.isExclude}"
+        (click)="toggleParameter($event, parameter.id)" tooltip="{{('filter.toggleTo.' + (parameter.isExclude ? 'include' : 'exclude')) | translate}}"></span>
+  <span class="fa fa-times remove-parameter action-icon" (click)="removeParameter($event, parameter.id)"></span>
+</label>
+</ng-container>
+<span class="active-parameter-label" *ngIf="isActive && activeItem">{{activeItem.label | translate}}:</span>
+<div [ngClass]="{'search-item-container': true, 'active': isActive, 'value': isValueInput}">
+  <input #parameterInput [(ngModel)]="currentValue" [typeahead]="items" typeaheadOptionField="label"
+         [typeaheadItemTemplate]="listItemTemplate" (typeaheadNoResults)="setParameterNameMatchFlag($event)"
+         [typeaheadMinLength]="0"
+         (typeaheadOnSelect)="changeParameterName({item: $event.item, isExclude: false})"
+         (focus)="onParameterInputFocus()" (keyup)="onParameterKeyUp($event)"
+         class="search-item-input parameter-input form-control">
+  <input #valueInput [(ngModel)]="currentValue" [typeahead]="activeItemValueOptions" typeaheadOptionField="value"
+         [typeaheadItemTemplate]="listItemTemplate" (typeaheadNoResults)="setParameterValueMatchFlag($event)"
+         [typeaheadMinLength]="0"
+         (typeaheadOnSelect)="onParameterValueChange($event.value)" (keydown)="onParameterValueKeyDown($event)"
+         (keyup)="onParameterValueKeyUp($event)" class="search-item-input value-input form-control">
+</div>
+<span *ngIf="parameters && parameters.length" class="fa fa-times-circle-o clear-all-btn" (click)="onClearButtonClick($event)"></span>

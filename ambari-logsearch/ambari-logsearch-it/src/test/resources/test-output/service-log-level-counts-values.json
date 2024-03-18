@@ -1,0 +1,33 @@
+{
+  "vNameValues": [
+    {
+      "name": "FATAL",
+      "value": "0"
+    },
+    {
+      "name": "ERROR",
+      "value": "1"
+    },
+    {
+      "name": "WARN",
+      "value": "7"
+    },
+    {
+      "name": "INFO",
+      "value": "8"
+    },
+    {
+      "name": "DEBUG",
+      "value": "1"
+    },
+    {
+      "name": "TRACE",
+      "value": "0"
+    },
+    {
+      "name": "UNKNOWN",
+      "value": "25"
+    }
+  ],
+  "listSize": 7
+}

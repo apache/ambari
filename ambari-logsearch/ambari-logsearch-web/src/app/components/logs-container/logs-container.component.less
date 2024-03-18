@@ -1,0 +1,58 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@import '../../modules/shared/mixins';
+
+:host {
+  display: block;
+
+  .tabs-container, .auto-refresh-message {
+    background-color: @filters-panel-background-color;
+  }
+  .tabs-container {
+    border-bottom: 1px solid @table-border-color;
+    .tabs-menu-container {
+      .flex-vertical-align;
+      height: 62px;
+      action-menu {
+        margin-left: auto;
+      }
+      /deep/ tabs ul.nav.nav-tabs {
+        margin: 0;
+      }
+    }
+  }
+
+  .fixed-filterbar {
+    filters-panel {
+      background-color: fadeout(@filters-panel-background-color, 10%);
+      box-shadow: 0 2px 2px rgba(0,0,0,.1);
+      left: 0;
+      margin: 0;
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 1;
+    }
+  }
+
+  .events-count {
+    margin-top: @block-margin-top;
+  }
+
+}

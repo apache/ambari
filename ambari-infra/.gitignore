@@ -1,0 +1,6 @@
+target
+.settings
+.classpath
+.project
+/bin/
+job-repository.db

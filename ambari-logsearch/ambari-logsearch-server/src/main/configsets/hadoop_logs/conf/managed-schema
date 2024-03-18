@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<schema name="hadoop-logs-schema" version="1.6">
+  <uniqueKey>id</uniqueKey>
+  <fieldType name="binary" class="solr.BinaryField"/>
+  <fieldType name="boolean" class="solr.BoolField" sortMissingLast="true"/>
+  <fieldType name="booleans" class="solr.BoolField" sortMissingLast="true" multiValued="true"/>
+  <fieldType name="date" class="solr.DatePointField"/>
+  <fieldType name="double" class="solr.DoublePointField" docValues="true"/>
+  <fieldType name="float" class="solr.FloatPointField" docValues="true"/>
+  <fieldType name="long" class="solr.LongPointField" docValues="true"/>
+  <fieldType name="ignored" class="solr.StrField" indexed="false" stored="false" multiValued="true" docValues="true"/>
+  <fieldType name="int" class="solr.IntPointField"/>
+  <fieldType name="ip_address" class="solr.TextField">
+    <analyzer>
+      <tokenizer class="solr.PathHierarchyTokenizerFactory" replace="." delimiter="."/>
+    </analyzer>
+  </fieldType>
+  <fieldType name="logLevel" class="solr.EnumFieldType" enumsConfig="enumsConfig.xml" enumName="log_levels"/>
+  <fieldType name="random" class="solr.RandomSortField" indexed="true"/>
+  <fieldType name="string" class="solr.StrField" sortMissingLast="true" docValues="true"/>
+  <fieldType name="strings" class="solr.StrField" sortMissingLast="true" multiValued="true" docValues="true"/>
+  <fieldType name="tdate" class="solr.DatePointField" docValues="true"/>
+  <fieldType name="tdates" class="solr.DatePointField" multiValued="true" docValues="true"/>
+  <fieldType name="tdouble" class="solr.DoublePointField" docValues="true"/>
+  <fieldType name="tdoubles" class="solr.DoublePointField" multiValued="true" docValues="true"/>
+  <fieldType name="tfloat" class="solr.FloatPointField" docValues="true"/>
+  <fieldType name="tfloats" class="solr.FloatPointField" multiValued="true" docValues="true"/>
+  <fieldType name="tint" class="solr.IntPointField" docValues="true"/>
+  <fieldType name="tints" class="solr.IntPointField" multiValued="true" docValues="true"/>
+  <fieldType name="tlong" class="solr.LongPointField" docValues="true"/>
+  <fieldType name="tlongs" class="solr.LongPointField" multiValued="true" docValues="true"/>
+  <fieldType name="text_general" class="solr.TextField" positionIncrementGap="100" multiValued="true">
+    <analyzer>
+      <tokenizer class="solr.StandardTokenizerFactory"/>
+      <filter class="solr.LowerCaseFilterFactory"/>
+    </analyzer>
+  </fieldType>
+  <fieldType name="n_gram" class="solr.TextField" sortMissingLast="true" omitNorms="true">
+    <analyzer>
+      <tokenizer class="solr.NGramTokenizerFactory"/>
+      <filter class="solr.LowerCaseFilterFactory"/>
+    </analyzer>
+  </fieldType>
+  <fieldType name="lowercase" class="solr.TextField" sortMissingLast="true" omitNorms="true">
+      <analyzer>
+        <tokenizer class="solr.KeywordTokenizerFactory"/>
+        <filter class="solr.LowerCaseFilterFactory" />
+      </analyzer>
+  </fieldType>
+  <fieldType name="classic_text_general" class="solr.TextField" positionIncrementGap="100" multiValued="true">
+     <analyzer>
+        <tokenizer class="solr.ClassicTokenizerFactory"/>
+        <filter class="solr.LowerCaseFilterFactory"/>
+      </analyzer>
+  </fieldType>
+  <fieldType name="text_ws" class="solr.TextField" positionIncrementGap="100">
+    <analyzer>
+      <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+      <filter class="solr.LowerCaseFilterFactory"/>
+    </analyzer>
+  </fieldType>
+
+  <field name="@timestamp" type="tdate" multiValued="false" stored="false"/>
+  <field name="@version" type="long" multiValued="false" indexed="false" stored="false"/>
+  <field name="_version_" type="long" indexed="false" stored="false"/>
+  <field name="_expire_at_" type="tdate" stored="true"  multiValued="false"/>
+  <field name="_ttl_" type="string" indexed="true" stored="true" multiValued="false"/>
+  <field name="_router_field_" type="int" indexed="false" stored="false" multiValued="false"/>
+
+  <field name="bundle_id" type="lowercase" multiValued="false"/>
+  <field name="case_id" type="lowercase" multiValued="false"/>
+  <field name="cluster" type="lowercase" multiValued="false"/>
+  <field name="event_count" type="tlong" multiValued="false" docValues="true" default="1"/>
+  <field name="event_dur_ms" type="tlong" multiValued="false" docValues="true"/>
+  <field name="event_md5" type="string" multiValued="false"/>
+  <field name="file" type="lowercase" multiValued="false"/>
+  <field name="host" type="lowercase" multiValued="false"/>
+  <field name="id" type="string" multiValued="false" indexed="true" required="true" stored="true"/>
+  <field name="ip" type="string" multiValued="false"/>
+  <field name="level" type="lowercase" multiValued="false"/>
+  <field name="line_number" type="tint" omitNorms="false"/>
+  <field name="log_message" type="text_general" multiValued="false" omitNorms="false"/>
+  <field name="logfile_line_number" type="tint" omitNorms="false"/>
+  <field name="logger_name" type="string" multiValued="false"/>
+  <field name="logtime" type="tdate" multiValued="false"  docValues="true"/>
+  <field name="logtype" type="lowercase" multiValued="false"/>
+  <field name="message_md5" type="string" multiValued="false"/>
+  <field name="method" type="string" multiValued="false" omitNorms="false"/>
+  <field name="path" type="lowercase" multiValued="false"/>
+  <field name="rowtype" type="string" multiValued="false"/>
+  <field name="seq_num" type="tlong" multiValued="false" omitNorms="false"/>
+  <field name="tags" type="string" multiValued="true"/>
+  <field name="text" type="text_general" multiValued="true" indexed="true" stored="false"/>
+  <field name="thread_name" type="string" multiValued="false" omitNorms="false"/>
+  <field name="type" type="string" multiValued="false"/>
+  <field name="group" type="string" multiValued="false" docValues="true" stored="true"/>
+
+  <dynamicField name='ngram_*' type="n_gram" multiValued="false" stored="false"/>
+  <dynamicField name='std_*' type="text_general" multiValued="false" stored="false"/>
+  <dynamicField name='key_*' type="lowercase" multiValued="false" stored="false"/>
+  <dynamicField name="ws_*" type="text_ws" multiValued="false" omitNorms="false" stored="false"/>
+  <dynamicField name="sdi_*" type="text_ws" omitNorms="false" multiValued="false" stored="true"/>
+
+  <dynamicField name="*_i"  type="tint" indexed="true"  stored="true"/>
+  <dynamicField name="*_is" type="tints" indexed="true"  stored="true"/>
+  <dynamicField name="*_s"  type="string" indexed="true"  stored="true" />
+  <dynamicField name="*_ss" type="strings" indexed="true"  stored="true"/>
+  <dynamicField name="*_l"  type="tlong" indexed="true"  stored="true"/>
+  <dynamicField name="*_ls" type="tlongs" indexed="true"  stored="true"/>
+  <dynamicField name="*_t" type="text_general" indexed="true" stored="true" multiValued="false"/>
+  <dynamicField name="*_txt" type="text_general" indexed="true" stored="true"/>
+  <dynamicField name="*_b"  type="boolean" indexed="true" stored="true"/>
+  <dynamicField name="*_bs" type="booleans" indexed="true" stored="true"/>
+  <dynamicField name="*_f"  type="tfloat" indexed="true"  stored="true"/>
+  <dynamicField name="*_fs" type="tfloats" indexed="true"  stored="true"/>
+  <dynamicField name="*_d"  type="tdouble" indexed="true"  stored="true"/>
+  <dynamicField name="*_ds" type="tdoubles" indexed="true"  stored="true"/>
+  <dynamicField name="random_*" type="random"/>
+
+  <copyField source="log_message" dest="key_log_message"/>
+
+</schema>

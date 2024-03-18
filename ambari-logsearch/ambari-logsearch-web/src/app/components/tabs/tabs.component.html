@@ -1,0 +1,39 @@
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<ul class="nav nav-tabs">
+  <li *ngFor="let tab of items" [ngClass]="{'active': tab.isActive}">
+    <ng-container [ngSwitch]="switchMode">
+      <a *ngSwitchCase="'CLICK'" [href]="getRouterLinkForTab(tab)" (click)="switchTab(tab, $event)">
+        {{tab.label | translate}}
+        <span *ngIf="tab.isCloseable" class="fa fa-times close-icon" (click)="closeTab(tab)"></span>
+      </a>
+      <a *ngSwitchCase="'ROUTE_SEGMENT'" [routerLink]="getRouterLinkForTab(tab)"
+        [queryParams]="queryParams" [queryParamsHandling]="queryParamsHandling">
+        {{tab.label | translate}}
+        <span *ngIf="tab.isCloseable" class="fa fa-times close-icon" (click)="closeTab(tab)"></span>
+      </a>
+      <a *ngSwitchCase="'ROUTE_FRAGMENT'" [routerLink]="getRouterLinkForTab(tab)" [fragment]="tab.id">
+        {{tab.label | translate}}
+        <span *ngIf="tab.isCloseable" class="fa fa-times close-icon" (click)="closeTab(tab)"></span>
+      </a>
+      <a *ngSwitchCase="'ROUTE_PARAM'" [routerLink]="getRouterLinkForTab(tab)">
+        {{tab.label | translate}}
+        <span *ngIf="tab.isCloseable" class="fa fa-times close-icon" (click)="closeTab(tab)"></span>
+      </a>
+    </ng-container>
+  </li>
+</ul>

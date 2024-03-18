@@ -1,0 +1,4 @@
+18 Jul 2016 17:06:46 DEBUG [MainThread] lock.py:97 - Got the handle of lock file.
+18 Jul 2016 17:06:46 INFO [MainThread] security.py:175 - Server certificate not exists, downloading
+18 Jul 2016 17:06:46 INFO [MainThread] security.py:188 - Downloading server cert from https://myurl:9440/cert/ca/
+18 Jul 2016 17:06:46 WARNING [MainThread] lock.py:60 - Releasing the lock.

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<project basedir="." default="build" name="logsearch">
+  <property environment="env"/>
+  <property name="debuglevel" value="source,lines,vars"/>
+  <dirname property="builddir" file="build.xml"/>
+  <property name="target" value="1.8"/>
+  <property name="source" value="1.8"/>
+
+  <target name="init">
+  </target>
+  <target name="build"/>
+
+  <target name="package">
+    <delete dir="target/package"/>
+    <copy todir="target/package/libs" includeEmptyDirs="no">
+      <fileset dir="target/libs"/>
+      <fileset file="target/ambari-logsearch-server*.jar"/>
+    </copy>
+    <copy todir="target/classes/static" includeEmptyDirs="no">
+      <fileset dir="target/dist"/>
+    </copy>
+    <copy todir="target/package/webapp/static" includeEmptyDirs="no">
+      <fileset dir="target/classes/static"/>
+    </copy>
+    <copy todir="target/package/webapp/swagger" includeEmptyDirs="no">
+      <fileset dir="target/classes/swagger"/>
+    </copy>
+    <copy todir="target/package/conf" includeEmptyDirs="no">
+      <fileset file="src/main/scripts/logsearch-env.sh"/>
+      <fileset file="target/classes/log4j.xml"/>
+      <fileset file="target/classes/default.properties"/>
+      <fileset file="target/classes/logsearch.properties"/>
+      <fileset file="target/classes/info.properties"/>
+      <fileset file="target/classes/user_pass.json"/>
+      <fileset file="target/classes/HadoopServiceConfig.json"/>
+    </copy>
+    <copy todir="target/package/conf/solr_configsets" includeEmptyDirs="yes">
+      <fileset dir="src/main/configsets"/>
+    </copy>
+    <copy todir="target/package/bin" includeEmptyDirs="no">
+      <fileset file="src/main/scripts/logsearch.sh"/>
+    </copy>
+    <chmod file="target/package/bin/logsearch.sh" perm="755"/>
+    <chmod file="target/package/conf/logsearch-env.sh" perm="755"/>
+    <tar compression="gzip" destfile="target/ambari-logsearch-portal.tar.gz">
+      <tarfileset mode="755" dir="target/package">
+        <include name="**/*.sh"/>
+      </tarfileset>
+      <tarfileset mode="664" dir="target/package">
+        <exclude name="**/*.sh"/>
+      </tarfileset>
+    </tar>
+  </target>
+</project>

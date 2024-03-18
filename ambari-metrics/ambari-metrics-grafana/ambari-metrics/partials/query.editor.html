@@ -1,0 +1,112 @@
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one
+  ~ or more contributor license agreements.  See the NOTICE file
+  ~ distributed with this work for additional information
+  ~ regarding copyright ownership.  The ASF licenses this file
+  ~ to you under the Apache License, Version 2.0 (the
+  ~ "License"); you may not use this file except in compliance
+  ~ with the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<query-editor-row query-ctrl="ctrl" can-collapse="true">
+	<div class="gf-form-inline">
+		<div class="gf-form max-width-25">
+    		<label class="gf-form-label query-keyword width-8">
+        		Component
+    		</label>
+        	<input type="text" class="gf-form-input" ng-model="ctrl.target.app"
+               spellcheck='false' bs-typeahead="ctrl.suggestApps" placeholder="Component Name" data-min-length=0 data-items=100
+               ng-blur="ctrl.targetBlur()">
+        	</input>
+    </div>
+
+    <div class="gf-form">
+    	<label class="gf-form-label query-keyword width-8">
+        	Metric
+    	</label>
+        <input type="text" class="input-large gf-form-input" ng-model="ctrl.target.metric"
+               spellcheck='false' bs-typeahead="ctrl.suggestMetrics" placeholder="metric name" data-min-length=0 data-items=100
+               ng-blur="ctrl.targetBlur()">
+        </input>
+        <a bs-tooltip="ctrl.target.errors.metric" style="color: rgb(229, 189, 28)" ng-show="ctrl.target.errors.metric">
+            <i class="fa fa-warning"></i>
+        </a>
+    </div>
+
+
+    <div class="gf-form">
+    	<label class="gf-form-label query-keyword width-8">
+        Hosts
+    	</label>
+    
+        <input type="text" class="input-large gf-form-input" ng-model="ctrl.target.hosts"
+               spellcheck='false' bs-typeahead="ctrl.suggestHosts" placeholder="host name" data-min-length=0 data-items=100
+               ng-blur="ctrl.targetBlur()">
+        </input>
+        <a bs-tooltip="ctrl.target.errors.metric" style="color: rgb(229, 189, 28)" ng-show="ctrl.target.errors.metric">
+            <i class="fa fa-warning"></i>
+        </a>
+    </div>
+
+    <div class="gf-form">
+    	<label class="gf-form-label query-keyword width-8">
+        Aggregator
+    	</label>
+        <select ng-model="ctrl.target.aggregator" class="gf-form-input input-small"
+                ng-options="agg for agg in ctrl.aggregators"
+                ng-change="ctrl.targetBlur()">
+        </select>
+        <a bs-tooltip="ctrl.target.errors.aggregator" style="color: rgb(229, 189, 28)" ng-show="ctrl.target.errors.aggregator">
+            <i class="fa fa-warning"></i>
+        </a>
+    </div>
+
+	</div>
+	<div class="gf-form-inline">
+
+    <div class="gf-form">
+    	<label class="gf-form-label query-keyword width-8">
+            Alias
+        </label>
+            <input type="text" class="gf-form-input input-large"
+                   ng-model="ctrl.target.alias"
+                   spellcheck='false'
+                   placeholder="series alias"
+                   data-min-length=0 data-items=100
+                   ng-blur="ctrl.targetBlur()"></input>
+            <a bs-tooltip="ctrl.target.errors.metric" style="color: rgb(229, 189, 28)" ng-show="ctrl.target.errors.metric">
+                <i class="fa fa-warning"></i>
+            </a>
+    </div>
+    
+    <div class="gf-form">
+    	<label class="gf-form-label query-keyword width-8">
+            Transform
+        </label>
+            <select ng-model="ctrl.target.transform" class="gf-form-input input-small"
+                    ng-options="transform for transform in ctrl.transforms"
+                    ng-init="ctrl.transform()"
+                    ng-change="ctrl.targetBlur()"></select>
+    </div>
+
+
+    <div class="gf-form">
+    	<label class="gf-form-label query-keyword width-8">
+            Precision
+        </label>
+            <select ng-model="ctrl.target.precision" class="gf-form-input input-small"
+                    ng-options="precision for precision in ctrl.precisions"
+                    ng-init="ctrl.precisionInit()"
+                    ng-change="ctrl.targetBlur()">
+            </select>
+    </div>
+        <div class="clearfix"></div>
+</div>
+</query-editor-row>

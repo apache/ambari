@@ -1,0 +1,4 @@
+2016-03-18 10:00:47,252 INFO FSNamesystem.audit: allowed=true	ugi=ambari-qa (auth:SIMPLE)	ip=/192.168.64.102	cmd=getfileinfo	src=/ats/active	dst=null	perm=null	proto=rpc	callerContext=HIVE_QUERY_ID:ambari-qa_20160317200111_223b3079-4a2d-431c-920f-6ba37ed63e9f
+2016-03-18 10:00:48,939 INFO FSNamesystem.audit: allowed=true	ugi=ambari-qa (auth:SIMPLE)	ip=/192.168.64.102	cmd=delete	src=/tmp/hive/ambari-qa/resource1	dst=null	perm=null	proto=rpc
+2016-03-18 10:00:49,242 INFO FSNamesystem.audit: allowed=true	ugi=ambari-qa (auth:SIMPLE)	ip=/192.168.64.102	cmd=getfileinfo	src=/tmp/hive/ambari-qa/resource2	dst=null	perm=null	proto=rpc
+2016-03-18 10:00:49,277 INFO FSNamesystem.audit: allowed=true	ugi=ambari-qa (auth:SIMPLE)	ip=/192.168.64.102	cmd=getfileinfo	src=/tmp/hive/ambari-qa/resource2	dst=null	perm=null	proto=rpc

@@ -1,0 +1,28 @@
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<button class="btn btn-link" [disabled]="!hasPreviousPage()" (click)="setFirstPage()">
+  <span class="pagination-control fa fa-angle-double-left"></span>
+</button>
+<button class="btn btn-link" [disabled]="!hasPreviousPage()" (click)="setPreviousPage()">
+  <span class="pagination-control fa fa-angle-left"></span>
+</button>
+<button class="btn btn-link" [disabled]="!hasNextPage()" (click)="setNextPage()">
+  <span class="pagination-control fa fa-angle-right"></span>
+</button>
+<button class="btn btn-link" [disabled]="!hasNextPage()" (click)="setLastPage()">
+  <span class="pagination-control fa fa-angle-double-right"></span>
+</button>

@@ -1,0 +1,226 @@
+#!/bin/bash
+
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific
+
+
+MONITOR_CONF_DIR=/etc/ambari-metrics-monitor/conf/
+METRIC_MONITOR=ambari-metrics-monitor
+
+RESOURCE_MONITORING_DIR=/usr/lib/python2.6/site-packages/resource_monitoring
+METRIC_MONITOR_PY_SCRIPT=${RESOURCE_MONITORING_DIR}/main.py
+
+PIDFILE=/var/run/ambari-metrics-monitor/ambari-metrics-monitor.pid
+OUTFILE=/var/log/ambari-metrics-monitor/ambari-metrics-monitor.out
+
+STOP_TIMEOUT=10
+
+OK=0
+NOTOK=1
+
+if [ -a /usr/bin/python2.7 ] && [ -z "${PYTHON}" ]; then
+  PYTHON=/usr/bin/python2.7
+fi
+
+if [ -a /usr/bin/python2.6 ] && [ -z "${PYTHON}" ]; then
+  PYTHON=/usr/bin/python2.6
+fi
+
+if [ "x$PYTHON" == "x" ]; then
+  PYTHON=/usr/bin/python
+fi
+
+export PYTHON=${PYTHON}
+
+check_python_version ()
+{
+  echo "Verifying Python version compatibility..."
+  majversion=`${PYTHON} -V 2>&1 | awk '{print $2}' | cut -d'.' -f1`
+  minversion=`${PYTHON} -V 2>&1 | awk '{print $2}' | cut -d'.' -f2`
+  numversion=$(( 10 * $majversion + $minversion))
+  if (( $numversion < 26 )); then
+    echo "ERROR: Found Python version $majversion.$minversion. Ambari Metric Monitor requires Python version > 2.6"
+    return ${NOTOK}
+  fi
+  echo "Using python " ${PYTHON}
+  return ${OK}
+}
+
+function write_pidfile
+{
+    local pidfile="$1"
+    echo $! > "${pidfile}" 2>/dev/null
+    if [[ $? -gt 0 ]]; then
+      echo "ERROR:  Cannot write pid ${pidfile}."
+      exit 1;
+    fi
+}
+
+#locate config dir
+while [[ -z "${_ams_configs_done}" ]]; do
+  case $1 in
+    --config)
+      shift
+      confdir=$1
+      shift
+      if [[ -d "${confdir}" ]]; then
+        MONITOR_CONF_DIR="${confdir}"
+      elif [[ -z "${confdir}" ]]; then
+        echo "ERROR: No parameter provided for --config "
+        exit 1
+      else
+        echo "ERROR: Cannot find configuration directory \"${confdir}\""
+        exit 1
+      fi
+    ;;
+    *)
+      _ams_configs_done=true
+    ;;
+  esac
+done
+
+#execute ams-env.sh
+if [[ -f "${MONITOR_CONF_DIR}/ams-env.sh" ]]; then
+  . "${MONITOR_CONF_DIR}/ams-env.sh"
+else
+  echo "ERROR: Cannot execute ${MONITOR_CONF_DIR}/ams-env.sh." 2>&1
+  exit 1
+fi
+
+# Set log directory path
+if [[ -n "${AMS_MONITOR_LOG_DIR}" ]]; then
+  OUTFILE=${AMS_MONITOR_LOG_DIR}/ambari-metrics-monitor.out
+fi
+
+#TODO decide if rebuild on each start (pretty quickly) to tolerate major node changes (like kernel update)
+#build psutil
+if [ ! "$(ls -A ${RESOURCE_MONITORING_DIR}/psutil/build)" ]; then
+  echo "Building psutil..."
+  dir=$(pwd)
+  cd "${RESOURCE_MONITORING_DIR}/psutil"
+  # build psutil and redirect output to log file
+  echo "--------------------------Building psutil--------------------------" >> ${OUTFILE}
+  ${PYTHON} "setup.py" "build" >> ${OUTFILE}
+  echo "----------------------Finished building psutil---------------------" >> ${OUTFILE}
+  cd "${dir}"
+else
+  echo "psutil build directory is not empty, continuing..."
+fi
+
+# Set pid directory path
+if [[ -n "${AMS_MONITOR_PID_DIR}" ]]; then
+  PIDFILE=${AMS_MONITOR_PID_DIR}/ambari-metrics-monitor.pid
+fi
+
+case "$1" in
+
+  start)
+    check_python_version
+    if [ "$?" -eq "${NOTOK}" ]; then
+          exit -1
+    fi
+
+    echo "Checking for previously running Metric Monitor..."
+    if [ -f ${PIDFILE} ]; then
+      PID=`cat ${PIDFILE}`
+      if [ -z "`ps ax -o pid | grep -w ${PID}`" ]; then
+        echo "${PIDFILE} found with no process. Removing ${PID}..."
+        rm -f ${PIDFILE}
+      else
+        tput bold
+        echo "WARN: ${METRIC_MONITOR} already running with PID: ${PID}"
+        tput sgr0
+        echo "Exiting."
+        exit 0
+      fi
+    fi
+
+    echo "Starting ${METRIC_MONITOR}"
+
+    nohup ${PYTHON} ${METRIC_MONITOR_PY_SCRIPT} "$@" >> ${OUTFILE} 2>&1 &
+    PID=$!
+    write_pidfile ${PIDFILE}
+
+    sleep 2
+
+    echo "Verifying ${METRIC_MONITOR} process status with PID : ${PID}"
+    if [ -z "`ps ax -o pid | grep -w ${PID}`" ]; then
+      echo "Output of PID check : `ps ax -o pid | grep -w ${PID}`"
+      if [ -s ${OUTFILE} ]; then
+        echo "ERROR: ${METRIC_MONITOR} start failed. For more details, see ${OUTFILE}:"
+        echo "===================="
+        tail -n 10 ${OUTFILE}
+        echo "===================="
+      else
+        echo "ERROR: ${METRIC_MONITOR} start failed"
+        rm -f ${PIDFILE}
+      fi
+      echo "Monitor out at: ${OUTFILE}"
+      exit -1
+    fi
+
+    echo "Metric Monitor successfully started"
+    echo "Server log at: ${OUTFILE}"
+  ;;
+  status)
+    if [ -f ${PIDFILE} ]; then
+      PID=`cat ${PIDFILE}`
+      echo "Found ${METRIC_MONITOR} PID: $PID"
+      if [ -z "`ps ax -o pid | grep -w ${PID}`" ]; then
+        echo "${METRIC_MONITOR} not running. Stale PID File at: $PIDFILE"
+        retcode=2
+      else
+        tput bold
+        echo "${METRIC_MONITOR} running."
+        tput sgr0
+        echo "Monitor PID at: ${PIDFILE}"
+        echo "Monitor out at: ${OUTFILE}"
+      fi
+    else
+      tput bold
+      echo "${METRIC_MONITOR} currently not running"
+      tput sgr0
+      echo "Usage: /usr/sbin/${METRIC_MONITOR} {start|stop|restart|status}"
+      retcode=3
+    fi
+  ;;
+  stop)
+    pidfile=${PIDFILE}
+
+    if [[ -f "${pidfile}" ]]; then
+        pid=$(cat "$pidfile")
+
+        kill "${pid}" >/dev/null 2>&1
+        sleep "${STOP_TIMEOUT}"
+
+        if kill -0 "${pid}" > /dev/null 2>&1; then
+          echo "WARNING: ${METRIC_MONITOR} did not stop gracefully after ${STOP_TIMEOUT} seconds: Trying to kill with kill -9"
+          kill -9 "${pid}" >/dev/null 2>&1
+        fi
+
+        if ps -p "${pid}" > /dev/null 2>&1; then
+          echo "ERROR: Unable to kill ${pid}"
+        else
+          rm -f "${pidfile}" >/dev/null 2>&1
+        fi
+    fi
+
+  ;;
+  restart)
+    echo -e "Restarting ${METRIC_MONITOR}"
+    $0 stop
+    $0 start "$@"
+    retcode=$?
+  ;;
+esac

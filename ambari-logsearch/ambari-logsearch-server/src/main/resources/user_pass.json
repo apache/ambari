@@ -1,0 +1,8 @@
+{
+	"users": [{
+		"name": "Logsearch Admin",
+		"username": "admin",
+		"password": "admin",
+		"en_password": ""
+	}]
+}

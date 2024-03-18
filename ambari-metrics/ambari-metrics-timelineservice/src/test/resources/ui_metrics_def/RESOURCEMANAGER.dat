@@ -1,0 +1,11 @@
+yarn.QueueMetrics.Queue=root.AppsCompleted
+yarn.QueueMetrics.Queue=root.AppsRunning
+yarn.QueueMetrics.Queue=root.AppsFailed
+yarn.QueueMetrics.Queue=root.AllocatedMB
+yarn.QueueMetrics.Queue=root.AppsSubmitted
+yarn.QueueMetrics.Queue=root.AvailableVCores
+yarn.QueueMetrics.Queue=root.AppsPending
+yarn.QueueMetrics.Queue=root.AllocatedVCores
+yarn.QueueMetrics.Queue=root.AvailableMB
+yarn.QueueMetrics.Queue=root.AppsKilled
+|hostname|startTime|endTime|

@@ -1,0 +1,280 @@
+<?xml version="1.0"?>
+
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one
+  ~ or more contributor license agreements.  See the NOTICE file
+  ~ distributed with this work for additional information
+  ~ regarding copyright ownership.  The ASF licenses this file
+  ~ to you under the Apache License, Version 2.0 (the
+  ~ "License"); you may not use this file except in compliance
+  ~ with the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<configuration>
+
+    <!-- Site specific AMS_Hbase configuration properties -->
+    <property>
+        <name>dfs.client.read.shortcircuit</name>
+        <value>true</value>
+    </property>
+
+    <property>
+        <name>hbase.client.scanner.caching</name>
+        <value>10000</value>
+    </property>
+
+    <property>
+        <name>hbase.client.scanner.timeout.period</name>
+        <value>300000</value>
+    </property>
+
+    <property>
+        <name>hbase.cluster.distributed</name>
+        <value>false</value>
+    </property>
+
+    <property>
+        <name>hbase.hregion.majorcompaction</name>
+        <value>0</value>
+    </property>
+
+    <property>
+        <name>hbase.hregion.max.filesize</name>
+        <value>4294967296</value>
+    </property>
+
+    <property>
+        <name>hbase.hregion.memstore.block.multiplier</name>
+        <value>4</value>
+    </property>
+
+    <property>
+        <name>hbase.hregion.memstore.flush.size</name>
+        <value>134217728</value>
+    </property>
+
+    <property>
+        <name>hbase.hstore.blockingStoreFiles</name>
+        <value>200</value>
+    </property>
+
+    <property>
+        <name>hbase.hstore.flusher.count</name>
+        <value>2</value>
+    </property>
+
+    <property>
+        <name>hbase.local.dir</name>
+        <value>${hbase.tmp.dir}/local</value>
+    </property>
+
+    <property>
+        <name>hbase.master.info.bindAddress</name>
+        <value>0.0.0.0</value>
+    </property>
+
+    <property>
+        <name>hbase.master.info.port</name>
+        <value>61310</value>
+    </property>
+
+    <property>
+        <name>hbase.master.normalizer.class</name>
+        <value>org.apache.hadoop.hbase.master.normalizer.SimpleRegionNormalizer</value>
+    </property>
+
+    <property>
+        <name>hbase.master.port</name>
+        <value>61300</value>
+    </property>
+
+    <property>
+        <name>hbase.master.wait.on.regionservers.mintostart</name>
+        <value>1</value>
+    </property>
+
+    <property>
+        <name>hbase.normalizer.enabled</name>
+        <value>false</value>
+    </property>
+
+    <property>
+        <name>hbase.normalizer.period</name>
+        <value>600000</value>
+    </property>
+
+    <property>
+        <name>hbase.regionserver.global.memstore.lowerLimit</name>
+        <value>0.3</value>
+    </property>
+
+    <property>
+        <name>hbase.regionserver.global.memstore.upperLimit</name>
+        <value>0.35</value>
+    </property>
+
+    <property>
+        <name>hbase.regionserver.info.port</name>
+        <value>61330</value>
+    </property>
+
+    <property>
+        <name>hbase.regionserver.port</name>
+        <value>61320</value>
+    </property>
+
+    <property>
+        <name>hbase.regionserver.thread.compaction.large</name>
+        <value>2</value>
+    </property>
+
+    <property>
+        <name>hbase.regionserver.thread.compaction.small</name>
+        <value>3</value>
+    </property>
+
+    <property>
+        <name>hbase.replication</name>
+        <value>false</value>
+    </property>
+
+    <property>
+        <name>hbase.rootdir</name>
+        <value>file:///var/lib/ambari-metrics-collector/hbase</value>
+    </property>
+
+    <property>
+        <name>hbase.rpc.timeout</name>
+        <value>300000</value>
+    </property>
+
+    <property>
+        <name>hbase.snapshot.enabled</name>
+        <value>false</value>
+    </property>
+
+    <property>
+        <name>hbase.tmp.dir</name>
+        <value>/var/lib/ambari-metrics-collector/hbase-tmp</value>
+    </property>
+
+    <property>
+        <name>hbase.unsafe.stream.capability.enforce</name>
+        <value>false</value>
+    </property>
+
+    <property>
+        <name>hbase.zookeeper.leaderport</name>
+        <value>61388</value>
+    </property>
+
+    <property>
+        <name>hbase.zookeeper.peerport</name>
+        <value>61288</value>
+    </property>
+
+    <property>
+        <name>hbase.zookeeper.property.clientPort</name>
+        <value>61181</value>
+    </property>
+
+    <property>
+        <name>hbase.zookeeper.property.dataDir</name>
+        <value>${hbase.tmp.dir}/zookeeper</value>
+    </property>
+
+    <property>
+        <name>hbase.zookeeper.property.tickTime</name>
+        <value>6000</value>
+    </property>
+
+    <property>
+        <name>hbase.zookeeper.quorum</name>
+        <value>localhost</value>
+        <final>true</final>
+    </property>
+
+    <property>
+        <name>hfile.block.cache.size</name>
+        <value>0.3</value>
+    </property>
+
+    <property>
+        <name>phoenix.coprocessor.maxMetaDataCacheSize</name>
+        <value>20480000</value>
+    </property>
+
+    <property>
+        <name>phoenix.coprocessor.maxServerCacheTimeToLiveMs</name>
+        <value>60000</value>
+    </property>
+
+    <property>
+        <name>phoenix.groupby.maxCacheSize</name>
+        <value>307200000</value>
+    </property>
+
+    <property>
+        <name>phoenix.mutate.batchSize</name>
+        <value>10000</value>
+    </property>
+
+    <property>
+        <name>phoenix.query.keepAliveMs</name>
+        <value>300000</value>
+    </property>
+
+    <property>
+        <name>phoenix.query.maxGlobalMemoryPercentage</name>
+        <value>25</value>
+    </property>
+
+    <property>
+        <name>phoenix.query.rowKeyOrderSaltedTable</name>
+        <value>true</value>
+    </property>
+
+    <property>
+        <name>phoenix.query.spoolThresholdBytes</name>
+        <value>20971520</value>
+    </property>
+
+    <property>
+        <name>phoenix.query.timeoutMs</name>
+        <value>300000</value>
+    </property>
+
+    <property>
+        <name>phoenix.sequence.saltBuckets</name>
+        <value>2</value>
+    </property>
+
+    <property>
+        <name>phoenix.spool.directory</name>
+        <value>/tmp</value>
+    </property>
+
+    <property>
+        <name>zookeeper.session.timeout</name>
+        <value>120000</value>
+    </property>
+
+    <property>
+        <name>zookeeper.session.timeout.localHBaseCluster</name>
+        <value>120000</value>
+    </property>
+
+    <property>
+        <name>zookeeper.znode.parent</name>
+        <value>/ams-hbase-unsecure</value>
+    </property>
+
+</configuration>
