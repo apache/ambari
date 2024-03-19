@@ -58,6 +58,8 @@ def get_pg_hba_init_files():
     return '/etc/rc.d/init.d/postgresql'
   elif OSCheck.is_suse_family():
     return '/etc/init.d/postgresql'
+  elif OSCheck.is_openeuler_family():
+    return '/etc/pam.d/postgresql'
   else:
     raise Exception("Unsupported OS family '{0}'".format(OSCheck.get_os_family()))
 

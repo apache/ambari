@@ -425,6 +425,8 @@ class BootstrapDefault(Bootstrap):
   def getRepoDir(self):
     if OSCheck.is_redhat_family():
       return "/etc/yum.repos.d"
+    if OSCheck.is_openeuler_family():
+      return "/etc/yum.repos.d"
     elif OSCheck.is_suse_family():
       return "/etc/zypp/repos.d"
     elif OSCheck.is_ubuntu_family():

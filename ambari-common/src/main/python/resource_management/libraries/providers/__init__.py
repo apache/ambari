@@ -27,6 +27,9 @@ PROVIDERS = dict(
   redhat=dict(
     Repository="resource_management.libraries.providers.repository.RhelRepositoryProvider",
   ),
+  openeuler=dict(
+    Repository="resource_management.libraries.providers.repository.RhelRepositoryProvider",
+  ),
   suse=dict(
     Repository="resource_management.libraries.providers.repository.SuseRepositoryProvider",
   ),

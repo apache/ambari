@@ -173,6 +173,8 @@ def get_ambari_repo_file_full_name():
     ambari_repo_file = "/etc/yum.repos.d/ambari.repo"
   elif OSCheck.is_suse_family():
     ambari_repo_file = "/etc/zypp/repos.d/ambari.repo"
+  elif OSCheck.is_openeuler_family():
+    ambari_repo_file = "/etc/yum.repos.d/ambari.repo"
   elif OSCheck.is_windows_family():
     ambari_repo_file = os.path.join(os.environ[ChocolateyConsts.CHOCOLATEY_INSTALL_VAR_NAME],
                                     ChocolateyConsts.CHOCOLATEY_CONFIG_DIR, ChocolateyConsts.CHOCOLATEY_CONFIG_FILENAME)

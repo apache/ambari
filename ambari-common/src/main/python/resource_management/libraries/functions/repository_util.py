@@ -47,7 +47,7 @@ class RepositoryUtil:
     if is_empty(repo_file):
       return
 
-    self.template = repo_rhel_suse if OSCheck.is_redhat_family() or OSCheck.is_suse_family() else repo_ubuntu
+    self.template = repo_rhel_suse if OSCheck.is_redhat_family() or OSCheck.is_suse_family() or OSCheck.is_openeuler_family else repo_ubuntu
     self.command_repository = CommandRepository(repo_file)
 
   def create_repo_files(self):

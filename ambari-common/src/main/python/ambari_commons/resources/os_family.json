@@ -74,6 +74,14 @@
           12
         ]
       },
+      "openeuler": {
+        "distro": [
+          "openeuler"
+        ],
+        "versions": [
+	  22
+	]
+      },
       "winsrv": {
         "distro": [
           "win2008server",

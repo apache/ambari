@@ -65,6 +65,8 @@ class ManagerFactory(object):
       return ZypperManager()
     if OSCheck.is_in_family(os_family, OSConst.REDHAT_FAMILY):
       return YumManager()
+    if OSCheck.is_in_family(os_family, OSConst.OPENEULER_FAMILY):
+      return YumManager()
     if OSCheck.is_in_family(os_family, OSConst.WINSRV_FAMILY):
       return ChocoManager()
 
