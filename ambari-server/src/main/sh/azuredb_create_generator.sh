@@ -23,4 +23,4 @@ script_dir="$1"/src/main/python
 [[ -e "$sql_dir"/Ambari-DDL-SQLServer-CREATE.sql ]] || exit 1
 [[ -x "$script_dir"/azuredb_create_generator.py ]] || exit 2
 
-cat "$sql_dir"/Ambari-DDL-SQLServer-CREATE.sql | "$script_dir"/azuredb_create_generator.py > "$sql_dir"/Ambari-DDL-AzureDB-CREATE.sql
+cat "$sql_dir"/Ambari-DDL-SQLServer-CREATE.sql | "$1"/../ambari-common/src/main/unix/ambari-python-wrap "$script_dir"/azuredb_create_generator.py > "$sql_dir"/Ambari-DDL-AzureDB-CREATE.sql
