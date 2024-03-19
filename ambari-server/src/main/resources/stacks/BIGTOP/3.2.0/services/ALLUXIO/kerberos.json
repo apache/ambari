@@ -1,0 +1,70 @@
+{
+  "services": [
+    {
+      "name": "ALLUXIO",
+      "identities": [
+        {
+          "name": "alluxio_smokeuser",
+          "reference": "/smokeuser"
+        },
+        {
+          "name": "alluxio_user",
+          "principal": {
+            "value": "${alluxio-env/alluxio_user}${principal_suffix}@${realm}",
+            "type" : "user",
+            "local_username" : "${alluxio-env/alluxio_user}",
+            "configuration": "alluxio-env/alluxio_principal"
+          },
+          "keytab": {
+            "file": "${keytab_dir}/alluxio.headless.keytab",
+            "owner": {
+              "name": "${alluxio-env/alluxio_user}",
+              "access": "r"
+            },
+            "group": {
+              "name": "${cluster-env/user_group}",
+              "access": "r"
+            },
+            "configuration": "alluxio-env/alluxio_keytab"
+          }
+        },
+        {
+          "name": "alluxio_service_keytab",
+          "principal": {
+            "value": "alluxio/_HOST@${realm}",
+            "type" : "service",
+            "configuration": "alluxio-env/alluxio_service_principal",
+            "local_username" : "${alluxio-env/alluxio_user}"
+          },
+          "keytab": {
+            "file": "${keytab_dir}/alluxio.service.keytab",
+            "owner": {
+              "name": "${alluxio-env/alluxio_user}",
+              "access": "r"
+            },
+            "group": {
+              "name": "${cluster-env/user_group}",
+              "access": ""
+            },
+            "configuration": "alluxio-env/alluxio_service_keytab"
+          }
+        }
+      ],
+      "configurations": [
+        {
+          "alluxio-env": {
+            "alluxio.authentication": "KERBEROS"                  
+          }
+        }
+      ],
+      "components": [
+        {
+          "name": "ALLUXIO_MASTER"
+        },
+        {
+          "name": "ALLUXIO_WORKER"
+        }
+      ]
+    }
+  ]
+}
