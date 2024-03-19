@@ -170,8 +170,10 @@ App.DashboardWidgetView = Em.View.extend({
       const parsedWidgetId = parseInt(widgetId);
       if (this.get('isAllItemsSubGroup')) {
         userPreferences.groups[this.get('groupId')]['*'].threshold[this.get('subGroupId')][parsedWidgetId] = preparedThresholds;
+        this.set('widget.threshold', userPreferences.groups[this.get('groupId')]['*'].threshold[this.get('subGroupId')][parsedWidgetId]);
       } else {
         userPreferences.groups[this.get('groupId')][this.get('subGroupId')].threshold[parsedWidgetId] = preparedThresholds;
+        this.set('widget.threshold', userPreferences.groups[this.get('groupId')][this.get('subGroupId')].threshold[parsedWidgetId]);
       }
     } else {
       userPreferences.threshold[widgetIdToNumber] = preparedThresholds;
