@@ -66,7 +66,7 @@ module.exports = {
       'HIVE': {
         'connection_url': 'jdbc:mysql://{0}/{1}?createDatabaseIfNotExist=true'
       },
-      'driver': 'com.mysql.jdbc.Driver',
+      'driver': 'mysql-connector-java.jar',
       'sql_jar_connector': '/usr/share/java/mysql-connector-java.jar',
       'db_type': 'mysql',
       'db_name': 'MySQL',
