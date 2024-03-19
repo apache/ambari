@@ -164,6 +164,7 @@ module.exports = App.WizardRoute.extend({
     },
     next: function (router) {
       router.get('updateController').set('isWorking', true);
+      App.router.get('wizardWatcherController').resetUser();
       var rAHighAvailabilityWizardController = router.get('rAHighAvailabilityWizardController');
       rAHighAvailabilityWizardController.finish();
       App.clusterStatus.setClusterStatus({
