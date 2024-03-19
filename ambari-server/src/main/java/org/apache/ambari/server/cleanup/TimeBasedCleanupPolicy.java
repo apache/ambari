@@ -23,6 +23,7 @@ package org.apache.ambari.server.cleanup;
 public class TimeBasedCleanupPolicy {
 
   private String clusterName;
+  private boolean cleanCommonInfo;
   private Long toDateInMillis;
 
   /**
@@ -31,9 +32,14 @@ public class TimeBasedCleanupPolicy {
    * @param clusterName      the cluster name
    * @param toDateInMillis timestamp before that entities are purged.
    */
-  public TimeBasedCleanupPolicy(String clusterName, Long toDateInMillis) {
+  public TimeBasedCleanupPolicy(String clusterName, Long toDateInMillis, boolean cleanCommonInfo) {
     this.clusterName = clusterName;
+    this.cleanCommonInfo = cleanCommonInfo;
     this.toDateInMillis = toDateInMillis;
+  }
+
+  public TimeBasedCleanupPolicy(String clusterName, Long toDateInMillis) {
+    this(clusterName, toDateInMillis, false); // Set a default value for cleanCommonInfo
   }
 
   /**
@@ -41,6 +47,10 @@ public class TimeBasedCleanupPolicy {
    */
   public String getClusterName() {
     return clusterName;
+  }
+
+  public boolean getcleanCommonInfo() {
+    return cleanCommonInfo;
   }
 
   /**
