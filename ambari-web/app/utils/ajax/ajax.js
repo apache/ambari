@@ -1977,7 +1977,7 @@ var urls = {
   },
 
   'admin.kerberos_security.regenerate_keytabs': {
-    'real': '/clusters/{clusterName}?regenerate_keytabs={type}',
+    'real': '/clusters/{clusterName}?regenerate_keytabs={type}&config_update_policy=none',
     'mock': '',
     'type': 'PUT',
     'format': function (data) {
