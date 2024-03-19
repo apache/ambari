@@ -1,0 +1,51 @@
+#!/bin/bash
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements. See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License. You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+set -e
+
+# path containing LogSearch.jar file
+export LOGSEARCH_PATH={{logsearch_dir}}
+
+export LOGSEARCH_CONF_DIR={{logsearch_server_conf}}
+
+export LOG_PATH={{logsearch_log_dir}}
+export LOG_FILE={{logsearch_log}}
+
+export LOGSEARCH_PID_FILE={{logsearch_pid_file}}
+
+export JAVA_HOME={{java64_home}}
+
+export LOGSEARCH_JAVA_MEM=-Xmx{{logsearch_app_max_memory}}m
+if [ "$LOGSEARCH_JAVA_MEM" = "" ]; then
+  export LOGSEARCH_JAVA_MEM="-Xmx1g"
+fi
+
+export LOGSEARCH_DEBUG={{logsearch_debug_enabled}}
+
+export LOGSEARCH_DEBUG_PORT={{logsearch_debug_port}}
+
+{% if logsearch_use_ssl %}
+export LOGSEARCH_SSL="true"
+export LOGSEARCH_KEYSTORE_LOCATION={{logsearch_keystore_location}}
+export LOGSEARCH_KEYSTORE_TYPE={{logsearch_keystore_type}}
+export LOGSEARCH_TRUSTSTORE_LOCATION={{logsearch_truststore_location}}
+export LOGSEARCH_TRUSTSTORE_TYPE={{logsearch_truststore_type}}
+{% endif %}
+
+{% if security_enabled -%}
+LOGSEARCH_KERBEROS_OPTS="-Djava.security.auth.login.config=/usr/lib/ambari-logsearch-portal/conf/logsearch_jaas.conf -Dsolr.httpclient.builder.factory=org.apache.solr.client.solrj.impl.Krb5HttpClientBuilder"
+export LOGSEARCH_JAVA_OPTS="{{zk_security_opts}} $LOGSEARCH_KERBEROS_OPTS"
+{% endif %}

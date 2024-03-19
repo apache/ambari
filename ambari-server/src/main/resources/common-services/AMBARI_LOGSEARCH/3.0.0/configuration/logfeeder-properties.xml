@@ -1,0 +1,145 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration>
+  <property>
+    <name>logfeeder.config.files</name>
+    <value>{default_config_files}</value>
+    <description>Comma separated config files in grok format</description>
+    <display-name>Log Feeder config files</display-name>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logfeeder.checkpoint.folder</name>
+    <value>/usr/lib/ambari-logsearch-logfeeder/conf/checkpoints</value>
+    <description>Checkpoint folder for Log Feeder</description>
+    <display-name>Log Feeder checkpoint dir</display-name>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true" update="true"/>
+  </property>
+  <property>
+    <name>logfeeder.metrics.collector.hosts</name>
+    <value>{metrics_collector_hosts}</value>
+    <description>Metrics collector hosts for pushing metrics by Log Feeder</description>
+    <display-name>Metrics collector hosts</display-name>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logfeeder.log.filter.enable</name>
+    <value>true</value>
+    <description>Enable Log filtering based on log level (INFO,ERROR,WARN etc.)</description>
+    <display-name>Log Filter enable</display-name>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logfeeder.solr.config.interval</name>
+    <value>5</value>
+    <description>Interval to fetch filter config from Solr in sec</description>
+    <display-name>Fetch Solr config interval</display-name>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logfeeder.solr.implicit.routing</name>
+    <value>false</value>
+    <description>
+      Use implicit routing for Solr Collections.
+    </description>
+    <display-name>Log Feeder Solr implicit routing</display-name>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logfeeder.cache.enabled</name>
+    <value>false</value>
+    <description>
+      Enable input cache for every monitored input file. The cache stores log lines, based on the data, duplications can be dropped.
+    </description>
+    <display-name>Input cache enabled</display-name>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logfeeder.cache.size</name>
+    <value>100</value>
+    <description>Size of the input caches</description>
+    <display-name>Input cache size</display-name>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logfeeder.cache.dedup.interval</name>
+    <value>1000</value>
+    <description>
+      If input cache is enabled, Log Feeder can drop any duplicated line during log processing,
+      but only if the duplicated lines/messages are in the same interval (in milliseconds) with the original message/line.
+    </description>
+    <display-name>Input cache dedup interval</display-name>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logfeeder.cache.last.dedup.enabled</name>
+    <value>false</value>
+    <description>
+      If last dedup is enabled for input cache, Log Feeder will drop every new line (message), which is the same as the last line.
+    </description>
+    <display-name>Input cache last dedup</display-name>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logfeeder.cache.key.field</name>
+    <value>log_message</value>
+    <description>
+      Key field, which will be used as keys in the Input cache. (by defalt, log_message represets the message part of processed data)
+    </description>
+    <display-name>Input cache key field</display-name>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logfeeder.include.default.level</name>
+    <value>FATAL,ERROR,WARN</value>
+    <description>Include default Log Feeder Log Levels for Log Search. Used for bootstrapping the configuration only. (levels: FATAL,ERROR,WARN,INFO,DEBUG,TRACE)</description>
+    <display-name>Log Feeder Log Levels</display-name>
+    <value-attributes>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>
