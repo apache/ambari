@@ -44,7 +44,7 @@ public class NamedTasksSubscribeListener {
     if (sessionId != null && destination != null && id != null) {
       namedTasksSubscriptions.addDestination(sessionId, destination, id);
     }
-    LOG.info(String.format("API subscribe was arrived with sessionId = %s, destination = %s and id = %s",
+    LOG.debug(String.format("API subscribe was arrived with sessionId = %s, destination = %s and id = %s",
         sessionId, destination, id));
   }
 
@@ -57,7 +57,7 @@ public class NamedTasksSubscribeListener {
     if (sessionId != null && id != null) {
       namedTasksSubscriptions.removeId(sessionId, id);
     }
-    LOG.info(String.format("API unsubscribe was arrived with sessionId = %s and id = %s",
+    LOG.debug(String.format("API unsubscribe was arrived with sessionId = %s and id = %s",
         sessionId, id));
   }
 
@@ -69,7 +69,7 @@ public class NamedTasksSubscribeListener {
     if (sessionId != null) {
       namedTasksSubscriptions.removeSession(sessionId);
     }
-    LOG.info(String.format("API disconnect was arrived with sessionId = %s",
+    LOG.debug(String.format("API disconnect was arrived with sessionId = %s",
         sessionId));
   }
 }
