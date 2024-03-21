@@ -384,7 +384,7 @@ public class UserResourceProvider extends AbstractControllerResourceProvider imp
       // Setting a user's the password here is to allow for backward compatibility with pre-Ambari-3.0
       // versions so that the contract for REST API V1 is maintained.
       if (!StringUtils.isEmpty(password)) {
-        users.validatePassword(password);
+        users.validatePassword(password, username);
       }
 
       UserEntity userEntity = users.createUser(username, localUserName, displayName, request.isActive());

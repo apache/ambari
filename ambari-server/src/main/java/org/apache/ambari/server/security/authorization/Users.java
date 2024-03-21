@@ -1259,14 +1259,14 @@ public class Users {
           throw new AmbariException("Wrong current password provided");
         }
 
-        validatePassword(newKey);
+        validatePassword(newKey, userAuthenticationEntity.getUser().getUserName(), userAuthenticationEntity.getFullAuthenticationKey());
 
         // If we get here the authenticated user is authorized to change the password for the subject
         // user and the correct current password was supplied (if required).
-        userAuthenticationEntity.setAuthenticationKey(passwordEncoder.encode(newKey));
+        userAuthenticationEntity.updateAuthenticationKey(passwordEncoder.encode(newKey), configuration.getPasswordPolicyHistoryCount());
       } else {
         // If we get here the authenticated user is authorized to change the key for the subject.
-        userAuthenticationEntity.setAuthenticationKey(newKey);
+        userAuthenticationEntity.updateAuthenticationKey(newKey, configuration.getPasswordPolicyHistoryCount());
       }
 
       userAuthenticationDAO.merge(userAuthenticationEntity);
@@ -1458,7 +1458,7 @@ public class Users {
   public void addLocalAuthentication(UserEntity userEntity, String password, boolean persist) throws AmbariException {
 
     // Ensure the password meets configured minimal requirements, if any
-    validatePassword(password);
+    validatePassword(password, userEntity.getUserName());
 
     // Encode the password..
     String encodedPassword = passwordEncoder.encode(password);
@@ -1768,6 +1768,49 @@ public class Users {
     String regexp = configuration.getPasswordPolicyRegexp();
     if (!StringUtils.isEmpty(regexp) && (!Pattern.matches(regexp,password))) {
       final String msg = "The password does not meet the Ambari user password policy : " + configuration.getPasswordPolicyDescription();
+      throw new IllegalArgumentException(msg);
+    }
+  }
+
+  /**
+   * Validates the password meets configured requirements according ambari.properties and it does not contain the username.
+   *
+   * <p>
+   *
+   * @param password the password
+   * @param userName the username
+   * @throws  IllegalArgumentException if password does not meet the password policy requirements
+   */
+  public void validatePassword(String password, String userName) {
+    validatePassword(password);
+    if (StringUtils.isNotEmpty(userName) && Pattern.compile(Pattern.quote(userName), Pattern.CASE_INSENSITIVE).matcher(password).find()) {
+      final String msg = "The password does not meet the Ambari user password policy : password cannot contain the username";
+      throw new IllegalArgumentException(msg);
+    }
+  }
+
+  /**
+   * Validates the password meets configured requirements according ambari.properties, does not contain the username and different from previous passwords
+   *
+   * <p>
+   *
+   * @param password the password
+   * @param userName the username
+   * @param authenticationKey the authenticationKey associated with previous passwords
+   * @throws  IllegalArgumentException if password does not meet the password policy requirements
+   */
+  public void validatePassword(String password, String userName, String authenticationKey) {
+    validatePassword(password, userName);
+    boolean isMatched = false;
+    String[] previousPasswords = StringUtils.split(authenticationKey, ",");
+    for (String previousPassword : previousPasswords) {
+      if (passwordEncoder.matches(password, previousPassword)) {
+        isMatched = true;
+        break;
+      }
+    }
+    if (isMatched) {
+      final String msg = "The password does not meet the Ambari user password policy : new password can not be same as previous " + configuration.getPasswordPolicyHistoryCount() + " passwords.";
       throw new IllegalArgumentException(msg);
     }
   }
