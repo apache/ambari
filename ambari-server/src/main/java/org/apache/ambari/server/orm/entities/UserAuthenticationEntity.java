@@ -101,11 +101,40 @@ public class UserAuthenticationEntity {
   }
 
   public String getAuthenticationKey() {
+    int firstCommaIndex = authenticationKey.indexOf(",");
+    if (firstCommaIndex != -1) {
+      return authenticationKey.substring(0, firstCommaIndex);
+    }
+    return authenticationKey;
+  }
+
+  public String getFullAuthenticationKey() {
     return authenticationKey;
   }
 
   public void setAuthenticationKey(String authenticationKey) {
     this.authenticationKey = authenticationKey;
+  }
+
+  public void updateAuthenticationKey(String authenticationKey, int historyCount) {
+    if(historyCount < 2) {
+      this.authenticationKey = authenticationKey;
+      return;
+    }
+    int currentCount = 1;
+    int lastCommaIndex = -1;
+    for(int idx=0; idx < this.authenticationKey.length(); idx++){
+      if(this.authenticationKey.charAt(idx) == ','){
+        currentCount++;
+        lastCommaIndex = idx;
+      }
+    }
+    if(currentCount < historyCount) {
+      this.authenticationKey = authenticationKey + "," + this.authenticationKey;
+    } else {
+      this.authenticationKey = this.authenticationKey.substring(0, lastCommaIndex);
+      this.authenticationKey = authenticationKey + "," + this.authenticationKey;
+    }
   }
 
   public long getCreateTime() {
