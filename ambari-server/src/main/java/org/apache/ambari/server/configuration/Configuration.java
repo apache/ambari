@@ -531,6 +531,14 @@ public class Configuration {
       "security.password.policy.description", "");
 
   /**
+   * Password history count to validate how many previous passwords should be checked before updating user password.
+   */
+  @Markdown(
+          description = "Password policy to mandate that new password should be different from previous passwords, this would be based on the history count configured by the user.")
+  public static final ConfigurationProperty<String> PASSWORD_POLICY_HISTORY_COUNT = new ConfigurationProperty<>(
+          "security.password.policy.history.count", "1");
+
+  /**
    * Determines whether the Ambari Agent host names should be validated against
    * a regular expression to ensure that they are well-formed.
    */
@@ -4136,6 +4144,13 @@ public class Configuration {
    */
   public String getPasswordPolicyDescription() {
     return getProperty(PASSWORD_POLICY_DESCRIPTION);
+  }
+
+  /**
+   * @return Password policy history count
+   */
+  public int getPasswordPolicyHistoryCount() {
+    return Integer.parseInt(getProperty(PASSWORD_POLICY_HISTORY_COUNT));
   }
 
   public JPATableGenerationStrategy getJPATableGenerationStrategy() {
