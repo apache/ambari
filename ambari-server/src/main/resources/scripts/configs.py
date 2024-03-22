@@ -77,14 +77,14 @@ class UsageException(Exception):
 
 
 def api_accessor(host, login, password, protocol, port, unsafe=None):
-  def do_request(api_url, request_type=GET_REQUEST_TYPE, request_body=''):
+  def do_request(api_url, request_type=GET_REQUEST_TYPE, request_body=None):
     try:
       url = '{0}://{1}:{2}{3}'.format(protocol, host, port, api_url)
       admin_auth = base64.encodebytes(('%s:%s' % (login, password)).encode()).decode().replace('\n', '')
       request = urllib.request.Request(url)
       request.add_header('Authorization', 'Basic %s' % admin_auth)
       request.add_header('X-Requested-By', 'ambari')
-      request.data=json.dumps(request_body)
+      request.data=request_body
       request.get_method = lambda: request_type
 
       if unsafe:
@@ -95,7 +95,7 @@ def api_accessor(host, login, password, protocol, port, unsafe=None):
       else:
         response = urllib.request.urlopen(request)
 
-      response_body = response.read()
+      response_body = response.read().decode('utf-8')
     except Exception as exc:
       raise Exception('Problem with accessing api. Reason: {0}'.format(exc))
     return response_body
@@ -124,7 +124,7 @@ def create_new_desired_config(cluster, config_type, properties, attributes, acce
   }
   if len(attributes.keys()) > 0:
     new_config[CLUSTERS][DESIRED_CONFIGS][ATTRIBUTES] = attributes
-  request_body = json.dumps(new_config)
+  request_body = json.dumps(new_config).encode('utf-8')
   new_file = 'doSet_{0}.json'.format(new_tag)
   logger.info('### PUTting json into: {0}'.format(new_file))
   output_to_file(new_file)(new_config)
