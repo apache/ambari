@@ -304,6 +304,9 @@
             <package>
               <name>libtirpc-devel</name>
             </package>
+            <package>
+              <name>ranger_${stack_version}-hdfs-plugin</name>
+            </package>
           </packages>
         </osSpecific>
       </osSpecifics>

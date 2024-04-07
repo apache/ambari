@@ -298,6 +298,58 @@
           ]
         }
       },
+      "RANGER": {
+        "RANGER_ADMIN": {
+          "STACK-SELECT-PACKAGE": "ranger-admin",
+          "INSTALL": [
+            "ranger-admin"
+          ],
+          "PATCH": [
+            "ranger-admin"
+          ],
+          "STANDARD": [
+            "ranger-admin"
+          ]
+        },
+        "RANGER_TAGSYNC": {
+          "STACK-SELECT-PACKAGE": "ranger-tagsync",
+          "INSTALL": [
+            "ranger-tagsync"
+          ],
+          "PATCH": [
+            "ranger-tagsync"
+          ],
+          "STANDARD": [
+            "ranger-tagsync"
+          ]
+        },
+        "RANGER_USERSYNC": {
+          "STACK-SELECT-PACKAGE": "ranger-usersync",
+          "INSTALL": [
+            "ranger-usersync"
+          ],
+          "PATCH": [
+            "ranger-usersync"
+          ],
+          "STANDARD": [
+            "ranger-usersync"
+          ]
+        }
+      },
+      "RANGER_KMS": {
+        "RANGER_KMS_SERVER": {
+          "STACK-SELECT-PACKAGE": "ranger-kms",
+          "INSTALL": [
+            "ranger-kms"
+          ],
+          "PATCH": [
+            "ranger-kms"
+          ],
+          "STANDARD": [
+            "ranger-kms"
+          ]
+        }
+      },
       "SOLR": {
         "SOLR_SERVER": {
           "STACK-SELECT-PACKAGE": "solr-server",
@@ -458,6 +510,30 @@
           "component": "phoenix-client"
         }
       ],
+       "ranger-admin": [
+        {
+          "conf_dir": "/etc/ranger/admin/conf",
+          "current_dir": "{0}/current/ranger-admin/conf"
+        }
+      ],
+      "ranger-kms": [
+        {
+          "conf_dir": "/etc/ranger/kms/conf",
+          "current_dir": "{0}/current/ranger-kms/conf"
+        }
+      ],
+      "ranger-tagsync": [
+        {
+          "conf_dir": "/etc/ranger/tagsync/conf",
+          "current_dir": "{0}/current/ranger-tagsync/conf"
+        }
+      ],
+      "ranger-usersync": [
+        {
+          "conf_dir": "/etc/ranger/usersync/conf",
+          "current_dir": "{0}/current/ranger-usersync/conf"
+        }
+      ],
       "spark": [
         {
           "conf_dir": "/etc/spark/conf",
@@ -523,6 +599,9 @@
       },
       "MAPREDUCE2": {
         "packages": []
+      },
+      "RANGER": {
+        "packages": ["ranger-admin", "ranger-usersync", "ranger-tagsync"]
       },
       "RANGER_KMS": {
         "packages": ["ranger-kms"]
