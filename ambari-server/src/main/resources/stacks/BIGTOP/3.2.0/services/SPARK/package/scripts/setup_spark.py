@@ -141,14 +141,13 @@ def setup_spark(env, type, upgrade_type = None, action = None):
           group=params.spark_group,
           mode=0o644)
 
-  if params.spark_thrift_fairscheduler_content:
-    # create spark-thrift-fairscheduler.xml
-    File(os.path.join(params.spark_conf_dir,"spark-thrift-fairscheduler.xml"),
-      owner=params.spark_user,
-      group=params.spark_group,
-      mode=0o755,
-      content=InlineTemplate(params.spark_thrift_fairscheduler_content)
-    )
+  # create spark-thrift-fairscheduler.xml
+  File(os.path.join(params.spark_conf_dir,"spark-thrift-fairscheduler.xml"),
+       owner=params.spark_user,
+       group=params.spark_group,
+       mode=0o755,
+       content=InlineTemplate(params.spark_thrift_fairscheduler_content)
+  )
 
   if type == "client":
     Logger.info('Spark client config.')
