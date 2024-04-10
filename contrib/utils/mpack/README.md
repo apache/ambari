@@ -63,11 +63,14 @@ ambari-server stop
 
 Use the following command to install the MPack, replacing the path with the location of your MPack package:
 
+
 ```shell
 ambari-server install-mpack -s --purge --verbose --mpack=/tmp/bgtp-ambari-mpack-1.0.0.0-SNAPSHOT-bgtp-ambari-mpack.tar.gz
 ```
 
 The `--purge` option will automatically delete the previous old stack definitions and then symlink the installed MPack to the corresponding location.
+Note: Do not pass the "--purge" command line parameter when installing an add-on service management pack. The "--purge" flag is used to purge any existing stack definition and should be included only when installing a Stack Management Pack.
+
 
 #### Start Ambari Server
 
