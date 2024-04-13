@@ -132,6 +132,12 @@ class RangeradminV2:
       elif not self.skip_if_rangeradmin_down:
         Logger.error("Connection failed to Ranger Admin !")
     elif is_stack_supports_ranger_kerberos and is_security_enabled:
+      ranger_lookup_user="rangerlookup"
+      admin_password = unicode(admin_password)
+      user_resp_code = self.create_ambari_admin_user(ranger_lookup_user, admin_password, format("{admin_uname}:{admin_password}"))
+      if user_resp_code is not None and user_resp_code == 200:
+        Logger.error('ranger lookup user create failed')
+
       response = self.check_ranger_login_curl(component_user,component_user_keytab,component_user_principal,self.url_login,True)
 
       if response and response[0] == 200:
