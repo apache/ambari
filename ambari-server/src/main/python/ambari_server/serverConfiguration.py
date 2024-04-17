@@ -1041,7 +1041,7 @@ def get_original_master_key(properties, options = None):
 
     # Decrypt alias with master to validate it, if no master return
     password = None
-    if alias and env_master_key and env_master_key is not "" and env_master_key != "None":
+    if alias and env_master_key and env_master_key != "" and env_master_key != "None":
       password = read_passwd_for_alias(alias, env_master_key, options)
     if not password:
       try:
@@ -1356,31 +1356,31 @@ class JDKRelease:
   inst_dir = ""
 
   def __init__(self, i_name, i_desc, i_url, i_dest_file, i_jcpol_url, i_dest_jcpol_file, i_inst_dir, i_reg_exp):
-    if i_name is None or i_name is "":
+    if i_name is None or i_name == "":
       raise FatalException(-1, "Invalid JDK name: " + (i_desc or ""))
     self.name = i_name
-    if i_desc is None or i_desc is "":
+    if i_desc is None or i_desc == "":
       self.desc = self.name
     else:
       self.desc = i_desc
-    if i_url is None or i_url is "":
+    if i_url is None or i_url == "":
       raise FatalException(-1, "Invalid URL for JDK " + i_name)
     self.url = i_url
-    if i_dest_file is None or i_dest_file is "":
+    if i_dest_file is None or i_dest_file == "":
       self.dest_file = i_name + ".exe"
     else:
       self.dest_file = i_dest_file
-    if not (i_jcpol_url is None or i_jcpol_url is ""):
+    if not (i_jcpol_url is None or i_jcpol_url == ""):
       self.jcpol_url = i_jcpol_url
-    if i_dest_jcpol_file is None or i_dest_jcpol_file is "":
+    if i_dest_jcpol_file is None or i_dest_jcpol_file == "":
       self.dest_jcpol_file = "jcpol-" + i_name + ".zip"
     else:
       self.dest_jcpol_file = i_dest_jcpol_file
-    if i_inst_dir is None or i_inst_dir is "":
+    if i_inst_dir is None or i_inst_dir == "":
       self.inst_dir = os.path.join(configDefaults.JDK_INSTALL_DIR, i_desc)
     else:
       self.inst_dir = i_inst_dir
-    if i_reg_exp is None or i_reg_exp is "":
+    if i_reg_exp is None or i_reg_exp == "":
       raise FatalException(-1, "Invalid output parsing regular expression for JDK " + i_name)
     self.reg_exp = i_reg_exp
 
@@ -1392,7 +1392,7 @@ class JDKRelease:
 
   @staticmethod
   def __load_properties(properties, section_name):
-    if section_name is None or section_name is "":
+    if section_name is None or section_name == "":
       raise FatalException(-1, "Invalid properties section: " + ("(empty)" if section_name is None else ""))
     if(properties.__contains__(section_name + ".desc")):   #Not critical
       desc = properties[section_name + ".desc"]
