@@ -731,13 +731,13 @@ def are_db_auth_options_ok(db_windows_auth, db_username, db_password):
   if db_windows_auth is True:
     return True
   else:
-    if db_username is not None and db_username != "" and db_password is not None and db_password != "":
+    if db_username is not None and db_username is not "" and db_password is not None and db_password is not "":
       return True
   return False
 
 @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
 def are_cmd_line_db_args_valid(options):
-  if (options.database_host is not None and options.database_host != "" \
+  if (options.database_host is not None and options.database_host is not "" \
       #and options.database_name is not None \         # ambari by default is ok
       and are_db_auth_options_ok(options.database_windows_auth,
                                  options.database_username,

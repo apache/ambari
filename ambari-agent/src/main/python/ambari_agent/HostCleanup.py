@@ -617,7 +617,7 @@ def get_choice_string_input(prompt, default, firstChoice, secondChoice):
     return True
   elif choice in secondChoice:
     return False
-  elif choice == "": # Just enter pressed
+  elif choice is "": # Just enter pressed
     return default
   else:
     print("input not recognized, please try again: ")
