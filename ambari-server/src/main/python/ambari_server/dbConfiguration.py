@@ -239,20 +239,20 @@ class DBMSConfig(object):
   @staticmethod
   def _init_member_with_default(options, attr_name, default_val):
     options_val = getattr(options, attr_name, None)
-    val = options_val if options_val is not None and options_val is not "" else default_val
+    val = options_val if options_val is not None and options_val != "" else default_val
     return val
 
   @staticmethod
   def _init_member_with_properties(options, attr_name, properties, property_key):
     options_val = getattr(options, attr_name, None)
-    if options_val is None or options_val is "":
+    if options_val is None or options_val == "":
       options_val = get_value_from_properties(properties, property_key, None)
     return options_val
 
   @staticmethod
   def _init_member_with_prop_default(options, attr_name, properties, property_key, default_val):
     val = DBMSConfig._init_member_with_properties(options, attr_name, properties, property_key)
-    if val is None or val is "":
+    if val is None or val == "":
       val = default_val
     return val
 
