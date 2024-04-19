@@ -1,0 +1,5 @@
+{
+  "general_deps" : {
+    "ROUTER-START" : ["NAMENODE-START"]
+  }
+}

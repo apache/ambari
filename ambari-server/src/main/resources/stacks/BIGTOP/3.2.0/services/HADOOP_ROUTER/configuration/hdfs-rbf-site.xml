@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+    Licensed to the Apache Software Foundation (ASF) under one or more
+    contributor license agreements.  See the NOTICE file distributed with
+    this work for additional information regarding copyright ownership.
+    The ASF licenses this file to You under the Apache License, Version 2.0
+    (the "License"); you may not use this file except in compliance with
+    the License.  You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+ -->
+<!-- Put site-specific property overrides in this file. -->
+<configuration xmlns:xi="http://www.w3.org/2001/XInclude" supports_final="true">
+    <property>
+        <name>dfs.federation.router.default.nameserviceId</name>
+        <value>hdpOne</value>
+    </property>
+    <property>
+        <name>dfs.federation.router.default.nameservice.enable</name>
+        <value>true</value>
+    </property>
+
+    <property>
+        <name>dfs.federation.router.store.driver.class</name>
+        <value>org.apache.hadoop.hdfs.server.federation.store.driver.impl.StateStoreZooKeeperImpl</value>
+    </property>
+
+    <property>
+        <name>hadoop.zk.address</name>
+        <value>sjsysc-hh202-zbhx482w:2181,sjsysc-hh202-zbhx483w:2181,sjsysc-hh202-zbhx484w:2181</value>
+    </property>
+
+    <property>
+        <name>dfs.federation.router.store.driver.zk.parent-path</name>
+        <value>/hdfs-federation</value>
+    </property>
+
+    <property>
+        <name>dfs.client.failover.random.order</name>
+        <value>true</value>
+    </property>
+
+    <!-- If Router and NameNode the same host True -->
+    <property>
+        <name>dfs.federation.router.monitor.localnamenode.enable</name>
+        <value>false</value>
+    </property>
+
+    <!-- Specifies the routing destination of the NameNode -->
+    <property>
+        <name>dfs.federation.router.monitor.namenode</name>
+        <value>hdpOne.nn1,hdpOne.nn2,hdpTwo.nn1,hdpTwo.nn2</value>
+    </property>
+
+    <property>
+        <name>dfs.federation.router.quota.enable</name>
+        <value>true</value>
+    </property>
+    <property>
+        <name>dfs.federation.router.cache.ttl</name>
+        <value>10s</value>
+    </property>
+
+    <!-- If you want to enable the mount function of multiple clusters -->
+    <proterty>
+        <name>dfs.federation.router.file.resolver.client.class</name>
+        <value>org.apache.hadoop.hdfs.server.federation.resolver.MultipleDestinationMountTableResolver</value>
+    </proterty>
+
+    <proterty>
+        <name>dfs.federation.router.http-address</name>
+        <value>0.0.0.0:50071</value>
+    </proterty>
+</configuration>
