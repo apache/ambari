@@ -69,13 +69,13 @@
     </property>
 
     <!-- If you want to enable the mount function of multiple clusters -->
-    <proterty>
+    <property>
         <name>dfs.federation.router.file.resolver.client.class</name>
         <value>org.apache.hadoop.hdfs.server.federation.resolver.MultipleDestinationMountTableResolver</value>
-    </proterty>
+    </property>
 
-    <proterty>
+    <property>
         <name>dfs.federation.router.http-address</name>
         <value>0.0.0.0:50071</value>
-    </proterty>
+    </property>
 </configuration>
