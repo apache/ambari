@@ -45,6 +45,7 @@ from resource_management.libraries.functions import is_empty
 from resource_management.libraries.functions.get_architecture import get_architecture
 from resource_management.libraries.functions.setup_ranger_plugin_xml import get_audit_configs, generate_ranger_service_config
 from resource_management.libraries.functions.namenode_ha_utils import get_properties_for_all_nameservices, namenode_federation_enabled
+from status_params import *
 
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
@@ -85,21 +86,12 @@ stack_supports_ranger_kerberos = check_stack_feature(StackFeature.RANGER_KERBERO
 stack_supports_ranger_audit_db = check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, version_for_stack_feature_checks)
 stack_supports_zk_security = check_stack_feature(StackFeature.SECURE_ZOOKEEPER, version_for_stack_feature_checks)
 
-security_enabled = config['configurations']['cluster-env']['security_enabled']
 hdfs_user = status_params.hdfs_user
 root_user = "root"
 hadoop_pid_dir_prefix = status_params.hadoop_pid_dir_prefix
 namenode_pid_file = status_params.namenode_pid_file
 zkfc_pid_file = status_params.zkfc_pid_file
 datanode_pid_file = status_params.datanode_pid_file
-
-# Some datanode settings
-dfs_dn_addr = default('/configurations/hdfs-site/dfs.datanode.address', None)
-dfs_dn_http_addr = default('/configurations/hdfs-site/dfs.datanode.http.address', None)
-dfs_dn_https_addr = default('/configurations/hdfs-site/dfs.datanode.https.address', None)
-dfs_http_policy = default('/configurations/hdfs-site/dfs.http.policy', None)
-dfs_dn_ipc_address = config['configurations']['hdfs-site']['dfs.datanode.ipc.address']
-secure_dn_ports_are_in_use = False
 
 hdfs_tmp_dir = default("/configurations/hadoop-env/hdfs_tmp_dir", "/tmp")
 namenode_backup_dir = default("/configurations/hadoop-env/namenode_backup_dir", "/tmp/upgrades")
@@ -113,27 +105,8 @@ hadoop_hdfs_home = stack_select.get_hadoop_dir("hdfs_home")
 hadoop_mapred_home = stack_select.get_hadoop_dir("mapred_home")
 hadoop_lib_home = stack_select.get_hadoop_dir("lib")
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
-hadoop_secure_dn_user = hdfs_user
 hadoop_conf_secure_dir = os.path.join(hadoop_conf_dir, "secure")
 mapreduce_libs_path = format("{hadoop_mapred_home}/*")
-
-if not security_enabled:
-  hadoop_secure_dn_user = '""'
-else:
-  dfs_dn_port = utils.get_port(dfs_dn_addr)
-  dfs_dn_http_port = utils.get_port(dfs_dn_http_addr)
-  dfs_dn_https_port = utils.get_port(dfs_dn_https_addr)
-  # We try to avoid inability to start datanode as a plain user due to usage of root-owned ports
-  if dfs_http_policy == "HTTPS_ONLY":
-    secure_dn_ports_are_in_use = utils.is_secure_port(dfs_dn_port) or utils.is_secure_port(dfs_dn_https_port)
-  elif dfs_http_policy == "HTTP_AND_HTTPS":
-    secure_dn_ports_are_in_use = utils.is_secure_port(dfs_dn_port) or utils.is_secure_port(dfs_dn_http_port) or utils.is_secure_port(dfs_dn_https_port)
-  else:   # params.dfs_http_policy == "HTTP_ONLY" or not defined:
-    secure_dn_ports_are_in_use = utils.is_secure_port(dfs_dn_port) or utils.is_secure_port(dfs_dn_http_port)
-  if secure_dn_ports_are_in_use:
-    hadoop_secure_dn_user = hdfs_user
-  else:
-    hadoop_secure_dn_user = '""'
 
 # Parameters for upgrade packs
 skip_namenode_save_namespace_express = default("/configurations/cluster-env/stack_upgrade_express_skip_namenode_save_namespace", False)
