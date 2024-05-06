@@ -37,7 +37,6 @@ import org.apache.ambari.server.state.alert.AlertNotification;
 import org.apache.ambari.server.state.alert.TargetType;
 import org.apache.ambari.server.state.services.AlertNoticeDispatchService.AlertInfo;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -279,15 +278,6 @@ public class AlertScriptDispatcher implements NotificationDispatcher {
    * @return
    */
   ProcessBuilder getProcessBuilder(String script, AlertNotification notification) {
-    final String shellCommand;
-    final String shellCommandOption;
-    if (SystemUtils.IS_OS_WINDOWS) {
-      shellCommand = "cmd";
-      shellCommandOption = "/c";
-    } else {
-      shellCommand = "sh";
-      shellCommandOption = "-c";
-    }
 
     AlertInfo alertInfo = notification.getAlertInfo();
     AlertDefinitionEntity definition = alertInfo.getAlertDefinition();
@@ -303,14 +293,14 @@ public class AlertScriptDispatcher implements NotificationDispatcher {
     long alertTimestamp = alertInfo.getAlertTimestamp();
     String hostName = alertInfo.getHostName(); // null if alert do not run against host
 
-    Object[] params = new Object[] { script, definitionName, alertLabel, serviceName,
-        alertState.name(), alertText, alertTimestamp, hostName};
+    Object[] params = new Object[] {definitionName, alertLabel, serviceName,
+            alertState.name(), alertText, alertTimestamp, hostName};
 
     String foo = StringUtils.join(params, " ");
 
     // sh -c '/foo/sys_logger.py ambari_server_agent_heartbeat "Agent Heartbeat"
     // AMBARI CRITICAL "Something went wrong with the host" 1111111 host222'
-    return new ProcessBuilder(shellCommand, shellCommandOption, foo);
+    return new ProcessBuilder(script, foo);
   }
 
   /**

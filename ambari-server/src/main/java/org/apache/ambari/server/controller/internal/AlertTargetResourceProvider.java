@@ -549,7 +549,11 @@ public class AlertTargetResourceProvider extends
       if (propCat.equals(ALERT_TARGET_PROPERTIES)) {
         has_properties = true;
         String propKey = PropertyHelper.getPropertyName(key);
-        normalizedMap.put(propKey, entry.getValue());
+        String value = entry.getValue().toString();
+        if (value.contains("..")) {
+          throw new IllegalArgumentException("Invalid value detected: " + value);
+        }
+        normalizedMap.put(propKey, value);
       }
     }
 
