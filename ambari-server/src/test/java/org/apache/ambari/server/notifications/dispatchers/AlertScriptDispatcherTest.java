@@ -17,12 +17,16 @@
  */
 package org.apache.ambari.server.notifications.dispatchers;
 
+import java.io.ByteArrayInputStream;
 import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Executor;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.notifications.DispatchCallback;
@@ -51,6 +55,8 @@ import com.google.inject.Injector;
 
 import junit.framework.Assert;
 
+import static org.junit.Assert.fail;
+
 /**
  * Tests {@link AlertScriptDispatcher}.
  */
@@ -61,6 +67,16 @@ public class AlertScriptDispatcherTest {
   private static final String SCRIPT_CONFIG_VALUE = "/foo/script.py";
 
   private static final String DISPATCH_PROPERTY_SCRIPT_DIRECTORY_KEY = "notification.dispatch.alert.script.directory";
+
+  private static final String ALERT_DEFINITION_NAME = "mock_alert_with_quotes";
+  private static final String ALERT_DEFINITION_LABEL = "Mock alert with Quotes";
+  private static final String ALERT_LABEL = "Alert Label";
+  private static final String ALERT_SERVICE_NAME = "FOO_SERVICE";
+  private static final String ALERT_TEXT = "Did you know, \"Quotes are hard!!!\"";
+  private static final String ALERT_TEXT_ESCAPED = "Did you know, \\\"Quotes are hard\\!\\!\\!\\\"";
+  private static final String ALERT_HOST = "mock_host";
+  private static final long ALERT_TIMESTAMP = 1111111l;
+
 
   private Injector m_injector;
 
@@ -290,6 +306,44 @@ public class AlertScriptDispatcherTest {
     PowerMock.verifyAll();
   }
 
+  @Test
+  public void testExpectedProcess() {
+    DispatchCallback callback = EasyMock.createNiceMock(DispatchCallback.class);
+    AlertNotification notification = new AlertNotification();
+    notification.Callback = callback;
+    notification.CallbackIds = Collections.singletonList(UUID.randomUUID().toString());
+
+    AlertHistoryEntity history = setAlertHistoryEntity();
+    AlertInfo alertInfo = new AlertInfo(history);
+    notification.setAlertInfo(alertInfo);
+
+    AlertScriptDispatcher dispatcher = new AlertScriptDispatcher();
+    m_injector.injectMembers(dispatcher);
+
+    ProcessBuilder processBuilder = dispatcher.getProcessBuilder(SCRIPT_CONFIG_VALUE, notification);
+
+    List<String> commands = processBuilder.command();
+    String firstCommand = commands.get(0);
+
+    if (firstCommand.contains("..")) {
+      fail("Detect directory traversal character '..'");
+    }
+
+    boolean isShell = firstCommand.contains("sh") || firstCommand.contains("bash");
+    boolean isCmd = firstCommand.contains("cmd");
+
+    if (commands.size() < 2) {
+      return;
+    }
+    String secondArgument = commands.get(1);
+
+    if (isShell && secondArgument.trim().equals("-c")) {
+      fail("There is a possibility of command injection - 'sh/bash -c'");
+    } else if (isCmd && secondArgument.trim().equals("/c")) {
+      fail("There is a possibility of command injection - 'cmd /c'");
+    }
+  }
+
   /**
    * Tests that arguments given to the {@link ProcessBuilder} are properly
    * escaped.
@@ -298,34 +352,12 @@ public class AlertScriptDispatcherTest {
    */
   @Test
   public void testArgumentEscaping() throws Exception {
-    final String ALERT_DEFINITION_NAME = "mock_alert_with_quotes";
-    final String ALERT_DEFINITION_LABEL = "Mock alert with Quotes";
-    final String ALERT_LABEL = "Alert Label";
-    final String ALERT_SERVICE_NAME = "FOO_SERVICE";
-    final String ALERT_TEXT = "Did you know, \"Quotes are hard!!!\"";
-    final String ALERT_TEXT_ESCAPED = "Did you know, \\\"Quotes are hard\\!\\!\\!\\\"";
-    final String ALERT_HOST = "mock_host";
-    final long ALERT_TIMESTAMP = 1111111l;
-
     DispatchCallback callback = EasyMock.createNiceMock(DispatchCallback.class);
     AlertNotification notification = new AlertNotification();
     notification.Callback = callback;
     notification.CallbackIds = Collections.singletonList(UUID.randomUUID().toString());
 
-    AlertDefinitionEntity definition = new AlertDefinitionEntity();
-    definition.setDefinitionName(ALERT_DEFINITION_NAME);
-    definition.setLabel(ALERT_DEFINITION_LABEL);
-
-    AlertHistoryEntity history = new AlertHistoryEntity();
-    history.setAlertDefinition(definition);
-    history.setAlertLabel(ALERT_LABEL);
-    history.setAlertText(ALERT_TEXT);
-    history.setAlertState(AlertState.OK);
-    history.setServiceName(ALERT_SERVICE_NAME);
-    history.setHostName(ALERT_HOST);
-    history.setAlertTimestamp(ALERT_TIMESTAMP);
-
-
+    AlertHistoryEntity history = setAlertHistoryEntity();
     AlertInfo alertInfo = new AlertInfo(history);
     notification.setAlertInfo(alertInfo);
 
@@ -368,6 +400,23 @@ public class AlertScriptDispatcherTest {
     buffer.append("");
     Assert.assertEquals(buffer.toString(), commands.get(2));
 
+  }
+
+  private AlertHistoryEntity setAlertHistoryEntity() {
+    AlertDefinitionEntity definition = new AlertDefinitionEntity();
+    definition.setDefinitionName(ALERT_DEFINITION_NAME);
+    definition.setLabel(ALERT_DEFINITION_LABEL);
+
+    AlertHistoryEntity history = new AlertHistoryEntity();
+    history.setAlertDefinition(definition);
+    history.setAlertLabel(ALERT_LABEL);
+    history.setAlertText(ALERT_TEXT);
+    history.setAlertState(AlertState.OK);
+    history.setServiceName(ALERT_SERVICE_NAME);
+    history.setHostName(ALERT_HOST);
+    history.setAlertTimestamp(ALERT_TIMESTAMP);
+
+    return history;
   }
 
   /**
