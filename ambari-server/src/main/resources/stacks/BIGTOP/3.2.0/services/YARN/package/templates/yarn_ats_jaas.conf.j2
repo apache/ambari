@@ -15,6 +15,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #}
+
+Client {
+    com.sun.security.auth.module.Krb5LoginModule required
+    useKeyTab=true
+    storeKey=true
+    useTicketCache=false
+    keyTab="{{yarn_timelineservice_keytab}}"
+    principal="{{yarn_timelineservice_principal_name}}";
+};
 com.sun.security.jgss.krb5.initiate {
     com.sun.security.auth.module.Krb5LoginModule required
     renewTGT=false

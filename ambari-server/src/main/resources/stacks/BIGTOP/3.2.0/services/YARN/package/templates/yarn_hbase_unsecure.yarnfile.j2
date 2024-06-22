@@ -1,0 +1,168 @@
+{#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#}
+{
+  "name": "ats-hbase",
+  "version": "1.0.0",
+  "lifetime": "-1",
+  "queue": "{{yarn_hbase_service_queue_name}}",
+  "artifact": {
+    "id": "{{yarn_hbase_app_hdfs_path}}/hbase.tar.gz",
+    "type": "TARBALL"
+  },
+  "configuration": {
+    "properties" : {
+      "yarn.service.container-failure.retry.max" : 10,
+      "yarn.service.framework.path" : "{{yarn_service_app_hdfs_path}}/service-dep.tar.gz"
+    },
+    "env": {
+      "HBASE_IDENT_STRING": "${USER}",
+      "HBASE_LOG_DIR": "<LOG_DIR>",
+      "HBASE_CONF_DIR": "$PWD/conf",
+      "HBASE_PID_DIR": "$PWD/pids",
+      "JAVA_HOME": "{{java64_home}}",
+      "HBASE_ROOT_LOGGER": "{{yarn_hbase_log_level}},RFA",
+      "SERVER_GC_OPTS": "-verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:${HBASE_LOG_DIR}/gc.log-`date +'%Y%m%d%H%M'`",
+      "HBASE_OPTS": "-XX:+UseConcMarkSweepGC -XX:ErrorFile=${HBASE_LOG_DIR}/hs_err_pid%p.log -Djava.io.tmpdir=/tmp",
+      "HADOOP_HOME": "$PWD/lib/hadoop",
+      "HADOOP_YARN_HOME": "$PWD/lib/hadoop",
+      "HBASE_HOME": "$PWD/lib/hbase"
+    },
+    "files": [
+      {
+        "type": "TEMPLATE",
+        "dest_file": "log4j.properties",
+        "src_file": "{{yarn_hbase_user_version_home}}/log4j.properties"
+      },
+      {
+        "type": "TEMPLATE",
+        "dest_file": "hbase-site.xml",
+        "src_file": "{{yarn_hbase_user_version_home}}/hbase-site.xml"
+      },
+      {
+        "type": "TEMPLATE",
+        "dest_file": "hbase-policy.xml",
+        "src_file": "{{yarn_hbase_user_version_home}}/hbase-policy.xml"
+      },
+      {
+        "type": "TEMPLATE",
+        "dest_file": "core-site.xml",
+        "src_file": "{{yarn_hbase_user_version_home}}/core-site.xml"
+      },
+      {
+        "type": "TEMPLATE",
+        "dest_file": "hadoop-metrics2-hbase.properties",
+        "src_file": "{{yarn_hbase_user_version_home}}/hadoop-metrics2-hbase.properties"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "master",
+      "number_of_containers": {{yarn_hbase_master_containers}},
+      "launch_command": "$HBASE_HOME/bin/hbase master start",
+      "readiness_check": {
+        "type": "HTTP",
+        "properties": {
+          "url": "http://${THIS_HOST}:{{yarn_hbase_master_info_port}}/master-status"
+        }
+      },
+      "resource": {
+        "cpus": {{yarn_hbase_master_cpu}},
+        "memory": "{{yarn_hbase_master_memory}}"
+      },
+      "configuration": {
+        "env": {
+          "HBASE_LOG_PREFIX": "hbase-$HBASE_IDENT_STRING-master-$HOSTNAME",
+          "HBASE_LOGFILE": "$HBASE_LOG_PREFIX.log",
+          "HBASE_MASTER_OPTS": "-Xms{{yarn_hbase_master_heapsize}} -Xmx{{yarn_hbase_master_heapsize}}"
+        }
+      },
+      "placement_policy": {
+        "constraints": [
+          {
+            "type": "ANTI_AFFINITY",
+            "scope": "node",
+            "target_tags": [
+                  "master"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "regionserver",
+      "number_of_containers": {{yarn_hbase_regionserver_containers}},
+      "launch_command": "$HBASE_HOME/bin/hbase regionserver start",
+      "readiness_check": {
+        "type": "HTTP",
+        "properties": {
+          "url": "http://${THIS_HOST}:{{yarn_hbase_regionserver_info_port}}/rs-status"
+        }
+      },
+      "resource": {
+        "cpus": {{yarn_hbase_regionserver_cpu}},
+        "memory": "{{yarn_hbase_regionserver_memory}}"
+      },
+      "configuration": {
+        "env": {
+          "HBASE_LOG_PREFIX": "hbase-$HBASE_IDENT_STRING-regionserver-$HOSTNAME",
+          "HBASE_LOGFILE": "$HBASE_LOG_PREFIX.log",
+          "HBASE_REGIONSERVER_OPTS": "-XX:CMSInitiatingOccupancyFraction=70 -XX:ReservedCodeCacheSize=256m -Xms{{yarn_hbase_regionserver_heapsize}} -Xmx{{yarn_hbase_regionserver_heapsize}}"
+        }
+      },
+      "placement_policy": {
+        "constraints": [
+          {
+            "type": "ANTI_AFFINITY",
+            "scope": "node",
+            "target_tags": [
+                  "regionserver"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "hbaseclient",
+      "number_of_containers": {{yarn_hbase_client_containers}},
+      "launch_command": "sleep 10;export HBASE_CLASSPATH_PREFIX=$HADOOP_HOME/share/hadoop/yarn/timelineservice/*;$HBASE_HOME/bin/hbase {{class_name}};sleep infinity",
+      "dependencies": [ "master", "regionserver" ],
+      "resource": {
+        "cpus": {{yarn_hbase_client_cpu}},
+        "memory": "{{yarn_hbase_client_memory}}"
+      },
+      "configuration": {
+        "env": {
+          "HBASE_LOG_PREFIX": "hbase-$HBASE_IDENT_STRING-hbaseclient-$HOSTNAME",
+          "HBASE_LOGFILE": "$HBASE_LOG_PREFIX.log"
+        }
+      },
+      "placement_policy": {
+        "constraints": [
+          {
+            "type": "ANTI_AFFINITY",
+            "scope": "node",
+            "target_tags": [
+                  "hbaseclient"
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
