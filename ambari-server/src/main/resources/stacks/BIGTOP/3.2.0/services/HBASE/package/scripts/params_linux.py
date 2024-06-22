@@ -147,6 +147,8 @@ dashed_version = stack_version_unformatted.replace('.', '-')
 phoenix_package = "phoenix"
 
 pid_dir = status_params.pid_dir
+hbase_rest_pid_file = f"{pid_dir}/hbase-{hbase_user}-rest.pid"
+
 tmp_dir = config['configurations']['hbase-site']['hbase.tmp.dir']
 local_dir = config['configurations']['hbase-site']['hbase.local.dir']
 ioengine_param = default('/configurations/hbase-site/hbase.bucketcache.ioengine', None)

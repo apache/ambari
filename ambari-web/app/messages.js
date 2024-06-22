@@ -3201,6 +3201,8 @@ Em.I18n.translations = {
   'dashboard.services.hbase.averageLoadPerServer':'{0} regions per RegionServer',
   'dashboard.services.hbase.regionServers':'RegionServers',
   'dashboard.services.hbase.regionServersSummary':'{0} live / {1} total',
+  'dashboard.services.hbase.hbaseRestGateways':'Hbase Rest Gateways',
+  'dashboard.services.hbase.hbaseRestGatewaysSummary':'{0} live / {1} total',
   'dashboard.services.hbase.phoenixServers':'Phoenix Query Servers',
   'dashboard.services.hbase.phoenixServersSummary':'{0} live / {1} total',
   'dashboard.services.hbase.chart.label':'Request Count',

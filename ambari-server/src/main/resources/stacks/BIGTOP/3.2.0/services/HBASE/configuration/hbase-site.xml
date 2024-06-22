@@ -805,4 +805,71 @@
     </description>
     <on-ambari-upgrade add="false"/>
   </property>
+
+  <property>
+    <name>hbase.rest.port</name>
+    <value>18081</value>
+    <description>The port for the HBase REST server.</description>
+  </property>
+  <property>
+    <name>hbase.rest.readonly</name>
+    <value>false</value>
+    <description>Defines the mode the REST server will be started in. Possible values are:
+      false: All HTTP methods are permitted - GET/PUT/POST/DELETE.
+      true: Only the GET method is permitted.</description>
+  </property>
+  <property>
+    <name>hbase.rest.threads.max</name>
+    <value>100</value>
+    <description>The maximum number of threads of the REST server thread pool.
+      Threads in the pool are reused to process REST requests. This
+      controls the maximum number of requests processed concurrently.
+      It may help to control the memory used by the REST server to
+      avoid OOM issues. If the thread pool is full, incoming requests
+      will be queued up and wait for some free threads.</description>
+  </property>
+  <property>
+    <name>hbase.rest.threads.min</name>
+    <value>2</value>
+    <description>The minimum number of threads of the REST server thread pool.
+      The thread pool always has at least these number of threads so
+      the REST server is ready to serve incoming requests.</description>
+  </property>
+  <property>
+    <name>hbase.rest.support.proxyuser</name>
+    <value>false</value>
+    <description>Enables running the REST server to support proxy-user mode.</description>
+  </property>
+  <property>
+    <name>hbase.rest.filter.classes</name>
+    <value>org.apache.hadoop.hbase.rest.filter.GzipFilter</value>
+    <description>
+      Servlet filters for REST service.
+    </description>
+  </property>
+  <property>
+    <name>hbase.rest.csrf.enabled</name>
+    <value>false</value>
+    <description>
+      Set to true to enable protection against cross-site request forgery (CSRF)
+    </description>
+  </property>
+  <property>
+    <name>hbase.rest-csrf.browser-useragents-regex</name>
+    <value>^Mozilla.*,^Opera.*</value>
+    <description>
+      A comma-separated list of regular expressions used to match against an HTTP
+      request's User-Agent header when protection against cross-site request
+      forgery (CSRF) is enabled for REST server by setting
+      hbase.rest.csrf.enabled to true.  If the incoming User-Agent matches
+      any of these regular expressions, then the request is considered to be sent
+      by a browser, and therefore CSRF prevention is enforced.  If the request's
+      User-Agent does not match any of these regular expressions, then the request
+      is considered to be sent by something other than a browser, such as scripted
+      automation.  In this case, CSRF is not a potential attack vector, so
+      the prevention is not enforced.  This helps achieve backwards-compatibility
+      with existing automation that has not been updated to send the CSRF
+      prevention header.
+    </description>
+  </property>
 </configuration>

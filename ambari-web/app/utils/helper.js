@@ -590,6 +590,7 @@ App.format = {
     'GLUSTERFS': 'GLUSTERFS',
     'HBASE': 'HBase',
     'HBASE_REGIONSERVER': 'RegionServer',
+    'HBASE_REST_GATEWAY': 'RestGateway',
     'HCAT': 'HCat Client',
     'HDFS': 'HDFS',
     'HISTORYSERVER': 'History Server',

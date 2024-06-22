@@ -48,6 +48,25 @@
             </div>
           </div>
         {{/if}}
+        {{! HbaseRestGateways }}
+        {{#if view.isHbaseRestGatewayCreated}}
+          <div {{bindAttr class=":row :component :col-md-3 view.hbaseRestGatewayComponent.componentName"}}>
+            <div class="summary-value main-info">
+            <span>
+              {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.restGatewaysStarted" totalComponentsBinding="view.service.restGatewaysTotal"}}
+                {{#if App.router.clusterController.isServiceContentFullyLoaded}}
+                  {{view.liveComponents}}/{{view.totalComponents}}
+                {{/if}}
+              {{/view}}
+            </span>
+              {{t common.live}}
+            </div>
+            <div class="summary-label">
+              <a
+                href="#" {{action filterHosts view.hbaseRestGatewayComponent}}>{{t dashboard.services.hbase.hbaseRestGateways}}</a>
+            </div>
+          </div>
+        {{/if}}
         {{! PhoenixServers }}
         {{#if view.isPhoenixQueryServerCreated}}
           <div {{bindAttr class=":row :component :col-md-3 view.phoenixServerComponent.componentName"}}>

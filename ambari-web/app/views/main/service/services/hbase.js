@@ -49,6 +49,7 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
   regionServesText: Em.computed.countBasedMessage('service.regionServersTotal', '', Em.I18n.t('services.service.summary.viewHost'), Em.I18n.t('services.service.summary.viewHosts')),
 
   phoenixServersText: Em.computed.countBasedMessage('service.phoenixServersTotal', '', Em.I18n.t('services.service.summary.viewHost'), Em.I18n.t('services.service.summary.viewHosts')),
+  hbaseRestGatewaysText: Em.computed.countBasedMessage('service.restGatewaysTotal', '', Em.I18n.t('services.service.summary.viewHost'), Em.I18n.t('services.service.summary.viewHosts')),
 
   /**
    * One(!) active master component
@@ -86,6 +87,9 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
   phoenixServerComponent: Em.Object.create({
     componentName: 'PHOENIX_QUERY_SERVER'
   }),
+  hbaseRestGatewayComponent: Em.Object.create({
+    componentName: 'HBASE_REST_GATEWAY'
+  }),
 
   isRegionServerCreated: function () {
     return this.isServiceComponentCreated('HBASE_REGIONSERVER');
@@ -93,5 +97,10 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
 
   isPhoenixQueryServerCreated: function () {
     return this.isServiceComponentCreated('PHOENIX_QUERY_SERVER');
+  }.property('App.router.clusterController.isComponentsStateLoaded'),
+
+  isHbaseRestGatewayCreated: function () {
+    return this.isServiceComponentCreated('HBASE_REST_GATEWAY');
   }.property('App.router.clusterController.isComponentsStateLoaded')
+
 });

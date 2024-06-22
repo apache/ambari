@@ -132,6 +132,28 @@
           </configFiles>
         </component>
 
+        <component>
+          <name>HBASE_REST_GATEWAY</name>
+          <displayName>HBASE REST GATEWAY</displayName>
+          <category>SLAVE</category>
+          <cardinality>0+</cardinality>
+          <commandScript>
+            <script>scripts/hbase_rest_gateway.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
+          <dependencies>
+            <dependency>
+              <name>HBASE/HBASE_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+        </component>
+
+
       </components>
 
       <commandScript>
