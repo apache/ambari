@@ -11,5 +11,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '4.5.0'
+      - run: yarn set version 0.23.2
       - run: yarn install --ignore-engines --pure-lockfile
       - run: yarn test
