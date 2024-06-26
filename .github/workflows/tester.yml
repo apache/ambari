@@ -12,7 +12,7 @@ jobs:
         with:
           node-version: '4.5.0'
       - run: npm install -g yarn@0.23.2
-      - run: yarn add phantomjs@2.1.1 --ignore-scripts
+      - run: yarn add phantomjs@2.1.1 --ignore-scripts --ignore-engines
         working-directory: ./ambari-web
       - run: yarn install --ignore-engines --pure-lockfile
         working-directory: ./ambari-web
