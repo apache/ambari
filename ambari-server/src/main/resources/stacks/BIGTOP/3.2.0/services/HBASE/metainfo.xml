@@ -167,10 +167,13 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat7</osFamily>
+          <osFamily>redhat7,redhat8</osFamily>
           <packages>
             <package>
               <name>hbase_${stack_version}</name>
+            </package>
+            <package>
+              <name>ranger_${stack_version}-hbase-plugin</name>
             </package>
           </packages>
         </osSpecific>

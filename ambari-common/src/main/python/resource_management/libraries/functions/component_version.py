@@ -64,7 +64,7 @@ def _get_component_repositories(config):
   :config:  the configuration dictionary
   :return:
   """
-  if "componentVersionMap" not in config or config["componentVersionMap"] is "":
+  if "componentVersionMap" not in config or config["componentVersionMap"] == "":
     return None
 
   return config["componentVersionMap"]

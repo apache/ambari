@@ -143,7 +143,7 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat7</osFamily>
+          <osFamily>redhat7,redhat8</osFamily>
           <packages>
             <package>
               <name>hadoop_${stack_version}-yarn</name>
@@ -153,6 +153,9 @@
             </package>
             <package>
               <name>hadoop_${stack_version}-hdfs</name>
+            </package>
+            <package>
+              <name>ranger_${stack_version}-yarn-plugin</name>
             </package>
           </packages>
         </osSpecific>
@@ -290,7 +293,7 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat7</osFamily>
+          <osFamily>redhat7,redhat8</osFamily>
           <packages>
             <package>
               <name>hadoop_${stack_version}-mapreduce</name>

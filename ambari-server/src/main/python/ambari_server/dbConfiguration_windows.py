@@ -198,7 +198,7 @@ class MSSQLConfig(DBMSConfig):
 
     try:
       driver_path = properties[JDBC_DRIVER_PATH_PROPERTY]
-      if driver_path is None or driver_path is "":
+      if driver_path is None or driver_path == "":
         return 0
     except Exception:
       # No such attribute set
@@ -324,7 +324,7 @@ class MSSQLAmbariDBConfig(MSSQLConfig):
 
     super(MSSQLAmbariDBConfig, self).__init__(options, properties, storage_type)
 
-    if self.database_name is None or self.database_name is "":
+    if self.database_name is None or self.database_name == "":
       self.database_name = AMBARI_DATABASE_NAME
 
     self.persistence_property = PERSISTENCE_TYPE_PROPERTY

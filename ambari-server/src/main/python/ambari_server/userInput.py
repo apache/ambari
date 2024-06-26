@@ -58,7 +58,7 @@ def get_choice_string_input(prompt, default, firstChoice, secondChoice, answer =
     elif choice in secondChoice:
       result = False
       inputBool = False
-    elif choice is "":  # Just enter pressed
+    elif choice == "":  # Just enter pressed
       result = default
       inputBool = False
     else:

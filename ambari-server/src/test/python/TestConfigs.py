@@ -54,7 +54,7 @@ class TestConfigs(TestCase):
           response.read.side_effect = [response_data]
         request_check = req_type.get('request_assertion', None)
         if request_check is not None:
-          request_body = json.loads(json.loads(request.data))
+          request_body = json.loads(request.data)
           request_check.get(request_url, lambda x: None)(request_body)
       return response
     return urlopen_side_effect

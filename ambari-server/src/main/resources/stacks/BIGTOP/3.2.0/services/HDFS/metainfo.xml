@@ -284,7 +284,7 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat7</osFamily>
+          <osFamily>redhat7,redhat8</osFamily>
           <packages>
             <package>
               <name>hadoop_${stack_version}</name>
@@ -303,6 +303,9 @@
             </package>
             <package>
               <name>libtirpc-devel</name>
+            </package>
+            <package>
+              <name>ranger_${stack_version}-hdfs-plugin</name>
             </package>
           </packages>
         </osSpecific>

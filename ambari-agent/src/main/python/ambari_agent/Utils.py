@@ -111,8 +111,8 @@ class Utils(object):
     Update the dictionary 'd' and its sub-dictionaries with values of dictionary 'u' and its sub-dictionaries.
     """
     for k, v in u.items():
-      if isinstance(d, collections.Mapping):
-        if isinstance(v, collections.Mapping):
+      if isinstance(d, collections.abc.Mapping):
+        if isinstance(v, collections.abc.Mapping):
           r = Utils.update_nested(d.get(k, {}), v)
           d[k] = r
         else:
