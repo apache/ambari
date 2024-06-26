@@ -5,6 +5,8 @@ on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      npm_config_tmp: /tmp/npm_config_tmp
     steps:
       - uses: actions/checkout@v4
       - name: Use Node.js
