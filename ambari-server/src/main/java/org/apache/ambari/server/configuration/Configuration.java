@@ -325,6 +325,16 @@ public class Configuration {
   // Ambari server log4j file name
   public static final String AMBARI_LOG_FILE = "log4j.properties";
 
+  /**
+   * The maximum value of password history count which can be configured by the user.
+   */
+  public static final int MAXIMUM_PASSWORD_HISTORY_LIMIT = 10;
+
+  /**
+   * The default and minimum value of password history count which can be configured by the user.
+   */
+  public static final int MINIMUM_PASSWORD_HISTORY_LIMIT = 1;
+
   @Markdown(
           description = "Interval for heartbeat presence checks.",
           examples = {"60000","600000"} )
@@ -529,6 +539,14 @@ public class Configuration {
       description = "Password policy description that is shown to users")
   public static final ConfigurationProperty<String> PASSWORD_POLICY_DESCRIPTION = new ConfigurationProperty<>(
       "security.password.policy.description", "");
+
+  /**
+   * Password history count to validate how many previous passwords should be checked before updating user password.
+   */
+  @Markdown(
+          description = "Password policy to mandate that new password should be different from previous passwords, this would be based on the history count configured by the user. Valid values are 1 to 10.")
+  public static final ConfigurationProperty<String> PASSWORD_POLICY_HISTORY_COUNT = new ConfigurationProperty<>(
+          "security.password.policy.history.count", "1");
 
   /**
    * Determines whether the Ambari Agent host names should be validated against
@@ -4136,6 +4154,22 @@ public class Configuration {
    */
   public String getPasswordPolicyDescription() {
     return getProperty(PASSWORD_POLICY_DESCRIPTION);
+  }
+
+  /**
+   * @return Password policy history count
+   */
+  public int getPasswordPolicyHistoryCount() {
+    int historyCount = Integer.parseInt(getProperty(PASSWORD_POLICY_HISTORY_COUNT));
+    if(historyCount < MINIMUM_PASSWORD_HISTORY_LIMIT){
+      historyCount = MINIMUM_PASSWORD_HISTORY_LIMIT;
+      LOG.debug("Invalid password history count detected. The count has been automatically set to the minimum permissible value of {}.",MINIMUM_PASSWORD_HISTORY_LIMIT);
+    }
+    if(historyCount > MAXIMUM_PASSWORD_HISTORY_LIMIT){
+      historyCount = MAXIMUM_PASSWORD_HISTORY_LIMIT;
+      LOG.debug("Invalid password history count detected. The count has been automatically set to the maximum permissible value of {}.",MAXIMUM_PASSWORD_HISTORY_LIMIT);
+    }
+    return historyCount;
   }
 
   public JPATableGenerationStrategy getJPATableGenerationStrategy() {
