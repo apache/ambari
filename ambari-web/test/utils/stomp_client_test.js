@@ -160,8 +160,6 @@ describe('App.StompClient', function () {
         }
       };
       stomp.set('subscriptions', subscriptions);
-      stomp.disconnect();
-      this.clock.tick(3000);
       stomp.reconnect();
       this.clock.tick(stomp.RECONNECT_TIMEOUT);
       expect(stomp.subscribe.calledWith('foo', Em.K)).to.be.true;
