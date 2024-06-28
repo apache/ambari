@@ -59,11 +59,6 @@ module.exports = Em.Object.extend({
   isConnected: false,
 
   /**
-   * @type {number | null}
-   */
-  timerId: null,
-
-  /**
    * @type {boolean}
    */
   isWebSocketSupported: true,
@@ -162,13 +157,9 @@ module.exports = Em.Object.extend({
   },
 
   reconnect: function(useSockJS) {
-    if (this.timerId !== null) {
-      clearTimeout(this.timerId);
-    }
     const subscriptions = Object.assign({}, this.get('subscriptions'));
-    this.timerId = setTimeout(() => {
+    setTimeout(() => {
       console.debug('Reconnecting to WebSocket...');
-      this.disconnect();
       this.connect(useSockJS).done(() => {
         this.set('subscriptions', {});
         for (let i in subscriptions) {
@@ -182,10 +173,7 @@ module.exports = Em.Object.extend({
   },
 
   disconnect: function () {
-    var client = this.get('client');
-    if (client.ws.readyState === client.ws.OPEN) {
-      client.disconnect();
-    }
+    this.get('client').disconnect();
   },
 
   /**
