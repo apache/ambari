@@ -3,7 +3,7 @@ name: ambari-web-tester
 on: [push]
 
 jobs:
-  build:
+  ambari-web-test:
     runs-on: ubuntu-latest
     env:
       npm_config_tmp: /tmp/npm_config_tmp
