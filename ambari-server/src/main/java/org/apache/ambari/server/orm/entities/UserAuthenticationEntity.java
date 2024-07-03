@@ -17,6 +17,10 @@
  */
 package org.apache.ambari.server.orm.entities;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -101,12 +105,34 @@ public class UserAuthenticationEntity {
   }
 
   public String getAuthenticationKey() {
+    int firstCommaIndex = authenticationKey.indexOf(",");
+    if (firstCommaIndex != -1) {
+      return authenticationKey.substring(0, firstCommaIndex);
+    }
+    return authenticationKey;
+  }
+
+  public String getFullAuthenticationKey() {
     return authenticationKey;
   }
 
   public void setAuthenticationKey(String authenticationKey) {
     this.authenticationKey = authenticationKey;
   }
+
+  public void updateAuthenticationKey(String newAuthenticationKey, int historyCount) {
+    if (this.authenticationKey == null || this.authenticationKey.isEmpty()) {
+        this.authenticationKey = newAuthenticationKey;
+    } else {
+        String[] keys = this.authenticationKey.split(",");
+        List<String> keyList = new ArrayList<>(Arrays.asList(keys));
+        if (keyList.size() >= historyCount) {
+            keyList = keyList.subList(0, historyCount - 1);
+        }
+        keyList.add(0, newAuthenticationKey);
+        this.authenticationKey = String.join(",", keyList);
+    }
+}
 
   public long getCreateTime() {
     return createTime;

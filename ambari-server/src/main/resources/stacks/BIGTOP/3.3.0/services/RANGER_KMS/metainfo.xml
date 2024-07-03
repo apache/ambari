@@ -25,7 +25,7 @@
       <name>RANGER_KMS</name>
       <displayName>Ranger KMS</displayName>
       <comment>Key Management Server</comment>
-      <version>2.4.0</version>
+      <version>2.4.0-1</version>
       <components>
 
         <component>

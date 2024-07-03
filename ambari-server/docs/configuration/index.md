@@ -168,6 +168,7 @@ The following are the properties which can be used to configure Ambari.
 | security.master.keystore.location | The location on the Ambari Server of the master keystore file. | | 
 | security.passwords.encryption.enabled | Whether security password encryption is enabled or not. In case it is we store passwords in their own file(s); otherwise we store passwords in the Ambari credential store. |`false` | 
 | security.server.cert_chain_name | The name of the file located in the `security.server.keys_dir` directory containing the CA certificate chain used to verify certificates during 2-way SSL communications. |`ca_chain.pem` | 
+| security.password.policy.history.count | Password policy to mandate that new password should be different from previous passwords, this would be based on the history count configured by the user. Valid values are 1 to 10. | `1` |
 | security.server.cert_name | The name of the file located in the `security.server.keys_dir` directory where certificates will be generated when Ambari uses the `openssl ca` command. |`ca.crt` | 
 | security.server.crt_pass | The password for the keystores, truststores, and certificates. If not specified, then `security.server.crt_pass_file` should be used | | 
 | security.server.crt_pass.len | The length of the randomly generated password for keystores and truststores.  |`50` | 
