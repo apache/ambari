@@ -36,10 +36,4 @@
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
-  <property>
-    <name>4lw.commands.whitelist</name>
-    <value>ruok</value>
-    <description>resolve "conf is not executed because it is not in the whitelist" problem. </description>
-    <on-ambari-upgrade add="true"/>
-  </property>
 </configuration>
