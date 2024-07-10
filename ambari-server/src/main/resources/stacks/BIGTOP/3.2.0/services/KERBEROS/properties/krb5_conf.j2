@@ -44,7 +44,7 @@
 {%- if master_kdc %}
     master_kdc = {{master_kdc|trim()}}
 {%- endif -%}
-{%- if kdc_hosts > 0 -%}
+{%- if kdc_hosts|length > 0 -%}
 {%- set kdc_host_list = kdc_hosts.split(',')  -%}
 {%- if kdc_host_list and kdc_host_list|length > 0 %}
     admin_server = {{admin_server_host|default(kdc_host_list[0]|trim(), True)}}
