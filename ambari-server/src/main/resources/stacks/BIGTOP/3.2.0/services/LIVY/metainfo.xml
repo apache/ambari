@@ -92,7 +92,6 @@
       <requiredServices>
         <service>HDFS</service>
         <service>YARN</service>
-        <service>HIVE</service>
         <service>SPARK</service>
       </requiredServices>
 
