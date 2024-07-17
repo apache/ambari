@@ -812,8 +812,8 @@ class shellRunnerLinux(shellRunner):
     try:
       if self._threadLocal is not None:
         os.setuid(self._threadLocal.uid)
-    except Exception:
-      _logger.warn("can not switch user for running command.")
+    except Exception as e:
+      _logger.warn(f"Unable to switch user for running command. Error details: {e}")
 
   # Run any command
   def run(self, script, user=None):
@@ -825,8 +825,9 @@ class shellRunnerLinux(shellRunner):
       else:
         user = os.getuid()
       self._threadLocal.uid = user
-    except Exception:
-      _logger.warn("can not switch user for RUN_COMMAND.")
+    except Exception as e:
+      _logger.warn(f"Unable to switch user for RUN_COMMAND. Error details: {e}")
+
 
     cmd = script
 
