@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -45,7 +45,9 @@ sudo = AMBARI_SUDO_BINARY
 SERVER_ROLE_DIRECTORY_MAP = {
   'SPARK_JOBHISTORYSERVER' : 'spark-historyserver',
   'SPARK_CLIENT' : 'spark-client',
-  'SPARK_THRIFTSERVER' : 'spark-thriftserver'
+  'SPARK_THRIFTSERVER' : 'spark-thriftserver',
+  'LIVY_SERVER' : 'livy-server',
+  'LIVY_CLIENT' : 'livy-client'
 }
 
 HIVE_SERVER_ROLE_DIRECTORY_MAP = {
@@ -206,9 +208,16 @@ elif spark_transport_mode.lower() == 'http':
   spark_thrift_endpoint = default("configurations/spark-hive-site-override/hive.server2.http.endpoint", "cliservice")
 
 # thrift server support
-spark_thrift_sparkconf = config['configurations']['spark-defaults']
-spark_thrift_cmd_opts_properties = config['configurations']['spark-env']['spark_thrift_cmd_opts']
-spark_thrift_fairscheduler_content = config['configurations']['spark-thrift-fairscheduler']['fairscheduler_content']
+spark_thrift_sparkconf = None
+spark_thrift_cmd_opts_properties = ''
+spark_thrift_fairscheduler_content = None
+
+if has_spark_thriftserver and 'spark-defaults' in config['configurations']:
+  spark_thrift_sparkconf = config['configurations']['spark-defaults']
+  spark_thrift_cmd_opts_properties = config['configurations']['spark-env']['spark_thrift_cmd_opts']
+
+  if 'spark-thrift-fairscheduler' in config['configurations'] and 'fairscheduler_content' in config['configurations']['spark-thrift-fairscheduler']:
+    spark_thrift_fairscheduler_content = config['configurations']['spark-thrift-fairscheduler']['fairscheduler_content']
 
 if is_hive_installed:
   # update default metastore client properties (async wait for metastore component) it is useful in case of
@@ -234,7 +243,56 @@ has_ats = len(ats_host) > 0
 
 dfs_type = default("/clusterLevelParams/dfs_type", "")
 
+# livy configs
+has_livyserver = False
 
+if stack_version_formatted and "livy-env" in config['configurations']:
+  livy_component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, "LIVY_SERVER")
+  livy_conf = format("{stack_root}/current/{livy_component_directory}/conf")
+  livy_log_dir = config['configurations']['livy-env']['livy_log_dir']
+  livy_pid_dir = status_params.livy_pid_dir
+  livy_home = format("{stack_root}/current/{livy_component_directory}")
+  livy_user = status_params.livy_user
+  livy_group = status_params.livy_group
+  user_group = status_params.user_group
+  livy_hdfs_user_dir = format("/user/{livy_user}")
+  livy_server_pid_file = status_params.livy_server_pid_file
+  livy_recovery_dir = default("/configurations/livy-conf/livy.server.recovery.state-store.url", "/livy-recovery")
+  livy_recovery_store = default("/configurations/livy-conf/livy.server.recovery.state-store", "filesystem")
+
+  livy_server_start = format("{livy_home}/bin/livy-server start")
+  livy_server_stop = format("{livy_home}/bin/livy-server stop")
+  livy_logs_dir = format("{livy_home}/logs")
+
+  livy_env_sh = config['configurations']['livy-env']['content']
+  livy_log4j_properties = config['configurations']['livy-log4j-properties']['content']
+  livy_spark_blacklist_properties = config['configurations']['livy-spark-blacklist']['content']
+
+  if 'livy.server.kerberos.keytab' in config['configurations']['livy-conf']:
+    livy_kerberos_keytab =  config['configurations']['livy-conf']['livy.server.kerberos.keytab']
+  else:
+    livy_kerberos_keytab =  config['configurations']['livy-conf']['livy.server.launch.kerberos.keytab']
+  if 'livy.server.kerberos.principal' in config['configurations']['livy-conf']:
+    livy_kerberos_principal = config['configurations']['livy-conf']['livy.server.kerberos.principal']
+  else:
+    livy_kerberos_principal = config['configurations']['livy-conf']['livy.server.launch.kerberos.principal']
+
+  livy_livyserver_hosts = default("/clusterHostInfo/livy_server_hosts", [])
+  livy_http_scheme = 'https' if 'livy.keystore' in config['configurations']['livy-conf'] else 'http'
+
+  # ats 1.5 properties
+  entity_groupfs_active_dir = config['configurations']['yarn-site']['yarn.timeline-service.entity-group-fs-store.active-dir']
+  entity_groupfs_active_dir_mode = 0o1777
+  entity_groupfs_store_dir = config['configurations']['yarn-site']['yarn.timeline-service.entity-group-fs-store.done-dir']
+  entity_groupfs_store_dir_mode = 0o700
+  is_webhdfs_enabled = hdfs_site['dfs.webhdfs.enabled']
+
+  if len(livy_livyserver_hosts) > 0:
+    has_livyserver = True
+    if security_enabled:
+      livy_principal = livy_kerberos_principal.replace('_HOST', config['agentLevelParams']['hostname'].lower())
+
+  livy_livyserver_port = default('configurations/livy-conf/livy.server.port',8999)
 
 import functools
 #create partial functions with common arguments for every HdfsResource call
@@ -254,4 +312,3 @@ HdfsResource = functools.partial(
   immutable_paths = get_not_managed_resources(),
   dfs_type = dfs_type
 )
-
