@@ -183,7 +183,7 @@ module.exports = Em.Object.extend({
 
   disconnect: function () {
     var client = this.get('client');
-    if (client.ws.readyState === client.ws.OPEN) {
+    if (client && client.ws && (client.ws.readyState === client.ws.OPEN)) {
       client.disconnect();
     }
   },
