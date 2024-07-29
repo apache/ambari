@@ -18,10 +18,11 @@ COMMIT = 'COMMIT'
 ABORT = 'ABORT'
 ACK = 'ACK'
 NACK = 'NACK'
+STOMP_CMD = 'STOMP'
 DISCONNECT = 'DISCONNECT'
 
-VALID_COMMANDS = ['message', 'connect', 'connected', 'error', 'send',
-                  'subscribe', 'unsubscribe', 'begin', 'commit', 'abort', 'ack', 'disconnect', 'nack']
+VALID_COMMANDS = [MESSAGE, CONNECT, CONNECTED, ERROR, SEND,
+                  SUBSCRIBE, UNSUBSCRIBE, BEGIN, COMMIT, ABORT, ACK, DISCONNECT, NACK, STOMP_CMD]
 
 TEXT_PLAIN = 'text/plain'
 
@@ -42,7 +43,9 @@ def parse_headers(buff):
     """
     Parses buffer and returns command and headers as strings
     """
-    preamble_lines = list([six.u(x).decode() for x in iter(lambda: buff.readline().strip(), b'')]
+    preamble_lines = list(map(
+        lambda x: six.u(x).decode(),
+        iter(lambda: buff.readline().strip(), b''))
     )
     if not preamble_lines:
         raise EmptyBuffer()
@@ -140,7 +143,7 @@ class ConnectedFrame(Frame):
         @type session: C{str}
         """
         super(ConnectedFrame, self).__init__(
-            cmd='connected', headers=extra_headers or {})
+            cmd=CONNECTED, headers=extra_headers or {})
         self.headers['session'] = session
 
 
@@ -195,7 +198,7 @@ class ErrorFrame(Frame):
         @param body: The message body bytes.
         @type body: C{str}
         """
-        super(ErrorFrame, self).__init__(cmd='error',
+        super(ErrorFrame, self).__init__(cmd=ERROR,
                                          headers=extra_headers or {}, body=body)
         self.headers['message'] = message
         self.headers[
@@ -353,5 +356,5 @@ class FrameBuffer(object):
             raise StopIteration()
         return msg
 
-    def __next__(self):
+    def next(self):
         return self.__next__()
