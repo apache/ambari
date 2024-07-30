@@ -21,6 +21,15 @@
     <service>
       <name>ZOOKEEPER</name>
       <version>3.7.2-1</version>
+
+      <quickLinksConfigurations-dir>quicklinks</quickLinksConfigurations-dir>
+        <quickLinksConfigurations>
+          <quickLinksConfiguration>
+          <fileName>quicklinks.json</fileName>
+          <default>true</default>
+        </quickLinksConfiguration>
+      </quickLinksConfigurations>
+      
     </service>
   </services>
 </metainfo>
