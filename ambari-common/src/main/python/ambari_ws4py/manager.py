@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 __doc__ = """
 The manager module provides a selected classes to

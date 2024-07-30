@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Tools to facilitate developing thread-safe components.
 """

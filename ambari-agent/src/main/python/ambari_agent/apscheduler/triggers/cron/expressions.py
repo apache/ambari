@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 This module contains the expressions applicable for CronTrigger's fields.
 """

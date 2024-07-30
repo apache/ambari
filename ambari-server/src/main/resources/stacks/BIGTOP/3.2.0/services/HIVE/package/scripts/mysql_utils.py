@@ -39,4 +39,3 @@ def mysql_configure():
   
   # this also will start mysql-server
   mysql_users.mysql_adduser()
-  

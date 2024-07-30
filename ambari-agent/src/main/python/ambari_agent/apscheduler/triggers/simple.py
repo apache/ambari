@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from apscheduler.util import convert_to_datetime
 
 

@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Queue manager, queue implementation, and supporting classes.
 

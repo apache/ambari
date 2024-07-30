@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 __doc__ = """
 WebSocket within CherryPy is a tricky bit since CherryPy is

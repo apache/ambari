@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Error classes used by simplejson
 """
 __all__ = ['JSONDecodeError']

@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import sys
 
 info = sys.version_info

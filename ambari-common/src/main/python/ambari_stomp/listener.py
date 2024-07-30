@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Various listeners for using with stomp.py connections.
 """
 

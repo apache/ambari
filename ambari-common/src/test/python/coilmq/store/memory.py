@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Queue storage module that uses thread-safe, in-memory data structures.  
 """

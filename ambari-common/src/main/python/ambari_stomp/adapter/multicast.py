@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Multicast transport for stomp.py.
 
 Obviously not a typical message broker, but convenient if you don't have a broker, but still want to use stomp.py

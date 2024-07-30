@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Provides the underlying transport functionality (for stomp message transmission) - (mostly) independent from the actual STOMP protocol
 """
 

@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Storage containers for durable queues and (planned) durable topics.
 """

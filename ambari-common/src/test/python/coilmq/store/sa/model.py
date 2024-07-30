@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Definition of the datamodel required for SA storage backend.
 """

@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Color 'constants' used by the command line client.
 """
 

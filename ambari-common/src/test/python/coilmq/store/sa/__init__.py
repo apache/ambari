@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Queue storage module that uses SQLAlchemy to access queue information and frames in a database.
 

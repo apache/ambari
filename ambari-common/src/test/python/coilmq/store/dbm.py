@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Queue storage module that stores the queue information and frames in a DBM-style database.
 

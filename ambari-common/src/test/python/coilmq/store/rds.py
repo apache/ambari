@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 try:
     import redis
 except ImportError:  # pragma: no cover

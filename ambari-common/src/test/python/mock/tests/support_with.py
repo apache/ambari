@@ -1,5 +1,4 @@
-
-
+#!/usr/bin/env python3
 import sys
 
 __all__ = ['nested', 'catch_warnings', 'examine_warnings']

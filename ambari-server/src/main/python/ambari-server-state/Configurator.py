@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from Entities import *
 from os.path import exists
 import xml.dom.minidom

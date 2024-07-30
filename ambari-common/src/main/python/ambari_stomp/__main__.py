@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """The stomp.py command line client (used for testing or simple STOMP command scripting).
 
 """

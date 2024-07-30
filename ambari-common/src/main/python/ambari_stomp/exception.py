@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Errors thrown by stomp.py connections.
 """
 

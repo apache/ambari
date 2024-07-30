@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Python2.5 (and lower) specific versions of various networking (ipv6) functions used by stomp.py
 """

@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 try:
     from cProfile import Profile
 except ImportError:
