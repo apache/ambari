@@ -44,23 +44,6 @@
 
   <body>
     <head>
-       <!-- Start of Google analytics -->
-       <script type="text/javascript">
-         var _gaq = _gaq || [];
-         _gaq.push(['_setAccount', 'UA-27188762-1']);
-         _gaq.push(['_trackPageview']);
-
-         (function() {
-            var ga = document.createElement('script'); 
-            ga.type = 'text/javascript'; ga.async = true;
-            ga.src = ('https:' == document.location.protocol ? 
-                      'https://ssl' : 'http://www') + 
-                     '.google-analytics.com/ga.js';
-            var s = document.getElementsByTagName('script')[0]; 
-            s.parentNode.insertBefore(ga, s);
-          })();
-       </script>
-       <!-- End of Google analytics -->
        <style>
            .well.sidebar-nav {
              background-color: #fff;
@@ -203,7 +186,7 @@
         <item name="Events"          href="https://www.apache.org/events/current-event" />
         <item name="License"         href="https://www.apache.org/licenses/" />
         <item name="Sponsorship"     href="https://www.apache.org/foundation/sponsorship" />
-        <item name="Security"        href="https://www.apache.org/security" />
+        <item name="Security"        href="https://ambari.apache.org/issue-tracking.html" />
         <item name="Thanks"          href="https://www.apache.org/foundation/thanks" />
         <item name="Code of Conduct" href="https://www.apache.org/foundation/policies/conduct" />
     </menu>
