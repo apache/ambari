@@ -234,7 +234,7 @@ The following are the properties which can be used to configure Ambari.
 | server.metrics.retrieval-service.thread.priority | The priority of threads used by the service which retrieves JMX and REST metrics directly from their respective endpoints. |`5` | 
 | server.metrics.retrieval-service.threadpool.size.core | The core number of threads used to retrieve JMX and REST metrics directly from their respective endpoints. |`4` | 
 | server.metrics.retrieval-service.threadpool.size.max | The maximum number of threads used to retrieve JMX and REST metrics directly from their respective endpoints. |`8` | 
-| server.metrics.retrieval-service.threadpool.worker.size | The number of queued requests allowed for JMX and REST metrics before discarding old requests which have not been fullfilled. |`80` | 
+| server.metrics.retrieval-service.threadpool.worker.size | The number of queued requests allowed for JMX and REST metrics before discarding old requests which have not been fulfilled. |`80` | 
 | server.operations.retry-attempts | The number of retry attempts for failed API and blueprint operations. |`0` | 
 | server.os_family | The operating system family for all hosts in the cluster. This is used when bootstrapping agents and when enabling Kerberos.<br/><br/>The following are examples of valid values:<ul><li>`redhat`<li>`ubuntu`</ul> | | 
 | server.os_type | The operating system version for all hosts in the cluster. This is used when bootstrapping agents and when enabling Kerberos.<br/><br/>The following are examples of valid values:<ul><li>`6`<li>`7`</ul> | | 
