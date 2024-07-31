@@ -393,7 +393,7 @@ class TestPortAlert(TestCase):
     alert.set_cluster(cluster, cluster_id, host)
     alert.configuration_builder = MagicMock()
     s = socket()
-    s.recv.return_value = "imok"
+    s.recv.return_value = "imok".encode()
 
     def collector_side_effect(clus, data):
       self.assertEqual(data['name'], alert_meta['name'])
@@ -451,7 +451,7 @@ class TestPortAlert(TestCase):
     alert.set_cluster(cluster, cluster_id, host)
     alert.configuration_builder = MagicMock()
     s = socket()
-    s.recv.return_value = "imok"
+    s.recv.return_value = "imok".encode()
 
     def collector_side_effect(clus, data):
       self.assertEqual(data['name'], alert_meta['name'])
@@ -510,7 +510,7 @@ class TestPortAlert(TestCase):
     alert.configuration_builder = MagicMock()
     
     s = socket()
-    s.recv.return_value = "imok"
+    s.recv.return_value = "imok".encode()
 
     def collector_side_effect(clus, data):
       self.assertEqual(data['name'], alert_meta['name'])
