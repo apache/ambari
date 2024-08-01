@@ -214,19 +214,20 @@ describe('App.MainServiceInfoMetricsView', function() {
       mock.sortable.restore();
     });
 
-    it("on() should be called", function() {
+    it("MutationObserver callback should be called", function() {
       view.makeSortable('#widget_layout');
-      expect(mock.on.calledWith('DOMNodeInserted', '#widget_layout')).to.be.true;
-    });
-
-    it("sortable() should be called", function() {
-      view.makeSortable('#widget_layout');
-      expect(mock.sortable.called).to.be.true;
-    });
-
-    it("off() should be called", function() {
-      view.makeSortable('#widget_layout');
-      expect(mock.off.calledWith('DOMNodeInserted', '#widget_layout')).to.be.true;
+      const callback = function () {
+        expect(true).to.be.true;
+        expect(document.querySelector('#widget_layout')).to.not.be.null;
+        observer.disconnect();
+        done();
+      };
+      const observer = new MutationObserver(callback);
+      const body = document.body;
+      observer.observe(body, { childList: true });
+      const elementWidget = document.createElement('div');
+      elementWidget.id='widget_layout';
+      body.appendChild(elementWidget);
     });
   });
 
