@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 '''
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -37,6 +36,7 @@ $(pwd)/ambari-common/src/test/python:
 $(pwd)/ambari-agent/src/test/python/ambari_agent:
 $(pwd)/ambari-common/src/main/python:
 $(pwd)/ambari-server/src/main/resources/common-services/HDFS/2.1.0.2.0/package/files:
+$(pwd)/ambari-server/src/test/python:
 $(pwd)/ambari-agent/src/test/python/resource_management:
 $(pwd)/ambari-common/src/main/python/ambari_jinja2
 """
