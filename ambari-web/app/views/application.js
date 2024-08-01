@@ -59,6 +59,11 @@ App.ApplicationView = Em.View.extend({
         }
       });
 
+      setTimeout(() => {
+        // remove observer if selected element is not found in 10secs.
+        observer.disconnect();
+      }, 10000)
+
       observer.observe(document.body, {
         childList: true,
         subtree: true
