@@ -284,7 +284,7 @@ App.MainServiceInfoMetricsView = Em.View.extend(App.Persist, App.TimeRangeMixin,
       var targetNode
       if (mutations.some((mutation) => mutation.type === 'childList' && (targetNode = $(selector)).length)) {
         observer.disconnect();
-        $(this).sortable({
+        $(targetNode).sortable({
           items: "> div",
           cursor: "move",
           tolerance: "pointer",
