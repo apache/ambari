@@ -49,12 +49,13 @@ App.ApplicationView = Em.View.extend({
   initNavigationBar: function () {
     if (App.get('router.mainController.isClusterDataLoaded')) {
       const observer = new MutationObserver(mutations => {
-        if (document.querySelector('.navigation-bar')) {
+        var targetNode
+        if (mutations.some((mutation) => mutation.type === 'childList' && (targetNode = $('.navigation-bar')).length)) {
           observer.disconnect();
-          $('.navigation-bar').navigationBar({
+          targetNode.navigationBar({
             fitHeight: true,
             collapseNavBarClass: 'icon-double-angle-left',
-            expandNavBarClass: 'icon-double-angle-right'
+            expandNavBarClass: 'icon-double-angle-right',
           });
         }
       });

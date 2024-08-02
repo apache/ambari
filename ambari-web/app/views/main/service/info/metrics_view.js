@@ -280,8 +280,9 @@ App.MainServiceInfoMetricsView = Em.View.extend(App.Persist, App.TimeRangeMixin,
   makeSortable: function (selector, isNSLayout) {
     var self = this;
     var controller = this.get('controller');
-    const observer = new MutationObserver(() => {
-      if (document.querySelector(selector)) {
+    const observer = new MutationObserver(mutations => {
+      var targetNode
+      if (mutations.some((mutation) => mutation.type === 'childList' && (targetNode = $(selector)).length)) {
         observer.disconnect();
         $(this).sortable({
           items: "> div",
