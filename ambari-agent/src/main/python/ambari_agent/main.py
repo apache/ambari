@@ -316,12 +316,8 @@ def run_threads(initializer_module):
   initializer_module.heartbeat_thread.join()
   initializer_module.action_queue.join()
 
-# event - event, that will be passed to Controller and NetUtil to make able to interrupt loops form outside process
-# we need this for windows os, where no sigterm available
-def main(initializer_module, heartbeat_stop_callback=None):
-  global config
-  global home_dir
-
+# parse the options from command line
+def setup_option_parser():
   parser = OptionParser()
   parser.add_option("-v", "--verbose", dest="verbose", action="store_true", help="verbose log output", default=False)
   parser.add_option("-e", "--expected-hostname", dest="expected_hostname", action="store",
@@ -329,24 +325,34 @@ def main(initializer_module, heartbeat_stop_callback=None):
   parser.add_option("--home", dest="home_dir", action="store", help="Home directory", default="")
   (options, args) = parser.parse_args()
 
-  expected_hostname = options.expected_hostname
-  home_dir = options.home_dir
+  return options
+
+# initialize the loggers
+def init_loggers(options):
+  global is_logger_setup
 
   logging_level = logging.DEBUG if options.verbose else logging.INFO
 
   setup_logging(logger, AmbariConfig.AmbariConfig.getLogFile(), logging_level)
-  global is_logger_setup
-  is_logger_setup = True
   setup_logging(alerts_logger, AmbariConfig.AmbariConfig.getAlertsLogFile(), logging_level)
   setup_logging(alerts_logger_2, AmbariConfig.AmbariConfig.getAlertsLogFile(), logging_level)
   setup_logging(alerts_logger_global, AmbariConfig.AmbariConfig.getAlertsLogFile(), logging_level)
   setup_logging(apscheduler_logger, AmbariConfig.AmbariConfig.getAlertsLogFile(), logging_level)
   setup_logging(apscheduler_logger_global, AmbariConfig.AmbariConfig.getAlertsLogFile(), logging_level)
   Logger.initialize_logger('resource_management', logging_level=logging_level)
-  #with Environment() as env:
-  #  File("/abc")
 
-  # init data, once loggers are setup to see exceptions/errors of initialization.
+  is_logger_setup = True
+
+# event - event, that will be passed to Controller and NetUtil to make able to interrupt loops form outside process
+# we need this for windows os, where no sigterm available
+def main(options, initializer_module, heartbeat_stop_callback=None):
+  global config
+  global home_dir
+
+  expected_hostname = options.expected_hostname
+  home_dir = options.home_dir
+
+  # init data.
   initializer_module.init()
 
   if home_dir != "":
@@ -454,10 +460,12 @@ def main(initializer_module, heartbeat_stop_callback=None):
 if __name__ == "__main__":
   is_logger_setup = False
   try:
+    options = setup_option_parser()
+    init_loggers(options)
     initializer_module = InitializerModule()
     heartbeat_stop_callback = bind_signal_handlers(agentPid, initializer_module.stop_event)
 
-    main(initializer_module, heartbeat_stop_callback)
+    main(options, initializer_module, heartbeat_stop_callback)
   except SystemExit:
     raise
   except BaseException:
