@@ -280,27 +280,40 @@ App.MainServiceInfoMetricsView = Em.View.extend(App.Persist, App.TimeRangeMixin,
   makeSortable: function (selector, isNSLayout) {
     var self = this;
     var controller = this.get('controller');
-    $('html').on('DOMNodeInserted', selector, function () {
-      $(this).sortable({
-        items: "> div",
-        cursor: "move",
-        tolerance: "pointer",
-        scroll: false,
-        update: function () {
-          var layout = isNSLayout ? controller.get('selectedNSWidgetLayout') : controller.get('activeWidgetLayout');
-          var widgets = misc.sortByOrder($(selector + " .widget").map(function () {
-            return this.id;
-          }), layout.get('widgets').toArray());
-          controller.saveWidgetLayout(widgets, layout);
-        },
-        activate: function () {
-          self.set('isMoving', true);
-        },
-        deactivate: function () {
-          self.set('isMoving', false);
-        }
-      }).disableSelection();
-      $('html').off('DOMNodeInserted', selector);
+    const observer = new MutationObserver(mutations => {
+      var targetNode
+      if (mutations.some((mutation) => mutation.type === 'childList' && (targetNode = $(selector)).length)) {
+        observer.disconnect();
+        $(targetNode).sortable({
+          items: "> div",
+          cursor: "move",
+          tolerance: "pointer",
+          scroll: false,
+          update: function () {
+            var layout = isNSLayout ? controller.get('selectedNSWidgetLayout') : controller.get('activeWidgetLayout');
+            var widgets = misc.sortByOrder($(selector + " .widget").map(function () {
+              return this.id;
+            }), layout.get('widgets').toArray());
+            controller.saveWidgetLayout(widgets, layout);
+          },
+          activate: function () {
+            self.set('isMoving', true);
+          },
+          deactivate: function () {
+            self.set('isMoving', false);
+          }
+        }).disableSelection();
+      }
+    });
+
+    setTimeout(() => {
+      // remove observer if selected element is not found in 10secs.
+      observer.disconnect();
+    }, 10000)
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
     });
   }
 });
