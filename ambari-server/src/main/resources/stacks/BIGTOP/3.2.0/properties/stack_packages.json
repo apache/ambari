@@ -83,6 +83,18 @@
             "hadoop-hdfs-namenode"
           ]
         },
+        "ROUTER": {
+          "STACK-SELECT-PACKAGE": "hadoop-hdfs-dfsrouter",
+          "INSTALL": [
+            "hadoop-hdfs-dfsrouter"
+          ],
+          "PATCH": [
+            "hadoop-hdfs-dfsrouter"
+          ],
+          "STANDARD": [
+            "hadoop-hdfs-dfsrouter"
+          ]
+        },
         "JOURNALNODE": {
           "STACK-SELECT-PACKAGE": "hadoop-hdfs-journalnode",
           "INSTALL": [

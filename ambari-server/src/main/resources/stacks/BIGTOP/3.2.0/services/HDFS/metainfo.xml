@@ -224,6 +224,52 @@
         </component>
 
         <component>
+          <name>ROUTER</name>
+          <displayName>Router</displayName>
+          <category>SLAVE</category>
+          <cardinality>0+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <reassignAllowed>true</reassignAllowed>
+          <timelineAppid>router</timelineAppid>
+          <commandScript>
+            <script>scripts/router.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1800</timeout>
+          </commandScript>
+          <logs>
+            <log>
+              <logId>hdfs_router</logId>
+              <primary>true</primary>
+            </log>
+            <log>
+              <logId>hdfs_audit</logId>
+            </log>
+          </logs>
+          <dependencies>
+            <dependency>
+              <name>HDFS/HDFS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+          <configuration-dependencies>
+            <config-type>hdfs-rbf-site</config-type>
+          </configuration-dependencies>
+          <customCommands>
+            <customCommand>
+              <name>DECOMMISSION</name>
+              <commandScript>
+                <script>scripts/router.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+              </commandScript>
+            </customCommand>
+          </customCommands>
+        </component>
+
+        <component>
           <name>JOURNALNODE</name>
           <displayName>JournalNode</displayName>
           <category>SLAVE</category>
