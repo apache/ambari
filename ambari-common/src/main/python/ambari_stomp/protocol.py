@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Provides the 1.0, 1.1 and 1.2 protocol classes.
 """
 

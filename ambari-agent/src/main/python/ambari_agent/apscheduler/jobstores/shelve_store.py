@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Stores jobs in a file governed by the :mod:`shelve` module.
 """

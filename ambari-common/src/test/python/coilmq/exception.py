@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Exception classes used by CoilMQ.
 

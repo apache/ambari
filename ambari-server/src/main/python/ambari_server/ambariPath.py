@@ -37,5 +37,3 @@ class AmbariPath():
     """
     #return os.path.realpath(AmbariPath.root_directory + os.sep + path) # realpath won't replace slashes for python2.6
     return re.sub('/+', '/', AmbariPath.root_directory + os.sep + path)
-    
-  

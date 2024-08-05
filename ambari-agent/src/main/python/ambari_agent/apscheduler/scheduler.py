@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 This module is the main part of the library. It houses the Scheduler class
 and related exceptions.

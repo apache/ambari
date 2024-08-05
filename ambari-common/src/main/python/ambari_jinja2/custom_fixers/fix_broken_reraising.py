@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from lib2to3 import fixer_base, pytree
 from lib2to3.fixer_util import Name, BlankLine, Name, Attr, ArgList
 

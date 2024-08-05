@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Non-durable topic support functionality.
 

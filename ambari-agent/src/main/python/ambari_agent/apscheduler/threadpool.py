@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Generic thread pool class. Modeled after Java's ThreadPoolExecutor.
 Please note that this ThreadPool does *not* fully implement the PEP 3148

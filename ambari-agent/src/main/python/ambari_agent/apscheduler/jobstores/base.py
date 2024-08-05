@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Abstract base class that provides the interface needed by all job stores.
 Job store methods are also documented here.

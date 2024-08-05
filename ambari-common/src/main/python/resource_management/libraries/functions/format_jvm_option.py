@@ -44,4 +44,3 @@ def format_jvm_option(name, default_value):
           return default_value
   else:
     return default_value
-    

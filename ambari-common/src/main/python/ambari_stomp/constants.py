@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """The STOMP command and header name strings.
 """
 

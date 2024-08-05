@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Stores jobs in an array in RAM. Provides no persistence support.
 """

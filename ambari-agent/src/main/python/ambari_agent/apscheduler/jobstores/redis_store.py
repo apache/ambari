@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Stores jobs in a Redis database.
 """

@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import gc
 import unittest
 from ambari_jinja2._markupsafe import Markup, escape, escape_silent

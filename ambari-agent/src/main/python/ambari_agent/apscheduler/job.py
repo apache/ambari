@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Jobs represent scheduled tasks.
 """

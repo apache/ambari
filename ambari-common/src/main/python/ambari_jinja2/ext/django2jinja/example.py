@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from django.conf import settings
 settings.configure(TEMPLATE_DIRS=['templates'], TEMPLATE_DEBUG=True)
 

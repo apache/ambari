@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Python3-specific versions of various functions used by stomp.py
 """

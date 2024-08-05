@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """stomp.py provides connectivity to a message broker supporting the STOMP protocol.
 Protocol versions 1.0, 1.1 and 1.2 are supported.
 

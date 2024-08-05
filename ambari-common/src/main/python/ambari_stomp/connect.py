@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Main entry point for clients to create a STOMP connection.
 
 Provides connection classes for `1.0 <http://stomp.github.io/stomp-specification-1.0.html>`_,

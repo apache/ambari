@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 This module contains several handy functions primarily meant for internal use.
 """

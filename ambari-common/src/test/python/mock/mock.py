@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # mock.py
 # Test tools for mocking and patching.
 # Copyright (C) 2007-2012 Michael Foord & the mock team

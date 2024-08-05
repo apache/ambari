@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from datetime import date, datetime
 
 from apscheduler.triggers.cron.fields import *

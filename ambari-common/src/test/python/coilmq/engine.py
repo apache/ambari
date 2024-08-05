@@ -1,7 +1,4 @@
-
-
-from coilmq.protocol import STOMP10
-
+#!/usr/bin/env python3
 """
 Core STOMP server logic, abstracted from socket transport implementation.
 
@@ -21,6 +18,7 @@ Patrick Hurley and Lionel Bouton.  See http://stompserver.rubyforge.org/
 """
 import logging
 from collections import defaultdict
+from coilmq.protocol import STOMP10
 
 __authors__ = ['"Hans Lellelid" <hans@xmpl.org>']
 __copyright__ = "Copyright 2009 Hans Lellelid"

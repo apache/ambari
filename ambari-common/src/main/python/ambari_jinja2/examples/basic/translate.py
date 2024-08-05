@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from ambari_jinja2 import Environment
 
 print(Environment(extensions=['ambari_jinja2.i18n.TransExtension']).from_string("""\

@@ -1,4 +1,4 @@
-#!python
+#!/usr/bin/env python3
 """
 Entrypoint for starting the application.
 """

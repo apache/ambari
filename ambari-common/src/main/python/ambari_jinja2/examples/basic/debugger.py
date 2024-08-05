@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from ambari_jinja2 import Environment
 from ambari_jinja2.loaders import FileSystemLoader
 
