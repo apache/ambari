@@ -1120,6 +1120,9 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
       }
 
       newMaster.set("selectedHost", suggestedHost);
+      if(!currentMasters.get("lastObject.serviceComponentId")){
+        currentMasters.get("lastObject").set("serviceComponentId",0)
+      }
       newMaster.set("serviceComponentId", (currentMasters.get("lastObject.serviceComponentId") + 1));
 
       this.get("selectedServicesMasters").insertAt(this.get("selectedServicesMasters").indexOf(lastMaster) + 1, newMaster);

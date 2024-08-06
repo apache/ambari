@@ -1518,6 +1518,11 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     highAvailabilityController.enableNameNodeFederation();
   },
 
+  openRouterFederationWizard: function () {
+    var highAvailabilityController = App.router.get('mainAdminHighAvailabilityController');
+    highAvailabilityController.enableRouterFederation();
+  },
+
   /**
    * This method is called when user event to download configs for "All Clients"
    * is made from service action menu
