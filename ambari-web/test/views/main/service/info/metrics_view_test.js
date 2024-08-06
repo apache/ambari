@@ -214,17 +214,16 @@ describe('App.MainServiceInfoMetricsView', function() {
       mock.sortable.restore();
     });
 
-    it("MutationObserver callback should be called", function() {
+    it("MutationObserver callback should be called", function(done) {
       view.makeSortable('#widget_layout');
       const callback = function () {
-        expect(true).to.be.true;
         expect(document.querySelector('#widget_layout')).to.not.be.null;
         observer.disconnect();
         done();
       };
       const observer = new MutationObserver(callback);
       const body = document.body;
-      observer.observe(body, { childList: true });
+      observer.observe(body, { childList: true, subtree: true });
       const elementWidget = document.createElement('div');
       elementWidget.id='widget_layout';
       body.appendChild(elementWidget);
