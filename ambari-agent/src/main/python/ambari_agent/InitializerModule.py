@@ -91,8 +91,8 @@ class InitializerModule:
     self.stale_alerts_monitor = StaleAlertsMonitor(self)
     self.server_responses_listener = ServerResponsesListener(self)
     self.file_cache = FileCache(self.config)
-    self.customServiceOrchestrator = CustomServiceOrchestrator(self)
     self.hooks_orchestrator = HooksOrchestrator(self)
+    self.customServiceOrchestrator = CustomServiceOrchestrator(self)
     self.recovery_manager = RecoveryManager(self)
     self.commandStatuses = CommandStatusDict(self)
 
