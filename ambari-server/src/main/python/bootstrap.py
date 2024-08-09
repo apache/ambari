@@ -345,7 +345,7 @@ class BootstrapWindows(Bootstrap):
     user_run_as = self.shared_state.user_run_as
     server = self.shared_state.ambari_server
     version = self.getAmbariVersion()
-    return ' '.join(['python', setupFile, expected_hostname, passphrase, server, user_run_as, version])
+    return ' '.join(['python3', setupFile, expected_hostname, passphrase, server, user_run_as, version])
 
   def runSetupAgent(self):
     self.host_log.write("==========================\n")
@@ -609,7 +609,7 @@ class BootstrapDefault(Bootstrap):
     version = self.getAmbariVersion()
     port = self.getAmbariPort()
     passwordFile = self.getPasswordFile()
-    return "{sudo} -S python ".format(sudo=AMBARI_SUDO) + str(setupFile) + " " + str(expected_hostname) + \
+    return "{sudo} -S python3 ".format(sudo=AMBARI_SUDO) + str(setupFile) + " " + str(expected_hostname) + \
            " " + str(passphrase) + " " + str(server)+ " " + quote_bash_args(str(user_run_as)) + " " + str(version) + \
            " " + str(port) + " < " + str(passwordFile)
 
@@ -620,7 +620,7 @@ class BootstrapDefault(Bootstrap):
     user_run_as = self.shared_state.user_run_as
     version=self.getAmbariVersion()
     port=self.getAmbariPort()
-    return "{sudo} python ".format(sudo=AMBARI_SUDO) + str(setupFile) + " " + str(expected_hostname) + \
+    return "{sudo} python3 ".format(sudo=AMBARI_SUDO) + str(setupFile) + " " + str(expected_hostname) + \
            " " + str(passphrase) + " " + str(server)+ " " + quote_bash_args(str(user_run_as)) + " " + str(version) + \
            " " + str(port)
 
