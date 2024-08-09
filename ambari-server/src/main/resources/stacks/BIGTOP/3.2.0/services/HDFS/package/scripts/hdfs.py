@@ -130,6 +130,15 @@ def hdfs(name=None):
             group=params.user_group
   )
 
+  XmlConfig("hdfs-rbf-site.xml",
+              conf_dir=params.hadoop_conf_dir,
+              configurations=params.config['configurations']['hdfs-rbf-site'],
+              configuration_attributes=params.config['configurationAttributes']['hdfs-rbf-site'],
+              mode=0o644,
+              owner=params.hdfs_user,
+              group=params.user_group
+    )
+
   XmlConfig("core-site.xml",
             conf_dir=params.hadoop_conf_dir,
             configurations=params.config['configurations']['core-site'],

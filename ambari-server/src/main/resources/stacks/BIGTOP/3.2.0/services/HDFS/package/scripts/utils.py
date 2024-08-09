@@ -403,6 +403,22 @@ def get_dfsadmin_base_command(hdfs_binary, use_specific_namenode = False):
     dfsadmin_base_command = format("{hdfs_binary} dfsadmin -fs {params.namenode_address}")
   return dfsadmin_base_command
 
+def get_dfsrouteradmin_base_command(hdfs_binary, use_specific_router = False):
+  """
+  Get the dfsrouteradmin base command constructed using hdfs_binary path and passing router address as explicit -fs argument
+  :param hdfs_binary: path to hdfs binary to use
+  :param use_specific_router: flag if set and Router HA is enabled, then the dfsrouteradmin command will use
+  current router's address
+  :return: the constructed dfsrouteradmin base command
+  """
+  import params
+  dfsrouteradmin_base_command = ""
+  if params.dfs_ha_enabled and use_specific_router:
+    dfsrouteradmin_base_command = format("{hdfs_binary} dfsrouteradmin -fs hdfs://{params.router_rpc}")
+  else:
+    dfsadmin_base_command = format("{hdfs_binary} dfsrouteradmin -fs {params.router_address}")
+  return dfsrouteradmin_base_command
+
 
 def set_up_zkfc_security(params):
     """ Sets up security for accessing zookeper on secure clusters """
