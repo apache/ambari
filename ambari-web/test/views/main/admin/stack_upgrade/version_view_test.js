@@ -472,11 +472,11 @@ describe('App.mainAdminStackVersionsView', function () {
     };
     before(function () {
       sinon.spy(App, 'showConfirmationPopup');
-      sinon.stub(window.location, 'replace', Em.K);
+      sinon.stub(App, 'replaceWindowLocation', Em.K);
     });
     after(function () {
       App.showConfirmationPopup.restore();
-      window.location.replace.restore();
+      App.replaceWindowLocation.restore();
     });
 
     beforeEach(function () {
@@ -494,7 +494,7 @@ describe('App.mainAdminStackVersionsView', function () {
       popup.onPrimary();
       var args = testHelpers.findAjaxRequest('name', 'ambari.service.load_server_version');
       expect(args[0]).exists;
-      expect(window.location.replace.calledWith('/views/ADMIN_VIEW/2.1.0/INSTANCE/#!/stackVersions')).to.be.true;
+      expect(App.replaceWindowLocation.calledWith('/views/ADMIN_VIEW/2.1.0/INSTANCE/#/')).to.be.true;
     });
   });
 
@@ -516,11 +516,11 @@ describe('App.mainAdminStackVersionsView', function () {
     };
     before(function () {
       sinon.spy(App, 'showConfirmationPopup');
-      sinon.stub(window.location, 'replace', Em.K);
+      sinon.stub(App, 'replaceWindowLocation', Em.K);
     });
     after(function () {
       App.showConfirmationPopup.restore();
-      window.location.replace.restore();
+      App.replaceWindowLocation.restore();
     });
 
     beforeEach(function () {
@@ -538,7 +538,7 @@ describe('App.mainAdminStackVersionsView', function () {
       popup.onPrimary();
       var args = testHelpers.findAjaxRequest('name', 'ambari.service.load_server_version');
       expect(args[0]).exists;
-      expect(window.location.replace.calledWith('/views/ADMIN_VIEW/2.1.0/INSTANCE/#!/stackVersions')).to.be.true;
+      expect(App.replaceWindowLocation.calledWith('/views/ADMIN_VIEW/2.1.0/INSTANCE/#/')).to.be.true;
     });
   });
 

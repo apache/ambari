@@ -96,11 +96,10 @@ pipeline {
             parallel {
                 stage('Ambari WebUI Tests') {
                     steps {
-                        withEnv(['OPENSSL_CONF=/dev/null']) {
-                            sh 'lsb_release -a'
-                            sh 'mvn -T 2C -am test -pl ambari-web,ambari-admin -Dmaven.artifact.threads=10 -Drat.skip'
-
-                        }
+                        sh 'lsb_release -a'
+                        sh 'apt-get install chromium-browser'
+                        sh 'export CHROME_BIN=/usr/bin/chromium-browser'
+                        sh 'mvn -T 2C -am test -pl ambari-web,ambari-admin -Dmaven.artifact.threads=10 -Drat.skip'
                     }
                 }
 
