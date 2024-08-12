@@ -86,35 +86,42 @@ pipeline {
                     steps {
                         sh 'echo "Checking Chromium installation..."'
                         sh '''
-                        echo "Checking Chromium installation..."
-                        if command -v chromium-browser &> /dev/null
-                        then
-                            echo "Chromium is installed"
-                            echo "Chromium path: $(which chromium-browser)"
-                            chromium-browser --version
-                        elif command -v chromium &> /dev/null
-                        then
-                            echo "Chromium is installed"
-                            echo "Chromium path: $(which chromium)"
-                            chromium --version
-                        else
-                            echo "Chromium is not installed"
-                        fi
+                       echo "Checking Chromium installation..."
+                       echo "command -v chromium-browser output:"
+                       command -v chromium-browser || echo "chromium-browser not found in PATH"
 
-                        echo "Checking Chromium installation directories..."
-                        if [ -d "/usr/bin/chromium-browser" ]; then
-                            echo "Chromium found in /usr/bin/chromium-browser"
-                        fi
-                        if [ -d "/snap/bin/chromium" ]; then
-                            echo "Chromium found in /snap/bin/chromium"
-                        fi
-                        if [ -d "$HOME/.config/chromium" ]; then
-                            echo "Chromium user data found in $HOME/.config/chromium"
-                        fi
-                        if [ -d "$HOME/snap/chromium/current/.config/chromium" ]; then
-                            echo "Chromium snap user data found in $HOME/snap/chromium/current/.config/chromium"
-                        fi
-                        '''
+                       echo "which chromium-browser output:"
+                       which chromium-browser || echo "chromium-browser not found by which command"
+                       if command -v chromium-browser &> /dev/null; then
+                           echo "Chromium  browser is installed (chromium-browser)"
+                           echo "Chromium browser path: $(which chromium-browser)"
+                           chromium-browser --version || echo "Failed to get chromium-browser version"
+                       elif command -v chromium &> /dev/null; then
+                           echo "Chromium is installed (chromium)"
+                           echo "Chromium path: $(which chromium)"
+                           chromium --version || echo "Failed to get chromium version"
+                       elif command -v google-chrome &> /dev/null; then
+                           echo "Google Chrome is installed"
+                           echo "Chrome path: $(which google-chrome)"
+                           google-chrome --version || echo "Failed to get Google Chrome version"
+                       else
+                           echo "Chromium or Google Chrome is not installed or not in PATH"
+                       fi
+
+                       echo "Checking Chromium installation directories..."
+                       for dir in "/usr/bin/chromium-browser" "/snap/bin/chromium" "$HOME/.config/chromium" "$HOME/snap/chromium/current/.config/chromium" "/usr/bin/chromium" "/usr/bin/google-chrome"; do
+                           if [ -e "$dir" ]; then
+                               echo "Found: $dir"
+                               ls -l "$dir" || echo "Failed to list $dir"
+                           fi
+                       done
+
+                       echo "Checking system PATH..."
+                       echo $PATH
+
+                       echo "Listing /usr/bin contents (grep for chrome/chromium)..."
+                       ls -l /usr/bin | grep -i 'chrome\|chromium' || echo "No chrome/chromium found in /usr/bin"
+                       '''
                     }
                 }
             }
