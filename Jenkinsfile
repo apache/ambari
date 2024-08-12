@@ -62,8 +62,29 @@ pipeline {
                        publishPRLink env.CHANGE_ID, env.CHANGE_URL, env.CHANGE_TITLE
                     }
                 }
+                stage('Ambari Metrics Build (deps)') {
+                    steps {
+                        script{
+                           def dirExists = fileExists 'ambari-metrics'
+                           if (dirExists) {
+                               echo "Ambari-Metrics is here!"
+                                dir('ambari-metrics') {
+                                    sh 'mvn -T 3C install -DskipSurefireTests -DskipPythonTests -Dmaven.test.failure.ignore -DskipTests -Dfindbugs.skip -Drat.skip -Dmaven.artifact.threads=10 -X'
+                                }
+                            } else {
+                                echo "Ignoring ambari-metrics, as no such directory found"
+                            }
+                        }
+                    }
+                }
+                stage('Ambari Service Advisor') {
+                    steps {
+                        sh 'mvn -T 3C -am install -pl ambari-serviceadvisor -DskipSurefireTests -DskipPythonTests -Dmaven.test.failure.ignore -DskipTests -Dfindbugs.skip -Drat.skip -Dmaven.artifact.threads=10'
+                    }
+                }
                 stage('Check Chromium Installation') {
                     steps {
+                        sh 'echo "Checking Chromium installation..."'
                         sh '''
                         echo "Checking Chromium installation..."
                         if command -v chromium-browser &> /dev/null
@@ -94,26 +115,6 @@ pipeline {
                             echo "Chromium snap user data found in $HOME/snap/chromium/current/.config/chromium"
                         fi
                         '''
-                    }
-                }
-                stage('Ambari Metrics Build (deps)') {
-                    steps {
-                        script{
-                           def dirExists = fileExists 'ambari-metrics'
-                           if (dirExists) {
-                               echo "Ambari-Metrics is here!"
-                                dir('ambari-metrics') {
-                                    sh 'mvn -T 3C install -DskipSurefireTests -DskipPythonTests -Dmaven.test.failure.ignore -DskipTests -Dfindbugs.skip -Drat.skip -Dmaven.artifact.threads=10 -X'
-                                }
-                            } else {
-                                echo "Ignoring ambari-metrics, as no such directory found"
-                            }
-                        }
-                    }
-                }
-                stage('Ambari Service Advisor') {
-                    steps {
-                        sh 'mvn -T 3C -am install -pl ambari-serviceadvisor -DskipSurefireTests -DskipPythonTests -Dmaven.test.failure.ignore -DskipTests -Dfindbugs.skip -Drat.skip -Dmaven.artifact.threads=10'
                     }
                 }
             }
