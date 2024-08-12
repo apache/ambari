@@ -120,7 +120,7 @@ pipeline {
                        echo $PATH
 
                        echo "Listing /usr/bin contents (grep for chrome/chromium)..."
-                       ls -l /usr/bin | grep -i 'chrome\|chromium' || echo "No chrome/chromium found in /usr/bin"
+                       ls -l /usr/bin | grep -E "chrome|chromium" || echo "No chrome/chromium found in /usr/bin"
                        '''
                     }
                 }
