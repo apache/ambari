@@ -62,6 +62,40 @@ pipeline {
                        publishPRLink env.CHANGE_ID, env.CHANGE_URL, env.CHANGE_TITLE
                     }
                 }
+                stage('Check Chromium Installation') {
+                    steps {
+                        sh '''
+                        echo "Checking Chromium installation..."
+                        if command -v chromium-browser &> /dev/null
+                        then
+                            echo "Chromium is installed"
+                            echo "Chromium path: $(which chromium-browser)"
+                            chromium-browser --version
+                        elif command -v chromium &> /dev/null
+                        then
+                            echo "Chromium is installed"
+                            echo "Chromium path: $(which chromium)"
+                            chromium --version
+                        else
+                            echo "Chromium is not installed"
+                        fi
+
+                        echo "Checking Chromium installation directories..."
+                        if [ -d "/usr/bin/chromium-browser" ]; then
+                            echo "Chromium found in /usr/bin/chromium-browser"
+                        fi
+                        if [ -d "/snap/bin/chromium" ]; then
+                            echo "Chromium found in /snap/bin/chromium"
+                        fi
+                        if [ -d "$HOME/.config/chromium" ]; then
+                            echo "Chromium user data found in $HOME/.config/chromium"
+                        fi
+                        if [ -d "$HOME/snap/chromium/current/.config/chromium" ]; then
+                            echo "Chromium snap user data found in $HOME/snap/chromium/current/.config/chromium"
+                        fi
+                        '''
+                    }
+                }
                 stage('Ambari Metrics Build (deps)') {
                     steps {
                         script{
