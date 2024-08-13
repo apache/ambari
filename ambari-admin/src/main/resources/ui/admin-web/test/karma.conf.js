@@ -42,13 +42,28 @@ module.exports = function(config){
 
     autoWatch : true,
 
+    colors: true,
+
+    logLevel: config.LOG_INFO,
+
+    captureTimeout: 60000,
+
+    browserNoActivityTimeout: 30000,
+
     frameworks: ['jasmine'],
 
-    browsers: ['PhantomJS'],
+    customLaunchers: {
+      ChromeHeadlessCustom: {
+        base: 'ChromeHeadless',
+        flags: ['--no-sandbox', '--disable-gpu', '--disable-translate', '--disable-extensions']
+      }
+    },
+
+    browsers: ['ChromeHeadlessCustom'],
 
     plugins : [
             'karma-jasmine',
-            'karma-phantomjs-launcher',
+            'karma-chrome-launcher',
             'karma-ng-html2js-preprocessor'
             ],
 

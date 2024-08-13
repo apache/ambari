@@ -135,7 +135,7 @@
               <commandlineArgs>${args.shell} ${basedir}${dirsep}set-ambari-version.${fileextension.shell} ${ambariVersion}</commandlineArgs>
             </configuration>
           </execution>
-          <!-- <execution>
+          <execution>
             <id>unit test</id>
             <phase>test</phase>
             <goals>
@@ -149,7 +149,7 @@
                 <argument>test-single-run</argument>
               </arguments>
             </configuration>
-          </execution> -->
+          </execution>
         </executions>
       </plugin>
       <plugin>
