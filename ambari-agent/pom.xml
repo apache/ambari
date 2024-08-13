@@ -250,7 +250,7 @@
                 <argument>${python.test.mask}</argument>
               </arguments>
               <environmentVariables>
-                <PYTHONPATH>${path.python.1}${pathsep}$PYTHONPATH</PYTHONPATH>
+                <PYTHONPATH>${path.python.1}${pathsep}${env.PYTHONPATH}</PYTHONPATH>
               </environmentVariables>
               <skip>${skipPythonTests}</skip>
             </configuration>
@@ -269,7 +269,7 @@
                 <argument>${target.cache.dir}</argument>
               </arguments>
               <environmentVariables>
-                <PYTHONPATH>target${dirsep}ambari-agent-${project.version}${pathsep}$PYTHONPATH</PYTHONPATH>
+                <PYTHONPATH>target${dirsep}ambari-agent-${project.version}${pathsep}${env.PYTHONPATH}</PYTHONPATH>
               </environmentVariables>
             </configuration>
             <id>generate-hash-files</id>
