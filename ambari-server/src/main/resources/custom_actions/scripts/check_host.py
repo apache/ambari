@@ -447,7 +447,7 @@ class CheckHost(Script):
     # try to connect to db
     db_connection_check_command = format("{java_exec} -cp {check_db_connection_path}{class_path_delimiter}" \
            "{jdbc_jar_path} -Djava.library.path={java_library_path} org.apache.ambari.server.DBConnectionVerification \"{db_connection_url}\" " \
-           "\"{user_name}\" {user_passwd!p} {jdbc_driver_class}")
+           "\"{user_name}\" '{user_passwd!p}' {jdbc_driver_class}")
 
     if db_name == DB_SQLA:
       db_connection_check_command = "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:{0}{1} {2}".format(agent_cache_dir,
