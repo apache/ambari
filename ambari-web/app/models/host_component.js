@@ -575,6 +575,12 @@ App.HostComponentActionMap = {
         cssClass: 'icon icon-sitemap',
         disabled: !App.get('isHaEnabled') || App.get('allHostNames.length') < 4
       },
+      TOGGLE_RBF_FEDERATION: {
+        action: 'openRouterFederationWizard',
+        label: Em.I18n.t('admin.routerFederation.button.enable'),
+        cssClass: 'icon icon-sitemap',
+        disabled: !App.get('hasNameNodeFederation')
+      },
       UPDATE_REPLICATION: {
         action: 'updateHBaseReplication',
         customCommand: 'UPDATE_REPLICATION',
