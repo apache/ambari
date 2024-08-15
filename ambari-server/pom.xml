@@ -754,7 +754,7 @@
                 <argument>${python.test.mask}</argument>
               </arguments>
               <environmentVariables>
-                  <PYTHONPATH>${path.python.1}${pathsep}$PYTHONPATH</PYTHONPATH>
+                  <PYTHONPATH>${path.python.1}${pathsep}${env.PYTHONPATH}</PYTHONPATH>
               </environmentVariables>
               <skip>${skipPythonTests}</skip>
             </configuration>
