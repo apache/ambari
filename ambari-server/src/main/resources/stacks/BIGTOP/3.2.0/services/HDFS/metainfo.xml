@@ -232,7 +232,7 @@
           <reassignAllowed>true</reassignAllowed>
           <timelineAppid>router</timelineAppid>
           <commandScript>
-            <script>scripts/router.py</script>
+            <script>scripts/dfsrouter.py</script>
             <scriptType>PYTHON</scriptType>
             <timeout>1800</timeout>
           </commandScript>
@@ -261,7 +261,7 @@
             <customCommand>
               <name>DECOMMISSION</name>
               <commandScript>
-                <script>scripts/router.py</script>
+                <script>scripts/dfsrouter.py</script>
                 <scriptType>PYTHON</scriptType>
                 <timeout>600</timeout>
               </commandScript>
