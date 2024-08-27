@@ -250,7 +250,9 @@ App.WizardStep6Controller = Em.Controller.extend(App.HostComponentValidationMixi
     this.get('hosts').forEach(function (host) {
       host.checkboxes.filterProperty('isInstalled', false).forEach(function (checkbox) {
         if (checkbox.component === component) {
-          Em.set(checkbox, 'checked', checked);
+          if (!checkbox.isDisabled) {
+            Em.set(checkbox, 'checked', checked);
+          }
         }
       });
     });
