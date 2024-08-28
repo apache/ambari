@@ -314,6 +314,9 @@
           <license>2012, Apache Software Foundation</license>
           <group>Development</group>
           <description>Maven Recipe: RPM Package.</description>
+          <defineStatements>
+            <defineStatement>__python 3</defineStatement>
+          </defineStatements>
           <requires>
             <require>${rpm.dependency.list}</require>
           </requires>
