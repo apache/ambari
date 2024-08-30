@@ -96,8 +96,6 @@ pipeline {
             parallel {
                 stage('Ambari WebUI Tests') {
                     steps {
-                        sh 'lsb_release -a'
-                        sh 'apt-get install chromium-browser'
                         sh 'export CHROME_BIN=/usr/bin/chromium-browser'
                         sh 'mvn -T 2C -am test -pl ambari-web,ambari-admin -Dmaven.artifact.threads=10 -Drat.skip'
                     }
