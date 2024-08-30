@@ -137,7 +137,7 @@ describe('App.Service', function () {
       },
       {
         serviceName: 'HDFS',
-        result: ['HA_MODE', 'FEDERATION']
+        result: ['HA_MODE', 'FEDERATION', 'DFSRouter']
       },
       {
         serviceName: 'YARN',
