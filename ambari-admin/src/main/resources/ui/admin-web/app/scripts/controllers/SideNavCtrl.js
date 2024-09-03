@@ -35,14 +35,27 @@ angular.module('ambariAdminConsole')
   }
 
   function initNavigationBar () {
-    $('body').on('DOMNodeInserted', '.navigation-bar', function() {
-      $('.navigation-bar').navigationBar({
-        fitHeight: true,
-        collapseNavBarClass: 'fa-angle-double-left',
-        expandNavBarClass: 'fa-angle-double-right'
-      });
-      //initTooltips();
-      $('body').off('DOMNodeInserted', '.navigation-bar');
+    const observer = new MutationObserver(mutations => {
+      var targetNode
+      if (mutations.some((mutation) => mutation.type === 'childList' && (targetNode = $('.navigation-bar')).length)) {
+        observer.disconnect();
+        //initTooltips();
+        targetNode.navigationBar({
+          fitHeight: true,
+          collapseNavBarClass: 'fa-angle-double-left',
+          expandNavBarClass: 'fa-angle-double-right'
+        });
+      }
+    });
+
+    setTimeout(() => {
+      // remove observer if selected element is not found in 10secs.
+      observer.disconnect();
+    }, 10000)
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
     });
   }
 
