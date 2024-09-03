@@ -82,48 +82,6 @@ pipeline {
                         sh 'mvn -T 3C -am install -pl ambari-serviceadvisor -DskipSurefireTests -DskipPythonTests -Dmaven.test.failure.ignore -DskipTests -Dfindbugs.skip -Drat.skip -Dmaven.artifact.threads=10'
                     }
                 }
-                stage('Check Chromium Installation') {
-                    steps {
-                        sh 'echo "Checking Chromium installation..."'
-                        sh '''
-                       echo "Checking Chromium installation..."
-                       echo "command -v chromium-browser output:"
-                       command -v chromium-browser || echo "chromium-browser not found in PATH"
-
-                       echo "which chromium-browser output:"
-                       which chromium-browser || echo "chromium-browser not found by which command"
-                       if command -v chromium-browser &> /dev/null; then
-                           echo "Chromium  browser is installed (chromium-browser)"
-                           echo "Chromium browser path: $(which chromium-browser)"
-                           chromium-browser --version || echo "Failed to get chromium-browser version"
-                       elif command -v chromium &> /dev/null; then
-                           echo "Chromium is installed (chromium)"
-                           echo "Chromium path: $(which chromium)"
-                           chromium --version || echo "Failed to get chromium version"
-                       elif command -v google-chrome &> /dev/null; then
-                           echo "Google Chrome is installed"
-                           echo "Chrome path: $(which google-chrome)"
-                           google-chrome --version || echo "Failed to get Google Chrome version"
-                       else
-                           echo "Chromium or Google Chrome is not installed or not in PATH"
-                       fi
-
-                       echo "Checking Chromium installation directories..."
-                       for dir in "/usr/bin/chromium-browser" "/snap/bin/chromium" "$HOME/.config/chromium" "$HOME/snap/chromium/current/.config/chromium" "/usr/bin/chromium" "/usr/bin/google-chrome"; do
-                           if [ -e "$dir" ]; then
-                               echo "Found: $dir"
-                               ls -l "$dir" || echo "Failed to list $dir"
-                           fi
-                       done
-
-                       echo "Checking system PATH..."
-                       echo $PATH
-
-                       echo "Listing /usr/bin contents (grep for chrome/chromium)..."
-                       ls -l /usr/bin | grep -E "chrome|chromium" || echo "No chrome/chromium found in /usr/bin"
-                       '''
-                    }
-                }
             }
         }
 
@@ -138,11 +96,8 @@ pipeline {
             parallel {
                 stage('Ambari WebUI Tests') {
                     steps {
-                        withEnv(['OPENSSL_CONF=/dev/null']) {
-                            sh 'lsb_release -a'
-                            sh 'mvn -T 2C -am test -pl ambari-web,ambari-admin -Dmaven.artifact.threads=10 -Drat.skip'
-
-                        }
+                       sh 'export CHROME_BIN=/usr/bin/chromium-browser'
+                       sh 'mvn -T 2C -am test -pl ambari-web,ambari-admin -Dmaven.artifact.threads=10 -Drat.skip'
                     }
                 }
 
