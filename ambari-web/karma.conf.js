@@ -23,7 +23,7 @@ module.exports = function(config) {
     basePath: '',
 
     plugins: [
-      'karma-phantomjs-launcher',
+      'karma-chrome-launcher',
       'karma-mocha',
       'karma-chai',
       'karma-sinon',
@@ -159,6 +159,13 @@ module.exports = function(config) {
     // enable / disable watching file and executing tests whenever any file changes
     autoWatch: true,
 
+    
+    customLaunchers: {
+      ChromeHeadlessCustom: {
+        base: 'ChromeHeadless',
+        flags: ['--no-sandbox', '--disable-gpu', '--disable-translate', '--disable-extensions']
+      }
+    },
 
     // Start these browsers, currently available:
     // - Chrome
@@ -167,7 +174,7 @@ module.exports = function(config) {
     // - Opera (has to be installed with `npm install karma-opera-launcher`)
     // - Safari (only Mac; has to be installed with `npm install karma-safari-launcher`)
     // - IE (only Windows; has to be installed with `npm install karma-ie-launcher`)
-    browsers: ['PhantomJS'],
+    browsers: ['ChromeHeadlessCustom'],
 
     // If browser does not capture in given timeout [ms], kill it
     captureTimeout: 60000,

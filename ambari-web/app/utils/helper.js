@@ -1101,3 +1101,16 @@ App.logger = function() {
   };
 
 }();
+
+/**
+ * Replce cruuent window location.
+ * `window.location.replace` is a native function and cannot be intercepted by Sinon,
+ * it needs to be intercepted manually. See https://stackoverflow.com/a/52141931/14792586.
+ * 
+ * Simple function, no test cases available.
+ * 
+ * @param {string} location new location
+ **/
+App.replaceWindowLocation = function(location) {
+  window.location.replace(location);
+}
