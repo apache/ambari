@@ -33,6 +33,15 @@
           7
         ]
       },
+      "openeuler": {
+        "extends" : "redhat",
+        "distro": [
+          "openeuler"
+        ],
+        "versions": [
+          22
+        ]
+      },
       "amazonlinux": {
         "extends" : "redhat",
         "distro": [
