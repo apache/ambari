@@ -29,15 +29,17 @@ from resource_management.core.resources.service import ServiceConfig
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.functions.lzo_utils import install_lzo_if_needed
-from resource_management.core.resources.system import Directory
+from resource_management.core.resources.system import Directory,Execute
 from resource_management.core.resources.system import File
 from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.core.source import InlineTemplate, Template
 from resource_management.core.logger import Logger
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
+from resource_management.libraries.script.config_dictionary import UnknownConfiguration
 
 from resource_management.libraries.functions.mounted_dirs_helper import handle_mounted_dirs
+from hbase_service import create_hbase_package, copy_hbase_package_to_hdfs, createTables
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def yarn(name=None, config_dir=None):
@@ -80,6 +82,12 @@ def yarn(name=None, config_dir=None):
             ignore_failures=True,
             cd_access='a',
   )
+  Directory(params.yarn_hbase_conf_dir,
+            owner = params.yarn_hbase_user,
+            group = params.user_group,
+            create_parents = True,
+            cd_access='a',
+  )
 
   # Some of these function calls depend on the directories above being created first.
   if name == 'resourcemanager':
@@ -90,6 +98,10 @@ def yarn(name=None, config_dir=None):
     setup_ats()
   elif name == 'historyserver':
     setup_historyserver()
+  elif name == 'apptimelinereader':
+    if not params.use_external_hbase and not params.is_hbase_system_service_launch:
+      setup_atsv2_hbase_directories()
+      setup_atsv2_hbase_files()
   
   XmlConfig("core-site.xml",
             conf_dir=config_dir,
@@ -121,9 +133,13 @@ def yarn(name=None, config_dir=None):
             mode=0o644
   )
 
+
+  configs = {}
+  configs.update(params.config['configurations']['yarn-site'])
+  configs["hadoop.registry.dns.bind-port"] = params.config['configurations']['yarn-env']['registry.dns.bind-port']
   XmlConfig("yarn-site.xml",
             conf_dir=config_dir,
-            configurations=params.config['configurations']['yarn-site'],
+            configurations=configs,
             configuration_attributes=params.config['configurationAttributes']['yarn-site'],
             owner=params.yarn_user,
             group=params.user_group,
@@ -138,6 +154,25 @@ def yarn(name=None, config_dir=None):
             group=params.user_group,
             mode=0o644
   )
+
+  if not isinstance(params.hbase_site_conf, UnknownConfiguration):
+      XmlConfig("hbase-site.xml",
+                conf_dir=params.yarn_hbase_conf_dir,
+                configurations=params.hbase_site_conf,
+                configuration_attributes=params.hbase_site_attributes,
+                owner=params.yarn_hbase_user,
+                group=params.user_group,
+                mode=0o644
+                )
+
+  XmlConfig("resource-types.xml",
+            conf_dir=config_dir,
+            configurations=params.config['configurations']['resource-types'],
+            configuration_attributes=params.config['configurationAttributes']['resource-types'],
+            owner=params.yarn_user,
+            group=params.user_group,
+            mode=0o644
+            )
   File(format("{limits_conf_dir}/yarn.conf"),
        mode=0o644,
        content=Template('yarn.conf.j2')
@@ -200,6 +235,14 @@ def yarn(name=None, config_dir=None):
            owner=params.yarn_user,
            group=params.user_group,
            content=Template("yarn_ats_jaas.conf.j2")
+      )
+
+    if params.has_registry_dns:
+      File(os.path.join(config_dir, 'yarn_registry_dns_jaas.conf'),
+           owner=params.yarn_user,
+           group=params.user_group,
+           mode=0o644,
+           content=Template("yarn_registry_dns_jaas.conf.j2")
       )
     File(os.path.join(config_dir, 'yarn_nm_jaas.conf'),
          owner=params.yarn_user,
@@ -286,6 +329,8 @@ def yarn(name=None, config_dir=None):
          owner=params.mapred_user,
          group=params.user_group
     )
+
+  setup_atsv2_backend(name, config_dir)
 
 def setup_historyserver():
   import params
@@ -530,6 +575,12 @@ def yarn(name = None):
             owner=params.yarn_user,
             mode='f'
   )
+  XmlConfig("yarn-hbase-site.xml",
+            conf_dir=params.config_dir,
+            configurations=params.config['configurations']['yarn-hbase-site'],
+            owner=params.yarn_user,
+            mode='f'
+  )
 
   if name in params.service_map:
     service_name = params.service_map[name]
@@ -538,3 +589,193 @@ def yarn(name = None):
                   action="change_user",
                   username = params.yarn_user,
                   password = Script.get_password(params.yarn_user))
+
+def setup_atsv2_backend(name=None, config_dir=None):
+    import params
+    Logger.info(f"setup_atsv2_backend name:{name} {params.use_external_hbase} {params.hbase_within_cluster} {params.is_hbase_system_service_launch}")
+    if name == "apptimelinereader" and params.use_external_hbase and params.hbase_within_cluster:
+        createTables()
+
+    if not params.use_external_hbase and params.is_hbase_system_service_launch:
+        if name == 'resourcemanager':
+            setup_system_services(config_dir)
+        elif name == 'nodemanager':
+            setup_atsv2_hbase_files()
+
+def setup_atsv2_hbase_files():
+    import params
+    if 'yarn-hbase-policy' in params.config['configurations']:
+        XmlConfig( "hbase-policy.xml",
+                   conf_dir = params.yarn_hbase_conf_dir,
+                   configurations = params.config['configurations']['yarn-hbase-policy'],
+                   configuration_attributes=params.config['configurationAttributes']['yarn-hbase-policy'],
+                   owner = params.yarn_hbase_user,
+                   group = params.user_group,
+                   mode=0o644
+                   )
+
+    File(os.path.join(params.yarn_hbase_conf_dir, "hbase-env.sh"),
+         owner=params.yarn_hbase_user,
+         group=params.user_group,
+         mode=0o644,
+         content=InlineTemplate(params.yarn_hbase_env_sh_template)
+         )
+
+    File( format("{yarn_hbase_grant_premissions_file}"),
+          owner   = params.yarn_hbase_user,
+          group   = params.user_group,
+          mode    = 0o644,
+          content = Template('yarn_hbase_grant_permissions.j2')
+          )
+
+    if (params.yarn_hbase_log4j_props != None):
+        File(format("{yarn_hbase_conf_dir}/log4j.properties"),
+             mode=0o644,
+             group=params.user_group,
+             owner=params.yarn_hbase_user,
+             content=InlineTemplate(params.yarn_hbase_log4j_props)
+             )
+    elif (os.path.exists(format("{yarn_hbase_conf_dir}/log4j.properties"))):
+        File(format("{yarn_hbase_conf_dir}/log4j.properties"),
+             mode=0o644,
+             group=params.user_group,
+             owner=params.yarn_hbase_user
+             )
+    if params.security_enabled:
+        File(os.path.join(params.yarn_hbase_conf_dir, 'yarn_hbase_master_jaas.conf'),
+             owner=params.yarn_hbase_user,
+             group=params.user_group,
+             content=Template("yarn_hbase_master_jaas.conf.j2")
+             )
+        File(os.path.join(params.yarn_hbase_conf_dir, 'yarn_hbase_regionserver_jaas.conf'),
+             owner=params.yarn_hbase_user,
+             group=params.user_group,
+             content=Template("yarn_hbase_regionserver_jaas.conf.j2")
+             )
+    # Metrics properties
+    if params.has_metric_collector:
+        File(os.path.join(params.yarn_hbase_conf_dir, 'hadoop-metrics2-hbase.properties'),
+             owner=params.yarn_hbase_user,
+             group=params.user_group,
+             content=Template("hadoop-metrics2-hbase.properties.j2")
+             )
+
+def setup_atsv2_hbase_directories():
+    import  params
+    Directory([params.yarn_hbase_pid_dir_prefix, params.yarn_hbase_pid_dir, params.yarn_hbase_log_dir],
+              owner=params.yarn_hbase_user,
+              group=params.user_group,
+              create_parents=True,
+              cd_access='a',
+              )
+
+    parent_dir = os.path.dirname(params.yarn_hbase_tmp_dir)
+    # In case if we have several placeholders in path
+    while ("${" in parent_dir):
+        parent_dir = os.path.dirname(parent_dir)
+    if parent_dir != os.path.abspath(os.sep) :
+        Directory (parent_dir,
+                   create_parents = True,
+                   cd_access="a",
+                   )
+        Execute(("chmod", "1777", parent_dir), sudo=True)
+
+def setup_system_services(config_dir=None):
+    import  params
+    setup_atsv2_hbase_files()
+    if params.security_enabled:
+        File(os.path.join(params.yarn_hbase_conf_dir, 'hbase.yarnfile'),
+             owner=params.yarn_hbase_user,
+             group=params.user_group,
+             content=Template("yarn_hbase_secure.yarnfile.j2")
+             )
+    else:
+        File(os.path.join(params.yarn_hbase_conf_dir, 'hbase.yarnfile'),
+             owner=params.yarn_hbase_user,
+             group=params.user_group,
+             content=Template("yarn_hbase_unsecure.yarnfile.j2")
+             )
+
+
+    user_dir = format("{yarn_system_service_dir}/{yarn_system_service_launch_mode}/{yarn_hbase_user}")
+    params.HdfsResource(user_dir,
+                        type="directory",
+                        action="create_on_execute",
+                        owner=params.yarn_user,
+                        group=params.user_group
+                        )
+    params.HdfsResource(format("{user_dir}/hbase.yarnfile"),
+                        type="file",
+                        action="create_on_execute",
+                        source=format("{yarn_hbase_conf_dir}/hbase.yarnfile"),
+                        owner=params.yarn_user,
+                        group=params.user_group
+                        )
+    params.HdfsResource(format("{yarn_hbase_user_home}"),
+                        type="directory",
+                        action="create_on_execute",
+                        owner=params.yarn_hbase_user,
+                        group=params.user_group,
+                        mode=0o770,
+                        )
+    params.HdfsResource(format("{yarn_hbase_user_version_home}"),
+                        type="directory",
+                        action="create_on_execute",
+                        owner=params.yarn_hbase_user,
+                        group=params.user_group,
+                        mode=0o770,
+                        )
+    params.HdfsResource(format("{yarn_hbase_user_version_home}/core-site.xml"),
+                        type="file",
+                        action="create_on_execute",
+                        source=format("{config_dir}/core-site.xml"),
+                        owner=params.yarn_hbase_user,
+                        group=params.user_group
+                        )
+    params.HdfsResource(format("{yarn_hbase_user_version_home}/hbase-site.xml"),
+                        type="file",
+                        action="create_on_execute",
+                        source=format("{yarn_hbase_conf_dir}/hbase-site.xml"),
+                        owner=params.yarn_hbase_user,
+                        group=params.user_group
+                        )
+    params.HdfsResource(format("{yarn_hbase_user_version_home}/hbase-policy.xml"),
+                        type="file",
+                        action="create_on_execute",
+                        source=format("{yarn_hbase_conf_dir}/hbase-policy.xml"),
+                        owner=params.yarn_hbase_user,
+                        group=params.user_group
+                        )
+    params.HdfsResource(format("{yarn_hbase_user_version_home}/log4j.properties"),
+                        type="file",
+                        action="create_on_execute",
+                        source=format("{yarn_hbase_conf_dir}/log4j.properties"),
+                        owner=params.yarn_hbase_user,
+                        group=params.user_group
+                        )
+    if params.has_metric_collector:
+        params.HdfsResource(format("{yarn_hbase_user_version_home}/hadoop-metrics2-hbase.properties"),
+                            type="file",
+                            action="create_on_execute",
+                            source=format("{yarn_hbase_conf_dir}/hadoop-metrics2-hbase.properties"),
+                            owner=params.yarn_hbase_user,
+                            group=params.user_group
+                            )
+    params.HdfsResource(params.yarn_hbase_hdfs_root_dir,
+                        type="directory",
+                        action="create_on_execute",
+                        owner=params.yarn_hbase_user
+                        )
+    # copy service-dep.tar.gz into hdfs
+    params.HdfsResource(format("{yarn_service_app_hdfs_path}"),
+                        type="directory",
+                        action="create_on_execute",
+                        owner=params.hdfs_user,
+                        group=params.hdfs_user,
+                        mode=0o555,
+                        )
+
+    params.HdfsResource(None, action="execute")
+
+    create_hbase_package()
+    copy_hbase_package_to_hdfs()

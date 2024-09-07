@@ -72,6 +72,35 @@
           }
         },
         {
+          "widget_name": "Bad Local Disks",
+          "description": "Number of unhealthy local disks across all NodeManagers.",
+          "widget_type": "NUMBER",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "yarn.NodeManagerMetrics.BadLocalDirs",
+              "metric_path": "metrics/yarn/BadLocalDirs",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            },
+            {
+              "name": "yarn.NodeManagerMetrics.BadLogDirs",
+              "metric_path": "metrics/yarn/BadLogDirs",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            }
+          ],
+          "values": [
+            {
+              "name": "Number of unhealthy local disks for NodeManager",
+              "value": "${yarn.NodeManagerMetrics.BadLocalDirs + yarn.NodeManagerMetrics.BadLogDirs}"
+            }
+          ],
+          "properties": {
+            "display_unit": ""
+          }
+        },
+        {
           "widget_name": "Container Failures",
           "description": "Percentage of all containers failing in the cluster.",
           "widget_type": "GRAPH",
@@ -372,10 +401,40 @@
       "section_name": "YARN_HEATMAPS",
       "widgetLayoutInfo": [
         {
-          "widget_name": "Total Allocatable RAM Utilized per NodeManager",
+          "widget_name": "YARN local disk space utilization per NodeManager",
           "description": "",
           "widget_type": "HEATMAP",
           "is_visible": true,
+          "metrics": [
+            {
+              "name": "yarn.NodeManagerMetrics.GoodLocalDirsDiskUtilizationPerc",
+              "metric_path": "metrics/yarn/GoodLocalDirsDiskUtilizationPerc",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            },
+            {
+              "name": "yarn.NodeManagerMetrics.GoodLogDirsDiskUtilizationPerc",
+              "metric_path": "metrics/yarn/GoodLogDirsDiskUtilizationPerc",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            }
+          ],
+          "values": [
+            {
+              "name": "YARN local disk space utilization per NodeManager",
+              "value": "${(yarn.NodeManagerMetrics.GoodLocalDirsDiskUtilizationPerc + yarn.NodeManagerMetrics.GoodLogDirsDiskUtilizationPerc)/2}"
+            }
+          ],
+          "properties": {
+            "display_unit": "%",
+            "max_limit": "100"
+          }
+        },
+        {
+          "widget_name": "Total Allocatable RAM Utilized per NodeManager",
+          "description": "",
+          "widget_type": "HEATMAP",
+          "is_visible": false,
           "metrics": [
             {
               "name": "yarn.NodeManagerMetrics.AllocatedGB",

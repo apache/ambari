@@ -27,6 +27,72 @@
       <components>
 
         <component>
+          <name>TIMELINE_READER</name>
+          <displayName>Timeline Service V2.0 Reader</displayName>
+          <category>MASTER</category>
+          <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <reassignAllowed>true</reassignAllowed>
+          <auto-deploy>
+            <enabled>true</enabled>
+            <co-locate>YARN/RESOURCEMANAGER</co-locate>
+          </auto-deploy>
+
+          <commandScript>
+            <script>scripts/timelinereader.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1200</timeout>
+          </commandScript>
+          <!-- ATSv2 backend i.e Hbase requires HDFS as dependency -->
+          <dependencies>
+            <dependency>
+              <name>HDFS/HDFS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+        </component>
+
+        <component>
+          <name>YARN_REGISTRY_DNS</name>
+          <displayName>YARN Registry DNS</displayName>
+          <category>MASTER</category>
+          <cardinality>0-1</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <reassignAllowed>true</reassignAllowed>
+
+          <commandScript>
+            <script>scripts/yarn_registry_dns.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1200</timeout>
+          </commandScript>
+        </component>
+
+        <component>
+          <name>APP_TIMELINE_SERVER</name>
+          <displayName>Timeline Service V2</displayName>
+          <category>MASTER</category>
+          <cardinality>1</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <reassignAllowed>true</reassignAllowed>
+
+          <commandScript>
+            <script>scripts/application_timeline_server.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1200</timeout>
+          </commandScript>
+
+          <logs>
+            <log>
+              <logId>yarn_timelineserver</logId>
+            </log>
+          </logs>
+
+        </component>
+
+        <component>
           <name>RESOURCEMANAGER</name>
           <displayName>ResourceManager</displayName>
           <category>MASTER</category>
@@ -72,6 +138,8 @@
           <configuration-dependencies>
             <config-type>capacity-scheduler</config-type>
             <config-type>hdfs-site</config-type>
+            <config-type>resource-types</config-type>
+            <config-type>container-executor</config-type>
           </configuration-dependencies>
         </component>
 
@@ -98,6 +166,11 @@
               <logId>yarn_nodemanager</logId>
             </log>
           </logs>
+
+          <configuration-dependencies>
+            <config-type>resource-types</config-type>
+            <config-type>container-executor</config-type>
+          </configuration-dependencies>
         </component>
 
         <component>
@@ -136,6 +209,16 @@
               <type>xml</type>
               <fileName>capacity-scheduler.xml</fileName>
               <dictionaryName>capacity-scheduler</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>xml</type>
+              <fileName>resource-types.xml</fileName>
+              <dictionaryName>resource-types</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>properties</type>
+              <fileName>container-executor.cfg</fileName>
+              <dictionaryName>container-executor</dictionaryName>
             </configFile>
           </configFiles>
         </component>
@@ -186,13 +269,16 @@
         <config-type>hdfs-site</config-type>
         <config-type>hadoop-env</config-type>
         <config-type>core-site</config-type>
+        <config-type>viewfs-mount-table</config-type>
         <config-type>mapred-site</config-type>
         <config-type>yarn-log4j</config-type>
+        <config-type>ams-ssl-client</config-type>
         <config-type>ranger-yarn-plugin-properties</config-type>
         <config-type>ranger-yarn-audit</config-type>
         <config-type>ranger-yarn-policymgr-ssl</config-type>
         <config-type>ranger-yarn-security</config-type>
       </configuration-dependencies>
+
       <widgetsFileName>YARN_widgets.json</widgetsFileName>
       <metricsFileName>YARN_metrics.json</metricsFileName>
       <themes>
@@ -326,10 +412,12 @@
         <config-type>hdfs-site</config-type>
         <config-type>hadoop-env</config-type>
         <config-type>core-site</config-type>
+        <config-type>viewfs-mount-table</config-type>
         <config-type>mapred-site</config-type>
         <config-type>mapred-env</config-type>
         <config-type>ssl-client</config-type>
         <config-type>ssl-server</config-type>
+        <config-type>ams-ssl-client</config-type>
         <config-type>yarn-site</config-type>
       </configuration-dependencies>
       <restartRequiredAfterRackChange>true</restartRequiredAfterRackChange>

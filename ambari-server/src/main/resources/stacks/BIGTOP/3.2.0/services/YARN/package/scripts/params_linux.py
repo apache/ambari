@@ -36,12 +36,15 @@ from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
 from resource_management.libraries.functions.version import format_stack_version, get_major_version
 from resource_management.libraries.functions.default import default
+from resource_management.libraries.functions.expect import expect
 from resource_management.libraries import functions
 from resource_management.libraries.functions import is_empty
 from resource_management.libraries.functions.get_architecture import get_architecture
 from resource_management.libraries.functions.setup_ranger_plugin_xml import get_audit_configs, generate_ranger_service_config
 
 import status_params
+from functions import calc_heap_memory, ensure_unit_for_memory
+
 
 service_name = 'yarn'
 # a map of the Ambari role to the component name
@@ -55,7 +58,9 @@ YARN_SERVER_ROLE_DIRECTORY_MAP = {
   'APP_TIMELINE_SERVER' : 'hadoop-yarn-timelineserver',
   'NODEMANAGER' : 'hadoop-yarn-nodemanager',
   'RESOURCEMANAGER' : 'hadoop-yarn-resourcemanager',
-  'YARN_CLIENT' : 'hadoop-yarn-client'
+  'YARN_CLIENT' : 'hadoop-yarn-client',
+  'TIMELINE_READER' : 'hadoop-yarn-timelinereader',
+  'YARN_REGISTRY_DNS' : 'hadoop-yarn-registrydns'
 }
 
 # server configurations
@@ -152,6 +157,12 @@ yarn_bin = format("{hadoop_yarn_home}/sbin")
 yarn_container_bin = format("{hadoop_yarn_home}/bin")
 hadoop_java_io_tmpdir = os.path.join(tmp_dir, "hadoop_java_io_tmpdir")
 
+# MapR directory root
+mapred_role_root = "hadoop-mapreduce-client"
+command_role = default("/role", "")
+if command_role in MAPR_SERVER_ROLE_DIRECTORY_MAP:
+  mapred_role_root = MAPR_SERVER_ROLE_DIRECTORY_MAP[command_role]
+
 
 if stack_supports_timeline_state_store:
   # Timeline Service property that was added timeline_state_store stack feature
@@ -191,6 +202,8 @@ current_nm_security_state = os.path.isfile(nm_security_marker)
 toggle_nm_security = (current_nm_security_state and not security_enabled) or (not current_nm_security_state and security_enabled)
 smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 
+mapred2_service_check_test_file = format('{tmp_dir}/mapred2-service-check')
+
 yarn_executor_container_group = config['configurations']['yarn-site']['yarn.nodemanager.linux-container-executor.group']
 yarn_nodemanager_container_executor_class =  config['configurations']['yarn-site']['yarn.nodemanager.container-executor.class']
 is_linux_container_executor = (yarn_nodemanager_container_executor_class == 'org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor')
@@ -209,6 +222,7 @@ rm_nodes_exclude_dir = os.path.dirname(rm_nodes_exclude_path)
 java64_home = config['ambariLevelParams']['java_home']
 java_exec = format("{java64_home}/bin/java")
 hadoop_ssl_enabled = default("/configurations/core-site/hadoop.ssl.enabled", False)
+java_version = expect("/ambariLevelParams/java_version", int)
 
 yarn_heapsize = config['configurations']['yarn-env']['yarn_heapsize']
 resourcemanager_heapsize = config['configurations']['yarn-env']['resourcemanager_heapsize']
@@ -292,6 +306,12 @@ if include_file_path and manage_include_files:
 ats_host = set(default("/clusterHostInfo/app_timeline_server_hosts", []))
 has_ats = not len(ats_host) == 0
 
+atsv2_host = set(default("/clusterHostInfo/timeline_reader_hosts", []))
+has_atsv2 = not len(atsv2_host) == 0
+
+registry_dns_host = set(default("/clusterHostInfo/yarn_registry_dns_hosts", []))
+has_registry_dns = not len(registry_dns_host) == 0
+
 # don't using len(nm_hosts) here, because check can take too much time on large clusters
 number_of_nm = 1
 
@@ -322,12 +342,18 @@ if security_enabled:
     rm_security_opts = format('-Dzookeeper.sasl.client=true -Dzookeeper.sasl.client.username={zk_principal_user} -Djava.security.auth.login.config={yarn_jaas_file} -Dzookeeper.sasl.clientconfig=Client')
 
   # YARN timeline security options
-  if has_ats:
+  if has_ats or has_atsv2:
     yarn_timelineservice_principal_name = config['configurations']['yarn-site']['yarn.timeline-service.principal']
     yarn_timelineservice_principal_name = yarn_timelineservice_principal_name.replace('_HOST', hostname.lower())
     yarn_timelineservice_keytab = config['configurations']['yarn-site']['yarn.timeline-service.keytab']
     yarn_timelineservice_kinit_cmd = format("{kinit_path_local} -kt {yarn_timelineservice_keytab} {yarn_timelineservice_principal_name};")
     yarn_ats_jaas_file = os.path.join(hadoop_conf_dir, 'yarn_ats_jaas.conf')
+
+  if has_registry_dns:
+    yarn_registry_dns_principal_name = config['configurations']['yarn-env']['yarn.registry-dns.principal']
+    yarn_registry_dns_principal_name = yarn_registry_dns_principal_name.replace('_HOST', hostname.lower())
+    yarn_registry_dns_keytab = config['configurations']['yarn-env']['yarn.registry-dns.keytab']
+    yarn_registry_dns_jaas_file = os.path.join(hadoop_conf_dir, 'yarn_registry_dns_jaas.conf')
 
   if 'yarn.nodemanager.principal' in config['configurations']['yarn-site']:
     nodemanager_principal_name = default('/configurations/yarn-site/yarn.nodemanager.principal', None)
@@ -421,6 +447,7 @@ yarn_rm_address = config['configurations']['yarn-site']['yarn.resourcemanager.we
 rm_active_port = rm_https_port if yarn_https_on else rm_port
 
 rm_ha_enabled = False
+rm_ha_id = None
 rm_ha_ids_list = []
 rm_webapp_addresses_list = [yarn_rm_address]
 rm_ha_ids = default("/configurations/yarn-site/yarn.resourcemanager.ha.rm-ids", None)
@@ -436,6 +463,9 @@ if rm_ha_enabled:
     rm_webapp_address_property = format('yarn.resourcemanager.webapp.address.{rm_id}') if not yarn_https_on else format('yarn.resourcemanager.webapp.https.address.{rm_id}')
     rm_webapp_address = config['configurations']['yarn-site'][rm_webapp_address_property]
     rm_webapp_addresses_list.append(rm_webapp_address)
+    rm_host_name = config['configurations']['yarn-site'][format('yarn.resourcemanager.hostname.{rm_id}')]
+    if rm_host_name == hostname.lower():
+      rm_ha_id = rm_id
 
 # for curl command in ranger plugin to get db connector
 jdk_location = config['ambariLevelParams']['jdk_location']
@@ -574,3 +604,223 @@ if enable_ranger_yarn and is_supported_yarn_ranger:
 
 # need this to capture cluster name from where ranger yarn plugin is enabled
 cluster_name = config['clusterName']
+
+# ranger yarn plugin end section
+
+# container-executor properties
+min_user_id = config['configurations']['container-executor']['min_user_id']
+docker_module_enabled = str(config['configurations']['container-executor']['docker_module_enabled']).lower()
+docker_binary = config['configurations']['container-executor']['docker_binary']
+docker_allowed_capabilities = config['configurations']['yarn-site']['yarn.nodemanager.runtime.linux.docker.capabilities']
+if docker_allowed_capabilities:
+  docker_allowed_capabilities = ','.join(x.strip() for x in docker_allowed_capabilities.split(','))
+else:
+  docker_allowed_capabilities = ""
+docker_allowed_devices = config['configurations']['container-executor']['docker_allowed_devices']
+docker_allowed_networks = config['configurations']['yarn-site']['yarn.nodemanager.runtime.linux.docker.allowed-container-networks']
+if docker_allowed_networks:
+  docker_allowed_networks = ','.join(x.strip() for x in docker_allowed_networks.split(','))
+else:
+  docker_allowed_networks = ""
+docker_allowed_ro_mounts = config['configurations']['container-executor']['docker_allowed_ro-mounts']
+docker_allowed_rw_mounts = config['configurations']['container-executor']['docker_allowed_rw-mounts']
+docker_privileged_containers_enabled = str(config['configurations']['container-executor']['docker_privileged-containers_enabled']).lower()
+docker_trusted_registries = config['configurations']['container-executor']['docker_trusted_registries']
+docker_allowed_volume_drivers = config['configurations']['container-executor']['docker_allowed_volume-drivers']
+
+# ATSv2 integration properties started.
+yarn_timelinereader_pid_file = status_params.yarn_timelinereader_pid_file
+
+yarn_atsv2_hbase_versioned_home = format("{stack_root}/{version}/usr/lib/hbase")
+yarn_hbase_bin = format("{yarn_atsv2_hbase_versioned_home}/bin")
+yarn_hbase_hdfs_root_dir = config['configurations']['yarn-hbase-site']['hbase.rootdir']
+cluster_zookeeper_quorum_hosts = ",".join(config['clusterHostInfo']['zookeeper_server_hosts'])
+if 'zoo.cfg' in config['configurations'] and 'clientPort' in config['configurations']['zoo.cfg']:
+  cluster_zookeeper_clientPort = config['configurations']['zoo.cfg']['clientPort']
+else:
+  cluster_zookeeper_clientPort = '2181'
+
+zookeeper_quorum_hosts = cluster_zookeeper_quorum_hosts
+zookeeper_clientPort = cluster_zookeeper_clientPort
+yarn_hbase_user = status_params.yarn_hbase_user
+hbase_user = config['configurations']['hbase-env']['hbase_user']
+yarn_hbase_user_home = format("/user/{yarn_hbase_user}")
+yarn_hbase_user_version_home = format("{yarn_hbase_user_home}/{version}")
+yarn_hbase_app_hdfs_path = format("/bigtop/apps/{version}/hbase")
+yarn_service_app_hdfs_path = format("/bigtop/apps/{version}/yarn")
+if rm_ha_id is not None:
+  yarn_hbase_app_hdfs_path = format("{yarn_hbase_app_hdfs_path}/{rm_ha_id}")
+  yarn_service_app_hdfs_path = format("{yarn_service_app_hdfs_path}/{rm_ha_id}")
+yarn_service_dep_source_path = format("{stack_root}/{version}/usr/lib/hadoop-yarn/lib/service-dep.tar.gz")
+yarn_hbase_user_version_path = format("{yarn_hbase_user}/{version}")
+yarn_hbase_user_tmp = format("{tmp_dir}/{yarn_hbase_user_version_path}")
+yarn_hbase_log_dir = os.path.join(yarn_log_dir_prefix, "embedded-yarn-ats-hbase")
+yarn_hbase_pid_dir_prefix = status_params.yarn_hbase_pid_dir_prefix
+yarn_hbase_pid_dir = status_params.yarn_hbase_pid_dir
+yarn_hbase_conf_dir = os.path.join(hadoop_conf_dir, "embedded-yarn-ats-hbase")
+yarn_hbase_env_sh_template = config['configurations']['yarn-hbase-env']['content']
+yarn_hbase_java_io_tmpdir = default("/configurations/yarn-hbase-env/hbase_java_io_tmpdir", "/tmp")
+yarn_hbase_tmp_dir = config['configurations']['yarn-hbase-site']['hbase.tmp.dir']
+yarn_hbase_local_dir = config['configurations']['yarn-hbase-site']['hbase.local.dir']
+yarn_hbase_master_info_port = config['configurations']['yarn-hbase-site']['hbase.master.info.port']
+yarn_hbase_regionserver_info_port = config['configurations']['yarn-hbase-site']['hbase.regionserver.info.port']
+
+if (('yarn-hbase-log4j' in config['configurations']) and ('content' in config['configurations']['yarn-hbase-log4j'])):
+  yarn_hbase_log4j_props = config['configurations']['yarn-hbase-log4j']['content']
+else:
+  yarn_hbase_log4j_props = None
+
+timeline_collector = ""
+yarn_timeline_service_version = config['configurations']['yarn-site']['yarn.timeline-service.version']
+yarn_timeline_service_versions = config['configurations']['yarn-site']['yarn.timeline-service.versions']
+yarn_timeline_service_enabled = config['configurations']['yarn-site']['yarn.timeline-service.enabled']
+
+if yarn_timeline_service_enabled:
+  if is_empty(yarn_timeline_service_versions):
+    if yarn_timeline_service_version == '2.0' or yarn_timeline_service_version == '2':
+      timeline_collector = "timeline_collector"
+  else:
+    ts_version_list = yarn_timeline_service_versions.split(',')
+    for ts_version in ts_version_list:
+      if '2.0' in ts_version or ts_version == '2':
+        timeline_collector = "timeline_collector"
+        break
+
+coprocessor_jar_name = "hadoop-yarn-server-timelineservice-hbase-coprocessor.jar"
+yarn_timeline_jar_location = format("file://{stack_root}/{version}/usr/lib/hadoop-yarn/timelineservice/{coprocessor_jar_name}")
+yarn_user_hbase_permissions = "RWXCA"
+
+yarn_hbase_kinit_cmd = ""
+if security_enabled and has_atsv2:
+  yarn_hbase_jaas_file = os.path.join(yarn_hbase_conf_dir, 'yarn_hbase_jaas.conf')
+  yarn_hbase_master_jaas_file = os.path.join(yarn_hbase_conf_dir, 'yarn_hbase_master_jaas.conf')
+  yarn_hbase_regionserver_jaas_file = os.path.join(yarn_hbase_conf_dir, 'yarn_hbase_regionserver_jaas.conf')
+
+  yarn_hbase_master_principal_name = config['configurations']['yarn-hbase-site']['hbase.master.kerberos.principal']
+  yarn_hbase_master_principal_name = yarn_hbase_master_principal_name.replace('_HOST', hostname.lower())
+  yarn_hbase_master_keytab = config['configurations']['yarn-hbase-site']['hbase.master.keytab.file']
+
+  yarn_hbase_regionserver_principal_name = config['configurations']['yarn-hbase-site']['hbase.regionserver.kerberos.principal']
+  yarn_hbase_regionserver_principal_name = yarn_hbase_regionserver_principal_name.replace('_HOST', hostname.lower())
+  yarn_hbase_regionserver_keytab = config['configurations']['yarn-hbase-site']['hbase.regionserver.keytab.file']
+
+  # User master principal name as AM principal in system service. Don't replace _HOST.
+  yarn_ats_hbase_principal_name = config['configurations']['yarn-hbase-site']['hbase.master.kerberos.principal']
+  yarn_ats_hbase_keytab = config['configurations']['yarn-hbase-site']['hbase.master.keytab.file']
+  yarn_ats_principal_name = config['configurations']['yarn-env']['yarn_ats_principal_name']
+  yarn_ats_user_keytab = config['configurations']['yarn-env']['yarn_ats_user_keytab']
+  yarn_hbase_kinit_cmd = format("{kinit_path_local} -kt {yarn_ats_user_keytab} {yarn_ats_principal_name};")
+
+
+hbase_within_cluster = config['configurations']['yarn-hbase-env']['hbase_within_cluster']
+is_hbase_installed = False
+master_configs = config['clusterHostInfo']
+
+if hbase_within_cluster:
+  if 'hbase_master_hosts' in master_configs and 'hbase-site' in config['configurations']:
+    is_hbase_installed = True
+    zookeeper_znode_parent = config['configurations']['hbase-site']['zookeeper.znode.parent']
+  else:
+    zookeeper_znode_parent = "/hbase-unsecure"
+  hbase_site_conf = config['configurations']['hbase-site']
+  hbase_site_attributes = config['configurationAttributes']['hbase-site']
+  yarn_hbase_conf_dir = "/etc/hbase/conf"
+else:
+  zookeeper_znode_parent = "/atsv2-hbase-unsecure"
+  hbase_site_conf  = config['configurations']['yarn-hbase-site']
+  hbase_site_attributes = config['configurationAttributes']['yarn-hbase-site']
+
+yarn_hbase_grant_premissions_file = format("{yarn_hbase_conf_dir}/hbase_grant_permissions.sh")
+yarn_hbase_package_preparation_file = format("{tmp_dir}/hbase_package_preparation.sh")
+is_hbase_system_service_launch = config['configurations']['yarn-hbase-env']['is_hbase_system_service_launch']
+use_external_hbase = config['configurations']['yarn-hbase-env']['use_external_hbase']
+
+hbase_cmd = format("{yarn_hbase_bin}/hbase --config {yarn_hbase_conf_dir}")
+class_name = format("org.apache.hadoop.yarn.server.timelineservice.storage.TimelineSchemaCreator -Dhbase.client.retries.number=35 -create -s")
+yarn_hbase_table_create_cmd = format("export HBASE_CLASSPATH_PREFIX={stack_root}/{version}/usr/lib/hadoop-yarn/timelineservice/*;{yarn_hbase_kinit_cmd} {hbase_cmd} {class_name}")
+yarn_hbase_table_grant_premission_cmd = format("{yarn_hbase_kinit_cmd} {hbase_cmd} shell {yarn_hbase_grant_premissions_file}")
+
+# System service configuration as part of ATSv2.
+yarn_system_service_dir = config['configurations']['yarn-site']['yarn.service.system-service.dir']
+yarn_system_service_launch_mode = config['configurations']['yarn-hbase-env']['yarn_hbase_system_service_launch_mode']
+yarn_hbase_service_queue_name = config['configurations']['yarn-hbase-env']['yarn_hbase_system_service_queue_name']
+
+yarn_hbase_master_cpu = config['configurations']['yarn-hbase-env']['yarn_hbase_master_cpu']
+yarn_hbase_master_memory = expect("/configurations/yarn-hbase-env/yarn_hbase_master_memory", int)
+yarn_hbase_master_containers = config['configurations']['yarn-hbase-env']['yarn_hbase_master_containers']
+yarn_hbase_regionserver_cpu = config['configurations']['yarn-hbase-env']['yarn_hbase_regionserver_cpu']
+yarn_hbase_regionserver_memory = expect("/configurations/yarn-hbase-env/yarn_hbase_regionserver_memory", int)
+yarn_hbase_regionserver_containers = config['configurations']['yarn-hbase-env']['yarn_hbase_regionserver_containers']
+yarn_hbase_client_cpu = config['configurations']['yarn-hbase-env']['yarn_hbase_client_cpu']
+yarn_hbase_client_memory = expect("/configurations/yarn-hbase-env/yarn_hbase_client_memory", int)
+yarn_hbase_client_containers = config['configurations']['yarn-hbase-env']['yarn_hbase_client_containers']
+
+yarn_hbase_heap_memory_factor = expect("/configurations/yarn-hbase-env/yarn_hbase_heap_memory_factor", float)
+yarn_hbase_master_heapsize = ensure_unit_for_memory(calc_heap_memory(yarn_hbase_master_memory, yarn_hbase_heap_memory_factor))
+yarn_hbase_regionserver_heapsize = ensure_unit_for_memory(calc_heap_memory(yarn_hbase_regionserver_memory, yarn_hbase_heap_memory_factor))
+
+yarn_hbase_log_level = str(config['configurations']['yarn-hbase-env']['yarn_hbase_log_level']).upper()
+# ATSv2 integration properties ended
+
+gpu_module_enabled = str(config['configurations']['container-executor']['gpu_module_enabled']).lower()
+cgroup_root = config['configurations']['container-executor']['cgroup_root']
+yarn_hierarchy = config['configurations']['container-executor']['yarn_hierarchy']
+
+# registry dns service
+registry_dns_needs_privileged_access = status_params.registry_dns_needs_privileged_access
+
+mount_table_content = None
+if 'viewfs-mount-table' in config['configurations']:
+  xml_inclusion_file_name = 'viewfs-mount-table.xml'
+  mount_table = config['configurations']['viewfs-mount-table']
+
+  if 'content' in mount_table and mount_table['content'].strip():
+    mount_table_content = mount_table['content']
+
+hbase_log_maxfilesize = default('configurations/yarn-hbase-log4j/hbase_log_maxfilesize',256)
+hbase_log_maxbackupindex = default('configurations/yarn-hbase-log4j/hbase_log_maxbackupindex',20)
+hbase_security_log_maxfilesize = default('configurations/yarn-hbase-log4j/hbase_security_log_maxfilesize',256)
+hbase_security_log_maxbackupindex = default('configurations/yarn-hbase-log4j/hbase_security_log_maxbackupindex',20)
+
+rm_cross_origin_enabled = config['configurations']['yarn-site']['yarn.resourcemanager.webapp.cross-origin.enabled']
+
+cross_origins = '*'
+if rm_cross_origin_enabled:
+  host_suffix = rm_host.rsplit('.', 2)[1:]
+  if len(host_suffix) == 2 :
+    cross_origins = 'regex:.*[.]' + '[.]'.join(host_suffix) + "(:\d*)?"
+
+ams_collector_hosts = ",".join(default("/clusterHostInfo/metrics_collector_hosts", []))
+has_metric_collector = not len(ams_collector_hosts) == 0
+if has_metric_collector:
+  if 'cluster-env' in config['configurations'] and \
+          'metrics_collector_vip_port' in config['configurations']['cluster-env']:
+    metric_collector_port = config['configurations']['cluster-env']['metrics_collector_vip_port']
+  else:
+    metric_collector_web_address = default("/configurations/ams-site/timeline.metrics.service.webapp.address", "0.0.0.0:6188")
+    if metric_collector_web_address.find(':') != -1:
+      metric_collector_port = metric_collector_web_address.split(':')[1]
+    else:
+      metric_collector_port = '6188'
+  if default("/configurations/ams-site/timeline.metrics.service.http.policy", "HTTP_ONLY") == "HTTPS_ONLY":
+    metric_collector_protocol = 'https'
+  else:
+    metric_collector_protocol = 'http'
+  metric_truststore_path= default("/configurations/ams-ssl-client/ssl.client.truststore.location", "")
+  metric_truststore_type= default("/configurations/ams-ssl-client/ssl.client.truststore.type", "")
+  metric_truststore_password= default("/configurations/ams-ssl-client/ssl.client.truststore.password", "")
+  host_in_memory_aggregation = default("/configurations/ams-site/timeline.metrics.host.inmemory.aggregation", True)
+  host_in_memory_aggregation_port = default("/configurations/ams-site/timeline.metrics.host.inmemory.aggregation.port", 61888)
+
+  pass
+metrics_report_interval = default("/configurations/ams-site/timeline.metrics.sink.report.interval", 60)
+metrics_collection_period = default("/configurations/ams-site/timeline.metrics.sink.collection.period", 10)
+
+host_in_memory_aggregation = default("/configurations/ams-site/timeline.metrics.host.inmemory.aggregation", True)
+host_in_memory_aggregation_port = default("/configurations/ams-site/timeline.metrics.host.inmemory.aggregation.port", 61888)
+is_aggregation_https_enabled = False
+if default("/configurations/ams-site/timeline.metrics.host.inmemory.aggregation.http.policy", "HTTP_ONLY") == "HTTPS_ONLY":
+  host_in_memory_aggregation_protocol = 'https'
+  is_aggregation_https_enabled = True
+else:
+  host_in_memory_aggregation_protocol = 'http'

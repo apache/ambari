@@ -10,14 +10,78 @@
         {
           "name": "yarn_smokeuser",
           "reference": "/smokeuser"
+        },
+        {
+          "name": "yarn_ats",
+          "principal": {
+            "value": "${yarn-env/yarn_ats_user}${principal_suffix}@${realm}",
+            "type" : "user",
+            "configuration": "yarn-env/yarn_ats_principal_name",
+            "local_username": "${yarn-env/yarn_ats_user}"
+          },
+          "keytab": {
+            "file": "${keytab_dir}/yarn-ats.hbase-client.headless.keytab",
+            "owner": {
+              "name": "${yarn-env/yarn_ats_user}",
+              "access": "r"
+            },
+            "group": {
+              "name": "${cluster-env/user_group}",
+              "access": ""
+            },
+            "configuration": "yarn-env/yarn_ats_user_keytab"
+          }
+        },
+        {
+          "name": "yarn_ats_hbase_master",
+          "principal": {
+            "value": "yarn-ats-hbase/_HOST@${realm}",
+            "type" : "service",
+            "configuration": "yarn-hbase-site/hbase.master.kerberos.principal",
+            "local_username": "${yarn-env/yarn_ats_user}"
+          },
+          "keytab": {
+            "file": "${keytab_dir}/yarn-ats.hbase-master.service.keytab",
+            "owner": {
+              "name": "${yarn-env/yarn_ats_user}",
+              "access": "r"
+            },
+            "group": {
+              "name": "${cluster-env/user_group}",
+              "access": ""
+            },
+            "configuration": "yarn-hbase-site/hbase.master.keytab.file"
+          }
+        },
+        {
+          "name": "yarn_ats_hbase_regionserver",
+          "principal": {
+            "value": "yarn-ats-hbase/_HOST@${realm}",
+            "type" : "service",
+            "configuration": "yarn-hbase-site/hbase.regionserver.kerberos.principal",
+            "local_username": "${yarn-env/yarn_ats_user}"
+          },
+          "keytab": {
+            "file": "${keytab_dir}/yarn-ats.hbase-regionserver.service.keytab",
+            "owner": {
+              "name": "${yarn-env/yarn_ats_user}",
+              "access": "r"
+            },
+            "group": {
+              "name": "${cluster-env/user_group}",
+              "access": ""
+            },
+            "configuration": "yarn-hbase-site/hbase.regionserver.keytab.file"
+          }
         }
       ],
       "configurations": [
         {
           "yarn-site": {
-            "yarn.timeline-service.enabled": "false",
+            "yarn.timeline-service.enabled": "true",
             "yarn.timeline-service.http-authentication.type": "kerberos",
             "yarn.acl.enable": "true",
+            "yarn.admin.acl": "${yarn-env/yarn_user}",
             "yarn.timeline-service.http-authentication.signature.secret": "",
             "yarn.timeline-service.http-authentication.signature.secret.file": "",
             "yarn.timeline-service.http-authentication.signer.secret.provider": "",
@@ -33,14 +97,45 @@
             "yarn.resourcemanager.proxyuser.*.hosts": "",
             "yarn.resourcemanager.proxyuser.*.users": "",
             "yarn.resourcemanager.proxy-user-privileges.enabled": "true",
+            "yarn.resourcemanager.zk-acl" : "sasl:${principals/YARN/RESOURCEMANAGER/resource_manager_rm|principalPrimary()}:rwcda",
             "hadoop.registry.secure" : "true",
-            "hadoop.registry.system.accounts" : "sasl:yarn,sasl:mapred,sasl:hadoop,sasl:hdfs,sasl:rm"
+            "hadoop.registry.system.accounts" : "sasl:${principals/YARN/APP_TIMELINE_SERVER/app_timeline_server_yarn|principalPrimary()},sasl:${principals/MAPREDUCE2/HISTORYSERVER/history_server_jhs|principalPrimary()},sasl:${principals/HDFS/NAMENODE/hdfs|principalPrimary()},sasl:${principals/YARN/RESOURCEMANAGER/resource_manager_rm|principalPrimary()},sasl:${principals/HIVE/HIVE_SERVER/hive_server_hive|principalPrimary()},sasl:${principals/SPARK2/spark_service_keytab|principalPrimary()}",
+            "hadoop.registry.client.auth" : "kerberos",
+            "hadoop.registry.jaas.context" : "Client"
           }
         },
         {
           "core-site": {
             "hadoop.proxyuser.${yarn-env/yarn_user}.groups": "*",
             "hadoop.proxyuser.${yarn-env/yarn_user}.hosts": "${clusterHostInfo/resourcemanager_hosts}"
+          }
+        },
+        {
+          "capacity-scheduler": {
+            "yarn.scheduler.capacity.root.acl_submit_applications": "${yarn-env/yarn_user},${cluster-env/smokeuser}",
+            "yarn.scheduler.capacity.root.acl_administer_queue": "${yarn-env/yarn_user}",
+            "yarn.scheduler.capacity.root.default.acl_administer_queue": "${yarn-env/yarn_user}",
+            "yarn.scheduler.capacity.root.default.acl_administer_jobs": "${yarn-env/yarn_user}",
+            "yarn.scheduler.capacity.root.default.acl_submit_applications": "${yarn-env/yarn_user},${yarn-env/yarn_ats_user}"
+          }
+        },
+        {
+          "ranger-yarn-audit": {
+            "xasecure.audit.jaas.Client.loginModuleName": "com.sun.security.auth.module.Krb5LoginModule",
+            "xasecure.audit.jaas.Client.loginModuleControlFlag": "required",
+            "xasecure.audit.jaas.Client.option.useKeyTab": "true",
+            "xasecure.audit.jaas.Client.option.storeKey": "false",
+            "xasecure.audit.jaas.Client.option.serviceName": "solr",
+            "xasecure.audit.destination.solr.force.use.inmemory.jaas.config": "true"
+          }
+        },
+        {
+          "yarn-hbase-site": {
+            "hbase.security.authentication": "kerberos",
+            "hbase.security.authorization": "true",
+            "hbase.coprocessor.master.classes": "org.apache.hadoop.hbase.security.access.AccessController",
+            "hbase.coprocessor.region.classes": "org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.AccessController",
+            "zookeeper.znode.parent": "/atsv2-hbase-secure"
           }
         }
       ],
@@ -70,6 +165,42 @@
               }
             },
             {
+              "name": "yarn_nodemanager_hive_server_hive",
+              "reference": "/HIVE/HIVE_SERVER/hive_server_hive",
+              "principal": {
+                "configuration": "hive-interactive-site/hive.llap.daemon.service.principal"
+              },
+              "keytab": {
+                "configuration": "hive-interactive-site/hive.llap.daemon.keytab.file"
+              },
+              "when" : {
+                "contains" : ["services", "HIVE"]
+              }
+            },
+            {
+              "name": "llap_task_hive",
+              "principal": {
+                "value": "hive/_HOST@${realm}",
+                "type" : "service",
+                "configuration": "hive-interactive-site/hive.llap.task.principal"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/hive.llap.task.keytab",
+                "owner": {
+                  "name": "${yarn-env/yarn_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": "r"
+                },
+                "configuration": "hive-interactive-site/hive.llap.task.keytab.file"
+              },
+              "when" : {
+                "contains" : ["services", "HIVE"]
+              }
+            },
+            {
               "name": "yarn_nodemanager_spnego",
               "reference": "/spnego",
               "principal": {
@@ -91,6 +222,10 @@
         {
           "name": "RESOURCEMANAGER",
           "identities": [
+            {
+              "name": "yarn_resourcemanager_hdfs",
+              "reference": "/HDFS/NAMENODE/hdfs"
+            },
             {
               "name": "resource_manager_rm",
               "principal": {
@@ -120,6 +255,16 @@
               },
               "keytab": {
                 "configuration": "yarn-site/yarn.resourcemanager.webapp.spnego-keytab-file"
+              }
+            },
+            {
+              "name": "yarn_resourcemanager_resource_manager_rm",
+              "reference": "/YARN/RESOURCEMANAGER/resource_manager_rm",
+              "principal": {
+                "configuration": "ranger-yarn-audit/xasecure.audit.jaas.Client.option.principal"
+              },
+              "keytab": {
+                "configuration": "ranger-yarn-audit/xasecure.audit.jaas.Client.option.keyTab"
               }
             }
           ]
@@ -163,6 +308,72 @@
               "reference": "/HDFS/NAMENODE/hdfs"
             }
           ]
+        },
+        {
+          "name": "TIMELINE_READER",
+          "identities": [
+            {
+              "name": "yarn_timeline_reader",
+              "principal": {
+                "value": "yarn/_HOST@${realm}",
+                "type" : "service",
+                "configuration": "yarn-site/yarn.timeline-service.principal",
+                "local_username": "${yarn-env/yarn_user}"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/yarn.service.keytab",
+                "owner": {
+                  "name": "${yarn-env/yarn_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "yarn-site/yarn.timeline-service.keytab"
+              }
+            },
+            {
+              "name": "yarn_timeline_reader_spnego",
+              "reference": "/spnego",
+              "principal": {
+                "configuration": "yarn-site/yarn.timeline-service.http-authentication.kerberos.principal"
+              },
+              "keytab": {
+                "configuration": "yarn-site/yarn.timeline-service.http-authentication.kerberos.keytab"
+              }
+            },
+            {
+              "name": "yarn_timeline_reader_hdfs",
+              "reference": "/HDFS/NAMENODE/hdfs"
+            }
+          ]
+        },
+        {
+          "name": "YARN_REGISTRY_DNS",
+          "identities": [
+            {
+              "name": "registry_dns_yarn",
+              "principal": {
+                "value": "yarn/_HOST@${realm}",
+                "type" : "service",
+                "configuration": "yarn-env/yarn.registry-dns.principal",
+                "local_username": "${yarn-env/yarn_user}"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/yarn.service.keytab",
+                "owner": {
+                  "name": "${yarn-env/yarn_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "yarn-env/yarn.registry-dns.keytab"
+              }
+            }
+          ]
         }
       ]
     },
@@ -176,6 +387,14 @@
         {
           "name": "mapreduce2_smokeuser",
           "reference": "/smokeuser"
+        }
+      ],
+      "configurations": [
+        {
+          "mapred-site": {
+            "mapreduce.cluster.acls.enabled": "true",
+            "mapreduce.jobhistory.admin.acl": "${mapred-env/mapred_user}"
+          }
         }
       ],
       "components": [

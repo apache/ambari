@@ -76,11 +76,33 @@ class HistoryServerDefault(HistoryServer):
 
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
       stack_select.select_packages(params.version)
+      # MC Hammer said, "Can't touch this"
+      copy_to_hdfs("mapreduce", params.user_group, params.hdfs_user, skip=params.sysprep_skip_copy_tarballs_hdfs)
+      copy_to_hdfs("tez", params.user_group, params.hdfs_user, skip=params.sysprep_skip_copy_tarballs_hdfs)
+      params.HdfsResource(None, action="execute")
 
   def start(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     self.configure(env) # FOR SECURITY
+
+    if params.stack_version_formatted_major and check_stack_feature(StackFeature.COPY_TARBALL_TO_HDFS, params.stack_version_formatted_major):
+      # MC Hammer said, "Can't touch this"
+      resource_created = copy_to_hdfs(
+        "mapreduce",
+        params.user_group,
+        params.hdfs_user,
+        skip=params.sysprep_skip_copy_tarballs_hdfs)
+      resource_created = copy_to_hdfs(
+        "tez",
+        params.user_group,
+        params.hdfs_user,
+        skip=params.sysprep_skip_copy_tarballs_hdfs) or resource_created
+      if resource_created:
+        params.HdfsResource(None, action="execute")
+    else:
+      # In stack versions before copy_tarball_to_hdfs support tez.tar.gz was copied to a different folder in HDFS.
+      install_tez_jars()
 
     service('historyserver', action='start', serviceName='mapreduce')
 

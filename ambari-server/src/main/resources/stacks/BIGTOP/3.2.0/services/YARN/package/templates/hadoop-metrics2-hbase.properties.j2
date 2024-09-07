@@ -1,0 +1,62 @@
+{#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#}
+
+hbase.extendedperiod = 3600
+
+hbase.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
+hbase.period=30
+hbase.collector.hosts={{ams_collector_hosts}}
+hbase.port={{metric_collector_port}}
+hbase.protocol={{metric_collector_protocol}}
+
+jvm.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
+jvm.period=30
+jvm.collector.hosts={{ams_collector_hosts}}
+jvm.port={{metric_collector_port}}
+jvm.protocol={{metric_collector_protocol}}
+
+rpc.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
+rpc.period=30
+rpc.collector.hosts={{ams_collector_hosts}}
+rpc.port={{metric_collector_port}}
+rpc.protocol={{metric_collector_protocol}}
+
+*.timeline.plugin.urls=file:///usr/lib/ambari-metrics-hadoop-sink/ambari-metrics-hadoop-sink.jar
+*.sink.timeline.slave.host.name={{hostname}}
+*.host_in_memory_aggregation = {{host_in_memory_aggregation}}
+*.host_in_memory_aggregation_port = {{host_in_memory_aggregation_port}}
+{% if is_aggregation_https_enabled %}
+*.host_in_memory_aggregation_protocol = {{host_in_memory_aggregation_protocol}}
+{% endif %}
+
+hbase.sink.timeline.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
+hbase.sink.timeline.period={{metrics_collection_period}}
+hbase.sink.timeline.sendInterval={{metrics_report_interval}}000
+hbase.sink.timeline.collector.hosts={{ams_collector_hosts}}
+hbase.sink.timeline.port={{metric_collector_port}}
+hbase.sink.timeline.protocol={{metric_collector_protocol}}
+hbase.sink.timeline.serviceName-prefix=yarn-timeline-storage
+
+# HTTPS properties
+hbase.sink.timeline.truststore.path = {{metric_truststore_path}}
+hbase.sink.timeline.truststore.type = {{metric_truststore_type}}
+hbase.sink.timeline.truststore.password = {{metric_truststore_password}}
+
+# Switch off metrics generation on a per region basis
+*.source.filter.class=org.apache.hadoop.metrics2.filter.RegexFilter
+hbase.*.source.filter.exclude=.*(Regions|Users|Tables).*
