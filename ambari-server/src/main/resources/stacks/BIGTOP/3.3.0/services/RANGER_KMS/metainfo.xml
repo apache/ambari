@@ -60,7 +60,7 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat9,redhat8,redhat7,amazonlinux2,redhat6,suse11,suse12</osFamily>
+          <osFamily>redhat9,redhat8,redhat7,amazonlinux2,redhat6,suse11,suse12,openeuler22</osFamily>
           <packages>
             <package>
               <name>ranger_${stack_version}-kms</name>

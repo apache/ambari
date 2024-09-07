@@ -144,7 +144,7 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat7,redhat8</osFamily>
+          <osFamily>redhat7,redhat8,openeuler22</osFamily>
           <packages>
             <package>
               <name>ranger_${stack_version}-admin</name>
