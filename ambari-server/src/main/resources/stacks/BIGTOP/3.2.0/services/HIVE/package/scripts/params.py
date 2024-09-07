@@ -228,6 +228,9 @@ if hive_jdbc_driver == "com.microsoft.sqlserver.jdbc.SQLServerDriver":
 elif hive_jdbc_driver == "com.mysql.jdbc.Driver":
   jdbc_jar_name = default("/ambariLevelParams/custom_mysql_jdbc_name", None)
   hive_previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_mysql_jdbc_name", None)
+elif hive_jdbc_driver == "com.mysql.cj.jdbc.Driver":
+  jdbc_jar_name = default("/ambariLevelParams/custom_mysql_jdbc_name", None)
+  hive_previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_mysql_jdbc_name", None)
 elif hive_jdbc_driver == "org.postgresql.Driver":
   jdbc_jar_name = default("/ambariLevelParams/custom_postgres_jdbc_name", None)
   hive_previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_postgres_jdbc_name", None)
