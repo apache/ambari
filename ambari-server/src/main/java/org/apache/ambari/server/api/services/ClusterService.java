@@ -21,6 +21,7 @@ package org.apache.ambari.server.api.services;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -36,6 +37,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.api.services.parsers.BodyParseException;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.ClusterArtifactResponse;
 import org.apache.ambari.server.controller.ClusterResponse.ClusterResponseWrapper;
@@ -43,6 +45,13 @@ import org.apache.ambari.server.controller.internal.ClusterResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.http.HttpStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -59,6 +68,10 @@ import io.swagger.annotations.ApiResponses;
 @Api(value = "Clusters", description = "Endpoint for cluster-specific operations")
 public class ClusterService extends BaseService {
 
+  private final static Logger LOG = LoggerFactory.getLogger(ClusterService.class);
+  public static final String INVALID_KERBEROS_CHAR = "^\"[=+@].*";
+
+  private final Gson gson = new Gson();
   private static final String CLUSTER_REQUEST_TYPE = "org.apache.ambari.server.api.services.ClusterRequestSwagger";
   private static final String ARTIFACT_REQUEST_TYPE = "org.apache.ambari.server.controller.ClusterArtifactRequest";
 
@@ -419,7 +432,13 @@ public class ClusterService extends BaseService {
   public Response updateClusterArtifact(String body, @Context HttpHeaders headers, @Context UriInfo ui,
     @ApiParam(required = true) @PathParam("clusterName") String clusterName,
     @ApiParam(required = true) @PathParam("artifactName") String artifactName
-  ) {
+  ) throws BodyParseException {
+    if ("kerberos_descriptor".equals(artifactName)) {
+      LOG.info("Validating body For kerberos_descriptor");
+      if (parseBody(body)) {
+        throw new BodyParseException("Bad request received");
+      }
+    }
     ResourceInstance resource = createArtifactResource(clusterName, artifactName);
     return handleRequest(headers, body, ui, Request.Type.PUT, resource);
   }
@@ -859,5 +878,82 @@ public class ClusterService extends BaseService {
     mapIds.put(Resource.Type.Artifact, artifactName);
 
     return createResource(Resource.Type.Artifact, mapIds);
+  }
+
+  private boolean parseBody(String body) {
+    JsonObject jsonObject = gson.fromJson(body, JsonObject.class);
+    if (jsonObject == null) {
+      return false;
+    }
+
+    JsonElement artifact_data = jsonObject.get("artifact_data");
+    if (artifact_data == null) {
+      return false;
+    }
+    JsonArray identities = artifact_data.getAsJsonObject().getAsJsonArray("identities");
+    if (identities != null) {
+      if (checkKeytabsPrincipal(identities)) {
+        return true;
+      }
+    }
+
+    JsonArray services = artifact_data.getAsJsonObject().getAsJsonArray("services");
+    for (int i = 0; i < services.size(); i++) {
+      JsonArray components = services.get(i).getAsJsonObject().get("components").getAsJsonArray();
+      if (services.get(i).getAsJsonObject().get("identities") != null) {
+        if (checkKeytabsPrincipal((JsonArray)services.get(i).getAsJsonObject().get("identities"))) {
+          return true;
+        }
+      }
+      for (int ii = 0; ii < components.size(); ii++) {
+        JsonArray componentsIdentities = (JsonArray) components.get(ii).getAsJsonObject().get("identities");
+        if (componentsIdentities != null) {
+          if (checkKeytabsPrincipal(componentsIdentities)) {
+            return true;
+          }
+        }
+      }
+    }
+
+    Set<Map.Entry<String, JsonElement>> properties = artifact_data.getAsJsonObject().getAsJsonObject("properties").entrySet();
+    for (Map.Entry<String, JsonElement> entry : properties) {
+      boolean res = validateValues(String.valueOf(entry.getValue()));
+      if (res) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean checkKeytabsPrincipal(JsonArray identities) {
+    String keytabFile = "";
+    String principalValue = "";
+    for (int i = 0; i < identities.size(); i++) {
+      if (identities.get(i).getAsJsonObject().get("keytab") != null) {
+        keytabFile = String.valueOf(identities.get(i).getAsJsonObject().get("keytab").getAsJsonObject().get("file"));
+      }
+      if (identities.get(i).getAsJsonObject().get("principal") != null) {
+        principalValue = String.valueOf(identities.get(i).getAsJsonObject().get("principal").getAsJsonObject().get("value"));
+      }
+      if (!keytabFile.isEmpty() && !"null".equals(keytabFile)) {
+        if (validateValues(keytabFile)) {
+          return true;
+        }
+      }
+      if (!principalValue.isEmpty() && !"null".equals(principalValue)) {
+        if (validateValues(principalValue)) {
+          return true;
+        }
+        ;
+      }
+    }
+    return false;
+  }
+
+  private boolean validateValues(String values) {
+    if (values.matches(INVALID_KERBEROS_CHAR)) {
+      return true;
+    }
+    return false;
   }
 }
