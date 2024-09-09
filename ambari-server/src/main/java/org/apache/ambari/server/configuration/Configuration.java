@@ -2062,6 +2062,15 @@ public class Configuration {
       "server.timeline.metrics.cache.entry.idle.seconds", 1800);
 
   /**
+   * Cache size in entry units that ambari metrics cache will hold.
+   */
+  @Markdown(
+          relatedTo = "server.timeline.metrics.cache.disabled",
+          description = "cache size, in entries, that ambari metrics cache will hold.")
+  public static final ConfigurationProperty<Integer> TIMELINE_METRICS_CACHE_ENTRY_UNIT_SIZE = new ConfigurationProperty<>(
+          "server.timeline.metrics.cache.entry.entry.unit.size", 100);
+
+  /**
    * The time, in {@link TimeUnit#MILLISECONDS}, that initial requests made to
    * Ambari Metrics will wait while reading from the socket before timing out.
    */
@@ -5267,6 +5276,13 @@ public class Configuration {
    */
   public int getMetricCacheIdleSeconds() {
     return Integer.parseInt(getProperty(TIMELINE_METRICS_CACHE_IDLE_TIME));
+  }
+
+  /**
+   * Ambari metrics cache size.
+   */
+  public int getMetricCacheEntryUnitSize() {
+    return Integer.parseInt(getProperty(TIMELINE_METRICS_CACHE_ENTRY_UNIT_SIZE));
   }
 
   /**

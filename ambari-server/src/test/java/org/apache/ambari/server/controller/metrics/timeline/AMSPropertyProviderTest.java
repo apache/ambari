@@ -82,7 +82,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({AMSPropertyProvider.class, AmbariServer.class})
-@PowerMockIgnore({"javax.xml.parsers.*", "org.xml.sax.*", "net.sf.ehcache.*", "org.apache.log4j.*"})
+@PowerMockIgnore({"javax.xml.parsers.*", "org.xml.sax.*", "org.ehcache.*", "org.apache.log4j.*"})
 public class AMSPropertyProviderTest {
   private static final String PROPERTY_ID1 = PropertyHelper.getPropertyId("metrics/cpu", "cpu_user");
   private static final String PROPERTY_ID2 = PropertyHelper.getPropertyId("metrics/memory", "mem_free");
