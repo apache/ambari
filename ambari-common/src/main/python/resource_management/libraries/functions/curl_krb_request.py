@@ -98,7 +98,7 @@ def curl_krb_request(tmp_dir, keytab, principal, url, cache_file_prefix,
   # when executing curl. Use a hash of the combination of the principal and keytab file
   # to generate a (relatively) unique cache filename so that we can use it as needed. Scope
   # this file by user in order to prevent sharing of cache files by multiple users.
-  ccache_file_name = HASH_ALGORITHM("{0}|{1}".format(principal, keytab)).hexdigest()
+  ccache_file_name = HASH_ALGORITHM("{0}|{1}".format(principal, keytab).encode('utf-8')).hexdigest()
 
   curl_krb_cache_path = os.path.join(tmp_dir, "curl_krb_cache")
   if not os.path.exists(curl_krb_cache_path):
