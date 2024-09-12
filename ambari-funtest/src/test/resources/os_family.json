@@ -2,8 +2,8 @@
   "mapping": {
     "redhat": {
       "distro": [
-        "reahat",
         "rhel",
+        "redhat",
         "fedora",
         "centos",
         "oracle",

@@ -194,7 +194,7 @@ class OSCheck:
         distribution = ("", "", "")
     else:
       # linux distribution
-      distribution = (distro.id(), distro.version(), distro.codename())
+      distribution = distro.linux_distribution()
 
     if distribution[0] == '':
       distribution = advanced_check(distribution)
@@ -242,7 +242,13 @@ class OSCheck:
     operatingSystem = dist[0].lower()
 
     # special cases
-    if operatingSystem.startswith('darwin'):
+    if _is_oracle_linux():
+      operatingSystem = 'oracle'
+    elif operatingSystem.startswith('suse linux enterprise server'):
+      operatingSystem = 'sles'
+    elif _is_redhat_linux:
+      operatingSystem = 'redhat'
+    elif operatingSystem.startswith('darwin'):
       operatingSystem = 'mac'
 
     if operatingSystem == '':
