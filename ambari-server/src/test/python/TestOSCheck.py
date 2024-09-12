@@ -81,7 +81,7 @@ class TestOSCheck(TestCase):
     mock_is_oracle_linux.return_value = True
     mock_linux_distribution.return_value = ('some_os', '1234', '')
     result = OSCheck.get_os_type()
-    self.assertEqual(result, 'oraclelinux')
+    self.assertEqual(result, 'oracle')
 
     # 4 - Common system
     mock_is_oracle_linux.return_value = False
@@ -118,13 +118,13 @@ class TestOSCheck(TestCase):
 
     # 2 - Redhat
     mock_exists.return_value = False
-    mock_linux_distribution.return_value = ('Centos Linux', '2.4', '')
+    mock_linux_distribution.return_value = ('centos', '2.4', '')
     result = OSCheck.get_os_family()
     self.assertEqual(result, 'redhat')
 
     # 3 - Ubuntu
     mock_exists.return_value = False
-    mock_linux_distribution.return_value = ('Ubuntu', '14.04', '')
+    mock_linux_distribution.return_value = ('ubuntu', '14.04', '')
     result = OSCheck.get_os_family()
     self.assertEqual(result, 'ubuntu')
 

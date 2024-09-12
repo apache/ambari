@@ -30,6 +30,13 @@
       <reponame>bigtop</reponame>
     </repo>
   </os>
+  <os family="redhat9">
+    <repo>
+      <baseurl>https://bigtop-snapshot.s3.amazonaws.com/centos-9/$basearch</baseurl>
+      <repoid>BIGTOP-3.3.0</repoid>
+      <reponame>bigtop</reponame>
+    </repo>
+  </os>
   <os family="openeuler22">
     <repo>
       <baseurl>https://bigtop-snapshot.s3.amazonaws.com/openeuler-22/$basearch</baseurl>

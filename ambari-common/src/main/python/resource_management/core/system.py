@@ -77,7 +77,7 @@ class System(object):
   def os_type(self):
     """
     Return values:
-    redhat, fedora, centos, oraclelinux, ascendos,
+    redhat, fedora, centos, oracle, ascendos,
     amazon, xenserver, oel, ovs, cloudlinux, slc, scientific, psbm,
     debian, ubuntu, sles, sled, opensuse, suse ... and others
     

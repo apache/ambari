@@ -2,10 +2,10 @@
   "mapping": {
     "redhat": {
       "distro": [
-        "redhat",
+        "rhel",
         "fedora",
         "centos",
-        "oraclelinux",
+        "oracle",
         "ascendos",
         "xenserver",
         "oel",
@@ -14,7 +14,7 @@
         "slc",
         "scientific",
         "psbm",
-        "centos linux"
+        "rocky"
       ],
       "versions": [
         6,

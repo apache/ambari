@@ -194,7 +194,7 @@ class OSCheck:
         distribution = ("", "", "")
     else:
       # linux distribution
-      distribution = distro.linux_distribution()
+      distribution = (distro.id(), distro.version(), distro.codename())
 
     if distribution[0] == '':
       distribution = advanced_check(distribution)
@@ -226,7 +226,7 @@ class OSCheck:
   def get_os_type():
     """
     Return values:
-    redhat, fedora, centos, oraclelinux, ascendos,
+    redhat, fedora, centos, oracle, ascendos,
     amazon, xenserver, oel, ovs, cloudlinux, slc, scientific, psbm,
     ubuntu, debian, sles, sled, opensuse, suse ... and others
 
@@ -242,15 +242,7 @@ class OSCheck:
     operatingSystem = dist[0].lower()
 
     # special cases
-    if _is_oracle_linux():
-      operatingSystem = 'oraclelinux'
-    elif operatingSystem.startswith('suse linux enterprise server'):
-      operatingSystem = 'sles'
-    elif operatingSystem.startswith('red hat enterprise linux'):
-      operatingSystem = 'redhat'
-    elif operatingSystem.startswith('rocky linux'):
-      operatingSystem = 'redhat'
-    elif operatingSystem.startswith('darwin'):
+    if operatingSystem.startswith('darwin'):
       operatingSystem = 'mac'
 
     if operatingSystem == '':
