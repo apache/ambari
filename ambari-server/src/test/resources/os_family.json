@@ -2,11 +2,10 @@
   "mapping": {
     "redhat": {
       "distro": [
-        "rhel",
         "redhat",
         "fedora",
         "centos",
-        "oracle"
+        "oraclelinux"
       ],
       "versions": [
         5,
