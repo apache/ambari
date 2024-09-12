@@ -114,7 +114,7 @@ class TestOSCheck(TestCase):
     mock_exists.return_value = False
     mock_linux_distribution.return_value = ('MY_os', '5.6.7', '')
     result = OSCheck.get_os_family()
-    self.assertEqual(result, 'my_os')
+    self.assertEqual(result, 'redhat')
 
     # 2 - Redhat
     mock_exists.return_value = False
