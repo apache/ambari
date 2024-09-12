@@ -3,6 +3,7 @@
     "redhat": {
       "distro": [
         "rhel",
+        "redhat",
         "fedora",
         "centos",
         "oracle"
