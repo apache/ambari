@@ -3063,7 +3063,7 @@ class TestAmbariServer(TestCase):
     popen_mock.return_value = p
     get_postgre_status_mock.return_value = "running", 0, "", ""
 
-    serverConfiguration.OS_TYPE = OSConst.OS_REDHAT
+    serverConfiguration.OS_TYPE = OSConst.OS_RHEL
     p.poll.return_value = 0
 
     run_os_command_mock.return_value = (0, None, None)

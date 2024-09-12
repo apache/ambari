@@ -79,32 +79,32 @@ class TestOSCheck(TestCase):
 
     # 3 - path exist: '/etc/oracle-release'
     mock_is_oracle_linux.return_value = True
-    mock_linux_distribution.return_value = ('some_os', '1234', '')
+    mock_linux_distribution.return_value = ('oracle', '1234', '')
     result = OSCheck.get_os_type()
     self.assertEqual(result, 'oracle')
 
     # 4 - Common system
     mock_is_oracle_linux.return_value = False
-    mock_linux_distribution.return_value = ('CenToS', '4.56', '')
+    mock_linux_distribution.return_value = ('centos', '4.56', '')
     result = OSCheck.get_os_type()
     self.assertEqual(result, 'centos')
 
     # 5 - Red Hat Enterprise Linux
     mock_is_oracle_linux.return_value = False
     # Red Hat Enterprise Linux Server release 6.5 (Santiago)
-    mock_linux_distribution.return_value = ('Red Hat Enterprise Linux Server', '6.5', 'Santiago')
+    mock_linux_distribution.return_value = ('rhel', '6.5', 'Santiago')
     result = OSCheck.get_os_type()
-    self.assertEqual(result, 'redhat')
+    self.assertEqual(result, 'rhel')
 
     # Red Hat Enterprise Linux Workstation release 6.4 (Santiago)
-    mock_linux_distribution.return_value = ('Red Hat Enterprise Linux Workstation', '6.4', 'Santiago')
+    mock_linux_distribution.return_value = ('rhel', '6.4', 'Santiago')
     result = OSCheck.get_os_type()
-    self.assertEqual(result, 'redhat')
+    self.assertEqual(result, 'rhel')
 
     # Red Hat Enterprise Linux AS release 4 (Nahant Update 3)
-    mock_linux_distribution.return_value = ('Red Hat Enterprise Linux AS', '4', 'Nahant Update 3')
+    mock_linux_distribution.return_value = ('rhel', '4', 'Nahant Update 3')
     result = OSCheck.get_os_type()
-    self.assertEqual(result, 'redhat')
+    self.assertEqual(result, 'rhel')
 
   @patch.object(OSCheck, "os_distribution")
   @patch("os.path.exists")
@@ -131,7 +131,7 @@ class TestOSCheck(TestCase):
     # 4 - Suse
     mock_exists.return_value = False
     mock_linux_distribution.return_value = (
-    'suse linux enterprise server', '11.3', '')
+    'suse', '11.3', '')
     result = OSCheck.get_os_family()
     self.assertEqual(result, 'suse')
 
