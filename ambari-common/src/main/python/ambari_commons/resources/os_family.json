@@ -3,7 +3,7 @@
       "redhat": {
         "distro": [
           "redhat",
-          "fedora",
+          "rhel",
           "centos",
           "oraclelinux",
           "ascendos",
@@ -14,12 +14,14 @@
           "slc",
           "scientific",
           "psbm",
-          "centos linux"
+          "centos linux",
+          "rocky"
         ],
         "versions": [
           6,
           7,
-          8
+          8,
+          9
         ]
       },
       "redhat-ppc": {
@@ -42,6 +44,16 @@
           22
         ]
       },
+      "fedora": {
+        "extends" : "redhat",
+        "distro": [
+          "fedora"
+        ],
+        "versions": [
+          36,
+          38
+        ]
+      },
       "amazonlinux": {
         "extends" : "redhat",
         "distro": [
@@ -57,8 +69,8 @@
           "debian"
         ],
         "versions": [
-          7,
-          9
+          10,
+          11
         ]
       },
       "ubuntu": {
@@ -66,10 +78,8 @@
           "ubuntu"
         ],
         "versions": [
-          12,
-          14,
-          16,
-          18
+          20,
+          22
         ]
       },
       "suse": {
