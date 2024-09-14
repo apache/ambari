@@ -660,11 +660,6 @@ limitations under the License.
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
-    <name>hive.load.data.owner</name>
-    <value>hive</value>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
     <name>hive.txn.strict.locking.mode</name>
     <value>false</value>
     <on-ambari-upgrade add="false"/>
