@@ -142,6 +142,7 @@
               <goal>exec</goal>
             </goals>
             <configuration>
+              <skip>${skipTests}</skip>
               <workingDirectory>${basedir}/src/main/resources/ui/admin-web</workingDirectory>
               <executable>npm</executable>
               <arguments>
