@@ -706,6 +706,15 @@ public class Configuration {
       "security.server.disabled.protocols", "");
 
   /**
+   * The list of hosts which will be allowed to access Ambari server.
+   */
+  @Markdown(
+      description = "The list of hosts which will be allowed to access this server.",
+      examples = { "192.168.0.118-168,192.168.1.5" })
+  public static final ConfigurationProperty<String> SRVR_ACCESS_WHITELIST = new ConfigurationProperty<>(
+      "security.server.access.whitelist", "");
+
+  /**
    * The location on the Ambari Server where all resources exist, including common services, stacks, and scripts.
    */
   @Markdown(description = "The location on the Ambari Server where all resources exist, including common services, stacks, and scripts.")
@@ -2899,6 +2908,7 @@ public class Configuration {
     configsMap.put(SRVR_CRT_PASS_LEN.getKey(), getProperty(SRVR_CRT_PASS_LEN));
     configsMap.put(SRVR_DISABLED_CIPHERS.getKey(), getProperty(SRVR_DISABLED_CIPHERS));
     configsMap.put(SRVR_DISABLED_PROTOCOLS.getKey(), getProperty(SRVR_DISABLED_PROTOCOLS));
+    configsMap.put(SRVR_ACCESS_WHITELIST.getKey(), getProperty(SRVR_ACCESS_WHITELIST));
 
     configsMap.put(CLIENT_API_SSL_KSTR_DIR_NAME.getKey(),
         properties.getProperty(CLIENT_API_SSL_KSTR_DIR_NAME.getKey(),
@@ -4338,6 +4348,11 @@ public class Configuration {
   public String getSrvrDisabledProtocols() {
     String disabledProtocols = getProperty(SRVR_DISABLED_PROTOCOLS);
     return disabledProtocols.trim();
+  }
+
+  public String getSrvrAccessWhiteList() {
+    String whiteLists = getProperty(SRVR_ACCESS_WHITELIST);
+    return whiteLists.trim();
   }
 
   public int getOneWayAuthPort() {
