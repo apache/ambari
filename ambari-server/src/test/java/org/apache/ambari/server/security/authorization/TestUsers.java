@@ -170,12 +170,12 @@ public class TestUsers {
 
     userEntity = users.createUser("admin", "admin", "admin");
     users.grantAdminPrivilege(userEntity);
-    users.addLocalAuthentication(userEntity, "admin");
+    users.addLocalAuthentication(userEntity, "test_password");
 
     setAuthenticatedUser(userEntity);
 
     userEntity = users.createUser("user", "user", "user");
-    users.addLocalAuthentication(userEntity, "user");
+    users.addLocalAuthentication(userEntity, "test_password");
 
     UserEntity foundUserEntity = userDAO.findUserByName("user");
     assertNotNull(foundUserEntity);
@@ -183,18 +183,18 @@ public class TestUsers {
     UserAuthenticationEntity foundLocalAuthenticationEntity;
     foundLocalAuthenticationEntity = getAuthenticationEntity(foundUserEntity, UserAuthenticationType.LOCAL);
     assertNotNull(foundLocalAuthenticationEntity);
-    assertNotSame("user", foundLocalAuthenticationEntity.getAuthenticationKey());
-    assertTrue(passwordEncoder.matches("user", foundLocalAuthenticationEntity.getAuthenticationKey()));
+    assertNotSame("test_password", foundLocalAuthenticationEntity.getAuthenticationKey());
+    assertTrue(passwordEncoder.matches("test_password", foundLocalAuthenticationEntity.getAuthenticationKey()));
 
     foundUserEntity = userDAO.findUserByName("admin");
     assertNotNull(foundUserEntity);
-    users.modifyAuthentication(foundLocalAuthenticationEntity, "admin", "user_new_password", false);
+    users.modifyAuthentication(foundLocalAuthenticationEntity, "test_password", "new_test_password", false);
 
     foundUserEntity = userDAO.findUserByName("user");
     assertNotNull(foundUserEntity);
     foundLocalAuthenticationEntity = getAuthenticationEntity(foundUserEntity, UserAuthenticationType.LOCAL);
     assertNotNull(foundLocalAuthenticationEntity);
-    assertTrue(passwordEncoder.matches("user_new_password", foundLocalAuthenticationEntity.getAuthenticationKey()));
+    assertTrue(passwordEncoder.matches("new_test_password", foundLocalAuthenticationEntity.getAuthenticationKey()));
   }
 
   @Test
@@ -202,7 +202,7 @@ public class TestUsers {
     UserEntity userEntity;
 
     userEntity = users.createUser("user", "user", "user");
-    users.addLocalAuthentication(userEntity, "user");
+    users.addLocalAuthentication(userEntity, "test_password");
 
     UserEntity foundUserEntity = userDAO.findUserByName("user");
     assertNotNull(foundUserEntity);
@@ -210,18 +210,18 @@ public class TestUsers {
     UserAuthenticationEntity foundLocalAuthenticationEntity;
     foundLocalAuthenticationEntity = getAuthenticationEntity(foundUserEntity, UserAuthenticationType.LOCAL);
     assertNotNull(foundLocalAuthenticationEntity);
-    assertNotSame("user", foundLocalAuthenticationEntity.getAuthenticationKey());
-    assertTrue(passwordEncoder.matches("user", foundLocalAuthenticationEntity.getAuthenticationKey()));
+    assertNotSame("test_password", foundLocalAuthenticationEntity.getAuthenticationKey());
+    assertTrue(passwordEncoder.matches("test_password", foundLocalAuthenticationEntity.getAuthenticationKey()));
 
     try {
-      users.modifyAuthentication(foundLocalAuthenticationEntity, "user", null, true);
+      users.modifyAuthentication(foundLocalAuthenticationEntity, "test_password", null, true);
       fail("Null password should not be allowed");
     } catch (IllegalArgumentException e) {
       assertEquals("The password does not meet the password policy requirements", e.getLocalizedMessage());
     }
 
     try {
-      users.modifyAuthentication(foundLocalAuthenticationEntity, "user", "", false);
+      users.modifyAuthentication(foundLocalAuthenticationEntity, "test_password", "", false);
       fail("Empty password should not be allowed");
     } catch (IllegalArgumentException e) {
       assertEquals("The password does not meet the password policy requirements", e.getLocalizedMessage());
@@ -231,12 +231,12 @@ public class TestUsers {
     configuration.setProperty(Configuration.PASSWORD_POLICY_REGEXP, "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$");
     configuration.setProperty(Configuration.PASSWORD_POLICY_DESCRIPTION, "test description");
     try {
-      users.modifyAuthentication(foundLocalAuthenticationEntity, "user", "abc123", false);
+      users.modifyAuthentication(foundLocalAuthenticationEntity, "test_password", "abc123", false);
       fail("Should not pass validation");
     } catch (IllegalArgumentException e) {
       assertEquals("The password does not meet the Ambari user password policy : test description", e.getLocalizedMessage());
     }
-    users.modifyAuthentication(foundLocalAuthenticationEntity, "user", "abcd1234", false);
+    users.modifyAuthentication(foundLocalAuthenticationEntity, "test_password", "abcd1234", false);
   }
 
   @Test
@@ -453,37 +453,37 @@ public class TestUsers {
   @Test
   public void testModifyPassword_UserByHimselfPasswordOk() throws Exception {
     UserEntity userEntity = users.createUser("user", "user", null);
-    users.addLocalAuthentication(userEntity, "user");
+    users.addLocalAuthentication(userEntity, "test_password");
 
     userEntity = userDAO.findUserByName("user");
     UserAuthenticationEntity localAuthenticationEntity = getAuthenticationEntity(userEntity, UserAuthenticationType.LOCAL);
     assertNotNull(localAuthenticationEntity);
 
-    assertNotSame("user", localAuthenticationEntity.getAuthenticationKey());
-    assertTrue(passwordEncoder.matches("user", localAuthenticationEntity.getAuthenticationKey()));
+    assertNotSame("test_password", localAuthenticationEntity.getAuthenticationKey());
+    assertTrue(passwordEncoder.matches("test_password", localAuthenticationEntity.getAuthenticationKey()));
 
-    users.modifyAuthentication(localAuthenticationEntity, "user", "user_new_password", true);
+    users.modifyAuthentication(localAuthenticationEntity, "test_password", "new_test_password", true);
     userEntity = userDAO.findUserByName("user");
     localAuthenticationEntity = getAuthenticationEntity(userEntity, UserAuthenticationType.LOCAL);
     assertNotNull(localAuthenticationEntity);
 
-    assertTrue(passwordEncoder.matches("user_new_password", localAuthenticationEntity.getAuthenticationKey()));
+    assertTrue(passwordEncoder.matches("new_test_password", localAuthenticationEntity.getAuthenticationKey()));
   }
 
   @Test
   public void testModifyPassword_UserByHimselfPasswordNotOk() throws Exception {
     UserEntity userEntity = users.createUser("user", "user", null);
-    users.addLocalAuthentication(userEntity, "user");
+    users.addLocalAuthentication(userEntity, "test_password");
 
     userEntity = userDAO.findUserByName("user");
     UserAuthenticationEntity foundLocalAuthenticationEntity;
     foundLocalAuthenticationEntity = getAuthenticationEntity(userEntity, UserAuthenticationType.LOCAL);
     assertNotNull(foundLocalAuthenticationEntity);
-    assertNotSame("user", foundLocalAuthenticationEntity.getAuthenticationKey());
-    assertTrue(passwordEncoder.matches("user", foundLocalAuthenticationEntity.getAuthenticationKey()));
+    assertNotSame("test_password", foundLocalAuthenticationEntity.getAuthenticationKey());
+    assertTrue(passwordEncoder.matches("test_password", foundLocalAuthenticationEntity.getAuthenticationKey()));
 
     try {
-      users.modifyAuthentication(foundLocalAuthenticationEntity, "admin", "user_new_password", true);
+      users.modifyAuthentication(foundLocalAuthenticationEntity, "incorrect_test_password", "new_test_password", true);
       fail("Exception should be thrown here as password is incorrect");
     } catch (AmbariException ex) {
       // This is expected
