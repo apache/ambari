@@ -158,9 +158,9 @@
 
             # Custom Logging levels
 
-            log4j.logger.org.apache.zookeeper=ERROR
+            log4j.logger.org.apache.zookeeper=INFO
             #log4j.logger.org.apache.hadoop.fs.FSNamesystem=DEBUG
-            log4j.logger.org.apache.hadoop.hbase=ERROR
+            log4j.logger.org.apache.hadoop.hbase=INFO
             # Make these two classes INFO-level. Make them DEBUG to see more zk debug.
             log4j.logger.org.apache.hadoop.hbase.zookeeper.ZKUtil=INFO
             log4j.logger.org.apache.hadoop.hbase.zookeeper.ZooKeeperWatcher=INFO
