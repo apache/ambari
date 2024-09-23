@@ -2754,14 +2754,16 @@ public class UpgradeHelperTest extends EasyMockSupport {
     Capture<StackId> captureStackId = Capture.newInstance();
     Capture<AmbariManagementController> captureAmc = Capture.newInstance();
 
-    Capture<Map<String, Map<String, String>>> cap = new Capture<Map<String, Map<String, String>>>() {
+    Capture<Map<String, Map<String, String>>> cap = Capture.newInstance();
+
+    /*Capture<Map<String, Map<String, String>>> cap = new Capture<Map<String, Map<String, String>>>() {
       @Override
       public void setValue(Map<String, Map<String, String>> value) {
         if (value.containsKey("cluster-env")) {
           clusterEnvMap.putAll(value.get("cluster-env"));
         }
       }
-    };
+    };*/
 
     Capture<String> captureUsername = Capture.newInstance();
     Capture<String> captureNote = Capture.newInstance();

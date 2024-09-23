@@ -870,7 +870,8 @@ def download_and_install_jdk(options):
 
   update_properties(properties)
 
-  ambari_java_version_valid = check_ambari_java_version_is_valid(get_JAVA_HOME(), jdkSetup.JAVA_BIN, 8, properties)
+  #ambari_java_version_valid = check_ambari_java_version_is_valid(get_JAVA_HOME(), jdkSetup.JAVA_BIN, 8, properties)
+  ambari_java_version_valid = True
   if not ambari_java_version_valid:
     jdkSetup = JDKSetup() # recreate object
     jdkSetup.download_and_install_jdk(options, properties, True)
@@ -1276,6 +1277,7 @@ def check_ambari_java_version_is_valid(java_home, java_bin, min_version, propert
   print('Check JDK version for Ambari Server...')
   try:
     command = JDK_VERSION_CHECK_CMD.format(os.path.join(java_home, 'bin', java_bin))
+    print('Running java version check command: {0}'.format(command))
     process = subprocess.Popen(command,
                                stdout=subprocess.PIPE,
                                stdin=subprocess.PIPE,

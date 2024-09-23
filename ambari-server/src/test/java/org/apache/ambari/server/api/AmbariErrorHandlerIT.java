@@ -19,17 +19,22 @@
 package org.apache.ambari.server.api;
 
 import static org.easymock.EasyMock.expect;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map;
+import java.util.Scanner;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Response;
 
 import org.apache.ambari.server.security.authentication.jwt.JwtAuthenticationPropertiesProvider;
 import org.easymock.EasyMockSupport;
@@ -41,9 +46,6 @@ import org.junit.Test;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
 
 public class AmbariErrorHandlerIT extends EasyMockSupport {
   private Gson gson = new Gson();
@@ -67,19 +69,16 @@ public class AmbariErrorHandlerIT extends EasyMockSupport {
 
     int localPort = ((ServerConnector) server.getConnectors()[0]).getLocalPort();
 
-    Client client = new Client();
-    WebResource resource = client.resource("http://localhost:" + localPort + "/");
+    Client client = ClientBuilder.newClient();
+    WebTarget resource = client.target("http://localhost:" + localPort);
 
+    Response successResponse = resource.path("hello").request().get();
+    assert(successResponse.getStatus() == Response.Status.OK.getStatusCode());
 
-    ClientResponse successResponse = resource.path("hello").get(ClientResponse.class);
-    assertEquals(HttpServletResponse.SC_OK, successResponse.getStatus());
-
-    ClientResponse failResponse = resource.path("fail").get(ClientResponse.class);
-
-    assertEquals(HttpServletResponse.SC_NOT_FOUND, failResponse.getStatus());
-
+    Response failResponse = resource.path("fail").request().get();
+    assert(failResponse.getStatus() == Response.Status.NOT_FOUND.getStatusCode());
     try {
-      String response = failResponse.getEntity(String.class);
+      String response = readResponse(failResponse);
       System.out.println(response);
       Map map;
       map = gson.fromJson(response, Map.class);
@@ -95,6 +94,11 @@ public class AmbariErrorHandlerIT extends EasyMockSupport {
     verifyAll();
   }
 
+  private String readResponse(Response response) {
+    InputStream inputStream = (InputStream) response.getEntity();
+    Scanner scanner = new Scanner(inputStream, "UTF-8").useDelimiter("\\A");
+    return scanner.hasNext() ? scanner.next() : "";
+  }
 
   @SuppressWarnings("serial")
   public static class HelloServlet extends HttpServlet {
@@ -106,5 +110,4 @@ public class AmbariErrorHandlerIT extends EasyMockSupport {
     }
 
   }
-
 }

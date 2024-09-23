@@ -100,7 +100,7 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>18.0</version>
+      <version>32.1.3-jre</version>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
@@ -222,7 +222,7 @@
       </plugin>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.2</version>
+        <version>3.5</version>
         <configuration>
           <source>${jdk.version}</source>
           <target>${jdk.version}</target>
@@ -452,7 +452,7 @@
         <configuration>
           <createDependencyReducedPom>false</createDependencyReducedPom>
         </configuration>
-        <version>3.4.0</version>
+        <version>3.5.1</version>
         <executions>
           <execution>
             <id>shade-zkmigrator</id>

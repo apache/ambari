@@ -18,12 +18,14 @@
 package org.apache.ambari.server.controller.utilities.webserver;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.sun.jersey.api.container.httpserver.HttpServerFactory;
-import com.sun.jersey.api.core.PackagesResourceConfig;
-import com.sun.jersey.api.core.ResourceConfig;
+import org.glassfish.jersey.jdkhttp.JdkHttpServerFactory;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.server.ServerProperties;
+
 import com.sun.net.httpserver.HttpServer;
 
 /**
@@ -36,9 +38,13 @@ public class StartServer {
     System.out.println("Starting Ambari API server using the following properties: " + mapArgs);
     System.setProperty("ambariapi.dbfile", mapArgs.get("db"));
 
-    ResourceConfig config = new PackagesResourceConfig("org.apache.ambari.server.api.services");
+    ResourceConfig config = new ResourceConfig();
+    config.packages("org.apache.ambari.server.api.services");
+    config.property(ServerProperties.FEATURE_AUTO_DISCOVERY_DISABLE, true);
+
+    URI baseUri = URI.create("http://localhost:" + mapArgs.get("port") + '/');
     System.out.println("Starting server: http://localhost:" + mapArgs.get("port") + '/');
-    HttpServer server = HttpServerFactory.create("http://localhost:" + mapArgs.get("port") + '/', config);
+    HttpServer server = JdkHttpServerFactory.createHttpServer(baseUri, config);
     server.start();
 
     System.out.println("SERVER RUNNING: http://localhost:" + mapArgs.get("port") + '/');

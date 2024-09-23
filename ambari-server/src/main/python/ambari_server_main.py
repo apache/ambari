@@ -63,20 +63,14 @@ CHECK_DATABASE_HELPER_CMD = "{0} -cp {1} org.apache.ambari.server.checks.Databas
 IS_FOREGROUND = ENV_FOREGROUND_KEY in os.environ and os.environ[ENV_FOREGROUND_KEY].lower() == "true"
 
 SERVER_START_CMD = "{0} " \
-    "-server -XX:NewRatio=3 " \
-    "-XX:+UseConcMarkSweepGC " + \
-    "-XX:-UseGCOverheadLimit -XX:CMSInitiatingOccupancyFraction=60 " \
-    "-XX:+CMSClassUnloadingEnabled " \
-    "-Dsun.zip.disableMemoryMapping=true " + \
+    "-server -XX:NewRatio=3 " + \
     "{1} {2} " \
     "-cp {3} "\
     "org.apache.ambari.server.controller.AmbariServer " \
     "> {4} 2>&1 || echo $? > {5}"
-SERVER_START_CMD_DEBUG = "{0} " \
-    "-server -XX:NewRatio=2 " \
-    "-XX:+UseConcMarkSweepGC " + \
-    "{1} {2} " \
-    " -Xdebug -Xrunjdwp:transport=dt_socket,address=5005," \
+SERVER_START_CMD_DEBUG = "{0} -server" \
+    "{1} {2} " + \
+    " -Xdebug -Xrunjdwp:transport=dt_socket,address=*:5005," \
     "server=y,suspend={6} " \
     "-cp {3} " + \
     "org.apache.ambari.server.controller.AmbariServer " \

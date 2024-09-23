@@ -21,47 +21,47 @@ package org.apache.ambari.server.api;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
-import static org.junit.Assert.assertEquals;
+
+import java.io.IOException;
 
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.core.MultivaluedHashMap;
 
 import org.junit.Test;
-
-import com.sun.jersey.core.header.InBoundHeaders;
-import com.sun.jersey.spi.container.ContainerRequest;
 
 public class AmbariCsrfProtectionFilterTest {
 
   @Test
-  public void testGetMethod() {
+  public void testGetMethod() throws IOException {
     AmbariCsrfProtectionFilter filter = new AmbariCsrfProtectionFilter();
-    ContainerRequest containerRequest = createMock(ContainerRequest.class);
+    ContainerRequestContext containerRequest = createMock(ContainerRequestContext.class);
     expect(containerRequest.getMethod()).andReturn("GET");
     replay(containerRequest);
-    assertEquals(containerRequest, filter.filter(containerRequest));
+    filter.filter(containerRequest);
   }
 
   @Test(expected = WebApplicationException.class)
-  public void testPostNoXRequestedBy() {
+  public void testPostNoXRequestedBy() throws IOException {
     AmbariCsrfProtectionFilter filter = new AmbariCsrfProtectionFilter();
-    ContainerRequest containerRequest = createMock(ContainerRequest.class);
-    InBoundHeaders headers = new InBoundHeaders();
+    ContainerRequestContext containerRequest = createMock(ContainerRequestContext.class);
+    MultivaluedHashMap headers = new MultivaluedHashMap();
     expect(containerRequest.getMethod()).andReturn("POST");
-    expect(containerRequest.getRequestHeaders()).andReturn(headers);
+    expect(containerRequest.getHeaders()).andReturn(headers);
     replay(containerRequest);
     filter.filter(containerRequest);
   }
 
   @Test
-  public void testPostXRequestedBy() {
+  public void testPostXRequestedBy() throws IOException {
     AmbariCsrfProtectionFilter filter = new AmbariCsrfProtectionFilter();
-    ContainerRequest containerRequest = createMock(ContainerRequest.class);
-    InBoundHeaders headers = new InBoundHeaders();
+    ContainerRequestContext containerRequest = createMock(ContainerRequestContext.class);
+    MultivaluedHashMap headers = new MultivaluedHashMap();
     headers.add("X-Requested-By","anything");
     expect(containerRequest.getMethod()).andReturn("GET");
-    expect(containerRequest.getRequestHeaders()).andReturn(headers);
+    expect(containerRequest.getHeaders()).andReturn(headers);
     replay(containerRequest);
-    assertEquals(containerRequest, filter.filter(containerRequest));
+    filter.filter(containerRequest);
   }
 
 }

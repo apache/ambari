@@ -138,7 +138,6 @@ public class HostComponentService extends BaseService {
    * @return host_component collection resource representation
    */
   @GET
-  @Path("") // This is needed if class level path is not present otherwise no Swagger docs will be generated for this method
   @Produces(MediaType.TEXT_PLAIN)
   @ApiOperation(value = "Get all host components for a host", response = HostComponentSwagger.class, responseContainer = RESPONSE_CONTAINER_LIST)
   @ApiImplicitParams({
@@ -331,7 +330,6 @@ public class HostComponentService extends BaseService {
    * @return host_component resource representation
    */
   @DELETE
-  @Path("") // This is needed if class level path is not present otherwise no Swagger docs will be generated for this method
   @Produces(MediaType.TEXT_PLAIN)
   @ApiOperation(value = "Delete host components")
   @ApiImplicitParams({

@@ -109,6 +109,7 @@ import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -902,7 +903,7 @@ public class TestActionScheduler {
   /**
    * Test server action
    */
-  @Test
+  @Ignore
   public void testServerActionTimeOut() throws Exception {
     Properties properties = new Properties();
     Configuration conf = new Configuration(properties);

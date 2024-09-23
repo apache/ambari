@@ -82,7 +82,7 @@
     <revision>3.0.0.0-SNAPSHOT</revision>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <clover.license>${user.home}/clover.license</clover.license>
-    <jdk.version>1.8</jdk.version>
+    <jdk.version>17</jdk.version>
     <buildnumber-maven-plugin-version>1.2</buildnumber-maven-plugin-version>
     <deb.publisher>Hortonworks</deb.publisher>
     <deb.section>universe/admin</deb.section>
@@ -95,8 +95,8 @@
     <distMgmtSnapshotsName>Apache Development Snapshot Repository</distMgmtSnapshotsName>
     <distMgmtSnapshotsUrl>https://repository.apache.org/content/repositories/snapshots</distMgmtSnapshotsUrl>
     <assemblyPhase>package</assemblyPhase> <!-- use -DassemblyPhase=none to skip building tarball, useful when you want purely compile jar -->
-    <eclipselink.version>2.6.2</eclipselink.version>
     <rpm-maven-plugin.version>2.1.4</rpm-maven-plugin.version>
+    <eclipselink.version>2.7.14</eclipselink.version>
   </properties>
   <pluginRepositories>
     <pluginRepository>
@@ -165,7 +165,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>2.20</version>
+          <version>3.2.5</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
@@ -225,7 +225,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.2</version>
+        <version>3.5</version>
         <configuration>
           <source>${jdk.version}</source>
           <target>${jdk.version}</target>

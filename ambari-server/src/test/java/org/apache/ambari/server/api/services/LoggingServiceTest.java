@@ -23,6 +23,7 @@ import static org.junit.Assert.assertNotNull;
 
 import java.net.HttpURLConnection;
 
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
@@ -38,8 +39,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-
-import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 public class LoggingServiceTest {
 
@@ -107,7 +106,7 @@ public class LoggingServiceTest {
       mockSupport.createMock(UriInfo.class);
 
     if(shouldBeAuthorized) {
-      expect(uriInfoMock.getQueryParameters()).andReturn(new MultivaluedMapImpl()).atLeastOnce();
+      expect(uriInfoMock.getQueryParameters()).andReturn(new MultivaluedHashMap()).atLeastOnce();
 
       // return null from this factory, to simulate the case where LogSearch is
       // not running, or is not deployed in the current cluster
