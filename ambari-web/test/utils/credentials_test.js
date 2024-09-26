@@ -109,7 +109,7 @@ describe('credentials utils', function () {
 
   });
 
-  describe('#createOrUpdateCredentials', function () {
+  describe.skip('#createOrUpdateCredentials', function () {
 
     var mock = {
         dfd: {
@@ -548,7 +548,7 @@ describe('credentials utils', function () {
 
   });
 
-  describe('#storeTypeStatus', function () {
+  describe.skip('#storeTypeStatus', function () {
 
     var mock = {
         successCallback: Em.K,

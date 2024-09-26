@@ -46,7 +46,7 @@ App.ExperimentalController = Em.Controller.extend(App.Persist, {
       var propValue = s.get('selected');
       Ember.set(propName, propValue);
     });
-    this.postUserPref('user-pref-' + App.router.get('loginName') + '-supports', App.get('supports')).complete(function(){
+    this.postUserPref('user-pref-' + App.router.get('loginName') + '-supports', App.get('supports')).then(function(){
       App.router.transitionTo('root.index');
     });
   },

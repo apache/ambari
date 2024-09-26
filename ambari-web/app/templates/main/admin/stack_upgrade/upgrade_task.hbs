@@ -27,12 +27,12 @@
 {{#if view.isExpanded}}
   {{#if view.content.isContentLoaded}}
     <div class="task-details task-detail-info">
-      <ul class="nav nav-tabs">
-        <li class="active"><a data-toggle="tab" {{bindAttr href="view.logTabIdLink"}}>{{t common.stdout}}</a></li>
-        <li><a {{bindAttr href="view.errorTabIdLInk"}} data-toggle="tab">{{t common.stderr}}</a></li>
+      <ul class="nav nav-pills" role="tablist">
+        <li class="active"><a data-bs-toggle="tab" class="nav-link active" id="output-pill-tab" data-bs-toggle="pill" data-bs-target="#output-pill" {{bindAttr href="view.logTabIdLink"}}>{{t common.stdout}}</a></li>
+        <li class="nav-item" {{action "setErrorActive" target="view"}}><a {{bindAttr href="view.errorTabIdLInk"}} class="nav-link" id="error-pill-tab" data-bs-toggle="pill" data-bs-target="#error-pill">{{t common.stderr}}</a></li>
       </ul>
       <div class="tab-content">
-        <div class="tab-pane active" {{bindAttr id="view.logTabId"}}>
+        <div class="tab-pane show active" id="output-pill" {{bindAttr id="view.logTabId"}}>
           <p>{{view.content.host_name}}</p>
           <div class="row">
             <p class="pull-left col-sm-6">{{view.content.output_log}}</p>

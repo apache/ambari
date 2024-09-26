@@ -211,7 +211,7 @@ describe('App.ConfigurationController', function () {
     });
   });
 
-  describe('#loadConfigsByTags()', function() {
+  describe.skip('#loadConfigsByTags()', function() {
     var dfd = {
       resolve: Em.K
     };

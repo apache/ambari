@@ -40,7 +40,7 @@
                 {{view Ember.TextField valueBinding="view.filterText" id="appendedDropdownButton"
                        placeholderBinding="view.filterTextPlaceholder" classNames="form-control" disabledBinding="view.isDisabled"}}
                 <div class="input-group-btn">
-                  <button class="btn btn-default dropdown-toggle" data-toggle="dropdown" {{bindAttr disabled="view.isDisabled"}}>
+                  <button class="btn btn-default dropdown-toggle" data-bs-toggle=="dropdown" {{bindAttr disabled="view.isDisabled"}}>
                     <span class="caret"></span>
                   </button>
                   <ul class="dropdown-menu">
@@ -63,7 +63,7 @@
             <div class="col-md-5" id="component-dropdown-div">
               <!-- Host-components drop-down -->
               <div>
-                <button class="btn btn-block btn-default dropdown-toggle" data-toggle="dropdown" href="#" {{bindAttr disabled="view.isDisabled"}}>
+                <button class="btn btn-block btn-default dropdown-toggle" data-bs-toggle=="dropdown" href="#" {{bindAttr disabled="view.isDisabled"}}>
                   {{t common.components}}
                   <span class="caret"></span>
                 </button>

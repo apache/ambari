@@ -246,6 +246,7 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
     return App.ajax.send({
       name: 'common.service.configurations',
       sender: this,
+      dataType:'text',
       data: {
         desired_config: configData
       },
@@ -309,6 +310,7 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
     return App.ajax.send({
       name: 'common.delete.host_component',
       sender: this,
+      dataType:'text',
       data: {
         componentName: 'SECONDARY_NAMENODE',
         hostName: hostName
