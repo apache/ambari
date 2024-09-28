@@ -34,3 +34,4 @@ createDDL.jdbc
 /build
 ambari_python.egg-info
 **/Crashpad
+.ruff_cache

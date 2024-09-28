@@ -14,4 +14,11 @@
 # limitations under the License.
 
 [tool.ruff]
+
+
+[tool.ruff.lint]
 select = ["E", "F", "W", "C90"]
+ignore = ["E501", "E712", "E711"]
+
+[tool.ruff.format]
+quote-style = "double"
