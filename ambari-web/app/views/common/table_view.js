@@ -99,7 +99,7 @@ App.TableView = Em.View.extend(App.Persist, {
         }
       } else {
         if (!$.mocho) {
-          this.getUserPref(this.displayLengthKey()).complete(function () {
+          this.getUserPref(this.displayLengthKey()).then(function () {
             self.initFilters();
           });
         }

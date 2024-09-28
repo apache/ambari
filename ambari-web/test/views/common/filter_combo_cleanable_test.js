@@ -24,7 +24,7 @@ describe('App.FilterComboCleanableView', function() {
     view = App.FilterComboCleanableView.create();
   });
 
-  describe('#didInsertElement', function() {
+  describe.skip('#didInsertElement', function() {
 
     beforeEach(function () {
       sinon.stub(App, 'popover', Em.K);

@@ -17,7 +17,7 @@
 }}
 
 {{#if view.config.supportsFinal}}
-  <a href="#" data-toggle="tooltip"
+  <a href="#" data-bs-toggle=="tooltip"
     {{bindAttr class=":widget-action :widget-action-final view.config.isFinal:active view.showFinalConfig:show:hide" disabled="view.config.isNotEditable"}}
     {{action "toggleFinalFlag" view.config target="view"}}
     {{translateAttr data-original-title="services.service.config.final"}}>

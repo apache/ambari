@@ -18,7 +18,9 @@
 package org.apache.ambari.server.controller.metrics.timeline.cache;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Date;
+import java.util.Map;
 import java.util.TreeMap;
 
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
@@ -30,16 +32,19 @@ import org.apache.hadoop.metrics2.sink.timeline.Precision;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.http.client.utils.URIBuilder;
+import org.ehcache.spi.loaderwriter.BulkCacheLoadingException;
+import org.ehcache.spi.loaderwriter.BulkCacheWritingException;
+import org.ehcache.spi.loaderwriter.CacheLoaderWriter;
+import org.ehcache.spi.loaderwriter.CacheWritingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
-import net.sf.ehcache.constructs.blocking.UpdatingCacheEntryFactory;
 
 @Singleton
-public class TimelineMetricCacheEntryFactory implements UpdatingCacheEntryFactory {
+public class TimelineMetricCacheEntryFactory implements CacheLoaderWriter<TimelineAppMetricCacheKey, TimelineMetricsCacheValue> {
   private final static Logger LOG = LoggerFactory.getLogger(TimelineMetricCacheEntryFactory.class);
   // Not declared final to ease unit test code and allow streamProvider
   // injection
@@ -74,9 +79,9 @@ public class TimelineMetricCacheEntryFactory implements UpdatingCacheEntryFactor
    * @throws Exception
    */
   @Override
-  public Object createEntry(Object key) throws Exception {
+  public TimelineMetricsCacheValue load(TimelineAppMetricCacheKey key) throws Exception {
     LOG.debug("Creating cache entry since none exists, key = {}", key);
-    TimelineAppMetricCacheKey metricCacheKey = (TimelineAppMetricCacheKey) key;
+    TimelineAppMetricCacheKey metricCacheKey = key;
 
     TimelineMetrics timelineMetrics = null;
     try {
@@ -84,13 +89,15 @@ public class TimelineMetricCacheEntryFactory implements UpdatingCacheEntryFactor
       timelineMetrics = requestHelperForGets.fetchTimelineMetrics(uriBuilder,
         metricCacheKey.getTemporalInfo().getStartTimeMillis(),
         metricCacheKey.getTemporalInfo().getEndTimeMillis());
+    } catch (URISyntaxException e) {
+      LOG.debug("Caught URISyntaxException on fetching metrics. {}", e.getMessage());
+      throw new RuntimeException(e);
     } catch (IOException io) {
       LOG.debug("Caught IOException on fetching metrics. {}", io.getMessage());
       throw io;
     }
 
     TimelineMetricsCacheValue value = null;
-
     if (timelineMetrics != null && !timelineMetrics.getMetrics().isEmpty()) {
       value = new TimelineMetricsCacheValue(
         metricCacheKey.getTemporalInfo().getStartTime(),
@@ -99,10 +106,8 @@ public class TimelineMetricCacheEntryFactory implements UpdatingCacheEntryFactor
         Precision.getPrecision(metricCacheKey.getTemporalInfo().getStartTimeMillis(),
           metricCacheKey.getTemporalInfo().getEndTimeMillis()) //Initial Precision
       );
-
       LOG.debug("Created cache entry: {}", value);
     }
-
     return value;
   }
 
@@ -116,9 +121,9 @@ public class TimelineMetricCacheEntryFactory implements UpdatingCacheEntryFactor
    * @throws Exception
    */
   @Override
-  public void updateEntryValue(Object key, Object value) throws Exception {
-    TimelineAppMetricCacheKey metricCacheKey = (TimelineAppMetricCacheKey) key;
-    TimelineMetricsCacheValue existingMetrics = (TimelineMetricsCacheValue) value;
+  public void write(TimelineAppMetricCacheKey key, TimelineMetricsCacheValue value) throws Exception {
+    TimelineAppMetricCacheKey metricCacheKey = key;
+    TimelineMetricsCacheValue existingMetrics = value;
 
     LOG.debug("Updating cache entry, key: {}, with value = {}", key, value);
 
@@ -199,7 +204,6 @@ public class TimelineMetricCacheEntryFactory implements UpdatingCacheEntryFactor
   protected void updateTimelineMetricsInCache(TimelineMetrics newMetrics,
       TimelineMetricsCacheValue timelineMetricsCacheValue,
       Long requestedStartTime, Long requestedEndTime, boolean removeAll) {
-
     TimelineMetrics existingTimelineMetrics = timelineMetricsCacheValue.getTimelineMetrics();
 
     // Remove values that do not fit before adding new data
@@ -242,7 +246,6 @@ public class TimelineMetricCacheEntryFactory implements UpdatingCacheEntryFactor
   // Remove out of band data from the cache
   private void updateExistingMetricValues(TimelineMetrics existingMetrics,
       Long requestedStartTime, Long requestedEndTime, boolean removeAll) {
-
     for (TimelineMetric existingMetric : existingMetrics.getMetrics()) {
       if (removeAll) {
         existingMetric.setMetricValues(new TreeMap<>());
@@ -318,5 +321,25 @@ public class TimelineMetricCacheEntryFactory implements UpdatingCacheEntryFactor
     } else {
       return time;
     }
+  }
+  @Override
+  public void delete(TimelineAppMetricCacheKey key) throws CacheWritingException {
+    // no need to implement.
+  }
+
+  @Override
+  public Map<TimelineAppMetricCacheKey, TimelineMetricsCacheValue> loadAll(Iterable<? extends TimelineAppMetricCacheKey> keys) throws BulkCacheLoadingException, Exception {
+//    no need to implement.
+    return null;
+  }
+
+  @Override
+  public void writeAll(Iterable<? extends Map.Entry<? extends TimelineAppMetricCacheKey, ? extends TimelineMetricsCacheValue>> entries) throws BulkCacheWritingException, Exception {
+//    no need to implement.
+  }
+
+  @Override
+  public void deleteAll(Iterable<? extends TimelineAppMetricCacheKey> keys) throws BulkCacheWritingException, Exception {
+//    no need to implement.
   }
 }

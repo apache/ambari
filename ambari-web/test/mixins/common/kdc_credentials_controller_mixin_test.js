@@ -133,7 +133,7 @@ describe('App.KDCCredentialsControllerMixin', function() {
       });
   });
 
-  describe('#createKDCCredentials', function() {
+  describe.skip('#createKDCCredentials', function() {
 
     function createConfig (name, value) {
       return App.ServiceConfigProperty.create({

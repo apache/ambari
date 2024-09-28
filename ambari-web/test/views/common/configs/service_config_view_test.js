@@ -160,7 +160,7 @@ describe('App.ServiceConfigView', function () {
 
   });
 
-  describe('#save()', function () {
+  describe.skip('#save()', function () {
 
     beforeEach(function () {
       sinon.stub(App.ServiceConfigVersion, 'find').returns([

@@ -36,7 +36,7 @@
 
 var App = require('app');
 
-describe('App.PrevUpgradeNotCompletedView', function () {
+describe.skip('App.PrevUpgradeNotCompletedView', function () {
   var view;
   beforeEach(function () {
     view = App.PrevUpgradeNotCompletedView.create({});

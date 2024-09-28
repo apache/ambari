@@ -117,7 +117,7 @@ export default Ember.Component.extend(OperationModal, {
           this.sendAction('refreshAction');
         });
         uploader.on('didError', (jqXHR, textStatus, errorThrown) => {
-          var error = Ember.$.parseJSON(jqXHR.responseText);
+          var error = Ember.JSON.parse(jqXHR.responseText);
           this.set('uploader');
           this.get('logger').danger(`Failed to upload ${file.name} to ${this.get('path')}`, error);
           this.send('close');

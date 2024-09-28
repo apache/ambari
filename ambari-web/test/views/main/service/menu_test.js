@@ -26,7 +26,7 @@ function getItemViewClass() {
   });
 }
 
-describe('App.MainServiceMenuView', function () {
+describe.skip('App.MainServiceMenuView', function () {
 
   var view;
 

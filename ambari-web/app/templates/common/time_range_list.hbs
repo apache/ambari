@@ -16,10 +16,10 @@
 * limitations under the License.
 }}
 
-<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" rel="tooltip" {{bindAttr data-original-title="view.parentView.tooltipMessage"}}>
+<button type="button" id="time-select" class="btn btn-default dropdown-toggle" data-bs-toggle="dropdown"  rel="tooltip" {{bindAttr data-original-title="view.parentView.tooltipMessage"}}>
   {{view.parentView.currentTimeRange.name}}{{#if view.parentView.isCustomTimeRange}}: {{view.parentView.customStartTimeFormatted}}{{/if}} &nbsp;<span class="caret"></span>
 </button>
-<ul class="dropdown-menu">
+<ul id="time-select-options" class="dropdown-menu">
   {{#each option in view.parentView.timeRangeOptions}}
     <li><a href="#" {{action setTimeRange option target="view.parentView"}}>{{option.name}}</a></li>
   {{/each}}

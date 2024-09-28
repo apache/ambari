@@ -128,7 +128,7 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
     var error = this.configAction.get('popupProperties').errorMessage;
     if(data && data.responseText){
       try {
-        var json = $.parseJSON(data.responseText);
+        var json = JSON.parse(data.responseText);
         error += json.message;
       } catch (err) {}
     }

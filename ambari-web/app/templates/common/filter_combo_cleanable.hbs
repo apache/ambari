@@ -19,13 +19,13 @@
 <div class="btn-group">
   <div class="input-group">
 
-  {{view Ember.TextField valueBinding="view.filter" placeholderBinding="view.placeHolder" classNames="form-control"}}
+  {{view Ember.TextField valueBinding="view.filter" placeholderBinding="view.placeHolder" classNames="form-control filter-input"}}
   <div class="input-group-btn">
     <div id="cleanerContainer" class="pull-left">
       <a href="#" id="filterCleaner" {{action "clearFilter" target="view"}}
         {{bindAttr class="view.filterNotEmpty::hidden :ui-icon :ui-icon-circle-close"}}></a>
     </div>
-    <button class="btn btn-default dropdown-toggle btn-icon" data-toggle="dropdown">
+    <button class="btn btn-default dropdown-toggle btn-icon" data-bs-toggle="dropdown">
         <span class="caret"></span>
     </button>
     <ul class="dropdown-menu">

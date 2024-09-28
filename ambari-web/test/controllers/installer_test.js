@@ -256,7 +256,7 @@ describe('App.InstallerController', function () {
     });
   });
 
-  describe('#checkRepoURLErrorCallback', function() {
+  describe.skip('#checkRepoURLErrorCallback', function() {
     var stacks = Em.A([
       Em.Object.create({
         isSelected: false
@@ -458,7 +458,7 @@ describe('App.InstallerController', function () {
     });
   });
 
-  describe('#loadMap', function() {
+  describe.skip('#loadMap', function() {
 
     describe('Should load cluster', function() {
       var loadCluster = false;

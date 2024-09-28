@@ -298,6 +298,7 @@ module.exports = {
   turnOnOffPassiveRequest: function(state, message, serviceName, callback) {
     return App.ajax.send({
       'name': 'common.service.passive',
+      'dataType': 'text',
       'sender': {
         'successCallback': callback || defaultSuccessCallback,
         'errorCallback': defaultErrorCallback

@@ -18,22 +18,22 @@
 
 describe('#Cluster', function () {
 
-  describe('GroupsListCtrl', function() {
-
-    var $scope, ctrl, $t, $httpBackend, $group;
-
-    beforeEach(module('ambariAdminConsole', function () {}));
-
-    beforeEach(inject(function($rootScope, $controller, _$translate_, _$httpBackend_, _Group_) {
-      $scope = $rootScope.$new();
-      $t = _$translate_.instant;
-      $httpBackend = _$httpBackend_;
-      $group = _Group_;
-      ctrl = $controller('GroupsListCtrl', {
-        $scope: $scope
-      });
-    }));
-
+    describe('GroupsListCtrl', function() {
+  
+      var $scope, ctrl, $t, $httpBackend, $group;
+  
+      beforeEach(module('ambariAdminConsole', function () {}));
+  
+      beforeEach(inject(function($rootScope, $controller, _$translate_, _$httpBackend_, _Group_) {
+        $scope = $rootScope.$new();
+        $t = _$translate_.instant;
+        $httpBackend = _$httpBackend_;
+        $group = _Group_;
+        ctrl = $controller('GroupsListCtrl', {
+          $scope: $scope
+        });
+      }));
+  
+    });
+  
   });
-
-});

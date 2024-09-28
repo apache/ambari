@@ -257,7 +257,7 @@ class HiveRecommender(service_advisor.ServiceAdvisor):
     cpu_count = 0
     for hostData in hive_server_hosts:
       cpu_count = max(cpu_count, hostData["Hosts"]["cpu_count"])
-    putHiveSiteProperty("hive.compactor.worker.threads", str(max(cpu_count / 8, 1)))
+    putHiveSiteProperty("hive.compactor.worker.threads", str(round(max(cpu_count / 8, 1))))
 
     hiveMetastoreHost = self.getHostWithComponent("HIVE", "HIVE_METASTORE", services, hosts)
     if hiveMetastoreHost is not None and len(hiveMetastoreHost) > 0:

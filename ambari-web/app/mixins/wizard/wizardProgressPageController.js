@@ -479,7 +479,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
    * @param startListedServicesFlag
    * @returns {$.ajax}
    */
-  startServices: function (runSmokeTest, services, startListedServicesFlag) {
+  startServices: function (runSmokeTest, services, startListedServicesFlag,dataType="json") {
     var startListedServicesFlag = startListedServicesFlag || false;
     var skipServiceCheck = App.router.get('clusterController.ambariProperties')['skip.service.checks'] === "true";
     var data = {
@@ -510,6 +510,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
     return App.ajax.send({
       name: 'common.services.update',
       sender: this,
+      dataType,
       data: data,
       success: 'startPolling',
       error: 'startServicesErrorCallback'

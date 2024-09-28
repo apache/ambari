@@ -42,7 +42,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
             if (App.isAuthorized('AMBARI.ADD_DELETE_CLUSTERS')) {
               router.get('mainController').stopPolling();
               Em.run.next(function () {
-                App.clusterStatus.updateFromServer().complete(function () {
+                App.clusterStatus.updateFromServer().then(function () {
                   var currentClusterStatus = App.clusterStatus.get('value');
                   //@TODO: Clean up  following states. Navigation should be done solely via currentStep stored in the localDb and API persist endpoint.
                   //       Actual currentStep value for the installer controller should always remain in sync with localdb and at persist store in the server.
@@ -401,6 +401,22 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
     enter: function (router) {
       console.time('step7 enter');
+      (function() {
+        var script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.text=`setTimeout(()=>{const tooltipTriggerLis2 = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+        console.log("List is",tooltipTriggerList)
+        const tooltipList2 = [...tooltipTriggerList2].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))},3000)`
+        document.getElementsByTagName('head')[0].appendChild(script);
+        })();
+        
+        (function() {
+        var script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.text = `setTimeout(()=>{const popoverTriggerList2 = document.querySelectorAll('[data-bs-toggle="popover"]')
+        const popoverList2 = [...popoverTriggerList2].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl))},3000)`;
+        document.getElementsByTagName('head')[0].appendChild(script);
+        })();
       var controller = router.get('installerController');
       controller.setCurrentStep('7');
       console.timeEnd('step7 enter');

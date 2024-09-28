@@ -61,7 +61,7 @@
                         {{#if config.isRemovable}}
                             {{#isAuthorized "SERVICE.MODIFY_CONFIGS"}}
                                 {{#unless config.isComparison}}
-                                  <a class="btn-sm" href="#" data-toggle="tooltip"
+                                  <a class="btn-sm" href="#" data-bs-toggle="tooltip"
                                       {{action "removeProperty" config target="view"}}
                                       {{translateAttr data-original-title="common.remove"}}>
                                     <i class="icon-minus-sign"></i>

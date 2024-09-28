@@ -35,11 +35,11 @@
   </div>
   <div {{bindAttr class=":form-group :form-inline view.errors.isEndDateError:has-error view.isCustomEndDate::hidden"}}>
     <label>{{t jobs.customDateFilter.endTime}}</label>
-    <div class="form-inline">
+    <div class="form-inline d-flex">
       {{view Ember.TextField valueBinding="view.customDateFormFields.endDate" class="input-sm datepicker no-autofocus form-control"}}
-      {{view Ember.Select contentBinding="view.hourOptions" selectionBinding="view.customDateFormFields.hoursForEnd" class="input-sm form-control"}}
-      {{view Ember.Select contentBinding="view.minuteOptions" selectionBinding="view.customDateFormFields.minutesForEnd" class="input-sm form-control"}}
-      {{view Ember.Select contentBinding="view.middayPeriodOptions" selectionBinding="view.customDateFormFields.middayPeriodForEnd" class="input-sm form-control"}}
+      {{view Ember.Select contentBinding="view.hourOptions" selectionBinding="view.customDateFormFields.hoursForEnd" class="input-sm time-form-select py-0 mx-4"}}
+      {{view Ember.Select contentBinding="view.minuteOptions" selectionBinding="view.customDateFormFields.minutesForEnd" class="input-sm time-form-select py-0 mx-4"}}
+      {{view Ember.Select contentBinding="view.middayPeriodOptions" selectionBinding="view.customDateFormFields.middayPeriodForEnd" class="input-sm time-form-select py-0 mx-4"}}
     </div>
     <span class="help-block validation-block">{{view.errorMessages.endDate}}</span>
   </div>

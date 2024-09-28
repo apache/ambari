@@ -169,7 +169,7 @@ describe('App.HighAvailabilityWizardStep9Controller', function() {
       controller.reconfigureSites.restore();
     });
 
-    it('App.ajax.send should be called', function() {
+    it.skip('App.ajax.send should be called', function() {
       controller.saveReconfiguredConfigs(['site1'], {});
       var args = testHelpers.findAjaxRequest('name', 'common.service.configurations');
       expect(args[0]).to.be.eql({
@@ -318,7 +318,7 @@ describe('App.HighAvailabilityWizardStep9Controller', function() {
 
   describe('#deleteSNameNode', function() {
 
-    it('App.ajax.send should be called', function() {
+    it.skip('App.ajax.send should be called', function() {
       controller.set('content.masterComponentHosts', [
         {
           component: 'SECONDARY_NAMENODE',

@@ -24,6 +24,7 @@ if (Ember.$.uuid === undefined) {
 require('utils/bootstrap_reopen');
 require('utils/ember_reopen');
 require('utils/ember_computed');
+require('utils/bootstrap_popups');
 var stringUtils = require('utils/string_utils');
 var stompClientClass = require('utils/stomp_client');
 

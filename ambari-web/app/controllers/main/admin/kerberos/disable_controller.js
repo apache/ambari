@@ -36,7 +36,7 @@ App.KerberosDisableController = App.KerberosProgressPageController.extend(App.Wi
   },
 
   startZookeeper: function () {
-    this.startServices(false, ["ZOOKEEPER"], true);
+    this.startServices(false, ["ZOOKEEPER"], true,'text');
   },
 
   stopAllButZookeeper: function () {

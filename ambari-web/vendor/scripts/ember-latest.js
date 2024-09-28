@@ -10772,6 +10772,7 @@ var dragEvents = Ember.String.w('dragstart drag dragenter dragleave dragover dro
 // Copies the `dataTransfer` property from a browser event object onto the
 // jQuery event object for the specified events
 Ember.EnumerableUtils.forEach(dragEvents, function(eventName) {
+  if(Ember&&Ember.$&&Ember.$.event&&Ember.$.event.fixHooks)
   Ember.$.event.fixHooks[eventName] = { props: ['dataTransfer'] };
 });
 
@@ -11335,9 +11336,9 @@ Ember.EventDispatcher = Ember.Object.extend(
     rootElement.delegate('[data-ember-action]', event + '.ember', function(evt) {
       var actionId = Ember.$(evt.currentTarget).attr('data-ember-action'),
           action   = Ember.Handlebars.ActionHelper.registeredActions[actionId],
-          handler  = action.handler;
+          handler  = action&&action.handler;
 
-      if (action.eventName === eventName) {
+      if (action&&action.eventName === eventName) {
         return handler(evt);
       }
     });

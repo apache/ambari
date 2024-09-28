@@ -556,6 +556,7 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
       return App.ajax.send({
         name: 'admin.kerberos.cluster.artifact.update',
         sender: self,
+        dataType:'text',
         data: {
           artifactName: 'kerberos_descriptor',
           data: {

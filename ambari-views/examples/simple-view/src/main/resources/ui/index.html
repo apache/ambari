@@ -52,7 +52,7 @@
                     url: _getSimpleResourceUri(),
                     dataType: "text",
                     success: function(data) {
-                        var json = $.parseJSON(data);
+                        var json = JSON.parse(data);
                         $('#results').html('Value: ' + json.value);
                     }
                 });

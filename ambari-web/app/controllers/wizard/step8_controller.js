@@ -697,7 +697,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     // delete any existing clusters to start from a clean slate
     // before creating a new cluster in install wizard
     // TODO: modify for multi-cluster support
-    this.getExistingClusterNames().complete(function () {
+    this.getExistingClusterNames().then(function () {
       var clusterNames = self.get('clusterNames');
       if (self.get('isInstaller') && !App.get('testMode') && clusterNames.length) {
         self.deleteClusters(clusterNames);
@@ -790,7 +790,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
   deleteClusterErrorCallback: function (request, ajaxOptions, error, opt) {
     this.incrementProperty('clusterDeleteRequestsCompleted');
     try {
-      var json = $.parseJSON(request.responseText);
+      var json = JSON.parse(request.responseText);
       var message = json.message;
     } catch (err) {
     }
@@ -893,6 +893,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
 
     var ajaxOpts = {
       name: descriptorExists ? 'admin.kerberos.cluster.artifact.update' : 'admin.kerberos.cluster.artifact.create',
+      dataType:'text',
       data: {
         artifactName: 'kerberos_descriptor',
         data: {

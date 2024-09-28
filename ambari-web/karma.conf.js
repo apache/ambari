@@ -48,7 +48,7 @@ module.exports = function(config) {
 
       'node_modules/commonjs-require-definition/require.js',
       'vendor/scripts/console-helper.js',
-      'vendor/scripts/jquery-1.9.1.js',
+      'vendor/scripts/jquery-3.7.1.js',
       'vendor/scripts/handlebars-1.0.0.beta.6.js',
       'vendor/scripts/ember-latest.js',
       'vendor/scripts/ember-data-latest.js',
@@ -98,7 +98,7 @@ module.exports = function(config) {
     ],
 
     emberPrecompilerBrunchPreprocessor: {
-      jqueryPath: 'vendor/scripts/jquery-1.9.1.js',
+      jqueryPath: 'vendor/scripts/jquery-3.7.1.js',
       emberPath: 'vendor/scripts/ember-latest.js',
       handlebarsPath: 'vendor/scripts/handlebars-1.0.0.beta.6.js'
     },

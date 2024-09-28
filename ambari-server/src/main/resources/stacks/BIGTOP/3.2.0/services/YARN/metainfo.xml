@@ -226,7 +226,7 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat7,redhat8,openeuler22</osFamily>
+          <osFamily>redhat7,redhat8,redhat9,openeuler22</osFamily>
           <packages>
             <package>
               <name>hadoop_${stack_version}-yarn</name>
@@ -379,7 +379,7 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat7,redhat8,openeuler22</osFamily>
+          <osFamily>redhat7,redhat8,redhat9,openeuler22</osFamily>
           <packages>
             <package>
               <name>hadoop_${stack_version}-mapreduce</name>

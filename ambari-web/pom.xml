@@ -69,22 +69,6 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>rpm-maven-plugin</artifactId>
-                <version>2.0.1</version>
-                <executions>
-                    <execution>
-                        <!-- unbinds rpm creation from maven lifecycle -->
-                        <phase>none</phase>
-                        <goals>
-                            <goal>attached-rpm</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <copyright>2012, Apache Software Foundation</copyright>
-                    <group>Development</group>
-                    <description>Maven Recipe: RPM Package.</description>
-                    <mappings/>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>com.github.eirslett</groupId>

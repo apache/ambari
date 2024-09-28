@@ -19,6 +19,7 @@
 package org.apache.ambari.server.controller.utilities;
 
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.ambari.server.controller.utilities.state.DefaultServiceCalculatedState;
 import org.apache.ambari.server.controller.utilities.state.FlumeServiceCalculatedState;
@@ -32,7 +33,6 @@ import org.apache.ambari.server.state.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.sf.ehcache.util.concurrent.ConcurrentHashMap;
 
 
 public class ServiceCalculatedStateFactory {

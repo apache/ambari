@@ -254,6 +254,7 @@ App.HostPopup = Em.Object.create({
       return App.ajax.send({
         name: 'background_operations.abort_request',
         sender: self,
+        dataType:'text',
         data: {
           requestId: serviceInfo.get('id'),
           requestName: requestName,

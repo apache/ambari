@@ -23,7 +23,7 @@
     </div>
     <div class="col-md-3 config-controls">
       {{#if view.overriddenSCP.supportsFinal}}
-        <a href="#" data-toggle="tooltip"
+        <a href="#" data-bs-toggle="tooltip"
           {{bindAttr class=":btn-sm :display-inline-block :btn-final view.overriddenSCP.isFinal:active view.overriddenSCP.hideFinalIcon:hidden" disabled="view.overriddenSCP.isNotEditable"}}
           {{action "toggleFinalFlag" view.overriddenSCP target="view.parentView"}}
           {{translateAttr data-original-title="services.service.config.final"}}>
@@ -37,14 +37,14 @@
       {{else}}
         {{#if view.overriddenSCP.isEditable}}
           {{#if isNotDefaultValue}}
-            <a class="btn-sm" href="#" data-toggle="tooltip"
+            <a class="btn-sm" href="#" data-bs-toggle="tooltip"
               {{action "doRestoreDefaultValue" view.overriddenSCP target="view.parentView"}}
               {{translateAttr data-original-title="common.undo"}}>
               <i class="icon-undo"></i>
             </a>
           {{/if}}
           {{#isAuthorized "SERVICE.MODIFY_CONFIGS"}}
-            <a class="btn-sm" href="#" data-toggle="tooltip"
+            <a class="btn-sm" href="#" data-bs-toggle="tooltip"
               {{action "removeOverride" view.overriddenSCP target="view.parentView"}}
               {{translateAttr data-original-title="common.remove"}}>
               <i class="icon-minus-sign"></i>

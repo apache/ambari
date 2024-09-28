@@ -29,7 +29,6 @@ from resource_management.libraries.functions.check_process_status import check_p
 from resource_management.libraries.resources.execute_hadoop import ExecuteHadoop
 from resource_management.libraries.functions import Direction, upgrade_summary
 from resource_management.libraries.functions.namenode_ha_utils import get_name_service_by_hostname
-from resource_management.libraries.functions.generate_logfeeder_input_config import generate_logfeeder_input_config
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl, OsFamilyFuncImpl
 from utils import get_dfsrouteradmin_base_command
@@ -56,8 +55,6 @@ def router(action=None, hdfs_binary=None, env=None):
 
   if action == "configure":
     import params
-    generate_logfeeder_input_config('hdfs', Template("input.config-hdfs.json.j2", extra_imports=[default]))
-    # set up failover /  secure zookeper ACLs, this feature is supported from VDP 2.6 ownwards
     set_up_zkfc_security(params)
   elif action == "start":
     import params

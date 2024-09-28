@@ -21,7 +21,7 @@
     <div class="alert alert-info config-manage-nav">
       {{t common.group}}&nbsp;
       <div class="btn-group config-groups-dropdown">
-        <button {{bindAttr disabled="controller.isHostsConfigsPage"}} class="btn btn-default dropdown-toggle first" data-toggle="dropdown">
+        <button {{bindAttr disabled="controller.isHostsConfigsPage"}} class="btn btn-default dropdown-toggle first" data-bs-toggle="dropdown">
           <span class="caret pull-caret-right"></span>
           {{selectedConfigGroup.displayNameHosts}}
         </button>
@@ -56,8 +56,8 @@
       </div>
       <div class="pull-right">
         <span class="btn-group config-groups-dropdown">
-          <button {{bindAttr disabled="controller.isHostsConfigsPage"}} class="btn btn-default dropdown-toggle first" data-toggle="dropdown">{{selectedConfigGroup.displayNameHosts}}</button>
-          <button {{bindAttr disabled="controller.isHostsConfigsPage"}} class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+          <button {{bindAttr disabled="controller.isHostsConfigsPage"}} class="btn btn-default dropdown-toggle first" data-bs-toggle="dropdown">{{selectedConfigGroup.displayNameHosts}}</button>
+          <button {{bindAttr disabled="controller.isHostsConfigsPage"}} class="btn btn-default dropdown-toggle" data-bs-toggle="dropdown">
             <span class="caret"></span>
           </button>
           <ul class="dropdown-menu config-groups-dropdown-menu">
@@ -93,7 +93,7 @@
         {{#unless tab.isHidden}}
           <li rel='tooltip' {{bindAttr class="tab.isActive:active tab.isHiddenByFilter:disabled" data-original-title="tab.tooltipMsg"}}>
             <a href="#" {{action "setActiveTab" tab target="view"}} {{bindAttr data-target="tab.headingClass"}}
-               data-toggle="tab">
+               data-bs-toggle="tab">
               {{tab.displayName}}
               {{#if tab.isAdvanced}}
                 {{#if controller.errorsCount}}
