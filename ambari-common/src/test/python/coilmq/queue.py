@@ -2,9 +2,10 @@
 """
 Queue manager, queue implementation, and supporting classes.
 
-This code is inspired by the design of the Ruby stompserver project, by 
+This code is inspired by the design of the Ruby stompserver project, by
 Patrick Hurley and Lionel Bouton.  See http://stompserver.rubyforge.org/
 """
+
 import logging
 import threading
 import uuid
@@ -35,11 +36,11 @@ class QueueManager(object):
     Class that manages distribution of messages to queue subscribers.
 
     This class uses C{threading.RLock} to guard the public methods.  This is probably
-    a bit excessive, given 1) the actomic nature of basic C{dict} read/write operations 
-    and  2) the fact that most of the internal data structures are keying off of the 
-    STOMP connection, which is going to be thread-isolated.  That said, this seems like 
+    a bit excessive, given 1) the actomic nature of basic C{dict} read/write operations
+    and  2) the fact that most of the internal data structures are keying off of the
+    STOMP connection, which is going to be thread-isolated.  That said, this seems like
     the technically correct approach and should increase the chance of this code being
-    portable to non-GIL systems. 
+    portable to non-GIL systems.
 
     @ivar store: The queue storage backend to use.
     @type store: L{coilmq.store.QueueStore}
@@ -75,8 +76,7 @@ class QueueManager(object):
                                     backlogs for a single connection.
         @type queue_scheduler: L{coilmq.scheduler.QueuePriorityScheduler}
         """
-        self.log = logging.getLogger(
-            '%s.%s' % (__name__, self.__class__.__name__))
+        self.log = logging.getLogger("%s.%s" % (__name__, self.__class__.__name__))
 
         # Use default schedulers, if they're not specified
         if subscriber_scheduler is None:
@@ -102,13 +102,13 @@ class QueueManager(object):
         Closes all resources/backends associated with this queue manager.
         """
         self.log.info("Shutting down queue manager.")
-        if hasattr(self.store, 'close'):
+        if hasattr(self.store, "close"):
             self.store.close()
 
-        if hasattr(self.subscriber_scheduler, 'close'):
+        if hasattr(self.subscriber_scheduler, "close"):
             self.subscriber_scheduler.close()
 
-        if hasattr(self.queue_scheduler, 'close'):
+        if hasattr(self.queue_scheduler, "close"):
             self.queue_scheduler.close()
 
     @synchronized(lock)
@@ -116,7 +116,7 @@ class QueueManager(object):
         """
         Returns a count of the number of subscribers.
 
-        If destination is specified then it only returns count of subscribers 
+        If destination is specified then it only returns count of subscribers
         for that specific destination.
 
         @param destination: The optional topic/queue destination (e.g. '/queue/foo')
@@ -134,13 +134,13 @@ class QueueManager(object):
     @synchronized(lock)
     def subscribe(self, connection, destination):
         """
-        Subscribes a connection to the specified destination (topic or queue). 
+        Subscribes a connection to the specified destination (topic or queue).
 
         @param connection: The connection to subscribe.
         @type connection: L{coilmq.server.StompConnection}
 
         @param destination: The topic/queue destination (e.g. '/queue/foo')
-        @type destination: C{str} 
+        @type destination: C{str}
         """
         self.log.debug("Subscribing %s to %s" % (connection, destination))
         self._queues[destination].add(connection)
@@ -155,7 +155,7 @@ class QueueManager(object):
         @type connection: L{coilmq.server.StompConnection}
 
         @param destination: The topic/queue destination (e.g. '/queue/foo')
-        @type destination: C{str} 
+        @type destination: C{str}
         """
         self.log.debug("Unsubscribing %s from %s" % (connection, destination))
         if connection in self._queues[destination]:
@@ -175,8 +175,7 @@ class QueueManager(object):
         self.log.debug("Disconnecting %s" % connection)
         if connection in self._pending:
             pending_frame = self._pending[connection]
-            self.store.requeue(pending_frame.headers.get(
-                'destination'), pending_frame)
+            self.store.requeue(pending_frame.headers.get("destination"), pending_frame)
             del self._pending[connection]
 
         for dest in list(self._queues.keys()):
@@ -191,35 +190,36 @@ class QueueManager(object):
         """
         Sends a MESSAGE frame to an eligible subscriber connection.
 
-        Note that this method will modify the incoming message object to 
+        Note that this method will modify the incoming message object to
         add a message-id header (if not present) and to change the command
         to 'MESSAGE' (if it is not).
 
         @param message: The message frame.
         @type message: C{stompclient.frame.Frame}
         """
-        dest = message.headers.get('destination')
+        dest = message.headers.get("destination")
         if not dest:
-            raise ValueError(
-                "Cannot send frame with no destination: %s" % message)
+            raise ValueError("Cannot send frame with no destination: %s" % message)
 
-        message.cmd = 'message'
+        message.cmd = "message"
 
-        message.headers.setdefault('message-id', str(uuid.uuid4()))
+        message.headers.setdefault("message-id", str(uuid.uuid4()))
 
         # Grab all subscribers for this destination that do not have pending
         # frames
-        subscribers = [s for s in self._queues[dest]
-                       if s not in self._pending]
+        subscribers = [s for s in self._queues[dest] if s not in self._pending]
 
         if not subscribers:
             self.log.debug(
-                "No eligible subscribers; adding message %s to queue %s" % (message, dest))
+                "No eligible subscribers; adding message %s to queue %s"
+                % (message, dest)
+            )
             self.store.enqueue(dest, message)
         else:
             selected = self.subscriber_scheduler.choice(subscribers, message)
-            self.log.debug("Delivering message %s to subscriber %s" %
-                           (message, selected))
+            self.log.debug(
+                "Delivering message %s to subscriber %s" % (message, selected)
+            )
             self._send_frame(selected, message)
 
     @synchronized(lock)
@@ -229,7 +229,7 @@ class QueueManager(object):
 
         If the `transaction` parameter is non-null, the frame being ack'd
         will be queued so that it can be requeued if the transaction
-        is rolled back. 
+        is rolled back.
 
         @param connection: The connection that is acknowledging the frame.
         @type connection: L{coilmq.server.StompConnection}
@@ -243,15 +243,17 @@ class QueueManager(object):
             pending_frame = self._pending[connection]
             # Make sure that the frame being acknowledged matches
             # the expected frame
-            if pending_frame.headers.get('message-id') != frame.headers.get('message-id'):
+            if pending_frame.headers.get("message-id") != frame.headers.get(
+                "message-id"
+            ):
                 self.log.warning(
-                    "Got a ACK for unexpected message-id: %s" % frame.message_id)
+                    "Got a ACK for unexpected message-id: %s" % frame.message_id
+                )
                 self.store.requeue(pending_frame.destination, pending_frame)
                 # (The pending frame will be removed further down)
 
             if transaction is not None:
-                self._transaction_frames[connection][
-                    transaction].append(pending_frame)
+                self._transaction_frames[connection][transaction].append(pending_frame)
 
             del self._pending[connection]
             self._send_backlog(connection)
@@ -278,7 +280,7 @@ class QueueManager(object):
     @synchronized(lock)
     def clear_transaction_frames(self, connection, transaction):
         """
-        Clears out the queued ACK frames for specified transaction. 
+        Clears out the queued ACK frames for specified transaction.
 
         This is called by the engine when there is a commit command.
 
@@ -298,35 +300,41 @@ class QueueManager(object):
         """
         Sends any queued-up messages for the (optionally) specified destination to connection.
 
-        If the destination is not provided, a destination is chosen using the 
+        If the destination is not provided, a destination is chosen using the
         L{QueueManager.queue_scheduler} scheduler algorithm.
 
         (This method assumes it is being called from within a lock-guarded public
-        method.)  
+        method.)
 
         @param connection: The client connection.
         @type connection: L{coilmq.server.StompConnection}
 
         @param destination: The topic/queue destination (e.g. '/queue/foo')
-        @type destination: C{str} 
+        @type destination: C{str}
 
         @raise Exception: if the underlying connection object raises an error, the message
-                            will be re-queued and the error will be re-raised.  
+                            will be re-queued and the error will be re-raised.
         """
         if destination is None:
             # Find all destinations that have frames and that contain this
             # connection (subscriber).
-            eligible_queues = dict([(dest, q) for (dest, q) in self._queues.items()
-                                    if connection in q and self.store.has_frames(dest)])
-            destination = self.queue_scheduler.choice(
-                eligible_queues, connection)
+            eligible_queues = dict(
+                [
+                    (dest, q)
+                    for (dest, q) in self._queues.items()
+                    if connection in q and self.store.has_frames(dest)
+                ]
+            )
+            destination = self.queue_scheduler.choice(eligible_queues, connection)
             if destination is None:
                 self.log.debug(
-                    "No eligible queues (with frames) for subscriber %s" % connection)
+                    "No eligible queues (with frames) for subscriber %s" % connection
+                )
                 return
 
-        self.log.debug("Sending backlog to %s for destination %s" %
-                       (connection, destination))
+        self.log.debug(
+            "Sending backlog to %s for destination %s" % (connection, destination)
+        )
         if connection.reliable_subscriber:
             # only send one message (waiting for ack)
             frame = self.store.dequeue(destination)
@@ -335,7 +343,8 @@ class QueueManager(object):
                     self._send_frame(connection, frame)
                 except Exception as x:
                     self.log.error(
-                        "Error sending message %s (requeueing): %s" % (frame, x))
+                        "Error sending message %s (requeueing): %s" % (frame, x)
+                    )
                     self.store.requeue(destination, frame)
                     raise
         else:
@@ -344,7 +353,8 @@ class QueueManager(object):
                     self._send_frame(connection, frame)
                 except Exception as x:
                     self.log.error(
-                        "Error sending message %s (requeueing): %s" % (frame, x))
+                        "Error sending message %s (requeueing): %s" % (frame, x)
+                    )
                     self.store.requeue(destination, frame)
                     raise
 
@@ -364,14 +374,14 @@ class QueueManager(object):
         assert connection is not None
         assert frame is not None
 
-        self.log.debug("Delivering frame %s to connection %s" %
-                       (frame, connection))
+        self.log.debug("Delivering frame %s to connection %s" % (frame, connection))
 
         if connection.reliable_subscriber:
             if connection in self._pending:
                 raise RuntimeError("Connection already has a pending frame.")
             self.log.debug(
-                "Tracking frame %s as pending for connection %s" % (frame, connection))
+                "Tracking frame %s as pending for connection %s" % (frame, connection)
+            )
             self._pending[connection] = frame
 
         connection.send_frame(frame)

@@ -25,37 +25,44 @@ from resource_management.libraries.script.script import Script
 
 from setup_infra_solr import setup_infra_solr
 
+
 class InfraSolrClient(Script):
+    def install(self, env):
+        import params
 
-  def install(self, env):
-    import params
-    env.set_params(params)
-    self.install_packages(env)
-    self.configure(env)
+        env.set_params(params)
+        self.install_packages(env)
+        self.configure(env)
 
-  def configure(self, env, upgrade_type=None):
-    import params
-    env.set_params(params)
-    setup_infra_solr(name ='client')
+    def configure(self, env, upgrade_type=None):
+        import params
 
-  def start(self, env, upgrade_type=None):
-    import params
-    env.set_params(params)
-    self.configure(env)
+        env.set_params(params)
+        setup_infra_solr(name="client")
 
-  def stop(self, env, upgrade_type=None):
-    import params
-    env.set_params(params)
+    def start(self, env, upgrade_type=None):
+        import params
 
-  def status(self, env):
-    raise ClientComponentHasNoStatus()
+        env.set_params(params)
+        self.configure(env)
 
-  def upgrade_solr_client(self, env):
-    pkg_provider = ManagerFactory.get()
-    context = RepoCallContext()
-    context.log_output = True
-    pkg_provider.remove_package('ambari-infra-solr-client', context, ignore_dependencies=True)
-    pkg_provider.upgrade_package('ambari-infra-solr-client', context)
+    def stop(self, env, upgrade_type=None):
+        import params
+
+        env.set_params(params)
+
+    def status(self, env):
+        raise ClientComponentHasNoStatus()
+
+    def upgrade_solr_client(self, env):
+        pkg_provider = ManagerFactory.get()
+        context = RepoCallContext()
+        context.log_output = True
+        pkg_provider.remove_package(
+            "ambari-infra-solr-client", context, ignore_dependencies=True
+        )
+        pkg_provider.upgrade_package("ambari-infra-solr-client", context)
+
 
 if __name__ == "__main__":
-  InfraSolrClient().execute()
+    InfraSolrClient().execute()

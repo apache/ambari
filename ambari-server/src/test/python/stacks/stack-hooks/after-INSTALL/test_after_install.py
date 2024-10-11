@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -17,7 +17,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 import json
 
@@ -27,307 +27,446 @@ from resource_management.core.logger import Logger
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.script import Script
 
-@patch("os.path.exists", new = MagicMock(return_value=True))
-@patch("os.path.isfile", new = MagicMock(return_value=False))
+
+@patch("os.path.exists", new=MagicMock(return_value=True))
+@patch("os.path.isfile", new=MagicMock(return_value=False))
 class TestHookAfterInstall(RMFTestCase):
-  CONFIG_OVERRIDES = {"serviceName":"HIVE", "role":"HIVE_SERVER"}
-  def setUp(self):
-    Logger.initialize_logger()
+    CONFIG_OVERRIDES = {"serviceName": "HIVE", "role": "HIVE_SERVER"}
 
-    Script.config = dict()
-    Script.config.update( { "configurations" : { "cluster-env" : {} }, "clusterLevelParams": {} } )
-    Script.config["configurations"]["cluster-env"]["stack_packages"] = RMFTestCase.get_stack_packages()
-    Script.config["clusterLevelParams"] = { "stack_name" : "HDP" }
+    def setUp(self):
+        Logger.initialize_logger()
 
+        Script.config = dict()
+        Script.config.update(
+            {"configurations": {"cluster-env": {}}, "clusterLevelParams": {}}
+        )
+        Script.config["configurations"]["cluster-env"]["stack_packages"] = (
+            RMFTestCase.get_stack_packages()
+        )
+        Script.config["clusterLevelParams"] = {"stack_name": "HDP"}
 
-  def test_hook_default(self):
+    def test_hook_default(self):
+        self.executeScript(
+            "after-INSTALL/scripts/hook.py",
+            classname="AfterInstallHook",
+            command="hook",
+            config_file="default.json",
+            target=RMFTestCase.TARGET_STACK_HOOKS,
+            config_overrides=self.CONFIG_OVERRIDES,
+        )
+        self.assertResourceCalled(
+            "XmlConfig",
+            "core-site.xml",
+            owner="hdfs",
+            group="hadoop",
+            conf_dir="/etc/hadoop/conf",
+            configurations=self.getConfig()["configurations"]["core-site"],
+            configuration_attributes=self.getConfig()["configurationAttributes"][
+                "core-site"
+            ],
+            only_if="ls /etc/hadoop/conf",
+            xml_include_file=None,
+        )
+        self.assertResourceCalled(
+            "Directory",
+            "/usr/lib/ambari-logsearch-logfeeder/conf",
+            mode=0o755,
+            cd_access="a",
+            create_parents=True,
+        )
+        self.assertNoMoreResources()
 
-    self.executeScript("after-INSTALL/scripts/hook.py",
-                       classname="AfterInstallHook",
-                       command="hook",
-                       config_file="default.json",
-                       target=RMFTestCase.TARGET_STACK_HOOKS,
-                       config_overrides = self.CONFIG_OVERRIDES
+    @patch("os.path.isdir", new=MagicMock(return_value=True))
+    @patch(
+        "shared_initialization.load_version", new=MagicMock(return_value="2.3.0.0-1234")
     )
-    self.assertResourceCalled('XmlConfig', 'core-site.xml',
-                              owner = 'hdfs',
-                              group = 'hadoop',
-                              conf_dir = '/etc/hadoop/conf',
-                              configurations = self.getConfig()['configurations']['core-site'],
-                              configuration_attributes = self.getConfig()['configurationAttributes']['core-site'],
-                              only_if="ls /etc/hadoop/conf",
-                              xml_include_file=None)
-    self.assertResourceCalled('Directory',
-                              '/usr/lib/ambari-logsearch-logfeeder/conf',
-                              mode = 0o755,
-                              cd_access = 'a',
-                              create_parents = True)
-    self.assertNoMoreResources()
+    @patch("resource_management.libraries.functions.conf_select.create")
+    @patch("resource_management.libraries.functions.conf_select.select")
+    @patch("os.symlink")
+    @patch("shutil.rmtree")
+    def test_hook_default_conf_select(
+        self,
+        rmtree_mock,
+        symlink_mock,
+        conf_select_select_mock,
+        conf_select_create_mock,
+    ):
+        def mocked_conf_select(arg1, arg2, arg3, dry_run=False):
+            return "/etc/{0}/{1}/0".format(arg2, arg3)
 
-  @patch("os.path.isdir", new = MagicMock(return_value = True))
-  @patch("shared_initialization.load_version", new = MagicMock(return_value="2.3.0.0-1234"))
-  @patch("resource_management.libraries.functions.conf_select.create")
-  @patch("resource_management.libraries.functions.conf_select.select")
-  @patch("os.symlink")
-  @patch("shutil.rmtree")
-  def test_hook_default_conf_select(self, rmtree_mock, symlink_mock, conf_select_select_mock, conf_select_create_mock):
+        conf_select_create_mock.side_effect = mocked_conf_select
 
-    def mocked_conf_select(arg1, arg2, arg3, dry_run = False):
-      return "/etc/{0}/{1}/0".format(arg2, arg3)
+        config_file = self.get_src_folder() + "/test/python/stacks/configs/default.json"
+        with open(config_file, "r") as f:
+            json_content = json.load(f)
 
-    conf_select_create_mock.side_effect = mocked_conf_select
+        version = "2.3.0.0-1234"
+        json_content["commandParams"]["version"] = version
+        json_content["clusterLevelParams"]["stack_version"] = "2.3"
 
-    config_file = self.get_src_folder() + "/test/python/stacks/configs/default.json"
-    with open(config_file, "r") as f:
-      json_content = json.load(f)
+        self.executeScript(
+            "after-INSTALL/scripts/hook.py",
+            classname="AfterInstallHook",
+            command="hook",
+            target=RMFTestCase.TARGET_STACK_HOOKS,
+            config_dict=json_content,
+            config_overrides=self.CONFIG_OVERRIDES,
+        )
 
-    version = '2.3.0.0-1234'
-    json_content['commandParams']['version'] = version
-    json_content['clusterLevelParams']['stack_version'] = "2.3"
+        self.assertResourceCalled(
+            "Execute",
+            (
+                "ambari-python-wrap",
+                "/usr/bin/hdp-select",
+                "set",
+                "hive-server2",
+                "2.3.0.0-1234",
+            ),
+            sudo=True,
+        )
 
-    self.executeScript("after-INSTALL/scripts/hook.py",
-                       classname="AfterInstallHook",
-                       command="hook",
-                       target=RMFTestCase.TARGET_STACK_HOOKS,
-                       config_dict = json_content,
-                       config_overrides = self.CONFIG_OVERRIDES)
+        self.assertResourceCalled(
+            "XmlConfig",
+            "core-site.xml",
+            owner="hdfs",
+            group="hadoop",
+            conf_dir="/etc/hadoop/conf",
+            configurations=self.getConfig()["configurations"]["core-site"],
+            configuration_attributes=self.getConfig()["configurationAttributes"][
+                "core-site"
+            ],
+            only_if="ls /etc/hadoop/conf",
+            xml_include_file=None,
+        )
 
+        self.assertResourceCalled(
+            "Directory",
+            "/usr/lib/ambari-logsearch-logfeeder/conf",
+            mode=0o755,
+            cd_access="a",
+            create_parents=True,
+        )
 
-    self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hive-server2', '2.3.0.0-1234'),
-      sudo = True)
+        package_dirs = conf_select.get_package_dirs()
+        for package, dir_defs in package_dirs.items():
+            for dir_def in dir_defs:
+                conf_dir = dir_def["conf_dir"]
+                conf_backup_dir = conf_dir + ".backup"
+                current_dir = dir_def["current_dir"]
+                self.assertResourceCalled(
+                    "Execute",
+                    ("cp", "-R", "-p", conf_dir, conf_backup_dir),
+                    not_if="test -e " + conf_backup_dir,
+                    sudo=True,
+                )
 
-    self.assertResourceCalled('XmlConfig', 'core-site.xml',
-      owner = 'hdfs',
-      group = 'hadoop',
-      conf_dir = "/etc/hadoop/conf",
-      configurations = self.getConfig()['configurations']['core-site'],
-      configuration_attributes = self.getConfig()['configurationAttributes']['core-site'],
-      only_if="ls /etc/hadoop/conf",
-      xml_include_file=None)
+                self.assertResourceCalled(
+                    "Directory",
+                    conf_dir,
+                    action=["delete"],
+                )
+                self.assertResourceCalled(
+                    "Link",
+                    conf_dir,
+                    to=current_dir,
+                )
 
-    self.assertResourceCalled('Directory',
-                              '/usr/lib/ambari-logsearch-logfeeder/conf',
-                              mode = 0o755,
-                              cd_access = 'a',
-                              create_parents = True)
+        self.assertNoMoreResources()
 
-    package_dirs = conf_select.get_package_dirs();
-    for package, dir_defs in package_dirs.items():
-      for dir_def in dir_defs:
-        conf_dir = dir_def['conf_dir']
-        conf_backup_dir = conf_dir + ".backup"
-        current_dir = dir_def['current_dir']
-        self.assertResourceCalled('Execute', ('cp', '-R', '-p', conf_dir, conf_backup_dir),
-            not_if = 'test -e ' + conf_backup_dir,
-            sudo = True,)
+    @patch("os.path.isdir", new=MagicMock(return_value=True))
+    @patch(
+        "shared_initialization.load_version", new=MagicMock(return_value="2.3.0.0-1234")
+    )
+    @patch("resource_management.libraries.functions.conf_select.create")
+    @patch("resource_management.libraries.functions.conf_select.select")
+    @patch("os.symlink")
+    @patch("shutil.rmtree")
+    def test_hook_default_conf_select_with_error(
+        self,
+        rmtree_mock,
+        symlink_mock,
+        conf_select_select_mock,
+        conf_select_create_mock,
+    ):
+        def mocked_conf_select(arg1, arg2, arg3, dry_run=False, ignore_errors=False):
+            if arg2 == "pig" and not dry_run:
+                if not ignore_errors:
+                    raise Exception("whoops")
+                else:
+                    return None
+            return "/etc/{0}/{1}/0".format(arg2, arg3)
 
-        self.assertResourceCalled('Directory', conf_dir, action = ['delete'],)
-        self.assertResourceCalled('Link', conf_dir, to = current_dir,)
+        conf_select_create_mock.side_effect = mocked_conf_select
+        conf_select_select_mock.side_effect = mocked_conf_select
 
-    self.assertNoMoreResources()
+        config_file = self.get_src_folder() + "/test/python/stacks/configs/default.json"
+        with open(config_file, "r") as f:
+            json_content = json.load(f)
 
-  @patch("os.path.isdir", new = MagicMock(return_value = True))
-  @patch("shared_initialization.load_version", new = MagicMock(return_value="2.3.0.0-1234"))
-  @patch("resource_management.libraries.functions.conf_select.create")
-  @patch("resource_management.libraries.functions.conf_select.select")
-  @patch("os.symlink")
-  @patch("shutil.rmtree")
-  def test_hook_default_conf_select_with_error(self, rmtree_mock, symlink_mock, conf_select_select_mock, conf_select_create_mock):
+        version = "2.3.0.0-1234"
+        json_content["commandParams"]["version"] = version
+        json_content["clusterLevelParams"]["stack_version"] = "2.3"
 
-    def mocked_conf_select(arg1, arg2, arg3, dry_run = False, ignore_errors = False):
-      if arg2 == "pig" and not dry_run:
-        if not ignore_errors:
-          raise Exception("whoops")
-        else:
-          return None
-      return "/etc/{0}/{1}/0".format(arg2, arg3)
+        self.executeScript(
+            "after-INSTALL/scripts/hook.py",
+            classname="AfterInstallHook",
+            command="hook",
+            target=RMFTestCase.TARGET_STACK_HOOKS,
+            config_dict=json_content,
+            config_overrides=self.CONFIG_OVERRIDES,
+        )
 
-    conf_select_create_mock.side_effect = mocked_conf_select
-    conf_select_select_mock.side_effect = mocked_conf_select
+        self.assertResourceCalled(
+            "Execute",
+            (
+                "ambari-python-wrap",
+                "/usr/bin/hdp-select",
+                "set",
+                "hive-server2",
+                "2.3.0.0-1234",
+            ),
+            sudo=True,
+        )
 
-    config_file = self.get_src_folder() + "/test/python/stacks/configs/default.json"
-    with open(config_file, "r") as f:
-      json_content = json.load(f)
+        self.assertResourceCalled(
+            "XmlConfig",
+            "core-site.xml",
+            owner="hdfs",
+            group="hadoop",
+            conf_dir="/etc/hadoop/conf",
+            configurations=self.getConfig()["configurations"]["core-site"],
+            configuration_attributes=self.getConfig()["configurationAttributes"][
+                "core-site"
+            ],
+            only_if="ls /etc/hadoop/conf",
+            xml_include_file=None,
+        )
 
-    version = '2.3.0.0-1234'
-    json_content['commandParams']['version'] = version
-    json_content['clusterLevelParams']['stack_version'] = "2.3"
+        self.assertResourceCalled(
+            "Directory",
+            "/usr/lib/ambari-logsearch-logfeeder/conf",
+            mode=0o755,
+            cd_access="a",
+            create_parents=True,
+        )
 
-    self.executeScript("after-INSTALL/scripts/hook.py",
-                       classname="AfterInstallHook",
-                       command="hook",
-                       target=RMFTestCase.TARGET_STACK_HOOKS,
-                       config_dict = json_content,
-                       config_overrides = self.CONFIG_OVERRIDES)
+        package_dirs = conf_select.get_package_dirs()
+        for package, dir_defs in package_dirs.items():
+            for dir_def in dir_defs:
+                conf_dir = dir_def["conf_dir"]
+                conf_backup_dir = conf_dir + ".backup"
+                current_dir = dir_def["current_dir"]
+                self.assertResourceCalled(
+                    "Execute",
+                    ("cp", "-R", "-p", conf_dir, conf_backup_dir),
+                    not_if="test -e " + conf_backup_dir,
+                    sudo=True,
+                )
 
+                self.assertResourceCalled(
+                    "Directory",
+                    conf_dir,
+                    action=["delete"],
+                )
+                self.assertResourceCalled(
+                    "Link",
+                    conf_dir,
+                    to=current_dir,
+                )
 
-    self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hive-server2', '2.3.0.0-1234'),
-      sudo = True)
+        self.assertNoMoreResources()
 
-    self.assertResourceCalled('XmlConfig', 'core-site.xml',
-      owner = 'hdfs',
-      group = 'hadoop',
-      conf_dir = "/etc/hadoop/conf",
-      configurations = self.getConfig()['configurations']['core-site'],
-      configuration_attributes = self.getConfig()['configurationAttributes']['core-site'],
-      only_if="ls /etc/hadoop/conf",
-      xml_include_file=None)
+    @patch(
+        "shared_initialization.load_version", new=MagicMock(return_value="2.3.0.0-1234")
+    )
+    @patch("resource_management.libraries.functions.conf_select.create")
+    @patch("resource_management.libraries.functions.conf_select.select")
+    @patch("os.symlink")
+    @patch("shutil.rmtree")
+    def test_hook_default_stack_select_specific_version(
+        self,
+        rmtree_mock,
+        symlink_mock,
+        conf_select_select_mock,
+        conf_select_create_mock,
+    ):
+        """
+        Tests that <stack-selector-tool> set all on a specific version, not a 2.3* wildcard is used when
+        installing a component when the cluster version is already set.
 
-    self.assertResourceCalled('Directory',
-                              '/usr/lib/ambari-logsearch-logfeeder/conf',
-                              mode = 0o755,
-                              cd_access = 'a',
-                              create_parents = True)
+        :param rmtree_mock:
+        :param symlink_mock:
+        :param conf_select_select_mock:
+        :param conf_select_create_mock:
+        :return:
+        """
 
-    package_dirs = conf_select.get_package_dirs();
-    for package, dir_defs in package_dirs.items():
-      for dir_def in dir_defs:
-        conf_dir = dir_def['conf_dir']
-        conf_backup_dir = conf_dir + ".backup"
-        current_dir = dir_def['current_dir']
-        self.assertResourceCalled('Execute', ('cp', '-R', '-p', conf_dir, conf_backup_dir),
-            not_if = 'test -e ' + conf_backup_dir,
-            sudo = True,)
+        def mocked_conf_select(arg1, arg2, arg3, dry_run=False):
+            return "/etc/{0}/{1}/0".format(arg2, arg3)
 
-        self.assertResourceCalled('Directory', conf_dir, action = ['delete'],)
-        self.assertResourceCalled('Link', conf_dir, to = current_dir,)
+        conf_select_create_mock.side_effect = mocked_conf_select
 
-    self.assertNoMoreResources()
+        config_file = self.get_src_folder() + "/test/python/stacks/configs/default.json"
+        with open(config_file, "r") as f:
+            json_content = json.load(f)
 
+        version = "2.3.0.0-1234"
+        json_content["commandParams"]["version"] = version
+        json_content["clusterLevelParams"]["stack_version"] = "2.3"
 
-  @patch("shared_initialization.load_version", new = MagicMock(return_value="2.3.0.0-1234"))
-  @patch("resource_management.libraries.functions.conf_select.create")
-  @patch("resource_management.libraries.functions.conf_select.select")
-  @patch("os.symlink")
-  @patch("shutil.rmtree")
-  def test_hook_default_stack_select_specific_version(self, rmtree_mock, symlink_mock, conf_select_select_mock, conf_select_create_mock):
-    """
-    Tests that <stack-selector-tool> set all on a specific version, not a 2.3* wildcard is used when
-    installing a component when the cluster version is already set.
+        self.executeScript(
+            "after-INSTALL/scripts/hook.py",
+            classname="AfterInstallHook",
+            command="hook",
+            target=RMFTestCase.TARGET_STACK_HOOKS,
+            config_dict=json_content,
+            config_overrides=self.CONFIG_OVERRIDES,
+        )
 
-    :param rmtree_mock:
-    :param symlink_mock:
-    :param conf_select_select_mock:
-    :param conf_select_create_mock:
-    :return:
-    """
+        self.assertResourceCalled(
+            "Execute",
+            (
+                "ambari-python-wrap",
+                "/usr/bin/hdp-select",
+                "set",
+                "hive-server2",
+                "2.3.0.0-1234",
+            ),
+            sudo=True,
+        )
 
-    def mocked_conf_select(arg1, arg2, arg3, dry_run = False):
-      return "/etc/{0}/{1}/0".format(arg2, arg3)
+    @patch("os.path.isdir", new=MagicMock(return_value=True))
+    @patch(
+        "shared_initialization.load_version", new=MagicMock(return_value="2.3.0.0-1234")
+    )
+    @patch("resource_management.libraries.functions.conf_select.create")
+    @patch("resource_management.libraries.functions.conf_select.select")
+    @patch("os.symlink")
+    @patch("shutil.rmtree")
+    def test_hook_default_conf_select_suspended(
+        self,
+        rmtree_mock,
+        symlink_mock,
+        conf_select_select_mock,
+        conf_select_create_mock,
+    ):
+        def mocked_conf_select(arg1, arg2, arg3, dry_run=False):
+            return "/etc/{0}/{1}/0".format(arg2, arg3)
 
-    conf_select_create_mock.side_effect = mocked_conf_select
+        conf_select_create_mock.side_effect = mocked_conf_select
 
-    config_file = self.get_src_folder() + "/test/python/stacks/configs/default.json"
-    with open(config_file, "r") as f:
-      json_content = json.load(f)
+        config_file = self.get_src_folder() + "/test/python/stacks/configs/default.json"
+        with open(config_file, "r") as f:
+            json_content = json.load(f)
 
-    version = '2.3.0.0-1234'
-    json_content['commandParams']['version'] = version
-    json_content['clusterLevelParams']['stack_version'] = "2.3"
+        version = "2.3.0.0-1234"
+        json_content["commandParams"]["version"] = version
+        json_content["clusterLevelParams"]["stack_version"] = "2.3"
+        json_content["roleParams"]["upgrade_suspended"] = "true"
 
-    self.executeScript("after-INSTALL/scripts/hook.py",
-      classname="AfterInstallHook",
-      command="hook",
-      target=RMFTestCase.TARGET_STACK_HOOKS,
-      config_dict = json_content,
-      config_overrides = self.CONFIG_OVERRIDES)
+        self.executeScript(
+            "after-INSTALL/scripts/hook.py",
+            classname="AfterInstallHook",
+            command="hook",
+            target=RMFTestCase.TARGET_STACK_HOOKS,
+            config_dict=json_content,
+            config_overrides=self.CONFIG_OVERRIDES,
+        )
 
-    self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hive-server2', '2.3.0.0-1234'),
-      sudo = True)
+        # same assertions as test_hook_default_conf_select, but skip hdp-select set all
 
-  @patch("os.path.isdir", new = MagicMock(return_value = True))
-  @patch("shared_initialization.load_version", new = MagicMock(return_value="2.3.0.0-1234"))
-  @patch("resource_management.libraries.functions.conf_select.create")
-  @patch("resource_management.libraries.functions.conf_select.select")
-  @patch("os.symlink")
-  @patch("shutil.rmtree")
-  def test_hook_default_conf_select_suspended(self, rmtree_mock, symlink_mock, conf_select_select_mock, conf_select_create_mock):
+        self.assertResourceCalled(
+            "XmlConfig",
+            "core-site.xml",
+            owner="hdfs",
+            group="hadoop",
+            conf_dir="/etc/hadoop/conf",
+            configurations=self.getConfig()["configurations"]["core-site"],
+            configuration_attributes=self.getConfig()["configurationAttributes"][
+                "core-site"
+            ],
+            only_if="ls /etc/hadoop/conf",
+            xml_include_file=None,
+        )
 
-    def mocked_conf_select(arg1, arg2, arg3, dry_run = False):
-      return "/etc/{0}/{1}/0".format(arg2, arg3)
+        self.assertResourceCalled(
+            "Directory",
+            "/usr/lib/ambari-logsearch-logfeeder/conf",
+            mode=0o755,
+            cd_access="a",
+            create_parents=True,
+        )
 
-    conf_select_create_mock.side_effect = mocked_conf_select
+        package_dirs = conf_select.get_package_dirs()
+        for package, dir_defs in package_dirs.items():
+            for dir_def in dir_defs:
+                conf_dir = dir_def["conf_dir"]
+                conf_backup_dir = conf_dir + ".backup"
+                current_dir = dir_def["current_dir"]
+                self.assertResourceCalled(
+                    "Execute",
+                    ("cp", "-R", "-p", conf_dir, conf_backup_dir),
+                    not_if="test -e " + conf_backup_dir,
+                    sudo=True,
+                )
 
-    config_file = self.get_src_folder() + "/test/python/stacks/configs/default.json"
-    with open(config_file, "r") as f:
-      json_content = json.load(f)
+                self.assertResourceCalled(
+                    "Directory",
+                    conf_dir,
+                    action=["delete"],
+                )
+                self.assertResourceCalled(
+                    "Link",
+                    conf_dir,
+                    to=current_dir,
+                )
 
-    version = '2.3.0.0-1234'
-    json_content['commandParams']['version'] = version
-    json_content['clusterLevelParams']['stack_version'] = "2.3"
-    json_content['roleParams']['upgrade_suspended'] = "true"
+        self.assertNoMoreResources()
 
-    self.executeScript("after-INSTALL/scripts/hook.py",
-                       classname="AfterInstallHook",
-                       command="hook",
-                       target=RMFTestCase.TARGET_STACK_HOOKS,
-                       config_dict = json_content,
-                       config_overrides = self.CONFIG_OVERRIDES)
+    @patch("resource_management.core.Logger.warning")
+    @patch(
+        "shared_initialization.load_version", new=MagicMock(return_value="2.3.0.0-1234")
+    )
+    @patch("resource_management.libraries.functions.conf_select.create")
+    @patch("resource_management.libraries.functions.conf_select.select")
+    @patch("os.symlink")
+    @patch("shutil.rmtree")
+    def test_hook_setup_stack_symlinks_skipped(
+        self,
+        rmtree_mock,
+        symlink_mock,
+        conf_select_select_mock,
+        conf_select_create_mock,
+        logger_warning_mock,
+    ):
+        """
+        Tests that <stack-selector-tool> set all is not called on sys_prepped hosts
+        :return:
+        """
 
-    # same assertions as test_hook_default_conf_select, but skip hdp-select set all
+        def mocked_conf_select(arg1, arg2, arg3, dry_run=False):
+            return "/etc/{0}/{1}/0".format(arg2, arg3)
 
-    self.assertResourceCalled('XmlConfig', 'core-site.xml',
-      owner = 'hdfs',
-      group = 'hadoop',
-      conf_dir = "/etc/hadoop/conf",
-      configurations = self.getConfig()['configurations']['core-site'],
-      configuration_attributes = self.getConfig()['configurationAttributes']['core-site'],
-      only_if="ls /etc/hadoop/conf",
-      xml_include_file=None)
+        conf_select_create_mock.side_effect = mocked_conf_select
 
-    self.assertResourceCalled('Directory',
-                              '/usr/lib/ambari-logsearch-logfeeder/conf',
-                              mode = 0o755,
-                              cd_access = 'a',
-                              create_parents = True)
+        config_file = self.get_src_folder() + "/test/python/stacks/configs/default.json"
+        with open(config_file, "r") as f:
+            json_content = json.load(f)
 
-    package_dirs = conf_select.get_package_dirs();
-    for package, dir_defs in package_dirs.items():
-      for dir_def in dir_defs:
-        conf_dir = dir_def['conf_dir']
-        conf_backup_dir = conf_dir + ".backup"
-        current_dir = dir_def['current_dir']
-        self.assertResourceCalled('Execute', ('cp', '-R', '-p', conf_dir, conf_backup_dir),
-            not_if = 'test -e ' + conf_backup_dir,
-            sudo = True,)
+        version = "2.3.0.0-1234"
+        json_content["commandParams"]["version"] = version
+        json_content["clusterLevelParams"]["stack_version"] = "2.3"
+        json_content["ambariLevelParams"]["host_sys_prepped"] = "true"
 
-        self.assertResourceCalled('Directory', conf_dir, action = ['delete'],)
-        self.assertResourceCalled('Link', conf_dir, to = current_dir,)
+        self.executeScript(
+            "after-INSTALL/scripts/hook.py",
+            classname="AfterInstallHook",
+            command="hook",
+            target=RMFTestCase.TARGET_STACK_HOOKS,
+            config_dict=json_content,
+            config_overrides=self.CONFIG_OVERRIDES,
+        )
 
-    self.assertNoMoreResources()
-
-
-  @patch("resource_management.core.Logger.warning")
-  @patch("shared_initialization.load_version", new = MagicMock(return_value="2.3.0.0-1234"))
-  @patch("resource_management.libraries.functions.conf_select.create")
-  @patch("resource_management.libraries.functions.conf_select.select")
-  @patch("os.symlink")
-  @patch("shutil.rmtree")
-  def test_hook_setup_stack_symlinks_skipped(self, rmtree_mock, symlink_mock, conf_select_select_mock, conf_select_create_mock, logger_warning_mock):
-    """
-    Tests that <stack-selector-tool> set all is not called on sys_prepped hosts
-    :return:
-    """
-
-    def mocked_conf_select(arg1, arg2, arg3, dry_run = False):
-      return "/etc/{0}/{1}/0".format(arg2, arg3)
-
-    conf_select_create_mock.side_effect = mocked_conf_select
-
-    config_file = self.get_src_folder() + "/test/python/stacks/configs/default.json"
-    with open(config_file, "r") as f:
-      json_content = json.load(f)
-
-    version = '2.3.0.0-1234'
-    json_content['commandParams']['version'] = version
-    json_content['clusterLevelParams']['stack_version'] = "2.3"
-    json_content['ambariLevelParams']['host_sys_prepped'] = "true"
-
-    self.executeScript("after-INSTALL/scripts/hook.py",
-                       classname="AfterInstallHook",
-                       command="hook",
-                       target=RMFTestCase.TARGET_STACK_HOOKS,
-                       config_dict = json_content,
-                       config_overrides = self.CONFIG_OVERRIDES)
-
-    logger_warning_mock.assert_any_call('Skipping running stack-selector-tool because this is a sys_prepped host. This may cause symlink pointers not to be created for HDP components installed later on top of an already sys_prepped host')
+        logger_warning_mock.assert_any_call(
+            "Skipping running stack-selector-tool because this is a sys_prepped host. This may cause symlink pointers not to be created for HDP components installed later on top of an already sys_prepped host"
+        )

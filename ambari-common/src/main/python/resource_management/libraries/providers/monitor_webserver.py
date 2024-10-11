@@ -29,37 +29,53 @@ from ambari_commons.os_check import OSCheck
 
 
 class MonitorWebserverProvider(Provider):
-  def action_start(self):
-    self.get_serivice_params()
-    self.enable_keep_alive()
-    service_name = self.service_name
-    Execute((format('/etc/init.d/{service_name}'), 'start'),
-      sudo = True,        
-    )
+    def action_start(self):
+        self.get_serivice_params()
+        self.enable_keep_alive()
+        service_name = self.service_name
+        Execute(
+            (format("/etc/init.d/{service_name}"), "start"),
+            sudo=True,
+        )
 
-  def action_stop(self):
-    self.get_serivice_params()
-    service_name = self.service_name
-    Execute((format('/etc/init.d/{service_name}'), 'stop'),
-      sudo = True,        
-    )
+    def action_stop(self):
+        self.get_serivice_params()
+        service_name = self.service_name
+        Execute(
+            (format("/etc/init.d/{service_name}"), "stop"),
+            sudo=True,
+        )
 
-  def action_restart(self):
-    self.action_stop()
-    self.action_start()
+    def action_restart(self):
+        self.action_stop()
+        self.action_start()
 
-  def get_serivice_params(self):
-    self.system = System.get_instance()
-    if OSCheck.is_suse_family() or OSCheck.is_ubuntu_family():
-      self.service_name = "apache2"
-      self.httpd_conf_dir = '/etc/apache2'
-    else:
-      self.service_name = "httpd"
-      self.httpd_conf_dir = '/etc/httpd/conf'
+    def get_serivice_params(self):
+        self.system = System.get_instance()
+        if OSCheck.is_suse_family() or OSCheck.is_ubuntu_family():
+            self.service_name = "apache2"
+            self.httpd_conf_dir = "/etc/apache2"
+        else:
+            self.service_name = "httpd"
+            self.httpd_conf_dir = "/etc/httpd/conf"
 
-  # "tee --append /etc/apt/sources.list > /dev/null"
-  def enable_keep_alive(self):
-    httpd_conf_dir = self.httpd_conf_dir
-    command = format("grep -E 'KeepAlive (On|Off)' {httpd_conf_dir}/httpd.conf && " + as_sudo(('sed',  '-i','s/KeepAlive Off/KeepAlive On/', format("{httpd_conf_dir}/httpd.conf"))) + " || echo 'KeepAlive On' | ") + as_sudo(('tee', '--append', format('{httpd_conf_dir}/httpd.conf'))) + " > /dev/null" 
-    Execute(command
-    )
+    # "tee --append /etc/apt/sources.list > /dev/null"
+    def enable_keep_alive(self):
+        httpd_conf_dir = self.httpd_conf_dir
+        command = (
+            format(
+                "grep -E 'KeepAlive (On|Off)' {httpd_conf_dir}/httpd.conf && "
+                + as_sudo(
+                    (
+                        "sed",
+                        "-i",
+                        "s/KeepAlive Off/KeepAlive On/",
+                        format("{httpd_conf_dir}/httpd.conf"),
+                    )
+                )
+                + " || echo 'KeepAlive On' | "
+            )
+            + as_sudo(("tee", "--append", format("{httpd_conf_dir}/httpd.conf")))
+            + " > /dev/null"
+        )
+        Execute(command)

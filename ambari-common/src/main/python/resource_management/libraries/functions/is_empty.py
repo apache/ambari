@@ -19,10 +19,12 @@ limitations under the License.
 Ambari Agent
 
 """
+
 from resource_management.libraries.script.config_dictionary import UnknownConfiguration
 
+
 def is_empty(var):
-  """
-  Check if certain configuration sent from the server has been received.
-  """
-  return isinstance(var, UnknownConfiguration)
+    """
+    Check if certain configuration sent from the server has been received.
+    """
+    return isinstance(var, UnknownConfiguration)

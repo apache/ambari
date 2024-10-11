@@ -18,24 +18,22 @@ limitations under the License.
 
 """
 
-
 from shared_initialization import setup_users, setup_hadoop_env, setup_java, setup_env
 from resource_management import Hook
 
 
 class BeforeAnyHook(Hook):
+    def hook(self, env):
+        import params
 
-  def hook(self, env):
-    import params
-    env.set_params(params)
+        env.set_params(params)
 
-    setup_users()
-    if params.has_hdfs_clients or params.dfs_type == 'HCFS':
-      setup_hadoop_env()
-    setup_env()
-    setup_java()
+        setup_users()
+        if params.has_hdfs_clients or params.dfs_type == "HCFS":
+            setup_hadoop_env()
+        setup_env()
+        setup_java()
 
 
 if __name__ == "__main__":
-  BeforeAnyHook().execute()
-
+    BeforeAnyHook().execute()

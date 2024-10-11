@@ -3,7 +3,7 @@
 Python2-specific versions of various functions used by stomp.py
 """
 
-NULL = '\x00'
+NULL = "\x00"
 
 
 def input_prompt(prompt):
@@ -35,7 +35,7 @@ def encode(char_data):
     :rtype: bytes
     """
     if type(char_data) is str:
-        return char_data.encode('utf-8')
+        return char_data.encode("utf-8")
     else:
         return char_data
 
@@ -48,7 +48,7 @@ def pack(pieces=()):
 
     :rtype: bytes
     """
-    return ''.join(encode(p) for p in pieces)
+    return "".join(encode(p) for p in pieces)
 
 
 def join(chars=()):
@@ -59,4 +59,4 @@ def join(chars=()):
 
     :rtype str:
     """
-    return ''.join(chars)
+    return "".join(chars)

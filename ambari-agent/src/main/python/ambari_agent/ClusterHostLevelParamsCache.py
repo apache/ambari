@@ -23,23 +23,24 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class ClusterHostLevelParamsCache(ClusterCache):
-  """
-  Maintains an in-memory cache and disk cache of the host level params send from server for
-  every cluster. This is useful for having quick access to any of the
-  topology properties.
-
-  Host level params. Is parameters used by execution and status commands which can be generated
-  differently for every host.
-  """
-
-  def __init__(self, cluster_cache_dir):
     """
-    Initializes the host level params cache.
-    :param cluster_cache_dir:
-    :return:
-    """
-    super(ClusterHostLevelParamsCache, self).__init__(cluster_cache_dir)
+    Maintains an in-memory cache and disk cache of the host level params send from server for
+    every cluster. This is useful for having quick access to any of the
+    topology properties.
 
-  def get_cache_name(self):
-    return 'host_level_params'
+    Host level params. Is parameters used by execution and status commands which can be generated
+    differently for every host.
+    """
+
+    def __init__(self, cluster_cache_dir):
+        """
+        Initializes the host level params cache.
+        :param cluster_cache_dir:
+        :return:
+        """
+        super(ClusterHostLevelParamsCache, self).__init__(cluster_cache_dir)
+
+    def get_cache_name(self):
+        return "host_level_params"

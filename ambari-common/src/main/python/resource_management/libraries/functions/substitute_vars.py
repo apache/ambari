@@ -19,35 +19,37 @@ limitations under the License.
 Ambari Agent
 
 """
+
 import re
 
 _MAX_SUBST = 20
 
+
 def substitute_vars(raw, config):
-  """
-  @param raw: str (e.g '${hbase.tmp.dir}/local')
-  @param config: dict (e.g {'hbase.tmp.dir': '/hadoop/hbase'})
-  """
-  result = raw
+    """
+    @param raw: str (e.g '${hbase.tmp.dir}/local')
+    @param config: dict (e.g {'hbase.tmp.dir': '/hadoop/hbase'})
+    """
+    result = raw
 
-  pattern = re.compile("\$\{[^\}\$\x0020]+\}")
+    pattern = re.compile("\$\{[^\}\$\x0020]+\}")
 
-  for depth in range(0, _MAX_SUBST - 1):
-    match = pattern.search(result)
+    for depth in range(0, _MAX_SUBST - 1):
+        match = pattern.search(result)
 
-    if match:
-      start = match.start()
-      end = match.end()
+        if match:
+            start = match.start()
+            end = match.end()
 
-      name = result[start + 2 : end - 1]
+            name = result[start + 2 : end - 1]
 
-      try:
-        value = config[name]
-      except KeyError:
-        return result
+            try:
+                value = config[name]
+            except KeyError:
+                return result
 
-      result = result[:start] + value + result[end:]
-    else:
-      break
+            result = result[:start] + value + result[end:]
+        else:
+            break
 
-  return result
+    return result

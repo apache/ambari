@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-    ambari_jinja2.tests
-    ~~~~~~~~~~~~
+ambari_jinja2.tests
+~~~~~~~~~~~~
 
-    Jinja test functions. Used with the "is" operator.
+Jinja test functions. Used with the "is" operator.
 
-    :copyright: (c) 2010 by the Jinja Team.
-    :license: BSD, see LICENSE for more details.
+:copyright: (c) 2010 by the Jinja Team.
+:license: BSD, see LICENSE for more details.
 """
+
 import re
 from ambari_jinja2.runtime import Undefined
 
@@ -16,15 +17,16 @@ from ambari_jinja2.runtime import Undefined
 __test__ = False
 
 
-number_re = re.compile(r'^-?\d+(\.\d+)?$')
+number_re = re.compile(r"^-?\d+(\.\d+)?$")
 regex_type = type(number_re)
 
 
 try:
     test_callable = callable
 except NameError:
+
     def test_callable(x):
-        return hasattr(x, '__call__')
+        return hasattr(x, "__call__")
 
 
 def test_odd(value):
@@ -125,23 +127,23 @@ def test_iterable(value):
 
 def test_escaped(value):
     """Check if the value is escaped."""
-    return hasattr(value, '__html__')
+    return hasattr(value, "__html__")
 
 
 TESTS = {
-    'odd':              test_odd,
-    'even':             test_even,
-    'divisibleby':      test_divisibleby,
-    'defined':          test_defined,
-    'undefined':        test_undefined,
-    'none':             test_none,
-    'lower':            test_lower,
-    'upper':            test_upper,
-    'string':           test_string,
-    'number':           test_number,
-    'sequence':         test_sequence,
-    'iterable':         test_iterable,
-    'callable':         test_callable,
-    'sameas':           test_sameas,
-    'escaped':          test_escaped
+    "odd": test_odd,
+    "even": test_even,
+    "divisibleby": test_divisibleby,
+    "defined": test_defined,
+    "undefined": test_undefined,
+    "none": test_none,
+    "lower": test_lower,
+    "upper": test_upper,
+    "string": test_string,
+    "number": test_number,
+    "sequence": test_sequence,
+    "iterable": test_iterable,
+    "callable": test_callable,
+    "sameas": test_sameas,
+    "escaped": test_escaped,
 }

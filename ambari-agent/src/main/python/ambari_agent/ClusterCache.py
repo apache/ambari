@@ -27,143 +27,163 @@ from ambari_agent.Utils import Utils
 
 logger = logging.getLogger(__name__)
 
+
 class ClusterCache(dict):
-  """
-  Maintains an in-memory cache and disk cache (for debugging purposes) for
-  every cluster. This is useful for having quick access to any of the properties.
-  """
-  COMMON_DATA_CLUSTER = '-1'
-
-  file_locks = defaultdict(threading.RLock)
-
-  def __init__(self, cluster_cache_dir):
     """
-    Initializes the cache.
-    :param cluster_cache_dir:
-    :return:
+    Maintains an in-memory cache and disk cache (for debugging purposes) for
+    every cluster. This is useful for having quick access to any of the properties.
     """
 
-    self.cluster_cache_dir = cluster_cache_dir
+    COMMON_DATA_CLUSTER = "-1"
 
-    self.__current_cache_json_file = os.path.join(self.cluster_cache_dir, self.get_cache_name()+'.json')
-    self.__current_cache_hash_file = os.path.join(self.cluster_cache_dir, '.'+self.get_cache_name()+'.hash')
+    file_locks = defaultdict(threading.RLock)
 
-    self._cache_lock = threading.RLock()
-    self.__file_lock = ClusterCache.file_locks[self.__current_cache_json_file]
+    def __init__(self, cluster_cache_dir):
+        """
+        Initializes the cache.
+        :param cluster_cache_dir:
+        :return:
+        """
 
-    self.hash = None
-    cache_dict = {}
+        self.cluster_cache_dir = cluster_cache_dir
 
-    try:
-      with self.__file_lock:
-        if os.path.isfile(self.__current_cache_json_file):
-          with open(self.__current_cache_json_file, 'r') as fp:
-            cache_dict = json.load(fp)
+        self.__current_cache_json_file = os.path.join(
+            self.cluster_cache_dir, self.get_cache_name() + ".json"
+        )
+        self.__current_cache_hash_file = os.path.join(
+            self.cluster_cache_dir, "." + self.get_cache_name() + ".hash"
+        )
 
-        if os.path.isfile(self.__current_cache_hash_file):
-          with open(self.__current_cache_hash_file, 'r') as fp:
-            self.hash = fp.read()
-    except (IOError,ValueError):
-      logger.exception("Cannot load data from {0} and {1}".format(self.__current_cache_json_file, self.__current_cache_hash_file))
-      self.hash = None
-      cache_dict = {}
+        self._cache_lock = threading.RLock()
+        self.__file_lock = ClusterCache.file_locks[self.__current_cache_json_file]
 
-    try:
-      self.rewrite_cache(cache_dict, self.hash)
-    except:
-      # Example: hostname change and restart causes old topology loading to fail with exception
-      logger.exception("Loading saved cache for {0} failed".format(self.__class__.__name__))
-      self.rewrite_cache({}, None)
+        self.hash = None
+        cache_dict = {}
 
-  def get_cluster_indepedent_data(self):
-    return self[ClusterCache.COMMON_DATA_CLUSTER]
+        try:
+            with self.__file_lock:
+                if os.path.isfile(self.__current_cache_json_file):
+                    with open(self.__current_cache_json_file, "r") as fp:
+                        cache_dict = json.load(fp)
 
-  def get_cluster_ids(self):
-    cluster_ids = list(self.keys())[:]
-    if ClusterCache.COMMON_DATA_CLUSTER in cluster_ids:
-      cluster_ids.remove(ClusterCache.COMMON_DATA_CLUSTER)
-    return cluster_ids
+                if os.path.isfile(self.__current_cache_hash_file):
+                    with open(self.__current_cache_hash_file, "r") as fp:
+                        self.hash = fp.read()
+        except (IOError, ValueError):
+            logger.exception(
+                "Cannot load data from {0} and {1}".format(
+                    self.__current_cache_json_file, self.__current_cache_hash_file
+                )
+            )
+            self.hash = None
+            cache_dict = {}
 
-  def rewrite_cache(self, cache, cache_hash):
-    cache_ids_to_delete = []
-    for existing_cluster_id in self:
-      if not existing_cluster_id in cache:
-        cache_ids_to_delete.append(existing_cluster_id)
+        try:
+            self.rewrite_cache(cache_dict, self.hash)
+        except:
+            # Example: hostname change and restart causes old topology loading to fail with exception
+            logger.exception(
+                "Loading saved cache for {0} failed".format(self.__class__.__name__)
+            )
+            self.rewrite_cache({}, None)
 
-    for cluster_id, cluster_cache in cache.items():
-      self.rewrite_cluster_cache(cluster_id, cluster_cache)
+    def get_cluster_indepedent_data(self):
+        return self[ClusterCache.COMMON_DATA_CLUSTER]
 
-    with self._cache_lock:
-      for cache_id_to_delete in cache_ids_to_delete:
-        del self[cache_id_to_delete]
+    def get_cluster_ids(self):
+        cluster_ids = list(self.keys())[:]
+        if ClusterCache.COMMON_DATA_CLUSTER in cluster_ids:
+            cluster_ids.remove(ClusterCache.COMMON_DATA_CLUSTER)
+        return cluster_ids
 
-    self.on_cache_update()
-    self.persist_cache(cache_hash)
+    def rewrite_cache(self, cache, cache_hash):
+        cache_ids_to_delete = []
+        for existing_cluster_id in self:
+            if not existing_cluster_id in cache:
+                cache_ids_to_delete.append(existing_cluster_id)
 
-  def cache_update(self, update_dict, cache_hash):
-    """
-    Update the current dictionary by other one
-    """
-    merged_dict = Utils.update_nested(self._get_mutable_copy(), update_dict)
-    self.rewrite_cache(merged_dict, cache_hash)
+        for cluster_id, cluster_cache in cache.items():
+            self.rewrite_cluster_cache(cluster_id, cluster_cache)
 
-  def cache_delete(self, delete_dict, cache_hash):
-    raise NotImplemented()
+        with self._cache_lock:
+            for cache_id_to_delete in cache_ids_to_delete:
+                del self[cache_id_to_delete]
 
-  def rewrite_cluster_cache(self, cluster_id, cache):
-    """
-    Thread-safe method for writing out the specified cluster cache
-    and rewriting the in-memory representation.
-    :param cluster_id:
-    :param cache:
-    :return:
-    """
-    logger.info("Rewriting cache {0} for cluster {1}".format(self.__class__.__name__, cluster_id))
+        self.on_cache_update()
+        self.persist_cache(cache_hash)
 
-    # The cache should contain exactly the data received from server.
-    # Modifications on agent-side will lead to unnecessary cache sync every agent registration. Which is a big concern on perf clusters!
-    # Also immutability can lead to multithreading issues.
-    immutable_cache = Utils.make_immutable(cache)
-    with self._cache_lock:
-      self[cluster_id] = immutable_cache
+    def cache_update(self, update_dict, cache_hash):
+        """
+        Update the current dictionary by other one
+        """
+        merged_dict = Utils.update_nested(self._get_mutable_copy(), update_dict)
+        self.rewrite_cache(merged_dict, cache_hash)
 
-  def persist_cache(self, cache_hash):
-    # ensure that our cache directory exists
-    if not os.path.exists(self.cluster_cache_dir):
-      os.makedirs(self.cluster_cache_dir)
+    def cache_delete(self, delete_dict, cache_hash):
+        raise NotImplemented()
 
-    with self.__file_lock:
-      with open(self.__current_cache_json_file, 'w') as f:
-        json.dump(self, f, indent=2)
+    def rewrite_cluster_cache(self, cluster_id, cache):
+        """
+        Thread-safe method for writing out the specified cluster cache
+        and rewriting the in-memory representation.
+        :param cluster_id:
+        :param cache:
+        :return:
+        """
+        logger.info(
+            "Rewriting cache {0} for cluster {1}".format(
+                self.__class__.__name__, cluster_id
+            )
+        )
 
-      if self.hash is not None:
-        with open(self.__current_cache_hash_file, 'w') as fp:
-          fp.write(cache_hash)
+        # The cache should contain exactly the data received from server.
+        # Modifications on agent-side will lead to unnecessary cache sync every agent registration. Which is a big concern on perf clusters!
+        # Also immutability can lead to multithreading issues.
+        immutable_cache = Utils.make_immutable(cache)
+        with self._cache_lock:
+            self[cluster_id] = immutable_cache
 
-    # if all of above are successful finally set the hash
-    self.hash = cache_hash
+    def persist_cache(self, cache_hash):
+        # ensure that our cache directory exists
+        if not os.path.exists(self.cluster_cache_dir):
+            os.makedirs(self.cluster_cache_dir)
 
-  def _get_mutable_copy(self):
-    with self._cache_lock:
-      return Utils.get_mutable_copy(self)
+        with self.__file_lock:
+            with open(self.__current_cache_json_file, "w") as f:
+                json.dump(self, f, indent=2)
 
-  def __getitem__(self, key):
-    try:
-      return super(ClusterCache, self).__getitem__(key)
-    except KeyError:
-      raise KeyError("{0} for cluster_id={1} is missing. Check if server sent it.".format(self.get_cache_name().title(), key))
+            if self.hash is not None:
+                with open(self.__current_cache_hash_file, "w") as fp:
+                    fp.write(cache_hash)
 
-  def on_cache_update(self):
-    """
-    Call back function called then cache is updated
-    """
-    pass
+        # if all of above are successful finally set the hash
+        self.hash = cache_hash
 
-  def get_cache_name(self):
-    raise NotImplemented()
+    def _get_mutable_copy(self):
+        with self._cache_lock:
+            return Utils.get_mutable_copy(self)
 
-  def __deepcopy__(self, memo):
-    return self.__class__(self.cluster_cache_dir)
+    def __getitem__(self, key):
+        try:
+            return super(ClusterCache, self).__getitem__(key)
+        except KeyError:
+            raise KeyError(
+                "{0} for cluster_id={1} is missing. Check if server sent it.".format(
+                    self.get_cache_name().title(), key
+                )
+            )
 
-  def __copy__(self):
-    return self.__class__(self.cluster_cache_dir)
+    def on_cache_update(self):
+        """
+        Call back function called then cache is updated
+        """
+        pass
+
+    def get_cache_name(self):
+        raise NotImplemented()
+
+    def __deepcopy__(self, memo):
+        return self.__class__(self.cluster_cache_dir)
+
+    def __copy__(self):
+        return self.__class__(self.cluster_cache_dir)

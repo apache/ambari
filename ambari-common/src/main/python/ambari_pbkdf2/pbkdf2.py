@@ -50,7 +50,7 @@
 ###########################################################################
 
 __version__ = "1.3"
-__all__ = ['PBKDF2', 'crypt']
+__all__ = ["PBKDF2", "crypt"]
 
 from struct import pack
 from random import randint
@@ -63,6 +63,7 @@ try:
 except ImportError:
     # PyCrypto not available.  Use the Python standard library.
     import hmac as HMAC
+
     try:
         from hashlib import sha1 as SHA1
     except ImportError:
@@ -75,44 +76,63 @@ except ImportError:
 
 if sys.version_info[0] == 2:
     _0xffffffffL = int(1) << 32
+
     def isunicode(s):
         return isinstance(s, str)
+
     def isbytes(s):
         return isinstance(s, str)
+
     def isinteger(n):
         return isinstance(n, int)
+
     def b(s):
         return s
+
     def binxor(a, b):
         return "".join([chr(ord(x) ^ ord(y)) for (x, y) in zip(a, b)])
+
     def b64encode(data, chars="+/"):
         tt = string.maketrans("+/", chars)
-        return data.encode('base64').replace("\n", "").translate(tt)
+        return data.encode("base64").replace("\n", "").translate(tt)
+
     from binascii import b2a_hex
 else:
-    _0xffffffffL = 0xffffffff
+    _0xffffffffL = 0xFFFFFFFF
+
     def isunicode(s):
         return isinstance(s, str)
+
     def isbytes(s):
         return isinstance(s, bytes)
+
     def isinteger(n):
         return isinstance(n, int)
+
     def callable(obj):
-        return hasattr(obj, '__call__')
+        return hasattr(obj, "__call__")
+
     def b(s):
-       return s.encode("latin-1")
+        return s.encode("latin-1")
+
     def binxor(a, b):
         return bytes([x ^ y for (x, y) in zip(a, b)])
+
     from base64 import b64encode as _b64encode
+
     def b64encode(data, chars="+/"):
         if isunicode(chars):
-            return _b64encode(data, chars.encode('utf-8')).decode('utf-8')
+            return _b64encode(data, chars.encode("utf-8")).decode("utf-8")
         else:
             return _b64encode(data, chars)
+
     from binascii import b2a_hex as _b2a_hex
+
     def b2a_hex(s):
-        return _b2a_hex(s).decode('us-ascii')
+        return _b2a_hex(s).decode("us-ascii")
+
     xrange = range
+
 
 class PBKDF2(object):
     """PBKDF2.py : PKCS#5 v2.0 Password-Based Key Derivation
@@ -134,16 +154,18 @@ class PBKDF2(object):
     passphrases they are derived from.
     """
 
-    def __init__(self, passphrase, salt, iterations=1000,
-                 digestmodule=SHA1, macmodule=HMAC):
+    def __init__(
+        self, passphrase, salt, iterations=1000, digestmodule=SHA1, macmodule=HMAC
+    ):
         self.__macmodule = macmodule
         self.__digestmodule = digestmodule
         self._setup(passphrase, salt, iterations, self._pseudorandom)
 
     def _pseudorandom(self, key, msg):
         """Pseudorandom function.  e.g. HMAC-SHA1"""
-        return self.__macmodule.new(key=key, msg=msg,
-            digestmod=self.__digestmodule).digest()
+        return self.__macmodule.new(
+            key=key, msg=msg, digestmod=self.__digestmodule
+        ).digest()
 
     def read(self, bytes):
         """Read the specified number of key bytes."""
@@ -172,7 +194,7 @@ class PBKDF2(object):
         assert 1 <= i <= _0xffffffffL
         U = self.__prf(self.__passphrase, self.__salt + pack("!L", i))
         result = U
-        for j in range(2, 1+self.__iterations):
+        for j in range(2, 1 + self.__iterations):
             U = self.__prf(self.__passphrase, U)
             result = binxor(result, U)
         return result
@@ -227,6 +249,7 @@ class PBKDF2(object):
             del self.__buf
             self.closed = True
 
+
 def crypt(word, salt=None, iterations=None):
     """PBKDF2-based unix crypt(3) replacement.
 
@@ -242,9 +265,9 @@ def crypt(word, salt=None, iterations=None):
 
     # salt must be a string or the us-ascii subset of unicode
     if isunicode(salt):
-        salt = salt.encode('us-ascii').decode('us-ascii')
+        salt = salt.encode("us-ascii").decode("us-ascii")
     elif isbytes(salt):
-        salt = salt.decode('us-ascii')
+        salt = salt.decode("us-ascii")
     else:
         raise TypeError("salt must be a string")
 
@@ -281,17 +304,20 @@ def crypt(word, salt=None, iterations=None):
     rawhash = PBKDF2(word, salt, iterations).read(24)
     return salt + "$" + b64encode(rawhash, "./")
 
+
 # Add crypt as a static method of the PBKDF2 class
 # This makes it easier to do "from PBKDF2 import PBKDF2" and still use
 # crypt.
 PBKDF2.crypt = staticmethod(crypt)
+
 
 def _makesalt():
     """Return a 48-bit pseudorandom salt for crypt().
 
     This function is not suitable for generating cryptographic secrets.
     """
-    binarysalt = b("").join([pack("@H", randint(0, 0xffff)) for i in range(3)])
+    binarysalt = b("").join([pack("@H", randint(0, 0xFFFF)) for i in range(3)])
     return b64encode(binarysalt, "./")
+
 
 # vim:set ts=4 sw=4 sts=4 expandtab:

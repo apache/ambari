@@ -21,21 +21,27 @@ Ambari Agent
 """
 
 _all__ = ["XmlConfig"]
-from resource_management.core.base import Resource, ForcedListArgument, ResourceArgument, BooleanArgument
+from resource_management.core.base import (
+    Resource,
+    ForcedListArgument,
+    ResourceArgument,
+    BooleanArgument,
+)
+
 
 class XmlConfig(Resource):
-  action = ForcedListArgument(default="create")
-  filename = ResourceArgument(default=lambda obj: obj.name)
-  
-  configurations = ResourceArgument()
-  configuration_attributes = ResourceArgument()
-  conf_dir = ResourceArgument()
-  
-  mode = ResourceArgument()
-  owner = ResourceArgument()
-  group = ResourceArgument()
-  xml_include_file = ResourceArgument()
+    action = ForcedListArgument(default="create")
+    filename = ResourceArgument(default=lambda obj: obj.name)
 
-  encoding = ResourceArgument(default="UTF-8")
+    configurations = ResourceArgument()
+    configuration_attributes = ResourceArgument()
+    conf_dir = ResourceArgument()
 
-  actions = Resource.actions + ["create"]
+    mode = ResourceArgument()
+    owner = ResourceArgument()
+    group = ResourceArgument()
+    xml_include_file = ResourceArgument()
+
+    encoding = ResourceArgument(default="UTF-8")
+
+    actions = Resource.actions + ["create"]

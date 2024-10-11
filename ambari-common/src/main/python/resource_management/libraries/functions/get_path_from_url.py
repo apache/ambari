@@ -23,15 +23,16 @@ Ambari Agent
 from resource_management.libraries.functions.is_empty import is_empty
 import re
 
-def get_path_from_url(address):
-  """
-  Return port from URL. If the address is numeric, the address is assumed to be a port and is returned.
-  If address is UnknownConfiguration, UnknownConfiguration will be returned.
-  """
-  if is_empty(address):
-    return address
 
-  result = re.findall("^((.+)://)?(([a-zA-Z0-9]|\.|-)*)(:([\d]{2,}))?/(.*)$", address)
-  if result:
-    return result[0][6]
-  return None
+def get_path_from_url(address):
+    """
+    Return port from URL. If the address is numeric, the address is assumed to be a port and is returned.
+    If address is UnknownConfiguration, UnknownConfiguration will be returned.
+    """
+    if is_empty(address):
+        return address
+
+    result = re.findall("^((.+)://)?(([a-zA-Z0-9]|\.|-)*)(:([\d]{2,}))?/(.*)$", address)
+    if result:
+        return result[0][6]
+    return None

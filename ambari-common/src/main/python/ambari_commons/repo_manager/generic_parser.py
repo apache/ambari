@@ -21,44 +21,46 @@ limitations under the License.
 import re
 
 # basic base output cleanup patterns
-ANSI_ESCAPE = re.compile(r'\x1B\[[0-?]*[ -/]*[@-~]')  # exclude bash control sequences
+ANSI_ESCAPE = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")  # exclude bash control sequences
 EXCLUDE_CHARS = [ord("\r"), ord("\n"), ord("\t")]
-REMOVE_CHARS = "".join([chr(i) for i in range(0, 31) if i not in EXCLUDE_CHARS])  # exclude control characters
+REMOVE_CHARS = "".join(
+    [chr(i) for i in range(0, 31) if i not in EXCLUDE_CHARS]
+)  # exclude control characters
 
 
 class GenericParser(object):
-  """
-   Base for the any custom parser. New parser rules:
-   - no subprocess calls
-   - as input should be provided iterable text
-   - result should be returned as ready to consume object, preferably as generator
+    """
+    Base for the any custom parser. New parser rules:
+    - no subprocess calls
+    - as input should be provided iterable text
+    - result should be returned as ready to consume object, preferably as generator
 
-   Samples available for zypper, yum, apt
-  """
+    Samples available for zypper, yum, apt
+    """
 
-  @staticmethod
-  def config_reader(stream):
-    """
-    :type stream collections.Iterable
-    :rtype collections.Iterable
-    :return tuple(key, value)
-    """
-    raise NotImplementedError()
+    @staticmethod
+    def config_reader(stream):
+        """
+        :type stream collections.Iterable
+        :rtype collections.Iterable
+        :return tuple(key, value)
+        """
+        raise NotImplementedError()
 
-  @staticmethod
-  def packages_reader(stream):
-    """
-    :type stream collections.Iterable
-    :rtype collections.Iterable
-    :return tuple(package name, version, parsed repo list file)
-    """
-    raise NotImplementedError()
+    @staticmethod
+    def packages_reader(stream):
+        """
+        :type stream collections.Iterable
+        :rtype collections.Iterable
+        :return tuple(package name, version, parsed repo list file)
+        """
+        raise NotImplementedError()
 
-  @staticmethod
-  def packages_installed_reader(stream):
-    """
-      :type stream collections.Iterable
-      :rtype collections.Iterable
-      :return tuple(package name, version)
-    """
-    raise NotImplementedError()
+    @staticmethod
+    def packages_installed_reader(stream):
+        """
+        :type stream collections.Iterable
+        :rtype collections.Iterable
+        :return tuple(package name, version)
+        """
+        raise NotImplementedError()

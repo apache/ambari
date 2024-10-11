@@ -10,5 +10,5 @@ class FixAltUnicode(fixer_base.BaseFix):
     """
 
     def transform(self, node, results):
-        name = results['name']
-        name.replace(Name('__str__', prefix=name.prefix))
+        name = results["name"]
+        name.replace(Name("__str__", prefix=name.prefix))

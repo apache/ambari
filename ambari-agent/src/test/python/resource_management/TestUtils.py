@@ -23,18 +23,26 @@ from resource_management.core.utils import attr_to_bitmask
 
 
 class TestUtils(TestCase):
+    def test_attr_to_bitmask(self):
+        test_set = [
+            ["+r", stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH, 0],
+            ["u+w", stat.S_IWUSR, 0],
+            ["uo+x", stat.S_IXUSR | stat.S_IXOTH, 0],
+            ["-x", stat.S_IRUSR, stat.S_IXUSR | stat.S_IXOTH | stat.S_IRUSR],
+            [
+                "=x",
+                stat.S_IXUSR | stat.S_IXOTH | stat.S_IXGRP,
+                stat.S_IRUSR | stat.S_IRGRP,
+            ],
+        ]
 
-  def test_attr_to_bitmask(self):
-    test_set = [
-      ["+r", stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH, 0],
-      ["u+w", stat.S_IWUSR, 0],
-      ["uo+x", stat.S_IXUSR | stat.S_IXOTH, 0],
-      ["-x", stat.S_IRUSR, stat.S_IXUSR | stat.S_IXOTH | stat.S_IRUSR],
-      ["=x", stat.S_IXUSR | stat.S_IXOTH | stat.S_IXGRP, stat.S_IRUSR | stat.S_IRGRP]
-    ]
-
-    for test in test_set:
-      test_pattern, expected, initial_val = test
-      bitmask = attr_to_bitmask(test_pattern, initial_bitmask= initial_val)
-      self.assertEqual(expected, bitmask, "Test set \"{0}\" failed, expected: {1} but got {2}".format(
-        test_pattern, expected, bitmask))
+        for test in test_set:
+            test_pattern, expected, initial_val = test
+            bitmask = attr_to_bitmask(test_pattern, initial_bitmask=initial_val)
+            self.assertEqual(
+                expected,
+                bitmask,
+                'Test set "{0}" failed, expected: {1} but got {2}'.format(
+                    test_pattern, expected, bitmask
+                ),
+            )

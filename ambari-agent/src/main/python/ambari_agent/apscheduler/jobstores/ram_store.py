@@ -23,4 +23,4 @@ class RAMJobStore(JobStore):
         pass
 
     def __repr__(self):
-        return '<%s>' % (self.__class__.__name__)
+        return "<%s>" % (self.__class__.__name__)

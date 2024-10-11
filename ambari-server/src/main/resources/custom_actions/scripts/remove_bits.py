@@ -29,27 +29,53 @@ from resource_management.core.resources.packaging import Package
 
 
 class RemoveBits(Script):
-  """
-  This script is called during Express Upgrade to remove bits.
-  """
-
-  def remove_hdp_21(self, env):
     """
-    During Express Upgrade from HDP 2.1 to any higher version (HDP 2.2 or 2.3), the HDP 2.1 bits must be uninstalled.
-    This is because /usr/bin/hadoop used to be a shell script in HDP 2.1, but in HDP 2.3 it is
-    a symlink to <stack-root>/current/hadoop-client/bin/hadoop
-    so both versions cannot coexist.
+    This script is called during Express Upgrade to remove bits.
     """
-    Logger.info("Attempting to remove bits for HDP 2.1")
-    config = Script.get_config()
 
-    packages_to_remove = ["zookeeper", "hadoop", "hadoop-lzo", "hadoop-hdfs", "hadoop-libhdfs", "hadoop-yarn", "hadoop-client", "hadoop-mapreduce", "hive", "hive-hcatalog", "hive-jdbc", "hive-webhcat", "hcatalog", "webhcat-tar-hive", "webhcat-tar-pig", "oozie", "oozie-client", "pig", "sqoop", "tez" "falcon", "storm", "flume", "hbase", "phoenix"]
-    packages_to_remove.reverse()
-    Logger.info("Packages to remove: {0}".format(" ".join(packages_to_remove)))
+    def remove_hdp_21(self, env):
+        """
+        During Express Upgrade from HDP 2.1 to any higher version (HDP 2.2 or 2.3), the HDP 2.1 bits must be uninstalled.
+        This is because /usr/bin/hadoop used to be a shell script in HDP 2.1, but in HDP 2.3 it is
+        a symlink to <stack-root>/current/hadoop-client/bin/hadoop
+        so both versions cannot coexist.
+        """
+        Logger.info("Attempting to remove bits for HDP 2.1")
+        config = Script.get_config()
 
-    for name in packages_to_remove:
-      Logger.info("Attempting to remove {0}".format(name))
-      Package(name, action="remove")
+        packages_to_remove = [
+            "zookeeper",
+            "hadoop",
+            "hadoop-lzo",
+            "hadoop-hdfs",
+            "hadoop-libhdfs",
+            "hadoop-yarn",
+            "hadoop-client",
+            "hadoop-mapreduce",
+            "hive",
+            "hive-hcatalog",
+            "hive-jdbc",
+            "hive-webhcat",
+            "hcatalog",
+            "webhcat-tar-hive",
+            "webhcat-tar-pig",
+            "oozie",
+            "oozie-client",
+            "pig",
+            "sqoop",
+            "tez" "falcon",
+            "storm",
+            "flume",
+            "hbase",
+            "phoenix",
+        ]
+        packages_to_remove.reverse()
+        Logger.info("Packages to remove: {0}".format(" ".join(packages_to_remove)))
+
+        for name in packages_to_remove:
+            Logger.info("Attempting to remove {0}".format(name))
+            Package(name, action="remove")
+
 
 if __name__ == "__main__":
-  RemoveBits().execute()
+    RemoveBits().execute()

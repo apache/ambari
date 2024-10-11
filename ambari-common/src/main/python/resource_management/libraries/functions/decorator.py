@@ -21,109 +21,138 @@ Ambari Agent
 """
 
 import time
-__all__ = ['retry', 'safe_retry', 'experimental' ]
+
+__all__ = ["retry", "safe_retry", "experimental"]
 
 from resource_management.core.logger import Logger
 
 
-def retry(times=3, sleep_time=1, max_sleep_time=8, backoff_factor=1, err_class=Exception, timeout_func=None):
-  """
-  Retry decorator for improved robustness of functions.
-  :param times: Number of times to attempt to call the function.  Optionally specify the timeout_func.
-  :param sleep_time: Initial sleep time between attempts
-  :param backoff_factor: After every failed attempt, multiple the previous sleep time by this factor.
-  :param err_class: Exception class to handle
-  :param timeout_func: used when the 'times' argument should be computed.  this function should
-         return an integer value that indicates the number of seconds to wait
-  :return: Returns the output of the wrapped function.
-  """
-  def decorator(function):
-    def wrapper(*args, **kwargs):
-      _times = times
-      _sleep_time = sleep_time
-      _backoff_factor = backoff_factor
-      _err_class = err_class
+def retry(
+    times=3,
+    sleep_time=1,
+    max_sleep_time=8,
+    backoff_factor=1,
+    err_class=Exception,
+    timeout_func=None,
+):
+    """
+    Retry decorator for improved robustness of functions.
+    :param times: Number of times to attempt to call the function.  Optionally specify the timeout_func.
+    :param sleep_time: Initial sleep time between attempts
+    :param backoff_factor: After every failed attempt, multiple the previous sleep time by this factor.
+    :param err_class: Exception class to handle
+    :param timeout_func: used when the 'times' argument should be computed.  this function should
+           return an integer value that indicates the number of seconds to wait
+    :return: Returns the output of the wrapped function.
+    """
 
-      if timeout_func is not None:
-        timeout = timeout_func()
-        _times = timeout // sleep_time  # ensure we end up with an integer
+    def decorator(function):
+        def wrapper(*args, **kwargs):
+            _times = times
+            _sleep_time = sleep_time
+            _backoff_factor = backoff_factor
+            _err_class = err_class
 
-      while _times > 1:
-        _times -= 1
-        try:
-          return function(*args, **kwargs)
-        except _err_class as err:
-          Logger.info("Will retry %d time(s), caught exception: %s. Sleeping for %d sec(s)" % (_times, str(err), _sleep_time))
-          time.sleep(_sleep_time)
+            if timeout_func is not None:
+                timeout = timeout_func()
+                _times = timeout // sleep_time  # ensure we end up with an integer
 
-        if _sleep_time * _backoff_factor <= max_sleep_time:
-          _sleep_time *= _backoff_factor
+            while _times > 1:
+                _times -= 1
+                try:
+                    return function(*args, **kwargs)
+                except _err_class as err:
+                    Logger.info(
+                        "Will retry %d time(s), caught exception: %s. Sleeping for %d sec(s)"
+                        % (_times, str(err), _sleep_time)
+                    )
+                    time.sleep(_sleep_time)
 
-      return function(*args, **kwargs)
-    return wrapper
-  return decorator
+                if _sleep_time * _backoff_factor <= max_sleep_time:
+                    _sleep_time *= _backoff_factor
+
+            return function(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
 
 
-def safe_retry(times=3, sleep_time=1, max_sleep_time=8, backoff_factor=1, err_class=Exception, return_on_fail=None, timeout_func=None):
-  """
-  Retry decorator for improved robustness of functions. Instead of error generation on the last try, will return
-  return_on_fail value.
-  :param times: Number of times to attempt to call the function.  Optionally specify the timeout_func.
-  :param sleep_time: Initial sleep time between attempts
-  :param backoff_factor: After every failed attempt, multiple the previous sleep time by this factor.
-  :param err_class: Exception class to handle
-  :param return_on_fail value to return on the last try
-  :param timeout_func: used when the 'times' argument should be computed.  this function should
-         return an integer value that indicates the number of seconds to wait
-  :return: Returns the output of the wrapped function.
-  """
-  def decorator(function):
-    def wrapper(*args, **kwargs):
-      _times = times
-      _sleep_time = sleep_time
-      _backoff_factor = backoff_factor
-      _err_class = err_class
-      _return_on_fail = return_on_fail
+def safe_retry(
+    times=3,
+    sleep_time=1,
+    max_sleep_time=8,
+    backoff_factor=1,
+    err_class=Exception,
+    return_on_fail=None,
+    timeout_func=None,
+):
+    """
+    Retry decorator for improved robustness of functions. Instead of error generation on the last try, will return
+    return_on_fail value.
+    :param times: Number of times to attempt to call the function.  Optionally specify the timeout_func.
+    :param sleep_time: Initial sleep time between attempts
+    :param backoff_factor: After every failed attempt, multiple the previous sleep time by this factor.
+    :param err_class: Exception class to handle
+    :param return_on_fail value to return on the last try
+    :param timeout_func: used when the 'times' argument should be computed.  this function should
+           return an integer value that indicates the number of seconds to wait
+    :return: Returns the output of the wrapped function.
+    """
 
-      if timeout_func is not None:
-        timeout = timeout_func()
-        _times = timeout // sleep_time  # ensure we end up with an integer
+    def decorator(function):
+        def wrapper(*args, **kwargs):
+            _times = times
+            _sleep_time = sleep_time
+            _backoff_factor = backoff_factor
+            _err_class = err_class
+            _return_on_fail = return_on_fail
 
-      while _times > 1:
-        _times -= 1
-        try:
-          return function(*args, **kwargs)
-        except _err_class as err:
-          Logger.info("Will retry %d time(s), caught exception: %s. Sleeping for %d sec(s)" % (_times, str(err), _sleep_time))
-          time.sleep(_sleep_time)
-        if(_sleep_time * _backoff_factor <= max_sleep_time):
-          _sleep_time *= _backoff_factor
+            if timeout_func is not None:
+                timeout = timeout_func()
+                _times = timeout // sleep_time  # ensure we end up with an integer
 
-      try:
-        return function(*args, **kwargs)
-      except _err_class as err:
-        Logger.error(str(err))
-        return _return_on_fail
+            while _times > 1:
+                _times -= 1
+                try:
+                    return function(*args, **kwargs)
+                except _err_class as err:
+                    Logger.info(
+                        "Will retry %d time(s), caught exception: %s. Sleeping for %d sec(s)"
+                        % (_times, str(err), _sleep_time)
+                    )
+                    time.sleep(_sleep_time)
+                if _sleep_time * _backoff_factor <= max_sleep_time:
+                    _sleep_time *= _backoff_factor
 
-    return wrapper
-  return decorator
+            try:
+                return function(*args, **kwargs)
+            except _err_class as err:
+                Logger.error(str(err))
+                return _return_on_fail
+
+        return wrapper
+
+    return decorator
 
 
 def experimental(feature=None, comment=None, disable=False):
-  """
-  Annotates a function as being experiemental, optionally logging a comment.
-  :param feature:  the feature area that is experimental
-  :param comment:  the comment to log
-  :param disable  True to skip invocation of the method entirely, defaults to False.
-  :return: 
-  """
-  def decorator(function):
-    def wrapper(*args, **kwargs):
-      if comment:
-        Logger.info(comment)
+    """
+    Annotates a function as being experiemental, optionally logging a comment.
+    :param feature:  the feature area that is experimental
+    :param comment:  the comment to log
+    :param disable  True to skip invocation of the method entirely, defaults to False.
+    :return:
+    """
 
-      if not disable:
-        return function(*args, **kwargs)
-    return wrapper
-  return decorator
+    def decorator(function):
+        def wrapper(*args, **kwargs):
+            if comment:
+                Logger.info(comment)
 
+            if not disable:
+                return function(*args, **kwargs)
+
+        return wrapper
+
+    return decorator

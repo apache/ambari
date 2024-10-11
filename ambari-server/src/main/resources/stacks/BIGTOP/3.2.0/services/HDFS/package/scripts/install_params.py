@@ -17,14 +17,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+
 from ambari_commons import OSCheck
 
 # These parameters are supposed to be referenced at installation time, before the Hadoop environment variables have been set
 if OSCheck.is_windows_family():
-  exclude_packages = []
+    exclude_packages = []
 else:
-  from resource_management.libraries.functions.default import default
-  from resource_management.libraries.script.script import Script
+    from resource_management.libraries.functions.default import default
+    from resource_management.libraries.script.script import Script
 
-  _config = Script.get_config()
-  stack_version_unformatted = str(_config['clusterLevelParams']['stack_version'])
+    _config = Script.get_config()
+    stack_version_unformatted = str(_config["clusterLevelParams"]["stack_version"])

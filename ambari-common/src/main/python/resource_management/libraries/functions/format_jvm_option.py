@@ -26,21 +26,22 @@ from resource_management.libraries.script.config_dictionary import UnknownConfig
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions import *
 
+
 def format_jvm_option(name, default_value):
-  curr_dict = default(name, default_value)
-  if isinstance(curr_dict, int):
-    curr_dict = str(curr_dict) + "m"
-    return curr_dict
-  elif isinstance(curr_dict, str):
-    if curr_dict.strip() == "":
-      return default_value
-    elif curr_dict.strip() != "":
-      if "m" in curr_dict:
+    curr_dict = default(name, default_value)
+    if isinstance(curr_dict, int):
+        curr_dict = str(curr_dict) + "m"
         return curr_dict
-      else:
-        if isinstance(int(curr_dict), int): 
-          return str(int(curr_dict)) + "m"
-        else:
-          return default_value
-  else:
-    return default_value
+    elif isinstance(curr_dict, str):
+        if curr_dict.strip() == "":
+            return default_value
+        elif curr_dict.strip() != "":
+            if "m" in curr_dict:
+                return curr_dict
+            else:
+                if isinstance(int(curr_dict), int):
+                    return str(int(curr_dict)) + "m"
+                else:
+                    return default_value
+    else:
+        return default_value

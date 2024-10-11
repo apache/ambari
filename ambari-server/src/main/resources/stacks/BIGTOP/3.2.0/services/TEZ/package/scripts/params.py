@@ -17,13 +17,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+
 from ambari_commons import OSCheck
 from resource_management.libraries.functions.default import default
-from resource_management.libraries.functions.copy_tarball import get_sysprep_skip_copy_tarballs_hdfs
+from resource_management.libraries.functions.copy_tarball import (
+    get_sysprep_skip_copy_tarballs_hdfs,
+)
 
 if OSCheck.is_windows_family():
-  from params_windows import *
+    from params_windows import *
 else:
-  from params_linux import *
+    from params_linux import *
 
 sysprep_skip_copy_tarballs_hdfs = get_sysprep_skip_copy_tarballs_hdfs()

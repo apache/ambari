@@ -21,9 +21,14 @@ Ambari Agent
 """
 
 _all__ = ["MonitorWebserver"]
-from resource_management.core.base import Resource, ForcedListArgument, ResourceArgument, BooleanArgument
+from resource_management.core.base import (
+    Resource,
+    ForcedListArgument,
+    ResourceArgument,
+    BooleanArgument,
+)
 
 
 class MonitorWebserver(Resource):
-  action = ForcedListArgument(default=lambda obj: [obj.name])
-  actions = Resource.actions + ["start", "stop", "restart"]
+    action = ForcedListArgument(default=lambda obj: [obj.name])
+    actions = Resource.actions + ["start", "stop", "restart"]

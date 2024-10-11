@@ -21,20 +21,26 @@ Ambari Agent
 """
 
 _all__ = ["PropertiesFile"]
-from resource_management.core.base import Resource, ForcedListArgument, ResourceArgument, BooleanArgument
+from resource_management.core.base import (
+    Resource,
+    ForcedListArgument,
+    ResourceArgument,
+    BooleanArgument,
+)
+
 
 class PropertiesFile(Resource):
-  action = ForcedListArgument(default="create")
-  filename = ResourceArgument(default=lambda obj: obj.name)
+    action = ForcedListArgument(default="create")
+    filename = ResourceArgument(default=lambda obj: obj.name)
 
-  properties = ResourceArgument()
-  dir = ResourceArgument()
+    properties = ResourceArgument()
+    dir = ResourceArgument()
 
-  mode = ResourceArgument()
-  owner = ResourceArgument()
-  group = ResourceArgument()
-  key_value_delimiter = ResourceArgument(default="=")
+    mode = ResourceArgument()
+    owner = ResourceArgument()
+    group = ResourceArgument()
+    key_value_delimiter = ResourceArgument(default="=")
 
-  encoding = ResourceArgument(default="UTF-8")
+    encoding = ResourceArgument(default="UTF-8")
 
-  actions = Resource.actions + ["create"]
+    actions = Resource.actions + ["create"]

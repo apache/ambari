@@ -17,6 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+
 __all__ = ["ManagerFactory", "GenericManager"]
 
 import threading
@@ -30,43 +31,47 @@ from .choco_manager import ChocoManager
 
 
 class ManagerFactory(object):
-  __lock = threading.Lock()
+    __lock = threading.Lock()
 
-  __repo_manager = None
-  """:type GenericManager"""
+    __repo_manager = None
+    """:type GenericManager"""
 
-  @classmethod
-  def get(cls):
-    """
-    Return Repository Manager object for current OS in safe manner.
+    @classmethod
+    def get(cls):
+        """
+        Return Repository Manager object for current OS in safe manner.
 
-    :rtype GenericManager
-    """
-    if not cls.__repo_manager:
-      with cls.__lock:
-        cls.__repo_manager = cls.get_new_instance(OSCheck.get_os_family())
+        :rtype GenericManager
+        """
+        if not cls.__repo_manager:
+            with cls.__lock:
+                cls.__repo_manager = cls.get_new_instance(OSCheck.get_os_family())
 
-    return cls.__repo_manager
+        return cls.__repo_manager
 
-  @classmethod
-  def get_new_instance(cls, os_family=None):
-    """
-    Construct new instance of Repository Manager object. Call is not thread-safe
+    @classmethod
+    def get_new_instance(cls, os_family=None):
+        """
+        Construct new instance of Repository Manager object. Call is not thread-safe
 
-    :param os_family:  os family string; best used in combination with `OSCheck.get_os_family()`
-    :type os_family str
-    :rtype GenericManager
-    """
-    if not os_family:
-      os_family = OSCheck.get_os_family()
+        :param os_family:  os family string; best used in combination with `OSCheck.get_os_family()`
+        :type os_family str
+        :rtype GenericManager
+        """
+        if not os_family:
+            os_family = OSCheck.get_os_family()
 
-    if OSCheck.is_in_family(os_family, OSConst.UBUNTU_FAMILY):
-      return AptManager()
-    if OSCheck.is_in_family(os_family, OSConst.SUSE_FAMILY):
-      return ZypperManager()
-    if OSCheck.is_in_family(os_family, OSConst.REDHAT_FAMILY):
-      return YumManager()
-    if OSCheck.is_in_family(os_family, OSConst.WINSRV_FAMILY):
-      return ChocoManager()
+        if OSCheck.is_in_family(os_family, OSConst.UBUNTU_FAMILY):
+            return AptManager()
+        if OSCheck.is_in_family(os_family, OSConst.SUSE_FAMILY):
+            return ZypperManager()
+        if OSCheck.is_in_family(os_family, OSConst.REDHAT_FAMILY):
+            return YumManager()
+        if OSCheck.is_in_family(os_family, OSConst.WINSRV_FAMILY):
+            return ChocoManager()
 
-    raise RuntimeError("Not able to create Repository Manager object for unsupported OS family {0}".format(os_family))
+        raise RuntimeError(
+            "Not able to create Repository Manager object for unsupported OS family {0}".format(
+                os_family
+            )
+        )

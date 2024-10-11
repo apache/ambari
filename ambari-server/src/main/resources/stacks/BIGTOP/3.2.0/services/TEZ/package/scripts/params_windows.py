@@ -31,25 +31,28 @@ tez_home_dir = None
 tez_conf_dir = "conf"
 
 try:
-  hadoop_classpath_prefix_template = config["configurations"]["tez-site"]["tez.cluster.additional.classpath.prefix"]
+    hadoop_classpath_prefix_template = config["configurations"]["tez-site"][
+        "tez.cluster.additional.classpath.prefix"
+    ]
 except KeyError:
-  hadoop_classpath_prefix_template = ""
+    hadoop_classpath_prefix_template = ""
 
 stack_version_formatted = ""
 
 stack_root = None
 try:
-  stack_root = os.path.abspath(os.path.join(os.environ["HADOOP_HOME"], ".."))
+    stack_root = os.path.abspath(os.path.join(os.environ["HADOOP_HOME"], ".."))
 except:
-  pass
+    pass
+
 
 def refresh_tez_state_dependent_params():
-  global tez_home_dir, tez_conf_dir, stack_version_formatted
-  tez_home_dir = os.environ["TEZ_HOME"]
-  tez_conf_dir = os.path.join(tez_home_dir, "conf")
-  # this is not available on INSTALL action because <stack-selector-tool> is not available
-  stack_version_formatted = get_stack_version("tez")
+    global tez_home_dir, tez_conf_dir, stack_version_formatted
+    tez_home_dir = os.environ["TEZ_HOME"]
+    tez_conf_dir = os.path.join(tez_home_dir, "conf")
+    # this is not available on INSTALL action because <stack-selector-tool> is not available
+    stack_version_formatted = get_stack_version("tez")
 
 
 if "TEZ_HOME" in os.environ:
-  refresh_tez_state_dependent_params()
+    refresh_tez_state_dependent_params()

@@ -22,19 +22,25 @@ Ambari Agent
 
 _all__ = ["Repository"]
 
-from resource_management.core.base import Resource, ForcedListArgument, ResourceArgument, BooleanArgument
+from resource_management.core.base import (
+    Resource,
+    ForcedListArgument,
+    ResourceArgument,
+    BooleanArgument,
+)
+
 
 class Repository(Resource):
-  action = ForcedListArgument(default="prepare")
-  repo_id = ResourceArgument(default=lambda obj: obj.name)
-  base_url = ResourceArgument()
-  mirror_list = ResourceArgument()
-  repo_file_name = ResourceArgument()
-  repo_template = ResourceArgument()
-  components = ForcedListArgument(default=[]) # ubuntu specific
+    action = ForcedListArgument(default="prepare")
+    repo_id = ResourceArgument(default=lambda obj: obj.name)
+    base_url = ResourceArgument()
+    mirror_list = ResourceArgument()
+    repo_file_name = ResourceArgument()
+    repo_template = ResourceArgument()
+    components = ForcedListArgument(default=[])  # ubuntu specific
 
-  """
+    """
   'prepare' action only adds repositories information into memory.
   'create' action writes prepared repositories into file (possibly multiple repos into single file)
   """
-  actions = Resource.actions + ["prepare", "create","remove"]
+    actions = Resource.actions + ["prepare", "create", "remove"]

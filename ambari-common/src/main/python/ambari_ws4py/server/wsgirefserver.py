@@ -41,10 +41,10 @@ from ambari_ws4py import format_addresses
 from ambari_ws4py.server.wsgiutils import WebSocketWSGIApplication
 from ambari_ws4py.compat import get_connection
 
-__all__ = ['WebSocketWSGIHandler', 'WebSocketWSGIRequestHandler',
-           'WSGIServer']
+__all__ = ["WebSocketWSGIHandler", "WebSocketWSGIRequestHandler", "WSGIServer"]
 
-logger = logging.getLogger('ambari_ws4py')
+logger = logging.getLogger("ambari_ws4py")
+
 
 class WebSocketWSGIHandler(SimpleHandler):
     def setup_environ(self):
@@ -54,8 +54,8 @@ class WebSocketWSGIHandler(SimpleHandler):
         is the real socket underlying socket.
         """
         SimpleHandler.setup_environ(self)
-        self.environ['ws4py.socket'] = get_connection(self.environ['wsgi.input'])
-        self.http_version = self.environ['SERVER_PROTOCOL'].rsplit('/')[-1]
+        self.environ["ws4py.socket"] = get_connection(self.environ["wsgi.input"])
+        self.http_version = self.environ["SERVER_PROTOCOL"].rsplit("/")[-1]
 
     def finish_response(self):
         """
@@ -74,36 +74,39 @@ class WebSocketWSGIHandler(SimpleHandler):
         # now it's safe to look if environ was modified
         ws = None
         if self.environ:
-            self.environ.pop('ws4py.socket', None)
-            ws = self.environ.pop('ws4py.websocket', None)
+            self.environ.pop("ws4py.socket", None)
+            ws = self.environ.pop("ws4py.websocket", None)
 
         try:
             SimpleHandler.finish_response(self)
         except:
             if ws:
-                ws.close(1011, reason='Something broke')
+                ws.close(1011, reason="Something broke")
             raise
         else:
             if ws:
                 self.request_handler.server.link_websocket_to_server(ws)
 
+
 class WebSocketWSGIRequestHandler(WSGIRequestHandler):
     WebSocketWSGIHandler = WebSocketWSGIHandler
+
     def handle(self):
         """
         Unfortunately the base class forces us
         to override the whole method to actually provide our wsgi handler.
         """
         self.raw_requestline = self.rfile.readline()
-        if not self.parse_request(): # An error code has been sent, just exit
+        if not self.parse_request():  # An error code has been sent, just exit
             return
 
         # next line is where we'd have expect a configuration key somehow
         handler = self.WebSocketWSGIHandler(
             self.rfile, self.wfile, self.get_stderr(), self.get_environ()
         )
-        handler.request_handler = self      # backpointer for logging
+        handler.request_handler = self  # backpointer for logging
         handler.run(self.server.get_app())
+
 
 class WSGIServer(_WSGIServer):
     def initialize_websockets_manager(self):
@@ -134,23 +137,29 @@ class WSGIServer(_WSGIServer):
         Properly initiate closing handshakes on
         all websockets when the WSGI server terminates.
         """
-        if hasattr(self, 'manager'):
+        if hasattr(self, "manager"):
             self.manager.close_all()
             self.manager.stop()
             self.manager.join()
-            delattr(self, 'manager')
+            delattr(self, "manager")
         _WSGIServer.server_close(self)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     from ambari_ws4py import configure_logger
+
     configure_logger()
 
     from wsgiref.simple_server import make_server
     from ambari_ws4py.websocket import EchoWebSocket
 
-    server = make_server('', 9000, server_class=WSGIServer,
-                         handler_class=WebSocketWSGIRequestHandler,
-                         app=WebSocketWSGIApplication(handler_cls=EchoWebSocket))
+    server = make_server(
+        "",
+        9000,
+        server_class=WSGIServer,
+        handler_class=WebSocketWSGIRequestHandler,
+        app=WebSocketWSGIApplication(handler_cls=EchoWebSocket),
+    )
     server.initialize_websockets_manager()
     try:
         server.serve_forever()

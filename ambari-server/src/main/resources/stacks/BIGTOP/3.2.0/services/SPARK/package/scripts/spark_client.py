@@ -30,27 +30,30 @@ from setup_spark import setup_spark
 
 
 class SparkClient(Script):
-  def install(self, env):
-    self.install_packages(env)
-    self.configure(env)
+    def install(self, env):
+        self.install_packages(env)
+        self.configure(env)
 
-  def configure(self, env, upgrade_type=None, config_dir=None):
-    import params
-    env.set_params(params)
-    
-    setup_spark(env, 'client', upgrade_type=upgrade_type, action = 'config')
+    def configure(self, env, upgrade_type=None, config_dir=None):
+        import params
 
-  def status(self, env):
-    raise ClientComponentHasNoStatus()
-  
-  def pre_upgrade_restart(self, env, upgrade_type=None):
-    import params
+        env.set_params(params)
 
-    env.set_params(params)
-    if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
-      Logger.info("Executing Spark Client Stack Upgrade pre-restart")
-      stack_select.select_packages(params.version)
+        setup_spark(env, "client", upgrade_type=upgrade_type, action="config")
+
+    def status(self, env):
+        raise ClientComponentHasNoStatus()
+
+    def pre_upgrade_restart(self, env, upgrade_type=None):
+        import params
+
+        env.set_params(params)
+        if params.version and check_stack_feature(
+            StackFeature.ROLLING_UPGRADE, params.version
+        ):
+            Logger.info("Executing Spark Client Stack Upgrade pre-restart")
+            stack_select.select_packages(params.version)
+
 
 if __name__ == "__main__":
-  SparkClient().execute()
-
+    SparkClient().execute()

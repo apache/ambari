@@ -50,7 +50,8 @@ import time
 from ambari_ws4py import format_addresses
 from ambari_ws4py.compat import py3k
 
-logger = logging.getLogger('ambari_ws4py')
+logger = logging.getLogger("ambari_ws4py")
+
 
 class SelectPoller(object):
     def __init__(self, timeout=0.1):
@@ -98,6 +99,7 @@ class SelectPoller(object):
         except IOError as e:
             return []
         return r
+
 
 class EPollPoller(object):
     def __init__(self, timeout=0.1):
@@ -147,6 +149,7 @@ class EPollPoller(object):
             if event | select.EPOLLIN | select.EPOLLPRI:
                 yield fd
 
+
 class KQueuePoller(object):
     def __init__(self, timeout=0.1):
         """
@@ -193,6 +196,7 @@ class KQueuePoller(object):
         for fd, event in events:
             if event | select.EPOLLIN | select.EPOLLPRI:
                 yield fd
+
 
 class WebSocketManager(threading.Thread):
     def __init__(self, poller=None):
@@ -323,18 +327,22 @@ class WebSocketManager(threading.Thread):
                     # Treat the error as if once() had returned None
                     except Exception as e:
                         x = None
-                        logger.error("Terminating websocket %s due to exception: %s in once method" % (format_addresses(ws), repr(e)) )
+                        logger.error(
+                            "Terminating websocket %s due to exception: %s in once method"
+                            % (format_addresses(ws), repr(e))
+                        )
                     if not x:
                         with self.lock:
                             self.websockets.pop(fd, None)
                             self.poller.unregister(fd)
 
                         if not ws.terminated:
-                            logger.info("Terminating websocket %s" % format_addresses(ws))
+                            logger.info(
+                                "Terminating websocket %s" % format_addresses(ws)
+                            )
                             ws.terminate()
 
-
-    def close_all(self, code=1001, message='Server is shutting down'):
+    def close_all(self, code=1001, message="Server is shutting down"):
         """
         Execute the :meth:`close() <ws4py.websocket.WebSocket.close>`
         method of each registered websockets to initiate the closing handshake.

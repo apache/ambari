@@ -19,49 +19,49 @@ limitations under the License.
 
 from stack_advisor import StackAdvisor
 
+
 class XYZ100StackAdvisor(StackAdvisor):
+    def recommendConfigurations(self, services, hosts):
+        stackName = services["Versions"]["stack_name"]
+        stackVersion = services["Versions"]["stack_version"]
+        hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
+        servicesList = [
+            service["StackServices"]["service_name"] for service in services["services"]
+        ]
 
-  def recommendConfigurations(self, services, hosts):
-    stackName = services["Versions"]["stack_name"]
-    stackVersion = services["Versions"]["stack_version"]
-    hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
-    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
-
-    recommendations = {
-      "Versions": {"stack_name": stackName, "stack_version": stackVersion},
-      "hosts": hostsList,
-      "services": servicesList,
-      "recommendations": {
-        "blueprint": {
-          "configurations": {},
-          "host_groups": []
-        },
-        "blueprint_cluster_binding": {
-          "host_groups": []
+        recommendations = {
+            "Versions": {"stack_name": stackName, "stack_version": stackVersion},
+            "hosts": hostsList,
+            "services": servicesList,
+            "recommendations": {
+                "blueprint": {"configurations": {}, "host_groups": []},
+                "blueprint_cluster_binding": {"host_groups": []},
+            },
         }
-      }
-    }
 
-    configurations = recommendations["recommendations"]["blueprint"]["configurations"]
-    for service in servicesList:
-      calculation = self.recommendServiceConfigurations(service)
-      if calculation is not None:
-        calculation(configurations)
+        configurations = recommendations["recommendations"]["blueprint"][
+            "configurations"
+        ]
+        for service in servicesList:
+            calculation = self.recommendServiceConfigurations(service)
+            if calculation is not None:
+                calculation(configurations)
 
-    return recommendations
+        return recommendations
 
-  def recommendServiceConfigurations(self, service):
-    return {
-      "YARN": self.recommendYARNConfigurations,
-    }.get(service, None)
+    def recommendServiceConfigurations(self, service):
+        return {
+            "YARN": self.recommendYARNConfigurations,
+        }.get(service, None)
 
-  def putProperty(self, config, configType):
-    config[configType] = {"properties": {}}
-    def appendProperty(key, value):
-      config[configType]["properties"][key] = str(value)
-    return appendProperty
+    def putProperty(self, config, configType):
+        config[configType] = {"properties": {}}
 
-  def recommendYARNConfigurations(self, configurations):
-    putYarnProperty = self.putProperty(configurations, "yarn-site")
-    putYarnProperty('yarn.nodemanager.resource.memory-mb', "-Xmx100m")
+        def appendProperty(key, value):
+            config[configType]["properties"][key] = str(value)
 
+        return appendProperty
+
+    def recommendYARNConfigurations(self, configurations):
+        putYarnProperty = self.putProperty(configurations, "yarn-site")
+        putYarnProperty("yarn.nodemanager.resource.memory-mb", "-Xmx100m")

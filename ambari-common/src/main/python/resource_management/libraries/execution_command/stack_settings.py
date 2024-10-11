@@ -20,8 +20,8 @@ limitations under the License.
 
 __all__ = ["StackSettings"]
 
-class StackSettings(object):
 
+class StackSettings(object):
     # Stack related configs from stack's stack_settings.json
     STACK_NAME_SETTING = "stack_name"
     STACK_TOOLS_SETTING = "stack_tools"

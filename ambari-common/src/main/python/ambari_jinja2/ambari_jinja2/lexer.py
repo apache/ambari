@@ -1,20 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-    ambari_jinja2.lexer
-    ~~~~~~~~~~~~
+ambari_jinja2.lexer
+~~~~~~~~~~~~
 
-    This module implements a Jinja / Python combination lexer. The
-    `Lexer` class provided by this module is used to do some preprocessing
-    for Jinja.
+This module implements a Jinja / Python combination lexer. The
+`Lexer` class provided by this module is used to do some preprocessing
+for Jinja.
 
-    On the one hand it filters out invalid operators like the bitshift
-    operators we don't allow in templates. On the other hand it separates
-    template code and python code in expressions.
+On the one hand it filters out invalid operators like the bitshift
+operators we don't allow in templates. On the other hand it separates
+template code and python code in expressions.
 
-    :copyright: (c) 2010 by the Jinja Team.
-    :license: BSD, see LICENSE for more details.
+:copyright: (c) 2010 by the Jinja Team.
+:license: BSD, see LICENSE for more details.
 """
+
 import re
 from operator import itemgetter
 from collections import deque
@@ -28,150 +29,163 @@ import sys
 _lexer_cache = LRUCache(50)
 
 # static regular expressions
-whitespace_re = re.compile(r'\s+', re.U)
-string_re = re.compile(r"('([^'\\]*(?:\\.[^'\\]*)*)'"
-                       r'|"([^"\\]*(?:\\.[^"\\]*)*)")', re.S)
-integer_re = re.compile(r'\d+')
+whitespace_re = re.compile(r"\s+", re.U)
+string_re = re.compile(
+    r"('([^'\\]*(?:\\.[^'\\]*)*)'" r'|"([^"\\]*(?:\\.[^"\\]*)*)")', re.S
+)
+integer_re = re.compile(r"\d+")
 
 # we use the unicode identifier rule if this python version is able
 # to handle unicode identifiers, otherwise the standard ASCII one.
 try:
-    compile('föö', '<unknown>', 'eval')
+    compile("föö", "<unknown>", "eval")
 except SyntaxError:
-    name_re = re.compile(r'\b[a-zA-Z_][a-zA-Z0-9_]*\b')
+    name_re = re.compile(r"\b[a-zA-Z_][a-zA-Z0-9_]*\b")
 else:
     from ambari_jinja2 import _stringdefs
-    name_re = re.compile(r'[%s][%s]*' % (_stringdefs.xid_start,
-                                         _stringdefs.xid_continue))
 
-float_re = re.compile(r'(?<!\.)\d+\.\d+')
-newline_re = re.compile(r'(\r\n|\r|\n)')
+    name_re = re.compile(
+        r"[%s][%s]*" % (_stringdefs.xid_start, _stringdefs.xid_continue)
+    )
+
+float_re = re.compile(r"(?<!\.)\d+\.\d+")
+newline_re = re.compile(r"(\r\n|\r|\n)")
 
 # internal the tokens and keep references to them
-TOKEN_ADD = sys.intern('add')
-TOKEN_ASSIGN = sys.intern('assign')
-TOKEN_COLON = sys.intern('colon')
-TOKEN_COMMA = sys.intern('comma')
-TOKEN_DIV = sys.intern('div')
-TOKEN_DOT = sys.intern('dot')
-TOKEN_EQ = sys.intern('eq')
-TOKEN_FLOORDIV = sys.intern('floordiv')
-TOKEN_GT = sys.intern('gt')
-TOKEN_GTEQ = sys.intern('gteq')
-TOKEN_LBRACE = sys.intern('lbrace')
-TOKEN_LBRACKET = sys.intern('lbracket')
-TOKEN_LPAREN = sys.intern('lparen')
-TOKEN_LT = sys.intern('lt')
-TOKEN_LTEQ = sys.intern('lteq')
-TOKEN_MOD = sys.intern('mod')
-TOKEN_MUL = sys.intern('mul')
-TOKEN_NE = sys.intern('ne')
-TOKEN_PIPE = sys.intern('pipe')
-TOKEN_POW = sys.intern('pow')
-TOKEN_RBRACE = sys.intern('rbrace')
-TOKEN_RBRACKET = sys.intern('rbracket')
-TOKEN_RPAREN = sys.intern('rparen')
-TOKEN_SEMICOLON = sys.intern('semicolon')
-TOKEN_SUB = sys.intern('sub')
-TOKEN_TILDE = sys.intern('tilde')
-TOKEN_WHITESPACE = sys.intern('whitespace')
-TOKEN_FLOAT = sys.intern('float')
-TOKEN_INTEGER = sys.intern('integer')
-TOKEN_NAME = sys.intern('name')
-TOKEN_STRING = sys.intern('string')
-TOKEN_OPERATOR = sys.intern('operator')
-TOKEN_BLOCK_BEGIN = sys.intern('block_begin')
-TOKEN_BLOCK_END = sys.intern('block_end')
-TOKEN_VARIABLE_BEGIN = sys.intern('variable_begin')
-TOKEN_VARIABLE_END = sys.intern('variable_end')
-TOKEN_RAW_BEGIN = sys.intern('raw_begin')
-TOKEN_RAW_END = sys.intern('raw_end')
-TOKEN_COMMENT_BEGIN = sys.intern('comment_begin')
-TOKEN_COMMENT_END = sys.intern('comment_end')
-TOKEN_COMMENT = sys.intern('comment')
-TOKEN_LINESTATEMENT_BEGIN = sys.intern('linestatement_begin')
-TOKEN_LINESTATEMENT_END = sys.intern('linestatement_end')
-TOKEN_LINECOMMENT_BEGIN = sys.intern('linecomment_begin')
-TOKEN_LINECOMMENT_END = sys.intern('linecomment_end')
-TOKEN_LINECOMMENT = sys.intern('linecomment')
-TOKEN_DATA = sys.intern('data')
-TOKEN_INITIAL = sys.intern('initial')
-TOKEN_EOF = sys.intern('eof')
+TOKEN_ADD = sys.intern("add")
+TOKEN_ASSIGN = sys.intern("assign")
+TOKEN_COLON = sys.intern("colon")
+TOKEN_COMMA = sys.intern("comma")
+TOKEN_DIV = sys.intern("div")
+TOKEN_DOT = sys.intern("dot")
+TOKEN_EQ = sys.intern("eq")
+TOKEN_FLOORDIV = sys.intern("floordiv")
+TOKEN_GT = sys.intern("gt")
+TOKEN_GTEQ = sys.intern("gteq")
+TOKEN_LBRACE = sys.intern("lbrace")
+TOKEN_LBRACKET = sys.intern("lbracket")
+TOKEN_LPAREN = sys.intern("lparen")
+TOKEN_LT = sys.intern("lt")
+TOKEN_LTEQ = sys.intern("lteq")
+TOKEN_MOD = sys.intern("mod")
+TOKEN_MUL = sys.intern("mul")
+TOKEN_NE = sys.intern("ne")
+TOKEN_PIPE = sys.intern("pipe")
+TOKEN_POW = sys.intern("pow")
+TOKEN_RBRACE = sys.intern("rbrace")
+TOKEN_RBRACKET = sys.intern("rbracket")
+TOKEN_RPAREN = sys.intern("rparen")
+TOKEN_SEMICOLON = sys.intern("semicolon")
+TOKEN_SUB = sys.intern("sub")
+TOKEN_TILDE = sys.intern("tilde")
+TOKEN_WHITESPACE = sys.intern("whitespace")
+TOKEN_FLOAT = sys.intern("float")
+TOKEN_INTEGER = sys.intern("integer")
+TOKEN_NAME = sys.intern("name")
+TOKEN_STRING = sys.intern("string")
+TOKEN_OPERATOR = sys.intern("operator")
+TOKEN_BLOCK_BEGIN = sys.intern("block_begin")
+TOKEN_BLOCK_END = sys.intern("block_end")
+TOKEN_VARIABLE_BEGIN = sys.intern("variable_begin")
+TOKEN_VARIABLE_END = sys.intern("variable_end")
+TOKEN_RAW_BEGIN = sys.intern("raw_begin")
+TOKEN_RAW_END = sys.intern("raw_end")
+TOKEN_COMMENT_BEGIN = sys.intern("comment_begin")
+TOKEN_COMMENT_END = sys.intern("comment_end")
+TOKEN_COMMENT = sys.intern("comment")
+TOKEN_LINESTATEMENT_BEGIN = sys.intern("linestatement_begin")
+TOKEN_LINESTATEMENT_END = sys.intern("linestatement_end")
+TOKEN_LINECOMMENT_BEGIN = sys.intern("linecomment_begin")
+TOKEN_LINECOMMENT_END = sys.intern("linecomment_end")
+TOKEN_LINECOMMENT = sys.intern("linecomment")
+TOKEN_DATA = sys.intern("data")
+TOKEN_INITIAL = sys.intern("initial")
+TOKEN_EOF = sys.intern("eof")
 
 # bind operators to token types
 operators = {
-    '+':            TOKEN_ADD,
-    '-':            TOKEN_SUB,
-    '/':            TOKEN_DIV,
-    '//':           TOKEN_FLOORDIV,
-    '*':            TOKEN_MUL,
-    '%':            TOKEN_MOD,
-    '**':           TOKEN_POW,
-    '~':            TOKEN_TILDE,
-    '[':            TOKEN_LBRACKET,
-    ']':            TOKEN_RBRACKET,
-    '(':            TOKEN_LPAREN,
-    ')':            TOKEN_RPAREN,
-    '{':            TOKEN_LBRACE,
-    '}':            TOKEN_RBRACE,
-    '==':           TOKEN_EQ,
-    '!=':           TOKEN_NE,
-    '>':            TOKEN_GT,
-    '>=':           TOKEN_GTEQ,
-    '<':            TOKEN_LT,
-    '<=':           TOKEN_LTEQ,
-    '=':            TOKEN_ASSIGN,
-    '.':            TOKEN_DOT,
-    ':':            TOKEN_COLON,
-    '|':            TOKEN_PIPE,
-    ',':            TOKEN_COMMA,
-    ';':            TOKEN_SEMICOLON
+    "+": TOKEN_ADD,
+    "-": TOKEN_SUB,
+    "/": TOKEN_DIV,
+    "//": TOKEN_FLOORDIV,
+    "*": TOKEN_MUL,
+    "%": TOKEN_MOD,
+    "**": TOKEN_POW,
+    "~": TOKEN_TILDE,
+    "[": TOKEN_LBRACKET,
+    "]": TOKEN_RBRACKET,
+    "(": TOKEN_LPAREN,
+    ")": TOKEN_RPAREN,
+    "{": TOKEN_LBRACE,
+    "}": TOKEN_RBRACE,
+    "==": TOKEN_EQ,
+    "!=": TOKEN_NE,
+    ">": TOKEN_GT,
+    ">=": TOKEN_GTEQ,
+    "<": TOKEN_LT,
+    "<=": TOKEN_LTEQ,
+    "=": TOKEN_ASSIGN,
+    ".": TOKEN_DOT,
+    ":": TOKEN_COLON,
+    "|": TOKEN_PIPE,
+    ",": TOKEN_COMMA,
+    ";": TOKEN_SEMICOLON,
 }
 
 reverse_operators = dict([(v, k) for k, v in operators.items()])
-assert len(operators) == len(reverse_operators), 'operators dropped'
-operator_re = re.compile('(%s)' % '|'.join(re.escape(x) for x in
-                         sorted(operators, key=lambda x: -len(x))))
+assert len(operators) == len(reverse_operators), "operators dropped"
+operator_re = re.compile(
+    "(%s)" % "|".join(re.escape(x) for x in sorted(operators, key=lambda x: -len(x)))
+)
 
-ignored_tokens = frozenset([TOKEN_COMMENT_BEGIN, TOKEN_COMMENT,
-                            TOKEN_COMMENT_END, TOKEN_WHITESPACE,
-                            TOKEN_WHITESPACE, TOKEN_LINECOMMENT_BEGIN,
-                            TOKEN_LINECOMMENT_END, TOKEN_LINECOMMENT])
-ignore_if_empty = frozenset([TOKEN_WHITESPACE, TOKEN_DATA,
-                             TOKEN_COMMENT, TOKEN_LINECOMMENT])
+ignored_tokens = frozenset(
+    [
+        TOKEN_COMMENT_BEGIN,
+        TOKEN_COMMENT,
+        TOKEN_COMMENT_END,
+        TOKEN_WHITESPACE,
+        TOKEN_WHITESPACE,
+        TOKEN_LINECOMMENT_BEGIN,
+        TOKEN_LINECOMMENT_END,
+        TOKEN_LINECOMMENT,
+    ]
+)
+ignore_if_empty = frozenset(
+    [TOKEN_WHITESPACE, TOKEN_DATA, TOKEN_COMMENT, TOKEN_LINECOMMENT]
+)
 
 
 def _describe_token_type(token_type):
     if token_type in reverse_operators:
         return reverse_operators[token_type]
     return {
-        TOKEN_COMMENT_BEGIN:        'begin of comment',
-        TOKEN_COMMENT_END:          'end of comment',
-        TOKEN_COMMENT:              'comment',
-        TOKEN_LINECOMMENT:          'comment',
-        TOKEN_BLOCK_BEGIN:          'begin of statement block',
-        TOKEN_BLOCK_END:            'end of statement block',
-        TOKEN_VARIABLE_BEGIN:       'begin of print statement',
-        TOKEN_VARIABLE_END:         'end of print statement',
-        TOKEN_LINESTATEMENT_BEGIN:  'begin of line statement',
-        TOKEN_LINESTATEMENT_END:    'end of line statement',
-        TOKEN_DATA:                 'template data / text',
-        TOKEN_EOF:                  'end of template'
+        TOKEN_COMMENT_BEGIN: "begin of comment",
+        TOKEN_COMMENT_END: "end of comment",
+        TOKEN_COMMENT: "comment",
+        TOKEN_LINECOMMENT: "comment",
+        TOKEN_BLOCK_BEGIN: "begin of statement block",
+        TOKEN_BLOCK_END: "end of statement block",
+        TOKEN_VARIABLE_BEGIN: "begin of print statement",
+        TOKEN_VARIABLE_END: "end of print statement",
+        TOKEN_LINESTATEMENT_BEGIN: "begin of line statement",
+        TOKEN_LINESTATEMENT_END: "end of line statement",
+        TOKEN_DATA: "template data / text",
+        TOKEN_EOF: "end of template",
     }.get(token_type, token_type)
 
 
 def describe_token(token):
     """Returns a description of the token."""
-    if token.type == 'name':
+    if token.type == "name":
         return token.value
     return _describe_token_type(token.type)
 
 
 def describe_token_expr(expr):
     """Like `describe_token` but for token expressions."""
-    if ':' in expr:
-        type, value = expr.split(':', 1)
-        if type == 'name':
+    if ":" in expr:
+        type, value = expr.split(":", 1)
+        if type == "name":
             return value
     else:
         type = expr
@@ -189,21 +203,39 @@ def compile_rules(environment):
     """Compiles all the rules from the environment into a list of rules."""
     e = re.escape
     rules = [
-        (len(environment.comment_start_string), 'comment',
-         e(environment.comment_start_string)),
-        (len(environment.block_start_string), 'block',
-         e(environment.block_start_string)),
-        (len(environment.variable_start_string), 'variable',
-         e(environment.variable_start_string))
+        (
+            len(environment.comment_start_string),
+            "comment",
+            e(environment.comment_start_string),
+        ),
+        (
+            len(environment.block_start_string),
+            "block",
+            e(environment.block_start_string),
+        ),
+        (
+            len(environment.variable_start_string),
+            "variable",
+            e(environment.variable_start_string),
+        ),
     ]
 
     if environment.line_statement_prefix is not None:
-        rules.append((len(environment.line_statement_prefix), 'linestatement',
-                      r'^\s*' + e(environment.line_statement_prefix)))
+        rules.append(
+            (
+                len(environment.line_statement_prefix),
+                "linestatement",
+                r"^\s*" + e(environment.line_statement_prefix),
+            )
+        )
     if environment.line_comment_prefix is not None:
-        rules.append((len(environment.line_comment_prefix), 'linecomment',
-                      r'(?:^|(?<=\S))[^\S\r\n]*' +
-                      e(environment.line_comment_prefix)))
+        rules.append(
+            (
+                len(environment.line_comment_prefix),
+                "linecomment",
+                r"(?:^|(?<=\S))[^\S\r\n]*" + e(environment.line_comment_prefix),
+            )
+        )
 
     return [x[1:] for x in sorted(rules, reverse=True)]
 
@@ -223,6 +255,7 @@ class Failure(object):
 
 class Token(tuple):
     """Token class."""
+
     __slots__ = ()
     lineno, type, value = (property(itemgetter(x)) for x in range(3))
 
@@ -232,7 +265,7 @@ class Token(tuple):
     def __str__(self):
         if self.type in reverse_operators:
             return reverse_operators[self.type]
-        elif self.type == 'name':
+        elif self.type == "name":
             return self.value
         return self.type
 
@@ -245,8 +278,8 @@ class Token(tuple):
         # passed an iterable of not interned strings.
         if self.type == expr:
             return True
-        elif ':' in expr:
-            return expr.split(':', 1) == [self.type, self.value]
+        elif ":" in expr:
+            return expr.split(":", 1) == [self.type, self.value]
         return False
 
     def test_any(self, *iterable):
@@ -257,11 +290,7 @@ class Token(tuple):
         return False
 
     def __repr__(self):
-        return 'Token(%r, %r, %r)' % (
-            self.lineno,
-            self.type,
-            self.value
-        )
+        return "Token(%r, %r, %r)" % (self.lineno, self.type, self.value)
 
 
 class TokenStreamIterator(object):
@@ -296,7 +325,7 @@ class TokenStream(object):
         self.name = name
         self.filename = filename
         self.closed = False
-        self.current = Token(1, TOKEN_INITIAL, '')
+        self.current = Token(1, TOKEN_INITIAL, "")
         next(self)
 
     def __iter__(self):
@@ -349,7 +378,7 @@ class TokenStream(object):
 
     def close(self):
         """Close the stream."""
-        self.current = Token(self.current.lineno, TOKEN_EOF, '')
+        self.current = Token(self.current.lineno, TOKEN_EOF, "")
         self._next = None
         self.closed = True
 
@@ -360,14 +389,18 @@ class TokenStream(object):
         if not self.current.test(expr):
             expr = describe_token_expr(expr)
             if self.current.type is TOKEN_EOF:
-                raise TemplateSyntaxError('unexpected end of template, '
-                                          'expected %r.' % expr,
-                                          self.current.lineno,
-                                          self.name, self.filename)
-            raise TemplateSyntaxError("expected token %r, got %r" %
-                                      (expr, describe_token(self.current)),
-                                      self.current.lineno,
-                                      self.name, self.filename)
+                raise TemplateSyntaxError(
+                    "unexpected end of template, " "expected %r." % expr,
+                    self.current.lineno,
+                    self.name,
+                    self.filename,
+                )
+            raise TemplateSyntaxError(
+                "expected token %r, got %r" % (expr, describe_token(self.current)),
+                self.current.lineno,
+                self.name,
+                self.filename,
+            )
         try:
             return self.current
         finally:
@@ -376,16 +409,18 @@ class TokenStream(object):
 
 def get_lexer(environment):
     """Return a lexer which is probably cached."""
-    key = (environment.block_start_string,
-           environment.block_end_string,
-           environment.variable_start_string,
-           environment.variable_end_string,
-           environment.comment_start_string,
-           environment.comment_end_string,
-           environment.line_statement_prefix,
-           environment.line_comment_prefix,
-           environment.trim_blocks,
-           environment.newline_sequence)
+    key = (
+        environment.block_start_string,
+        environment.block_end_string,
+        environment.variable_start_string,
+        environment.variable_end_string,
+        environment.comment_start_string,
+        environment.comment_end_string,
+        environment.line_statement_prefix,
+        environment.line_comment_prefix,
+        environment.trim_blocks,
+        environment.newline_sequence,
+    )
     lexer = _lexer_cache.get(key)
     if lexer is None:
         lexer = Lexer(environment)
@@ -413,7 +448,7 @@ class Lexer(object):
             (integer_re, TOKEN_INTEGER, None),
             (name_re, TOKEN_NAME, None),
             (string_re, TOKEN_STRING, None),
-            (operator_re, TOKEN_OPERATOR, None)
+            (operator_re, TOKEN_OPERATOR, None),
         ]
 
         # assamble the root lexing rule. because "|" is ungreedy
@@ -425,71 +460,117 @@ class Lexer(object):
         root_tag_rules = compile_rules(environment)
 
         # block suffix if trimming is enabled
-        block_suffix_re = environment.trim_blocks and '\\n?' or ''
+        block_suffix_re = environment.trim_blocks and "\\n?" or ""
 
         self.newline_sequence = environment.newline_sequence
 
         # global lexing rules
         self.rules = {
-            'root': [
+            "root": [
                 # directives
-                (c('(.*?)(?:%s)' % '|'.join(
-                    [r'(?P<raw_begin>(?:\s*%s\-|%s)\s*raw\s*(?:\-%s\s*|%s))' % (
-                        e(environment.block_start_string),
-                        e(environment.block_start_string),
-                        e(environment.block_end_string),
-                        e(environment.block_end_string)
-                    )] + [
-                        r'(?P<%s_begin>\s*%s\-|%s)' % (n, r, r)
-                        for n, r in root_tag_rules
-                    ])), (TOKEN_DATA, '#bygroup'), '#bygroup'),
+                (
+                    c(
+                        "(.*?)(?:%s)"
+                        % "|".join(
+                            [
+                                r"(?P<raw_begin>(?:\s*%s\-|%s)\s*raw\s*(?:\-%s\s*|%s))"
+                                % (
+                                    e(environment.block_start_string),
+                                    e(environment.block_start_string),
+                                    e(environment.block_end_string),
+                                    e(environment.block_end_string),
+                                )
+                            ]
+                            + [
+                                r"(?P<%s_begin>\s*%s\-|%s)" % (n, r, r)
+                                for n, r in root_tag_rules
+                            ]
+                        )
+                    ),
+                    (TOKEN_DATA, "#bygroup"),
+                    "#bygroup",
+                ),
                 # data
-                (c('.+'), TOKEN_DATA, None)
+                (c(".+"), TOKEN_DATA, None),
             ],
             # comments
             TOKEN_COMMENT_BEGIN: [
-                (c(r'(.*?)((?:\-%s\s*|%s)%s)' % (
-                    e(environment.comment_end_string),
-                    e(environment.comment_end_string),
-                    block_suffix_re
-                )), (TOKEN_COMMENT, TOKEN_COMMENT_END), '#pop'),
-                (c('(.)'), (Failure('Missing end of comment tag'),), None)
+                (
+                    c(
+                        r"(.*?)((?:\-%s\s*|%s)%s)"
+                        % (
+                            e(environment.comment_end_string),
+                            e(environment.comment_end_string),
+                            block_suffix_re,
+                        )
+                    ),
+                    (TOKEN_COMMENT, TOKEN_COMMENT_END),
+                    "#pop",
+                ),
+                (c("(.)"), (Failure("Missing end of comment tag"),), None),
             ],
             # blocks
             TOKEN_BLOCK_BEGIN: [
-                (c('(?:\-%s\s*|%s)%s' % (
-                    e(environment.block_end_string),
-                    e(environment.block_end_string),
-                    block_suffix_re
-                )), TOKEN_BLOCK_END, '#pop'),
-            ] + tag_rules,
+                (
+                    c(
+                        "(?:\-%s\s*|%s)%s"
+                        % (
+                            e(environment.block_end_string),
+                            e(environment.block_end_string),
+                            block_suffix_re,
+                        )
+                    ),
+                    TOKEN_BLOCK_END,
+                    "#pop",
+                ),
+            ]
+            + tag_rules,
             # variables
             TOKEN_VARIABLE_BEGIN: [
-                (c('\-%s\s*|%s' % (
-                    e(environment.variable_end_string),
-                    e(environment.variable_end_string)
-                )), TOKEN_VARIABLE_END, '#pop')
-            ] + tag_rules,
+                (
+                    c(
+                        "\-%s\s*|%s"
+                        % (
+                            e(environment.variable_end_string),
+                            e(environment.variable_end_string),
+                        )
+                    ),
+                    TOKEN_VARIABLE_END,
+                    "#pop",
+                )
+            ]
+            + tag_rules,
             # raw block
             TOKEN_RAW_BEGIN: [
-                (c('(.*?)((?:\s*%s\-|%s)\s*endraw\s*(?:\-%s\s*|%s%s))' % (
-                    e(environment.block_start_string),
-                    e(environment.block_start_string),
-                    e(environment.block_end_string),
-                    e(environment.block_end_string),
-                    block_suffix_re
-                )), (TOKEN_DATA, TOKEN_RAW_END), '#pop'),
-                (c('(.)'), (Failure('Missing end of raw directive'),), None)
+                (
+                    c(
+                        "(.*?)((?:\s*%s\-|%s)\s*endraw\s*(?:\-%s\s*|%s%s))"
+                        % (
+                            e(environment.block_start_string),
+                            e(environment.block_start_string),
+                            e(environment.block_end_string),
+                            e(environment.block_end_string),
+                            block_suffix_re,
+                        )
+                    ),
+                    (TOKEN_DATA, TOKEN_RAW_END),
+                    "#pop",
+                ),
+                (c("(.)"), (Failure("Missing end of raw directive"),), None),
             ],
             # line statements
             TOKEN_LINESTATEMENT_BEGIN: [
-                (c(r'\s*(\n|$)'), TOKEN_LINESTATEMENT_END, '#pop')
-            ] + tag_rules,
+                (c(r"\s*(\n|$)"), TOKEN_LINESTATEMENT_END, "#pop")
+            ]
+            + tag_rules,
             # line comments
             TOKEN_LINECOMMENT_BEGIN: [
-                (c(r'(.*?)()(?=\n|$)'), (TOKEN_LINECOMMENT,
-                 TOKEN_LINECOMMENT_END), '#pop')
-            ]
+                (
+                    c(r"(.*?)()(?=\n|$)"),
+                    (TOKEN_LINECOMMENT, TOKEN_LINECOMMENT_END),
+                    "#pop",
+                )
+            ],
         }
 
     def _normalize_newlines(self, value):
@@ -497,8 +578,7 @@ class Lexer(object):
         return newline_re.sub(self.newline_sequence, value)
 
     def tokenize(self, source, name=None, filename=None, state=None):
-        """Calls tokeniter + tokenize and wraps it in a token stream.
-        """
+        """Calls tokeniter + tokenize and wraps it in a token stream."""
         stream = self.tokeniter(source, name, filename, state)
         return TokenStream(self.wrap(stream, name, filename), name, filename)
 
@@ -509,27 +589,29 @@ class Lexer(object):
         for lineno, token, value in stream:
             if token in ignored_tokens:
                 continue
-            elif token == 'linestatement_begin':
-                token = 'block_begin'
-            elif token == 'linestatement_end':
-                token = 'block_end'
+            elif token == "linestatement_begin":
+                token = "block_begin"
+            elif token == "linestatement_end":
+                token = "block_end"
             # we are not interested in those tokens in the parser
-            elif token in ('raw_begin', 'raw_end'):
+            elif token in ("raw_begin", "raw_end"):
                 continue
-            elif token == 'data':
+            elif token == "data":
                 value = self._normalize_newlines(value)
-            elif token == 'keyword':
+            elif token == "keyword":
                 token = value
-            elif token == 'name':
+            elif token == "name":
                 value = str(value)
-            elif token == 'string':
+            elif token == "string":
                 # try to unescape string
                 try:
-                    value = self._normalize_newlines(value[1:-1]) \
-                        .encode('ascii', 'backslashreplace') \
-                        .decode('unicode-escape')
+                    value = (
+                        self._normalize_newlines(value[1:-1])
+                        .encode("ascii", "backslashreplace")
+                        .decode("unicode-escape")
+                    )
                 except Exception as e:
-                    msg = str(e).split(':')[-1].strip()
+                    msg = str(e).split(":")[-1].strip()
                     raise TemplateSyntaxError(msg, lineno, name, filename)
                 # if we can express it as bytestring (ascii only)
                 # we do that for support of semi broken APIs
@@ -539,11 +621,11 @@ class Lexer(object):
                     value = str(value)
                 except UnicodeError:
                     pass
-            elif token == 'integer':
+            elif token == "integer":
                 value = int(value)
-            elif token == 'float':
+            elif token == "float":
                 value = float(value)
-            elif token == 'operator':
+            elif token == "operator":
                 token = operators[value]
             yield Token(lineno, token, value)
 
@@ -551,15 +633,15 @@ class Lexer(object):
         """This method tokenizes the text and returns the tokens in a
         generator.  Use this method if you just want to tokenize a template.
         """
-        source = '\n'.join(str(source).splitlines())
+        source = "\n".join(str(source).splitlines())
         pos = 0
         lineno = 1
-        stack = ['root']
-        if state is not None and state != 'root':
-            assert state in ('variable', 'block'), 'invalid state'
-            stack.append(state + '_begin')
+        stack = ["root"]
+        if state is not None and state != "root":
+            assert state in ("variable", "block"), "invalid state"
+            stack.append(state + "_begin")
         else:
-            state = 'root'
+            state = "root"
         statetokens = self.rules[stack[-1]]
         source_length = len(source)
 
@@ -577,9 +659,11 @@ class Lexer(object):
                 # are balanced. continue parsing with the lower rule which
                 # is the operator rule. do this only if the end tags look
                 # like operators
-                if balancing_stack and \
-                   tokens in ('variable_end', 'block_end',
-                              'linestatement_end'):
+                if balancing_stack and tokens in (
+                    "variable_end",
+                    "block_end",
+                    "linestatement_end",
+                ):
                     continue
 
                 # tuples support more options
@@ -591,51 +675,54 @@ class Lexer(object):
                         # bygroup is a bit more complex, in that case we
                         # yield for the current token the first named
                         # group that matched
-                        elif token == '#bygroup':
+                        elif token == "#bygroup":
                             for key, value in m.groupdict().items():
                                 if value is not None:
                                     yield lineno, key, value
-                                    lineno += value.count('\n')
+                                    lineno += value.count("\n")
                                     break
                             else:
-                                raise RuntimeError('%r wanted to resolve '
-                                                   'the token dynamically'
-                                                   ' but no group matched'
-                                                   % regex)
+                                raise RuntimeError(
+                                    "%r wanted to resolve "
+                                    "the token dynamically"
+                                    " but no group matched" % regex
+                                )
                         # normal group
                         else:
                             data = m.group(idx + 1)
                             if data or token not in ignore_if_empty:
                                 yield lineno, token, data
-                            lineno += data.count('\n')
+                            lineno += data.count("\n")
 
                 # strings as token just are yielded as it.
                 else:
                     data = m.group()
                     # update brace/parentheses balance
-                    if tokens == 'operator':
-                        if data == '{':
-                            balancing_stack.append('}')
-                        elif data == '(':
-                            balancing_stack.append(')')
-                        elif data == '[':
-                            balancing_stack.append(']')
-                        elif data in ('}', ')', ']'):
+                    if tokens == "operator":
+                        if data == "{":
+                            balancing_stack.append("}")
+                        elif data == "(":
+                            balancing_stack.append(")")
+                        elif data == "[":
+                            balancing_stack.append("]")
+                        elif data in ("}", ")", "]"):
                             if not balancing_stack:
-                                raise TemplateSyntaxError('unexpected \'%s\'' %
-                                                          data, lineno, name,
-                                                          filename)
+                                raise TemplateSyntaxError(
+                                    "unexpected '%s'" % data, lineno, name, filename
+                                )
                             expected_op = balancing_stack.pop()
                             if expected_op != data:
-                                raise TemplateSyntaxError('unexpected \'%s\', '
-                                                          'expected \'%s\'' %
-                                                          (data, expected_op),
-                                                          lineno, name,
-                                                          filename)
+                                raise TemplateSyntaxError(
+                                    "unexpected '%s', "
+                                    "expected '%s'" % (data, expected_op),
+                                    lineno,
+                                    name,
+                                    filename,
+                                )
                     # yield items
                     if data or tokens not in ignore_if_empty:
                         yield lineno, tokens, data
-                    lineno += data.count('\n')
+                    lineno += data.count("\n")
 
                 # fetch new position into new variable so that we can check
                 # if there is a internal parsing error which would result
@@ -645,19 +732,20 @@ class Lexer(object):
                 # handle state changes
                 if new_state is not None:
                     # remove the uppermost state
-                    if new_state == '#pop':
+                    if new_state == "#pop":
                         stack.pop()
                     # resolve the new state by group checking
-                    elif new_state == '#bygroup':
+                    elif new_state == "#bygroup":
                         for key, value in m.groupdict().items():
                             if value is not None:
                                 stack.append(key)
                                 break
                         else:
-                            raise RuntimeError('%r wanted to resolve the '
-                                               'new state dynamically but'
-                                               ' no group matched' %
-                                               regex)
+                            raise RuntimeError(
+                                "%r wanted to resolve the "
+                                "new state dynamically but"
+                                " no group matched" % regex
+                            )
                     # direct state name given
                     else:
                         stack.append(new_state)
@@ -666,8 +754,9 @@ class Lexer(object):
                 # this means a loop without break condition, avoid that and
                 # raise error
                 elif pos2 == pos:
-                    raise RuntimeError('%r yielded empty string without '
-                                       'stack change' % regex)
+                    raise RuntimeError(
+                        "%r yielded empty string without " "stack change" % regex
+                    )
                 # publish new function and start again
                 pos = pos2
                 break
@@ -678,6 +767,9 @@ class Lexer(object):
                 if pos >= source_length:
                     return
                 # something went wrong
-                raise TemplateSyntaxError('unexpected char %r at %d' %
-                                          (source[pos], pos), lineno,
-                                          name, filename)
+                raise TemplateSyntaxError(
+                    "unexpected char %r at %d" % (source[pos], pos),
+                    lineno,
+                    name,
+                    filename,
+                )

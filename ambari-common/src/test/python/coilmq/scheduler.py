@@ -4,10 +4,11 @@ Classes that provide delivery scheduler implementations.
 
 The default implementation used by the system for determining which subscriber
 (connection) should receive a message is simply a random choice but favoring
-reliable subscribers.  Developers can write their own delivery schedulers, which 
+reliable subscribers.  Developers can write their own delivery schedulers, which
 should implement the methods defined in L{QueuePriorityScheduler} if they would
 like to customize the behavior.
 """
+
 import abc
 import random
 
@@ -27,17 +28,17 @@ limitations under the License."""
 
 
 class SubscriberPriorityScheduler(object, metaclass=abc.ABCMeta):
-    """ Abstract base class for choosing which recipient (subscriber) should receive a message. """
+    """Abstract base class for choosing which recipient (subscriber) should receive a message."""
 
     @abc.abstractmethod
     def choice(self, subscribers, message):
         """
         Chooses which subscriber (from list) should receive specified message.
 
-        @param subscribers: Collection of subscribed connections eligible to receive message. 
+        @param subscribers: Collection of subscribed connections eligible to receive message.
         @type subscribers: C{list} of L{coilmq.server.StompConnection}
 
-        @param message: The message to be delivered. 
+        @param message: The message to be delivered.
         @type message: L{stompclient.frame.Frame}
 
         @return: A selected subscriber from the list or None if no subscriber could be chosen (e.g. list is empty).
@@ -54,7 +55,7 @@ class QueuePriorityScheduler(object):
         """
         Choose which queue to select for messages to specified connection.
 
-        @param queues: A C{dict} mapping queue name to queues (sets of frames) to which 
+        @param queues: A C{dict} mapping queue name to queues (sets of frames) to which
                         specified connection is subscribed.
         @type queues:  C{dict} of C{str} to C{set} of L{stompclient.frame.Frame}
 
@@ -68,16 +69,16 @@ class QueuePriorityScheduler(object):
 
 
 class RandomSubscriberScheduler(SubscriberPriorityScheduler):
-    """ A delivery scheduler that chooses a random subscriber for message recipient. """
+    """A delivery scheduler that chooses a random subscriber for message recipient."""
 
     def choice(self, subscribers, message):
         """
         Chooses a random connection from subscribers to deliver specified message.
 
-        @param subscribers: Collection of subscribed connections to destination. 
+        @param subscribers: Collection of subscribed connections to destination.
         @type subscribers: C{list} of L{coilmq.server.StompConnection}
 
-        @param message: The message to be delivered. 
+        @param message: The message to be delivered.
         @type message: L{stompclient.frame.Frame}
 
         @return: A random subscriber from the list or None if list is empty.
@@ -98,10 +99,10 @@ class FavorReliableSubscriberScheduler(SubscriberPriorityScheduler):
         Choose a random connection, favoring those that are reliable from
         subscriber pool to deliver specified message.
 
-        @param subscribers: Collection of subscribed connections to destination. 
+        @param subscribers: Collection of subscribed connections to destination.
         @type subscribers: C{list} of L{coilmq.server.StompConnection}
 
-        @param message: The message to be delivered. 
+        @param message: The message to be delivered.
         @type message: L{stompclient.frame.Frame}
 
         @return: A random subscriber from the list or None if list is empty.
@@ -109,8 +110,7 @@ class FavorReliableSubscriberScheduler(SubscriberPriorityScheduler):
         """
         if not subscribers:
             return None
-        reliable_subscribers = [
-            s for s in subscribers if s.reliable_subscriber]
+        reliable_subscribers = [s for s in subscribers if s.reliable_subscriber]
         if reliable_subscribers:
             return random.choice(reliable_subscribers)
         else:
@@ -126,7 +126,7 @@ class RandomQueueScheduler(QueuePriorityScheduler):
         """
         Chooses a random queue for messages to specified connection.
 
-        @param queues: A C{dict} mapping queue name to queues (sets of frames) to which 
+        @param queues: A C{dict} mapping queue name to queues (sets of frames) to which
                         specified connection is subscribed.
         @type queues:  C{dict} of C{str} to C{set} of L{stompclient.frame.Frame}
 

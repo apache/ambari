@@ -28,11 +28,19 @@ def _shutdown_all():
         if pool:
             pool.shutdown()
 
+
 ExitHelper().register(_shutdown_all)
 
 
 class ThreadPool(object):
-    def __init__(self, core_threads=0, max_threads=20, keepalive=1, context_injector=None, agent_config=None):
+    def __init__(
+        self,
+        core_threads=0,
+        max_threads=20,
+        keepalive=1,
+        context_injector=None,
+        agent_config=None,
+    ):
         """
         :param core_threads: maximum number of persistent threads in the pool
         :param max_threads: maximum number of total threads in the pool
@@ -55,8 +63,11 @@ class ThreadPool(object):
         self._agent_config = agent_config
 
         _threadpools.add(ref(self))
-        logger.info('Started thread pool with %d core threads and %s maximum '
-                    'threads', core_threads, max_threads or 'unlimited')
+        logger.info(
+            "Started thread pool with %d core threads and %s maximum " "threads",
+            core_threads,
+            max_threads or "unlimited",
+        )
 
     def _adjust_threadcount(self):
         self._threads_lock.acquire()
@@ -73,7 +84,7 @@ class ThreadPool(object):
         self._threads.add(t)
 
     def _run_jobs(self, core):
-        logger.debug('Started worker thread')
+        logger.debug("Started worker thread")
         block = True
         timeout = None
         if not core:
@@ -93,16 +104,16 @@ class ThreadPool(object):
                 break
 
             try:
-                logger.debug('Worker thread starting job %s', args[0])
+                logger.debug("Worker thread starting job %s", args[0])
                 func(*args, **kwargs)
             except:
-                logger.exception('Error in worker thread')
+                logger.exception("Error in worker thread")
 
         self._threads_lock.acquire()
         self._threads.remove(currentThread())
         self._threads_lock.release()
 
-        logger.debug('Exiting worker thread')
+        logger.debug("Exiting worker thread")
 
     @property
     def num_threads(self):
@@ -110,7 +121,7 @@ class ThreadPool(object):
 
     def submit(self, func, *args, **kwargs):
         if self._shutdown:
-            raise RuntimeError('Cannot schedule new tasks after shutdown')
+            raise RuntimeError("Cannot schedule new tasks after shutdown")
 
         self._queue.put((func, args, kwargs))
         self._adjust_threadcount()
@@ -119,7 +130,7 @@ class ThreadPool(object):
         if self._shutdown:
             return
 
-        logger.info('Shutting down thread pool')
+        logger.info("Shutting down thread pool")
         self._shutdown = True
         _threadpools.remove(ref(self))
 
@@ -137,8 +148,8 @@ class ThreadPool(object):
 
     def __repr__(self):
         if self.max_threads:
-            threadcount = '%d/%d' % (self.num_threads, self.max_threads)
+            threadcount = "%d/%d" % (self.num_threads, self.max_threads)
         else:
-            threadcount = '%d' % self.num_threads
+            threadcount = "%d" % self.num_threads
 
-        return '<ThreadPool at %x; threads=%s>' % (id(self), threadcount)
+        return "<ThreadPool at %x; threads=%s>" % (id(self), threadcount)

@@ -1,26 +1,28 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-    ambari_jinja2.bccache
-    ~~~~~~~~~~~~~~
+ambari_jinja2.bccache
+~~~~~~~~~~~~~~
 
-    This module implements the bytecode cache system Jinja is optionally
-    using.  This is useful if you have very complex template situations and
-    the compiliation of all those templates slow down your application too
-    much.
+This module implements the bytecode cache system Jinja is optionally
+using.  This is useful if you have very complex template situations and
+the compiliation of all those templates slow down your application too
+much.
 
-    Situations where this is useful are often forking web applications that
-    are initialized on the first request.
+Situations where this is useful are often forking web applications that
+are initialized on the first request.
 
-    :copyright: (c) 2010 by the Jinja Team.
-    :license: BSD.
+:copyright: (c) 2010 by the Jinja Team.
+:license: BSD.
 """
+
 from os import path, listdir
 import marshal
 import tempfile
 import pickle as pickle
 import fnmatch
 from io import StringIO
+
 try:
     from hashlib import sha1
 except ImportError:
@@ -29,7 +31,7 @@ from ambari_jinja2.utils import open_if_exists
 
 
 bc_version = 1
-bc_magic = 'j2'.encode('ascii') + pickle.dumps(bc_version, 2)
+bc_magic = "j2".encode("ascii") + pickle.dumps(bc_version, 2)
 
 
 class Bucket(object):
@@ -73,7 +75,7 @@ class Bucket(object):
     def write_bytecode(self, f):
         """Dump the bytecode into the file or file like object passed."""
         if self.code is None:
-            raise TypeError('can\'t write empty bucket')
+            raise TypeError("can't write empty bucket")
         f.write(bc_magic)
         pickle.dump(self.checksum, f, 2)
         if isinstance(f, file):
@@ -143,16 +145,16 @@ class BytecodeCache(object):
 
     def get_cache_key(self, name, filename=None):
         """Returns the unique hash key for this template name."""
-        hash = sha1(name.encode('utf-8'))
+        hash = sha1(name.encode("utf-8"))
         if filename is not None:
             if isinstance(filename, str):
-                filename = filename.encode('utf-8')
-            hash.update('|' + filename)
+                filename = filename.encode("utf-8")
+            hash.update("|" + filename)
         return hash.hexdigest()
 
     def get_source_checksum(self, source):
         """Returns a checksum for the source."""
-        return sha1(source.encode('utf-8')).hexdigest()
+        return sha1(source.encode("utf-8")).hexdigest()
 
     def get_bucket(self, environment, name, filename, source):
         """Return a cache bucket for the given template.  All arguments are
@@ -185,7 +187,7 @@ class FileSystemBytecodeCache(BytecodeCache):
     This bytecode cache supports clearing of the cache using the clear method.
     """
 
-    def __init__(self, directory=None, pattern='__ambari_jinja2_%s.cache'):
+    def __init__(self, directory=None, pattern="__ambari_jinja2_%s.cache"):
         if directory is None:
             directory = tempfile.gettempdir()
         self.directory = directory
@@ -195,7 +197,7 @@ class FileSystemBytecodeCache(BytecodeCache):
         return path.join(self.directory, self.pattern % bucket.key)
 
     def load_bytecode(self, bucket):
-        f = open_if_exists(self._get_cache_filename(bucket), 'rb')
+        f = open_if_exists(self._get_cache_filename(bucket), "rb")
         if f is not None:
             try:
                 bucket.load_bytecode(f)
@@ -203,7 +205,7 @@ class FileSystemBytecodeCache(BytecodeCache):
                 f.close()
 
     def dump_bytecode(self, bucket):
-        f = open(self._get_cache_filename(bucket), 'wb')
+        f = open(self._get_cache_filename(bucket), "wb")
         try:
             bucket.write_bytecode(f)
         finally:
@@ -214,7 +216,8 @@ class FileSystemBytecodeCache(BytecodeCache):
         # write access on the file system and the function does not exist
         # normally.
         from os import remove
-        files = fnmatch.filter(listdir(self.directory), self.pattern % '*')
+
+        files = fnmatch.filter(listdir(self.directory), self.pattern % "*")
         for filename in files:
             try:
                 remove(path.join(self.directory, filename))
@@ -264,7 +267,7 @@ class MemcachedBytecodeCache(BytecodeCache):
     The clear method is a no-operation function.
     """
 
-    def __init__(self, client, prefix='ambari_jinja2/bytecode/', timeout=None):
+    def __init__(self, client, prefix="ambari_jinja2/bytecode/", timeout=None):
         self.client = client
         self.prefix = prefix
         self.timeout = timeout

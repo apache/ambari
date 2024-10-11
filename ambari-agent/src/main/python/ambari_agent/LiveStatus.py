@@ -23,41 +23,45 @@ from ambari_agent.ActualConfigHandler import ActualConfigHandler
 
 
 class LiveStatus:
+    SERVICES = []
+    CLIENT_COMPONENTS = []
+    COMPONENTS = []
 
-  SERVICES = []
-  CLIENT_COMPONENTS = []
-  COMPONENTS = []
+    LIVE_STATUS = "STARTED"
+    DEAD_STATUS = "INSTALLED"
 
-  LIVE_STATUS = "STARTED"
-  DEAD_STATUS = "INSTALLED"
+    def __init__(self, cluster, service, component, globalConfig, config, configTags):
+        self.logger = logging.getLogger()
+        self.cluster = cluster
+        self.service = service
+        self.component = component
+        self.globalConfig = globalConfig
+        self.configTags = configTags
+        self.actualConfigHandler = ActualConfigHandler(config, configTags)
 
-  def __init__(self, cluster, service, component, globalConfig, config, configTags):
-    self.logger = logging.getLogger()
-    self.cluster = cluster
-    self.service = service
-    self.component = component
-    self.globalConfig = globalConfig
-    self.configTags = configTags
-    self.actualConfigHandler = ActualConfigHandler(config, configTags)
+    def build(self, component_status):
+        """
+        :param component_status: component status to include into report
+        :return: populated livestatus dict
+        """
 
-  def build(self, component_status):
-    """
-    :param component_status: component status to include into report
-    :return: populated livestatus dict
-    """
+        livestatus = {
+            "componentName": self.component,
+            "msg": "",
+            "status": component_status,
+            "clusterName": self.cluster,
+            "serviceName": self.service,
+            "stackVersion": "",  # TODO: populate ?
+        }
 
-    livestatus = {"componentName": self.component,
-                  "msg": "",
-                  "status": component_status,
-                  "clusterName": self.cluster,
-                  "serviceName": self.service,
-                  "stackVersion": ""  # TODO: populate ?
-                  }
+        active_config = self.actualConfigHandler.read_actual_component(self.component)
+        if active_config is not None:
+            livestatus["configurationTags"] = active_config
 
-    active_config = self.actualConfigHandler.read_actual_component(
-      self.component)
-    if active_config is not None:
-      livestatus['configurationTags'] = active_config
-
-    self.logger.debug("The live status for component %s of service %s is %s", self.component, self.service, livestatus)
-    return livestatus
+        self.logger.debug(
+            "The live status for component %s of service %s is %s",
+            self.component,
+            self.service,
+            livestatus,
+        )
+        return livestatus

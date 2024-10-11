@@ -17,12 +17,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+
 from ambari_commons import OSCheck
 from resource_management.libraries.functions.default import default
 
 if OSCheck.is_windows_family():
-  from params_windows import *
+    from params_windows import *
 else:
-  from params_linux import *
+    from params_linux import *
 
 retryAble = default("/commandParams/command_retry_enabled", False)

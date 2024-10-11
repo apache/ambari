@@ -70,10 +70,11 @@ import threading
 import cherrypy
 from cherrypy import Tool
 from cherrypy.process import plugins
+
 try:
     from cheroot.server import HTTPConnection, HTTPRequest, KnownLengthRFile
 except ImportError:
-    from cherrypy.wsgiserver import HTTPConnection, HTTPRequest, KnownLengthRFile    
+    from cherrypy.wsgiserver import HTTPConnection, HTTPRequest, KnownLengthRFile
 
 from ambari_ws4py import WS_KEY, WS_VERSION
 from ambari_ws4py.exc import HandshakeError
@@ -81,27 +82,30 @@ from ambari_ws4py.websocket import WebSocket
 from ambari_ws4py.compat import py3k, get_connection, detach_connection
 from ambari_ws4py.manager import WebSocketManager
 
-__all__ = ['WebSocketTool', 'WebSocketPlugin']
+__all__ = ["WebSocketTool", "WebSocketPlugin"]
+
 
 class WebSocketTool(Tool):
     def __init__(self):
-        Tool.__init__(self, 'before_request_body', self.upgrade)
+        Tool.__init__(self, "before_request_body", self.upgrade)
 
     def _setup(self):
         conf = self._merged_args()
         hooks = cherrypy.serving.request.hooks
-        p = conf.pop("priority", getattr(self.callable, "priority",
-                                         self._priority))
+        p = conf.pop("priority", getattr(self.callable, "priority", self._priority))
         hooks.attach(self._point, self.callable, priority=p, **conf)
-        hooks.attach('before_finalize', self.complete,
-                     priority=p)
-        hooks.attach('on_end_resource', self.cleanup_headers,
-                     priority=70)
-        hooks.attach('on_end_request', self.start_handler,
-                     priority=70)
+        hooks.attach("before_finalize", self.complete, priority=p)
+        hooks.attach("on_end_resource", self.cleanup_headers, priority=70)
+        hooks.attach("on_end_request", self.start_handler, priority=70)
 
-    def upgrade(self, protocols=None, extensions=None, version=WS_VERSION,
-                handler_cls=WebSocket, heartbeat_freq=None):
+    def upgrade(
+        self,
+        protocols=None,
+        extensions=None,
+        version=WS_VERSION,
+        handler_cls=WebSocket,
+        heartbeat_freq=None,
+    ):
         """
         Performs the upgrade of the connection to the WebSocket
         protocol.
@@ -124,49 +128,55 @@ class WebSocketTool(Tool):
         ws_key = None
         ws_extensions = []
 
-        if request.method != 'GET':
-            raise HandshakeError('HTTP method must be a GET')
+        if request.method != "GET":
+            raise HandshakeError("HTTP method must be a GET")
 
-        for key, expected_value in [('Upgrade', 'websocket'),
-                                     ('Connection', 'upgrade')]:
-            actual_value = request.headers.get(key, '').lower()
+        for key, expected_value in [
+            ("Upgrade", "websocket"),
+            ("Connection", "upgrade"),
+        ]:
+            actual_value = request.headers.get(key, "").lower()
             if not actual_value:
-                raise HandshakeError('Header %s is not defined' % key)
+                raise HandshakeError("Header %s is not defined" % key)
             if expected_value not in actual_value:
-                raise HandshakeError('Illegal value for header %s: %s' %
-                                     (key, actual_value))
+                raise HandshakeError(
+                    "Illegal value for header %s: %s" % (key, actual_value)
+                )
 
-        version = request.headers.get('Sec-WebSocket-Version')
-        supported_versions = ', '.join([str(v) for v in ws_version])
+        version = request.headers.get("Sec-WebSocket-Version")
+        supported_versions = ", ".join([str(v) for v in ws_version])
         version_is_valid = False
         if version:
-            try: version = int(version)
-            except: pass
-            else: version_is_valid = version in ws_version
+            try:
+                version = int(version)
+            except:
+                pass
+            else:
+                version_is_valid = version in ws_version
 
         if not version_is_valid:
-            cherrypy.response.headers['Sec-WebSocket-Version'] = supported_versions
-            raise HandshakeError('Unhandled or missing WebSocket version')
+            cherrypy.response.headers["Sec-WebSocket-Version"] = supported_versions
+            raise HandshakeError("Unhandled or missing WebSocket version")
 
-        key = request.headers.get('Sec-WebSocket-Key')
+        key = request.headers.get("Sec-WebSocket-Key")
         if key:
-            ws_key = base64.b64decode(key.encode('utf-8'))
+            ws_key = base64.b64decode(key.encode("utf-8"))
             if len(ws_key) != 16:
                 raise HandshakeError("WebSocket key's length is invalid")
 
         protocols = protocols or []
-        subprotocols = request.headers.get('Sec-WebSocket-Protocol')
+        subprotocols = request.headers.get("Sec-WebSocket-Protocol")
         if subprotocols:
             ws_protocols = []
-            for s in subprotocols.split(','):
+            for s in subprotocols.split(","):
                 s = s.strip()
                 if s in protocols:
                     ws_protocols.append(s)
 
         exts = extensions or []
-        extensions = request.headers.get('Sec-WebSocket-Extensions')
+        extensions = request.headers.get("Sec-WebSocket-Extensions")
         if extensions:
-            for ext in extensions.split(','):
+            for ext in extensions.split(","):
                 ext = ext.strip()
                 if ext in exts:
                     ws_extensions.append(ext)
@@ -179,26 +189,28 @@ class WebSocketTool(Tool):
         else:
             location.append("ws://")
             include_port = request.local.port != 80
-        location.append('localhost')
+        location.append("localhost")
         if include_port:
             location.append(":%d" % request.local.port)
         location.append(request.path_info)
         if request.query_string != "":
             location.append("?%s" % request.query_string)
-        ws_location = ''.join(location)
+        ws_location = "".join(location)
 
         response = cherrypy.serving.response
         response.stream = True
-        response.status = '101 Switching Protocols'
-        response.headers['Content-Type'] = 'text/plain'
-        response.headers['Upgrade'] = 'websocket'
-        response.headers['Connection'] = 'Upgrade'
-        response.headers['Sec-WebSocket-Version'] = str(version)
-        response.headers['Sec-WebSocket-Accept'] = base64.b64encode(sha1(key.encode('utf-8') + WS_KEY).digest())
+        response.status = "101 Switching Protocols"
+        response.headers["Content-Type"] = "text/plain"
+        response.headers["Upgrade"] = "websocket"
+        response.headers["Connection"] = "Upgrade"
+        response.headers["Sec-WebSocket-Version"] = str(version)
+        response.headers["Sec-WebSocket-Accept"] = base64.b64encode(
+            sha1(key.encode("utf-8") + WS_KEY).digest()
+        )
         if ws_protocols:
-            response.headers['Sec-WebSocket-Protocol'] = ', '.join(ws_protocols)
+            response.headers["Sec-WebSocket-Protocol"] = ", ".join(ws_protocols)
         if ws_extensions:
-            response.headers['Sec-WebSocket-Extensions'] = ','.join(ws_extensions)
+            response.headers["Sec-WebSocket-Extensions"] = ",".join(ws_extensions)
 
         addr = (request.remote.ip, request.remote.port)
         rfile = request.rfile.rfile
@@ -206,9 +218,13 @@ class WebSocketTool(Tool):
             rfile = rfile.rfile
 
         ws_conn = get_connection(rfile)
-        request.ws_handler = handler_cls(ws_conn, ws_protocols, ws_extensions,
-                                         request.wsgi_environ.copy(),
-                                         heartbeat_freq=heartbeat_freq)
+        request.ws_handler = handler_cls(
+            ws_conn,
+            ws_protocols,
+            ws_extensions,
+            request.wsgi_environ.copy(),
+            heartbeat_freq=heartbeat_freq,
+        )
 
     def complete(self):
         """
@@ -227,10 +243,12 @@ class WebSocketTool(Tool):
             return
 
         headers = response.header_list[:]
-        for (k, v) in headers:
-            if k[:7] == 'Sec-Web':
+        for k, v in headers:
+            if k[:7] == "Sec-Web":
                 response.header_list.remove((k, v))
-                response.header_list.append((k.replace('Sec-Websocket', 'Sec-WebSocket'), v))
+                response.header_list.append(
+                    (k.replace("Sec-Websocket", "Sec-WebSocket"), v)
+                )
 
     def start_handler(self):
         """
@@ -238,19 +256,19 @@ class WebSocketTool(Tool):
         the opened method of the handler.
         """
         request = cherrypy.request
-        if not hasattr(request, 'ws_handler'):
+        if not hasattr(request, "ws_handler"):
             return
 
         addr = (request.remote.ip, request.remote.port)
         ws_handler = request.ws_handler
         request.ws_handler = None
-        delattr(request, 'ws_handler')
+        delattr(request, "ws_handler")
 
         # By doing this we detach the socket from
         # the CherryPy stack avoiding memory leaks
         detach_connection(request.rfile.rfile)
 
-        cherrypy.engine.publish('handle-websocket', ws_handler, addr)
+        cherrypy.engine.publish("handle-websocket", ws_handler, addr)
 
     def _set_internal_flags(self):
         """
@@ -272,17 +290,18 @@ class WebSocketTool(Tool):
             if not current:
                 break
             _locals = current.f_locals
-            if 'self' in _locals:
-                if isinstance(_locals['self'], HTTPRequest):
-                    _locals['self'].close_connection = True
-                if isinstance(_locals['self'], HTTPConnection):
-                    _locals['self'].linger = True
+            if "self" in _locals:
+                if isinstance(_locals["self"], HTTPRequest):
+                    _locals["self"].close_connection = True
+                if isinstance(_locals["self"], HTTPConnection):
+                    _locals["self"].linger = True
                     # HTTPConnection is more inner than
                     # HTTPRequest so we can leave once
                     # we're done here
                     return
             _locals = None
             current = current.f_back
+
 
 class WebSocketPlugin(plugins.SimplePlugin):
     def __init__(self, bus):
@@ -291,16 +310,16 @@ class WebSocketPlugin(plugins.SimplePlugin):
 
     def start(self):
         self.bus.log("Starting WebSocket processing")
-        self.bus.subscribe('stop', self.cleanup)
-        self.bus.subscribe('handle-websocket', self.handle)
-        self.bus.subscribe('websocket-broadcast', self.broadcast)
+        self.bus.subscribe("stop", self.cleanup)
+        self.bus.subscribe("handle-websocket", self.handle)
+        self.bus.subscribe("websocket-broadcast", self.broadcast)
         self.manager.start()
 
     def stop(self):
         self.bus.log("Terminating WebSocket processing")
-        self.bus.unsubscribe('stop', self.cleanup)
-        self.bus.unsubscribe('handle-websocket', self.handle)
-        self.bus.unsubscribe('websocket-broadcast', self.broadcast)
+        self.bus.unsubscribe("stop", self.cleanup)
+        self.bus.unsubscribe("handle-websocket", self.handle)
+        self.bus.unsubscribe("websocket-broadcast", self.broadcast)
 
     def handle(self, ws_handler, peer_addr):
         """
@@ -330,10 +349,13 @@ class WebSocketPlugin(plugins.SimplePlugin):
         """
         self.manager.broadcast(message, binary)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     import random
-    cherrypy.config.update({'server.socket_host': '127.0.0.1',
-                            'server.socket_port': 9000})
+
+    cherrypy.config.update(
+        {"server.socket_host": "127.0.0.1", "server.socket_port": 9000}
+    )
     WebSocketPlugin(cherrypy.engine).subscribe()
     cherrypy.tools.websocket = WebSocketTool()
 
@@ -373,11 +395,19 @@ if __name__ == '__main__':
           </form>
         </body>
         </html>
-        """ % {'username': "User%d" % random.randint(0, 100)}
+        """ % {"username": "User%d" % random.randint(0, 100)}
 
         @cherrypy.expose
         def index(self):
             cherrypy.log("Handler created: %s" % repr(cherrypy.request.ws_handler))
 
-    cherrypy.quickstart(Root(), '/', config={'/': {'tools.websocket.on': True,
-                                                   'tools.websocket.handler_cls': EchoWebSocketHandler}})
+    cherrypy.quickstart(
+        Root(),
+        "/",
+        config={
+            "/": {
+                "tools.websocket.on": True,
+                "tools.websocket.handler_cls": EchoWebSocketHandler,
+            }
+        },
+    )

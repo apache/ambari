@@ -25,16 +25,15 @@ from shared_initialization import setup_stack_symlinks
 
 
 class AfterInstallHook(Hook):
+    def hook(self, env):
+        import params
 
-  def hook(self, env):
-    import params
+        env.set_params(params)
+        setup_stack_symlinks(self.stroutfile)
+        setup_config()
 
-    env.set_params(params)
-    setup_stack_symlinks(self.stroutfile)
-    setup_config()
-
-    link_configs(self.stroutfile)
+        link_configs(self.stroutfile)
 
 
 if __name__ == "__main__":
-  AfterInstallHook().execute()
+    AfterInstallHook().execute()

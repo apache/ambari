@@ -28,42 +28,47 @@ from ambari_commons import OSCheck, OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
 from resource_management.core.exceptions import ClientComponentHasNoStatus
 
+
 class HbaseClient(Script):
-  def install(self, env):
-    import params
-    env.set_params(params)
-    self.install_packages(env)
-    self.configure(env)
+    def install(self, env):
+        import params
 
-  def configure(self, env):
-    import params
-    env.set_params(params)
-    hbase(name='client')
+        env.set_params(params)
+        self.install_packages(env)
+        self.configure(env)
 
-  def status(self, env):
-    raise ClientComponentHasNoStatus()
+    def configure(self, env):
+        import params
+
+        env.set_params(params)
+        hbase(name="client")
+
+    def status(self, env):
+        raise ClientComponentHasNoStatus()
 
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class HbaseClientWindows(HbaseClient):
-  pass
+    pass
 
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class HbaseClientDefault(HbaseClient):
-  def pre_upgrade_restart(self, env, upgrade_type=None):
-    import params
-    env.set_params(params)
+    def pre_upgrade_restart(self, env, upgrade_type=None):
+        import params
 
-    if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version): 
-      # phoenix may not always be deployed
-      try:
-        stack_select.select_packages(params.version)
-      except Exception as e:
-        print("Ignoring error due to missing phoenix-client")
-        print(str(e))
+        env.set_params(params)
 
+        if params.version and check_stack_feature(
+            StackFeature.ROLLING_UPGRADE, params.version
+        ):
+            # phoenix may not always be deployed
+            try:
+                stack_select.select_packages(params.version)
+            except Exception as e:
+                print("Ignoring error due to missing phoenix-client")
+                print(str(e))
 
 
 if __name__ == "__main__":
-  HbaseClient().execute()
+    HbaseClient().execute()

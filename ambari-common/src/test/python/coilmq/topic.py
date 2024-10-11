@@ -2,9 +2,10 @@
 """
 Non-durable topic support functionality.
 
-This code is inspired by the design of the Ruby stompserver project, by 
+This code is inspired by the design of the Ruby stompserver project, by
 Patrick Hurley and Lionel Bouton.  See http://stompserver.rubyforge.org/
 """
+
 import logging
 import threading
 import uuid
@@ -34,9 +35,9 @@ class TopicManager(object):
     Class that manages distribution of messages to topic subscribers.
 
     This class uses C{threading.RLock} to guard the public methods.  This is probably
-    a bit excessive, given 1) the actomic nature of basic C{dict} read/write operations 
-    and  2) the fact that most of the internal data structures are keying off of the 
-    STOMP connection, which is going to be thread-isolated.  That said, this seems like 
+    a bit excessive, given 1) the actomic nature of basic C{dict} read/write operations
+    and  2) the fact that most of the internal data structures are keying off of the
+    STOMP connection, which is going to be thread-isolated.  That said, this seems like
     the technically correct approach and should increase the chance of this code being
     portable to non-GIL systems.
 
@@ -45,8 +46,7 @@ class TopicManager(object):
     """
 
     def __init__(self):
-        self.log = logging.getLogger(
-            '%s.%s' % (__name__, self.__class__.__name__))
+        self.log = logging.getLogger("%s.%s" % (__name__, self.__class__.__name__))
 
         # Lock var is required for L{synchornized} decorator.
         self._lock = threading.RLock()
@@ -67,13 +67,13 @@ class TopicManager(object):
     @synchronized(lock)
     def subscribe(self, connection, destination):
         """
-        Subscribes a connection to the specified topic destination. 
+        Subscribes a connection to the specified topic destination.
 
         @param connection: The client connection to subscribe.
         @type connection: L{coilmq.server.StompConnection}
 
         @param destination: The topic destination (e.g. '/topic/foo')
-        @type destination: C{str} 
+        @type destination: C{str}
         """
         self.log.debug("Subscribing %s to %s" % (connection, destination))
         self._topics[destination].add(connection)
@@ -81,13 +81,13 @@ class TopicManager(object):
     @synchronized(lock)
     def unsubscribe(self, connection, destination):
         """
-        Unsubscribes a connection from the specified topic destination. 
+        Unsubscribes a connection from the specified topic destination.
 
         @param connection: The client connection to unsubscribe.
         @type connection: L{coilmq.server.StompConnection}
 
         @param destination: The topic destination (e.g. '/topic/foo')
-        @type destination: C{str} 
+        @type destination: C{str}
         """
         self.log.debug("Unsubscribing %s from %s" % (connection, destination))
         if connection in self._topics[destination]:
@@ -117,18 +117,17 @@ class TopicManager(object):
         """
         Sends a message to all subscribers of destination.
 
-        @param message: The message frame.  (The frame will be modified to set command 
+        @param message: The message frame.  (The frame will be modified to set command
                             to MESSAGE and set a message id.)
         @type message: L{stompclient.frame.Frame}
         """
-        dest = message.headers.get('destination')
+        dest = message.headers.get("destination")
         if not dest:
-            raise ValueError(
-                "Cannot send frame with no destination: %s" % message)
+            raise ValueError("Cannot send frame with no destination: %s" % message)
 
-        message.cmd = 'message'
+        message.cmd = "message"
 
-        message.headers.setdefault('message-id', str(uuid.uuid4()))
+        message.headers.setdefault("message-id", str(uuid.uuid4()))
 
         bad_subscribers = set()
         for subscriber in self._topics[dest]:
@@ -136,7 +135,9 @@ class TopicManager(object):
                 subscriber.send_frame(message)
             except:
                 self.log.exception(
-                    "Error delivering message to subscriber %s; client will be disconnected." % subscriber)
+                    "Error delivering message to subscriber %s; client will be disconnected."
+                    % subscriber
+                )
                 # We queue for deletion so we are not modifying the topics dict
                 # while iterating over it.
                 bad_subscribers.add(subscriber)

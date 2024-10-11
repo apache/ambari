@@ -21,7 +21,12 @@ Ambari Agent
 """
 
 _all__ = ["HdfsResource"]
-from resource_management.core.base import Resource, ForcedListArgument, ResourceArgument, BooleanArgument
+from resource_management.core.base import (
+    Resource,
+    ForcedListArgument,
+    ResourceArgument,
+    BooleanArgument,
+)
 
 """
 Calling a lot of hadoop commands takes too much time.
@@ -48,36 +53,36 @@ The resource is a replacement for the following operations:
 
 
 class HdfsResource(Resource):
-  # Required: {target, type, action}
-  # path to hadoop file/directory
-  target = ResourceArgument(default=lambda obj: obj.name)
-  # "directory" or "file"
-  type = ResourceArgument()
-  # "create_on_execute" or "delete_on_execute" or "download_on_execute" or "execute"
-  action = ForcedListArgument()
-  # if present - copies file/directory from local path {source} to hadoop path - {target}
-  source = ResourceArgument()
-  owner = ResourceArgument()
-  group = ResourceArgument()
-  mode = ResourceArgument()
-  logoutput = ResourceArgument()
-  recursive_chown = BooleanArgument(default=False)
-  recursive_chmod = BooleanArgument(default=False)
-  change_permissions_for_parents = BooleanArgument(default=False)
-  """
+    # Required: {target, type, action}
+    # path to hadoop file/directory
+    target = ResourceArgument(default=lambda obj: obj.name)
+    # "directory" or "file"
+    type = ResourceArgument()
+    # "create_on_execute" or "delete_on_execute" or "download_on_execute" or "execute"
+    action = ForcedListArgument()
+    # if present - copies file/directory from local path {source} to hadoop path - {target}
+    source = ResourceArgument()
+    owner = ResourceArgument()
+    group = ResourceArgument()
+    mode = ResourceArgument()
+    logoutput = ResourceArgument()
+    recursive_chown = BooleanArgument(default=False)
+    recursive_chmod = BooleanArgument(default=False)
+    change_permissions_for_parents = BooleanArgument(default=False)
+    """
   If a file present in HDFS is different from source, should it be replaced?
   """
-  replace_existing_files = BooleanArgument(default=True)
+    replace_existing_files = BooleanArgument(default=True)
 
-  security_enabled = BooleanArgument(default=False)
-  principal_name = ResourceArgument()
-  keytab = ResourceArgument()
-  kinit_path_local = ResourceArgument()
-  user = ResourceArgument()
-  hadoop_bin_dir = ResourceArgument()
-  hadoop_conf_dir = ResourceArgument()
-  
-  """
+    security_enabled = BooleanArgument(default=False)
+    principal_name = ResourceArgument()
+    keytab = ResourceArgument()
+    kinit_path_local = ResourceArgument()
+    user = ResourceArgument()
+    hadoop_bin_dir = ResourceArgument()
+    hadoop_conf_dir = ResourceArgument()
+
+    """
   Path to file which contains '\n'-separated list of hdfs resources, which should not
   be managed. (simply any action to be skipped on it)
   
@@ -87,25 +92,30 @@ class HdfsResource(Resource):
   Example value:
   /var/lib/ambari-agent/data/.hdfs_resource_ignore
   """
-  hdfs_resource_ignore_file = ResourceArgument()
+    hdfs_resource_ignore_file = ResourceArgument()
 
-  """
+    """
   If the name of the HdfsResource is in immutable_paths
   and it is already created, any actions on it will be skipped
   (like changing permissions/recursive permissions, copying from source, deleting etc.)
   """
-  immutable_paths = ResourceArgument(default=[])
+    immutable_paths = ResourceArgument(default=[])
 
-  # WebHDFS needs these
-  hdfs_site = ResourceArgument()
-  default_fs = ResourceArgument()
+    # WebHDFS needs these
+    hdfs_site = ResourceArgument()
+    default_fs = ResourceArgument()
 
-  # To support HCFS
-  dfs_type = ResourceArgument(default="")
+    # To support HCFS
+    dfs_type = ResourceArgument(default="")
 
-  # default None - means all nameservices
-  nameservices = ResourceArgument()
+    # default None - means all nameservices
+    nameservices = ResourceArgument()
 
-  #action 'execute' immediately performs all pending actions in an efficient manner
-  #action 'create_on_execute/delete_on_execute/download_on_execute' adds to the list of pending actions
-  actions = Resource.actions + ["create_on_execute", "delete_on_execute", "download_on_execute", "execute"]
+    # action 'execute' immediately performs all pending actions in an efficient manner
+    # action 'create_on_execute/delete_on_execute/download_on_execute' adds to the list of pending actions
+    actions = Resource.actions + [
+        "create_on_execute",
+        "delete_on_execute",
+        "download_on_execute",
+        "execute",
+    ]

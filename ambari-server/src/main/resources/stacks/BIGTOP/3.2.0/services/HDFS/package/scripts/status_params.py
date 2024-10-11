@@ -29,39 +29,49 @@ from resource_management.libraries.script.script import Script
 config = Script.get_config()
 
 if OSCheck.is_windows_family():
-  namenode_win_service_name = "namenode"
-  datanode_win_service_name = "datanode"
-  snamenode_win_service_name = "secondarynamenode"
-  journalnode_win_service_name = "journalnode"
-  zkfc_win_service_name = "zkfc"
+    namenode_win_service_name = "namenode"
+    datanode_win_service_name = "datanode"
+    snamenode_win_service_name = "secondarynamenode"
+    journalnode_win_service_name = "journalnode"
+    zkfc_win_service_name = "zkfc"
 else:
-  hadoop_pid_dir_prefix = config['configurations']['hadoop-env']['hadoop_pid_dir_prefix']
-  hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
-  hadoop_pid_dir = format("{hadoop_pid_dir_prefix}/{hdfs_user}")
+    hadoop_pid_dir_prefix = config["configurations"]["hadoop-env"][
+        "hadoop_pid_dir_prefix"
+    ]
+    hdfs_user = config["configurations"]["hadoop-env"]["hdfs_user"]
+    hadoop_pid_dir = format("{hadoop_pid_dir_prefix}/{hdfs_user}")
 
-  root_user = 'root'
-  security_enabled = config['configurations']['cluster-env']['security_enabled']
-  datanode_pid_file = format("{hadoop_pid_dir}/hadoop-{hdfs_user}-datanode.pid")
-  datanode_secure_pid_file = format("{hadoop_pid_dir}/hadoop-{hdfs_user}-{root_user}-datanode.pid")
-  if security_enabled:
-    datanode_pid_file = datanode_secure_pid_file
+    root_user = "root"
+    security_enabled = config["configurations"]["cluster-env"]["security_enabled"]
+    datanode_pid_file = format("{hadoop_pid_dir}/hadoop-{hdfs_user}-datanode.pid")
+    datanode_secure_pid_file = format(
+        "{hadoop_pid_dir}/hadoop-{hdfs_user}-{root_user}-datanode.pid"
+    )
+    if security_enabled:
+        datanode_pid_file = datanode_secure_pid_file
 
-  namenode_pid_file = format("{hadoop_pid_dir}/hadoop-{hdfs_user}-namenode.pid")
-  snamenode_pid_file = format("{hadoop_pid_dir}/hadoop-{hdfs_user}-secondarynamenode.pid")
-  journalnode_pid_file = format("{hadoop_pid_dir}/hadoop-{hdfs_user}-journalnode.pid")
-  zkfc_pid_file = format("{hadoop_pid_dir}/hadoop-{hdfs_user}-zkfc.pid")
-  nfsgateway_pid_file = format("{hadoop_pid_dir_prefix}/root/hadoop_privileged_nfs3.pid")
-  router_pid_file = format("{hadoop_pid_dir}/hadoop-{hdfs_user}-dfsrouter.pid")
+    namenode_pid_file = format("{hadoop_pid_dir}/hadoop-{hdfs_user}-namenode.pid")
+    snamenode_pid_file = format(
+        "{hadoop_pid_dir}/hadoop-{hdfs_user}-secondarynamenode.pid"
+    )
+    journalnode_pid_file = format("{hadoop_pid_dir}/hadoop-{hdfs_user}-journalnode.pid")
+    zkfc_pid_file = format("{hadoop_pid_dir}/hadoop-{hdfs_user}-zkfc.pid")
+    nfsgateway_pid_file = format(
+        "{hadoop_pid_dir_prefix}/root/hadoop_privileged_nfs3.pid"
+    )
+    router_pid_file = format("{hadoop_pid_dir}/hadoop-{hdfs_user}-dfsrouter.pid")
 
-  # Security related/required params
-  hostname = config['agentLevelParams']['hostname']
-  security_enabled = config['configurations']['cluster-env']['security_enabled']
-  hdfs_user_principal = config['configurations']['hadoop-env']['hdfs_principal_name']
-  hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
+    # Security related/required params
+    hostname = config["agentLevelParams"]["hostname"]
+    security_enabled = config["configurations"]["cluster-env"]["security_enabled"]
+    hdfs_user_principal = config["configurations"]["hadoop-env"]["hdfs_principal_name"]
+    hdfs_user_keytab = config["configurations"]["hadoop-env"]["hdfs_user_keytab"]
 
-  hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
+    hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 
-  kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
-  tmp_dir = Script.get_tmp_dir()
+    kinit_path_local = get_kinit_path(
+        default("/configurations/kerberos-env/executable_search_paths", None)
+    )
+    tmp_dir = Script.get_tmp_dir()
 
 stack_name = default("/clusterLevelParams/stack_name", None)

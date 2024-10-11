@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """
-The default/recommended SocketServer-based server implementation. 
+The default/recommended SocketServer-based server implementation.
 """
+
 import logging
 import socket
 import threading
 import queue
+
 try:
     from socketserver import BaseRequestHandler, TCPServer, ThreadingMixIn
 except ImportError:
@@ -38,9 +40,9 @@ class StompRequestHandler(BaseRequestHandler, StompConnection):
 
     This class will be instantiated once per connection to the server.  In a multi-threaded
     context, that means that instances of this class are scoped to a single thread.  It should
-    be noted that while the L{coilmq.engine.StompEngine} instance will be thread-local, the 
+    be noted that while the L{coilmq.engine.StompEngine} instance will be thread-local, the
     storage containers configured into the engine are not thread-local (and hence must be
-    thread-safe). 
+    thread-safe).
 
     @ivar buffer: A StompBuffer instance which buffers received data (to ensure we deal with
                     complete STOMP messages.
@@ -57,13 +59,17 @@ class StompRequestHandler(BaseRequestHandler, StompConnection):
         if self.server.timeout is not None:
             self.request.settimeout(self.server.timeout)
         self.debug = False
-        self.log = logging.getLogger('%s.%s' % (self.__module__, self.__class__.__name__))
+        self.log = logging.getLogger(
+            "%s.%s" % (self.__module__, self.__class__.__name__)
+        )
         self.buffer = FrameBuffer()
-        self.engine = StompEngine(connection=self,
-                                  authenticator=self.server.authenticator,
-                                  queue_manager=self.server.queue_manager,
-                                  topic_manager=self.server.topic_manager,
-                                  protocol=self.server.protocol)
+        self.engine = StompEngine(
+            connection=self,
+            authenticator=self.server.authenticator,
+            queue_manager=self.server.queue_manager,
+            topic_manager=self.server.topic_manager,
+            protocol=self.server.protocol,
+        )
 
     def handle(self):
         """
@@ -105,7 +111,7 @@ class StompRequestHandler(BaseRequestHandler, StompConnection):
         self.engine.unbind()
 
     def send_frame(self, frame):
-        """ Sends a frame to connected socket client.
+        """Sends a frame to connected socket client.
 
         @param frame: The frame to send.
         @type frame: C{stompclient.frame.Frame}
@@ -118,7 +124,7 @@ class StompRequestHandler(BaseRequestHandler, StompConnection):
 
 class StompServer(TCPServer):
     """
-    Subclass of C{StompServer.TCPServer} to handle new connections with 
+    Subclass of C{StompServer.TCPServer} to handle new connections with
     instances of L{StompRequestHandler}.
 
     @ivar authenticator: The authenticator to use.
@@ -136,8 +142,16 @@ class StompServer(TCPServer):
     # leave TIME_WAIT after unclean disconnect).
     allow_reuse_address = True
 
-    def __init__(self, server_address, RequestHandlerClass=None, timeout=3.0,
-                 authenticator=None, queue_manager=None, topic_manager=None, protocol=None):
+    def __init__(
+        self,
+        server_address,
+        RequestHandlerClass=None,
+        timeout=3.0,
+        authenticator=None,
+        queue_manager=None,
+        topic_manager=None,
+        protocol=None,
+    ):
         """
         Extension to C{TCPServer} constructor to provide mechanism for providing implementation classes.
 
@@ -146,10 +160,11 @@ class StompServer(TCPServer):
         @param timeout: The timeout for the underlying socket.
         @keyword authenticator: The configure L{coilmq.auth.Authenticator} object to use.
         @keyword queue_manager: The configured L{coilmq.queue.QueueManager} object to use.
-        @keyword topic_manager: The configured L{coilmq.topic.TopicManager} object to use. 
+        @keyword topic_manager: The configured L{coilmq.topic.TopicManager} object to use.
         """
-        self.log = logging.getLogger('%s.%s' % (
-            self.__module__, self.__class__.__name__))
+        self.log = logging.getLogger(
+            "%s.%s" % (self.__module__, self.__class__.__name__)
+        )
         if not RequestHandlerClass:
             RequestHandlerClass = StompRequestHandler
         self.timeout = timeout
@@ -170,7 +185,7 @@ class StompServer(TCPServer):
         TCPServer.server_close(self)
         self.queue_manager.close()
         self.topic_manager.close()
-        if hasattr(self.authenticator, 'close'):
+        if hasattr(self.authenticator, "close"):
             self.authenticator.close()
         self.shutdown()
 

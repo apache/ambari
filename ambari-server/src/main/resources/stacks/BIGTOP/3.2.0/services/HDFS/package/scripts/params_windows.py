@@ -20,7 +20,7 @@ limitations under the License.
 
 import os
 
-#Used in subsequent imports from params
+# Used in subsequent imports from params
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
@@ -32,44 +32,50 @@ hadoop_conf_dir = None
 hbase_conf_dir = None
 hadoop_home = None
 try:
-  hadoop_conf_dir = os.environ["HADOOP_CONF_DIR"]
-  hbase_conf_dir = os.environ["HBASE_CONF_DIR"]
-  hadoop_home = os.environ["HADOOP_HOME"]
+    hadoop_conf_dir = os.environ["HADOOP_CONF_DIR"]
+    hbase_conf_dir = os.environ["HBASE_CONF_DIR"]
+    hadoop_home = os.environ["HADOOP_HOME"]
 except:
-  pass
-#directories & files
-dfs_name_dir = config['configurations']['hdfs-site']['dfs.namenode.name.dir']
-fs_checkpoint_dir = config['configurations']['hdfs-site']['dfs.namenode.checkpoint.dir']
-dfs_data_dir = config['configurations']['hdfs-site']['dfs.datanode.data.dir']
-#decomission
+    pass
+# directories & files
+dfs_name_dir = config["configurations"]["hdfs-site"]["dfs.namenode.name.dir"]
+fs_checkpoint_dir = config["configurations"]["hdfs-site"]["dfs.namenode.checkpoint.dir"]
+dfs_data_dir = config["configurations"]["hdfs-site"]["dfs.datanode.data.dir"]
+# decomission
 hdfs_exclude_file = default("/clusterHostInfo/decom_dn_hosts", [])
-exclude_file_path = config['configurations']['hdfs-site']['dfs.hosts.exclude']
+exclude_file_path = config["configurations"]["hdfs-site"]["dfs.hosts.exclude"]
 include_file_path = default("/configurations/hdfs-site/dfs.hosts", None)
 hdfs_include_file = None
 manage_include_files = default("/configurations/hdfs-site/manage.include.files", False)
 if include_file_path and manage_include_files:
-  slave_hosts = default("/clusterHostInfo/slave_hosts", [])
-  hdfs_include_file = slave_hosts
-update_files_only = default("/commandParams/update_files_only",False)
+    slave_hosts = default("/clusterHostInfo/slave_hosts", [])
+    hdfs_include_file = slave_hosts
+update_files_only = default("/commandParams/update_files_only", False)
 # HDFS High Availability properties
 dfs_ha_enabled = False
-dfs_ha_nameservices = default("/configurations/hdfs-site/dfs.internal.nameservices", None)
-dfs_ha_namenode_ids = default(format("/configurations/hdfs-site/dfs.ha.namenodes.{dfs_ha_nameservices}"), None)
+dfs_ha_nameservices = default(
+    "/configurations/hdfs-site/dfs.internal.nameservices", None
+)
+dfs_ha_namenode_ids = default(
+    format("/configurations/hdfs-site/dfs.ha.namenodes.{dfs_ha_nameservices}"), None
+)
 
 namenode_id = None
 namenode_rpc = None
-hostname = config['agentLevelParams']['hostname']
+hostname = config["agentLevelParams"]["hostname"]
 if dfs_ha_namenode_ids:
-  dfs_ha_namemodes_ids_list = dfs_ha_namenode_ids.split(",")
-  dfs_ha_namenode_ids_array_len = len(dfs_ha_namemodes_ids_list)
-  if dfs_ha_namenode_ids_array_len > 1:
-    dfs_ha_enabled = True
+    dfs_ha_namemodes_ids_list = dfs_ha_namenode_ids.split(",")
+    dfs_ha_namenode_ids_array_len = len(dfs_ha_namemodes_ids_list)
+    if dfs_ha_namenode_ids_array_len > 1:
+        dfs_ha_enabled = True
 if dfs_ha_enabled:
-  for nn_id in dfs_ha_namemodes_ids_list:
-    nn_host = config['configurations']['hdfs-site'][format('dfs.namenode.rpc-address.{dfs_ha_nameservices}.{nn_id}')]
-    if hostname.lower() in nn_host.lower():
-      namenode_id = nn_id
-      namenode_rpc = nn_host
+    for nn_id in dfs_ha_namemodes_ids_list:
+        nn_host = config["configurations"]["hdfs-site"][
+            format("dfs.namenode.rpc-address.{dfs_ha_nameservices}.{nn_id}")
+        ]
+        if hostname.lower() in nn_host.lower():
+            namenode_id = nn_id
+            namenode_rpc = nn_host
 
 hadoop_user = config["configurations"]["cluster-env"]["hadoop.user.name"]
 hdfs_user = hadoop_user
@@ -79,9 +85,9 @@ grep_exe = "findstr"
 name_node_params = default("/commandParams/namenode", None)
 
 service_map = {
-  "datanode" : datanode_win_service_name,
-  "journalnode" : journalnode_win_service_name,
-  "namenode" : namenode_win_service_name,
-  "secondarynamenode" : snamenode_win_service_name,
-  "zkfc_slave": zkfc_win_service_name
+    "datanode": datanode_win_service_name,
+    "journalnode": journalnode_win_service_name,
+    "namenode": namenode_win_service_name,
+    "secondarynamenode": snamenode_win_service_name,
+    "zkfc_slave": zkfc_win_service_name,
 }

@@ -24,6 +24,7 @@ from resource_management.libraries.execution_command import module_configs
 from resource_management.libraries.execution_command import stack_settings
 from resource_management.libraries.execution_command import cluster_settings
 
+
 class ExecutionCommand(object):
     """
     The class has two private objects: _execution_command maps to a command.json and
@@ -40,11 +41,18 @@ class ExecutionCommand(object):
         :param command: json string or a python dict object
         """
         self.__execution_command = command
-        self.__module_configs = module_configs.ModuleConfigs(self.__get_value("configurations"), self.__get_value("configurationAttributes"))
+        self.__module_configs = module_configs.ModuleConfigs(
+            self.__get_value("configurations"),
+            self.__get_value("configurationAttributes"),
+        )
         # TODO : 'stack_settings' and 'cluster_settings' may be segregated later out of 'cluster-env'
         # as done in 'branch-feature-AMBARI-14714'.
-        self.__stack_settings = stack_settings.StackSettings(self.__get_value("configurations/cluster-env"))
-        self.__cluster_settings = cluster_settings.ClusterSettings(self.__get_value("configurations/cluster-env"))
+        self.__stack_settings = stack_settings.StackSettings(
+            self.__get_value("configurations/cluster-env")
+        )
+        self.__cluster_settings = cluster_settings.ClusterSettings(
+            self.__get_value("configurations/cluster-env")
+        )
 
     def __get_value(self, key, default_value=None):
         """
@@ -53,7 +61,7 @@ class ExecutionCommand(object):
         :param default_value: if key does not exist, return this value
         :return: the value maps to query key
         """
-        sub_keys = [_f for _f in key.split('/') if _f]
+        sub_keys = [_f for _f in key.split("/") if _f]
         value = self.__execution_command
         try:
             for sub_key in sub_keys:
@@ -108,9 +116,11 @@ class ExecutionCommand(object):
         :return: service name
         """
         module_name = self.get_module_name()
-        if module_name and '_CLIENTS' in module_name: # FIXME temporary hack
-            return 'default'
-        return self.__get_value("serviceName") # multi-service, but not multi-component per service
+        if module_name and "_CLIENTS" in module_name:  # FIXME temporary hack
+            return "default"
+        return self.__get_value(
+            "serviceName"
+        )  # multi-service, but not multi-component per service
 
     def get_cluster_name(self):
         """
@@ -171,6 +181,7 @@ class ExecutionCommand(object):
         :return: an integer represents java version
         """
         from resource_management.libraries.functions.expect import expect_v2
+
         return expect_v2("ambariLevelParams/java_version", int)
 
     def get_jce_name(self):
@@ -185,14 +196,14 @@ class ExecutionCommand(object):
         Retrieve database driver file name, i.e "db_driver_filename": "mysql-connector-java.jar"
         :return: DB driver name string
         """
-        return self.__get_value('ambariLevelParams/db_driver_filename')
+        return self.__get_value("ambariLevelParams/db_driver_filename")
 
     def get_db_name(self):
         """
         Retrieve database name, i.e Ambari server's db name is "db_name": "ambari"
         :return: DB name
         """
-        return self.__get_value('ambariLevelParams/db_name')
+        return self.__get_value("ambariLevelParams/db_name")
 
     def get_oracle_jdbc_url(self):
         """
@@ -200,7 +211,7 @@ class ExecutionCommand(object):
         i.e "oracle_jdbc_url": "http://c7302.ambari.apache.org:8080/resources//ojdbc6.jar"
         :return: oracle jdbc url
         """
-        return self.__get_value('ambariLevelParams/oracle_jdbc_url')
+        return self.__get_value("ambariLevelParams/oracle_jdbc_url")
 
     def get_mysql_jdbc_url(self):
         """
@@ -208,7 +219,7 @@ class ExecutionCommand(object):
         i.e "mysql_jdbc_url": "http://c7302.ambari.apache.org:8080/resources//mysql-connector-java.jar"
         :return: mysql jdbc url
         """
-        return self.__get_value('ambariLevelParams/mysql_jdbc_url')
+        return self.__get_value("ambariLevelParams/mysql_jdbc_url")
 
     def get_agent_stack_retry_count(self):
         """
@@ -217,14 +228,15 @@ class ExecutionCommand(object):
         :return: retry count for stack deployment on agent
         """
         from resource_management.libraries.functions.expect import expect_v2
-        return expect_v2('ambariLevelParams/agent_stack_retry_count', int, 5)
+
+        return expect_v2("ambariLevelParams/agent_stack_retry_count", int, 5)
 
     def check_agent_stack_want_retry_on_unavailability(self):
         """
         Check if retry is needed when agent is not reachable
         :return: True or False
         """
-        return self.__get_value('ambariLevelParams/agent_stack_retry_on_unavailability')
+        return self.__get_value("ambariLevelParams/agent_stack_retry_on_unavailability")
 
     def get_ambari_server_host(self):
         """
@@ -260,7 +272,6 @@ class ExecutionCommand(object):
         :return: True or False
         """
         return self.__get_value("ambariLevelParams/gpl_license_accepted", False)
-
 
     """
     Cluster related variables section
@@ -308,7 +319,6 @@ class ExecutionCommand(object):
             user_list = "[]"
         return user_list
 
-
     """
     Agent related variable section
     """
@@ -326,34 +336,39 @@ class ExecutionCommand(object):
         i.e "agentCacheDir": "/var/lib/ambari-agent/cache"
         :return: the cache directory path
         """
-        return self.__get_value('agentLevelParams/agentCacheDir')
+        return self.__get_value("agentLevelParams/agentCacheDir")
 
     def check_agent_config_execute_in_parallel(self):
         """
         Check if config commands can be executed in parallel in ambari agent
         :return: True or False
         """
-        return int(self.__get_value("agentLevelParams/agentConfigParams/agent/parallel_execution", 0))
+        return int(
+            self.__get_value(
+                "agentLevelParams/agentConfigParams/agent/parallel_execution", 0
+            )
+        )
 
     def check_agent_proxy_settings(self):
         """
         Check if system proxy is set or not on agent
         :return: True by default
         """
-        return self.__get_value("agentLevelParams/agentConfigParams/agent/use_system_proxy_settings", True)
-
+        return self.__get_value(
+            "agentLevelParams/agentConfigParams/agent/use_system_proxy_settings", True
+        )
 
     """
     Host related variables section
     """
     #### TODO : Doesn't exist as of now. Evaluate if we would be having these in hostLevelParams.
-    '''
+    """
     def get_repo_info(self):
         return self.__get_value('hostLevelParams/repoInfo')
 
     def get_service_repo_info(self):
         return self.__get_value('hostLevelParams/service_repo_info')
-    '''
+    """
 
     """
     Component related variables section
@@ -364,7 +379,9 @@ class ExecutionCommand(object):
         Check unlimited jce key is required or not
         :return: True or False
         """
-        return self.__get_value('componentLevelParams/unlimited_key_jce_required', False)
+        return self.__get_value(
+            "componentLevelParams/unlimited_key_jce_required", False
+        )
 
     """
     Command related variables section
@@ -382,10 +399,10 @@ class ExecutionCommand(object):
         Check need to retry command or not
         :return: True or False
         """
-        return self.__get_value('commandParams/command_retry_enabled', False)
+        return self.__get_value("commandParams/command_retry_enabled", False)
 
     # TODO : Doesnt exist as of now.  Evaluate if we would be having these
-    '''
+    """
     def check_upgrade_direction(self):
         return self.__get_value('commandParams/upgrade_direction')
     def get_upgrade_type(self):
@@ -396,13 +413,13 @@ class ExecutionCommand(object):
         return self.__get_value('commandParams/update_files_only', False)
     def get_deploy_phase(self):
         return self.__get_value('commandParams/phase')
-    '''
+    """
 
     def get_dfs_type(self):
-        return self.__get_value('clusterLevelParams/dfs_type')
+        return self.__get_value("clusterLevelParams/dfs_type")
 
     def get_module_package_folder(self):
-        return self.__get_value('commandParams/service_package_folder')
+        return self.__get_value("commandParams/service_package_folder")
 
     # TODO : Doesnt exist as of now. Evaluate if we need them.
     '''
@@ -437,7 +454,6 @@ class ExecutionCommand(object):
         return self.__get_value('roleParams/upgrade_suspended', False)
     '''
 
-
     """
     Cluster Host Info
     """
@@ -453,10 +469,10 @@ class ExecutionCommand(object):
         return self.__get_value(key, [])
 
     def get_all_hosts(self):
-        return self.__get_value('clusterHostInfo/all_hosts', [])
+        return self.__get_value("clusterHostInfo/all_hosts", [])
 
     def get_all_racks(self):
-        return self.__get_value('clusterHostInfo/all_racks', [])
+        return self.__get_value("clusterHostInfo/all_racks", [])
 
     def get_all_ipv4_ips(self):
-        return self.__get_value('clusterHostInfo/all_ipv4_ips', [])
+        return self.__get_value("clusterHostInfo/all_ipv4_ips", [])

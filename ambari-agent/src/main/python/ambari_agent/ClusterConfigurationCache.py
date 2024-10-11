@@ -23,20 +23,21 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class ClusterConfigurationCache(ClusterCache):
-  """
-  Maintains an in-memory cache and disk cache of the configurations for
-  every cluster. This is useful for having quick access to any of the
-  configuration properties.
-  """
-
-  def __init__(self, cluster_cache_dir):
     """
-    Initializes the configuration cache.
-    :param cluster_cache_dir: directory the changed json are saved
-    :return:
+    Maintains an in-memory cache and disk cache of the configurations for
+    every cluster. This is useful for having quick access to any of the
+    configuration properties.
     """
-    super(ClusterConfigurationCache, self).__init__(cluster_cache_dir)
 
-  def get_cache_name(self):
-    return 'configurations'
+    def __init__(self, cluster_cache_dir):
+        """
+        Initializes the configuration cache.
+        :param cluster_cache_dir: directory the changed json are saved
+        :return:
+        """
+        super(ClusterConfigurationCache, self).__init__(cluster_cache_dir)
+
+    def get_cache_name(self):
+        return "configurations"

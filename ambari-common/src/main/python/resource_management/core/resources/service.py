@@ -22,30 +22,38 @@ Ambari Agent
 
 __all__ = ["Service", "ServiceConfig"]
 
-from resource_management.core.base import Resource, ResourceArgument, ForcedListArgument, PasswordArgument
+from resource_management.core.base import (
+    Resource,
+    ResourceArgument,
+    ForcedListArgument,
+    PasswordArgument,
+)
 
 
 class Service(Resource):
-  action = ForcedListArgument(default="start")
-  service_name = ResourceArgument(default=lambda obj: obj.name)
-  #enabled = ResourceArgument() # Maybe add support to put in/out autostart.
-  start_command = ResourceArgument()
-  stop_command = ResourceArgument()
-  restart_command = ResourceArgument()
-  reload_command = ResourceArgument() # reload the config file without interrupting pending operations
-  status_command = ResourceArgument()
+    action = ForcedListArgument(default="start")
+    service_name = ResourceArgument(default=lambda obj: obj.name)
+    # enabled = ResourceArgument() # Maybe add support to put in/out autostart.
+    start_command = ResourceArgument()
+    stop_command = ResourceArgument()
+    restart_command = ResourceArgument()
+    reload_command = (
+        ResourceArgument()
+    )  # reload the config file without interrupting pending operations
+    status_command = ResourceArgument()
 
-  actions = ["nothing", "start", "stop", "restart", "reload"]
+    actions = ["nothing", "start", "stop", "restart", "reload"]
+
 
 class ServiceConfig(Resource):
-  action = ForcedListArgument(default="install")
-  service_name = ResourceArgument(default=lambda obj: obj.name)
-  display_name = ResourceArgument()
-  description = ResourceArgument()
-  start_type = ResourceArgument()
-  #exe_path = ResourceArgument()
-  #arguments = ResourceArgument()
-  username = ResourceArgument()
-  password = PasswordArgument()
+    action = ForcedListArgument(default="install")
+    service_name = ResourceArgument(default=lambda obj: obj.name)
+    display_name = ResourceArgument()
+    description = ResourceArgument()
+    start_type = ResourceArgument()
+    # exe_path = ResourceArgument()
+    # arguments = ResourceArgument()
+    username = ResourceArgument()
+    password = PasswordArgument()
 
-  actions = ["nothing", "install", "configure", "change_user", "uninstall"]
+    actions = ["nothing", "install", "configure", "change_user", "uninstall"]

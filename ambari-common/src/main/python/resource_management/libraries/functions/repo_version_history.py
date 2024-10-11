@@ -41,58 +41,75 @@ REPO_VERSION_HISTORY_FILE = "/var/lib/ambari-agent/data/repo_version_history.csv
 
 
 def read_actual_version_from_history_file(repository_version):
-  """
-  :param repository_version: normalized repo version (without build number) as received from the server
-  Search the repository version history file for a line that contains repository_version,actual_version
-  Notice that the parts are delimited by a comma.
-  :return: Return the actual_version if found, otherwise, return None.
-  """
-  actual_version = None
-  if os.path.isfile(REPO_VERSION_HISTORY_FILE):
-    with open(REPO_VERSION_HISTORY_FILE, "r") as f:
-      for line in reversed(f.readlines()):
-        line_parts = line.split(",")
-        if line_parts and len(line_parts) == 2 and line_parts[0] == repository_version:
-          item = line_parts[1].strip()
-          if item != "":
-            actual_version = item
-            break
-  return actual_version
+    """
+    :param repository_version: normalized repo version (without build number) as received from the server
+    Search the repository version history file for a line that contains repository_version,actual_version
+    Notice that the parts are delimited by a comma.
+    :return: Return the actual_version if found, otherwise, return None.
+    """
+    actual_version = None
+    if os.path.isfile(REPO_VERSION_HISTORY_FILE):
+        with open(REPO_VERSION_HISTORY_FILE, "r") as f:
+            for line in reversed(f.readlines()):
+                line_parts = line.split(",")
+                if (
+                    line_parts
+                    and len(line_parts) == 2
+                    and line_parts[0] == repository_version
+                ):
+                    item = line_parts[1].strip()
+                    if item != "":
+                        actual_version = item
+                        break
+    return actual_version
 
 
 def write_actual_version_to_history_file(repository_version, actual_version):
-  """
-  Save the tuple of repository_version,actual_version to the repo version history file if the repository_version
-  doesn't already exist
-  :param repository_version: normalized repo version (without build number) as received from the server
-  :param actual_version: Repo version with the build number, as determined using <stack-selector-tool>
-  :returns Return True if appended the values to the file, otherwise, return False.
-  """
-  wrote_value = False
-  if repository_version is None or actual_version is None:
-    return
+    """
+    Save the tuple of repository_version,actual_version to the repo version history file if the repository_version
+    doesn't already exist
+    :param repository_version: normalized repo version (without build number) as received from the server
+    :param actual_version: Repo version with the build number, as determined using <stack-selector-tool>
+    :returns Return True if appended the values to the file, otherwise, return False.
+    """
+    wrote_value = False
+    if repository_version is None or actual_version is None:
+        return
 
-  if repository_version == "" or actual_version == "":
-    return
+    if repository_version == "" or actual_version == "":
+        return
 
-  value = repository_version + "," + actual_version
-  key_exists = False
-  try:
-    if os.path.isfile(REPO_VERSION_HISTORY_FILE):
-      with open(REPO_VERSION_HISTORY_FILE, "r") as f:
-        for line in f.readlines():
-          line_parts = line.split(",")
-          if line_parts and len(line_parts) == 2 and line_parts[0] == repository_version and line_parts[1] == actual_version:
-            key_exists = True
-            break
+    value = repository_version + "," + actual_version
+    key_exists = False
+    try:
+        if os.path.isfile(REPO_VERSION_HISTORY_FILE):
+            with open(REPO_VERSION_HISTORY_FILE, "r") as f:
+                for line in f.readlines():
+                    line_parts = line.split(",")
+                    if (
+                        line_parts
+                        and len(line_parts) == 2
+                        and line_parts[0] == repository_version
+                        and line_parts[1] == actual_version
+                    ):
+                        key_exists = True
+                        break
 
-    if not key_exists:
-      with open(REPO_VERSION_HISTORY_FILE, "a") as f:
-        f.write(repository_version + "," + actual_version + "\n")
-        wrote_value = True
-    if wrote_value:
-      Logger.info("Appended value \"{0}\" to file {1} to track this as a new version.".format(value, REPO_VERSION_HISTORY_FILE))
-  except Exception as err:
-    Logger.error("Failed to write to file {0} the value: {1}. Error: {2}".format(REPO_VERSION_HISTORY_FILE, value, str(err)))
+        if not key_exists:
+            with open(REPO_VERSION_HISTORY_FILE, "a") as f:
+                f.write(repository_version + "," + actual_version + "\n")
+                wrote_value = True
+        if wrote_value:
+            Logger.info(
+                'Appended value "{0}" to file {1} to track this as a new version.'.format(
+                    value, REPO_VERSION_HISTORY_FILE
+                )
+            )
+    except Exception as err:
+        Logger.error(
+            "Failed to write to file {0} the value: {1}. Error: {2}".format(
+                REPO_VERSION_HISTORY_FILE, value, str(err)
+            )
+        )
 
-  return wrote_value
+    return wrote_value

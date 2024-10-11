@@ -29,73 +29,97 @@ from ambari_commons.os_family_impl import OsFamilyImpl
 
 
 class HbaseServiceCheck(Script):
-  pass
+    pass
 
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class HbaseServiceCheckWindows(HbaseServiceCheck):
-  def service_check(self, env):
-    import params
-    env.set_params(params)
-    smoke_cmd = os.path.join(params.stack_root, "Run-SmokeTests.cmd")
-    service = "HBASE"
-    Execute(format("cmd /C {smoke_cmd} {service}"), user=params.hbase_user, logoutput=True)
+    def service_check(self, env):
+        import params
+
+        env.set_params(params)
+        smoke_cmd = os.path.join(params.stack_root, "Run-SmokeTests.cmd")
+        service = "HBASE"
+        Execute(
+            format("cmd /C {smoke_cmd} {service}"),
+            user=params.hbase_user,
+            logoutput=True,
+        )
 
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class HbaseServiceCheckDefault(HbaseServiceCheck):
-  def service_check(self, env):
-    import params
-    env.set_params(params)
-    
-    output_file = "/apps/hbase/data/ambarismoketest"
-    smokeuser_kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal} &&") if params.security_enabled else ""
-    hbase_servicecheck_file = format("{exec_tmp_dir}/hbase-smoke.sh")
-    hbase_servicecheck_cleanup_file = format("{exec_tmp_dir}/hbase-smoke-cleanup.sh")
+    def service_check(self, env):
+        import params
 
-    File( format("{exec_tmp_dir}/hbaseSmokeVerify.sh"),
-      content = StaticFile("hbaseSmokeVerify.sh"),
-      mode = 0o755
-    )
+        env.set_params(params)
 
-    File(hbase_servicecheck_cleanup_file,
-      content = StaticFile("hbase-smoke-cleanup.sh"),
-      mode = 0o755
-    )
-  
-    File( hbase_servicecheck_file,
-      mode = 0o755,
-      content = Template('hbase-smoke.sh.j2')
-    )
-    
-    if params.security_enabled:    
-      hbase_grant_premissions_file = format("{exec_tmp_dir}/hbase_grant_permissions.sh")
-      grantprivelegecmd = format("{kinit_cmd} {hbase_grant_premissions_file}")
+        output_file = "/apps/hbase/data/ambarismoketest"
+        smokeuser_kinit_cmd = (
+            format(
+                "{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal} &&"
+            )
+            if params.security_enabled
+            else ""
+        )
+        hbase_servicecheck_file = format("{exec_tmp_dir}/hbase-smoke.sh")
+        hbase_servicecheck_cleanup_file = format(
+            "{exec_tmp_dir}/hbase-smoke-cleanup.sh"
+        )
 
-      File( hbase_grant_premissions_file,
-        owner   = params.hbase_user,
-        group   = params.user_group,
-        mode    = 0o755,
-        content = Template('hbase_grant_permissions.j2')
-      )
+        File(
+            format("{exec_tmp_dir}/hbaseSmokeVerify.sh"),
+            content=StaticFile("hbaseSmokeVerify.sh"),
+            mode=0o755,
+        )
 
-      Execute( grantprivelegecmd,
-        tries     = 6,
-        try_sleep = 5,
-        user = params.hbase_user,
-        logoutput = True
-      )
+        File(
+            hbase_servicecheck_cleanup_file,
+            content=StaticFile("hbase-smoke-cleanup.sh"),
+            mode=0o755,
+        )
 
-    servicecheckcmd = format("{smokeuser_kinit_cmd} {hbase_cmd} --config {hbase_conf_dir} shell {hbase_servicecheck_file}")
-    smokeverifycmd = format("{exec_tmp_dir}/hbaseSmokeVerify.sh {hbase_conf_dir} {service_check_data} {hbase_cmd}")
-    cleanupCmd = format("{smokeuser_kinit_cmd} {hbase_cmd} --config {hbase_conf_dir} shell {hbase_servicecheck_cleanup_file}")
-    Execute(format("{servicecheckcmd} && {smokeverifycmd} && {cleanupCmd}"),
-      tries     = 6,
-      try_sleep = 5,
-      user = params.smoke_test_user,
-      logoutput = True
-    )
+        File(hbase_servicecheck_file, mode=0o755, content=Template("hbase-smoke.sh.j2"))
+
+        if params.security_enabled:
+            hbase_grant_premissions_file = format(
+                "{exec_tmp_dir}/hbase_grant_permissions.sh"
+            )
+            grantprivelegecmd = format("{kinit_cmd} {hbase_grant_premissions_file}")
+
+            File(
+                hbase_grant_premissions_file,
+                owner=params.hbase_user,
+                group=params.user_group,
+                mode=0o755,
+                content=Template("hbase_grant_permissions.j2"),
+            )
+
+            Execute(
+                grantprivelegecmd,
+                tries=6,
+                try_sleep=5,
+                user=params.hbase_user,
+                logoutput=True,
+            )
+
+        servicecheckcmd = format(
+            "{smokeuser_kinit_cmd} {hbase_cmd} --config {hbase_conf_dir} shell {hbase_servicecheck_file}"
+        )
+        smokeverifycmd = format(
+            "{exec_tmp_dir}/hbaseSmokeVerify.sh {hbase_conf_dir} {service_check_data} {hbase_cmd}"
+        )
+        cleanupCmd = format(
+            "{smokeuser_kinit_cmd} {hbase_cmd} --config {hbase_conf_dir} shell {hbase_servicecheck_cleanup_file}"
+        )
+        Execute(
+            format("{servicecheckcmd} && {smokeverifycmd} && {cleanupCmd}"),
+            tries=6,
+            try_sleep=5,
+            user=params.smoke_test_user,
+            logoutput=True,
+        )
+
 
 if __name__ == "__main__":
-  HbaseServiceCheck().execute()
-  
+    HbaseServiceCheck().execute()

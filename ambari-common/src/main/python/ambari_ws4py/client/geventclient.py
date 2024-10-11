@@ -8,10 +8,20 @@ from gevent.queue import Queue
 
 from ambari_ws4py.client import WebSocketBaseClient
 
-__all__ = ['WebSocketClient']
+__all__ = ["WebSocketClient"]
+
 
 class WebSocketClient(WebSocketBaseClient):
-    def __init__(self, url, protocols=None, extensions=None, heartbeat_freq=None, ssl_options=None, headers=None, exclude_headers=None):
+    def __init__(
+        self,
+        url,
+        protocols=None,
+        extensions=None,
+        heartbeat_freq=None,
+        ssl_options=None,
+        headers=None,
+        exclude_headers=None,
+    ):
         """
         WebSocket client that executes the
         :meth:`run() <ws4py.websocket.WebSocket.run>` into a gevent greenlet.
@@ -41,8 +51,16 @@ class WebSocketClient(WebSocketBaseClient):
           ]
           gevent.joinall(greenlets)
         """
-        WebSocketBaseClient.__init__(self, url, protocols, extensions, heartbeat_freq,
-                                     ssl_options=ssl_options, headers=headers, exclude_headers=exclude_headers)
+        WebSocketBaseClient.__init__(
+            self,
+            url,
+            protocols,
+            extensions,
+            heartbeat_freq,
+            ssl_options=ssl_options,
+            headers=headers,
+            exclude_headers=exclude_headers,
+        )
         self._th = Greenlet(self.run)
 
         self.messages = Queue()
@@ -81,9 +99,9 @@ class WebSocketClient(WebSocketBaseClient):
         Returns messages that were stored into the
         `messages` queue and returns `None` when the
         websocket is terminated or closed.
-        `block` is passed though the gevent queue `.get()` method, which if 
-        True will block until an item in the queue is available. Set this to 
-        False if you just want to check the queue, which will raise an 
+        `block` is passed though the gevent queue `.get()` method, which if
+        True will block until an item in the queue is available. Set this to
+        False if you just want to check the queue, which will raise an
         Empty exception you need to handle if there is no message to return.
         """
         # If the websocket was terminated and there are no messages

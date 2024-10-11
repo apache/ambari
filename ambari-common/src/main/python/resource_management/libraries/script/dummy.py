@@ -40,42 +40,43 @@ from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import StackFeature
 
+
 class Dummy(Script):
-  """
-  Dummy component to be used for performance testing since doesn't actually run a service.
-  Reports status command based on the existence of a pid file.
-  """
-
-  # Whether or not configs have been loaded already in the prepare() method.
-  loaded = False
-
-  def prepare(self):
-    # During restart commands which executes stop + start, avoid loading multiple times.
-    if self.loaded:
-      return
-    self.loaded = True
-
-    self.config = Script.get_config()
-    # Cannot rely on system hostname since will run multiple Ambari agents on the same host.
-    self.host_name = self.config["agentLevelParams"]["hostname"]
-
-    # Should still define self.component_name which is needed for status commands.
-    if "role" in self.config:
-      self.component_name = self.config["role"]
-
-    self.pid_file = "/var/run/%s/%s.pid" % (self.host_name, self.component_name)
-    self.user = "root"
-    self.user_group = "root"
-    self.sudo = AMBARI_SUDO_BINARY
-
-    print("Host: %s" % self.host_name)
-    print("Component: %s" % self.component_name)
-    print("Pid File: %s" % self.pid_file)
-
-  def install(self, env):
-    print("Install")
-    self.prepare()
     """
+    Dummy component to be used for performance testing since doesn't actually run a service.
+    Reports status command based on the existence of a pid file.
+    """
+
+    # Whether or not configs have been loaded already in the prepare() method.
+    loaded = False
+
+    def prepare(self):
+        # During restart commands which executes stop + start, avoid loading multiple times.
+        if self.loaded:
+            return
+        self.loaded = True
+
+        self.config = Script.get_config()
+        # Cannot rely on system hostname since will run multiple Ambari agents on the same host.
+        self.host_name = self.config["agentLevelParams"]["hostname"]
+
+        # Should still define self.component_name which is needed for status commands.
+        if "role" in self.config:
+            self.component_name = self.config["role"]
+
+        self.pid_file = "/var/run/%s/%s.pid" % (self.host_name, self.component_name)
+        self.user = "root"
+        self.user_group = "root"
+        self.sudo = AMBARI_SUDO_BINARY
+
+        print("Host: %s" % self.host_name)
+        print("Component: %s" % self.component_name)
+        print("Pid File: %s" % self.pid_file)
+
+    def install(self, env):
+        print("Install")
+        self.prepare()
+        """
     component_name = self.get_component_name()
     repo_info = str(default("/hostLevelParams/repoInfo", "1.1.1.1-1"))
     matches = re.findall(r"([\d\.]+\-\d+)", repo_info)
@@ -91,55 +92,62 @@ class Dummy(Script):
       stack_select.select(component_name, version)
     """
 
-  def configure(self, env):
-    print("Configure")
-    self.prepare()
+    def configure(self, env):
+        print("Configure")
+        self.prepare()
 
-  def start(self, env, upgrade_type=None):
-    print("Start")
-    self.prepare()
+    def start(self, env, upgrade_type=None):
+        print("Start")
+        self.prepare()
 
-    if self.config['configurations']['cluster-env']['security_enabled'] :
-      print("Executing kinit... ")
-      kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
-      principal_replaced = self.config['configurations'][self.principal_conf_name][self.principal_name].replace("_HOST", self.host_name)
-      keytab_path_replaced = self.config['configurations'][self.keytab_conf_name][self.keytab_name].replace("_HOST", self.host_name)
-      Execute("%s -kt %s %s" % (kinit_path_local, keytab_path_replaced, principal_replaced),
-              user="root")
+        if self.config["configurations"]["cluster-env"]["security_enabled"]:
+            print("Executing kinit... ")
+            kinit_path_local = get_kinit_path(
+                default("/configurations/kerberos-env/executable_search_paths", None)
+            )
+            principal_replaced = self.config["configurations"][
+                self.principal_conf_name
+            ][self.principal_name].replace("_HOST", self.host_name)
+            keytab_path_replaced = self.config["configurations"][self.keytab_conf_name][
+                self.keytab_name
+            ].replace("_HOST", self.host_name)
+            Execute(
+                "%s -kt %s %s"
+                % (kinit_path_local, keytab_path_replaced, principal_replaced),
+                user="root",
+            )
 
-    if not os.path.isfile(self.pid_file):
-      print("Creating pid file: %s" % self.pid_file)
+        if not os.path.isfile(self.pid_file):
+            print("Creating pid file: %s" % self.pid_file)
 
-      Directory(os.path.dirname(self.pid_file),
+            Directory(
+                os.path.dirname(self.pid_file),
                 owner=self.user,
                 group=self.user_group,
                 mode=0o755,
-                create_parents=True
-                )
+                create_parents=True,
+            )
 
-      File(self.pid_file,
-           owner=self.user,
-           content=""
-           )
+            File(self.pid_file, owner=self.user, content="")
 
-  def stop(self, env, upgrade_type=None):
-    print("Stop")
-    self.prepare()
+    def stop(self, env, upgrade_type=None):
+        print("Stop")
+        self.prepare()
 
-    if os.path.isfile(self.pid_file):
-      print("Deleting pid file: %s" % self.pid_file)
-      Execute("%s rm -rf %s" % (self.sudo, self.pid_file))
+        if os.path.isfile(self.pid_file):
+            print("Deleting pid file: %s" % self.pid_file)
+            Execute("%s rm -rf %s" % (self.sudo, self.pid_file))
 
-  def status(self, env):
-    print("Status")
-    self.prepare()
+    def status(self, env):
+        print("Status")
+        self.prepare()
 
-    if not os.path.isfile(self.pid_file):
-      raise ComponentIsNotRunning()
+        if not os.path.isfile(self.pid_file):
+            raise ComponentIsNotRunning()
 
-  def get_component_name(self):
-    """
-    To be overridden by subclasses.
-     Returns a string with the component name used in selecting the version.
-    """
-    pass
+    def get_component_name(self):
+        """
+        To be overridden by subclasses.
+         Returns a string with the component name used in selecting the version.
+        """
+        pass

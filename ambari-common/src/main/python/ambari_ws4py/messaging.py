@@ -3,15 +3,29 @@
 import os
 import struct
 
-from ambari_ws4py.framing import Frame, OPCODE_CONTINUATION, OPCODE_TEXT, \
-     OPCODE_BINARY, OPCODE_CLOSE, OPCODE_PING, OPCODE_PONG
+from ambari_ws4py.framing import (
+    Frame,
+    OPCODE_CONTINUATION,
+    OPCODE_TEXT,
+    OPCODE_BINARY,
+    OPCODE_CLOSE,
+    OPCODE_PING,
+    OPCODE_PONG,
+)
 from ambari_ws4py.compat import unicode, py3k
 
-__all__ = ['Message', 'TextMessage', 'BinaryMessage', 'CloseControlMessage',
-           'PingControlMessage', 'PongControlMessage']
+__all__ = [
+    "Message",
+    "TextMessage",
+    "BinaryMessage",
+    "CloseControlMessage",
+    "PingControlMessage",
+    "PongControlMessage",
+]
+
 
 class Message(object):
-    def __init__(self, opcode, data=b'', encoding='utf-8'):
+    def __init__(self, opcode, data=b"", encoding="utf-8"):
         """
         A message is a application level entity. It's usually built
         from one or many frames. The protocol defines several kind
@@ -52,8 +66,9 @@ class Message(object):
         using a generated 4-byte token.
         """
         mask = os.urandom(4) if mask else None
-        return Frame(body=self.data, opcode=self.opcode,
-                     masking_key=mask, fin=1).build()
+        return Frame(
+            body=self.data, opcode=self.opcode, masking_key=mask, fin=1
+        ).build()
 
     def fragment(self, first=False, last=False, mask=False):
         """
@@ -68,9 +83,7 @@ class Message(object):
         fin = 1 if last is True else 0
         opcode = self.opcode if first is True else OPCODE_CONTINUATION
         mask = os.urandom(4) if mask else None
-        return Frame(body=self.data,
-                     opcode=opcode, masking_key=mask,
-                     fin=fin).build()
+        return Frame(body=self.data, opcode=opcode, masking_key=mask, fin=fin).build()
 
     @property
     def completed(self):
@@ -112,6 +125,7 @@ class Message(object):
     def __unicode__(self):
         return self.data.decode(self.encoding)
 
+
 class TextMessage(Message):
     def __init__(self, text=None):
         Message.__init__(self, OPCODE_TEXT, text)
@@ -123,6 +137,7 @@ class TextMessage(Message):
     @property
     def is_text(self):
         return True
+
 
 class BinaryMessage(Message):
     def __init__(self, bytes=None):
@@ -139,31 +154,34 @@ class BinaryMessage(Message):
     def __len__(self):
         return len(self.data)
 
+
 class CloseControlMessage(Message):
-    def __init__(self, code=1000, reason=''):
+    def __init__(self, code=1000, reason=""):
         data = b""
         if code:
             data += struct.pack("!H", code)
         if reason is not None:
             if isinstance(reason, unicode):
-                reason = reason.encode('utf-8')
+                reason = reason.encode("utf-8")
             data += reason
 
-        Message.__init__(self, OPCODE_CLOSE, data, 'utf-8')
+        Message.__init__(self, OPCODE_CLOSE, data, "utf-8")
         self.code = code
         self.reason = reason
 
     def __str__(self):
         if py3k:
-            return self.reason.decode('utf-8')
+            return self.reason.decode("utf-8")
         return self.reason
 
     def __unicode__(self):
         return self.reason.decode(self.encoding)
 
+
 class PingControlMessage(Message):
     def __init__(self, data=None):
         Message.__init__(self, OPCODE_PING, data)
+
 
 class PongControlMessage(Message):
     def __init__(self, data):

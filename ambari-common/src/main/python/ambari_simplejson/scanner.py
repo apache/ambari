@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-"""JSON token scanner
-"""
+"""JSON token scanner"""
+
 import re
 from .errors import JSONDecodeError
 
 
 def _import_c_make_scanner():
     from . import c_extension
+
     _speedups = c_extension.get()
 
     if _speedups:
@@ -20,11 +21,12 @@ def _import_c_make_scanner():
 
 c_make_scanner = _import_c_make_scanner()
 
-__all__ = ['make_scanner', 'JSONDecodeError']
+__all__ = ["make_scanner", "JSONDecodeError"]
 
 NUMBER_RE = re.compile(
-    r'(-?(?:0|[1-9]\d*))(\.\d+)?([eE][-+]?\d+)?',
-    (re.VERBOSE | re.MULTILINE | re.DOTALL))
+    r"(-?(?:0|[1-9]\d*))(\.\d+)?([eE][-+]?\d+)?",
+    (re.VERBOSE | re.MULTILINE | re.DOTALL),
+)
 
 
 def py_make_scanner(context):
@@ -42,7 +44,7 @@ def py_make_scanner(context):
     memo = context.memo
 
     def _scan_once(string, idx):
-        errmsg = 'Expecting value'
+        errmsg = "Expecting value"
         try:
             nextchar = string[idx]
         except IndexError:
@@ -50,32 +52,39 @@ def py_make_scanner(context):
 
         if nextchar == '"':
             return parse_string(string, idx + 1, encoding, strict)
-        elif nextchar == '{':
-            return parse_object((string, idx + 1), encoding, strict,
-                _scan_once, object_hook, object_pairs_hook, memo)
-        elif nextchar == '[':
+        elif nextchar == "{":
+            return parse_object(
+                (string, idx + 1),
+                encoding,
+                strict,
+                _scan_once,
+                object_hook,
+                object_pairs_hook,
+                memo,
+            )
+        elif nextchar == "[":
             return parse_array((string, idx + 1), _scan_once)
-        elif nextchar == 'n' and string[idx:idx + 4] == 'null':
+        elif nextchar == "n" and string[idx : idx + 4] == "null":
             return None, idx + 4
-        elif nextchar == 't' and string[idx:idx + 4] == 'true':
+        elif nextchar == "t" and string[idx : idx + 4] == "true":
             return True, idx + 4
-        elif nextchar == 'f' and string[idx:idx + 5] == 'false':
+        elif nextchar == "f" and string[idx : idx + 5] == "false":
             return False, idx + 5
 
         m = match_number(string, idx)
         if m is not None:
             integer, frac, exp = m.groups()
             if frac or exp:
-                res = parse_float(integer + (frac or '') + (exp or ''))
+                res = parse_float(integer + (frac or "") + (exp or ""))
             else:
                 res = parse_int(integer)
             return res, m.end()
-        elif nextchar == 'N' and string[idx:idx + 3] == 'NaN':
-            return parse_constant('NaN'), idx + 3
-        elif nextchar == 'I' and string[idx:idx + 8] == 'Infinity':
-            return parse_constant('Infinity'), idx + 8
-        elif nextchar == '-' and string[idx:idx + 9] == '-Infinity':
-            return parse_constant('-Infinity'), idx + 9
+        elif nextchar == "N" and string[idx : idx + 3] == "NaN":
+            return parse_constant("NaN"), idx + 3
+        elif nextchar == "I" and string[idx : idx + 8] == "Infinity":
+            return parse_constant("Infinity"), idx + 8
+        elif nextchar == "-" and string[idx : idx + 9] == "-Infinity":
+            return parse_constant("-Infinity"), idx + 9
         else:
             raise JSONDecodeError(errmsg, string, idx)
 
@@ -84,7 +93,7 @@ def py_make_scanner(context):
             # Ensure the same behavior as the C speedup, otherwise
             # this would work for *some* negative string indices due
             # to the behavior of __getitem__ for strings. #98
-            raise JSONDecodeError('Expecting value', string, idx)
+            raise JSONDecodeError("Expecting value", string, idx)
         try:
             return _scan_once(string, idx)
         finally:

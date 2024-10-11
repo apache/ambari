@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,25 +16,26 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 import os
 import zipfile
 
+
 def _zip_dir(zip, root):
-  for dirname, dirnames, filenames in os.walk(root):
-    for filename in filenames:
-      if len(dirname) > len(root):
-        rel_path = os.path.relpath(dirname, root)
-        arch_name = rel_path + os.sep + filename
-      else:
-        arch_name = filename
-      zip.write(os.path.join(dirname, filename), arch_name)
+    for dirname, dirnames, filenames in os.walk(root):
+        for filename in filenames:
+            if len(dirname) > len(root):
+                rel_path = os.path.relpath(dirname, root)
+                arch_name = rel_path + os.sep + filename
+            else:
+                arch_name = filename
+            zip.write(os.path.join(dirname, filename), arch_name)
 
 
 def archive_dir(output_filename, input_dir):
-  zipf = zipfile.ZipFile(output_filename, 'w')
-  try:
-    _zip_dir(zipf, input_dir)
-  finally:
-    zipf.close()
+    zipf = zipfile.ZipFile(output_filename, "w")
+    try:
+        _zip_dir(zipf, input_dir)
+    finally:
+        zipf.close()

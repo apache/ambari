@@ -17,7 +17,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+
 import re
+
 
 def get_bare_principal(normalized_principal_name):
     """

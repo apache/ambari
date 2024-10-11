@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-    ambari_jinja2.visitor
-    ~~~~~~~~~~~~~~
+ambari_jinja2.visitor
+~~~~~~~~~~~~~~
 
-    This module implements a visitor for the nodes.
+This module implements a visitor for the nodes.
 
-    :copyright: (c) 2010 by the Jinja Team.
-    :license: BSD.
+:copyright: (c) 2010 by the Jinja Team.
+:license: BSD.
 """
+
 from ambari_jinja2.nodes import Node
 
 
@@ -29,7 +30,7 @@ class NodeVisitor(object):
         exists for this node.  In that case the generic visit function is
         used instead.
         """
-        method = 'visit_' + node.__class__.__name__
+        method = "visit_" + node.__class__.__name__
         return getattr(self, method, None)
 
     def visit(self, node, *args, **kwargs):

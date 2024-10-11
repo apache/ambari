@@ -32,37 +32,43 @@ from resource_management.libraries.script.script import Script
 
 
 class MysqlServer(Script):
-  def install(self, env):
-    import params
-    self.install_packages(env)
-    self.configure(env)
+    def install(self, env):
+        import params
 
-  def clean(self, env):
-    import params
-    env.set_params(params)
-    mysql_users.mysql_deluser()
+        self.install_packages(env)
+        self.configure(env)
 
-  def configure(self, env):
-    import params
-    env.set_params(params)
-    mysql_configure()
+    def clean(self, env):
+        import params
 
-  def start(self, env, upgrade_type=None):
-    import params
-    env.set_params(params)
-    mysql_service(action='start')
+        env.set_params(params)
+        mysql_users.mysql_deluser()
 
-  def stop(self, env, upgrade_type=None):
-    import params
-    env.set_params(params)
-    mysql_service(action='stop')
+    def configure(self, env):
+        import params
 
-  def status(self, env):
-    import status_params
-    env.set_params(status_params)
+        env.set_params(params)
+        mysql_configure()
 
-    mysql_service(action='status')
+    def start(self, env, upgrade_type=None):
+        import params
+
+        env.set_params(params)
+        mysql_service(action="start")
+
+    def stop(self, env, upgrade_type=None):
+        import params
+
+        env.set_params(params)
+        mysql_service(action="stop")
+
+    def status(self, env):
+        import status_params
+
+        env.set_params(status_params)
+
+        mysql_service(action="status")
 
 
 if __name__ == "__main__":
-  MysqlServer().execute()
+    MysqlServer().execute()

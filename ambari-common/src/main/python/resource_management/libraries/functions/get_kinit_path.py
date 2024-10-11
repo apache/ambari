@@ -25,10 +25,10 @@ from resource_management.libraries.functions.find_executable import find_executa
 
 
 def get_kinit_path(search_directories=None):
-  """
-  Searches for the kinit executable using the specified search paths or a default set of of paths to search
+    """
+    Searches for the kinit executable using the specified search paths or a default set of of paths to search
 
-  @param search_directories: comma separated list or a list of (absolute paths to) directories to search (in order of preference)
-  :return: the path to the found kinit executable
-  """
-  return find_executable(search_directories, "kinit")
+    @param search_directories: comma separated list or a list of (absolute paths to) directories to search (in order of preference)
+    :return: the path to the found kinit executable
+    """
+    return find_executable(search_directories, "kinit")

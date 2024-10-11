@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-    ambari_jinja2.exceptions
-    ~~~~~~~~~~~~~~~~~
+ambari_jinja2.exceptions
+~~~~~~~~~~~~~~~~~
 
-    Jinja exceptions.
+Jinja exceptions.
 
-    :copyright: (c) 2010 by the Jinja Team.
-    :license: BSD, see LICENSE for more details.
+:copyright: (c) 2010 by the Jinja Team.
+:license: BSD, see LICENSE for more details.
 """
 
 
@@ -16,7 +16,7 @@ class TemplateError(Exception):
 
     def __init__(self, message=None):
         if message is not None:
-            message = str(message).encode('utf-8')
+            message = str(message).encode("utf-8")
         Exception.__init__(self, message)
 
     @property
@@ -24,7 +24,7 @@ class TemplateError(Exception):
         if self.args:
             message = self.args[0]
             if message is not None:
-                return message.decode('utf-8', 'replace')
+                return message.decode("utf-8", "replace")
 
 
 class TemplateNotFound(IOError, LookupError, TemplateError):
@@ -43,7 +43,7 @@ class TemplateNotFound(IOError, LookupError, TemplateError):
         self.templates = [name]
 
     def __str__(self):
-        return self.message.encode('utf-8')
+        return self.message.encode("utf-8")
 
     # unicode goes after __str__ because we configured 2to3 to rename
     # __unicode__ to __str__.  because the 2to3 tree is not designed to
@@ -63,8 +63,9 @@ class TemplatesNotFound(TemplateNotFound):
 
     def __init__(self, names=(), message=None):
         if message is None:
-            message = 'non of the templates given were found: ' + \
-                      ', '.join(map(str, names))
+            message = "non of the templates given were found: " + ", ".join(
+                map(str, names)
+            )
         TemplateNotFound.__init__(self, names and names[-1] or None, message)
         self.templates = list(names)
 
@@ -89,11 +90,11 @@ class TemplateSyntaxError(TemplateError):
             return self.message
 
         # otherwise attach some stuff
-        location = 'line %d' % self.lineno
+        location = "line %d" % self.lineno
         name = self.filename or self.name
         if name:
             location = 'File "%s", %s' % (name, location)
-        lines = [self.message, '  ' + location]
+        lines = [self.message, "  " + location]
 
         # if the source is set, add the line to the output
         if self.source is not None:
@@ -102,9 +103,9 @@ class TemplateSyntaxError(TemplateError):
             except IndexError:
                 line = None
             if line:
-                lines.append('    ' + line.strip())
+                lines.append("    " + line.strip())
 
-        return '\n'.join(lines)
+        return "\n".join(lines)
 
 
 class TemplateAssertionError(TemplateSyntaxError):

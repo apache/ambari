@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-    ambari_jinja2.meta
-    ~~~~~~~~~~~
+ambari_jinja2.meta
+~~~~~~~~~~~
 
-    This module implements various functions that exposes information about
-    templates that might be interesting for various kinds of applications.
+This module implements various functions that exposes information about
+templates that might be interesting for various kinds of applications.
 
-    :copyright: (c) 2010 by the Jinja Team, see AUTHORS for more details.
-    :license: BSD, see LICENSE for more details.
+:copyright: (c) 2010 by the Jinja Team, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
 """
+
 from ambari_jinja2 import nodes
 from ambari_jinja2.compiler import CodeGenerator
 
@@ -18,8 +19,7 @@ class TrackingCodeGenerator(CodeGenerator):
     """We abuse the code generator for introspection."""
 
     def __init__(self, environment):
-        CodeGenerator.__init__(self, environment, '<introspection>',
-                               '<introspection>')
+        CodeGenerator.__init__(self, environment, "<introspection>", "<introspection>")
         self.undeclared_identifiers = set()
 
     def write(self, x):
@@ -69,8 +69,9 @@ def find_referenced_templates(ast):
     This function is useful for dependency tracking.  For example if you want
     to rebuild parts of the website after a layout template has changed.
     """
-    for node in ast.find_all((nodes.Extends, nodes.FromImport, nodes.Import,
-                              nodes.Include)):
+    for node in ast.find_all(
+        (nodes.Extends, nodes.FromImport, nodes.Import, nodes.Include)
+    ):
         if not isinstance(node.template, nodes.Const):
             # a tuple with some non consts in there
             if isinstance(node.template, (nodes.Tuple, nodes.List)):
@@ -93,8 +94,9 @@ def find_referenced_templates(ast):
         # a tuple or list (latter *should* not happen) made of consts,
         # yield the consts that are strings.  We could warn here for
         # non string values
-        elif isinstance(node, nodes.Include) and \
-             isinstance(node.template.value, (tuple, list)):
+        elif isinstance(node, nodes.Include) and isinstance(
+            node.template.value, (tuple, list)
+        ):
             for template_name in node.template.value:
                 if isinstance(template_name, str):
                     yield template_name

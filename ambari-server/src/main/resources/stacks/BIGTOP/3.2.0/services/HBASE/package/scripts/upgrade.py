@@ -17,6 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+
 import re
 import socket
 
@@ -33,72 +34,85 @@ from resource_management.libraries.functions import check_process_status
 
 
 def prestart(env):
-  import params
+    import params
 
-  if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
-    stack_select.select_packages(params.version)
+    if params.version and check_stack_feature(
+        StackFeature.ROLLING_UPGRADE, params.version
+    ):
+        stack_select.select_packages(params.version)
+
 
 def post_regionserver(env):
-  import params
-  env.set_params(params)
+    import params
 
-  check_cmd = "echo 'status \"simple\"' | {0} shell".format(params.hbase_cmd)
+    env.set_params(params)
 
-  exec_cmd = "{0} {1}".format(params.kinit_cmd, check_cmd)
-  is_regionserver_registered(exec_cmd, params.hbase_user, params.hostname, re.IGNORECASE)
+    check_cmd = "echo 'status \"simple\"' | {0} shell".format(params.hbase_cmd)
+
+    exec_cmd = "{0} {1}".format(params.kinit_cmd, check_cmd)
+    is_regionserver_registered(
+        exec_cmd, params.hbase_user, params.hostname, re.IGNORECASE
+    )
 
 
 def is_region_server_process_running():
-  try:
-    pid_file = format("{pid_dir}/hbase-{hbase_user}-regionserver.pid")
-    check_process_status(pid_file)
-    return True
-  except ComponentIsNotRunning:
-    return False
+    try:
+        pid_file = format("{pid_dir}/hbase-{hbase_user}-regionserver.pid")
+        check_process_status(pid_file)
+        return True
+    except ComponentIsNotRunning:
+        return False
 
 
 @retry(times=30, sleep_time=30, err_class=Fail)
 def is_regionserver_registered(cmd, user, hostname, regex_search_flags):
-  """
-  Queries HBase through the HBase shell to see which servers have successfully registered. This is
-  useful in cases, such as upgrades, where we must ensure that a RegionServer has not only started,
-  but also completed it's registration handshake before moving into upgrading the next RegionServer.
+    """
+    Queries HBase through the HBase shell to see which servers have successfully registered. This is
+    useful in cases, such as upgrades, where we must ensure that a RegionServer has not only started,
+    but also completed it's registration handshake before moving into upgrading the next RegionServer.
 
-  The hbase shell is used along with the "show 'simple'" command in order to determine if the
-  specified host has registered.
-  :param cmd:
-  :param user:
-  :param hostname:
-  :param regex_search_flags:
-  :return:
-  """
-  if not is_region_server_process_running():
-    Logger.info("RegionServer process is not running")
-    raise Fail("RegionServer process is not running")
+    The hbase shell is used along with the "show 'simple'" command in order to determine if the
+    specified host has registered.
+    :param cmd:
+    :param user:
+    :param hostname:
+    :param regex_search_flags:
+    :return:
+    """
+    if not is_region_server_process_running():
+        Logger.info("RegionServer process is not running")
+        raise Fail("RegionServer process is not running")
 
-  # use hbase shell with "status 'simple'" command
-  code, out = shell.call(cmd, user=user)
+    # use hbase shell with "status 'simple'" command
+    code, out = shell.call(cmd, user=user)
 
-  # if we don't have ouput, then we can't check
-  if not out:
-    raise Fail("Unable to retrieve status information from the HBase shell")
+    # if we don't have ouput, then we can't check
+    if not out:
+        raise Fail("Unable to retrieve status information from the HBase shell")
 
-  # try matching the hostname with a colon (which indicates a bound port)
-  bound_hostname_to_match = hostname + ":"
-  match = re.search(bound_hostname_to_match, out, regex_search_flags)
+    # try matching the hostname with a colon (which indicates a bound port)
+    bound_hostname_to_match = hostname + ":"
+    match = re.search(bound_hostname_to_match, out, regex_search_flags)
 
-  # if there's no match, try again with the IP address
-  if not match:
-    try:
-      ip_address = socket.gethostbyname(hostname)
-      bound_ip_address_to_match = ip_address + ":"
-      match = re.search(bound_ip_address_to_match, out, regex_search_flags)
-    except socket.error:
-      # this is merely a backup, so just log that it failed
-      Logger.warning("Unable to lookup the IP address of {0}, reverse DNS lookup may not be working.".format(hostname))
-      pass
+    # if there's no match, try again with the IP address
+    if not match:
+        try:
+            ip_address = socket.gethostbyname(hostname)
+            bound_ip_address_to_match = ip_address + ":"
+            match = re.search(bound_ip_address_to_match, out, regex_search_flags)
+        except socket.error:
+            # this is merely a backup, so just log that it failed
+            Logger.warning(
+                "Unable to lookup the IP address of {0}, reverse DNS lookup may not be working.".format(
+                    hostname
+                )
+            )
+            pass
 
-  # failed with both a hostname and an IP address, so raise the Fail and let the function auto retry
-  if not match:
-    raise Fail(
-      "The RegionServer named {0} has not yet registered with the HBase Master".format(hostname))
+    # failed with both a hostname and an IP address, so raise the Fail and let the function auto retry
+    if not match:
+        raise Fail(
+            "The RegionServer named {0} has not yet registered with the HBase Master".format(
+                hostname
+            )
+        )

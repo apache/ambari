@@ -274,6 +274,7 @@
         <artifactId>apache-rat-plugin</artifactId>
         <configuration>
           <excludes>
+            <exclude>.ruff_cache/</exclude>
             <exclude>.github/</exclude>
             <exclude>**/repo_*.j2</exclude>
             <exclude>**/ambari-log4j.spec</exclude>
@@ -790,6 +791,61 @@ instead of a SNAPSHOT. -->
       <properties>
         <testcase.groups>category.StackUpgradeTest</testcase.groups>
       </properties>
+    </profile>
+    <profile>
+      <id>ruff-check</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>ruff-check</id>
+                <phase>validate</phase>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <executable>ruff</executable>
+              <arguments>
+                <argument>check</argument>
+                <argument>.</argument>
+              </arguments>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>ruff-format</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>3.1.0</version>
+            <executions>
+              <execution>
+                <id>ruff-format</id>
+                <phase>process-sources</phase>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <executable>ruff</executable>
+              <arguments>
+                <argument>format</argument>
+                <argument>.</argument>
+              </arguments>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
   </profiles>
   <!-- End of profiles for running unit tests. -->

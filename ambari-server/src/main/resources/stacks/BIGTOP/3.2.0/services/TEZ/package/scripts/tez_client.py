@@ -19,6 +19,7 @@ limitations under the License.
 Ambari Agent
 
 """
+
 import os
 import urllib.parse
 
@@ -39,93 +40,123 @@ from resource_management.core.logger import Logger
 
 from tez import tez
 
+
 class TezClient(Script):
+    def configure(self, env, config_dir=None, upgrade_type=None):
+        """
+        Write tez-site.xml and tez-env.sh to the config directory
+        :param env: Python Environment
+        :param config_dir: During rolling upgrade, which config directory to save configs to.
+        E.g., /usr/$STACK/current/tez-client/conf
+        """
+        import params
 
-  def configure(self, env, config_dir=None, upgrade_type=None):
-    """
-    Write tez-site.xml and tez-env.sh to the config directory
-    :param env: Python Environment
-    :param config_dir: During rolling upgrade, which config directory to save configs to.
-    E.g., /usr/$STACK/current/tez-client/conf
-    """
-    import params
-    env.set_params(params)
-    tez(config_dir)
+        env.set_params(params)
+        tez(config_dir)
 
-  def status(self, env):
-    raise ClientComponentHasNoStatus()
+    def status(self, env):
+        raise ClientComponentHasNoStatus()
+
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class TezClientLinux(TezClient):
+    def stack_upgrade_save_new_config(self, env):
+        """
+        Because this gets called during a Rolling Upgrade, the new tez configs have already been saved, so we must be
+        careful to only call configure() on the directory of the new version.
+        :param env:
+        """
+        import params
 
-  def stack_upgrade_save_new_config(self, env):
-    """
-    Because this gets called during a Rolling Upgrade, the new tez configs have already been saved, so we must be
-    careful to only call configure() on the directory of the new version.
-    :param env:
-    """
-    import params
-    env.set_params(params)
+        env.set_params(params)
 
-    conf_select_name = "tez"
-    base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-    config_dir = self.get_config_dir_during_stack_upgrade(env, base_dir, conf_select_name)
+        conf_select_name = "tez"
+        base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+        config_dir = self.get_config_dir_during_stack_upgrade(
+            env, base_dir, conf_select_name
+        )
 
-    if config_dir:
-      Logger.info("stack_upgrade_save_new_config(): Calling conf-select on %s using version %s" % (conf_select_name, str(params.version)))
+        if config_dir:
+            Logger.info(
+                "stack_upgrade_save_new_config(): Calling conf-select on %s using version %s"
+                % (conf_select_name, str(params.version))
+            )
 
-      # Because this script was called from ru_execute_tasks.py which already enters an Environment with its own basedir,
-      # must change it now so this function can find the Jinja Templates for the service.
-      env.config.basedir = base_dir
-      self.configure(env, config_dir=config_dir)
+            # Because this script was called from ru_execute_tasks.py which already enters an Environment with its own basedir,
+            # must change it now so this function can find the Jinja Templates for the service.
+            env.config.basedir = base_dir
+            self.configure(env, config_dir=config_dir)
 
-  def pre_upgrade_restart(self, env, upgrade_type=None):
-    import params
-    env.set_params(params)
+    def pre_upgrade_restart(self, env, upgrade_type=None):
+        import params
 
-    if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
-      stack_select.select_packages(params.version)
+        env.set_params(params)
 
-  def install(self, env):
-    import params
-    self.install_packages(env)
-    self.configure(env, config_dir=params.tez_conf_dir)
+        if params.version and check_stack_feature(
+            StackFeature.ROLLING_UPGRADE, params.version
+        ):
+            stack_select.select_packages(params.version)
+
+    def install(self, env):
+        import params
+
+        self.install_packages(env)
+        self.configure(env, config_dir=params.tez_conf_dir)
+
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class TezClientWindows(TezClient):
-  def install(self, env):
-    import params
-    if params.tez_home_dir is None:
-      self.install_packages(env)
-      params.refresh_tez_state_dependent_params()
-    env.set_params(params)
-    self._install_lzo_support_if_needed(params)
-    self.configure(env, config_dir=params.tez_conf_dir)
+    def install(self, env):
+        import params
 
-  def _install_lzo_support_if_needed(self, params):
-    hadoop_classpath_prefix = self._expand_hadoop_classpath_prefix(params.hadoop_classpath_prefix_template, params.tez_site_config)
+        if params.tez_home_dir is None:
+            self.install_packages(env)
+            params.refresh_tez_state_dependent_params()
+        env.set_params(params)
+        self._install_lzo_support_if_needed(params)
+        self.configure(env, config_dir=params.tez_conf_dir)
 
-    hadoop_lzo_dest_path = extract_path_component(hadoop_classpath_prefix, "hadoop-lzo-")
-    if hadoop_lzo_dest_path:
-      hadoop_lzo_file = os.path.split(hadoop_lzo_dest_path)[1]
+    def _install_lzo_support_if_needed(self, params):
+        hadoop_classpath_prefix = self._expand_hadoop_classpath_prefix(
+            params.hadoop_classpath_prefix_template, params.tez_site_config
+        )
 
-      config = Script.get_config()
-      file_url = urllib.parse.urljoin(config['ambariLevelParams']['jdk_location'], hadoop_lzo_file)
-      hadoop_lzo_dl_path = os.path.join(config["agentLevelParams"]["agentCacheDir"], hadoop_lzo_file)
-      download_file(file_url, hadoop_lzo_dl_path)
-      #This is for protection against configuration changes. It will infect every new destination with the lzo jar,
-      # but since the classpath points to the jar directly we're getting away with it.
-      if not os.path.exists(hadoop_lzo_dest_path):
-        copy_file(hadoop_lzo_dl_path, hadoop_lzo_dest_path)
+        hadoop_lzo_dest_path = extract_path_component(
+            hadoop_classpath_prefix, "hadoop-lzo-"
+        )
+        if hadoop_lzo_dest_path:
+            hadoop_lzo_file = os.path.split(hadoop_lzo_dest_path)[1]
 
-  def _expand_hadoop_classpath_prefix(self, hadoop_classpath_prefix_template, configurations):
-    import resource_management
+            config = Script.get_config()
+            file_url = urllib.parse.urljoin(
+                config["ambariLevelParams"]["jdk_location"], hadoop_lzo_file
+            )
+            hadoop_lzo_dl_path = os.path.join(
+                config["agentLevelParams"]["agentCacheDir"], hadoop_lzo_file
+            )
+            download_file(file_url, hadoop_lzo_dl_path)
+            # This is for protection against configuration changes. It will infect every new destination with the lzo jar,
+            # but since the classpath points to the jar directly we're getting away with it.
+            if not os.path.exists(hadoop_lzo_dest_path):
+                copy_file(hadoop_lzo_dl_path, hadoop_lzo_dest_path)
 
-    hadoop_classpath_prefix_obj = InlineTemplate(hadoop_classpath_prefix_template, configurations_dict=configurations,
-                                                 extra_imports=[resource_management, resource_management.core,
-                                                                resource_management.core.source])
-    hadoop_classpath_prefix = hadoop_classpath_prefix_obj.get_content()
-    return hadoop_classpath_prefix
+    def _expand_hadoop_classpath_prefix(
+        self, hadoop_classpath_prefix_template, configurations
+    ):
+        import resource_management
+
+        hadoop_classpath_prefix_obj = InlineTemplate(
+            hadoop_classpath_prefix_template,
+            configurations_dict=configurations,
+            extra_imports=[
+                resource_management,
+                resource_management.core,
+                resource_management.core.source,
+            ],
+        )
+        hadoop_classpath_prefix = hadoop_classpath_prefix_obj.get_content()
+        return hadoop_classpath_prefix
+
 
 if __name__ == "__main__":
-  TezClient().execute()
+    TezClient().execute()
