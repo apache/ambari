@@ -3,6 +3,7 @@
   "description": "Front-end package for the Apache Ambari Project",
   "version": "2.4.0",
   "homepage": "http://ambari.apache.org/",
+  "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "https://gitbox.apache.org/repos/asf/ambari/repo?p=ambari.git;a=summary"
@@ -44,6 +45,6 @@
     "test": "karma start"
   },
   "engines": {
-    "node": "^4.0.0"
+    "node": ">=14.0.0"
   }
 }

@@ -18,10 +18,7 @@
 
 module.exports = function(config) {
   config.set({
-
-    // base path, that will be used to resolve files and exclude
     basePath: '',
-
     plugins: [
       'karma-chrome-launcher',
       'karma-mocha',
@@ -32,20 +29,8 @@ module.exports = function(config) {
       'karma-commonjs-require',
       'karma-babel-preprocessor'
     ],
-
-    // frameworks to use
     frameworks: ['mocha', 'chai', 'sinon'],
-
-
-    // list of files / patterns to load in the browser
     files: [
-
-//      'public/javascripts/vendor.js',
-//      'public/javascripts/app.js',
-//      'public/test/karma_setup.js',
-//      'public/test/javascripts/test.js',
-//      'public/test/tests.js'
-
       'node_modules/commonjs-require-definition/require.js',
       'vendor/scripts/console-helper.js',
       'vendor/scripts/jquery-3.7.1.js',
@@ -96,29 +81,24 @@ module.exports = function(config) {
       'test/**/*.js',
       'app/assets/test/tests.js'
     ],
-
     emberPrecompilerBrunchPreprocessor: {
       jqueryPath: 'vendor/scripts/jquery-3.7.1.js',
       emberPath: 'vendor/scripts/ember-latest.js',
       handlebarsPath: 'vendor/scripts/handlebars-1.0.0.beta.6.js'
     },
-
     commonRequirePreprocessor: {
       appDir: 'app'
     },
-
     coverageReporter: {
       type: 'html',
       dir: 'public/coverage/'
     },
-
     preprocessors: {
       '!(vendor|node_modules|test)/**/!(karma_setup|tests).js': 'coverage',
       'app/templates/**/*.hbs': ['ember-precompiler-brunch', 'common-require'],
       'app!(assets)/**/!(karma_setup|tests).js': ['common-require', 'babel'],
       'test/**/*.js': ['common-require']
     },
-
     babelPreprocessor: {
       options: {
         presets: ['es2015']
@@ -130,59 +110,24 @@ module.exports = function(config) {
         return file.originalPath;
       }
     },
-
-    // list of files to exclude
-    exclude: [
-
-    ],
-
-
-    // test results reporter to use
-    // possible values: 'dots', 'progress', 'junit', 'growl', 'coverage'
-//    reporters: ['progress', 'coverage'],
+    exclude: [],
     reporters: ['progress', 'coverage'],
-
-
-    // web server port
     port: 9876,
-
-
-    // enable / disable colors in the output (reporters and logs)
     colors: true,
-
-
-    // level of logging
-    // possible values: config.LOG_DISABLE || config.LOG_ERROR || config.LOG_WARN || config.LOG_INFO || config.LOG_DEBUG
     logLevel: config.LOG_INFO,
-
-
-    // enable / disable watching file and executing tests whenever any file changes
     autoWatch: true,
-
-    
     customLaunchers: {
       ChromeHeadlessCustom: {
         base: 'ChromeHeadless',
-        flags: ['--no-sandbox', '--disable-gpu', '--disable-translate', '--disable-extensions']
+        flags: ['--no-sandbox', '--disable-gpu', '--disable-translate', '--disable-extensions', '--remote-debugging-port=9222', '--disable-background-timer-throttling', '--disable-renderer-backgrounding']
       }
     },
-
-    // Start these browsers, currently available:
-    // - Chrome
-    // - ChromeCanary
-    // - Firefox
-    // - Opera (has to be installed with `npm install karma-opera-launcher`)
-    // - Safari (only Mac; has to be installed with `npm install karma-safari-launcher`)
-    // - IE (only Windows; has to be installed with `npm install karma-ie-launcher`)
     browsers: ['ChromeHeadlessCustom'],
-
-    // If browser does not capture in given timeout [ms], kill it
-    captureTimeout: 60000,
-
-    browserNoActivityTimeout: 30000,
-
-    // Continuous Integration mode
-    // if true, it capture browsers, run tests and exit
+    captureTimeout: 200000,
+    browserNoActivityTimeout: 200000,
+    browserDisconnectTimeout: 200000,
+    browserDisconnectTolerance: 3,
     singleRun: true
   });
 };
+
