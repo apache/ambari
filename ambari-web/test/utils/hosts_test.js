@@ -3347,6 +3347,7 @@ describe('hosts utils', function () {
             ajaxCallArguments: [{
               name: 'bulk_request.hosts.update_rack_id',
               sender: hostsUtils,
+              dataType: 'text',
               data: {
                 hostNames: 'h0,h1',
                 requestInfo: 'msg',

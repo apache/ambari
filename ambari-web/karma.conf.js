@@ -28,6 +28,7 @@ module.exports = function(config) {
       'karma-chai',
       'karma-sinon',
       'karma-coverage',
+      'karma-spec-reporter',
       'karma-ember-precompiler-brunch',
       'karma-commonjs-require',
       'karma-babel-preprocessor'
@@ -53,9 +54,6 @@ module.exports = function(config) {
       'vendor/scripts/ember-latest.js',
       'vendor/scripts/ember-data-latest.js',
       'vendor/scripts/ember-i18n-1.4.1.js',
-      'vendor/scripts/bootstrap.js',
-      'vendor/scripts/bootstrap-combobox.js',
-      'vendor/scripts/bootstrap-switch.min.js',
       'vendor/scripts/d3.v2.js',
       'vendor/scripts/cubism.v1.js',
       'vendor/scripts/jquery.ui.core.js',
@@ -70,6 +68,10 @@ module.exports = function(config) {
       'vendor/scripts/jquery.ui.custom-effects.js',
       'vendor/scripts/jquery.timeago.js',
       'vendor/scripts/jquery.ajax-retry.js',
+      'vendor/scripts/popper.js',
+      'vendor/scripts/bootstrap.js',
+      'vendor/scripts/bootstrap-combobox.js',
+      'vendor/scripts/bootstrap-switch.min.js',
       'vendor/scripts/difflib.js',
       'vendor/scripts/diffview.js',
       'vendor/scripts/underscore.js',
@@ -140,7 +142,24 @@ module.exports = function(config) {
     // test results reporter to use
     // possible values: 'dots', 'progress', 'junit', 'growl', 'coverage'
 //    reporters: ['progress', 'coverage'],
-    reporters: ['progress', 'coverage'],
+reporters: ['progress', 'coverage'],
+
+    specReporter: {
+      maxLogLines: 5,             // limit number of lines logged per test
+      suppressSummary: true,      // do not print summary
+      suppressErrorSummary: true, // do not print error summary
+      suppressFailed: false,      // do not print information about failed tests
+      suppressPassed: false,      // do not print information about passed tests
+      suppressSkipped: true,      // do not print information about skipped tests
+      showBrowser: false,         // print the browser for each spec
+      showSpecTiming: false,      // print the time elapsed for each spec
+      failFast: false,             // test would finish with error when a first fail occurs
+      prefixes: {
+        success: '    OK: ',      // override prefix for passed tests, default is '✓ '
+        failure: 'FAILED: ',      // override prefix for failed tests, default is '✗ '
+        skipped: 'SKIPPED: '      // override prefix for skipped tests, default is '- '
+      }
+    },
 
 
     // web server port

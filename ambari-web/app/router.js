@@ -284,7 +284,7 @@ App.Router = Em.Router.extend({
     var dfd = $.Deferred();
     var self = this;
     var auth = App.db.getAuthenticated();
-    this.getClusterDataRequest().then(function (xhr) {
+    this.getClusterDataRequest().always(function (xhr) {
       if (xhr) {
         // if server knows the user and user authenticated by UI
         if (auth) {

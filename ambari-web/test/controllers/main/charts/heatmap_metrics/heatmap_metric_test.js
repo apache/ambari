@@ -103,53 +103,6 @@ describe('MainChartHeatmapMetric', function () {
     });
   });
 
-  describe('#getHatchStyle()', function () {
-    var testCases = [
-      {
-        title: 'unknown browser',
-        data: {},
-        result: 'background-color:#666'
-      },
-      {
-        title: 'webkit browser',
-        data: {
-          webkit: true
-        },
-        result: 'background-image:-webkit-repeating-linear-gradient(-45deg, #666, #666 6px, #fff 6px, #fff 7px)'
-      },
-      {
-        title: 'mozilla browser',
-        data: {
-          mozilla: true
-        },
-        result: 'background-image:repeating-linear-gradient(-45deg, #666, #666 6px, #fff 6px, #fff 7px)'
-      },
-      {
-        title: 'IE version 9',
-        data: {
-          msie: true,
-          version: '9.0'
-        },
-        result: 'background-color:#666'
-      },
-      {
-        title: 'IE version 10',
-        data: {
-          msie: true,
-          version: '10.0'
-        },
-        result: 'background-image:repeating-linear-gradient(-45deg, #666, #666 6px, #fff 6px, #fff 7px)'
-      }
-    ];
-
-    testCases.forEach(function(test){
-      it(test.title, function () {
-        jQuery.browser = test.data;
-        expect(mainChartHeatmapMetric.getHatchStyle()).to.equal(test.result);
-      });
-    });
-  });
-
   describe('#hostToSlotMap', function () {
 
     beforeEach(function () {

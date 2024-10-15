@@ -98,6 +98,7 @@ describe('App.HighAvailabilityWizardStep5Controller', function() {
       expect(args[0]).to.be.eql({
         name: 'common.host.host_component.passive',
         sender: controller,
+        dataType: 'text',
         data: {
           hostName: 'host1',
           passive_state: "ON",

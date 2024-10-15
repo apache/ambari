@@ -156,7 +156,7 @@ App.MainChartHeatmapMetric = Em.Object.extend({
   },
 
   /**
-   * calculate hatch style of slot according to browser version used
+   * Get hatch style
    * @return {String}
    */
   getHatchStyle: function () {

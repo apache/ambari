@@ -2188,7 +2188,7 @@ describe('App.MainServiceItemController', function () {
     var callback = sinon.spy();
     beforeEach(function() {
       ctrl = App.MainServiceItemController.create();
-      sinon.stub(ctrl, 'pullNnCheckPointTime').returns({complete: Em.clb});
+      sinon.stub(ctrl, 'pullNnCheckPointTime').returns({always: Em.clb});
       sinon.stub(ctrl, 'getHdfsUser').returns({done: Em.clb});
       sinon.stub(ctrl, 'getMessageForOldCheckpoints').returns('message');
       sinon.stub(App, 'showConfirmationFeedBackPopup');
@@ -2259,10 +2259,10 @@ describe('App.MainServiceItemController', function () {
         }
       });
       sinon.stub(ctrl, 'startStopPopupPrimary').returns({
-        complete: Em.clb
+        always: Em.clb
       });
       sinon.stub(batchUtils, 'turnOnOffPassiveRequest').returns({
-        complete: Em.clb
+        always: Em.clb
       });
     });
     afterEach(function() {

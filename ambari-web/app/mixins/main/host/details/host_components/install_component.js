@@ -138,7 +138,7 @@ App.InstallComponent = Em.Mixin.create({
           componentName: componentName,
           serviceName: App.StackServiceComponent.find().findProperty('componentName', componentName).get('serviceName')
         }
-      }).then(function () {
+      }).always(function () {
         dfd.resolve();
       });
     }

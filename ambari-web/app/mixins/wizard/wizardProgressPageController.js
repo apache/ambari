@@ -536,7 +536,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
 
     this.set('showRetry', false);
 
-    this.checkInstalledComponents(componentName, hostNames).then(function (data) {
+    this.checkInstalledComponents(componentName, hostNames).done(function (data) {
       var hostsWithComponents = data.items.mapProperty('HostRoles.host_name');
       var result = hostNames.map(function(item) {
         return {

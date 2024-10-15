@@ -70,7 +70,7 @@ App.UserSettingsController = Em.Controller.extend(App.Persist, {
     var key = persistKey ? this.get('userSettingsKeys.' + persistKey + '.name') : '';
     var dfd = $.Deferred();
     var self = this;
-    this.getUserPref(key).then(function () {
+    this.getUserPref(key).always(function () {
       var curPref = self.get('currentPrefObject');
       self.set('currentPrefObject', null);
       dfd.resolve(curPref);
@@ -191,7 +191,7 @@ App.UserSettingsController = Em.Controller.extend(App.Persist, {
     }
 
     this.dataLoading().done(function(response) {
-      self.loadPrivileges().then(function() {
+      self.loadPrivileges().always(function() {
         self._showSettingsPopup(response);
       });
     });

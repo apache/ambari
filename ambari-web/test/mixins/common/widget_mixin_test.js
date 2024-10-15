@@ -88,10 +88,10 @@ describe('App.WidgetMixin', function () {
       this.mock = sinon.stub(mixinObject, 'getRequestData');
       sinon.stub(App.WidgetLoadAggregator, 'add');
       sinon.stub(mixinObject, 'getHostsMetrics').returns({
-        complete: Em.clb
+        always: Em.clb
       });
       sinon.stub(mixinObject, 'getHostComponentsMetrics').returns({
-        complete: Em.clb
+        always: Em.clb
       });
       sinon.stub(mixinObject, 'onMetricsLoaded');
     });
