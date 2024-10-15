@@ -158,7 +158,7 @@ describe('App.InstallComponent', function () {
       sinon.spy(dfd, 'resolve');
 
       App.ajax.send.restore();
-      sinon.stub(App.ajax, 'send').returns({complete: Em.clb});
+      sinon.stub(App.ajax, 'send').returns({always: Em.clb});
       this.mock = sinon.stub(App.Service, 'find');
       this.mock.returns([{serviceName: "S1"}]);
       this.mock.withArgs('S1').returns(Em.Object.create({serviceComponents: ['C1']}))

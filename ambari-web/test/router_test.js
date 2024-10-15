@@ -495,7 +495,7 @@ describe('App.Router', function () {
               router.onAuthenticationError(test.responseData);
             }
             return {
-              complete: function () {
+              always: function () {
               }
             };
           });

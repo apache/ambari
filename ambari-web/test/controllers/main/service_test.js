@@ -219,13 +219,13 @@ describe('App.MainServiceController', function () {
     });
 
     it('target is disabled', function() {
-      var event = {target: {className: 'disabled', nodeType: 1}};
+      var event = {target: $('<div>', { class: 'disabled' })};
       var r = mainServiceController.startAllService(event);
       expect(r).to.be.null;
     });
 
     it('parent is disabled', function() {
-      var event = {target: {parentElement: {className: 'disabled', nodeType: 1}}};
+      var event = {target: {parentElement: $('<div>', { class: 'disabled' })}};
       var r = mainServiceController.startAllService(event);
       expect(r).to.be.null;
     });
@@ -243,13 +243,13 @@ describe('App.MainServiceController', function () {
     });
 
     it('target is disabled', function() {
-      var event = {target: {className: 'disabled', nodeType: 1}};
+      var event = {target: $('<div>', { class: 'disabled' })};
       var r = mainServiceController.stopAllService(event);
       expect(r).to.be.null;
     });
 
     it('parent is disabled', function() {
-      var event = {target: {parentElement: {className: 'disabled', nodeType: 1}}};
+      var event = {target: {parentElement: $('<div>', { class: 'disabled' })}};
       var r = mainServiceController.stopAllService(event);
       expect(r).to.be.null;
     });

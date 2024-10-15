@@ -59,7 +59,8 @@ App.HighAvailabilityWizardStep4Controller = Em.Controller.extend({
 
   getNnCheckPointStatus: function (data) {
     const isInSafeMode = !Em.isEmpty(Em.get(data, 'metrics.dfs.namenode.Safemode'));
-    let journalTransactionInfo = JSON.parse(Em.get(data, 'metrics.dfs.namenode.JournalTransactionInfo'));
+    const journalTransactionInfoUnparsed = Em.get(data, 'metrics.dfs.namenode.JournalTransactionInfo')
+    let journalTransactionInfo = journalTransactionInfoUnparsed ? JSON.parse(journalTransactionInfoUnparsed) : null;
     // in case when transaction info absent or invalid return 2 which will return false in next `if` statement
     journalTransactionInfo = !!journalTransactionInfo
       ? (parseInt(journalTransactionInfo.LastAppliedOrWrittenTxId)

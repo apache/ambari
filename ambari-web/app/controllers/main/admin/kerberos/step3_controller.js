@@ -157,7 +157,7 @@ App.KerberosWizardStep3Controller = App.KerberosProgressPageController.extend({
   statusDidChange: function() {
     var self = this;
     if (this.get('completedStatuses').contains(this.get('status'))) {
-      this.getHeartbeatLostHosts().then(function(data) {
+      this.getHeartbeatLostHosts().done(function(data) {
         var hostNames = Em.getWithDefault(data || {}, 'items', []).mapProperty('Hosts.host_name');
         if (hostNames.length) {
           self.set('heartBeatLostHosts', hostNames.uniq());

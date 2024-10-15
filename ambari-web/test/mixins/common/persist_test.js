@@ -70,6 +70,7 @@ describe('App.Persist', function () {
       expect(args[0]).to.be.eql({
         'name': 'persist.post',
         'sender': mixin,
+        'dataType': 'text',
         'beforeSend': 'postUserPrefBeforeSend',
         'data': {
           'keyValuePair': {"foo": "bar"}

@@ -63,7 +63,7 @@ describe('App.UserSettingsController', function () {
 
     beforeEach(function() {
       sinon.stub(controller, 'getUserPref').returns({
-        complete: Em.clb
+        always: Em.clb
       });
     });
 
@@ -167,7 +167,7 @@ describe('App.UserSettingsController', function () {
         done: Em.clb
       });
       sinon.stub(controller, 'loadPrivileges').returns({
-        complete: Em.clb
+        always: Em.clb
       });
       sinon.stub(controller, '_showSettingsPopup');
     });

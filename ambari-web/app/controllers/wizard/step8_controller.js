@@ -583,7 +583,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       this.set('isSubmitDisabled', true);
       this.set('isBackBtnDisabled', true);
       this.showRestartWarnings()
-        .then(this.checkKDCSession.bind(this));
+        .done(this.checkKDCSession.bind(this));
     }
   },
 

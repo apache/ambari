@@ -221,7 +221,7 @@ describe('App.ConfigurationController', function () {
         done: function(callback) {
           callback({items: [{}]});
           return {
-            complete: Em.clb
+            always: Em.clb
           }
         }
       });

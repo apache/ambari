@@ -2584,6 +2584,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       expect(args[0]).to.be.eql({
         name: 'admin.upgrade.abort',
         sender: controller,
+        dataType: 'text',
         data: {
           upgradeId: 1,
           isDowngrade: true
@@ -2600,6 +2601,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       expect(args[0]).to.be.eql({
         name: 'admin.upgrade.abort',
         sender: controller,
+        dataType: 'text',
         data: {
           upgradeId: 1,
           isDowngrade: false
@@ -2619,6 +2621,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       expect(args[0]).to.be.eql({
         name: 'admin.upgrade.suspend',
         sender: controller,
+        dataType: 'text',
         data: {
           upgradeId: 1,
           isDowngrade: true
@@ -2635,6 +2638,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       expect(args[0]).to.be.eql({
         name: 'admin.upgrade.suspend',
         sender: controller,
+        dataType: 'text',
         data: {
           upgradeId: 1,
           isDowngrade: false

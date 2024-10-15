@@ -337,7 +337,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
    * @param [groupName] - id of HA namespace for enabled NameNode federation
    */
   checkNnLastCheckpointTime: function (callback, groupName) {
-    this.pullNnCheckPointTime(groupName).thens(() => {
+    this.pullNnCheckPointTime(groupName).always(() => {
       const nameNodesWithOldCheckpoints = this.get('nameNodesWithOldCheckpoints').slice(),
         isNameNodeCheckpointUnavailable = this.get('isNameNodeCheckpointUnavailable');
       this.get('nameNodesWithOldCheckpoints').clear();
@@ -539,11 +539,11 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   startStopWithMmode: function(serviceHealth, query, runMmOperation, components, hosts, label) {
     if (runMmOperation) {
       if (serviceHealth === 'STARTED') {
-        this.startStopPopupPrimary(serviceHealth, query, components, hosts, label).then(() => {
+        this.startStopPopupPrimary(serviceHealth, query, components, hosts, label).always(() => {
           batchUtils.turnOnOffPassiveRequest('OFF', Em.I18n.t('passiveState.turnOff'), this.get('content.serviceName').toUpperCase());
         });
       } else {
-        batchUtils.turnOnOffPassiveRequest('ON', Em.I18n.t('passiveState.turnOn'), this.get('content.serviceName').toUpperCase()).then(() => {
+        batchUtils.turnOnOffPassiveRequest('ON', Em.I18n.t('passiveState.turnOn'), this.get('content.serviceName').toUpperCase()).always(() => {
           this.startStopPopupPrimary(serviceHealth, query, components, hosts, label);
         })
       }

@@ -966,7 +966,10 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       var repo = os.get('repositories').findProperty('repoId', params.repoId);
       if (repo) {
         var title = Ember.Handlebars.Utils.escapeExpression(request.status + ":" + request.statusText);
-        var content =  Ember.Handlebars.Utils.escapeExpression(JSON.parse(request.responseText) ? JSON.parse(request.responseText).message : "");
+        var content = "";
+        try {
+          content = JSON.parse(request.responseText);
+        } catch (error) {}
         repo.setProperties({
           validation: 'INVALID',
           errorTitle: title,
@@ -1076,7 +1079,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
           this.loadCurrentHostGroups();
           this.loadRecommendationsConfigs();
           this.loadComponentsFromConfigs();
-          this.loadConfigThemes().then(function() {
+          this.loadConfigThemes().done(function() {
             self.loadServiceConfigProperties();
             dfd.resolve();
           });

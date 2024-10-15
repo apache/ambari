@@ -593,7 +593,7 @@ describe('credentials utils', function () {
             }
             return dfd.promise();
           });
-          credentials.storeTypeStatus(null, 'temporary').then(mock.successCallback, mock.errorCallback);
+          credentials.storeTypeStatus(null, 'temporary').done(mock.successCallback).fail(mock.errorCallback);
         });
 
         afterEach(function () {
