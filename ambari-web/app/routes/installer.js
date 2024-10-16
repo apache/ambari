@@ -42,7 +42,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
             if (App.isAuthorized('AMBARI.ADD_DELETE_CLUSTERS')) {
               router.get('mainController').stopPolling();
               Em.run.next(function () {
-                App.clusterStatus.updateFromServer().then(function () {
+                App.clusterStatus.updateFromServer().complete(function () {
                   var currentClusterStatus = App.clusterStatus.get('value');
                   //@TODO: Clean up  following states. Navigation should be done solely via currentStep stored in the localDb and API persist endpoint.
                   //       Actual currentStep value for the installer controller should always remain in sync with localdb and at persist store in the server.
