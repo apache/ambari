@@ -85,7 +85,7 @@ public class ViewDirectoryWatcherTest {
     });
     viewDirectoryWatcher.start();
     countDownLatch.await(1, SECONDS);
-    // Expect watecher to start
+    // Expect watcher to start
     Assert.assertTrue(viewDirectoryWatcher.isRunning());
     verify(configuration);
   }
