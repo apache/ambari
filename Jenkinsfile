@@ -55,6 +55,23 @@ pipeline {
     }
 
     stages {
+        stage('Find and Run Ruff') {
+            steps {
+                script {
+                    echo "Contents of /home/jenkins/.local/bin:"
+                    sh 'ls -l /home/jenkins/.local/bin || echo "Directory not found"'
+                }
+            }
+        }
+
+        stage('Ruff Check') {
+            steps {
+                withEnv(["PATH+LOCALBIN=/home/jenkins/.local/bin:${env.PATH}"]) {
+                    sh 'ruff --version'
+                    sh 'mvn exec:exec@ruff-check -Pruff-check -pl :ambari -DskipTests -Dmaven.install.skip=true'
+                }
+            }
+        }
         stage('Pre-Build Deps') {
             parallel{
                 stage('JIRA Integration') {

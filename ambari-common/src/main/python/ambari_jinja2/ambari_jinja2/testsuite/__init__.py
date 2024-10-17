@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-    ambari_jinja2.testsuite
-    ~~~~~~~~~~~~~~~~
+ambari_jinja2.testsuite
+~~~~~~~~~~~~~~~~
 
-    All the unittests of Jinja2.  These tests can be executed by
-    either running run-tests.py using multiple Python versions at
-    the same time.
+All the unittests of Jinja2.  These tests can be executed by
+either running run-tests.py using multiple Python versions at
+the same time.
 
-    :copyright: (c) 2010 by the Jinja Team.
-    :license: BSD, see LICENSE for more details.
+:copyright: (c) 2010 by the Jinja Team.
+:license: BSD, see LICENSE for more details.
 """
+
 import os
 import re
 import sys
@@ -21,21 +22,15 @@ from ambari_jinja2 import loaders
 
 here = os.path.dirname(os.path.abspath(__file__))
 
-dict_loader = loaders.DictLoader({
-    'justdict.html':        'FOO'
-})
-package_loader = loaders.PackageLoader('ambari_jinja2.testsuite.res', 'templates')
-filesystem_loader = loaders.FileSystemLoader(here + '/res/templates')
-function_loader = loaders.FunctionLoader({'justfunction.html': 'FOO'}.get)
+dict_loader = loaders.DictLoader({"justdict.html": "FOO"})
+package_loader = loaders.PackageLoader("ambari_jinja2.testsuite.res", "templates")
+filesystem_loader = loaders.FileSystemLoader(here + "/res/templates")
+function_loader = loaders.FunctionLoader({"justfunction.html": "FOO"}.get)
 choice_loader = loaders.ChoiceLoader([dict_loader, package_loader])
-prefix_loader = loaders.PrefixLoader({
-    'a':        filesystem_loader,
-    'b':        dict_loader
-})
+prefix_loader = loaders.PrefixLoader({"a": filesystem_loader, "b": dict_loader})
 
 
 class JinjaTestCase(unittest.TestCase):
-
     ### use only these methods for testing.  If you need standard
     ### unittest method, wrap them!
 
@@ -62,17 +57,33 @@ class JinjaTestCase(unittest.TestCase):
             callback()
         except Exception as e:
             tb = format_exception(*sys.exc_info())
-            if re.search(expected_tb.strip(), ''.join(tb)) is None:
-                raise self.fail('Traceback did not match:\n\n%s\nexpected:\n%s'
-                    % (''.join(tb), expected_tb))
+            if re.search(expected_tb.strip(), "".join(tb)) is None:
+                raise self.fail(
+                    "Traceback did not match:\n\n%s\nexpected:\n%s"
+                    % ("".join(tb), expected_tb)
+                )
         else:
-            self.fail('Expected exception')
+            self.fail("Expected exception")
 
 
 def suite():
-    from ambari_jinja2.testsuite import ext, filters, tests, core_tags, \
-         loader, inheritance, imports, lexnparse, security, api, \
-         regression, debug, utils, doctests
+    from ambari_jinja2.testsuite import (
+        ext,
+        filters,
+        tests,
+        core_tags,
+        loader,
+        inheritance,
+        imports,
+        lexnparse,
+        security,
+        api,
+        regression,
+        debug,
+        utils,
+        doctests,
+    )
+
     suite = unittest.TestSuite()
     suite.addTest(ext.suite())
     suite.addTest(filters.suite())

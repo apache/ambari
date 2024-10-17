@@ -2,6 +2,7 @@
 """
 Stores jobs in a database table using SQLAlchemy.
 """
+
 import pickle
 import logging
 
@@ -13,14 +14,20 @@ from apscheduler.job import Job
 try:
     from sqlalchemy import *
 except ImportError:  # pragma: nocover
-    raise ImportError('SQLAlchemyJobStore requires SQLAlchemy installed')
+    raise ImportError("SQLAlchemyJobStore requires SQLAlchemy installed")
 
 logger = logging.getLogger(__name__)
 
 
 class SQLAlchemyJobStore(JobStore):
-    def __init__(self, url=None, engine=None, tablename='apscheduler_jobs',
-                 metadata=None, pickle_protocol=pickle.HIGHEST_PROTOCOL):
+    def __init__(
+        self,
+        url=None,
+        engine=None,
+        tablename="apscheduler_jobs",
+        metadata=None,
+        pickle_protocol=pickle.HIGHEST_PROTOCOL,
+    ):
         self.jobs = []
         self.pickle_protocol = pickle_protocol
 
@@ -31,26 +38,31 @@ class SQLAlchemyJobStore(JobStore):
         else:
             raise ValueError('Need either "engine" or "url" defined')
 
-        if sqlalchemy.__version__ < '0.7':
+        if sqlalchemy.__version__ < "0.7":
             pickle_coltype = PickleType(pickle_protocol, mutable=False)
         else:
             pickle_coltype = PickleType(pickle_protocol)
         self.jobs_t = Table(
-            tablename, metadata or MetaData(),
-            Column('id', Integer,
-                   Sequence(tablename + '_id_seq', optional=True),
-                   primary_key=True),
-            Column('trigger', pickle_coltype, nullable=False),
-            Column('func_ref', String(1024), nullable=False),
-            Column('args', pickle_coltype, nullable=False),
-            Column('kwargs', pickle_coltype, nullable=False),
-            Column('name', Unicode(1024)),
-            Column('misfire_grace_time', Integer, nullable=False),
-            Column('coalesce', Boolean, nullable=False),
-            Column('max_runs', Integer),
-            Column('max_instances', Integer),
-            Column('next_run_time', DateTime, nullable=False),
-            Column('runs', BigInteger))
+            tablename,
+            metadata or MetaData(),
+            Column(
+                "id",
+                Integer,
+                Sequence(tablename + "_id_seq", optional=True),
+                primary_key=True,
+            ),
+            Column("trigger", pickle_coltype, nullable=False),
+            Column("func_ref", String(1024), nullable=False),
+            Column("args", pickle_coltype, nullable=False),
+            Column("kwargs", pickle_coltype, nullable=False),
+            Column("name", Unicode(1024)),
+            Column("misfire_grace_time", Integer, nullable=False),
+            Column("coalesce", Boolean, nullable=False),
+            Column("max_runs", Integer),
+            Column("max_instances", Integer),
+            Column("next_run_time", DateTime, nullable=False),
+            Column("runs", BigInteger),
+        )
 
         self.jobs_t.create(self.engine, True)
 
@@ -74,19 +86,21 @@ class SQLAlchemyJobStore(JobStore):
                 job.__setstate__(job_dict)
                 jobs.append(job)
             except Exception:
-                job_name = job_dict.get('name', '(unknown)')
+                job_name = job_dict.get("name", "(unknown)")
                 logger.exception('Unable to restore job "%s"', job_name)
         self.jobs = jobs
 
     def update_job(self, job):
         job_dict = job.__getstate__()
-        update = self.jobs_t.update().where(self.jobs_t.c.id == job.id).\
-            values(next_run_time=job_dict['next_run_time'],
-                   runs=job_dict['runs'])
+        update = (
+            self.jobs_t.update()
+            .where(self.jobs_t.c.id == job.id)
+            .values(next_run_time=job_dict["next_run_time"], runs=job_dict["runs"])
+        )
         self.engine.execute(update)
 
     def close(self):
         self.engine.dispose()
 
     def __repr__(self):
-        return '<%s (url=%s)>' % (self.__class__.__name__, self.engine.url)
+        return "<%s (url=%s)>" % (self.__class__.__name__, self.engine.url)

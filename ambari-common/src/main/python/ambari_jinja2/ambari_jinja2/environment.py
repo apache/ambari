@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-    ambari_jinja2.environment
-    ~~~~~~~~~~~~~~~~~~
+ambari_jinja2.environment
+~~~~~~~~~~~~~~~~~~
 
-    Provides a class that holds runtime and parsing time options.
+Provides a class that holds runtime and parsing time options.
 
-    :copyright: (c) 2010 by the Jinja Team.
-    :license: BSD, see LICENSE for more details.
+:copyright: (c) 2010 by the Jinja Team.
+:license: BSD, see LICENSE for more details.
 """
+
 import os
 import sys
 from ambari_jinja2 import nodes
@@ -18,10 +19,21 @@ from ambari_jinja2.parser import Parser
 from ambari_jinja2.optimizer import optimize
 from ambari_jinja2.compiler import generate
 from ambari_jinja2.runtime import Undefined, new_context
-from ambari_jinja2.exceptions import TemplateSyntaxError, TemplateNotFound, \
-     TemplatesNotFound
-from ambari_jinja2.utils import import_string, LRUCache, Markup, missing, \
-     concat, consume, internalcode, _encode_filename
+from ambari_jinja2.exceptions import (
+    TemplateSyntaxError,
+    TemplateNotFound,
+    TemplatesNotFound,
+)
+from ambari_jinja2.utils import (
+    import_string,
+    LRUCache,
+    Markup,
+    missing,
+    concat,
+    consume,
+    internalcode,
+    _encode_filename,
+)
 from functools import reduce
 
 
@@ -81,14 +93,19 @@ def load_extensions(environment, extensions):
 
 def _environment_sanity_check(environment):
     """Perform a sanity check on the environment."""
-    assert issubclass(environment.undefined, Undefined), 'undefined must ' \
-           'be a subclass of undefined because filters depend on it.'
-    assert environment.block_start_string != \
-           environment.variable_start_string != \
-           environment.comment_start_string, 'block, variable and comment ' \
-           'start strings must be different'
-    assert environment.newline_sequence in ('\r', '\r\n', '\n'), \
-           'newline_sequence set to unknown line ending string.'
+    assert issubclass(environment.undefined, Undefined), (
+        "undefined must " "be a subclass of undefined because filters depend on it."
+    )
+    assert (
+        environment.block_start_string
+        != environment.variable_start_string
+        != environment.comment_start_string
+    ), "block, variable and comment " "start strings must be different"
+    assert environment.newline_sequence in (
+        "\r",
+        "\r\n",
+        "\n",
+    ), "newline_sequence set to unknown line ending string."
     return environment
 
 
@@ -215,26 +232,28 @@ class Environment(object):
     exception_handler = None
     exception_formatter = None
 
-    def __init__(self,
-                 block_start_string=BLOCK_START_STRING,
-                 block_end_string=BLOCK_END_STRING,
-                 variable_start_string=VARIABLE_START_STRING,
-                 variable_end_string=VARIABLE_END_STRING,
-                 comment_start_string=COMMENT_START_STRING,
-                 comment_end_string=COMMENT_END_STRING,
-                 line_statement_prefix=LINE_STATEMENT_PREFIX,
-                 line_comment_prefix=LINE_COMMENT_PREFIX,
-                 trim_blocks=TRIM_BLOCKS,
-                 newline_sequence=NEWLINE_SEQUENCE,
-                 extensions=(),
-                 optimized=True,
-                 undefined=Undefined,
-                 finalize=None,
-                 autoescape=False,
-                 loader=None,
-                 cache_size=50,
-                 auto_reload=True,
-                 bytecode_cache=None):
+    def __init__(
+        self,
+        block_start_string=BLOCK_START_STRING,
+        block_end_string=BLOCK_END_STRING,
+        variable_start_string=VARIABLE_START_STRING,
+        variable_end_string=VARIABLE_END_STRING,
+        comment_start_string=COMMENT_START_STRING,
+        comment_end_string=COMMENT_END_STRING,
+        line_statement_prefix=LINE_STATEMENT_PREFIX,
+        line_comment_prefix=LINE_COMMENT_PREFIX,
+        trim_blocks=TRIM_BLOCKS,
+        newline_sequence=NEWLINE_SEQUENCE,
+        extensions=(),
+        optimized=True,
+        undefined=Undefined,
+        finalize=None,
+        autoescape=False,
+        loader=None,
+        cache_size=50,
+        auto_reload=True,
+        bytecode_cache=None,
+    ):
         # !!Important notice!!
         #   The constructor accepts quite a few arguments that should be
         #   passed by keyword rather than position.  However it's important to
@@ -297,14 +316,27 @@ class Environment(object):
             if not hasattr(self, key):
                 setattr(self, key, value)
 
-    def overlay(self, block_start_string=missing, block_end_string=missing,
-                variable_start_string=missing, variable_end_string=missing,
-                comment_start_string=missing, comment_end_string=missing,
-                line_statement_prefix=missing, line_comment_prefix=missing,
-                trim_blocks=missing, extensions=missing, optimized=missing,
-                undefined=missing, finalize=missing, autoescape=missing,
-                loader=missing, cache_size=missing, auto_reload=missing,
-                bytecode_cache=missing):
+    def overlay(
+        self,
+        block_start_string=missing,
+        block_end_string=missing,
+        variable_start_string=missing,
+        variable_end_string=missing,
+        comment_start_string=missing,
+        comment_end_string=missing,
+        line_statement_prefix=missing,
+        line_comment_prefix=missing,
+        trim_blocks=missing,
+        extensions=missing,
+        optimized=missing,
+        undefined=missing,
+        finalize=missing,
+        autoescape=missing,
+        loader=missing,
+        cache_size=missing,
+        auto_reload=missing,
+        bytecode_cache=missing,
+    ):
         """Create a new overlay environment that shares all the data with the
         current environment except of cache and the overridden attributes.
         Extensions cannot be removed for an overlayed environment.  An overlayed
@@ -317,7 +349,7 @@ class Environment(object):
         through.
         """
         args = dict(locals())
-        del args['self'], args['cache_size'], args['extensions']
+        del args["self"], args["cache_size"], args["extensions"]
 
         rv = object.__new__(self.__class__)
         rv.__dict__.update(self.__dict__)
@@ -345,8 +377,7 @@ class Environment(object):
 
     def iter_extensions(self):
         """Iterates over the extensions by priority."""
-        return iter(sorted(self.extensions.values(),
-                           key=lambda x: x.priority))
+        return iter(sorted(self.extensions.values(), key=lambda x: x.priority))
 
     def getitem(self, obj, argument):
         """Get an item or attribute of an object but prefer the item."""
@@ -420,8 +451,11 @@ class Environment(object):
         called for all parsing and compiling methods but *not* for :meth:`lex`
         because there you usually only want the actual source tokenized.
         """
-        return reduce(lambda s, e: e.preprocess(s, name, filename),
-                      self.iter_extensions(), str(source))
+        return reduce(
+            lambda s, e: e.preprocess(s, name, filename),
+            self.iter_extensions(),
+            str(source),
+        )
 
     def _tokenize(self, source, name, filename=None, state=None):
         """Called by the parser to do the preprocessing and filtering
@@ -449,11 +483,10 @@ class Environment(object):
 
         .. versionadded:: 2.5
         """
-        return compile(source, filename, 'exec')
+        return compile(source, filename, "exec")
 
     @internalcode
-    def compile(self, source, name=None, filename=None, raw=False,
-                defer_init=False):
+    def compile(self, source, name=None, filename=None, raw=False, defer_init=False):
         """Compile a node or template source code.  The `name` parameter is
         the load name of the template after it was joined using
         :meth:`join_path` if necessary, not the filename on the file system.
@@ -480,12 +513,11 @@ class Environment(object):
                 source = self._parse(source, name, filename)
             if self.optimized:
                 source = optimize(source, self)
-            source = self._generate(source, name, filename,
-                                    defer_init=defer_init)
+            source = self._generate(source, name, filename, defer_init=defer_init)
             if raw:
                 return source
             if filename is None:
-                filename = '<template>'
+                filename = "<template>"
             else:
                 filename = _encode_filename(filename)
             return self._compile(source, filename)
@@ -521,26 +553,33 @@ class Environment(object):
 
         .. versionadded:: 2.1
         """
-        parser = Parser(self, source, state='variable')
+        parser = Parser(self, source, state="variable")
         exc_info = None
         try:
             expr = parser.parse_expression()
             if not parser.stream.eos:
-                raise TemplateSyntaxError('chunk after expression',
-                                          parser.stream.current.lineno,
-                                          None, None)
+                raise TemplateSyntaxError(
+                    "chunk after expression", parser.stream.current.lineno, None, None
+                )
             expr.set_environment(self)
         except TemplateSyntaxError:
             exc_info = sys.exc_info()
         if exc_info is not None:
             self.handle_exception(exc_info, source_hint=source)
-        body = [nodes.Assign(nodes.Name('result', 'store'), expr, lineno=1)]
+        body = [nodes.Assign(nodes.Name("result", "store"), expr, lineno=1)]
         template = self.from_string(nodes.Template(body, lineno=1))
         return TemplateExpression(template, undefined_to_none)
 
-    def compile_templates(self, target, extensions=None, filter_func=None,
-                          zip='deflated', log_function=None,
-                          ignore_errors=True, py_compile=False):
+    def compile_templates(
+        self,
+        target,
+        extensions=None,
+        filter_func=None,
+        zip="deflated",
+        log_function=None,
+        ignore_errors=True,
+        py_compile=False,
+    ):
         """Compiles all the templates the loader can find, compiles them
         and stores them in `target`.  If `zip` is `None`, instead of in a
         zipfile, the templates will be will be stored in a directory.
@@ -568,8 +607,8 @@ class Environment(object):
 
         if py_compile:
             import imp, struct, marshal
-            py_header = imp.get_magic() + \
-                '\xff\xff\xff\xff'.encode('iso-8859-15')
+
+            py_header = imp.get_magic() + "\xff\xff\xff\xff".encode("iso-8859-15")
 
         def write_file(filename, data, mode):
             if zip:
@@ -585,8 +624,10 @@ class Environment(object):
 
         if zip is not None:
             from zipfile import ZipFile, ZipInfo, ZIP_DEFLATED, ZIP_STORED
-            zip_file = ZipFile(target, 'w', dict(deflated=ZIP_DEFLATED,
-                                                 stored=ZIP_STORED)[zip])
+
+            zip_file = ZipFile(
+                target, "w", dict(deflated=ZIP_DEFLATED, stored=ZIP_STORED)[zip]
+            )
             log_function('Compiling into Zip archive "%s"' % target)
         else:
             if not os.path.isdir(target):
@@ -608,18 +649,16 @@ class Environment(object):
 
                 if py_compile:
                     c = self._compile(code, _encode_filename(filename))
-                    write_file(filename + 'c', py_header +
-                               marshal.dumps(c), 'wb')
-                    log_function('Byte-compiled "%s" as %s' %
-                                 (name, filename + 'c'))
+                    write_file(filename + "c", py_header + marshal.dumps(c), "wb")
+                    log_function('Byte-compiled "%s" as %s' % (name, filename + "c"))
                 else:
-                    write_file(filename, code, 'w')
+                    write_file(filename, code, "w")
                     log_function('Compiled "%s" as %s' % (name, filename))
         finally:
             if zip:
                 zip_file.close()
 
-        log_function('Finished compiling templates')
+        log_function("Finished compiling templates")
 
     def list_templates(self, extensions=None, filter_func=None):
         """Returns a list of templates for this environment.  This requires
@@ -638,10 +677,10 @@ class Environment(object):
         x = self.loader.list_templates()
         if extensions is not None:
             if filter_func is not None:
-                raise TypeError('either extensions or filter_func '
-                                'can be passed, but not both')
-            filter_func = lambda x: '.' in x and \
-                                    x.rsplit('.', 1)[1] in extensions
+                raise TypeError(
+                    "either extensions or filter_func " "can be passed, but not both"
+                )
+            filter_func = lambda x: "." in x and x.rsplit(".", 1)[1] in extensions
         if filter_func is not None:
             x = filter(filter_func, x)
         return x
@@ -683,11 +722,12 @@ class Environment(object):
     @internalcode
     def _load_template(self, name, globals):
         if self.loader is None:
-            raise TypeError('no loader for this environment specified')
+            raise TypeError("no loader for this environment specified")
         if self.cache is not None:
             template = self.cache.get(name)
-            if template is not None and (not self.auto_reload or \
-                                         template.is_up_to_date):
+            if template is not None and (
+                not self.auto_reload or template.is_up_to_date
+            ):
                 return template
         template = self.loader.load(self, name, globals)
         if self.cache is not None:
@@ -730,8 +770,9 @@ class Environment(object):
            from the function unchanged.
         """
         if not names:
-            raise TemplatesNotFound(message='Tried to select from an empty list '
-                                            'of templates.')
+            raise TemplatesNotFound(
+                message="Tried to select from an empty list " "of templates."
+            )
         globals = self.make_globals(globals)
         for name in names:
             if isinstance(name, Template):
@@ -745,8 +786,7 @@ class Environment(object):
         raise TemplatesNotFound(names)
 
     @internalcode
-    def get_or_select_template(self, template_name_or_list,
-                               parent=None, globals=None):
+    def get_or_select_template(self, template_name_or_list, parent=None, globals=None):
         """Does a typecheck and dispatches to :meth:`select_template`
         if an iterable of template names is given, otherwise to
         :meth:`get_template`.
@@ -805,28 +845,46 @@ class Template(object):
     StopIteration
     """
 
-    def __new__(cls, source,
-                block_start_string=BLOCK_START_STRING,
-                block_end_string=BLOCK_END_STRING,
-                variable_start_string=VARIABLE_START_STRING,
-                variable_end_string=VARIABLE_END_STRING,
-                comment_start_string=COMMENT_START_STRING,
-                comment_end_string=COMMENT_END_STRING,
-                line_statement_prefix=LINE_STATEMENT_PREFIX,
-                line_comment_prefix=LINE_COMMENT_PREFIX,
-                trim_blocks=TRIM_BLOCKS,
-                newline_sequence=NEWLINE_SEQUENCE,
-                extensions=(),
-                optimized=True,
-                undefined=Undefined,
-                finalize=None,
-                autoescape=False):
+    def __new__(
+        cls,
+        source,
+        block_start_string=BLOCK_START_STRING,
+        block_end_string=BLOCK_END_STRING,
+        variable_start_string=VARIABLE_START_STRING,
+        variable_end_string=VARIABLE_END_STRING,
+        comment_start_string=COMMENT_START_STRING,
+        comment_end_string=COMMENT_END_STRING,
+        line_statement_prefix=LINE_STATEMENT_PREFIX,
+        line_comment_prefix=LINE_COMMENT_PREFIX,
+        trim_blocks=TRIM_BLOCKS,
+        newline_sequence=NEWLINE_SEQUENCE,
+        extensions=(),
+        optimized=True,
+        undefined=Undefined,
+        finalize=None,
+        autoescape=False,
+    ):
         env = get_spontaneous_environment(
-            block_start_string, block_end_string, variable_start_string,
-            variable_end_string, comment_start_string, comment_end_string,
-            line_statement_prefix, line_comment_prefix, trim_blocks,
-            newline_sequence, frozenset(extensions), optimized, undefined,
-            finalize, autoescape, None, 0, False, None)
+            block_start_string,
+            block_end_string,
+            variable_start_string,
+            variable_end_string,
+            comment_start_string,
+            comment_end_string,
+            line_statement_prefix,
+            line_comment_prefix,
+            trim_blocks,
+            newline_sequence,
+            frozenset(extensions),
+            optimized,
+            undefined,
+            finalize,
+            autoescape,
+            None,
+            0,
+            False,
+            None,
+        )
         return env.from_string(source, template_class=cls)
 
     @classmethod
@@ -834,10 +892,7 @@ class Template(object):
         """Creates a template object from compiled code and the globals.  This
         is used by the loaders and environment to create a template object.
         """
-        namespace = {
-            'environment':  environment,
-            '__file__':     code.co_filename
-        }
+        namespace = {"environment": environment, "__file__": code.co_filename}
         exec(code, namespace)
         rv = cls._from_namespace(environment, namespace, globals)
         rv._uptodate = uptodate
@@ -857,21 +912,21 @@ class Template(object):
         t = object.__new__(cls)
         t.environment = environment
         t.globals = globals
-        t.name = namespace['name']
-        t.filename = namespace['__file__']
-        t.blocks = namespace['blocks']
+        t.name = namespace["name"]
+        t.filename = namespace["__file__"]
+        t.blocks = namespace["blocks"]
 
         # render function and module
-        t.root_render_func = namespace['root']
+        t.root_render_func = namespace["root"]
         t._module = None
 
         # debug and loader helpers
-        t._debug_info = namespace['debug_info']
+        t._debug_info = namespace["debug_info"]
         t._uptodate = None
 
         # store the reference
-        namespace['environment'] = environment
-        namespace['__jinja_template__'] = t
+        namespace["environment"] = environment
+        namespace["__jinja_template__"] = t
 
         return t
 
@@ -924,8 +979,9 @@ class Template(object):
 
         `locals` can be a dict of local variables for internal usage.
         """
-        return new_context(self.environment, self.name, self.blocks,
-                           vars, shared, self.globals, locals)
+        return new_context(
+            self.environment, self.name, self.blocks, vars, shared, self.globals, locals
+        )
 
     def make_module(self, vars=None, shared=False, locals=None):
         """This method works like the :attr:`module` attribute when called
@@ -972,15 +1028,14 @@ class Template(object):
     @property
     def debug_info(self):
         """The debug info mapping."""
-        return [tuple(map(int, x.split('='))) for x in
-                self._debug_info.split('&')]
+        return [tuple(map(int, x.split("="))) for x in self._debug_info.split("&")]
 
     def __repr__(self):
         if self.name is None:
-            name = 'memory:%x' % id(self)
+            name = "memory:%x" % id(self)
         else:
             name = repr(self.name)
-        return '<%s %s>' % (self.__class__.__name__, name)
+        return "<%s %s>" % (self.__class__.__name__, name)
 
 
 class TemplateModule(object):
@@ -1002,10 +1057,10 @@ class TemplateModule(object):
 
     def __repr__(self):
         if self.__name__ is None:
-            name = 'memory:%x' % id(self)
+            name = "memory:%x" % id(self)
         else:
             name = repr(self.__name__)
-        return '<%s %s>' % (self.__class__.__name__, name)
+        return "<%s %s>" % (self.__class__.__name__, name)
 
 
 class TemplateExpression(object):
@@ -1021,7 +1076,7 @@ class TemplateExpression(object):
     def __call__(self, *args, **kwargs):
         context = self._template.new_context(dict(*args, **kwargs))
         consume(self._template.root_render_func(context))
-        rv = context.vars['result']
+        rv = context.vars["result"]
         if self._undefined_to_none and isinstance(rv, Undefined):
             rv = None
         return rv
@@ -1042,7 +1097,7 @@ class TemplateStream(object):
         self._gen = gen
         self.disable_buffering()
 
-    def dump(self, fp, encoding=None, errors='strict'):
+    def dump(self, fp, encoding=None, errors="strict"):
         """Dump the complete stream into a file or file-like object.
         Per default unicode strings are written, if you want to encode
         before writing specifiy an `encoding`.
@@ -1053,14 +1108,14 @@ class TemplateStream(object):
         """
         close = False
         if isinstance(fp, str):
-            fp = file(fp, 'w')
+            fp = file(fp, "w")
             close = True
         try:
             if encoding is not None:
                 iterable = (x.encode(encoding, errors) for x in self)
             else:
                 iterable = self
-            if hasattr(fp, 'writelines'):
+            if hasattr(fp, "writelines"):
                 fp.writelines(iterable)
             else:
                 for item in iterable:
@@ -1077,7 +1132,7 @@ class TemplateStream(object):
     def enable_buffering(self, size=5):
         """Enable buffering.  Buffer `size` items before yielding them."""
         if size <= 1:
-            raise ValueError('buffer size too small')
+            raise ValueError("buffer size too small")
 
         def generator(next):
             buf = []

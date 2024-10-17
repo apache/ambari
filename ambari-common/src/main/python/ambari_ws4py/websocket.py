@@ -11,21 +11,23 @@ import errno
 try:
     from OpenSSL.SSL import Error as pyOpenSSLError
 except ImportError:
+
     class pyOpenSSLError(Exception):
         pass
+
 
 from ambari_ws4py import WS_KEY, WS_VERSION
 from ambari_ws4py.exc import HandshakeError, StreamClosed
 from ambari_ws4py.streaming import Stream
-from ambari_ws4py.messaging import Message, PingControlMessage,\
-    PongControlMessage
+from ambari_ws4py.messaging import Message, PingControlMessage, PongControlMessage
 from ambari_ws4py.compat import basestring, unicode
 
 DEFAULT_READING_SIZE = 2
 
-logger = logging.getLogger('ambari_ws4py')
+logger = logging.getLogger("ambari_ws4py")
 
-__all__ = ['WebSocket', 'EchoWebSocket', 'Heartbeat']
+__all__ = ["WebSocket", "EchoWebSocket", "Heartbeat"]
+
 
 class Heartbeat(threading.Thread):
     def __init__(self, websocket, frequency=2.0):
@@ -62,18 +64,21 @@ class Heartbeat(threading.Thread):
                 break
 
             try:
-                self.websocket.send(PongControlMessage(data='beep'))
+                self.websocket.send(PongControlMessage(data="beep"))
             except socket.error:
                 logger.info("Heartbeat failed")
                 self.websocket.server_terminated = True
                 self.websocket.close_connection()
                 break
 
-class WebSocket(object):
-    """ Represents a websocket endpoint and provides a high level interface to drive the endpoint. """
 
-    def __init__(self, sock, protocols=None, extensions=None, environ=None, heartbeat_freq=None):
-        """ The ``sock`` is an opened connection
+class WebSocket(object):
+    """Represents a websocket endpoint and provides a high level interface to drive the endpoint."""
+
+    def __init__(
+        self, sock, protocols=None, extensions=None, environ=None, heartbeat_freq=None
+    ):
+        """The ``sock`` is an opened connection
         resulting from the websocket handshake.
 
         If ``protocols`` is provided, it is a list of protocols
@@ -109,7 +114,7 @@ class WebSocket(object):
         Underlying connection.
         """
 
-        self._is_secure = hasattr(sock, '_ssl') or hasattr(sock, '_sslobj')
+        self._is_secure = hasattr(sock, "_ssl") or hasattr(sock, "_sslobj")
         """
         Tell us if the socket is secure or not.
         """
@@ -140,7 +145,7 @@ class WebSocket(object):
         Set this to `0` or `None` to disable it entirely.
         """
         "Internal buffer to get around SSL problems"
-        self.buf = b''
+        self.buf = b""
 
         self._local_address = None
         self._peer_address = None
@@ -179,7 +184,7 @@ class WebSocket(object):
         """
         pass
 
-    def close(self, code=1000, reason=''):
+    def close(self, code=1000, reason=""):
         """
         Call this method to initiate the websocket connection
         closing by sending a close frame to the connected peer.
@@ -194,16 +199,20 @@ class WebSocket(object):
         .. seealso:: Defined Status Codes http://tools.ietf.org/html/rfc6455#section-7.4.1
         """
 
-        #If we are sending a fragmented frame with a generator this will make that stop
+        # If we are sending a fragmented frame with a generator this will make that stop
         self.server_terminate_request = True
 
         with self.lock:
-          if not self.server_terminated:
-              self.server_terminated = True
-              try:
-                  self._write(self.stream.close(code=code, reason=reason).single(mask=self.stream.always_mask))
-              except Exception as ex:
-                  logger.error("Error when terminating the connection: %s", str(ex))
+            if not self.server_terminated:
+                self.server_terminated = True
+                try:
+                    self._write(
+                        self.stream.close(code=code, reason=reason).single(
+                            mask=self.stream.always_mask
+                        )
+                    )
+                except Exception as ex:
+                    logger.error("Error when terminating the connection: %s", str(ex))
 
     def closed(self, code, reason=None):
         """
@@ -307,7 +316,9 @@ class WebSocket(object):
 
         If ``binary`` is set, handles the payload as a binary message.
         """
-        message_sender = self.stream.binary_message if binary else self.stream.text_message
+        message_sender = (
+            self.stream.binary_message if binary else self.stream.text_message
+        )
 
         if isinstance(payload, basestring) or isinstance(payload, bytearray):
             m = message_sender(payload).single(mask=self.stream.always_mask)
@@ -324,16 +335,23 @@ class WebSocket(object):
                 bytes = next(payload)
                 first = True
                 for chunk in payload:
-
-                    #This lets close() interrupt even a long running send.
+                    # This lets close() interrupt even a long running send.
                     if self.server_terminate_request:
                         break
 
-                    self._write(message_sender(bytes).fragment(first=first, mask=self.stream.always_mask))
+                    self._write(
+                        message_sender(bytes).fragment(
+                            first=first, mask=self.stream.always_mask
+                        )
+                    )
                     bytes = chunk
                     first = False
 
-                self._write(message_sender(bytes).fragment(first=first, last=True, mask=self.stream.always_mask))
+                self._write(
+                    message_sender(bytes).fragment(
+                        first=first, last=True, mask=self.stream.always_mask
+                    )
+                )
 
         else:
             raise ValueError("Unsupported type '%s' passed to send()" % type(payload))
@@ -406,7 +424,7 @@ class WebSocket(object):
             logger.debug("WebSocket is already terminated")
             return False
         try:
-            b = b''
+            b = b""
             if self._is_secure:
                 b = self._get_from_pending()
             if not b and not self.buf:
@@ -446,7 +464,7 @@ class WebSocket(object):
         s = self.stream
 
         if s is None:
-          return
+            return
 
         try:
             if s.closing is None:
@@ -463,7 +481,7 @@ class WebSocket(object):
             self.environ = None
 
     def process(self, bytes):
-        """ Takes some bytes and process them through the
+        """Takes some bytes and process them through the
         internal stream's parser. If a message of any kind is
         found, performs one of these actions:
 
@@ -482,10 +500,13 @@ class WebSocket(object):
             return False
 
         with self.lock:
-          self.reading_buffer_size = s.parser.send(bytes) or DEFAULT_READING_SIZE
+            self.reading_buffer_size = s.parser.send(bytes) or DEFAULT_READING_SIZE
 
         if s.closing is not None:
-            logger.info("Closing message received (%d) '%s'" % (s.closing.code, s.closing.reason))
+            logger.info(
+                "Closing message received (%d) '%s'"
+                % (s.closing.code, s.closing.reason)
+            )
             if not self.server_terminated:
                 self.close(s.closing.code, s.closing.reason)
             else:
@@ -494,7 +515,9 @@ class WebSocket(object):
 
         if s.errors:
             for error in s.errors:
-                logger.warn("Error message received (%d) '%s'" % (error.code, error.reason))
+                logger.warn(
+                    "Error message received (%d) '%s'" % (error.code, error.reason)
+                )
                 self.close(error.code, error.reason)
             s.errors = []
             return False
@@ -554,6 +577,7 @@ class WebSocket(object):
                 logger.exception("Websocket connection was closed with an exception")
             finally:
                 self.terminate()
+
 
 class EchoWebSocket(WebSocket):
     def received_message(self, message):

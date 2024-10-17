@@ -24,22 +24,36 @@ from resource_management.core.logger import Logger
 
 __all__ = ["get_config"]
 
-def get_config(config_type, default=None):
-  """
-  @param config_type: config_type
-  """
 
-  import params
-  if params.config:
-    all_configurations = params.config.get('configurations', default)
-    if all_configurations:
-      config = all_configurations.get(config_type, default)
-      if not config:
-        Logger.warning("No configurations for config type {0}. Use default instead.".format(config_type))
-      return config
+def get_config(config_type, default=None):
+    """
+    @param config_type: config_type
+    """
+
+    import params
+
+    if params.config:
+        all_configurations = params.config.get("configurations", default)
+        if all_configurations:
+            config = all_configurations.get(config_type, default)
+            if not config:
+                Logger.warning(
+                    "No configurations for config type {0}. Use default instead.".format(
+                        config_type
+                    )
+                )
+            return config
+        else:
+            Logger.warning(
+                'No service configurations available in the "configurations" section. Use default instead.'.format(
+                    config_type
+                )
+            )
+            return default
     else:
-      Logger.warning("No service configurations available in the \"configurations\" section. Use default instead.".format(config_type))
-      return default
-  else:
-    Logger.warning("No service configurations available. Use default instead.".format(config_type))
-    return default
+        Logger.warning(
+            "No service configurations available. Use default instead.".format(
+                config_type
+            )
+        )
+        return default

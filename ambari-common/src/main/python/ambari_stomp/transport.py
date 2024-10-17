@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""Provides the underlying transport functionality (for stomp message transmission) - (mostly) independent from the actual STOMP protocol
-"""
+"""Provides the underlying transport functionality (for stomp message transmission) - (mostly) independent from the actual STOMP protocol"""
 
 import errno
 from io import BytesIO
@@ -19,7 +18,10 @@ try:
     from ssl import SSLError
 
     DEFAULT_SSL_VERSION = ssl.PROTOCOL_TLSv1_2
-except (ImportError, AttributeError):  # python version < 2.6 without the backported ssl module
+except (
+    ImportError,
+    AttributeError,
+):  # python version < 2.6 without the backported ssl module
     ssl = None
 
     class SSLError(object):
@@ -43,7 +45,7 @@ import ambari_stomp.listener
 import ambari_stomp.utils as utils
 
 
-log = logging.getLogger('stomp.py')
+log = logging.getLogger("stomp.py")
 
 
 class BaseTransport(ambari_stomp.listener.Publisher):
@@ -61,10 +63,12 @@ class BaseTransport(ambari_stomp.listener.Publisher):
     #
     # Used to parse the STOMP "content-length" header lines,
     #
-    __content_length_re = re.compile(b'^content-length[:]\\s*(?P<value>[0-9]+)', re.MULTILINE)
+    __content_length_re = re.compile(
+        b"^content-length[:]\\s*(?P<value>[0-9]+)", re.MULTILINE
+    )
 
     def __init__(self, wait_on_receipt=False, auto_decode=True):
-        self.__recvbuf = b''
+        self.__recvbuf = b""
         self.listeners = {}
         self.running = False
         self.blocking = None
@@ -109,8 +113,10 @@ class BaseTransport(ambari_stomp.listener.Publisher):
         self.running = True
         self.attempt_connection()
         self.receiver_thread = self.create_thread_fc(self.__receiver_loop)
-        self.receiver_thread.name = "StompReceiver%s" % getattr(self.receiver_thread, "name", "Thread")
-        self.notify('connecting')
+        self.receiver_thread.name = "StompReceiver%s" % getattr(
+            self.receiver_thread, "name", "Thread"
+        )
+        self.notify("connecting")
 
     def stop(self):
         """
@@ -118,7 +124,7 @@ class BaseTransport(ambari_stomp.listener.Publisher):
         receiver thread to exit.
         """
         if not self.receiver_thread or not self.receiver_thread.is_alive():
-          return
+            return
 
         with self.__receiver_thread_exit_condition:
             while not self.__receiver_thread_exited:
@@ -183,16 +189,27 @@ class BaseTransport(ambari_stomp.listener.Publisher):
         :param bytes frame_str: raw frame content
         """
         frame_type = f.cmd.lower()
-        if frame_type in ['connected', 'message', 'receipt', 'error', 'heartbeat']:
-            if frame_type == 'message':
-                (f.headers, f.body) = self.notify('before_message', f.headers, f.body)
+        if frame_type in ["connected", "message", "receipt", "error", "heartbeat"]:
+            if frame_type == "message":
+                (f.headers, f.body) = self.notify("before_message", f.headers, f.body)
             if log.isEnabledFor(logging.DEBUG):
-                log.debug("Received frame: %r, headers=%r, body=%r", f.cmd, f.headers, f.body)
+                log.debug(
+                    "Received frame: %r, headers=%r, body=%r", f.cmd, f.headers, f.body
+                )
             else:
-                log.debug("Received frame: %r, headers=%r, len(body)=%r", f.cmd, f.headers, utils.length(f.body))
+                log.debug(
+                    "Received frame: %r, headers=%r, len(body)=%r",
+                    f.cmd,
+                    f.headers,
+                    utils.length(f.body),
+                )
             self.notify(frame_type, f.headers, f.body)
         else:
-            log.warning("Unknown response frame type: '%s' (frame length was %d)", frame_type, utils.length(frame_str))
+            log.warning(
+                "Unknown response frame type: '%s' (frame length was %d)",
+                frame_type,
+                utils.length(frame_str),
+            )
 
     def notify(self, frame_type, headers=None, body=None):
         """
@@ -202,9 +219,9 @@ class BaseTransport(ambari_stomp.listener.Publisher):
         :param dict headers: the map of headers associated with the message
         :param body: the content of the message
         """
-        if frame_type == 'receipt':
+        if frame_type == "receipt":
             # logic for wait-on-receipt notification
-            receipt = headers['receipt-id']
+            receipt = headers["receipt-id"]
             receipt_value = self.__receipts.get(receipt)
             with self.__send_wait_condition:
                 self.set_receipt(receipt, None)
@@ -217,28 +234,28 @@ class BaseTransport(ambari_stomp.listener.Publisher):
             if receipt_value == CMD_DISCONNECT:
                 self.set_connected(False)
 
-        elif frame_type == 'connected':
+        elif frame_type == "connected":
             self.set_connected(True)
 
-        elif frame_type == 'disconnected':
+        elif frame_type == "disconnected":
             self.set_connected(False)
 
         for listener in self.listeners.values():
             if not listener:
                 continue
 
-            notify_func = getattr(listener, 'on_%s' % frame_type, None)
+            notify_func = getattr(listener, "on_%s" % frame_type, None)
             if not notify_func:
                 log.debug("listener %s has no method on_%s", listener, frame_type)
                 continue
-            if frame_type in ('heartbeat', 'disconnected'):
+            if frame_type in ("heartbeat", "disconnected"):
                 notify_func()
                 continue
-            if frame_type == 'connecting':
+            if frame_type == "connecting":
                 notify_func(self.current_host_and_port)
                 continue
 
-            if frame_type == 'error' and not self.connected:
+            if frame_type == "error" and not self.connected:
                 with self.__connect_wait_condition:
                     self.connection_error = True
                     self.__connect_wait_condition.notify()
@@ -269,7 +286,9 @@ class BaseTransport(ambari_stomp.listener.Publisher):
         if log.isEnabledFor(logging.DEBUG):
             log.debug("Sending frame: %s", lines)
         else:
-            log.debug("Sending frame: %r, headers=%r", frame.cmd or "heartbeat", frame.headers)
+            log.debug(
+                "Sending frame: %r, headers=%r", frame.cmd or "heartbeat", frame.headers
+            )
 
         self.send(encode(packed_frame))
 
@@ -307,7 +326,7 @@ class BaseTransport(ambari_stomp.listener.Publisher):
         """
 
     def get_connect_wait_condition(self):
-      return self.__connect_wait_condition
+        return self.__connect_wait_condition
 
     def wait_for_connection(self, timeout=None):
         """
@@ -343,11 +362,11 @@ class BaseTransport(ambari_stomp.listener.Publisher):
                             self.process_frame(f, frame)
                 except exception.ConnectionClosedException:
                     if self.running:
-                        self.notify('disconnected')
+                        self.notify("disconnected")
                         #
                         # Clear out any half-received messages after losing connection
                         #
-                        self.__recvbuf = b''
+                        self.__recvbuf = b""
                         self.running = False
                     break
                 finally:
@@ -375,10 +394,10 @@ class BaseTransport(ambari_stomp.listener.Publisher):
                     continue
             except Exception:
                 log.debug("socket read error", exc_info=True)
-                c = b''
+                c = b""
             if c is None or len(c) == 0:
                 raise exception.ConnectionClosedException()
-            if c.encode() == b'\x0a' and not self.__recvbuf and not fastbuf.tell():
+            if c.encode() == b"\x0a" and not self.__recvbuf and not fastbuf.tell():
                 #
                 # EOL to an empty receive buffer: treat as heartbeat.
                 # Note that this may misdetect an optional EOL at end of frame as heartbeat in case the
@@ -388,7 +407,7 @@ class BaseTransport(ambari_stomp.listener.Publisher):
                 fastbuf.close()
                 return [c.encode()]
             fastbuf.write(c.encode())
-            if b'\x00' in c.encode():
+            if b"\x00" in c.encode():
                 #
                 # Possible end of frame
                 #
@@ -399,16 +418,18 @@ class BaseTransport(ambari_stomp.listener.Publisher):
 
         if self.__recvbuf and self.running:
             while True:
-                pos = self.__recvbuf.find(b'\x00')
+                pos = self.__recvbuf.find(b"\x00")
 
                 if pos >= 0:
                     frame = self.__recvbuf[0:pos]
                     preamble_end_match = utils.PREAMBLE_END_RE.search(frame)
                     if preamble_end_match:
                         preamble_end = preamble_end_match.start()
-                        content_length_match = BaseTransport.__content_length_re.search(frame[0:preamble_end])
+                        content_length_match = BaseTransport.__content_length_re.search(
+                            frame[0:preamble_end]
+                        )
                         if content_length_match:
-                            content_length = int(content_length_match.group('value'))
+                            content_length = int(content_length_match.group("value"))
                             content_offset = preamble_end_match.end()
                             frame_size = content_offset + content_length
                             if frame_size > len(frame):
@@ -428,7 +449,7 @@ class BaseTransport(ambari_stomp.listener.Publisher):
                     #
                     # Ignore optional EOLs at end of frame
                     #
-                    while self.__recvbuf[pos:pos + 1] == b'\x0a':
+                    while self.__recvbuf[pos : pos + 1] == b"\x0a":
                         pos += 1
                     self.__recvbuf = self.__recvbuf[pos:]
                 else:
@@ -481,31 +502,32 @@ class Transport(BaseTransport):
     :param str vhost: specify a virtual hostname to provide in the 'host' header of the connection
     """
 
-    def __init__(self,
-                 host_and_ports=None,
-                 prefer_localhost=True,
-                 try_loopback_connect=True,
-                 reconnect_sleep_initial=0.1,
-                 reconnect_sleep_increase=0.5,
-                 reconnect_sleep_jitter=0.1,
-                 reconnect_sleep_max=60.0,
-                 reconnect_attempts_max=3,
-                 use_ssl=False,
-                 ssl_key_file=None,
-                 ssl_cert_file=None,
-                 ssl_ca_certs=None,
-                 ssl_cert_validator=None,
-                 wait_on_receipt=False,
-                 ssl_version=None,
-                 timeout=None,
-                 keepalive=None,
-                 vhost=None,
-                 auto_decode=True
-                 ):
+    def __init__(
+        self,
+        host_and_ports=None,
+        prefer_localhost=True,
+        try_loopback_connect=True,
+        reconnect_sleep_initial=0.1,
+        reconnect_sleep_increase=0.5,
+        reconnect_sleep_jitter=0.1,
+        reconnect_sleep_max=60.0,
+        reconnect_attempts_max=3,
+        use_ssl=False,
+        ssl_key_file=None,
+        ssl_cert_file=None,
+        ssl_ca_certs=None,
+        ssl_cert_validator=None,
+        wait_on_receipt=False,
+        ssl_version=None,
+        timeout=None,
+        keepalive=None,
+        vhost=None,
+        auto_decode=True,
+    ):
         BaseTransport.__init__(self, wait_on_receipt, auto_decode)
 
         if host_and_ports is None:
-            host_and_ports = [('localhost', 61613)]
+            host_and_ports = [("localhost", 61613)]
 
         sorted_host_and_ports = []
         sorted_host_and_ports.extend(host_and_ports)
@@ -527,7 +549,10 @@ class Transport(BaseTransport):
             for host_and_port in sorted_host_and_ports:
                 if utils.is_localhost(host_and_port) == 1:
                     port = host_and_port[1]
-                    if not (("127.0.0.1", port) in sorted_host_and_ports or ("localhost", port) in sorted_host_and_ports):
+                    if not (
+                        ("127.0.0.1", port) in sorted_host_and_ports
+                        or ("localhost", port) in sorted_host_and_ports
+                    ):
                         loopback_host_and_ports.append(("127.0.0.1", port))
 
         #
@@ -552,12 +577,14 @@ class Transport(BaseTransport):
         self.__ssl_params = {}
         if use_ssl:
             warnings.warn("Deprecated: use set_ssl instead", DeprecationWarning)
-            self.set_ssl(host_and_ports,
-                         ssl_key_file,
-                         ssl_cert_file,
-                         ssl_ca_certs,
-                         ssl_cert_validator,
-                         ssl_version)
+            self.set_ssl(
+                host_and_ports,
+                ssl_key_file,
+                ssl_cert_file,
+                ssl_ca_certs,
+                ssl_cert_validator,
+                ssl_version,
+            )
 
         self.__keepalive = keepalive
         self.vhost = vhost
@@ -569,7 +596,11 @@ class Transport(BaseTransport):
         :rtype: bool
         """
         try:
-            return self.socket is not None and self.socket.getsockname()[1] != 0 and BaseTransport.is_connected(self)
+            return (
+                self.socket is not None
+                and self.socket.getsockname()[1] != 0
+                and BaseTransport.is_connected(self)
+            )
         except socket.error:
             return False
 
@@ -592,14 +623,17 @@ class Transport(BaseTransport):
                     #
                     _, e, _ = sys.exc_info()
                     log.warning(e)
-            elif hasattr(socket, 'SHUT_RDWR'):
+            elif hasattr(socket, "SHUT_RDWR"):
                 try:
                     self.socket.shutdown(socket.SHUT_RDWR)
                 except socket.error:
                     _, e, _ = sys.exc_info()
                     # ignore when socket already closed
                     if get_errno(e) != errno.ENOTCONN:
-                        log.warning("Unable to issue SHUT_RDWR on socket because of error '%s'", e)
+                        log.warning(
+                            "Unable to issue SHUT_RDWR on socket because of error '%s'",
+                            e,
+                        )
 
         #
         # split this into a separate check, because sometimes the socket is nulled between shutdown and this call
@@ -612,7 +646,7 @@ class Transport(BaseTransport):
                 log.warning("Unable to close socket because of error '%s'", e)
         self.current_host_and_port = None
         self.socket = None
-        self.notify('disconnected')
+        self.notify("disconnected")
 
     def send(self, encoded_frame):
         """
@@ -662,7 +696,9 @@ class Transport(BaseTransport):
                 sock.setsockopt(fam, opt, val)
                 log.info("keepalive: set %r option to %r on socket", name, val)
             except:
-                log.error("keepalive: unable to set %r option to %r on socket", name, val)
+                log.error(
+                    "keepalive: unable to set %r option to %r on socket", name, val
+                )
                 return False
             return True
 
@@ -672,7 +708,7 @@ class Transport(BaseTransport):
             return
 
         if ka is True:
-            ka_sig = 'auto'
+            ka_sig = "auto"
             ka_args = ()
         else:
             try:
@@ -682,27 +718,33 @@ class Transport(BaseTransport):
                 log.error("keepalive: bad specification %r", ka)
                 return
 
-        if ka_sig == 'auto':
+        if ka_sig == "auto":
             if LINUX_KEEPALIVE_AVAIL:
-                ka_sig = 'linux'
+                ka_sig = "linux"
                 ka_args = None
                 log.info("keepalive: autodetected linux-style support")
             else:
                 log.error("keepalive: unable to detect any implementation, DISABLED!")
                 return
 
-        if ka_sig == 'linux':
+        if ka_sig == "linux":
             log.info("keepalive: activating linux-style support")
             if ka_args is None:
                 log.info("keepalive: using system defaults")
                 ka_args = (None, None, None)
             lka_idle, lka_intvl, lka_cnt = ka_args
-            if try_setsockopt(self.socket, 'enable', SOL_SOCKET, SO_KEEPALIVE, 1):
-                try_setsockopt(self.socket, 'idle time', SOL_TCP, TCP_KEEPIDLE, lka_idle)
-                try_setsockopt(self.socket, 'interval', SOL_TCP, TCP_KEEPINTVL, lka_intvl)
-                try_setsockopt(self.socket, 'count', SOL_TCP, TCP_KEEPCNT, lka_cnt)
+            if try_setsockopt(self.socket, "enable", SOL_SOCKET, SO_KEEPALIVE, 1):
+                try_setsockopt(
+                    self.socket, "idle time", SOL_TCP, TCP_KEEPIDLE, lka_idle
+                )
+                try_setsockopt(
+                    self.socket, "interval", SOL_TCP, TCP_KEEPINTVL, lka_intvl
+                )
+                try_setsockopt(self.socket, "count", SOL_TCP, TCP_KEEPCNT, lka_cnt)
         else:
-            log.error("keepalive: implementation %r not recognized or not supported", ka_sig)
+            log.error(
+                "keepalive: implementation %r not recognized or not supported", ka_sig
+            )
 
     def attempt_connection(self):
         """
@@ -712,46 +754,64 @@ class Transport(BaseTransport):
         sleep_exp = 1
         connect_count = 0
 
-        while self.running and self.socket is None and connect_count < self.__reconnect_attempts_max:
+        while (
+            self.running
+            and self.socket is None
+            and connect_count < self.__reconnect_attempts_max
+        ):
             for host_and_port in self.__host_and_ports:
                 try:
-                    log.info("Attempting connection to host %s, port %s", host_and_port[0], host_and_port[1])
-                    self.socket = get_socket(host_and_port[0], host_and_port[1], self.__timeout)
+                    log.info(
+                        "Attempting connection to host %s, port %s",
+                        host_and_port[0],
+                        host_and_port[1],
+                    )
+                    self.socket = get_socket(
+                        host_and_port[0], host_and_port[1], self.__timeout
+                    )
                     self.__enable_keepalive()
                     need_ssl = self.__need_ssl(host_and_port)
 
                     if need_ssl:  # wrap socket
                         ssl_params = self.get_ssl(host_and_port)
-                        if ssl_params['ca_certs']:
+                        if ssl_params["ca_certs"]:
                             cert_validation = ssl.CERT_REQUIRED
                         else:
                             cert_validation = ssl.CERT_NONE
                         try:
-                            tls_context = ssl.create_default_context(cafile=ssl_params['ca_certs'])
+                            tls_context = ssl.create_default_context(
+                                cafile=ssl_params["ca_certs"]
+                            )
                         except AttributeError:
                             tls_context = None
                         if tls_context:
                             # Wrap the socket for TLS
-                            certfile = ssl_params['cert_file']
-                            keyfile = ssl_params['key_file']
-                            password = ssl_params.get('password')
+                            certfile = ssl_params["cert_file"]
+                            keyfile = ssl_params["key_file"]
+                            password = ssl_params.get("password")
                             if certfile and not keyfile:
                                 keyfile = certfile
                             if certfile:
                                 tls_context.load_cert_chain(certfile, keyfile, password)
-                            if cert_validation is None or cert_validation == ssl.CERT_NONE:
+                            if (
+                                cert_validation is None
+                                or cert_validation == ssl.CERT_NONE
+                            ):
                                 tls_context.check_hostname = False
                             tls_context.verify_mode = cert_validation
-                            self.socket = tls_context.wrap_socket(self.socket, server_hostname=host_and_port[0])
+                            self.socket = tls_context.wrap_socket(
+                                self.socket, server_hostname=host_and_port[0]
+                            )
                         else:
                             # Old-style wrap_socket where we don't have a modern SSLContext (so no SNI)
                             self.socket = ssl.wrap_socket(
                                 self.socket,
-                                keyfile=ssl_params['key_file'],
-                                certfile=ssl_params['cert_file'],
+                                keyfile=ssl_params["key_file"],
+                                certfile=ssl_params["cert_file"],
                                 cert_reqs=cert_validation,
-                                ca_certs=ssl_params['ca_certs'],
-                                ssl_version=ssl_params['ssl_version'])
+                                ca_certs=ssl_params["ca_certs"],
+                                ssl_version=ssl_params["ssl_version"],
+                            )
 
                     self.socket.settimeout(self.__timeout)
 
@@ -761,27 +821,49 @@ class Transport(BaseTransport):
                     #
                     # Validate server cert
                     #
-                    if need_ssl and ssl_params['cert_validator']:
+                    if need_ssl and ssl_params["cert_validator"]:
                         cert = self.socket.getpeercert()
-                        (ok, errmsg) = ssl_params['cert_validator'](cert, host_and_port[0])
+                        (ok, errmsg) = ssl_params["cert_validator"](
+                            cert, host_and_port[0]
+                        )
                         if not ok:
-                            raise SSLError("Server certificate validation failed: %s", errmsg)
+                            raise SSLError(
+                                "Server certificate validation failed: %s", errmsg
+                            )
 
                     self.current_host_and_port = host_and_port
-                    log.info("Established connection to host %s, port %s", host_and_port[0], host_and_port[1])
+                    log.info(
+                        "Established connection to host %s, port %s",
+                        host_and_port[0],
+                        host_and_port[1],
+                    )
                     break
                 except socket.error:
                     self.socket = None
                     connect_count += 1
-                    log.warning("Could not connect to host %s, port %s", host_and_port[0], host_and_port[1], exc_info=1)
+                    log.warning(
+                        "Could not connect to host %s, port %s",
+                        host_and_port[0],
+                        host_and_port[1],
+                        exc_info=1,
+                    )
 
             if self.socket is None:
-                sleep_duration = (min(self.__reconnect_sleep_max,
-                                      ((self.__reconnect_sleep_initial / (1.0 + self.__reconnect_sleep_increase))
-                                       * math.pow(1.0 + self.__reconnect_sleep_increase, sleep_exp)))
-                                  * (1.0 + random.random() * self.__reconnect_sleep_jitter))
+                sleep_duration = min(
+                    self.__reconnect_sleep_max,
+                    (
+                        (
+                            self.__reconnect_sleep_initial
+                            / (1.0 + self.__reconnect_sleep_increase)
+                        )
+                        * math.pow(1.0 + self.__reconnect_sleep_increase, sleep_exp)
+                    ),
+                ) * (1.0 + random.random() * self.__reconnect_sleep_jitter)
                 sleep_end = monotonic() + sleep_duration
-                log.debug("Sleeping for %.1f seconds before attempting reconnect", sleep_duration)
+                log.debug(
+                    "Sleeping for %.1f seconds before attempting reconnect",
+                    sleep_duration,
+                )
                 while self.running and monotonic() < sleep_end:
                     time.sleep(0.2)
 
@@ -791,14 +873,16 @@ class Transport(BaseTransport):
         if not self.socket:
             raise exception.ConnectFailedException()
 
-    def set_ssl(self,
-                for_hosts=(),
-                key_file=None,
-                cert_file=None,
-                ca_certs=None,
-                cert_validator=None,
-                ssl_version=DEFAULT_SSL_VERSION,
-                password=None):
+    def set_ssl(
+        self,
+        for_hosts=(),
+        key_file=None,
+        cert_file=None,
+        ca_certs=None,
+        cert_validator=None,
+        ssl_version=DEFAULT_SSL_VERSION,
+        password=None,
+    ):
         """
         Sets up SSL configuration for the given hosts. This ensures socket is wrapped in a SSL connection, raising an
         exception if the SSL module can't be found.
@@ -821,12 +905,14 @@ class Transport(BaseTransport):
             raise Exception("SSL connection requested, but SSL library not found")
 
         for host_port in for_hosts:
-            self.__ssl_params[host_port] = dict(key_file=key_file,
-                                                cert_file=cert_file,
-                                                ca_certs=ca_certs,
-                                                cert_validator=cert_validator,
-                                                ssl_version=ssl_version,
-                                                password=password)
+            self.__ssl_params[host_port] = dict(
+                key_file=key_file,
+                cert_file=cert_file,
+                ca_certs=ca_certs,
+                cert_validator=cert_validator,
+                ssl_version=ssl_version,
+                password=password,
+            )
 
     def __need_ssl(self, host_and_port=None):
         """

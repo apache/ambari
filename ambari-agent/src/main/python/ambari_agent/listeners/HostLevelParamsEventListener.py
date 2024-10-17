@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -15,7 +15,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 import logging
 import ambari_stomp
@@ -25,36 +25,40 @@ from ambari_agent import Constants
 
 logger = logging.getLogger(__name__)
 
+
 class HostLevelParamsEventListener(EventListener):
-  """
-  Listener of Constants.HOST_LEVEL_PARAMS_TOPIC events from server.
-  """
-  def __init__(self, initializer_module):
-    super(HostLevelParamsEventListener, self).__init__(initializer_module)
-    self.host_level_params_cache = initializer_module.host_level_params_cache
-    self.recovery_manager = initializer_module.recovery_manager
-
-  def on_event(self, headers, message):
     """
-    Is triggered when an event to Constants.HOST_LEVEL_PARAMS_TOPIC topic is received from server.
-
-    @param headers: headers dictionary
-    @param message: message payload dictionary
+    Listener of Constants.HOST_LEVEL_PARAMS_TOPIC events from server.
     """
-    # this kind of response is received if hash was identical. And server does not need to change anything
-    if message == {}:
-      return
 
-    self.host_level_params_cache.rewrite_cache(message['clusters'], message['hash'])
+    def __init__(self, initializer_module):
+        super(HostLevelParamsEventListener, self).__init__(initializer_module)
+        self.host_level_params_cache = initializer_module.host_level_params_cache
+        self.recovery_manager = initializer_module.recovery_manager
 
-    if message['clusters']:
-      # FIXME: Recovery manager does not support multiple cluster as of now.
-      cluster_id = list(message['clusters'].keys())[0]
+    def on_event(self, headers, message):
+        """
+        Is triggered when an event to Constants.HOST_LEVEL_PARAMS_TOPIC topic is received from server.
 
-      if 'recoveryConfig' in message['clusters'][cluster_id]:
-        logging.info("Updating recoveryConfig from hostLevelParams")
-        self.recovery_manager.cluster_id = cluster_id
-        self.recovery_manager.update_recovery_config(self.host_level_params_cache[cluster_id])
+        @param headers: headers dictionary
+        @param message: message payload dictionary
+        """
+        # this kind of response is received if hash was identical. And server does not need to change anything
+        if message == {}:
+            return
 
-  def get_handled_path(self):
-    return Constants.HOST_LEVEL_PARAMS_TOPIC
+        self.host_level_params_cache.rewrite_cache(message["clusters"], message["hash"])
+
+        if message["clusters"]:
+            # FIXME: Recovery manager does not support multiple cluster as of now.
+            cluster_id = list(message["clusters"].keys())[0]
+
+            if "recoveryConfig" in message["clusters"][cluster_id]:
+                logging.info("Updating recoveryConfig from hostLevelParams")
+                self.recovery_manager.cluster_id = cluster_id
+                self.recovery_manager.update_recovery_config(
+                    self.host_level_params_cache[cluster_id]
+                )
+
+    def get_handled_path(self):
+        return Constants.HOST_LEVEL_PARAMS_TOPIC

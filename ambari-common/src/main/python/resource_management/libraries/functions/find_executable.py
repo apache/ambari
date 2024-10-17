@@ -25,24 +25,29 @@ from resource_management.libraries.functions.find_path import find_path
 
 
 def find_executable(search_directories, filename):
-  """
-  Searches for the specified executable using a list of specified search paths or, if None, a default
-  set of paths:
-    /usr/bin
-    /usr/kerberos/bin
-    /usr/sbin
-    /usr/lib/mit/bin
-    /usr/lib/mit/sbin
+    """
+    Searches for the specified executable using a list of specified search paths or, if None, a default
+    set of paths:
+      /usr/bin
+      /usr/kerberos/bin
+      /usr/sbin
+      /usr/lib/mit/bin
+      /usr/lib/mit/sbin
 
-  @param search_directories: comma separated list or a list of (absolute paths to) directories to search (in order of preference)
-  @param filename: the name of the file for which to search
-  @return: the absolute path to the specified executable; or, if not found just the specified executable name
-  """
-  if isinstance(search_directories, str):
-    search_directories = list(map(str.strip, search_directories.split(",")))
-  elif not isinstance(search_directories, list):
-    search_directories = ["/usr/bin", "/usr/kerberos/bin", "/usr/sbin", '/usr/lib/mit/bin',
-                          '/usr/lib/mit/sbin']
+    @param search_directories: comma separated list or a list of (absolute paths to) directories to search (in order of preference)
+    @param filename: the name of the file for which to search
+    @return: the absolute path to the specified executable; or, if not found just the specified executable name
+    """
+    if isinstance(search_directories, str):
+        search_directories = list(map(str.strip, search_directories.split(",")))
+    elif not isinstance(search_directories, list):
+        search_directories = [
+            "/usr/bin",
+            "/usr/kerberos/bin",
+            "/usr/sbin",
+            "/usr/lib/mit/bin",
+            "/usr/lib/mit/sbin",
+        ]
 
-  path = find_path(search_directories, filename)
-  return path if path else filename
+    path = find_path(search_directories, filename)
+    return path if path else filename

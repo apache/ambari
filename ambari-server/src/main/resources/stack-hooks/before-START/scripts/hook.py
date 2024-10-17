@@ -17,28 +17,33 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+
 from rack_awareness import create_topology_script_and_mapping
-from shared_initialization import setup_hadoop, setup_configs, create_javahome_symlink, setup_unlimited_key_jce_policy, \
-  Hook
+from shared_initialization import (
+    setup_hadoop,
+    setup_configs,
+    create_javahome_symlink,
+    setup_unlimited_key_jce_policy,
+    Hook,
+)
 from custom_extensions import setup_extensions
 
 
 class BeforeStartHook(Hook):
+    def hook(self, env):
+        import params
 
-  def hook(self, env):
-    import params
+        self.run_custom_hook("before-ANY")
+        env.set_params(params)
 
-    self.run_custom_hook('before-ANY')
-    env.set_params(params)
-
-    setup_hadoop()
-    setup_configs()
-    create_javahome_symlink()
-    create_topology_script_and_mapping()
-    setup_unlimited_key_jce_policy()
-    if params.stack_supports_hadoop_custom_extensions:
-      setup_extensions()
+        setup_hadoop()
+        setup_configs()
+        create_javahome_symlink()
+        create_topology_script_and_mapping()
+        setup_unlimited_key_jce_policy()
+        if params.stack_supports_hadoop_custom_extensions:
+            setup_extensions()
 
 
 if __name__ == "__main__":
-  BeforeStartHook().execute()
+    BeforeStartHook().execute()

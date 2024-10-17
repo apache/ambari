@@ -63,13 +63,18 @@ class ModuleConfigs(object):
         properties = {}
         try:
             for property_name in property_names:
-                properties[property_name] = self.get_property_value(module_name, config_type, property_name, default)
+                properties[property_name] = self.get_property_value(
+                    module_name, config_type, property_name, default
+                )
         except:
             return {}
         return properties
 
     def get_property_value(self, module_name, config_type, property_name, default=None):
-        if config_type not in self.__module_configs or property_name not in self.__module_configs[config_type]:
+        if (
+            config_type not in self.__module_configs
+            or property_name not in self.__module_configs[config_type]
+        ):
             return default
         try:
             value = self.__module_configs[config_type][property_name]

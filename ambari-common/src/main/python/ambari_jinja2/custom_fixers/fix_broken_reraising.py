@@ -13,10 +13,9 @@ class FixBrokenReraising(fixer_base.BaseFix):
     run_order = 1
 
     def transform(self, node, results):
-        tb = results['tb'].clone()
-        tb.prefix = ''
-        with_tb = Attr(results['val'].clone(), Name('with_traceback')) + \
-                  [ArgList([tb])]
+        tb = results["tb"].clone()
+        tb.prefix = ""
+        with_tb = Attr(results["val"].clone(), Name("with_traceback")) + [ArgList([tb])]
         new = pytree.Node(self.syms.simple_stmt, [Name("raise")] + with_tb)
         new.prefix = node.prefix
         return new

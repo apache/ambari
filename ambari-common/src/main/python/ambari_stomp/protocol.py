@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""Provides the 1.0, 1.1 and 1.2 protocol classes.
-"""
+"""Provides the 1.0, 1.1 and 1.2 protocol classes."""
 
 import uuid
 
@@ -11,7 +10,7 @@ from ambari_stomp.listener import *
 import ambari_stomp.utils as utils
 
 
-log = logging.getLogger('stomp.py')
+log = logging.getLogger("stomp.py")
 
 
 class Protocol10(ConnectionListener):
@@ -23,13 +22,14 @@ class Protocol10(ConnectionListener):
     :param transport:
     :param bool auto_content_length: Whether to calculate and send the content-length header automatically if it has not been set
     """
+
     def __init__(self, transport, auto_content_length=True):
         self.transport = transport
         self.auto_content_length = auto_content_length
-        transport.set_listener('protocol-listener', self)
-        self.version = '1.0'
+        transport.set_listener("protocol-listener", self)
+        self.version = "1.0"
 
-    def send_frame(self, cmd, headers=None, body=''):
+    def send_frame(self, cmd, headers=None, body=""):
         """
         Encode and send a stomp frame
         through the underlying transport.
@@ -99,7 +99,9 @@ class Protocol10(ConnectionListener):
         headers[HDR_TRANSACTION] = transaction
         self.send_frame(CMD_COMMIT, headers)
 
-    def connect(self, username=None, passcode=None, wait=False, headers=None, **keyword_headers):
+    def connect(
+        self, username=None, passcode=None, wait=False, headers=None, **keyword_headers
+    ):
         """
         Start a connection.
 
@@ -137,7 +139,7 @@ class Protocol10(ConnectionListener):
         :param keyword_headers: any additional headers the broker requires
         """
         if not self.transport.is_connected():
-            log.debug('Not sending disconnect, already disconnected')
+            log.debug("Not sending disconnect, already disconnected")
             return
         headers = utils.merge_headers([headers, keyword_headers])
         rec = receipt or str(uuid.uuid4())
@@ -145,7 +147,9 @@ class Protocol10(ConnectionListener):
         self.set_receipt(rec, CMD_DISCONNECT)
         self.send_frame(CMD_DISCONNECT, headers)
 
-    def send(self, destination, body, content_type=None, headers=None, **keyword_headers):
+    def send(
+        self, destination, body, content_type=None, headers=None, **keyword_headers
+    ):
         """
         Send a message to a destination.
 
@@ -166,7 +170,9 @@ class Protocol10(ConnectionListener):
             headers[HDR_CONTENT_LENGTH] = len(body)
         self.send_frame(CMD_SEND, headers, body)
 
-    def subscribe(self, destination, id=None, ack='auto', headers=None, **keyword_headers):
+    def subscribe(
+        self, destination, id=None, ack="auto", headers=None, **keyword_headers
+    ):
         """
         Subscribe to a destination.
 
@@ -195,7 +201,9 @@ class Protocol10(ConnectionListener):
         :param dict headers: a map of any additional headers the broker requires
         :param keyword_headers: any additional headers the broker requires
         """
-        assert id is not None or destination is not None, "'id' or 'destination' is required"
+        assert (
+            id is not None or destination is not None
+        ), "'id' or 'destination' is required"
         headers = utils.merge_headers([headers, keyword_headers])
         if id:
             headers[HDR_ID] = id
@@ -214,12 +222,13 @@ class Protocol11(HeartbeatListener, ConnectionListener):
     :param (int,int) heartbeats:
     :param bool auto_content_length: Whether to calculate and send the content-length header automatically if it has not been set
     """
+
     def __init__(self, transport, heartbeats=(0, 0), auto_content_length=True):
         HeartbeatListener.__init__(self, heartbeats)
         self.transport = transport
         self.auto_content_length = auto_content_length
-        transport.set_listener('protocol-listener', self)
-        self.version = '1.1'
+        transport.set_listener("protocol-listener", self)
+        self.version = "1.1"
 
     def _escape_headers(self, headers):
         """
@@ -227,12 +236,12 @@ class Protocol11(HeartbeatListener, ConnectionListener):
         """
         for key, val in headers.items():
             try:
-                val = val.replace('\\', '\\\\').replace('\n', '\\n').replace(':', '\\c')
+                val = val.replace("\\", "\\\\").replace("\n", "\\n").replace(":", "\\c")
             except:
                 pass
             headers[key] = val
 
-    def send_frame(self, cmd, headers=None, body=''):
+    def send_frame(self, cmd, headers=None, body=""):
         """
         Encode and send a stomp frame
         through the underlying transport:
@@ -308,7 +317,9 @@ class Protocol11(HeartbeatListener, ConnectionListener):
         headers[HDR_TRANSACTION] = transaction
         self.send_frame(CMD_COMMIT, headers)
 
-    def connect(self, username=None, passcode=None, wait=False, headers=None, **keyword_headers):
+    def connect(
+        self, username=None, passcode=None, wait=False, headers=None, **keyword_headers
+    ):
         """
         Start a connection.
 
@@ -349,7 +360,7 @@ class Protocol11(HeartbeatListener, ConnectionListener):
         :param keyword_headers: any additional headers the broker requires
         """
         if not self.transport.is_connected():
-            log.debug('Not sending disconnect, already disconnected')
+            log.debug("Not sending disconnect, already disconnected")
             return
         headers = utils.merge_headers([headers, keyword_headers])
         rec = receipt or str(uuid.uuid4())
@@ -372,7 +383,9 @@ class Protocol11(HeartbeatListener, ConnectionListener):
             headers[HDR_TRANSACTION] = transaction
         self.send_frame(CMD_NACK, headers)
 
-    def send(self, destination, body, content_type=None, headers=None, **keyword_headers):
+    def send(
+        self, destination, body, content_type=None, headers=None, **keyword_headers
+    ):
         """
         Send a message to a destination in the messaging system (as per https://stomp.github.io/stomp-specification-1.2.html#SEND)
 
@@ -393,7 +406,7 @@ class Protocol11(HeartbeatListener, ConnectionListener):
             headers[HDR_CONTENT_LENGTH] = len(body)
         self.send_frame(CMD_SEND, headers, body)
 
-    def subscribe(self, destination, id, ack='auto', headers=None, **keyword_headers):
+    def subscribe(self, destination, id, ack="auto", headers=None, **keyword_headers):
         """
         Subscribe to a destination
 
@@ -435,9 +448,10 @@ class Protocol12(Protocol11):
     :param (int,int) heartbeats:
     :param bool auto_content_length: Whether to calculate and send the content-length header automatically if it has not been set
     """
+
     def __init__(self, transport, heartbeats=(0, 0), auto_content_length=True):
         Protocol11.__init__(self, transport, heartbeats, auto_content_length)
-        self.version = '1.2'
+        self.version = "1.2"
 
     def _escape_headers(self, headers):
         """
@@ -445,7 +459,12 @@ class Protocol12(Protocol11):
         """
         for key, val in headers.items():
             try:
-                val = val.replace('\\', '\\\\').replace('\n', '\\n').replace(':', '\\c').replace('\r', '\\r')
+                val = (
+                    val.replace("\\", "\\\\")
+                    .replace("\n", "\\n")
+                    .replace(":", "\\c")
+                    .replace("\r", "\\r")
+                )
             except:
                 pass
             headers[key] = val
@@ -476,7 +495,9 @@ class Protocol12(Protocol11):
             headers[HDR_TRANSACTION] = transaction
         self.send_frame(CMD_NACK, headers)
 
-    def connect(self, username=None, passcode=None, wait=False, headers=None, **keyword_headers):
+    def connect(
+        self, username=None, passcode=None, wait=False, headers=None, **keyword_headers
+    ):
         """
         Send a STOMP CONNECT frame. Differs from 1.0 and 1.1 versions in that the HOST header is enforced.
 

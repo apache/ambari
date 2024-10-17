@@ -11,12 +11,15 @@ OPCODE_TEXT = 0x1
 OPCODE_BINARY = 0x2
 OPCODE_CLOSE = 0x8
 OPCODE_PING = 0x9
-OPCODE_PONG = 0xa
+OPCODE_PONG = 0xA
 
-__all__ = ['Frame']
+__all__ = ["Frame"]
+
 
 class Frame(object):
-    def __init__(self, opcode=None, body=b'', masking_key=None, fin=0, rsv1=0, rsv2=0, rsv3=0):
+    def __init__(
+        self, opcode=None, body=b"", masking_key=None, fin=0, rsv1=0, rsv2=0, rsv3=0
+    ):
         """
         Implements the framing protocol as defined by RFC 6455.
 
@@ -68,13 +71,13 @@ class Frame(object):
         Builds a frame from the instance's attributes and returns
         its bytes representation.
         """
-        header = b''
+        header = b""
 
         if self.fin > 0x1:
-            raise ValueError('FIN bit parameter must be 0 or 1')
+            raise ValueError("FIN bit parameter must be 0 or 1")
 
         if 0x3 <= self.opcode <= 0x7 or 0xB <= self.opcode:
-            raise ValueError('Opcode cannot be a reserved opcode')
+            raise ValueError("Opcode cannot be a reserved opcode")
 
         ## +-+-+-+-+-------+
         ## |F|R|R|R| opcode|
@@ -82,11 +85,16 @@ class Frame(object):
         ## |N|V|V|V|       |
         ## | |1|2|3|       |
         ## +-+-+-+-+-------+
-        header = pack('!B', ((self.fin << 7)
-                             | (self.rsv1 << 6)
-                             | (self.rsv2 << 5)
-                             | (self.rsv3 << 4)
-                             | self.opcode))
+        header = pack(
+            "!B",
+            (
+                (self.fin << 7)
+                | (self.rsv1 << 6)
+                | (self.rsv2 << 5)
+                | (self.rsv3 << 4)
+                | self.opcode
+            ),
+        )
 
         ##                 +-+-------------+-------------------------------+
         ##                 |M| Payload len |    Extended payload length    |
@@ -96,19 +104,21 @@ class Frame(object):
         ## +-+-+-+-+-------+-+-------------+ - - - - - - - - - - - - - - - +
         ## |     Extended payload length continued, if payload len == 127  |
         ## + - - - - - - - - - - - - - - - +-------------------------------+
-        if self.masking_key: mask_bit = 1 << 7
-        else: mask_bit = 0
+        if self.masking_key:
+            mask_bit = 1 << 7
+        else:
+            mask_bit = 0
 
         length = self.payload_length
         if length < 126:
-            header += pack('!B', (mask_bit | length))
+            header += pack("!B", (mask_bit | length))
         elif length < (1 << 16):
-            header += pack('!B', (mask_bit | 126)) + pack('!H', length)
+            header += pack("!B", (mask_bit | 126)) + pack("!H", length)
         elif length < (1 << 63):
-            header += pack('!B', (mask_bit | 127)) + pack('!Q', length)
+            header += pack("!B", (mask_bit | 127)) + pack("!Q", length)
         else:
             raise FrameTooLargeException()
-        
+
         ## + - - - - - - - - - - - - - - - +-------------------------------+
         ## |                               |Masking-key, if MASK set to 1  |
         ## +-------------------------------+-------------------------------+
@@ -129,21 +139,23 @@ class Frame(object):
         Generator to parse bytes into a frame. Yields until
         enough bytes have been read or an error is met.
         """
-        buf = b''
-        some_bytes = b''
+        buf = b""
+        some_bytes = b""
 
         # yield until we get the first header's byte
         while not some_bytes:
-            some_bytes = (yield 1)
+            some_bytes = yield 1
 
-        first_byte = some_bytes[0] if isinstance(some_bytes, bytearray) else ord(some_bytes[0])
+        first_byte = (
+            some_bytes[0] if isinstance(some_bytes, bytearray) else ord(some_bytes[0])
+        )
         # frame-fin = %x0 ; more frames of this message follow
         #           / %x1 ; final frame of this message
         self.fin = (first_byte >> 7) & 1
         self.rsv1 = (first_byte >> 6) & 1
         self.rsv2 = (first_byte >> 5) & 1
         self.rsv3 = (first_byte >> 4) & 1
-        self.opcode = first_byte & 0xf
+        self.opcode = first_byte & 0xF
 
         # frame-rsv1 = %x0 ; 1 bit, MUST be 0 unless negotiated otherwise
         # frame-rsv2 = %x0 ; 1 bit, MUST be 0 unless negotiated otherwise
@@ -160,15 +172,17 @@ class Frame(object):
             raise ProtocolException()
 
         # do we already have enough some_bytes to continue?
-        some_bytes = some_bytes[1:] if some_bytes and len(some_bytes) > 1 else b''
+        some_bytes = some_bytes[1:] if some_bytes and len(some_bytes) > 1 else b""
 
         # Yield until we get the second header's byte
         while not some_bytes:
-            some_bytes = (yield 1)
+            some_bytes = yield 1
 
-        second_byte = some_bytes[0] if isinstance(some_bytes, bytearray) else ord(some_bytes[0])
+        second_byte = (
+            some_bytes[0] if isinstance(some_bytes, bytearray) else ord(some_bytes[0])
+        )
         mask = (second_byte >> 7) & 1
-        self.payload_length = second_byte & 0x7f
+        self.payload_length = second_byte & 0x7F
 
         # All control frames MUST have a payload length of 125 some_bytes or less
         if self.opcode > 0x7 and self.payload_length > 125:
@@ -178,17 +192,17 @@ class Frame(object):
             buf = some_bytes[1:]
             some_bytes = buf
         else:
-            buf = b''
-            some_bytes = b''
+            buf = b""
+            some_bytes = b""
 
         if self.payload_length == 127:
             # This will compute the actual application data size
             if len(buf) < 8:
                 nxt_buf_size = 8 - len(buf)
-                some_bytes = (yield nxt_buf_size)
-                some_bytes = buf + (some_bytes or b'')
+                some_bytes = yield nxt_buf_size
+                some_bytes = buf + (some_bytes or b"")
                 while len(some_bytes) < 8:
-                    b = (yield 8 - len(some_bytes))
+                    b = yield 8 - len(some_bytes)
                     if b is not None:
                         some_bytes = some_bytes + b
                 if len(some_bytes) > 8:
@@ -198,17 +212,16 @@ class Frame(object):
                 some_bytes = buf[:8]
                 buf = buf[8:]
             extended_payload_length = some_bytes
-            self.payload_length = unpack(
-                '!Q', extended_payload_length)[0]
+            self.payload_length = unpack("!Q", extended_payload_length)[0]
             if self.payload_length > 0x7FFFFFFFFFFFFFFF:
                 raise FrameTooLargeException()
         elif self.payload_length == 126:
             if len(buf) < 2:
                 nxt_buf_size = 2 - len(buf)
-                some_bytes = (yield nxt_buf_size)
-                some_bytes = buf + (some_bytes or b'')
+                some_bytes = yield nxt_buf_size
+                some_bytes = buf + (some_bytes or b"")
                 while len(some_bytes) < 2:
-                    b = (yield 2 - len(some_bytes))
+                    b = yield 2 - len(some_bytes)
                     if b is not None:
                         some_bytes = some_bytes + b
                 if len(some_bytes) > 2:
@@ -218,16 +231,15 @@ class Frame(object):
                 some_bytes = buf[:2]
                 buf = buf[2:]
             extended_payload_length = some_bytes
-            self.payload_length = unpack(
-                '!H', extended_payload_length)[0]
+            self.payload_length = unpack("!H", extended_payload_length)[0]
 
         if mask:
             if len(buf) < 4:
                 nxt_buf_size = 4 - len(buf)
-                some_bytes = (yield nxt_buf_size)
-                some_bytes = buf + (some_bytes or b'')
+                some_bytes = yield nxt_buf_size
+                some_bytes = buf + (some_bytes or b"")
                 while not some_bytes or len(some_bytes) < 4:
-                    b = (yield 4 - len(some_bytes))
+                    b = yield 4 - len(some_bytes)
                     if b is not None:
                         some_bytes = some_bytes + b
                 if len(some_bytes) > 4:
@@ -239,18 +251,18 @@ class Frame(object):
 
         if len(buf) < self.payload_length:
             nxt_buf_size = self.payload_length - len(buf)
-            some_bytes = (yield nxt_buf_size)
-            some_bytes = buf + (some_bytes or b'')
+            some_bytes = yield nxt_buf_size
+            some_bytes = buf + (some_bytes or b"")
             while len(some_bytes) < self.payload_length:
                 l = self.payload_length - len(some_bytes)
-                b = (yield l)
+                b = yield l
                 if b is not None:
                     some_bytes = some_bytes + b
         else:
             if self.payload_length == len(buf):
                 some_bytes = buf
             else:
-                some_bytes = buf[:self.payload_length]
+                some_bytes = buf[: self.payload_length]
 
         self.body = some_bytes
         yield
@@ -266,9 +278,12 @@ class Frame(object):
 
         """
         masked = bytearray(data)
-        if py3k: key = self.masking_key
-        else: key = map(ord, self.masking_key)
+        if py3k:
+            key = self.masking_key
+        else:
+            key = map(ord, self.masking_key)
         for i in range(len(data)):
-            masked[i] = masked[i] ^ key[i%4]
+            masked[i] = masked[i] ^ key[i % 4]
         return masked
+
     unmask = mask

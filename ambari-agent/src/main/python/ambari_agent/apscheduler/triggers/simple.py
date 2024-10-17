@@ -11,8 +11,7 @@ class SimpleTrigger(object):
             return self.run_date
 
     def __str__(self):
-        return 'date[%s]' % str(self.run_date)
+        return "date[%s]" % str(self.run_date)
 
     def __repr__(self):
-        return '<%s (run_date=%s)>' % (
-            self.__class__.__name__, repr(self.run_date))
+        return "<%s (run_date=%s)>" % (self.__class__.__name__, repr(self.run_date))

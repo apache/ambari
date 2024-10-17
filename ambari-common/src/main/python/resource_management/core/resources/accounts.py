@@ -19,39 +19,46 @@ limitations under the License.
 Ambari Agent
 
 """
+
 __all__ = ["Group", "User"]
 
-from resource_management.core.base import Resource, ForcedListArgument, ResourceArgument, BooleanArgument, IntegerArgument
+from resource_management.core.base import (
+    Resource,
+    ForcedListArgument,
+    ResourceArgument,
+    BooleanArgument,
+    IntegerArgument,
+)
 
 
 class Group(Resource):
-  action = ForcedListArgument(default="create")
-  group_name = ResourceArgument(default=lambda obj: obj.name)
-  gid = ResourceArgument()
-  password = ResourceArgument()
+    action = ForcedListArgument(default="create")
+    group_name = ResourceArgument(default=lambda obj: obj.name)
+    gid = ResourceArgument()
+    password = ResourceArgument()
 
-  actions = Resource.actions + ["create", "remove"]
+    actions = Resource.actions + ["create", "remove"]
 
 
 class User(Resource):
-  action = ForcedListArgument(default="create")
-  username = ResourceArgument(default=lambda obj: obj.name)
-  comment = ResourceArgument()
-  uid = IntegerArgument()
-  gid = ResourceArgument()
-  """
+    action = ForcedListArgument(default="create")
+    username = ResourceArgument(default=lambda obj: obj.name)
+    comment = ResourceArgument()
+    uid = IntegerArgument()
+    gid = ResourceArgument()
+    """
   If the user exists, and there are some groups, appends to existant
   """
-  groups = ForcedListArgument(default=[]) # supplementary groups
-  home = ResourceArgument()
-  shell = ResourceArgument()
-  password = ResourceArgument()
-  system = BooleanArgument(default=False)
-  """
+    groups = ForcedListArgument(default=[])  # supplementary groups
+    home = ResourceArgument()
+    shell = ResourceArgument()
+    password = ResourceArgument()
+    system = BooleanArgument(default=False)
+    """
   On some envs, with ldap enabled, fetching information
   for all the groups - grp.getgrall() - is pretty slow.
   This parameter enables us fetching information about only local users (which is fast).
   """
-  fetch_nonlocal_groups = BooleanArgument(default=True)
+    fetch_nonlocal_groups = BooleanArgument(default=True)
 
-  actions = Resource.actions + ["create", "remove"]
+    actions = Resource.actions + ["create", "remove"]

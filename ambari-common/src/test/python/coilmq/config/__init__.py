@@ -12,6 +12,7 @@ init_config('/path/to/config.cfg')
 
 config.getint('listen_port')
 """
+
 import os.path
 import logging
 import logging.config
@@ -25,6 +26,7 @@ except ImportError:
 
 
 from pkg_resources import resource_filename, resource_stream
+
 __authors__ = ['"Hans Lellelid" <hans@xmpl.org>']
 __copyright__ = "Copyright 2009 Hans Lellelid"
 __license__ = """Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,7 +42,7 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 config = ConfigParser()
-config.read(os.path.join(os.path.dirname(__file__), 'defaults.cfg'))
+config.read(os.path.join(os.path.dirname(__file__), "defaults.cfg"))
 
 
 def init_config(config_file=None):
@@ -56,24 +58,23 @@ def init_config(config_file=None):
     @type config_file: C{str}
 
     @raise ValueError: if the specified config_file could not be read.
-    @see: L{init_logging}  
+    @see: L{init_logging}
     """
     global config
 
     if config_file and os.path.exists(config_file):
         read = config.read([config_file])
         if not read:
-            raise ValueError(
-                "Could not read configuration from file: %s" % config_file)
+            raise ValueError("Could not read configuration from file: %s" % config_file)
 
 
 def init_logging(logfile=None, loglevel=logging.INFO, configfile=None):
     """
     Configures the logging using either basic filename + loglevel or passed config file path.
 
-    This is performed separately from L{init_config()} in order to support the case where 
-    logging should happen independent of (usu. *after*) other aspects of the configuration 
-    initialization. For example, if logging may need to be initialized within a  daemon 
+    This is performed separately from L{init_config()} in order to support the case where
+    logging should happen independent of (usu. *after*) other aspects of the configuration
+    initialization. For example, if logging may need to be initialized within a  daemon
     context.
 
     @param logfile: An explicitly specified logfile destination.  If this is specified in addition
@@ -85,7 +86,7 @@ def init_logging(logfile=None, loglevel=logging.INFO, configfile=None):
 
     @param configfile: The path to a configuration file.  This takes precedence over any explicitly
                         specified logfile/loglevel (but a warning will be logged if both are specified).
-                        If the file is not specified or does not exist annd no logfile was specified, 
+                        If the file is not specified or does not exist annd no logfile was specified,
                         then the default.cfg configuration file will be used to initialize logging.
     @type configfile: C{str}
     """
@@ -95,7 +96,7 @@ def init_logging(logfile=None, loglevel=logging.INFO, configfile=None):
     if configfile and os.path.exists(configfile):
         testcfg = ConfigParser()
         read = testcfg.read(configfile)
-        use_configfile = (read and testcfg.has_section('loggers'))
+        use_configfile = read and testcfg.has_section("loggers")
 
     if use_configfile:
         logging.config.fileConfig(configfile)
@@ -103,10 +104,9 @@ def init_logging(logfile=None, loglevel=logging.INFO, configfile=None):
             msg = "Config file conflicts with explicitly specified logfile; config file takes precedence."
             logging.warn(msg)
     else:
-        format = '%(asctime)s [%(threadName)s] %(name)s - %(levelname)s - %(message)s'
+        format = "%(asctime)s [%(threadName)s] %(name)s - %(levelname)s - %(message)s"
         if logfile:
-            logging.basicConfig(
-                filename=logfile, level=loglevel, format=format)
+            logging.basicConfig(filename=logfile, level=loglevel, format=format)
         else:
             logging.basicConfig(level=loglevel, format=format)
 
@@ -133,17 +133,17 @@ def resolve_name(name):
 
     @return: The resolved object (class, callable, etc.) or None if not found.
     """
-    if ':' in name:
+    if ":" in name:
         # Normalize foo.bar.baz:main to foo.bar.baz.main
         # (since our logic below will handle that)
-        name = '%s.%s' % tuple(name.split(':'))
+        name = "%s.%s" % tuple(name.split(":"))
 
-    name = name.split('.')
+    name = name.split(".")
 
     used = name.pop(0)
     found = __import__(used)
     for n in name:
-        used = used + '.' + n
+        used = used + "." + n
         try:
             found = getattr(found, n)
         except AttributeError:

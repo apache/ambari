@@ -17,24 +17,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+
 from resource_management import Hook
 
 
 class BeforeSetKeytabHook(Hook):
+    def hook(self, env):
+        """
+        This will invoke the before-ANY hook which contains all of the user and group creation logic.
+        Keytab regeneration requires all users are already created, which is usually done by the
+        before-INSTALL hook. However, if the keytab regeneration is executed as part of an upgrade,
+        then the before-INSTALL hook never ran.
 
-  def hook(self, env):
-    """
-    This will invoke the before-ANY hook which contains all of the user and group creation logic.
-    Keytab regeneration requires all users are already created, which is usually done by the
-    before-INSTALL hook. However, if the keytab regeneration is executed as part of an upgrade,
-    then the before-INSTALL hook never ran.
-
-    :param env:
-    :return:
-    """
-    self.run_custom_hook('before-ANY')
+        :param env:
+        :return:
+        """
+        self.run_custom_hook("before-ANY")
 
 
 if __name__ == "__main__":
-  BeforeSetKeytabHook().execute()
-
+    BeforeSetKeytabHook().execute()

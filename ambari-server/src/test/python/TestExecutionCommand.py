@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -15,7 +15,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 from unittest import TestCase
 from resource_management.core.logger import Logger
@@ -26,14 +26,17 @@ import json
 
 command_data_file = "TestExecutionCommand_command.json"
 
-class TestExecutionCommand(TestCase):
 
+class TestExecutionCommand(TestCase):
     def setUp(self):
         Logger.initialize_logger()
         try:
             with open(command_data_file) as f:
-                self.__execution_command = execution_command.ExecutionCommand(json.load(f))
+                self.__execution_command = execution_command.ExecutionCommand(
+                    json.load(f)
+                )
                 from resource_management.libraries.script import Script
+
                 Script.execution_command = self.__execution_command
                 Script.module_configs = Script.get_module_configs()
                 Script.stack_settings = Script.get_stack_settings()
@@ -47,7 +50,7 @@ class TestExecutionCommand(TestCase):
         self.assertEqual(module_name, "HDFS")
 
     # TODO : Check if this will be part of _hosts info in clusterHostInfo.
-    '''
+    """
     def test_get_oozie_server_hosts(self):
         oozie_server = self.__execution_command.get_component_hosts('oozie_server')
         self.assertEqual(oozie_server, 'host2')
@@ -55,7 +58,7 @@ class TestExecutionCommand(TestCase):
     def test_get_ganglia_server_hosts(self):
         ganglia_server_hosts = self.__execution_command.get_component_hosts('ganglia_server')
         self.assertEqual(ganglia_server_hosts, 'host1')
-    '''
+    """
 
     def test_get_java_version(self):
         java_version = self.__execution_command.get_java_version()
@@ -65,33 +68,46 @@ class TestExecutionCommand(TestCase):
         module_configs = self.__execution_command.get_module_configs()
         self.assertNotEqual(module_configs, None)
 
-        zookeeper_client_port = module_configs.get_property_value("zookeeper", "zoo.cfg", "clientPort")
+        zookeeper_client_port = module_configs.get_property_value(
+            "zookeeper", "zoo.cfg", "clientPort"
+        )
         self.assertEqual(int(zookeeper_client_port), 2181)
 
-        zookeeper_client_port_fake = module_configs.get_property_value("zookeeper", "zoo.cfg", "clientPort1")
+        zookeeper_client_port_fake = module_configs.get_property_value(
+            "zookeeper", "zoo.cfg", "clientPort1"
+        )
         self.assertEqual(zookeeper_client_port_fake, None)
 
-        zookeeper_client_port_default_value = module_configs.get_property_value("zookeeper", "zoo.cfg", "clientPort1", 1111)
+        zookeeper_client_port_default_value = module_configs.get_property_value(
+            "zookeeper", "zoo.cfg", "clientPort1", 1111
+        )
         self.assertEqual(int(zookeeper_client_port_default_value), 1111)
 
-        zookeeper_empty_value = module_configs.get_all_properties("zookeeper", "zoo_fake")
+        zookeeper_empty_value = module_configs.get_all_properties(
+            "zookeeper", "zoo_fake"
+        )
         self.assertEqual(zookeeper_empty_value, {})
 
-        zookeeper_log_max_backup_size = module_configs.get_property_value('zookeeper', 'zookeeper-log4j',
-                                                                          'zookeeper_log_max_backup_size', 10)
-        self.assertEqual(zookeeper_log_max_backup_size, '10')
+        zookeeper_log_max_backup_size = module_configs.get_property_value(
+            "zookeeper", "zookeeper-log4j", "zookeeper_log_max_backup_size", 10
+        )
+        self.assertEqual(zookeeper_log_max_backup_size, "10")
 
-        properties = module_configs.get_properties("zookeeper", "zoo.cfg", ['clientPort', 'dataDir', 'fake'])
-        self.assertEqual(int(properties.get('clientPort')), 2181)
-        self.assertEqual(properties.get('fake'), None)
+        properties = module_configs.get_properties(
+            "zookeeper", "zoo.cfg", ["clientPort", "dataDir", "fake"]
+        )
+        self.assertEqual(int(properties.get("clientPort")), 2181)
+        self.assertEqual(properties.get("fake"), None)
 
-        sqoop = bool(module_configs.get_all_properties("zookeeper", 'sqoop-env'))
+        sqoop = bool(module_configs.get_all_properties("zookeeper", "sqoop-env"))
         self.assertFalse(sqoop)
 
     def test_access_to_module_configs(self):
         module_configs = self.__execution_command.get_module_configs()
 
-        is_zoo_cfg_there = bool(module_configs.get_all_properties("zookeeper", "zoo.cfg"))
+        is_zoo_cfg_there = bool(
+            module_configs.get_all_properties("zookeeper", "zoo.cfg")
+        )
         self.assertTrue(is_zoo_cfg_there)
 
         zoo_cfg = module_configs.get_all_properties("zookeeper", "zoo.cfg")
@@ -108,7 +124,9 @@ class TestExecutionCommand(TestCase):
         version = module_configs.get_property_value("zookeeper", "zoo.cfg", "version")
         self.assertEqual(version, None)
 
-        version = module_configs.get_property_value("zookeeper", "zoo.cfg", "version", "3.0.b")
+        version = module_configs.get_property_value(
+            "zookeeper", "zoo.cfg", "version", "3.0.b"
+        )
         self.assertEqual(version, "3.0.b")
 
     def test_access_to_stack_settings(self):
@@ -184,7 +202,49 @@ class TestExecutionCommand(TestCase):
         self.assertEqual(cluster_name, "c1")
 
         repo_file = exec_cmd.get_repository_file()
-        expected = {'resolved': True, 'repoVersion': '3.0.1.0-187', 'repositories': [{'mirrorsList': None, 'tags': [], 'ambariManaged': True, 'baseUrl': 'http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos7/3.x/BUILDS/3.0.1.0-187', 'repoName': 'HDP', 'components': None, 'distribution': None, 'repoId': 'HDP-3.0-repo-1', 'applicableServices': []}, {'mirrorsList': None, 'tags': ['GPL'], 'ambariManaged': True, 'baseUrl': 'http://s3.amazonaws.com/dev.hortonworks.com/HDP-GPL/centos7/3.x/BUILDS/3.0.1.0-187', 'repoName': 'HDP-GPL', 'components': None, 'distribution': None, 'repoId': 'HDP-3.0-GPL-repo-1', 'applicableServices': []}, {'mirrorsList': None, 'tags': [], 'ambariManaged': True, 'baseUrl': 'http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.22/repos/centos7', 'repoName': 'HDP-UTILS', 'components': None, 'distribution': None, 'repoId': 'HDP-UTILS-1.1.0.22-repo-1', 'applicableServices': []}], 'feature': {'preInstalled': False, 'scoped': True}, 'stackName': 'HDP', 'repoVersionId': 1, 'repoFileName': 'ambari-hdp-1'}
+        expected = {
+            "resolved": True,
+            "repoVersion": "3.0.1.0-187",
+            "repositories": [
+                {
+                    "mirrorsList": None,
+                    "tags": [],
+                    "ambariManaged": True,
+                    "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos7/3.x/BUILDS/3.0.1.0-187",
+                    "repoName": "HDP",
+                    "components": None,
+                    "distribution": None,
+                    "repoId": "HDP-3.0-repo-1",
+                    "applicableServices": [],
+                },
+                {
+                    "mirrorsList": None,
+                    "tags": ["GPL"],
+                    "ambariManaged": True,
+                    "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP-GPL/centos7/3.x/BUILDS/3.0.1.0-187",
+                    "repoName": "HDP-GPL",
+                    "components": None,
+                    "distribution": None,
+                    "repoId": "HDP-3.0-GPL-repo-1",
+                    "applicableServices": [],
+                },
+                {
+                    "mirrorsList": None,
+                    "tags": [],
+                    "ambariManaged": True,
+                    "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.22/repos/centos7",
+                    "repoName": "HDP-UTILS",
+                    "components": None,
+                    "distribution": None,
+                    "repoId": "HDP-UTILS-1.1.0.22-repo-1",
+                    "applicableServices": [],
+                },
+            ],
+            "feature": {"preInstalled": False, "scoped": True},
+            "stackName": "HDP",
+            "repoVersionId": 1,
+            "repoFileName": "ambari-hdp-1",
+        }
         self.assertDictEqual(expected, repo_file)
 
         local_components = exec_cmd.get_local_components()
@@ -213,37 +273,47 @@ class TestExecutionCommand(TestCase):
         self.assertEqual(db_name, "ambari")
 
         oracle_jdbc_url = exec_cmd.get_oracle_jdbc_url()
-        self.assertEqual(oracle_jdbc_url, "http://host-1.openstacklocal:8080/resources/ojdbc6.jar")
+        self.assertEqual(
+            oracle_jdbc_url, "http://host-1.openstacklocal:8080/resources/ojdbc6.jar"
+        )
 
         mysql_jdbc_url = exec_cmd.get_mysql_jdbc_url()
-        self.assertEqual(mysql_jdbc_url, "http://host-1.openstacklocal:8080/resources/mysql-connector-java.jar")
+        self.assertEqual(
+            mysql_jdbc_url,
+            "http://host-1.openstacklocal:8080/resources/mysql-connector-java.jar",
+        )
 
         agent_stack_retry_count = exec_cmd.get_agent_stack_retry_count()
         self.assertEqual(agent_stack_retry_count, 5)
 
-        agent_stack_want_retry_on_unavailability = exec_cmd.check_agent_stack_want_retry_on_unavailability()
-        self.assertEqual(agent_stack_want_retry_on_unavailability, 'false')
+        agent_stack_want_retry_on_unavailability = (
+            exec_cmd.check_agent_stack_want_retry_on_unavailability()
+        )
+        self.assertEqual(agent_stack_want_retry_on_unavailability, "false")
 
         ambari_server_host = exec_cmd.get_ambari_server_host()
-        self.assertEqual(ambari_server_host, 'host-1.openstacklocal')
+        self.assertEqual(ambari_server_host, "host-1.openstacklocal")
 
         ambari_server_port = exec_cmd.get_ambari_server_port()
-        self.assertEqual(ambari_server_port, '8080')
+        self.assertEqual(ambari_server_port, "8080")
 
         ambari_server_use_ssl = exec_cmd.is_ambari_server_use_ssl()
-        self.assertEqual(ambari_server_use_ssl, 'false')
+        self.assertEqual(ambari_server_use_ssl, "false")
 
         gpl_license_accepted = exec_cmd.is_gpl_license_accepted()
-        self.assertEqual(gpl_license_accepted, 'false')
+        self.assertEqual(gpl_license_accepted, "false")
 
         mpack_name = exec_cmd.get_mpack_name()
-        self.assertEqual(mpack_name, 'HDP')
+        self.assertEqual(mpack_name, "HDP")
 
         mpack_version = exec_cmd.get_mpack_version()
-        self.assertEqual(mpack_version, '3.0')
+        self.assertEqual(mpack_version, "3.0")
 
         user_groups = exec_cmd.get_user_groups()
-        self.assertEqual(user_groups, '{"zookeeper":["hadoop"],"ambari-qa":["hadoop","users"],"hdfs":["hdfs","hadoop"]}')
+        self.assertEqual(
+            user_groups,
+            '{"zookeeper":["hadoop"],"ambari-qa":["hadoop","users"],"hdfs":["hdfs","hadoop"]}',
+        )
         group_list = exec_cmd.get_group_list()
         self.assertEqual(group_list, '["hdfs","hadoop","users"]')
 
@@ -251,43 +321,47 @@ class TestExecutionCommand(TestCase):
         self.assertEqual(user_list, '["zookeeper","ambari-qa","hdfs"]')
 
         host_name = exec_cmd.get_host_name()
-        self.assertEqual(host_name, 'host-1.openstacklocal')
+        self.assertEqual(host_name, "host-1.openstacklocal")
 
         agent_cache_dir = exec_cmd.get_agent_cache_dir()
-        self.assertEqual(agent_cache_dir, '/var/lib/ambari-agent/cache')
+        self.assertEqual(agent_cache_dir, "/var/lib/ambari-agent/cache")
 
-        agent_config_execute_in_parallel = exec_cmd.check_agent_config_execute_in_parallel()
+        agent_config_execute_in_parallel = (
+            exec_cmd.check_agent_config_execute_in_parallel()
+        )
         self.assertEqual(agent_config_execute_in_parallel, 0)
 
         agent_proxy_settings = exec_cmd.check_agent_proxy_settings()
         self.assertEqual(agent_proxy_settings, True)
 
         unlimited_key_jce_required = exec_cmd.check_unlimited_key_jce_required()
-        self.assertEqual(unlimited_key_jce_required, 'false')
+        self.assertEqual(unlimited_key_jce_required, "false")
 
         new_mpack_version_for_upgrade = exec_cmd.get_new_mpack_version_for_upgrade()
-        self.assertEqual(new_mpack_version_for_upgrade, '3.0.1.0-187')
+        self.assertEqual(new_mpack_version_for_upgrade, "3.0.1.0-187")
 
         command_retry_enabled = exec_cmd.check_command_retry_enabled()
-        self.assertEqual(command_retry_enabled, 'false')
+        self.assertEqual(command_retry_enabled, "false")
 
         dfs_type = exec_cmd.get_dfs_type()
-        self.assertEqual(dfs_type, 'HDFS')
+        self.assertEqual(dfs_type, "HDFS")
 
         module_package_folder = exec_cmd.get_module_package_folder()
-        self.assertEqual(module_package_folder, 'stacks/HDP/3.0/services/HDFS/package')
+        self.assertEqual(module_package_folder, "stacks/HDP/3.0/services/HDFS/package")
 
         component_hosts = exec_cmd.get_component_hosts("secondary_namenode")
-        self.assertEqual(component_hosts, ['host-2.openstacklocal'])
+        self.assertEqual(component_hosts, ["host-2.openstacklocal"])
 
         component_hosts1 = exec_cmd.get_component_hosts("zookeeper_server")
-        self.assertListEqual(component_hosts1, ['host-2.openstacklocal', 'host-1.openstacklocal'])
+        self.assertListEqual(
+            component_hosts1, ["host-2.openstacklocal", "host-1.openstacklocal"]
+        )
 
         all_hosts = exec_cmd.get_all_hosts()
-        self.assertEqual(all_hosts, ['host-2.openstacklocal', 'host-1.openstacklocal'])
+        self.assertEqual(all_hosts, ["host-2.openstacklocal", "host-1.openstacklocal"])
 
         all_racks = exec_cmd.get_all_racks()
-        self.assertEqual(all_racks, ['/default-rack', '/default-rack'])
+        self.assertEqual(all_racks, ["/default-rack", "/default-rack"])
 
         all_ipv4_ips = exec_cmd.get_all_ipv4_ips()
-        self.assertEqual(all_ipv4_ips, ['10.10.10.10', '10.10.10.11'])
+        self.assertEqual(all_ipv4_ips, ["10.10.10.10", "10.10.10.11"])

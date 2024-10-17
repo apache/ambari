@@ -5,7 +5,9 @@ Authentication providers.
 Because authentication providers are instantiated and configured in the application scope
 (and not in the request handler), the authenticator implementations must be thread-safe.
 """
+
 import abc
+
 __authors__ = ['"Hans Lellelid" <hans@xmpl.org>']
 __copyright__ = "Copyright 2009 Hans Lellelid"
 __license__ = """Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +24,7 @@ limitations under the License."""
 
 
 class Authenticator(object, metaclass=abc.ABCMeta):
-    """ Abstract base class for authenticators. """
+    """Abstract base class for authenticators."""
 
     @abc.abstractmethod
     def authenticate(self, login, passcode):
@@ -30,5 +32,5 @@ class Authenticator(object, metaclass=abc.ABCMeta):
         Authenticate the login and passcode.
 
         @return: Whether user is authenticated.
-        @rtype: C{bool} 
+        @rtype: C{bool}
         """

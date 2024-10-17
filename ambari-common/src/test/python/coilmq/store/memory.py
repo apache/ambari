@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-Queue storage module that uses thread-safe, in-memory data structures.  
+Queue storage module that uses thread-safe, in-memory data structures.
 """
+
 import threading
 from collections import defaultdict, deque
 
@@ -29,11 +30,11 @@ class MemoryQueue(QueueStore):
     """
     A QueueStore implementation that stores messages in memory.
 
-    This classes uses a C{threading.RLock} to guard access to the memory store.  
-    The locks on this class are probably excessive given that the 
-    L{coilmq.queue.QueueManager} is already implementing coarse-grained locking 
+    This classes uses a C{threading.RLock} to guard access to the memory store.
+    The locks on this class are probably excessive given that the
+    L{coilmq.queue.QueueManager} is already implementing coarse-grained locking
     on the methods that access this storage backend.  That said, we'll start
-    over-protective and refactor later it if proves unecessary. 
+    over-protective and refactor later it if proves unecessary.
     """
 
     def __init__(self):
@@ -63,7 +64,7 @@ class MemoryQueue(QueueStore):
 
     @synchronized(lock)
     def has_frames(self, destination):
-        """ Whether this queue has frames for the specified destination. """
+        """Whether this queue has frames for the specified destination."""
         return bool(self._messages[destination])
 
     @synchronized(lock)

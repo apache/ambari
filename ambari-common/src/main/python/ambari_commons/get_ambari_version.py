@@ -25,20 +25,24 @@ from resource_management.core.logger import Logger
 """
 returns the ambari version on an agent host
 """
+
+
 def get_ambari_version_agent():
-  ambari_version = None
-  AMBARI_AGENT_CONF = '/etc/ambari-agent/conf/ambari-agent.ini'
-  if os.path.exists(AMBARI_AGENT_CONF):
-    try:
-      ambari_agent_config = configparser.RawConfigParser()
-      ambari_agent_config.read(AMBARI_AGENT_CONF)
-      data_dir = ambari_agent_config.get('agent', 'prefix')
-      ver_file = os.path.join(data_dir, 'version')
-      with open(ver_file, "r") as f:
-        ambari_version = f.read().strip()
-    except Exception as e:
-      Logger.info('Unable to determine ambari version from the agent version file.')
-      Logger.debug('Exception: %s' % str(e))
-      pass
-    pass
-  return ambari_version
+    ambari_version = None
+    AMBARI_AGENT_CONF = "/etc/ambari-agent/conf/ambari-agent.ini"
+    if os.path.exists(AMBARI_AGENT_CONF):
+        try:
+            ambari_agent_config = configparser.RawConfigParser()
+            ambari_agent_config.read(AMBARI_AGENT_CONF)
+            data_dir = ambari_agent_config.get("agent", "prefix")
+            ver_file = os.path.join(data_dir, "version")
+            with open(ver_file, "r") as f:
+                ambari_version = f.read().strip()
+        except Exception as e:
+            Logger.info(
+                "Unable to determine ambari version from the agent version file."
+            )
+            Logger.debug("Exception: %s" % str(e))
+            pass
+        pass
+    return ambari_version

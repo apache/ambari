@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -15,11 +15,12 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
+
 
 class AgentException(Exception):
-  def __init__(self, value):
-    self.parameter = value
+    def __init__(self, value):
+        self.parameter = value
 
-  def __str__(self):
-    return repr(self.parameter)
+    def __str__(self):
+        return repr(self.parameter)

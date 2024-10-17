@@ -23,20 +23,22 @@ from resource_management.libraries.script import Script
 from resource_management.libraries.functions.format import format
 from resource_management.core.resources.system import Execute
 
+
 class HbaseMasterUpgrade(Script):
+    def take_snapshot(self, env):
+        import params
 
-  def take_snapshot(self, env):
-    import params
+        snap_cmd = "echo 'snapshot_all' | {0} shell".format(params.hbase_cmd)
 
-    snap_cmd = "echo 'snapshot_all' | {0} shell".format(params.hbase_cmd)
+        exec_cmd = "{0} {1}".format(params.kinit_cmd, snap_cmd)
 
-    exec_cmd = "{0} {1}".format(params.kinit_cmd, snap_cmd)
+        Execute(exec_cmd, user=params.hbase_user)
 
-    Execute(exec_cmd, user=params.hbase_user)
+    def restore_snapshot(self, env):
+        import params
 
-  def restore_snapshot(self, env):
-    import params
-    print("TODO AMBARI-12698")
+        print("TODO AMBARI-12698")
+
 
 if __name__ == "__main__":
-  HbaseMasterUpgrade().execute()
+    HbaseMasterUpgrade().execute()

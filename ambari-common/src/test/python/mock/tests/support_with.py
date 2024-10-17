@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 import sys
 
-__all__ = ['nested', 'catch_warnings', 'examine_warnings']
+__all__ = ["nested", "catch_warnings", "examine_warnings"]
 
 
 try:
     from contextlib import nested
 except ImportError:
     from contextlib import contextmanager
+
     @contextmanager
     def nested(*managers):
         exits = []
@@ -33,14 +34,16 @@ except ImportError:
             if exc != (None, None, None):
                 raise exc[1]
 
+
 # copied from Python 2.6
 try:
     from warnings import catch_warnings
 except ImportError:
+
     class catch_warnings(object):
         def __init__(self, record=False, module=None):
             self._record = record
-            self._module = sys.modules['warnings']
+            self._module = sys.modules["warnings"]
             self._entered = False
 
         def __repr__(self):
@@ -59,8 +62,10 @@ except ImportError:
             self._showwarning = self._module.showwarning
             if self._record:
                 log = []
+
                 def showwarning(*args, **kwargs):
                     log.append(WarningMessage(*args, **kwargs))
+
                 self._module.showwarning = showwarning
                 return log
             else:
@@ -73,10 +78,9 @@ except ImportError:
             self._module.showwarning = self._showwarning
 
     class WarningMessage(object):
-        _WARNING_DETAILS = ("message", "category", "filename", "lineno", "file",
-                            "line")
-        def __init__(self, message, category, filename, lineno, file=None,
-                        line=None):
+        _WARNING_DETAILS = ("message", "category", "filename", "lineno", "file", "line")
+
+        def __init__(self, message, category, filename, lineno, file=None, line=None):
             local_values = locals()
             for attr in self._WARNING_DETAILS:
                 setattr(self, attr, local_values[attr])
@@ -89,4 +93,5 @@ def examine_warnings(func):
     def wrapper():
         with catch_warnings(record=True) as ws:
             func(ws)
+
     return wrapper

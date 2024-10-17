@@ -19,10 +19,16 @@ limitations under the License.
 """
 
 from resource_management.libraries.script import Script
-from resource_management.libraries.functions.check_process_status import check_process_status
-from resource_management.libraries.functions.security_commons import build_expectations, \
-  cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
-  FILE_TYPE_XML
+from resource_management.libraries.functions.check_process_status import (
+    check_process_status,
+)
+from resource_management.libraries.functions.security_commons import (
+    build_expectations,
+    cached_kinit_executor,
+    get_params_from_filesystem,
+    validate_security_config_properties,
+    FILE_TYPE_XML,
+)
 from hdfs_nfsgateway import nfsgateway
 from hdfs import hdfs
 from resource_management.libraries.functions import stack_select
@@ -31,58 +37,67 @@ from resource_management.libraries.functions.stack_features import check_stack_f
 
 
 class NFSGateway(Script):
-  def install(self, env):
-    import params
+    def install(self, env):
+        import params
 
-    env.set_params(params)
+        env.set_params(params)
 
-    self.install_packages(env)
+        self.install_packages(env)
 
-  def pre_upgrade_restart(self, env, upgrade_type=None):
-    import params
-    env.set_params(params)
+    def pre_upgrade_restart(self, env, upgrade_type=None):
+        import params
 
-    if params.stack_version_formatted and check_stack_feature(StackFeature.NFS, params.stack_version_formatted):
-      stack_select.select_packages(params.version)
+        env.set_params(params)
 
-  def start(self, env, upgrade_type=None):
-    import params
-    env.set_params(params)
+        if params.stack_version_formatted and check_stack_feature(
+            StackFeature.NFS, params.stack_version_formatted
+        ):
+            stack_select.select_packages(params.version)
 
-    self.configure(env)
-    nfsgateway(action="start")
+    def start(self, env, upgrade_type=None):
+        import params
 
-  def stop(self, env, upgrade_type=None):
-    import params
-    env.set_params(params)
+        env.set_params(params)
 
-    nfsgateway(action="stop")
+        self.configure(env)
+        nfsgateway(action="start")
 
-  def configure(self, env):
-    import params
+    def stop(self, env, upgrade_type=None):
+        import params
 
-    env.set_params(params)
-    hdfs()
-    nfsgateway(action="configure")
+        env.set_params(params)
 
-  def status(self, env):
-    import status_params
+        nfsgateway(action="stop")
 
-    env.set_params(status_params)
+    def configure(self, env):
+        import params
 
-    check_process_status(status_params.nfsgateway_pid_file)
-      
-  def get_log_folder(self):
-    import params
-    return params.hdfs_log_dir
-  
-  def get_user(self):
-    import params
-    return params.hdfs_user
+        env.set_params(params)
+        hdfs()
+        nfsgateway(action="configure")
 
-  def get_pid_files(self):
-    import status_params
-    return [status_params.nfsgateway_pid_file]
+    def status(self, env):
+        import status_params
+
+        env.set_params(status_params)
+
+        check_process_status(status_params.nfsgateway_pid_file)
+
+    def get_log_folder(self):
+        import params
+
+        return params.hdfs_log_dir
+
+    def get_user(self):
+        import params
+
+        return params.hdfs_user
+
+    def get_pid_files(self):
+        import status_params
+
+        return [status_params.nfsgateway_pid_file]
+
 
 if __name__ == "__main__":
-  NFSGateway().execute()
+    NFSGateway().execute()

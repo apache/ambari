@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-    ambari_jinja2.debug
-    ~~~~~~~~~~~~
+ambari_jinja2.debug
+~~~~~~~~~~~~
 
-    Implements the debug interface for Jinja.  This module does some pretty
-    ugly stuff with the Python traceback system in order to achieve tracebacks
-    with correct line numbers, locals and contents.
+Implements the debug interface for Jinja.  This module does some pretty
+ugly stuff with the Python traceback system in order to achieve tracebacks
+with correct line numbers, locals and contents.
 
-    :copyright: (c) 2010 by the Jinja Team.
-    :license: BSD, see LICENSE for more details.
+:copyright: (c) 2010 by the Jinja Team.
+:license: BSD, see LICENSE for more details.
 """
+
 import sys
 import traceback
 from ambari_jinja2.utils import CodeType, missing, internal_code
@@ -21,9 +22,9 @@ from ambari_jinja2.exceptions import TemplateSyntaxError
 try:
     exec("raise TypeError, 'foo'")
 except SyntaxError:
-    raise_helper = 'raise __jinja_exception__[1]'
+    raise_helper = "raise __jinja_exception__[1]"
 except TypeError:
-    raise_helper = 'raise __jinja_exception__[0], __jinja_exception__[1]'
+    raise_helper = "raise __jinja_exception__[0], __jinja_exception__[1]"
 
 
 class TracebackFrameProxy(object):
@@ -45,7 +46,7 @@ class TracebackFrameProxy(object):
 
     @property
     def is_jinja_frame(self):
-        return '__jinja_template__' in self.tb.tb_frame.f_globals
+        return "__jinja_template__" in self.tb.tb_frame.f_globals
 
     def __getattr__(self, name):
         return getattr(self.tb, name)
@@ -55,7 +56,7 @@ class ProcessedTraceback(object):
     """Holds a Jinja preprocessed traceback for priting or reraising."""
 
     def __init__(self, exc_type, exc_value, frames):
-        assert frames, 'no frames for this traceback?'
+        assert frames, "no frames for this traceback?"
         self.exc_type = exc_type
         self.exc_value = exc_value
         self.frames = frames
@@ -71,16 +72,18 @@ class ProcessedTraceback(object):
 
     def render_as_text(self, limit=None):
         """Return a string with the traceback."""
-        lines = traceback.format_exception(self.exc_type, self.exc_value,
-                                           self.frames[0], limit=limit)
-        return ''.join(lines).rstrip()
+        lines = traceback.format_exception(
+            self.exc_type, self.exc_value, self.frames[0], limit=limit
+        )
+        return "".join(lines).rstrip()
 
     def render_as_html(self, full=False):
         """Return a unicode string with the traceback as rendered HTML."""
         from ambari_jinja2.debugrenderer import render_traceback
-        return '%s\n\n<!--\n%s\n-->' % (
+
+        return "%s\n\n<!--\n%s\n-->" % (
             render_traceback(self, full=full),
-            self.render_as_text().decode('utf-8', 'replace')
+            self.render_as_text().decode("utf-8", "replace"),
         )
 
     @property
@@ -117,7 +120,7 @@ def translate_syntax_error(error, source=None):
     exc_info = (error.__class__, error, None)
     filename = error.filename
     if filename is None:
-        filename = '<unknown>'
+        filename = "<unknown>"
     return fake_exc_info(exc_info, filename, error.lineno)
 
 
@@ -147,11 +150,10 @@ def translate_exception(exc_info, initial_skip=0):
         next = tb.tb_next
 
         # fake template exceptions
-        template = tb.tb_frame.f_globals.get('__jinja_template__')
+        template = tb.tb_frame.f_globals.get("__jinja_template__")
         if template is not None:
             lineno = template.get_corresponding_lineno(tb.tb_lineno)
-            tb = fake_exc_info(exc_info[:2] + (tb,), template.filename,
-                               lineno)[2]
+            tb = fake_exc_info(exc_info[:2] + (tb,), template.filename, lineno)[2]
 
         frames.append(TracebackFrameProxy(tb))
         tb = next
@@ -175,54 +177,64 @@ def fake_exc_info(exc_info, filename, lineno):
     # figure the real context out
     if tb is not None:
         real_locals = tb.tb_frame.f_locals.copy()
-        ctx = real_locals.get('context')
+        ctx = real_locals.get("context")
         if ctx:
             locals = ctx.get_all()
         else:
             locals = {}
         for name, value in real_locals.items():
-            if name.startswith('l_') and value is not missing:
+            if name.startswith("l_") and value is not missing:
                 locals[name[2:]] = value
 
         # if there is a local called __jinja_exception__, we get
         # rid of it to not break the debug functionality.
-        locals.pop('__jinja_exception__', None)
+        locals.pop("__jinja_exception__", None)
     else:
         locals = {}
 
     # assamble fake globals we need
     globals = {
-        '__name__':             filename,
-        '__file__':             filename,
-        '__jinja_exception__':  exc_info[:2],
-
+        "__name__": filename,
+        "__file__": filename,
+        "__jinja_exception__": exc_info[:2],
         # we don't want to keep the reference to the template around
         # to not cause circular dependencies, but we mark it as Jinja
         # frame for the ProcessedTraceback
-        '__jinja_template__':   None
+        "__jinja_template__": None,
     }
 
     # and fake the exception
-    code = compile('\n' * (lineno - 1) + raise_helper, filename, 'exec')
+    code = compile("\n" * (lineno - 1) + raise_helper, filename, "exec")
 
     # if it's possible, change the name of the code.  This won't work
     # on some python environments such as google appengine
     try:
         if tb is None:
-            location = 'template'
+            location = "template"
         else:
             function = tb.tb_frame.f_code.co_name
-            if function == 'root':
-                location = 'top-level template code'
-            elif function.startswith('block_'):
+            if function == "root":
+                location = "top-level template code"
+            elif function.startswith("block_"):
                 location = 'block "%s"' % function[6:]
             else:
-                location = 'template'
-        code = CodeType(0, code.co_nlocals, code.co_stacksize,
-                        code.co_flags, code.co_code, code.co_consts,
-                        code.co_names, code.co_varnames, filename,
-                        location, code.co_firstlineno,
-                        code.co_lnotab, (), ())
+                location = "template"
+        code = CodeType(
+            0,
+            code.co_nlocals,
+            code.co_stacksize,
+            code.co_flags,
+            code.co_code,
+            code.co_consts,
+            code.co_names,
+            code.co_varnames,
+            filename,
+            location,
+            code.co_firstlineno,
+            code.co_lnotab,
+            (),
+            (),
+        )
     except:
         pass
 
@@ -246,7 +258,7 @@ def _init_ugly_crap():
     from types import TracebackType
 
     # figure out side of _Py_ssize_t
-    if hasattr(ctypes.pythonapi, 'Py_InitModule4_64'):
+    if hasattr(ctypes.pythonapi, "Py_InitModule4_64"):
         _Py_ssize_t = ctypes.c_int64
     else:
         _Py_ssize_t = ctypes.c_int
@@ -254,36 +266,42 @@ def _init_ugly_crap():
     # regular python
     class _PyObject(ctypes.Structure):
         pass
+
     _PyObject._fields_ = [
-        ('ob_refcnt', _Py_ssize_t),
-        ('ob_type', ctypes.POINTER(_PyObject))
+        ("ob_refcnt", _Py_ssize_t),
+        ("ob_type", ctypes.POINTER(_PyObject)),
     ]
 
     # python with trace
-    if hasattr(sys, 'getobjects'):
+    if hasattr(sys, "getobjects"):
+
         class _PyObject(ctypes.Structure):
             pass
+
         _PyObject._fields_ = [
-            ('_ob_next', ctypes.POINTER(_PyObject)),
-            ('_ob_prev', ctypes.POINTER(_PyObject)),
-            ('ob_refcnt', _Py_ssize_t),
-            ('ob_type', ctypes.POINTER(_PyObject))
+            ("_ob_next", ctypes.POINTER(_PyObject)),
+            ("_ob_prev", ctypes.POINTER(_PyObject)),
+            ("ob_refcnt", _Py_ssize_t),
+            ("ob_type", ctypes.POINTER(_PyObject)),
         ]
 
     class _Traceback(_PyObject):
         pass
+
     _Traceback._fields_ = [
-        ('tb_next', ctypes.POINTER(_Traceback)),
-        ('tb_frame', ctypes.POINTER(_PyObject)),
-        ('tb_lasti', ctypes.c_int),
-        ('tb_lineno', ctypes.c_int)
+        ("tb_next", ctypes.POINTER(_Traceback)),
+        ("tb_frame", ctypes.POINTER(_PyObject)),
+        ("tb_lasti", ctypes.c_int),
+        ("tb_lineno", ctypes.c_int),
     ]
 
     def tb_set_next(tb, next):
         """Set the tb_next attribute of a traceback object."""
-        if not (isinstance(tb, TracebackType) and
-                (next is None or isinstance(next, TracebackType))):
-            raise TypeError('tb_set_next arguments must be traceback objects')
+        if not (
+            isinstance(tb, TracebackType)
+            and (next is None or isinstance(next, TracebackType))
+        ):
+            raise TypeError("tb_set_next arguments must be traceback objects")
         obj = _Traceback.from_address(id(tb))
         if tb.tb_next is not None:
             old = _Traceback.from_address(id(tb.tb_next))

@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-    markupsafe._native
-    ~~~~~~~~~~~~~~~~~~
+markupsafe._native
+~~~~~~~~~~~~~~~~~~
 
-    Native Python implementation the C module is not compiled.
+Native Python implementation the C module is not compiled.
 
-    :copyright: (c) 2010 by Armin Ronacher.
-    :license: BSD, see LICENSE for more details.
+:copyright: (c) 2010 by Armin Ronacher.
+:license: BSD, see LICENSE for more details.
 """
+
 from ambari_jinja2._markupsafe import Markup
 
 
@@ -17,14 +18,15 @@ def escape(s):
     sequences.  Use this if you need to display text that might contain
     such characters in HTML.  Marks return value as markup string.
     """
-    if hasattr(s, '__html__'):
+    if hasattr(s, "__html__"):
         return s.__html__()
-    return Markup(str(s)
-        .replace('&', '&amp;')
-        .replace('>', '&gt;')
-        .replace('<', '&lt;')
-        .replace("'", '&#39;')
-        .replace('"', '&#34;')
+    return Markup(
+        str(s)
+        .replace("&", "&amp;")
+        .replace(">", "&gt;")
+        .replace("<", "&lt;")
+        .replace("'", "&#39;")
+        .replace('"', "&#34;")
     )
 
 

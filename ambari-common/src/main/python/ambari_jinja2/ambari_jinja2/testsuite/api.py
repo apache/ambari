@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-    ambari_jinja2.testsuite.api
-    ~~~~~~~~~~~~~~~~~~~~
+ambari_jinja2.testsuite.api
+~~~~~~~~~~~~~~~~~~~~
 
-    Tests the public API and related stuff.
+Tests the public API and related stuff.
 
-    :copyright: (c) 2010 by the Jinja Team.
-    :license: BSD, see LICENSE for more details.
+:copyright: (c) 2010 by the Jinja Team.
+:license: BSD, see LICENSE for more details.
 """
+
 import os
 import time
 import tempfile
@@ -16,38 +17,47 @@ import unittest
 
 from ambari_jinja2.testsuite import JinjaTestCase
 
-from ambari_jinja2 import Environment, Undefined, DebugUndefined, \
-     StrictUndefined, UndefinedError, Template, meta, \
-     is_undefined, Template, DictLoader
+from ambari_jinja2 import (
+    Environment,
+    Undefined,
+    DebugUndefined,
+    StrictUndefined,
+    UndefinedError,
+    Template,
+    meta,
+    is_undefined,
+    Template,
+    DictLoader,
+)
 from ambari_jinja2.utils import Cycler
 
 env = Environment()
 
 
 class ExtendedAPITestCase(JinjaTestCase):
-
     def test_item_and_attribute(self):
         from ambari_jinja2.sandbox import SandboxedEnvironment
 
         for env in Environment(), SandboxedEnvironment():
             # the |list is necessary for python3
-            tmpl = env.from_string('{{ foo.items()|list }}')
-            assert tmpl.render(foo={'items': 42}) == "[('items', 42)]"
+            tmpl = env.from_string("{{ foo.items()|list }}")
+            assert tmpl.render(foo={"items": 42}) == "[('items', 42)]"
             tmpl = env.from_string('{{ foo|attr("items")()|list }}')
-            assert tmpl.render(foo={'items': 42}) == "[('items', 42)]"
+            assert tmpl.render(foo={"items": 42}) == "[('items', 42)]"
             tmpl = env.from_string('{{ foo["items"] }}')
-            assert tmpl.render(foo={'items': 42}) == '42'
+            assert tmpl.render(foo={"items": 42}) == "42"
 
     def test_finalizer(self):
         def finalize_none_empty(value):
             if value is None:
-                value = ''
+                value = ""
             return value
+
         env = Environment(finalize=finalize_none_empty)
-        tmpl = env.from_string('{% for item in seq %}|{{ item }}{% endfor %}')
-        assert tmpl.render(seq=(None, 1, "foo")) == '||1|foo'
-        tmpl = env.from_string('<{{ none }}>')
-        assert tmpl.render() == '<>'
+        tmpl = env.from_string("{% for item in seq %}|{{ item }}{% endfor %}")
+        assert tmpl.render(seq=(None, 1, "foo")) == "||1|foo"
+        tmpl = env.from_string("<{{ none }}>")
+        assert tmpl.render() == "<>"
 
     def test_cycler(self):
         items = 1, 2, 3
@@ -71,7 +81,7 @@ class ExtendedAPITestCase(JinjaTestCase):
         assert expr(foo=42) == 84
 
     def test_template_passthrough(self):
-        t = Template('Content')
+        t = Template("Content")
         assert env.get_template(t) is t
         assert env.select_template([t]) is t
         assert env.get_or_select_template([t]) is t
@@ -79,87 +89,93 @@ class ExtendedAPITestCase(JinjaTestCase):
 
     def test_autoescape_autoselect(self):
         def select_autoescape(name):
-            if name is None or '.' not in name:
+            if name is None or "." not in name:
                 return False
-            return name.endswith('.html')
-        env = Environment(autoescape=select_autoescape,
-                          loader=DictLoader({
-            'test.txt':     '{{ foo }}',
-            'test.html':    '{{ foo }}'
-        }))
-        t = env.get_template('test.txt')
-        assert t.render(foo='<foo>') == '<foo>'
-        t = env.get_template('test.html')
-        assert t.render(foo='<foo>') == '&lt;foo&gt;'
-        t = env.from_string('{{ foo }}')
-        assert t.render(foo='<foo>') == '<foo>'
+            return name.endswith(".html")
+
+        env = Environment(
+            autoescape=select_autoescape,
+            loader=DictLoader({"test.txt": "{{ foo }}", "test.html": "{{ foo }}"}),
+        )
+        t = env.get_template("test.txt")
+        assert t.render(foo="<foo>") == "<foo>"
+        t = env.get_template("test.html")
+        assert t.render(foo="<foo>") == "&lt;foo&gt;"
+        t = env.from_string("{{ foo }}")
+        assert t.render(foo="<foo>") == "<foo>"
 
 
 class MetaTestCase(JinjaTestCase):
-
     def test_find_undeclared_variables(self):
-        ast = env.parse('{% set foo = 42 %}{{ bar + foo }}')
+        ast = env.parse("{% set foo = 42 %}{{ bar + foo }}")
         x = meta.find_undeclared_variables(ast)
-        assert x == set(['bar'])
+        assert x == set(["bar"])
 
-        ast = env.parse('{% set foo = 42 %}{{ bar + foo }}'
-                        '{% macro meh(x) %}{{ x }}{% endmacro %}'
-                        '{% for item in seq %}{{ muh(item) + meh(seq) }}{% endfor %}')
+        ast = env.parse(
+            "{% set foo = 42 %}{{ bar + foo }}"
+            "{% macro meh(x) %}{{ x }}{% endmacro %}"
+            "{% for item in seq %}{{ muh(item) + meh(seq) }}{% endfor %}"
+        )
         x = meta.find_undeclared_variables(ast)
-        assert x == set(['bar', 'seq', 'muh'])
+        assert x == set(["bar", "seq", "muh"])
 
     def test_find_refererenced_templates(self):
         ast = env.parse('{% extends "layout.html" %}{% include helper %}')
         i = meta.find_referenced_templates(ast)
-        assert next(i) == 'layout.html'
+        assert next(i) == "layout.html"
         assert next(i) is None
         assert list(i) == []
 
-        ast = env.parse('{% extends "layout.html" %}'
-                        '{% from "test.html" import a, b as c %}'
-                        '{% import "meh.html" as meh %}'
-                        '{% include "muh.html" %}')
+        ast = env.parse(
+            '{% extends "layout.html" %}'
+            '{% from "test.html" import a, b as c %}'
+            '{% import "meh.html" as meh %}'
+            '{% include "muh.html" %}'
+        )
         i = meta.find_referenced_templates(ast)
-        assert list(i) == ['layout.html', 'test.html', 'meh.html', 'muh.html']
+        assert list(i) == ["layout.html", "test.html", "meh.html", "muh.html"]
 
     def test_find_included_templates(self):
         ast = env.parse('{% include ["foo.html", "bar.html"] %}')
         i = meta.find_referenced_templates(ast)
-        assert list(i) == ['foo.html', 'bar.html']
+        assert list(i) == ["foo.html", "bar.html"]
 
         ast = env.parse('{% include ("foo.html", "bar.html") %}')
         i = meta.find_referenced_templates(ast)
-        assert list(i) == ['foo.html', 'bar.html']
+        assert list(i) == ["foo.html", "bar.html"]
 
         ast = env.parse('{% include ["foo.html", "bar.html", foo] %}')
         i = meta.find_referenced_templates(ast)
-        assert list(i) == ['foo.html', 'bar.html', None]
+        assert list(i) == ["foo.html", "bar.html", None]
 
         ast = env.parse('{% include ("foo.html", "bar.html", foo) %}')
         i = meta.find_referenced_templates(ast)
-        assert list(i) == ['foo.html', 'bar.html', None]
+        assert list(i) == ["foo.html", "bar.html", None]
 
 
 class StreamingTestCase(JinjaTestCase):
-
     def test_basic_streaming(self):
-        tmpl = env.from_string("<ul>{% for item in seq %}<li>{{ loop.index "
-                               "}} - {{ item }}</li>{%- endfor %}</ul>")
+        tmpl = env.from_string(
+            "<ul>{% for item in seq %}<li>{{ loop.index "
+            "}} - {{ item }}</li>{%- endfor %}</ul>"
+        )
         stream = tmpl.stream(seq=range(4))
-        self.assert_equal(next(stream), '<ul>')
-        self.assert_equal(next(stream), '<li>1 - 0</li>')
-        self.assert_equal(next(stream), '<li>2 - 1</li>')
-        self.assert_equal(next(stream), '<li>3 - 2</li>')
-        self.assert_equal(next(stream), '<li>4 - 3</li>')
-        self.assert_equal(next(stream), '</ul>')
+        self.assert_equal(next(stream), "<ul>")
+        self.assert_equal(next(stream), "<li>1 - 0</li>")
+        self.assert_equal(next(stream), "<li>2 - 1</li>")
+        self.assert_equal(next(stream), "<li>3 - 2</li>")
+        self.assert_equal(next(stream), "<li>4 - 3</li>")
+        self.assert_equal(next(stream), "</ul>")
 
     def test_buffered_streaming(self):
-        tmpl = env.from_string("<ul>{% for item in seq %}<li>{{ loop.index "
-                               "}} - {{ item }}</li>{%- endfor %}</ul>")
+        tmpl = env.from_string(
+            "<ul>{% for item in seq %}<li>{{ loop.index "
+            "}} - {{ item }}</li>{%- endfor %}</ul>"
+        )
         stream = tmpl.stream(seq=range(4))
         stream.enable_buffering(size=3)
-        self.assert_equal(next(stream), '<ul><li>1 - 0</li><li>2 - 1</li>')
-        self.assert_equal(next(stream), '<li>3 - 2</li><li>4 - 3</li></ul>')
+        self.assert_equal(next(stream), "<ul><li>1 - 0</li><li>2 - 1</li>")
+        self.assert_equal(next(stream), "<li>3 - 2</li><li>4 - 3</li></ul>")
 
     def test_streaming_behavior(self):
         tmpl = env.from_string("")
@@ -172,44 +188,58 @@ class StreamingTestCase(JinjaTestCase):
 
 
 class UndefinedTestCase(JinjaTestCase):
-
     def test_stopiteration_is_undefined(self):
         def test():
             raise StopIteration()
-        t = Template('A{{ test() }}B')
-        assert t.render(test=test) == 'AB'
-        t = Template('A{{ test().missingattribute }}B')
+
+        t = Template("A{{ test() }}B")
+        assert t.render(test=test) == "AB"
+        t = Template("A{{ test().missingattribute }}B")
         self.assert_raises(UndefinedError, t.render, test=test)
 
     def test_default_undefined(self):
         env = Environment(undefined=Undefined)
-        self.assert_equal(env.from_string('{{ missing }}').render(), '')
-        self.assert_raises(UndefinedError,
-                           env.from_string('{{ missing.attribute }}').render)
-        self.assert_equal(env.from_string('{{ missing|list }}').render(), '[]')
-        self.assert_equal(env.from_string('{{ missing is not defined }}').render(), 'True')
-        self.assert_equal(env.from_string('{{ foo.missing }}').render(foo=42), '')
-        self.assert_equal(env.from_string('{{ not missing }}').render(), 'True')
+        self.assert_equal(env.from_string("{{ missing }}").render(), "")
+        self.assert_raises(
+            UndefinedError, env.from_string("{{ missing.attribute }}").render
+        )
+        self.assert_equal(env.from_string("{{ missing|list }}").render(), "[]")
+        self.assert_equal(
+            env.from_string("{{ missing is not defined }}").render(), "True"
+        )
+        self.assert_equal(env.from_string("{{ foo.missing }}").render(foo=42), "")
+        self.assert_equal(env.from_string("{{ not missing }}").render(), "True")
 
     def test_debug_undefined(self):
         env = Environment(undefined=DebugUndefined)
-        self.assert_equal(env.from_string('{{ missing }}').render(), '{{ missing }}')
-        self.assert_raises(UndefinedError,
-                           env.from_string('{{ missing.attribute }}').render)
-        self.assert_equal(env.from_string('{{ missing|list }}').render(), '[]')
-        self.assert_equal(env.from_string('{{ missing is not defined }}').render(), 'True')
-        self.assert_equal(env.from_string('{{ foo.missing }}').render(foo=42),
-                          "{{ no such element: int object['missing'] }}")
-        self.assert_equal(env.from_string('{{ not missing }}').render(), 'True')
+        self.assert_equal(env.from_string("{{ missing }}").render(), "{{ missing }}")
+        self.assert_raises(
+            UndefinedError, env.from_string("{{ missing.attribute }}").render
+        )
+        self.assert_equal(env.from_string("{{ missing|list }}").render(), "[]")
+        self.assert_equal(
+            env.from_string("{{ missing is not defined }}").render(), "True"
+        )
+        self.assert_equal(
+            env.from_string("{{ foo.missing }}").render(foo=42),
+            "{{ no such element: int object['missing'] }}",
+        )
+        self.assert_equal(env.from_string("{{ not missing }}").render(), "True")
 
     def test_strict_undefined(self):
         env = Environment(undefined=StrictUndefined)
-        self.assert_raises(UndefinedError, env.from_string('{{ missing }}').render)
-        self.assert_raises(UndefinedError, env.from_string('{{ missing.attribute }}').render)
-        self.assert_raises(UndefinedError, env.from_string('{{ missing|list }}').render)
-        self.assert_equal(env.from_string('{{ missing is not defined }}').render(), 'True')
-        self.assert_raises(UndefinedError, env.from_string('{{ foo.missing }}').render, foo=42)
-        self.assert_raises(UndefinedError, env.from_string('{{ not missing }}').render)
+        self.assert_raises(UndefinedError, env.from_string("{{ missing }}").render)
+        self.assert_raises(
+            UndefinedError, env.from_string("{{ missing.attribute }}").render
+        )
+        self.assert_raises(UndefinedError, env.from_string("{{ missing|list }}").render)
+        self.assert_equal(
+            env.from_string("{{ missing is not defined }}").render(), "True"
+        )
+        self.assert_raises(
+            UndefinedError, env.from_string("{{ foo.missing }}").render, foo=42
+        )
+        self.assert_raises(UndefinedError, env.from_string("{{ not missing }}").render)
 
     def test_indexing_gives_undefined(self):
         t = Template("{{ var[42].foo }}")
@@ -217,19 +247,19 @@ class UndefinedTestCase(JinjaTestCase):
 
     def test_none_gives_proper_error(self):
         try:
-            Environment().getattr(None, 'split')()
+            Environment().getattr(None, "split")()
         except UndefinedError as e:
             assert e.message == "'None' has no attribute 'split'"
         else:
-            assert False, 'expected exception'
+            assert False, "expected exception"
 
     def test_object_repr(self):
         try:
-            Undefined(obj=42, name='upper')()
+            Undefined(obj=42, name="upper")()
         except UndefinedError as e:
             assert e.message == "'int object' has no attribute 'upper'"
         else:
-            assert False, 'expected exception'
+            assert False, "expected exception"
 
 
 def suite():

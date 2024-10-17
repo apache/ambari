@@ -1,18 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-    ambari_jinja2.nodes
-    ~~~~~~~~~~~~
+ambari_jinja2.nodes
+~~~~~~~~~~~~
 
-    This module implements additional nodes derived from the ast base node.
+This module implements additional nodes derived from the ast base node.
 
-    It also provides some node tree helper functions like `in_lineno` and
-    `get_nodes` used by the parser and translator in order to normalize
-    python and jinja nodes.
+It also provides some node tree helper functions like `in_lineno` and
+`get_nodes` used by the parser and translator in order to normalize
+python and jinja nodes.
 
-    :copyright: (c) 2010 by the Jinja Team.
-    :license: BSD, see LICENSE for more details.
+:copyright: (c) 2010 by the Jinja Team.
+:license: BSD, see LICENSE for more details.
 """
+
 import operator
 from itertools import chain
 from collections import deque
@@ -24,30 +25,26 @@ _context_function_types = (FunctionType, MethodType)
 
 
 _binop_to_func = {
-    '*':        operator.mul,
-    '/':        operator.truediv,
-    '//':       operator.floordiv,
-    '**':       operator.pow,
-    '%':        operator.mod,
-    '+':        operator.add,
-    '-':        operator.sub
+    "*": operator.mul,
+    "/": operator.truediv,
+    "//": operator.floordiv,
+    "**": operator.pow,
+    "%": operator.mod,
+    "+": operator.add,
+    "-": operator.sub,
 }
 
-_uaop_to_func = {
-    'not':      operator.not_,
-    '+':        operator.pos,
-    '-':        operator.neg
-}
+_uaop_to_func = {"not": operator.not_, "+": operator.pos, "-": operator.neg}
 
 _cmpop_to_func = {
-    'eq':       operator.eq,
-    'ne':       operator.ne,
-    'gt':       operator.gt,
-    'gteq':     operator.ge,
-    'lt':       operator.lt,
-    'lteq':     operator.le,
-    'in':       lambda a, b: a in b,
-    'notin':    lambda a, b: a not in b
+    "eq": operator.eq,
+    "ne": operator.ne,
+    "gt": operator.gt,
+    "gteq": operator.ge,
+    "lt": operator.lt,
+    "lteq": operator.le,
+    "in": lambda a, b: a in b,
+    "notin": lambda a, b: a not in b,
 }
 
 
@@ -61,14 +58,14 @@ class NodeType(type):
     automatically forwarded to the child."""
 
     def __new__(cls, name, bases, d):
-        for attr in 'fields', 'attributes':
+        for attr in "fields", "attributes":
             storage = []
             storage.extend(getattr(bases[0], attr, ()))
             storage.extend(d.get(attr, ()))
-            assert len(bases) == 1, 'multiple inheritance not allowed'
-            assert len(storage) == len(set(storage)), 'layout conflict'
+            assert len(bases) == 1, "multiple inheritance not allowed"
+            assert len(storage) == len(set(storage)), "layout conflict"
             d[attr] = tuple(storage)
-        d.setdefault('abstract', False)
+        d.setdefault("abstract", False)
         return type.__new__(cls, name, bases, d)
 
 
@@ -95,9 +92,11 @@ class EvalContext(object):
 def get_eval_context(node, ctx):
     if ctx is None:
         if node.environment is None:
-            raise RuntimeError('if no eval context is passed, the '
-                               'node must have an attached '
-                               'environment.')
+            raise RuntimeError(
+                "if no eval context is passed, the "
+                "node must have an attached "
+                "environment."
+            )
         return EvalContext(node.environment)
     return ctx
 
@@ -118,30 +117,32 @@ class Node(object, metaclass=NodeType):
     The `environment` attribute is set at the end of the parsing process for
     all nodes automatically.
     """
+
     fields = ()
-    attributes = ('lineno', 'environment')
+    attributes = ("lineno", "environment")
     abstract = True
 
     def __init__(self, *fields, **attributes):
         if self.abstract:
-            raise TypeError('abstract nodes are not instanciable')
+            raise TypeError("abstract nodes are not instanciable")
         if fields:
             if len(fields) != len(self.fields):
                 if not self.fields:
-                    raise TypeError('%r takes 0 arguments' %
-                                    self.__class__.__name__)
-                raise TypeError('%r takes 0 or %d argument%s' % (
-                    self.__class__.__name__,
-                    len(self.fields),
-                    len(self.fields) != 1 and 's' or ''
-                ))
+                    raise TypeError("%r takes 0 arguments" % self.__class__.__name__)
+                raise TypeError(
+                    "%r takes 0 or %d argument%s"
+                    % (
+                        self.__class__.__name__,
+                        len(self.fields),
+                        len(self.fields) != 1 and "s" or "",
+                    )
+                )
             for name, arg in zip(self.fields, fields):
                 setattr(self, name, arg)
         for attr in self.attributes:
             setattr(self, attr, attributes.pop(attr, None))
         if attributes:
-            raise TypeError('unknown attribute %r' %
-                            next(iter(attributes)))
+            raise TypeError("unknown attribute %r" % next(iter(attributes)))
 
     def iter_fields(self, exclude=None, only=None):
         """This method iterates over all fields that are defined and yields
@@ -151,9 +152,11 @@ class Node(object, metaclass=NodeType):
         should be sets or tuples of field names.
         """
         for name in self.fields:
-            if (exclude is only is None) or \
-               (exclude is not None and name not in exclude) or \
-               (only is not None and name in only):
+            if (
+                (exclude is only is None)
+                or (exclude is not None and name not in exclude)
+                or (only is not None and name in only)
+            ):
                 try:
                     yield name, getattr(self, name)
                 except AttributeError:
@@ -198,7 +201,7 @@ class Node(object, metaclass=NodeType):
         todo = deque([self])
         while todo:
             node = todo.popleft()
-            if 'ctx' in node.fields:
+            if "ctx" in node.fields:
                 node.ctx = ctx
             todo.extend(node.iter_child_nodes())
         return self
@@ -208,7 +211,7 @@ class Node(object, metaclass=NodeType):
         todo = deque([self])
         while todo:
             node = todo.popleft()
-            if 'lineno' in node.attributes:
+            if "lineno" in node.attributes:
                 if node.lineno is None or override:
                     node.lineno = lineno
             todo.extend(node.iter_child_nodes())
@@ -224,27 +227,29 @@ class Node(object, metaclass=NodeType):
         return self
 
     def __eq__(self, other):
-        return type(self) is type(other) and \
-               tuple(self.iter_fields()) == tuple(other.iter_fields())
+        return type(self) is type(other) and tuple(self.iter_fields()) == tuple(
+            other.iter_fields()
+        )
 
     def __ne__(self, other):
         return not self.__eq__(other)
 
     def __repr__(self):
-        return '%s(%s)' % (
+        return "%s(%s)" % (
             self.__class__.__name__,
-            ', '.join('%s=%r' % (arg, getattr(self, arg, None)) for
-                      arg in self.fields)
+            ", ".join("%s=%r" % (arg, getattr(self, arg, None)) for arg in self.fields),
         )
 
 
 class Stmt(Node):
     """Base node for all statements."""
+
     abstract = True
 
 
 class Helper(Node):
     """Nodes that exist in a specific context only."""
+
     abstract = True
 
 
@@ -252,19 +257,22 @@ class Template(Node):
     """Node that represents a template.  This must be the outermost node that
     is passed to the compiler.
     """
-    fields = ('body',)
+
+    fields = ("body",)
 
 
 class Output(Stmt):
     """A node that holds multiple expressions which are then printed out.
     This is used both for the `print` statement and the regular template data.
     """
-    fields = ('nodes',)
+
+    fields = ("nodes",)
 
 
 class Extends(Stmt):
     """Represents an extends statement."""
-    fields = ('template',)
+
+    fields = ("template",)
 
 
 class For(Stmt):
@@ -275,12 +283,14 @@ class For(Stmt):
 
     For filtered nodes an expression can be stored as `test`, otherwise `None`.
     """
-    fields = ('target', 'iter', 'body', 'else_', 'test', 'recursive')
+
+    fields = ("target", "iter", "body", "else_", "test", "recursive")
 
 
 class If(Stmt):
     """If `test` is true, `body` is rendered, else `else_`."""
-    fields = ('test', 'body', 'else_')
+
+    fields = ("test", "body", "else_")
 
 
 class Macro(Stmt):
@@ -288,34 +298,40 @@ class Macro(Stmt):
     arguments and `defaults` a list of defaults if there are any.  `body` is
     a list of nodes for the macro body.
     """
-    fields = ('name', 'args', 'defaults', 'body')
+
+    fields = ("name", "args", "defaults", "body")
 
 
 class CallBlock(Stmt):
     """Like a macro without a name but a call instead.  `call` is called with
     the unnamed macro as `caller` argument this node holds.
     """
-    fields = ('call', 'args', 'defaults', 'body')
+
+    fields = ("call", "args", "defaults", "body")
 
 
 class FilterBlock(Stmt):
     """Node for filter sections."""
-    fields = ('body', 'filter')
+
+    fields = ("body", "filter")
 
 
 class Block(Stmt):
     """A node that represents a block."""
-    fields = ('name', 'body', 'scoped')
+
+    fields = ("name", "body", "scoped")
 
 
 class Include(Stmt):
     """A node that represents the include tag."""
-    fields = ('template', 'with_context', 'ignore_missing')
+
+    fields = ("template", "with_context", "ignore_missing")
 
 
 class Import(Stmt):
     """A node that represents the import tag."""
-    fields = ('template', 'target', 'with_context')
+
+    fields = ("template", "target", "with_context")
 
 
 class FromImport(Stmt):
@@ -329,21 +345,25 @@ class FromImport(Stmt):
 
     The list of names may contain tuples if aliases are wanted.
     """
-    fields = ('template', 'names', 'with_context')
+
+    fields = ("template", "names", "with_context")
 
 
 class ExprStmt(Stmt):
     """A statement that evaluates an expression and discards the result."""
-    fields = ('node',)
+
+    fields = ("node",)
 
 
 class Assign(Stmt):
     """Assigns an expression to a target."""
-    fields = ('target', 'node')
+
+    fields = ("target", "node")
 
 
 class Expr(Node):
     """Baseclass for all expressions."""
+
     abstract = True
 
     def as_const(self, eval_ctx=None):
@@ -366,7 +386,8 @@ class Expr(Node):
 
 class BinExpr(Expr):
     """Baseclass for all binary expressions."""
-    fields = ('left', 'right')
+
+    fields = ("left", "right")
     operator = None
     abstract = True
 
@@ -381,7 +402,8 @@ class BinExpr(Expr):
 
 class UnaryExpr(Expr):
     """Baseclass for all unary expressions."""
-    fields = ('node',)
+
+    fields = ("node",)
     operator = None
     abstract = True
 
@@ -402,15 +424,16 @@ class Name(Expr):
     -   `load`: load that name
     -   `param`: like `store` but if the name was defined as function parameter.
     """
-    fields = ('name', 'ctx')
+
+    fields = ("name", "ctx")
 
     def can_assign(self):
-        return self.name not in ('true', 'false', 'none',
-                                 'True', 'False', 'None')
+        return self.name not in ("true", "false", "none", "True", "False", "None")
 
 
 class Literal(Expr):
     """Baseclass for literals."""
+
     abstract = True
 
 
@@ -420,7 +443,8 @@ class Const(Literal):
     complex values such as lists too.  Only constants with a safe
     representation (objects where ``eval(repr(x)) == x`` is true).
     """
-    fields = ('value',)
+
+    fields = ("value",)
 
     def as_const(self, eval_ctx=None):
         return self.value
@@ -432,6 +456,7 @@ class Const(Literal):
         an `Impossible` exception.
         """
         from .compiler import has_safe_repr
+
         if not has_safe_repr(value):
             raise Impossible()
         return cls(value, lineno=lineno, environment=environment)
@@ -439,7 +464,8 @@ class Const(Literal):
 
 class TemplateData(Literal):
     """A constant template string."""
-    fields = ('data',)
+
+    fields = ("data",)
 
     def as_const(self, eval_ctx=None):
         eval_ctx = get_eval_context(self, eval_ctx)
@@ -455,7 +481,8 @@ class Tuple(Literal):
     for subscripts.  Like for :class:`Name` `ctx` specifies if the tuple
     is used for loading the names or storing.
     """
-    fields = ('items', 'ctx')
+
+    fields = ("items", "ctx")
 
     def as_const(self, eval_ctx=None):
         eval_ctx = get_eval_context(self, eval_ctx)
@@ -470,7 +497,8 @@ class Tuple(Literal):
 
 class List(Literal):
     """Any list literal such as ``[1, 2, 3]``"""
-    fields = ('items',)
+
+    fields = ("items",)
 
     def as_const(self, eval_ctx=None):
         eval_ctx = get_eval_context(self, eval_ctx)
@@ -481,7 +509,8 @@ class Dict(Literal):
     """Any dict literal such as ``{1: 2, 3: 4}``.  The items must be a list of
     :class:`Pair` nodes.
     """
-    fields = ('items',)
+
+    fields = ("items",)
 
     def as_const(self, eval_ctx=None):
         eval_ctx = get_eval_context(self, eval_ctx)
@@ -490,7 +519,8 @@ class Dict(Literal):
 
 class Pair(Helper):
     """A key, value pair for dicts."""
-    fields = ('key', 'value')
+
+    fields = ("key", "value")
 
     def as_const(self, eval_ctx=None):
         eval_ctx = get_eval_context(self, eval_ctx)
@@ -499,7 +529,8 @@ class Pair(Helper):
 
 class Keyword(Helper):
     """A key, value pair for keyword arguments where key is a string."""
-    fields = ('key', 'value')
+
+    fields = ("key", "value")
 
     def as_const(self, eval_ctx=None):
         eval_ctx = get_eval_context(self, eval_ctx)
@@ -510,7 +541,8 @@ class CondExpr(Expr):
     """A conditional expression (inline if expression).  (``{{
     foo if bar else baz }}``)
     """
-    fields = ('test', 'expr1', 'expr2')
+
+    fields = ("test", "expr1", "expr2")
 
     def as_const(self, eval_ctx=None):
         eval_ctx = get_eval_context(self, eval_ctx)
@@ -531,7 +563,8 @@ class Filter(Expr):
     If the `node` of a filter is `None` the contents of the last buffer are
     filtered.  Buffers are created by macros and filter blocks.
     """
-    fields = ('node', 'name', 'args', 'kwargs', 'dyn_args', 'dyn_kwargs')
+
+    fields = ("node", "name", "args", "kwargs", "dyn_args", "dyn_kwargs")
 
     def as_const(self, eval_ctx=None):
         eval_ctx = get_eval_context(self, eval_ctx)
@@ -543,13 +576,13 @@ class Filter(Expr):
         # builtin filter function here which no longer returns a list in
         # python 3.  because of that, do not rename filter_ to filter!
         filter_ = self.environment.filters.get(self.name)
-        if filter_ is None or getattr(filter_, 'contextfilter', False):
+        if filter_ is None or getattr(filter_, "contextfilter", False):
             raise Impossible()
         obj = self.node.as_const(eval_ctx)
         args = [x.as_const(eval_ctx) for x in self.args]
-        if getattr(filter_, 'evalcontextfilter', False):
+        if getattr(filter_, "evalcontextfilter", False):
             args.insert(0, eval_ctx)
-        elif getattr(filter_, 'environmentfilter', False):
+        elif getattr(filter_, "environmentfilter", False):
             args.insert(0, self.environment)
         kwargs = dict(x.as_const(eval_ctx) for x in self.kwargs)
         if self.dyn_args is not None:
@@ -572,7 +605,8 @@ class Test(Expr):
     """Applies a test on an expression.  `name` is the name of the test, the
     rest of the fields are the same as for :class:`Call`.
     """
-    fields = ('node', 'name', 'args', 'kwargs', 'dyn_args', 'dyn_kwargs')
+
+    fields = ("node", "name", "args", "kwargs", "dyn_args", "dyn_kwargs")
 
 
 class Call(Expr):
@@ -582,7 +616,8 @@ class Call(Expr):
     node for dynamic positional (``*args``) or keyword (``**kwargs``)
     arguments.
     """
-    fields = ('node', 'args', 'kwargs', 'dyn_args', 'dyn_kwargs')
+
+    fields = ("node", "args", "kwargs", "dyn_args", "dyn_kwargs")
 
     def as_const(self, eval_ctx=None):
         eval_ctx = get_eval_context(self, eval_ctx)
@@ -593,11 +628,11 @@ class Call(Expr):
         # don't evaluate context functions
         args = [x.as_const(eval_ctx) for x in self.args]
         if isinstance(obj, _context_function_types):
-            if getattr(obj, 'contextfunction', False):
+            if getattr(obj, "contextfunction", False):
                 raise Impossible()
-            elif getattr(obj, 'evalcontextfunction', False):
+            elif getattr(obj, "evalcontextfunction", False):
                 args.insert(0, eval_ctx)
-            elif getattr(obj, 'environmentfunction', False):
+            elif getattr(obj, "environmentfunction", False):
                 args.insert(0, self.environment)
 
         kwargs = dict(x.as_const(eval_ctx) for x in self.kwargs)
@@ -619,15 +654,17 @@ class Call(Expr):
 
 class Getitem(Expr):
     """Get an attribute or item from an expression and prefer the item."""
-    fields = ('node', 'arg', 'ctx')
+
+    fields = ("node", "arg", "ctx")
 
     def as_const(self, eval_ctx=None):
         eval_ctx = get_eval_context(self, eval_ctx)
-        if self.ctx != 'load':
+        if self.ctx != "load":
             raise Impossible()
         try:
-            return self.environment.getitem(self.node.as_const(eval_ctx),
-                                            self.arg.as_const(eval_ctx))
+            return self.environment.getitem(
+                self.node.as_const(eval_ctx), self.arg.as_const(eval_ctx)
+            )
         except:
             raise Impossible()
 
@@ -639,15 +676,15 @@ class Getattr(Expr):
     """Get an attribute or item from an expression that is a ascii-only
     bytestring and prefer the attribute.
     """
-    fields = ('node', 'attr', 'ctx')
+
+    fields = ("node", "attr", "ctx")
 
     def as_const(self, eval_ctx=None):
-        if self.ctx != 'load':
+        if self.ctx != "load":
             raise Impossible()
         try:
             eval_ctx = get_eval_context(self, eval_ctx)
-            return self.environment.getattr(self.node.as_const(eval_ctx),
-                                            self.attr)
+            return self.environment.getattr(self.node.as_const(eval_ctx), self.attr)
         except:
             raise Impossible()
 
@@ -659,14 +696,17 @@ class Slice(Expr):
     """Represents a slice object.  This must only be used as argument for
     :class:`Subscript`.
     """
-    fields = ('start', 'stop', 'step')
+
+    fields = ("start", "stop", "step")
 
     def as_const(self, eval_ctx=None):
         eval_ctx = get_eval_context(self, eval_ctx)
+
         def const(obj):
             if obj is None:
                 return None
             return obj.as_const(eval_ctx)
+
         return slice(const(self.start), const(self.stop), const(self.step))
 
 
@@ -674,18 +714,20 @@ class Concat(Expr):
     """Concatenates the list of expressions provided after converting them to
     unicode.
     """
-    fields = ('nodes',)
+
+    fields = ("nodes",)
 
     def as_const(self, eval_ctx=None):
         eval_ctx = get_eval_context(self, eval_ctx)
-        return ''.join(str(x.as_const(eval_ctx)) for x in self.nodes)
+        return "".join(str(x.as_const(eval_ctx)) for x in self.nodes)
 
 
 class Compare(Expr):
     """Compares an expression with some other expressions.  `ops` must be a
     list of :class:`Operand`\s.
     """
-    fields = ('expr', 'ops')
+
+    fields = ("expr", "ops")
 
     def as_const(self, eval_ctx=None):
         eval_ctx = get_eval_context(self, eval_ctx)
@@ -702,54 +744,67 @@ class Compare(Expr):
 
 class Operand(Helper):
     """Holds an operator and an expression."""
-    fields = ('op', 'expr')
+
+    fields = ("op", "expr")
+
 
 if __debug__:
-    Operand.__doc__ += '\nThe following operators are available: ' + \
-        ', '.join(sorted('``%s``' % x for x in set(_binop_to_func) |
-                  set(_uaop_to_func) | set(_cmpop_to_func)))
+    Operand.__doc__ += "\nThe following operators are available: " + ", ".join(
+        sorted(
+            "``%s``" % x
+            for x in set(_binop_to_func) | set(_uaop_to_func) | set(_cmpop_to_func)
+        )
+    )
 
 
 class Mul(BinExpr):
     """Multiplies the left with the right node."""
-    operator = '*'
+
+    operator = "*"
 
 
 class Div(BinExpr):
     """Divides the left by the right node."""
-    operator = '/'
+
+    operator = "/"
 
 
 class FloorDiv(BinExpr):
     """Divides the left by the right node and truncates conver the
     result into an integer by truncating.
     """
-    operator = '//'
+
+    operator = "//"
 
 
 class Add(BinExpr):
     """Add the left to the right node."""
-    operator = '+'
+
+    operator = "+"
 
 
 class Sub(BinExpr):
     """Substract the right from the left node."""
-    operator = '-'
+
+    operator = "-"
 
 
 class Mod(BinExpr):
     """Left modulo right."""
-    operator = '%'
+
+    operator = "%"
 
 
 class Pow(BinExpr):
     """Left to the power of right."""
-    operator = '**'
+
+    operator = "**"
 
 
 class And(BinExpr):
     """Short circuited AND."""
-    operator = 'and'
+
+    operator = "and"
 
     def as_const(self, eval_ctx=None):
         eval_ctx = get_eval_context(self, eval_ctx)
@@ -758,7 +813,8 @@ class And(BinExpr):
 
 class Or(BinExpr):
     """Short circuited OR."""
-    operator = 'or'
+
+    operator = "or"
 
     def as_const(self, eval_ctx=None):
         eval_ctx = get_eval_context(self, eval_ctx)
@@ -767,17 +823,20 @@ class Or(BinExpr):
 
 class Not(UnaryExpr):
     """Negate the expression."""
-    operator = 'not'
+
+    operator = "not"
 
 
 class Neg(UnaryExpr):
     """Make the expression negative."""
-    operator = '-'
+
+    operator = "-"
 
 
 class Pos(UnaryExpr):
     """Make the expression positive (noop for most expressions)"""
-    operator = '+'
+
+    operator = "+"
 
 
 # Helpers for extensions
@@ -787,7 +846,8 @@ class EnvironmentAttribute(Expr):
     """Loads an attribute from the environment object.  This is useful for
     extensions that want to call a callback stored on the environment.
     """
-    fields = ('name',)
+
+    fields = ("name",)
 
 
 class ExtensionAttribute(Expr):
@@ -797,7 +857,8 @@ class ExtensionAttribute(Expr):
     This node is usually constructed by calling the
     :meth:`~ambari_jinja2.ext.Extension.attr` method on an extension.
     """
-    fields = ('identifier', 'name')
+
+    fields = ("identifier", "name")
 
 
 class ImportedName(Expr):
@@ -806,7 +867,8 @@ class ImportedName(Expr):
     function from the cgi module on evaluation.  Imports are optimized by the
     compiler so there is no need to assign them to local variables.
     """
-    fields = ('importname',)
+
+    fields = ("importname",)
 
 
 class InternalName(Expr):
@@ -816,16 +878,20 @@ class InternalName(Expr):
     a new identifier for you.  This identifier is not available from the
     template and is not threated specially by the compiler.
     """
-    fields = ('name',)
+
+    fields = ("name",)
 
     def __init__(self):
-        raise TypeError('Can\'t create internal names.  Use the '
-                        '`free_identifier` method on a parser.')
+        raise TypeError(
+            "Can't create internal names.  Use the "
+            "`free_identifier` method on a parser."
+        )
 
 
 class MarkSafe(Expr):
     """Mark the wrapped expression as safe (wrap it as `Markup`)."""
-    fields = ('expr',)
+
+    fields = ("expr",)
 
     def as_const(self, eval_ctx=None):
         eval_ctx = get_eval_context(self, eval_ctx)
@@ -838,7 +904,8 @@ class MarkSafeIfAutoescape(Expr):
 
     .. versionadded:: 2.5
     """
-    fields = ('expr',)
+
+    fields = ("expr",)
 
     def as_const(self, eval_ctx=None):
         eval_ctx = get_eval_context(self, eval_ctx)
@@ -873,7 +940,8 @@ class Break(Stmt):
 
 class Scope(Stmt):
     """An artificial scope."""
-    fields = ('body',)
+
+    fields = ("body",)
 
 
 class EvalContextModifier(Stmt):
@@ -884,7 +952,8 @@ class EvalContextModifier(Stmt):
 
         EvalContextModifier(options=[Keyword('autoescape', Const(True))])
     """
-    fields = ('options',)
+
+    fields = ("options",)
 
 
 class ScopedEvalContextModifier(EvalContextModifier):
@@ -892,10 +961,14 @@ class ScopedEvalContextModifier(EvalContextModifier):
     :class:`EvalContextModifier` but will only modify the
     :class:`~ambari_jinja2.nodes.EvalContext` for nodes in the :attr:`body`.
     """
-    fields = ('body',)
+
+    fields = ("body",)
 
 
 # make sure nobody creates custom nodes
 def _failing_new(*args, **kwargs):
-    raise TypeError('can\'t create custom node types')
-NodeType.__new__ = staticmethod(_failing_new); del _failing_new
+    raise TypeError("can't create custom node types")
+
+
+NodeType.__new__ = staticmethod(_failing_new)
+del _failing_new

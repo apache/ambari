@@ -25,38 +25,39 @@ import sys
 
 
 class Hook(Script):
-  """
-  Executes a hook for a command for custom service. stdout and stderr are written to
-  tmpoutfile and to tmperrfile respectively.
-  """
-
-  HOOK_METHOD_NAME = "hook"  # This method is always executed at hooks
-
-  def choose_method_to_execute(self, command_name):
     """
-    Changes logics of resolving method name
+    Executes a hook for a command for custom service. stdout and stderr are written to
+    tmpoutfile and to tmperrfile respectively.
     """
-    return super(Hook, self).choose_method_to_execute(self.HOOK_METHOD_NAME)
 
-  def run_custom_hook(self, command):
-    """
-    Runs custom hook
-    """
-    args = sys.argv
-    
-    # Hook script to run
-    args[0] = args[0].replace('before-'+args[1], command)
-    args[0] = args[0].replace('after-'+args[1], command)
-    
-    # Hook script base directory
-    args[3] = args[3].replace('before-'+args[1], command)
-    args[3] = args[3].replace('after-'+args[1], command)
-    
-    args[1] = command.split("-")[1]
+    HOOK_METHOD_NAME = "hook"  # This method is always executed at hooks
 
-    cmd = [sys.executable]
-    cmd.extend(args)
+    def choose_method_to_execute(self, command_name):
+        """
+        Changes logics of resolving method name
+        """
+        return super(Hook, self).choose_method_to_execute(self.HOOK_METHOD_NAME)
 
-    if subprocess.call(cmd) != 0:
-      self.fail_with_error("Error: Unable to run the custom hook script " + cmd.__str__())
+    def run_custom_hook(self, command):
+        """
+        Runs custom hook
+        """
+        args = sys.argv
 
+        # Hook script to run
+        args[0] = args[0].replace("before-" + args[1], command)
+        args[0] = args[0].replace("after-" + args[1], command)
+
+        # Hook script base directory
+        args[3] = args[3].replace("before-" + args[1], command)
+        args[3] = args[3].replace("after-" + args[1], command)
+
+        args[1] = command.split("-")[1]
+
+        cmd = [sys.executable]
+        cmd.extend(args)
+
+        if subprocess.call(cmd) != 0:
+            self.fail_with_error(
+                "Error: Unable to run the custom hook script " + cmd.__str__()
+            )

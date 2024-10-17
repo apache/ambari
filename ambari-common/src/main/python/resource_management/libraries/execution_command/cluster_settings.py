@@ -20,6 +20,7 @@ limitations under the License.
 
 __all__ = ["ClusterSettings"]
 
+
 class ClusterSettings(object):
     """
     This class maps to "configurations->cluster-env" in command.json which includes cluster setting information of a cluster
@@ -56,7 +57,7 @@ class ClusterSettings(object):
         Check if the cluster can be enabled or not
         :return: True or False
         """
-        recovery_enabled =  self.__get_value("recovery_enabled")
+        recovery_enabled = self.__get_value("recovery_enabled")
         return recovery_enabled and recovery_enabled.lower() == "true"
 
     def get_recovery_type(self):
@@ -106,7 +107,7 @@ class ClusterSettings(object):
         Check if override_uid is true or false
         :return: True or False
         """
-        override_uid =  self.__get_value("override_uid")
+        override_uid = self.__get_value("override_uid")
         return override_uid and override_uid.lower() == "true"
 
     def check_sysprep_skip_copy_fast_jar_hdfs(self):

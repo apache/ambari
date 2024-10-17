@@ -19,6 +19,7 @@ limitations under the License.
 Ambari Agent
 
 """
+
 # Python Imports
 import os
 
@@ -31,54 +32,59 @@ from resource_management.core.source import InlineTemplate
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
+
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def tez(config_dir):
-  """
-  Write out tez-site.xml and tez-env.sh to the config directory.
-  :param config_dir: Which config directory to save configs to, which is different during rolling upgrade.
-  """
-  import params
+    """
+    Write out tez-site.xml and tez-env.sh to the config directory.
+    :param config_dir: Which config directory to save configs to, which is different during rolling upgrade.
+    """
+    import params
 
-  # ensure that matching LZO libraries are installed for Tez
-  lzo_utils.install_lzo_if_needed()
+    # ensure that matching LZO libraries are installed for Tez
+    lzo_utils.install_lzo_if_needed()
 
-  if config_dir is None:
-    config_dir = params.tez_conf_dir
+    if config_dir is None:
+        config_dir = params.tez_conf_dir
 
-  Directory(params.tez_conf_dir, mode=0o755)
+    Directory(params.tez_conf_dir, mode=0o755)
 
-  Directory(config_dir,
-            owner = params.tez_user,
-            group = params.user_group,
-            create_parents = True)
+    Directory(
+        config_dir, owner=params.tez_user, group=params.user_group, create_parents=True
+    )
 
-  XmlConfig( "tez-site.xml",
-             conf_dir = config_dir,
-             configurations = params.tez_site_config,
-             configuration_attributes=params.config['configurationAttributes']['tez-site'],
-             owner = params.tez_user,
-             group = params.user_group,
-             mode = 0o664)
+    XmlConfig(
+        "tez-site.xml",
+        conf_dir=config_dir,
+        configurations=params.tez_site_config,
+        configuration_attributes=params.config["configurationAttributes"]["tez-site"],
+        owner=params.tez_user,
+        group=params.user_group,
+        mode=0o664,
+    )
 
-  tez_env_file_path = os.path.join(config_dir, "tez-env.sh")
-  File(tez_env_file_path,
-       owner=params.tez_user,
-       content=InlineTemplate(params.tez_env_sh_template),
-       mode=0o555)
+    tez_env_file_path = os.path.join(config_dir, "tez-env.sh")
+    File(
+        tez_env_file_path,
+        owner=params.tez_user,
+        content=InlineTemplate(params.tez_env_sh_template),
+        mode=0o555,
+    )
 
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def tez(config_dir):
-  """
-  Write out tez-site.xml and tez-env.sh to the config directory.
-  :param config_dir: Directory to write configs to.
-  """
-  import params
-  XmlConfig("tez-site.xml",
-             conf_dir=config_dir,
-             configurations=params.config['configurations']['tez-site'],
-             owner=params.tez_user,
-             mode="f",
-             configuration_attributes=params.config['configurationAttributes']['tez-site']
-  )
+    """
+    Write out tez-site.xml and tez-env.sh to the config directory.
+    :param config_dir: Directory to write configs to.
+    """
+    import params
 
+    XmlConfig(
+        "tez-site.xml",
+        conf_dir=config_dir,
+        configurations=params.config["configurations"]["tez-site"],
+        owner=params.tez_user,
+        mode="f",
+        configuration_attributes=params.config["configurationAttributes"]["tez-site"],
+    )

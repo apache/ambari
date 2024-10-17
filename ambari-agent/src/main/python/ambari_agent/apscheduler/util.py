@@ -8,10 +8,23 @@ from time import mktime
 import re
 import sys
 
-__all__ = ('asint', 'asbool', 'convert_to_datetime', 'timedelta_seconds',
-           'time_difference', 'datetime_ceil', 'combine_opts',
-           'get_callable_name', 'obj_to_ref', 'ref_to_obj', 'maybe_ref',
-           'to_unicode', 'iteritems', 'itervalues', 'xrange')
+__all__ = (
+    "asint",
+    "asbool",
+    "convert_to_datetime",
+    "timedelta_seconds",
+    "time_difference",
+    "datetime_ceil",
+    "combine_opts",
+    "get_callable_name",
+    "obj_to_ref",
+    "ref_to_obj",
+    "maybe_ref",
+    "to_unicode",
+    "iteritems",
+    "itervalues",
+    "xrange",
+)
 
 
 def asint(text):
@@ -34,18 +47,19 @@ def asbool(obj):
     """
     if isinstance(obj, str):
         obj = obj.strip().lower()
-        if obj in ('true', 'yes', 'on', 'y', 't', '1'):
+        if obj in ("true", "yes", "on", "y", "t", "1"):
             return True
-        if obj in ('false', 'no', 'off', 'n', 'f', '0'):
+        if obj in ("false", "no", "off", "n", "f", "0"):
             return False
         raise ValueError('Unable to interpret value "%s" as boolean' % obj)
     return bool(obj)
 
 
 _DATE_REGEX = re.compile(
-    r'(?P<year>\d{4})-(?P<month>\d{1,2})-(?P<day>\d{1,2})'
-    r'(?: (?P<hour>\d{1,2}):(?P<minute>\d{1,2}):(?P<second>\d{1,2})'
-    r'(?:\.(?P<microsecond>\d{1,6}))?)?')
+    r"(?P<year>\d{4})-(?P<month>\d{1,2})-(?P<day>\d{1,2})"
+    r"(?: (?P<hour>\d{1,2}):(?P<minute>\d{1,2}):(?P<second>\d{1,2})"
+    r"(?:\.(?P<microsecond>\d{1,6}))?)?"
+)
 
 
 def convert_to_datetime(input):
@@ -67,11 +81,11 @@ def convert_to_datetime(input):
     elif isinstance(input, str):
         m = _DATE_REGEX.match(input)
         if not m:
-            raise ValueError('Invalid date string')
+            raise ValueError("Invalid date string")
         values = [(k, int(v or 0)) for k, v in m.groupdict().items()]
         values = dict(values)
         return datetime(**values)
-    raise TypeError('Unsupported input type: %s' % type(input))
+    raise TypeError("Unsupported input type: %s" % type(input))
 
 
 def timedelta_seconds(delta):
@@ -81,8 +95,7 @@ def timedelta_seconds(delta):
     :type delta: timedelta
     :rtype: float
     """
-    return delta.days * 24 * 60 * 60 + delta.seconds + \
-        delta.microseconds / 1000000.0
+    return delta.days * 24 * 60 * 60 + delta.seconds + delta.microseconds / 1000000.0
 
 
 def time_difference(date1, date2):
@@ -108,8 +121,7 @@ def datetime_ceil(dateval):
     :type dateval: datetime
     """
     if dateval.microsecond > 0:
-        return dateval + timedelta(seconds=1,
-                                   microseconds=-dateval.microsecond)
+        return dateval + timedelta(seconds=1, microseconds=-dateval.microsecond)
     return dateval
 
 
@@ -138,38 +150,40 @@ def get_callable_name(func):
     """
     Returns the best available display name for the given function/callable.
     """
-    f_self = getattr(func, '__self__', None) or getattr(func, 'im_self', None)
+    f_self = getattr(func, "__self__", None) or getattr(func, "im_self", None)
 
-    if f_self and hasattr(func, '__name__'):
+    if f_self and hasattr(func, "__name__"):
         if isinstance(f_self, type):
             # class method
-            clsname = getattr(f_self, '__qualname__', None) or f_self.__name__
-            return '%s.%s' % (clsname, func.__name__)
+            clsname = getattr(f_self, "__qualname__", None) or f_self.__name__
+            return "%s.%s" % (clsname, func.__name__)
         # bound method
-        return '%s.%s' % (f_self.__class__.__name__, func.__name__)
+        return "%s.%s" % (f_self.__class__.__name__, func.__name__)
 
-    if hasattr(func, '__call__'):
-        if hasattr(func, '__name__'):
+    if hasattr(func, "__call__"):
+        if hasattr(func, "__name__"):
             # function, unbound method or a class with a __call__ method
             return func.__name__
         # instance of a class with a __call__ method
         return func.__class__.__name__
 
-    raise TypeError('Unable to determine a name for %s -- '
-                    'maybe it is not a callable?' % repr(func))
+    raise TypeError(
+        "Unable to determine a name for %s -- "
+        "maybe it is not a callable?" % repr(func)
+    )
 
 
 def obj_to_ref(obj):
     """
     Returns the path to the given object.
     """
-    ref = '%s:%s' % (obj.__module__, get_callable_name(obj))
+    ref = "%s:%s" % (obj.__module__, get_callable_name(obj))
     try:
         obj2 = ref_to_obj(ref)
         if obj != obj2:
             raise ValueError
     except Exception:
-        raise ValueError('Cannot determine the reference to %s' % repr(obj))
+        raise ValueError("Cannot determine the reference to %s" % repr(obj))
 
     return ref
 
@@ -179,24 +193,26 @@ def ref_to_obj(ref):
     Returns the object pointed to by ``ref``.
     """
     if not isinstance(ref, str):
-        raise TypeError('References must be strings')
-    if not ':' in ref:
-        raise ValueError('Invalid reference')
+        raise TypeError("References must be strings")
+    if not ":" in ref:
+        raise ValueError("Invalid reference")
 
-    modulename, rest = ref.split(':', 1)
+    modulename, rest = ref.split(":", 1)
     try:
         obj = __import__(modulename)
     except ImportError:
-        raise LookupError('Error resolving reference %s: '
-                          'could not import module' % ref)
+        raise LookupError(
+            "Error resolving reference %s: " "could not import module" % ref
+        )
 
     try:
-        for name in modulename.split('.')[1:] + rest.split('.'):
+        for name in modulename.split(".")[1:] + rest.split("."):
             obj = getattr(obj, name)
         return obj
     except Exception:
-        raise LookupError('Error resolving reference %s: '
-                          'error looking up object' % ref)
+        raise LookupError(
+            "Error resolving reference %s: " "error looking up object" % ref
+        )
 
 
 def maybe_ref(ref):
@@ -209,13 +225,13 @@ def maybe_ref(ref):
     return ref_to_obj(ref)
 
 
-def to_unicode(string, encoding='ascii'):
+def to_unicode(string, encoding="ascii"):
     """
     Safely converts a string to a unicode representation on any
     Python version.
     """
-    if hasattr(string, 'decode'):
-        return string.decode(encoding, 'ignore')
+    if hasattr(string, "decode"):
+        return string.decode(encoding, "ignore")
     return string  # pragma: nocover
 
 

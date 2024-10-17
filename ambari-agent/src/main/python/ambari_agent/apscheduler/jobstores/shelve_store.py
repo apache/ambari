@@ -25,7 +25,7 @@ class ShelveJobStore(JobStore):
         self._open_store()
 
     def _open_store(self):
-        self.store = shelve.open(self.path, 'c', self.pickle_protocol)
+        self.store = shelve.open(self.path, "c", self.pickle_protocol)
 
     def _generate_id(self):
         id = None
@@ -43,8 +43,8 @@ class ShelveJobStore(JobStore):
 
     def update_job(self, job):
         job_dict = self.store[job.id]
-        job_dict['next_run_time'] = job.next_run_time
-        job_dict['runs'] = job.runs
+        job_dict["next_run_time"] = job.next_run_time
+        job_dict["runs"] = job.runs
         self.store[job.id] = job_dict
         self.store.close()
         self._open_store()
@@ -63,7 +63,7 @@ class ShelveJobStore(JobStore):
                 job.__setstate__(job_dict)
                 jobs.append(job)
             except Exception:
-                job_name = job_dict.get('name', '(unknown)')
+                job_name = job_dict.get("name", "(unknown)")
                 logger.exception('Unable to restore job "%s"', job_name)
 
         self.jobs = jobs
@@ -72,4 +72,4 @@ class ShelveJobStore(JobStore):
         self.store.close()
 
     def __repr__(self):
-        return '<%s (path=%s)>' % (self.__class__.__name__, self.path)
+        return "<%s (path=%s)>" % (self.__class__.__name__, self.path)

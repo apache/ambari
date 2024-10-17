@@ -22,72 +22,70 @@ import threading
 
 logger = logging.getLogger(__name__)
 
-class AlertCollector():
-  """
-  cluster -> name -> alert dict
-  """  
-  def __init__(self):
-    self.__buckets = {}
-    self.__lock = threading.RLock()
 
-
-  def put(self, cluster, alert):
-    self.__lock.acquire()
-    try:
-      if not cluster in self.__buckets:
-        self.__buckets[cluster] = {}
-        
-      self.__buckets[cluster][alert['name']] = alert
-    finally:
-      self.__lock.release()
-
-
-  def remove(self, cluster, alert_name):
+class AlertCollector:
     """
-    Removes the alert with the specified name if it exists in the dictionary
+    cluster -> name -> alert dict
     """
-    self.__lock.acquire()
-    try:
-      if not cluster in self.__buckets:
-        return
-      
-      del self.__buckets[cluster][alert_name]
-    finally:
-      self.__lock.release()
 
+    def __init__(self):
+        self.__buckets = {}
+        self.__lock = threading.RLock()
 
-  def remove_by_uuid(self, alert_uuid):
-    """
-    Removes the alert with the specified uuid if it exists in the dictionary
-    """
-    self.__lock.acquire()
-    try:
-      for cluster,alert_map in self.__buckets.items():
-        for alert_name in list(alert_map.keys()):
-          alert = alert_map[alert_name]
+    def put(self, cluster, alert):
+        self.__lock.acquire()
+        try:
+            if not cluster in self.__buckets:
+                self.__buckets[cluster] = {}
 
-          if not 'uuid' in alert:
-            logger.warn("Alert {0} does not have uuid key.".format(alert))
-            continue
+            self.__buckets[cluster][alert["name"]] = alert
+        finally:
+            self.__lock.release()
 
-          if alert['uuid'] == alert_uuid:
-            self.remove(cluster, alert_name)
-    finally:
-      self.__lock.release()
+    def remove(self, cluster, alert_name):
+        """
+        Removes the alert with the specified name if it exists in the dictionary
+        """
+        self.__lock.acquire()
+        try:
+            if not cluster in self.__buckets:
+                return
 
+            del self.__buckets[cluster][alert_name]
+        finally:
+            self.__lock.release()
 
-  def alerts(self):
-    '''
-    Gets all of the alerts collected since the last time this method was
-    called. This method will clear the collected alerts.
-    '''
-    self.__lock.acquire()
-    try:
-      alerts = []
-      for clustermap in list(self.__buckets.values())[:]:
-        alerts.extend(list(clustermap.values()))
+    def remove_by_uuid(self, alert_uuid):
+        """
+        Removes the alert with the specified uuid if it exists in the dictionary
+        """
+        self.__lock.acquire()
+        try:
+            for cluster, alert_map in self.__buckets.items():
+                for alert_name in list(alert_map.keys()):
+                    alert = alert_map[alert_name]
 
-      self.__buckets.clear()
-      return alerts
-    finally:
-      self.__lock.release()
+                    if not "uuid" in alert:
+                        logger.warn("Alert {0} does not have uuid key.".format(alert))
+                        continue
+
+                    if alert["uuid"] == alert_uuid:
+                        self.remove(cluster, alert_name)
+        finally:
+            self.__lock.release()
+
+    def alerts(self):
+        """
+        Gets all of the alerts collected since the last time this method was
+        called. This method will clear the collected alerts.
+        """
+        self.__lock.acquire()
+        try:
+            alerts = []
+            for clustermap in list(self.__buckets.values())[:]:
+                alerts.extend(list(clustermap.values()))
+
+            self.__buckets.clear()
+            return alerts
+        finally:
+            self.__lock.release()

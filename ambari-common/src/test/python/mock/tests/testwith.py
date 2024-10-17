@@ -7,11 +7,10 @@ else:
     from tests.support import unittest2
 
     class TestWith(unittest2.TestCase):
-
-        @unittest2.skip('tests using with statement skipped on Python 2.4')
+        @unittest2.skip("tests using with statement skipped on Python 2.4")
         def testWith(self):
             pass
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest2.main()

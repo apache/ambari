@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Errors thrown by stomp.py connections.
-"""
+"""Errors thrown by stomp.py connections."""
+
 
 class StompException(Exception):
     """

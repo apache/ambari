@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-    ambari_jinja2.utils
-    ~~~~~~~~~~~~
+ambari_jinja2.utils
+~~~~~~~~~~~~
 
-    Utility functions.
+Utility functions.
 
-    :copyright: (c) 2010 by the Jinja Team.
-    :license: BSD, see LICENSE for more details.
+:copyright: (c) 2010 by the Jinja Team.
+:license: BSD, see LICENSE for more details.
 """
+
 import re
 import sys
 import errno
+
 try:
     from _thread import allocate_lock
 except ImportError:
@@ -19,22 +21,22 @@ except ImportError:
 from collections import deque
 
 
-
-_word_split_re = re.compile(r'(\s+)')
+_word_split_re = re.compile(r"(\s+)")
 _punctuation_re = re.compile(
-    '^(?P<lead>(?:%s)*)(?P<middle>.*?)(?P<trail>(?:%s)*)$' % (
-        '|'.join(map(re.escape, ('(', '<', '&lt;'))),
-        '|'.join(map(re.escape, ('.', ',', ')', '>', '\n', '&gt;')))
+    "^(?P<lead>(?:%s)*)(?P<middle>.*?)(?P<trail>(?:%s)*)$"
+    % (
+        "|".join(map(re.escape, ("(", "<", "&lt;"))),
+        "|".join(map(re.escape, (".", ",", ")", ">", "\n", "&gt;"))),
     )
 )
-_simple_email_re = re.compile(r'^\S+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+$')
-_striptags_re = re.compile(r'(<!--.*?-->|<[^>]*>)')
-_entity_re = re.compile(r'&([^;]+);')
-_letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
-_digits = '0123456789'
+_simple_email_re = re.compile(r"^\S+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+$")
+_striptags_re = re.compile(r"(<!--.*?-->|<[^>]*>)")
+_entity_re = re.compile(r"&([^;]+);")
+_letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+_digits = "0123456789"
 
 # special singleton representing missing values for the runtime
-missing = type('MissingType', (), {'__repr__': lambda x: 'missing'})()
+missing = type("MissingType", (), {"__repr__": lambda x: "missing"})()
 
 # internal code
 internal_code = set()
@@ -43,14 +45,17 @@ internal_code = set()
 # concatenate a list of strings and convert them to unicode.
 # unfortunately there is a bug in python 2.4 and lower that causes
 # unicode.join trash the traceback.
-_concat = ''.join
+_concat = "".join
 try:
+
     def _test_gen_bug():
         raise TypeError(_test_gen_bug)
         yield None
+
     _concat(_test_gen_bug())
 except TypeError as _error:
     if not _error.args or _error.args[0] is not _test_gen_bug:
+
         def concat(gen):
             try:
                 return _concat(list(gen))
@@ -69,6 +74,7 @@ except TypeError as _error:
 try:
     next = next
 except NameError:
+
     def next(x):
         return x.__next__()
 
@@ -79,15 +85,19 @@ except NameError:
 # filenames are unicode *or* bytestrings in 2.x and unicode only in
 # 3.x because compile cannot handle bytes
 if sys.version_info < (3, 0):
+
     def _encode_filename(filename):
         if isinstance(filename, str):
-            return filename.encode('utf-8')
+            return filename.encode("utf-8")
         return filename
 else:
+
     def _encode_filename(filename):
-        assert filename is None or isinstance(filename, str), \
-            'filenames must be strings'
+        assert filename is None or isinstance(
+            filename, str
+        ), "filenames must be strings"
         return filename
+
 
 from keyword import iskeyword as is_python_keyword
 
@@ -96,9 +106,14 @@ from keyword import iskeyword as is_python_keyword
 # does not exist in IronPython out of the box.  Also that way we don't have
 # to deal with implementation specific stuff here
 class _C(object):
-    def method(self): pass
+    def method(self):
+        pass
+
+
 def _func():
     yield None
+
+
 FunctionType = type(_func)
 GeneratorType = type(_func())
 MethodType = type(_C.method)
@@ -170,6 +185,7 @@ def is_undefined(obj):
             return var
     """
     from ambari_jinja2.runtime import Undefined
+
     return isinstance(obj, Undefined)
 
 
@@ -187,6 +203,7 @@ def clear_caches():
     """
     from ambari_jinja2.environment import _spontaneous_environments
     from ambari_jinja2.lexer import _lexer_cache
+
     _spontaneous_environments.clear()
     _lexer_cache.clear()
 
@@ -203,11 +220,11 @@ def import_string(import_name, silent=False):
     :return: imported object
     """
     try:
-        if ':' in import_name:
-            module, obj = import_name.split(':', 1)
-        elif '.' in import_name:
-            items = import_name.split('.')
-            module = '.'.join(items[:-1])
+        if ":" in import_name:
+            module, obj = import_name.split(":", 1)
+        elif "." in import_name:
+            items = import_name.split(".")
+            module = ".".join(items[:-1])
             obj = items[-1]
         else:
             return __import__(import_name)
@@ -217,7 +234,7 @@ def import_string(import_name, silent=False):
             raise
 
 
-def open_if_exists(filename, mode='rb'):
+def open_if_exists(filename, mode="rb"):
     """Returns a file descriptor for the filename if that file exists,
     otherwise `None`.
     """
@@ -234,15 +251,15 @@ def object_type_repr(obj):
     example for `None` and `Ellipsis`).
     """
     if obj is None:
-        return 'None'
+        return "None"
     elif obj is Ellipsis:
-        return 'Ellipsis'
+        return "Ellipsis"
     # __builtin__ in 2.x, builtins in 3.x
-    if obj.__class__.__module__ in ('__builtin__', 'builtins'):
+    if obj.__class__.__module__ in ("__builtin__", "builtins"):
         name = obj.__class__.__name__
     else:
-        name = obj.__class__.__module__ + '.' + obj.__class__.__name__
-    return '%s object' % name
+        name = obj.__class__.__module__ + "." + obj.__class__.__name__
+    return "%s object" % name
 
 
 def pformat(obj, verbose=False):
@@ -251,9 +268,11 @@ def pformat(obj, verbose=False):
     """
     try:
         from pretty import pretty
+
         return pretty(obj, verbose=verbose)
     except ImportError:
         from pprint import pformat
+
         return pformat(obj)
 
 
@@ -269,42 +288,56 @@ def urlize(text, trim_url_limit=None, nofollow=False):
     If nofollow is True, the URLs in link text will get a rel="nofollow"
     attribute.
     """
-    trim_url = lambda x, limit=trim_url_limit: limit is not None \
-                         and (x[:limit] + (len(x) >=limit and '...'
-                         or '')) or x
+    trim_url = (
+        lambda x, limit=trim_url_limit: limit is not None
+        and (x[:limit] + (len(x) >= limit and "..." or ""))
+        or x
+    )
     words = _word_split_re.split(str(escape(text)))
-    nofollow_attr = nofollow and ' rel="nofollow"' or ''
+    nofollow_attr = nofollow and ' rel="nofollow"' or ""
     for i, word in enumerate(words):
         match = _punctuation_re.match(word)
         if match:
             lead, middle, trail = match.groups()
-            if middle.startswith('www.') or (
-                '@' not in middle and
-                not middle.startswith('http://') and
-                len(middle) > 0 and
-                middle[0] in _letters + _digits and (
-                    middle.endswith('.org') or
-                    middle.endswith('.net') or
-                    middle.endswith('.com')
-                )):
-                middle = '<a href="http://%s"%s>%s</a>' % (middle,
-                    nofollow_attr, trim_url(middle))
-            if middle.startswith('http://') or \
-               middle.startswith('https://'):
-                middle = '<a href="%s"%s>%s</a>' % (middle,
-                    nofollow_attr, trim_url(middle))
-            if '@' in middle and not middle.startswith('www.') and \
-               not ':' in middle and _simple_email_re.match(middle):
+            if middle.startswith("www.") or (
+                "@" not in middle
+                and not middle.startswith("http://")
+                and len(middle) > 0
+                and middle[0] in _letters + _digits
+                and (
+                    middle.endswith(".org")
+                    or middle.endswith(".net")
+                    or middle.endswith(".com")
+                )
+            ):
+                middle = '<a href="http://%s"%s>%s</a>' % (
+                    middle,
+                    nofollow_attr,
+                    trim_url(middle),
+                )
+            if middle.startswith("http://") or middle.startswith("https://"):
+                middle = '<a href="%s"%s>%s</a>' % (
+                    middle,
+                    nofollow_attr,
+                    trim_url(middle),
+                )
+            if (
+                "@" in middle
+                and not middle.startswith("www.")
+                and not ":" in middle
+                and _simple_email_re.match(middle)
+            ):
                 middle = '<a href="mailto:%s">%s</a>' % (middle, middle)
             if lead + middle + trail != word:
                 words[i] = lead + middle + trail
-    return ''.join(words)
+    return "".join(words)
 
 
 def generate_lorem_ipsum(n=5, html=True, min=20, max=100):
     """Generate some lorem impsum for the template."""
     from ambari_jinja2.constants import LOREM_IPSUM_WORDS
     from random import choice, randrange
+
     words = LOREM_IPSUM_WORDS.split()
     result = []
 
@@ -329,25 +362,25 @@ def generate_lorem_ipsum(n=5, html=True, min=20, max=100):
             if idx - randrange(3, 8) > last_comma:
                 last_comma = idx
                 last_fullstop += 2
-                word += ','
+                word += ","
             # add end of sentences
             if idx - randrange(10, 20) > last_fullstop:
                 last_comma = last_fullstop = idx
-                word += '.'
+                word += "."
                 next_capitalized = True
             p.append(word)
 
         # ensure that the paragraph ends with a dot.
-        p = ' '.join(p)
-        if p.endswith(','):
-            p = p[:-1] + '.'
-        elif not p.endswith('.'):
-            p += '.'
+        p = " ".join(p)
+        if p.endswith(","):
+            p = p[:-1] + "."
+        elif not p.endswith("."):
+            p += "."
         result.append(p)
 
     if not html:
-        return '\n\n'.join(result)
-    return Markup('\n'.join('<p>%s</p>' % escape(x) for x in result))
+        return "\n\n".join(result)
+    return Markup("\n".join("<p>%s</p>" % escape(x) for x in result))
 
 
 class LRUCache(object):
@@ -367,7 +400,7 @@ class LRUCache(object):
         # alias all queue methods for faster lookup
         self._popleft = self._queue.popleft
         self._pop = self._queue.pop
-        if hasattr(self._queue, 'remove'):
+        if hasattr(self._queue, "remove"):
             self._remove = self._queue.remove
         self._wlock = allocate_lock()
         self._append = self._queue.append
@@ -381,9 +414,9 @@ class LRUCache(object):
 
     def __getstate__(self):
         return {
-            'capacity':     self.capacity,
-            '_mapping':     self._mapping,
-            '_queue':       self._queue
+            "capacity": self.capacity,
+            "_mapping": self._mapping,
+            "_queue": self._queue,
         }
 
     def __setstate__(self, d):
@@ -435,10 +468,7 @@ class LRUCache(object):
         return len(self._mapping)
 
     def __repr__(self):
-        return '<%s %r>' % (
-            self.__class__.__name__,
-            self._mapping
-        )
+        return "<%s %r>" % (self.__class__.__name__, self._mapping)
 
     def __getitem__(self, key):
         """Get an item from the cache. Moves the item up so that it has the
@@ -534,6 +564,7 @@ class LRUCache(object):
 # register the LRU cache as mutable mapping if possible
 try:
     from collections import MutableMapping
+
     MutableMapping.register(LRUCache)
 except ImportError:
     pass
@@ -544,7 +575,7 @@ class Cycler(object):
 
     def __init__(self, *items):
         if not items:
-            raise RuntimeError('at least one item has to be provided')
+            raise RuntimeError("at least one item has to be provided")
         self.items = items
         self.reset()
 
@@ -567,14 +598,14 @@ class Cycler(object):
 class Joiner(object):
     """A joining helper for templates."""
 
-    def __init__(self, sep=', '):
+    def __init__(self, sep=", "):
         self.sep = sep
         self.used = False
 
     def __call__(self):
         if not self.used:
             self.used = True
-            return ''
+            return ""
         return self.sep
 
 
@@ -592,11 +623,13 @@ except ImportError:
 try:
     from functools import partial
 except ImportError:
+
     class partial(object):
         def __init__(self, _func, *args, **kwargs):
             self._func = _func
             self._args = args
             self._kwargs = kwargs
+
         def __call__(self, *args, **kwargs):
             kwargs.update(self._kwargs)
             return self._func(*(self._args + args), **kwargs)

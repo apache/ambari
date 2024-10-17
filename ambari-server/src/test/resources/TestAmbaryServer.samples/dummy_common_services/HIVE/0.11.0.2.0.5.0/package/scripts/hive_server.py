@@ -24,40 +24,41 @@ from resource_management import *
 from scripts.hive import hive
 from scripts.hive_service import hive_service
 
+
 class HiveServer(Script):
+    def install(self, env):
+        self.install_packages(env)
+        self.configure(env)
 
-  def install(self, env):
-    self.install_packages(env)
-    self.configure(env)
-  def configure(self, env):
-    from scripts import params
-    env.set_params(params)
+    def configure(self, env):
+        from scripts import params
 
-    hive(name='hiveserver2')
+        env.set_params(params)
 
-  def start(self, env):
-    from scripts import params
-    env.set_params(params)
-    self.configure(env) # FOR SECURITY
-    hive_service( 'hiveserver2',
-                  action = 'start'
-    )
+        hive(name="hiveserver2")
 
-  def stop(self, env):
-    from scripts import params
-    env.set_params(params)
+    def start(self, env):
+        from scripts import params
 
-    hive_service( 'hiveserver2',
-                  action = 'stop'
-    )
+        env.set_params(params)
+        self.configure(env)  # FOR SECURITY
+        hive_service("hiveserver2", action="start")
 
+    def stop(self, env):
+        from scripts import params
 
-  def status(self, env):
-    from scripts import status_params
-    env.set_params(status_params)
-    pid_file = format("{hive_pid_dir}/{hive_pid}")
-    # Recursively check all existing gmetad pid files
-    check_process_status(pid_file)
+        env.set_params(params)
+
+        hive_service("hiveserver2", action="stop")
+
+    def status(self, env):
+        from scripts import status_params
+
+        env.set_params(status_params)
+        pid_file = format("{hive_pid_dir}/{hive_pid}")
+        # Recursively check all existing gmetad pid files
+        check_process_status(pid_file)
+
 
 if __name__ == "__main__":
-  HiveServer().execute()
+    HiveServer().execute()

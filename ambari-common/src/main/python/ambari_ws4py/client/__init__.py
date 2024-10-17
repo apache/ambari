@@ -11,11 +11,20 @@ from ambari_ws4py.exc import HandshakeError
 from ambari_ws4py.websocket import WebSocket
 from ambari_ws4py.compat import urlsplit
 
-__all__ = ['WebSocketBaseClient']
+__all__ = ["WebSocketBaseClient"]
+
 
 class WebSocketBaseClient(WebSocket):
-    def __init__(self, url, protocols=None, extensions=None,
-                 heartbeat_freq=None, ssl_options=None, headers=None, exclude_headers=None):
+    def __init__(
+        self,
+        url,
+        protocols=None,
+        extensions=None,
+        heartbeat_freq=None,
+        ssl_options=None,
+        headers=None,
+        exclude_headers=None,
+    ):
         """
         A websocket client that implements :rfc:`6455` and provides a simple
         interface to communicate with a websocket server.
@@ -95,13 +104,17 @@ class WebSocketBaseClient(WebSocket):
             # Let's handle IPv4 and IPv6 addresses
             # Simplified from CherryPy's code
             try:
-                family, socktype, proto, canonname, sa = socket.getaddrinfo(self.host, self.port,
-                                                                            socket.AF_UNSPEC,
-                                                                            socket.SOCK_STREAM,
-                                                                            0, socket.AI_PASSIVE)[0]
+                family, socktype, proto, canonname, sa = socket.getaddrinfo(
+                    self.host,
+                    self.port,
+                    socket.AF_UNSPEC,
+                    socket.SOCK_STREAM,
+                    0,
+                    socket.AI_PASSIVE,
+                )[0]
             except socket.gaierror:
                 family = socket.AF_INET
-                if self.host.startswith('::'):
+                if self.host.startswith("::"):
                     family = socket.AF_INET6
 
                 socktype = socket.SOCK_STREAM
@@ -112,16 +125,23 @@ class WebSocketBaseClient(WebSocket):
             sock = socket.socket(family, socktype, proto)
             sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            if hasattr(socket, 'AF_INET6') and family == socket.AF_INET6 and \
-              self.host.startswith('::'):
+            if (
+                hasattr(socket, "AF_INET6")
+                and family == socket.AF_INET6
+                and self.host.startswith("::")
+            ):
                 try:
                     sock.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 0)
                 except (AttributeError, socket.error):
                     pass
 
-        WebSocket.__init__(self, sock, protocols=protocols,
-                           extensions=extensions,
-                           heartbeat_freq=heartbeat_freq)
+        WebSocket.__init__(
+            self,
+            sock,
+            protocols=protocols,
+            extensions=extensions,
+            heartbeat_freq=heartbeat_freq,
+        )
 
         self.stream.always_mask = True
         self.stream.expect_masking = False
@@ -154,8 +174,8 @@ class WebSocketBaseClient(WebSocket):
         parsed = urlsplit(url, scheme="http")
         if parsed.hostname:
             self.host = parsed.hostname
-        elif '+unix' in scheme:
-            self.host = 'localhost'
+        elif "+unix" in scheme:
+            self.host = "localhost"
         else:
             raise ValueError("Invalid hostname from: %s", self.url)
 
@@ -168,7 +188,7 @@ class WebSocketBaseClient(WebSocket):
         elif scheme == "wss":
             if not self.port:
                 self.port = 443
-        elif scheme in ('ws+unix', 'wss+unix'):
+        elif scheme in ("ws+unix", "wss+unix"):
             pass
         else:
             raise ValueError("Invalid scheme: %s" % scheme)
@@ -178,9 +198,9 @@ class WebSocketBaseClient(WebSocket):
         else:
             resource = "/"
 
-        if '+unix' in scheme:
+        if "+unix" in scheme:
             self.unix_socket_path = resource
-            resource = '/'
+            resource = "/"
 
         if parsed.query:
             resource += "?" + parsed.query
@@ -197,7 +217,7 @@ class WebSocketBaseClient(WebSocket):
         """
         return self.unix_socket_path or (self.host, self.port)
 
-    def close(self, code=1000, reason=''):
+    def close(self, code=1000, reason=""):
         """
         Initiate the closing handshake with the server.
         """
@@ -220,8 +240,8 @@ class WebSocketBaseClient(WebSocket):
 
         self._write(self.handshake_request)
 
-        response = b''
-        doubleCLRF = b'\r\n\r\n'
+        response = b""
+        doubleCLRF = b"\r\n\r\n"
         while True:
             bytes = self.sock.recv(128)
             if not bytes:
@@ -235,7 +255,7 @@ class WebSocketBaseClient(WebSocket):
             raise HandshakeError("Invalid response")
 
         headers, _, body = response.partition(doubleCLRF)
-        response_line, _, headers = headers.partition(b'\r\n')
+        response_line, _, headers = headers.partition(b"\r\n")
 
         try:
             self.process_response_line(response_line)
@@ -255,32 +275,33 @@ class WebSocketBaseClient(WebSocket):
         handshake.
         """
         headers = [
-            ('Host', '%s:%s' % (self.host, self.port)),
-            ('Connection', 'Upgrade'),
-            ('Upgrade', 'websocket'),
-            ('Sec-WebSocket-Key', self.key.decode('utf-8')),
-            ('Sec-WebSocket-Version', str(max(WS_VERSION)))
-            ]
+            ("Host", "%s:%s" % (self.host, self.port)),
+            ("Connection", "Upgrade"),
+            ("Upgrade", "websocket"),
+            ("Sec-WebSocket-Key", self.key.decode("utf-8")),
+            ("Sec-WebSocket-Version", str(max(WS_VERSION))),
+        ]
 
         if self.protocols:
-            headers.append(('Sec-WebSocket-Protocol', ','.join(self.protocols)))
+            headers.append(("Sec-WebSocket-Protocol", ",".join(self.protocols)))
 
         if self.extra_headers:
             headers.extend(self.extra_headers)
 
-        if not any(x for x in headers if x[0].lower() == 'origin') and \
-           'origin' not in self.exclude_headers:
-
+        if (
+            not any(x for x in headers if x[0].lower() == "origin")
+            and "origin" not in self.exclude_headers
+        ):
             scheme, url = self.url.split(":", 1)
             parsed = urlsplit(url, scheme="http")
             if parsed.hostname:
                 self.host = parsed.hostname
             else:
-                self.host = 'localhost'
-            origin = scheme + '://' + self.host
+                self.host = "localhost"
+            origin = scheme + "://" + self.host
             if parsed.port:
-                origin = origin + ':' + str(parsed.port)
-            headers.append(('Origin', origin))
+                origin = origin + ":" + str(parsed.port)
+            headers.append(("Origin", origin))
 
         headers = [x for x in headers if x[0].lower() not in self.exclude_headers]
 
@@ -292,20 +313,20 @@ class WebSocketBaseClient(WebSocket):
         Prepare the request to be sent for the upgrade handshake.
         """
         headers = self.handshake_headers
-        request = [("GET %s HTTP/1.1" % self.resource).encode('utf-8')]
+        request = [("GET %s HTTP/1.1" % self.resource).encode("utf-8")]
         for header, value in headers:
-            request.append(("%s: %s" % (header, value)).encode('utf-8'))
-        request.append(b'\r\n')
+            request.append(("%s: %s" % (header, value)).encode("utf-8"))
+        request.append(b"\r\n")
 
-        return b'\r\n'.join(request)
+        return b"\r\n".join(request)
 
     def process_response_line(self, response_line):
         """
         Ensure that we received a HTTP `101` status code in
         response to our request and if not raises :exc:`HandshakeError`.
         """
-        protocol, code, status = response_line.split(b' ', 2)
-        if code != b'101':
+        protocol, code, status = response_line.split(b" ", 2)
+        if code != b"101":
             raise HandshakeError("Invalid response status: %s %s" % (code, status))
 
     def process_handshake_header(self, headers):
@@ -318,27 +339,27 @@ class WebSocketBaseClient(WebSocket):
 
         headers = headers.strip()
 
-        for header_line in headers.split(b'\r\n'):
-            header, value = header_line.split(b':', 1)
+        for header_line in headers.split(b"\r\n"):
+            header, value = header_line.split(b":", 1)
             header = header.strip().lower()
             value = value.strip().lower()
 
-            if header == b'upgrade' and value != b'websocket':
+            if header == b"upgrade" and value != b"websocket":
                 raise HandshakeError("Invalid Upgrade header: %s" % value)
 
-            elif header == b'connection' and value != b'upgrade':
+            elif header == b"connection" and value != b"upgrade":
                 raise HandshakeError("Invalid Connection header: %s" % value)
 
-            elif header == b'sec-websocket-accept':
+            elif header == b"sec-websocket-accept":
                 match = b64encode(sha1(self.key + WS_KEY).digest())
                 if value != match.lower():
                     raise HandshakeError("Invalid challenge response: %s" % value)
 
-            elif header == b'sec-websocket-protocol':
-                protocols.extend([x.strip() for x in value.split(b',')])
+            elif header == b"sec-websocket-protocol":
+                protocols.extend([x.strip() for x in value.split(b",")])
 
-            elif header == b'sec-websocket-extensions':
-                extensions.extend([x.strip() for x in value.split(b',')])
+            elif header == b"sec-websocket-extensions":
+                extensions.extend([x.strip() for x in value.split(b",")])
 
         return protocols, extensions
 

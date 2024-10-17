@@ -2,6 +2,7 @@
 """
 Storage containers for durable queues and (planned) durable topics.
 """
+
 import abc
 import logging
 import threading
@@ -27,7 +28,7 @@ lock = threading.RLock()
 
 class QueueStore(object, metaclass=abc.ABCMeta):
     """
-    Abstract base class for queue storage. 
+    Abstract base class for queue storage.
 
     Extensions/implementations of this class must be thread-safe.
 
@@ -42,8 +43,9 @@ class QueueStore(object, metaclass=abc.ABCMeta):
         If you extend this class, you should either call this method or at minimum make sure these values
         get set.
         """
-        self.log = logging.getLogger('%s.%s' % (
-            self.__module__, self.__class__.__name__))
+        self.log = logging.getLogger(
+            "%s.%s" % (self.__module__, self.__class__.__name__)
+        )
 
     @abc.abstractmethod
     @synchronized(lock)
@@ -68,7 +70,7 @@ class QueueStore(object, metaclass=abc.ABCMeta):
         @type destination: C{str}
 
         @return: The first frame in the specified queue, or C{None} if there are none.
-        @rtype: C{stompclient.frame.Frame} 
+        @rtype: C{stompclient.frame.Frame}
         """
 
     @synchronized(lock)
@@ -136,7 +138,7 @@ class QueueStore(object, metaclass=abc.ABCMeta):
         """
         Returns an iterator for frames in specified queue.
 
-        The iterator simply wraps calls to L{dequeue} method, so the order of the 
+        The iterator simply wraps calls to L{dequeue} method, so the order of the
         frames from the iterator will be the reverse of the order in which the
         frames were enqueued.
 

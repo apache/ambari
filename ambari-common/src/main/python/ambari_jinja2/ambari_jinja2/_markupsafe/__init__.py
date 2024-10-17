@@ -1,23 +1,23 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-    markupsafe
-    ~~~~~~~~~~
+markupsafe
+~~~~~~~~~~
 
-    Implements a Markup string.
+Implements a Markup string.
 
-    :copyright: (c) 2010 by Armin Ronacher.
-    :license: BSD, see LICENSE for more details.
+:copyright: (c) 2010 by Armin Ronacher.
+:license: BSD, see LICENSE for more details.
 """
+
 import re
 
 
+__all__ = ["Markup", "soft_unicode", "escape", "escape_silent"]
 
-__all__ = ['Markup', 'soft_unicode', 'escape', 'escape_silent']
 
-
-_striptags_re = re.compile(r'(<!--.*?-->|<[^>]*>)')
-_entity_re = re.compile(r'&([^;]+);')
+_striptags_re = re.compile(r"(<!--.*?-->|<[^>]*>)")
+_entity_re = re.compile(r"&([^;]+);")
 
 
 class Markup(str):
@@ -41,7 +41,7 @@ class Markup(str):
     >>> class Foo(object):
     ...  def __html__(self):
     ...   return '<a href="#">foo</a>'
-    ... 
+    ...
     >>> Markup(Foo())
     Markup(u'<a href="#">foo</a>')
 
@@ -63,10 +63,11 @@ class Markup(str):
     >>> Markup("<em>Hello</em> ") + "<foo>"
     Markup(u'<em>Hello</em> &lt;foo&gt;')
     """
+
     __slots__ = ()
 
-    def __new__(cls, base='', encoding=None, errors='strict'):
-        if hasattr(base, '__html__'):
+    def __new__(cls, base="", encoding=None, errors="strict"):
+        if hasattr(base, "__html__"):
             base = base.__html__()
         if encoding is None:
             return str.__new__(cls, base)
@@ -76,12 +77,12 @@ class Markup(str):
         return self
 
     def __add__(self, other):
-        if hasattr(other, '__html__') or isinstance(other, str):
+        if hasattr(other, "__html__") or isinstance(other, str):
             return self.__class__(str(self) + str(escape(other)))
         return NotImplemented
 
     def __radd__(self, other):
-        if hasattr(other, '__html__') or isinstance(other, str):
+        if hasattr(other, "__html__") or isinstance(other, str):
             return self.__class__(str(escape(other)) + str(self))
         return NotImplemented
 
@@ -89,6 +90,7 @@ class Markup(str):
         if isinstance(num, int):
             return self.__class__(str.__mul__(self, num))
         return NotImplemented
+
     __rmul__ = __mul__
 
     def __mod__(self, arg):
@@ -99,25 +101,26 @@ class Markup(str):
         return self.__class__(str.__mod__(self, arg))
 
     def __repr__(self):
-        return '%s(%s)' % (
-            self.__class__.__name__,
-            str.__repr__(self)
-        )
+        return "%s(%s)" % (self.__class__.__name__, str.__repr__(self))
 
     def join(self, seq):
         return self.__class__(str.join(self, list(map(escape, seq))))
+
     join.__doc__ = str.join.__doc__
 
     def split(self, *args, **kwargs):
         return map(self.__class__, str.split(self, *args, **kwargs))
+
     split.__doc__ = str.split.__doc__
 
     def rsplit(self, *args, **kwargs):
         return map(self.__class__, str.rsplit(self, *args, **kwargs))
+
     rsplit.__doc__ = str.rsplit.__doc__
 
     def splitlines(self, *args, **kwargs):
         return map(self.__class__, str.splitlines(self, *args, **kwargs))
+
     splitlines.__doc__ = str.splitlines.__doc__
 
     def unescape(self):
@@ -128,18 +131,20 @@ class Markup(str):
         u'Main \xbb <em>About</em>'
         """
         from ambari_jinja2._markupsafe._constants import HTML_ENTITIES
+
         def handle_match(m):
             name = m.group(1)
             if name in HTML_ENTITIES:
                 return chr(HTML_ENTITIES[name])
             try:
-                if name[:2] in ('#x', '#X'):
+                if name[:2] in ("#x", "#X"):
                     return chr(int(name[2:], 16))
-                elif name.startswith('#'):
+                elif name.startswith("#"):
                     return chr(int(name[1:]))
             except ValueError:
                 pass
-            return ''
+            return ""
+
         return _entity_re.sub(handle_match, str(self))
 
     def striptags(self):
@@ -150,7 +155,7 @@ class Markup(str):
         >>> Markup("Main &raquo;  <em>About</em>").striptags()
         u'Main \xbb About'
         """
-        stripped = ' '.join(_striptags_re.sub('', self).split())
+        stripped = " ".join(_striptags_re.sub("", self).split())
         return Markup(stripped).unescape()
 
     @classmethod
@@ -166,32 +171,48 @@ class Markup(str):
 
     def make_wrapper(name):
         orig = getattr(str, name)
+
         def func(self, *args, **kwargs):
             args = _escape_argspec(list(args), enumerate(args))
             _escape_argspec(kwargs, kwargs.items())
             return self.__class__(orig(self, *args, **kwargs))
+
         func.__name__ = orig.__name__
         func.__doc__ = orig.__doc__
         return func
 
-    for method in '__getitem__', 'capitalize', \
-                  'title', 'lower', 'upper', 'replace', 'ljust', \
-                  'rjust', 'lstrip', 'rstrip', 'center', 'strip', \
-                  'translate', 'expandtabs', 'swapcase', 'zfill':
+    for method in (
+        "__getitem__",
+        "capitalize",
+        "title",
+        "lower",
+        "upper",
+        "replace",
+        "ljust",
+        "rjust",
+        "lstrip",
+        "rstrip",
+        "center",
+        "strip",
+        "translate",
+        "expandtabs",
+        "swapcase",
+        "zfill",
+    ):
         locals()[method] = make_wrapper(method)
 
     # new in python 2.5
-    if hasattr(str, 'partition'):
-        partition = make_wrapper('partition'),
-        rpartition = make_wrapper('rpartition')
+    if hasattr(str, "partition"):
+        partition = (make_wrapper("partition"),)
+        rpartition = make_wrapper("rpartition")
 
     # new in python 2.6
-    if hasattr(str, 'format'):
-        format = make_wrapper('format')
+    if hasattr(str, "format"):
+        format = make_wrapper("format")
 
     # not in python 3
-    if hasattr(str, '__getslice__'):
-        __getslice__ = make_wrapper('__getslice__')
+    if hasattr(str, "__getslice__"):
+        __getslice__ = make_wrapper("__getslice__")
 
     del method, make_wrapper
 
@@ -199,7 +220,7 @@ class Markup(str):
 def _escape_argspec(obj, iterable):
     """Helper for various string-wrapped functions."""
     for key, value in iterable:
-        if hasattr(value, '__html__') or isinstance(value, str):
+        if hasattr(value, "__html__") or isinstance(value, str):
             obj[key] = escape(value)
     return obj
 

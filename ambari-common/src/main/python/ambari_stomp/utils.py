@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""General utility functions.
-"""
+"""General utility functions."""
 
 import re
 import socket
@@ -33,17 +32,17 @@ except:
 ##
 # Used to parse STOMP header lines in the format "key:value",
 #
-HEADER_LINE_RE = re.compile('(?P<key>[^:]+)[:](?P<value>.*)')
+HEADER_LINE_RE = re.compile("(?P<key>[^:]+)[:](?P<value>.*)")
 
 ##
 # As of STOMP 1.2, lines can end with either line feed, or carriage return plus line feed.
 #
-PREAMBLE_END_RE = re.compile(b'\n\n|\r\n\r\n')
+PREAMBLE_END_RE = re.compile(b"\n\n|\r\n\r\n")
 
 ##
 # As of STOMP 1.2, lines can end with either line feed, or carriage return plus line feed.
 #
-LINE_END_RE = re.compile('\n|\r\n')
+LINE_END_RE = re.compile("\n|\r\n")
 
 
 def default_create_thread(callback):
@@ -76,10 +75,10 @@ def is_localhost(host_and_port):
 
 
 _HEADER_ESCAPES = {
-    '\r': '\\r',
-    '\n': '\\n',
-    ':': '\\c',
-    '\\': '\\\\',
+    "\r": "\\r",
+    "\n": "\\n",
+    ":": "\\c",
+    "\\": "\\\\",
 }
 _HEADER_UNESCAPES = dict((value, key) for (key, value) in _HEADER_ESCAPES.items())
 
@@ -106,11 +105,11 @@ def parse_headers(lines, offset=0):
     for header_line in lines[offset:]:
         header_match = HEADER_LINE_RE.match(header_line)
         if header_match:
-            key = header_match.group('key')
-            key = re.sub(r'\\.', _unescape_header, key)
+            key = header_match.group("key")
+            key = re.sub(r"\\.", _unescape_header, key)
             if key not in headers:
-                value = header_match.group('value')
-                value = re.sub(r'\\.', _unescape_header, value)
+                value = header_match.group("value")
+                value = re.sub(r"\\.", _unescape_header, value)
                 headers[key] = value
     return headers
 
@@ -124,8 +123,8 @@ def parse_frame(frame):
     :rtype: Frame
     """
     f = Frame()
-    if frame == b'\x0a':
-        f.cmd = 'heartbeat'
+    if frame == b"\x0a":
+        f.cmd = "heartbeat"
         return f
 
     mat = PREAMBLE_END_RE.search(frame)
@@ -186,9 +185,9 @@ def calculate_heartbeats(shb, chb):
     (cx, cy) = chb
     x = 0
     y = 0
-    if cx != 0 and sy != '0':
+    if cx != 0 and sy != "0":
         x = max(cx, int(sy))
-    if cy != 0 and sx != '0':
+    if cy != 0 and sx != "0":
         y = max(cy, int(sx))
     return x, y
 
@@ -242,10 +241,11 @@ class Frame(object):
     :param dict headers: a map of headers for the frame
     :param body: the content of the frame.
     """
+
     def __init__(self, cmd=None, headers=None, body=None):
         self.cmd = cmd
         self.headers = headers if headers is not None else {}
         self.body = body
 
     def __str__(self):
-        return '{cmd=%s,headers=[%s],body=%s}' % (self.cmd, self.headers, self.body)
+        return "{cmd=%s,headers=[%s],body=%s}" % (self.cmd, self.headers, self.body)

@@ -26,7 +26,7 @@ from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.format import format
-from resource_management.libraries.functions.stack_features import check_stack_feature 
+from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import ClientComponentHasNoStatus
 from ambari_commons import OSConst
@@ -34,49 +34,58 @@ from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
 from zookeeper import zookeeper
 
+
 class ZookeeperClient(Script):
-  def configure(self, env):
-    import params
-    env.set_params(params)
-    zookeeper(type='client')
-    pass
+    def configure(self, env):
+        import params
 
-  def start(self, env, upgrade_type=None):
-    import params
-    env.set_params(params)
-    self.configure(env)
-    pass
+        env.set_params(params)
+        zookeeper(type="client")
+        pass
 
-  def stop(self, env, upgrade_type=None):
-    import params
-    env.set_params(params)
-    pass
+    def start(self, env, upgrade_type=None):
+        import params
 
-  def status(self, env):
-    raise ClientComponentHasNoStatus()
+        env.set_params(params)
+        self.configure(env)
+        pass
+
+    def stop(self, env, upgrade_type=None):
+        import params
+
+        env.set_params(params)
+        pass
+
+    def status(self, env):
+        raise ClientComponentHasNoStatus()
+
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class ZookeeperClientLinux(ZookeeperClient):
+    def install(self, env):
+        self.install_packages(env)
+        self.configure(env)
 
-  def install(self, env):
-    self.install_packages(env)
-    self.configure(env)
+    def pre_upgrade_restart(self, env, upgrade_type=None):
+        Logger.info("Executing Stack Upgrade pre-restart")
+        import params
 
-  def pre_upgrade_restart(self, env, upgrade_type=None):
-    Logger.info("Executing Stack Upgrade pre-restart")
-    import params
-    env.set_params(params)
+        env.set_params(params)
 
-    if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, format_stack_version(params.version)):
-      stack_select.select_packages(params.version)
+        if params.version and check_stack_feature(
+            StackFeature.ROLLING_UPGRADE, format_stack_version(params.version)
+        ):
+            stack_select.select_packages(params.version)
+
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class ZookeeperClientWindows(ZookeeperClient):
-  def install(self, env):
-    # client checks env var to determine if it is installed
-    if "ZOOKEEPER_HOME" not in os.environ:
-      self.install_packages(env)
-    self.configure(env)
+    def install(self, env):
+        # client checks env var to determine if it is installed
+        if "ZOOKEEPER_HOME" not in os.environ:
+            self.install_packages(env)
+        self.configure(env)
+
 
 if __name__ == "__main__":
-  ZookeeperClient().execute()
+    ZookeeperClient().execute()

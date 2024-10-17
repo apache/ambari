@@ -19,5 +19,5 @@ limitations under the License.
 
 
 class HookPrefix(object):
-  pre = "before"
-  post = "after"
+    pre = "before"
+    post = "after"

@@ -25,18 +25,18 @@ import os
 
 
 def find_path(search_directories, filename):
-  """
-  @param search_directories: comma separated list or a list of (absolute paths to) directories to search (in order of preference)
-  @param filename: the name of the file for which to search
-  @return: the absolute path to the specified file if found within the search paths; otherwise None
-  """
-  path = None
+    """
+    @param search_directories: comma separated list or a list of (absolute paths to) directories to search (in order of preference)
+    @param filename: the name of the file for which to search
+    @return: the absolute path to the specified file if found within the search paths; otherwise None
+    """
+    path = None
 
-  for current_directory in search_directories:
-    if current_directory:  # current_directory neither None nor empty
-      current_path = os.path.join(current_directory, filename)
-      if os.path.isfile(current_path):
-        path = current_path
-        break
+    for current_directory in search_directories:
+        if current_directory:  # current_directory neither None nor empty
+            current_path = os.path.join(current_directory, filename)
+            if os.path.isfile(current_path):
+                path = current_path
+                break
 
-  return path
+    return path

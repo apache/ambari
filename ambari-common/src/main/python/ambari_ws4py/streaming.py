@@ -4,19 +4,38 @@ import struct
 from struct import unpack
 
 from ambari_ws4py.utf8validator import Utf8Validator
-from ambari_ws4py.messaging import TextMessage, BinaryMessage, CloseControlMessage,\
-     PingControlMessage, PongControlMessage
-from ambari_ws4py.framing import Frame, OPCODE_CONTINUATION, OPCODE_TEXT, \
-     OPCODE_BINARY, OPCODE_CLOSE, OPCODE_PING, OPCODE_PONG
-from ambari_ws4py.exc import FrameTooLargeException, ProtocolException, InvalidBytesError,\
-     TextFrameEncodingException, UnsupportedFrameTypeException, StreamClosed
+from ambari_ws4py.messaging import (
+    TextMessage,
+    BinaryMessage,
+    CloseControlMessage,
+    PingControlMessage,
+    PongControlMessage,
+)
+from ambari_ws4py.framing import (
+    Frame,
+    OPCODE_CONTINUATION,
+    OPCODE_TEXT,
+    OPCODE_BINARY,
+    OPCODE_CLOSE,
+    OPCODE_PING,
+    OPCODE_PONG,
+)
+from ambari_ws4py.exc import (
+    FrameTooLargeException,
+    ProtocolException,
+    InvalidBytesError,
+    TextFrameEncodingException,
+    UnsupportedFrameTypeException,
+    StreamClosed,
+)
 from ambari_ws4py.compat import py3k
 
 VALID_CLOSING_CODES = [1000, 1001, 1002, 1003, 1007, 1008, 1009, 1010, 1011]
 
+
 class Stream(object):
     def __init__(self, always_mask=False, expect_masking=True):
-        """ Represents a websocket stream of bytes flowing in and out.
+        """Represents a websocket stream of bytes flowing in and out.
 
         The stream doesn't know about the data provider itself and
         doesn't even know about sockets. Instead the stream simply
@@ -133,7 +152,7 @@ class Stream(object):
 
         return False
 
-    def close(self, code=1000, reason=''):
+    def close(self, code=1000, reason=""):
         """
         Returns a close control message built from
         a :class:`ws4py.messaging.CloseControlMessage` instance,
@@ -141,14 +160,14 @@ class Stream(object):
         """
         return CloseControlMessage(code=code, reason=reason)
 
-    def ping(self, data=''):
+    def ping(self, data=""):
         """
         Returns a ping control message built from
         a :class:`ws4py.messaging.PingControlMessage` instance.
         """
         return PingControlMessage(data).single(mask=self.always_mask)
 
-    def pong(self, data=''):
+    def pong(self, data=""):
         """
         Returns a ping control message built from
         a :class:`ws4py.messaging.PongControlMessage` instance.
@@ -182,7 +201,7 @@ class Stream(object):
             frame = Frame()
             while 1:
                 try:
-                    some_bytes = (yield next(frame.parser))
+                    some_bytes = yield next(frame.parser)
                     frame.parser.send(some_bytes)
                 except GeneratorExit:
                     running = False
@@ -196,11 +215,15 @@ class Stream(object):
                         if frame.masking_key and self.expect_masking:
                             some_bytes = frame.unmask(some_bytes)
                         elif not frame.masking_key and self.expect_masking:
-                            msg = CloseControlMessage(code=1002, reason='Missing masking when expected')
+                            msg = CloseControlMessage(
+                                code=1002, reason="Missing masking when expected"
+                            )
                             self.errors.append(msg)
                             break
                         elif frame.masking_key and not self.expect_masking:
-                            msg = CloseControlMessage(code=1002, reason='Masked when not expected')
+                            msg = CloseControlMessage(
+                                code=1002, reason="Masked when not expected"
+                            )
                             self.errors.append(msg)
                             break
                         else:
@@ -217,46 +240,70 @@ class Stream(object):
                     if frame.opcode == OPCODE_TEXT:
                         if self.message and not self.message.completed:
                             # We got a text frame before we completed the previous one
-                            msg = CloseControlMessage(code=1002, reason='Received a new message before completing previous')
+                            msg = CloseControlMessage(
+                                code=1002,
+                                reason="Received a new message before completing previous",
+                            )
                             self.errors.append(msg)
                             break
 
                         m = TextMessage(some_bytes)
-                        m.completed = (frame.fin == 1)
+                        m.completed = frame.fin == 1
                         self.message = m
 
                         if some_bytes:
-                            is_valid, end_on_code_point, _, _ = utf8validator.validate(some_bytes)
+                            is_valid, end_on_code_point, _, _ = utf8validator.validate(
+                                some_bytes
+                            )
 
                             if not is_valid or (m.completed and not end_on_code_point):
-                                self.errors.append(CloseControlMessage(code=1007, reason='Invalid UTF-8 bytes'))
+                                self.errors.append(
+                                    CloseControlMessage(
+                                        code=1007, reason="Invalid UTF-8 bytes"
+                                    )
+                                )
                                 break
 
                     elif frame.opcode == OPCODE_BINARY:
                         if self.message and not self.message.completed:
                             # We got a text frame before we completed the previous one
-                            msg = CloseControlMessage(code=1002, reason='Received a new message before completing previous')
+                            msg = CloseControlMessage(
+                                code=1002,
+                                reason="Received a new message before completing previous",
+                            )
                             self.errors.append(msg)
                             break
 
                         m = BinaryMessage(some_bytes)
-                        m.completed = (frame.fin == 1)
+                        m.completed = frame.fin == 1
                         self.message = m
 
                     elif frame.opcode == OPCODE_CONTINUATION:
                         m = self.message
                         if m is None:
-                            self.errors.append(CloseControlMessage(code=1002, reason='Message not started yet'))
+                            self.errors.append(
+                                CloseControlMessage(
+                                    code=1002, reason="Message not started yet"
+                                )
+                            )
                             break
 
                         m.extend(some_bytes)
-                        m.completed = (frame.fin == 1)
+                        m.completed = frame.fin == 1
                         if m.opcode == OPCODE_TEXT:
                             if some_bytes:
-                                is_valid, end_on_code_point, _, _ = utf8validator.validate(some_bytes)
+                                is_valid, end_on_code_point, _, _ = (
+                                    utf8validator.validate(some_bytes)
+                                )
 
-                                if not is_valid or (m.completed and not end_on_code_point):
-                                    self.errors.append(CloseControlMessage(code=1007, reason='Invalid UTF-8 bytes'))
+                                if not is_valid or (
+                                    m.completed and not end_on_code_point
+                                ):
+                                    self.errors.append(
+                                        CloseControlMessage(
+                                            code=1007, reason="Invalid UTF-8 bytes"
+                                        )
+                                    )
                                     break
 
                     elif frame.opcode == OPCODE_CLOSE:
@@ -265,26 +312,41 @@ class Stream(object):
                         if frame.payload_length == 0:
                             self.closing = CloseControlMessage(code=1005)
                         elif frame.payload_length == 1:
-                            self.closing = CloseControlMessage(code=1005, reason='Payload has invalid length')
+                            self.closing = CloseControlMessage(
+                                code=1005, reason="Payload has invalid length"
+                            )
                         else:
                             try:
                                 # at this stage, some_bytes have been unmasked
                                 # so actually are held in a bytearray
                                 code = int(unpack("!H", bytes(some_bytes[0:2]))[0])
                             except struct.error:
-                                reason = 'Failed at decoding closing code'
+                                reason = "Failed at decoding closing code"
                             else:
                                 # Those codes are reserved or plainly forbidden
-                                if code not in VALID_CLOSING_CODES and not (2999 < code < 5000):
-                                    reason = 'Invalid Closing Frame Code: %d' % code
+                                if code not in VALID_CLOSING_CODES and not (
+                                    2999 < code < 5000
+                                ):
+                                    reason = "Invalid Closing Frame Code: %d" % code
                                     code = 1005
                                 elif frame.payload_length > 1:
-                                    reason = some_bytes[2:] if frame.masking_key else frame.body[2:]
+                                    reason = (
+                                        some_bytes[2:]
+                                        if frame.masking_key
+                                        else frame.body[2:]
+                                    )
 
-                                    if not py3k: reason = bytearray(reason)
-                                    is_valid, end_on_code_point, _, _ = utf8validator.validate(reason)
+                                    if not py3k:
+                                        reason = bytearray(reason)
+                                    is_valid, end_on_code_point, _, _ = (
+                                        utf8validator.validate(reason)
+                                    )
                                     if not is_valid or not end_on_code_point:
-                                        self.errors.append(CloseControlMessage(code=1007, reason='Invalid UTF-8 bytes'))
+                                        self.errors.append(
+                                            CloseControlMessage(
+                                                code=1007, reason="Invalid UTF-8 bytes"
+                                            )
+                                        )
                                         break
                                     reason = bytes(reason)
                             self.closing = CloseControlMessage(code=code, reason=reason)
@@ -304,7 +366,9 @@ class Stream(object):
                     self.errors.append(CloseControlMessage(code=1002))
                     break
                 except FrameTooLargeException:
-                    self.errors.append(CloseControlMessage(code=1002, reason="Frame was too large"))
+                    self.errors.append(
+                        CloseControlMessage(code=1002, reason="Frame was too large")
+                    )
                     break
 
             frame._cleanup()

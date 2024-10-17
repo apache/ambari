@@ -26,10 +26,9 @@ from ambari_ws4py import format_addresses
 from ambari_ws4py.server.wsgiutils import WebSocketWSGIApplication
 
 
-logger = logging.getLogger('ambari_ws4py')
+logger = logging.getLogger("ambari_ws4py")
 
-__all__ = ['WebSocketWSGIHandler', 'WSGIServer',
-           'GEventWebSocketPool']
+__all__ = ["WebSocketWSGIHandler", "WSGIServer", "GEventWebSocketPool"]
 
 
 class WebSocketWSGIHandler(WSGIHandler):
@@ -43,17 +42,19 @@ class WebSocketWSGIHandler(WSGIHandler):
     """
 
     def run_application(self):
-        upgrade_header = self.environ.get('HTTP_UPGRADE', '').lower()
+        upgrade_header = self.environ.get("HTTP_UPGRADE", "").lower()
         if upgrade_header:
             # Build and start the HTTP response
-            self.environ['ws4py.socket'] = self.socket or self.environ['wsgi.input'].rfile._sock
+            self.environ["ws4py.socket"] = (
+                self.socket or self.environ["wsgi.input"].rfile._sock
+            )
             self.result = self.application(self.environ, self.start_response) or []
             self.process_result()
-            del self.environ['ws4py.socket']
+            del self.environ["ws4py.socket"]
             self.socket = None
             self.rfile.close()
 
-            ws = self.environ.pop('ws4py.websocket', None)
+            ws = self.environ.pop("ws4py.websocket", None)
             if ws:
                 ws_greenlet = self.server.pool.track(ws)
                 # issue #170
@@ -83,7 +84,7 @@ class GEventWebSocketPool(Pool):
             try:
                 websocket = greenlet._run.im_self
                 if websocket:
-                    websocket.close(1001, 'Server is shutting down')
+                    websocket.close(1001, "Server is shutting down")
             except:
                 pass
             finally:
@@ -111,12 +112,14 @@ class WSGIServer(_WSGIServer):
         _WSGIServer.stop(self, *args, **kwargs)
 
 
-if __name__ == '__main__':
-
+if __name__ == "__main__":
     from ambari_ws4py import configure_logger
+
     configure_logger()
 
     from ambari_ws4py.websocket import EchoWebSocket
-    server = WSGIServer(('127.0.0.1', 9000),
-                        WebSocketWSGIApplication(handler_cls=EchoWebSocket))
+
+    server = WSGIServer(
+        ("127.0.0.1", 9000), WebSocketWSGIApplication(handler_cls=EchoWebSocket)
+    )
     server.serve_forever()

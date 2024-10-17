@@ -7,24 +7,37 @@ import io
 
 from coilmq.util import six
 
-SEND = 'SEND'
-CONNECT = 'CONNECT'
-MESSAGE = 'MESSAGE'
-ERROR = 'ERROR'
-CONNECTED = 'CONNECTED'
-SUBSCRIBE = 'SUBSCRIBE'
-UNSUBSCRIBE = 'UNSUBSCRIBE'
-BEGIN = 'BEGIN'
-COMMIT = 'COMMIT'
-ABORT = 'ABORT'
-ACK = 'ACK'
-NACK = 'NACK'
-DISCONNECT = 'DISCONNECT'
+SEND = "SEND"
+CONNECT = "CONNECT"
+MESSAGE = "MESSAGE"
+ERROR = "ERROR"
+CONNECTED = "CONNECTED"
+SUBSCRIBE = "SUBSCRIBE"
+UNSUBSCRIBE = "UNSUBSCRIBE"
+BEGIN = "BEGIN"
+COMMIT = "COMMIT"
+ABORT = "ABORT"
+ACK = "ACK"
+NACK = "NACK"
+DISCONNECT = "DISCONNECT"
 
-VALID_COMMANDS = ['message', 'connect', 'connected', 'error', 'send',
-                  'subscribe', 'unsubscribe', 'begin', 'commit', 'abort', 'ack', 'disconnect', 'nack']
+VALID_COMMANDS = [
+    "message",
+    "connect",
+    "connected",
+    "error",
+    "send",
+    "subscribe",
+    "unsubscribe",
+    "begin",
+    "commit",
+    "abort",
+    "ack",
+    "disconnect",
+    "nack",
+]
 
-TEXT_PLAIN = 'text/plain'
+TEXT_PLAIN = "text/plain"
 
 
 class IncompleteFrame(Exception):
@@ -43,15 +56,16 @@ def parse_headers(buff):
     """
     Parses buffer and returns command and headers as strings
     """
-    preamble_lines = list([six.u(x).decode() for x in iter(lambda: buff.readline().strip(), b'')]
+    preamble_lines = list(
+        [six.u(x).decode() for x in iter(lambda: buff.readline().strip(), b"")]
     )
     if not preamble_lines:
         raise EmptyBuffer()
-    return preamble_lines[0], OrderedDict([l.split(':') for l in preamble_lines[1:]])
+    return preamble_lines[0], OrderedDict([l.split(":") for l in preamble_lines[1:]])
 
 
 def parse_body(buff, headers):
-    content_length = int(headers.get('content-length', -1))
+    content_length = int(headers.get("content-length", -1))
     body = buff.read(content_length)
     if content_length >= 0:
         if len(body) < content_length:
@@ -61,7 +75,7 @@ def parse_body(buff, headers):
             raise BodyNotTerminated()
     else:
         # no content length
-        body, terminator, rest = body.partition(b'\x00')
+        body, terminator, rest = body.partition(b"\x00")
         if not terminator:
             raise BodyNotTerminated()
         else:
@@ -82,26 +96,29 @@ class Frame(object):
     def __init__(self, cmd, headers=None, body=None):
         self.cmd = cmd
         self.headers = headers or {}
-        self.body = body or ''
+        self.body = body or ""
 
     def __str__(self):
-        return '{{cmd={0},headers=[{1}],body={2}}}'.format(
+        return "{{cmd={0},headers=[{1}],body={2}}}".format(
             self.cmd,
             self.headers,
-            self.body if isinstance(
-                self.body, six.binary_type) else six.b(self.body)
+            self.body if isinstance(self.body, six.binary_type) else six.b(self.body),
         )
 
     def __eq__(self, other):
-        """ Override equality checking to test for matching command, headers, and body. """
-        return all([isinstance(other, Frame),
-                    self.cmd == other.cmd,
-                    self.headers == other.headers,
-                    self.body == other.body])
+        """Override equality checking to test for matching command, headers, and body."""
+        return all(
+            [
+                isinstance(other, Frame),
+                self.cmd == other.cmd,
+                self.headers == other.headers,
+                self.body == other.body,
+            ]
+        )
 
     @property
     def transaction(self):
-        return self.headers.get('transaction')
+        return self.headers.get("transaction")
 
     @classmethod
     def from_buffer(cls, buff):
@@ -117,19 +134,28 @@ class Frame(object):
         @rtype: C{str}
         """
 
-        self.headers.setdefault('content-length', len(self.body))
+        self.headers.setdefault("content-length", len(self.body))
 
         # Convert and append any existing headers to a string as the
         # protocol describes.
-        headerparts = ("{0}:{1}\n".format(key, value)
-                       for key, value in self.headers.items())
+        headerparts = (
+            "{0}:{1}\n".format(key, value) for key, value in self.headers.items()
+        )
 
         # Frame is Command + Header + EOF marker.
-        return six.b("{0}\n{1}\n".format(self.cmd, "".join(headerparts))) + (self.body if isinstance(self.body, six.binary_type) else six.b(self.body)) + six.b('\x00')
+        return (
+            six.b("{0}\n{1}\n".format(self.cmd, "".join(headerparts)))
+            + (
+                self.body
+                if isinstance(self.body, six.binary_type)
+                else six.b(self.body)
+            )
+            + six.b("\x00")
+        )
 
 
 class ConnectedFrame(Frame):
-    """ A CONNECTED server frame (response to CONNECT).
+    """A CONNECTED server frame (response to CONNECT).
 
     @ivar session: The (throw-away) session ID to include in response.
     @type session: C{str}
@@ -141,8 +167,9 @@ class ConnectedFrame(Frame):
         @type session: C{str}
         """
         super(ConnectedFrame, self).__init__(
-            cmd='connected', headers=extra_headers or {})
-        self.headers['session'] = session
+            cmd="connected", headers=extra_headers or {}
+        )
+        self.headers["session"] = session
 
 
 class HeaderValue(object):
@@ -185,38 +212,37 @@ class HeaderValue(object):
         self.calc = value
 
     def __repr__(self):
-        return '<%s calculator=%s>' % (self.__class__.__name__, self.calc)
+        return "<%s calculator=%s>" % (self.__class__.__name__, self.calc)
 
 
 class ErrorFrame(Frame):
-    """ An ERROR server frame. """
+    """An ERROR server frame."""
 
     def __init__(self, message, body=None, extra_headers=None):
         """
         @param body: The message body bytes.
         @type body: C{str}
         """
-        super(ErrorFrame, self).__init__(cmd='error',
-                                         headers=extra_headers or {}, body=body)
-        self.headers['message'] = message
-        self.headers[
-            'content-length'] = HeaderValue(calculator=lambda: len(self.body))
+        super(ErrorFrame, self).__init__(
+            cmd="error", headers=extra_headers or {}, body=body
+        )
+        self.headers["message"] = message
+        self.headers["content-length"] = HeaderValue(calculator=lambda: len(self.body))
 
     def __repr__(self):
-        return '<%s message=%r>' % (self.__class__.__name__, self.headers['message'])
+        return "<%s message=%r>" % (self.__class__.__name__, self.headers["message"])
 
 
 class ReceiptFrame(Frame):
-    """ A RECEIPT server frame. """
+    """A RECEIPT server frame."""
 
     def __init__(self, receipt, extra_headers=None):
         """
         @param receipt: The receipt message ID.
         @type receipt: C{str}
         """
-        super(ReceiptFrame, self).__init__(
-            'RECEIPT', headers=extra_headers or {})
-        self.headers['receipt-id'] = receipt
+        super(ReceiptFrame, self).__init__("RECEIPT", headers=extra_headers or {})
+        self.headers["receipt-id"] = receipt
 
 
 class FrameBuffer(object):
@@ -240,24 +266,25 @@ class FrameBuffer(object):
     """
 
     # regexp to check that the buffer starts with a command.
-    command_re = re.compile('^(.+?)\n')
+    command_re = re.compile("^(.+?)\n")
 
     # regexp to remove everything up to and including the first
     # instance of '\x00' (used in resynching the buffer).
-    sync_re = re.compile('^.*?\x00')
+    sync_re = re.compile("^.*?\x00")
 
     # regexp to determine the content length. The buffer should always start
     # with a command followed by the headers, so the content-length header will
     # always be preceded by a newline.  It may not always proceeded by a
     # newline, though!
-    content_length_re = re.compile('\ncontent-length\s*:\s*(\d+)\s*(\n|$)')
+    content_length_re = re.compile("\ncontent-length\s*:\s*(\d+)\s*(\n|$)")
 
     def __init__(self):
         self._buffer = io.BytesIO()
         self._pointer = 0
         self.debug = False
-        self.log = logging.getLogger('%s.%s' % (
-            self.__module__, self.__class__.__name__))
+        self.log = logging.getLogger(
+            "%s.%s" % (self.__module__, self.__class__.__name__)
+        )
 
     def clear(self):
         """

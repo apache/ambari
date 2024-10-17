@@ -6,8 +6,7 @@ Jobs represent scheduled tasks.
 from threading import Lock
 from datetime import timedelta
 
-from apscheduler.util import to_unicode, ref_to_obj, get_callable_name,\
-    obj_to_ref
+from apscheduler.util import to_unicode, ref_to_obj, get_callable_name, obj_to_ref
 
 
 class MaxInstancesReachedError(Exception):
@@ -37,25 +36,36 @@ class Job(object):
     :var runs: number of times this job has been triggered
     :var instances: number of concurrently running instances of this job
     """
+
     id = None
     next_run_time = None
 
-    def __init__(self, trigger, func, args, kwargs, misfire_grace_time,
-                 coalesce, name=None, max_runs=None, max_instances=1):
+    def __init__(
+        self,
+        trigger,
+        func,
+        args,
+        kwargs,
+        misfire_grace_time,
+        coalesce,
+        name=None,
+        max_runs=None,
+        max_instances=1,
+    ):
         if not trigger:
-            raise ValueError('The trigger must not be None')
-        if not hasattr(func, '__call__'):
-            raise TypeError('func must be callable')
-        if not hasattr(args, '__getitem__'):
-            raise TypeError('args must be a list-like object')
-        if not hasattr(kwargs, '__getitem__'):
-            raise TypeError('kwargs must be a dict-like object')
+            raise ValueError("The trigger must not be None")
+        if not hasattr(func, "__call__"):
+            raise TypeError("func must be callable")
+        if not hasattr(args, "__getitem__"):
+            raise TypeError("args must be a list-like object")
+        if not hasattr(kwargs, "__getitem__"):
+            raise TypeError("kwargs must be a dict-like object")
         if misfire_grace_time <= 0:
-            raise ValueError('misfire_grace_time must be a positive value')
+            raise ValueError("misfire_grace_time must be a positive value")
         if max_runs is not None and max_runs <= 0:
-            raise ValueError('max_runs must be a positive value')
+            raise ValueError("max_runs must be a positive value")
         if max_instances <= 0:
-            raise ValueError('max_instances must be a positive value')
+            raise ValueError("max_instances must be a positive value")
 
         self._lock = Lock()
 
@@ -86,8 +96,11 @@ class Job(object):
         run_times = []
         run_time = self.next_run_time
         increment = timedelta(microseconds=1)
-        while ((not self.max_runs or self.runs < self.max_runs) and
-               run_time and run_time <= now):
+        while (
+            (not self.max_runs or self.runs < self.max_runs)
+            and run_time
+            and run_time <= now
+        ):
             run_times.append(run_time)
             run_time = self.trigger.get_next_fire_time(run_time + increment)
 
@@ -105,7 +118,7 @@ class Job(object):
     def remove_instance(self):
         self._lock.acquire()
         try:
-            assert self.instances > 0, 'Already at 0 instances'
+            assert self.instances > 0, "Already at 0 instances"
             self.instances -= 1
         finally:
             self._lock.release()
@@ -113,16 +126,16 @@ class Job(object):
     def __getstate__(self):
         # Prevents the unwanted pickling of transient or unpicklable variables
         state = self.__dict__.copy()
-        state.pop('instances', None)
-        state.pop('func', None)
-        state.pop('_lock', None)
-        state['func_ref'] = obj_to_ref(self.func)
+        state.pop("instances", None)
+        state.pop("func", None)
+        state.pop("_lock", None)
+        state["func_ref"] = obj_to_ref(self.func)
         return state
 
     def __setstate__(self, state):
-        state['instances'] = 0
-        state['func'] = ref_to_obj(state.pop('func_ref'))
-        state['_lock'] = Lock()
+        state["instances"] = 0
+        state["func"] = ref_to_obj(state.pop("func_ref"))
+        state["_lock"] = Lock()
         self.__dict__ = state
 
     def __eq__(self, other):
@@ -131,8 +144,11 @@ class Job(object):
         return NotImplemented
 
     def __repr__(self):
-        return '<Job (name=%s, trigger=%s)>' % (self.name, repr(self.trigger))
+        return "<Job (name=%s, trigger=%s)>" % (self.name, repr(self.trigger))
 
     def __str__(self):
-        return '%s (trigger: %s, next run at: %s)' % (
-            self.name, str(self.trigger), str(self.next_run_time))
+        return "%s (trigger: %s, next run at: %s)" % (
+            self.name,
+            str(self.trigger),
+            str(self.next_run_time),
+        )

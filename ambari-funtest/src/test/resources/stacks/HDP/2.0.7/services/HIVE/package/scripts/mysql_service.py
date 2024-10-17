@@ -21,29 +21,22 @@ limitations under the License.
 from resource_management import *
 
 
-def mysql_service(daemon_name=None, action='start'):
+def mysql_service(daemon_name=None, action="start"):
+    logoutput = True
+    if action == "start":
+        cmd = format("service {daemon_name} start")
+    elif action == "stop":
+        cmd = format("service {daemon_name} stop")
+    elif action == "status":
+        cmd = format("service {daemon_name} status")
+        logoutput = False
+        try:
+            Execute(cmd)
+            return
+        except:
+            raise ComponentIsNotRunning()
+    else:
+        cmd = None
 
-  logoutput=True
-  if action == 'start':
-    cmd = format('service {daemon_name} start')
-  elif action == 'stop':
-    cmd = format('service {daemon_name} stop')
-  elif action == 'status':
-    cmd = format('service {daemon_name} status')
-    logoutput = False
-    try:
-      Execute(cmd)
-      return
-    except:
-      raise ComponentIsNotRunning()
-  else:
-    cmd = None
-
-  if cmd is not None:
-    Execute(cmd,
-            path="/usr/local/bin/:/bin/:/sbin/",
-            tries=1,
-            logoutput=logoutput)
-
-
-
+    if cmd is not None:
+        Execute(cmd, path="/usr/local/bin/:/bin/:/sbin/", tries=1, logoutput=logoutput)

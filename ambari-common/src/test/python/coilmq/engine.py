@@ -8,14 +8,15 @@ frames.
 
 We're also making some simplified assumptions here which may make this engine
 impractical for [high-performance] use in specifically asynchronous frameworks.
-More specifically, this class was not explicitly designed around async patterns, 
-meaning that it would likely be problematic to use with a framework like Twisted 
+More specifically, this class was not explicitly designed around async patterns,
+meaning that it would likely be problematic to use with a framework like Twisted
 if the underlying storage implementations were processor intensive (e.g. database
 access).  For the default memory storage engines, this shouldn't be a problem.
 
-This code is inspired by the design of the Ruby stompserver project, by 
+This code is inspired by the design of the Ruby stompserver project, by
 Patrick Hurley and Lionel Bouton.  See http://stompserver.rubyforge.org/
 """
+
 import logging
 from collections import defaultdict
 from coilmq.protocol import STOMP10
@@ -36,9 +37,9 @@ limitations under the License."""
 
 
 class StompEngine(object):
-    """ 
+    """
     The engine provides the core business logic that we use to respond to STOMP protocol
-    messages.  
+    messages.
 
     This class is transport-agnostic; it exposes methods that expect STOMP frames and
     uses the attached connection to send frames to connected clients.
@@ -57,19 +58,22 @@ class StompEngine(object):
     @type topic_manager: L{coilmq.topic.TopicManager}
 
     @ivar transactions: Active transactions for this connection.
-    @type transactions: C{dict} of C{str} to C{list} 
+    @type transactions: C{dict} of C{str} to C{list}
 
     @ivar connected: Whether engine is connected.
     @type connected: C{bool}
     """
 
-    def __init__(self, connection, authenticator, queue_manager, topic_manager, protocol=STOMP10):
+    def __init__(
+        self, connection, authenticator, queue_manager, topic_manager, protocol=STOMP10
+    ):
         """
         @param connection: The stomp connection backing this engine.
         @type connection: L{coilmq.server.StompConnection}
         """
-        self.log = logging.getLogger('%s.%s' % (
-            self.__class__.__module__, self.__class__.__name__))
+        self.log = logging.getLogger(
+            "%s.%s" % (self.__class__.__module__, self.__class__.__name__)
+        )
         self.connection = connection
         self.authenticator = authenticator
         self.queue_manager = queue_manager

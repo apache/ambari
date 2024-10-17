@@ -4,11 +4,20 @@ import threading
 
 from ambari_ws4py.client import WebSocketBaseClient
 
-__all__ = ['WebSocketClient']
+__all__ = ["WebSocketClient"]
+
 
 class WebSocketClient(WebSocketBaseClient):
-    def __init__(self, url, protocols=None, extensions=None, heartbeat_freq=None,
-                 ssl_options=None, headers=None, exclude_headers=None):
+    def __init__(
+        self,
+        url,
+        protocols=None,
+        extensions=None,
+        heartbeat_freq=None,
+        ssl_options=None,
+        headers=None,
+        exclude_headers=None,
+    ):
         """
         .. code-block:: python
 
@@ -32,9 +41,17 @@ class WebSocketClient(WebSocketBaseClient):
               ws.close()
 
         """
-        WebSocketBaseClient.__init__(self, url, protocols, extensions, heartbeat_freq,
-                                     ssl_options, headers=headers, exclude_headers=exclude_headers)
-        self._th = threading.Thread(target=self.run, name='WebSocketClient')
+        WebSocketBaseClient.__init__(
+            self,
+            url,
+            protocols,
+            extensions,
+            heartbeat_freq,
+            ssl_options,
+            headers=headers,
+            exclude_headers=exclude_headers,
+        )
+        self._th = threading.Thread(target=self.run, name="WebSocketClient")
         self._th.daemon = True
 
     @property
@@ -68,7 +85,8 @@ class WebSocketClient(WebSocketBaseClient):
         """
         self._th.start()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     from ambari_ws4py.client.threadedclient import WebSocketClient
 
     class EchoClient(WebSocketClient):
@@ -88,11 +106,14 @@ if __name__ == '__main__':
         def received_message(self, m):
             print("#%d" % len(m))
             if len(m) == 175:
-                self.close(reason='bye bye')
+                self.close(reason="bye bye")
 
     try:
-        ws = EchoClient('ws://localhost:9000/ws', protocols=['http-only', 'chat'],
-                        headers=[('X-Test', 'hello there')])
+        ws = EchoClient(
+            "ws://localhost:9000/ws",
+            protocols=["http-only", "chat"],
+            headers=[("X-Test", "hello there")],
+        )
         ws.connect()
         ws.run_forever()
     except KeyboardInterrupt:

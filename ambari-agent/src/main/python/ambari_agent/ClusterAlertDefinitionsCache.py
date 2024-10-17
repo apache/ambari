@@ -23,87 +23,100 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class ClusterAlertDefinitionsCache(ClusterCache):
-  """
-  Maintains an in-memory cache and disk cache of the host level params send from server for
-  every cluster. This is useful for having quick access to any of the
-  topology properties.
-
-  Host level params. Is parameters used by execution and status commands which can be generated
-  differently for every host.
-  """
-
-  def __init__(self, cluster_cache_dir):
     """
-    Initializes the host level params cache.
-    :param cluster_cache_dir:
-    :return:
+    Maintains an in-memory cache and disk cache of the host level params send from server for
+    every cluster. This is useful for having quick access to any of the
+    topology properties.
+
+    Host level params. Is parameters used by execution and status commands which can be generated
+    differently for every host.
     """
-    super(ClusterAlertDefinitionsCache, self).__init__(cluster_cache_dir)
 
-  def get_alert_definition_index_by_id(self, alert_dict, cluster_id, alert_id):
-    definitions = alert_dict[cluster_id]['alertDefinitions']
-    for i in range(len(definitions)):
-      if definitions[i]['definitionId'] == alert_id:
-        return i
+    def __init__(self, cluster_cache_dir):
+        """
+        Initializes the host level params cache.
+        :param cluster_cache_dir:
+        :return:
+        """
+        super(ClusterAlertDefinitionsCache, self).__init__(cluster_cache_dir)
 
-    return None
+    def get_alert_definition_index_by_id(self, alert_dict, cluster_id, alert_id):
+        definitions = alert_dict[cluster_id]["alertDefinitions"]
+        for i in range(len(definitions)):
+            if definitions[i]["definitionId"] == alert_id:
+                return i
 
-  def cache_update(self, cache_update, cache_hash):
-    mutable_dict = self._get_mutable_copy()
+        return None
 
-    for cluster_id in cache_update:
-      # adding a new cluster via UPDATE
-      if not cluster_id in mutable_dict:
-        mutable_dict[cluster_id] = cache_update[cluster_id]
-        continue
+    def cache_update(self, cache_update, cache_hash):
+        mutable_dict = self._get_mutable_copy()
 
-      for alert_definition in cache_update[cluster_id]['alertDefinitions']:
-        id_to_update = alert_definition['definitionId']
-        index_of_alert = self.get_alert_definition_index_by_id(mutable_dict, cluster_id, id_to_update)
-        if index_of_alert == None:
-          mutable_dict[cluster_id]['alertDefinitions'].append(alert_definition)
-        else:
-          mutable_dict[cluster_id]['alertDefinitions'][index_of_alert] = alert_definition
-          
-      # for other non-definitions properties
-      for property, value in cache_update[cluster_id].items():
-        if property == 'alertDefinitions':
-          continue
-        
-        mutable_dict[cluster_id][property] = value
+        for cluster_id in cache_update:
+            # adding a new cluster via UPDATE
+            if not cluster_id in mutable_dict:
+                mutable_dict[cluster_id] = cache_update[cluster_id]
+                continue
 
-    self.rewrite_cache(mutable_dict, cache_hash)
+            for alert_definition in cache_update[cluster_id]["alertDefinitions"]:
+                id_to_update = alert_definition["definitionId"]
+                index_of_alert = self.get_alert_definition_index_by_id(
+                    mutable_dict, cluster_id, id_to_update
+                )
+                if index_of_alert == None:
+                    mutable_dict[cluster_id]["alertDefinitions"].append(
+                        alert_definition
+                    )
+                else:
+                    mutable_dict[cluster_id]["alertDefinitions"][index_of_alert] = (
+                        alert_definition
+                    )
 
-  def cache_delete(self, cache_update, cache_hash):
-    mutable_dict = self._get_mutable_copy()
-    clusters_ids_to_delete = []
+            # for other non-definitions properties
+            for property, value in cache_update[cluster_id].items():
+                if property == "alertDefinitions":
+                    continue
 
-    for cluster_id in cache_update:
-      if not cluster_id in mutable_dict:
-        logger.error("Cannot do alert_definitions delete for cluster cluster_id={0}, because do not have information about the cluster".format(cluster_id))
-        continue
+                mutable_dict[cluster_id][property] = value
 
-      # deleting whole cluster
-      if cache_update[cluster_id] == {}:
-        clusters_ids_to_delete.append(cluster_id)
-        continue
+        self.rewrite_cache(mutable_dict, cache_hash)
 
-      for alert_definition in cache_update[cluster_id]['alertDefinitions']:
+    def cache_delete(self, cache_update, cache_hash):
+        mutable_dict = self._get_mutable_copy()
+        clusters_ids_to_delete = []
 
-        id_to_update = alert_definition['definitionId']
-        index_of_alert = self.get_alert_definition_index_by_id(mutable_dict, cluster_id, id_to_update)
+        for cluster_id in cache_update:
+            if not cluster_id in mutable_dict:
+                logger.error(
+                    "Cannot do alert_definitions delete for cluster cluster_id={0}, because do not have information about the cluster".format(
+                        cluster_id
+                    )
+                )
+                continue
 
-        if index_of_alert == None:
-          raise Exception("Cannot delete an alert with id={0}".format(id_to_update))
+            # deleting whole cluster
+            if cache_update[cluster_id] == {}:
+                clusters_ids_to_delete.append(cluster_id)
+                continue
 
-        del mutable_dict[cluster_id]['alertDefinitions'][index_of_alert]
+            for alert_definition in cache_update[cluster_id]["alertDefinitions"]:
+                id_to_update = alert_definition["definitionId"]
+                index_of_alert = self.get_alert_definition_index_by_id(
+                    mutable_dict, cluster_id, id_to_update
+                )
 
-    for cluster_id in clusters_ids_to_delete:
-      del mutable_dict[cluster_id]
+                if index_of_alert == None:
+                    raise Exception(
+                        "Cannot delete an alert with id={0}".format(id_to_update)
+                    )
 
-    self.rewrite_cache(mutable_dict, cache_hash)
+                del mutable_dict[cluster_id]["alertDefinitions"][index_of_alert]
 
+        for cluster_id in clusters_ids_to_delete:
+            del mutable_dict[cluster_id]
 
-  def get_cache_name(self):
-    return 'alert_definitions'
+        self.rewrite_cache(mutable_dict, cache_hash)
+
+    def get_cache_name(self):
+        return "alert_definitions"

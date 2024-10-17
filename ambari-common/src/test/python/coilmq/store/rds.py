@@ -2,8 +2,11 @@
 try:
     import redis
 except ImportError:  # pragma: no cover
-    import sys; sys.exit('please, install redis-py package to use redis-store')
+    import sys
+
+    sys.exit("please, install redis-py package to use redis-store")
 import threading
+
 try:
     import pickle as pickle
 except ImportError:
@@ -13,7 +16,10 @@ from coilmq.store import QueueStore
 from coilmq.util.concurrency import synchronized
 from coilmq.config import config
 
-__authors__ = ('"Hans Lellelid" <hans@xmpl.org>', '"Alexander Zhukov" <zhukovaa90@gmail.com>')
+__authors__ = (
+    '"Hans Lellelid" <hans@xmpl.org>',
+    '"Alexander Zhukov" <zhukovaa90@gmail.com>',
+)
 __copyright__ = "Copyright 2009 Hans Lellelid"
 __license__ = """Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -32,11 +38,13 @@ lock = threading.RLock()
 
 def make_redis_store(cfg=None):
     return RedisQueueStore(
-        redis_conn=redis.Redis(**dict((cfg or config).items('redis'))))
+        redis_conn=redis.Redis(**dict((cfg or config).items("redis")))
+    )
 
 
 class RedisQueueStore(QueueStore):
     """Simple Queue with Redis Backend"""
+
     def __init__(self, redis_conn=None):
         """The default connection parameters are: host='localhost', port=6379, db=0"""
         self.__db = redis_conn or redis.Redis()

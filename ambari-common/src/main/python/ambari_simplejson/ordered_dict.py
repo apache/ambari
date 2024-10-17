@@ -4,13 +4,14 @@
 http://code.activestate.com/recipes/576693/
 
 """
+
 from UserDict import DictMixin
 
-class OrderedDict(dict, DictMixin):
 
+class OrderedDict(dict, DictMixin):
     def __init__(self, *args, **kwds):
         if len(args) > 1:
-            raise TypeError('expected at most 1 arguments, got %d' % len(args))
+            raise TypeError("expected at most 1 arguments, got %d" % len(args))
         try:
             self.__end
         except AttributeError:
@@ -19,8 +20,8 @@ class OrderedDict(dict, DictMixin):
 
     def clear(self):
         self.__end = end = []
-        end += [None, end, end]         # sentinel node for doubly linked list
-        self.__map = {}                 # key --> [key, prev, next]
+        end += [None, end, end]  # sentinel node for doubly linked list
+        self.__map = {}  # key --> [key, prev, next]
         dict.clear(self)
 
     def __setitem__(self, key, value):
@@ -52,7 +53,7 @@ class OrderedDict(dict, DictMixin):
 
     def popitem(self, last=True):
         if not self:
-            raise KeyError('dictionary is empty')
+            raise KeyError("dictionary is empty")
         key = next(reversed(self)) if last else next(iter(self))
         value = self.pop(key)
         return key, value
@@ -81,8 +82,8 @@ class OrderedDict(dict, DictMixin):
 
     def __repr__(self):
         if not self:
-            return '%s()' % (self.__class__.__name__,)
-        return '%s(%r)' % (self.__class__.__name__, self.items())
+            return "%s()" % (self.__class__.__name__,)
+        return "%s(%r)" % (self.__class__.__name__, self.items())
 
     def copy(self):
         return self.__class__(self)
@@ -96,8 +97,9 @@ class OrderedDict(dict, DictMixin):
 
     def __eq__(self, other):
         if isinstance(other, OrderedDict):
-            return len(self)==len(other) and \
-                   all(p==q for p, q in  zip(self.items(), other.items()))
+            return len(self) == len(other) and all(
+                p == q for p, q in zip(self.items(), other.items())
+            )
         return dict.__eq__(self, other)
 
     def __ne__(self, other):

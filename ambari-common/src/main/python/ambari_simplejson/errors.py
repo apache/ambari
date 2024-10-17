@@ -1,26 +1,26 @@
 #!/usr/bin/env python3
-"""Error classes used by simplejson
-"""
-__all__ = ['JSONDecodeError']
+"""Error classes used by simplejson"""
+
+__all__ = ["JSONDecodeError"]
 
 
 def linecol(doc, pos):
-    lineno = doc.count('\n', 0, pos) + 1
+    lineno = doc.count("\n", 0, pos) + 1
     if lineno == 1:
         colno = pos + 1
     else:
-        colno = pos - doc.rindex('\n', 0, pos)
+        colno = pos - doc.rindex("\n", 0, pos)
     return lineno, colno
 
 
 def errmsg(msg, doc, pos, end=None):
     lineno, colno = linecol(doc, pos)
-    msg = msg.replace('%r', repr(doc[pos:pos + 1]))
+    msg = msg.replace("%r", repr(doc[pos : pos + 1]))
     if end is None:
-        fmt = '%s: line %d column %d (char %d)'
+        fmt = "%s: line %d column %d (char %d)"
         return fmt % (msg, lineno, colno, pos)
     endlineno, endcolno = linecol(doc, end)
-    fmt = '%s: line %d column %d - line %d column %d (char %d - %d)'
+    fmt = "%s: line %d column %d - line %d column %d (char %d - %d)"
     return fmt % (msg, lineno, colno, endlineno, endcolno, pos, end)
 
 
@@ -37,6 +37,7 @@ class JSONDecodeError(ValueError):
     endcolno: The column corresponding to end (may be None)
 
     """
+
     # Note that this exception is used from _speedups
     def __init__(self, msg, doc, pos, end=None):
         ValueError.__init__(self, errmsg(msg, doc, pos, end=end))

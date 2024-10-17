@@ -21,35 +21,45 @@ Ambari Agent
 """
 
 from resource_management.core.exceptions import ComponentIsNotRunning
-from resource_management.core.providers.windows.service import safe_open_scmanager, safe_open_service
+from resource_management.core.providers.windows.service import (
+    safe_open_scmanager,
+    safe_open_service,
+)
 
-__all__ = ['check_windows_service_status', 'check_windows_service_exists']
+__all__ = ["check_windows_service_status", "check_windows_service_exists"]
 
 import win32service
 
-def check_windows_service_status(service_name):
-  _schSCManager = safe_open_scmanager()
 
-  try:
-    _service_handle = safe_open_service(_schSCManager, service_name)
+def check_windows_service_status(service_name):
+    _schSCManager = safe_open_scmanager()
+
     try:
-      if win32service.QueryServiceStatusEx(_service_handle)["CurrentState"] == win32service.SERVICE_STOPPED:
-        raise ComponentIsNotRunning()
+        _service_handle = safe_open_service(_schSCManager, service_name)
+        try:
+            if (
+                win32service.QueryServiceStatusEx(_service_handle)["CurrentState"]
+                == win32service.SERVICE_STOPPED
+            ):
+                raise ComponentIsNotRunning()
+        finally:
+            win32service.CloseServiceHandle(_service_handle)
     finally:
-      win32service.CloseServiceHandle(_service_handle)
-  finally:
-    win32service.CloseServiceHandle(_schSCManager)
+        win32service.CloseServiceHandle(_schSCManager)
+
 
 def check_windows_service_exists(service_name):
-  _schSCManager = safe_open_scmanager()
+    _schSCManager = safe_open_scmanager()
 
-  try:
-    typeFilter = win32service.SERVICE_WIN32
-    stateFilter = win32service.SERVICE_STATE_ALL
-    statuses = win32service.EnumServicesStatus(_schSCManager, typeFilter, stateFilter)
-    for (short_name, desc, status) in statuses:
-      if short_name == service_name:
-        return True
-    return False
-  finally:
-    win32service.CloseServiceHandle(_schSCManager)
+    try:
+        typeFilter = win32service.SERVICE_WIN32
+        stateFilter = win32service.SERVICE_STATE_ALL
+        statuses = win32service.EnumServicesStatus(
+            _schSCManager, typeFilter, stateFilter
+        )
+        for short_name, desc, status in statuses:
+            if short_name == service_name:
+                return True
+        return False
+    finally:
+        win32service.CloseServiceHandle(_schSCManager)

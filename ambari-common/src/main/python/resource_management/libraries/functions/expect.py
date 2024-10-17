@@ -20,81 +20,104 @@ Ambari Agent
 
 """
 
-__all__ = ['expect']
+__all__ = ["expect"]
 from resource_management.libraries.script import Script
 from resource_management.libraries.script.config_dictionary import UnknownConfiguration
 from resource_management.core.exceptions import Fail
 
+
 def expect(name, expected_type, default_value=None):
-  """
-  Expect configuration to be of certain type. If it is not, give a reasonable error message to user.
+    """
+    Expect configuration to be of certain type. If it is not, give a reasonable error message to user.
 
-  Optionally if the configuration is not found default_value for it can be returned.
-  """
-  subdicts = [_f for _f in name.split('/') if _f]
+    Optionally if the configuration is not found default_value for it can be returned.
+    """
+    subdicts = [_f for _f in name.split("/") if _f]
 
-  curr_dict = Script.get_config()
-  for x in subdicts:
-    if x in curr_dict:
-      curr_dict = curr_dict[x]
-    else:
-      if default_value:
-        return default_value
-      return UnknownConfiguration(curr_dict[-1])
-  value = curr_dict
+    curr_dict = Script.get_config()
+    for x in subdicts:
+        if x in curr_dict:
+            curr_dict = curr_dict[x]
+        else:
+            if default_value:
+                return default_value
+            return UnknownConfiguration(curr_dict[-1])
+    value = curr_dict
 
-  if expected_type == bool:
-    if isinstance(value, bool):
-      return value
-    elif isinstance(value, str):
-      if value != None and value.lower() == "true":
-        value = True
-      elif value != None and value.lower() == "false":
-        value = False
-      else:
-        raise Fail("Configuration {0} expected to be boolean (true or false), but found '{1}'".format(name, value))
-    else:
-      type_name = type(value).__name__
-      raise Fail("Configuration {0} expected to be boolean (true or false), but found instance of unknown type '{1}'".format(name, type_name))
-  elif expected_type in [int, int, float]:
-    try:
-      value = expected_type(value)
-    except (ValueError, TypeError):
-      raise Fail("Configuration {0} expected to be number, but found '{1}'".format(name, value))
-  return value
+    if expected_type == bool:
+        if isinstance(value, bool):
+            return value
+        elif isinstance(value, str):
+            if value != None and value.lower() == "true":
+                value = True
+            elif value != None and value.lower() == "false":
+                value = False
+            else:
+                raise Fail(
+                    "Configuration {0} expected to be boolean (true or false), but found '{1}'".format(
+                        name, value
+                    )
+                )
+        else:
+            type_name = type(value).__name__
+            raise Fail(
+                "Configuration {0} expected to be boolean (true or false), but found instance of unknown type '{1}'".format(
+                    name, type_name
+                )
+            )
+    elif expected_type in [int, int, float]:
+        try:
+            value = expected_type(value)
+        except (ValueError, TypeError):
+            raise Fail(
+                "Configuration {0} expected to be number, but found '{1}'".format(
+                    name, value
+                )
+            )
+    return value
 
 
 def expect_v2(name, expected_type, default_value=None):
-  """
-  Expect configuration to be of certain type. If it is not, give a reasonable error message to user.
+    """
+    Expect configuration to be of certain type. If it is not, give a reasonable error message to user.
 
-  Optionally if the configuration is not found default_value for it can be returned.
-  """
+    Optionally if the configuration is not found default_value for it can be returned.
+    """
 
-  value = Script.get_execution_command().get_value(name, default_value)
-  if not value:
-    return UnknownConfiguration(name)
-  elif value == default_value:
+    value = Script.get_execution_command().get_value(name, default_value)
+    if not value:
+        return UnknownConfiguration(name)
+    elif value == default_value:
+        return value
+
+    if expected_type == bool:
+        if isinstance(value, bool):
+            return value
+        elif isinstance(value, str):
+            if value != None and value.lower() == "true":
+                value = True
+            elif value != None and value.lower() == "false":
+                value = False
+            else:
+                raise Fail(
+                    "Configuration {0} expected to be boolean (true or false), but found '{1}'".format(
+                        name, value
+                    )
+                )
+        else:
+            type_name = type(value).__name__
+            raise Fail(
+                "Configuration {0} expected to be boolean (true or false), but found instance of unknown type '{1}'".format(
+                    name, type_name
+                )
+            )
+    elif expected_type in [int, int, float]:
+        try:
+            value = expected_type(value)
+        except (ValueError, TypeError):
+            raise Fail(
+                "Configuration {0} expected to be number, but found '{1}'".format(
+                    name, value
+                )
+            )
     return value
-
-  if expected_type == bool:
-    if isinstance(value, bool):
-      return value
-    elif isinstance(value, str):
-      if value != None and value.lower() == "true":
-        value = True
-      elif value != None and value.lower() == "false":
-        value = False
-      else:
-        raise Fail("Configuration {0} expected to be boolean (true or false), but found '{1}'".format(name, value))
-    else:
-      type_name = type(value).__name__
-      raise Fail(
-        "Configuration {0} expected to be boolean (true or false), but found instance of unknown type '{1}'".format(
-          name, type_name))
-  elif expected_type in [int, int, float]:
-    try:
-      value = expected_type(value)
-    except (ValueError, TypeError):
-      raise Fail("Configuration {0} expected to be number, but found '{1}'".format(name, value))
-  return value
