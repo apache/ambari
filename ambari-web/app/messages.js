@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-Em.I18n.translations = {
+var messages_ambari = {
 
   'app.name':'Ambari',
   'app.name.subtitle':'Ambari - {0}',
@@ -3634,3 +3634,7 @@ Em.I18n.translations = {
   'app.logger.wizard': 'wizard step {0} loading time'
 
 };
+
+Em.I18n.translations = messages_ambari;
+
+module.exports = messages_ambari;
