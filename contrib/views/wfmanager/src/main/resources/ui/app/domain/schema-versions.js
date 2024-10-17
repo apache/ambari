@@ -79,7 +79,7 @@ export default Ember.Object.extend({
 
   initializeDefaultVersions(){
     this.supportedVersions.forEach((value, key) =>{
-      var max = Math.max.apply(null,value);
+      var max = Math.max.apply(null,value).toFixed(1);
       if(isNaN(max)){
         max = value.reduce((a, b) => a > b?a:b);
       }
