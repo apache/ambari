@@ -104,9 +104,11 @@ public class DBAccessorImpl implements DBAccessor {
       connection.setAutoCommit(true); //enable autocommit
 
       //TODO create own mapping and platform classes for supported databases
-      String vendorName = connection.getMetaData().getDatabaseProductName()
-              + connection.getMetaData().getDatabaseMajorVersion();
-      String dbPlatform = DBPlatformHelper.getDBPlatform(vendorName, new AbstractSessionLog() {
+      String vendorName = connection.getMetaData().getDatabaseProductName();
+      String majorVersion = Integer.toString(connection.getMetaData().getDatabaseMajorVersion());
+      String minorVersion = Integer.toString(connection.getMetaData().getDatabaseMinorVersion());
+
+      String dbPlatform = DBPlatformHelper.getDBPlatform(vendorName, majorVersion, minorVersion, new AbstractSessionLog() {
         @Override
         public void log(SessionLogEntry sessionLogEntry) {
           LOG.debug(sessionLogEntry.getMessage());

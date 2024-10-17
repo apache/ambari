@@ -31,7 +31,7 @@ import com.google.inject.Injector;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
 import nl.jqno.equalsverifier.Warning;
-
+import nl.jqno.equalsverifier.api.SingleTypeEqualsVerifierApi;
 public class LdapServerPropertiesTest {
 
   private final Injector injector;
@@ -94,7 +94,7 @@ public class LdapServerPropertiesTest {
 
   @Test
   public void testEquals() throws Exception {
-    EqualsVerifier<LdapServerProperties> verifier = EqualsVerifier.forClass(LdapServerProperties.class);
+    SingleTypeEqualsVerifierApi<LdapServerProperties> verifier = EqualsVerifier.forClass(LdapServerProperties.class);
     verifier.suppress(Warning.NONFINAL_FIELDS);
     verifier.verify();
   }

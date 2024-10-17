@@ -83,7 +83,6 @@ public class RequiredServicesInRepositoryCheckTest {
     };
 
     final Cluster cluster = Mockito.mock(Cluster.class);
-    Mockito.when(cluster.getClusterId()).thenReturn(1L);
     Mockito.when(clusters.getCluster(CLUSTER_NAME)).thenReturn(cluster);
 
     Mockito.when(m_repositoryVersion.getId()).thenReturn(1L);

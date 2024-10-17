@@ -79,7 +79,6 @@ public class RequestScheduleService extends BaseService {
    * @return
    */
   @GET
-  @Path("") // This is needed if class level path is not present otherwise no Swagger docs will be generated for this method
   @Produces(MediaType.TEXT_PLAIN)
   @ApiOperation(value = "Get all request schedules", response = RequestScheduleResponseSwagger.class, responseContainer =
           RESPONSE_CONTAINER_LIST)
@@ -142,7 +141,6 @@ public class RequestScheduleService extends BaseService {
    * @return
    */
   @POST
-  @Path("") // This is needed if class level path is not present otherwise no Swagger docs will be generated for this method
   @Produces(MediaType.TEXT_PLAIN)
   @ApiOperation(value = "Create new request schedule")
   @ApiImplicitParams({

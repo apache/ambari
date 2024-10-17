@@ -15,7 +15,14 @@
 
 # To change a passphrase used by the agent adjust the line below. This value is used when no passphrase is
 # given through environment variable
+
+AMBARI_JVM_ARGS="$AMBARI_JVM_ARGS --add-opens java.base/java.lang=ALL-UNNAMED "
+AMBARI_JVM_ARGS="$AMBARI_JVM_ARGS --add-opens java.base/java.util.regex=ALL-UNNAMED "
+AMBARI_JVM_ARGS="$AMBARI_JVM_ARGS --add-opens java.base/java.util=ALL-UNNAMED "
+export AMBARI_JVM_ARGS="$AMBARI_JVM_ARGS  --add-opens java.base/java.lang.reflect=ALL-UNNAMED "
+
 AMBARI_PASSPHRASE="DEV"
+export AMBARI_JVM_ARGS="$AMBARI_JVM_ARGS -Xms512m -Xmx2048m -Djava.security.auth.login.config=$ROOT/etc/ambari-server/conf/krb5JAASLogin.conf -Djava.security.krb5.conf=/etc/krb5.conf -Djavax.security.auth.useSubjectCredsOnly=false -Dcom.sun.jndi.ldap.connect.pool.protocol=\"plain ssl\" -Dcom.sun.jndi.ldap.connect.pool.maxsize=20 -Dcom.sun.jndi.ldap.connect.pool.timeout=300000"
 export PATH=$PATH:/var/lib/ambari-agent
 export PYTHONPATH=/usr/lib/ambari-agent/lib:$PYTHONPATH
 

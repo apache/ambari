@@ -210,7 +210,7 @@ public class FinalizeKerberosServerActionTest extends EasyMockSupport {
         bind(KerberosHelper.class).toInstance(createMock(KerberosHelper.class));
         bind(Clusters.class).toInstance(clusters);
         bind(AuditLogger.class).toInstance(createNiceMock(AuditLogger.class));
-        bind(EntityManager.class).toProvider(EasyMock.createNiceMock(Provider.class));
+        bind(EntityManager.class).toProvider((Provider<? extends EntityManager>) EasyMock.createNiceMock(Provider.class));
       }
     });
   }

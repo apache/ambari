@@ -151,6 +151,8 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlets.GzipFilter;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.servlet.ServletContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
@@ -173,7 +175,6 @@ import com.google.inject.Scopes;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
-import com.sun.jersey.spi.container.servlet.ServletContainer;
 
 
 @Singleton
@@ -441,17 +442,11 @@ public class AmbariServer {
       serverForAgent.addConnector(agentOneWayConnector);
       serverForAgent.addConnector(agentTwoWayConnector);
 
-      ServletHolder sh = new ServletHolder(ServletContainer.class);
-      sh.setInitParameter("com.sun.jersey.config.property.resourceConfigClass",
-          "com.sun.jersey.api.core.PackagesResourceConfig");
-
-      sh.setInitParameter("com.sun.jersey.config.property.packages",
-        "org.apache.ambari.server.api.rest;" +
-          "org.apache.ambari.server.api.services;" +
-          "org.apache.ambari.eventdb.webservice;" +
-          "org.apache.ambari.server.api");
-
-      sh.setInitParameter("com.sun.jersey.api.json.POJOMappingFeature", "true");
+      ServletHolder sh = new ServletHolder(new ServletContainer(new ResourceConfig().packages(
+              "org.apache.ambari.server.api.rest",
+              "org.apache.ambari.server.api.services",
+              "org.apache.ambari.eventdb.webservice",
+              "org.apache.ambari.server.api").register(org.glassfish.jersey.jackson.JacksonFeature.class)));
       root.addServlet(sh, "/api/v1/*");
       sh.setInitOrder(2);
 
@@ -486,25 +481,18 @@ public class AmbariServer {
 
       server.setHandler(handlerList);
 
-      ServletHolder agent = new ServletHolder(ServletContainer.class);
-      agent.setInitParameter("com.sun.jersey.config.property.resourceConfigClass",
-          "com.sun.jersey.api.core.PackagesResourceConfig");
-      agent.setInitParameter("com.sun.jersey.config.property.packages",
-          "org.apache.ambari.server.agent.rest;" + "org.apache.ambari.server.api");
-      agent.setInitParameter("com.sun.jersey.api.json.POJOMappingFeature", "true");
+      ServletHolder agent = new ServletHolder(new ServletContainer(new ResourceConfig()
+              .packages("org.apache.ambari.server.agent.rest", "org.apache.ambari.server.api")
+              .register(org.glassfish.jersey.jackson.JacksonFeature.class)));
       agentroot.addServlet(agent, "/agent/v1/*");
       agent.setInitOrder(3);
 
       injector.getInstance(HeartBeatHandler.class).start();
       LOG.info("********** Started Heartbeat handler **********");
 
-      ServletHolder cert = new ServletHolder(ServletContainer.class);
-      cert.setInitParameter("com.sun.jersey.config.property.resourceConfigClass",
-          "com.sun.jersey.api.core.PackagesResourceConfig");
-      cert.setInitParameter("com.sun.jersey.config.property.packages",
-          "org.apache.ambari.server.security.unsecured.rest;" + "org.apache.ambari.server.api");
-
-      cert.setInitParameter("com.sun.jersey.api.json.POJOMappingFeature", "true");
+      ServletHolder cert = new ServletHolder(new ServletContainer(new ResourceConfig()
+              .packages("org.apache.ambari.server.security.unsecured.rest", "org.apache.ambari.server.api")
+              .register(org.glassfish.jersey.jackson.JacksonFeature.class)));
       agentroot.addServlet(cert, "/*");
       cert.setInitOrder(4);
 
@@ -516,7 +504,7 @@ public class AmbariServer {
       resources.setInitOrder(5);
 
       if (configs.csrfProtectionEnabled()) {
-        sh.setInitParameter("com.sun.jersey.spi.container.ContainerRequestFilters",
+        sh.setInitParameter("org.glassfish.jersey.server.ContainerRequestFilter",
             "org.apache.ambari.server.api.AmbariCsrfProtectionFilter");
       }
 

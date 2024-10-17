@@ -35,6 +35,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
@@ -48,13 +49,10 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.google.gson.Gson;
-import com.sun.jersey.core.spi.factory.ResponseBuilderImpl;
-import com.sun.jersey.core.spi.factory.ResponseImpl;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ ProxyServiceTest.class, ProxyService.class, URLStreamProvider.class, Response.class,
-        ResponseBuilderImpl.class, URI.class })
+        Response.ResponseBuilder.class, URI.class })
 public class ProxyServiceTest extends BaseServiceTest {
 
   @Test
@@ -63,11 +61,11 @@ public class ProxyServiceTest extends BaseServiceTest {
     URLStreamProvider streamProviderMock = PowerMock.createNiceMock(URLStreamProvider.class);
     HttpURLConnection urlConnectionMock = createMock(HttpURLConnection.class);
     URI uriMock = PowerMock.createMock(URI.class);
-    MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
-    MultivaluedMap<String, String> headerParams = new MultivaluedMapImpl();
+    MultivaluedMap<String, String> queryParams = new MultivaluedHashMap();
+    MultivaluedMap<String, String> headerParams = new MultivaluedHashMap();
     Map<String, List<String>> headerParamsToForward = new HashMap<>();
-    Response.ResponseBuilder responseBuilderMock = PowerMock.createMock(ResponseBuilderImpl.class);
-    Response responseMock = createMock(ResponseImpl.class);
+    Response.ResponseBuilder responseBuilderMock = PowerMock.createMock(Response.ResponseBuilder.class);
+    Response responseMock = createMock(Response.class);
     headerParams.add("AmbariProxy-User-Remote","testuser");
     headerParams.add("Content-Type","testtype");
     List<String> userRemoteParams = new LinkedList<>();
@@ -101,11 +99,11 @@ public class ProxyServiceTest extends BaseServiceTest {
     URLStreamProvider streamProviderMock = PowerMock.createNiceMock(URLStreamProvider.class);
     HttpURLConnection urlConnectionMock = createMock(HttpURLConnection.class);
     URI uriMock = PowerMock.createMock(URI.class);
-    MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
-    MultivaluedMap<String, String> headerParams = new MultivaluedMapImpl();
+    MultivaluedMap<String, String> queryParams = new MultivaluedHashMap();
+    MultivaluedMap<String, String> headerParams = new MultivaluedHashMap();
     Map<String, List<String>> headerParamsToForward = new HashMap<>();
-    Response.ResponseBuilder responseBuilderMock = PowerMock.createMock(ResponseBuilderImpl.class);
-    Response responseMock = createMock(ResponseImpl.class);
+    Response.ResponseBuilder responseBuilderMock = PowerMock.createMock(Response.ResponseBuilder.class);
+    Response responseMock = createMock(Response.class);
     headerParams.add("AmbariProxy-User-Remote","testuser");
     headerParams.add("Content-Type","testtype");
     List<String> userRemoteParams = new LinkedList<>();
@@ -140,11 +138,11 @@ public class ProxyServiceTest extends BaseServiceTest {
     URLStreamProvider streamProviderMock = PowerMock.createNiceMock(URLStreamProvider.class);
     HttpURLConnection urlConnectionMock = createMock(HttpURLConnection.class);
     URI uriMock = PowerMock.createMock(URI.class);
-    MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
-    MultivaluedMap<String, String> headerParams = new MultivaluedMapImpl();
+    MultivaluedMap<String, String> queryParams = new MultivaluedHashMap();
+    MultivaluedMap<String, String> headerParams = new MultivaluedHashMap();
     Map<String, List<String>> headerParamsToForward = new HashMap<>();
-    Response.ResponseBuilder responseBuilderMock = PowerMock.createMock(ResponseBuilderImpl.class);
-    Response responseMock = createMock(ResponseImpl.class);
+    Response.ResponseBuilder responseBuilderMock = PowerMock.createMock(Response.ResponseBuilder.class);
+    Response responseMock = createMock(Response.class);
     headerParams.add("AmbariProxy-User-Remote","testuser");
     headerParams.add("Content-Type","testtype");
     List<String> userRemoteParams = new LinkedList<>();
@@ -179,11 +177,11 @@ public class ProxyServiceTest extends BaseServiceTest {
     URLStreamProvider streamProviderMock = PowerMock.createNiceMock(URLStreamProvider.class);
     HttpURLConnection urlConnectionMock = createMock(HttpURLConnection.class);
     URI uriMock = PowerMock.createMock(URI.class);
-    MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
-    MultivaluedMap<String, String> headerParams = new MultivaluedMapImpl();
+    MultivaluedMap<String, String> queryParams = new MultivaluedHashMap();
+    MultivaluedMap<String, String> headerParams = new MultivaluedHashMap();
     Map<String, List<String>> headerParamsToForward = new HashMap<>();
-    Response.ResponseBuilder responseBuilderMock = PowerMock.createMock(ResponseBuilderImpl.class);
-    Response responseMock = createMock(ResponseImpl.class);
+    Response.ResponseBuilder responseBuilderMock = PowerMock.createMock(Response.ResponseBuilder.class);
+    Response responseMock = createMock(Response.class);
     headerParams.add("AmbariProxy-User-Remote","testuser");
     headerParams.add("Content-Type","testtype");
     List<String> userRemoteParams = new LinkedList<>();
@@ -216,12 +214,12 @@ public class ProxyServiceTest extends BaseServiceTest {
     ProxyService ps = new ProxyService();
     URLStreamProvider streamProviderMock = PowerMock.createNiceMock(URLStreamProvider.class);
     HttpURLConnection urlConnectionMock = createMock(HttpURLConnection.class);
-    Response.ResponseBuilder responseBuilderMock = PowerMock.createMock(ResponseBuilderImpl.class);
+    Response.ResponseBuilder responseBuilderMock = PowerMock.createMock(Response.ResponseBuilder.class);
     URI uriMock = PowerMock.createMock(URI.class);
-    Response responseMock = createMock(ResponseImpl.class);
+    Response responseMock = createMock(Response.class);
     InputStream es = new ByteArrayInputStream("error".getBytes());
-    MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
-    MultivaluedMap<String, String> headerParams = new MultivaluedMapImpl();
+    MultivaluedMap<String, String> queryParams = new MultivaluedHashMap();
+    MultivaluedMap<String, String> headerParams = new MultivaluedHashMap();
     Map<String, List<String>> headerParamsToForward = new HashMap<>();
     headerParams.add("AmbariProxy-User-Remote","testuser");
     headerParams.add("Content-Type","testtype");
@@ -255,11 +253,11 @@ public class ProxyServiceTest extends BaseServiceTest {
     URLStreamProvider streamProviderMock = PowerMock.createNiceMock(URLStreamProvider.class);
     HttpURLConnection urlConnectionMock = createMock(HttpURLConnection.class);
     URI uriMock = PowerMock.createMock(URI.class);
-    MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
-    MultivaluedMap<String, String> headerParams = new MultivaluedMapImpl();
+    MultivaluedMap<String, String> queryParams = new MultivaluedHashMap();
+    MultivaluedMap<String, String> headerParams = new MultivaluedHashMap();
     Map<String, List<String>> headerParamsToForward = new HashMap<>();
-    Response.ResponseBuilder responseBuilderMock = PowerMock.createMock(ResponseBuilderImpl.class);
-    Response responseMock = createMock(ResponseImpl.class);
+    Response.ResponseBuilder responseBuilderMock = PowerMock.createMock(Response.ResponseBuilder.class);
+    Response responseMock = createMock(Response.class);
     headerParams.add("AmbariProxy-User-Remote","testuser");
     headerParams.add("Content-Type","testtype");
     List<String> userRemoteParams = new LinkedList<>();
@@ -291,8 +289,8 @@ public class ProxyServiceTest extends BaseServiceTest {
   public void testEscapedURL() throws Exception {
     ProxyService ps = new ProxyService();
     URLStreamProvider streamProviderMock = PowerMock.createNiceMock(URLStreamProvider.class);
-    MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
-    MultivaluedMap<String, String> headerParams = new MultivaluedMapImpl();
+    MultivaluedMap<String, String> queryParams = new MultivaluedHashMap();
+    MultivaluedMap<String, String> headerParams = new MultivaluedHashMap();
     HttpURLConnection urlConnectionMock = createMock(HttpURLConnection.class);
     URI uri = UriBuilder.fromUri("http://dev01.hortonworks.com:8080/proxy?url=http%3a%2f%2fserver%3a8188%2fws%2fv1%2f" +
      "timeline%2fHIVE_QUERY_ID%3ffields=events%2cprimaryfilters%26limit=10%26primaryFilter=user%3ahiveuser1").build();
