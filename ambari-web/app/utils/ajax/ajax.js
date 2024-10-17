@@ -2544,7 +2544,7 @@ var urls = {
           },
           "Requests/resource_filters": [
             {
-              "hosts_predicate": "HostRoles/stale_configs=true&HostRoles/cluster_name=" + data.clusterName
+              "hosts_predicate": "HostRoles/stale_configs=true&HostRoles/maintenance_state=OFF&HostRoles/cluster_name=" + data.clusterName
             }
           ]
         })
