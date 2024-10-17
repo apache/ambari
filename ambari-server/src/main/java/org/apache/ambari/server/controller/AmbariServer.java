@@ -25,6 +25,7 @@ import java.net.Authenticator;
 import java.net.BindException;
 import java.net.PasswordAuthentication;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Enumeration;
 import java.util.Map;
@@ -140,6 +141,7 @@ import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.SessionIdManager;
 import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.server.handler.HandlerCollection;
+import org.eclipse.jetty.server.handler.InetAccessHandler;
 import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.server.handler.gzip.GzipHandler;
 import org.eclipse.jetty.server.session.DefaultSessionIdManager;
@@ -485,6 +487,16 @@ public class AmbariServer {
       }
 
       server.setHandler(handlerList);
+
+      String srvrAccessWhiteList = configs.getSrvrAccessWhiteList();
+      if (!srvrAccessWhiteList.isEmpty())
+      {
+        String[] whiteListHosts = srvrAccessWhiteList.split(",");
+        InetAccessHandler inetAccessHandler = new InetAccessHandler();
+        Arrays.asList(whiteListHosts).forEach(host -> inetAccessHandler.include(host.trim()));
+        inetAccessHandler.setHandler(server.getHandler());
+        server.setHandler(inetAccessHandler);
+      }
 
       ServletHolder agent = new ServletHolder(ServletContainer.class);
       agent.setInitParameter("com.sun.jersey.config.property.resourceConfigClass",
