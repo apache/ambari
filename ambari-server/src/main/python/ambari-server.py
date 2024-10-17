@@ -673,6 +673,7 @@ def init_enable_stack_parser_options(parser):
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def init_db_purge_parser_options(parser):
   parser.add_option('--cluster-name', default=None, help="Cluster name", dest="cluster_name")
+  parser.add_option('--purge-common-info', default="false", type="string", help="Want to purge records for cluster_id = -1",dest="clean_common_info")
   parser.add_option("-d", "--from-date", dest="purge_from_date", default=None, type="string", help="Specify date for the database purge process in 'yyyy-MM-dd' format")
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
