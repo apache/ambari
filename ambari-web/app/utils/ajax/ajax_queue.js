@@ -151,7 +151,7 @@ App.ajaxQueue = Em.Object.extend({
     var r = App.ajax.send(queue.shift());
     this.propertyDidChange('queue');
     if (r) {
-      r.then(this._complete.bind(this));
+      r.always(this._complete.bind(this));
     }
     else {
       if (this.get('abortOnError')) {
@@ -163,8 +163,8 @@ App.ajaxQueue = Em.Object.extend({
     }
   },
 
-  _complete: function(xhr) {
-    if(xhr.status>=200 && xhr.status <= 299) {
+  _complete: function(_param1, textStatus, _param2) {
+    if(textStatus === 'success') {
       this.runNextRequest();
     }
     else {
