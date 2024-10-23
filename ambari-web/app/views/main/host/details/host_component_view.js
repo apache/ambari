@@ -23,6 +23,7 @@ App.HostComponentView = Em.View.extend({
 
   templateName: require('templates/main/host/details/host_component'),
   tagName: 'tr',
+  classNames: ['more-actions'],
 
   /**
    * @type {App.HostComponent}
