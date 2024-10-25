@@ -176,31 +176,16 @@ public class AmbariManagementControllerImplTest {
         Class<?> c = controller.getClass();
         Field f = c.getDeclaredField("masterProtocol");
         f.setAccessible(true);
-
-        Field modifiersField = Field.class.getDeclaredField("modifiers");
-        modifiersField.setAccessible(true);
-        modifiersField.setInt(f, f.getModifiers() & ~Modifier.FINAL);
-
         f.set(controller, masterProtocol);
 
         // masterHostname
         f = c.getDeclaredField("masterHostname");
         f.setAccessible(true);
-
-        modifiersField = Field.class.getDeclaredField("modifiers");
-        modifiersField.setAccessible(true);
-        modifiersField.setInt(f, f.getModifiers() & ~Modifier.FINAL);
-
         f.set(controller, masterHostname);
 
         // masterPort
         f = c.getDeclaredField("masterPort");
         f.setAccessible(true);
-
-        modifiersField = Field.class.getDeclaredField("modifiers");
-        modifiersField.setAccessible(true);
-        modifiersField.setInt(f, f.getModifiers() & ~Modifier.FINAL);
-
         f.set(controller, masterPort);
       }
     }

@@ -157,7 +157,7 @@ public class ClusterStackVersionResourceProviderTest {
      repoDefinitionEntity2.setBaseUrl("http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0");
      repoDefinitionEntity2.setRepoName("HDP");
      RepoOsEntity repoOsEntity = new RepoOsEntity();
-     repoOsEntity.setFamily("redhat6");
+     repoOsEntity.setFamily("redhat7");
      repoOsEntity.setAmbariManaged(true);
      repoOsEntity.addRepoDefinition(repoDefinitionEntity1);
      repoOsEntity.addRepoDefinition(repoDefinitionEntity2);
@@ -176,7 +176,7 @@ public class ClusterStackVersionResourceProviderTest {
      repoDefinitionEntity2.setBaseUrl("http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0");
      repoDefinitionEntity2.setRepoName("HDP");
      RepoOsEntity repoOsEntity = new RepoOsEntity();
-     repoOsEntity.setFamily("redhat6");
+     repoOsEntity.setFamily("redhat7");
      repoOsEntity.setAmbariManaged(false);
      repoOsEntity.addRepoDefinition(repoDefinitionEntity1);
      repoOsEntity.addRepoDefinition(repoDefinitionEntity2);
@@ -253,7 +253,7 @@ public class ClusterStackVersionResourceProviderTest {
       String hostname = "host" + i;
       Host host = createNiceMock(hostname, Host.class);
       expect(host.getHostName()).andReturn(hostname).anyTimes();
-      expect(host.getOsFamily()).andReturn("redhat6").anyTimes();
+      expect(host.getOsFamily()).andReturn("redhat7").anyTimes();
       expect(host.getMaintenanceState(EasyMock.anyLong())).andReturn(
           MaintenanceState.OFF).anyTimes();
       expect(host.getAllHostVersions()).andReturn(
@@ -426,7 +426,7 @@ public class ClusterStackVersionResourceProviderTest {
       String hostname = "host" + i;
       Host host = createNiceMock(hostname, Host.class);
       expect(host.getHostName()).andReturn(hostname).anyTimes();
-      expect(host.getOsFamily()).andReturn("redhat6").anyTimes();
+      expect(host.getOsFamily()).andReturn("redhat7").anyTimes();
       expect(host.getMaintenanceState(EasyMock.anyLong())).andReturn(
           MaintenanceState.OFF).anyTimes();
       expect(host.getAllHostVersions()).andReturn(
@@ -643,7 +643,7 @@ public class ClusterStackVersionResourceProviderTest {
       String hostname = "host" + i;
       Host host = createNiceMock(hostname, Host.class);
       expect(host.getHostName()).andReturn(hostname).anyTimes();
-      expect(host.getOsFamily()).andReturn("redhat6").anyTimes();
+      expect(host.getOsFamily()).andReturn("redhat7").anyTimes();
       expect(host.getMaintenanceState(EasyMock.anyLong())).andReturn(
           MaintenanceState.OFF).anyTimes();
       expect(host.getAllHostVersions()).andReturn(
@@ -874,7 +874,7 @@ public class ClusterStackVersionResourceProviderTest {
       String hostname = "host" + i;
       Host host = createNiceMock(hostname, Host.class);
       expect(host.getHostName()).andReturn(hostname).anyTimes();
-      expect(host.getOsFamily()).andReturn("redhat6").anyTimes();
+      expect(host.getOsFamily()).andReturn("redhat7").anyTimes();
       expect(host.getMaintenanceState(EasyMock.anyLong())).andReturn(
           MaintenanceState.OFF).anyTimes();
       expect(host.getAllHostVersions()).andReturn(
@@ -1114,7 +1114,7 @@ public class ClusterStackVersionResourceProviderTest {
       }
       Host host = createNiceMock(hostname, Host.class);
       expect(host.getHostName()).andReturn(hostname).anyTimes();
-      expect(host.getOsFamily()).andReturn("redhat6").anyTimes();
+      expect(host.getOsFamily()).andReturn("redhat7").anyTimes();
       expect(host.getMaintenanceState(EasyMock.anyLong())).andReturn(
           MaintenanceState.OFF).anyTimes();
       expect(host.getAllHostVersions()).andReturn(hostVersions).anyTimes();
@@ -1309,7 +1309,7 @@ public class ClusterStackVersionResourceProviderTest {
       String hostname = "host" + i;
       Host host = createNiceMock(hostname, Host.class);
       expect(host.getHostName()).andReturn(hostname).anyTimes();
-      expect(host.getOsFamily()).andReturn("redhat6").anyTimes();
+      expect(host.getOsFamily()).andReturn("redhat7").anyTimes();
       expect(host.getMaintenanceState(EasyMock.anyLong())).andReturn(MaintenanceState.OFF).anyTimes();
 
       // ensure that 2 hosts don't have versionable components so they
@@ -1838,7 +1838,7 @@ public class ClusterStackVersionResourceProviderTest {
        "  </available-services>\n" +
        "  \n" +
        "  <repository-info>\n" +
-       "    <os family=\"redhat6\">\n" +
+       "    <os family=\"redhat7\">\n" +
        "      <package-version>2_3_4_0_3396</package-version>\n" +
        "      <repo>\n" +
        "        <baseurl>http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.3.4.0</baseurl>\n" +
@@ -1887,7 +1887,7 @@ public class ClusterStackVersionResourceProviderTest {
        String hostname = "host" + i;
        Host host = createNiceMock(hostname, Host.class);
        expect(host.getHostName()).andReturn(hostname).anyTimes();
-       expect(host.getOsFamily()).andReturn("redhat6").anyTimes();
+       expect(host.getOsFamily()).andReturn("redhat7").anyTimes();
        expect(host.getMaintenanceState(EasyMock.anyLong())).andReturn(
            MaintenanceState.OFF).anyTimes();
        expect(host.getAllHostVersions()).andReturn(
