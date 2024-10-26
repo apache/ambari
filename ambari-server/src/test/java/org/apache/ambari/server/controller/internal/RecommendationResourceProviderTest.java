@@ -18,180 +18,176 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.partialMockBuilder;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
-import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorHelper;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorResponse;
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
-import org.apache.ambari.server.controller.spi.SystemException;
-import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+
 import org.apache.ambari.server.state.Clusters;
 import org.junit.Test;
 
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.junit.Before;
+
 public class RecommendationResourceProviderTest {
 
-  @Test
-  public void testCreateConfigurationResources() throws Exception {
-    Set<String> hosts = new HashSet<>(Arrays.asList(new String[]{"hostName1", "hostName2", "hostName3"}));
-    Set<String> services = new HashSet<>(Arrays.asList(new String[]{"serviceName1", "serviceName2", "serviceName3"}));
-    RequestStatus requestStatus = testCreateResources(hosts, services,
-        StackAdvisorRequest.StackAdvisorRequestType.CONFIGURATIONS, true);
+    @Mock
+    private StackAdvisorHelper stackAdvisorHelper;
+    @Mock
+    private Configuration configuration;
+    @Mock
+    private Clusters clusters;
+    @Mock
+    private AmbariMetaInfo ambariMetaInfo;
+    @Mock
+    private AmbariManagementController managementController;
 
-    assertFalse(requestStatus == null);
-    assertEquals(1, requestStatus.getAssociatedResources().size());
-    assertEquals(Resource.Type.Recommendation, requestStatus.getAssociatedResources().iterator().next().getType());
+    private RecommendationResourceProvider provider;
 
-    Map<String, Map<String, Object>> propertiesMap = requestStatus.getAssociatedResources().iterator().next().getPropertiesMap();
-    assertEquals(2, propertiesMap.size());
-    assertTrue(propertiesMap.containsKey("recommendations"));
-    assertTrue(propertiesMap.containsKey("recommendations/blueprint/configurations"));
+    @Before
+    public void setUp() {
+        MockitoAnnotations.initMocks(this);
+        provider = spy(new RecommendationResourceProvider(managementController));
+        RecommendationResourceProvider.init(stackAdvisorHelper, configuration, clusters, ambariMetaInfo);
+    }
 
-    assertEquals(1, propertiesMap.get("recommendations").size());
-    assertTrue(propertiesMap.get("recommendations").containsKey("config-groups"));
-    assertNotNull(propertiesMap.get("recommendations").get("config-groups"));
+    @Test
+    public void testCreateConfigurationResources() throws Exception {
+        Set<String> hosts = new HashSet<>(Arrays.asList("hostName1", "hostName2", "hostName3"));
+        Set<String> services = new HashSet<>(Arrays.asList("serviceName1", "serviceName2", "serviceName3"));
+        RequestStatus requestStatus = testCreateResources(hosts, services,
+                StackAdvisorRequest.StackAdvisorRequestType.CONFIGURATIONS, true);
 
-    assertEquals(0, propertiesMap.get("recommendations/blueprint/configurations").size());
-  }
+        assertNotNull(requestStatus);
+        assertEquals(1, requestStatus.getAssociatedResources().size());
+        assertEquals(Resource.Type.Recommendation, requestStatus.getAssociatedResources().iterator().next().getType());
 
-  @Test
-  public void testCreateNotConfigurationResources() throws Exception {
-    Set<String> hosts = new HashSet<>(Arrays.asList(new String[]{"hostName1", "hostName2", "hostName3"}));
-    Set<String> services = new HashSet<>(Arrays.asList(new String[]{"serviceName1", "serviceName2", "serviceName3"}));
-    RequestStatus requestStatus = testCreateResources(hosts, services,
-        StackAdvisorRequest.StackAdvisorRequestType.HOST_GROUPS, false);
+        Map<String, Map<String, Object>> propertiesMap = requestStatus.getAssociatedResources().iterator().next().getPropertiesMap();
+        assertEquals(2, propertiesMap.size());
+        assertTrue(propertiesMap.containsKey("recommendations"));
+        assertTrue(propertiesMap.containsKey("recommendations/blueprint/configurations"));
 
-    assertFalse(requestStatus == null);
-    assertEquals(1, requestStatus.getAssociatedResources().size());
-    assertEquals(Resource.Type.Recommendation, requestStatus.getAssociatedResources().iterator().next().getType());
+        assertEquals(1, propertiesMap.get("recommendations").size());
+        assertTrue(propertiesMap.get("recommendations").containsKey("config-groups"));
+        assertNotNull(propertiesMap.get("recommendations").get("config-groups"));
 
-    Map<String, Map<String, Object>> propertiesMap = requestStatus.getAssociatedResources().iterator().next().getPropertiesMap();
-    assertEquals(7, propertiesMap.size());
-    assertTrue(propertiesMap.containsKey(""));
-    assertTrue(propertiesMap.containsKey("Recommendation"));
-    assertTrue(propertiesMap.containsKey("Versions"));
-    assertTrue(propertiesMap.containsKey("recommendations"));
-    assertTrue(propertiesMap.containsKey("recommendations/blueprint"));
-    assertTrue(propertiesMap.containsKey("recommendations/blueprint/configurations"));
-    assertTrue(propertiesMap.containsKey("recommendations/blueprint_cluster_binding"));
+        assertEquals(0, propertiesMap.get("recommendations/blueprint/configurations").size());
+    }
 
-    assertEquals(2, propertiesMap.get("").size());
-    assertTrue(propertiesMap.get("").containsKey("hosts"));
-    assertTrue(propertiesMap.get("").containsKey("services"));
-    assertEquals(hosts, propertiesMap.get("").get("hosts"));
-    assertEquals(services, propertiesMap.get("").get("services"));
+    @Test
+    public void testCreateNotConfigurationResources() throws Exception {
+        Set<String> hosts = new HashSet<>(Arrays.asList("hostName1", "hostName2", "hostName3"));
+        Set<String> services = new HashSet<>(Arrays.asList("serviceName1", "serviceName2", "serviceName3"));
+        RequestStatus requestStatus = testCreateResources(hosts, services,
+                StackAdvisorRequest.StackAdvisorRequestType.HOST_GROUPS, false);
 
-    assertEquals(1, propertiesMap.get("Recommendation").size());
-    assertTrue(propertiesMap.get("Recommendation").containsKey("id"));
-    assertEquals(1, propertiesMap.get("Recommendation").get("id"));
+        assertNotNull(requestStatus);
+        assertEquals(1, requestStatus.getAssociatedResources().size());
+        assertEquals(Resource.Type.Recommendation, requestStatus.getAssociatedResources().iterator().next().getType());
 
-    assertEquals(2, propertiesMap.get("Versions").size());
-    assertTrue(propertiesMap.get("Versions").containsKey("stack_name"));
-    assertTrue(propertiesMap.get("Versions").containsKey("stack_version"));
-    assertEquals("stackName", propertiesMap.get("Versions").get("stack_name"));
-    assertEquals("stackVersion", propertiesMap.get("Versions").get("stack_version"));
+        Map<String, Map<String, Object>> propertiesMap = requestStatus.getAssociatedResources().iterator().next().getPropertiesMap();
+        assertEquals(7, propertiesMap.size());
+        assertTrue(propertiesMap.containsKey(""));
+        assertTrue(propertiesMap.containsKey("Recommendation"));
+        assertTrue(propertiesMap.containsKey("Versions"));
+        assertTrue(propertiesMap.containsKey("recommendations"));
+        assertTrue(propertiesMap.containsKey("recommendations/blueprint"));
+        assertTrue(propertiesMap.containsKey("recommendations/blueprint/configurations"));
+        assertTrue(propertiesMap.containsKey("recommendations/blueprint_cluster_binding"));
 
-    assertEquals(1, propertiesMap.get("recommendations").size());
-    assertTrue(propertiesMap.get("recommendations").containsKey("config-groups"));
-    assertNotNull(propertiesMap.get("recommendations").get("config-groups"));
+        assertEquals(2, propertiesMap.get("").size());
+        assertTrue(propertiesMap.get("").containsKey("hosts"));
+        assertTrue(propertiesMap.get("").containsKey("services"));
+        assertEquals(hosts, propertiesMap.get("").get("hosts"));
+        assertEquals(services, propertiesMap.get("").get("services"));
 
-    assertEquals(1, propertiesMap.get("recommendations/blueprint").size());
-    assertTrue(propertiesMap.get("recommendations/blueprint").containsKey("host_groups"));
-    assertNotNull(propertiesMap.get("recommendations/blueprint").get("host_groups"));
+        assertEquals(1, propertiesMap.get("Recommendation").size());
+        assertTrue(propertiesMap.get("Recommendation").containsKey("id"));
+        assertEquals(1, propertiesMap.get("Recommendation").get("id"));
 
-    assertEquals(0, propertiesMap.get("recommendations/blueprint/configurations").size());
+        assertEquals(2, propertiesMap.get("Versions").size());
+        assertTrue(propertiesMap.get("Versions").containsKey("stack_name"));
+        assertTrue(propertiesMap.get("Versions").containsKey("stack_version"));
+        assertEquals("stackName", propertiesMap.get("Versions").get("stack_name"));
+        assertEquals("stackVersion", propertiesMap.get("Versions").get("stack_version"));
 
-    assertEquals(1, propertiesMap.get("recommendations/blueprint_cluster_binding").size());
-    assertTrue(propertiesMap.get("recommendations/blueprint_cluster_binding").containsKey("host_groups"));
-    assertNotNull(propertiesMap.get("recommendations/blueprint_cluster_binding").get("host_groups"));
+        assertEquals(1, propertiesMap.get("recommendations").size());
+        assertTrue(propertiesMap.get("recommendations").containsKey("config-groups"));
+        assertNotNull(propertiesMap.get("recommendations").get("config-groups"));
 
-  }
+        assertEquals(1, propertiesMap.get("recommendations/blueprint").size());
+        assertTrue(propertiesMap.get("recommendations/blueprint").containsKey("host_groups"));
+        assertNotNull(propertiesMap.get("recommendations/blueprint").get("host_groups"));
 
-  private RequestStatus testCreateResources(Set<String> hosts, Set<String> services,
-                                            StackAdvisorRequest.StackAdvisorRequestType type,
-                                            Boolean configsOnlyResponse) throws
-      NoSuchParentResourceException, ResourceAlreadyExistsException,
-      UnsupportedPropertyException, SystemException, StackAdvisorException, AmbariException {
-    StackAdvisorHelper stackAdvisorHelper = createMock(StackAdvisorHelper.class);
-    Configuration configuration = createMock(Configuration.class);
-    Clusters clusters = createMock(Clusters.class);
-    AmbariMetaInfo ambariMetaInfo = createMock(AmbariMetaInfo.class);
+        assertEquals(0, propertiesMap.get("recommendations/blueprint/configurations").size());
 
-    RecommendationResourceProvider provider = partialMockBuilder(RecommendationResourceProvider.class)
-        .withConstructor(AmbariManagementController.class)
-        .withArgs(createMock(AmbariManagementController.class))
-        .addMockedMethod("prepareStackAdvisorRequest", Request.class)
-        .createMock();
-    RecommendationResourceProvider.init(stackAdvisorHelper, configuration, clusters, ambariMetaInfo);
+        assertEquals(1, propertiesMap.get("recommendations/blueprint_cluster_binding").size());
+        assertTrue(propertiesMap.get("recommendations/blueprint_cluster_binding").containsKey("host_groups"));
+        assertNotNull(propertiesMap.get("recommendations/blueprint_cluster_binding").get("host_groups"));
+    }
 
-    StackAdvisorRequest stackAdvisorRequest = StackAdvisorRequest.StackAdvisorRequestBuilder.
-        forStack(null, null).ofType(type).
-        withConfigsResponse(configsOnlyResponse).
-        build();
 
-    Request request = createMock(Request.class);
-    expect(provider.prepareStackAdvisorRequest(eq(request))).andReturn(stackAdvisorRequest);
+    private RequestStatus testCreateResources(Set<String> hosts, Set<String> services,
+                                              StackAdvisorRequest.StackAdvisorRequestType type,
+                                              Boolean configsOnlyResponse) throws Exception {
+        StackAdvisorRequest stackAdvisorRequest = StackAdvisorRequest.StackAdvisorRequestBuilder.
+                forStack(null, null).ofType(type).
+                withConfigsResponse(configsOnlyResponse).
+                build();
 
-    RecommendationResponse response = new RecommendationResponse();
-    RecommendationResponse.Recommendation recommendation = new RecommendationResponse.Recommendation();
+        Request request = mock(Request.class);
+        doReturn(stackAdvisorRequest).when(provider).prepareStackAdvisorRequest(eq(request));
 
-    recommendation.setConfigGroups(new HashSet<>());
+        RecommendationResponse response = new RecommendationResponse();
+        RecommendationResponse.Recommendation recommendation = new RecommendationResponse.Recommendation();
 
-    RecommendationResponse.Blueprint blueprint = new RecommendationResponse.Blueprint();
-    blueprint.setConfigurations(new HashMap<>());
-    blueprint.setHostGroups(new HashSet<>());
-    recommendation.setBlueprint(blueprint);
+        recommendation.setConfigGroups(new HashSet<>());
 
-    RecommendationResponse.BlueprintClusterBinding blueprintClusterBinding = new RecommendationResponse.BlueprintClusterBinding();
-    blueprintClusterBinding.setHostGroups(new HashSet<>());
-    recommendation.setBlueprintClusterBinding(blueprintClusterBinding);
+        RecommendationResponse.Blueprint blueprint = new RecommendationResponse.Blueprint();
+        blueprint.setConfigurations(new HashMap<>());
+        blueprint.setHostGroups(new HashSet<>());
+        recommendation.setBlueprint(blueprint);
 
-    response.setRecommendations(recommendation);
+        RecommendationResponse.BlueprintClusterBinding blueprintClusterBinding = new RecommendationResponse.BlueprintClusterBinding();
+        blueprintClusterBinding.setHostGroups(new HashSet<>());
+        recommendation.setBlueprintClusterBinding(blueprintClusterBinding);
 
-    response.setId(1);
+        response.setRecommendations(recommendation);
 
-    StackAdvisorResponse.Version version = new StackAdvisorResponse.Version();
-    version.setStackName("stackName");
-    version.setStackVersion("stackVersion");
-    response.setVersion(version);
+        response.setId(1);
 
-    response.setHosts(hosts);
-    response.setServices(services);
+        StackAdvisorResponse.Version version = new StackAdvisorResponse.Version();
+        version.setStackName("stackName");
+        version.setStackVersion("stackVersion");
+        response.setVersion(version);
 
-    expect(stackAdvisorHelper.recommend(anyObject(StackAdvisorRequest.class))).andReturn(response).anyTimes();
+        response.setHosts(hosts);
+        response.setServices(services);
 
-    replay(provider, request, stackAdvisorHelper);
+        when(stackAdvisorHelper.recommend(any(StackAdvisorRequest.class))).thenReturn(response);
 
-    RequestStatus requestStatus = provider.createResources(request);
-
-    verify(provider, request, stackAdvisorHelper);
-
-    return requestStatus;
-  }
+        return provider.createResources(request);
+    }
 }
