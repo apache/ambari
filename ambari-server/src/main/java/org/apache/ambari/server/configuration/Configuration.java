@@ -53,6 +53,8 @@ import org.apache.ambari.annotations.ConfigurationMarkdown;
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.annotations.Markdown;
+import org.apache.ambari.annotations.ConfigurationMarkdown;
+import org.apache.ambari.annotations.ClusterScale;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.CommandExecutionType;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
