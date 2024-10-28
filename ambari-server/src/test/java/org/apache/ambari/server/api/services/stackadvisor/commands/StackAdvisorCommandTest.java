@@ -22,6 +22,7 @@ import static java.util.Collections.emptyMap;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
@@ -339,8 +340,8 @@ public class StackAdvisorCommandTest {
     // in second handling case NPE will be fired during result processing
     doReturn(Response.status(200).entity(String.format(SINGLE_HOST_RESPONSE, "hostName1")).build())
         .doReturn(null)
-        .when(command).handleRequest(any(HttpHeaders.class), any(String.class), any(UriInfo.class), any(Request.Type.class),
-        any(MediaType.class), any(ResourceInstance.class));
+        .when(command).handleRequest(nullable(HttpHeaders.class), nullable(String.class), any(UriInfo.class), any(Request.Type.class),
+                    nullable(MediaType.class), any(ResourceInstance.class));
 
     StackAdvisorRequest request = StackAdvisorRequestBuilder.
         forStack(null, null).ofType(StackAdvisorRequest.StackAdvisorRequestType.CONFIGURATIONS).
@@ -367,12 +368,17 @@ public class StackAdvisorCommandTest {
     TestStackAdvisorCommand command = spy(new TestStackAdvisorCommand(file, recommendationsArtifactsLifetime,
         ServiceInfo.ServiceAdvisorType.PYTHON, 1,
         stackAdvisorRunner, ambariMetaInfo, hostInfoCache));
-
     doReturn(Response.status(200).entity(String.format(SINGLE_HOST_RESPONSE, "hostName1")).build())
         .doReturn(Response.status(200).entity(String.format(SINGLE_HOST_RESPONSE, "hostName2")).build())
         .doReturn(null)
-        .when(command).handleRequest(any(HttpHeaders.class), any(String.class), any(UriInfo.class), any(Request.Type.class),
-        any(MediaType.class), any(ResourceInstance.class));
+        .when(command).handleRequest(
+                nullable(HttpHeaders.class),
+                nullable(String.class),
+                any(UriInfo.class),
+                any(Request.Type.class),
+                nullable(MediaType.class),
+                any(ResourceInstance.class)
+        );
 
     StackAdvisorRequest request = StackAdvisorRequestBuilder.
         forStack(null, null).ofType(StackAdvisorRequest.StackAdvisorRequestType.CONFIGURATIONS).

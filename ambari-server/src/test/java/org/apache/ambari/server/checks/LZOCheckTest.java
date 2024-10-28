@@ -71,7 +71,6 @@ public class LZOCheckTest {
 
     m_services.clear();
 
-    Mockito.when(m_repositoryVersion.getRepositoryType()).thenReturn(RepositoryType.STANDARD);
   }
 
   @Test

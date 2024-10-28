@@ -81,11 +81,6 @@ public class ServicesMaintenanceModeCheckTest {
     String version = "1.0.0.0-1234";
 
     Mockito.when(m_repositoryVersion.getId()).thenReturn(1L);
-    Mockito.when(m_repositoryVersion.getRepositoryType()).thenReturn(RepositoryType.STANDARD);
-
-    Mockito.when(m_repositoryVersionEntity.getType()).thenReturn(RepositoryType.STANDARD);
-    Mockito.when(m_repositoryVersionEntity.getVersion()).thenReturn("2.2.0.0-1234");
-    Mockito.when(m_repositoryVersionEntity.getStackId()).thenReturn(new StackId("HDP", "2.2"));
     Mockito.when(m_repositoryVersionEntity.getRepositoryXml()).thenReturn(m_vdfXml);
     Mockito.when(m_vdfXml.getClusterSummary(Mockito.any(Cluster.class), Mockito.any(AmbariMetaInfo.class))).thenReturn(m_clusterVersionSummary);
     Mockito.when(m_clusterVersionSummary.getAvailableServiceNames()).thenReturn(m_services.keySet());
