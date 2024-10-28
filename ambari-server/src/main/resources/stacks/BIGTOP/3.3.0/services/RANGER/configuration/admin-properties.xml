@@ -163,5 +163,6 @@
     <value>120</value>
     <display-name>Retry Interval</display-name>
     <description>Retry interval to apply database patches in seconds.</description>
+    <on-ambari-upgrade add="false"/>
   </property>
 </configuration>

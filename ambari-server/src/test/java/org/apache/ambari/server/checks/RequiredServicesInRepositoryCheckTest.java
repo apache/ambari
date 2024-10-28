@@ -85,9 +85,6 @@ public class RequiredServicesInRepositoryCheckTest {
     final Cluster cluster = Mockito.mock(Cluster.class);
     Mockito.when(clusters.getCluster(CLUSTER_NAME)).thenReturn(cluster);
 
-    Mockito.when(m_repositoryVersion.getId()).thenReturn(1L);
-    Mockito.when(m_repositoryVersion.getRepositoryType()).thenReturn(RepositoryType.STANDARD);
-
     Mockito.when(m_repositoryVersionEntity.getRepositoryXml()).thenReturn(m_vdfXml);
     Mockito.when(m_vdfXml.getMissingDependencies(Mockito.eq(cluster), Mockito.any(AmbariMetaInfo.class))).thenReturn(m_missingDependencies);
 
