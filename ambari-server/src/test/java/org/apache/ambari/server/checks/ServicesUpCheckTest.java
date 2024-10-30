@@ -63,6 +63,8 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.google.inject.Provider;
 
+import static org.mockito.ArgumentMatchers.nullable;
+
 
 /**
  * Unit tests for ServicesUpCheck
