@@ -43,8 +43,8 @@ import org.apache.ambari.server.state.cluster.ClusterFactory;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.host.HostFactory;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Predicate;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.Predicate;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;

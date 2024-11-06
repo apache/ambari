@@ -44,7 +44,7 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
 import org.apache.ambari.server.utils.StageUtils;
-import org.apache.commons.collections.MapUtils;
+import org.apache.commons.collections4.MapUtils;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;

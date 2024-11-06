@@ -42,8 +42,8 @@ import org.apache.ambari.server.orm.entities.KerberosKeytabServiceMappingEntity;
 import org.apache.ambari.server.orm.entities.KerberosPrincipalEntity;
 import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosPrincipal;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.MapUtils;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

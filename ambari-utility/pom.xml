@@ -82,8 +82,9 @@
       <artifactId>commons-beanutils</artifactId>
     </dependency>
     <dependency>
-      <groupId>commons-collections</groupId>
-      <artifactId>commons-collections</artifactId>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-collections4</artifactId>
+      <version>4.4</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -103,8 +104,8 @@
           <artifactId>commons-beanutils</artifactId>
         </exclusion>
         <exclusion>
-          <groupId>commons-collections</groupId>
-          <artifactId>commons-collections</artifactId>
+          <groupId>org.apache.commons</groupId>
+          <artifactId>commons-collections4</artifactId>
         </exclusion>
       </exclusions>
     </dependency>

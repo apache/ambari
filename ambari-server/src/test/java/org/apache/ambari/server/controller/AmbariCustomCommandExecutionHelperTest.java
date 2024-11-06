@@ -81,7 +81,7 @@ import org.apache.ambari.server.state.UserGroupInfo;
 import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.utils.StageUtils;
-import org.apache.commons.collections.MapUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockRule;

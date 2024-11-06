@@ -34,7 +34,7 @@ import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
 import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.stack.RepositoryXml;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -23,10 +23,10 @@ import java.util.Map;
 import com.google.gson.Gson;
 
 /**
- * {@link Predicate} wraps {@link org.apache.commons.collections.Predicate} to
+ * {@link Predicate} wraps {@link org.apache.commons.collections4.Predicate} to
  * provide additional functionality like serializing to and from a Map and JSON formatted data.
  */
-public abstract class Predicate implements org.apache.commons.collections.Predicate {
+public abstract class Predicate implements org.apache.commons.collections4.Predicate {
 
   /**
    * The name of this predicate. For example "and", "or", etc...

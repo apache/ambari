@@ -54,7 +54,7 @@ import org.apache.ambari.server.state.host.HostHealthyHeartbeatEvent;
 import org.apache.ambari.server.state.host.HostRegistrationRequestEvent;
 import org.apache.ambari.server.state.host.HostStatusUpdatesReceivedEvent;
 import org.apache.ambari.server.utils.VersionUtils;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

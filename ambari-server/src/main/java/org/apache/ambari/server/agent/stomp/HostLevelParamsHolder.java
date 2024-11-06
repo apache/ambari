@@ -36,7 +36,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.commons.collections.MapUtils;
+import org.apache.commons.collections4.MapUtils;
 
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;

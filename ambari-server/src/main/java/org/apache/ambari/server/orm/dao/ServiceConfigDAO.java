@@ -35,8 +35,8 @@ import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.StackId;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Predicate;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.Predicate;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
