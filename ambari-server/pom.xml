@@ -1174,8 +1174,9 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>commons-collections</groupId>
-      <artifactId>commons-collections</artifactId>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-collections4</artifactId>
+      <version>4.4</version>
     </dependency>
     <dependency>
       <groupId>commons-beanutils</groupId>
@@ -1633,8 +1634,8 @@
       <version>2.3</version>
       <exclusions>
         <exclusion>
-          <groupId>commons-collections</groupId>
-          <artifactId>commons-collections</artifactId>
+          <groupId>org.apache.commons</groupId>
+          <artifactId>commons-collections4</artifactId>
           </exclusion>
       </exclusions>
     </dependency>
@@ -1770,8 +1771,8 @@
       <version>${hadoop.version}</version>
       <exclusions>
         <exclusion>
-          <groupId>commons-collections</groupId>
-          <artifactId>commons-collections</artifactId>
+          <groupId>org.apache.commons</groupId>
+          <artifactId>commons-collections4</artifactId>
         </exclusion>
         <exclusion>
           <groupId>commons-beanutils</groupId>
@@ -1869,8 +1870,8 @@
       <scope>provided</scope> <!-- for @ApiIgnore -->
       <exclusions>
         <exclusion>
-          <groupId>commons-collections</groupId>
-          <artifactId>commons-collections</artifactId>
+          <groupId>org.apache.commons</groupId>
+          <artifactId>commons-collections4</artifactId>
         </exclusion>
         <exclusion>
           <groupId>commons-beanutils</groupId>
@@ -1909,8 +1910,8 @@
       <version>2.0.0-M24</version>
       <exclusions>
         <exclusion>
-          <groupId>commons-collections</groupId>
-          <artifactId>commons-collections</artifactId>
+          <groupId>org.apache.commons</groupId>
+          <artifactId>commons-collections4</artifactId>
         </exclusion>
         <exclusion>
           <groupId>org.apache.directory.api</groupId>

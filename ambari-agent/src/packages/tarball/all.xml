@@ -240,7 +240,7 @@
       <unpack>false</unpack>
       <includes>
         <include>commons-cli:commons-cli</include>
-        <include>commons-collections:commons-collections</include>
+        <include>org.apache.commons:commons-collections4</include>
         <include>commons-configuration:commons-configuration</include>
         <include>commons-io:commons-io</include>
         <include>commons-lang:commons-lang</include>

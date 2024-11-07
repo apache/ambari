@@ -23,8 +23,8 @@ import java.util.Set;
 
 import org.apache.ambari.server.NullHostNameException;
 import org.apache.ambari.server.events.UpdateEventType;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.SetUtils;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.SetUtils;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;

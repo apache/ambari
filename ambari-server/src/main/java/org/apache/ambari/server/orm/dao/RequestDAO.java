@@ -48,7 +48,7 @@ import org.apache.ambari.server.orm.entities.TopologyLogicalTaskEntity;
 import org.apache.ambari.server.orm.helpers.SQLConstants;
 import org.apache.ambari.server.orm.helpers.SQLOperations;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.eclipse.persistence.config.HintValues;
 import org.eclipse.persistence.config.QueryHints;
 import org.slf4j.Logger;

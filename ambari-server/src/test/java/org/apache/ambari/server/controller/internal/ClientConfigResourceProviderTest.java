@@ -27,7 +27,6 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;

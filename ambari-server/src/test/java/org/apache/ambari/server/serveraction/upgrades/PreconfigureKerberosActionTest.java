@@ -137,7 +137,7 @@ import org.apache.ambari.server.topology.PersistedState;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
 import org.apache.ambari.server.utils.StageUtils;
-import org.apache.commons.collections.MapUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.easymock.Capture;
 import org.easymock.EasyMockSupport;
 import org.easymock.IAnswer;

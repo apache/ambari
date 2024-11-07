@@ -39,7 +39,7 @@ import org.apache.ambari.server.orm.entities.KerberosKeytabServiceMappingEntity;
 import org.apache.ambari.server.orm.entities.KerberosPrincipalEntity;
 import org.apache.ambari.server.orm.helpers.SQLConstants;
 import org.apache.ambari.server.orm.helpers.SQLOperations;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
