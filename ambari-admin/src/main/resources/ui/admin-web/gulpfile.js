@@ -48,18 +48,18 @@ gulp.task('html', ['styles'], function () {
     .pipe(cssFilter.restore())
     .pipe($.useref.restore())
     .pipe($.useref())
-    .pipe(gulp.dest('dist'))
+    .pipe(gulp.dest('dist/angular'))
     .pipe($.size());
 });
 
 gulp.task('views', function () {
   return gulp.src('app/views/**/*.html')
-    .pipe(gulp.dest('dist/views'));
+    .pipe(gulp.dest('dist/angular/views'));
 });
 
 gulp.task('images', function () {
   return gulp.src('app/images/**/*')
-    .pipe(gulp.dest('dist/images'))
+    .pipe(gulp.dest('dist/angular/images'))
     .pipe($.size());
 });
 
@@ -67,17 +67,17 @@ gulp.task('fonts', function () {
   return gulp.src('app/bower_components/**/fonts/*.{eot,svg,ttf,woff}')
     .pipe($.addSrc('app/assets/fonts/*'))
     .pipe($.flatten())
-    .pipe(gulp.dest('dist/fonts'))
+    .pipe(gulp.dest('dist/angular/fonts'))
     .pipe($.size());
 });
 
 gulp.task('extras', function () {
   return gulp.src(['app/*.*', '!app/*.html'], {dot: true})
-    .pipe(gulp.dest('dist'));
+    .pipe(gulp.dest('dist/angular'));
 });
 
 gulp.task('clean', function () {
-  return gulp.src(['.tmp', 'dist'], {read: false}).pipe($.clean());
+  return gulp.src(['.tmp', 'dist/angular'], {read: false}).pipe($.clean());
 });
 
 gulp.task('build', ['html', 'views', 'images', 'fonts', 'extras']);

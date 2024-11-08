@@ -26,6 +26,11 @@ angular.module('ambariAdminConsole')
     });
   };
 
+  $scope.switchExperience = function() {
+    var currentLocation = $window.location.href;
+    $window.location.href = currentLocation.replace("classic", "latest");
+  };
+
   //todo replace with breadcrumb service
   $scope.$watch(function () {
     return $route.current;

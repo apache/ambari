@@ -27,6 +27,7 @@ angular.module('ambariAdminConsole')
     'common.ambari': 'Ambari',
     'common.apacheAmbari': 'Apache Ambari',
     'common.about': 'About',
+    'common.switchExperience': 'Switch to latest UI',
     'common.version': 'Version',
     'common.signOut': 'Sign out',
     'common.register': 'Register',
