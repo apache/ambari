@@ -454,7 +454,10 @@ class CheckHost(Script):
       db_connection_check_command = "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:{0}{1} {2}".format(agent_cache_dir,
                                                                 LIBS_PATH_IN_ARCHIVE_SQLA, db_connection_check_command)
 
-    code, out = shell.call(split(db_connection_check_command, comments=True), shell=False)
+    if isinstance(db_connection_check_command, str):
+      code, out = shell.call(split(db_connection_check_command, comments=True), shell=False)
+    else:
+      code, out = shell.call(db_connection_check_command, shell=False)
 
     if code == 0:
       db_connection_check_structured_output = {"exit_code" : 0, "message": "DB connection check completed successfully!" }
