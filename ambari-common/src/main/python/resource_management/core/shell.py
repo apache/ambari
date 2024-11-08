@@ -105,7 +105,7 @@ def checked_call(command, quiet=False, logoutput=None, stdout=subprocess.PIPE,st
 @log_function_call
 def call(command, quiet=False, logoutput=None, stdout=subprocess.PIPE,stderr=subprocess.STDOUT,
          cwd=None, env=None, preexec_fn=preexec_fn, user=None, wait_for_finish=True, timeout=None, on_timeout=None,
-         path=None, sudo=False, on_new_line=None, tries=1, try_sleep=0, timeout_kill_strategy=TerminateStrategy.TERMINATE_PARENT, returns=[0]):
+         path=None, sudo=False, on_new_line=None, tries=1, try_sleep=0, timeout_kill_strategy=TerminateStrategy.TERMINATE_PARENT, shell=True, returns=[0]):
   """
   Execute the shell command despite failures.
   @return: return_code, output
@@ -213,11 +213,8 @@ def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess.PIPE
   # replace placeholder from as_sudo / as_user if present
   env_str = _get_environment_str(env)
   for placeholder, replacement in PLACEHOLDERS_TO_STR.items():
-    command = command.replace(placeholder, replacement.format(env_str=env_str))
     subprocess_command = [cmd.replace(placeholder, replacement.format(env_str=env_str)) for cmd in subprocess_command]
 
-  # --noprofile is used to preserve PATH set for ambari-agent
-  subprocess_command = ["/bin/bash","--login","--noprofile","-c", command]
   if shell:
     # --noprofile is used to preserve PATH set for ambari-agent
     subprocess_command = ["/bin/bash","--login","--noprofile","-c"] + subprocess_command
