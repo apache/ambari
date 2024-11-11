@@ -109,8 +109,12 @@ public class AgentCommandsPublisher {
             if (ac instanceof ExecutionCommand) {
               try {
                 clusterId = Long.valueOf(((ExecutionCommand)ac).getClusterId());
-                if (!clusterDesiredConfigs.containsKey(clusterId)) {
-                  clusterDesiredConfigs.put(clusterId, clusters.getCluster(clusterId).getDesiredConfigs());
+                if (clusterId >= 0) {
+                  if (!clusterDesiredConfigs.containsKey(clusterId)) {
+                    clusterDesiredConfigs.put(clusterId, clusters.getCluster(clusterId).getDesiredConfigs());
+                  }
+                } else {
+                  LOG.warn("The cluster not found or has not been created yet. clusterID={}.", clusterId);
                 }
               } catch (NumberFormatException|AmbariException e) {
                 LOG.error("Exception on sendAgentCommand", e);
