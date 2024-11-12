@@ -15,12 +15,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import App from './App.tsx'
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+import axios from "axios";
+import { toast } from "react-hot-toast";
+import { get } from "lodash";
+
+const createAxiosInstance = (baseURL: string, headers = {}) => {
+  const instance = axios.create({
+    baseURL,
+    withCredentials: true,
+    headers: {
+      "Content-Type": "application/json",
+      ...headers,
+    },
+  });
+
+  instance.interceptors.response.use(undefined, (error) => {
+    const responseMessage = get(error, "response.data.message", undefined);
+    if (responseMessage) {
+      toast.error(responseMessage);
+    } else {
+      toast.error("Something went wrong");
+    }
+    return Promise.reject(error);
+  });
+
+  return instance;
+};
+
+export const adminApi = createAxiosInstance("/api/v1");

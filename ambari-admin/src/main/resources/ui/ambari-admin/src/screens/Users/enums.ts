@@ -15,12 +15,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import App from './App.tsx'
+enum PrivilegeType {
+    CLUSTER = "CLUSTER",
+    VIEW = "VIEW",
+    AMBARI = "AMBARI",
+}
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+enum PrincipalType {
+    USER = "USER",
+    GROUP = "GROUP",
+    ROLE = "ROLE",
+}
+
+enum PermissionNameType {
+    VIEW_USER = "VIEW.USER",
+}
+
+enum DefaultAccess {
+    NONE = "None",
+}
+
+export { PrivilegeType, PrincipalType, DefaultAccess, PermissionNameType };

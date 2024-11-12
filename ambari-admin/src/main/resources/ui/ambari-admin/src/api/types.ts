@@ -15,45 +15,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-}
+interface GroupDataType {
+    "Groups/group_name": string;
+};
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
+interface UserDataType {
+    "Users/active"?: boolean;
+    "Users/admin"?: boolean;
+    "Users/password"?: string;
+    "Users/user_name"?: string;
+};
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
+interface MembersDataType {
+    "MemberInfo/group_name": string,
+    "MemberInfo/user_name": string,
+};
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
+interface PrivilegesDataType {
+    PrivilegeInfo: {
+        permission_name: string,
+        principal_name: string,
+        principal_type: string,
+    }
+};
 
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
-}
+export type { GroupDataType, MembersDataType, PrivilegesDataType, UserDataType };

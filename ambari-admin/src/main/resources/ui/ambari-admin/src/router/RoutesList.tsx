@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 import { Redirect } from "react-router-dom";
+import Users from "../screens/Users";
 import WIP from "../components/WIP";
 
 
@@ -78,7 +79,7 @@ export default [
   {
     path: "/userManagement",
     exact: true,
-    Element: () => <WIP />,
+    Element: () => <Users />,
     name: "UserManagement",
   },
   {
