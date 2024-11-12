@@ -83,7 +83,7 @@ class FirewallChecks(object):
   def run_command(self):
     try:
       retcode, out, err = shell.call(self.get_command(), stdout = subprocess.PIPE, stderr = subprocess.PIPE,
-                                     timeout = 5, quiet = True, universal_newlines=True)
+                                     timeout = 5, quiet = True)
       self.returncode = retcode
       self.stdoutdata = out
       self.stderrdata = err
