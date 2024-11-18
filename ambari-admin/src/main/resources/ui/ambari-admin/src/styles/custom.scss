@@ -3397,6 +3397,13 @@ input[type="checkbox"]:checked + label:after {
   padding: 0 !important;
 }
 
+.btn-light-success {
+  background-color: #3FAE2A !important;
+  color: #D1E8D1 !important;
+  opacity: 0.6 !important;
+  pointer-events: none;
+}
+
 .scrollable {
   max-height: 70vh;
   overflow-y: auto;
@@ -3449,4 +3456,11 @@ path {
 .make-scrollable .modal-body {
   max-height: 70vh !important;
   overflow-y: auto !important;
+}
+
+.toast-message {
+  word-wrap: break-word !important;
+  white-space: pre-wrap !important;
+  overflow-wrap: break-word !important;
+  max-width: 300px !important;
 }

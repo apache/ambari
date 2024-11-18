@@ -51,6 +51,7 @@ import {
   getFromLocalStorage,
   parseJSONData,
 } from "../../api/Utility";
+import AddUser from "./AddUser";
 
 export default function Users() {
   const [currentLoggedInUser, setCurrentLoggedInUser] = useState("");
@@ -385,6 +386,14 @@ export default function Users() {
 
   return (
     <div className="make-all-grey">
+      {showAddUserModal ? (
+        <AddUser
+          clusterName={clusterName}
+          showAddUserModal={showAddUserModal}
+          setShowAddUserModal={setShowAddUserModal}
+          successCallback={() => getUsersList()}
+        />
+      ) : null}
       {showDeleteUserModal ? (
         <ConfirmationModal
           isOpen={showDeleteUserModal}
