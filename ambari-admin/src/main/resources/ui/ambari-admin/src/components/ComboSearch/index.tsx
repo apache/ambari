@@ -68,7 +68,6 @@ function ComboSearch({ fields, data, searchCallback }: PropTypes) {
       });
       return correspondingValues;
   }
-  // START GENAI@CHATGPT4
   useEffect(() => {
     if (selectedField) {
       const correspondingValues = getCorrespondingValues();
