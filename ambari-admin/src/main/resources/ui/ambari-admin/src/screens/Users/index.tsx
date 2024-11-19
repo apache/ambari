@@ -52,6 +52,7 @@ import {
   parseJSONData,
 } from "../../api/Utility";
 import AddUser from "./AddUser";
+import AddGroup from "./AddGroup";
 
 export default function Users() {
   const [currentLoggedInUser, setCurrentLoggedInUser] = useState("");
@@ -402,6 +403,13 @@ export default function Users() {
           modalBody={`Are you sure you want to delete user "${userToDelete}"?`}
           successCallback={() => deleteUser(userToDelete)}
           buttonVariant="danger"
+        />
+      ) : null}
+      {showAddGroupModal ? (
+        <AddGroup
+          showAddGroupModal={showAddGroupModal}
+          setShowAddGroupModal={setShowAddGroupModal}
+          successCallback={() => getGroupsList()}
         />
       ) : null}
       {showDeleteGroupModal ? (
