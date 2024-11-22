@@ -8083,9 +8083,9 @@ class TestAmbariServer(TestCase):
     get_password_method.reset_mock()
 
     ''' Test password string contains special characters '''
-    get_password_method.side_effect = ['admin@_123', 'admin@_123']
+    get_password_method.side_effect = ['admin@123', 'admin@123']
     password = LinuxDBMSConfig._configure_database_password(True)
-    self.assertEqual("admin@_123", password)
+    self.assertEqual("admin@123", password)
 
     get_password_method.reset_mock()
    
