@@ -23,6 +23,7 @@ import Spinner from "../../../components/Spinner";
 import RemoteClusterApi from "../../../api/remoteCluster";
 import DefaultButton from "../../../components/DefaultButton";
 import AppContent from "../../../context/AppContext";
+import DeregisterRemoteCluster from "./DeregisterRemoteCluster";
 
 export default function EditRemoteCluster() {
   const { clusterName } = useParams() as any;
@@ -149,13 +150,7 @@ export default function EditRemoteCluster() {
           <h4 className="mx-2">/</h4>
           <h4>{cluster.name}</h4>
         </div>
-        <Button
-            variant="danger"
-            className="px-3 rounded-1"
-            size="sm"
-        >
-            DEREGISTER CLUSTER
-        </Button>
+        <DeregisterRemoteCluster clusterName={cluster.name} />
       </div>
       <div>
         <Form onSubmit={handleUpdate} className="mt-4">
