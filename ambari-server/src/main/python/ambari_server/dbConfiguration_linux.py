@@ -224,8 +224,9 @@ class LinuxDBMSConfig(DBMSConfig):
       passwordPrompt = 'Enter Database Password (' + passwordDefault + '): '
     else:
       passwordPrompt = 'Enter Database Password: '
-    passwordPattern = "^[a-zA-Z0-9!#$%@_-]*$"
-    passwordDescr = "Invalid characters in password. Use only alphanumeric or !#$%@_- characters"
+    passwordPattern = "^[a-zA-Z0-9!#$%@^&=+\\[\\]\\{\\}\\(\\)<>.*?;:'\"_-]*$"
+    passwordDescr = "Invalid characters in password. Use only alphanumeric or " \
+      "some special characters, such as !#$%@^&=+[]{}()<>.*?;:'\"_- "
 
     password = read_password(passwordDefault, passwordPattern, passwordPrompt,
       passwordDescr)

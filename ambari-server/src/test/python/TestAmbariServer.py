@@ -83,7 +83,7 @@ with patch.object(distro, "linux_distribution", return_value = MagicMock(return_
                     print_info_msg, print_warning_msg, print_error_msg
                   from ambari_commons.os_utils import run_os_command, search_file, set_file_permissions, remove_file, copy_file, \
                     is_valid_filepath
-                  from ambari_server.dbConfiguration import DBMSConfigFactory, check_jdbc_drivers, DBMSConfig
+                  from ambari_server.dbConfiguration import DBMSConfigFactory, check_jdbc_drivers, DBMSConfig, DEFAULT_PASSWORD
                   from ambari_server.dbConfiguration_linux import PGConfig, LinuxDBMSConfig, OracleConfig
                   from ambari_server.properties import Properties
                   from ambari_server.resourceFilesKeeper import ResourceFilesKeeper, KeeperException
@@ -8065,6 +8065,34 @@ class TestAmbariServer(TestCase):
 
     sys.stdout = sys.__stdout__
     pass
+
+  @patch("ambari_server.userInput.get_password")
+  def test_configure_database_password(self, get_password_method):
+    ''' Test default password '''
+    get_password_method.side_effect = ['', '']
+    password = LinuxDBMSConfig._configure_database_password(True)
+    self.assertEqual(DEFAULT_PASSWORD, password)
+
+    get_password_method.reset_mock()
+
+    ''' Test password string only contains alphanumeric characters '''
+    get_password_method.side_effect = ['bigdata123', 'bigdata123']
+    password = LinuxDBMSConfig._configure_database_password(True)
+    self.assertEqual("bigdata123", password)
+
+    get_password_method.reset_mock()
+
+    ''' Test password string contains special characters '''
+    get_password_method.side_effect = ['admin@_123', 'admin@_123']
+    password = LinuxDBMSConfig._configure_database_password(True)
+    self.assertEqual("admin@_123", password)
+
+    get_password_method.reset_mock()
+   
+    ''' Test password string contains multiple special characters '''
+    get_password_method.side_effect = ['admin@_123!#$%@^=+[]{}<>.*?;:"\'-&', 'admin@_123!#$%@^=+[]{}<>.*?;:"\'-&']
+    password = LinuxDBMSConfig._configure_database_password(True)
+    self.assertEqual('admin@_123!#$%@^=+[]{}<>.*?;:"\'-&', password)
 
   @patch("ambari_server.userInput.get_validated_string_input")
   def test_read_password(self, get_validated_string_input_method):
