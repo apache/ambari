@@ -23,6 +23,7 @@ import signal
 from mock.mock import patch, MagicMock, call
 from ambari_commons import shell
 from ambari_commons import OSCheck
+from ambari_commons.shell import shellRunnerLinux
 from io import StringIO
 
 ROOT_PID = 10
@@ -144,3 +145,8 @@ class TestShell(unittest.TestCase):
     os_kill_pids = [item[0][0] for item in os_kill_mock.call_args_list]
     self.assertEqual(len(os_kill_pids), 1)
     self.assertEqual([10], os_kill_pids)
+
+  def test_shellRunnerLinux_run(self):
+    shell_runner = shellRunnerLinux()
+    result = shell_runner.run(["ls", "-l"])
+    self.assertTrue(shell_runner._threadLocal is None)

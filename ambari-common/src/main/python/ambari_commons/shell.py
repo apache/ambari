@@ -823,7 +823,8 @@ class shellRunnerLinux(shellRunner):
         user = pwd.getpwnam(user)[2]
       else:
         user = os.getuid()
-      self._threadLocal.uid = user
+      if self._threadLocal is not None:
+        self._threadLocal.uid = user
     except Exception as e:
       _logger.warn(f"Unable to switch user for RUN_COMMAND. Error details: {e}")
 
