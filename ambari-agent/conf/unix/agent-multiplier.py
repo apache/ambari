@@ -87,8 +87,8 @@ class Multiplier:
     print("*** Params ***")
     print("Start: %d" % self.start)
     print("Num: %d" % self.num)
-    print("Prefix: %s" % self.prefix)
-    print("Command: %s" % self.command)
+    print(f"Prefix: {self.prefix}")
+    print(f"Command: {self.command}")
 
     # All hostnames that will be managed by Ambari Agents on this host
     self.hosts = []
@@ -105,7 +105,7 @@ class Multiplier:
     Parse the configuration file to set the config params.
     """
     if not os.path.exists(self.CONFIG_FILE):
-      print("Did not find Agent Multiplier config file: %s" % str(self.CONFIG_FILE))
+      print(f"Did not find Agent Multiplier config file: {str(self.CONFIG_FILE)}")
       sys.exit(-1)
 
     params = {}
@@ -141,11 +141,11 @@ class Multiplier:
       errors.append("Prefix is a required field")
     
     if not os.path.isfile(self.source_config_file):
-      errors.append("Ambari Agent config file does not exist at %s" % self.source_config_file)
+      errors.append(f"Ambari Agent config file does not exist at {self.source_config_file}")
 
     valid_commands = set(["start", "stop", "restart", "status"])
     if self.command is None or self.command not in valid_commands:
-      errors.append("Command must be one of %s" % ", ".join(valid_commands))
+      errors.append(f"Command must be one of {', '.join(valid_commands)}")
 
     if len(errors) > 0:
       print("Error:")
@@ -171,24 +171,24 @@ class Multiplier:
 
       for dir in [host_home_dir, host_log_dir, host_config_dir, host_pid_dir, host_prefix, host_cache_dir]:
         if not os.path.isdir(dir):
-          print("Creating dir %s" % (dir))
+          print(f"Creating dir {dir}")
           os.makedirs(dir)
 
       # Copy config file
       host_config_file = os.path.join(host_config_dir, "ambari-agent.ini")
       if not os.path.isfile(host_config_file):
-        print("Copying config file %s" % str(host_config_file))
+        print(f"Copying config file {str(host_config_file)}")
         shutil.copyfile(self.source_config_file, host_config_file)
 
       # Copy version file
       version_file = os.path.join(host_prefix, "version")
       if not os.path.isfile(version_file):
-        print("Copying version file %s" % str(version_file))
+        print(f"Copying version file {str(version_file)}")
         shutil.copyfile(self.source_version_file, version_file)
 
       # Copy cache dir content
       if not os.path.isdir(os.path.join(host_cache_dir, "stacks")):
-        print("Copying cache directory content %s" % str(host_cache_dir))
+        print(f"Copying cache directory content {str(host_cache_dir)}")
         self.copytree(self.cache_dir, host_cache_dir)
 
       # Create hostname.sh script to use custom FQDN for each agent.
@@ -227,7 +227,7 @@ class Multiplier:
                "echo HOSTNAME"
     with open(str(host_name_script), "w+") as f:
       f.writelines(template.replace("HOSTNAME", host_name))
-    subprocess.call("chmod +x %s" % host_name_script, shell=True)
+    subprocess.call(f"chmod +x {host_name_script}", shell=True)
 
   def change_config(self, config_file, config_dict):
     """
@@ -238,7 +238,7 @@ class Multiplier:
     # TODO, allow appending configs to [AGENT] section.
 
     if not os.path.exists(config_file):
-      print("ERROR. Did not file config file: %s" % config_file)
+      print(f"ERROR. Did not file config file: {config_file}")
       return
 
     lines = []
@@ -265,11 +265,11 @@ class Multiplier:
     # TODO, if can append configs, then this is not needed.
     if len(configs_found) < len(config_dict.keys()):
       missing_configs = set(config_dict.keys()) - configs_found
-      print("ERROR: Did not find all required configs. Missing: %s" % ", ".join(missing_configs))
+      print(f"ERROR: Did not find all required configs. Missing: {', '.join(missing_configs)}")
       sys.exit(-1)
 
     if len(configs_changed) > 0:
-      print("Making changes to file %s" % config_file)
+      print(f"Making changes to file {config_file}")
       with open(config_file, "w") as f:
         f.writelines(new_lines)
 
@@ -280,7 +280,7 @@ class Multiplier:
     """
     etc_hosts = "/etc/hosts"
     if not os.path.isfile(etc_hosts):
-      print("ERROR. Did not find file %s" % etc_hosts)
+      print(f"ERROR. Did not find file {etc_hosts}")
       return
 
     lines = []
@@ -300,7 +300,7 @@ class Multiplier:
       new_lines.append(line)
 
     if line_changed:
-      print("Making changes to %s" % etc_hosts)
+      print(f"Making changes to {etc_hosts}")
       with open(etc_hosts, "w") as f:
         f.writelines(new_lines)
 
@@ -318,42 +318,42 @@ class Multiplier:
       self.cmd_status()
 
   def cmd_start(self):
-    print("Starting %d host(s)" % len(self.hosts))
+    print(f"Starting {len(self.hosts)} host(s)")
     for host in self.hosts:
-      cmd = "ambari-agent start --home %s" % (host.home_dir)
+      cmd = f"ambari-agent start --home {host.home_dir}"
       os.environ['AMBARI_AGENT_CONF_DIR'] = os.path.join(host.home_dir, "etc/ambari-agent/conf")
       subprocess.call(cmd, shell=True, env=os.environ)
 
   def cmd_stop(self):
-    print("Stopping %d host(s)" % len(self.hosts))
+    print(f"Stopping {len(self.hosts)} host(s)")
     for host in self.hosts:
-      cmd = "ambari-agent stop --home %s" % (host.home_dir)
+      cmd = f"ambari-agent stop --home {host.home_dir}"
       os.environ['AMBARI_AGENT_CONF_DIR'] = os.path.join(host.home_dir, "etc/ambari-agent/conf")
       subprocess.call(cmd, shell=True, env=os.environ)
 
   def cmd_restart(self):
-    print("Restarting %d host(s)" % len(self.hosts))
+    print(f"Restarting {len(self.hosts)} host(s)")
     for host in self.hosts:
-      cmd = "ambari-agent restart --home %s" % (host.home_dir)
+      cmd = f"ambari-agent restart --home {host.home_dir}"
       os.environ['AMBARI_AGENT_CONF_DIR'] = os.path.join(host.home_dir, "etc/ambari-agent/conf")
       subprocess.call(cmd, shell=True, env=os.environ)
 
   def cmd_status(self):
     print("Summary of Agent Status:")
-    print("Total agents: %d\n" % len(self.hosts))
+    print(f"Total agents: {len(self.hosts)}\n")
     (running_hosts, unknown_hosts, stopped_hosts) = self.aggregate_status()
 
-    print("Running agents: %d" % len(running_hosts))
+    print(f"Running agents: {len(running_hosts)}")
     if self.verbose and len(running_hosts):
-      print("(%s)\n" % (", ".join(running_hosts)))
+      print(f"({', '.join(running_hosts)})\n")
 
-    print("Unknown agents: %d" % len(unknown_hosts))
+    print(f"Unknown agents: {len(unknown_hosts)}")
     if self.verbose and len(unknown_hosts):
-      print("(%s)\n" % (", ".join(unknown_hosts)))
+      print(f"({', '.join(unknown_hosts)})\n")
 
-    print("Stopped agents: %d" % len(stopped_hosts))
+    print(f"Stopped agents: {len(stopped_hosts)}")
     if self.verbose and len(stopped_hosts):
-      print("(%s)\n" % (", ".join(stopped_hosts)))
+      print(f"({', '.join(stopped_hosts)})\n")
 
   def aggregate_status(self):
     """

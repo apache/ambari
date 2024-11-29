@@ -102,7 +102,7 @@ def get_erase_cmd():
   elif OSCheck.is_ubuntu_family():
     return "/usr/bin/apt-get -y -q remove {0}"
   else:
-    raise Exception("Unsupported OS family '{0}', cannot remove package. ".format(OSCheck.get_os_family()))
+    raise Exception(f"Unsupported OS family '{OSCheck.get_os_family()}', cannot remove package. ")
 
 
 class HostCleanup:
@@ -294,9 +294,9 @@ class HostCleanup:
     for folder in file_map:
       if isinstance(file_map[folder], list):  # here is list of file masks/files
         for mask in file_map[folder]:
-          remList += self.get_files_in_dir("%s/%s" % (cache_root, folder), mask)
+          remList += self.get_files_in_dir(f"{cache_root}/{folder}", mask)
       elif isinstance(file_map[folder], dict):  # here described sub-folder
-        remList += self.do_clear_cache("%s/%s" % (cache_root, folder), file_map[folder])
+        remList += self.do_clear_cache(f"{cache_root}/{folder}", file_map[folder])
 
     if dir_map is not None:  # push result list back as this is call from stack
       return remList
@@ -474,7 +474,7 @@ class HostCleanup:
     if pathList:
       for aPath in pathList:
         pathArr = glob.glob(aPath)
-        logger.debug("Resolved {0} to {1}".format(aPath, ','.join(pathArr)))
+        logger.debug(f"Resolved {aPath} to {','.join(pathArr)}")
         for path in pathArr:
           if path:
             if os.path.exists(path):
@@ -482,15 +482,15 @@ class HostCleanup:
                 try:
                   shutil.rmtree(path)
                 except:
-                  logger.warn("Failed to remove dir {0} , error: {1}".format(path, str(sys.exc_info()[0])))
+                  logger.warn(f"Failed to remove dir {path} , error: {str(sys.exc_info()[0])}")
               else:
-                logger.info("{0} is a file, deleting file".format(path))
+                logger.info(f"{path} is a file, deleting file")
                 self.do_erase_files_silent([path])
             elif os.path.islink(path):
-              logger.info("Deleting broken symbolic link {0}".format(path))
+              logger.info(f"Deleting broken symbolic link {path}")
               self.do_erase_files_silent([path])
             else:
-              logger.info("Path doesn't exists: {0}".format(path))
+              logger.info(f"Path doesn't exists: {path}")
     return 0
 
   def do_erase_files_silent(self, pathList):
@@ -500,9 +500,9 @@ class HostCleanup:
           try:
             os.remove(path)
           except:
-            logger.warn("Failed to delete file: {0}, error: {1}".format(path, str(sys.exc_info()[0])))
+            logger.warn(f"Failed to delete file: {path}, error: {str(sys.exc_info()[0])}")
         else:
-          logger.info("File doesn't exists: {0}".format(path))
+          logger.info(f"File doesn't exists: {path}")
     return 0
 
   def do_delete_group(self):
@@ -689,10 +689,10 @@ def main():
   # Manage non UI install
   if not os.path.exists(hostcheckfileca):
     if options.silent:
-      print('Host Check results not found. There is no {0}. Running host checks.'.format(hostcheckfileca))
+      print(f'Host Check results not found. There is no {hostcheckfileca}. Running host checks.')
       h.run_check_hosts()
     else:
-      run_check_hosts_input = get_YN_input('Host Check results not found. There is no {0}. Do you want to run host checks [y/n] (y)'.format(hostcheckfileca), True)
+      run_check_hosts_input = get_YN_input(f'Host Check results not found. There is no {hostcheckfileca}. Do you want to run host checks [y/n] (y)', True)
       if run_check_hosts_input:
         h.run_check_hosts()
 
@@ -710,7 +710,7 @@ def main():
   if os.path.exists(config.get('agent', 'cache_dir')):
     h.do_clear_cache(config.get('agent', 'cache_dir'))
 
-  logging.info('Clean-up completed. The output is at %s' % (str(options.outputfile)))
+  logging.info(f'Clean-up completed. The output is at {str(options.outputfile)}')
 
 
 if __name__ == '__main__':

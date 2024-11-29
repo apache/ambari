@@ -141,4 +141,4 @@ class ThreadPool(object):
         else:
             threadcount = '%d' % self.num_threads
 
-        return '<ThreadPool at %x; threads=%s>' % (id(self), threadcount)
+        return f'<ThreadPool at {id(self):x}; threads={threadcount}>'

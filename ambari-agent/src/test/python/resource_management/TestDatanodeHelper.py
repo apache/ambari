@@ -44,14 +44,14 @@ class StubParams(object):
     name = self.__class__.__name__
     mocks = set(dir(self))
     mocks = [x for x in mocks if not str(x).startswith("__")]   # Exclude private methods
-    return "<StubParams: {0}; mocks: {1}>".format(name, str(mocks))
+    return f"<StubParams: {name}; mocks: {str(mocks)}>"
 
 
 def fake_create_dir(directory):
   """
   Fake function used as function pointer.
   """
-  print("Fake function to create directory {0}".format(directory))
+  print(f"Fake function to create directory {directory}")
 
 
 @patch.object(Script, "get_config", new=MagicMock(return_value={'configurations':{'cluster-env': {'ignore_bad_mounts': False, 'manage_dirs_on_root': True, 'one_dir_per_partition': False}}}))
@@ -67,7 +67,7 @@ class TestDatanodeHelper(TestCase):
 
   params = StubParams()
   params.data_dir_mount_file = "/var/lib/ambari-agent/data/datanode/dfs_data_dir_mount.hist"
-  params.dfs_data_dir = "{0},{1},{2}".format(grid0, grid1, grid2)
+  params.dfs_data_dir = f"{grid0},{grid1},{grid2}"
   params.hdfs_user = "hdfs_test"
   params.user_group = "hadoop_test"
 

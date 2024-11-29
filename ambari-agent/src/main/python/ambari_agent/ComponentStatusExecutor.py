@@ -105,7 +105,7 @@ class ComponentStatusExecutor(threading.Thread):
 
               # do not run status commands for the component which is starting/stopping or doing other action
               if self.customServiceOrchestrator.commandsRunningForComponent(cluster_id, component_name):
-                self.logger.info("Skipping status command for {0}. Since command for it is running".format(component_name))
+                self.logger.info(f"Skipping status command for {component_name}. Since command for it is running")
                 continue
 
               result = self.check_component_status(cluster_id, service_name, component_name, command_name)
@@ -140,7 +140,7 @@ class ComponentStatusExecutor(threading.Thread):
       for cluster_report in cluster_reports:
         for discarded_report in reports_to_discard:
           if Utils.are_dicts_equal(cluster_report, discarded_report, keys_to_skip=['status']):
-            self.logger.info("Discarding outdated status {0} before sending".format(cluster_report))
+            self.logger.info(f"Discarding outdated status {cluster_report} before sending")
             break
         else:
           new_cluster_reports[cluster_id].append(cluster_report)
@@ -170,7 +170,7 @@ class ComponentStatusExecutor(threading.Thread):
     if status == LiveStatus.DEAD_STATUS:
       stderr = component_status_result['stderr']
       if "ComponentIsNotRunning" not in stderr and "ClientComponentHasNoStatus" not in stderr:
-        self.logger.info("Status command for {0} failed:\n{1}".format(component_name, stderr))
+        self.logger.info(f"Status command for {component_name} failed:\n{stderr}")
 
     result = {
       'serviceName': service_name,
@@ -180,8 +180,8 @@ class ComponentStatusExecutor(threading.Thread):
       'clusterId': cluster_id,
     }
 
-    if status != self.reported_component_status[cluster_id]["{0}/{1}".format(service_name, component_name)][command_name]:
-      logging.info("Status for {0} has changed to {1}".format(component_name, status))
+    if status != self.reported_component_status[cluster_id][f"{service_name}/{component_name}"][command_name]:
+      logging.info(f"Status for {component_name} has changed to {status}")
       self.recovery_manager.handle_status_change(component_name, status)
 
       if report:
@@ -232,7 +232,7 @@ class ComponentStatusExecutor(threading.Thread):
           command = report['command']
           status = report['status']
 
-          self.reported_component_status[cluster_id]["{0}/{1}".format(service_name, component_name)][command] = status
+          self.reported_component_status[cluster_id][f"{service_name}/{component_name}"][command] = status
 
   def clean_not_existing_clusters_info(self):
     """

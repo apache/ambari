@@ -164,7 +164,7 @@ class Scheduler(object):
         self._jobstores_lock.acquire()
         try:
             if alias in self._jobstores:
-                raise KeyError('Alias "%s" is already in use' % alias)
+                raise KeyError(f'Alias "{alias}" is already in use')
             self._jobstores[alias] = jobstore
             jobstore.load_jobs()
         finally:
@@ -188,7 +188,7 @@ class Scheduler(object):
         try:
             jobstore = self._jobstores.pop(alias)
             if not jobstore:
-                raise KeyError('No such job store: %s' % alias)
+                raise KeyError(f'No such job store: {alias}')
         finally:
             self._jobstores_lock.release()
 
@@ -251,7 +251,7 @@ class Scheduler(object):
             try:
                 store = self._jobstores[jobstore]
             except KeyError:
-                raise KeyError('No such job store: %s' % jobstore)
+                raise KeyError(f'No such job store: {jobstore}')
             store.add_job(job)
         finally:
             self._jobstores_lock.release()
@@ -435,7 +435,7 @@ class Scheduler(object):
         finally:
             self._jobstores_lock.release()
 
-        raise KeyError('Job "%s" is not scheduled in any job store' % job)
+        raise KeyError(f'Job "{job}" is not scheduled in any job store')
 
     def unschedule_func(self, func):
         """
@@ -469,10 +469,10 @@ class Scheduler(object):
         self._jobstores_lock.acquire()
         try:
             for alias, jobstore in iteritems(self._jobstores):
-                job_strs.append('Jobstore %s:' % alias)
+                job_strs.append(f'Jobstore {alias}:')
                 if jobstore.jobs:
                     for job in jobstore.jobs:
-                        job_strs.append('    %s' % job)
+                        job_strs.append(f'    {job}')
                 else:
                     job_strs.append('    No scheduled jobs')
         finally:

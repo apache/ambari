@@ -93,7 +93,7 @@ def setup_logging(logger, filename, logging_level):
 
   logging.basicConfig(format=formatstr, level=logging_level, filename=filename)
   logger.setLevel(logging_level)
-  logger.info("loglevel=logging.{0}".format(logging._levelToName[logging_level]))
+  logger.info(f"loglevel=logging.{logging._levelToName[logging_level]}")
 
 GRACEFUL_STOP_TRIES = 300
 GRACEFUL_STOP_TRIES_SLEEP = 0.1
@@ -151,7 +151,7 @@ def resolve_ambari_config():
     if os.path.exists(configPath):
       config.read(configPath)
     else:
-      raise Exception("No config found at {0}, use default".format(configPath))
+      raise Exception(f"No config found at {configPath}, use default")
 
   except Exception as err:
     logger.warn(err)
@@ -188,10 +188,10 @@ def update_open_files_ulimit(config):
   if open_files_ulimit >= soft_limit:
     try:
       resource.setrlimit(resource.RLIMIT_NOFILE, (soft_limit, open_files_ulimit))
-      logger.info('open files ulimit = {0}'.format(open_files_ulimit))
+      logger.info(f'open files ulimit = {open_files_ulimit}')
     except ValueError as err:
-      logger.error('Unable to set open files ulimit to {0}: {1}'.format(open_files_ulimit, str(err)))
-      logger.info('open files ulimit = {0}'.format(hard_limit))
+      logger.error(f'Unable to set open files ulimit to {open_files_ulimit}: {str(err)}')
+      logger.info(f'open files ulimit = {hard_limit}')
 
 def perform_prestart_checks(expected_hostname):
   # Check if current hostname is equal to expected one (got from the server
@@ -211,7 +211,7 @@ def perform_prestart_checks(expected_hostname):
       sys.exit(1)
   # Check if there is another instance running
   if os.path.isfile(agent_pidfile) and not OSCheck.get_os_family() == OSConst.WINSRV_FAMILY:
-    print(("%s already exists, exiting" % agent_pidfile))
+    print(f"{agent_pidfile} already exists, exiting")
     sys.exit(1)
   # check if ambari prefix exists
   elif config.has_option('agent', 'prefix') and not os.path.isdir(os.path.abspath(config.get('agent', 'prefix'))):
@@ -357,13 +357,13 @@ def main(options, initializer_module, heartbeat_stop_callback=None):
 
   if home_dir != "":
     # When running multiple Ambari Agents on this host for simulation, each one will use a unique home directory.
-    Logger.info("Agent is using Home Dir: %s" % str(home_dir))
+    Logger.info(f"Agent is using Home Dir: {str(home_dir)}")
 
   # use the host's locale for numeric formatting
   try:
     locale.setlocale(locale.LC_ALL, '')
   except locale.Error as ex:
-    logger.warning("Cannot set locale for ambari-agent. Please check your systemwide locale settings. Failed due to: {0}.".format(str(ex)))
+    logger.warning(f"Cannot set locale for ambari-agent. Please check your systemwide locale settings. Failed due to: {str(ex)}.")
 
   default_cfg = {'agent': {'prefix': '/home/ambari'}}
   config.load(default_cfg)

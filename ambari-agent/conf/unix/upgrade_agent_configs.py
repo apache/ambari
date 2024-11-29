@@ -33,8 +33,8 @@ CONFIG_FILE = '/etc/ambari-agent/conf/ambari-agent.ini'
 
 if os.path.isfile(CONFIG_FILE_BACKUP):
   if os.path.isfile(CONFIG_FILE):
-    print("Upgrading configs in {0}".format(CONFIG_FILE))
-    print("Values will be updated from {0} except the following list: {1}, {2}".format(CONFIG_FILE_BACKUP, PROPERTIES_TO_REWRITE, SECTIONS_TO_REMOVE))
+    print(f"Upgrading configs in {CONFIG_FILE}")
+    print(f"Values will be updated from {CONFIG_FILE_BACKUP} except the following list: {PROPERTIES_TO_REWRITE}, {SECTIONS_TO_REMOVE}")
 
     agent_config_backup = configparser.ConfigParser()
     agent_config_backup.read(CONFIG_FILE_BACKUP)
@@ -54,6 +54,6 @@ if os.path.isfile(CONFIG_FILE_BACKUP):
     with (open(CONFIG_FILE, "w")) as new_agent_config:
       agent_config.write(new_agent_config)
   else:
-    print("Values are not updated, configs {0} is not found".format(CONFIG_FILE))
+    print(f"Values are not updated, configs {CONFIG_FILE} is not found")
 else:
-  print("Values are not updated, backup {0} is not found".format(CONFIG_FILE_BACKUP))
+  print(f"Values are not updated, backup {CONFIG_FILE_BACKUP} is not found")

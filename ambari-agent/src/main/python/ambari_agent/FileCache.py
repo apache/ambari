@@ -150,7 +150,7 @@ class FileCache():
       server_url_prefix: url of "resources" folder at the server
     """
     full_path = os.path.join(cache_path, subdirectory)
-    logger.debug("Trying to provide directory {0}".format(subdirectory))
+    logger.debug(f"Trying to provide directory {subdirectory}")
 
     if not self.auto_cache_update_enabled():
       logger.debug("Auto cache update is disabled.")
@@ -169,8 +169,7 @@ class FileCache():
 
     try:
       if full_path not in self.uptodate_paths:
-        logger.debug("Checking if update is available for "
-                     "directory {0}".format(full_path))
+        logger.debug(f"Checking if update is available for directory {full_path}")
         # Need to check for updates at server
         remote_url = self.build_download_url(server_url_prefix,
                                              subdirectory, self.HASH_SUM_FILE)
@@ -178,7 +177,7 @@ class FileCache():
         remote_hash = memory_buffer.getvalue().strip()
         local_hash = self.read_hash_sum(full_path)
         if not local_hash or local_hash != remote_hash:
-          logger.debug("Updating directory {0}".format(full_path))
+          logger.debug(f"Updating directory {full_path}")
           download_url = self.build_download_url(server_url_prefix,
                                                  subdirectory, self.ARCHIVE_NAME)
           membuffer = self.fetch_url(download_url)
@@ -187,7 +186,7 @@ class FileCache():
             self.invalidate_directory(full_path)
             self.unpack_archive(membuffer, full_path)
             self.write_hash_sum(full_path, remote_hash)
-            logger.info("Updated directory {0}".format(full_path))
+            logger.info(f"Updated directory {full_path}")
           else:
             logger.warn("Skipping empty archive: {0}. "
                         "Expected archive was not found. Cached copy will be used.".format(download_url))
@@ -217,22 +216,20 @@ class FileCache():
     directory - relative path
     filename - file inside directory we are trying to fetch
     """
-    return "{0}/{1}/{2}".format(server_url_prefix,
-                                urllib.request.pathname2url(directory), filename)
+    return f"{server_url_prefix}/{urllib.request.pathname2url(directory)}/{filename}"
 
   def fetch_url(self, url):
     """
     Fetches content on url to in-memory buffer and returns the resulting buffer.
     May throw exceptions because of various reasons
     """
-    logger.debug("Trying to download {0}".format(url))
+    logger.debug(f"Trying to download {url}")
     try:
       memory_buffer = io.BytesIO()
       proxy_handler = urllib.request.ProxyHandler({})
       opener = urllib.request.build_opener(proxy_handler)
       u = opener.open(url, timeout=self.SOCKET_TIMEOUT)
-      logger.debug("Connected with {0} with code {1}".format(u.geturl(),
-                                                             u.getcode()))
+      logger.debug(f"Connected with {u.geturl()} with code {u.getcode()}")
       buff = u.read(self.BLOCK_SIZE)
       while buff:
         memory_buffer.write(buff)
@@ -241,7 +238,7 @@ class FileCache():
           break
       return memory_buffer
     except Exception as err:
-      raise CachingException("Can not download file from url {0} : {1}".format(url, str(err)))
+      raise CachingException(f"Can not download file from url {url} : {str(err)}")
 
   def read_hash_sum(self, directory):
     """
@@ -266,7 +263,7 @@ class FileCache():
         fh.write(new_hash)
       os.chmod(hash_file, 0o644)
     except Exception as err:
-      raise CachingException("Can not write to file {0} : {1}".format(hash_file, str(err)))
+      raise CachingException(f"Can not write to file {hash_file} : {str(err)}")
 
   def invalidate_directory(self, directory):
     """
@@ -277,7 +274,7 @@ class FileCache():
     CLEAN_DIRECTORY_TRIES = 5
     CLEAN_DIRECTORY_TRY_SLEEP = 0.25
 
-    logger.debug("Invalidating directory {0}".format(directory))
+    logger.debug(f"Invalidating directory {directory}")
     try:
       if os.path.exists(directory):
         if os.path.isfile(directory):  # It would be a strange situation
@@ -292,7 +289,7 @@ class FileCache():
         # create directory itself and any parent directories
       os.makedirs(directory)
     except Exception as err:
-      logger.exception("Can not invalidate cache directory {0}".format(directory))
+      logger.exception(f"Can not invalidate cache directory {directory}")
       raise CachingException("Can not invalidate cache directory {0}: {1}",
                              directory, str(err))
 
@@ -308,8 +305,8 @@ class FileCache():
         concrete_dir=os.path.abspath(os.path.join(target_directory, dirname))
         if not os.path.isdir(concrete_dir):
           os.makedirs(concrete_dir)
-        logger.debug("Unpacking file {0} to {1}".format(name, concrete_dir))
+        logger.debug(f"Unpacking file {name} to {concrete_dir}")
         if filename != '':
           zfile.extract(name, target_directory)
     except Exception as err:
-      raise CachingException("Can not unpack zip file to directory {0} : {1}".format(target_directory, str(err)))
+      raise CachingException(f"Can not unpack zip file to directory {target_directory} : {str(err)}")

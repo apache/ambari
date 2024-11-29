@@ -98,7 +98,7 @@ class ActionQueue(threading.Thread):
   def cancel(self, commands):
     for command in commands:
 
-      logger.info("Canceling command with taskId = {tid}".format(tid = str(command['target_task_id'])))
+      logger.info(f"Canceling command with taskId = {str(command['target_task_id'])}")
       if logger.isEnabledFor(logging.DEBUG):
         logger.debug(pprint.pformat(command))
 
@@ -151,7 +151,7 @@ class ActionQueue(threading.Thread):
               if 'commandParams' in command and 'command_retry_enabled' in command['commandParams']:
                 retry_able = command['commandParams']['command_retry_enabled'] == "true"
               if retry_able:
-                logger.info("Kicking off a thread for the command, id={} taskId={}".format(command['commandId'], command['taskId']))
+                logger.info(f"Kicking off a thread for the command, id={command['commandId']} taskId={command['taskId']}")
                 t = threading.Thread(target=self.process_command, args=(command,))
                 t.daemon = True
                 t.start()
@@ -204,7 +204,7 @@ class ActionQueue(threading.Thread):
       else:
         logger.error("Unrecognized command %s", pprint.pformat(command))
     except Exception:
-      logger.exception("Exception while processing {0} command".format(command_type))
+      logger.exception(f"Exception while processing {command_type} command")
 
   def tasks_in_progress_or_pending(self):
     return not self.commandQueue.empty() or self.recovery_manager.has_active_command()
@@ -271,7 +271,7 @@ class ActionQueue(threading.Thread):
 
     while retry_duration >= 0:
       if taskId in self.taskIdsToCancel:
-        logger.info('Command with taskId = {0} canceled'.format(taskId))
+        logger.info(f'Command with taskId = {taskId} canceled')
         command_canceled = True
 
         self.taskIdsToCancel.discard(taskId)
@@ -303,7 +303,7 @@ class ActionQueue(threading.Thread):
         else:
           status = CommandStatus.failed
           if (command_result['exitcode'] == -signal.SIGTERM) or (command_result['exitcode'] == -signal.SIGKILL):
-            logger.info('Command with taskId = {cid} was canceled!'.format(cid=taskId))
+            logger.info(f'Command with taskId = {taskId} was canceled!')
             command_canceled = True
             self.taskIdsToCancel.discard(taskId)
             break
@@ -314,7 +314,7 @@ class ActionQueue(threading.Thread):
           delay = retry_duration
         retry_duration -= delay  # allow one last attempt
         command_result['stderr'] += "\n\nCommand failed. Retrying command execution ...\n\n"
-        logger.info("Retrying command with taskId = {cid} after a wait of {delay}".format(cid=taskId, delay=delay))
+        logger.info(f"Retrying command with taskId = {taskId} after a wait of {delay}")
         if 'agentLevelParams' not in command:
           command['agentLevelParams'] = {}
 
@@ -341,7 +341,7 @@ class ActionQueue(threading.Thread):
 
     # final result to stdout
     command_result['stdout'] += '\n\nCommand completed successfully!\n' if status == CommandStatus.completed else '\n\nCommand failed after ' + str(num_attempts) + ' tries\n'
-    logger.info('Command with taskId = {cid} completed successfully!'.format(cid=taskId) if status == CommandStatus.completed else 'Command with taskId = {cid} failed after {attempts} tries'.format(cid=taskId, attempts=num_attempts))
+    logger.info(f'Command with taskId = {taskId} completed successfully!' if status == CommandStatus.completed else f'Command with taskId = {taskId} failed after {num_attempts} tries')
 
     role_result = self.commandStatuses.generate_report_template(command)
     role_result.update({
@@ -405,9 +405,9 @@ class ActionQueue(threading.Thread):
     chunks = split_on_chunks(hide_passwords(text), MAX_SYMBOLS_PER_LOG_MESSAGE)
     if len(chunks) > 1:
       for i in range(len(chunks)):
-        logger.info("Cmd log for taskId={0} and chunk {1}/{2} of log for command: \n".format(taskId, i+1, len(chunks)) + chunks[i])
+        logger.info(f"Cmd log for taskId={taskId} and chunk {i + 1}/{len(chunks)} of log for command: \n" + chunks[i])
     else:
-      logger.info("Cmd log for taskId={0}: ".format(taskId) + chunks[0])
+      logger.info(f"Cmd log for taskId={taskId}: " + chunks[0])
 
   def get_retry_delay(self, last_delay):
     """

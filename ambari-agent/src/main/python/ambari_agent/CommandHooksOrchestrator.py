@@ -97,7 +97,7 @@ class HookSequenceBuilder(object):
     :rtype types.GeneratorType
     """
     if prefix not in self._hooks_sequences:
-      raise TypeError("Unable to locate hooks sequence definition for '{}' prefix".format(prefix))
+      raise TypeError(f"Unable to locate hooks sequence definition for '{prefix}' prefix")
 
     for hook_definition in self._hooks_sequences[prefix]:
       if "service" in hook_definition and service is None:
@@ -163,7 +163,7 @@ class HooksOrchestrator(object):
       hook_script_path = os.path.join(hook_base_dir, "scripts", "hook.py")
 
       if not os.path.isfile(hook_script_path):
-        self._logger.debug("Hook script {0} not found, skipping".format(hook_script_path))
+        self._logger.debug(f"Hook script {hook_script_path} not found, skipping")
         continue
 
       yield hook_script_path, hook_base_dir

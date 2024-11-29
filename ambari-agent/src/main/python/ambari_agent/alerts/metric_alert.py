@@ -100,9 +100,9 @@ class MetricAlert(BaseAlert):
       jmx_property_values, http_code = self._load_jmx(alert_uri.is_ssl_enabled, host, port, self.metric_info)
       if not jmx_property_values and http_code in [200, 307]:
         collect_result = self.RESULT_UNKNOWN
-        value_list.append('HTTP {0} response (metrics unavailable)'.format(str(http_code)))
+        value_list.append(f'HTTP {str(http_code)} response (metrics unavailable)')
       elif not jmx_property_values and http_code not in [200, 307]:
-        raise Exception("[Alert][{0}] Unable to extract JSON from JMX response".format(self.get_name()))
+        raise Exception(f"[Alert][{self.get_name()}] Unable to extract JSON from JMX response")
       else:
         value_list.extend(jmx_property_values)
         check_value = self.metric_info.calculate(value_list)
@@ -111,7 +111,7 @@ class MetricAlert(BaseAlert):
         collect_result = self._get_result(value_list[0] if check_value is None else check_value)
 
         if logger.isEnabledFor(logging.DEBUG):
-          logger.debug("[Alert][{0}] Resolved values = {1}".format(self.get_name(), str(value_list)))
+          logger.debug(f"[Alert][{self.get_name()}] Resolved values = {str(value_list)}")
     return (collect_result, value_list)
 
 
@@ -223,7 +223,7 @@ class MetricAlert(BaseAlert):
           content = response.read()
       except Exception as exception:
         if logger.isEnabledFor(logging.DEBUG):
-          logger.exception("[Alert][{0}] Unable to make a web request: {1}".format(self.get_name(), str(exception)))
+          logger.exception(f"[Alert][{self.get_name()}] Unable to make a web request: {str(exception)}")
       finally:
         # explicitely close the connection as we've seen python hold onto these
         if response is not None:
@@ -250,7 +250,7 @@ class MetricAlert(BaseAlert):
             for jmx_prop_list_item in beans:
               if "name" in jmx_prop_list_item and jmx_prop_list_item["name"] == jmx_property_key:
                 if attr not in jmx_prop_list_item:
-                  raise Exception("Unable to find {0} in JSON from {1} ".format(attr, url))
+                  raise Exception(f"Unable to find {attr} in JSON from {url} ")
                 json_data = jmx_prop_list_item
 
           value_list.append(json_data[attr])

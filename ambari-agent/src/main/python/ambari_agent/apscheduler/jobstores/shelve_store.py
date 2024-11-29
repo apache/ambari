@@ -72,4 +72,4 @@ class ShelveJobStore(JobStore):
         self.store.close()
 
     def __repr__(self):
-        return '<%s (path=%s)>' % (self.__class__.__name__, self.path)
+        return f'<{self.__class__.__name__} (path={self.path})>'

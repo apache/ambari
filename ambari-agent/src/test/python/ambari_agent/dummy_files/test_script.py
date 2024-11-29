@@ -45,5 +45,5 @@ def execute(configurations={}, parameters={}, host_name=None):
     if '{{foo-site/skip}}' in configurations:
       return ('SKIPPED', ['This alert is skipped and will not be in the collector'])
   
-  label = "bar is {0}, baz is {1}".format(bar, baz)  
+  label = f"bar is {bar}, baz is {baz}"  
   return ('WARNING', [label])

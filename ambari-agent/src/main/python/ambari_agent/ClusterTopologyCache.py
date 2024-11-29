@@ -73,7 +73,7 @@ class ClusterTopologyCache(ClusterCache):
 
       if 'components' in cluster_topology:
         for component_dict in cluster_topology.components:
-          key = "{0}/{1}".format(component_dict.serviceName, component_dict.componentName)
+          key = f"{component_dict.serviceName}/{component_dict.componentName}"
           components_by_key[cluster_id][key] = component_dict
 
     for cluster_id, cluster_topology in self.items():
@@ -115,7 +115,7 @@ class ClusterTopologyCache(ClusterCache):
           hostnames.append(self.hosts_to_id[cluster_id][host_id].hostName)
         else:
           # In theory this should never happen. But in practice it happened when ambari-server had corrupt DB cache.
-          logger.warning("Cannot find host_id={} in cluster_id={}".format(host_id, cluster_id))
+          logger.warning(f"Cannot find host_id={host_id} in cluster_id={cluster_id}")
 
       cluster_host_info[component_name.lower()+"_hosts"] += hostnames
 
@@ -140,7 +140,7 @@ class ClusterTopologyCache(ClusterCache):
     """
     Find component by service_name and component_name in list of component dictionaries.
     """
-    key = "{0}/{1}".format(service_name, component_name)
+    key = f"{service_name}/{component_name}"
 
     try:
       return self.components_by_key[cluster_id][key]
@@ -255,7 +255,7 @@ class ClusterTopologyCache(ClusterCache):
 
     for cluster_id, cluster_updates_dict in cache_update.items():
       if not cluster_id in mutable_dict:
-        logger.error("Cannot do topology delete for cluster cluster_id={0}, because do not have information about the cluster".format(cluster_id))
+        logger.error(f"Cannot do topology delete for cluster cluster_id={cluster_id}, because do not have information about the cluster")
         continue
 
       if 'hosts' in cluster_updates_dict:
@@ -265,7 +265,7 @@ class ClusterTopologyCache(ClusterCache):
           if host_to_delete is not None:
             mutable_dict[cluster_id]['hosts'] = [host_dict for host_dict in hosts_mutable_list if host_dict != host_to_delete]
           else:
-            logger.error("Cannot do topology delete for cluster_id={0}, host_id={1}, because cannot find the host in cache".format(cluster_id, host_updates_dict['hostId']))
+            logger.error(f"Cannot do topology delete for cluster_id={cluster_id}, host_id={host_updates_dict['hostId']}, because cannot find the host in cache")
 
       if 'components' in cluster_updates_dict:
         components_mutable_list = mutable_dict[cluster_id]['components']
@@ -278,7 +278,7 @@ class ClusterTopologyCache(ClusterCache):
             if component_mutable_dict is not None:
               mutable_dict[cluster_id]['components'] = [component_dict for component_dict in components_mutable_list if component_dict != component_mutable_dict]
             else:
-              logger.error("Cannot do component delete for cluster_id={0}, serviceName={1}, componentName={2}, because cannot find the host in cache".format(cluster_id, component_updates_dict['serviceName'], component_updates_dict['componentName']))
+              logger.error(f"Cannot do component delete for cluster_id={cluster_id}, serviceName={component_updates_dict['serviceName']}, componentName={component_updates_dict['componentName']}, because cannot find the host in cache")
 
       if cluster_updates_dict == {}:
         clusters_ids_to_delete.append(cluster_id)

@@ -184,7 +184,7 @@ class AlertSchedulerHandler():
       # jobs without valid UUIDs should be unscheduled
       if uuid_valid is False:
         jobs_removed += 1
-        logger.info("[AlertScheduler] Unscheduling {0}".format(scheduled_job.name))
+        logger.info(f"[AlertScheduler] Unscheduling {scheduled_job.name}")
         self._collector.remove_by_uuid(scheduled_job.name)
         self.__scheduler.unschedule_job(scheduled_job)
 
@@ -222,7 +222,7 @@ class AlertSchedulerHandler():
     # unschedule all scheduled jobs
     for scheduled_job in scheduled_jobs:
       jobs_removed += 1
-      logger.info("[AlertScheduler] Unscheduling {0}".format(scheduled_job.name))
+      logger.info(f"[AlertScheduler] Unscheduling {scheduled_job.name}")
       self._collector.remove_by_uuid(scheduled_job.name)
       self.__scheduler.unschedule_job(scheduled_job)
 
@@ -255,7 +255,7 @@ class AlertSchedulerHandler():
 
       # cache the cluster and cluster hash after loading the JSON
       if clusterName != '' and clusterHash is not None:
-        logger.info('[AlertScheduler] Caching cluster {0} with alert hash {1}'.format(clusterName, clusterHash))
+        logger.info(f'[AlertScheduler] Caching cluster {clusterName} with alert hash {clusterHash}')
 
       for definition in command_json['alertDefinitions']:
         alert = self.__json_to_callable(clusterName, hostName, publicHostName, Utils.get_mutable_copy(definition))
@@ -282,7 +282,7 @@ class AlertSchedulerHandler():
       source_type = source.get('type', '')
 
       if logger.isEnabledFor(logging.DEBUG):
-        logger.debug("[AlertScheduler] Creating job type {0} with {1}".format(source_type, str(json_definition)))
+        logger.debug(f"[AlertScheduler] Creating job type {source_type} with {str(json_definition)}")
 
 
       if source_type == AlertSchedulerHandler.TYPE_METRIC:

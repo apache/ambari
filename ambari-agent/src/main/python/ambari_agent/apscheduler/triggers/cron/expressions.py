@@ -44,7 +44,7 @@ class AllExpression(object):
         return '*'
 
     def __repr__(self):
-        return "%s(%s)" % (self.__class__.__name__, self.step)
+        return f"{self.__class__.__name__}({self.step})"
 
 
 class RangeExpression(AllExpression):
@@ -99,7 +99,7 @@ class RangeExpression(AllExpression):
             args.append(str(self.last))
         if self.step:
             args.append(str(self.step))
-        return "%s(%s)" % (self.__class__.__name__, ', '.join(args))
+        return f"{self.__class__.__name__}({', '.join(args)})"
 
 
 class WeekdayRangeExpression(RangeExpression):
@@ -110,13 +110,13 @@ class WeekdayRangeExpression(RangeExpression):
         try:
             first_num = WEEKDAYS.index(first.lower())
         except ValueError:
-            raise ValueError('Invalid weekday name "%s"' % first)
+            raise ValueError(f'Invalid weekday name "{first}"')
 
         if last:
             try:
                 last_num = WEEKDAYS.index(last.lower())
             except ValueError:
-                raise ValueError('Invalid weekday name "%s"' % last)
+                raise ValueError(f'Invalid weekday name "{last}"')
         else:
             last_num = None
 
@@ -124,14 +124,14 @@ class WeekdayRangeExpression(RangeExpression):
 
     def __str__(self):
         if self.last != self.first and self.last is not None:
-            return '%s-%s' % (WEEKDAYS[self.first], WEEKDAYS[self.last])
+            return f'{WEEKDAYS[self.first]}-{WEEKDAYS[self.last]}'
         return WEEKDAYS[self.first]
 
     def __repr__(self):
-        args = ["'%s'" % WEEKDAYS[self.first]]
+        args = [f"'{WEEKDAYS[self.first]}'"]
         if self.last != self.first and self.last is not None:
-            args.append("'%s'" % WEEKDAYS[self.last])
-        return "%s(%s)" % (self.__class__.__name__, ', '.join(args))
+            args.append(f"'{WEEKDAYS[self.last]}'")
+        return f"{self.__class__.__name__}({', '.join(args)})"
 
 
 class WeekdayPositionExpression(AllExpression):
@@ -143,12 +143,12 @@ class WeekdayPositionExpression(AllExpression):
         try:
             self.option_num = self.options.index(option_name.lower())
         except ValueError:
-            raise ValueError('Invalid weekday position "%s"' % option_name)
+            raise ValueError(f'Invalid weekday position "{option_name}"')
 
         try:
             self.weekday = WEEKDAYS.index(weekday_name.lower())
         except ValueError:
-            raise ValueError('Invalid weekday name "%s"' % weekday_name)
+            raise ValueError(f'Invalid weekday name "{weekday_name}"')
 
     def get_next_value(self, date, field):
         # Figure out the weekday of the month's first day and the number
@@ -170,8 +170,7 @@ class WeekdayPositionExpression(AllExpression):
             return target_day
 
     def __str__(self):
-        return '%s %s' % (self.options[self.option_num],
-                          WEEKDAYS[self.weekday])
+        return f'{self.options[self.option_num]} {WEEKDAYS[self.weekday]}'
 
     def __repr__(self):
         return "%s('%s', '%s')" % (self.__class__.__name__,
@@ -192,4 +191,4 @@ class LastDayOfMonthExpression(AllExpression):
         return 'last'
 
     def __repr__(self):
-        return "%s()" % self.__class__.__name__
+        return f"{self.__class__.__name__}()"

@@ -58,7 +58,7 @@ class VerifiedHTTPSConnection:
       logger.info(
         'Server require two-way SSL authentication. Use it instead of one-way...')
 
-    logging.info("Connecting to {0}".format(self.connection_url))
+    logging.info(f"Connecting to {self.connection_url}")
 
 
     if not self.two_way_ssl_required:
@@ -113,7 +113,7 @@ class VerifiedHTTPSConnection:
         logger.exception("Exception during conn.disconnect()")
 
       if isinstance(ex, socket_error):
-        logger.warn("Could not connect to {0}. {1}".format(self.connection_url, str(ex)))
+        logger.warn(f"Could not connect to {self.connection_url}. {str(ex)}")
 
       raise
 
@@ -132,7 +132,7 @@ class AmbariStompConnection(WsConnection):
       presend_hook(correlation_id)
 
     logged_message = log_message_function(copy.deepcopy(message))
-    logger.info("Event to server at {0} (correlation_id={1}): {2}".format(destination, correlation_id, logged_message))
+    logger.info(f"Event to server at {destination} (correlation_id={correlation_id}): {logged_message}")
 
     body = json.dumps(message)
     WsConnection.send(self, destination, body, content_type=content_type, headers=headers, correlationId=correlation_id, **keyword_headers)

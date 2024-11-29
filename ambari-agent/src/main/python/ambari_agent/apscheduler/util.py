@@ -38,7 +38,7 @@ def asbool(obj):
             return True
         if obj in ('false', 'no', 'off', 'n', 'f', '0'):
             return False
-        raise ValueError('Unable to interpret value "%s" as boolean' % obj)
+        raise ValueError(f'Unable to interpret value "{obj}" as boolean')
     return bool(obj)
 
 
@@ -71,7 +71,7 @@ def convert_to_datetime(input):
         values = [(k, int(v or 0)) for k, v in m.groupdict().items()]
         values = dict(values)
         return datetime(**values)
-    raise TypeError('Unsupported input type: %s' % type(input))
+    raise TypeError(f'Unsupported input type: {type(input)}')
 
 
 def timedelta_seconds(delta):
@@ -144,9 +144,9 @@ def get_callable_name(func):
         if isinstance(f_self, type):
             # class method
             clsname = getattr(f_self, '__qualname__', None) or f_self.__name__
-            return '%s.%s' % (clsname, func.__name__)
+            return f'{clsname}.{func.__name__}'
         # bound method
-        return '%s.%s' % (f_self.__class__.__name__, func.__name__)
+        return f'{f_self.__class__.__name__}.{func.__name__}'
 
     if hasattr(func, '__call__'):
         if hasattr(func, '__name__'):
@@ -163,13 +163,13 @@ def obj_to_ref(obj):
     """
     Returns the path to the given object.
     """
-    ref = '%s:%s' % (obj.__module__, get_callable_name(obj))
+    ref = f'{obj.__module__}:{get_callable_name(obj)}'
     try:
         obj2 = ref_to_obj(ref)
         if obj != obj2:
             raise ValueError
     except Exception:
-        raise ValueError('Cannot determine the reference to %s' % repr(obj))
+        raise ValueError(f'Cannot determine the reference to {repr(obj)}')
 
     return ref
 
@@ -187,16 +187,14 @@ def ref_to_obj(ref):
     try:
         obj = __import__(modulename)
     except ImportError:
-        raise LookupError('Error resolving reference %s: '
-                          'could not import module' % ref)
+        raise LookupError(f'Error resolving reference {ref}: could not import module')
 
     try:
         for name in modulename.split('.')[1:] + rest.split('.'):
             obj = getattr(obj, name)
         return obj
     except Exception:
-        raise LookupError('Error resolving reference %s: '
-                          'error looking up object' % ref)
+        raise LookupError(f'Error resolving reference {ref}: error looking up object')
 
 
 def maybe_ref(ref):

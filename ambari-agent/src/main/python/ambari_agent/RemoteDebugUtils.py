@@ -30,12 +30,12 @@ def print_threads_stack_traces(sig, frame):
   print("\n*** STACKTRACE - START ***\n", file=sys.stderr)
   code = []
   for threadId, stack in sys._current_frames().items():
-    code.append("\n# ThreadID: %s" % threadId)
+    code.append(f"\n# ThreadID: {threadId}")
     for filename, lineno, name, line in traceback.extract_stack(stack):
       code.append('File: "%s", line %d, in %s' % (filename,
                                                   lineno, name))
       if line:
-        code.append("  %s" % (line.strip()))
+        code.append(f"  {line.strip()}")
 
   for line in code:
     print(line, file=sys.stderr)
@@ -72,7 +72,7 @@ class NamedPipe(object):
   def put(self,msg):
     if self.is_open():
       data = pickle.dumps(msg,1)
-      self.out.write("%d\n" % len(data))
+      self.out.write(f"{len(data)}\n")
       self.out.write(data)
       self.out.flush()
     else:

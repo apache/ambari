@@ -628,9 +628,9 @@ class TestActionQueue(TestCase):
         if len(reports) != 0:
           break
       expected = {'status': 'IN_PROGRESS',
-                  'stderr': 'Read from {0}'.format(os.path.join(tempdir, "errors-3.txt")),
-                  'stdout': 'Read from {0}'.format(os.path.join(tempdir, "output-3.txt")),
-                  'structuredOut' : 'Read from {0}'.format(os.path.join(tempdir, "structured-out-3.json")),
+                  'stderr': f"Read from {os.path.join(tempdir, 'errors-3.txt')}",
+                  'stdout': f"Read from {os.path.join(tempdir, 'output-3.txt')}",
+                  'structuredOut' : f"Read from {os.path.join(tempdir, 'structured-out-3.json')}",
                   'clusterId': CLUSTER_ID,
                   'roleCommand': 'INSTALL',
                   'serviceName': 'HDFS',

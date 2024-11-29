@@ -89,7 +89,7 @@ class ComponentVersionReporter(threading.Thread):
     version_result = self.customServiceOrchestrator.requestComponentStatus(command_dict, command_name=AgentCommand.get_version)
 
     if version_result['exitcode'] or not 'structuredOut' in version_result or not 'version' in version_result['structuredOut']:
-      logger.error("Could not get version for component {0} of {1} service cluster_id={2}. Command returned: {3}".format(component_name, service_name, cluster_id, version_result))
+      logger.error(f"Could not get version for component {component_name} of {service_name} service cluster_id={cluster_id}. Command returned: {version_result}")
       return None
 
     # TODO: check if no strout or version if not there

@@ -64,7 +64,7 @@ class ClusterCache(dict):
           with open(self.__current_cache_hash_file, 'r') as fp:
             self.hash = fp.read()
     except (IOError,ValueError):
-      logger.exception("Cannot load data from {0} and {1}".format(self.__current_cache_json_file, self.__current_cache_hash_file))
+      logger.exception(f"Cannot load data from {self.__current_cache_json_file} and {self.__current_cache_hash_file}")
       self.hash = None
       cache_dict = {}
 
@@ -72,7 +72,7 @@ class ClusterCache(dict):
       self.rewrite_cache(cache_dict, self.hash)
     except:
       # Example: hostname change and restart causes old topology loading to fail with exception
-      logger.exception("Loading saved cache for {0} failed".format(self.__class__.__name__))
+      logger.exception(f"Loading saved cache for {self.__class__.__name__} failed")
       self.rewrite_cache({}, None)
 
   def get_cluster_indepedent_data(self):
@@ -118,7 +118,7 @@ class ClusterCache(dict):
     :param cache:
     :return:
     """
-    logger.info("Rewriting cache {0} for cluster {1}".format(self.__class__.__name__, cluster_id))
+    logger.info(f"Rewriting cache {self.__class__.__name__} for cluster {cluster_id}")
 
     # The cache should contain exactly the data received from server.
     # Modifications on agent-side will lead to unnecessary cache sync every agent registration. Which is a big concern on perf clusters!
@@ -151,7 +151,7 @@ class ClusterCache(dict):
     try:
       return super(ClusterCache, self).__getitem__(key)
     except KeyError:
-      raise KeyError("{0} for cluster_id={1} is missing. Check if server sent it.".format(self.get_cache_name().title(), key))
+      raise KeyError(f"{self.get_cache_name().title()} for cluster_id={key} is missing. Check if server sent it.")
 
   def on_cache_update(self):
     """

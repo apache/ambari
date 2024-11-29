@@ -79,7 +79,7 @@ class HeartbeatStopHandlersWindows(HeartbeatStopHandlers):
 # linux impl
 
 def signal_handler(signum, frame):
-  logger.info("Ambari-agent received {0} signal, stopping...".format(signum))
+  logger.info(f"Ambari-agent received {signum} signal, stopping...")
   _handler.set()
 
 

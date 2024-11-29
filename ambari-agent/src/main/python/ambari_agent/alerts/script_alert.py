@@ -107,7 +107,7 @@ class ScriptAlert(BaseAlert):
       except AttributeError:
         # it's OK if the module doesn't have get_tokens() ; no tokens will
         # be passed in so hopefully the script doesn't need any
-        logger.debug("The script {0} does not have a get_tokens() function".format(str(cmd_module)))
+        logger.debug(f"The script {str(cmd_module)} does not have a get_tokens() function")
 
       Script.config = full_configurations
 
@@ -131,7 +131,7 @@ class ScriptAlert(BaseAlert):
 
       return result
     else:
-      return (self.RESULT_UNKNOWN, ["Unable to execute script {0}".format(self.path)])
+      return (self.RESULT_UNKNOWN, [f"Unable to execute script {self.path}"])
 
 
   def _load_source(self):

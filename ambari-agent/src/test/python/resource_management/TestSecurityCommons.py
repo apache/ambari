@@ -250,7 +250,7 @@ class TestSecurityCommons(TestCase):
     hostname ="hostnamne"
     keytab_file ="/etc/security/keytabs/nn.service.keytab"
     principal = "nn/c6405.ambari.apache.org@EXAMPLE.COM"
-    key = str(hash("%s|%s" % (principal, keytab_file)))
+    key = str(hash(f"{principal}|{keytab_file}"))
     expiration_time = 30
     filename = key + "_tmp.txt"
     file_path = temp_dir + os.sep + "kinit_executor_cache"

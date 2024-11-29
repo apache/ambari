@@ -299,7 +299,7 @@ class TestHostInfo:#(TestCase):
 
     self.assertEqual(result[0]['status'], 'Unhealthy')
     self.assertEqual(result[0]['name'], 'service1 or service2')
-    self.assertEqual(result[0]['desc'], 'out{0}out'.format(os.linesep))
+    self.assertEqual(result[0]['desc'], f'out{os.linesep}out')
 
     msg = 'thrown by shell call'
     shell_call.side_effect = Exception(msg)

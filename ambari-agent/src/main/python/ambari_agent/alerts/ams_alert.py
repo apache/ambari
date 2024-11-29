@@ -85,9 +85,9 @@ class AmsAlert(MetricAlert):
       raw_data_points, http_code = self._load_metric(alert_uri.is_ssl_enabled, host, port, self.metric_info)
       if not raw_data_points and http_code not in [200, 307]:
         collect_result = self.RESULT_UNKNOWN
-        value_list.append('HTTP {0} response (metrics unavailable)'.format(str(http_code)))
+        value_list.append(f'HTTP {str(http_code)} response (metrics unavailable)')
       elif not raw_data_points and http_code in [200, 307]:
-        raise Exception("[Alert][{0}] Unable to extract JSON from HTTP response".format(self.get_name()))
+        raise Exception(f"[Alert][{self.get_name()}] Unable to extract JSON from HTTP response")
       else:
 
         data_points = self.metric_info.calculate_value(raw_data_points)
@@ -97,7 +97,7 @@ class AmsAlert(MetricAlert):
         collect_result = self._get_result(value_list[0] if compute_result is None else compute_result)
 
         if logger.isEnabledFor(logging.DEBUG):
-          logger.debug("[Alert][{0}] Computed result = {1}".format(self.get_name(), str(value_list)))
+          logger.debug(f"[Alert][{self.get_name()}] Computed result = {str(value_list)}")
 
     return (collect_result, value_list)
 
@@ -132,21 +132,21 @@ class AmsAlert(MetricAlert):
       data = response.read()
     except Exception as exception:
       if logger.isEnabledFor(logging.DEBUG):
-        logger.exception("[Alert][{0}] Unable to retrieve metrics from AMS: {1}".format(self.get_name(), str(exception)))
+        logger.exception(f"[Alert][{self.get_name()}] Unable to retrieve metrics from AMS: {str(exception)}")
       status = response.status if 'response' in vars() else None
       return (None, status)
     finally:
       if logger.isEnabledFor(logging.DEBUG):
-        logger.debug("""
-        AMS request parameters - {0}
-        AMS response - {1}
-        """.format(encoded_get_metrics_parameters, data))
+        logger.debug(f"""
+        AMS request parameters - {encoded_get_metrics_parameters}
+        AMS response - {data}
+        """)
       # explicitely close the connection as we've seen python hold onto these
       if conn is not None:
         try:
           conn.close()
         except:
-          logger.debug("[Alert][{0}] Unable to close URL connection to {1}".format(self.get_name(), url))
+          logger.debug(f"[Alert][{self.get_name()}] Unable to close URL connection to {url}")
     json_is_valid = True
     try:
       data_json = json.loads(data)

@@ -46,7 +46,7 @@ class EventListener(ambari_stomp.ConnectionListener):
     while not self.unprocessed_messages_queue.empty():
       payload = self.unprocessed_messages_queue.get_nowait()
       if payload:
-        logger.info("Processing event from unprocessed queue {0} {1}".format(payload[0], payload[1]))
+        logger.info(f"Processing event from unprocessed queue {payload[0]} {payload[1]}")
         destination = payload[0]
         headers = payload[1]
         message_json = payload[2]
@@ -54,7 +54,7 @@ class EventListener(ambari_stomp.ConnectionListener):
         try:
           self.on_event(headers, message_json)
         except Exception as ex:
-          logger.exception("Exception while handing event from {0} {1} {2}".format(destination, headers, message))
+          logger.exception(f"Exception while handing event from {destination} {headers} {message}")
           self.report_status_to_sender(headers, message, ex)
         else:
           self.report_status_to_sender(headers, message)
@@ -75,12 +75,12 @@ class EventListener(ambari_stomp.ConnectionListener):
       try:
         message_json = json.loads(message)
       except ValueError as ex:
-        logger.exception("Received from server event is not a valid message json. Message is:\n{0}".format(message))
+        logger.exception(f"Received from server event is not a valid message json. Message is:\n{message}")
         self.report_status_to_sender(headers, message, ex)
         return
 
       if destination != Constants.ENCRYPTION_KEY_TOPIC:
-        logger.info("Event from server at {0}{1}".format(destination, self.get_log_message(headers, copy.deepcopy(message_json))))
+        logger.info(f"Event from server at {destination}{self.get_log_message(headers, copy.deepcopy(message_json))}")
 
       if not self.enabled:
         with self.event_queue_lock:
@@ -97,7 +97,7 @@ class EventListener(ambari_stomp.ConnectionListener):
       try:
         self.on_event(headers, message_json)
       except Exception as ex:
-        logger.exception("Exception while handing event from {0} {1} {2}".format(destination, headers, message))
+        logger.exception(f"Exception while handing event from {destination} {headers} {message}")
         self.report_status_to_sender(headers, message, ex)
       else:
         self.report_status_to_sender(headers, message)
@@ -127,7 +127,7 @@ class EventListener(ambari_stomp.ConnectionListener):
     try:
       connection.send(message=confirmation_of_received, destination=Constants.AGENT_RESPONSES_TOPIC)
     except:
-      logger.exception("Could not send a confirmation '{0}' to server".format(confirmation_of_received))
+      logger.exception(f"Could not send a confirmation '{confirmation_of_received}' to server")
 
   def on_event(self, headers, message):
     """
