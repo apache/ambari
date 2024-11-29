@@ -147,7 +147,7 @@ class AmbariConfig:
       if os.path.exists(configPath):
         config.read(configPath)
       else:
-        raise Exception("No config found at {0}, use default".format(configPath))
+        raise Exception(f"No config found at {configPath}, use default")
 
     except Exception as err:
       logger.warn(err)

@@ -84,7 +84,7 @@ class HostCheckReportFileHandler:
       with open(self.hostCheckCustomActionsFilePath, 'wt') as configfile:
         config.write(configfile)
     except Exception as err:
-      logger.error("Can't write host check file at %s :%s " % (self.hostCheckCustomActionsFilePath, err.message))
+      logger.error(f"Can't write host check file at {self.hostCheckCustomActionsFilePath} :{err.message} ")
       traceback.print_exc()
 
   def _stack_list_directory(self):
@@ -102,7 +102,7 @@ class HostCheckReportFileHandler:
     remlist_items_count = 0
 
     for item in folder_content:
-      full_path = "%s%s%s" % (HADOOP_ROOT_DIR, os.path.sep, item)
+      full_path = f"{HADOOP_ROOT_DIR}{os.path.sep}{item}"
       if item in HADOOP_PERM_REMOVE_LIST:
         remove_list.append(full_path)
         remlist_items_count += 1
@@ -168,17 +168,17 @@ class HostCheckReportFileHandler:
       with open(self.hostCheckFilePath, 'wt') as configfile:
         config.write(configfile)
     except Exception as err:
-      logger.error("Can't write host check file at %s :%s " % (self.hostCheckFilePath, err.message))
+      logger.error(f"Can't write host check file at {self.hostCheckFilePath} :{err.message} ")
       traceback.print_exc()
 
   def removeFile(self, path):
     if os.path.isfile(path):
-      logger.debug("Removing old host check file at %s" % path)
+      logger.debug(f"Removing old host check file at {path}")
       os.remove(path)
 
   def touchFile(self, path):
     if not os.path.isfile(path):
-      logger.debug("Creating host check file at %s" % path)
+      logger.debug(f"Creating host check file at {path}")
       open(path, 'w').close()
 
 

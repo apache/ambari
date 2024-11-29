@@ -117,7 +117,7 @@ def main():
       run_file_py_method.side_effect = \
             lambda command, file, tmpoutfile, tmperrfile: {
         'exitcode' : 0,
-        'stdout'   : "Simulated run of py %s" % file,
+        'stdout'   : f"Simulated run of py {file}",
         'stderr'   : 'None'
       }
       run_simulation()
@@ -150,7 +150,7 @@ def run_simulation():
     queue.put(responce)
 
   def send_stub(url, data):
-    logger.info("Controller sends data to %s :" % url)
+    logger.info(f"Controller sends data to {url} :")
     logger.info(pprint.pformat(data))
     if not queue.empty():
       responce = queue.get()

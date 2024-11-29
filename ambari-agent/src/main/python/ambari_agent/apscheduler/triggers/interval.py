@@ -32,7 +32,7 @@ class IntervalTrigger(object):
         return self.start_date + self.interval * next_interval_num
 
     def __str__(self):
-        return 'interval[%s]' % str(self.interval)
+        return f'interval[{str(self.interval)}]'
 
     def __repr__(self):
         return "<%s (interval=%s, start_date=%s)>" % (

@@ -81,7 +81,7 @@ class ClusterAlertDefinitionsCache(ClusterCache):
 
     for cluster_id in cache_update:
       if not cluster_id in mutable_dict:
-        logger.error("Cannot do alert_definitions delete for cluster cluster_id={0}, because do not have information about the cluster".format(cluster_id))
+        logger.error(f"Cannot do alert_definitions delete for cluster cluster_id={cluster_id}, because do not have information about the cluster")
         continue
 
       # deleting whole cluster
@@ -95,7 +95,7 @@ class ClusterAlertDefinitionsCache(ClusterCache):
         index_of_alert = self.get_alert_definition_index_by_id(mutable_dict, cluster_id, id_to_update)
 
         if index_of_alert == None:
-          raise Exception("Cannot delete an alert with id={0}".format(id_to_update))
+          raise Exception(f"Cannot delete an alert with id={id_to_update}")
 
         del mutable_dict[cluster_id]['alertDefinitions'][index_of_alert]
 

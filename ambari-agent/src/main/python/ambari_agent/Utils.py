@@ -186,7 +186,7 @@ class ImmutableDictionary(dict):
     try:
       return self[name]
     except KeyError:
-      raise AttributeError("'%s' object has no attribute '%s'" % (self.__class__.__name__, name))
+      raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
 
 def raise_immutable_error(*args, **kwargs):
   """

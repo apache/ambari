@@ -53,18 +53,18 @@ def hostname(config):
       out, err = osStat.communicate()
       if (0 == osStat.returncode and 0 != len(out.strip())):
         cached_hostname = out.strip()
-        logger.info("Read hostname '{0}' using agent:hostname_script '{1}'".format(cached_hostname, scriptname))
+        logger.info(f"Read hostname '{cached_hostname}' using agent:hostname_script '{scriptname}'")
       else:
-        logger.warn("Execution of '{0}' failed with exit code {1}. err='{2}'\nout='{3}'".format(scriptname, osStat.returncode, err.strip(), out.strip()))
+        logger.warn(f"Execution of '{scriptname}' failed with exit code {osStat.returncode}. err='{err.strip()}'\nout='{out.strip()}'")
         cached_hostname = socket.getfqdn()
-        logger.info("Read hostname '{0}' using socket.getfqdn() as '{1}' failed".format(cached_hostname, scriptname))
+        logger.info(f"Read hostname '{cached_hostname}' using socket.getfqdn() as '{scriptname}' failed")
     except:
       cached_hostname = socket.getfqdn()
-      logger.warn("Unexpected error while retrieving hostname: '{0}', defaulting to socket.getfqdn()".format(sys.exc_info()))
-      logger.info("Read hostname '{0}' using socket.getfqdn().".format(cached_hostname))
+      logger.warn(f"Unexpected error while retrieving hostname: '{sys.exc_info()}', defaulting to socket.getfqdn()")
+      logger.info(f"Read hostname '{cached_hostname}' using socket.getfqdn().")
   except:
     cached_hostname = socket.getfqdn()
-    logger.info("agent:hostname_script configuration not defined thus read hostname '{0}' using socket.getfqdn().".format(cached_hostname))
+    logger.info(f"agent:hostname_script configuration not defined thus read hostname '{cached_hostname}' using socket.getfqdn().")
 
   cached_hostname = cached_hostname.lower()
   return cached_hostname
@@ -87,7 +87,7 @@ def public_hostname(config):
         logger.info("Read public hostname '" + cached_public_hostname + "' using agent:public_hostname_script")
         return cached_public_hostname
       else:
-        logger.warn("Execution of '{0}' returned {1}. {2}\n{3}".format(scriptname, output.returncode, err.strip(), out.strip()))
+        logger.warn(f"Execution of '{scriptname}' returned {output.returncode}. {err.strip()}\n{out.strip()}")
   except:
     #ignore for now.
     trace_info = traceback.format_exc()

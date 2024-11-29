@@ -64,7 +64,7 @@ class ServerResponsesListener(EventListener):
           self.listener_functions_on_error[correlation_id](headers, message)
           del self.listener_functions_on_error[correlation_id]
     else:
-      logger.warn("Received a message from server without a '{0}' header. Ignoring the message".format(Constants.CORRELATION_ID_STRING))
+      logger.warn(f"Received a message from server without a '{Constants.CORRELATION_ID_STRING}' header. Ignoring the message")
 
   def get_handled_path(self):
     return Constants.SERVER_RESPONSES_TOPIC
@@ -82,7 +82,7 @@ class ServerResponsesListener(EventListener):
           message_json = message_json[2:]
         del self.logging_handlers[correlation_id]
       
-      return " (correlation_id={0}): {1}".format(correlation_id, message_json)
+      return f" (correlation_id={correlation_id}): {message_json}"
     return str(message_json)
 
   def reset_responses(self):

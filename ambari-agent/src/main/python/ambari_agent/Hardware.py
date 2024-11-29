@@ -185,7 +185,7 @@ class Hardware:
 
     if len(ignored_mounts) > 0:
       ignore_list = [el["mountpoint"] for el in ignored_mounts]
-      logger.info("Some mount points were ignored: {0}".format(', '.join(ignore_list)))
+      logger.info(f"Some mount points were ignored: {', '.join(ignore_list)}")
 
     return result_mounts
 
@@ -201,10 +201,10 @@ class Hardware:
                            quiet=not logger.isEnabledFor(logging.DEBUG))
         return call_result and call_result[0] == 0
       except ExecuteTimeoutException:
-        logger.exception("Exception happened while checking mount {0}".format(mount_point))
+        logger.exception(f"Exception happened while checking mount {mount_point}")
         return False
       except Fail:
-        logger.exception("Exception happened while checking mount {0}".format(mount_point))
+        logger.exception(f"Exception happened while checking mount {mount_point}")
         return False
     
   @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)

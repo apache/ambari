@@ -95,15 +95,15 @@ class HeartbeatThread(threading.Thread):
           self.register()
 
         heartbeat_body = self.get_heartbeat_body()
-        logger.debug("Heartbeat body is {0}".format(heartbeat_body))
+        logger.debug(f"Heartbeat body is {heartbeat_body}")
         response = self.blocking_request(heartbeat_body, Constants.HEARTBEAT_ENDPOINT)
-        logger.debug("Heartbeat response is {0}".format(response))
+        logger.debug(f"Heartbeat response is {response}")
         self.handle_heartbeat_reponse(response)
       except Exception as ex:
         if isinstance(ex, (ConnectionIsAlreadyClosed)):
           logger.info("Connection was closed. Re-running the registration")
         elif isinstance(ex, (socket_error)):
-          logger.info("Connection error \"{0}\". Re-running the registration".format(str(ex)))
+          logger.info(f"Connection error \"{str(ex)}\". Re-running the registration")
         else:
           logger.exception("Exception in HeartbeatThread. Re-running the registration")
 
@@ -125,12 +125,12 @@ class HeartbeatThread(threading.Thread):
 
     registration_request = self.registration_builder.build()
     logger.info("Sending registration request")
-    logger.debug("Registration request is {0}".format(registration_request))
+    logger.debug(f"Registration request is {registration_request}")
 
     response = self.blocking_request(registration_request, Constants.REGISTRATION_ENDPOINT)
 
     logger.info("Registration response received")
-    logger.debug("Registration response is {0}".format(response))
+    logger.debug(f"Registration response is {response}")
 
     self.handle_registration_response(response)
 
@@ -143,7 +143,7 @@ class HeartbeatThread(threading.Thread):
         try:
           listener.on_event({}, response)
         except:
-          logger.exception("Exception while handing response to request at {0} {1}".format(endpoint, response))
+          logger.exception(f"Exception while handing response to request at {endpoint} {response}")
           raise
       finally:
         with listener.event_queue_lock:
@@ -202,7 +202,7 @@ class HeartbeatThread(threading.Thread):
     if exitstatus != 0:
       # log - message, which will be printed to agents log
       if 'log' in response.keys():
-        error_message = "Registration failed due to: {0}".format(response['log'])
+        error_message = f"Registration failed due to: {response['log']}"
       else:
         error_message = "Registration failed"
 
@@ -242,7 +242,7 @@ class HeartbeatThread(threading.Thread):
     """
     Create a stomp connection
     """
-    connection_url = 'wss://{0}:{1}/agent/stomp/v1'.format(self.config.server_hostname, self.config.secured_url_port)
+    connection_url = f'wss://{self.config.server_hostname}:{self.config.secured_url_port}/agent/stomp/v1'
     connection_helper = security.VerifiedHTTPSConnection(self.config.server_hostname, connection_url, self.config)
     self.connection = connection_helper.connect()
 
@@ -269,10 +269,10 @@ class HeartbeatThread(threading.Thread):
       correlation_id = self.connection.send(message=message, destination=destination, presend_hook=presend_hook)
     except ConnectionIsAlreadyClosed:
       # this happens when trying to connect to broken connection. Happens if ambari-server is restarted.
-      logger.warn("Connection failed while trying to connect to {0}".format(destination))
+      logger.warn(f"Connection failed while trying to connect to {destination}")
       raise
 
     try:
       return self.server_responses_listener.responses.blocking_pop(correlation_id, timeout=timeout)
     except BlockingDictionary.DictionaryPopTimeout:
-      raise Exception("{0} seconds timeout expired waiting for response from server at {1} to message from {2}".format(timeout, Constants.SERVER_RESPONSES_TOPIC, destination))
+      raise Exception(f"{timeout} seconds timeout expired waiting for response from server at {Constants.SERVER_RESPONSES_TOPIC} to message from {destination}")

@@ -124,13 +124,13 @@ class PortAlert(BaseAlert):
       and self.host_name.lower() != self.public_host_name.lower():
       hosts.append(self.public_host_name)
     if logger.isEnabledFor(logging.DEBUG):
-      logger.debug("[Alert][{0}] List of hosts = {1}".format(self.get_name(), hosts))
+      logger.debug(f"[Alert][{self.get_name()}] List of hosts = {hosts}")
 
     try:
       port = int(get_port_from_url(uri_value))
     except:
       if self.default_port is None:
-        label = 'Unable to determine port from URI {0}'.format(uri_value)
+        label = f'Unable to determine port from URI {uri_value}'
         return (self.RESULT_UNKNOWN, [label])
 
       port = self.default_port
@@ -139,8 +139,7 @@ class PortAlert(BaseAlert):
 
     for host in hosts:
       if logger.isEnabledFor(logging.DEBUG):
-        logger.debug("[Alert][{0}] Checking {1} on port {2}".format(
-          self.get_name(), host, str(port)))
+        logger.debug(f"[Alert][{self.get_name()}] Checking {host} on port {str(port)}")
 
       s = None
       try:

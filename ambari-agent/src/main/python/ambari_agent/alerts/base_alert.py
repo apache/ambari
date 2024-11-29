@@ -137,8 +137,7 @@ class BaseAlert(object):
         res_base_text = self._get_reporting_text(result_state)
 
     except Exception as exception:
-      message = "[Alert][{0}] Unable to execute alert. {1}".format(
-        self.get_name(), str(exception))
+      message = f"[Alert][{self.get_name()}] Unable to execute alert. {str(exception)}"
 
       # print the exception if in DEBUG, otherwise just log the warning
       # if logger.isEnabledFor(logging.DEBUG):
@@ -151,7 +150,7 @@ class BaseAlert(object):
 
 
     if logger.isEnabledFor(logging.DEBUG):
-      logger.debug("[Alert][{0}] result = {1}".format(self.get_name(), str(res)))
+      logger.debug(f"[Alert][{self.get_name()}] result = {str(res)}")
 
     data = {}
     data['name'] = self._get_alert_meta_value_safely('name')
@@ -167,7 +166,7 @@ class BaseAlert(object):
       try:
         data['text'] = res_base_text.format(*res[1])
       except ValueError as value_error:
-        logger.warn("[Alert][{0}] - {1}".format(self.get_name(), str(value_error)))
+        logger.warn(f"[Alert][{self.get_name()}] - {str(value_error)}")
 
         # if there is a ValueError, it's probably because the text doesn't match the type of
         # positional arguemtns (ie {0:d} with a float)
@@ -176,14 +175,14 @@ class BaseAlert(object):
         data['text'] = res_base_text.format(*data_as_strings)
 
       if logger.isEnabledFor(logging.DEBUG):
-        logger.debug("[Alert][{0}] text = {1}".format(self.get_name(), data['text']))
+        logger.debug(f"[Alert][{self.get_name()}] text = {data['text']}")
     except Exception as exception:
-      logger.exception("[Alert][{0}] - The alert's data is not properly formatted".format(self.get_name()))
+      logger.exception(f"[Alert][{self.get_name()}] - The alert's data is not properly formatted")
 
       # if there's a problem with getting the data returned from collect() then mark this
       # alert as UNKNOWN
       data['state'] = self.RESULT_UNKNOWN
-      data['text'] = "There is a problem with the alert definition: {0}".format(str(exception))
+      data['text'] = f"There is a problem with the alert definition: {str(exception)}"
     finally:
       # put the alert into the collector so it can be collected on the next run
       data['text'] = data['text'].replace('\x00', '')
@@ -263,7 +262,7 @@ class BaseAlert(object):
 
       return curr_dict
     except KeyError:
-      logger.debug("Cache miss for configuration property {0}".format(key))
+      logger.debug(f"Cache miss for configuration property {key}")
       return None
 
 
@@ -429,7 +428,7 @@ class BaseAlert(object):
     if alert_uri_lookup_keys is None:
       return None
 
-    logger.debug("[Alert][{0}] HA URI structure detected in definition, attempting to lookup dynamic HA properties".format(self.get_name()))
+    logger.debug(f"[Alert][{self.get_name()}] HA URI structure detected in definition, attempting to lookup dynamic HA properties")
 
     ha_nameservice = self._get_configuration_value(configurations, alert_uri_lookup_keys.ha_nameservice)
     ha_alias_key = alert_uri_lookup_keys.ha_alias_key

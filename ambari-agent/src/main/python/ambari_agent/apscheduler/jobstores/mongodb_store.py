@@ -82,4 +82,4 @@ class MongoDBJobStore(JobStore):
 
     def __repr__(self):
         connection = self.collection.database.connection
-        return '<%s (connection=%s)>' % (self.__class__.__name__, connection)
+        return f'<{self.__class__.__name__} (connection={connection})>'

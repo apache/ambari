@@ -457,7 +457,7 @@ class RecoveryManager:
         if seconds_since_last_attempt > self.retry_gap_in_sec:
           return True
         else:
-          logger.info("Not running recovery command due to retry_gap = {0} (seconds)".format(self.retry_gap_in_sec))
+          logger.info(f"Not running recovery command due to retry_gap = {self.retry_gap_in_sec} (seconds)")
       else:
         sec_since_last_reset = now - action_counter["lastReset"]
         if sec_since_last_reset > self.window_in_sec:

@@ -39,4 +39,4 @@ class BackgroundCommandExecutionHandle:
     self.on_background_command_complete_callback = on_background_command_complete_callback
 
   def __str__(self):
-    return "[BackgroundHandle: pid='{0}', status='{1}', exitCode='{2}', commandId='{3}']".format(self.pid, self.status, self.exitCode, self.commandId)
+    return f"[BackgroundHandle: pid='{self.pid}', status='{self.status}', exitCode='{self.exitCode}', commandId='{self.commandId}']"

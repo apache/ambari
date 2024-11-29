@@ -130,7 +130,7 @@ class CustomServiceOrchestrator(object):
         log_process_information(logger)
         shell.kill_process_with_children(pid)
       else:
-        logger.warn("Unable to find process associated with taskId = %s" % task_id)
+        logger.warn(f"Unable to find process associated with taskId = {task_id}")
 
   def get_py_executor(self, forced_command_name):
     """
@@ -244,7 +244,7 @@ class CustomServiceOrchestrator(object):
                 value_names.append(value_name) # Gather the value_name for deletion
           if len(credentials) > 0:
             configtype_credentials[config_type] = credentials
-            logger.info("Identifying config {0} for CS: ".format(config_type))
+            logger.info(f"Identifying config {config_type} for CS: ")
           for value_name in value_names:
             # Remove the clear text password
             config.pop(value_name, None)
@@ -266,11 +266,11 @@ class CustomServiceOrchestrator(object):
     if 'taskId' in commandJson:
       task_id = commandJson['taskId']
 
-    logger.info('Generating the JCEKS file: roleCommand={0} and taskId = {1}'.format(roleCommand, task_id))
+    logger.info(f'Generating the JCEKS file: roleCommand={roleCommand} and taskId = {task_id}')
 
     # Set up the variables for the external command to generate a JCEKS file
     java_home = commandJson['ambariLevelParams']['java_home']
-    java_bin = '{java_home}/bin/java'.format(java_home=java_home)
+    java_bin = f'{java_home}/bin/java'
 
     cs_lib_path = self.credential_shell_lib_path
     serviceName = commandJson['serviceName']
@@ -290,15 +290,15 @@ class CustomServiceOrchestrator(object):
       config = commandJson['configurations'][config_type]
       if 'role' in commandJson and commandJson['role']:
         roleName = commandJson['role']
-        file_path = os.path.join(self.getProviderDirectory(roleName), "{0}.jceks".format(config_type))
+        file_path = os.path.join(self.getProviderDirectory(roleName), f"{config_type}.jceks")
       else:
-        file_path = os.path.join(self.getProviderDirectory(serviceName), "{0}.jceks".format(config_type))
+        file_path = os.path.join(self.getProviderDirectory(serviceName), f"{config_type}.jceks")
       if os.path.exists(file_path):
         os.remove(file_path)
-      provider_path = 'jceks://file{file_path}'.format(file_path=file_path)
-      logger.info('provider_path={0}'.format(provider_path))
+      provider_path = f'jceks://file{file_path}'
+      logger.info(f'provider_path={provider_path}')
       for alias, pwd in credentials.items():
-        logger.debug("config={0}".format(config))
+        logger.debug(f"config={config}")
         pwd = ensure_decrypted(pwd, self.encryption_key)
         protected_pwd = PasswordString(pwd)
         # Generate the JCEKS file
@@ -357,11 +357,11 @@ class CustomServiceOrchestrator(object):
         script_tuple = (script_path, base_dir)
 
       if not tmpstrucoutfile:
-        tmpstrucoutfile = os.path.join(self.tmp_dir, "structured-out-{0}.json".format(task_id))
+        tmpstrucoutfile = os.path.join(self.tmp_dir, f"structured-out-{task_id}.json")
 
       # We don't support anything else yet
       if script_type.upper() != self.SCRIPT_TYPE_PYTHON:
-        message = "Unknown script type {0}".format(script_type)
+        message = f"Unknown script type {script_type}"
         raise AgentException(message)
 
       # Execute command using proper interpreter
@@ -462,7 +462,7 @@ class CustomServiceOrchestrator(object):
 
     except Exception as e:
       exc_type, exc_obj, exc_tb = sys.exc_info()
-      message = "Caught an exception while executing custom service command: {0}: {1}; {2}".format(exc_type, exc_obj, e)
+      message = f"Caught an exception while executing custom service command: {exc_type}: {exc_obj}; {e}"
       logger.exception(message)
       ret = {
         'stdout': message,
@@ -493,7 +493,7 @@ class CustomServiceOrchestrator(object):
         if not isinstance(pid, int):
           reason = pid
           if reason:
-            return "\nCommand aborted. Reason: '{0}'".format(reason)
+            return f"\nCommand aborted. Reason: '{reason}'"
           else:
             return "\nCommand aborted."
     return None
@@ -561,7 +561,7 @@ class CustomServiceOrchestrator(object):
     """
     path = os.path.join(base_dir, script)
     if not os.path.exists(path):
-      message = "Script {0} does not exist".format(path)
+      message = f"Script {path} does not exist"
       raise AgentException(message)
     return path
 
@@ -574,12 +574,12 @@ class CustomServiceOrchestrator(object):
 
     if is_status_command:
       # make sure status commands that run in parallel don't use the same files
-      file_path = os.path.join(self.tmp_dir, "status_command_{0}.json".format(uuid.uuid4()))
+      file_path = os.path.join(self.tmp_dir, f"status_command_{uuid.uuid4()}.json")
     else:
       task_id = command['taskId']
-      file_path = os.path.join(self.tmp_dir, "command-{0}.json".format(task_id))
+      file_path = os.path.join(self.tmp_dir, f"command-{task_id}.json")
       if command_type == AgentCommand.auto_execution:
-        file_path = os.path.join(self.tmp_dir, "auto_command-{0}.json".format(task_id))
+        file_path = os.path.join(self.tmp_dir, f"auto_command-{task_id}.json")
 
     # Json may contain passwords, that's why we need proper permissions
     if os.path.isfile(file_path):

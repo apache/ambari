@@ -146,9 +146,9 @@ class WebAlert(BaseAlert):
       host = resolve_address(host)
 
     if uri_path:
-      return "{0}://{1}:{2}/{3}".format(scheme, host, str(port), uri_path)
+      return f"{scheme}://{host}:{str(port)}/{uri_path}"
     else:
-      return "{0}://{1}:{2}".format(scheme, host, str(port))
+      return f"{scheme}://{host}:{str(port)}"
 
   def _make_web_request(self, url):
     """
@@ -199,7 +199,7 @@ class WebAlert(BaseAlert):
 
     except Exception as exception:
       if logger.isEnabledFor(logging.DEBUG):
-        logger.exception("[Alert][{0}] Unable to make a web request.".format(self.get_name()))
+        logger.exception(f"[Alert][{self.get_name()}] Unable to make a web request.")
 
       return WebResponse(status_code=0, time_millis=0, error_msg=str(exception))
 
@@ -232,7 +232,7 @@ class WebAlert(BaseAlert):
           response.close()
         except Exception as exception:
           if logger.isEnabledFor(logging.DEBUG):
-            logger.exception("[Alert][{0}] Unable to close socket connection".format(self.get_name()))
+            logger.exception(f"[Alert][{self.get_name()}] Unable to close socket connection")
 
 
   def _get_reporting_text(self, state):

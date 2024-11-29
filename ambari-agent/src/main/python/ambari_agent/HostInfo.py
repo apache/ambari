@@ -191,9 +191,9 @@ class HostInfoLinux(HostInfo):
   ]
 
   DEFAULT_SERVICE_NAME = "ntpd"
-  SERVICE_STATUS_CMD = "%s %s status" % (SERVICE_CMD, DEFAULT_SERVICE_NAME)
+  SERVICE_STATUS_CMD = f"{SERVICE_CMD} {DEFAULT_SERVICE_NAME} status"
   SERVICE_STATUS_CMD_LIST = shlex.split(SERVICE_STATUS_CMD)
-  REDHAT7_SERVICE_STATUS_CMD = "%s status %s" % (REDHAT7_SERVICE_CMD, DEFAULT_SERVICE_NAME)
+  REDHAT7_SERVICE_STATUS_CMD = f"{REDHAT7_SERVICE_CMD} status {DEFAULT_SERVICE_NAME}"
   REDHAT7_SERVICE_STATUS_CMD_LIST = shlex.split(REDHAT7_SERVICE_STATUS_CMD)
 
   THP_FILE_REDHAT = "/sys/kernel/mm/redhat_transparent_hugepage/enabled"
@@ -381,7 +381,7 @@ class HostInfoLinux(HostInfo):
                                   timeout = 5, quiet = True, universal_newlines=True)
       return out, err, code
     except Exception as ex:
-      logger.warn("Checking service {0} status failed".format(service_name))
+      logger.warn(f"Checking service {service_name} status failed")
       return '', str(ex), 1
 
 

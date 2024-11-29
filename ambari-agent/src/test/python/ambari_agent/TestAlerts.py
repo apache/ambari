@@ -645,7 +645,7 @@ class TestAlerts(TestCase):
     self.assertEqual(0, len(collector.alerts()))
 
     self.assertEqual('OK', alerts[0]['state'])
-    self.assertEqual('(Unit Tests) ok: {code}'.format(code=code), alerts[0]['text'])
+    self.assertEqual(f'(Unit Tests) ok: {code}', alerts[0]['text'])
 
   def test_reschedule(self):
     test_file_path = os.path.join('ambari_agent', 'dummy_files')

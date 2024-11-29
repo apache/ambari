@@ -54,7 +54,7 @@ class AgentActionsListener(EventListener):
     if action_name == self.RESTART_AGENT_ACTION:
       self.restart_agent()
     else:
-      logger.warn("Unknown action '{0}' requested by server. Ignoring it".format(action_name))
+      logger.warn(f"Unknown action '{action_name}' requested by server. Ignoring it")
 
   def restart_agent(self):
     logger.warn("Restarting the agent by the request from server")

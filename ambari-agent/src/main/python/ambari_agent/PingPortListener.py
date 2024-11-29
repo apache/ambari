@@ -39,7 +39,7 @@ class PingPortListener(threading.Thread):
     self.host = '0.0.0.0'
     self.port = int(self.config.get('agent','ping_port'))
 
-    logger.debug("Checking Ping port listener port {0}".format(self.port))
+    logger.debug(f"Checking Ping port listener port {self.port}")
 
     if not self.port == None and not self.port == 0:
       (stdoutdata, stderrdata) = self.run_os_command_in_shell(FUSER_CMD.format(str(self.port), "{print $1}"))

@@ -50,7 +50,7 @@ class TestHostname(TestCase):
     config.set('server', 'hostname', 'ambari-host')
     server_hostnames = hostname.server_hostnames(config)
     self.assertEqual(['ambari-host'], server_hostnames,
-                      "expected host name ['ambari-host']; got {0}".format(server_hostnames))
+                      f"expected host name ['ambari-host']; got {server_hostnames}")
     config.set('server', 'hostname', default_server_hostname)
     pass
 
@@ -62,7 +62,7 @@ class TestHostname(TestCase):
     server_hostnames = hostname.server_hostnames(config)
     self.assertEqual(len(server_hostnames), 3)
     self.assertEqual(['ambari-host', 'ambari-host2', 'ambari-host3'], server_hostnames,
-                      "expected host name ['ambari-host']; got {0}".format(server_hostnames))
+                      f"expected host name ['ambari-host']; got {server_hostnames}")
     config.set('server', 'hostname', default_server_hostname)
     pass
 
@@ -83,7 +83,7 @@ class TestHostname(TestCase):
       config.set('server', 'hostname_script', tmpname)
 
       server_hostnames = hostname.server_hostnames(config)
-      self.assertEqual(server_hostnames, ['test.example.com'], "expected hostname ['test.example.com']; got {0}".format(server_hostnames))
+      self.assertEqual(server_hostnames, ['test.example.com'], f"expected hostname ['test.example.com']; got {server_hostnames}")
     finally:
       os.remove(tmpname)
       config.remove_option('server', 'hostname_script')
@@ -108,7 +108,7 @@ class TestHostname(TestCase):
 
       expected_hostnames = ['host1.example.com', 'host2.example.com', 'host3.example.com']
       server_hostnames = hostname.server_hostnames(config)
-      self.assertEqual(server_hostnames, expected_hostnames, "expected hostnames {0}; got {1}".format(expected_hostnames, server_hostnames))
+      self.assertEqual(server_hostnames, expected_hostnames, f"expected hostnames {expected_hostnames}; got {server_hostnames}")
     finally:
       os.remove(tmpname)
       config.remove_option('server', 'hostname_script')

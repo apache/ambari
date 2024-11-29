@@ -89,4 +89,4 @@ class SQLAlchemyJobStore(JobStore):
         self.engine.dispose()
 
     def __repr__(self):
-        return '<%s (url=%s)>' % (self.__class__.__name__, self.engine.url)
+        return f'<{self.__class__.__name__} (url={self.engine.url})>'

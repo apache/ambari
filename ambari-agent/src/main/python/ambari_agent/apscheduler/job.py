@@ -131,7 +131,7 @@ class Job(object):
         return NotImplemented
 
     def __repr__(self):
-        return '<Job (name=%s, trigger=%s)>' % (self.name, repr(self.trigger))
+        return f'<Job (name={self.name}, trigger={repr(self.trigger)})>'
 
     def __str__(self):
         return '%s (trigger: %s, next run at: %s)' % (

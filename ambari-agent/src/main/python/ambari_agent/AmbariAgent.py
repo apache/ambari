@@ -67,7 +67,7 @@ def check_native_libs_support():
     not_loaded_extensions.append("simplejson")
 
   if not_loaded_extensions:
-    logger.warning("Some native extensions not available for module(s): {}, it may affect execution performance".format(",".join(not_loaded_extensions)))
+    logger.warning(f"Some native extensions not available for module(s): {','.join(not_loaded_extensions)}, it may affect execution performance")
 
 
 def main():

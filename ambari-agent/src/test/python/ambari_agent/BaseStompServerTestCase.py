@@ -221,8 +221,7 @@ class TestStompClient(object):
         @param connect: Whether to connect socket to specified addr.
         @type connect: C{bool}
         """
-        self.log = logging.getLogger('%s.%s' % (
-            self.__module__, self.__class__.__name__))
+        self.log = logging.getLogger(f'{self.__module__}.{self.__class__.__name__}')
         self.sock = None
         self.addr = addr
         self.received_frames = Queue()
@@ -261,7 +260,7 @@ class TestStompClient(object):
         self.connected = True
         self.read_stopped.clear()
         t = threading.Thread(target=self._read_loop,
-                             name="client-receiver-%s" % hex(id(self)))
+                             name=f"client-receiver-{hex(id(self))}")
         t.start()
 
     def _read_loop(self):
@@ -271,7 +270,7 @@ class TestStompClient(object):
                 data = self.sock.recv(1024)
                 self.buffer.append(data)
                 for frame in self.buffer:
-                    self.log.debug("Processing frame: %s" % frame)
+                    self.log.debug(f"Processing frame: {frame}")
                     self.received_frames.put(frame)
         self.read_stopped.set()
         # print "Read loop has been quit! for %s" % id(self)
@@ -296,7 +295,7 @@ class TestCaseTcpConnection(ambari_stomp.Connection):
     with self.lock:
       self.correlation_id += 1
 
-    logger.info("Event to server at {0} (correlation_id={1}): {2}".format(destination, self.correlation_id, message))
+    logger.info(f"Event to server at {destination} (correlation_id={self.correlation_id}): {message}")
 
     body = json.dumps(message)
     ambari_stomp.Connection.send(self, destination, body, content_type=content_type, headers=headers, correlationId=self.correlation_id, **keyword_headers)

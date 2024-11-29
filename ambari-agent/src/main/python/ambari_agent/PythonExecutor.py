@@ -202,6 +202,6 @@ class PythonExecutor(object):
   def python_watchdog_func(self, process, timeout):
     self.event.wait(timeout)
     if process.returncode is None:
-      self.logger.error("Executed command with pid {} timed out and will be killed".format(process.pid))
+      self.logger.error(f"Executed command with pid {process.pid} timed out and will be killed")
       shell.kill_process_with_children(process.pid)
       self.python_process_has_been_killed = True

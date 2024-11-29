@@ -217,7 +217,7 @@ def agent_main():
     possible_args = ' or '.join(str(x) for x in possible_args_numbers)
     parser.error("Invalid number of arguments. Entered: " + str(len(args)) + ", required: " + possible_args)
 
-  options.exit_message = "Ambari Agent '%s' completed successfully." % action
+  options.exit_message = f"Ambari Agent '{action}' completed successfully."
   try:
     if action == SETUP_ACTION:
       setup(options)
@@ -236,14 +236,14 @@ def agent_main():
       for warning in options.warnings:
         print_warning_msg(warning)
         pass
-      options.exit_message = "Ambari Agent '%s' completed with warnings." % action
+      options.exit_message = f"Ambari Agent '{action}' completed with warnings."
       pass
   except FatalException as e:
     if e.reason is not None:
-      print_error_msg("Exiting with exit code {0}. \nREASON: {1}".format(e.code, e.reason))
+      print_error_msg(f"Exiting with exit code {e.code}. \nREASON: {e.reason}")
     sys.exit(e.code)
   except NonFatalException as e:
-    options.exit_message = "Ambari Agent '%s' completed with warnings." % action
+    options.exit_message = f"Ambari Agent '{action}' completed with warnings."
     if e.reason is not None:
       print_warning_msg(e.reason)
 
