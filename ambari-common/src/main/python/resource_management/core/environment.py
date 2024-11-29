@@ -114,7 +114,7 @@ class Environment(object):
             not hasattr(value, '__file__'):
           self.config.params[variable] = value
       except Exception as e:
-        Logger.info("Skipping param: {0}, due to {1}".format(variable, e))
+        Logger.info(f"Skipping param: {variable}, due to {e}")
 
   def run_action(self, resource, action):
     provider_class = find_provider(self, resource.__class__.__name__,
@@ -150,12 +150,12 @@ class Environment(object):
 
         if resource.not_if is not None and self._check_condition(
           resource.not_if):
-          Logger.info("Skipping {0} due to not_if".format(resource))
+          Logger.info(f"Skipping {resource} due to not_if")
           continue
 
         if resource.only_if is not None and not self._check_condition(
           resource.only_if):
-          Logger.info("Skipping {0} due to only_if".format(resource))
+          Logger.info(f"Skipping {resource} due to only_if")
           continue
 
         for action in resource.action:
@@ -165,7 +165,7 @@ class Environment(object):
             try:
               self.run_action(resource, action)
             except Exception as ex:
-              Logger.info("Skipping failure of {0} due to ignore_failures. Failure reason: {1}".format(resource, ex))
+              Logger.info(f"Skipping failure of {resource} due to ignore_failures. Failure reason: {ex}")
               pass
 
       # Run delayed actions

@@ -38,4 +38,4 @@ def log_process_information(logger):
 
   for cmd in cmd_list:
     ret = shell_runner.run(cmd)
-    logger.info("Command '{0}' returned {1}. {2}{3}".format(cmd, ret["exitCode"], ret["error"], ret["output"]))
+    logger.info(f"Command '{cmd}' returned {ret['exitCode']}. {ret['error']}{ret['output']}")

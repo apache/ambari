@@ -71,7 +71,7 @@ class RangeradminV2:
       base_64_string = base64.b64encode(usernamepassword.encode()).decode().replace('\n', '')
       request.add_header("Content-Type", "application/json")
       request.add_header("Accept", "application/json")
-      request.add_header("Authorization", "Basic {0}".format(base_64_string))
+      request.add_header("Authorization", f"Basic {base_64_string}")
       result = openurl(request, timeout=20)
       response_code = result.getcode()
       response = json.loads(result.read())
@@ -85,9 +85,9 @@ class RangeradminV2:
         return None
     except urllib.error.URLError as e:
       if isinstance(e, urllib.error.HTTPError):
-        raise Fail("Error getting {0} repository for component {1}. Http status code - {2}. \n {3}".format(name, component, e.code, e.read()))
+        raise Fail(f"Error getting {name} repository for component {component}. Http status code - {e.code}. \n {e.read()}")
       else:
-        raise Fail("Error getting {0} repository for component {1}. Reason - {2}.".format(name, component, e.reason))
+        raise Fail(f"Error getting {name} repository for component {component}. Reason - {e.reason}.")
     except http.client.BadStatusLine:
       raise Fail("Ranger Admin service is not reachable, please restart the service and then try again")
     except TimeoutError:
@@ -112,12 +112,12 @@ class RangeradminV2:
           while retryCount <= 5:
             repo = self.get_repository_by_name_urllib2(repo_name, component, 'true', ambari_username_password_for_ranger)
             if repo is not None:
-              Logger.info('{0} Repository {1} exist'.format(component.title(), repo['name']))
+              Logger.info(f'{component.title()} Repository {repo["name"]} exist')
               break
             else:
               response = self.create_repository_urllib2(repo_data, ambari_username_password_for_ranger)
               if response is not None:
-                Logger.info('{0} Repository created in Ranger admin'.format(component.title()))
+                Logger.info(f'{component.title()} Repository created in Ranger admin')
                 break
               else:
                 if retryCount < 5:
@@ -125,7 +125,7 @@ class RangeradminV2:
                   time.sleep(30) # delay for 30 seconds
                   retryCount += 1
                 else:
-                  Logger.error('{0} Repository creation failed in Ranger admin'.format(component.title()))
+                  Logger.error(f'{component.title()} Repository creation failed in Ranger admin')
                   break
         else:
           Logger.error('Ambari admin user creation failed')
@@ -146,19 +146,19 @@ class RangeradminV2:
         while retryCount <= 5:
           response = self.get_repository_by_name_curl(component_user,component_user_keytab,component_user_principal,repo_name, component, 'true')
           if response is not None:
-            Logger.info('{0} Repository {1} exist'.format(component.title(), (response['name'])))
+            Logger.info(f'{component.title()} Repository {response["name"]} exist')
             break
           else:
             response = self.create_repository_curl(component_user,component_user_keytab,component_user_principal,repo_name, repo_data,policy_user)
             if response and len(response) > 0:
-              Logger.info('{0} Repository created in Ranger admin'.format(component.title()))
+              Logger.info(f'{component.title()} Repository created in Ranger admin')
               break
             else:
               if retryCount < 5:
                 time.sleep(30) # delay for 30 seconds
                 retryCount += 1
               else:
-                Logger.error('{0} Repository creation failed in Ranger admin'.format(component.title()))
+                Logger.error(f'{component.title()} Repository creation failed in Ranger admin')
                 break
       else:
         Logger.error("Connection failed to Ranger Admin !")
@@ -172,13 +172,13 @@ class RangeradminV2:
     """
     try:
       search_repo_url = self.url_repos_pub
-      base_64_string = base64.b64encode('{0}'.format(usernamepassword).encode()).decode().replace('\n', '')
+      base_64_string = base64.b64encode(f'{usernamepassword}'.encode()).decode().replace('\n', '')
       headers = {
         'Accept': 'application/json',
         "Content-Type": "application/json"
       }
       request = urllib.request.Request(search_repo_url, data.encode(), headers)
-      request.add_header("Authorization", "Basic {0}".format(base_64_string))
+      request.add_header("Authorization", f"Basic {base_64_string}")
       result = openurl(request, timeout=20)
       response_code = result.getcode()
       response = json.loads(json.JSONEncoder().encode(result.read()))
@@ -190,9 +190,9 @@ class RangeradminV2:
         raise Fail('Repository creation failed')
     except urllib.error.URLError as e:
       if isinstance(e, urllib.error.HTTPError):
-        raise Fail("Error creating repository. Http status code - {0}. \n {1}".format(e.code, e.read()))
+        raise Fail(f"Error creating repository. Http status code - {e.code}. \n {e.read()}")
       else:
-        raise Fail("Error creating repository. Reason - {0}.".format(e.reason))
+        raise Fail(f"Error creating repository. Reason - {e.reason}.")
     except http.client.BadStatusLine:
       raise Fail("Ranger Admin service is not reachable, please restart the service and then try again")
     except TimeoutError:
@@ -211,9 +211,9 @@ class RangeradminV2:
       return response_code
     except urllib.error.URLError as e:
       if isinstance(e, urllib.error.HTTPError):
-        raise Fail("Connection failed to Ranger Admin. Http status code - {0}. \n {1}".format(e.code, e.read()))
+        raise Fail(f"Connection failed to Ranger Admin. Http status code - {e.code}. \n {e.read()}")
       else:
-        raise Fail("Connection failed to Ranger Admin. Reason - {0}.".format(e.reason))
+        raise Fail(f"Connection failed to Ranger Admin. Reason - {e.reason}.")
     except http.client.BadStatusLine as e:
       raise Fail("Ranger Admin service is not reachable, please restart the service and then try again")
     except TimeoutError:
@@ -237,7 +237,7 @@ class RangeradminV2:
       base_64_string = base64.b64encode(usernamepassword.encode()).decode().replace('\n', '')
       request.add_header("Content-Type", "application/json")
       request.add_header("Accept", "application/json")
-      request.add_header("Authorization", "Basic {0}".format(base_64_string))
+      request.add_header("Authorization", f"Basic {base_64_string}")
       result = openurl(request, timeout=20)
       response_code = result.getcode()
       response = json.loads(result.read())
@@ -263,13 +263,13 @@ class RangeradminV2:
           admin_user['description'] = ambari_admin_username
           admin_user['firstName'] = ambari_admin_username
           data =  json.dumps(admin_user)
-          base_64_string = base64.b64encode('{0}'.format(usernamepassword).encode()).decode().replace('\n', '')
+          base_64_string = base64.b64encode(f'{usernamepassword}'.encode()).decode().replace('\n', '')
           headers = {
             'Accept': 'application/json',
             "Content-Type": "application/json"
           }
           request = urllib.request.Request(url, data.encode(), headers)
-          request.add_header("Authorization", "Basic {0}".format(base_64_string))
+          request.add_header("Authorization", f"Basic {base_64_string}")
           result = openurl(request, timeout=20)
           response_code = result.getcode()
           response = json.loads(json.JSONEncoder().encode(result.read()))
@@ -283,9 +283,9 @@ class RangeradminV2:
         return None
     except urllib.error.URLError as e:
       if isinstance(e, urllib.error.HTTPError):
-        raise Fail("Error creating ambari admin user. Http status code - {0}. \n {1}".format(e.code, e.read()))
+        raise Fail(f"Error creating ambari admin user. Http status code - {e.code}. \n {e.read()}")
       else:
-        raise Fail("Error creating ambari admin user. Reason - {0}.".format(e.reason))
+        raise Fail(f"Error creating ambari admin user. Reason - {e.reason}.")
     except http.client.BadStatusLine:
       raise Fail("Ranger Admin service is not reachable, please restart the service and then try again")
     except TimeoutError:
@@ -343,7 +343,7 @@ class RangeradminV2:
     try:
       search_repo_url = self.url_repos_pub + "?serviceName=" + name + "&serviceType=" + component + "&isEnabled=" + status
       if is_keyadmin:
-        search_repo_url = '{0}&suser=keyadmin'.format(search_repo_url)
+        search_repo_url = f'{search_repo_url}&suser=keyadmin'
       response,error_message,time_in_millis = self.call_curl_request(component_user,component_user_keytab,component_user_principal,search_repo_url,False,request_method='GET')
       response_stripped = response[1:len(response) - 1]
       if response_stripped and len(response_stripped) > 0:
@@ -355,7 +355,7 @@ class RangeradminV2:
       else:
         return None
     except Exception as err:
-      raise Fail('Error in call for getting Ranger service:\n {0}'.format(err))
+      raise Fail(f'Error in call for getting Ranger service:\n {err}')
 
   @safe_retry(times=5, sleep_time=8, backoff_factor=1.5, err_class=Fail, return_on_fail=None)
   def create_repository_curl(self, component_user, component_user_keytab, component_user_principal, name, data, policy_user, is_keyadmin = False):
@@ -370,7 +370,7 @@ class RangeradminV2:
     try:
       search_repo_url = self.url_repos_pub
       if is_keyadmin:
-        search_repo_url = '{0}?suser=keyadmin'.format(search_repo_url)
+        search_repo_url = f'{search_repo_url}?suser=keyadmin'
       header = 'Content-Type: application/json'
       method = 'POST'
 
@@ -381,7 +381,7 @@ class RangeradminV2:
           Logger.info('Repository created Successfully')
           return response_json
         elif 'exists' in response.lower():
-          Logger.info('Repository {name} already exists'.format(name=name))
+          Logger.info(f'Repository {name} already exists')
           return response_json
         else:
           Logger.info('Repository creation failed')
@@ -390,7 +390,7 @@ class RangeradminV2:
         Logger.info('Repository creation failed')
         return None
     except Exception as err:
-      raise Fail('Error in call for creating Ranger service:\n {0}'.format(err))
+      raise Fail(f'Error in call for creating Ranger service:\n {err}')
 
   @safe_retry(times=5, sleep_time=8, backoff_factor=1.5, err_class=Fail, return_on_fail=None)
   def update_repository_urllib2(self, component, repo_name, repo_properties, admin_user, admin_password, force_rename = False):
@@ -408,30 +408,30 @@ class RangeradminV2:
         update_repo_url = update_repo_url + "?forceRename=true"
       repo_update_data = json.dumps(repo_properties)
       usernamepassword = admin_user + ":" + admin_password
-      base_64_string = base64.b64encode("{0}".format(usernamepassword).encode()).decode().replace("\n", "")
+      base_64_string = base64.b64encode(f"{usernamepassword}".encode()).decode().replace("\n", "")
       headers = {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       }
       request = urllib.request.Request(update_repo_url, repo_update_data.encode(), headers)
-      request.add_header("Authorization", "Basic {0}".format(base_64_string))
+      request.add_header("Authorization", f"Basic {base_64_string}")
       request.get_method = lambda: 'PUT'
       result = openurl(request, timeout=20)
       response_code = result.getcode()
       response = json.loads(json.JSONEncoder().encode(result.read()))
 
       if response_code == 200:
-        Logger.info("Service name {0} updated successfully on Ranger Admin for service {1}".format(repo_name, component))
+        Logger.info(f"Service name {repo_name} updated successfully on Ranger Admin for service {component}")
         return response
       else:
-        raise Fail("Service name {0} updation failed on Ranger Admin for service {1}".format(repo_name, component))
+        raise Fail(f"Service name {repo_name} updation failed on Ranger Admin for service {component}")
     except urllib.error.URLError as e:
       if isinstance(e, urllib.error.HTTPError):
-        raise Fail("Error updating service name {0} on Ranger Admin for service {1}. Http status code - {2} \n {3}".format(repo_name, component, e.code, e.read()))
+        raise Fail(f"Error updating service name {repo_name} on Ranger Admin for service {component}. Http status code - {e.code} \n {e.read()}")
       else:
-        raise Fail("Error updating service name {0} on Ranger Admin for service {1}. Reason - {2}".format(repo_name, component, e.reason))
+        raise Fail(f"Error updating service name {repo_name} on Ranger Admin for service {component}. Reason - {e.reason}")
     except http.client.BadStatusLine:
-      raise Fail("Ranger Admin is not reachable for updating service name {0} for service {1}".format(repo_name, component))
+      raise Fail(f"Ranger Admin is not reachable for updating service name {repo_name} for service {component}")
     except TimeoutError:
       raise Fail("Connection to Ranger Admin failed. Reason - timeout")
 
@@ -458,13 +458,13 @@ class RangeradminV2:
       if response and len(response) > 0:
         response_json = json.loads(response)
         if "name" in response_json:
-          Logger.info("Service name {0} updated successfully on Ranger Admin for service {1}".format(repo_name, component))
+          Logger.info(f"Service name {repo_name} updated successfully on Ranger Admin for service {component}")
           return response_json
         else:
-          Logger.info("Service name {0} updation failed on Ranger Admin for service {1}".format(repo_name, component))
+          Logger.info(f"Service name {repo_name} updation failed on Ranger Admin for service {component}")
           return None
       else:
-        Logger.info("Service name {0} updation failed on Ranger Admin for service {1}".format(repo_name, component))
+        Logger.info(f"Service name {repo_name} updation failed on Ranger Admin for service {component}")
         return None
     except Exception as err:
-      raise Fail('Error updating service name {0} on Ranger Admin for service {1}.\n Reason - {2}'.format(repo_name, component, err))
+      raise Fail(f'Error updating service name {repo_name} on Ranger Admin for service {component}.\n Reason - {err}')

@@ -38,4 +38,4 @@ def get_unique_id_and_date():
   now = datetime.datetime.now()
   date = now.strftime("%M%d%y")
 
-  return "id{id}_date{date}".format(id=id, date=date)
+  return f"id{id}_date{date}"

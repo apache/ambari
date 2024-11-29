@@ -35,11 +35,11 @@ def get_config(config_type, default=None):
     if all_configurations:
       config = all_configurations.get(config_type, default)
       if not config:
-        Logger.warning("No configurations for config type {0}. Use default instead.".format(config_type))
+        Logger.warning(f"No configurations for config type {config_type}. Use default instead.")
       return config
     else:
-      Logger.warning("No service configurations available in the \"configurations\" section. Use default instead.".format(config_type))
+      Logger.warning("No service configurations available in the \"configurations\" section. Use default instead.")
       return default
   else:
-    Logger.warning("No service configurations available. Use default instead.".format(config_type))
+    Logger.warning("No service configurations available. Use default instead.")
     return default

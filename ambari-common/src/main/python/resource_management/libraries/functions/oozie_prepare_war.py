@@ -82,7 +82,7 @@ def prepare_war(params):
       output = ""
 
     if return_code != 0 or "New Oozie WAR file with added".lower() not in output.lower():
-      message = "Unexpected Oozie WAR preparation output {0}".format(output)
+      message = f"Unexpected Oozie WAR preparation output {output}"
       Logger.error(message)
       raise Fail(message)
 

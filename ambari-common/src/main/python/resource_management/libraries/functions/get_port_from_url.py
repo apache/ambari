@@ -46,4 +46,4 @@ def get_port_from_url(address):
   elif address.isdigit():
     return address
 
-  raise Fail("No port in URL:{0}".format(address))
+  raise Fail(f"No port in URL:{address}")

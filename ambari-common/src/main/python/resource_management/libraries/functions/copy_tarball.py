@@ -67,20 +67,20 @@ def _prepare_tez_tarball():
   sudo.chmod(mapreduce_temp_dir, 0o777)
   sudo.chmod(tez_temp_dir, 0o777)
 
-  Logger.info("Extracting {0} to {1}".format(mapreduce_source_file, mapreduce_temp_dir))
+  Logger.info(f"Extracting {mapreduce_source_file} to {mapreduce_temp_dir}")
   tar_archive.untar_archive(mapreduce_source_file, mapreduce_temp_dir)
 
-  Logger.info("Extracting {0} to {1}".format(tez_source_file, tez_temp_dir))
+  Logger.info(f"Extracting {tez_source_file} to {tez_temp_dir}")
   tar_archive.untar_archive(tez_source_file, tez_temp_dir)
 
   hadoop_lib_native_dir = os.path.join(mapreduce_temp_dir, "hadoop", "lib", "native")
   tez_lib_dir = os.path.join(tez_temp_dir, "lib")
 
   if not os.path.exists(hadoop_lib_native_dir):
-    raise Fail("Unable to seed the Tez tarball with native libraries since the source Hadoop native lib directory {0} does not exist".format(hadoop_lib_native_dir))
+    raise Fail(f"Unable to seed the Tez tarball with native libraries since the source Hadoop native lib directory {hadoop_lib_native_dir} does not exist")
 
   if not os.path.exists(tez_lib_dir):
-    raise Fail("Unable to seed the Tez tarball with native libraries since the target Tez lib directory {0} does not exist".format(tez_lib_dir))
+    raise Fail(f"Unable to seed the Tez tarball with native libraries since the target Tez lib directory {tez_lib_dir} does not exist")
 
   # copy native libraries from hadoop to tez
   Execute(("cp", "-a", hadoop_lib_native_dir, tez_lib_dir), sudo = True)
@@ -98,11 +98,11 @@ def _prepare_tez_tarball():
     hadoop_lib_native_lzo_dir = os.path.join(stack_root, service_version, "hadoop", "lib", "native")
 
     if not sudo.path_isdir(hadoop_lib_native_lzo_dir):
-      Logger.warning("Unable to located native LZO libraries at {0}, falling back to hadoop home".format(hadoop_lib_native_lzo_dir))
+      Logger.warning(f"Unable to located native LZO libraries at {hadoop_lib_native_lzo_dir}, falling back to hadoop home")
       hadoop_lib_native_lzo_dir = os.path.join(stack_root, "current", "hadoop-client", "lib", "native")
 
     if not sudo.path_isdir(hadoop_lib_native_lzo_dir):
-      raise Fail("Unable to seed the Tez tarball with native libraries since LZO is enabled but the native LZO libraries could not be found at {0}".format(hadoop_lib_native_lzo_dir))
+      raise Fail(f"Unable to seed the Tez tarball with native libraries since LZO is enabled but the native LZO libraries could not be found at {hadoop_lib_native_lzo_dir}")
 
     Execute(("cp", "-a", hadoop_lib_native_lzo_dir, tez_lib_dir), sudo = True)
 
@@ -123,7 +123,7 @@ def _prepare_tez_tarball():
       recursive_ownership = True)
 
   tez_tarball_with_native_lib = os.path.join(tez_native_tarball_staging_dir, "tez-native.tar.gz")
-  Logger.info("Creating a new Tez tarball at {0}".format(tez_tarball_with_native_lib))
+  Logger.info(f"Creating a new Tez tarball at {tez_tarball_with_native_lib}")
   tar_archive.archive_dir_via_temp_file(tez_tarball_with_native_lib, tez_temp_dir)
 
   # ensure that the tarball can be read and uploaded
@@ -161,9 +161,10 @@ def _prepare_mapreduce_tarball():
   # calculate the source directory for LZO
   hadoop_lib_native_source_dir = os.path.join(os.path.dirname(mapreduce_source_file), "lib", "native")
   if not sudo.path_exists(hadoop_lib_native_source_dir):
-    raise Fail("Unable to seed the mapreduce tarball with native LZO libraries since the source Hadoop native lib directory {0} does not exist".format(hadoop_lib_native_source_dir))
+    raise Fail(f"Unable to seed the mapreduce tarball with native LZO libraries since the source Hadoop native lib "
+               f"directory {hadoop_lib_native_source_dir} does not exist")
 
-  Logger.info("Extracting {0} to {1}".format(mapreduce_source_file, mapreduce_temp_dir))
+  Logger.info(f"Extracting {mapreduce_source_file} to {mapreduce_temp_dir}")
   tar_archive.untar_archive(mapreduce_source_file, mapreduce_temp_dir)
 
   mapreduce_lib_dir = os.path.join(mapreduce_temp_dir, "hadoop", "lib")
@@ -187,7 +188,7 @@ def _prepare_mapreduce_tarball():
       recursive_ownership = True)
 
   mapreduce_tarball_with_native_lib = os.path.join(mapreduce_native_tarball_staging_dir, "mapreduce-native.tar.gz")
-  Logger.info("Creating a new mapreduce tarball at {0}".format(mapreduce_tarball_with_native_lib))
+  Logger.info(f"Creating a new mapreduce tarball at {mapreduce_tarball_with_native_lib}")
   tar_archive.archive_dir_via_temp_file(mapreduce_tarball_with_native_lib, mapreduce_temp_dir)
 
   # ensure that the tarball can be read and uploaded
@@ -206,57 +207,57 @@ def _prepare_mapreduce_tarball():
 # complicated to change during a Rolling/Express upgrade.
 TARBALL_MAP = {
   "yarn": {
-    "dirs": ("{0}/{1}/{2}/hadoop-yarn/lib/service-dep.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN, LIB_DIR),
-             "/{0}/apps/{1}/yarn/service-dep.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
+    "dirs": (f"{STACK_ROOT_PATTERN}/{STACK_VERSION_PATTERN}/{LIB_DIR}/hadoop-yarn/lib/service-dep.tar.gz",
+             f"/{STACK_NAME_PATTERN}/apps/{STACK_VERSION_PATTERN}/yarn/service-dep.tar.gz"),
     "service": "YARN"
   },
 
   "tez": {
-    "dirs": ("{0}/{1}/{2}/tez/lib/tez.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN, LIB_DIR),
-           "/{0}/apps/{1}/tez/tez.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
+    "dirs": (f"{STACK_ROOT_PATTERN}/{STACK_VERSION_PATTERN}/{LIB_DIR}/tez/lib/tez.tar.gz",
+           f"/{STACK_NAME_PATTERN}/apps/{STACK_VERSION_PATTERN}/tez/tez.tar.gz"),
     "service": "TEZ"
   },
 
   "tez_hive2": {
-    "dirs": ("{0}/{1}/{2}/tez_hive2/lib/tez.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN, LIB_DIR),
-           "/{0}/apps/{1}/tez_hive2/tez.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
+    "dirs": (f"{STACK_ROOT_PATTERN}/{STACK_VERSION_PATTERN}/{LIB_DIR}/tez_hive2/lib/tez.tar.gz",
+           f"/{STACK_NAME_PATTERN}/apps/{STACK_VERSION_PATTERN}/tez_hive2/tez.tar.gz"),
     "service": "HIVE"
   },
 
   "hive": {
-    "dirs": ("{0}/{1}/{2}/hive/hive.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN, LIB_DIR),
-            "/{0}/apps/{1}/hive/hive.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
+    "dirs": (f"{STACK_ROOT_PATTERN}/{STACK_VERSION_PATTERN}/{LIB_DIR}/hive/hive.tar.gz",
+            f"/{STACK_NAME_PATTERN}/apps/{STACK_VERSION_PATTERN}/hive/hive.tar.gz"),
     "service": "HIVE"
   },
 
   "hadoop_streaming": {
-    "dirs": ("{0}/{1}/{2}/hadoop-mapreduce/hadoop-streaming.jar".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN, LIB_DIR),
-            "/{0}/apps/{1}/mapreduce/hadoop-streaming.jar".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
+    "dirs": (f"{STACK_ROOT_PATTERN}/{STACK_VERSION_PATTERN}/{LIB_DIR}/hadoop-mapreduce/hadoop-streaming.jar",
+            f"/{STACK_NAME_PATTERN}/apps/{STACK_VERSION_PATTERN}/mpreduce/hadoop-streaming.jar"),
     "service": "MAPREDUCE2"
   },
 
   "mapreduce": {
-    "dirs": ("{0}/{1}/{2}/hadoop/mapreduce.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN, LIB_DIR),
-                "/{0}/apps/{1}/mapreduce/mapreduce.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
+    "dirs": (f"{STACK_ROOT_PATTERN}/{STACK_VERSION_PATTERN}/{LIB_DIR}/hadoop/mapreduce.tar.gz",
+                f"/{STACK_NAME_PATTERN}/apps/{STACK_VERSION_PATTERN}/mapreduce/mapreduce.tar.gz"),
     "service": "MAPREDUCE2",
     "prepare_function": _prepare_mapreduce_tarball
   },
 
   "spark": {
-    "dirs": ("{0}/{1}/{3}/spark/lib/spark-{2}-assembly.jar".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN, STACK_NAME_PATTERN, LIB_DIR),
-             "/{0}/apps/{1}/spark/spark-{0}-assembly.jar".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
+    "dirs": (f"{STACK_ROOT_PATTERN}/{STACK_VERSION_PATTERN}/{LIB_DIR}/spark/lib/spark-{STACK_NAME_PATTERN}-assembly.jar",
+             f"/{STACK_NAME_PATTERN}/apps/{STACK_VERSION_PATTERN}/spark/spark-{STACK_NAME_PATTERN}-assembly.jar"),
     "service": "SPARK"
   },
 
   "spark2": {
-    "dirs": ("/tmp/spark2/spark2-{0}-yarn-archive.tar.gz".format(STACK_NAME_PATTERN),
-             "/{0}/apps/{1}/spark2/spark2-{0}-yarn-archive.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
+    "dirs": (f"/tmp/spark2/spark2-{STACK_NAME_PATTERN}-yarn-archive.tar.gz",
+             f"/{STACK_NAME_PATTERN}/apps/{STACK_VERSION_PATTERN}/spark2/spark2-{STACK_NAME_PATTERN}-yarn-archive.tar.gz"),
     "service": "SPARK2"
   },
 
   "spark2hive": {
-    "dirs":  ("/tmp/spark2/spark2-{0}-hive-archive.tar.gz".format(STACK_NAME_PATTERN),
-              "/{0}/apps/{1}/spark2/spark2-{0}-hive-archive.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
+    "dirs":  (f"/tmp/spark2/spark2-{STACK_NAME_PATTERN}-hive-archive.tar.gz",
+              f"/{STACK_NAME_PATTERN}/apps/{STACK_VERSION_PATTERN}/spark2/spark2-{STACK_NAME_PATTERN}-hive-archive.tar.gz"),
 
     "service": "SPARK2"
   }
@@ -295,23 +296,23 @@ def get_tarball_paths(name, use_upgrading_version_during_upgrade=True, custom_so
   stack_name = Script.get_stack_name()
 
   if not stack_name:
-    Logger.error("Cannot copy {0} tarball to HDFS because stack name could not be determined.".format(str(name)))
+    Logger.error(f"Cannot copy {str(name)} tarball to HDFS because stack name could not be determined.")
     return False, None, None
 
   if name is None or name.lower() not in TARBALL_MAP:
-    Logger.error("Cannot copy tarball to HDFS because {0} is not supported in stack {1} for this operation.".format(str(name), str(stack_name)))
+    Logger.error(f"Cannot copy tarball to HDFS because {str(name)} is not supported in stack {str(stack_name)} for this operation.")
     return False, None, None
 
   service = TARBALL_MAP[name.lower()]['service']
 
   stack_version = get_current_version(service=service, use_upgrading_version_during_upgrade=use_upgrading_version_during_upgrade)
   if not stack_version:
-    Logger.error("Cannot copy {0} tarball to HDFS because stack version could be be determined.".format(str(name)))
+    Logger.error(f"Cannot copy {str(name)} tarball to HDFS because stack version could be be determined.")
     return False, None, None
 
   stack_root = Script.get_stack_root()
   if not stack_root:
-    Logger.error("Cannot copy {0} tarball to HDFS because stack root could be be determined.".format(str(name)))
+    Logger.error(f"Cannot copy {str(name)} tarball to HDFS because stack root could be be determined.")
     return False, None, None
 
   (source_file, dest_file) = TARBALL_MAP[name.lower()]['dirs']
@@ -357,8 +358,7 @@ def get_current_version(service=None, use_upgrading_version_during_upgrade=True)
 
   # if there is no upgrade, then use the command's version
   if not Script.in_stack_upgrade() or use_upgrading_version_during_upgrade:
-    Logger.info("Tarball version was calcuated as {0}. Use Command Version: {1}".format(
-      version, use_upgrading_version_during_upgrade))
+    Logger.info(f"Tarball version was calcuated as {version}. Use Command Version: {use_upgrading_version_during_upgrade}")
 
     return version
 
@@ -386,22 +386,22 @@ def _get_single_version_from_stack_select():
 
   out = None
   stack_selector_path = stack_tools.get_stack_tool_path(stack_tools.STACK_SELECTOR_NAME)
-  get_stack_versions_cmd = "{0} versions > {1}".format(stack_selector_path, tmp_file)
+  get_stack_versions_cmd = f"{stack_selector_path} versions > {tmp_file}"
   try:
     code, stdoutdata = shell.call(get_stack_versions_cmd, logoutput=True)
     with open(tmp_file, 'r+') as file:
       out = file.read()
   except Exception as e:
-    Logger.logger.exception("Could not parse output of {0}. Error: {1}".format(str(tmp_file), str(e)))
+    Logger.logger.exception(f"Could not parse output of {str(tmp_file)}. Error: {str(e)}")
   finally:
     try:
       if os.path.exists(tmp_file):
         os.remove(tmp_file)
     except Exception as e:
-      Logger.logger.exception("Could not remove file {0}. Error: {1}".format(str(tmp_file), str(e)))
+      Logger.logger.exception(f"Could not remove file {str(tmp_file)}. Error: {str(e)}")
 
   if code != 0 or out is None or out == "":
-    Logger.error("Could not verify stack version by calling '{0}'. Return Code: {1}, Output: {2}.".format(get_stack_versions_cmd, str(code), str(out)))
+    Logger.error(f"Could not verify stack version by calling '{get_stack_versions_cmd}'. Return Code: {str(code)}, Output: {str(out)}.")
     return None
 
   matches = re.findall(r"([\d\.]+(?:-\d+)?)", out)
@@ -409,7 +409,7 @@ def _get_single_version_from_stack_select():
   if matches and len(matches) == 1:
     stack_version = matches[0]
   elif matches and len(matches) > 1:
-    Logger.error("Found multiple matches for stack version, cannot identify the correct one from: {0}".format(", ".join(matches)))
+    Logger.error(f"Found multiple matches for stack version, cannot identify the correct one from: {', '.join(matches)}")
 
   return stack_version
 
@@ -432,16 +432,16 @@ def copy_to_hdfs(name, user_group, owner, file_mode=0o444, custom_source_file=No
   """
   import params
 
-  Logger.info("Called copy_to_hdfs tarball: {0}".format(name))
+  Logger.info(f"Called copy_to_hdfs tarball: {name}")
   (success, source_file, dest_file, prepare_function) = get_tarball_paths(name, use_upgrading_version_during_upgrade,
                                                                           custom_source_file, custom_dest_file)
 
   if not success:
-    Logger.error("Could not copy tarball {0} due to a missing or incorrect parameter.".format(str(name)))
+    Logger.error(f"Could not copy tarball {str(name)} due to a missing or incorrect parameter.")
     return False
 
   if skip:
-    Logger.warning("Skipping copying {0} to {1} for {2} as it is a sys prepped host.".format(str(source_file), str(dest_file), str(name)))
+    Logger.warning(f"Skipping copying {str(source_file)} to {str(dest_file)} for {str(name)} as it is a sys prepped host.")
     return True
 
   if not skip_component_check:
@@ -449,14 +449,14 @@ def copy_to_hdfs(name, user_group, owner, file_mode=0o444, custom_source_file=No
     config_name = SERVICE_TO_CONFIG_MAP.get(name)
     config = default("/configurations/"+config_name, None)
     if config is None:
-      Logger.info("{0} is not present on the cluster. Skip copying {1}".format(config_name, source_file))
+      Logger.info(f"{config_name} is not present on the cluster. Skip copying {source_file}")
       return False
 
-  Logger.info("Source file: {0} , Dest file in HDFS: {1}".format(source_file, dest_file))
+  Logger.info(f"Source file: {source_file} , Dest file in HDFS: {dest_file}")
 
   if not os.path.exists(source_file):
-    Logger.error("WARNING. Cannot copy {0} tarball because file does not exist: {1} . "
-                   "It is possible that this component is not installed on this host.".format(str(name), str(source_file)))
+    Logger.error(f"WARNING. Cannot copy {str(name)} tarball because file does not exist: {str(source_file)} . "
+                   "It is possible that this component is not installed on this host.")
     return False
 
   # Because CopyFromLocal does not guarantee synchronization, it's possible for two processes to first attempt to
@@ -495,7 +495,7 @@ def copy_to_hdfs(name, user_group, owner, file_mode=0o444, custom_source_file=No
                       mode=0o444,
                       replace_existing_files=replace_existing_files,
   )
-  Logger.info("Will attempt to copy {0} tarball from {1} to DFS at {2}.".format(name, source_file, dest_file))
+  Logger.info(f"Will attempt to copy {name} tarball from {source_file} to DFS at {dest_file}.")
 
   # For improved performance, force_execute should be False so that it is delayed and combined with other calls.
   # If still want to run the command now, set force_execute to True

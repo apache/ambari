@@ -52,15 +52,15 @@ def expect(name, expected_type, default_value=None):
       elif value != None and value.lower() == "false":
         value = False
       else:
-        raise Fail("Configuration {0} expected to be boolean (true or false), but found '{1}'".format(name, value))
+        raise Fail(f"Configuration {name} expected to be boolean (true or false), but found '{value}'")
     else:
       type_name = type(value).__name__
-      raise Fail("Configuration {0} expected to be boolean (true or false), but found instance of unknown type '{1}'".format(name, type_name))
+      raise Fail(f"Configuration {name} expected to be boolean (true or false), but found instance of unknown type '{type_name}'")
   elif expected_type in [int, int, float]:
     try:
       value = expected_type(value)
     except (ValueError, TypeError):
-      raise Fail("Configuration {0} expected to be number, but found '{1}'".format(name, value))
+      raise Fail(f"Configuration {name} expected to be number, but found '{value}'")
   return value
 
 
@@ -86,15 +86,14 @@ def expect_v2(name, expected_type, default_value=None):
       elif value != None and value.lower() == "false":
         value = False
       else:
-        raise Fail("Configuration {0} expected to be boolean (true or false), but found '{1}'".format(name, value))
+        raise Fail(f"Configuration {name} expected to be boolean (true or false), but found '{value}'")
     else:
       type_name = type(value).__name__
       raise Fail(
-        "Configuration {0} expected to be boolean (true or false), but found instance of unknown type '{1}'".format(
-          name, type_name))
+        f"Configuration {name} expected to be boolean (true or false), but found instance of unknown type '{type_name}'")
   elif expected_type in [int, int, float]:
     try:
       value = expected_type(value)
     except (ValueError, TypeError):
-      raise Fail("Configuration {0} expected to be number, but found '{1}'".format(name, value))
+      raise Fail(f"Configuration {name} expected to be number, but found '{value}'")
   return value

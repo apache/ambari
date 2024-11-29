@@ -47,11 +47,11 @@ def download_from_hdfs(source_file, dest_path, user_group, owner, download_type=
   """
   import params
 
-  Logger.info("Called download_from_hdfs source in HDFS: {0} , local destination path: {1}".format(source_file, dest_path))
+  Logger.info(f"Called download_from_hdfs source in HDFS: {source_file} , local destination path: {dest_path}")
 
   # The destination directory must already exist
   if not os.path.exists(dest_path):
-    Logger.error("Cannot copy {0} because destination directory {1} does not exist.".format(source_file, dest_path))
+    Logger.error(f"Cannot copy {source_file} because destination directory {dest_path} does not exist.")
     return False
 
   filename = os.path.basename(source_file)
@@ -67,7 +67,7 @@ def download_from_hdfs(source_file, dest_path, user_group, owner, download_type=
                       replace_existing_files=replace_existing_files,
   )
 
-  Logger.info("Will attempt to copy from DFS at {0} to local file system {1}.".format(source_file, dest_file))
+  Logger.info(f"Will attempt to copy from DFS at {source_file} to local file system {dest_file}.")
 
   # For improved performance, force_execute should be False so that it is delayed and combined with other calls.
   if force_execute:

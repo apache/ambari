@@ -59,9 +59,9 @@ def update_credential_provider_path(config, config_type, dest_provider_path, fil
     config_copy = config.copy()
     # overwrite the provider path with the path specified
     if use_local_jceks:
-      config_copy[HADOOP_CREDENTIAL_PROVIDER_PROPERTY_NAME] = 'localjceks://file{0}'.format(dest_provider_path)
+      config_copy[HADOOP_CREDENTIAL_PROVIDER_PROPERTY_NAME] = f'localjceks://file{dest_provider_path}'
     else:
-      config_copy[HADOOP_CREDENTIAL_PROVIDER_PROPERTY_NAME] = 'jceks://file{0}'.format(dest_provider_path)
+      config_copy[HADOOP_CREDENTIAL_PROVIDER_PROPERTY_NAME] = f'jceks://file{dest_provider_path}'
     return config_copy
   return config
 

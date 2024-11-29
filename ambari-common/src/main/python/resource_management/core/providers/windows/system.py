@@ -142,7 +142,7 @@ def QueryPrivilegeState(hToken, priv):
   for (id, attr) in privList:
     if id == privId:
       privState = attr
-  Logger.debug('Privilege state: {0}={1} ({2}) Enabled={3}'.format(privId, priv, LookupPrivilegeDisplayName(None, priv), privState))
+  Logger.debug(f'Privilege state: {privId}={priv} ({LookupPrivilegeDisplayName(None, priv)}) Enabled={privState}')
   return privState
 
 # Execute command. As windows hdp stack heavily relies on proper environment it is better to reload fresh environment
@@ -186,7 +186,7 @@ def _call_command(command, logoutput=False, cwd=None, env=None, wait_for_finish=
     if not ok:
       raise Exception("Unable to create StdErr for child process")
 
-    Logger.debug("Redirecting stdout to '{0}', stderr to '{1}'".format(out_file.name, err_file.name))
+    Logger.debug(f"Redirecting stdout to '{out_file.name}', stderr to '{err_file.name}'")
 
     si.dwFlags = win32con.STARTF_USESTDHANDLES
     si.lpDesktop = ""
@@ -225,14 +225,14 @@ def _call_command(command, logoutput=False, cwd=None, env=None, wait_for_finish=
 
 # see msdn Icacls doc for rights
 def _set_file_acl(file, user, rights):
-  acls_modify_cmd = "icacls {0} /grant {1}:{2}".format(file, user, rights)
-  acls_remove_cmd = "icacls {0} /remove {1}".format(file, user)
+  acls_modify_cmd = f"icacls {file} /grant {user}:{rights}"
+  acls_remove_cmd = f"icacls {file} /remove {user}"
   code, out, err = _call_command(acls_remove_cmd)
   if code != 0:
-    raise Fail("Can not remove rights for path {0} and user {1}".format(file, user))
+    raise Fail(f"Can not remove rights for path {file} and user {user}")
   code, out, err = _call_command(acls_modify_cmd)
   if code != 0:
-    raise Fail("Can not set rights {0} for path {1} and user {2}".format(file, user))
+    raise Fail(f"Can not set rights for path {file} and user {user}")
   else:
     return
 

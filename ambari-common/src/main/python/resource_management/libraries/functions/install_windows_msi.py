@@ -134,7 +134,7 @@ def _create_symlinks(stack_version):
   for link_pair in links_pairs:
     link, target = link_pair
     target = glob.glob(os.path.expandvars(target))[0].replace("\\\\", "\\")
-    Execute('cmd /c mklink "{0}" "{1}"'.format(link, target))
+    Execute(f'cmd /c mklink "{link}" "{target}"')
 
 
 # check if services exists and marker file present
@@ -187,7 +187,7 @@ def install_windows_msi(url_base, save_dir, save_files, hadoop_user, hadoop_pass
       try:
         download_file(file_url, os.path.join(msi_save_dir, save_file))
       except:
-        raise Fail("Failed to download {url}".format(url=file_url))
+        raise Fail(f"Failed to download {file_url}")
 
     File(os.path.join(msi_save_dir, "properties.txt"), content=cluster_properties.format(log_dir=log_dir,
                                                                                          data_dir=data_dir,

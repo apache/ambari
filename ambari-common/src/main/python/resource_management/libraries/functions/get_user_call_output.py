@@ -68,7 +68,7 @@ def get_user_call_output(command, user, quiet=False, is_checked_call=True, **cal
     caller_filename = sys._getframe(1).f_code.co_filename
     is_internal_call = shell.NOT_LOGGED_FOLDER in caller_filename
     if quiet == False or (quiet == None and not is_internal_call):
-      log_msg = "{0} returned {1}".format(get_user_call_output.__name__, result)
+      log_msg = f"{get_user_call_output.__name__} returned {result}"
       Logger.info(log_msg)
 
     return result

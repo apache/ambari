@@ -35,8 +35,7 @@ def ensure_jdbc_driver_is_in_classpath(dest_dir, cache_location, driver_url, dri
   #If not, attempt to download it from the server resources URL
   for driver_file in driver_files:
     dest_path = os.path.join(dest_dir, driver_file)
-    Logger.info("JDBC driver file(s) {0}: Attempting to copy from {1} or download from {2} to {3}".format(
-      str(driver_files), cache_location, driver_url, dest_dir))
+    Logger.info(f"JDBC driver file(s) {str(driver_files)}: Attempting to copy from {cache_location} or download from {driver_url} to {dest_dir}")
     if not os.path.exists(dest_path):
       search_path = os.environ["PATH"]
       if cache_location:

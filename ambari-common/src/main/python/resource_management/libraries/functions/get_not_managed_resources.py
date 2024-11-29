@@ -42,8 +42,8 @@ def get_not_managed_resources():
       property_value = default('/configurations/' + property_name, None)
 
       if property_value == None:
-        Logger.warning(("Property {0} from cluster-env/managed_hdfs_resource_property_names not found in configurations. "
-                     "Management of this DFS resource will not be forced.").format(property_name))
+        Logger.warning((f"Property {property_name} from cluster-env/managed_hdfs_resource_property_names not found in configurations. "
+                     "Management of this DFS resource will not be forced."))
       else:
         while property_value in not_managed_hdfs_path_list:
           not_managed_hdfs_path_list.remove(property_value)

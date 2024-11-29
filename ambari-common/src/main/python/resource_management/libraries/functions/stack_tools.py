@@ -55,14 +55,14 @@ def get_stack_tool(name):
     return None, None, None
 
   if stack_name not in stack_tools:
-    Logger.warning("Cannot find stack tools for the stack named {0}".format(stack_name))
+    Logger.warning(f"Cannot find stack tools for the stack named {stack_name}")
     return None, None, None
 
   # load the stack tooks keyed by the stack name
   stack_tools = stack_tools[stack_name]
 
   if not stack_tools or not name or name.lower() not in stack_tools:
-    Logger.warning("Cannot find config for {0} stack tool in {1}".format(str(name), str(stack_tools)))
+    Logger.warning(f"Cannot find config for {str(name)} stack tool in {str(stack_tools)}")
     return None, None, None
 
   tool_config = stack_tools[name.lower()]
@@ -110,13 +110,13 @@ def get_stack_root(stack_name, stack_root_json):
   from resource_management.libraries.functions.default import default
 
   if stack_root_json is None:
-    return "/usr/{0}".format(stack_name.lower())
+    return f"/usr/{stack_name.lower()}"
 
   stack_root = json.loads(stack_root_json)
 
   if stack_name not in stack_root:
-    Logger.warning("Cannot determine stack root for stack named {0}".format(stack_name))
-    return "/usr/{0}".format(stack_name.lower())
+    Logger.warning(f"Cannot determine stack root for stack named {stack_name}")
+    return f"/usr/{stack_name.lower()}"
 
   return stack_root[stack_name]
 

@@ -282,7 +282,7 @@ def process_upgrade_xml(file_path, target_version, config_data, stack_version_ch
   new_file_path = file_path
   if target_version in stack_version_changes:
     new_file_path = os.path.join(os.path.dirname(file_path),
-                            'upgrade-{0}.xml'.format(stack_version_changes[target_version]))
+                            f'upgrade-{stack_version_changes[target_version]}.xml')
     os.rename(file_path, new_file_path)
   return new_file_path
 

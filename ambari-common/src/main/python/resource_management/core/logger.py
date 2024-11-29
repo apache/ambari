@@ -176,9 +176,9 @@ class Logger:
       else:
         val = repr(y)
 
-      arguments_str += "'{0}': {1}, ".format(x, val)
+      arguments_str += f"'{x}': {val}, "
 
     if arguments_str:
       arguments_str = arguments_str[:-2]
         
-    return str("{0} {{{1}}}").format(name, arguments_str)
+    return str(f"{name} {{{arguments_str}}}")

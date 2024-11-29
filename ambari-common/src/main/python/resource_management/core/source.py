@@ -72,7 +72,7 @@ class StaticFile(Source):
       path = os.path.join(basedir, "files", self.name)
       
     if not sudo.path_isfile(path):
-      raise Fail("{0} Source file {1} is not found".format(repr(self), path))
+      raise Fail(f"{repr(self)} Source file {path} is not found")
 
     return self.read_file(path)
 
@@ -171,17 +171,17 @@ class DownloadSource(Source):
 
   def get_content(self):
     if self.download_path and not os.path.exists(self.download_path):
-      raise Fail("Directory {0} doesn't exist, please provide valid download path".format(self.download_path))
+      raise Fail(f"Directory {self.download_path} doesn't exist, please provide valid download path")
     
     if urllib.parse.urlparse(self.url).path:
       filename = os.path.basename(urllib.parse.urlparse(self.url).path)
     else:
-      filename = 'index.html.{0}'.format(time.time())
+      filename = f'index.html.{time.time()}'
       
     filepath = os.path.join(self.download_path, filename)
     
     if not self.cache or not os.path.exists(filepath):
-      Logger.info("Downloading the file from {0}".format(self.url))
+      Logger.info(f"Downloading the file from {self.url}")
       
       if self.ignore_proxy:
         opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
@@ -193,14 +193,14 @@ class DownloadSource(Source):
       try:
         web_file = opener.open(req)
       except urllib.error.HTTPError as ex:
-        raise Fail("Failed to download file from {0} due to HTTP error: {1}".format(self.url, str(ex)))
+        raise Fail(f"Failed to download file from {self.url} due to HTTP error: {str(ex)}")
       
       content = web_file.read()
       
       if self.cache:
         sudo.create_file(filepath, content)
     else:
-      Logger.info("Not downloading the file from {0}, because {1} already exists".format(self.url, filepath))
+      Logger.info(f"Not downloading the file from {self.url}, because {filepath} already exists")
       content = sudo.read_file(filepath)
 
     return content

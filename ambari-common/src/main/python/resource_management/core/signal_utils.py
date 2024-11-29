@@ -47,7 +47,7 @@ def terminate_process(proc, terminate_strategy):
   elif terminate_strategy == TerminateStrategy.KILL_PROCESS_TREE:
     kill_process_tree(proc)
   else:
-    raise Fail("Invalid timeout_kill_strategy = '{0}'. Use TerminateStrategy class constants as a value.".format(terminate_strategy))
+    raise Fail(f"Invalid timeout_kill_strategy = '{terminate_strategy}'. Use TerminateStrategy class constants as a value.")
 
 def killpg_gracefully(proc, timeout=GRACEFUL_PG_KILL_TIMEOUT_SECONDS):
   """
@@ -67,7 +67,7 @@ def killpg_gracefully(proc, timeout=GRACEFUL_PG_KILL_TIMEOUT_SECONDS):
           break
         time.sleep(0.1)
       else:
-        Logger.info("Cannot gracefully kill process group {0}. Resorting to SIGKILL.".format(pgid))
+        Logger.info(f"Cannot gracefully kill process group {pgid}. Resorting to SIGKILL.")
         sudo.kill(-pgid, signal.SIGKILL.value)
         proc.wait()
     # catch race condition if proc already dead
@@ -86,7 +86,7 @@ def terminate_parent_process(proc):
 def kill_process_tree(proc):
   from resource_management.core import shell
   current_directory = os.path.dirname(os.path.abspath(__file__))
-  kill_tree_script = "{0}/files/killtree.sh".format(current_directory)
+  kill_tree_script = f"{current_directory}/files/killtree.sh"
   if proc.poll() == None:
     shell.checked_call(["bash", kill_tree_script, str(proc.pid), str(signal.SIGKILL)])
     

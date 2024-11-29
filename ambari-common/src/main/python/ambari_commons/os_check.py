@@ -127,7 +127,7 @@ class OS_CONST_TYPE(type):
       f.close()
       
       if JSON_OS_MAPPING not in json_data:
-        raise Exception("Invalid {0}".format(OSFAMILY_JSON_RESOURCE))
+        raise Exception(f"Invalid {OSFAMILY_JSON_RESOURCE}")
       
       json_mapping_data = json_data[JSON_OS_MAPPING]
       
@@ -188,7 +188,7 @@ class OSCheck:
             release = REL_2012
           elif minor == 3:
             release = REL_2012R2
-        distribution = (release, "{0}.{1}".format(major,minor),"WindowsServer")
+        distribution = (release, f"{major}.{minor}","WindowsServer")
       else:
         # we are on unsupported desktop os
         distribution = ("", "", "")

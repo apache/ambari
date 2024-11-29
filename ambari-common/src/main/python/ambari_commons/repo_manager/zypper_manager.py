@@ -76,7 +76,7 @@ class ZypperManager(GenericManager):
     # as result repository would be matched if it contains package with same meta info
 
     if repos.feat.scoped:
-      Logger.info("Looking for matching packages in the following repositories: {0}".format(", ".join(repo_ids)))
+      Logger.info(f"Looking for matching packages in the following repositories: {', '.join(repo_ids)}")
       for repo in repo_ids:
         available_packages.extend(self.all_packages(repo_filter=repo))
     else:
@@ -166,8 +166,8 @@ class ZypperManager(GenericManager):
     pattern = re.compile("\d+ new package(s)? to install")
 
     if r.code or (r.out and pattern.search(r.out)):
-      err_msg = Logger.filter_text("Failed to verify package dependencies. Execution of '{0}' returned {1}. {2}".format(
-        self.properties.verify_dependency_cmd, r.code, r.out))
+      err_msg = Logger.filter_text(f"Failed to verify package dependencies. Execution of '{self.properties.verify_dependency_cmd}' "
+                                   f"returned {r.code}. {r.out}")
       Logger.error(err_msg)
       return False
 
@@ -199,11 +199,11 @@ class ZypperManager(GenericManager):
         cmd = cmd + use_repos_options
 
       cmd = cmd + [name]
-      Logger.info("Installing package {0} ('{1}')".format(name, shell.string_cmd_from_args_list(cmd)))
+      Logger.info(f"Installing package {name} ('{shell.string_cmd_from_args_list(cmd)}')")
 
       shell.repository_manager_executor(cmd, self.properties, context)
     else:
-      Logger.info("Skipping installation of existing package {0}".format(name))
+      Logger.info(f"Skipping installation of existing package {name}")
 
   def upgrade_package(self, name, context):
     """
@@ -231,10 +231,10 @@ class ZypperManager(GenericManager):
       raise ValueError("Installation command were executed with no package name passed")
     elif self._check_existence(name):
       cmd = self.properties.remove_cmd[context.log_output] + [name]
-      Logger.info("Removing package {0} ('{1}')".format(name, shell.string_cmd_from_args_list(cmd)))
+      Logger.info(f"Removing package {name} ('{shell.string_cmd_from_args_list(cmd)}')")
       shell.repository_manager_executor(cmd, self.properties, context)
     else:
-      Logger.info("Skipping removal of non-existing package {0}".format(name))
+      Logger.info(f"Skipping removal of non-existing package {name}")
 
   def get_active_base_repos(self):
     enabled_repos = []

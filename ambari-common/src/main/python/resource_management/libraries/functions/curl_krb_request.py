@@ -98,14 +98,14 @@ def curl_krb_request(tmp_dir, keytab, principal, url, cache_file_prefix,
   # when executing curl. Use a hash of the combination of the principal and keytab file
   # to generate a (relatively) unique cache filename so that we can use it as needed. Scope
   # this file by user in order to prevent sharing of cache files by multiple users.
-  ccache_file_name = HASH_ALGORITHM("{0}|{1}".format(principal, keytab).encode('utf-8')).hexdigest()
+  ccache_file_name = HASH_ALGORITHM(f"{principal}|{keytab}".encode('utf-8')).hexdigest()
 
   curl_krb_cache_path = os.path.join(tmp_dir, "curl_krb_cache")
   if not os.path.exists(curl_krb_cache_path):
     os.makedirs(curl_krb_cache_path)
   os.chmod(curl_krb_cache_path, 0o1777)
 
-  ccache_file_path = "{0}{1}{2}_{3}_cc_{4}".format(curl_krb_cache_path, os.sep, cache_file_prefix, user, ccache_file_name)
+  ccache_file_path = f"{curl_krb_cache_path}{os.sep}{cache_file_prefix}_{user}_cc_{ccache_file_name}"
   kerberos_env = {'KRB5CCNAME': ccache_file_path}
 
   # concurrent kinit's can cause the following error:
@@ -130,7 +130,7 @@ def curl_krb_request(tmp_dir, keytab, principal, url, cache_file_prefix,
 
     # if the time has not expired, double-check that the cache still has a valid ticket
     if not is_kinit_required:
-      klist_command = "{0} -s {1}".format(klist_path_local, ccache_file_path)
+      klist_command = f"{klist_path_local} -s {ccache_file_path}"
       is_kinit_required = (shell.call(klist_command, user=user)[0] != 0)
 
     # if kinit is required, the perform the kinit
@@ -146,8 +146,7 @@ def curl_krb_request(tmp_dir, keytab, principal, url, cache_file_prefix,
       # kinit; there's no need to set a ticket timeout as this will use the default invalidation
       # configured in the krb5.conf - regenerating keytabs will not prevent an existing cache
       # from working correctly
-      shell.checked_call("{0} -c {1} -kt {2} {3} > /dev/null".format(kinit_path_local,
-        ccache_file_path, keytab, principal), user=user)
+      shell.checked_call(f"{kinit_path_local} -c {ccache_file_path} -kt {keytab} {principal} > /dev/null", user=user)
 
       # record kinit time
       _KINIT_CACHE_TIMES[ccache_file_name] = current_time
@@ -202,7 +201,7 @@ def curl_krb_request(tmp_dir, keytab, principal, url, cache_file_prefix,
 
   except Fail:
     if logger.isEnabledFor(logging.DEBUG):
-      logger.exception("Unable to make a curl request for {0}.".format(caller_label))
+      logger.exception(f"Unable to make a curl request for {caller_label}.")
     raise
   finally:
     if os.path.isfile(cookie_file):

@@ -39,13 +39,13 @@ def check_process_status(pid_file):
   from resource_management.core import sudo
 
   if not pid_file or not os.path.isfile(pid_file):
-    Logger.info("Pid file {0} is empty or does not exist".format(str(pid_file)))
+    Logger.info(f"Pid file {str(pid_file)} is empty or does not exist")
     raise ComponentIsNotRunning()
   
   try:
     pid = int(sudo.read_file(pid_file))
   except:
-    Logger.info("Pid file {0} does not exist or does not contain a process id number".format(pid_file))
+    Logger.info(f"Pid file {pid_file} does not exist or does not contain a process id number")
     raise ComponentIsNotRunning()
 
   try:
@@ -56,8 +56,7 @@ def check_process_status(pid_file):
     # process ID or process group ID.
     sudo.kill(pid, 0)
   except OSError:
-    Logger.info("Process with pid {0} is not running. Stale pid file"
-              " at {1}".format(pid, pid_file))
+    Logger.info(f"Process with pid {pid} is not running. Stale pid file at {pid_file}")
     raise ComponentIsNotRunning()
 
 

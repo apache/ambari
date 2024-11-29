@@ -91,7 +91,7 @@ class RefreshHeaderProcessor(BaseHandler):
       redirect_url = redirect_url_key_value_pair[equals_index+1:]
 
       if key.strip().lower() != REFRESH_HEADER_URL_KEY:
-        logger.warning("Unable to parse refresh header {0}".format(refresh_header))
+        logger.warning(f"Unable to parse refresh header {refresh_header}")
         return response
 
       # extract out just host:port
@@ -110,8 +110,7 @@ class RefreshHeaderProcessor(BaseHandler):
       # follow the new new and return the response
       return self.parent.open(redirect_url)
     except Exception as exception:
-      logger.error("Unable to follow refresh header {0}. {1}".format(
-        refresh_header, str(exception)))
+      logger.error(f"Unable to follow refresh header {refresh_header}. {str(exception)}")
 
     # return the original response
     return response

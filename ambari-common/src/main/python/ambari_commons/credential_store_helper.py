@@ -48,7 +48,7 @@ def get_password_from_credential_store(alias, provider_path, cs_lib_path, java_h
     downloadjar(cs_lib_path, jdk_location)
 
     # Execute a get command on the CredentialUtil CLI to get the password for the specified alias
-    java_bin = '{java_home}/bin/java'.format(java_home=java_home)
+    java_bin = f'{java_home}/bin/java'
     cmd = (java_bin, '-cp', cs_lib_path, credential_util_cmd, 'get', alias, '-provider', provider_path)
     cmd_result, std_out_msg  = checked_call(cmd, quiet=True)
     std_out_lines = std_out_msg.split('\n')
@@ -59,7 +59,7 @@ def list_aliases_from_credential_store(provider_path, cs_lib_path, java_home, jd
     downloadjar(cs_lib_path, jdk_location)
 
     # Execute a get command on the CredentialUtil CLI to list all the aliases
-    java_bin = '{java_home}/bin/java'.format(java_home=java_home)
+    java_bin = f'{java_home}/bin/java'
     cmd = (java_bin, '-cp', cs_lib_path, credential_util_cmd, 'list', '-provider', provider_path)
     cmd_result, std_out_msg  = checked_call(cmd, quiet=True)
     std_out_lines = std_out_msg.split('\n')
@@ -70,7 +70,7 @@ def delete_alias_from_credential_store(alias, provider_path, cs_lib_path, java_h
     downloadjar(cs_lib_path, jdk_location)
 
     #Execute the creation and overwrite password
-    java_bin = '{java_home}/bin/java'.format(java_home=java_home)
+    java_bin = f'{java_home}/bin/java'
     cmd = (java_bin, '-cp', cs_lib_path, credential_util_cmd, 'delete', alias, '-provider', provider_path, '-f')
     Execute(cmd)
 
@@ -79,6 +79,6 @@ def create_password_in_credential_store(alias, provider_path, cs_lib_path, java_
     downloadjar(cs_lib_path, jdk_location)
 
     #Execute the creation and overwrite password
-    java_bin = '{java_home}/bin/java'.format(java_home=java_home)
+    java_bin = f'{java_home}/bin/java'
     cmd = (java_bin, '-cp', cs_lib_path, credential_util_cmd, 'create', alias, '-value', PasswordString(password) ,'-provider', provider_path, '-f')
     Execute(cmd)

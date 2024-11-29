@@ -52,9 +52,9 @@ class ZkMigrator:
       tries=tries)
 
   def _acl_command(self, znode, acl):
-    return "{0} -Djava.security.auth.login.config={1} -jar {2} -connection-string {3} -znode {4} -acl {5}".format( \
-      self.java_exec, self.jaas_file, self.zkmigrator_jar, self.zk_host, znode, acl)
+    return (f"{self.java_exec} -Djava.security.auth.login.config={self.jaas_file} -jar {self.zkmigrator_jar}"
+            f" -connection-string {self.zk_host} -znode {znode} -acl {acl}")
 
   def _delete_command(self, znode):
-    return "{0} -Djava.security.auth.login.config={1} -jar {2} -connection-string {3} -znode {4} -delete".format( \
-      self.java_exec, self.jaas_file, self.zkmigrator_jar, self.zk_host, znode)
+    return (f"{self.java_exec} -Djava.security.auth.login.config={self.jaas_file} -jar {self.zkmigrator_jar}"
+            f" -connection-string {self.zk_host} -znode {znode} -delete")

@@ -60,35 +60,35 @@ def openurl(url, timeout=socket._GLOBAL_DEFAULT_TIMEOUT, *args, **kwargs):
 
 
 def download_file(link, destination, chunk_size=16 * 1024, progress_func = None):
-  print_info_msg("Downloading {0} to {1}".format(link, destination))
+  print_info_msg(f"Downloading {link} to {destination}")
   if os.path.exists(destination):
-      print_warning_msg("File {0} already exists, assuming it was downloaded before".format(destination))
+      print_warning_msg(f"File {destination} already exists, assuming it was downloaded before")
       return
 
   force_download_file(link, destination, chunk_size, progress_func = progress_func)
 
 
 def download_file_anyway(link, destination, chunk_size=16 * 1024, progress_func = None):
-  print_info_msg("Trying to download {0} to {1} with python lib [urllib2].".format(link, destination))
+  print_info_msg(f"Trying to download {link} to {destination} with python lib [urllib2].")
   if os.path.exists(destination):
-    print_warning_msg("File {0} already exists, assuming it was downloaded before".format(destination))
+    print_warning_msg(f"File {destination} already exists, assuming it was downloaded before")
     return
   try:
     force_download_file(link, destination, chunk_size, progress_func = progress_func)
   except:
-    print_error_msg("Download {0} with python lib [urllib2] failed with error: {1}".format(link, str(sys.exc_info())))
+    print_error_msg(f"Download {link} with python lib [urllib2] failed with error: {str(sys.exc_info())}")
 
   if not os.path.exists(destination):
-    print("Trying to download {0} to {1} with [curl] command.".format(link, destination))
-    #print_info_msg("Trying to download {0} to {1} with [curl] command.".format(link, destination))
+    print(f"Trying to download {link} to {destination} with [curl] command.")
+    #print_info_msg(f"Trying to download {link} to {destination} with [curl] command.")
     curl_command = "curl --fail -k -o %s %s" % (destination, link)
     retcode, out, err = os_run_os_command(curl_command)
     if retcode != 0:
-      print_error_msg("Download file {0} with [curl] command failed with error: {1}".format(link, out + err))
+      print_error_msg(f"Download file {link} with [curl] command failed with error: {out + err}")
 
 
   if not os.path.exists(destination):
-    print_error_msg("Unable to download file {0}!".format(link))
+    print_error_msg(f"Unable to download file {link}!")
     print("ERROR: unable to donwload file %s!" % (link))
 
 
@@ -125,7 +125,7 @@ def find_range_components(meta):
     if len(range_comp1) > 1:
       range_comp2 = range_comp1[0].split(' ') #split away the "bytes" prefix
       if len(range_comp2) == 0:
-        raise FatalException(12, 'Malformed Content-Range response header: "{0}".'.format(hdr_range))
+        raise FatalException(12, f'Malformed Content-Range response header: "{hdr_range}".')
       range_comp3 = range_comp2[1].split('-')
       seek_pos = int(range_comp3[0])
       if range_comp1[1] != '*': #'*' == unknown length
@@ -146,7 +146,7 @@ def force_download_file(link, destination, chunk_size = 16 * 1024, progress_func
 
   if os.path.exists(destination) and not os.path.isfile(destination):
     #Directory specified as target? Must be a mistake. Bail out, don't assume anything.
-    err = 'Download target {0} is a directory.'.format(destination)
+    err = f'Download target {destination} is a directory.'
     raise FatalException(1, err)
 
   (dest_path, file_name) = os.path.split(destination)
@@ -203,11 +203,11 @@ def force_download_file(link, destination, chunk_size = 16 * 1024, progress_func
     sys.stdout.write('\n')
     sys.stdout.flush()
 
-  print_info_msg("Finished downloading {0} to {1}".format(link, destination))
+  print_info_msg(f"Finished downloading {link} to {destination}")
 
   downloaded_size = os.stat(temp_dest).st_size
   if downloaded_size != file_size:
-    err = 'Size of downloaded file {0} is {1} bytes, it is probably damaged or incomplete'.format(destination, downloaded_size)
+    err = f'Size of downloaded file {destination} is {downloaded_size} bytes, it is probably damaged or incomplete'
     raise FatalException(1, err)
 
   # when download is complete -> mv temp_dest destination

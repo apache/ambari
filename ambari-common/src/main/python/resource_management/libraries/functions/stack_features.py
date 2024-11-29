@@ -59,7 +59,7 @@ def check_stack_feature(stack_feature, stack_version):
     data = json.loads(stack_features_config)
 
     if stack_name not in data:
-      Logger.warning("Cannot find stack features for the stack named {0}".format(stack_name))
+      Logger.warning(f"Cannot find stack features for the stack named {stack_name}")
       return False
 
     data = data[stack_name]
@@ -119,8 +119,7 @@ def get_stack_feature_version(config):
   # if this is not an upgrade, then we take the simple path
   if upgrade_direction is None:
     Logger.info(
-      "Stack Feature Version Info: Cluster Stack={0}, Command Stack={1}, Command Version={2} -> {3}".format(
-        stack_version, command_stack, command_version, version_for_stack_feature_checks))
+      f"Stack Feature Version Info: Cluster Stack={stack_version}, Command Stack={command_stack}, Command Version={command_version} -> {version_for_stack_feature_checks}")
 
     return version_for_stack_feature_checks
 
@@ -129,9 +128,8 @@ def get_stack_feature_version(config):
   is_stop_command = _is_stop_command(config)
   if not is_stop_command:
     Logger.info(
-      "Stack Feature Version Info: Cluster Stack={0}, Command Stack={1}, Command Version={2}, Upgrade Direction={3} -> {4}".format(
-        stack_version, command_stack, command_version, upgrade_direction,
-        version_for_stack_feature_checks))
+      f"Stack Feature Version Info: Cluster Stack={stack_version}, Command Stack={command_stack},"
+      f" Command Version={command_version}, Upgrade Direction={upgrade_direction} -> {version_for_stack_feature_checks}")
 
     return version_for_stack_feature_checks
 
@@ -145,9 +143,8 @@ def get_stack_feature_version(config):
       version_for_stack_feature_checks = command_version if command_version is not None else stack_version
 
   Logger.info(
-    "Stack Feature Version Info: Cluster Stack={0}, Command Stack={1}, Command Version={2}, Upgrade Direction={3}, stop_command={4} -> {5}".format(
-      stack_version, command_stack, command_version, upgrade_direction,
-      is_stop_command, version_for_stack_feature_checks))
+    f"Stack Feature Version Info: Cluster Stack={stack_version}, Command Stack={command_stack}, Command Version={command_version}"
+    f", Upgrade Direction={upgrade_direction}, stop_command={is_stop_command} -> {version_for_stack_feature_checks}")
 
   return version_for_stack_feature_checks
 

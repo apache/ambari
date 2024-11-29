@@ -62,7 +62,7 @@ class XmlConfigProvider(Provider):
                                     configuration_attrs=configuration_attrs, xml_include_file=self.resource.xml_include_file)
 
     xml_config_dest_file_path = os.path.join(xml_config_provider_config_dir, filename)
-    Logger.info("Generating config: {0}".format(xml_config_dest_file_path))
+    Logger.info(f"Generating config: {xml_config_dest_file_path}")
 
     File (xml_config_dest_file_path,
       content = config_content,

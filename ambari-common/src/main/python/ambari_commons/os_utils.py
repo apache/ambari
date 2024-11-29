@@ -88,8 +88,8 @@ def copy_file(src, dest_file):
   try:
     shutil.copyfile(src, dest_file)
   except Exception as e:
-    err = "Can not copy file {0} to {1} due to: {2} . Please check file " \
-              "permissions and free disk space.".format(src, dest_file, e)
+    err = f"Can not copy file {src} to {dest_file} due to: {e} . Please check file " \
+              "permissions and free disk space."
     raise FatalException(1, err)
 
 def copy_files(files, dest_dir):
@@ -142,7 +142,7 @@ def is_service_exist(serviceName):
 def find_in_path(file):
   full_path = _search_file(file, os.environ["PATH"], os.pathsep)
   if full_path is None:
-    raise Exception("File {0} not found in PATH".format(file))
+    raise Exception(f"File {file} not found in PATH")
   return full_path
 
 def extract_path_component(path, path_fragment):

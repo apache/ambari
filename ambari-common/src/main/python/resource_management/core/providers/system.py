@@ -50,7 +50,7 @@ def _ensure_metadata(path, user, group, mode=None, cd_access=None, recursive_own
     try:
       _user_entity = pwd.getpwnam(user)
     except KeyError:
-      raise Fail("User '{0}' doesn't exist".format(user))
+      raise Fail(f"User '{user}' doesn't exist")
 
     if stat.st_uid != _user_entity.pw_uid:
       user_entity = _user_entity
@@ -61,7 +61,7 @@ def _ensure_metadata(path, user, group, mode=None, cd_access=None, recursive_own
     try:
       _group_entity = grp.getgrnam(group)
     except KeyError:
-      raise Fail("Group '{0}' doesn't exist".format(group))
+      raise Fail(f"Group '{group}' doesn't exist")
 
     if stat.st_gid != _group_entity.gr_gid:
       group_entity = _group_entity
@@ -78,7 +78,7 @@ def _ensure_metadata(path, user, group, mode=None, cd_access=None, recursive_own
     if not isinstance(recursive_mode_flags, dict):
       raise Fail("'recursion_follow_links' value should be a dictionary with 'f' and(or) 'd' key (for file and directory permission flags)")
 
-    regexp_to_match = "^({0},)*({0})$".format("[ugoa]+[+=-][rwx]+" )
+    regexp_to_match = f"^({'[ugoa]+[+=-][rwx]+'},)*({'[ugoa]+[+=-][rwx]+'})$"
     for key, flags in recursive_mode_flags.items():
       if key != 'd' and key != 'f':
         raise Fail("'recursive_mode_flags' with value '%s' has unknown key '%s', only keys 'f' and 'd' are valid" % (str(recursive_mode_flags), str(key)))
@@ -189,7 +189,7 @@ class DirectoryProvider(Provider):
             path = os.path.join(os.path.dirname(prev_path), path)
 
         if path != self.resource.path:
-          Logger.info("Following the link {0} to {1} to create the directory".format(self.resource.path, path))
+          Logger.info(f"Following the link {self.resource.path} to {path} to create the directory")
 
       if self.resource.create_parents:
         sudo.makedirs(path, self.resource.mode or 0o755)

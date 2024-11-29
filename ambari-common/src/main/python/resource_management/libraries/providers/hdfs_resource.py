@@ -102,7 +102,7 @@ class HdfsResourceJar:
         except namenode_ha_utils.NoActiveNamenodeException as ex:
           # one of ns can be down (during initial start forexample) no need to worry for federated cluster
           if len(nameservices) > 1:
-            Logger.exception("Cannot run HdfsResource for nameservice {0}. Due to no active namenode present".format(nameservice))
+            Logger.exception(f"Cannot run HdfsResource for nameservice {nameservice}. Due to no active namenode present")
           else:
             raise
 
@@ -112,7 +112,7 @@ class HdfsResourceJar:
     env_dict_key = 'hdfs_files_sudo' if main_resource.create_as_root else 'hdfs_files'
     
     if main_resource.create_as_root:
-      Logger.info("Will create {0} as root user".format(main_resource.resource.target))
+      Logger.info(f"Will create {main_resource.resource.target} as root user")
       
     
     if not env_dict_key in env.config:
@@ -240,7 +240,7 @@ class WebHDFSUtil:
         raise
 
     while True:
-      Logger.info("Retrying after {0} seconds. Reason: {1}".format(try_sleep, str(last_exception)))
+      Logger.info(f"Retrying after {try_sleep} seconds. Reason: {str(last_exception)}")
       try_count -= 1
       time.sleep(try_sleep)
 
@@ -391,7 +391,7 @@ class HdfsResourceWebHDFS:
         except namenode_ha_utils.NoActiveNamenodeException as ex:
           # one of ns can be down (during initial start forexample) no need to worry for federated cluster
           if len(nameservices) > 1:
-            Logger.exception("Cannot run HdfsResource for nameservice {0}. Due to no active namenode present".format(nameservice))
+            Logger.exception(f"Cannot run HdfsResource for nameservice {nameservice}. Due to no active namenode present")
           else:
             raise
 
@@ -703,7 +703,7 @@ class HdfsResourceProvider(Provider):
       # so for them fast-hdfs-resource.jar should be used
       if path_protocol and path_protocol != self.default_protocol:
         self.can_use_webhdfs = False
-        Logger.info("Cannot use webhdfs for {0} defaultFs = {1} has different protocol".format(self.resource.target, self.resource.default_fs))
+        Logger.info(f"Cannot use webhdfs for {self.resource.target} defaultFs = {self.resource.default_fs} has different protocol")
     else:
       self.can_use_webhdfs = False
       self.create_as_root = True
@@ -714,7 +714,7 @@ class HdfsResourceProvider(Provider):
     self.manage_if_exists = not parsed_path in parsed_not_managed_paths
 
     if parsed_path in self.ignored_resources_list:
-      Logger.info("Skipping '{0}' because it is in ignore file {1}.".format(self.resource, self.resource.hdfs_resource_ignore_file))
+      Logger.info(f"Skipping '{self.resource}' because it is in ignore file {self.resource.hdfs_resource_ignore_file}.")
       return
     
     self.get_hdfs_resource_executor().action_delayed(action_name, self)
@@ -741,7 +741,7 @@ class HdfsResourceProvider(Provider):
   
   def assert_parameter_is_set(self, parameter_name):
     if not getattr(self.resource, parameter_name):
-      raise Fail("Resource parameter '{0}' is not set.".format(parameter_name))
+      raise Fail(f"Resource parameter '{parameter_name}' is not set.")
     return True
   
   def kinit(self):

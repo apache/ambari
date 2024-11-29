@@ -75,7 +75,7 @@ class AptManagerProperties(GenericManagerProperties):
 class AptManager(GenericManager):
 
   def get_installed_package_version(self, package_name):
-    r = shell.subprocess_executor("dpkg -s {0} | grep Version | awk '{{print $2}}'".format(package_name))
+    r = shell.subprocess_executor(f"dpkg -s {package_name} | grep Version | awk '{{print $2}}'")
     return r.out.strip(os.linesep)
 
   @property
@@ -184,7 +184,7 @@ class AptManager(GenericManager):
       repo_ids.append(self.transform_baseurl_to_repoid(repo.base_url))
 
     if repos.feat.scoped:
-      Logger.info("Looking for matching packages in the following repositories: {0}".format(", ".join(repo_ids)))
+      Logger.info(f"Looking for matching packages in the following repositories: {', '.join(repo_ids)}")
       for repo_id in repo_ids:
         for package in packages:
           if repo_id in package[2]:
@@ -203,7 +203,7 @@ class AptManager(GenericManager):
             filtered_packages.append(package[0])
 
       if len(filtered_packages) > 0:
-        Logger.info("Found packages for repo {}".format(str(filtered_packages)))
+        Logger.info(f"Found packages for repo {str(filtered_packages)}")
         return filtered_packages
       else:
         return [package[0] for package in packages]
@@ -261,34 +261,34 @@ class AptManager(GenericManager):
         if 'base' in context.use_repos:
           use_repos = set([v for k, v in context.use_repos.items() if k != 'base'])
         else:
-          cmd = cmd + ['-o', 'Dir::Etc::SourceList={0}'.format(self.properties.empty_file)]
+          cmd = cmd + ['-o', f'Dir::Etc::SourceList={self.properties.empty_file}']
           use_repos = set(context.use_repos.values())
 
         if use_repos:
           is_tmp_dir_created = True
           apt_sources_list_tmp_dir = tempfile.mkdtemp(suffix="-ambari-apt-sources-d")
-          Logger.info("Temporary sources directory was created: {}".format(apt_sources_list_tmp_dir))
+          Logger.info(f"Temporary sources directory was created: {apt_sources_list_tmp_dir}")
 
           for repo in use_repos:
             new_sources_file = os.path.join(apt_sources_list_tmp_dir, repo + '.list')
-            Logger.info("Temporary sources file will be copied: {0}".format(new_sources_file))
+            Logger.info(f"Temporary sources file will be copied: {new_sources_file}")
             sudo.copy(os.path.join(self.properties.repo_definition_location, repo + '.list'), new_sources_file)
             copied_sources_files.append(new_sources_file)
-          cmd = cmd + ['-o', 'Dir::Etc::SourceParts='.format(apt_sources_list_tmp_dir)]
+          cmd = cmd + ['-o', f'Dir::Etc::SourceParts={apt_sources_list_tmp_dir}']
 
       cmd = cmd + [name]
-      Logger.info("Installing package {0} ('{1}')".format(name, shell.string_cmd_from_args_list(cmd)))
+      Logger.info(f"Installing package {name} ('{shell.string_cmd_from_args_list(cmd)}')")
       shell.repository_manager_executor(cmd, self.properties, context, env=self.properties.install_cmd_env)
 
       if is_tmp_dir_created:
         for temporary_sources_file in copied_sources_files:
-          Logger.info("Removing temporary sources file: {0}".format(temporary_sources_file))
+          Logger.info(f"Removing temporary sources file: {temporary_sources_file}")
           os.remove(temporary_sources_file)
         if apt_sources_list_tmp_dir:
-          Logger.info("Removing temporary sources directory: {0}".format(apt_sources_list_tmp_dir))
+          Logger.info(f"Removing temporary sources directory: {apt_sources_list_tmp_dir}")
           os.rmdir(apt_sources_list_tmp_dir)
     else:
-      Logger.info("Skipping installation of existing package {0}".format(name))
+      Logger.info(f"Skipping installation of existing package {name}")
 
   @replace_underscores
   def upgrade_package(self, name, context):
@@ -318,10 +318,10 @@ class AptManager(GenericManager):
       raise ValueError("Installation command were executed with no package name passed")
     elif self._check_existence(name):
       cmd = self.properties.remove_cmd[context.log_output] + [name]
-      Logger.info("Removing package {0} ('{1}')".format(name, shell.string_cmd_from_args_list(cmd)))
+      Logger.info(f"Removing package {name} ('{shell.string_cmd_from_args_list(cmd)}')")
       shell.repository_manager_executor(cmd, self.properties, context)
     else:
-      Logger.info("Skipping removal of non-existing package {0}".format(name))
+      Logger.info(f"Skipping removal of non-existing package {name}")
 
   @replace_underscores
   def _check_existence(self, name):

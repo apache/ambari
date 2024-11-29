@@ -219,8 +219,8 @@ class Script(object):
     # this is needed in cases where an existing symlink is on the system and stack-select can't
     # change it on installation (because it's scared to in order to support parallel installs)
     if is_install_command and repository_resolved and repository_version is not None:
-      Logger.info("The repository with version {0} for this command has been marked as resolved."\
-        " It will be used to report the version of the component which was installed".format(repository_version))
+      Logger.info(f"The repository with version {repository_version} for this command has been marked as resolved."\
+        " It will be used to report the version of the component which was installed")
 
       component_version = repository_version
 
@@ -238,9 +238,9 @@ class Script(object):
         output, code, versions = stack_select.unsafe_get_stack_versions()
         if len(versions) == 1:
           component_version = versions[0]
-          Logger.error("The '{0}' component did not advertise a version. This may indicate a problem with the component packaging. " \
-                         "However, the stack-select tool was able to report a single version installed ({1}). " \
-                         "This is the version that will be reported.".format(stack_select_package_name, component_version))
+          Logger.error(f"The '{stack_select_package_name}' component did not advertise a version. This may indicate a problem with the component packaging. " \
+                         f"However, the stack-select tool was able to report a single version installed ({component_version}). " \
+                         "This is the version that will be reported.")
 
       if component_version:
         self.put_structured_out({"version": component_version})
@@ -252,7 +252,7 @@ class Script(object):
           self.put_structured_out({"repository_version_id": repo_version_id})
       else:
         if not self.is_hook():
-          Logger.error("The '{0}' component did not advertise a version. This may indicate a problem with the component packaging.".format(stack_select_package_name))
+          Logger.error(f"The '{stack_select_package_name}' component did not advertise a version. This may indicate a problem with the component packaging.")
 
 
   def should_expose_component_version(self, command_name):
@@ -379,11 +379,11 @@ class Script(object):
     example: command_name=start, afix=pre will result in execution of self.pre_start(env) if exists
     """
     self_methods = dir(self)
-    method_name = "{0}_{1}".format(afix, command_name)
+    method_name = f"{afix}_{command_name}"
     if not method_name in self_methods:
-      Logger.logger.debug("Action afix '{0}' not present".format(method_name))
+      Logger.logger.debug(f"Action afix '{method_name}' not present")
       return
-    Logger.logger.debug("Execute action afix: {0}".format(method_name))
+    Logger.logger.debug(f"Execute action afix: {method_name}")
     method = getattr(self, method_name)
     method(env)
 
@@ -427,11 +427,11 @@ class Script(object):
     pids = []
     for pid_file in pid_files:
       if not sudo.path_exists(pid_file):
-        raise Fail("Pid file {0} doesn't exist after starting of the component.".format(pid_file))
+        raise Fail(f"Pid file {pid_file} doesn't exist after starting of the component.")
 
       pids.append(sudo.read_file(pid_file).strip())
 
-    Logger.info("Component has started with pid(s): {0}".format(', '.join([x.decode('utf-8') for x in pids])))
+    Logger.info(f"Component has started with pid(s): {', '.join([x.decode('utf-8') for x in pids])}")
 
   def post_stop(self, env):
     """
@@ -465,7 +465,7 @@ class Script(object):
     """
     self_methods = dir(self)
     if not command_name in self_methods:
-      raise Fail("Script '{0}' has no method '{1}'".format(sys.argv[0], command_name))
+      raise Fail(f"Script '{sys.argv[0]}' has no method '{command_name}'")
     method = getattr(self, command_name)
     return method
 
@@ -518,7 +518,7 @@ class Script(object):
     from resource_management.libraries.functions.default import default
 
     package_delimiter = '-' if OSCheck.is_ubuntu_family() else '_'
-    package_regex = name.replace(STACK_VERSION_PLACEHOLDER, '(\d|{0})+'.format(package_delimiter)) + "$"
+    package_regex = name.replace(STACK_VERSION_PLACEHOLDER, f'(\d|{package_delimiter})+') + "$"
     repo = default('/repositoryFile', None)
     name_with_version = None
 
@@ -532,9 +532,9 @@ class Script(object):
         return package
 
     if name_with_version:
-      raise Fail("No package found for {0}(expected name: {1})".format(name, name_with_version))
+      raise Fail(f"No package found for {name}(expected name: {name_with_version})")
     else:
-      raise Fail("Cannot match package for regexp name {0}. Available packages: {1}".format(name, self.available_packages_in_repos))
+      raise Fail(f"Cannot match package for regexp name {name}. Available packages: {self.available_packages_in_repos}")
 
   def format_package_name(self, name):
     from resource_management.libraries.functions.default import default
@@ -579,7 +579,7 @@ class Script(object):
     if (package_version is None or '*' in package_version) \
         and effective_version is not None and 'INSTALL' == role_command:
       package_version = effective_version.replace('.', package_delimiter).replace('-', package_delimiter)
-      Logger.info("Version {0} was provided as effective cluster version.  Using package version {1}".format(effective_version, package_version))
+      Logger.info(f"Version {effective_version} was provided as effective cluster version.  Using package version {package_version}")
 
     if package_version:
       stack_version_package_formatted = package_version
@@ -720,13 +720,13 @@ class Script(object):
     stack_root_json = default("/configurations/cluster-env/stack_root", None)
 
     if stack_root_json is None:
-      return "/usr/{0}".format(stack_name.lower())
+      return f"/usr/{stack_name.lower()}"
 
     stack_root = json.loads(stack_root_json)
 
     if stack_name not in stack_root:
-      Logger.warning("Cannot determine stack root for stack named {0}".format(stack_name))
-      return "/usr/{0}".format(stack_name.lower())
+      Logger.warning(f"Cannot determine stack root for stack named {stack_name}")
+      return f"/usr/{stack_name.lower()}"
 
     return stack_root[stack_name]
 
@@ -830,10 +830,10 @@ class Script(object):
     repos = CommandRepository(config['repositoryFile'])
 
     repo_ids = [repo.repo_id for repo in repos.items]
-    Logger.info("Command repositories: {0}".format(", ".join(repo_ids)))
+    Logger.info(f"Command repositories: {', '.join(repo_ids)}")
     repos.items = [x for x in repos.items if (not x.applicable_services or service_name in x.applicable_services) ]
     applicable_repo_ids = [repo.repo_id for repo in repos.items]
-    Logger.info("Applicable repositories: {0}".format(", ".join(applicable_repo_ids)))
+    Logger.info(f"Applicable repositories: {', '.join(applicable_repo_ids)}")
 
 
     pkg_provider = ManagerFactory.get()
@@ -910,7 +910,7 @@ class Script(object):
       chooser_method = getattr(package_conditions, condition)
     except AttributeError:
       name = package['name']
-      raise Fail("Condition with name '{0}', when installing package {1}. Please check package_conditions.py.".format(condition, name))
+      raise Fail(f"Condition with name '{condition}', when installing package {name}. Please check package_conditions.py.")
 
     return chooser_method()
 
@@ -1026,9 +1026,9 @@ class Script(object):
         #TODO Once the logic for pid is available from Ranger and Ranger KMS code, will remove the below if block.
         services_to_skip = ['RANGER', 'RANGER_KMS']
         if service_name in services_to_skip:
-          Logger.info('Temporarily skipping status check for {0} service only.'.format(service_name))
+          Logger.info(f'Temporarily skipping status check for {service_name} service only.')
         elif is_stack_upgrade:
-          Logger.info('Skipping status check for {0} service during upgrade'.format(service_name))
+          Logger.info(f'Skipping status check for {service_name} service during upgrade')
         else:
           self.status(env)
           raise Fail("Stop command finished but process keep running.")

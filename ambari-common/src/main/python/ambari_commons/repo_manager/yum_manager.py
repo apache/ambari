@@ -87,7 +87,7 @@ class YumManager(GenericManager):
     repo_ids = [repo.repo_id for repo in repos.items]
 
     if repos.feat.scoped:
-      Logger.info("Looking for matching packages in the following repositories: {0}".format(", ".join(repo_ids)))
+      Logger.info(f"Looking for matching packages in the following repositories: {', '.join(repo_ids)}")
     else:
       Logger.info("Packages will be queried using all available repositories on the system.")
 
@@ -101,7 +101,7 @@ class YumManager(GenericManager):
     if repos.feat.scoped:
       fallback_repo_ids = set(repo_ids) ^ self._build_repos_ids(repos)  # no reason to scan the same repos again
       if fallback_repo_ids:
-        Logger.info("Adding fallback repositories: {0}".format(", ".join(fallback_repo_ids)))
+        Logger.info(f"Adding fallback repositories: {', '.join(fallback_repo_ids)}")
 
         for repo in fallback_repo_ids:
           available_packages.extend(self.available_packages(repo_filter=repo))
@@ -190,8 +190,7 @@ class YumManager(GenericManager):
     pattern = re.compile("has missing requires|Error:")
 
     if ret.code or (ret.out and pattern.search(ret.out)):
-      err_msg = Logger.filter_text("Failed to verify package dependencies. Execution of '{0}' returned {1}. {2}".format(
-        self.properties.verify_dependency_cmd, ret.code, ret.out))
+      err_msg = Logger.filter_text(f"Failed to verify package dependencies. Execution of '{self.properties.verify_dependency_cmd}' returned {ret.code}. {ret.out}")
       Logger.error(err_msg)
       return False
 
@@ -216,10 +215,10 @@ class YumManager(GenericManager):
         disable_repo_option = '--disablerepo=' + "*" if not context.skip_repos or len(context.skip_repos) == 0 else ','.join(context.skip_repos)
         cmd = cmd + [disable_repo_option, enable_repo_option]
       cmd = cmd + [name]
-      Logger.info("Installing package {0} ('{1}')".format(name, shell.string_cmd_from_args_list(cmd)))
+      Logger.info(f"Installing package {name} ('{shell.string_cmd_from_args_list(cmd)}')")
       shell.repository_manager_executor(cmd, self.properties, context)
     else:
-      Logger.info("Skipping installation of existing package {0}".format(name))
+      Logger.info(f"Skipping installation of existing package {name}")
 
   def upgrade_package(self, name, context):
     """
@@ -250,10 +249,10 @@ class YumManager(GenericManager):
         cmd = self.properties.remove_without_dependencies_cmd + [name]
       else:
         cmd = self.properties.remove_cmd[context.log_output] + [name]
-      Logger.info("Removing package {0} ('{1}')".format(name, shell.string_cmd_from_args_list(cmd)))
+      Logger.info(f"Removing package {name} ('{shell.string_cmd_from_args_list(cmd)}')")
       shell.repository_manager_executor(cmd, self.properties, context)
     else:
-      Logger.info("Skipping removal of non-existing package {0}".format(name))
+      Logger.info(f"Skipping removal of non-existing package {name}")
 
   def _check_existence(self, name):
     """
@@ -405,13 +404,9 @@ class YumManager(GenericManager):
     transactions = list(self.uncomplete_transactions())
 
     if len(transactions) > 0:
-      Logger.info("Yum non-completed transactions check failed, found {0} non-completed transaction(s):".format(len(transactions)))
+      Logger.info(f"Yum non-completed transactions check failed, found {len(transactions)} non-completed transaction(s):")
       for tr in transactions:
-        Logger.info("[{0}] Packages broken: {1}; Packages not-installed {2}".format(
-          tr.transaction_id,
-          ", ".join(tr.pkgs_done),
-          ", ".join(tr.pkgs_aborted)
-        ))
+        Logger.info(f"[{tr.transaction_id}] Packages broken: {', '.join(tr.pkgs_done)}; Packages not-installed {', '.join(tr.pkgs_aborted)}")
 
       return True
 

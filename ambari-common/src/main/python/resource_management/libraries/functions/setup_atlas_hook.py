@@ -180,7 +180,7 @@ def setup_atlas_jar_symlinks(hook_name, jar_source_dir):
       if os.path.isfile(atlas_hook_file_name):
         Link(source_lib_file_name, to=atlas_hook_file_name)
   else:
-    Logger.info("Atlas hook directory path {0} doesn't exist".format(atlas_hook_dir))
+    Logger.info(f"Atlas hook directory path {atlas_hook_dir} doesn't exist")
 
 def install_atlas_hook_packages(atlas_plugin_package, atlas_ubuntu_plugin_package, host_sys_prepped,
                                 agent_stack_retry_on_unavailability, agent_stack_retry_count):

@@ -139,8 +139,8 @@ def handle_mounted_dirs(func, dirs_string, history_filename, update_cache=True):
     folder_exists = dir_ in valid_existing_dirs
 
     if not folder_exists and ignore_bad_mounts:
-      Logger.debug("The directory {0} doesn't exist.".format(dir_))
-      Logger.warning("Not creating {0} as cluster-env/ignore_bad_mounts is enabled.".format(dir_))
+      Logger.debug(f"The directory {dir_} doesn't exist.")
+      Logger.warning(f"Not creating {dir_} as cluster-env/ignore_bad_mounts is enabled.")
       may_manage_this_dir = False
     else:
       may_manage_this_dir = _may_manage_folder(dir_, last_mount_point_for_dir, is_non_root_dir, dirs_unmounted, error_messages, manage_dirs_on_root, curr_mount_point)
@@ -153,7 +153,7 @@ def handle_mounted_dirs(func, dirs_string, history_filename, update_cache=True):
           Logger.warning("Trying to create another directory on the following mount: " + str(curr_mount_point))
 
     if may_manage_this_dir:
-      Logger.info("Forcefully ensuring existence and permissions of the directory: {0}".format(dir_))
+      Logger.info(f"Forcefully ensuring existence and permissions of the directory: {dir_}")
       # Call the function
       func(dir_)
       used_mounts.add(curr_mount_point)
@@ -175,7 +175,7 @@ def handle_mounted_dirs(func, dirs_string, history_filename, update_cache=True):
     header = " WARNING ".join(["*****"] * 6)
     header = "\n" + "\n".join([header, ] * 3) + "\n"
     msg = " ".join(error_messages) + \
-          " Please ensure that mounts are healthy. If the mount change was intentional, you can update the contents of {0}.".format(history_filename)
+          f" Please ensure that mounts are healthy. If the mount change was intentional, you can update the contents of {history_filename}."
     Logger.error(header + msg + header)
 
   dir_to_mount = DIR_TO_MOUNT_HEADER
@@ -194,24 +194,24 @@ def _may_manage_folder(dir_, last_mount_point_for_dir, is_non_root_dir, dirs_unm
       if manage_dirs_on_root:
         may_manage_this_dir = True
       else:
-        Logger.warning("Will not manage the directory {0} since it's on root mount and cluster-env/manage_dirs_on_root == {1}".format(dir_, str(manage_dirs_on_root)))
+        Logger.warning(f"Will not manage the directory {dir_} since it's on root mount and cluster-env/manage_dirs_on_root == {str(manage_dirs_on_root)}")
         may_manage_this_dir = False
         # Do not add to the history file:
         dirs_unmounted.add(dir_)
   else:
-    Logger.debug("Last mount for {0} in the history file is {1}".format(dir_, str(last_mount_point_for_dir)))
+    Logger.debug(f"Last mount for {dir_} in the history file is {str(last_mount_point_for_dir)}")
     if last_mount_point_for_dir == curr_mount_point:
       if is_non_root_dir or manage_dirs_on_root:
-        Logger.debug("Will manage {0} since it's on the same mount point: {1}".format(dir_, str(last_mount_point_for_dir)))
+        Logger.debug(f"Will manage {dir_} since it's on the same mount point: {str(last_mount_point_for_dir)}")
         may_manage_this_dir = True
       else:
-        Logger.warning("Will not manage {0} since it's on the root mount point and cluster-env/manage_dirs_on_root == {1}".format(dir_, str(manage_dirs_on_root)))
+        Logger.warning(f"Will not manage {dir_} since it's on the root mount point and cluster-env/manage_dirs_on_root == {str(manage_dirs_on_root)}")
         may_manage_this_dir = False
     else:
       may_manage_this_dir = False
       dirs_unmounted.add(dir_)
 
-      msg = "Directory {0} became unmounted from {1} . Current mount point: {2} .".format(dir_, last_mount_point_for_dir, curr_mount_point)
+      msg = f"Directory {dir_} became unmounted from {last_mount_point_for_dir} . Current mount point: {curr_mount_point} ."
       error_messages.append(msg)
       Logger.warning(msg)
   return may_manage_this_dir

@@ -48,7 +48,7 @@ class MpackVersion(object):
     self.__build = int(build)
 
   def __repr__(self):
-    return "{0}.{1}.{2}-h{3}-b{4}".format(*self.to_list())
+    return f"{self.to_list()[0]}.{self.to_list()[1]}.{self.to_list()[2]}.{self.to_list()[3]}-h{self.to_list()[4]}-b{self.to_list()[5]}"
 
   def to_list(self):
     """
@@ -71,7 +71,7 @@ class MpackVersion(object):
     :raise TypeError
     """
     if other and not isinstance(other, self.__class__):
-      raise TypeError("Operand type is different from {0}".format(self.__class__.__name__))
+      raise TypeError(f"Operand type is different from {self.__class__.__name__}")
 
     r = 0
     x = self.to_list()
@@ -159,10 +159,10 @@ class MpackVersion(object):
     if not matcher:
       matcher = cls.__mpack_legacy_stack_version_regex.match(version)
       if not matcher:
-        raise ValueError("{0} is not a valid {1}".format(version, cls.__name__))
+        raise ValueError(f"{version} is not a valid {cls.__name__}")
     else:
       if not matcher.group("hotfix"):
-        raise ValueError("{0} is not a valid {1}".format(version, cls.__name__))
+        raise ValueError(f"{version} is not a valid {cls.__name__}")
 
     return matcher
 
@@ -192,7 +192,7 @@ class MpackVersion(object):
     matcher = cls.__mpack_version_regex.match(version)
 
     if not matcher:
-      raise ValueError("{0} is not a valid {1}".format(version, cls.__name__))
+      raise ValueError(f"{version} is not a valid {cls.__name__}")
 
     return matcher
 

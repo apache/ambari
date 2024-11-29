@@ -360,7 +360,7 @@ def run_powershell_script(script_content):
   script_file = open(os.path.join(tmp_dir,random_filename+".ps1"),"w")
   script_file.write(script_content)
   script_file.close()
-  result = os_run_os_command("powershell  -ExecutionPolicy unrestricted -File {0}".format(script_file.name))
+  result = os_run_os_command(f"powershell  -ExecutionPolicy unrestricted -File {script_file.name}")
   os.remove(script_file.name)
   return result
 
@@ -378,8 +378,8 @@ def os_is_root():
   '''
   retcode, out, err = os_run_os_command(WHOAMI_GROUPS)
   if retcode != 0:
-    err_msg = "Unable to check the current user's group memberships. " \
-              "Command {0} returned exit code {1} with message: {2}".format(WHOAMI_GROUPS, retcode, err)
+    err_msg = f"Unable to check the current user's group memberships. " \
+              f"Command {WHOAMI_GROUPS} returned exit code {retcode} with message: {err}"
     print_warning_msg(err_msg)
     raise FatalException(retcode, err_msg)
 
@@ -407,10 +407,10 @@ def os_set_file_permissions(file, mod, recursive, user):
   #  print_warning_msg(WARN_MSG.format(command, file, err))
 
   # rights = mod
-  # acls_remove_cmd = "icacls {0} /remove {1}".format(file, user)
+  # acls_remove_cmd = f"icacls {file} /remove {user}"
   # retcode, out, err = os_run_os_command(acls_remove_cmd)
   # if retcode == 0:
-  #   acls_modify_cmd = "icacls {0} /grant {1}:{2}".format(file, user, rights)
+  #   acls_modify_cmd = f"icacls {file} /grant {user}:{rights}"
   #   retcode, out, err = os_run_os_command(acls_modify_cmd)
   return retcode
 

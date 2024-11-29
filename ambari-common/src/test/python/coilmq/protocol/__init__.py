@@ -87,7 +87,7 @@ class STOMP10(STOMP):
         cmd_method = frame.cmd.lower()
 
         if not cmd_method in VALID_COMMANDS:
-            raise ProtocolError("Invalid STOMP command: {}".format(frame.cmd))
+            raise ProtocolError(f"Invalid STOMP command: {frame.cmd}")
 
         method = getattr(self, cmd_method, None)
 
@@ -271,8 +271,7 @@ class STOMP11(STOMP10):
             self.timer.schedule(max(self.send_heartbeat_interval, datetime.timedelta(milliseconds=cx)).total_seconds(),
                                 self.receive_heartbeat)
         self.timer.start()
-        response.headers['heart-beat'] = '{0},{1}'.format(int(self.send_heartbeat_interval.microseconds / 1000),
-                                                          int(self.receive_heartbeat_interval.microseconds / 1000))
+        response.headers['heart-beat'] = f'{int(self.send_heartbeat_interval.microseconds / 1000)},{int(self.receive_heartbeat_interval.microseconds / 1000)}'
 
     def disable_heartbeat(self):
         self.timer.stop()
@@ -284,7 +283,7 @@ class STOMP11(STOMP10):
     def receive_heartbeat(self):
         ago = datetime.datetime.now() - self.last_hb
         if ago > self.receive_heartbeat_interval:
-            self.engine.log.debug("No heartbeat was received for {0} seconds".format(ago.total_seconds()))
+            self.engine.log.debug(f"No heartbeat was received for {ago.total_seconds()} seconds")
             self.engine.unbind()
 
     def connect(self, frame, response=None):
@@ -315,7 +314,7 @@ class STOMP11(STOMP10):
             self.engine.connection.send_frame(Frame(
                     frames.ERROR,
                     headers={'version': versions, 'content-type': frames.TEXT_PLAIN},
-                    body='Supported protocol versions are {0}'.format(versions)
+                    body=f'Supported protocol versions are {versions}'
             ))
         else:
             response.headers['version'] = max(common)

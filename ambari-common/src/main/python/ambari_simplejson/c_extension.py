@@ -45,7 +45,7 @@ def get():
 
   for _import_path in _import_paths:
     try:
-      return __import__("{}.{}".format(_path, _import_path), fromlist=["_speedups"])._speedups
+      return __import__(f"{_path}.{_import_path}", fromlist=["_speedups"])._speedups
     except (ImportError, AttributeError):
       pass
 

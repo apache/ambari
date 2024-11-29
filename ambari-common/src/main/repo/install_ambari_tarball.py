@@ -57,7 +57,7 @@ class Utils:
     else:
       stdout = stderr = None
     
-    logger.info("Running '{0}'".format(command))
+    logger.info(f"Running '{command}'")
     proc = subprocess.Popen(command, shell=shell, stdout=stdout, stderr=stderr, env=env, universal_newlines=True)
       
     if not print_output:
@@ -78,7 +78,7 @@ class Utils:
   def install_package(name):
     from os_check import OSCheck
     
-    logger.info("Checking for existance of {0} dependency package".format(name))
+    logger.info(f"Checking for existance of {name} dependency package")
     is_rpm = not OSCheck.is_ubuntu_family()
     
     if is_rpm:
@@ -90,9 +90,9 @@ class Utils:
       
     try:
       Utils.os_call(is_installed_cmd, logoutput=False)
-      logger.info("Package {0} is already installed. Skipping installation.".format(name))
+      logger.info(f"Package {name} is already installed. Skipping installation.")
     except OsCallFailure:
-      logger.info("Package {0} is not installed. Installing it...".format(name))
+      logger.info(f"Package {name} is not installed. Installing it...")
       Utils.os_call(install_cmd)
     
   
@@ -104,7 +104,7 @@ class FakePropertiesHeader(object):
   FAKE_SECTION_NAME = 'section'
   def __init__(self, fp):
     self.fp = fp
-    self.sechead = '[{0}]\n'.format(FakePropertiesHeader.FAKE_SECTION_NAME)
+    self.sechead = f'[{FakePropertiesHeader.FAKE_SECTION_NAME}]\n'
   def readline(self):
     if self.sechead:
       try: 
@@ -132,8 +132,8 @@ class Installer:
       if dirname:
         Utils.os_call(["mkdir", "-p", dirname])
         
-      url = "{0}/{1}".format(self.base_url, name)
-      logger.info("Downloading {0}".format(url))
+      url = f"{self.base_url}/{name}"
+      logger.info(f"Downloading {url}")
       Utils.os_call(["wget", "-O", name, url])
     
   def run(self):
@@ -183,7 +183,7 @@ class Installer:
     packages_string = re.sub('[()]','',packages_string)
     
     if self.skip_dependencies:
-      var = input("Please confirm you have the following packages installed {0} (y/n): ".format(packages_string))
+      var = input(f"Please confirm you have the following packages installed {packages_string} (y/n): ")
       if var.lower() != "y" and var.lower() != "yes":
         raise Exception("User canceled the installation.")
       return

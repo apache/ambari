@@ -54,8 +54,7 @@ def check_ssl_certificate_and_return_ssl_version(host, port, ca_certs, ssl_versi
   try:
     ssl.get_server_certificate((host, port), ssl_version=ssl_version, ca_certs=ca_certs)
   except ssl.SSLError as ssl_error:
-    raise Fail("Failed to verify the SSL certificate for https://{0}:{1} with CA certificate in {2}. Error : {3}"
-             .format(host, port, ca_certs, str(ssl_error)))
+    raise Fail(f"Failed to verify the SSL certificate for https://{host}:{port} with CA certificate in {ca_certs}. Error : {str(ssl_error)}")
   return ssl_version
 
 

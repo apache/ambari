@@ -41,7 +41,7 @@ def get_stack_version(package_name):
   try:
     component_home_dir = os.environ[package_name.upper() + "_HOME"]
   except KeyError:
-    Logger.info('Skipping get_stack_version since the component {0} is not yet available'.format(package_name))
+    Logger.info(f'Skipping get_stack_version since the component {package_name} is not yet available')
     return None # lazy fail
 
   #As a rule, component_home_dir is of the form <stack_root_dir>\[\]<component_versioned_subdir>[\]
@@ -54,7 +54,7 @@ def get_stack_version(package_name):
   # with package_version = #.#.# and stack_version=#.#.#.#-<build_number>
   match = re.findall('[0-9]+.[0-9]+.[0-9]+.[0-9]+-[0-9]+', home_dir_split[iSubdir])
   if not match:
-    Logger.info('Failed to get extracted version for component {0}. Home dir not in expected format.'.format(package_name))
+    Logger.info(f'Failed to get extracted version for component {package_name}. Home dir not in expected format.')
     return None # lazy fail
 
   return match[0]
@@ -72,8 +72,7 @@ def get_stack_version(package_name):
     return None # lazy fail
   
   try:
-    command = 'ambari-python-wrap {stack_selector_path} status {package_name}'.format(
-            stack_selector_path=stack_selector_path, package_name=package_name)
+    command = f'ambari-python-wrap {stack_selector_path} status {package_name}'
     return_code, stack_output = shell.call(command, timeout=20)
   except Exception as e:
     Logger.error(str(e))
@@ -81,7 +80,7 @@ def get_stack_version(package_name):
 
   if return_code != 0:
     raise Fail(
-      'Unable to determine the current version because of a non-zero return code of {0}'.format(str(return_code)))
+      f'Unable to determine the current version because of a non-zero return code of {str(return_code)}')
 
   stack_version = re.sub(package_name + ' - ', '', stack_output)
   stack_version = stack_version.rstrip()

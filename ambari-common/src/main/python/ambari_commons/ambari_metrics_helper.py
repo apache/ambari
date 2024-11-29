@@ -65,18 +65,18 @@ def get_metric_collectors_from_properties_file(sink_name):
   try:
     hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
   except Exception as e:
-    raise Exception("Couldn't define hadoop_conf_dir: {0}".format(e))
+    raise Exception(f"Couldn't define hadoop_conf_dir: {e}")
   properties_filepath = os.path.join(hadoop_conf_dir, DEFAULT_METRICS2_PROPERTIES_FILE_NAME)
 
   if not os.path.exists(properties_filepath):
-    raise Exception("Properties file doesn't exist : {0}. Can't define metric collector hosts".format(properties_filepath))
+    raise Exception(f"Properties file doesn't exist : {properties_filepath}. Can't define metric collector hosts")
   props = load_properties_from_file(properties_filepath)
 
   property_key = sink_name + DEFAULT_COLLECTOR_SUFFIX
   if property_key in props:
     return props.get(property_key)
   else:
-    raise Exception("Properties file doesn't contain {0}. Can't define metric collector hosts".format(property_key))
+    raise Exception(f"Properties file doesn't contain {property_key}. Can't define metric collector hosts")
 
 def load_properties_from_file(filepath, sep='=', comment_char='#'):
   """
@@ -105,12 +105,11 @@ def create_ams_client(alert_id, ams_app_id, configurations, parameters):
   else:
     # ams-site/timeline.metrics.service.webapp.address is required
     if not METRICS_COLLECTOR_WEBAPP_ADDRESS_KEY in configurations:
-      raise Exception('{0} is a required parameter for the script'.format(METRICS_COLLECTOR_WEBAPP_ADDRESS_KEY))
+      raise Exception(f'{METRICS_COLLECTOR_WEBAPP_ADDRESS_KEY} is a required parameter for the script')
 
     collector_webapp_address = configurations[METRICS_COLLECTOR_WEBAPP_ADDRESS_KEY].split(":")
     if not _valid_collector_webapp_address(collector_webapp_address):
-      raise Exception('{0} value should be set as "fqdn_hostname:port", but set to {1}'.format(
-        METRICS_COLLECTOR_WEBAPP_ADDRESS_KEY, configurations[METRICS_COLLECTOR_WEBAPP_ADDRESS_KEY]))
+      raise Exception(f'{METRICS_COLLECTOR_WEBAPP_ADDRESS_KEY} value should be set as "fqdn_hostname:port", but set to {configurations[METRICS_COLLECTOR_WEBAPP_ADDRESS_KEY]}')
 
     ams_collector_hosts = default("/clusterHostInfo/metrics_collector_hosts", [])
     if not ams_collector_hosts:
@@ -154,7 +153,7 @@ class AmsClient:
           break
       except Exception as exception:
         if logger.isEnabledFor(logging.DEBUG):
-          logger.exception("[Alert][{0}] Unable to retrieve metrics from AMS ({1}:{2}): {3}".format(self.alert_id, ams_collector_host, self.ams_collector_port, str(exception)))
+          logger.exception(f"[Alert][{self.alert_id}] Unable to retrieve metrics from AMS ({ams_collector_host}:{self.ams_collector_port}): {str(exception)}")
 
     if not http_code:
       raise Exception("Ambari metrics is not available: no response")
@@ -199,29 +198,28 @@ class AmsClient:
       data = response.read()
     except Exception as exception:
       if logger.isEnabledFor(logging.DEBUG):
-        logger.exception("[Alert][{0}] Unable to retrieve metrics from AMS: {1}".format(self.alert_id, str(exception)))
+        logger.exception(f"[Alert][{self.alert_id}] Unable to retrieve metrics from AMS: {str(exception)}")
       status = response.status if response else None
       return None, status
     finally:
       if logger.isEnabledFor(logging.DEBUG):
-        logger.debug("""
-        AMS request parameters - {0}
-        AMS response - {1}
-        """.format(encoded_get_metrics_parameters, data))
+        logger.debug(f"""
+        AMS request parameters - {encoded_get_metrics_parameters}
+        AMS response - {data}
+        """)
       # explicitly close the connection as we've seen python hold onto these
       if conn is not None:
         try:
           conn.close()
         except:
-          logger.debug("[Alert][{0}] Unable to close URL connection to {1}".format(self.alert_id, url))
+          logger.debug(f"[Alert][{self.alert_id}] Unable to close URL connection to {url}")
 
     data_json = None
     try:
       data_json = json.loads(data)
     except Exception as exception:
       if logger.isEnabledFor(logging.DEBUG):
-        logger.exception("[Alert][{0}] Convert response to json failed or json doesn't contain needed data: {1}".
-                         format(self.alert_id, str(exception)))
+        logger.exception(f"[Alert][{self.alert_id}] Convert response to json failed or json doesn't contain needed data: {str(exception)}")
 
     if not data_json:
       return None, response.status

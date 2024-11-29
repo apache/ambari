@@ -41,6 +41,6 @@ def get_lock(lock_type):
   :rtype: threading.RLock()
   """
   if lock_type not in __GLOBAL_LOCKS:
-    raise Fail("There is no global lock associated with {0}".format(str(lock_type)))
+    raise Fail(f"There is no global lock associated with {str(lock_type)}")
 
   return __GLOBAL_LOCKS[lock_type]

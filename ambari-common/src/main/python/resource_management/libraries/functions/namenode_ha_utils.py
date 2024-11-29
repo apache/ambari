@@ -59,12 +59,12 @@ def get_namenode_states(hdfs_site, security_enabled, run_user, times=5, sleep_ti
     doRetries.attempt += 1
     active_namenodes, standby_namenodes, unknown_namenodes = get_namenode_states_noretries(hdfs_site, security_enabled, run_user, doRetries.attempt == times, name_service=name_service)
     Logger.info(
-      "NameNode HA states: active_namenodes = {0}, standby_namenodes = {1}, unknown_namenodes = {2}".format(
-        active_namenodes, standby_namenodes, unknown_namenodes))
+      f"NameNode HA states: active_namenodes = {active_namenodes}, standby_namenodes = {standby_namenodes},"
+      f" unknown_namenodes = {unknown_namenodes}")
     if active_namenodes:
       return active_namenodes, standby_namenodes, unknown_namenodes
     elif doRetries.attempt == times:
-      Logger.warning("No active NameNode was found after {0} retries. Will return current NameNode HA states".format(times))
+      Logger.warning(f"No active NameNode was found after {times} retries. Will return current NameNode HA states")
       return active_namenodes, standby_namenodes, unknown_namenodes
     raise Fail('No active NameNode was found.')
 
@@ -103,7 +103,7 @@ def _get_namenode_states_noretries_single_ns(hdfs_site, name_service, security_e
     state = get_value_from_jmx(jmx_uri, 'tag.HAState', security_enabled, run_user, is_https_enabled, last_retry)
     # If JMX parsing failed
     if not state:
-      check_service_cmd = "hdfs haadmin -ns {0} -getServiceState {1}".format(name_service, nn_unique_id)
+      check_service_cmd = f"hdfs haadmin -ns {name_service} -getServiceState {nn_unique_id}"
       code, out = shell.call(check_service_cmd, logoutput=True, user=run_user)
       if code == 0 and out:
         if HDFS_NN_STATE_STANDBY in out:
@@ -163,7 +163,7 @@ def get_hdfs_cluster_id_from_jmx(hdfs_site, security_enabled, run_user):
       if state:
         return state
 
-      Logger.info("Cannot get clusterId from {0}".format(jmx_uri))
+      Logger.info(f"Cannot get clusterId from {jmx_uri}")
 
   raise Fail("Cannot get clsuterId from jmx, since none of the namenodes is running/accessible via jmx.")
 
@@ -226,7 +226,7 @@ def get_property_for_active_namenode(hdfs_site, name_service, property_name, sec
     name_services = get_nameservices(hdfs_site)
 
     if name_service not in name_services:
-     raise Fail('Trying to get property for non-existing ns=\'{1}\'. Valid nameservices are {2}'.format(property_name, name_service, ','.join(name_services)))
+     raise Fail(f'Trying to get property for non-existing ns=\'{name_service}\'. Valid nameservices are {",".join(name_services)}')
 
     active_namenodes = get_namenode_states(hdfs_site, security_enabled, run_user, name_service=name_service)[0]
 
@@ -378,9 +378,9 @@ def get_name_service_by_hostname(hdfs_site, host_name):
     raise ValueError('Host name required when using namenode federation')
 
   for ns in name_services:
-    ha_name_nodes = hdfs_site['dfs.ha.namenodes.{0}'.format(ns)].split(',')
+    ha_name_nodes = hdfs_site[f'dfs.ha.namenodes.{ns}'].split(',')
     for nn in ha_name_nodes:
-      nn_rpc_port = hdfs_site['dfs.namenode.rpc-address.{0}.{1}'.format(ns,nn)]
+      nn_rpc_port = hdfs_site[f'dfs.namenode.rpc-address.{ns}.{nn}']
       nn_rpc = nn_rpc_port.split(':')[0]
       if nn_rpc == host_name:
         return ns

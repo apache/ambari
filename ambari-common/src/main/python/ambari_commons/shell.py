@@ -229,7 +229,7 @@ def quote_bash_args(command):
     return "''"
 
   if not isinstance(command, str):
-    raise ValueError("Command should be a list of strings, found '{0}' in command list elements".format(str(command)))
+    raise ValueError(f"Command should be a list of strings, found '{str(command)}' in command list elements")
 
   valid = set(string.ascii_letters + string.digits + '@%_-+=:,./')
   for char in command:
@@ -277,9 +277,9 @@ def launch_subprocess(command, term_geometry=(42, 255), env=None):
 
   # no way to execute shell command with bash pipes under sudo, it is fully dev responsibility
   if not is_under_root() and not isinstance(command, str):
-    command = "{0} -H -E {1}".format(AMBARI_SUDO_BINARY, string_cmd_from_args_list(command))  # core.shell.as_sudo
+    command = f"{AMBARI_SUDO_BINARY} -H -E {string_cmd_from_args_list(command)}"  # core.shell.as_sudo
   elif not is_under_root() and isinstance(command, str):
-    _logger.debug("Warning, command  \"{0}\" doesn't support sudo appending".format(command))
+    _logger.debug(f"Warning, command  \"{command}\" doesn't support sudo appending")
   is_shell = not isinstance(command, (list, tuple))
   environ = copy.deepcopy(os.environ)
   if env:
@@ -507,7 +507,7 @@ def process_executor(command, timeout=__TIMEOUT_SECONDS, error_callback=None, st
     elif strategy == ReaderStrategy.BufferedChunks:
       yield chunks_reader(cmd, kill_timer)
     else:
-      raise TypeError("Unknown reader strategy selected: {0}".format(strategy))
+      raise TypeError(f"Unknown reader strategy selected: {strategy}")
 
     _exit_code = cmd.poll()
     if _exit_code is None:
@@ -517,7 +517,7 @@ def process_executor(command, timeout=__TIMEOUT_SECONDS, error_callback=None, st
       error_callback(command, cmd.stderr.readlines(), cmd.returncode)
   except Exception as e:
     if not silent:
-      _logger.error("Exception during command '{0}' execution: {1}".format(command, str(e)))
+      _logger.error(f"Exception during command '{command}' execution: {str(e)}")
     if error_callback:
       error_callback(command, [str(e)], -1)
 
@@ -664,16 +664,14 @@ def kill_process_with_children(base_pid):
       wait_for_process_list_kill(pids_to_kill)
       still_existing_pids = get_existing_pids(pids_to_kill)
       if still_existing_pids:
-        _logger.warning("These PIDs {0} did not respond to {1} signal. Detailed commands list:\n {2}".format(
-          ", ".join([str(i) for i in still_existing_pids]),
-          sig_name,
-          "\n".join([i[2] for i in full_child_pids if i[0] in still_existing_pids])
-        ))
+        _logger.warning(f'These PIDs {", ".join([str(i) for i in still_existing_pids])} '
+                        f'did not respond to {sig_name} signal. Detailed commands list:\n '
+                        + "\n".join([i[2] for i in full_child_pids if i[0] in still_existing_pids]))
 
   if get_existing_pids(all_child_pids) and error_log:  # we're unable to kill all requested PIDs
     _logger.warn("Process termination error log:\n")
     for error_item in error_log:
-      _logger.warn("PID: {0}, Process: {1}, Exception message: {2}".format(*error_item))
+      _logger.warn(f"PID: {error_item[0]}, Process: {error_item[1]}, Exception message: {error_item[2]}")
 
 
 def __handle_retries(cmd, repo_properties, context, call_result, is_first_time, is_last_time):
@@ -693,7 +691,7 @@ def __handle_retries(cmd, repo_properties, context, call_result, is_first_time, 
 
   err_log_msg = None
   if context.retry_on_locked and repo_properties.locked_output and repo_properties.locked_output in out:
-    err_log_msg = __PACKAGE_MANAGER_LOCK_ACQUIRED_MSG.format(context.retry_sleep, call_result.out)
+    err_log_msg =f"{ __PACKAGE_MANAGER_LOCK_ACQUIRED_MSG} {context.retry_sleep} {call_result.out}"
   elif context.retry_on_repo_unavailability and repo_properties.repo_error:
     for err in repo_properties.repo_error:
       if err in call_result.all_out:
@@ -745,9 +743,8 @@ def repository_manager_executor(cmd, repo_properties, context=RepoCallContext(),
 
     should_stop_retries = __handle_retries(cmd, repo_properties, context, call_result, is_first_time, is_last_time)
     if (is_last_time or should_stop_retries) and call_result.code != 0:
-      message = "Failed to execute command '{0}', exited with code '{1}', message: '{2}'".format(
-        cmd if not isinstance(cmd, (list, tuple)) else " ".join(cmd),
-        call_result.code, call_result.error)
+      message = (f"Failed to execute command '{cmd if not isinstance(cmd, (list, tuple)) else ' '.join(cmd)}', "
+                 f"exited with code '{call_result.code}', message: '{call_result.error}'")
 
       if context.ignore_errors:
         _logger.warning(message)

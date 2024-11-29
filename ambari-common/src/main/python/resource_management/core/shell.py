@@ -58,7 +58,7 @@ def log_function_call(function):
     
     if quiet == False or (quiet == None and not is_internal_call):
       command_repr = Logger._get_resource_name_repr(command)
-      log_msg = Logger.get_function_repr("{0}[{1}]".format(function.__name__, command_repr), kwargs)
+      log_msg = Logger.get_function_repr(f"{function.__name__}[{command_repr}]", kwargs)
       Logger.info(log_msg)
       
     # logoutput=False - never log
@@ -73,7 +73,7 @@ def log_function_call(function):
     result = function(command, **kwargs)
     
     if quiet == False or (quiet == None and not is_internal_call):
-      log_msg = "{0} returned {1}".format(function.__name__, result)
+      log_msg = f"{function.__name__} returned {result}"
       Logger.info(log_msg)
       
     return result
@@ -85,7 +85,7 @@ def preexec_fn():
   try:
     os.setpgid(processId, processId)
   except:
-    Logger.exception('setpgid({0}, {0}) failed'.format(processId))
+    Logger.exception(f'setpgid({processId}, {processId}) failed')
     raise
 
 @log_function_call
@@ -152,7 +152,7 @@ def _call_wrapper(command, **kwargs):
         break
       except ExecuteTimeoutException as ex:     
         if on_timeout:
-          Logger.info("Executing '{0}'. Reason: {1}".format(on_timeout, str(ex)))
+          Logger.info(f"Executing '{on_timeout}'. Reason: {str(ex)}")
           result = checked_call(on_timeout)
         else:
           raise
@@ -160,7 +160,7 @@ def _call_wrapper(command, **kwargs):
       if is_last_try: # last try
         raise
       else:
-        Logger.info("Retrying after {0} seconds. Reason: {1}".format(try_sleep, str(ex)))
+        Logger.info(f"Retrying after {try_sleep} seconds. Reason: {str(ex)}")
         time.sleep(try_sleep)
       
   return result
@@ -286,7 +286,7 @@ def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess.PIPE
             try:
               on_new_line(line, out_fd == proc.stderr)
             except Exception:
-              err_msg = "Caused by on_new_line function failed with exception for input argument '{0}':\n{1}".format(line, traceback.format_exc())
+              err_msg = f"Caused by on_new_line function failed with exception for input argument '{line}':\n{traceback.format_exc()}"
               raise Fail(err_msg)
             
           if logoutput:
@@ -310,13 +310,13 @@ def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess.PIPE
       timer.cancel()
     # timeout occurred
     else:
-      err_msg = "Execution of '{0}' was killed due timeout after {1} seconds".format(command, timeout)
+      err_msg = f"Execution of '{command}' was killed due timeout after {timeout} seconds"
       raise ExecuteTimeoutException(err_msg)
    
   code = proc.returncode
   
   if throw_on_failure and not code in returns:
-    err_msg = Logger.filter_text("Execution of '{0}' returned {1}. {2}".format(command_alias, code, all_output))
+    err_msg = Logger.filter_text(f"Execution of '{command_alias}' returned {code}. {all_output}")
     raise ExecutionFailed(err_msg, code, out, err)
   
   # if separate stderr is enabled (by default it's redirected to out)
@@ -341,19 +341,19 @@ def as_sudo(command, env=None, auto_escape=True):
     #   
     # In that case while passing string,
     # any bash symbols eventually added to command like && || ; < > | << >> would cause problems.
-    err_msg = Logger.filter_text("String command '{0}' cannot be run as sudo. Please supply the command as a tuple of arguments".format(command))
+    err_msg = Logger.filter_text(f"String command '{command}' cannot be run as sudo. Please supply the command as a tuple of arguments")
     raise Fail(err_msg)
 
   env = _get_environment_str(_add_current_path_to_env(env)) if env else ENV_PLACEHOLDER
-  return "{0} {1} -H -E {2}".format(_get_sudo_binary(), env, command)
+  return f"{_get_sudo_binary()} {env} -H -E {command}"
 
 
 def as_user(command, user, env=None, auto_escape=True):
   if isinstance(command, (list, tuple)):
     command = string_cmd_from_args_list(command, auto_escape=auto_escape)
 
-  export_env = "export {0} ; ".format(_get_environment_str(_add_current_path_to_env(env))) if env else EXPORT_PLACEHOLDER
-  return "{0} su {1} -l -s /bin/bash -c {2}".format(_get_sudo_binary(), user, quote_bash_args(export_env + command))
+  export_env = f"export {_get_environment_str(_add_current_path_to_env(env))} ; " if env else EXPORT_PLACEHOLDER
+  return f"{_get_sudo_binary()} su {user} -l -s /bin/bash -c {quote_bash_args(export_env + command)}"
 
 
 def quote_bash_args(command):
@@ -361,7 +361,7 @@ def quote_bash_args(command):
     return "''"
   
   if not isinstance(command, str):
-    raise Fail("Command should be a list of strings, found '{0}' in command list elements".format(str(command)))
+    raise Fail(f"Command should be a list of strings, found '{str(command)}' in command list elements")
   
   valid = set(string.ascii_letters + string.digits + '@%_-+=:,./')
   for char in command:
@@ -385,7 +385,7 @@ def _get_sudo_binary():
   return AMBARI_SUDO_BINARY
   
 def _get_environment_str(env):
-  return reduce(lambda str,x: '{0} {1}={2}'.format(str,x,quote_bash_args(env[x])), env, '')
+  return reduce(lambda str,x: f'{str} {x}={quote_bash_args(env[x])}', env, '')
 
 def string_cmd_from_args_list(command, auto_escape=True):
   if auto_escape:

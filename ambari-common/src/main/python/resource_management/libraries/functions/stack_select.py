@@ -151,7 +151,7 @@ def get_supported_packages():
   code, stdout = shell.call(command, sudo = True,  quiet = True)
 
   if code != 0 or stdout is None:
-    raise Fail("Unable to query for supported packages using {0}".format(stack_selector_path))
+    raise Fail(f"Unable to query for supported packages using {stack_selector_path}")
 
   # turn the output into lines, stripping each line
   return [line.strip() for line in stdout.splitlines()]
@@ -171,7 +171,7 @@ def get_packages(scope, service_name = None, component_name = None):
   from resource_management.libraries.functions.default import default
 
   if scope not in _PACKAGE_SCOPES:
-    raise Fail("The specified scope of {0} is not valid".format(scope))
+    raise Fail(f"The specified scope of {scope} is not valid")
 
   config = Script.get_config()
 
@@ -198,13 +198,13 @@ def get_packages(scope, service_name = None, component_name = None):
 
   if stack_name not in data:
     raise Fail(
-      "Cannot find stack-select packages for the {0} stack".format(stack_name))
+      f"Cannot find stack-select packages for the {stack_name} stack")
 
   stack_select_key = "stack-select"
   data = data[stack_name]
   if stack_select_key not in data:
     raise Fail(
-      "There are no stack-select packages defined for this command for the {0} stack".format(stack_name))
+      f"There are no stack-select packages defined for this command for the {stack_name} stack")
 
   # this should now be the dictionary of role name to package name
   data = data[stack_select_key]
@@ -212,13 +212,13 @@ def get_packages(scope, service_name = None, component_name = None):
   component_name = component_name.upper()
 
   if service_name not in data:
-    Logger.info("Skipping stack-select on {0} because it does not exist in the stack-select package structure.".format(service_name))
+    Logger.info(f"Skipping stack-select on {service_name} because it does not exist in the stack-select package structure.")
     return None
 
   data = data[service_name]
 
   if component_name not in data:
-    Logger.info("Skipping stack-select on {0} because it does not exist in the stack-select package structure.".format(component_name))
+    Logger.info(f"Skipping stack-select on {component_name} because it does not exist in the stack-select package structure.")
     return None
 
   # this one scope is not an array, so transform it into one for now so we can
@@ -236,12 +236,12 @@ def get_packages(scope, service_name = None, component_name = None):
       if _PACKAGE_SCOPE_LEGACY in data[component_name]:
         legacy_package = data[component_name][_PACKAGE_SCOPE_LEGACY]
         Logger.info(
-          "The package {0} is not supported by this version of the stack-select tool, defaulting to the legacy package of {1}".format(package, legacy_package))
+          f"The package {package} is not supported by this version of the stack-select tool, defaulting to the legacy package of {legacy_package}")
 
         # use the legacy package
         packages[index] = legacy_package
       else:
-        raise Fail("The package {0} is not supported by this version of the stack-select tool.".format(package))
+        raise Fail(f"The package {package} is not supported by this version of the stack-select tool.")
 
   # transform the array bcak to a single element
   if scope == PACKAGE_SCOPE_STACK_SELECT:
@@ -265,7 +265,7 @@ def select_all(version_to_select):
     Logger.error(format("Unable to execute {stack_selector_name} after installing because there was no version specified"))
     return
 
-  Logger.info("Executing {0} set all on {1}".format(stack_selector_name, version_to_select))
+  Logger.info(f"Executing {stack_selector_name} set all on {version_to_select}")
 
   command = format('{sudo} {stack_selector_path} set all `ambari-python-wrap {stack_selector_path} versions | grep ^{version_to_select} | tail -1`')
   only_if_command = format('ls -d {stack_root}/{version_to_select}*')
@@ -297,8 +297,7 @@ def select_packages(version):
   if stack_select_packages is None:
     return
 
-  Logger.info("The following packages will be stack-selected to version {0} using a {1} orchestration and {2} scope: {3}".format(
-    version, orchestration.upper(), package_scope, ", ".join(stack_select_packages)))
+  Logger.info(f"The following packages will be stack-selected to version {version} using a {orchestration.upper()} orchestration and {package_scope} scope: {', '.join(stack_select_packages)}")
 
   for stack_select_package_name in stack_select_packages:
     select(stack_select_package_name, version)
@@ -331,7 +330,7 @@ def select(component, version):
     if moduleName in modules:
       module = modules.get(moduleName)
       importlib.reload(module)
-      Logger.info("After {0}, reloaded module {1}".format(command, moduleName))
+      Logger.info(f"After {command}, reloaded module {moduleName}")
 
 
 def get_role_component_current_stack_version():
@@ -343,7 +342,7 @@ def get_role_component_current_stack_version():
   role_command =  default("/roleCommand", "")
 
   stack_selector_name = stack_tools.get_stack_tool_name(stack_tools.STACK_SELECTOR_NAME)
-  Logger.info("Checking version for {0} via {1}".format(role, stack_selector_name))
+  Logger.info(f"Checking version for {role} via {stack_selector_name}")
   if role_command == "SERVICE_CHECK" and role in SERVICE_CHECK_DIRECTORY_MAP:
     stack_select_component = SERVICE_CHECK_DIRECTORY_MAP[role]
   else:
@@ -353,17 +352,15 @@ def get_role_component_current_stack_version():
     if not role:
       Logger.error("No role information available.")
     elif not role.lower().endswith("client"):
-      Logger.error("Mapping unavailable for role {0}. Skip checking its version.".format(role))
+      Logger.error(f"Mapping unavailable for role {role}. Skip checking its version.")
     return None
 
   current_stack_version = get_stack_version(stack_select_component)
 
   if current_stack_version is None:
-    Logger.warning("Unable to determine {0} version for {1}".format(
-      stack_selector_name, stack_select_component))
+    Logger.warning(f"Unable to determine {stack_selector_name} version for {stack_select_component}")
   else:
-    Logger.info("{0} is currently at version {1}".format(
-      stack_select_component, current_stack_version))
+    Logger.info(f"{stack_select_component} is currently at version {current_stack_version}")
 
   return current_stack_version
 
@@ -380,7 +377,7 @@ def get_hadoop_dir(target):
   stack_version = Script.get_stack_version()
 
   if not target in HADOOP_DIR_DEFAULTS:
-    raise Fail("Target {0} not defined".format(target))
+    raise Fail(f"Target {target} not defined")
 
   hadoop_dir = HADOOP_DIR_DEFAULTS[target]
 
@@ -431,7 +428,7 @@ def get_hadoop_dir_for_stack_version(target, stack_version):
 
   stack_root = Script.get_stack_root()
   if not target in HADOOP_DIR_DEFAULTS:
-    raise Fail("Target {0} not defined".format(target))
+    raise Fail(f"Target {target} not defined")
 
   # home uses a different template
   if target == "home":
@@ -513,7 +510,7 @@ def get_stack_version_before_install(component_name):
     stack_version = os.path.basename(os.path.dirname(os.path.dirname(os.path.dirname(os.readlink(component_dir)))))
     match = re.match('[0-9]+.[0-9]+.[0-9]+', stack_version)
     if match is None:
-      Logger.info('Failed to get extracted version with {0} in method get_stack_version_before_install'.format(stack_selector_name))
+      Logger.info(f'Failed to get extracted version with {stack_selector_name} in method get_stack_version_before_install')
       return None # lazy fail
     return stack_version
   else:

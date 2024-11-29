@@ -248,5 +248,4 @@ class GenericManager(object):
     if isinstance(command, (list, tuple)):
       command = " ".join(command)
 
-    Logger.error("Command execution error: command = \"{0}\", exit code = {1}, stderr = {2}".format(
-      command, exit_code, "\n".join(error_log)))
+    Logger.error(f"Command execution error: command = \"{command}\", exit code = {exit_code}, stderr = " + "\n".join(error_log))

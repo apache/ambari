@@ -85,12 +85,8 @@ class Frame(object):
         self.body = body or ''
 
     def __str__(self):
-        return '{{cmd={0},headers=[{1}],body={2}}}'.format(
-            self.cmd,
-            self.headers,
-            self.body if isinstance(
-                self.body, six.binary_type) else six.b(self.body)
-        )
+        return (f'{{cmd={self.cmd},headers=[{self.headers}]'
+                f',body={self.body if isinstance(self.body, six.binary_type) else six.b(self.body)}}}')
 
     def __eq__(self, other):
         """ Override equality checking to test for matching command, headers, and body. """
@@ -121,11 +117,11 @@ class Frame(object):
 
         # Convert and append any existing headers to a string as the
         # protocol describes.
-        headerparts = ("{0}:{1}\n".format(key, value)
+        headerparts = (f"{key}:{value}\n"
                        for key, value in self.headers.items())
 
         # Frame is Command + Header + EOF marker.
-        return six.b("{0}\n{1}\n".format(self.cmd, "".join(headerparts))) + (self.body if isinstance(self.body, six.binary_type) else six.b(self.body)) + six.b('\x00')
+        return six.b(f"{self.cmd}\n{''.join(headerparts)}\n") + (self.body if isinstance(self.body, six.binary_type) else six.b(self.body)) + six.b('\x00')
 
 
 class ConnectedFrame(Frame):

@@ -315,11 +315,11 @@ def get_policycache_service_name(service_name, repo_name, cache_service_list):
         with open(policycache_json_file) as json_file:
           json_data = json.load(json_file)
           if 'serviceName' in json_data and json_data['serviceName'] == repo_name:
-            Logger.info("Skipping Ranger API calls, as policy cache file exists for {0}".format(service_name))
-            Logger.warning("If service name for {0} is not created on Ranger Admin, then to re-create it delete policy cache file: {1}".format(service_name, policycache_json_file))
+            Logger.info(f"Skipping Ranger API calls, as policy cache file exists for {service_name}")
+            Logger.warning(f"If service name for {service_name} is not created on Ranger Admin, then to re-create it delete policy cache file: {policycache_json_file}")
             service_name_exist_flag = True
             break
   except Exception as err:
-    Logger.error("Error occurred while fetching service name from policy cache file.\nError: {0}".format(err))
+    Logger.error(f"Error occurred while fetching service name from policy cache file.\nError: {err}")
 
   return service_name_exist_flag

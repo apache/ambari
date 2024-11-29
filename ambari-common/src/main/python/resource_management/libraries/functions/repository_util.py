@@ -61,19 +61,17 @@ class RepositoryUtil:
 
     if 0 == len(self.command_repository.items):
       Logger.warning(
-        "Repository for {0}/{1} has no repositories.  Ambari may not be managing this version.".format(
-          self.command_repository.stack_name, self.command_repository.version_string))
+        f"Repository for {self.command_repository.stack_name}/{self.command_repository.version_string} has no repositories.  Ambari may not be managing this version.")
       return {}
 
     repo_files = {}
     for repository in self.command_repository.items:
       if repository.repo_id is None:
-        raise Fail("Repository with url {0} has no id".format(repository.base_url))
+        raise Fail(f"Repository with url {repository.base_url} has no id")
 
       if not repository.ambari_managed:
         Logger.warning(
-          "Repository for {0}/{1}/{2} is not managed by Ambari".format(
-            self.command_repository.stack_name, self.command_repository.version_string, repository.repo_id))
+          f"Repository for {self.command_repository.stack_name}/{self.command_repository.version_string}/{repository.repo_id} is not managed by Ambari")
       else:
         Repository(repository.repo_id,
                    action="prepare",
@@ -134,7 +132,7 @@ class CommandRepository(object):
     elif isinstance(repo_object, str):
       json_dict = json.loads(repo_object)
     else:
-      raise Fail("Cannot deserialize command repository {0}".format(str(repo_object)))
+      raise Fail(f"Cannot deserialize command repository {str(repo_object)}")
 
     # version_id is the primary id of the repo_version table in the database
     self.version_id = _find_value(json_dict, 'repoVersionId')
@@ -162,7 +160,7 @@ class CommandRepository(object):
       self.repo_tags_to_skip.add("GPL")
     for r in self.all_items:
       if self.repo_tags_to_skip & r.tags:
-        Logger.info("Repository with url {0} is not created due to its tags: {1}".format(r.base_url, r.tags))
+        Logger.info(f"Repository with url {r.base_url} is not created due to its tags: {r.tags}")
       else:
         self.items.append(r)
 

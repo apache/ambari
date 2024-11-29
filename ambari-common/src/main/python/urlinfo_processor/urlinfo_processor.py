@@ -75,10 +75,7 @@ def replace_url_in_repoinfo_xml(repoinfo_xml_path, repo_id, repo_info):
         baseurl_tag = repo_tag.find("baseurl")
         if baseurl_tag is not None and family in repo_info:
           if family in repo_info:
-            print("URLINFO_PROCESSOR: replacing {0} to {1} for repo id:{2} and family:{3}".format(baseurl_tag.text,
-                                                                                                  repo_info[family],
-                                                                                                  repo_id,
-                                                                                                  family))
+            print(f"URLINFO_PROCESSOR: replacing {baseurl_tag.text} to {repo_info[family]} for repo id:{repo_id} and family:{family}")
             baseurl_tag.text = repo_info[family]
 
   with open(repoinfo_xml_path, "w") as out:

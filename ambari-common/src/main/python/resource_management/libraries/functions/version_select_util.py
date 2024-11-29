@@ -98,7 +98,7 @@ def get_component_version_with_stack_selector(stack_selector_path, component_nam
     try:
       # This is necessary because Ubuntu returns "stdin: is not a tty", see AMBARI-8088
       with open(tmpfile.name, 'r') as file:
-        get_stack_comp_version_cmd = '{0} status {1} > {2}' .format(stack_selector_path, component_name, tmpfile.name)
+        get_stack_comp_version_cmd = f'{stack_selector_path} status {component_name} > {tmpfile.name}'
         code, stdoutdata = shell.call(get_stack_comp_version_cmd, quiet=True)
         out = file.read()
 

@@ -115,15 +115,15 @@ if os.geteuid() == 0:
       if ex.errno == errno.ENOENT:
         dirname = os.path.dirname(ex.filename)
         if os.path.islink(dirname) and not os.path.exists(dirname):
-          raise Fail("Cannot create directory '{0}' as '{1}' is a broken symlink".format(path, dirname))
+          raise Fail(f"Cannot create directory '{path}' as '{dirname}' is a broken symlink")
       elif ex.errno == errno.ENOTDIR:
         dirname = os.path.dirname(ex.filename)
         if os.path.isfile(dirname):
-          raise Fail("Cannot create directory '{0}' as '{1}' is a file".format(path, dirname))
+          raise Fail(f"Cannot create directory '{path}' as '{dirname}' is a file")
       elif ex.errno == errno.ELOOP:
         dirname = os.path.dirname(ex.filename)
         if os.path.islink(dirname) and not os.path.exists(dirname):
-          raise Fail("Cannot create directory '{0}' as '{1}' is a looped symlink".format(path, dirname))
+          raise Fail(f"Cannot create directory '{path}' as '{dirname}' is a looped symlink")
 
       raise
 
@@ -280,7 +280,7 @@ else:
         code, out, err = shell.checked_call(cmd, sudo=True, stderr=subprocess.PIPE)
         values = out.split(' ')
         if len(values) != 3:
-          raise Fail("Execution of '{0}' returned unexpected output. {2}\n{3}".format(cmd, code, err, out))
+          raise Fail(f"Execution of '{cmd}' returned unexpected output. {err}\n{out}")
         uid_str, gid_str, mode_str = values
         self.st_uid, self.st_gid, self.st_mode = int(uid_str), int(gid_str), int(mode_str, 8)
 
@@ -304,7 +304,7 @@ else:
   # os.listdir replacement
   def listdir(path):
     if not path_isdir(path):
-      raise Fail("{0} is not a directory. Cannot list files of it.".format(path))
+      raise Fail(f"{path} is not a directory. Cannot list files of it.")
 
     code, out, err = shell.checked_call(["ls", path], sudo=True, stderr=subprocess.PIPE)
     files = out.splitlines()

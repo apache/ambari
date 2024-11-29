@@ -88,7 +88,7 @@ class FirewallChecks(object):
       self.stdoutdata = out
       self.stderrdata = err
     except Exception as ex:
-      print_warning_msg("Unable to check firewall status: {0}".format(ex))
+      print_warning_msg(f"Unable to check firewall status: {ex}")
 
   def check_firewall(self):
     try:
@@ -188,7 +188,7 @@ class WindowsFirewallChecks(FirewallChecks):
 
   def check_result(self):
     if self.returncode != 0:
-      print_warning_msg("Unable to check firewall status:{0}".format(self.stderrdata))
+      print_warning_msg(f"Unable to check firewall status:{self.stderrdata}")
       return False
     profiles_status = [i for i in self.stdoutdata.split("\n") if not i == ""]
     if "1" in profiles_status:
@@ -200,7 +200,6 @@ class WindowsFirewallChecks(FirewallChecks):
       if profiles_status[2] == "1":
         enabled_profiles.append("PublicProfile")
       print_warning_msg(
-        "Following firewall profiles are enabled:{0}. Make sure that the firewall is properly configured.".format(
-          ",".join(enabled_profiles)))
+        f'Following firewall profiles are enabled:{",".join(enabled_profiles)}. Make sure that the firewall is properly configured.')
       return True
     return False

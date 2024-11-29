@@ -100,7 +100,7 @@ class WsTransport(Transport):
     try:
       msg = self.ws.receive()
       msg = str(msg) if msg is not None else msg
-      logger.debug("Incoming STOMP message:\n<<< {0}".format(msg))
+      logger.debug(f"Incoming STOMP message:\n<<< {msg}")
       return msg
     except:
       # exceptions from this method are hidden by the framework so implementing logging by ourselves

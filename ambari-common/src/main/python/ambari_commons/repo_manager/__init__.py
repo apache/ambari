@@ -69,4 +69,4 @@ class ManagerFactory(object):
     if OSCheck.is_in_family(os_family, OSConst.WINSRV_FAMILY):
       return ChocoManager()
 
-    raise RuntimeError("Not able to create Repository Manager object for unsupported OS family {0}".format(os_family))
+    raise RuntimeError(f"Not able to create Repository Manager object for unsupported OS family {os_family}")
