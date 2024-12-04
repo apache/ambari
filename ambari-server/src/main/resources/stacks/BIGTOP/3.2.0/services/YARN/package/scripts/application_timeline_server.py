@@ -30,7 +30,7 @@ from resource_management.libraries.functions.security_commons import build_expec
   FILE_TYPE_XML
 from resource_management.libraries.functions.format import format
 from resource_management.core.logger import Logger
-from resource_management.core.resources.system import Execute
+from resource_management.core.resources.system import Execute, Directory
 
 from yarn import yarn
 from service import service
@@ -56,6 +56,12 @@ class ApplicationTimelineServer(Script):
   def configure(self, env):
     import params
     env.set_params(params)
+
+    Directory(params.yarn_timeline_service_leveldb_state_store_path,
+              create_parents=True,
+              owner=params.yarn_user,
+              group=params.user_group)
+    
     yarn(name='apptimelineserver')
 
 

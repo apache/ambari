@@ -639,6 +639,7 @@ if 'zoo.cfg' in config['configurations'] and 'clientPort' in config['configurati
   cluster_zookeeper_clientPort = config['configurations']['zoo.cfg']['clientPort']
 else:
   cluster_zookeeper_clientPort = '2181'
+yarn_timeline_service_leveldb_state_store_path = config['configurations']['yarn-site']['yarn.timeline-service.leveldb-state-store.path']
 
 zookeeper_quorum_hosts = cluster_zookeeper_quorum_hosts
 zookeeper_clientPort = cluster_zookeeper_clientPort
