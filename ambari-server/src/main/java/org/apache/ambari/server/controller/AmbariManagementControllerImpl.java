@@ -4083,13 +4083,17 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     String clusterName = actionRequest.getClusterName();
 
     String requestContext = "";
-
+    
+    boolean skipFailure = false;
     if (requestProperties != null) {
       requestContext = StringEscapeUtils.escapeHtml4(requestProperties.get(REQUEST_CONTEXT_PROPERTY));
       if (requestContext == null) {
         // guice needs a non-null value as there is no way to mark this parameter @Nullable
         requestContext = "";
       }
+      if (requestProperties.containsKey(Setting.SETTING_NAME_SKIP_FAILURE) && requestProperties.get(Setting.SETTING_NAME_SKIP_FAILURE).equalsIgnoreCase("true")) {
+        skipFailure = true;
+    }
     }
 
     Cluster cluster = null;
@@ -4150,6 +4154,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     Stage stage = createNewStage(requestStageContainer.getLastStageId(), cluster, requestId, requestContext,
         commandParamsForStage, jsons.getHostParamsForStage());
+    if (skipFailure) {
+        stage.setSkippable(skipFailure);
+    }
 
     if (actionRequest.isCommand()) {
       customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage,
