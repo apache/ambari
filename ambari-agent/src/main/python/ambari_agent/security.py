@@ -34,6 +34,7 @@ import ambari_stomp
 import threading
 from ambari_stomp.adapter.websocket import WsConnection
 from socket import error as socket_error
+import shlex
 
 logger = logging.getLogger(__name__)
 
@@ -303,7 +304,7 @@ class CertificateManager():
       p = subprocess32.Popen(generate_script, stdout=subprocess32.PIPE)
       p.communicate()
     else:
-      p = subprocess32.Popen([generate_script], shell=True,
+      p = subprocess32.Popen(shlex.split(generate_script), shell=False,
                            stdout=subprocess32.PIPE)
       p.communicate()
     # this is required to be 600 for security concerns.

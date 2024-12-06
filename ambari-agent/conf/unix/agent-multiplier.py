@@ -20,6 +20,7 @@ import re
 from ambari_commons import subprocess32
 import shutil
 from optparse import OptionParser
+import shlex
 
 
 class Host:
@@ -226,7 +227,7 @@ class Multiplier:
                "echo HOSTNAME"
     with open(str(host_name_script), "w+") as f:
       f.writelines(template.replace("HOSTNAME", host_name))
-    subprocess32.call("chmod +x %s" % host_name_script, shell=True)
+    subprocess32.call(shlex.split("chmod +x %s" % host_name_script), shell=False)
 
   def change_config(self, config_file, config_dict):
     """
@@ -321,21 +322,21 @@ class Multiplier:
     for host in self.hosts:
       cmd = "ambari-agent start --home %s" % (host.home_dir)
       os.environ['AMBARI_AGENT_CONF_DIR'] = os.path.join(host.home_dir, "etc/ambari-agent/conf")
-      subprocess32.call(cmd, shell=True, env=os.environ)
+      subprocess32.call(shlex.split(cmd), shell=False, env=os.environ)
 
   def cmd_stop(self):
     print "Stopping %d host(s)" % len(self.hosts)
     for host in self.hosts:
       cmd = "ambari-agent stop --home %s" % (host.home_dir)
       os.environ['AMBARI_AGENT_CONF_DIR'] = os.path.join(host.home_dir, "etc/ambari-agent/conf")
-      subprocess32.call(cmd, shell=True, env=os.environ)
+      subprocess32.call(shlex.split(cmd), shell=False, env=os.environ)
 
   def cmd_restart(self):
     print "Restarting %d host(s)" % len(self.hosts)
     for host in self.hosts:
       cmd = "ambari-agent restart --home %s" % (host.home_dir)
       os.environ['AMBARI_AGENT_CONF_DIR'] = os.path.join(host.home_dir, "etc/ambari-agent/conf")
-      subprocess32.call(cmd, shell=True, env=os.environ)
+      subprocess32.call(shlex.split(cmd), shell=False, env=os.environ)
 
   def cmd_status(self):
     print "Summary of Agent Status:"
