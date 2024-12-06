@@ -138,7 +138,14 @@ module.exports = {
 
   getCredentialSuccessCallback: function(data, opt, params) {
     if (params.callback) {
-      params.callback(Em.getWithDefault(data, 'Credential', null));
+      var defaultValue = null;
+      var credential;
+      if (!data) {
+        credential = defaultValue;
+      } else {
+        credential = Em.getWithDefault(data, 'Credential', defaultValue);
+      }
+      params.callback(credential);
     }
   },
 

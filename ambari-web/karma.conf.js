@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+process.env.CHROME_BIN = require('puppeteer').executablePath();
+
 module.exports = function(config) {
   config.set({
 
@@ -23,7 +25,7 @@ module.exports = function(config) {
     basePath: '',
 
     plugins: [
-      'karma-phantomjs-launcher',
+      'karma-chrome-launcher',
       'karma-mocha',
       'karma-chai',
       'karma-sinon',
@@ -84,7 +86,10 @@ module.exports = function(config) {
       'vendor/scripts/moment.min.js',
       'vendor/scripts/moment-timezone-with-data-2020-2030.js',
       'vendor/**/*.js',
-      'app/templates/**/*.hbs',
+      {
+        pattern: 'app/templates/**/*.hbs',
+        type: 'js'
+      },
       'app!(assets)/**/!(karma_setup|tests).js',
       'app/assets/test/karma_setup.js',
       {
@@ -113,7 +118,7 @@ module.exports = function(config) {
     },
 
     preprocessors: {
-      '!(vendor|node_modules|test)/**/!(karma_setup|tests).js': 'coverage',
+      '!(vendor|node_modules|test)/**/!(karma_setup|tests|stack_and_upgrade_controller).js': 'coverage',
       'app/templates/**/*.hbs': ['ember-precompiler-brunch', 'common-require'],
       'app!(assets)/**/!(karma_setup|tests).js': ['common-require', 'babel'],
       'test/**/*.js': ['common-require']
@@ -167,7 +172,7 @@ module.exports = function(config) {
     // - Opera (has to be installed with `npm install karma-opera-launcher`)
     // - Safari (only Mac; has to be installed with `npm install karma-safari-launcher`)
     // - IE (only Windows; has to be installed with `npm install karma-ie-launcher`)
-    browsers: ['PhantomJS'],
+    browsers: ['ChromiumHeadless'],
 
     // If browser does not capture in given timeout [ms], kill it
     captureTimeout: 60000,

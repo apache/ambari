@@ -30,6 +30,11 @@
   <properties>
     <solr.version>5.5.2</solr.version>
     <ambari.dir>${project.parent.basedir}</ambari.dir>
+    <ambari.web.skip>${skipTests}</ambari.web.skip>
+    <frontend-maven-plugin.version>1.12.0</frontend-maven-plugin.version>
+    <node.version>v14.18.1</node.version>
+    <npm.version>7.24.2</npm.version>
+    <yarn.version>v1.22.17</yarn.version>
     <powermock.version>1.6.3</powermock.version>
     <jetty.version>9.4.12.v20180830</jetty.version>
     <ldap-api.version>1.0.0</ldap-api.version>
