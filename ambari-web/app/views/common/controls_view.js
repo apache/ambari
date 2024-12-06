@@ -1176,6 +1176,8 @@ App.CheckDBConnectionView = Ember.View.extend({
         name = 'KDC';
       } else if (name == 'Existing IPA') {
         name = 'IPA';
+      } else if (name == 'Existing Apache Directory Server') {
+        name = 'DS';
       } else {
         name = 'AD';
       }

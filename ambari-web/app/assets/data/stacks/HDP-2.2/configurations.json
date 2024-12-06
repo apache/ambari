@@ -9506,7 +9506,7 @@
             "property_description" : "\n      The supported list of session key encryption types that should be returned by the KDC.\n    ",
             "property_name" : "encryption_types",
             "property_type" : [ ],
-            "property_value" : "aes des3-cbc-sha1 rc4 des-cbc-md5",
+            "property_value" : "aes des3-cbc-sha1 des-cbc-md5",
             "service_name" : "KERBEROS",
             "stack_name" : "HDP",
             "stack_version" : "2.2",

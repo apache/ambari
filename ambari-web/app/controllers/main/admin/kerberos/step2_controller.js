@@ -41,6 +41,10 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend(App.KDCCred
       configNames: ['ldap_url', 'container_dn', 'ad_create_attributes_template'],
       type: Em.I18n.t('admin.kerberos.wizard.step1.option.ad')
     },
+    'ds': {
+      configNames: ['ldap_url', 'container_dn', 'ds_create_attributes_template'],
+      type: Em.I18n.t('admin.kerberos.wizard.step1.option.ds')
+    },
     'mit': {
       configNames: ['kdc_create_attributes'],
       type: Em.I18n.t('admin.kerberos.wizard.step1.option.kdc')
@@ -149,6 +153,7 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend(App.KDCCred
     }
 
     this.setConfigVisibility('ad', configs, kdcType);
+    this.setConfigVisibility('ds', configs, kdcType);
     this.setConfigVisibility('mit', configs, kdcType);
     this.setConfigVisibility('ipa', configs, kdcType);
   },
@@ -164,8 +169,8 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend(App.KDCCred
 
     typeSettings.configNames.forEach(function (_configName) {
       var config = configs.findProperty('name', _configName);
-      if (config) {
-        config.isVisible = kdcType === typeSettings.type;
+      if (config && (kdcType === typeSettings.type)) {
+        config.isVisible = true;
       }
     }, this);
   },

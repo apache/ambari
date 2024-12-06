@@ -51,6 +51,8 @@ public class KerberosOperationHandlerFactory {
         return injector.getInstance(MITKerberosOperationHandler.class);
       case ACTIVE_DIRECTORY:
         return injector.getInstance(ADKerberosOperationHandler.class);
+      case DIRECTORY_SERVER:
+        return injector.getInstance(DSKerberosOperationHandler.class);
       case IPA:
         return injector.getInstance(IPAKerberosOperationHandler.class);
       default:

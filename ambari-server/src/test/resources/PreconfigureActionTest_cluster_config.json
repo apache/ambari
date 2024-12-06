@@ -84,7 +84,7 @@
     "case_insensitive_username_rules": "false",
     "container_dn": "",
     "create_ambari_principal": "true",
-    "encryption_types": "aes des3-cbc-sha1 rc4 des-cbc-md5",
+    "encryption_types": "aes des3-cbc-sha1 des-cbc-md5",
     "executable_search_paths": "/usr/bin, /usr/kerberos/bin, /usr/sbin, /usr/lib/mit/bin, /usr/lib/mit/sbin",
     "group": "ambari-managed-principals",
     "install_packages": "true",

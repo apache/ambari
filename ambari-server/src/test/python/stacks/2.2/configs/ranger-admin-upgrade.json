@@ -324,7 +324,7 @@
             "realm": "EXAMPLE.COM", 
             "container_dn": "", 
             "ldap_url": "", 
-            "encryption_types": "aes des3-cbc-sha1 rc4 des-cbc-md5",
+            "encryption_types": "aes des3-cbc-sha1 des-cbc-md5",
             "kdc_hosts": "c6407.ambari.apache.org",
             "admin_server_host": "c6407.ambari.apache.org",
             "kdc_type": "mit-kdc"

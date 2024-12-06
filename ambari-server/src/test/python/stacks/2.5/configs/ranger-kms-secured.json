@@ -632,7 +632,7 @@
             "manage_auth_to_local": "true",
             "install_packages": "true",
             "realm": "EXAMPLE.COM",
-            "encryption_types": "aes des3-cbc-sha1 rc4 des-cbc-md5",
+            "encryption_types": "aes des3-cbc-sha1 des-cbc-md5",
             "ad_create_attributes_template": "\n{\n  \"objectClass\": [\"top\", \"person\", \"organizationalPerson\", \"user\"],\n  \"cn\": \"$principal_name\",\n  #if( $is_service )\n  \"servicePrincipalName\": \"$principal_name\",\n  #end\n  \"userPrincipalName\": \"$normalized_principal\",\n  \"unicodePwd\": \"$password\",\n  \"accountExpires\": \"0\",\n  \"userAccountControl\": \"66048\"\n}",
             "kdc_create_attributes": "",
             "admin_server_host": "c6401.ambari.apache.org",
