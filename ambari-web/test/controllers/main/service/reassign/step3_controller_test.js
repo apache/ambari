@@ -25,7 +25,9 @@ var controller;
 describe('App.ReassignMasterWizardStep3Controller', function () {
 
   beforeEach(function(){
-    controller = App.ReassignMasterWizardStep3Controller.create();
+    controller = App.ReassignMasterWizardStep3Controller.create({
+      content: Em.Object.create()
+    });
   });
 
   describe("#submit()", function() {
@@ -683,5 +685,245 @@ describe('App.ReassignMasterWizardStep3Controller', function () {
 
     });
 
+  });
+
+  describe("#loadStep()", function () {
+
+    it('should set isLoaded to false and send ajax request', function () {
+      controller.set('wizardController', Em.Object.create({isComponentWithReconfiguration: true}));
+      controller.loadStep();
+      expect(controller.get('isLoaded')).to.be.false
+      expect(App.ajax.send.calledOnce).to.be.true;
+    });
+
+    it('should set isLoaded to true', function () {
+      controller.set('wizardController', Em.Object.create({isComponentWithReconfiguration: false}));
+      controller.loadStep();
+      expect(controller.get('isLoaded')).to.be.true;
+    });
+  });
+
+  describe("#clearStep()", function () {
+
+    beforeEach(function () {
+      sinon.stub(controller, 'setProperties');
+    });
+
+    afterEach(function () {
+      controller.setProperties.restore();
+    });
+
+    it('should set properties', function () {
+      controller.clearStep();
+      expect(controller.setProperties.calledOnce).to.be.true
+    });
+  });
+
+  describe("#getDisplayName()", function () {
+
+    beforeEach(function () {
+      sinon.stub(App.config, 'get').withArgs('serviceByConfigTypeMap').returns({
+        'fname1': Em.Object.create({
+          serviceName: 's1'
+        }),
+        'fname2': Em.Object.create({
+          serviceName: 's1'
+        })
+      });
+    });
+
+    afterEach(function () {
+      App.config.get.restore();
+    });
+
+    it('should display name', function () {
+      controller.set('propertiesToChange', {
+        'fname1': [{
+          name: 'prop1'
+        }],
+        'fname2': [{
+          name: 'prop2'
+        }]
+      });
+      expect(controller.getDisplayName('stack1', 'prop1', 'type1', 's1')).to.equal('type1/prop1')
+    });
+  });
+
+  describe("#onLoadConfigs()", function () {
+    var testCases = ['NAMENODE', 'RESOURCEMANAGER', 'HIVE_METASTORE', 'HIVE_SERVER', 'WEBHCAT_SERVER', 'OOZIE_SERVER'];
+
+    beforeEach(function () {
+      sinon.stub(controller, 'setAdditionalConfigs');
+      sinon.stub(controller, 'setSecureConfigs');
+      sinon.stub(controller, '_getNnInitializerSettings');
+      sinon.stub(controller, '_getRmInitializerSettings');
+      sinon.stub(controller, '_getHiveInitializerSettings');
+      sinon.stub(controller, '_getWsInitializerSettings');
+      sinon.stub(controller, '_getOsInitializerSettings');
+      sinon.stub(controller, 'setDynamicConfigs');
+      sinon.stub(controller, '_getRmAdditionalDependencies');
+      sinon.stub(controller, 'renderServiceConfigs');
+      sinon.stub(App.MoveNameNodeConfigInitializer, 'setup');
+      sinon.stub(App.MoveNameNodeConfigInitializer, 'cleanup');
+      sinon.stub(App.MoveRmConfigInitializer, 'setup');
+      sinon.stub(App.MoveRmConfigInitializer, 'cleanup');
+      sinon.stub(App.MoveHmConfigInitializer, 'setup');
+      sinon.stub(App.MoveHmConfigInitializer, 'cleanup');
+      sinon.stub(App.MoveHsConfigInitializer, 'setup');
+      sinon.stub(App.MoveHsConfigInitializer, 'cleanup');
+      sinon.stub(App.MoveWsConfigInitializer, 'setup');
+      sinon.stub(App.MoveWsConfigInitializer, 'cleanup');
+      sinon.stub(App.MoveOSConfigInitializer, 'setup');
+      sinon.stub(App.MoveOSConfigInitializer, 'cleanup');
+    });
+
+    afterEach(function () {
+      controller.setAdditionalConfigs.restore();
+      controller.setSecureConfigs.restore();
+      controller._getNnInitializerSettings.restore();
+      controller._getRmInitializerSettings.restore();
+      controller._getHiveInitializerSettings.restore();
+      controller._getWsInitializerSettings.restore();
+      controller._getOsInitializerSettings.restore();
+      controller.setDynamicConfigs.restore();
+      controller._getRmAdditionalDependencies.restore();
+      controller.renderServiceConfigs.restore();
+      App.MoveNameNodeConfigInitializer.setup.restore();
+      App.MoveNameNodeConfigInitializer.cleanup.restore();
+      App.MoveRmConfigInitializer.setup.restore();
+      App.MoveRmConfigInitializer.cleanup.restore();
+      App.MoveHmConfigInitializer.setup.restore();
+      App.MoveHmConfigInitializer.cleanup.restore();
+      App.MoveHsConfigInitializer.setup.restore();
+      App.MoveHsConfigInitializer.cleanup.restore();
+      App.MoveWsConfigInitializer.setup.restore();
+      App.MoveWsConfigInitializer.cleanup.restore();
+      App.MoveOSConfigInitializer.setup.restore();
+      App.MoveOSConfigInitializer.cleanup.restore();
+    });
+
+    testCases.forEach(function (test) {
+      it('should set configs for ' + test + ' component', function () {
+        var data = {
+          items: [
+            {
+              type: 'yarn-site',
+              properties: {
+                ys: 'ys'
+              },
+              properties_attributes: {
+                ys: 'pa_ys'
+              }
+            },
+            {
+              type: 'hive-site',
+              properties: {
+                hs: 'hs'
+              },
+              properties_attributes: {
+                hs: 'pa_hs'
+              }
+            },
+            {
+              type: 'webhcat-site',
+              properties: {
+                ws: 'ws'
+              },
+              properties_attributes: {
+                ws: 'pa_ws'
+              }
+            },
+            {
+              type: 'hawq-site',
+              properties: {
+                p: 'hs',
+                hawq_global_rm_type: 'yarn'
+              },
+              properties_attributes: {
+                p: 'pa_hs'
+              }
+            }
+          ]
+        };
+
+        controller.set('content.reassign', Em.Object.create({component_name: test}));
+        controller.set('content.reassignHosts', Em.Object.create({target: 'host1'}));
+        controller.set('wizardController', {relatedServicesMap: {'RESOURCEMANAGER': {append: Em.K}}});
+
+        controller.onLoadConfigs(data);
+
+        if (test === 'NAMENODE') {
+          expect(controller._getNnInitializerSettings.calledOnce).to.be.true;
+          expect(App.MoveNameNodeConfigInitializer.setup.calledOnce).to.be.true;
+          expect(App.MoveNameNodeConfigInitializer.cleanup.calledOnce).to.be.true;
+        }
+
+        if (test === 'RESOURCEMANAGER') {
+          expect(controller._getRmInitializerSettings.calledOnce).to.be.true;
+          expect(controller._getRmAdditionalDependencies.calledOnce).to.be.true;
+          expect(App.MoveRmConfigInitializer.setup.calledOnce).to.be.true;
+          expect(App.MoveRmConfigInitializer.cleanup.calledOnce).to.be.true;
+        }
+
+        if (test === 'HIVE_METASTORE') {
+          expect(controller._getHiveInitializerSettings.calledOnce).to.be.true;
+          expect(App.MoveHmConfigInitializer.setup.calledOnce).to.be.true;
+          expect(App.MoveHmConfigInitializer.cleanup.calledOnce).to.be.true;
+        }
+
+        if (test === 'HIVE_SERVER') {
+          expect(controller._getHiveInitializerSettings.calledOnce).to.be.true;
+          expect(App.MoveHsConfigInitializer.setup.calledOnce).to.be.true;
+          expect(App.MoveHsConfigInitializer.cleanup.calledOnce).to.be.true;
+        }
+
+        if (test === 'WEBHCAT_SERVER') {
+          expect(controller._getWsInitializerSettings.calledOnce).to.be.true;
+          expect(App.MoveWsConfigInitializer.setup.calledOnce).to.be.true;
+          expect(App.MoveWsConfigInitializer.cleanup.calledOnce).to.be.true;
+        }
+
+        if (test === 'OOZIE_SERVER') {
+          expect(controller._getOsInitializerSettings.calledOnce).to.be.true;
+          expect(App.MoveOSConfigInitializer.setup.calledOnce).to.be.true;
+          expect(App.MoveOSConfigInitializer.cleanup.calledOnce).to.be.true;
+        }
+
+        expect(controller.setAdditionalConfigs.calledOnce).to.be.true;
+        expect(controller.setSecureConfigs.calledOnce).to.be.true;
+        expect(controller.setDynamicConfigs.calledOnce).to.be.true;
+        expect(controller.renderServiceConfigs.calledOnce).to.be.true;
+      });
+    });
+  });
+
+  describe("#updateServiceConfigs()", function () {
+
+    beforeEach(function () {
+      sinon.stub(App.config, 'getConfigTagFromFileName').returns('type1');
+    });
+
+    afterEach(function () {
+      App.config.getConfigTagFromFileName.restore();
+    });
+
+    it('should update service configs', function () {
+      controller.set('configs', {
+        'type1': {
+          'prop1': ''
+        }
+      });
+      controller.set('selectedService', {
+        configs: [
+          {
+            name: 'prop1',
+            fileName: 'fname1',
+            value: 'pvalue'
+          }
+        ]
+      });
+      controller.updateServiceConfigs();
+      expect(JSON.stringify(controller.get('configs'))).to.equal('{"type1":{"prop1":"pvalue"}}');
+    });
   });
 });

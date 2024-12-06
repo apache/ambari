@@ -1097,4 +1097,900 @@ describe("App.MainServiceInfoConfigsController", function () {
       expect(result).to.be.eql(['HIVE']);
     });
   });
+
+  describe('#activeServiceTabs', function () {
+
+    beforeEach(function () {
+      sinon.stub(App.Tab, 'find').returns([
+        {
+          serviceName: 's1',
+          isCategorized: true
+        },
+        {
+          serviceName: 's1',
+        }
+      ]);
+    });
+
+    afterEach(function () {
+      App.Tab.find.restore();
+    });
+
+    it('should return active service tabs', function () {
+      mainServiceInfoConfigsController.set('selectedService', {
+        serviceName: 's1',
+      });
+      mainServiceInfoConfigsController.propertyDidChange('activeServiceTabs');
+      expect(mainServiceInfoConfigsController.get('activeServiceTabs')).to.eql([{
+        serviceName: 's1',
+      }]);
+    });
+
+    it('should return empty array', function () {
+      mainServiceInfoConfigsController.set('selectedService', {
+        serviceName: null,
+      });
+      mainServiceInfoConfigsController.propertyDidChange('activeServiceTabs');
+      expect(mainServiceInfoConfigsController.get('activeServiceTabs')).to.eql([]);
+    });
+  });
+
+  describe('#configGroups()', function () {
+
+    beforeEach(function () {
+      mainServiceInfoConfigsController.reopen(Em.Object.create({
+        groupsStore: [
+          {
+            serviceName: 's1'
+          }
+        ]
+      }))
+    });
+
+    it('should return config groups', function () {
+      mainServiceInfoConfigsController.set('content', {
+        serviceName: 's1'
+      });
+      mainServiceInfoConfigsController.propertyDidChange('configGroups');
+      expect(mainServiceInfoConfigsController.get('configGroups')).to.eql([
+        {
+          serviceName: 's1'
+        }
+      ]);
+    });
+  });
+
+  describe('#defaultGroup()', function () {
+
+    beforeEach(function () {
+      mainServiceInfoConfigsController.reopen(Em.Object.create({
+        groupsStore: [
+          {
+            serviceName: 's1',
+            isDefault: true
+          }
+        ]
+      }))
+    });
+
+    it('should return default group', function () {
+      mainServiceInfoConfigsController.set('content', {
+        serviceName: 's1'
+      });
+      mainServiceInfoConfigsController.propertyDidChange('defaultGroup');
+      expect(mainServiceInfoConfigsController.get('defaultGroup')).to.eql(
+        {
+          serviceName: 's1',
+          isDefault: true
+        }
+      );
+    });
+  });
+
+  describe('#isNonDefaultGroupSelectedInCompare()', function () {
+
+    beforeEach(function () {
+      mainServiceInfoConfigsController.reopen(Em.Object.create({
+        groupsStore: [
+          Em.Object.create({
+            serviceName: 's1',
+            isDefault: true
+          })
+        ]
+      }))
+    });
+
+    it('should return true', function () {
+      mainServiceInfoConfigsController.set('isCompareMode', true);
+      mainServiceInfoConfigsController.set('selectedConfigGroup', Em.Object.create({
+        serviceName: 's1',
+        isDefault: false
+      }));
+      mainServiceInfoConfigsController.propertyDidChange('isNonDefaultGroupSelectedInCompare');
+      expect(mainServiceInfoConfigsController.get('isNonDefaultGroupSelectedInCompare')).to.be.true;
+    });
+
+    it('should return false', function () {
+      mainServiceInfoConfigsController.set('isCompareMode', false);
+      mainServiceInfoConfigsController.set('selectedConfigGroup', null);
+      mainServiceInfoConfigsController.propertyDidChange('isNonDefaultGroupSelectedInCompare');
+      expect(mainServiceInfoConfigsController.get('isNonDefaultGroupSelectedInCompare')).to.be.false;
+    });
+  });
+
+  describe('#dependentConfigGroups()', function () {
+
+    beforeEach(function () {
+      mainServiceInfoConfigsController.reopen(Em.Object.create({
+        groupsStore: [
+          Em.Object.create({
+            serviceName: 's1',
+            isDefault: true
+          })
+        ]
+      }))
+    });
+
+    it('should return dependent config groups', function () {
+      mainServiceInfoConfigsController.set('dependentServiceNames', ['s1', 's2']);
+      mainServiceInfoConfigsController.propertyDidChange('dependentConfigGroups');
+      expect(mainServiceInfoConfigsController.get('dependentConfigGroups')).to.eql([
+        Em.Object.create({
+          serviceName: 's1',
+          isDefault: true
+        })
+      ]);
+    });
+
+    it('should return empty array', function () {
+      mainServiceInfoConfigsController.set('dependentServiceNames', []);
+      mainServiceInfoConfigsController.propertyDidChange('dependentConfigGroups');
+      expect(mainServiceInfoConfigsController.get('dependentConfigGroups')).to.eql([]);
+    });
+  });
+
+  describe('#selectedVersionRecord()', function () {
+
+    beforeEach(function () {
+      sinon.stub(App.ServiceConfigVersion, 'find').withArgs('s1_1.0').returns({
+        id: 's1_1.0'
+      });
+    });
+
+    afterEach(function () {
+      App.ServiceConfigVersion.find.restore();
+    });
+
+    it('should return false', function () {
+      mainServiceInfoConfigsController.set('content', {
+        serviceName: 's1'
+      });
+      mainServiceInfoConfigsController.set('selectedVersion', '1.0');
+      mainServiceInfoConfigsController.propertyDidChange('selectedVersionRecord');
+      expect(mainServiceInfoConfigsController.get('selectedVersionRecord')).to.eql({id: 's1_1.0'});
+    });
+  });
+
+  describe('#isCurrentSelected()', function () {
+
+    beforeEach(function () {
+      sinon.stub(App.ServiceConfigVersion, 'find').returns(Em.Object.create({
+        id: 's1_1.0',
+        isCurrent: true
+      }));
+    });
+
+    afterEach(function () {
+      App.ServiceConfigVersion.find.restore();
+    });
+
+    it('should return true', function () {
+      mainServiceInfoConfigsController.set('content', {
+        serviceName: 's1'
+      });
+      mainServiceInfoConfigsController.set('selectedVersion', '1.0');
+      mainServiceInfoConfigsController.propertyDidChange('isCurrentSelected');
+      expect(mainServiceInfoConfigsController.get('isCurrentSelected')).to.be.true;
+    });
+  });
+
+  describe('#canEdit()', function () {
+
+    beforeEach(function () {
+      sinon.stub(App, 'isAuthorized').returns(true);
+    });
+
+    afterEach(function () {
+      App.isAuthorized.restore();
+    });
+
+    it('should return true', function () {
+      mainServiceInfoConfigsController.set('selectedConfigGroup', Em.Object.create({
+        serviceName: 's1',
+        isDefault: false
+      }));
+      mainServiceInfoConfigsController.set('selectedVersion', '1.0');
+      mainServiceInfoConfigsController.set('currentDefaultVersion', '1.0');
+      mainServiceInfoConfigsController.set('isCompareMode', false);
+      mainServiceInfoConfigsController.propertyDidChange('canEdit');
+      expect(mainServiceInfoConfigsController.get('canEdit')).to.be.true;
+    });
+  });
+
+  describe('#isSubmitDisabled()', function () {
+
+    beforeEach(function () {
+      sinon.stub(App, 'isAuthorized').returns(true);
+    });
+
+    afterEach(function () {
+      App.isAuthorized.restore();
+    });
+
+    it('should return true{1}', function () {
+      mainServiceInfoConfigsController.set('selectedService', null);
+      mainServiceInfoConfigsController.propertyDidChange('isSubmitDisabled');
+      expect(mainServiceInfoConfigsController.get('isSubmitDisabled')).to.be.true;
+    });
+
+    it('should return true{2}', function () {
+      mainServiceInfoConfigsController.set('selectedService', Em.Object.create({
+        serviceName: 's1',
+        errorCount: 1
+      }));
+      mainServiceInfoConfigsController.set('saveInProgress', false);
+      mainServiceInfoConfigsController.set('recommendationsInProgress', false);
+      mainServiceInfoConfigsController.propertyDidChange('isSubmitDisabled');
+      expect(mainServiceInfoConfigsController.get('isSubmitDisabled')).to.be.true;
+    });
+
+    it('should return true{3}', function () {
+      mainServiceInfoConfigsController.set('selectedService', Em.Object.create({
+        serviceName: 's1',
+        errorCount: 0
+      }));
+      mainServiceInfoConfigsController.set('saveInProgress', true);
+      mainServiceInfoConfigsController.set('recommendationsInProgress', false);
+      mainServiceInfoConfigsController.propertyDidChange('isSubmitDisabled');
+      expect(mainServiceInfoConfigsController.get('isSubmitDisabled')).to.be.true;
+    });
+
+    it('should return true{4}', function () {
+      mainServiceInfoConfigsController.set('selectedService', Em.Object.create({
+        serviceName: 's1',
+        errorCount: 0
+      }));
+      mainServiceInfoConfigsController.set('saveInProgress', false);
+      mainServiceInfoConfigsController.set('recommendationsInProgress', true);
+      mainServiceInfoConfigsController.propertyDidChange('isSubmitDisabled');
+      expect(mainServiceInfoConfigsController.get('isSubmitDisabled')).to.be.true;
+    });
+
+    it('should return false', function () {
+      mainServiceInfoConfigsController.set('selectedService', Em.Object.create({
+        serviceName: 's1',
+        errorCount: 0
+      }));
+      mainServiceInfoConfigsController.set('saveInProgress', false);
+      mainServiceInfoConfigsController.set('recommendationsInProgress', false);
+      mainServiceInfoConfigsController.propertyDidChange('isSubmitDisabled');
+      expect(mainServiceInfoConfigsController.get('isSubmitDisabled')).to.be.false;
+    });
+  });
+
+  describe('#filterColumns()', function () {
+
+    it('should return filters', function () {
+      mainServiceInfoConfigsController.propertyDidChange('filterColumns');
+      expect(JSON.stringify(mainServiceInfoConfigsController.get('filterColumns'))).to.equal('[{"attributeName":"isOverridden","attributeValue":true,"name":"Overridden properties","selected":false,"isDisabled":false},{"attributeName":"isFinal","attributeValue":true,"name":"Final properties","selected":false,"isDisabled":false},{"attributeName":"hasIssues","attributeValue":true,"name":"Show property issues","selected":false,"isDisabled":false}]');
+    });
+  });
+
+  describe('#passwordConfigsAreChanged()', function () {
+
+    it('should return true', function () {
+      mainServiceInfoConfigsController.set('stepConfigs', [
+        Em.Object.create({
+          serviceName: 's1',
+          configs: [
+            Em.Object.create({
+              displayType: 'password',
+              isNotDefaultValue: true
+            })
+          ]
+        })
+      ]);
+      mainServiceInfoConfigsController.set('selectedService', Em.Object.create({serviceName: 's1'}));
+      mainServiceInfoConfigsController.propertyDidChange('passwordConfigsAreChanged');
+      expect(mainServiceInfoConfigsController.get('passwordConfigsAreChanged')).to.be.true;
+    });
+
+    it('should return false', function () {
+      mainServiceInfoConfigsController.set('stepConfigs', [
+        Em.Object.create({
+          serviceName: 's1',
+          configs: [
+            Em.Object.create({
+              displayType: 'password'
+            })
+          ]
+        })
+      ]);
+      mainServiceInfoConfigsController.set('selectedService', Em.Object.create({serviceName: 's1'}));
+      mainServiceInfoConfigsController.propertyDidChange('passwordConfigsAreChanged');
+      expect(mainServiceInfoConfigsController.get('passwordConfigsAreChanged')).to.be.false;
+    });
+  });
+
+  describe('#isVersionDefault()', function () {
+
+    beforeEach(function () {
+      this.mock = sinon.stub(App.ServiceConfigVersion, 'find');
+      mainServiceInfoConfigsController.set('content', Em.Object.create({ serviceName: 'HDFS' }));
+    });
+
+    afterEach(function () {
+      this.mock.restore();
+    });
+
+    it('should return true', function () {
+      this.mock.returns(Em.Object.create({
+          groupName: 'Default'
+        })
+      );
+      expect(mainServiceInfoConfigsController.isVersionDefault('1.0')).to.be.true;
+    });
+
+    it('should return false', function () {
+      this.mock.returns(Em.Object.create({
+          groupName: 'group1'
+        })
+      );
+      expect(mainServiceInfoConfigsController.isVersionDefault('1.0')).to.be.false;
+    });
+  });
+
+  describe('#clearStep()', function () {
+
+    beforeEach(function () {
+      sinon.spy(mainServiceInfoConfigsController, 'abortRequests');
+      sinon.spy(mainServiceInfoConfigsController, 'clearLoadInfo');
+      sinon.spy(mainServiceInfoConfigsController, 'clearSaveInfo');
+      sinon.spy(mainServiceInfoConfigsController, 'clearRecommendations');
+      sinon.spy(mainServiceInfoConfigsController, 'setProperties');
+      sinon.spy(mainServiceInfoConfigsController, 'clearConfigs');
+    });
+
+    afterEach(function () {
+      mainServiceInfoConfigsController.abortRequests.restore();
+      mainServiceInfoConfigsController.clearLoadInfo.restore();
+      mainServiceInfoConfigsController.clearSaveInfo.restore();
+      mainServiceInfoConfigsController.clearRecommendations.restore();
+      mainServiceInfoConfigsController.setProperties.restore();
+      mainServiceInfoConfigsController.clearConfigs.restore();
+    });
+
+    it('should clear steps', function () {
+      var props = {
+        saveInProgress: false,
+        isInit: true,
+        hash: null,
+        dataIsLoaded: false,
+        versionLoaded: false,
+        filter: '',
+        serviceConfigVersionNote: '',
+        dependentServiceNames: [],
+        configGroupsAreLoaded: false
+      };
+
+      mainServiceInfoConfigsController.clearStep();
+      expect(mainServiceInfoConfigsController.abortRequests.calledOnce).to.be.true;
+      expect(mainServiceInfoConfigsController.clearLoadInfo.calledOnce).to.be.true;
+      expect(mainServiceInfoConfigsController.clearSaveInfo.calledOnce).to.be.true;
+      expect(mainServiceInfoConfigsController.clearRecommendations.calledOnce).to.be.true;
+      expect(mainServiceInfoConfigsController.setProperties.calledWith(props)).to.be.true;
+      expect(mainServiceInfoConfigsController.clearConfigs.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#saveConfigs()', function () {
+
+    beforeEach(function () {
+      sinon.stub(App.ServiceConfigVersion, 'find').returns([
+        Em.Object.create({
+          version: 1
+        })
+      ]);
+    });
+
+    afterEach(function () {
+      App.ServiceConfigVersion.find.restore();
+    });
+
+    it('should return default version{1}', function () {
+      mainServiceInfoConfigsController.set('selectedConfigGroup', Em.Object.create({name: 'Default'}));
+      mainServiceInfoConfigsController.saveConfigs();
+      expect(mainServiceInfoConfigsController.get('currentDefaultVersion')).to.equal(2);
+    });
+
+    it('should return default version{2}', function () {
+      mainServiceInfoConfigsController.set('selectedConfigGroup', Em.Object.create({name: 'group1'}));
+      mainServiceInfoConfigsController.set('currentDefaultVersion', 1);
+      mainServiceInfoConfigsController.saveConfigs();
+      expect(mainServiceInfoConfigsController.get('currentDefaultVersion')).to.equal(1);
+    });
+  });
+
+  describe('#loadStep()', function () {
+
+    beforeEach(function () {
+      sinon.stub(mainServiceInfoConfigsController, 'clearStep');
+      sinon.stub(mainServiceInfoConfigsController, 'trackRequestChain');
+      sinon.stub(mainServiceInfoConfigsController, 'getServicesDependencies').returns(['s2','s3']);
+    });
+
+    afterEach(function () {
+      mainServiceInfoConfigsController.clearStep.restore();
+      mainServiceInfoConfigsController.trackRequestChain.restore();
+      mainServiceInfoConfigsController.getServicesDependencies.restore();
+    });
+
+    it('should load step without preSelectedConfigVersion', function () {
+      mainServiceInfoConfigsController.set('content', Em.Object.create({serviceName: 's1'}));
+      mainServiceInfoConfigsController.set('preSelectedConfigVersion', null);
+      mainServiceInfoConfigsController.loadStep();
+      expect(mainServiceInfoConfigsController.get('dependentServiceNames')).to.eql(['s2','s3']);
+      expect(mainServiceInfoConfigsController.clearStep.calledOnce).to.be.true;
+    });
+
+    it('should load step with preSelectedConfigVersion', function () {
+      mainServiceInfoConfigsController.set('content', Em.Object.create({serviceName: 's1'}));
+      mainServiceInfoConfigsController.set('preSelectedConfigVersion', 1);
+      mainServiceInfoConfigsController.loadStep();
+      expect(mainServiceInfoConfigsController.get('dependentServiceNames')).to.eql(['s2','s3']);
+      expect(mainServiceInfoConfigsController.clearStep.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#parseConfigData()', function () {
+
+    beforeEach(function () {
+      sinon.stub(mainServiceInfoConfigsController, 'loadKerberosIdentitiesConfigs').returns(
+        {
+          done: function (callback) {
+            return callback([])
+          }
+        }
+      );
+      sinon.stub(mainServiceInfoConfigsController, 'loadCompareVersionConfigs').returns(
+        {
+          done: Em.clb
+        }
+      );
+      sinon.stub(mainServiceInfoConfigsController, 'prepareConfigObjects');
+      sinon.stub(mainServiceInfoConfigsController, 'addOverrides');
+      sinon.stub(mainServiceInfoConfigsController, 'onLoadOverrides');
+      sinon.stub(mainServiceInfoConfigsController, 'updateAttributesFromTheme');
+    });
+
+    afterEach(function () {
+      mainServiceInfoConfigsController.loadKerberosIdentitiesConfigs.restore();
+      mainServiceInfoConfigsController.prepareConfigObjects.restore();
+      mainServiceInfoConfigsController.addOverrides.restore();
+      mainServiceInfoConfigsController.onLoadOverrides.restore();
+      mainServiceInfoConfigsController.updateAttributesFromTheme.restore();
+    });
+
+    it('should parse config data', function () {
+      mainServiceInfoConfigsController.set('allConfigs', []);
+      mainServiceInfoConfigsController.set('content', {
+        serviceName: 's1'
+      });
+      mainServiceInfoConfigsController.parseConfigData({});
+      expect(mainServiceInfoConfigsController.loadKerberosIdentitiesConfigs.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#prepareConfigObjects()', function () {
+
+    beforeEach(function () {
+      sinon.stub(App.config, 'getConfigsFromJSON');
+      sinon.stub(App.config, 'sortConfigs');
+      sinon.stub(App.config, 'addYarnCapacityScheduler').returns([{}]);
+      sinon.stub(mainServiceInfoConfigsController, 'mergeWithStackProperties').returns([
+        {
+          fileName: 'capacity-scheduler.xml'
+        }
+      ]);
+      sinon.stub(mainServiceInfoConfigsController, 'setPropertyIsVisible');
+      sinon.stub(mainServiceInfoConfigsController, 'setPropertyIsEditable');
+    });
+
+    afterEach(function () {
+      App.config.getConfigsFromJSON.restore();
+      App.config.sortConfigs.restore();
+      App.config.addYarnCapacityScheduler.restore();
+      mainServiceInfoConfigsController.mergeWithStackProperties.restore();
+      mainServiceInfoConfigsController.setPropertyIsVisible.restore();
+      mainServiceInfoConfigsController.setPropertyIsEditable.restore();
+    });
+
+    it('should prepare config objects', function () {
+      var data = {
+        items: [
+          {
+            group_name: 'Default',
+            configurations: [{}]
+          }
+        ]
+      };
+
+      mainServiceInfoConfigsController.prepareConfigObjects(data, []);
+      expect(App.config.getConfigsFromJSON.called).to.be.true;
+      expect(App.config.sortConfigs.calledOnce).to.be.true;
+      expect(App.config.addYarnCapacityScheduler.calledOnce).to.be.true;
+      expect(mainServiceInfoConfigsController.mergeWithStackProperties.calledOnce).to.be.true;
+      expect(mainServiceInfoConfigsController.setPropertyIsVisible.calledOnce).to.be.true;
+      expect(mainServiceInfoConfigsController.setPropertyIsEditable.calledOnce).to.be.true;
+      expect(mainServiceInfoConfigsController.get('allConfigs')).to.eql([{}]);
+    });
+  });
+
+  describe('#setPropertyIsVisible()', function () {
+    var testCases = [
+      {
+        value: 'none',
+        props: ['kdc_type', 'kdc_hosts', 'admin_server_host', 'domains'],
+        test: 'should set isVisible properties for kdc_type value is none',
+        result: '[{"name":"kdc_type","value":"none"},{"name":"kdc_hosts","isVisible":false},{"name":"admin_server_host","isVisible":false},{"name":"domains","isVisible":false}]'
+      },
+      {
+        value: 'active-directory',
+        props: ['kdc_type', 'container_dn', 'ldap_url'],
+        test: 'should set isVisible properties for kdc_type value is active-directory',
+        result: '[{"name":"kdc_type","value":"active-directory"},{"name":"container_dn","isVisible":true},{"name":"ldap_url","isVisible":true}]'
+      },
+      {
+        value: 'ipa',
+        props: ['kdc_type', 'group', 'manage_krb5_conf', 'install_packages', 'admin_server_host', 'domains'],
+        test: 'should set isVisible and value properties for kdc_type value is ipa',
+        result: '[{"name":"kdc_type","value":"ipa"},{"name":"group","isVisible":true},{"name":"manage_krb5_conf","value":false},{"name":"install_packages","value":false},{"name":"admin_server_host","isVisible":false},{"name":"domains","isVisible":false}]'
+      }
+    ];
+
+    testCases.forEach(function (c) {
+      it(c.test, function () {
+        var configs = c.props.map(function(prop){
+          return Em.Object.create({name: prop})
+        });
+        mainServiceInfoConfigsController.set('content', Em.Object.create({serviceName: 'KERBEROS'}));
+        configs.findProperty('name', 'kdc_type').set('value', c.value);
+        mainServiceInfoConfigsController.setPropertyIsVisible(configs);
+        expect(JSON.stringify(configs)).to.equal(c.result);
+      });
+    })
+  });
+
+  describe('#setPropertyIsEditable()', function () {
+    var configs = [
+      Em.Object.create({id: 'conf1', isEditable: true}),
+      Em.Object.create({id: 'conf2', isEditable: true}),
+    ];
+    var identitiesMap = {'conf1': {}};
+
+    beforeEach(function () {
+      this.mock = sinon.stub(App, 'get');
+      sinon.stub(App.config, 'kerberosIdentitiesDescription').returns('some text');
+      sinon.stub(App, 'isAuthorized').returns(true);
+    });
+
+    afterEach(function () {
+      this.mock.restore();
+      App.config.kerberosIdentitiesDescription.restore();
+      App.isAuthorized.restore();
+    });
+
+    it('should set property is editable with disabled kerberos', function () {
+      this.mock.returns(false);
+      mainServiceInfoConfigsController.set('isCompareMode', true);
+      mainServiceInfoConfigsController.set('selectedConfigGroup', Em.Object.create({
+        serviceName: 's1',
+        isDefault: false
+      }));
+      mainServiceInfoConfigsController.setPropertyIsEditable(configs, identitiesMap);
+      expect(JSON.stringify(configs)).to.equal('[{"id":"conf1","isEditable":false},{"id":"conf2","isEditable":false}]');
+    });
+
+    it('should set property is editable with enabled kerberos', function () {
+      this.mock.returns(true);
+      mainServiceInfoConfigsController.set('isCompareMode', false);
+      mainServiceInfoConfigsController.set('selectedConfigGroup', Em.Object.create({
+        serviceName: 's1',
+        isDefault: true
+      }));
+      mainServiceInfoConfigsController.setPropertyIsEditable(configs, identitiesMap);
+      expect(JSON.stringify(configs)).to.equal('[{"id":"conf1","isEditable":false,"isConfigIdentity":true,"isSecureConfig":true,"description":"some text"},{"id":"conf2","isEditable":false}]');
+    });
+  });
+
+  describe('#loadKerberosIdentitiesConfigs()', function () {
+
+    beforeEach(function () {
+      sinon.stub(App, 'get').returns(true);
+      sinon.stub(App.config, 'parseDescriptor');
+      sinon.spy(mainServiceInfoConfigsController, 'loadClusterDescriptorConfigs');
+    });
+
+    afterEach(function () {
+      App.get.restore();
+      App.config.parseDescriptor.restore();
+      mainServiceInfoConfigsController.loadClusterDescriptorConfigs.restore();
+    });
+
+    it('should load kerberos identities configs', function () {
+      mainServiceInfoConfigsController.loadKerberosIdentitiesConfigs();
+      expect(mainServiceInfoConfigsController.loadClusterDescriptorConfigs.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#mergeWithStackProperties()', function () {
+
+    beforeEach(function () {
+      sinon.stub(App.config, 'getPropertiesFromTheme').returns(['conf1']);
+      sinon.stub(App.configsCollection, 'getConfig').returns({
+        name: 'conf2',
+        id: 'conf2',
+        isRequiredByAgent: true
+      });
+    });
+
+    afterEach(function () {
+      App.config.getPropertiesFromTheme.restore();
+      App.configsCollection.getConfig.restore();
+    });
+
+    it('should return merged configs', function () {
+      expect(JSON.stringify(mainServiceInfoConfigsController.mergeWithStackProperties([]))).to.equal('[{"name":"conf2","id":"conf2","isRequiredByAgent":true,"savedValue":null,"isNotSaved":true,"previousValue":"","initialValue":"","errorMessage":"This is required","warnMessage":""}]');
+    });
+  });
+
+  describe('#addOverrides()', function () {
+    var data = {
+      items: [
+        {
+          group_name: 'group1',
+          service_name: 's1',
+          configurations: [{
+            type: 'type1.xml',
+            properties: {
+              'prop1': {},
+              'prop2': {}
+            }
+          }]
+        }
+      ]
+    };
+    var allConfigs = [
+      {
+        name: 'prop2',
+        filename: 'type1.xml'
+      }
+    ];
+
+    beforeEach(function () {
+      sinon.stub(App.config, 'createOverride');
+      sinon.stub(App.config, 'createDefaultConfig').returns(Em.Object.create({
+        overrides: []
+      }));
+      sinon.stub(App.config, 'createCustomGroupConfig').returns({
+        name: 'newConf'
+      });
+      sinon.stub(App.ServiceConfigGroup, 'find').returns([
+        Em.Object.create({
+          serviceName: 's1',
+          name: 'group1'
+        })
+      ]);
+    });
+
+    afterEach(function () {
+      App.config.createOverride.restore();
+      App.config.createDefaultConfig.restore();
+      App.config.createCustomGroupConfig.restore();
+      App.ServiceConfigGroup.find.restore();
+    });
+
+    it('should push new config and add overrides', function () {
+      mainServiceInfoConfigsController.set('selectedConfigGroup', Em.Object.create({
+        name: 'group1',
+        isDefault: false
+      }));
+      mainServiceInfoConfigsController.addOverrides(data, allConfigs);
+      expect(JSON.stringify(allConfigs)).to.equal('[{"name":"prop2","filename":"type1.xml"},{"overrides":[{"name":"newConf"}],"previousValue":"","initialValue":"","errorMessage":"This is required","warnMessage":""}]');
+      expect(App.config.createOverride.calledWith()).to.be.true;
+    });
+  });
+
+  describe('#addHostNamesToConfigs()', function () {
+
+    beforeEach(function () {
+      sinon.stub(App.StackServiceComponent, 'find').returns(Em.Object.create(
+        {
+          displayName: 'c1'
+        }
+      ));
+    });
+
+    afterEach(function () {
+      App.StackServiceComponent.find.restore();
+    });
+
+    it('should add host names to configs', function () {
+      var serviceConfig = Em.Object.create({
+        serviceName: 's1',
+        configs: [],
+        configCategories: [
+          {
+            showHost: true,
+            name: 'c1'
+          }
+        ]
+      });
+
+      mainServiceInfoConfigsController.addHostNamesToConfigs(serviceConfig);
+      expect(JSON.stringify(serviceConfig)).to.equal('{"serviceName":"s1","configs":[{"id":"c1_host__s1-site","name":"c1_host","displayName":"c1 host","value":[],"recommendedValue":[],"description":"The host that has been assigned to run c1","displayType":"componentHost","isOverridable":false,"isRequiredByAgent":false,"serviceName":"s1","filename":"s1-site.xml","category":"c1","index":0,"previousValue":[],"initialValue":[],"errorMessage":"","warnMessage":""}],"configCategories":[{"showHost":true,"name":"c1"}]}');
+    });
+  });
+
+  describe('#getComponentHostValue()', function () {
+
+    beforeEach(function () {
+      sinon.stub(App.StackServiceComponent, 'find').returns(Em.Object.create(
+        {
+          displayName: 'c1',
+          isMaster: true
+        }
+      ));
+      sinon.stub(App.MasterComponent, 'find').returns(Em.Object.create(
+        {
+          displayName: 'c1',
+          hostNames: ['host1', 'host2']
+        }
+      ));
+    });
+
+    afterEach(function () {
+      App.StackServiceComponent.find.restore();
+      App.MasterComponent.find.restore();
+    });
+
+    it('should return component host names', function () {
+      expect(mainServiceInfoConfigsController.getComponentHostValue('c1')).to.eql(['host1', 'host2']);
+    });
+  });
+
+  describe('#showItemsShouldBeRestarted()', function () {
+
+    beforeEach(function () {
+      sinon.stub(App.ModalPopup, 'show');
+    });
+
+    afterEach(function () {
+      App.ModalPopup.show.restore();
+    });
+
+    it('should show modal popup', function () {
+      mainServiceInfoConfigsController.showItemsShouldBeRestarted('some text', 'label');
+      expect(App.ModalPopup.show.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#manageConfigurationGroup()', function () {
+    var manageConfigGroupsController = {
+      manageConfigurationGroups: Em.K
+    };
+
+    beforeEach(function () {
+      sinon.stub(App.router, 'get').returns(manageConfigGroupsController);
+      sinon.spy(manageConfigGroupsController, 'manageConfigurationGroups');
+    });
+
+    afterEach(function () {
+      App.router.get.restore();
+    });
+
+    it('should manage configuration groups', function () {
+      mainServiceInfoConfigsController.manageConfigurationGroup();
+      expect(manageConfigGroupsController.manageConfigurationGroups.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#selectConfigGroup()', function () {
+
+    beforeEach(function () {
+      sinon.stub(mainServiceInfoConfigsController, 'doSelectConfigGroup');
+      sinon.stub(mainServiceInfoConfigsController, 'showSavePopup');
+      sinon.stub(mainServiceInfoConfigsController, 'hasUnsavedChanges').returns(true);
+    });
+
+    afterEach(function () {
+      mainServiceInfoConfigsController.doSelectConfigGroup.restore();
+      mainServiceInfoConfigsController.showSavePopup.restore();
+      mainServiceInfoConfigsController.hasUnsavedChanges.restore();
+    });
+
+    it('should manage configuration groups with isInit is false', function () {
+      mainServiceInfoConfigsController.set('isInit', false)
+      mainServiceInfoConfigsController.selectConfigGroup({});
+      expect(mainServiceInfoConfigsController.showSavePopup.calledOnce).to.be.true;
+    });
+
+    it('should manage configuration groups with isInit is true', function () {
+      mainServiceInfoConfigsController.set('isInit', true)
+      mainServiceInfoConfigsController.selectConfigGroup({});
+      expect(mainServiceInfoConfigsController.doSelectConfigGroup.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#doSelectConfigGroup()', function () {
+
+    beforeEach(function () {
+      sinon.stub(App.loadTimer, 'start');
+      sinon.stub(mainServiceInfoConfigsController, 'loadCurrentVersions');
+      sinon.stub(mainServiceInfoConfigsController, 'loadSelectedVersion');
+      sinon.stub(App.ServiceConfigVersion, 'find').returns([
+        Em.Object.create({
+          groupId: 1,
+          isCurrent: true,
+          version: '1.0'
+        })
+      ]);
+    });
+
+    afterEach(function () {
+      App.loadTimer.start.restore();
+      mainServiceInfoConfigsController.loadCurrentVersions.restore();
+      mainServiceInfoConfigsController.loadSelectedVersion.restore();
+      App.ServiceConfigVersion.find.restore();
+    });
+
+    it('should switch view to selected group{1}', function () {
+      var event = {
+        context: Em.Object.create({
+          isDefault: true,
+          id: 1
+        })
+      };
+
+      mainServiceInfoConfigsController.selectConfigGroup(event);
+      expect(App.loadTimer.start.calledOnce).to.be.true;
+      expect(mainServiceInfoConfigsController.loadCurrentVersions.calledOnce).to.be.true;
+    });
+
+    it('should switch view to selected group{2}', function () {
+      var event = {
+        context: Em.Object.create({
+          isDefault: false,
+          id: 1
+        })
+      };
+
+      mainServiceInfoConfigsController.selectConfigGroup(event);
+      expect(App.loadTimer.start.calledOnce).to.be.true;
+      expect(mainServiceInfoConfigsController.loadSelectedVersion.calledWith('1.0', event.context)).to.be.true;
+    });
+
+    it('should switch view to selected group{3}', function () {
+      var event = {
+        context: Em.Object.create({
+          isDefault: false,
+          id: 2
+        })
+      };
+
+      mainServiceInfoConfigsController.selectConfigGroup(event);
+      expect(App.loadTimer.start.calledOnce).to.be.true;
+      expect(mainServiceInfoConfigsController.loadSelectedVersion.calledWith(null, event.context)).to.be.true;
+    });
+  });
 });
