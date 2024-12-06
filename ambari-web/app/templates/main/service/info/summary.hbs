@@ -96,9 +96,9 @@
                       </h5>
                     {{/if}}
                     {{#each quickLinks in group.links}}
-                      <h6>{{quickLinks.publicHostNameLabel}}</h6>
+                      <h6 {{bindAttr class="quickLinks.activeClass"}}>{{quickLinks.publicHostNameLabel}}</h6>
                       {{#each quickLinks}}
-                        <a {{bindAttr href="url"}} target="_blank" rel="noopener noreferrer">{{label}}</a>
+                        <a {{bindAttr href="url" disabled="quickLinks.serverComponentStopped"}} target="_blank" rel="noopener noreferrer">{{label}}</a>
                       {{/each}}
                     {{/each}}
                   </div>
