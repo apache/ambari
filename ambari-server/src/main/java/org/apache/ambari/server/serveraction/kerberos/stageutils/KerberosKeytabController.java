@@ -95,6 +95,33 @@ public class KerberosKeytabController {
   }
 
   /**
+   * Tries to find principal by host id, keytab path, principal name.
+   *
+   * @param hostId host id
+   * @param keytabPath keytab path
+   * @param principalName principal name
+   * @return found principal or null
+   */
+  public ResolvedKerberosPrincipal getPrincipalByHostKeytabAndPrincipal(Long hostId, String keytabPath, String principalName) {
+    KerberosKeytabPrincipalEntity kkpe = kerberosKeytabPrincipalDAO.findByHostKeytabAndPrincipal(hostId, keytabPath, principalName);
+    if (kkpe == null) {
+      return null;
+    }
+    KerberosPrincipalEntity kpe = kkpe.getKerberosPrincipalEntity();
+    if (kpe == null) {
+      return null;
+    }
+    return new ResolvedKerberosPrincipal(
+            kkpe.getHostId(),
+            kkpe.getHostName(),
+            kkpe.getPrincipalName(),
+            kpe.isService(),
+            kpe.getCachedKeytabPath(),
+            kkpe.getKeytabPath(),
+            kkpe.getServiceMappingAsMultimap());
+  }
+
+  /**
    * Returns all keytabs managed by ambari.
    *
    * @return all keytabs
