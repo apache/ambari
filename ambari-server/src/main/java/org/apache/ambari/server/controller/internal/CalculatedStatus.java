@@ -25,6 +25,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
@@ -39,10 +40,6 @@ import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.orm.entities.StageEntityPK;
 import org.apache.ambari.server.topology.LogicalRequest;
 import org.apache.ambari.server.topology.TopologyManager;
-
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
 
 /**
  * Status of a request resource, calculated from a set of tasks or stages.
@@ -733,24 +730,8 @@ public class CalculatedStatus {
    * @return Set of {@link Role}
    */
   protected static Set<Role> getRolesOfTasks(List <HostRoleCommand> hostRoleCommands, final HostRoleStatus status) {
-
-    Predicate<HostRoleCommand> predicate = new Predicate<HostRoleCommand>() {
-      @Override
-      public boolean apply(HostRoleCommand hrc) {
-        return hrc.getStatus() ==  status;
-      }
-    };
-
-    Function<HostRoleCommand, Role> transform = new Function<HostRoleCommand, Role>() {
-      @Override
-      public Role apply(HostRoleCommand hrc) {
-        return hrc.getRole();
-      }
-    };
-    return FluentIterable.from(hostRoleCommands)
-        .filter(predicate)
-        .transform(transform)
-        .toSet();
+    return hostRoleCommands.stream().filter(hrc -> hrc.getStatus() ==  status)
+        .map(hrc -> hrc.getRole()).collect(Collectors.toSet());
   }
 
   /**
@@ -781,16 +762,9 @@ public class CalculatedStatus {
    * @param role {@link Role}
    * @return list of {@link HostRoleCommand} that belongs to {@link Role}
    */
-  protected static List<HostRoleCommand> getHostRoleCommandsOfRole(List <HostRoleCommand> hostRoleCommands, final Role role) {
-    Predicate<HostRoleCommand> predicate = new Predicate<HostRoleCommand>() {
-      @Override
-      public boolean apply(HostRoleCommand hrc) {
-        return hrc.getRole() ==  role;
-      }
-    };
-    return FluentIterable.from(hostRoleCommands)
-        .filter(predicate)
-        .toList();
+  protected static List<HostRoleCommand> getHostRoleCommandsOfRole(
+      List <HostRoleCommand> hostRoleCommands, final Role role) {
+    return hostRoleCommands.stream().filter(hrc -> hrc.getRole() ==  role).collect(Collectors.toList());
   }
 
   /**
@@ -799,15 +773,8 @@ public class CalculatedStatus {
    * @return list of {@link HostRoleCommand} with failed status
    */
   protected static List<HostRoleCommand> getFailedHostRoleCommands(List <HostRoleCommand> hostRoleCommands) {
-    Predicate<HostRoleCommand> predicate = new Predicate<HostRoleCommand>() {
-      @Override
-      public boolean apply(HostRoleCommand hrc) {
-        return hrc.getStatus().isFailedAndNotSkippableState();
-      }
-    };
-    return FluentIterable.from(hostRoleCommands)
-        .filter(predicate)
-        .toList();
+    return hostRoleCommands.stream().filter(hrc -> hrc.getStatus().isFailedAndNotSkippableState())
+        .collect(Collectors.toList());
   }
 
 

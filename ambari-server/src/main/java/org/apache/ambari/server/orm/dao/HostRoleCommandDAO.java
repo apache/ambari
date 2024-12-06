@@ -337,6 +337,53 @@ public class HostRoleCommandDAO {
     return Lists.newArrayList(result);
   }
 
+  /**
+   * Retrieves minimal host role command columns which are required to calculate stare state.
+   * @param taskIds collection of host role commands to process.
+   * @return minimized host role command entities.
+   */
+  @RequiresSession
+  public List<HostRoleCommandEntity> findStatusRolesByPKs(Collection<Long> taskIds) {
+    if (taskIds == null || taskIds.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    TypedQuery<Object[]> query = entityManagerProvider.get().createQuery(
+      "SELECT task.taskId, task.status, task.role FROM HostRoleCommandEntity task WHERE task.taskId IN ?1 " +
+        "ORDER BY task.taskId",
+        Object[].class);
+
+    if (taskIds.size() > configuration.getTaskIdListLimit()) {
+      List<HostRoleCommandEntity> result = new ArrayList<>();
+
+      List<List<Long>> lists = Lists.partition(new ArrayList<>(taskIds), configuration.getTaskIdListLimit());
+      for (List<Long> list : lists) {
+
+        List<Object[]> queryResult = daoUtils.selectList(query, list);
+        result.addAll(queryResult.stream().map(
+            o -> {
+              HostRoleCommandEntity e = new HostRoleCommandEntity();
+              e.setTaskId((Long) o[0]);
+              e.setStatus(HostRoleStatus.valueOf(o[1].toString()));
+              e.setRole(Role.valueOf(o[2].toString()));
+              return e;
+            }).collect(Collectors.toList()));
+      }
+
+      return result;
+    }
+
+    List<Object[]> queryResult = daoUtils.selectList(query, taskIds);
+    return queryResult.stream().map(
+        o -> {
+          HostRoleCommandEntity e = new HostRoleCommandEntity();
+          e.setTaskId((Long) o[0]);
+          e.setStatus(HostRoleStatus.valueOf(o[1].toString()));
+          e.setRole(Role.valueOf(o[2].toString()));
+          return e;
+        }).collect(Collectors.toList());
+  }
+
   @RequiresSession
   public List<HostRoleCommandEntity> findByHostId(Long hostId) {
     TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createNamedQuery(

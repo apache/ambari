@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.Role;
@@ -51,7 +52,6 @@ import org.apache.ambari.server.orm.entities.StageEntityPK;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Sets;
@@ -397,15 +397,8 @@ public class TaskStatusListener {
       HostRoleStatus statusFromPartialSet = CalculatedStatus.calculateSummaryStatusFromPartialSet(receivedTaskStatusCount, reportedStage.getSkippable());
       HostRoleStatus displayStatusFromPartialSet = CalculatedStatus.calculateSummaryStatusFromPartialSet(receivedTaskStatusCount, Boolean.FALSE);
       if (statusFromPartialSet == HostRoleStatus.PENDING || displayStatusFromPartialSet == HostRoleStatus.PENDING) {
-        Function<Long,HostRoleCommand> transform = new Function<Long,HostRoleCommand>(){
-          @Override
-          public HostRoleCommand apply(Long taskId) {
-            return activeTasksMap.get(taskId);
-          }
-        };
-
-        List<HostRoleCommand> activeHostRoleCommandsOfStage = FluentIterable.from(reportedStage.getTaskIds())
-            .transform(transform).toList();
+        List<HostRoleCommand> activeHostRoleCommandsOfStage = reportedStage.getTaskIds().stream()
+            .map(taskId -> activeTasksMap.get(taskId)).collect(Collectors.toList());
         Map<HostRoleStatus, Integer> statusCount = CalculatedStatus.calculateStatusCountsForTasks(activeHostRoleCommandsOfStage);
         if (displayStatusFromPartialSet == HostRoleStatus.PENDING) {
           // calculate and get new display status of the stage as per the new status of received host role commands
