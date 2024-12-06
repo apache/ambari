@@ -95,7 +95,7 @@ public class SecondaryNamenodeDeletedCheck extends AbstractCheckDescriptor {
 
     // Try another method to find references to SECONDARY_NAMENODE
     if (hosts.isEmpty()) {
-      List<HostComponentStateEntity> allHostComponents = hostComponentStateDao.findAll();
+      List<HostComponentStateEntity> allHostComponents = hostComponentStateDao.findByCluster(cluster.getClusterId());
       for(HostComponentStateEntity hc : allHostComponents) {
         if (hc.getServiceName().equalsIgnoreCase(HDFS_SERVICE_NAME) && hc.getComponentName().equalsIgnoreCase(SECONDARY_NAMENODE)) {
           hosts.add(hc.getHostName());

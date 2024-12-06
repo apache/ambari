@@ -72,6 +72,20 @@ public class HostComponentStateDAO {
   }
 
   /**
+   * Retrieve all of the Host Component States for the given cluster id.
+   *
+   * @param cluster_id HOst name
+   * @return Return all of the Host Component States that match the criteria.
+   */
+  @RequiresSession
+  public List<HostComponentStateEntity> findByCluster(long cluster_id) {
+    final TypedQuery<HostComponentStateEntity> query = entityManagerProvider.get().createNamedQuery("HostComponentStateEntity.findByCluster", HostComponentStateEntity.class);
+    query.setParameter("clusterId", cluster_id);
+
+    return daoUtils.selectList(query);
+    }
+
+  /**
    * Retrieve all of the Host Component States for the given service.
    *
    * @param serviceName Service Name
