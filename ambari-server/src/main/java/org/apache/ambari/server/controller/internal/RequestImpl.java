@@ -76,6 +76,11 @@ public class RequestImpl implements Request {
    */
   private final boolean dryRun;
 
+  /**
+   * Is it a force metrics fetch request?
+   */
+  private final boolean forceMetricsFetch;
+
   // ----- Constructors ------------------------------------------------------
 
   /**
@@ -120,6 +125,9 @@ public class RequestImpl implements Request {
     m_pageRequest = pageRequest;
 
     this.dryRun = this.requestInfoProperties.containsKey(DIRECTIVE_DRY_RUN) && Boolean.parseBoolean(this.requestInfoProperties.get(DIRECTIVE_DRY_RUN));
+
+    this.forceMetricsFetch = this.requestInfoProperties.containsKey(DIRECTIVE_FORCE_METRICS_FETCH) &&
+      Boolean.parseBoolean(this.requestInfoProperties.get(DIRECTIVE_FORCE_METRICS_FETCH));
   }
 
   // ----- Request -----------------------------------------------------------
@@ -157,6 +165,11 @@ public class RequestImpl implements Request {
   @Override
   public boolean isDryRunRequest() {
     return dryRun;
+  }
+
+  @Override
+  public boolean isForceMetricsFetchRequest() {
+    return forceMetricsFetch;
   }
 
   @Override

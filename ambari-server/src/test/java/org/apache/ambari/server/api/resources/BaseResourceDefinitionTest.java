@@ -148,7 +148,7 @@ public class BaseResourceDefinitionTest {
   public void testReadDirectives() {
     ResourceDefinition resource = getResourceDefinition();
 
-    assertEquals(Collections.emptySet(), resource.getReadDirectives());
+    assertEquals(new HashSet<String>() {{add("force_metrics_fetch");}}, resource.getReadDirectives());
 
     Map<BaseResourceDefinition.DirectiveType, List<String>> directives = new HashMap<>();
     directives.put(BaseResourceDefinition.DirectiveType.DELETE, Arrays.asList("do_something_delete", "do_something_else_delete"));
@@ -158,10 +158,10 @@ public class BaseResourceDefinitionTest {
 
     resource = getResourceDefinition(directives);
 
-    assertEquals(new HashSet<String>() {{add("do_something_delete"); add("do_something_else_delete");}}, resource.getDeleteDirectives());
-    assertEquals(new HashSet<String>() {{add("do_something_get"); add("do_something_else_get");}}, resource.getReadDirectives());
-    assertEquals(new HashSet<String>() {{add("do_something_post"); add("do_something_else_post");}}, resource.getCreateDirectives());
-    assertEquals(new HashSet<String>() {{add("do_something_put"); add("do_something_else_put");}}, resource.getUpdateDirectives());
+    assertEquals(new HashSet<String>() {{add("force_metrics_fetch"); add("do_something_delete"); add("do_something_else_delete");}}, resource.getDeleteDirectives());
+    assertEquals(new HashSet<String>() {{add("force_metrics_fetch"); add("do_something_get"); add("do_something_else_get");}}, resource.getReadDirectives());
+    assertEquals(new HashSet<String>() {{add("force_metrics_fetch"); add("do_something_post"); add("do_something_else_post");}}, resource.getCreateDirectives());
+    assertEquals(new HashSet<String>() {{add("force_metrics_fetch"); add("do_something_put"); add("do_something_else_put");}}, resource.getUpdateDirectives());
   }
 
   private BaseResourceDefinition getResourceDefinition() {

@@ -57,7 +57,7 @@ public class BlueprintResourceDefinitionTest {
   public void testGetCreateDirectives() {
     BlueprintResourceDefinition definition = new BlueprintResourceDefinition();
     Collection<String> directives = definition.getCreateDirectives();
-    Assert.assertEquals(1, directives.size());
+    Assert.assertEquals(2, directives.size());
     Assert.assertTrue(directives.contains("validate_topology"));
   }
 }

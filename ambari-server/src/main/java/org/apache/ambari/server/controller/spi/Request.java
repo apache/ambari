@@ -33,6 +33,8 @@ public interface Request {
 
   String DIRECTIVE_DRY_RUN = "dry_run";
 
+  String DIRECTIVE_FORCE_METRICS_FETCH = "force_metrics_fetch";
+
   /**
    * Get the set of property ids being requested.  Used for requests to get
    * resources.  An empty set signifies that all supported properties should
@@ -91,4 +93,10 @@ public interface Request {
    * @return true - if request is dry run request, false otherwise.
    */
   boolean isDryRunRequest();
+
+  /**
+   * Is this a force metrics fetch request.
+   * @return true - if request metrics should be immediately fetched from the source, bypassing the cache, false otherwise.
+   */
+  boolean isForceMetricsFetchRequest();
 }
