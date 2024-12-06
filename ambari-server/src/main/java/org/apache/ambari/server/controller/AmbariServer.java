@@ -643,7 +643,7 @@ public class AmbariServer {
       https_config.setSendServerVersion(false);
 
       // Secured connector - default constructor sets trustAll = true for certs
-      SslContextFactory sslContextFactory = new SslContextFactory();
+      SslContextFactory sslContextFactory = new SslContextFactory.Server();
       disableInsecureProtocols(sslContextFactory);
       sslContextFactory.setKeyStorePath(keystore);
       sslContextFactory.setTrustStorePath(truststore);
@@ -689,7 +689,7 @@ public class AmbariServer {
       https_config.addCustomizer(new SecureRequestCustomizer());
       https_config.setSecurePort(configs.getClientSSLApiPort());
 
-      SslContextFactory contextFactoryApi = new SslContextFactory();
+      SslContextFactory contextFactoryApi = new SslContextFactory().Server;
       disableInsecureProtocols(contextFactoryApi);
       contextFactoryApi.setKeyStorePath(httpsKeystore);
       contextFactoryApi.setTrustStorePath(httpsTruststore);

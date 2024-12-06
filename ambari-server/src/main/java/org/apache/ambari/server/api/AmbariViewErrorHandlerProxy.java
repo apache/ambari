@@ -19,6 +19,7 @@
 package org.apache.ambari.server.api;
 
 import java.io.IOException;
+import javax.servlet.ServletException;
 import java.lang.reflect.Method;
 
 import javax.servlet.RequestDispatcher;
@@ -51,7 +52,7 @@ public class AmbariViewErrorHandlerProxy extends ErrorHandler implements MethodH
 
   @Override
   public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException {
-
+   try{
     if (isInternalError(request, response)) {
       //invoke the ambari error handler
       ambariErrorHandler.handle(target, baseRequest, request, response);
@@ -59,6 +60,10 @@ public class AmbariViewErrorHandlerProxy extends ErrorHandler implements MethodH
       //invoke the original errorhandler
       webAppErrorHandler.handle(target, baseRequest, request, response);
     }
+   }
+   catch(IOException | ServletException e){
+    LOGGER.info("Error while handling the "+baseRequest, e);
+   }
   }
 
   @Override

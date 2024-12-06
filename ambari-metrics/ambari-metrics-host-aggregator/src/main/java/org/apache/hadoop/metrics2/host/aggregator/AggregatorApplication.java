@@ -153,7 +153,7 @@ public class AggregatorApplication {
 
     if (webServerProtocol.equalsIgnoreCase("https")) {
       HttpsServer httpsServer = (HttpsServer) server;
-      SslContextFactory sslContextFactory = new SslContextFactory();
+      SslContextFactory sslContextFactory = new SslContextFactory.Server();
       String keyStorePath = configuration.get("ssl.server.keystore.location");
       String keyStorePassword = configuration.get("ssl.server.keystore.password");
       String keyManagerPassword = configuration.get("ssl.server.keystore.keypassword");
