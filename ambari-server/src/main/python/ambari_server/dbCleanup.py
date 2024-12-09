@@ -40,12 +40,14 @@ DEBUG_SUSPEND_AT_START = "n"
 DB_CLEANUP_CMD = "{0} " \
                  "-cp {1} org.apache.ambari.server.cleanup.CleanupDriver " \
                  "--cluster-name {2} " \
-                 "--from-date {3}> " + configDefaults.SERVER_OUT_FILE + " 2>&1"
+                 "--purge-common-info {3} " \
+                 "--from-date {4}> " + configDefaults.SERVER_OUT_FILE + " 2>&1"
 
-DB_DEBUG_CLEANUP_CMD = "{0} -agentlib:jdwp=transport=dt_socket,server=y,suspend={4},address={5} " \
+DB_DEBUG_CLEANUP_CMD = "{0} -agentlib:jdwp=transport=dt_socket,server=y,suspend={5},address={6} " \
                        "-cp {1} org.apache.ambari.server.cleanup.CleanupDriver " \
                        "--cluster-name {2} " \
-                       "--from-date {3}> " + configDefaults.SERVER_OUT_FILE + " 2>&1"
+                       "--purge-common-info {3} " \
+                       "--from-date {4}> " + configDefaults.SERVER_OUT_FILE + " 2>&1"
 
 
 def run_db_purge(options):
@@ -98,6 +100,7 @@ def run_db_purge(options):
       jdk_path,
       class_path,
       options.cluster_name,
+      options.clean_common_info,
       options.purge_from_date,
       DEBUG_SUSPEND_AT_START,
       DEBUG_PORT
@@ -107,6 +110,7 @@ def run_db_purge(options):
       jdk_path,
       class_path,
       options.cluster_name,
+      options.clean_common_info,
       options.purge_from_date
     )
 

@@ -45,11 +45,13 @@ public class CleanupDriver {
 
   private static final String DATE_PATTERN = "yyyy-MM-dd";
   private static final String CLUSTER_NAME_ARG = "cluster-name";
+  private static final String CLEAN_COMMON_INFO = "purge-common-info";
   private static final String FROM_DATE_ARG = "from-date";
 
   private static Options getOptions() {
     Options options = new Options();
     options.addOption(Option.builder().longOpt(CLUSTER_NAME_ARG).desc("The cluster name").required().type(String.class).hasArg().valueSeparator(' ').build());
+    options.addOption(Option.builder().longOpt(CLEAN_COMMON_INFO).desc("Clean Common Info").required().type(String.class).hasArg().valueSeparator(' ').build());
     options.addOption(Option.builder().longOpt(FROM_DATE_ARG).desc("Date up until data will be purged.").required().type(String.class).hasArg().valueSeparator(' ').build());
     return options;
   }
@@ -63,8 +65,9 @@ public class CleanupDriver {
     try {
       CommandLine line = cmdLineParser.parse(getOptions(), args);
       String clusterName = (String) line.getParsedOptionValue(CLUSTER_NAME_ARG);
+      String cleanCommonInfo = (String) line.getParsedOptionValue(CLEAN_COMMON_INFO);
       Date fromDate = df.parse(line.getOptionValue(FROM_DATE_ARG));
-      ctx = new CleanupContext(clusterName, fromDate.getTime());
+      ctx = new CleanupContext(clusterName, fromDate.getTime(), cleanCommonInfo);
     } catch (Exception exp) {
       System.err.println("Parsing failed.  Reason: " + exp.getMessage());
       LOGGER.error("Parsing failed.  Reason: ", exp);
@@ -87,7 +90,7 @@ public class CleanupDriver {
     injector.getInstance(AmbariJpaPersistService.class).start();
 
     CleanupServiceImpl cleanupService = injector.getInstance(CleanupServiceImpl.class);
-    CleanupService.CleanupResult result = cleanupService.cleanup(new TimeBasedCleanupPolicy(cleanupContext.getClusterName(), cleanupContext.getFromDayTimestamp()));
+    CleanupService.CleanupResult result = cleanupService.cleanup(new TimeBasedCleanupPolicy(cleanupContext.getClusterName(), cleanupContext.getFromDayTimestamp(), cleanupContext.getcleanCommonInfo()));
 
     // explicitly stopping the persist service
     injector.getInstance(AmbariJpaPersistService.class).stop();
@@ -107,14 +110,20 @@ public class CleanupDriver {
   private static class CleanupContext {
     private String clusterName;
     private Long fromDayTimestamp;
+    private String cleanCommonInfo;
 
-    public CleanupContext(String clusterName, Long fromDayTimestamp) {
+    public CleanupContext(String clusterName, Long fromDayTimestamp, String cleanCommonInfo) {
       this.clusterName = clusterName;
       this.fromDayTimestamp = fromDayTimestamp;
+      this.cleanCommonInfo = cleanCommonInfo;
     }
 
     public String getClusterName() {
       return clusterName;
+    }
+
+    public boolean getcleanCommonInfo() {
+      return cleanCommonInfo.equals("true");
     }
 
     public Long getFromDayTimestamp() {

@@ -371,61 +371,70 @@ public class RequestDAO implements Cleanable {
   public long cleanup(TimeBasedCleanupPolicy policy) {
     long affectedRows = 0;
     try {
-      Long clusterId = m_clusters.get().getCluster(policy.getClusterName()).getClusterId();
-      // find request and stage ids that were created before date populated by user.
-      List<StageEntityPK> requestStageIds = findRequestAndStageIdsInClusterBeforeDate(clusterId, policy.getToDateInMillis());
+      List<Long> clusterIdList = new ArrayList<>();
+      Long clusterId_after_creation = m_clusters.get().getCluster(policy.getClusterName()).getClusterId();
+      clusterIdList.add(clusterId_after_creation);
+      if(policy.getcleanCommonInfo()){
+        LOG.info(String.format("Including records before date with cluster_id -1 before %s",policy.getToDateInMillis()));
+        clusterIdList.add(-1L);
+      }
+      for(Long clusterId : clusterIdList){
+        LOG.info(String.format("Purging records before date with cluster_id %s before %s", clusterId, policy.getToDateInMillis()));
+        // find request and stage ids that were created before date populated by user.
+        List<StageEntityPK> requestStageIds = findRequestAndStageIdsInClusterBeforeDate(clusterId, policy.getToDateInMillis());
 
-      // find request ids from Upgrade table and exclude these ids from
-      // request ids set that we already have. We don't want to make any changes for upgrade
-      Set<Long> requestIdsFromUpgrade = findAllRequestIdsFromUpgrade();
-      Iterator<StageEntityPK> requestStageIdsIterator =  requestStageIds.iterator();
-      Set<Long> requestIds = new HashSet<>();
-      while (requestStageIdsIterator.hasNext()) {
-        StageEntityPK nextRequestStageIds = requestStageIdsIterator.next();
-        if (requestIdsFromUpgrade.contains(nextRequestStageIds.getRequestId())) {
-          requestStageIdsIterator.remove();
-          continue;
+        // find request ids from Upgrade table and exclude these ids from
+        // request ids set that we already have. We don't want to make any changes for upgrade
+        Set<Long> requestIdsFromUpgrade = findAllRequestIdsFromUpgrade();
+        Iterator<StageEntityPK> requestStageIdsIterator =  requestStageIds.iterator();
+        Set<Long> requestIds = new HashSet<>();
+        while (requestStageIdsIterator.hasNext()) {
+          StageEntityPK nextRequestStageIds = requestStageIdsIterator.next();
+          if (requestIdsFromUpgrade.contains(nextRequestStageIds.getRequestId())) {
+            requestStageIdsIterator.remove();
+            continue;
+          }
+          requestIds.add(nextRequestStageIds.getRequestId());
         }
-        requestIds.add(nextRequestStageIds.getRequestId());
+
+        // find task ids using request stage ids
+        Set<Long> taskIds = hostRoleCommandDAO.findTaskIdsByRequestStageIds(requestStageIds);
+        LinkedList<String> params = new LinkedList<>();
+        params.add("stageId");
+        params.add("requestId");
+
+        // find host task ids, to find related host requests and also to remove needed host tasks
+        Set<Long> hostTaskIds = topologyLogicalTaskDAO.findHostTaskIdsByPhysicalTaskIds(taskIds);
+
+        // find host request ids by host task ids to remove later needed host requests
+        Set<Long> hostRequestIds = topologyHostTaskDAO.findHostRequestIdsByHostTaskIds(hostTaskIds);
+        Set<Long> topologyRequestIds = topologyLogicalRequestDAO.findRequestIdsByIds(hostRequestIds);
+
+        //removing all entities one by one according to their relations using stage, task and request ids
+        affectedRows += cleanTableByIds(taskIds, "taskIds", "ExecutionCommand", policy.getToDateInMillis(),
+                "ExecutionCommandEntity.removeByTaskIds", ExecutionCommandEntity.class);
+        affectedRows += cleanTableByIds(taskIds, "taskIds", "TopologyLogicalTask", policy.getToDateInMillis(),
+                "TopologyLogicalTaskEntity.removeByPhysicalTaskIds", TopologyLogicalTaskEntity.class);
+        affectedRows += cleanTableByIds(hostTaskIds, "hostTaskIds", "TopologyHostTask", policy.getToDateInMillis(),
+                "TopologyHostTaskEntity.removeByTaskIds", TopologyHostTaskEntity.class);
+        affectedRows += cleanTableByIds(hostRequestIds, "hostRequestIds", "TopologyHostRequest", policy.getToDateInMillis(),
+                "TopologyHostRequestEntity.removeByIds", TopologyHostRequestEntity.class);
+        for (Long topologyRequestId : topologyRequestIds) {
+          topologyRequestDAO.removeByPK(topologyRequestId);
+        }
+        affectedRows += cleanTableByIds(taskIds, "taskIds", "HostRoleCommand", policy.getToDateInMillis(),
+                "HostRoleCommandEntity.removeByTaskIds", HostRoleCommandEntity.class);
+        affectedRows += cleanTableByStageEntityPK(requestStageIds, params, "RoleSuccessCriteria", policy.getToDateInMillis(),
+                "RoleSuccessCriteriaEntity.removeByRequestStageIds", RoleSuccessCriteriaEntity.class);
+        affectedRows += cleanTableByStageEntityPK(requestStageIds, params, "Stage", policy.getToDateInMillis(),
+                "StageEntity.removeByRequestStageIds", StageEntity.class);
+        affectedRows += cleanTableByIds(requestIds, "requestIds", "RequestResourceFilter", policy.getToDateInMillis(),
+                "RequestResourceFilterEntity.removeByRequestIds", RequestResourceFilterEntity.class);
+        affectedRows += cleanTableByIds(requestIds, "requestIds", "RequestOperationLevel", policy.getToDateInMillis(),
+                "RequestOperationLevelEntity.removeByRequestIds", RequestOperationLevelEntity.class);
+        affectedRows += cleanTableByIds(requestIds, "requestIds", "Request", policy.getToDateInMillis(),
+                "RequestEntity.removeByRequestIds", RequestEntity.class);
       }
-
-      // find task ids using request stage ids
-      Set<Long> taskIds = hostRoleCommandDAO.findTaskIdsByRequestStageIds(requestStageIds);
-      LinkedList<String> params = new LinkedList<>();
-      params.add("stageId");
-      params.add("requestId");
-
-      // find host task ids, to find related host requests and also to remove needed host tasks
-      Set<Long> hostTaskIds = topologyLogicalTaskDAO.findHostTaskIdsByPhysicalTaskIds(taskIds);
-
-      // find host request ids by host task ids to remove later needed host requests
-      Set<Long> hostRequestIds = topologyHostTaskDAO.findHostRequestIdsByHostTaskIds(hostTaskIds);
-      Set<Long> topologyRequestIds = topologyLogicalRequestDAO.findRequestIdsByIds(hostRequestIds);
-
-      //removing all entities one by one according to their relations using stage, task and request ids
-      affectedRows += cleanTableByIds(taskIds, "taskIds", "ExecutionCommand", policy.getToDateInMillis(),
-        "ExecutionCommandEntity.removeByTaskIds", ExecutionCommandEntity.class);
-      affectedRows += cleanTableByIds(taskIds, "taskIds", "TopologyLogicalTask", policy.getToDateInMillis(),
-        "TopologyLogicalTaskEntity.removeByPhysicalTaskIds", TopologyLogicalTaskEntity.class);
-      affectedRows += cleanTableByIds(hostTaskIds, "hostTaskIds", "TopologyHostTask", policy.getToDateInMillis(),
-        "TopologyHostTaskEntity.removeByTaskIds", TopologyHostTaskEntity.class);
-      affectedRows += cleanTableByIds(hostRequestIds, "hostRequestIds", "TopologyHostRequest", policy.getToDateInMillis(),
-        "TopologyHostRequestEntity.removeByIds", TopologyHostRequestEntity.class);
-      for (Long topologyRequestId : topologyRequestIds) {
-        topologyRequestDAO.removeByPK(topologyRequestId);
-      }
-      affectedRows += cleanTableByIds(taskIds, "taskIds", "HostRoleCommand", policy.getToDateInMillis(),
-        "HostRoleCommandEntity.removeByTaskIds", HostRoleCommandEntity.class);
-      affectedRows += cleanTableByStageEntityPK(requestStageIds, params, "RoleSuccessCriteria", policy.getToDateInMillis(),
-        "RoleSuccessCriteriaEntity.removeByRequestStageIds", RoleSuccessCriteriaEntity.class);
-      affectedRows += cleanTableByStageEntityPK(requestStageIds, params, "Stage", policy.getToDateInMillis(),
-        "StageEntity.removeByRequestStageIds", StageEntity.class);
-      affectedRows += cleanTableByIds(requestIds, "requestIds", "RequestResourceFilter", policy.getToDateInMillis(),
-        "RequestResourceFilterEntity.removeByRequestIds", RequestResourceFilterEntity.class);
-      affectedRows += cleanTableByIds(requestIds, "requestIds", "RequestOperationLevel", policy.getToDateInMillis(),
-        "RequestOperationLevelEntity.removeByRequestIds", RequestOperationLevelEntity.class);
-      affectedRows += cleanTableByIds(requestIds, "requestIds", "Request", policy.getToDateInMillis(),
-        "RequestEntity.removeByRequestIds", RequestEntity.class);
 
     } catch (AmbariException e) {
       LOG.error("Error while looking up cluster with name: {}", policy.getClusterName(), e);
