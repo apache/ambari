@@ -52,6 +52,13 @@
                 <enabled>true</enabled>
               </auto-deploy>
             </dependency>
+            <dependency>
+              <name>HBASE/HBASE_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
           </dependencies>
         </component>
 
@@ -239,6 +246,9 @@
             </package>
             <package>
               <name>ranger_${stack_version}-yarn-plugin</name>
+            </package>
+            <package>
+              <name>hbase_${stack_version}</name>
             </package>
           </packages>
         </osSpecific>
