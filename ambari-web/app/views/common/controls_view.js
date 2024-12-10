@@ -41,7 +41,7 @@ App.ServiceConfigPopoverSupport = Ember.Mixin.create({
   serviceConfig: null,
   attributeBindings:['readOnly'],
   isPopoverEnabled: true,
-  popoverPlacement: 'auto right',
+  popoverPlacement: 'right',
 
   didInsertElement: function () {
     App.tooltip(this.$('[data-bs-toggle=tooltip]'), {placement: 'top'});
