@@ -20,9 +20,8 @@ import EditUser from "../screens/Users/EditUser";
 import { describe, it, beforeEach, expect, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";toast
 import UserGroupApi from "../api/userGroupApi";
-import { Router } from "react-router";
+import { HashRouter } from "react-router-dom";
 import AppContent from "../context/AppContext";
-import { createMemoryHistory } from "history";
 import toast from "react-hot-toast";
 import { rbacData } from "../__mocks__/mockRbacData";
 import { groupNames } from "../__mocks__/mockGroupNames";
@@ -66,9 +65,9 @@ describe("EditUser component", () => {
   const renderComponent = () => {
     render(
       <AppContent.Provider value={mockContext}>
-        <Router history={createMemoryHistory()}>
+        <HashRouter>
           <EditUser />
-        </Router>
+        </HashRouter>
       </AppContent.Provider>
     );
   };

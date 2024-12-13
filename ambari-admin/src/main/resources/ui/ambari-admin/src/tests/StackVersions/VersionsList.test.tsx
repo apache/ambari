@@ -17,15 +17,14 @@
  */
 import { describe, it, beforeEach, expect } from "vitest";
 import { render, waitFor, screen } from "@testing-library/react";
-import { createMemoryHistory } from "history";
-import { Router } from "react-router-dom";
+import { HashRouter } from "react-router-dom";
 import "@testing-library/jest-dom/vitest";
 import VersionsApi from "../../api/versions";
 import mockRepos, { paginatedRepos } from "../../__mocks__/mockRepos";
-import mockClusterInfo from "../../__mocks__/mockClusterInfo";
+import mockClusterInfo from "../../__mocks__/mockClusterInfo.ts";
 import mockVersionList from "../../__mocks__/mockVersionList";
 import AppContent from "../../context/AppContext";
-import StackVersionsList from "../../screens/ClusterManagement/StackVersions/List";
+import StackVersionsList from "../../screens/StackVersions/List";
 
 describe("StackVersionsList", () => {
   const mockClusterName = "testCluster";
@@ -43,9 +42,9 @@ describe("StackVersionsList", () => {
   it("renders without crashing", () => {
     render(
       <AppContent.Provider value={mockContext}>
-        <Router history={createMemoryHistory()}>
+        <HashRouter>
           <StackVersionsList />
-        </Router>
+        </HashRouter>
       </AppContent.Provider>
     );
   });
@@ -73,9 +72,9 @@ describe("StackVersionsList", () => {
 
     render(
       <AppContent.Provider value={mockContext}>
-        <Router history={createMemoryHistory()}>
+        <HashRouter>
           <StackVersionsList />
-        </Router>
+        </HashRouter>
       </AppContent.Provider>
     );
 
@@ -85,9 +84,9 @@ describe("StackVersionsList", () => {
   it("renders correct number of items", async () => {
     render(
       <AppContent.Provider value={mockContext}>
-        <Router history={createMemoryHistory()}>
+        <HashRouter>
           <StackVersionsList />
-        </Router>
+        </HashRouter>
       </AppContent.Provider>
     );
 
@@ -100,9 +99,9 @@ describe("StackVersionsList", () => {
   it("renders data for a specific item correctly", async () => {
     render(
       <AppContent.Provider value={mockContext}>
-        <Router history={createMemoryHistory()}>
+        <HashRouter>
           <StackVersionsList />
-        </Router>
+        </HashRouter>
       </AppContent.Provider>
     );
 
@@ -115,9 +114,9 @@ describe("StackVersionsList", () => {
   it("renders loading spinner when data is being fetched", async () => {
     render(
       <AppContent.Provider value={mockContext}>
-        <Router history={createMemoryHistory()}>
+        <HashRouter>
           <StackVersionsList />
-        </Router>
+        </HashRouter>
       </AppContent.Provider>
     );
 
@@ -136,9 +135,9 @@ describe("StackVersionsList", () => {
 
     render(
       <AppContent.Provider value={mockContext}>
-        <Router history={createMemoryHistory()}>
+        <HashRouter>
           <StackVersionsList />
-        </Router>
+        </HashRouter>
       </AppContent.Provider>
     );
 
@@ -149,9 +148,9 @@ describe("StackVersionsList", () => {
   it("renders Register Version button", async () => {
     render(
       <AppContent.Provider value={mockContext}>
-        <Router history={createMemoryHistory()}>
+        <HashRouter>
           <StackVersionsList />
-        </Router>
+        </HashRouter>
       </AppContent.Provider>
     );
     await waitFor(() => screen.getByText(/Stack1-1.0.0/i)); // wait for the data to be loaded
@@ -167,9 +166,9 @@ describe("StackVersionsList", () => {
 
     render(
       <AppContent.Provider value={mockContext}>
-        <Router history={createMemoryHistory()}>
+        <HashRouter>
           <StackVersionsList />
-        </Router>
+        </HashRouter>
       </AppContent.Provider>
     );
 
