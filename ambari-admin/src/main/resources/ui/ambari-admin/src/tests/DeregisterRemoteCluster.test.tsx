@@ -17,8 +17,7 @@
  */
 import { describe, it, expect, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { createMemoryHistory } from "history";
-import { Router } from "react-router-dom";
+import { HashRouter } from "react-router-dom";
 import "@testing-library/jest-dom/vitest";
 import RemoteClusterApi from "../api/remoteCluster";
 import DeregisterRemoteCluster from "../screens/ClusterManagement/RemoteClusters/DeregisterRemoteCluster";
@@ -35,9 +34,9 @@ const mockContext = {
 const renderDeregisterRemoteCluster = () => {
   render(
     <AppContent.Provider value={mockContext}>
-      <Router history={createMemoryHistory()}>
+      <HashRouter>
         <DeregisterRemoteCluster clusterName={mockClusterName} />
-      </Router>
+      </HashRouter>
     </AppContent.Provider>
   );
 };

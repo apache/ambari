@@ -23,8 +23,7 @@ import {
   waitFor,
   within,
 } from "@testing-library/react";
-import { createMemoryHistory } from "history";
-import { Router } from "react-router-dom";
+import { HashRouter } from "react-router-dom";
 import { mockClusterDataForEdit } from "../__mocks__/mockRemoteCluster";
 import "@testing-library/jest-dom/vitest";
 import RemoteClusterApi from "../api/remoteCluster";
@@ -41,9 +40,9 @@ const mockContext = {
 const renderEditRemoteCluster = () => {
   render(
     <AppContent.Provider value={mockContext}>
-      <Router history={createMemoryHistory()}>
+      <HashRouter>
         <EditRemoteCluster />
-      </Router>
+      </HashRouter>
     </AppContent.Provider>
   );
 };
@@ -96,12 +95,11 @@ describe("EditRemoteCluster component", () => {
   it("should redirect to /remoteCluster on clicking cancel button", async () => {
     RemoteClusterApi.getRemoteClusterByName = async () =>
       mockClusterDataForEdit;
-    const history = createMemoryHistory();
     render(
       <AppContent.Provider value={mockContext}>
-        <Router history={history}>
+        <HashRouter>
           <EditRemoteCluster />
-        </Router>
+        </HashRouter>
       </AppContent.Provider>
     );
 
@@ -113,7 +111,7 @@ describe("EditRemoteCluster component", () => {
     await waitFor(() => {});
 
     await waitFor(() => {
-      expect(history.location.pathname).toBe("/remoteClusters");
+      expect(window.location.hash).toBe("#/remoteClusters");
     });
   });
 

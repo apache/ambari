@@ -21,9 +21,8 @@ import { describe, it, beforeEach, expect, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 import UserGroupApi from "../api/userGroupApi";
 import PrivilegeApi from "../api/privilegeApi";
-import { Router } from "react-router";
+import { HashRouter } from "react-router-dom";
 import AppContent from "../context/AppContext";
-import { createMemoryHistory } from "history";
 import toast from "react-hot-toast";
 import { rbacData } from "../__mocks__/mockRbacData";
 import { userNames } from "../__mocks__/mockUserNames";
@@ -66,9 +65,9 @@ describe("EditGroup component", () => {
   const renderComponent = () => {
     render(
       <AppContent.Provider value={mockContext}>
-        <Router history={createMemoryHistory()}>
+        <HashRouter>
           <EditGroup />
-        </Router>
+        </HashRouter>
       </AppContent.Provider>
     );
   };

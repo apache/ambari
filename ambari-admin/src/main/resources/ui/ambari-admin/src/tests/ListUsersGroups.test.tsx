@@ -25,9 +25,8 @@ import {
   import Users from "../screens/Users";
   import { describe, it, beforeEach, expect, vi } from "vitest";
   import "@testing-library/jest-dom/vitest";
-  import { Router } from "react-router";
+  import { HashRouter } from "react-router-dom";
   import AppContent from "../context/AppContext";
-  import { createMemoryHistory } from "history";
   import UserGroupApi from "../api/userGroupApi";
   import { usersList, paginatedUsersList } from "../__mocks__/mockUsersList";
   import { groupsList, paginatedGroupsList } from "../__mocks__/mockGroupsList";
@@ -66,9 +65,9 @@ import {
     const renderUserComponent = () => {
       render(
         <AppContent.Provider value={mockContext}>
-          <Router history={createMemoryHistory()}>
+          <HashRouter>
             <Users />
-          </Router>
+          </HashRouter>
         </AppContent.Provider>
       );
     };
