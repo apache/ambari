@@ -20,9 +20,8 @@ import AddUser from "../screens/Users/AddUser";
 import { describe, it, beforeEach, expect, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 import UserGroupApi from "../api/userGroupApi";
-import { Router } from "react-router";
+import { HashRouter } from "react-router-dom";
 import AppContent from "../context/AppContext";
-import { createMemoryHistory } from "history";
 import { rbacData } from "../__mocks__/mockRbacData";
 import toast from "react-hot-toast";
 import { UserDataType } from "../api/types";
@@ -67,9 +66,9 @@ describe("AddUser component", () => {
   const renderComponent = (props = mockProps) => {
     render(
       <AppContent.Provider value={mockContext}>
-        <Router history={createMemoryHistory()}>
+        <HashRouter>
           <AddUser {...props} />
-        </Router>
+        </HashRouter>
       </AppContent.Provider>
     );
   };

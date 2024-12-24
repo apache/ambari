@@ -17,8 +17,7 @@
  */
 import { describe, it, expect } from "vitest";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
-import { createMemoryHistory } from "history";
-import { Router } from "react-router-dom";
+import { HashRouter } from "react-router-dom";
 import "@testing-library/jest-dom/vitest";
 import RemoteClusterApi from "../api/remoteCluster";
 import RegisterRemoteCluster from "../screens/ClusterManagement/RemoteClusters/RegisterRemoteCluster";
@@ -34,9 +33,9 @@ const mockContext = {
 const renderRegisterRemoteCluster = () => {
   render(
     <AppContent.Provider value={mockContext}>
-      <Router history={createMemoryHistory()}>
+      <HashRouter>
         <RegisterRemoteCluster />
-      </Router>
+      </HashRouter>
     </AppContent.Provider>
   );
 };
@@ -68,12 +67,11 @@ describe("RegisterRemoteCluster component", () => {
   });
 
   it("should redirect to /remoteCluster on clicking cancel button", async () => {
-    const history = createMemoryHistory();
     render(
       <AppContent.Provider value={mockContext}>
-        <Router history={history}>
+        <HashRouter>
           <RegisterRemoteCluster />
-        </Router>
+        </HashRouter>
       </AppContent.Provider>
     );
     expect(getClusterName()).toBeInTheDocument();
@@ -88,7 +86,7 @@ describe("RegisterRemoteCluster component", () => {
     await waitFor(() => {});
 
     await waitFor(() => {
-      expect(history.location.pathname).toBe("/remoteClusters");
+      expect(window.location.hash).toBe("#/remoteClusters");
     });
   });
 
