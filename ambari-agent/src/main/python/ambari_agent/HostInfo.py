@@ -461,8 +461,7 @@ class HostInfoLinux(HostInfo):
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         timeout=5,
-        quiet=True,
-        universal_newlines=True,
+        quiet=True
       )
       return out, err, code
     except Exception as ex:
