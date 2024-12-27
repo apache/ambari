@@ -101,6 +101,12 @@ def yarn(name=None, config_dir=None):
     create_parents=True,
     cd_access="a",
   )
+  Directory(
+    params.yarn_timeline_service_leveldb_state_store_path,
+    create_parents=True,
+    owner=params.yarn_user,
+    group=params.user_group,
+  )
 
   # Some of these function calls depend on the directories above being created first.
   if name == "resourcemanager":
