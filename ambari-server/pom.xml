@@ -654,23 +654,32 @@
         </configuration>
       </plugin>
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>findbugs-maven-plugin</artifactId>
-        <version>3.0.5</version>
-        <configuration>
-          <failOnError>false</failOnError>
-          <threshold>Low</threshold>
-          <findbugsXmlOutputDirectory>${project.basedir}/target/findbugs</findbugsXmlOutputDirectory>
-          <excludeFilterFile>${project.basedir}/findbugs.exclude.xml</excludeFilterFile>
-        </configuration>
+        <groupId>com.github.spotbugs</groupId>
+        <artifactId>spotbugs-maven-plugin</artifactId>
+        <version>4.8.6.4</version>
         <executions>
           <execution>
+            <id>spotbugs-check</id>
             <phase>verify</phase>
             <goals>
               <goal>check</goal>
             </goals>
           </execution>
         </executions>
+        <configuration>
+          <failOnError>false</failOnError>
+          <threshold>Low</threshold>
+          <xmlOutput>true</xmlOutput>
+          <xmlOutputDirectory>target/spotbugs</xmlOutputDirectory>
+          <excludeFilterFile>${project.basedir}/findbugs.exclude.xml</excludeFilterFile>
+        </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>com.github.spotbugs</groupId>
+            <artifactId>spotbugs</artifactId>
+            <version>4.8.6</version>
+          </dependency>
+        </dependencies>
       </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
