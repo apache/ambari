@@ -19,7 +19,8 @@ package org.apache.ambari.server.controller;
 
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.state.alert.SourceType;
-import org.codehaus.jackson.annotate.JsonProperty;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 
 /**

@@ -28,10 +28,11 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.stack.ServiceMetainfoXml;
 import org.apache.ambari.server.state.stack.StackRoleCommandOrder;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Encapsulates IO operations on a stack definition service directory.
@@ -441,7 +442,7 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
     try {
       ObjectMapper mapper = new ObjectMapper();
       TypeReference<Map<String, Object>> rcoElementTypeReference = new TypeReference<Map<String, Object>>() {};
-      HashMap<String, Object> result = mapper.readValue(rcoFile, rcoElementTypeReference);
+      HashMap<String, Object> result = (HashMap<String, Object>) mapper.readValue(rcoFile, rcoElementTypeReference);
       LOG.info("Role command order info was loaded from file: {}", rcoFile.getAbsolutePath());
 
       roleCommandOrder = new StackRoleCommandOrder(result);

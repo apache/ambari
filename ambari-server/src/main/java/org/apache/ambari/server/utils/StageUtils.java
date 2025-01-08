@@ -65,13 +65,14 @@ import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.commons.lang.StringUtils;
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.SerializationConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
@@ -257,8 +258,8 @@ public class StageUtils {
 
   public static <T> T fromJson(String json, Class<T> clazz) throws IOException {
     ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
-    mapper.configure(SerializationConfig.Feature.USE_ANNOTATIONS, true);
+    mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
+    mapper.configure(MapperFeature.USE_ANNOTATIONS, true);
     InputStream is = new ByteArrayInputStream(json.getBytes(Charset.forName("UTF8")));
     return mapper.readValue(is, clazz);
   }

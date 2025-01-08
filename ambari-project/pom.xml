@@ -42,8 +42,8 @@
     <guice.version>5.1.0</guice.version>
     <spring.version>5.3.22</spring.version>
     <spring.security.version>5.7.8</spring.security.version>
-    <fasterxml.jackson.version>2.13.5</fasterxml.jackson.version>
-    <fasterxml.jackson.databind.version>2.13.5</fasterxml.jackson.databind.version>
+    <fasterxml.jackson.version>2.18.2</fasterxml.jackson.version>
+    <fasterxml.jackson.databind.version>2.18.2</fasterxml.jackson.databind.version>
     <postgres.version>42.3.8</postgres.version>
     <testContainers.version>1.17.6</testContainers.version>
     <forkCount>4</forkCount>
@@ -449,31 +449,6 @@
         <groupId>corg.glassfish.jersey.core</groupId>
         <artifactId>jersey-grizzly</artifactId>
         <version>${jersey.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.codehaus.jackson</groupId>
-        <artifactId>jackson-core-asl</artifactId>
-        <version>1.9.9</version>
-      </dependency>
-      <dependency>
-        <groupId>org.codehaus.jackson</groupId>
-        <artifactId>jackson-jaxrs</artifactId>
-        <version>1.9.9</version>
-      </dependency>
-      <dependency>
-        <groupId>org.codehaus.jackson</groupId>
-        <artifactId>jackson-xc</artifactId>
-        <version>1.9.9</version>
-      </dependency>
-      <dependency>
-        <groupId>org.codehaus.jackson</groupId>
-        <artifactId>jackson-mappper</artifactId>
-        <version>1.9.9</version>
-      </dependency>
-      <dependency>
-        <groupId>org.codehaus.jackson</groupId>
-        <artifactId>jackson-mapper-asl</artifactId>
-        <version>1.9.13</version>
       </dependency>
       <dependency>
         <groupId>com.fasterxml.jackson.jaxrs</groupId>

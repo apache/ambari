@@ -153,8 +153,9 @@
     
     <!-- provides consumers of the SPI the ability to use Jackson annotations for object serialization --> 
     <dependency>
-      <groupId>org.codehaus.jackson</groupId>
-      <artifactId>jackson-core-asl</artifactId>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <version>${fasterxml.jackson.version}</version>
     </dependency>
     
     <dependency>

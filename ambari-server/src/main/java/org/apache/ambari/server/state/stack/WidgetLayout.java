@@ -19,8 +19,7 @@ package org.apache.ambari.server.state.stack;
 
 import java.util.List;
 
-import org.codehaus.jackson.annotate.JsonProperty;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
 
 public class WidgetLayout {

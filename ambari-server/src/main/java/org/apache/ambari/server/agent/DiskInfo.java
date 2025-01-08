@@ -18,7 +18,7 @@
 
 package org.apache.ambari.server.agent;
 
-import org.codehaus.jackson.annotate.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 
 /**
@@ -59,85 +59,71 @@ public class DiskInfo {
   public DiskInfo() {}
 
   @JsonProperty("available")
-  @com.fasterxml.jackson.annotation.JsonProperty("available")
   public void setAvailable(String available) {
     this.available = available;
   }
   
   @JsonProperty("available")
-  @com.fasterxml.jackson.annotation.JsonProperty("available")
   public String getAvailable() {
     return this.available;
   }
 
   @JsonProperty("mountpoint")
-  @com.fasterxml.jackson.annotation.JsonProperty("mountpoint")
   public String getMountPoint() {
     return this.mountpoint;
   }
   
   @JsonProperty("mountpoint")
-  @com.fasterxml.jackson.annotation.JsonProperty("mountpoint")
   public void setMountPoint(String mountpoint) {
     this.mountpoint = mountpoint;
   }
 
   @JsonProperty("type")
-  @com.fasterxml.jackson.annotation.JsonProperty("type")
   public String getType() {
     return this.type;
   }
 
   @JsonProperty("type")
-  @com.fasterxml.jackson.annotation.JsonProperty("type")
   public void setType(String type) {
     this.type = type;
   }
   
   @JsonProperty("used")
-  @com.fasterxml.jackson.annotation.JsonProperty("used")
   public String getUsed() {
     return this.used;
   }
 
   @JsonProperty("used")
-  @com.fasterxml.jackson.annotation.JsonProperty("used")
   public void setUsed(String used) {
     this.used = used;
   }
   
   @JsonProperty("percent")
-  @com.fasterxml.jackson.annotation.JsonProperty("percent")
   public String getPercent() {
     return this.percent;
   }
   
   @JsonProperty("percent")
-  @com.fasterxml.jackson.annotation.JsonProperty("percent")
   public void setPercent(String percent) {
     this.percent = percent;
   }
   
   @JsonProperty("size")
-  @com.fasterxml.jackson.annotation.JsonProperty("size")
   public String getSize() {
     return this.size;
   }
   
   @JsonProperty("size")
-  @com.fasterxml.jackson.annotation.JsonProperty("size")
   public void setSize(String size) {
     this.size = size;
   }
 
   @JsonProperty("device")
-  @com.fasterxml.jackson.annotation.JsonProperty("device")
   public String getDevice() {
     return device;
   }
 
   @JsonProperty("device")
-  @com.fasterxml.jackson.annotation.JsonProperty("device")
   public void setDevice(String device) {
     this.device = device;
   }

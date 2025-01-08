@@ -22,9 +22,9 @@ import java.util.List;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.codehaus.jackson.annotate.JsonProperty;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Class that holds information about a desired config and is suitable for output
@@ -58,7 +58,7 @@ public class DesiredConfig {
    * Gets the service name (if any) for the desired config.
    * @return the service name
    */
-  @JsonSerialize(include = Inclusion.NON_NULL)
+  @JsonInclude(JsonInclude.Include.NON_NULL)
   @JsonProperty("service_name")
   public String getServiceName() {
     return serviceName;
@@ -84,7 +84,7 @@ public class DesiredConfig {
    * Gets the host overrides for the desired config.  Cluster-based desired configs only.
    * @return the host names that override the desired config
    */
-  @JsonSerialize(include = Inclusion.NON_EMPTY)
+  @JsonInclude(JsonInclude.Include.NON_EMPTY)
   @JsonProperty("host_overrides")
   public List<HostOverride> getHostOverrides() {
     return hostOverrides;
