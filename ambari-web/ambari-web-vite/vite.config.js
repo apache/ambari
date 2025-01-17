@@ -1,10 +1,8 @@
 import { defineConfig } from "vite";
 import legacy from "@vitejs/plugin-legacy";
-import dotenv from "dotenv";
 
 export default defineConfig({
   root: "../public",
-  //   root: process.env.AMBARI_WEB_PUBLIC,
   plugins: [
     legacy({
       targets: ["ie >= 11"],
