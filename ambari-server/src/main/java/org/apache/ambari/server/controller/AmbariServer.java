@@ -31,7 +31,7 @@ import java.util.Map;
 import java.util.logging.LogManager;
 
 import javax.crypto.BadPaddingException;
-import javax.servlet.DispatcherType;
+import jakarta.servlet.DispatcherType;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StateRecoveryManager;
@@ -631,7 +631,8 @@ public class AmbariServer {
       https_config.setSendServerVersion(false);
 
       // Secured connector - default constructor sets trustAll = true for certs
-      SslContextFactory sslContextFactory = new SslContextFactory();
+    //  SslContextFactory sslContextFactory = new SslContextFactory(); depricated
+      SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
       disableInsecureProtocols(sslContextFactory);
       sslContextFactory.setKeyStorePath(keystore);
       sslContextFactory.setTrustStorePath(truststore);
@@ -677,7 +678,7 @@ public class AmbariServer {
       https_config.addCustomizer(new SecureRequestCustomizer());
       https_config.setSecurePort(configs.getClientSSLApiPort());
 
-      SslContextFactory contextFactoryApi = new SslContextFactory();
+      SslContextFactory.Server contextFactoryApi = new SslContextFactory.Server();
       disableInsecureProtocols(contextFactoryApi);
       contextFactoryApi.setKeyStorePath(httpsKeystore);
       contextFactoryApi.setTrustStorePath(httpsTruststore);

@@ -19,8 +19,8 @@
 package org.apache.ambari.server.controller;
 
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.springframework.web.context.request.RequestAttributes;

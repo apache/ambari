@@ -27,17 +27,17 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import org.springframework.web.socket.config.annotation.AbstractWebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 
 import com.google.inject.Injector;
+import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
 @Configuration
 @EnableWebSocketMessageBroker
 @ComponentScan(basePackageClasses = {TestController.class})
 @Import(RootStompConfig.class)
-public class ApiStompConfig extends AbstractWebSocketMessageBrokerConfigurer {
+public class ApiStompConfig implements WebSocketMessageBrokerConfigurer {
   private final String HEARTBEAT_THREAD_NAME = "ws-heartbeat-thread-";
   private final int HEARTBEAT_POOL_SIZE = 1;
   private final org.apache.ambari.server.configuration.Configuration configuration;

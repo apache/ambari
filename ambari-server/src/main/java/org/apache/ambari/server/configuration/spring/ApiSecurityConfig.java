@@ -36,9 +36,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
@@ -46,7 +46,7 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 @EnableWebSecurity
 @Import(GuiceBeansConfig.class)
 @ComponentScan("org.apache.ambari.server.security")
-public class ApiSecurityConfig extends WebSecurityConfigurerAdapter{
+public class ApiSecurityConfig {
 
   private final GuiceBeansConfig guiceBeansConfig;
 
@@ -78,16 +78,16 @@ public class ApiSecurityConfig extends WebSecurityConfigurerAdapter{
         .authenticationProvider(ambariKerberosAuthenticationProvider);
   }
 
-  @Override
   @Bean
-  public AuthenticationManager authenticationManagerBean() throws Exception {
-    return super.authenticationManagerBean();
+  public AuthenticationManager authenticationManagerBean(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+    return authenticationConfiguration.getAuthenticationManager();
   }
 
-  @Override
+  @Bean
   protected void configure(HttpSecurity http) throws Exception {
     http.csrf().disable()
-        .authorizeRequests().anyRequest().authenticated()
+        .authorizeRequests()
+        .anyRequest().authenticated()
         .and()
         .headers().httpStrictTransportSecurity().disable()
         .frameOptions().disable().and()

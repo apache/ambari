@@ -31,7 +31,7 @@
     <solr.version>5.5.2</solr.version>
     <ambari.dir>${project.parent.basedir}</ambari.dir>
     <powermock.version>2.0.9</powermock.version>
-    <jetty.version>9.4.12.v20180830</jetty.version>
+    <jetty.version>11.0.15</jetty.version>
     <ldap-api.version>1.0.0</ldap-api.version>
     <checkstyle.version>8.9</checkstyle.version>
     <swagger.version>1.6.8</swagger.version>
@@ -40,8 +40,8 @@
     <reload4j.version>1.2.22</reload4j.version>
     <logback.version>1.5.16</logback.version>
     <guice.version>5.1.0</guice.version>
-    <spring.version>5.3.22</spring.version>
-    <spring.security.version>5.7.8</spring.security.version>
+    <spring.version>6.0.0</spring.version>
+    <spring.security.version>6.0.0</spring.security.version>
     <fasterxml.jackson.version>2.18.2</fasterxml.jackson.version>
     <fasterxml.jackson.databind.version>2.18.2</fasterxml.jackson.databind.version>
     <postgres.version>42.3.8</postgres.version>
@@ -49,7 +49,7 @@
     <forkCount>4</forkCount>
     <reuseForks>false</reuseForks>
     <surefire.argLine>-Xmx1024m -Xms512m</surefire.argLine>
-    <jersey.version>2.41</jersey.version>
+    <jersey.version>3.1.5</jersey.version>
   </properties>
   <profiles>
     <profile>
@@ -407,7 +407,7 @@
       </dependency>
       <dependency>
         <groupId>org.eclipse.jetty.websocket</groupId>
-        <artifactId>websocket-server</artifactId>
+        <artifactId>websocket-jetty-server</artifactId>
         <version>${jetty.version}</version>
       </dependency>
       <dependency>

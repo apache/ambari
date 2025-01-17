@@ -21,9 +21,9 @@ package org.apache.ambari.server.api;
 import java.io.IOException;
 import java.lang.reflect.Method;
 
-import javax.servlet.RequestDispatcher;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.http.HttpStatus;
 import org.eclipse.jetty.server.Request;
