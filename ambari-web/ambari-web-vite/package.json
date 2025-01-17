@@ -6,7 +6,7 @@
   "scripts": {
     "prepare": "node scripts/prepare.js",
     "dev": "sh ./prepare-vite.sh && vite",
-    "build": "npm run prepare && vite build",
+    "build": "sh ./prepare-vite.sh && vite build",
     "preview": "vite preview"
   },
   "devDependencies": {
