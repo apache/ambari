@@ -23,7 +23,7 @@ import io.swagger.annotations.ApiModelProperty;
 
 /**
  * Request schema for endpoint {@link org.apache.ambari.server.api.services.RequestService#updateRequests(String,
- *    javax.ws.rs.core.HttpHeaders, javax.ws.rs.core.UriInfo, String)}
+ *    jakarta.ws.rs.core.HttpHeaders, jakarta.ws.rs.core.UriInfo, String)}
  *
  * The interface is not actually implemented, it only carries swagger annotations.
  */

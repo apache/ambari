@@ -22,7 +22,6 @@ import jakarta.servlet.ServletContext;
 import org.apache.ambari.server.agent.stomp.HeartbeatController;
 import org.apache.ambari.server.events.DefaultMessageEmitter;
 import org.apache.ambari.server.events.listeners.requests.STOMPUpdateListener;
-import org.eclipse.jetty.websocket.server.WebSocketServerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -62,13 +61,7 @@ public class AgentStompConfig implements WebSocketMessageBrokerConfigurer {
   }
 
   public DefaultHandshakeHandler getHandshakeHandler() {
-//    WebSocketServerFactory webSocketServerFactory = new WebSocketServerFactory(servletContext);
-//    webSocketServerFactory.getPolicy().setMaxTextMessageSize(configuration.getStompMaxIncomingMessageSize());
-    JettyRequestUpgradeStrategy upgradeStrategy = new JettyRequestUpgradeStrategy();
-    DefaultHandshakeHandler handshakeHandler = new DefaultHandshakeHandler(upgradeStrategy);
-    return handshakeHandler;
-//    return new DefaultHandshakeHandler(
-//        new JettyRequestUpgradeStrategy(webSocketServerFactory));
+    return new DefaultHandshakeHandler(new JettyRequestUpgradeStrategy());
   }
 
   @Override

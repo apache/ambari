@@ -153,25 +153,13 @@ public class AmbariKerberosAuthenticationFilter extends SpnegoAuthenticationProc
     return false;
   }
 
-  /**
-   * Performs the logic for this filter.
-   * <p>
-   * Checks whether the authentication information is filled. If it is not, then a login failed audit event is logged.
-   * <p>
-   * Then, forwards the workflow to {@link SpnegoAuthenticationProcessingFilter#doFilter(ServletRequest, ServletResponse, FilterChain)}
-   *
-   * @param servletRequest  the request
-   * @param servletResponse the response
-   * @param filterChain     the Spring filter chain
-   * @throws IOException
-   * @throws ServletException
-   */
   @Override
-  public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
+  protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+          throws ServletException, IOException {
     if (eventHandler != null) {
-      eventHandler.beforeAttemptAuthentication(AmbariKerberosAuthenticationFilter.this, servletRequest, servletResponse);
+      eventHandler.beforeAttemptAuthentication(this, request, response);
     }
 
-    super.doFilter(servletRequest, servletResponse, filterChain);
+    super.doFilter(request, response, filterChain);
   }
 }

@@ -130,10 +130,11 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpVersion;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.velocity.app.Velocity;
+import org.eclipse.jetty.http.MimeTypes;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
-import org.eclipse.jetty.server.NCSARequestLog;
+import org.eclipse.jetty.server.CustomRequestLog;
 import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
@@ -148,7 +149,6 @@ import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.servlets.GzipFilter;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -834,16 +834,16 @@ public class AmbariServer {
    */
   protected void configureHandlerCompression(ServletContextHandler context) {
     if (configs.isApiGzipped()) {
-      FilterHolder gzipFilter = context.addFilter(GzipFilter.class, "/*",
-          EnumSet.of(DispatcherType.REQUEST));
-
-      gzipFilter.setInitParameter("methods", "GET,POST,PUT,DELETE");
-      gzipFilter.setInitParameter("excludePathPatterns", ".*(\\.woff|\\.ttf|\\.woff2|\\.eot|\\.svg)");
-      gzipFilter.setInitParameter("mimeTypes",
-          "text/html,text/plain,text/xml,text/css,application/x-javascript," +
-              "application/xml,application/x-www-form-urlencoded," +
-              "application/javascript,application/json");
-      gzipFilter.setInitParameter("minGzipSize", configs.getApiGzipMinSize());
+      GzipHandler gzipHandler = new GzipHandler();
+      gzipHandler.setIncludedMethods("GET", "POST", "PUT", "DELETE");
+      gzipHandler.setExcludedPaths(".*\\.woff", ".*\\.ttf", ".*\\.woff2", ".*\\.eot", ".*\\.svg");
+      gzipHandler.setIncludedMimeTypes(
+              "text/html", "text/plain", "text/xml", "text/css",
+              "application/x-javascript", "application/xml",
+              "application/x-www-form-urlencoded", "application/javascript", "application/json"
+      );
+      gzipHandler.setMinGzipSize(Integer.valueOf(configs.getApiGzipMinSize()));
+      context.setGzipHandler(gzipHandler);
     }
   }
 
@@ -1043,18 +1043,19 @@ public class AmbariServer {
       LOG.info("********* Initializing request access log: " + logfullpath);
       RequestLogHandler requestLogHandler = new RequestLogHandler();
 
-      NCSARequestLog requestLog = new NCSARequestLog(requestlogpath);
+      CustomRequestLog requestLog = new CustomRequestLog(requestlogpath);
+
 
       String retaindays = configsMap.get(Configuration.REQUEST_LOG_RETAINDAYS.getKey());
       int retaindaysInt = Configuration.REQUEST_LOG_RETAINDAYS.getDefaultValue();
       if(retaindays != null && !StringUtils.isBlank(retaindays)) {
         retaindaysInt = Integer.parseInt(retaindays.trim());
       }
-
-      requestLog.setRetainDays(retaindaysInt);
-      requestLog.setAppend(true);
-      requestLog.setLogLatency(true);
-      requestLog.setExtended(true);
+      //todo set this in new CustomRequestLog
+//      requestLog.setRetainDays(retaindaysInt);
+//      requestLog.setAppend(true);
+//      requestLog.setLogLatency(true);
+//      requestLog.setExtended(true);
       requestLogHandler.setRequestLog(requestLog);
       //Add requestloghandler to existing handlerlist.
       handlerList.addHandler(requestLogHandler);

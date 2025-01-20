@@ -41,11 +41,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -442,7 +442,7 @@ public class StackAdvisorCommandTest {
 
     // Overridden to ensure visiblity in tests
     @Override
-    public javax.ws.rs.core.Response handleRequest(HttpHeaders headers, String body,
+    public jakarta.ws.rs.core.Response handleRequest(HttpHeaders headers, String body,
                                                                   UriInfo uriInfo, Request.Type requestType,
                                                                   MediaType mediaType, ResourceInstance resource) {
       return super.handleRequest(headers, body, uriInfo, requestType, mediaType, resource);
