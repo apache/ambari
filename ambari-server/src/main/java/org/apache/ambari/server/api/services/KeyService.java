@@ -20,11 +20,12 @@ package org.apache.ambari.server.api.services;
 import java.io.IOException;
 import java.util.Collection;
 
+import javax.xml.bind.JAXBException;
+
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
-import javax.xml.bind.JAXBException;
 
 import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.utils.StageUtils;

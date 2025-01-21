@@ -40,6 +40,7 @@ import java.util.EnumSet;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
+
 import jakarta.servlet.DispatcherType;
 import jakarta.servlet.SessionCookieConfig;
 
@@ -64,7 +65,6 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlets.GzipFilter;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.junit.After;
 import org.junit.Assert;

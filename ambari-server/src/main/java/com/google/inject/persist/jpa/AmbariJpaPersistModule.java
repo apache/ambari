@@ -68,7 +68,7 @@ public class AmbariJpaPersistModule extends PersistModule {
     bindConstant().annotatedWith(Jpa.class).to(jpaUnit);
 
     bind(AmbariJpaPersistService.class).in(Singleton.class);
-
+    bind(JpaPersistOptions.class).annotatedWith(Jpa.class).toInstance( JpaPersistOptions.builder().setAutoBeginWorkOnEntityManagerCreation(true).build());
     bind(PersistService.class).to(AmbariJpaPersistService.class);
     bind(UnitOfWork.class).to(AmbariJpaPersistService.class);
     bind(EntityManager.class).toProvider(AmbariJpaPersistService.class);

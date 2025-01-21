@@ -21,8 +21,8 @@ package org.apache.ambari.server.serveraction.users;
 import java.io.IOException;
 import java.util.Map;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 
 import org.apache.ambari.server.utils.ShellCommandUtil;
 import org.slf4j.Logger;

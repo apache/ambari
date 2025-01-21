@@ -20,7 +20,7 @@ package org.apache.ambari.server.serveraction.users;
 
 import java.util.concurrent.Callable;
 
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 
 import org.apache.ambari.server.utils.ShellCommandUtil;
 

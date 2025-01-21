@@ -19,7 +19,7 @@ package org.apache.ambari.view.cluster;
 
 import org.apache.ambari.view.ViewContext;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import java.util.Map;
 
 /**

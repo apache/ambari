@@ -28,8 +28,6 @@ import org.apache.ambari.server.agent.stomp.AmbariSubscriptionRegistry;
 import org.apache.ambari.server.api.AmbariSendToMethodReturnValueHandler;
 import org.apache.ambari.server.events.DefaultMessageEmitter;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
-import org.eclipse.jetty.websocket.api.WebSocketBehavior;
-import org.eclipse.jetty.websocket.api.WebSocketPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
