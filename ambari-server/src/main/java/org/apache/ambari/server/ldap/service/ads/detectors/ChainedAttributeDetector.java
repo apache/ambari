@@ -17,8 +17,8 @@ package org.apache.ambari.server.ldap.service.ads.detectors;
 import java.util.Map;
 import java.util.Set;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 
 import org.apache.ambari.server.ldap.service.AttributeDetector;
 import org.apache.directory.api.ldap.model.entry.Entry;

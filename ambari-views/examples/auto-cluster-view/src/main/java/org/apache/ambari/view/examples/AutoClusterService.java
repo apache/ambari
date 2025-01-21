@@ -22,7 +22,7 @@ import org.apache.ambari.view.AmbariStreamProvider;
 import org.apache.ambari.view.URLStreamProvider;
 import org.apache.ambari.view.cluster.Cluster;
 import org.apache.commons.codec.binary.Base64;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;

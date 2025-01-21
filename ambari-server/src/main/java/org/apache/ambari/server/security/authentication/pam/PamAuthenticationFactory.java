@@ -18,7 +18,7 @@
 
 package org.apache.ambari.server.security.authentication.pam;
 
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 
 import org.apache.ambari.server.configuration.Configuration;
 import org.jvnet.libpam.PAM;

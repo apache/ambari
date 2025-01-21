@@ -19,8 +19,8 @@ import static javax.net.ssl.TrustManagerFactory.getDefaultAlgorithm;
 import java.io.FileInputStream;
 import java.security.KeyStore;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 

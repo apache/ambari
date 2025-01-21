@@ -22,7 +22,7 @@ import java.io.UncheckedIOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.utils.TextEncoding;

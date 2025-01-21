@@ -19,7 +19,7 @@ package org.apache.ambari.view.property;
 
 import org.apache.ambari.view.ViewContext;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
