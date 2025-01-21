@@ -30,8 +30,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import javax.persistence.EntityManager;
-import javax.persistence.OptimisticLockException;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.OptimisticLockException;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;

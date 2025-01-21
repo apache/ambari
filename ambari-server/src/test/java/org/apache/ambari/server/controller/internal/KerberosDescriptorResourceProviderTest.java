@@ -31,7 +31,7 @@ import static org.junit.Assert.assertNotNull;
 import java.util.Map;
 import java.util.Set;
 
-import javax.persistence.PersistenceException;
+import jakarta.persistence.PersistenceException;
 
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;

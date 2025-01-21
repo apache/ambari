@@ -1162,6 +1162,11 @@
   </profiles>
   <dependencies>
     <dependency>
+      <groupId>jakarta.persistence</groupId>
+      <artifactId>jakarta.persistence-api</artifactId>
+      <version>3.1.0</version>
+    </dependency>
+    <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-jndi</artifactId>
       <version>11.0.15</version>
@@ -1183,11 +1188,6 @@
       <artifactId>equalsverifier</artifactId>
       <version>3.15.6</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>jakarta.persistence</groupId>
-      <artifactId>jakarta.persistence-api</artifactId>
-      <version>2.2.3</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
@@ -1336,6 +1336,7 @@
     <dependency>
       <groupId>org.eclipse.persistence</groupId>
       <artifactId>eclipselink</artifactId>
+      <version>4.0.1</version>
     </dependency>
     <dependency>
       <groupId>org.hamcrest</groupId>
@@ -1433,10 +1434,10 @@
       <artifactId>commons-net</artifactId>
       <version>1.4.1</version>
     </dependency>
-    <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>javax.servlet-api</artifactId>
-    </dependency>
+<!--    <dependency>-->
+<!--      <groupId>javax.servlet</groupId>-->
+<!--      <artifactId>javax.servlet-api</artifactId>-->
+<!--    </dependency>-->
     <dependency>
       <groupId>org.glassfish.jersey.containers</groupId>
       <artifactId>jersey-container-jdk-http</artifactId>
