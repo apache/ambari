@@ -30,7 +30,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.utils.TextEncoding;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 
 /**
  * A common base class for various encryptor implementations

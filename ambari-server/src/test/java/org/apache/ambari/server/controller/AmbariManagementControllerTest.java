@@ -147,7 +147,7 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStoppedEve
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.apache.ambari.server.utils.StageUtils;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.After;
@@ -9084,7 +9084,7 @@ public class AmbariManagementControllerTest {
     assertTrue(smokeTestRequired);
   }
 
-  private class RolePredicate implements org.apache.commons.collections.Predicate {
+  private class RolePredicate implements org.apache.commons.collections4.Predicate {
 
     private String role;
 

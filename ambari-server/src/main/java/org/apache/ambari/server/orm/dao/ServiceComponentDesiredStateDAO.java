@@ -34,7 +34,7 @@ import javax.persistence.criteria.Root;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentVersionEntity;
-import org.apache.commons.collections.MapUtils;
+import org.apache.commons.collections4.MapUtils;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;

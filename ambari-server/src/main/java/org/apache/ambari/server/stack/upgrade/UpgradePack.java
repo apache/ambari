@@ -41,7 +41,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.stack.upgrade.Task.Type;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.spi.upgrade.UpgradeType;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

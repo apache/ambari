@@ -26,6 +26,7 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertFalse;
+import static org.mockito.Mockito.mockStatic;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -81,6 +82,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.MockedStatic;
 import org.powermock.api.easymock.PowerMock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -599,6 +601,7 @@ public class ClientConfigResourceProviderTest {
     expect(managementController.getHostComponents(EasyMock.anyObject())).andReturn(responses).anyTimes();
 
     PowerMock.mockStaticPartial(StageUtils.class, "getClusterHostInfo");
+    try (MockedStatic<StageUtils> mockedStageUtils = mockStatic(StageUtils.class)) {
 
 
     Map<String, Set<String>> clusterHostInfo = new HashMap<>();
@@ -615,7 +618,7 @@ public class ClientConfigResourceProviderTest {
       }
     }
     clusterHostInfo.put("all_hosts", all_hosts);
-    expect(StageUtils.getClusterHostInfo(cluster)).andReturn(clusterHostInfo);
+    mockedStageUtils.when(() -> StageUtils.getClusterHostInfo(cluster)).thenReturn(clusterHostInfo);
 
     expect(stackId.getStackName()).andReturn(stackName).anyTimes();
     expect(stackId.getStackVersion()).andReturn(stackVersion).anyTimes();
@@ -680,6 +683,7 @@ public class ClientConfigResourceProviderTest {
         clusterConfig, host, service, serviceComponent, serviceComponentHost, serviceInfo, configHelper,
         runtime, process);
     PowerMock.verifyAll();
+    }
   }
 
 

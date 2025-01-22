@@ -44,7 +44,7 @@ import org.apache.ambari.server.stack.upgrade.orchestrate.TaskWrapperBuilder;
 import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContext;
 import org.apache.ambari.server.utils.SetUtils;
 import org.apache.ambari.spi.upgrade.OrchestrationOptions;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;

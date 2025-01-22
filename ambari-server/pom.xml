@@ -1188,8 +1188,9 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>commons-collections</groupId>
-      <artifactId>commons-collections</artifactId>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-collections4</artifactId>
+      <version>4.4</version>
     </dependency>
     <dependency>
       <groupId>commons-beanutils</groupId>
@@ -1327,6 +1328,12 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
+      <version>3.5.10</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-inline</artifactId>
       <version>3.5.10</version>
       <scope>test</scope>
     </dependency>
@@ -1657,8 +1664,8 @@
       <version>2.3</version>
       <exclusions>
         <exclusion>
-          <groupId>commons-collections</groupId>
-          <artifactId>commons-collections</artifactId>
+          <groupId>org.apache.commons</groupId>
+          <artifactId>commons-collections4</artifactId>
           </exclusion>
       </exclusions>
     </dependency>
@@ -1795,8 +1802,8 @@
       <version>${hadoop.version}</version>
       <exclusions>
         <exclusion>
-          <groupId>commons-collections</groupId>
-          <artifactId>commons-collections</artifactId>
+          <groupId>org.apache.commons</groupId>
+          <artifactId>commons-collections4</artifactId>
         </exclusion>
         <exclusion>
           <groupId>commons-beanutils</groupId>
@@ -1894,8 +1901,8 @@
       <scope>provided</scope> <!-- for @ApiIgnore -->
       <exclusions>
         <exclusion>
-          <groupId>commons-collections</groupId>
-          <artifactId>commons-collections</artifactId>
+          <groupId>org.apache.commons</groupId>
+          <artifactId>commons-collections4</artifactId>
         </exclusion>
         <exclusion>
           <groupId>commons-beanutils</groupId>
@@ -1934,8 +1941,8 @@
       <version>2.0.0-M24</version>
       <exclusions>
         <exclusion>
-          <groupId>commons-collections</groupId>
-          <artifactId>commons-collections</artifactId>
+          <groupId>org.apache.commons</groupId>
+          <artifactId>commons-collections4</artifactId>
         </exclusion>
         <exclusion>
           <groupId>org.apache.directory.api</groupId>

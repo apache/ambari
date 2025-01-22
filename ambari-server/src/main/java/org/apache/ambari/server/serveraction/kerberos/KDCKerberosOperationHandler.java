@@ -31,7 +31,7 @@ import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.ambari.server.utils.HTTPUtils;
 import org.apache.ambari.server.utils.HostAndPort;
 import org.apache.ambari.server.utils.ShellCommandUtil;
-import org.apache.commons.collections.MapUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.directory.server.kerberos.shared.keytab.Keytab;
 import org.apache.directory.shared.kerberos.codec.types.EncryptionType;
 import org.slf4j.Logger;

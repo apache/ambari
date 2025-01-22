@@ -23,11 +23,11 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.ambari.server.collections.PredicateUtils;
-import org.apache.commons.collections.Predicate;
-import org.apache.commons.collections.functors.PredicateDecorator;
+import org.apache.commons.collections4.Predicate;
+import org.apache.commons.collections4.functors.PredicateDecorator;
 
 /**
- * {@link OrPredicate} wraps {@link org.apache.commons.collections.functors.OrPredicate} to
+ * {@link OrPredicate} wraps {@link org.apache.commons.collections4.functors.OrPredicate} to
  * provide additional functionality like serializing to and from a Map and JSON formatted data.
  * <p>
  * See {@link DelegatedMultiplePredicateContainer}
@@ -80,7 +80,7 @@ public class OrPredicate extends DelegatedMultiplePredicateContainer {
    */
   public OrPredicate(Predicate predicate1, Predicate predicate2) {
     super(NAME,
-        (PredicateDecorator) org.apache.commons.collections.functors.OrPredicate.getInstance(predicate1, predicate2));
+        (PredicateDecorator) org.apache.commons.collections4.functors.OrPredicate.orPredicate(predicate1, predicate2));
   }
 
   @Override

@@ -50,7 +50,7 @@ import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
 import org.apache.ambari.spi.upgrade.UpgradeCheckResult;
 import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
 import org.apache.ambari.spi.upgrade.UpgradeCheckType;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
