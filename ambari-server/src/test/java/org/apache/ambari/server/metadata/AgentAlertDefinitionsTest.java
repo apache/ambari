@@ -19,7 +19,7 @@ package org.apache.ambari.server.metadata;
 
 import java.util.List;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.controller.RootComponent;

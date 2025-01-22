@@ -21,12 +21,12 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Root;
-import javax.persistence.metamodel.SingularAttribute;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.metamodel.SingularAttribute;
 
 import org.apache.ambari.server.controller.predicate.AlwaysPredicate;
 import org.apache.ambari.server.controller.predicate.ArrayPredicate;
@@ -39,7 +39,7 @@ import org.apache.ambari.server.controller.utilities.PredicateHelper;
 
 /**
  * The {@link JpaPredicateVisitor} is used to convert an Ambari
- * {@link Predicate} into a JPA {@link javax.persistence.criteria.Predicate}.
+ * {@link Predicate} into a JPA {@link jakarta.persistence.criteria.Predicate}.
  */
 public abstract class JpaPredicateVisitor<T> implements PredicateVisitor {
   /**
@@ -65,15 +65,15 @@ public abstract class JpaPredicateVisitor<T> implements PredicateVisitor {
   /**
    * The last calculated predicate.
    */
-  private javax.persistence.criteria.Predicate m_lastPredicate = null;
+  private jakarta.persistence.criteria.Predicate m_lastPredicate = null;
 
   /**
-   * A queue of lists of {@link javax.persistence.criteria.Predicate}. Every
+   * A queue of lists of {@link jakarta.persistence.criteria.Predicate}. Every
    * time an {@code OR} or {@code AND} is encountered, a new chain (list) is
    * created and the prior list is enqeued. When the logical statement is
    * closed, the chain is completed and added to the prior chain's list.
    */
-  private ArrayDeque<List<javax.persistence.criteria.Predicate>> m_queue =
+  private ArrayDeque<List<jakarta.persistence.criteria.Predicate>> m_queue =
     new ArrayDeque<>();
 
   /**
@@ -111,12 +111,12 @@ public abstract class JpaPredicateVisitor<T> implements PredicateVisitor {
       String propertyId);
 
   /**
-   * Gets the final JPA {@link javax.persistence.criteria.Predicate} after the
+   * Gets the final JPA {@link jakarta.persistence.criteria.Predicate} after the
    * visitor is done traversing the Ambari {@link Predicate}.
    *
    * @return the predicate, or {@code null} if none.
    */
-  public javax.persistence.criteria.Predicate getJpaPredicate() {
+  public jakarta.persistence.criteria.Predicate getJpaPredicate() {
     return m_lastPredicate;
   }
 
@@ -183,7 +183,7 @@ public abstract class JpaPredicateVisitor<T> implements PredicateVisitor {
       }
     }
 
-    javax.persistence.criteria.Predicate jpaPredicate = null;
+    jakarta.persistence.criteria.Predicate jpaPredicate = null;
     if ("=".equals(operator)) {
       jpaPredicate = m_builder.equal(path, value);
     } else if ("<".equals(operator)) {
@@ -219,7 +219,7 @@ public abstract class JpaPredicateVisitor<T> implements PredicateVisitor {
     }
 
     // create a new list for all of the predicates in this chain
-    List<javax.persistence.criteria.Predicate> predicateList = new ArrayList<>();
+    List<jakarta.persistence.criteria.Predicate> predicateList = new ArrayList<>();
     m_queue.add(predicateList);
 
     // visit every child predicate so it can be added to the list
@@ -227,11 +227,11 @@ public abstract class JpaPredicateVisitor<T> implements PredicateVisitor {
     for (int i = 0; i < predicates.length; i++) {
       PredicateHelper.visit(predicates[i], this);
     }
-    javax.persistence.criteria.Predicate jpaPredicate = null;
+    jakarta.persistence.criteria.Predicate jpaPredicate = null;
     // the list is done; deque and apply logical AND or OR
     predicateList = m_queue.pollLast();
     if (predicateList != null) {
-      javax.persistence.criteria.Predicate[] array = new javax.persistence.criteria.Predicate[predicateList.size()];
+      jakarta.persistence.criteria.Predicate[] array = new jakarta.persistence.criteria.Predicate[predicateList.size()];
       array = predicateList.toArray(array);
 
       if ("AND".equals(operator)) {

@@ -20,14 +20,14 @@ package org.apache.ambari.server.orm.entities;
 
 import static org.apache.commons.lang.StringUtils.defaultString;
 
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToOne;
+import jakarta.persistence.Basic;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 
-@javax.persistence.Table(name = "clusterstate")
+@jakarta.persistence.Table(name = "clusterstate")
 @Entity
 public class ClusterStateEntity {
 

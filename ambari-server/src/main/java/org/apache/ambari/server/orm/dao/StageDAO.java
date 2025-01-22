@@ -25,11 +25,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Order;
-import javax.persistence.metamodel.SingularAttribute;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Order;
+import jakarta.persistence.metamodel.SingularAttribute;
 
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
@@ -246,7 +246,7 @@ public class StageDAO {
     PredicateHelper.visit(predicate, visitor);
 
     CriteriaQuery<StageEntity> query = visitor.getCriteriaQuery();
-    javax.persistence.criteria.Predicate jpaPredicate = visitor.getJpaPredicate();
+    jakarta.persistence.criteria.Predicate jpaPredicate = visitor.getJpaPredicate();
 
     if (jpaPredicate != null) {
       query.where(jpaPredicate);
@@ -343,7 +343,7 @@ public class StageDAO {
 
   /**
    * The {@link org.apache.ambari.server.orm.dao.StageDAO.StagePredicateVisitor} is used to convert an Ambari
-   * {@link org.apache.ambari.server.controller.spi.Predicate} into a JPA {@link javax.persistence.criteria.Predicate}.
+   * {@link org.apache.ambari.server.controller.spi.Predicate} into a JPA {@link jakarta.persistence.criteria.Predicate}.
    */
   private final class StagePredicateVisitor extends
       JpaPredicateVisitor<StageEntity> {

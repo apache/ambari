@@ -25,11 +25,11 @@ import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.stream.Collectors;
 
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Order;
-import javax.persistence.metamodel.SingularAttribute;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Order;
+import jakarta.persistence.metamodel.SingularAttribute;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.stomp.dto.AlertGroupUpdate;
@@ -375,7 +375,7 @@ public class AlertDispatchDAO {
     PredicateHelper.visit(request.Predicate, visitor);
 
     CriteriaQuery<AlertNoticeEntity> query = visitor.getCriteriaQuery();
-    javax.persistence.criteria.Predicate jpaPredicate = visitor.getJpaPredicate();
+    jakarta.persistence.criteria.Predicate jpaPredicate = visitor.getJpaPredicate();
 
     if (null != jpaPredicate) {
       query.where(jpaPredicate);
@@ -775,7 +775,7 @@ public class AlertDispatchDAO {
 
   /**
    * The {@link NoticePredicateVisitor} is used to convert an Ambari
-   * {@link Predicate} into a JPA {@link javax.persistence.criteria.Predicate}.
+   * {@link Predicate} into a JPA {@link jakarta.persistence.criteria.Predicate}.
    */
   private final class NoticePredicateVisitor extends
       JpaPredicateVisitor<AlertNoticeEntity> {
