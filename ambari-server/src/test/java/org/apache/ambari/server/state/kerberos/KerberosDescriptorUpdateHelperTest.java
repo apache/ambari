@@ -24,8 +24,8 @@ import static org.easymock.EasyMock.expect;
 import java.util.Collections;
 import java.util.Properties;
 
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
 
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;

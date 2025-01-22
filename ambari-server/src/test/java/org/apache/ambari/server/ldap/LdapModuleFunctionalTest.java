@@ -18,7 +18,7 @@ import static org.easymock.EasyMock.createNiceMock;
 
 import java.util.Map;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 
 import org.apache.ambari.server.configuration.AmbariServerConfigurationKey;
 import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;

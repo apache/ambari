@@ -17,7 +17,7 @@
  */
 package org.apache.ambari.server.events.jpa;
 
-import javax.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityManagerFactory;
 
 import org.apache.ambari.server.events.AmbariEvent;
 

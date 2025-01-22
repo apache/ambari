@@ -19,10 +19,11 @@ import static javax.net.ssl.TrustManagerFactory.getDefaultAlgorithm;
 import java.io.FileInputStream;
 import java.security.KeyStore;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
+
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 
 import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
 import org.apache.ambari.server.ldap.service.AmbariLdapException;

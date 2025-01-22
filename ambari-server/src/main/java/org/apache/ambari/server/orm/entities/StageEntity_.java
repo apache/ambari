@@ -23,14 +23,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.persistence.metamodel.SingularAttribute;
-import javax.persistence.metamodel.StaticMetamodel;
+import jakarta.persistence.metamodel.SingularAttribute;
+import jakarta.persistence.metamodel.StaticMetamodel;
 
 import org.apache.ambari.server.controller.internal.StageResourceProvider;
 
 /**
  * The {@link StageEntity_} is a strongly typed metamodel for creating
- * {@link javax.persistence.criteria.CriteriaQuery} for {@link StageEntity}.
+ * {@link jakarta.persistence.criteria.CriteriaQuery} for {@link StageEntity}.
  */
 @StaticMetamodel(StageEntity.class)
 public class StageEntity_ {
@@ -50,7 +50,7 @@ public class StageEntity_ {
    * Gets a mapping of between a resource provider property.
    * <p/>
    * This is used when converting an Ambari {@link org.apache.ambari.server.controller.spi.Predicate} into a JPA
-   * {@link javax.persistence.criteria.Predicate} and we need a type-safe
+   * {@link jakarta.persistence.criteria.Predicate} and we need a type-safe
    * conversion between "category/property" and JPA field names.
    * <p/>
    * Multiple {@link SingularAttribute} instances can be chained together in

@@ -20,22 +20,22 @@ package org.apache.ambari.server.orm.entities;
 
 import java.util.Objects;
 
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
+import jakarta.persistence.Basic;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.State;
 import org.apache.commons.lang.builder.EqualsBuilder;
 
-@javax.persistence.IdClass(ServiceDesiredStateEntityPK.class)
-@javax.persistence.Table(name = "servicedesiredstate")
+@jakarta.persistence.IdClass(ServiceDesiredStateEntityPK.class)
+@jakarta.persistence.Table(name = "servicedesiredstate")
 @Entity
 public class ServiceDesiredStateEntity {
 
@@ -63,7 +63,7 @@ public class ServiceDesiredStateEntity {
   private short credentialStoreEnabled = 0;
 
   @OneToOne
-  @javax.persistence.JoinColumns(
+  @jakarta.persistence.JoinColumns(
       {
           @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false),
           @JoinColumn(name = "service_name", referencedColumnName = "service_name", nullable = false)

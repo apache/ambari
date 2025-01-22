@@ -24,7 +24,7 @@ import static org.easymock.EasyMock.expectLastCall;
 import java.util.Collections;
 import java.util.Properties;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 
 import org.apache.ambari.server.configuration.AmbariServerConfiguration;
 import org.apache.ambari.server.configuration.Configuration;

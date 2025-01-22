@@ -24,7 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.persistence.metamodel.SingularAttribute;
+import jakarta.persistence.metamodel.SingularAttribute;
 
 import org.apache.ambari.server.controller.internal.TaskResourceProvider;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -34,7 +34,7 @@ import org.apache.ambari.server.controller.spi.Predicate;
  * This class exists so that JPQL can use static singular attributes that are strongly typed
  * as opposed to Java reflection like HostRoleCommandEntity.get("fieldname")
  */
-@javax.persistence.metamodel.StaticMetamodel(HostRoleCommandEntity.class)
+@jakarta.persistence.metamodel.StaticMetamodel(HostRoleCommandEntity.class)
 public class HostRoleCommandEntity_ {
   public static volatile SingularAttribute<HostRoleCommandEntity, Long> taskId;
   public static volatile SingularAttribute<HostRoleCommandEntity, Long> requestId;
@@ -64,7 +64,7 @@ public class HostRoleCommandEntity_ {
    * {@link SingularAttribute}.
    * <p/>
    * This is used when converting an Ambari {@link Predicate} into a JPA
-   * {@link javax.persistence.criteria.Predicate} and we need a type-safe
+   * {@link jakarta.persistence.criteria.Predicate} and we need a type-safe
    * conversion between "category/property" and JPA field names.
    * <p/>
    * Multiple {@link SingularAttribute} instances can be chained together in

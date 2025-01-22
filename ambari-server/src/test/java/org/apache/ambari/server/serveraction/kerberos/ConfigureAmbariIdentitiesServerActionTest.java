@@ -27,7 +27,7 @@ import java.io.File;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.controller.KerberosHelper;

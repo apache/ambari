@@ -19,7 +19,6 @@
 package org.apache.ambari.server.controller;
 
 import jakarta.inject.Inject;
-
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 

@@ -20,8 +20,8 @@ package org.apache.ambari.server.orm.entities;
 
 import java.io.Serializable;
 
-import javax.persistence.Column;
-import javax.persistence.Id;
+import jakarta.persistence.Column;
+import jakarta.persistence.Id;
 
 import org.apache.ambari.server.Role;
 
