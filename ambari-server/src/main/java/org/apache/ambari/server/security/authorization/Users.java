@@ -1266,7 +1266,7 @@ public class Users {
         userAuthenticationEntity.updateAuthenticationKey(passwordEncoder.encode(newKey), configuration.getPasswordPolicyHistoryCount());
       } else {
         // If we get here the authenticated user is authorized to change the key for the subject.
-        userAuthenticationEntity.setAuthenticationKey(newKey);
+        userAuthenticationEntity.updateAuthenticationKey(newKey, configuration.getPasswordPolicyHistoryCount());
       }
 
       userAuthenticationDAO.merge(userAuthenticationEntity);
