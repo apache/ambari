@@ -105,9 +105,11 @@ public class UserAuthenticationEntity {
   }
 
   public String getAuthenticationKey() {
-    int firstCommaIndex = authenticationKey.indexOf(",");
-    if (firstCommaIndex != -1) {
-      return authenticationKey.substring(0, firstCommaIndex);
+    if (getAuthenticationType().equals(UserAuthenticationType.LOCAL)) {
+      int firstCommaIndex = authenticationKey.indexOf(",");
+      if (firstCommaIndex != -1) {
+        return authenticationKey.substring(0, firstCommaIndex);
+      }
     }
     return authenticationKey;
   }
