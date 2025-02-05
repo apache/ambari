@@ -284,15 +284,15 @@ App.Router = Em.Router.extend({
     var dfd = $.Deferred();
     var self = this;
     var auth = App.db.getAuthenticated();
-    this.getClusterDataRequest().always(function (xhr) {
+    this.getClusterDataRequest().always(function (xhr, textStatus, jqXHRorErrorThrown) {
       if (xhr) {
         // if server knows the user and user authenticated by UI
         if (auth) {
           dfd.resolve(self.get('loggedIn'));
           // if server knows the user but UI don't, check the response header
           // and try to authorize
-        } else if (xhr.getResponseHeader('User')) {
-          var user = xhr.getResponseHeader('User');
+        } else if (jqXHRorErrorThrown.getResponseHeader('User')) {
+          var user = jqXHRorErrorThrown.getResponseHeader('User');
           App.ajax.send({
             name: 'router.afterLogin',
             sender: self,
