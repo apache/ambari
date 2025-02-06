@@ -17,7 +17,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-
 from collections import deque
 from threading import Event
 
@@ -32,7 +31,7 @@ class BufferedQueue(object):
     self.__data_ready_event = Event()
 
     self.__queue_end = False  # sign that buffer is empty
-    self.__queue_feeder_end = False    # EOF sign
+    self.__queue_feeder_end = False  # EOF sign
 
   def __notify_ready(self):
     """

@@ -20,12 +20,12 @@ limitations under the License.
 
 
 class FatalException(Exception):
-    def __init__(self, code, reason):
-      self.code = code
-      self.reason = reason
+  def __init__(self, code, reason):
+    self.code = code
+    self.reason = reason
 
-    def __str__(self):
-        return repr("Fatal exception: %s, exit code %s" % (self.reason, self.code))
+  def __str__(self):
+    return repr(f"Fatal exception: {self.reason}, exit code {self.code}")
 
 
 class NonFatalException(Exception):
@@ -33,9 +33,9 @@ class NonFatalException(Exception):
     self.reason = reason
 
   def __str__(self):
-    return repr("NonFatal exception: %s" % self.reason)
+    return repr(f"NonFatal exception: {self.reason}")
 
 
 class TimeoutError(Exception):
   def __str__(self):
-    return repr("Timeout error: %s" % self.message)
+    return repr(f"Timeout error: {self.message}")

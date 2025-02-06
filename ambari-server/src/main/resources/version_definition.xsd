@@ -51,6 +51,10 @@
 
   <xs:simpleType name="family-type">
     <xs:restriction base="xs:string">
+      <xs:enumeration value="redhat5" /><!--for test-->
+      <xs:enumeration value="centos5" /><!--for test-->
+      <xs:enumeration value="centos6" /><!--for test-->
+      <xs:enumeration value="redhat6" /><!--for test-->
       <xs:enumeration value="redhat7" />
       <xs:enumeration value="redhat8" />
       <xs:enumeration value="redhat9" />
@@ -58,11 +62,14 @@
       <xs:enumeration value="fedora38" />
       <xs:enumeration value="redhat-ppc6" />
       <xs:enumeration value="redhat-ppc7" />
+      <xs:enumeration value="debian6" /><!--for test-->
       <xs:enumeration value="debian10" />
       <xs:enumeration value="debian11" />
+      <xs:enumeration value="ubuntu14" /><!--for test-->
       <xs:enumeration value="ubuntu20" />
       <xs:enumeration value="ubuntu22" />
       <xs:enumeration value="suse11" />
+      <xs:enumeration value="suse11sp3" /><!--for test-->
       <xs:enumeration value="suse12" />
       <xs:enumeration value="amazonlinux2" />
       <xs:enumeration value="openeuler22" />

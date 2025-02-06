@@ -26,10 +26,11 @@ from collections import namedtuple
 logger = logging.getLogger(__name__)
 
 # create a named tuple to return both the concrete URI and SSL flag
-AlertUri = namedtuple('AlertUri', 'uri is_ssl_enabled')
+AlertUri = namedtuple("AlertUri", "uri is_ssl_enabled")
+
 
 class BaseAlert(object):
-  CONFIG_KEY_REGEXP = re.compile('{{(\S+?)}}')
+  CONFIG_KEY_REGEXP = re.compile("{{(\S+?)}}")
   # will force a kinit even if klist says there are valid tickets (4 hour default)
   _DEFAULT_KINIT_TIMEOUT = 14400000
 
@@ -45,46 +46,43 @@ class BaseAlert(object):
   def __init__(self, alert_meta, alert_source_meta, config):
     self.alert_meta = alert_meta
     self.alert_source_meta = alert_source_meta
-    self.cluster_name = ''
+    self.cluster_name = ""
     self.cluster_id = None
-    self.host_name = ''
-    self.public_host_name = ''
+    self.host_name = ""
+    self.public_host_name = ""
     self.config = config
 
   def interval(self):
-    """ gets the defined interval this check should run """
-    if 'interval' not in self.alert_meta:
+    """gets the defined interval this check should run"""
+    if "interval" not in self.alert_meta:
       return 1
     else:
-      interval = self.alert_meta['interval']
+      interval = self.alert_meta["interval"]
       return 1 if interval < 1 else interval
 
   def get_definition_id(self):
     """
     gets the id of definition (a number)
     """
-    return self.alert_meta['definitionId']
+    return self.alert_meta["definitionId"]
 
   def is_enabled(self):
     """
     gets whether the definition is enabled
     """
-    return self.alert_meta['enabled']
-
+    return self.alert_meta["enabled"]
 
   def get_name(self):
     """
     gets the unique name of the alert definition
     """
-    return self.alert_meta['name']
-
+    return self.alert_meta["name"]
 
   def get_uuid(self):
     """
     gets the unique has of the alert definition
     """
-    return self.alert_meta['uuid']
-
+    return self.alert_meta["uuid"]
 
   def set_helpers(self, collector, cluster_configuration_cache, configuration_builder):
     """
@@ -94,16 +92,14 @@ class BaseAlert(object):
     self.cluster_configuration_cache = cluster_configuration_cache
     self.configuration_builder = configuration_builder
 
-
   def set_cluster(self, cluster_name, cluster_id, host_name, public_host_name=None):
-    """ sets cluster information for the alert """
+    """sets cluster information for the alert"""
     self.cluster_name = cluster_name
     self.cluster_id = str(cluster_id)
     self.host_name = host_name
     self.public_host_name = host_name
     if public_host_name:
       self.public_host_name = public_host_name
-
 
   def _get_alert_meta_value_safely(self, meta_key):
     """
@@ -114,9 +110,8 @@ class BaseAlert(object):
     else:
       return None
 
-
   def collect(self):
-    """ method used for collection.  defers to _collect() """
+    """method used for collection.  defers to _collect()"""
 
     res = (BaseAlert.RESULT_UNKNOWN, [])
     res_base_text = None
@@ -128,17 +123,18 @@ class BaseAlert(object):
 
       # it's possible that the alert definition doesn't have reporting; safely
       # check for it and fallback to default text if it doesn't exist
-      if ('reporting' in self.alert_source_meta) and \
-          (reporting_state in self.alert_source_meta['reporting']) and \
-          ('text' in self.alert_source_meta['reporting'][reporting_state]):
-          res_base_text = self.alert_source_meta['reporting'][reporting_state]['text']
+      if (
+        ("reporting" in self.alert_source_meta)
+        and (reporting_state in self.alert_source_meta["reporting"])
+        and ("text" in self.alert_source_meta["reporting"][reporting_state])
+      ):
+        res_base_text = self.alert_source_meta["reporting"][reporting_state]["text"]
 
       if res_base_text is None:
         res_base_text = self._get_reporting_text(result_state)
 
     except Exception as exception:
-      message = "[Alert][{0}] Unable to execute alert. {1}".format(
-        self.get_name(), str(exception))
+      message = f"[Alert][{self.get_name()}] Unable to execute alert. {str(exception)}"
 
       # print the exception if in DEBUG, otherwise just log the warning
       # if logger.isEnabledFor(logging.DEBUG):
@@ -149,46 +145,46 @@ class BaseAlert(object):
       res = (BaseAlert.RESULT_UNKNOWN, [str(exception)])
       res_base_text = "{0}"
 
-
     if logger.isEnabledFor(logging.DEBUG):
-      logger.debug("[Alert][{0}] result = {1}".format(self.get_name(), str(res)))
+      logger.debug(f"[Alert][{self.get_name()}] result = {str(res)}")
 
     data = {}
-    data['name'] = self._get_alert_meta_value_safely('name')
-    data['clusterId'] = self.cluster_id
-    data['timestamp'] = int(time.time() * 1000)
-    data['definitionId'] = self.get_definition_id()
+    data["name"] = self._get_alert_meta_value_safely("name")
+    data["clusterId"] = self.cluster_id
+    data["timestamp"] = int(time.time() * 1000)
+    data["definitionId"] = self.get_definition_id()
 
     try:
-      data['state'] = res[0]
+      data["state"] = res[0]
 
       # * is the splat operator, which flattens a collection into positional arguments
       # flatten the array and then try formatting it
       try:
-        data['text'] = res_base_text.format(*res[1])
+        data["text"] = res_base_text.format(*res[1])
       except ValueError as value_error:
-        logger.warn("[Alert][{0}] - {1}".format(self.get_name(), str(value_error)))
+        logger.warn(f"[Alert][{self.get_name()}] - {str(value_error)}")
 
         # if there is a ValueError, it's probably because the text doesn't match the type of
         # positional arguemtns (ie {0:d} with a float)
         res_base_text = res_base_text.replace("d}", "s}")
         data_as_strings = list(map(str, res[1]))
-        data['text'] = res_base_text.format(*data_as_strings)
+        data["text"] = res_base_text.format(*data_as_strings)
 
       if logger.isEnabledFor(logging.DEBUG):
-        logger.debug("[Alert][{0}] text = {1}".format(self.get_name(), data['text']))
+        logger.debug(f"[Alert][{self.get_name()}] text = {data['text']}")
     except Exception as exception:
-      logger.exception("[Alert][{0}] - The alert's data is not properly formatted".format(self.get_name()))
+      logger.exception(
+        f"[Alert][{self.get_name()}] - The alert's data is not properly formatted"
+      )
 
       # if there's a problem with getting the data returned from collect() then mark this
       # alert as UNKNOWN
-      data['state'] = self.RESULT_UNKNOWN
-      data['text'] = "There is a problem with the alert definition: {0}".format(str(exception))
+      data["state"] = self.RESULT_UNKNOWN
+      data["text"] = f"There is a problem with the alert definition: {str(exception)}"
     finally:
       # put the alert into the collector so it can be collected on the next run
-      data['text'] = data['text'].replace('\x00', '')
+      data["text"] = data["text"].replace("\x00", "")
       self.collector.put(self.cluster_name, data)
-
 
   def _get_configuration_value(self, configurations, key):
     """
@@ -256,16 +252,15 @@ class BaseAlert(object):
 
     try:
       curr_dict = configurations
-      subdicts = [_f for _f in key.split('/') if _f]
+      subdicts = [_f for _f in key.split("/") if _f]
 
       for layer_key in subdicts:
         curr_dict = curr_dict[layer_key]
 
       return curr_dict
     except KeyError:
-      logger.debug("Cache miss for configuration property {0}".format(key))
+      logger.debug(f"Cache miss for configuration property {key}")
       return None
-
 
   def _lookup_uri_property_keys(self, uri_structure):
     """
@@ -297,64 +292,68 @@ class BaseAlert(object):
     ha_http_pattern = None
     ha_https_pattern = None
 
-    if 'acceptable_codes' in uri_structure:
-      acceptable_codes_key = uri_structure['acceptable_codes']
+    if "acceptable_codes" in uri_structure:
+      acceptable_codes_key = uri_structure["acceptable_codes"]
 
-    if 'http' in uri_structure:
-      http_key = uri_structure['http']
+    if "http" in uri_structure:
+      http_key = uri_structure["http"]
 
-    if 'https' in uri_structure:
-      https_key = uri_structure['https']
+    if "https" in uri_structure:
+      https_key = uri_structure["https"]
 
-    if 'https_property' in uri_structure:
-      https_property_key = uri_structure['https_property']
+    if "https_property" in uri_structure:
+      https_property_key = uri_structure["https_property"]
 
-    if 'https_property_value' in uri_structure:
-      https_property_value_key = uri_structure['https_property_value']
+    if "https_property_value" in uri_structure:
+      https_property_value_key = uri_structure["https_property_value"]
 
-    if 'default_port' in uri_structure:
-      default_port = uri_structure['default_port']
+    if "default_port" in uri_structure:
+      default_port = uri_structure["default_port"]
 
-    if 'kerberos_keytab' in uri_structure:
-      kerberos_keytab = uri_structure['kerberos_keytab']
+    if "kerberos_keytab" in uri_structure:
+      kerberos_keytab = uri_structure["kerberos_keytab"]
 
-    if 'kerberos_principal' in uri_structure:
-      kerberos_principal = uri_structure['kerberos_principal']
+    if "kerberos_principal" in uri_structure:
+      kerberos_principal = uri_structure["kerberos_principal"]
 
-    if 'high_availability' in uri_structure:
-      ha = uri_structure['high_availability']
+    if "high_availability" in uri_structure:
+      ha = uri_structure["high_availability"]
 
-      if 'nameservice' in ha:
-        ha_nameservice = ha['nameservice']
+      if "nameservice" in ha:
+        ha_nameservice = ha["nameservice"]
 
-      if 'alias_key' in ha:
-        ha_alias_key = ha['alias_key']
+      if "alias_key" in ha:
+        ha_alias_key = ha["alias_key"]
 
-      if 'http_pattern' in ha:
-        ha_http_pattern = ha['http_pattern']
+      if "http_pattern" in ha:
+        ha_http_pattern = ha["http_pattern"]
 
-      if 'https_pattern' in ha:
-        ha_https_pattern = ha['https_pattern']
+      if "https_pattern" in ha:
+        ha_https_pattern = ha["https_pattern"]
 
-
-    AlertUriLookupKeys = namedtuple('AlertUriLookupKeys',
-      'acceptable_codes http https https_property https_property_value default_port '
-      'kerberos_keytab kerberos_principal '
-      'ha_nameservice ha_alias_key ha_http_pattern ha_https_pattern')
+    AlertUriLookupKeys = namedtuple(
+      "AlertUriLookupKeys",
+      "acceptable_codes http https https_property https_property_value default_port "
+      "kerberos_keytab kerberos_principal "
+      "ha_nameservice ha_alias_key ha_http_pattern ha_https_pattern",
+    )
 
     alert_uri_lookup_keys = AlertUriLookupKeys(
       acceptable_codes=acceptable_codes_key,
       http=http_key,
       https=https_key,
       https_property=https_property_key,
-      https_property_value=https_property_value_key, default_port=default_port,
-      kerberos_keytab=kerberos_keytab, kerberos_principal=kerberos_principal,
-      ha_nameservice=ha_nameservice, ha_alias_key=ha_alias_key,
-      ha_http_pattern=ha_http_pattern, ha_https_pattern=ha_https_pattern
+      https_property_value=https_property_value_key,
+      default_port=default_port,
+      kerberos_keytab=kerberos_keytab,
+      kerberos_principal=kerberos_principal,
+      ha_nameservice=ha_nameservice,
+      ha_alias_key=ha_alias_key,
+      ha_http_pattern=ha_http_pattern,
+      ha_https_pattern=ha_https_pattern,
     )
 
     return alert_uri_lookup_keys
-
 
   def _get_uri_from_structure(self, alert_uri_lookup_keys):
     """
@@ -375,12 +374,17 @@ class BaseAlert(object):
     http_uri = None
     https_uri = None
 
-    configurations = self.configuration_builder.get_configuration(self.cluster_id, None, None)
+    configurations = self.configuration_builder.get_configuration(
+      self.cluster_id, None, None
+    )
 
     # first thing is first; if there are HA keys then try to dynamically build
     # the property which is used to get the actual value of the uri
     # (ie dfs.namenode.http-address.c1ha.nn2)
-    if alert_uri_lookup_keys.ha_nameservice is not None or alert_uri_lookup_keys.ha_alias_key is not None:
+    if (
+      alert_uri_lookup_keys.ha_nameservice is not None
+      or alert_uri_lookup_keys.ha_alias_key is not None
+    ):
       alert_uri = self._get_uri_from_ha_structure(alert_uri_lookup_keys, configurations)
       if alert_uri is not None:
         return alert_uri
@@ -388,19 +392,27 @@ class BaseAlert(object):
     # attempt to parse and parameterize the various URIs; properties that
     # do not exist int he lookup map are returned as None
     if alert_uri_lookup_keys.http is not None:
-      http_uri = self._get_configuration_value(configurations, alert_uri_lookup_keys.http)
+      http_uri = self._get_configuration_value(
+        configurations, alert_uri_lookup_keys.http
+      )
 
     if alert_uri_lookup_keys.https is not None:
-      https_uri = self._get_configuration_value(configurations, alert_uri_lookup_keys.https)
+      https_uri = self._get_configuration_value(
+        configurations, alert_uri_lookup_keys.https
+      )
 
     # without a URI, there's no way to create the structure we need - return
     # the default port if specified, otherwise throw an exception
     if http_uri is None and https_uri is None:
       if alert_uri_lookup_keys.default_port is not None:
-        alert_uri = AlertUri(uri=alert_uri_lookup_keys.default_port, is_ssl_enabled=False)
+        alert_uri = AlertUri(
+          uri=alert_uri_lookup_keys.default_port, is_ssl_enabled=False
+        )
         return alert_uri
       else:
-        raise Exception("Could not determine result. Either the http or https URI must be specified.")
+        raise Exception(
+          "Could not determine result. Either the http or https URI must be specified."
+        )
 
     # start out assuming plaintext
     uri = http_uri
@@ -418,7 +430,6 @@ class BaseAlert(object):
     alert_uri = AlertUri(uri=uri, is_ssl_enabled=is_ssl_enabled)
     return alert_uri
 
-
   def _get_uri_from_ha_structure(self, alert_uri_lookup_keys, configurations):
     """
     Attempts to parse the HA URI structure in order to build a dynamic key
@@ -429,9 +440,13 @@ class BaseAlert(object):
     if alert_uri_lookup_keys is None:
       return None
 
-    logger.debug("[Alert][{0}] HA URI structure detected in definition, attempting to lookup dynamic HA properties".format(self.get_name()))
+    logger.debug(
+      f"[Alert][{self.get_name()}] HA URI structure detected in definition, attempting to lookup dynamic HA properties"
+    )
 
-    ha_nameservice = self._get_configuration_value(configurations, alert_uri_lookup_keys.ha_nameservice)
+    ha_nameservice = self._get_configuration_value(
+      configurations, alert_uri_lookup_keys.ha_nameservice
+    )
     ha_alias_key = alert_uri_lookup_keys.ha_alias_key
     ha_http_pattern = alert_uri_lookup_keys.ha_http_pattern
     ha_https_pattern = alert_uri_lookup_keys.ha_https_pattern
@@ -447,22 +462,30 @@ class BaseAlert(object):
         return None
 
       # convert dfs.ha.namenodes.{{ha-nameservice}} into dfs.ha.namenodes.c1ha
-      ha_nameservices = [_f for _f in ha_nameservice.split(',') if _f]
+      ha_nameservices = [_f for _f in ha_nameservice.split(",") if _f]
 
       for nameservice in ha_nameservices:
-        ha_alias_key_nameservice = ha_alias_key.replace(self.HA_NAMESERVICE_PARAM, nameservice)
-        ha_nameservice_alias = self._get_configuration_value(configurations, ha_alias_key_nameservice)
-
+        ha_alias_key_nameservice = ha_alias_key.replace(
+          self.HA_NAMESERVICE_PARAM, nameservice
+        )
+        ha_nameservice_alias = self._get_configuration_value(
+          configurations, ha_alias_key_nameservice
+        )
 
         if ha_nameservice_alias:
           ha_nameservice_aliases[nameservice] = ha_nameservice_alias
 
       if not ha_nameservice_aliases:
-        logger.warning("[Alert][{0}] HA nameservice value is present but there are no aliases for {1}".format(
-          self.get_name(), ha_alias_key))
+        logger.warning(
+          "[Alert][{0}] HA nameservice value is present but there are no aliases for {1}".format(
+            self.get_name(), ha_alias_key
+          )
+        )
         return None
     else:
-      ha_nameservice_aliases = {None: self._get_configuration_value(configurations, ha_alias_key)}
+      ha_nameservice_aliases = {
+        None: self._get_configuration_value(configurations, ha_alias_key)
+      }
 
       # if HA nameservice is not defined then the fact that the HA alias_key could not be evaluated shows that it's not HA environment
       if ha_nameservice_aliases[None] is None:
@@ -476,26 +499,33 @@ class BaseAlert(object):
 
     # no pattern found
     if ha_pattern is None:
-      logger.warning("[Alert][{0}] There is no matching http(s) pattern for the HA URI".format(
-        self.get_name()))
+      logger.warning(
+        "[Alert][{0}] There is no matching http(s) pattern for the HA URI".format(
+          self.get_name()
+        )
+      )
 
       return None
 
     if self.HA_NAMESERVICE_PARAM in ha_pattern and ha_nameservice is None:
-      logger.warning("[Alert][{0}] An HA URI pattern of {1} was detected, but there is no nameservice key".format(
-        self.get_name(), ha_pattern))
+      logger.warning(
+        "[Alert][{0}] An HA URI pattern of {1} was detected, but there is no nameservice key".format(
+          self.get_name(), ha_pattern
+        )
+      )
 
       return None
 
     # for each alias, grab it and check to see if this host matches
     for nameservice, aliases in ha_nameservice_aliases.items():
-      for alias in aliases.split(','):
-
+      for alias in aliases.split(","):
         # convert dfs.namenode.http-address.{{ha-nameservice}}.{{alias}} into
         # dfs.namenode.http-address.c1ha.{{alias}}
         ha_pattern_current = ha_pattern
         if nameservice is not None:
-          ha_pattern_current = ha_pattern_current.replace(self.HA_NAMESERVICE_PARAM, nameservice)
+          ha_pattern_current = ha_pattern_current.replace(
+            self.HA_NAMESERVICE_PARAM, nameservice
+          )
         # convert dfs.namenode.http-address.c1ha.{{alias}} into
         # dfs.namenode.http-address.c1ha.nn1
         key = ha_pattern_current.replace(self.HA_ALIAS_PARAM, alias.strip())
@@ -504,11 +534,13 @@ class BaseAlert(object):
         # this host
         value = self._get_configuration_value(configurations, key)
 
-        if value is not None and (self.host_name.lower() in value.lower() or self.public_host_name.lower() in value.lower()):
+        if value is not None and (
+          self.host_name.lower() in value.lower()
+          or self.public_host_name.lower() in value.lower()
+        ):
           return AlertUri(uri=value, is_ssl_enabled=is_ssl_enabled)
 
     return None
-
 
   def _check_uri_ssl_property(self, alert_uri_lookup_keys, configurations):
     """
@@ -522,16 +554,19 @@ class BaseAlert(object):
     https_property_value = None
 
     if alert_uri_lookup_keys.https_property is not None:
-      https_property = self._get_configuration_value(configurations, alert_uri_lookup_keys.https_property)
+      https_property = self._get_configuration_value(
+        configurations, alert_uri_lookup_keys.https_property
+      )
 
     if alert_uri_lookup_keys.https_property_value is not None:
-      https_property_value = self._get_configuration_value(configurations, alert_uri_lookup_keys.https_property_value)
+      https_property_value = self._get_configuration_value(
+        configurations, alert_uri_lookup_keys.https_property_value
+      )
 
     if https_property is None:
       return False
 
     return https_property == https_property_value
-
 
   def _collect(self):
     """
@@ -543,12 +578,11 @@ class BaseAlert(object):
     # and /src/test/python/ambari_agent/TestScriptAlert.py:52
     raise NotImplementedError
 
-
   def _get_reporting_text(self, state):
-    '''
+    """
     Gets the default reporting text to use when the alert definition does not
     contain any. Subclasses can override this to return specific text.
     :param state: the state of the alert in uppercase (such as OK, WARNING, etc)
     :return:  the parameterized text
-    '''
-    return '{0}'
+    """
+    return "{0}"

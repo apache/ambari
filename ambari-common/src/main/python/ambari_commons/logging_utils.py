@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,39 +16,46 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 _VERBOSE = False
 _SILENT = False
 _DEBUG_MODE = 0
 
 # terminal styles
-BOLD_ON = '\033[1m'
-BOLD_OFF = '\033[0m'
+BOLD_ON = "\033[1m"
+BOLD_OFF = "\033[0m"
+
 
 def get_verbose():
   global _VERBOSE
   return _VERBOSE
 
+
 def set_verbose(newVal):
   global _VERBOSE
   _VERBOSE = newVal
+
 
 def get_silent():
   global _SILENT
   return _SILENT
 
+
 def set_silent(newVal):
   global _SILENT
   _SILENT = newVal
+
 
 def get_debug_mode():
   global _DEBUG_MODE
   return _DEBUG_MODE
 
+
 def set_debug_mode(newVal):
   global _DEBUG_MODE
   _DEBUG_MODE = newVal
+
 
 def set_debug_mode_from_options(options):
   debug_mode = 0
@@ -64,6 +71,7 @@ def set_debug_mode_from_options(options):
     pass
   set_debug_mode(debug_mode)
 
+
 #
 # Prints an "info" messsage.
 #
@@ -74,11 +82,13 @@ def print_info_msg(msg, forced=False):
   if _VERBOSE:
     print("INFO: " + msg)
 
+
 #
 # Prints an "error" messsage.
 #
 def print_error_msg(msg):
   print("ERROR: " + msg)
+
 
 #
 # Prints a "warning" messsage.

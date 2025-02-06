@@ -1,0 +1,59 @@
+{
+  "ALLUXIO": {
+    "service": [],
+    "ALLUXIO_MASTER": [
+      {
+        "name": "ALLUXIO_MASTER_PROCESS",
+        "label": "alluxio master",
+        "description": "This host-level alert is triggered if the alluxio msater cannot be determined to be up.",
+        "interval": 1,
+        "scope": "HOST",
+        "source": {
+          "type": "PORT",
+          "uri": "{{alluxio-log4j-properties/alluxio.master.rpc.port}}",
+          "default_port": 19998,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.3f}s response on port {1}"
+            },
+            "warning": {
+              "text": "TCP OK - {0:.3f}s response on port {1}",
+              "value": 1.5
+            },
+            "critical": {
+              "text": "Connection failed: {0} to {1}:{2}",
+              "value": 5
+            }
+          }
+        }
+      }
+    ],
+    "ALLUXIO_WORKER": [
+      {
+        "name": "ALLUXIO_WORKER_PROCESS",
+        "label": "alluxio worker",
+        "description": "This host-level alert is triggered if the alluxio worker cannot be determined to be up.",
+        "interval": 1,
+        "scope": "HOST",
+        "source": {
+          "type": "PORT",
+          "uri": "{{alluxio-log4j-properties/alluxio.worker.rpc.port}}",
+          "default_port": 29999,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.3f}s response on port {1}"
+            },
+            "warning": {
+              "text": "TCP OK - {0:.3f}s response on port {1}",
+              "value": 1.5
+            },
+            "critical": {
+              "text": "Connection failed: {0} to {1}:{2}",
+              "value": 5
+            }
+          }
+        }
+      }
+    ]
+  }
+}

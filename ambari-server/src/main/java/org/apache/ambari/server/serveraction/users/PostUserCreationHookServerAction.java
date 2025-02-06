@@ -33,10 +33,10 @@ import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.hooks.users.UserHookParams;
 import org.apache.ambari.server.serveraction.AbstractServerAction;
 import org.apache.ambari.server.utils.ShellCommandUtil;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Splitter;
 
 @Singleton

@@ -35,8 +35,8 @@ import org.apache.ambari.server.orm.cache.HostConfigMapping;
 import org.apache.ambari.server.orm.cache.HostConfigMappingImpl;
 import org.apache.ambari.server.orm.entities.HostConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Predicate;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.Predicate;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;

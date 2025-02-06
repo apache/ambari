@@ -20,7 +20,10 @@ limitations under the License.
 
 from resource_management.libraries.script.script import Script
 
-def get_component_repository_version(service_name = None, component_name = None, default_value = None):
+
+def get_component_repository_version(
+  service_name=None, component_name=None, default_value=None
+):
   """
   Gets the version associated with the specified component from the structure in the command.
   Every command should contain a mapping of service/component to the desired repository it's set
@@ -37,7 +40,9 @@ def get_component_repository_version(service_name = None, component_name = None,
     return default_value
 
   if service_name is None:
-    service_name = config['serviceName'] if config is not None and 'serviceName' in config else None
+    service_name = (
+      config["serviceName"] if config is not None and "serviceName" in config else None
+    )
 
   if service_name is None or service_name not in versions:
     return default_value

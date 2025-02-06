@@ -26,20 +26,29 @@ def livy_service(name, upgrade_type=None, action=None):
   import params
 
   # use the livy user to get the PID (it is protected on non-root systems)
-  livy_server_pid = get_user_call_output.get_user_call_output(format("cat {livy_server_pid_file}"),
-                                                               user=params.livy_user, is_checked_call=False)[1]
+  livy_server_pid = get_user_call_output.get_user_call_output(
+    format("cat {livy_server_pid_file}"), user=params.livy_user, is_checked_call=False
+  )[1]
   livy_server_pid = livy_server_pid.replace("\n", " ")
-  process_id_exists_command = format("ls {livy_server_pid_file} >/dev/null 2>&1 && ps -p {livy_server_pid} >/dev/null 2>&1")
+  process_id_exists_command = format(
+    "ls {livy_server_pid_file} >/dev/null 2>&1 && ps -p {livy_server_pid} >/dev/null 2>&1"
+  )
 
-  if action == 'start':
-    Execute(format('{livy_server_start}'),
-            user=params.livy_user,
-            environment={'JAVA_HOME': params.java_home},
-            not_if=process_id_exists_command)
-  elif action == 'stop':
-    Execute(format('{livy_server_stop}'),
-            user=params.livy_user,
-            only_if=process_id_exists_command,
-            timeout=10,
-            on_timeout=format("! ( {process_id_exists_command} ) || {sudo} -H -E kill -9 {livy_server_pid}"),
-            environment={'JAVA_HOME': params.java_home})
+  if action == "start":
+    Execute(
+      format("{livy_server_start}"),
+      user=params.livy_user,
+      environment={"JAVA_HOME": params.java_home},
+      not_if=process_id_exists_command,
+    )
+  elif action == "stop":
+    Execute(
+      format("{livy_server_stop}"),
+      user=params.livy_user,
+      only_if=process_id_exists_command,
+      timeout=10,
+      on_timeout=format(
+        "! ( {process_id_exists_command} ) || {sudo} -H -E kill -9 {livy_server_pid}"
+      ),
+      environment={"JAVA_HOME": params.java_home},
+    )

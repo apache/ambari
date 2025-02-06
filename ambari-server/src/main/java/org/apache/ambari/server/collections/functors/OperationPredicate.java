@@ -19,12 +19,12 @@
 package org.apache.ambari.server.collections.functors;
 
 import org.apache.ambari.server.collections.Predicate;
-import org.apache.commons.collections.Transformer;
+import org.apache.commons.collections4.Transformer;
 
 /**
  * OperationPredicate is an abstract class providing functionality of transforming the input context
  * before executing the implementation-specific
- * {@link org.apache.commons.collections.Predicate#evaluate(Object)} method.
+ * {@link org.apache.commons.collections4.Predicate#evaluate(Object)} method.
  */
 abstract class OperationPredicate extends Predicate {
   /**
@@ -66,7 +66,7 @@ abstract class OperationPredicate extends Predicate {
    * Gets the context key assigned to the {@link ContextTransformer}.
    * <p>
    * This key is used to identify which value from the context a passed to the
-   * {@link org.apache.commons.collections.Predicate#evaluate(Object)} method
+   * {@link org.apache.commons.collections4.Predicate#evaluate(Object)} method
    *
    * @return a key name
    */
@@ -105,7 +105,7 @@ abstract class OperationPredicate extends Predicate {
    *
    * @param data the transformed data to use
    * @return the result of the evaluation (<code>true</code>, <code>false</code>)
-   * @see org.apache.commons.collections.Predicate#evaluate(Object)
+   * @see org.apache.commons.collections4.Predicate#evaluate(Object)
    */
   protected abstract boolean evaluateTransformedData(Object data);
 

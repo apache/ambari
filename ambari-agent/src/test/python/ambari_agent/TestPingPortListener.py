@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,7 +16,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 import unittest
 from mock.mock import patch, MagicMock, call, Mock
@@ -25,8 +25,8 @@ import subprocess
 import socket
 import sys
 
-class TestPingPortListener(unittest.TestCase):
 
+class TestPingPortListener(unittest.TestCase):
   def setUp(self):
     self.config = MagicMock()
     self.config.get.return_value = 55000
@@ -34,7 +34,7 @@ class TestPingPortListener(unittest.TestCase):
 
   @patch.object(subprocess, "Popen")
   @patch("socket.socket")
-  def test_init_success(self,socketMock,popen_mock):
+  def test_init_success(self, socketMock, popen_mock):
     procObj = MagicMock()
     procObj.communicate = MagicMock()
     procObj.communicate.return_value = {"": 0, "log": "log"}
@@ -46,17 +46,19 @@ class TestPingPortListener(unittest.TestCase):
     self.assertFalse(PingPortListener.logger.warn.called)
     self.assertTrue(socketMock.call_args_list[0][0][0] == socket.AF_INET)
     self.assertTrue(socketMock.call_args_list[0][0][1] == socket.SOCK_STREAM)
-    self.assertTrue(allive_daemon.socket.bind.call_args_list[0][0][0] == ('0.0.0.0',55000))
+    self.assertTrue(
+      allive_daemon.socket.bind.call_args_list[0][0][0] == ("0.0.0.0", 55000)
+    )
     self.assertTrue(allive_daemon.socket.listen.call_args_list[0][0][0] == 1)
-    self.assertTrue(allive_daemon.config.set.call_args_list[0][0][0] == 'agent')
-    self.assertTrue(allive_daemon.config.set.call_args_list[0][0][1] == 'current_ping_port')
-
-
+    self.assertTrue(allive_daemon.config.set.call_args_list[0][0][0] == "agent")
+    self.assertTrue(
+      allive_daemon.config.set.call_args_list[0][0][1] == "current_ping_port"
+    )
 
   @patch.object(subprocess, "Popen")
-  @patch.object(socket.socket,"bind")
-  @patch.object(socket.socket,"listen")
-  def test_init_warn(self,socketListenMock,socketBindMock,popen_mock):
+  @patch.object(socket.socket, "bind")
+  @patch.object(socket.socket, "listen")
+  def test_init_warn(self, socketListenMock, socketBindMock, popen_mock):
     procObj = MagicMock()
     procObj.communicate = MagicMock()
     procObj.communicate.return_value = {"mine.py": 0, "log": "log"}
@@ -69,6 +71,7 @@ class TestPingPortListener(unittest.TestCase):
       # Expected
       self.assertEqual(1, procObj.communicate.call_count)
       pass
+
 
 if __name__ == "__main__":
   suite = unittest.TestLoader().loadTestsFromTestCase(PingPortListener)

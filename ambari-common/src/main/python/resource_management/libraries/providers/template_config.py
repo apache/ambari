@@ -39,9 +39,10 @@ class TemplateConfigProvider(Provider):
     else:
       template_name = format("{file_name}-{template_tag}.j2")
 
-    File( qualified_file_name,
-     owner   = self.resource.owner,
-     group   = self.resource.group,
-     mode    = self.resource.mode,
-     content = Template(template_name, extra_imports=self.resource.extra_imports)
+    File(
+      qualified_file_name,
+      owner=self.resource.owner,
+      group=self.resource.group,
+      mode=self.resource.mode,
+      content=Template(template_name, extra_imports=self.resource.extra_imports),
     )

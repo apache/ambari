@@ -25,23 +25,20 @@ import sys
 def hcat():
   from scripts import params
 
-  Directory(params.hcat_conf_dir,
-            owner=params.hcat_user,
-            group=params.user_group,
+  Directory(
+    params.hcat_conf_dir,
+    owner=params.hcat_user,
+    group=params.user_group,
   )
 
-  Directory(params.hcat_pid_dir,
-            owner=params.webhcat_user,
-            create_parents = True
-  )
+  Directory(params.hcat_pid_dir, owner=params.webhcat_user, create_parents=True)
 
-  hcat_TemplateConfig('hcat-env.sh')
+  hcat_TemplateConfig("hcat-env.sh")
 
 
 def hcat_TemplateConfig(name):
   from scripts import params
 
-  TemplateConfig(format("{hcat_conf_dir}/{name}"),
-                 owner=params.hcat_user,
-                 group=params.user_group
+  TemplateConfig(
+    format("{hcat_conf_dir}/{name}"), owner=params.hcat_user, group=params.user_group
   )

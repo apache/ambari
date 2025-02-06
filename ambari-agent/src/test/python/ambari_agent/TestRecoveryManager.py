@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,7 +16,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 from unittest import TestCase
 import copy
@@ -36,18 +36,19 @@ class _TestRecoveryManager(TestCase):
       "commandType": "EXECUTION_COMMAND",
       "roleCommand": "INSTALL",
       "role": "NODEMANAGER",
-      "hostLevelParams": {
-        "custom_command":""},
+      "hostLevelParams": {"custom_command": ""},
       "configurations": {
         "capacity-scheduler": {
-          "yarn.scheduler.capacity.default.minimum-user-limit-percent": "100"},
+          "yarn.scheduler.capacity.default.minimum-user-limit-percent": "100"
+        },
         "capacity-calculator": {
-          "yarn.scheduler.capacity.default.minimum-user-limit-percent": "100"},
+          "yarn.scheduler.capacity.default.minimum-user-limit-percent": "100"
+        },
         "commandParams": {
           "service_package_folder": "common-services/YARN/2.1.0.2.0/package"
-        }
-      }
-    }
+        },
+      },
+    },
   }
 
   exec_command1 = {
@@ -56,14 +57,16 @@ class _TestRecoveryManager(TestCase):
     "role": "NODEMANAGER",
     "configurations": {
       "capacity-scheduler": {
-        "yarn.scheduler.capacity.default.minimum-user-limit-percent": "100"},
+        "yarn.scheduler.capacity.default.minimum-user-limit-percent": "100"
+      },
       "capacity-calculator": {
-        "yarn.scheduler.capacity.default.minimum-user-limit-percent": "100"},
+        "yarn.scheduler.capacity.default.minimum-user-limit-percent": "100"
+      },
       "commandParams": {
         "service_package_folder": "common-services/YARN/2.1.0.2.0/package"
-      }
+      },
     },
-    "hostLevelParams": {}
+    "hostLevelParams": {},
   }
 
   exec_command2 = {
@@ -72,14 +75,16 @@ class _TestRecoveryManager(TestCase):
     "role": "NODEMANAGER",
     "configurations": {
       "capacity-scheduler": {
-        "yarn.scheduler.capacity.default.minimum-user-limit-percent": "100"},
+        "yarn.scheduler.capacity.default.minimum-user-limit-percent": "100"
+      },
       "capacity-calculator": {
-        "yarn.scheduler.capacity.default.minimum-user-limit-percent": "100"},
+        "yarn.scheduler.capacity.default.minimum-user-limit-percent": "100"
+      },
       "commandParams": {
         "service_package_folder": "common-services/YARN/2.1.0.2.0/package"
-      }
+      },
     },
-    "hostLevelParams": {}
+    "hostLevelParams": {},
   }
 
   exec_command3 = {
@@ -88,14 +93,16 @@ class _TestRecoveryManager(TestCase):
     "role": "NODEMANAGER",
     "configurations": {
       "capacity-scheduler": {
-        "yarn.scheduler.capacity.default.minimum-user-limit-percent": "100"},
+        "yarn.scheduler.capacity.default.minimum-user-limit-percent": "100"
+      },
       "capacity-calculator": {
-        "yarn.scheduler.capacity.default.minimum-user-limit-percent": "100"},
+        "yarn.scheduler.capacity.default.minimum-user-limit-percent": "100"
+      },
       "commandParams": {
         "service_package_folder": "common-services/YARN/2.1.0.2.0/package"
-      }
+      },
     },
-    "hostLevelParams": {}
+    "hostLevelParams": {},
   }
 
   exec_command4 = {
@@ -104,16 +111,16 @@ class _TestRecoveryManager(TestCase):
     "role": "NODEMANAGER",
     "configurations": {
       "capacity-scheduler": {
-        "yarn.scheduler.capacity.default.minimum-user-limit-percent": "100"},
+        "yarn.scheduler.capacity.default.minimum-user-limit-percent": "100"
+      },
       "capacity-calculator": {
-        "yarn.scheduler.capacity.default.minimum-user-limit-percent": "100"},
+        "yarn.scheduler.capacity.default.minimum-user-limit-percent": "100"
+      },
       "commandParams": {
         "service_package_folder": "common-services/YARN/2.1.0.2.0/package"
-      }
+      },
     },
-    "hostLevelParams": {
-      "custom_command": "RESTART"
-    }
+    "hostLevelParams": {"custom_command": "RESTART"},
   }
 
   def test_defaults(self):
@@ -128,9 +135,28 @@ class _TestRecoveryManager(TestCase):
 
   @patch.object(RecoveryManager, "_now_")
   def test_sliding_window(self, time_mock):
-    time_mock.side_effect = \
-      [1000, 1001, 1002, 1003, 1004, 1071, 1150, 1151, 1152, 1153, 1400, 1401,
-       1500, 1571, 1572, 1653, 1900, 1971, 2300, 2301]
+    time_mock.side_effect = [
+      1000,
+      1001,
+      1002,
+      1003,
+      1004,
+      1071,
+      1150,
+      1151,
+      1152,
+      1153,
+      1400,
+      1401,
+      1500,
+      1571,
+      1572,
+      1653,
+      1900,
+      1971,
+      2300,
+      2301,
+    ]
 
     rm = RecoveryManager(MagicMock(), True, False)
     self.assertTrue(rm.enabled())
@@ -202,11 +228,29 @@ class _TestRecoveryManager(TestCase):
 
   def test_recovery_required(self):
     rm = RecoveryManager(MagicMock(), False)
-    rm.update_config(12, 5, 1, 15, True, False, False, )
-    rm.update_recovery_config({'recoveryConfig':{'components':[
-      {'component_name': 'NODEMANAGER', 'service_name': 'YARN', 'desired_state': 'INSTALLED'}
-    ]}})
-    
+    rm.update_config(
+      12,
+      5,
+      1,
+      15,
+      True,
+      False,
+      False,
+    )
+    rm.update_recovery_config(
+      {
+        "recoveryConfig": {
+          "components": [
+            {
+              "component_name": "NODEMANAGER",
+              "service_name": "YARN",
+              "desired_state": "INSTALLED",
+            }
+          ]
+        }
+      }
+    )
+
     rm.update_current_status("NODEMANAGER", "INSTALLED")
     rm.update_desired_status("NODEMANAGER", "INSTALLED")
     self.assertFalse(rm.requires_recovery("NODEMANAGER"))
@@ -250,21 +294,40 @@ class _TestRecoveryManager(TestCase):
     self.assertFalse(rm.requires_recovery("NODEMANAGER"))
 
   def test_recovery_required2(self):
-
     rm = RecoveryManager(MagicMock(), True)
     rm.update_config(15, 5, 1, 16, True, False, False)
-    rm.update_recovery_config({'recoveryConfig':{'components':[
-      {'component_name': 'NODEMANAGER', 'service_name': 'YARN', 'desired_state': 'INSTALLED'}
-    ]}})
+    rm.update_recovery_config(
+      {
+        "recoveryConfig": {
+          "components": [
+            {
+              "component_name": "NODEMANAGER",
+              "service_name": "YARN",
+              "desired_state": "INSTALLED",
+            }
+          ]
+        }
+      }
+    )
     rm.update_current_status("NODEMANAGER", "INSTALLED")
     rm.update_desired_status("NODEMANAGER", "STARTED")
     self.assertTrue(rm.requires_recovery("NODEMANAGER"))
 
-    rm = RecoveryManager( MagicMock(), True)
+    rm = RecoveryManager(MagicMock(), True)
     rm.update_config(15, 5, 1, 16, True, False, False)
-    rm.update_recovery_config({'recoveryConfig':{'components':[
-      {'component_name': 'NODEMANAGER', 'service_name': 'YARN', 'desired_state': 'INSTALLED'}
-    ]}})
+    rm.update_recovery_config(
+      {
+        "recoveryConfig": {
+          "components": [
+            {
+              "component_name": "NODEMANAGER",
+              "service_name": "YARN",
+              "desired_state": "INSTALLED",
+            }
+          ]
+        }
+      }
+    )
     rm.update_current_status("NODEMANAGER", "INSTALLED")
     rm.update_desired_status("NODEMANAGER", "STARTED")
     self.assertTrue(rm.requires_recovery("NODEMANAGER"))
@@ -284,9 +347,19 @@ class _TestRecoveryManager(TestCase):
     self.assertFalse(rm.requires_recovery("DATANODE"))
 
     rm.update_config(15, 5, 1, 16, True, False, False)
-    rm.update_recovery_config({'recoveryConfig':{'components':[
-      {'component_name': 'NODEMANAGER', 'service_name': 'YARN', 'desired_state': 'INSTALLED'}
-    ]}})
+    rm.update_recovery_config(
+      {
+        "recoveryConfig": {
+          "components": [
+            {
+              "component_name": "NODEMANAGER",
+              "service_name": "YARN",
+              "desired_state": "INSTALLED",
+            }
+          ]
+        }
+      }
+    )
     rm.update_current_status("NODEMANAGER", "INSTALLED")
     rm.update_desired_status("NODEMANAGER", "STARTED")
     self.assertTrue(rm.requires_recovery("NODEMANAGER"))
@@ -297,8 +370,7 @@ class _TestRecoveryManager(TestCase):
 
   @patch.object(RecoveryManager, "_now_")
   def test_recovery_report(self, time_mock):
-    time_mock.side_effect = \
-      [1000, 1071, 1072, 1470, 1471, 1472, 1543, 1644, 1815]
+    time_mock.side_effect = [1000, 1071, 1072, 1470, 1471, 1472, 1543, 1644, 1815]
 
     rm = RecoveryManager(MagicMock())
     rec_st = rm.get_recovery_status()
@@ -310,52 +382,95 @@ class _TestRecoveryManager(TestCase):
 
     rm.execute("PUMA")
     rec_st = rm.get_recovery_status()
-    self.assertEqual(rec_st, {"summary": "RECOVERABLE",
-                               "componentReports": [{"name": "PUMA", "numAttempts": 1, "limitReached": False}]})
+    self.assertEqual(
+      rec_st,
+      {
+        "summary": "RECOVERABLE",
+        "componentReports": [{"name": "PUMA", "numAttempts": 1, "limitReached": False}],
+      },
+    )
     rm.execute("PUMA")
     rm.execute("LION")
 
     rec_st = rm.get_recovery_status()
-    self.assertEqual(rec_st, {"summary": "RECOVERABLE",
-                               "componentReports": [
-                                 {"name": "PUMA", "numAttempts": 2, "limitReached": False},
-                                 {"name": "LION", "numAttempts": 1, "limitReached": False}
-                               ]})
+    self.assertEqual(
+      rec_st,
+      {
+        "summary": "RECOVERABLE",
+        "componentReports": [
+          {"name": "PUMA", "numAttempts": 2, "limitReached": False},
+          {"name": "LION", "numAttempts": 1, "limitReached": False},
+        ],
+      },
+    )
     rm.execute("PUMA")
     rm.execute("LION")
     rm.execute("PUMA")
     rm.execute("PUMA")
     rm.execute("LION")
     rec_st = rm.get_recovery_status()
-    self.assertEqual(rec_st, {"summary": "PARTIALLY_RECOVERABLE",
-                               "componentReports": [
-                                 {"name": "PUMA", "numAttempts": 4, "limitReached": True},
-                                 {"name": "LION", "numAttempts": 3, "limitReached": False}
-                               ]})
+    self.assertEqual(
+      rec_st,
+      {
+        "summary": "PARTIALLY_RECOVERABLE",
+        "componentReports": [
+          {"name": "PUMA", "numAttempts": 4, "limitReached": True},
+          {"name": "LION", "numAttempts": 3, "limitReached": False},
+        ],
+      },
+    )
 
     rm.execute("LION")
     rec_st = rm.get_recovery_status()
-    self.assertEqual(rec_st, {"summary": "UNRECOVERABLE",
-                               "componentReports": [
-                                 {"name": "PUMA", "numAttempts": 4, "limitReached": True},
-                                 {"name": "LION", "numAttempts": 4, "limitReached": True}
-                               ]})
+    self.assertEqual(
+      rec_st,
+      {
+        "summary": "UNRECOVERABLE",
+        "componentReports": [
+          {"name": "PUMA", "numAttempts": 4, "limitReached": True},
+          {"name": "LION", "numAttempts": 4, "limitReached": True},
+        ],
+      },
+    )
 
   @patch.object(RecoveryManager, "_now_")
   def test_command_expiry(self, time_mock):
-    time_mock.side_effect = \
-      [1000, 1001, 1104, 1105, 1106, 1807, 1808, 1809, 1810, 1811, 1812]
+    time_mock.side_effect = [
+      1000,
+      1001,
+      1104,
+      1105,
+      1106,
+      1807,
+      1808,
+      1809,
+      1810,
+      1811,
+      1812,
+    ]
 
     rm = RecoveryManager(MagicMock())
     rm.update_config(5, 5, 0, 11, True, False, False)
 
     command1 = copy.deepcopy(self.command)
 
-    #rm.store_or_update_command(command1)
+    # rm.store_or_update_command(command1)
     rm.update_config(12, 5, 1, 15, True, False, False)
-    
-    rm.update_recovery_config({'recoveryConfig':{'components':[{'component_name': 'NODEMANAGER', 'service_name': 'YARN', 'desired_state': 'INSTALLED'}]}})
-    
+
+    rm.update_recovery_config(
+      {
+        "recoveryConfig": {
+          "components": [
+            {
+              "component_name": "NODEMANAGER",
+              "service_name": "YARN",
+              "desired_state": "INSTALLED",
+            }
+          ]
+        }
+      }
+    )
+
     rm.update_current_status("NODEMANAGER", "INSTALLED")
     rm.update_desired_status("NODEMANAGER", "STARTED")
 
@@ -366,10 +481,10 @@ class _TestRecoveryManager(TestCase):
     commands = rm.get_recovery_commands()
     self.assertEqual(1, len(commands))
     self.assertEqual("START", commands[0]["roleCommand"])
-    
+
     rm.retry_gap_in_sec = 60
 
-    #1807 command is stale
+    # 1807 command is stale
     commands = rm.get_recovery_commands()
     self.assertEqual(0, len(commands))
 
@@ -380,43 +495,67 @@ class _TestRecoveryManager(TestCase):
   def test_configured_for_recovery(self):
     rm = RecoveryManager(MagicMock(), True)
     rm.update_config(12, 5, 1, 15, True, False, False)
-    rm.update_recovery_config({'recoveryConfig':{'components':[
-      {'component_name': 'A', 'service_name': 'A', 'desired_state': 'INSTALLED'},
-      {'component_name': 'B', 'service_name': 'B', 'desired_state': 'INSTALLED'},
-    ]}})
-    
+    rm.update_recovery_config(
+      {
+        "recoveryConfig": {
+          "components": [
+            {"component_name": "A", "service_name": "A", "desired_state": "INSTALLED"},
+            {"component_name": "B", "service_name": "B", "desired_state": "INSTALLED"},
+          ]
+        }
+      }
+    )
+
     self.assertTrue(rm.configured_for_recovery("A"))
     self.assertTrue(rm.configured_for_recovery("B"))
 
     rm.update_config(5, 5, 1, 11, True, False, False)
-    rm.update_recovery_config({'recoveryConfig':{'components':[]}})
-    
+    rm.update_recovery_config({"recoveryConfig": {"components": []}})
+
     self.assertFalse(rm.configured_for_recovery("A"))
     self.assertFalse(rm.configured_for_recovery("B"))
 
     rm.update_config(5, 5, 1, 11, True, False, False)
-    rm.update_recovery_config({'recoveryConfig':{'components':[
-      {'component_name': 'A', 'service_name': 'A', 'desired_state': 'INSTALLED'}
-    ]}})
-    
+    rm.update_recovery_config(
+      {
+        "recoveryConfig": {
+          "components": [
+            {"component_name": "A", "service_name": "A", "desired_state": "INSTALLED"}
+          ]
+        }
+      }
+    )
+
     self.assertTrue(rm.configured_for_recovery("A"))
     self.assertFalse(rm.configured_for_recovery("B"))
 
     rm.update_config(5, 5, 1, 11, True, False, False)
-    rm.update_recovery_config({'recoveryConfig':{'components': [
-      {'component_name': 'A', 'service_name': 'A', 'desired_state': 'INSTALLED'}
-    ]}})
-    
+    rm.update_recovery_config(
+      {
+        "recoveryConfig": {
+          "components": [
+            {"component_name": "A", "service_name": "A", "desired_state": "INSTALLED"}
+          ]
+        }
+      }
+    )
+
     self.assertTrue(rm.configured_for_recovery("A"))
     self.assertFalse(rm.configured_for_recovery("B"))
     self.assertFalse(rm.configured_for_recovery("C"))
 
     rm.update_config(5, 5, 1, 11, True, False, False)
-    rm.update_recovery_config({'recoveryConfig':{'components':[
-      {'component_name': 'A', 'service_name': 'A', 'desired_state': 'INSTALLED'},
-      {'component_name': 'D', 'service_name': 'D', 'desired_state': 'INSTALLED'},
-      {'component_name': 'F', 'service_name': 'F', 'desired_state': 'INSTALLED'}
-    ]}})
+    rm.update_recovery_config(
+      {
+        "recoveryConfig": {
+          "components": [
+            {"component_name": "A", "service_name": "A", "desired_state": "INSTALLED"},
+            {"component_name": "D", "service_name": "D", "desired_state": "INSTALLED"},
+            {"component_name": "F", "service_name": "F", "desired_state": "INSTALLED"},
+          ]
+        }
+      }
+    )
     self.assertTrue(rm.configured_for_recovery("A"))
     self.assertFalse(rm.configured_for_recovery("B"))
     self.assertFalse(rm.configured_for_recovery("C"))
@@ -426,27 +565,24 @@ class _TestRecoveryManager(TestCase):
 
   @patch.object(RecoveryManager, "_now_")
   def test_reset_if_window_passed_since_last_attempt(self, time_mock):
-    time_mock.side_effect = \
-      [1000, 1071, 1372]
+    time_mock.side_effect = [1000, 1071, 1372]
     rm = RecoveryManager(MagicMock())
 
     rm.update_config(2, 5, 1, 4, True, True, False)
 
     rm.execute("COMPONENT")
     actions = rm.get_actions_copy()["COMPONENT"]
-    self.assertEqual(actions['lastReset'], 1000)
+    self.assertEqual(actions["lastReset"], 1000)
     rm.execute("COMPONENT")
     actions = rm.get_actions_copy()["COMPONENT"]
-    self.assertEqual(actions['lastReset'], 1000)
-    #reset if window_in_sec seconds passed since last attempt
+    self.assertEqual(actions["lastReset"], 1000)
+    # reset if window_in_sec seconds passed since last attempt
     rm.execute("COMPONENT")
     actions = rm.get_actions_copy()["COMPONENT"]
-    self.assertEqual(actions['lastReset'], 1372)
-
+    self.assertEqual(actions["lastReset"], 1372)
 
   @patch.object(RecoveryManager, "_now_")
   def test_is_action_info_stale(self, time_mock):
-
     rm = RecoveryManager(MagicMock())
     rm.update_config(5, 60, 5, 16, True, False, False)
 
@@ -460,7 +596,7 @@ class _TestRecoveryManager(TestCase):
       "lifetimeCount": 0,
       "warnedLastAttempt": False,
       "warnedLastReset": False,
-      "warnedThresholdReached": False
+      "warnedThresholdReached": False,
     }
     time_mock.return_value = 3600
     self.assertFalse(rm.is_action_info_stale("COMPONENT_NAME"))
@@ -472,7 +608,7 @@ class _TestRecoveryManager(TestCase):
       "lifetimeCount": 1,
       "warnedLastAttempt": False,
       "warnedLastReset": False,
-      "warnedThresholdReached": False
+      "warnedThresholdReached": False,
     }
     time_mock.return_value = 3601
     self.assertFalse(rm.is_action_info_stale("COMPONENT_NAME"))

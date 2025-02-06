@@ -29,13 +29,18 @@ from resource_management.core.utils import PasswordString
 MESSAGE_MAX_LEN = 512
 DICTIONARY_MAX_LEN = 5
 
+
 class Logger:
   logger = None
   # unprotected_strings : protected_strings map
   sensitive_strings = {}
-  
+
   @staticmethod
-  def initialize_logger(name='resource_management', logging_level=logging.INFO, format='%(asctime)s - %(message)s'):
+  def initialize_logger(
+    name="resource_management",
+    logging_level=logging.INFO,
+    format="%(asctime)s - %(message)s",
+  ):
     if Logger.logger:
       return
     # set up logging (two separate loggers for stderr and stdout with different loglevels)
@@ -93,35 +98,35 @@ class Logger:
   @staticmethod
   def debug_resource(resource):
     Logger.debug(Logger.filter_text(Logger._get_resource_repr(resource)))
-    
-  @staticmethod    
+
+  @staticmethod
   def filter_text(text):
     """
     Replace passwords with [PROTECTED] and remove shell.py placeholders
     """
     from resource_management.core.shell import PLACEHOLDERS_TO_STR
-    
+
     for unprotected_string, protected_string in Logger.sensitive_strings.items():
       text = text.replace(unprotected_string, protected_string)
 
     for placeholder in PLACEHOLDERS_TO_STR.keys():
-      text = text.replace(placeholder, '')
+      text = text.replace(placeholder, "")
 
     return text
-  
+
   @staticmethod
   def _get_resource_repr(resource):
     return Logger.get_function_repr(repr(resource), resource.arguments, resource)
-  
+
   @staticmethod
   def _get_resource_name_repr(name):
     if isinstance(name, str) and not isinstance(name, PasswordString):
-      name = "'" + name + "'" # print string cutely not with repr
+      name = "'" + name + "'"  # print string cutely not with repr
     else:
       name = repr(name)
-      
+
     return name
-  
+
   @staticmethod
   def format_command_for_output(command):
     """
@@ -131,32 +136,32 @@ class Logger:
       result = []
       for x in command:
         if isinstance(x, PasswordString):
-          result.append(repr(x).strip("'")) # string ''
+          result.append(repr(x).strip("'"))  # string ''
         else:
           result.append(x)
     else:
       if isinstance(command, PasswordString):
-        result = repr(command).strip("'") # string ''
+        result = repr(command).strip("'")  # string ''
       else:
         result = command
-    
+
     return result
-  
+
   @staticmethod
   def get_function_repr(name, arguments, resource=None):
     logger_level = logging._levelToName[Logger.logger.level]
 
     arguments_str = ""
-    for x,y in arguments.items():
+    for x, y in arguments.items():
       # for arguments which want to override the output
-      if resource and 'log_str' in dir(resource._arguments[x]):
+      if resource and "log_str" in dir(resource._arguments[x]):
         val = resource._arguments[x].log_str(x, y)
       # don't show long arguments
       elif isinstance(y, str) and len(y) > MESSAGE_MAX_LEN:
-        val = '...'
+        val = "..."
       # strip unicode 'u' sign
       elif isinstance(y, str):
-        val = repr(y).lstrip('u')
+        val = repr(y).lstrip("u")
       # don't show dicts of configurations
       # usually too long
       elif isinstance(y, dict) and len(y) > DICTIONARY_MAX_LEN:
@@ -165,20 +170,20 @@ class Logger:
       elif isinstance(y, UnknownConfiguration):
         val = "[EMPTY]"
       # correctly output 'mode' (as they are octal values like 0755)
-      elif y and x == 'mode':
+      elif y and x == "mode":
         try:
           val = oct(y)
         except:
           val = repr(y)
       # for functions show only function name
-      elif hasattr(y, '__call__') and hasattr(y, '__name__'):
+      elif hasattr(y, "__call__") and hasattr(y, "__name__"):
         val = y.__name__
       else:
         val = repr(y)
 
-      arguments_str += "'{0}': {1}, ".format(x, val)
+      arguments_str += f"'{x}': {val}, "
 
     if arguments_str:
       arguments_str = arguments_str[:-2]
-        
-    return str("{0} {{{1}}}").format(name, arguments_str)
+
+    return str(f"{name} {{{arguments_str}}}")

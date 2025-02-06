@@ -19,6 +19,7 @@ limitations under the License.
 Ambari Agent
 
 """
+
 # Python imports
 import os
 import sys
@@ -38,6 +39,7 @@ from resource_management.core.logger import Logger
 class MapReduce2Client(Script):
   def install(self, env):
     import params
+
     self.install_packages(env)
     self.configure(env)
 
@@ -47,6 +49,7 @@ class MapReduce2Client(Script):
     :param config_dir: During rolling upgrade, which config directory to save configs to.
     """
     import params
+
     env.set_params(params)
     yarn(config_dir=config_dir)
 
@@ -60,11 +63,14 @@ class MapReduce2Client(Script):
     :param env:
     """
     import params
+
     env.set_params(params)
 
     conf_select_name = "hadoop"
     base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-    config_dir = self.get_config_dir_during_stack_upgrade(env, base_dir, conf_select_name)
+    config_dir = self.get_config_dir_during_stack_upgrade(
+      env, base_dir, conf_select_name
+    )
 
     if config_dir:
       # Because this script was called from ru_execute_tasks.py which already enters an Environment with its own basedir,
@@ -82,9 +88,12 @@ class MapReduce2ClientWindows(MapReduce2Client):
 class MapReduce2ClientDefault(MapReduce2Client):
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
+
     env.set_params(params)
 
-    if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
+    if params.version and check_stack_feature(
+      StackFeature.ROLLING_UPGRADE, params.version
+    ):
       stack_select.select_packages(params.version)
 
 

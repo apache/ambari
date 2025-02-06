@@ -5,6 +5,7 @@ Exception classes used by CoilMQ.
 CoilMQ exceptions extend C{RuntimeError} or other appropriate sub-classes.  These will be
 thrown if there is not a more appropriate error class already provided by builtins.
 """
+
 __authors__ = ['"Hans Lellelid" <hans@xmpl.org>']
 __copyright__ = "Copyright 2009 Hans Lellelid"
 __license__ = """Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,24 +22,24 @@ limitations under the License."""
 
 
 class ProtocolError(RuntimeError):
-    """
-    Represents an error at the STOMP protocol layer.
-    """
+  """
+  Represents an error at the STOMP protocol layer.
+  """
 
 
 class ConfigError(RuntimeError):
-    """
-    Represents an error in the configuration of the application.
-    """
+  """
+  Represents an error in the configuration of the application.
+  """
 
 
 class AuthError(RuntimeError):
-    """
-    Represents an authentication or authorization error.
-    """
+  """
+  Represents an authentication or authorization error.
+  """
 
 
 class ClientDisconnected(Exception):
-    """
-    A signal that client has disconnected (so we shouldn't try to keep reading from the client).
-    """
+  """
+  A signal that client has disconnected (so we shouldn't try to keep reading from the client).
+  """

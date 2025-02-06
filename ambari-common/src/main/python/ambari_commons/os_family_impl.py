@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -15,7 +15,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 import types
 from ambari_commons import OSCheck
@@ -44,7 +44,6 @@ class OsFamilyImpl(object):
     self.base_cls = base_cls
     self.os_const = os_family
 
-
   def __call__(self, cls):
     if self.base_cls:
       base_cls = self.base_cls
@@ -67,6 +66,7 @@ class OsFamilyImpl(object):
 
     return cls
 
+
 class OsFamilyFuncImpl(object):
   """
   Base class for os dependent function. Usage::
@@ -75,6 +75,7 @@ class OsFamilyFuncImpl(object):
       def os_foo(...):pass
 
   """
+
   _func_impls = {}
 
   def _createFunctionInstance(self, func):
@@ -88,6 +89,7 @@ class OsFamilyFuncImpl(object):
 
       fn = self._func_impls[fn_id]
       return fn(*args, **kwargs)
+
     return thunk
 
   def __init__(self, os_family):

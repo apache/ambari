@@ -27,10 +27,17 @@ import subprocess
 class JcePolicyInfo:
   def __init__(self, java_home):
     # ToDo: change hardcoded path to resolved one
-    self.command_format = java_home + "/bin/java -jar /var/lib/ambari-agent/tools/jcepolicyinfo.jar {}"
+    self.command_format = (
+      java_home + "/bin/java -jar /var/lib/ambari-agent/tools/jcepolicyinfo.jar {}"
+    )
     self.jar = "/var/lib/ambari-agent/tools/jcepolicyinfo.jar"
 
   def is_unlimited_key_jce_policy(self):
     ret = shell.call(
-      self.command_format.format('-tu'), stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=5, quiet=True)[0]
+      self.command_format.format("-tu"),
+      stdout=subprocess.PIPE,
+      stderr=subprocess.PIPE,
+      timeout=5,
+      quiet=True,
+    )[0]
     return ret == 0

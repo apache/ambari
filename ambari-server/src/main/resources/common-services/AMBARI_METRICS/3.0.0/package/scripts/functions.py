@@ -21,27 +21,30 @@ limitations under the License.
 import re
 import math
 
+
 def calc_xmn_from_xms(heapsize_str, xmn_percent, xmn_max):
   """
   @param heapsize: str (e.g 1000m)
   @param xmn_percent: float (e.g 0.2)
   @param xmn_max: integer (e.g 512)
   """
-  heapsize = int(re.search('\d+', str(heapsize_str)).group(0))
-  heapsize_unit = re.search('\D+', str(heapsize_str)).group(0)
+  heapsize = int(re.search("\d+", str(heapsize_str)).group(0))
+  heapsize_unit = re.search("\D+", str(heapsize_str)).group(0)
 
-  xmn_val = int(math.floor(heapsize*xmn_percent))
+  xmn_val = int(math.floor(heapsize * xmn_percent))
   xmn_val -= xmn_val % 8
-  
+
   result_xmn_val = xmn_max if xmn_val > xmn_max else xmn_val
   return str(result_xmn_val) + heapsize_unit
 
-def trim_heap_property(property, m_suffix = "m"):
+
+def trim_heap_property(property, m_suffix="m"):
   if property and property.endswith(m_suffix):
     property = property[:-1]
   return property
 
-def check_append_heap_property(property, m_suffix = "m"):
+
+def check_append_heap_property(property, m_suffix="m"):
   if property and not property.endswith(m_suffix):
     property += m_suffix
   return property

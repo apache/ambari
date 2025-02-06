@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,11 +16,12 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 from unittest import TestCase
 
 from ambari_commons import yaml_utils
+
 
 class TestYAMLUtils(TestCase):
   def setUp(self):
@@ -34,15 +35,20 @@ class TestYAMLUtils(TestCase):
     self.assertEqual(expected_values, values)
 
     expected_values.append("c6402.ambari.apache.org")
-    values = yaml_utils.get_values_from_yaml_array("['c6401.ambari.apache.org', 'c6402.ambari.apache.org']")
+    values = yaml_utils.get_values_from_yaml_array(
+      "['c6401.ambari.apache.org', 'c6402.ambari.apache.org']"
+    )
     self.assertEqual(expected_values, values)
 
-    values = yaml_utils.get_values_from_yaml_array('["c6401.ambari.apache.org", "c6402.ambari.apache.org"]')
+    values = yaml_utils.get_values_from_yaml_array(
+      '["c6401.ambari.apache.org", "c6402.ambari.apache.org"]'
+    )
     self.assertEqual(expected_values, values)
 
-    values = yaml_utils.get_values_from_yaml_array('[\'c6401.ambari.apache.org\', "c6402.ambari.apache.org"]')
+    values = yaml_utils.get_values_from_yaml_array(
+      "['c6401.ambari.apache.org', \"c6402.ambari.apache.org\"]"
+    )
     self.assertEqual(expected_values, values)
-
 
   def test_yaml_property_escaping(self):
     """
@@ -60,7 +66,10 @@ class TestYAMLUtils(TestCase):
     # some strings which should be escaped
     self.assertEqual("'5f'", yaml_utils.escape_yaml_property("5f"))
     self.assertEqual("'28.O'", yaml_utils.escape_yaml_property("28.O"))
-    self.assertEqual("'This is a test of a string'", yaml_utils.escape_yaml_property("This is a test of a string"))
+    self.assertEqual(
+      "'This is a test of a string'",
+      yaml_utils.escape_yaml_property("This is a test of a string"),
+    )
 
     # test maps
     map = """

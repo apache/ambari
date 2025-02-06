@@ -25,22 +25,34 @@ from resource_management.core.resources import Execute
 from resource_management.libraries.script import Script
 from resource_management.core.resources.system import Directory
 
+
 class FlinkServiceCheck(Script):
   def service_check(self, env):
     import params
+
     env.set_params(params)
 
     if params.security_enabled:
-       flink_kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal}; ")
-       Execute(flink_kinit_cmd, user=params.smokeuser)
+      flink_kinit_cmd = format(
+        "{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal}; "
+      )
+      Execute(flink_kinit_cmd, user=params.smokeuser)
 
-    job_cmd_opts= "-m yarn-cluster -yD classloader.check-leaked-classloader=false "
-    run_flink_wordcount_job = format("export HADOOP_CLASSPATH=`hadoop classpath`;{flink_dir}/bin/flink run {job_cmd_opts} {flink_dir}/examples/batch/WordCount.jar")
+    job_cmd_opts = "-m yarn-cluster -yD classloader.check-leaked-classloader=false "
+    run_flink_wordcount_job = format(
+      "export HADOOP_CLASSPATH=`hadoop classpath`;{flink_dir}/bin/flink run {job_cmd_opts} {flink_dir}/examples/batch/WordCount.jar"
+    )
 
-    Execute(run_flink_wordcount_job,
+    Execute(
+      run_flink_wordcount_job,
       logoutput=True,
-      environment={'JAVA_HOME':params.java_home,'HADOOP_CONF_DIR': params.hadoop_conf_dir},
-      user=params.smokeuser)
-            
+      environment={
+        "JAVA_HOME": params.java_home,
+        "HADOOP_CONF_DIR": params.hadoop_conf_dir,
+      },
+      user=params.smokeuser,
+    )
+
+
 if __name__ == "__main__":
   FlinkServiceCheck().execute()

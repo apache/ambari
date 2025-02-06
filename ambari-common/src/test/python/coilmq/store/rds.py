@@ -1,19 +1,25 @@
 #!/usr/bin/env python3
 try:
-    import redis
+  import redis
 except ImportError:  # pragma: no cover
-    import sys; sys.exit('please, install redis-py package to use redis-store')
+  import sys
+
+  sys.exit("please, install redis-py package to use redis-store")
 import threading
+
 try:
-    import pickle as pickle
+  import pickle as pickle
 except ImportError:
-    import pickle
+  import pickle
 
 from coilmq.store import QueueStore
 from coilmq.util.concurrency import synchronized
 from coilmq.config import config
 
-__authors__ = ('"Hans Lellelid" <hans@xmpl.org>', '"Alexander Zhukov" <zhukovaa90@gmail.com>')
+__authors__ = (
+  '"Hans Lellelid" <hans@xmpl.org>',
+  '"Alexander Zhukov" <zhukovaa90@gmail.com>',
+)
 __copyright__ = "Copyright 2009 Hans Lellelid"
 __license__ = """Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -31,40 +37,40 @@ lock = threading.RLock()
 
 
 def make_redis_store(cfg=None):
-    return RedisQueueStore(
-        redis_conn=redis.Redis(**dict((cfg or config).items('redis'))))
+  return RedisQueueStore(redis_conn=redis.Redis(**dict((cfg or config).items("redis"))))
 
 
 class RedisQueueStore(QueueStore):
-    """Simple Queue with Redis Backend"""
-    def __init__(self, redis_conn=None):
-        """The default connection parameters are: host='localhost', port=6379, db=0"""
-        self.__db = redis_conn or redis.Redis()
-        # self.key = '{0}:{1}'.format(namespace, name)
-        super(RedisQueueStore, self).__init__()
+  """Simple Queue with Redis Backend"""
 
-    @synchronized(lock)
-    def enqueue(self, destination, frame):
-        self.__db.rpush(destination, pickle.dumps(frame))
+  def __init__(self, redis_conn=None):
+    """The default connection parameters are: host='localhost', port=6379, db=0"""
+    self.__db = redis_conn or redis.Redis()
+    # self.key = '{0}:{1}'.format(namespace, name)
+    super(RedisQueueStore, self).__init__()
 
-    @synchronized(lock)
-    def dequeue(self, destination):
-        item = self.__db.lpop(destination)
-        if item:
-            return pickle.loads(item)
+  @synchronized(lock)
+  def enqueue(self, destination, frame):
+    self.__db.rpush(destination, pickle.dumps(frame))
 
-    @synchronized(lock)
-    def requeue(self, destination, frame):
-        self.enqueue(destination, frame)
+  @synchronized(lock)
+  def dequeue(self, destination):
+    item = self.__db.lpop(destination)
+    if item:
+      return pickle.loads(item)
 
-    @synchronized(lock)
-    def size(self, destination):
-        return self.__db.llen(destination)
+  @synchronized(lock)
+  def requeue(self, destination, frame):
+    self.enqueue(destination, frame)
 
-    @synchronized(lock)
-    def has_frames(self, destination):
-        return self.size(destination) > 0
+  @synchronized(lock)
+  def size(self, destination):
+    return self.__db.llen(destination)
 
-    @synchronized(lock)
-    def destinations(self):
-        return self.__db.keys()
+  @synchronized(lock)
+  def has_frames(self, destination):
+    return self.size(destination) > 0
+
+  @synchronized(lock)
+  def destinations(self):
+    return self.__db.keys()

@@ -23,6 +23,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class ClusterHostLevelParamsCache(ClusterCache):
   """
   Maintains an in-memory cache and disk cache of the host level params send from server for
@@ -42,4 +43,4 @@ class ClusterHostLevelParamsCache(ClusterCache):
     super(ClusterHostLevelParamsCache, self).__init__(cluster_cache_dir)
 
   def get_cache_name(self):
-    return 'host_level_params'
+    return "host_level_params"

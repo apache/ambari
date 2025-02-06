@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,7 +16,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 import ambari_simplejson as json
 import logging
@@ -24,19 +24,20 @@ import os
 
 logger = logging.getLogger()
 
+
 class ActualConfigHandler:
-  CONFIG_NAME = 'config.json'
+  CONFIG_NAME = "config.json"
 
   def __init__(self, config, configTags):
     self.config = config
     self.configTags = configTags
 
   def findRunDir(self):
-    runDir = '/var/run/ambari-agent'
-    if self.config.has_option('agent', 'prefix'):
-      runDir = self.config.get('agent', 'prefix')
+    runDir = "/var/run/ambari-agent"
+    if self.config.has_option("agent", "prefix"):
+      runDir = self.config.get("agent", "prefix")
     if not os.path.exists(runDir):
-      runDir = '/tmp'
+      runDir = "/tmp"
     return runDir
 
   def write_actual(self, tags):
@@ -49,18 +50,21 @@ class ActualConfigHandler:
 
   def write_client_components(self, serviceName, tags, components):
     from LiveStatus import LiveStatus
+
     for comp in LiveStatus.CLIENT_COMPONENTS:
-      if comp['serviceName'] == serviceName:
-        componentName = comp['componentName']
-        if componentName in self.configTags and \
-            tags != self.configTags[componentName] and \
-            (components == ["*"] or componentName in components):
+      if comp["serviceName"] == serviceName:
+        componentName = comp["componentName"]
+        if (
+          componentName in self.configTags
+          and tags != self.configTags[componentName]
+          and (components == ["*"] or componentName in components)
+        ):
           self.write_actual_component(componentName, tags)
     pass
 
   def write_file(self, filename, tags):
     runDir = self.findRunDir()
-    conf_file = open(os.path.join(runDir, filename), 'w')
+    conf_file = open(os.path.join(runDir, filename), "w")
     json.dump(tags, conf_file)
     conf_file.close()
 
@@ -69,10 +73,10 @@ class ActualConfigHandler:
     fullname = os.path.join(runDir, filename)
     if os.path.isfile(fullname):
       res = None
-      conf_file = open(os.path.join(runDir, filename), 'r')
+      conf_file = open(os.path.join(runDir, filename), "r")
       try:
         res = json.load(conf_file)
-        if (0 == len(res)):
+        if 0 == len(res):
           res = None
       except Exception as e:
         logger.error("Error parsing " + filename + ": " + repr(e))
@@ -88,14 +92,14 @@ class ActualConfigHandler:
 
   def read_actual_component(self, componentName):
     if componentName not in self.configTags.keys():
-      self.configTags[componentName] = \
-        self.read_file(componentName + "_" + self.CONFIG_NAME)
+      self.configTags[componentName] = self.read_file(
+        componentName + "_" + self.CONFIG_NAME
+      )
     return self.configTags[componentName]
-  
+
   def update_component_tag(self, componentName, tag, version):
     self.read_actual_component(componentName)
     self.configTags[componentName][tag] = version
-    
+
     filename = componentName + "_" + self.CONFIG_NAME
     self.write_file(filename, self.configTags[componentName])
-    

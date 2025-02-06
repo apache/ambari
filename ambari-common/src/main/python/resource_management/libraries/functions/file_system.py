@@ -19,6 +19,7 @@ limitations under the License.
 Ambari Agent
 
 """
+
 __all__ = ["get_and_cache_mount_points", "get_mount_point_for_dir"]
 import os
 from resource_management.core.logger import Logger
@@ -43,11 +44,11 @@ def get_and_cache_mount_points(refresh=False):
     for m in mounts:
       if m["mount_point"] is not None:
         m["mount_point"] = m["mount_point"].rstrip()
-    Logger.info("Host contains mounts: %s." % str([m["mount_point"] for m in mounts]))
+    Logger.info(f"Host contains mounts: {str([m['mount_point'] for m in mounts])}.")
     return mounts
 
 
-def get_mount_point_for_dir(dir, mount_points = None):
+def get_mount_point_for_dir(dir, mount_points=None):
   """
   :param dir: Directory to check, even if it doesn't exist.
   :return: Returns the closest mount point as a string for the directory. if the "dir" variable is None, will return None.
@@ -57,7 +58,11 @@ def get_mount_point_for_dir(dir, mount_points = None):
   if dir:
     dir = dir.strip()
 
-    cached_mounts = [m['mount_point'] for m in get_and_cache_mount_points()] if mount_points is None else mount_points
+    cached_mounts = (
+      [m["mount_point"] for m in get_and_cache_mount_points()]
+      if mount_points is None
+      else mount_points
+    )
 
     # If the path is "/hadoop/hdfs/data", then possible matches for mounts could be
     # "/", "/hadoop/hdfs", and "/hadoop/hdfs/data".
@@ -68,8 +73,10 @@ def get_mount_point_for_dir(dir, mount_points = None):
       if os.path.join(dir, "").startswith(os.path.join(m, "")):
         if best_mount_found is None:
           best_mount_found = m
-        elif os.path.join(best_mount_found, "").count(os.path.sep) < os.path.join(m, "").count(os.path.sep):
+        elif os.path.join(best_mount_found, "").count(os.path.sep) < os.path.join(
+          m, ""
+        ).count(os.path.sep):
           best_mount_found = m
 
-  Logger.info("Mount point for directory %s is %s" % (str(dir), str(best_mount_found)))
+  Logger.info(f"Mount point for directory {str(dir)} is {str(best_mount_found)}")
   return best_mount_found

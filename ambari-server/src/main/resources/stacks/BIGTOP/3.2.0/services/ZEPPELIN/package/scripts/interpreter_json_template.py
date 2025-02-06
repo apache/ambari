@@ -18,7 +18,7 @@ limitations under the License.
 
 """
 
-template = '''
+template = """
 {
   "interpreterSettings": {
     "angular": {
@@ -494,4 +494,4 @@ template = '''
     }
   ]
 }
-'''
+"""

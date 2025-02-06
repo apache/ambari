@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,7 +16,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 from unittest import TestCase
 from alerts.script_alert import ScriptAlert
@@ -25,44 +25,46 @@ import os
 
 from ambari_agent.AmbariConfig import AmbariConfig
 
-DUMMY_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dummy_files')
+DUMMY_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dummy_files")
+
 
 class TestScriptAlert(TestCase):
-
   def setUp(self):
     self.config = AmbariConfig()
 
   def test_collect(self):
     alert_meta = {
-      'definitionId': 1,
-      'name': 'alert1',
-      'label': 'label1',
-      'serviceName': 'service1',
-      'componentName': 'component1',
-      'uuid': '123',
-      'enabled': 'true'
+      "definitionId": 1,
+      "name": "alert1",
+      "label": "label1",
+      "serviceName": "service1",
+      "componentName": "component1",
+      "uuid": "123",
+      "enabled": "true",
     }
     alert_source_meta = {
-      'stacks_directory': DUMMY_PATH,
-      'path': os.path.join(DUMMY_PATH, 'test_script.py'),
-      'common_services_directory': DUMMY_PATH,
-      'host_scripts_directory': DUMMY_PATH,
+      "stacks_directory": DUMMY_PATH,
+      "path": os.path.join(DUMMY_PATH, "test_script.py"),
+      "common_services_directory": DUMMY_PATH,
+      "host_scripts_directory": DUMMY_PATH,
     }
-    cluster = 'c1'
-    cluster_id = '0'
-    host = 'host1'
-    expected_text = 'bar is 12, baz is asd'
+    cluster = "c1"
+    cluster_id = "0"
+    host = "host1"
+    expected_text = "bar is 12, baz is asd"
 
     def collector_side_effect(clus, data):
-      self.assertEqual(data['name'], alert_meta['name'])
-      self.assertEqual(data['clusterId'], cluster_id)
+      self.assertEqual(data["name"], alert_meta["name"])
+      self.assertEqual(data["clusterId"], cluster_id)
       self.assertEqual(clus, cluster)
 
     mock_collector = MagicMock()
     mock_collector.put = Mock(side_effect=collector_side_effect)
 
     alert = ScriptAlert(alert_meta, alert_source_meta, self.config)
-    alert.set_helpers(mock_collector, MagicMock(), MagicMock())#{'foo-site/bar': 12, 'foo-site/baz': 'asd'})
+    alert.set_helpers(
+      mock_collector, MagicMock(), MagicMock()
+    )  # {'foo-site/bar': 12, 'foo-site/baz': 'asd'})
     alert.set_cluster(cluster, cluster_id, host)
 
     alert.collect()

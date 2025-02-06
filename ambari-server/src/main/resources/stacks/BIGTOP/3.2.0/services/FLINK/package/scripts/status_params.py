@@ -24,10 +24,12 @@ from resource_management.libraries.functions.default import default
 
 config = Script.get_config()
 
-flink_user = config['configurations']['flink-env']['flink_user']
-flink_group = config['configurations']['flink-env']['flink_group']
-user_group = config['configurations']['cluster-env']['user_group']
+flink_user = config["configurations"]["flink-env"]["flink_user"]
+flink_group = config["configurations"]["flink-env"]["flink_group"]
+user_group = config["configurations"]["cluster-env"]["user_group"]
 
-flink_pid_dir = config['configurations']['flink-env']['flink_pid_dir']
-flink_history_server_pid_file = format("{flink_pid_dir}/flink-{flink_user}-historyserver.pid")
+flink_pid_dir = config["configurations"]["flink-env"]["flink_pid_dir"]
+flink_history_server_pid_file = format(
+  "{flink_pid_dir}/flink-{flink_user}-historyserver.pid"
+)
 stack_name = default("/clusterLevelParams/stack_name", None)

@@ -18,12 +18,11 @@
 
 package org.apache.ambari.server.agent;
 
-import org.codehaus.jackson.annotate.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- *
  * Data model for Ambari Agent to send heartbeat to Ambari Controller.
- *
  */
 public class Register {
   private int responseId = -1;
@@ -37,16 +36,16 @@ public class Register {
   private String agentVersion;
   private String prefix;
 
-  @JsonProperty("responseId")
-  @com.fasterxml.jackson.annotation.JsonProperty("id")
+  @JsonProperty("id")
+  @JsonAlias({"id", "responseId"})
   public int getResponseId() {
     return responseId;
   }
 
-  @JsonProperty("responseId")
-  @com.fasterxml.jackson.annotation.JsonProperty("id")
+  @JsonProperty("id")
+  @JsonAlias( { "id", "responseId"})
   public void setResponseId(int responseId) {
-    this.responseId=responseId;
+    this.responseId = responseId;
   }
 
   public long getTimestamp() {
@@ -56,19 +55,19 @@ public class Register {
   public String getHostname() {
     return hostname;
   }
-  
+
   public void setHostname(String hostname) {
     this.hostname = hostname;
   }
-  
+
   public HostInfo getHardwareProfile() {
     return hardwareProfile;
   }
-  
+
   public void setHardwareProfile(HostInfo hardwareProfile) {
     this.hardwareProfile = hardwareProfile;
   }
-  
+
   public void setTimestamp(long timestamp) {
     this.timestamp = timestamp;
   }
@@ -76,15 +75,15 @@ public class Register {
   public String getPublicHostname() {
     return publicHostname;
   }
-  
+
   public void setPublicHostname(String name) {
     this.publicHostname = name;
   }
-  
+
   public AgentEnv getAgentEnv() {
     return agentEnv;
   }
-  
+
   public void setAgentEnv(AgentEnv env) {
     this.agentEnv = env;
   }

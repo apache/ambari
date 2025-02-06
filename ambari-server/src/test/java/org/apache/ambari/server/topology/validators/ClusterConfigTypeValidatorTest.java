@@ -35,6 +35,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
+import nl.jqno.equalsverifier.Warning;
 
 public class ClusterConfigTypeValidatorTest extends EasyMockSupport {
 
@@ -160,6 +161,7 @@ public class ClusterConfigTypeValidatorTest extends EasyMockSupport {
 
   @Test
   public void testEquals() throws Exception {
-    EqualsVerifier.forClass(ClusterConfigTypeValidator.class).usingGetClass().verify();
+    EqualsVerifier.forClass(ClusterConfigTypeValidator.class).usingGetClass()
+            .suppress(Warning.INHERITED_DIRECTLY_FROM_OBJECT).verify();
   }
 }

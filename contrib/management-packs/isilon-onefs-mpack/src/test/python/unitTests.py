@@ -110,13 +110,13 @@ def main():
     sys.stderr.write("Failed tests:\n")
   for failed_tests in [test_errors,test_failures]:
     for err in failed_tests:
-      sys.stderr.write("{0}: {1}\n".format(err[2],err[0]))
+      sys.stderr.write(f"{err[2]}: {err[0]}\n")
       sys.stderr.write("----------------------------------------------------------------------\n")
-      sys.stderr.write("{0}\n".format(err[1]))
+      sys.stderr.write(f"{err[1]}\n")
   sys.stderr.write("----------------------------------------------------------------------\n")
-  sys.stderr.write("Total run:{0}\n".format(test_runs))
-  sys.stderr.write("Total errors:{0}\n".format(len(test_errors)))
-  sys.stderr.write("Total failures:{0}\n".format(len(test_failures)))
+  sys.stderr.write(f"Total run:{test_runs}\n")
+  sys.stderr.write(f"Total errors:{len(test_errors)}\n")
+  sys.stderr.write(f"Total failures:{len(test_failures)}\n")
 
   if tests_status:
     sys.stderr.write("OK\n")

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -15,7 +15,8 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
+
 import os
 import importlib
 import sys
@@ -25,12 +26,14 @@ from mock.mock import patch, MagicMock, call
 
 with patch.object(os, "geteuid", new=MagicMock(return_value=0)):
   from resource_management.core import sudo
+
   importlib.reload(sudo)
 
 import operator
 import distro
 import io
 from unittest import TestCase
+
 os.environ["ROOT"] = ""
 
 from only_for_platform import get_platform, os_distro_value, PLATFORM_WINDOWS
@@ -40,8 +43,13 @@ if get_platform() != PLATFORM_WINDOWS:
   pass
 
 import shutil
-project_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),os.path.normpath("../../../../"))
-shutil.copyfile(project_dir+"/ambari-server/conf/unix/ambari.properties", "/tmp/ambari.properties")
+
+project_dir = os.path.join(
+  os.path.abspath(os.path.dirname(__file__)), os.path.normpath("../../../../")
+)
+shutil.copyfile(
+  project_dir + "/ambari-server/conf/unix/ambari.properties", "/tmp/ambari.properties"
+)
 
 # We have to use this import HACK because the filename contains a dash
 _search_file = os_utils.search_file
@@ -57,53 +65,93 @@ def search_file_proxy(filename, searchpatch, pathsep=os.pathsep):
 
 
 os_utils.search_file = search_file_proxy
-with patch.object(distro, "linux_distribution", return_value = MagicMock(return_value=('Redhat', '6.4', 'Final'))):
-  with patch("os.path.isdir", return_value = MagicMock(return_value=True)):
-    with patch("os.access", return_value = MagicMock(return_value=True)):
-      with patch.object(os_utils, "parse_log4j_file", return_value={'ambari.log.dir': '/var/log/ambari-server'}):
-        with patch("distro.linux_distribution", return_value = os_distro_value):
+with patch.object(
+  distro,
+  "linux_distribution",
+  return_value=MagicMock(return_value=("Redhat", "6.4", "Final")),
+):
+  with patch("os.path.isdir", return_value=MagicMock(return_value=True)):
+    with patch("os.access", return_value=MagicMock(return_value=True)):
+      with patch.object(
+        os_utils,
+        "parse_log4j_file",
+        return_value={"ambari.log.dir": "/var/log/ambari-server"},
+      ):
+        with patch("distro.linux_distribution", return_value=os_distro_value):
           with patch("os.symlink"):
-            with patch("glob.glob", return_value = ['/etc/init.d/postgresql-9.3']):
-              _ambari_server_ = __import__('ambari-server')
+            with patch("glob.glob", return_value=["/etc/init.d/postgresql-9.3"]):
+              _ambari_server_ = __import__("ambari-server")
               with patch("builtins.open"):
                 from ambari_server.properties import Properties
-                from ambari_server.serverConfiguration import configDefaults, JDBC_RCA_PASSWORD_FILE_PROPERTY, JDBC_PASSWORD_PROPERTY, \
-  JDBC_RCA_PASSWORD_ALIAS, SSL_TRUSTSTORE_PASSWORD_PROPERTY, SECURITY_IS_ENCRYPTION_ENABLED, \
-  SECURITY_SENSITIVE_DATA_ENCRYPTON_ENABLED, SSL_TRUSTSTORE_PASSWORD_ALIAS, SECURITY_KEY_ENV_VAR_NAME
-                from ambari_server.setupSecurity import get_alias_string, setup_sensitive_data_encryption, sensitive_data_encryption
+                from ambari_server.serverConfiguration import (
+                  configDefaults,
+                  JDBC_RCA_PASSWORD_FILE_PROPERTY,
+                  JDBC_PASSWORD_PROPERTY,
+                  JDBC_RCA_PASSWORD_ALIAS,
+                  SSL_TRUSTSTORE_PASSWORD_PROPERTY,
+                  SECURITY_IS_ENCRYPTION_ENABLED,
+                  SECURITY_SENSITIVE_DATA_ENCRYPTON_ENABLED,
+                  SSL_TRUSTSTORE_PASSWORD_ALIAS,
+                  SECURITY_KEY_ENV_VAR_NAME,
+                )
+                from ambari_server.setupSecurity import (
+                  get_alias_string,
+                  setup_sensitive_data_encryption,
+                  sensitive_data_encryption,
+                )
                 from ambari_server.serverClassPath import ServerClassPath
 
 
-@patch.object(distro, "linux_distribution", new = MagicMock(return_value=('Redhat', '6.4', 'Final')))
-@patch("ambari_server.dbConfiguration_linux.get_postgre_hba_dir", new = MagicMock(return_value = "/var/lib/pgsql/data"))
-@patch("ambari_server.dbConfiguration_linux.get_postgre_running_status", new = MagicMock(return_value = "running"))
+@patch.object(
+  distro, "linux_distribution", new=MagicMock(return_value=("Redhat", "6.4", "Final"))
+)
+@patch(
+  "ambari_server.dbConfiguration_linux.get_postgre_hba_dir",
+  new=MagicMock(return_value="/var/lib/pgsql/data"),
+)
+@patch(
+  "ambari_server.dbConfiguration_linux.get_postgre_running_status",
+  new=MagicMock(return_value="running"),
+)
 class TestSensitiveDataEncryption(TestCase):
   def setUp(self):
     out = io.StringIO()
     sys.stdout = out
 
-
   def tearDown(self):
     sys.stdout = sys.__stdout__
 
-  @patch("os.path.isdir", new = MagicMock(return_value=True))
-  @patch("os.access", new = MagicMock(return_value=True))
-  @patch.object(ServerClassPath, "get_full_ambari_classpath_escaped_for_shell", new = MagicMock(return_value = 'test' + os.pathsep + 'path12'))
-  @patch('ambari_server.serverConfiguration.find_properties_file')
+  @patch("os.path.isdir", new=MagicMock(return_value=True))
+  @patch("os.access", new=MagicMock(return_value=True))
+  @patch.object(
+    ServerClassPath,
+    "get_full_ambari_classpath_escaped_for_shell",
+    new=MagicMock(return_value="test" + os.pathsep + "path12"),
+  )
+  @patch("ambari_server.serverConfiguration.find_properties_file")
   @patch("ambari_server.setupSecurity.find_jdk")
   @patch("ambari_server.setupSecurity.get_ambari_properties")
   @patch("ambari_server.setupSecurity.run_os_command")
-  def test_sensitive_data_encryption(self, run_os_command_mock, get_ambari_properties_method, find_jdk_mock, find_properties_file_mock):
+  def test_sensitive_data_encryption(
+    self,
+    run_os_command_mock,
+    get_ambari_properties_method,
+    find_jdk_mock,
+    find_properties_file_mock,
+  ):
     find_jdk_mock.return_value = "/"
     find_properties_file_mock.return_value = "/tmp/ambari.properties"
     environ = os.environ.copy()
 
-    run_os_command_mock.return_value = 0,"",""
+    run_os_command_mock.return_value = 0, "", ""
     properties = Properties()
     get_ambari_properties_method.return_value = properties
     options = self._create_empty_options_mock()
     sensitive_data_encryption(options, "encription")
-    run_os_command_mock.assert_called_with('None -cp test:path12 org.apache.ambari.server.security.encryption.SensitiveDataEncryption encription > /var/log/ambari-server/ambari-server.out 2>&1', environ)
+    run_os_command_mock.assert_called_with(
+      "None -cp test:path12 org.apache.ambari.server.security.encryption.SensitiveDataEncryption encription > /var/log/ambari-server/ambari-server.out 2>&1",
+      environ,
+    )
     pass
 
   @patch("ambari_server.setupSecurity.print_error_msg")
@@ -114,31 +162,46 @@ class TestSensitiveDataEncryption(TestCase):
     options = self._create_empty_options_mock()
     code = sensitive_data_encryption(options, "encription")
     self.assertEqual(code, 1)
-    print_mock.assert_called_with("No JDK found, please run the \"setup\" "
-                                  "command to install a JDK automatically or install any "
-                                  "JDK manually to " + configDefaults.JDK_INSTALL_DIR)
+    print_mock.assert_called_with(
+      'No JDK found, please run the "setup" '
+      "command to install a JDK automatically or install any "
+      "JDK manually to " + configDefaults.JDK_INSTALL_DIR
+    )
     pass
 
-  @patch("os.path.isdir", new = MagicMock(return_value=True))
-  @patch("os.access", new = MagicMock(return_value=True))
-  @patch.object(ServerClassPath, "get_full_ambari_classpath_escaped_for_shell", new = MagicMock(return_value = 'test' + os.pathsep + 'path12'))
-  @patch('ambari_server.serverConfiguration.find_properties_file')
+  @patch("os.path.isdir", new=MagicMock(return_value=True))
+  @patch("os.access", new=MagicMock(return_value=True))
+  @patch.object(
+    ServerClassPath,
+    "get_full_ambari_classpath_escaped_for_shell",
+    new=MagicMock(return_value="test" + os.pathsep + "path12"),
+  )
+  @patch("ambari_server.serverConfiguration.find_properties_file")
   @patch("ambari_server.setupSecurity.find_jdk")
   @patch("ambari_server.setupSecurity.get_ambari_properties")
   @patch("ambari_server.setupSecurity.run_os_command")
-  def test_sensitive_data_decryption_not_persisted(self, run_os_command_mock, get_ambari_properties_method, find_jdk_mock,find_properties_file_mock):
+  def test_sensitive_data_decryption_not_persisted(
+    self,
+    run_os_command_mock,
+    get_ambari_properties_method,
+    find_jdk_mock,
+    find_properties_file_mock,
+  ):
     find_jdk_mock.return_value = "/"
     find_properties_file_mock.return_value = "/tmp/ambari.properties"
     environ = os.environ.copy()
     master = "master"
     environ[SECURITY_KEY_ENV_VAR_NAME] = master
 
-    run_os_command_mock.return_value = 0,"",""
+    run_os_command_mock.return_value = 0, "", ""
     properties = Properties()
     get_ambari_properties_method.return_value = properties
     options = self._create_empty_options_mock()
     sensitive_data_encryption(options, "decryption", master)
-    run_os_command_mock.assert_called_with('None -cp test:path12 org.apache.ambari.server.security.encryption.SensitiveDataEncryption decryption > /var/log/ambari-server/ambari-server.out 2>&1', environ)
+    run_os_command_mock.assert_called_with(
+      "None -cp test:path12 org.apache.ambari.server.security.encryption.SensitiveDataEncryption decryption > /var/log/ambari-server/ambari-server.out 2>&1",
+      environ,
+    )
     pass
 
   @patch("ambari_server.setupSecurity.get_is_persisted")
@@ -156,22 +219,30 @@ class TestSensitiveDataEncryption(TestCase):
   @patch("ambari_server.setupSecurity.is_root")
   @patch("ambari_server.setupSecurity.sensitive_data_encryption")
   @patch("ambari_server.setupSecurity.get_original_master_key")
-  def test_reset_master_key_not_persisted(self, get_original_master_key_mock, sensitive_data_encryption_metod, is_root_method,
-                                          get_ambari_properties_method,
-                                          search_file_message, get_YN_input_method,
-                                          get_validated_string_input_method, save_master_key_method,
-                                          update_properties_method, read_passwd_for_alias_method,
-                                          save_passwd_for_alias_method,
-                                          read_ambari_user_method,
-                                          exists_mock, get_is_secure_method,
-                                          get_is_persisted_method):
-
+  def test_reset_master_key_not_persisted(
+    self,
+    get_original_master_key_mock,
+    sensitive_data_encryption_metod,
+    is_root_method,
+    get_ambari_properties_method,
+    search_file_message,
+    get_YN_input_method,
+    get_validated_string_input_method,
+    save_master_key_method,
+    update_properties_method,
+    read_passwd_for_alias_method,
+    save_passwd_for_alias_method,
+    read_ambari_user_method,
+    exists_mock,
+    get_is_secure_method,
+    get_is_persisted_method,
+  ):
     is_root_method.return_value = True
     search_file_message.return_value = False
     read_ambari_user_method.return_value = None
 
     p = Properties()
-    FAKE_PWD_STRING = '${alias=fakealias}'
+    FAKE_PWD_STRING = "${alias=fakealias}"
     p.process_pair(JDBC_PASSWORD_PROPERTY, FAKE_PWD_STRING)
     p.process_pair(SSL_TRUSTSTORE_PASSWORD_PROPERTY, FAKE_PWD_STRING)
     p.process_pair(JDBC_RCA_PASSWORD_FILE_PROPERTY, FAKE_PWD_STRING)
@@ -189,7 +260,10 @@ class TestSensitiveDataEncryption(TestCase):
 
     options = self._create_empty_options_mock()
     setup_sensitive_data_encryption(options)
-    calls = [call(options, "decryption", master_key), call(options, "encryption", master_key)]
+    calls = [
+      call(options, "decryption", master_key),
+      call(options, "encryption", master_key),
+    ]
     sensitive_data_encryption_metod.assert_has_calls(calls)
 
     self.assertFalse(save_master_key_method.called)
@@ -202,18 +276,18 @@ class TestSensitiveDataEncryption(TestCase):
     self.assertTrue(2, save_passwd_for_alias_method.call_count)
     self.assertFalse(save_master_key_method.called)
 
-    result_expected = {JDBC_PASSWORD_PROPERTY:
-                         get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
-                       JDBC_RCA_PASSWORD_FILE_PROPERTY:
-                         get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
-                       SSL_TRUSTSTORE_PASSWORD_PROPERTY:
-                         get_alias_string(SSL_TRUSTSTORE_PASSWORD_ALIAS),
-                       SECURITY_IS_ENCRYPTION_ENABLED: 'true',
-                       SECURITY_SENSITIVE_DATA_ENCRYPTON_ENABLED: 'true'}
+    result_expected = {
+      JDBC_PASSWORD_PROPERTY: get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
+      JDBC_RCA_PASSWORD_FILE_PROPERTY: get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
+      SSL_TRUSTSTORE_PASSWORD_PROPERTY: get_alias_string(SSL_TRUSTSTORE_PASSWORD_ALIAS),
+      SECURITY_IS_ENCRYPTION_ENABLED: "true",
+      SECURITY_SENSITIVE_DATA_ENCRYPTON_ENABLED: "true",
+    }
 
     sorted_x = sorted(result_expected.items(), key=operator.itemgetter(0))
-    sorted_y = sorted(update_properties_method.call_args[0][1].items(),
-                      key=operator.itemgetter(0))
+    sorted_y = sorted(
+      update_properties_method.call_args[0][1].items(), key=operator.itemgetter(0)
+    )
     self.assertEqual(sorted_x, sorted_y)
     pass
 
@@ -231,22 +305,29 @@ class TestSensitiveDataEncryption(TestCase):
   @patch("ambari_server.setupSecurity.is_root")
   @patch("ambari_server.setupSecurity.sensitive_data_encryption")
   @patch("ambari_server.setupSecurity.get_original_master_key")
-  def test_encrypt_part_not_persisted(self, get_original_master_key_mock, sensitive_data_encryption_metod, is_root_method,
-                                          get_ambari_properties_method,
-                                          search_file_message, get_YN_input_method,
-                                          save_master_key_method,
-                                          update_properties_method, read_passwd_for_alias_method,
-                                          save_passwd_for_alias_method,
-                                          read_ambari_user_method,
-                                          exists_mock, get_is_secure_method,
-                                          get_is_persisted_method):
-
+  def test_encrypt_part_not_persisted(
+    self,
+    get_original_master_key_mock,
+    sensitive_data_encryption_metod,
+    is_root_method,
+    get_ambari_properties_method,
+    search_file_message,
+    get_YN_input_method,
+    save_master_key_method,
+    update_properties_method,
+    read_passwd_for_alias_method,
+    save_passwd_for_alias_method,
+    read_ambari_user_method,
+    exists_mock,
+    get_is_secure_method,
+    get_is_persisted_method,
+  ):
     is_root_method.return_value = True
     search_file_message.return_value = False
     read_ambari_user_method.return_value = None
 
     p = Properties()
-    FAKE_PWD_STRING = '${alias=fakealias}'
+    FAKE_PWD_STRING = "${alias=fakealias}"
     p.process_pair(JDBC_PASSWORD_PROPERTY, get_alias_string(JDBC_RCA_PASSWORD_ALIAS))
     p.process_pair(SSL_TRUSTSTORE_PASSWORD_PROPERTY, FAKE_PWD_STRING)
     p.process_pair(JDBC_RCA_PASSWORD_FILE_PROPERTY, FAKE_PWD_STRING)
@@ -275,18 +356,18 @@ class TestSensitiveDataEncryption(TestCase):
     self.assertTrue(2, save_passwd_for_alias_method.call_count)
     self.assertFalse(save_master_key_method.called)
 
-    result_expected = {JDBC_PASSWORD_PROPERTY:
-                         get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
-                       JDBC_RCA_PASSWORD_FILE_PROPERTY:
-                         get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
-                       SSL_TRUSTSTORE_PASSWORD_PROPERTY:
-                         get_alias_string(SSL_TRUSTSTORE_PASSWORD_ALIAS),
-                       SECURITY_IS_ENCRYPTION_ENABLED: 'true',
-                       SECURITY_SENSITIVE_DATA_ENCRYPTON_ENABLED: 'true'}
+    result_expected = {
+      JDBC_PASSWORD_PROPERTY: get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
+      JDBC_RCA_PASSWORD_FILE_PROPERTY: get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
+      SSL_TRUSTSTORE_PASSWORD_PROPERTY: get_alias_string(SSL_TRUSTSTORE_PASSWORD_ALIAS),
+      SECURITY_IS_ENCRYPTION_ENABLED: "true",
+      SECURITY_SENSITIVE_DATA_ENCRYPTON_ENABLED: "true",
+    }
 
     sorted_x = sorted(result_expected.items(), key=operator.itemgetter(0))
-    sorted_y = sorted(update_properties_method.call_args[0][1].items(),
-                      key=operator.itemgetter(0))
+    sorted_y = sorted(
+      update_properties_method.call_args[0][1].items(), key=operator.itemgetter(0)
+    )
     self.assertEqual(sorted_x, sorted_y)
     pass
 
@@ -302,22 +383,27 @@ class TestSensitiveDataEncryption(TestCase):
   @patch("ambari_server.setupSecurity.get_ambari_properties")
   @patch("ambari_server.setupSecurity.is_root")
   @patch("ambari_server.setupSecurity.get_original_master_key")
-  def test_decrypt_missed_masterkey_not_persisted(self, get_original_master_key_mock, is_root_method,
-                                      get_ambari_properties_method,
-                                      search_file_message, get_YN_input_method,
-                                      save_master_key_method,
-                                      read_passwd_for_alias_method,
-                                      save_passwd_for_alias_method,
-                                      read_ambari_user_method,
-                                      exists_mock, get_is_secure_method,
-                                      get_is_persisted_method):
-
+  def test_decrypt_missed_masterkey_not_persisted(
+    self,
+    get_original_master_key_mock,
+    is_root_method,
+    get_ambari_properties_method,
+    search_file_message,
+    get_YN_input_method,
+    save_master_key_method,
+    read_passwd_for_alias_method,
+    save_passwd_for_alias_method,
+    read_ambari_user_method,
+    exists_mock,
+    get_is_secure_method,
+    get_is_persisted_method,
+  ):
     is_root_method.return_value = True
     search_file_message.return_value = False
     read_ambari_user_method.return_value = None
 
     p = Properties()
-    FAKE_PWD_STRING = '${alias=fakealias}'
+    FAKE_PWD_STRING = "${alias=fakealias}"
     p.process_pair(JDBC_PASSWORD_PROPERTY, get_alias_string(JDBC_RCA_PASSWORD_ALIAS))
     p.process_pair(SSL_TRUSTSTORE_PASSWORD_PROPERTY, FAKE_PWD_STRING)
     p.process_pair(JDBC_RCA_PASSWORD_FILE_PROPERTY, FAKE_PWD_STRING)
@@ -340,8 +426,9 @@ class TestSensitiveDataEncryption(TestCase):
 
   @patch("ambari_server.setupSecurity.get_ambari_properties")
   @patch("ambari_server.setupSecurity.is_root")
-  def test_setup_sensitive_data_encryption_no_ambari_prop_not_root(self,  is_root_method, get_ambari_properties_method):
-
+  def test_setup_sensitive_data_encryption_no_ambari_prop_not_root(
+    self, is_root_method, get_ambari_properties_method
+  ):
     is_root_method.return_value = False
     get_ambari_properties_method.return_value = -1
     options = self._create_empty_options_mock()
@@ -350,7 +437,7 @@ class TestSensitiveDataEncryption(TestCase):
       setup_sensitive_data_encryption(options)
       self.fail("Should throw exception")
     except FatalException as fe:
-      self.assertTrue('Failed to read properties file.' == fe.reason)
+      self.assertTrue("Failed to read properties file." == fe.reason)
       pass
     pass
 
@@ -368,13 +455,23 @@ class TestSensitiveDataEncryption(TestCase):
   @patch("ambari_server.setupSecurity.is_root")
   @patch("ambari_server.setupSecurity.sensitive_data_encryption")
   @patch("ambari_server.setupSecurity.adjust_directory_permissions")
-  def test_setup_sensitive_data_encryption_not_persist(self, adjust_directory_permissions_mock, sensitive_data_encryption_metod, is_root_method,
-                                                       get_ambari_properties_method, get_YN_input_method, save_master_key_method,
-                                                       update_properties_method,
-                                                       read_ambari_user_method, read_master_key_method,
-                                                       save_passwd_for_alias_method, remove_password_file_method,
-                                                       get_is_persisted_method, get_is_secure_method, exists_mock):
-
+  def test_setup_sensitive_data_encryption_not_persist(
+    self,
+    adjust_directory_permissions_mock,
+    sensitive_data_encryption_metod,
+    is_root_method,
+    get_ambari_properties_method,
+    get_YN_input_method,
+    save_master_key_method,
+    update_properties_method,
+    read_ambari_user_method,
+    read_master_key_method,
+    save_passwd_for_alias_method,
+    remove_password_file_method,
+    get_is_persisted_method,
+    get_is_secure_method,
+    exists_mock,
+  ):
     is_root_method.return_value = True
 
     p = Properties()
@@ -405,20 +502,22 @@ class TestSensitiveDataEncryption(TestCase):
     self.assertEqual(2, save_passwd_for_alias_method.call_count)
     self.assertTrue(remove_password_file_method.called)
     self.assertTrue(adjust_directory_permissions_mock.called)
-    sensitive_data_encryption_metod.assert_called_with(options, "encryption", master_key)
+    sensitive_data_encryption_metod.assert_called_with(
+      options, "encryption", master_key
+    )
 
-    result_expected = {JDBC_PASSWORD_PROPERTY:
-                         get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
-                       JDBC_RCA_PASSWORD_FILE_PROPERTY:
-                         get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
-                       SSL_TRUSTSTORE_PASSWORD_PROPERTY:
-                         get_alias_string(SSL_TRUSTSTORE_PASSWORD_ALIAS),
-                       SECURITY_IS_ENCRYPTION_ENABLED: 'true',
-                       SECURITY_SENSITIVE_DATA_ENCRYPTON_ENABLED: 'true'}
+    result_expected = {
+      JDBC_PASSWORD_PROPERTY: get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
+      JDBC_RCA_PASSWORD_FILE_PROPERTY: get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
+      SSL_TRUSTSTORE_PASSWORD_PROPERTY: get_alias_string(SSL_TRUSTSTORE_PASSWORD_ALIAS),
+      SECURITY_IS_ENCRYPTION_ENABLED: "true",
+      SECURITY_SENSITIVE_DATA_ENCRYPTON_ENABLED: "true",
+    }
 
     sorted_x = sorted(result_expected.items(), key=operator.itemgetter(0))
-    sorted_y = sorted(update_properties_method.call_args[0][1].items(),
-                      key=operator.itemgetter(0))
+    sorted_y = sorted(
+      update_properties_method.call_args[0][1].items(), key=operator.itemgetter(0)
+    )
     self.assertEqual(sorted_x, sorted_y)
     pass
 
@@ -435,13 +534,22 @@ class TestSensitiveDataEncryption(TestCase):
   @patch("ambari_server.setupSecurity.get_ambari_properties")
   @patch("ambari_server.setupSecurity.is_root")
   @patch("ambari_server.setupSecurity.sensitive_data_encryption")
-  def test_setup_sensitive_data_encryption_persist(self, sensitive_data_encryption_metod, is_root_method,
-                                                   get_ambari_properties_method, search_file_message,
-                                                   get_YN_input_method, save_master_key_method,
-                                                   update_properties_method,
-                                                   read_ambari_user_method, read_master_key_method,
-                                                   get_is_persisted_method, get_is_secure_method, exists_mock,
-                                                   save_passwd_for_alias_method):
+  def test_setup_sensitive_data_encryption_persist(
+    self,
+    sensitive_data_encryption_metod,
+    is_root_method,
+    get_ambari_properties_method,
+    search_file_message,
+    get_YN_input_method,
+    save_master_key_method,
+    update_properties_method,
+    read_ambari_user_method,
+    read_master_key_method,
+    get_is_persisted_method,
+    get_is_secure_method,
+    exists_mock,
+    save_passwd_for_alias_method,
+  ):
     is_root_method.return_value = True
 
     p = Properties()
@@ -470,14 +578,16 @@ class TestSensitiveDataEncryption(TestCase):
     self.assertTrue(save_master_key_method.called)
     sensitive_data_encryption_metod.assert_called_with(options, "encryption")
 
-    result_expected = {JDBC_PASSWORD_PROPERTY:
-                         get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
-                       SECURITY_IS_ENCRYPTION_ENABLED: 'true',
-                       SECURITY_SENSITIVE_DATA_ENCRYPTON_ENABLED: 'true'}
+    result_expected = {
+      JDBC_PASSWORD_PROPERTY: get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
+      SECURITY_IS_ENCRYPTION_ENABLED: "true",
+      SECURITY_SENSITIVE_DATA_ENCRYPTON_ENABLED: "true",
+    }
 
     sorted_x = sorted(result_expected.items(), key=operator.itemgetter(0))
-    sorted_y = sorted(update_properties_method.call_args[0][1].items(),
-                      key=operator.itemgetter(0))
+    sorted_y = sorted(
+      update_properties_method.call_args[0][1].items(), key=operator.itemgetter(0)
+    )
     self.assertEqual(sorted_x, sorted_y)
     pass
 
@@ -495,14 +605,23 @@ class TestSensitiveDataEncryption(TestCase):
   @patch("ambari_server.setupSecurity.sensitive_data_encryption")
   @patch("ambari_server.setupSecurity.get_is_secure")
   @patch("ambari_server.setupSecurity.get_is_persisted")
-  def test_reset_master_key_persisted(self, get_is_persisted_method, get_is_secure_method, sensitive_data_encryption_metod, is_root_method,
-                                      get_ambari_properties_method, search_file_message,
-                                      get_YN_input_method,
-                                      save_master_key_method, update_properties_method,
-                                      read_passwd_for_alias_method, save_passwd_for_alias_method,
-                                      read_ambari_user_method, exists_mock,
-                                      read_master_key_method):
-
+  def test_reset_master_key_persisted(
+    self,
+    get_is_persisted_method,
+    get_is_secure_method,
+    sensitive_data_encryption_metod,
+    is_root_method,
+    get_ambari_properties_method,
+    search_file_message,
+    get_YN_input_method,
+    save_master_key_method,
+    update_properties_method,
+    read_passwd_for_alias_method,
+    save_passwd_for_alias_method,
+    read_ambari_user_method,
+    exists_mock,
+    read_master_key_method,
+  ):
     # Testing call under root
     is_root_method.return_value = True
 
@@ -510,7 +629,7 @@ class TestSensitiveDataEncryption(TestCase):
     read_ambari_user_method.return_value = None
 
     p = Properties()
-    FAKE_PWD_STRING = '${alias=fakealias}'
+    FAKE_PWD_STRING = "${alias=fakealias}"
     p.process_pair(JDBC_PASSWORD_PROPERTY, FAKE_PWD_STRING)
     p.process_pair(SSL_TRUSTSTORE_PASSWORD_PROPERTY, FAKE_PWD_STRING)
     p.process_pair(JDBC_RCA_PASSWORD_FILE_PROPERTY, FAKE_PWD_STRING)
@@ -539,18 +658,18 @@ class TestSensitiveDataEncryption(TestCase):
     self.assertTrue(2, read_passwd_for_alias_method.call_count)
     self.assertTrue(2, save_passwd_for_alias_method.call_count)
 
-    result_expected = {JDBC_PASSWORD_PROPERTY:
-                         get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
-                       JDBC_RCA_PASSWORD_FILE_PROPERTY:
-                         get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
-                       SSL_TRUSTSTORE_PASSWORD_PROPERTY:
-                         get_alias_string(SSL_TRUSTSTORE_PASSWORD_ALIAS),
-                       SECURITY_IS_ENCRYPTION_ENABLED: 'true',
-                       SECURITY_SENSITIVE_DATA_ENCRYPTON_ENABLED: 'true'}
+    result_expected = {
+      JDBC_PASSWORD_PROPERTY: get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
+      JDBC_RCA_PASSWORD_FILE_PROPERTY: get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
+      SSL_TRUSTSTORE_PASSWORD_PROPERTY: get_alias_string(SSL_TRUSTSTORE_PASSWORD_ALIAS),
+      SECURITY_IS_ENCRYPTION_ENABLED: "true",
+      SECURITY_SENSITIVE_DATA_ENCRYPTON_ENABLED: "true",
+    }
 
     sorted_x = sorted(result_expected.items(), key=operator.itemgetter(0))
-    sorted_y = sorted(update_properties_method.call_args[0][1].items(),
-                      key=operator.itemgetter(0))
+    sorted_y = sorted(
+      update_properties_method.call_args[0][1].items(), key=operator.itemgetter(0)
+    )
     self.assertEqual(sorted_x, sorted_y)
     pass
 
@@ -566,13 +685,21 @@ class TestSensitiveDataEncryption(TestCase):
   @patch("ambari_server.setupSecurity.sensitive_data_encryption")
   @patch("ambari_server.setupSecurity.get_is_secure")
   @patch("ambari_server.setupSecurity.get_is_persisted")
-  def test_decrypt_sensitive_data_persister(self, get_is_persisted_method, get_is_secure_method, sensitive_data_encryption_metod, is_root_method,
-                                  get_ambari_properties_method, search_file_message,
-                                  get_YN_input_method,
-                                  update_properties_method,
-                                  read_passwd_for_alias_method, save_passwd_for_alias_method,
-                                  read_ambari_user_method, exists_mock):
-
+  def test_decrypt_sensitive_data_persister(
+    self,
+    get_is_persisted_method,
+    get_is_secure_method,
+    sensitive_data_encryption_metod,
+    is_root_method,
+    get_ambari_properties_method,
+    search_file_message,
+    get_YN_input_method,
+    update_properties_method,
+    read_passwd_for_alias_method,
+    save_passwd_for_alias_method,
+    read_ambari_user_method,
+    exists_mock,
+  ):
     # Testing call under root
     is_root_method.return_value = True
 
@@ -580,7 +707,7 @@ class TestSensitiveDataEncryption(TestCase):
     read_ambari_user_method.return_value = None
 
     p = Properties()
-    FAKE_PWD_STRING = '${alias=fakealias}'
+    FAKE_PWD_STRING = "${alias=fakealias}"
     p.process_pair(JDBC_PASSWORD_PROPERTY, FAKE_PWD_STRING)
     p.process_pair(SSL_TRUSTSTORE_PASSWORD_PROPERTY, FAKE_PWD_STRING)
     p.process_pair(JDBC_RCA_PASSWORD_FILE_PROPERTY, FAKE_PWD_STRING)
@@ -604,15 +731,18 @@ class TestSensitiveDataEncryption(TestCase):
     self.assertTrue(2, read_passwd_for_alias_method.call_count)
     self.assertTrue(2, save_passwd_for_alias_method.call_count)
 
-    result_expected = {JDBC_PASSWORD_PROPERTY: "fakepassword",
-                       JDBC_RCA_PASSWORD_FILE_PROPERTY: "fakepassword",
-                       SSL_TRUSTSTORE_PASSWORD_PROPERTY: "fakepassword",
-                       SECURITY_IS_ENCRYPTION_ENABLED: 'false',
-                       SECURITY_SENSITIVE_DATA_ENCRYPTON_ENABLED: 'false'}
+    result_expected = {
+      JDBC_PASSWORD_PROPERTY: "fakepassword",
+      JDBC_RCA_PASSWORD_FILE_PROPERTY: "fakepassword",
+      SSL_TRUSTSTORE_PASSWORD_PROPERTY: "fakepassword",
+      SECURITY_IS_ENCRYPTION_ENABLED: "false",
+      SECURITY_SENSITIVE_DATA_ENCRYPTON_ENABLED: "false",
+    }
 
     sorted_x = sorted(result_expected.items(), key=operator.itemgetter(0))
-    sorted_y = sorted(update_properties_method.call_args[0][1].items(),
-                      key=operator.itemgetter(0))
+    sorted_y = sorted(
+      update_properties_method.call_args[0][1].items(), key=operator.itemgetter(0)
+    )
     self.assertEqual(sorted_x, sorted_y)
     pass
 
@@ -667,5 +797,3 @@ class TestSensitiveDataEncryption(TestCase):
     options.jaas_principal = None
     options.jaas_keytab = None
     return options
-
-

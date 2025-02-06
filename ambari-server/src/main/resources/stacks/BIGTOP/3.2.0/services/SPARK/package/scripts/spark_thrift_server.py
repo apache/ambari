@@ -25,7 +25,9 @@ from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.constants import StackFeature
-from resource_management.libraries.functions.check_process_status import check_process_status
+from resource_management.libraries.functions.check_process_status import (
+  check_process_status,
+)
 from resource_management.core.logger import Logger
 from resource_management.core import shell
 from setup_spark import setup_spark
@@ -33,32 +35,36 @@ from spark_service import spark_service
 
 
 class SparkThriftServer(Script):
-
   def install(self, env):
     import params
+
     env.set_params(params)
 
     self.install_packages(env)
 
   def configure(self, env, upgrade_type=None, config_dir=None):
     import params
+
     env.set_params(params)
-    setup_spark(env, 'server', upgrade_type = upgrade_type, action = 'config')
+    setup_spark(env, "server", upgrade_type=upgrade_type, action="config")
 
   def start(self, env, upgrade_type=None):
     import params
+
     env.set_params(params)
 
     self.configure(env)
-    spark_service('sparkthriftserver', upgrade_type=upgrade_type, action='start')
+    spark_service("sparkthriftserver", upgrade_type=upgrade_type, action="start")
 
   def stop(self, env, upgrade_type=None):
     import params
+
     env.set_params(params)
-    spark_service('sparkthriftserver', upgrade_type=upgrade_type, action='stop')
+    spark_service("sparkthriftserver", upgrade_type=upgrade_type, action="stop")
 
   def status(self, env):
     import status_params
+
     env.set_params(status_params)
     check_process_status(status_params.spark_thrift_server_pid_file)
 
@@ -68,18 +74,22 @@ class SparkThriftServer(Script):
     env.set_params(params)
     Logger.info("Executing Spark Thrift Server Stack Upgrade pre-restart")
     stack_select.select_packages(params.version)
-      
+
   def get_log_folder(self):
     import params
+
     return params.spark_log_dir
-  
+
   def get_user(self):
     import params
+
     return params.spark_user
 
   def get_pid_files(self):
     import status_params
+
     return [status_params.spark_thrift_server_pid_file]
+
 
 if __name__ == "__main__":
   SparkThriftServer().execute()

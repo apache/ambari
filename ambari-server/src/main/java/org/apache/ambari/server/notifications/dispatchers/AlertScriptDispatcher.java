@@ -18,6 +18,9 @@
 package org.apache.ambari.server.notifications.dispatchers;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -279,6 +282,36 @@ public class AlertScriptDispatcher implements NotificationDispatcher {
    * @return
    */
   ProcessBuilder getProcessBuilder(String script, AlertNotification notification) {
+    if (script == null || script.isEmpty()) {
+      throw new IllegalArgumentException("Script path cannot be null or empty");
+    }
+
+    String unixPathRegex = "^(/[a-zA-Z0-9._-]+)+$";
+    String windowsPathRegex = "^[a-zA-Z]:\\\\([a-zA-Z0-9._-]+\\\\?)+$";
+
+    boolean isValidPath = SystemUtils.IS_OS_WINDOWS
+            ? script.matches(windowsPathRegex)
+            : script.matches(unixPathRegex);
+
+    if (!isValidPath) {
+      throw new IllegalArgumentException("Invalid script path format: " + script);
+    }
+
+    Path scriptPath = Paths.get(script);
+
+    if (!scriptPath.isAbsolute()) {
+      throw new IllegalArgumentException("Script path must be an absolute path: " + script);
+    }
+
+    if (!Files.exists(scriptPath)) {
+      throw new IllegalArgumentException("Script does not exist: " + script);
+    }
+
+    if (!Files.isExecutable(scriptPath)) {
+      throw new IllegalArgumentException("Script is not executable: " + script);
+    }
+
+
     final String shellCommand;
     final String shellCommandOption;
     if (SystemUtils.IS_OS_WINDOWS) {

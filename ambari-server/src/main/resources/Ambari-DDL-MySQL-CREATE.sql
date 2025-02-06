@@ -246,7 +246,7 @@ CREATE TABLE servicecomponentdesiredstate (
   cluster_id BIGINT NOT NULL,
   desired_repo_version_id BIGINT NOT NULL,
   desired_state VARCHAR(255) NOT NULL,
-  service_name VARCHAR(100) NOT NULL,
+  service_name VARCHAR(255) NOT NULL,
   recovery_enabled SMALLINT NOT NULL DEFAULT 0,
   repo_state VARCHAR(255) NOT NULL DEFAULT 'NOT_REQUIRED',
   CONSTRAINT pk_sc_desiredstate PRIMARY KEY (id),
@@ -260,7 +260,7 @@ CREATE TABLE hostcomponentdesiredstate (
   component_name VARCHAR(100) NOT NULL,
   desired_state VARCHAR(255) NOT NULL,
   host_id BIGINT NOT NULL,
-  service_name VARCHAR(100) NOT NULL,
+  service_name VARCHAR(255) NOT NULL,
   admin_state VARCHAR(32),
   maintenance_state VARCHAR(32) NOT NULL DEFAULT 'ACTIVE',
   blueprint_provisioning_state VARCHAR(255) DEFAULT 'NONE',
@@ -279,7 +279,7 @@ CREATE TABLE hostcomponentstate (
   current_state VARCHAR(255) NOT NULL,
   last_live_state VARCHAR(255) NOT NULL DEFAULT 'UNKNOWN',
   host_id BIGINT NOT NULL,
-  service_name VARCHAR(100) NOT NULL,
+  service_name VARCHAR(255) NOT NULL,
   upgrade_state VARCHAR(32) NOT NULL DEFAULT 'NONE',
   CONSTRAINT pk_hostcomponentstate PRIMARY KEY (id),
   CONSTRAINT FK_hostcomponentstate_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
@@ -626,7 +626,7 @@ CREATE TABLE hostgroup_configuration (
   CONSTRAINT FK_hg_cfg_bp_hg_name FOREIGN KEY (blueprint_name, hostgroup_name) REFERENCES hostgroup (blueprint_name, name));
 
 CREATE TABLE viewmain (
-  view_name VARCHAR(255) NOT NULL,
+  view_name VARCHAR(100) NOT NULL,
   label VARCHAR(255),
   description VARCHAR(2048),
   version VARCHAR(255),

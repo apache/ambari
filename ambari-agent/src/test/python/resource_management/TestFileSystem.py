@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -15,7 +15,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 import os
 from unittest import TestCase
@@ -50,32 +50,46 @@ class TestFileSystem(TestCase):
     /hadoop/hdfs/data/1 is on /dev/sda1
     /hadoop/hdfs/data/2 is on /dev/sda2
     """
-    out = "/dev/mapper/VolGroup-lv_root on / type ext4 (rw)" + os.linesep + \
-          "proc on /proc type proc (rw)" + os.linesep + \
-          "sysfs on /sys type sysfs (rw)" + os.linesep + \
-          "devpts on /dev/pts type devpts (rw,gid=5,mode=620)" + os.linesep + \
-          "tmpfs on /dev/shm type tmpfs (rw)" + os.linesep + \
-          "/dev/sda1 on /boot type ext4 (rw)" + os.linesep + \
-          "none on /proc/sys/fs/binfmt_misc type binfmt_misc (rw)" + os.linesep + \
-          "sunrpc on /var/lib/nfs/rpc_pipefs type rpc_pipefs (rw)" + os.linesep + \
-          "/vagrant on /vagrant type vboxsf (uid=501,gid=501,rw)"
+    out = (
+      "/dev/mapper/VolGroup-lv_root on / type ext4 (rw)"
+      + os.linesep
+      + "proc on /proc type proc (rw)"
+      + os.linesep
+      + "sysfs on /sys type sysfs (rw)"
+      + os.linesep
+      + "devpts on /dev/pts type devpts (rw,gid=5,mode=620)"
+      + os.linesep
+      + "tmpfs on /dev/shm type tmpfs (rw)"
+      + os.linesep
+      + "/dev/sda1 on /boot type ext4 (rw)"
+      + os.linesep
+      + "none on /proc/sys/fs/binfmt_misc type binfmt_misc (rw)"
+      + os.linesep
+      + "sunrpc on /var/lib/nfs/rpc_pipefs type rpc_pipefs (rw)"
+      + os.linesep
+      + "/vagrant on /vagrant type vboxsf (uid=501,gid=501,rw)"
+    )
 
     if type == self.MOUNT_TYPE.MULT_DRIVE_CONFLICT:
-      out += os.linesep + \
-             "/dev/sda1 on /hadoop/hdfs type ext4 (rw)"
+      out += os.linesep + "/dev/sda1 on /hadoop/hdfs type ext4 (rw)"
     elif type == self.MOUNT_TYPE.MULT_DRIVE_DISTINCT:
-      out += os.linesep + \
-             "/dev/sda1 on /hadoop/hdfs/data/1 type ext4 (rw)" + os.linesep + \
-             "/dev/sda2 on /hadoop/hdfs/data/2 type ext4 (rw)"
+      out += (
+        os.linesep
+        + "/dev/sda1 on /hadoop/hdfs/data/1 type ext4 (rw)"
+        + os.linesep
+        + "/dev/sda2 on /hadoop/hdfs/data/2 type ext4 (rw)"
+      )
     elif type == self.MOUNT_TYPE.ONE_SEGMENT_MOUNT:
-      out += os.linesep + \
-             "/dev/sda1 on /hadoop type ext4 (rw)"
+      out += os.linesep + "/dev/sda1 on /hadoop type ext4 (rw)"
     elif type == self.MOUNT_TYPE.SAME_PREFIX_MOUNTS:
-      out += os.linesep + \
-             "/dev/sda1 on /hadoop/hdfs/data type ext4 (rw)" + os.linesep + \
-             "/dev/sda2 on /hadoop/hdfs/data1 type ext4 (rw)"
+      out += (
+        os.linesep
+        + "/dev/sda1 on /hadoop/hdfs/data type ext4 (rw)"
+        + os.linesep
+        + "/dev/sda2 on /hadoop/hdfs/data1 type ext4 (rw)"
+      )
 
-    out_array = [x.split(' ') for x in out.strip().split('\n')]
+    out_array = [x.split(" ") for x in out.strip().split("\n")]
     mount_val = []
     for m in out_array:
       if len(m) >= 6 and m[1] == "on" and m[3] == "type":
@@ -83,7 +97,7 @@ class TestFileSystem(TestCase):
           device=m[0],
           mount_point=m[2],
           fstype=m[4],
-          options=m[5][1:-1].split(',') if len(m[5]) >= 2 else []
+          options=m[5][1:-1].split(",") if len(m[5]) >= 2 else [],
         )
         mount_val.append(x)
 
@@ -106,7 +120,7 @@ class TestFileSystem(TestCase):
 
   @patch.object(Logger, "info")
   @patch.object(Logger, "error")
-  @patch('resource_management.core.providers.mount.get_mounted')
+  @patch("resource_management.core.providers.mount.get_mounted")
   def test_at_root(self, mounted_mock, log_error, log_info):
     """
     Testing when the path is mounted on the root.
@@ -121,7 +135,7 @@ class TestFileSystem(TestCase):
 
   @patch.object(Logger, "info")
   @patch.object(Logger, "error")
-  @patch('resource_management.core.providers.mount.get_mounted')
+  @patch("resource_management.core.providers.mount.get_mounted")
   def test_at_drive(self, mounted_mock, log_error, log_info):
     """
     Testing when the path is mounted on a virtual file system not at the root.
@@ -139,7 +153,7 @@ class TestFileSystem(TestCase):
 
   @patch.object(Logger, "info")
   @patch.object(Logger, "error")
-  @patch('resource_management.core.providers.mount.get_mounted')
+  @patch("resource_management.core.providers.mount.get_mounted")
   def test_one_segment_mount(self, mounted_mock, log_error, log_info):
     """
     Testing when the path has one segment.
@@ -154,7 +168,7 @@ class TestFileSystem(TestCase):
 
   @patch.object(Logger, "info")
   @patch.object(Logger, "error")
-  @patch('resource_management.core.providers.mount.get_mounted')
+  @patch("resource_management.core.providers.mount.get_mounted")
   def test_same_prefix(self, mounted_mock, log_error, log_info):
     """
     Testing when two mount points have the same prefix.
@@ -169,19 +183,23 @@ class TestFileSystem(TestCase):
 
   @patch.object(Logger, "info")
   @patch.object(Logger, "error")
-  @patch('resource_management.core.providers.mount.get_mounted')
-  def test_get_mount_point_for_dir_with_mounsts(self, mounted_mock, log_error, log_info):
-      """
-      Testing get_mount_point_for_dir when mounsts are provided.
-      """
-      mounted_mock.return_value = self._get_mount(self.MOUNT_TYPE.SAME_PREFIX_MOUNTS)
+  @patch("resource_management.core.providers.mount.get_mounted")
+  def test_get_mount_point_for_dir_with_mounsts(
+    self, mounted_mock, log_error, log_info
+  ):
+    """
+    Testing get_mount_point_for_dir when mounsts are provided.
+    """
+    mounted_mock.return_value = self._get_mount(self.MOUNT_TYPE.SAME_PREFIX_MOUNTS)
 
-      # refresh cached mounts
-      file_system.get_and_cache_mount_points(True)
+    # refresh cached mounts
+    file_system.get_and_cache_mount_points(True)
 
-      mount_point = file_system.get_mount_point_for_dir("/hadoop/hdfs/data1")
-      self.assertEqual(mount_point, "/hadoop/hdfs/data1")
+    mount_point = file_system.get_mount_point_for_dir("/hadoop/hdfs/data1")
+    self.assertEqual(mount_point, "/hadoop/hdfs/data1")
 
-      # Should use provided mounts, not fetch via get_and_cache_mount_points
-      mount_point = file_system.get_mount_point_for_dir("/hadoop/hdfs/data1", ["/", "/hadoop"])
-      self.assertEqual(mount_point, "/hadoop")
+    # Should use provided mounts, not fetch via get_and_cache_mount_points
+    mount_point = file_system.get_mount_point_for_dir(
+      "/hadoop/hdfs/data1", ["/", "/hadoop"]
+    )
+    self.assertEqual(mount_point, "/hadoop")

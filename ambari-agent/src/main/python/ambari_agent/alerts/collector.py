@@ -22,25 +22,25 @@ import threading
 
 logger = logging.getLogger(__name__)
 
-class AlertCollector():
+
+class AlertCollector:
   """
   cluster -> name -> alert dict
-  """  
+  """
+
   def __init__(self):
     self.__buckets = {}
     self.__lock = threading.RLock()
-
 
   def put(self, cluster, alert):
     self.__lock.acquire()
     try:
       if not cluster in self.__buckets:
         self.__buckets[cluster] = {}
-        
-      self.__buckets[cluster][alert['name']] = alert
+
+      self.__buckets[cluster][alert["name"]] = alert
     finally:
       self.__lock.release()
-
 
   def remove(self, cluster, alert_name):
     """
@@ -50,11 +50,10 @@ class AlertCollector():
     try:
       if not cluster in self.__buckets:
         return
-      
+
       del self.__buckets[cluster][alert_name]
     finally:
       self.__lock.release()
-
 
   def remove_by_uuid(self, alert_uuid):
     """
@@ -62,25 +61,24 @@ class AlertCollector():
     """
     self.__lock.acquire()
     try:
-      for cluster,alert_map in self.__buckets.items():
+      for cluster, alert_map in self.__buckets.items():
         for alert_name in list(alert_map.keys()):
           alert = alert_map[alert_name]
 
-          if not 'uuid' in alert:
-            logger.warn("Alert {0} does not have uuid key.".format(alert))
+          if not "uuid" in alert:
+            logger.warn(f"Alert {alert} does not have uuid key.")
             continue
 
-          if alert['uuid'] == alert_uuid:
+          if alert["uuid"] == alert_uuid:
             self.remove(cluster, alert_name)
     finally:
       self.__lock.release()
 
-
   def alerts(self):
-    '''
+    """
     Gets all of the alerts collected since the last time this method was
     called. This method will clear the collected alerts.
-    '''
+    """
     self.__lock.acquire()
     try:
       alerts = []

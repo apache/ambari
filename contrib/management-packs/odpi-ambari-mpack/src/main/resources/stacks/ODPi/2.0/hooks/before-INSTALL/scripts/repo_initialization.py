@@ -39,7 +39,7 @@ def _alter_repo(action, repo_string, repo_template):
   if 0 == len(repo_dicts):
     Logger.info("Repository list is empty. Ambari may not be managing the repositories.")
   else:
-    Logger.info("Initializing {0} repositories".format(str(len(repo_dicts))))
+    Logger.info(f"Initializing {str(len(repo_dicts))} repositories")
 
   for repo in repo_dicts:
     if not 'baseUrl' in repo:

@@ -29,6 +29,7 @@ import org.apache.ambari.server.orm.entities.MemberEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.authentication.tproxy.AmbariTProxyConfiguration;
 import org.apache.ambari.server.security.authorization.Users;
+import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.junit.Assert;
 import org.junit.Test;
@@ -36,55 +37,80 @@ import org.junit.Test;
 public class AmbariProxiedUserDetailsServiceTest extends EasyMockSupport {
   @Test
   public void testValidateHost() throws UnknownHostException {
-    AmbariProxiedUserDetailsService service = createMockBuilder(AmbariProxiedUserDetailsService.class)
-        .withConstructor(createNiceMock(Configuration.class), createNiceMock(Users.class))
-        .addMockedMethod("getIpAddress", String.class)
-        .createMock();
-    expect(service.getIpAddress("host1.example.com")).andReturn("192.168.74.101").anyTimes();
-    expect(service.getIpAddress("host2.example.com")).andReturn("192.168.74.102").anyTimes();
+    Configuration configuration = createNiceMock(Configuration.class);
+    Users users = createNiceMock(Users.class);
 
-    AmbariTProxyConfiguration tproxyConfigration = createMock(AmbariTProxyConfiguration.class);
-    expect(tproxyConfigration.getAllowedHosts("proxyUser")).andReturn("*").once();
-    expect(tproxyConfigration.getAllowedHosts("proxyUser")).andReturn("192.168.74.101").once();
-    expect(tproxyConfigration.getAllowedHosts("proxyUser")).andReturn("host1.example.com").once();
-    expect(tproxyConfigration.getAllowedHosts("proxyUser")).andReturn("192.168.74.0/24").once();
-    expect(tproxyConfigration.getAllowedHosts("proxyUser")).andReturn(null).once();
-    expect(tproxyConfigration.getAllowedHosts("proxyUser")).andReturn("").once();
-    expect(tproxyConfigration.getAllowedHosts("proxyUser")).andReturn("192.168.74.102").once();
-    expect(tproxyConfigration.getAllowedHosts("proxyUser")).andReturn("host2.example.com").once();
-    expect(tproxyConfigration.getAllowedHosts("proxyUser")).andReturn("192.168.74.1/32").once();
+    // Create service with strict mock
+    AmbariProxiedUserDetailsService service = EasyMock.partialMockBuilder(AmbariProxiedUserDetailsService.class)
+            .withConstructor(configuration, users)
+            .addMockedMethod("getIpAddress")
+            .createStrictMock();
 
-    replayAll();
+    // Set up IP resolution expectations
+    service.getIpAddress(EasyMock.anyString());
+    EasyMock.expectLastCall().andStubAnswer(() -> {
+      String hostname = (String) EasyMock.getCurrentArguments()[0];
+      if ("host1.example.com".equals(hostname)) {
+        return "192.168.74.101";
+      } else if ("host2.example.com".equals(hostname)) {
+        return "192.168.74.102";
+      }
+      return null;
+    });
 
-    // ambari.tproxy.proxyuser.proxyUser.users = "*"
-    Assert.assertTrue(service.validateHost(tproxyConfigration, "proxyUser", "192.168.74.101"));
+    // Create strict mock for proxy configuration
+    AmbariTProxyConfiguration tproxyConfiguration = createStrictMock(AmbariTProxyConfiguration.class);
 
-    // ambari.tproxy.proxyuser.proxyUser.users = "192.168.74.101"
-    Assert.assertTrue(service.validateHost(tproxyConfigration, "proxyUser", "192.168.74.101"));
+    // Define strict ordering of getAllowedHosts calls
+    EasyMock.expect(tproxyConfiguration.getAllowedHosts("proxyUser")).andReturn("*");
+    EasyMock.expect(tproxyConfiguration.getAllowedHosts("proxyUser")).andReturn("192.168.74.101");
+    EasyMock.expect(tproxyConfiguration.getAllowedHosts("proxyUser")).andReturn("host1.example.com");
+    EasyMock.expect(tproxyConfiguration.getAllowedHosts("proxyUser")).andReturn("192.168.74.0/24");
+    EasyMock.expect(tproxyConfiguration.getAllowedHosts("proxyUser")).andReturn(null);
+    EasyMock.expect(tproxyConfiguration.getAllowedHosts("proxyUser")).andReturn("");
+    EasyMock.expect(tproxyConfiguration.getAllowedHosts("proxyUser")).andReturn("192.168.74.102");
+    EasyMock.expect(tproxyConfiguration.getAllowedHosts("proxyUser")).andReturn("host2.example.com");
+    EasyMock.expect(tproxyConfiguration.getAllowedHosts("proxyUser")).andReturn("192.168.74.1/32");
 
-    // ambari.tproxy.proxyuser.proxyUser.users = "host1.example.com"
-    Assert.assertTrue(service.validateHost(tproxyConfigration, "proxyUser", "192.168.74.101"));
+    // Replay all mocks
+    EasyMock.replay(configuration, users, service, tproxyConfiguration);
 
-    // ambari.tproxy.proxyuser.proxyUser.users = "192.168.74.0/24"
-    Assert.assertTrue(service.validateHost(tproxyConfigration, "proxyUser", "192.168.74.101"));
+    try {
+      // Test each case with detailed assertion messages
+      Assert.assertTrue("Wildcard (*) should allow access",
+              service.validateHost(tproxyConfiguration, "proxyUser", "192.168.74.101"));
 
-    // ambari.tproxy.proxyuser.proxyUser.users = null
-    Assert.assertFalse(service.validateHost(tproxyConfigration, "proxyUser", "192.168.74.101"));
+      Assert.assertTrue("Exact IP match should allow access",
+              service.validateHost(tproxyConfiguration, "proxyUser", "192.168.74.101"));
 
-    // ambari.tproxy.proxyuser.proxyUser.users = ""
-    Assert.assertFalse(service.validateHost(tproxyConfigration, "proxyUser", "192.168.74.101"));
+      Assert.assertTrue("Hostname match should allow access",
+              service.validateHost(tproxyConfiguration, "proxyUser", "192.168.74.101"));
 
-    // ambari.tproxy.proxyuser.proxyUser.users = "192.168.74.102"
-    Assert.assertFalse(service.validateHost(tproxyConfigration, "proxyUser", "192.168.74.101"));
+      Assert.assertTrue("Subnet match should allow access",
+              service.validateHost(tproxyConfiguration, "proxyUser", "192.168.74.101"));
 
-    // ambari.tproxy.proxyuser.proxyUser.users = "host1.example.com"
-    Assert.assertFalse(service.validateHost(tproxyConfigration, "proxyUser", "192.168.74.101"));
+      Assert.assertFalse("Null should deny access",
+              service.validateHost(tproxyConfiguration, "proxyUser", "192.168.74.101"));
 
-    // ambari.tproxy.proxyuser.proxyUser.users = "192.168.74.1/32"
-    Assert.assertFalse(service.validateHost(tproxyConfigration, "proxyUser", "192.168.74.101"));
+      Assert.assertFalse("Empty string should deny access",
+              service.validateHost(tproxyConfiguration, "proxyUser", "192.168.74.101"));
 
-    verifyAll();
+      Assert.assertFalse("Non-matching IP should deny access",
+              service.validateHost(tproxyConfiguration, "proxyUser", "192.168.74.101"));
+
+      Assert.assertFalse("Non-matching hostname should deny access",
+              service.validateHost(tproxyConfiguration, "proxyUser", "192.168.74.101"));
+
+      Assert.assertFalse("Non-matching subnet should deny access",
+              service.validateHost(tproxyConfiguration, "proxyUser", "192.168.74.101"));
+    } finally {
+      // Verify all mocks
+      EasyMock.verify(configuration, users, service, tproxyConfiguration);
+    }
   }
+
+
+
 
   @Test
   public void testValidateUser() {

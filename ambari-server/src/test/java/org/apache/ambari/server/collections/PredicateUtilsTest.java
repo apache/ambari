@@ -104,7 +104,7 @@ public class PredicateUtilsTest {
     Assert.assertEquals(NotPredicate.NAME, predicate.getName());
     Assert.assertTrue(predicate instanceof NotPredicate);
 
-    org.apache.commons.collections.Predicate[] predicates;
+    org.apache.commons.collections4.Predicate[] predicates;
 
     predicates = ((NotPredicate) predicate).getPredicates();
     Assert.assertEquals(1, predicates.length);

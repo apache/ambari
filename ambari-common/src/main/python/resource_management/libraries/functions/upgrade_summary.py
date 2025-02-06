@@ -22,8 +22,14 @@ from collections import namedtuple
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.constants import Direction
 
-UpgradeSummary = namedtuple("UpgradeSummary", "type direction orchestration is_revert services is_downgrade_allowed is_switch_bits associated_stack associated_version")
-UpgradeServiceSummary = namedtuple("UpgradeServiceSummary", "service_name source_stack source_version target_stack target_version")
+UpgradeSummary = namedtuple(
+  "UpgradeSummary",
+  "type direction orchestration is_revert services is_downgrade_allowed is_switch_bits associated_stack associated_version",
+)
+UpgradeServiceSummary = namedtuple(
+  "UpgradeServiceSummary",
+  "service_name source_stack source_version target_stack target_version",
+)
 
 
 def get_source_stack(service_name):
@@ -41,7 +47,7 @@ def get_source_stack(service_name):
   return service_summary.source_stack
 
 
-def get_source_version(service_name = None, default_version=None):
+def get_source_version(service_name=None, default_version=None):
   """
   Gets the source (from) version of a service participating in an upgrade. If there is no
   upgrade or the specific service is not participating, this will return None.
@@ -58,7 +64,7 @@ def get_source_version(service_name = None, default_version=None):
   return service_summary.source_version
 
 
-def get_target_version(service_name = None, default_version=None):
+def get_target_version(service_name=None, default_version=None):
   """
   Gets the target (to) version of a service participating in an upgrade. If there is no
   upgrade or the specific service is not participating, this will return None.
@@ -75,7 +81,6 @@ def get_target_version(service_name = None, default_version=None):
   return service_summary.target_version
 
 
-
 def get_upgrade_summary():
   """
   Gets a summary of an upgrade in progress, including type, direction, orchestration and from/to
@@ -90,24 +95,30 @@ def get_upgrade_summary():
 
   service_summary = upgrade_summary["services"]
   for service_name, service_summary_json in service_summary.items():
-    service_summary =  UpgradeServiceSummary(service_name = service_name,
-      source_stack = service_summary_json["sourceStackId"],
-      source_version = service_summary_json["sourceVersion"],
-      target_stack = service_summary_json["targetStackId"],
-      target_version = service_summary_json["targetVersion"])
+    service_summary = UpgradeServiceSummary(
+      service_name=service_name,
+      source_stack=service_summary_json["sourceStackId"],
+      source_version=service_summary_json["sourceVersion"],
+      target_stack=service_summary_json["targetStackId"],
+      target_version=service_summary_json["targetVersion"],
+    )
 
     service_summary_dict[service_name] = service_summary
 
-  return UpgradeSummary(type=upgrade_summary["type"], direction=upgrade_summary["direction"],
-    orchestration=upgrade_summary["orchestration"], is_revert = upgrade_summary["isRevert"],
-    services = service_summary_dict,
+  return UpgradeSummary(
+    type=upgrade_summary["type"],
+    direction=upgrade_summary["direction"],
+    orchestration=upgrade_summary["orchestration"],
+    is_revert=upgrade_summary["isRevert"],
+    services=service_summary_dict,
     is_downgrade_allowed=upgrade_summary["isDowngradeAllowed"],
     is_switch_bits=upgrade_summary["isSwitchBits"],
     associated_stack=upgrade_summary["associatedStackId"],
-    associated_version = upgrade_summary["associatedVersion"])
+    associated_version=upgrade_summary["associatedVersion"],
+  )
 
 
-def get_downgrade_from_version(service_name = None):
+def get_downgrade_from_version(service_name=None):
   """
   Gets the downgrade-from-version for the specificed service. If there is no downgrade or
   the service isn't participating in the downgrade, then this will return None
@@ -141,7 +152,7 @@ def _get_service_summary(service_name):
 
   if service_name is None:
     config = Script.get_config()
-    service_name = config['serviceName']
+    service_name = config["serviceName"]
 
   service_summary = upgrade_summary.services
   if service_name not in service_summary:

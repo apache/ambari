@@ -23,20 +23,22 @@ import os
 import traceback
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-STACKS_DIR = os.path.join(SCRIPT_DIR, '../../../../../stacks/')
-PARENT_FILE = os.path.join(STACKS_DIR, 'service_advisor.py')
+STACKS_DIR = os.path.join(SCRIPT_DIR, "../../../../../stacks/")
+PARENT_FILE = os.path.join(STACKS_DIR, "service_advisor.py")
 if "BASE_SERVICE_ADVISOR" in os.environ:
   PARENT_FILE = os.environ["BASE_SERVICE_ADVISOR"]
 
 try:
-  with open(PARENT_FILE, 'rb') as fp:
-    service_advisor = imp.load_module('service_advisor', fp, PARENT_FILE, ('.py', 'rb', imp.PY_SOURCE))
+  with open(PARENT_FILE, "rb") as fp:
+    service_advisor = imp.load_module(
+      "service_advisor", fp, PARENT_FILE, (".py", "rb", imp.PY_SOURCE)
+    )
 except Exception as e:
   traceback.print_exc()
   print("Failed to load parent")
 
-class SolrServiceAdvisor(service_advisor.ServiceAdvisor):
 
+class SolrServiceAdvisor(service_advisor.ServiceAdvisor):
   def __init__(self, *args, **kwargs):
     self.as_super = super(SolrServiceAdvisor, self)
     self.as_super.__init__(*args, **kwargs)
@@ -106,24 +108,28 @@ class SolrServiceAdvisor(service_advisor.ServiceAdvisor):
 
     return self.getServiceComponentCardinalityValidations(services, hosts, "SOLR")
 
-  def getServiceConfigurationRecommendations(self, configurations, clusterData, services, hosts):
+  def getServiceConfigurationRecommendations(
+    self, configurations, clusterData, services, hosts
+  ):
     """
     Entry point.
     Validate configurations for the service. Return a list of errors.
     The code for this function should be the same for each Service Advisor.
     """
-    #Logger.info("Class: %s, Method: %s. Validating Configurations." %
+    # Logger.info("Class: %s, Method: %s. Validating Configurations." %
     #            (self.__class__.__name__, inspect.stack()[0][3]))
 
     pass
 
-  def getServiceConfigurationsValidationItems(self, configurations, recommendedDefaults, services, hosts):
+  def getServiceConfigurationsValidationItems(
+    self, configurations, recommendedDefaults, services, hosts
+  ):
     """
     Entry point.
     Validate configurations for the service. Return a list of errors.
     The code for this function should be the same for each Service Advisor.
     """
-    #Logger.info("Class: %s, Method: %s. Validating Configurations." %
+    # Logger.info("Class: %s, Method: %s. Validating Configurations." %
     #            (self.__class__.__name__, inspect.stack()[0][3]))
 
     return []

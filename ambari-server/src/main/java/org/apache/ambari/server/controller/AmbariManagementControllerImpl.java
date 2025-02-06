@@ -24,6 +24,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_PASSWORD;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_URL;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_USERNAME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_JAVA_HOME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CLIENTS_TO_UPDATE_CONFIGS;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CLUSTER_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_RETRY_ENABLED;
@@ -250,8 +251,8 @@ import org.apache.ambari.server.topology.Setting;
 import org.apache.ambari.server.utils.SecretReference;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.ambari.server.utils.URLCredentialsHider;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.MapUtils;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
@@ -404,6 +405,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   final private String jdkResourceUrl;
   final private String javaHome;
+  final private String ambariJavaHome;
   final private String jdkName;
   final private String jceName;
   final private String ojdbcUrl;
@@ -448,6 +450,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
       jdkResourceUrl = getAmbariServerURI(JDK_RESOURCE_LOCATION);
       javaHome = configs.getJavaHome();
+      ambariJavaHome = configs.getAmbariJavaHome();
       jdkName = configs.getJDKName();
       jceName = configs.getJCEName();
       ojdbcUrl = getAmbariServerURI(JDK_RESOURCE_LOCATION + "/" + configs.getOjdbcJarName());
@@ -460,6 +463,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
       jdkResourceUrl = null;
       javaHome = null;
+      ambariJavaHome = null;
       jdkName = null;
       jceName = null;
       ojdbcUrl = null;
@@ -5093,6 +5097,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   @Override
+  public String getAmbariJavaHome() {
+    return ambariJavaHome;
+  }
+
+  @Override
   public String getJDKName() {
     return jdkName;
   }
@@ -6020,6 +6029,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     TreeMap<String, String> clusterLevelParams = new TreeMap<>();
     clusterLevelParams.put(JDK_LOCATION, getJdkResourceUrl());
     clusterLevelParams.put(JAVA_HOME, getJavaHome());
+    clusterLevelParams.put(AMBARI_JAVA_HOME, getAmbariJavaHome());
     clusterLevelParams.put(JAVA_VERSION, String.valueOf(configs.getJavaVersion()));
     clusterLevelParams.put(JDK_NAME, getJDKName());
     clusterLevelParams.put(JCE_NAME, getJCEName());

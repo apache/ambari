@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,7 +16,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 import unittest
 import subprocess
@@ -24,17 +24,16 @@ import os
 import sys
 import AmbariConfig
 from mock.mock import MagicMock, patch, ANY
-with patch("distro.linux_distribution", return_value = ('Suse','11','Final')):
+
+with patch("distro.linux_distribution", return_value=("Suse", "11", "Final")):
   from ambari_agent import AmbariAgent
 
 
 class TestAmbariAgent(unittest.TestCase):
-
   @patch.object(subprocess, "Popen")
   @patch("os.path.isfile")
   @patch("os.remove")
-  def test_main(self, os_remove_mock,
-                os_path_isfile_mock, subprocess_popen_mock):
+  def test_main(self, os_remove_mock, os_path_isfile_mock, subprocess_popen_mock):
     facter1 = MagicMock()
     facter2 = MagicMock()
     subprocess_popen_mock.side_effect = [facter1, facter2]
@@ -42,7 +41,7 @@ class TestAmbariAgent(unittest.TestCase):
     facter2.returncode = 55
     os_path_isfile_mock.return_value = True
     if not ("PYTHON" in os.environ):
-      os.environ['PYTHON'] = "test/python/path"
+      os.environ["PYTHON"] = "test/python/path"
     sys.argv[0] = "test data"
     AmbariAgent.main()
 
@@ -61,18 +60,22 @@ class TestAmbariAgent(unittest.TestCase):
     #
     # Test without $AMBARI_AGENT_LOG_DIR
     #
-    log_folder = '/var/log/ambari-agent'
-    log_file = 'ambari-agent.log'
-    with patch.dict('os.environ', {}):
-      self.assertEqual(os.path.join(log_folder, log_file), AmbariConfig.AmbariConfig.getLogFile())
+    log_folder = "/var/log/ambari-agent"
+    log_file = "ambari-agent.log"
+    with patch.dict("os.environ", {}):
+      self.assertEqual(
+        os.path.join(log_folder, log_file), AmbariConfig.AmbariConfig.getLogFile()
+      )
 
     #
     # Test with $AMBARI_AGENT_LOG_DIR
     #
-    log_folder = '/myloglocation/log'
-    log_file = 'ambari-agent.log'
-    with patch.dict('os.environ', {'AMBARI_AGENT_LOG_DIR': log_folder}):
-      self.assertEqual(os.path.join(log_folder, log_file), AmbariConfig.AmbariConfig.getLogFile())
+    log_folder = "/myloglocation/log"
+    log_file = "ambari-agent.log"
+    with patch.dict("os.environ", {"AMBARI_AGENT_LOG_DIR": log_folder}):
+      self.assertEqual(
+        os.path.join(log_folder, log_file), AmbariConfig.AmbariConfig.getLogFile()
+      )
     pass
 
   #
@@ -82,16 +85,20 @@ class TestAmbariAgent(unittest.TestCase):
     #
     # Test without $AMBARI_AGENT_OUT_DIR
     #
-    out_folder = '/var/log/ambari-agent'
-    out_file = 'ambari-agent.out'
-    with patch.dict('os.environ', {}):
-      self.assertEqual(os.path.join(out_folder, out_file), AmbariConfig.AmbariConfig.getOutFile())
+    out_folder = "/var/log/ambari-agent"
+    out_file = "ambari-agent.out"
+    with patch.dict("os.environ", {}):
+      self.assertEqual(
+        os.path.join(out_folder, out_file), AmbariConfig.AmbariConfig.getOutFile()
+      )
 
     #
     # Test with $AMBARI_AGENT_OUT_DIR
     #
-    out_folder = '/myoutlocation/out'
-    out_file = 'ambari-agent.out'
-    with patch.dict('os.environ', {'AMBARI_AGENT_LOG_DIR': out_folder}):
-      self.assertEqual(os.path.join(out_folder, out_file), AmbariConfig.AmbariConfig.getOutFile())
+    out_folder = "/myoutlocation/out"
+    out_file = "ambari-agent.out"
+    with patch.dict("os.environ", {"AMBARI_AGENT_LOG_DIR": out_folder}):
+      self.assertEqual(
+        os.path.join(out_folder, out_file), AmbariConfig.AmbariConfig.getOutFile()
+      )
     pass

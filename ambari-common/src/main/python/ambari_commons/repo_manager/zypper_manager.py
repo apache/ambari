@@ -16,6 +16,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 from ambari_commons import shell
 from .generic_manager import GenericManagerProperties, GenericManager
 from .zypper_parser import ZypperParser
@@ -28,6 +29,7 @@ class ZypperManagerProperties(GenericManagerProperties):
   """
   Class to keep all Package-manager depended properties
   """
+
   locked_output = "System management is locked by the application"
   repo_error = "Failure when receiving data from the peer"
 
@@ -35,29 +37,57 @@ class ZypperManagerProperties(GenericManagerProperties):
   pkg_manager_bin = "/bin/rpm"
   repo_update_cmd = [repo_manager_bin, "clean"]
 
-  available_packages_cmd = [repo_manager_bin, "--no-gpg-checks", "search", "--uninstalled-only", "--details"]
-  installed_packages_cmd = [repo_manager_bin, "--no-gpg-checks", "search", "--installed-only", "--details"]
+  available_packages_cmd = [
+    repo_manager_bin,
+    "--no-gpg-checks",
+    "search",
+    "--uninstalled-only",
+    "--details",
+  ]
+  installed_packages_cmd = [
+    repo_manager_bin,
+    "--no-gpg-checks",
+    "search",
+    "--installed-only",
+    "--details",
+  ]
   all_packages_cmd = [repo_manager_bin, "--no-gpg-checks", "search", "--details"]
 
   repo_definition_location = "/etc/zypp/repos.d"
 
   install_cmd = {
     True: [repo_manager_bin, "install", "--auto-agree-with-licenses", "--no-confirm"],
-    False: [repo_manager_bin, "--quiet", "install", "--auto-agree-with-licenses", "--no-confirm"]
+    False: [
+      repo_manager_bin,
+      "--quiet",
+      "install",
+      "--auto-agree-with-licenses",
+      "--no-confirm",
+    ],
   }
 
   remove_cmd = {
     True: [repo_manager_bin, "remove", "--no-confirm"],
-    False: [repo_manager_bin, "--quiet", "remove", "--no-confirm"]
+    False: [repo_manager_bin, "--quiet", "remove", "--no-confirm"],
   }
 
-  verify_dependency_cmd = [repo_manager_bin, "--quiet", "--non-interactive", "verify", "--dry-run"]
-  list_active_repos_cmd = ['/usr/bin/zypper', 'repos']
-  installed_package_version_command = [pkg_manager_bin, "-q", "--queryformat", "%{version}-%{release}\n"]
+  verify_dependency_cmd = [
+    repo_manager_bin,
+    "--quiet",
+    "--non-interactive",
+    "verify",
+    "--dry-run",
+  ]
+  list_active_repos_cmd = ["/usr/bin/zypper", "repos"]
+  installed_package_version_command = [
+    pkg_manager_bin,
+    "-q",
+    "--queryformat",
+    "%{version}-%{release}\n",
+  ]
 
 
 class ZypperManager(GenericManager):
-
   @property
   def properties(self):
     return ZypperManagerProperties
@@ -76,11 +106,15 @@ class ZypperManager(GenericManager):
     # as result repository would be matched if it contains package with same meta info
 
     if repos.feat.scoped:
-      Logger.info("Looking for matching packages in the following repositories: {0}".format(", ".join(repo_ids)))
+      Logger.info(
+        f"Looking for matching packages in the following repositories: {', '.join(repo_ids)}"
+      )
       for repo in repo_ids:
         available_packages.extend(self.all_packages(repo_filter=repo))
     else:
-      Logger.info("Packages will be queried using all available repositories on the system.")
+      Logger.info(
+        "Packages will be queried using all available repositories on the system."
+      )
       available_packages.extend(self.all_packages())
 
     return [package[0] for package in available_packages]
@@ -99,7 +133,9 @@ class ZypperManager(GenericManager):
     if repo_filter:
       cmd.extend(["--repo=" + repo_filter])
 
-    with shell.process_executor(cmd, error_callback=self._executor_error_handler) as output:
+    with shell.process_executor(
+      cmd, error_callback=self._executor_error_handler
+    ) as output:
       for pkg in ZypperParser.packages_reader(output):
         if pkg_names and not pkg[0] in pkg_names:
           continue
@@ -122,7 +158,9 @@ class ZypperManager(GenericManager):
     if repo_filter:
       cmd.extend(["--repo=" + repo_filter])
 
-    with shell.process_executor(cmd, error_callback=self._executor_error_handler) as output:
+    with shell.process_executor(
+      cmd, error_callback=self._executor_error_handler
+    ) as output:
       for pkg in ZypperParser.packages_reader(output):
         if pkg_names and not pkg[0] in pkg_names:
           continue
@@ -145,7 +183,9 @@ class ZypperManager(GenericManager):
     if repo_filter:
       cmd.extend(["--repo=" + repo_filter])
 
-    with shell.process_executor(cmd, error_callback=self._executor_error_handler) as output:
+    with shell.process_executor(
+      cmd, error_callback=self._executor_error_handler
+    ) as output:
       for pkg in ZypperParser.packages_reader(output):
         if pkg_names and not pkg[0] in pkg_names:
           continue
@@ -166,8 +206,10 @@ class ZypperManager(GenericManager):
     pattern = re.compile("\d+ new package(s)? to install")
 
     if r.code or (r.out and pattern.search(r.out)):
-      err_msg = Logger.filter_text("Failed to verify package dependencies. Execution of '{0}' returned {1}. {2}".format(
-        self.properties.verify_dependency_cmd, r.code, r.out))
+      err_msg = Logger.filter_text(
+        f"Failed to verify package dependencies. Execution of '{self.properties.verify_dependency_cmd}' "
+        f"returned {r.code}. {r.out}"
+      )
       Logger.error(err_msg)
       return False
 
@@ -189,21 +231,23 @@ class ZypperManager(GenericManager):
 
       if context.use_repos:
         active_base_repos = self.get_active_base_repos()
-        if 'base' in context.use_repos:
+        if "base" in context.use_repos:
           # Remove 'base' from use_repos list
-          use_repos = [x for x in context.use_repos if x != 'base']
+          use_repos = [x for x in context.use_repos if x != "base"]
           use_repos.extend(active_base_repos)
         use_repos_options = []
         for repo in sorted(context.use_repos):
-          use_repos_options = use_repos_options + ['--repo', repo]
+          use_repos_options = use_repos_options + ["--repo", repo]
         cmd = cmd + use_repos_options
 
       cmd = cmd + [name]
-      Logger.info("Installing package {0} ('{1}')".format(name, shell.string_cmd_from_args_list(cmd)))
+      Logger.info(
+        f"Installing package {name} ('{shell.string_cmd_from_args_list(cmd)}')"
+      )
 
       shell.repository_manager_executor(cmd, self.properties, context)
     else:
-      Logger.info("Skipping installation of existing package {0}".format(name))
+      Logger.info(f"Skipping installation of existing package {name}")
 
   def upgrade_package(self, name, context):
     """
@@ -231,15 +275,17 @@ class ZypperManager(GenericManager):
       raise ValueError("Installation command were executed with no package name passed")
     elif self._check_existence(name):
       cmd = self.properties.remove_cmd[context.log_output] + [name]
-      Logger.info("Removing package {0} ('{1}')".format(name, shell.string_cmd_from_args_list(cmd)))
+      Logger.info(f"Removing package {name} ('{shell.string_cmd_from_args_list(cmd)}')")
       shell.repository_manager_executor(cmd, self.properties, context)
     else:
-      Logger.info("Skipping removal of non-existing package {0}".format(name))
+      Logger.info(f"Skipping removal of non-existing package {name}")
 
   def get_active_base_repos(self):
     enabled_repos = []
 
-    with shell.process_executor(self.properties.list_active_repos_cmd, error_callback=self._executor_error_handler) as output:
+    with shell.process_executor(
+      self.properties.list_active_repos_cmd, error_callback=self._executor_error_handler
+    ) as output:
       for _, repo_name, repo_enabled, _ in ZypperParser.repo_list_reader(output):
         if repo_enabled and repo_name.startswith("SUSE-"):
           enabled_repos.append(repo_name)
@@ -250,15 +296,16 @@ class ZypperManager(GenericManager):
     return enabled_repos
 
   def rpm_check_package_available(self, name):
-    import rpm # this is faster then calling 'rpm'-binary externally.
+    import rpm  # this is faster then calling 'rpm'-binary externally.
+
     ts = rpm.TransactionSet()
     packages = ts.dbMatch()
 
-    name_regex = re.escape(name).replace("\\?", ".").replace("\\*", ".*") + '$'
+    name_regex = re.escape(name).replace("\\?", ".").replace("\\*", ".*") + "$"
     regex = re.compile(name_regex)
 
     for package in packages:
-      if regex.match(package['name'].decode()):
+      if regex.match(package["name"].decode()):
         return True
     return False
 

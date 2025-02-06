@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -15,7 +15,8 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
+
 import os
 import platform
 import distro
@@ -31,6 +32,7 @@ from urllib.error import HTTPError
 
 import shutil
 
+
 # Mock classes for reading from a file
 class MagicFile(object):
   def __init__(self, data):
@@ -44,13 +46,20 @@ class MagicFile(object):
 
   def __enter__(self):
     return self
+
+
 pass
 
-project_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),os.path.normpath("../../../../"))
-shutil.copyfile(project_dir+"/ambari-server/conf/unix/ambari.properties", "/tmp/ambari.properties")
+project_dir = os.path.join(
+  os.path.abspath(os.path.dirname(__file__)), os.path.normpath("../../../../")
+)
+shutil.copyfile(
+  project_dir + "/ambari-server/conf/unix/ambari.properties", "/tmp/ambari.properties"
+)
 
 # We have to use this import HACK because the filename contains a dash
 _search_file = os_utils.search_file
+
 
 def search_file_proxy(filename, searchpatch, pathsep=os.pathsep):
   global _search_file
@@ -58,23 +67,43 @@ def search_file_proxy(filename, searchpatch, pathsep=os.pathsep):
     return "/tmp/ambari.properties"
   return _search_file(filename, searchpatch, pathsep)
 
+
 os_utils.search_file = search_file_proxy
 
-with patch.object(distro, "linux_distribution", return_value = MagicMock(return_value=('Redhat', '6.4', 'Final'))):
-  with patch("os.path.isdir", return_value = MagicMock(return_value=True)):
-    with patch("os.access", return_value = MagicMock(return_value=True)):
-      with patch.object(os_utils, "parse_log4j_file", return_value={'ambari.log.dir': '/var/log/ambari-server'}):
-        with patch("distro.linux_distribution", return_value = os_distro_value):
+with patch.object(
+  distro,
+  "linux_distribution",
+  return_value=MagicMock(return_value=("Redhat", "6.4", "Final")),
+):
+  with patch("os.path.isdir", return_value=MagicMock(return_value=True)):
+    with patch("os.access", return_value=MagicMock(return_value=True)):
+      with patch.object(
+        os_utils,
+        "parse_log4j_file",
+        return_value={"ambari.log.dir": "/var/log/ambari-server"},
+      ):
+        with patch("distro.linux_distribution", return_value=os_distro_value):
           with patch("os.symlink"):
-            with patch.object(os_utils, "is_service_exist", return_value = True):
-              with patch("glob.glob", return_value = ['/etc/init.d/postgresql-9.3']):
-                _ambari_server_ = __import__('ambari-server')
+            with patch.object(os_utils, "is_service_exist", return_value=True):
+              with patch("glob.glob", return_value=["/etc/init.d/postgresql-9.3"]):
+                _ambari_server_ = __import__("ambari-server")
                 with patch("builtins.open"):
-                  from ambari_commons.exceptions import FatalException, NonFatalException
+                  from ambari_commons.exceptions import (
+                    FatalException,
+                    NonFatalException,
+                  )
                   from ambari_server.properties import Properties
-                  from ambari_server.setupSso import setup_sso, AMBARI_SSO_AUTH_ENABLED, \
-                    SSO_PROVIDER_URL, SSO_CERTIFICATE, JWT_COOKIE_NAME, JWT_AUDIENCES, \
-                    SSO_ENABLED_SERVICES, SSO_MANAGE_SERVICES
+                  from ambari_server.setupSso import (
+                    setup_sso,
+                    AMBARI_SSO_AUTH_ENABLED,
+                    SSO_PROVIDER_URL,
+                    SSO_CERTIFICATE,
+                    JWT_COOKIE_NAME,
+                    JWT_AUDIENCES,
+                    SSO_ENABLED_SERVICES,
+                    SSO_MANAGE_SERVICES,
+                  )
+
 
 class TestSetupSso(unittest.TestCase):
   @patch("ambari_server.setupSso.is_server_runing")
@@ -115,17 +144,18 @@ class TestSetupSso(unittest.TestCase):
     sys.stdout = sys.__stdout__
     pass
 
-
   @patch("ambari_server.setupSso.get_silent")
   @patch("ambari_server.setupSso.is_server_runing")
-  def test_invalid_sso_enabled_cli_option_should_result_in_error(self, is_server_runing_mock, get_silent_mock):
+  def test_invalid_sso_enabled_cli_option_should_result_in_error(
+    self, is_server_runing_mock, get_silent_mock
+  ):
     out = io.StringIO()
     sys.stdout = out
 
     is_server_runing_mock.return_value = (True, 0)
     get_silent_mock.return_value = False
     options = self._create_empty_options_mock()
-    options.sso_enabled = 'not_true_or_false'
+    options.sso_enabled = "not_true_or_false"
 
     try:
       setup_sso(options)
@@ -137,18 +167,19 @@ class TestSetupSso(unittest.TestCase):
     sys.stdout = sys.__stdout__
     pass
 
-
   @patch("ambari_server.setupSso.get_silent")
   @patch("ambari_server.setupSso.is_server_runing")
-  def test_missing_sso_provider_url_cli_option_when_enabling_sso_should_result_in_error(self, is_server_runing_mock, get_silent_mock):
+  def test_missing_sso_provider_url_cli_option_when_enabling_sso_should_result_in_error(
+    self, is_server_runing_mock, get_silent_mock
+  ):
     out = io.StringIO()
     sys.stdout = out
 
     is_server_runing_mock.return_value = (True, 0)
     get_silent_mock.return_value = False
     options = self._create_empty_options_mock()
-    options.sso_enabled = 'true'
-    options.sso_provider_url = ''
+    options.sso_enabled = "true"
+    options.sso_provider_url = ""
 
     try:
       setup_sso(options)
@@ -160,18 +191,19 @@ class TestSetupSso(unittest.TestCase):
     sys.stdout = sys.__stdout__
     pass
 
-
   @patch("ambari_server.setupSso.get_silent")
   @patch("ambari_server.setupSso.is_server_runing")
-  def test_missing_sso_public_cert_file_cli_option_when_enabling_sso_should_result_in_error(self, is_server_runing_mock, get_silent_mock):
+  def test_missing_sso_public_cert_file_cli_option_when_enabling_sso_should_result_in_error(
+    self, is_server_runing_mock, get_silent_mock
+  ):
     out = io.StringIO()
     sys.stdout = out
 
     is_server_runing_mock.return_value = (True, 0)
     get_silent_mock.return_value = False
     options = self._create_empty_options_mock()
-    options.sso_enabled = 'true'
-    options.sso_public_cert_file = ''
+    options.sso_enabled = "true"
+    options.sso_public_cert_file = ""
 
     try:
       setup_sso(options)
@@ -183,18 +215,19 @@ class TestSetupSso(unittest.TestCase):
     sys.stdout = sys.__stdout__
     pass
 
-
   @patch("ambari_server.setupSso.get_silent")
   @patch("ambari_server.setupSso.is_server_runing")
-  def test_invalid_sso_provider_url_cli_option_when_enabling_sso_should_result_in_error(self, is_server_runing_mock, get_silent_mock):
+  def test_invalid_sso_provider_url_cli_option_when_enabling_sso_should_result_in_error(
+    self, is_server_runing_mock, get_silent_mock
+  ):
     out = io.StringIO()
     sys.stdout = out
 
     is_server_runing_mock.return_value = (True, 0)
     get_silent_mock.return_value = False
     options = self._create_empty_options_mock()
-    options.sso_enabled = 'true'
-    options.sso_provider_url = '!invalidHost:invalidPort'
+    options.sso_enabled = "true"
+    options.sso_provider_url = "!invalidHost:invalidPort"
 
     try:
       setup_sso(options)
@@ -203,7 +236,7 @@ class TestSetupSso(unittest.TestCase):
       self.assertTrue("Invalid --sso-provider-url" in e.reason)
       pass
 
-    options.sso_provider_url = 'The SSO provider URL is https://c7402.ambari.apache.org:8443/gateway/knoxsso/api/v1/websso'
+    options.sso_provider_url = "The SSO provider URL is https://c7402.ambari.apache.org:8443/gateway/knoxsso/api/v1/websso"
     try:
       setup_sso(options)
       self.fail("Should fail with fatal exception")
@@ -211,7 +244,7 @@ class TestSetupSso(unittest.TestCase):
       self.assertTrue("Invalid --sso-provider-url" in e.reason)
       pass
 
-    options.sso_provider_url = 'https://c7402.ambari.apache.org:8443/gateway/knoxsso/api/v1/websso is the SSO provider URL'
+    options.sso_provider_url = "https://c7402.ambari.apache.org:8443/gateway/knoxsso/api/v1/websso is the SSO provider URL"
     try:
       setup_sso(options)
       self.fail("Should fail with fatal exception")
@@ -222,27 +255,31 @@ class TestSetupSso(unittest.TestCase):
     sys.stdout = sys.__stdout__
     pass
 
-
   @patch("ambari_server.setupSso.perform_changes_via_rest_api")
   @patch("ambari_server.setupSso.get_ambari_properties")
   @patch("ambari_server.setupSso.get_silent")
   @patch("ambari_server.setupSso.is_server_runing")
   @patch("ambari_server.setupSso.get_json_via_rest_api")
-  @patch('builtins.open')
-  def test_all_cli_options_are_collected_when_enabling_sso(self, open_mock,
-                                                           get_json_via_rest_api_mock,
-                                                           is_server_runing_mock,
-                                                           get_silent_mock,
-                                                           get_ambari_properties_mock,
-                                                           perform_changes_via_rest_api_mock):
+  @patch("builtins.open")
+  def test_all_cli_options_are_collected_when_enabling_sso(
+    self,
+    open_mock,
+    get_json_via_rest_api_mock,
+    is_server_runing_mock,
+    get_silent_mock,
+    get_ambari_properties_mock,
+    perform_changes_via_rest_api_mock,
+  ):
     out = io.StringIO()
     sys.stdout = out
 
-    certificate_data = '-----BEGIN CERTIFICATE-----\n' \
-                       'MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD\n' \
-                       '................................................................\n' \
-                       'dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy\n' \
-                       '-----END CERTIFICATE-----'
+    certificate_data = (
+      "-----BEGIN CERTIFICATE-----\n"
+      "MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD\n"
+      "................................................................\n"
+      "dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy\n"
+      "-----END CERTIFICATE-----"
+    )
     mock_file = MagicFile(certificate_data)
     open_mock.side_effect = [mock_file]
 
@@ -253,16 +290,18 @@ class TestSetupSso(unittest.TestCase):
     properties = Properties()
     get_ambari_properties_mock.return_value = properties
 
-    sso_enabled = 'true'
-    sso_enabled_services = 'Ambari, SERVICE1, SERVICE2'
-    sso_provider_url = 'https://c7402.ambari.apache.org:8443/gateway/knoxsso/api/v1/websso'
-    sso_public_cert_file = '/test/file/path'
-    sso_jwt_cookie_name = 'test_cookie'
-    sso_jwt_audience_list = 'test, audience, list'
+    sso_enabled = "true"
+    sso_enabled_services = "Ambari, SERVICE1, SERVICE2"
+    sso_provider_url = (
+      "https://c7402.ambari.apache.org:8443/gateway/knoxsso/api/v1/websso"
+    )
+    sso_public_cert_file = "/test/file/path"
+    sso_jwt_cookie_name = "test_cookie"
+    sso_jwt_audience_list = "test, audience, list"
     options = self._create_empty_options_mock()
     options.sso_enabled = sso_enabled
-    options.sso_enabled_ambari = 'true'
-    options.sso_manage_services = 'true'
+    options.sso_enabled_ambari = "true"
+    options.sso_manage_services = "true"
     options.sso_provider_url = sso_provider_url
     options.sso_public_cert_file = sso_public_cert_file
     options.sso_jwt_cookie_name = sso_jwt_cookie_name
@@ -276,7 +315,7 @@ class TestSetupSso(unittest.TestCase):
     args, kwargs = requestCall
     requestData = args[5]
     self.assertTrue(isinstance(requestData, dict))
-    ssoProperties = requestData['Configuration']['properties']
+    ssoProperties = requestData["Configuration"]["properties"]
     self.assertEqual(ssoProperties[AMBARI_SSO_AUTH_ENABLED], sso_enabled)
     self.assertEqual(ssoProperties[SSO_PROVIDER_URL], sso_provider_url)
     self.assertEqual(ssoProperties[SSO_CERTIFICATE], certificate_data)
@@ -291,21 +330,26 @@ class TestSetupSso(unittest.TestCase):
   @patch("ambari_server.setupSso.get_silent")
   @patch("ambari_server.setupSso.is_server_runing")
   @patch("ambari_server.setupSso.get_json_via_rest_api")
-  @patch('builtins.open')
-  def test_only_sso_enabled_cli_option_is_collected_when_disabling_sso(self, open_mock,
-                                                                       get_json_via_rest_api_mock,
-                                                                       is_server_runing_mock,
-                                                                       get_silent_mock,
-                                                                       get_ambari_properties_mock,
-                                                                       perform_changes_via_rest_api_mock):
+  @patch("builtins.open")
+  def test_only_sso_enabled_cli_option_is_collected_when_disabling_sso(
+    self,
+    open_mock,
+    get_json_via_rest_api_mock,
+    is_server_runing_mock,
+    get_silent_mock,
+    get_ambari_properties_mock,
+    perform_changes_via_rest_api_mock,
+  ):
     out = io.StringIO()
     sys.stdout = out
 
-    certificate_data = '-----BEGIN CERTIFICATE-----\n' \
-                       'MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD\n' \
-                       '................................................................\n' \
-                       'dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy\n' \
-                       '-----END CERTIFICATE-----'
+    certificate_data = (
+      "-----BEGIN CERTIFICATE-----\n"
+      "MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD\n"
+      "................................................................\n"
+      "dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy\n"
+      "-----END CERTIFICATE-----"
+    )
     mock_file = MagicFile(certificate_data)
     open_mock.side_effect = [mock_file]
 
@@ -317,11 +361,11 @@ class TestSetupSso(unittest.TestCase):
     properties = Properties()
     get_ambari_properties_mock.return_value = properties
 
-    sso_enabled = 'false'
-    sso_provider_url = 'http://testHost:8080'
-    sso_public_cert_file = '/test/file/path'
-    sso_jwt_cookie_name = 'test_cookie'
-    sso_jwt_audience_list = 'test, audience, list'
+    sso_enabled = "false"
+    sso_provider_url = "http://testHost:8080"
+    sso_public_cert_file = "/test/file/path"
+    sso_jwt_cookie_name = "test_cookie"
+    sso_jwt_audience_list = "test, audience, list"
     options = self._create_empty_options_mock()
     options.sso_enabled = sso_enabled
     options.sso_provider_url = sso_provider_url
@@ -347,22 +391,27 @@ class TestSetupSso(unittest.TestCase):
   @patch("ambari_server.setupSso.get_silent")
   @patch("ambari_server.setupSso.is_server_runing")
   @patch("ambari_server.setupSso.get_json_via_rest_api")
-  @patch('builtins.open')
-  def test_sso_is_enabled_for_all_services_via_user_input(self, open_mock,
-                                                          get_json_via_rest_api_mock,
-                                                          is_server_runing_mock,
-                                                          get_silent_mock,
-                                                          get_ambari_properties_mock,
-                                                          get_YN_input_mock,
-                                                          perform_changes_via_rest_api_mock):
+  @patch("builtins.open")
+  def test_sso_is_enabled_for_all_services_via_user_input(
+    self,
+    open_mock,
+    get_json_via_rest_api_mock,
+    is_server_runing_mock,
+    get_silent_mock,
+    get_ambari_properties_mock,
+    get_YN_input_mock,
+    perform_changes_via_rest_api_mock,
+  ):
     out = io.StringIO()
     sys.stdout = out
 
-    certificate_data = '-----BEGIN CERTIFICATE-----\n' \
-                       'MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD\n' \
-                       '................................................................\n' \
-                       'dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy\n' \
-                       '-----END CERTIFICATE-----'
+    certificate_data = (
+      "-----BEGIN CERTIFICATE-----\n"
+      "MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD\n"
+      "................................................................\n"
+      "dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy\n"
+      "-----END CERTIFICATE-----"
+    )
     mock_file = MagicFile(certificate_data)
     open_mock.side_effect = [mock_file]
 
@@ -373,27 +422,29 @@ class TestSetupSso(unittest.TestCase):
     get_ambari_properties_mock.return_value = Properties()
 
     def yn_input_side_effect(*args, **kwargs):
-      if 'Manage SSO configurations' in args[0]:
+      if "Manage SSO configurations" in args[0]:
         return True
-      elif 'Manage SSO configurations' in args[0]:
+      elif "Manage SSO configurations" in args[0]:
         return True
-      elif 'all services' in args[0]:
+      elif "all services" in args[0]:
         return True
       else:
-        raise Exception("ShouldNotBeInvoked") # only the 'Use SSO for all services' question should be asked for now
+        raise Exception(
+          "ShouldNotBeInvoked"
+        )  # only the 'Use SSO for all services' question should be asked for now
 
     get_YN_input_mock.side_effect = yn_input_side_effect
 
-    sso_enabled = 'true'
-    sso_provider_url = 'http://testHost:8080'
-    sso_public_cert_file = '/test/file/path'
-    sso_jwt_cookie_name = 'test_cookie'
-    sso_jwt_audience_list = 'test, audience, list'
+    sso_enabled = "true"
+    sso_provider_url = "http://testHost:8080"
+    sso_public_cert_file = "/test/file/path"
+    sso_jwt_cookie_name = "test_cookie"
+    sso_jwt_audience_list = "test, audience, list"
 
     options = self._create_empty_options_mock()
     options.sso_enabled = sso_enabled
-    options.sso_enabled_ambari = 'true'
-    options.sso_manage_services = 'true'
+    options.sso_enabled_ambari = "true"
+    options.sso_manage_services = "true"
     options.sso_provider_url = sso_provider_url
     options.sso_public_cert_file = sso_public_cert_file
     options.sso_jwt_cookie_name = sso_jwt_cookie_name
@@ -406,7 +457,7 @@ class TestSetupSso(unittest.TestCase):
     args, kwargs = requestCall
     requestData = args[5]
     self.assertTrue(isinstance(requestData, dict))
-    ssoProperties = requestData['Configuration']['properties']
+    ssoProperties = requestData["Configuration"]["properties"]
     self.assertEqual(ssoProperties[AMBARI_SSO_AUTH_ENABLED], sso_enabled)
     self.assertEqual(ssoProperties[SSO_PROVIDER_URL], sso_provider_url)
     self.assertEqual(ssoProperties[SSO_CERTIFICATE], certificate_data)
@@ -425,44 +476,51 @@ class TestSetupSso(unittest.TestCase):
   @patch("ambari_server.setupSso.get_ambari_properties")
   @patch("ambari_server.setupSso.get_silent")
   @patch("ambari_server.setupSso.is_server_runing")
-  @patch('builtins.open')
-  def test_setup_sso_should_not_fail_when_sso_config_cannot_be_loaded_due_to_404_error(self, open_mock,
-                                                                                       is_server_runing_mock,
-                                                                                       get_silent_mock,
-                                                                                       get_ambari_properties_mock,
-                                                                                       get_YN_input_mock,
-                                                                                       get_cluster_name_mock,
-                                                                                       urlopen_mock,
-                                                                                       perform_changes_via_rest_api_mock):
+  @patch("builtins.open")
+  def test_setup_sso_should_not_fail_when_sso_config_cannot_be_loaded_due_to_404_error(
+    self,
+    open_mock,
+    is_server_runing_mock,
+    get_silent_mock,
+    get_ambari_properties_mock,
+    get_YN_input_mock,
+    get_cluster_name_mock,
+    urlopen_mock,
+    perform_changes_via_rest_api_mock,
+  ):
     out = io.StringIO()
     sys.stdout = out
 
-    certificate_data = '-----BEGIN CERTIFICATE-----\n' \
-                       'MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD\n' \
-                       '................................................................\n' \
-                       'dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy\n' \
-                       '-----END CERTIFICATE-----'
+    certificate_data = (
+      "-----BEGIN CERTIFICATE-----\n"
+      "MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD\n"
+      "................................................................\n"
+      "dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy\n"
+      "-----END CERTIFICATE-----"
+    )
     mock_file = MagicFile(certificate_data)
     open_mock.side_effect = [mock_file]
 
     is_server_runing_mock.return_value = (True, 0)
     get_silent_mock.return_value = False
     get_ambari_properties_mock.return_value = Properties()
-    get_cluster_name_mock.return_value = 'cluster1'
+    get_cluster_name_mock.return_value = "cluster1"
     get_YN_input_mock.__return_value = True
 
-    urlopen_mock.side_effect = HTTPError(MagicMock(status=404), 404, 'not found', None, None)
+    urlopen_mock.side_effect = HTTPError(
+      MagicMock(status=404), 404, "not found", None, None
+    )
 
-    sso_enabled = 'true'
-    sso_provider_url = 'http://testHost:8080'
-    sso_public_cert_file = '/test/file/path'
-    sso_jwt_cookie_name = 'test_cookie'
-    sso_jwt_audience_list = 'test, audience, list'
+    sso_enabled = "true"
+    sso_provider_url = "http://testHost:8080"
+    sso_public_cert_file = "/test/file/path"
+    sso_jwt_cookie_name = "test_cookie"
+    sso_jwt_audience_list = "test, audience, list"
 
     options = self._create_empty_options_mock()
     options.sso_enabled = sso_enabled
     options.sso_enabled_ambari = sso_enabled
-    options.sso_manage_services = 'true'
+    options.sso_manage_services = "true"
     options.sso_provider_url = sso_provider_url
     options.sso_public_cert_file = sso_public_cert_file
     options.sso_jwt_cookie_name = sso_jwt_cookie_name
@@ -475,7 +533,7 @@ class TestSetupSso(unittest.TestCase):
     args, kwargs = requestCall
     requestData = args[5]
     self.assertTrue(isinstance(requestData, dict))
-    ssoProperties = requestData['Configuration']['properties']
+    ssoProperties = requestData["Configuration"]["properties"]
     self.assertEqual(ssoProperties[AMBARI_SSO_AUTH_ENABLED], sso_enabled)
     self.assertEqual(ssoProperties[SSO_PROVIDER_URL], sso_provider_url)
     self.assertEqual(ssoProperties[SSO_CERTIFICATE], certificate_data)
@@ -483,7 +541,6 @@ class TestSetupSso(unittest.TestCase):
     self.assertEqual(ssoProperties[JWT_AUDIENCES], sso_jwt_audience_list)
     self.assertEqual(ssoProperties[SSO_MANAGE_SERVICES], "true")
     self.assertEqual(ssoProperties[SSO_ENABLED_SERVICES], "*")
-
 
   @patch("urllib.request.urlopen")
   @patch("ambari_server.setupSso.perform_changes_via_rest_api")
@@ -493,29 +550,33 @@ class TestSetupSso(unittest.TestCase):
   @patch("ambari_server.setupSso.get_silent")
   @patch("ambari_server.setupSso.is_server_runing")
   @patch("ambari_server.setupSso.get_json_via_rest_api")
-  @patch('builtins.open')
-  def test_sso_enabled_services_are_collected_via_user_input(self, open_mock,
-                                                             get_json_via_rest_api_mock,
-                                                             is_server_runing_mock,
-                                                             get_silent_mock,
-                                                             get_ambari_properties_mock,
-                                                             get_YN_input_mock,
-                                                             get_cluster_name_mock,
-                                                             perform_changes_via_rest_api_mock,
-                                                             urlopen_mock):
+  @patch("builtins.open")
+  def test_sso_enabled_services_are_collected_via_user_input(
+    self,
+    open_mock,
+    get_json_via_rest_api_mock,
+    is_server_runing_mock,
+    get_silent_mock,
+    get_ambari_properties_mock,
+    get_YN_input_mock,
+    get_cluster_name_mock,
+    perform_changes_via_rest_api_mock,
+    urlopen_mock,
+  ):
     out = io.StringIO()
     sys.stdout = out
 
-    certificate_data = '-----BEGIN CERTIFICATE-----\n' \
-                       'MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD\n' \
-                       '................................................................\n' \
-                       'dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy\n' \
-                       '-----END CERTIFICATE-----'
+    certificate_data = (
+      "-----BEGIN CERTIFICATE-----\n"
+      "MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD\n"
+      "................................................................\n"
+      "dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy\n"
+      "-----END CERTIFICATE-----"
+    )
     mock_file = MagicFile(certificate_data)
     open_mock.side_effect = [mock_file]
 
-    eligible_services = \
-      """
+    eligible_services = """
           {
             "href": "http://c7401:8080/api/v1/clusters/cluster1/services?ServiceInfo/sso_integration_supported=true",
             "items": [
@@ -552,8 +613,8 @@ class TestSetupSso(unittest.TestCase):
             "service_name": "HDFS",
             "sso_integration_supported": True,
             "sso_integration_requires_kerberos": False,
-            "kerberos_enabled": False
-          }
+            "kerberos_enabled": False,
+          },
         },
         {
           "href": "http://c7401:8080/api/v1/clusters/cluster1/services/ZOOKEPER",
@@ -562,10 +623,10 @@ class TestSetupSso(unittest.TestCase):
             "service_name": "ZOOKEPER",
             "sso_integration_supported": True,
             "sso_integration_requires_kerberos": False,
-            "kerberos_enabled": False
-          }
-        }
-      ]
+            "kerberos_enabled": False,
+          },
+        },
+      ],
     }
 
     get_json_via_rest_api_mock.return_value = (200, {})
@@ -574,10 +635,10 @@ class TestSetupSso(unittest.TestCase):
     is_server_runing_mock.return_value = (True, 0)
     get_silent_mock.return_value = False
     get_ambari_properties_mock.return_value = Properties()
-    get_cluster_name_mock.return_value = 'cluster1'
+    get_cluster_name_mock.return_value = "cluster1"
 
     def yn_input_side_effect(*args, **kwargs):
-      if 'all services' in args[0]:
+      if "all services" in args[0]:
         return False
       else:
         return True
@@ -590,13 +651,13 @@ class TestSetupSso(unittest.TestCase):
     urlopen_mock.return_value = response
 
     options = self._create_empty_options_mock()
-    options.sso_enabled = 'true'
-    options.sso_enabled_ambari = 'true'
-    options.sso_manage_services = 'true'
-    options.sso_provider_url = 'http://testHost:8080'
-    options.sso_public_cert_file = '/test/file/path'
-    options.sso_jwt_cookie_name = 'test_cookie'
-    options.sso_jwt_audience_list = 'test, audience, list'
+    options.sso_enabled = "true"
+    options.sso_enabled_ambari = "true"
+    options.sso_manage_services = "true"
+    options.sso_provider_url = "http://testHost:8080"
+    options.sso_public_cert_file = "/test/file/path"
+    options.sso_jwt_cookie_name = "test_cookie"
+    options.sso_jwt_audience_list = "test, audience, list"
 
     setup_sso(options)
 
@@ -605,7 +666,7 @@ class TestSetupSso(unittest.TestCase):
     args, kwargs = requestCall
     requestData = args[5]
     self.assertTrue(isinstance(requestData, dict))
-    ssoProperties = requestData['Configuration']['properties']
+    ssoProperties = requestData["Configuration"]["properties"]
     self.assertEqual(ssoProperties[SSO_MANAGE_SERVICES], "true")
     self.assertEqual(ssoProperties[SSO_ENABLED_SERVICES], "HDFS,ZOOKEPER")
 

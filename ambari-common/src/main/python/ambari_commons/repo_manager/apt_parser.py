@@ -47,7 +47,7 @@ class AptParser(GenericParser):
     for line in stream:
       key, value = line.strip().split(" ", 1)
       key = key.strip("::")
-      value = value.strip(";").strip("\"").strip()
+      value = value.strip(";").strip('"').strip()
       if not value:
         continue
 
@@ -99,7 +99,9 @@ class AptParser(GenericParser):
         if field == "File":
           value = value.rpartition("/")[2]
         elif field == "Package":
-          item_set = [None] * field_count  # reset fields which were parsed before new block
+          item_set = [
+            None
+          ] * field_count  # reset fields which were parsed before new block
         item_set[fields[field]] = value
       else:
         continue
@@ -138,7 +140,9 @@ class AptParser(GenericParser):
 
       line = line[2:].lstrip()
       data = line.partition(" ")
-      pkg_name = data[0].partition(":")[0]  # for system packages in format "libuuid1:amd64"
+      pkg_name = data[0].partition(":")[
+        0
+      ]  # for system packages in format "libuuid1:amd64"
       version = data[2].strip().partition(" ")[0]
 
       if pkg_name and version:

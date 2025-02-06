@@ -19,6 +19,7 @@ limitations under the License.
 Ambari Agent
 
 """
+
 from ambari_commons.os_windows import UserHelper
 
 from resource_management.core.providers import Provider
@@ -35,25 +36,31 @@ from win32security import *
 from win32api import *
 from winerror import ERROR_INVALID_HANDLE
 from win32profile import CreateEnvironmentBlock
-from win32process import GetExitCodeProcess, STARTF_USESTDHANDLES, STARTUPINFO, CreateProcessAsUser
+from win32process import (
+  GetExitCodeProcess,
+  STARTF_USESTDHANDLES,
+  STARTUPINFO,
+  CreateProcessAsUser,
+)
 from win32event import WaitForSingleObject, INFINITE
 from win32security import *
 import msvcrt
 import tempfile
+
 
 def _create_tmp_files(env=None):
   dirname = None
   if env is None:
     env = os.environ
 
-  for env_var_name in 'TMPDIR', 'TEMP', 'TMP':
+  for env_var_name in "TMPDIR", "TEMP", "TMP":
     if env_var_name in env:
       dirname = env[env_var_name]
       if dirname and os.path.exists(dirname):
         break
 
   if dirname is None:
-    for dirname2 in r'c:\temp', r'c:\tmp', r'\temp', r'\tmp':
+    for dirname2 in r"c:\temp", r"c:\tmp", r"\temp", r"\tmp":
       try:
         os.makedirs(dirname2)
         dirname = dirname2
@@ -62,14 +69,16 @@ def _create_tmp_files(env=None):
         pass
 
   if dirname is None:
-    raise Exception('Unable to create temp dir. Insufficient access rights.')
+    raise Exception("Unable to create temp dir. Insufficient access rights.")
 
   out_file = tempfile.TemporaryFile(mode="r+b", dir=dirname)
   err_file = tempfile.TemporaryFile(mode="r+b", dir=dirname)
-  return (msvcrt.get_osfhandle(out_file.fileno()),
-          msvcrt.get_osfhandle(err_file.fileno()),
-          out_file,
-          err_file)
+  return (
+    msvcrt.get_osfhandle(out_file.fileno()),
+    msvcrt.get_osfhandle(err_file.fileno()),
+    out_file,
+    err_file,
+  )
 
 
 def _get_files_output(out, err):
@@ -80,12 +89,14 @@ def _get_files_output(out, err):
 
 def _safe_duplicate_handle(h):
   try:
-    h = DuplicateHandle(GetCurrentProcess(),
-                        h,
-                        GetCurrentProcess(),
-                        0,
-                        True,
-                        win32con.DUPLICATE_SAME_ACCESS)
+    h = DuplicateHandle(
+      GetCurrentProcess(),
+      h,
+      GetCurrentProcess(),
+      0,
+      True,
+      win32con.DUPLICATE_SAME_ACCESS,
+    )
     return True, h
   except Exception as exc:
     if exc.winerror == ERROR_INVALID_HANDLE:
@@ -93,7 +104,7 @@ def _safe_duplicate_handle(h):
   return False, None
 
 
-def _merge_env(env1, env2, merge_keys=['PYTHONPATH']):
+def _merge_env(env1, env2, merge_keys=["PYTHONPATH"]):
   """
   Merge env2 into env1. Also current python instance variables from merge_keys list taken into account and they will be
   merged with equivalent keys from env1 and env2 using system path separator.
@@ -112,7 +123,8 @@ def _merge_env(env1, env2, merge_keys=['PYTHONPATH']):
   for key, value in env1.items():
     if not key in merge_keys:
       result_env[str(key)] = str(value)
-  #merge keys from merge_keys
+
+  # merge keys from merge_keys
   def put_values(key, env, result):
     if env and key in env:
       result.extend(env[key].split(os.pathsep))
@@ -124,7 +136,8 @@ def _merge_env(env1, env2, merge_keys=['PYTHONPATH']):
     result_env[str(key)] = str(os.pathsep.join(set(all_values)))
   return result_env
 
-def AdjustPrivilege(htoken, priv, enable = 1):
+
+def AdjustPrivilege(htoken, priv, enable=1):
   # Get the ID for the privilege.
   privId = LookupPrivilegeValue(None, priv)
   # Now obtain the privilege for this token.
@@ -134,26 +147,40 @@ def AdjustPrivilege(htoken, priv, enable = 1):
   # and make the adjustment.
   AdjustTokenPrivileges(htoken, 0, newPrivileges)
 
+
 def QueryPrivilegeState(hToken, priv):
   # Get the ID for the privilege.
   privId = LookupPrivilegeValue(None, priv)
   privList = GetTokenInformation(hToken, TokenPrivileges)
   privState = 0
-  for (id, attr) in privList:
+  for id, attr in privList:
     if id == privId:
       privState = attr
-  Logger.debug('Privilege state: {0}={1} ({2}) Enabled={3}'.format(privId, priv, LookupPrivilegeDisplayName(None, priv), privState))
+  Logger.debug(
+    f"Privilege state: {privId}={priv} ({LookupPrivilegeDisplayName(None, priv)}) Enabled={privState}"
+  )
   return privState
+
 
 # Execute command. As windows hdp stack heavily relies on proper environment it is better to reload fresh environment
 # on every execution. env variable will me merged with fresh environment for user.
-def _call_command(command, logoutput=False, cwd=None, env=None, wait_for_finish=True, timeout=None, user=None):
+def _call_command(
+  command,
+  logoutput=False,
+  cwd=None,
+  env=None,
+  wait_for_finish=True,
+  timeout=None,
+  user=None,
+):
   # TODO implement timeout, wait_for_finish
-  Logger.info("Executing %s" % (command))
+  Logger.info(f"Executing {command}")
   if user:
     domain, username = UserHelper.parse_user_name(user, ".")
 
-    proc_token = OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY | TOKEN_ADJUST_PRIVILEGES)
+    proc_token = OpenProcessToken(
+      GetCurrentProcess(), TOKEN_QUERY | TOKEN_ADJUST_PRIVILEGES
+    )
 
     old_states = []
 
@@ -167,9 +194,16 @@ def _call_command(command, logoutput=False, cwd=None, env=None, wait_for_finish=
       AdjustPrivilege(proc_token, priv)
       QueryPrivilegeState(proc_token, priv)
 
-    user_token = LogonUser(username, domain, Script.get_password(user), win32con.LOGON32_LOGON_SERVICE,
-                           win32con.LOGON32_PROVIDER_DEFAULT)
-    env_token = DuplicateTokenEx(user_token, SecurityIdentification, TOKEN_QUERY, TokenPrimary)
+    user_token = LogonUser(
+      username,
+      domain,
+      Script.get_password(user),
+      win32con.LOGON32_LOGON_SERVICE,
+      win32con.LOGON32_PROVIDER_DEFAULT,
+    )
+    env_token = DuplicateTokenEx(
+      user_token, SecurityIdentification, TOKEN_QUERY, TokenPrimary
+    )
     # getting updated environment for impersonated user and merge it with custom env
     current_env = CreateEnvironmentBlock(env_token, False)
     current_env = _merge_env(current_env, env)
@@ -186,13 +220,26 @@ def _call_command(command, logoutput=False, cwd=None, env=None, wait_for_finish=
     if not ok:
       raise Exception("Unable to create StdErr for child process")
 
-    Logger.debug("Redirecting stdout to '{0}', stderr to '{1}'".format(out_file.name, err_file.name))
+    Logger.debug(
+      f"Redirecting stdout to '{out_file.name}', stderr to '{err_file.name}'"
+    )
 
     si.dwFlags = win32con.STARTF_USESTDHANDLES
     si.lpDesktop = ""
 
     try:
-      info = CreateProcessAsUser(user_token, None, command, None, None, 1, win32con.CREATE_NO_WINDOW, current_env, cwd, si)
+      info = CreateProcessAsUser(
+        user_token,
+        None,
+        command,
+        None,
+        None,
+        1,
+        win32con.CREATE_NO_WINDOW,
+        current_env,
+        cwd,
+        si,
+      )
       hProcess, hThread, dwProcessId, dwThreadId = info
       hThread.Close()
 
@@ -211,8 +258,15 @@ def _call_command(command, logoutput=False, cwd=None, env=None, wait_for_finish=
     cur_token = OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY)
     current_env = CreateEnvironmentBlock(cur_token, False)
     current_env = _merge_env(current_env, env)
-    proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                            cwd=cwd, env=current_env, shell=False, universal_newlines=True)
+    proc = subprocess.Popen(
+      command,
+      stdout=subprocess.PIPE,
+      stderr=subprocess.STDOUT,
+      cwd=cwd,
+      env=current_env,
+      shell=False,
+      universal_newlines=True,
+    )
     out, err = proc.communicate()
     code = proc.returncode
 
@@ -225,14 +279,14 @@ def _call_command(command, logoutput=False, cwd=None, env=None, wait_for_finish=
 
 # see msdn Icacls doc for rights
 def _set_file_acl(file, user, rights):
-  acls_modify_cmd = "icacls {0} /grant {1}:{2}".format(file, user, rights)
-  acls_remove_cmd = "icacls {0} /remove {1}".format(file, user)
+  acls_modify_cmd = f"icacls {file} /grant {user}:{rights}"
+  acls_remove_cmd = f"icacls {file} /remove {user}"
   code, out, err = _call_command(acls_remove_cmd)
   if code != 0:
-    raise Fail("Can not remove rights for path {0} and user {1}".format(file, user))
+    raise Fail(f"Can not remove rights for path {file} and user {user}")
   code, out, err = _call_command(acls_modify_cmd)
   if code != 0:
-    raise Fail("Can not set rights {0} for path {1} and user {2}".format(file, user))
+    raise Fail(f"Can not set rights for path {file} and user {user}")
   else:
     return
 
@@ -242,11 +296,15 @@ class FileProvider(Provider):
     path = self.resource.path
 
     if os.path.isdir(path):
-      raise Fail("Applying %s failed, directory with name %s exists" % (self.resource, path))
+      raise Fail(
+        f"Applying {self.resource} failed, directory with name {path} exists"
+      )
 
     dirname = os.path.dirname(path)
     if not os.path.isdir(dirname):
-      raise Fail("Applying %s failed, parent directory %s doesn't exist" % (self.resource, dirname))
+      raise Fail(
+        f"Applying {self.resource} failed, parent directory {dirname} doesn't exist"
+      )
 
     write = False
     content = self._get_content()
@@ -264,7 +322,7 @@ class FileProvider(Provider):
             self.resource.env.backup_file(path)
 
     if write:
-      Logger.info("Writing %s because %s" % (self.resource, reason))
+      Logger.info(f"Writing {self.resource} because {reason}")
       with open(path, "wb") as fp:
         if content:
           fp.write(content)
@@ -276,10 +334,12 @@ class FileProvider(Provider):
     path = self.resource.path
 
     if os.path.isdir(path):
-      raise Fail("Applying %s failed, %s is directory not file!" % (self.resource, path))
+      raise Fail(
+        f"Applying {self.resource} failed, {path} is directory not file!"
+      )
 
     if os.path.exists(path):
-      Logger.info("Deleting %s" % self.resource)
+      Logger.info(f"Deleting {self.resource}")
       os.unlink(path)
 
   def _get_content(self):
@@ -290,7 +350,7 @@ class FileProvider(Provider):
       return content
     elif hasattr(content, "__call__"):
       return content()
-    raise Fail("Unknown source type for %s: %r" % (self, content))
+    raise Fail(f"Unknown source type for {self}: {content!r}")
 
 
 class ExecuteProvider(Provider):
@@ -299,20 +359,25 @@ class ExecuteProvider(Provider):
       if os.path.exists(self.resource.creates):
         return
 
-    Logger.debug("Executing %s" % self.resource)
+    Logger.debug(f"Executing {self.resource}")
 
     if self.resource.path != []:
       if not self.resource.environment:
         self.resource.environment = {}
 
-      self.resource.environment['PATH'] = os.pathsep.join(self.resource.path)
+      self.resource.environment["PATH"] = os.pathsep.join(self.resource.path)
 
     for i in range(0, self.resource.tries):
       try:
-        code, _, _ = _call_command(self.resource.command, logoutput=self.resource.logoutput,
-                                   cwd=self.resource.cwd, env=self.resource.environment,
-                                   wait_for_finish=self.resource.wait_for_finish,
-                                   timeout=self.resource.timeout, user=self.resource.user)
+        code, _, _ = _call_command(
+          self.resource.command,
+          logoutput=self.resource.logoutput,
+          cwd=self.resource.cwd,
+          env=self.resource.environment,
+          wait_for_finish=self.resource.wait_for_finish,
+          timeout=self.resource.timeout,
+          user=self.resource.user,
+        )
         if code != 0 and not self.resource.ignore_failures:
           raise Fail("Failed to execute " + self.resource.command)
         break
@@ -320,14 +385,20 @@ class ExecuteProvider(Provider):
         if i == self.resource.tries - 1:  # last try
           raise ex
         else:
-          Logger.info("Retrying after %d seconds. Reason: %s" % (self.resource.try_sleep, str(ex)))
+          Logger.info(
+            "Retrying after %d seconds. Reason: %s" % (self.resource.try_sleep, str(ex))
+          )
           time.sleep(self.resource.try_sleep)
       except ExecuteTimeoutException:
         err_msg = ("Execution of '%s' was killed due timeout after %d seconds") % (
-          self.resource.command, self.resource.timeout)
+          self.resource.command,
+          self.resource.timeout,
+        )
 
         if self.resource.on_timeout:
-          Logger.info("Executing '%s'. Reason: %s" % (self.resource.on_timeout, err_msg))
+          Logger.info(
+            f"Executing '{self.resource.on_timeout}'. Reason: {err_msg}"
+          )
           _call_command(self.resource.on_timeout)
         else:
           raise Fail(err_msg)
@@ -337,18 +408,21 @@ class DirectoryProvider(Provider):
   def action_create(self):
     path = DirectoryProvider._trim_uri(self.resource.path)
     if not os.path.exists(path):
-      Logger.info("Creating directory %s" % self.resource)
+      Logger.info(f"Creating directory {self.resource}")
       if self.resource.recursive:
         os.makedirs(path)
       else:
         dirname = os.path.dirname(path)
         if not os.path.isdir(dirname):
-          raise Fail("Applying %s failed, parent directory %s doesn't exist" % (self.resource, dirname))
+          raise Fail(
+            "Applying %s failed, parent directory %s doesn't exist"
+            % (self.resource, dirname)
+          )
 
         os.mkdir(path)
 
     if not os.path.isdir(path):
-      raise Fail("Applying %s failed, file %s already exists" % (self.resource, path))
+      raise Fail(f"Applying {self.resource} failed, file {path} already exists")
 
     if self.resource.owner and self.resource.mode:
       _set_file_acl(path, self.resource.owner, self.resource.mode)
@@ -357,9 +431,9 @@ class DirectoryProvider(Provider):
     path = self.resource.path
     if os.path.exists(path):
       if not os.path.isdir(path):
-        raise Fail("Applying %s failed, %s is not a directory" % (self.resource, path))
+        raise Fail(f"Applying {self.resource} failed, {path} is not a directory")
 
-      Logger.info("Removing directory %s and all its content" % self.resource)
+      Logger.info(f"Removing directory {self.resource} and all its content")
       shutil.rmtree(path)
 
   @staticmethod

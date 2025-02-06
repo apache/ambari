@@ -21,18 +21,23 @@ limitations under the License.
 import os
 import socket
 
-from resource_management.libraries.functions.check_process_status import check_process_status
+from resource_management.libraries.functions.check_process_status import (
+  check_process_status,
+)
 from resource_management.core.exceptions import ComponentIsNotRunning
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
 if OSCheck.is_windows_family():
-  from resource_management.libraries.functions.windows_service_utils import check_windows_service_status
-RESULT_CODE_OK = 'OK'
-RESULT_CODE_CRITICAL = 'CRITICAL'
-RESULT_CODE_UNKNOWN = 'UNKNOWN'
+  from resource_management.libraries.functions.windows_service_utils import (
+    check_windows_service_status,
+  )
+RESULT_CODE_OK = "OK"
+RESULT_CODE_CRITICAL = "CRITICAL"
+RESULT_CODE_UNKNOWN = "UNKNOWN"
 
-AMS_MONITOR_PID_DIR = '{{ams-env/metrics_monitor_pid_dir}}'
+AMS_MONITOR_PID_DIR = "{{ams-env/metrics_monitor_pid_dir}}"
+
 
 def get_tokens():
   """
@@ -40,6 +45,7 @@ def get_tokens():
   to build the dictionary passed into execute
   """
   return (AMS_MONITOR_PID_DIR,)
+
 
 @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
 def is_monitor_process_live(pid_file=None):
@@ -54,6 +60,7 @@ def is_monitor_process_live(pid_file=None):
   except:
     ams_monitor_process_running = False
   return ams_monitor_process_running
+
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def is_monitor_process_live(pid_file):
@@ -84,12 +91,17 @@ def execute(configurations={}, parameters={}, host_name=None):
   """
 
   if configurations is None:
-    return (RESULT_CODE_UNKNOWN, ['There were no configurations supplied to the script.'])
+    return (
+      RESULT_CODE_UNKNOWN,
+      ["There were no configurations supplied to the script."],
+    )
 
   if set([AMS_MONITOR_PID_DIR]).issubset(configurations):
-    AMS_MONITOR_PID_PATH = os.path.join(configurations[AMS_MONITOR_PID_DIR], 'ambari-metrics-monitor.pid')
+    AMS_MONITOR_PID_PATH = os.path.join(
+      configurations[AMS_MONITOR_PID_DIR], "ambari-metrics-monitor.pid"
+    )
   else:
-    return (RESULT_CODE_UNKNOWN, ['The ams_monitor_pid_dir is a required parameter.'])
+    return (RESULT_CODE_UNKNOWN, ["The ams_monitor_pid_dir is a required parameter."])
 
   if host_name is None:
     host_name = socket.getfqdn()
@@ -98,7 +110,11 @@ def execute(configurations={}, parameters={}, host_name=None):
 
   alert_state = RESULT_CODE_OK if ams_monitor_process_running else RESULT_CODE_CRITICAL
 
-  alert_label = 'Ambari Monitor is running on {0}' if ams_monitor_process_running else 'Ambari Monitor is NOT running on {0}'
+  alert_label = (
+    "Ambari Monitor is running on {0}"
+    if ams_monitor_process_running
+    else "Ambari Monitor is NOT running on {0}"
+  )
   alert_label = alert_label.format(host_name)
 
   return (alert_state, [alert_label])

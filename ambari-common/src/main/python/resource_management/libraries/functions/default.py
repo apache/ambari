@@ -20,13 +20,14 @@ Ambari Agent
 
 """
 
-__all__ = ['default', 'default_string']
+__all__ = ["default", "default_string"]
 from resource_management.libraries.script import Script
 from resource_management.libraries.script.config_dictionary import UnknownConfiguration
 from resource_management.core.logger import Logger
 
+
 def default(name, default_value):
-  subdicts = [_f for _f in name.split('/') if _f]
+  subdicts = [_f for _f in name.split("/") if _f]
 
   curr_dict = Script.get_config()
   if not curr_dict:
@@ -38,6 +39,7 @@ def default(name, default_value):
       return default_value
 
   return curr_dict
+
 
 def default_string(name, default_value, delimiter):
   default_list = default(name, default_value)

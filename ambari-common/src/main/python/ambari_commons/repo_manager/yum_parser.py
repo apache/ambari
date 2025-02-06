@@ -61,7 +61,7 @@ class YumParser(GenericParser):
     for line in stream:
       key, value = line.strip().split(" ", 1)
       key = key.strip("::")
-      value = value.strip(";").strip("\"").strip()
+      value = value.strip(";").strip('"').strip()
       if not value:
         continue
 
@@ -89,21 +89,20 @@ class YumParser(GenericParser):
       skip_index = 0
 
     for line in lines[skip_index:]:
-      items = items + line.strip(' \t\n\r').split()
+      items = items + line.strip(" \t\n\r").split()
 
     items_count = len(items)
 
     for i in range(0, items_count, 3):
-
       # check if we reach the end
-      if i+3 > items_count:
+      if i + 3 > items_count:
         break
 
-      if '.' in items[i]:
-        items[i] = items[i][:items[i].rindex('.')]
-      if items[i + 2].find('@') == 0:
+      if "." in items[i]:
+        items[i] = items[i][: items[i].rindex(".")]
+      if items[i + 2].find("@") == 0:
         items[i + 2] = items[i + 2][1:]
-      packages.append(items[i:i + 3])
+      packages.append(items[i : i + 3])
 
     return packages
 
@@ -131,11 +130,15 @@ class YumParser(GenericParser):
     bash.x86_64                              4.1.2-48.el6                @CentOS/6.9
     bind-libs.x86_64                         32:9.8.2-0.62.rc1.el6_9.4   @Updates/6.9
     """
-    remove_chars_map = str.maketrans('', '', REMOVE_CHARS)
+    remove_chars_map = str.maketrans("", "", REMOVE_CHARS)
     for line in stream:
-      line = ANSI_ESCAPE.sub('', line).translate(remove_chars_map)  # strip sh control seq. and ascii control ch.
+      line = ANSI_ESCAPE.sub("", line).translate(
+        remove_chars_map
+      )  # strip sh control seq. and ascii control ch.
       pkg_name, _, line = line.lstrip().partition(" ")
-      pkg_name, _, _ = str(pkg_name).rpartition(".")  # cut architecture from package name
+      pkg_name, _, _ = str(pkg_name).rpartition(
+        "."
+      )  # cut architecture from package name
       pkg_version, _, line = line.lstrip().partition(" ")
       if not pkg_version[:1].isdigit():
         continue

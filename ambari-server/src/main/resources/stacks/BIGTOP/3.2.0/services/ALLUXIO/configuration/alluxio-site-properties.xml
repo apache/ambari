@@ -1,0 +1,153 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_final="true">
+  <property>
+    <name>alluxio.master.rpc.port</name>
+    <description>alluxio.master.rpc.port</description>
+    <value>19998</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>alluxio.master.web.port</name>
+    <description>alluxio.master.web.port</description>
+    <value>19999</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>alluxio.worker.rpc.port</name>
+    <description>alluxio.worker.rpc.port</description>
+    <value>29999</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>alluxio.worker.web.port</name>
+    <description>alluxio.worker.web.port</description>
+    <value>30000</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>alluxio.worker.memory</name>
+    <description>Alluxio Worker Memory(GB)</description>
+    <value>1GB</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>alluxio.underfs.hdfs.address</name>
+    <description>Alluxio UnderFS hdfs Address</description>
+    <value>/alluxio/underFSStorage</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>alluxio.master.metastore.dir</name>
+    <description>Alluxio UnderFS Address</description>
+    <value>/usr/bigtop/current/alluxio/metastore</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>content</name>
+    <description>alluxio-log4j-properties</description>
+    <value>
+#
+# The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+# (the "License"). You may not use this work except in compliance with the License, which is
+# available at www.apache.org/licenses/LICENSE-2.0
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied, as more fully set forth in the License.
+#
+# See the NOTICE file distributed with this work for information regarding copyright ownership.
+#
+
+# Site specific configuration properties for Alluxio
+# Details about all configuration properties https://docs.alluxio.io/os/user/stable/en/reference/Properties-List.html
+
+# Common properties
+# alluxio.master.hostname=localhost
+# alluxio.master.mount.table.root.ufs=${alluxio.work.dir}/underFSStorage
+
+alluxio.master.hostname={{alluxio_master_host}}
+#alluxio.master.mount.table.root.ufs={{namenode_address}}/alluxio/root/
+alluxio.underfs.address={{underfs_hdfs_addr}}
+alluxio.underfs.hdfs.configuration=/etc/hadoop/conf/core-site.xml:/etc/hadoop/conf/hdfs-site.xml
+
+alluxio.master.metastore.dir={{alluxio_master_metastore_dir}}
+
+#ha
+#alluxio.master.embedded.journal.addresses
+{{master_embedded_journal_addresses_config}}
+
+# Security properties
+# alluxio.security.authorization.permission.enabled=true
+# alluxio.security.authentication.type=SIMPLE
+
+alluxio.hadoop.security.authentication={{alluxio_authentication}}
+alluxio.master.mount.table.root.option.alluxio.security.underfs.hdfs.kerberos.client.keytab.file={{alluxio_kerberos_keytab}}
+alluxio.master.mount.table.root.option.alluxio.security.underfs.hdfs.kerberos.client.principal={{alluxio_kerberos_principal}}
+alluxio.master.mount.table.root.option.alluxio.security.underfs.hdfs.impersonation.enabled=true
+alluxio.master.security.impersonation.yarn.users=*
+
+# 
+# alluxio.worker.tieredstore.levels=1
+# alluxio.worker.tieredstore.level0.alias=MEM
+# alluxio.worker.tieredstore.level0.dirs.path=/mnt/ramdisk
+
+# Worker properties
+alluxio.worker.ramdisk.size=1GB
+alluxio.worker.tieredstore.levels=1
+alluxio.worker.tieredstore.level0.alias=MEM
+alluxio.worker.tieredstore.level0.dirs.path=/mnt/ramdisk
+alluxio.worker.tieredstore.level0.dirs.quota={{worker_mem}}
+alluxio.worker.tieredstore.level0.watermark.high.ratio=0.9
+alluxio.worker.tieredstore.level0.watermark.low.ratio=0.7
+
+#alluxio.worker.tieredstore.level1.alias=SSD
+#alluxio.worker.tieredstore.level1.dirs.path=/data/alluxio
+#alluxio.worker.tieredstore.level1.dirs.quota=25GB
+#alluxio.worker.tieredstore.level1.watermark.high.ratio=0.9
+#alluxio.worker.tieredstore.level1.watermark.low.ratio=0.7
+
+alluxio.worker.tieredstore.level1.alias=HDD
+alluxio.worker.tieredstore.level1.dirs.path={{hdd_dirs}}
+alluxio.worker.tieredstore.level1.dirs.quota={{hdd_quota}}
+alluxio.worker.tieredstore.level1.watermark.high.ratio=0.9
+alluxio.worker.tieredstore.level1.watermark.low.ratio=0.7
+
+# User properties
+# alluxio.user.file.readtype.default=CACHE
+# alluxio.user.file.writetype.default=ASYNC_THROUGH
+
+#port
+alluxio.master.rpc.port={{alluxio_master_rpc_port}}
+alluxio.master.web.port={{alluxio_master_web_port}}
+
+alluxio.worker.rpc.port={{alluxio_worker_rpc_port}}
+alluxio.worker.web.port={{alluxio_worker_web_port}}
+
+        </value>
+    </property>
+</configuration>

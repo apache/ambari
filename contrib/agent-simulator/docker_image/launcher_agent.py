@@ -69,7 +69,7 @@ def set_weave_ip(weave_ip):
         for index in range(len(all_resolution)):
             if index == 0:
                 token = all_resolution[index].split()
-                etc_hosts.write("{0} {1} {2}\n".format(weave_ip, token[1], token[2]))
+                etc_hosts.write(f"{weave_ip} {token[1]} {token[2]}\n")
             else:
                 etc_hosts.write(all_resolution[index])
 

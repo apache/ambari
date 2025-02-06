@@ -31,6 +31,7 @@ logger = logging.getLogger()
 REFRESH_HEADER = "refresh"
 REFRESH_HEADER_URL_KEY = "url"
 
+
 class RefreshHeaderProcessor(BaseHandler):
   """
   Examines responses from urllib2 and determines if there is a refresh header
@@ -39,6 +40,7 @@ class RefreshHeaderProcessor(BaseHandler):
   re-execute the query. If at any point, the parsing fails, then return the
   original response.
   """
+
   def __init__(self):
     """
     Initialization
@@ -77,21 +79,21 @@ class RefreshHeaderProcessor(BaseHandler):
 
       # at this point the header should resemble
       # Refresh: 3; url=http://c6403.ambari.apache.org:8088/
-      semicolon_index = str.find(refresh_header, ';')
+      semicolon_index = str.find(refresh_header, ";")
 
       # slice the redirect URL out of
       # 3; url=http://c6403.ambari.apache.org:8088/jmx"
       if semicolon_index >= 0:
-        redirect_url_key_value_pair = refresh_header[semicolon_index+1:]
+        redirect_url_key_value_pair = refresh_header[semicolon_index + 1 :]
       else:
         redirect_url_key_value_pair = refresh_header
 
-      equals_index = str.find(redirect_url_key_value_pair, '=')
+      equals_index = str.find(redirect_url_key_value_pair, "=")
       key = redirect_url_key_value_pair[:equals_index]
-      redirect_url = redirect_url_key_value_pair[equals_index+1:]
+      redirect_url = redirect_url_key_value_pair[equals_index + 1 :]
 
       if key.strip().lower() != REFRESH_HEADER_URL_KEY:
-        logger.warning("Unable to parse refresh header {0}".format(refresh_header))
+        logger.warning(f"Unable to parse refresh header {refresh_header}")
         return response
 
       # extract out just host:port
@@ -103,15 +105,23 @@ class RefreshHeaderProcessor(BaseHandler):
 
       # build a brand new URL by swapping out the original request URL's
       # netloc with the redirect's netloc
-      redirect_url = urlunparse(ParseResult(original_url_parts.scheme,
-        redirect_netloc, original_url_parts.path, original_url_parts.params,
-        original_url_parts.query, original_url_parts.fragment))
+      redirect_url = urlunparse(
+        ParseResult(
+          original_url_parts.scheme,
+          redirect_netloc,
+          original_url_parts.path,
+          original_url_parts.params,
+          original_url_parts.query,
+          original_url_parts.fragment,
+        )
+      )
 
       # follow the new new and return the response
       return self.parent.open(redirect_url)
     except Exception as exception:
-      logger.error("Unable to follow refresh header {0}. {1}".format(
-        refresh_header, str(exception)))
+      logger.error(
+        f"Unable to follow refresh header {refresh_header}. {str(exception)}"
+      )
 
     # return the original response
     return response

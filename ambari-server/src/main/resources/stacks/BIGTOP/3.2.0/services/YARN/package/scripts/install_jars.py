@@ -22,6 +22,7 @@ from resource_management.libraries.functions.format import format
 import os
 import glob
 
+
 def install_tez_jars():
   import params
 
@@ -30,11 +31,12 @@ def install_tez_jars():
   # If tez libraries are to be stored in hdfs
   if destination_hdfs_dirs:
     for hdfs_dir in destination_hdfs_dirs:
-      params.HdfsResource(hdfs_dir,
-                           type="directory",
-                           action="create_on_execute",
-                           owner=params.tez_user,
-                           mode=0o755
+      params.HdfsResource(
+        hdfs_dir,
+        type="directory",
+        action="create_on_execute",
+        owner=params.tez_user,
+        mode=0o755,
       )
 
     app_dir_path = None
@@ -42,7 +44,7 @@ def install_tez_jars():
 
     if len(destination_hdfs_dirs) > 0:
       for path in destination_hdfs_dirs:
-        if 'lib' in path:
+        if "lib" in path:
           lib_dir_path = path
         else:
           app_dir_path = path
@@ -59,39 +61,43 @@ def install_tez_jars():
     for src_file_regex, dest_dir in tez_jars.items():
       for src_filepath in glob.glob(src_file_regex):
         src_filename = os.path.basename(src_filepath)
-        params.HdfsResource(format("{dest_dir}/{src_filename}"),
-                            type="file",
-                            action="create_on_execute",
-                            source=src_filepath,
-                            mode=0o755,
-                            owner=params.tez_user
-         )
-        
+        params.HdfsResource(
+          format("{dest_dir}/{src_filename}"),
+          type="file",
+          action="create_on_execute",
+          source=src_filepath,
+          mode=0o755,
+          owner=params.tez_user,
+        )
+
     for src_file_regex, dest_dir in tez_jars.items():
       for src_filepath in glob.glob(src_file_regex):
         src_filename = os.path.basename(src_filepath)
-        params.HdfsResource(format("{dest_dir}/{src_filename}"),
-                            type="file",
-                            action="create_on_execute",
-                            source=src_filepath,
-                            mode=0o755,
-                            owner=params.tez_user
-         )
+        params.HdfsResource(
+          format("{dest_dir}/{src_filename}"),
+          type="file",
+          action="create_on_execute",
+          source=src_filepath,
+          mode=0o755,
+          owner=params.tez_user,
+        )
     params.HdfsResource(None, action="execute")
 
 
-def get_tez_hdfs_dir_paths(tez_lib_uris = None):
-  hdfs_path_prefix = 'hdfs://'
+def get_tez_hdfs_dir_paths(tez_lib_uris=None):
+  hdfs_path_prefix = "hdfs://"
   lib_dir_paths = []
   if tez_lib_uris and tez_lib_uris.strip().find(hdfs_path_prefix, 0) != -1:
-    dir_paths = tez_lib_uris.split(',')
+    dir_paths = tez_lib_uris.split(",")
     for path in dir_paths:
       if not "tez.tar.gz" in path:
-        lib_dir_path = path.replace(hdfs_path_prefix, '')
-        lib_dir_path = lib_dir_path if lib_dir_path.endswith(os.sep) else lib_dir_path + os.sep
+        lib_dir_path = path.replace(hdfs_path_prefix, "")
+        lib_dir_path = (
+          lib_dir_path if lib_dir_path.endswith(os.sep) else lib_dir_path + os.sep
+        )
         lib_dir_paths.append(lib_dir_path)
       else:
-        lib_dir_path = path.replace(hdfs_path_prefix, '')
+        lib_dir_path = path.replace(hdfs_path_prefix, "")
         lib_dir_paths.append(os.path.dirname(lib_dir_path))
     pass
   pass

@@ -39,13 +39,13 @@ import org.apache.ambari.server.controller.jmx.JMXMetricHolder;
 import org.apache.ambari.server.controller.utilities.ScalingThreadPoolExecutor;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.apache.commons.io.IOUtils;
-import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.ObjectReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Sets;
@@ -182,7 +182,7 @@ public class MetricsRetrievalService extends AbstractService {
    */
   public MetricsRetrievalService() {
     ObjectMapper jmxObjectMapper = new ObjectMapper();
-    jmxObjectMapper.configure(DeserializationConfig.Feature.USE_ANNOTATIONS, false);
+    jmxObjectMapper.configure(MapperFeature.USE_ANNOTATIONS, false);
     jmxObjectMapper.configure(JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS, true);
     m_jmxObjectReader = jmxObjectMapper.reader(JMXMetricHolder.class);
   }

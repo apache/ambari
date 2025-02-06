@@ -21,12 +21,20 @@ Ambari Agent
 """
 
 import time
-__all__ = ['retry', 'safe_retry', 'experimental' ]
+
+__all__ = ["retry", "safe_retry", "experimental"]
 
 from resource_management.core.logger import Logger
 
 
-def retry(times=3, sleep_time=1, max_sleep_time=8, backoff_factor=1, err_class=Exception, timeout_func=None):
+def retry(
+  times=3,
+  sleep_time=1,
+  max_sleep_time=8,
+  backoff_factor=1,
+  err_class=Exception,
+  timeout_func=None,
+):
   """
   Retry decorator for improved robustness of functions.
   :param times: Number of times to attempt to call the function.  Optionally specify the timeout_func.
@@ -37,6 +45,7 @@ def retry(times=3, sleep_time=1, max_sleep_time=8, backoff_factor=1, err_class=E
          return an integer value that indicates the number of seconds to wait
   :return: Returns the output of the wrapped function.
   """
+
   def decorator(function):
     def wrapper(*args, **kwargs):
       _times = times
@@ -53,18 +62,31 @@ def retry(times=3, sleep_time=1, max_sleep_time=8, backoff_factor=1, err_class=E
         try:
           return function(*args, **kwargs)
         except _err_class as err:
-          Logger.info("Will retry %d time(s), caught exception: %s. Sleeping for %d sec(s)" % (_times, str(err), _sleep_time))
+          Logger.info(
+            "Will retry %d time(s), caught exception: %s. Sleeping for %d sec(s)"
+            % (_times, str(err), _sleep_time)
+          )
           time.sleep(_sleep_time)
 
         if _sleep_time * _backoff_factor <= max_sleep_time:
           _sleep_time *= _backoff_factor
 
       return function(*args, **kwargs)
+
     return wrapper
+
   return decorator
 
 
-def safe_retry(times=3, sleep_time=1, max_sleep_time=8, backoff_factor=1, err_class=Exception, return_on_fail=None, timeout_func=None):
+def safe_retry(
+  times=3,
+  sleep_time=1,
+  max_sleep_time=8,
+  backoff_factor=1,
+  err_class=Exception,
+  return_on_fail=None,
+  timeout_func=None,
+):
   """
   Retry decorator for improved robustness of functions. Instead of error generation on the last try, will return
   return_on_fail value.
@@ -77,6 +99,7 @@ def safe_retry(times=3, sleep_time=1, max_sleep_time=8, backoff_factor=1, err_cl
          return an integer value that indicates the number of seconds to wait
   :return: Returns the output of the wrapped function.
   """
+
   def decorator(function):
     def wrapper(*args, **kwargs):
       _times = times
@@ -94,9 +117,12 @@ def safe_retry(times=3, sleep_time=1, max_sleep_time=8, backoff_factor=1, err_cl
         try:
           return function(*args, **kwargs)
         except _err_class as err:
-          Logger.info("Will retry %d time(s), caught exception: %s. Sleeping for %d sec(s)" % (_times, str(err), _sleep_time))
+          Logger.info(
+            "Will retry %d time(s), caught exception: %s. Sleeping for %d sec(s)"
+            % (_times, str(err), _sleep_time)
+          )
           time.sleep(_sleep_time)
-        if(_sleep_time * _backoff_factor <= max_sleep_time):
+        if _sleep_time * _backoff_factor <= max_sleep_time:
           _sleep_time *= _backoff_factor
 
       try:
@@ -106,6 +132,7 @@ def safe_retry(times=3, sleep_time=1, max_sleep_time=8, backoff_factor=1, err_cl
         return _return_on_fail
 
     return wrapper
+
   return decorator
 
 
@@ -115,8 +142,9 @@ def experimental(feature=None, comment=None, disable=False):
   :param feature:  the feature area that is experimental
   :param comment:  the comment to log
   :param disable  True to skip invocation of the method entirely, defaults to False.
-  :return: 
+  :return:
   """
+
   def decorator(function):
     def wrapper(*args, **kwargs):
       if comment:
@@ -124,6 +152,7 @@ def experimental(feature=None, comment=None, disable=False):
 
       if not disable:
         return function(*args, **kwargs)
-    return wrapper
-  return decorator
 
+    return wrapper
+
+  return decorator

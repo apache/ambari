@@ -17,7 +17,7 @@
  */
 package org.apache.ambari.server.agent;
 
-import org.codehaus.jackson.annotate.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Status of the host as described by the agent.
@@ -43,25 +43,21 @@ public class HostStatus {
   }
 
   @JsonProperty("status")
-  @com.fasterxml.jackson.annotation.JsonProperty("status")
   public Status getStatus() {
     return status;
   }
 
   @JsonProperty("status")
-  @com.fasterxml.jackson.annotation.JsonProperty("status")
   public void setStatus(Status status) {
     this.status = status;
   }
 
   @JsonProperty("cause")
-  @com.fasterxml.jackson.annotation.JsonProperty("cause")
   public String getCause() {
     return cause;
   }
 
   @JsonProperty("cause")
-  @com.fasterxml.jackson.annotation.JsonProperty("cause")
   public void setCause(String cause) {
     this.cause = cause;
   }

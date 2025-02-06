@@ -31,12 +31,18 @@ from resource_management.core import shell
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions.decorator import experimental
 
+
 class UpgradeSetAll(Script):
   """
   This script is a part of stack upgrade workflow and is used to set the
   all of the component versions as a final step in the upgrade process
   """
-  @experimental(feature="PATCH_UPGRADES", disable = False, comment = "The stack-select tool will only be invoked if this is a standard upgrade which cannot be downgraded.")
+
+  @experimental(
+    feature="PATCH_UPGRADES",
+    disable=False,
+    comment="The stack-select tool will only be invoked if this is a standard upgrade which cannot be downgraded.",
+  )
   def actionexecute(self, env):
     summary = upgrade_summary.get_upgrade_summary()
     if summary is None:
@@ -48,19 +54,29 @@ class UpgradeSetAll(Script):
       return
 
     if summary.orchestration != "STANDARD":
-      Logger.warning("The 'stack-select set all' command can only be invoked during STANDARD upgrades")
+      Logger.warning(
+        "The 'stack-select set all' command can only be invoked during STANDARD upgrades"
+      )
       return
 
-    if summary.direction.lower() != Direction.UPGRADE or summary.is_downgrade_allowed or summary.is_revert:
-      Logger.warning("The 'stack-select set all' command can only be invoked during an UPGRADE which cannot be downgraded")
+    if (
+      summary.direction.lower() != Direction.UPGRADE
+      or summary.is_downgrade_allowed
+      or summary.is_revert
+    ):
+      Logger.warning(
+        "The 'stack-select set all' command can only be invoked during an UPGRADE which cannot be downgraded"
+      )
       return
 
     # other os?
     if OSCheck.is_redhat_family():
-      cmd = ('/usr/bin/yum', 'clean', 'all')
+      cmd = ("/usr/bin/yum", "clean", "all")
       code, out = shell.call(cmd, sudo=True)
 
-    stack_selector_path = stack_tools.get_stack_tool_path(stack_tools.STACK_SELECTOR_NAME)
+    stack_selector_path = stack_tools.get_stack_tool_path(
+      stack_tools.STACK_SELECTOR_NAME
+    )
 
     # this script runs on all hosts; if this host doesn't have stack components,
     # then don't invoke the stack tool
@@ -69,10 +85,16 @@ class UpgradeSetAll(Script):
       return
 
     # invoke "set all"
-    cmd = ('ambari-python-wrap', stack_selector_path, 'set', 'all', summary.associated_version)
+    cmd = (
+      "ambari-python-wrap",
+      stack_selector_path,
+      "set",
+      "all",
+      summary.associated_version,
+    )
     code, out = shell.call(cmd, sudo=True)
     if code != 0:
-      raise Exception("Command '{0}' exit code is nonzero".format(cmd))
+      raise Exception(f"Command '{cmd}' exit code is nonzero")
 
 
 def is_host_skippable(stack_selector_path, associated_version):
@@ -83,30 +105,36 @@ def is_host_skippable(stack_selector_path, associated_version):
   :return: True if this host should be skipped, False otherwise.
   """
   if not os.path.exists(stack_selector_path):
-    Logger.info("{0} does not have any stack components installed and will not invoke {1}".format(
-      socket.gethostname(), stack_selector_path))
+    Logger.info(
+      "{0} does not have any stack components installed and will not invoke {1}".format(
+        socket.gethostname(), stack_selector_path
+      )
+    )
 
     return True
 
   # invoke the tool, checking its output
-  cmd = ('ambari-python-wrap', stack_selector_path, "versions")
+  cmd = ("ambari-python-wrap", stack_selector_path, "versions")
   code, out = shell.call(cmd, sudo=True)
 
   if code != 0:
-    Logger.info("{0} is unable to determine which stack versions are available using {1}".format(
-        socket.gethostname(), stack_selector_path))
+    Logger.info(
+      "{0} is unable to determine which stack versions are available using {1}".format(
+        socket.gethostname(), stack_selector_path
+      )
+    )
 
     return True
 
   # check to see if the output is empty, indicating no versions installed
   if not out.strip():
-    Logger.info("{0} has no stack versions installed".format(socket.gethostname()))
+    Logger.info(f"{socket.gethostname()} has no stack versions installed")
     return True
 
   # some pre-prepped systems may have a version, so there may be a version, so
   # add the extra check if it is available
   if not associated_version in out:
-    Logger.info("{0} is not found in the list of versions {1}".format(associated_version, out))
+    Logger.info(f"{associated_version} is not found in the list of versions {out}")
     return True
 
   return False

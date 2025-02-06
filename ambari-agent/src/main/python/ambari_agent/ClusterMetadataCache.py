@@ -23,6 +23,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class ClusterMetadataCache(ClusterCache):
   """
   Maintains an in-memory cache and disk cache of the metadata send from server for
@@ -41,7 +42,7 @@ class ClusterMetadataCache(ClusterCache):
 
   def on_cache_update(self):
     try:
-      self.config.update_configuration_from_metadata(self['-1']['agentConfigs'])
+      self.config.update_configuration_from_metadata(self["-1"]["agentConfigs"])
     except KeyError:
       pass
 
@@ -64,4 +65,4 @@ class ClusterMetadataCache(ClusterCache):
     self.rewrite_cache(mutable_dict, cache_hash)
 
   def get_cache_name(self):
-    return 'metadata'
+    return "metadata"

@@ -25,11 +25,17 @@ from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
-from resource_management.libraries.functions.check_process_status import check_process_status
+from resource_management.libraries.functions.check_process_status import (
+  check_process_status,
+)
 from resource_management.libraries.functions.copy_tarball import copy_to_hdfs
-from resource_management.libraries.functions.security_commons import build_expectations, \
-  cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
-  FILE_TYPE_XML
+from resource_management.libraries.functions.security_commons import (
+  build_expectations,
+  cached_kinit_executor,
+  get_params_from_filesystem,
+  validate_security_config_properties,
+  FILE_TYPE_XML,
+)
 from resource_management.core.source import Template
 from resource_management.core.logger import Logger
 
@@ -46,11 +52,13 @@ class HistoryServer(Script):
 
   def stop(self, env, upgrade_type=None):
     import params
+
     env.set_params(params)
-    service('historyserver', action='stop', serviceName='mapreduce')
+    service("historyserver", action="stop", serviceName="mapreduce")
 
   def configure(self, env):
     import params
+
     env.set_params(params)
     yarn(name="historyserver")
 
@@ -59,12 +67,13 @@ class HistoryServer(Script):
 class HistoryserverWindows(HistoryServer):
   def start(self, env):
     import params
+
     env.set_params(params)
     self.configure(env)
-    service('historyserver', action='start', serviceName='mapreduce')
+    service("historyserver", action="start", serviceName="mapreduce")
 
   def status(self, env):
-    service('historyserver', action='status')
+    service("historyserver", action="status")
 
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
@@ -72,56 +81,82 @@ class HistoryServerDefault(HistoryServer):
   def pre_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing Stack Upgrade pre-restart")
     import params
+
     env.set_params(params)
 
-    if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
+    if params.version and check_stack_feature(
+      StackFeature.ROLLING_UPGRADE, params.version
+    ):
       stack_select.select_packages(params.version)
       # MC Hammer said, "Can't touch this"
-      copy_to_hdfs("mapreduce", params.user_group, params.hdfs_user, skip=params.sysprep_skip_copy_tarballs_hdfs)
-      copy_to_hdfs("tez", params.user_group, params.hdfs_user, skip=params.sysprep_skip_copy_tarballs_hdfs)
+      copy_to_hdfs(
+        "mapreduce",
+        params.user_group,
+        params.hdfs_user,
+        skip=params.sysprep_skip_copy_tarballs_hdfs,
+      )
+      copy_to_hdfs(
+        "tez",
+        params.user_group,
+        params.hdfs_user,
+        skip=params.sysprep_skip_copy_tarballs_hdfs,
+      )
       params.HdfsResource(None, action="execute")
 
   def start(self, env, upgrade_type=None):
     import params
-    env.set_params(params)
-    self.configure(env) # FOR SECURITY
 
-    if params.stack_version_formatted_major and check_stack_feature(StackFeature.COPY_TARBALL_TO_HDFS, params.stack_version_formatted_major):
+    env.set_params(params)
+    self.configure(env)  # FOR SECURITY
+
+    if params.stack_version_formatted_major and check_stack_feature(
+      StackFeature.COPY_TARBALL_TO_HDFS, params.stack_version_formatted_major
+    ):
       # MC Hammer said, "Can't touch this"
       resource_created = copy_to_hdfs(
         "mapreduce",
         params.user_group,
         params.hdfs_user,
-        skip=params.sysprep_skip_copy_tarballs_hdfs)
-      resource_created = copy_to_hdfs(
-        "tez",
-        params.user_group,
-        params.hdfs_user,
-        skip=params.sysprep_skip_copy_tarballs_hdfs) or resource_created
+        skip=params.sysprep_skip_copy_tarballs_hdfs,
+      )
+      resource_created = (
+        copy_to_hdfs(
+          "tez",
+          params.user_group,
+          params.hdfs_user,
+          skip=params.sysprep_skip_copy_tarballs_hdfs,
+        )
+        or resource_created
+      )
       if resource_created:
         params.HdfsResource(None, action="execute")
     else:
       # In stack versions before copy_tarball_to_hdfs support tez.tar.gz was copied to a different folder in HDFS.
       install_tez_jars()
 
-    service('historyserver', action='start', serviceName='mapreduce')
+    service("historyserver", action="start", serviceName="mapreduce")
 
   def status(self, env):
     import status_params
+
     env.set_params(status_params)
     check_process_status(status_params.mapred_historyserver_pid_file)
 
   def get_log_folder(self):
     import params
+
     return params.mapred_log_dir
 
   def get_user(self):
     import params
+
     return params.mapred_user
 
   def get_pid_files(self):
     import status_params
+
     return [status_params.mapred_historyserver_pid_file]
+
 
 if __name__ == "__main__":
   HistoryServer().execute()

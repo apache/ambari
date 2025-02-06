@@ -26,21 +26,22 @@ from resource_management.libraries.functions import get_kinit_path
 from resource_management.core.resources import Execute
 from resource_management.libraries.functions import format
 
-ZEPPELIN_PORT_KEY = '{{zeppelin-site/zeppelin.server.port}}'
-ZEPPELIN_PORT_SSL_KEY = '{{zeppelin-site/zeppelin.server.ssl.port}}'
+ZEPPELIN_PORT_KEY = "{{zeppelin-site/zeppelin.server.port}}"
+ZEPPELIN_PORT_SSL_KEY = "{{zeppelin-site/zeppelin.server.ssl.port}}"
 
-SECURITY_ENABLED_KEY = '{{cluster-env/security_enabled}}'
-ZEPPELIN_KEYTAB_KEY = '{{zeppelin-site/zeppelin.server.kerberos.keytab}}'
-ZEPPELIN_PRINCIPAL_KEY = '{{zeppelin-site/zeppelin.server.kerberos.principal}}'
-ZEPPELIN_USER_KEY = '{{zeppelin-env/zeppelin_user}}'
+SECURITY_ENABLED_KEY = "{{cluster-env/security_enabled}}"
+ZEPPELIN_KEYTAB_KEY = "{{zeppelin-site/zeppelin.server.kerberos.keytab}}"
+ZEPPELIN_PRINCIPAL_KEY = "{{zeppelin-site/zeppelin.server.kerberos.principal}}"
+ZEPPELIN_USER_KEY = "{{zeppelin-env/zeppelin_user}}"
 
-UI_SSL_ENABLED = '{{zeppelin-site/zeppelin.ssl}}'
+UI_SSL_ENABLED = "{{zeppelin-site/zeppelin.ssl}}"
 
-KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY = '{{kerberos-env/executable_search_paths}}'
+KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY = "{{kerberos-env/executable_search_paths}}"
 
-RESULT_CODE_OK = 'OK'
-RESULT_CODE_CRITICAL = 'CRITICAL'
-RESULT_CODE_UNKNOWN = 'UNKNOWN'
+RESULT_CODE_OK = "OK"
+RESULT_CODE_CRITICAL = "CRITICAL"
+RESULT_CODE_UNKNOWN = "UNKNOWN"
+
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def get_tokens():
@@ -48,21 +49,28 @@ def get_tokens():
   Returns a tuple of tokens in the format {{site/property}} that will be used
   to build the dictionary passed into execute
   """
-  return (ZEPPELIN_USER_KEY, UI_SSL_ENABLED, SECURITY_ENABLED_KEY, ZEPPELIN_KEYTAB_KEY, ZEPPELIN_PRINCIPAL_KEY,
-          KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY, ZEPPELIN_PORT_KEY, ZEPPELIN_PORT_SSL_KEY)
+  return (
+    ZEPPELIN_USER_KEY,
+    UI_SSL_ENABLED,
+    SECURITY_ENABLED_KEY,
+    ZEPPELIN_KEYTAB_KEY,
+    ZEPPELIN_PRINCIPAL_KEY,
+    KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY,
+    ZEPPELIN_PORT_KEY,
+    ZEPPELIN_PORT_SSL_KEY,
+  )
 
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def execute(configurations={}, parameters={}, host_name=None):
-
   if configurations is None:
-    return ('UNKNOWN', ['There were no configurations supplied to the script.'])
+    return ("UNKNOWN", ["There were no configurations supplied to the script."])
 
   zeppelin_user = configurations[ZEPPELIN_USER_KEY]
 
   ui_ssl_enabled = False
   if UI_SSL_ENABLED in configurations:
-    ui_ssl_enabled = str(configurations[UI_SSL_ENABLED]).upper() == 'TRUE'
+    ui_ssl_enabled = str(configurations[UI_SSL_ENABLED]).upper() == "TRUE"
 
   zeppelin_port = 9995
   if UI_SSL_ENABLED in configurations:
@@ -72,7 +80,7 @@ def execute(configurations={}, parameters={}, host_name=None):
 
   security_enabled = False
   if SECURITY_ENABLED_KEY in configurations:
-    security_enabled = str(configurations[SECURITY_ENABLED_KEY]).upper() == 'TRUE'
+    security_enabled = str(configurations[SECURITY_ENABLED_KEY]).upper() == "TRUE"
 
   if host_name is None:
     host_name = socket.getfqdn()
@@ -84,10 +92,12 @@ def execute(configurations={}, parameters={}, host_name=None):
   zeppelin_principal = None
   if ZEPPELIN_PRINCIPAL_KEY in configurations:
     zeppelin_principal = configurations[ZEPPELIN_PRINCIPAL_KEY]
-    zeppelin_principal = zeppelin_principal.replace('_HOST',host_name.lower())
+    zeppelin_principal = zeppelin_principal.replace("_HOST", host_name.lower())
 
   if KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY in configurations:
-    kerberos_executable_search_paths = configurations[KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY]
+    kerberos_executable_search_paths = configurations[
+      KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY
+    ]
   else:
     kerberos_executable_search_paths = None
 
@@ -95,12 +105,16 @@ def execute(configurations={}, parameters={}, host_name=None):
 
   try:
     if security_enabled:
-      kinit_cmd = format("{kinit_path_local} -kt {zeppelin_kerberos_keytab} {zeppelin_principal}; ")
+      kinit_cmd = format(
+        "{kinit_path_local} -kt {zeppelin_kerberos_keytab} {zeppelin_principal}; "
+      )
       Execute(kinit_cmd, user=zeppelin_user)
 
     scheme = "https" if ui_ssl_enabled else "http"
-    command = format("curl -s -o /dev/null -w'%{{http_code}}' --negotiate -u: -k {scheme}://{host_name}:{zeppelin_port}/api/version | grep 200")
-    Execute(command, tries = 10, try_sleep=3, user=zeppelin_user, logoutput=True)
+    command = format(
+      "curl -s -o /dev/null -w'%{{http_code}}' --negotiate -u: -k {scheme}://{host_name}:{zeppelin_port}/api/version | grep 200"
+    )
+    Execute(command, tries=10, try_sleep=3, user=zeppelin_user, logoutput=True)
   except ComponentIsNotRunning as ex:
     return (RESULT_CODE_CRITICAL, [str(ex)])
   except:

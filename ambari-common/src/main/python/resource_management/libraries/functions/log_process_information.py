@@ -19,9 +19,11 @@ limitations under the License.
 Ambari Agent
 
 """
+
 from ambari_commons.os_check import OSCheck
 
 __all__ = ["log_process_information"]
+
 
 def log_process_information(logger):
   """
@@ -29,8 +31,12 @@ def log_process_information(logger):
   """
 
   from ambari_commons.shell import shellRunner
+
   if OSCheck.is_windows_family():
-    cmd_list = ["WMIC path win32_process get Caption,Processid,Commandline", "netstat -an"]
+    cmd_list = [
+      "WMIC path win32_process get Caption,Processid,Commandline",
+      "netstat -an",
+    ]
   else:
     cmd_list = ["export COLUMNS=9999 ; ps faux", "netstat -tulpn"]
 
@@ -38,4 +44,6 @@ def log_process_information(logger):
 
   for cmd in cmd_list:
     ret = shell_runner.run(cmd)
-    logger.info("Command '{0}' returned {1}. {2}{3}".format(cmd, ret["exitCode"], ret["error"], ret["output"]))
+    logger.info(
+      f"Command '{cmd}' returned {ret['exitCode']}. {ret['error']}{ret['output']}"
+    )

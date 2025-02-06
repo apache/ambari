@@ -21,7 +21,7 @@
 package org.apache.ambari.server.state;
 
 import static java.util.stream.Collectors.toSet;
-import static org.apache.commons.collections.CollectionUtils.union;
+import static org.apache.commons.collections4.CollectionUtils.union;
 
 import java.util.Collection;
 import java.util.HashSet;

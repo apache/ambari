@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,7 +16,8 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
+
 import glob
 
 import os
@@ -26,29 +27,28 @@ import re
 from ambari_commons.exceptions import FatalException
 from ambari_commons.logging_utils import print_info_msg, print_warning_msg
 from resource_management.core.shell import quote_bash_args
+
 AMBARI_CONF_VAR = "AMBARI_CONF_DIR"
 SERVER_CLASSPATH_KEY = "SERVER_CLASSPATH"
 LIBRARY_PATH_KEY = "LD_LIBRARY_PATH"
 AMBARI_SERVER_LIB = "AMBARI_SERVER_LIB"
 JDBC_DRIVER_PATH_PROPERTY = "server.jdbc.driver.path"
-JAR_FILE_PATTERN = re.compile(r'^(.*)(-\d.*\.jar$)')
-AMBARI_SERVER_JAR_FILE_PATTERN = re.compile(r'^ambari-server(-\d.*\.jar$)')
+JAR_FILE_PATTERN = re.compile(r"^(.*)(-\d.*\.jar$)")
+AMBARI_SERVER_JAR_FILE_PATTERN = re.compile(r"^ambari-server(-\d.*\.jar$)")
 JAR_DUPLICATES_TO_IGNORE = [
-  'javax.servlet.jsp.jstl', # org.eclipse.jetty dependency requires two different libraries with this name
+  "javax.servlet.jsp.jstl",  # org.eclipse.jetty dependency requires two different libraries with this name
 ]
 
-class ServerClassPath():
 
+class ServerClassPath:
   properties = None
   options = None
   configDefaults = None
-
 
   def __init__(self, properties, options):
     self.properties = properties
     self.options = options
     self.configDefaults = ambari_server.serverConfiguration.ServerConfigDefaults()
-
 
   def _get_ambari_jars(self):
     try:
@@ -56,8 +56,9 @@ class ServerClassPath():
       return conf_dir
     except KeyError:
       default_jar_location = self.configDefaults.DEFAULT_LIBS_DIR
-      print_info_msg(AMBARI_SERVER_LIB + " is not set, using default "
-                     + default_jar_location)
+      print_info_msg(
+        AMBARI_SERVER_LIB + " is not set, using default " + default_jar_location
+      )
       return default_jar_location
 
   def _get_jdbc_cp(self):
@@ -76,11 +77,15 @@ class ServerClassPath():
 
     # Add classpath from environment (SERVER_CLASSPATH)
     if SERVER_CLASSPATH_KEY in os.environ:
-      ambari_class_path =  os.environ[SERVER_CLASSPATH_KEY] + os.pathsep + ambari_class_path
+      ambari_class_path = (
+        os.environ[SERVER_CLASSPATH_KEY] + os.pathsep + ambari_class_path
+      )
 
     # Add jdbc driver classpath
     if self.options:
-      jdbc_driver_path = ambari_server.dbConfiguration.get_jdbc_driver_path(self.options, self.properties)
+      jdbc_driver_path = ambari_server.dbConfiguration.get_jdbc_driver_path(
+        self.options, self.properties
+      )
       if jdbc_driver_path not in ambari_class_path:
         ambari_class_path = ambari_class_path + os.pathsep + jdbc_driver_path
 
@@ -100,16 +105,19 @@ class ServerClassPath():
 
     return quote_bash_args(class_path)
 
-
   #
   # Set native libs os env
   #
   def set_native_libs_path(self):
     if self.options:
-      native_libs_path = ambari_server.dbConfiguration.get_native_libs_path(self.options, self.properties)
+      native_libs_path = ambari_server.dbConfiguration.get_native_libs_path(
+        self.options, self.properties
+      )
       if native_libs_path is not None:
         if LIBRARY_PATH_KEY in os.environ:
-          native_libs_path = os.environ[LIBRARY_PATH_KEY] + os.pathsep + native_libs_path
+          native_libs_path = (
+            os.environ[LIBRARY_PATH_KEY] + os.pathsep + native_libs_path
+          )
         os.environ[LIBRARY_PATH_KEY] = native_libs_path
 
   def _validate_classpath(self, classpath):
@@ -130,12 +138,15 @@ class ServerClassPath():
         for group in match.groups():
           if group in JAR_DUPLICATES_TO_IGNORE:
             break
-          
+
           if group in jar_names:
-            err = "Multiple versions of {0}.jar found in java class path " \
-                  "({1} and {2}). \n Make sure that you include only one " \
-                  "{0}.jar in the java class path '{3}'."\
-                  .format(group, jar, jar_names[group], classpath)
+            err = (
+              "Multiple versions of {0}.jar found in java class path "
+              "({1} and {2}). \n Make sure that you include only one "
+              "{0}.jar in the java class path '{3}'.".format(
+                group, jar, jar_names[group], classpath
+              )
+            )
             if AMBARI_SERVER_JAR_FILE_PATTERN.match(os.path.basename(jar)):
               raise FatalException(1, err)
             else:

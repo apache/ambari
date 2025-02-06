@@ -22,6 +22,7 @@ import sys
 from resource_management import *
 from scripts.hcat import hcat
 
+
 class HCatClient(Script):
   def install(self, env):
     self.install_packages(env)
@@ -33,7 +34,6 @@ class HCatClient(Script):
     env.set_params(params)
 
     hcat()
-
 
   def status(self, env):
     raise ClientComponentHasNoStatus()

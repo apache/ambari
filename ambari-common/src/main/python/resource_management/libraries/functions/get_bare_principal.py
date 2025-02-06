@@ -19,7 +19,9 @@ limitations under the License.
 Ambari Agent
 
 """
+
 import re
+
 __all__ = ["get_bare_principal"]
 
 

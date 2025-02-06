@@ -24,22 +24,26 @@ from resource_management.libraries.functions.default import default
 
 config = Script.get_config()
 
-spark_user = config['configurations']['spark-env']['spark_user']
-spark_group = config['configurations']['spark-env']['spark_group']
-user_group = config['configurations']['cluster-env']['user_group']
+spark_user = config["configurations"]["spark-env"]["spark_user"]
+spark_group = config["configurations"]["spark-env"]["spark_group"]
+user_group = config["configurations"]["cluster-env"]["user_group"]
 
-if 'hive-env' in config['configurations']:
-  hive_user = config['configurations']['hive-env']['hive_user']
+if "hive-env" in config["configurations"]:
+  hive_user = config["configurations"]["hive-env"]["hive_user"]
 else:
   hive_user = "hive"
 
-spark_pid_dir = config['configurations']['spark-env']['spark_pid_dir']
-spark_history_server_pid_file = format("{spark_pid_dir}/spark-{spark_user}-org.apache.spark.deploy.history.HistoryServer-1.pid")
-spark_thrift_server_pid_file = format("{spark_pid_dir}/spark-{spark_user}-org.apache.spark.sql.hive.thriftserver.HiveThriftServer2-1.pid")
+spark_pid_dir = config["configurations"]["spark-env"]["spark_pid_dir"]
+spark_history_server_pid_file = format(
+  "{spark_pid_dir}/spark-{spark_user}-org.apache.spark.deploy.history.HistoryServer-1.pid"
+)
+spark_thrift_server_pid_file = format(
+  "{spark_pid_dir}/spark-{spark_user}-org.apache.spark.sql.hive.thriftserver.HiveThriftServer2-1.pid"
+)
 stack_name = default("/clusterLevelParams/stack_name", None)
 
-if "livy-env" in config['configurations']:
-  livy_user = config['configurations']['livy-env']['livy_user']
-  livy_group = config['configurations']['livy-env']['livy_group']
-  livy_pid_dir = config['configurations']['livy-env']['livy_pid_dir']
+if "livy-env" in config["configurations"]:
+  livy_user = config["configurations"]["livy-env"]["livy_user"]
+  livy_group = config["configurations"]["livy-env"]["livy_group"]
+  livy_pid_dir = config["configurations"]["livy-env"]["livy_pid_dir"]
   livy_server_pid_file = format("{livy_pid_dir}/livy-{livy_user}-server.pid")

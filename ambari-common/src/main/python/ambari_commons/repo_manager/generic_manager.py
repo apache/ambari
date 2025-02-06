@@ -28,6 +28,7 @@ class GenericManagerProperties(object):
   Class to keep all Package-manager depended properties. Each non-generic implementation should override properties
   declared here
   """
+
   empty_file = "/dev/null"
   locked_output = None
   repo_error = None
@@ -42,15 +43,9 @@ class GenericManagerProperties(object):
 
   repo_definition_location = None
 
-  install_cmd = {
-    True: None,
-    False: None
-  }
+  install_cmd = {True: None, False: None}
 
-  remove_cmd = {
-    True: None,
-    False: None
-  }
+  remove_cmd = {True: None, False: None}
 
   verify_dependency_cmd = None
 
@@ -198,9 +193,9 @@ class GenericManager(object):
       pkg_detail = {}
       for installed_package in installed_packages:
         if package == installed_package[0]:
-          pkg_detail['name'] = installed_package[0]
-          pkg_detail['version'] = installed_package[1]
-          pkg_detail['repoName'] = installed_package[2]
+          pkg_detail["name"] = installed_package[0]
+          pkg_detail["version"] = installed_package[1]
+          pkg_detail["repoName"] = installed_package[2]
 
       package_details.append(pkg_detail)
 
@@ -248,5 +243,7 @@ class GenericManager(object):
     if isinstance(command, (list, tuple)):
       command = " ".join(command)
 
-    Logger.error("Command execution error: command = \"{0}\", exit code = {1}, stderr = {2}".format(
-      command, exit_code, "\n".join(error_log)))
+    Logger.error(
+      f'Command execution error: command = "{command}", exit code = {exit_code}, stderr = '
+      + "\n".join(error_log)
+    )

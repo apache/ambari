@@ -98,7 +98,7 @@ class HiveServiceCheckDefault(HiveServiceCheck):
   def check_hive_server(self, env, server_component_name, kinit_cmd, address_list, server_port):
     import params
     env.set_params(params)
-    Logger.info("Server Address List : {0}, Port : {1}".format(address_list, server_port))
+    Logger.info(f"Server Address List : {address_list}, Port : {server_port}")
 
     if not address_list:
       raise Fail("Can not find any "+server_component_name+" ,host. Please check configuration.")
@@ -108,7 +108,7 @@ class HiveServiceCheckDefault(HiveServiceCheck):
     start_time = time.time()
     end_time = start_time + SOCKET_WAIT_SECONDS
 
-    Logger.info("Waiting for the {0} to start...".format(server_component_name))
+    Logger.info(f"Waiting for the {server_component_name} to start...")
 
     workable_server_available = False
     i = 0
@@ -120,10 +120,10 @@ class HiveServiceCheckDefault(HiveServiceCheck):
                                transport_mode=params.hive_transport_mode, http_endpoint=params.hive_http_endpoint,
                                ssl=params.hive_ssl, ssl_keystore=params.hive_ssl_keystore_path,
                                ssl_password=params.hive_ssl_keystore_password)
-        Logger.info("Successfully connected to {0} on port {1}".format(address, server_port))
+        Logger.info(f"Successfully connected to {address} on port {server_port}")
         workable_server_available = True
       except:
-        Logger.info("Connection to {0} on port {1} failed".format(address, server_port))
+        Logger.info(f"Connection to {address} on port {server_port} failed")
         time.sleep(5)
 
       i += 1
@@ -172,7 +172,7 @@ class HiveServiceCheckDefault(HiveServiceCheck):
       exec_path =  os.environ['PATH'] + os.pathsep + params.hadoop_bin_dir + os.pathsep + upgrade_hive_bin
 
     # beeline path
-    llap_cmd = "! beeline -u '%s'" % format(";".join(beeline_url))
+    llap_cmd = f"! beeline -u '{format(';'.join(beeline_url))}'"
     # Append LLAP SQL script path
     llap_cmd += format(" --hiveconf \"hiveLlapServiceCheck={unique_id}\" -f {stack_root}/current/hive-server2-hive2/scripts/llap/sql/serviceCheckScript.sql")
     # Append grep patterns for detecting failure

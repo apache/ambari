@@ -28,17 +28,20 @@ from ambari_commons import OSCheck, OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
 from resource_management.core.exceptions import ClientComponentHasNoStatus
 
+
 class HbaseClient(Script):
   def install(self, env):
     import params
+
     env.set_params(params)
     self.install_packages(env)
     self.configure(env)
 
   def configure(self, env):
     import params
+
     env.set_params(params)
-    hbase(name='client')
+    hbase(name="client")
 
   def status(self, env):
     raise ClientComponentHasNoStatus()
@@ -53,16 +56,18 @@ class HbaseClientWindows(HbaseClient):
 class HbaseClientDefault(HbaseClient):
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
+
     env.set_params(params)
 
-    if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version): 
+    if params.version and check_stack_feature(
+      StackFeature.ROLLING_UPGRADE, params.version
+    ):
       # phoenix may not always be deployed
       try:
         stack_select.select_packages(params.version)
       except Exception as e:
         print("Ignoring error due to missing phoenix-client")
         print(str(e))
-
 
 
 if __name__ == "__main__":

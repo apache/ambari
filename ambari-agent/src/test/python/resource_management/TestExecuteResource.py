@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -15,12 +15,19 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
+
 from ambari_agent import main
+
 main.MEMORY_LEAK_DEBUG_FILEPATH = "/tmp/memory_leak_debug.out"
 from unittest import TestCase
 from mock.mock import patch, MagicMock, call
-from only_for_platform import get_platform, not_for_platform, os_distro_value, PLATFORM_WINDOWS
+from only_for_platform import (
+  get_platform,
+  not_for_platform,
+  os_distro_value,
+  PLATFORM_WINDOWS,
+)
 
 from ambari_commons.os_check import OSCheck
 
@@ -41,7 +48,7 @@ if get_platform() != PLATFORM_WINDOWS:
 import select
 
 
-@patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
+@patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
 class TestExecuteResource(TestCase):
   @patch.object(os, "read")
   @patch.object(select, "select")
@@ -57,25 +64,23 @@ class TestExecuteResource(TestCase):
     os_read_mock.return_value = None
 
     with Environment("/") as env:
-      Execute('echo "1"',
-              logoutput=True)
-      Execute('echo "2"',
-              logoutput=False)
+      Execute('echo "1"', logoutput=True)
+      Execute('echo "2"', logoutput=False)
 
-    info_mock.assert_called('1')
+    info_mock.assert_called("1")
     self.assertTrue("call('2')" not in str(info_mock.mock_calls))
-    
-  @patch('subprocess.Popen.communicate')
+
+  @patch("subprocess.Popen.communicate")
   @patch.object(subprocess, "Popen")
   def test_attribute_wait(self, popen_mock, proc_communicate_mock):
     with Environment("/") as env:
-      Execute('echo "1"',
-              wait_for_finish=False)
-      Execute('echo "2"',
-              wait_for_finish=False)
-    
-    self.assertTrue(popen_mock.called, 'subprocess.Popen should have been called!')
-    self.assertFalse(proc_communicate_mock.called, 'proc.communicate should not have been called!')
+      Execute('echo "1"', wait_for_finish=False)
+      Execute('echo "2"', wait_for_finish=False)
+
+    self.assertTrue(popen_mock.called, "subprocess.Popen should have been called!")
+    self.assertFalse(
+      proc_communicate_mock.called, "proc.communicate should not have been called!"
+    )
 
   @patch("resource_management.core.sudo.path_exists")
   @patch.object(subprocess, "Popen")
@@ -84,13 +89,12 @@ class TestExecuteResource(TestCase):
 
     subproc_mock = MagicMock()
     subproc_mock.returncode = 0
-    subproc_mock.stdout.readline = MagicMock(side_effect = ['OK'])
+    subproc_mock.stdout.readline = MagicMock(side_effect=["OK"])
     subproc_mock.communicate.side_effect = [["1"]]
     popen_mock.return_value = subproc_mock
 
     with Environment("/") as env:
-      Execute('echo "1"',
-              creates="/must/be/created")
+      Execute('echo "1"', creates="/must/be/created")
 
     exists_mock.assert_called_with("/must/be/created")
     self.assertEqual(subproc_mock.call_count, 0)
@@ -106,37 +110,37 @@ class TestExecuteResource(TestCase):
     popen_mock.return_value = subproc_mock
     select_mock.return_value = ([subproc_mock.stdout], None, None)
     os_read_mock.return_value = None
-    
+
     with Environment("/") as env:
-      execute_resource = Execute('echo "1"',
-                                 path=["/test/one", "test/two"]
-      )
-    expected_command = ['/bin/bash', '--login', '--noprofile', '-c', 'echo "1"']
+      execute_resource = Execute('echo "1"', path=["/test/one", "test/two"])
+    expected_command = ["/bin/bash", "--login", "--noprofile", "-c", 'echo "1"']
     self.assertEqual(popen_mock.call_args_list[0][0][0], expected_command)
 
   @patch.object(os, "read")
   @patch.object(select, "select")
-  @patch('time.sleep')
+  @patch("time.sleep")
   @patch.object(subprocess, "Popen")
-  def test_attribute_try_sleep_tries(self, popen_mock, time_mock, select_mock, os_read_mock):
+  def test_attribute_try_sleep_tries(
+    self, popen_mock, time_mock, select_mock, os_read_mock
+  ):
     expected_call = "call('Retrying after %d seconds. Reason: %s', 1, 'Fail')"
-    
+
     subproc_mock_one = MagicMock()
     subproc_mock_one.returncode = 1
     subproc_mock_one.stdout = MagicMock()
     subproc_mock_zero = MagicMock()
     subproc_mock_zero.stdout = MagicMock()
     subproc_mock_zero.returncode = 0
-    #subproc_mock.stdout.readline = MagicMock(side_effect = [Fail("Fail"), "OK"])
+    # subproc_mock.stdout.readline = MagicMock(side_effect = [Fail("Fail"), "OK"])
     popen_mock.side_effect = [subproc_mock_one, subproc_mock_zero]
-    select_mock.side_effect = [([subproc_mock_one.stdout], None, None),([subproc_mock_zero.stdout], None, None)]
+    select_mock.side_effect = [
+      ([subproc_mock_one.stdout], None, None),
+      ([subproc_mock_zero.stdout], None, None),
+    ]
     os_read_mock.return_value = None
 
     with Environment("/") as env:
-      Execute('echo "1"',
-              tries=2,
-              try_sleep=10
-      )
+      Execute('echo "1"', tries=2, try_sleep=10)
     pass
 
     self.assertTrue(call(10) in time_mock.call_args_list)
@@ -150,8 +154,9 @@ class TestExecuteResource(TestCase):
     getpwnam_mock.side_effect = error
     try:
       with Environment("/") as env:
-        Execute('echo "1"',
-                user="test_user",
+        Execute(
+          'echo "1"',
+          user="test_user",
         )
     except Fail as e:
       pass
@@ -171,9 +176,7 @@ class TestExecuteResource(TestCase):
     os_read_mock.return_value = None
 
     with Environment("/") as env:
-      Execute('echo "1"',
-              environment=expected_dict
-      )
+      Execute('echo "1"', environment=expected_dict)
 
     self.assertEqual(popen_mock.call_args_list[0][1]["env"], expected_dict)
     pass
@@ -182,7 +185,7 @@ class TestExecuteResource(TestCase):
   @patch.object(select, "select")
   @patch.object(subprocess, "Popen")
   def test_attribute_environment_non_root(self, popen_mock, select_mock, os_read_mock):
-    expected_user = 'test_user'
+    expected_user = "test_user"
 
     subproc_mock = MagicMock()
     subproc_mock.wait.return_value = MagicMock()
@@ -193,16 +196,26 @@ class TestExecuteResource(TestCase):
     os_read_mock.return_value = None
 
     with Environment("/") as env:
-      execute_resource = Execute('echo "1"',
-                                 user=expected_user,
-                                 environment={'JAVA_HOME': '/test/java/home',
-                                              'PATH': "/bin"}
+      execute_resource = Execute(
+        'echo "1"',
+        user=expected_user,
+        environment={"JAVA_HOME": "/test/java/home", "PATH": "/bin"},
       )
 
-
-    expected_command = ['/bin/bash', '--login', '--noprofile', '-c', 'ambari-sudo.sh su test_user -l -s /bin/bash -c ' + quote_bash_args('export  JAVA_HOME=/test/java/home' + ' PATH=' + quote_bash_args(os.environ['PATH'] + ':/bin') + ' ; echo "1"')]
+    expected_command = [
+      "/bin/bash",
+      "--login",
+      "--noprofile",
+      "-c",
+      "ambari-sudo.sh su test_user -l -s /bin/bash -c "
+      + quote_bash_args(
+        "export  JAVA_HOME=/test/java/home"
+        + " PATH="
+        + quote_bash_args(os.environ["PATH"] + ":/bin")
+        + ' ; echo "1"'
+      ),
+    ]
     self.assertEqual(popen_mock.call_args_list[0][0][0], expected_command)
-
 
   @patch.object(os, "read")
   @patch.object(select, "select")
@@ -219,9 +232,7 @@ class TestExecuteResource(TestCase):
     os_read_mock.return_value = None
 
     with Environment("/") as env:
-      Execute('echo "1"',
-              cwd=expected_cwd
-      )
+      Execute('echo "1"', cwd=expected_cwd)
 
     self.assertEqual(popen_mock.call_args_list[0][1]["cwd"], expected_cwd)
 
@@ -231,7 +242,7 @@ class TestExecuteResource(TestCase):
   def test_attribute_command_escaping(self, popen_mock, select_mock, os_read_mock):
     expected_command0 = "arg1 arg2 'quoted arg'"
     expected_command1 = "arg1 arg2 'command \"arg\"'"
-    expected_command2 = 'arg1 arg2 \'command \'"\'"\'arg\'"\'"\'\''
+    expected_command2 = "arg1 arg2 'command '\"'\"'arg'\"'\"''"
     expected_command3 = "arg1 arg2 'echo `ls /root`'"
     expected_command4 = "arg1 arg2 '$ROOT'"
     expected_command5 = "arg1 arg2 '`ls /root`'"
@@ -245,17 +256,23 @@ class TestExecuteResource(TestCase):
     os_read_mock.return_value = None
 
     with Environment("/") as env:
-      Execute(('arg1', 'arg2', 'quoted arg'),
+      Execute(
+        ("arg1", "arg2", "quoted arg"),
       )
-      Execute(('arg1', 'arg2', 'command "arg"'),
+      Execute(
+        ("arg1", "arg2", 'command "arg"'),
       )
-      Execute(('arg1', 'arg2', "command 'arg'"),
+      Execute(
+        ("arg1", "arg2", "command 'arg'"),
       )
-      Execute(('arg1', 'arg2', "echo `ls /root`"),
+      Execute(
+        ("arg1", "arg2", "echo `ls /root`"),
       )
-      Execute(('arg1', 'arg2', "$ROOT"),
+      Execute(
+        ("arg1", "arg2", "$ROOT"),
       )
-      Execute(('arg1', 'arg2', "`ls /root`"),
+      Execute(
+        ("arg1", "arg2", "`ls /root`"),
       )
 
     self.assertEqual(popen_mock.call_args_list[0][0][0][4], expected_command0)

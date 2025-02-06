@@ -17,78 +17,90 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+
 # Python Imports
 import os
 
 # Local Imports
-from resource_management.core.resources.system import Directory, File,Link
+from resource_management.core.resources.system import Directory, File, Link
 from resource_management.core.source import InlineTemplate
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
+
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
-def setup_flink(env, type, upgrade_type = None, action = None):
+def setup_flink(env, type, upgrade_type=None, action=None):
   import params
 
-  Directory(params.flink_pid_dir,
-            owner=params.flink_user,
-            group=params.user_group,
-            mode=0o775,
-            create_parents = True
+  Directory(
+    params.flink_pid_dir,
+    owner=params.flink_user,
+    group=params.user_group,
+    mode=0o775,
+    create_parents=True,
   )
 
   Directory(params.flink_etc_dir, mode=0o755)
-  Directory(params.flink_config_dir,
-            owner = params.flink_user,
-            group = params.user_group,
-            create_parents = True)
+  Directory(
+    params.flink_config_dir,
+    owner=params.flink_user,
+    group=params.user_group,
+    create_parents=True,
+  )
 
-  Directory(params.flink_log_dir,mode=0o767)
+  Directory(params.flink_log_dir, mode=0o767)
 
-  if type == 'historyserver' and action == 'config':
-    params.HdfsResource(params.flink_hdfs_user_dir,
-                     type="directory",
-                     action="create_on_execute",
-                     owner=params.flink_user,
-                     mode=0o775
+  if type == "historyserver" and action == "config":
+    params.HdfsResource(
+      params.flink_hdfs_user_dir,
+      type="directory",
+      action="create_on_execute",
+      owner=params.flink_user,
+      mode=0o775,
     )
 
     params.HdfsResource(None, action="execute")
 
   flink_conf_file_path = os.path.join(params.flink_config_dir, "flink-conf.yaml")
-  File(flink_conf_file_path,
-       owner=params.flink_user,
-       group = params.flink_group,
-       content=InlineTemplate(params.flink_conf_template),
-       mode=0o755)
-
-  #create log4j.properties in /etc/conf dir
-  File(os.path.join(params.flink_config_dir, 'log4j.properties'),
-       owner=params.flink_user,
-       group=params.flink_group,
-       content=params.flink_log4j_properties,
-       mode=0o644,
+  File(
+    flink_conf_file_path,
+    owner=params.flink_user,
+    group=params.flink_group,
+    content=InlineTemplate(params.flink_conf_template),
+    mode=0o755,
   )
 
-  #create log4j-cli.properties in /etc/conf dir
-  File(os.path.join(params.flink_config_dir, 'log4j-cli.properties'),
-       owner=params.flink_user,
-       group=params.flink_group,
-       content=params.flink_log4j_cli_properties,
-       mode=0o644,
+  # create log4j.properties in /etc/conf dir
+  File(
+    os.path.join(params.flink_config_dir, "log4j.properties"),
+    owner=params.flink_user,
+    group=params.flink_group,
+    content=params.flink_log4j_properties,
+    mode=0o644,
   )
 
-  #create log4j-console.properties in /etc/conf dir
-  File(os.path.join(params.flink_config_dir, 'log4j-console.properties'),
-       owner=params.flink_user,
-       group=params.flink_group,
-       content=params.flink_log4j_console_properties,
-       mode=0o644,
+  # create log4j-cli.properties in /etc/conf dir
+  File(
+    os.path.join(params.flink_config_dir, "log4j-cli.properties"),
+    owner=params.flink_user,
+    group=params.flink_group,
+    content=params.flink_log4j_cli_properties,
+    mode=0o644,
   )
 
-  #create log4j-session.properties in /etc/conf dir
-  File(os.path.join(params.flink_config_dir, 'log4j-session.properties'),
-       owner=params.flink_user,
-       group=params.flink_group,
-       content=params.flink_log4j_session_properties,
-       mode=0o644,
+  # create log4j-console.properties in /etc/conf dir
+  File(
+    os.path.join(params.flink_config_dir, "log4j-console.properties"),
+    owner=params.flink_user,
+    group=params.flink_group,
+    content=params.flink_log4j_console_properties,
+    mode=0o644,
+  )
+
+  # create log4j-session.properties in /etc/conf dir
+  File(
+    os.path.join(params.flink_config_dir, "log4j-session.properties"),
+    owner=params.flink_user,
+    group=params.flink_group,
+    content=params.flink_log4j_session_properties,
+    mode=0o644,
   )

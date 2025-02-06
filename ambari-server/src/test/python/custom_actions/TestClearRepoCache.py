@@ -19,6 +19,7 @@ limitations under the License.
 Ambari Agent
 
 """
+
 import os, sys
 
 from mock.mock import patch
@@ -31,17 +32,24 @@ from resource_management import Script
 from ambari_commons.os_check import OSCheck
 from clear_repocache import ClearRepoCache
 
+
 class TestClearRepoCache(TestCase):
-
-
   @patch.object(OSCheck, "is_suse_family")
   @patch.object(OSCheck, "is_ubuntu_family")
   @patch.object(OSCheck, "is_redhat_family")
-  @patch.object(Script, 'get_config')
+  @patch.object(Script, "get_config")
   @patch("resource_management.libraries.providers.repository.File")
   @patch("resource_management.libraries.script.Script.put_structured_out")
-  @patch.object(System, "os_family", new='redhat')
-  def testClearRepoCache(self, structured_out_mock, file_mock, mock_config, is_redhat_mock, is_ubuntu_mock, is_suse_mock):
+  @patch.object(System, "os_family", new="redhat")
+  def testClearRepoCache(
+    self,
+    structured_out_mock,
+    file_mock,
+    mock_config,
+    is_redhat_mock,
+    is_ubuntu_mock,
+    is_suse_mock,
+  ):
     is_suse_mock.return_value = False
     is_ubuntu_mock.return_value = False
     is_redhat_mock.return_value = True

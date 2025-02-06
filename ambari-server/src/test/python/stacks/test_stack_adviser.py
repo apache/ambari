@@ -24,26 +24,35 @@ from unittest import TestCase
 class TestBasicAdvisor(TestCase):
   def setUp(self):
     import imp
+
     self.maxDiff = None
     self.testDirectory = os.path.dirname(os.path.abspath(__file__))
 
-    default_sa_classname = 'DefaultStackAdvisor'
+    default_sa_classname = "DefaultStackAdvisor"
 
-    stacksPath = os.path.join(self.testDirectory, '../../../main/resources/stacks')
+    stacksPath = os.path.join(self.testDirectory, "../../../main/resources/stacks")
 
-    ambariConfigurationPath = os.path.abspath(os.path.join(stacksPath, 'ambari_configuration.py'))
-    with open(ambariConfigurationPath, 'rb') as fp:
-      imp.load_module('ambari_configuration', fp, ambariConfigurationPath, ('.py', 'rb', imp.PY_SOURCE))
+    ambariConfigurationPath = os.path.abspath(
+      os.path.join(stacksPath, "ambari_configuration.py")
+    )
+    with open(ambariConfigurationPath, "rb") as fp:
+      imp.load_module(
+        "ambari_configuration",
+        fp,
+        ambariConfigurationPath,
+        (".py", "rb", imp.PY_SOURCE),
+      )
 
-    stackAdvisorPath = os.path.abspath(os.path.join(stacksPath, 'stack_advisor.py'))
-    with open(stackAdvisorPath, 'rb') as fp:
-      stack_advisor_impl = imp.load_module('stack_advisor', fp, stackAdvisorPath, ('.py', 'rb', imp.PY_SOURCE))
+    stackAdvisorPath = os.path.abspath(os.path.join(stacksPath, "stack_advisor.py"))
+    with open(stackAdvisorPath, "rb") as fp:
+      stack_advisor_impl = imp.load_module(
+        "stack_advisor", fp, stackAdvisorPath, (".py", "rb", imp.PY_SOURCE)
+      )
 
     clazz = getattr(stack_advisor_impl, default_sa_classname)
     self.stackAdvisor = clazz()
 
   def test_filterHostMounts(self):
-
     filtered_mount = "/data"
 
     hosts = {
@@ -61,7 +70,7 @@ class TestBasicAdvisor(TestCase):
               {"mountpoint": filtered_mount, "type": "ext3"},
             ],
             "public_host_name": "c6401.ambari.apache.org",
-            "host_name": "c6401.ambari.apache.org"
+            "host_name": "c6401.ambari.apache.org",
           },
         },
         {
@@ -72,12 +81,12 @@ class TestBasicAdvisor(TestCase):
               {"mountpoint": "/", "type": "ext3"},
               {"mountpoint": "/dev/shm1", "type": "ext3"},
               {"mountpoint": "/vagrant1", "type": "ext3"},
-              {"mountpoint": filtered_mount, "type": "ext3"}
+              {"mountpoint": filtered_mount, "type": "ext3"},
             ],
             "public_host_name": "c6402.ambari.apache.org",
-            "host_name": "c6402.ambari.apache.org"
+            "host_name": "c6402.ambari.apache.org",
           },
-        }
+        },
       ]
     }
 
@@ -88,18 +97,13 @@ class TestBasicAdvisor(TestCase):
         "stack_version": "2.6",
         "stack_hierarchy": {
           "stack_name": "HDP",
-          "stack_versions": ["2.5", "2.4", "2.3", "2.2", "2.1", "2.0.6"]
-        }
+          "stack_versions": ["2.5", "2.4", "2.3", "2.2", "2.1", "2.0.6"],
+        },
       },
-      "services": [
-      ],
+      "services": [],
       "configurations": {
-        "cluster-env": {
-          "properties": {
-            "agent_mounts_ignore_list": filtered_mount
-          }
-        }
-      }
+        "cluster-env": {"properties": {"agent_mounts_ignore_list": filtered_mount}}
+      },
     }
 
     filtered_hosts = self.stackAdvisor.filterHostMounts(hosts, services)
@@ -108,7 +112,6 @@ class TestBasicAdvisor(TestCase):
       self.assertEqual(False, filtered_mount in host["Hosts"]["disk_info"])
 
   def test_getMountPathVariations(self):
-
     filtered_mount = "/data"
 
     hosts = {
@@ -126,7 +129,7 @@ class TestBasicAdvisor(TestCase):
               {"mountpoint": filtered_mount, "type": "ext3"},
             ],
             "public_host_name": "c6401.ambari.apache.org",
-            "host_name": "c6401.ambari.apache.org"
+            "host_name": "c6401.ambari.apache.org",
           },
         },
         {
@@ -137,12 +140,12 @@ class TestBasicAdvisor(TestCase):
               {"mountpoint": "/", "type": "ext3"},
               {"mountpoint": "/dev/shm1", "type": "ext3"},
               {"mountpoint": "/vagrant1", "type": "ext3"},
-              {"mountpoint": filtered_mount, "type": "ext3"}
+              {"mountpoint": filtered_mount, "type": "ext3"},
             ],
             "public_host_name": "c6402.ambari.apache.org",
-            "host_name": "c6402.ambari.apache.org"
+            "host_name": "c6402.ambari.apache.org",
           },
-        }
+        },
       ]
     }
 
@@ -153,22 +156,19 @@ class TestBasicAdvisor(TestCase):
         "stack_version": "2.6",
         "stack_hierarchy": {
           "stack_name": "HDP",
-          "stack_versions": ["2.5", "2.4", "2.3", "2.2", "2.1", "2.0.6"]
-        }
+          "stack_versions": ["2.5", "2.4", "2.3", "2.2", "2.1", "2.0.6"],
+        },
       },
-      "services": [
-      ],
+      "services": [],
       "configurations": {
-        "cluster-env": {
-          "properties": {
-            "agent_mounts_ignore_list": filtered_mount
-          }
-        }
-      }
+        "cluster-env": {"properties": {"agent_mounts_ignore_list": filtered_mount}}
+      },
     }
 
     hosts = self.stackAdvisor.filterHostMounts(hosts, services)
-    avail_mounts = self.stackAdvisor.getMountPathVariations("/test/folder", "DATANODE", services, hosts)
+    avail_mounts = self.stackAdvisor.getMountPathVariations(
+      "/test/folder", "DATANODE", services, hosts
+    )
 
     self.assertEqual(True, avail_mounts is not None)
     self.assertEqual(1, len(avail_mounts))
@@ -190,7 +190,7 @@ class TestBasicAdvisor(TestCase):
               {"mountpoint": "/data", "type": "ext3"},
             ],
             "public_host_name": "c6401.ambari.apache.org",
-            "host_name": "c6401.ambari.apache.org"
+            "host_name": "c6401.ambari.apache.org",
           },
         },
         {
@@ -201,12 +201,12 @@ class TestBasicAdvisor(TestCase):
               {"mountpoint": "/", "type": "ext3"},
               {"mountpoint": "/dev/shm1", "type": "ext3"},
               {"mountpoint": "/vagrant", "type": "vboxsf"},
-              {"mountpoint": "/data", "type": "ext3"}
+              {"mountpoint": "/data", "type": "ext3"},
             ],
             "public_host_name": "c6402.ambari.apache.org",
-            "host_name": "c6402.ambari.apache.org"
+            "host_name": "c6402.ambari.apache.org",
           },
-        }
+        },
       ]
     }
 
@@ -217,21 +217,14 @@ class TestBasicAdvisor(TestCase):
         "stack_version": "2.6",
         "stack_hierarchy": {
           "stack_name": "HDP",
-          "stack_versions": ["2.5", "2.4", "2.3", "2.2", "2.1", "2.0.6"]
-        }
-      },
-      "services": [
-      ],
-      "configurations": {
-        "cluster-env": {
-          "properties": {
-            "agent_mounts_ignore_list": ""
-          }
+          "stack_versions": ["2.5", "2.4", "2.3", "2.2", "2.1", "2.0.6"],
         },
-        "some-site": {
-          "path_prop": "/test"
-        }
-      }
+      },
+      "services": [],
+      "configurations": {
+        "cluster-env": {"properties": {"agent_mounts_ignore_list": ""}},
+        "some-site": {"path_prop": "/test"},
+      },
     }
 
     pathProperties = [
@@ -241,6 +234,10 @@ class TestBasicAdvisor(TestCase):
     configurations = {}
     hosts = self.stackAdvisor.filterHostMounts(hosts, services)
 
-    self.stackAdvisor.updateMountProperties("some-site", pathProperties, configurations, services, hosts)
+    self.stackAdvisor.updateMountProperties(
+      "some-site", pathProperties, configurations, services, hosts
+    )
 
-    self.assertEqual("/test,/data/test", configurations["some-site"]["properties"]["path_prop"])
+    self.assertEqual(
+      "/test,/data/test", configurations["some-site"]["properties"]["path_prop"]
+    )

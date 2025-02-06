@@ -20,44 +20,43 @@ limitations under the License.
 
 from resource_management import *
 
+
 def hcat_service_check():
-    import params
+  import params
 
-    unique = get_unique_id_and_date()
-    output_file = format("/apps/hive/warehouse/hcatsmoke{unique}")
-    test_cmd = format("fs -test -e {output_file}")
+  unique = get_unique_id_and_date()
+  output_file = format("/apps/hive/warehouse/hcatsmoke{unique}")
+  test_cmd = format("fs -test -e {output_file}")
 
-    if params.security_enabled:
-      kinit_cmd = format(
-        "{kinit_path_local} -kt {smoke_user_keytab} {smokeuser}; ")
-    else:
-      kinit_cmd = ""
+  if params.security_enabled:
+    kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser}; ")
+  else:
+    kinit_cmd = ""
 
-    File('/tmp/hcatSmoke.sh',
-         content=StaticFile("hcatSmoke.sh"),
-         mode=0o755
-    )
+  File("/tmp/hcatSmoke.sh", content=StaticFile("hcatSmoke.sh"), mode=0o755)
 
-    prepare_cmd = format("{kinit_cmd}sh /tmp/hcatSmoke.sh hcatsmoke{unique} prepare")
+  prepare_cmd = format("{kinit_cmd}sh /tmp/hcatSmoke.sh hcatsmoke{unique} prepare")
 
-    Execute(prepare_cmd,
-            tries=3,
-            user=params.smokeuser,
-            try_sleep=5,
-            path=['/usr/sbin', '/usr/local/nin', '/bin', '/usr/bin'],
-            logoutput=True)
+  Execute(
+    prepare_cmd,
+    tries=3,
+    user=params.smokeuser,
+    try_sleep=5,
+    path=["/usr/sbin", "/usr/local/nin", "/bin", "/usr/bin"],
+    logoutput=True,
+  )
 
-    ExecuteHadoop(test_cmd,
-                  user=params.hdfs_user,
-                  logoutput=True,
-                  conf_dir=params.hadoop_conf_dir)
+  ExecuteHadoop(
+    test_cmd, user=params.hdfs_user, logoutput=True, conf_dir=params.hadoop_conf_dir
+  )
 
-    cleanup_cmd = format("{kinit_cmd}sh /tmp/hcatSmoke.sh hcatsmoke{unique} cleanup")
+  cleanup_cmd = format("{kinit_cmd}sh /tmp/hcatSmoke.sh hcatsmoke{unique} cleanup")
 
-    Execute(cleanup_cmd,
-            tries=3,
-            user=params.smokeuser,
-            try_sleep=5,
-            path=['/usr/sbin', '/usr/local/nin', '/bin', '/usr/bin'],
-            logoutput=True
-    )
+  Execute(
+    cleanup_cmd,
+    tries=3,
+    user=params.smokeuser,
+    try_sleep=5,
+    path=["/usr/sbin", "/usr/local/nin", "/bin", "/usr/bin"],
+    logoutput=True,
+  )

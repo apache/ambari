@@ -20,10 +20,11 @@ Ambari Agent
 
 """
 
-__all__ = ['expect']
+__all__ = ["expect"]
 from resource_management.libraries.script import Script
 from resource_management.libraries.script.config_dictionary import UnknownConfiguration
 from resource_management.core.exceptions import Fail
+
 
 def expect(name, expected_type, default_value=None):
   """
@@ -31,7 +32,7 @@ def expect(name, expected_type, default_value=None):
 
   Optionally if the configuration is not found default_value for it can be returned.
   """
-  subdicts = [_f for _f in name.split('/') if _f]
+  subdicts = [_f for _f in name.split("/") if _f]
 
   curr_dict = Script.get_config()
   for x in subdicts:
@@ -52,15 +53,19 @@ def expect(name, expected_type, default_value=None):
       elif value != None and value.lower() == "false":
         value = False
       else:
-        raise Fail("Configuration {0} expected to be boolean (true or false), but found '{1}'".format(name, value))
+        raise Fail(
+          f"Configuration {name} expected to be boolean (true or false), but found '{value}'"
+        )
     else:
       type_name = type(value).__name__
-      raise Fail("Configuration {0} expected to be boolean (true or false), but found instance of unknown type '{1}'".format(name, type_name))
+      raise Fail(
+        f"Configuration {name} expected to be boolean (true or false), but found instance of unknown type '{type_name}'"
+      )
   elif expected_type in [int, int, float]:
     try:
       value = expected_type(value)
     except (ValueError, TypeError):
-      raise Fail("Configuration {0} expected to be number, but found '{1}'".format(name, value))
+      raise Fail(f"Configuration {name} expected to be number, but found '{value}'")
   return value
 
 
@@ -86,15 +91,17 @@ def expect_v2(name, expected_type, default_value=None):
       elif value != None and value.lower() == "false":
         value = False
       else:
-        raise Fail("Configuration {0} expected to be boolean (true or false), but found '{1}'".format(name, value))
+        raise Fail(
+          f"Configuration {name} expected to be boolean (true or false), but found '{value}'"
+        )
     else:
       type_name = type(value).__name__
       raise Fail(
-        "Configuration {0} expected to be boolean (true or false), but found instance of unknown type '{1}'".format(
-          name, type_name))
+        f"Configuration {name} expected to be boolean (true or false), but found instance of unknown type '{type_name}'"
+      )
   elif expected_type in [int, int, float]:
     try:
       value = expected_type(value)
     except (ValueError, TypeError):
-      raise Fail("Configuration {0} expected to be number, but found '{1}'".format(name, value))
+      raise Fail(f"Configuration {name} expected to be number, but found '{value}'")
   return value

@@ -41,8 +41,13 @@ def find_executable(search_directories, filename):
   if isinstance(search_directories, str):
     search_directories = list(map(str.strip, search_directories.split(",")))
   elif not isinstance(search_directories, list):
-    search_directories = ["/usr/bin", "/usr/kerberos/bin", "/usr/sbin", '/usr/lib/mit/bin',
-                          '/usr/lib/mit/sbin']
+    search_directories = [
+      "/usr/bin",
+      "/usr/kerberos/bin",
+      "/usr/sbin",
+      "/usr/lib/mit/bin",
+      "/usr/lib/mit/sbin",
+    ]
 
   path = find_path(search_directories, filename)
   return path if path else filename

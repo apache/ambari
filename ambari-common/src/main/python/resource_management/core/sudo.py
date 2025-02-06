@@ -35,6 +35,7 @@ import subprocess
 from resource_management.core.utils import attr_to_bitmask
 
 if os.geteuid() == 0:
+
   def chown(path, owner, group):
     uid = owner.pw_uid if owner else -1
     gid = group.gr_gid if group else -1
@@ -61,7 +62,6 @@ if os.geteuid() == 0:
           if ex.errno != errno.ENOENT:
             raise
 
-
   def chmod(path, mode):
     """
     Wrapper around python function
@@ -70,7 +70,6 @@ if os.geteuid() == 0:
     :type mode int
     """
     return os.chmod(path, mode)
-
 
   def chmod_extended(path, mode):
     """
@@ -95,12 +94,20 @@ if os.geteuid() == 0:
       if dir_attrib is not None:
         for dir_name in dirs:
           full_dir_path = os.path.join(root, dir_name)
-          chmod(full_dir_path, attr_to_bitmask(dir_attrib, initial_bitmask=os.stat(full_dir_path).st_mode))
+          chmod(
+            full_dir_path,
+            attr_to_bitmask(dir_attrib, initial_bitmask=os.stat(full_dir_path).st_mode),
+          )
 
       if files_attrib is not None:
         for file_name in files:
           full_file_path = os.path.join(root, file_name)
-          chmod(full_file_path, attr_to_bitmask(files_attrib, initial_bitmask=os.stat(full_file_path).st_mode))
+          chmod(
+            full_file_path,
+            attr_to_bitmask(
+              files_attrib, initial_bitmask=os.stat(full_file_path).st_mode
+            ),
+          )
 
   def move(src, dst):
     shutil.move(src, dst)
@@ -115,15 +122,19 @@ if os.geteuid() == 0:
       if ex.errno == errno.ENOENT:
         dirname = os.path.dirname(ex.filename)
         if os.path.islink(dirname) and not os.path.exists(dirname):
-          raise Fail("Cannot create directory '{0}' as '{1}' is a broken symlink".format(path, dirname))
+          raise Fail(
+            f"Cannot create directory '{path}' as '{dirname}' is a broken symlink"
+          )
       elif ex.errno == errno.ENOTDIR:
         dirname = os.path.dirname(ex.filename)
         if os.path.isfile(dirname):
-          raise Fail("Cannot create directory '{0}' as '{1}' is a file".format(path, dirname))
+          raise Fail(f"Cannot create directory '{path}' as '{dirname}' is a file")
       elif ex.errno == errno.ELOOP:
         dirname = os.path.dirname(ex.filename)
         if os.path.islink(dirname) and not os.path.exists(dirname):
-          raise Fail("Cannot create directory '{0}' as '{1}' is a looped symlink".format(path, dirname))
+          raise Fail(
+            f"Cannot create directory '{path}' as '{dirname}' is a looped symlink"
+          )
 
       raise
 
@@ -143,10 +154,12 @@ if os.geteuid() == 0:
     shutil.rmtree(path)
 
   def create_file(filename, content, encoding=None, on_file_created=None):
-    _create_file(filename, content, encoding=encoding, sudo=False, on_file_created=on_file_created)
+    _create_file(
+      filename, content, encoding=encoding, sudo=False, on_file_created=on_file_created
+    )
 
   def read_file(filename, encoding=None):
-    with open(filename, 'rb') as fp:
+    with open(filename, "rb") as fp:
       content = fp.read()
 
     return content
@@ -173,7 +186,12 @@ if os.geteuid() == 0:
     class Stat:
       def __init__(self, path):
         stat_val = os.stat(path)
-        self.st_uid, self.st_gid, self.st_mode = stat_val.st_uid, stat_val.st_gid, stat_val.st_mode & 0o7777
+        self.st_uid, self.st_gid, self.st_mode = (
+          stat_val.st_uid,
+          stat_val.st_gid,
+          stat_val.st_mode & 0o7777,
+        )
+
     return Stat(path)
 
   def kill(pid, signal):
@@ -188,7 +206,7 @@ else:
     owner = owner.pw_name if owner else ""
     group = group.gr_name if group else ""
     if owner or group:
-      shell.checked_call(["chown", owner+":"+group, path], sudo=True)
+      shell.checked_call(["chown", owner + ":" + group, path], sudo=True)
 
   def chown_recursive(path, owner, group, follow_links=False):
     owner = owner.pw_name if owner else ""
@@ -197,7 +215,7 @@ else:
       flags = ["-R"]
       if follow_links:
         flags.append("-L")
-      shell.checked_call(["chown"] + flags + [owner+":"+group, path], sudo=True)
+      shell.checked_call(["chown"] + flags + [owner + ":" + group, path], sudo=True)
 
   # os.chmod replacement
   def chmod(path, mode):
@@ -219,7 +237,7 @@ else:
 
   # os.symlink replacement
   def symlink(source, link_name):
-    shell.checked_call(["ln","-sf", source, link_name], sudo=True)
+    shell.checked_call(["ln", "-sf", source, link_name], sudo=True)
 
   # os.link replacement
   def link(source, link_name):
@@ -227,15 +245,17 @@ else:
 
   # os unlink
   def unlink(path):
-    shell.checked_call(["rm","-f", path], sudo=True)
+    shell.checked_call(["rm", "-f", path], sudo=True)
 
   # shutil.rmtree
   def rmtree(path):
-    shell.checked_call(["rm","-rf", path], sudo=True)
+    shell.checked_call(["rm", "-rf", path], sudo=True)
 
   # fp.write replacement
   def create_file(filename, content, encoding=None, on_file_created=None):
-    _create_file(filename, content, encoding=encoding, sudo=True, on_file_created=on_file_created)
+    _create_file(
+      filename, content, encoding=encoding, sudo=True, on_file_created=on_file_created
+    )
 
   # fp.read replacement
   def read_file(filename, encoding=None):
@@ -243,26 +263,26 @@ else:
     shell.checked_call(["cp", "-f", filename, tmpf.name], sudo=True)
 
     with tmpf:
-      with open(tmpf.name, 'rb') as fp:
+      with open(tmpf.name, "rb") as fp:
         content = fp.read()
 
     return content
 
   # os.path.exists
   def path_exists(path):
-    return (shell.call(["test", "-e", path], sudo=True)[0] == 0)
+    return shell.call(["test", "-e", path], sudo=True)[0] == 0
 
   # os.path.isdir
   def path_isdir(path):
-    return (shell.call(["test", "-d", path], sudo=True)[0] == 0)
+    return shell.call(["test", "-d", path], sudo=True)[0] == 0
 
   # os.path.islink
   def path_islink(path):
-    return (shell.call(["test", "-L", path], sudo=True)[0] == 0)
+    return shell.call(["test", "-L", path], sudo=True)[0] == 0
 
   # os.path.lexists
   def path_lexists(path):
-    return (shell.call(["test", "-e", path], sudo=True)[0] == 0)
+    return shell.call(["test", "-e", path], sudo=True)[0] == 0
 
   # os.readlink
   def readlink(path):
@@ -270,7 +290,7 @@ else:
 
   # os.path.isfile
   def path_isfile(path):
-    return (shell.call(["test", "-f", path], sudo=True)[0] == 0)
+    return shell.call(["test", "-f", path], sudo=True)[0] == 0
 
   # os.stat
   def stat(path):
@@ -278,24 +298,28 @@ else:
       def __init__(self, path):
         cmd = ["stat", "-c", "%u %g %a", path]
         code, out, err = shell.checked_call(cmd, sudo=True, stderr=subprocess.PIPE)
-        values = out.split(' ')
+        values = out.split(" ")
         if len(values) != 3:
-          raise Fail("Execution of '{0}' returned unexpected output. {2}\n{3}".format(cmd, code, err, out))
+          raise Fail(f"Execution of '{cmd}' returned unexpected output. {err}\n{out}")
         uid_str, gid_str, mode_str = values
-        self.st_uid, self.st_gid, self.st_mode = int(uid_str), int(gid_str), int(mode_str, 8)
+        self.st_uid, self.st_gid, self.st_mode = (
+          int(uid_str),
+          int(gid_str),
+          int(mode_str, 8),
+        )
 
     return Stat(path)
 
   # os.kill replacement
   def kill(pid, signal):
     try:
-      shell.checked_call(["kill", "-"+str(signal), str(pid)], sudo=True)
+      shell.checked_call(["kill", "-" + str(signal), str(pid)], sudo=True)
     except Fail as ex:
       raise OSError(str(ex))
 
   # shutil.move replacement
   def move(src, dst):
-    shell.checked_call(('mv', '-f', src, dst), sudo=True)
+    shell.checked_call(("mv", "-f", src, dst), sudo=True)
 
   # shutil.copy replacement
   def copy(src, dst):
@@ -304,35 +328,44 @@ else:
   # os.listdir replacement
   def listdir(path):
     if not path_isdir(path):
-      raise Fail("{0} is not a directory. Cannot list files of it.".format(path))
+      raise Fail(f"{path} is not a directory. Cannot list files of it.")
 
     code, out, err = shell.checked_call(["ls", path], sudo=True, stderr=subprocess.PIPE)
     files = out.splitlines()
     return files
 
-
   def chmod_recursive(path, recursive_mode_flags, recursion_follow_links):
     find_flags = []
     if recursion_follow_links:
-      find_flags.append('-L')
+      find_flags.append("-L")
 
     for key, flags in recursive_mode_flags.items():
-      shell.checked_call(["find"] + find_flags + [path, "-type", key, "-exec" , "chmod", flags ,"{}" ,";"])
+      shell.checked_call(
+        ["find"] + find_flags + [path, "-type", key, "-exec", "chmod", flags, "{}", ";"]
+      )
+
 
 def _create_file(filename, content, encoding, sudo, on_file_created=None):
-    """
-    Creates file in a temporary location, then set permissions via on_file_created callback (if provided),
-    then move to final location.
+  """
+  Creates file in a temporary location, then set permissions via on_file_created callback (if provided),
+  then move to final location.
 
-    Creates empty file if content is None.
-    """
-    content = content if content else ""
-    # Pre-encoding the string data
-    #write  to specify encoding utf-8
-    tmpf_name = tempfile.gettempdir() + os.sep + tempfile.template + str(time.time()) + "_" + str(random.randint(0, 1000))
-    mode = "wb" if isinstance(content, bytes) else "w"
-    with open(tmpf_name, mode) as fp:
-      fp.write(content)
-    if on_file_created:
-      on_file_created(tmpf_name)
-    shell.checked_call(["mv", "-f", tmpf_name, filename], sudo=sudo)
+  Creates empty file if content is None.
+  """
+  content = content if content else ""
+  # Pre-encoding the string data
+  # write  to specify encoding utf-8
+  tmpf_name = (
+    tempfile.gettempdir()
+    + os.sep
+    + tempfile.template
+    + str(time.time())
+    + "_"
+    + str(random.randint(0, 1000))
+  )
+  mode = "wb" if isinstance(content, bytes) else "w"
+  with open(tmpf_name, mode) as fp:
+    fp.write(content)
+  if on_file_created:
+    on_file_created(tmpf_name)
+  shell.checked_call(["mv", "-f", tmpf_name, filename], sudo=sudo)

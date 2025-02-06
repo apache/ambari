@@ -17,19 +17,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+
 from resource_management import Hook
 from shared_initialization import install_packages
 from repo_initialization import install_repos
 
 
 class BeforeInstallHook(Hook):
-
   def hook(self, env):
     import params
 
-    self.run_custom_hook('before-ANY')
+    self.run_custom_hook("before-ANY")
     env.set_params(params)
-    
+
     install_repos()
     install_packages()
 

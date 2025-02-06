@@ -19,6 +19,7 @@ limitations under the License.
 Ambari Agent
 
 """
+
 from ambari_commons.str_utils import ensure_double_backslashes
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import is_empty
@@ -39,32 +40,36 @@ except:
 hadoop_user = config["configurations"]["cluster-env"]["hadoop.user.name"]
 zk_user = hadoop_user
 
-zk_log_dir = config['configurations']['zookeeper-env']['zk_log_dir']
-zk_data_dir = ensure_double_backslashes(config['configurations']['zoo.cfg']['dataDir'])
-tickTime = config['configurations']['zoo.cfg']['tickTime']
-initLimit = config['configurations']['zoo.cfg']['initLimit']
-syncLimit = config['configurations']['zoo.cfg']['syncLimit']
-clientPort = config['configurations']['zoo.cfg']['clientPort']
+zk_log_dir = config["configurations"]["zookeeper-env"]["zk_log_dir"]
+zk_data_dir = ensure_double_backslashes(config["configurations"]["zoo.cfg"]["dataDir"])
+tickTime = config["configurations"]["zoo.cfg"]["tickTime"]
+initLimit = config["configurations"]["zoo.cfg"]["initLimit"]
+syncLimit = config["configurations"]["zoo.cfg"]["syncLimit"]
+clientPort = config["configurations"]["zoo.cfg"]["clientPort"]
 
-if 'zoo.cfg' in config['configurations']:
-  zoo_cfg_properties_map = config['configurations']['zoo.cfg'].copy()
+if "zoo.cfg" in config["configurations"]:
+  zoo_cfg_properties_map = config["configurations"]["zoo.cfg"].copy()
   # Fix the data dir - ZK won't start unless the backslashes are doubled
-  zoo_cfg_properties_map['dataDir'] = zk_data_dir
+  zoo_cfg_properties_map["dataDir"] = zk_data_dir
 else:
   zoo_cfg_properties_map = {}
 zoo_cfg_properties_map_length = len(zoo_cfg_properties_map)
 
-zookeeper_hosts = config['clusterHostInfo']['zookeeper_server_hosts']
+zookeeper_hosts = config["clusterHostInfo"]["zookeeper_server_hosts"]
 zookeeper_hosts.sort()
-hostname = config['agentLevelParams']['hostname']
+hostname = config["agentLevelParams"]["hostname"]
 
-_authentication = config['configurations']['core-site']['hadoop.security.authentication']
-security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
+_authentication = config["configurations"]["core-site"][
+  "hadoop.security.authentication"
+]
+security_enabled = not is_empty(_authentication) and _authentication == "kerberos"
 user_group = None
 zookeeper_win_service_name = status_params.zookeeper_win_service_name
 
-#log4j.properties
-if (('zookeeper-log4j' in config['configurations']) and ('content' in config['configurations']['zookeeper-log4j'])):
-  log4j_props = config['configurations']['zookeeper-log4j']['content']
+# log4j.properties
+if ("zookeeper-log4j" in config["configurations"]) and (
+  "content" in config["configurations"]["zookeeper-log4j"]
+):
+  log4j_props = config["configurations"]["zookeeper-log4j"]["content"]
 else:
   log4j_props = None

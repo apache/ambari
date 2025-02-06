@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,7 +16,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 import logging
 import threading
@@ -32,8 +32,12 @@ from ambari_agent.listeners.ConfigurationEventListener import ConfigurationEvent
 from ambari_agent.listeners.AgentActionsListener import AgentActionsListener
 from ambari_agent.listeners.MetadataEventListener import MetadataEventListener
 from ambari_agent.listeners.CommandsEventListener import CommandsEventListener
-from ambari_agent.listeners.HostLevelParamsEventListener import HostLevelParamsEventListener
-from ambari_agent.listeners.AlertDefinitionsEventListener import AlertDefinitionsEventListener
+from ambari_agent.listeners.HostLevelParamsEventListener import (
+  HostLevelParamsEventListener,
+)
+from ambari_agent.listeners.AlertDefinitionsEventListener import (
+  AlertDefinitionsEventListener,
+)
 from ambari_agent.listeners.EncryptionKeyListener import EncryptionKeyListener
 from ambari_agent import security
 from ambari_stomp.adapter.websocket import ConnectionIsAlreadyClosed
@@ -43,10 +47,12 @@ REQUEST_RESPONSE_TIMEOUT = 10
 
 logger = logging.getLogger(__name__)
 
+
 class HeartbeatThread(threading.Thread):
   """
   This thread handles registration and heartbeating routine.
   """
+
   def __init__(self, initializer_module):
     threading.Thread.__init__(self)
     self.heartbeat_interval = HEARTBEAT_INTERVAL
@@ -64,26 +70,67 @@ class HeartbeatThread(threading.Thread):
     self.topology_events_listener = TopologyEventListener(initializer_module)
     self.configuration_events_listener = ConfigurationEventListener(initializer_module)
     self.encryption_key_events_listener = EncryptionKeyListener(initializer_module)
-    self.host_level_params_events_listener = HostLevelParamsEventListener(initializer_module)
-    self.alert_definitions_events_listener = AlertDefinitionsEventListener(initializer_module)
+    self.host_level_params_events_listener = HostLevelParamsEventListener(
+      initializer_module
+    )
+    self.alert_definitions_events_listener = AlertDefinitionsEventListener(
+      initializer_module
+    )
     self.agent_actions_events_listener = AgentActionsListener(initializer_module)
     self.component_status_executor = initializer_module.component_status_executor
-    self.listeners = [self.server_responses_listener, self.commands_events_listener, self.metadata_events_listener, self.topology_events_listener, self.configuration_events_listener, self.host_level_params_events_listener, self.alert_definitions_events_listener, self.agent_actions_events_listener, self.encryption_key_events_listener]
+    self.listeners = [
+      self.server_responses_listener,
+      self.commands_events_listener,
+      self.metadata_events_listener,
+      self.topology_events_listener,
+      self.configuration_events_listener,
+      self.host_level_params_events_listener,
+      self.alert_definitions_events_listener,
+      self.agent_actions_events_listener,
+      self.encryption_key_events_listener,
+    ]
 
     self.post_registration_requests = [
-    (Constants.TOPOLOGY_REQUEST_ENDPOINT, initializer_module.topology_cache, self.topology_events_listener, Constants.TOPOLOGIES_TOPIC),
-    (Constants.METADATA_REQUEST_ENDPOINT, initializer_module.metadata_cache, self.metadata_events_listener, Constants.METADATA_TOPIC),
-    (Constants.CONFIGURATIONS_REQUEST_ENDPOINT, initializer_module.configurations_cache, self.configuration_events_listener, Constants.CONFIGURATIONS_TOPIC),
-    (Constants.HOST_LEVEL_PARAMS_TOPIC_ENPOINT, initializer_module.host_level_params_cache, self.host_level_params_events_listener, Constants.HOST_LEVEL_PARAMS_TOPIC),
-    (Constants.ALERTS_DEFINITIONS_REQUEST_ENDPOINT, initializer_module.alert_definitions_cache, self.alert_definitions_events_listener, Constants.ALERTS_DEFINITIONS_TOPIC)
+      (
+        Constants.TOPOLOGY_REQUEST_ENDPOINT,
+        initializer_module.topology_cache,
+        self.topology_events_listener,
+        Constants.TOPOLOGIES_TOPIC,
+      ),
+      (
+        Constants.METADATA_REQUEST_ENDPOINT,
+        initializer_module.metadata_cache,
+        self.metadata_events_listener,
+        Constants.METADATA_TOPIC,
+      ),
+      (
+        Constants.CONFIGURATIONS_REQUEST_ENDPOINT,
+        initializer_module.configurations_cache,
+        self.configuration_events_listener,
+        Constants.CONFIGURATIONS_TOPIC,
+      ),
+      (
+        Constants.HOST_LEVEL_PARAMS_TOPIC_ENPOINT,
+        initializer_module.host_level_params_cache,
+        self.host_level_params_events_listener,
+        Constants.HOST_LEVEL_PARAMS_TOPIC,
+      ),
+      (
+        Constants.ALERTS_DEFINITIONS_REQUEST_ENDPOINT,
+        initializer_module.alert_definitions_cache,
+        self.alert_definitions_events_listener,
+        Constants.ALERTS_DEFINITIONS_TOPIC,
+      ),
     ]
     self.responseId = 0
     self.file_cache = initializer_module.file_cache
     self.stale_alerts_monitor = initializer_module.stale_alerts_monitor
-    self.post_registration_actions = [self.file_cache.reset, initializer_module.component_status_executor.clean_not_existing_clusters_info,
-                                      initializer_module.alert_status_reporter.clean_not_existing_clusters_info, initializer_module.host_status_reporter.clean_cache]
-
-
+    self.post_registration_actions = [
+      self.file_cache.reset,
+      initializer_module.component_status_executor.clean_not_existing_clusters_info,
+      initializer_module.alert_status_reporter.clean_not_existing_clusters_info,
+      initializer_module.host_status_reporter.clean_cache,
+    ]
 
   def run(self):
     """
@@ -95,15 +142,15 @@ class HeartbeatThread(threading.Thread):
           self.register()
 
         heartbeat_body = self.get_heartbeat_body()
-        logger.debug("Heartbeat body is {0}".format(heartbeat_body))
+        logger.debug(f"Heartbeat body is {heartbeat_body}")
         response = self.blocking_request(heartbeat_body, Constants.HEARTBEAT_ENDPOINT)
-        logger.debug("Heartbeat response is {0}".format(response))
+        logger.debug(f"Heartbeat response is {response}")
         self.handle_heartbeat_reponse(response)
       except Exception as ex:
         if isinstance(ex, (ConnectionIsAlreadyClosed)):
           logger.info("Connection was closed. Re-running the registration")
         elif isinstance(ex, (socket_error)):
-          logger.info("Connection error \"{0}\". Re-running the registration".format(str(ex)))
+          logger.info(f'Connection error "{str(ex)}". Re-running the registration')
         else:
           logger.exception("Exception in HeartbeatThread. Re-running the registration")
 
@@ -125,12 +172,14 @@ class HeartbeatThread(threading.Thread):
 
     registration_request = self.registration_builder.build()
     logger.info("Sending registration request")
-    logger.debug("Registration request is {0}".format(registration_request))
+    logger.debug(f"Registration request is {registration_request}")
 
-    response = self.blocking_request(registration_request, Constants.REGISTRATION_ENDPOINT)
+    response = self.blocking_request(
+      registration_request, Constants.REGISTRATION_ENDPOINT
+    )
 
     logger.info("Registration response received")
-    logger.debug("Registration response is {0}".format(response))
+    logger.debug(f"Registration response is {response}")
 
     self.handle_registration_response(response)
 
@@ -138,12 +187,16 @@ class HeartbeatThread(threading.Thread):
       try:
         listener.enabled = False
         self.subscribe_to_topics([subscribe_to])
-        response = self.blocking_request({'hash': cache.hash}, endpoint, log_handler=listener.get_log_message)
+        response = self.blocking_request(
+          {"hash": cache.hash}, endpoint, log_handler=listener.get_log_message
+        )
 
         try:
           listener.on_event({}, response)
         except:
-          logger.exception("Exception while handing response to request at {0} {1}".format(endpoint, response))
+          logger.exception(
+            f"Exception while handing response to request at {endpoint} {response}"
+          )
           raise
       finally:
         with listener.event_queue_lock:
@@ -178,15 +231,15 @@ class HeartbeatThread(threading.Thread):
     """
     self.initializer_module.is_registered = False
 
-    if hasattr(self, 'connection'):
+    if hasattr(self, "connection"):
       try:
         self.connection.disconnect()
       except:
         logger.exception("Exception during self.connection.disconnect()")
 
-      if hasattr(self.initializer_module, '_connection'):
-        delattr(self.initializer_module, '_connection')
-      delattr(self, 'connection')
+      if hasattr(self.initializer_module, "_connection"):
+        delattr(self.initializer_module, "_connection")
+      delattr(self, "connection")
 
       # delete any responses, which were not handled (possibly came during disconnect, etc.)
       self.server_responses_listener.reset_responses()
@@ -196,22 +249,22 @@ class HeartbeatThread(threading.Thread):
     # exitstatus = 0 (OK - Default)
     # exitstatus = 1 (Registration failed because different version of agent and server)
     exitstatus = 0
-    if 'exitstatus' in response.keys():
-      exitstatus = int(response['exitstatus'])
+    if "exitstatus" in response.keys():
+      exitstatus = int(response["exitstatus"])
 
     if exitstatus != 0:
       # log - message, which will be printed to agents log
-      if 'log' in response.keys():
-        error_message = "Registration failed due to: {0}".format(response['log'])
+      if "log" in response.keys():
+        error_message = f"Registration failed due to: {response['log']}"
       else:
         error_message = "Registration failed"
 
       raise Exception(error_message)
 
-    self.responseId = int(response['id'])
+    self.responseId = int(response["id"])
 
   def handle_heartbeat_reponse(self, response):
-    serverId = int(response['id'])
+    serverId = int(response["id"])
 
     if serverId != self.responseId + 1:
       logger.error("Error in responseId sequence - restarting")
@@ -229,21 +282,22 @@ class HeartbeatThread(threading.Thread):
 
     Please use other event threads to send information.
     """
-    body = {'id':self.responseId}
+    body = {"id": self.responseId}
 
     stale_alerts = self.stale_alerts_monitor.get_stale_alerts()
     if stale_alerts:
-      body['staleAlerts'] = stale_alerts
+      body["staleAlerts"] = stale_alerts
 
     return body
-
 
   def establish_connection(self):
     """
     Create a stomp connection
     """
-    connection_url = 'wss://{0}:{1}/agent/stomp/v1'.format(self.config.server_hostname, self.config.secured_url_port)
-    connection_helper = security.VerifiedHTTPSConnection(self.config.server_hostname, connection_url, self.config)
+    connection_url = f"wss://{self.config.server_hostname}:{self.config.secured_url_port}/agent/stomp/v1"
+    connection_helper = security.VerifiedHTTPSConnection(
+      self.config.server_hostname, connection_url, self.config
+    )
     self.connection = connection_helper.connect()
 
   def add_listeners(self):
@@ -255,24 +309,35 @@ class HeartbeatThread(threading.Thread):
 
   def subscribe_to_topics(self, topics_list):
     for topic_name in topics_list:
-      self.connection.subscribe(destination=topic_name, id='sub', ack='client-individual')
+      self.connection.subscribe(
+        destination=topic_name, id="sub", ack="client-individual"
+      )
 
-  def blocking_request(self, message, destination, log_handler=None, timeout=REQUEST_RESPONSE_TIMEOUT):
+  def blocking_request(
+    self, message, destination, log_handler=None, timeout=REQUEST_RESPONSE_TIMEOUT
+  ):
     """
     Send a request to server and waits for the response from it. The response it detected by the correspondence of correlation_id.
     """
+
     def presend_hook(correlation_id):
       if log_handler:
         self.server_responses_listener.logging_handlers[correlation_id] = log_handler
-           
+
     try:
-      correlation_id = self.connection.send(message=message, destination=destination, presend_hook=presend_hook)
+      correlation_id = self.connection.send(
+        message=message, destination=destination, presend_hook=presend_hook
+      )
     except ConnectionIsAlreadyClosed:
       # this happens when trying to connect to broken connection. Happens if ambari-server is restarted.
-      logger.warn("Connection failed while trying to connect to {0}".format(destination))
+      logger.warn(f"Connection failed while trying to connect to {destination}")
       raise
 
     try:
-      return self.server_responses_listener.responses.blocking_pop(correlation_id, timeout=timeout)
+      return self.server_responses_listener.responses.blocking_pop(
+        correlation_id, timeout=timeout
+      )
     except BlockingDictionary.DictionaryPopTimeout:
-      raise Exception("{0} seconds timeout expired waiting for response from server at {1} to message from {2}".format(timeout, Constants.SERVER_RESPONSES_TOPIC, destination))
+      raise Exception(
+        f"{timeout} seconds timeout expired waiting for response from server at {Constants.SERVER_RESPONSES_TOPIC} to message from {destination}"
+      )

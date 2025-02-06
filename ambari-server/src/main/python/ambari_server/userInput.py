@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -15,7 +15,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 import os
 import re
@@ -29,17 +29,17 @@ from ambari_commons.os_utils import get_password
 #
 # return True if 'y' or False if 'n'
 #
-def get_YN_input(prompt, default, answer = None):
-  yes = set(['yes', 'ye', 'y'])
-  no = set(['no', 'n'])
+def get_YN_input(prompt, default, answer=None):
+  yes = set(["yes", "ye", "y"])
+  no = set(["no", "n"])
   if answer is not None and answer:
-    yes.update(['True', 'true'])
-    no.update(['False', 'false'])
+    yes.update(["True", "true"])
+    no.update(["False", "false"])
 
   return get_choice_string_input(prompt, default, yes, no, answer)
 
 
-def get_choice_string_input(prompt, default, firstChoice, secondChoice, answer = None):
+def get_choice_string_input(prompt, default, firstChoice, secondChoice, answer=None):
   if get_silent():
     print(prompt)
     return default
@@ -67,8 +67,16 @@ def get_choice_string_input(prompt, default, firstChoice, secondChoice, answer =
   return result
 
 
-def get_validated_string_input(prompt, default, pattern, description,
-                               is_pass, allowEmpty=True, validatorFunction=None, answer = None):
+def get_validated_string_input(
+  prompt,
+  default,
+  pattern,
+  description,
+  is_pass,
+  allowEmpty=True,
+  validatorFunction=None,
+  answer=None,
+):
   inputBool = ""
   hasAnswer = answer != None and (answer or allowEmpty)
   if hasAnswer:
@@ -85,8 +93,8 @@ def get_validated_string_input(prompt, default, pattern, description,
     if not inputBool.strip():
       # Empty input - if default available use default
       if not allowEmpty and not default:
-        msg = 'Property' if description == None or description == "" else description
-        msg += ' cannot be blank.'
+        msg = "Property" if description == None or description == "" else description
+        msg += " cannot be blank."
         print(msg)
         inputBool = ""
         quit_if_has_answer(hasAnswer)
@@ -112,7 +120,8 @@ def get_validated_string_input(prompt, default, pattern, description,
           continue
   return inputBool
 
-def get_validated_filepath_input(prompt, description, default = None, answer = None):
+
+def get_validated_filepath_input(prompt, description, default=None, answer=None):
   inputBool = False
   hasAnswer = answer is not None and answer
   while not inputBool:
@@ -134,7 +143,7 @@ def get_validated_filepath_input(prompt, description, default = None, answer = N
 def get_multi_line_input(prompt, end_line=""):
   full_prompt = prompt
   if end_line:
-    full_prompt += " ([{0}] to finish input):".format(end_line)
+    full_prompt += f" ([{end_line}] to finish input):"
   else:
     full_prompt += " (empty line to finish input):".format(end_line)
 
@@ -152,35 +161,49 @@ def get_prompt_default(defaultStr=None):
   if not defaultStr or defaultStr == "":
     return ""
   else:
-    return '(' + defaultStr + ')'
+    return "(" + defaultStr + ")"
 
 
-def read_password(password_default,
-                  password_pattern,
-                  password_prompt=None,
-                  password_descr=None,
-                  answer=None,
-                  confirm_password_prompt="Re-enter password: "):
-
+def read_password(
+  password_default,
+  password_pattern,
+  password_prompt=None,
+  password_descr=None,
+  answer=None,
+  confirm_password_prompt="Re-enter password: ",
+):
   inputBool = True
-  while(inputBool):
+  while inputBool:
     # setup password
     if password_prompt is None:
-      password_prompt = 'Password (' + password_default + '): '
+      password_prompt = "Password (" + password_default + "): "
 
     if password_descr is None:
-      password_descr = "Invalid characters in password. Use only alphanumeric or " \
-                      "_ or - characters"
+      password_descr = (
+        "Invalid characters in password. Use only alphanumeric or " "_ or - characters"
+      )
 
-    password = get_validated_string_input(password_prompt, password_default,
-                                          password_pattern, password_descr, True, answer = answer)
+    password = get_validated_string_input(
+      password_prompt,
+      password_default,
+      password_pattern,
+      password_descr,
+      True,
+      answer=answer,
+    )
     if not password:
-      print('Password cannot be blank.')
+      print("Password cannot be blank.")
       continue
 
     if password != password_default:
-      password1 = get_validated_string_input(confirm_password_prompt, password_default, password_pattern,
-                                             password_descr, True, answer = answer)
+      password1 = get_validated_string_input(
+        confirm_password_prompt,
+        password_default,
+        password_pattern,
+        password_descr,
+        True,
+        answer=answer,
+      )
       if password != password1:
         print("Passwords do not match")
         continue
@@ -188,6 +211,7 @@ def read_password(password_default,
     inputBool = False
 
   return password
+
 
 # quits from the application only if the input is provided with a flag ('--customInput=')
 def quit_if_has_answer(hasAnswer):

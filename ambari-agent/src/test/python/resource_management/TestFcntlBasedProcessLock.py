@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -15,7 +15,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 import os
 import tempfile
@@ -24,12 +24,13 @@ import shutil
 import multiprocessing
 from unittest import TestCase
 
-from only_for_platform import  not_for_platform, PLATFORM_WINDOWS
-from resource_management.libraries.functions.fcntl_based_process_lock import FcntlBasedProcessLock
+from only_for_platform import not_for_platform, PLATFORM_WINDOWS
+from resource_management.libraries.functions.fcntl_based_process_lock import (
+  FcntlBasedProcessLock,
+)
+
 
 class TestFcntlBasedProcessLock(TestCase):
-
-
   @not_for_platform(PLATFORM_WINDOWS)
   def test_fcntl_based_lock(self):
     """
@@ -42,9 +43,11 @@ class TestFcntlBasedProcessLock(TestCase):
       # Raises an exception if mutex.acquire fails.
       # It indicates that more than one process acquired the lock.
       def dummy_task(index, mutex):
-        with FcntlBasedProcessLock(lock_file, skip_fcntl_failures = False):
-          if (not mutex.acquire(block = False)):
-            raise Exception("ERROR: FcntlBasedProcessLock was acquired by several processes")
+        with FcntlBasedProcessLock(lock_file, skip_fcntl_failures=False):
+          if not mutex.acquire(block=False):
+            raise Exception(
+              "ERROR: FcntlBasedProcessLock was acquired by several processes"
+            )
           time.sleep(0.1)
           mutex.release()
 
@@ -61,4 +64,3 @@ class TestFcntlBasedProcessLock(TestCase):
 
     finally:
       shutil.rmtree(test_temp_dir)
-

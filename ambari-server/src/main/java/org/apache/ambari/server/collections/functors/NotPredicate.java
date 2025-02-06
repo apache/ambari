@@ -21,11 +21,11 @@ package org.apache.ambari.server.collections.functors;
 import java.util.Map;
 
 import org.apache.ambari.server.collections.PredicateUtils;
-import org.apache.commons.collections.Predicate;
-import org.apache.commons.collections.functors.PredicateDecorator;
+import org.apache.commons.collections4.Predicate;
+import org.apache.commons.collections4.functors.PredicateDecorator;
 
 /**
- * {@link NotPredicate} wraps {@link org.apache.commons.collections.functors.NotPredicate} to
+ * {@link NotPredicate} wraps {@link org.apache.commons.collections4.functors.NotPredicate} to
  * provide additional functionality like serializing to and from a Map and JSON formatted data.
  * <p>
  * See {@link DelegatedSinglePredicateContainer}
@@ -64,7 +64,7 @@ public class NotPredicate extends DelegatedSinglePredicateContainer {
    */
   public NotPredicate(Predicate predicate) {
     super(NAME,
-        (PredicateDecorator) org.apache.commons.collections.functors.NotPredicate.getInstance(predicate));
+        (PredicateDecorator) org.apache.commons.collections4.functors.NotPredicate.notPredicate(predicate));
   }
 
   @Override

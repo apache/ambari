@@ -22,35 +22,39 @@ from resource_management import *
 
 from scripts.hcat_service_check import hcat_service_check
 
+
 class HiveServiceCheck(Script):
   def service_check(self, env):
     from scripts import params
+
     env.set_params(params)
     if params.security_enabled:
       kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser};")
       hive_principal_ext = format("principal={hive_metastore_keytab_path}")
       hive_url_ext = format("{hive_url}/\\;{hive_principal_ext}")
-      smoke_cmd = format("{kinit_cmd} env JAVA_HOME={java64_home} {smoke_test_path} {hive_url_ext} {smoke_test_sql}")
+      smoke_cmd = format(
+        "{kinit_cmd} env JAVA_HOME={java64_home} {smoke_test_path} {hive_url_ext} {smoke_test_sql}"
+      )
     else:
-      smoke_cmd = format("env JAVA_HOME={java64_home} {smoke_test_path} {hive_url} {smoke_test_sql}")
+      smoke_cmd = format(
+        "env JAVA_HOME={java64_home} {smoke_test_path} {hive_url} {smoke_test_sql}"
+      )
 
-    File(params.smoke_test_path,
-         content=StaticFile('hiveserver2Smoke.sh'),
-         mode=0o755
+    File(params.smoke_test_path, content=StaticFile("hiveserver2Smoke.sh"), mode=0o755)
+
+    File(params.smoke_test_sql, content=StaticFile("hiveserver2.sql"))
+
+    Execute(
+      smoke_cmd,
+      tries=3,
+      try_sleep=5,
+      path="/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin",
+      logoutput=True,
+      user=params.smokeuser,
     )
-
-    File(params.smoke_test_sql,
-         content=StaticFile('hiveserver2.sql')
-    )
-
-    Execute(smoke_cmd,
-            tries=3,
-            try_sleep=5,
-            path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
-            logoutput=True,
-            user=params.smokeuser)
 
     hcat_service_check()
+
 
 if __name__ == "__main__":
   HiveServiceCheck().execute()

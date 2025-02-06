@@ -25,7 +25,7 @@ import sys
 def hive(name=None):
   from scripts import params
 
-  if name == 'metastore' or name == 'hiveserver2':
+  if name == "metastore" or name == "hiveserver2":
     hive_config_dir = params.hive_server_conf_dir
     config_file_mode = 0o600
     jdbc_connector()
@@ -33,37 +33,40 @@ def hive(name=None):
     hive_config_dir = params.hive_conf_dir
     config_file_mode = 0o644
 
-  Directory(hive_config_dir,
-            owner=params.hive_user,
-            group=params.user_group,
-            create_parents = True
+  Directory(
+    hive_config_dir,
+    owner=params.hive_user,
+    group=params.user_group,
+    create_parents=True,
   )
 
-  XmlConfig("hive-site.xml",
-            conf_dir=hive_config_dir,
-            configurations=params.config['configurations']['hive-site'],
-            configuration_attributes=params.config['configurationAttributes']['hive-site'],
-            owner=params.hive_user,
-            group=params.user_group,
-            mode=config_file_mode
+  XmlConfig(
+    "hive-site.xml",
+    conf_dir=hive_config_dir,
+    configurations=params.config["configurations"]["hive-site"],
+    configuration_attributes=params.config["configurationAttributes"]["hive-site"],
+    owner=params.hive_user,
+    group=params.user_group,
+    mode=config_file_mode,
   )
 
-  cmd = format("/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf --retry 5 "
-               "{jdk_location}/{check_db_connection_jar_name} -o {check_db_connection_jar_name}'")
+  cmd = format(
+    "/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf --retry 5 "
+    "{jdk_location}/{check_db_connection_jar_name} -o {check_db_connection_jar_name}'"
+  )
 
-  Execute(cmd,
-          not_if=format("[ -f {check_db_connection_jar_name}]"))
+  Execute(cmd, not_if=format("[ -f {check_db_connection_jar_name}]"))
 
-  if name == 'metastore':
-    File(params.start_metastore_path,
-         mode=0o755,
-         content=StaticFile('startMetastore.sh')
+  if name == "metastore":
+    File(
+      params.start_metastore_path, mode=0o755, content=StaticFile("startMetastore.sh")
     )
 
-  elif name == 'hiveserver2':
-    File(params.start_hiveserver2_path,
-         mode=0o755,
-         content=StaticFile('startHiveserver2.sh')
+  elif name == "hiveserver2":
+    File(
+      params.start_hiveserver2_path,
+      mode=0o755,
+      content=StaticFile("startHiveserver2.sh"),
     )
 
   if name != "client":
@@ -71,10 +74,11 @@ def hive(name=None):
     crt_directory(params.hive_log_dir)
     crt_directory(params.hive_var_lib)
 
-  File(format("{hive_config_dir}/hive-env.sh"),
-       owner=params.hive_user,
-       group=params.user_group,
-       content=Template('hive-env.sh.j2', conf_dir=hive_config_dir)
+  File(
+    format("{hive_config_dir}/hive-env.sh"),
+    owner=params.hive_user,
+    group=params.user_group,
+    content=Template("hive-env.sh.j2", conf_dir=hive_config_dir),
   )
 
   crt_file(format("{hive_conf_dir}/hive-default.xml.template"))
@@ -86,38 +90,40 @@ def hive(name=None):
 def crt_directory(name):
   from scripts import params
 
-  Directory(name,
-            create_parents = True,
-            owner=params.hive_user,
-            group=params.user_group,
-            mode=0o755)
+  Directory(
+    name,
+    create_parents=True,
+    owner=params.hive_user,
+    group=params.user_group,
+    mode=0o755,
+  )
 
 
 def crt_file(name):
   from scripts import params
 
-  File(name,
-       owner=params.hive_user,
-       group=params.user_group
-  )
+  File(name, owner=params.hive_user, group=params.user_group)
 
 
 def jdbc_connector():
   from scripts import params
 
   if params.hive_jdbc_driver == "com.mysql.jdbc.Driver":
-    cmd = format("hive mkdir -p {artifact_dir} ; cp /usr/share/java/{jdbc_jar_name} {target}")
+    cmd = format(
+      "hive mkdir -p {artifact_dir} ; cp /usr/share/java/{jdbc_jar_name} {target}"
+    )
 
-    Execute(cmd,
-            not_if=format("test -f {target}"),
-            creates=params.target,
-            path=["/bin", "usr/bin/"])
+    Execute(
+      cmd,
+      not_if=format("test -f {target}"),
+      creates=params.target,
+      path=["/bin", "usr/bin/"],
+    )
 
   elif params.hive_jdbc_driver == "oracle.jdbc.driver.OracleDriver":
     cmd = format(
       "mkdir -p {artifact_dir} ; curl -kf --retry 10 {driver_curl_source} -o {driver_curl_target} &&  "
-      "cp {driver_curl_target} {target}")
+      "cp {driver_curl_target} {target}"
+    )
 
-    Execute(cmd,
-            not_if=format("test -f {target}"),
-            path=["/bin", "usr/bin/"])
+    Execute(cmd, not_if=format("test -f {target}"), path=["/bin", "usr/bin/"])

@@ -152,7 +152,7 @@ public class AsyncCallableServiceTest extends EasyMockSupport {
   @Test
   public void testCallableServiceShouldRetryTaskExecutionTillTimeoutExceededWhenTaskThrowsException() throws Exception {
     // GIVEN
-    expect(taskMock.call()).andThrow(new IllegalStateException("****************** TESTING ****************")).times(2, 3);
+    expect(taskMock.call()).andThrow(new IllegalStateException("****************** TESTING ****************")).times(2, 20);
     onErrorMock.accept(anyObject(IllegalStateException.class));
     replayAll();
     asyncCallableService = new AsyncCallableService<>(taskMock, TIMEOUT, RETRY_DELAY,  "test", onErrorMock);

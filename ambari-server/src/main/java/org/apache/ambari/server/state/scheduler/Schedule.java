@@ -17,9 +17,9 @@
  */
 package org.apache.ambari.server.state.scheduler;
 
-import org.codehaus.jackson.annotate.JsonIgnore;
-import org.codehaus.jackson.annotate.JsonProperty;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Schedule {
   private String minutes;
@@ -31,7 +31,7 @@ public class Schedule {
   private String startTime;
   private String endTime;
 
-  @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+  @JsonInclude(JsonInclude.Include.NON_EMPTY)
   @JsonProperty("minutes")
   public String getMinutes() {
     return minutes;
@@ -41,7 +41,7 @@ public class Schedule {
     this.minutes = minutes;
   }
 
-  @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+  @JsonInclude(JsonInclude.Include.NON_EMPTY)
   @JsonProperty("hours")
   public String getHours() {
     return hours;
@@ -51,7 +51,7 @@ public class Schedule {
     this.hours = hours;
   }
 
-  @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+  @JsonInclude(JsonInclude.Include.NON_EMPTY)
   @JsonProperty("days_of_month")
   public String getDaysOfMonth() {
     return daysOfMonth;
@@ -61,7 +61,7 @@ public class Schedule {
     this.daysOfMonth = daysOfMonth;
   }
 
-  @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+  @JsonInclude(JsonInclude.Include.NON_EMPTY)
   @JsonProperty("month")
   public String getMonth() {
     return month;
@@ -71,7 +71,7 @@ public class Schedule {
     this.month = month;
   }
 
-  @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+  @JsonInclude(JsonInclude.Include.NON_EMPTY)
   @JsonProperty("day_of_week")
   public String getDayOfWeek() {
     return dayOfWeek;
@@ -81,7 +81,7 @@ public class Schedule {
     this.dayOfWeek = dayOfWeek;
   }
 
-  @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+  @JsonInclude(JsonInclude.Include.NON_EMPTY)
   @JsonProperty("year")
   public String getYear() {
     return year;
@@ -91,7 +91,7 @@ public class Schedule {
     this.year = year;
   }
 
-  @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+  @JsonInclude(JsonInclude.Include.NON_EMPTY)
   @JsonProperty("start_time")
   public String getStartTime() {
     return startTime;
@@ -101,7 +101,7 @@ public class Schedule {
     this.startTime = startTime;
   }
 
-  @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+  @JsonInclude(JsonInclude.Include.NON_EMPTY)
   @JsonProperty("end_time")
   public String getEndTime() {
     return endTime;

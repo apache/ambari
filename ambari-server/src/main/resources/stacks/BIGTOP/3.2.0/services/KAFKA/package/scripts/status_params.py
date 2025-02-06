@@ -17,10 +17,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+
 from resource_management.libraries.functions import format
 from resource_management.libraries.script.script import Script
 
 config = Script.get_config()
 
-kafka_pid_dir = config['configurations']['kafka-env']['kafka_pid_dir']
+kafka_pid_dir = config["configurations"]["kafka-env"]["kafka_pid_dir"]
 kafka_pid_file = format("{kafka_pid_dir}/kafka.pid")

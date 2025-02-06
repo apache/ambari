@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,7 +16,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 from resource_management.core import global_lock
 from resource_management.core.resources import Execute
@@ -25,10 +25,25 @@ from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.core.shell import quote_bash_args
 
 
-def check_thrift_port_sasl(address, port, hive_auth="NOSASL", key=None, kinitcmd=None, smokeuser='ambari-qa',
-                           hive_user='hive', transport_mode="binary", http_endpoint="cliservice",
-                           ssl=False, ssl_keystore=None, ssl_password=None, check_command_timeout=30,
-                           ldap_username="", ldap_password="", pam_username="", pam_password=""):
+def check_thrift_port_sasl(
+  address,
+  port,
+  hive_auth="NOSASL",
+  key=None,
+  kinitcmd=None,
+  smokeuser="ambari-qa",
+  hive_user="hive",
+  transport_mode="binary",
+  http_endpoint="cliservice",
+  ssl=False,
+  ssl_keystore=None,
+  ssl_password=None,
+  check_command_timeout=30,
+  ldap_username="",
+  ldap_password="",
+  pam_username="",
+  pam_password="",
+):
   """
   Hive thrift SASL port check
   """
@@ -42,15 +57,15 @@ def check_thrift_port_sasl(address, port, hive_auth="NOSASL", key=None, kinitcmd
 
   # to pass as beeline argument
   ssl_str = str(ssl).lower()
-  beeline_url = ['jdbc:hive2://{address}:{port}/', "transportMode={transport_mode}"]
+  beeline_url = ["jdbc:hive2://{address}:{port}/", "transportMode={transport_mode}"]
 
   # append url according to used transport
   if transport_mode == "http":
-    beeline_url.append('httpPath={http_endpoint}')
+    beeline_url.append("httpPath={http_endpoint}")
 
   # append url according to used auth
   if hive_auth == "NOSASL":
-    beeline_url.append('auth=noSasl')
+    beeline_url.append("auth=noSasl")
 
   credential_str = "-n {hive_user}"
 
@@ -68,11 +83,17 @@ def check_thrift_port_sasl(address, port, hive_auth="NOSASL", key=None, kinitcmd
 
   # append url according to ssl configuration
   if ssl and ssl_keystore is not None and ssl_password is not None:
-    beeline_url.extend(['ssl={ssl_str}', 'sslTrustStore={ssl_keystore}', "trustStorePassword='{ssl_password!p}'"])
+    beeline_url.extend(
+      [
+        "ssl={ssl_str}",
+        "sslTrustStore={ssl_keystore}",
+        "trustStorePassword='{ssl_password!p}'",
+      ]
+    )
 
   # append url according to principal and execute kinit
   if kinitcmd and hive_auth != "LDAP":
-    beeline_url.append('principal={key}')
+    beeline_url.append("principal={key}")
 
     # prevent concurrent kinit
     kinit_lock = global_lock.get_lock(global_lock.LOCK_TYPE_KERBEROS)
@@ -84,11 +105,13 @@ def check_thrift_port_sasl(address, port, hive_auth="NOSASL", key=None, kinitcmd
 
   # -n the user to connect as (ignored when using the hive principal in the URL, can be different from the user running the beeline command)
   # -e ';' executes a SQL commmand of NOOP
-  cmd = ("! (beeline -u '%s' %s -e ';' 2>&1 | awk '{print}' | grep -vz -i " + \
-         "-e 'Connected to:' -e 'Transaction isolation:' -e 'inactive HS2 instance; use service discovery')") % \
-        (format(";".join(beeline_url)), format(credential_str))
+  cmd = (
+    "! (beeline -u '%s' %s -e ';' 2>&1 | awk '{print}' | grep -vz -i "
+    + "-e 'Connected to:' -e 'Transaction isolation:' -e 'inactive HS2 instance; use service discovery')"
+  ) % (format(";".join(beeline_url)), format(credential_str))
 
-  Execute(cmd,
+  Execute(
+    cmd,
     user=smokeuser,
     path=["/bin/", "/usr/bin/", "/usr/lib/hive/bin/", "/usr/sbin/"],
     timeout=check_command_timeout,

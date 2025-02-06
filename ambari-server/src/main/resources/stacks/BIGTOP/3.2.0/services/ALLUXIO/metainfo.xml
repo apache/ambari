@@ -1,0 +1,132 @@
+<?xml version="1.0"?>
+<!--Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+-->
+<metainfo>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>ALLUXIO</name>
+      <displayName>Alluxio</displayName>
+      <comment>Alluxio is world’s first open source data orchestration technology for analytics and AI for the cloud. This service is &lt;b&gt;Technical Preview&lt;/b&gt;.</comment>
+      <version>2.9.3</version>
+      <components>        
+        <component>
+          <name>ALLUXIO_MASTER</name>
+          <displayName>Alluxio Master</displayName>
+          <category>MASTER</category>
+          <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <dependencies>
+            <dependency>
+              <name>HDFS/HDFS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+          <commandScript>
+            <script>scripts/master.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
+          <logs>
+            <log>
+              <logId>alluxio_master</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
+        </component>
+
+        <component>
+          <name>ALLUXIO_WORKER</name>
+          <displayName>Alluxio Worker</displayName>
+          <category>SLAVE</category>
+          <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <commandScript>
+            <script>scripts/worker.py</script>
+            <scriptType>PYTHON</scriptType>
+          </commandScript>
+          <dependencies>
+            <dependency>
+              <name>HDFS/HDFS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+          <logs>
+            <log>
+              <logId>alluxio_worker</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
+        </component>
+
+      </components>
+
+      <configuration-dependencies>
+        <config-type>alluxio-env</config-type>
+        <config-type>alluxio-site-properties</config-type>
+        <config-type>alluxio-log4j-properties</config-type>
+        <config-type>alluxio-metrics-properties</config-type>
+      </configuration-dependencies>
+
+      <commandScript>
+        <script>scripts/service_check.py</script>
+        <scriptType>PYTHON</scriptType>
+        <timeout>300</timeout>
+      </commandScript>
+
+      <requiredServices>
+        <service>HDFS</service>
+      </requiredServices>
+	  
+      <quickLinksConfigurations>
+        <quickLinksConfiguration>
+            <fileName>quicklinks.json</fileName>
+            <default>true</default>
+        </quickLinksConfiguration>
+      </quickLinksConfigurations>
+      
+      <restartRequiredAfterChange>true</restartRequiredAfterChange>
+
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>redhat9,redhat8,redhat7,amazonlinux2,redhat6,suse11,suse12</osFamily>
+          <packages>
+            <package>
+              <name>alluxio_${stack_version}</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>debian7,debian9,ubuntu12,ubuntu14,ubuntu16,ubuntu18</osFamily>
+          <packages>
+            <package>
+              <name>alluxio_${stack_version}</name>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
+
+    </service>
+  </services>
+</metainfo>

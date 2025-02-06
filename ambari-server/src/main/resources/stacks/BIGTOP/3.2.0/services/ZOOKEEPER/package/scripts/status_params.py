@@ -17,6 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+
 from ambari_commons import OSCheck
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.default import default
@@ -29,28 +30,32 @@ from resource_management.libraries.script.script import Script
 # a map of the Ambari role to the component name
 # for use with <stack-root>/current/<component>
 SERVER_ROLE_DIRECTORY_MAP = {
-  'ZOOKEEPER_SERVER' : 'zookeeper-server',
-  'ZOOKEEPER_CLIENT' : 'zookeeper-client'
+  "ZOOKEEPER_SERVER": "zookeeper-server",
+  "ZOOKEEPER_CLIENT": "zookeeper-client",
 }
 
-component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, "ZOOKEEPER_CLIENT")
+component_directory = Script.get_component_from_role(
+  SERVER_ROLE_DIRECTORY_MAP, "ZOOKEEPER_CLIENT"
+)
 
 config = Script.get_config()
 
 if OSCheck.is_windows_family():
   zookeeper_win_service_name = "zkServer"
 else:
-  zk_pid_dir = config['configurations']['zookeeper-env']['zk_pid_dir']
+  zk_pid_dir = config["configurations"]["zookeeper-env"]["zk_pid_dir"]
   zk_pid_file = format("{zk_pid_dir}/zookeeper_server.pid")
 
   # Security related/required params
-  hostname = config['agentLevelParams']['hostname']
-  security_enabled = config['configurations']['cluster-env']['security_enabled']
-  kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
+  hostname = config["agentLevelParams"]["hostname"]
+  security_enabled = config["configurations"]["cluster-env"]["security_enabled"]
+  kinit_path_local = get_kinit_path(
+    default("/configurations/kerberos-env/executable_search_paths", None)
+  )
   tmp_dir = Script.get_tmp_dir()
-  zk_user =  config['configurations']['zookeeper-env']['zk_user']
-  
-  stack_version_unformatted = str(config['clusterLevelParams']['stack_version'])
+  zk_user = config["configurations"]["zookeeper-env"]["zk_user"]
+
+  stack_version_unformatted = str(config["clusterLevelParams"]["stack_version"])
   stack_version_formatted = format_stack_version(stack_version_unformatted)
   stack_root = Script.get_stack_root()
 

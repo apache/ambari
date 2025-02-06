@@ -20,18 +20,21 @@ limitations under the License.
 
 from math import sqrt
 
+
 def sample_standard_deviation(lst):
   """calculates standard deviation"""
   if len(lst) < 2:
     return 0
-  variance = sum([(element-mean(lst))**2 for element in lst]) / (len(lst) - 1)
+  variance = sum([(element - mean(lst)) ** 2 for element in lst]) / (len(lst) - 1)
   return sqrt(variance)
+
 
 def mean(lst):
   """calculates mean"""
   if len(lst) < 1:
     return 0
   return sum(lst) / len(lst)
+
 
 def sample_standard_deviation_percentage(lst):
   """calculates sample standard deviation percentage"""
@@ -40,6 +43,7 @@ def sample_standard_deviation_percentage(lst):
   except ZeroDivisionError:
     # should not be a case for this alert
     return 0
+
 
 def count(lst):
   """calculates number of data points"""

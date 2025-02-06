@@ -23,12 +23,12 @@ from resource_management import *
 
 from scripts.mysql_service import mysql_service
 
-class MysqlServer(Script):
 
+class MysqlServer(Script):
   if System.get_instance().os_family == "suse":
-    daemon_name = 'mysql'
+    daemon_name = "mysql"
   else:
-    daemon_name = 'mysqld'
+    daemon_name = "mysqld"
 
   def install(self, env):
     self.install_packages(env)
@@ -36,42 +36,51 @@ class MysqlServer(Script):
 
   def configure(self, env):
     from scripts import params
+
     env.set_params(params)
 
-    mysql_service(daemon_name=self.daemon_name, action='start')
+    mysql_service(daemon_name=self.daemon_name, action="start")
 
-    File(params.mysql_adduser_path,
-         mode=0o755,
-         content=StaticFile('addMysqlUser.sh')
-    )
+    File(params.mysql_adduser_path, mode=0o755, content=StaticFile("addMysqlUser.sh"))
 
     # Autoescaping
-    cmd = ("bash", "-x", params.mysql_adduser_path, self.daemon_name,
-           params.hive_metastore_user_name, params.hive_metastore_user_passwd, params.mysql_host[0])
-
-    Execute(cmd,
-            tries=3,
-            try_sleep=5,
-            path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
-            logoutput=True
+    cmd = (
+      "bash",
+      "-x",
+      params.mysql_adduser_path,
+      self.daemon_name,
+      params.hive_metastore_user_name,
+      params.hive_metastore_user_passwd,
+      params.mysql_host[0],
     )
 
-    mysql_service(daemon_name=self.daemon_name, action='stop')
+    Execute(
+      cmd,
+      tries=3,
+      try_sleep=5,
+      path="/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin",
+      logoutput=True,
+    )
+
+    mysql_service(daemon_name=self.daemon_name, action="stop")
 
   def start(self, env):
     from scripts import params
+
     env.set_params(params)
 
-    mysql_service(daemon_name=self.daemon_name, action = 'start')
+    mysql_service(daemon_name=self.daemon_name, action="start")
 
   def stop(self, env):
     from scripts import params
+
     env.set_params(params)
 
-    mysql_service(daemon_name=self.daemon_name, action = 'stop')
+    mysql_service(daemon_name=self.daemon_name, action="stop")
 
   def status(self, env):
-    mysql_service(daemon_name=self.daemon_name, action = 'status')
+    mysql_service(daemon_name=self.daemon_name, action="status")
+
 
 if __name__ == "__main__":
   MysqlServer().execute()

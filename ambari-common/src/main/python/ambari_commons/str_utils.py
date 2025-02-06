@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,19 +16,19 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 
 def compress_backslashes(s):
   s1 = s
-  while (-1 != s1.find('\\\\')):
-    s1 = s1.replace('\\\\', '\\')
+  while -1 != s1.find("\\\\"):
+    s1 = s1.replace("\\\\", "\\")
   return s1
 
 
 def ensure_double_backslashes(s):
   s1 = compress_backslashes(s)
-  s2 = s1.replace('\\', '\\\\')
+  s2 = s1.replace("\\", "\\\\")
   return s2
 
 
@@ -40,11 +40,11 @@ def cbool(obj):
   """
   if isinstance(obj, str):
     obj = obj.strip().lower()
-    if obj in ('true', 'yes', 'on', 'y', 't', '1'):
+    if obj in ("true", "yes", "on", "y", "t", "1"):
       return True
-    if obj in ('false', 'no', 'off', 'n', 'f', '0'):
+    if obj in ("false", "no", "off", "n", "f", "0"):
       return False
-    raise ValueError('Unable to interpret value "%s" as boolean' % obj)
+    raise ValueError(f'Unable to interpret value "{obj}" as boolean')
   return bool(obj)
 
 
@@ -59,11 +59,12 @@ def cint(obj):
     try:
       return int(obj)
     except ValueError:
-      raise ValueError('Unable to interpret value "%s" as integer' % obj)
+      raise ValueError(f'Unable to interpret value "{obj}" as integer')
   elif obj is None:
     return obj
 
   return int(obj)
+
 
 def split_on_chunks(text, chunk_max_size):
   """
@@ -80,7 +81,10 @@ def split_on_chunks(text, chunk_max_size):
       chunk = ""
       # if a single line itself is bigger than the max chunk size, split the line.
       if len(lines[0]) > chunk_max_size:
-        line_fragments = [lines[0][x:x+chunk_max_size] for x in range(0, len(lines[0]), chunk_max_size)]
+        line_fragments = [
+          lines[0][x : x + chunk_max_size]
+          for x in range(0, len(lines[0]), chunk_max_size)
+        ]
         for line_fragment in line_fragments:
           chunks.append(line_fragment)
         lines.pop(0)

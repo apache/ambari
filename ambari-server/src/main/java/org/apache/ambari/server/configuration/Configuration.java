@@ -28,10 +28,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
 import java.lang.reflect.Field;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -52,6 +48,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
+import org.apache.ambari.annotations.ClusterScale;
+import org.apache.ambari.annotations.ConfigurationMarkdown;
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.annotations.Markdown;
@@ -793,6 +791,15 @@ public class Configuration {
       examples = { "/usr/jdk64/jdk1.8.0_112" })
   public static final ConfigurationProperty<String> JAVA_HOME = new ConfigurationProperty<>(
       "java.home", null);
+
+  /**
+   * The location of the JDK on the Ambari Agent hosts.
+   */
+  @Markdown(
+          description = "The location of the JDK on the Ambari Agent hosts. This is only used by Ambari Server",
+          examples = { "/usr/jdk64/jdk1.8.0_112" })
+  public static final ConfigurationProperty<String> AMBARI_JAVA_HOME = new ConfigurationProperty<>(
+          "ambari.java.home", null);
 
   /**
    * The name of the JDK installation binary.
@@ -4117,6 +4124,10 @@ public class Configuration {
     return getProperty(JAVA_HOME);
   }
 
+  public String getAmbariJavaHome() {
+    return getProperty(AMBARI_JAVA_HOME);
+  }
+
   public String getJDKName() {
     return getProperty(JDK_NAME);
   }
@@ -5994,7 +6005,7 @@ public class Configuration {
   /**
    * The {@link ConfigurationGrouping} represents a logical grouping of configurations.
    */
-  private enum ConfigurationGrouping {
+  public enum ConfigurationGrouping {
     /**
      * Alerts & Notifications.
      */
@@ -6032,7 +6043,7 @@ public class Configuration {
    * The {@link ClusterSizeType} is used to represent fixed sizes of clusters
    * for easy table generation when creating documentation.
    */
-  private enum ClusterSizeType {
+  public enum ClusterSizeType {
     /**
      * 10 Hosts.
      */
@@ -6076,47 +6087,6 @@ public class Configuration {
     }
   }
 
-  /**
-   * The {@link ConfigurationMarkdown} is used to represent more complex
-   * Markdown for {@link ConfigurationProperty} fields. It wraps the traditional
-   * {@link Markdown} along with extra metadata used to generate documentation.
-   */
-  @Retention(RetentionPolicy.RUNTIME)
-  @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.METHOD })
-  @interface ConfigurationMarkdown {
-    /**
-     * The base Markdown.
-     *
-     * @return
-     */
-    Markdown markdown();
-
-    /**
-     * The logic grouping that the configuration property belongs to.
-     *
-     * @return
-     */
-    ConfigurationGrouping group();
-
-    /**
-     * All of the recommended values for the property based on cluster size.
-     *
-     * @return
-     */
-    ClusterScale[] scaleValues() default {};
-  }
-
-  /**
-   * The {@link ClusterScale} class is a representation of the size of the
-   * cluster combined with a value. It's used to represent different
-   * configuration values depending on how many hosts are in the cluster.
-   */
-  @Retention(RetentionPolicy.RUNTIME)
-  @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.METHOD })
-  private @interface ClusterScale {
-    ClusterSizeType clusterSize();
-    String value();
-  }
 
   /**
    * Creates an AmbariKerberosAuthenticationProperties instance containing the Kerberos authentication-specific

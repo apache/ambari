@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,27 +16,25 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 import unittest
-from ambari_commons.ast_checker import ASTChecker,BlacklistRule
+from ambari_commons.ast_checker import ASTChecker, BlacklistRule
 from ambari_agent.alerts.metric_alert import JmxMetric
 from ambari_agent.alerts.ams_alert import AmsMetric
 
+
 class TestJmxMetric(unittest.TestCase):
   def test_jmx_metric_calculation(self):
-    jmx_info = {
-      'property_list': ['a/b', 'c/d'],
-      'value': '({0} + {1}) / 100.0'
-    }
+    jmx_info = {"property_list": ["a/b", "c/d"], "value": "({0} + {1}) / 100.0"}
     metric = JmxMetric(jmx_info)
     result = metric.calculate([50, 50])
     self.assertEqual(result, 1.0)
 
   def test_jmx_metric_with_complex_calculation(self):
     jmx_info = {
-      'property_list': ['x/y', 'z/w'],
-      'value': 'max({0}, {2}) / min({1}, {3}) * 100.0'
+      "property_list": ["x/y", "z/w"],
+      "value": "max({0}, {2}) / min({1}, {3}) * 100.0",
     }
     metric = JmxMetric(jmx_info)
     result = metric.calculate([100, 50, 200, 25])
@@ -44,115 +42,116 @@ class TestJmxMetric(unittest.TestCase):
 
   def test_jmx_metric_with_string_manipulation(self):
     jmx_info = {
-      'property_list': ['str1/value', 'str2/value'],
-      'value': "len({0}) + len({1})"
+      "property_list": ["str1/value", "str2/value"],
+      "value": "len({0}) + len({1})",
     }
     metric = JmxMetric(jmx_info)
-    result = metric.calculate(['hello', 'world'])
+    result = metric.calculate(["hello", "world"])
     self.assertEqual(result, 10)
 
   def test_jmx_metric_with_unsafe_operation(self):
     jmx_info = {
-      'property_list': ['a/b'],
-      'value': "__import__('os').system('echo hacked')"
+      "property_list": ["a/b"],
+      "value": "__import__('os').system('echo hacked')",
     }
 
     with self.assertRaises(Exception):
       JmxMetric(jmx_info)
 
+
 class TestAmsMetric(unittest.TestCase):
   # Safe test cases
   def test_safe_simple_calculation(self):
     metric_info = {
-      'metric_list': ['a', 'b'],
-      'interval': 5,
-      'app_id': 'test_app',
-      'minimum_value': 0,
-      'value': 'args[0][k] + args[1][k]'
+      "metric_list": ["a", "b"],
+      "interval": 5,
+      "app_id": "test_app",
+      "minimum_value": 0,
+      "value": "args[0][k] + args[1][k]",
     }
     metric = AmsMetric(metric_info)
-    result = metric.calculate_value([{'k': 10}, {'k': 20}])
+    result = metric.calculate_value([{"k": 10}, {"k": 20}])
     self.assertEqual(result, [30])
 
   def test_safe_complex_calculation(self):
     metric_info = {
-      'metric_list': ['x', 'y', 'z'],
-      'interval': 5,
-      'app_id': 'test_app',
-      'minimum_value': 0,
-      'value': 'max(args[0][k], args[1][k]) / min(args[1][k], args[2][k]) * 100.0'
+      "metric_list": ["x", "y", "z"],
+      "interval": 5,
+      "app_id": "test_app",
+      "minimum_value": 0,
+      "value": "max(args[0][k], args[1][k]) / min(args[1][k], args[2][k]) * 100.0",
     }
     metric = AmsMetric(metric_info)
-    result = metric.calculate_value([{'k': 100}, {'k': 50}, {'k': 25}])
+    result = metric.calculate_value([{"k": 100}, {"k": 50}, {"k": 25}])
     self.assertEqual(result, [400.0])
 
   def test_safe_string_manipulation(self):
     metric_info = {
-      'metric_list': ['str1', 'str2'],
-      'interval': 5,
-      'app_id': 'test_app',
-      'minimum_value': 0,
-      'value': 'len(str(args[0][k])) + len(str(args[1][k]))'
+      "metric_list": ["str1", "str2"],
+      "interval": 5,
+      "app_id": "test_app",
+      "minimum_value": 0,
+      "value": "len(str(args[0][k])) + len(str(args[1][k]))",
     }
     metric = AmsMetric(metric_info)
-    result = metric.calculate_value([{'k': 'hello'}, {'k': 'world'}])
+    result = metric.calculate_value([{"k": "hello"}, {"k": "world"}])
     self.assertEqual(result, [10])
 
   def test_safe_list_comprehension(self):
     metric_info = {
-      'metric_list': ['numbers'],
-      'interval': 5,
-      'app_id': 'test_app',
-      'minimum_value': 0,
-      'value': 'sum([x for x in args[0][k] if x > 5])'
+      "metric_list": ["numbers"],
+      "interval": 5,
+      "app_id": "test_app",
+      "minimum_value": 0,
+      "value": "sum([x for x in args[0][k] if x > 5])",
     }
     metric = AmsMetric(metric_info)
-    result = metric.calculate_value([{'k': [1, 6, 2, 7, 3, 8]}])
+    result = metric.calculate_value([{"k": [1, 6, 2, 7, 3, 8]}])
     self.assertEqual(result, [21])
 
   def test_safe_dict_manipulation(self):
     metric_info = {
-      'metric_list': ['data'],
-      'interval': 5,
-      'app_id': 'test_app',
-      'minimum_value': 0,
-      'value': 'sum(args[0][k].values())'
+      "metric_list": ["data"],
+      "interval": 5,
+      "app_id": "test_app",
+      "minimum_value": 0,
+      "value": "sum(args[0][k].values())",
     }
     metric = AmsMetric(metric_info)
-    result = metric.calculate_value([{'k': {'a': 1, 'b': 2, 'c': 3}}])
+    result = metric.calculate_value([{"k": {"a": 1, "b": 2, "c": 3}}])
     self.assertEqual(result, [6])
 
   def test_safe_conditional_expression(self):
     metric_info = {
-      'metric_list': ['x', 'y'],
-      'interval': 5,
-      'app_id': 'test_app',
-      'minimum_value': 0,
-      'value': 'args[0][k] if args[0][k] > args[1][k] else args[1][k]'
+      "metric_list": ["x", "y"],
+      "interval": 5,
+      "app_id": "test_app",
+      "minimum_value": 0,
+      "value": "args[0][k] if args[0][k] > args[1][k] else args[1][k]",
     }
     metric = AmsMetric(metric_info)
-    result = metric.calculate_value([{'k': 10}, {'k': 20}])
+    result = metric.calculate_value([{"k": 10}, {"k": 20}])
     self.assertEqual(result, [20])
 
   def test_safe_boolean_operations(self):
     metric_info = {
-      'metric_list': ['a', 'b', 'c'],
-      'interval': 5,
-      'app_id': 'test_app',
-      'minimum_value': 0,
-      'value': 'int(args[0][k] > 0 and args[1][k] < 10 or args[2][k] == 5)'
+      "metric_list": ["a", "b", "c"],
+      "interval": 5,
+      "app_id": "test_app",
+      "minimum_value": 0,
+      "value": "int(args[0][k] > 0 and args[1][k] < 10 or args[2][k] == 5)",
     }
     metric = AmsMetric(metric_info)
-    result = metric.calculate_value([{'k': 1}, {'k': 5}, {'k': 5}])
+    result = metric.calculate_value([{"k": 1}, {"k": 5}, {"k": 5}])
     self.assertEqual(result, [1])
 
   def test_safe_compute_mean(self):
     metric_info = {
-      'metric_list': ['numbers'],
-      'interval': 5,
-      'app_id': 'test_app',
-      'minimum_value': 0,
-      'compute': 'mean'
+      "metric_list": ["numbers"],
+      "interval": 5,
+      "app_id": "test_app",
+      "minimum_value": 0,
+      "compute": "mean",
     }
     metric = AmsMetric(metric_info)
     result = metric.calculate_compute([1, 2, 3, 4, 5])  # Pass a flat list
@@ -160,11 +159,11 @@ class TestAmsMetric(unittest.TestCase):
 
   def test_safe_compute_standard_deviation(self):
     metric_info = {
-      'metric_list': ['numbers'],
-      'interval': 5,
-      'app_id': 'test_app',
-      'minimum_value': 0,
-      'compute': 'sample_standard_deviation'
+      "metric_list": ["numbers"],
+      "interval": 5,
+      "app_id": "test_app",
+      "minimum_value": 0,
+      "compute": "sample_standard_deviation",
     }
     metric = AmsMetric(metric_info)
     result = metric.calculate_compute([1, 2, 3, 4, 5])  # Pass a flat list
@@ -172,11 +171,11 @@ class TestAmsMetric(unittest.TestCase):
 
   def test_safe_compute_count(self):
     metric_info = {
-      'metric_list': ['numbers'],
-      'interval': 5,
-      'app_id': 'test_app',
-      'minimum_value': 0,
-      'compute': 'count'
+      "metric_list": ["numbers"],
+      "interval": 5,
+      "app_id": "test_app",
+      "minimum_value": 0,
+      "compute": "count",
     }
     metric = AmsMetric(metric_info)
     result = metric.calculate_compute([1, 2, 3, 4, 5])  # Pass a flat list
@@ -185,113 +184,114 @@ class TestAmsMetric(unittest.TestCase):
   # Unsafe test cases
   def test_unsafe_import(self):
     metric_info = {
-      'metric_list': ['a'],
-      'interval': 5,
-      'app_id': 'test_app',
-      'minimum_value': 0,
-      'value': "__import__('os').system('echo hacked')"
+      "metric_list": ["a"],
+      "interval": 5,
+      "app_id": "test_app",
+      "minimum_value": 0,
+      "value": "__import__('os').system('echo hacked')",
     }
     with self.assertRaises(Exception):
       AmsMetric(metric_info)
 
   def test_unsafe_eval(self):
     metric_info = {
-      'metric_list': ['a'],
-      'interval': 5,
-      'app_id': 'test_app',
-      'minimum_value': 0,
-      'value': "eval('2 + 2')"
+      "metric_list": ["a"],
+      "interval": 5,
+      "app_id": "test_app",
+      "minimum_value": 0,
+      "value": "eval('2 + 2')",
     }
     with self.assertRaises(Exception):
       AmsMetric(metric_info)
 
   def test_unsafe_exec(self):
     metric_info = {
-      'metric_list': ['a'],
-      'interval': 5,
-      'app_id': 'test_app',
-      'minimum_value': 0,
-      'value': "exec('x = 5')"
+      "metric_list": ["a"],
+      "interval": 5,
+      "app_id": "test_app",
+      "minimum_value": 0,
+      "value": "exec('x = 5')",
     }
     with self.assertRaises(Exception):
       AmsMetric(metric_info)
 
   def test_unsafe_open_file(self):
     metric_info = {
-      'metric_list': ['a'],
-      'interval': 5,
-      'app_id': 'test_app',
-      'minimum_value': 0,
-      'value': "open('/etc/passwd', 'r').read()"
+      "metric_list": ["a"],
+      "interval": 5,
+      "app_id": "test_app",
+      "minimum_value": 0,
+      "value": "open('/etc/passwd', 'r').read()",
     }
     with self.assertRaises(Exception):
       AmsMetric(metric_info)
 
   def test_unsafe_subprocess(self):
     metric_info = {
-      'metric_list': ['a'],
-      'interval': 5,
-      'app_id': 'test_app',
-      'minimum_value': 0,
-      'value': "__import__('subprocess').call(['ls', '-l'])"
+      "metric_list": ["a"],
+      "interval": 5,
+      "app_id": "test_app",
+      "minimum_value": 0,
+      "value": "__import__('subprocess').call(['ls', '-l'])",
     }
     with self.assertRaises(Exception):
       AmsMetric(metric_info)
 
   def test_unsafe_globals(self):
     metric_info = {
-      'metric_list': ['a'],
-      'interval': 5,
-      'app_id': 'test_app',
-      'minimum_value': 0,
-      'value': "globals()['__builtins__']"
+      "metric_list": ["a"],
+      "interval": 5,
+      "app_id": "test_app",
+      "minimum_value": 0,
+      "value": "globals()['__builtins__']",
     }
     with self.assertRaises(Exception):
       AmsMetric(metric_info)
 
   def test_unsafe_attribute_access(self):
     metric_info = {
-      'metric_list': ['a'],
-      'interval': 5,
-      'app_id': 'test_app',
-      'minimum_value': 0,
-      'value': "args.__class__.__bases__[0].__subclasses__()"
+      "metric_list": ["a"],
+      "interval": 5,
+      "app_id": "test_app",
+      "minimum_value": 0,
+      "value": "args.__class__.__bases__[0].__subclasses__()",
     }
     with self.assertRaises(Exception):
       AmsMetric(metric_info)
 
   def test_unsafe_pickle(self):
     metric_info = {
-      'metric_list': ['a'],
-      'interval': 5,
-      'app_id': 'test_app',
-      'minimum_value': 0,
-      'value': "__import__('pickle').loads(b'cos\\nsystem\\n(S\"echo hacked\"\\ntR.')"
+      "metric_list": ["a"],
+      "interval": 5,
+      "app_id": "test_app",
+      "minimum_value": 0,
+      "value": "__import__('pickle').loads(b'cos\\nsystem\\n(S\"echo hacked\"\\ntR.')",
     }
     with self.assertRaises(Exception):
       AmsMetric(metric_info)
 
   def test_unsafe_custom_function(self):
     metric_info = {
-      'metric_list': ['a'],
-      'interval': 5,
-      'app_id': 'test_app',
-      'minimum_value': 0,
-      'value': "lambda: __import__('os').system('echo hacked')"
+      "metric_list": ["a"],
+      "interval": 5,
+      "app_id": "test_app",
+      "minimum_value": 0,
+      "value": "lambda: __import__('os').system('echo hacked')",
     }
     with self.assertRaises(Exception):
       AmsMetric(metric_info)
 
   def test_unsafe_builtin_override(self):
     metric_info = {
-      'metric_list': ['a'],
-      'interval': 5,
-      'app_id': 'test_app',
-      'minimum_value': 0,
-      'value': "__builtins__.__dict__['print'] = lambda x: exec(x)"
+      "metric_list": ["a"],
+      "interval": 5,
+      "app_id": "test_app",
+      "minimum_value": 0,
+      "value": "__builtins__.__dict__['print'] = lambda x: exec(x)",
     }
     with self.assertRaises(Exception):
       AmsMetric(metric_info)
+
 
 class TestBlacklistASTChecker(unittest.TestCase):
   def setUp(self):
@@ -328,7 +328,6 @@ class TestBlacklistASTChecker(unittest.TestCase):
       "len(str(args[0][k]))",
       "int(args[0][k]) if args[0][k] is not None else 0",
       "args[0][k] * 2 if args[1][k] > 100 else args[0][k] / 2 if args[1][k] < 50 else args[0][k]",
-
       # Safe expressions from test_expressions
       "max(args[0], args[1])",
       "len([1, 2, 3])",
@@ -338,7 +337,6 @@ class TestBlacklistASTChecker(unittest.TestCase):
       "class CustomClass: pass",
       "try: 1/0\nexcept ZeroDivisionError: pass",
       "safe_function([1, 2, 3])",
-
       # Safe expressions from ams
       "args[0][k]",
       "args[1][k]",
@@ -358,11 +356,12 @@ class TestBlacklistASTChecker(unittest.TestCase):
       "count(args)",
     ]
 
-
     for expr in safe_expressions:
       with self.subTest(expression=expr):
         try:
-          self.assertTrue(self.checker.is_safe_expression(expr), f"Expression should be safe: {expr}")
+          self.assertTrue(
+            self.checker.is_safe_expression(expr), f"Expression should be safe: {expr}"
+          )
         except Exception as e:
           print(f"Error: {e}, Expression should be safe: {expr}")
           raise
@@ -383,7 +382,6 @@ class TestBlacklistASTChecker(unittest.TestCase):
       "args[0].__class__.__bases__[0].__subclasses__()",
       "args[0].__dict__",
       "args[0].__globals__",
-
       # Unsafe expressions from test_expressions
       "with open('file.txt', 'r') as f: content = f.read()",
       "eval('1 + 1')",
@@ -394,10 +392,9 @@ class TestBlacklistASTChecker(unittest.TestCase):
       "_hidden_function()",
       "from module import _private_func",
       "import _private_module",
-
       # Additional unsafe expressions
       "import subprocess; subprocess.Popen('ls', shell=True)",
-      "import pickle; pickle.loads(b'cos\\nsystem\\n(S\'echo hacked\'\\ntR.\')",
+      "import pickle; pickle.loads(b'cos\\nsystem\\n(S'echo hacked'\\ntR.')",
       "__import__('os').popen('ls').read()",
       "import importlib; importlib.import_module('os').system('echo hacked')",
       "exec(\"__import__('os').system('echo hacked')\")",
@@ -425,7 +422,6 @@ class TestBlacklistASTChecker(unittest.TestCase):
       "vars(__builtins__)['__import__']('os').system('echo hacked')",
       "(lambda x: x.__class__.__bases__[0].__subclasses__()[59].__init__.__globals__.values())(0)[13]['eval']('__import__(\\'os\\').system(\\'echo hacked\\')')",
       "(lambda x: x.__class__.__bases__[0].__subclasses__()[59].__init__.__globals__.values())(0)[13]['__import__']('os').system('echo hacked')",
-
       "import os",
       "open('file.txt', 'w')",
       "eval('1 + 1')",
@@ -438,14 +434,18 @@ class TestBlacklistASTChecker(unittest.TestCase):
     for expr in unsafe_expressions:
       with self.subTest(expression=expr):
         try:
-          self.assertFalse(self.checker.is_safe_expression(expr), f"Expression should be unsafe: {expr}")
+          self.assertFalse(
+            self.checker.is_safe_expression(expr),
+            f"Expression should be unsafe: {expr}",
+          )
         except Exception as e:
           print(f"Error: {e},  Expression should be unsafe: {expr}")
           raise
 
-
   def test_syntax_error(self):
     expr = "(args[1] - args[0])/{args[1] * 100"
     with self.subTest(expression=expr):
-      self.assertFalse(self.checker.is_safe_expression(expr), f"Expression with syntax error should be unsafe: {expr}")
-
+      self.assertFalse(
+        self.checker.is_safe_expression(expr),
+        f"Expression with syntax error should be unsafe: {expr}",
+      )

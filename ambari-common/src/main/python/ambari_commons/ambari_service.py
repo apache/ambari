@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -15,7 +15,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 import os
 
@@ -53,7 +53,7 @@ class AmbariService(WinService):
 
     if not is_debugging:
       # Save the current dir, or the script dir if none set (typical for services)
-      script_path = os.path.dirname(__file__.replace('/', os.sep))
+      script_path = os.path.dirname(__file__.replace("/", os.sep))
       # the script resides in the sbin/ambari_commons subdir
       self.options.current_dir = os.path.normpath(script_path + "\\..\\..")
       os.chdir(self.options.current_dir)

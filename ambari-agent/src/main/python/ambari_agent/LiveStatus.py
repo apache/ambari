@@ -23,7 +23,6 @@ from ambari_agent.ActualConfigHandler import ActualConfigHandler
 
 
 class LiveStatus:
-
   SERVICES = []
   CLIENT_COMPONENTS = []
   COMPONENTS = []
@@ -46,18 +45,23 @@ class LiveStatus:
     :return: populated livestatus dict
     """
 
-    livestatus = {"componentName": self.component,
-                  "msg": "",
-                  "status": component_status,
-                  "clusterName": self.cluster,
-                  "serviceName": self.service,
-                  "stackVersion": ""  # TODO: populate ?
-                  }
+    livestatus = {
+      "componentName": self.component,
+      "msg": "",
+      "status": component_status,
+      "clusterName": self.cluster,
+      "serviceName": self.service,
+      "stackVersion": "",  # TODO: populate ?
+    }
 
-    active_config = self.actualConfigHandler.read_actual_component(
-      self.component)
+    active_config = self.actualConfigHandler.read_actual_component(self.component)
     if active_config is not None:
-      livestatus['configurationTags'] = active_config
+      livestatus["configurationTags"] = active_config
 
-    self.logger.debug("The live status for component %s of service %s is %s", self.component, self.service, livestatus)
+    self.logger.debug(
+      "The live status for component %s of service %s is %s",
+      self.component,
+      self.service,
+      livestatus,
+    )
     return livestatus

@@ -32,18 +32,18 @@ from resource_management.libraries.script.script import Script
 class HCatClient(Script):
   def install(self, env):
     import params
+
     self.install_packages(env)
     self.configure(env)
 
   def configure(self, env):
     import params
+
     env.set_params(params)
     hcat()
 
   def status(self, env):
     raise ClientComponentHasNoStatus()
-
-
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     """
@@ -56,10 +56,14 @@ class HCatClient(Script):
     Logger.info("Executing Hive HCat Client Stack Upgrade pre-restart")
 
     import params
+
     env.set_params(params)
 
     # this function should not execute if the stack version does not support rolling upgrade
-    if not (params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version)):
+    if not (
+      params.version
+      and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version)
+    ):
       return
 
     # HCat client doesn't have a first-class entry in <stack-selector-tool>. Since clients always

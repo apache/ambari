@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,7 +16,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 import logging
 import ambari_stomp
@@ -27,12 +27,14 @@ from ambari_agent import Constants
 
 logger = logging.getLogger(__name__)
 
+
 class ServerResponsesListener(EventListener):
   """
   Listener of Constants.SERVER_RESPONSES_TOPIC events from server.
   """
-  RESPONSE_STATUS_STRING = 'status'
-  RESPONSE_STATUS_SUCCESS = 'OK'
+
+  RESPONSE_STATUS_STRING = "status"
+  RESPONSE_STATUS_SUCCESS = "OK"
 
   def __init__(self, initializer_module):
     super(ServerResponsesListener, self).__init__(initializer_module)
@@ -55,7 +57,10 @@ class ServerResponsesListener(EventListener):
         self.listener_functions[correlation_id](headers, message)
         del self.listener_functions[correlation_id]
 
-      if self.RESPONSE_STATUS_STRING in message and message[self.RESPONSE_STATUS_STRING] == self.RESPONSE_STATUS_SUCCESS:
+      if (
+        self.RESPONSE_STATUS_STRING in message
+        and message[self.RESPONSE_STATUS_STRING] == self.RESPONSE_STATUS_SUCCESS
+      ):
         if correlation_id in self.listener_functions_on_success:
           self.listener_functions_on_success[correlation_id](headers, message)
           del self.listener_functions_on_success[correlation_id]
@@ -64,7 +69,9 @@ class ServerResponsesListener(EventListener):
           self.listener_functions_on_error[correlation_id](headers, message)
           del self.listener_functions_on_error[correlation_id]
     else:
-      logger.warn("Received a message from server without a '{0}' header. Ignoring the message".format(Constants.CORRELATION_ID_STRING))
+      logger.warn(
+        f"Received a message from server without a '{Constants.CORRELATION_ID_STRING}' header. Ignoring the message"
+      )
 
   def get_handled_path(self):
     return Constants.SERVER_RESPONSES_TOPIC
@@ -75,14 +82,14 @@ class ServerResponsesListener(EventListener):
     """
     if Constants.CORRELATION_ID_STRING in headers:
       correlation_id = int(headers[Constants.CORRELATION_ID_STRING])
-      
+
       if correlation_id in self.logging_handlers:
         message_json = self.logging_handlers[correlation_id](headers, message_json)
         if message_json.startswith(" :"):
           message_json = message_json[2:]
         del self.logging_handlers[correlation_id]
-      
-      return " (correlation_id={0}): {1}".format(correlation_id, message_json)
+
+      return f" (correlation_id={correlation_id}): {message_json}"
     return str(message_json)
 
   def reset_responses(self):
@@ -95,5 +102,3 @@ class ServerResponsesListener(EventListener):
     self.listener_functions_on_error = {}
     self.listener_functions = {}
     self.logging_handlers = {}
-
-

@@ -2268,8 +2268,21 @@ public class BlueprintConfigurationProcessor {
      */
     private boolean isDatabaseManaged(Map<String, Map<String, String>> properties) {
       // conditional property should always exist since it is required to be specified in the stack
-      return properties.get(configPropertyType).
-        get(conditionalPropertyName).startsWith("New");
+      Map<String, String> configMap = properties.get(configPropertyType);
+      if (configMap == null) {
+        LOG.warn("Config map is null for property type: {}", configPropertyType);
+        return false;
+      }
+
+      String conditionalValue = configMap.get(conditionalPropertyName);
+      if (conditionalValue == null) {
+        LOG.warn("Conditional value is null for property name: {}", conditionalPropertyName);
+        return false;
+      }
+
+      boolean isManaged = conditionalValue.startsWith("New");
+      LOG.info("Database managed status: {} for value: {}", isManaged, conditionalValue);
+      return isManaged;
     }
   }
 
@@ -2584,6 +2597,12 @@ public class BlueprintConfigurationProcessor {
 
       return doFormat(propertyUpdater.updateForClusterCreate(propertyName, origValue, properties, topology));
     }
+
+    @Override
+    public String updateForBlueprintExport(String propertyName, String value, Map<String, Map<String, String>> properties, ClusterTopology topology) {
+      return doFormat(propertyUpdater.updateForBlueprintExport(propertyName, value, properties, topology));
+    }
+
 
     /**
      * Transform input string to required output format.

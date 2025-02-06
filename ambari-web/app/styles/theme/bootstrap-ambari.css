@@ -855,7 +855,7 @@ input[checked="checked"] + .host-component-checkbox::before {
 }
 
 .nav.nav-tabs li a.active {
-  border-bottom: 1px solid #000 !important;
+  border-bottom: 3px solid #3FAE2A;;
 }
 
 #skip-validation label:before,

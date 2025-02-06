@@ -69,6 +69,7 @@ import org.easymock.IAnswer;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.api.easymock.PowerMock;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.ldap.control.PagedResultsCookie;
@@ -86,6 +87,7 @@ import com.google.inject.Provider;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(AmbariLdapUtils.class)
+@PowerMockIgnore({"org.apache.logging.log4j.*","org.slf4j.*"})
 public class AmbariLdapDataPopulatorTest {
   public static class AmbariLdapDataPopulatorTestInstance extends TestAmbariLdapDataPopulator {
     public AmbariLdapDataPopulatorTestInstance(Provider<AmbariLdapConfiguration> configurationProvider, Users users) {

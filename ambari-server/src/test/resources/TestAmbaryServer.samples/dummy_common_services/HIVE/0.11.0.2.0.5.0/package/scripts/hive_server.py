@@ -24,40 +24,41 @@ from resource_management import *
 from scripts.hive import hive
 from scripts.hive_service import hive_service
 
-class HiveServer(Script):
 
+class HiveServer(Script):
   def install(self, env):
     self.install_packages(env)
     self.configure(env)
+
   def configure(self, env):
     from scripts import params
+
     env.set_params(params)
 
-    hive(name='hiveserver2')
+    hive(name="hiveserver2")
 
   def start(self, env):
     from scripts import params
+
     env.set_params(params)
-    self.configure(env) # FOR SECURITY
-    hive_service( 'hiveserver2',
-                  action = 'start'
-    )
+    self.configure(env)  # FOR SECURITY
+    hive_service("hiveserver2", action="start")
 
   def stop(self, env):
     from scripts import params
+
     env.set_params(params)
 
-    hive_service( 'hiveserver2',
-                  action = 'stop'
-    )
-
+    hive_service("hiveserver2", action="stop")
 
   def status(self, env):
     from scripts import status_params
+
     env.set_params(status_params)
     pid_file = format("{hive_pid_dir}/{hive_pid}")
     # Recursively check all existing gmetad pid files
     check_process_status(pid_file)
+
 
 if __name__ == "__main__":
   HiveServer().execute()

@@ -51,7 +51,7 @@ def setup_stack_symlinks(struct_out_file):
   json_version = load_version(struct_out_file)
 
   if not json_version:
-    Logger.info("There is no advertised version for this component stored in {0}".format(struct_out_file))
+    Logger.info(f"There is no advertised version for this component stored in {struct_out_file}")
     return
 
   # On parallel command execution this should be executed by a single process at a time.
@@ -63,7 +63,7 @@ def setup_stack_symlinks(struct_out_file):
 def setup_config():
   import params
   stackversion = params.stack_version_unformatted
-  Logger.info("FS Type: {0}".format(params.dfs_type))
+  Logger.info(f"FS Type: {params.dfs_type}")
 
   is_hadoop_conf_dir_present = False
   if hasattr(params, "hadoop_conf_dir") and params.hadoop_conf_dir is not None and os.path.exists(params.hadoop_conf_dir):
@@ -111,7 +111,7 @@ def link_configs(struct_out_file):
   json_version = load_version(struct_out_file)
 
   if not json_version:
-    Logger.info("Could not load 'version' from {0}".format(struct_out_file))
+    Logger.info(f"Could not load 'version' from {struct_out_file}")
     return
 
   # On parallel command execution this should be executed by a single process at a time.

@@ -21,34 +21,37 @@ import os
 
 from unittest import TestCase
 
-class TestAmbariConfiguration(TestCase):
 
+class TestAmbariConfiguration(TestCase):
   def setUp(self):
     import imp
+
     self.test_directory = os.path.dirname(os.path.abspath(__file__))
 
-    relative_path = '../../main/resources/stacks/ambari_configuration.py'
-    ambari_configuration_path = os.path.abspath(os.path.join(self.test_directory, relative_path))
-    class_name = 'AmbariConfiguration'
+    relative_path = "../../main/resources/stacks/ambari_configuration.py"
+    ambari_configuration_path = os.path.abspath(
+      os.path.join(self.test_directory, relative_path)
+    )
+    class_name = "AmbariConfiguration"
 
-    with open(ambari_configuration_path, 'rb') as fp:
-      ambari_configuration_impl = imp.load_module('ambari_configuration', fp,
-                                                  ambari_configuration_path,
-                                                  ('.py', 'rb', imp.PY_SOURCE))
+    with open(ambari_configuration_path, "rb") as fp:
+      ambari_configuration_impl = imp.load_module(
+        "ambari_configuration",
+        fp,
+        ambari_configuration_path,
+        (".py", "rb", imp.PY_SOURCE),
+      )
 
     self.ambari_configuration_class = getattr(ambari_configuration_impl, class_name)
 
   def testMissingData(self):
-    ambari_configuration = self.ambari_configuration_class('{}')
+    ambari_configuration = self.ambari_configuration_class("{}")
     self.assertIsNone(ambari_configuration.get_ambari_server_configuration())
     self.assertIsNone(ambari_configuration.get_ambari_sso_configuration())
     self.assertIsNone(ambari_configuration.get_ambari_ldap_configuration())
 
   def testMissingSSOConfiguration(self):
-    services_json = {
-      "ambari-server-configuration": {
-      }
-    }
+    services_json = {"ambari-server-configuration": {}}
 
     ambari_configuration = self.ambari_configuration_class(services_json)
     self.assertIsNone(ambari_configuration.get_ambari_sso_configuration())
@@ -65,9 +68,7 @@ class TestAmbariConfiguration(TestCase):
   def testAmbariSSOConfigurationNotManagingServices(self):
     services_json = {
       "ambari-server-configuration": {
-        "sso-configuration": {
-          "ambari.sso.enabled_services": "AMBARI"
-        }
+        "sso-configuration": {"ambari.sso.enabled_services": "AMBARI"}
       }
     }
 
@@ -84,7 +85,7 @@ class TestAmbariConfiguration(TestCase):
       "ambari-server-configuration": {
         "sso-configuration": {
           "ambari.sso.manage_services": "false",
-          "ambari.sso.enabled_services": "AMBARI, RANGER"
+          "ambari.sso.enabled_services": "AMBARI, RANGER",
         }
       }
     }
@@ -104,7 +105,7 @@ class TestAmbariConfiguration(TestCase):
       "ambari-server-configuration": {
         "sso-configuration": {
           "ambari.sso.manage_services": "false",
-          "ambari.sso.enabled_services": "*"
+          "ambari.sso.enabled_services": "*",
         }
       }
     }
@@ -125,7 +126,7 @@ class TestAmbariConfiguration(TestCase):
       "ambari-server-configuration": {
         "sso-configuration": {
           "ambari.sso.manage_services": "true",
-          "ambari.sso.enabled_services": "AMBARI"
+          "ambari.sso.enabled_services": "AMBARI",
         }
       }
     }
@@ -145,7 +146,7 @@ class TestAmbariConfiguration(TestCase):
       "ambari-server-configuration": {
         "sso-configuration": {
           "ambari.sso.manage_services": "true",
-          "ambari.sso.enabled_services": "AMBARI, RANGER"
+          "ambari.sso.enabled_services": "AMBARI, RANGER",
         }
       }
     }
@@ -165,7 +166,7 @@ class TestAmbariConfiguration(TestCase):
       "ambari-server-configuration": {
         "sso-configuration": {
           "ambari.sso.manage_services": "true",
-          "ambari.sso.enabled_services": "*"
+          "ambari.sso.enabled_services": "*",
         }
       }
     }
@@ -189,7 +190,7 @@ class TestAmbariConfiguration(TestCase):
           "ambari.sso.authentication.enabled": "true",
           "ambari.sso.provider.url": "https://knox.ambari.apache.org",
           "ambari.sso.jwt.cookieName": "hadoop-jwt",
-          "ambari.sso.jwt.audiences": ""
+          "ambari.sso.jwt.audiences": "",
         }
       }
     }
@@ -199,21 +200,25 @@ class TestAmbariConfiguration(TestCase):
 
     ambari_sso_details = ambari_configuration.get_ambari_sso_details()
     self.assertIsNotNone(ambari_sso_details)
-    self.assertEqual('', ambari_sso_details.get_jwt_audiences())
-    self.assertEqual('hadoop-jwt', ambari_sso_details.get_jwt_cookie_name())
-    self.assertEqual('https://knox.ambari.apache.org', ambari_sso_details.get_sso_provider_url())
-    self.assertEqual('MIICVTCCAb6gAwIBAg...2G2Vhj8vTYptEVg==',
-                      ambari_sso_details.get_sso_provider_certificate())
+    self.assertEqual("", ambari_sso_details.get_jwt_audiences())
+    self.assertEqual("hadoop-jwt", ambari_sso_details.get_jwt_cookie_name())
+    self.assertEqual(
+      "https://knox.ambari.apache.org", ambari_sso_details.get_sso_provider_url()
+    )
+    self.assertEqual(
+      "MIICVTCCAb6gAwIBAg...2G2Vhj8vTYptEVg==",
+      ambari_sso_details.get_sso_provider_certificate(),
+    )
 
   def testCertWithHeaderAndFooter(self):
     services_json = {
       "ambari-server-configuration": {
         "sso-configuration": {
-          "ambari.sso.provider.certificate": '-----BEGIN CERTIFICATE-----\n'
-                                             'MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD\n'
-                                             '................................................................\n'
-                                             'dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy\n'
-                                             '-----END CERTIFICATE-----\n'
+          "ambari.sso.provider.certificate": "-----BEGIN CERTIFICATE-----\n"
+          "MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD\n"
+          "................................................................\n"
+          "dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy\n"
+          "-----END CERTIFICATE-----\n"
         }
       }
     }
@@ -221,37 +226,45 @@ class TestAmbariConfiguration(TestCase):
     ambari_configuration = self.ambari_configuration_class(services_json)
     ambari_sso_details = ambari_configuration.get_ambari_sso_details()
 
-    self.assertEqual('-----BEGIN CERTIFICATE-----\n'
-                      'MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD\n'
-                      '................................................................\n'
-                      'dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy\n'
-                      '-----END CERTIFICATE-----',
-                      ambari_sso_details.get_sso_provider_certificate(True, False))
+    self.assertEqual(
+      "-----BEGIN CERTIFICATE-----\n"
+      "MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD\n"
+      "................................................................\n"
+      "dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy\n"
+      "-----END CERTIFICATE-----",
+      ambari_sso_details.get_sso_provider_certificate(True, False),
+    )
 
-    self.assertEqual('-----BEGIN CERTIFICATE-----'
-                      'MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD'
-                      '................................................................'
-                      'dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy'
-                      '-----END CERTIFICATE-----',
-                      ambari_sso_details.get_sso_provider_certificate(True, True))
+    self.assertEqual(
+      "-----BEGIN CERTIFICATE-----"
+      "MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD"
+      "................................................................"
+      "dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy"
+      "-----END CERTIFICATE-----",
+      ambari_sso_details.get_sso_provider_certificate(True, True),
+    )
 
-    self.assertEqual('MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD\n'
-                      '................................................................\n'
-                      'dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy',
-                      ambari_sso_details.get_sso_provider_certificate(False, False))
+    self.assertEqual(
+      "MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD\n"
+      "................................................................\n"
+      "dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy",
+      ambari_sso_details.get_sso_provider_certificate(False, False),
+    )
 
-    self.assertEqual('MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD'
-                      '................................................................'
-                      'dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy',
-                      ambari_sso_details.get_sso_provider_certificate(False, True))
+    self.assertEqual(
+      "MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD"
+      "................................................................"
+      "dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy",
+      ambari_sso_details.get_sso_provider_certificate(False, True),
+    )
 
   def testCertWithoutHeaderAndFooter(self):
     services_json = {
       "ambari-server-configuration": {
         "sso-configuration": {
-          "ambari.sso.provider.certificate": 'MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD\n'
-                                             '................................................................\n'
-                                             'dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy\n',
+          "ambari.sso.provider.certificate": "MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD\n"
+          "................................................................\n"
+          "dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy\n",
         }
       }
     }
@@ -259,35 +272,40 @@ class TestAmbariConfiguration(TestCase):
     ambari_configuration = self.ambari_configuration_class(services_json)
     ambari_sso_details = ambari_configuration.get_ambari_sso_details()
 
-    self.assertEqual('-----BEGIN CERTIFICATE-----\n'
-                      'MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD\n'
-                      '................................................................\n'
-                      'dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy\n'
-                      '-----END CERTIFICATE-----',
-                      ambari_sso_details.get_sso_provider_certificate(True, False))
+    self.assertEqual(
+      "-----BEGIN CERTIFICATE-----\n"
+      "MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD\n"
+      "................................................................\n"
+      "dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy\n"
+      "-----END CERTIFICATE-----",
+      ambari_sso_details.get_sso_provider_certificate(True, False),
+    )
 
-    self.assertEqual('-----BEGIN CERTIFICATE-----'
-                      'MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD'
-                      '................................................................'
-                      'dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy'
-                      '-----END CERTIFICATE-----',
-                      ambari_sso_details.get_sso_provider_certificate(True, True))
+    self.assertEqual(
+      "-----BEGIN CERTIFICATE-----"
+      "MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD"
+      "................................................................"
+      "dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy"
+      "-----END CERTIFICATE-----",
+      ambari_sso_details.get_sso_provider_certificate(True, True),
+    )
 
-    self.assertEqual('MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD\n'
-                      '................................................................\n'
-                      'dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy',
-                      ambari_sso_details.get_sso_provider_certificate(False, False))
+    self.assertEqual(
+      "MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD\n"
+      "................................................................\n"
+      "dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy",
+      ambari_sso_details.get_sso_provider_certificate(False, False),
+    )
 
-    self.assertEqual('MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD'
-                      '................................................................'
-                      'dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy',
-                      ambari_sso_details.get_sso_provider_certificate(False, True))
+    self.assertEqual(
+      "MIIE3DCCA8SgAwIBAgIJAKfbOMmFyOlNMA0GCSqGSIb3DQEBBQUAMIGkMQswCQYD"
+      "................................................................"
+      "dXRpbmcxFzAVBgNVBAMTDmNsb3VkYnJlYWstcmdsMSUwIwYJKoZIhvcNAQkBFhZy",
+      ambari_sso_details.get_sso_provider_certificate(False, True),
+    )
 
   def testMissingLDAPConfiguration(self):
-    services_json = {
-      "ambari-server-configuration": {
-      }
-    }
+    services_json = {"ambari-server-configuration": {}}
 
     ambari_configuration = self.ambari_configuration_class(services_json)
     self.assertIsNone(ambari_configuration.get_ambari_ldap_configuration())
@@ -330,39 +348,39 @@ class TestAmbariConfiguration(TestCase):
 
   def testNotEmtpyLDAPConfiguration(self):
     services_json = {
-        "ambari-server-configuration": {
-          "ldap-configuration": {
-            "ambari.ldap.authentication.enabled" : "true",
-            "ambari.ldap.connectivity.server.host" : "host1",
-            "ambari.ldap.connectivity.server.port" : "336",
-            "ambari.ldap.connectivity.secondary.server.host" : "host2",
-            "ambari.ldap.connectivity.secondary.server.port" : "337",
-            "ambari.ldap.connectivity.use_ssl" : "true",
-            "ambari.ldap.connectivity.anonymous_bind" : "true",
-            "ambari.ldap.connectivity.bind_dn" : "bind_dn",
-            "ambari.ldap.connectivity.bind_password" : "bind_password",
-            "ambari.ldap.attributes.dn_attr" : "dn_attr",
-            "ambari.ldap.attributes.user.object_class" : "user.object_class",
-            "ambari.ldap.attributes.user.name_attr" : "user.name_attr",
-            "ambari.ldap.attributes.user.search_base" : "user.search_base",
-            "ambari.ldap.attributes.group.object_class" : "group.object_class",
-            "ambari.ldap.attributes.group.name_attr" : "group.name_attr",
-            "ambari.ldap.attributes.group.member_attr" : "group.member_attr",
-            "ambari.ldap.attributes.group.search_base" : "group.search_base",
-            "ambari.ldap.advanced.group_mapping_rules" : "group_mapping_rules",
-            "ambari.ldap.advanced.user_search_filter" : "user_search_filter",
-            "ambari.ldap.advanced.user_member_replace_pattern" : "user_member_replace_pattern",
-            "ambari.ldap.advanced.user_member_filter" : "user_member_filter",
-            "ambari.ldap.advanced.group_search_filter" : "group_search_filter",
-            "ambari.ldap.advanced.group_member_replace_pattern" : "group_member_replace_pattern",
-            "ambari.ldap.advanced.group_member_filter" : "group_member_filter",
-            "ambari.ldap.advanced.force_lowercase_usernames" : "true",
-            "ambari.ldap.advanced.pagination_enabled" : "true",
-            "ambari.ldap.advanced.referrals" : "true",
-            "ambari.ldap.advanced.disable_endpoint_identification" : "true",
-            "ambari.ldap.advanced.alternate_user_search_enabled" : "true",
-            "ambari.ldap.advanced.alternate_user_search_filter" : "alternate_user_search_filter",
-            "ambari.ldap.advanced.collision_behavior" : "collision_behavior"
+      "ambari-server-configuration": {
+        "ldap-configuration": {
+          "ambari.ldap.authentication.enabled": "true",
+          "ambari.ldap.connectivity.server.host": "host1",
+          "ambari.ldap.connectivity.server.port": "336",
+          "ambari.ldap.connectivity.secondary.server.host": "host2",
+          "ambari.ldap.connectivity.secondary.server.port": "337",
+          "ambari.ldap.connectivity.use_ssl": "true",
+          "ambari.ldap.connectivity.anonymous_bind": "true",
+          "ambari.ldap.connectivity.bind_dn": "bind_dn",
+          "ambari.ldap.connectivity.bind_password": "bind_password",
+          "ambari.ldap.attributes.dn_attr": "dn_attr",
+          "ambari.ldap.attributes.user.object_class": "user.object_class",
+          "ambari.ldap.attributes.user.name_attr": "user.name_attr",
+          "ambari.ldap.attributes.user.search_base": "user.search_base",
+          "ambari.ldap.attributes.group.object_class": "group.object_class",
+          "ambari.ldap.attributes.group.name_attr": "group.name_attr",
+          "ambari.ldap.attributes.group.member_attr": "group.member_attr",
+          "ambari.ldap.attributes.group.search_base": "group.search_base",
+          "ambari.ldap.advanced.group_mapping_rules": "group_mapping_rules",
+          "ambari.ldap.advanced.user_search_filter": "user_search_filter",
+          "ambari.ldap.advanced.user_member_replace_pattern": "user_member_replace_pattern",
+          "ambari.ldap.advanced.user_member_filter": "user_member_filter",
+          "ambari.ldap.advanced.group_search_filter": "group_search_filter",
+          "ambari.ldap.advanced.group_member_replace_pattern": "group_member_replace_pattern",
+          "ambari.ldap.advanced.group_member_filter": "group_member_filter",
+          "ambari.ldap.advanced.force_lowercase_usernames": "true",
+          "ambari.ldap.advanced.pagination_enabled": "true",
+          "ambari.ldap.advanced.referrals": "true",
+          "ambari.ldap.advanced.disable_endpoint_identification": "true",
+          "ambari.ldap.advanced.alternate_user_search_enabled": "true",
+          "ambari.ldap.advanced.alternate_user_search_filter": "alternate_user_search_filter",
+          "ambari.ldap.advanced.collision_behavior": "collision_behavior",
         }
       }
     }
@@ -389,30 +407,47 @@ class TestAmbariConfiguration(TestCase):
     self.assertEqual(ambari_ldap_details.get_user_search_base(), "user.search_base")
     self.assertEqual(ambari_ldap_details.get_group_object_class(), "group.object_class")
     self.assertEqual(ambari_ldap_details.get_group_name_attribute(), "group.name_attr")
-    self.assertEqual(ambari_ldap_details.get_group_member_attribute(), "group.member_attr")
+    self.assertEqual(
+      ambari_ldap_details.get_group_member_attribute(), "group.member_attr"
+    )
     self.assertEqual(ambari_ldap_details.get_group_search_base(), "group.search_base")
-    self.assertEqual(ambari_ldap_details.get_group_mapping_rules(), "group_mapping_rules")
+    self.assertEqual(
+      ambari_ldap_details.get_group_mapping_rules(), "group_mapping_rules"
+    )
     self.assertEqual(ambari_ldap_details.get_user_search_filter(), "user_search_filter")
-    self.assertEqual(ambari_ldap_details.get_user_member_replace_pattern(), "user_member_replace_pattern")
+    self.assertEqual(
+      ambari_ldap_details.get_user_member_replace_pattern(),
+      "user_member_replace_pattern",
+    )
     self.assertEqual(ambari_ldap_details.get_user_member_filter(), "user_member_filter")
-    self.assertEqual(ambari_ldap_details.get_group_search_filter(), "group_search_filter")
-    self.assertEqual(ambari_ldap_details.get_group_member_replace_pattern(), "group_member_replace_pattern")
-    self.assertEqual(ambari_ldap_details.get_group_member_filter(), "group_member_filter")
+    self.assertEqual(
+      ambari_ldap_details.get_group_search_filter(), "group_search_filter"
+    )
+    self.assertEqual(
+      ambari_ldap_details.get_group_member_replace_pattern(),
+      "group_member_replace_pattern",
+    )
+    self.assertEqual(
+      ambari_ldap_details.get_group_member_filter(), "group_member_filter"
+    )
     self.assertTrue(ambari_ldap_details.is_force_lower_case_user_names())
     self.assertTrue(ambari_ldap_details.is_pagination_enabled())
     self.assertTrue(ambari_ldap_details.is_follow_referral_handling())
     self.assertTrue(ambari_ldap_details.is_disable_endpoint_identification())
     self.assertTrue(ambari_ldap_details.is_ldap_alternate_user_search_enabled())
-    self.assertEqual(ambari_ldap_details.get_alternate_user_search_filter(), "alternate_user_search_filter")
-    self.assertEqual(ambari_ldap_details.get_sync_collision_handling_behavior(), "collision_behavior")
+    self.assertEqual(
+      ambari_ldap_details.get_alternate_user_search_filter(),
+      "alternate_user_search_filter",
+    )
+    self.assertEqual(
+      ambari_ldap_details.get_sync_collision_handling_behavior(), "collision_behavior"
+    )
 
   def testAmbariNotMangingLdapConfiguration(self):
     ## Case 1: missing the boolean flag indicating that Ambari manages LDAP configuration
     services_json = {
       "ambari-server-configuration": {
-        "ldap-configuration": {
-          "ambari.ldap.enabled_services": "AMBARI"
-        }
+        "ldap-configuration": {"ambari.ldap.enabled_services": "AMBARI"}
       }
     }
 
@@ -430,7 +465,7 @@ class TestAmbariConfiguration(TestCase):
       "ambari-server-configuration": {
         "ldap-configuration": {
           "ambari.ldap.manage_services": "false",
-          "ambari.ldap.enabled_services": "AMBARI, RANGER"
+          "ambari.ldap.enabled_services": "AMBARI, RANGER",
         }
       }
     }
@@ -451,7 +486,7 @@ class TestAmbariConfiguration(TestCase):
       "ambari-server-configuration": {
         "ldap-configuration": {
           "ambari.ldap.manage_services": "false",
-          "ambari.ldap.enabled_services": "*"
+          "ambari.ldap.enabled_services": "*",
         }
       }
     }
@@ -473,7 +508,7 @@ class TestAmbariConfiguration(TestCase):
       "ambari-server-configuration": {
         "ldap-configuration": {
           "ambari.ldap.manage_services": "true",
-          "ambari.ldap.enabled_services": "AMBARI, RANGER"
+          "ambari.ldap.enabled_services": "AMBARI, RANGER",
         }
       }
     }
@@ -494,7 +529,7 @@ class TestAmbariConfiguration(TestCase):
       "ambari-server-configuration": {
         "ldap-configuration": {
           "ambari.ldap.manage_services": "true",
-          "ambari.ldap.enabled_services": "*"
+          "ambari.ldap.enabled_services": "*",
         }
       }
     }

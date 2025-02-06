@@ -39,6 +39,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.WebTarget;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.actionmanager.ActionDBAccessor;
@@ -87,8 +91,6 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.persist.Transactional;
 import com.google.inject.util.Modules;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.WebResource;
 
 import junit.framework.Assert;
 
@@ -695,7 +697,8 @@ public class ExecutionScheduleManagerTest {
 
   @Test
   public void testExtendApiResource() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-    WebResource webResource = Client.create().resource("http://localhost:8080/");
+    Client client = ClientBuilder.newClient();
+    WebTarget webTarget = client.target("http://localhost:8080/");
 
     String clustersEndpoint = "http://localhost:8080/api/v1/clusters";
 
@@ -715,15 +718,15 @@ public class ExecutionScheduleManagerTest {
         tokenStorageMock, clustersMock, actionDBAccessorMock, gson);
 
     assertEquals(clustersEndpoint,
-      scheduleManager.extendApiResource(webResource, "clusters").getURI().toString());
+      scheduleManager.extendApiResource(webTarget, "clusters").getUri().toString());
     assertEquals(clustersEndpoint,
-      scheduleManager.extendApiResource(webResource, "/clusters").getURI().toString());
+      scheduleManager.extendApiResource(webTarget, "/clusters").getUri().toString());
     assertEquals(clustersEndpoint,
-      scheduleManager.extendApiResource(webResource, "/api/v1/clusters").getURI().toString());
+      scheduleManager.extendApiResource(webTarget, "/api/v1/clusters").getUri().toString());
     assertEquals(clustersEndpoint,
-      scheduleManager.extendApiResource(webResource, "api/v1/clusters").getURI().toString());
+      scheduleManager.extendApiResource(webTarget, "api/v1/clusters").getUri().toString());
     assertEquals("http://localhost:8080/",
-      scheduleManager.extendApiResource(webResource, "").getURI().toString());
+      scheduleManager.extendApiResource(webTarget, "").getUri().toString());
   }
 
   @Test

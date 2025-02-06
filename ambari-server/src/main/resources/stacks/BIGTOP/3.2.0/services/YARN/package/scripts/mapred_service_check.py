@@ -43,33 +43,36 @@ class MapReduce2ServiceCheckWindows(MapReduce2ServiceCheck):
 
     env.set_params(params)
 
-    component_type = 'hs'
+    component_type = "hs"
     if params.hadoop_ssl_enabled:
       component_address = params.hs_webui_address
     else:
       component_address = params.hs_webui_address
 
     validateStatusFileName = "validateYarnComponentStatusWindows.py"
-    validateStatusFilePath = os.path.join(os.path.dirname(params.hadoop_home), "temp", validateStatusFileName)
+    validateStatusFilePath = os.path.join(
+      os.path.dirname(params.hadoop_home), "temp", validateStatusFileName
+    )
     python_executable = sys.executable
     validateStatusCmd = "{0} {1} {2} -p {3} -s {4}".format(
-      python_executable, validateStatusFilePath, component_type, component_address, params.hadoop_ssl_enabled)
+      python_executable,
+      validateStatusFilePath,
+      component_type,
+      component_address,
+      params.hadoop_ssl_enabled,
+    )
 
     if params.security_enabled:
-      kinit_cmd = "{0} -kt {1} {2};".format(params.kinit_path_local, params.smoke_user_keytab, params.smokeuser)
+      kinit_cmd = (
+        f"{params.kinit_path_local} -kt {params.smoke_user_keytab} {params.smokeuser};"
+      )
       smoke_cmd = kinit_cmd + validateStatusCmd
     else:
       smoke_cmd = validateStatusCmd
 
-    File(validateStatusFilePath,
-         content=StaticFile(validateStatusFileName)
-    )
+    File(validateStatusFilePath, content=StaticFile(validateStatusFileName))
 
-    Execute(smoke_cmd,
-            tries=3,
-            try_sleep=5,
-            logoutput=True
-    )
+    Execute(smoke_cmd, tries=3, try_sleep=5, logoutput=True)
 
     # hadoop_exe = os.path.join(params.hadoop_home, "bin", "hadoop")
     #
@@ -117,6 +120,7 @@ class MapReduce2ServiceCheckWindows(MapReduce2ServiceCheck):
 class MapReduce2ServiceCheckDefault(MapReduce2ServiceCheck):
   def service_check(self, env):
     import params
+
     env.set_params(params)
 
     jar_path = format("{hadoop_mapred_home}/{hadoopMapredExamplesJarName}")
@@ -128,51 +132,62 @@ class MapReduce2ServiceCheckDefault(MapReduce2ServiceCheck):
     run_wordcount_job = format("jar {jar_path} wordcount {input_file} {output_file}")
     test_cmd = format("fs -test -e {output_file}")
 
-    params.HdfsResource(format("/user/{smokeuser}"),
-                      type="directory",
-                      action="create_on_execute",
-                      owner=params.smokeuser,
-                      mode=params.smoke_hdfs_user_mode,
+    params.HdfsResource(
+      format("/user/{smokeuser}"),
+      type="directory",
+      action="create_on_execute",
+      owner=params.smokeuser,
+      mode=params.smoke_hdfs_user_mode,
     )
 
-    params.HdfsResource(input_file,
-                        action = "create_on_execute",
-                        type = "file",
-                        source = source_file,
-                        owner = params.smokeuser,
-                        mode = params.smoke_hdfs_user_mode,
-                        dfs_type = params.dfs_type,
+    params.HdfsResource(
+      input_file,
+      action="create_on_execute",
+      type="file",
+      source=source_file,
+      owner=params.smokeuser,
+      mode=params.smoke_hdfs_user_mode,
+      dfs_type=params.dfs_type,
     )
 
-    params.HdfsResource(output_file,
-                        action = "delete_on_execute",
-                        type = "directory",
-                        dfs_type = params.dfs_type,
+    params.HdfsResource(
+      output_file,
+      action="delete_on_execute",
+      type="directory",
+      dfs_type=params.dfs_type,
     )
     params.HdfsResource(None, action="execute")
 
     # initialize the ticket
     if params.security_enabled:
-      kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal};")
+      kinit_cmd = format(
+        "{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal};"
+      )
       Execute(kinit_cmd, user=params.smokeuser)
 
-    ExecuteHadoop(run_wordcount_job,
-                  tries=1,
-                  try_sleep=5,
-                  user=params.smokeuser,
-                  bin_dir=params.execute_path,
-                  conf_dir=params.hadoop_conf_dir,
-                  logoutput=True)
+    ExecuteHadoop(
+      run_wordcount_job,
+      tries=1,
+      try_sleep=5,
+      user=params.smokeuser,
+      bin_dir=params.execute_path,
+      conf_dir=params.hadoop_conf_dir,
+      logoutput=True,
+    )
 
     # the ticket may have expired, so re-initialize
     if params.security_enabled:
-      kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal};")
+      kinit_cmd = format(
+        "{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal};"
+      )
       Execute(kinit_cmd, user=params.smokeuser)
 
-    ExecuteHadoop(test_cmd,
-                  user=params.smokeuser,
-                  bin_dir=params.execute_path,
-                  conf_dir=params.hadoop_conf_dir)
+    ExecuteHadoop(
+      test_cmd,
+      user=params.smokeuser,
+      bin_dir=params.execute_path,
+      conf_dir=params.hadoop_conf_dir,
+    )
 
 
 if __name__ == "__main__":

@@ -14,8 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-class Grep:
 
+class Grep:
   # How many lines from command output send to server
   OUTPUT_LAST_LINES = 10
   # How many lines from command error output send to server (before Err phrase)
@@ -63,6 +63,7 @@ class Grep:
       return "".join(lines).strip()
     else:
       return string
+
   def tail(self, string, n):
     """
     Copies last n lines from string to result. Also, string trim is performed.
@@ -73,7 +74,7 @@ class Grep:
       return stripped_string
     else:
       length = len(lines)
-      tailed = lines[length - n:]
+      tailed = lines[length - n :]
       return "".join(tailed)
 
   def tail_by_symbols(self, string, n):

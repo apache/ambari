@@ -19,14 +19,16 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-class StaleAlertsMonitor():
+
+class StaleAlertsMonitor:
   """
   For tracks which alerts were not ran or collected for a long time, to report the data to server.
   Which is shown as a separate alert on server.
   """
+
   def __init__(self, initializer_module):
     self.alert_definitions_cache = initializer_module.alert_definitions_cache
-    #self.stale_interval_multiplier = 2
+    # self.stale_interval_multiplier = 2
     self.alerts_run_time = {}
     self.alert_created_time = {}
 
@@ -35,8 +37,8 @@ class StaleAlertsMonitor():
     Saves the last ran time for all the alerts passed
     """
     for alert in alerts:
-      timestamp = alert['timestamp'] / 1000
-      alert_id = alert['definitionId']
+      timestamp = alert["timestamp"] / 1000
+      alert_id = alert["definitionId"]
       self.alerts_run_time[alert_id] = timestamp
 
   def get_stale_alerts(self):
@@ -51,20 +53,24 @@ class StaleAlertsMonitor():
 
     for cluster_id, command in self.alert_definitions_cache.items():
       # the cluster has not yet initialized staleAlertsAlert
-      if not 'staleIntervalMultiplier' in command:
+      if not "staleIntervalMultiplier" in command:
         continue
 
-      stale_interval_multiplier = command['staleIntervalMultiplier']
-      for definition in command['alertDefinitions']:
-        definition_id = definition['definitionId']
+      stale_interval_multiplier = command["staleIntervalMultiplier"]
+      for definition in command["alertDefinitions"]:
+        definition_id = definition["definitionId"]
         if not definition_id in self.alerts_run_time:
           self.alerts_run_time[definition_id] = curr_time
 
-        interval_seconds = definition['interval']*60
+        interval_seconds = definition["interval"] * 60
 
-        if curr_time > self.alerts_run_time[definition_id]+(interval_seconds*stale_interval_multiplier):
-          logger.info("Alert %s got stale. Reporting to the server.", definition['name'])
-          last_run_time_ms = int(self.alerts_run_time[definition_id]*1000)
+        if curr_time > self.alerts_run_time[definition_id] + (
+          interval_seconds * stale_interval_multiplier
+        ):
+          logger.info(
+            "Alert %s got stale. Reporting to the server.", definition["name"]
+          )
+          last_run_time_ms = int(self.alerts_run_time[definition_id] * 1000)
           stale_alert_ids.append({"id": definition_id, "timestamp": last_run_time_ms})
 
     return stale_alert_ids

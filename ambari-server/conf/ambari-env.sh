@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 AMBARI_PID_DIR=/var/run/ambari-server
 AMBARI_PASSPHRASE="DEV"
 export PYTHONPATH=/usr/lib/ambari-server/lib:$PYTHONPATH

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -15,7 +15,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 import imp
 import json
@@ -25,49 +25,68 @@ from unittest import TestCase
 
 class TestServiceAdvisor(TestCase):
   test_directory = os.path.dirname(os.path.abspath(__file__))
-  resources_path = os.path.join(test_directory, '../../main/resources')
+  resources_path = os.path.join(test_directory, "../../main/resources")
 
-  ambari_configuration_path = os.path.abspath(os.path.join(resources_path, 'stacks/ambari_configuration.py'))
-  with open(ambari_configuration_path, 'rb') as fp:
-    imp.load_module('ambari_configuration', fp, ambari_configuration_path, ('.py', 'rb', imp.PY_SOURCE))
+  ambari_configuration_path = os.path.abspath(
+    os.path.join(resources_path, "stacks/ambari_configuration.py")
+  )
+  with open(ambari_configuration_path, "rb") as fp:
+    imp.load_module(
+      "ambari_configuration",
+      fp,
+      ambari_configuration_path,
+      (".py", "rb", imp.PY_SOURCE),
+    )
 
-  stack_advisor_path = os.path.join(resources_path, 'stacks/stack_advisor.py')
-  with open(stack_advisor_path, 'rb') as fp:
-    imp.load_module('stack_advisor', fp, stack_advisor_path, ('.py', 'rb', imp.PY_SOURCE))
+  stack_advisor_path = os.path.join(resources_path, "stacks/stack_advisor.py")
+  with open(stack_advisor_path, "rb") as fp:
+    imp.load_module(
+      "stack_advisor", fp, stack_advisor_path, (".py", "rb", imp.PY_SOURCE)
+    )
 
-  serviceAdvisorPath = os.path.join(resources_path, 'stacks/service_advisor.py')
-  with open(serviceAdvisorPath, 'rb') as fp:
-    service_advisor_impl = imp.load_module('service_advisor_impl', fp, serviceAdvisorPath, ('.py', 'rb', imp.PY_SOURCE))
+  serviceAdvisorPath = os.path.join(resources_path, "stacks/service_advisor.py")
+  with open(serviceAdvisorPath, "rb") as fp:
+    service_advisor_impl = imp.load_module(
+      "service_advisor_impl", fp, serviceAdvisorPath, (".py", "rb", imp.PY_SOURCE)
+    )
 
   def setUp(self):
-    serviceAdvisorClass = getattr(self.service_advisor_impl, 'ServiceAdvisor')
+    serviceAdvisorClass = getattr(self.service_advisor_impl, "ServiceAdvisor")
     self.serviceAdvisor = serviceAdvisorClass()
 
   def load_json(self, filename):
     file = os.path.join(self.test_directory, filename)
-    with open(file, 'rb') as f:
+    with open(file, "rb") as f:
       data = json.load(f)
     return data
 
   def test_getServiceComponentCardinalityValidations(self):
-    """ Test getServiceComponentCardinalityValidations """
+    """Test getServiceComponentCardinalityValidations"""
     services = self.load_json("hdfs.json")
     hosts = self.load_json("validation-hosts.json")
 
-    validations = self.serviceAdvisor.getServiceComponentCardinalityValidations(services, hosts, "HDFS")
+    validations = self.serviceAdvisor.getServiceComponentCardinalityValidations(
+      services, hosts, "HDFS"
+    )
     self.assertEqual(len(validations), 1)
     expected = {
-      "type": 'host-component',
-      "level": 'ERROR',
-      "component-name": 'DATANODE',
-      "message": 'You have selected 0 DataNode components. Please consider that at least 1 DataNode components should be installed in cluster.'
+      "type": "host-component",
+      "level": "ERROR",
+      "component-name": "DATANODE",
+      "message": "You have selected 0 DataNode components. Please consider that at least 1 DataNode components should be installed in cluster.",
     }
     self.assertEqual(validations[0], expected)
 
-    validations = self.serviceAdvisor.getServiceComponentCardinalityValidations(services, hosts, "HBASE")
+    validations = self.serviceAdvisor.getServiceComponentCardinalityValidations(
+      services, hosts, "HBASE"
+    )
     self.assertEqual(len(validations), 0)
 
-    services["services"][0]["components"][0]["StackServiceComponents"]["hostnames"].append("c7402.ambari.apache.org")
+    services["services"][0]["components"][0]["StackServiceComponents"][
+      "hostnames"
+    ].append("c7402.ambari.apache.org")
 
-    validations = self.serviceAdvisor.getServiceComponentCardinalityValidations(services, hosts, "HDFS")
+    validations = self.serviceAdvisor.getServiceComponentCardinalityValidations(
+      services, hosts, "HDFS"
+    )
     self.assertEqual(len(validations), 0)

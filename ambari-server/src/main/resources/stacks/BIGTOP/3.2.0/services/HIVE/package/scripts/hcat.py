@@ -28,7 +28,10 @@ from resource_management.libraries.functions.format import format
 from resource_management.core.resources.system import Directory, File
 from resource_management.core.source import InlineTemplate
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
-from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster, setup_atlas_hook
+from resource_management.libraries.functions.setup_atlas_hook import (
+  has_atlas_in_cluster,
+  setup_atlas_hook,
+)
 from ambari_commons import OSConst
 from ambari_commons.constants import SERVICE
 
@@ -36,39 +39,46 @@ from ambari_commons.constants import SERVICE
 def hcat():
   import params
 
-  Directory(params.hive_conf_dir,
-            create_parents = True,
-            owner=params.hive_user,
-            group=params.user_group,
+  Directory(
+    params.hive_conf_dir,
+    create_parents=True,
+    owner=params.hive_user,
+    group=params.user_group,
   )
 
-
-  Directory(params.hcat_conf_dir,
-            create_parents = True,
-            owner=params.webhcat_user,
-            group=params.user_group,
+  Directory(
+    params.hcat_conf_dir,
+    create_parents=True,
+    owner=params.webhcat_user,
+    group=params.user_group,
   )
 
-  Directory(params.hcat_pid_dir,
-            owner=params.webhcat_user,
-            create_parents = True
+  Directory(params.hcat_pid_dir, owner=params.webhcat_user, create_parents=True)
+
+  XmlConfig(
+    "hive-site.xml",
+    conf_dir=params.hive_conf_dir,
+    configurations=params.config["configurations"]["hive-site"],
+    configuration_attributes=params.config["configurationAttributes"]["hive-site"],
+    owner=params.hive_user,
+    group=params.user_group,
+    mode=0o644,
   )
 
-  XmlConfig("hive-site.xml",
-            conf_dir=params.hive_conf_dir,
-            configurations=params.config['configurations']['hive-site'],
-            configuration_attributes=params.config['configurationAttributes']['hive-site'],
-            owner=params.hive_user,
-            group=params.user_group,
-            mode=0o644)
-
-  File(format("{hcat_conf_dir}/hcat-env.sh"),
-       owner=params.webhcat_user,
-       group=params.user_group,
-       content=InlineTemplate(params.hcat_env_sh_template)
+  File(
+    format("{hcat_conf_dir}/hcat-env.sh"),
+    owner=params.webhcat_user,
+    group=params.user_group,
+    content=InlineTemplate(params.hcat_env_sh_template),
   )
 
   # Generate atlas-application.properties.xml file
   if params.enable_atlas_hook:
     atlas_hook_filepath = os.path.join(params.hive_conf_dir, params.atlas_hook_filename)
-    setup_atlas_hook(SERVICE.HIVE, params.hive_atlas_application_properties, atlas_hook_filepath, params.hive_user, params.user_group)
+    setup_atlas_hook(
+      SERVICE.HIVE,
+      params.hive_atlas_application_properties,
+      atlas_hook_filepath,
+      params.hive_user,
+      params.user_group,
+    )

@@ -33,9 +33,7 @@ PROVIDERS = dict(
   ubuntu=dict(
     Repository="resource_management.libraries.providers.repository.UbuntuRepositoryProvider",
   ),
-  winsrv=dict(
-    Msi="resource_management.libraries.providers.msi.MsiProvider"
-  ),
+  winsrv=dict(Msi="resource_management.libraries.providers.msi.MsiProvider"),
   default=dict(
     ExecuteHadoop="resource_management.libraries.providers.execute_hadoop.ExecuteHadoopProvider",
     ExecuteHDFS="resource_management.libraries.providers.execute_hdfs.ExecuteHDFSProvider",
@@ -44,6 +42,6 @@ PROVIDERS = dict(
     PropertiesFile="resource_management.libraries.providers.properties_file.PropertiesFileProvider",
     MonitorWebserver="resource_management.libraries.providers.monitor_webserver.MonitorWebserverProvider",
     HdfsResource="resource_management.libraries.providers.hdfs_resource.HdfsResourceProvider",
-    ModifyPropertiesFile="resource_management.libraries.providers.modify_properties_file.ModifyPropertiesFileProvider"
+    ModifyPropertiesFile="resource_management.libraries.providers.modify_properties_file.ModifyPropertiesFileProvider",
   ),
 )

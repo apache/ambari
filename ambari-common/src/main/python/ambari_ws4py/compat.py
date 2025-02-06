@@ -15,33 +15,35 @@ should hopefully work fine with other versions too.
 import sys
 
 if sys.version_info >= (3, 0):
-    py3k = True
-    from urllib.parse import urlsplit
-    range = range
-    unicode = str
-    basestring = (bytes, str)
-    _ord = ord
+  py3k = True
+  from urllib.parse import urlsplit
 
-    def get_connection(fileobj):
-        return fileobj.raw._sock
+  range = range
+  unicode = str
+  basestring = (bytes, str)
+  _ord = ord
 
-    def detach_connection(fileobj):
-        fileobj.detach()
+  def get_connection(fileobj):
+    return fileobj.raw._sock
 
-    def ord(c):
-        if isinstance(c, int):
-            return c
-        return _ord(c)
+  def detach_connection(fileobj):
+    fileobj.detach()
+
+  def ord(c):
+    if isinstance(c, int):
+      return c
+    return _ord(c)
 else:
-    py3k = False
-    from urllib.parse import urlsplit
-    range = xrange
-    unicode = unicode
-    basestring = basestring
-    ord = ord
+  py3k = False
+  from urllib.parse import urlsplit
 
-    def get_connection(fileobj):
-        return fileobj._sock
+  range = xrange
+  unicode = unicode
+  basestring = basestring
+  ord = ord
 
-    def detach_connection(fileobj):
-        fileobj._sock = None
+  def get_connection(fileobj):
+    return fileobj._sock
+
+  def detach_connection(fileobj):
+    fileobj._sock = None

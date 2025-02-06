@@ -22,6 +22,7 @@ Ambari Agent
 _all__ = ["Msi"]
 from resource_management.core.base import Resource, ForcedListArgument, ResourceArgument
 
+
 class Msi(Resource):
   action = ForcedListArgument(default="install")
   msi_name = ResourceArgument(default=lambda obj: obj.name)

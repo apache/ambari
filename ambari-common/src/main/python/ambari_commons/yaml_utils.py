@@ -17,13 +17,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+
 import re
 
 # [a,b,c]
-REGEX_LIST = '^\w*\[.+\]\w*$'
+REGEX_LIST = "^\w*\[.+\]\w*$"
 
 # {a: v, b: v2, c: v3}
-REGEX_DICTIONARY = '^\w*\{.+\}\w*$'
+REGEX_DICTIONARY = "^\w*\{.+\}\w*$"
 
 """
 storm-cluster:
@@ -43,9 +44,29 @@ REGEX_NESTED_MAPS = "^\s*\S+[ ]*:[ ]*[\r\n\f]+\s*\S+[ ]*:[ ]*[\r\n\f]"
 
 
 def escape_yaml_property(value):
-  unquouted_values = ["null", "Null", "NULL", "true", "True", "TRUE", "false",
-    "False", "FALSE", "YES", "Yes", "yes", "NO", "No", "no", "ON", "On", "on",
-    "OFF", "Off", "off"]
+  unquouted_values = [
+    "null",
+    "Null",
+    "NULL",
+    "true",
+    "True",
+    "TRUE",
+    "false",
+    "False",
+    "FALSE",
+    "YES",
+    "Yes",
+    "yes",
+    "NO",
+    "No",
+    "no",
+    "ON",
+    "On",
+    "on",
+    "OFF",
+    "Off",
+    "off",
+  ]
 
   # known list of boolean/null types
   if value in unquouted_values:
@@ -92,7 +113,7 @@ def get_values_from_yaml_array(yaml_array):
   if yaml_array is None:
     return None
 
-  matches = re.findall(r'[\'|\"](.+?)[\'|\"]', yaml_array)
+  matches = re.findall(r"[\'|\"](.+?)[\'|\"]", yaml_array)
   if matches is None or len(matches) == 0:
     return None
 

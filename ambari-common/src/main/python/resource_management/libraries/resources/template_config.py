@@ -21,7 +21,13 @@ Ambari Agent
 """
 
 _all__ = ["TemplateConfig"]
-from resource_management.core.base import Resource, ForcedListArgument, ResourceArgument, BooleanArgument
+from resource_management.core.base import (
+  Resource,
+  ForcedListArgument,
+  ResourceArgument,
+  BooleanArgument,
+)
+
 
 class TemplateConfig(Resource):
   action = ForcedListArgument(default="create")

@@ -19,6 +19,7 @@ limitations under the License.
 Ambari Agent
 
 """
+
 import threading
 from resource_management.core.exceptions import Fail
 
@@ -27,9 +28,8 @@ from resource_management.core.exceptions import Fail
 LOCK_TYPE_KERBEROS = "KERBEROS_LOCK"
 
 # dictionary of all global lock instances
-__GLOBAL_LOCKS = {
-  LOCK_TYPE_KERBEROS : threading.RLock()
-}
+__GLOBAL_LOCKS = {LOCK_TYPE_KERBEROS: threading.RLock()}
+
 
 def get_lock(lock_type):
   """
@@ -41,6 +41,6 @@ def get_lock(lock_type):
   :rtype: threading.RLock()
   """
   if lock_type not in __GLOBAL_LOCKS:
-    raise Fail("There is no global lock associated with {0}".format(str(lock_type)))
+    raise Fail(f"There is no global lock associated with {str(lock_type)}")
 
   return __GLOBAL_LOCKS[lock_type]

@@ -27,85 +27,103 @@ from resource_management.libraries.functions import solr_cloud_util
 from resource_management.libraries.functions.decorator import retry
 from resource_management.libraries.functions.format import format
 
-def setup_solr(name = None):
+
+def setup_solr(name=None):
   import params
 
-  if name == 'server':
-    Directory([params.solr_log_dir, params.solr_piddir,
-               params.solr_datadir, params.solr_data_resources_dir],
-              mode=0o755,
-              cd_access='a',
-              create_parents=True,
-              owner=params.solr_user,
-              group=params.user_group
-              )
+  if name == "server":
+    Directory(
+      [
+        params.solr_log_dir,
+        params.solr_piddir,
+        params.solr_datadir,
+        params.solr_data_resources_dir,
+      ],
+      mode=0o755,
+      cd_access="a",
+      create_parents=True,
+      owner=params.solr_user,
+      group=params.user_group,
+    )
 
-    Directory([params.solr_dir, params.solr_conf],
-              mode=0o755,
-              cd_access='a',
-              owner=params.solr_user,
-              group=params.user_group,
-              create_parents=True,
-              recursive_ownership=True
-              )
+    Directory(
+      [params.solr_dir, params.solr_conf],
+      mode=0o755,
+      cd_access="a",
+      owner=params.solr_user,
+      group=params.user_group,
+      create_parents=True,
+      recursive_ownership=True,
+    )
 
-    File(params.solr_log,
-         mode=0o644,
-         owner=params.solr_user,
-         group=params.user_group,
-         content=''
-         )
+    File(
+      params.solr_log,
+      mode=0o644,
+      owner=params.solr_user,
+      group=params.user_group,
+      content="",
+    )
 
-    File(format("{solr_conf}/solr-env.sh"),
-         content=InlineTemplate(params.solr_env_content),
-         mode=0o755,
-         owner=params.solr_user,
-         group=params.user_group
-         )
+    File(
+      format("{solr_conf}/solr-env.sh"),
+      content=InlineTemplate(params.solr_env_content),
+      mode=0o755,
+      owner=params.solr_user,
+      group=params.user_group,
+    )
 
-    File(format("{solr_datadir}/solr.xml"),
-         content=InlineTemplate(params.solr_xml_content),
-         owner=params.solr_user,
-         group=params.user_group
-         )
+    File(
+      format("{solr_datadir}/solr.xml"),
+      content=InlineTemplate(params.solr_xml_content),
+      owner=params.solr_user,
+      group=params.user_group,
+    )
 
-    File(format("{solr_conf}/log4j2.xml"),
-         content=InlineTemplate(params.solr_log4j_content),
-         owner=params.solr_user,
-         group=params.user_group
-         )
+    File(
+      format("{solr_conf}/log4j2.xml"),
+      content=InlineTemplate(params.solr_log4j_content),
+      owner=params.solr_user,
+      group=params.user_group,
+    )
 
     custom_security_json_location = format("{solr_conf}/custom-security.json")
-    File(custom_security_json_location,
-         content=InlineTemplate(params.solr_security_json_content),
-         owner=params.solr_user,
-         group=params.user_group,
-         mode=0o640
-         )
+    File(
+      custom_security_json_location,
+      content=InlineTemplate(params.solr_security_json_content),
+      owner=params.solr_user,
+      group=params.user_group,
+      mode=0o640,
+    )
 
     if params.security_enabled:
-      File(format("{solr_jaas_file}"),
-           content=Template("solr_jaas.conf.j2"),
-           owner=params.solr_user)
-
-      File(format("{solr_conf}/security.json"),
-           content=Template("solr-security.json.j2"),
-           owner=params.solr_user,
-           group=params.user_group,
-           mode=0o640)
-    if os.path.exists(params.limits_conf_dir):
-      File(os.path.join(params.limits_conf_dir, 'solr.conf'),
-           owner='root',
-           group='root',
-           mode=0o644,
-           content=Template("solr.conf.j2")
+      File(
+        format("{solr_jaas_file}"),
+        content=Template("solr_jaas.conf.j2"),
+        owner=params.solr_user,
       )
 
-  elif name == 'client':
+      File(
+        format("{solr_conf}/security.json"),
+        content=Template("solr-security.json.j2"),
+        owner=params.solr_user,
+        group=params.user_group,
+        mode=0o640,
+      )
+    if os.path.exists(params.limits_conf_dir):
+      File(
+        os.path.join(params.limits_conf_dir, "solr.conf"),
+        owner="root",
+        group="root",
+        mode=0o644,
+        content=Template("solr.conf.j2"),
+      )
+
+  elif name == "client":
     solr_cloud_util.setup_solr_client(params.config)
 
-  else :
-    raise Fail('Nor client or server were selected to install.')
+  else:
+    raise Fail("Nor client or server were selected to install.")
+
 
 def setup_solr_znode_env():
   """
@@ -116,13 +134,17 @@ def setup_solr_znode_env():
   custom_security_json_location = format("{solr_conf}/custom-security.json")
   jaas_file = params.solr_jaas_file if params.security_enabled else None
   java_opts = params.zk_security_opts if params.security_enabled else None
-  url_scheme = 'https' if params.solr_ssl_enabled else 'http'
+  url_scheme = "https" if params.solr_ssl_enabled else "http"
 
-  security_json_file_location = custom_security_json_location \
-    if params.solr_security_json_content and str(params.solr_security_json_content).strip() \
-    else format("{solr_conf}/security.json") # security.json file to upload
+  security_json_file_location = (
+    custom_security_json_location
+    if params.solr_security_json_content
+    and str(params.solr_security_json_content).strip()
+    else format("{solr_conf}/security.json")
+  )  # security.json file to upload
 
   create_solr_znode(java_opts, jaas_file)
+
 
 #   solr_cloud_util.set_cluster_prop(
 #     zookeeper_quorum=params.zk_quorum,
@@ -154,20 +176,26 @@ def setup_solr_znode_env():
 #       java_opts=java_opts
 #     )
 
+
 def create_solr_znode(java_opts, jaas_file):
   import params
 
-  create_cmd = format('{solr_bindir}/solr zk mkroot {solr_znode} -z {zookeeper_quorum} -Dsolr.kerberos.name.rules=\'{solr_kerberos_name_rules}\' 2>&1') \
-            if params.security_enabled else format('{solr_bindir}/solr zk mkroot {solr_znode} -z {zookeeper_quorum} 2>&1')
+  create_cmd = (
+    format(
+      "{solr_bindir}/solr zk mkroot {solr_znode} -z {zookeeper_quorum} -Dsolr.kerberos.name.rules='{solr_kerberos_name_rules}' 2>&1"
+    )
+    if params.security_enabled
+    else format("{solr_bindir}/solr zk mkroot {solr_znode} -z {zookeeper_quorum} 2>&1")
+  )
 
   try:
     Execute(
       create_cmd,
-      environment={'SOLR_INCLUDE': format('{solr_conf}/solr-env.sh')},
-      user=params.solr_user
+      environment={"SOLR_INCLUDE": format("{solr_conf}/solr-env.sh")},
+      user=params.solr_user,
     )
   except ExecutionFailed as e:
-    if (format("NodeExists for {solr_znode}") in str(e)):
+    if format("NodeExists for {solr_znode}") in str(e):
       Logger.info(format("Node {solr_znode} already exists."))
     else:
       raise e

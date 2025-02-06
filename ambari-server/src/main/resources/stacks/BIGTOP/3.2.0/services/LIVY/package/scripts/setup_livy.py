@@ -20,83 +20,102 @@ limitations under the License.
 
 import os
 from resource_management.libraries.functions.default import default
-from resource_management.libraries.functions.generate_logfeeder_input_config import generate_logfeeder_input_config
-from resource_management import Directory, File, PropertiesFile, Template, InlineTemplate, format
+from resource_management.libraries.functions.generate_logfeeder_input_config import (
+  generate_logfeeder_input_config,
+)
+from resource_management import (
+  Directory,
+  File,
+  PropertiesFile,
+  Template,
+  InlineTemplate,
+  format,
+)
 
 
-def setup_livy(env, type, upgrade_type = None, action = None):
+def setup_livy(env, type, upgrade_type=None, action=None):
   import params
 
-  Directory([params.livy_pid_dir, params.livy_log_dir],
-            owner=params.livy_user,
-            group=params.user_group,
-            mode=0o775,
-            cd_access='a',
-            create_parents=True
+  Directory(
+    [params.livy_pid_dir, params.livy_log_dir],
+    owner=params.livy_user,
+    group=params.user_group,
+    mode=0o775,
+    cd_access="a",
+    create_parents=True,
   )
-  if type == 'server' and action == 'config':
-    params.HdfsResource(params.livy_hdfs_user_dir,
-                        type="directory",
-                        action="create_on_execute",
-                        owner=params.livy_user,
-                        mode=0o775
+  if type == "server" and action == "config":
+    params.HdfsResource(
+      params.livy_hdfs_user_dir,
+      type="directory",
+      action="create_on_execute",
+      owner=params.livy_user,
+      mode=0o775,
     )
     params.HdfsResource(None, action="execute")
 
-    if params.livy_recovery_store == 'filesystem':
-      params.HdfsResource(params.livy_recovery_dir,
-                          type="directory",
-                          action="create_on_execute",
-                          owner=params.livy_user,
-                          mode=0o700
-         )
+    if params.livy_recovery_store == "filesystem":
+      params.HdfsResource(
+        params.livy_recovery_dir,
+        type="directory",
+        action="create_on_execute",
+        owner=params.livy_user,
+        mode=0o700,
+      )
       params.HdfsResource(None, action="execute")
 
-    generate_logfeeder_input_config('livy', Template("input.config-livy.json.j2", extra_imports=[default]))
+    generate_logfeeder_input_config(
+      "livy", Template("input.config-livy.json.j2", extra_imports=[default])
+    )
 
   # create livy-env.sh in etc/conf dir
-  File(os.path.join(params.livy_conf, 'livy-env.sh'),
-       owner=params.livy_user,
-       group=params.livy_group,
-       content=InlineTemplate(params.livy_env_sh),
-       mode=0o644,
+  File(
+    os.path.join(params.livy_conf, "livy-env.sh"),
+    owner=params.livy_user,
+    group=params.livy_group,
+    content=InlineTemplate(params.livy_env_sh),
+    mode=0o644,
   )
 
   # create livy-client.conf in etc/conf dir
-  PropertiesFile(format("{livy_conf}/livy-client.conf"),
-                properties = params.config['configurations']['livy-client-conf'],
-                key_value_delimiter = " ",
-                owner=params.livy_user,
-                group=params.livy_group,
+  PropertiesFile(
+    format("{livy_conf}/livy-client.conf"),
+    properties=params.config["configurations"]["livy-client-conf"],
+    key_value_delimiter=" ",
+    owner=params.livy_user,
+    group=params.livy_group,
   )
 
   # create livy.conf in etc/conf dir
-  PropertiesFile(format("{livy_conf}/livy.conf"),
-                properties = params.config['configurations']['livy-conf'],
-                key_value_delimiter = " ",
-                owner=params.livy_user,
-                group=params.livy_group,
+  PropertiesFile(
+    format("{livy_conf}/livy.conf"),
+    properties=params.config["configurations"]["livy-conf"],
+    key_value_delimiter=" ",
+    owner=params.livy_user,
+    group=params.livy_group,
   )
 
   # create log4j.properties in etc/conf dir
-  File(os.path.join(params.livy_conf, 'log4j.properties'),
-       owner=params.livy_user,
-       group=params.livy_group,
-       content=params.livy_log4j_properties,
-       mode=0o644,
+  File(
+    os.path.join(params.livy_conf, "log4j.properties"),
+    owner=params.livy_user,
+    group=params.livy_group,
+    content=params.livy_log4j_properties,
+    mode=0o644,
   )
 
   # create spark-blacklist.properties in etc/conf dir
-  File(os.path.join(params.livy_conf, 'spark-blacklist.conf'),
-       owner=params.livy_user,
-       group=params.livy_group,
-       content=params.livy_spark_blacklist_properties,
-       mode=0o644,
+  File(
+    os.path.join(params.livy_conf, "spark-blacklist.conf"),
+    owner=params.livy_user,
+    group=params.livy_group,
+    content=params.livy_spark_blacklist_properties,
+    mode=0o644,
   )
 
-  Directory(params.livy_logs_dir,
-            owner=params.livy_user,
-            group=params.livy_group,
-            mode=0o755,
+  Directory(
+    params.livy_logs_dir,
+    owner=params.livy_user,
+    group=params.livy_group,
+    mode=0o755,
   )
-

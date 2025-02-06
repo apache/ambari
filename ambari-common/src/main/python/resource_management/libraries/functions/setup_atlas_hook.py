@@ -35,7 +35,7 @@ from resource_management.core.logger import Logger
 from ambari_commons import OSCheck
 from ambari_commons.constants import SERVICE
 
-'''
+"""
 Only this subset of Atlas application.properties should be written out to each service that has an Atlas hook,
 E.g., Hive, Storm, Sqoop, Falcon.
 The reason for this is that we don't want configs to get out-of-sync between each of these services.
@@ -63,50 +63,48 @@ specific_hive_atlas_hook_prop_g
 Now, if the user wants to make a global change for Atlas hooks, they can change shared_atlas_hook_prop_d or shared_atlas_hook_prop_e
 in a single place (under the Atlas Configs page).
 If they want to overwrite shared_atlas_hook_prop_d just for Hive, they can add it to hive-atlas-application.properties
-'''
+"""
 
 SHARED_ATLAS_HOOK_CONFIGS = set(
   [
-  "atlas.kafka.zookeeper.connect",
-  "atlas.kafka.bootstrap.servers",
-  "atlas.kafka.zookeeper.session.timeout.ms",
-  "atlas.kafka.zookeeper.connection.timeout.ms",
-  "atlas.kafka.zookeeper.sync.time.ms",
-  "atlas.kafka.hook.group.id",
-  "atlas.notification.create.topics",
-  "atlas.notification.replicas",
-  "atlas.notification.topics",
-  "atlas.notification.kafka.service.principal",
-  "atlas.notification.kafka.keytab.location",
-  "atlas.cluster.name",
-  "atlas.rest.address",
-
-  # Security properties
-  "atlas.jaas.KafkaClient.option.serviceName",
-  "atlas.authentication.method.kerberos",
-  "atlas.kafka.sasl.kerberos.service.name",
-  "atlas.kafka.security.protocol",
-  "atlas.jaas.KafkaClient.loginModuleName",
-  "atlas.jaas.KafkaClient.loginModuleControlFlag"
+    "atlas.kafka.zookeeper.connect",
+    "atlas.kafka.bootstrap.servers",
+    "atlas.kafka.zookeeper.session.timeout.ms",
+    "atlas.kafka.zookeeper.connection.timeout.ms",
+    "atlas.kafka.zookeeper.sync.time.ms",
+    "atlas.kafka.hook.group.id",
+    "atlas.notification.create.topics",
+    "atlas.notification.replicas",
+    "atlas.notification.topics",
+    "atlas.notification.kafka.service.principal",
+    "atlas.notification.kafka.keytab.location",
+    "atlas.cluster.name",
+    "atlas.rest.address",
+    # Security properties
+    "atlas.jaas.KafkaClient.option.serviceName",
+    "atlas.authentication.method.kerberos",
+    "atlas.kafka.sasl.kerberos.service.name",
+    "atlas.kafka.security.protocol",
+    "atlas.jaas.KafkaClient.loginModuleName",
+    "atlas.jaas.KafkaClient.loginModuleControlFlag",
   ]
 )
 
 SHARED_ATLAS_HOOK_SECURITY_CONFIGS_FOR_NON_CLIENT_SERVICE = set(
-  [
-    "atlas.jaas.KafkaClient.option.useKeyTab",
-    "atlas.jaas.KafkaClient.option.storeKey"
-  ]
+  ["atlas.jaas.KafkaClient.option.useKeyTab", "atlas.jaas.KafkaClient.option.storeKey"]
 )
 
 NON_CLIENT_SERVICES = [SERVICE.HIVE, SERVICE.STORM, SERVICE.FALCON, SERVICE.HBASE]
+
 
 def has_atlas_in_cluster():
   """
   Determine if Atlas is installed on the cluster.
   :return: True if Atlas is installed, otherwise false.
   """
-  atlas_hosts = default('/clusterHostInfo/atlas_server_hosts', [])
+  atlas_hosts = default("/clusterHostInfo/atlas_server_hosts", [])
   return len(atlas_hosts) > 0
+
 
 def setup_atlas_hook(service_name, service_props, atlas_hook_filepath, owner, group):
   """
@@ -118,7 +116,8 @@ def setup_atlas_hook(service_name, service_props, atlas_hook_filepath, owner, gr
   :param group: File group
   """
   import params
-  atlas_props = default('/configurations/application-properties', {})
+
+  atlas_props = default("/configurations/application-properties", {})
   merged_props = {}
   merged_props.update(service_props)
 
@@ -127,7 +126,9 @@ def setup_atlas_hook(service_name, service_props, atlas_hook_filepath, owner, gr
     merged_props = {}
     shared_props = SHARED_ATLAS_HOOK_CONFIGS.copy()
     if service_name in NON_CLIENT_SERVICES:
-      shared_props = shared_props.union(SHARED_ATLAS_HOOK_SECURITY_CONFIGS_FOR_NON_CLIENT_SERVICE)
+      shared_props = shared_props.union(
+        SHARED_ATLAS_HOOK_SECURITY_CONFIGS_FOR_NON_CLIENT_SERVICE
+      )
 
     for prop in shared_props:
       if prop in atlas_props:
@@ -136,11 +137,9 @@ def setup_atlas_hook(service_name, service_props, atlas_hook_filepath, owner, gr
     merged_props.update(service_props)
 
   Logger.info(format("Generating Atlas Hook config file {atlas_hook_filepath}"))
-  PropertiesFile(atlas_hook_filepath,
-           properties = merged_props,
-           owner = owner,
-           group = group,
-           mode = 0o644)
+  PropertiesFile(
+    atlas_hook_filepath, properties=merged_props, owner=owner, group=group, mode=0o644
+  )
 
 
 def setup_atlas_jar_symlinks(hook_name, jar_source_dir):
@@ -170,8 +169,10 @@ def setup_atlas_jar_symlinks(hook_name, jar_source_dir):
   atlas_hook_dir = os.path.join(atlas_home_dir, "hook", hook_name)
 
   if os.path.exists(atlas_hook_dir):
-    Logger.info("Atlas Server is present on this host, will symlink jars inside of %s to %s if not already done." %
-                (jar_source_dir, atlas_hook_dir))
+    Logger.info(
+      "Atlas Server is present on this host, will symlink jars inside of %s to %s if not already done."
+      % (jar_source_dir, atlas_hook_dir)
+    )
 
     src_files = os.listdir(atlas_hook_dir)
     for file_name in src_files:
@@ -180,11 +181,22 @@ def setup_atlas_jar_symlinks(hook_name, jar_source_dir):
       if os.path.isfile(atlas_hook_file_name):
         Link(source_lib_file_name, to=atlas_hook_file_name)
   else:
-    Logger.info("Atlas hook directory path {0} doesn't exist".format(atlas_hook_dir))
+    Logger.info(f"Atlas hook directory path {atlas_hook_dir} doesn't exist")
 
-def install_atlas_hook_packages(atlas_plugin_package, atlas_ubuntu_plugin_package, host_sys_prepped,
-                                agent_stack_retry_on_unavailability, agent_stack_retry_count):
+
+def install_atlas_hook_packages(
+  atlas_plugin_package,
+  atlas_ubuntu_plugin_package,
+  host_sys_prepped,
+  agent_stack_retry_on_unavailability,
+  agent_stack_retry_count,
+):
   if not host_sys_prepped:
     # This will install packages like atlas-metadata-${service}-plugin needed for Falcon and Hive.
-    Package(atlas_ubuntu_plugin_package if OSCheck.is_ubuntu_family() else atlas_plugin_package,
-            retry_on_repo_unavailability=agent_stack_retry_on_unavailability, retry_count=agent_stack_retry_count)
+    Package(
+      atlas_ubuntu_plugin_package
+      if OSCheck.is_ubuntu_family()
+      else atlas_plugin_package,
+      retry_on_repo_unavailability=agent_stack_retry_on_unavailability,
+      retry_count=agent_stack_retry_count,
+    )

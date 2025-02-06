@@ -19,9 +19,16 @@ limitations under the License.
 Ambari Agent
 
 """
+
 __all__ = ["Group", "User"]
 
-from resource_management.core.base import Resource, ForcedListArgument, ResourceArgument, BooleanArgument, IntegerArgument
+from resource_management.core.base import (
+  Resource,
+  ForcedListArgument,
+  ResourceArgument,
+  BooleanArgument,
+  IntegerArgument,
+)
 
 
 class Group(Resource):
@@ -42,7 +49,7 @@ class User(Resource):
   """
   If the user exists, and there are some groups, appends to existant
   """
-  groups = ForcedListArgument(default=[]) # supplementary groups
+  groups = ForcedListArgument(default=[])  # supplementary groups
   home = ResourceArgument()
   shell = ResourceArgument()
   password = ResourceArgument()

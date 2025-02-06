@@ -25,14 +25,15 @@ from alerts.base_alert import BaseAlert
 from resource_management.libraries.functions.get_port_from_url import get_port_from_url
 from ambari_commons import OSCheck
 from ambari_commons.inet_utils import resolve_address, get_host_from_url
+
 logger = logging.getLogger(__name__)
 
 # default timeouts
 DEFAULT_WARNING_TIMEOUT = 1.5
 DEFAULT_CRITICAL_TIMEOUT = 5.0
 
-class PortAlert(BaseAlert):
 
+class PortAlert(BaseAlert):
   def __init__(self, alert_meta, alert_source_meta, config):
     super(PortAlert, self).__init__(alert_meta, alert_source_meta, config)
 
@@ -43,51 +44,61 @@ class PortAlert(BaseAlert):
     self.warning_timeout = DEFAULT_WARNING_TIMEOUT
     self.critical_timeout = DEFAULT_CRITICAL_TIMEOUT
 
-    if 'uri' in alert_source_meta:
-      self.uri = alert_source_meta['uri']
+    if "uri" in alert_source_meta:
+      self.uri = alert_source_meta["uri"]
 
     # always static
-    if 'default_port' in alert_source_meta:
-      self.default_port = alert_source_meta['default_port']
+    if "default_port" in alert_source_meta:
+      self.default_port = alert_source_meta["default_port"]
 
-    if 'reporting' in alert_source_meta:
-      reporting = alert_source_meta['reporting']
+    if "reporting" in alert_source_meta:
+      reporting = alert_source_meta["reporting"]
       reporting_state_warning = self.RESULT_WARNING.lower()
       reporting_state_critical = self.RESULT_CRITICAL.lower()
 
-      if reporting_state_warning in reporting and \
-        'value' in reporting[reporting_state_warning]:
-        self.warning_timeout = reporting[reporting_state_warning]['value']
+      if (
+        reporting_state_warning in reporting
+        and "value" in reporting[reporting_state_warning]
+      ):
+        self.warning_timeout = reporting[reporting_state_warning]["value"]
 
-      if reporting_state_critical in reporting and \
-        'value' in reporting[reporting_state_critical]:
-        self.critical_timeout = reporting[reporting_state_critical]['value']
+      if (
+        reporting_state_critical in reporting
+        and "value" in reporting[reporting_state_critical]
+      ):
+        self.critical_timeout = reporting[reporting_state_critical]["value"]
 
-    if 'parameters' in alert_source_meta:
-      for parameter in alert_source_meta['parameters']:
-        if 'socket.command' == parameter['name']:
-          self.socket_command = parameter['value']
-        if 'socket.command.response' == parameter['name']:
-          self.socket_command_response = parameter['value']
+    if "parameters" in alert_source_meta:
+      for parameter in alert_source_meta["parameters"]:
+        if "socket.command" == parameter["name"]:
+          self.socket_command = parameter["value"]
+        if "socket.command.response" == parameter["name"]:
+          self.socket_command_response = parameter["value"]
 
     # check warning threshold for sanity
     if self.warning_timeout >= 30:
-      logger.warn("[Alert][{0}] The warning threshold of {1}s is too large, resetting to {2}s".format(
-        self.get_name(), str(self.warning_timeout), str(DEFAULT_WARNING_TIMEOUT)))
+      logger.warn(
+        "[Alert][{0}] The warning threshold of {1}s is too large, resetting to {2}s".format(
+          self.get_name(), str(self.warning_timeout), str(DEFAULT_WARNING_TIMEOUT)
+        )
+      )
 
       self.warning_timeout = DEFAULT_WARNING_TIMEOUT
 
-
     # check critical threshold for sanity
     if self.critical_timeout >= 30:
-      logger.warn("[Alert][{0}] The critical threshold of {1}s is too large, resetting to {2}s".format(
-        self.get_name(), str(self.critical_timeout), str(DEFAULT_CRITICAL_TIMEOUT)))
+      logger.warn(
+        "[Alert][{0}] The critical threshold of {1}s is too large, resetting to {2}s".format(
+          self.get_name(), str(self.critical_timeout), str(DEFAULT_CRITICAL_TIMEOUT)
+        )
+      )
 
       self.critical_timeout = DEFAULT_CRITICAL_TIMEOUT
 
-
   def _collect(self):
-    configurations = self.configuration_builder.get_configuration(self.cluster_id, None, None)
+    configurations = self.configuration_builder.get_configuration(
+      self.cluster_id, None, None
+    )
     # can be parameterized or static
     # if not parameterized, this will return the static value
     uri_value = self._get_configuration_value(configurations, self.uri)
@@ -96,21 +107,26 @@ class PortAlert(BaseAlert):
     if uri_value is None:
       host_not_specified = True
       uri_value = self.host_name
-      logger.debug("[Alert][{0}] Setting the URI to this host since it wasn't specified".format(
-        self.get_name()))
+      logger.debug(
+        "[Alert][{0}] Setting the URI to this host since it wasn't specified".format(
+          self.get_name()
+        )
+      )
 
     # in some cases, a single property is a comma-separated list like
     # host1:8080,host2:8081,host3:8083
-    uri_value_array = uri_value.split(',')
+    uri_value_array = uri_value.split(",")
     if len(uri_value_array) > 1:
       for item in uri_value_array:
         if self.host_name in item:
           uri_value = item
           if logger.isEnabledFor(logging.DEBUG):
-            logger.debug("[Alert][{0}] Extracted {1} as the host name while parsing the CSV URI {2}".format(
-              self.get_name(), uri_value, str(uri_value_array)))
+            logger.debug(
+              "[Alert][{0}] Extracted {1} as the host name while parsing the CSV URI {2}".format(
+                self.get_name(), uri_value, str(uri_value_array)
+              )
+            )
           break
-
 
     host = get_host_from_url(uri_value)
     if host is None or host == "localhost" or host == "0.0.0.0":
@@ -119,18 +135,21 @@ class PortAlert(BaseAlert):
 
     hosts = [host]
     # If host is not specified in the uri, hence we are using current host name
-    # then also add public host name as a fallback.  
-    if host_not_specified and host.lower() == self.host_name.lower() \
-      and self.host_name.lower() != self.public_host_name.lower():
+    # then also add public host name as a fallback.
+    if (
+      host_not_specified
+      and host.lower() == self.host_name.lower()
+      and self.host_name.lower() != self.public_host_name.lower()
+    ):
       hosts.append(self.public_host_name)
     if logger.isEnabledFor(logging.DEBUG):
-      logger.debug("[Alert][{0}] List of hosts = {1}".format(self.get_name(), hosts))
+      logger.debug(f"[Alert][{self.get_name()}] List of hosts = {hosts}")
 
     try:
       port = int(get_port_from_url(uri_value))
     except:
       if self.default_port is None:
-        label = 'Unable to determine port from URI {0}'.format(uri_value)
+        label = f"Unable to determine port from URI {uri_value}"
         return (self.RESULT_UNKNOWN, [label])
 
       port = self.default_port
@@ -139,8 +158,7 @@ class PortAlert(BaseAlert):
 
     for host in hosts:
       if logger.isEnabledFor(logging.DEBUG):
-        logger.debug("[Alert][{0}] Checking {1} on port {2}".format(
-          self.get_name(), host, str(port)))
+        logger.debug(f"[Alert][{self.get_name()}] Checking {host} on port {str(port)}")
 
       s = None
       try:
@@ -156,9 +174,15 @@ class PortAlert(BaseAlert):
         if self.socket_command is not None:
           s.sendall(self.socket_command.encode())
           data = s.recv(1024).decode()
-          if self.socket_command_response is not None and data != self.socket_command_response:
-            raise Exception("Expected response {0}, Actual response {1}".format(
-              self.socket_command_response, data))
+          if (
+            self.socket_command_response is not None
+            and data != self.socket_command_response
+          ):
+            raise Exception(
+              "Expected response {0}, Actual response {1}".format(
+                self.socket_command_response, data
+              )
+            )
         end_time = time.time()
         milliseconds = end_time - start_time
         seconds = milliseconds / 1000.0
@@ -166,7 +190,7 @@ class PortAlert(BaseAlert):
         # not sure why this happens sometimes, but we don't always get a
         # socket exception if the connect() is > than the critical threshold
         if seconds >= self.critical_timeout:
-          return (self.RESULT_CRITICAL, ['Socket Timeout', host, port])
+          return (self.RESULT_CRITICAL, ["Socket Timeout", host, port])
 
         result = self.RESULT_OK
         if seconds >= self.warning_timeout:
@@ -187,13 +211,13 @@ class PortAlert(BaseAlert):
       return (self.RESULT_CRITICAL, [str(exceptions[0]), hosts[0], port])
 
   def _get_reporting_text(self, state):
-    '''
+    """
     Gets the default reporting text to use when the alert definition does not
     contain any.
     :param state: the state of the alert in uppercase (such as OK, WARNING, etc)
     :return:  the parameterized text
-    '''
+    """
     if state == self.RESULT_OK or state == self.RESULT_WARNING:
-      return 'TCP OK - {0:.4f} response on port {1}'
+      return "TCP OK - {0:.4f} response on port {1}"
 
-    return 'Connection failed: {0} to {1}:{2}'
+    return "Connection failed: {0} to {1}:{2}"

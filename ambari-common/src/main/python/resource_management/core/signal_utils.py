@@ -29,16 +29,19 @@ from resource_management.core.base import Fail
 
 GRACEFUL_PG_KILL_TIMEOUT_SECONDS = 5
 
+
 class TerminateStrategy:
   """
   0 - kill parent process with SIGTERM (is perfect if all children handle SIGTERM signal). Otherwise children will survive.
   1 - kill process GROUP with SIGTERM and if not effective with SIGKILL
   2 - send SIGTERM to every process in the tree
   """
+
   TERMINATE_PARENT = 0
   KILL_PROCESS_GROUP = 1
   KILL_PROCESS_TREE = 2
-  
+
+
 def terminate_process(proc, terminate_strategy):
   if terminate_strategy == TerminateStrategy.TERMINATE_PARENT:
     terminate_parent_process(proc)
@@ -47,7 +50,10 @@ def terminate_process(proc, terminate_strategy):
   elif terminate_strategy == TerminateStrategy.KILL_PROCESS_TREE:
     kill_process_tree(proc)
   else:
-    raise Fail("Invalid timeout_kill_strategy = '{0}'. Use TerminateStrategy class constants as a value.".format(terminate_strategy))
+    raise Fail(
+      f"Invalid timeout_kill_strategy = '{terminate_strategy}'. Use TerminateStrategy class constants as a value."
+    )
+
 
 def killpg_gracefully(proc, timeout=GRACEFUL_PG_KILL_TIMEOUT_SECONDS):
   """
@@ -62,18 +68,21 @@ def killpg_gracefully(proc, timeout=GRACEFUL_PG_KILL_TIMEOUT_SECONDS):
       pgid = os.getpgid(proc.pid)
       sudo.kill(-pgid, signal.SIGTERM.value)
 
-      for i in range(10*timeout):
+      for i in range(10 * timeout):
         if proc.poll() is not None:
           break
         time.sleep(0.1)
       else:
-        Logger.info("Cannot gracefully kill process group {0}. Resorting to SIGKILL.".format(pgid))
+        Logger.info(
+          f"Cannot gracefully kill process group {pgid}. Resorting to SIGKILL."
+        )
         sudo.kill(-pgid, signal.SIGKILL.value)
         proc.wait()
     # catch race condition if proc already dead
     except OSError:
       pass
-    
+
+
 def terminate_parent_process(proc):
   if proc.poll() == None:
     try:
@@ -82,11 +91,12 @@ def terminate_parent_process(proc):
     # catch race condition if proc already dead
     except OSError:
       pass
-    
+
+
 def kill_process_tree(proc):
   from resource_management.core import shell
+
   current_directory = os.path.dirname(os.path.abspath(__file__))
-  kill_tree_script = "{0}/files/killtree.sh".format(current_directory)
+  kill_tree_script = f"{current_directory}/files/killtree.sh"
   if proc.poll() == None:
     shell.checked_call(["bash", kill_tree_script, str(proc.pid), str(signal.SIGKILL)])
-    

@@ -21,11 +21,12 @@ package org.apache.ambari.server.agent;
 
 import java.io.IOException;
 
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Test;
+
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import junit.framework.Assert;
 
@@ -69,7 +70,7 @@ public class AgentHostInfoTest {
     		"\"memorytotal\": 3051356," +
     		"\"netmask\": \"255.255.255.0\"}";
     ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     HostInfo info = mapper.readValue(hostinfo, HostInfo.class);
     Assert.assertEquals(info.getMemoryTotal(), 3051356L);
     Assert.assertEquals(info.getKernel(), "Linux");

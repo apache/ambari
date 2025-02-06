@@ -46,7 +46,9 @@ logger = get_logger()
 
 
 if "PYTHON_BIN" in os.environ:
-  AGENT_SCRIPT = os.path.join(os.environ["PYTHON_BIN"], "site-packages/ambari_agent/main.py")
+  AGENT_SCRIPT = os.path.join(
+    os.environ["PYTHON_BIN"], "site-packages/ambari_agent/main.py"
+  )
 else:
   AGENT_SCRIPT = "/usr/lib/ambari-agent/lib/ambari_agent/main.py"
 
@@ -63,11 +65,14 @@ def check_native_libs_support():
   not_loaded_extensions = []
 
   from ambari_simplejson import c_extension
+
   if not c_extension.is_loaded():
     not_loaded_extensions.append("simplejson")
 
   if not_loaded_extensions:
-    logger.warning("Some native extensions not available for module(s): {}, it may affect execution performance".format(",".join(not_loaded_extensions)))
+    logger.warning(
+      f"Some native extensions not available for module(s): {','.join(not_loaded_extensions)}, it may affect execution performance"
+    )
 
 
 def main():
@@ -94,4 +99,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+  main()

@@ -21,7 +21,13 @@ Ambari Agent
 """
 
 _all__ = ["PropertiesFile"]
-from resource_management.core.base import Resource, ForcedListArgument, ResourceArgument, BooleanArgument
+from resource_management.core.base import (
+  Resource,
+  ForcedListArgument,
+  ResourceArgument,
+  BooleanArgument,
+)
+
 
 class PropertiesFile(Resource):
   action = ForcedListArgument(default="create")

@@ -52,7 +52,7 @@ class MapReduce2ServiceCheckWindows(MapReduce2ServiceCheck):
       python_executable, validateStatusFilePath, component_type, component_address, params.hadoop_ssl_enabled)
 
     if params.security_enabled:
-      kinit_cmd = "{0} -kt {1} {2};".format(params.kinit_path_local, params.smoke_user_keytab, params.smokeuser)
+      kinit_cmd = f"{params.kinit_path_local} -kt {params.smoke_user_keytab} {params.smokeuser};"
       smoke_cmd = kinit_cmd + validateStatusCmd
     else:
       smoke_cmd = validateStatusCmd

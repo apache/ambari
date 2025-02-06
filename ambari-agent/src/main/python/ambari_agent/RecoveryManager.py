@@ -22,7 +22,12 @@ import pprint
 
 from ambari_agent.ActionQueue import ActionQueue
 from ambari_agent.LiveStatus import LiveStatus
-from ambari_agent.models.commands import CommandStatus, RoleCommand, CustomCommand, AgentCommand
+from ambari_agent.models.commands import (
+  CommandStatus,
+  RoleCommand,
+  CustomCommand,
+  AgentCommand,
+)
 
 logger = logging.getLogger()
 
@@ -34,7 +39,8 @@ class RecoveryManager:
   * Generate INSTALL command
   * Generate START command
   """
-  BLUEPRINT_STATE_IN_PROGRESS = 'IN_PROGRESS'
+
+  BLUEPRINT_STATE_IN_PROGRESS = "IN_PROGRESS"
   COMMAND_TYPE = "commandType"
   PAYLOAD_LEVEL = "payloadLevel"
   SERVICE_NAME = "serviceName"
@@ -66,16 +72,18 @@ class RecoveryManager:
     "lifetimeCount": 0,
     "warnedLastAttempt": False,
     "warnedLastReset": False,
-    "warnedThresholdReached": False
+    "warnedThresholdReached": False,
   }
 
-  default_component_status = {
-    "current": "",
-    "desired": "",
-    "stale_config": False
-  }
+  default_component_status = {"current": "", "desired": "", "stale_config": False}
 
-  def __init__(self, initializer_module, recovery_enabled=False, auto_start_only=False, auto_install_start=False):
+  def __init__(
+    self,
+    initializer_module,
+    recovery_enabled=False,
+    auto_start_only=False,
+    auto_install_start=False,
+  ):
     self.recovery_enabled = recovery_enabled
     self.auto_start_only = auto_start_only
     self.auto_install_start = auto_install_start
@@ -91,7 +99,7 @@ class RecoveryManager:
     self.allowed_current_states = [self.INIT, self.INSTALLED]
     self.enabled_components = []
     self.statuses = {}
-    self.__component_to_service_map = {}   # component => service map TODO: fix it later(hack here)
+    self.__component_to_service_map = {}  # component => service map TODO: fix it later(hack here)
     self.__status_lock = threading.RLock()
     self.__command_lock = threading.RLock()
     self.__active_command_lock = threading.RLock()
@@ -102,7 +110,9 @@ class RecoveryManager:
     self.host_level_params_cache = initializer_module.host_level_params_cache
 
     self.actions = {}
-    self.update_config(6, 60, 5, 12, recovery_enabled, auto_start_only, auto_install_start)
+    self.update_config(
+      6, 60, 5, 12, recovery_enabled, auto_start_only, auto_install_start
+    )
 
     # FIXME: Recovery manager does not support multiple clusters as of now.
     if len(self.initializer_module.configurations_cache):
@@ -123,9 +133,11 @@ class RecoveryManager:
 
   def is_blueprint_provisioning_for_component(self, component_name):
     try:
-      blueprint_state = self.host_level_params_cache[self.cluster_id]['blueprint_provisioning_state'][component_name]
+      blueprint_state = self.host_level_params_cache[self.cluster_id][
+        "blueprint_provisioning_state"
+      ][component_name]
     except KeyError:
-      blueprint_state = 'NONE'
+      blueprint_state = "NONE"
 
     return blueprint_state == RecoveryManager.BLUEPRINT_STATE_IN_PROGRESS
 
@@ -161,7 +173,10 @@ class RecoveryManager:
     self.statuses[component]["stale_config"] = is_config_stale
 
   def handle_status_change(self, component, component_status):
-    if component_status == LiveStatus.LIVE_STATUS or self.get_current_status(component) != self.INSTALL_FAILED:
+    if (
+      component_status == LiveStatus.LIVE_STATUS
+      or self.get_current_status(component) != self.INSTALL_FAILED
+    ):
       self.update_current_status(component, component_status)
 
   def update_current_status(self, component, state):
@@ -195,7 +210,11 @@ class RecoveryManager:
           component_status = copy.deepcopy(self.default_component_status)
           component_status["desired"] = state
           self.statuses[component] = component_status
-          logger.info("New status, desired status is set to %s for %s", self.statuses[component]["desired"], component)
+          logger.info(
+            "New status, desired status is set to %s for %s",
+            self.statuses[component]["desired"],
+            component,
+          )
       finally:
         self.__status_lock.release()
 
@@ -216,21 +235,36 @@ class RecoveryManager:
     INIT --> INSTALLED --> STARTED
     RE-INSTALLED (if configs do not match)
     """
-    if not self.enabled() or not self.configured_for_recovery(component) or component not in self.statuses:
+    if (
+      not self.enabled()
+      or not self.configured_for_recovery(component)
+      or component not in self.statuses
+    ):
       return False
 
     status = self.statuses[component]
     if self.auto_start_only or self.auto_install_start:
-      if status["current"] == status["desired"] or status["desired"] not in self.allowed_desired_states:
+      if (
+        status["current"] == status["desired"]
+        or status["desired"] not in self.allowed_desired_states
+      ):
         return False
     else:
-      if status["current"] == status["desired"] and status['stale_config'] is False:
+      if status["current"] == status["desired"] and status["stale_config"] is False:
         return False
 
-    if status["desired"] not in self.allowed_desired_states or status["current"] not in self.allowed_current_states:
+    if (
+      status["desired"] not in self.allowed_desired_states
+      or status["current"] not in self.allowed_current_states
+    ):
       return False
 
-    logger.info("%s needs recovery, desired = %s, and current = %s.", component, status["desired"], status["current"])
+    logger.info(
+      "%s needs recovery, desired = %s, and current = %s.",
+      component,
+      status["desired"],
+      status["current"],
+    )
     return True
 
   def get_recovery_status(self):
@@ -261,7 +295,7 @@ class RecoveryManager:
           recovery_state = {
             "name": component,
             "numAttempts": action["lifetimeCount"],
-            "limitReached": self.max_lifetime_count <= action["lifetimeCount"]
+            "limitReached": self.max_lifetime_count <= action["lifetimeCount"],
           }
           recovery_states.append(recovery_state)
           if recovery_state["limitReached"] is True:
@@ -286,7 +320,11 @@ class RecoveryManager:
     """
     commands = []
     for component in self.statuses.keys():
-      if self.configured_for_recovery(component) and self.requires_recovery(component) and self.may_execute(component):
+      if (
+        self.configured_for_recovery(component)
+        and self.requires_recovery(component)
+        and self.may_execute(component)
+      ):
         status = copy.deepcopy(self.statuses[component])
         command = None
         if self.auto_start_only:
@@ -295,24 +333,40 @@ class RecoveryManager:
         elif self.auto_install_start:
           if status["desired"] == self.STARTED and status["current"] == self.INSTALLED:
             command = self.get_start_command(component)
-          elif status["desired"] == self.STARTED and status["current"] == self.INSTALL_FAILED:
+          elif (
+            status["desired"] == self.STARTED
+            and status["current"] == self.INSTALL_FAILED
+          ):
             command = self.get_install_command(component)
-          elif status["desired"] == self.INSTALLED and status["current"] == self.INSTALL_FAILED:
-              command = self.get_install_command(component)
+          elif (
+            status["desired"] == self.INSTALLED
+            and status["current"] == self.INSTALL_FAILED
+          ):
+            command = self.get_install_command(component)
         else:
           # START, INSTALL, RESTART
           if status["desired"] != status["current"]:
-            if status["desired"] == self.STARTED and status["current"] == self.INSTALLED:
+            if (
+              status["desired"] == self.STARTED and status["current"] == self.INSTALLED
+            ):
               command = self.get_start_command(component)
             elif status["desired"] == self.STARTED and status["current"] == self.INIT:
               command = self.get_install_command(component)
-            elif status["desired"] == self.STARTED and status["current"] == self.INSTALL_FAILED:
+            elif (
+              status["desired"] == self.STARTED
+              and status["current"] == self.INSTALL_FAILED
+            ):
               command = self.get_install_command(component)
             elif status["desired"] == self.INSTALLED and status["current"] == self.INIT:
               command = self.get_install_command(component)
-            elif status["desired"] == self.INSTALLED and status["current"] == self.INSTALL_FAILED:
+            elif (
+              status["desired"] == self.INSTALLED
+              and status["current"] == self.INSTALL_FAILED
+            ):
               command = self.get_install_command(component)
-            elif status["desired"] == self.INSTALLED and status["current"] == self.STARTED:
+            elif (
+              status["desired"] == self.INSTALLED and status["current"] == self.STARTED
+            ):
               command = self.get_stop_command(component)
           else:
             if status["current"] == self.INSTALLED:
@@ -322,7 +376,11 @@ class RecoveryManager:
 
         if command:
           self.execute(component)
-          logger.info("Created recovery command %s for component %s", command[self.ROLE_COMMAND], command[self.ROLE])
+          logger.info(
+            "Created recovery command %s for component %s",
+            command[self.ROLE_COMMAND],
+            command[self.ROLE],
+          )
           commands.append(command)
 
     return commands
@@ -385,12 +443,19 @@ class RecoveryManager:
           if action_counter["warnedLastAttempt"] is False:
             action_counter["warnedLastAttempt"] = True
             logger.warn(
-              "%s seconds has not passed since last occurrence %s seconds back for %s. " +
-              "Will silently skip execution without warning till retry gap is passed",
-              self.retry_gap_in_sec, seconds_since_last_attempt, action_name)
+              "%s seconds has not passed since last occurrence %s seconds back for %s. "
+              + "Will silently skip execution without warning till retry gap is passed",
+              self.retry_gap_in_sec,
+              seconds_since_last_attempt,
+              action_name,
+            )
           else:
-            logger.debug("%s seconds has not passed since last occurrence %s seconds back for %s",
-                         self.retry_gap_in_sec, seconds_since_last_attempt, action_name)
+            logger.debug(
+              "%s seconds has not passed since last occurrence %s seconds back for %s",
+              self.retry_gap_in_sec,
+              seconds_since_last_attempt,
+              action_name,
+            )
       else:
         sec_since_last_reset = now - action_counter["lastReset"]
         if sec_since_last_reset > self.window_in_sec:
@@ -404,21 +469,35 @@ class RecoveryManager:
         else:
           if action_counter["warnedLastReset"] is False:
             action_counter["warnedLastReset"] = True
-            logger.warn("%s occurrences in %s minutes reached the limit for %s. " +
-                        "Will silently skip execution without warning till window is reset",
-                        action_counter["count"], self.window_in_min, action_name)
+            logger.warn(
+              "%s occurrences in %s minutes reached the limit for %s. "
+              + "Will silently skip execution without warning till window is reset",
+              action_counter["count"],
+              self.window_in_min,
+              action_name,
+            )
           else:
-            logger.debug("%s occurrences in %s minutes reached the limit for %s",
-                         action_counter["count"], self.window_in_min, action_name)
+            logger.debug(
+              "%s occurrences in %s minutes reached the limit for %s",
+              action_counter["count"],
+              self.window_in_min,
+              action_name,
+            )
     else:
       if action_counter["warnedThresholdReached"] is False:
         action_counter["warnedThresholdReached"] = True
-        logger.warn("%s occurrences in agent life time reached the limit for %s. " +
-                    "Will silently skip execution without warning till window is reset",
-                    action_counter["lifetimeCount"], action_name)
+        logger.warn(
+          "%s occurrences in agent life time reached the limit for %s. "
+          + "Will silently skip execution without warning till window is reset",
+          action_counter["lifetimeCount"],
+          action_name,
+        )
       else:
-        logger.error("%s occurrences in agent life time reached the limit for %s",
-                     action_counter["lifetimeCount"], action_name)
+        logger.error(
+          "%s occurrences in agent life time reached the limit for %s",
+          action_counter["lifetimeCount"],
+          action_name,
+        )
     return executed
 
   def get_actions_copy(self):
@@ -457,7 +536,9 @@ class RecoveryManager:
         if seconds_since_last_attempt > self.retry_gap_in_sec:
           return True
         else:
-          logger.info("Not running recovery command due to retry_gap = {0} (seconds)".format(self.retry_gap_in_sec))
+          logger.info(
+            f"Not running recovery command due to retry_gap = {self.retry_gap_in_sec} (seconds)"
+          )
       else:
         sec_since_last_reset = now - action_counter["lastReset"]
         if sec_since_last_reset > self.window_in_sec:
@@ -473,11 +554,14 @@ class RecoveryManager:
       if logger.isEnabledFor(logging.INFO):
         logger.info("RecoverConfig = %s", pprint.pformat(dictionary["recoveryConfig"]))
       config = dictionary["recoveryConfig"]
-      if 'components' in config:
-        enabled_components = config['components']
+      if "components" in config:
+        enabled_components = config["components"]
         enabled_components_list = []
 
-        components = [(item["service_name"], item["component_name"], item["desired_state"]) for item in enabled_components]
+        components = [
+          (item["service_name"], item["component_name"], item["desired_state"])
+          for item in enabled_components
+        ]
         for service, component, state in components:
           enabled_components_list.append(component)
           self.update_desired_status(component, state)
@@ -487,7 +571,7 @@ class RecoveryManager:
           # However it important to keep map actual, for this reason relation could be updated if service will
           #  push another service <-> component relation
           self.__component_to_service_map[component] = service
-          
+
         self.enabled_components = enabled_components_list
 
   def on_config_update(self):
@@ -501,8 +585,11 @@ class RecoveryManager:
 
     cluster_cache = self.initializer_module.configurations_cache[self.cluster_id]
 
-    if 'configurations' in cluster_cache and 'cluster-env' in cluster_cache['configurations']:
-      config = cluster_cache['configurations']['cluster-env']
+    if (
+      "configurations" in cluster_cache
+      and "cluster-env" in cluster_cache["configurations"]
+    ):
+      config = cluster_cache["configurations"]["cluster-env"]
       if "recovery_type" in config:
         if config["recovery_type"] in ["AUTO_INSTALL_START", "AUTO_START", "FULL"]:
           recovery_enabled = True
@@ -512,22 +599,43 @@ class RecoveryManager:
             auto_install_start = True
 
       if "recovery_enabled" in config:
-        recovery_enabled = self._read_bool_(config, "recovery_enabled", recovery_enabled)
+        recovery_enabled = self._read_bool_(
+          config, "recovery_enabled", recovery_enabled
+        )
 
       if "recovery_max_count" in config:
         max_count = self._read_int_(config, "recovery_max_count", max_count)
       if "recovery_window_in_minutes" in config:
-        window_in_min = self._read_int_(config, "recovery_window_in_minutes", window_in_min)
+        window_in_min = self._read_int_(
+          config, "recovery_window_in_minutes", window_in_min
+        )
       if "recovery_retry_interval" in config:
         retry_gap = self._read_int_(config, "recovery_retry_interval", retry_gap)
-      if 'recovery_lifetime_max_count' in config:
-        max_lifetime_count = self._read_int_(config, 'recovery_lifetime_max_count', max_lifetime_count)
+      if "recovery_lifetime_max_count" in config:
+        max_lifetime_count = self._read_int_(
+          config, "recovery_lifetime_max_count", max_lifetime_count
+        )
 
-    self.update_config(max_count, window_in_min, retry_gap, max_lifetime_count, recovery_enabled, auto_start_only,
-                       auto_install_start)
+    self.update_config(
+      max_count,
+      window_in_min,
+      retry_gap,
+      max_lifetime_count,
+      recovery_enabled,
+      auto_start_only,
+      auto_install_start,
+    )
 
-  def update_config(self, max_count, window_in_min, retry_gap, max_lifetime_count, recovery_enabled,
-                    auto_start_only, auto_install_start):
+  def update_config(
+    self,
+    max_count,
+    window_in_min,
+    retry_gap,
+    max_lifetime_count,
+    recovery_enabled,
+    auto_start_only,
+    auto_install_start,
+  ):
     """
     Update recovery configuration with the specified values.
 
@@ -552,13 +660,17 @@ class RecoveryManager:
       return
 
     if retry_gap < 1:
-      logger.warn("Recovery disabled: retry_gap must be a positive number and at least 1")
+      logger.warn(
+        "Recovery disabled: retry_gap must be a positive number and at least 1"
+      )
       return
     if retry_gap >= window_in_min:
       logger.warn("Recovery disabled: retry_gap must be smaller than window_in_min")
       return
     if max_lifetime_count < 0 or max_lifetime_count < max_count:
-      logger.warn("Recovery disabled: max_lifetime_count must more than 0 and >= max_count")
+      logger.warn(
+        "Recovery disabled: max_lifetime_count must more than 0 and >= max_count"
+      )
       return
 
     self.max_count = max_count
@@ -571,7 +683,12 @@ class RecoveryManager:
     self.max_lifetime_count = max_lifetime_count
 
     self.allowed_desired_states = [self.STARTED, self.INSTALLED]
-    self.allowed_current_states = [self.INIT, self.INSTALL_FAILED, self.INSTALLED, self.STARTED]
+    self.allowed_current_states = [
+      self.INIT,
+      self.INSTALL_FAILED,
+      self.INSTALLED,
+      self.STARTED,
+    ]
 
     if self.auto_start_only:
       self.allowed_desired_states = [self.STARTED]
@@ -593,31 +710,57 @@ class RecoveryManager:
     if not self.enabled():
       return
 
-    if self.ROLE_COMMAND not in command or not self.configured_for_recovery(command['role']):
+    if self.ROLE_COMMAND not in command or not self.configured_for_recovery(
+      command["role"]
+    ):
       return
 
     if status == CommandStatus.completed:
       if command[self.ROLE_COMMAND] == RoleCommand.start:
         self.update_current_status(command[self.ROLE], LiveStatus.LIVE_STATUS)
-        logger.info("After EXECUTION_COMMAND (START), with taskId={}, current state of {} to {}".format(
-          command['taskId'], command[self.ROLE], self.get_current_status(command[self.ROLE])))
+        logger.info(
+          "After EXECUTION_COMMAND (START), with taskId={}, current state of {} to {}".format(
+            command["taskId"],
+            command[self.ROLE],
+            self.get_current_status(command[self.ROLE]),
+          )
+        )
 
-      elif command['roleCommand'] == RoleCommand.stop or command[self.ROLE_COMMAND] == RoleCommand.install:
+      elif (
+        command["roleCommand"] == RoleCommand.stop
+        or command[self.ROLE_COMMAND] == RoleCommand.install
+      ):
         self.update_current_status(command[self.ROLE], LiveStatus.DEAD_STATUS)
-        logger.info("After EXECUTION_COMMAND (STOP/INSTALL), with taskId={}, current state of {} to {}".format(
-          command['taskId'], command[self.ROLE], self.get_current_status(command[self.ROLE])))
+        logger.info(
+          "After EXECUTION_COMMAND (STOP/INSTALL), with taskId={}, current state of {} to {}".format(
+            command["taskId"],
+            command[self.ROLE],
+            self.get_current_status(command[self.ROLE]),
+          )
+        )
 
       elif command[self.ROLE_COMMAND] == RoleCommand.custom_command:
-        if 'custom_command' in command and command['custom_command'] == CustomCommand.restart:
-          self.update_current_status(command['role'], LiveStatus.LIVE_STATUS)
-          logger.info("After EXECUTION_COMMAND (RESTART), current state of {} to {}".format(
-            command[self.ROLE], self.get_current_status(command[self.ROLE])))
+        if (
+          "custom_command" in command
+          and command["custom_command"] == CustomCommand.restart
+        ):
+          self.update_current_status(command["role"], LiveStatus.LIVE_STATUS)
+          logger.info(
+            "After EXECUTION_COMMAND (RESTART), current state of {} to {}".format(
+              command[self.ROLE], self.get_current_status(command[self.ROLE])
+            )
+          )
 
     elif status == CommandStatus.failed:
       if command[self.ROLE_COMMAND] == RoleCommand.install:
         self.update_current_status(command[self.ROLE], self.INSTALL_FAILED)
-        logger.info("After EXECUTION_COMMAND (INSTALL), with taskId={}, current state of {} to {}".format(
-          command['taskId'], command[self.ROLE], self.get_current_status(command[self.ROLE])))
+        logger.info(
+          "After EXECUTION_COMMAND (INSTALL), with taskId={}, current state of {} to {}".format(
+            command["taskId"],
+            command[self.ROLE],
+            self.get_current_status(command[self.ROLE]),
+          )
+        )
 
   def process_execution_command(self, command):
     """
@@ -626,30 +769,47 @@ class RecoveryManager:
     if not self.enabled():
       return
 
-    if self.COMMAND_TYPE not in command or not command[self.COMMAND_TYPE] == AgentCommand.execution:
+    if (
+      self.COMMAND_TYPE not in command
+      or not command[self.COMMAND_TYPE] == AgentCommand.execution
+    ):
       return
 
     if self.ROLE not in command:
       return
 
-    if command[self.ROLE_COMMAND] in (RoleCommand.install, RoleCommand.stop) \
-        and self.configured_for_recovery(command[self.ROLE]):
-
+    if command[self.ROLE_COMMAND] in (
+      RoleCommand.install,
+      RoleCommand.stop,
+    ) and self.configured_for_recovery(command[self.ROLE]):
       self.update_desired_status(command[self.ROLE], LiveStatus.DEAD_STATUS)
-      logger.info("Received EXECUTION_COMMAND (STOP/INSTALL), desired state of {} to {}".format(
-        command[self.ROLE], self.get_desired_status(command[self.ROLE])))
+      logger.info(
+        "Received EXECUTION_COMMAND (STOP/INSTALL), desired state of {} to {}".format(
+          command[self.ROLE], self.get_desired_status(command[self.ROLE])
+        )
+      )
 
-    elif command[self.ROLE_COMMAND] == RoleCommand.start and self.configured_for_recovery(command[self.ROLE]):
+    elif command[
+      self.ROLE_COMMAND
+    ] == RoleCommand.start and self.configured_for_recovery(command[self.ROLE]):
       self.update_desired_status(command[self.ROLE], LiveStatus.LIVE_STATUS)
-      logger.info("Received EXECUTION_COMMAND (START), desired state of {} to {}".format(
-        command[self.ROLE], self.get_desired_status(command[self.ROLE])))
+      logger.info(
+        "Received EXECUTION_COMMAND (START), desired state of {} to {}".format(
+          command[self.ROLE], self.get_desired_status(command[self.ROLE])
+        )
+      )
 
-    elif 'custom_command' in command and command['custom_command'] == CustomCommand.restart \
-            and self.configured_for_recovery(command[self.ROLE]):
-
+    elif (
+      "custom_command" in command
+      and command["custom_command"] == CustomCommand.restart
+      and self.configured_for_recovery(command[self.ROLE])
+    ):
       self.update_desired_status(command[self.ROLE], LiveStatus.LIVE_STATUS)
-      logger.info("Received EXECUTION_COMMAND (RESTART), desired state of {} to {}".format(
-        command[self.ROLE], self.get_desired_status(command[self.ROLE])))
+      logger.info(
+        "Received EXECUTION_COMMAND (RESTART), desired state of {} to {}".format(
+          command[self.ROLE], self.get_desired_status(command[self.ROLE])
+        )
+      )
 
   def get_command(self, component, command_name):
     """
@@ -671,7 +831,7 @@ class RecoveryManager:
         self.COMMAND_TYPE: AgentCommand.auto_execution,
         self.TASK_ID: command_id,
         self.ROLE: component,
-        self.COMMAND_ID: command_id
+        self.COMMAND_ID: command_id,
       }
 
       if component in self.__component_to_service_map:
@@ -688,7 +848,7 @@ class RecoveryManager:
 
     if command is not None:
       command[self.ROLE_COMMAND] = "CUSTOM_COMMAND"
-      command['custom_command'] = 'RESTART'
+      command["custom_command"] = "RESTART"
 
     return command
 
@@ -712,7 +872,7 @@ class RecoveryManager:
   def _read_bool_(self, config, key, default_value=False):
     bool_value = default_value
     try:
-      bool_value = (config[key].lower() == "true")
+      bool_value = config[key].lower() == "true"
     except KeyError:
       pass
     return bool_value

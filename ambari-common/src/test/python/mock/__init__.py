@@ -1,2 +1,2 @@
 #!/usr/bin/env python3
-__author__ = 'Michael Foord'
+__author__ = "Michael Foord"

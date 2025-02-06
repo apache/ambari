@@ -20,8 +20,6 @@ Ambari Agent
 
 """
 
-
-
 import os
 import re
 from subprocess import Popen, PIPE, STDOUT
@@ -40,7 +38,7 @@ def get_mounted():
   if p.wait() != 0:
     raise Fail("Getting list of mounts (calling mount) failed")
 
-  mounts = [x.split(' ') for x in out.strip().split('\n')]
+  mounts = [x.split(" ") for x in out.strip().split("\n")]
 
   results = []
   for m in mounts:
@@ -52,7 +50,7 @@ def get_mounted():
         device=m[0],
         mount_point=m[2],
         fstype=m[4],
-        options=m[5][1:-1].split(',') if len(m[5]) >= 2 else []
+        options=m[5][1:-1].split(",") if len(m[5]) >= 2 else [],
       )
       results.append(x)
 
@@ -66,17 +64,19 @@ def get_fstab(self):
   mounts = []
   with open("/etc/fstab", "r") as fp:
     for line in fp:
-      line = line.split('#', 1)[0].strip()
-      mount = re.split('\s+', line)
+      line = line.split("#", 1)[0].strip()
+      mount = re.split("\s+", line)
       if len(mount) == 6:
-        mounts.append(dict(
-          device=mount[0],
-          mount_point=mount[1],
-          fstype=mount[2],
-          options=mount[3].split(","),
-          dump=int(mount[4]),
-          passno=int(mount[5]),
-          ))
+        mounts.append(
+          dict(
+            device=mount[0],
+            mount_point=mount[1],
+            fstype=mount[2],
+            options=mount[3].split(","),
+            dump=int(mount[4]),
+            passno=int(mount[5]),
+          )
+        )
   return mounts
 
 
@@ -86,7 +86,7 @@ class MountProvider(Provider):
       os.makedirs(self.resource.mount_point)
 
     if self.is_mounted():
-      Logger.debug("%s already mounted" % self)
+      Logger.debug(f"{self} already mounted")
     else:
       args = ["mount"]
       if self.resource.fstype:
@@ -99,50 +99,53 @@ class MountProvider(Provider):
 
       check_call(args)
 
-      Logger.info("%s mounted" % self)
+      Logger.info(f"{self} mounted")
 
   def action_umount(self):
     if self.is_mounted():
       check_call(["umount", self.resource.mount_point])
 
-      Logger.info("%s unmounted" % self)
+      Logger.info(f"{self} unmounted")
     else:
-      Logger.debug("%s is not mounted" % self)
+      Logger.debug(f"{self} is not mounted")
 
   def action_enable(self):
     if self.is_enabled():
-      Logger.debug("%s already enabled" % self)
+      Logger.debug(f"{self} already enabled")
     else:
       if not self.resource.device:
-        raise Fail("[%s] device not set but required for enable action" % self)
+        raise Fail(f"[{self}] device not set but required for enable action")
       if not self.resource.fstype:
-        raise Fail("[%s] fstype not set but required for enable action" % self)
+        raise Fail(f"[{self}] fstype not set but required for enable action")
 
       with open("/etc/fstab", "a") as fp:
-        fp.write("%s %s %s %s %d %d\n" % (
-          self.resource.device,
-          self.resource.mount_point,
-          self.resource.fstype,
-          ",".join(self.resource.options or ["defaults"]),
-          self.resource.dump,
-          self.resource.passno,
-        ))
+        fp.write(
+          "%s %s %s %s %d %d\n"
+          % (
+            self.resource.device,
+            self.resource.mount_point,
+            self.resource.fstype,
+            ",".join(self.resource.options or ["defaults"]),
+            self.resource.dump,
+            self.resource.passno,
+          )
+        )
 
-      Logger.info("%s enabled" % self)
+      Logger.info(f"{self} enabled")
 
   def action_disable(self):
-    pass # TODO
+    pass  # TODO
 
   def is_mounted(self):
     if not os.path.exists(self.resource.mount_point):
       return False
 
     if self.resource.device and not os.path.exists(self.resource.device):
-      raise Fail("%s Device %s does not exist" % (self, self.resource.device))
+      raise Fail(f"{self} Device {self.resource.device} does not exist")
 
     mounts = get_mounted()
     for m in mounts:
-      if m['mount_point'] == self.resource.mount_point:
+      if m["mount_point"] == self.resource.mount_point:
         return True
 
     return False
@@ -150,8 +153,7 @@ class MountProvider(Provider):
   def is_enabled(self):
     mounts = get_fstab()
     for m in mounts:
-      if m['mount_point'] == self.resource.mount_point:
+      if m["mount_point"] == self.resource.mount_point:
         return True
 
     return False
-

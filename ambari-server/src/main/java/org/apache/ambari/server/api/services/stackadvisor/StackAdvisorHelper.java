@@ -44,8 +44,8 @@ import org.apache.ambari.server.controller.internal.AmbariServerConfigurationHan
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.codehaus.jackson.JsonNode;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;

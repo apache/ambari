@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,19 +16,25 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
+
 import urllib.request, urllib.error, urllib.parse
-import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
+import ambari_simplejson as json  # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 from resource_management.core import shell
 from resource_management.core.logger import Logger
-from resource_management.libraries.functions.get_user_call_output import get_user_call_output
+from resource_management.libraries.functions.get_user_call_output import (
+  get_user_call_output,
+)
 
-def get_value_from_jmx(qry, property, security_enabled, run_user, is_https_enabled, last_retry=True):
+
+def get_value_from_jmx(
+  qry, property, security_enabled, run_user, is_https_enabled, last_retry=True
+):
   try:
     if security_enabled:
-      cmd = ['curl', '--negotiate', '-u', ':', '-s']
+      cmd = ["curl", "--negotiate", "-u", ":", "-s"]
     else:
-      cmd = ['curl', '-s']
+      cmd = ["curl", "-s"]
 
     if is_https_enabled:
       cmd.append("-k")

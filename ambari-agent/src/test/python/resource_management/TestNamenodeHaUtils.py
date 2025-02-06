@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,14 +16,13 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
+
 from unittest import TestCase
-from resource_management.libraries.functions.namenode_ha_utils import \
-  get_nameservices
+from resource_management.libraries.functions.namenode_ha_utils import get_nameservices
 
 
 class TestNamenodeHaUtils(TestCase):
-
   def test_get_nameservice(self):
     # our cluster is HAA
 
@@ -62,7 +61,7 @@ class TestNamenodeHaUtils(TestCase):
     # federated config dfs.internal.nameservices in hdfs-site
     hdfs_site = {
       "dfs.internal.nameservices": "ns1,ns2",
-      "dfs.nameservices": "ns1,ns2,exns1,exns2"
+      "dfs.nameservices": "ns1,ns2,exns1,exns2",
     }
 
-    self.assertEqual(["ns1","ns2"], get_nameservices(hdfs_site))
+    self.assertEqual(["ns1", "ns2"], get_nameservices(hdfs_site))

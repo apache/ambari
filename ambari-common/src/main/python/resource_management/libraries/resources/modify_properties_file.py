@@ -21,7 +21,13 @@ Ambari Agent
 """
 
 _all__ = ["ModifyPropertiesFile"]
-from resource_management.core.base import Resource, ForcedListArgument, ResourceArgument, BooleanArgument
+from resource_management.core.base import (
+  Resource,
+  ForcedListArgument,
+  ResourceArgument,
+  BooleanArgument,
+)
+
 
 class ModifyPropertiesFile(Resource):
   action = ForcedListArgument(default="create")
@@ -32,9 +38,9 @@ class ModifyPropertiesFile(Resource):
   mode = ResourceArgument()
   owner = ResourceArgument()
   group = ResourceArgument()
-  
-  key_value_delimiter = ResourceArgument(default='=')
-  comment_symbols = ForcedListArgument(default=['#'])
-  encoding = ResourceArgument(default='utf-8')
+
+  key_value_delimiter = ResourceArgument(default="=")
+  comment_symbols = ForcedListArgument(default=["#"])
+  encoding = ResourceArgument(default="utf-8")
 
   actions = Resource.actions + ["create"]

@@ -28,16 +28,18 @@ from resource_management.libraries.functions import stack_select
 
 config = Script.get_config()
 
-component_directory = stack_select.get_package_name(default_package = 'solr-server')
+component_directory = stack_select.get_package_name(default_package="solr-server")
 
-solr_port = default('configurations/solr-env/solr_port', '8983')
-solr_piddir = default('configurations/solr-env/solr_pid_dir', '/var/run/solr')
+solr_port = default("configurations/solr-env/solr_port", "8983")
+solr_piddir = default("configurations/solr-env/solr_pid_dir", "/var/run/solr")
 solr_pidfile = format("{solr_piddir}/solr-{solr_port}.pid")
 
-prev_solr_pidfile = ''
+prev_solr_pidfile = ""
 if path.isdir(solr_piddir):
   for file in listdir(solr_piddir):
-    prev_solr_pidfile = solr_piddir + '/' + file
+    prev_solr_pidfile = solr_piddir + "/" + file
 
-security_enabled = config['configurations']['cluster-env']['security_enabled']
-kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
+security_enabled = config["configurations"]["cluster-env"]["security_enabled"]
+kinit_path_local = get_kinit_path(
+  default("/configurations/kerberos-env/executable_search_paths", None)
+)

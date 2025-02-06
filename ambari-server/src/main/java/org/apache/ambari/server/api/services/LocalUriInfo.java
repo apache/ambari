@@ -22,6 +22,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.UriBuilder;
@@ -29,8 +30,6 @@ import javax.ws.rs.core.UriInfo;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
-
-import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 /**
  * Internal {@link UriInfo} implementation. Most of the methods are not
@@ -72,6 +71,14 @@ public class LocalUriInfo implements UriInfo {
 
   @Override
   public List<Object> getMatchedResources() {
+    throw new UnsupportedOperationException("Method is not supported");
+  }
+
+  public URI resolve(URI uri) {
+    throw new UnsupportedOperationException("Method is not supported");
+  }
+
+  public URI relativize(URI uri) {
     throw new UnsupportedOperationException("Method is not supported");
   }
 
@@ -119,9 +126,9 @@ public class LocalUriInfo implements UriInfo {
   public MultivaluedMap<String, String> getQueryParameters() {
     List<NameValuePair> parametersList = URLEncodedUtils.parse(uri, "UTF-8");
 
-    MultivaluedMap<String, String> parameters = new MultivaluedMapImpl();
+    MultivaluedMap<String, String> parameters = new MultivaluedHashMap();
     for (NameValuePair pair : parametersList) {
-      parameters.add(pair.getName(), pair.getValue());
+      parameters.add(pair.getName(), pair.getValue() == null ? "" : pair.getValue());
     }
     return parameters;
   }

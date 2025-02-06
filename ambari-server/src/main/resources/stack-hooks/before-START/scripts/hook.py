@@ -17,18 +17,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+
 from rack_awareness import create_topology_script_and_mapping
-from shared_initialization import setup_hadoop, setup_configs, create_javahome_symlink, setup_unlimited_key_jce_policy, \
-  Hook
+from shared_initialization import (
+  setup_hadoop,
+  setup_configs,
+  create_javahome_symlink,
+  setup_unlimited_key_jce_policy,
+  Hook,
+)
 from custom_extensions import setup_extensions
 
 
 class BeforeStartHook(Hook):
-
   def hook(self, env):
     import params
 
-    self.run_custom_hook('before-ANY')
+    self.run_custom_hook("before-ANY")
     env.set_params(params)
 
     setup_hadoop()

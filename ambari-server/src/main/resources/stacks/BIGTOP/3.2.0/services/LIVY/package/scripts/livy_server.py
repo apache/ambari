@@ -19,7 +19,9 @@ limitations under the License.
 """
 
 from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions.check_process_status import check_process_status
+from resource_management.libraries.functions.check_process_status import (
+  check_process_status,
+)
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.core.exceptions import Fail
@@ -37,39 +39,48 @@ from resource_management.libraries.functions import namenode_ha_utils
 from livy_service import livy_service
 from setup_livy import setup_livy
 
-class LivyServer(Script):
 
+class LivyServer(Script):
   def install(self, env):
     import params
+
     env.set_params(params)
 
     self.install_packages(env)
 
   def configure(self, env, upgrade_type=None, config_dir=None):
     import params
+
     env.set_params(params)
 
-    setup_livy(env, 'server', upgrade_type=upgrade_type, action = 'config')
+    setup_livy(env, "server", upgrade_type=upgrade_type, action="config")
 
   def start(self, env, upgrade_type=None):
     import params
+
     env.set_params(params)
 
     if params.has_ats and params.has_livyserver:
-      Logger.info("Verifying DFS directories where ATS stores time line data for active and completed applications.")
-      self.wait_for_dfs_directories_created([params.entity_groupfs_store_dir, params.entity_groupfs_active_dir])
+      Logger.info(
+        "Verifying DFS directories where ATS stores time line data for active and completed applications."
+      )
+      self.wait_for_dfs_directories_created(
+        [params.entity_groupfs_store_dir, params.entity_groupfs_active_dir]
+      )
 
     self.configure(env)
-    livy_service('server', upgrade_type=upgrade_type, action='start')
+    livy_service("server", upgrade_type=upgrade_type, action="start")
 
   def stop(self, env, upgrade_type=None):
     import params
+
     env.set_params(params)
 
-    livy_service('server', upgrade_type=upgrade_type, action='stop')
+    livy_service("server", upgrade_type=upgrade_type, action="stop")
 
   def status(self, env):
     import status_params
+
     env.set_params(status_params)
 
     check_process_status(status_params.livy_server_pid_file)
@@ -78,23 +89,27 @@ class LivyServer(Script):
   def wait_for_dfs_directories_created(self, dirs):
     import params
 
-    ignored_dfs_dirs = HdfsResourceProvider.get_ignored_resources_list(params.hdfs_resource_ignore_file)
+    ignored_dfs_dirs = HdfsResourceProvider.get_ignored_resources_list(
+      params.hdfs_resource_ignore_file
+    )
 
     if params.security_enabled:
-      Execute(format("{kinit_path_local} -kt {livy_kerberos_keytab} {livy_principal}"),
-              user=params.livy_user
-              )
-      Execute(format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name}"),
-              user=params.hdfs_user
-              )
+      Execute(
+        format("{kinit_path_local} -kt {livy_kerberos_keytab} {livy_principal}"),
+        user=params.livy_user,
+      )
+      Execute(
+        format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name}"),
+        user=params.hdfs_user,
+      )
 
     for dir_path in dirs:
-        self.wait_for_dfs_directory_created(dir_path, ignored_dfs_dirs)
+      self.wait_for_dfs_directory_created(dir_path, ignored_dfs_dirs)
 
   def get_pid_files(self):
     import status_params
-    return [status_params.livy_server_pid_file]
 
+    return [status_params.livy_server_pid_file]
 
   @retry(times=8, sleep_time=20, backoff_factor=1, err_class=Fail)
   def wait_for_dfs_directory_created(self, dir_path, ignored_dfs_dirs):
@@ -104,25 +119,38 @@ class LivyServer(Script):
       dir_path = HdfsResourceProvider.parse_path(dir_path)
 
       if dir_path in ignored_dfs_dirs:
-        Logger.info("Skipping DFS directory '" + dir_path + "' as it's marked to be ignored.")
+        Logger.info(
+          "Skipping DFS directory '" + dir_path + "' as it's marked to be ignored."
+        )
         return
 
       Logger.info("Verifying if DFS directory '" + dir_path + "' exists.")
 
       dir_exists = None
-      
+
       nameservices = namenode_ha_utils.get_nameservices(params.hdfs_site)
       nameservice = None if not nameservices else nameservices[-1]
 
       if WebHDFSUtil.is_webhdfs_available(params.is_webhdfs_enabled, params.dfs_type):
         # check with webhdfs is much faster than executing hdfs dfs -test
-        util = WebHDFSUtil(params.hdfs_site, nameservice, params.hdfs_user, params.security_enabled)
-        list_status = util.run_command(dir_path, 'GETFILESTATUS', method='GET', ignore_status_codes=['404'], assertable_result=False)
-        dir_exists = ('FileStatus' in list_status)
+        util = WebHDFSUtil(
+          params.hdfs_site, nameservice, params.hdfs_user, params.security_enabled
+        )
+        list_status = util.run_command(
+          dir_path,
+          "GETFILESTATUS",
+          method="GET",
+          ignore_status_codes=["404"],
+          assertable_result=False,
+        )
+        dir_exists = "FileStatus" in list_status
       else:
         # have to do time expensive hdfs dfs -d check.
-        dfs_ret_code = shell.call(format("hdfs --config {hadoop_conf_dir} dfs -test -d " + dir_path), user=params.livy_user)[0]
-        dir_exists = not dfs_ret_code #dfs -test -d returns 0 in case the dir exists
+        dfs_ret_code = shell.call(
+          format("hdfs --config {hadoop_conf_dir} dfs -test -d " + dir_path),
+          user=params.livy_user,
+        )[0]
+        dir_exists = not dfs_ret_code  # dfs -test -d returns 0 in case the dir exists
 
       if not dir_exists:
         raise Fail("DFS directory '" + dir_path + "' does not exist !")
@@ -133,17 +161,22 @@ class LivyServer(Script):
     import params
 
     env.set_params(params)
-    if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
+    if params.version and check_stack_feature(
+      StackFeature.ROLLING_UPGRADE, params.version
+    ):
       Logger.info("Executing Livy Server Stack Upgrade pre-restart")
       stack_select.select_packages(params.version)
 
   def get_log_folder(self):
     import params
+
     return params.livy_log_dir
 
   def get_user(self):
     import params
-    return params.livy_user
-if __name__ == "__main__":
-    LivyServer().execute()
 
+    return params.livy_user
+
+
+if __name__ == "__main__":
+  LivyServer().execute()

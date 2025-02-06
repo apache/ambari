@@ -34,67 +34,96 @@ from resource_management.libraries.functions import hive_check
 OK_MESSAGE = "TCP OK - {0:.3f}s response on port {1}"
 CRITICAL_MESSAGE = "Connection failed on host {0}:{1} ({2})"
 
-HIVE_SERVER_INTERACTIVE_THRIFT_PORT_KEY = '{{hive-interactive-site/hive.server2.thrift.port}}'
-HIVE_SERVER_INTERACTIVE_THRIFT_HTTP_PORT_KEY = '{{hive-interactive-site/hive.server2.thrift.http.port}}'
-HIVE_SERVER_INTERACTIVE_TRANSPORT_MODE_KEY = '{{hive-interactive-site/hive.server2.transport.mode}}'
-HIVE_SERVER_TRANSPORT_MODE_KEY = '{{hive-site/hive.server2.transport.mode}}'
-SECURITY_ENABLED_KEY = '{{cluster-env/security_enabled}}'
-HIVE_SERVER2_INTERACTIVE_AUTHENTICATION_KEY = '{{hive-interactive-site/hive.server2.authentication}}'
-HIVE_SERVER2_AUTHENTICATION_KEY = '{{hive-site/hive.server2.authentication}}'
-HIVE_SERVER_INTERACTIVE_PRINCIPAL_KEY = '{{hive-site/hive.server2.authentication.kerberos.principal}}'
-SMOKEUSER_KEYTAB_KEY = '{{cluster-env/smokeuser_keytab}}'
-SMOKEUSER_PRINCIPAL_KEY = '{{cluster-env/smokeuser_principal_name}}'
-SMOKEUSER_KEY = '{{cluster-env/smokeuser}}'
-HIVE_SSL = '{{hive-site/hive.server2.use.SSL}}'
-HIVE_SSL_KEYSTORE_PATH = '{{hive-interactive-site/hive.server2.keystore.path}}'
-HIVE_SSL_KEYSTORE_PASSWORD = '{{hive-interactive-site/hive.server2.keystore.password}}'
-HIVE_LDAP_USERNAME = '{{hive-env/alert_ldap_username}}'
-HIVE_LDAP_PASSWORD = '{{hive-env/alert_ldap_password}}'
-HIVE_PAM_USERNAME = '{{hive-env/alert_pam_username}}'
-HIVE_PAM_PASSWORD = '{{hive-env/alert_pam_password}}'
-HIVE_WEBUI_PORT = '{{hive-interactive-site/hive.server2.webui.port}}'
-HIVE_WEBUI_SSL = '{{hive-interactive-site/hive.server2.webui.use.ssl}}'
+HIVE_SERVER_INTERACTIVE_THRIFT_PORT_KEY = (
+  "{{hive-interactive-site/hive.server2.thrift.port}}"
+)
+HIVE_SERVER_INTERACTIVE_THRIFT_HTTP_PORT_KEY = (
+  "{{hive-interactive-site/hive.server2.thrift.http.port}}"
+)
+HIVE_SERVER_INTERACTIVE_TRANSPORT_MODE_KEY = (
+  "{{hive-interactive-site/hive.server2.transport.mode}}"
+)
+HIVE_SERVER_TRANSPORT_MODE_KEY = "{{hive-site/hive.server2.transport.mode}}"
+SECURITY_ENABLED_KEY = "{{cluster-env/security_enabled}}"
+HIVE_SERVER2_INTERACTIVE_AUTHENTICATION_KEY = (
+  "{{hive-interactive-site/hive.server2.authentication}}"
+)
+HIVE_SERVER2_AUTHENTICATION_KEY = "{{hive-site/hive.server2.authentication}}"
+HIVE_SERVER_INTERACTIVE_PRINCIPAL_KEY = (
+  "{{hive-site/hive.server2.authentication.kerberos.principal}}"
+)
+SMOKEUSER_KEYTAB_KEY = "{{cluster-env/smokeuser_keytab}}"
+SMOKEUSER_PRINCIPAL_KEY = "{{cluster-env/smokeuser_principal_name}}"
+SMOKEUSER_KEY = "{{cluster-env/smokeuser}}"
+HIVE_SSL = "{{hive-site/hive.server2.use.SSL}}"
+HIVE_SSL_KEYSTORE_PATH = "{{hive-interactive-site/hive.server2.keystore.path}}"
+HIVE_SSL_KEYSTORE_PASSWORD = "{{hive-interactive-site/hive.server2.keystore.password}}"
+HIVE_LDAP_USERNAME = "{{hive-env/alert_ldap_username}}"
+HIVE_LDAP_PASSWORD = "{{hive-env/alert_ldap_password}}"
+HIVE_PAM_USERNAME = "{{hive-env/alert_pam_username}}"
+HIVE_PAM_PASSWORD = "{{hive-env/alert_pam_password}}"
+HIVE_WEBUI_PORT = "{{hive-interactive-site/hive.server2.webui.port}}"
+HIVE_WEBUI_SSL = "{{hive-interactive-site/hive.server2.webui.use.ssl}}"
 
 # The configured Kerberos executable search paths, if any
-KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY = '{{kerberos-env/executable_search_paths}}'
+KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY = "{{kerberos-env/executable_search_paths}}"
 
 THRIFT_PORT_DEFAULT = 10500
-HIVE_SERVER_INTERACTIVE_TRANSPORT_MODE_DEFAULT = 'binary'
-HIVE_SERVER_INTERACTIVE_PRINCIPAL_DEFAULT = 'hive/_HOST@EXAMPLE.COM'
-HIVE_SERVER2_INTERACTIVE_AUTHENTICATION_DEFAULT = 'NOSASL'
+HIVE_SERVER_INTERACTIVE_TRANSPORT_MODE_DEFAULT = "binary"
+HIVE_SERVER_INTERACTIVE_PRINCIPAL_DEFAULT = "hive/_HOST@EXAMPLE.COM"
+HIVE_SERVER2_INTERACTIVE_AUTHENTICATION_DEFAULT = "NOSASL"
 
 # default keytab location
-SMOKEUSER_KEYTAB_SCRIPT_PARAM_KEY = 'default.smoke.keytab'
-SMOKEUSER_KEYTAB_DEFAULT = '/etc/security/keytabs/smokeuser.headless.keytab'
+SMOKEUSER_KEYTAB_SCRIPT_PARAM_KEY = "default.smoke.keytab"
+SMOKEUSER_KEYTAB_DEFAULT = "/etc/security/keytabs/smokeuser.headless.keytab"
 
 # default smoke principal
-SMOKEUSER_PRINCIPAL_SCRIPT_PARAM_KEY = 'default.smoke.principal'
-SMOKEUSER_PRINCIPAL_DEFAULT = 'ambari-qa@EXAMPLE.COM'
+SMOKEUSER_PRINCIPAL_SCRIPT_PARAM_KEY = "default.smoke.principal"
+SMOKEUSER_PRINCIPAL_DEFAULT = "ambari-qa@EXAMPLE.COM"
 
 # default smoke user
-SMOKEUSER_SCRIPT_PARAM_KEY = 'default.smoke.user'
-SMOKEUSER_DEFAULT = 'ambari-qa'
+SMOKEUSER_SCRIPT_PARAM_KEY = "default.smoke.user"
+SMOKEUSER_DEFAULT = "ambari-qa"
 
-HIVE_USER_KEY = '{{hive-env/hive_user}}'
-HIVE_USER_DEFAULT = 'hive'
+HIVE_USER_KEY = "{{hive-env/hive_user}}"
+HIVE_USER_DEFAULT = "hive"
 
-CHECK_COMMAND_TIMEOUT_KEY = 'check.command.timeout'
+CHECK_COMMAND_TIMEOUT_KEY = "check.command.timeout"
 CHECK_COMMAND_TIMEOUT_DEFAULT = 60.0
 
-logger = logging.getLogger('ambari_alerts')
+logger = logging.getLogger("ambari_alerts")
+
 
 def get_tokens():
   """
   Returns a tuple of tokens in the format {{site/property}} that will be used
   to build the dictionary passed into execute
   """
-  return (HIVE_SERVER_INTERACTIVE_THRIFT_PORT_KEY, SECURITY_ENABLED_KEY, SMOKEUSER_KEY,
-          HIVE_SERVER2_INTERACTIVE_AUTHENTICATION_KEY, HIVE_SERVER2_AUTHENTICATION_KEY,
-          HIVE_SERVER_INTERACTIVE_PRINCIPAL_KEY, SMOKEUSER_KEYTAB_KEY, SMOKEUSER_PRINCIPAL_KEY,
-          HIVE_SERVER_INTERACTIVE_THRIFT_HTTP_PORT_KEY, HIVE_SERVER_INTERACTIVE_TRANSPORT_MODE_KEY,
-          HIVE_SERVER_TRANSPORT_MODE_KEY, KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY, HIVE_SSL,
-          HIVE_SSL_KEYSTORE_PATH, HIVE_SSL_KEYSTORE_PASSWORD, HIVE_LDAP_USERNAME, HIVE_LDAP_PASSWORD,
-          HIVE_USER_KEY, HIVE_WEBUI_PORT, HIVE_WEBUI_SSL, HIVE_PAM_USERNAME, HIVE_PAM_PASSWORD)
+  return (
+    HIVE_SERVER_INTERACTIVE_THRIFT_PORT_KEY,
+    SECURITY_ENABLED_KEY,
+    SMOKEUSER_KEY,
+    HIVE_SERVER2_INTERACTIVE_AUTHENTICATION_KEY,
+    HIVE_SERVER2_AUTHENTICATION_KEY,
+    HIVE_SERVER_INTERACTIVE_PRINCIPAL_KEY,
+    SMOKEUSER_KEYTAB_KEY,
+    SMOKEUSER_PRINCIPAL_KEY,
+    HIVE_SERVER_INTERACTIVE_THRIFT_HTTP_PORT_KEY,
+    HIVE_SERVER_INTERACTIVE_TRANSPORT_MODE_KEY,
+    HIVE_SERVER_TRANSPORT_MODE_KEY,
+    KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY,
+    HIVE_SSL,
+    HIVE_SSL_KEYSTORE_PATH,
+    HIVE_SSL_KEYSTORE_PASSWORD,
+    HIVE_LDAP_USERNAME,
+    HIVE_LDAP_PASSWORD,
+    HIVE_USER_KEY,
+    HIVE_WEBUI_PORT,
+    HIVE_WEBUI_SSL,
+    HIVE_PAM_USERNAME,
+    HIVE_PAM_PASSWORD,
+  )
+
 
 def execute(configurations={}, parameters={}, host_name=None):
   """
@@ -107,7 +136,7 @@ def execute(configurations={}, parameters={}, host_name=None):
   """
 
   if configurations is None:
-    return ('UNKNOWN', ['There were no configurations supplied to the script.'])
+    return ("UNKNOWN", ["There were no configurations supplied to the script."])
 
   transport_mode = HIVE_SERVER_INTERACTIVE_TRANSPORT_MODE_DEFAULT
   if HIVE_SERVER_INTERACTIVE_TRANSPORT_MODE_KEY in configurations:
@@ -116,14 +145,20 @@ def execute(configurations={}, parameters={}, host_name=None):
     transport_mode = configurations[HIVE_SERVER_TRANSPORT_MODE_KEY]
 
   port = THRIFT_PORT_DEFAULT
-  if transport_mode.lower() == 'binary' and HIVE_SERVER_INTERACTIVE_THRIFT_PORT_KEY in configurations:
+  if (
+    transport_mode.lower() == "binary"
+    and HIVE_SERVER_INTERACTIVE_THRIFT_PORT_KEY in configurations
+  ):
     port = int(configurations[HIVE_SERVER_INTERACTIVE_THRIFT_PORT_KEY])
-  elif transport_mode.lower() == 'http' and HIVE_SERVER_INTERACTIVE_THRIFT_HTTP_PORT_KEY in configurations:
+  elif (
+    transport_mode.lower() == "http"
+    and HIVE_SERVER_INTERACTIVE_THRIFT_HTTP_PORT_KEY in configurations
+  ):
     port = int(configurations[HIVE_SERVER_INTERACTIVE_THRIFT_HTTP_PORT_KEY])
 
   security_enabled = False
   if SECURITY_ENABLED_KEY in configurations:
-    security_enabled = str(configurations[SECURITY_ENABLED_KEY]).upper() == 'TRUE'
+    security_enabled = str(configurations[SECURITY_ENABLED_KEY]).upper() == "TRUE"
 
   check_command_timeout = CHECK_COMMAND_TIMEOUT_DEFAULT
   if CHECK_COMMAND_TIMEOUT_KEY in parameters:
@@ -131,7 +166,9 @@ def execute(configurations={}, parameters={}, host_name=None):
 
   hive_server2_authentication = HIVE_SERVER2_INTERACTIVE_AUTHENTICATION_DEFAULT
   if HIVE_SERVER2_INTERACTIVE_AUTHENTICATION_KEY in configurations:
-    hive_server2_authentication = configurations[HIVE_SERVER2_INTERACTIVE_AUTHENTICATION_KEY]
+    hive_server2_authentication = configurations[
+      HIVE_SERVER2_INTERACTIVE_AUTHENTICATION_KEY
+    ]
   elif HIVE_SERVER2_AUTHENTICATION_KEY in configurations:
     hive_server2_authentication = configurations[HIVE_SERVER2_AUTHENTICATION_KEY]
 
@@ -161,7 +198,6 @@ def execute(configurations={}, parameters={}, host_name=None):
 
   if SMOKEUSER_KEYTAB_SCRIPT_PARAM_KEY in parameters:
     smokeuser_keytab = parameters[SMOKEUSER_KEYTAB_SCRIPT_PARAM_KEY]
-
 
   # check configurations last as they should always take precedence
   if SMOKEUSER_PRINCIPAL_KEY in configurations:
@@ -200,15 +236,19 @@ def execute(configurations={}, parameters={}, host_name=None):
 
     # Get the configured Kerberos executable search paths, if any
     if KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY in configurations:
-      kerberos_executable_search_paths = configurations[KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY]
+      kerberos_executable_search_paths = configurations[
+        KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY
+      ]
     else:
       kerberos_executable_search_paths = None
 
     kinit_path_local = get_kinit_path(kerberos_executable_search_paths)
-    kinitcmd=format("{kinit_path_local} -kt {smokeuser_keytab} {smokeuser_principal}; ")
+    kinitcmd = format(
+      "{kinit_path_local} -kt {smokeuser_keytab} {smokeuser_principal}; "
+    )
   else:
     hive_server_principal = None
-    kinitcmd=None
+    kinitcmd = None
 
   try:
     if host_name is None:
@@ -217,35 +257,54 @@ def execute(configurations={}, parameters={}, host_name=None):
     start_time = time.time()
 
     webui_port = configurations[HIVE_WEBUI_PORT]
-    webui_use_ssl = configurations[HIVE_WEBUI_SSL] and configurations[HIVE_WEBUI_SSL].lower() == 'true'
+    webui_use_ssl = (
+      configurations[HIVE_WEBUI_SSL]
+      and configurations[HIVE_WEBUI_SSL].lower() == "true"
+    )
     try:
       if shouldCheck(kinitcmd, smokeuser, host_name, webui_port, webui_use_ssl):
-        hive_check.check_thrift_port_sasl(host_name, port, hive_server2_authentication, hive_server_principal,
-                                          kinitcmd, smokeuser, hive_user = hive_user, transport_mode=transport_mode, ssl=hive_ssl,
-                                          ssl_keystore=hive_ssl_keystore_path, ssl_password=hive_ssl_keystore_password,
-                                          check_command_timeout=int(check_command_timeout), ldap_username=ldap_username,
-                                          ldap_password=ldap_password, pam_username=pam_username, pam_password=pam_password)
+        hive_check.check_thrift_port_sasl(
+          host_name,
+          port,
+          hive_server2_authentication,
+          hive_server_principal,
+          kinitcmd,
+          smokeuser,
+          hive_user=hive_user,
+          transport_mode=transport_mode,
+          ssl=hive_ssl,
+          ssl_keystore=hive_ssl_keystore_path,
+          ssl_password=hive_ssl_keystore_password,
+          check_command_timeout=int(check_command_timeout),
+          ldap_username=ldap_username,
+          ldap_password=ldap_password,
+          pam_username=pam_username,
+          pam_password=pam_password,
+        )
       else:
         logger.info("Not a leader, no need to check.")
-      result_code = 'OK'
+      result_code = "OK"
       total_time = time.time() - start_time
       label = OK_MESSAGE.format(total_time, port)
     except:
-      result_code = 'CRITICAL'
+      result_code = "CRITICAL"
       label = CRITICAL_MESSAGE.format(host_name, port, traceback.format_exc())
 
   except:
     label = traceback.format_exc()
-    result_code = 'UNKNOWN'
+    result_code = "UNKNOWN"
 
   return (result_code, [label])
+
 
 def shouldCheck(kinitcmd, smokeuser, host_name, webui_port, webui_use_ssl):
   """Should check node if: 1) non-HA setup or 2) active node in a HA setup"""
 
-  logger.debug("shouldCheck kinitcmd={}, smokeuser={}, host_name={}, webui_port={}, webui_use_ssl={}".format(kinitcmd, smokeuser, host_name, webui_port, webui_use_ssl))
+  logger.debug(
+    f"shouldCheck kinitcmd={kinitcmd}, smokeuser={smokeuser}, host_name={host_name}, webui_port={webui_port}, webui_use_ssl={webui_use_ssl}"
+  )
 
-  if (kinitcmd):
+  if kinitcmd:
     # prevent concurrent kinit
     kinit_lock = global_lock.get_lock(global_lock.LOCK_TYPE_KERBEROS)
     kinit_lock.acquire()
@@ -255,10 +314,14 @@ def shouldCheck(kinitcmd, smokeuser, host_name, webui_port, webui_use_ssl):
       kinit_lock.release()
 
   protocol = "https" if webui_use_ssl else "http"
-  check_cmd = "curl -k {}://{}:{}/leader".format(protocol, host_name, webui_port)
-  logger.debug("cmd={}".format(check_cmd))
-  code, out, err = shell.call(check_cmd, stdout = subprocess.PIPE, stderr = subprocess.PIPE, quiet = True)
-  logger.debug("code={}, out={}, err={}".format(code, out, err))
-  if (code != 0):
-    raise Exception("shouldCheck failed with exit code {}".format(code))
-  return out != 'false' # false means there is a HA setup and the server is in standby mode
+  check_cmd = f"curl -k {protocol}://{host_name}:{webui_port}/leader"
+  logger.debug(f"cmd={check_cmd}")
+  code, out, err = shell.call(
+    check_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, quiet=True
+  )
+  logger.debug(f"code={code}, out={out}, err={err}")
+  if code != 0:
+    raise Exception(f"shouldCheck failed with exit code {code}")
+  return (
+    out != "false"
+  )  # false means there is a HA setup and the server is in standby mode

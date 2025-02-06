@@ -23,12 +23,14 @@ import os
 OK_MESSAGE = "OK - Sys DB and Information Schema created"
 CRITICAL_MESSAGE = "Sys DB and Information Schema not created yet"
 
+
 def get_tokens():
   """
   Returns a tuple of tokens in the format {{site/property}} that will be used
   to build the dictionary passed into execute
   """
   return ()
+
 
 def execute(configurations={}, parameters={}, host_name=None):
   """
@@ -39,12 +41,12 @@ def execute(configurations={}, parameters={}, host_name=None):
   parameters (dictionary): a mapping of script parameter key to value
   host_name (string): the name of this host where the alert is running
   """
-  
+
   if os.path.isfile("/etc/hive/sys.db.created"):
-    result_code = 'OK'
+    result_code = "OK"
     label = OK_MESSAGE
   else:
-    result_code = 'CRITICAL'
+    result_code = "CRITICAL"
     label = CRITICAL_MESSAGE
 
   return (result_code, [label])

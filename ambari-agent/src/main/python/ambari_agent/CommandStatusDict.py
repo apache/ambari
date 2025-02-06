@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,7 +16,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 import os
 import logging
@@ -34,7 +34,8 @@ from ambari_stomp.adapter.websocket import ConnectionIsAlreadyClosed
 
 logger = logging.getLogger()
 
-class CommandStatusDict():
+
+class CommandStatusDict:
   """
   Holds results for all commands that are being executed or have finished
   execution (but are not yet reported). Implementation is thread-safe.
@@ -50,7 +51,7 @@ class CommandStatusDict():
     callback_action is called every time when status of some command is
     updated
     """
-    self.current_state = {} # Contains all statuses
+    self.current_state = {}  # Contains all statuses
     self.lock = threading.RLock()
     self.initializer_module = initializer_module
     self.command_update_output = initializer_module.config.command_update_output
@@ -69,16 +70,17 @@ class CommandStatusDict():
     Stores new version of report for command (replaces previous)
     """
     with self.lock:
-      key = command['taskId']
+      key = command["taskId"]
       # delete stale data about this command
       self.delete_command_data(key)
       self.queue_report_sending(key, command, report)
 
-      report_dict = {command['clusterId']: [report]}
+      report_dict = {command["clusterId"]: [report]}
       is_sent, correlation_id = self.force_update_to_server(report_dict)
 
-      self.server_responses_listener.listener_functions_on_success[correlation_id] = lambda headers, message: \
-        self.clear_reported_reports(report_dict)
+      self.server_responses_listener.listener_functions_on_success[correlation_id] = (
+        lambda headers, message: self.clear_reported_reports(report_dict)
+      )
 
   def queue_report_sending(self, key, command, report):
     with self.lock:
@@ -90,7 +92,11 @@ class CommandStatusDict():
       return False, None
 
     try:
-      correlation_id = self.initializer_module.connection.send(message={'clusters':reports_dict}, destination=Constants.COMMANDS_STATUS_REPORTS_ENDPOINT, log_message_function=CommandStatusDict.log_sending)
+      correlation_id = self.initializer_module.connection.send(
+        message={"clusters": reports_dict},
+        destination=Constants.COMMANDS_STATUS_REPORTS_ENDPOINT,
+        log_message_function=CommandStatusDict.log_sending,
+      )
       return True, correlation_id
     except ConnectionIsAlreadyClosed:
       return False, None
@@ -99,15 +105,19 @@ class CommandStatusDict():
     report = self.generate_report()
 
     if report:
-      for splitted_report in self.split_reports(report, CommandStatusDict.MAX_REPORT_SIZE):
+      for splitted_report in self.split_reports(
+        report, CommandStatusDict.MAX_REPORT_SIZE
+      ):
         success, correlation_id = self.force_update_to_server(splitted_report)
-  
+
         if success:
-          self.server_responses_listener.listener_functions_on_success[correlation_id] = lambda headers, message: self.clear_reported_reports(splitted_report)
+          self.server_responses_listener.listener_functions_on_success[
+            correlation_id
+          ] = lambda headers, message: self.clear_reported_reports(splitted_report)
 
   def split_reports(self, result_reports, size):
-    part = defaultdict(lambda:[])
-    prev_part = defaultdict(lambda:[])
+    part = defaultdict(lambda: [])
+    prev_part = defaultdict(lambda: [])
     for cluster_id, cluster_reports in result_reports.items():
       for report in cluster_reports:
         prev_part[cluster_id].append(report)
@@ -115,8 +125,8 @@ class CommandStatusDict():
           part[cluster_id].append(report)
         else:
           yield part
-          part = defaultdict(lambda:[])
-          prev_part = defaultdict(lambda:[])
+          part = defaultdict(lambda: [])
+          prev_part = defaultdict(lambda: [])
           prev_part[cluster_id].append(report)
           part[cluster_id].append(report)
     yield part
@@ -139,20 +149,20 @@ class CommandStatusDict():
     self.generated_reports = []
 
     with self.lock:
-      result_reports = defaultdict(lambda:[])
+      result_reports = defaultdict(lambda: [])
       for key, item in self.current_state.items():
         command = item[0]
         report = item[1]
-        cluster_id = report['clusterId']
-        if command['commandType'] in AgentCommand.EXECUTION_COMMAND_GROUP:
-          if (report['status']) != CommandStatus.in_progress:
+        cluster_id = report["clusterId"]
+        if command["commandType"] in AgentCommand.EXECUTION_COMMAND_GROUP:
+          if (report["status"]) != CommandStatus.in_progress:
             result_reports[cluster_id].append(report)
             self.reported_reports.add(key)
           else:
             in_progress_report = self.generate_in_progress_report(command, report)
             result_reports[cluster_id].append(in_progress_report)
-        elif command['commandType'] == AgentCommand.auto_execution:
-          logger.debug("AUTO_EXECUTION_COMMAND task deleted %s", command['commandId'])
+        elif command["commandType"] == AgentCommand.auto_execution:
+          logger.debug("AUTO_EXECUTION_COMMAND task deleted %s", command["commandId"])
           self.reported_reports.add(key)
           pass
       return result_reports
@@ -170,7 +180,7 @@ class CommandStatusDict():
   def has_report_with_taskid(self, task_id, result_reports):
     for cluster_reports in result_reports.values():
       for report in cluster_reports:
-        if report['taskId'] == task_id:
+        if report["taskId"] == task_id:
           return True
     return False
 
@@ -179,30 +189,35 @@ class CommandStatusDict():
     Reads stdout/stderr for IN_PROGRESS command from disk file
     and populates other fields of report.
     """
-    files_to_read = [report['tmpout'], report['tmperr'], report['structuredOut']]
-    files_content = ['...', '...', '{}']
+    files_to_read = [report["tmpout"], report["tmperr"], report["structuredOut"]]
+    files_content = ["...", "...", "{}"]
 
     for i in range(len(files_to_read)):
       filename = files_to_read[i]
       if os.path.exists(filename):
-        with open(filename, 'r') as fp:
+        with open(filename, "r") as fp:
           files_content[i] = fp.read()
-          
+
     tmpout, tmperr, tmpstructuredout = files_content
 
     grep = Grep()
-    output = grep.tail_by_symbols(grep.tail(tmpout, Grep.OUTPUT_LAST_LINES), self.log_max_symbols_size)
-    err = grep.tail_by_symbols(grep.tail(tmperr, Grep.OUTPUT_LAST_LINES), self.log_max_symbols_size)
+    output = grep.tail_by_symbols(
+      grep.tail(tmpout, Grep.OUTPUT_LAST_LINES), self.log_max_symbols_size
+    )
+    err = grep.tail_by_symbols(
+      grep.tail(tmperr, Grep.OUTPUT_LAST_LINES), self.log_max_symbols_size
+    )
     inprogress = self.generate_report_template(command)
-    inprogress.update({
-      'stdout': output,
-      'stderr': err,
-      'structuredOut': tmpstructuredout,
-      'exitCode': 777,
-      'status': CommandStatus.in_progress,
-    })
+    inprogress.update(
+      {
+        "stdout": output,
+        "stderr": err,
+        "structuredOut": tmpstructuredout,
+        "exitCode": 777,
+        "status": CommandStatus.in_progress,
+      }
+    )
     return inprogress
-
 
   def generate_report_template(self, command):
     """
@@ -210,15 +225,15 @@ class CommandStatusDict():
     Other fields should be populated manually
     """
     stub = {
-      'role': command['role'],
-      'actionId': command['commandId'],
-      'taskId': command['taskId'],
-      'clusterId': command['clusterId'],
-      'serviceName': command['serviceName'],
-      'roleCommand': command['roleCommand']
+      "role": command["role"],
+      "actionId": command["commandId"],
+      "taskId": command["taskId"],
+      "clusterId": command["clusterId"],
+      "serviceName": command["serviceName"],
+      "roleCommand": command["roleCommand"],
     }
     return stub
-    
+
   @staticmethod
   def log_sending(message_dict):
     """
@@ -226,13 +241,11 @@ class CommandStatusDict():
     Used because full dict is too big for logs and should be shortened
     """
     try:
-      for cluster_id in message_dict['clusters']:
-        for command_status in message_dict['clusters'][cluster_id]:
-          if 'stdout' in command_status:
-            command_status['stdout'] = '...'
+      for cluster_id in message_dict["clusters"]:
+        for command_status in message_dict["clusters"][cluster_id]:
+          if "stdout" in command_status:
+            command_status["stdout"] = "..."
     except KeyError:
       pass
-      
+
     return message_dict
-
-

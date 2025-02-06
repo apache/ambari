@@ -17,6 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+
 import os
 
 # Local Imports
@@ -32,10 +33,16 @@ def mysql_configure():
   # required for running hive
   for mysql_configname in params.mysql_confignames:
     if os.path.isfile(mysql_configname):
-      replace_bind_address = ('sed', '-i', 's|^bind-address[ \t]*=.*|bind-address = 0.0.0.0|', mysql_configname)
-      Execute(replace_bind_address,
-              sudo = True,
+      replace_bind_address = (
+        "sed",
+        "-i",
+        "s|^bind-address[ \t]*=.*|bind-address = 0.0.0.0|",
+        mysql_configname,
       )
-  
+      Execute(
+        replace_bind_address,
+        sudo=True,
+      )
+
   # this also will start mysql-server
   mysql_users.mysql_adduser()

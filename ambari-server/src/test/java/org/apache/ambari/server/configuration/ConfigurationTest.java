@@ -35,9 +35,9 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Properties;
 
+import org.apache.ambari.annotations.ConfigurationMarkdown;
 import org.apache.ambari.annotations.Markdown;
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.configuration.Configuration.ConfigurationMarkdown;
 import org.apache.ambari.server.configuration.Configuration.ConfigurationProperty;
 import org.apache.ambari.server.configuration.Configuration.ConnectionPoolType;
 import org.apache.ambari.server.configuration.Configuration.DatabaseType;

@@ -40,7 +40,6 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostServerActionEvent;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockRule;
@@ -52,6 +51,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class UserHookServiceTest extends EasyMockSupport {
 

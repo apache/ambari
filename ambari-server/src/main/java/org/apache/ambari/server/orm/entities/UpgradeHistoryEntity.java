@@ -69,7 +69,7 @@ public class UpgradeHistoryEntity {
   @Column(name = "upgrade_id", nullable = false, insertable = false, updatable = false)
   private Long upgradeId;
 
-  @JoinColumn(name = "upgrade_id", nullable = false)
+  @JoinColumn(name = "upgrade_id", nullable = false, insertable = false, updatable = false)
   private UpgradeEntity upgrade;
 
   @Column(name = "service_name", nullable = false, insertable = true, updatable = true)

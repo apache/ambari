@@ -25,16 +25,18 @@ from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions import StackFeature
 
-config  = Script.get_config()
+config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
 upgrade_marker_file = format("{tmp_dir}/rangeradmin_ru.inprogress")
-ranger_pid_dir = config['configurations']['ranger-env']['ranger_pid_dir']
-tagsync_pid_file = format('{ranger_pid_dir}/tagsync.pid')
+ranger_pid_dir = config["configurations"]["ranger-env"]["ranger_pid_dir"]
+tagsync_pid_file = format("{ranger_pid_dir}/tagsync.pid")
 stack_name = default("/clusterLevelParams/stack_name", None)
-stack_version_unformatted = config['clusterLevelParams']['stack_version']
+stack_version_unformatted = config["clusterLevelParams"]["stack_version"]
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 stack_version_formatted_major = format_stack_version(stack_version_unformatted)
-ranger_admin_pid_file = format('{ranger_pid_dir}/rangeradmin.pid')
-ranger_usersync_pid_file = format('{ranger_pid_dir}/usersync.pid')
-stack_supports_pid = stack_version_formatted and check_stack_feature(StackFeature.RANGER_PID_SUPPORT, stack_version_formatted)
+ranger_admin_pid_file = format("{ranger_pid_dir}/rangeradmin.pid")
+ranger_usersync_pid_file = format("{ranger_pid_dir}/usersync.pid")
+stack_supports_pid = stack_version_formatted and check_stack_feature(
+  StackFeature.RANGER_PID_SUPPORT, stack_version_formatted
+)

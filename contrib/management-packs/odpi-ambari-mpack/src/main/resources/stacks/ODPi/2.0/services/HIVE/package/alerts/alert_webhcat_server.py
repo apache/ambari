@@ -121,7 +121,7 @@ def execute(configurations={}, parameters={}, host_name=None):
     smokeuser = configurations[SMOKEUSER_KEY]
 
   # webhcat always uses http, never SSL
-  query_url = "http://{0}:{1}/templeton/v1/status?user.name={2}".format(host_name, webhcat_port, smokeuser)
+  query_url = f"http://{host_name}:{webhcat_port}/templeton/v1/status?user.name={smokeuser}"
 
   # initialize
   total_time = 0

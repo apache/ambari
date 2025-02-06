@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -15,7 +15,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 __all__ = ["Direction", "SafeMode", "StackFeature"]
 
@@ -24,6 +24,7 @@ class Direction:
   """
   Stack Upgrade direction
   """
+
   UPGRADE = "upgrade"
   DOWNGRADE = "downgrade"
 
@@ -32,6 +33,7 @@ class SafeMode:
   """
   Namenode Safe Mode state
   """
+
   ON = "ON"
   OFF = "OFF"
   UNKNOWN = "UNKNOWN"
@@ -41,6 +43,7 @@ class StackFeature:
   """
   Stack Feature supported
   """
+
   SNAPPY = "snappy"
   LZO = "lzo"
   EXPRESS_UPGRADE = "express_upgrade"
@@ -105,24 +108,24 @@ class StackFeature:
   RANGER_HIVE_PLUGIN_JDBC_URL = "ranger_hive_plugin_jdbc_url"
   ZKFC_VERSION_ADVERTISED = "zkfc_version_advertised"
   PHOENIX_CORE_HDFS_SITE_REQUIRED = "phoenix_core_hdfs_site_required"
-  RANGER_TAGSYNC_SSL_XML_SUPPORT="ranger_tagsync_ssl_xml_support"
+  RANGER_TAGSYNC_SSL_XML_SUPPORT = "ranger_tagsync_ssl_xml_support"
   RANGER_XML_CONFIGURATION = "ranger_xml_configuration"
   KAFKA_RANGER_PLUGIN_SUPPORT = "kafka_ranger_plugin_support"
   YARN_RANGER_PLUGIN_SUPPORT = "yarn_ranger_plugin_support"
-  RANGER_SOLR_CONFIG_SUPPORT='ranger_solr_config_support'
+  RANGER_SOLR_CONFIG_SUPPORT = "ranger_solr_config_support"
   HIVE_INTERACTIVE_ATLAS_HOOK_REQUIRED = "hive_interactive_atlas_hook_required"
-  CORE_SITE_FOR_RANGER_PLUGINS_SUPPORT = 'core_site_for_ranger_plugins'
+  CORE_SITE_FOR_RANGER_PLUGINS_SUPPORT = "core_site_for_ranger_plugins"
   ATLAS_INSTALL_HOOK_PACKAGE_SUPPORT = "atlas_install_hook_package_support"
-  ATLAS_HDFS_SITE_ON_NAMENODE_HA = 'atlas_hdfs_site_on_namenode_ha'
-  HIVE_INTERACTIVE_GA_SUPPORT = 'hive_interactive_ga'
+  ATLAS_HDFS_SITE_ON_NAMENODE_HA = "atlas_hdfs_site_on_namenode_ha"
+  HIVE_INTERACTIVE_GA_SUPPORT = "hive_interactive_ga"
   SECURE_RANGER_SSL_PASSWORD = "secure_ranger_ssl_password"
   RANGER_KMS_SSL = "ranger_kms_ssl"
   KAFKA_ACL_MIGRATION_SUPPORT = "kafka_acl_migration_support"
-  ATLAS_CORE_SITE_SUPPORT="atlas_core_site_support"
+  ATLAS_CORE_SITE_SUPPORT = "atlas_core_site_support"
   KAFKA_EXTENDED_SASL_SUPPORT = "kafka_extended_sasl_support"
   OOZIE_EXTJS_INCLUDED = "oozie_extjs_included"
   MULTIPLE_ENV_SH_FILES_SUPPORT = "multiple_env_sh_files_support"
   AMS_LEGACY_HADOOP_SINK = "ams_legacy_hadoop_sink"
-  RANGER_ALL_ADMIN_CHANGE_DEFAULT_PASSWORD = 'ranger_all_admin_change_default_password'
-  KAFKA_ENV_INCLUDE_RANGER_SCRIPT='kafka_env_include_ranger_script'
-  RANGER_SUPPORT_SECURITY_ZONE_FEATURE = 'ranger_support_security_zone_feature'
+  RANGER_ALL_ADMIN_CHANGE_DEFAULT_PASSWORD = "ranger_all_admin_change_default_password"
+  KAFKA_ENV_INCLUDE_RANGER_SCRIPT = "kafka_env_include_ranger_script"
+  RANGER_SUPPORT_SECURITY_ZONE_FEATURE = "ranger_support_security_zone_feature"

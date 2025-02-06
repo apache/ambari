@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,7 +16,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 from ambari_agent import NetUtil
 from mock.mock import MagicMock, patch
@@ -25,13 +25,12 @@ import threading
 from ambari_commons import OSCheck
 from only_for_platform import not_for_platform, os_distro_value, PLATFORM_WINDOWS
 
-class TestNetUtil:#(unittest.TestCase):
 
-  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
+class TestNetUtil:  # (unittest.TestCase):
+  @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
   @patch("urlparse.urlparse")
   @patch("httplib.HTTPSConnection")
   def test_checkURL(self, httpsConMock, parseMock):
-
     NetUtil.logger = MagicMock()
     parseMock.return_value = [1, 2]
     ca_connection = MagicMock()
@@ -56,8 +55,7 @@ class TestNetUtil:#(unittest.TestCase):
   @not_for_platform(PLATFORM_WINDOWS)
   @patch("time.sleep")
   @patch.object(threading.Event, "wait")
-  def test_try_to_connect(self, event_mock,
-                            sleepMock):
+  def test_try_to_connect(self, event_mock, sleepMock):
     event_mock.return_value = False
     netutil = NetUtil.NetUtil(MagicMock())
     checkURL = MagicMock(name="checkURL")
@@ -72,6 +70,7 @@ class TestNetUtil:#(unittest.TestCase):
 
     def side_effect(*args):
       return gets.pop()
+
     checkURL.side_effect = side_effect
     self.assertEqual((2, True, False), netutil.try_to_connect("url", 10))
 
@@ -92,7 +91,9 @@ class TestNetUtil:#(unittest.TestCase):
 
     heartbeat_interval = netutil.get_agent_heartbeat_idle_interval_sec(1, 10, 1500)
 
-    self.assertEqual(heartbeat_interval, netutil.HEARTBEAT_IDLE_INTERVAL_DEFAULT_MAX_SEC)
+    self.assertEqual(
+      heartbeat_interval, netutil.HEARTBEAT_IDLE_INTERVAL_DEFAULT_MAX_SEC
+    )
 
   def test_get_agent_heartbeat_idle_interval_sec_min(self):
     netutil = NetUtil.NetUtil(MagicMock())

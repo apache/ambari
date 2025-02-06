@@ -98,7 +98,7 @@ def format_function(name, aliases, func):
             signature = inspect.formatargspec(*argspec)
         except:
             pass
-    result = ['.. function:: %s%s' % (name, signature), '']
+    result = [f'.. function:: {name}{signature}', '']
     result.extend('    ' + line for line in lines)
     if aliases:
         result.extend(('', '    :aliases: %s' % ', '.join(
@@ -142,7 +142,7 @@ def jinja_nodes(dirname, arguments, options, content, lineno,
     def walk(node, indent):
         p = ' ' * indent
         sig = ', '.join(node.fields)
-        doc.append(p + '.. autoclass:: %s(%s)' % (node.__name__, sig), '')
+        doc.append(p + f'.. autoclass:: {node.__name__}({sig})', '')
         if node.abstract:
             members = []
             for key, name in node.__dict__.items():
@@ -151,11 +151,10 @@ def jinja_nodes(dirname, arguments, options, content, lineno,
                     members.append(key)
             if members:
                 members.sort()
-                doc.append('%s :members: %s' % (p, ', '.join(members)), '')
+                doc.append(f"{p} :members: {', '.join(members)}", '')
         if node.__base__ != object:
             doc.append('', '')
-            doc.append('%s :Node type: :class:`%s`' %
-                       (p, node.__base__.__name__), '')
+            doc.append(f'{p} :Node type: :class:`{node.__base__.__name__}`', '')
         doc.append('', '')
         children = node.__subclasses__()
         children.sort(key=lambda x: x.__name__.lower())

@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.collections.Predicate;
-import org.apache.commons.collections.functors.PredicateDecorator;
+import org.apache.commons.collections4.functors.PredicateDecorator;
 
 /**
  * DelegatedMultiplePredicateContainer is an abstract class providing functionality related to
@@ -60,7 +60,7 @@ abstract class DelegatedMultiplePredicateContainer extends Predicate implements 
   }
 
   @Override
-  public org.apache.commons.collections.Predicate[] getPredicates() {
+  public org.apache.commons.collections4.Predicate[] getPredicates() {
     return delegate.getPredicates();
   }
 
@@ -95,10 +95,10 @@ abstract class DelegatedMultiplePredicateContainer extends Predicate implements 
     List<Map<String, Object>> list = new ArrayList<>();
 
     if (delegate != null) {
-      org.apache.commons.collections.Predicate[] predicates = delegate.getPredicates();
+      org.apache.commons.collections4.Predicate[] predicates = delegate.getPredicates();
 
       if (predicates != null) {
-        for (org.apache.commons.collections.Predicate p : predicates) {
+        for (org.apache.commons.collections4.Predicate p : predicates) {
           if (p instanceof Predicate) {
             list.add(((Predicate) p).toMap());
           } else {

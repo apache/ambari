@@ -25,12 +25,16 @@ from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions import StackFeature
 
-config  = Script.get_config()
+config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
 stack_name = default("/clusterLevelParams/stack_name", None)
-stack_version_unformatted = config['clusterLevelParams']['stack_version']
+stack_version_unformatted = config["clusterLevelParams"]["stack_version"]
 stack_version_formatted = format_stack_version(stack_version_unformatted)
-stack_supports_pid = stack_version_formatted and check_stack_feature(StackFeature.RANGER_KMS_PID_SUPPORT, stack_version_formatted)
-ranger_kms_pid_dir = default("/configurations/kms-env/ranger_kms_pid_dir", "/var/run/ranger_kms")
-ranger_kms_pid_file = format('{ranger_kms_pid_dir}/rangerkms.pid')
+stack_supports_pid = stack_version_formatted and check_stack_feature(
+  StackFeature.RANGER_KMS_PID_SUPPORT, stack_version_formatted
+)
+ranger_kms_pid_dir = default(
+  "/configurations/kms-env/ranger_kms_pid_dir", "/var/run/ranger_kms"
+)
+ranger_kms_pid_file = format("{ranger_kms_pid_dir}/rangerkms.pid")

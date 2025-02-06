@@ -20,20 +20,20 @@ package org.apache.ambari.server.state.scheduler;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.codehaus.jackson.annotate.JsonProperty;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Batch {
   private final List<BatchRequest> batchRequests = new ArrayList<>();
   private BatchSettings batchSettings;
 
-  @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+  @JsonInclude(JsonInclude.Include.NON_EMPTY)
   @JsonProperty("batch_requests")
   public List<BatchRequest> getBatchRequests() {
     return batchRequests;
   }
 
-  @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+  @JsonInclude(JsonInclude.Include.NON_EMPTY)
   @JsonProperty("batch_settings")
   public BatchSettings getBatchSettings() {
     return batchSettings;

@@ -28,11 +28,8 @@ from mysql_service import get_daemon_name
 # Used to add hive access to the needed components
 def mysql_adduser():
   import params
-  
-  File(params.mysql_adduser_path,
-       mode=0o755,
-       content=StaticFile('addMysqlUser.sh')
-  )
+
+  File(params.mysql_adduser_path, mode=0o755, content=StaticFile("addMysqlUser.sh"))
   hive_server_host = format("{hive_server_host}")
   hive_metastore_host = format("{hive_metastore_host}")
 
@@ -40,25 +37,24 @@ def mysql_adduser():
 
   add_metastore_cmd = "bash -x {mysql_adduser_path} {daemon_name} {hive_metastore_user_name} {hive_metastore_user_passwd!p} {hive_metastore_host}"
   add_hiveserver_cmd = "bash -x {mysql_adduser_path} {daemon_name} {hive_metastore_user_name} {hive_metastore_user_passwd!p} {hive_server_host}"
-  if (hive_server_host == hive_metastore_host):
+  if hive_server_host == hive_metastore_host:
     cmd = format(add_hiveserver_cmd)
   else:
     cmd = format(add_hiveserver_cmd + ";" + add_metastore_cmd)
-  Execute(cmd,
-          tries=3,
-          try_sleep=5,
-          logoutput=False,
-          path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'
+  Execute(
+    cmd,
+    tries=3,
+    try_sleep=5,
+    logoutput=False,
+    path="/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin",
   )
+
 
 # Removes hive access from components
 def mysql_deluser():
   import params
-  
-  File(params.mysql_deluser_path,
-       mode=0o755,
-       content=StaticFile('removeMysqlUser.sh')
-  )
+
+  File(params.mysql_deluser_path, mode=0o755, content=StaticFile("removeMysqlUser.sh"))
   hive_server_host = format("{hive_server_host}")
   hive_metastore_host = format("{hive_metastore_host}")
 
@@ -66,14 +62,13 @@ def mysql_deluser():
 
   del_hiveserver_cmd = "bash -x {mysql_deluser_path} {daemon_name} {hive_metastore_user_name} {hive_server_host}"
   del_metastore_cmd = "bash -x {mysql_deluser_path} {daemon_name} {hive_metastore_user_name} {hive_metastore_host}"
-  if (hive_server_host == hive_metastore_host):
+  if hive_server_host == hive_metastore_host:
     cmd = format(del_hiveserver_cmd)
   else:
-    cmd = format(
-      del_hiveserver_cmd + ";" + del_metastore_cmd)
-  Execute(cmd,
-          tries=3,
-          try_sleep=5,
-          path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
+    cmd = format(del_hiveserver_cmd + ";" + del_metastore_cmd)
+  Execute(
+    cmd,
+    tries=3,
+    try_sleep=5,
+    path="/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin",
   )
-

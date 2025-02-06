@@ -23,44 +23,47 @@ import sys
 from hbase import hbase
 from hbase_service import hbase_service
 from hbase_decommission import hbase_decommission
-from resource_management.libraries.functions.check_process_status import check_process_status
+from resource_management.libraries.functions.check_process_status import (
+  check_process_status,
+)
 
-         
+
 class HbaseMaster(Script):
   def install(self, env):
     self.install_packages(env)
-    
-  def configure(self, env, action = None):
+
+  def configure(self, env, action=None):
     import params
+
     env.set_params(params)
 
-    hbase('master', action)
-    
+    hbase("master", action)
+
   def start(self, env):
     import params
-    env.set_params(params)
-    self.configure(env, action = 'start') # for security
 
-    hbase_service( 'master',
-      action = 'start'
-    )
-    
+    env.set_params(params)
+    self.configure(env, action="start")  # for security
+
+    hbase_service("master", action="start")
+
   def stop(self, env):
     import params
+
     env.set_params(params)
 
-    hbase_service( 'master',
-      action = 'stop'
-    )
+    hbase_service("master", action="stop")
 
   def status(self, env):
     import status_params
+
     env.set_params(status_params)
     pid_file = format("{pid_dir}/hbase-{hbase_user}-master.pid")
     check_process_status(pid_file)
 
   def decommission(self, env):
     import params
+
     env.set_params(params)
 
     hbase_decommission(env)

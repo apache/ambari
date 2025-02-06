@@ -23,6 +23,7 @@ import static org.easymock.EasyMock.expectLastCall;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.File;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Collections;
@@ -225,16 +226,35 @@ public class PreUpgradeCheckResourceProviderTest extends EasyMockSupport {
     expect(upgradePack.getType()).andReturn(UpgradeType.ROLLING).atLeastOnce();
 
     expect(ambariMetaInfo.getServices("Stack100", "1.0")).andReturn(allServiceInfoMap).anyTimes();
-    String checks = ClassLoader.getSystemClassLoader().getResource("checks").getPath();
-    expect(serviceInfo.getChecksFolder()).andReturn(new File(checks));
+//    String checks = ClassLoader.getSystemClassLoader().getResource("checks").getPath();
+    expect(serviceInfo.getChecksFolder()).andReturn(new File("checks"));
 
-    URL url = new URL("file://foo");
-    URLClassLoader classLoader = createNiceMock(URLClassLoader.class);
-    expect(classLoader.getURLs()).andReturn(new URL[] { url }).once();
+
+    class TestClassLoader extends URLClassLoader {
+      public TestClassLoader() {
+        super(new URL[0], TestClassLoader.class.getClassLoader());
+      }
+
+      @Override
+      public URL[] getURLs() {
+        try {
+          return new URL[] { new URL("file://foo") };
+        } catch (MalformedURLException e) {
+          return new URL[0];
+        }
+      }
+    }
+    TestClassLoader testClassLoader = new TestClassLoader();
+
+
 
     StackInfo stackInfo = createNiceMock(StackInfo.class);
-    expect(ambariMetaInfo.getStack(targetStackId)).andReturn(stackInfo).atLeastOnce();
-    expect(stackInfo.getLibraryClassLoader()).andReturn(classLoader).atLeastOnce();
+
+    expect(ambariMetaInfo.getStack(targetStackId)).andReturn(stackInfo).anyTimes();
+//    String tname = targetStackId.getStackName();
+//    String tv = targetStackId.getStackVersion();
+    expect(ambariMetaInfo.getStack("Stack100", "1.1") ).andReturn(stackInfo).atLeastOnce();
+    expect(stackInfo.getLibraryClassLoader()).andReturn(testClassLoader).anyTimes();
     expect(stackInfo.getLibraryInstance(EasyMock.anyObject(), EasyMock.eq(TEST_SERVICE_CHECK_CLASS_NAME)))
       .andReturn(new SampleServiceCheck()).atLeastOnce();
 
@@ -294,7 +314,6 @@ public class PreUpgradeCheckResourceProviderTest extends EasyMockSupport {
     UpgradeType upgradeType = (UpgradeType) customUpgradeCheck.getPropertyValue(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_UPGRADE_TYPE_PROPERTY_ID);
     Assert.assertEquals(UpgradeType.NON_ROLLING, upgradeType);
 
-    PowerMock.verifyAll();
   }
 
   /**

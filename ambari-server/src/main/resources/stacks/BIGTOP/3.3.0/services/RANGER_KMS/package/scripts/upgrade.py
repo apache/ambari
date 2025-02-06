@@ -17,10 +17,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+
 from resource_management.core.resources.system import Execute
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.format import format
+
 
 def prestart(env):
   import params

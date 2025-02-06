@@ -22,31 +22,37 @@ from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
 from resource_management.libraries.functions.format import format
 
+
 def migrate_index(env):
   """
   Migrate lucene index in the background.
   """
   import params, command_commons
+
   env.set_params(command_commons)
 
-  index_migrate_cmd = format("{index_helper_script} upgrade-index -d {index_location} -v {index_version}")
+  index_migrate_cmd = format(
+    "{index_helper_script} upgrade-index -d {index_location} -v {index_version}"
+  )
 
   if command_commons.force is True:
-    index_migrate_cmd+=" -f"
+    index_migrate_cmd += " -f"
 
   if command_commons.backup_mode is True:
-    index_migrate_cmd+=" -b"
+    index_migrate_cmd += " -b"
 
   if command_commons.debug is True:
-    index_migrate_cmd+=" -g"
+    index_migrate_cmd += " -g"
 
   if command_commons.core_filter is not None:
-    index_migrate_cmd+=format(" -c {core_filter}")
+    index_migrate_cmd += format(" -c {core_filter}")
 
-  deleted_write_locks=[]
+  deleted_write_locks = []
   if command_commons.delete_lock_on_start:
     Logger.info(format("Remove write.lock files from folder '{index_location}'"))
-    for write_lock_file in command_commons.get_files_by_pattern(format("{index_location}"), 'write.lock'):
+    for write_lock_file in command_commons.get_files_by_pattern(
+      format("{index_location}"), "write.lock"
+    ):
       File(write_lock_file, action="delete")
       deleted_write_locks.append(write_lock_file)
   else:
@@ -54,10 +60,21 @@ def migrate_index(env):
 
   Logger.info(format("Migrate index at location: {index_location}"))
   # It can generate a write.lock file
-  Execute(index_migrate_cmd, user=params.infra_solr_user, environment={'JAVA_HOME': params.java64_home}, logoutput=command_commons.log_output)
+  Execute(
+    index_migrate_cmd,
+    user=params.infra_solr_user,
+    environment={"JAVA_HOME": params.java64_home},
+    logoutput=command_commons.log_output,
+  )
 
   if command_commons.delete_lock_on_start:
     for write_lock_file in deleted_write_locks:
       Logger.info(format("Put '{write_lock_file}' file back"))
-      File(write_lock_file, action="create", mode = 0o644, owner=params.infra_solr_user, group=params.user_group, not_if=format("test -f {write_lock_file}"))
-
+      File(
+        write_lock_file,
+        action="create",
+        mode=0o644,
+        owner=params.infra_solr_user,
+        group=params.user_group,
+        not_if=format("test -f {write_lock_file}"),
+      )

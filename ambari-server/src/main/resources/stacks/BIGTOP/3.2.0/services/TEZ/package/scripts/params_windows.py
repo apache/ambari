@@ -31,7 +31,9 @@ tez_home_dir = None
 tez_conf_dir = "conf"
 
 try:
-  hadoop_classpath_prefix_template = config["configurations"]["tez-site"]["tez.cluster.additional.classpath.prefix"]
+  hadoop_classpath_prefix_template = config["configurations"]["tez-site"][
+    "tez.cluster.additional.classpath.prefix"
+  ]
 except KeyError:
   hadoop_classpath_prefix_template = ""
 
@@ -42,6 +44,7 @@ try:
   stack_root = os.path.abspath(os.path.join(os.environ["HADOOP_HOME"], ".."))
 except:
   pass
+
 
 def refresh_tez_state_dependent_params():
   global tez_home_dir, tez_conf_dir, stack_version_formatted

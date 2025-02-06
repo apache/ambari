@@ -23,7 +23,15 @@ Ambari Agent
 import sys
 import traceback
 
-__all__ = ["Fail", "ExecutionFailed", "ExecuteTimeoutException", "InvalidArgument", "ClientComponentHasNoStatus", "ComponentIsNotRunning"]
+__all__ = [
+  "Fail",
+  "ExecutionFailed",
+  "ExecuteTimeoutException",
+  "InvalidArgument",
+  "ClientComponentHasNoStatus",
+  "ComponentIsNotRunning",
+]
+
 
 class Fail(Exception):
   def __init__(self, message="", print_cause=True):
@@ -33,15 +41,20 @@ class Fail(Exception):
     super(Fail, self).__init__(message)
 
   def pre_raise(self):
-    if self.print_cause and self.cause_traceback != 'None\n':
+    if self.print_cause and self.cause_traceback != "None\n":
       sys.stderr.write(self.cause_traceback)
-      sys.stderr.write("\nThe above exception was the cause of the following exception:\n\n")
+      sys.stderr.write(
+        "\nThe above exception was the cause of the following exception:\n\n"
+      )
+
 
 class ExecuteTimeoutException(Fail):
   pass
 
+
 class InvalidArgument(Fail):
   pass
+
 
 class ClientComponentHasNoStatus(Fail):
   """
@@ -49,7 +62,9 @@ class ClientComponentHasNoStatus(Fail):
   The only valid status for CLIENT component is installed,
   that's why exception is thrown and later silently processed at script.py
   """
+
   pass
+
 
 class ComponentIsNotRunning(Fail):
   """
@@ -57,12 +72,15 @@ class ComponentIsNotRunning(Fail):
   in situations when component process is not running).
   Later exception is silently processed at script.py
   """
+
   pass
+
 
 class ExecutionFailed(Fail):
   """
   Is thrown when shell command returns non-zero return code
   """
+
   def __init__(self, exception_message, code, out, err=None):
     self.exception_message = exception_message
     self.code = code

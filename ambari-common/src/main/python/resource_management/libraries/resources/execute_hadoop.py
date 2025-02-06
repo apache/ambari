@@ -21,19 +21,24 @@ Ambari Agent
 """
 
 _all__ = ["ExecuteHadoop"]
-from resource_management.core.base import Resource, ForcedListArgument, ResourceArgument, BooleanArgument
+from resource_management.core.base import (
+  Resource,
+  ForcedListArgument,
+  ResourceArgument,
+  BooleanArgument,
+)
+
 
 class ExecuteHadoop(Resource):
   action = ForcedListArgument(default="run")
   command = ResourceArgument(default=lambda obj: obj.name)
   tries = ResourceArgument(default=1)
-  try_sleep = ResourceArgument(default=0) # seconds
+  try_sleep = ResourceArgument(default=0)  # seconds
   user = ResourceArgument()
   logoutput = ResourceArgument()
-  bin_dir = ResourceArgument(default=[]) # appended to $PATH
+  bin_dir = ResourceArgument(default=[])  # appended to $PATH
   environment = ResourceArgument(default={})
-  
+
   conf_dir = ResourceArgument()
-  
+
   actions = Resource.actions + ["run"]
-  

@@ -35,45 +35,53 @@ from resource_management.libraries.functions import get_kinit_path
 OK_MESSAGE = "Metastore OK - Hive command took {0:.3f}s"
 NOT_LISTENING_MESSAGE = "Metastore on {0} is not listening or port {1}"
 CRITICAL_MESSAGE = "Metastore on {0} failed ({1})"
-SECURITY_ENABLED_KEY = '{{cluster-env/security_enabled}}'
-SMOKEUSER_KEYTAB_KEY = '{{cluster-env/smokeuser_keytab}}'
-SMOKEUSER_PRINCIPAL_KEY = '{{cluster-env/smokeuser_principal_name}}'
-SMOKEUSER_KEY = '{{cluster-env/smokeuser}}'
-HIVE_METASTORE_URIS_KEY = '{{hive-site/hive.metastore.uris}}'
+SECURITY_ENABLED_KEY = "{{cluster-env/security_enabled}}"
+SMOKEUSER_KEYTAB_KEY = "{{cluster-env/smokeuser_keytab}}"
+SMOKEUSER_PRINCIPAL_KEY = "{{cluster-env/smokeuser_principal_name}}"
+SMOKEUSER_KEY = "{{cluster-env/smokeuser}}"
+HIVE_METASTORE_URIS_KEY = "{{hive-site/hive.metastore.uris}}"
 
 # The configured Kerberos executable search paths, if any
-KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY = '{{kerberos-env/executable_search_paths}}'
+KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY = "{{kerberos-env/executable_search_paths}}"
 
 # default keytab location
-SMOKEUSER_KEYTAB_SCRIPT_PARAM_KEY = 'default.smoke.keytab'
-SMOKEUSER_KEYTAB_DEFAULT = '/etc/security/keytabs/smokeuser.headless.keytab'
+SMOKEUSER_KEYTAB_SCRIPT_PARAM_KEY = "default.smoke.keytab"
+SMOKEUSER_KEYTAB_DEFAULT = "/etc/security/keytabs/smokeuser.headless.keytab"
 
 # default smoke principal
-SMOKEUSER_PRINCIPAL_SCRIPT_PARAM_KEY = 'default.smoke.principal'
-SMOKEUSER_PRINCIPAL_DEFAULT = 'ambari-qa@EXAMPLE.COM'
+SMOKEUSER_PRINCIPAL_SCRIPT_PARAM_KEY = "default.smoke.principal"
+SMOKEUSER_PRINCIPAL_DEFAULT = "ambari-qa@EXAMPLE.COM"
 
 # default smoke user
-SMOKEUSER_SCRIPT_PARAM_KEY = 'default.smoke.user'
-SMOKEUSER_DEFAULT = 'ambari-qa'
+SMOKEUSER_SCRIPT_PARAM_KEY = "default.smoke.user"
+SMOKEUSER_DEFAULT = "ambari-qa"
 
-STACK_ROOT = '{{cluster-env/stack_root}}'
+STACK_ROOT = "{{cluster-env/stack_root}}"
 
-CHECK_COMMAND_TIMEOUT_KEY = 'check.command.timeout'
+CHECK_COMMAND_TIMEOUT_KEY = "check.command.timeout"
 CHECK_COMMAND_TIMEOUT_DEFAULT = 60.0
 
-HADOOPUSER_KEY = '{{cluster-env/hadoop.user.name}}'
-HADOOPUSER_DEFAULT = 'hadoop'
+HADOOPUSER_KEY = "{{cluster-env/hadoop.user.name}}"
+HADOOPUSER_DEFAULT = "hadoop"
 
-logger = logging.getLogger('ambari_alerts')
+logger = logging.getLogger("ambari_alerts")
+
 
 def get_tokens():
   """
   Returns a tuple of tokens in the format {{site/property}} that will be used
   to build the dictionary passed into execute
   """
-  return (SECURITY_ENABLED_KEY,SMOKEUSER_KEYTAB_KEY,SMOKEUSER_PRINCIPAL_KEY,
-    HIVE_METASTORE_URIS_KEY, SMOKEUSER_KEY, KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY,
-    STACK_ROOT)
+  return (
+    SECURITY_ENABLED_KEY,
+    SMOKEUSER_KEYTAB_KEY,
+    SMOKEUSER_PRINCIPAL_KEY,
+    HIVE_METASTORE_URIS_KEY,
+    SMOKEUSER_KEY,
+    KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY,
+    STACK_ROOT,
+  )
+
 
 def execute(configurations={}, parameters={}, host_name=None):
   """
@@ -86,16 +94,16 @@ def execute(configurations={}, parameters={}, host_name=None):
   """
 
   if configurations is None:
-    return (('UNKNOWN', ['There were no configurations supplied to the script.']))
+    return ("UNKNOWN", ["There were no configurations supplied to the script."])
 
   if not HIVE_METASTORE_URIS_KEY in configurations:
-    return (('UNKNOWN', ['Hive metastore uris were not supplied to the script.']))
+    return ("UNKNOWN", ["Hive metastore uris were not supplied to the script."])
 
-  metastore_uris = configurations[HIVE_METASTORE_URIS_KEY].split(',')
+  metastore_uris = configurations[HIVE_METASTORE_URIS_KEY].split(",")
 
   security_enabled = False
   if SECURITY_ENABLED_KEY in configurations:
-    security_enabled = str(configurations[SECURITY_ENABLED_KEY]).upper() == 'TRUE'
+    security_enabled = str(configurations[SECURITY_ENABLED_KEY]).upper() == "TRUE"
 
   check_command_timeout = CHECK_COMMAND_TIMEOUT_DEFAULT
   if CHECK_COMMAND_TIMEOUT_KEY in parameters:
@@ -116,7 +124,6 @@ def execute(configurations={}, parameters={}, host_name=None):
   if SMOKEUSER_KEYTAB_SCRIPT_PARAM_KEY in parameters:
     smokeuser_keytab = parameters[SMOKEUSER_KEYTAB_SCRIPT_PARAM_KEY]
 
-
   # check configurations last as they should always take precedence
   if SMOKEUSER_PRINCIPAL_KEY in configurations:
     smokeuser_principal = configurations[SMOKEUSER_PRINCIPAL_KEY]
@@ -133,20 +140,27 @@ def execute(configurations={}, parameters={}, host_name=None):
 
       # Get the configured Kerberos executable search paths, if any
       if KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY in configurations:
-        kerberos_executable_search_paths = configurations[KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY]
+        kerberos_executable_search_paths = configurations[
+          KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY
+        ]
       else:
         kerberos_executable_search_paths = None
 
       kinit_path_local = get_kinit_path(kerberos_executable_search_paths)
-      kinitcmd=format("{kinit_path_local} -kt {smokeuser_keytab} {smokeuser_principal}; ")
+      kinitcmd = format(
+        "{kinit_path_local} -kt {smokeuser_keytab} {smokeuser_principal}; "
+      )
 
       # prevent concurrent kinit
       kinit_lock = global_lock.get_lock(global_lock.LOCK_TYPE_KERBEROS)
       kinit_lock.acquire()
       try:
-        Execute(kinitcmd, user=smokeuser,
+        Execute(
+          kinitcmd,
+          user=smokeuser,
           path=["/bin/", "/usr/bin/", "/usr/lib/hive/bin/", "/usr/sbin/"],
-          timeout=10)
+          timeout=10,
+        )
       finally:
         kinit_lock.release()
 
@@ -169,17 +183,17 @@ def execute(configurations={}, parameters={}, host_name=None):
       total_time = time.time() - start_time
 
       if result == 0:
-        result_code = 'OK'
+        result_code = "OK"
         label = OK_MESSAGE.format(total_time)
       else:
-        result_code = 'CRITICAL'
+        result_code = "CRITICAL"
         label = NOT_LISTENING_MESSAGE.format(host_name, port)
     except:
-      result_code = 'CRITICAL'
+      result_code = "CRITICAL"
       label = CRITICAL_MESSAGE.format(host_name, traceback.format_exc())
 
   except:
     label = traceback.format_exc()
-    result_code = 'UNKNOWN'
+    result_code = "UNKNOWN"
 
-  return ((result_code, [label]))
+  return (result_code, [label])

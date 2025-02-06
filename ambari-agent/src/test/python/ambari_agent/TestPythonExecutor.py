@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,7 +16,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 import pprint
 
@@ -33,10 +33,12 @@ from mock.mock import MagicMock, patch
 from ambari_commons import OSCheck
 from only_for_platform import os_distro_value
 
-@patch.object(PythonExecutor, "open_subprocess_files", new=MagicMock(return_value =("", "")))
-class TestPythonExecutor(TestCase):
 
-  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
+@patch.object(
+  PythonExecutor, "open_subprocess_files", new=MagicMock(return_value=("", ""))
+)
+class TestPythonExecutor(TestCase):
+  @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
   @patch("ambari_commons.shell.kill_process_with_children")
   def test_watchdog_1(self, kill_process_with_children_mock):
     """
@@ -48,29 +50,43 @@ class TestPythonExecutor(TestCase):
     _, tmperrfile = tempfile.mkstemp()
     _, tmpstrucout = tempfile.mkstemp()
     PYTHON_TIMEOUT_SECONDS = 0.1
-    kill_process_with_children_mock.side_effect = lambda pid : subproc_mock.terminate()
+    kill_process_with_children_mock.side_effect = lambda pid: subproc_mock.terminate()
 
     def launch_python_subprocess_method(command, tmpout, tmperr):
       subproc_mock.tmpout = tmpout
       subproc_mock.tmperr = tmperr
       return subproc_mock
+
     executor.launch_python_subprocess = launch_python_subprocess_method
     runShellKillPgrp_method = MagicMock()
-    runShellKillPgrp_method.side_effect = lambda python : python.terminate()
+    runShellKillPgrp_method.side_effect = lambda python: python.terminate()
     executor.runShellKillPgrp = runShellKillPgrp_method
     subproc_mock.returncode = None
     callback_method = MagicMock()
-    thread = Thread(target =  executor.run_file, args = ("fake_puppetFile",
-      ["arg1", "arg2"], tmpoutfile, tmperrfile,
-      PYTHON_TIMEOUT_SECONDS, tmpstrucout, callback_method, '1'))
+    thread = Thread(
+      target=executor.run_file,
+      args=(
+        "fake_puppetFile",
+        ["arg1", "arg2"],
+        tmpoutfile,
+        tmperrfile,
+        PYTHON_TIMEOUT_SECONDS,
+        tmpstrucout,
+        callback_method,
+        "1",
+      ),
+    )
     thread.start()
     time.sleep(0.1)
     subproc_mock.finished_event.wait()
-    self.assertEqual(subproc_mock.was_terminated, True, "subprocess should be terminated due to timeout")
+    self.assertEqual(
+      subproc_mock.was_terminated,
+      True,
+      "subprocess should be terminated due to timeout",
+    )
     self.assertTrue(callback_method.called)
 
-
-  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
+  @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
   def test_watchdog_2(self):
     """
     Tries to catch false positive watchdog invocations
@@ -80,38 +96,54 @@ class TestPythonExecutor(TestCase):
     _, tmpoutfile = tempfile.mkstemp()
     _, tmperrfile = tempfile.mkstemp()
     _, tmpstrucout = tempfile.mkstemp()
-    PYTHON_TIMEOUT_SECONDS =  5
+    PYTHON_TIMEOUT_SECONDS = 5
 
     def launch_python_subprocess_method(command, tmpout, tmperr):
       subproc_mock.tmpout = tmpout
       subproc_mock.tmperr = tmperr
       return subproc_mock
+
     executor.launch_python_subprocess = launch_python_subprocess_method
     runShellKillPgrp_method = MagicMock()
-    runShellKillPgrp_method.side_effect = lambda python : python.terminate()
+    runShellKillPgrp_method.side_effect = lambda python: python.terminate()
     executor.runShellKillPgrp = runShellKillPgrp_method
     subproc_mock.returncode = 0
     callback_method = MagicMock()
-    thread = Thread(target =  executor.run_file, args = ("fake_puppetFile", ["arg1", "arg2"],
-                                                      tmpoutfile, tmperrfile,
-                                                      PYTHON_TIMEOUT_SECONDS, tmpstrucout,
-                                                      callback_method, "1-1"))
+    thread = Thread(
+      target=executor.run_file,
+      args=(
+        "fake_puppetFile",
+        ["arg1", "arg2"],
+        tmpoutfile,
+        tmperrfile,
+        PYTHON_TIMEOUT_SECONDS,
+        tmpstrucout,
+        callback_method,
+        "1-1",
+      ),
+    )
     thread.start()
     time.sleep(0.1)
     subproc_mock.should_finish_event.set()
     subproc_mock.finished_event.wait()
-    self.assertEqual(subproc_mock.was_terminated, False, "subprocess should not be terminated before timeout")
-    self.assertEqual(subproc_mock.returncode, 0, "subprocess should not be terminated before timeout")
+    self.assertEqual(
+      subproc_mock.was_terminated,
+      False,
+      "subprocess should not be terminated before timeout",
+    )
+    self.assertEqual(
+      subproc_mock.returncode, 0, "subprocess should not be terminated before timeout"
+    )
     self.assertTrue(callback_method.called)
 
-  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
+  @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
   def test_execution_results(self):
     subproc_mock = self.subprocess_mockup()
     executor = PythonExecutor("/tmp", AmbariConfig())
     _, tmpoutfile = tempfile.mkstemp()
     _, tmperrfile = tempfile.mkstemp()
-    
-    tmp_file = tempfile.NamedTemporaryFile()    # the structured out file should be preserved across calls to the hooks and script.
+
+    tmp_file = tempfile.NamedTemporaryFile()  # the structured out file should be preserved across calls to the hooks and script.
     tmpstructuredoutfile = tmp_file.name
     tmp_file.close()
 
@@ -121,21 +153,30 @@ class TestPythonExecutor(TestCase):
       subproc_mock.tmpout = tmpout
       subproc_mock.tmperr = tmperr
       return subproc_mock
+
     executor.launch_python_subprocess = launch_python_subprocess_method
     runShellKillPgrp_method = MagicMock()
-    runShellKillPgrp_method.side_effect = lambda python : python.terminate()
+    runShellKillPgrp_method.side_effect = lambda python: python.terminate()
     executor.runShellKillPgrp = runShellKillPgrp_method
     subproc_mock.returncode = 0
     subproc_mock.should_finish_event.set()
     callback_method = MagicMock()
-    result = executor.run_file("file", ["arg1", "arg2"],
-                               tmpoutfile, tmperrfile, PYTHON_TIMEOUT_SECONDS,
-                               tmpstructuredoutfile, callback_method, "1-1")
-    self.assertEqual(result, {'exitcode': 0, 'stderr': '', 'stdout': '',
-                               'structuredOut': {}})
+    result = executor.run_file(
+      "file",
+      ["arg1", "arg2"],
+      tmpoutfile,
+      tmperrfile,
+      PYTHON_TIMEOUT_SECONDS,
+      tmpstructuredoutfile,
+      callback_method,
+      "1-1",
+    )
+    self.assertEqual(
+      result, {"exitcode": 0, "stderr": "", "stdout": "", "structuredOut": {}}
+    )
     self.assertTrue(callback_method.called)
 
-  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
+  @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
   def test_is_successfull(self):
     executor = PythonExecutor("/tmp", AmbariConfig())
 
@@ -147,8 +188,7 @@ class TestPythonExecutor(TestCase):
     self.assertFalse(executor.is_successful(0))
     self.assertFalse(executor.is_successful(1))
 
-
-  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
+  @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
   def test_python_command(self):
     executor = PythonExecutor("/tmp", AmbariConfig())
     command = executor.python_command("script", ["script_param1"])
@@ -159,7 +199,7 @@ class TestPythonExecutor(TestCase):
 
   @patch.object(os.path, "isfile")
   @patch.object(os, "rename")
-  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
+  @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
   def test_back_up_log_file_if_exists(self, rename_mock, isfile_mock):
     # Test case when previous log file is absent
     isfile_mock.return_value = False
@@ -177,12 +217,15 @@ class TestPythonExecutor(TestCase):
     executor = PythonExecutor("/tmp", AmbariConfig())
     executor.back_up_log_file_if_exists(log_file)
     self.assertEqual(isfile_mock.called, True)
-    self.assertEqual(rename_mock.call_args_list[0][0][0], "/var/lib/ambari-agent/data/output-13.txt")
-    self.assertEqual(rename_mock.call_args_list[0][0][1], "/var/lib/ambari-agent/data/output-13.txt.2")
+    self.assertEqual(
+      rename_mock.call_args_list[0][0][0], "/var/lib/ambari-agent/data/output-13.txt"
+    )
+    self.assertEqual(
+      rename_mock.call_args_list[0][0][1], "/var/lib/ambari-agent/data/output-13.txt.2"
+    )
     pass
 
-
-  class subprocess_mockup():
+  class subprocess_mockup:
     """
     It's not trivial to use PyMock instead of class here because we need state
     and complex logics
@@ -196,7 +239,7 @@ class TestPythonExecutor(TestCase):
     was_terminated = False
     tmpout = None
     tmperr = None
-    pid=-1
+    pid = -1
 
     def communicate(self):
       self.started_event.set()
@@ -209,4 +252,3 @@ class TestPythonExecutor(TestCase):
       self.was_terminated = True
       self.returncode = 17
       self.should_finish_event.set()
-

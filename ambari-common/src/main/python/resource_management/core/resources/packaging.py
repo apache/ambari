@@ -22,7 +22,12 @@ Ambari Agent
 
 __all__ = ["Package"]
 
-from resource_management.core.base import Resource, ForcedListArgument, ResourceArgument, BooleanArgument
+from resource_management.core.base import (
+  Resource,
+  ForcedListArgument,
+  ResourceArgument,
+  BooleanArgument,
+)
 
 
 class Package(Resource):
@@ -49,7 +54,7 @@ class Package(Resource):
   None (default) -  log it in DEBUG mode
   """
   logoutput = ResourceArgument(default=None)
-  
+
   """
   Retry if package manager is locked or unavailable.
   Note that retry_on_lock works only for apt-get and zypper, while yum manages lock retries itself.

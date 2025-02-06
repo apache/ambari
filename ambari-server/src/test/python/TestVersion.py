@@ -29,26 +29,29 @@ class TestVersion(TestCase):
   Class that tests the method of the version.py file used to format and compare version numbers
   of both Ambari (which use 3 digits separated by dots) and stacks (which use 4 digits separated by dots).
   """
+
   def setUp(self):
     import imp
 
     self.test_directory = os.path.dirname(os.path.abspath(__file__))
-    test_file_path = os.path.join(self.test_directory, '../../../../ambari-common/src/main/python/resource_management/libraries/functions/version.py')
-    with open(test_file_path, 'rb') as fp:
-        self.version_module = imp.load_module('version', fp, test_file_path, ('.py', 'rb', imp.PY_SOURCE))
+    test_file_path = os.path.join(
+      self.test_directory,
+      "../../../../ambari-common/src/main/python/resource_management/libraries/functions/version.py",
+    )
+    with open(test_file_path, "rb") as fp:
+      self.version_module = imp.load_module(
+        "version", fp, test_file_path, (".py", "rb", imp.PY_SOURCE)
+      )
 
   def test_format(self):
-    l = [("2.2",   "2.2.0"),
-         ("2.2.1", "2.2.1"),
-         ("2.2.1.3", "2.2.1.3")]
-    
+    l = [("2.2", "2.2.0"), ("2.2.1", "2.2.1"), ("2.2.1.3", "2.2.1.3")]
+
     for input, expected in l:
       actual = self.version_module.format_stack_version(input)
       self.assertEqual(expected, actual)
 
     gluster_fs_actual = self.version_module.format_stack_version("GlusterFS")
     self.assertEqual("", gluster_fs_actual)
-
 
   def test_format_with_hyphens(self):
     actual = self.version_module.format_stack_version("FOO-1.0")
@@ -59,7 +62,6 @@ class TestVersion(TestCase):
 
     actual = self.version_module.format_stack_version("FOO-1.0-9999")
     self.assertEqual("1.0.0", actual)
-
 
   def test_comparison(self):
     # All versions to compare, from 1.0.0.0 to 3.0.0.0, and only include elements that are a multiple of 7.
@@ -88,7 +90,6 @@ class TestVersion(TestCase):
       pass
     else:
       self.fail("Did not raise exception")
-
 
   def test_mpack_version(self):
     try:
@@ -133,7 +134,6 @@ class TestVersion(TestCase):
     else:
       self.fail("Did not raise exception")
 
-
     try:
       MpackVersion.parse("1.2.3.4-h1-b1")
     except ValueError:
@@ -147,7 +147,6 @@ class TestVersion(TestCase):
       pass
     else:
       self.fail("Did not raise exception")
-
 
     try:
       ModuleVersion.parse("1.1.1.1-h1")
@@ -180,22 +179,24 @@ class TestVersion(TestCase):
     m2 = ModuleVersion.parse("1.2.3.4-b10")
     self.assertTrue(m1 == m2)
 
-  @patch("resource_management.libraries.functions.stack_select.get_role_component_current_stack_version")
+  @patch(
+    "resource_management.libraries.functions.stack_select.get_role_component_current_stack_version"
+  )
   @patch("resource_management.libraries.script.Script.get_config")
-  def test_get_current_component_version(self, get_config_mock, get_role_component_current_stack_version_mock):
+  def test_get_current_component_version(
+    self, get_config_mock, get_role_component_current_stack_version_mock
+  ):
     ver1 = "1.0.0.0"
     ver2 = "2.0.0.0"
 
     get_config_mock.return_value = {
-      "commandParams": {
-        "version": ver1
-      },
+      "commandParams": {"version": ver1},
       "repositoryFile": {
         "resolved": True,
         "repoVersion": ver2,
         "repositories": [],
-        "feature": {}
-      }
+        "feature": {},
+      },
     }
 
     # case 1. version come with command params
@@ -218,4 +219,3 @@ class TestVersion(TestCase):
     self.version_module.get_current_component_version()
 
     self.assertTrue(get_role_component_current_stack_version_mock.called)
-

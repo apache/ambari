@@ -19,12 +19,14 @@ limitations under the License.
 Ambari Agent
 
 """
+
 __all__ = ["get_not_managed_resources"]
 
 import json
 from resource_management.libraries.script import Script
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions.default import default
+
 
 def get_not_managed_resources():
   """
@@ -33,17 +35,31 @@ def get_not_managed_resources():
   except config values from cluster-env/managed_hdfs_resource_property_names
   """
   config = Script.get_config()
-  not_managed_hdfs_path_list = json.loads(config['clusterLevelParams']['not_managed_hdfs_path_list'])[:]
-  if 'managed_hdfs_resource_property_names' in config['configurations']['cluster-env']:
-    managed_hdfs_resource_property_names = config['configurations']['cluster-env']['managed_hdfs_resource_property_names']
-    managed_hdfs_resource_property_list = [_f for _f in [property.strip() for property in managed_hdfs_resource_property_names.split(',')] if _f]
+  not_managed_hdfs_path_list = json.loads(
+    config["clusterLevelParams"]["not_managed_hdfs_path_list"]
+  )[:]
+  if "managed_hdfs_resource_property_names" in config["configurations"]["cluster-env"]:
+    managed_hdfs_resource_property_names = config["configurations"]["cluster-env"][
+      "managed_hdfs_resource_property_names"
+    ]
+    managed_hdfs_resource_property_list = [
+      _f
+      for _f in [
+        property.strip() for property in managed_hdfs_resource_property_names.split(",")
+      ]
+      if _f
+    ]
 
     for property_name in managed_hdfs_resource_property_list:
-      property_value = default('/configurations/' + property_name, None)
+      property_value = default("/configurations/" + property_name, None)
 
       if property_value == None:
-        Logger.warning(("Property {0} from cluster-env/managed_hdfs_resource_property_names not found in configurations. "
-                     "Management of this DFS resource will not be forced.").format(property_name))
+        Logger.warning(
+          (
+            f"Property {property_name} from cluster-env/managed_hdfs_resource_property_names not found in configurations. "
+            "Management of this DFS resource will not be forced."
+          )
+        )
       else:
         while property_value in not_managed_hdfs_path_list:
           not_managed_hdfs_path_list.remove(property_value)

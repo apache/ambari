@@ -30,19 +30,19 @@ class AgentCommand(object):
 
 
 class RoleCommand(object):
-  install = 'INSTALL'
-  start = 'START'
-  stop = 'STOP'
-  custom_command = 'CUSTOM_COMMAND'
+  install = "INSTALL"
+  start = "START"
+  stop = "STOP"
+  custom_command = "CUSTOM_COMMAND"
 
 
 class CustomCommand(object):
-  restart = 'RESTART'
-  reconfigure = 'RECONFIGURE'
+  restart = "RESTART"
+  reconfigure = "RECONFIGURE"
   start = RoleCommand.start
 
 
 class CommandStatus(object):
-  in_progress = 'IN_PROGRESS'
-  completed = 'COMPLETED'
-  failed = 'FAILED'
+  in_progress = "IN_PROGRESS"
+  completed = "COMPLETED"
+  failed = "FAILED"

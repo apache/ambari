@@ -19,9 +19,11 @@ limitations under the License.
 Ambari Agent
 
 """
+
 import re
 
 _MAX_SUBST = 20
+
 
 def substitute_vars(raw, config):
   """

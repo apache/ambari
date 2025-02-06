@@ -27,21 +27,22 @@ import inspect
 
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-STACKS_DIR = os.path.join(SCRIPT_DIR, '../../../../../stacks/')
-PARENT_FILE = os.path.join(STACKS_DIR, 'service_advisor.py')
+STACKS_DIR = os.path.join(SCRIPT_DIR, "../../../../../stacks/")
+PARENT_FILE = os.path.join(STACKS_DIR, "service_advisor.py")
 
 try:
   if "BASE_SERVICE_ADVISOR" in os.environ:
     PARENT_FILE = os.environ["BASE_SERVICE_ADVISOR"]
-  with open(PARENT_FILE, 'rb') as fp:
-    service_advisor = imp.load_module('service_advisor', fp, PARENT_FILE, ('.py', 'rb', imp.PY_SOURCE))
+  with open(PARENT_FILE, "rb") as fp:
+    service_advisor = imp.load_module(
+      "service_advisor", fp, PARENT_FILE, (".py", "rb", imp.PY_SOURCE)
+    )
 except Exception as e:
   traceback.print_exc()
   print("Failed to load parent")
 
 
 class ZookeeperServiceAdvisor(service_advisor.ServiceAdvisor):
-
   def __init__(self, *args, **kwargs):
     self.as_super = super(ZookeeperServiceAdvisor, self)
     self.as_super.__init__(*args, **kwargs)
@@ -74,9 +75,15 @@ class ZookeeperServiceAdvisor(service_advisor.ServiceAdvisor):
     Modify the dictionary of heap size properties.
     Must be overriden in child class.
     """
-    self.heap_size_properties = {"ZOOKEEPER_SERVER": [{"config-name": "zookeeper-env",
-                                                       "property": "zk_server_heapsize",
-                                                       "default": "1024m"}]}
+    self.heap_size_properties = {
+      "ZOOKEEPER_SERVER": [
+        {
+          "config-name": "zookeeper-env",
+          "property": "zk_server_heapsize",
+          "default": "1024m",
+        }
+      ]
+    }
 
   def modifyNotValuableComponents(self):
     """
@@ -108,16 +115,22 @@ class ZookeeperServiceAdvisor(service_advisor.ServiceAdvisor):
     """
     Get a list of errors. Zookeeper does not have any validations in this version.
     """
-    self.logger.info("Class: %s, Method: %s. Validating Service Component Layout." %
-                (self.__class__.__name__, inspect.stack()[0][3]))
+    self.logger.info(
+      "Class: %s, Method: %s. Validating Service Component Layout."
+      % (self.__class__.__name__, inspect.stack()[0][3])
+    )
     return self.getServiceComponentCardinalityValidations(services, hosts, "ZOOKEEPER")
 
-  def getServiceConfigurationRecommendations(self, configurations, clusterData, services, hosts):
+  def getServiceConfigurationRecommendations(
+    self, configurations, clusterData, services, hosts
+  ):
     """
     Recommend configurations to set. Zookeeper does not have any recommendations in this version.
     """
-    self.logger.info("Class: %s, Method: %s. Recommending Service Configurations." %
-                (self.__class__.__name__, inspect.stack()[0][3]))
+    self.logger.info(
+      "Class: %s, Method: %s. Recommending Service Configurations."
+      % (self.__class__.__name__, inspect.stack()[0][3])
+    )
 
     self.recommendConfigurations(configurations, clusterData, services, hosts)
 
@@ -125,27 +138,37 @@ class ZookeeperServiceAdvisor(service_advisor.ServiceAdvisor):
     """
     Recommend configurations for this service.
     """
-    self.logger.info("Class: %s, Method: %s. Recommending Service Configurations." %
-                (self.__class__.__name__, inspect.stack()[0][3]))
+    self.logger.info(
+      "Class: %s, Method: %s. Recommending Service Configurations."
+      % (self.__class__.__name__, inspect.stack()[0][3])
+    )
 
-    self.logger.info("Setting zoo.cfg to default dataDir to /hadoop/zookeeper on the best matching mount")
+    self.logger.info(
+      "Setting zoo.cfg to default dataDir to /hadoop/zookeeper on the best matching mount"
+    )
 
     zk_mount_properties = [
       ("dataDir", "ZOOKEEPER_SERVER", "/hadoop/zookeeper", "single"),
     ]
-    self.updateMountProperties("zoo.cfg", zk_mount_properties, configurations, services, hosts)
+    self.updateMountProperties(
+      "zoo.cfg", zk_mount_properties, configurations, services, hosts
+    )
 
-  def getServiceConfigurationsValidationItems(self, configurations, recommendedDefaults, services, hosts):
+  def getServiceConfigurationsValidationItems(
+    self, configurations, recommendedDefaults, services, hosts
+  ):
     """
     Validate configurations for the service. Return a list of errors.
     """
-    self.logger.info("Class: %s, Method: %s. Validating Configurations." %
-                (self.__class__.__name__, inspect.stack()[0][3]))
+    self.logger.info(
+      "Class: %s, Method: %s. Validating Configurations."
+      % (self.__class__.__name__, inspect.stack()[0][3])
+    )
 
     items = []
 
     # Example of validating by calling helper methods
-    '''
+    """
     configType = "zookeeper-env"
     method = self.someMethodInThisClass
     resultItems = self.validateConfigurationsForSite(configurations, recommendedDefaults, services, hosts, configType, method)
@@ -154,11 +177,11 @@ class ZookeeperServiceAdvisor(service_advisor.ServiceAdvisor):
     method = self.anotherMethodInThisClass
     resultItems = self.validateConfigurationsForSite(configurations, recommendedDefaults, services, hosts, configType, method)
     items.extend(resultItems)
-    '''
+    """
 
     return items
 
-  '''
+  """
   def someMethodInThisClass(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = []
     validationItems.append({"config-name": "zookeeper-env", "item": self.getErrorItem("My custom message 1")})
@@ -168,4 +191,4 @@ class ZookeeperServiceAdvisor(service_advisor.ServiceAdvisor):
     validationItems = []
     validationItems.append({"config-name": "zookeeper-env", "item": self.getErrorItem("My custom message 2")})
     return self.toConfigurationValidationProblems(validationItems, "zookeeper-env")
-  '''
+  """

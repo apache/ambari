@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -15,7 +15,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 import io
 import sys
@@ -25,67 +25,77 @@ from only_for_platform import not_for_platform, PLATFORM_WINDOWS
 
 from ambari_commons.os_check import OSCheck, OSConst
 
-utils = __import__('ambari_server.utils').utils
+utils = __import__("ambari_server.utils").utils
 
 
 @not_for_platform(PLATFORM_WINDOWS)
 class TestUtils(TestCase):
-
   @patch.object(OSCheck, "get_os_family")
-  @patch('os.listdir')
-  @patch('os.path.isdir')
-  def test_get_ubuntu_pg_version(self, path_isdir_mock, os_listdir_mock, get_os_family_mock):
+  @patch("os.listdir")
+  @patch("os.path.isdir")
+  def test_get_ubuntu_pg_version(
+    self, path_isdir_mock, os_listdir_mock, get_os_family_mock
+  ):
     get_os_family_mock.return_value = OSConst.UBUNTU_FAMILY
     path_isdir_mock.return_value = True
-    os_listdir_mock.return_value = ['8.4', '9.1']
+    os_listdir_mock.return_value = ["8.4", "9.1"]
 
-    self.assertEqual('9.1', utils.get_ubuntu_pg_version())
+    self.assertEqual("9.1", utils.get_ubuntu_pg_version())
 
   @patch.object(OSCheck, "is_suse_family")
   @patch.object(OSCheck, "is_ubuntu_family")
   @patch.object(OSCheck, "is_redhat_family")
-  @patch('ambari_server.utils.get_ubuntu_pg_version')
-  def test_get_postgre_running_status(self, get_ubuntu_pg_version_mock, is_redhat_family, is_ubuntu_family, is_suse_family):
+  @patch("ambari_server.utils.get_ubuntu_pg_version")
+  def test_get_postgre_running_status(
+    self, get_ubuntu_pg_version_mock, is_redhat_family, is_ubuntu_family, is_suse_family
+  ):
     is_redhat_family.return_value = False
     is_ubuntu_family.return_value = True
     is_suse_family.return_value = False
     utils.PG_STATUS_RUNNING_DEFAULT = "red_running"
-    get_ubuntu_pg_version_mock.return_value = '9.1'
+    get_ubuntu_pg_version_mock.return_value = "9.1"
 
-    self.assertEqual('9.1/main', utils.get_postgre_running_status())
+    self.assertEqual("9.1/main", utils.get_postgre_running_status())
     is_redhat_family.return_value = True
     is_ubuntu_family.return_value = False
     is_suse_family.return_value = False
-    self.assertEqual('red_running', utils.get_postgre_running_status())
+    self.assertEqual("red_running", utils.get_postgre_running_status())
 
-  @patch('os.path.isfile')
+  @patch("os.path.isfile")
   def test_locate_file(self, isfile_mock):
-    utils.ENV_PATH = ['/test']
+    utils.ENV_PATH = ["/test"]
     # File was found in the path
     isfile_mock.return_value = True
-    self.assertEqual('/test/myfile', utils.locate_file('myfile'))
+    self.assertEqual("/test/myfile", utils.locate_file("myfile"))
     # File not found in the path
     isfile_mock.return_value = False
-    self.assertEqual('myfile', utils.locate_file('myfile'))
+    self.assertEqual("myfile", utils.locate_file("myfile"))
     # Testing default vaule
     isfile_mock.return_value = False
-    self.assertEqual('/tmp/myfile', utils.locate_file('myfile', '/tmp'))
+    self.assertEqual("/tmp/myfile", utils.locate_file("myfile", "/tmp"))
 
-  @patch('os.path.exists')
-  @patch('os.path.join')
+  @patch("os.path.exists")
+  @patch("os.path.join")
   def test_pid_exists(self, path_join_mock, path_exists_mock):
-    path_join_mock.return_value = '/test'
+    path_join_mock.return_value = "/test"
     path_exists_mock.return_value = True
-    self.assertTrue(utils.pid_exists('1'))
+    self.assertTrue(utils.pid_exists("1"))
 
-  @patch('time.time')
-  @patch('builtins.open')
-  @patch('time.sleep')
-  @patch('os.listdir')
-  @patch('os.path.join')
-  @patch.object(utils, 'get_symlink_path')
-  def test_looking_for_pid(self, get_symlink_path_mock, path_join_mock,
-                      listdir_mock, sleep_mock, open_mock, time_mock):
+  @patch("time.time")
+  @patch("builtins.open")
+  @patch("time.sleep")
+  @patch("os.listdir")
+  @patch("os.path.join")
+  @patch.object(utils, "get_symlink_path")
+  def test_looking_for_pid(
+    self,
+    get_symlink_path_mock,
+    path_join_mock,
+    listdir_mock,
+    sleep_mock,
+    open_mock,
+    time_mock,
+  ):
     def test_read():
       return "test args"
 
@@ -93,9 +103,9 @@ class TestUtils(TestCase):
       pass
 
     test_obj.read = test_read
-    path_join_mock.return_value = '/'
+    path_join_mock.return_value = "/"
     open_mock.return_value = test_obj
-    listdir_mock.return_value = ['1000']
+    listdir_mock.return_value = ["1000"]
     get_symlink_path_mock.return_value = "/symlinkpath"
     time_mock.side_effect = [0, 0, 0, 0, 0, 0, 6]
 
@@ -106,24 +116,21 @@ class TestUtils(TestCase):
     sys.stdout = sys.__stdout__
 
     self.assertEqual(len(r), 1)
-    self.assertEqual(r[0], {
-       "pid": "1000",
-       "exe": "/symlinkpath",
-       "cmd": "test args"
-      })
+    self.assertEqual(r[0], {"pid": "1000", "exe": "/symlinkpath", "cmd": "test args"})
 
-  @patch('os.path.normpath')
-  @patch('os.path.join')
-  @patch('os.path.dirname')
-  @patch('os.readlink')
-  def test_get_symlink_path(self, readlink_mock, dirname_mock, join_mock,
-                            normpath_mock):
+  @patch("os.path.normpath")
+  @patch("os.path.join")
+  @patch("os.path.dirname")
+  @patch("os.readlink")
+  def test_get_symlink_path(
+    self, readlink_mock, dirname_mock, join_mock, normpath_mock
+  ):
     normpath_mock.return_value = "test value"
     self.assertEqual(utils.get_symlink_path("/"), "test value")
 
-  @patch.object(utils, 'pid_exists')
-  @patch('builtins.open')
-  @patch('os.kill')
+  @patch.object(utils, "pid_exists")
+  @patch("builtins.open")
+  @patch("os.kill")
   def test_save_main_pid_ex(self, kill_mock, open_mock, pid_exists_mock):
     def test_write(data):
       self.assertEqual(data, "222\n")
@@ -139,22 +146,21 @@ class TestUtils(TestCase):
     open_mock.return_value = test_obj
     pid_exists_mock.return_value = True
 
-    utils.save_main_pid_ex([{"pid": "111",
-                             "exe": "/exe1",
-                             "cmd": ""
-                             },
-                            {"pid": "222",
-                             "exe": "/exe2",
-                             "cmd": ""
-                             },
-                            ], "/pidfile", ["/exe1"])
+    utils.save_main_pid_ex(
+      [
+        {"pid": "111", "exe": "/exe1", "cmd": ""},
+        {"pid": "222", "exe": "/exe2", "cmd": ""},
+      ],
+      "/pidfile",
+      ["/exe1"],
+    )
     self.assertEqual(open_mock.call_count, 1)
     self.assertEqual(pid_exists_mock.call_count, 4)
     self.assertEqual(kill_mock.call_count, 1)
 
-  @patch('os.path.isfile')
-  @patch('builtins.open')
-  @patch('os.remove')
+  @patch("os.path.isfile")
+  @patch("builtins.open")
+  @patch("os.remove")
   def test_check_exitcode(self, remove_mock, open_mock, isfile_mock):
     def test_read():
       return "777"
@@ -171,7 +177,6 @@ class TestUtils(TestCase):
     isfile_mock.return_value = True
 
     self.assertEqual(utils.check_exitcode("/tmp/nofile"), 777)
-
 
   def test_format_with_reload(self):
     from resource_management.libraries.functions import format
@@ -202,7 +207,9 @@ class TestUtils(TestCase):
       self.assertEqual("foo2 bar2 env-foo1 env-bar1", formatted_message)
 
       # now supply keyword args to override env params
-      formatted_message = formatter.format(message, envfoo="foobar", envbar="foobarbaz", foo="foo3", bar="bar3")
+      formatted_message = formatter.format(
+        message, envfoo="foobar", envbar="foobarbaz", foo="foo3", bar="bar3"
+      )
       self.assertEqual("foo3 bar3 foobar foobarbaz", formatted_message)
 
   def test_compare_versions(self):
@@ -214,11 +221,12 @@ class TestUtils(TestCase):
     self.assertEqual(utils.compare_versions("2.0.0.abc", "2.0.0_abc"), 0)
     self.assertEqual(utils.compare_versions("2.1.0-abc", "2.0.0.abc"), 1)
 
-    self.assertEqual(utils.compare_versions("2.1.0-1","2.0.0-2"),1)
-    self.assertEqual(utils.compare_versions("2.0.0_1","2.0.0-2"),0)
-    self.assertEqual(utils.compare_versions("2.0.0-1","2.0.0-2"),0)
-    self.assertEqual(utils.compare_versions("2.0.0_1","2.0.0_2"),0)
-    self.assertEqual(utils.compare_versions("2.0.0-abc","2.0.0_abc"),0)
+    self.assertEqual(utils.compare_versions("2.1.0-1", "2.0.0-2"), 1)
+    self.assertEqual(utils.compare_versions("2.0.0_1", "2.0.0-2"), 0)
+    self.assertEqual(utils.compare_versions("2.0.0-1", "2.0.0-2"), 0)
+    self.assertEqual(utils.compare_versions("2.0.0_1", "2.0.0_2"), 0)
+    self.assertEqual(utils.compare_versions("2.0.0-abc", "2.0.0_abc"), 0)
+
 
 class FakeProperties(object):
   def __init__(self, prop_map):

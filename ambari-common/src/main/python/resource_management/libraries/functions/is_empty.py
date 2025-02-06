@@ -19,7 +19,9 @@ limitations under the License.
 Ambari Agent
 
 """
+
 from resource_management.libraries.script.config_dictionary import UnknownConfiguration
+
 
 def is_empty(var):
   """

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -15,7 +15,8 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
+
 import time
 import sys
 from threading import Thread
@@ -23,22 +24,26 @@ from threading import Thread
 
 def write_function(path, handle, interval):
   with open(path) as f:
-      for line in f:
-          handle.write(line)
-          handle.flush()
-          time.sleep(interval)
-          
-thread = Thread(target =  write_function, args = ('balancer.out', sys.stdout, 1.5))
+    for line in f:
+      handle.write(line)
+      handle.flush()
+      time.sleep(interval)
+
+
+thread = Thread(target=write_function, args=("balancer.out", sys.stdout, 1.5))
 thread.start()
 
-threaderr = Thread(target =  write_function, args = ('balancer.err', sys.stderr, 1.5 * 0.023))
+threaderr = Thread(
+  target=write_function, args=("balancer.err", sys.stderr, 1.5 * 0.023)
+)
 threaderr.start()
 
-thread.join()  
+thread.join()
 
 
 def rebalancer_out():
-  write_function('balancer.out', sys.stdout)
-  
+  write_function("balancer.out", sys.stdout)
+
+
 def rebalancer_err():
-  write_function('balancer.err', sys.stdout)
+  write_function("balancer.err", sys.stdout)

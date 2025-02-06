@@ -20,18 +20,18 @@ Ambari Agent
 
 """
 
-__all__ = ["Resource", "ResourceArgument", "ForcedListArgument",
-           "BooleanArgument"]
+__all__ = ["Resource", "ResourceArgument", "ForcedListArgument", "BooleanArgument"]
 
 from resource_management.core.exceptions import Fail, InvalidArgument
 from resource_management.core.environment import Environment
 from resource_management.core.logger import Logger
 from resource_management.core.utils import PasswordString
 
+
 class ResourceArgument(object):
   def __init__(self, default=None, required=False):
-    self.required = False # Prevents the initial validate from failing
-    if hasattr(default, '__call__'):
+    self.required = False  # Prevents the initial validate from failing
+    if hasattr(default, "__call__"):
       self.default = default
     else:
       self.default = self.validate(default)
@@ -39,8 +39,9 @@ class ResourceArgument(object):
 
   def validate(self, value):
     if self.required and value is None:
-      raise InvalidArgument("Required argument %s missing" % self.name)
+      raise InvalidArgument(f"Required argument {self.name} missing")
     return value
+
 
 class ForcedListArgument(ResourceArgument):
   def validate(self, value):
@@ -55,8 +56,10 @@ class BooleanArgument(ResourceArgument):
     value = super(BooleanArgument, self).validate(value)
     if not value in (True, False):
       raise InvalidArgument(
-        "Expected a boolean for %s received %r" % (self.name, value))
+        f"Expected a boolean for {self.name} received {value!r}"
+      )
     return value
+
 
 class IntegerArgument(ResourceArgument):
   def validate(self, value):
@@ -64,9 +67,10 @@ class IntegerArgument(ResourceArgument):
       return value
 
     value = super(IntegerArgument, self).validate(value)
-    if not isinstance( value, int ):
+    if not isinstance(value, int):
       raise InvalidArgument(
-        "Expected an integer for %s received %r" % (self.name, value))
+        f"Expected an integer for {self.name} received {value!r}"
+      )
     return value
 
 
@@ -85,7 +89,7 @@ class Accessor(object):
       return obj.arguments[self.name]
     except KeyError:
       val = obj._arguments[self.name].default
-      if hasattr(val, '__call__'):
+      if hasattr(val, "__call__"):
         val = val(obj)
       return val
 
@@ -99,34 +103,34 @@ class ResourceMetaclass(type):
   #     return super_new(cls, name, bases, attrs)
 
   def __init__(mcs, _name, bases, attrs):
-    mcs._arguments = getattr(bases[0], '_arguments', {}).copy()
+    mcs._arguments = getattr(bases[0], "_arguments", {}).copy()
     for key, value in list(attrs.items()):
       if isinstance(value, ResourceArgument):
         value.name = key
         mcs._arguments[key] = value
         setattr(mcs, key, Accessor(key))
-  
-  
+
+
 class Resource(object, metaclass=ResourceMetaclass):
   action = ForcedListArgument(default="nothing")
   ignore_failures = BooleanArgument(default=False)
-  not_if = ResourceArgument() # pass command e.g. not_if = ('ls','/root/jdk')
-  only_if = ResourceArgument() # pass command
-  initial_wait = ResourceArgument() # in seconds
+  not_if = ResourceArgument()  # pass command e.g. not_if = ('ls','/root/jdk')
+  only_if = ResourceArgument()  # pass command
+  initial_wait = ResourceArgument()  # in seconds
 
   actions = ["nothing"]
-  
+
   def __new__(cls, name, env=None, provider=None, **kwargs):
     if isinstance(name, list):
       names_list = name[:]
       while len(names_list) != 1:
         cls(names_list.pop(0), env, provider, **kwargs)
-        
+
       name = names_list[0]
-    
+
     env = env or Environment.get_instance()
-    provider = provider or getattr(cls, 'provider', None)
-    
+    provider = provider or getattr(cls, "provider", None)
+
     r_type = cls.__name__
     if r_type not in env.resources:
       env.resources[r_type] = {}
@@ -139,27 +143,27 @@ class Resource(object, metaclass=ResourceMetaclass):
   def __init__(self, name, env=None, provider=None, **kwargs):
     if isinstance(name, list):
       name = name[-1]
-    
-    if hasattr(self, 'name'):
+
+    if hasattr(self, "name"):
       return
 
     self.env = env or Environment.get_instance()
     self.name = name
-     
-    self.provider = provider or getattr(self, 'provider', None)
+
+    self.provider = provider or getattr(self, "provider", None)
 
     self.arguments = {}
     for key, value in kwargs.items():
       try:
         arg = self._arguments[key]
       except KeyError:
-        raise Fail("%s received unsupported argument %s" % (self, key))
+        raise Fail(f"{self} received unsupported argument {key}")
       else:
         try:
           self.arguments[key] = arg.validate(value)
         except InvalidArgument as exc:
-          raise InvalidArgument("%s %s" % (self, exc))
-    
+          raise InvalidArgument(f"{self} {exc}")
+
     if not self.env.test_mode:
       self.env.run()
 
@@ -170,7 +174,7 @@ class Resource(object, metaclass=ResourceMetaclass):
     return str(self)
 
   def __str__(self):
-    return "%s[%s]" % (self.__class__.__name__, Logger._get_resource_name_repr(self.name))
+    return f"{self.__class__.__name__}[{Logger._get_resource_name_repr(self.name)}]"
 
   def __getstate__(self):
     return dict(
@@ -181,9 +185,9 @@ class Resource(object, metaclass=ResourceMetaclass):
     )
 
   def __setstate__(self, state):
-    self.name = state['name']
-    self.provider = state['provider']
-    self.arguments = state['arguments']
-    self.env = state['env']
+    self.name = state["name"]
+    self.provider = state["provider"]
+    self.arguments = state["arguments"]
+    self.env = state["env"]
 
     self.validate()

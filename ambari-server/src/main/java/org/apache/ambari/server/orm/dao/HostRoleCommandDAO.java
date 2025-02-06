@@ -65,7 +65,7 @@ import org.apache.ambari.server.orm.entities.HostRoleCommandEntity_;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.orm.helpers.SQLConstants;
 import org.apache.ambari.server.orm.helpers.SQLOperations;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.eclipse.persistence.config.HintValues;
 import org.eclipse.persistence.config.QueryHints;
 import org.slf4j.Logger;

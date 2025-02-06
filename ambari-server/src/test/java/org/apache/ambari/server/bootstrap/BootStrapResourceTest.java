@@ -26,25 +26,25 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 
 import org.apache.ambari.server.api.rest.BootStrapResource;
 import org.apache.ambari.server.bootstrap.BSResponse.BSRunStat;
 import org.apache.ambari.server.bootstrap.BootStrapStatus.BSStat;
 import org.codehaus.jettison.json.JSONException;
-import org.codehaus.jettison.json.JSONObject;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.test.DeploymentContext;
+import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.sun.jersey.api.client.UniformInterfaceException;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.spi.container.servlet.ServletContainer;
-import com.sun.jersey.test.framework.JerseyTest;
-import com.sun.jersey.test.framework.WebAppDescriptor;
 
 import junit.framework.Assert;
 
@@ -58,9 +58,12 @@ public class BootStrapResourceTest extends JerseyTest {
   Injector injector;
   BootStrapImpl bsImpl;
 
-  public BootStrapResourceTest() {
-    super(new WebAppDescriptor.Builder(PACKAGE_NAME).servletClass(ServletContainer.class)
-        .build());
+  @Override
+  protected ResourceConfig configure() {
+    ResourceConfig config = new ResourceConfig();
+    config.packages(PACKAGE_NAME);
+    DeploymentContext.builder(config).build();
+    return config;
   }
 
   public class MockModule extends AbstractModule {
@@ -80,7 +83,6 @@ public class BootStrapResourceTest extends JerseyTest {
     injector = Guice.createInjector(new MockModule());
   }
 
-  @Override
   protected int getPort(int defaultPort) {
     // Find a free port
     try (ServerSocket socket = new ServerSocket(0)) {
@@ -91,11 +93,14 @@ public class BootStrapResourceTest extends JerseyTest {
     return defaultPort;
   }
 
-  protected JSONObject createDummySshInfo() throws JSONException {
-    JSONObject json = new JSONObject();
-    json.put("sshkey", "awesome");
-    json.put("hosts", new ArrayList<String>());
-    return json;
+  protected SshHostInfo createDummySshInfo() throws JSONException {
+    SshHostInfo sshInfo = new SshHostInfo();
+    sshInfo.setSshKey("awesome");
+    ArrayList<String> hosts = new ArrayList<>();
+    hosts.add("host1");
+    sshInfo.setHosts(hosts);
+    sshInfo.setVerbose(true);
+    return sshInfo;
   }
 
   protected BSResponse generateBSResponse() {
@@ -115,22 +120,20 @@ public class BootStrapResourceTest extends JerseyTest {
   }
 
   @Test
-  public void bootStrapGet() throws UniformInterfaceException, JSONException {
-    WebResource webResource = resource();
-    BootStrapStatus status = webResource.path("/bootstrap/0").type(
-        MediaType.APPLICATION_JSON)
-        .get(BootStrapStatus.class);
+  public void bootStrapGet() {
+    WebTarget webTarget = target("/bootstrap/0");
+    BootStrapStatus status = webTarget.request(MediaType.APPLICATION_JSON)
+            .get(BootStrapStatus.class);
     LOG.info("GET Response from the API " + status.getLog() + " " +
-        status.getStatus());
-    Assert.assertEquals(status.getStatus(), BSStat.ERROR);
+            status.getStatus());
+    Assert.assertEquals(BSStat.ERROR, status.getStatus());
   }
 
   @Test
-  public void bootStrapPost() throws UniformInterfaceException, JSONException {
-    WebResource webResource = resource();
-    JSONObject object = webResource.path("/bootstrap").type(
-        MediaType.APPLICATION_JSON).post(JSONObject.class, createDummySshInfo());
-
-    Assert.assertEquals("OK", object.get("status"));
+  public void bootStrapPost() throws JSONException {
+    WebTarget webTarget = target("/bootstrap");
+    JsonNode object = webTarget.request(MediaType.APPLICATION_JSON)
+            .post(Entity.json(createDummySshInfo()), JsonNode.class);
+    Assert.assertEquals("OK", object.get("status").asText());
   }
 }

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -15,8 +15,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
-
+"""
 
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions import upgrade_summary
@@ -25,8 +24,8 @@ from unittest import TestCase
 
 Logger.initialize_logger()
 
-class TestUpgradeSummary(TestCase):
 
+class TestUpgradeSummary(TestCase):
   def test_get_stack_feature_version_missing_params(self):
     """
     Tests that simple upgrade information can be extracted from JSON
@@ -50,7 +49,6 @@ class TestUpgradeSummary(TestCase):
 
     self.assertTrue(upgrade_summary.get_downgrade_from_version("HDFS") is None)
 
-
   def test_get_downgrade_from_version(self):
     """
     Tests that simple downgrade returns the correct version
@@ -62,7 +60,6 @@ class TestUpgradeSummary(TestCase):
     self.assertTrue(upgrade_summary.get_downgrade_from_version("FOO") is None)
     self.assertEqual("2.5.9.9-9999", upgrade_summary.get_downgrade_from_version("HDFS"))
 
-
   @staticmethod
   def _get_cluster_simple_upgrade_json():
     """
@@ -70,7 +67,7 @@ class TestUpgradeSummary(TestCase):
     :return:
     """
     return {
-      "roleCommand":"ACTIONEXECUTE",
+      "roleCommand": "ACTIONEXECUTE",
       "hostLevelParams": {
         "stack_name": "HDP",
         "stack_version": "2.4",
@@ -79,28 +76,28 @@ class TestUpgradeSummary(TestCase):
         "source_stack": "2.4",
         "target_stack": "2.5",
         "upgrade_direction": "upgrade",
-        "version": "2.5.9.9-9999"
+        "version": "2.5.9.9-9999",
       },
       "upgradeSummary": {
-        "services":{
-          "HDFS":{
-            "sourceRepositoryId":1,
-            "sourceStackId":"HDP-2.4",
-            "sourceVersion":"2.4.0.0-1234",
-            "targetRepositoryId":2,
-            "targetStackId":"HDP-2.5",
-            "targetVersion":"2.5.9.9-9999"
+        "services": {
+          "HDFS": {
+            "sourceRepositoryId": 1,
+            "sourceStackId": "HDP-2.4",
+            "sourceVersion": "2.4.0.0-1234",
+            "targetRepositoryId": 2,
+            "targetStackId": "HDP-2.5",
+            "targetVersion": "2.5.9.9-9999",
           }
         },
-        "direction":"UPGRADE",
-        "type":"rolling_upgrade",
-        "isRevert":False,
-        "orchestration":"STANDARD",
-        "associatedStackId":"HDP-2.5",
-        "associatedVersion":"2.5.9.9-9999",
+        "direction": "UPGRADE",
+        "type": "rolling_upgrade",
+        "isRevert": False,
+        "orchestration": "STANDARD",
+        "associatedStackId": "HDP-2.5",
+        "associatedVersion": "2.5.9.9-9999",
         "isDowngradeAllowed": True,
-        "isSwitchBits": False
-      }
+        "isSwitchBits": False,
+      },
     }
 
   @staticmethod
@@ -110,7 +107,7 @@ class TestUpgradeSummary(TestCase):
     :return:
     """
     return {
-      "roleCommand":"ACTIONEXECUTE",
+      "roleCommand": "ACTIONEXECUTE",
       "hostLevelParams": {
         "stack_name": "HDP",
         "stack_version": "2.4",
@@ -119,26 +116,26 @@ class TestUpgradeSummary(TestCase):
         "source_stack": "2.5",
         "target_stack": "2.4",
         "upgrade_direction": "downgrade",
-        "version": "2.4.0.0-1234"
+        "version": "2.4.0.0-1234",
       },
       "upgradeSummary": {
-        "services":{
-          "HDFS":{
-            "sourceRepositoryId":2,
-            "sourceStackId":"HDP-2.5",
-            "sourceVersion":"2.5.9.9-9999",
-            "targetRepositoryId":1,
-            "targetStackId":"HDP-2.4",
-            "targetVersion":"2.4.0.0-1234"
+        "services": {
+          "HDFS": {
+            "sourceRepositoryId": 2,
+            "sourceStackId": "HDP-2.5",
+            "sourceVersion": "2.5.9.9-9999",
+            "targetRepositoryId": 1,
+            "targetStackId": "HDP-2.4",
+            "targetVersion": "2.4.0.0-1234",
           }
         },
-        "direction":"DOWNGRADE",
-        "type":"rolling_upgrade",
-        "isRevert":False,
-        "orchestration":"STANDARD",
-        "associatedStackId":"HDP-2.5",
-        "associatedVersion":"2.5.9.9-9999",
+        "direction": "DOWNGRADE",
+        "type": "rolling_upgrade",
+        "isRevert": False,
+        "orchestration": "STANDARD",
+        "associatedStackId": "HDP-2.5",
+        "associatedVersion": "2.5.9.9-9999",
         "isDowngradeAllowed": True,
-        "isSwitchBits": False
-      }
+        "isSwitchBits": False,
+      },
     }

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -15,7 +15,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 from mock.mock import patch
 from mock.mock import MagicMock
@@ -29,8 +29,8 @@ from unittest import TestCase
 
 Logger.initialize_logger()
 
-class TestStackSelect(TestCase):
 
+class TestStackSelect(TestCase):
   def test_missing_role_information_throws_exception(self):
     """
     Tests that missing the service & role throws an excpetion
@@ -45,7 +45,9 @@ class TestStackSelect(TestCase):
 
   @patch.object(stack_select, "get_supported_packages")
   @patch("resource_management.libraries.functions.stack_select.select")
-  def test_select_package_for_standard_orchestration(self, stack_select_select_mock, get_supported_packages_mock):
+  def test_select_package_for_standard_orchestration(
+    self, stack_select_select_mock, get_supported_packages_mock
+  ):
     """
     Tests that missing the service & role throws an excpetion
     :return:
@@ -58,19 +60,29 @@ class TestStackSelect(TestCase):
 
     Script.config = dict()
     Script.config.update(command_json)
-    Script.config.update( { "configurations" : { "cluster-env" : {} }, "clusterLevelParams": {} } )
-    Script.config["configurations"]["cluster-env"]["stack_packages"] = self._get_stack_packages()
-    Script.config["clusterLevelParams"] = { "stack_name" : "HDP" }
+    Script.config.update(
+      {"configurations": {"cluster-env": {}}, "clusterLevelParams": {}}
+    )
+    Script.config["configurations"]["cluster-env"]["stack_packages"] = (
+      self._get_stack_packages()
+    )
+    Script.config["clusterLevelParams"] = {"stack_name": "HDP"}
 
     stack_select.select_packages(version)
 
     self.assertEqual(len(stack_select_select_mock.call_args_list), 2)
-    self.assertEqual(stack_select_select_mock.call_args_list[0][0], ("foo-master", version))
-    self.assertEqual(stack_select_select_mock.call_args_list[1][0], ("foo-client", version))
+    self.assertEqual(
+      stack_select_select_mock.call_args_list[0][0], ("foo-master", version)
+    )
+    self.assertEqual(
+      stack_select_select_mock.call_args_list[1][0], ("foo-client", version)
+    )
 
   @patch.object(stack_select, "get_supported_packages")
   @patch("resource_management.libraries.functions.stack_select.select")
-  def test_select_package_for_patch_orchestration(self, stack_select_select_mock, get_supported_packages_mock):
+  def test_select_package_for_patch_orchestration(
+    self, stack_select_select_mock, get_supported_packages_mock
+  ):
     """
     Tests that missing the service & role throws an excpetion
     :return:
@@ -84,14 +96,20 @@ class TestStackSelect(TestCase):
 
     Script.config = dict()
     Script.config.update(command_json)
-    Script.config.update( { "configurations" : { "cluster-env" : {} }, "clusterLevelParams": {} } )
-    Script.config["configurations"]["cluster-env"]["stack_packages"] = self._get_stack_packages()
-    Script.config["clusterLevelParams"] = { "stack_name" : "HDP" }
+    Script.config.update(
+      {"configurations": {"cluster-env": {}}, "clusterLevelParams": {}}
+    )
+    Script.config["configurations"]["cluster-env"]["stack_packages"] = (
+      self._get_stack_packages()
+    )
+    Script.config["clusterLevelParams"] = {"stack_name": "HDP"}
 
     stack_select.select_packages(version)
 
     self.assertEqual(len(stack_select_select_mock.call_args_list), 1)
-    self.assertEqual(stack_select_select_mock.call_args_list[0][0], ("foo-master", version))
+    self.assertEqual(
+      stack_select_select_mock.call_args_list[0][0], ("foo-master", version)
+    )
 
     stack_select_select_mock.reset_mock()
 
@@ -99,12 +117,15 @@ class TestStackSelect(TestCase):
     stack_select.select_packages(version)
 
     self.assertEqual(len(stack_select_select_mock.call_args_list), 1)
-    self.assertEqual(stack_select_select_mock.call_args_list[0][0], ("foo-master", version))
-
+    self.assertEqual(
+      stack_select_select_mock.call_args_list[0][0], ("foo-master", version)
+    )
 
   @patch.object(stack_select, "get_supported_packages")
   @patch("resource_management.libraries.functions.stack_select.select")
-  def test_legacy_package_fallback(self, stack_select_select_mock, get_supported_packages_mock):
+  def test_legacy_package_fallback(
+    self, stack_select_select_mock, get_supported_packages_mock
+  ):
     """
     Tests that if the package specified by the JSON isn't support by the stack-select tool,
     the the fallback legacy value is used.
@@ -118,14 +139,20 @@ class TestStackSelect(TestCase):
 
     Script.config = dict()
     Script.config.update(command_json)
-    Script.config.update( { "configurations" : { "cluster-env" : {} }, "clusterLevelParams": {} } )
-    Script.config["configurations"]["cluster-env"]["stack_packages"] = self._get_stack_packages_with_legacy()
-    Script.config["clusterLevelParams"] = { "stack_name" : "HDP" }
+    Script.config.update(
+      {"configurations": {"cluster-env": {}}, "clusterLevelParams": {}}
+    )
+    Script.config["configurations"]["cluster-env"]["stack_packages"] = (
+      self._get_stack_packages_with_legacy()
+    )
+    Script.config["clusterLevelParams"] = {"stack_name": "HDP"}
 
     stack_select.select_packages(version)
 
     self.assertEqual(len(stack_select_select_mock.call_args_list), 1)
-    self.assertEqual(stack_select_select_mock.call_args_list[0][0], ("foo-legacy", version))
+    self.assertEqual(
+      stack_select_select_mock.call_args_list[0][0], ("foo-legacy", version)
+    )
 
   @staticmethod
   def _get_incomplete_cluster_simple_upgrade_json():
@@ -134,7 +161,7 @@ class TestStackSelect(TestCase):
     :return:
     """
     return {
-      "roleCommand":"ACTIONEXECUTE",
+      "roleCommand": "ACTIONEXECUTE",
       "clusterLevelParams": {
         "stack_name": "HDP",
         "stack_version": "2.4",
@@ -143,28 +170,28 @@ class TestStackSelect(TestCase):
         "source_stack": "2.4",
         "target_stack": "2.5",
         "upgrade_direction": "upgrade",
-        "version": "2.5.9.9-9999"
+        "version": "2.5.9.9-9999",
       },
       "upgradeSummary": {
-        "services":{
-          "HDFS":{
-            "sourceRepositoryId":1,
-            "sourceStackId":"HDP-2.4",
-            "sourceVersion":"2.4.0.0-1234",
-            "targetRepositoryId":2,
-            "targetStackId":"HDP-2.5",
-            "targetVersion":"2.5.9.9-9999"
+        "services": {
+          "HDFS": {
+            "sourceRepositoryId": 1,
+            "sourceStackId": "HDP-2.4",
+            "sourceVersion": "2.4.0.0-1234",
+            "targetRepositoryId": 2,
+            "targetStackId": "HDP-2.5",
+            "targetVersion": "2.5.9.9-9999",
           }
         },
-        "direction":"UPGRADE",
-        "type":"rolling_upgrade",
-        "isRevert":False,
-        "orchestration":"STANDARD",
-        "associatedStackId":"HDP-2.5",
-        "associatedVersion":"2.5.9.9-9999",
+        "direction": "UPGRADE",
+        "type": "rolling_upgrade",
+        "isRevert": False,
+        "orchestration": "STANDARD",
+        "associatedStackId": "HDP-2.5",
+        "associatedVersion": "2.5.9.9-9999",
         "isDowngradeAllowed": True,
-        "isSwitchBits": False
-      }
+        "isSwitchBits": False,
+      },
     }
 
   @staticmethod
@@ -174,7 +201,7 @@ class TestStackSelect(TestCase):
     :return:
     """
     return {
-      "roleCommand":"ACTIONEXECUTE",
+      "roleCommand": "ACTIONEXECUTE",
       "serviceName": "FOO_SERVICE",
       "role": "FOO_MASTER",
       "clusterLevelParams": {
@@ -185,80 +212,72 @@ class TestStackSelect(TestCase):
         "source_stack": "2.4",
         "target_stack": "2.5",
         "upgrade_direction": "upgrade",
-        "version": "2.5.9.9-9999"
+        "version": "2.5.9.9-9999",
       },
       "upgradeSummary": {
-        "services":{
-          "HDFS":{
-            "sourceRepositoryId":1,
-            "sourceStackId":"HDP-2.4",
-            "sourceVersion":"2.4.0.0-1234",
-            "targetRepositoryId":2,
-            "targetStackId":"HDP-2.5",
-            "targetVersion":"2.5.9.9-9999"
+        "services": {
+          "HDFS": {
+            "sourceRepositoryId": 1,
+            "sourceStackId": "HDP-2.4",
+            "sourceVersion": "2.4.0.0-1234",
+            "targetRepositoryId": 2,
+            "targetStackId": "HDP-2.5",
+            "targetVersion": "2.5.9.9-9999",
           }
         },
-        "direction":"UPGRADE",
-        "type":"rolling_upgrade",
-        "isRevert":False,
-        "orchestration":"STANDARD",
-        "associatedStackId":"HDP-2.5",
-        "associatedVersion":"2.5.9.9-9999",
+        "direction": "UPGRADE",
+        "type": "rolling_upgrade",
+        "isRevert": False,
+        "orchestration": "STANDARD",
+        "associatedStackId": "HDP-2.5",
+        "associatedVersion": "2.5.9.9-9999",
         "isDowngradeAllowed": True,
-        "isSwitchBits": False
-      }
+        "isSwitchBits": False,
+      },
     }
 
   @staticmethod
   def _get_stack_packages():
     import json
-    return json.dumps( {
-      "HDP": {
-        "stack-select": {
-          "FOO_SERVICE": {
-            "FOO_MASTER": {
-              "STACK-SELECT-PACKAGE": "foo-master",
-              "INSTALL": [
-                "foo-master",
-                "foo-client"
-              ],
-              "PATCH": [
-                "foo-master"
-              ],
-              "STANDARD": [
-                "foo-master",
-                "foo-client"
-              ]
+
+    return json.dumps(
+      {
+        "HDP": {
+          "stack-select": {
+            "FOO_SERVICE": {
+              "FOO_MASTER": {
+                "STACK-SELECT-PACKAGE": "foo-master",
+                "INSTALL": ["foo-master", "foo-client"],
+                "PATCH": ["foo-master"],
+                "STANDARD": ["foo-master", "foo-client"],
+              }
             }
           }
         }
       }
-    } )
+    )
 
   @staticmethod
   def _get_stack_packages_with_legacy():
     import json
-    return json.dumps( {
-      "HDP": {
-        "stack-select": {
-          "FOO_SERVICE": {
-            "FOO_MASTER": {
-              "LEGACY":"foo-legacy",
-              "STACK-SELECT-PACKAGE": "foo-master",
-              "INSTALL": [
-                "foo-master"
-              ],
-              "PATCH": [
-                "foo-master"
-              ],
-              "STANDARD": [
-                "foo-master"
-              ]
+
+    return json.dumps(
+      {
+        "HDP": {
+          "stack-select": {
+            "FOO_SERVICE": {
+              "FOO_MASTER": {
+                "LEGACY": "foo-legacy",
+                "STACK-SELECT-PACKAGE": "foo-master",
+                "INSTALL": ["foo-master"],
+                "PATCH": ["foo-master"],
+                "STANDARD": ["foo-master"],
+              }
             }
           }
         }
       }
-    } )
+    )
 
   @staticmethod
   def _get_supported_packages():

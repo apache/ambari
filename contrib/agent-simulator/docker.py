@@ -35,7 +35,7 @@ class Docker:
         :return: A map, which is JSON format object.
         """
         docker_json = {}
-        docker_json["weave_ip"] = "{0}/{1}".format(self.ip, self.mask)
+        docker_json["weave_ip"] = f"{self.ip}/{self.mask}"
         docker_json["weave_domain_name"] = self.weave_domain_name
         return docker_json
 

@@ -49,7 +49,7 @@ class ZypperParser(GenericParser):
     split_ch = "|"
 
     for line in stream:
-      line = ANSI_ESCAPE.sub('', line).translate(None, REMOVE_CHARS)
+      line = ANSI_ESCAPE.sub("", line).translate(None, REMOVE_CHARS)
 
       # reading second column instantly, first one is not interesting for us
       pkg_name, _, line = line.partition(split_ch)[2].partition(split_ch)
@@ -90,7 +90,7 @@ class ZypperParser(GenericParser):
 
     if skip_index:
       for line in lines[skip_index:]:
-        items = line.strip(' \t\n\r').split('|')
+        items = line.strip(" \t\n\r").split("|")
         packages.append([items[1].strip(), items[3].strip(), items[5].strip()])
 
     return packages
@@ -128,7 +128,7 @@ class ZypperParser(GenericParser):
     split_ch = "|"
 
     for line in stream:
-      line = ANSI_ESCAPE.sub('', line).translate(None, REMOVE_CHARS)
+      line = ANSI_ESCAPE.sub("", line).translate(None, REMOVE_CHARS)
       repo_seq, _, line = line.partition(split_ch)
       if not repo_seq.strip()[:1].isdigit():
         continue

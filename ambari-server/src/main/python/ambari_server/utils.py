@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,7 +16,8 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
+
 import os
 import re
 import signal
@@ -30,7 +31,7 @@ import distro
 import platform
 import xml.etree.ElementTree as ET
 
-from ambari_commons import OSConst,OSCheck
+from ambari_commons import OSConst, OSCheck
 from ambari_commons.logging_utils import print_error_msg
 from ambari_commons.exceptions import FatalException
 from ambari_commons.os_utils import get_ambari_repo_file_full_name
@@ -42,39 +43,42 @@ PG_STATUS_RUNNING_DEFAULT = "running"
 PG_HBA_ROOT_DEFAULT = "/var/lib/pgsql/data"
 PG_HBA_ROOT_DEFAULT_VERSIONED = "/var/lib/pgsql/*/data"
 
-#Environment
-ENV_PATH_DEFAULT = ['/bin', '/usr/bin', '/sbin', '/usr/sbin']  # default search path
-ENV_PATH = os.getenv('PATH', '').split(':') + ENV_PATH_DEFAULT
+# Environment
+ENV_PATH_DEFAULT = ["/bin", "/usr/bin", "/sbin", "/usr/sbin"]  # default search path
+ENV_PATH = os.getenv("PATH", "").split(":") + ENV_PATH_DEFAULT
 
-#Process
-PROC_DIR = '/proc'
-PROC_CMDLINE = 'cmdline'
-PROC_EXEC = 'exe'
+# Process
+PROC_DIR = "/proc"
+PROC_CMDLINE = "cmdline"
+PROC_EXEC = "exe"
+
 
 def get_pg_hba_init_files():
   if OSCheck.is_ubuntu_family():
-    return '/etc/postgresql'
+    return "/etc/postgresql"
   elif OSCheck.is_redhat_family():
-    return '/etc/rc.d/init.d/postgresql'
+    return "/etc/rc.d/init.d/postgresql"
   elif OSCheck.is_suse_family():
-    return '/etc/init.d/postgresql'
+    return "/etc/init.d/postgresql"
   else:
-    raise Exception("Unsupported OS family '{0}'".format(OSCheck.get_os_family()))
-
+    raise Exception(f"Unsupported OS family '{OSCheck.get_os_family()}'")
 
   # ToDo: move that function to common-functions
-def locate_file(filename, default=''):
+
+
+def locate_file(filename, default=""):
   """Locate command path according to OS environment"""
   for path in ENV_PATH:
     path = os.path.join(path, filename)
     if os.path.isfile(path):
       return path
-  if default != '':
+  if default != "":
     return os.path.join(default, filename)
   else:
     return filename
 
-def locate_all_file_paths(filename, default=''):
+
+def locate_all_file_paths(filename, default=""):
   """Locate command possible paths according to OS environment"""
   paths = []
   for path in ENV_PATH:
@@ -83,7 +87,7 @@ def locate_all_file_paths(filename, default=''):
       paths.append(path)
 
   if not paths:
-    if default != '':
+    if default != "":
       return [os.path.join(default, filename)]
     else:
       return [filename]
@@ -93,7 +97,7 @@ def locate_all_file_paths(filename, default=''):
 
 def check_exitcode(exitcode_file_path):
   """
-    Return exitcode of application, which is stored in the exitcode_file_path
+  Return exitcode of application, which is stored in the exitcode_file_path
   """
   exitcode = -1
   if os.path.isfile(exitcode_file_path):
@@ -109,11 +113,11 @@ def check_exitcode(exitcode_file_path):
 
 def save_pid(pid, pidfile):
   """
-    Save pid to pidfile.
+  Save pid to pidfile.
   """
   try:
     pfile = open(pidfile, "w")
-    pfile.write("%s\n" % pid)
+    pfile.write(f"{pid}\n")
   except IOError as e:
     logger.error("Failed to write PID to " + pidfile + " due to " + str(e))
     pass
@@ -127,12 +131,12 @@ def save_pid(pid, pidfile):
 
 def save_main_pid_ex(pids, pidfile, exclude_list=[], skip_daemonize=False):
   """
-    Saves and returns the first (and supposingly only) pid from the list of pids
-    which is not included in the exclude_list.
+  Saves and returns the first (and supposingly only) pid from the list of pids
+  which is not included in the exclude_list.
 
-    pidfile is the name of the file to save the pid to
+  pidfile is the name of the file to save the pid to
 
-    exclude_list contains list of full executable paths which should be excluded
+  exclude_list contains list of full executable paths which should be excluded
   """
   pid_saved = False
   try:
@@ -140,10 +144,14 @@ def save_main_pid_ex(pids, pidfile, exclude_list=[], skip_daemonize=False):
       pfile = open(pidfile, "w")
       for item in pids:
         if pid_exists(item["pid"]) and (item["exe"] not in exclude_list):
-          pfile.write("%s\n" % item["pid"])
+          pfile.write(f"{item['pid']}\n")
           pid_saved = item["pid"]
           logger.info("Ambari server started with PID " + str(item["pid"]))
-        if pid_exists(item["pid"]) and (item["exe"] in exclude_list) and not skip_daemonize:
+        if (
+          pid_exists(item["pid"])
+          and (item["exe"] in exclude_list)
+          and not skip_daemonize
+        ):
           try:
             os.kill(int(item["pid"]), signal.SIGKILL)
           except:
@@ -159,27 +167,28 @@ def save_main_pid_ex(pids, pidfile, exclude_list=[], skip_daemonize=False):
       pass
   return pid_saved
 
+
 def get_live_pids_count(pids):
   """
-    Check pids for existence
+  Check pids for existence
   """
   return len([pid for pid in pids if pid_exists(pid)])
 
-def wait_for_ui_start(ambari_server_ui_port, pid, timeout=1):
 
+def wait_for_ui_start(ambari_server_ui_port, pid, timeout=1):
   tstart = time.time()
-  while int(time.time()-tstart) <= timeout:
+  while int(time.time() - tstart) <= timeout:
     try:
       sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
       sock.settimeout(1)
-      sock.connect(('localhost', ambari_server_ui_port))
+      sock.connect(("localhost", ambari_server_ui_port))
       print("\nServer started listening on " + str(ambari_server_ui_port))
       return True
     except Exception as e:
-      #print str(e)
+      # print str(e)
       pass
 
-    sys.stdout.write('.')
+    sys.stdout.write(".")
     sys.stdout.flush()
     if pid_exists(pid):
       time.sleep(1)
@@ -188,41 +197,43 @@ def wait_for_ui_start(ambari_server_ui_port, pid, timeout=1):
 
   return False
 
+
 def get_symlink_path(path_to_link):
   """
-    Expand symlink to real file path
+  Expand symlink to real file path
   """
-  return os.path.normpath(os.path.join(
-    os.path.dirname(path_to_link),
-    os.readlink(path_to_link)
-  ))
+  return os.path.normpath(
+    os.path.join(os.path.dirname(path_to_link), os.readlink(path_to_link))
+  )
 
 
 def looking_for_pid(pattern, wait_time=1):
   """
-    Searching for pid according to given pattern of command line
-    during wait_time.
-    Wait time is required to give a time to process to be executed.
+  Searching for pid according to given pattern of command line
+  during wait_time.
+  Wait time is required to give a time to process to be executed.
 
-    Return list of PID Items, which match the pattern.
+  Return list of PID Items, which match the pattern.
   """
   tstart = time.time()
   found_pids = []
 
-  while int(time.time()-tstart) <= wait_time:
-    sys.stdout.write('.')
+  while int(time.time() - tstart) <= wait_time:
+    sys.stdout.write(".")
     sys.stdout.flush()
     pids = [pid for pid in os.listdir(PROC_DIR) if pid.isdigit()]
     found_pids = []  # clear list
     for pid in pids:
       try:
-        arg = open(os.path.join(PROC_DIR, pid, PROC_CMDLINE), 'rt').read()
+        arg = open(os.path.join(PROC_DIR, pid, PROC_CMDLINE), "rt").read()
         if pattern in arg:
-          found_pids += [{
-            "pid": pid,
-            "exe": get_symlink_path(os.path.join(PROC_DIR, pid, PROC_EXEC)),
-            "cmd": arg.replace('\x00', ' ').strip()
-          }]
+          found_pids += [
+            {
+              "pid": pid,
+              "exe": get_symlink_path(os.path.join(PROC_DIR, pid, PROC_EXEC)),
+              "cmd": arg.replace("\x00", " ").strip(),
+            }
+          ]
       except:
         pass
     if wait_time == 1:  # to support unit test
@@ -233,7 +244,7 @@ def looking_for_pid(pattern, wait_time=1):
 
 def pid_exists(pid):
   """
-   Check if pid is exist
+  Check if pid is exist
   """
   return os.path.exists(os.path.join(PROC_DIR, pid))
 
@@ -244,11 +255,17 @@ def get_ubuntu_pg_version():
   """
   postgre_ver = ""
 
-  if os.path.isdir(get_pg_hba_init_files()):  # detect actual installed versions of PG and select a more new one
+  if os.path.isdir(
+    get_pg_hba_init_files()
+  ):  # detect actual installed versions of PG and select a more new one
     postgre_ver = sorted(
-      [fld for fld in os.listdir(get_pg_hba_init_files()) if
-       os.path.isdir(os.path.join(get_pg_hba_init_files(), fld))],
-      reverse=True)
+      [
+        fld
+        for fld in os.listdir(get_pg_hba_init_files())
+        if os.path.isdir(os.path.join(get_pg_hba_init_files(), fld))
+      ],
+      reverse=True,
+    )
     if len(postgre_ver) > 0:
       return postgre_ver[0]
   return postgre_ver
@@ -262,23 +279,25 @@ def get_postgre_hba_dir(OS_FAMILY):
   """
   if OSCheck.is_ubuntu_family():
     # Like: /etc/postgresql/9.1/main/
-    return os.path.join(get_pg_hba_init_files(), get_ubuntu_pg_version(),
-                        "main")
-  elif glob.glob(get_pg_hba_init_files() + '*'): # this happens when the service file is of old format (not like /usr/lib/systemd/system/postgresql.service)
+    return os.path.join(get_pg_hba_init_files(), get_ubuntu_pg_version(), "main")
+  elif glob.glob(
+    get_pg_hba_init_files() + "*"
+  ):  # this happens when the service file is of old format (not like /usr/lib/systemd/system/postgresql.service)
     if not os.path.isfile(get_pg_hba_init_files()):
       # Link: /etc/init.d/postgresql --> /etc/init.d/postgresql-9.1
-      os.symlink(glob.glob(get_pg_hba_init_files() + '*')[0],
-                 get_pg_hba_init_files())
+      os.symlink(glob.glob(get_pg_hba_init_files() + "*")[0], get_pg_hba_init_files())
 
     pg_hba_init_basename = os.path.basename(get_pg_hba_init_files())
     # Get postgres_data location (default: /var/lib/pgsql/data)
-    cmd = "alias basename='echo {0}; true' ; alias exit=return; source {1} status &>/dev/null; echo $PGDATA".format(pg_hba_init_basename, get_pg_hba_init_files())
-    p = subprocess.Popen(cmd,
-                         stdout=subprocess.PIPE,
-                         stdin=subprocess.PIPE,
-                         stderr=subprocess.PIPE,
-                         shell=True,
-                         universal_newlines=True)
+    cmd = f"alias basename='echo {pg_hba_init_basename}; true' ; alias exit=return; source {get_pg_hba_init_files()} status &>/dev/null; echo $PGDATA"
+    p = subprocess.Popen(
+      cmd,
+      stdout=subprocess.PIPE,
+      stdin=subprocess.PIPE,
+      stderr=subprocess.PIPE,
+      shell=True,
+      universal_newlines=True,
+    )
     (PG_HBA_ROOT, err) = p.communicate()
 
     if PG_HBA_ROOT and len(PG_HBA_ROOT.strip()) > 0:
@@ -306,10 +325,11 @@ def compare_versions(version1, version2):
   Return -1 if version1 is older than version2
   Return 0 if two versions are the same
   """
+
   def normalize(v):
     v = str(v)
-    v = re.sub(r'^\D+', '', v)
-    v = re.sub(r'\D+$', '', v)
+    v = re.sub(r"^\D+", "", v)
+    v = re.sub(r"\D+$", "", v)
     v = v.strip(".-_")
     pos_under = v.find("_")
     pos_dash = v.find("-")
@@ -321,9 +341,11 @@ def compare_versions(version1, version2):
       pos = min(pos_under, pos_dash)
     if pos > 0:
       v = v[0:pos]
-    return [int(x) for x in re.sub(r'(\.0+)*$', '', v).split(".")]
+    return [int(x) for x in re.sub(r"(\.0+)*$", "", v).split(".")]
+
   def cmp(a, b):
     return (a > b) - (a < b)
+
   return cmp(normalize(version1), normalize(version2))
   pass
 
@@ -342,10 +364,10 @@ def check_reverse_lookup():
     pass
   return False
 
+
 def on_powerpc():
-  """ True if we are running on a Power PC platform."""
-  return platform.processor() == 'powerpc' or \
-         platform.machine().startswith('ppc')
+  """True if we are running on a Power PC platform."""
+  return platform.processor() == "powerpc" or platform.machine().startswith("ppc")
 
 
 XML_HEADER = """<?xml version="1.0"?>
@@ -370,11 +392,15 @@ XML_HEADER = """<?xml version="1.0"?>
 
 # Go though all stacks and update the repoinfo.xml files
 # replace <latest> tag with the passed url
-def update_latest_in_repoinfos_for_stacks(stacks_root, json_url_string, predicate=lambda stack_name: stack_name == 'HDP'):
+def update_latest_in_repoinfos_for_stacks(
+  stacks_root, json_url_string, predicate=lambda stack_name: stack_name == "HDP"
+):
   for stack_name in os.walk(stacks_root).next()[1]:
     if predicate(stack_name):
       for stack_version in os.walk(os.path.join(stacks_root, stack_name)).next()[1]:
-        repoinfo_xml_path = os.path.join(stacks_root, stack_name, stack_version, "repos", "repoinfo.xml")
+        repoinfo_xml_path = os.path.join(
+          stacks_root, stack_name, stack_version, "repos", "repoinfo.xml"
+        )
         if os.path.exists(repoinfo_xml_path):
           replace_latest(repoinfo_xml_path, json_url_string)
 
@@ -396,7 +422,7 @@ def replace_latest(repoinfo_xml_path, json_url_string):
 def get_json_url_from_repo_file():
   repo_file_path = get_ambari_repo_file_full_name()
   if os.path.exists(repo_file_path):
-    with open(repo_file_path, 'r') as repo_file:
+    with open(repo_file_path, "r") as repo_file:
       for line in repo_file:
         line = line.rstrip()
         if "json.url" in line:

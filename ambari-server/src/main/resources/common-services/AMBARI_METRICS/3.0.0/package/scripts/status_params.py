@@ -28,18 +28,22 @@ if OSCheck.is_windows_family():
 else:
   from params_linux import *
 
-hbase_pid_dir = config['configurations']['ams-hbase-env']['hbase_pid_dir']
+hbase_pid_dir = config["configurations"]["ams-hbase-env"]["hbase_pid_dir"]
 hbase_user = ams_user
-ams_collector_pid_dir = config['configurations']['ams-env']['metrics_collector_pid_dir']
-ams_monitor_pid_dir = config['configurations']['ams-env']['metrics_monitor_pid_dir']
-ams_grafana_pid_dir = config['configurations']['ams-grafana-env']['metrics_grafana_pid_dir']
+ams_collector_pid_dir = config["configurations"]["ams-env"]["metrics_collector_pid_dir"]
+ams_monitor_pid_dir = config["configurations"]["ams-env"]["metrics_monitor_pid_dir"]
+ams_grafana_pid_dir = config["configurations"]["ams-grafana-env"][
+  "metrics_grafana_pid_dir"
+]
 
 monitor_pid_file = format("{ams_monitor_pid_dir}/ambari-metrics-monitor.pid")
 grafana_pid_file = format("{ams_grafana_pid_dir}/grafana-server.pid")
 
-security_enabled = config['configurations']['cluster-env']['security_enabled']
+security_enabled = config["configurations"]["cluster-env"]["security_enabled"]
 ams_hbase_conf_dir = format("{hbase_conf_dir}")
 
-kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
-hostname = config['agentLevelParams']['hostname']
+kinit_path_local = functions.get_kinit_path(
+  default("/configurations/kerberos-env/executable_search_paths", None)
+)
+hostname = config["agentLevelParams"]["hostname"]
 tmp_dir = Script.get_tmp_dir()

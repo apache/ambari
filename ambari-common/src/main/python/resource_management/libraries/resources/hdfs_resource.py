@@ -21,7 +21,12 @@ Ambari Agent
 """
 
 _all__ = ["HdfsResource"]
-from resource_management.core.base import Resource, ForcedListArgument, ResourceArgument, BooleanArgument
+from resource_management.core.base import (
+  Resource,
+  ForcedListArgument,
+  ResourceArgument,
+  BooleanArgument,
+)
 
 """
 Calling a lot of hadoop commands takes too much time.
@@ -76,7 +81,7 @@ class HdfsResource(Resource):
   user = ResourceArgument()
   hadoop_bin_dir = ResourceArgument()
   hadoop_conf_dir = ResourceArgument()
-  
+
   """
   Path to file which contains '\n'-separated list of hdfs resources, which should not
   be managed. (simply any action to be skipped on it)
@@ -106,6 +111,11 @@ class HdfsResource(Resource):
   # default None - means all nameservices
   nameservices = ResourceArgument()
 
-  #action 'execute' immediately performs all pending actions in an efficient manner
-  #action 'create_on_execute/delete_on_execute/download_on_execute' adds to the list of pending actions
-  actions = Resource.actions + ["create_on_execute", "delete_on_execute", "download_on_execute", "execute"]
+  # action 'execute' immediately performs all pending actions in an efficient manner
+  # action 'create_on_execute/delete_on_execute/download_on_execute' adds to the list of pending actions
+  actions = Resource.actions + [
+    "create_on_execute",
+    "delete_on_execute",
+    "download_on_execute",
+    "execute",
+  ]

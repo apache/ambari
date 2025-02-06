@@ -68,7 +68,7 @@ def _check_nodemanager_startup():
   yarn_output = yarn_output.lower()
 
   if hostname in yarn_output or nodemanager_address in yarn_output or hostname_ip in yarn_output:
-    Logger.info('NodeManager with ID \'{0}\' has rejoined the cluster.'.format(nodemanager_address))
+    Logger.info(f'NodeManager with ID \'{nodemanager_address}\' has rejoined the cluster.')
     return
   else:
-    raise Fail('NodeManager with ID \'{0}\' was not found in the list of running NodeManagers. \'{1}\' output was:\n{2}'.format(nodemanager_address, command, yarn_output))
+    raise Fail(f'NodeManager with ID \'{nodemanager_address}\' was not found in the list of running NodeManagers. \'{command}\' output was:\n{yarn_output}')

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,7 +16,8 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
+
 import hashlib
 
 import os, sys
@@ -28,43 +29,43 @@ import pprint
 class KeeperException(Exception):
   pass
 
-class ResourceFilesKeeper():
+
+class ResourceFilesKeeper:
   """
   This class encapsulates all utility methods for resource files maintenance.
   """
 
-  STACK_HOOKS_DIR= "stack-hooks"
-  PACKAGE_DIR="package"
-  STACKS_DIR="stacks"
-  COMMON_SERVICES_DIR="common-services"
-  CUSTOM_ACTIONS_DIR="custom_actions"
-  HOST_SCRIPTS_DIR="host_scripts"
-  DASHBOARDS_DIR="dashboards"
-  EXTENSIONS_DIR="extensions"
+  STACK_HOOKS_DIR = "stack-hooks"
+  PACKAGE_DIR = "package"
+  STACKS_DIR = "stacks"
+  COMMON_SERVICES_DIR = "common-services"
+  CUSTOM_ACTIONS_DIR = "custom_actions"
+  HOST_SCRIPTS_DIR = "host_scripts"
+  DASHBOARDS_DIR = "dashboards"
+  EXTENSIONS_DIR = "extensions"
 
   # For these directories archives are created
   ARCHIVABLE_DIRS = [PACKAGE_DIR]
 
-  HASH_SUM_FILE=".hash"
-  ARCHIVE_NAME="archive.zip"
+  HASH_SUM_FILE = ".hash"
+  ARCHIVE_NAME = "archive.zip"
 
-  PYC_EXT=".pyc"
+  PYC_EXT = ".pyc"
   METAINFO_XML = "metainfo.xml"
 
   BUFFER = 1024 * 32
 
   # Change that to True to see debug output at stderr
-  DEBUG=False
+  DEBUG = False
 
   def __init__(self, resources_dir, stacks_dir, verbose=False, nozip=False):
     """
-      nozip = create only hash files and skip creating zip archives
+    nozip = create only hash files and skip creating zip archives
     """
     self.resources_dir = resources_dir
     self.stacks_root = stacks_dir
     self.verbose = verbose
     self.nozip = nozip
-
 
   def perform_housekeeping(self):
     """
@@ -72,7 +73,6 @@ class ResourceFilesKeeper():
     """
     self.update_directory_archives()
     # probably, later we will need some additional operations
-
 
   def _iter_update_directory_archive(self, subdirs_list):
     for subdir in subdirs_list:
@@ -84,7 +84,7 @@ class ResourceFilesKeeper():
 
   def _update_resources_subdir_archive(self, subdir):
     archive_root = os.path.join(self.resources_dir, subdir)
-    self.dbg_out("Updating archive for {0} dir at {1}...".format(subdir, archive_root))
+    self.dbg_out(f"Updating archive for {subdir} dir at {archive_root}...")
 
     # update the directories so that the .hash is generated
     self.update_directory_archive(archive_root)
@@ -94,25 +94,27 @@ class ResourceFilesKeeper():
     Please see AMBARI-4481 for more details
     """
     # archive stacks
-    self.dbg_out("Updating archives for stack dirs at {0}...".format(self.stacks_root))
+    self.dbg_out(f"Updating archives for stack dirs at {self.stacks_root}...")
     valid_stacks = self.list_stacks(self.stacks_root)
-    self.dbg_out("Stacks: {0}".format(pprint.pformat(valid_stacks)))
+    self.dbg_out(f"Stacks: {pprint.pformat(valid_stacks)}")
     # Iterate over stack directories
     self._iter_update_directory_archive(valid_stacks)
 
     # archive common services
     common_services_root = os.path.join(self.resources_dir, self.COMMON_SERVICES_DIR)
-    self.dbg_out("Updating archives for common services dirs at {0}...".format(common_services_root))
+    self.dbg_out(
+      f"Updating archives for common services dirs at {common_services_root}..."
+    )
     valid_common_services = self.list_common_services(common_services_root)
-    self.dbg_out("Common Services: {0}".format(pprint.pformat(valid_common_services)))
+    self.dbg_out(f"Common Services: {pprint.pformat(valid_common_services)}")
     # Iterate over common services directories
     self._iter_update_directory_archive(valid_common_services)
 
     # archive extensions
     extensions_root = os.path.join(self.resources_dir, self.EXTENSIONS_DIR)
-    self.dbg_out("Updating archives for extensions dirs at {0}...".format(extensions_root))
+    self.dbg_out(f"Updating archives for extensions dirs at {extensions_root}...")
     valid_extensions = self.list_extensions(extensions_root)
-    self.dbg_out("Extensions: {0}".format(pprint.pformat(valid_extensions)))
+    self.dbg_out(f"Extensions: {pprint.pformat(valid_extensions)}")
     # Iterate over extension directories
     self._iter_update_directory_archive(valid_extensions)
 
@@ -128,10 +130,9 @@ class ResourceFilesKeeper():
     # custom service dashboards
     self._update_resources_subdir_archive(self.DASHBOARDS_DIR)
 
-
   def _list_metainfo_dirs(self, root_dir):
     valid_items = []  # Format: <stack_dir, ignore(True|False)>
-    glob_pattern = "{0}/*/*".format(root_dir)
+    glob_pattern = f"{root_dir}/*/*"
     dirs = glob.glob(glob_pattern)
     for directory in dirs:
       metainfo_file = os.path.join(directory, self.METAINFO_XML)
@@ -146,7 +147,7 @@ class ResourceFilesKeeper():
     try:
       return self._list_metainfo_dirs(root_dir)
     except Exception as err:
-      raise KeeperException("Can not list stacks: {0}".format(str(err)))
+      raise KeeperException(f"Can not list stacks: {str(err)}")
 
   def list_common_services(self, root_dir):
     """
@@ -155,7 +156,7 @@ class ResourceFilesKeeper():
     try:
       return self._list_metainfo_dirs(root_dir)
     except Exception as err:
-      raise KeeperException("Can not list common services: {0}".format(str(err)))
+      raise KeeperException(f"Can not list common services: {str(err)}")
 
   def list_extensions(self, root_dir):
     """
@@ -164,7 +165,7 @@ class ResourceFilesKeeper():
     try:
       return self._list_metainfo_dirs(root_dir)
     except Exception as err:
-      raise KeeperException("Can not list extensions: {0}".format(str(err)))
+      raise KeeperException(f"Can not list extensions: {str(err)}")
 
   def update_directory_archive(self, directory):
     """
@@ -184,8 +185,12 @@ class ResourceFilesKeeper():
       if not self.nozip:
         self.zip_directory(directory, skip_empty_directory)
       # Skip generation of .hash file is directory is empty
-      if (skip_empty_directory and (not os.path.exists(directory) or not os.listdir(directory))):
-        self.dbg_out("Empty directory. Skipping generation of hash file for {0}".format(directory))
+      if skip_empty_directory and (
+        not os.path.exists(directory) or not os.listdir(directory)
+      ):
+        self.dbg_out(
+          f"Empty directory. Skipping generation of hash file for {directory}"
+        )
       else:
         self.write_hash_sum(directory, cur_hash)
       pass
@@ -209,8 +214,8 @@ class ResourceFilesKeeper():
             file_list.append(full_path)
       file_list.sort()
       for path in file_list:
-        self.dbg_out("Counting hash of {0}".format(path))
-        with open(path, 'rb') as fh:
+        self.dbg_out(f"Counting hash of {path}")
+        with open(path, "rb") as fh:
           while True:
             data = fh.read(self.BUFFER)
             if not data:
@@ -218,9 +223,7 @@ class ResourceFilesKeeper():
             sha1.update(data)
       return sha1.hexdigest()
     except Exception as err:
-      raise KeeperException("Can not calculate directory "
-                            "hash: {0}".format(str(err)))
-
+      raise KeeperException(f"Can not calculate directory hash: {str(err)}")
 
   def read_hash_sum(self, directory):
     """
@@ -233,11 +236,9 @@ class ResourceFilesKeeper():
         with open(hash_file) as fh:
           return fh.readline().strip()
       except Exception as err:
-        raise KeeperException("Can not read file {0} : {1}".format(hash_file,
-                                                                   str(err)))
+        raise KeeperException(f"Can not read file {hash_file} : {str(err)}")
     else:
       return None
-
 
   def write_hash_sum(self, directory, new_hash):
     """
@@ -250,19 +251,18 @@ class ResourceFilesKeeper():
         fh.write(new_hash)
       os.chmod(hash_file, 0o644)
     except Exception as err:
-      raise KeeperException("Can not write to file {0} : {1}".format(hash_file,
-                                                                   str(err)))
+      raise KeeperException(f"Can not write to file {hash_file} : {str(err)}")
 
-  def zip_directory(self, directory, skip_if_empty = False):
+  def zip_directory(self, directory, skip_if_empty=False):
     """
     Packs entire directory into zip file. Hash file is also packaged
     into archive
     """
-    self.dbg_out("creating archive for directory {0}".format(directory))
+    self.dbg_out(f"creating archive for directory {directory}")
     try:
       if skip_if_empty:
         if not os.path.exists(directory) or not os.listdir(directory):
-          self.dbg_out("Empty directory. Skipping archive creation for {0}".format(directory))
+          self.dbg_out(f"Empty directory. Skipping archive creation for {directory}")
           return
 
       zip_file_path = os.path.join(directory, self.ARCHIVE_NAME)
@@ -273,28 +273,27 @@ class ResourceFilesKeeper():
           # Avoid zipping previous archive and hash file and binary pyc files
           if not self.is_ignored(filename):
             absname = os.path.abspath(os.path.join(root, filename))
-            arcname = absname[len(abs_src) + 1:]
-            self.dbg_out('zipping %s as %s' % (os.path.join(root, filename),
-                                        arcname))
+            arcname = absname[len(abs_src) + 1 :]
+            self.dbg_out(f"zipping {os.path.join(root, filename)} as {arcname}")
             zf.write(absname, arcname)
       zf.close()
       os.chmod(zip_file_path, 0o755)
     except Exception as err:
-      raise KeeperException("Can not create zip archive of "
-                            "directory {0} : {1}".format(directory, str(err)))
-
+      raise KeeperException(
+        f"Can not create zip archive of directory {directory} : {str(err)}"
+      )
 
   def is_ignored(self, filename):
     """
     returns True if filename is ignored when calculating hashing or archiving
     """
-    return filename in [self.HASH_SUM_FILE, self.ARCHIVE_NAME] or \
-           filename.endswith(self.PYC_EXT)
-
+    return filename in [self.HASH_SUM_FILE, self.ARCHIVE_NAME] or filename.endswith(
+      self.PYC_EXT
+    )
 
   def dbg_out(self, text):
     if self.DEBUG:
-      sys.stderr.write("{0}\n".format(text))
+      sys.stderr.write(f"{text}\n")
     if not self.DEBUG and self.verbose:
       print(text)
 
@@ -316,5 +315,5 @@ def main(argv=None):
   resource_files_keeper.perform_housekeeping()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
   main(sys.argv)

@@ -29,7 +29,9 @@ from resource_management.core.logger import Logger
 from resource_management.core.resources.zkmigrator import ZkMigrator
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import StackFeature
-from resource_management.libraries.functions.check_process_status import check_process_status
+from resource_management.libraries.functions.check_process_status import (
+  check_process_status,
+)
 from resource_management.libraries.functions.copy_tarball import copy_to_hdfs
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.script.script import Script
@@ -41,20 +43,22 @@ class HiveServer(Script):
 
   def configure(self, env):
     import params
+
     env.set_params(params)
-    hive(name='hiveserver2')
+    hive(name="hiveserver2")
 
   def start(self, env, upgrade_type=None):
     import params
+
     env.set_params(params)
-    self.configure(env) # FOR SECURITY
+    self.configure(env)  # FOR SECURITY
 
     setup_ranger_hive(upgrade_type=upgrade_type)
-    hive_service('hiveserver2', action = 'start', upgrade_type=upgrade_type)
-
+    hive_service("hiveserver2", action="start", upgrade_type=upgrade_type)
 
   def stop(self, env, upgrade_type=None):
     import params
+
     env.set_params(params)
 
     # always de-register the old hive instance so that ZK can route clients
@@ -68,54 +72,72 @@ class HiveServer(Script):
     # even during rolling upgrades, Hive Server will be stopped - this is because Ambari will
     # not support the "port-change/deregister" workflow as it would impact Hive clients
     # which do not use ZK discovery.
-    hive_service( 'hiveserver2', action = 'stop' )
-
+    hive_service("hiveserver2", action="stop")
 
   def status(self, env):
     import status_params
+
     env.set_params(status_params)
 
     # Recursively check all existing gmetad pid files
     check_process_status(status_params.hive_pid)
 
-
   def pre_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing Hive Server Stack Upgrade pre-restart")
     import params
+
     env.set_params(params)
 
-    if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
+    if params.version and check_stack_feature(
+      StackFeature.ROLLING_UPGRADE, params.version
+    ):
       stack_select.select_packages(params.version)
 
   def _base_node(self, path):
-    if not path.startswith('/'):
-      path = '/' + path
+    if not path.startswith("/"):
+      path = "/" + path
     try:
-      return '/' + path.split('/')[1]
+      return "/" + path.split("/")[1]
     except IndexError:
       return path
 
   def disable_security(self, env):
     import params
-    zkmigrator = ZkMigrator(params.hive_zookeeper_quorum, params.java_exec, params.java64_home, params.jaas_file, params.hive_user)
+
+    zkmigrator = ZkMigrator(
+      params.hive_zookeeper_quorum,
+      params.java_exec,
+      params.java64_home,
+      params.jaas_file,
+      params.hive_user,
+    )
     if params.hive_cluster_token_zkstore:
-      zkmigrator.set_acls(self._base_node(params.hive_cluster_token_zkstore), 'world:anyone:crdwa')
+      zkmigrator.set_acls(
+        self._base_node(params.hive_cluster_token_zkstore), "world:anyone:crdwa"
+      )
     if params.hive_zk_namespace:
       zkmigrator.set_acls(
-        params.hive_zk_namespace if params.hive_zk_namespace.startswith('/') else '/' + params.hive_zk_namespace,
-        'world:anyone:crdwa')
+        params.hive_zk_namespace
+        if params.hive_zk_namespace.startswith("/")
+        else "/" + params.hive_zk_namespace,
+        "world:anyone:crdwa",
+      )
 
   def get_log_folder(self):
     import params
+
     return params.hive_log_dir
-  
+
   def get_user(self):
     import params
+
     return params.hive_user
 
   def get_pid_files(self):
     import status_params
+
     return [status_params.hive_pid]
+
 
 if __name__ == "__main__":
   HiveServer().execute()

@@ -29,13 +29,14 @@ class KmsServiceCheck(Script):
     import params
 
     env.set_params(params)
-    cmd = 'ps -ef | grep proc_rangerkms | grep -v grep'
+    cmd = "ps -ef | grep proc_rangerkms | grep -v grep"
     code, output = shell.call(cmd, timeout=20)
     if code == 0:
-      Logger.info('KMS process up and running')
+      Logger.info("KMS process up and running")
     else:
-      Logger.debug('KMS process not running')
+      Logger.debug("KMS process not running")
       raise ComponentIsNotRunning()
+
 
 if __name__ == "__main__":
   KmsServiceCheck().execute()

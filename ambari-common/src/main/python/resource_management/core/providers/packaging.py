@@ -16,6 +16,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 from ambari_commons.shell import RepoCallContext
 from resource_management import Provider
 from ambari_commons.repo_manager import ManagerFactory
@@ -46,16 +47,17 @@ class PackageProvider(Provider):
       ignore_errors=self.resource.ignore_failures,
       use_repos=self.resource.use_repos,
       skip_repos=self.resource.skip_repos,
-      log_output=True if self.resource.logoutput is None or self.resource.logoutput is True else False,
+      log_output=True
+      if self.resource.logoutput is None or self.resource.logoutput is True
+      else False,
       retry_count=self.resource.retry_count,
       retry_sleep=self.resource.retry_sleep,
       retry_on_repo_unavailability=self.resource.retry_on_repo_unavailability,
-      retry_on_locked=self.resource.retry_on_locked
+      retry_on_locked=self.resource.retry_on_locked,
     )
 
   def get_package_name_with_version(self):
     if self.resource.version:
-      return self.resource.package_name + '-' + self.resource.version
+      return self.resource.package_name + "-" + self.resource.version
     else:
       return self.resource.package_name
-

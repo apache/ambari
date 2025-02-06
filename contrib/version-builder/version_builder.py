@@ -157,7 +157,7 @@ class VersionBuilder:
 
     service_element = self.findByAttributeValue(manifest_element, "./service", "id", manifest_id)
     if service_element is None:
-      raise Exception("Cannot add an available service for {0}; it's not on the manifest".format(manifest_id))
+      raise Exception(f"Cannot add an available service for {manifest_id}; it's not on the manifest")
 
     available_element = self.root_element.find("./available-services")
     if available_element is None:
@@ -191,7 +191,7 @@ class VersionBuilder:
       os_element.set('family', os_family)
 
     if self.useNewSyntax():
-      repo_element = os_element.find("./repo/[reponame='{0}']".format(repo_name))
+      repo_element = os_element.find(f"./repo/[reponame='{repo_name}']")
     else:
       repo_element = self.findByValue(os_element, "./repo/reponame", repo_name)
 
@@ -236,15 +236,15 @@ class VersionBuilder:
 
   def findByAttributeValue(self, root, element, attribute, value):
     if self.useNewSyntax():
-      return root.find("./{0}[@{1}='{2}']".format(element, attribute, value))
+      return root.find(f"./{element}[@{attribute}='{value}']")
     else:
-      for node in root.findall("{0}".format(element)):
+      for node in root.findall(f"{element}"):
         if node.attrib[attribute] == value:
           return node
       return None;
   
   def findByValue(self, root, element, value):
-    for node in root.findall("{0}".format(element)):
+    for node in root.findall(f"{element}"):
       if node.text == value:
         return node
     return None

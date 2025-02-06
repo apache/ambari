@@ -41,29 +41,44 @@ hadoop_home = os.environ["HADOOP_HOME"]
 yarn_home = os.environ["HADOOP_YARN_HOME"]
 
 hadoop_ssl_enabled = default("/configurations/core-site/hadoop.ssl.enabled", False)
-_authentication = config['configurations']['core-site']['hadoop.security.authentication']
-security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
-smoke_user_keytab = config['configurations']['hadoop-env']['smokeuser_keytab']
-kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
-rm_host = config['clusterHostInfo']['resourcemanager_hosts'][0]
-rm_port = config['configurations']['yarn-site']['yarn.resourcemanager.webapp.address'].split(':')[-1]
+_authentication = config["configurations"]["core-site"][
+  "hadoop.security.authentication"
+]
+security_enabled = not is_empty(_authentication) and _authentication == "kerberos"
+smoke_user_keytab = config["configurations"]["hadoop-env"]["smokeuser_keytab"]
+kinit_path_local = functions.get_kinit_path(
+  default("/configurations/kerberos-env/executable_search_paths", None)
+)
+rm_host = config["clusterHostInfo"]["resourcemanager_hosts"][0]
+rm_port = config["configurations"]["yarn-site"][
+  "yarn.resourcemanager.webapp.address"
+].split(":")[-1]
 rm_https_port = "8090"
 rm_webui_address = format("{rm_host}:{rm_port}")
 rm_webui_https_address = format("{rm_host}:{rm_https_port}")
 
-hs_host = config['clusterHostInfo']['historyserver_hosts'][0]
-hs_port = config['configurations']['mapred-site']['mapreduce.jobhistory.webapp.address'].split(':')[-1]
+hs_host = config["clusterHostInfo"]["historyserver_hosts"][0]
+hs_port = config["configurations"]["mapred-site"][
+  "mapreduce.jobhistory.webapp.address"
+].split(":")[-1]
 hs_webui_address = format("{hs_host}:{hs_port}")
 
-hadoop_mapred2_jar_location = os.path.join(os.environ["HADOOP_COMMON_HOME"], "share", "hadoop", "mapreduce")
+hadoop_mapred2_jar_location = os.path.join(
+  os.environ["HADOOP_COMMON_HOME"], "share", "hadoop", "mapreduce"
+)
 hadoopMapredExamplesJarName = "hadoop-mapreduce-examples-3.*.jar"
 
 exclude_hosts = default("/clusterHostInfo/decom_nm_hosts", [])
-exclude_file_path = default("/configurations/yarn-site/yarn.resourcemanager.nodes.exclude-path","/etc/hadoop/conf/yarn.exclude")
+exclude_file_path = default(
+  "/configurations/yarn-site/yarn.resourcemanager.nodes.exclude-path",
+  "/etc/hadoop/conf/yarn.exclude",
+)
 
 nm_hosts = default("/clusterHostInfo/nm_hosts", [])
-#incude file
-include_file_path = default("/configurations/yarn-site/yarn.resourcemanager.nodes.include-path", None)
+# incude file
+include_file_path = default(
+  "/configurations/yarn-site/yarn.resourcemanager.nodes.include-path", None
+)
 include_hosts = None
 manage_include_files = default("/configurations/yarn-site/manage.include.files", False)
 if include_file_path and manage_include_files:

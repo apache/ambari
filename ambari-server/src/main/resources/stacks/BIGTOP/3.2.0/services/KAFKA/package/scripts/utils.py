@@ -17,22 +17,24 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+
 import re
 
+
 def get_bare_principal(normalized_principal_name):
-    """
-    Given a normalized principal name (nimbus/c6501.ambari.apache.org@EXAMPLE.COM) returns just the
-    primary component (nimbus)
-    :param normalized_principal_name: a string containing the principal name to process
-    :return: a string containing the primary component value or None if not valid
-    """
+  """
+  Given a normalized principal name (nimbus/c6501.ambari.apache.org@EXAMPLE.COM) returns just the
+  primary component (nimbus)
+  :param normalized_principal_name: a string containing the principal name to process
+  :return: a string containing the primary component value or None if not valid
+  """
 
-    bare_principal = None
+  bare_principal = None
 
-    if normalized_principal_name:
-        match = re.match(r"([^/@]+)(?:/[^@])?(?:@.*)?", normalized_principal_name)
+  if normalized_principal_name:
+    match = re.match(r"([^/@]+)(?:/[^@])?(?:@.*)?", normalized_principal_name)
 
-    if match:
-        bare_principal = match.group(1)
+  if match:
+    bare_principal = match.group(1)
 
-    return bare_principal
+  return bare_principal

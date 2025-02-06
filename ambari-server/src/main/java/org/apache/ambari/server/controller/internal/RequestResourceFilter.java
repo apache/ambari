@@ -21,8 +21,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.ambari.server.controller.ApiModel;
-import org.codehaus.jackson.annotate.JsonProperty;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class RequestResourceFilter implements ApiModel {
   private String serviceName;
@@ -41,19 +42,19 @@ public class RequestResourceFilter implements ApiModel {
     }
   }
 
-  @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+  @JsonInclude(JsonInclude.Include.NON_NULL)
   @JsonProperty("service_name")
   public String getServiceName() {
     return serviceName;
   }
 
-  @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+  @JsonInclude(JsonInclude.Include.NON_EMPTY)
   @JsonProperty("component_name")
   public String getComponentName() {
     return componentName;
   }
 
-  @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+  @JsonInclude(JsonInclude.Include.NON_EMPTY)
   @JsonProperty("hosts")
   public List<String> getHostNames() {
     return hostNames;

@@ -23,6 +23,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class ClusterConfigurationCache(ClusterCache):
   """
   Maintains an in-memory cache and disk cache of the configurations for
@@ -39,4 +40,4 @@ class ClusterConfigurationCache(ClusterCache):
     super(ClusterConfigurationCache, self).__init__(cluster_cache_dir)
 
   def get_cache_name(self):
-    return 'configurations'
+    return "configurations"

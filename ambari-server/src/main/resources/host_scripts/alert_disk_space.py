@@ -25,7 +25,7 @@ from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
 from resource_management.libraries.functions import stack_tools
 
-DiskInfo = collections.namedtuple('DiskInfo', 'total used free path')
+DiskInfo = collections.namedtuple("DiskInfo", "total used free path")
 
 # script parameter keys
 MIN_FREE_SPACE_KEY = "minimum.free.space"
@@ -37,8 +37,9 @@ MIN_FREE_SPACE_DEFAULT = 5000000000
 PERCENT_USED_WARNING_DEFAULT = 50
 PERCENT_USED_CRITICAL_DEFAULT = 80
 
-STACK_NAME = '{{cluster-env/stack_name}}'
-STACK_ROOT = '{{cluster-env/stack_root}}'
+STACK_NAME = "{{cluster-env/stack_name}}"
+STACK_ROOT = "{{cluster-env/stack_root}}"
+
 
 def get_tokens():
   """
@@ -64,24 +65,28 @@ def execute(configurations={}, parameters={}, host_name=None):
   """
 
   if configurations is None:
-    return (('UNKNOWN', ['There were no configurations supplied to the script.']))
+    return ("UNKNOWN", ["There were no configurations supplied to the script."])
 
   if not STACK_NAME in configurations or not STACK_ROOT in configurations:
-    return (('UNKNOWN', ['cluster-env/stack_name and cluster-env/stack_root are required']))
+    return (
+      "UNKNOWN",
+      ["cluster-env/stack_name and cluster-env/stack_root are required"],
+    )
 
-  path = stack_tools.get_stack_root(configurations[STACK_NAME], configurations[STACK_ROOT])
+  path = stack_tools.get_stack_root(
+    configurations[STACK_NAME], configurations[STACK_ROOT]
+  )
 
   try:
     disk_usage = _get_disk_usage(path)
     result_code, label = _get_warnings_for_partition(parameters, disk_usage)
   except NotImplementedError as platform_error:
-    return 'CRITICAL', [str(platform_error)]
+    return "CRITICAL", [str(platform_error)]
 
   return result_code, [label]
 
 
 def _get_warnings_for_partition(parameters, disk_usage):
-
   # start with hard coded defaults
   min_free_space = MIN_FREE_SPACE_DEFAULT
   warning_percent = PERCENT_USED_WARNING_DEFAULT
@@ -98,29 +103,28 @@ def _get_warnings_for_partition(parameters, disk_usage):
   if PERCENT_USED_CRITICAL_KEY in parameters:
     critical_percent = float(parameters[PERCENT_USED_CRITICAL_KEY])
 
-
   if disk_usage is None or disk_usage.total == 0:
-    return 'CRITICAL', ['Unable to determine the disk usage']
+    return "CRITICAL", ["Unable to determine the disk usage"]
 
-  result_code = 'OK'
+  result_code = "OK"
   percent = disk_usage.used / float(disk_usage.total) * 100
   if percent > critical_percent:
-    result_code = 'CRITICAL'
+    result_code = "CRITICAL"
   elif percent > warning_percent:
-    result_code = 'WARNING'
+    result_code = "WARNING"
 
-  label = 'Capacity Used: [{0:.2f}%, {1}], Capacity Total: [{2}]'.format(
-    percent, _get_formatted_size(disk_usage.used),
-    _get_formatted_size(disk_usage.total))
+  label = "Capacity Used: [{0:.2f}%, {1}], Capacity Total: [{2}]".format(
+    percent, _get_formatted_size(disk_usage.used), _get_formatted_size(disk_usage.total)
+  )
 
   if disk_usage.path is not None:
     label += ", path=" + disk_usage.path
 
-  if result_code == 'OK':
+  if result_code == "OK":
     # Check absolute disk space value
     if disk_usage.free < min_free_space:
-      result_code = 'WARNING'
-      label += '. Total free space is less than {0}'.format(_get_formatted_size(min_free_space))
+      result_code = "WARNING"
+      label += f". Total free space is less than {_get_formatted_size(min_free_space)}"
 
   return result_code, label
 
@@ -140,12 +144,12 @@ def execute(configurations={}, parameters={}, host_name=None):
     disk_usage = _get_disk_usage()
     result = _get_warnings_for_partition(parameters, disk_usage)
   except NotImplementedError as platform_error:
-    result = ('CRITICAL', [str(platform_error)])
+    result = ("CRITICAL", [str(platform_error)])
   return result
 
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
-def _get_disk_usage(path='/'):
+def _get_disk_usage(path="/"):
   """
   returns a named tuple that contains the total, used, and free disk space
   in bytes. Linux implementation.
@@ -154,13 +158,15 @@ def _get_disk_usage(path='/'):
   total = 0
   free = 0
 
-  if 'statvfs' in dir(os):
+  if "statvfs" in dir(os):
     disk_stats = os.statvfs(path)
     free = disk_stats.f_bavail * disk_stats.f_frsize
     total = disk_stats.f_blocks * disk_stats.f_frsize
     used = (disk_stats.f_blocks - disk_stats.f_bfree) * disk_stats.f_frsize
   else:
-    raise NotImplementedError("{0} is not a supported platform for this alert".format(platform.platform()))
+    raise NotImplementedError(
+      f"{platform.platform()} is not a supported platform for this alert"
+    )
 
   return DiskInfo(total=total, used=used, free=free, path=path)
 
@@ -186,9 +192,12 @@ def _get_disk_usage(path=None):
   for drive in drives:
     free_bytes = ctypes.c_ulonglong(0)
     total_bytes = ctypes.c_ulonglong(0)
-    ctypes.windll.kernel32.GetDiskFreeSpaceExW(ctypes.c_wchar_p(drive + ":\\"),
-                                               None, ctypes.pointer(total_bytes),
-                                               ctypes.pointer(free_bytes))
+    ctypes.windll.kernel32.GetDiskFreeSpaceExW(
+      ctypes.c_wchar_p(drive + ":\\"),
+      None,
+      ctypes.pointer(total_bytes),
+      ctypes.pointer(free_bytes),
+    )
     total += total_bytes.value
     free += free_bytes.value
     used += total_bytes.value - free_bytes.value
@@ -198,18 +207,19 @@ def _get_disk_usage(path=None):
 
 def _get_formatted_size(bytes):
   """
-  formats the supplied bytes 
+  formats the supplied bytes
   """
   if bytes < 1000:
-    return '%i' % bytes + ' B'
+    return "%i" % bytes + " B"
   elif 1000 <= bytes < 1000000:
-    return '%.1f' % (bytes / 1000.0) + ' KB'
+    return f"{bytes / 1000.0:.1f}" + " KB"
   elif 1000000 <= bytes < 1000000000:
-    return '%.1f' % (bytes / 1000000.0) + ' MB'
+    return f"{bytes / 1000000.0:.1f}" + " MB"
   elif 1000000000 <= bytes < 1000000000000:
-    return '%.1f' % (bytes / 1000000000.0) + ' GB'
+    return f"{bytes / 1000000000.0:.1f}" + " GB"
   else:
-    return '%.1f' % (bytes / 1000000000000.0) + ' TB'
+    return f"{bytes / 1000000000000.0:.1f}" + " TB"
 
-if __name__ == '__main__':
-    print(_get_disk_usage(os.getcwd()))
+
+if __name__ == "__main__":
+  print(_get_disk_usage(os.getcwd()))

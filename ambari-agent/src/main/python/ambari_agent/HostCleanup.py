@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,10 +16,12 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
+
 # For compatibility with different OSes
 # Edit PYTHONPATH to be able to import common_functions
 import sys
+
 sys.path.append("/usr/lib/ambari-agent/lib/")
 ########################################################
 
@@ -51,7 +53,7 @@ GROUP_ERASE_CMD = "groupdel {0}"
 PROC_KILL_CMD = "kill -9 {0}"
 ALT_DISP_CMD = "alternatives --display {0}"
 ALT_ERASE_CMD = "alternatives --remove {0} {1}"
-RUN_HOST_CHECKS_CMD = '/var/lib/ambari-agent/cache/custom_actions/scripts/check_host.py ACTIONEXECUTE {0} /var/lib/ambari-agent/cache/custom_actions {1} INFO {2}'
+RUN_HOST_CHECKS_CMD = "/var/lib/ambari-agent/cache/custom_actions/scripts/check_host.py ACTIONEXECUTE {0} /var/lib/ambari-agent/cache/custom_actions {1} INFO {2}"
 
 REPO_PATH_RHEL = "/etc/yum.repos.d"
 REPO_PATH_SUSE = "/etc/zypp/repos.d/"
@@ -73,9 +75,7 @@ REPOS_KEY = "repo_list"
 DIR_SECTION = "directories"
 ADDITIONAL_DIRS = "additional_directories"
 DIR_KEY = "dir_list"
-CACHE_FILES_PATTERN = {
-  'alerts': ['*.json']
-}
+CACHE_FILES_PATTERN = {"alerts": ["*.json"]}
 PROCESS_SECTION = "processes"
 PROCESS_KEY = "proc_list"
 PROCESS_OWNER_KEY = "proc_owner_list"
@@ -85,14 +85,13 @@ ALT_KEYS = ["symlink_list", "target_list"]
 HADOOP_GROUP = "hadoop"
 FOLDER_LIST = ["/tmp"]
 # Additional path patterns to find existing directory
-DIRNAME_PATTERNS = [
-    "/tmp/hadoop-", "/tmp/hsperfdata_"
-]
+DIRNAME_PATTERNS = ["/tmp/hadoop-", "/tmp/hsperfdata_"]
 
 # resources that should not be cleaned
 REPOSITORY_BLACK_LIST = ["ambari.repo"]
 PACKAGES_BLACK_LIST = ["ambari-server", "ambari-agent"]
 USER_BLACK_LIST = ["root"]
+
 
 def get_erase_cmd():
   if OSCheck.is_redhat_family():
@@ -102,11 +101,12 @@ def get_erase_cmd():
   elif OSCheck.is_ubuntu_family():
     return "/usr/bin/apt-get -y -q remove {0}"
   else:
-    raise Exception("Unsupported OS family '{0}', cannot remove package. ".format(OSCheck.get_os_family()))
+    raise Exception(
+      f"Unsupported OS family '{OSCheck.get_os_family()}', cannot remove package. "
+    )
 
 
 class HostCleanup:
-
   def resolve_ambari_config(self):
     try:
       config = AmbariConfig()
@@ -130,7 +130,7 @@ class HostCleanup:
         for dir in dirs:
           for patern in DIRNAME_PATTERNS:
             if patern in dir:
-             resultList.append(dir)
+              resultList.append(dir)
     return resultList
 
   def do_cleanup(self, argMap=None):
@@ -190,7 +190,7 @@ class HostCleanup:
   def read_host_check_file(self, config_file_path):
     propertyMap = {}
     try:
-      with open(config_file_path, 'r'):
+      with open(config_file_path, "r"):
         pass
     except Exception as e:
       logger.error("Host check result not found at: " + str(config_file_path))
@@ -206,56 +206,64 @@ class HostCleanup:
     # Initialize map from file
     try:
       if config.has_option(PACKAGE_SECTION, PACKAGE_KEY):
-        propertyMap[PACKAGE_SECTION] = config.get(PACKAGE_SECTION, PACKAGE_KEY).split(',')
+        propertyMap[PACKAGE_SECTION] = config.get(PACKAGE_SECTION, PACKAGE_KEY).split(
+          ","
+        )
     except:
       logger.warn("Cannot read package list: " + str(sys.exc_info()[0]))
 
     try:
       proc_map = {}
       if config.has_option(PROCESS_SECTION, PROCESS_KEY):
-        proc_map[PROCESS_KEY] = config.get(PROCESS_SECTION, PROCESS_KEY).split(',')
+        proc_map[PROCESS_KEY] = config.get(PROCESS_SECTION, PROCESS_KEY).split(",")
 
       if config.has_option(PROCESS_SECTION, PROCESS_OWNER_KEY):
-        proc_map[PROCESS_OWNER_KEY] = config.get(PROCESS_SECTION, PROCESS_OWNER_KEY).split(',')
+        proc_map[PROCESS_OWNER_KEY] = config.get(
+          PROCESS_SECTION, PROCESS_OWNER_KEY
+        ).split(",")
 
       if config.has_option(PROCESS_SECTION, PROCESS_IDENTIFIER_KEY):
-        proc_map[PROCESS_IDENTIFIER_KEY] = config.get(PROCESS_SECTION, PROCESS_IDENTIFIER_KEY).split(',')
+        proc_map[PROCESS_IDENTIFIER_KEY] = config.get(
+          PROCESS_SECTION, PROCESS_IDENTIFIER_KEY
+        ).split(",")
 
       if proc_map:
-          propertyMap[PROCESS_SECTION] = proc_map
+        propertyMap[PROCESS_SECTION] = proc_map
     except:
       logger.warn("Cannot read process list: " + str(sys.exc_info()))
 
     try:
       if config.has_option(USER_SECTION, USER_KEY):
-        propertyMap[USER_SECTION] = config.get(USER_SECTION, USER_KEY).split(',')
+        propertyMap[USER_SECTION] = config.get(USER_SECTION, USER_KEY).split(",")
     except:
       logger.warn("Cannot read user list: " + str(sys.exc_info()[0]))
 
     try:
       if config.has_option(USER_SECTION, USER_HOMEDIR_KEY):
-        propertyMap[USER_HOMEDIR_SECTION] = config.get(USER_SECTION, USER_HOMEDIR_KEY).split(',')
+        propertyMap[USER_HOMEDIR_SECTION] = config.get(
+          USER_SECTION, USER_HOMEDIR_KEY
+        ).split(",")
     except:
       logger.warn("Cannot read user homedir list: " + str(sys.exc_info()[0]))
 
     try:
       if config.has_option(REPO_SECTION, REPOS_KEY):
-        propertyMap[REPO_SECTION] = config.get(REPO_SECTION, REPOS_KEY).split(',')
+        propertyMap[REPO_SECTION] = config.get(REPO_SECTION, REPOS_KEY).split(",")
     except:
       logger.warn("Cannot read repositories list: " + str(sys.exc_info()[0]))
 
     try:
       if config.has_option(DIR_SECTION, DIR_KEY):
-        propertyMap[DIR_SECTION] = config.get(DIR_SECTION, DIR_KEY).split(',')
+        propertyMap[DIR_SECTION] = config.get(DIR_SECTION, DIR_KEY).split(",")
     except:
       logger.warn("Cannot read dir list: " + str(sys.exc_info()[0]))
 
     try:
       alt_map = {}
       if config.has_option(ALT_SECTION, ALT_KEYS[0]):
-        alt_map[ALT_KEYS[0]] = config.get(ALT_SECTION, ALT_KEYS[0]).split(',')
+        alt_map[ALT_KEYS[0]] = config.get(ALT_SECTION, ALT_KEYS[0]).split(",")
       if config.has_option(ALT_SECTION, ALT_KEYS[1]):
-        alt_map[ALT_KEYS[1]] = config.get(ALT_SECTION, ALT_KEYS[1]).split(',')
+        alt_map[ALT_KEYS[1]] = config.get(ALT_SECTION, ALT_KEYS[1]).split(",")
       if alt_map:
         propertyMap[ALT_SECTION] = alt_map
     except:
@@ -268,23 +276,32 @@ class HostCleanup:
     out = None
     try:
       p1 = subprocess.Popen(shlex.split(command), stdout=subprocess.PIPE)
-      p2 = subprocess.Popen(["grep", "priority"], stdin=p1.stdout, stdout=subprocess.PIPE, universal_newlines=True)
+      p2 = subprocess.Popen(
+        ["grep", "priority"],
+        stdin=p1.stdout,
+        stdout=subprocess.PIPE,
+        universal_newlines=True,
+      )
       p1.stdout.close()
       out = p2.communicate()[0]
-      logger.debug('alternatives --display ' + alt_name + '\n, out = ' + out)
+      logger.debug("alternatives --display " + alt_name + "\n, out = " + out)
     except:
-      logger.warn('Cannot process alternative named: ' + alt_name + ',' + \
-                  'error: ' + str(sys.exc_info()[0]))
+      logger.warn(
+        "Cannot process alternative named: "
+        + alt_name
+        + ","
+        + "error: "
+        + str(sys.exc_info()[0])
+      )
 
     return out
 
-
   def do_clear_cache(self, cache_root, dir_map=None):
     """
-     Clear cache dir according to provided root directory
+    Clear cache dir according to provided root directory
 
-     cache_root - root dir for cache directory
-     dir_map - should be used only for recursive calls
+    cache_root - root dir for cache directory
+    dir_map - should be used only for recursive calls
     """
     global CACHE_FILES_PATTERN
     file_map = CACHE_FILES_PATTERN if dir_map is None else dir_map
@@ -294,15 +311,14 @@ class HostCleanup:
     for folder in file_map:
       if isinstance(file_map[folder], list):  # here is list of file masks/files
         for mask in file_map[folder]:
-          remList += self.get_files_in_dir("%s/%s" % (cache_root, folder), mask)
+          remList += self.get_files_in_dir(f"{cache_root}/{folder}", mask)
       elif isinstance(file_map[folder], dict):  # here described sub-folder
-        remList += self.do_clear_cache("%s/%s" % (cache_root, folder), file_map[folder])
+        remList += self.do_clear_cache(f"{cache_root}/{folder}", file_map[folder])
 
     if dir_map is not None:  # push result list back as this is call from stack
       return remList
     else:  # root call, so we have final list
       self.do_erase_files_silent(remList)
-
 
   # Alternatives exist as a stack of symlinks under /var/lib/alternatives/$name
   # Script expects names of the alternatives as input
@@ -317,22 +333,30 @@ class HostCleanup:
             out = self.get_alternatives_desc(alt_name)
 
             if not out:
-              logger.warn('No alternatives found for: ' + alt_name)
+              logger.warn("No alternatives found for: " + alt_name)
               continue
             else:
-              alternates = out.split('\n')
+              alternates = out.split("\n")
               if alternates:
                 for entry in alternates:
                   if entry:
                     alt_path = entry.split()[0]
-                    logger.debug('Erasing alternative named: ' + alt_name + ', ' \
-                                                                            'path: ' + alt_path)
+                    logger.debug(
+                      "Erasing alternative named: " + alt_name + ", "
+                      "path: " + alt_path
+                    )
 
                     command = ALT_ERASE_CMD.format(alt_name, alt_path)
                     (returncode, stdoutdata, stderrdata) = self.run_os_command(command)
                     if returncode != 0:
-                      logger.warn('Failed to remove alternative: ' + alt_name +
-                                  ", path: " + alt_path + ", error: " + stderrdata)
+                      logger.warn(
+                        "Failed to remove alternative: "
+                        + alt_name
+                        + ", path: "
+                        + alt_path
+                        + ", error: "
+                        + stderrdata
+                      )
 
       # Remove directories - configs
       dir_list = alt_map.get(ALT_KEYS[1])
@@ -348,22 +372,24 @@ class HostCleanup:
           command = PROC_KILL_CMD.format(pid)
           (returncode, stdoutdata, stderrdata) = self.run_os_command(command)
           if returncode != 0:
-            logger.error("Unable to kill process with pid: " + str(pid) + ", " + str(stderrdata))
+            logger.error(
+              "Unable to kill process with pid: " + str(pid) + ", " + str(stderrdata)
+            )
     return 0
 
   def getProcsByUsers(self, users, pidList):
-    logger.debug("User list: "+str(users))
-    pids = [pid for pid in os.listdir('/proc') if pid.isdigit()]
-    logger.debug("All pids under /proc: "+str(pids));
+    logger.debug("User list: " + str(users))
+    pids = [pid for pid in os.listdir("/proc") if pid.isdigit()]
+    logger.debug("All pids under /proc: " + str(pids))
     for pid in pids:
       logger.debug("Checking " + str(pid))
       try:
-        with open(os.path.join('/proc', pid, 'status'), 'r') as f:
+        with open(os.path.join("/proc", pid, "status"), "r") as f:
           for line in f:
-            if line.startswith('Uid:'):
+            if line.startswith("Uid:"):
               uid = int(line.split()[1])
               user = pwd.getpwuid(uid).pw_name
-              logger.debug("User: "+user);
+              logger.debug("User: " + user)
               if user in users and user not in USER_BLACK_LIST:
                 logger.info(user + " started process " + str(pid))
                 pidList.append(int(pid))
@@ -373,7 +399,7 @@ class HostCleanup:
   def do_kill_processes_by_users(self, userList):
     pidList = []
     self.getProcsByUsers(userList, pidList)
-    logger.info("Killing pids: "+ str(pidList) + " owned by " + str(userList))
+    logger.info("Killing pids: " + str(pidList) + " owned by " + str(userList))
     return self.do_kill_processes(pidList)
 
   def do_kill_processes_by_identifier(self, identifierList):
@@ -383,27 +409,29 @@ class HostCleanup:
     line_regexp = re.compile("\s\s+")
 
     if 0 == returncode and stdoutdata:
-      lines = stdoutdata.split('\n')
+      lines = stdoutdata.split("\n")
       for line in lines:
         line = line.strip()
         for identifier in identifierList:
           identifier = identifier.strip()
           if identifier in line:
-            logger.debug("Found " + line + " for " + identifier);
-            line = line_regexp.sub(" ", line) #replace multi spaces with single space before calling the split
-            tokens = line.split(' ')
+            logger.debug("Found " + line + " for " + identifier)
+            line = line_regexp.sub(
+              " ", line
+            )  # replace multi spaces with single space before calling the split
+            tokens = line.split(" ")
             logger.debug(tokens)
             logger.debug(len(tokens))
             if len(tokens) > 1:
-              pid = str(tokens[1]);
+              pid = str(tokens[1])
               pid = pid.strip()
               if pid and pid not in pidList:
-                logger.info("Adding pid: "+str(pid) + " for " + identifier)
+                logger.info("Adding pid: " + str(pid) + " for " + identifier)
                 pidList.append(pid)
 
     return self.do_kill_processes(pidList)
 
-  def get_files_in_dir(self, dirPath, filemask = None):
+  def get_files_in_dir(self, dirPath, filemask=None):
     fileList = []
     if dirPath:
       if os.path.exists(dirPath):
@@ -442,13 +470,13 @@ class HostCleanup:
 
       if fileList:
         for filePath in fileList:
-          with open(filePath, 'r') as file:
+          with open(filePath, "r") as file:
             content = file.readline()
-            while (content != "" ):
+            while content != "":
               for repoName in repoNameList:
                 if content.find(repoName) == 0 and filePath not in repoFiles:
                   repoFiles.append(filePath)
-                  break;
+                  break
               content = file.readline()
 
     return repoFiles
@@ -456,13 +484,13 @@ class HostCleanup:
   def do_erase_packages(self, packageList):
     packageStr = None
     if packageList:
-      packageStr = ' '.join(packageList)
+      packageStr = " ".join(packageList)
       logger.debug("Erasing packages: " + packageStr)
     if packageStr is not None and packageStr:
       command = get_erase_cmd().format(packageStr)
 
-      if command != '':
-        logger.debug('Executing: ' + str(command))
+      if command != "":
+        logger.debug("Executing: " + str(command))
         (returncode, stdoutdata, stderrdata) = self.run_os_command(command)
         if returncode != 0:
           logger.warn("Erasing packages failed: " + stderrdata)
@@ -474,7 +502,7 @@ class HostCleanup:
     if pathList:
       for aPath in pathList:
         pathArr = glob.glob(aPath)
-        logger.debug("Resolved {0} to {1}".format(aPath, ','.join(pathArr)))
+        logger.debug(f"Resolved {aPath} to {','.join(pathArr)}")
         for path in pathArr:
           if path:
             if os.path.exists(path):
@@ -482,27 +510,31 @@ class HostCleanup:
                 try:
                   shutil.rmtree(path)
                 except:
-                  logger.warn("Failed to remove dir {0} , error: {1}".format(path, str(sys.exc_info()[0])))
+                  logger.warn(
+                    f"Failed to remove dir {path} , error: {str(sys.exc_info()[0])}"
+                  )
               else:
-                logger.info("{0} is a file, deleting file".format(path))
+                logger.info(f"{path} is a file, deleting file")
                 self.do_erase_files_silent([path])
             elif os.path.islink(path):
-              logger.info("Deleting broken symbolic link {0}".format(path))
+              logger.info(f"Deleting broken symbolic link {path}")
               self.do_erase_files_silent([path])
             else:
-              logger.info("Path doesn't exists: {0}".format(path))
+              logger.info(f"Path doesn't exists: {path}")
     return 0
 
   def do_erase_files_silent(self, pathList):
     if pathList:
       for path in pathList:
-        if path and ( os.path.exists(path) or os.path.islink(path) ):
+        if path and (os.path.exists(path) or os.path.islink(path)):
           try:
             os.remove(path)
           except:
-            logger.warn("Failed to delete file: {0}, error: {1}".format(path, str(sys.exc_info()[0])))
+            logger.warn(
+              f"Failed to delete file: {path}, error: {str(sys.exc_info()[0])}"
+            )
         else:
-          logger.info("File doesn't exists: {0}".format(path))
+          logger.info(f"File doesn't exists: {path}")
     return 0
 
   def do_delete_group(self):
@@ -529,7 +561,6 @@ class HostCleanup:
 
   @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
   def get_user_ids(self, userList):
-
     userIds = []
     # No user ids to check in Windows for now
     return userIds
@@ -567,47 +598,58 @@ class HostCleanup:
   # Run command as sudoer by default, if root no issues
   def run_os_command(self, cmd, runWithSudo=True):
     if runWithSudo:
-      cmd = "/var/lib/ambari-agent/"+AMBARI_SUDO_BINARY + " " + cmd
-    logger.info('Executing command: ' + str(cmd))
+      cmd = "/var/lib/ambari-agent/" + AMBARI_SUDO_BINARY + " " + cmd
+    logger.info("Executing command: " + str(cmd))
     if type(cmd) == str:
       cmd = shlex.split(cmd)
-    process = subprocess.Popen(cmd,
-                               stdout=subprocess.PIPE,
-                               stdin=subprocess.PIPE,
-                               stderr=subprocess.PIPE,
-                               universal_newlines=True
+    process = subprocess.Popen(
+      cmd,
+      stdout=subprocess.PIPE,
+      stdin=subprocess.PIPE,
+      stderr=subprocess.PIPE,
+      universal_newlines=True,
     )
     (stdoutdata, stderrdata) = process.communicate()
     return process.returncode, stdoutdata, stderrdata
 
   def run_check_hosts(self):
-    config_json = '{"commandParams": {"check_execute_list": "*BEFORE_CLEANUP_HOST_CHECKS*"}}'
+    config_json = (
+      '{"commandParams": {"check_execute_list": "*BEFORE_CLEANUP_HOST_CHECKS*"}}'
+    )
     with tempfile.NamedTemporaryFile(delete=False) as config_json_file:
       config_json_file.write(config_json)
 
     with tempfile.NamedTemporaryFile(delete=False) as tmp_output_file:
-      tmp_output_file.write('{}')
+      tmp_output_file.write("{}")
 
-    run_checks_command = RUN_HOST_CHECKS_CMD.format(config_json_file.name, tmp_output_file.name, AGENT_TMP_DIR)
+    run_checks_command = RUN_HOST_CHECKS_CMD.format(
+      config_json_file.name, tmp_output_file.name, AGENT_TMP_DIR
+    )
     (returncode, stdoutdata, stderrdata) = self.run_os_command(run_checks_command)
     if returncode != 0:
-      logger.warn('Failed to run host checks,\nstderr:\n ' + stderrdata + '\n\nstdout:\n' + stdoutdata)
+      logger.warn(
+        "Failed to run host checks,\nstderr:\n "
+        + stderrdata
+        + "\n\nstdout:\n"
+        + stdoutdata
+      )
+
 
 # Copy file and save with file.# (timestamp)
 def backup_file(filePath):
   if filePath is not None and os.path.exists(filePath):
     timestamp = datetime.datetime.now()
-    format = '%Y%m%d%H%M%S'
+    format = "%Y%m%d%H%M%S"
     try:
       shutil.copyfile(filePath, filePath + "." + timestamp.strftime(format))
-    except (Exception) as e:
+    except Exception as e:
       logger.warn('Could not backup file "%s": %s' % (str(filePath, e)))
   return 0
 
 
 def get_YN_input(prompt, default):
-  yes = set(['yes', 'ye', 'y'])
-  no = set(['no', 'n'])
+  yes = set(["yes", "ye", "y"])
+  no = set(["no", "n"])
   return get_choice_string_input(prompt, default, yes, no)
 
 
@@ -617,7 +659,7 @@ def get_choice_string_input(prompt, default, firstChoice, secondChoice):
     return True
   elif choice in secondChoice:
     return False
-  elif choice == "": # Just enter pressed
+  elif choice == "":  # Just enter pressed
     return default
   else:
     print("input not recognized, please try again: ")
@@ -628,39 +670,64 @@ def get_choice_string_input(prompt, default, firstChoice, secondChoice):
 def main():
   h = HostCleanup()
   config = h.resolve_ambari_config()
-  hostCheckFileDir = config.get('agent', 'prefix')
+  hostCheckFileDir = config.get("agent", "prefix")
   hostCheckFilePath = os.path.join(hostCheckFileDir, HOST_CHECK_FILE_NAME)
-  hostCheckCustomActionsFilePath = os.path.join(hostCheckFileDir, HOST_CHECK_CUSTOM_ACTIONS_FILE)
+  hostCheckCustomActionsFilePath = os.path.join(
+    hostCheckFileDir, HOST_CHECK_CUSTOM_ACTIONS_FILE
+  )
   hostCheckFilesPaths = hostCheckFilePath + "," + hostCheckCustomActionsFilePath
   hostCheckResultPath = os.path.join(hostCheckFileDir, OUTPUT_FILE_NAME)
 
   parser = optparse.OptionParser()
-  parser.add_option("-v", "--verbose", dest="verbose", action="store_true",
-                    default=False, help="output verbosity.")
-  parser.add_option("-f", "--file", dest="inputfiles",
-                    default=hostCheckFilesPaths,
-                    help="host check result file to read.", metavar="FILE")
-  parser.add_option("-o", "--out", dest="outputfile",
-                    default=hostCheckResultPath,
-                    help="log file to store results.", metavar="FILE")
-  parser.add_option("-k", "--skip", dest="skip",
-                    help="(packages|users|directories|repositories|processes|alternatives)." + \
-                         " Use , as separator.")
-  parser.add_option("-s", "--silent",
-                    action="store_true", dest="silent", default=False,
-                    help="Silently accepts default prompt values")
-
+  parser.add_option(
+    "-v",
+    "--verbose",
+    dest="verbose",
+    action="store_true",
+    default=False,
+    help="output verbosity.",
+  )
+  parser.add_option(
+    "-f",
+    "--file",
+    dest="inputfiles",
+    default=hostCheckFilesPaths,
+    help="host check result file to read.",
+    metavar="FILE",
+  )
+  parser.add_option(
+    "-o",
+    "--out",
+    dest="outputfile",
+    default=hostCheckResultPath,
+    help="log file to store results.",
+    metavar="FILE",
+  )
+  parser.add_option(
+    "-k",
+    "--skip",
+    dest="skip",
+    help="(packages|users|directories|repositories|processes|alternatives)."
+    + " Use , as separator.",
+  )
+  parser.add_option(
+    "-s",
+    "--silent",
+    action="store_true",
+    dest="silent",
+    default=False,
+    help="Silently accepts default prompt values",
+  )
 
   (options, args) = parser.parse_args()
   # set output file
   backup_file(options.outputfile)
   global logger
-  logger = logging.getLogger('HostCleanup')
+  logger = logging.getLogger("HostCleanup")
   handler = logging.FileHandler(options.outputfile)
-  formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+  formatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
   handler.setFormatter(formatter)
   logger.addHandler(handler)
-
 
   # set verbose
   if options.verbose:
@@ -670,29 +737,37 @@ def main():
 
   if options.skip is not None:
     global SKIP_LIST
-    SKIP_LIST = options.skip.split(',')
+    SKIP_LIST = options.skip.split(",")
 
   is_root = h.is_current_user_root()
   if not is_root:
-    raise RuntimeError('HostCleanup needs to be run as root.')
+    raise RuntimeError("HostCleanup needs to be run as root.")
 
   if not options.silent:
     if "users" not in SKIP_LIST:
-      delete_users = get_YN_input('You have elected to remove all users as well. If it is not intended then use '
-                               'option --skip \"users\". Do you want to continue [y/n] (y)', True)
+      delete_users = get_YN_input(
+        "You have elected to remove all users as well. If it is not intended then use "
+        'option --skip "users". Do you want to continue [y/n] (y)',
+        True,
+      )
       if not delete_users:
         print('Exiting. Use option --skip="users" to skip deleting users')
         sys.exit(1)
 
-  hostcheckfile, hostcheckfileca  = options.inputfiles.split(",")
+  hostcheckfile, hostcheckfileca = options.inputfiles.split(",")
 
   # Manage non UI install
   if not os.path.exists(hostcheckfileca):
     if options.silent:
-      print('Host Check results not found. There is no {0}. Running host checks.'.format(hostcheckfileca))
+      print(
+        f"Host Check results not found. There is no {hostcheckfileca}. Running host checks."
+      )
       h.run_check_hosts()
     else:
-      run_check_hosts_input = get_YN_input('Host Check results not found. There is no {0}. Do you want to run host checks [y/n] (y)'.format(hostcheckfileca), True)
+      run_check_hosts_input = get_YN_input(
+        f"Host Check results not found. There is no {hostcheckfileca}. Do you want to run host checks [y/n] (y)",
+        True,
+      )
       if run_check_hosts_input:
         h.run_check_hosts()
 
@@ -701,17 +776,17 @@ def main():
       with open(hostcheckfileca, "rb") as f2:
         tmp_f.write(f1.read())
         tmp_f.write(f2.read())
-  
+
   propMap = h.read_host_check_file(TMP_HOST_CHECK_FILE_NAME)
 
   if propMap:
     h.do_cleanup(propMap)
 
-  if os.path.exists(config.get('agent', 'cache_dir')):
-    h.do_clear_cache(config.get('agent', 'cache_dir'))
+  if os.path.exists(config.get("agent", "cache_dir")):
+    h.do_clear_cache(config.get("agent", "cache_dir"))
 
-  logging.info('Clean-up completed. The output is at %s' % (str(options.outputfile)))
+  logging.info(f"Clean-up completed. The output is at {str(options.outputfile)}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
   main()

@@ -25,7 +25,6 @@ from shared_initialization import setup_stack_symlinks
 
 
 class AfterInstallHook(Hook):
-
   def hook(self, env):
     import params
 

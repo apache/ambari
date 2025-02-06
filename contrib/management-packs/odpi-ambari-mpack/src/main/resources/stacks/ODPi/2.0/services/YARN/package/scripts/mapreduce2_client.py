@@ -67,7 +67,7 @@ class MapReduce2Client(Script):
     config_dir = self.get_config_dir_during_stack_upgrade(env, base_dir, conf_select_name)
 
     if config_dir:
-      Logger.info("stack_upgrade_save_new_config(): Calling conf-select on %s using version %s" % (conf_select_name, str(params.version)))
+      Logger.info(f"stack_upgrade_save_new_config(): Calling conf-select on {conf_select_name} using version {str(params.version)}")
 
       # Because this script was called from ru_execute_tasks.py which already enters an Environment with its own basedir,
       # must change it now so this function can find the Jinja Templates for the service.

@@ -126,7 +126,7 @@
     <description>
       The supported list of session key encryption types that should be returned by the KDC.
     </description>
-    <value>aes des3-cbc-sha1 rc4 des-cbc-md5</value>
+    <value>aes256-cts-hmac-sha1-96 aes128-cts-hmac-sha1-96</value>
     <value-attributes>
       <type>multiLine</type>
       <overridable>false</overridable>

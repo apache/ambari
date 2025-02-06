@@ -30,8 +30,12 @@ import subprocess
 from ambari_commons import shell
 
 from ambari_agent.Grep import Grep
-from ambari_agent.BackgroundCommandExecutionHandle import BackgroundCommandExecutionHandle
-from resource_management.libraries.functions.log_process_information import log_process_information
+from ambari_agent.BackgroundCommandExecutionHandle import (
+  BackgroundCommandExecutionHandle,
+)
+from resource_management.libraries.functions.log_process_information import (
+  log_process_information,
+)
 
 
 class PythonExecutor(object):
@@ -40,6 +44,7 @@ class PythonExecutor(object):
   Warning: class maintains internal state. As a result, instances should not be
   used as a singleton for a concurrent execution of python scripts
   """
+
   NO_ERROR = "none"
 
   def __init__(self, tmp_dir, config):
@@ -51,7 +56,9 @@ class PythonExecutor(object):
     self.config = config
     self.log_max_symbols_size = self.config.log_max_symbols_size
 
-  def open_subprocess_files(self, tmp_out_file, tmp_err_file, override_output_files, backup_log_files=True):
+  def open_subprocess_files(
+    self, tmp_out_file, tmp_err_file, override_output_files, backup_log_files=True
+  ):
     mode = "w" if override_output_files else "a"
 
     if override_output_files and backup_log_files:
@@ -71,10 +78,21 @@ class PythonExecutor(object):
         counter += 1
       os.rename(file_path, backup_name)
 
-  def run_file(self, script, script_params, tmp_out_file, tmp_err_file,
-               timeout, tmp_structed_outfile, callback, task_id,
-               override_output_files=True, backup_log_files=True, handle=None,
-               log_info_on_failure=True):
+  def run_file(
+    self,
+    script,
+    script_params,
+    tmp_out_file,
+    tmp_err_file,
+    timeout,
+    tmp_structed_outfile,
+    callback,
+    task_id,
+    override_output_files=True,
+    backup_log_files=True,
+    handle=None,
+    log_info_on_failure=True,
+  ):
     """
     Executes the specified python file in a separate subprocess.
     Method returns only when the subprocess is finished.
@@ -91,7 +109,9 @@ class PythonExecutor(object):
 
     def background_executor():
       logger = logging.getLogger()
-      process_out, process_err = self.open_subprocess_files(tmp_out_file, tmp_err_file, True)
+      process_out, process_err = self.open_subprocess_files(
+        tmp_out_file, tmp_err_file, True
+      )
 
       logger.debug("Starting process command %s", python_command)
       p = self.launch_python_subprocess(python_command, process_out, process_err)
@@ -100,18 +120,22 @@ class PythonExecutor(object):
 
       handle.pid = p.pid
       handle.status = BackgroundCommandExecutionHandle.RUNNING_STATUS
-      handle.on_background_command_started(handle.command['taskId'], p.pid)
+      handle.on_background_command_started(handle.command["taskId"], p.pid)
 
       p.communicate()
 
       handle.exitCode = p.returncode
-      process_condensed_result = self.prepare_process_result(p.returncode, tmp_out_file, tmp_err_file, tmp_structed_outfile)
+      process_condensed_result = self.prepare_process_result(
+        p.returncode, tmp_out_file, tmp_err_file, tmp_structed_outfile
+      )
       logger.debug("Calling callback with args %s", process_condensed_result)
       handle.on_background_command_complete_callback(process_condensed_result, handle)
       logger.debug("Exiting from thread for holder pid %s", handle.pid)
 
     if handle is None:
-      tmpout, tmperr = self.open_subprocess_files(tmp_out_file, tmp_err_file, override_output_files, backup_log_files)
+      tmpout, tmperr = self.open_subprocess_files(
+        tmp_out_file, tmp_err_file, override_output_files, backup_log_files
+      )
 
       process = self.launch_python_subprocess(python_command, tmpout, tmperr)
       # map task_id to pid
@@ -119,15 +143,23 @@ class PythonExecutor(object):
       self.logger.debug("Launching watchdog thread")
       self.event.clear()
       self.python_process_has_been_killed = False
-      thread = threading.Thread(target=self.python_watchdog_func, args=(process, timeout))
+      thread = threading.Thread(
+        target=self.python_watchdog_func, args=(process, timeout)
+      )
       thread.start()
       # Waiting for the process to be either finished or killed
       process.communicate()
       self.event.set()
       thread.join()
-      result = self.prepare_process_result(process.returncode, tmp_out_file, tmp_err_file, tmp_structed_outfile, timeout=timeout)
+      result = self.prepare_process_result(
+        process.returncode,
+        tmp_out_file,
+        tmp_err_file,
+        tmp_structed_outfile,
+        timeout=timeout,
+      )
 
-      if log_info_on_failure and result['exitcode']:
+      if log_info_on_failure and result["exitcode"]:
         self.on_failure(python_command, result)
 
       return result
@@ -140,16 +172,28 @@ class PythonExecutor(object):
     """
     Log some useful information after task failure.
     """
-    self.logger.info("Command %s failed with exitcode=%s", pprint.pformat(python_command), result['exitcode'])
+    self.logger.info(
+      "Command %s failed with exitcode=%s",
+      pprint.pformat(python_command),
+      result["exitcode"],
+    )
     log_process_information(self.logger)
 
-  def prepare_process_result(self, returncode, tmpoutfile, tmperrfile, tmpstructedoutfile, timeout=None):
-    out, error, structured_out = self.read_result_from_files(tmpoutfile, tmperrfile, tmpstructedoutfile)
+  def prepare_process_result(
+    self, returncode, tmpoutfile, tmperrfile, tmpstructedoutfile, timeout=None
+  ):
+    out, error, structured_out = self.read_result_from_files(
+      tmpoutfile, tmperrfile, tmpstructedoutfile
+    )
 
     if self.python_process_has_been_killed:
-      error = "{error}\nPython script has been killed due to timeout{timeout_details}".format(
-        error=error,
-        timeout_details="" if not timeout else " after waiting {} secs".format(timeout)
+      error = (
+        "{error}\nPython script has been killed due to timeout{timeout_details}".format(
+          error=error,
+          timeout_details=""
+          if not timeout
+          else " after waiting {} secs".format(timeout),
+        )
       )
       returncode = 999
     result = self.condense_output(out, error, returncode, structured_out)
@@ -157,10 +201,10 @@ class PythonExecutor(object):
     return result
 
   def read_result_from_files(self, out_path, err_path, structured_out_path):
-    out = open(out_path, 'r').read()
-    error = open(err_path, 'r').read()
+    out = open(out_path, "r").read()
+    error = open(err_path, "r").read()
     try:
-      with open(structured_out_path, 'r') as fp:
+      with open(structured_out_path, "r") as fp:
         structured_out = json.load(fp)
     except (TypeError, ValueError):
       structured_out = {
@@ -177,8 +221,14 @@ class PythonExecutor(object):
     to make possible unit testing
     """
     command_env = dict(os.environ)
-    return subprocess.Popen(command, stdout=tmpout, stderr=tmperr, close_fds=True, env=command_env,
-                              preexec_fn=lambda: os.setpgid(0, 0))
+    return subprocess.Popen(
+      command,
+      stdout=tmpout,
+      stderr=tmperr,
+      close_fds=True,
+      env=command_env,
+      preexec_fn=lambda: os.setpgid(0, 0),
+    )
 
   def is_successful(self, return_code):
     return not self.python_process_has_been_killed and return_code == 0
@@ -194,14 +244,20 @@ class PythonExecutor(object):
   def condense_output(self, stdout, stderr, ret_code, structured_out):
     return {
       "exitcode": ret_code,
-      "stdout": self.grep.tail_by_symbols(stdout, self.log_max_symbols_size) if self.log_max_symbols_size else stdout,
-      "stderr": self.grep.tail_by_symbols(stderr, self.log_max_symbols_size) if self.log_max_symbols_size else stderr,
-      "structuredOut": structured_out
+      "stdout": self.grep.tail_by_symbols(stdout, self.log_max_symbols_size)
+      if self.log_max_symbols_size
+      else stdout,
+      "stderr": self.grep.tail_by_symbols(stderr, self.log_max_symbols_size)
+      if self.log_max_symbols_size
+      else stderr,
+      "structuredOut": structured_out,
     }
 
   def python_watchdog_func(self, process, timeout):
     self.event.wait(timeout)
     if process.returncode is None:
-      self.logger.error("Executed command with pid {} timed out and will be killed".format(process.pid))
+      self.logger.error(
+        f"Executed command with pid {process.pid} timed out and will be killed"
+      )
       shell.kill_process_with_children(process.pid)
       self.python_process_has_been_killed = True

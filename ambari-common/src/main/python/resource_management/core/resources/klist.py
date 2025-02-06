@@ -25,18 +25,27 @@ from resource_management import functions
 from resource_management.libraries.functions.default import default
 from subprocess import PIPE
 
+
 class Klist:
   @staticmethod
   def find_in_search_path():
-    return Klist(functions.get_klist_path(default('/configurations/kerberos-env/executable_search_paths', None)))
+    return Klist(
+      functions.get_klist_path(
+        default("/configurations/kerberos-env/executable_search_paths", None)
+      )
+    )
 
   def __init__(self, klist_cmd="klist"):
     self.klist_cmd = klist_cmd
 
   def list_principals(self, keytab_path):
-    code, out, err = shell.call(self._command('-k', keytab_path), stdout = PIPE, stderr = PIPE, timeout = 5, sudo=True)
+    code, out, err = shell.call(
+      self._command("-k", keytab_path), stdout=PIPE, stderr=PIPE, timeout=5, sudo=True
+    )
     if code != 0 or (not out.startswith("Keytab name")):
-      raise Exception('Cannot run klist: %s. Exit code: %d. Error: %s' % (self.klist_cmd, code, err))
+      raise Exception(
+        "Cannot run klist: %s. Exit code: %d. Error: %s" % (self.klist_cmd, code, err)
+      )
     return set(line.split()[1] for line in out.split("\n")[3:])
 
   def _command(self, *args):

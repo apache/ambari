@@ -62,7 +62,7 @@ import org.apache.hadoop.tools.rumen.TaskFinishedEvent;
 import org.apache.hadoop.tools.rumen.TaskStartedEvent;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.log4j.spi.LoggingEvent;
-import org.codehaus.jackson.map.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class MapReduceJobHistoryUpdater implements LogStoreUpdateProvider {
   

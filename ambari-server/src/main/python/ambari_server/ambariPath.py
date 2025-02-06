@@ -25,7 +25,8 @@ import re
 
 AMBARI_SERVER_ROOT_ENV_VARIABLE = "ROOT"
 
-class AmbariPath():
+
+class AmbariPath:
   root_directory = os.getenv(AMBARI_SERVER_ROOT_ENV_VARIABLE, "/")
 
   @staticmethod
@@ -35,5 +36,5 @@ class AmbariPath():
     Which is needed for the situations when ambari-server installed not in / but in other folder like /opt.
     Not ambari paths like /var/run/postgresql SHOULD NOT wrapped by this call though.
     """
-    #return os.path.realpath(AmbariPath.root_directory + os.sep + path) # realpath won't replace slashes for python2.6
-    return re.sub('/+', '/', AmbariPath.root_directory + os.sep + path)
+    # return os.path.realpath(AmbariPath.root_directory + os.sep + path) # realpath won't replace slashes for python2.6
+    return re.sub("/+", "/", AmbariPath.root_directory + os.sep + path)

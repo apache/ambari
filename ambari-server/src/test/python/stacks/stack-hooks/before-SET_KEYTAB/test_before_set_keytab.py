@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -15,24 +15,26 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 from stacks.utils.RMFTestCase import *
 from mock.mock import MagicMock, patch
 from resource_management import Hook
 import itertools
 
-@patch("distro.linux_distribution", new = MagicMock(return_value="Linux"))
-@patch("os.path.exists", new = MagicMock(return_value=True))
+
+@patch("distro.linux_distribution", new=MagicMock(return_value="Linux"))
+@patch("os.path.exists", new=MagicMock(return_value=True))
 @patch.object(Hook, "run_custom_hook")
 class TestHookBeforeSetKeytab(RMFTestCase):
   def test_hook_default(self, run_custom_hook_mock):
-    self.executeScript("before-SET_KEYTAB/scripts/hook.py",
-                       classname="BeforeSetKeytabHook",
-                       command="hook",
-                       target=RMFTestCase.TARGET_STACK_HOOKS,
-                       config_file="default.json",
-                       call_mocks=itertools.cycle([(0, "1000")])
+    self.executeScript(
+      "before-SET_KEYTAB/scripts/hook.py",
+      classname="BeforeSetKeytabHook",
+      command="hook",
+      target=RMFTestCase.TARGET_STACK_HOOKS,
+      config_file="default.json",
+      call_mocks=itertools.cycle([(0, "1000")]),
     )
 
-    run_custom_hook_mock.assert_called_with('before-ANY')
+    run_custom_hook_mock.assert_called_with("before-ANY")

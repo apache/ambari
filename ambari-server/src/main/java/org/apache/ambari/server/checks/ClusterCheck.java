@@ -46,8 +46,8 @@ import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
 import org.apache.ambari.spi.upgrade.UpgradeCheckResult;
 import org.apache.ambari.spi.upgrade.UpgradeCheckType;
 import org.apache.commons.lang.StringUtils;
-import org.codehaus.jackson.annotate.JsonProperty;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Provider;

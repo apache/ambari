@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -15,7 +15,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 import os
 import logging
@@ -24,6 +24,7 @@ import atexit
 logger = logging.getLogger(__name__)
 
 __all__ = ["ExitHelper"]
+
 
 class _singleton(type):
   _instances = {}
@@ -70,7 +71,8 @@ class ExitHelper(object, metaclass=_singleton):
     os._exit(self.exitcode)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
+
   def func1():
     print("1")
 

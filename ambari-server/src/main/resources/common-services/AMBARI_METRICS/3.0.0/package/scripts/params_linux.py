@@ -26,26 +26,31 @@ from resource_management.core.shell import as_user
 from ambari_commons import OSCheck
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from resource_management.libraries.functions.expect import expect
-from resource_management.libraries.functions.version import format_stack_version, get_major_version
+from resource_management.libraries.functions.version import (
+  format_stack_version,
+  get_major_version,
+)
 
 config = Script.get_config()
 
 ams_collector_conf_dir = "/etc/ambari-metrics-collector/conf"
 ams_monitor_conf_dir = "/etc/ambari-metrics-monitor/conf/"
-ams_user = config['configurations']['ams-env']['ambari_metrics_user']
-#RPM versioning support
+ams_user = config["configurations"]["ams-env"]["ambari_metrics_user"]
+# RPM versioning support
 rpm_version = default("/configurations/hadoop-env/rpm_version", None)
 
-ams_grafana_pid_dir = config['configurations']['ams-grafana-env']['metrics_grafana_pid_dir']
+ams_grafana_pid_dir = config["configurations"]["ams-grafana-env"][
+  "metrics_grafana_pid_dir"
+]
 
-stack_version_unformatted = config['clusterLevelParams']['stack_version']
+stack_version_unformatted = config["clusterLevelParams"]["stack_version"]
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 major_stack_version = get_major_version(stack_version_formatted)
 
-#hadoop params
+# hadoop params
 if rpm_version is not None:
-  #RPM versioning support
+  # RPM versioning support
   rpm_version = default("/configurations/hadoop-env/rpm_version", None)
 
 hadoop_native_lib = format("/usr/lib/ams-hbase/lib/hadoop-native")
@@ -63,11 +68,17 @@ sudo = AMBARI_SUDO_BINARY
 
 dfs_type = default("/clusterLevelParams/dfs_type", "")
 
-zk_principal_name = default("/configurations/zookeeper-env/zookeeper_principal_name", "zookeeper/_HOST@EXAMPLE.COM")
-zk_principal_user = zk_principal_name.split('/')[0]
+zk_principal_name = default(
+  "/configurations/zookeeper-env/zookeeper_principal_name",
+  "zookeeper/_HOST@EXAMPLE.COM",
+)
+zk_principal_user = zk_principal_name.split("/")[0]
 
-hbase_regionserver_shutdown_timeout = expect('/configurations/ams-hbase-env/hbase_regionserver_shutdown_timeout', int,
-                                             30)
+hbase_regionserver_shutdown_timeout = expect(
+  "/configurations/ams-hbase-env/hbase_regionserver_shutdown_timeout", int, 30
+)
 
 grafana_pid_file = format("{ams_grafana_pid_dir}/grafana-server.pid")
-grafana_process_exists_cmd = as_user(format("test -f {grafana_pid_file} && ps -p `cat {grafana_pid_file}`"), ams_user)
+grafana_process_exists_cmd = as_user(
+  format("test -f {grafana_pid_file} && ps -p `cat {grafana_pid_file}`"), ams_user
+)

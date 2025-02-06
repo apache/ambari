@@ -137,7 +137,7 @@ class ApplicationTimelineServerDefault(ApplicationTimelineServer):
       else:
         issues = []
         for cf in result_issues:
-          issues.append("Configuration file %s did not pass the validation. Reason: %s" % (cf, result_issues[cf]))
+          issues.append(f"Configuration file {cf} did not pass the validation. Reason: {result_issues[cf]}")
         self.put_structured_out({"securityIssuesFound": ". ".join(issues)})
         self.put_structured_out({"securityState": "UNSECURED"})
     else:

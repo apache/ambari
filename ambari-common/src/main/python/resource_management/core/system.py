@@ -30,27 +30,28 @@ from resource_management.core.utils import lazy_property
 from resource_management.core.exceptions import Fail
 from ambari_commons import OSCheck
 
+
 class System(object):
   @lazy_property
   def os(self):
     """
     Return values:
     linux, unknown
-    
+
     In case cannot detect raises 'unknown'
     """
     platform = sys.distro
-    if platform.startswith('linux'):
+    if platform.startswith("linux"):
       return "linux"
     else:
       return "unknown"
-    
+
   @lazy_property
   def os_version(self):
     """
     Example return value:
     "6.3" for "Centos 6.3"
-    
+
     In case cannot detect --> Fail
     """
     return OSCheck.get_os_version()
@@ -64,7 +65,7 @@ class System(object):
     In case cannot detect --> Fail
     """
     return OSCheck.get_os_major_version()
-  
+
   @lazy_property
   def os_release_name(self):
     """
@@ -72,7 +73,7 @@ class System(object):
     precise
     """
     return OSCheck.get_os_release_name()
-                       
+
   @lazy_property
   def os_type(self):
     """
@@ -80,17 +81,17 @@ class System(object):
     redhat, fedora, centos, oraclelinux, ascendos,
     amazon, xenserver, oel, ovs, cloudlinux, slc, scientific, psbm,
     debian, ubuntu, sles, sled, opensuse, suse ... and others
-    
+
     In case cannot detect raises exception.
     """
     return OSCheck.get_os_type()
-    
+
   @lazy_property
   def os_family(self):
     """
     Return values:
     redhat, ubuntu, suse
-    
+
     In case cannot detect raises exception
     """
     return OSCheck.get_os_family()
@@ -108,12 +109,13 @@ class System(object):
     if os.path.exists("/usr/bin/VBoxControl"):
       return "vbox"
     elif os.path.exists("/usr/bin/vmware-toolbox-cmd") or os.path.exists(
-      "/usr/sbin/vmware-toolbox-cmd"):
+      "/usr/sbin/vmware-toolbox-cmd"
+    ):
       return "vmware"
     elif os.path.exists("/proc/xen"):
       return "xen"
     return None
-  
+
   @lazy_property
   def arch(self):
     machine = self.machine
@@ -138,7 +140,7 @@ class System(object):
     except AttributeError:
       cls._instance = cls()
     return cls._instance
-  
+
   def unquote(self, val):
     if val[0] == '"':
       val = val[1:-1]

@@ -19,6 +19,7 @@ limitations under the License.
 Ambari Agent
 
 """
+
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
 from resource_management.core.resources.service import Service
@@ -30,24 +31,27 @@ from resource_management.core.resources.system import Execute, File
 import traceback
 
 
-
-def webhcat_service(action='start', upgrade_type=None):
+def webhcat_service(action="start", upgrade_type=None):
   import params
 
-  cmd = format('{webhcat_bin_dir}/webhcat_server.sh')
+  cmd = format("{webhcat_bin_dir}/webhcat_server.sh")
 
-  if action == 'start':
-    daemon_cmd = format('cd {hcat_pid_dir} ; {cmd} start')
-    no_op_test = format('ls {webhcat_pid_file} >/dev/null 2>&1 && ps -p `cat {webhcat_pid_file}` >/dev/null 2>&1')
+  if action == "start":
+    daemon_cmd = format("cd {hcat_pid_dir} ; {cmd} start")
+    no_op_test = format(
+      "ls {webhcat_pid_file} >/dev/null 2>&1 && ps -p `cat {webhcat_pid_file}` >/dev/null 2>&1"
+    )
     try:
-      Execute(daemon_cmd,
-              environment = { 'HIVE_HOME': params.hive_home },
-              user=params.webhcat_user,
-              not_if=no_op_test)
+      Execute(
+        daemon_cmd,
+        environment={"HIVE_HOME": params.hive_home},
+        user=params.webhcat_user,
+        not_if=no_op_test,
+      )
     except:
       show_logs(params.hcat_log_dir, params.webhcat_user)
       raise
-  elif action == 'stop':
+  elif action == "stop":
     try:
       # try stopping WebHCat using its own script
       graceful_stop(cmd)
@@ -60,7 +64,9 @@ def webhcat_service(action='start', upgrade_type=None):
 
     # the PID must exist AND'd with the process must be alive
     # the return code here is going to be 0 IFF both conditions are met correctly
-    process_id_exists_command = format("ls {webhcat_pid_file} >/dev/null 2>&1 && ps -p {pid_expression} >/dev/null 2>&1")
+    process_id_exists_command = format(
+      "ls {webhcat_pid_file} >/dev/null 2>&1 && ps -p {pid_expression} >/dev/null 2>&1"
+    )
 
     # kill command to run
     daemon_hard_kill_cmd = format("{sudo} kill -9 {pid_expression}")
@@ -69,9 +75,9 @@ def webhcat_service(action='start', upgrade_type=None):
     # it forcefully if it exists - the behavior of not-if/only-if is as follows:
     #   not_if return code IS 0
     #   only_if return code is NOT 0
-    Execute(daemon_hard_kill_cmd,
-      only_if = process_id_exists_command,
-      ignore_failures = True)
+    Execute(
+      daemon_hard_kill_cmd, only_if=process_id_exists_command, ignore_failures=True
+    )
 
     try:
       # check if stopped the process, else fail the task
@@ -82,6 +88,7 @@ def webhcat_service(action='start', upgrade_type=None):
 
     File(params.webhcat_pid_file, action="delete")
 
+
 def graceful_stop(cmd):
   """
   Attemps to stop WebHCat using its own shell script. On some versions this may not correctly
@@ -90,6 +97,9 @@ def graceful_stop(cmd):
   :return:
   """
   import params
-  daemon_cmd = format('{cmd} stop')
 
-  Execute(daemon_cmd, environment = { 'HIVE_HOME': params.hive_home }, user = params.webhcat_user)
+  daemon_cmd = format("{cmd} stop")
+
+  Execute(
+    daemon_cmd, environment={"HIVE_HOME": params.hive_home}, user=params.webhcat_user
+  )

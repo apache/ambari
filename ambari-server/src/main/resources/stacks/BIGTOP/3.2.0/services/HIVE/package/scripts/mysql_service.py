@@ -19,6 +19,7 @@ limitations under the License.
 """
 
 import os
+
 # Ambari Commons & Resource Management Imports
 from resource_management.core.exceptions import ComponentIsNotRunning, Fail
 from resource_management.core.resources.system import Execute
@@ -36,31 +37,33 @@ def get_daemon_name():
 
   raise Fail("Could not find service daemon for mysql")
 
-def mysql_service(action='start'):
+
+def mysql_service(action="start"):
   daemon_name = get_daemon_name()
 
   status_cmd = format("pgrep -l '^{process_name}$'")
-  cmd = ('service', daemon_name, action)
+  cmd = ("service", daemon_name, action)
 
-  if action == 'status':
+  if action == "status":
     try:
       Execute(status_cmd)
     except Fail:
       raise ComponentIsNotRunning()
-  elif action == 'stop':
+  elif action == "stop":
     import params
-    Execute(cmd,
-            logoutput = True,
-            only_if = status_cmd,
-            sudo = True,
+
+    Execute(
+      cmd,
+      logoutput=True,
+      only_if=status_cmd,
+      sudo=True,
     )
-  elif action == 'start':
+  elif action == "start":
     import params
-    Execute(cmd,
-      logoutput = True,
-      not_if = status_cmd,
-      sudo = True,
+
+    Execute(
+      cmd,
+      logoutput=True,
+      not_if=status_cmd,
+      sudo=True,
     )
-
-
-

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,7 +16,8 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
+
 from resource_management.core.exceptions import Fail
 from resource_management.core.encryption import ensure_decrypted
 
@@ -26,11 +27,12 @@ For adding dynamic properties to xml files please use {{varible_from_params}} su
 Lookup xml files for {{ for examples. 
 """
 
+
 class ConfigDictionary(dict):
   """
   Immutable config dictionary
   """
-  
+
   def __init__(self, dictionary):
     """
     Recursively turn dict to ConfigDictionary
@@ -38,7 +40,7 @@ class ConfigDictionary(dict):
     for k, v in dictionary.items():
       if isinstance(v, dict):
         dictionary[k] = ConfigDictionary(v)
-        
+
     super(ConfigDictionary, self).__init__(dictionary)
 
   def __setitem__(self, name, value):
@@ -47,7 +49,7 @@ class ConfigDictionary(dict):
   def __getitem__(self, name):
     """
     - use Python types
-    - enable lazy failure for unknown configs. 
+    - enable lazy failure for unknown configs.
     """
     try:
       value = super(ConfigDictionary, self).__getitem__(name)
@@ -60,22 +62,27 @@ class ConfigDictionary(dict):
       value = True
     elif value == "false":
       value = False
-    
+
     return value
 
 
-class UnknownConfiguration():
+class UnknownConfiguration:
   """
   Lazy failing for unknown configs.
   """
+
   def __init__(self, name):
     self.name = name
-   
+
   def __getattr__(self, name):
-    raise Fail("Configuration parameter '" + self.name + "' was not found in configurations dictionary!")
-  
+    raise Fail(
+      "Configuration parameter '"
+      + self.name
+      + "' was not found in configurations dictionary!"
+    )
+
   def __getitem__(self, name):
     """
-    Allow [] 
+    Allow []
     """
     return self

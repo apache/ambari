@@ -17,6 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+
 import os
 
 from resource_management.core.exceptions import ClientComponentHasNoStatus
@@ -28,15 +29,17 @@ from resource_management.libraries.functions.constants import StackFeature
 
 from setup_flink import *
 
-class FlinkClient(Script):
 
+class FlinkClient(Script):
   def configure(self, env, config_dir=None, upgrade_type=None):
     import params
+
     env.set_params(params)
-    setup_flink(env,"client",upgrade_type=upgrade_type, action = 'config')
+    setup_flink(env, "client", upgrade_type=upgrade_type, action="config")
 
   def install(self, env):
     import params
+
     self.install_packages(env)
     self.configure(env, config_dir=params.flink_config_dir)
 
@@ -47,8 +50,11 @@ class FlinkClient(Script):
     import params
 
     env.set_params(params)
-    if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
+    if params.version and check_stack_feature(
+      StackFeature.ROLLING_UPGRADE, params.version
+    ):
       stack_select.select_packages(params.version)
+
 
 if __name__ == "__main__":
   FlinkClient().execute()

@@ -19,9 +19,12 @@ limitations under the License.
 Ambari Agent
 
 """
+
 from ambari_commons import OSCheck
 from resource_management.libraries.functions.default import default
-from resource_management.libraries.functions.copy_tarball import get_sysprep_skip_copy_tarballs_hdfs
+from resource_management.libraries.functions.copy_tarball import (
+  get_sysprep_skip_copy_tarballs_hdfs,
+)
 
 if OSCheck.is_windows_family():
   from params_windows import *

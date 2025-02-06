@@ -19,6 +19,7 @@ limitations under the License.
 Ambari Agent
 
 """
+
 import re
 
 import os
@@ -34,13 +35,13 @@ stack_root_current = stack_root + CURRENT_
 
 
 class RemovePreviousStacks(Script):
-
-
   def actionexecute(self, env):
     config = Script.get_config()
     structured_output = {}
-    version = config['commandParams']['version']
-    self.stack_tool_package = stack_tools.get_stack_tool_package(stack_tools.STACK_SELECTOR_NAME)
+    version = config["commandParams"]["version"]
+    self.stack_tool_package = stack_tools.get_stack_tool_package(
+      stack_tools.STACK_SELECTOR_NAME
+    )
 
     versions_to_remove = self.get_lower_versions(version)
     self.pkg_provider = ManagerFactory.get()
@@ -55,53 +56,60 @@ class RemovePreviousStacks(Script):
     for package in packages_to_remove:
       Package(package, action="remove")
     self.remove_stack_folder(structured_output, version)
-    structured_output["remove_previous_stacks"] = {"exit_code": 0,
-                                       "message": format("Stack version {0} successfully removed!".format(version))}
+    structured_output["remove_previous_stacks"] = {
+      "exit_code": 0,
+      "message": format(f"Stack version {version} successfully removed!"),
+    }
     self.put_structured_out(structured_output)
 
   def remove_stack_folder(self, structured_output, version):
-    if version and version != '' and stack_root and stack_root != '':
-
-      Logger.info("Removing {0}/{1}".format(stack_root, version))
+    if version and version != "" and stack_root and stack_root != "":
+      Logger.info(f"Removing {stack_root}/{version}")
       try:
-        Execute(('rm', '-f', stack_root + version),
-                sudo=True)
+        Execute(("rm", "-f", stack_root + version), sudo=True)
       finally:
-        structured_output["remove_previous_stacks"] = {"exit_code": -1,
-                                           "message": "Failed to remove version {0}{1}".format(stack_root, version)}
+        structured_output["remove_previous_stacks"] = {
+          "exit_code": -1,
+          "message": f"Failed to remove version {stack_root}{version}",
+        }
         self.put_structured_out(structured_output)
 
   def get_packages_to_remove(self, version):
     packages = []
-    formated_version = version.replace('.', '_').replace('-', '_')
+    formated_version = version.replace(".", "_").replace("-", "_")
     all_installed_packages = self.pkg_provider.all_installed_packages()
 
     all_installed_packages = [package[0] for package in all_installed_packages]
     for package in all_installed_packages:
       if formated_version in package and self.stack_tool_package not in package:
         packages.append(package)
-        Logger.info("%s added to remove" % (package))
+        Logger.info(f"{package} added to remove")
     return packages
 
   def check_no_symlink_to_version(self, structured_output, version):
     files = os.listdir(stack_root_current)
     for file in files:
       if version in os.path.realpath(stack_root_current + file):
-        structured_output["remove_previous_stacks"] = {"exit_code": -1,
-                                           "message": "{0} contains symlink to version for remove! {1}".format(
-                                             stack_root_current, version)}
+        structured_output["remove_previous_stacks"] = {
+          "exit_code": -1,
+          "message": "{0} contains symlink to version for remove! {1}".format(
+            stack_root_current, version
+          ),
+        }
         self.put_structured_out(structured_output)
-        raise Fail("{0} contains symlink to version for remove! {1}".format(stack_root_current, version))
+        raise Fail(
+          f"{stack_root_current} contains symlink to version for remove! {version}"
+        )
 
   def get_lower_versions(self, current_version):
     versions = get_stack_versions(stack_root)
-    Logger.info("available versions: {0}".format(str(versions)))
+    Logger.info(f"available versions: {str(versions)}")
 
     lover_versions = []
     for version in versions:
-      if self.compare(version, current_version) < 0 :
+      if self.compare(version, current_version) < 0:
         lover_versions.append(version)
-        Logger.info("version %s added to remove" % (version))
+        Logger.info(f"version {version} added to remove")
     return lover_versions
 
   def compare(self, version1, version2):
@@ -113,9 +121,12 @@ class RemovePreviousStacks(Script):
     """
     vesion1_sections = re.findall(r"[\w']+", version1)
     vesion2_sections = re.findall(r"[\w']+", version2)
+
     def cmp(a, b):
       return (a > b) - (a < b)
+
     return cmp(vesion1_sections, vesion2_sections)
+
 
 if __name__ == "__main__":
   RemovePreviousStacks().execute()

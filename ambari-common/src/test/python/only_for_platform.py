@@ -20,35 +20,42 @@ Ambari Agent
 
 """
 
-
 import platform
 
 PLATFORM_WINDOWS = "Windows"
 PLATFORM_LINUX = "Linux"
 
+
 def get_platform():
   return platform.system()
+
 
 def only_for_platform(system):
   def decorator(obj):
     if platform.system() == system:
       return obj
+
   return decorator
+
 
 def not_for_platform(system):
   def decorator(obj):
     if platform.system() != system:
       return obj
+
   return decorator
+
 
 def for_specific_platforms(systems):
   def decorator(obj):
     if platform.system() in systems:
       return obj
+
   return decorator
 
-os_distro_value_linux = ('Suse','11','Final')
-os_distro_value_windows = ('win2012serverr2','6.3','WindowsServer')
+
+os_distro_value_linux = ("Suse", "11", "Final")
+os_distro_value_windows = ("win2012serverr2", "6.3", "WindowsServer")
 
 if get_platform() != PLATFORM_WINDOWS:
   os_distro_value = os_distro_value_linux
