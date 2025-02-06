@@ -285,7 +285,7 @@ App.Router = Em.Router.extend({
     var self = this;
     var auth = App.db.getAuthenticated();
     this.getClusterDataRequest().always(function (xhr, textStatus, jqXHRorErrorThrown) {
-      if (xhr) {
+      if (xhr && textStatus == 'success') {
         // if server knows the user and user authenticated by UI
         if (auth) {
           dfd.resolve(self.get('loggedIn'));
