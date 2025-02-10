@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -22,6 +22,7 @@ import sys
 from resource_management import *
 from hcat import hcat
 
+
 class HCatClient(Script):
   def install(self, env):
     self.install_packages(env)
@@ -33,7 +34,6 @@ class HCatClient(Script):
     env.set_params(params)
 
     hcat()
-
 
   def status(self, env):
     raise ClientComponentHasNoStatus()

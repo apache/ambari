@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -27,6 +27,7 @@ UPGRADE_TYPE_HOST_ORDERED = "host_ordered"
 AGENT_TMP_DIR = "/var/lib/ambari-agent/tmp"
 
 LOGFEEDER_CONF_DIR = "/usr/lib/ambari-logsearch-logfeeder/conf"
+
 
 class SERVICE:
   """

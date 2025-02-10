@@ -1,5 +1,4 @@
-
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -18,6 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+
 import re
 import socket
 
@@ -36,17 +36,23 @@ from resource_management.libraries.functions import check_process_status
 def prestart(env):
   import params
 
-  if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
+  if params.version and check_stack_feature(
+    StackFeature.ROLLING_UPGRADE, params.version
+  ):
     stack_select.select_packages(params.version)
+
 
 def post_regionserver(env):
   import params
+
   env.set_params(params)
 
-  check_cmd = "echo 'status \"simple\"' | {0} shell".format(params.hbase_cmd)
+  check_cmd = f"echo 'status \"simple\"' | {params.hbase_cmd} shell"
 
-  exec_cmd = "{0} {1}".format(params.kinit_cmd, check_cmd)
-  is_regionserver_registered(exec_cmd, params.hbase_user, params.hostname, re.IGNORECASE)
+  exec_cmd = f"{params.kinit_cmd} {check_cmd}"
+  is_regionserver_registered(
+    exec_cmd, params.hbase_user, params.hostname, re.IGNORECASE
+  )
 
 
 def is_region_server_process_running():
@@ -96,10 +102,13 @@ def is_regionserver_registered(cmd, user, hostname, regex_search_flags):
       match = re.search(bound_ip_address_to_match, out, regex_search_flags)
     except socket.error:
       # this is merely a backup, so just log that it failed
-      Logger.warning("Unable to lookup the IP address of {0}, reverse DNS lookup may not be working.".format(hostname))
+      Logger.warning(
+        f"Unable to lookup the IP address of {hostname}, reverse DNS lookup may not be working."
+      )
       pass
 
   # failed with both a hostname and an IP address, so raise the Fail and let the function auto retry
   if not match:
     raise Fail(
-      "The RegionServer named {0} has not yet registered with the HBase Master".format(hostname))
+      f"The RegionServer named {hostname} has not yet registered with the HBase Master"
+    )

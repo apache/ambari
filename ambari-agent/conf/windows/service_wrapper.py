@@ -1,4 +1,5 @@
-'''
+#!/usr/bin/env python3
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -14,8 +15,9 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
-import ConfigParser
+"""
+
+import configparser
 import os
 import optparse
 import sys
@@ -42,6 +44,7 @@ RESET_ACTION = "reset"
 STATUS_ACTION = "status"
 DEBUG_ACTION = "debug"
 
+
 def parse_options():
   # parse env cmd
   with open(os.path.join(os.getcwd(), "ambari-env.cmd"), "r") as env_cmd:
@@ -51,13 +54,15 @@ def parse_options():
       name, value = line[4:].split("=")
       os.environ[name] = value.rstrip()
   # checking env variables, and fallback to working dir if no env var was founded
-  if not os.environ.has_key("AMBARI_AGENT_CONF_DIR"):
+  if "AMBARI_AGENT_CONF_DIR" not in os.environ:
     os.environ["AMBARI_AGENT_CONF_DIR"] = os.getcwd()
-  if not os.environ.has_key("AMBARI_AGENT_LOG_DIR"):
-    os.environ["AMBARI_AGENT_LOG_DIR"] = os.path.join("\\", "var", "log", "ambari-agent")
+  if "AMBARI_AGENT_LOG_DIR" not in os.environ:
+    os.environ["AMBARI_AGENT_LOG_DIR"] = os.path.join(
+      "\\", "var", "log", "ambari-agent"
+    )
   if not os.path.exists(os.environ["AMBARI_AGENT_LOG_DIR"]):
     os.makedirs(os.environ["AMBARI_AGENT_LOG_DIR"])
-  if not os.environ.has_key("PYTHON_EXE"):
+  if "PYTHON_EXE" not in os.environ:
     os.environ["PYTHON_EXE"] = find_in_path("python.exe")
 
 
@@ -91,7 +96,9 @@ class AmbariAgentService(AmbariService):
     # Soft dependency on the Windows Time service
     ensure_time_service_is_started()
 
-    self.heartbeat_stop_handler = HeartbeatStopHandlers(AmbariAgentService._heventSvcStop)
+    self.heartbeat_stop_handler = HeartbeatStopHandlers(
+      AmbariAgentService._heventSvcStop
+    )
 
     self.ReportServiceStatus(win32service.SERVICE_RUNNING)
 
@@ -162,32 +169,57 @@ def svcstatus(options):
   options.exit_message = None
 
   statusStr = AmbariAgentService.QueryStatus()
-  print "Ambari Agent is " + statusStr
+  print("Ambari Agent is " + statusStr)
 
 
 def svcdebug(options):
-  sys.frozen = 'windows_exe'  # Fake py2exe so we can debug
+  sys.frozen = "windows_exe"  # Fake py2exe so we can debug
 
   AmbariAgentService.set_ctrl_c_handler(ctrlHandler)
   win32serviceutil.HandleCommandLine(AmbariAgentService, options)
 
 
 def init_options_parser():
-  parser = optparse.OptionParser(usage="usage: %prog action [options]", )
-  parser.add_option('-r', '--hostname', dest="host_name", default="localhost",
-    help="Use specified Ambari server host for registration.")
-  parser.add_option('-j', '--java-home', dest="java_home", default=None,
-    help="Use specified java_home.  Must be valid on all hosts")
-  parser.add_option("-v", "--verbose",
-    action="store_true", dest="verbose", default=False,
-    help="Print verbose status messages")
-  parser.add_option("-s", "--silent",
-    action="store_true", dest="silent", default=False,
-    help="Silently accepts default prompt values")
-  parser.add_option('--jdbc-driver', default=None,
-    help="Specifies the path to the JDBC driver JAR file for the " \
-         "database type specified with the --jdbc-db option. Used only with --jdbc-db option.",
-    dest="jdbc_driver")
+  parser = optparse.OptionParser(
+    usage="usage: %prog action [options]",
+  )
+  parser.add_option(
+    "-r",
+    "--hostname",
+    dest="host_name",
+    default="localhost",
+    help="Use specified Ambari server host for registration.",
+  )
+  parser.add_option(
+    "-j",
+    "--java-home",
+    dest="java_home",
+    default=None,
+    help="Use specified java_home.  Must be valid on all hosts",
+  )
+  parser.add_option(
+    "-v",
+    "--verbose",
+    action="store_true",
+    dest="verbose",
+    default=False,
+    help="Print verbose status messages",
+  )
+  parser.add_option(
+    "-s",
+    "--silent",
+    action="store_true",
+    dest="silent",
+    default=False,
+    help="Silently accepts default prompt values",
+  )
+  parser.add_option(
+    "--jdbc-driver",
+    default=None,
+    help="Specifies the path to the JDBC driver JAR file for the "
+    "database type specified with the --jdbc-db option. Used only with --jdbc-db option.",
+    dest="jdbc_driver",
+  )
   return parser
 
 
@@ -201,7 +233,7 @@ def agent_main():
   options.warnings = []
 
   if len(args) == 0:
-    print parser.print_help()
+    print(parser.print_help())
     parser.error("No action entered")
 
   action = args[0]
@@ -212,11 +244,16 @@ def agent_main():
     matches += int(len(args) == args_number_required)
 
   if matches == 0:
-    print parser.print_help()
-    possible_args = ' or '.join(str(x) for x in possible_args_numbers)
-    parser.error("Invalid number of arguments. Entered: " + str(len(args)) + ", required: " + possible_args)
+    print(parser.print_help())
+    possible_args = " or ".join(str(x) for x in possible_args_numbers)
+    parser.error(
+      "Invalid number of arguments. Entered: "
+      + str(len(args))
+      + ", required: "
+      + possible_args
+    )
 
-  options.exit_message = "Ambari Agent '%s' completed successfully." % action
+  options.exit_message = f"Ambari Agent '{action}' completed successfully."
   try:
     if action == SETUP_ACTION:
       setup(options)
@@ -235,22 +272,22 @@ def agent_main():
       for warning in options.warnings:
         print_warning_msg(warning)
         pass
-      options.exit_message = "Ambari Agent '%s' completed with warnings." % action
+      options.exit_message = f"Ambari Agent '{action}' completed with warnings."
       pass
   except FatalException as e:
     if e.reason is not None:
-      print_error_msg("Exiting with exit code {0}. \nREASON: {1}".format(e.code, e.reason))
+      print_error_msg(f"Exiting with exit code {e.code}. \nREASON: {e.reason}")
     sys.exit(e.code)
   except NonFatalException as e:
-    options.exit_message = "Ambari Agent '%s' completed with warnings." % action
+    options.exit_message = f"Ambari Agent '{action}' completed with warnings."
     if e.reason is not None:
       print_warning_msg(e.reason)
 
   if options.exit_message is not None:
-    print options.exit_message
+    print(options.exit_message)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
   try:
     agent_main()
   except (KeyboardInterrupt, EOFError):

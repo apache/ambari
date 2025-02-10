@@ -1727,6 +1727,28 @@ Em.I18n.translations = {
   'admin.nameNodeFederation.wizard.step4.task16.title': 'Start NameNode',
   'admin.nameNodeFederation.wizard.step4.task17.title': 'Restart Required Services',
 
+  'admin.routerFederation.button.enable':'Add DFSRouter',
+  'admin.routerFederation.wizard.header': 'Add HDFS Router',
+  'admin.routerFederation.closePopup': 'Are you sure you want to quit?',
+  'admin.routerFederation.closePopup2': 'Add HDFS Router Wizard is in progress. Are you sure you want to exit the wizard?',
+  'admin.routerFederation.wizard.step1.header': 'Get Started',
+  'admin.routerFederation.wizard.step1.body':'This wizard will walk you through the process of enabling DFSRouter to manage federated cluster.',
+  'admin.routerFederation.wizard.step2.header': 'Select Hosts',
+  'admin.routerFederation.wizard.step2.body': 'Select hosts running the Routers for {0}',
+  'admin.routerFederation.wizard.step3.header': 'Review',
+  'admin.routerFederation.wizard.step3.addRouter': '<b>Add Router:</b> ',
+  'admin.routerFederation.wizard.step3.toBeInstalled': 'Router TO BE INSTALLED',
+  'admin.routerFederation.wizard.step3.confirm.config.body': '<div class="alert alert-info">' +
+      '<p><b>Review Configuration Changes.</b></p>' +
+      'The following lists the configuration changes that will be made by the Wizard to enable Router. This information is for <b> review only </b> and is not editable' +
+      '</div>',
+  'admin.routerFederation.wizard.step4.header': 'Configure Router',
+  'admin.routerFederation.wizard,step4.save.configuration.note':'This configuration is created by Enable DFSRouter wizard',
+  'admin.routerFederation.wizard.step4.notice.inProgress':'Please wait while your Router is being deployed.',
+  'admin.routerFederation.wizard.step4.notice.completed':'Add DFSRouter Wizard has been completed successfully.',
+  'admin.routerFederation.wizard.step4.task0.title': 'Install Routers',
+  'admin.routerFederation.wizard.step4.task1.title': 'Start Routers',
+
   'admin.security.title':'Kerberos security has not been enabled',
   'admin.security.enabled': 'Kerberos security is enabled',
   'admin.security.disabled': 'Kerberos security is disabled',

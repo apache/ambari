@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -37,6 +38,7 @@ class YarnClient(Script):
 
   def configure(self, env):
     import params
+
     env.set_params(params)
     yarn()
 
@@ -53,9 +55,12 @@ class YarnClientWindows(YarnClient):
 class YarnClientDefault(YarnClient):
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
+
     env.set_params(params)
 
-    if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
+    if params.version and check_stack_feature(
+      StackFeature.ROLLING_UPGRADE, params.version
+    ):
       stack_select.select_packages(params.version)
 
 

@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -41,12 +42,16 @@ class NamenodeHAState:
     """
     import params
 
-    self.name_services = default('/configurations/hdfs-site/dfs.internal.nameservices', None)
+    self.name_services = default(
+      "/configurations/hdfs-site/dfs.internal.nameservices", None
+    )
     if self.name_services is None:
-      self.name_services = default('/configurations/hdfs-site/dfs.nameservices', None)
+      self.name_services = default("/configurations/hdfs-site/dfs.nameservices", None)
 
     if not self.name_services:
-      raise ValueError("Could not retrieve property dfs.nameservices or dfs.internal.nameservices")
+      raise ValueError(
+        "Could not retrieve property dfs.nameservices or dfs.internal.nameservices"
+      )
 
     self.name_services = self.name_services.split(",")
     self.name_services = [x.strip() for x in self.name_services]
@@ -54,7 +59,9 @@ class NamenodeHAState:
     for name_service in self.name_services:
       nn_unique_ids_key = "dfs.ha.namenodes." + str(name_service)
       # List of the nn unique ids
-      self.nn_unique_ids = default("/configurations/hdfs-site/" + nn_unique_ids_key, None)
+      self.nn_unique_ids = default(
+        "/configurations/hdfs-site/" + nn_unique_ids_key, None
+      )
       if not self.nn_unique_ids:
         raise ValueError("Could not retrieve property " + nn_unique_ids_key)
 
@@ -64,7 +71,9 @@ class NamenodeHAState:
       policy = default("/configurations/hdfs-site/dfs.http.policy", "HTTP_ONLY")
       self.encrypted = policy.upper() == "HTTPS_ONLY"
 
-      jmx_uri_fragment = ("https" if self.encrypted else "http") + "://{0}/jmx?qry=Hadoop:service=NameNode,name=FSNamesystem"
+      jmx_uri_fragment = (
+        "https" if self.encrypted else "http"
+      ) + "://{0}/jmx?qry=Hadoop:service=NameNode,name=FSNamesystem"
       namenode_http_fragment = "dfs.namenode.http-address.{0}.{1}"
       namenode_https_fragment = "dfs.namenode.https-address.{0}.{1}"
 
@@ -80,7 +89,11 @@ class NamenodeHAState:
         http_value = default("/configurations/hdfs-site/" + http_key, None)
         https_value = default("/configurations/hdfs-site/" + https_key, None)
         actual_value = https_value if self.encrypted else http_value
-        hostname = actual_value.split(":")[0].strip() if actual_value and ":" in actual_value else None
+        hostname = (
+          actual_value.split(":")[0].strip()
+          if actual_value and ":" in actual_value
+          else None
+        )
 
         self.nn_unique_id_to_addresses[nn_unique_id] = (http_value, https_value)
         try:
@@ -88,12 +101,22 @@ class NamenodeHAState:
             raise Exception("Could not retrieve hostname from address " + actual_value)
 
           jmx_uri = jmx_uri_fragment.format(actual_value)
-          state = get_value_from_jmx(jmx_uri, "tag.HAState", params.security_enabled, params.hdfs_user, params.is_https_enabled)
+          state = get_value_from_jmx(
+            jmx_uri,
+            "tag.HAState",
+            params.security_enabled,
+            params.hdfs_user,
+            params.is_https_enabled,
+          )
 
           # If JMX parsing failed
           if not state:
             run_user = default("/configurations/hadoop-env/hdfs_user", "hdfs")
-            check_service_cmd = "hdfs haadmin -ns {dfs_ha_nameservices} -getServiceState {0}".format(nn_unique_id)
+            check_service_cmd = (
+              "hdfs haadmin -ns {dfs_ha_nameservices} -getServiceState {0}".format(
+                nn_unique_id
+              )
+            )
             code, out = shell.call(check_service_cmd, logoutput=True, user=run_user)
             if code == 0 and out:
               if NAMENODE_STATE.STANDBY in out:
@@ -112,19 +135,25 @@ class NamenodeHAState:
           if state in self.namenode_state_to_hostnames:
             self.namenode_state_to_hostnames[state].add(hostname)
           else:
-            hostnames = set([hostname, ])
+            hostnames = set(
+              [
+                hostname,
+              ]
+            )
             self.namenode_state_to_hostnames[state] = hostnames
         except:
           Logger.error("Could not get namenode state for " + nn_unique_id)
 
   def __str__(self):
-    return "Namenode HA State: {\n" + \
-           ("IDs: %s\n"       % ", ".join(self.nn_unique_ids)) + \
-           ("Addresses: %s\n" % str(self.nn_unique_id_to_addresses)) + \
-           ("States: %s\n"    % str(self.namenode_state_to_hostnames)) + \
-           ("Encrypted: %s\n" % str(self.encrypted)) + \
-           ("Healthy: %s\n"   % str(self.is_healthy())) + \
-           "}"
+    return (
+      "Namenode HA State: {\n"
+      + f"IDs: {', '.join(self.nn_unique_ids)}\n"
+      + f"Addresses: {str(self.nn_unique_id_to_addresses)}\n"
+      + f"States: {str(self.namenode_state_to_hostnames)}\n"
+      + f"Encrypted: {str(self.encrypted)}\n"
+      + f"Healthy: {str(self.is_healthy())}\n"
+      + "}"
+    )
 
   def is_encrypted(self):
     """
@@ -161,7 +190,7 @@ class NamenodeHAState:
     :param hostname: Host name
     :return: Returns the appropriate address (HTTP if no encryption, HTTPS otherwise) for the given host.
     """
-    for id, addresses in self.nn_unique_id_to_addresses.iteritems():
+    for id, addresses in self.nn_unique_id_to_addresses.items():
       if addresses and len(addresses) == 2:
         if ":" in addresses[0]:
           nn_hostname = addresses[0].split(":")[0].strip()
@@ -181,7 +210,11 @@ class NamenodeHAState:
     @param namenode_state: Member of NAMENODE_STATE
     :return Get the address that corresponds to the first host with the given state
     """
-    hosts = self.namenode_state_to_hostnames[namenode_state] if namenode_state in self.namenode_state_to_hostnames else []
+    hosts = (
+      self.namenode_state_to_hostnames[namenode_state]
+      if namenode_state in self.namenode_state_to_hostnames
+      else []
+    )
     if hosts and len(hosts) > 0:
       hostname = list(hosts)[0]
       return self.get_address_for_host(hostname)
@@ -210,7 +243,11 @@ class NamenodeHAState:
     mapping = self.get_namenode_state_to_hostnames()
     if state in mapping:
       hosts_in_state = mapping[state]
-      if hosts_in_state is not None and len(hosts_in_state) == 1 and next(iter(hosts_in_state)).lower() == host_name.lower():
+      if (
+        hosts_in_state is not None
+        and len(hosts_in_state) == 1
+        and next(iter(hosts_in_state)).lower() == host_name.lower()
+      ):
         return True
     return False
 
@@ -218,6 +255,14 @@ class NamenodeHAState:
     """
     :return: Returns a bool indicating if exactly one ACTIVE and one STANDBY host exist.
     """
-    active_hosts = self.namenode_state_to_hostnames[NAMENODE_STATE.ACTIVE] if NAMENODE_STATE.ACTIVE in self.namenode_state_to_hostnames else []
-    standby_hosts = self.namenode_state_to_hostnames[NAMENODE_STATE.STANDBY] if NAMENODE_STATE.STANDBY in self.namenode_state_to_hostnames else []
+    active_hosts = (
+      self.namenode_state_to_hostnames[NAMENODE_STATE.ACTIVE]
+      if NAMENODE_STATE.ACTIVE in self.namenode_state_to_hostnames
+      else []
+    )
+    standby_hosts = (
+      self.namenode_state_to_hostnames[NAMENODE_STATE.STANDBY]
+      if NAMENODE_STATE.STANDBY in self.namenode_state_to_hostnames
+      else []
+    )
     return len(active_hosts) == 1 and len(standby_hosts) == 1

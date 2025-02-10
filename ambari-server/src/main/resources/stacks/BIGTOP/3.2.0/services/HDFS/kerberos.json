@@ -147,6 +147,32 @@
           ]
         },
         {
+          "name": "ROUTER",
+          "identities": [
+            {
+              "name": "dfsrouter_dr",
+              "principal": {
+                "value": "router/_HOST@${realm}",
+                "type" : "service",
+                "configuration": "hdfs-rbf-site/dfs.federation.router.kerberos.principal",
+                "local_username" : "${hadoop-env/hdfs_user}"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/dr.service.keytab",
+                "owner": {
+                  "name": "${hadoop-env/hdfs_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "hdfs-rbf-site/dfs.federation.router.keytab.file"
+              }
+            }
+          ]
+        },
+        {
           "name": "SECONDARY_NAMENODE",
           "identities": [
             {

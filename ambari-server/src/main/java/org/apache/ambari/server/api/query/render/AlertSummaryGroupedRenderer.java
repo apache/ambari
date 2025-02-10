@@ -33,7 +33,8 @@ import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.MaintenanceState;
-import org.codehaus.jackson.annotate.JsonProperty;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * The {@link AlertSummaryGroupedRenderer} is used to format the results of
@@ -263,15 +264,12 @@ public class AlertSummaryGroupedRenderer extends AlertSummaryRenderer {
    */
   public final static class AlertDefinitionSummary {
     @JsonProperty(value = "definition_id")
-    @com.fasterxml.jackson.annotation.JsonProperty(value = "definition_id")
     public long Id;
 
     @JsonProperty(value = "definition_name")
-    @com.fasterxml.jackson.annotation.JsonProperty(value = "definition_name")
     public String Name;
 
     @JsonProperty(value = "summary")
-    @com.fasterxml.jackson.annotation.JsonProperty(value = "summary")
     public final AlertStateSummary State = new AlertStateSummary();
 
     @Override

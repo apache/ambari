@@ -18,21 +18,21 @@
 
 describe('#Cluster', function () {
 
-  describe('UsersListCtrl', function() {
-
-    var scope, ctrl, $t, $httpBackend;
-
-    beforeEach(module('ambariAdminConsole', function () {}));
-
-    beforeEach(inject(function($rootScope, $controller, _$translate_, _$httpBackend_) {
-      scope = $rootScope.$new();
-      $t = _$translate_.instant;
-      $httpBackend = _$httpBackend_;
-      ctrl = $controller('UsersListCtrl', {
-        $scope: scope
-      });
-    }));
-
+    describe('UsersListCtrl', function() {
+  
+      var scope, ctrl, $t, $httpBackend;
+  
+      beforeEach(module('ambariAdminConsole', function () {}));
+  
+      beforeEach(inject(function($rootScope, $controller, _$translate_, _$httpBackend_) {
+        scope = $rootScope.$new();
+        $t = _$translate_.instant;
+        $httpBackend = _$httpBackend_;
+        ctrl = $controller('UsersListCtrl', {
+          $scope: scope
+        });
+      }));
+  
+    });
+  
   });
-
-});

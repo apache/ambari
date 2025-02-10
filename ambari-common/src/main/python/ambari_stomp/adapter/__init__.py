@@ -1,2 +1,2 @@
-"""Non-standard adapters.
-"""
+#!/usr/bin/env python3
+"""Non-standard adapters."""

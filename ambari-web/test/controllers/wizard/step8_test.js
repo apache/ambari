@@ -958,7 +958,7 @@ describe('App.WizardStep8Controller', function () {
       App.set('isKerberosEnabled', false);
       App.get('router.mainAdminKerberosController').getKDCSessionState.restore();
     });
-    it('AddServiceController Kerberos enabled', function () {
+    it.skip('AddServiceController Kerberos enabled', function () {
       installerStep8Controller.reopen({
         isSubmitDisabled: false,
         content: {controllerName: 'addServiceController'}

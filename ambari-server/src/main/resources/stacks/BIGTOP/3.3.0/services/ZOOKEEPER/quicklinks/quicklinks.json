@@ -1,0 +1,26 @@
+{
+  "name": "default",
+  "description": "default quick links configuration",
+  "configuration": {
+    "protocol":
+    {
+      "type":"http"
+    },
+
+    "links": [
+      {
+        "name": "zookeeper-adminserver",
+        "label": "Zookeeper AdminServer",
+        "requires_user_name": "false",
+        "component_name": "ZOOKEEPER_SERVER",
+        "url": "%@://%@:%@/commands/",
+        "port":{
+          "http_property": "admin.serverPort",
+          "http_default_port": "8180",
+          "regex": "^(\\d+)$",
+          "site": "zoo.cfg"
+        }
+      }
+    ]
+  }
+}

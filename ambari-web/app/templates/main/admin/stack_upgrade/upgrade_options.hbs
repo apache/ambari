@@ -64,7 +64,7 @@
       </div>
       {{#if view.upgradeShow}}
         <div class="text tolerance-text">{{t admin.stackVersions.version.upgrade.upgradeOptions.bodyMsg.tolerance}}
-          <i class="glyphicon glyphicon-question-sign failure-tolerance-tooltip" data-toggle="tooltip"></i>
+          <i class="glyphicon glyphicon-question-sign failure-tolerance-tooltip" data-bs-toggle="tooltip"></i>
           <div>
             {{view App.CheckboxView
             labelClassNames="tolerance-option"
@@ -91,7 +91,7 @@
     </div>
   </div>
   <div class="text tolerance-text">{{t admin.stackVersions.version.upgrade.upgradeOptions.bodyMsg.tolerance}}
-    <i class="icon-question-sign failure-tolerance-tooltip" data-toggle="tooltip"></i>
+    <i class="icon-question-sign failure-tolerance-tooltip" data-bs-toggle="tooltip"></i>
     <label class="tolerance-option">{{view Ember.Checkbox checkedBinding="view.parentView.skipSCFailures"}}
       {{t admin.stackVersions.version.upgrade.upgradeOptions.tolerance.option2}}</label>
     <label class="tolerance-option">{{view Ember.Checkbox checkedBinding="view.parentView.skipComponentFailures"}}

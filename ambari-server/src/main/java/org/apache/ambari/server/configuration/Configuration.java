@@ -28,10 +28,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
 import java.lang.reflect.Field;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -52,6 +48,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
+import org.apache.ambari.annotations.ClusterScale;
+import org.apache.ambari.annotations.ConfigurationMarkdown;
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.annotations.Markdown;
@@ -325,6 +323,16 @@ public class Configuration {
   // Ambari server log4j file name
   public static final String AMBARI_LOG_FILE = "log4j.properties";
 
+  /**
+   * The maximum value of password history count which can be configured by the user.
+   */
+  public static final int MAXIMUM_PASSWORD_HISTORY_LIMIT = 10;
+
+  /**
+   * The default and minimum value of password history count which can be configured by the user.
+   */
+  public static final int MINIMUM_PASSWORD_HISTORY_LIMIT = 1;
+
   @Markdown(
           description = "Interval for heartbeat presence checks.",
           examples = {"60000","600000"} )
@@ -529,6 +537,14 @@ public class Configuration {
       description = "Password policy description that is shown to users")
   public static final ConfigurationProperty<String> PASSWORD_POLICY_DESCRIPTION = new ConfigurationProperty<>(
       "security.password.policy.description", "");
+
+  /**
+   * Password history count to validate how many previous passwords should be checked before updating user password.
+   */
+  @Markdown(
+          description = "Password policy to mandate that new password should be different from previous passwords, this would be based on the history count configured by the user. Valid values are 1 to 10.")
+  public static final ConfigurationProperty<String> PASSWORD_POLICY_HISTORY_COUNT = new ConfigurationProperty<>(
+          "security.password.policy.history.count", "1");
 
   /**
    * Determines whether the Ambari Agent host names should be validated against
@@ -775,6 +791,15 @@ public class Configuration {
       examples = { "/usr/jdk64/jdk1.8.0_112" })
   public static final ConfigurationProperty<String> JAVA_HOME = new ConfigurationProperty<>(
       "java.home", null);
+
+  /**
+   * The location of the JDK on the Ambari Agent hosts.
+   */
+  @Markdown(
+          description = "The location of the JDK on the Ambari Agent hosts. This is only used by Ambari Server",
+          examples = { "/usr/jdk64/jdk1.8.0_112" })
+  public static final ConfigurationProperty<String> AMBARI_JAVA_HOME = new ConfigurationProperty<>(
+          "ambari.java.home", null);
 
   /**
    * The name of the JDK installation binary.
@@ -2042,6 +2067,15 @@ public class Configuration {
       description = "The time, in seconds, that Ambari Metric data can remain in the cache without being accessed.")
   public static final ConfigurationProperty<Integer> TIMELINE_METRICS_CACHE_IDLE_TIME = new ConfigurationProperty<>(
       "server.timeline.metrics.cache.entry.idle.seconds", 1800);
+
+  /**
+   * Cache size in entry units that ambari metrics cache will hold.
+   */
+  @Markdown(
+          relatedTo = "server.timeline.metrics.cache.disabled",
+          description = "cache size, in entries, that ambari metrics cache will hold.")
+  public static final ConfigurationProperty<Integer> TIMELINE_METRICS_CACHE_ENTRY_UNIT_SIZE = new ConfigurationProperty<>(
+          "server.timeline.metrics.cache.entry.entry.unit.size", 100);
 
   /**
    * The time, in {@link TimeUnit#MILLISECONDS}, that initial requests made to
@@ -3357,6 +3391,8 @@ public class Configuration {
       return 7;
     } else if (versionStr.startsWith("1.8")) {
       return 8;
+    } else if (versionStr.startsWith("17")) {
+      return 17;
     } else { // Some unsupported java version
       return -1;
     }
@@ -4088,6 +4124,10 @@ public class Configuration {
     return getProperty(JAVA_HOME);
   }
 
+  public String getAmbariJavaHome() {
+    return getProperty(AMBARI_JAVA_HOME);
+  }
+
   public String getJDKName() {
     return getProperty(JDK_NAME);
   }
@@ -4136,6 +4176,22 @@ public class Configuration {
    */
   public String getPasswordPolicyDescription() {
     return getProperty(PASSWORD_POLICY_DESCRIPTION);
+  }
+
+  /**
+   * @return Password policy history count
+   */
+  public int getPasswordPolicyHistoryCount() {
+    int historyCount = Integer.parseInt(getProperty(PASSWORD_POLICY_HISTORY_COUNT));
+    if(historyCount < MINIMUM_PASSWORD_HISTORY_LIMIT){
+      historyCount = MINIMUM_PASSWORD_HISTORY_LIMIT;
+      LOG.debug("Invalid password history count detected. The count has been automatically set to the minimum permissible value of {}.",MINIMUM_PASSWORD_HISTORY_LIMIT);
+    }
+    if(historyCount > MAXIMUM_PASSWORD_HISTORY_LIMIT){
+      historyCount = MAXIMUM_PASSWORD_HISTORY_LIMIT;
+      LOG.debug("Invalid password history count detected. The count has been automatically set to the maximum permissible value of {}.",MAXIMUM_PASSWORD_HISTORY_LIMIT);
+    }
+    return historyCount;
   }
 
   public JPATableGenerationStrategy getJPATableGenerationStrategy() {
@@ -5236,6 +5292,13 @@ public class Configuration {
   }
 
   /**
+   * Ambari metrics cache size.
+   */
+  public int getMetricCacheEntryUnitSize() {
+    return Integer.parseInt(getProperty(TIMELINE_METRICS_CACHE_ENTRY_UNIT_SIZE));
+  }
+
+  /**
    * Separate timeout settings for metrics cache.
    * @return milliseconds
    */
@@ -5942,7 +6005,7 @@ public class Configuration {
   /**
    * The {@link ConfigurationGrouping} represents a logical grouping of configurations.
    */
-  private enum ConfigurationGrouping {
+  public enum ConfigurationGrouping {
     /**
      * Alerts & Notifications.
      */
@@ -5980,7 +6043,7 @@ public class Configuration {
    * The {@link ClusterSizeType} is used to represent fixed sizes of clusters
    * for easy table generation when creating documentation.
    */
-  private enum ClusterSizeType {
+  public enum ClusterSizeType {
     /**
      * 10 Hosts.
      */
@@ -6024,47 +6087,6 @@ public class Configuration {
     }
   }
 
-  /**
-   * The {@link ConfigurationMarkdown} is used to represent more complex
-   * Markdown for {@link ConfigurationProperty} fields. It wraps the traditional
-   * {@link Markdown} along with extra metadata used to generate documentation.
-   */
-  @Retention(RetentionPolicy.RUNTIME)
-  @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.METHOD })
-  @interface ConfigurationMarkdown {
-    /**
-     * The base Markdown.
-     *
-     * @return
-     */
-    Markdown markdown();
-
-    /**
-     * The logic grouping that the configuration property belongs to.
-     *
-     * @return
-     */
-    ConfigurationGrouping group();
-
-    /**
-     * All of the recommended values for the property based on cluster size.
-     *
-     * @return
-     */
-    ClusterScale[] scaleValues() default {};
-  }
-
-  /**
-   * The {@link ClusterScale} class is a representation of the size of the
-   * cluster combined with a value. It's used to represent different
-   * configuration values depending on how many hosts are in the cluster.
-   */
-  @Retention(RetentionPolicy.RUNTIME)
-  @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.METHOD })
-  private @interface ClusterScale {
-    ClusterSizeType clusterSize();
-    String value();
-  }
 
   /**
    * Creates an AmbariKerberosAuthenticationProperties instance containing the Kerberos authentication-specific

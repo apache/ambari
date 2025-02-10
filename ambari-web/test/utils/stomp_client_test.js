@@ -167,11 +167,21 @@ describe('App.StompClient', function () {
   });
 
   describe('#disconnect', function() {
-    var client = {
-      disconnect: sinon.spy()
-    };
+    it('disconnect should not be called when the connection is not open', function() {
+      var client = {
+        disconnect: sinon.spy(),
+        ws: { readyState: -1, OPEN: 1 }
+      };
+      stomp.set('client', client);
+      stomp.disconnect();
+      expect(client.disconnect.calledOnce).to.be.false;
+    });
 
-    it('disconnect should be called', function() {
+    it('disconnect should be called when the connection is opening', function() {
+      var client = {
+        disconnect: sinon.spy(),
+        ws: { readyState: 1, OPEN: 1 }
+      };
       stomp.set('client', client);
       stomp.disconnect();
       expect(client.disconnect.calledOnce).to.be.true;

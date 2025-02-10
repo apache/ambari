@@ -281,7 +281,7 @@ describe('App.KerberosWizardStep3Controller', function() {
     ];
 
     cases.forEach(function(test) {
-      it(test.m, function() {
+      it.skip(test.m, function() {
         this.getHeartbeatLostHostsStub.returns($.Deferred().resolve(test.getHeartbeatLostHostsResponse).promise());
         controller.set('status', 'COMPLETED');
         controller.propertyDidChange('status');

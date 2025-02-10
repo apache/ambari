@@ -156,16 +156,16 @@ App.MainChartHeatmapMetric = Em.Object.extend({
   },
 
   /**
-   * calculate hatch style of slot according to browser version used
+   * Get hatch style
    * @return {String}
    */
   getHatchStyle: function () {
     var hatchStyle = "background-color:#666";
-    if (jQuery.browser.webkit) {
+    if (jQuery && jQuery.browser && jQuery.browser.webkit)  {
       hatchStyle = "background-image:-webkit-repeating-linear-gradient(-45deg, #666, #666 6px, #fff 6px, #fff 7px)";
-    } else if (jQuery.browser.mozilla) {
+    } else if (jQuery && jQuery.browser && jQuery.browser.mozilla)  {
       hatchStyle = "background-image:repeating-linear-gradient(-45deg, #666, #666 6px, #fff 6px, #fff 7px)";
-    } else if (jQuery.browser.msie && jQuery.browser.version) {
+    } else if (jQuery && jQuery.browser && jQuery.browser.msie && jQuery.browser.version) {
       var majorVersion = parseInt(jQuery.browser.version.split('.')[0]);
       if (majorVersion > 9) {
         hatchStyle = "background-image:repeating-linear-gradient(-45deg, #666, #666 6px, #fff 6px, #fff 7px)";

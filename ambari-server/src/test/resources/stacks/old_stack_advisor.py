@@ -19,20 +19,21 @@ limitations under the License.
 
 import socket
 
+
 class StackAdvisor(object):
   """
-  Abstract class implemented by all stack advisors. Stack advisors advise on stack specific questions. 
+  Abstract class implemented by all stack advisors. Stack advisors advise on stack specific questions.
 
   Currently stack advisors provide following abilities:
   - Recommend where services should be installed in cluster
   - Recommend configurations based on host hardware
   - Validate user selection of where services are installed on cluster
-  - Validate user configuration values 
+  - Validate user configuration values
 
   Each of the above methods is passed in parameters about services and hosts involved as described below.
 
     @type services: dictionary
-    @param services: Dictionary containing all information about services selected by the user. 
+    @param services: Dictionary containing all information about services selected by the user.
       Example: {
       "services": [
         {
@@ -40,7 +41,7 @@ class StackAdvisor(object):
             "service_name" : "HDFS",
             "service_version" : "2.6.0.2.2",
           },
-          "components" : [ 
+          "components" : [
             {
               "StackServiceComponents" : {
                 "cardinality" : "1+",
@@ -108,7 +109,7 @@ class StackAdvisor(object):
 
     Each of the methods can either return recommendations or validations.
 
-    Recommendations are made in a Ambari Blueprints friendly format. 
+    Recommendations are made in a Ambari Blueprints friendly format.
     Validations are an array of validation objects.
   """
 
@@ -125,7 +126,7 @@ class StackAdvisor(object):
     @type hosts: dictionary
     @param hosts: Dictionary containing all information about hosts in this cluster
     @rtype: dictionary
-    @return: Layout recommendation of service components on cluster hosts in Ambari Blueprints friendly format. 
+    @return: Layout recommendation of service components on cluster hosts in Ambari Blueprints friendly format.
         Example: {
           "resources" : [
             {
@@ -184,8 +185,8 @@ class StackAdvisor(object):
     Returns array of Validation issues with service component layout on hosts
 
     This function takes as input all details about services being installed along with
-    hosts the components are being installed on (hostnames property is populated for 
-    each component).  
+    hosts the components are being installed on (hostnames property is populated for
+    each component).
 
     @type services: dictionary
     @param services: Dictionary containing information about services and host layout selected by the user.
@@ -200,11 +201,11 @@ class StackAdvisor(object):
               "level" : "ERROR",
               "message" : "NameNode and Secondary NameNode should not be hosted on the same machine",
               "component-name" : "NAMENODE",
-              "host" : "c6401.ambari.apache.org" 
+              "host" : "c6401.ambari.apache.org"
             },
             ...
           ]
-        }  
+        }
     """
     pass
 
@@ -220,59 +221,59 @@ class StackAdvisor(object):
     @type hosts: dictionary
     @param hosts: Dictionary containing all information about hosts in this cluster
     @rtype: dictionary
-    @return: Layout recommendation of service components on cluster hosts in Ambari Blueprints friendly format. 
+    @return: Layout recommendation of service components on cluster hosts in Ambari Blueprints friendly format.
         Example: {
          "services": [
-          "HIVE", 
-          "TEZ", 
+          "HIVE",
+          "TEZ",
           "YARN"
-         ], 
+         ],
          "recommendations": {
           "blueprint": {
-           "host_groups": [], 
+           "host_groups": [],
            "configurations": {
             "yarn-site": {
              "properties": {
-              "yarn.scheduler.minimum-allocation-mb": "682", 
-              "yarn.scheduler.maximum-allocation-mb": "2048", 
+              "yarn.scheduler.minimum-allocation-mb": "682",
+              "yarn.scheduler.maximum-allocation-mb": "2048",
               "yarn.nodemanager.resource.memory-mb": "2048"
              }
-            }, 
+            },
             "tez-site": {
              "properties": {
-              "tez.am.java.opts": "-server -Xmx546m -Djava.net.preferIPv4Stack=true -XX:+UseNUMA -XX:+UseParallelGC", 
+              "tez.am.java.opts": "-server -Xmx546m -Djava.net.preferIPv4Stack=true -XX:+UseNUMA -XX:+UseParallelGC",
               "tez.am.resource.memory.mb": "682"
              }
-            }, 
+            },
             "hive-site": {
              "properties": {
-              "hive.tez.container.size": "682", 
-              "hive.tez.java.opts": "-server -Xmx546m -Djava.net.preferIPv4Stack=true -XX:NewRatio=8 -XX:+UseNUMA -XX:+UseParallelGC", 
+              "hive.tez.container.size": "682",
+              "hive.tez.java.opts": "-server -Xmx546m -Djava.net.preferIPv4Stack=true -XX:NewRatio=8 -XX:+UseNUMA -XX:+UseParallelGC",
               "hive.auto.convert.join.noconditionaltask.size": "238026752"
              }
             }
            }
-          }, 
+          },
           "blueprint_cluster_binding": {
            "host_groups": []
           }
-         }, 
+         },
          "hosts": [
-          "c6401.ambari.apache.org", 
-          "c6402.ambari.apache.org", 
-          "c6403.ambari.apache.org" 
-         ] 
+          "c6401.ambari.apache.org",
+          "c6402.ambari.apache.org",
+          "c6403.ambari.apache.org"
+         ]
         }
     """
     pass
 
   def validateConfigurations(self, services, hosts):
-    """"
+    """ "
     Returns array of Validation issues with configurations provided by user
 
     This function takes as input all details about services being installed along with
     configuration values entered by the user. These configurations can be validated against
-    service requirements, or host hardware to generate validation issues. 
+    service requirements, or host hardware to generate validation issues.
 
     @type services: dictionary
     @param services: Dictionary containing information about services and user configurations.
@@ -283,10 +284,10 @@ class StackAdvisor(object):
         Example: {
          "items": [
           {
-           "config-type": "yarn-site", 
-           "message": "Value is less than the recommended default of 682", 
-           "type": "configuration", 
-           "config-name": "yarn.scheduler.minimum-allocation-mb", 
+           "config-type": "yarn-site",
+           "message": "Value is less than the recommended default of 682",
+           "type": "configuration",
+           "config-name": "yarn.scheduler.minimum-allocation-mb",
            "level": "WARN"
           }
          ]
@@ -295,14 +296,10 @@ class StackAdvisor(object):
     pass
 
 
-
-
-
-
 class DefaultStackAdvisor(StackAdvisor):
   """
   Default stack advisor implementation.
-  
+
   This implementation is used when a stack-version, or its hierarchy does not
   have an advisor. Stack-versions can extend this class to provide their own
   implement
@@ -314,7 +311,9 @@ class DefaultStackAdvisor(StackAdvisor):
     stackName = services["Versions"]["stack_name"]
     stackVersion = services["Versions"]["stack_version"]
     hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
-    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    servicesList = [
+      service["StackServices"]["service_name"] for service in services["services"]
+    ]
 
     layoutRecommendations = self.createComponentLayoutRecommendations(services, hosts)
 
@@ -322,20 +321,15 @@ class DefaultStackAdvisor(StackAdvisor):
       "Versions": {"stack_name": stackName, "stack_version": stackVersion},
       "hosts": hostsList,
       "services": servicesList,
-      "recommendations": layoutRecommendations
+      "recommendations": layoutRecommendations,
     }
 
     return recommendations
 
   def createComponentLayoutRecommendations(self, services, hosts):
-
     recommendations = {
-      "blueprint": {
-        "host_groups": [ ]
-      },
-      "blueprint_cluster_binding": {
-        "host_groups": [ ]
-      }
+      "blueprint": {"host_groups": []},
+      "blueprint_cluster_binding": {"host_groups": []},
     }
 
     hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
@@ -345,9 +339,13 @@ class DefaultStackAdvisor(StackAdvisor):
       if hostName not in hostsComponentsMap:
         hostsComponentsMap[hostName] = []
 
-    #extend 'hostsComponentsMap' with MASTER components
+    # extend 'hostsComponentsMap' with MASTER components
     for service in services["services"]:
-      masterComponents = [component for component in service["components"] if self.isMasterComponent(component)]
+      masterComponents = [
+        component
+        for component in service["components"]
+        if self.isMasterComponent(component)
+      ]
       for component in masterComponents:
         componentName = component["StackServiceComponents"]["component_name"]
 
@@ -355,12 +353,16 @@ class DefaultStackAdvisor(StackAdvisor):
           hostsForComponent = component["StackServiceComponents"]["hostnames"]
         else:
           availableHosts = hostsList
-          if len(hostsList) > 1 and self.isComponentNotPreferableOnAmbariServerHost(component):
-            availableHosts = [hostName for hostName in hostsList if not self.isLocalHost(hostName)]
+          if len(hostsList) > 1 and self.isComponentNotPreferableOnAmbariServerHost(
+            component
+          ):
+            availableHosts = [
+              hostName for hostName in hostsList if not self.isLocalHost(hostName)
+            ]
 
           if self.isMasterComponentWithMultipleInstances(component):
             hostsCount = self.getMinComponentCount(component, hosts)
-            if hostsCount > 1: # get first 'hostsCount' available hosts
+            if hostsCount > 1:  # get first 'hostsCount' available hosts
               if len(availableHosts) < hostsCount:
                 hostsCount = len(availableHosts)
               hostsForComponent = availableHosts[:hostsCount]
@@ -369,20 +371,27 @@ class DefaultStackAdvisor(StackAdvisor):
           else:
             hostsForComponent = [self.getHostForComponent(component, availableHosts)]
 
-        #extend 'hostsComponentsMap' with 'hostsForComponent'
+        # extend 'hostsComponentsMap' with 'hostsForComponent'
         for hostName in hostsForComponent:
-          hostsComponentsMap[hostName].append( { "name":componentName } )
+          hostsComponentsMap[hostName].append({"name": componentName})
 
-    #extend 'hostsComponentsMap' with Slave and Client Components
+    # extend 'hostsComponentsMap' with Slave and Client Components
     componentsListList = [service["components"] for service in services["services"]]
     componentsList = [item for sublist in componentsListList for item in sublist]
-    usedHostsListList = [component["StackServiceComponents"]["hostnames"] for component in componentsList if not self.isComponentNotValuable(component)]
+    usedHostsListList = [
+      component["StackServiceComponents"]["hostnames"]
+      for component in componentsList
+      if not self.isComponentNotValuable(component)
+    ]
     utilizedHosts = [item for sublist in usedHostsListList for item in sublist]
     freeHosts = [hostName for hostName in hostsList if hostName not in utilizedHosts]
 
     for service in services["services"]:
-      slaveClientComponents = [component for component in service["components"]
-                               if self.isSlaveComponent(component) or self.isClientComponent(component)]
+      slaveClientComponents = [
+        component
+        for component in service["components"]
+        if self.isSlaveComponent(component) or self.isClientComponent(component)
+      ]
       for component in slaveClientComponents:
         componentName = component["StackServiceComponents"]["component_name"]
 
@@ -393,28 +402,33 @@ class DefaultStackAdvisor(StackAdvisor):
         else:
           if len(freeHosts) == 0:
             hostsForComponent = hostsList[-1:]
-          else: # len(freeHosts) >= 1
+          else:  # len(freeHosts) >= 1
             hostsForComponent = freeHosts
             if self.isClientComponent(component):
               hostsForComponent = freeHosts[0:1]
 
-        #extend 'hostsComponentsMap' with 'hostsForComponent'
+        # extend 'hostsComponentsMap' with 'hostsForComponent'
         for hostName in hostsForComponent:
           if hostName not in hostsComponentsMap:
             hostsComponentsMap[hostName] = []
-          hostsComponentsMap[hostName].append( { "name": componentName } )
+          hostsComponentsMap[hostName].append({"name": componentName})
 
-    #prepare 'host-group's from 'hostsComponentsMap'
+    # prepare 'host-group's from 'hostsComponentsMap'
     host_groups = recommendations["blueprint"]["host_groups"]
     bindings = recommendations["blueprint_cluster_binding"]["host_groups"]
     index = 0
     for key in hostsComponentsMap.keys():
       index += 1
-      host_group_name = "host-group-{0}".format(index)
-      host_groups.append( { "name": host_group_name, "components": hostsComponentsMap[key] } )
-      bindings.append( { "name": host_group_name, "hosts": [{ "fqdn": socket.getfqdn(key) }] } )
+      host_group_name = f"host-group-{index}"
+      host_groups.append(
+        {"name": host_group_name, "components": hostsComponentsMap[key]}
+      )
+      bindings.append(
+        {"name": host_group_name, "hosts": [{"fqdn": socket.getfqdn(key)}]}
+      )
 
     return recommendations
+
   pass
 
   def createValidationResponse(self, services, validationItems):
@@ -424,7 +438,7 @@ class DefaultStackAdvisor(StackAdvisor):
 
     validations = {
       "Versions": {"stack_name": stackName, "stack_version": stackVersion},
-      "items": validationItems
+      "items": validationItems,
     }
 
     return validations
@@ -452,26 +466,27 @@ class DefaultStackAdvisor(StackAdvisor):
     stackName = services["Versions"]["stack_name"]
     stackVersion = services["Versions"]["stack_version"]
     hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
-    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
-    components = [component["StackServiceComponents"]["component_name"]
-                  for service in services["services"]
-                  for component in service["components"]]
+    servicesList = [
+      service["StackServices"]["service_name"] for service in services["services"]
+    ]
+    components = [
+      component["StackServiceComponents"]["component_name"]
+      for service in services["services"]
+      for component in service["components"]
+    ]
 
-    clusterSummary = self.getConfigurationClusterSummary(servicesList, hosts, components)
+    clusterSummary = self.getConfigurationClusterSummary(
+      servicesList, hosts, components
+    )
 
     recommendations = {
       "Versions": {"stack_name": stackName, "stack_version": stackVersion},
       "hosts": hostsList,
       "services": servicesList,
       "recommendations": {
-        "blueprint": {
-          "configurations": {},
-          "host_groups": []
-        },
-        "blueprint_cluster_binding": {
-          "host_groups": []
-        }
-      }
+        "blueprint": {"configurations": {}, "host_groups": []},
+        "blueprint_cluster_binding": {"host_groups": []},
+      },
     }
 
     configurations = recommendations["recommendations"]["blueprint"]["configurations"]
@@ -497,10 +512,10 @@ class DefaultStackAdvisor(StackAdvisor):
     return False
 
   def isClientComponent(self, component):
-    return self.getComponentAttribute(component, "component_category") == 'CLIENT'
+    return self.getComponentAttribute(component, "component_category") == "CLIENT"
 
   def isSlaveComponent(self, component):
-    return self.getComponentAttribute(component, "component_category") == 'SLAVE'
+    return self.getComponentAttribute(component, "component_category") == "SLAVE"
 
   def isMasterComponent(self, component):
     return self.getComponentAttribute(component, "is_master")
@@ -539,10 +554,10 @@ class DefaultStackAdvisor(StackAdvisor):
       scheme = self.getComponentLayoutScheme(componentName)
       if scheme is not None:
         for key in scheme.keys():
-          if isinstance(key, ( int, long )):
+          if isinstance(key, int):
             if len(hostsList) < key:
               return hostsList[scheme[key]]
-        return hostsList[scheme['else']]
+        return hostsList[scheme["else"]]
     return hostsList[0]
 
   def getComponentLayoutScheme(self, componentName):

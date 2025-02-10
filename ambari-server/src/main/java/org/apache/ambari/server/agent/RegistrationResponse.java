@@ -23,10 +23,11 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.agent.stomp.StompResponse;
-import org.codehaus.jackson.annotate.JsonProperty;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  *
@@ -54,19 +55,17 @@ public class RegistrationResponse extends StompResponse {
    *                different version of agent and server)
    */
   @JsonProperty("exitstatus")
-  @com.fasterxml.jackson.annotation.JsonProperty("exitstatus")
-  private int exitstatus;
+  private int exitStatus;
 
   /**
    * log - message, which will be printed to agents  log
    */
   @JsonProperty("log")
-  @com.fasterxml.jackson.annotation.JsonProperty("log")
   private String log;
 
   //Response id to start with, usually zero.
-  @JsonProperty("responseId")
-  @com.fasterxml.jackson.annotation.JsonProperty("id")
+  @JsonProperty("id")
+  @JsonAlias({"id","responseId"})
   private long responseId;
 
   @JsonProperty("recoveryConfig")
@@ -128,7 +127,7 @@ public class RegistrationResponse extends StompResponse {
   }
 
   public void setExitstatus(int exitstatus) {
-    this.exitstatus = exitstatus;
+    this.exitStatus = exitstatus;
   }
 
   public void setLog(String log) {

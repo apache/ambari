@@ -70,9 +70,16 @@
         </component>
       </components>
 
+      <quickLinksConfigurations>
+        <quickLinksConfiguration>
+          <fileName>quicklinks.json</fileName>
+          <default>true</default>
+        </quickLinksConfiguration>
+      </quickLinksConfigurations>
+
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat7</osFamily>
+          <osFamily>redhat7,redhat8,redhat9,openeuler22</osFamily>
           <packages>
             <package>
               <name>zookeeper_${stack_version}</name>

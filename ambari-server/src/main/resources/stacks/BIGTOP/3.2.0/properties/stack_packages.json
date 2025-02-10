@@ -1,6 +1,32 @@
 {
   "BIGTOP": {
     "stack-select": {
+      "ALLUXIO": {
+        "ALLUXIO_MASTER": {
+          "STACK-SELECT-PACKAGE": "alluxio",
+          "INSTALL": [
+            "alluxio"
+          ],
+          "PATCH": [
+            "alluxio"
+          ],
+          "STANDARD": [
+            "alluxio"
+          ]
+        },
+        "ALLUXIO_WORKER": {
+          "STACK-SELECT-PACKAGE": "alluxio",
+          "INSTALL": [
+            "alluxio"
+          ],
+          "PATCH": [
+            "alluxio"
+          ],
+          "STANDARD": [
+            "alluxio"
+          ]
+        }
+      },
       "HBASE": {
         "HBASE_CLIENT": {
           "STACK-SELECT-PACKAGE": "hbase-client",
@@ -81,6 +107,18 @@
           ],
           "STANDARD": [
             "hadoop-hdfs-namenode"
+          ]
+        },
+        "ROUTER": {
+          "STACK-SELECT-PACKAGE": "hadoop-hdfs-dfsrouter",
+          "INSTALL": [
+            "hadoop-hdfs-dfsrouter"
+          ],
+          "PATCH": [
+            "hadoop-hdfs-dfsrouter"
+          ],
+          "STANDARD": [
+            "hadoop-hdfs-dfsrouter"
           ]
         },
         "JOURNALNODE": {
@@ -271,6 +309,32 @@
           ]
         }
       },
+      "LIVY": {
+        "LIVY_CLIENT": {
+          "STACK-SELECT-PACKAGE": "livy-client",
+          "INSTALL": [
+            "livy-client"
+          ],
+          "PATCH": [
+            "livy-client"
+          ],
+          "STANDARD": [
+            "livy-client"
+          ]
+        },
+        "LIVY_SERVER": {
+          "STACK-SELECT-PACKAGE": "livy-server",
+          "INSTALL": [
+            "livy-server"
+          ],
+          "PATCH": [
+            "livy-server"
+          ],
+          "STANDARD": [
+            "livy-server"
+          ]
+        }
+      },
       "FLINK": {
         "FLINK_CLIENT": {
           "STACK-SELECT-PACKAGE": "flink-client",
@@ -295,6 +359,58 @@
           ],
           "STANDARD": [
             "flink-historyserver"
+          ]
+        }
+      },
+      "RANGER": {
+        "RANGER_ADMIN": {
+          "STACK-SELECT-PACKAGE": "ranger-admin",
+          "INSTALL": [
+            "ranger-admin"
+          ],
+          "PATCH": [
+            "ranger-admin"
+          ],
+          "STANDARD": [
+            "ranger-admin"
+          ]
+        },
+        "RANGER_TAGSYNC": {
+          "STACK-SELECT-PACKAGE": "ranger-tagsync",
+          "INSTALL": [
+            "ranger-tagsync"
+          ],
+          "PATCH": [
+            "ranger-tagsync"
+          ],
+          "STANDARD": [
+            "ranger-tagsync"
+          ]
+        },
+        "RANGER_USERSYNC": {
+          "STACK-SELECT-PACKAGE": "ranger-usersync",
+          "INSTALL": [
+            "ranger-usersync"
+          ],
+          "PATCH": [
+            "ranger-usersync"
+          ],
+          "STANDARD": [
+            "ranger-usersync"
+          ]
+        }
+      },
+      "RANGER_KMS": {
+        "RANGER_KMS_SERVER": {
+          "STACK-SELECT-PACKAGE": "ranger-kms",
+          "INSTALL": [
+            "ranger-kms"
+          ],
+          "PATCH": [
+            "ranger-kms"
+          ],
+          "STANDARD": [
+            "ranger-kms"
           ]
         }
       },
@@ -458,6 +574,30 @@
           "component": "phoenix-client"
         }
       ],
+       "ranger-admin": [
+        {
+          "conf_dir": "/etc/ranger/admin/conf",
+          "current_dir": "{0}/current/ranger-admin/conf"
+        }
+      ],
+      "ranger-kms": [
+        {
+          "conf_dir": "/etc/ranger/kms/conf",
+          "current_dir": "{0}/current/ranger-kms/conf"
+        }
+      ],
+      "ranger-tagsync": [
+        {
+          "conf_dir": "/etc/ranger/tagsync/conf",
+          "current_dir": "{0}/current/ranger-tagsync/conf"
+        }
+      ],
+      "ranger-usersync": [
+        {
+          "conf_dir": "/etc/ranger/usersync/conf",
+          "current_dir": "{0}/current/ranger-usersync/conf"
+        }
+      ],
       "spark": [
         {
           "conf_dir": "/etc/spark/conf",
@@ -523,6 +663,12 @@
       },
       "MAPREDUCE2": {
         "packages": []
+      },
+      "RANGER": {
+        "packages": ["ranger-admin", "ranger-usersync", "ranger-tagsync"]
+      },
+      "RANGER_KMS": {
+        "packages": ["ranger-kms"]
       },
       "SPARK": {
         "packages": [

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -22,6 +22,7 @@ Ambari Agent
 
 from resource_management.core.logger import Logger
 
+
 class FcntlBasedProcessLock(object):
   """A file descriptor based lock for interprocess locking.
   The lock is automatically released when process dies.
@@ -38,7 +39,7 @@ class FcntlBasedProcessLock(object):
   It should be used only for locking between processes.
   """
 
-  def __init__(self, lock_file_path, skip_fcntl_failures, enabled = True):
+  def __init__(self, lock_file_path, skip_fcntl_failures, enabled=True):
     """
     :param lock_file_path: The path to the file used for locking
     :param skip_fcntl_failures: Use this only if the lock is not mandatory.
@@ -61,20 +62,23 @@ class FcntlBasedProcessLock(object):
     if not self.enabled:
       return
     import fcntl
-    Logger.info("Trying to acquire a lock on {0}".format(self.lock_file_name))
+
+    Logger.info(f"Trying to acquire a lock on {self.lock_file_name}")
     if self.lock_file is None or self.lock_file.closed:
-      self.lock_file = open(self.lock_file_name, 'a')
+      self.lock_file = open(self.lock_file_name, "a")
     try:
       fcntl.lockf(self.lock_file, fcntl.LOCK_EX)
     except:
       if self.skip_fcntl_failures:
-        Logger.exception("Fcntl call raised an exception. A lock was not aquired. "
-                         "Continuing as skip_fcntl_failures is set to True")
+        Logger.exception(
+          "Fcntl call raised an exception. A lock was not aquired. "
+          "Continuing as skip_fcntl_failures is set to True"
+        )
       else:
         raise
     else:
       self.acquired = True
-      Logger.info("Acquired the lock on {0}".format(self.lock_file_name))
+      Logger.info(f"Acquired the lock on {self.lock_file_name}")
 
   def unlock(self):
     """
@@ -83,14 +87,17 @@ class FcntlBasedProcessLock(object):
     if not self.enabled:
       return
     import fcntl
-    Logger.info("Releasing the lock on {0}".format(self.lock_file_name))
+
+    Logger.info(f"Releasing the lock on {self.lock_file_name}")
     if self.acquired:
       try:
         fcntl.lockf(self.lock_file, fcntl.LOCK_UN)
       except:
         if self.skip_fcntl_failures:
-          Logger.exception("Fcntl call raised an exception. The lock was not released. "
-                           "Continuing as skip_fcntl_failures is set to True")
+          Logger.exception(
+            "Fcntl call raised an exception. The lock was not released. "
+            "Continuing as skip_fcntl_failures is set to True"
+          )
         else:
           raise
       else:
@@ -99,7 +106,7 @@ class FcntlBasedProcessLock(object):
           self.lock_file.close()
           self.lock_file = None
         except IOError:
-          Logger.warning("Failed to close {0}".format(self.lock_file_name))
+          Logger.warning(f"Failed to close {self.lock_file_name}")
 
   def __enter__(self):
     self.blocking_lock()
@@ -108,4 +115,3 @@ class FcntlBasedProcessLock(object):
   def __exit__(self, exc_type, exc_val, exc_tb):
     self.unlock()
     return False
-

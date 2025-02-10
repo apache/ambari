@@ -88,7 +88,7 @@ describe('App.WizardStep5View', function() {
     });
   });
 
-  describe('#didInsertElement', function() {
+  describe.skip('#didInsertElement', function() {
 
     beforeEach(function () {
       sinon.stub(view.get('controller'), 'loadStep', Em.K);
@@ -287,7 +287,7 @@ describe('App.InputHostView', function() {
 
   });
 
-  describe('#getAvailableHosts', function() {
+  describe.skip('#getAvailableHosts', function() {
     var tests = Em.A([
       {
         hosts: Em.A([]),

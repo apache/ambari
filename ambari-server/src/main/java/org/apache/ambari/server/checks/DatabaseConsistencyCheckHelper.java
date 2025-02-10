@@ -72,7 +72,7 @@ import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.utils.VersionUtils;
-import org.apache.commons.collections.MapUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -264,11 +264,11 @@ public class DatabaseConsistencyCheckHelper {
    */
   static void checkForLargeTables() {
     LOG.info("Checking for tables with large physical size");
+    ensureConnection();
+
     if (dbAccessor.getDbType() == DBAccessor.DbType.H2) {
       return;
     }
-
-    ensureConnection();
 
     DBAccessor.DbType dbType = dbAccessor.getDbType();
     String schemaName = dbAccessor.getDbSchema();

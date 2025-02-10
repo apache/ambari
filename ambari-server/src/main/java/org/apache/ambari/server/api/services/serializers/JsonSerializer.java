@@ -22,6 +22,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -33,10 +34,12 @@ import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.api.util.TreeNodeImpl;
 import org.apache.ambari.server.controller.internal.OperationStatusMetaData;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.util.DefaultPrettyPrinter;
+
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * JSON serializer.
@@ -98,9 +101,10 @@ public class JsonSerializer implements ResultSerializer {
   private ByteArrayOutputStream init() throws IOException {
     ByteArrayOutputStream bytesOut = new ByteArrayOutputStream();
     m_generator = createJsonGenerator(bytesOut);
-
+    Lf2SpacesIndenter indenter = new Lf2SpacesIndenter();
     DefaultPrettyPrinter p = new DefaultPrettyPrinter();
-    p.indentArraysWith(new DefaultPrettyPrinter.Lf2SpacesIndenter());
+    p.indentObjectsWith(indenter);
+    p.indentArraysWith(indenter);
     m_generator.setPrettyPrinter(p);
 
     return bytesOut;
@@ -276,8 +280,11 @@ public class JsonSerializer implements ResultSerializer {
     JsonGenerator generator = m_factory.createJsonGenerator(new OutputStreamWriter(baos,
         Charset.forName("UTF-8").newEncoder()));
 
+    // Setup a pretty printer with an indenter (indenter has 2 spaces in this case)
+    Lf2SpacesIndenter indenter = new Lf2SpacesIndenter();
     DefaultPrettyPrinter p = new DefaultPrettyPrinter();
-    p.indentArraysWith(new DefaultPrettyPrinter.Lf2SpacesIndenter());
+    p.indentObjectsWith(indenter);
+    p.indentArraysWith(indenter);
     generator.setPrettyPrinter(p);
 
     return generator;
@@ -296,6 +303,43 @@ public class JsonSerializer implements ResultSerializer {
       m_generator.writeStringField("itemTotal", countProp);
       // Write once
       node.setProperty("count", null);
+    }
+  }
+
+  private static class Lf2SpacesIndenter
+    implements DefaultPrettyPrinter.Indenter
+  {
+    final static String SYSTEM_LINE_SEPARATOR;
+    static {
+      String lf = null;
+      try {
+        lf = System.getProperty("line.separator");
+      } catch (Throwable t) { } // access exception?
+      SYSTEM_LINE_SEPARATOR = (lf == null) ? "\n" : lf;
+    }
+
+    final static int SPACE_COUNT = 64;
+    final static char[] SPACES = new char[SPACE_COUNT];
+    static {
+      Arrays.fill(SPACES, ' ');
+    }
+
+    public Lf2SpacesIndenter() { }
+
+    @Override
+    public boolean isInline() { return false; }
+
+    @Override
+    public void writeIndentation(JsonGenerator jg, int level)
+      throws IOException, JsonGenerationException
+    {
+      jg.writeRaw(SYSTEM_LINE_SEPARATOR);
+      level += level; // 2 spaces per level
+      while (level > SPACE_COUNT) { // should never happen but...
+        jg.writeRaw(SPACES, 0, SPACE_COUNT);
+        level -= SPACES.length;
+      }
+      jg.writeRaw(SPACES, 0, level);
     }
   }
 }

@@ -22,7 +22,7 @@ import java.util.Collections;
 import java.util.Map;
 
 import org.apache.ambari.server.collections.Predicate;
-import org.apache.commons.collections.functors.PredicateDecorator;
+import org.apache.commons.collections4.functors.PredicateDecorator;
 
 /**
  * DelegatedSinglePredicateContainer is an abstract class providing functionality to managing a
@@ -57,7 +57,7 @@ abstract class DelegatedSinglePredicateContainer extends Predicate implements Pr
   }
 
   @Override
-  public org.apache.commons.collections.Predicate[] getPredicates() {
+  public org.apache.commons.collections4.Predicate[] getPredicates() {
     return delegate.getPredicates();
   }
 
@@ -92,11 +92,11 @@ abstract class DelegatedSinglePredicateContainer extends Predicate implements Pr
     Map<String, Object> map = null;
 
     if (delegate != null) {
-      org.apache.commons.collections.Predicate[] predicates = delegate.getPredicates();
+      org.apache.commons.collections4.Predicate[] predicates = delegate.getPredicates();
 
       if ((predicates != null) && (predicates.length > 0)) {
         // Only process the 1st predicate.
-        org.apache.commons.collections.Predicate p = predicates[0];
+        org.apache.commons.collections4.Predicate p = predicates[0];
         if (p instanceof Predicate) {
           map = ((Predicate) p).toMap();
         } else {

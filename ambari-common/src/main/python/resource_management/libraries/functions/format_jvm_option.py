@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -26,9 +26,10 @@ from resource_management.libraries.script.config_dictionary import UnknownConfig
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions import *
 
+
 def format_jvm_option(name, default_value):
   curr_dict = default(name, default_value)
-  if isinstance(curr_dict, ( int, long )):
+  if isinstance(curr_dict, int):
     curr_dict = str(curr_dict) + "m"
     return curr_dict
   elif isinstance(curr_dict, str):
@@ -38,10 +39,9 @@ def format_jvm_option(name, default_value):
       if "m" in curr_dict:
         return curr_dict
       else:
-        if isinstance(int(curr_dict), ( int, long )): 
+        if isinstance(int(curr_dict), int):
           return str(int(curr_dict)) + "m"
         else:
           return default_value
   else:
     return default_value
-    

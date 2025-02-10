@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -21,7 +21,7 @@ Ambari Agent
 """
 
 __all__ = ["get_kinit_path"]
-from find_executable import find_executable
+from resource_management.libraries.functions.find_executable import find_executable
 
 
 def get_kinit_path(search_directories=None):

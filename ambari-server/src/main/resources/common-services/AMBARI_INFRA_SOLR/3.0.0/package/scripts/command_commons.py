@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -16,6 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+
 import fnmatch
 import json
 import os
@@ -31,13 +33,13 @@ from resource_management.libraries.resources.hdfs_resource import HdfsResource
 
 import params
 
-index_helper_script = '/usr/lib/ambari-infra-solr-client/solrIndexHelper.sh'
+index_helper_script = "/usr/lib/ambari-infra-solr-client/solrIndexHelper.sh"
 
 # folder location which contains the snapshot/core folder
 index_location = default("/commandParams/solr_index_location", None)
 
 # index version (available index versions: 6.6.2 and 7.7.0, first one is used by default)
-index_version = default("/commandParams/solr_index_version", '6.6.2')
+index_version = default("/commandParams/solr_index_version", "6.6.2")
 
 # if this flag is false, skip upgrade if the version is proper, you can force to re-run the tool with setting the flag to true
 force = default("/commandParams/solr_index_upgrade_force", False)
@@ -76,20 +78,32 @@ check_hosts = default("/commandParams/solr_check_hosts", check_hosts_default)
 
 solr_protocol = "https" if params.infra_solr_ssl_enabled else "http"
 solr_port = format("{params.infra_solr_port}")
-solr_base_url = format("{solr_protocol}://{params.hostname}:{params.infra_solr_port}/solr")
+solr_base_url = format(
+  "{solr_protocol}://{params.hostname}:{params.infra_solr_port}/solr"
+)
 solr_datadir = params.infra_solr_datadir
 
-solr_keep_backup=default("/commandParams/solr_keep_backup", False)
+solr_keep_backup = default("/commandParams/solr_keep_backup", False)
 
 solr_num_shards = int(default("/commandParams/solr_shards", "0"))
 
-solr_hdfs_path=default("/commandParams/solr_hdfs_path", None)
+solr_hdfs_path = default("/commandParams/solr_hdfs_path", None)
 
-solr_backup_host_cores_map = json.loads(default("/commandParams/solr_backup_host_cores_map", "{}"))
-solr_backup_core_host_map = json.loads(default("/commandParams/solr_backup_core_host_map", "{}"))
-solr_restore_host_cores_map = json.loads(default("/commandParams/solr_restore_host_cores_map", "{}"))
-solr_restore_core_host_map = json.loads(default("/commandParams/solr_restore_core_host_map", "{}"))
-solr_restore_core_data = json.loads(default("/commandParams/solr_restore_core_data", "{}"))
+solr_backup_host_cores_map = json.loads(
+  default("/commandParams/solr_backup_host_cores_map", "{}")
+)
+solr_backup_core_host_map = json.loads(
+  default("/commandParams/solr_backup_core_host_map", "{}")
+)
+solr_restore_host_cores_map = json.loads(
+  default("/commandParams/solr_restore_host_cores_map", "{}")
+)
+solr_restore_core_host_map = json.loads(
+  default("/commandParams/solr_restore_core_host_map", "{}")
+)
+solr_restore_core_data = json.loads(
+  default("/commandParams/solr_restore_core_data", "{}")
+)
 solr_restore_config_set = default("/commandParams/solr_restore_config_set", None)
 
 keytab = None
@@ -99,53 +113,59 @@ if params.security_enabled:
   principal = params.infra_solr_kerberos_principal
 
 if solr_hdfs_path:
-
   import functools
   from resource_management.libraries.functions import conf_select
   from resource_management.libraries.functions import stack_select
   from resource_management.libraries.functions import get_klist_path
   from resource_management.libraries.functions import get_kinit_path
-  from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
+  from resource_management.libraries.functions.get_not_managed_resources import (
+    get_not_managed_resources,
+  )
 
-  klist_path_local = get_klist_path(default('/configurations/kerberos-env/executable_search_paths', None))
-  kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
+  klist_path_local = get_klist_path(
+    default("/configurations/kerberos-env/executable_search_paths", None)
+  )
+  kinit_path_local = get_kinit_path(
+    default("/configurations/kerberos-env/executable_search_paths", None)
+  )
 
   # hadoop default parameters
-  hdfs_user = params.config['configurations']['hadoop-env']['hdfs_user']
+  hdfs_user = params.config["configurations"]["hadoop-env"]["hdfs_user"]
   hadoop_bin = stack_select.get_hadoop_dir("sbin")
   hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
   hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
   hadoop_conf_secure_dir = os.path.join(hadoop_conf_dir, "secure")
   hadoop_lib_home = stack_select.get_hadoop_dir("lib")
-  hdfs_principal_name = default('/configurations/hadoop-env/hdfs_principal_name', None)
-  hdfs_user_keytab = params.config['configurations']['hadoop-env']['hdfs_user_keytab']
+  hdfs_principal_name = default("/configurations/hadoop-env/hdfs_principal_name", None)
+  hdfs_user_keytab = params.config["configurations"]["hadoop-env"]["hdfs_user_keytab"]
 
   dfs_type = default("/clusterLevelParams/dfs_type", "")
 
-  hdfs_site = params.config['configurations']['hdfs-site']
-  default_fs = params.config['configurations']['core-site']['fs.defaultFS']
-  #create partial functions with common arguments for every HdfsResource call
-  #to create/delete/copyfromlocal hdfs directories/files we need to call params.HdfsResource in code
+  hdfs_site = params.config["configurations"]["hdfs-site"]
+  default_fs = params.config["configurations"]["core-site"]["fs.defaultFS"]
+  # create partial functions with common arguments for every HdfsResource call
+  # to create/delete/copyfromlocal hdfs directories/files we need to call params.HdfsResource in code
   HdfsResource = functools.partial(
     HdfsResource,
     user=params.infra_solr_user,
-    hdfs_resource_ignore_file = "/var/lib/ambari-agent/data/.hdfs_resource_ignore",
-    security_enabled = params.security_enabled,
-    keytab = keytab,
-    kinit_path_local = kinit_path_local,
-    hadoop_bin_dir = hadoop_bin_dir,
-    hadoop_conf_dir = hadoop_conf_dir,
-    principal_name = principal,
-    hdfs_site = hdfs_site,
-    default_fs = default_fs,
-    immutable_paths = get_not_managed_resources(),
-    dfs_type = dfs_type
+    hdfs_resource_ignore_file="/var/lib/ambari-agent/data/.hdfs_resource_ignore",
+    security_enabled=params.security_enabled,
+    keytab=keytab,
+    kinit_path_local=kinit_path_local,
+    hadoop_bin_dir=hadoop_bin_dir,
+    hadoop_conf_dir=hadoop_conf_dir,
+    principal_name=principal,
+    hdfs_site=hdfs_site,
+    default_fs=default_fs,
+    immutable_paths=get_not_managed_resources(),
+    dfs_type=dfs_type,
   )
 
 hostname_suffix = params.hostname.replace(".", "_")
 
 if shared_fs:
   index_location = format("{index_location}_{hostname_suffix}")
+
 
 def get_files_by_pattern(directory, pattern):
   for root, dirs, files in os.walk(directory):
@@ -157,17 +177,38 @@ def get_files_by_pattern(directory, pattern):
       if matched:
         yield os.path.join(root, basename)
 
-def create_solr_api_request_command(request_path, output=None, override_solr_base_url=None):
-  solr_url = format("{solr_base_url}/{request_path}") if override_solr_base_url is None else format("{override_solr_base_url}/{request_path}")
+
+def create_solr_api_request_command(
+  request_path, output=None, override_solr_base_url=None
+):
+  solr_url = (
+    format("{solr_base_url}/{request_path}")
+    if override_solr_base_url is None
+    else format("{override_solr_base_url}/{request_path}")
+  )
   grep_cmd = " | grep 'solr_rs_status: 200'"
-  api_cmd = format("kinit -kt {keytab} {principal} && curl -w'solr_rs_status: %{{http_code}}' -k --negotiate -u : '{solr_url}'") \
-    if params.security_enabled else format("curl -w'solr_rs_status: %{{http_code}}' -k '{solr_url}'")
+  api_cmd = (
+    format(
+      "kinit -kt {keytab} {principal} && curl -w'solr_rs_status: %{{http_code}}' -k --negotiate -u : '{solr_url}'"
+    )
+    if params.security_enabled
+    else format("curl -w'solr_rs_status: %{{http_code}}' -k '{solr_url}'")
+  )
   if output is not None:
-    api_cmd+=format(" -o {output}")
-  api_cmd+=grep_cmd
+    api_cmd += format(" -o {output}")
+  api_cmd += grep_cmd
   return api_cmd
 
-def snapshot_status_check(request_cmd, json_output, snapshot_name, backup=True, log_output=True, tries=30, time_interval=5):
+
+def snapshot_status_check(
+  request_cmd,
+  json_output,
+  snapshot_name,
+  backup=True,
+  log_output=True,
+  tries=30,
+  time_interval=5,
+):
   """
   Check BACKUP/RESTORE status until the response status will be successful or failed.
 
@@ -183,37 +224,49 @@ def snapshot_status_check(request_cmd, json_output, snapshot_name, backup=True, 
   num_tries = 0
   for i in range(tries):
     try:
-      num_tries+=1
-      if (num_tries > 1):
+      num_tries += 1
+      if num_tries > 1:
         Logger.info(format("Number of tries: {num_tries} ..."))
       Execute(request_cmd, user=params.infra_solr_user)
       with open(json_output) as json_file:
         json_data = json.load(json_file)
         if backup:
-          details = json_data['details']
-          if 'backup' in details:
-            backup_list = details['backup']
+          details = json_data["details"]
+          if "backup" in details:
+            backup_list = details["backup"]
             if log_output:
               Logger.info(str(backup_list))
 
-            if type(backup_list) == type(list()): # support map and list format as well
-              backup_data = dict(backup_list[i:i+2] for i in range(0, len(backup_list), 2))
+            if type(backup_list) == type(list()):  # support map and list format as well
+              backup_data = dict(
+                backup_list[i : i + 2] for i in range(0, len(backup_list), 2)
+              )
             else:
               backup_data = backup_list
 
-            if (not 'snapshotName' in backup_data) or backup_data['snapshotName'] != snapshot_name:
-              snapshot = backup_data['snapshotName']
-              Logger.info(format("Snapshot name: {snapshot}, wait until {snapshot_name} will be available."))
+            if (not "snapshotName" in backup_data) or backup_data[
+              "snapshotName"
+            ] != snapshot_name:
+              snapshot = backup_data["snapshotName"]
+              Logger.info(
+                format(
+                  "Snapshot name: {snapshot}, wait until {snapshot_name} will be available."
+                )
+              )
               time.sleep(time_interval)
               continue
 
-            if backup_data['status'] == 'success':
+            if backup_data["status"] == "success":
               Logger.info("Backup command status: success.")
               failed = False
-            elif backup_data['status'] == 'failed':
+            elif backup_data["status"] == "failed":
               Logger.info("Backup command status: failed.")
             else:
-              Logger.info(format("Backup command is in progress... Sleep for {time_interval} seconds."))
+              Logger.info(
+                format(
+                  "Backup command is in progress... Sleep for {time_interval} seconds."
+                )
+              )
               time.sleep(time_interval)
               continue
           else:
@@ -222,31 +275,42 @@ def snapshot_status_check(request_cmd, json_output, snapshot_name, backup=True, 
             continue
 
         else:
-          if 'restorestatus' in json_data:
-            restorestatus_data = json_data['restorestatus']
+          if "restorestatus" in json_data:
+            restorestatus_data = json_data["restorestatus"]
             if log_output:
               Logger.info(str(restorestatus_data))
 
-            if (not 'snapshotName' in restorestatus_data) or restorestatus_data['snapshotName'] != format("snapshot.{snapshot_name}"):
-              snapshot = restorestatus_data['snapshotName']
-              Logger.info(format("Snapshot name: {snapshot}, wait until snapshot.{snapshot_name} will be available."))
+            if (not "snapshotName" in restorestatus_data) or restorestatus_data[
+              "snapshotName"
+            ] != format("snapshot.{snapshot_name}"):
+              snapshot = restorestatus_data["snapshotName"]
+              Logger.info(
+                format(
+                  "Snapshot name: {snapshot}, wait until snapshot.{snapshot_name} will be available."
+                )
+              )
               time.sleep(time_interval)
               continue
 
-            if restorestatus_data['status'] == 'success':
+            if restorestatus_data["status"] == "success":
               Logger.info("Restore command successfully finished.")
               failed = False
-            elif restorestatus_data['status'] == 'failed':
+            elif restorestatus_data["status"] == "failed":
               Logger.info("Restore command failed.")
             else:
-              Logger.info(format("Restore command is in progress... Sleep for {time_interval} seconds."))
+              Logger.info(
+                format(
+                  "Restore command is in progress... Sleep for {time_interval} seconds."
+                )
+              )
               time.sleep(time_interval)
               continue
           else:
-            Logger.info("Restore status data is not found yet in details JSON response...")
+            Logger.info(
+              "Restore status data is not found yet in details JSON response..."
+            )
             time.sleep(time_interval)
             continue
-
 
     except Exception:
       traceback.print_exc()
@@ -259,43 +323,55 @@ def snapshot_status_check(request_cmd, json_output, snapshot_name, backup=True, 
   else:
     Logger.info("Status command finished successfully.")
 
+
 def __get_domain_name(url):
   spltAr = url.split("://")
-  i = (0,1)[len(spltAr) > 1]
-  dm = spltAr[i].split('/')[0].split(':')[0].lower()
+  i = (0, 1)[len(spltAr) > 1]
+  dm = spltAr[i].split("/")[0].split(":")[0].lower()
   return dm
+
 
 def write_core_file(core, core_data):
   core_json_location = format("{index_location}/{core}.json")
   File(core_json_location, content=json.dumps(core_data))
 
+
 def create_core_pairs(original_cores, new_cores):
   """
   Create core pairss from the original and new cores (backups -> restored ones), use alphabetic order
   """
-  core_pairs_data=[]
+  core_pairs_data = []
   if len(new_cores) < len(original_cores):
-    raise Exception("Old collection core size is: " + str(len(new_cores)) +
-                    ". You will need at least: " + str(len(original_cores)))
+    raise Exception(
+      "Old collection core size is: "
+      + str(len(new_cores))
+      + ". You will need at least: "
+      + str(len(original_cores))
+    )
   else:
     for index, core_data in enumerate(original_cores):
-      value={}
-      value['src_core']=core_data[0]
-      value['src_host']=core_data[1]
-      value['target_core']=new_cores[index][0]
-      value['target_host']=new_cores[index][1]
+      value = {}
+      value["src_core"] = core_data[0]
+      value["src_host"] = core_data[1]
+      value["target_core"] = new_cores[index][0]
+      value["target_host"] = new_cores[index][1]
       core_pairs_data.append(value)
-    File(format("{index_location}/restore_core_pairs.json"), content=json.dumps(core_pairs_data))
+    File(
+      format("{index_location}/restore_core_pairs.json"),
+      content=json.dumps(core_pairs_data),
+    )
     return core_pairs_data
+
 
 def sort_core_host_pairs(host_core_map):
   """
   Sort host core map by key
   """
-  core_host_pairs=[]
+  core_host_pairs = []
   for key in sorted(host_core_map):
     core_host_pairs.append((key, host_core_map[key]))
   return core_host_pairs
+
 
 def is_ip(addr):
   try:
@@ -304,22 +380,31 @@ def is_ip(addr):
   except socket.error:
     return False
 
+
 def resolve_ip_to_hostname(ip):
   try:
     host_name = socket.gethostbyaddr(ip)[0].lower()
     Logger.info(format("Resolved {ip} to {host_name}"))
-    fqdn_name = socket.getaddrinfo(host_name, 0, 0, 0, 0, socket.AI_CANONNAME)[0][3].lower()
+    fqdn_name = socket.getaddrinfo(host_name, 0, 0, 0, 0, socket.AI_CANONNAME)[0][
+      3
+    ].lower()
     return host_name if host_name == fqdn_name else fqdn_name
   except socket.error:
     pass
   return ip
 
+
 def create_command(command):
   """
   Create hdfs command. Append kinit to the command if required.
   """
-  kinit_cmd = "{0} -kt {1} {2};".format(kinit_path_local, params.infra_solr_kerberos_keytab, params.infra_solr_kerberos_principal) if params.security_enabled else ""
+  kinit_cmd = (
+    f"{kinit_path_local} -kt {params.infra_solr_kerberos_keytab} {params.infra_solr_kerberos_principal};"
+    if params.security_enabled
+    else ""
+  )
   return kinit_cmd + command
+
 
 def execute_commad(command):
   """
@@ -327,31 +412,39 @@ def execute_commad(command):
   """
   return call(command, user=params.infra_solr_user, timeout=300)
 
+
 def move_hdfs_folder(source_dir, target_dir):
-  cmd=create_command(format('hdfs dfs -mv {source_dir} {target_dir}'))
+  cmd = create_command(format("hdfs dfs -mv {source_dir} {target_dir}"))
   returncode, stdout = execute_commad(cmd)
   if returncode:
-    raise Exception("Unable to move HDFS dir '{0}' to '{1}' (return code: {2})".format(source_dir, target_dir, str(returncode)))
+    raise Exception(
+      f"Unable to move HDFS dir '{source_dir}' to '{target_dir}' (return code: {str(returncode)})"
+    )
   return stdout.strip()
+
 
 def check_hdfs_folder_exists(hdfs_dir):
   """
   Check that hdfs folder exists or not
   """
-  cmd=create_command(format("hdfs dfs -ls {hdfs_dir}"))
+  cmd = create_command(format("hdfs dfs -ls {hdfs_dir}"))
   returncode, stdout = execute_commad(cmd)
   if returncode:
     return False
   return True
 
+
 def check_folder_exists(dir):
   """
   Check that folder exists or not
   """
-  returncode, stdout = call(format("test -d {dir}"), user=params.infra_solr_user, timeout=300)
+  returncode, stdout = call(
+    format("test -d {dir}"), user=params.infra_solr_user, timeout=300
+  )
   if returncode:
     return False
   return True
+
 
 def check_folder_until_size_not_changes(dir):
   """
@@ -368,6 +461,10 @@ def check_folder_until_size_not_changes(dir):
         size_changed = False
         continue
       else:
-        Logger.info(format("Actual size of '{dir}' is {actual_size_str}, wait 5 sec and check again, to make sure no copy operation is in progress..."))
+        Logger.info(
+          format(
+            "Actual size of '{dir}' is {actual_size_str}, wait 5 sec and check again, to make sure no copy operation is in progress..."
+          )
+        )
         time.sleep(5)
         size_str = actual_size_str

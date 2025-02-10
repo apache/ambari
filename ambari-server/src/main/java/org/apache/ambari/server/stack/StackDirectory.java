@@ -46,11 +46,12 @@ import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.StackMetainfoXml;
 import org.apache.ambari.server.state.stack.StackRoleCommandOrder;
 import org.apache.commons.io.FilenameUtils;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.ClassUtils;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Encapsulates IO operations on a stack definition stack directory.
@@ -510,7 +511,7 @@ public class StackDirectory extends StackDefinitionDirectory {
       };
       if (rcoFilePath != null) {
         File file = new File(rcoFilePath);
-        result = mapper.readValue(file, rcoElementTypeReference);
+        result = (HashMap<String, Object>) mapper.readValue(file, rcoElementTypeReference);
         LOG.info("Role command order info was loaded from file: {}", file.getAbsolutePath());
       } else {
         LOG.info("Stack '{}' doesn't contain role command order file", getPath());

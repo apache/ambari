@@ -1,6 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,7 +16,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 import os
 import tarfile
@@ -25,6 +25,7 @@ from contextlib import closing
 
 from ambari_commons import os_utils
 from resource_management.core.resources.system import Execute
+
 
 def archive_dir(output_filename, input_dir, follow_links=False):
   """
@@ -35,12 +36,13 @@ def archive_dir(output_filename, input_dir, follow_links=False):
   :return:  None
   """
 
-  options = '-zchf' if follow_links else '-zcf'
+  options = "-zchf" if follow_links else "-zcf"
 
-  Execute(('tar', options, output_filename, '-C', input_dir, '.'),
-    sudo = True,
-    tries = 3,
-    try_sleep = 1,
+  Execute(
+    ("tar", options, output_filename, "-C", input_dir, "."),
+    sudo=True,
+    tries=3,
+    try_sleep=1,
   )
 
 
@@ -71,11 +73,13 @@ def untar_archive(archive, directory, silent=True):
   """
   options = "-xf" if silent else "-xvf"
 
-  Execute(('tar',options,archive,'-C',directory+"/"),
-    sudo = True,
-    tries = 3,
-    try_sleep = 1,
+  Execute(
+    ("tar", options, archive, "-C", directory + "/"),
+    sudo=True,
+    tries=3,
+    try_sleep=1,
   )
+
 
 def get_archive_root_dir(archive):
   root_dir = None
@@ -85,10 +89,13 @@ def get_archive_root_dir(archive):
       root_dir = os.path.commonprefix(names)
   return root_dir
 
+
 def mode(archive):
-  if archive.endswith('.tar.gz') or archive.endswith('.tgz'):
-    return 'r:gz'
-  elif archive.endswith('.tar.bz2') or archive.endswith('.tbz'):
-    return 'r:bz2'
+  if archive.endswith(".tar.gz") or archive.endswith(".tgz"):
+    return "r:gz"
+  elif archive.endswith(".tar.bz2") or archive.endswith(".tbz"):
+    return "r:bz2"
   else:
-    raise ValueError("Could not extract `%s` as no appropriate extractor is found" % archive)
+    raise ValueError(
+      f"Could not extract `{archive}` as no appropriate extractor is found"
+    )

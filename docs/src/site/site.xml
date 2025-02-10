@@ -44,23 +44,6 @@
 
   <body>
     <head>
-       <!-- Start of Google analytics -->
-       <script type="text/javascript">
-         var _gaq = _gaq || [];
-         _gaq.push(['_setAccount', 'UA-27188762-1']);
-         _gaq.push(['_trackPageview']);
-
-         (function() {
-            var ga = document.createElement('script'); 
-            ga.type = 'text/javascript'; ga.async = true;
-            ga.src = ('https:' == document.location.protocol ? 
-                      'https://ssl' : 'http://www') + 
-                     '.google-analytics.com/ga.js';
-            var s = document.getElementsByTagName('script')[0]; 
-            s.parentNode.insertBefore(ga, s);
-          })();
-       </script>
-       <!-- End of Google analytics -->
        <style>
            .well.sidebar-nav {
              background-color: #fff;
@@ -107,6 +90,7 @@
       <item name="Quick Start Guide" href="https://cwiki.apache.org/confluence/display/AMBARI/Quick+Start+Guide"/>
       <item name="Features + Roadmap" href="https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=30755705"/>
       <item name="API Reference" href="https://github.com/apache/ambari/blob/trunk/ambari-server/docs/api/v1/index.md"/>
+      <item name="Install Guide for 2.7.8" href="https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+2.7.8"/>
       <item name="Install Guide for 2.7.7" href="https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+2.7.7"/>
       <item name="Install Guide for 2.7.6" href="https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+2.7.6"/>
       <item name="Install Guide for 2.7.5" href="https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+2.7.5"/>
@@ -152,6 +136,7 @@
     </menu>
 
     <menu name="Releases">
+      <item name="2.7.8" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-2.7.8"/>
       <item name="2.7.7" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-2.7.7"/>
       <item name="2.7.6" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-2.7.6"/>
       <item name="2.7.5" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-2.7.5"/>
@@ -201,7 +186,7 @@
         <item name="Events"          href="https://www.apache.org/events/current-event" />
         <item name="License"         href="https://www.apache.org/licenses/" />
         <item name="Sponsorship"     href="https://www.apache.org/foundation/sponsorship" />
-        <item name="Security"        href="https://www.apache.org/security" />
+        <item name="Security"        href="https://ambari.apache.org/issue-tracking.html" />
         <item name="Thanks"          href="https://www.apache.org/foundation/thanks" />
         <item name="Code of Conduct" href="https://www.apache.org/foundation/policies/conduct" />
     </menu>

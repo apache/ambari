@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.codehaus.jackson.annotate.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 
 public class RecoveryReport {
@@ -34,30 +34,26 @@ public class RecoveryReport {
 
 
   @JsonProperty("summary")
-  @com.fasterxml.jackson.annotation.JsonProperty("summary")
   public String getSummary() {
     return summary;
   }
 
   @JsonProperty("summary")
-  @com.fasterxml.jackson.annotation.JsonProperty("summary")
   public void setSummary(String summary) {
     this.summary = summary;
   }
 
   @JsonProperty("component_reports")
-  @com.fasterxml.jackson.annotation.JsonProperty("component_reports")
   public List<ComponentRecoveryReport> getComponentReports() {
     return componentReports;
   }
 
   @JsonProperty("component_reports")
-  @com.fasterxml.jackson.annotation.JsonProperty("component_reports")
   public void setComponentReports(List<ComponentRecoveryReport> componentReports) {
     this.componentReports = componentReports;
   }
 
-  @Override
+    @Override
   public String toString() {
     String componentReportsStr = "[]";
     if (componentReports != null) {

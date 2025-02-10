@@ -82,7 +82,7 @@ Installing the development version
 1.  Install `git`_
 2.  ``git clone git://github.com/mitsuhiko/ambari_jinja2.git``
 3.  ``cd ambari_jinja2``
-4.  ``ln -s ambari_jinja2 /usr/lib/python2.X/site-packages``
+4.  ``ln -s ambari_jinja2 /usr/lib/python3.X/site-packages``
 
 As an alternative to steps 4 you can also do ``python setup.py develop``
 which will install the package via distribute in development mode.  This also

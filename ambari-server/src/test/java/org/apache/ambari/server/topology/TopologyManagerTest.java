@@ -33,7 +33,6 @@ import static org.easymock.EasyMock.verify;
 import static org.powermock.api.easymock.PowerMock.mockStatic;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -408,9 +407,6 @@ public class TopologyManagerTest {
 
     Field controllerField = AmbariContext.class.getDeclaredField("controller");
     controllerField.setAccessible(true);
-    Field modifiersField = Field.class.getDeclaredField("modifiers");
-    modifiersField.setAccessible(true);
-    modifiersField.setInt(controllerField, controllerField.getModifiers() & ~Modifier.FINAL);
     controllerField.set(null, ambariManagementController);
 
   }

@@ -119,7 +119,7 @@ public class StackDefinedPropertyProviderTest {
   public void setup() throws Exception {
     InMemoryDefaultTestModule module = new InMemoryDefaultTestModule();
     // Use the same cache provider to ensure there is only once instance of
-    // Cache available. The @net.sf.ehcache.CacheManager is a singleton and
+    // Cache available. The @org.ehcache.CacheManager is a singleton and
     // does not allow multiple instance with same cache name to be registered.
     injector = Guice.createInjector(Modules.override(module).with(new TestModuleWithCacheProvider()));
     injector.getInstance(GuiceJpaInitializer.class);

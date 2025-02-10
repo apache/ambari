@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -36,6 +37,7 @@ def post_upgrade_check():
   :return:
   """
   import params
+
   Logger.info("Ensuring Journalnode quorum is established")
 
   if params.security_enabled:
@@ -54,25 +56,34 @@ def post_upgrade_check():
 
   try:
     namenode_ha = namenode_ha_state.NamenodeHAState()
-  except ValueError, err:
+  except ValueError as err:
     raise Fail("Could not retrieve Namenode HA addresses. Error: " + str(err))
 
   Logger.info(str(namenode_ha))
   nn_address = namenode_ha.get_address(NAMENODE_STATE.ACTIVE)
 
-  nn_data = utils.get_jmx_data(nn_address, 'org.apache.hadoop.hdfs.server.namenode.FSNamesystem', 'JournalTransactionInfo',
-                         namenode_ha.is_encrypted(), params.security_enabled)
+  nn_data = utils.get_jmx_data(
+    nn_address,
+    "org.apache.hadoop.hdfs.server.namenode.FSNamesystem",
+    "JournalTransactionInfo",
+    namenode_ha.is_encrypted(),
+    params.security_enabled,
+  )
   if not nn_data:
     raise Fail("Could not retrieve JournalTransactionInfo from JMX")
 
   try:
-    last_txn_id = int(nn_data['LastAppliedOrWrittenTxId'])
+    last_txn_id = int(nn_data["LastAppliedOrWrittenTxId"])
     success = ensure_jns_have_new_txn(all_journal_node_hosts, last_txn_id)
 
     if not success:
-      raise Fail("Could not ensure that all Journal nodes have a new log transaction id")
+      raise Fail(
+        "Could not ensure that all Journal nodes have a new log transaction id"
+      )
   except KeyError:
-    raise Fail("JournalTransactionInfo does not have key LastAppliedOrWrittenTxId from JMX info")
+    raise Fail(
+      "JournalTransactionInfo does not have key LastAppliedOrWrittenTxId from JMX info"
+    )
 
 
 def hdfs_roll_edits():
@@ -84,8 +95,8 @@ def hdfs_roll_edits():
   import params
 
   # TODO, this will need to be doc'ed since existing clusters will need HDFS_CLIENT on all JOURNALNODE hosts
-  dfsadmin_base_command = get_dfsadmin_base_command('hdfs')
-  command = dfsadmin_base_command + ' -rollEdits'
+  dfsadmin_base_command = get_dfsadmin_base_command("hdfs")
+  command = dfsadmin_base_command + " -rollEdits"
   Execute(command, user=params.hdfs_user, tries=1)
 
 
@@ -119,13 +130,13 @@ def ensure_jns_have_new_txn(nodelist, last_txn_id):
 
   time_out_secs = 3 * 60
   step_time_secs = 10
-  iterations = int(time_out_secs/step_time_secs)
+  iterations = int(time_out_secs / step_time_secs)
 
   protocol = "https" if params.https_only else "http"
 
   Logger.info("Checking if all JournalNodes are updated.")
   for i in range(iterations):
-    Logger.info('Try %d out of %d' % (i+1, iterations))
+    Logger.info("Try %d out of %d" % (i + 1, iterations))
     for node in nodes:
       # if all JNS are updated break
       if jns_updated == num_of_jns:
@@ -133,18 +144,24 @@ def ensure_jns_have_new_txn(nodelist, last_txn_id):
         return True
 
       # JN already meets condition, skip it
-      if node in actual_txn_ids and actual_txn_ids[node] and actual_txn_ids[node] >= last_txn_id:
+      if (
+        node in actual_txn_ids
+        and actual_txn_ids[node]
+        and actual_txn_ids[node] >= last_txn_id
+      ):
         continue
 
-      url = '%s://%s:%s' % (protocol, node, params.journalnode_port)
-      data = utils.get_jmx_data(url, 'Journal-', 'LastWrittenTxId', params.https_only, params.security_enabled)
+      url = f"{protocol}://{node}:{params.journalnode_port}"
+      data = utils.get_jmx_data(
+        url, "Journal-", "LastWrittenTxId", params.https_only, params.security_enabled
+      )
       if data:
         actual_txn_ids[node] = int(data)
         if actual_txn_ids[node] >= last_txn_id:
-          Logger.info("JournalNode %s has a higher transaction id: %s" % (node, str(data)))
+          Logger.info(f"JournalNode {node} has a higher transaction id: {str(data)}")
           jns_updated += 1
         else:
-          Logger.info("JournalNode %s is still on transaction id: %s" % (node, str(data)))
+          Logger.info(f"JournalNode {node} is still on transaction id: {str(data)}")
 
     Logger.info("Sleeping for %d secs" % step_time_secs)
     time.sleep(step_time_secs)

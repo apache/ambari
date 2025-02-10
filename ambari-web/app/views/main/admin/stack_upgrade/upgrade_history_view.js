@@ -129,8 +129,8 @@ App.MainAdminStackUpgradeHistoryView = App.TableView.extend(App.TableServerViewM
       var repoVersion = repoVersions.findProperty('repositoryVersion', item.get('associatedVersion'));
       var method = upgradeMethods.findProperty('type', item.get('upgradeType'));
       return {
-        idHref: '#' + item.get('upgradeId'),
-        id: item.get('upgradeId'),
+        idHref: '#' + 'upgrade-' + item.get('upgradeId'),
+        id: 'upgrade-' + item.get('upgradeId'),
         repositoryName: repoVersion.get('displayName'),
         repositoryType: repoVersion.get('type').toLowerCase().capitalize(),
         directionLabel: item.get('direction') === 'UPGRADE' ? Em.I18n.t('common.upgrade') : Em.I18n.t('common.downgrade'),

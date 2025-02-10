@@ -1,6 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,15 +16,15 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
-import StringIO
+"""
+
+import io
 
 import logging
 import os
 import shutil
 import zipfile
-import urllib2
-import urllib
+import urllib.request, urllib.error, urllib.parse
 import time
 import threading
 
@@ -32,46 +32,48 @@ from ambari_agent.Utils import execute_with_retries
 
 logger = logging.getLogger()
 
+
 class CachingException(Exception):
   pass
 
-class FileCache():
+
+class FileCache:
   """
   Provides caching and lookup for service metadata files.
   If service metadata is not available at cache,
   downloads relevant files from the server.
   """
 
-  CLUSTER_CACHE_DIRECTORY="cluster_cache"
-  ALERTS_CACHE_DIRECTORY="alerts"
-  RECOVERY_CACHE_DIRECTORY="recovery"
-  STACKS_CACHE_DIRECTORY="stacks"
-  COMMON_SERVICES_DIRECTORY="common-services"
-  CUSTOM_ACTIONS_CACHE_DIRECTORY="custom_actions"
-  EXTENSIONS_CACHE_DIRECTORY="extensions"
-  HOST_SCRIPTS_CACHE_DIRECTORY="host_scripts"
-  HASH_SUM_FILE=".hash"
-  ARCHIVE_NAME="archive.zip"
+  CLUSTER_CACHE_DIRECTORY = "cluster_cache"
+  ALERTS_CACHE_DIRECTORY = "alerts"
+  RECOVERY_CACHE_DIRECTORY = "recovery"
+  STACKS_CACHE_DIRECTORY = "stacks"
+  COMMON_SERVICES_DIRECTORY = "common-services"
+  CUSTOM_ACTIONS_CACHE_DIRECTORY = "custom_actions"
+  EXTENSIONS_CACHE_DIRECTORY = "extensions"
+  HOST_SCRIPTS_CACHE_DIRECTORY = "host_scripts"
+  HASH_SUM_FILE = ".hash"
+  ARCHIVE_NAME = "archive.zip"
   ENABLE_AUTO_AGENT_CACHE_UPDATE_KEY = "agent.auto.cache.update"
 
-  BLOCK_SIZE=1024*16
-  SOCKET_TIMEOUT=10
+  BLOCK_SIZE = 1024 * 16
+  SOCKET_TIMEOUT = 10
 
   def __init__(self, config):
     self.service_component_pool = {}
     self.config = config
-    self.cache_dir = config.get('agent', 'cache_dir')
+    self.cache_dir = config.get("agent", "cache_dir")
     # Defines whether command should fail when downloading scripts
     # from the server is not possible or agent should rollback to local copy
-    self.tolerate_download_failures = \
-          config.get('agent','tolerate_download_failures').lower() == 'true'
+    self.tolerate_download_failures = (
+      config.get("agent", "tolerate_download_failures").lower() == "true"
+    )
     self.currently_providing_dict_lock = threading.RLock()
     self.currently_providing = {}
     self.reset()
 
-
   def reset(self):
-    self.uptodate_paths = [] # Paths that already have been recently checked
+    self.uptodate_paths = []  # Paths that already have been recently checked
 
   def get_server_url_prefix(self, command):
     """
@@ -80,7 +82,7 @@ class FileCache():
     :type command dict
     """
     try:
-      return command['ambariLevelParams']['jdk_location']
+      return command["ambariLevelParams"]["jdk_location"]
     except KeyError:
       return ""
 
@@ -88,56 +90,75 @@ class FileCache():
     """
     Returns a base directory for service
     """
-    if 'service_package_folder' in command['commandParams']:
-      service_subpath = command['commandParams']['service_package_folder']
+    if "service_package_folder" in command["commandParams"]:
+      service_subpath = command["commandParams"]["service_package_folder"]
     else:
-      service_subpath = command['serviceLevelParams']['service_package_folder']
-    return self.provide_directory(self.cache_dir, service_subpath, self.get_server_url_prefix(command))
+      service_subpath = command["serviceLevelParams"]["service_package_folder"]
+    return self.provide_directory(
+      self.cache_dir, service_subpath, self.get_server_url_prefix(command)
+    )
 
   def get_hook_base_dir(self, command):
     """
     Returns a base directory for hooks
     """
     try:
-      hooks_path = command['clusterLevelParams']['hooks_folder']
+      hooks_path = command["clusterLevelParams"]["hooks_folder"]
     except KeyError:
       return None
-    return self.provide_directory(self.cache_dir, hooks_path, self.get_server_url_prefix(command))
+    return self.provide_directory(
+      self.cache_dir, hooks_path, self.get_server_url_prefix(command)
+    )
 
   def get_custom_actions_base_dir(self, command):
     """
     Returns a base directory for custom action scripts
     """
-    return self.provide_directory(self.cache_dir,
-                                  self.CUSTOM_ACTIONS_CACHE_DIRECTORY,
-                                  self.get_server_url_prefix(command))
-
+    return self.provide_directory(
+      self.cache_dir,
+      self.CUSTOM_ACTIONS_CACHE_DIRECTORY,
+      self.get_server_url_prefix(command),
+    )
 
   def get_custom_resources_subdir(self, command):
     """
     Returns a custom directory which must be a subdirectory of the resources dir
     """
     try:
-      custom_dir = command['commandParams']['custom_folder']
+      custom_dir = command["commandParams"]["custom_folder"]
     except KeyError:
       return None
 
-    return self.provide_directory(self.cache_dir, custom_dir, self.get_server_url_prefix(command))
+    return self.provide_directory(
+      self.cache_dir, custom_dir, self.get_server_url_prefix(command)
+    )
 
   def get_host_scripts_base_dir(self, command):
     """
     Returns a base directory for host scripts (host alerts, etc) which
     are scripts that are not part of the main agent code
     """
-    return self.provide_directory(self.cache_dir,
-                                  self.HOST_SCRIPTS_CACHE_DIRECTORY,
-                                  self.get_server_url_prefix(command))
+    return self.provide_directory(
+      self.cache_dir,
+      self.HOST_SCRIPTS_CACHE_DIRECTORY,
+      self.get_server_url_prefix(command),
+    )
 
   def auto_cache_update_enabled(self):
-    from AmbariConfig import AmbariConfig
-    if self.config and \
-        self.config.has_option(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, FileCache.ENABLE_AUTO_AGENT_CACHE_UPDATE_KEY) and \
-            self.config.get(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, FileCache.ENABLE_AUTO_AGENT_CACHE_UPDATE_KEY).lower() == "false":
+    from ambari_agent.AmbariConfig import AmbariConfig
+
+    if (
+      self.config
+      and self.config.has_option(
+        AmbariConfig.AMBARI_PROPERTIES_CATEGORY,
+        FileCache.ENABLE_AUTO_AGENT_CACHE_UPDATE_KEY,
+      )
+      and self.config.get(
+        AmbariConfig.AMBARI_PROPERTIES_CATEGORY,
+        FileCache.ENABLE_AUTO_AGENT_CACHE_UPDATE_KEY,
+      ).lower()
+      == "false"
+    ):
       return False
     return True
 
@@ -151,7 +172,7 @@ class FileCache():
       server_url_prefix: url of "resources" folder at the server
     """
     full_path = os.path.join(cache_path, subdirectory)
-    logger.debug("Trying to provide directory {0}".format(subdirectory))
+    logger.debug(f"Trying to provide directory {subdirectory}")
 
     if not self.auto_cache_update_enabled():
       logger.debug("Auto cache update is disabled.")
@@ -170,40 +191,47 @@ class FileCache():
 
     try:
       if full_path not in self.uptodate_paths:
-        logger.debug("Checking if update is available for "
-                     "directory {0}".format(full_path))
+        logger.debug(f"Checking if update is available for directory {full_path}")
         # Need to check for updates at server
-        remote_url = self.build_download_url(server_url_prefix,
-                                             subdirectory, self.HASH_SUM_FILE)
+        remote_url = self.build_download_url(
+          server_url_prefix, subdirectory, self.HASH_SUM_FILE
+        )
         memory_buffer = self.fetch_url(remote_url)
         remote_hash = memory_buffer.getvalue().strip()
         local_hash = self.read_hash_sum(full_path)
         if not local_hash or local_hash != remote_hash:
-          logger.debug("Updating directory {0}".format(full_path))
-          download_url = self.build_download_url(server_url_prefix,
-                                                 subdirectory, self.ARCHIVE_NAME)
+          logger.debug(f"Updating directory {full_path}")
+          download_url = self.build_download_url(
+            server_url_prefix, subdirectory, self.ARCHIVE_NAME
+          )
           membuffer = self.fetch_url(download_url)
           # extract only when the archive is not zero sized
           if membuffer.getvalue().strip():
             self.invalidate_directory(full_path)
             self.unpack_archive(membuffer, full_path)
             self.write_hash_sum(full_path, remote_hash)
-            logger.info("Updated directory {0}".format(full_path))
+            logger.info(f"Updated directory {full_path}")
           else:
-            logger.warn("Skipping empty archive: {0}. "
-                        "Expected archive was not found. Cached copy will be used.".format(download_url))
+            logger.warn(
+              "Skipping empty archive: {0}. "
+              "Expected archive was not found. Cached copy will be used.".format(
+                download_url
+              )
+            )
             pass
         # Finally consider cache directory up-to-date
         self.uptodate_paths.append(full_path)
     except CachingException as e:
       if self.tolerate_download_failures:
         # ignore
-        logger.warn("Error occurred during cache update. "
-                    "Error tolerate setting is set to true, so"
-                    " ignoring this error and continuing with current cache. "
-                    "Error details: {0}".format(str(e)))
+        logger.warn(
+          "Error occurred during cache update. "
+          "Error tolerate setting is set to true, so"
+          " ignoring this error and continuing with current cache. "
+          "Error details: {0}".format(str(e))
+        )
       else:
-        raise # we are not tolerant to exceptions, command execution will fail
+        raise  # we are not tolerant to exceptions, command execution will fail
     finally:
       with self.currently_providing_dict_lock:
         self.currently_providing[full_path].set()
@@ -218,22 +246,20 @@ class FileCache():
     directory - relative path
     filename - file inside directory we are trying to fetch
     """
-    return "{0}/{1}/{2}".format(server_url_prefix,
-                                urllib.pathname2url(directory), filename)
+    return f"{server_url_prefix}/{urllib.request.pathname2url(directory)}/{filename}"
 
   def fetch_url(self, url):
     """
     Fetches content on url to in-memory buffer and returns the resulting buffer.
     May throw exceptions because of various reasons
     """
-    logger.debug("Trying to download {0}".format(url))
+    logger.debug(f"Trying to download {url}")
     try:
-      memory_buffer = StringIO.StringIO()
-      proxy_handler = urllib2.ProxyHandler({})
-      opener = urllib2.build_opener(proxy_handler)
+      memory_buffer = io.BytesIO()
+      proxy_handler = urllib.request.ProxyHandler({})
+      opener = urllib.request.build_opener(proxy_handler)
       u = opener.open(url, timeout=self.SOCKET_TIMEOUT)
-      logger.debug("Connected with {0} with code {1}".format(u.geturl(),
-                                                             u.getcode()))
+      logger.debug(f"Connected with {u.geturl()} with code {u.getcode()}")
       buff = u.read(self.BLOCK_SIZE)
       while buff:
         memory_buffer.write(buff)
@@ -242,7 +268,7 @@ class FileCache():
           break
       return memory_buffer
     except Exception as err:
-      raise CachingException("Can not download file from url {0} : {1}".format(url, str(err)))
+      raise CachingException(f"Can not download file from url {url} : {str(err)}")
 
   def read_hash_sum(self, directory):
     """
@@ -251,7 +277,7 @@ class FileCache():
     """
     hash_file = os.path.join(directory, self.HASH_SUM_FILE)
     try:
-      with open(hash_file) as fh:
+      with open(hash_file, "rb") as fh:
         return fh.readline().strip()
     except:
       return None
@@ -263,11 +289,11 @@ class FileCache():
     """
     hash_file = os.path.join(directory, self.HASH_SUM_FILE)
     try:
-      with open(hash_file, "w") as fh:
+      with open(hash_file, "wb") as fh:
         fh.write(new_hash)
       os.chmod(hash_file, 0o644)
     except Exception as err:
-      raise CachingException("Can not write to file {0} : {1}".format(hash_file, str(err)))
+      raise CachingException(f"Can not write to file {hash_file} : {str(err)}")
 
   def invalidate_directory(self, directory):
     """
@@ -278,7 +304,7 @@ class FileCache():
     CLEAN_DIRECTORY_TRIES = 5
     CLEAN_DIRECTORY_TRY_SLEEP = 0.25
 
-    logger.debug("Invalidating directory {0}".format(directory))
+    logger.debug(f"Invalidating directory {directory}")
     try:
       if os.path.exists(directory):
         if os.path.isfile(directory):  # It would be a strange situation
@@ -289,13 +315,20 @@ class FileCache():
           Reason: race condition, where a file (e.g. *.pyc) in deleted directory
           is created during function is running, causing it to fail.
           """
-          execute_with_retries(CLEAN_DIRECTORY_TRIES, CLEAN_DIRECTORY_TRY_SLEEP, OSError, shutil.rmtree, directory)
+          execute_with_retries(
+            CLEAN_DIRECTORY_TRIES,
+            CLEAN_DIRECTORY_TRY_SLEEP,
+            OSError,
+            shutil.rmtree,
+            directory,
+          )
         # create directory itself and any parent directories
       os.makedirs(directory)
     except Exception as err:
-      logger.exception("Can not invalidate cache directory {0}".format(directory))
-      raise CachingException("Can not invalidate cache directory {0}: {1}",
-                             directory, str(err))
+      logger.exception(f"Can not invalidate cache directory {directory}")
+      raise CachingException(
+        "Can not invalidate cache directory {0}: {1}", directory, str(err)
+      )
 
   def unpack_archive(self, mem_buffer, target_directory):
     """
@@ -306,11 +339,13 @@ class FileCache():
       zfile = zipfile.ZipFile(mem_buffer)
       for name in zfile.namelist():
         (dirname, filename) = os.path.split(name)
-        concrete_dir=os.path.abspath(os.path.join(target_directory, dirname))
+        concrete_dir = os.path.abspath(os.path.join(target_directory, dirname))
         if not os.path.isdir(concrete_dir):
           os.makedirs(concrete_dir)
-        logger.debug("Unpacking file {0} to {1}".format(name, concrete_dir))
-        if filename != '':
+        logger.debug(f"Unpacking file {name} to {concrete_dir}")
+        if filename != "":
           zfile.extract(name, target_directory)
     except Exception as err:
-      raise CachingException("Can not unpack zip file to directory {0} : {1}".format(target_directory, str(err)))
+      raise CachingException(
+        f"Can not unpack zip file to directory {target_directory} : {str(err)}"
+      )

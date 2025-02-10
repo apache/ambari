@@ -24,6 +24,7 @@
  * Fixes error when <code>destroy</code> method called more than one time.
  * For more info check https://github.com/twbs/bootstrap/issues/20511
  */
+if($&&$.fn&&$.fn.tooltip&&$.fn.tooltip.Constructor)
 $.fn.tooltip.Constructor.prototype.destroy = function() {
   var that = this
   clearTimeout(this.timeout)
@@ -82,5 +83,6 @@ $(document).on('click.bs.dropdown.data-api', clearMenus);
 $(document).on('click.bs.dropdown.data-api', '.dropdown form', function (e) {
   e.stopPropagation()
 });
+if($&&$.fn&&$.fn.tooltip&&$.fn.tooltip.Constructor)
 $(document).on('click.bs.dropdown.data-api', '[data-toggle="dropdown"]', $.fn.dropdown.Constructor.prototype.toggle);
 

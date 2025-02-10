@@ -775,7 +775,7 @@ App.AddSecurityConfigs = Em.Mixin.create({
   loadRecommendationsError: function(req, ajaxOpts, error, opt) {
     var resp;
     try {
-      resp = $.parseJSON(req.responseText);
+      resp = JSON.parse(req.responseText);
     } catch (e) { }
     return App.ModalPopup.show({
       header: Em.I18n.t('common.error'),

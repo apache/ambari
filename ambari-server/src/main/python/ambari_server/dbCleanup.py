@@ -1,6 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,14 +16,22 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 from ambari_commons.logging_utils import print_info_msg, print_error_msg
 from ambari_commons.os_utils import run_os_command
 from ambari_server.dbConfiguration import ensure_jdbc_driver_is_installed
-from ambari_server.serverConfiguration import configDefaults, \
-    get_ambari_properties, get_java_exe_path, read_ambari_user, get_db_type
-from ambari_server.setupSecurity import generate_env, ensure_can_start_under_current_user
+from ambari_server.serverConfiguration import (
+  configDefaults,
+  get_ambari_properties,
+  get_java_exe_path,
+  read_ambari_user,
+  get_db_type,
+)
+from ambari_server.setupSecurity import (
+  generate_env,
+  ensure_can_start_under_current_user,
+)
 from ambari_server.userInput import get_YN_input
 from ambari_server.serverClassPath import ServerClassPath
 from ambari_server.serverUtils import is_server_runing
@@ -37,15 +45,19 @@ DEBUG_PORT = "5005"
 DEBUG_SUSPEND_AT_START = "n"
 
 
-DB_CLEANUP_CMD = "{0} " \
-                 "-cp {1} org.apache.ambari.server.cleanup.CleanupDriver " \
-                 "--cluster-name {2} " \
-                 "--from-date {3}> " + configDefaults.SERVER_OUT_FILE + " 2>&1"
+DB_CLEANUP_CMD = (
+  "{0} "
+  "-cp {1} org.apache.ambari.server.cleanup.CleanupDriver "
+  "--cluster-name {2} "
+  "--from-date {3}> " + configDefaults.SERVER_OUT_FILE + " 2>&1"
+)
 
-DB_DEBUG_CLEANUP_CMD = "{0} -agentlib:jdwp=transport=dt_socket,server=y,suspend={4},address={5} " \
-                       "-cp {1} org.apache.ambari.server.cleanup.CleanupDriver " \
-                       "--cluster-name {2} " \
-                       "--from-date {3}> " + configDefaults.SERVER_OUT_FILE + " 2>&1"
+DB_DEBUG_CLEANUP_CMD = (
+  "{0} -agentlib:jdwp=transport=dt_socket,server=y,suspend={4},address={5} "
+  "-cp {1} org.apache.ambari.server.cleanup.CleanupDriver "
+  "--cluster-name {2} "
+  "--from-date {3}> " + configDefaults.SERVER_OUT_FILE + " 2>&1"
+)
 
 
 def run_db_purge(options):
@@ -53,34 +65,45 @@ def run_db_purge(options):
   Run the db cleanup process
   """
   if validate_args(options):
-      return 1
+    return 1
 
   status, state_desc = is_server_runing()
 
   if not options.silent:
     db_title = get_db_type(get_ambari_properties()).title
 
-    confirm_backup = get_YN_input("Ambari Server configured for {0}. Confirm you have made a backup of the Ambari Server database [y/n]".format(
-      db_title), True)
+    confirm_backup = get_YN_input(
+      "Ambari Server configured for {0}. Confirm you have made a backup of the Ambari Server database [y/n]".format(
+        db_title
+      ),
+      True,
+    )
     if not confirm_backup:
       print_info_msg("Ambari Server Database purge aborted")
       return 0
 
     if status:
-        print_error_msg("The database purge historical data cannot proceed while Ambari Server is running. Please shut down Ambari first.")
-        return 1
+      print_error_msg(
+        "The database purge historical data cannot proceed while Ambari Server is running. Please shut down Ambari first."
+      )
+      return 1
 
     confirm = get_YN_input(
       "Ambari server is using db type {0}. Cleanable database entries older than {1} will be purged. Proceed [y/n]".format(
-        db_title, options.purge_from_date), True)
+        db_title, options.purge_from_date
+      ),
+      True,
+    )
     if not confirm:
       print_info_msg("Ambari Server Database purge aborted")
       return 0
 
   jdk_path = get_java_exe_path()
   if jdk_path is None:
-    print_error_msg("No JDK found, please run the \"setup\" command to install a JDK automatically or install any "
-                    "JDK manually to {0}".format(configDefaults.JDK_INSTALL_DIR))
+    print_error_msg(
+      'No JDK found, please run the "setup" command to install a JDK automatically or install any '
+      "JDK manually to {0}".format(configDefaults.JDK_INSTALL_DIR)
+    )
     return 1
 
   ensure_jdbc_driver_is_installed(options, get_ambari_properties())
@@ -92,7 +115,7 @@ def run_db_purge(options):
   current_user = ensure_can_start_under_current_user(ambari_user)
   environ = generate_env(options, ambari_user, current_user)
 
-  print "Purging historical data from the database ..."
+  print("Purging historical data from the database ...")
   if DEBUG_MODE and DEBUG_MODE == "y":
     command = DB_DEBUG_CLEANUP_CMD.format(
       jdk_path,
@@ -100,31 +123,30 @@ def run_db_purge(options):
       options.cluster_name,
       options.purge_from_date,
       DEBUG_SUSPEND_AT_START,
-      DEBUG_PORT
+      DEBUG_PORT,
     )
   else:
     command = DB_CLEANUP_CMD.format(
-      jdk_path,
-      class_path,
-      options.cluster_name,
-      options.purge_from_date
+      jdk_path, class_path, options.cluster_name, options.purge_from_date
     )
 
   retcode, stdout, stderr = run_os_command(command, env=environ)
 
   print_info_msg("Return code from database cleanup command, retcode = " + str(retcode))
   if stdout:
-    print "Console output from database purge-history command:"
-    print stdout
-    print
+    print("Console output from database purge-history command:")
+    print(stdout)
+    print()
   if stderr:
-    print "Error output from database purge-history command:"
-    print stderr
-    print
+    print("Error output from database purge-history command:")
+    print(stderr)
+    print()
   if retcode > 0:
-    print_error_msg("Error encountered while purging the Ambari Server Database. Check the ambari-server.log for details.")
+    print_error_msg(
+      "Error encountered while purging the Ambari Server Database. Check the ambari-server.log for details."
+    )
   else:
-    print "Purging historical data completed. Check the ambari-server.log for details."
+    print("Purging historical data completed. Check the ambari-server.log for details.")
   return retcode
 
 
@@ -147,5 +169,5 @@ def validate_args(options):
   try:
     datetime.datetime.strptime(options.purge_from_date, "%Y-%m-%d")
   except ValueError as e:
-    print_error_msg("The --from-date argument has an invalid format. {0}".format(e.args[0]))
+    print_error_msg(f"The --from-date argument has an invalid format. {e.args[0]}")
     return 1

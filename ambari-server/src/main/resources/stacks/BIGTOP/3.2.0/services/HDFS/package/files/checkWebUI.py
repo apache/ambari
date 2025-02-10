@@ -1,6 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,32 +16,41 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 import optparse
-import httplib
+import http.client
 import socket
 import ssl
 
-class ForcedProtocolHTTPSConnection(httplib.HTTPSConnection):
+
+class ForcedProtocolHTTPSConnection(http.client.HTTPSConnection):
   """
   Some of python implementations does not work correctly with sslv3 but trying to use it, we need to change protocol to
   tls1.
   """
+
   def __init__(self, host, port, force_protocol, **kwargs):
-    httplib.HTTPSConnection.__init__(self, host, port, **kwargs)
+    http.client.HTTPSConnection.__init__(self, host, port, **kwargs)
     self.force_protocol = force_protocol
 
   def connect(self):
     sock = socket.create_connection((self.host, self.port), self.timeout)
-    if getattr(self, '_tunnel_host', None):
+    if getattr(self, "_tunnel_host", None):
       self.sock = sock
       self._tunnel()
-    self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file, ssl_version=getattr(ssl, self.force_protocol))
+    self.sock = ssl.wrap_socket(
+      sock, self.key_file, self.cert_file, ssl_version=getattr(ssl, self.force_protocol)
+    )
+
 
 def make_connection(host, port, https, force_protocol=None):
   try:
-    conn = httplib.HTTPConnection(host, port) if not https else httplib.HTTPSConnection(host, port)
+    conn = (
+      http.client.HTTPConnection(host, port)
+      if not https
+      else http.client.HTTPSConnection(host, port)
+    )
     conn.request("GET", "/")
     return conn.getresponse().status
   except ssl.SSLError:
@@ -51,26 +60,45 @@ def make_connection(host, port, https, force_protocol=None):
       tls1_conn.request("GET", "/")
       return tls1_conn.getresponse().status
     except Exception as e:
-      print e
+      print(e)
     finally:
       tls1_conn.close()
   except Exception as e:
-    print e
+    print(e)
   finally:
     conn.close()
+
+
 #
 # Main.
 #
 def main():
   parser = optparse.OptionParser(usage="usage: %prog [options] component ")
-  parser.add_option("-m", "--hosts", dest="hosts", help="Comma separated hosts list for WEB UI to check it availability")
-  parser.add_option("-p", "--port", dest="port", help="Port of WEB UI to check it availability")
-  parser.add_option("-s", "--https", dest="https", help="\"True\" if value of dfs.http.policy is \"HTTPS_ONLY\"")
-  parser.add_option("-o", "--protocol", dest="protocol", help="Protocol to use when executing https request")
+  parser.add_option(
+    "-m",
+    "--hosts",
+    dest="hosts",
+    help="Comma separated hosts list for WEB UI to check it availability",
+  )
+  parser.add_option(
+    "-p", "--port", dest="port", help="Port of WEB UI to check it availability"
+  )
+  parser.add_option(
+    "-s",
+    "--https",
+    dest="https",
+    help='"True" if value of dfs.http.policy is "HTTPS_ONLY"',
+  )
+  parser.add_option(
+    "-o",
+    "--protocol",
+    dest="protocol",
+    help="Protocol to use when executing https request",
+  )
 
   (options, args) = parser.parse_args()
-  
-  hosts = options.hosts.split(',')
+
+  hosts = options.hosts.split(",")
   port = options.port
   https = options.https
   protocol = options.protocol
@@ -79,8 +107,13 @@ def main():
     httpCode = make_connection(host, port, https.lower() == "true", protocol)
 
     if httpCode != 200 and httpCode != 302:
-      print "Cannot access WEB UI on: http://" + host + ":" + port if not https.lower() == "true" else "Cannot access WEB UI on: https://" + host + ":" + port
+      print(
+        "Cannot access WEB UI on: http://" + host + ":" + port
+        if not https.lower() == "true"
+        else "Cannot access WEB UI on: https://" + host + ":" + port
+      )
       exit(1)
+
 
 if __name__ == "__main__":
   main()

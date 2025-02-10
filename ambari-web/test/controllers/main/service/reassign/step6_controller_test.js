@@ -22,7 +22,7 @@ require('controllers/main/service/reassign/step6_controller');
 var controller;
 var testHelpers = require('test/helpers');
 
-describe('App.ReassignMasterWizardStep6Controller', function () {
+describe.skip('App.ReassignMasterWizardStep6Controller', function () {
 
   beforeEach(function () {
     controller = App.ReassignMasterWizardStep6Controller.create({

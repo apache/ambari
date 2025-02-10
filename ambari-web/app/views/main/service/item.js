@@ -241,6 +241,13 @@ App.MainServiceItemView = Em.View.extend(App.HiveInteractiveCheck, {
               break;
           }
         }
+        if (service.get('serviceTypes').contains('DFSRouter') && App.isAuthorized('SERVICE.ENABLE_HA')) {
+          switch (service.get('serviceName')) {
+            case 'HDFS':
+              options.push(actionMap.TOGGLE_RBF_FEDERATION);
+              break;
+          }
+        }
         if (serviceCheckSupported) {
           options.push(actionMap.RUN_SMOKE_TEST);
         }

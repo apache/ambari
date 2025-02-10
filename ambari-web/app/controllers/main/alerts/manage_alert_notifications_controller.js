@@ -859,6 +859,7 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
     return App.ajax.send({
       name: 'alerts.create_alert_notification',
       sender: this,
+      dataType:'text',
       data: {
         data: apiObject
       },
@@ -895,6 +896,7 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
     }
     return App.ajax.send({
       name: 'alerts.update_alert_notification',
+      dataType:'text',
       sender: this,
       data: {
         data: apiObject,
@@ -935,6 +937,7 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
     return App.showConfirmationPopup(function () {
         App.ajax.send({
           name: 'alerts.delete_alert_notification',
+          dataType:'text',
           sender: self,
           data: {
             id: self.get('selectedAlertNotification.id')
@@ -973,6 +976,7 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
     return App.ajax.send({
       name: 'alerts.update_alert_notification',
       sender: this,
+      dataType:'text',
       data: {
         data: {
           AlertTarget: {

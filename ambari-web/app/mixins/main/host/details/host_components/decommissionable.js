@@ -196,6 +196,7 @@ App.Decommissionable = Em.Mixin.create({
    * @returns {$.ajax}
    */
   getDecommissionStatus: function () {
+    if (Em.isNone(this.get('content'))) return null;
     return App.ajax.send({
       name: 'host.host_component.decommission_status',
       sender: this,

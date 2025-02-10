@@ -41,11 +41,17 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.ClientRequestFilter;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionDBAccessor;
@@ -73,6 +79,8 @@ import org.apache.ambari.server.state.scheduler.Schedule;
 import org.apache.ambari.server.utils.DateUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.text.StrBuilder;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.client.filter.CsrfProtectionFilter;
 import org.quartz.CronExpression;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
@@ -86,15 +94,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.UniformInterfaceException;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.config.ClientConfig;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
-import com.sun.jersey.api.client.filter.ClientFilter;
-import com.sun.jersey.api.client.filter.CsrfProtectionFilter;
-import com.sun.jersey.client.urlconnection.HTTPSProperties;
 
 /**
  * This class handles scheduling request execution for managed clusters
@@ -120,7 +119,7 @@ public class ExecutionScheduleManager {
   public static final String USER_ID_HEADER = "X-Authenticated-User-ID";
 
   protected Client ambariClient;
-  protected WebResource ambariWebResource;
+  protected WebTarget ambariWebResource;
 
   protected static final String REQUESTS_STATUS_KEY = "request_status";
   protected static final String REQUESTS_ID_KEY = "id";
@@ -188,8 +187,8 @@ public class ExecutionScheduleManager {
       sc.init(null, trustAllCerts, new SecureRandom());
 
       //Install all trusting cert SSL context for jersey client
-      ClientConfig config = new DefaultClientConfig();
-      config.getProperties().put(HTTPSProperties.PROPERTY_HTTPS_PROPERTIES, new HTTPSProperties(
+      ClientConfig config = new ClientConfig();
+      /*config.getProperties().put(HTTPSProperties.PROPERTY_HTTPS_PROPERTIES, new HTTPSProperties(
         new HostnameVerifier() {
           @Override
           public boolean verify( String s, SSLSession sslSession ) {
@@ -197,24 +196,25 @@ public class ExecutionScheduleManager {
           }
         },
         sc
-      ));
+      ));*/
 
-      client = Client.create(config);
+      client = ClientBuilder.newBuilder().sslContext(sc).withConfig(config)
+              .build();
 
     } else {
-      client = Client.create();
+      client = ClientBuilder.newBuilder().build();
       pattern = "http://localhost:%s/";
       url = String.format(pattern, configuration.getClientApiPort());
     }
 
     this.ambariClient = client;
-    this.ambariWebResource = client.resource(url);
+    this.ambariWebResource = client.target(url);
 
     //Install auth filters
-    ClientFilter csrfFilter = new CsrfProtectionFilter("RequestSchedule");
-    ClientFilter tokenFilter = new InternalTokenClientFilter(tokenStorage);
-    ambariClient.addFilter(csrfFilter);
-    ambariClient.addFilter(tokenFilter);
+    ClientRequestFilter csrfFilter = new CsrfProtectionFilter("RequestSchedule");
+    ClientRequestFilter tokenFilter = new InternalTokenClientFilter(tokenStorage);
+    ambariWebResource.register(csrfFilter);
+    ambariWebResource.register(tokenFilter);
 
   }
 
@@ -731,13 +731,13 @@ public class ExecutionScheduleManager {
     }
   }
 
-  private BatchRequestResponse convertToBatchRequestResponse(ClientResponse clientResponse) {
+  private BatchRequestResponse convertToBatchRequestResponse(Response clientResponse) {
     BatchRequestResponse batchRequestResponse = new BatchRequestResponse();
     int retCode = clientResponse.getStatus();
 
     batchRequestResponse.setReturnCode(retCode);
 
-    String responseString = clientResponse.getEntity(String.class);
+    String responseString = (String) clientResponse.getEntity();
     LOG.debug("Processing API response: status={}, body={}", retCode, responseString);
     Map<String, Object> httpResponseMap;
     try {
@@ -829,7 +829,7 @@ public class ExecutionScheduleManager {
 
     requestExecution.updateBatchRequest(batchId, batchRequestResponse, statusOnly);
   }
-
+/*
   protected BatchRequestResponse performUriRequest(String url, String body, String method) {
     ClientResponse response;
     try {
@@ -840,9 +840,34 @@ public class ExecutionScheduleManager {
     //Don't read response entity for logging purposes, it can be read only once from http stream
 
     return convertToBatchRequestResponse(response);
+  }*/
+
+  protected BatchRequestResponse performUriRequest(String url, String body, String method) {
+    Response response;
+    try {
+      WebTarget target = ClientBuilder.newClient().target(url);
+      Invocation.Builder invocationBuilder = target.request();
+
+      if (method.equalsIgnoreCase("GET")) {
+        response = invocationBuilder.get();
+      } else if (method.equalsIgnoreCase("POST")) {
+        response = invocationBuilder.post(Entity.entity(body, MediaType.APPLICATION_JSON));
+      } else if (method.equalsIgnoreCase("PUT")) {
+        response = invocationBuilder.put(Entity.entity(body, MediaType.APPLICATION_JSON));
+      } else if (method.equalsIgnoreCase("DELETE")) {
+        response = invocationBuilder.delete();
+      } else {
+        throw new IllegalArgumentException("Invalid HTTP method: " + method);
+      }
+
+    } catch (Exception e) {
+      response = null;
+    }
+
+    return convertToBatchRequestResponse(response);
   }
 
-  protected BatchRequestResponse performApiGetRequest(String relativeUri, boolean queryAllFields) {
+  /*protected BatchRequestResponse performApiGetRequest(String relativeUri, boolean queryAllFields) {
     WebResource webResource = extendApiResource(ambariWebResource, relativeUri);
     if (queryAllFields) {
       webResource = webResource.queryParam("fields", "*");
@@ -857,14 +882,63 @@ public class ExecutionScheduleManager {
   }
 
   protected BatchRequestResponse performApiRequest(String relativeUri, String body, String method, Integer userId) {
-    ClientResponse response;
+    Client client = ClientBuilder.newClient();
+    WebTarget target = client.target(relativeUri);
+    Response response;
     try {
-      response = extendApiResource(ambariWebResource, relativeUri)
-          .header(USER_ID_HEADER, userId).method(method, ClientResponse.class, body);
-    } catch (UniformInterfaceException e) {
-      response = e.getResponse();
+      Invocation.Builder invocationBuilder = target.request().header(USER_ID_HEADER, userId);
+      if (method.equalsIgnoreCase("GET")) {
+        response = invocationBuilder.get();
+      } else if (method.equalsIgnoreCase("POST")) {
+        response = invocationBuilder.post(Entity.entity(body, MediaType.APPLICATION_JSON));
+      } else if (method.equalsIgnoreCase("PUT")) {
+        response = invocationBuilder.put(Entity.entity(body, MediaType.APPLICATION_JSON));
+      } else if (method.equalsIgnoreCase("DELETE")) {
+        response = invocationBuilder.delete();
+      } else {
+        throw new IllegalArgumentException("Invalid HTTP method: " + method);
+      }
+    } catch (Exception e) {
+      response = null;
     }
+    return convertToBatchRequestResponse(response);
+  }*/
 
+  protected BatchRequestResponse performApiGetRequest(String relativeUri, boolean queryAllFields) {
+    Client client = ClientBuilder.newClient();
+    WebTarget target = client.target(relativeUri);
+    if (queryAllFields) {
+      target = target.queryParam("fields", "*");
+    }
+    Response response;
+    try {
+      response = target.request().get();
+    } catch (Exception e) {
+      response = null;
+    }
+    return convertToBatchRequestResponse(response);
+  }
+
+  protected BatchRequestResponse performApiRequest(String relativeUri, String body, String method, Integer userId) {
+    Client client = ClientBuilder.newClient();
+    WebTarget target = client.target(relativeUri);
+    Response response;
+    try {
+      Invocation.Builder invocationBuilder = target.request().header(USER_ID_HEADER, userId);
+      if (method.equalsIgnoreCase("GET")) {
+        response = invocationBuilder.get();
+      } else if (method.equalsIgnoreCase("POST")) {
+        response = invocationBuilder.post(Entity.entity(body, MediaType.APPLICATION_JSON));
+      } else if (method.equalsIgnoreCase("PUT")) {
+        response = invocationBuilder.put(Entity.entity(body, MediaType.APPLICATION_JSON));
+      } else if (method.equalsIgnoreCase("DELETE")) {
+        response = invocationBuilder.delete();
+      } else {
+        throw new IllegalArgumentException("Invalid HTTP method: " + method);
+      }
+    } catch (Exception e) {
+      response = null;
+    }
     return convertToBatchRequestResponse(response);
   }
 
@@ -985,14 +1059,22 @@ public class ExecutionScheduleManager {
 
   /**
    * Returns the absolute web resource with {@link #DEFAULT_API_PATH}
-   * @param webResource Ambari WebResource as provided by the client {@link #ambariWebResource}
+   * @param webTarget Ambari WebResource as provided by the client {@link #ambariWebResource}
    * @param relativeUri relative request URI
    * @return  Extended WebResource
    */
-  protected WebResource extendApiResource(WebResource webResource, String relativeUri) {
+  /* protected WebResource extendApiResource(WebResource webResource, String relativeUri) {
     WebResource result = webResource;
     if (StringUtils.isNotEmpty(relativeUri) && !CONTAINS_API_VERSION_PATTERN.matcher(relativeUri).matches()) {
       result = webResource.path(DEFAULT_API_PATH);
+    }
+    return result.path(relativeUri);
+  }*/
+
+  protected WebTarget extendApiResource(WebTarget webTarget, String relativeUri) {
+    WebTarget result = webTarget;
+    if (StringUtils.isNotEmpty(relativeUri) && !CONTAINS_API_VERSION_PATTERN.matcher(relativeUri).matches()) {
+      result = webTarget.path(DEFAULT_API_PATH);
     }
     return result.path(relativeUri);
   }

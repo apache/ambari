@@ -22,8 +22,9 @@ package org.apache.ambari.server;
 import java.io.IOException;
 import java.net.ServerSocket;
 
-import com.sun.jersey.test.framework.AppDescriptor;
-import com.sun.jersey.test.framework.JerseyTest;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.test.JerseyTest;
+import org.glassfish.jersey.test.TestProperties;
 
 /**
  * Makes JerseyTest use random port in case default one is unavailable.
@@ -31,11 +32,13 @@ import com.sun.jersey.test.framework.JerseyTest;
 public class RandomPortJerseyTest extends JerseyTest {
   private static int testPort;
 
-  public RandomPortJerseyTest(AppDescriptor ad) {
-    super(ad);
+  @Override
+  protected ResourceConfig configure() {
+    // Enable TestContainer to not start at default port if it's already in use
+    forceSet(TestProperties.CONTAINER_PORT, getPort(8079)+"");
+    return new ResourceConfig().packages("com.example"); // replace with your package
   }
 
-  @Override
   protected int getPort(int defaultPort) {
     ServerSocket server = null;
     int port = -1;

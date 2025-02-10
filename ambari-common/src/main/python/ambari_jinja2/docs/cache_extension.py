@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from ambari_jinja2 import nodes
 from ambari_jinja2.ext import Extension
 

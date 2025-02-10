@@ -362,15 +362,19 @@ App.ServiceConfigProperty = Em.Object.extend({
 
   validate: function () {
     if ((typeof this.get('value') != 'object') && ((this.get('value') + '').length === 0)) {
-      var widgetType = this.get('widgetType');
-      this.set('errorMessage', (this.get('isRequired') && (!['test-db-connection','label'].contains(widgetType))) ? Em.I18n.t('errorMessage.config.required') : '');
-    } else {
-      this.set('errorMessage', this.validateErrors(this.get('value'), this.get('name'), this.get('retypedPassword')));
+    var widgetType = this.get('widgetType');
+    this.set('errorMessage', (this.get('isRequired') && (!['test-db-connection','label'].contains(widgetType))) ? Em.I18n.t('errorMessage.config.required') : '');
+    }
+    else if((typeof this.get('value') != 'object')&&((this.get('value') + '').length !== 0)&&(typeof this.get('value') == 'string')&&(this.get('value').startsWith("="))){
+    this.set('errorMessage',Em.I18n.t('errorMessage.config.invalidValue'))
+    }
+    else {
+    this.set('errorMessage', this.validateErrors(this.get('value'), this.get('name'), this.get('retypedPassword')));
     }
     if (!this.get('widgetType') || ('text-field' === this.get('widgetType'))) {
-      //temp conditions, since other warnings are calculated directly in widget view
-      this.set('warnMessage', this.validateWarnings(this.get('value'), this.get('name'), this.get('filename'),
-        this.get('stackConfigProperty'), this.get('unit')));
+    //temp conditions, since other warnings are calculated directly in widget view
+    this.set('warnMessage', this.validateWarnings(this.get('value'), this.get('name'), this.get('filename'),
+    this.get('stackConfigProperty'), this.get('unit')));
     }
   }.observes('value', 'retypedPassword', 'isEditable'),
 

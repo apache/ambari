@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -20,13 +20,7 @@ Ambari Agent
 
 """
 
-from __future__ import generators
-
 __version__ = "0.1.0"
-__author__ = [
-    "Eric Yang <eyang@apache.org>",
-    "Kan Zhang <kanzhangmail@yahoo.com>"
-]
+__author__ = ["Eric Yang <eyang@apache.org>", "Kan Zhang <kanzhangmail@yahoo.com>"]
 __license__ = "Apache License v2.0"
 __contributors__ = "see http://incubator.apache.org/ambari/contributors"
-

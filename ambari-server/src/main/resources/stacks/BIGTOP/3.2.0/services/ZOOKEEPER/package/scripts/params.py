@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -18,10 +19,10 @@ limitations under the License.
 Ambari Agent
 
 """
+
 from ambari_commons import OSCheck
 
 if OSCheck.is_windows_family():
   from params_windows import *
 else:
   from params_linux import *
-

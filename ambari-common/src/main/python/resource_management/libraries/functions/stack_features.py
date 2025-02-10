@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -26,10 +26,10 @@ from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.functions.version import format_stack_version
 
 # executionCommand for STOP
-_ROLE_COMMAND_STOP = 'STOP'
+_ROLE_COMMAND_STOP = "STOP"
 
 # executionCommand for a custom command (which could be STOP)
-_ROLE_COMMAND_CUSTOM = 'CUSTOM_COMMAND'
+_ROLE_COMMAND_CUSTOM = "CUSTOM_COMMAND"
 
 
 def check_stack_feature(stack_feature, stack_version):
@@ -38,7 +38,7 @@ def check_stack_feature(stack_feature, stack_version):
   IMPORTANT, notice that the mapping of feature to version comes from cluster-env if it exists there.
   :param stack_feature: Feature name to check if it is supported by the stack. For example: "rolling_upgrade"
   :param stack_version: Version of the stack
-  :return: Will return True if successful, otherwise, False. 
+  :return: Will return True if successful, otherwise, False.
   """
 
   from resource_management.libraries.functions.default import default
@@ -46,20 +46,25 @@ def check_stack_feature(stack_feature, stack_version):
 
   stack_name = default("/clusterLevelParams/stack_name", None)
   if stack_name is None:
-    Logger.warning("Cannot find the stack name in the command. Stack features cannot be loaded")
+    Logger.warning(
+      "Cannot find the stack name in the command. Stack features cannot be loaded"
+    )
     return False
 
   stack_features_config = default("/configurations/cluster-env/stack_features", None)
 
   if not stack_version:
-    Logger.debug("Cannot determine if feature %s is supported since did not provide a stack version." % stack_feature)
+    Logger.debug(
+      "Cannot determine if feature %s is supported since did not provide a stack version."
+      % stack_feature
+    )
     return False
 
   if stack_features_config:
     data = json.loads(stack_features_config)
 
     if stack_name not in data:
-      Logger.warning("Cannot find stack features for the stack named {0}".format(stack_name))
+      Logger.warning(f"Cannot find stack features for the stack named {stack_name}")
       return False
 
     data = data[stack_name]
@@ -68,16 +73,16 @@ def check_stack_feature(stack_feature, stack_version):
       if feature["name"] == stack_feature:
         if "min_version" in feature:
           min_version = feature["min_version"]
-          if compare_versions(stack_version, min_version, format = True) < 0:
+          if compare_versions(stack_version, min_version, format=True) < 0:
             return False
         if "max_version" in feature:
           max_version = feature["max_version"]
-          if compare_versions(stack_version, max_version, format = True) >= 0:
+          if compare_versions(stack_version, max_version, format=True) >= 0:
             return False
         return True
   else:
     raise Fail("Stack features not defined by stack")
-        
+
   return False
 
 
@@ -98,10 +103,12 @@ def get_stack_feature_version(config):
   from resource_management.libraries.functions.default import default
 
   if "clusterLevelParams" not in config or "commandParams" not in config:
-    raise Fail("Unable to determine the correct version since clusterLevelParams and commandParams were not present in the configuration dictionary")
+    raise Fail(
+      "Unable to determine the correct version since clusterLevelParams and commandParams were not present in the configuration dictionary"
+    )
 
   # should always be there
-  stack_version = config['clusterLevelParams']['stack_version']
+  stack_version = config["clusterLevelParams"]["stack_version"]
 
   # something like 2.4.0.0-1234; represents the version for the command
   # (or None if this is a cluster install and it hasn't been calculated yet)
@@ -114,13 +121,15 @@ def get_stack_feature_version(config):
   upgrade_direction = default("/commandParams/upgrade_direction", None)
 
   # start out with the value that's right 99% of the time
-  version_for_stack_feature_checks = command_version if command_version is not None else stack_version
+  version_for_stack_feature_checks = (
+    command_version if command_version is not None else stack_version
+  )
 
   # if this is not an upgrade, then we take the simple path
   if upgrade_direction is None:
     Logger.info(
-      "Stack Feature Version Info: Cluster Stack={0}, Command Stack={1}, Command Version={2} -> {3}".format(
-        stack_version, command_stack, command_version, version_for_stack_feature_checks))
+      f"Stack Feature Version Info: Cluster Stack={stack_version}, Command Stack={command_stack}, Command Version={command_version} -> {version_for_stack_feature_checks}"
+    )
 
     return version_for_stack_feature_checks
 
@@ -129,9 +138,9 @@ def get_stack_feature_version(config):
   is_stop_command = _is_stop_command(config)
   if not is_stop_command:
     Logger.info(
-      "Stack Feature Version Info: Cluster Stack={0}, Command Stack={1}, Command Version={2}, Upgrade Direction={3} -> {4}".format(
-        stack_version, command_stack, command_version, upgrade_direction,
-        version_for_stack_feature_checks))
+      f"Stack Feature Version Info: Cluster Stack={stack_version}, Command Stack={command_stack},"
+      f" Command Version={command_version}, Upgrade Direction={upgrade_direction} -> {version_for_stack_feature_checks}"
+    )
 
     return version_for_stack_feature_checks
 
@@ -139,15 +148,20 @@ def get_stack_feature_version(config):
   # guaranteed to have a STOP command now during an UPGRADE/DOWNGRADE, check direction
   if is_downgrade:
     from resource_management.libraries.functions import upgrade_summary
-    version_for_stack_feature_checks = upgrade_summary.get_source_version(default_version = version_for_stack_feature_checks)
+
+    version_for_stack_feature_checks = upgrade_summary.get_source_version(
+      default_version=version_for_stack_feature_checks
+    )
   else:
     # UPGRADE
-      version_for_stack_feature_checks = command_version if command_version is not None else stack_version
+    version_for_stack_feature_checks = (
+      command_version if command_version is not None else stack_version
+    )
 
   Logger.info(
-    "Stack Feature Version Info: Cluster Stack={0}, Command Stack={1}, Command Version={2}, Upgrade Direction={3}, stop_command={4} -> {5}".format(
-      stack_version, command_stack, command_version, upgrade_direction,
-      is_stop_command, version_for_stack_feature_checks))
+    f"Stack Feature Version Info: Cluster Stack={stack_version}, Command Stack={command_stack}, Command Version={command_version}"
+    f", Upgrade Direction={upgrade_direction}, stop_command={is_stop_command} -> {version_for_stack_feature_checks}"
+  )
 
   return version_for_stack_feature_checks
 

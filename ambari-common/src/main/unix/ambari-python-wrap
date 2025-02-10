@@ -17,25 +17,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-export PYTHONPATH=/usr/lib/python2.6/site-packages:/usr/lib/python2.6/site-packages/ambari_commons:$PYTHONPATH
+export PYTHONPATH=/usr/lib/python3.9/site-packages:/usr/lib/python3.9/site-packages/ambari_commons:$PYTHONPATH
 
-# checking for default Python 2
-if [ -a /usr/bin/python2 ] && [ -z "$PYTHON" ]; then
-  PYTHON=/usr/bin/python2
+# checking for default Python 3
+if [ -a /usr/bin/python3 ] && [ -z "$PYTHON" ]; then
+  PYTHON=/usr/bin/python3
 fi
 
-if [ -a /usr/bin/python2.7 ] && [ -z "$PYTHON" ]; then
-  PYTHON=/usr/bin/python2.7
+if [ -a /usr/bin/python3.9 ] && [ -z "$PYTHON" ]; then
+  PYTHON=/usr/bin/python3.9
 fi
 
-if [ -a /usr/bin/python2.6 ] && [ -z "$PYTHON" ]; then
-  PYTHON=/usr/bin/python2.6
-fi
-
-# if no preferable python versions found, try to use system one. Hoping it's Python 2
-if [[ -z "$PYTHON" ]]; then
-  PYTHON=/usr/bin/python
-fi
 
 # execute script
 $PYTHON "$@"

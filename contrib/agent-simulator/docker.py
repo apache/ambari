@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -34,7 +35,7 @@ class Docker:
         :return: A map, which is JSON format object.
         """
         docker_json = {}
-        docker_json["weave_ip"] = "{0}/{1}".format(self.ip, self.mask)
+        docker_json["weave_ip"] = f"{self.ip}/{self.mask}"
         docker_json["weave_domain_name"] = self.weave_domain_name
         return docker_json
 

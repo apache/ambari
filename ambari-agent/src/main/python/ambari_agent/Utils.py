@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -17,6 +16,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 import os
 import time
 import threading
@@ -27,11 +27,13 @@ from ambari_agent.ExitHelper import ExitHelper
 
 AGENT_AUTO_RESTART_EXIT_CODE = 77
 
-class BlockingDictionary():
+
+class BlockingDictionary:
   """
   A dictionary like class.
   Which allow putting an item. And retrieving it in blocking way (the caller is blocked until item is available).
   """
+
   def __init__(self, dictionary=None):
     self.dict = {} if dictionary is None else dictionary
     self.cv = threading.Condition()
@@ -74,13 +76,17 @@ class BlockingDictionary():
   class DictionaryPopTimeout(Exception):
     pass
 
+
 class Utils(object):
   @staticmethod
   def are_dicts_equal(d1, d2, keys_to_skip=[]):
     """
     Check if two dictionaries are equal. Comparing the nested dictionaries is done as well.
     """
-    return Utils.are_dicts_equal_one_way(d1, d2, keys_to_skip) and Utils.are_dicts_equal_one_way(d2, d1, keys_to_skip)
+    return Utils.are_dicts_equal_one_way(
+      d1, d2, keys_to_skip
+    ) and Utils.are_dicts_equal_one_way(d2, d1, keys_to_skip)
+
   @staticmethod
   def are_dicts_equal_one_way(d1, d2, keys_to_skip=[]):
     """
@@ -89,10 +95,10 @@ class Utils(object):
     """
     for k in d1.keys():
       if k in keys_to_skip:
-        #print "skipping " + str(k)
+        # print "skipping " + str(k)
         continue
-      if not d2.has_key(k):
-        #print "don't have key="+str(k)
+      if k not in d2:
+        # print "don't have key="+str(k)
         return False
       else:
         if type(d1[k]) is dict:
@@ -101,7 +107,7 @@ class Utils(object):
             return False
         else:
           if d1[k] != d2[k]:
-            #print "not equal at "+str(k)
+            # print "not equal at "+str(k)
             return False
     return True
 
@@ -110,9 +116,9 @@ class Utils(object):
     """
     Update the dictionary 'd' and its sub-dictionaries with values of dictionary 'u' and its sub-dictionaries.
     """
-    for k, v in u.iteritems():
-      if isinstance(d, collections.Mapping):
-        if isinstance(v, collections.Mapping):
+    for k, v in u.items():
+      if isinstance(d, collections.abc.Mapping):
+        if isinstance(v, collections.abc.Mapping):
           r = Utils.update_nested(d.get(k, {}), v)
           d[k] = r
         else:
@@ -137,7 +143,7 @@ class Utils(object):
     if isinstance(param, dict):
       mutable_dict = {}
 
-      for k, v in param.iteritems():
+      for k, v in param.items():
         mutable_dict[k] = Utils.get_mutable_copy(v)
 
       return mutable_dict
@@ -148,8 +154,8 @@ class Utils(object):
 
   @staticmethod
   def read_agent_version(config):
-    data_dir = config.get('agent', 'prefix')
-    ver_file = os.path.join(data_dir, 'version')
+    data_dir = config.get("agent", "prefix")
+    ver_file = os.path.join(data_dir, "version")
     with open(ver_file, "r") as f:
       version = f.read().strip()
     return version
@@ -159,12 +165,17 @@ class Utils(object):
     ExitHelper().exitcode = AGENT_AUTO_RESTART_EXIT_CODE
     stop_event.set()
 
-    t = threading.Timer( graceful_stop_timeout, ExitHelper().exit, [AGENT_AUTO_RESTART_EXIT_CODE])
+    t = threading.Timer(
+      graceful_stop_timeout, ExitHelper().exit, [AGENT_AUTO_RESTART_EXIT_CODE]
+    )
     t.start()
 
   @staticmethod
   def get_traceback_as_text(ex):
-    return ''.join(traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__))
+    return "".join(
+      traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
+    )
+
 
 class ImmutableDictionary(dict):
   def __init__(self, dictionary):
@@ -172,7 +183,7 @@ class ImmutableDictionary(dict):
     Recursively turn dict to ImmutableDictionary
     """
     if not isinstance(dictionary, ImmutableDictionary):
-      for k, v in dictionary.iteritems():
+      for k, v in dictionary.items():
         dictionary[k] = Utils.make_immutable(v)
 
     super(ImmutableDictionary, self).__init__(dictionary)
@@ -187,7 +198,10 @@ class ImmutableDictionary(dict):
     try:
       return self[name]
     except KeyError:
-      raise AttributeError("'%s' object has no attribute '%s'" % (self.__class__.__name__, name))
+      raise AttributeError(
+        f"'{self.__class__.__name__}' object has no attribute '{name}'"
+      )
+
 
 def raise_immutable_error(*args, **kwargs):
   """
@@ -196,6 +210,7 @@ def raise_immutable_error(*args, **kwargs):
   Also immutability can lead to multithreading issues.
   """
   raise TypeError("The dictionary is immutable cannot change it")
+
 
 ImmutableDictionary.__setitem__ = raise_immutable_error
 ImmutableDictionary.__delitem__ = raise_immutable_error
@@ -208,7 +223,7 @@ def lazy_property(undecorated):
   """
   Only run the function decorated once. Next time return cached value.
   """
-  name = '_' + undecorated.__name__
+  name = "_" + undecorated.__name__
 
   @property
   @wraps(undecorated)
@@ -222,23 +237,29 @@ def lazy_property(undecorated):
 
   return decorated
 
-def synchronized(lock):
-    def wrap(f):
-        def newFunction(*args, **kw):
-            lock.acquire()
-            try:
-                return f(*args, **kw)
-            finally:
-                lock.release()
-        return newFunction
-    return wrap
 
-def execute_with_retries(tries, try_sleep, retry_exception_class, func, *args, **kwargs):
+def synchronized(lock):
+  def wrap(f):
+    def newFunction(*args, **kw):
+      lock.acquire()
+      try:
+        return f(*args, **kw)
+      finally:
+        lock.release()
+
+    return newFunction
+
+  return wrap
+
+
+def execute_with_retries(
+  tries, try_sleep, retry_exception_class, func, *args, **kwargs
+):
   for i in range(tries):
     try:
       func(*args, **kwargs)
       break
     except retry_exception_class:
-      if i==tries-1:
+      if i == tries - 1:
         raise
       time.sleep(try_sleep)

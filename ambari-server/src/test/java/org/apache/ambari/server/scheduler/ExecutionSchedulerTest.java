@@ -17,33 +17,30 @@
  */
 package org.apache.ambari.server.scheduler;
 
-import static org.easymock.EasyMock.expect;
-import static org.mockito.Mockito.spy;
-import static org.powermock.api.easymock.PowerMock.createNiceMock;
-import static org.powermock.api.easymock.PowerMock.expectNew;
-import static org.powermock.api.easymock.PowerMock.expectPrivate;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.Properties;
 
 import org.apache.ambari.server.configuration.Configuration;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.powermock.api.easymock.PowerMock;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.quartz.Scheduler;
-import org.quartz.impl.StdSchedulerFactory;
 
 import junit.framework.Assert;
 
-@RunWith(PowerMockRunner.class)
-@PowerMockIgnore("javax.management.*")
+
+@RunWith(MockitoJUnitRunner.class)
 public class ExecutionSchedulerTest {
 
   private Configuration configuration;
+
+  @Mock
+  private Scheduler scheduler;
 
   @Before
   public void setup() throws Exception {
@@ -57,55 +54,49 @@ public class ExecutionSchedulerTest {
     properties.setProperty(Configuration.SERVER_DB_NAME.getKey(), "derby");
 
     configuration = new Configuration(properties);
-
   }
 
-  @After
-  public void teardown() throws Exception {
+  private class TestExecutionScheduler extends ExecutionSchedulerImpl {
+    public TestExecutionScheduler(Configuration config) throws Exception {
+      super(config);
+      this.scheduler = ExecutionSchedulerTest.this.scheduler;
+      this.isInitialized = true;
+    }
+
+    @Override
+    protected synchronized void initializeScheduler() {
+      // Do nothing - we've already initialized in constructor
+    }
   }
 
   @Test
-  @PrepareForTest({ ExecutionSchedulerImpl.class })
   public void testSchedulerInitialize() throws Exception {
+    ExecutionSchedulerImpl executionScheduler = new ExecutionSchedulerImpl(configuration);
 
-    ExecutionSchedulerImpl executionScheduler =
-      spy(new ExecutionSchedulerImpl(configuration));
-
-    Properties actualProperties = executionScheduler
-      .getQuartzSchedulerProperties();
+    Properties actualProperties = executionScheduler.getQuartzSchedulerProperties();
 
     Assert.assertEquals("2", actualProperties.getProperty("org.quartz.threadPool.threadCount"));
     Assert.assertEquals("2", actualProperties.getProperty("org.quartz.dataSource.myDS.maxConnections"));
     Assert.assertEquals("false", actualProperties.getProperty("org.quartz.jobStore.isClustered"));
     Assert.assertEquals("org.quartz.impl.jdbcjobstore.PostgreSQLDelegate",
-      actualProperties.getProperty("org.quartz.jobStore.driverDelegateClass"));
+            actualProperties.getProperty("org.quartz.jobStore.driverDelegateClass"));
     Assert.assertEquals("select 0",
-      actualProperties.getProperty("org.quartz.dataSource.myDS.validationQuery"));
+            actualProperties.getProperty("org.quartz.dataSource.myDS.validationQuery"));
     Assert.assertEquals(ExecutionSchedulerImpl.DEFAULT_SCHEDULER_NAME,
-      actualProperties.getProperty("org.quartz.scheduler.instanceName"));
+            actualProperties.getProperty("org.quartz.scheduler.instanceName"));
     Assert.assertEquals("org.quartz.simpl.SimpleThreadPool",
-      actualProperties.getProperty("org.quartz.threadPool.class"));
+            actualProperties.getProperty("org.quartz.threadPool.class"));
   }
 
   @Test
-  @PrepareForTest({ ExecutionSchedulerImpl.class })
   public void testSchedulerStartStop() throws Exception {
-    StdSchedulerFactory factory = createNiceMock(StdSchedulerFactory.class);
-    Scheduler scheduler = createNiceMock(Scheduler.class);
-
-    expect(factory.getScheduler()).andReturn(scheduler);
-    expectPrivate(scheduler, "startDelayed", new Integer(180)).once();
-    expectNew(StdSchedulerFactory.class).andReturn(factory);
-    expectPrivate(scheduler, "shutdown").once();
-
-    PowerMock.replay(factory, StdSchedulerFactory.class, scheduler);
-
-    ExecutionSchedulerImpl executionScheduler = new ExecutionSchedulerImpl(configuration);
+    ExecutionSchedulerImpl executionScheduler = new TestExecutionScheduler(configuration);
 
     executionScheduler.startScheduler(180);
     executionScheduler.stopScheduler();
 
-    PowerMock.verify(factory, StdSchedulerFactory.class, scheduler);
+    verify(scheduler).startDelayed(180);
+    verify(scheduler).shutdown();
 
     Assert.assertTrue(executionScheduler.isInitialized());
   }
@@ -114,22 +105,20 @@ public class ExecutionSchedulerTest {
   public void testGetQuartzDbDelegateClassAndValidationQuery() throws Exception {
     Properties testProperties = new Properties();
     testProperties.setProperty(Configuration.SERVER_JDBC_URL.getKey(),
-      "jdbc:postgresql://host:port/dbname");
+            "jdbc:postgresql://host:port/dbname");
     testProperties.setProperty(Configuration.SERVER_DB_NAME.getKey(), "ambari");
     Configuration configuration1 = new Configuration(testProperties);
-    ExecutionSchedulerImpl executionScheduler =
-      spy(new ExecutionSchedulerImpl(configuration1));
+    ExecutionSchedulerImpl executionScheduler = new ExecutionSchedulerImpl(configuration1);
 
-    String[] subProps = executionScheduler
-      .getQuartzDbDelegateClassAndValidationQuery();
+    String[] subProps = executionScheduler.getQuartzDbDelegateClassAndValidationQuery();
 
     Assert.assertEquals("org.quartz.impl.jdbcjobstore.PostgreSQLDelegate", subProps[0]);
     Assert.assertEquals("select 0", subProps[1]);
 
     testProperties.setProperty(Configuration.SERVER_JDBC_URL.getKey(),
-      "jdbc:mysql://host:port/dbname");
+            "jdbc:mysql://host:port/dbname");
     configuration1 = new Configuration(testProperties);
-    executionScheduler = spy(new ExecutionSchedulerImpl(configuration1));
+    executionScheduler = new ExecutionSchedulerImpl(configuration1);
 
     subProps = executionScheduler.getQuartzDbDelegateClassAndValidationQuery();
 
@@ -137,9 +126,9 @@ public class ExecutionSchedulerTest {
     Assert.assertEquals("select 0", subProps[1]);
 
     testProperties.setProperty(Configuration.SERVER_JDBC_URL.getKey(),
-      "jdbc:oracle:thin://host:port/dbname");
+            "jdbc:oracle:thin://host:port/dbname");
     configuration1 = new Configuration(testProperties);
-    executionScheduler = spy(new ExecutionSchedulerImpl(configuration1));
+    executionScheduler = new ExecutionSchedulerImpl(configuration1);
 
     subProps = executionScheduler.getQuartzDbDelegateClassAndValidationQuery();
 
@@ -148,25 +137,22 @@ public class ExecutionSchedulerTest {
   }
 
   @Test
-  @PrepareForTest({ ExecutionSchedulerImpl.class })
   public void testSchedulerStartDelay() throws Exception {
-    StdSchedulerFactory factory = createNiceMock(StdSchedulerFactory.class);
-    Scheduler scheduler = createNiceMock(Scheduler.class);
 
-    expect(factory.getScheduler()).andReturn(scheduler).anyTimes();
-    expectNew(StdSchedulerFactory.class).andReturn(factory);
-    expect(scheduler.isStarted()).andReturn(false).anyTimes();
-    expectPrivate(scheduler, "startDelayed", new Integer(180)).once();
-    expectPrivate(scheduler, "start").once();
+    // 设置模拟行为
+    when(scheduler.isStarted()).thenReturn(false);
 
-    PowerMock.replay(factory, StdSchedulerFactory.class, scheduler);
+    // 创建测试实例
+    TestExecutionScheduler executionScheduler = new TestExecutionScheduler(configuration);
 
-    ExecutionSchedulerImpl executionScheduler = new ExecutionSchedulerImpl(configuration);
-
+    // 调用测试方法
     executionScheduler.startScheduler(180);
     executionScheduler.startScheduler(null);
 
-    PowerMock.verify(factory, StdSchedulerFactory.class, scheduler);
+    // 验证调用
+    verify(scheduler).startDelayed(180);
+    verify(scheduler).start();
+    verify(scheduler, atLeastOnce()).isStarted();
 
     Assert.assertTrue(executionScheduler.isInitialized());
   }

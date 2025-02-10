@@ -84,7 +84,7 @@ public class GroupPrivilegeResourceProviderTest extends EasyMockSupport{
   public void testCreateResources() throws Exception {
     SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createClusterAdministrator("user1", 2L));
     GroupPrivilegeResourceProvider resourceProvider = new GroupPrivilegeResourceProvider();
-    resourceProvider.createResources(createNiceMock(Request.class));
+    resourceProvider.createResources((Request) createNiceMock(Request.class));
   }
 
   @Test

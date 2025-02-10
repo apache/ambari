@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -23,7 +23,7 @@ import os
 from resource_management.libraries.script.script import Script
 
 # default value of log4j version is 1 for hive
-log4j_version = '1'
+log4j_version = "1"
 
 config = Script.get_config()
 

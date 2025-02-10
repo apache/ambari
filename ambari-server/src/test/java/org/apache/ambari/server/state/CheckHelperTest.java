@@ -19,7 +19,6 @@
 package org.apache.ambari.server.state;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -137,8 +136,6 @@ public class CheckHelperTest {
 
     m_services.add("KAFKA");
 
-    Mockito.when(cluster.getServices()).thenReturn(new HashMap<>());
-    Mockito.when(cluster.getClusterId()).thenReturn(1L);
     Mockito.when(clusters.getCluster("cluster")).thenReturn(cluster);
 
     final CheckHelper helper = new CheckHelper();
@@ -223,9 +220,6 @@ public class CheckHelperTest {
     final Service service = Mockito.mock(Service.class);
 
     m_services.add("KAFKA");
-
-    Mockito.when(cluster.getServices()).thenReturn(new HashMap<>());
-    Mockito.when(cluster.getClusterId()).thenReturn(1L);
 
     Mockito.when(clusters.getCluster(Mockito.anyString())).thenReturn(cluster);
 

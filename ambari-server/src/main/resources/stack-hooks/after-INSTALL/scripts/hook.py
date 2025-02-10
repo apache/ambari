@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -24,7 +25,6 @@ from shared_initialization import setup_stack_symlinks
 
 
 class AfterInstallHook(Hook):
-
   def hook(self, env):
     import params
 

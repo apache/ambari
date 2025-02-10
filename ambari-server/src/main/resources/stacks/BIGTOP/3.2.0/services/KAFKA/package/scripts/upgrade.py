@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -17,6 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+
 import os
 
 
@@ -25,6 +26,7 @@ from resource_management.libraries.functions import format
 from resource_management.libraries.functions import Direction
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
+
 
 def run_migration(env, upgrade_type):
   """
@@ -43,10 +45,14 @@ def run_migration(env, upgrade_type):
     raise Fail('Parameter "upgrade_direction" is missing.')
 
   if not params.kerberos_security_enabled:
-    Logger.info("Skip running the Kafka ACL migration script since cluster security is not enabled.")
+    Logger.info(
+      "Skip running the Kafka ACL migration script since cluster security is not enabled."
+    )
     return
 
-  Logger.info("Upgrade type: {0}, direction: {1}".format(str(upgrade_type), params.upgrade_direction))
+  Logger.info(
+    f"Upgrade type: {str(upgrade_type)}, direction: {params.upgrade_direction}"
+  )
 
   # If the schema upgrade script exists in the version upgrading to, then attempt to upgrade/downgrade it while still using the present bits.
   kafka_acls_script = None
@@ -55,20 +61,21 @@ def run_migration(env, upgrade_type):
     kafka_acls_script = format("{stack_root}/{version}/kafka/usr/lib/bin/kafka-acls.sh")
     command_suffix = "--upgradeAcls"
   elif params.upgrade_direction == Direction.DOWNGRADE:
-    kafka_acls_script = format("{stack_root}/{downgrade_from_version}/usr/lib/kafka/bin/kafka-acls.sh")
+    kafka_acls_script = format(
+      "{stack_root}/{downgrade_from_version}/usr/lib/kafka/bin/kafka-acls.sh"
+    )
     command_suffix = "--downgradeAcls"
 
   if kafka_acls_script is not None:
     if os.path.exists(kafka_acls_script):
-      Logger.info("Found Kafka acls script: {0}".format(kafka_acls_script))
+      Logger.info(f"Found Kafka acls script: {kafka_acls_script}")
       if params.zookeeper_connect is None:
         raise Fail("Could not retrieve property kafka-broker/zookeeper.connect")
 
-      acls_command = "{0} --authorizer kafka.security.auth.SimpleAclAuthorizer --authorizer-properties zookeeper.connect={1} {2}".\
-        format(kafka_acls_script, params.zookeeper_connect, command_suffix)
+      acls_command = "{0} --authorizer kafka.security.auth.SimpleAclAuthorizer --authorizer-properties zookeeper.connect={1} {2}".format(
+        kafka_acls_script, params.zookeeper_connect, command_suffix
+      )
 
-      Execute(acls_command,
-              user=params.kafka_user,
-              logoutput=True)
+      Execute(acls_command, user=params.kafka_user, logoutput=True)
     else:
-      Logger.info("Did not find Kafka acls script: {0}".format(kafka_acls_script))
+      Logger.info(f"Did not find Kafka acls script: {kafka_acls_script}")

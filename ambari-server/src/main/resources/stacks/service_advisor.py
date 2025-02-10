@@ -48,12 +48,15 @@ and common-services/PXF/3.0.0/service_advisor.py
 """
 from stack_advisor import DefaultStackAdvisor
 
+
 class ServiceAdvisor(DefaultStackAdvisor):
   """
   Abstract class implemented by all service advisors.
   """
 
-  def colocateServiceWithServicesInfo(self, hostsComponentsMap, serviceComponents, services):
+  def colocateServiceWithServicesInfo(
+    self, hostsComponentsMap, serviceComponents, services
+  ):
     """
     Populate hostsComponentsMap with key = hostname and value = [{"name": "COMP_NAME_1"}, {"name": "COMP_NAME_2"}, ...]
     of services that must be co-hosted and on which host they should be present.
@@ -85,7 +88,9 @@ class ServiceAdvisor(DefaultStackAdvisor):
     """
     pass
 
-  def getServiceConfigurationRecommendations(self, configurations, clusterSummary, services, hosts):
+  def getServiceConfigurationRecommendations(
+    self, configurations, clusterSummary, services, hosts
+  ):
     """
     Any configuration recommendations for the service should be defined in this function.
     This should be similar to any of the recommendXXXXConfigurations functions in the stack_advisor.py
@@ -93,33 +98,45 @@ class ServiceAdvisor(DefaultStackAdvisor):
     """
     pass
 
-  def getServiceConfigurationRecommendationsForSSO(self, configurations, clusterSummary, services, hosts):
+  def getServiceConfigurationRecommendationsForSSO(
+    self, configurations, clusterSummary, services, hosts
+  ):
     """
     Any SSO-related configuration recommendations for the service should be defined in this function.
     """
     pass
 
-  def getServiceConfigurationRecommendationsForLDAP(self, configurations, clusterSummary, services, hosts):
+  def getServiceConfigurationRecommendationsForLDAP(
+    self, configurations, clusterSummary, services, hosts
+  ):
     """
     Any LDAP related configuration recommendations for the service should be defined in this function.
     """
     pass
 
-  def getServiceConfigurationRecommendationsForKerberos(self, configurations, clusterSummary, services, hosts):
+  def getServiceConfigurationRecommendationsForKerberos(
+    self, configurations, clusterSummary, services, hosts
+  ):
     """
     Any Kerberos-related configuration recommendations for the service should be defined in this function.
 
     Redirect to getServiceConfigurationRecommendations for backward compatibility
     """
-    return self.getServiceConfigurationRecommendations(configurations, clusterSummary, services, hosts)
+    return self.getServiceConfigurationRecommendations(
+      configurations, clusterSummary, services, hosts
+    )
 
   def getActiveHosts(self, hosts):
-    """ Filters the list of specified hosts object and returns
-        a list of hosts which are not in maintenance mode. """
+    """Filters the list of specified hosts object and returns
+    a list of hosts which are not in maintenance mode."""
     hostsList = []
     if hosts is not None:
-      hostsList = [host['host_name'] for host in hosts
-                   if host.get('maintenance_state') is None or host.get('maintenance_state') == "OFF"]
+      hostsList = [
+        host["host_name"]
+        for host in hosts
+        if host.get("maintenance_state") is None
+        or host.get("maintenance_state") == "OFF"
+      ]
     return hostsList
 
   def getServiceComponentLayoutValidations(self, services, hosts):
@@ -136,8 +153,9 @@ class ServiceAdvisor(DefaultStackAdvisor):
     This should detect cardinality Validation issues.
     """
     items = []
-    hostsSet = set(self.getActiveHosts(
-      [host["Hosts"] for host in hosts["items"]]))  # [host["Hosts"]["host_name"] for host in hosts["items"]]
+    hostsSet = set(
+      self.getActiveHosts([host["Hosts"] for host in hosts["items"]])
+    )  # [host["Hosts"]["host_name"] for host in hosts["items"]]
     hostsCount = len(hostsSet)
 
     target_service = None
@@ -155,8 +173,11 @@ class ServiceAdvisor(DefaultStackAdvisor):
         componentDisplayName = component["StackServiceComponents"]["display_name"]
         componentHosts = []
         if component["StackServiceComponents"]["hostnames"] is not None:
-          componentHosts = [componentHost for componentHost in component["StackServiceComponents"]["hostnames"] if
-                            componentHost in hostsSet]
+          componentHosts = [
+            componentHost
+            for componentHost in component["StackServiceComponents"]["hostnames"]
+            if componentHost in hostsSet
+          ]
         componentHostsCount = len(componentHosts)
         cardinality = str(component["StackServiceComponents"]["cardinality"])
         # cardinality types: null, 1+, 1-2, 1, ALL
@@ -164,32 +185,49 @@ class ServiceAdvisor(DefaultStackAdvisor):
         if "+" in cardinality:
           hostsMin = int(cardinality[:-1])
           if componentHostsCount < hostsMin:
-            message = "at least {0} {1} components should be installed in cluster.".format(hostsMin,
-                                                                                           componentDisplayName)
+            message = (
+              "at least {0} {1} components should be installed in cluster.".format(
+                hostsMin, componentDisplayName
+              )
+            )
         elif "-" in cardinality:
           nums = cardinality.split("-")
           hostsMin = int(nums[0])
           hostsMax = int(nums[1])
           if componentHostsCount > hostsMax or componentHostsCount < hostsMin:
-            message = "between {0} and {1} {2} components should be installed in cluster.".format(hostsMin, hostsMax,
-                                                                                                  componentDisplayName)
+            message = "between {0} and {1} {2} components should be installed in cluster.".format(
+              hostsMin, hostsMax, componentDisplayName
+            )
         elif "ALL" == cardinality:
           if componentHostsCount != hostsCount:
-            message = "{0} component should be installed on all hosts in cluster.".format(componentDisplayName)
+            message = f"{componentDisplayName} component should be installed on all hosts in cluster."
         else:
           if componentHostsCount != int(cardinality):
-            message = "exactly {0} {1} components should be installed in cluster.".format(int(cardinality),
-                                                                                          componentDisplayName)
+            message = (
+              "exactly {0} {1} components should be installed in cluster.".format(
+                int(cardinality), componentDisplayName
+              )
+            )
 
         if message is not None:
-          message = "You have selected {0} {1} components. Please consider that {2}".format(componentHostsCount,
-                                                                                            componentDisplayName,
-                                                                                            message)
+          message = (
+            "You have selected {0} {1} components. Please consider that {2}".format(
+              componentHostsCount, componentDisplayName, message
+            )
+          )
           items.append(
-            {"type": 'host-component', "level": 'ERROR', "message": message, "component-name": componentName})
+            {
+              "type": "host-component",
+              "level": "ERROR",
+              "message": message,
+              "component-name": componentName,
+            }
+          )
     return items
 
-  def getServiceConfigurationsValidationItems(self, configurations, recommendedDefaults, services, hosts):
+  def getServiceConfigurationsValidationItems(
+    self, configurations, recommendedDefaults, services, hosts
+  ):
     """
     Any configuration validations for the service should be defined in this function.
     This should be similar to any of the validateXXXXConfigurations functions in the stack_advisor.py
@@ -205,7 +243,7 @@ class ServiceAdvisor(DefaultStackAdvisor):
       "EXISTING MYSQL / MARIADB DATABASE": "com.mysql.jdbc.Driver",
       "EXISTING POSTGRESQL DATABASE": "org.postgresql.Driver",
       "EXISTING ORACLE DATABASE": "oracle.jdbc.driver.OracleDriver",
-      "EXISTING SQL ANYWHERE DATABASE": "sap.jdbc4.sqlanywhere.IDriver"
+      "EXISTING SQL ANYWHERE DATABASE": "sap.jdbc4.sqlanywhere.IDriver",
     }
     return driverDict.get(databaseType.upper())
 
@@ -217,7 +255,7 @@ class ServiceAdvisor(DefaultStackAdvisor):
       "EXISTING MYSQL / MARIADB DATABASE": "jdbc:mysql://{0}/{1}",
       "EXISTING POSTGRESQL DATABASE": "jdbc:postgresql://{0}:5432/{1}",
       "EXISTING ORACLE DATABASE": "jdbc:oracle:thin:@//{0}:1521/{1}",
-      "EXISTING SQL ANYWHERE DATABASE": "jdbc:sqlanywhere:host={0};database={1}"
+      "EXISTING SQL ANYWHERE DATABASE": "jdbc:sqlanywhere:host={0};database={1}",
     }
     return driverDict.get(databaseType.upper())
 
@@ -229,7 +267,7 @@ class ServiceAdvisor(DefaultStackAdvisor):
       "EXISTING MYSQL / MARIADB DATABASE": "jdbc:mysql",
       "EXISTING POSTGRESQL DATABASE": "jdbc:postgresql",
       "EXISTING ORACLE DATABASE": "jdbc:oracle",
-      "EXISTING SQL ANYWHERE DATABASE": "jdbc:sqlanywhere"
+      "EXISTING SQL ANYWHERE DATABASE": "jdbc:sqlanywhere",
     }
     return first_parts_of_connection_string.get(databaseType.upper())
 
@@ -241,6 +279,6 @@ class ServiceAdvisor(DefaultStackAdvisor):
       "EXISTING MYSQL DATABASE": "mysql",
       "EXISTING POSTGRESQL DATABASE": "postgres",
       "EXISTING ORACLE DATABASE": "oracle",
-      "EXISTING SQL ANYWHERE DATABASE": "sqla"
+      "EXISTING SQL ANYWHERE DATABASE": "sqla",
     }
     return driverDict.get(databaseType.upper())

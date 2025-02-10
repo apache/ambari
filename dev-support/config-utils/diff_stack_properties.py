@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -32,16 +32,16 @@ VERSIONS_TXT = "versions.txt"
 
 
 def main():
-  """ Parse arguments from user, check that all required args are passed in and start work."""
+  """Parse arguments from user, check that all required args are passed in and start work."""
 
   if len(sys.argv) != 3:
-    print "usage: diff_stack_properties.py [first_stack_dir] [second_stack_dir]"
+    print("usage: diff_stack_properties.py [first_stack_dir] [second_stack_dir]")
     sys.exit(-1)
 
   args = sys.argv[1:]
 
   if not os.path.exists(args[0]) or not os.path.exists(args[1]):
-    print "usage: diff_stack_properties.py [first_stack_dir] [second_stack_dir]"
+    print("usage: diff_stack_properties.py [first_stack_dir] [second_stack_dir]")
     sys.exit(-1)
 
   args = sys.argv[1:]
@@ -63,37 +63,52 @@ def do_work(args):
 
 
 def compare_stacks(new_stacks, old_stacks):
-  print "#############[{}]#############".format(STACKS)
-  for stack in [stack for stack in os.listdir(os.path.join(new_stacks, STACKS)) if
-                os.path.isdir(os.path.join(new_stacks, STACKS, stack))]:
+  print(f"#############[{STACKS}]#############")
+  for stack in [
+    stack
+    for stack in os.listdir(os.path.join(new_stacks, STACKS))
+    if os.path.isdir(os.path.join(new_stacks, STACKS, stack))
+  ]:
     for version in os.listdir(os.path.join(new_stacks, STACKS, stack)):
       if os.path.exists(os.path.join(new_stacks, STACKS, stack, version, CONFIG_DIR)):
-        diff = compare_config_dirs(os.path.join(new_stacks, STACKS, stack, version, CONFIG_DIR),
-                                   os.path.join(old_stacks, STACKS, stack, version, CONFIG_DIR))
+        diff = compare_config_dirs(
+          os.path.join(new_stacks, STACKS, stack, version, CONFIG_DIR),
+          os.path.join(old_stacks, STACKS, stack, version, CONFIG_DIR),
+        )
         if diff != "":
-          print "#############{}.{}#############".format(stack, version)
-          print diff
+          print(f"#############{stack}.{version}#############")
+          print(diff)
       if os.path.exists(os.path.join(new_stacks, STACKS, stack, version, SERVICES_DIR)):
-        print "#############{}.{}#############".format(stack, version)
-        for service_name in os.listdir(os.path.join(new_stacks, STACKS, stack, version, SERVICES_DIR)):
-          new_configs_dir = os.path.join(new_stacks, STACKS, stack, version, SERVICES_DIR, service_name, CONFIG_DIR)
-          old_configs_dir = os.path.join(old_stacks, STACKS, stack, version, SERVICES_DIR, service_name, CONFIG_DIR)
+        print(f"#############{stack}.{version}#############")
+        for service_name in os.listdir(
+          os.path.join(new_stacks, STACKS, stack, version, SERVICES_DIR)
+        ):
+          new_configs_dir = os.path.join(
+            new_stacks, STACKS, stack, version, SERVICES_DIR, service_name, CONFIG_DIR
+          )
+          old_configs_dir = os.path.join(
+            old_stacks, STACKS, stack, version, SERVICES_DIR, service_name, CONFIG_DIR
+          )
           diff = compare_config_dirs(new_configs_dir, old_configs_dir)
           if diff != "":
-            print "=========={}==========".format(service_name)
-            print diff
+            print(f"=========={service_name}==========")
+            print(diff)
 
 
 def compare_common(new_stacks, old_stacks):
-  print "#############[{}]#############".format(COMMON)
+  print(f"#############[{COMMON}]#############")
   for service_name in os.listdir(os.path.join(new_stacks, COMMON)):
     for version in os.listdir(os.path.join(new_stacks, COMMON, service_name)):
-      new_configs_dir = os.path.join(new_stacks, COMMON, service_name, version, CONFIG_DIR)
-      old_configs_dir = os.path.join(old_stacks, COMMON, service_name, version, CONFIG_DIR)
+      new_configs_dir = os.path.join(
+        new_stacks, COMMON, service_name, version, CONFIG_DIR
+      )
+      old_configs_dir = os.path.join(
+        old_stacks, COMMON, service_name, version, CONFIG_DIR
+      )
       diff = compare_config_dirs(new_configs_dir, old_configs_dir)
       if diff != "":
-        print "=========={}.{}==========".format(service_name, version)
-        print diff
+        print(f"=========={service_name}.{version}==========")
+        print(diff)
 
 
 def compare_config_dirs(new_configs_dir, old_configs_dir):
@@ -102,17 +117,21 @@ def compare_config_dirs(new_configs_dir, old_configs_dir):
     for file_name in os.listdir(new_configs_dir):
       old_file_name = os.path.join(old_configs_dir, file_name)
       if os.path.exists(old_file_name):
-        result += compare_config_files(os.path.join(new_configs_dir, file_name),
-                                       os.path.join(old_configs_dir, file_name),
-                                       file_name)
+        result += compare_config_files(
+          os.path.join(new_configs_dir, file_name),
+          os.path.join(old_configs_dir, file_name),
+          file_name,
+        )
       else:
-        result += "new file {}\n".format(file_name)
+        result += f"new file {file_name}\n"
   else:
     if os.path.exists(old_configs_dir) or os.path.exists(new_configs_dir):
       if not os.path.exists(new_configs_dir):
-        result += "deleted configuration dir {}\n".format(new_configs_dir)
+        result += f"deleted configuration dir {new_configs_dir}\n"
       if not os.path.exists(old_configs_dir):
-        result += "new configuration dir {} with files {} \n".format(new_configs_dir, os.listdir(new_configs_dir))
+        result += "new configuration dir {} with files {} \n".format(
+          new_configs_dir, os.listdir(new_configs_dir)
+        )
   return result
 
 
@@ -134,19 +153,19 @@ def compare_config_files(new_configs, old_configs, file_name):
       old_deleted = None
       if new_property.find("deleted") is not None:
         deleted = new_property.find("deleted").text
-      old_property = old_configs_tree.find("property[name='{}']".format(name))
+      old_property = old_configs_tree.find(f"property[name='{name}']")
 
       if on_amb_upgrade == "true" and old_property is None:
-        result += "add {}\n".format(name)
+        result += f"add {name}\n"
       else:
         if old_property is not None and old_property.find("deleted") is not None:
           old_deleted = old_property.find("deleted").text
         if deleted == "true" and old_deleted != "true":
-          result += "deleted {}\n".format(name)
+          result += f"deleted {name}\n"
     if result != "":
-      result = "------{}------\n".format(file_name) + result
+      result = f"------{file_name}------\n" + result
   else:
-    result += "{} not exists\n".format(old_configs, )
+    result += f"{old_configs} not exists\n"
   return result
 
 

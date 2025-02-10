@@ -31,7 +31,7 @@ git clone https://github.com/apache/ambari.git
 cd ambari/dev-support/docker/centos7/
 ```
 ### **Step 4**: Build develop basic image
-Run the setup command, you will get `ambari/develop:trunk-centos-7` image. It has the enviroment needed to compile Ambari and run servers such as Ambari Server, Ambari Agent, Mysql, etc.
+Run the setup command, you will get `ambari/develop:trunk-centos-7` image. It has the environment needed to compile Ambari and run servers such as Ambari Server, Ambari Agent, Mysql, etc.
 
 **RHEL (CentOS 7) :**
 ```shell

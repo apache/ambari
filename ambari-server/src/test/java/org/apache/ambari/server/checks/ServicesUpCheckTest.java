@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.checks;
 
+import static org.mockito.ArgumentMatchers.nullable;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -191,7 +193,7 @@ public class ServicesUpCheckTest {
     Mockito.when(cluster.getService("AMBARI_METRICS")).thenReturn(amsService);
 
     Mockito.when(ambariMetaInfo.getComponent(Mockito.anyString(), Mockito.anyString(),
-        Mockito.anyString(), Mockito.anyString())).thenAnswer(new Answer<ComponentInfo>() {
+            nullable(String.class), Mockito.anyString())).thenAnswer(new Answer<ComponentInfo>() {
       @Override
       public ComponentInfo answer(InvocationOnMock invocation) throws Throwable {
         ComponentInfo anyInfo = Mockito.mock(ComponentInfo.class);

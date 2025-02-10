@@ -523,7 +523,7 @@ describe('App.ManageConfigGroupsController', function() {
               value: 'val2',
               type: 'type1'
             }
-          ],
+          ]
         }),
         Em.Object.create({
           name: 'group2',
@@ -533,7 +533,7 @@ describe('App.ManageConfigGroupsController', function() {
               value: 'val3',
               type: 'type1'
             }
-          ],
+          ]
         }),
         Em.Object.create({
           name: 'group3',
@@ -543,7 +543,7 @@ describe('App.ManageConfigGroupsController', function() {
               value: 'val4',
               type: 'type2'
             }
-          ],
+          ]
         }),
         Em.Object.create({
           name: 'group4',

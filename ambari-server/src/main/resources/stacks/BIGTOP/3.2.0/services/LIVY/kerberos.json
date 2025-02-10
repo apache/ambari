@@ -1,0 +1,52 @@
+{
+    "services": [
+      {
+        "name": "LIVY_SERVER",
+        "identities": [
+          {
+            "name": "hdfs",
+            "reference": "/HDFS/NAMENODE/hdfs"
+          },
+          {
+            "name": "livyuser",
+            "principal": {
+              "value": "${livy-env/livy_user}/_HOST@${realm}",
+              "type": "service",
+              "configuration": "livy-conf/livy.server.launch.kerberos.principal",
+              "local_username": "${livy-env/livy_user}"
+            },
+            "keytab": {
+              "file": "${keytab_dir}/livy.service.keytab",
+              "owner": {
+                "name": "${livy-env/livy_user}",
+                "access": "r"
+              },
+              "group": {
+                "name": "${cluster-env/user_group}",
+                "access": ""
+              },
+              "configuration": "livy-conf/livy.server.launch.kerberos.keytab"
+            }
+          },
+          {
+            "name": "livy_spnego",
+            "reference": "/spnego",
+            "principal": {
+              "configuration": "livy-conf/livy.server.auth.kerberos.principal"
+            },
+            "keytab": {
+              "configuration": "livy-conf/livy.server.auth.kerberos.keytab"
+            }
+          }
+        ],
+        "configurations": [
+          {
+            "livy-conf": {
+              "livy.server.auth.type": "kerberos",
+              "livy.impersonation.enabled": "true"
+            }
+          }
+        ]
+      }
+    ]
+  }

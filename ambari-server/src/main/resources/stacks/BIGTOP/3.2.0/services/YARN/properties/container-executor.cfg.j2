@@ -38,3 +38,22 @@ yarn.nodemanager.log-dirs={{nm_log_dirs}}
 yarn.nodemanager.linux-container-executor.group={{yarn_executor_container_group}}
 banned.users=hdfs,yarn,mapred,bin
 min.user.id={{min_user_id}}
+
+{{ '[docker]' }}
+  module.enabled={{docker_module_enabled}}
+  docker.binary={{docker_binary}}
+  docker.allowed.capabilities={{docker_allowed_capabilities}}
+  docker.allowed.devices={{docker_allowed_devices}}
+  docker.allowed.networks={{docker_allowed_networks}}
+  docker.allowed.ro-mounts={{nm_local_dirs}},{{docker_allowed_ro_mounts}}
+  docker.allowed.rw-mounts={{nm_local_dirs}},{{nm_log_dirs}},{{docker_allowed_rw_mounts}}
+  docker.privileged-containers.enabled={{docker_privileged_containers_enabled}}
+  docker.trusted.registries={{docker_trusted_registries}}
+  docker.allowed.volume-drivers={{docker_allowed_volume_drivers}}
+
+{{ '[gpu]' }}
+  module.enabled={{gpu_module_enabled}}
+
+{{ '[cgroups]' }}
+  root={{cgroup_root}}
+  yarn-hierarchy={{yarn_hierarchy}}

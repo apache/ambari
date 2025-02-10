@@ -32,6 +32,22 @@ App.LoginController = Em.Object.extend({
   submit: function (e) {
     this.set('errorMessage', '');
     this.set('isSubmitDisabled', true);
+    //Hack to set username and password when user has not focussed on the element and is using previous values
+    let username="";
+    let password="";
+    if(document&&document.getElementsByClassName("login-username")[0]){
+      username=document.getElementsByClassName("login-username")[0].value;
+    }
+    if(document&&document.getElementsByClassName("login-password")[0]){
+      password=document.getElementsByClassName("login-password")[0].value;
+    }
+
+    if(username){
+      this.set('loginName',username);
+    }
+    if(password){
+      this.set('password',password);
+    }
     App.get('router').login();
   },
 

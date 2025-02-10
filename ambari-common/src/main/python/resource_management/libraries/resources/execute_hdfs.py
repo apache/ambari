@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -25,13 +25,13 @@ from resource_management.core.base import Resource, ForcedListArgument, Resource
 
 
 class ExecuteHDFS(Resource):
-    action = ForcedListArgument(default="run")
-    command = ResourceArgument(default=lambda obj: obj.name)
-    tries = ResourceArgument(default=1)
-    try_sleep = ResourceArgument(default=0)
-    user = ResourceArgument()
-    logoutput = ResourceArgument()
-    bin_dir = ResourceArgument(default=[])
-    environment = ResourceArgument(default={})
-    conf_dir = ResourceArgument()
-    actions = Resource.actions + ["run"]
+  action = ForcedListArgument(default="run")
+  command = ResourceArgument(default=lambda obj: obj.name)
+  tries = ResourceArgument(default=1)
+  try_sleep = ResourceArgument(default=0)
+  user = ResourceArgument()
+  logoutput = ResourceArgument()
+  bin_dir = ResourceArgument(default=[])
+  environment = ResourceArgument(default={})
+  conf_dir = ResourceArgument()
+  actions = Resource.actions + ["run"]

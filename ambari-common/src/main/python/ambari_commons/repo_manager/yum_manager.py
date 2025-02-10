@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -16,7 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import ConfigParser
+import configparser
 import glob
 
 from .generic_manager import GenericManagerProperties, GenericManager
@@ -26,7 +27,7 @@ from resource_management.core.logger import Logger
 from resource_management.core.utils import suppress_stdout
 from resource_management.core import sudo
 
-from StringIO import StringIO
+from io import StringIO
 
 import re
 import os
@@ -36,6 +37,7 @@ class YumManagerProperties(GenericManagerProperties):
   """
   Class to keep all Package-manager depended properties
   """
+
   locked_output = None
   repo_error = "Failure when receiving data from the peer", "Nothing to do"
 
@@ -53,23 +55,35 @@ class YumManagerProperties(GenericManagerProperties):
   repo_definition_location = "/etc/yum.repos.d"
 
   install_cmd = {
-    True: [repo_manager_bin, '-y', 'install'],
-    False: [repo_manager_bin, '-d', '0', '-e', '0', '-y', 'install']
+    True: [repo_manager_bin, "-y", "install"],
+    False: [repo_manager_bin, "-d", "0", "-e", "0", "-y", "install"],
   }
 
   remove_cmd = {
-    True: [repo_manager_bin, '-y', 'erase'],
-    False: [repo_manager_bin, '-d', '0', '-e', '0', '-y', 'erase']
+    True: [repo_manager_bin, "-y", "erase"],
+    False: [repo_manager_bin, "-d", "0", "-e", "0", "-y", "erase"],
   }
 
-  verify_dependency_cmd = [repo_manager_bin, '-d', '0', '-e', '0', 'check', 'dependencies']
-  installed_package_version_command = [pkg_manager_bin, "-q", "--queryformat", "%{version}-%{release}\n"]
+  verify_dependency_cmd = [
+    repo_manager_bin,
+    "-d",
+    "0",
+    "-e",
+    "0",
+    "check",
+    "dependencies",
+  ]
+  installed_package_version_command = [
+    pkg_manager_bin,
+    "-q",
+    "--queryformat",
+    "%{version}-%{release}\n",
+  ]
 
-  remove_without_dependencies_cmd = ['rpm', '-e', '--nodeps']
+  remove_without_dependencies_cmd = ["rpm", "-e", "--nodeps"]
 
 
 class YumManager(GenericManager):
-
   @property
   def properties(self):
     return YumManagerProperties
@@ -86,9 +100,13 @@ class YumManager(GenericManager):
     repo_ids = [repo.repo_id for repo in repos.items]
 
     if repos.feat.scoped:
-      Logger.info("Looking for matching packages in the following repositories: {0}".format(", ".join(repo_ids)))
+      Logger.info(
+        f"Looking for matching packages in the following repositories: {', '.join(repo_ids)}"
+      )
     else:
-      Logger.info("Packages will be queried using all available repositories on the system.")
+      Logger.info(
+        "Packages will be queried using all available repositories on the system."
+      )
 
     for repo in repo_ids:
       repo = repo if repos.feat.scoped else None
@@ -98,9 +116,11 @@ class YumManager(GenericManager):
     # fallback logic
 
     if repos.feat.scoped:
-      fallback_repo_ids = set(repo_ids) ^ self._build_repos_ids(repos)  # no reason to scan the same repos again
+      fallback_repo_ids = set(repo_ids) ^ self._build_repos_ids(
+        repos
+      )  # no reason to scan the same repos again
       if fallback_repo_ids:
-        Logger.info("Adding fallback repositories: {0}".format(", ".join(fallback_repo_ids)))
+        Logger.info(f"Adding fallback repositories: {', '.join(fallback_repo_ids)}")
 
         for repo in fallback_repo_ids:
           available_packages.extend(self.available_packages(repo_filter=repo))
@@ -122,7 +142,9 @@ class YumManager(GenericManager):
     if repo_filter:
       cmd.extend(["--disablerepo=*", "--enablerepo=" + repo_filter])
 
-    with shell.process_executor(cmd, error_callback=self._executor_error_handler) as output:
+    with shell.process_executor(
+      cmd, error_callback=self._executor_error_handler
+    ) as output:
       for pkg in YumParser.packages_reader(output):
         if pkg_names and not pkg[0] in pkg_names:
           continue
@@ -143,7 +165,9 @@ class YumManager(GenericManager):
     packages = []
     cmd = self.properties.installed_packages_cmd
 
-    with shell.process_executor(cmd, error_callback=self._executor_error_handler) as output:
+    with shell.process_executor(
+      cmd, error_callback=self._executor_error_handler
+    ) as output:
       for pkg in YumParser.packages_reader(output):
         if pkg_names and not pkg[0] in pkg_names:
           continue
@@ -166,7 +190,9 @@ class YumManager(GenericManager):
     packages = []
     cmd = self.properties.all_packages_cmd
 
-    with shell.process_executor(cmd, error_callback=self._executor_error_handler) as output:
+    with shell.process_executor(
+      cmd, error_callback=self._executor_error_handler
+    ) as output:
       for pkg in YumParser.packages_reader(output):
         if pkg_names and not pkg[0] in pkg_names:
           continue
@@ -189,8 +215,9 @@ class YumManager(GenericManager):
     pattern = re.compile("has missing requires|Error:")
 
     if ret.code or (ret.out and pattern.search(ret.out)):
-      err_msg = Logger.filter_text("Failed to verify package dependencies. Execution of '{0}' returned {1}. {2}".format(
-        self.properties.verify_dependency_cmd, ret.code, ret.out))
+      err_msg = Logger.filter_text(
+        f"Failed to verify package dependencies. Execution of '{self.properties.verify_dependency_cmd}' returned {ret.code}. {ret.out}"
+      )
       Logger.error(err_msg)
       return False
 
@@ -211,14 +238,22 @@ class YumManager(GenericManager):
     elif not self._check_existence(name) or context.action_force:
       cmd = self.properties.install_cmd[context.log_output]
       if context.use_repos:
-        enable_repo_option = '--enablerepo=' + ",".join(sorted(context.use_repos.keys()))
-        disable_repo_option = '--disablerepo=' + "*" if not context.skip_repos or len(context.skip_repos) == 0 else ','.join(context.skip_repos)
+        enable_repo_option = "--enablerepo=" + ",".join(
+          sorted(context.use_repos.keys())
+        )
+        disable_repo_option = (
+          "--disablerepo=" + "*"
+          if not context.skip_repos or len(context.skip_repos) == 0
+          else ",".join(context.skip_repos)
+        )
         cmd = cmd + [disable_repo_option, enable_repo_option]
       cmd = cmd + [name]
-      Logger.info("Installing package {0} ('{1}')".format(name, shell.string_cmd_from_args_list(cmd)))
+      Logger.info(
+        f"Installing package {name} ('{shell.string_cmd_from_args_list(cmd)}')"
+      )
       shell.repository_manager_executor(cmd, self.properties, context)
     else:
-      Logger.info("Skipping installation of existing package {0}".format(name))
+      Logger.info(f"Skipping installation of existing package {name}")
 
   def upgrade_package(self, name, context):
     """
@@ -249,10 +284,10 @@ class YumManager(GenericManager):
         cmd = self.properties.remove_without_dependencies_cmd + [name]
       else:
         cmd = self.properties.remove_cmd[context.log_output] + [name]
-      Logger.info("Removing package {0} ('{1}')".format(name, shell.string_cmd_from_args_list(cmd)))
+      Logger.info(f"Removing package {name} ('{shell.string_cmd_from_args_list(cmd)}')")
       shell.repository_manager_executor(cmd, self.properties, context)
     else:
-      Logger.info("Skipping removal of non-existing package {0}".format(name))
+      Logger.info(f"Skipping removal of non-existing package {name}")
 
   def _check_existence(self, name):
     """
@@ -276,29 +311,7 @@ class YumManager(GenericManager):
     if not name:
       raise ValueError("Package name can't be empty")
 
-    if os.geteuid() == 0:
-      return self.yum_check_package_available(name)
-    else:
-      return self.rpm_check_package_available(name)
-
-  def yum_check_package_available(self, name):
-    """
-    Does the same as rpm_check_package_avaiable, but faster.
-    However need root permissions.
-    """
-    import yum  # Python Yum API is much faster then other check methods. (even then "import rpm")
-    yb = yum.YumBase()
-    name_regex = re.escape(name).replace("\\?", ".").replace("\\*", ".*") + '$'
-    regex = re.compile(name_regex)
-
-    with suppress_stdout():
-      package_list = yb.rpmdb.simplePkgList()
-
-    for package in package_list:
-      if regex.match(package[0]):
-        return True
-
-    return False
+    return self.rpm_check_package_available(name)
 
   @staticmethod
   def _build_repos_ids(repos):
@@ -326,8 +339,10 @@ class YumManager(GenericManager):
     # for every repo file, find any which match the base URLs we're trying to write out
     # if there are any matches, it means the repo already exists and we should use it to search
     # for packages to install
-    for repo_file in glob.glob(os.path.join(YumManagerProperties.repo_definition_location, "*.repo")):
-      config_parser = ConfigParser.ConfigParser()
+    for repo_file in glob.glob(
+      os.path.join(YumManagerProperties.repo_definition_location, "*.repo")
+    ):
+      config_parser = configparser.ConfigParser()
       config_parser.read(repo_file)
       sections = config_parser.sections()
       for section in sections:
@@ -344,15 +359,21 @@ class YumManager(GenericManager):
     return set(repo_ids)
 
   def rpm_check_package_available(self, name):
-    import rpm # this is faster then calling 'rpm'-binary externally.
+    import rpm  # this is faster then calling 'rpm'-binary externally.
+
     ts = rpm.TransactionSet()
     packages = ts.dbMatch()
 
-    name_regex = re.escape(name).replace("\\?", ".").replace("\\*", ".*") + '$'
+    name_regex = re.escape(name).replace("\\?", ".").replace("\\*", ".*") + "$"
     regex = re.compile(name_regex)
 
     for package in packages:
-      if regex.match(package['name']):
+      pkg_name = (
+        package["name"].decode()
+        if isinstance(package["name"], bytes)
+        else package["name"]
+      )
+      if regex.match(pkg_name):
         return True
     return False
 
@@ -425,13 +446,13 @@ class YumManager(GenericManager):
     transactions = list(self.uncomplete_transactions())
 
     if len(transactions) > 0:
-      Logger.info("Yum non-completed transactions check failed, found {0} non-completed transaction(s):".format(len(transactions)))
+      Logger.info(
+        f"Yum non-completed transactions check failed, found {len(transactions)} non-completed transaction(s):"
+      )
       for tr in transactions:
-        Logger.info("[{0}] Packages broken: {1}; Packages not-installed {2}".format(
-          tr.transaction_id,
-          ", ".join(tr.pkgs_done),
-          ", ".join(tr.pkgs_aborted)
-        ))
+        Logger.info(
+          f"[{tr.transaction_id}] Packages broken: {', '.join(tr.pkgs_done)}; Packages not-installed {', '.join(tr.pkgs_aborted)}"
+        )
 
       return True
 

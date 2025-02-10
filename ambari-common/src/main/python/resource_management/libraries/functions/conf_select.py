@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -18,11 +18,17 @@ limitations under the License.
 
 """
 
-__all__ = ["select", "create", "get_hadoop_conf_dir", "get_hadoop_dir", "get_package_dirs"]
+__all__ = [
+  "select",
+  "create",
+  "get_hadoop_conf_dir",
+  "get_hadoop_dir",
+  "get_package_dirs",
+]
 
 # Python Imports
 import os
-from ambari_commons import subprocess32
+import subprocess
 import ambari_simplejson as json
 
 # Local Imports
@@ -42,12 +48,23 @@ from resource_management.core.shell import as_sudo
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions import StackFeature
 
+
 def _get_cmd(command, package, version):
   conf_selector_path = stack_tools.get_stack_tool_path(stack_tools.CONF_SELECTOR_NAME)
-  return ('ambari-python-wrap', conf_selector_path, command, '--package', package, '--stack-version', version)
+  return (
+    "ambari-python-wrap",
+    conf_selector_path,
+    command,
+    "--package",
+    package,
+    "--stack-version",
+    version,
+  )
+
 
 def _valid(stack_name, package, ver):
-  return (ver and check_stack_feature(StackFeature.CONFIG_VERSIONING, ver))
+  return ver and check_stack_feature(StackFeature.CONFIG_VERSIONING, ver)
+
 
 def get_package_dirs():
   """
@@ -56,36 +73,41 @@ def get_package_dirs():
   """
   stack_name = default("/clusterLevelParams/stack_name", None)
   if stack_name is None:
-    raise Fail("The stack name is not present in the command. Packages for conf-select tool cannot be loaded.")
+    raise Fail(
+      "The stack name is not present in the command. Packages for conf-select tool cannot be loaded."
+    )
 
   stack_packages_config = default("/configurations/cluster-env/stack_packages", None)
   if stack_packages_config is None:
-    raise Fail("The stack packages are not defined on the command. Unable to load packages for the conf-select tool")
+    raise Fail(
+      "The stack packages are not defined on the command. Unable to load packages for the conf-select tool"
+    )
 
   data = json.loads(stack_packages_config)
 
   if stack_name not in data:
-    raise Fail(
-      "Cannot find conf-select packages for the {0} stack".format(stack_name))
+    raise Fail(f"Cannot find conf-select packages for the {stack_name} stack")
 
   conf_select_key = "conf-select"
   data = data[stack_name]
   if conf_select_key not in data:
     raise Fail(
-      "There are no conf-select packages defined for this command for the {0} stack".format(stack_name))
+      f"There are no conf-select packages defined for this command for the {stack_name} stack"
+    )
 
   package_dirs = data[conf_select_key]
 
   stack_root = Script.get_stack_root()
-  for package_name, directories in package_dirs.iteritems():
+  for package_name, directories in package_dirs.items():
     for dir in directories:
-      current_dir = dir['current_dir']
-      current_dir =  current_dir.format(stack_root)
-      dir['current_dir'] = current_dir
+      current_dir = dir["current_dir"]
+      current_dir = current_dir.format(stack_root)
+      dir["current_dir"] = current_dir
 
   return package_dirs
 
-def create(stack_name, package, version, dry_run = False):
+
+def create(stack_name, package, version, dry_run=False):
   """
   Creates a config version for the specified package
   :param stack_name: the name of the stack
@@ -95,19 +117,28 @@ def create(stack_name, package, version, dry_run = False):
   :return List of directories created
   """
   if not _valid(stack_name, package, version):
-    Logger.info("Unable to create versioned configuration directories since the parameters supplied do not support it")
+    Logger.info(
+      "Unable to create versioned configuration directories since the parameters supplied do not support it"
+    )
     return []
 
   # clarify the logging of what we're doing ...
   if dry_run:
     Logger.info(
-      "Checking to see which directories will be created for {0} on version {1}".format(package, version))
+      f"Checking to see which directories will be created for {package} on version {version}"
+    )
   else:
-    Logger.info("Creating /etc/{0}/{1}/0 if it does not exist".format(package, version))
+    Logger.info(f"Creating /etc/{package}/{version}/0 if it does not exist")
 
   command = "dry-run-create" if dry_run else "create-conf-dir"
 
-  code, stdout, stderr = shell.call(_get_cmd(command, package, version), logoutput=False, quiet=False, sudo=True, stderr = subprocess32.PIPE)
+  code, stdout, stderr = shell.call(
+    _get_cmd(command, package, version),
+    logoutput=False,
+    quiet=False,
+    sudo=True,
+    stderr=subprocess.PIPE,
+  )
 
   # <conf-selector-tool> can set more than one directory
   # per package, so return that list, especially for dry_run
@@ -115,15 +146,15 @@ def create(stack_name, package, version, dry_run = False):
   # /etc/hive-webhcat/2.4.0.0-169/0
   # /etc/hive-hcatalog/2.4.0.0-169/0
   created_directories = []
-  if 0 == code and stdout is not None: # just be sure we have a stdout
+  if 0 == code and stdout is not None:  # just be sure we have a stdout
     for line in stdout.splitlines():
-      created_directories.append(line.rstrip('\n'))
+      created_directories.append(line.rstrip("\n"))
 
   # if directories were created, then do some post-processing
   if not code and stdout and not dry_run:
     # take care of permissions if directories were created
     for directory in created_directories:
-      Directory(directory, mode=0755, cd_access='a', create_parents=True)
+      Directory(directory, mode=0o755, cd_access="a", create_parents=True)
 
     # seed the new directories with configurations from the old (current) directories
     _seed_new_configuration_directories(package, created_directories)
@@ -146,14 +177,19 @@ def select(stack_name, package, version, ignore_errors=False):
       return
 
     create(stack_name, package, version)
-    shell.checked_call(_get_cmd("set-conf-dir", package, version), logoutput=False, quiet=False, sudo=True)
-  except Exception, exception:
+    shell.checked_call(
+      _get_cmd("set-conf-dir", package, version),
+      logoutput=False,
+      quiet=False,
+      sudo=True,
+    )
+  except Exception as exception:
     if ignore_errors is True:
-      Logger.warning("Could not select the directory for package {0}. Error: {1}".format(package,
-        str(exception)))
+      Logger.warning(
+        f"Could not select the directory for package {package}. Error: {str(exception)}"
+      )
     else:
       raise
-
 
 
 def get_hadoop_conf_dir():
@@ -163,7 +199,7 @@ def get_hadoop_conf_dir():
   this will fallback to using "current".
   """
   hadoop_conf_dir = os.path.join(os.path.sep, "etc", "hadoop", "conf")
-  Logger.info("Using hadoop conf dir: {0}".format(hadoop_conf_dir))
+  Logger.info(f"Using hadoop conf dir: {hadoop_conf_dir}")
 
   return hadoop_conf_dir
 
@@ -189,21 +225,23 @@ def convert_conf_directories_to_symlinks(package, version, dirs):
   # on this host and nothing should be done with conf symlinks
   stack_name = Script.get_stack_name()
   for directory_struct in dirs:
-    if not os.path.exists(directory_struct['conf_dir']):
-      Logger.info("Skipping the conf-select tool on {0} since {1} does not exist.".format(
-        package, directory_struct['conf_dir']))
+    if not os.path.exists(directory_struct["conf_dir"]):
+      Logger.info(
+        f"Skipping the conf-select tool on {package} since {directory_struct['conf_dir']} does not exist."
+      )
 
       return
 
   # determine which directories would be created, if any are needed
-  dry_run_directory = create(stack_name, package, version, dry_run = True)
+  dry_run_directory = create(stack_name, package, version, dry_run=True)
 
   # if the dry run reported an error, then we must assume that the package does not exist in
   # the conf-select tool
   if len(dry_run_directory) == 0:
-    Logger.info("The conf-select tool reported an error for the package {0}. The configuration linking will be skipped.".format(package))
+    Logger.info(
+      f"The conf-select tool reported an error for the package {package}. The configuration linking will be skipped."
+    )
     return
-
 
   need_dirs = []
   for d in dry_run_directory:
@@ -212,50 +250,58 @@ def convert_conf_directories_to_symlinks(package, version, dirs):
 
   # log that we'll actually be creating some directories soon
   if len(need_dirs) > 0:
-    Logger.info("Package {0} will have the following new configuration directories created: {1}".format(
-      package, ", ".join(dry_run_directory)))
+    Logger.info(
+      f"Package {package} will have the following new configuration directories created: {', '.join(dry_run_directory)}"
+    )
 
   # Create the versioned /etc/[component]/[version]/0 folder (using create-conf-dir) and then
   # set it for the installed component:
   # - Creates /etc/<component>/<version>/0
   # - Links <stack-root>/<version>/<component>/conf -> /etc/<component>/<version>/0
-  select(stack_name, package, version, ignore_errors = True)
+  select(stack_name, package, version, ignore_errors=True)
 
   # check every existing link to see if it's a link and if it's pointed to the right spot
   for directory_struct in dirs:
     try:
       # check if conf is a link already
-      old_conf = directory_struct['conf_dir']
-      current_dir = directory_struct['current_dir']
+      old_conf = directory_struct["conf_dir"]
+      current_dir = directory_struct["current_dir"]
       if os.path.islink(old_conf):
         # it's already a link; make sure it's a link to where we want it
         if os.readlink(old_conf) != current_dir:
           # the link isn't to the right spot; re-link it
-          Logger.info("Re-linking symlink {0} to {1}".format(old_conf, current_dir))
-          Link(old_conf, action = "delete")
-          Link(old_conf, to = current_dir)
+          Logger.info(f"Re-linking symlink {old_conf} to {current_dir}")
+          Link(old_conf, action="delete")
+          Link(old_conf, to=current_dir)
         else:
-          Logger.info("{0} is already linked to {1}".format(old_conf, current_dir))
+          Logger.info(f"{old_conf} is already linked to {current_dir}")
       elif os.path.isdir(old_conf):
         # the /etc/<component>/conf directory is not a link, so turn it into one
-        Logger.info("{0} is a directory - it must be converted into a symlink".format(old_conf))
+        Logger.info(f"{old_conf} is a directory - it must be converted into a symlink")
 
         backup_dir = _get_backup_conf_directory(old_conf)
-        Logger.info("Backing up {0} to {1} if destination doesn't exist already.".format(old_conf, backup_dir))
-        Execute(("cp", "-R", "-p", old_conf, backup_dir),
-          not_if = format("test -e {backup_dir}"), sudo = True)
+        Logger.info(
+          f"Backing up {old_conf} to {backup_dir} if destination doesn't exist already."
+        )
+        Execute(
+          ("cp", "-R", "-p", old_conf, backup_dir),
+          not_if=format("test -e {backup_dir}"),
+          sudo=True,
+        )
 
         # delete the old /etc/<component>/conf directory now that it's been backed up
-        Directory(old_conf, action = "delete")
+        Directory(old_conf, action="delete")
 
         # link /etc/[component]/conf -> <stack-root>/current/[component]-client/conf
-        Link(old_conf, to = current_dir)
+        Link(old_conf, to=current_dir)
       else:
         # missing entirely
         # /etc/<component>/conf -> <stack-root>/current/<component>/conf
-        if package in ["atlas", ]:
+        if package in [
+          "atlas",
+        ]:
           # HACK for Atlas
-          '''
+          """
           In the case of Atlas, the Hive RPM installs /usr/$stack/$version/atlas with some partial packages that
           contain Hive hooks, while the Atlas RPM is responsible for installing the full content.
 
@@ -265,27 +311,29 @@ def convert_conf_directories_to_symlinks(package, version, dirs):
           If we mistakenly create this symlink, then when the user performs an EU/RU and then adds Atlas service
           then the Atlas RPM will not be able to copy its artifacts into /etc/atlas/conf directory and therefore
           prevent Ambari from by copying those unmanaged contents into /etc/atlas/$version/0
-          '''
+          """
           component_list = default("/localComponents", [])
           if "ATLAS_SERVER" in component_list or "ATLAS_CLIENT" in component_list:
             Logger.info("Atlas is installed on this host.")
             parent_dir = os.path.dirname(current_dir)
             if os.path.exists(parent_dir):
-              Link(old_conf, to = current_dir)
+              Link(old_conf, to=current_dir)
             else:
               Logger.info(
-                "Will not create symlink from {0} to {1} because the destination's parent dir does not exist.".format(
-                  old_conf, current_dir))
+                f"Will not create symlink from {old_conf} to {current_dir} because the destination's parent dir does not exist."
+              )
           else:
             Logger.info(
-            "Will not create symlink from {0} to {1} because Atlas is not installed on this host.".format(
-              old_conf, current_dir))
+              f"Will not create symlink from {old_conf} to {current_dir} because Atlas is not installed on this host."
+            )
         else:
           # Normal path for other packages
-          Link(old_conf, to = current_dir)
+          Link(old_conf, to=current_dir)
 
-    except Exception, e:
-      Logger.warning("Could not change symlink for package {0} to point to current directory. Error: {1}".format(package, e))
+    except Exception as e:
+      Logger.warning(
+        f"Could not change symlink for package {package} to point to current directory. Error: {e}"
+      )
 
 
 def get_restricted_packages():
@@ -299,17 +347,21 @@ def get_restricted_packages():
   package_names = []
 
   # shortcut the common case if we are not patching
-  cluster_version_summary = default("/roleParameters/cluster_version_summary/services", None)
+  cluster_version_summary = default(
+    "/roleParameters/cluster_version_summary/services", None
+  )
 
   if cluster_version_summary is None:
-    Logger.info("Cluster Summary is not available, there are no restrictions for conf-select")
+    Logger.info(
+      "Cluster Summary is not available, there are no restrictions for conf-select"
+    )
     return package_names
 
   service_names = []
 
   # pick out the services that are targeted
-  for servicename, servicedetail in cluster_version_summary.iteritems():
-    if servicedetail['upgrade']:
+  for servicename, servicedetail in cluster_version_summary.items():
+    if servicedetail["upgrade"]:
       service_names.append(servicename)
 
   if 0 == len(service_names):
@@ -318,30 +370,36 @@ def get_restricted_packages():
 
   stack_name = default("/clusterLevelParams/stack_name", None)
   if stack_name is None:
-    Logger.info("The stack name is not present in the command. Restricted names skipped.")
+    Logger.info(
+      "The stack name is not present in the command. Restricted names skipped."
+    )
     return package_names
 
   stack_packages_config = default("/configurations/cluster-env/stack_packages", None)
   if stack_packages_config is None:
-    Logger.info("The stack packages are not defined on the command. Restricted names skipped.")
+    Logger.info(
+      "The stack packages are not defined on the command. Restricted names skipped."
+    )
     return package_names
 
   data = json.loads(stack_packages_config)
 
   if stack_name not in data:
-    Logger.info("Cannot find conf-select packages for the {0} stack".format(stack_name))
+    Logger.info(f"Cannot find conf-select packages for the {stack_name} stack")
     return package_names
 
   conf_select_key = "conf-select-patching"
   if conf_select_key not in data[stack_name]:
-    Logger.info("There are no conf-select-patching elements defined for this command for the {0} stack".format(stack_name))
+    Logger.info(
+      f"There are no conf-select-patching elements defined for this command for the {stack_name} stack"
+    )
     return package_names
 
   service_dict = data[stack_name][conf_select_key]
 
   for servicename in service_names:
-    if servicename in service_dict and 'packages' in service_dict[servicename]:
-      package_names.extend(service_dict[servicename]['packages'])
+    if servicename in service_dict and "packages" in service_dict[servicename]:
+      package_names.extend(service_dict[servicename]["packages"])
 
   return package_names
 
@@ -363,19 +421,22 @@ def _seed_new_configuration_directories(package, created_directories):
   """
   package_dirs = get_package_dirs()
   if package not in package_dirs:
-    Logger.warning("Unable to seed newly created configuration directories for {0} because it is an unknown component".format(package))
+    Logger.warning(
+      f"Unable to seed newly created configuration directories for {package} because it is an unknown component"
+    )
     return
 
   # seed the directories with any existing configurations
   # this allows files which are not tracked by Ambari to be available after an upgrade
-  Logger.info("Seeding versioned configuration directories for {0}".format(package))
+  Logger.info(f"Seeding versioned configuration directories for {package}")
   expected_directories = package_dirs[package]
 
   try:
     # if the expected directories don't match those created, we can't seed them
     if len(created_directories) != len(expected_directories):
-      Logger.warning("The known configuration directories for {0} do not match those created by conf-select: {1}".format(
-        package, str(created_directories)))
+      Logger.warning(
+        f"The known configuration directories for {package} do not match those created by conf-select: {str(created_directories)}"
+      )
 
       return
 
@@ -395,8 +456,10 @@ def _seed_new_configuration_directories(package, created_directories):
             target_seed_directory = created_directory
             _copy_configurations(source_seed_directory, target_seed_directory)
 
-  except Exception, e:
-    Logger.warning("Unable to seed new configuration directories for {0}. {1}".format(package, str(e)))
+  except Exception as e:
+    Logger.warning(
+      f"Unable to seed new configuration directories for {package}. {str(e)}"
+    )
 
 
 def _copy_configurations(source_directory, target_directory):
@@ -412,8 +475,13 @@ def _copy_configurations(source_directory, target_directory):
   """
   # append trailing slash so the cp command works correctly WRT recursion and symlinks
   source_directory = os.path.join(source_directory, "*")
-  Execute(as_sudo(["cp", "-R", "-p", "-v", source_directory, target_directory], auto_escape = False),
-    logoutput = True)
+  Execute(
+    as_sudo(
+      ["cp", "-R", "-p", "-v", source_directory, target_directory], auto_escape=False
+    ),
+    logoutput=True,
+  )
+
 
 def _get_backup_conf_directory(old_conf):
   """

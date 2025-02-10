@@ -21,7 +21,7 @@
     <service>
       <name>HDFS</name>
       <serviceType>HDFS</serviceType> <!-- This tag is used only for main fileSystem service. It sets filesystem schema for ambari -->
-      <version>3.3.5-1</version>
+      <version>3.3.6-1</version>
     </service>
   </services>
 </metainfo>

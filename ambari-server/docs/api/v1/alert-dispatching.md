@@ -37,7 +37,7 @@ Any number of targets can be associated with an alert group (a grouping of defin
 There is also a `global` alert target which can be used as a way to produce notifications for any alert defined in Ambari. These `global` targets are never associated with any groups; they apply to all groups and all definitions.
 
 ##### Notices
-Once an alert has changed state, Ambari will determine if there are any targets that should receive a notification of the state change. These notifications, or notices, are created with an initial status of `PENDING` and will transition either to `DELIVERED` or `FAILED` once the proper dispatcher has attemped to process the notice. Dispatchers can attempt to aggregate any `PENDING` notices into a single outbound notification.
+Once an alert has changed state, Ambari will determine if there are any targets that should receive a notification of the state change. These notifications, or notices, are created with an initial status of `PENDING` and will transition either to `DELIVERED` or `FAILED` once the proper dispatcher has attempted to process the notice. Dispatchers can attempt to aggregate any `PENDING` notices into a single outbound notification.
 
 ### API Summary
 

@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -21,7 +22,11 @@ from unittest import TestCase
 
 from ambari_agent.models.hooks import HookPrefix
 from mock.mock import patch
-from ambari_agent.CommandHooksOrchestrator import HookSequenceBuilder, ResolvedHooks, HooksOrchestrator
+from ambari_agent.CommandHooksOrchestrator import (
+  HookSequenceBuilder,
+  ResolvedHooks,
+  HooksOrchestrator,
+)
 
 
 class TestCommandHooksOrchestrator(TestCase):
@@ -41,35 +46,30 @@ class TestCommandHooksOrchestrator(TestCase):
   def test_check_orchestrator(self, is_file_mock):
     is_file_mock.return_value = True
 
-    ret = self._orchestrator.resolve_hooks({
-     "commandType": "EXECUTION_COMMAND",
-     "serviceName": "ZOOKEEPER",
-     "role": "ZOOKEEPER_SERVER"
-    }, "START")
+    ret = self._orchestrator.resolve_hooks(
+      {
+        "commandType": "EXECUTION_COMMAND",
+        "serviceName": "ZOOKEEPER",
+        "role": "ZOOKEEPER_SERVER",
+      },
+      "START",
+    )
 
     self.assertTrue(ret)
-    self.assertEquals(len(ret.post_hooks), 3)
-    self.assertEquals(len(ret.pre_hooks), 3)
+    self.assertEqual(len(ret.post_hooks), 3)
+    self.assertEqual(len(ret.pre_hooks), 3)
 
   def test_hook_seq_builder(self):
     seq = list(HookSequenceBuilder().build(HookPrefix.pre, "cmd", "srv", "role"))
     seq_rev = list(HookSequenceBuilder().build(HookPrefix.post, "cmd", "srv", "role"))
 
     # testing base default sequence definition
-    check_list = [
-      "before-cmd",
-      "before-cmd-srv",
-      "before-cmd-srv-role"
-    ]
+    check_list = ["before-cmd", "before-cmd-srv", "before-cmd-srv-role"]
 
-    check_list_1 = [
-      "after-cmd-srv-role",
-      "after-cmd-srv",
-      "after-cmd"
-    ]
+    check_list_1 = ["after-cmd-srv-role", "after-cmd-srv", "after-cmd"]
 
-    self.assertEquals(seq, check_list)
-    self.assertEquals(seq_rev, check_list_1)
+    self.assertEqual(seq, check_list)
+    self.assertEqual(seq_rev, check_list_1)
 
   def test_hook_resolved(self):
     def pre():
@@ -84,6 +84,3 @@ class TestCommandHooksOrchestrator(TestCase):
 
     self.assertEqual(ret.pre_hooks, list(pre()))
     self.assertEqual(ret.post_hooks, list(post()))
-
-
-

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -27,12 +27,14 @@ import os
 
 import time
 
-from get_kinit_path import get_kinit_path
-from get_klist_path import get_klist_path
+from .get_kinit_path import get_kinit_path
+from .get_klist_path import get_klist_path
 from resource_management.core import global_lock
 from resource_management.core import shell
 from resource_management.core.exceptions import Fail
-from resource_management.libraries.functions.get_user_call_output import get_user_call_output
+from resource_management.libraries.functions.get_user_call_output import (
+  get_user_call_output,
+)
 
 HASH_ALGORITHM = hashlib.sha224
 CONNECTION_TIMEOUT_DEFAULT = 10
@@ -51,11 +53,24 @@ DEFAULT_KERBEROS_KINIT_TIMER_MS = 14400000
 # a parameter which can be used to pass around the above timout value
 KERBEROS_KINIT_TIMER_PARAMETER = "kerberos.kinit.timer"
 
-def curl_krb_request(tmp_dir, keytab, principal, url, cache_file_prefix,
-    krb_exec_search_paths, return_only_http_code, caller_label, user,
-    connection_timeout = CONNECTION_TIMEOUT_DEFAULT,
-    ca_certs = None,
-    kinit_timer_ms=DEFAULT_KERBEROS_KINIT_TIMER_MS, method = '',body='',header=''):
+
+def curl_krb_request(
+  tmp_dir,
+  keytab,
+  principal,
+  url,
+  cache_file_prefix,
+  krb_exec_search_paths,
+  return_only_http_code,
+  caller_label,
+  user,
+  connection_timeout=CONNECTION_TIMEOUT_DEFAULT,
+  ca_certs=None,
+  kinit_timer_ms=DEFAULT_KERBEROS_KINIT_TIMER_MS,
+  method="",
+  body="",
+  header="",
+):
   """
   Makes a curl request using the kerberos credentials stored in a calculated cache file. The
   cache file is created by combining the supplied principal, keytab, user, and request name into
@@ -84,10 +99,12 @@ def curl_krb_request(tmp_dir, keytab, principal, url, cache_file_prefix,
   """
 
   import uuid
+
   # backward compatibility with old code and management packs, etc. All new code need pass ca_certs explicitly
   if ca_certs is None:
     try:
       from ambari_agent.AmbariConfig import AmbariConfig
+
       ca_certs = AmbariConfig.get_resolved_config().get_ca_cert_file_path()
     except:
       pass
@@ -98,15 +115,17 @@ def curl_krb_request(tmp_dir, keytab, principal, url, cache_file_prefix,
   # when executing curl. Use a hash of the combination of the principal and keytab file
   # to generate a (relatively) unique cache filename so that we can use it as needed. Scope
   # this file by user in order to prevent sharing of cache files by multiple users.
-  ccache_file_name = HASH_ALGORITHM("{0}|{1}".format(principal, keytab)).hexdigest()
+  ccache_file_name = HASH_ALGORITHM(f"{principal}|{keytab}".encode("utf-8")).hexdigest()
 
   curl_krb_cache_path = os.path.join(tmp_dir, "curl_krb_cache")
   if not os.path.exists(curl_krb_cache_path):
     os.makedirs(curl_krb_cache_path)
-  os.chmod(curl_krb_cache_path, 01777)
+  os.chmod(curl_krb_cache_path, 0o1777)
 
-  ccache_file_path = "{0}{1}{2}_{3}_cc_{4}".format(curl_krb_cache_path, os.sep, cache_file_prefix, user, ccache_file_name)
-  kerberos_env = {'KRB5CCNAME': ccache_file_path}
+  ccache_file_path = (
+    f"{curl_krb_cache_path}{os.sep}{cache_file_prefix}_{user}_cc_{ccache_file_name}"
+  )
+  kerberos_env = {"KRB5CCNAME": ccache_file_path}
 
   # concurrent kinit's can cause the following error:
   # Internal credentials cache error while storing credentials while getting initial credentials
@@ -124,14 +143,14 @@ def curl_krb_request(tmp_dir, keytab, principal, url, cache_file_prefix,
     # kinit if it's time; this helps to avoid problems approaching ticket boundary when
     # executing a klist and then a curl
     last_kinit_time = _KINIT_CACHE_TIMES.get(ccache_file_name, 0)
-    current_time = long(time.time())
+    current_time = int(time.time())
     if current_time - kinit_timer_ms > last_kinit_time:
       is_kinit_required = True
 
     # if the time has not expired, double-check that the cache still has a valid ticket
     if not is_kinit_required:
-      klist_command = "{0} -s {1}".format(klist_path_local, ccache_file_path)
-      is_kinit_required = (shell.call(klist_command, user=user)[0] != 0)
+      klist_command = f"{klist_path_local} -s {ccache_file_path}"
+      is_kinit_required = shell.call(klist_command, user=user)[0] != 0
 
     # if kinit is required, the perform the kinit
     if is_kinit_required:
@@ -140,21 +159,29 @@ def curl_krb_request(tmp_dir, keytab, principal, url, cache_file_prefix,
       else:
         kinit_path_local = get_kinit_path()
 
-      logger.debug("Enabling Kerberos authentication for %s via GSSAPI using ccache at %s",
-        caller_label, ccache_file_path)
+      logger.debug(
+        "Enabling Kerberos authentication for %s via GSSAPI using ccache at %s",
+        caller_label,
+        ccache_file_path,
+      )
 
       # kinit; there's no need to set a ticket timeout as this will use the default invalidation
       # configured in the krb5.conf - regenerating keytabs will not prevent an existing cache
       # from working correctly
-      shell.checked_call("{0} -c {1} -kt {2} {3} > /dev/null".format(kinit_path_local,
-        ccache_file_path, keytab, principal), user=user)
+      shell.checked_call(
+        f"{kinit_path_local} -c {ccache_file_path} -kt {keytab} {principal} > /dev/null",
+        user=user,
+      )
 
       # record kinit time
       _KINIT_CACHE_TIMES[ccache_file_name] = current_time
     else:
       # no kinit needed, use the cache
-      logger.debug("Kerberos authentication for %s via GSSAPI already enabled using ccache at %s.",
-        caller_label, ccache_file_path)
+      logger.debug(
+        "Kerberos authentication for %s via GSSAPI already enabled using ccache at %s.",
+        caller_label,
+        ccache_file_path,
+      )
   finally:
     kinit_lock.release()
 
@@ -174,35 +201,74 @@ def curl_krb_request(tmp_dir, keytab, principal, url, cache_file_prefix,
   connection_timeout = int(connection_timeout)
   maximum_timeout = connection_timeout + 2
 
-  ssl_options = ['-k']
+  ssl_options = ["-k"]
   if ca_certs:
-    ssl_options = ['--cacert', ca_certs]
+    ssl_options = ["--cacert", ca_certs]
   try:
     if return_only_http_code:
-      _, curl_stdout, curl_stderr = get_user_call_output(['curl', '--location-trusted'] + ssl_options + ['--negotiate', '-u', ':', '-b', cookie_file, '-c', cookie_file, '-w',
-                             '%{http_code}', url, '--connect-timeout', str(connection_timeout), '--max-time', str(maximum_timeout), '-o', '/dev/null'],
-                             user=user, env=kerberos_env)
+      _, curl_stdout, curl_stderr = get_user_call_output(
+        ["curl", "--location-trusted"]
+        + ssl_options
+        + [
+          "--negotiate",
+          "-u",
+          ":",
+          "-b",
+          cookie_file,
+          "-c",
+          cookie_file,
+          "-w",
+          "%{http_code}",
+          url,
+          "--connect-timeout",
+          str(connection_timeout),
+          "--max-time",
+          str(maximum_timeout),
+          "-o",
+          "/dev/null",
+        ],
+        user=user,
+        env=kerberos_env,
+      )
     else:
-      curl_command = ['curl', '--location-trusted'] + ssl_options + ['--negotiate', '-u', ':', '-b', cookie_file, '-c', cookie_file,
-                      url, '--connect-timeout', str(connection_timeout), '--max-time', str(maximum_timeout)]
+      curl_command = (
+        ["curl", "--location-trusted"]
+        + ssl_options
+        + [
+          "--negotiate",
+          "-u",
+          ":",
+          "-b",
+          cookie_file,
+          "-c",
+          cookie_file,
+          url,
+          "--connect-timeout",
+          str(connection_timeout),
+          "--max-time",
+          str(maximum_timeout),
+        ]
+      )
       # returns response body
       if len(method) > 0 and len(body) == 0 and len(header) == 0:
-        curl_command.extend(['-X', method])
+        curl_command.extend(["-X", method])
 
       elif len(method) > 0 and len(body) == 0 and len(header) > 0:
-        curl_command.extend(['-H', header, '-X', method])
+        curl_command.extend(["-H", header, "-X", method])
 
       elif len(method) > 0 and len(body) > 0 and len(header) == 0:
-        curl_command.extend(['-X', method, '-d', body])
+        curl_command.extend(["-X", method, "-d", body])
 
       elif len(method) > 0 and len(body) > 0 and len(header) > 0:
-        curl_command.extend(['-H', header, '-X', method, '-d', body])
+        curl_command.extend(["-H", header, "-X", method, "-d", body])
 
-      _, curl_stdout, curl_stderr = get_user_call_output(curl_command, user=user, env=kerberos_env)
+      _, curl_stdout, curl_stderr = get_user_call_output(
+        curl_command, user=user, env=kerberos_env
+      )
 
   except Fail:
     if logger.isEnabledFor(logging.DEBUG):
-      logger.exception("Unable to make a curl request for {0}.".format(caller_label))
+      logger.exception(f"Unable to make a curl request for {caller_label}.")
     raise
   finally:
     if os.path.isfile(cookie_file):
@@ -221,7 +287,10 @@ def curl_krb_request(tmp_dir, keytab, principal, url, cache_file_prefix,
     else:
       return (curl_stdout, error_msg, time_millis)
 
-  logger.debug("The curl response for %s is empty; standard error = %s",
-    caller_label, str(error_msg))
+  logger.debug(
+    "The curl response for %s is empty; standard error = %s",
+    caller_label,
+    str(error_msg),
+  )
 
   return ("", error_msg, time_millis)

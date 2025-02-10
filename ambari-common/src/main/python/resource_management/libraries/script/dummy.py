@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -39,6 +40,7 @@ from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import StackFeature
 
+
 class Dummy(Script):
   """
   Dummy component to be used for performance testing since doesn't actually run a service.
@@ -62,17 +64,17 @@ class Dummy(Script):
     if "role" in self.config:
       self.component_name = self.config["role"]
 
-    self.pid_file = "/var/run/%s/%s.pid" % (self.host_name, self.component_name)
+    self.pid_file = f"/var/run/{self.host_name}/{self.component_name}.pid"
     self.user = "root"
     self.user_group = "root"
     self.sudo = AMBARI_SUDO_BINARY
 
-    print "Host: %s" % self.host_name
-    print "Component: %s" % self.component_name
-    print "Pid File: %s" % self.pid_file
+    print(f"Host: {self.host_name}")
+    print(f"Component: {self.component_name}")
+    print(f"Pid File: {self.pid_file}")
 
   def install(self, env):
-    print "Install"
+    print("Install")
     self.prepare()
     """
     component_name = self.get_component_name()
@@ -91,46 +93,52 @@ class Dummy(Script):
     """
 
   def configure(self, env):
-    print "Configure"
+    print("Configure")
     self.prepare()
 
   def start(self, env, upgrade_type=None):
-    print "Start"
+    print("Start")
     self.prepare()
 
-    if self.config['configurations']['cluster-env']['security_enabled'] :
-      print "Executing kinit... "
-      kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
-      principal_replaced = self.config['configurations'][self.principal_conf_name][self.principal_name].replace("_HOST", self.host_name)
-      keytab_path_replaced = self.config['configurations'][self.keytab_conf_name][self.keytab_name].replace("_HOST", self.host_name)
-      Execute("%s -kt %s %s" % (kinit_path_local, keytab_path_replaced, principal_replaced),
-              user="root")
+    if self.config["configurations"]["cluster-env"]["security_enabled"]:
+      print("Executing kinit... ")
+      kinit_path_local = get_kinit_path(
+        default("/configurations/kerberos-env/executable_search_paths", None)
+      )
+      principal_replaced = self.config["configurations"][self.principal_conf_name][
+        self.principal_name
+      ].replace("_HOST", self.host_name)
+      keytab_path_replaced = self.config["configurations"][self.keytab_conf_name][
+        self.keytab_name
+      ].replace("_HOST", self.host_name)
+      Execute(
+        f"{kinit_path_local} -kt {keytab_path_replaced} {principal_replaced}",
+        user="root",
+      )
 
     if not os.path.isfile(self.pid_file):
-      print "Creating pid file: %s" % self.pid_file
+      print(f"Creating pid file: {self.pid_file}")
 
-      Directory(os.path.dirname(self.pid_file),
-                owner=self.user,
-                group=self.user_group,
-                mode=0755,
-                create_parents=True
-                )
+      Directory(
+        os.path.dirname(self.pid_file),
+        owner=self.user,
+        group=self.user_group,
+        mode=0o755,
+        create_parents=True,
+      )
 
-      File(self.pid_file,
-           owner=self.user,
-           content=""
-           )
+      File(self.pid_file, owner=self.user, content="")
 
   def stop(self, env, upgrade_type=None):
-    print "Stop"
+    print("Stop")
     self.prepare()
 
     if os.path.isfile(self.pid_file):
-      print "Deleting pid file: %s" % self.pid_file
-      Execute("%s rm -rf %s" % (self.sudo, self.pid_file))
+      print(f"Deleting pid file: {self.pid_file}")
+      Execute(f"{self.sudo} rm -rf {self.pid_file}")
 
   def status(self, env):
-    print "Status"
+    print("Status")
     self.prepare()
 
     if not os.path.isfile(self.pid_file):

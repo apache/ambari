@@ -193,7 +193,7 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
     this.set('serviceToInstall', null);
     this.set('content.services', stackServices);
     var self = this;
-    this.loadServiceVersionFromVersionDefinitions().complete(function () {
+    this.loadServiceVersionFromVersionDefinitions().then(function () {
       var serviceVersionsMap = self.get('serviceVersionsMap');
       stackServices.forEach(function (stackService) {
         var serviceName = stackService.get('serviceName');

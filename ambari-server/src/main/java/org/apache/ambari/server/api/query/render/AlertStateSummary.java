@@ -18,7 +18,8 @@
 package org.apache.ambari.server.api.query.render;
 
 import org.apache.ambari.server.state.AlertState;
-import org.codehaus.jackson.annotate.JsonProperty;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * The {@link AlertStateSummary} class holds information about each possible
@@ -29,28 +30,24 @@ public final class AlertStateSummary {
    * The {@link AlertState#OK} state information.
    */
   @JsonProperty(value = "OK")
-  @com.fasterxml.jackson.annotation.JsonProperty(value = "OK")
   public final AlertStateValues Ok = new AlertStateValues();
 
   /**
    * The {@link AlertState#WARNING} state information.
    */
   @JsonProperty(value = "WARNING")
-  @com.fasterxml.jackson.annotation.JsonProperty(value = "WARNING")
   public final AlertStateValues Warning = new AlertStateValues();
 
   /**
    * The {@link AlertState#CRITICAL} state information.
    */
   @JsonProperty(value = "CRITICAL")
-  @com.fasterxml.jackson.annotation.JsonProperty(value = "CRITICAL")
   public final AlertStateValues Critical = new AlertStateValues();
 
   /**
    * The {@link AlertState#UNKNOWN} state information.
    */
   @JsonProperty(value = "UNKNOWN")
-  @com.fasterxml.jackson.annotation.JsonProperty(value = "UNKNOWN")
   public final AlertStateValues Unknown = new AlertStateValues();
 
   @Override

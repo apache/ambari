@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -17,7 +18,7 @@ limitations under the License.
 
 """
 
-from ambari_commons import subprocess32
+import subprocess
 
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
@@ -29,14 +30,16 @@ from resource_management.libraries.functions.format import format
 
 
 def post_upgrade_check():
-  '''
+  """
   Checks that the NodeManager has rejoined the cluster.
   This function will obtain the Kerberos ticket if security is enabled.
   :return:
-  '''
+  """
   import params
 
-  Logger.info('NodeManager executing "yarn node -list -states=RUNNING" to verify the node has rejoined the cluster...')
+  Logger.info(
+    'NodeManager executing "yarn node -list -states=RUNNING" to verify the node has rejoined the cluster...'
+  )
   if params.security_enabled and params.nodemanager_kinit_cmd:
     Execute(params.nodemanager_kinit_cmd, user=params.yarn_user)
 
@@ -45,30 +48,38 @@ def post_upgrade_check():
   except Fail:
     show_logs(params.yarn_log_dir, params.yarn_user)
     raise
-    
+
 
 @retry(times=30, sleep_time=10, err_class=Fail)
 def _check_nodemanager_startup():
-  '''
+  """
   Checks that a NodeManager is in a RUNNING state in the cluster via
   "yarn node -list -states=RUNNING" command. Once the NodeManager is found to be
   alive this method will return, otherwise it will raise a Fail(...) and retry
   automatically.
   :return:
-  '''
+  """
   import params
   import socket
 
-  command = 'yarn node -list -states=RUNNING'
+  command = "yarn node -list -states=RUNNING"
   return_code, yarn_output = shell.checked_call(command, user=params.yarn_user)
-  
+
   hostname = params.hostname.lower()
   hostname_ip = socket.gethostbyname(params.hostname.lower())
   nodemanager_address = params.nm_address.lower()
   yarn_output = yarn_output.lower()
 
-  if hostname in yarn_output or nodemanager_address in yarn_output or hostname_ip in yarn_output:
-    Logger.info('NodeManager with ID \'{0}\' has rejoined the cluster.'.format(nodemanager_address))
+  if (
+    hostname in yarn_output
+    or nodemanager_address in yarn_output
+    or hostname_ip in yarn_output
+  ):
+    Logger.info(
+      f"NodeManager with ID '{nodemanager_address}' has rejoined the cluster."
+    )
     return
   else:
-    raise Fail('NodeManager with ID \'{0}\' was not found in the list of running NodeManagers. \'{1}\' output was:\n{2}'.format(nodemanager_address, command, yarn_output))
+    raise Fail(
+      f"NodeManager with ID '{nodemanager_address}' was not found in the list of running NodeManagers. '{command}' output was:\n{yarn_output}"
+    )

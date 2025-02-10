@@ -22,7 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.ambari.server.state.Alert;
-import org.codehaus.jackson.annotate.JsonProperty;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  *
@@ -33,10 +34,10 @@ import org.codehaus.jackson.annotate.JsonProperty;
 
 public class HeartBeat {
 
-  @com.fasterxml.jackson.annotation.JsonProperty("id")
+  @JsonProperty("id")
   private long responseId = -1;
 
-  @com.fasterxml.jackson.annotation.JsonProperty("staleAlerts")
+  @JsonProperty("staleAlerts")
   private List<StaleAlert> staleAlerts = new ArrayList<>();
 
   private long timestamp;
@@ -93,13 +94,11 @@ public class HeartBeat {
   }
 
   @JsonProperty("reports")
-  @com.fasterxml.jackson.annotation.JsonProperty("reports")
   public List<CommandReport> getReports() {
     return reports;
   }
 
   @JsonProperty("reports")
-  @com.fasterxml.jackson.annotation.JsonProperty("reports")
   public void setReports(List<CommandReport> reports) {
     this.reports = reports;
   }
@@ -129,25 +128,21 @@ public class HeartBeat {
   }
 
   @JsonProperty("componentStatus")
-  @com.fasterxml.jackson.annotation.JsonProperty("componentStatus")
   public List<ComponentStatus> getComponentStatus() {
     return componentStatus;
   }
 
   @JsonProperty("componentStatus")
-  @com.fasterxml.jackson.annotation.JsonProperty("componentStatus")
   public void setComponentStatus(List<ComponentStatus> componentStatus) {
     this.componentStatus = componentStatus;
   }
 
   @JsonProperty("mounts")
-  @com.fasterxml.jackson.annotation.JsonProperty("mounts")
   public List<DiskInfo> getMounts() {
     return mounts;
   }
 
   @JsonProperty("mounts")
-  @com.fasterxml.jackson.annotation.JsonProperty("mounts")
   public void setMounts(List<DiskInfo> mounts) {
     this.mounts = mounts;
   }

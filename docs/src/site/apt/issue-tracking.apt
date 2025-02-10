@@ -1,0 +1,31 @@
+~~ Licensed to the Apache Software Foundation (ASF) under one or more
+~~ contributor license agreements.  See the NOTICE file distributed with
+~~ this work for additional information regarding copyright ownership.
+~~ The ASF licenses this file to You under the Apache License, Version 2.0
+~~ (the "License"); you may not use this file except in compliance with
+~~ the License.  You may obtain a copy of the License at
+~~
+~~     http://www.apache.org/licenses/LICENSE-2.0
+~~
+~~ Unless required by applicable law or agreed to in writing, software
+~~ distributed under the License is distributed on an "AS IS" BASIS,
+~~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~~ See the License for the specific language governing permissions and
+~~ limitations under the License.
+~~
+
+Reporting security issues
+
+ The Apache Software Foundation takes a very active stance in eliminating security problems and denial of service attacks against its products.
+
+ We strongly encourage folks to report such problems to our private security mailing list first, before disclosing them in a public forum.
+
+ Please note that the security mailing list should only be used for reporting undisclosed security vulnerabilities and managing the process of fixing such vulnerabilities. We cannot accept regular bug reports or other queries at this address. All mail sent to this address that does not relate to an undisclosed security problem in our source code will be ignored.
+
+ The private security mailing address is: {{{mailto:security@ambari.apache.org}security@ambari.apache.org}}
+
+ If you are interested there is a {{{https://www.apache.org/security/committers.html}more detailed description of the process}}.
+
+Issue Tracking 
+
+ Issues, bugs, and feature requests should be submitted to the following issue tracking system for this project: {{{https://issues.apache.org/jira/browse/AMBARI}https://issues.apache.org/jira/browse/AMBARI}}

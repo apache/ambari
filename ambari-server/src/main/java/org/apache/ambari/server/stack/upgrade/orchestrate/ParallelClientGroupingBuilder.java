@@ -36,7 +36,7 @@ import org.apache.ambari.server.stack.upgrade.Task;
 import org.apache.ambari.server.stack.upgrade.Task.Type;
 import org.apache.ambari.server.stack.upgrade.UpgradePack.ProcessingComponent;
 import org.apache.ambari.server.utils.StageUtils;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 
 /**
  * Responsible for building the stages for {@link ParallelClientGrouping}

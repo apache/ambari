@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 Licensed to the Apache Software Foundation (ASF) under one
@@ -20,7 +20,7 @@ limitations under the License.
 
 import os
 import sys
-from ambari_commons import subprocess32
+import subprocess
 
 AGENT_AUTO_RESTART_EXIT_CODE = 77
 
@@ -46,7 +46,9 @@ logger = get_logger()
 
 
 if "PYTHON_BIN" in os.environ:
-  AGENT_SCRIPT = os.path.join(os.environ["PYTHON_BIN"], "site-packages/ambari_agent/main.py")
+  AGENT_SCRIPT = os.path.join(
+    os.environ["PYTHON_BIN"], "site-packages/ambari_agent/main.py"
+  )
 else:
   AGENT_SCRIPT = "/usr/lib/ambari-agent/lib/ambari_agent/main.py"
 
@@ -63,14 +65,14 @@ def check_native_libs_support():
   not_loaded_extensions = []
 
   from ambari_simplejson import c_extension
+
   if not c_extension.is_loaded():
     not_loaded_extensions.append("simplejson")
 
-  if subprocess32._posixsubprocess is None:
-    not_loaded_extensions.append("subprocess32")
-
   if not_loaded_extensions:
-    logger.warning("Some native extensions not available for module(s): {}, it may affect execution performance".format(",".join(not_loaded_extensions)))
+    logger.warning(
+      f"Some native extensions not available for module(s): {','.join(not_loaded_extensions)}, it may affect execution performance"
+    )
 
 
 def main():
@@ -89,12 +91,12 @@ def main():
 
   while status == AGENT_AUTO_RESTART_EXIT_CODE:
     check_native_libs_support()
-    main_process = subprocess32.Popen(merged_args)
-    main_process.communicate()
-    status = main_process.returncode
+    mainProcess = subprocess.Popen(merged_args)
+    mainProcess.communicate()
+    status = mainProcess.returncode
     if os.path.isfile(AGENT_PID_FILE) and status == AGENT_AUTO_RESTART_EXIT_CODE:
       os.remove(AGENT_PID_FILE)
 
 
 if __name__ == "__main__":
-    main()
+  main()

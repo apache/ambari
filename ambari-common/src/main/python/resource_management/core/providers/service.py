@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -54,46 +54,50 @@ class ServiceProvider(Provider):
 
   def _exec_cmd(self, command, expect=None):
     if command != "status":
-      Logger.info("%s command '%s'" % (self.resource, command))
+      Logger.info(f"{self.resource} command '{command}'")
 
-    custom_cmd = getattr(self.resource, "%s_command" % command, None)
+    custom_cmd = getattr(self.resource, f"{command}_command", None)
     if custom_cmd:
-      Logger.debug("%s executing '%s'" % (self.resource, custom_cmd))
+      Logger.debug(f"{self.resource} executing '{custom_cmd}'")
       if hasattr(custom_cmd, "__call__"):
         if custom_cmd():
           ret = 0
         else:
           ret = 1
       else:
-        ret,out = shell.call(custom_cmd)
+        ret, out = shell.call(custom_cmd)
     else:
-      ret,out = self._init_cmd(command)
+      ret, out = self._init_cmd(command)
 
     if expect is not None and expect != ret:
-      raise Fail("%r command %s for service %s failed with return code: %d. %s" % (
-      self, command, self.resource.service_name, ret, out))
+      raise Fail(
+        "%r command %s for service %s failed with return code: %d. %s"
+        % (self, command, self.resource.service_name, ret, out)
+      )
     return ret
 
   def _init_cmd(self, command):
     if self._upstart:
       if command == "status":
-        ret,out = shell.call(["/sbin/" + command, self.resource.service_name])
-        _proc, state = out.strip().split(' ', 1)
+        ret, out = shell.call(["/sbin/" + command, self.resource.service_name])
+        _proc, state = out.strip().split(" ", 1)
         ret = 0 if state != "stop/waiting" else 1
       else:
-        ret,out = shell.call(["/sbin/" + command, self.resource.service_name])
+        ret, out = shell.call(["/sbin/" + command, self.resource.service_name])
     else:
-      ret,out = shell.call(["/etc/init.d/%s" % self.resource.service_name, command])
-    return ret,out
+      ret, out = shell.call([f"/etc/init.d/{self.resource.service_name}", command])
+    return ret, out
 
   @property
   def _upstart(self):
     try:
       return self.__upstart
     except AttributeError:
-      self.__upstart = os.path.exists("/sbin/start") \
-        and os.path.exists("/etc/init/%s.conf" % self.resource.service_name)
+      self.__upstart = os.path.exists("/sbin/start") and os.path.exists(
+        f"/etc/init/{self.resource.service_name}.conf"
+      )
     return self.__upstart
+
 
 class ServiceConfigProvider(Provider):
   pass

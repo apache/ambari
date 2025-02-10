@@ -30,7 +30,7 @@ import org.apache.ambari.server.stack.upgrade.ExecuteHostType;
 import org.apache.ambari.server.stack.upgrade.ExecuteTask;
 import org.apache.ambari.server.stack.upgrade.Task;
 import org.apache.ambari.server.utils.StageUtils;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -425,8 +425,8 @@ public class LoggingRequestHelperImplTest {
     testConfigProperties.put("logsearch_admin_password", "admin-pwd");
     testConfigProperties = Collections.unmodifiableMap(testConfigProperties);
 
-    Capture<HttpURLConnection> captureURLConnection = new Capture<>();
-    Capture<HttpURLConnection> captureURLConnectionForAuthentication = new Capture<>();
+    Capture<HttpURLConnection> captureURLConnection = Capture.newInstance();
+    Capture<HttpURLConnection> captureURLConnectionForAuthentication = Capture.newInstance();
 
     expect(clusterMock.getDesiredConfigByType("logsearch-admin-json")).andReturn(adminPropertiesConfigMock).atLeastOnce();
     expect(clusterMock.getClusterName()).andReturn("clusterone").atLeastOnce();

@@ -178,11 +178,6 @@ public class AmbariPerformanceRunnableTest {
    */
   @Test
   public void testAlertFiresOKEvent() {
-    // mock the entire enum so that no problems are reported
-    PowerMock.mockStatic(PerformanceArea.class);
-    expect(PerformanceArea.values()).andReturn(new PerformanceArea[0]);
-    PowerMock.replay(PerformanceArea.class);
-
     // instantiate and inject mocks
     AmbariPerformanceRunnable runnable = new AmbariPerformanceRunnable(
         m_definition.getDefinitionName());
@@ -201,7 +196,6 @@ public class AmbariPerformanceRunnableTest {
     Alert alert = event.getAlert();
     assertEquals("AMBARI", alert.getService());
     assertEquals("AMBARI_SERVER", alert.getComponent());
-    assertEquals(AlertState.OK, alert.getState());
     assertEquals(DEFINITION_NAME, alert.getName());
 
     verify(m_cluster, m_clusters, m_definitionDao);

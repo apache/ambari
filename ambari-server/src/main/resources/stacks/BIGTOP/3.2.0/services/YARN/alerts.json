@@ -99,7 +99,7 @@
             "warning": {
               "text": "Average Queue Time:[{0}], Average Processing Time:[{1}]",
               "value": 3000
-            },          
+            },
             "critical": {
               "text": "Average Queue Time:[{0}], Average Processing Time:[{1}]",
               "value": 5000
@@ -316,7 +316,7 @@
             "warning": {
               "text": "Average Queue Time:[{0}], Average Processing Time:[{1}]",
               "value": 3000
-            },          
+            },
             "critical": {
               "text": "Average Queue Time:[{0}], Average Processing Time:[{1}]",
               "value": 5000
@@ -385,6 +385,88 @@
               "text": "Connection failed to {1} ({3})"
             }
           }
+        }
+      }
+    ],
+    "YARN_REGISTRY_DNS": [
+      {
+        "name": "YARN_REGISTRY_DNS_PROCESS",
+        "label": "Registry DNS",
+        "description": "This host-level alert is triggered if the Registry DNS Service cannot be determined to be up and listening on the network.",
+        "interval": 1,
+        "scope": "HOST",
+        "source": {
+          "type": "PORT",
+          "uri": "{{yarn-env/registry.dns.bind-port}}",
+          "default_port": 53,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.3f}s response on port {1}"
+            },
+            "warning": {
+              "text": "TCP OK - {0:.3f}s response on port {1}",
+              "value": 1.5
+            },
+            "critical": {
+              "text": "Connection failed: {0} to {1}:{2}",
+              "value": 5
+            }
+          }
+        }
+      }
+    ],
+    "TIMELINE_READER": [
+      {
+        "name": "yarn_timeline_reader_webui",
+        "label": "Timeline Reader Web UI",
+        "description": "This host-level alert is triggered if Timeline Reader Web UI is unreachable.",
+        "interval": 1,
+        "scope": "ANY",
+        "source": {
+          "type": "WEB",
+          "uri": {
+            "http": "{{yarn-site/yarn.timeline-service.reader.webapp.address}}/ws/v2/timeline",
+            "https": "{{yarn-site/yarn.timeline-service.reader.webapp.https.address}}/ws/v2/timeline",
+            "https_property": "{{yarn-site/yarn.http.policy}}",
+            "https_property_value": "HTTPS_ONLY",
+            "kerberos_keytab": "{{cluster-env/smokeuser_keytab}}",
+            "kerberos_principal": "{{cluster-env/smokeuser_principal_name}}",
+            "connection_timeout": 5.0
+          },
+          "reporting": {
+            "ok": {
+              "text": "HTTP {0} response in {2:.3f}s"
+            },
+            "warning":{
+              "text": "HTTP {0} response from {1} in {2:.3f}s ({3})"
+            },
+            "critical": {
+              "text": "Connection failed to {1} ({3})"
+            }
+          }
+        }
+      },
+      {
+        "name": "ats_hbase",
+        "label": "ATSv2 HBase Application",
+        "description": "This alert is triggered if the ats hbase cannot be determined to be up and responding to requests.",
+        "interval": 5,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "SCRIPT",
+          "path": "BIGTOP/3.2.0/services/YARN/package/alerts/alert_ats_hbase.py",
+          "parameters": [
+            {
+              "name": "check.command.timeout",
+              "display_name": "Command Timeout",
+              "value": 120.0,
+              "type": "NUMERIC",
+              "description": "The maximum time before check command will be killed by timeout",
+              "units": "seconds",
+              "threshold": "CRITICAL"
+            }
+          ]
         }
       }
     ]

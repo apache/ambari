@@ -150,6 +150,7 @@ App.MainAdminServiceAutoStartController = Em.Controller.extend({
     clusterConfigs.recovery_enabled = String(recoveryEnabled);
     return App.ajax.send({
       name: 'admin.save_configs',
+      dataType:'text',
       sender: this,
       data: {
         siteName: 'cluster-env',
@@ -162,6 +163,7 @@ App.MainAdminServiceAutoStartController = Em.Controller.extend({
     return App.ajax.send({
       name: 'components.update',
       sender: this,
+      dataType:'text',
       data: {
         ServiceComponentInfo: {
           recovery_enabled: recoveryEnabled

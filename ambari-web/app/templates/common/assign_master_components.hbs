@@ -94,12 +94,12 @@
                                 optionValuePath="host_name"
                                 optionLabelPath="host_info" }}
                               {{/if}}
-                              <span rel="popover" title="Warning" {{bindAttr data-content="warnMessage"}}>
+                              <span rel="popover" title="Warning" {{bindAttr data-bs-content="warnMessage"}}>
                                 {{#if warnMessage}}
                                   <i class="glyphicon glyphicon-warning-sign"></i>
                                 {{/if}}
                               </span>
-                              <span rel="popover" title="Error" {{bindAttr data-content="errorMessage"}}>
+                              <span rel="popover" title="Error" {{bindAttr data-bs-content="errorMessage"}}>
                                 {{#if errorMessage}}
                                   <i class="glyphicon glyphicon-exclamation-sign"></i>
                                 {{/if}}

@@ -1,6 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,28 +16,29 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 import os
 import time
 import sys
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import socket
 import re
 from ambari_commons import OSCheck
 from functools import wraps
 
-from exceptions import FatalException, NonFatalException, TimeoutError
+from .exceptions import FatalException, NonFatalException, TimeoutError
 
 if OSCheck.is_windows_family():
   from ambari_commons.os_windows import os_run_os_command
 else:
   # MacOS not supported
   from ambari_commons.os_linux import os_run_os_command
+
   pass
 
-from logging_utils import *
-from os_check import OSCheck
+from .logging_utils import *
+from .os_check import OSCheck
 
 
 def openurl(url, timeout=socket._GLOBAL_DEFAULT_TIMEOUT, *args, **kwargs):
@@ -48,8 +49,8 @@ def openurl(url, timeout=socket._GLOBAL_DEFAULT_TIMEOUT, *args, **kwargs):
   :rtype urllib2.Request
   """
   try:
-    return urllib2.urlopen(url, timeout=timeout, *args, **kwargs)
-  except urllib2.URLError as e:
+    return urllib.request.urlopen(url, timeout=timeout, *args, **kwargs)
+  except urllib.error.URLError as e:
     # Python 2.6 timeout handling
     if hasattr(e, "reason") and isinstance(e.reason, socket.timeout):
       raise TimeoutError(e.reason)
@@ -59,37 +60,46 @@ def openurl(url, timeout=socket._GLOBAL_DEFAULT_TIMEOUT, *args, **kwargs):
     raise TimeoutError(e)
 
 
-def download_file(link, destination, chunk_size=16 * 1024, progress_func = None):
-  print_info_msg("Downloading {0} to {1}".format(link, destination))
+def download_file(link, destination, chunk_size=16 * 1024, progress_func=None):
+  print_info_msg(f"Downloading {link} to {destination}")
   if os.path.exists(destination):
-      print_warning_msg("File {0} already exists, assuming it was downloaded before".format(destination))
-      return
+    print_warning_msg(
+      f"File {destination} already exists, assuming it was downloaded before"
+    )
+    return
 
-  force_download_file(link, destination, chunk_size, progress_func = progress_func)
+  force_download_file(link, destination, chunk_size, progress_func=progress_func)
 
 
-def download_file_anyway(link, destination, chunk_size=16 * 1024, progress_func = None):
-  print_info_msg("Trying to download {0} to {1} with python lib [urllib2].".format(link, destination))
+def download_file_anyway(link, destination, chunk_size=16 * 1024, progress_func=None):
+  print_info_msg(
+    f"Trying to download {link} to {destination} with python lib [urllib2]."
+  )
   if os.path.exists(destination):
-    print_warning_msg("File {0} already exists, assuming it was downloaded before".format(destination))
+    print_warning_msg(
+      f"File {destination} already exists, assuming it was downloaded before"
+    )
     return
   try:
-    force_download_file(link, destination, chunk_size, progress_func = progress_func)
+    force_download_file(link, destination, chunk_size, progress_func=progress_func)
   except:
-    print_error_msg("Download {0} with python lib [urllib2] failed with error: {1}".format(link, str(sys.exc_info())))
+    print_error_msg(
+      f"Download {link} with python lib [urllib2] failed with error: {str(sys.exc_info())}"
+    )
 
   if not os.path.exists(destination):
-    print "Trying to download {0} to {1} with [curl] command.".format(link, destination)
-    #print_info_msg("Trying to download {0} to {1} with [curl] command.".format(link, destination))
-    curl_command = "curl --fail -k -o %s %s" % (destination, link)
+    print(f"Trying to download {link} to {destination} with [curl] command.")
+    # print_info_msg(f"Trying to download {link} to {destination} with [curl] command.")
+    curl_command = f"curl --fail -k -o {destination} {link}"
     retcode, out, err = os_run_os_command(curl_command)
     if retcode != 0:
-      print_error_msg("Download file {0} with [curl] command failed with error: {1}".format(link, out + err))
-
+      print_error_msg(
+        f"Download file {link} with [curl] command failed with error: {out + err}"
+      )
 
   if not os.path.exists(destination):
-    print_error_msg("Unable to download file {0}!".format(link))
-    print "ERROR: unable to donwload file %s!" % (link)
+    print_error_msg(f"Unable to download file {link}!")
+    print(f"ERROR: unable to donwload file {link}!")
 
 
 def download_progress(file_name, downloaded_size, blockSize, totalSize):
@@ -100,9 +110,13 @@ def download_progress(file_name, downloaded_size, blockSize, totalSize):
     status += "... %d%%" % (100)
   else:
     status += "... %d%% (%.1f MB of %.1f MB)" % (
-      percent, downloaded_size / 1024 / 1024.0, totalSize / 1024 / 1024.0)
+      percent,
+      downloaded_size / 1024 / 1024.0,
+      totalSize / 1024 / 1024.0,
+    )
   sys.stdout.write(status)
   sys.stdout.flush()
+
 
 def wait_for_port_opened(hostname, port, tries_count, try_sleep):
   sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -119,34 +133,39 @@ def wait_for_port_opened(hostname, port, tries_count, try_sleep):
 def find_range_components(meta):
   file_size = 0
   seek_pos = 0
-  hdr_range = meta.getheaders("Content-Range")
-  if len(hdr_range) > 0:
-    range_comp1 = hdr_range[0].split('/')
+  hdr_range = meta.get_all("Content-Range")
+  if hdr_range and len(hdr_range) > 0:
+    range_comp1 = hdr_range[0].split("/")
     if len(range_comp1) > 1:
-      range_comp2 = range_comp1[0].split(' ') #split away the "bytes" prefix
+      range_comp2 = range_comp1[0].split(" ")  # split away the "bytes" prefix
       if len(range_comp2) == 0:
-        raise FatalException(12, 'Malformed Content-Range response header: "{0}".'.format(hdr_range))
-      range_comp3 = range_comp2[1].split('-')
+        raise FatalException(
+          12, f'Malformed Content-Range response header: "{hdr_range}".'
+        )
+      range_comp3 = range_comp2[1].split("-")
       seek_pos = int(range_comp3[0])
-      if range_comp1[1] != '*': #'*' == unknown length
+      if range_comp1[1] != "*":  #'*' == unknown length
         file_size = int(range_comp1[1])
 
   if file_size == 0:
-    #Try the old-fashioned way
-    hdrLen = meta.getheaders("Content-Length")
-    if len(hdrLen) == 0:
-      raise FatalException(12, "Response header doesn't contain Content-Length. Chunked Transfer-Encoding is not supported for now.")
+    # Try the old-fashioned way
+    hdrLen = meta.get_all("Content-Length")
+    if hdrLen and len(hdrLen) == 0:
+      raise FatalException(
+        12,
+        "Response header doesn't contain Content-Length. Chunked Transfer-Encoding is not supported for now.",
+      )
     file_size = int(hdrLen[0])
 
   return (file_size, seek_pos)
 
 
-def force_download_file(link, destination, chunk_size = 16 * 1024, progress_func = None):
-  request = urllib2.Request(link)
+def force_download_file(link, destination, chunk_size=16 * 1024, progress_func=None):
+  request = urllib.request.Request(link)
 
   if os.path.exists(destination) and not os.path.isfile(destination):
-    #Directory specified as target? Must be a mistake. Bail out, don't assume anything.
-    err = 'Download target {0} is a directory.'.format(destination)
+    # Directory specified as target? Must be a mistake. Bail out, don't assume anything.
+    err = f"Download target {destination} is a directory."
     raise FatalException(1, err)
 
   (dest_path, file_name) = os.path.split(destination)
@@ -155,35 +174,35 @@ def force_download_file(link, destination, chunk_size = 16 * 1024, progress_func
   partial_size = 0
 
   if os.path.exists(temp_dest):
-    #Support for resuming downloads, in case the process is killed while downloading a file
+    # Support for resuming downloads, in case the process is killed while downloading a file
     #  set resume range
     # See http://stackoverflow.com/questions/6963283/python-urllib2-resume-download-doesnt-work-when-network-reconnects
     partial_size = os.stat(temp_dest).st_size
     if partial_size > chunk_size:
-      #Re-download the last chunk, to minimize the possibilities of file corruption
+      # Re-download the last chunk, to minimize the possibilities of file corruption
       resume_pos = partial_size - chunk_size
-      request.add_header("Range", "bytes=%s-" % resume_pos)
+      request.add_header("Range", f"bytes={resume_pos}-")
   else:
-    #Make sure the full dir structure is in place, otherwise file open will fail
+    # Make sure the full dir structure is in place, otherwise file open will fail
     if not os.path.exists(dest_path):
       os.makedirs(dest_path)
 
-  response = urllib2.urlopen(request)
+  response = urllib.request.urlopen(request)
   (file_size, seek_pos) = find_range_components(response.info())
 
-  print_info_msg("Downloading to: %s Bytes: %s" % (destination, file_size))
+  print_info_msg(f"Downloading to: {destination} Bytes: {file_size}")
 
   if partial_size < file_size:
     if seek_pos == 0:
-      #New file, create it
-      open_mode = 'wb'
+      # New file, create it
+      open_mode = "wb"
     else:
-      #Resuming download of an existing file
-      open_mode = 'rb+' #rb+ doesn't create the file, using wb to create it
+      # Resuming download of an existing file
+      open_mode = "rb+"  # rb+ doesn't create the file, using wb to create it
     f = open(temp_dest, open_mode)
 
     try:
-      #Resume the download from where it left off
+      # Resume the download from where it left off
       if seek_pos > 0:
         f.seek(seek_pos)
 
@@ -191,7 +210,7 @@ def force_download_file(link, destination, chunk_size = 16 * 1024, progress_func
       while True:
         buffer = response.read(chunk_size)
         if not buffer:
-            break
+          break
 
         file_size_dl += len(buffer)
         f.write(buffer)
@@ -200,21 +219,22 @@ def force_download_file(link, destination, chunk_size = 16 * 1024, progress_func
     finally:
       f.close()
 
-    sys.stdout.write('\n')
+    sys.stdout.write("\n")
     sys.stdout.flush()
 
-  print_info_msg("Finished downloading {0} to {1}".format(link, destination))
+  print_info_msg(f"Finished downloading {link} to {destination}")
 
   downloaded_size = os.stat(temp_dest).st_size
   if downloaded_size != file_size:
-    err = 'Size of downloaded file {0} is {1} bytes, it is probably damaged or incomplete'.format(destination, downloaded_size)
+    err = f"Size of downloaded file {destination} is {downloaded_size} bytes, it is probably damaged or incomplete"
     raise FatalException(1, err)
 
   # when download is complete -> mv temp_dest destination
   if os.path.exists(destination):
-    #Windows behavior: rename fails if the destination file exists
+    # Windows behavior: rename fails if the destination file exists
     os.unlink(destination)
   os.rename(temp_dest, destination)
+
 
 def resolve_address(address):
   """
@@ -224,9 +244,10 @@ def resolve_address(address):
   :return: resulting address
   """
   if OSCheck.is_windows_family():
-    if address == '0.0.0.0':
-      return '127.0.0.1'
+    if address == "0.0.0.0":
+      return "127.0.0.1"
   return address
+
 
 def ensure_ssl_using_protocol(protocol="PROTOCOL_TLSv1_2", ca_certs=None):
   """
@@ -241,16 +262,19 @@ def ensure_ssl_using_protocol(protocol="PROTOCOL_TLSv1_2", ca_certs=None):
 
   if hasattr(ssl, "_create_default_https_context"):
     if not hasattr(ssl._create_default_https_context, "_ambari_patched"):
+
       @wraps(ssl._create_default_https_context)
       def _create_default_https_context_patched():
-        context = ssl.SSLContext(protocol = getattr(ssl, protocol))
+        context = ssl.SSLContext(protocol=getattr(ssl, protocol))
         if ca_certs:
           context.load_verify_locations(ca_certs)
           context.verify_mode = ssl.CERT_REQUIRED
           context.check_hostname = False
         return context
+
       _create_default_https_context_patched._ambari_patched = True
       ssl._create_default_https_context = _create_default_https_context_patched
+
 
 """
 See RFC3986, Appendix B
@@ -262,16 +286,18 @@ Tested on the following cases:
 
   Returns None if only a port is passed in
 """
+
+
 def get_host_from_url(uri):
   if uri is None:
     return None
 
   # if not a string, return None
-  if not isinstance(uri, basestring):
+  if not isinstance(uri, str):
     return None
 
     # RFC3986, Appendix B
-  parts = re.findall('^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?', uri)
+  parts = re.findall("^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?", uri)
 
   # index of parts
   # scheme    = 1
@@ -288,11 +314,10 @@ def get_host_from_url(uri):
   elif parts[0][2].startswith("//"):
     host_and_port = parts[0][3]
 
-  if -1 == host_and_port.find(':'):
+  if -1 == host_and_port.find(":"):
     if host_and_port.isdigit():
       return None
 
     return host_and_port
   else:
-    return host_and_port.split(':')[0]
-
+    return host_and_port.split(":")[0]

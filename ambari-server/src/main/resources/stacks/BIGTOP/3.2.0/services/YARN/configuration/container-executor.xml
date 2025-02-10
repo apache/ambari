@@ -21,6 +21,229 @@
 -->
 <configuration supports_adding_forbidden="true">
   <property>
+    <name>docker_module_enabled</name>
+    <value>false</value>
+    <display-name>Docker Runtime</display-name>
+    <description>Need user to pre-install docker environment first.
+    </description>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>Enabled</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>Disabled</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>docker_binary</name>
+    <value>/usr/bin/docker</value>
+    <display-name>Docker Binary</display-name>
+    <description>The binary used to launch docker containers.</description>
+    <value-attributes>
+      <type>directory</type>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>docker_allowed_devices</name>
+    <value/>
+    <display-name>Docker Allowed Devices</display-name>
+    <description>Comma seperated list of devices that can be mounted into a
+      container.
+    </description>
+    <depends-on>
+      <property>
+        <type>container-executor</type>
+        <name>gpu_module_enabled</name>
+      </property>
+      <property>
+        <type>container-executor</type>
+        <name>docker_module_enabled</name>
+      </property>
+    </depends-on>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>docker_allowed_ro-mounts</name>
+    <value/>
+    <display-name>Docker Allowed Read-only Mounts</display-name>
+    <description>
+      Comma seperated volumes that can be mounted as read-only.
+    </description>
+    <depends-on>
+      <property>
+        <type>container-executor</type>
+        <name>gpu_module_enabled</name>
+      </property>
+      <property>
+        <type>container-executor</type>
+        <name>docker_module_enabled</name>
+      </property>
+    </depends-on>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>docker_allowed_rw-mounts</name>
+    <value/>
+    <display-name>Docker Allowed Read-write Mounts</display-name>
+    <description>
+      Comma seperate volumes that can be mounted as read-write. Add the
+      yarn
+      local and log dirs to this list to run Hadoop jobs.
+    </description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>docker_allowed_volume-drivers</name>
+    <value/>
+    <display-name>Docker Allowed Volume-drivers</display-name>
+    <description>
+      Comma seperated list of allowed volume-drivers.
+    </description>
+    <depends-on>
+      <property>
+        <type>container-executor</type>
+        <name>gpu_module_enabled</name>
+      </property>
+      <property>
+        <type>container-executor</type>
+        <name>docker_module_enabled</name>
+      </property>
+    </depends-on>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>docker_privileged-containers_enabled</name>
+    <value>false</value>
+    <display-name>Enable Launching Privileged Containers</display-name>
+    <description>
+      Whether to enable launching privileged docker containers.
+    </description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>docker_trusted_registries</name>
+    <value></value>
+    <display-name>Docker Trusted Registries</display-name>
+    <description>
+      List of registries whose docker images are allowed to mount volumes and launch privileged docker containers.
+    </description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>min_user_id</name>
+    <value>1000</value>
+    <display-name>Minimum user ID for submitting job</display-name>
+    <description>Set to 0 to disallow root from submitting jobs. Set to 1000 to
+      disallow all superusers from submitting jobs</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>gpu_module_enabled</name>
+    <value>false</value>
+    <display-name>GPU Scheduling and Isolation</display-name>
+    <description>Whether to enable gpu scheduling and isolation.
+    </description>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>Enabled</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>Disabled</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>cgroup_root</name>
+    <value>/sys/fs/cgroup</value>
+    <display-name>CGroup Root Path</display-name>
+    <description>This should be same as
+      yarn.nodemanager.linux-container-executor.cgroups.mount-path inside
+      yarn-site.xml</description>
+    <depends-on>
+      <property>
+        <type>container-executor</type>
+        <name>gpu_module_enabled</name>
+      </property>
+    </depends-on>
+    <value-attributes>
+      <type>directory</type>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>yarn_hierarchy</name>
+    <value>yarn</value>
+    <display-name>Yarn CGroup Hierarchy</display-name>
+    <description>This should be same as
+      yarn.nodemanager.linux-container-executor.cgroups.hierarchy
+      inside yarn-site.xml</description>
+    <depends-on>
+      <property>
+        <type>container-executor</type>
+        <name>gpu_module_enabled</name>
+      </property>
+      <property>
+        <type>container-executor</type>
+        <name>docker_module_enabled</name>
+      </property>
+    </depends-on>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
     <name>content</name>
     <display-name>container-executor configuration template</display-name>
     <description>This is the jinja template for container-executor.cfg file</description>

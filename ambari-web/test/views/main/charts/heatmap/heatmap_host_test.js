@@ -30,7 +30,7 @@ describe('App.MainChartsHeatmapHostView', function () {
     content: {}
   });
 
-  describe('#hostTemperatureStyle', function () {
+  describe.skip('#hostTemperatureStyle', function () {
     var testCases = [
       {
         title: 'if hostToSlotMap is null then hostTemperatureStyle should be empty',

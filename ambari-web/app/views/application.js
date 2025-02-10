@@ -48,13 +48,26 @@ App.ApplicationView = Em.View.extend({
    */
   initNavigationBar: function () {
     if (App.get('router.mainController.isClusterDataLoaded')) {
-      $('body').on('DOMNodeInserted', '.navigation-bar', () => {
-        $('.navigation-bar').navigationBar({
-          fitHeight: true,
-          collapseNavBarClass: 'icon-double-angle-left',
-          expandNavBarClass: 'icon-double-angle-right'
-        });
-        $('body').off('DOMNodeInserted', '.navigation-bar');
+      const observer = new MutationObserver(mutations => {
+        var targetNode
+        if (mutations.some((mutation) => mutation.type === 'childList' && (targetNode = $('.navigation-bar')).length)) {
+          observer.disconnect();
+          targetNode.navigationBar({
+            fitHeight: true,
+            collapseNavBarClass: 'icon-double-angle-left',
+            expandNavBarClass: 'icon-double-angle-right',
+          });
+        }
+      });
+
+      setTimeout(() => {
+        // remove observer if selected element is not found in 10secs.
+        observer.disconnect();
+      }, 10000)
+
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
       });
     }
   }.observes('App.router.mainController.isClusterDataLoaded')

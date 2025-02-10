@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -18,11 +19,11 @@ limitations under the License.
 Ambari Agent
 """
 
-
 from resource_management import *
-import urlparse
+import urllib.parse
 from ambari_commons.inet_utils import download_file
 import os
+
 
 class MsiProvider(Provider):
   MSI_INSTALL_COMMAND = "cmd /C start /wait msiexec /qn /i {msi_file_path} /lv {log_file_path}{list_args_str}{dict_args_str}"
@@ -32,7 +33,9 @@ class MsiProvider(Provider):
     msi_file_path = name
     dict_args = self.resource.dict_args
     list_args = self.resource.list_args
-    working_dir = os.path.abspath(Script.get_config()["agentLevelParams"]["agentCacheDir"])
+    working_dir = os.path.abspath(
+      Script.get_config()["agentLevelParams"]["agentCacheDir"]
+    )
     http_source = self.resource.http_source
 
     # name can be a path to file in local file system
@@ -42,25 +45,28 @@ class MsiProvider(Provider):
 
     # build string from passed arguments to Msi resource
     dict_args_str = ' ALLUSERS="1"'
-    for k, v in dict_args.iteritems():
-      dict_args_str += " " + str(k)+"="+str(v)
-    list_args_str = ''
+    for k, v in dict_args.items():
+      dict_args_str += " " + str(k) + "=" + str(v)
+    list_args_str = ""
     for a in list_args:
       list_args_str += " /" + str(a)
 
     # if http source present we download msi and then execute it
     if http_source:
-      download_url = urlparse.urljoin(http_source, name)
+      download_url = urllib.parse.urljoin(http_source, name)
       msi_file_path = os.path.join(working_dir, msi_filename)
       download_file(download_url, msi_file_path)
     if not os.path.exists(marker_file):
-      Execute(MsiProvider.MSI_INSTALL_COMMAND.format(msi_file_path=msi_file_path,
-                                                     log_file_path=log_file_path,
-                                                     dict_args_str=dict_args_str,
-                                                     list_args_str=list_args_str).rstrip())
+      Execute(
+        MsiProvider.MSI_INSTALL_COMMAND.format(
+          msi_file_path=msi_file_path,
+          log_file_path=log_file_path,
+          dict_args_str=dict_args_str,
+          list_args_str=list_args_str,
+        ).rstrip()
+      )
       # writing marker file to not install new msi later
-      open(marker_file,"w").close()
+      open(marker_file, "w").close()
 
   def action_uninstall(self):
     pass
-

@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -16,11 +17,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+
 from resource_management import Hook
 
 
 class BeforeSetKeytabHook(Hook):
-
   def hook(self, env):
     """
     This will invoke the before-ANY hook which contains all of the user and group creation logic.
@@ -31,9 +32,8 @@ class BeforeSetKeytabHook(Hook):
     :param env:
     :return:
     """
-    self.run_custom_hook('before-ANY')
+    self.run_custom_hook("before-ANY")
 
 
 if __name__ == "__main__":
   BeforeSetKeytabHook().execute()
-

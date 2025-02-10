@@ -150,6 +150,14 @@ App.TimeRangeMixin = Em.Mixin.create({
         customDurationFormatted: null
       });
     }
+    var parent=document.getElementsByClassName("graph-details-time-range")[0]
+    var timeSelectButton = parent?parent.children[0]:document.getElementById("time-select");
+    var timeSelectOptions = parent?parent.children[1]:document.getElementById("time-select-options");
+    if(timeSelectButton&&timeSelectOptions){
+      timeSelectButton.classList.remove('show');
+      timeSelectOptions.classList.remove('show');
+    }
+
 
   },
 

@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.notifications.dispatchers;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.HashMap;
@@ -38,7 +40,9 @@ import org.apache.ambari.server.state.services.AlertNoticeDispatchService.AlertI
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.EasyMock;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.powermock.api.easymock.PowerMock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -70,10 +74,160 @@ public class AlertScriptDispatcherTest {
   @Inject
   private Configuration m_configuration;
 
+  @Rule
+  public TemporaryFolder tempFolder = new TemporaryFolder();
+
+  private final AlertNotification mockNotification = EasyMock.createNiceMock(AlertNotification.class);
+  private final AlertScriptDispatcher dispatcher = new AlertScriptDispatcher();
+
+
   @Before
   public void before() throws Exception {
     m_injector = Guice.createInjector(new MockModule());
     m_injector.injectMembers(this);
+  }
+
+
+  @Test
+  public void testNullScriptPath() {
+    try {
+      dispatcher.getProcessBuilder(null, mockNotification);
+      Assert.fail("Expected IllegalArgumentException was not thrown");
+    } catch (IllegalArgumentException e) {
+      Assert.assertEquals("Script path cannot be null or empty", e.getMessage());
+    }
+  }
+
+  @Test
+  public void testEmptyScriptPath() {
+    try {
+      dispatcher.getProcessBuilder("", mockNotification);
+      Assert.fail("Expected IllegalArgumentException was not thrown");
+    } catch (IllegalArgumentException e) {
+      Assert.assertEquals("Script path cannot be null or empty", e.getMessage());
+    }
+  }
+
+  @Test
+  public void testRelativeScriptPath() {
+    try {
+      dispatcher.getProcessBuilder("relative/path/to/script.sh", mockNotification);
+      Assert.fail("Expected IllegalArgumentException was not thrown");
+    } catch (IllegalArgumentException e) {
+      Assert.assertEquals("Invalid script path format: relative/path/to/script.sh", e.getMessage());
+    }
+  }
+
+  @Test
+  public void testNonExistentScriptPath() {
+    try {
+      dispatcher.getProcessBuilder("/non/existent/path/to/script.sh", mockNotification);
+      Assert.fail("Expected IllegalArgumentException was not thrown");
+    } catch (IllegalArgumentException e) {
+      Assert.assertEquals("Script does not exist: /non/existent/path/to/script.sh", e.getMessage());
+    }
+  }
+
+  @Test
+  public void testNonExecutableScriptPath() throws IOException {
+    // Create a temp file that is not executable
+    File nonExecutableFile = tempFolder.newFile("non_executable_script.sh");
+
+    try {
+      dispatcher.getProcessBuilder(nonExecutableFile.getAbsolutePath(), mockNotification);
+      Assert.fail("Expected IllegalArgumentException was not thrown");
+    } catch (IllegalArgumentException e) {
+      Assert.assertEquals("Script is not executable: " + nonExecutableFile.getAbsolutePath(), e.getMessage());
+    }
+  }
+
+  @Test
+  public void testValidScriptPath() throws IOException {
+    File validScript = tempFolder.newFile("valid_script.sh");
+    validScript.setExecutable(true);
+    String scriptAbsolutePath = validScript.getAbsolutePath();
+
+    final String ALERT_DEFINITION_NAME = "mock_alert_with_quotes";
+    final String ALERT_DEFINITION_LABEL = "Mock alert with Quotes";
+    final String ALERT_LABEL = "Alert Label";
+    final String ALERT_SERVICE_NAME = "FOO_SERVICE";
+    final String ALERT_TEXT = "Did you know, \"Quotes are hard!!!\"";
+    final String ALERT_TEXT_ESCAPED = "Did you know, \\\"Quotes are hard\\!\\!\\!\\\"";
+    final String ALERT_HOST = "mock_host";
+    final long ALERT_TIMESTAMP = 1111111l;
+
+    DispatchCallback callback = EasyMock.createNiceMock(DispatchCallback.class);
+    AlertNotification notification = new AlertNotification();
+    notification.Callback = callback;
+    notification.CallbackIds = Collections.singletonList(UUID.randomUUID().toString());
+
+    AlertDefinitionEntity definition = new AlertDefinitionEntity();
+    definition.setDefinitionName(ALERT_DEFINITION_NAME);
+    definition.setLabel(ALERT_DEFINITION_LABEL);
+
+    AlertHistoryEntity history = new AlertHistoryEntity();
+    history.setAlertDefinition(definition);
+    history.setAlertLabel(ALERT_LABEL);
+    history.setAlertText(ALERT_TEXT);
+    history.setAlertState(AlertState.OK);
+    history.setServiceName(ALERT_SERVICE_NAME);
+    history.setHostName(ALERT_HOST);
+    history.setAlertTimestamp(ALERT_TIMESTAMP);
+
+
+    AlertInfo alertInfo = new AlertInfo(history);
+    notification.setAlertInfo(alertInfo);
+
+    AlertScriptDispatcher dispatcher = new AlertScriptDispatcher();
+    m_injector.injectMembers(dispatcher);
+
+    ProcessBuilder processBuilder = dispatcher.getProcessBuilder(scriptAbsolutePath, notification);
+
+    Assert.assertNotNull(processBuilder);
+    Assert.assertEquals("sh", processBuilder.command().get(0));
+    Assert.assertEquals("-c", processBuilder.command().get(1));
+    Assert.assertTrue(processBuilder.command().get(2).contains(scriptAbsolutePath));
+
+  }
+
+  @Test
+  public void testInjectionAttemptWithSemicolon() {
+    try {
+      dispatcher.getProcessBuilder("/path/to/script.sh; rm -rf /", mockNotification);
+      Assert.fail("Expected IllegalArgumentException was not thrown");
+    } catch (IllegalArgumentException e) {
+      Assert.assertEquals("Invalid script path format: /path/to/script.sh; rm -rf /", e.getMessage());
+    }
+  }
+
+  @Test
+  public void testInjectionAttemptWithAndOperator() {
+    try {
+      dispatcher.getProcessBuilder("/path/to/script.sh && touch /tmp/hacked", mockNotification);
+      Assert.fail("Expected IllegalArgumentException was not thrown");
+    } catch (IllegalArgumentException e) {
+      Assert.assertEquals("Invalid script path format: /path/to/script.sh && touch /tmp/hacked", e.getMessage());
+    }
+  }
+
+  @Test
+  public void testInjectionAttemptWithPipeOperator() {
+    try {
+      dispatcher.getProcessBuilder("/path/to/script.sh | ls", mockNotification);
+      Assert.fail("Expected IllegalArgumentException was not thrown");
+    } catch (IllegalArgumentException e) {
+      Assert.assertEquals("Invalid script path format: /path/to/script.sh | ls", e.getMessage());
+    }
+  }
+
+  @Test
+  public void testInjectionAttemptWithBackticks() {
+    try {
+      dispatcher.getProcessBuilder("/path/to/script.sh `rm -rf /`", mockNotification);
+      Assert.fail("Expected IllegalArgumentException was not thrown");
+    } catch (IllegalArgumentException e) {
+      Assert.assertEquals("Invalid script path format: /path/to/script.sh `rm -rf /`", e.getMessage());
+    }
   }
 
   /**
@@ -307,6 +461,10 @@ public class AlertScriptDispatcherTest {
     final String ALERT_HOST = "mock_host";
     final long ALERT_TIMESTAMP = 1111111l;
 
+    File validScript = tempFolder.newFile("valid_script.sh");
+    validScript.setExecutable(true);
+    String scriptAbsolutePath = validScript.getAbsolutePath();
+
     DispatchCallback callback = EasyMock.createNiceMock(DispatchCallback.class);
     AlertNotification notification = new AlertNotification();
     notification.Callback = callback;
@@ -332,14 +490,14 @@ public class AlertScriptDispatcherTest {
     AlertScriptDispatcher dispatcher = new AlertScriptDispatcher();
     m_injector.injectMembers(dispatcher);
 
-    ProcessBuilder processBuilder = dispatcher.getProcessBuilder(SCRIPT_CONFIG_VALUE, notification);
+    ProcessBuilder processBuilder = dispatcher.getProcessBuilder(scriptAbsolutePath, notification);
     List<String> commands = processBuilder.command();
     Assert.assertEquals(3, commands.size());
     Assert.assertEquals("sh", commands.get(0));
     Assert.assertEquals("-c", commands.get(1));
 
     StringBuilder buffer = new StringBuilder();
-    buffer.append(SCRIPT_CONFIG_VALUE).append(" ");
+    buffer.append(scriptAbsolutePath).append(" ");
     buffer.append(ALERT_DEFINITION_NAME).append(" ");
     buffer.append("\"").append(ALERT_DEFINITION_LABEL).append("\"").append(" ");
     buffer.append(ALERT_SERVICE_NAME).append(" ");
@@ -355,10 +513,10 @@ public class AlertScriptDispatcherTest {
     alertInfo = new AlertInfo(history);
     notification.setAlertInfo(alertInfo);
 
-    processBuilder = dispatcher.getProcessBuilder(SCRIPT_CONFIG_VALUE, notification);
+    processBuilder = dispatcher.getProcessBuilder(scriptAbsolutePath, notification);
     commands = processBuilder.command();
     buffer = new StringBuilder();
-    buffer.append(SCRIPT_CONFIG_VALUE).append(" ");
+    buffer.append(scriptAbsolutePath).append(" ");
     buffer.append(ALERT_DEFINITION_NAME).append(" ");
     buffer.append("\"").append(ALERT_DEFINITION_LABEL).append("\"").append(" ");
     buffer.append(ALERT_SERVICE_NAME).append(" ");

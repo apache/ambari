@@ -19,7 +19,7 @@
 {{#if view.overrideAllowed}}
   {{#isAuthorized "SERVICE.MODIFY_CONFIGS"}}
     <div {{bindAttr class=":widget-action :widget-action-override"}}>
-      <a class="widget-action widget-action-override" href="#" data-toggle="tooltip"
+      <a class="widget-action widget-action-override" href="#" data-bs-toggle="tooltip"
         {{action "createOverrideProperty" view.config target="view.parentView"}}
         {{translateAttr data-original-title="common.override"}}>
         <i class="glyphicon glyphicon-plus-sign"></i>

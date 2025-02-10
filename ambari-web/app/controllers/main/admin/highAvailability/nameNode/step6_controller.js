@@ -91,7 +91,7 @@ App.HighAvailabilityWizardStep6Controller = Em.Controller.extend({
     var initJnCounter = 0;
 
     if (data.metrics && data.metrics.dfs) {
-      journalStatusInfo = $.parseJSON(data.metrics.dfs.journalnode.journalsStatus);
+      journalStatusInfo = JSON.parse(data.metrics.dfs.journalnode.journalsStatus);
       if (journalStatusInfo[this.get('content.nameServiceId')] && journalStatusInfo[this.get('content.nameServiceId')].Formatted === "true") {
         initJnCounter = this.incrementProperty('initJnCounter');
       }

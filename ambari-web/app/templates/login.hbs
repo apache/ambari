@@ -27,11 +27,11 @@
   <form>
     <div class="form-group">
       <label {{QAAttr "username-label"}}>{{t login.username}}</label>
-      {{view view.loginTextField valueBinding="loginName" class="form-control" disabledBinding="isSubmitDisabled" data-qa="username-input"}}
+      {{view view.loginTextField valueBinding="loginName" class="form-control login-username" disabledBinding="isSubmitDisabled" data-qa="username-input"}}
     </div>
     <div class="form-group">
       <label {{QAAttr "password-label"}}>{{t common.password}}</label>
-      {{view view.passTextField valueBinding="password" class="form-control" disabledBinding="isSubmitDisabled" data-qa="password-input"}}
+      {{view view.passTextField type="password" valueBinding="password" class="form-control login-password" disabledBinding="isSubmitDisabled" data-qa="password-input"}}
     </div>
     <button class="btn btn-success" {{QAAttr "login-button"}} {{bindAttr disabled="isSubmitDisabled"}} {{action "submit" target="controller"}}>{{t login.loginButton}}</button>
   </form>

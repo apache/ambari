@@ -1,0 +1,156 @@
+{
+  "name": "default",
+  "configuration": {
+    "layouts": [{
+      "name": "default",
+      "tabs": [{
+        "name": "kms_keysecure",
+        "display-name": "KMS KEYSECURE",
+        "layout": {
+          "tab-columns": "1",
+          "tab-rows": "1",
+          "sections": [{
+            "name": "section-kms-keysecure",
+            "display-name": "",
+            "row-index": "0",
+            "column-index": "0",
+            "row-span": "1",
+            "column-span": "1",
+            "section-columns": "1",
+            "section-rows": "2",
+            "subsections": [{
+                "name": "subsection-kms-keysecure-row1-col1",
+                "display-name": "Ranger KMS Keysecure Enabled",
+                "row-index": "0",
+                "column-index": "0",
+                "row-span": "1",
+                "column-span": "1"
+              },
+              {
+                "name": "subsection-kms-keysecure-row2-col1",
+                "display-name": "Configuration Settings",
+                "row-index": "1",
+                "column-index": "0",
+                "row-span": "1",
+                "column-span": "1",
+                "depends-on": [{
+                  "configs": [
+                    "dbks-site/ranger.kms.keysecure.enabled"
+                  ],
+                  "if": "${dbks-site/ranger.kms.keysecure.enabled}",
+                  "then": {
+                    "property_value_attributes": {
+                      "visible": true
+                    }
+                  },
+                  "else": {
+                    "property_value_attributes": {
+                      "visible": false
+                    }
+                  }
+                }]
+              }
+            ]
+          }]
+        }
+      }]
+    }],
+    "placement": {
+      "configuration-layout": "default",
+      "configs": [
+        {
+          "config": "dbks-site/ranger.kms.keysecure.enabled",
+          "subsection-name": "subsection-kms-keysecure-row1-col1"
+        },
+        {
+          "config": "dbks-site/ranger.kms.keysecure.UserPassword.Authentication",
+          "subsection-name": "subsection-kms-keysecure-row2-col1"
+        },
+        {
+          "config": "dbks-site/ranger.kms.keysecure.masterkey.name",
+          "subsection-name": "subsection-kms-keysecure-row2-col1"
+        },
+        {
+          "config": "dbks-site/ranger.kms.keysecure.login.username",
+          "subsection-name": "subsection-kms-keysecure-row2-col1"
+        },
+        {
+          "config": "dbks-site/ranger.kms.keysecure.login.password",
+          "subsection-name": "subsection-kms-keysecure-row2-col1"
+        },
+        {
+          "config": "dbks-site/ranger.kms.keysecure.login.password.alias",
+          "subsection-name": "subsection-kms-keysecure-row2-col1"
+        },
+        {
+          "config": "dbks-site/ranger.kms.keysecure.hostname",
+          "subsection-name": "subsection-kms-keysecure-row2-col1"
+        },
+        {
+          "config": "dbks-site/ranger.kms.keysecure.masterkey.size",
+          "subsection-name": "subsection-kms-keysecure-row2-col1"
+        },
+        {
+          "config": "dbks-site/ranger.kms.keysecure.sunpkcs11.cfg.filepath",
+          "subsection-name": "subsection-kms-keysecure-row2-col1"
+        }
+      ]
+    },
+    "widgets": [
+      {
+        "config": "dbks-site/ranger.kms.keysecure.enabled",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "dbks-site/ranger.kms.keysecure.UserPassword.Authentication",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "dbks-site/ranger.kms.keysecure.masterkey.name",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "dbks-site/ranger.kms.keysecure.login.username",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "dbks-site/ranger.kms.keysecure.login.password",
+        "widget": {
+          "type": "password"
+        }
+      },
+      {
+        "config": "dbks-site/ranger.kms.keysecure.login.password.alias",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "dbks-site/ranger.kms.keysecure.hostname",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "dbks-site/ranger.kms.keysecure.masterkey.size",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "dbks-site/ranger.kms.keysecure.sunpkcs11.cfg.filepath",
+        "widget": {
+          "type": "text-field"
+        }
+      }
+    ]
+  }
+}

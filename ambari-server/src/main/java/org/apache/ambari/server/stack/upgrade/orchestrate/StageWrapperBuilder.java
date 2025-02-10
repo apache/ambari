@@ -32,7 +32,7 @@ import org.apache.ambari.server.stack.upgrade.ServiceCheckGrouping;
 import org.apache.ambari.server.stack.upgrade.Task;
 import org.apache.ambari.server.stack.upgrade.UpgradePack.ProcessingComponent;
 import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
 /**

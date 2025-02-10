@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -8,7 +9,7 @@
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
-#* Unless required by applicable law or agreed to in writing, software
+# * Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
@@ -19,9 +20,10 @@ from ambari_commons.xml_utils import ConvertToXml
 
 class Configurations(ConvertToXml):
   "Root element for resulting file, incluge all exported data"
-  stack = "" #Stack entuty
-  configuration = "" #Configuration entity
-  hosts = ""  #Hosts entity
+
+  stack = ""  # Stack entuty
+  configuration = ""  # Configuration entity
+  hosts = ""  # Hosts entity
 
   def __init__(self):
     self.stack = Stack()
@@ -40,8 +42,8 @@ class Configurations(ConvertToXml):
 ###Stack structure {
 class Stack(ConvertToXml):
   comment = ""
-  services = "" #Services object
-  repository = "" #Repository object
+  services = ""  # Services object
+  repository = ""  # Repository object
 
   def __init__(self):
     self.services = Services()
@@ -57,7 +59,7 @@ class Stack(ConvertToXml):
 
 
 class Services(ConvertToXml):
-  service = [] #Service objects
+  service = []  # Service objects
 
   def __str__(self):
     result = "<services>"
@@ -77,15 +79,15 @@ class Service(ConvertToXml):
   user = ""
   enabled = ""
 
-#  def __init__(self, name, ver, comment, user, enabled):
-#    super(self)
-#
-#  def __init__(self, name, ver, comment, user, enabled):
-#    self.name = name
-#    self.version = ver
-#    self.comment = comment
-#    self.user = user
-#    self.enabled = enabled
+  #  def __init__(self, name, ver, comment, user, enabled):
+  #    super(self)
+  #
+  #  def __init__(self, name, ver, comment, user, enabled):
+  #    self.name = name
+  #    self.version = ver
+  #    self.comment = comment
+  #    self.user = user
+  #    self.enabled = enabled
 
   def __str__(self):
     result = "<service>"
@@ -96,7 +98,7 @@ class Service(ConvertToXml):
 
 class Repository(ConvertToXml):
   comment = ""
-  info = "" #Info object
+  info = ""  # Info object
 
   def __init__(self):
     self.info = Info()
@@ -124,13 +126,14 @@ class Info(ConvertToXml):
   def addKey(self, key, value):
     self.keys[key] = value
 
+
 ###Stack structure }
 
 
 ###Configuration structure {
 class ConfigurationEntity(ConvertToXml):
-  hadoopEnv = "" #HadoopEnv object
-  coreSite = ""   #CoreSite
+  hadoopEnv = ""  # HadoopEnv object
+  coreSite = ""  # CoreSite
 
   def __init__(self):
     self.hadoopEnv = HadoopEnv()
@@ -145,7 +148,7 @@ class ConfigurationEntity(ConvertToXml):
 
 
 class Hosts:
-  hosts = []  #Host collection
+  hosts = []  # Host collection
   comment = ""
 
   def addHost(self, host):
@@ -157,6 +160,7 @@ class Hosts:
       result += str(host)
     result += "</hosts>"
     return result
+
 
 class Host(ConvertToXml):
   name = ""
@@ -182,7 +186,7 @@ class HadoopEnv(ConvertToXml):
 
 class CoreSite(ConvertToXml):
   fsDefaultName = ""
-  #hadoopTmpDir = ""
+  # hadoopTmpDir = ""
   hadoopSecurityAuthentication = ""
 
   def __str__(self):
@@ -190,5 +194,6 @@ class CoreSite(ConvertToXml):
     result += self.attributesToXml()
     result += "</core-site>"
     return result
+
 
 ###Configuration structure }

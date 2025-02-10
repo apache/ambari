@@ -84,6 +84,7 @@ App.ReassignMasterWizardStep7Controller = App.ReassignMasterWizardStep4Controlle
       App.ajax.send({
         name: 'common.delete.host_component',
         sender: this,
+        dataType:'text',
         data: {
           hostName: hostName,
           componentName: hostComponents[i]

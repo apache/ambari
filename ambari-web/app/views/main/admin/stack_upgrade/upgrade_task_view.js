@@ -21,6 +21,8 @@ var App = require('app');
 
 App.upgradeTaskView = Em.View.extend({
   templateName: require('templates/main/admin/stack_upgrade/upgrade_task'),
+  classNameBindings: ['isOutputActive:active'],
+  activeTab:"output",
 
   /**
    * view observed directly
@@ -74,6 +76,23 @@ App.upgradeTaskView = Em.View.extend({
    */
   errorTabIdLInk: Em.computed.format('#{0}','errorTabId'),
 
+
+  setOutputActive:function(){
+    this.set('activeTab','output');
+  },
+
+  setErrorActive:function(){
+    this.set('activeTab','error');
+  },
+
+  isOutputActive:function(){
+    return this.get('activeTab')==="output"
+  },
+
+  isErrorActive:function(){
+    return this.get('activeTab')==="error"
+  },
+
   didInsertElement: function() {
     if (this.get('outsideView') && this.get('content')) {
       this.set('isExpanded', true);
@@ -100,7 +119,7 @@ App.upgradeTaskView = Em.View.extend({
     var isExpanded = this.get('outsideView') ? this.get('outsideView.isDetailsOpened') : this.get('isExpanded');
 
     if (task && isExpanded) {
-      this.get('controller').getUpgradeTask(task).complete(function () {
+      this.get('controller').getUpgradeTask(task).then(function () {
         task.set('isContentLoaded', true);
         if (!task.get('isCompleted')) {
           self.set('timer', setTimeout(function () {

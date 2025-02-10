@@ -18,7 +18,7 @@
 
 package org.apache.ambari.server.api.services.stackadvisor;
 
-import org.codehaus.jackson.annotate.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Abstract stack advisor response POJO.

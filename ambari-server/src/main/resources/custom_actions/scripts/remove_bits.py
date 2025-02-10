@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -43,13 +43,39 @@ class RemoveBits(Script):
     Logger.info("Attempting to remove bits for HDP 2.1")
     config = Script.get_config()
 
-    packages_to_remove = ["zookeeper", "hadoop", "hadoop-lzo", "hadoop-hdfs", "hadoop-libhdfs", "hadoop-yarn", "hadoop-client", "hadoop-mapreduce", "hive", "hive-hcatalog", "hive-jdbc", "hive-webhcat", "hcatalog", "webhcat-tar-hive", "webhcat-tar-pig", "oozie", "oozie-client", "pig", "sqoop", "tez" "falcon", "storm", "flume", "hbase", "phoenix"]
+    packages_to_remove = [
+      "zookeeper",
+      "hadoop",
+      "hadoop-lzo",
+      "hadoop-hdfs",
+      "hadoop-libhdfs",
+      "hadoop-yarn",
+      "hadoop-client",
+      "hadoop-mapreduce",
+      "hive",
+      "hive-hcatalog",
+      "hive-jdbc",
+      "hive-webhcat",
+      "hcatalog",
+      "webhcat-tar-hive",
+      "webhcat-tar-pig",
+      "oozie",
+      "oozie-client",
+      "pig",
+      "sqoop",
+      "tez" "falcon",
+      "storm",
+      "flume",
+      "hbase",
+      "phoenix",
+    ]
     packages_to_remove.reverse()
-    Logger.info("Packages to remove: {0}".format(" ".join(packages_to_remove)))
+    Logger.info(f"Packages to remove: {' '.join(packages_to_remove)}")
 
     for name in packages_to_remove:
-      Logger.info("Attempting to remove {0}".format(name))
+      Logger.info(f"Attempting to remove {name}")
       Package(name, action="remove")
+
 
 if __name__ == "__main__":
   RemoveBits().execute()

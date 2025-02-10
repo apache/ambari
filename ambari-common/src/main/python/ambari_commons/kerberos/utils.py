@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -18,8 +19,9 @@ limitations under the License.
 """
 
 
-def get_property_value(dictionary, property_name, default_value=None, trim_string=False,
-                       empty_value=""):
+def get_property_value(
+  dictionary, property_name, default_value=None, trim_string=False, empty_value=""
+):
   """
   Get a property value from a dictionary, applying applying rules as necessary.
 
@@ -49,7 +51,7 @@ def get_property_value(dictionary, property_name, default_value=None, trim_strin
     # If the value is none, consider it empty...
     if value is None:
       value = empty_value
-    elif (type(value) == str) or (type(value) == unicode):
+    elif (type(value) == str) or (type(value) == str):
       value = value.strip()
 
       if len(value) == 0:
@@ -59,9 +61,11 @@ def get_property_value(dictionary, property_name, default_value=None, trim_strin
 
 
 def get_unstructured_data(dictionary, property_name):
-  prefix = property_name + '/'
+  prefix = property_name + "/"
   prefix_len = len(prefix)
-  return dict((k[prefix_len:], v) for k, v in dictionary.iteritems() if k.startswith(prefix))
+  return dict(
+    (k[prefix_len:], v) for k, v in dictionary.items() if k.startswith(prefix)
+  )
 
 
 def split_host_and_port(host):
@@ -82,10 +86,10 @@ def split_host_and_port(host):
       length = len(parts)
 
       if length > 0:
-        host_and_port['host'] = parts[0]
+        host_and_port["host"] = parts[0]
 
         if length > 1:
-          host_and_port['port'] = int(parts[1])
+          host_and_port["port"] = int(parts[1])
 
   return host_and_port
 
@@ -103,7 +107,7 @@ def set_port(host, port):
   else:
     host_and_port = split_host_and_port(host)
 
-    if (host_and_port is not None) and ('host' in host_and_port):
-      return "%s:%s" % (host_and_port['host'], port)
+    if (host_and_port is not None) and ("host" in host_and_port):
+      return f"{host_and_port['host']}:{port}"
     else:
       return host

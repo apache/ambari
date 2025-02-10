@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -22,9 +22,15 @@ Ambari Agent
 
 __all__ = ["File", "Directory", "Link", "Execute", "ExecuteScript", "Mount"]
 
-from ambari_commons import subprocess32
+import subprocess
 from resource_management.core.signal_utils import TerminateStrategy
-from resource_management.core.base import Resource, ForcedListArgument, ResourceArgument, BooleanArgument
+from resource_management.core.base import (
+  Resource,
+  ForcedListArgument,
+  ResourceArgument,
+  BooleanArgument,
+)
+
 
 class File(Resource):
   action = ForcedListArgument(default="create")
@@ -87,7 +93,7 @@ class Directory(Resource):
   See also: safemode_folders, recursion_follow_links
   """
   recursive_ownership = BooleanArgument(default=False)
-  
+
   """
   A dictionary, which gives the mode flags which should be set for files in key 'f', and for
   directories in key 'd'.
@@ -121,7 +127,7 @@ class Directory(Resource):
   See also: safemode_folders, recursion_follow_links   
   """
   recursive_mode_flags = ResourceArgument(default=None)
-  
+
   """
   This is the list folder which are not allowed to be recursively chmod-ed or chown-ed. (recursive_ownership and recursive_mode_flags).
   Fail exception will appear if tried.
@@ -135,10 +141,28 @@ class Directory(Resource):
   This aims to the resolve the problem of mistakenly doing recursive actions for system necessary folders.
   which results in damaging the operating system.
   """
-  safemode_folders =  ForcedListArgument(default=["/", "/bin", "/sbin", "/etc", "/dev",
-                                                  "/proc", "/var", "/usr", "/home", "/boot", "/lib", "/opt",
-                                                  "/mnt", "/media", "/srv", "/root", "/sys" ])
-  
+  safemode_folders = ForcedListArgument(
+    default=[
+      "/",
+      "/bin",
+      "/sbin",
+      "/etc",
+      "/dev",
+      "/proc",
+      "/var",
+      "/usr",
+      "/home",
+      "/boot",
+      "/lib",
+      "/opt",
+      "/mnt",
+      "/media",
+      "/srv",
+      "/root",
+      "/sys",
+    ]
+  )
+
   """
   If True while recursive chown/chmod is done (recursive_ownership or recursive_mode_flags),
   symlinks will be followed, duing recursion walking, also 
@@ -163,7 +187,7 @@ class Link(Resource):
 
 class Execute(Resource):
   action = ForcedListArgument(default="run")
-  
+
   """
   Recommended:
   command = ('rm','-f','myfile')
@@ -173,7 +197,7 @@ class Execute(Resource):
   The first one helps to stop escaping issues
   """
   command = ResourceArgument(default=lambda obj: obj.name)
-  
+
   creates = ResourceArgument()
   """
   cwd won't work for:
@@ -188,7 +212,7 @@ class Execute(Resource):
   user = ResourceArgument()
   returns = ForcedListArgument(default=0)
   tries = ResourceArgument(default=1)
-  try_sleep = ResourceArgument(default=0) # seconds
+  try_sleep = ResourceArgument(default=0)  # seconds
   path = ForcedListArgument(default=[])
   actions = Resource.actions + ["run"]
   # TODO: handle how this is logged / tested?
@@ -210,7 +234,7 @@ class Execute(Resource):
   if on_timeout is not set leads to failing after x seconds,
   otherwise calls on_timeout
   """
-  timeout = ResourceArgument() # seconds
+  timeout = ResourceArgument()  # seconds
   on_timeout = ResourceArgument()
   """
   Wait for command to finish or not. 
@@ -231,14 +255,14 @@ class Execute(Resource):
   """
   sudo = BooleanArgument(default=False)
   """
-  subprocess32.PIPE - enable output gathering
+  subprocess.PIPE - enable output gathering
   None - disable output to gathering, and output to Python out straightly (even if logoutput is False)
-  subprocess32.STDOUT - redirect to stdout (not valid as value for stdout agument)
+  subprocess.STDOUT - redirect to stdout (not valid as value for stdout agument)
   {int fd} - redirect to file with descriptor.
   {string filename} - redirects to a file with name.
   """
-  stdout = ResourceArgument(default=subprocess32.PIPE)
-  stderr = ResourceArgument(default=subprocess32.STDOUT)
+  stdout = ResourceArgument(default=subprocess.PIPE)
+  stderr = ResourceArgument(default=subprocess.STDOUT)
 
   """
   This argument takes TerminateStrategy constants. Import it as shown below:
@@ -250,6 +274,7 @@ class Execute(Resource):
   TerminateStrategy.KILL_PROCESS_TREE - send SIGTERM to every process in the tree
   """
   timeout_kill_strategy = ResourceArgument(default=TerminateStrategy.TERMINATE_PARENT)
+
 
 class ExecuteScript(Resource):
   action = ForcedListArgument(default="run")
@@ -272,5 +297,4 @@ class Mount(Resource):
   dump = ResourceArgument(default=0)
   passno = ResourceArgument(default=2)
 
-  actions = Resource.actions + ["mount", "umount", "remount", "enable",
-                                "disable"]
+  actions = Resource.actions + ["mount", "umount", "remount", "enable", "disable"]

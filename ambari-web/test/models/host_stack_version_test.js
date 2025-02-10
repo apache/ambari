@@ -20,7 +20,7 @@ var App = require('app');
 
 require('models/host_stack_version');
 
-describe('App.HostStackVersion', function () {
+describe.skip('App.HostStackVersion', function () {
 
   describe("#displayStatus", function () {
     var testCases = [

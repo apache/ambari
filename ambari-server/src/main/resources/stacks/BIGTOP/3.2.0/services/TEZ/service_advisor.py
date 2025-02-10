@@ -28,20 +28,22 @@ import subprocess
 
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-STACKS_DIR = os.path.join(SCRIPT_DIR, '../../../../../stacks/')
-PARENT_FILE = os.path.join(STACKS_DIR, 'service_advisor.py')
+STACKS_DIR = os.path.join(SCRIPT_DIR, "../../../../../stacks/")
+PARENT_FILE = os.path.join(STACKS_DIR, "service_advisor.py")
 
 try:
   if "BASE_SERVICE_ADVISOR" in os.environ:
     PARENT_FILE = os.environ["BASE_SERVICE_ADVISOR"]
-  with open(PARENT_FILE, 'rb') as fp:
-    service_advisor = imp.load_module('service_advisor', fp, PARENT_FILE, ('.py', 'rb', imp.PY_SOURCE))
+  with open(PARENT_FILE, "rb") as fp:
+    service_advisor = imp.load_module(
+      "service_advisor", fp, PARENT_FILE, (".py", "rb", imp.PY_SOURCE)
+    )
 except Exception as e:
   traceback.print_exc()
-  print "Failed to load parent"
+  print("Failed to load parent")
+
 
 class TezServiceAdvisor(service_advisor.ServiceAdvisor):
-
   def __init__(self, *args, **kwargs):
     self.as_super = super(TezServiceAdvisor, self)
     self.as_super.__init__(*args, **kwargs)
@@ -113,7 +115,9 @@ class TezServiceAdvisor(service_advisor.ServiceAdvisor):
 
     return self.getServiceComponentCardinalityValidations(services, hosts, "TEZ")
 
-  def getServiceConfigurationRecommendations(self, configurations, clusterData, services, hosts):
+  def getServiceConfigurationRecommendations(
+    self, configurations, clusterData, services, hosts
+  ):
     """
     Entry point.
     Must be overriden in child class.
@@ -122,13 +126,22 @@ class TezServiceAdvisor(service_advisor.ServiceAdvisor):
     #             (self.__class__.__name__, inspect.stack()[0][3]))
 
     recommender = TezRecommender()
-    recommender.recommendTezConfigurationsFromHDP21(configurations, clusterData, services, hosts)
-    recommender.recommendTezConfigurationsFromHDP22(configurations, clusterData, services, hosts)
-    recommender.recommendTezConfigurationsFromHDP23(configurations, clusterData, services, hosts)
-    recommender.recommendTezConfigurationsFromHDP30(configurations, clusterData, services, hosts)
+    recommender.recommendTezConfigurationsFromHDP21(
+      configurations, clusterData, services, hosts
+    )
+    recommender.recommendTezConfigurationsFromHDP22(
+      configurations, clusterData, services, hosts
+    )
+    recommender.recommendTezConfigurationsFromHDP23(
+      configurations, clusterData, services, hosts
+    )
+    recommender.recommendTezConfigurationsFromHDP30(
+      configurations, clusterData, services, hosts
+    )
 
-
-  def getServiceConfigurationsValidationItems(self, configurations, recommendedDefaults, services, hosts):
+  def getServiceConfigurationsValidationItems(
+    self, configurations, recommendedDefaults, services, hosts
+  ):
     """
     Entry point.
     Validate configurations for the service. Return a list of errors.
@@ -140,8 +153,9 @@ class TezServiceAdvisor(service_advisor.ServiceAdvisor):
     validator = TezValidator()
     # Calls the methods of the validator using arguments,
     # method(siteProperties, siteRecommendations, configurations, services, hosts)
-    return validator.validateListOfConfigUsingMethod(configurations, recommendedDefaults, services, hosts, validator.validators)
-
+    return validator.validateListOfConfigUsingMethod(
+      configurations, recommendedDefaults, services, hosts, validator.validators
+    )
 
 
 class TezRecommender(service_advisor.ServiceAdvisor):
@@ -153,32 +167,86 @@ class TezRecommender(service_advisor.ServiceAdvisor):
     self.as_super = super(TezRecommender, self)
     self.as_super.__init__(*args, **kwargs)
 
-  def recommendTezConfigurationsFromHDP21(self, configurations, clusterData, services, hosts):
+  def recommendTezConfigurationsFromHDP21(
+    self, configurations, clusterData, services, hosts
+  ):
     putTezProperty = self.putProperty(configurations, "tez-site")
-    putTezProperty("tez.am.resource.memory.mb", int(clusterData['amMemory']))
-    putTezProperty("tez.am.java.opts",
-                   "-server -Xmx" + str(int(0.8 * clusterData["amMemory"]))
-                   + "m -Djava.net.preferIPv4Stack=true")
-    recommended_tez_queue = self.recommendYarnQueue(services, "tez-site", "tez.queue.name")
+    putTezProperty("tez.am.resource.memory.mb", int(clusterData["amMemory"]))
+    putTezProperty(
+      "tez.am.java.opts",
+      "-server -Xmx"
+      + str(int(0.8 * clusterData["amMemory"]))
+      + "m -Djava.net.preferIPv4Stack=true",
+    )
+    recommended_tez_queue = self.recommendYarnQueue(
+      services, "tez-site", "tez.queue.name"
+    )
     if recommended_tez_queue is not None:
       putTezProperty("tez.queue.name", recommended_tez_queue)
 
-
-  def recommendTezConfigurationsFromHDP22(self, configurations, clusterData, services, hosts):
+  def recommendTezConfigurationsFromHDP22(
+    self, configurations, clusterData, services, hosts
+  ):
     if not "yarn-site" in configurations:
       self.calculateYarnAllocationSizes(configurations, services, hosts)
-      #properties below should be always present as they are provided in HDP206 stack advisor
-    yarnMaxAllocationSize = min(30 * int(configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"]), int(configurations["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-mb"]))
+      # properties below should be always present as they are provided in HDP206 stack advisor
+    yarnMaxAllocationSize = min(
+      30
+      * int(
+        configurations["yarn-site"]["properties"][
+          "yarn.scheduler.minimum-allocation-mb"
+        ]
+      ),
+      int(
+        configurations["yarn-site"]["properties"][
+          "yarn.scheduler.maximum-allocation-mb"
+        ]
+      ),
+    )
 
     putTezProperty = self.putProperty(configurations, "tez-site", services)
-    putTezProperty("tez.am.resource.memory.mb", min(int(configurations["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-mb"]), int(clusterData['amMemory']) * 2 if int(clusterData['amMemory']) < 3072 else int(clusterData['amMemory'])))
+    putTezProperty(
+      "tez.am.resource.memory.mb",
+      min(
+        int(
+          configurations["yarn-site"]["properties"][
+            "yarn.scheduler.maximum-allocation-mb"
+          ]
+        ),
+        int(clusterData["amMemory"]) * 2
+        if int(clusterData["amMemory"]) < 3072
+        else int(clusterData["amMemory"]),
+      ),
+    )
 
-    taskResourceMemory = clusterData['mapMemory'] if clusterData['mapMemory'] > 2048 else int(clusterData['reduceMemory'])
-    taskResourceMemory = min(clusterData['containers'] * clusterData['ramPerContainer'], taskResourceMemory, yarnMaxAllocationSize)
-    putTezProperty("tez.task.resource.memory.mb", min(int(configurations["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-mb"]), taskResourceMemory))
-    taskResourceMemory = int(configurations["tez-site"]["properties"]["tez.task.resource.memory.mb"])
+    taskResourceMemory = (
+      clusterData["mapMemory"]
+      if clusterData["mapMemory"] > 2048
+      else int(clusterData["reduceMemory"])
+    )
+    taskResourceMemory = min(
+      clusterData["containers"] * clusterData["ramPerContainer"],
+      taskResourceMemory,
+      yarnMaxAllocationSize,
+    )
+    putTezProperty(
+      "tez.task.resource.memory.mb",
+      min(
+        int(
+          configurations["yarn-site"]["properties"][
+            "yarn.scheduler.maximum-allocation-mb"
+          ]
+        ),
+        taskResourceMemory,
+      ),
+    )
+    taskResourceMemory = int(
+      configurations["tez-site"]["properties"]["tez.task.resource.memory.mb"]
+    )
     putTezProperty("tez.runtime.io.sort.mb", min(int(taskResourceMemory * 0.4), 2047))
-    putTezProperty("tez.runtime.unordered.output.buffer.size-mb", int(taskResourceMemory * 0.075))
+    putTezProperty(
+      "tez.runtime.unordered.output.buffer.size-mb", int(taskResourceMemory * 0.075)
+    )
     putTezProperty("tez.session.am.dag.submit.timeout.secs", "600")
 
     tez_queue = self.recommendYarnQueue(services, "tez-site", "tez.queue.name")
@@ -192,56 +260,71 @@ class TezRecommender(service_advisor.ServiceAdvisor):
     for host in hosts["items"]:
       if server_host == host["Hosts"]["host_name"]:
         server_host = host["Hosts"]["public_host_name"]
-    server_port = '8080'
-    server_protocol = 'http'
-    views_dir = '/var/lib/ambari-server/resources/views/'
+    server_port = "8080"
+    server_protocol = "http"
+    views_dir = "/var/lib/ambari-server/resources/views/"
 
     has_tez_view = False
     if serverProperties:
-      if 'client.api.port' in serverProperties:
-        server_port = serverProperties['client.api.port']
-      if 'views.dir' in serverProperties:
-        views_dir = serverProperties['views.dir']
-      if 'api.ssl' in serverProperties:
-        if serverProperties['api.ssl'].lower() == 'true':
-          server_protocol = 'https'
+      if "client.api.port" in serverProperties:
+        server_port = serverProperties["client.api.port"]
+      if "views.dir" in serverProperties:
+        views_dir = serverProperties["views.dir"]
+      if "api.ssl" in serverProperties:
+        if serverProperties["api.ssl"].lower() == "true":
+          server_protocol = "https"
 
-      views_work_dir = os.path.join(views_dir, 'work')
+      views_work_dir = os.path.join(views_dir, "work")
 
       if os.path.exists(views_work_dir) and os.path.isdir(views_work_dir):
         for file in os.listdir(views_work_dir):
-          if fnmatch.fnmatch(file, 'TEZ{*}'):
-            has_tez_view = True # now used just to verify if the tez view exists
+          if fnmatch.fnmatch(file, "TEZ{*}"):
+            has_tez_view = True  # now used just to verify if the tez view exists
           pass
         pass
       pass
     pass
 
     if has_tez_view:
-      tez_url = '{0}://{1}:{2}/#/main/view/TEZ/tez_cluster_instance'.format(server_protocol, server_host, server_port)
+      tez_url = f"{server_protocol}://{server_host}:{server_port}/#/main/view/TEZ/tez_cluster_instance"
       putTezProperty("tez.tez-ui.history-url.base", tez_url)
     pass
 
-
-  def recommendTezConfigurationsFromHDP23(self, configurations, clusterData, services, hosts):
-
+  def recommendTezConfigurationsFromHDP23(
+    self, configurations, clusterData, services, hosts
+  ):
     putTezProperty = self.putProperty(configurations, "tez-site")
 
     if "HIVE" in self.getServiceNames(services):
       if not "hive-site" in configurations:
         self.recommendHIVEConfigurations(configurations, clusterData, services, hosts)
 
-      if "hive-site" in configurations and "hive.tez.container.size" in configurations["hive-site"]["properties"]:
-        putTezProperty("tez.task.resource.memory.mb", configurations["hive-site"]["properties"]["hive.tez.container.size"])
+      if (
+        "hive-site" in configurations
+        and "hive.tez.container.size" in configurations["hive-site"]["properties"]
+      ):
+        putTezProperty(
+          "tez.task.resource.memory.mb",
+          configurations["hive-site"]["properties"]["hive.tez.container.size"],
+        )
 
     # remove 2gb limit for tez.runtime.io.sort.mb
     # in HDP 2.3 "tez.runtime.sorter.class" is set by default to PIPELINED, in other case comment calculation code below
-    taskResourceMemory = int(configurations["tez-site"]["properties"]["tez.task.resource.memory.mb"])
+    taskResourceMemory = int(
+      configurations["tez-site"]["properties"]["tez.task.resource.memory.mb"]
+    )
     # fit io.sort.mb into tenured regions
     putTezProperty("tez.runtime.io.sort.mb", int(taskResourceMemory * 0.8 * 0.33))
 
-    if "tez-site" in services["configurations"] and "tez.runtime.sorter.class" in services["configurations"]["tez-site"]["properties"]:
-      if services["configurations"]["tez-site"]["properties"]["tez.runtime.sorter.class"] == "LEGACY":
+    if (
+      "tez-site" in services["configurations"]
+      and "tez.runtime.sorter.class"
+      in services["configurations"]["tez-site"]["properties"]
+    ):
+      if (
+        services["configurations"]["tez-site"]["properties"]["tez.runtime.sorter.class"]
+        == "LEGACY"
+      ):
         putTezAttribute = self.putPropertyAttribute(configurations, "tez-site")
         putTezAttribute("tez.runtime.io.sort.mb", "maximum", 1800)
     pass
@@ -253,43 +336,60 @@ class TezRecommender(service_advisor.ServiceAdvisor):
     for host in hosts["items"]:
       if server_host == host["Hosts"]["host_name"]:
         server_host = host["Hosts"]["public_host_name"]
-    server_port = '8080'
-    server_protocol = 'http'
-    views_dir = '/var/lib/ambari-server/resources/views/'
+    server_port = "8080"
+    server_protocol = "http"
+    views_dir = "/var/lib/ambari-server/resources/views/"
 
     has_tez_view = False
     if serverProperties:
-      if 'client.api.port' in serverProperties:
-        server_port = serverProperties['client.api.port']
-      if 'views.dir' in serverProperties:
-        views_dir = serverProperties['views.dir']
-      if 'api.ssl' in serverProperties:
-        if serverProperties['api.ssl'].lower() == 'true':
-          server_protocol = 'https'
+      if "client.api.port" in serverProperties:
+        server_port = serverProperties["client.api.port"]
+      if "views.dir" in serverProperties:
+        views_dir = serverProperties["views.dir"]
+      if "api.ssl" in serverProperties:
+        if serverProperties["api.ssl"].lower() == "true":
+          server_protocol = "https"
 
-      views_work_dir = os.path.join(views_dir, 'work')
+      views_work_dir = os.path.join(views_dir, "work")
 
       if os.path.exists(views_work_dir) and os.path.isdir(views_work_dir):
         for file in os.listdir(views_work_dir):
-          if fnmatch.fnmatch(file, 'TEZ{*}'):
-            has_tez_view = True # now used just to verify if the tez view exists
+          if fnmatch.fnmatch(file, "TEZ{*}"):
+            has_tez_view = True  # now used just to verify if the tez view exists
           pass
         pass
       pass
     pass
 
     if has_tez_view:
-      tez_url = '{0}://{1}:{2}/#/main/view/TEZ/tez_cluster_instance'.format(server_protocol, server_host, server_port)
+      tez_url = f"{server_protocol}://{server_host}:{server_port}/#/main/view/TEZ/tez_cluster_instance"
       putTezProperty("tez.tez-ui.history-url.base", tez_url)
     pass
 
-  def recommendTezConfigurationsFromHDP30(self, configurations, clusterData, services, hosts):
+  def recommendTezConfigurationsFromHDP30(
+    self, configurations, clusterData, services, hosts
+  ):
     putTezProperty = self.putProperty(configurations, "tez-site")
-    if "HIVE" in self.getServiceNames(services) and "hive-site" in services["configurations"] and "hive.metastore.warehouse.external.dir" in services["configurations"]["hive-site"]["properties"]:
-      hive_metastore_warehouse_external_dir = services["configurations"]["hive-site"]["properties"]['hive.metastore.warehouse.external.dir']
-      putTezProperty("tez.history.logging.proto-base-dir", "{0}/sys.db".format(hive_metastore_warehouse_external_dir))
-      putTezProperty("tez.history.logging.service.class", "org.apache.tez.dag.history.logging.proto.ProtoHistoryLoggingService")
-      self.logger.info("Updated 'tez-site' config 'tez.history.logging.proto-base-dir' and 'tez.history.logging.service.class'")
+    if (
+      "HIVE" in self.getServiceNames(services)
+      and "hive-site" in services["configurations"]
+      and "hive.metastore.warehouse.external.dir"
+      in services["configurations"]["hive-site"]["properties"]
+    ):
+      hive_metastore_warehouse_external_dir = services["configurations"]["hive-site"][
+        "properties"
+      ]["hive.metastore.warehouse.external.dir"]
+      putTezProperty(
+        "tez.history.logging.proto-base-dir",
+        f"{hive_metastore_warehouse_external_dir}/sys.db",
+      )
+      putTezProperty(
+        "tez.history.logging.service.class",
+        "org.apache.tez.dag.history.logging.proto.ProtoHistoryLoggingService",
+      )
+      self.logger.info(
+        "Updated 'tez-site' config 'tez.history.logging.proto-base-dir' and 'tez.history.logging.service.class'"
+      )
 
 
 class TezValidator(service_advisor.ServiceAdvisor):
@@ -302,42 +402,116 @@ class TezValidator(service_advisor.ServiceAdvisor):
     self.as_super = super(TezValidator, self)
     self.as_super.__init__(*args, **kwargs)
 
-    self.validators = [("tez-site", self.validateTezConfigurationsFromHDP21),
-                       ("tez-site", self.validateTezConfigurationsFromHDP22)]
+    self.validators = [
+      ("tez-site", self.validateTezConfigurationsFromHDP21),
+      ("tez-site", self.validateTezConfigurationsFromHDP22),
+    ]
 
-
-  def validateTezConfigurationsFromHDP21(self, properties, recommendedDefaults, configurations, services, hosts):
-    validationItems = [ {"config-name": 'tez.am.resource.memory.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.am.resource.memory.mb')},
-                        {"config-name": 'tez.am.java.opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'tez.am.java.opts')},
-                        {"config-name": 'tez.queue.name', "item": self.validatorYarnQueue(properties, recommendedDefaults, 'tez.queue.name', services)} ]
+  def validateTezConfigurationsFromHDP21(
+    self, properties, recommendedDefaults, configurations, services, hosts
+  ):
+    validationItems = [
+      {
+        "config-name": "tez.am.resource.memory.mb",
+        "item": self.validatorLessThenDefaultValue(
+          properties, recommendedDefaults, "tez.am.resource.memory.mb"
+        ),
+      },
+      {
+        "config-name": "tez.am.java.opts",
+        "item": self.validateXmxValue(
+          properties, recommendedDefaults, "tez.am.java.opts"
+        ),
+      },
+      {
+        "config-name": "tez.queue.name",
+        "item": self.validatorYarnQueue(
+          properties, recommendedDefaults, "tez.queue.name", services
+        ),
+      },
+    ]
     return self.toConfigurationValidationProblems(validationItems, "tez-site")
 
-
-  def validateTezConfigurationsFromHDP22(self, properties, recommendedDefaults, configurations, services, hosts):
-    validationItems = [ {"config-name": 'tez.am.resource.memory.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.am.resource.memory.mb')},
-                        {"config-name": 'tez.task.resource.memory.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.task.resource.memory.mb')},
-                        {"config-name": 'tez.runtime.io.sort.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.runtime.io.sort.mb')},
-                        {"config-name": 'tez.runtime.unordered.output.buffer.size-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.runtime.unordered.output.buffer.size-mb')},
-                        {"config-name": 'tez.queue.name', "item": self.validatorYarnQueue(properties, recommendedDefaults, 'tez.queue.name', services)} ]
+  def validateTezConfigurationsFromHDP22(
+    self, properties, recommendedDefaults, configurations, services, hosts
+  ):
+    validationItems = [
+      {
+        "config-name": "tez.am.resource.memory.mb",
+        "item": self.validatorLessThenDefaultValue(
+          properties, recommendedDefaults, "tez.am.resource.memory.mb"
+        ),
+      },
+      {
+        "config-name": "tez.task.resource.memory.mb",
+        "item": self.validatorLessThenDefaultValue(
+          properties, recommendedDefaults, "tez.task.resource.memory.mb"
+        ),
+      },
+      {
+        "config-name": "tez.runtime.io.sort.mb",
+        "item": self.validatorLessThenDefaultValue(
+          properties, recommendedDefaults, "tez.runtime.io.sort.mb"
+        ),
+      },
+      {
+        "config-name": "tez.runtime.unordered.output.buffer.size-mb",
+        "item": self.validatorLessThenDefaultValue(
+          properties, recommendedDefaults, "tez.runtime.unordered.output.buffer.size-mb"
+        ),
+      },
+      {
+        "config-name": "tez.queue.name",
+        "item": self.validatorYarnQueue(
+          properties, recommendedDefaults, "tez.queue.name", services
+        ),
+      },
+    ]
     if "tez.tez-ui.history-url.base" in recommendedDefaults:
-      validationItems.append({"config-name": 'tez.tez-ui.history-url.base', "item": self.validatorEqualsToRecommendedItem(properties, recommendedDefaults, 'tez.tez-ui.history-url.base')})
+      validationItems.append(
+        {
+          "config-name": "tez.tez-ui.history-url.base",
+          "item": self.validatorEqualsToRecommendedItem(
+            properties, recommendedDefaults, "tez.tez-ui.history-url.base"
+          ),
+        }
+      )
 
     tez_site = properties
-    prop_name1 = 'tez.am.resource.memory.mb'
-    prop_name2 = 'tez.task.resource.memory.mb'
+    prop_name1 = "tez.am.resource.memory.mb"
+    prop_name2 = "tez.task.resource.memory.mb"
     yarnSiteProperties = self.getSiteProperties(configurations, "yarn-site")
     if yarnSiteProperties:
-      yarnMaxAllocationSize = min(30 * int(configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"]),int(configurations["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-mb"]))
+      yarnMaxAllocationSize = min(
+        30
+        * int(
+          configurations["yarn-site"]["properties"][
+            "yarn.scheduler.minimum-allocation-mb"
+          ]
+        ),
+        int(
+          configurations["yarn-site"]["properties"][
+            "yarn.scheduler.maximum-allocation-mb"
+          ]
+        ),
+      )
       if int(tez_site[prop_name1]) > yarnMaxAllocationSize:
-        validationItems.append({"config-name": prop_name1,
-                                "item": self.getWarnItem(
-                                  "{0} should be less than YARN max allocation size ({1})".format(prop_name1, yarnMaxAllocationSize))})
+        validationItems.append(
+          {
+            "config-name": prop_name1,
+            "item": self.getWarnItem(
+              f"{prop_name1} should be less than YARN max allocation size ({yarnMaxAllocationSize})"
+            ),
+          }
+        )
       if int(tez_site[prop_name2]) > yarnMaxAllocationSize:
-        validationItems.append({"config-name": prop_name2,
-                                "item": self.getWarnItem(
-                                  "{0} should be less than YARN max allocation size ({1})".format(prop_name2, yarnMaxAllocationSize))})
+        validationItems.append(
+          {
+            "config-name": prop_name2,
+            "item": self.getWarnItem(
+              f"{prop_name2} should be less than YARN max allocation size ({yarnMaxAllocationSize})"
+            ),
+          }
+        )
 
     return self.toConfigurationValidationProblems(validationItems, "tez-site")
-
-
-

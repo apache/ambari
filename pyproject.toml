@@ -1,0 +1,207 @@
+
+#Licensed to the Apache Software Foundation (ASF) under one or more
+#contributor license agreements.  See the NOTICE file distributed with
+#this work for additional information regarding copyright ownership.
+#The ASF licenses this file to You under the Apache License, Version 2.0
+#(the "License"); you may not use this file except in compliance with
+#the License.  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+#Unless required by applicable law or agreed to in writing, software
+#distributed under the License is distributed on an "AS IS" BASIS,
+#WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#See the License for the specific language governing permissions and
+#limitations under the License.
+
+[project]
+name = "apache-ambari"
+description = "Apache Ambari is a tool for provisioning, managing, and monitoring Apache Hadoop clusters"
+readme = "README.md"
+requires-python = "~=3.6"
+license = { file="LICENSE.txt" }
+authors = [
+    { name = "Apache Software Foundation", email = "dev@ambari.apache.org" },
+]
+
+[project.urls]
+homepage = "https://ambari.apache.org/"
+documentation = "https://ambari.apache.org/"
+
+[tool.ruff]
+# Exclude a variety of commonly ignored directories.
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".ipynb_checkpoints",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pyenv",
+    ".pytest_cache",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    ".vscode",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "site-packages",
+    "venv",
+    "ambari-web",
+    "ambari-admin",
+    "ambari-views",
+    "ambari-utility",
+    "ambari-server-spi",
+    "contrib",
+    "docs",
+    "target"
+]
+
+# Same as Black.
+line-length = 88
+indent-width = 2
+
+# Assume Python 3.6
+target-version = "py37"
+
+[tool.ruff.lint]
+# Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
+# Unlike Flake8, Ruff doesn't enable pycodestyle warnings (`W`) or
+# McCabe complexity (`C901`) by default.
+select = [
+    "B904",
+    "E4",
+    "E7",
+    "E9",
+    "F",
+    "PT009",
+    "TRY201",
+]
+ignore = [
+    # Unused
+    "F401",  # Module imported but unused
+    "F504",  # % format unused named arguments
+    "F522",  # .format(...) unused named arguments
+    "F523",  # .format(...) unused positional arguments
+    "F841",  # Local variable name is assigned to but never used
+
+    # Undefined
+    "F402",  # Import shadowed by loop variable
+    "F403",  # 'from module import *' used; unable to detect undefined names
+    "F405",  # Name may be undefined, or defined from star imports
+    "F406",  # 'from module import *' only allowed at module level
+    "F407",  # An undefined __future__ feature name was imported
+    "F821",  # Undefined name
+    "F822",  # Undefined name in __all__
+    "F823",  # Local variable name referenced before assignment
+    "F842",  # Local variable name is assigned to but never used or is a loop variable
+
+    # Assert
+    "PT009",  # Use a regular `assert` instead of unittest-style `assertEqual`
+    #None
+    "E711", # Comparison to `None` should be `cond is None`
+
+    # Comparison
+    "E712",  # Comparison to `True` should be `if cond is True:` or `if cond:`
+
+    # Unused
+    "F4",  # Import-related errors
+    "F8",  # Name redefinition warnings
+
+    # Undefined
+    "F4",  # Import-related errors (already included above, but listed here for clarity)
+    "F8",  # Name redefinition warnings (already included above, but listed here for clarity)
+
+    # Assert
+    "PT",  # pytest-related rules
+
+    # Comparison
+    "E7",  # Statement-related rules
+
+    # Import sorting and formatting
+    "I",  # isort-related rules
+
+    # Module level import not at top of file
+    "E4",  # Import-related rules
+
+    # Exception handling
+    "B9",  # flake8-bugbear rules
+
+    # Try-except
+    "TRY",  # tryceratops rules
+
+    # Lambda expressions
+    "E7",  # Statement-related rules (already included above, but listed here for clarity)
+
+    # Specific rule for exception chaining
+    "B904",  # Raise exceptions with `raise ... from err` or `raise ... from None`
+
+    "F901", # raise NotImplemented should be raise NotImplementedError
+    "F632", # Use == or != to compare constant literals
+    "F601", # Dictionary key literal repeated
+    "F524", # .format call is missing argument(s) for placeholder(s)
+    "TRY201", # Use raise without specifying exception name
+]
+
+
+extend-select = ["I"]
+
+# Allow fix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.lint.isort]
+case-sensitive = false
+combine-as-imports = true
+force-sort-within-sections = false
+known-first-party = []
+known-third-party = []
+lines-after-imports = -1
+order-by-type = false
+section-order = [
+    "future",
+    "standard-library",
+    "third-party",
+    "first-party",
+    "local-folder"
+]
+
+[tool.ruff.format]
+# Like Black, use double quotes for strings.
+quote-style = "double"
+
+# Like Black, indent with spaces, rather than tabs.
+indent-style = "space"
+
+# Like Black, respect magic trailing commas.
+skip-magic-trailing-comma = false
+
+# Like Black, automatically detect the appropriate line ending.
+line-ending = "auto"
+
+# Enable auto-formatting of code examples in docstrings. Markdown,
+# reStructuredText code/literal blocks and doctests are all supported.
+#
+# This is currently disabled by default, but it is planned for this
+# to be opt-out in the future.
+docstring-code-format = false
+
+# Set the line length limit used when formatting code snippets in
+# docstrings.
+#
+# This only has an effect when the `docstring-code-format` setting is
+# enabled.
+docstring-code-line-length = "dynamic"

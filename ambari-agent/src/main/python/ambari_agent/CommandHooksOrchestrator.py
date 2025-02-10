@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -19,8 +20,8 @@ limitations under the License.
 import os
 import logging
 
-from models.commands import AgentCommand
-from models.hooks import HookPrefix
+from ambari_agent.models.commands import AgentCommand
+from ambari_agent.models.hooks import HookPrefix
 
 __all__ = ["ResolvedHooks", "HooksOrchestrator"]
 
@@ -76,13 +77,13 @@ class HookSequenceBuilder(object):
     HookPrefix.pre: [
       "{prefix}-{command}",
       "{prefix}-{command}-{service}",
-      "{prefix}-{command}-{service}-{role}"
+      "{prefix}-{command}-{service}-{role}",
     ],
     HookPrefix.post: [
       "{prefix}-{command}-{service}-{role}",
       "{prefix}-{command}-{service}",
-      "{prefix}-{command}"
-    ]
+      "{prefix}-{command}",
+    ],
   }
 
   def build(self, prefix, command, service, role):
@@ -96,7 +97,9 @@ class HookSequenceBuilder(object):
     :rtype types.GeneratorType
     """
     if prefix not in self._hooks_sequences:
-      raise TypeError("Unable to locate hooks sequence definition for '{}' prefix".format(prefix))
+      raise TypeError(
+        f"Unable to locate hooks sequence definition for '{prefix}' prefix"
+      )
 
     for hook_definition in self._hooks_sequences[prefix]:
       if "service" in hook_definition and service is None:
@@ -105,12 +108,14 @@ class HookSequenceBuilder(object):
       if "role" is hook_definition and role is None:
         continue
 
-      yield hook_definition.format(prefix=prefix, command=command, service=service, role=role)
+      yield hook_definition.format(
+        prefix=prefix, command=command, service=service, role=role
+      )
 
 
 class HooksOrchestrator(object):
   """
-   Resolving hooks according to HookSequenceBuilder definitions
+  Resolving hooks according to HookSequenceBuilder definitions
   """
 
   def __init__(self, injector):
@@ -141,12 +146,16 @@ class HooksOrchestrator(object):
     service = command["serviceName"] if "serviceName" in command else None
     component = command["role"] if "role" in command else None
 
-    pre_hooks_seq = self._hook_builder.build(HookPrefix.pre, command_name, service, component)
-    post_hooks_seq = self._hook_builder.build(HookPrefix.post, command_name, service, component)
+    pre_hooks_seq = self._hook_builder.build(
+      HookPrefix.pre, command_name, service, component
+    )
+    post_hooks_seq = self._hook_builder.build(
+      HookPrefix.post, command_name, service, component
+    )
 
     return ResolvedHooks(
       self._resolve_hooks_path(hook_dir, pre_hooks_seq),
-      self._resolve_hooks_path(hook_dir, post_hooks_seq)
+      self._resolve_hooks_path(hook_dir, post_hooks_seq),
     )
 
   def _resolve_hooks_path(self, stack_hooks_dir, hooks_sequence):
@@ -162,7 +171,7 @@ class HooksOrchestrator(object):
       hook_script_path = os.path.join(hook_base_dir, "scripts", "hook.py")
 
       if not os.path.isfile(hook_script_path):
-        self._logger.debug("Hook script {0} not found, skipping".format(hook_script_path))
+        self._logger.debug(f"Hook script {hook_script_path} not found, skipping")
         continue
 
       yield hook_script_path, hook_base_dir

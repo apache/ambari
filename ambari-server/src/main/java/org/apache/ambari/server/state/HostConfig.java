@@ -20,9 +20,9 @@ package org.apache.ambari.server.state;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.codehaus.jackson.annotate.JsonProperty;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
 
 /**
@@ -46,7 +46,7 @@ public class HostConfig {
     this.defaultVersionTag = defaultVersionTag;
   }
 
-  @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+  @JsonInclude(JsonInclude.Include.NON_NULL)
   @JsonProperty("overrides")
   public Map<Long, String> getConfigGroupOverrides() {
     return configGroupOverrides;

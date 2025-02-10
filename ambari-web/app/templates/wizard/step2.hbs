@@ -60,8 +60,8 @@
               {{#if useSSH}}
                 {{t installer.step2.useSsh.provide}}
                 <a href="javascript:void(null)"
-                   rel="popover"
-                  {{translateAttr title="installer.step2.useSsh.tooltip.title" data-content="installer.step2.useSsh.tooltip.content"}}
+                   data-bs-toggle="popover"
+                  {{translateAttr title="installer.step2.useSsh.tooltip.title" data-bs-content="installer.step2.useSsh.tooltip.content"}}
                   {{QAAttr "ssh-tooltip-link"}}>
                   {{t installer.step2.useSsh.tooltip.title}}</a>
                 {{t installer.step2.useSsh.provide_id_rsa}}
@@ -69,14 +69,14 @@
                 {{t installer.step2.install.perform}}
                 <a href="javascript:void(null)"
                    rel="popover"
-                  {{translateAttr title="installer.step2.automaticInstall.tooltip.title" data-content="installer.step2.automaticInstall.tooltip.content"}}
+                  {{translateAttr title="installer.step2.automaticInstall.tooltip.title" data-bs-content="installer.step2.automaticInstall.tooltip.content"}}
                   {{QAAttr "ssh-tooltip-link"}}>
                   {{t installer.step2.automaticInstall.tooltip.title}}</a>
                 {{t installer.step2.install.perform_on_hosts}}
               {{/if}}
             </div>
           </div>
-          <div class="col-sm-5 row">
+          <div class="col-sm-5 row d-flex align-items-center">
             <div class="col-sm-1">
               {{#view view.manualRegistrationRadioButton labelIdentifier="manual-registration-radio-button"}}{{/view}}
             </div>
@@ -85,13 +85,13 @@
               {{#if useSSH}}
                 <a href="javascript:void(null)"
                    rel="popover"
-                  {{translateAttr title="installer.step2.manualInstall.tooltip.title" data-content="installer.step2.manualInstall.tooltip.content"}}
+                  {{translateAttr title="installer.step2.manualInstall.tooltip.title" data-bs-content="installer.step2.manualInstall.tooltip.content"}}
                   {{QAAttr "ssh-tooltip-link"}}>
                   {{t installer.step2.manualInstall.tooltip.title}}</a>
               {{else}}
                 <a href="javascript:void(null)"
                    rel="popover"
-                  {{translateAttr title="installer.step2.manualInstall.tooltip.title" data-content="installer.step2.manualInstall.tooltip.content_no_ssh"}}
+                  {{translateAttr title="installer.step2.manualInstall.tooltip.title" data-bs-content="installer.step2.manualInstall.tooltip.content_no_ssh"}}
                   {{QAAttr "ssh-tooltip-link"}}>
                   {{t installer.step2.manualInstall.tooltip.title}}</a>
               {{/if}}

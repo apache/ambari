@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -18,7 +18,9 @@ limitations under the License.
 
 """
 
-__all__ = ["download_from_hdfs", ]
+__all__ = [
+  "download_from_hdfs",
+]
 
 import os
 import uuid
@@ -32,8 +34,16 @@ from resource_management.core import shell
 from resource_management.core.logger import Logger
 
 
-def download_from_hdfs(source_file, dest_path, user_group, owner, download_type="file", file_mode=0444, force_execute=False,
-                       replace_existing_files=False):
+def download_from_hdfs(
+  source_file,
+  dest_path,
+  user_group,
+  owner,
+  download_type="file",
+  file_mode=0o444,
+  force_execute=False,
+  replace_existing_files=False,
+):
   """
   :param source_file: the source file path
   :param dest_path: the destination path
@@ -47,27 +57,34 @@ def download_from_hdfs(source_file, dest_path, user_group, owner, download_type=
   """
   import params
 
-  Logger.info("Called download_from_hdfs source in HDFS: {0} , local destination path: {1}".format(source_file, dest_path))
+  Logger.info(
+    f"Called download_from_hdfs source in HDFS: {source_file} , local destination path: {dest_path}"
+  )
 
   # The destination directory must already exist
   if not os.path.exists(dest_path):
-    Logger.error("Cannot copy {0} because destination directory {1} does not exist.".format(source_file, dest_path))
+    Logger.error(
+      f"Cannot copy {source_file} because destination directory {dest_path} does not exist."
+    )
     return False
 
   filename = os.path.basename(source_file)
   dest_file = os.path.join(dest_path, filename)
 
-  params.HdfsResource(dest_file,
-                      type=download_type,
-                      action="download_on_execute",
-                      source=source_file,
-                      group=user_group,
-                      owner=owner,
-                      mode=file_mode,
-                      replace_existing_files=replace_existing_files,
+  params.HdfsResource(
+    dest_file,
+    type=download_type,
+    action="download_on_execute",
+    source=source_file,
+    group=user_group,
+    owner=owner,
+    mode=file_mode,
+    replace_existing_files=replace_existing_files,
   )
 
-  Logger.info("Will attempt to copy from DFS at {0} to local file system {1}.".format(source_file, dest_file))
+  Logger.info(
+    f"Will attempt to copy from DFS at {source_file} to local file system {dest_file}."
+  )
 
   # For improved performance, force_execute should be False so that it is delayed and combined with other calls.
   if force_execute:

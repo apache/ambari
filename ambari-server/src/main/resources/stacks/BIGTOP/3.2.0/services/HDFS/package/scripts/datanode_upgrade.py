@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -16,6 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+
 import re
 
 from resource_management.core.logger import Logger
@@ -40,18 +42,24 @@ def pre_rolling_upgrade_shutdown(hdfs_binary):
   """
   import params
 
-  Logger.info('DataNode executing "shutdownDatanode" command in preparation for upgrade...')
+  Logger.info(
+    'DataNode executing "shutdownDatanode" command in preparation for upgrade...'
+  )
   if params.security_enabled:
-    Execute(params.dn_kinit_cmd, user = params.hdfs_user)
+    Execute(params.dn_kinit_cmd, user=params.hdfs_user)
 
   dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary)
-  command = format('{dfsadmin_base_command} -shutdownDatanode {dfs_dn_ipc_address} upgrade')
+  command = format(
+    "{dfsadmin_base_command} -shutdownDatanode {dfs_dn_ipc_address} upgrade"
+  )
 
   code, output = shell.call(command, user=params.hdfs_user)
   if code != 0:
     # Due to bug HDFS-7533, DataNode may not always shutdown during stack upgrade, and it is necessary to kill it.
     if output is not None and re.search("Shutdown already in progress", output):
-      Logger.error("Due to a known issue in DataNode, the command {0} did not work, so will need to shutdown the datanode forcefully.".format(command))
+      Logger.error(
+        f"Due to a known issue in DataNode, the command {command} did not work, so will need to shutdown the datanode forcefully."
+      )
       return False
   return True
 
@@ -75,6 +83,7 @@ def post_upgrade_check(hdfs_binary):
 
 def is_datanode_process_running():
   import params
+
   try:
     check_process_status(params.datanode_pid_file)
     return True
@@ -82,7 +91,7 @@ def is_datanode_process_running():
     return False
 
 
-@retry(times=30, sleep_time=30, err_class=Fail) # keep trying for 15 mins
+@retry(times=30, sleep_time=30, err_class=Fail)  # keep trying for 15 mins
 def _check_datanode_startup(hdfs_binary):
   """
   Checks that a DataNode process is running and DataNode is reported as being alive via the
@@ -102,19 +111,25 @@ def _check_datanode_startup(hdfs_binary):
 
   try:
     dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary)
-    command = dfsadmin_base_command + ' -report -live'
+    command = dfsadmin_base_command + " -report -live"
     return_code, hdfs_output = shell.call(command, user=params.hdfs_user)
   except:
-    raise Fail('Unable to determine if the DataNode has started after upgrade.')
+    raise Fail("Unable to determine if the DataNode has started after upgrade.")
 
   if return_code == 0:
     hostname = params.hostname.lower()
-    hostname_ip =  socket.gethostbyname(params.hostname.lower())
+    hostname_ip = socket.gethostbyname(params.hostname.lower())
     if hostname in hdfs_output.lower() or hostname_ip in hdfs_output.lower():
-      Logger.info("DataNode {0} reports that it has rejoined the cluster.".format(params.hostname))
+      Logger.info(
+        f"DataNode {params.hostname} reports that it has rejoined the cluster."
+      )
       return
     else:
-      raise Fail("DataNode {0} was not found in the list of live DataNodes".format(params.hostname))
+      raise Fail(
+        f"DataNode {params.hostname} was not found in the list of live DataNodes"
+      )
 
   # return_code is not 0, fail
-  raise Fail("Unable to determine if the DataNode has started after upgrade (result code {0})".format(str(return_code)))
+  raise Fail(
+    f"Unable to determine if the DataNode has started after upgrade (result code {str(return_code)})"
+  )

@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -20,6 +21,7 @@ Ambari Agent
 
 _all__ = ["Msi"]
 from resource_management.core.base import Resource, ForcedListArgument, ResourceArgument
+
 
 class Msi(Resource):
   action = ForcedListArgument(default="install")

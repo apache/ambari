@@ -16,4 +16,4 @@ rem limitations under the License.
 
 
 set AMBARI_PASSHPHRASE=DEV
-set AMBARI_JVM_ARGS=%AMBARI_JVM_ARGS% -Xms512m -Xmx2048m -Djava.security.auth.login.config=conf\krb5JAASLogin.conf -Djava.security.krb5.conf=conf\krb5.conf -Djavax.security.auth.useSubjectCredsOnly=false
+set AMBARI_JVM_ARGS=%AMBARI_JVM_ARGS% -Xms512m -Xmx2048m -Djdk.tls.ephemeralDHKeySize=2048 -Djava.security.auth.login.config=conf\krb5JAASLogin.conf -Djava.security.krb5.conf=conf\krb5.conf -Djavax.security.auth.useSubjectCredsOnly=false

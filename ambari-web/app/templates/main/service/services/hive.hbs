@@ -37,7 +37,7 @@
         <span class="endpoint-value">
           {{endpoint.value}}
           {{#view view.clipBoardView data-clipboard-action= "copy" data-clipboard-textBinding="endpoint.value"}}
-            <img src="/img/clippy.svg" alt="Copy" rel="clipboard-tooltip" data-toggle="tooltip" data-placement="bottom" title="Copied!"/>
+            <img src="/img/clippy.svg" alt="Copy" rel="clipboard-tooltip" data-bs-toggle="tooltip" data-placement="bottom" title="Copied!"/>
           {{/view}}
         </span>
       </div>
@@ -51,7 +51,7 @@
       <div class="row">
         <div class="col-md-6 summary-label" style="margin-top: 0px;">{{link.label}}</div>
         <div class="col-md-6 summary-value">
-          <a href="#" target="_blank" rel="noopener noreferrer" {{action goToView link.viewInstance target="controller"}}>{{t app.goToView}}</a>
+          <a href="#" target="_blank" {{action goToView link.viewInstance target="controller"}}>{{t app.goToView}}</a>
         </div>
       </div>
     {{/each}}

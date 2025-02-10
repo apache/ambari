@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from ambari_jinja2 import Environment
 
 tmpl = Environment().from_string("""\
@@ -9,4 +10,4 @@ tmpl = Environment().from_string("""\
 if condition: {{ 1 if foo else 0 }}
 """)
 
-print tmpl.render(foo=True)
+print(tmpl.render(foo=True))

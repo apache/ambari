@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -17,10 +17,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+
 import sys
 from resource_management import *
 
-from hive import hive
+from scripts.hive import hive
+
 
 class HiveClient(Script):
   def install(self, env):
@@ -28,14 +30,15 @@ class HiveClient(Script):
     self.configure(env)
 
   def configure(self, env):
-    import params
+    from scripts import params
+
     env.set_params(params)
 
-    hive(name='client')
-
+    hive(name="client")
 
   def status(self, env):
     raise ClientComponentHasNoStatus()
+
 
 if __name__ == "__main__":
   HiveClient().execute()

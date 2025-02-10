@@ -1,4 +1,5 @@
-'''
+#!/usr/bin/env python3
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -14,12 +15,12 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 import copy
 import logging
 
-from Queue import Queue
+from queue import Queue
 
 from ambari_stomp.connect import BaseConnection
 from ambari_stomp.protocol import Protocol12
@@ -31,6 +32,7 @@ from ambari_ws4py.client.threadedclient import WebSocketClient
 logger = logging.getLogger(__name__)
 
 DEFAULT_CONNECTION_TIMEOUT = 10
+
 
 class QueuedWebSocketClient(WebSocketClient):
   def __init__(self, *args, **kwargs):
@@ -63,12 +65,34 @@ class QueuedWebSocketClient(WebSocketClient):
   def closed(self, code, reason=None):
     self.messages.put(StopIteration)
 
+
 class WsTransport(Transport):
   def __init__(self, url, ssl_options=None):
-    Transport.__init__(self, (0, 0), False, False, 0.0, 0.0, 0.0, 0.0, 0, False, None, None, None, None, False,
-    DEFAULT_SSL_VERSION, None, None, None)
-    self.current_host_and_port = (0, 0) # mocking
-    self.ws = QueuedWebSocketClient(url, protocols=['http-only', 'chat'], ssl_options=ssl_options)
+    Transport.__init__(
+      self,
+      (0, 0),
+      False,
+      False,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0,
+      False,
+      None,
+      None,
+      None,
+      None,
+      False,
+      DEFAULT_SSL_VERSION,
+      None,
+      None,
+      None,
+    )
+    self.current_host_and_port = (0, 0)  # mocking
+    self.ws = QueuedWebSocketClient(
+      url, protocols=["http-only", "chat"], ssl_options=ssl_options
+    )
     self.ws.daemon = False
 
   def wait_for_connection(self, timeout=DEFAULT_CONNECTION_TIMEOUT):
@@ -89,7 +113,7 @@ class WsTransport(Transport):
     self.ws.connect()
 
   def send(self, encoded_frame):
-    logger.debug("Outgoing STOMP message:\n>>> " + encoded_frame)
+    logger.debug("Outgoing STOMP message:\n>>> " + encoded_frame.decode())
     if self.ws.terminated:
       raise ConnectionIsAlreadyClosed("Connection is already closed cannot send data")
 
@@ -99,7 +123,7 @@ class WsTransport(Transport):
     try:
       msg = self.ws.receive()
       msg = str(msg) if msg is not None else msg
-      logger.debug("Incoming STOMP message:\n<<< {0}".format(msg))
+      logger.debug(f"Incoming STOMP message:\n<<< {msg}")
       return msg
     except:
       # exceptions from this method are hidden by the framework so implementing logging by ourselves
@@ -123,10 +147,11 @@ class WsTransport(Transport):
     except:
       logger.exception("Exception during Transport.stop(self)")
 
+
 class WsConnection(BaseConnection, Protocol12):
   def __init__(self, url, ssl_options=None):
     self.transport = WsTransport(url, ssl_options=ssl_options)
-    self.transport.set_listener('ws-listener', self)
+    self.transport.set_listener("ws-listener", self)
     self.transactions = {}
     Protocol12.__init__(self, self.transport, (0, 0))
 
@@ -140,13 +165,16 @@ class WsConnection(BaseConnection, Protocol12):
     except:
       logger.exception("Exception during self.transport.stop()")
 
+
 class ConnectionResponseTimeout(StompException):
   """
   Raised when sent 'STOMP' frame and have not received 'CONNECTED' a certain timeout.
   """
 
+
 class ConnectionIsAlreadyClosed(StompException):
   """
   Raised when trying to send data on connection which is already closed. Usually after it was brought down by server.
   """
+
   pass

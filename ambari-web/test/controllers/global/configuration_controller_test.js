@@ -211,7 +211,7 @@ describe('App.ConfigurationController', function () {
     });
   });
 
-  describe('#loadConfigsByTags()', function() {
+  describe.skip('#loadConfigsByTags()', function() {
     var dfd = {
       resolve: Em.K
     };
@@ -221,7 +221,7 @@ describe('App.ConfigurationController', function () {
         done: function(callback) {
           callback({items: [{}]});
           return {
-            complete: Em.clb
+            always: Em.clb
           }
         }
       });

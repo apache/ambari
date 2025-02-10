@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -20,12 +20,14 @@ Ambari Agent
 
 """
 
-__all__ = ['get_from_dict', 'convert_to_list']
+__all__ = ["get_from_dict", "convert_to_list"]
+
 
 class KeyNotFound(object):
   # Prohibit instantiation
   def __new__(cls):
     raise AttributeError("Instance creation is not supported.")
+
 
 def get_from_dict(dict_, keys, default_value=KeyNotFound):
   """
@@ -46,6 +48,7 @@ def get_from_dict(dict_, keys, default_value=KeyNotFound):
       return default_value
 
   return curr_dict
+
 
 def convert_to_list(keys):
   """

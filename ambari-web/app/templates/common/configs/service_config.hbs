@@ -69,7 +69,7 @@
         <div class="btn-group config-groups-dropdown">
           <button {{bindAttr disabled="controller.isHostsConfigsPage"}}
             class="btn btn-default dropdown-toggle"
-            data-toggle="dropdown">
+            data-bs-toggle="dropdown">
             <span class="caret pull-caret-right"></span>
             {{selectedConfigGroup.displayNameHosts}}
           </button>
@@ -121,7 +121,7 @@
     <ul class="nav nav-tabs mbm background-text">
       {{#each tab in view.tabs}}
         <li rel='tooltip' {{bindAttr class="tab.isActive:active tab.isHiddenByFilter:disabled" data-original-title="tab.tooltipMsg"}}>
-          <a href="#" {{action "setActiveTab" tab target="view"}} {{bindAttr data-target="tab.headingClass"}} data-toggle="tab">
+          <a href="#" {{action "setActiveTab" tab target="view"}} {{bindAttr data-target="tab.headingClass"}} data-bs-toggle="tab">
             {{tab.displayName}}
             {{#if tab.isAdvanced}}
               {{#if controller.errorsCount}}

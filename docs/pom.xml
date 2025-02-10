@@ -222,6 +222,18 @@
             </organization>
         </developer>
         <developer>
+            <id>arshad</id>
+            <name>Mohammad Arshad</name>
+            <email>arshad@apache.org</email>
+            <timezone>+5.5</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                VISA
+            </organization>
+        </developer>
+        <developer>
             <id>atkach</id>
             <name>Andrii Tkach</name>
             <email>atkach@apache.org</email>
@@ -1746,7 +1758,11 @@
               <reports>
                 <report>project-team</report>
                 <report>mailing-list</report>
+<!-- we have our own page until we can integrate the
+     security reporting page in the project-info-reports plugin
+     https://issues.apache.org/jira/browse/MNG-7905
                 <report>issue-tracking</report>
+-->
                 <report>license</report>
 <!-- for now
                 <report>modules</report>

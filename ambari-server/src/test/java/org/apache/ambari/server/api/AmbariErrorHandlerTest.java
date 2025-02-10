@@ -23,8 +23,7 @@ import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.easymock.PowerMock.mockStatic;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -78,16 +77,18 @@ public class AmbariErrorHandlerTest extends EasyMockSupport {
     //given
     final UUID requestId = UUID.fromString("4db659b2-7902-477b-b8e6-c35261d3334a");
 
-    mockStatic(HttpConnection.class, UUID.class, LoggerFactory.class);
-    when(HttpConnection.getCurrentConnection()).thenReturn(httpConnection);
-    when(UUID.randomUUID()).thenReturn(requestId);
-    when(LoggerFactory.getLogger(AmbariErrorHandler.class)).thenReturn(logger);
+    mockStatic(HttpConnection.class);
+    mockStatic(UUID.class);
+    mockStatic(LoggerFactory.class);
+    expect(HttpConnection.getCurrentConnection()).andReturn(httpConnection);
+    expect(UUID.randomUUID()).andReturn(requestId);
+    expect(LoggerFactory.getLogger(AmbariErrorHandler.class)).andReturn(logger);
 
     Throwable th = createNiceMock(Throwable.class);
 
     Capture<String> captureLogMessage = EasyMock.newCapture();
     logger.error(capture(captureLogMessage), eq(th));
-    expectLastCall();
+    expectLastCall().anyTimes();
 
     expect(httpConnection.getHttpChannel()).andReturn(httpChannel);
     expect(httpChannel.getRequest()).andReturn(request);
@@ -125,7 +126,7 @@ public class AmbariErrorHandlerTest extends EasyMockSupport {
 
     //given
     mockStatic(HttpConnection.class);
-    when(HttpConnection.getCurrentConnection()).thenReturn(httpConnection);
+    expect(HttpConnection.getCurrentConnection()).andReturn(httpConnection);
 
     expect(httpConnection.getHttpChannel()).andReturn(httpChannel);
     expect(httpChannel.getRequest()).andReturn(request);

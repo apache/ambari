@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -27,7 +27,7 @@ class MicrosoftRServer(Script):
   def install(self, env):
     Logger.info('Installing R Node Client...')
     tmp_dir = Script.tmp_dir
-    Logger.debug('Using temp dir: {0}'.format(tmp_dir))
+    Logger.debug(f'Using temp dir: {tmp_dir}')
     self.install_packages(env)
     Logger.info('Installed R Node Client')
 

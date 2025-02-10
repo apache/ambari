@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -19,7 +19,9 @@ limitations under the License.
 Ambari Agent
 
 """
+
 from resource_management.libraries.script.config_dictionary import UnknownConfiguration
+
 
 def is_empty(var):
   """

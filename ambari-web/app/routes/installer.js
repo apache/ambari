@@ -401,6 +401,22 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
     enter: function (router) {
       console.time('step7 enter');
+      (function() {
+        var script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.text=`setTimeout(()=>{const tooltipTriggerLis2 = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+        console.log("List is",tooltipTriggerList)
+        const tooltipList2 = [...tooltipTriggerList2].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))},3000)`
+        document.getElementsByTagName('head')[0].appendChild(script);
+        })();
+        
+        (function() {
+        var script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.text = `setTimeout(()=>{const popoverTriggerList2 = document.querySelectorAll('[data-bs-toggle="popover"]')
+        const popoverList2 = [...popoverTriggerList2].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl))},3000)`;
+        document.getElementsByTagName('head')[0].appendChild(script);
+        })();
       var controller = router.get('installerController');
       controller.setCurrentStep('7');
       console.timeEnd('step7 enter');

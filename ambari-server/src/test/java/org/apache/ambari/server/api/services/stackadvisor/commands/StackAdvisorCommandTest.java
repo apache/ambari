@@ -22,8 +22,8 @@ import static java.util.Collections.emptyMap;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -60,11 +60,6 @@ import org.apache.ambari.server.api.services.stackadvisor.commands.StackAdvisorC
 import org.apache.ambari.server.controller.internal.AmbariServerConfigurationHandler;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.commons.io.FileUtils;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.annotate.JsonProperty;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.node.ArrayNode;
-import org.codehaus.jackson.node.ObjectNode;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -73,6 +68,11 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 
 /**
@@ -104,7 +104,6 @@ public class StackAdvisorCommandTest {
     int requestId = 0;
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
     AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
-    doReturn(Collections.emptyList()).when(metaInfo).getStackParentVersions(anyString(), anyString());
     StackAdvisorCommand<TestResource> command = spy(new TestStackAdvisorCommand(recommendationsDir, recommendationsArtifactsLifetime,
         ServiceInfo.ServiceAdvisorType.PYTHON, requestId, saRunner, metaInfo, null));
 
@@ -124,7 +123,6 @@ public class StackAdvisorCommandTest {
     int requestId = 0;
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
     AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
-    doReturn(Collections.emptyList()).when(metaInfo).getStackParentVersions(anyString(), anyString());
     StackAdvisorCommand<TestResource> command = spy(new TestStackAdvisorCommand(recommendationsDir, recommendationsArtifactsLifetime,
         ServiceInfo.ServiceAdvisorType.PYTHON, requestId, saRunner, metaInfo, null));
 
@@ -152,7 +150,6 @@ public class StackAdvisorCommandTest {
     int requestId = 0;
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
     AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
-    doReturn(Collections.emptyList()).when(metaInfo).getStackParentVersions(anyString(), anyString());
     StackAdvisorCommand<TestResource> command = spy(new TestStackAdvisorCommand(recommendationsDir, recommendationsArtifactsLifetime,
         ServiceInfo.ServiceAdvisorType.PYTHON, requestId, saRunner, metaInfo, null));
 
@@ -164,8 +161,6 @@ public class StackAdvisorCommandTest {
     doThrow(new WebApplicationException()).when(command).adjust(any(StackAdvisorData.class),
         any(StackAdvisorRequest.class));
 
-    doThrow(new StackAdvisorException("error")).when(saRunner)
-        .runScript(any(ServiceInfo.ServiceAdvisorType.class), any(StackAdvisorCommandType.class), any(File.class));
     command.invoke(request, ServiceInfo.ServiceAdvisorType.PYTHON);
 
 
@@ -181,7 +176,6 @@ public class StackAdvisorCommandTest {
     final int requestId = 2;
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
     AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
-    doReturn(Collections.emptyList()).when(metaInfo).getStackParentVersions(anyString(), anyString());
     final StackAdvisorCommand<TestResource> command = spy(new TestStackAdvisorCommand(
         recommendationsDir, recommendationsArtifactsLifetime, ServiceInfo.ServiceAdvisorType.PYTHON, requestId,
         saRunner, metaInfo, null));
@@ -235,7 +229,7 @@ public class StackAdvisorCommandTest {
     ArrayNode stackVersions = (ArrayNode) stackHierarchy.get("stack_versions");
     assertNotNull(stackVersions);
     assertEquals(2, stackVersions.size());
-    Iterator<JsonNode> stackVersionsElements = stackVersions.getElements();
+    Iterator<JsonNode> stackVersionsElements = stackVersions.elements();
     assertEquals("0.9", stackVersionsElements.next().asText());
     assertEquals("0.8", stackVersionsElements.next().asText());
   }
@@ -259,7 +253,7 @@ public class StackAdvisorCommandTest {
 
     JsonNode serverProperties = objectNode.get("ambari-server-properties");
     assertNotNull(serverProperties);
-    assertEquals("b", serverProperties.iterator().next().getTextValue());
+    assertEquals("b", serverProperties.iterator().next().textValue());
   }
 
   @Test
@@ -339,8 +333,8 @@ public class StackAdvisorCommandTest {
     // in second handling case NPE will be fired during result processing
     doReturn(Response.status(200).entity(String.format(SINGLE_HOST_RESPONSE, "hostName1")).build())
         .doReturn(null)
-        .when(command).handleRequest(any(HttpHeaders.class), any(String.class), any(UriInfo.class), any(Request.Type.class),
-        any(MediaType.class), any(ResourceInstance.class));
+        .when(command).handleRequest(nullable(HttpHeaders.class), nullable(String.class), any(UriInfo.class), any(Request.Type.class),
+                    nullable(MediaType.class), any(ResourceInstance.class));
 
     StackAdvisorRequest request = StackAdvisorRequestBuilder.
         forStack(null, null).ofType(StackAdvisorRequest.StackAdvisorRequestType.CONFIGURATIONS).
@@ -367,12 +361,17 @@ public class StackAdvisorCommandTest {
     TestStackAdvisorCommand command = spy(new TestStackAdvisorCommand(file, recommendationsArtifactsLifetime,
         ServiceInfo.ServiceAdvisorType.PYTHON, 1,
         stackAdvisorRunner, ambariMetaInfo, hostInfoCache));
-
     doReturn(Response.status(200).entity(String.format(SINGLE_HOST_RESPONSE, "hostName1")).build())
         .doReturn(Response.status(200).entity(String.format(SINGLE_HOST_RESPONSE, "hostName2")).build())
         .doReturn(null)
-        .when(command).handleRequest(any(HttpHeaders.class), any(String.class), any(UriInfo.class), any(Request.Type.class),
-        any(MediaType.class), any(ResourceInstance.class));
+        .when(command).handleRequest(
+                nullable(HttpHeaders.class),
+                nullable(String.class),
+                any(UriInfo.class),
+                any(Request.Type.class),
+                nullable(MediaType.class),
+                any(ResourceInstance.class)
+        );
 
     StackAdvisorRequest request = StackAdvisorRequestBuilder.
         forStack(null, null).ofType(StackAdvisorRequest.StackAdvisorRequestType.CONFIGURATIONS).

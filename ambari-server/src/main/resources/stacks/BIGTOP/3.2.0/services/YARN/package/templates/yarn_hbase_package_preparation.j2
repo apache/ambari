@@ -1,0 +1,76 @@
+{#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#}
+
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
+#
+
+echo "`date` Running hbase package creation script"
+ambari_agent_tmp_dir="{{tmp_dir}}"
+yarn_hbase_user="{{yarn_hbase_user}}"
+yarn_hbase_user_tmp="{{yarn_hbase_user_tmp}}"
+version_home="{{stack_root}}/{{version}}/usr/lib"
+if [ ! -d $yarn_hbase_user_tmp ]
+then
+    echo "Creating a tmp path $yarn_hbase_user_tmp";
+    mkdir -p $yarn_hbase_user_tmp;
+    cd $ambari_agent_tmp_dir;
+    chmod -R 0755 $yarn_hbase_user;
+fi;
+
+cd $yarn_hbase_user_tmp
+if [ -f hbase.tar.gz ]
+then
+    echo "`date` hbase.tar.gz package exist in path $yarn_hbase_user_tmp."
+    echo "`date` File status: `ls -l hbase.tar.gz`"
+    echo "`date` Exitting from script.."
+    exit
+fi;
+
+cp -rf $version_home/hbase .
+rm -rf hbase/conf
+rm -rf hbase/logs
+rm -rf hbase/pids
+rm -rf hbase/lib/zookeeper*.jar
+cp -rf $version_home/zookeeper/zookeeper-*.jar hbase/lib
+cp -rf $version_home/hadoop/mapreduce.tar.gz .
+tar -xzf mapreduce.tar.gz
+rm -rf mapreduce.tar.gz
+tar -czf hbase.tar.gz hbase hadoop && echo "`date` HBase package created in path $yarn_hbase_user_tmp"
+chmod 644 hbase.tar.gz && echo "`date` hbase.tar.gz has set with ugo=644"
+rm -rf hbase
+rm -rf hadoop
+echo "`date` File status: `ls -l $yarn_hbase_user_tmp/hbase.tar.gz`"
+echo "`date` Exitting from script.."
+exit

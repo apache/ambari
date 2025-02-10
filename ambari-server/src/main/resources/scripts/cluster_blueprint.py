@@ -1,6 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,7 +16,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 #
 # Main.
@@ -25,7 +25,7 @@ import sys
 import optparse
 import getpass
 import logging
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import re
 import json
 import base64
@@ -50,24 +50,33 @@ BLUEPRINT_CREATE_URL = "/api/v1/blueprints/{0}"
 BLUEPRINT_CLUSTER_CREATE_URL = "/api/v1/clusters/{0}"
 BLUEPRINT_FETCH_URL = "/api/v1/clusters/{0}?format=blueprint"
 
+
 def getUrl(partial_url):
   return PROTOCOL + "://" + HOSTNAME + ":" + PORT + partial_url
 
-def get_validated_string_input(prompt, default, pattern, description,
-                               is_pass, allowEmpty=True, validatorFunction=None):
+
+def get_validated_string_input(
+  prompt,
+  default,
+  pattern,
+  description,
+  is_pass,
+  allowEmpty=True,
+  validatorFunction=None,
+):
   input = ""
   while not input:
     if SILENT:
-      print (prompt)
+      print(prompt)
       input = default
     elif is_pass:
       input = getpass.getpass(prompt)
     else:
-      input = raw_input(prompt)
+      input = input(prompt)
     if not input.strip():
       # Empty input - if default available use default
       if not allowEmpty and not default:
-        print 'Property cannot be blank.'
+        print("Property cannot be blank.")
         input = ""
         continue
       else:
@@ -79,7 +88,7 @@ def get_validated_string_input(prompt, default, pattern, description,
         break  # done here and picking up default
     else:
       if not pattern == None and not re.search(pattern, input.strip()):
-        print description
+        print(description)
         input = ""
 
       if validatorFunction:
@@ -88,9 +97,12 @@ def get_validated_string_input(prompt, default, pattern, description,
           continue
   return input
 
+
 def get_server_info(silent=False):
   if not silent:
-    host = get_validated_string_input("Server Host (localhost):", "localhost", ".*", "", True)
+    host = get_validated_string_input(
+      "Server Host (localhost):", "localhost", ".*", "", True
+    )
     port = get_validated_string_input("Server Port (8080):", "8080", ".*", "", True)
     protocol = get_validated_string_input("Protocol (http):", "http", ".*", "", True)
     user = get_validated_string_input("User (admin):", "admin", ".*", "", True)
@@ -114,11 +126,10 @@ def get_server_info(silent=False):
   pass
 
 
-class PreemptiveBasicAuthHandler(urllib2.BaseHandler):
-
+class PreemptiveBasicAuthHandler(urllib.request.BaseHandler):
   def __init__(self):
-    password_mgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
-    password_mgr.add_password(None, getUrl(''), USERNAME, PASSWORD)
+    password_mgr = urllib.request.HTTPPasswordMgrWithDefaultRealm()
+    password_mgr.add_password(None, getUrl(""), USERNAME, PASSWORD)
     self.passwd = password_mgr
     self.add_password = self.passwd.add_password
 
@@ -126,18 +137,18 @@ class PreemptiveBasicAuthHandler(urllib2.BaseHandler):
     uri = req.get_full_url()
     user = USERNAME
     pw = PASSWORD
-    raw = "%s:%s" % (user, pw)
-    auth = 'Basic %s' % base64.b64encode(raw).strip()
-    req.add_unredirected_header('Authorization', auth)
+    raw = f"{user}:{pw}"
+    auth = f"Basic {base64.b64encode(raw.encode()).decode().strip()}"
+    req.add_unredirected_header("Authorization", auth)
     return req
 
-class AmbariBlueprint:
 
+class AmbariBlueprint:
   def __init__(self):
     handler = PreemptiveBasicAuthHandler()
-    opener = urllib2.build_opener(handler)
+    opener = urllib.request.build_opener(handler)
     # Install opener for all requests
-    urllib2.install_opener(opener)
+    urllib.request.install_opener(opener)
     self.urlOpener = opener
 
   def importBlueprint(self, blueprintLocation, hostsLocation, clusterName):
@@ -153,15 +164,17 @@ class AmbariBlueprint:
 
     # Verify json data
     blueprint_json = json.loads(blueprint)
-    logger.debug("blueprint json: %s" % blueprint_json)
+    logger.debug(f"blueprint json: {blueprint_json}")
 
     blueprintInfo = blueprint_json.get("Blueprints")
     if not blueprintInfo:
-      raise Exception("Cannot read blueprint info from blueprint at %s" % blueprintLocation)
+      raise Exception(
+        f"Cannot read blueprint info from blueprint at {blueprintLocation}"
+      )
 
     blueprint_name = blueprintInfo.get("blueprint_name")
     if not blueprint_name:
-      raise Exception("blueprint_name required inside Blueprints %s" % blueprintInfo)
+      raise Exception(f"blueprint_name required inside Blueprints {blueprintInfo}")
 
     hosts_json = None
 
@@ -172,28 +185,29 @@ class AmbariBlueprint:
       if expectedMasterCount != len(masters.split(",")):
         logger.info("Mismatch in cardinality. Inferring host assignment for masters...")
       pass
-      hosts_json = self.buildHostAssignments(blueprint_name, blueprint_json,
-                                             masters.split(","),
-                                             slaves.split(","),
-                                             gateway)
+      hosts_json = self.buildHostAssignments(
+        blueprint_name, blueprint_json, masters.split(","), slaves.split(","), gateway
+      )
     pass
 
     # Parse user provided hostData and build host json
     if not isDefaultJson and INLINE_ARGUMENTS:
-      raise Exception("Unsupported operation, please provide explict host "
-                      "assignments with -o option.")
+      raise Exception(
+        "Unsupported operation, please provide explict host "
+        "assignments with -o option."
+      )
     pass
 
     # Read from file if available
     if not hosts_json and hostsLocation:
-      with open(hostsLocation, 'r') as file:
+      with open(hostsLocation, "r") as file:
         hosts_json = file.read()
         # Verify json data
         hostAssignments = json.loads(hosts_json)
       pass
     pass
 
-    logger.debug("host assignments json: %s" % hosts_json)
+    logger.debug(f"host assignments json: {hosts_json}")
 
     # Create blueprint
     blueprintCreateUrl = getUrl(BLUEPRINT_CREATE_URL.format(blueprint_name))
@@ -202,10 +216,11 @@ class AmbariBlueprint:
     if retCode == "201":
       logger.info("Blueprint created successfully.")
     elif retCode == "409":
-      logger.info("Blueprint %s already exists, proceeding with host "
-                  "assignments." % blueprint_name)
+      logger.info(
+        f"Blueprint {blueprint_name} already exists, proceeding with host assignments."
+      )
     else:
-      logger.error("Unable to create blueprint from location %s" % blueprintLocation)
+      logger.error(f"Unable to create blueprint from location {blueprintLocation}")
       sys.exit(1)
     pass
 
@@ -220,22 +235,24 @@ class AmbariBlueprint:
       sys.exit(1)
     pass
 
-
-  def buildHostAssignments(self, blueprintName, blueprintJson, masters,
-                           slaves, gateway = None):
+  def buildHostAssignments(
+    self, blueprintName, blueprintJson, masters, slaves, gateway=None
+  ):
     hostAssignments = '{{"blueprint":"{0}","host_groups":[{1}]}}'
     hostGroupHosts = '{{"name":"{0}","hosts":[{1}]}}'
     hosts = '{{"fqdn":"{0}"}},'
-    logger.debug("Blueprint: {0}, Masters: {1}, Slaves: {2}".format(blueprintName, masters, slaves))
+    logger.debug(f"Blueprint: {blueprintName}, Masters: {masters}, Slaves: {slaves}")
     mastersUsed = 0
     slavesUsed = 0
-    hostGroupsJson = ''
+    hostGroupsJson = ""
     hostGroups = blueprintJson.get("host_groups")
     for hostGroup in hostGroups:
       if hostGroup.get("name").find("master") != -1:
-        masterHosts = ''
+        masterHosts = ""
         cardinality = int(hostGroup.get("cardinality"))
-        hostList = self.getHostListMatchingCardinality(cardinality, masters, mastersUsed)
+        hostList = self.getHostListMatchingCardinality(
+          cardinality, masters, mastersUsed
+        )
         mastersUsed = len(hostList)
         for host in hostList:
           masterHosts += hosts.format(host.strip())
@@ -245,7 +262,7 @@ class AmbariBlueprint:
         hostGroupsJson += masterHostsGroup + ","
       pass
       if hostGroup.get("name").find("slave") != -1:
-        slaveHosts = ''
+        slaveHosts = ""
         cardinality = int(hostGroup.get("cardinality"))
         hostList = self.getHostListMatchingCardinality(cardinality, slaves, slavesUsed)
         slavesUsed = len(hostList)
@@ -257,12 +274,14 @@ class AmbariBlueprint:
         hostGroupsJson += slaveHostsGroup + ","
       pass
       if hostGroup.get("name").find("gateway") != -1:
-        gatewayHosts = ''
+        gatewayHosts = ""
         cardinality = int(hostGroup.get("cardinality"))
         if gateway:
           hostList = [gateway]
         else:
-          hostList = self.getHostListMatchingCardinality(cardinality, masters, mastersUsed)
+          hostList = self.getHostListMatchingCardinality(
+            cardinality, masters, mastersUsed
+          )
           mastersUsed = len(hostList)
         pass
         gatewayHosts += hosts.format(hostList[0].strip())
@@ -271,16 +290,19 @@ class AmbariBlueprint:
       pass
     pass
 
-    hostGroupsJson = hostGroupsJson.rstrip(",") if hostGroupsJson.endswith(",") else hostGroupsJson
+    hostGroupsJson = (
+      hostGroupsJson.rstrip(",") if hostGroupsJson.endswith(",") else hostGroupsJson
+    )
 
     return hostAssignments.format(blueprintName, hostGroupsJson)
+
   pass
 
   def getHostListMatchingCardinality(self, cardinality, hostList, usedCount):
     if cardinality == len(hostList):
       return hostList
     if cardinality < len(hostList):
-      unUsedHosts = hostList[usedCount:len(hostList)]
+      unUsedHosts = hostList[usedCount : len(hostList)]
       if unUsedHosts:
         if cardinality == len(unUsedHosts):
           return unUsedHosts
@@ -288,7 +310,7 @@ class AmbariBlueprint:
           return unUsedHosts[0:cardinality]
         else:
           usedHosts = hostList[0:usedCount]
-          for i in range(cardinality-len(unUsedHosts), cardinality):
+          for i in range(cardinality - len(unUsedHosts), cardinality):
             unUsedHosts += usedHosts[i]
           pass
           return unUsedHosts
@@ -356,43 +378,42 @@ class AmbariBlueprint:
         logger.info(resp)
       pass
     else:
-      logger.error("Unable to perform export operation on cluster, %s" % clusterName)
+      logger.error(f"Unable to perform export operation on cluster, {clusterName}")
 
     pass
 
-
   def performPostOperation(self, url, data):
-    req = urllib2.Request(url, data)
+    req = urllib.request.Request(url, data)
     req.add_header("X-Requested-By", "ambari_scripts")
-    req.get_method = lambda: 'POST'
+    req.get_method = lambda: "POST"
 
     try:
-      logger.info("POST request: %s" % req.get_full_url())
-      logger.debug("Payload: %s " % data)
+      logger.info(f"POST request: {req.get_full_url()}")
+      logger.debug(f"Payload: {data} ")
       resp = self.urlOpener.open(req)
       if resp:
-        logger.info("Create response: %s" % resp.getcode())
+        logger.info(f"Create response: {resp.getcode()}")
         retCode = str(resp.getcode()).strip()
         if retCode == "201" or retCode == "202":
           urlResp = resp.read()
-          logger.info("Response data: %s" % str(urlResp))
+          logger.info(f"Response data: {str(urlResp)}")
           return retCode
         pass
       pass
-    except urllib2.HTTPError, e:
+    except urllib.error.HTTPError as e:
       logger.error("POST request failed.")
-      logger.error('HTTPError : %s' % e.read())
+      logger.error(f"HTTPError : {e.read()}")
       if e.code == 409:
-        return '409'
+        return "409"
       pass
-    except Exception, e:
+    except Exception as e:
       logger.error("POST request failed.")
       logger.error(e)
-      if 'HTTP Error 409' in str(e):
-        return '409'
+      if "HTTP Error 409" in str(e):
+        return "409"
       pass
 
-    return '-1'
+    return "-1"
 
     pass
 
@@ -404,41 +425,89 @@ class AmbariBlueprint:
         resp = resp.read()
         data = json.loads(resp)
       else:
-        logger.error("Unable to get response from server, url = %s" % url)
+        logger.error(f"Unable to get response from server, url = {url}")
     except:
-      logger.error("Error reading response from server, url %s" % url)
+      logger.error(f"Error reading response from server, url {url}")
 
     return data
 
 
 def main():
   parser = optparse.OptionParser(usage="usage: %prog [options]")
-  parser.set_description('This python program is a Ambari thin client and '
-                         'supports import/export of Ambari managed clusters '
-                         'using a cluster blueprint.')
+  parser.set_description(
+    "This python program is a Ambari thin client and "
+    "supports import/export of Ambari managed clusters "
+    "using a cluster blueprint."
+  )
 
-  parser.add_option("-v", "--verbose", dest="verbose", action="store_true",
-                  default=False, help="output verbosity.")
-  parser.add_option("-a", "--action", dest="action", default = "import",
-                  help="Script action. (import/export) [default: import]")
-  parser.add_option("-f", "--blueprint", dest="blueprint", metavar="FILE",
-                  help="File Path. (import/export) file path.")
-  parser.add_option("-o", "--hosts", dest="hosts", metavar="FILE",
-                  help="Host Assignments. Import only.")
+  parser.add_option(
+    "-v",
+    "--verbose",
+    dest="verbose",
+    action="store_true",
+    default=False,
+    help="output verbosity.",
+  )
+  parser.add_option(
+    "-a",
+    "--action",
+    dest="action",
+    default="import",
+    help="Script action. (import/export) [default: import]",
+  )
+  parser.add_option(
+    "-f",
+    "--blueprint",
+    dest="blueprint",
+    metavar="FILE",
+    help="File Path. (import/export) file path.",
+  )
+  parser.add_option(
+    "-o", "--hosts", dest="hosts", metavar="FILE", help="Host Assignments. Import only."
+  )
   parser.add_option("-c", "--cluster", dest="cluster", help="Target cluster.")
-  parser.add_option("-d", "--arguments", dest="arguments",
-                    help="Inline arguments for masters and slaves. "
-                         "master=X,Y&slaves=A,B&gateway=G")
-  parser.add_option("-s", "--silent", dest="silent", default=False,
-                    action="store_true", help="Run silently. Appropriate accompanying arguments required.")
-  parser.add_option("-r", "--port", dest="port", default="8080",
-                    help="Ambari server port, when running silently. [default: 8080]")
-  parser.add_option("-u", "--user", dest="user", default="admin",
-                    help="Ambari server username, when running silently. [default: admin]")
-  parser.add_option("-p", "--password", dest="password", default="admin",
-                    help="Ambari server password, when running silently. [default: admin]")
-  parser.add_option("-i", "--host", dest="hostname", default="localhost",
-                    help="Ambari server host, when running silently. [default: localhost]")
+  parser.add_option(
+    "-d",
+    "--arguments",
+    dest="arguments",
+    help="Inline arguments for masters and slaves. " "master=X,Y&slaves=A,B&gateway=G",
+  )
+  parser.add_option(
+    "-s",
+    "--silent",
+    dest="silent",
+    default=False,
+    action="store_true",
+    help="Run silently. Appropriate accompanying arguments required.",
+  )
+  parser.add_option(
+    "-r",
+    "--port",
+    dest="port",
+    default="8080",
+    help="Ambari server port, when running silently. [default: 8080]",
+  )
+  parser.add_option(
+    "-u",
+    "--user",
+    dest="user",
+    default="admin",
+    help="Ambari server username, when running silently. [default: admin]",
+  )
+  parser.add_option(
+    "-p",
+    "--password",
+    dest="password",
+    default="admin",
+    help="Ambari server password, when running silently. [default: admin]",
+  )
+  parser.add_option(
+    "-i",
+    "--host",
+    dest="hostname",
+    default="localhost",
+    help="Ambari server host, when running silently. [default: localhost]",
+  )
 
   (options, args) = parser.parse_args()
 
@@ -456,11 +525,13 @@ def main():
 
   if options.silent:
     if options.blueprint is None:
-      raise Exception("Destination file path required. '-f' option not "
-                      "provided.")
-    elif options.action == "import" and options.hosts is None and options.arguments is None:
-      raise Exception("Host assignment file path required. '-o' option not "
-                      "provided.")
+      raise Exception("Destination file path required. '-f' option not " "provided.")
+    elif (
+      options.action == "import" and options.hosts is None and options.arguments is None
+    ):
+      raise Exception(
+        "Host assignment file path required. '-o' option not " "provided."
+      )
   pass
 
   # set verbose
@@ -471,7 +542,7 @@ def main():
     logger.setLevel(level=logging.INFO)
   pass
   ch = logging.StreamHandler(sys.stdout)
-  formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+  formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
   ch.setFormatter(formatter)
   logger.addHandler(ch)
 
@@ -494,7 +565,7 @@ def main():
   elif options.action == "export":
     ambariBlueprint.exportBlueprint(options.cluster, options.blueprint)
   else:
-    raise Exception("Unsupported action %s" % options.action)
+    raise Exception(f"Unsupported action {options.action}")
   pass
 
 

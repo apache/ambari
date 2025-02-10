@@ -19,7 +19,7 @@
 
   <div class="btn-toolbar" role="toolbar">
     <div id="widgets-options-menu" class="widgets-options-menu dropdown btn-group pull-left">
-      <button class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#">
+      <button class="btn btn-default dropdown-toggle" data-bs-toggle="dropdown" href="#">
         <span>{{t dashboard.widgets.actions.title}}</span>
         <span class="caret"></span>
       </button>
@@ -61,7 +61,7 @@
                 <h5 class="widgets-group-title">{{group.title}}</h5>
                 {{#if group.subGroups.length}}
                   <div class="btn-group dropdown">
-                    <button class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                    <button class="btn btn-default dropdown-toggle" data-bs-toggle="dropdown">
                       <span class="selected-item">
                         {{#if group.activeSubGroup}}
                           {{group.activeSubGroup.title}}
@@ -85,7 +85,7 @@
               </div>
               <div class="widgets-options-menu col-md-6">
                 <div class="add-widgets-text dropdown btn-group pull-right">
-                  <button class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#">
+                  <button class="btn btn-default dropdown-toggle" data-bs-toggle="dropdown" href="#">
                     <span>{{t common.add}}</span>
                     <span class="caret"></span>
                   </button>

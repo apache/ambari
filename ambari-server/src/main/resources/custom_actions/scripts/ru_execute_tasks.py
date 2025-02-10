@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -19,9 +19,10 @@ limitations under the License.
 Ambari Agent
 
 """
+
 import re
 import os
-import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
+import ambari_simplejson as json  # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import socket
 import traceback
 
@@ -55,12 +56,12 @@ class ExecuteTask:
   def __str__(self):
     inner = []
     if self.type:
-      inner.append("Type: %s" % str(self.type))
+      inner.append(f"Type: {str(self.type)}")
     if self.script and self.function:
-      inner.append("Script: %s - Function: %s" % (str(self.script), str(self.function)))
+      inner.append(f"Script: {str(self.script)} - Function: {str(self.function)}")
     elif self.command:
-      inner.append("Command: %s" % str(self.command))
-    return "Task. %s" % ", ".join(inner)
+      inner.append(f"Command: {str(self.command)}")
+    return f"Task. {', '.join(inner)}"
 
 
 def replace_variables(cmd, host_name, version):
@@ -78,8 +79,8 @@ def resolve_ambari_config():
     if os.path.exists(config_path):
       agent_config.read(config_path)
     else:
-      raise Exception("No config found at %s" % str(config_path))
-  except Exception, err:
+      raise Exception(f"No config found at {str(config_path)}")
+  except Exception as err:
     traceback.print_exc()
     Logger.warning(err)
 
@@ -99,15 +100,17 @@ class ExecuteUpgradeTasks(Script):
     config = Script.get_config()
 
     host_name = socket.gethostname()
-    version = default('/roleParams/version', None)
+    version = default("/roleParams/version", None)
 
     # These 2 variables are optional
-    service_package_folder = default('/commandParams/service_package_folder', None)
+    service_package_folder = default("/commandParams/service_package_folder", None)
     if service_package_folder is None:
-      service_package_folder = default('/serviceLevelParams/service_package_folder', None)
-    hooks_folder = default('/commandParams/hooks_folder', None)
+      service_package_folder = default(
+        "/serviceLevelParams/service_package_folder", None
+      )
+    hooks_folder = default("/commandParams/hooks_folder", None)
 
-    tasks = json.loads(config['roleParams']['tasks'])
+    tasks = json.loads(config["roleParams"]["tasks"])
     if tasks:
       for t in tasks:
         task = ExecuteTask(t)
@@ -122,40 +125,44 @@ class ExecuteUpgradeTasks(Script):
               "commandParams": {
                 "service_package_folder": service_package_folder,
               },
-              "clusterLevelParams": {
-                   "hooks_folder": hooks_folder
-              },
+              "clusterLevelParams": {"hooks_folder": hooks_folder},
               "ambariLevelParams": {
-                "jdk_location": default('/ambariLevelParams/jdk_location', "")
-              }
-            } 
+                "jdk_location": default("/ambariLevelParams/jdk_location", "")
+              },
+            }
 
             base_dir = file_cache.get_service_base_dir(command_paths)
           else:
-            base_dir = file_cache.get_custom_actions_base_dir({
-              "ambariLevelParams": {
-                "jdk_location": default('/ambariLevelParams/jdk_location', "")
+            base_dir = file_cache.get_custom_actions_base_dir(
+              {
+                "ambariLevelParams": {
+                  "jdk_location": default("/ambariLevelParams/jdk_location", "")
+                }
               }
-            })
+            )
 
           script_path = os.path.join(base_dir, task.script)
           if not os.path.exists(script_path):
-            message = "Script %s does not exist" % str(script_path)
+            message = f"Script {str(script_path)} does not exist"
             raise Fail(message)
 
           # Notice that the script_path is now the fully qualified path, and the
           # same command-#.json file is used.
           # Also, the python wrapper is used, since it sets up the correct environment variables
-          command_params = ["/usr/bin/ambari-python-wrap",
-                            script_path,
-                            task.function,
-                            self.command_data_file,
-                            self.basedir,
-                            self.stroutfile,
-                            self.logging_level,
-                            Script.get_tmp_dir()]
+          command_params = [
+            "/usr/bin/ambari-python-wrap",
+            script_path,
+            task.function,
+            self.command_data_file,
+            self.basedir,
+            self.stroutfile,
+            self.logging_level,
+            Script.get_tmp_dir(),
+          ]
 
-          task.command = "source /var/lib/ambari-agent/ambari-env.sh ; " + " ".join(command_params)
+          task.command = "source /var/lib/ambari-agent/ambari-env.sh ; " + " ".join(
+            command_params
+          )
           # Replace redundant whitespace to make the unit tests easier to validate
           task.command = re.sub("\s+", " ", task.command).strip()
 

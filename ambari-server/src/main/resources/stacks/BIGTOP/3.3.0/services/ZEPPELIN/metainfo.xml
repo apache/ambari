@@ -20,7 +20,7 @@ limitations under the License.
   <services>
     <service>
       <name>ZEPPELIN</name>
-      <version>0.10.1-1</version>
+      <version>0.11.0-1</version>
     </service>
   </services>
 </metainfo>

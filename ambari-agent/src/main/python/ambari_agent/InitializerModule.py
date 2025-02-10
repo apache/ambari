@@ -1,6 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,7 +16,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 import threading
 import logging
@@ -55,6 +55,7 @@ class InitializerModule:
   - Make other components code cleaner.
   - Provide an easier way to mock some dependencies.
   """
+
   def __init__(self):
     self.stop_event = threading.Event()
     self.config = AmbariConfig.get_resolved_config()
@@ -76,30 +77,35 @@ class InitializerModule:
     self.action_queue = None
     self.alert_scheduler_handler = None
 
-    self.init()
-
   def init(self):
     """
     Initialize properties
     """
     self.is_registered = False
 
-    self.metadata_cache = ClusterMetadataCache(self.config.cluster_cache_dir, self.config)
-    self.topology_cache = ClusterTopologyCache(self.config.cluster_cache_dir, self.config)
-    self.host_level_params_cache = ClusterHostLevelParamsCache(self.config.cluster_cache_dir)
+    self.metadata_cache = ClusterMetadataCache(
+      self.config.cluster_cache_dir, self.config
+    )
+    self.topology_cache = ClusterTopologyCache(
+      self.config.cluster_cache_dir, self.config
+    )
+    self.host_level_params_cache = ClusterHostLevelParamsCache(
+      self.config.cluster_cache_dir
+    )
     self.configurations_cache = ClusterConfigurationCache(self.config.cluster_cache_dir)
-    self.alert_definitions_cache = ClusterAlertDefinitionsCache(self.config.cluster_cache_dir)
+    self.alert_definitions_cache = ClusterAlertDefinitionsCache(
+      self.config.cluster_cache_dir
+    )
     self.configuration_builder = ConfigurationBuilder(self)
     self.stale_alerts_monitor = StaleAlertsMonitor(self)
     self.server_responses_listener = ServerResponsesListener(self)
     self.file_cache = FileCache(self.config)
-    self.customServiceOrchestrator = CustomServiceOrchestrator(self)
     self.hooks_orchestrator = HooksOrchestrator(self)
+    self.customServiceOrchestrator = CustomServiceOrchestrator(self)
     self.recovery_manager = RecoveryManager(self)
     self.commandStatuses = CommandStatusDict(self)
 
     self.init_threads()
-
 
   def init_threads(self):
     """

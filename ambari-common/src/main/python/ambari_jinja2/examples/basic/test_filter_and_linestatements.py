@@ -1,7 +1,10 @@
+#!/usr/bin/env python3
 from ambari_jinja2 import Environment
 
 
-env = Environment(line_statement_prefix='%', variable_start_string="${", variable_end_string="}")
+env = Environment(
+  line_statement_prefix="%", variable_start_string="${", variable_end_string="}"
+)
 tmpl = env.from_string("""\
 % macro foo()
     ${caller(42)}
@@ -22,4 +25,4 @@ tmpl = env.from_string("""\
 % endfilter
 """)
 
-print tmpl.render(seq=range(10))
+print(tmpl.render(seq=range(10)))

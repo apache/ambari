@@ -69,7 +69,7 @@ public class NamedTasksSubscriptions {
         }
         return ids;
       });
-      LOG.info(String.format("Task subscription was added for sessionId = %s, taskId = %s, id = %s",
+      LOG.debug(String.format("Task subscription was added for sessionId = %s, taskId = %s, id = %s",
           sessionId, taskId, id));
     } finally {
       taskIdsLock.unlock();
@@ -82,7 +82,7 @@ public class NamedTasksSubscriptions {
       while (iterator.hasNext()) {
         if (iterator.next().getId().equals(id)) {
           iterator.remove();
-          LOG.info(String.format("Task subscription was removed for sessionId = %s, id = %s", sessionId, id));
+          LOG.debug(String.format("Task subscription was removed for sessionId = %s, id = %s", sessionId, id));
         }
       }
       return tasks;
@@ -98,7 +98,7 @@ public class NamedTasksSubscriptions {
           while (iterator.hasNext()) {
             if (iterator.next().getTaskId().equals(taskId)) {
               iterator.remove();
-              LOG.info(String.format("Task subscription was removed for sessionId = %s and taskId = %s",
+              LOG.debug(String.format("Task subscription was removed for sessionId = %s and taskId = %s",
                   sessionId, taskId));
             }
           }
@@ -114,7 +114,7 @@ public class NamedTasksSubscriptions {
     try {
       taskIdsLock.lock();
       taskIds.remove(sessionId);
-      LOG.info(String.format("Task subscriptions were removed for sessionId = %s", sessionId));
+      LOG.debug(String.format("Task subscriptions were removed for sessionId = %s", sessionId));
     } finally {
       taskIdsLock.unlock();
     }

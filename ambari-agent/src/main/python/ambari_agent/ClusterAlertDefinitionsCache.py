@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 Licensed to the Apache Software Foundation (ASF) under one
@@ -23,6 +23,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class ClusterAlertDefinitionsCache(ClusterCache):
   """
   Maintains an in-memory cache and disk cache of the host level params send from server for
@@ -42,9 +43,9 @@ class ClusterAlertDefinitionsCache(ClusterCache):
     super(ClusterAlertDefinitionsCache, self).__init__(cluster_cache_dir)
 
   def get_alert_definition_index_by_id(self, alert_dict, cluster_id, alert_id):
-    definitions = alert_dict[cluster_id]['alertDefinitions']
-    for i in xrange(len(definitions)):
-      if definitions[i]['definitionId'] == alert_id:
+    definitions = alert_dict[cluster_id]["alertDefinitions"]
+    for i in range(len(definitions)):
+      if definitions[i]["definitionId"] == alert_id:
         return i
 
     return None
@@ -58,19 +59,23 @@ class ClusterAlertDefinitionsCache(ClusterCache):
         mutable_dict[cluster_id] = cache_update[cluster_id]
         continue
 
-      for alert_definition in cache_update[cluster_id]['alertDefinitions']:
-        id_to_update = alert_definition['definitionId']
-        index_of_alert = self.get_alert_definition_index_by_id(mutable_dict, cluster_id, id_to_update)
+      for alert_definition in cache_update[cluster_id]["alertDefinitions"]:
+        id_to_update = alert_definition["definitionId"]
+        index_of_alert = self.get_alert_definition_index_by_id(
+          mutable_dict, cluster_id, id_to_update
+        )
         if index_of_alert == None:
-          mutable_dict[cluster_id]['alertDefinitions'].append(alert_definition)
+          mutable_dict[cluster_id]["alertDefinitions"].append(alert_definition)
         else:
-          mutable_dict[cluster_id]['alertDefinitions'][index_of_alert] = alert_definition
-          
+          mutable_dict[cluster_id]["alertDefinitions"][index_of_alert] = (
+            alert_definition
+          )
+
       # for other non-definitions properties
-      for property, value in cache_update[cluster_id].iteritems():
-        if property == 'alertDefinitions':
+      for property, value in cache_update[cluster_id].items():
+        if property == "alertDefinitions":
           continue
-        
+
         mutable_dict[cluster_id][property] = value
 
     self.rewrite_cache(mutable_dict, cache_hash)
@@ -81,7 +86,9 @@ class ClusterAlertDefinitionsCache(ClusterCache):
 
     for cluster_id in cache_update:
       if not cluster_id in mutable_dict:
-        logger.error("Cannot do alert_definitions delete for cluster cluster_id={0}, because do not have information about the cluster".format(cluster_id))
+        logger.error(
+          f"Cannot do alert_definitions delete for cluster cluster_id={cluster_id}, because do not have information about the cluster"
+        )
         continue
 
       # deleting whole cluster
@@ -89,21 +96,21 @@ class ClusterAlertDefinitionsCache(ClusterCache):
         clusters_ids_to_delete.append(cluster_id)
         continue
 
-      for alert_definition in cache_update[cluster_id]['alertDefinitions']:
-
-        id_to_update = alert_definition['definitionId']
-        index_of_alert = self.get_alert_definition_index_by_id(mutable_dict, cluster_id, id_to_update)
+      for alert_definition in cache_update[cluster_id]["alertDefinitions"]:
+        id_to_update = alert_definition["definitionId"]
+        index_of_alert = self.get_alert_definition_index_by_id(
+          mutable_dict, cluster_id, id_to_update
+        )
 
         if index_of_alert == None:
-          raise Exception("Cannot delete an alert with id={0}".format(id_to_update))
+          raise Exception(f"Cannot delete an alert with id={id_to_update}")
 
-        del mutable_dict[cluster_id]['alertDefinitions'][index_of_alert]
+        del mutable_dict[cluster_id]["alertDefinitions"][index_of_alert]
 
     for cluster_id in clusters_ids_to_delete:
       del mutable_dict[cluster_id]
 
     self.rewrite_cache(mutable_dict, cache_hash)
 
-
   def get_cache_name(self):
-    return 'alert_definitions'
+    return "alert_definitions"

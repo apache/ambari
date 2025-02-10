@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -16,6 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+
 __all__ = ["ManagerFactory", "GenericManager"]
 
 import threading
@@ -68,4 +70,6 @@ class ManagerFactory(object):
     if OSCheck.is_in_family(os_family, OSConst.WINSRV_FAMILY):
       return ChocoManager()
 
-    raise RuntimeError("Not able to create Repository Manager object for unsupported OS family {0}".format(os_family))
+    raise RuntimeError(
+      f"Not able to create Repository Manager object for unsupported OS family {os_family}"
+    )

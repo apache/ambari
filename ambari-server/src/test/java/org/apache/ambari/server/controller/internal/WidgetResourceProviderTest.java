@@ -60,6 +60,8 @@ import org.powermock.api.easymock.PowerMock;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -257,9 +259,18 @@ public class WidgetResourceProviderTest {
     Assert.assertEquals(null, entity.getDefaultSectionName());
     Assert.assertEquals("GAUGE", entity.getWidgetType());
     Assert.assertEquals("admin", entity.getAuthor());
-    Assert.assertEquals("[{\"name\":\"value\",\"name2\":\"value2\"}]", entity.getMetrics());
-    Assert.assertEquals("[{\"name\":\"value\",\"name2\":\"value2\"}]", entity.getWidgetValues());
-    Assert.assertEquals("{\"property2\":\"value2\",\"property1\":\"value1\"}", entity.getProperties());
+
+    Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    String expectedMetrics = gson.toJson(testSet);
+    String expectedWidgetValues = gson.toJson(testSet);
+    Map<String, String> propertiesMap = new HashMap<>();
+    propertiesMap.put("property1", "value1");
+    propertiesMap.put("property2", "value2");
+    String expectedProperties = gson.toJson(propertiesMap);
+
+    Assert.assertEquals(expectedMetrics, entity.getMetrics());
+    Assert.assertEquals(expectedWidgetValues, entity.getWidgetValues());
+    Assert.assertEquals(expectedProperties, entity.getProperties());
 
     verify(amc, clusters, cluster, dao);
   }

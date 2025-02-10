@@ -18,12 +18,11 @@
 
 package org.apache.ambari.view.commons.hdfs;
 
-import com.sun.jersey.core.header.FormDataContentDisposition;
-import com.sun.jersey.multipart.FormDataParam;
-import org.apache.ambari.view.ViewContext;
-import org.apache.ambari.view.commons.exceptions.ServiceFormattedException;
-import org.apache.ambari.view.utils.hdfs.HdfsApi;
-import org.apache.hadoop.fs.FSDataOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.PUT;
@@ -32,11 +31,14 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Map;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
+
+import org.apache.ambari.view.ViewContext;
+import org.apache.ambari.view.commons.exceptions.ServiceFormattedException;
+import org.apache.ambari.view.utils.hdfs.HdfsApi;
+import org.apache.hadoop.fs.FSDataOutputStream;
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
+import org.glassfish.jersey.media.multipart.FormDataParam;
+
 
 /**
  * Upload service

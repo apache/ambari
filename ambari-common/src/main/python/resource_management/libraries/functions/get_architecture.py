@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -25,13 +25,14 @@ __all__ = ["get_architecture"]
 import platform
 from resource_management.libraries.functions.default import default
 
+
 def get_architecture():
   architecture = default("/configurations/hadoop-env/architecture", None)
 
   if architecture:
     return architecture
 
-  if platform.processor() == 'powerpc' or platform.machine().startswith('ppc'):
-    return 'ppc64le'
+  if platform.processor() == "powerpc" or platform.machine().startswith("ppc"):
+    return "ppc64le"
 
-  return 'amd64'
+  return "amd64"

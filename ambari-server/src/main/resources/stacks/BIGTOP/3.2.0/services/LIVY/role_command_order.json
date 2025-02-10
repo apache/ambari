@@ -1,0 +1,8 @@
+{
+    "general_deps" : {
+        "_comment" : "dependencies for LIVY",
+        "LIVY_SERVER-START" : ["SPARK_JOBHISTORYSERVER-START"],
+        "LIVY_SERVICE_CHECK-SERVICE_CHECK" : ["LIVY_SERVER-START"]
+    }
+}
+  

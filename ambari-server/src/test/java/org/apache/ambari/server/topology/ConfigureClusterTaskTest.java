@@ -90,6 +90,9 @@ public class ConfigureClusterTaskTest extends EasyMockSupport {
     // GIVEN
     expect(clusterConfigurationRequest.getRequiredHostGroups()).andReturn(Collections.emptyList());
     expect(clusterTopology.getHostGroupInfo()).andReturn(Collections.emptyMap());
+    expect(clusterTopology.getClusterId()).andReturn(1L).anyTimes();
+    expect(clusterTopology.getAmbariContext()).andReturn(ambariContext);
+    expect(ambariContext.getClusterName(1L)).andReturn("testCluster");
     clusterConfigurationRequest.process();
     replayAll();
 

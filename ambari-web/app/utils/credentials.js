@@ -95,14 +95,14 @@ module.exports = {
   createOrUpdateCredentials: function(clusterName, alias, resource) {
     var self = this;
     var dfd = $.Deferred();
-    this.getCredential(clusterName, alias).then(function() {
+    this.getCredential(clusterName, alias).done(function() {
       // update previously stored credentials
       self.updateCredentials(clusterName, alias, resource).always(function() {
         var status = arguments[1];
         var result = arguments[2];
         dfd.resolve(status === "success", result);
       });
-    }, function() {
+    }).fail(function() {
       // create credentials if they not exist
       self.createCredentials(clusterName, alias, resource).always(function() {
         var status = arguments[1];

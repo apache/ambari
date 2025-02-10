@@ -18,7 +18,7 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import static org.apache.commons.collections.CollectionUtils.isEqualCollection;
+import static org.apache.commons.collections4.CollectionUtils.isEqualCollection;
 import static org.junit.Assert.assertTrue;
 
 import org.apache.ambari.server.ObjectNotFoundException;

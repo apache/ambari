@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriInfo;
 
@@ -54,7 +55,6 @@ import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.junit.Test;
 
-import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 /**
  * Base tests for service requests.
@@ -86,7 +86,7 @@ public abstract class BaseRequestTest {
   @Test
   public void testGetHttpHeaders() {
     HttpHeaders headers = createNiceMock(HttpHeaders.class);
-    MultivaluedMap<String, String> mapHeaders = new MultivaluedMapImpl();
+    MultivaluedMap<String, String> mapHeaders = new MultivaluedHashMap();
     Request request = getTestRequest(headers, null, null, null, null, null, null);
 
     expect(headers.getRequestHeaders()).andReturn(mapHeaders);
@@ -146,7 +146,7 @@ public abstract class BaseRequestTest {
     Predicate predicate = createNiceMock(Predicate.class);
     UriInfo uriInfo = createMock(UriInfo.class);
     @SuppressWarnings("unchecked")
-    MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+    MultivaluedMap<String, String> queryParams = new MultivaluedHashMap();
     RequestHandler handler = createStrictMock(RequestHandler.class);
     Result result = createMock(Result.class);
     ResultStatus resultStatus = createMock(ResultStatus.class);

@@ -10766,27 +10766,6 @@ Ember.$ = window.jQuery;
 // License:   Licensed under MIT license (see license.js)
 // ==========================================================================
 
-// http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dndevents
-var dragEvents = Ember.String.w('dragstart drag dragenter dragleave dragover drop dragend');
-
-// Copies the `dataTransfer` property from a browser event object onto the
-// jQuery event object for the specified events
-Ember.EnumerableUtils.forEach(dragEvents, function(eventName) {
-  Ember.$.event.fixHooks[eventName] = { props: ['dataTransfer'] };
-});
-
-})();
-
-
-
-(function() {
-// ==========================================================================
-// Project:   Ember - JavaScript Application Framework
-// Copyright: ©2006-2011 Strobe Inc. and contributors.
-//            Portions ©2008-2011 Apple Inc. All rights reserved.
-// License:   Licensed under MIT license (see license.js)
-// ==========================================================================
-
 var get = Ember.get, set = Ember.set;
 var indexOf = Ember.ArrayPolyfills.indexOf;
 
@@ -11335,9 +11314,9 @@ Ember.EventDispatcher = Ember.Object.extend(
     rootElement.delegate('[data-ember-action]', event + '.ember', function(evt) {
       var actionId = Ember.$(evt.currentTarget).attr('data-ember-action'),
           action   = Ember.Handlebars.ActionHelper.registeredActions[actionId],
-          handler  = action.handler;
+          handler  = action&&action.handler;
 
-      if (action.eventName === eventName) {
+      if (action&&action.eventName === eventName) {
         return handler(evt);
       }
     });

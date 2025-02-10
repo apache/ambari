@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -22,6 +22,7 @@ Ambari Agent
 
 from resource_management.libraries.functions.is_empty import is_empty
 import re
+
 
 def get_path_from_url(address):
   """

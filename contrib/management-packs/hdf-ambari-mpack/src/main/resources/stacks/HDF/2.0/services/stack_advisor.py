@@ -54,19 +54,19 @@ class HDF20StackAdvisor(DefaultStackAdvisor):
          if "+" in cardinality:
            hostsMin = int(cardinality[:-1])
            if componentHostsCount < hostsMin:
-             message = "At least {0} {1} components should be installed in cluster.".format(hostsMin, componentDisplayName)
+             message = f"At least {hostsMin} {componentDisplayName} components should be installed in cluster."
          elif "-" in cardinality:
            nums = cardinality.split("-")
            hostsMin = int(nums[0])
            hostsMax = int(nums[1])
            if componentHostsCount > hostsMax or componentHostsCount < hostsMin:
-             message = "Between {0} and {1} {2} components should be installed in cluster.".format(hostsMin, hostsMax, componentDisplayName)
+             message = f"Between {hostsMin} and {hostsMax} {componentDisplayName} components should be installed in cluster."
          elif "ALL" == cardinality:
            if componentHostsCount != hostsCount:
-             message = "{0} component should be installed on all hosts in cluster.".format(componentDisplayName)
+             message = f"{componentDisplayName} component should be installed on all hosts in cluster."
          else:
            if componentHostsCount != int(cardinality):
-             message = "Exactly {0} {1} components should be installed in cluster.".format(int(cardinality), componentDisplayName)
+             message = f"Exactly {int(cardinality)} {componentDisplayName} components should be installed in cluster."
 
          if message is not None:
            items.append({"type": 'host-component', "level": 'ERROR', "message": message, "component-name": componentName})
@@ -295,7 +295,7 @@ class HDF20StackAdvisor(DefaultStackAdvisor):
         policymgr_external_url = services['configurations']['admin-properties']['properties']['policymgr_external_url']
       else:
         ranger_admin_host = ranger_admin_hosts[0]
-        policymgr_external_url = "{0}://{1}:{2}".format(protocol, ranger_admin_host, port)
+        policymgr_external_url = f"{protocol}://{ranger_admin_host}:{port}"
 
       putRangerAdminProperty('policymgr_external_url', policymgr_external_url)
 
@@ -403,10 +403,10 @@ class HDF20StackAdvisor(DefaultStackAdvisor):
       if 'infra-solr-env' in services['configurations'] and \
         ('infra_solr_znode' in services['configurations']['infra-solr-env']['properties']):
         infra_solr_znode = services['configurations']['infra-solr-env']['properties']['infra_solr_znode']
-        ranger_audit_zk_port = '{0}{1}'.format(zookeeper_host_port, infra_solr_znode)
+        ranger_audit_zk_port = f'{zookeeper_host_port}{infra_solr_znode}'
       putRangerAdminSiteProperty('ranger.audit.solr.zookeepers', ranger_audit_zk_port)
     elif zookeeper_host_port and is_solr_cloud_enabled and is_external_solr_cloud_enabled:
-      ranger_audit_zk_port = '{0}/{1}'.format(zookeeper_host_port, 'ranger_audits')
+      ranger_audit_zk_port = f'{zookeeper_host_port}/ranger_audits'
       putRangerAdminSiteProperty('ranger.audit.solr.zookeepers', ranger_audit_zk_port)
     else:
       putRangerAdminSiteProperty('ranger.audit.solr.zookeepers', 'NONE')
@@ -1002,13 +1002,13 @@ class HDF20StackAdvisor(DefaultStackAdvisor):
               userValue = convertToNumber(configurations[configName]["properties"][propertyName])
               maxValue = convertToNumber(recommendedDefaults[configName]["property_attributes"][propertyName]["maximum"])
               if userValue > maxValue:
-                validationItems.extend([{"config-name": propertyName, "item": self.getWarnItem("Value is greater than the recommended maximum of {0} ".format(maxValue))}])
+                validationItems.extend([{"config-name": propertyName, "item": self.getWarnItem(f"Value is greater than the recommended maximum of {maxValue} ")}])
             if "minimum" in recommendedDefaults[configName]["property_attributes"][propertyName] and \
                     propertyName in recommendedDefaults[configName]["properties"]:
               userValue = convertToNumber(configurations[configName]["properties"][propertyName])
               minValue = convertToNumber(recommendedDefaults[configName]["property_attributes"][propertyName]["minimum"])
               if userValue < minValue:
-                validationItems.extend([{"config-name": propertyName, "item": self.getWarnItem("Value is less than the recommended minimum of {0} ".format(minValue))}])
+                validationItems.extend([{"config-name": propertyName, "item": self.getWarnItem(f"Value is less than the recommended minimum of {minValue} ")}])
       items.extend(self.toConfigurationValidationProblems(validationItems, configName))
     pass
 
@@ -1491,7 +1491,7 @@ class HDF20StackAdvisor(DefaultStackAdvisor):
     mountPoint = getMountPointForDir(dir, mountPoints)
 
     if "/" == mountPoint and self.getPreferredMountPoints(hostInfo)[0] != mountPoint:
-      return self.getWarnItem("It is not recommended to use root partition for {0}".format(propertyName))
+      return self.getWarnItem(f"It is not recommended to use root partition for {propertyName}")
 
     return None
 
@@ -1509,10 +1509,10 @@ class HDF20StackAdvisor(DefaultStackAdvisor):
     mountPoint = getMountPointForDir(dir, mountPoints.keys())
 
     if not mountPoints:
-      return self.getErrorItem("No disk info found on host %s" % hostInfo["host_name"])
+      return self.getErrorItem(f"No disk info found on host {hostInfo['host_name']}")
 
     if mountPoint is None:
-      return self.getErrorItem("No mount point in directory %s. Mount points: %s" % (dir, ', '.join(mountPoints.keys())))
+      return self.getErrorItem(f"No mount point in directory {dir}. Mount points: {', '.join(mountPoints.keys())}")
 
     if mountPoints[mountPoint] < reqiuredDiskSpace:
       msg = "Ambari Metrics disk space requirements not met. \n" \
@@ -1535,22 +1535,22 @@ class HDF20StackAdvisor(DefaultStackAdvisor):
     if defaultValue is None:
       return None
     if value < defaultValue:
-      return self.getWarnItem("Value is less than the recommended default of {0}".format(defaultValue))
+      return self.getWarnItem(f"Value is less than the recommended default of {defaultValue}")
     return None
 
   def validatorEqualsPropertyItem(self, properties1, propertyName1,
                                   properties2, propertyName2,
                                   emptyAllowed=False):
     if not propertyName1 in properties1:
-      return self.getErrorItem("Value should be set for %s" % propertyName1)
+      return self.getErrorItem(f"Value should be set for {propertyName1}")
     if not propertyName2 in properties2:
-      return self.getErrorItem("Value should be set for %s" % propertyName2)
+      return self.getErrorItem(f"Value should be set for {propertyName2}")
     value1 = properties1.get(propertyName1)
     if value1 is None and not emptyAllowed:
-      return self.getErrorItem("Empty value for %s" % propertyName1)
+      return self.getErrorItem(f"Empty value for {propertyName1}")
     value2 = properties2.get(propertyName2)
     if value2 is None and not emptyAllowed:
-      return self.getErrorItem("Empty value for %s" % propertyName2)
+      return self.getErrorItem(f"Empty value for {propertyName2}")
     if value1 != value2:
       return self.getWarnItem("It is recommended to set equal values "
              "for properties {0} and {1}".format(propertyName1, propertyName2))
@@ -1560,10 +1560,10 @@ class HDF20StackAdvisor(DefaultStackAdvisor):
   def validatorEqualsToRecommendedItem(self, properties, recommendedDefaults,
                                        propertyName):
     if not propertyName in properties:
-      return self.getErrorItem("Value should be set for %s" % propertyName)
+      return self.getErrorItem(f"Value should be set for {propertyName}")
     value = properties.get(propertyName)
     if not propertyName in recommendedDefaults:
-      return self.getErrorItem("Value should be recommended for %s" % propertyName)
+      return self.getErrorItem(f"Value should be recommended for {propertyName}")
     recommendedValue = recommendedDefaults.get(propertyName)
     if value != recommendedValue:
       return self.getWarnItem("It is recommended to set value {0} "

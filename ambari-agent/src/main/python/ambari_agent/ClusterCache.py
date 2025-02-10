@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -28,12 +27,14 @@ from ambari_agent.Utils import Utils
 
 logger = logging.getLogger(__name__)
 
+
 class ClusterCache(dict):
   """
   Maintains an in-memory cache and disk cache (for debugging purposes) for
   every cluster. This is useful for having quick access to any of the properties.
   """
-  COMMON_DATA_CLUSTER = '-1'
+
+  COMMON_DATA_CLUSTER = "-1"
 
   file_locks = defaultdict(threading.RLock)
 
@@ -46,8 +47,12 @@ class ClusterCache(dict):
 
     self.cluster_cache_dir = cluster_cache_dir
 
-    self.__current_cache_json_file = os.path.join(self.cluster_cache_dir, self.get_cache_name()+'.json')
-    self.__current_cache_hash_file = os.path.join(self.cluster_cache_dir, '.'+self.get_cache_name()+'.hash')
+    self.__current_cache_json_file = os.path.join(
+      self.cluster_cache_dir, self.get_cache_name() + ".json"
+    )
+    self.__current_cache_hash_file = os.path.join(
+      self.cluster_cache_dir, "." + self.get_cache_name() + ".hash"
+    )
 
     self._cache_lock = threading.RLock()
     self.__file_lock = ClusterCache.file_locks[self.__current_cache_json_file]
@@ -58,14 +63,16 @@ class ClusterCache(dict):
     try:
       with self.__file_lock:
         if os.path.isfile(self.__current_cache_json_file):
-          with open(self.__current_cache_json_file, 'r') as fp:
+          with open(self.__current_cache_json_file, "r") as fp:
             cache_dict = json.load(fp)
 
         if os.path.isfile(self.__current_cache_hash_file):
-          with open(self.__current_cache_hash_file, 'r') as fp:
+          with open(self.__current_cache_hash_file, "r") as fp:
             self.hash = fp.read()
-    except (IOError,ValueError):
-      logger.exception("Cannot load data from {0} and {1}".format(self.__current_cache_json_file, self.__current_cache_hash_file))
+    except (IOError, ValueError):
+      logger.exception(
+        f"Cannot load data from {self.__current_cache_json_file} and {self.__current_cache_hash_file}"
+      )
       self.hash = None
       cache_dict = {}
 
@@ -73,14 +80,14 @@ class ClusterCache(dict):
       self.rewrite_cache(cache_dict, self.hash)
     except:
       # Example: hostname change and restart causes old topology loading to fail with exception
-      logger.exception("Loading saved cache for {0} failed".format(self.__class__.__name__))
+      logger.exception(f"Loading saved cache for {self.__class__.__name__} failed")
       self.rewrite_cache({}, None)
 
   def get_cluster_indepedent_data(self):
     return self[ClusterCache.COMMON_DATA_CLUSTER]
 
   def get_cluster_ids(self):
-    cluster_ids = self.keys()[:]
+    cluster_ids = list(self.keys())[:]
     if ClusterCache.COMMON_DATA_CLUSTER in cluster_ids:
       cluster_ids.remove(ClusterCache.COMMON_DATA_CLUSTER)
     return cluster_ids
@@ -91,7 +98,7 @@ class ClusterCache(dict):
       if not existing_cluster_id in cache:
         cache_ids_to_delete.append(existing_cluster_id)
 
-    for cluster_id, cluster_cache in cache.iteritems():
+    for cluster_id, cluster_cache in cache.items():
       self.rewrite_cluster_cache(cluster_id, cluster_cache)
 
     with self._cache_lock:
@@ -119,7 +126,7 @@ class ClusterCache(dict):
     :param cache:
     :return:
     """
-    logger.info("Rewriting cache {0} for cluster {1}".format(self.__class__.__name__, cluster_id))
+    logger.info(f"Rewriting cache {self.__class__.__name__} for cluster {cluster_id}")
 
     # The cache should contain exactly the data received from server.
     # Modifications on agent-side will lead to unnecessary cache sync every agent registration. Which is a big concern on perf clusters!
@@ -134,11 +141,11 @@ class ClusterCache(dict):
       os.makedirs(self.cluster_cache_dir)
 
     with self.__file_lock:
-      with open(self.__current_cache_json_file, 'w') as f:
+      with open(self.__current_cache_json_file, "w") as f:
         json.dump(self, f, indent=2)
 
       if self.hash is not None:
-        with open(self.__current_cache_hash_file, 'w') as fp:
+        with open(self.__current_cache_hash_file, "w") as fp:
           fp.write(cache_hash)
 
     # if all of above are successful finally set the hash
@@ -152,7 +159,9 @@ class ClusterCache(dict):
     try:
       return super(ClusterCache, self).__getitem__(key)
     except KeyError:
-      raise KeyError("{0} for cluster_id={1} is missing. Check if server sent it.".format(self.get_cache_name().title(), key))
+      raise KeyError(
+        f"{self.get_cache_name().title()} for cluster_id={key} is missing. Check if server sent it."
+      )
 
   def on_cache_update(self):
     """

@@ -1,6 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,7 +16,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 from ambari_commons.exceptions import FatalException
 from ambari_commons.os_check import OSConst, OSCheck
@@ -33,14 +33,19 @@ logger = logging.getLogger()
 
 _handler = None
 
-class HeartbeatStopHandlers(object):pass
+
+class HeartbeatStopHandlers(object):
+  pass
+
 
 # windows impl
+
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class HeartbeatStopHandlersWindows(HeartbeatStopHandlers):
   def __init__(self, stopEvent=None):
     import win32event
+
     # Event is used for synchronizing heartbeat iterations (to make possible
     # manual wait() interruption between heartbeats )
     self._heventHeartbeat = win32event.CreateEvent(None, 0, 0, None)
@@ -68,29 +73,38 @@ class HeartbeatStopHandlersWindows(HeartbeatStopHandlers):
 
     timeout = int(timeout1 + timeout2) * 1000
 
-    result = win32event.WaitForMultipleObjects([self._heventStop, self._heventHeartbeat], False, timeout)
+    result = win32event.WaitForMultipleObjects(
+      [self._heventStop, self._heventHeartbeat], False, timeout
+    )
     if (
-          win32event.WAIT_OBJECT_0 != result and win32event.WAIT_OBJECT_0 + 1 != result and win32event.WAIT_TIMEOUT != result):
-      raise FatalException(-1, "Error waiting for stop/heartbeat events: " + str(result))
-    if (win32event.WAIT_TIMEOUT == result):
+      win32event.WAIT_OBJECT_0 != result
+      and win32event.WAIT_OBJECT_0 + 1 != result
+      and win32event.WAIT_TIMEOUT != result
+    ):
+      raise FatalException(
+        -1, "Error waiting for stop/heartbeat events: " + str(result)
+      )
+    if win32event.WAIT_TIMEOUT == result:
       return -1
-    return result # 0 -> stop, 1 -> heartbeat
+    return result  # 0 -> stop, 1 -> heartbeat
+
 
 # linux impl
 
+
 def signal_handler(signum, frame):
-  logger.info("Ambari-agent received {0} signal, stopping...".format(signum))
+  logger.info(f"Ambari-agent received {signum} signal, stopping...")
   _handler.set()
 
 
 def debug(sig, frame):
-  """Interrupt running process, and provide a stacktrace of threads """
-  d = {'_frame': frame}  # Allow access to frame object.
+  """Interrupt running process, and provide a stacktrace of threads"""
+  d = {"_frame": frame}  # Allow access to frame object.
   d.update(frame.f_globals)  # Uamnless shadowed by global
   d.update(frame.f_locals)
 
   message = "Signal received.\nTraceback:\n"
-  message += ''.join(traceback.format_stack(frame))
+  message += "".join(traceback.format_stack(frame))
   logger.info(message)
 
 
@@ -117,8 +131,6 @@ class HeartbeatStopHandlersLinux(HeartbeatStopHandlers):
     if self.heartbeat_wait_event.wait(timeout=timeout1):
       return 1
     return -1
-
-
 
 
 def bind_signal_handlers(agentPid, stop_event):

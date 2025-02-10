@@ -1,6 +1,5 @@
-#!/usr/bin/env python
-
-'''
+#!/usr/bin/env python3
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,7 +15,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 """
 Run this file to interrupt a running python process and open an interactive shell. 
@@ -24,8 +23,9 @@ Run this file to interrupt a running python process and open an interactive shel
 
 import os
 import signal
-from RemoteDebugUtils import NamedPipe
-from RemoteDebugUtils import pipename
+from ambari_agent.RemoteDebugUtils import NamedPipe
+from ambari_agent.RemoteDebugUtils import pipename
+
 
 def debug_process(pid):
   """Interrupt a running process and debug it."""
@@ -33,19 +33,20 @@ def debug_process(pid):
   pipe = NamedPipe(pipename(pid), 1)
   try:
     while pipe.is_open():
-      txt=raw_input(pipe.get()) + '\n'
+      txt = input(pipe.get()) + "\n"
       pipe.put(txt)
   except EOFError:
-    pass # Exit.
+    pass  # Exit.
   pipe.close()
-    
+
+
 def main():
   with open("/var/run/ambari-agent/ambari-agent.pid") as f:
     pid_str = f.read().strip()
     pid = int(pid_str)
-    
+
   debug_process(pid)
-  
-if __name__=='__main__':
+
+
+if __name__ == "__main__":
   main()
-        

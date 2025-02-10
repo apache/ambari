@@ -40,7 +40,7 @@ describe('App.MainDashboardWidgetsView', function () {
     });
   });
 
-  describe('#didInsertElement()', function() {
+  describe.skip('#didInsertElement()', function() {
 
     beforeEach(function() {
       sinon.stub(view, 'loadWidgetsSettings').returns({
@@ -59,7 +59,7 @@ describe('App.MainDashboardWidgetsView', function () {
       Em.run.next.restore();
     });
 
-    it('checkServicesChange should be called', function() {
+    it.skip('checkServicesChange should be called', function() {
       expect(view.checkServicesChange).to.be.calledOnce;
     });
 

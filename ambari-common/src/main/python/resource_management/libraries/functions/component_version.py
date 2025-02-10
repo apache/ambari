@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -20,7 +20,10 @@ limitations under the License.
 
 from resource_management.libraries.script.script import Script
 
-def get_component_repository_version(service_name = None, component_name = None, default_value = None):
+
+def get_component_repository_version(
+  service_name=None, component_name=None, default_value=None
+):
   """
   Gets the version associated with the specified component from the structure in the command.
   Every command should contain a mapping of service/component to the desired repository it's set
@@ -37,7 +40,9 @@ def get_component_repository_version(service_name = None, component_name = None,
     return default_value
 
   if service_name is None:
-    service_name = config['serviceName'] if config is not None and 'serviceName' in config else None
+    service_name = (
+      config["serviceName"] if config is not None and "serviceName" in config else None
+    )
 
   if service_name is None or service_name not in versions:
     return default_value
@@ -54,7 +59,7 @@ def get_component_repository_version(service_name = None, component_name = None,
     return component_versions[component_name]
 
   # fall back to the first one for the service
-  return component_versions.values()[0]
+  return list(component_versions.values())[0]
 
 
 def _get_component_repositories(config):
@@ -64,7 +69,7 @@ def _get_component_repositories(config):
   :config:  the configuration dictionary
   :return:
   """
-  if "componentVersionMap" not in config or config["componentVersionMap"] is "":
+  if "componentVersionMap" not in config or config["componentVersionMap"] == "":
     return None
 
   return config["componentVersionMap"]

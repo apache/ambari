@@ -75,6 +75,7 @@ import org.apache.ambari.server.topology.LogicalRequest;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.utils.SecretReference;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -429,7 +430,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
       // in this case it will be mapped to HTTP 400 Bad Request
       requestStatus = HostRoleStatus.valueOf(requestStatusStr);
     }
-    String abortReason = (String) propertyMap.get(REQUEST_ABORT_REASON_PROPERTY_ID);
+    String abortReason = StringEscapeUtils.escapeHtml4((String) propertyMap.get(REQUEST_ABORT_REASON_PROPERTY_ID));
     String removePendingHostRequests = (String) propertyMap.get(REQUEST_REMOVE_PENDING_HOST_REQUESTS_ID);
 
     RequestRequest requestRequest = new RequestRequest(clusterNameStr, requestId);

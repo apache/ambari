@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -82,7 +82,12 @@ def write_actual_version_to_history_file(repository_version, actual_version):
       with open(REPO_VERSION_HISTORY_FILE, "r") as f:
         for line in f.readlines():
           line_parts = line.split(",")
-          if line_parts and len(line_parts) == 2 and line_parts[0] == repository_version and line_parts[1] == actual_version:
+          if (
+            line_parts
+            and len(line_parts) == 2
+            and line_parts[0] == repository_version
+            and line_parts[1] == actual_version
+          ):
             key_exists = True
             break
 
@@ -91,8 +96,12 @@ def write_actual_version_to_history_file(repository_version, actual_version):
         f.write(repository_version + "," + actual_version + "\n")
         wrote_value = True
     if wrote_value:
-      Logger.info("Appended value \"{0}\" to file {1} to track this as a new version.".format(value, REPO_VERSION_HISTORY_FILE))
-  except Exception, err:
-    Logger.error("Failed to write to file {0} the value: {1}. Error: {2}".format(REPO_VERSION_HISTORY_FILE, value, str(err)))
+      Logger.info(
+        f'Appended value "{value}" to file {REPO_VERSION_HISTORY_FILE} to track this as a new version.'
+      )
+  except Exception as err:
+    Logger.error(
+      f"Failed to write to file {REPO_VERSION_HISTORY_FILE} the value: {value}. Error: {str(err)}"
+    )
 
   return wrote_value

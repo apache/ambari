@@ -49,7 +49,7 @@
                     {{formatWordBreak configData.displayName}}
                     {{#if configData.isSecureConfig}}
                       <a href="javascript:void(null);">
-                        <i class="glyphicon glyphicon-lock" rel="tooltip" data-toggle="tooltip" title="security knob"></i>
+                        <i class="glyphicon glyphicon-lock" rel="tooltip" data-bs-toggle="tooltip" title="security knob"></i>
                       </a>
                     {{/if}}
                   </label>
@@ -70,7 +70,7 @@
                       {{view configData.viewClass serviceConfigBinding="configData" categoryConfigsAllBinding="view.categoryConfigsAll" }}
                       {{#if configData.hintMessage}}
                         <a class="icon-question-sign glyphicon glyphicon-blue" href="#"
-                           data-toggle="tooltip" {{bindAttr data-original-title="configData.hintMessage"}}></a>
+                           data-bs-toggle="tooltip" {{bindAttr data-original-title="configData.hintMessage"}}></a>
                       {{/if}}
                       {{view App.ControlsView serviceConfigPropertyBinding="configData"}}
                       {{#if configData.errorMessage}}

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 Licensed to the Apache Software Foundation (ASF) under one
@@ -23,6 +23,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class ClusterMetadataCache(ClusterCache):
   """
   Maintains an in-memory cache and disk cache of the metadata send from server for
@@ -41,7 +42,7 @@ class ClusterMetadataCache(ClusterCache):
 
   def on_cache_update(self):
     try:
-      self.config.update_configuration_from_metadata(self['-1']['agentConfigs'])
+      self.config.update_configuration_from_metadata(self["-1"]["agentConfigs"])
     except KeyError:
       pass
 
@@ -52,7 +53,7 @@ class ClusterMetadataCache(ClusterCache):
     mutable_dict = self._get_mutable_copy()
     clusters_ids_to_delete = []
 
-    for cluster_id, cluster_updates_dict in cache_update.iteritems():
+    for cluster_id, cluster_updates_dict in cache_update.items():
       if cluster_updates_dict != {}:
         raise Exception("Deleting cluster subvalues is not supported")
 
@@ -64,4 +65,4 @@ class ClusterMetadataCache(ClusterCache):
     self.rewrite_cache(mutable_dict, cache_hash)
 
   def get_cache_name(self):
-    return 'metadata'
+    return "metadata"

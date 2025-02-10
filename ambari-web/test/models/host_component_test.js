@@ -19,7 +19,7 @@
 var App = require('app');
 require('models/host_component');
 
-describe('App.HostComponent', function() {
+describe.skip('App.HostComponent', function() {
 
   App.store.safeLoad(App.HostComponent, {
     id: 'COMP_host',

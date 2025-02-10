@@ -1,6 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,13 +16,14 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
-from ambari_commons import subprocess32
+import subprocess
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.logging_utils import print_warning_msg
 from ambari_commons.os_family_impl import OsFamilyImpl
 from resource_management.core import shell
+
 
 class Firewall(object):
   def __init__(self):
@@ -34,10 +35,12 @@ class Firewall(object):
   def getFirewallObject(self):
     pass
 
+
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class FirewallWindows(Firewall):
   def getFirewallObject(self):
     return WindowsFirewallChecks()
+
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class FirewallLinux(Firewall):
@@ -53,6 +56,7 @@ class FirewallLinux(Firewall):
     else:
       return FirewallChecks()
 
+
 class FirewallChecks(object):
   def __init__(self):
     self.FIREWALL_SERVICE_NAME = "iptables"
@@ -63,13 +67,13 @@ class FirewallChecks(object):
     self.stdoutdata = None
     self.stderrdata = None
     # stdout message
-    self.MESSAGE_CHECK_FIREWALL = 'Checking firewall status...'
+    self.MESSAGE_CHECK_FIREWALL = "Checking firewall status..."
 
   def get_firewall_name(self):
     return self.FIREWALL_SERVICE_NAME
 
   def get_command(self):
-    return "%s %s %s" % (self.SERVICE_CMD, self.FIREWALL_SERVICE_NAME, self.SERVICE_SUBCMD)
+    return f"{self.SERVICE_CMD} {self.FIREWALL_SERVICE_NAME} {self.SERVICE_SUBCMD}"
 
   def check_result(self):
     result = False
@@ -82,12 +86,18 @@ class FirewallChecks(object):
 
   def run_command(self):
     try:
-      retcode, out, err = shell.call(self.get_command(), stdout = subprocess32.PIPE, stderr = subprocess32.PIPE, timeout = 5, quiet = True)
+      retcode, out, err = shell.call(
+        self.get_command(),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        timeout=5,
+        quiet=True,
+      )
       self.returncode = retcode
       self.stdoutdata = out
       self.stderrdata = err
     except Exception as ex:
-      print_warning_msg("Unable to check firewall status: {0}".format(ex))
+      print_warning_msg(f"Unable to check firewall status: {ex}")
 
   def check_firewall(self):
     try:
@@ -103,7 +113,7 @@ class UbuntuFirewallChecks(FirewallChecks):
     self.FIREWALL_SERVICE_NAME = "ufw"
 
   def get_command(self):
-    return "%s %s" % (self.FIREWALL_SERVICE_NAME, self.SERVICE_SUBCMD)
+    return f"{self.FIREWALL_SERVICE_NAME} {self.SERVICE_SUBCMD}"
 
   def check_result(self):
     # On ubuntu, the status command returns 0 whether running or not
@@ -115,15 +125,16 @@ class UbuntuFirewallChecks(FirewallChecks):
         result = True
     return result
 
+
 class RedHat7FirewallChecks(FirewallChecks):
   def __init__(self):
     super(RedHat7FirewallChecks, self).__init__()
     self.SERVICE_CMD = "systemctl"
 
-  #firewalld added to support default firewall (started from RHEL7/CentOS7)
-  #script default iptables checked as user can use iptables as known from previous RHEL releases.
+  # firewalld added to support default firewall (started from RHEL7/CentOS7)
+  # script default iptables checked as user can use iptables as known from previous RHEL releases.
   def get_command(self):
-    return "%(servcmd)s is-active %(fwl1)s %(fwl2)s" % {"servcmd":self.SERVICE_CMD,"fwl1":"iptables", "fwl2":"firewalld"}
+    return f"{self.SERVICE_CMD} is-active iptables firewalld"
 
   def check_result(self):
     if self.stdoutdata is None:
@@ -140,7 +151,7 @@ class Fedora18FirewallChecks(FirewallChecks):
     super(Fedora18FirewallChecks, self).__init__()
 
   def get_command(self):
-    return "systemctl is-active %s" % (self.FIREWALL_SERVICE_NAME)
+    return f"systemctl is-active {self.FIREWALL_SERVICE_NAME}"
 
   def check_result(self):
     result = False
@@ -149,13 +160,14 @@ class Fedora18FirewallChecks(FirewallChecks):
         result = True
     return result
 
+
 class SuseFirewallChecks(FirewallChecks):
   def __init__(self):
     super(SuseFirewallChecks, self).__init__()
     self.FIREWALL_SERVICE_NAME = "rcSuSEfirewall2"
 
   def get_command(self):
-    return "%s %s" % (self.FIREWALL_SERVICE_NAME, self.SERVICE_SUBCMD)
+    return f"{self.FIREWALL_SERVICE_NAME} {self.SERVICE_SUBCMD}"
 
   def check_result(self):
     result = False
@@ -173,9 +185,17 @@ class WindowsFirewallChecks(FirewallChecks):
     self.FIREWALL_SERVICE_NAME = "MpsSvc"
 
   def run_command(self):
-    from ambari_commons.os_windows import run_powershell_script, CHECK_FIREWALL_SCRIPT, WinServiceController, SERVICE_STATUS_RUNNING
+    from ambari_commons.os_windows import (
+      run_powershell_script,
+      CHECK_FIREWALL_SCRIPT,
+      WinServiceController,
+      SERVICE_STATUS_RUNNING,
+    )
 
-    if WinServiceController.QueryStatus(self.FIREWALL_SERVICE_NAME) != SERVICE_STATUS_RUNNING:
+    if (
+      WinServiceController.QueryStatus(self.FIREWALL_SERVICE_NAME)
+      != SERVICE_STATUS_RUNNING
+    ):
       self.returncode = 0
       self.stdoutdata = ""
       self.stderrdata = ""
@@ -187,7 +207,7 @@ class WindowsFirewallChecks(FirewallChecks):
 
   def check_result(self):
     if self.returncode != 0:
-      print_warning_msg("Unable to check firewall status:{0}".format(self.stderrdata))
+      print_warning_msg(f"Unable to check firewall status:{self.stderrdata}")
       return False
     profiles_status = [i for i in self.stdoutdata.split("\n") if not i == ""]
     if "1" in profiles_status:
@@ -199,7 +219,7 @@ class WindowsFirewallChecks(FirewallChecks):
       if profiles_status[2] == "1":
         enabled_profiles.append("PublicProfile")
       print_warning_msg(
-        "Following firewall profiles are enabled:{0}. Make sure that the firewall is properly configured.".format(
-          ",".join(enabled_profiles)))
+        f'Following firewall profiles are enabled:{",".join(enabled_profiles)}. Make sure that the firewall is properly configured.'
+      )
       return True
     return False

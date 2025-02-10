@@ -26,10 +26,10 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.ambari.server.collections.Predicate;
-import org.apache.commons.collections.functors.EqualPredicate;
+import org.apache.commons.collections4.functors.EqualPredicate;
 
 /**
- * {@link EqualsPredicate} wraps {@link org.apache.commons.collections.functors.EqualPredicate} to
+ * {@link EqualsPredicate} wraps {@link org.apache.commons.collections4.functors.EqualPredicate} to
  * provide additional functionality like serializing to and from a Map and JSON formatted data as well
  * as obtaining data using a {@link ContextTransformer}
  */
@@ -41,9 +41,9 @@ public class EqualsPredicate extends OperationPredicate {
   public static final String NAME = "equals";
 
   /**
-   * The {@link org.apache.commons.collections.functors.EqualPredicate} to delegate operations to
+   * The {@link org.apache.commons.collections4.functors.EqualPredicate} to delegate operations to
    */
-  private final org.apache.commons.collections.functors.EqualPredicate delegate;
+  private final org.apache.commons.collections4.functors.EqualPredicate delegate;
 
   /**
    * Creates a new {@link EqualsPredicate} using the given {@link Map} of data.

@@ -73,7 +73,7 @@ App.upgradeGroupView = Em.View.extend({
     var self = this;
 
     if (item && item.get('isExpanded')) {
-      this.get('controller').getUpgradeItem(item).complete(function () {
+      this.get('controller').getUpgradeItem(item).then(function () {
         if (!item.get('isCompleted')) {
           self.set('timer', setTimeout(function () {
             self.doPolling(item);

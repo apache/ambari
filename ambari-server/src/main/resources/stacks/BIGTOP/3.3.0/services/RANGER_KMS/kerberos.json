@@ -1,0 +1,81 @@
+{
+  "services": [
+    {
+      "name": "RANGER_KMS",
+      "identities": [
+        {
+          "name": "ranger_kms_spnego",
+          "reference": "/spnego",
+          "keytab": {
+            "configuration": "kms-site/hadoop.kms.authentication.kerberos.keytab"
+          }
+        }
+      ],
+      "auth_to_local_properties" : [
+        "kms-site/hadoop.kms.authentication.kerberos.name.rules"
+      ],
+      "configurations": [
+        {
+          "kms-site": {
+            "hadoop.kms.authentication.type": "kerberos",
+            "hadoop.kms.authentication.kerberos.principal": "*"
+          }
+        },
+        {
+          "ranger-kms-audit": {
+            "xasecure.audit.jaas.Client.loginModuleName": "com.sun.security.auth.module.Krb5LoginModule",
+            "xasecure.audit.jaas.Client.loginModuleControlFlag": "required",
+            "xasecure.audit.jaas.Client.option.useKeyTab": "true",
+            "xasecure.audit.jaas.Client.option.storeKey": "false",
+            "xasecure.audit.jaas.Client.option.serviceName": "solr",
+            "xasecure.audit.destination.solr.force.use.inmemory.jaas.config": "true"
+          }
+        }
+      ],
+      "components": [
+        {
+          "name": "RANGER_KMS_SERVER",
+          "identities": [
+            {
+              "name": "ranger_kms_ranger_kms_server_spnego",
+              "reference": "/spnego",
+              "principal": {
+                "configuration": "kms-site/hadoop.kms.authentication.signer.secret.provider.zookeeper.kerberos.principal"
+              },
+              "keytab": {
+                "configuration": "kms-site/hadoop.kms.authentication.signer.secret.provider.zookeeper.kerberos.keytab"
+              }
+            },
+            {
+              "name": "rangerkms",
+              "principal": {
+                "value": "rangerkms/_HOST@${realm}",
+                "type" : "service",
+                "configuration": "dbks-site/ranger.ks.kerberos.principal",
+                "local_username" : "keyadmin"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/rangerkms.service.keytab",
+                "owner": {
+                  "name": "${kms-env/kms_user}",
+                  "access": "r"
+                },
+                "configuration": "dbks-site/ranger.ks.kerberos.keytab"
+              }
+            },
+            {
+              "name": "ranger_kms_ranger_kms_server_rangerkms",
+              "reference": "/RANGER_KMS/RANGER_KMS_SERVER/rangerkms",
+              "principal": {
+                "configuration": "ranger-kms-audit/xasecure.audit.jaas.Client.option.principal"
+              },
+              "keytab": {
+                "configuration": "ranger-kms-audit/xasecure.audit.jaas.Client.option.keyTab"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

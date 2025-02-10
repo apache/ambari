@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -33,6 +34,7 @@ def replace_underscores(function_to_decorate):
     self = args[0]
     name = args[1].replace("_", "-")
     return function_to_decorate(self, name, *args[2:], **kwargs)
+
   return wrapper
 
 
@@ -40,41 +42,58 @@ class AptManagerProperties(GenericManagerProperties):
   """
   Class to keep all Package-manager depended properties
   """
+
   locked_output = "Unable to lock the administration directory"
   repo_error = "Failure when receiving data from the peer"
 
   repo_manager_bin = "/usr/bin/apt-get"
   repo_cache_bin = "/usr/bin/apt-cache"
   pkg_manager_bin = "/usr/bin/dpkg"
-  repo_update_cmd = [repo_manager_bin, 'update', '-qq']
+  repo_update_cmd = [repo_manager_bin, "update", "-qq"]
 
   available_packages_cmd = [repo_cache_bin, "dump"]
-  installed_packages_cmd = ['COLUMNS=999', pkg_manager_bin, "-l"]
+  installed_packages_cmd = ["COLUMNS=999", pkg_manager_bin, "-l"]
 
   repo_definition_location = "/etc/apt/sources.list.d"
 
   install_cmd = {
-    True: [repo_manager_bin, '-o', "Dpkg::Options::=--force-confdef", '--allow-unauthenticated', '--assume-yes', 'install'],
-    False: [repo_manager_bin, '-q', '-o', "Dpkg::Options::=--force-confdef", '--allow-unauthenticated', '--assume-yes', 'install']
+    True: [
+      repo_manager_bin,
+      "-o",
+      "Dpkg::Options::=--force-confdef",
+      "--allow-unauthenticated",
+      "--assume-yes",
+      "install",
+    ],
+    False: [
+      repo_manager_bin,
+      "-q",
+      "-o",
+      "Dpkg::Options::=--force-confdef",
+      "--allow-unauthenticated",
+      "--assume-yes",
+      "install",
+    ],
   }
 
   remove_cmd = {
-    True: [repo_manager_bin, '-y', 'remove'],
-    False: [repo_manager_bin, '-y', '-q', 'remove']
+    True: [repo_manager_bin, "-y", "remove"],
+    False: [repo_manager_bin, "-y", "-q", "remove"],
   }
 
-  verify_dependency_cmd = [repo_manager_bin, '-qq', 'check']
+  verify_dependency_cmd = [repo_manager_bin, "-qq", "check"]
 
-  install_cmd_env = {'DEBIAN_FRONTEND': 'noninteractive'}
+  install_cmd_env = {"DEBIAN_FRONTEND": "noninteractive"}
 
   repo_url_exclude = "ubuntu.com"
   configuration_dump_cmd = [AMBARI_SUDO_BINARY, "apt-config", "dump"]
 
 
 class AptManager(GenericManager):
-
   def get_installed_package_version(self, package_name):
-    r = shell.subprocess_executor("dpkg -s {0} | grep Version | awk '{{print $2}}'".format(package_name))
+    r = shell.subprocess_executor(
+      f"dpkg -s {package_name} | grep Version | awk '{{print $2}}'"
+    )
     return r.out.strip(os.linesep)
 
   @property
@@ -93,14 +112,19 @@ class AptManager(GenericManager):
     packages = []
     available_packages = self._available_packages_dict(pkg_names, repo_filter)
 
-    with shell.process_executor(self.properties.installed_packages_cmd, error_callback=self._executor_error_handler,
-                                strategy=shell.ReaderStrategy.BufferedChunks) as output:
+    with shell.process_executor(
+      self.properties.installed_packages_cmd,
+      error_callback=self._executor_error_handler,
+      strategy=shell.ReaderStrategy.BufferedChunks,
+    ) as output:
       for package, version in AptParser.packages_installed_reader(output):
         if package in available_packages:
           packages.append(available_packages[package])
 
         if package not in available_packages:
-          packages.append([package, version, "installed"])  # case, when some package not belongs to any known repo
+          packages.append(
+            [package, version, "installed"]
+          )  # case, when some package not belongs to any known repo
 
     return packages
 
@@ -112,9 +136,11 @@ class AptManager(GenericManager):
     :type repo_filter str|None
     """
 
-    with shell.process_executor(self.properties.available_packages_cmd, error_callback=self._executor_error_handler,
-                                strategy=shell.ReaderStrategy.BufferedChunks) as output:
-
+    with shell.process_executor(
+      self.properties.available_packages_cmd,
+      error_callback=self._executor_error_handler,
+      strategy=shell.ReaderStrategy.BufferedChunks,
+    ) as output:
       for pkg_item in AptParser.packages_reader(output):
         if repo_filter and repo_filter not in pkg_item[2]:
           continue
@@ -161,7 +187,7 @@ class AptManager(GenericManager):
     url_proto_mask = "://"
     url_proto_pos = base_url.find(url_proto_mask)
     if url_proto_pos > 0:
-      base_url = base_url[url_proto_pos+len(url_proto_mask):]
+      base_url = base_url[url_proto_pos + len(url_proto_mask) :]
 
     if "@" in base_url:
       base_url = base_url.split("@", 1)[1]
@@ -183,7 +209,9 @@ class AptManager(GenericManager):
       repo_ids.append(self.transform_baseurl_to_repoid(repo.base_url))
 
     if repos.feat.scoped:
-      Logger.info("Looking for matching packages in the following repositories: {0}".format(", ".join(repo_ids)))
+      Logger.info(
+        f"Looking for matching packages in the following repositories: {', '.join(repo_ids)}"
+      )
       for repo_id in repo_ids:
         for package in packages:
           if repo_id in package[2]:
@@ -191,7 +219,9 @@ class AptManager(GenericManager):
 
       return filtered_packages
     else:
-      Logger.info("Packages will be queried using all available repositories on the system.")
+      Logger.info(
+        "Packages will be queried using all available repositories on the system."
+      )
 
       # this is the case where the hosts are marked as sysprepped, but
       # search the repos on-system anyway.  the url specified in ambari must match the one
@@ -202,7 +232,7 @@ class AptManager(GenericManager):
             filtered_packages.append(package[0])
 
       if len(filtered_packages) > 0:
-        Logger.info("Found packages for repo {}".format(str(filtered_packages)))
+        Logger.info(f"Found packages for repo {str(filtered_packages)}")
         return filtered_packages
       else:
         return [package[0] for package in packages]
@@ -213,7 +243,10 @@ class AptManager(GenericManager):
 
     :return dict with apt properties
     """
-    with shell.process_executor(self.properties.configuration_dump_cmd, error_callback=self._executor_error_handler) as output:
+    with shell.process_executor(
+      self.properties.configuration_dump_cmd,
+      error_callback=self._executor_error_handler,
+    ) as output:
       configuration = list(AptParser.config_reader(output))
 
     return dict(configuration)
@@ -230,7 +263,10 @@ class AptManager(GenericManager):
     pattern = re.compile("has missing dependency|E:")
 
     if r.code or (r.out and pattern.search(r.out)):
-      err_msg = Logger.filter_text("Failed to verify package dependencies. Execution of '%s' returned %s. %s" % (self.properties.verify_dependency_cmd, r.code, r.out))
+      err_msg = Logger.filter_text(
+        "Failed to verify package dependencies. Execution of '%s' returned %s. %s"
+        % (self.properties.verify_dependency_cmd, r.code, r.out)
+      )
       Logger.error(err_msg)
       return False
 
@@ -257,37 +293,48 @@ class AptManager(GenericManager):
       copied_sources_files = []
       is_tmp_dir_created = False
       if context.use_repos:
-        if 'base' in context.use_repos:
-          use_repos = set([v for k, v in context.use_repos.items() if k != 'base'])
+        if "base" in context.use_repos:
+          use_repos = set([v for k, v in context.use_repos.items() if k != "base"])
         else:
-          cmd = cmd + ['-o', 'Dir::Etc::SourceList={0}'.format(self.properties.empty_file)]
+          cmd = cmd + ["-o", f"Dir::Etc::SourceList={self.properties.empty_file}"]
           use_repos = set(context.use_repos.values())
 
         if use_repos:
           is_tmp_dir_created = True
           apt_sources_list_tmp_dir = tempfile.mkdtemp(suffix="-ambari-apt-sources-d")
-          Logger.info("Temporary sources directory was created: {}".format(apt_sources_list_tmp_dir))
+          Logger.info(
+            f"Temporary sources directory was created: {apt_sources_list_tmp_dir}"
+          )
 
           for repo in use_repos:
-            new_sources_file = os.path.join(apt_sources_list_tmp_dir, repo + '.list')
-            Logger.info("Temporary sources file will be copied: {0}".format(new_sources_file))
-            sudo.copy(os.path.join(self.properties.repo_definition_location, repo + '.list'), new_sources_file)
+            new_sources_file = os.path.join(apt_sources_list_tmp_dir, repo + ".list")
+            Logger.info(f"Temporary sources file will be copied: {new_sources_file}")
+            sudo.copy(
+              os.path.join(self.properties.repo_definition_location, repo + ".list"),
+              new_sources_file,
+            )
             copied_sources_files.append(new_sources_file)
-          cmd = cmd + ['-o', 'Dir::Etc::SourceParts='.format(apt_sources_list_tmp_dir)]
+          cmd = cmd + ["-o", f"Dir::Etc::SourceParts={apt_sources_list_tmp_dir}"]
 
       cmd = cmd + [name]
-      Logger.info("Installing package {0} ('{1}')".format(name, shell.string_cmd_from_args_list(cmd)))
-      shell.repository_manager_executor(cmd, self.properties, context, env=self.properties.install_cmd_env)
+      Logger.info(
+        f"Installing package {name} ('{shell.string_cmd_from_args_list(cmd)}')"
+      )
+      shell.repository_manager_executor(
+        cmd, self.properties, context, env=self.properties.install_cmd_env
+      )
 
       if is_tmp_dir_created:
         for temporary_sources_file in copied_sources_files:
-          Logger.info("Removing temporary sources file: {0}".format(temporary_sources_file))
+          Logger.info(f"Removing temporary sources file: {temporary_sources_file}")
           os.remove(temporary_sources_file)
         if apt_sources_list_tmp_dir:
-          Logger.info("Removing temporary sources directory: {0}".format(apt_sources_list_tmp_dir))
+          Logger.info(
+            f"Removing temporary sources directory: {apt_sources_list_tmp_dir}"
+          )
           os.rmdir(apt_sources_list_tmp_dir)
     else:
-      Logger.info("Skipping installation of existing package {0}".format(name))
+      Logger.info(f"Skipping installation of existing package {name}")
 
   @replace_underscores
   def upgrade_package(self, name, context):
@@ -317,10 +364,10 @@ class AptManager(GenericManager):
       raise ValueError("Installation command were executed with no package name passed")
     elif self._check_existence(name):
       cmd = self.properties.remove_cmd[context.log_output] + [name]
-      Logger.info("Removing package {0} ('{1}')".format(name, shell.string_cmd_from_args_list(cmd)))
+      Logger.info(f"Removing package {name} ('{shell.string_cmd_from_args_list(cmd)}')")
       shell.repository_manager_executor(cmd, self.properties, context)
     else:
-      Logger.info("Skipping removal of non-existing package {0}".format(name))
+      Logger.info(f"Skipping removal of non-existing package {name}")
 
   @replace_underscores
   def _check_existence(self, name):
@@ -346,7 +393,9 @@ class AptManager(GenericManager):
     # interested in repository, from where package come)
     cmd = self.properties.installed_packages_cmd + [name]
 
-    with shell.process_executor(cmd, strategy=shell.ReaderStrategy.BufferedChunks, silent=True) as output:
+    with shell.process_executor(
+      cmd, strategy=shell.ReaderStrategy.BufferedChunks, silent=True
+    ) as output:
       for package, version in AptParser.packages_installed_reader(output):
         return package == name
 

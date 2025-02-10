@@ -169,8 +169,8 @@ App.MainDashboardWidgetsView = Em.View.extend(App.Persist, App.LocalStorage, App
     } else {
       this.addObserver('App.router.clusterController.isHDFSNameSpacesLoaded', this, 'setWidgetGroups');
     }
-    this.loadWidgetsSettings().complete(() => {
-      this.get('widgetGroupsDeferred').done(() => {
+    this.loadWidgetsSettings().then(() => {
+      this.get('widgetGroupsDeferred').then(() => {
         if (this.get('isDestroyed')) return;
         this.checkServicesChange();
         this.renderWidgets();

@@ -1,6 +1,5 @@
-# !/usr/bin/env python
-
-'''
+#!/usr/bin/env python3
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,11 +15,12 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
-
+"""
 
 from resource_management.core.logger import Logger
-from resource_management.libraries.functions.stack_features import get_stack_feature_version
+from resource_management.libraries.functions.stack_features import (
+  get_stack_feature_version,
+)
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.script import Script
 from resource_management.core.exceptions import Fail
@@ -29,6 +29,7 @@ from unittest import TestCase
 import json
 
 Logger.initialize_logger()
+
 
 class TestStackFeature(TestCase):
   """
@@ -57,7 +58,9 @@ class TestStackFeature(TestCase):
     try:
       stack_feature_version = get_stack_feature_version({})
       self.assertEqual("2.3.0.0-1234", stack_feature_version)
-      self.fail("Expected an exception when there are required parameters missing from the dictionary")
+      self.fail(
+        "Expected an exception when there are required parameters missing from the dictionary"
+      )
     except Fail:
       pass
 
@@ -72,7 +75,6 @@ class TestStackFeature(TestCase):
     stack_feature_version = get_stack_feature_version(command_json)
     self.assertEqual("2.4", stack_feature_version)
 
-
   def test_get_stack_feature_version_for_upgrade_restart(self):
     """
     Tests the stack feature version calculated during a restart command in an upgrade.
@@ -84,7 +86,6 @@ class TestStackFeature(TestCase):
     stack_feature_version = get_stack_feature_version(command_json)
     self.assertEqual("2.5.9.9-9999", stack_feature_version)
 
-
   def test_get_stack_feature_version_for_downgrade_restart(self):
     """
     Tests the stack feature version calculated during a restart command in a downgrade.
@@ -95,7 +96,6 @@ class TestStackFeature(TestCase):
 
     stack_feature_version = get_stack_feature_version(command_json)
     self.assertEqual("2.4.0.0-1234", stack_feature_version)
-
 
   def test_get_stack_feature_version_for_downgrade_stop(self):
     """
@@ -114,7 +114,6 @@ class TestStackFeature(TestCase):
     stack_feature_version = get_stack_feature_version(command_json)
     self.assertEqual("2.5.9.9-9999", stack_feature_version)
 
-
   def test_get_stack_feature(self):
     """
     Tests the stack feature version calculated during a STOP command in a downgrade.
@@ -126,7 +125,9 @@ class TestStackFeature(TestCase):
     Script.config["configurations"] = {}
     Script.config["configurations"]["cluster-env"] = {}
     Script.config["configurations"]["cluster-env"]["stack_features"] = {}
-    Script.config["configurations"]["cluster-env"]["stack_features"] = json.dumps(TestStackFeature._get_stack_feature_json())
+    Script.config["configurations"]["cluster-env"]["stack_features"] = json.dumps(
+      TestStackFeature._get_stack_feature_json()
+    )
 
     stack_feature_version = get_stack_feature_version(command_json)
     self.assertTrue(check_stack_feature("stack-feature-1", stack_feature_version))
@@ -141,7 +142,6 @@ class TestStackFeature(TestCase):
     self.assertTrue(check_stack_feature("stack-feature-2", stack_feature_version))
     self.assertFalse(check_stack_feature("stack-feature-3", stack_feature_version))
 
-
   @staticmethod
   def _get_cluster_install_command_json():
     """
@@ -149,7 +149,7 @@ class TestStackFeature(TestCase):
     :return:
     """
     return {
-      "serviceName":"HDFS",
+      "serviceName": "HDFS",
       "roleCommand": "ACTIONEXECUTE",
       "clusterLevelParams": {
         "stack_name": "HDP",
@@ -158,8 +158,8 @@ class TestStackFeature(TestCase):
       "commandParams": {
         "command_timeout": "1800",
         "script_type": "PYTHON",
-        "script": "install_packages.py"
-      }
+        "script": "install_packages.py",
+      },
     }
 
   @staticmethod
@@ -169,8 +169,8 @@ class TestStackFeature(TestCase):
     :return:
     """
     return {
-      "serviceName":"HDFS",
-      "roleCommand":"ACTIONEXECUTE",
+      "serviceName": "HDFS",
+      "roleCommand": "ACTIONEXECUTE",
       "clusterLevelParams": {
         "stack_name": "HDP",
         "stack_version": "2.4",
@@ -179,28 +179,28 @@ class TestStackFeature(TestCase):
         "source_stack": "2.4",
         "target_stack": "2.5",
         "upgrade_direction": "upgrade",
-        "version": "2.5.9.9-9999"
+        "version": "2.5.9.9-9999",
       },
       "upgradeSummary": {
-        "services":{
-          "HDFS":{
-            "sourceRepositoryId":1,
-            "sourceStackId":"HDP-2.4",
-            "sourceVersion":"2.4.0.0-1234",
-            "targetRepositoryId":2,
-            "targetStackId":"HDP-2.5",
-            "targetVersion":"2.5.9.9-9999"
+        "services": {
+          "HDFS": {
+            "sourceRepositoryId": 1,
+            "sourceStackId": "HDP-2.4",
+            "sourceVersion": "2.4.0.0-1234",
+            "targetRepositoryId": 2,
+            "targetStackId": "HDP-2.5",
+            "targetVersion": "2.5.9.9-9999",
           }
         },
-        "direction":"UPGRADE",
-        "type":"rolling_upgrade",
-        "isRevert":False,
-        "orchestration":"STANDARD",
-        "associatedStackId":"HDP-2.5",
-        "associatedVersion":"2.5.9.9-9999",
+        "direction": "UPGRADE",
+        "type": "rolling_upgrade",
+        "isRevert": False,
+        "orchestration": "STANDARD",
+        "associatedStackId": "HDP-2.5",
+        "associatedVersion": "2.5.9.9-9999",
         "isDowngradeAllowed": True,
-        "isSwitchBits": False
-      }
+        "isSwitchBits": False,
+      },
     }
 
   @staticmethod
@@ -210,40 +210,36 @@ class TestStackFeature(TestCase):
     :return:
     """
     return {
-      "serviceName":"HDFS",
-      "roleCommand":"ACTIONEXECUTE",
-      "clusterLevelParams":{
-        "stack_name":"HDP",
-        "stack_version":"2.4"
+      "serviceName": "HDFS",
+      "roleCommand": "ACTIONEXECUTE",
+      "clusterLevelParams": {"stack_name": "HDP", "stack_version": "2.4"},
+      "commandParams": {
+        "source_stack": "2.5",
+        "target_stack": "2.4",
+        "upgrade_direction": "downgrade",
+        "version": "2.4.0.0-1234",
       },
-      "commandParams":{
-        "source_stack":"2.5",
-        "target_stack":"2.4",
-        "upgrade_direction":"downgrade",
-        "version":"2.4.0.0-1234"
-      },
-      "upgradeSummary":{
-        "services":{
-          "HDFS":{
-            "sourceRepositoryId":2,
-            "sourceStackId":"HDP-2.5",
-            "sourceVersion":"2.5.9.9-9999",
-            "targetRepositoryId":1,
-            "targetStackId":"HDP-2.4",
-            "targetVersion":"2.4.0.0-1234"
+      "upgradeSummary": {
+        "services": {
+          "HDFS": {
+            "sourceRepositoryId": 2,
+            "sourceStackId": "HDP-2.5",
+            "sourceVersion": "2.5.9.9-9999",
+            "targetRepositoryId": 1,
+            "targetStackId": "HDP-2.4",
+            "targetVersion": "2.4.0.0-1234",
           }
         },
-        "direction":"DOWNGRADE",
-        "type":"rolling_upgrade",
-        "isRevert":False,
-        "orchestration":"STANDARD",
-        "associatedStackId":"HDP-2.5",
-        "associatedVersion":"2.5.9.9-9999",
+        "direction": "DOWNGRADE",
+        "type": "rolling_upgrade",
+        "isRevert": False,
+        "orchestration": "STANDARD",
+        "associatedStackId": "HDP-2.5",
+        "associatedVersion": "2.5.9.9-9999",
         "isDowngradeAllowed": True,
-        "isSwitchBits": False
-      }
+        "isSwitchBits": False,
+      },
     }
-
 
   @staticmethod
   def _get_cluster_downgrade_stop_json():
@@ -252,38 +248,38 @@ class TestStackFeature(TestCase):
     :return:
     """
     return {
-      "serviceName":"HDFS",
-      "roleCommand":"STOP",
-      "clusterLevelParams":{
-        "stack_name":"HDP",
-        "stack_version":"2.5",
+      "serviceName": "HDFS",
+      "roleCommand": "STOP",
+      "clusterLevelParams": {
+        "stack_name": "HDP",
+        "stack_version": "2.5",
       },
-      "commandParams":{
-        "source_stack":"2.5",
-        "target_stack":"2.4",
-        "upgrade_direction":"downgrade",
-        "version":"2.5.9.9-9999"
+      "commandParams": {
+        "source_stack": "2.5",
+        "target_stack": "2.4",
+        "upgrade_direction": "downgrade",
+        "version": "2.5.9.9-9999",
       },
-      "upgradeSummary":{
-        "services":{
-          "HDFS":{
-            "sourceRepositoryId":2,
-            "sourceStackId":"HDP-2.5",
-            "sourceVersion":"2.5.9.9-9999",
-            "targetRepositoryId":1,
-            "targetStackId":"HDP-2.4",
-            "targetVersion":"2.4.0.0-1234"
+      "upgradeSummary": {
+        "services": {
+          "HDFS": {
+            "sourceRepositoryId": 2,
+            "sourceStackId": "HDP-2.5",
+            "sourceVersion": "2.5.9.9-9999",
+            "targetRepositoryId": 1,
+            "targetStackId": "HDP-2.4",
+            "targetVersion": "2.4.0.0-1234",
           }
         },
-        "direction":"DOWNGRADE",
-        "type":"rolling_upgrade",
-        "isRevert":False,
-        "orchestration":"STANDARD",
-        "associatedStackId":"HDP-2.5",
-        "associatedVersion":"2.5.9.9-9999",
+        "direction": "DOWNGRADE",
+        "type": "rolling_upgrade",
+        "isRevert": False,
+        "orchestration": "STANDARD",
+        "associatedStackId": "HDP-2.5",
+        "associatedVersion": "2.5.9.9-9999",
         "isDowngradeAllowed": True,
-        "isSwitchBits": False
-      }
+        "isSwitchBits": False,
+      },
     }
 
   @staticmethod
@@ -293,37 +289,37 @@ class TestStackFeature(TestCase):
     :return:
     """
     return {
-      "serviceName":"HDFS",
-      "roleCommand":"CUSTOM_COMMAND",
-      "clusterLevelParams":{
-        "stack_name":"HDP",
-        "stack_version":"2.5",
-        "custom_command":"STOP"
+      "serviceName": "HDFS",
+      "roleCommand": "CUSTOM_COMMAND",
+      "clusterLevelParams": {
+        "stack_name": "HDP",
+        "stack_version": "2.5",
+        "custom_command": "STOP",
       },
-      "commandParams":{
-        "source_stack":"2.5",
-        "target_stack":"2.4",
-        "upgrade_direction":"downgrade",
-        "version":"2.5.9.9-9999"
+      "commandParams": {
+        "source_stack": "2.5",
+        "target_stack": "2.4",
+        "upgrade_direction": "downgrade",
+        "version": "2.5.9.9-9999",
       },
-      "upgradeSummary":{
-        "services":{
-          "HDFS":{
-            "sourceRepositoryId":2,
-            "sourceStackId":"HDP-2.5",
-            "sourceVersion":"2.5.9.9-9999",
-            "targetRepositoryId":1,
-            "targetStackId":"HDP-2.4",
-            "targetVersion":"2.4.0.0-1234"
+      "upgradeSummary": {
+        "services": {
+          "HDFS": {
+            "sourceRepositoryId": 2,
+            "sourceStackId": "HDP-2.5",
+            "sourceVersion": "2.5.9.9-9999",
+            "targetRepositoryId": 1,
+            "targetStackId": "HDP-2.4",
+            "targetVersion": "2.4.0.0-1234",
           }
         },
-        "direction":"DOWNGRADE",
-        "type":"rolling_upgrade",
-        "isRevert":False,
-        "orchestration":"STANDARD",
-        "associatedStackId":"HDP-2.5",
-        "associatedVersion":"2.5.9.9-9999"
-      }
+        "direction": "DOWNGRADE",
+        "type": "rolling_upgrade",
+        "isRevert": False,
+        "orchestration": "STANDARD",
+        "associatedStackId": "HDP-2.5",
+        "associatedVersion": "2.5.9.9-9999",
+      },
     }
 
   @staticmethod
@@ -334,24 +330,24 @@ class TestStackFeature(TestCase):
     """
     return {
       "HDP": {
-        "stack_features":[
+        "stack_features": [
           {
-            "name":"stack-feature-1",
-            "description":"Stack Feature 1",
-            "min_version":"2.2.0.0"
+            "name": "stack-feature-1",
+            "description": "Stack Feature 1",
+            "min_version": "2.2.0.0",
           },
           {
-            "name":"stack-feature-2",
-            "description":"Stack Feature 2",
-            "min_version":"2.2.0.0",
-            "max_version":"2.6.0.0"
+            "name": "stack-feature-2",
+            "description": "Stack Feature 2",
+            "min_version": "2.2.0.0",
+            "max_version": "2.6.0.0",
           },
           {
-            "name":"stack-feature-3",
-            "description":"Stack Feature 3",
-            "min_version":"2.2.0.0",
-            "max_version":"2.3.0.0"
-          }
+            "name": "stack-feature-3",
+            "description": "Stack Feature 3",
+            "min_version": "2.2.0.0",
+            "max_version": "2.3.0.0",
+          },
         ]
       }
     }

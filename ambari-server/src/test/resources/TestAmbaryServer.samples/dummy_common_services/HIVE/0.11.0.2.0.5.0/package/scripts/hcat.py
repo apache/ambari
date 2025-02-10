@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -23,25 +23,22 @@ import sys
 
 
 def hcat():
-  import params
+  from scripts import params
 
-  Directory(params.hcat_conf_dir,
-            owner=params.hcat_user,
-            group=params.user_group,
+  Directory(
+    params.hcat_conf_dir,
+    owner=params.hcat_user,
+    group=params.user_group,
   )
 
-  Directory(params.hcat_pid_dir,
-            owner=params.webhcat_user,
-            create_parents = True
-  )
+  Directory(params.hcat_pid_dir, owner=params.webhcat_user, create_parents=True)
 
-  hcat_TemplateConfig('hcat-env.sh')
+  hcat_TemplateConfig("hcat-env.sh")
 
 
 def hcat_TemplateConfig(name):
-  import params
+  from scripts import params
 
-  TemplateConfig(format("{hcat_conf_dir}/{name}"),
-                 owner=params.hcat_user,
-                 group=params.user_group
+  TemplateConfig(
+    format("{hcat_conf_dir}/{name}"), owner=params.hcat_user, group=params.user_group
   )

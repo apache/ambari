@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -24,18 +24,23 @@ __all__ = ["get_unique_id_and_date"]
 import datetime
 from resource_management.core import shell
 from ambari_commons import os_check
+
+
 def get_unique_id_and_date():
   if os_check.OSCheck.is_windows_family():
     from ambari_commons.os_utils import run_os_command
+
     code, out, err = run_os_command("cmd /c vol C:")
     for line in out.splitlines():
       if line.startswith(" Volume Serial Number is"):
         id = line[25:]
   else:
-    out = shell.checked_call("hostid")[1].split('\n')[-1] # bugfix: take the lastline (stdin is not tty part cut)
+    out = shell.checked_call("hostid")[1].split("\n")[
+      -1
+    ]  # bugfix: take the lastline (stdin is not tty part cut)
     id = out.strip()
 
   now = datetime.datetime.now()
   date = now.strftime("%M%d%y")
 
-  return "id{id}_date{date}".format(id=id, date=date)
+  return f"id{id}_date{date}"

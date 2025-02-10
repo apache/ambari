@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -35,43 +35,48 @@ class ModifyPropertiesFileProvider(Provider):
     comment_symbols = self.resource.comment_symbols
     delimiter = self.resource.key_value_delimiter
     properties = self.resource.properties
-    unsaved_values = properties.keys()
+    unsaved_values = list(properties.keys())
     new_content_lines = []
     final_content_lines = ""
-    
+
     if sudo.path_isfile(filename):
-      file_content = sudo.read_file(filename, encoding=self.resource.encoding)
-      new_content_lines += file_content.split('\n')
+      file_content = sudo.read_file(filename, encoding=self.resource.encoding).decode()
+      new_content_lines += file_content.split("\n")
 
       Logger.info(format("Modifying existing properties file: {filename}"))
-      
+
       for line_num in range(len(new_content_lines)):
         line = new_content_lines[line_num]
-        
-        if line.lstrip() and not line.lstrip()[0] in comment_symbols and delimiter in line:
+
+        if (
+          line.lstrip()
+          and not line.lstrip()[0] in comment_symbols
+          and delimiter in line
+        ):
           in_var_name = line.split(delimiter)[0].strip()
           in_var_value = line.split(delimiter)[1].strip()
-          
+
           if in_var_name in properties:
-            value = InlineTemplate(unicode(properties[in_var_name])).get_content()
-            new_content_lines[line_num] = u"{0}{1}{2}".format(unicode(in_var_name), delimiter, value)
+            value = InlineTemplate(str(properties[in_var_name])).get_content()
+            new_content_lines[line_num] = f"{str(in_var_name)}{delimiter}{value}"
             unsaved_values.remove(in_var_name)
     else:
       Logger.info(format("Creating new properties file as {filename} doesn't exist"))
-       
+
     for property_name in unsaved_values:
-      value = InlineTemplate(unicode(properties[property_name])).get_content()
-      line = u"{0}{1}{2}".format(unicode(property_name), delimiter, value)
+      value = InlineTemplate(str(properties[property_name])).get_content()
+      line = f"{str(property_name)}{delimiter}{value}"
       new_content_lines.append(line)
 
-    final_content_lines = u"\n".join(new_content_lines)
+    final_content_lines = "\n".join(new_content_lines)
     if not final_content_lines.endswith("\n"):
       final_content_lines = final_content_lines + "\n"
 
-    File (filename,
-          content = final_content_lines,
-          owner = self.resource.owner,
-          group = self.resource.group,
-          mode = self.resource.mode,
-          encoding = self.resource.encoding,
+    File(
+      filename,
+      content=final_content_lines,
+      owner=self.resource.owner,
+      group=self.resource.group,
+      mode=self.resource.mode,
+      encoding=self.resource.encoding,
     )

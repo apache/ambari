@@ -36,8 +36,9 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStoppedEve
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostUninstallEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostUpgradeEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostWipeoutEvent;
-import org.codehaus.jackson.annotate.JsonCreator;
-import org.codehaus.jackson.annotate.JsonProperty;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Base class for all events that affect the ServiceComponentHost FSM

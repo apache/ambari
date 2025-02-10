@@ -49,6 +49,7 @@ var InitialData = {
   'ActivateHawqStandbyWizard': {},
   'RAHighAvailabilityWizard': {},
   'NameNodeFederationWizard': {},
+  'RouterFederationWizard': {},
   'RollbackHighAvailabilityWizard': {},
   'MainAdminStackAndUpgrade': {},
   'KerberosDisable': {},

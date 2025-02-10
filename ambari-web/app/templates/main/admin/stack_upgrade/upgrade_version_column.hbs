@@ -110,7 +110,7 @@
   {{#each service in view.services}}
     <div class="service-cell-wrapper">
       <div class="service-cell service-version-info">
-        <span {{bindAttr class="service.isVersionInvisible:invisible service.isAvailable:available :label :service-label"}}>
+        <span {{bindAttr class="service.isVersionInvisible:invisible service.isAvailable:available :label"}}>
           {{service.latestVersion}}
         </span>
         {{#if service.notUpgradable}}
