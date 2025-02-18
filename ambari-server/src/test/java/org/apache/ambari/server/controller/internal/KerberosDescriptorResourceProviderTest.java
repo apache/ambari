@@ -31,8 +31,6 @@ import static org.junit.Assert.assertNotNull;
 import java.util.Map;
 import java.util.Set;
 
-import javax.persistence.PersistenceException;
-
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.orm.dao.KerberosDescriptorDAO;
@@ -48,6 +46,8 @@ import org.junit.Test;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+
+import jakarta.persistence.PersistenceException;
 
 public class KerberosDescriptorResourceProviderTest {
 

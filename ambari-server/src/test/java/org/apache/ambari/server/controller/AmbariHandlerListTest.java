@@ -28,7 +28,6 @@ import static org.easymock.EasyMock.verify;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import javax.inject.Provider;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -53,6 +52,8 @@ import org.eclipse.jetty.webapp.WebAppContext;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.web.filter.DelegatingFilterProxy;
+
+import com.google.inject.Provider;
 
 /**
  * AmbariHandlerList tests.

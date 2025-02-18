@@ -29,8 +29,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.StreamSupport;
 
-import javax.persistence.EntityManager;
-
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.mpack.MpackManagerFactory;
@@ -55,6 +53,8 @@ import org.junit.rules.TemporaryFolder;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+
+import jakarta.persistence.EntityManager;
 
 public class UpdateKerberosConfigsServerActionTest extends EasyMockSupport{
 

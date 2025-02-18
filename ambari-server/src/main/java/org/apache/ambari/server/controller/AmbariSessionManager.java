@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.controller;
 
-import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
@@ -26,6 +25,8 @@ import org.eclipse.jetty.server.session.SessionHandler;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+
+import com.google.inject.Inject;
 
 /**
  * Class to expose current session information.

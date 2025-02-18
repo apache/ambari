@@ -24,8 +24,6 @@ import static org.easymock.EasyMock.reset;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.EntityManager;
-
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.KerberosKeytabEntity;
 import org.apache.ambari.server.orm.entities.KerberosKeytabPrincipalEntity;
@@ -39,6 +37,8 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import com.google.inject.Provider;
+
+import jakarta.persistence.EntityManager;
 
 public class KerberosKeytabPrincipalDAOTest {
 

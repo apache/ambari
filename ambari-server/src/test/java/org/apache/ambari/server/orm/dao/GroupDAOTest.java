@@ -26,15 +26,15 @@ import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertSame;
 
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-
 import org.apache.ambari.server.orm.entities.GroupEntity;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
 
 /**
  * GroupDAO unit tests.

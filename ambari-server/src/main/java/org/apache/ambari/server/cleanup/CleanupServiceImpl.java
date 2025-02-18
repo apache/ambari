@@ -19,12 +19,11 @@ package org.apache.ambari.server.cleanup;
 
 import java.util.Set;
 
-import javax.inject.Inject;
-
 import org.apache.ambari.server.orm.dao.Cleanable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 /**

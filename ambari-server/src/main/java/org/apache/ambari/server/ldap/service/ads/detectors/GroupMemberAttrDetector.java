@@ -11,13 +11,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.ambari.server.ldap.service.ads.detectors;
-
-import javax.inject.Inject;
 
 import org.apache.ambari.server.configuration.AmbariServerConfigurationKey;
 import org.apache.directory.api.ldap.model.entry.Entry;
+
+import com.google.inject.Inject;
 
 public class GroupMemberAttrDetector extends OccurrenceAndWeightBasedDetector {
 

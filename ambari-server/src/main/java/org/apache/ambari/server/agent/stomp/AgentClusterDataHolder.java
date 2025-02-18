@@ -20,12 +20,12 @@ package org.apache.ambari.server.agent.stomp;
 
 import java.util.Objects;
 
-import javax.inject.Inject;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.stomp.dto.Hashable;
 import org.apache.ambari.server.events.STOMPEvent;
 import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
+
+import com.google.inject.Inject;
 
 /**
  * Is used to saving and updating last version of event in cluster scope

@@ -18,8 +18,6 @@ import static org.easymock.EasyMock.createNiceMock;
 
 import java.util.Map;
 
-import javax.persistence.EntityManager;
-
 import org.apache.ambari.server.configuration.AmbariServerConfigurationKey;
 import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
 import org.apache.ambari.server.ldap.service.ads.LdapConnectionTemplateFactory;
@@ -44,6 +42,8 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.util.Modules;
+
+import jakarta.persistence.EntityManager;
 
 /**
  * Test for the GUICE LdapModule setup

@@ -55,8 +55,6 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 
-import javax.persistence.EntityManager;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.actionmanager.ActionDBAccessor;
@@ -160,6 +158,8 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.jpa.AmbariJpaPersistService;
+
+import jakarta.persistence.EntityManager;
 
 
 @SuppressWarnings("unchecked")

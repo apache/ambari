@@ -17,9 +17,9 @@
  */
 package org.apache.ambari.server.events.jpa;
 
-import javax.persistence.EntityManagerFactory;
-
 import org.apache.ambari.server.events.AmbariEvent;
+
+import jakarta.persistence.EntityManagerFactory;
 
 /**
  * The {@link JPAEvent} class is the base for all JPA events in Ambari. Although

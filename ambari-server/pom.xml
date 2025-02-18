@@ -1170,7 +1170,7 @@
     <dependency>
       <groupId>jakarta.persistence</groupId>
       <artifactId>jakarta.persistence-api</artifactId>
-      <version>2.2.3</version>
+      <version>3.1.0</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
@@ -1239,6 +1239,7 @@
     <dependency>
       <groupId>com.google.inject.extensions</groupId>
       <artifactId>guice-persist</artifactId>
+      <version>7.0.0</version>
     </dependency>
     <dependency>
       <groupId>com.google.inject.extensions</groupId>

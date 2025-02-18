@@ -22,8 +22,6 @@ import static org.easymock.EasyMock.createNiceMock;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.EntityManager;
-
 import org.apache.ambari.server.events.AlertUpdateEvent;
 import org.apache.ambari.server.events.MaintenanceModeEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
@@ -55,6 +53,8 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.util.Modules;
+
+import jakarta.persistence.EntityManager;
 
 /**
  *

@@ -14,12 +14,12 @@
 
 package org.apache.ambari.server.topology.validators;
 
-import javax.inject.Inject;
-
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.InvalidTopologyException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.inject.Inject;
 
 /**
  * Service implementation dealing with topology validation.

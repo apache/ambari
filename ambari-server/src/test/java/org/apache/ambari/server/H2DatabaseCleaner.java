@@ -26,15 +26,15 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
-import javax.persistence.metamodel.EntityType;
-
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.DBAccessorImpl;
 
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
+import jakarta.persistence.metamodel.EntityType;
 
 public class H2DatabaseCleaner {
   private static final String SEQ_STATEMENT =

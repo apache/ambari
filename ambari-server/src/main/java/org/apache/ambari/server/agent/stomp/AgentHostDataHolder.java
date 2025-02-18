@@ -22,8 +22,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.inject.Inject;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.AmbariRuntimeException;
 import org.apache.ambari.server.agent.stomp.dto.Hashable;
@@ -32,6 +30,8 @@ import org.apache.ambari.server.events.STOMPHostEvent;
 import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.inject.Inject;
 
 /**
  * Is used to saving and updating last version of event in host scope

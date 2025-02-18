@@ -19,7 +19,6 @@ package org.apache.ambari.server.controller.logging;
 
 import java.util.List;
 
-import javax.inject.Inject;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
@@ -32,6 +31,7 @@ import org.apache.ambari.server.state.State;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
+import com.google.inject.Inject;
 
 public class LoggingRequestHelperFactoryImpl implements LoggingRequestHelperFactory {
 

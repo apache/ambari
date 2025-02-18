@@ -16,10 +16,7 @@
  * limitations under the License.
  */
 
-
 package org.apache.ambari.server.controller;
-
-import javax.inject.Named;
 
 import org.apache.ambari.server.controller.internal.AlertTargetResourceProvider;
 import org.apache.ambari.server.controller.internal.ClusterStackVersionResourceProvider;
@@ -27,6 +24,7 @@ import org.apache.ambari.server.controller.internal.UpgradeResourceProvider;
 import org.apache.ambari.server.controller.internal.ViewInstanceResourceProvider;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 
+import com.google.inject.name.Named;
 
 public interface ResourceProviderFactory {
   @Named("host")

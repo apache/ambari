@@ -23,8 +23,6 @@ import static org.apache.ambari.server.events.AlertDefinitionEventType.UPDATE;
 import java.util.Collections;
 import java.util.Map;
 
-import javax.inject.Provider;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.agent.stomp.AlertDefinitionsHolder;
@@ -49,6 +47,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
 @Singleton

@@ -22,8 +22,6 @@ import java.io.UncheckedIOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
-import javax.inject.Inject;
-
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.utils.TextEncoding;
 import org.apache.commons.codec.DecoderException;
@@ -32,6 +30,7 @@ import org.apache.commons.codec.binary.Hex;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton

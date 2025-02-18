@@ -26,8 +26,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Semaphore;
 
-import javax.persistence.EntityManager;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.events.publishers.JPAEventPublisher;
@@ -53,6 +51,7 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.persist.UnitOfWork;
 
+import jakarta.persistence.EntityManager;
 import junit.framework.Assert;
 
 /**

@@ -27,8 +27,6 @@ import java.io.File;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 
-import javax.persistence.EntityManager;
-
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.RootComponent;
@@ -54,6 +52,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
+import jakarta.persistence.EntityManager;
 import junit.framework.Assert;
 
 public class ConfigureAmbariIdentitiesServerActionTest extends EasyMockSupport {

@@ -38,8 +38,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.EnumSet;
 
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
 import javax.servlet.DispatcherType;
 import javax.servlet.SessionCookieConfig;
 
@@ -74,6 +72,9 @@ import org.junit.Test;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
 
 public class AmbariServerTest {
 

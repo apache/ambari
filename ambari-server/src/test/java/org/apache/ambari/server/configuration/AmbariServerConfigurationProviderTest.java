@@ -28,8 +28,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.persistence.EntityManager;
-
 import org.apache.ambari.server.events.AmbariConfigurationChangedEvent;
 import org.apache.ambari.server.events.JpaInitializedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
@@ -47,6 +45,8 @@ import com.google.inject.Injector;
 import com.google.inject.TypeLiteral;
 import com.google.inject.name.Names;
 import com.google.inject.persist.jpa.AmbariJpaPersistService;
+
+import jakarta.persistence.EntityManager;
 
 public class AmbariServerConfigurationProviderTest extends EasyMockSupport {
 

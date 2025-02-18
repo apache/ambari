@@ -23,13 +23,13 @@ import static org.easymock.EasyMock.expect;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import javax.persistence.EntityTransaction;
-
 import org.easymock.EasyMockSupport;
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.google.inject.persist.Transactional;
+
+import jakarta.persistence.EntityTransaction;
 
 public class AmbariJpaLocalTxnInterceptorTest extends EasyMockSupport {
 

@@ -24,14 +24,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.metamodel.SingularAttribute;
-import javax.persistence.metamodel.StaticMetamodel;
-
 import org.apache.ambari.server.controller.internal.AlertResourceProvider;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.state.MaintenanceState;
 
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.metamodel.SingularAttribute;
+import jakarta.persistence.metamodel.StaticMetamodel;
 
 /**
  * The {@link AlertCurrentEntity_} is a strongly typed metamodel for creating
@@ -53,7 +52,7 @@ public class AlertCurrentEntity_ {
    * {@link SingularAttribute}.
    * <p/>
    * This is used when converting an Ambari {@link Predicate} into a JPA
-   * {@link javax.persistence.criteria.Predicate} and we need a type-safe
+   * {@link jakarta.persistence.criteria.Predicate} and we need a type-safe
    * conversion between "category/property" and JPA field names.
    * <p/>
    * Multiple {@link SingularAttribute} instances can be chained together in

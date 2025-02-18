@@ -16,13 +16,13 @@ package org.apache.ambari.server.ldap.service.ads.detectors;
 
 import java.util.Set;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
-
 import org.apache.ambari.server.ldap.service.AttributeDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 
 /**
  * Factory for attribute detector chains.

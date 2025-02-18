@@ -27,9 +27,6 @@ import java.lang.reflect.Proxy;
 import java.util.List;
 import java.util.Map;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.ambari.server.orm.AmbariJpaLocalTxnInterceptor;
@@ -47,6 +44,9 @@ import com.google.inject.persist.UnitOfWork;
 import com.google.inject.persist.finder.DynamicFinder;
 import com.google.inject.persist.finder.Finder;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+
 /**
  * Copy of guice persist module for local modifications
  */
@@ -61,6 +61,7 @@ public class AmbariJpaPersistModule extends PersistModule {
     }
   }
 
+  private JpaPersistOptions options;
   private Map<?, ?> properties;
   private MethodInterceptor transactionInterceptor;
 
@@ -99,6 +100,10 @@ public class AmbariJpaPersistModule extends PersistModule {
     return properties;
   }
 
+  @Provides @Jpa JpaPersistOptions provideOptions() {
+    return options;
+  }
+
   /**
    * Configures the JPA persistence provider with a set of properties.
    *
@@ -106,6 +111,7 @@ public class AmbariJpaPersistModule extends PersistModule {
    * provider as per the specification.
    */
   public AmbariJpaPersistModule properties(Map<?, ?> properties) {
+    this.options = JpaPersistOptions.builder().setAutoBeginWorkOnEntityManagerCreation(true).build();
     this.properties = properties;
     return this;
   }

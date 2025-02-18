@@ -18,14 +18,14 @@
 
 package org.apache.ambari.server.security.authentication.pam;
 
-import javax.inject.Singleton;
-
 import org.apache.ambari.server.configuration.Configuration;
 import org.jvnet.libpam.PAM;
 import org.jvnet.libpam.PAMException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationServiceException;
+
+import com.google.inject.Singleton;
 
 /**
  * PamAuthenticationFactory returns Pam library instances.

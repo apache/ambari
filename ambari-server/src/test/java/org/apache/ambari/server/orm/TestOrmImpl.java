@@ -24,9 +24,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import javax.persistence.EntityManager;
-import javax.persistence.RollbackException;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.Role;
@@ -60,6 +57,9 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.RollbackException;
 
 public class TestOrmImpl extends Assert {
   private static final Logger log = LoggerFactory.getLogger(TestOrmImpl.class);

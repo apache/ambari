@@ -19,8 +19,6 @@ package org.apache.ambari.server.upgrade;
 
 import java.sql.SQLException;
 
-import javax.persistence.Table;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.entities.AmbariConfigurationEntity;
@@ -29,6 +27,8 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+
+import jakarta.persistence.Table;
 
 /**
  * The {@link UpgradeCatalog274} upgrades Ambari from 2.7.2 to 2.7.4.

@@ -27,13 +27,13 @@ import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 
-import javax.inject.Inject;
-
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.view.configuration.ViewConfig;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.inject.Inject;
 
 /**
  * Extractor for view archives.

@@ -19,8 +19,6 @@ import static javax.net.ssl.TrustManagerFactory.getDefaultAlgorithm;
 import java.io.FileInputStream;
 import java.security.KeyStore;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 
@@ -31,6 +29,9 @@ import org.apache.directory.api.util.Strings;
 import org.apache.directory.ldap.client.api.LdapConnectionConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 @Singleton
 public class DefaultLdapConnectionConfigService implements LdapConnectionConfigService {

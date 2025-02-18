@@ -20,8 +20,6 @@ package org.apache.ambari.server.orm.dao;
 import java.text.MessageFormat;
 import java.util.List;
 
-import javax.persistence.TypedQuery;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.RepoOsEntity;
@@ -32,6 +30,8 @@ import org.apache.ambari.spi.RepositoryType;
 
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
+
+import jakarta.persistence.TypedQuery;
 
 /**
  * DAO for repository versions.

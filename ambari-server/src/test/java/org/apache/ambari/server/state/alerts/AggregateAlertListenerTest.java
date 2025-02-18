@@ -17,8 +17,6 @@
  */
 package org.apache.ambari.server.state.alerts;
 
-import javax.persistence.EntityManager;
-
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.events.AlertReceivedEvent;
 import org.apache.ambari.server.events.AlertStateChangeEvent;
@@ -50,6 +48,7 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.util.Modules;
 
+import jakarta.persistence.EntityManager;
 import junit.framework.Assert;
 
 /**

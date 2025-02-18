@@ -1,26 +1,3 @@
-package org.apache.ambari.server.orm.dao;
-
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-
-import javax.persistence.EntityManager;
-
-import org.apache.ambari.server.orm.entities.KerberosDescriptorEntity;
-import org.easymock.Capture;
-import org.easymock.EasyMock;
-import org.easymock.EasyMockRule;
-import org.easymock.Mock;
-import org.easymock.MockType;
-import org.easymock.TestSubject;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-
-import com.google.inject.Provider;
-
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -38,6 +15,30 @@ import com.google.inject.Provider;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package org.apache.ambari.server.orm.dao;
+
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+
+import org.apache.ambari.server.orm.entities.KerberosDescriptorEntity;
+import org.easymock.Capture;
+import org.easymock.EasyMock;
+import org.easymock.EasyMockRule;
+import org.easymock.Mock;
+import org.easymock.MockType;
+import org.easymock.TestSubject;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+
+import com.google.inject.Provider;
+
+import jakarta.persistence.EntityManager;
+
 public class KerberosDescriptorDAOTest {
 
   public static final String TEST_KERBEROS_DESCRIPTOR_ENTITY_NAME = "test-kerberos-descriptor-entity";

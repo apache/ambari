@@ -39,8 +39,6 @@ import java.sql.Statement;
 import java.util.Collections;
 import java.util.Map;
 
-import javax.persistence.EntityManager;
-
 import org.apache.ambari.server.actionmanager.ActionDBAccessor;
 import org.apache.ambari.server.actionmanager.ActionDBAccessorImpl;
 import org.apache.ambari.server.actionmanager.ActionManager;
@@ -101,6 +99,8 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provider;
 import com.google.inject.persist.UnitOfWork;
+
+import jakarta.persistence.EntityManager;
 
 /**
  * {@link UpgradeCatalog251} unit tests.

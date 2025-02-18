@@ -40,8 +40,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 
-import javax.persistence.EntityManager;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.StackAccessException;
@@ -105,6 +103,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.util.Modules;
 
+import jakarta.persistence.EntityManager;
 import junit.framework.Assert;
 
 public class AmbariMetaInfoTest {

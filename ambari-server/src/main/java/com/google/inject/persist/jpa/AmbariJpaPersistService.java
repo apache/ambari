@@ -30,8 +30,8 @@ public class AmbariJpaPersistService extends JpaPersistService {
   private final AtomicBoolean jpaStarted = new AtomicBoolean(false);
 
   @Inject
-  public AmbariJpaPersistService(@Jpa String persistenceUnitName, @Jpa Map<?, ?> persistenceProperties) {
-    super(persistenceUnitName, persistenceProperties);
+  public AmbariJpaPersistService(@Jpa JpaPersistOptions options, @Jpa String persistenceUnitName, @Jpa Map<?, ?> persistenceProperties) {
+    super(options, persistenceUnitName, persistenceProperties);
   }
 
   /**

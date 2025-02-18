@@ -31,14 +31,14 @@ import static org.junit.Assert.assertSame;
 import java.util.Collections;
 import java.util.List;
 
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.google.inject.Provider;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
 
 /**
  * BlueprintDAO unit tests.

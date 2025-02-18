@@ -31,8 +31,6 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import javax.persistence.RollbackException;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.AmbariRuntimeException;
 import org.apache.ambari.server.ClusterNotFoundException;
@@ -95,6 +93,8 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
+
+import jakarta.persistence.RollbackException;
 
 @Singleton
 public class ClustersImpl implements Clusters {

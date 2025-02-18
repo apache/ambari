@@ -58,8 +58,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import javax.persistence.RollbackException;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.HostNotFoundException;
@@ -126,6 +124,7 @@ import com.google.inject.Injector;
 import com.google.inject.Provider;
 import com.google.inject.util.Modules;
 
+import jakarta.persistence.RollbackException;
 import junit.framework.Assert;
 
 /**

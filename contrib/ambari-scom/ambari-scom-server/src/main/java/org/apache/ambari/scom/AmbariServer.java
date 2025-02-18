@@ -398,8 +398,8 @@ public class AmbariServer {
       }
 
       if (databaseDriver != null && databaseUrl != null) {
-        properties.setProperty("javax.persistence.jdbc.url",    databaseUrl);
-        properties.setProperty("javax.persistence.jdbc.driver", databaseDriver);
+        properties.setProperty("jakarta.persistence.jdbc.url",    databaseUrl);
+        properties.setProperty("jakarta.persistence.jdbc.driver", databaseDriver);
 
         properties.setProperty("eclipselink.logging.level",  "INFO");
         properties.setProperty("eclipselink.logging.logger", "org.apache.ambari.scom.logging.JpaLogger");
@@ -419,8 +419,8 @@ public class AmbariServer {
           properties.setProperty("eclipselink.orm.throw.exceptions", "true");
           jpaPersistModule.properties(properties);
         } else {
-          properties.setProperty("javax.persistence.jdbc.user",   configuration.getDatabaseUser());
-          properties.setProperty("javax.persistence.jdbc.password",
+          properties.setProperty("jakarta.persistence.jdbc.user",   configuration.getDatabaseUser());
+          properties.setProperty("jakarta.persistence.jdbc.password",
               configuration.getProperty(Configuration.SERVER_JDBC_USER_PASSWD_KEY));
 
           switch (configuration.getJPATableGenerationStrategy()) {

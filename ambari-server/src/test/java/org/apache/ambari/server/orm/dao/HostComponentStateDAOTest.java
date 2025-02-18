@@ -23,13 +23,13 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
-import javax.persistence.EntityManager;
-
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.junit.Test;
 
 import com.google.inject.Provider;
+
+import jakarta.persistence.EntityManager;
 
 /**
  * HostComponentStateDAO tests.

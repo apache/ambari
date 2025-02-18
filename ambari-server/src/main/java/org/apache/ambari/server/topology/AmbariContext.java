@@ -34,7 +34,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 
 import javax.annotation.Nullable;
-import javax.inject.Inject;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
@@ -96,8 +95,8 @@ import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Striped;
+import com.google.inject.Inject;
 import com.google.inject.Provider;
-
 
 /**
  * Provides topology related information as well as access to the core Ambari functionality.

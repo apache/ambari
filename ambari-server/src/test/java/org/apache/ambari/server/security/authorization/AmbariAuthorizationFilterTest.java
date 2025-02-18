@@ -26,7 +26,6 @@ import static org.easymock.EasyMock.verify;
 
 import java.util.Collections;
 
-import javax.persistence.EntityManager;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
 import javax.servlet.http.HttpServletRequest;
@@ -61,6 +60,7 @@ import com.google.inject.Injector;
 import com.google.inject.TypeLiteral;
 import com.google.inject.name.Names;
 
+import jakarta.persistence.EntityManager;
 import junit.framework.Assert;
 
 public class AmbariAuthorizationFilterTest {

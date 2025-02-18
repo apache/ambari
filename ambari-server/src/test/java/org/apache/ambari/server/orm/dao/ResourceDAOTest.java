@@ -23,14 +23,14 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 
-import javax.persistence.EntityManager;
-
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.google.inject.Provider;
+
+import jakarta.persistence.EntityManager;
 
 /**
  * ResourceDAO tests

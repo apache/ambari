@@ -22,8 +22,6 @@ import static org.easymock.EasyMock.createNiceMock;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.EntityManager;
-
 import org.apache.ambari.server.actionmanager.ActionDBAccessor;
 import org.apache.ambari.server.actionmanager.ActionDBAccessorImpl;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
@@ -100,6 +98,8 @@ import com.google.inject.TypeLiteral;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.name.Names;
 import com.google.inject.persist.UnitOfWork;
+
+import jakarta.persistence.EntityManager;
 
 public class PartialNiceMockBinder implements Module {
 

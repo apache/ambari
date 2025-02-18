@@ -38,7 +38,6 @@ import java.util.Stack;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
 
-import javax.persistence.EntityManager;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
@@ -100,6 +99,8 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Provider;
 import com.google.inject.persist.Transactional;
+
+import jakarta.persistence.EntityManager;
 
 public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
   @Inject

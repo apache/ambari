@@ -26,8 +26,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
-import javax.persistence.EntityManager;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.controller.RootComponent;
@@ -65,6 +63,8 @@ import org.junit.experimental.categories.Category;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.UnitOfWork;
+
+import jakarta.persistence.EntityManager;
 
 /**
  * Tests the {@link AlertReceivedListener}.

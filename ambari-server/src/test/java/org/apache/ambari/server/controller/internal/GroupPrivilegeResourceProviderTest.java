@@ -27,8 +27,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import javax.persistence.EntityManager;
-
 import org.apache.ambari.server.configuration.AmbariServerConfiguration;
 import org.apache.ambari.server.controller.GroupPrivilegeResponse;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -73,6 +71,7 @@ import com.google.inject.Injector;
 import com.google.inject.TypeLiteral;
 import com.google.inject.name.Names;
 
+import jakarta.persistence.EntityManager;
 import junit.framework.Assert;
 
 /**

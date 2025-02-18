@@ -24,8 +24,6 @@ import static org.easymock.EasyMock.expectLastCall;
 import java.util.Collections;
 import java.util.Properties;
 
-import javax.persistence.EntityManager;
-
 import org.apache.ambari.server.configuration.AmbariServerConfiguration;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.hooks.HookContextFactory;
@@ -63,6 +61,7 @@ import com.google.inject.Injector;
 import com.google.inject.TypeLiteral;
 import com.google.inject.name.Names;
 
+import jakarta.persistence.EntityManager;
 import junit.framework.Assert;
 
 public class AmbariPamAuthenticationProviderTest extends EasyMockSupport {

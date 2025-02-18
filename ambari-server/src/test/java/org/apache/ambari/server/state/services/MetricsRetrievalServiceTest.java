@@ -23,8 +23,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import javax.persistence.EntityManager;
-
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.jmx.JMXMetricHolder;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
@@ -46,6 +44,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 
+import jakarta.persistence.EntityManager;
 import junit.framework.Assert;
 
 /**

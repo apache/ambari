@@ -25,9 +25,6 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.configuration.Configuration;
@@ -35,6 +32,9 @@ import org.apache.ambari.server.orm.dao.RemoteAmbariClusterDAO;
 import org.apache.ambari.server.orm.entities.RemoteAmbariClusterEntity;
 import org.apache.ambari.server.orm.entities.RemoteAmbariClusterServiceEntity;
 import org.apache.ambari.view.AmbariHttpException;
+
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 /**
  * Registry for Remote Ambari Cluster

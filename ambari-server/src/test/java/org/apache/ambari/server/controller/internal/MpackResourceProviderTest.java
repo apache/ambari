@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
@@ -28,8 +27,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
-import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.MpackRequest;
@@ -54,6 +51,8 @@ import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.util.Modules;
+
+import jakarta.persistence.EntityManager;
 
 public class MpackResourceProviderTest {
 

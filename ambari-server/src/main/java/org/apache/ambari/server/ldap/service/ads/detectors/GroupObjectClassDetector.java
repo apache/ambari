@@ -14,12 +14,12 @@
 
 package org.apache.ambari.server.ldap.service.ads.detectors;
 
-import javax.inject.Inject;
-
 import org.apache.ambari.server.configuration.AmbariServerConfigurationKey;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.inject.Inject;
 
 public class GroupObjectClassDetector extends OccurrenceAndWeightBasedDetector {
 

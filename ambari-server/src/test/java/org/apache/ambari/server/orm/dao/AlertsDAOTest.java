@@ -33,8 +33,6 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.UUID;
 
-import javax.persistence.EntityManager;
-
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.controller.AlertCurrentRequest;
 import org.apache.ambari.server.controller.AlertHistoryRequest;
@@ -82,6 +80,8 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.persist.UnitOfWork;
 import com.google.inject.util.Modules;
+
+import jakarta.persistence.EntityManager;
 
 /**
  * Tests {@link AlertsDAO}.

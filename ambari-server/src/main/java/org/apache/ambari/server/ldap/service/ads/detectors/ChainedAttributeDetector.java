@@ -17,15 +17,14 @@ package org.apache.ambari.server.ldap.service.ads.detectors;
 import java.util.Map;
 import java.util.Set;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
-
 import org.apache.ambari.server.ldap.service.AttributeDetector;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Maps;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 /**
  * Attribute detector implementation that performs the attribute detection on a configured set of attribute detectors.

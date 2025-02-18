@@ -31,8 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import javax.persistence.EntityManager;
-
 import org.apache.ambari.server.orm.entities.AmbariConfigurationEntity;
 import org.easymock.Capture;
 import org.easymock.CaptureType;
@@ -42,6 +40,7 @@ import org.junit.Test;
 
 import com.google.inject.Provider;
 
+import jakarta.persistence.EntityManager;
 import junit.framework.Assert;
 
 public class AmbariConfigurationDAOTest extends EasyMockSupport {

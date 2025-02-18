@@ -18,8 +18,6 @@
 
 package org.apache.ambari.server.security.authentication.kerberos;
 
-import javax.inject.Inject;
-
 import org.apache.ambari.server.security.authentication.AmbariProxiedUserDetailsImpl;
 import org.apache.ambari.server.security.authentication.tproxy.TrustedProxyAuthenticationDetails;
 import org.apache.commons.lang.StringUtils;
@@ -34,6 +32,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.kerberos.authentication.KerberosServiceRequestToken;
 import org.springframework.security.kerberos.authentication.KerberosTicketValidation;
 import org.springframework.security.kerberos.authentication.KerberosTicketValidator;
+
+import com.google.inject.Inject;
 
 /**
  * AmbariKerberosAuthenticationProvider is an {@link org.springframework.security.authentication.AuthenticationProvider}
