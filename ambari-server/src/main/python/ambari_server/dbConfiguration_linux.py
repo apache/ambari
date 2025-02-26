@@ -524,6 +524,7 @@ class PGConfig(LinuxDBMSConfig):
   PG_STATUS_STOPPED = "stopped"
   PG_SERVICE_NAME = "postgresql"
   PG_HBA_DIR = None
+  PG_INITDB_CMD = None
 
   if (
     OSCheck.is_redhat_family()
@@ -541,8 +542,6 @@ class PGConfig(LinuxDBMSConfig):
         if psql_service_file:
           psql_service_file_name = os.path.basename(psql_service_file[0])
           PG_SERVICE_NAME = psql_service_file_name[:-8]  # remove .service
-      else:
-        raise FatalException(1, "Cannot find postgresql-setup script.")
 
     SERVICE_CMD = "/usr/bin/env systemctl"
     PG_ST_CMD = f"{SERVICE_CMD} status {PG_SERVICE_NAME}"
@@ -598,6 +597,8 @@ class PGConfig(LinuxDBMSConfig):
   )
 
   def __init__(self, options, properties, storage_type):
+    if PGConfig.PG_INITDB_CMD is None:
+      raise FatalException(1, "Cannot find postgresql-setup script.")
     super(PGConfig, self).__init__(options, properties, storage_type)
 
     # Init the database configuration data here, if any
