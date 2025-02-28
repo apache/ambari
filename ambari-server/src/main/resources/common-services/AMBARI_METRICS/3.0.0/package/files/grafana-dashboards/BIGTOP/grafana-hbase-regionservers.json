@@ -8567,7 +8567,7 @@
               "app": "hbase",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "jvm.RegionServer.JvmMetrics.GcCountParNew",
+              "metric": "jvm.RegionServer.JvmMetrics.GcCountG1 Young Generation",
               "precision": "default",
               "refId": "A",
               "transform": "rate",
@@ -8637,7 +8637,7 @@
               "app": "hbase",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "jvm.RegionServer.JvmMetrics.GcCountConcurrentMarkSweep",
+              "metric": "jvm.RegionServer.JvmMetrics.GcCountG1 Old Generation",
               "precision": "minutes",
               "refId": "A",
               "transform": "rate",
@@ -8786,7 +8786,7 @@
               "app": "hbase",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "jvm.RegionServer.JvmMetrics.GcTimeMillisParNew",
+              "metric": "jvm.RegionServer.JvmMetrics.GcTimeMillisG1 Young Generation",
               "precision": "default",
               "refId": "A",
               "transform": "rate",
@@ -8795,7 +8795,7 @@
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "GC Times ParNew /s",
+          "title": "GC Times G1 Young Generation /s",
           "tooltip": {
             "shared": false,
             "value_type": "cumulative"
@@ -8856,7 +8856,7 @@
               "app": "hbase",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "jvm.RegionServer.JvmMetrics.GcTimeMillisConcurrentMarkSweep",
+              "metric": "jvm.RegionServer.JvmMetrics.GcTimeMillisG1 Old Generation",
               "precision": "default",
               "refId": "A",
               "transform": "rate",
@@ -8865,7 +8865,7 @@
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "GC Times CMS /s",
+          "title": "GC Times G1 Old Generation /s",
           "tooltip": {
             "shared": false,
             "value_type": "cumulative"

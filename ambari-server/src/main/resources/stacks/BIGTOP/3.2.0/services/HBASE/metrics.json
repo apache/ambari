@@ -683,23 +683,23 @@
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/jvm/JvmMetrics/GcCountConcurrentMarkSweep": {
-              "metric": "jvm.JvmMetrics.GcCountConcurrentMarkSweep",
+            "metrics/jvm/JvmMetrics/GcCountG1 Old Generation": {
+              "metric": "jvm.JvmMetrics.GcCountG1 Old Generation",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/jvm/JvmMetrics/GcCountParNew": {
-              "metric": "jvm.JvmMetrics.GcCountParNew",
+            "metrics/jvm/JvmMetrics/GcCountG1 Young Generation": {
+              "metric": "jvm.JvmMetrics.GcCountG1 Young Generation",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/jvm/JvmMetrics/GcTimeMillisConcurrentMarkSweep": {
-              "metric": "jvm.JvmMetrics.GcTimeMillisConcurrentMarkSweep",
+            "metrics/jvm/JvmMetrics/GcTimeMillisG1 Old Generation": {
+              "metric": "jvm.JvmMetrics.GcTimeMillisG1 Old Generation",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/jvm/JvmMetrics/GcTimeMillisParNew": {
-              "metric": "jvm.JvmMetrics.GcTimeMillisParNew",
+            "metrics/jvm/JvmMetrics/GcTimeMillisG1 Young Generation": {
+              "metric": "jvm.JvmMetrics.GcTimeMillisG1 Young Generation",
               "pointInTime": true,
               "temporal": true
             },
@@ -2272,23 +2272,23 @@
               "pointInTime": false,
               "temporal": true
             },
-            "metrics/jvm/JvmMetrics/GcCountConcurrentMarkSweep": {
-              "metric": "jvm.JvmMetrics.GcCountConcurrentMarkSweep",
+            "metrics/jvm/JvmMetrics/GcCountG1 Old Generation": {
+              "metric": "jvm.JvmMetrics.GcCountG1 Old Generation",
               "pointInTime": false,
               "temporal": true
             },
-            "metrics/jvm/JvmMetrics/GcCountParNew": {
-              "metric": "jvm.JvmMetrics.GcCountParNew",
+            "metrics/jvm/JvmMetrics/GcCountG1 Young Generation": {
+              "metric": "jvm.JvmMetrics.GcCountG1 Young Generation",
               "pointInTime": false,
               "temporal": true
             },
-            "metrics/jvm/JvmMetrics/GcTimeMillisConcurrentMarkSweep": {
-              "metric": "jvm.JvmMetrics.GcTimeMillisConcurrentMarkSweep",
+            "metrics/jvm/JvmMetrics/GcTimeMillisG1 Old Generation": {
+              "metric": "jvm.JvmMetrics.GcTimeMillisG1 Old Generation",
               "pointInTime": false,
               "temporal": true
             },
-            "metrics/jvm/JvmMetrics/GcTimeMillisParNew": {
-              "metric": "jvm.JvmMetrics.GcTimeMillisParNew",
+            "metrics/jvm/JvmMetrics/GcTimeMillisG1 Young Generation": {
+              "metric": "jvm.JvmMetrics.GcTimeMillisG1 Young Generation",
               "pointInTime": false,
               "temporal": true
             },
@@ -3547,23 +3547,23 @@
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/jvm/JvmMetrics/GcCountConcurrentMarkSweep": {
-              "metric":"jvm.JvmMetrics.GcCountConcurrentMarkSweep",
+            "metrics/jvm/JvmMetrics/GcCountG1 Old Generation": {
+              "metric":"jvm.JvmMetrics.GcCountG1 Old Generation",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/jvm/JvmMetrics/GcCountParNew": {
-              "metric":"jvm.JvmMetrics.GcCountParNew",
+            "metrics/jvm/JvmMetrics/GcCountG1 Young Generation": {
+              "metric":"jvm.JvmMetrics.GcCountG1 Young Generation",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/jvm/JvmMetrics/GcTimeMillisConcurrentMarkSweep": {
-              "metric":"jvm.JvmMetrics.GcTimeMillisConcurrentMarkSweep",
+            "metrics/jvm/JvmMetrics/GcTimeMillisG1 Old Generation": {
+              "metric":"jvm.JvmMetrics.GcTimeMillisG1 Old Generation",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/jvm/JvmMetrics/GcTimeMillisParNew": {
-              "metric":"jvm.JvmMetrics.GcTimeMillisParNew",
+            "metrics/jvm/JvmMetrics/GcTimeMillisG1 Young Generation": {
+              "metric":"jvm.JvmMetrics.GcTimeMillisG1 Young Generation",
               "pointInTime": true,
               "temporal": true
             },
@@ -6599,23 +6599,23 @@
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/jvm/JvmMetrics/GcCountConcurrentMarkSweep": {
-              "metric":"jvm.JvmMetrics.GcCountConcurrentMarkSweep",
+            "metrics/jvm/JvmMetrics/GcCountG1 Old Generation": {
+              "metric":"jvm.JvmMetrics.GcCountG1 Old Generation",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/jvm/JvmMetrics/GcCountParNew": {
-              "metric":"jvm.JvmMetrics.GcCountParNew",
+            "metrics/jvm/JvmMetrics/GcCountG1 Young Generation": {
+              "metric":"jvm.JvmMetrics.GcCountG1 Young Generation",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/jvm/JvmMetrics/GcTimeMillisConcurrentMarkSweep": {
-              "metric":"jvm.JvmMetrics.GcTimeMillisConcurrentMarkSweep",
+            "metrics/jvm/JvmMetrics/GcTimeMillisG1 Old Generation": {
+              "metric":"jvm.JvmMetrics.GcTimeMillisG1 Old Generation",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/jvm/JvmMetrics/GcTimeMillisParNew": {
-              "metric":"jvm.JvmMetrics.GcTimeMillisParNew",
+            "metrics/jvm/JvmMetrics/GcTimeMillisG1 Young Generation": {
+              "metric":"jvm.JvmMetrics.GcTimeMillisG1 Young Generation",
               "pointInTime": true,
               "temporal": true
             },

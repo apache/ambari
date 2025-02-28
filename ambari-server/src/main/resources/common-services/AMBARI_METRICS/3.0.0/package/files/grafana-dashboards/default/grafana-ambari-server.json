@@ -284,7 +284,7 @@
               "app": "ambari_server",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "jvm.gc.ParNew.count",
+              "metric": "jvm.gc.G1-Young-Generation.count",
               "precision": "default",
               "refId": "A",
               "seriesAggregator": "none",
@@ -293,7 +293,7 @@
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "GC Count Par New /s",
+          "title": "GC Count Young Generation /s",
           "tooltip": {
             "shared": true,
             "value_type": "cumulative"
@@ -354,7 +354,7 @@
               "app": "ambari_server",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "jvm.gc.ParNew.time",
+              "metric": "jvm.gc.G1-Young-Generation.time",
               "precision": "default",
               "refId": "A",
               "seriesAggregator": "none",
@@ -363,7 +363,7 @@
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "GC Time Par New /s",
+          "title": "GC Time Young Generation /s",
           "tooltip": {
             "shared": true,
             "value_type": "cumulative"
@@ -424,7 +424,7 @@
               "app": "ambari_server",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "jvm.gc.ConcurrentMarkSweep.count",
+              "metric": "jvm.gc.G1-Old-Generation.count",
               "precision": "default",
               "refId": "A",
               "seriesAggregator": "none",
@@ -433,7 +433,7 @@
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "GC Count CMS /s",
+          "title": "GC Count Old Generation /s",
           "tooltip": {
             "shared": true,
             "value_type": "cumulative"
@@ -494,7 +494,7 @@
               "app": "ambari_server",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "jvm.gc.ConcurrentMarkSweep.time",
+              "metric": "jvm.gc.G1-Old-Generation.time",
               "precision": "default",
               "refId": "A",
               "seriesAggregator": "none",
@@ -503,7 +503,7 @@
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "GC Time CMS /s",
+          "title": "GC Time Old Generation /s",
           "tooltip": {
             "shared": true,
             "value_type": "cumulative"
@@ -714,7 +714,7 @@
         "name": "cluster",
         "options": [],
         "query": "cluster",
-        "refresh": 1,
+        "refresh": true,
         "regex": "",
         "type": "query"
       },
