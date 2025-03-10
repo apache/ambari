@@ -530,6 +530,7 @@
           <description>Maven Recipe: RPM Package.</description>
           <defineStatements>
              <defineStatement>__python 3</defineStatement>
+             <defineStatement>__brp_mangle_shebangs %{nil}</defineStatement>
           </defineStatements>
           <autoRequires>no</autoRequires>
           <prefix>/</prefix>
