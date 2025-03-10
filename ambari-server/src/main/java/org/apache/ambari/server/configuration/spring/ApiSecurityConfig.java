@@ -5,6 +5,7 @@ import java.util.Arrays;
 import org.apache.ambari.server.security.AmbariEntryPoint;
 import org.apache.ambari.server.security.authentication.AmbariDelegatingAuthenticationFilter;
 import org.apache.ambari.server.security.authentication.AmbariLocalAuthenticationProvider;
+import org.apache.ambari.server.security.authentication.RequestBodyCachingFilter;
 import org.apache.ambari.server.security.authentication.jwt.AmbariJwtAuthenticationProvider;
 import org.apache.ambari.server.security.authentication.kerberos.AmbariAuthToLocalUserDetailsService;
 import org.apache.ambari.server.security.authentication.kerberos.AmbariKerberosAuthenticationProvider;
@@ -55,6 +56,7 @@ public class ApiSecurityConfig {
             .exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(ambariEntryPoint))
             .sessionManagement(sessionManagement -> sessionManagement
                     .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+            .addFilterBefore(new RequestBodyCachingFilter(), BasicAuthenticationFilter.class)
             .addFilterBefore(guiceBeansConfig.ambariUserAuthorizationFilter(), BasicAuthenticationFilter.class)
             .addFilterAt(delegatingAuthenticationFilter, BasicAuthenticationFilter.class)
             .addFilterBefore(authorizationFilter, FilterSecurityInterceptor.class);
@@ -78,7 +80,7 @@ public class ApiSecurityConfig {
             ambariKerberosAuthenticationProvider
     ));
   }
-
+  
   @Bean
   public AmbariKerberosAuthenticationProvider ambariKerberosAuthenticationProvider(
           AmbariKerberosTicketValidator ambariKerberosTicketValidator,

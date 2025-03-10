@@ -220,40 +220,44 @@ public class AuthorizationHelper {
       // If the user has at least one authorization that exists in the set of required authorizations,
       // that user is authorized to perform the operation.
       for (GrantedAuthority grantedAuthority : authentication.getAuthorities()) {
-        AmbariGrantedAuthority ambariGrantedAuthority = (AmbariGrantedAuthority) grantedAuthority;
-        PrivilegeEntity privilegeEntity = ambariGrantedAuthority.getPrivilegeEntity();
-        ResourceEntity privilegeResource = privilegeEntity.getResource();
-        ResourceType privilegeResourceType = ResourceType.translate(privilegeResource.getResourceType().getName());
-        boolean resourceOK;
+        if (grantedAuthority instanceof AmbariGrantedAuthority) {
+          AmbariGrantedAuthority ambariGrantedAuthority = (AmbariGrantedAuthority) grantedAuthority;
+          PrivilegeEntity privilegeEntity = ambariGrantedAuthority.getPrivilegeEntity();
+          ResourceEntity privilegeResource = privilegeEntity.getResource();
+          ResourceType privilegeResourceType = ResourceType.translate(privilegeResource.getResourceType().getName());
+          boolean resourceOK;
 
-        if (ResourceType.AMBARI == privilegeResourceType) {
-          // This resource type indicates administrative access
-          resourceOK = true;
-        } else if ((resourceType == null) || (resourceType == privilegeResourceType)) {
-          resourceOK = (resourceId == null) || resourceId.equals(privilegeResource.getId());
-        } else {
-          resourceOK = false;
-        }
+          if (ResourceType.AMBARI == privilegeResourceType) {
+            // This resource type indicates administrative access
+            resourceOK = true;
+          } else if ((resourceType == null) || (resourceType == privilegeResourceType)) {
+            resourceOK = (resourceId == null) || resourceId.equals(privilegeResource.getId());
+          } else {
+            resourceOK = false;
+          }
 
-        // The the authority is for the relevant resource, see if one of the authorizations matches
-        // one of the required authorizations...
-        if (resourceOK) {
-          PermissionEntity permission = privilegeEntity.getPermission();
-          Collection<RoleAuthorizationEntity> userAuthorizations = (permission == null)
-              ? null
-              : permission.getAuthorizations();
+          // The the authority is for the relevant resource, see if one of the authorizations matches
+          // one of the required authorizations...
+          if (resourceOK) {
+            PermissionEntity permission = privilegeEntity.getPermission();
+            Collection<RoleAuthorizationEntity> userAuthorizations = (permission == null)
+                ? null
+                : permission.getAuthorizations();
 
-          if (userAuthorizations != null) {
-            for (RoleAuthorizationEntity userAuthorization : userAuthorizations) {
-              try {
-                if (requiredAuthorizations.contains(RoleAuthorization.translate(userAuthorization.getAuthorizationId()))) {
-                  return true;
+            if (userAuthorizations != null) {
+              for (RoleAuthorizationEntity userAuthorization : userAuthorizations) {
+                try {
+                  if (requiredAuthorizations.contains(RoleAuthorization.translate(userAuthorization.getAuthorizationId()))) {
+                    return true;
+                  }
+                } catch (IllegalArgumentException e) {
+                  LOG.warn("Invalid authorization name, '{}'... ignoring.", userAuthorization.getAuthorizationId());
                 }
-              } catch (IllegalArgumentException e) {
-                LOG.warn("Invalid authorization name, '{}'... ignoring.", userAuthorization.getAuthorizationId());
               }
             }
           }
+        }else {
+            LOG.warn("GrantedAuthority is not an instance of AmbariGrantedAuthority. Ignoring.");
         }
       }
 

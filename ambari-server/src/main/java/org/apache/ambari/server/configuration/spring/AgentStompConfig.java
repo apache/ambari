@@ -50,6 +50,8 @@ public class AgentStompConfig implements WebSocketMessageBrokerConfigurer {
   @Autowired
   private AgentRegisteringQueueChecker agentRegisteringQueueChecker;
 
+
+
   public AgentStompConfig(ServletContext servletContext, Injector injector) {
     this.servletContext = servletContext;
     configuration = injector.getInstance(org.apache.ambari.server.configuration.Configuration.class);
@@ -79,7 +81,6 @@ public class AgentStompConfig implements WebSocketMessageBrokerConfigurer {
   @Override
   public void configureClientOutboundChannel(ChannelRegistration registration) {
     registration.taskExecutor().corePoolSize(configuration.getSpringMessagingThreadPoolSize());
-//    registration.setInterceptors(agentRegisteringQueueChecker);
     registration.interceptors(agentRegisteringQueueChecker);
   }
 
