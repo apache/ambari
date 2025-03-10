@@ -23,6 +23,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
@@ -42,7 +43,7 @@ public class ApiSecurityConfig {
   @Autowired
   private AmbariAuthorizationFilter authorizationFilter;
 
-  public ApiSecurityConfig(GuiceBeansConfig guiceBeansConfig) {
+  public ApiSecurityConfig(GuiceBeansConfig guiceBeansConfig){
     this.guiceBeansConfig = guiceBeansConfig;
   }
 
@@ -52,6 +53,8 @@ public class ApiSecurityConfig {
             .authorizeHttpRequests(authz -> authz.anyRequest().authenticated())
             .headers(headers -> headers.httpStrictTransportSecurity().disable().frameOptions().disable())
             .exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(ambariEntryPoint))
+            .sessionManagement(sessionManagement -> sessionManagement
+                    .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
             .addFilterBefore(guiceBeansConfig.ambariUserAuthorizationFilter(), BasicAuthenticationFilter.class)
             .addFilterAt(delegatingAuthenticationFilter, BasicAuthenticationFilter.class)
             .addFilterBefore(authorizationFilter, FilterSecurityInterceptor.class);
