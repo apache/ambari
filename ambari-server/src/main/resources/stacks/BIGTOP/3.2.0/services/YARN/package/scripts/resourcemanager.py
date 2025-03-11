@@ -206,8 +206,8 @@ class ResourcemanagerDefault(Resourcemanager):
       return
     zkmigrator = ZkMigrator(
       params.rm_zk_address,
-      params.java_exec,
-      params.java64_home,
+      params.ambari_java_exec,
+      params.ambari_java_home,
       params.yarn_jaas_file,
       params.yarn_user,
     )

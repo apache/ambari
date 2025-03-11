@@ -93,4 +93,26 @@ public class ViewClassLoader extends WebAppClassLoader {
     }
     return webAppContext;
   }
+
+  @Override
+  public Class<?> loadClass(String name) throws ClassNotFoundException {
+    System.out.println("Attempting to load class: " + name);
+    try {
+      // First, try to load the class using the current class loader
+      Class<?> loadedClass = super.loadClass(name);
+      System.out.println("Class loaded successfully: " + name + " by " + this);
+      return loadedClass;
+    } catch (ClassNotFoundException e) {
+      System.out.println("Class not found in current loader: " + name + ", delegating to parent.");
+      // If not found, delegate to the parent class loader
+      if (getParent() != null) {
+        Class<?> parentLoadedClass = getParent().loadClass(name);
+        System.out.println("Class loaded successfully by parent: " + name);
+        return parentLoadedClass;
+      } else {
+        System.out.println("Class not found: " + name + " in both current and parent class loaders.");
+        throw e;
+      }
+    }
+  }
 }

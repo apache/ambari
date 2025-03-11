@@ -84,6 +84,7 @@ import org.apache.ambari.server.controller.utilities.KerberosIdentityCleaner;
 import org.apache.ambari.server.events.AmbariPropertiesChangedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.ldap.LdapModule;
+import org.apache.ambari.server.listeners.WebSocketInitializerListener;
 import org.apache.ambari.server.metrics.system.MetricsService;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.PersistenceType;
@@ -151,6 +152,7 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
+import org.eclipse.jetty.websocket.server.config.JettyWebSocketServletContainerInitializer;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.slf4j.Logger;
@@ -389,7 +391,14 @@ public class AmbariServer {
       if (configs.isAgentApiGzipped()) {
         configureHandlerCompression(agentroot);
       }
+
+      JettyWebSocketServletContainerInitializer initializerForAgentroot = new JettyWebSocketServletContainerInitializer((context, jettyContainer) -> {
+        jettyContainer.setMaxTextMessageSize(configs.getStompMaxIncomingMessageSize());
+        LOG.info("Configured WebSocket container max text message size: {}", configs.getStompMaxIncomingMessageSize());
+      });
+
       agentroot.addEventListener(new ContextLoaderListener(agentApiContext));
+      agentroot.addEventListener(new WebSocketInitializerListener(initializerForAgentroot));
 
       ServletHolder rootServlet = root.addServlet(DefaultServlet.class, "/");
       rootServlet.setInitParameter("dirAllowed", "false");
@@ -423,8 +432,14 @@ public class AmbariServer {
       root.addFilter(new FilterHolder(new MethodOverrideFilter()), "/api/*", DISPATCHER_TYPES);
       root.addFilter(new FilterHolder(new ContentTypeOverrideFilter()), "/api/*", DISPATCHER_TYPES);
 
+      JettyWebSocketServletContainerInitializer initializerForRoot = new JettyWebSocketServletContainerInitializer((context, jettyContainer) -> {
+        jettyContainer.setMaxTextMessageSize(configs.getStompMaxIncomingMessageSize());
+        LOG.info("Configured WebSocket container max text message size: {}", configs.getStompMaxIncomingMessageSize());
+      });
+
       // register listener to capture request context
       root.addEventListener(new RequestContextListener());
+      root.addEventListener(new WebSocketInitializerListener(initializerForRoot));
       root.addFilter(new FilterHolder(springSecurityFilter), "/api/*", DISPATCHER_TYPES);
       root.addFilter(new FilterHolder(new UserNameOverrideFilter()), "/api/v1/users/*", DISPATCHER_TYPES);
 
@@ -623,15 +638,16 @@ public class AmbariServer {
 
       String srvrCrtPass = configsMap.get(Configuration.SRVR_CRT_PASS.getKey());
 
-
+      SecureRequestCustomizer src = new SecureRequestCustomizer();
+      src.setSniHostCheck(false);
+      src.setSniRequired(false);
       HttpConfiguration https_config = new HttpConfiguration();
-      https_config.addCustomizer(new SecureRequestCustomizer());
+      https_config.addCustomizer(src);
       https_config.setRequestHeaderSize(configs.getHttpRequestHeaderSize());
       https_config.setResponseHeaderSize(configs.getHttpResponseHeaderSize());
       https_config.setSendServerVersion(false);
 
       // Secured connector - default constructor sets trustAll = true for certs
-    //  SslContextFactory sslContextFactory = new SslContextFactory(); depricated
       SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
       disableInsecureProtocols(sslContextFactory);
       sslContextFactory.setKeyStorePath(keystore);
@@ -642,6 +658,8 @@ public class AmbariServer {
       sslContextFactory.setKeyStoreType(configsMap.get(Configuration.KSTR_TYPE.getKey()));
       sslContextFactory.setTrustStoreType(configsMap.get(Configuration.TSTR_TYPE.getKey()));
       sslContextFactory.setNeedClientAuth(needClientAuth);
+      sslContextFactory.setSniRequired(false);
+
       ServerConnector agentSslConnector = new ServerConnector(server, acceptors, -1,
         new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.toString()),
         new HttpConnectionFactory(https_config));
@@ -675,7 +693,10 @@ public class AmbariServer {
       String httpsCrtPass = configsMap.get(Configuration.CLIENT_API_SSL_CRT_PASS.getKey());
 
       HttpConfiguration https_config = new HttpConfiguration(http_config);
-      https_config.addCustomizer(new SecureRequestCustomizer());
+      SecureRequestCustomizer src = new SecureRequestCustomizer();
+      src.setSniRequired(false);
+      src.setSniHostCheck(false);
+      https_config.addCustomizer(src);
       https_config.setSecurePort(configs.getClientSSLApiPort());
 
       SslContextFactory.Server contextFactoryApi = new SslContextFactory.Server();
@@ -687,6 +708,7 @@ public class AmbariServer {
       contextFactoryApi.setTrustStorePassword(httpsCrtPass);
       contextFactoryApi.setKeyStoreType(configsMap.get(Configuration.CLIENT_API_SSL_KSTR_TYPE.getKey()));
       contextFactoryApi.setTrustStoreType(configsMap.get(Configuration.CLIENT_API_SSL_KSTR_TYPE.getKey()));
+      contextFactoryApi.setSniRequired(false);
       apiConnector = new ServerConnector(server, acceptors, -1,
         new SslConnectionFactory(contextFactoryApi, HttpVersion.HTTP_1_1.toString()),
         new HttpConnectionFactory(https_config));

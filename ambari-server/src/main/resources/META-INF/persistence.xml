@@ -9,7 +9,7 @@
   License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
   OF ANY KIND, either express or implied. See the License for the specific
   language governing permissions and limitations under the License. -->
-<persistence xmlns="http://java.sun.com/xml/ns/persistence" version="2.0">
+<persistence xmlns="https://jakarta.ee/xml/ns/persistence" version="3.0">
 
   <persistence-unit name="ambari-server" transaction-type="RESOURCE_LOCAL">
     <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>

@@ -169,17 +169,17 @@ class InfraSolr(Script):
   def disable_security(self, env):
     import params
 
-    if not params.infra_solr_znode:
-      Logger.info("Skipping reverting ACL")
-      return
-    zkmigrator = ZkMigrator(
-      zk_host=params.zk_quorum,
-      java_exec=params.ambari_java_exec,
-      java_home=params.ambari_java_home,
-      jaas_file=params.infra_solr_jaas_file,
-      user=params.infra_solr_user,
-    )
-    zkmigrator.set_acls(params.infra_solr_znode, "world:anyone:crdwa")
+        if not params.infra_solr_znode:
+            Logger.info("Skipping reverting ACL")
+            return
+        zkmigrator = ZkMigrator(
+            zk_host=params.zk_quorum,
+            java_exec=params.ambari_java_home,
+            java_home=params.ambari_java_home,
+            jaas_file=params.infra_solr_jaas_file,
+            user=params.infra_solr_user,
+        )
+        zkmigrator.set_acls(params.infra_solr_znode, "world:anyone:crdwa")
 
   def backup(self, env):
     backup_collection(env)
