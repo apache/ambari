@@ -145,8 +145,8 @@ class ZkfcSlaveDefault(ZkfcSlave):
 
     zkmigrator = ZkMigrator(
       params.ha_zookeeper_quorum,
-      params.java_exec,
-      params.java_home,
+      params.ambari_java_exec,
+      params.ambari_java_home,
       params.jaas_file,
       params.hdfs_user,
     )

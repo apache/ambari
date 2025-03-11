@@ -44,8 +44,6 @@ import org.apache.ambari.server.view.ViewInstanceHandlerList;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.ambari.view.SystemException;
 import org.apache.ambari.view.ViewContext;
-import org.eclipse.jetty.plus.webapp.EnvConfiguration;
-import org.eclipse.jetty.plus.webapp.PlusConfiguration;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.ErrorHandler;
@@ -263,11 +261,6 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
     webAppContext.addFilter(new FilterHolder(persistFilter), "/*", AmbariServer.DISPATCHER_TYPES);
     webAppContext.addFilter(new FilterHolder(springSecurityFilter), "/*", AmbariServer.DISPATCHER_TYPES);
     webAppContext.setAllowNullPathInfo(true);
-    webAppContext.setConfigurations(new org.eclipse.jetty.webapp.Configuration[] {
-            new EnvConfiguration(),
-            new PlusConfiguration()
-    });
-
 
     if (webAppContext.getErrorHandler() != null) {
       ErrorHandler errorHandlerProxy = createAmbariViewErrorHandlerProxy(webAppContext.getErrorHandler());

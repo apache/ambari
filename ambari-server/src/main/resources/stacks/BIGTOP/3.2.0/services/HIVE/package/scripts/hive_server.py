@@ -106,8 +106,8 @@ class HiveServer(Script):
 
     zkmigrator = ZkMigrator(
       params.hive_zookeeper_quorum,
-      params.java_exec,
-      params.java64_home,
+      params.ambari_java_exec,
+      params.ambari_java_home,
       params.jaas_file,
       params.hive_user,
     )

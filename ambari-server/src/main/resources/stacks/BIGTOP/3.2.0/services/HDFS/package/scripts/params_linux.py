@@ -550,6 +550,9 @@ java_home = config["ambariLevelParams"]["java_home"]
 java_version = expect("/ambariLevelParams/java_version", int)
 java_exec = format("{java_home}/bin/java")
 
+ambari_java_home = config['ambariLevelParams']['ambari_java_home']
+ambari_java_exec = format("{ambari_java_home}/bin/java")
+
 hadoop_heapsize = config["configurations"]["hadoop-env"]["hadoop_heapsize"]
 namenode_heapsize = config["configurations"]["hadoop-env"]["namenode_heapsize"]
 namenode_opt_newsize = config["configurations"]["hadoop-env"]["namenode_opt_newsize"]
