@@ -24,7 +24,6 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <python.ver>python &gt;= 2.6</python.ver>
-    <!-- On centos the python xml's are inside python package -->
     <deb.architecture>amd64</deb.architecture>
     <custom.tests>false</custom.tests>
     <python.test.mask>[Tt]est*.py</python.test.mask>
@@ -50,16 +49,70 @@
     <tarballResourcesFolder>src/main/resources</tarballResourcesFolder>
     <hadoop.version>3.3.4</hadoop.version>
     <ambari.metrics.version>2.7.0.0.0</ambari.metrics.version>
-    <empty.dir>src/main/package</empty.dir> <!-- any directory in project with not very big amount of files (not to waste-load them) -->
-    <el.log>ALL</el.log> <!-- log level for EclipseLink eclipselink-staticweave-maven-plugin -->
-    <xlint>none</xlint> <!-- passed to Java compiler -Xlint: flag -->
+    <empty.dir>src/main/package</empty.dir>
+    <el.log>ALL</el.log>
+    <xlint>none</xlint>
+    
+    <!-- Maven Plugin Versions -->
+    <mojo.build.helper.version>1.8</mojo.build.helper.version>
+    <maven.compiler.version>3.5</maven.compiler.version>
+    <maven.antrun.version>1.7</maven.antrun.version>
+    <maven.resources.version>2.6</maven.resources.version>
+    <maven.jar.version>3.0.2</maven.jar.version>
+    <maven.clover2.version>3.1.11</maven.clover2.version>
+    <maven.resources.plugin.version>2.6</maven.resources.plugin.version>
+    <coderplus.maven.version>1.0.1</coderplus.maven.version>
+    
+    <!-- Library Versions -->
+    <spotbugs.plugin.version>4.8.6.4</spotbugs.plugin.version>
+    <spotbugs.version>4.8.6</spotbugs.version>
+    <xml.version>1.0</xml.version>
+    <findbugs.version>2.0.0</findbugs.version>
+    <equalsverifier.version>3.15.6</equalsverifier.version>
+    <persistence.version>2.2.3</persistence.version>
+    <collections4.version>4.4</collections4.version>
+    <commons.compress.version>1.21</commons.compress.version>
+    <commons.text.version>1.10.0</commons.text.version>
+    <commons.net.version>1.4.1</commons.net.version>
+    <cloning.version>1.9.2</cloning.version>
+    <guava.version>32.1.3-jre</guava.version>
+    <h2database.version>1.4.193</h2database.version>
+    <mockito.core.version>3.5.10</mockito.core.version>
+    <mockito.inline.version>3.5.10</mockito.inline.version>
+    <objenesis.tck.version>1.2</objenesis.tck.version>
+    <cglib.version>3.3.0</cglib.version>
+    <gson.version>2.9.0</gson.version>
+    <jsr305.version>1.3.9</jsr305.version>
+    <quartz.version>2.3.2</quartz.version>
+    <quartz.jobs.version>2.3.2</quartz.jobs.version>
+    <velocity.engine.core.version>2.3</velocity.engine.core.version>
+    <mailapi.version>1.5.2</mailapi.version>
+    <smtp.version>1.5.2</smtp.version>
+    <snmp4j.version>1.10.1</snmp4j.version>
+    <yamlbeans.version>1.13</yamlbeans.version>
+    <jaxb.api.version>2.3.1</jaxb.api.version>
+    <istack.commons.runtime.version>4.0.0</istack.commons.runtime.version>
+    <FastInfoset.version>1.2.16</FastInfoset.version>
+    <ehcache.version>3.10.0</ehcache.version>
+    <nimbus.jose.jwt.version>5.9</nimbus.jose.jwt.version>
+    <jsch.version>0.1.54</jsch.version>
+    <c3p0.version>0.9.5.4</c3p0.version>
+    <metrics.core.version>3.1.0</metrics.core.version>
+    <metrics.jvm.version>3.1.0</metrics.jvm.version>
+    <libpam4j.version>1.10</libpam4j.version>
+    <jna.version>4.2.2</jna.version>
+    <api.ldap.model.version>2.0.0.AM1</api.ldap.model.version>
+    <api.ldap.client.api.version>2.0.0.AM1</api.ldap.client.api.version>
+    <apacheds.kerberos.codec.version>2.0.0-M24</apacheds.kerberos.codec.version>
+    <kerberos.client.version>2.0.0-M24</kerberos.client.version>
+    <json.schema.validator.version>0.1.10</json.schema.validator.version>
   </properties>
   <build>
     <plugins>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
-        <version>1.8</version>
+        <version>${mojo.build.helper.version}</version>
         <executions>
           <execution>
             <id>parse-version</id>
@@ -111,7 +164,7 @@
       </plugin>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.5</version>
+        <version>${maven.compiler.version}</version>
         <configuration>
           <source>${jdk.version}</source>
           <target>${jdk.version}</target>
@@ -126,7 +179,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-antrun-plugin</artifactId>
-        <version>1.7</version>
+        <version>${maven.antrun.version}</version>
         <executions>
           <execution>
             <phase>package</phase>
@@ -234,7 +287,7 @@
       </plugin>
       <plugin>
         <artifactId>maven-resources-plugin</artifactId>
-        <version>2.6</version>
+        <version>${maven.resources.plugin.version}</version>
         <executions>
           <execution>
             <id>copy-resources</id>
@@ -322,7 +375,7 @@
       <plugin>
         <groupId>com.coderplus.maven.plugins</groupId>
         <artifactId>copy-rename-maven-plugin</artifactId>
-        <version>1.0.1</version>
+        <version>${coderplus.maven.version}</version>
         <executions>
           <execution>
             <id>rename-file</id>
@@ -657,7 +710,7 @@
       <plugin>
         <groupId>com.github.spotbugs</groupId>
         <artifactId>spotbugs-maven-plugin</artifactId>
-        <version>4.8.6.4</version>
+        <version>${spotbugs.plugin.version}</version>
         <executions>
           <execution>
             <id>spotbugs-check</id>
@@ -678,14 +731,14 @@
           <dependency>
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs</artifactId>
-            <version>4.8.6</version>
+            <version>${spotbugs.version}</version>
           </dependency>
         </dependencies>
       </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>xml-maven-plugin</artifactId>
-        <version>1.0</version>
+        <version>${xml.version}</version>
         <executions>
           <execution>
             <phase>verify</phase>
@@ -719,7 +772,7 @@
           <dependency>
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>findbugs</artifactId>
-            <version>2.0.0</version>
+            <version>${findbugs.version}</version>
           </dependency>
         </dependencies>
       </plugin>
@@ -758,7 +811,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
-        <version>3.0.2</version>
+        <version>${maven.jar.version}</version>
         <executions>
           <execution>
             <id>create-sample-upgrade-check-jar</id>
@@ -829,7 +882,7 @@
       <plugin>
         <groupId>com.atlassian.maven.plugins</groupId>
         <artifactId>maven-clover2-plugin</artifactId>
-        <version>3.1.11</version>
+        <version>${maven.clover2.version}</version>
         <!-- <configuration> <licenseLocation>/path/to/clover.license</licenseLocation>
           </configuration> -->
       </plugin>
@@ -882,7 +935,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-antrun-plugin</artifactId>
-            <version>1.7</version>
+            <version>${maven.antrun.version}</version>
             <executions>
               <execution>
                 <id>set-hdp-url-classes</id>
@@ -916,7 +969,7 @@
         <plugins>
           <plugin>
             <artifactId>maven-resources-plugin</artifactId>
-            <version>2.6</version>
+            <version>${maven.resources.plugin.version}</version>
             <executions>
               <execution>
                 <id>copy-swagger-generated-html</id>
@@ -1165,13 +1218,13 @@
     <dependency>
       <groupId>nl.jqno.equalsverifier</groupId>
       <artifactId>equalsverifier</artifactId>
-      <version>3.15.6</version>
+      <version>${equalsverifier.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>jakarta.persistence</groupId>
       <artifactId>jakarta.persistence-api</artifactId>
-      <version>2.2.3</version>
+      <version>${persistence.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
@@ -1191,7 +1244,7 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-collections4</artifactId>
-      <version>4.4</version>
+      <version>${collections4.version}</version>
     </dependency>
     <dependency>
       <groupId>commons-beanutils</groupId>
@@ -1208,22 +1261,22 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-compress</artifactId>
-      <version>1.21</version>
+      <version>${commons.compress.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-text</artifactId>
-      <version>1.10.0</version>
+      <version>${commons.text.version}</version>
     </dependency>
     <dependency>
       <groupId>uk.com.robust-it</groupId>
       <artifactId>cloning</artifactId>
-      <version>1.9.2</version>
+      <version>${cloning.version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>32.1.3-jre</version>
+      <version>${guava.version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.inject</groupId>
@@ -1248,7 +1301,7 @@
     <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
-      <version>1.4.193</version>
+      <version>${h2database.version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.security</groupId>
@@ -1329,13 +1382,13 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
-      <version>3.5.10</version>
+      <version>${mockito.core.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-inline</artifactId>
-      <version>3.5.10</version>
+      <version>${mockito.inline.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -1406,7 +1459,7 @@
     <dependency>
       <groupId>commons-net</groupId>
       <artifactId>commons-net</artifactId>
-      <version>1.4.1</version>
+      <version>${commons.net.version}</version>
     </dependency>
     <dependency>
       <groupId>javax.servlet</groupId>
@@ -1627,17 +1680,17 @@
     <dependency>
       <groupId>org.objenesis</groupId>
       <artifactId>objenesis-tck</artifactId>
-      <version>1.2</version>
+      <version>${objenesis.tck.version}</version>
     </dependency>
     <dependency>
       <groupId>cglib</groupId>
       <artifactId>cglib</artifactId>
-      <version>3.3.0</version>
+      <version>${cglib.version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
-      <version>2.9.0</version>
+      <version>${gson.version}</version>
     </dependency>
     <dependency>
       <groupId>org.postgresql</groupId>
@@ -1650,28 +1703,22 @@
     <dependency>
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>jsr305</artifactId>
-      <version>1.3.9</version>
+      <version>${jsr305.version}</version>
     </dependency>
     <dependency>
       <groupId>org.quartz-scheduler</groupId>
       <artifactId>quartz</artifactId>
-      <version>2.3.2</version>
-      <exclusions>
-        <exclusion>
-          <groupId>c3p0</groupId>
-          <artifactId>c3p0</artifactId>
-        </exclusion>
-      </exclusions>
+      <version>${quartz.version}</version>
     </dependency>
     <dependency>
       <groupId>org.quartz-scheduler</groupId>
       <artifactId>quartz-jobs</artifactId>
-      <version>2.3.2</version>
+      <version>${quartz.jobs.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.velocity</groupId>
       <artifactId>velocity-engine-core</artifactId>
-      <version>2.3</version>
+      <version>${velocity.engine.core.version}</version>
       <exclusions>
         <exclusion>
           <groupId>org.apache.commons</groupId>
@@ -1682,17 +1729,17 @@
     <dependency>
       <groupId>com.sun.mail</groupId>
       <artifactId>mailapi</artifactId>
-      <version>1.5.2</version>
+      <version>${mailapi.version}</version>
     </dependency>
     <dependency>
       <groupId>com.sun.mail</groupId>
       <artifactId>smtp</artifactId>
-      <version>1.5.2</version>
+      <version>${smtp.version}</version>
     </dependency>
     <dependency>
       <groupId>org.snmp4j</groupId>
       <artifactId>snmp4j</artifactId>
-      <version>1.10.1</version>
+      <version>${snmp4j.version}</version>
       <exclusions>
         <exclusion>
           <groupId>log4j</groupId>
@@ -1703,7 +1750,7 @@
     <dependency>
       <groupId>com.esotericsoftware.yamlbeans</groupId>
       <artifactId>yamlbeans</artifactId>
-      <version>1.13</version>
+      <version>${yamlbeans.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.ambari</groupId>
@@ -1732,22 +1779,22 @@
     <dependency>
       <groupId>javax.xml.bind</groupId>
       <artifactId>jaxb-api</artifactId>
-      <version>2.3.1</version>
+      <version>${jaxb.api.version}</version>
     </dependency>
     <dependency>
       <groupId>com.sun.istack</groupId>
       <artifactId>istack-commons-runtime</artifactId>
-      <version>4.0.0</version>
+      <version>${istack.commons.runtime.version}</version>
     </dependency>
     <dependency>
       <groupId>com.sun.xml.fastinfoset</groupId>
       <artifactId>FastInfoset</artifactId>
-      <version>1.2.16</version>
+      <version>${FastInfoset.version}</version>
     </dependency>
     <dependency>
       <groupId>org.ehcache</groupId>
       <artifactId>ehcache</artifactId>
-      <version>3.10.0</version>
+      <version>${ehcache.version}</version>
       <exclusions>
         <exclusion>
           <groupId>org.glassfish.jaxb</groupId>
@@ -1758,7 +1805,7 @@
     <dependency>
       <groupId>com.nimbusds</groupId>
       <artifactId>nimbus-jose-jwt</artifactId>
-      <version>5.9</version>
+      <version>${nimbus.jose.jwt.version}</version>
       <scope>compile</scope>
       <exclusions>
         <exclusion>
@@ -1888,7 +1935,7 @@
     <dependency>
       <groupId>com.jcraft</groupId>
       <artifactId>jsch</artifactId>
-      <version>0.1.54</version>
+      <version>${jsch.version}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
@@ -1901,18 +1948,18 @@
     <dependency>
       <groupId>com.mchange</groupId>
       <artifactId>c3p0</artifactId>
-      <version>[0.9.5.4]</version>
+      <version>[${c3p0.version}]</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>io.dropwizard.metrics</groupId>
       <artifactId>metrics-core</artifactId>
-      <version>3.1.0</version>
+      <version>${metrics.core.version}</version>
     </dependency>
     <dependency>
       <groupId>io.dropwizard.metrics</groupId>
       <artifactId>metrics-jvm</artifactId>
-      <version>3.1.0</version>
+      <version>${metrics.jvm.version}</version>
     </dependency>
 
     <dependency>
@@ -1947,32 +1994,32 @@
     <dependency>
       <groupId>org.kohsuke</groupId>
       <artifactId>libpam4j</artifactId>
-      <version>1.10</version>
+      <version>${libpam4j.version}</version>
     </dependency>
     <dependency>
       <groupId>net.java.dev.jna</groupId>
       <artifactId>jna</artifactId>
-      <version>4.2.2</version>
+      <version>${jna.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.directory.api</groupId>
       <artifactId>api-ldap-model</artifactId>
-      <version>2.0.0.AM1</version>
+      <version>${api.ldap.model.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.directory.api</groupId>
       <artifactId>api-ldap-client-api</artifactId>
-      <version>2.0.0.AM1</version>
+      <version>${api.ldap.client.api.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.directory.server</groupId>
       <artifactId>apacheds-kerberos-codec</artifactId>
-      <version>2.0.0-M24</version>
+      <version>${apacheds.kerberos.codec.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.directory.server</groupId>
       <artifactId>kerberos-client</artifactId>
-      <version>2.0.0-M24</version>
+      <version>${kerberos.client.version}</version>
       <exclusions>
         <exclusion>
           <groupId>org.apache.commons</groupId>
@@ -1987,7 +2034,7 @@
     <dependency>
       <groupId>com.networknt</groupId>
       <artifactId>json-schema-validator</artifactId>
-      <version>0.1.10</version>
+      <version>${json.schema.validator.version}</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>
