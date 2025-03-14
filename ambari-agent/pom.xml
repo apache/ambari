@@ -54,6 +54,22 @@
     <customActionsLocation>${target.cache.dir}/custom_actions</customActionsLocation>
     <empty.dir>src/packages/tarball</empty.dir> <!-- any directory in project with not very big amount of files (not to waste-load them) -->
     <python.test.mask>[Tt]est*.py</python.test.mask>
+    
+    <commons-cli.version>1.5.0</commons-cli.version>
+    <commons-collections.version>3.2.2</commons-collections.version>
+    <commons-configuration2.version>2.8.0</commons-configuration2.version>
+    <commons-lang3.version>3.12.0</commons-lang3.version>
+    <commons-io.version>2.8.0</commons-io.version>
+    <commons-logging.version>1.1.3</commons-logging.version>
+    <commons-compress.version>1.21</commons-compress.version>
+    <guava.version>27.0-jre</guava.version>
+    <hadoop.version>3.3.4</hadoop.version>
+    <hadoop-auth.version>3.3.4</hadoop-auth.version>
+    <hadoop-shaded-guava.version>1.1.1</hadoop-shaded-guava.version>
+    <slf4j.version>1.7.36</slf4j.version>
+    <woodstox-core.version>5.4.0</woodstox-core.version>
+    <stax2-api.version>4.2.1</stax2-api.version>
+    <curator.version>4.2.0</curator.version>
   </properties>
   <dependencies>
     <dependency>
@@ -73,40 +89,47 @@
     <dependency>
       <groupId>commons-cli</groupId>
       <artifactId>commons-cli</artifactId>
+      <version>${commons-cli.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-collections</groupId>
+      <artifactId>commons-collections</artifactId>
+      <version>${commons-collections.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
-      <artifactId>commons-collections4</artifactId>
-      <version>4.4</version>
+      <artifactId>commons-configuration2</artifactId>
+      <version>${commons-configuration2.version}</version>
     </dependency>
     <dependency>
-      <groupId>commons-configuration</groupId>
-      <artifactId>commons-configuration</artifactId>
-      <version>1.6</version>
-      <exclusions>
-        <exclusion>
-            <groupId>commons-beanutils</groupId>
-            <artifactId>commons-beanutils-core</artifactId>
-        </exclusion>
-      </exclusions>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>${commons-lang3.version}</version>
     </dependency>
     <dependency>
-      <groupId>commons-lang</groupId>
-      <artifactId>commons-lang</artifactId>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>${commons-io.version}</version>
     </dependency>
     <dependency>
       <groupId>commons-logging</groupId>
       <artifactId>commons-logging</artifactId>
+      <version>${commons-logging.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-compress</artifactId>
+      <version>${commons-compress.version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>32.1.3-jre</version>
+      <version>${guava.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-common</artifactId>
-      <version>2.7.3</version>
+      <version>${hadoop.version}</version>
       <exclusions>
         <exclusion>
           <groupId>com.sun.jersey</groupId>
@@ -151,13 +174,38 @@
       </exclusions>
     </dependency>
     <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-auth</artifactId>
+      <version>${hadoop-auth.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop.thirdparty</groupId>
+      <artifactId>hadoop-shaded-guava</artifactId>
+      <version>${hadoop-shaded-guava.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.woodstox</groupId>
+      <artifactId>woodstox-core</artifactId>
+      <version>${woodstox-core.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.woodstox</groupId>
+      <artifactId>stax2-api</artifactId>
+      <version>${stax2-api.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.apache.zookeeper</groupId>
       <artifactId>zookeeper-jute</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.curator</groupId>
       <artifactId>curator-test</artifactId>
-      <version>4.2.0</version>
+      <version>${curator.version}</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>
@@ -169,13 +217,13 @@
     <dependency>
       <groupId>org.apache.curator</groupId>
       <artifactId>curator-framework</artifactId>
-      <version>4.2.0</version>
+      <version>${curator.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.curator</groupId>
       <artifactId>curator-client</artifactId>
-      <version>4.2.0</version>
+      <version>${curator.version}</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>
