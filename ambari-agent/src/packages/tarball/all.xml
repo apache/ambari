@@ -250,7 +250,7 @@
         <include>org.slf4j:slf4j-api</include>
         <include>org.apache.hadoop:hadoop-common</include>
         <include>org.apache.hadoop:hadoop-auth</include>
-        <include>org.apache.hadoop:hadoop-shaded-guava</include>
+        <include>org.apache.hadoop.thirdparty:hadoop-shaded-guava</include>
         <include>com.fasterxml.woodstox:woodstox-core</include>
         <include>org.codehaus.woodstox:stax2-api</include>
       </includes>
