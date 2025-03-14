@@ -163,6 +163,10 @@ hive_lib_dir = format("{hive_home}/lib")
 hive_server2_hive_dir = None
 hive_server2_hive_lib = None
 
+java64_home = config["ambariLevelParams"]["java_home"]
+ambari_java_home = config["ambariLevelParams"]["ambari_java_home"]
+ambari_java_exec = format("{ambari_java_home}/bin/java")
+java_version = expect("/ambariLevelParams/java_version", int)
 
 # Heap dump related
 heap_dump_enabled = default("/configurations/hive-env/enable_heap_dump", None)
@@ -232,7 +236,7 @@ if credential_store_enabled:
     ]
     hive_metastore_user_passwd = PasswordString(
       get_password_from_credential_store(
-        alias, provider_path, cs_lib_path, java_home, jdk_location
+        alias, provider_path, cs_lib_path, ambari_java_home, jdk_location
       )
     )
   else:
@@ -498,10 +502,7 @@ hive_metastore_heapsize = config["configurations"]["hive-env"][
   "hive.metastore.heapsize"
 ]
 
-java64_home = config["ambariLevelParams"]["java_home"]
-ambari_java_home = config["ambariLevelParams"]["ambari_java_home"]
-ambari_java_exec = format("{ambari_java_home}/bin/java")
-java_version = expect("/ambariLevelParams/java_version", int)
+
 
 ##### MYSQL
 db_name = config["configurations"]["hive-env"]["hive_database_name"]
