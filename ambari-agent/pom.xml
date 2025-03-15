@@ -58,6 +58,7 @@
     <commons-cli.version>1.5.0</commons-cli.version>
     <commons-collections.version>3.2.2</commons-collections.version>
     <commons-configuration2.version>2.8.0</commons-configuration2.version>
+    <commons-lang.version>2.6</commons-lang.version>
     <commons-lang3.version>3.12.0</commons-lang3.version>
     <commons-io.version>2.8.0</commons-io.version>
     <commons-logging.version>1.1.3</commons-logging.version>
@@ -105,6 +106,11 @@
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
       <version>${commons-lang3.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+      <version>${commons-lang.version}</version>
     </dependency>
     <dependency>
       <groupId>commons-io</groupId>
