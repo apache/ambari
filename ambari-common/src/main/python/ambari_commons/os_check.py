@@ -99,10 +99,6 @@ def _is_redhat_linux():
   return _IS_REDHAT_LINUX
 
 
-def _is_powerpc():
-  return platform.processor() == "powerpc" or platform.machine().startswith("ppc")
-
-
 def advanced_check(distribution):
   distribution = list(distribution)
   if os.path.exists(OS_RELEASE_FILE):
@@ -268,9 +264,6 @@ class OSCheck:
 
     if operatingSystem == "":
       raise Exception("Cannot detect os type. Exiting...")
-
-    if _is_powerpc():
-      operatingSystem += "-ppc"
 
     return operatingSystem
 
