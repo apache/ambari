@@ -56,7 +56,7 @@ App.WizardStep6View = App.TableView.extend({
     Em.run.next(this, this.adjustColumnWidth);
   },
 
-  adjustColumnWidth: function() {
+  adjustColumnWidth: function () {
     const table = $('#component_assign_table'),
       tableWrapper = $('.pre-scrollable').first(),
       tableCells = table.find('tbody > tr:first-of-type > td');
@@ -65,7 +65,7 @@ App.WizardStep6View = App.TableView.extend({
     if (tableWrapper.width() > cellsWidth) {
       const columnsCount = this.get('controller.headers.length'),
         hostColumnWidth = 210, // from ambari-web/app/styles/wizard.less
-        columnWidth = Math.floor((table.width() - hostColumnWidth)/ columnsCount);
+        columnWidth = Math.floor((table.width() - hostColumnWidth) / columnsCount);
       table.find("th:not('.freeze'), td:not('.freeze')").width(columnWidth);
       // a trick to keep checkbox abd label on the single line
       table.find('.host-component-checkbox').css({
@@ -89,7 +89,7 @@ App.WizardStep6View = App.TableView.extend({
    */
   setLabel: function () {
     var clients = this.get('controller.content.clients');
-    var label = !!clients.length ? Em.I18n.t('installer.step6.body') +  Em.I18n.t('installer.step6.body.clientText') : Em.I18n.t('installer.step6.body');
+    var label = !!clients.length ? Em.I18n.t('installer.step6.body') + Em.I18n.t('installer.step6.body.clientText') : Em.I18n.t('installer.step6.body');
 
     clients.forEach(function (_client) {
       if (clients.length === 1) {
@@ -109,9 +109,15 @@ App.WizardStep6View = App.TableView.extend({
     this.set('label', label);
   },
 
-  checkboxClick: function(e) {
-    var checkbox = e.context;
-    Em.set(checkbox, 'checked', !checkbox.checked);
+  checkboxClick: function (e) {
+    var checkbox = e.context, newCheckValue = !checkbox.checked;
+    Em.set(checkbox, 'checked', newCheckValue);
+    Em.run.next(() => {
+      var input = document.getElementById(checkbox.uId);
+      if (input && input.checked !== newCheckValue) {
+        input.checked = newCheckValue;
+      }
+    });
     this.get('controller').checkCallback(checkbox.component);
     this.get('controller').callValidation();
   }
@@ -148,7 +154,7 @@ App.WizardStep6HostView = Em.View.extend({
     });
   },
 
-  willDestroyElement: function() {
+  willDestroyElement: function () {
     this.$().popover('destroy');
   }
 

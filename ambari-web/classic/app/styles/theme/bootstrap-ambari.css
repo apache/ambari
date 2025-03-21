@@ -887,6 +887,11 @@ td[data-qa="toggle-component"] input[checked="checked"] + label::after,
   font-size: 9px !important;
   background: transparent;
 }
+
+table.host-operation-table td[data-qa="toggle-component"] input[checked="checked"] + label::after {
+  position: static !important;
+}
+
 th[data-qa="confirm-hosts-table-heading-cell"] label[checked="checked"]:after {
   top: -11px !important;
 }
