@@ -16,6 +16,7 @@
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@tanstack/react-table": "^8.20.5",
     "@types/lodash": "^4.17.12",
+    "@types/recharts": "^1.8.29",
     "axios": "^1.7.7",
     "bootstrap": "^5.3.3",
     "history": "^5.3.0",
@@ -27,6 +28,7 @@
     "react-hot-toast": "^2.4.1",
     "react-router-dom": "^5.3.4",
     "react-select": "^5.8.3",
+    "recharts": "^2.15.1",
     "sass": "^1.77.6"
   },
   "devDependencies": {
@@ -36,6 +38,7 @@
     "@testing-library/react": "^16.0.1",
     "@types/axios": "^0.14.4",
     "@types/history": "^5.0.0",
+    "@types/node": "^22.13.11",
     "@types/react": "^18.3.10",
     "@types/react-dom": "^18.3.0",
     "@types/react-router-dom": "^5.3.3",

@@ -24,6 +24,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faAngleDoubleLeft,
   faAngleDoubleRight,
+  faSignOutAlt
 } from "@fortawesome/free-solid-svg-icons";
 import AppContent from "../context/AppContext";
 import SidebarItem from "./SidebarItem"
@@ -33,12 +34,13 @@ import getSideItemList from "./SideItemList";
 
 type SideBarProps = {
   isRoot?: boolean;
-  isSidebarCollapsed:boolean;
+  isSidebarCollapsed: boolean;
   setIsSidebarCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
   clusterExists?: boolean;
+  onLogout?: () => void;
 };
 
-const SideBar = ({ clusterExists, isSidebarCollapsed,setIsSidebarCollapsed }: SideBarProps) => {
+const SideBar = ({ clusterExists, isSidebarCollapsed, setIsSidebarCollapsed, onLogout }: SideBarProps) => {
   const SideItemList: SideItem[] = getSideItemList(clusterExists ?? false);
   const [openOptions, setOpenOptions] = useState<string[]>([
     SideItemLabels.CLUSTERMANAGEMENT,
@@ -57,7 +59,7 @@ const SideBar = ({ clusterExists, isSidebarCollapsed,setIsSidebarCollapsed }: Si
     if (matchedRoute) {
       setSelectedOption(matchedRoute.name);
     }
-  }, []);
+  }, [setSelectedOption]);
 
   const handleSideItemClick = (itemId: string) => {
     if (isElementOpen(itemId)) {
@@ -66,6 +68,13 @@ const SideBar = ({ clusterExists, isSidebarCollapsed,setIsSidebarCollapsed }: Si
       setOpenOptions([...openOptions, itemId]);
     }
   };
+
+  const handleLogout = () => {
+    if (onLogout) {
+      onLogout();
+    }
+  };
+
   if (!isSidebarCollapsed) {
     return (
       <div
@@ -117,14 +126,27 @@ const SideBar = ({ clusterExists, isSidebarCollapsed,setIsSidebarCollapsed }: Si
             }
           })}
         </div>
-        <div
-          className="py-3 d-flex justify-content-center sidebar-collapse icon-primary"
-          style={{ background: "#313d54" }}
-          onClick={() => {
-            setIsSidebarCollapsed(!isSidebarCollapsed);
-          }}
-        >
-          <FontAwesomeIcon icon={faAngleDoubleLeft} />
+        <div className="d-flex flex-column">
+          {onLogout && (
+            <div 
+              className="py-2 d-flex align-items-center sidebar-item" 
+              onClick={handleLogout}
+            >
+              <div className="ms-4 me-2">
+                <FontAwesomeIcon icon={faSignOutAlt} />
+              </div>
+              <div>Logout</div>
+            </div>
+          )}
+          <div
+            className="py-3 d-flex justify-content-center sidebar-collapse icon-primary"
+            style={{ background: "#313d54" }}
+            onClick={() => {
+              setIsSidebarCollapsed(!isSidebarCollapsed);
+            }}
+          >
+            <FontAwesomeIcon icon={faAngleDoubleLeft} />
+          </div>
         </div>
       </div>
     );
@@ -149,14 +171,25 @@ const SideBar = ({ clusterExists, isSidebarCollapsed,setIsSidebarCollapsed }: Si
             );
           })}
         </div>
-        <div
-          className="py-3 d-flex justify-content-center sidebar-collapse icon-primary"
-          style={{ background: "#313d54" }}
-          onClick={() => {
-            setIsSidebarCollapsed(!isSidebarCollapsed);
-          }}
-        >
-          <FontAwesomeIcon icon={faAngleDoubleRight} />
+        <div className="d-flex flex-column">
+          {onLogout && (
+            <div 
+              className="py-2 d-flex justify-content-center sidebar-item" 
+              onClick={handleLogout}
+              title="Logout"
+            >
+              <FontAwesomeIcon icon={faSignOutAlt} />
+            </div>
+          )}
+          <div
+            className="py-3 d-flex justify-content-center sidebar-collapse icon-primary"
+            style={{ background: "#313d54" }}
+            onClick={() => {
+              setIsSidebarCollapsed(!isSidebarCollapsed);
+            }}
+          >
+            <FontAwesomeIcon icon={faAngleDoubleRight} />
+          </div>
         </div>
       </div>
     );

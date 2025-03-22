@@ -1,0 +1,108 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+.user-profile {
+  .user-dropdown-toggle {
+    display: flex;
+    align-items: center;
+    color: #fff;
+    padding: 0.5rem 1rem;
+    text-decoration: none;
+    
+    &:hover, &:focus {
+      color: #f8f9fa;
+      text-decoration: none;
+    }
+    
+    &::after {
+      margin-left: 0.5rem;
+    }
+    
+    .user-icon {
+      font-size: 1.5rem;
+      margin-right: 0.5rem;
+    }
+    
+    .username {
+      font-weight: 500;
+    }
+  }
+  
+  .user-dropdown-menu {
+    min-width: 250px;
+    padding: 0;
+    
+    .user-info {
+      padding: 1rem;
+      background-color: #f8f9fa;
+      display: flex;
+      align-items: flex-start;
+      
+      .user-avatar {
+        font-size: 2.5rem;
+        margin-right: 1rem;
+        color: #23303e;
+      }
+      
+      .user-details {
+        flex: 1;
+        
+        h5 {
+          margin-bottom: 0.25rem;
+          font-weight: 500;
+        }
+        
+        .email {
+          margin-bottom: 0.25rem;
+          font-size: 0.875rem;
+          color: #6c757d;
+        }
+        
+        .roles {
+          margin-bottom: 0;
+          font-size: 0.75rem;
+          font-weight: 500;
+          color: #495057;
+        }
+      }
+    }
+    
+    .dropdown-item {
+      padding: 0.75rem 1rem;
+      
+      .menu-icon {
+        margin-right: 0.75rem;
+        width: 1rem;
+        color: #495057;
+      }
+      
+      &:hover, &:focus {
+        background-color: #f8f9fa;
+        
+        .menu-icon {
+          color: #23303e;
+        }
+      }
+    }
+  }
+  
+  .user-profile-loading, .user-profile-error {
+    padding: 0.5rem 1rem;
+    color: #fff;
+  }
+}
