@@ -905,8 +905,7 @@ public class ExecutionScheduleManager {
   }*/
 
   protected BatchRequestResponse performApiGetRequest(String relativeUri, boolean queryAllFields) {
-    Client client = ClientBuilder.newClient();
-    WebTarget target = client.target(relativeUri);
+    WebTarget target = extendApiResource(ambariWebResource, relativeUri);
     if (queryAllFields) {
       target = target.queryParam("fields", "*");
     }
@@ -914,14 +913,14 @@ public class ExecutionScheduleManager {
     try {
       response = target.request().get();
     } catch (Exception e) {
+      LOG.error("Exception occurred during API request to {}: {}", relativeUri, e.getMessage(), e);
       response = null;
     }
     return convertToBatchRequestResponse(response);
   }
 
   protected BatchRequestResponse performApiRequest(String relativeUri, String body, String method, Integer userId) {
-    Client client = ClientBuilder.newClient();
-    WebTarget target = client.target(relativeUri);
+    WebTarget target = extendApiResource(ambariWebResource, relativeUri);
     Response response;
     try {
       Invocation.Builder invocationBuilder = target.request().header(USER_ID_HEADER, userId);
@@ -937,6 +936,7 @@ public class ExecutionScheduleManager {
         throw new IllegalArgumentException("Invalid HTTP method: " + method);
       }
     } catch (Exception e) {
+      LOG.error("Exception occurred during API request to {}: {}", relativeUri, e.getMessage(), e);
       response = null;
     }
     return convertToBatchRequestResponse(response);
