@@ -40,7 +40,6 @@ import java.util.EnumSet;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
-import jakarta.servlet.DispatcherType;
 import jakarta.servlet.SessionCookieConfig;
 
 import org.apache.ambari.server.AmbariException;
@@ -164,8 +163,6 @@ public class AmbariServerTest {
 
     handler.setMaxFormContentSize(-1);
     EasyMock.expectLastCall().once();
-    EasyMock.expect(handler.addFilter(GzipFilter.class, "/*",
-        EnumSet.of(DispatcherType.REQUEST))).andReturn(filter).once();
     EasyMock.expect(handler.getMimeTypes()).andReturn(new MimeTypes()).anyTimes();
     replay(handler, filter);
 
@@ -180,8 +177,6 @@ public class AmbariServerTest {
         EasyMock.createNiceMock(ServletContextHandler.class);
     final FilterHolder filter = EasyMock.createNiceMock(FilterHolder.class);
 
-    EasyMock.expect(handler.addFilter(GzipFilter.class, "/*",
-        EnumSet.of(DispatcherType.REQUEST))).andReturn(filter).once();
     filter.setInitParameter(anyObject(String.class),anyObject(String.class));
     EasyMock.expectLastCall().times(3);
     replay(handler, filter);
