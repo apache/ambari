@@ -19927,6 +19927,7 @@ Ember.Checkbox = Ember.View.extend({
   init: function() {
     this._super();
     this.on("change", this, this._updateElementValue);
+    this.addObserver('checked', this, 'checkedChanged');
   },
 
   /**
@@ -19934,6 +19935,15 @@ Ember.Checkbox = Ember.View.extend({
   */
   _updateElementValue: function() {
     set(this, 'checked', this.$().prop('checked'));
+  },
+
+  checkedChanged: function() {
+    var newCheckValue = this.get('checked');
+    Ember.run.next(() => {
+      if (this.$().prop('checked') !== newCheckValue) {
+        this.$().prop('checked', newCheckValue)
+      }
+    });
   }
 });
 
