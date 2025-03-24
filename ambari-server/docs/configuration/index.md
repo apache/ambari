@@ -66,6 +66,7 @@ The following are the properties which can be used to configure Ambari.
 | alerts.snmp.dispatcher.udp.port | The UDP port to use when binding the SNMP dispatcher on Ambari Server startup. If no port is specified, then a random port will be used. | | 
 | alerts.template.file | The full path to the XML file that describes the different alert templates. | | 
 | ambari.display.url | The URL to use when creating messages which should include the Ambari Server URL.<br/><br/>The following are examples of valid values:<ul><li>`http://ambari.apache.org:8080`</ul> | | 
+| ambari.java.home | The location of the JDK on the Ambari Agent hosts. This is only used by Ambari Server<br/><br/>The following are examples of valid values:<ul><li>`/usr/jdk64/jdk1.8.0_112`</ul> | | 
 | ambari.post.user.creation.hook | The location of the post user creation hook on the ambari server hosting machine. |`/var/lib/ambari-server/resources/scripts/post-user-creation-hook.sh` | 
 | ambari.post.user.creation.hook.enabled | Indicates whether the post user creation is enabled or not. By default is false. |`false` | 
 | ambari.python.wrap | The name of the shell script used to wrap all invocations of Python by Ambari.  |`ambari-python-wrap` | 
@@ -113,8 +114,10 @@ The following are the properties which can be used to configure Ambari.
 | extensions.path | The location on the Ambari Server where stack extensions exist.<br/><br/>The following are examples of valid values:<ul><li>`/var/lib/ambari-server/resources/extensions`</ul> | | 
 | gpl.license.accepted | Whether user accepted GPL license. |`false` | 
 | gzip.handler.jetty.enabled | Determines whether jetty Gzip compression is enabled or not. |`true` | 
+| heartbeat.monitoring.interval | Interval for heartbeat presence checks.<br/><br/>The following are examples of valid values:<ul><li>`60000`<li>`600000`</ul> |`60000` | 
 | http.cache-control | The value that will be used to set the `Cache-Control` HTTP response header. |`no-store` | 
 | http.charset | The value that will be used to set the Character encoding to HTTP response header. |`utf-8` | 
+| http.content-security-policy | The value that will be used to set the `Content-Security-Policy` HTTP response header. | | 
 | http.pragma | The value that will be used to set the `PRAGMA` HTTP response header. |`no-cache` | 
 | http.strict-transport-security | When using SSL, this will be used to set the `Strict-Transport-Security` response header. |`max-age=31536000` | 
 | http.x-content-type-options | The value that will be used to set the `X-CONTENT-TYPE` HTTP response header. |`nosniff` | 
@@ -166,9 +169,11 @@ The following are the properties which can be used to configure Ambari.
 | security.agent.hostname.validate | Determines whether the Ambari Agent host names should be validated against a regular expression to ensure that they are well-formed.<br><br>WARNING: By setting this value to false, host names will not be validated, allowing a possible security vulnerability as described in CVE-2014-3582. See https://cwiki.apache.org/confluence/display/AMBARI/Ambari+Vulnerabilities for more information. |`true` | 
 | security.master.key.location | The location on the Ambari Server of the master key file. This is the key to the master keystore. | | 
 | security.master.keystore.location | The location on the Ambari Server of the master keystore file. | | 
+| security.password.policy.description | Password policy description that is shown to users | | 
+| security.password.policy.history.count | Password policy to mandate that new password should be different from previous passwords, this would be based on the history count configured by the user. Valid values are 1 to 10. |`1` | 
+| security.password.policy.regexp | Determines Ambari user password policy. Passwords should match the regex |`.*` | 
 | security.passwords.encryption.enabled | Whether security password encryption is enabled or not. In case it is we store passwords in their own file(s); otherwise we store passwords in the Ambari credential store. |`false` | 
 | security.server.cert_chain_name | The name of the file located in the `security.server.keys_dir` directory containing the CA certificate chain used to verify certificates during 2-way SSL communications. |`ca_chain.pem` | 
-| security.password.policy.history.count | Password policy to mandate that new password should be different from previous passwords, this would be based on the history count configured by the user. Valid values are 1 to 10. | `1` |
 | security.server.cert_name | The name of the file located in the `security.server.keys_dir` directory where certificates will be generated when Ambari uses the `openssl ca` command. |`ca.crt` | 
 | security.server.crt_pass | The password for the keystores, truststores, and certificates. If not specified, then `security.server.crt_pass_file` should be used | | 
 | security.server.crt_pass.len | The length of the randomly generated password for keystores and truststores.  |`50` | 
@@ -229,25 +234,29 @@ The following are the properties which can be used to configure Ambari.
 | server.jdbc.rca.user.passwd | The password for the user when connecting to the database which stores RCA information. |`mapred` | 
 | server.jdbc.user.name | The user name used to login to the database. |`ambari` | 
 | server.jdbc.user.passwd | The password for the user when logging into the database. |`bigdata` | 
-| server.kerberos.finalize.timeout | The timeout, in seconds, when finalizing Kerberos enable/disable/regenerate commands. |`600` |
+| server.kerberos.action.threadpool.size | The number of threads to use when executing server-side Kerberos commands, such as generate keytabs. |`1` | 
+| server.kerberos.finalize.timeout | The timeout, in seconds, when finalizing Kerberos enable/disable/regenerate commands. |`600` | 
 | server.locks.profiling | Enable the profiling of internal locks. |`false` | 
 | server.metrics.retrieval-service.thread.priority | The priority of threads used by the service which retrieves JMX and REST metrics directly from their respective endpoints. |`5` | 
-| server.metrics.retrieval-service.threadpool.size.core | The core number of threads used to retrieve JMX and REST metrics directly from their respective endpoints. |`4` | 
-| server.metrics.retrieval-service.threadpool.size.max | The maximum number of threads used to retrieve JMX and REST metrics directly from their respective endpoints. |`8` | 
-| server.metrics.retrieval-service.threadpool.worker.size | The number of queued requests allowed for JMX and REST metrics before discarding old requests which have not been fulfilled. |`80` | 
+| server.metrics.retrieval-service.threadpool.size.core | The core number of threads used to retrieve JMX and REST metrics directly from their respective endpoints. |`40` | 
+| server.metrics.retrieval-service.threadpool.size.max | The maximum number of threads used to retrieve JMX and REST metrics directly from their respective endpoints. |`80` | 
+| server.metrics.retrieval-service.threadpool.worker.size | The number of queued requests allowed for JMX and REST metrics before discarding old requests which have not been fullfilled. |`800` | 
 | server.operations.retry-attempts | The number of retry attempts for failed API and blueprint operations. |`0` | 
 | server.os_family | The operating system family for all hosts in the cluster. This is used when bootstrapping agents and when enabling Kerberos.<br/><br/>The following are examples of valid values:<ul><li>`redhat`<li>`ubuntu`</ul> | | 
 | server.os_type | The operating system version for all hosts in the cluster. This is used when bootstrapping agents and when enabling Kerberos.<br/><br/>The following are examples of valid values:<ul><li>`6`<li>`7`</ul> | | 
 | server.persistence.type | The type of database connection being used. Unless using an embedded PostgresSQL server, then this should be `remote`.<br/><br/>The following are examples of valid values:<ul><li>`local`<li>`remote`</ul> |`local` | 
+| server.pools.agent.command.publisher.size | The Agent command publisher pool. Affects degree of parallelization for generating the commands. |`5` | 
+| server.pools.default.size | Configures size of the default JOIN Fork pool used for Streams. |`5` | 
 | server.property-provider.threadpool.completion.timeout | The maximum time, in milliseconds, that federated requests for data can execute before being terminated. Increasing this value could result in degraded performanc from the REST APIs. |`5000` | 
-| server.property-provider.threadpool.size.core | The core number of threads that will be used to retrieve data from federated datasources, such as remote JMX endpoints. |`4` | 
-| server.property-provider.threadpool.size.max | The maximum number of threads that will be used to retrieve data from federated datasources, such as remote JMX endpoints. |`8` | 
+| server.property-provider.threadpool.size.core | The core number of threads that will be used to retrieve data from federated datasources, such as remote JMX endpoints. |`40` | 
+| server.property-provider.threadpool.size.max | The maximum number of threads that will be used to retrieve data from federated datasources, such as remote JMX endpoints. |`80` | 
 | server.property-provider.threadpool.worker.size | The maximum size of pending federated datasource requests, such as those to JMX endpoints, which can be queued before rejecting new requests. |`2147483647` | 
 | server.requestlogs.namepattern | The pattern of request log file name |`ambari-access-yyyy_mm_dd.log` | 
 | server.requestlogs.path | The location on the Ambari Server where request logs can be created. | | 
 | server.requestlogs.retaindays | The number of days that request log would be retained. |`15` | 
 | server.script.threads | The number of threads that should be allocated to run external script. |`20` | 
 | server.script.timeout | The time, in milliseconds, until an external script is killed. |`10000` | 
+| server.show.error.stacks | Show or hide the error stacks on the error page |`false` | 
 | server.stage.command.execution_type | How to execute commands in one stage |`STAGE` | 
 | server.stages.parallel | Determines whether operations in different execution requests can be run concurrently. |`true` | 
 | server.startup.web.timeout | The time, in seconds, that the ambari-server Python script will wait for Jetty to startup before returning an error code. |`50` | 
@@ -255,6 +264,7 @@ The following are the properties which can be used to configure Ambari.
 | server.timeline.metrics.cache.catchup.interval | The time, in milliseconds, that Ambari Metrics intervals should use when extending the boundaries of the original request.<br/><br/> This property is related to `server.timeline.metrics.cache.disabled`. |`300000` | 
 | server.timeline.metrics.cache.connect.timeout.millis | The time, in milliseconds, to wait while attempting to connect to Ambari Metrics.<br/><br/> This property is related to `server.timeline.metrics.cache.disabled`. |`5000` | 
 | server.timeline.metrics.cache.disabled | Determines whether Ambari Metric data is cached. |`false` | 
+| server.timeline.metrics.cache.entry.entry.unit.size | cache size, in entries, that ambari metrics cache will hold.<br/><br/> This property is related to `server.timeline.metrics.cache.disabled`. |`100` | 
 | server.timeline.metrics.cache.entry.idle.seconds | The time, in seconds, that Ambari Metric data can remain in the cache without being accessed.<br/><br/> This property is related to `server.timeline.metrics.cache.disabled`. |`1800` | 
 | server.timeline.metrics.cache.entry.ttl.seconds | The time, in seconds, that Ambari Metric timeline data is cached by Ambari Server.<br/><br/> This property is related to `server.timeline.metrics.cache.disabled`. |`3600` | 
 | server.timeline.metrics.cache.heap.percent | The amount of heap on the Ambari Server dedicated to the caching values from Ambari Metrics. Measured as part of the total heap of Ambari Server.<br/><br/> This property is related to `server.timeline.metrics.cache.disabled`. |`15%` | 
@@ -286,7 +296,6 @@ The following are the properties which can be used to configure Ambari.
 | stomp.max_buffer.message.size | The maximum size of a buffer for stomp message sending. Default is 5 MB. |`5242880` | 
 | stomp.max_incoming.message.size | The maximum size of an incoming stomp text message. Default is 2 MB. |`2097152` | 
 | subscription.registry.cache.size | Maximal cache size for spring subscription registry. |`1500` | 
-| task.query.parameterlist.size | The maximum number of tasks which can be queried by ID from the database. |`999` | 
 | topology.task.creation.parallel | Indicates whether parallel topology task creation is enabled |`false` | 
 | topology.task.creation.parallel.threads | The number of threads to use for parallel topology task creation if enabled |`10` | 
 | view.extract-after-cluster-config | Drives view extraction in case of blueprint deployments; non-system views are deployed when cluster configuration is successful |`false` | 
@@ -302,6 +311,7 @@ The following are the properties which can be used to configure Ambari.
 | views.directory.watcher.disable | Determines whether the view directory watcher service should be disabled. |`false` | 
 | views.http.cache-control | The value that will be used to set the `Cache-Control` HTTP response header for Ambari View requests. |`no-store` | 
 | views.http.charset | The value that will be used to set the Character encoding to HTTP response header for Ambari View requests. |`utf-8` | 
+| views.http.content-security-policy | The value that will be used to set the `Content-Security-Policy` HTTP response header for Ambari View requests. | | 
 | views.http.pragma | The value that will be used to set the `PRAGMA` HTTP response header for Ambari View requests. |`no-cache` | 
 | views.http.strict-transport-security | The value that will be used to set the `Strict-Transport-Security` HTTP response header for Ambari View requests. |`max-age=31536000` | 
 | views.http.x-content-type-options | The value that will be used to set the `X-CONTENT-TYPE` HTTP response header for Ambari View requests. |`nosniff` | 
