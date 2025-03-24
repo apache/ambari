@@ -30,8 +30,6 @@
     <version>${revision}</version>
     <relativePath>../ambari-project</relativePath>
   </parent>
-
-  <groupId>org.apache.ambari</groupId>
   <artifactId>ambari-serviceadvisor</artifactId>
   <name>Ambari Service Advisor</name>
   <description>Service Advisor</description>

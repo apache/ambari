@@ -23,7 +23,6 @@
     <relativePath>../ambari-project</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <groupId>org.apache.ambari</groupId>
   <artifactId>ambari-admin</artifactId>
   <packaging>jar</packaging>
   <name>Ambari Admin View</name>
