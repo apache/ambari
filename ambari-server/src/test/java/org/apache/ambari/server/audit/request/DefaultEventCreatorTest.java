@@ -32,6 +32,7 @@ import java.util.Map;
 import jakarta.servlet.AsyncContext;
 import jakarta.servlet.DispatcherType;
 import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletConnection;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletInputStream;
@@ -251,11 +252,6 @@ public class DefaultEventCreatorTest {
       }
 
       @Override
-      public boolean isRequestedSessionIdFromUrl() {
-        return false;
-      }
-
-      @Override
       public boolean authenticate(HttpServletResponse httpServletResponse) throws IOException, ServletException {
         return false;
       }
@@ -409,11 +405,6 @@ public class DefaultEventCreatorTest {
       }
 
       @Override
-      public String getRealPath(String s) {
-        return null;
-      }
-
-      @Override
       public int getRemotePort() {
         return 0;
       }
@@ -465,6 +456,21 @@ public class DefaultEventCreatorTest {
 
       @Override
       public DispatcherType getDispatcherType() {
+        return null;
+      }
+
+      @Override
+      public String getRequestId() {
+        return "";
+      }
+
+      @Override
+      public String getProtocolRequestId() {
+        return "";
+      }
+
+      @Override
+      public ServletConnection getServletConnection() {
         return null;
       }
     }));
