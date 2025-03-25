@@ -20,7 +20,6 @@
     <artifactId>ambari</artifactId>
     <version>${revision}</version>
   </parent>
-  <groupId>org.apache.ambari</groupId>
   <artifactId>ambari-project</artifactId>
   <description>Apache Ambari Project POM</description>
   <name>Apache Ambari Project POM</name>

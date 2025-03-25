@@ -16,7 +16,6 @@
     <version>${revision}</version>
     <relativePath>../ambari-project</relativePath>
   </parent>
-  <groupId>org.apache.ambari</groupId>
   <artifactId>ambari-funtest</artifactId>
   <packaging>jar</packaging>
   <name>Ambari Functional Tests</name>
