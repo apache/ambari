@@ -15,14 +15,58 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Switch, Route } from "react-router-dom";
+import { Switch, Route, Redirect, RouteProps } from "react-router-dom";
 import routes from "./RoutesList.tsx";
+import { useEffect, useState, ReactNode } from "react";
+import LoadingSpinner from "../components/LoadingSpinner";
+
+interface ProtectedRouteProps extends Omit<RouteProps, 'render'> {
+  children: ReactNode;
+}
+
+// Protected route component that checks for authentication
+const ProtectedRoute = ({ children, ...rest }: ProtectedRouteProps) => {
+  const isAuthenticated = localStorage.getItem('ambari-user') !== null;
+  
+  return (
+    <Route
+      {...rest}
+      render={({ location }) =>
+        isAuthenticated ? (
+          children
+        ) : (
+          <Redirect
+            to={{
+              pathname: "/",
+              state: { from: location }
+            }}
+          />
+        )
+      }
+    />
+  );
+};
 
 export default function Routes() {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulating initial auth check
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 500);
+  }, []);
+
+  if (isLoading) {
+    return <LoadingSpinner message="Initializing application..." />;
+  }
+
   return (
     <Switch>
       {routes.map(({ path, Element }, key) => (
-        <Route path={path} key={key} render={() => <Element />}></Route>
+        <ProtectedRoute path={path} key={key}>
+          <Element />
+        </ProtectedRoute>
       ))}
     </Switch>
   );

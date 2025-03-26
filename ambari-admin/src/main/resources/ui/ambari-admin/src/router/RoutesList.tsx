@@ -19,8 +19,6 @@ import { Redirect } from "react-router-dom";
 import Users from "../screens/Users";
 import WIP from "../components/WIP";
 
-
-
 export default [
   {
     path: "/main/dashboard",
@@ -118,4 +116,3 @@ export default [
     Element: () => <Redirect to="/clusterInformation" />,
   },
 ];
-

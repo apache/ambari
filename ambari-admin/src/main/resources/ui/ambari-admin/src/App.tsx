@@ -24,8 +24,11 @@ import NavBar from "./layout/NavBar";
 import AppContent from "./context/AppContext";
 import { Toaster } from "react-hot-toast";
 import { HashRouter } from "react-router-dom";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import Login from "./screens/Login";
 
-function App() {
+// Main application component that requires authentication
+const MainApp: React.FC = () => {
   const [selectedOption, setSelectedOption] = useState<string>(
     SideItemLabels.CLUSTERINFORMATION
   );
@@ -33,56 +36,76 @@ function App() {
   const [ambariVersion, setAmbariVersion] = useState<string>("");
   const [permissionLabelList, setPermissionLabelList] = useState<string[]>([]);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const { logout } = useAuth();
 
-  console.log("In App");
+  console.log("In MainApp");
 
   return (
-    <HashRouter>
-      <AppContent.Provider
-        value={{
-          selectedOption,
-          setSelectedOption,
-          rbacData,
-          setRbacData,
-          permissionLabelList,
-          setPermissionLabelList,
-          ambariVersion,
-          setAmbariVersion,
-        }}
-      >
-        <Toaster />
-        <div className="d-flex h-100" style={{ maxHeight: "100vh" }}>
-          <SideBar
-            clusterExists={false}
-            isSidebarCollapsed={isSidebarCollapsed}
-            setIsSidebarCollapsed={setIsSidebarCollapsed}
-            isRoot
+    <AppContent.Provider
+      value={{
+        selectedOption,
+        setSelectedOption,
+        rbacData,
+        setRbacData,
+        permissionLabelList,
+        setPermissionLabelList,
+        ambariVersion,
+        setAmbariVersion,
+      }}
+    >
+      <Toaster />
+      <div className="d-flex h-100" style={{ maxHeight: "100vh" }}>
+        <SideBar
+          clusterExists={false}
+          isSidebarCollapsed={isSidebarCollapsed}
+          setIsSidebarCollapsed={setIsSidebarCollapsed}
+          isRoot
+          onLogout={logout}
+        />
+        <div
+          className={`d-flex flex-column ${isSidebarCollapsed?"main-content-collapsed":"main-content"}`}
+          style={{
+            background: "#e6e6e6",
+            maxHeight: "100%",
+            overflowY: "scroll",
+            height: "100%",
+            position: "absolute",
+            left: isSidebarCollapsed?"60px":"230px",
+            width: "calc(100% - " + (isSidebarCollapsed ? "60px" : "230px") + ")",
+          }}
+        >
+          <NavBar
+            subPath={selectedOption}
+            clusterName={""}
           />
-          <div
-            className={`d-flex flex-column ${isSidebarCollapsed?"main-content-collapsed":"main-content"}`}
-            style={{
-              background: "#e6e6e6",
-              maxHeight: "100%",
-              overflowY: "scroll",
-              height: "100%",
-              position: "absolute",
-              left: isSidebarCollapsed?"60px":"230px",
-            }}
-          >
-            <NavBar
-              subPath={selectedOption}
-              clusterName={""}
-            />
-            <Container className="mt-4">
-              <Card className="p-4 rounded-0">
-                <Routes />
-              </Card>
-            </Container>
-          </div>
+          <Container className="mt-4">
+            <Card className="p-4 rounded-0">
+              <Routes />
+            </Card>
+          </Container>
         </div>
-      </AppContent.Provider>
+      </div>
+    </AppContent.Provider>
+  );
+};
+
+// App wrapper that handles authentication state
+function App() {
+  return (
+    <HashRouter>
+      <AuthProvider>
+        <AppRouter />
+      </AuthProvider>
     </HashRouter>
   );
 }
+
+// Router component that conditionally renders Login or MainApp
+const AppRouter: React.FC = () => {
+  const { isAuthenticated } = useAuth();
+
+  // Render Login page or MainApp based on authentication status
+  return isAuthenticated ? <MainApp /> : <Login />;
+};
 
 export default App;
