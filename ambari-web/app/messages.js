@@ -2781,6 +2781,7 @@ Em.I18n.translations = {
   'hosts.bulkOperation.deleteHosts.confirmation.body.msg3': 'please make sure the Ambari Agent process is completely stopped on these hosts before proceeding.',
   'hosts.bulkOperation.deleteHosts.result.header':'Delete Hosts',
   'hosts.bulkOperation.deleteHosts.result.body': 'The following hosts were successfully deleted:',
+  'hosts.bulkOperation.deleteHosts.result.cannot.delete':'The following {0} hosts could not be deleted (expand for reason):',
   'hosts.bulkOperation.confirmation.delete.component.cannot1': 'The following hosts will be skipped (expand for reason):',
   'hosts.bulkOperation.confirmation.delete.component.cannot2': '{0} cannot be deleted from the selected hosts:',
   'hosts.bulkOperation.confirmation.delete.component': '{0} will be deleted from the following hosts',
@@ -2792,7 +2793,7 @@ Em.I18n.translations = {
   'hosts.bulkOperation.confirmation.delete.component.notStopped': '{0} not Stopped',
   'hosts.bulkOperation.confirmation.delete.component.notInstalled': '{0} not Installed',
   'hosts.bulkOperation.delete.component.result.body': ' was successfully removed from the following hosts:',
-  'hosts.bulkOperation.delete.component.dryRun.message':'{0} could not be deleted from the following hosts(expand for reason)',
+  'hosts.bulkOperation.delete.component.result.cannot.delete':'{0} could not be deleted from the following hosts(expand for reason)',
   'hosts.bulkOperation.delete.component.failed.header': 'Delete Component failed',
   'hosts.bulkOperation.delete.component.failed.body': 'Delete {0} component from {1} host failed',
 
