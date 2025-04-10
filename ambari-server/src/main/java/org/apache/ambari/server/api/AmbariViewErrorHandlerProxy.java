@@ -30,6 +30,8 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.ErrorHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import javax.servlet.ServletException;
+
 
 import javassist.util.proxy.MethodHandler;
 
@@ -50,7 +52,7 @@ public class AmbariViewErrorHandlerProxy extends ErrorHandler implements MethodH
 
 
   @Override
-  public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException {
+  public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
 
     if (isInternalError(request, response)) {
       //invoke the ambari error handler
