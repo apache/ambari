@@ -36,7 +36,7 @@ docker cp ../../../ambari-agent/target/rpm/ambari-agent/RPMS/x86_64/ambari-agent
 docker exec ambari-server bash -c "yum -y install /root/ambari-server.rpm"
 docker exec ambari-server bash -c "yum -y install /root/ambari-agent.rpm"
 docker exec ambari-server bash -c "ambari-server setup --jdbc-db=mysql --jdbc-driver=/usr/share/java/mysql-connector-java.jar"
-docker exec ambari-server bash -c "ambari-server setup --java-home=/usr/lib/jvm/java --database=mysql --databasehost=localhost --databaseport=3306 --databasename=ambari --databaseusername=root --databasepassword=root -s"
+docker exec ambari-server bash -c "ambari-server setup --java-home=/usr/lib/jvm/java --ambari-java-home=/usr/lib/jvm/java --database=mysql --databasehost=ambari-mariadb --databaseport=3306 --databasename=ambari --databaseusername=root --databasepassword=root -s"
 docker exec ambari-server bash -c "ambari-server restart --debug"
 docker exec ambari-server bash -c "ambari-agent restart"
 
