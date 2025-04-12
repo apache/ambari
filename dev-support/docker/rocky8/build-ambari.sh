@@ -38,6 +38,7 @@ docker exec ambari-server bash -c "yum -y install /root/ambari-agent.rpm"
 docker exec ambari-server bash -c "ambari-server setup --jdbc-db=mysql --jdbc-driver=/usr/share/java/mysql-connector-java.jar"
 docker exec ambari-server bash -c "ambari-server setup --java-home=/usr/lib/jvm/java --ambari-java-home=/usr/lib/jvm/java --database=mysql --databasehost=ambari-mariadb --databaseport=3306 --databasename=ambari --databaseusername=root --databasepassword=root -s"
 docker exec ambari-server bash -c "ambari-server restart --debug"
+docker exec ambari-server bash -c "chmod a+x /etc/init.d/ambari-agent"
 docker exec ambari-server bash -c "ambari-agent restart"
 
 echo -e "\033[32mRestarting ambari-agent-01\033[0m"
@@ -45,6 +46,7 @@ docker exec ambari-agent-01 bash -c "ambari-agent stop"
 docker exec ambari-agent-01 bash -c "yum -y remove ambari-agent"
 docker cp ../../../ambari-agent/target/rpm/ambari-agent/RPMS/x86_64/ambari-agent*.rpm ambari-agent-01:/root/ambari-agent.rpm
 docker exec ambari-agent-01 bash -c "yum -y install /root/ambari-agent.rpm"
+docker exec ambari-agent-01 bash -c "chmod a+x /etc/init.d/ambari-agent"
 docker exec ambari-agent-01 bash -c "ambari-agent restart"
 
 echo -e "\033[32mRestarting ambari-agent-02\033[0m"
@@ -52,6 +54,7 @@ docker exec ambari-agent-02 bash -c "ambari-agent stop"
 docker exec ambari-agent-02 bash -c "yum -y remove ambari-agent"
 docker cp ../../../ambari-agent/target/rpm/ambari-agent/RPMS/x86_64/ambari-agent*.rpm ambari-agent-02:/root/ambari-agent.rpm
 docker exec ambari-agent-02 bash -c "yum -y install /root/ambari-agent.rpm"
+docker exec ambari-agent-02 bash -c "chmod a+x /etc/init.d/ambari-agent"
 docker exec ambari-agent-02 bash -c "ambari-agent restart"
 
 echo -e "\033[32mDone!\033[0m"
