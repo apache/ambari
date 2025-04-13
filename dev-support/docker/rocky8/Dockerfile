@@ -16,7 +16,7 @@
 FROM rockylinux/rockylinux:8
 
 # Enable PowerTools for Rocky Linux 8
-RUN dnf install dnf-plugins-core && dnf config-manager --set-enabled powertools
+RUN dnf install -y dnf-plugins-core && dnf config-manager --set-enabled powertools
 
 RUN dnf clean all && \
     dnf -y update && \
