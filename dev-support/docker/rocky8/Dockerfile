@@ -33,6 +33,6 @@ RUN wget https://dlcdn.apache.org/maven/maven-3/3.8.8/binaries/apache-maven-3.8.
 
 RUN sed -i 's,#   StrictHostKeyChecking ask,StrictHostKeyChecking no,g' /etc/ssh/ssh_config
 
-RUN ssh-keygen -f "/root/.ssh/id_rsa" -N ""
+RUN ssh-keygen -f "/root/.ssh/id_rsa" -N "" -m PEM
 
 EXPOSE 1-65535
