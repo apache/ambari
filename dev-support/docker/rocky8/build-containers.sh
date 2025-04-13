@@ -65,7 +65,7 @@ docker exec ambari-mariadb bash -c "mysql -proot -e \"FLUSH PRIVILEGES\""
 
 echo -e "\033[32mSetting up ambari-server\033[0m"
 docker exec ambari-server bash -c "ambari-server setup --jdbc-db=mysql --jdbc-driver=/usr/share/java/mysql-connector-java.jar"
-docker exec ambari-server bash -c "ambari-server setup --java-home=/usr/lib/jvm/java --ambari-java-home=/usr/lib/jvm/java --database=mysql --databasehost=ambari-mariadb --databaseport=3306 --databasename=ambari --databaseusername=root --databasepassword=root -s"
+docker exec ambari-server bash -c "ambari-server setup --java-home=/usr/lib/jvm/java-1.8.0 --ambari-java-home=/usr/lib/jvm/java-17 --database=mysql --databasehost=ambari-mariadb --databaseport=3306 --databasename=ambari --databaseusername=root --databasepassword=root -s"
 
 echo -e "\033[32mCreating container ambari-agent-01\033[0m"
 docker run -d -p 9995:9995 --name ambari-agent-01 --hostname ambari-agent-01 --network ambari --privileged -e "container=docker" -v /sys/fs/cgroup:/sys/fs/cgroup:ro ambari/develop:trunk-rocky-8 /usr/sbin/init

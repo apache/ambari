@@ -15,10 +15,13 @@
 
 FROM rockylinux/rockylinux:8
 
+# Enable PowerTools for Rocky Linux 8
+RUN dnf install dnf-plugins-core && dnf config-manager --set-enabled powertools
+
 RUN dnf clean all && \
     dnf -y update && \
     dnf -y install sudo wget openssh-clients openssh-server vim mariadb mariadb-server \
-      java-17-openjdk-devel net-tools chrony krb5-server krb5-libs krb5-workstation \
+      java-17-openjdk-devel java-1.8.0-openjdk-devel net-tools chrony krb5-server krb5-libs krb5-workstation \
       git rpm-build python3
 
 RUN wget https://repo1.maven.org/maven2/mysql/mysql-connector-java/5.1.47/mysql-connector-java-5.1.47.jar \
