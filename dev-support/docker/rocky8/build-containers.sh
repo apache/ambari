@@ -39,12 +39,14 @@ docker cp ../../../ambari-agent/target/rpm/ambari-agent/RPMS/x86_64/ambari-agent
 SERVER_PUB_KEY=`docker exec ambari-server /bin/cat /root/.ssh/id_rsa.pub`
 docker exec ambari-server bash -c "yum -y install /root/ambari-server.rpm"
 docker exec ambari-server bash -c "yum -y install /root/ambari-agent.rpm"
+docker exec ambari-server bash -c "chmod a+x /etc/init.d/ambari-agent"
+docker exec ambari-server bash -c "ambari-agent start"
 docker exec ambari-server bash -c "echo '$SERVER_PUB_KEY' > /root/.ssh/authorized_keys"
 # Install a wrapper to workaround systemctl on docker
 docker exec ambari-server bash -c "wget https://raw.githubusercontent.com/gdraheim/docker-systemctl-replacement/master/files/docker/systemctl3.py -O /usr/local/bin/systemctl"
 docker exec ambari-server bash -c "chmod a+x /usr/local/bin/systemctl"
-docker exec ambari-server /usr/local/bin/systemctl enable sshd
-docker exec ambari-server /usr/local/bin/systemctl start sshd
+docker exec ambari-server systemctl enable sshd
+docker exec ambari-server systemctl start sshd
 
 echo -e "\033[32mSetting up mariadb-server\033[0m"
 docker run --name ambari-mariadb --network ambari -e  MYSQL_ROOT_PASSWORD=root -p 3306:3306 -d docker.io/library/mariadb:10.4
@@ -71,21 +73,25 @@ echo -e "\033[32mCreating container ambari-agent-01\033[0m"
 docker run -d -p 9995:9995 --name ambari-agent-01 --hostname ambari-agent-01 --network ambari --privileged -e "container=docker" -v /sys/fs/cgroup:/sys/fs/cgroup:ro ambari/develop:trunk-rocky-8 /usr/sbin/init
 docker cp ../../../ambari-agent/target/rpm/ambari-agent/RPMS/x86_64/ambari-agent*.rpm ambari-agent-01:/root/ambari-agent.rpm
 docker exec ambari-agent-01 bash -c "yum -y install /root/ambari-agent.rpm"
+docker exec ambari-agent-01 bash -c "chmod a+x /etc/init.d/ambari-agent"
+docker exec ambari-agent-01 bash -c "ambari-agent start"
 docker exec ambari-agent-01 bash -c "echo '$SERVER_PUB_KEY' > /root/.ssh/authorized_keys"
 docker exec ambari-agent-01 bash -c "wget https://raw.githubusercontent.com/gdraheim/docker-systemctl-replacement/master/files/docker/systemctl3.py -O /usr/local/bin/systemctl"
 docker exec ambari-agent-01 bash -c "chmod a+x /usr/local/bin/systemctl"
-docker exec ambari-agent-01 /usr/local/bin/systemctl enable sshd
-docker exec ambari-agent-01 /usr/local/bin/systemctl start sshd
+docker exec ambari-agent-01 systemctl enable sshd
+docker exec ambari-agent-01 systemctl start sshd
 
 echo -e "\033[32mCreating container ambari-agent-02\033[0m"
 docker run -d -p 8088:8088 --name ambari-agent-02 --hostname ambari-agent-02 --network ambari --privileged -e "container=docker" -v /sys/fs/cgroup:/sys/fs/cgroup:ro ambari/develop:trunk-rocky-8 /usr/sbin/init
 docker cp ../../../ambari-agent/target/rpm/ambari-agent/RPMS/x86_64/ambari-agent*.rpm ambari-agent-02:/root/ambari-agent.rpm
 docker exec ambari-agent-02 bash -c "yum -y install /root/ambari-agent.rpm"
+docker exec ambari-agent-02 bash -c "chmod a+x /etc/init.d/ambari-agent"
+docker exec ambari-agent-02 bash -c "ambari-agent start"
 docker exec ambari-agent-02 bash -c "echo '$SERVER_PUB_KEY' > /root/.ssh/authorized_keys"
 docker exec ambari-agent-02 bash -c "wget https://raw.githubusercontent.com/gdraheim/docker-systemctl-replacement/master/files/docker/systemctl3.py -O /usr/local/bin/systemctl"
 docker exec ambari-agent-02 bash -c "chmod a+x /usr/local/bin/systemctl"
-docker exec ambari-agent-02 /usr/local/bin/systemctl enable sshd
-docker exec ambari-agent-02 /usr/local/bin/systemctl start sshd
+docker exec ambari-agent-02 systemctl enable sshd
+docker exec ambari-agent-02 systemctl start sshd
 
 echo -e "\033[32mConfiguring hosts file\033[0m"
 AMBARI_SERVER_IP=`docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ambari-server`
