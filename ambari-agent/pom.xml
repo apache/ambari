@@ -55,7 +55,7 @@
     <python.test.mask>[Tt]est*.py</python.test.mask>
     
     <commons-cli.version>1.5.0</commons-cli.version>
-    <commons-collections.version>3.2.2</commons-collections.version>
+    <commons-collections.version>4.4</commons-collections.version>
     <commons-configuration2.version>2.8.0</commons-configuration2.version>
     <commons-lang.version>2.6</commons-lang.version>
     <commons-lang3.version>3.12.0</commons-lang3.version>
@@ -92,8 +92,8 @@
       <version>${commons-cli.version}</version>
     </dependency>
     <dependency>
-      <groupId>commons-collections</groupId>
-      <artifactId>commons-collections</artifactId>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-collections4</artifactId>
       <version>${commons-collections.version}</version>
     </dependency>
     <dependency>
@@ -175,6 +175,10 @@
         <exclusion>
           <groupId>org.slf4j</groupId>
           <artifactId>slf4j-log4j12</artifactId>
+        </exclusion>
+        <exclusion>
+            <groupId>commons-collections</groupId>
+            <artifactId>commons-collections</artifactId>
         </exclusion>
       </exclusions>
     </dependency>

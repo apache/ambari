@@ -2020,6 +2020,12 @@
       <groupId>org.apache.directory.api</groupId>
       <artifactId>api-ldap-model</artifactId>
       <version>${api.ldap.model.version}</version>
+      <exclusions>
+        <exclusion>
+            <groupId>commons-collections</groupId>
+            <artifactId>commons-collections</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.directory.api</groupId>
