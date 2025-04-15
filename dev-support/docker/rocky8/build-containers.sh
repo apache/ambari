@@ -33,7 +33,7 @@ echo -e "\033[32mCreating network ambari\033[0m"
 docker network create --driver bridge ambari
 
 echo -e "\033[32mCreating container ambari-server\033[0m"
-docker run -d -p 5005:5005 -p 8080:8080 --name ambari-server --hostname ambari-server --network ambari --privileged -e "container=docker" -v /sys/fs/cgroup:/sys/fs/cgroup:ro ambari/develop:trunk-rocky-8 /usr/sbin/init
+docker run -d -p 5005:5005 -p 8080:8080 -p 8440:8440 -p 8441:8441 -p 8670:8670 --name ambari-server --hostname ambari-server --network ambari --privileged -e "container=docker" -v /sys/fs/cgroup:/sys/fs/cgroup:ro ambari/develop:trunk-rocky-8 /usr/sbin/init
 docker cp ../../../ambari-server/target/rpm/ambari-server/RPMS/x86_64/ambari-server*.rpm ambari-server:/root/ambari-server.rpm
 docker cp ../../../ambari-agent/target/rpm/ambari-agent/RPMS/x86_64/ambari-agent*.rpm ambari-server:/root/ambari-agent.rpm
 SERVER_PUB_KEY=`docker exec ambari-server /bin/cat /root/.ssh/id_rsa.pub`
