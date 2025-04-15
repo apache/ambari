@@ -15,28 +15,37 @@
 
 FROM rockylinux/rockylinux:8
 
-# Enable PowerTools for Rocky Linux 8
-RUN dnf install -y dnf-plugins-core && dnf config-manager --set-enabled powertools
-
-RUN dnf clean all && \
+# Install essential dependencies, update system, and configure alternatives in a single layer
+RUN dnf install -y dnf-plugins-core && \
+    dnf config-manager --set-enabled powertools && \
     dnf -y update && \
     dnf -y install sudo wget openssh-clients openssh-server vim mariadb mariadb-server \
       java-17-openjdk-devel java-1.8.0-openjdk-devel net-tools chrony krb5-server krb5-libs krb5-workstation \
-      git rpm-build python3
+      git rpm-build python3 && \
+    java_17_path=$(update-alternatives --list | grep 'java-17-openjdk' | head -1 | cut -f3) && \
+    if [ -n "$java_17_path" ]; then \
+        update-alternatives --set java "$java_17_path" || echo "darn"; \
+    else \
+        echo "could not find java17 in alternatives list" >&2; \
+    fi && \
+    alternatives --set java ${java_17_path}/bin/java && \
+    alternatives --set javac ${java_17_path}/bin/javac && \
+    dnf clean all
 
+# Download and install MySQL connector, Apache Maven, and perform SSH configuration in a single layer
 RUN wget https://repo1.maven.org/maven2/mysql/mysql-connector-java/5.1.47/mysql-connector-java-5.1.47.jar \
-      -O /usr/share/java/mysql-connector-java.jar
-
-RUN wget https://dlcdn.apache.org/maven/maven-3/3.8.8/binaries/apache-maven-3.8.8-bin.tar.gz \
+      -O /usr/share/java/mysql-connector-java.jar && \
+    wget https://dlcdn.apache.org/maven/maven-3/3.8.8/binaries/apache-maven-3.8.8-bin.tar.gz \
       -O /tmp/apache-maven.tar.gz --no-check-certificate && \
     mkdir -p /usr/share/maven && \
     tar -xzf /tmp/apache-maven.tar.gz -C /usr/share/maven --strip-components=1 && \
     rm -f /tmp/apache-maven.tar.gz && \
-    ln -s /usr/share/maven/bin/mvn /usr/bin/mvn
+    ln -s /usr/share/maven/bin/mvn /usr/bin/mvn && \
+    sed -i 's,#   StrictHostKeyChecking ask,StrictHostKeyChecking no,g' /etc/ssh/ssh_config && \
+    ssh-keygen -A -m PEM && \
+    ssh-keygen -f "/root/.ssh/id_rsa" -N "" -m PEM
 
-RUN sed -i 's,#   StrictHostKeyChecking ask,StrictHostKeyChecking no,g' /etc/ssh/ssh_config
-
-RUN ssh-keygen -A -m PEM
-RUN ssh-keygen -f "/root/.ssh/id_rsa" -N "" -m PEM
+ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk
+ENV PATH=$JAVA_HOME/bin:$PATH
 
 EXPOSE 1-65535
