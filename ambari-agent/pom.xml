@@ -55,7 +55,7 @@
     <python.test.mask>[Tt]est*.py</python.test.mask>
     
     <commons-cli.version>1.5.0</commons-cli.version>
-    <commons-collections.version>4.4</commons-collections.version>
+    <commons-collections4.version>4.4</commons-collections.version>
     <commons-configuration2.version>2.8.0</commons-configuration2.version>
     <commons-lang.version>2.6</commons-lang.version>
     <commons-lang3.version>3.12.0</commons-lang3.version>
@@ -94,7 +94,7 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-collections4</artifactId>
-      <version>${commons-collections.version}</version>
+      <version>${commons-collections4.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
