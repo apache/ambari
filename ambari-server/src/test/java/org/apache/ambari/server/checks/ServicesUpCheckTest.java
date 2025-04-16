@@ -295,12 +295,12 @@ public class ServicesUpCheckTest {
     allHostComponentSummaries.add(hcsMetricsMonitor);
 
     // Mock the static method
-    Mockito.when(HostComponentSummary.getHostComponentSummaries("HDFS", "NAMENODE")).thenReturn(Arrays.asList(hcsNameNode));
-    Mockito.when(HostComponentSummary.getHostComponentSummaries("HDFS", "DATANODE")).thenReturn(Arrays.asList(hcsDataNode1, hcsDataNode2, hcsDataNode3));
-    Mockito.when(HostComponentSummary.getHostComponentSummaries("HDFS", "ZKFC")).thenReturn(Arrays.asList(hcsZKFC));
-    Mockito.when(HostComponentSummary.getHostComponentSummaries("TEZ", "TEZ_CLIENT")).thenReturn(Arrays.asList(hcsTezClient));
-    Mockito.when(HostComponentSummary.getHostComponentSummaries("AMBARI_METRICS", "METRICS_COLLECTOR")).thenReturn(Arrays.asList(hcsMetricsCollector));
-    Mockito.when(HostComponentSummary.getHostComponentSummaries("AMBARI_METRICS", "METRICS_MONITOR")).thenReturn(Arrays.asList(hcsMetricsMonitor));
+    Mockito.when(HostComponentSummary.getHostComponentSummaries("HDFS", "NAMENODE")).thenAnswer(invocation -> Arrays.asList(hcsNameNode));
+    Mockito.when(HostComponentSummary.getHostComponentSummaries("HDFS", "DATANODE")).thenAnswer(invocation -> Arrays.asList(hcsDataNode1, hcsDataNode2, hcsDataNode3));
+    Mockito.when(HostComponentSummary.getHostComponentSummaries("HDFS", "ZKFC")).thenAnswer(invocation -> Arrays.asList(hcsZKFC));
+    Mockito.when(HostComponentSummary.getHostComponentSummaries("TEZ", "TEZ_CLIENT")).thenAnswer(invocation -> Arrays.asList(hcsTezClient));
+    Mockito.when(HostComponentSummary.getHostComponentSummaries("AMBARI_METRICS", "METRICS_COLLECTOR")).thenAnswer(invocation -> Arrays.asList(hcsMetricsCollector));
+    Mockito.when(HostComponentSummary.getHostComponentSummaries("AMBARI_METRICS", "METRICS_MONITOR")).thenAnswer(invocation -> Arrays.asList(hcsMetricsMonitor));
 
     // Case 1. Initialize with good values
     for (HostComponentSummary hcs : allHostComponentSummaries) {
