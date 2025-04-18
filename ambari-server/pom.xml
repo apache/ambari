@@ -801,6 +801,7 @@
             --add-opens java.xml/jdk.xml.internal=ALL-UNNAMED
             --add-opens java.naming/com.sun.jndi.ldap=ALL-UNNAMED
             --add-opens java.base/java.security=ALL-UNNAMED
+            --add-opens java.base/sun.nio.fs=ALL-UNNAMED
           </argLine>
 
           <!-- Each profile in the top-level pom.xml defines which test group categories to run. -->
