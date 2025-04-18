@@ -25,6 +25,7 @@
   <name>Apache Ambari Project POM</name>
   <packaging>pom</packaging>
   <properties>
+    <skipSurefireTests>false</skipSurefireTests>
     <skipPythonTests>false</skipPythonTests>
     <skipFunctionalTests>true</skipFunctionalTests>
     <solr.version>5.5.2</solr.version>
@@ -661,6 +662,9 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
+          <configuration>
+            <skip>${skipSurefireTests}</skip>
+          </configuration>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
