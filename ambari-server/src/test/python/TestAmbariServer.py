@@ -3354,6 +3354,7 @@ class TestAmbariServer(TestCase):
     # Test case: JDK already exists
     args.java_home = None
     args.jdk_location = None
+    args.ambari_java_home = None
     get_JAVA_HOME_mock.return_value = "some_jdk"
     validate_jdk_mock.return_value = True
     get_YN_input_mock.return_value = False
