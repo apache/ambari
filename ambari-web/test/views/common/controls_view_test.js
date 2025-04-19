@@ -505,7 +505,6 @@ describe('App.ServiceConfigRadioButton', function () {
   });
 
   describe('#onChecked', function () {
-
     var cases = [
       {
         clicked: true,
@@ -522,14 +521,19 @@ describe('App.ServiceConfigRadioButton', function () {
         title: 'not invoked with click'
       }
     ];
-
+  
     cases.forEach(function (item) {
-
       describe(item.title, function () {
-
         beforeEach(function () {
-          sinon.stub(Em.run, 'next', function (context, callback) {
-            callback.call(context);
+          // Stub Ember.run.next to handle both forms:
+          // 1. Ember.run.next(function) -> invoke function directly
+          // 2. Ember.run.next(context, function) -> invoke function.call(context)
+          sinon.stub(Em.run, 'next').callsFake(function (arg1, arg2) {
+            if (typeof arg1 === 'function') {
+              arg1(); // Handle single-function call
+            } else if (typeof arg2 === 'function') {
+              arg2.call(arg1); // Handle context-function call
+            }
           });
           sinon.stub(view, 'sendRequestRorDependentConfigs', Em.K);
           sinon.stub(view, 'updateForeignKeys', Em.K);
@@ -541,22 +545,22 @@ describe('App.ServiceConfigRadioButton', function () {
           });
           view.propertyDidChange('checked');
         });
-
+  
         afterEach(function () {
           Em.run.next.restore();
           view.sendRequestRorDependentConfigs.restore();
           view.updateForeignKeys.restore();
           view.updateCheck.restore();
         });
-
+  
         it('property value', function () {
           expect(view.get('parentView.serviceConfig.value')).to.equal(item.value);
         });
-
+  
         it('dependent configs request', function () {
           expect(view.sendRequestRorDependentConfigs.callCount).to.equal(item.sendRequestRorDependentConfigsCallCount);
         });
-
+  
         if (item.sendRequestRorDependentConfigsCallCount) {
           it('config object for dependent configs request', function () {
             expect(view.sendRequestRorDependentConfigs.firstCall.args).to.eql([
@@ -566,19 +570,16 @@ describe('App.ServiceConfigRadioButton', function () {
             ]);
           });
         }
-
+  
         it('clicked flag reset', function () {
           expect(view.get('clicked')).to.be.false;
         });
-
+  
         it('update foreign keys', function () {
           expect(view.updateForeignKeys.callCount).to.equal(item.updateForeignKeysCallCount);
         });
-
       });
-
     });
-
   });
 
 });
