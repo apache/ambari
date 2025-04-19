@@ -52,7 +52,6 @@
     <resourcesFolder>${ambari.server.module}/src/main/resources</resourcesFolder>
     <customActionsLocation>${target.cache.dir}/custom_actions</customActionsLocation>
     <empty.dir>src/packages/tarball</empty.dir> <!-- any directory in project with not very big amount of files (not to waste-load them) -->
-    <hadoop.version>3.3.4</hadoop.version>
     <python.test.mask>[Tt]est*.py</python.test.mask>
     
     <commons-cli.version>1.5.0</commons-cli.version>
