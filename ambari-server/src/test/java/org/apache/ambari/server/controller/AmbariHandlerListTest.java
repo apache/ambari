@@ -18,15 +18,8 @@
 
 package org.apache.ambari.server.controller;
 
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
-
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import jakarta.inject.Provider;
 import jakarta.servlet.http.HttpServletRequest;
@@ -39,8 +32,6 @@ import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntityTest;
 import org.apache.ambari.server.security.AmbariViewsSecurityHeaderFilter;
 import org.apache.ambari.server.view.ViewRegistry;
-import org.easymock.Capture;
-import org.easymock.EasyMock;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
@@ -50,130 +41,138 @@ import org.eclipse.jetty.server.session.SessionCache;
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.webapp.WebAppContext;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.web.filter.DelegatingFilterProxy;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * AmbariHandlerList tests.
  */
+@RunWith(MockitoJUnitRunner.class)
 public class AmbariHandlerListTest {
 
-  private final AmbariViewsSecurityHeaderFilter ambariViewsSecurityHeaderFilter = createNiceMock(AmbariViewsSecurityHeaderFilter.class);
-  private final AmbariPersistFilter persistFilter = createNiceMock(AmbariPersistFilter.class);
-  private final DelegatingFilterProxy springSecurityFilter = createNiceMock(DelegatingFilterProxy.class);
-  private final SessionHandler sessionHandler = createNiceMock(SessionHandler.class);
-  private final SessionIdManager sessionIdManager = createNiceMock(SessionIdManager.class);
-  private final SessionHandlerConfigurer sessionHandlerConfigurer = createNiceMock(SessionHandlerConfigurer.class);
-  private final SessionCache sessionCache = createNiceMock(SessionCache.class);
-  private final Configuration configuration = createNiceMock(Configuration.class);
+  @Mock private AmbariViewsSecurityHeaderFilter ambariViewsSecurityHeaderFilter;
+  @Mock private AmbariPersistFilter persistFilter;
+  @Mock private DelegatingFilterProxy springSecurityFilter;
+  @Mock private SessionHandler sessionHandler;
+  @Mock private SessionIdManager sessionIdManager;
+  @Mock private SessionHandlerConfigurer sessionHandlerConfigurer;
+  @Mock private SessionCache sessionCache;
+  @Mock private Configuration configuration;
+  @Mock private WebAppContext handler;
+  @Mock private Server server;
+  @Mock private ErrorHandler errorHandler;
+
+  @Captor private ArgumentCaptor<FilterHolder> filterHolderCaptor;
+  @Captor private ArgumentCaptor<Boolean> showStackCaptor;
+
+  private AmbariHandlerList getAmbariHandlerList(WebAppContext ctx) {
+    AmbariHandlerList list = new AmbariHandlerList();
+    //doNothing().when(sessionHandler).setSessionIdManager(sessionIdManager);
+    when(sessionHandler.getSessionCache()).thenReturn(sessionCache);
+    list.webAppContextProvider = new HandlerProvider(ctx);
+    list.ambariViewsSecurityHeaderFilter = ambariViewsSecurityHeaderFilter;
+    list.persistFilter = persistFilter;
+    list.springSecurityFilter = springSecurityFilter;
+    list.sessionHandler = sessionHandler;
+    list.sessionHandlerConfigurer = sessionHandlerConfigurer;
+    list.configuration = configuration;
+    return list;
+  }
 
   @Test
   public void testAddViewInstance() throws Exception {
-
     ViewInstanceEntity viewInstanceEntity = ViewInstanceEntityTest.getViewInstanceEntity();
 
-    final WebAppContext handler = createNiceMock(WebAppContext.class);
-    Server server = createNiceMock(Server.class);
-
-    expect(handler.getServer()).andReturn(server);
-    expect(handler.getChildHandlers()).andReturn(new Handler[]{});
-    expect(handler.getSessionHandler()).andReturn(createNiceMock(SessionHandler.class));
+    when(handler.getServer()).thenReturn(server);
+    when(handler.getChildHandlers()).thenReturn(new Handler[]{});
+    when(handler.getSessionHandler()).thenReturn(mock(SessionHandler.class));
     handler.setServer(null);
 
-    expect(sessionHandler.getSessionCache()).andReturn(sessionCache);
-
-    Capture<FilterHolder> securityHeaderFilterCapture = EasyMock.newCapture();
-    Capture<FilterHolder> persistFilterCapture = EasyMock.newCapture();
-    Capture<FilterHolder> securityFilterCapture = EasyMock.newCapture();
-
-    handler.addFilter(capture(securityHeaderFilterCapture), eq("/*"), eq(AmbariServer.DISPATCHER_TYPES));
-    handler.addFilter(capture(persistFilterCapture), eq("/*"), eq(AmbariServer.DISPATCHER_TYPES));
-    handler.addFilter(capture(securityFilterCapture), eq("/*"), eq(AmbariServer.DISPATCHER_TYPES));
-    handler.setAllowNullPathInfo(true);
-
     final boolean showErrorStacks = true;
-    expect(configuration.isServerShowErrorStacks()).andReturn(showErrorStacks);
+    when(configuration.isServerShowErrorStacks()).thenReturn(showErrorStacks);
 
-    ErrorHandler errorHandler = createNiceMock(ErrorHandler.class);
-    Capture<Boolean> showStackCapture = EasyMock.newCapture();
-    errorHandler.setShowStacks(EasyMock.captureBoolean(showStackCapture));
-
-    expect(handler.getErrorHandler()).andReturn(errorHandler).times(3);
-
-    replay(handler, server, sessionHandler, configuration, errorHandler);
+    when(handler.getErrorHandler()).thenReturn(errorHandler);
 
     AmbariHandlerList handlerList = getAmbariHandlerList(handler);
-
+    handlerList.start();
+    handlerList.start();
+    handlerList.start();
     handlerList.addViewInstance(viewInstanceEntity);
 
-    ArrayList<Handler> handlers = new ArrayList<>(Arrays.asList(handlerList.getHandlers()));
+    // capture all 3 filter additions
+    verify(handler, times(3))
+        .addFilter(filterHolderCaptor.capture(), eq("/*"), eq(AmbariServer.DISPATCHER_TYPES));
+    List<FilterHolder> holders = filterHolderCaptor.getAllValues();
 
-    Assert.assertTrue(handlers.contains(handler));
+    // Verify filter classes by comparing class names
+    assertEquals(ambariViewsSecurityHeaderFilter.getClass().getName(), holders.get(0).getClassName());
+    assertEquals(persistFilter.getClass().getName(),              holders.get(1).getClassName());
+    assertEquals(springSecurityFilter.getClass().getName(),       holders.get(2).getClassName());
 
-    Assert.assertEquals(ambariViewsSecurityHeaderFilter, securityHeaderFilterCapture.getValue().getFilter());
-    Assert.assertEquals(persistFilter, persistFilterCapture.getValue().getFilter());
-    Assert.assertEquals(springSecurityFilter, securityFilterCapture.getValue().getFilter());
-    Assert.assertEquals(showErrorStacks, showStackCapture.getValue());
+    // verify allowNullPathInfo and error handler
+    verify(handler).setAllowNullPathInfo(true);
+    verify(handler, times(3)).getErrorHandler();
+    verify(errorHandler).setShowStacks(showStackCaptor.capture());
+    assertEquals(showErrorStacks, showStackCaptor.getValue());
 
-    verify(handler, server, sessionHandler, configuration, errorHandler);
+    // assert handler registered
+    List<Handler> registered = Arrays.asList(handlerList.getHandlers());
+    assertTrue(registered.contains(handler));
   }
 
   @Test
   public void testRemoveViewInstance() throws Exception {
     ViewInstanceEntity viewInstanceEntity = ViewInstanceEntityTest.getViewInstanceEntity();
 
-    final WebAppContext handler = createNiceMock(WebAppContext.class);
-    Server server = createNiceMock(Server.class);
-
-    expect(handler.getServer()).andReturn(server);
-    expect(handler.getChildHandlers()).andReturn(new Handler[]{});
-    expect(handler.getSessionHandler()).andReturn(createNiceMock(SessionHandler.class));
+    // Stub required for handlerList.addViewInstance to work
+    when(handler.getServer()).thenReturn(server);
+    when(handler.getChildHandlers()).thenReturn(new Handler[]{});
+    when(handler.getSessionHandler()).thenReturn(mock(SessionHandler.class));
     handler.setServer(null);
 
-    expect(sessionHandler.getSessionCache()).andReturn(sessionCache);
-
-    replay(handler, server, sessionHandler);
+    when(sessionHandler.getSessionCache()).thenReturn(sessionCache);
 
     AmbariHandlerList handlerList = getAmbariHandlerList(handler);
-
     handlerList.addViewInstance(viewInstanceEntity);
-
-    ArrayList<Handler> handlers = new ArrayList<>(Arrays.asList(handlerList.getHandlers()));
-
-    Assert.assertTrue(handlers.contains(handler));
+    List<Handler> registered = Arrays.asList(handlerList.getHandlers());
+    assertTrue(registered.contains(handler));
 
     handlerList.removeViewInstance(viewInstanceEntity);
+    assertNull(handlerList.getHandlers());
 
-    handlers = new ArrayList<>(Arrays.asList(handlerList.getHandlers()));
-
-    Assert.assertFalse(handlers.contains(handler));
-
-    verify(handler, server, sessionHandler);
-
+    verify(handler).getServer();
+    verify(handler).getChildHandlers();
+    verify(handler).getSessionHandler();
   }
 
   @Test
   public void testHandle() throws Exception {
-    final WebAppContext handler = createNiceMock(WebAppContext.class);
-    ViewRegistry viewRegistry = createNiceMock(ViewRegistry.class);
-    ViewEntity viewEntity = createNiceMock(ViewEntity.class);
-    ClassLoader classLoader = createNiceMock(ClassLoader.class);
+    ViewRegistry viewRegistry = mock(ViewRegistry.class);
+    ViewEntity viewEntity = mock(ViewEntity.class);
+    ClassLoader classLoader = mock(ClassLoader.class);
+    Request baseRequest = mock(Request.class);
+    HttpServletRequest request = mock(HttpServletRequest.class);
+    HttpServletResponse response = mock(HttpServletResponse.class);
 
-    Request baseRequest = createNiceMock(Request.class);
+    when(viewRegistry.getDefinition("TEST", "1.0.0")).thenReturn(viewEntity);
+    when(viewEntity.getClassLoader()).thenReturn(classLoader);
 
-    HttpServletRequest request = createNiceMock(HttpServletRequest.class);
-    HttpServletResponse response = createNiceMock(HttpServletResponse.class);
-
-    expect(viewRegistry.getDefinition("TEST", "1.0.0")).andReturn(viewEntity).anyTimes();
-    expect(viewEntity.getClassLoader()).andReturn(classLoader).anyTimes();
-
-    expect(handler.isStarted()).andReturn(true).anyTimes();
-    expect(handler.getChildHandlers()).andReturn(new Handler[]{});
-
-    replay(handler, viewRegistry, viewEntity);
-    handler.handle("/api/v1/views/TEST/versions/1.0.0/instances/INSTANCE_1/resources/test",
-        baseRequest, request, response);
+    when(handler.getChildHandlers()).thenReturn(new Handler[]{});
 
     AmbariHandlerList handlerList = getAmbariHandlerList(handler);
     handlerList.viewRegistry = viewRegistry;
@@ -183,22 +182,10 @@ public class AmbariHandlerListTest {
     handlerList.handle("/api/v1/views/TEST/versions/1.0.0/instances/INSTANCE_1/resources/test",
         baseRequest, request, response);
 
-    verify(handler, viewRegistry, viewEntity);
-  }
-
-  private AmbariHandlerList getAmbariHandlerList(final WebAppContext handler) {
-
-    AmbariHandlerList handlerList = new AmbariHandlerList();
-    sessionHandler.setSessionIdManager(sessionIdManager);
-
-    handlerList.webAppContextProvider = new HandlerProvider(handler);
-    handlerList.ambariViewsSecurityHeaderFilter = ambariViewsSecurityHeaderFilter;
-    handlerList.persistFilter = persistFilter;
-    handlerList.springSecurityFilter = springSecurityFilter;
-    handlerList.sessionHandler = sessionHandler;
-    handlerList.sessionHandlerConfigurer = sessionHandlerConfigurer;
-    handlerList.configuration = configuration;
-    return handlerList;
+    verify(handler).handle("/api/v1/views/TEST/versions/1.0.0/instances/INSTANCE_1/resources/test",
+        baseRequest, request, response);
+    verify(viewRegistry, atLeastOnce()).getDefinition("TEST", "1.0.0");
+    verify(viewEntity, atLeastOnce()).getClassLoader();
   }
 
   private static class HandlerProvider implements Provider<WebAppContext> {
