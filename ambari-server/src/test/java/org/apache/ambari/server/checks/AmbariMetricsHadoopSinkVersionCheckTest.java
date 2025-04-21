@@ -227,16 +227,16 @@ public class AmbariMetricsHadoopSinkVersionCheckTest {
   public void testPerformFail() throws Exception{
     AmbariManagementController ambariManagementControllerMock = Mockito.mock(AmbariManagementController.class);
     PowerMockito.mockStatic(AmbariServer.class);
-    when(AmbariServer.getController()).thenReturn(ambariManagementControllerMock);
+    when(AmbariServer.getController()).thenAnswer(invocation -> ambariManagementControllerMock);
 
     ResourceProvider resourceProviderMock = mock(ResourceProvider.class);
     PowerMockito.mockStatic(AbstractControllerResourceProvider.class);
-    when(AbstractControllerResourceProvider.getResourceProvider(Mockito.eq(Resource.Type.Request), any(AmbariManagementController.class))).thenReturn(resourceProviderMock);
+    when(AbstractControllerResourceProvider.getResourceProvider(Mockito.eq(Resource.Type.Request), any(AmbariManagementController.class))).thenAnswer(invocation -> resourceProviderMock);
 
     PowerMockito.mockStatic(PropertyHelper.class);
     Request requestMock = mock(Request.class);
-    when(PropertyHelper.getCreateRequest(any(), any())).thenReturn(requestMock);
-    when(PropertyHelper.getPropertyId("Requests", "id")).thenReturn("requestIdProp");
+    when(PropertyHelper.getCreateRequest(any(), any())).thenAnswer(invocation -> requestMock);
+    when(PropertyHelper.getPropertyId("Requests", "id")).thenAnswer(invocation -> "requestIdProp");
 
     RequestStatus requestStatusMock = mock(RequestStatus.class);
     Resource responseResourceMock = mock(Resource.class);
