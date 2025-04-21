@@ -801,6 +801,7 @@
             --add-opens java.xml/jdk.xml.internal=ALL-UNNAMED
             --add-opens java.naming/com.sun.jndi.ldap=ALL-UNNAMED
             --add-opens java.base/java.security=ALL-UNNAMED
+            --add-opens java.base/sun.nio.fs=ALL-UNNAMED
           </argLine>
 
           <!-- Each profile in the top-level pom.xml defines which test group categories to run. -->
@@ -1406,12 +1407,6 @@
       <groupId>org.mockito</groupId>
       <artifactId>mockito-inline</artifactId>
       <version>${mockito.inline.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-inline</artifactId>
-      <version>3.5.10</version>
       <scope>test</scope>
     </dependency>
     <dependency>

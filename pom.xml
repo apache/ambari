@@ -79,7 +79,7 @@
     <url>https://issues.apache.org/jira/browse/AMBARI</url>
   </issueManagement>
   <properties>
-    <revision>3.0.0.0-SNAPSHOT</revision>
+    <revision>3.1.0.0-SNAPSHOT</revision>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <clover.license>${user.home}/clover.license</clover.license>
     <jdk.version>17</jdk.version>
