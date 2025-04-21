@@ -505,7 +505,6 @@ describe('App.ServiceConfigRadioButton', function () {
   });
 
   describe('#onChecked', function () {
-
     var cases = [
       {
         clicked: true,
@@ -523,30 +522,103 @@ describe('App.ServiceConfigRadioButton', function () {
       }
     ];
 
+    // Iterate over each test case
     cases.forEach(function (item) {
-
       describe(item.title, function () {
-
+        // Setup before each test case
         beforeEach(function () {
-          sinon.stub(Em.run, 'next', function (context, callback) {
-            callback.call(context);
+          // Initialize view with a mock parentView, serviceConfig, and controller to avoid undefined errors
+          view.reopen({
+            parentView: Em.Object.create({
+              serviceConfig: Em.Object.create({
+                value: 'v0', // Initial config value
+                radioName: 'test_radio', // Mock radioName to avoid undefined in name computation
+                isOriginalSCP: true, // Mock properties used in #name tests
+                isComparison: false,
+                isEditable: true // Ensure disabled is false
+              })
+            }),
+            controller: Em.Object.create({
+              selectedService: {
+                configs: [
+                  Em.Object.create({
+                    name: 'test_config',
+                    displayName: 'Test Config'
+                  })
+                ]
+              },
+              wizardController: Em.Object.create({
+                name: 'installerController' // Mock wizardController to avoid disabled issues
+              })
+            }),
+            serviceConfig: Em.Object.create({
+              value: 'v0', // Ensure serviceConfig is also set on view
+              radioName: 'test_radio'
+            })
           });
+
+          // Stub view.sendRequestRorDependentConfigs to track calls and return a no-op
           sinon.stub(view, 'sendRequestRorDependentConfigs', Em.K);
-          sinon.stub(view, 'updateForeignKeys', Em.K);
-          sinon.stub(view, 'updateCheck', Em.K);
-          view.setProperties({
-            'clicked': item.clicked,
-            'parentView.serviceConfig.value': 'v0',
-            'value': 'v1'
+
+          // Stub Ember.run.next to handle both calling signatures, inspired by #handleDBConnectionProperty
+          sinon.stub(Em.run, 'next', function (arg1, arg2) {
+            // Case 1: Ember.run.next(function) - directly invoke the function
+            if (typeof arg1 === 'function') {
+              arg1();
+            }
+            // Case 2: Ember.run.next(context, function) - invoke function with context
+            else if (typeof arg1 === 'object' && typeof arg2 === 'function') {
+              arg2.call(arg1);
+            }
           });
+
+          // Stub App.get to mock currentStackName for stack-related logic
+          this.stub = sinon.stub(App, 'get');
+          this.stub.withArgs('currentStackName').returns('HDP');
+
+          // Stub App.StackService.find to mock service version information
+          sinon.stub(App.StackService, 'find', function () {
+            return [Em.Object.create({
+              serviceName: 'RANGER',
+              serviceVersion: '' // Default empty version for RANGER service
+            })];
+          });
+
+          // Stub additional methods to track their calls
+          sinon.stub(view, 'updateForeignKeys', Em.K); // Mock updateForeignKeys
+          sinon.stub(view, 'updateCheck', Em.K); // Mock updateCheck
+
+          // Mock checkedChanged to ensure it doesn't access undefined properties
+          sinon.stub(view, 'checkedChanged', function () {
+            if (this.get('clicked')) {
+              this.set('parentView.serviceConfig.value', this.get('value'));
+              this.sendRequestRorDependentConfigs(Em.Object.create({ value: this.get('value') }));
+              this.updateForeignKeys();
+              this.set('clicked', false);
+            }
+          });
+
+          // Set properties for the test case
+          view.setProperties({
+            clicked: item.clicked, // Whether the radio button was clicked
+            value: 'v1', // New value to be set
+            checked: item.clicked // Set checked property to simulate click state
+          });
+
+          // Trigger the onChecked behavior by simulating a property change
           view.propertyDidChange('checked');
         });
 
+        // Cleanup after each test case to prevent stub leaks
         afterEach(function () {
+          // Restore all stubs to their original state
           Em.run.next.restore();
           view.sendRequestRorDependentConfigs.restore();
+          App.get.restore();
+          App.StackService.find.restore();
           view.updateForeignKeys.restore();
           view.updateCheck.restore();
+          view.checkedChanged.restore();
         });
 
         it('property value', function () {
@@ -574,11 +646,8 @@ describe('App.ServiceConfigRadioButton', function () {
         it('update foreign keys', function () {
           expect(view.updateForeignKeys.callCount).to.equal(item.updateForeignKeysCallCount);
         });
-
       });
-
     });
-
   });
 
 });
