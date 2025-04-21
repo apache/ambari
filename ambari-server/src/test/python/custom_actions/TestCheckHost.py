@@ -118,7 +118,7 @@ class TestCheckHost(TestCase):
         "user_passwd": "test_user_passwd",
         "jdk_name": "test_jdk_name",
       },
-      "ambariLevelParams": {"custom_mysql_jdbc_name": "mysql-connector-java.jar"},
+      "ambariLevelParams": {"custom_mysql_jdbc_name": "mysql-connector-java.jar","ambari_java_home": "test_java_home"},
       "agentLevelParams": {"agentCacheDir": "/nonexistent_tmp"},
     }
     get_tmp_dir_mock.return_value = "/tmp"
@@ -158,7 +158,7 @@ class TestCheckHost(TestCase):
         "jdk_name": "test_jdk_name",
       },
       "agentLevelParams": {"agentCacheDir": "/nonexistent_tmp"},
-      "ambariLevelParams": {"custom_oracle_jdbc_name": "oracle-jdbc-driver.jar"},
+      "ambariLevelParams": {"custom_oracle_jdbc_name": "oracle-jdbc-driver.jar","ambari_java_home": "test_java_home"},
     }
     format_mock.reset_mock()
     download_file_mock.reset_mock()
@@ -197,7 +197,7 @@ class TestCheckHost(TestCase):
         "jdk_name": "test_jdk_name",
       },
       "agentLevelParams": {"agentCacheDir": "/nonexistent_tmp"},
-      "ambariLevelParams": {"custom_postgres_jdbc_name": "oracle-jdbc-driver.jar"},
+      "ambariLevelParams": {"custom_postgres_jdbc_name": "oracle-jdbc-driver.jar","ambari_java_home": "test_java_home"},
     }
     format_mock.reset_mock()
     download_file_mock.reset_mock()
@@ -251,7 +251,7 @@ class TestCheckHost(TestCase):
         "db_name": "postgres",
       },
       "agentLevelParams": {"agentCacheDir": "/nonexistent_tmp"},
-      "ambariLevelParams": {"custom_postgres_jdbc_name": "test-postgres-jdbc.jar"},
+      "ambariLevelParams": {"custom_postgres_jdbc_name": "test-postgres-jdbc.jar","ambari_java_home": "test_java_home"},
     }
 
     isfile_mock.return_value = False
@@ -615,6 +615,7 @@ class TestCheckHost(TestCase):
         "agentCacheDir": "/nonexistent_tmp",
         "custom_mysql_jdbc_name": "mysql-connector-java.jar",
       },
+      "ambariLevelParams": {"ambari_java_home": "test_java_home"},
     }
     get_tmp_dir_mock.return_value = "/tmp"
     download_file_mock.side_effect = Exception("test exception")
