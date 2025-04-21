@@ -521,7 +521,7 @@ describe('App.ServiceConfigRadioButton', function () {
         title: 'not invoked with click'
       }
     ];
-  
+
     // Iterate over each test case
     cases.forEach(function (item) {
       describe(item.title, function () {
@@ -620,15 +620,15 @@ describe('App.ServiceConfigRadioButton', function () {
           view.updateCheck.restore();
           view.checkedChanged.restore();
         });
-  
+
         it('property value', function () {
           expect(view.get('parentView.serviceConfig.value')).to.equal(item.value);
         });
-  
+
         it('dependent configs request', function () {
           expect(view.sendRequestRorDependentConfigs.callCount).to.equal(item.sendRequestRorDependentConfigsCallCount);
         });
-  
+
         if (item.sendRequestRorDependentConfigsCallCount) {
           it('config object for dependent configs request', function () {
             expect(view.sendRequestRorDependentConfigs.firstCall.args).to.eql([
@@ -638,11 +638,11 @@ describe('App.ServiceConfigRadioButton', function () {
             ]);
           });
         }
-  
+
         it('clicked flag reset', function () {
           expect(view.get('clicked')).to.be.false;
         });
-  
+
         it('update foreign keys', function () {
           expect(view.updateForeignKeys.callCount).to.equal(item.updateForeignKeysCallCount);
         });
