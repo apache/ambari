@@ -121,6 +121,9 @@ pipeline {
 
                 stage('Ambari Server PyTests') {
                     steps {
+                        sh 'pip3 install setuptools_rust'
+                        sh 'pip3 install --upgrade pip'
+                        sh 'pip3 install --user pyOpenSSL'
                         sh 'mvn clean -am test -pl ambari-server -DskipSurefireTests -Dmaven.test.failure.ignore -Dmaven.artifact.threads=10 -Drat.skip -Dcheckstyle.skip -DskipAdminWebTests=true'
                     }
                 }
