@@ -31,7 +31,6 @@ import java.util.Set;
 import org.apache.ambari.annotations.SwaggerOverwriteNestedAPI;
 import org.apache.ambari.annotations.SwaggerPreferredParent;
 import org.apache.maven.plugin.logging.Log;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.common.collect.ImmutableSet;
@@ -66,7 +65,6 @@ public class AmbariSwaggerReaderTest {
    * Test the basic case: one top level API and one nested API, each with one operation
    */
   @Test
-  @Ignore("AMBARI-26457")
   public void swaggerBasicCase() {
     AmbariSwaggerReader asr = new AmbariSwaggerReader(null, createMock(Log.class));
     Swagger swagger = asr.read(ImmutableSet.of(TopLevelAPI.class, NestedAPI.class));
@@ -80,7 +78,6 @@ public class AmbariSwaggerReaderTest {
    * In this case the nested API should be associated to the first processed top level API.
    */
   @Test
-  @Ignore("AMBARI-26457")
   public void swaggerConflictingNestedApis() {
     AmbariSwaggerReader asr = new AmbariSwaggerReader(null, createMock(Log.class));
     Set<Class<?>> classes = new LinkedHashSet<>(Arrays.asList(TopLevelAPI.class, AnotherTopLevelAPI.class,
@@ -98,7 +95,6 @@ public class AmbariSwaggerReaderTest {
    * In this case the nested API should be associated to the preferred top level API.
    */
   @Test
-  @Ignore("AMBARI-26457")
   public void swaggerConflictingNestedApisWithPreferredParent() {
     AmbariSwaggerReader asr = new AmbariSwaggerReader(null, createMock(Log.class));
     Set<Class<?>> classes = new LinkedHashSet<>(Arrays.asList(TopLevelAPI.class, AnotherTopLevelAPI.class,
@@ -117,7 +113,6 @@ public class AmbariSwaggerReaderTest {
    * In this case the preferred parent API is the same as the one otherwise would have been set.
    */
   @Test
-  @Ignore("AMBARI-26457")
   public void swaggerConflictingNestedApisWithSamePreferredParent() {
     AmbariSwaggerReader asr = new AmbariSwaggerReader(null, createMock(Log.class));
     Set<Class<?>> classes = new LinkedHashSet<>(Arrays.asList(TopLevelAPI.class, AnotherTopLevelAPI.class,
@@ -137,7 +132,6 @@ public class AmbariSwaggerReaderTest {
    * does not have it as a child.
    */
   @Test
-  @Ignore("AMBARI-26457")
   public void swaggerConflictingNestedApisWithBadPreferredParent() {
     AmbariSwaggerReader asr = new AmbariSwaggerReader(null, createMock(Log.class));
     Set<Class<?>> classes = new LinkedHashSet<>(Arrays.asList(TopLevelAPI.class, AnotherTopLevelAPI.class,
@@ -155,7 +149,6 @@ public class AmbariSwaggerReaderTest {
    * In this case we expect default values to be overwritten by the usage of the annotation.
    */
   @Test
-  @Ignore("AMBARI-26457")
   public void swaggerNestedApisWithOverwrite() {
     AmbariSwaggerReader asr = new AmbariSwaggerReader(null, createMock(Log.class));
     Set<Class<?>> classes = new LinkedHashSet<>(Arrays.asList(NestedWithOverwrite.class, TopLevel4API.class));
@@ -172,7 +165,6 @@ public class AmbariSwaggerReaderTest {
    * API operation) then it should be treated as top level.
    */
   @Test
-  @Ignore("AMBARI-26457")
   public void swaggerApiThatIsBothTopLevelAndNestedIsCountedAsTopLevel() {
     AmbariSwaggerReader asr = new AmbariSwaggerReader(null, createMock(Log.class));
     Swagger swagger = asr.read(ImmutableSet.of(YetAnotherTopLevelAPI.class, NestedAndTopLevelAPI.class));
