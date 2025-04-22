@@ -18,22 +18,19 @@
 
 package org.apache.ambari.server.security.authentication.kerberos;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.getCurrentArguments;
+import static org.easymock.EasyMock.newCapture;
+import static org.easymock.EasyMock.startsWith;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
-import jakarta.servlet.DispatcherType;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -46,42 +43,50 @@ import org.apache.ambari.server.security.authentication.AmbariAuthenticationEven
 import org.apache.ambari.server.security.authentication.AmbariAuthenticationException;
 import org.apache.ambari.server.security.authentication.AmbariAuthenticationFilter;
 import org.apache.ambari.server.security.authentication.InvalidUsernamePasswordCombinationException;
+import org.easymock.Capture;
+import org.easymock.CaptureType;
+import org.easymock.EasyMockSupport;
+import org.easymock.IAnswer;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 
-public class AmbariKerberosAuthenticationFilterTest {
+public class AmbariKerberosAuthenticationFilterTest extends EasyMockSupport {
   private Configuration configuration;
+
   private AuthenticationEntryPoint entryPoint;
+
   private AuthenticationManager authenticationManager;
+
   private AmbariAuthenticationEventHandler eventHandler;
 
   @Before
   public void setUp() {
     SecurityContextHolder.getContext().setAuthentication(null);
 
-    entryPoint = mock(AmbariEntryPoint.class);
-    configuration = mock(Configuration.class);
-    authenticationManager = mock(AuthenticationManager.class);
-    eventHandler = mock(AmbariAuthenticationEventHandler.class);
+    entryPoint = createMock(AmbariEntryPoint.class);
+    configuration = createMock(Configuration.class);
+    authenticationManager = createMock(AuthenticationManager.class);
+    eventHandler = createMock(AmbariAuthenticationEventHandler.class);
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test (expected = IllegalArgumentException.class)
   public void ensureNonNullEventHandler() {
     new AmbariKerberosAuthenticationFilter(authenticationManager, entryPoint, configuration, null);
   }
 
   @Test
   public void shouldApplyTrue() throws Exception {
-    HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
-    when(httpServletRequest.getHeader("Authorization")).thenReturn("Negotiate .....");
-    doReturn(createProperties(true)).when(configuration).getKerberosAuthenticationProperties();
+    HttpServletRequest httpServletRequest = createMock(HttpServletRequest.class);
+    expect(httpServletRequest.getHeader("Authorization")).andReturn("Negotiate .....").once();
+
+    expect(configuration.getKerberosAuthenticationProperties()).andReturn(createProperties(true)).once();
+
+    replayAll();
 
     AmbariKerberosAuthenticationFilter filter = new AmbariKerberosAuthenticationFilter(
         authenticationManager,
@@ -91,13 +96,18 @@ public class AmbariKerberosAuthenticationFilterTest {
     );
 
     Assert.assertTrue(filter.shouldApply(httpServletRequest));
+
+    verifyAll();
   }
 
   @Test
   public void shouldApplyFalseMissingHeader() throws Exception {
-    HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
-    when(httpServletRequest.getHeader("Authorization")).thenReturn(null);
-    doReturn(createProperties(true)).when(configuration).getKerberosAuthenticationProperties();
+    HttpServletRequest httpServletRequest = createMock(HttpServletRequest.class);
+    expect(httpServletRequest.getHeader("Authorization")).andReturn(null).once();
+
+    expect(configuration.getKerberosAuthenticationProperties()).andReturn(createProperties(true)).once();
+
+    replayAll();
 
     AmbariKerberosAuthenticationFilter filter = new AmbariKerberosAuthenticationFilter(
         authenticationManager,
@@ -107,12 +117,17 @@ public class AmbariKerberosAuthenticationFilterTest {
     );
 
     Assert.assertFalse(filter.shouldApply(httpServletRequest));
+
+    verifyAll();
   }
 
   @Test
   public void shouldApplyNotFalseEnabled() throws Exception {
-    HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
-    doReturn(createProperties(true)).when(configuration).getKerberosAuthenticationProperties();
+    HttpServletRequest httpServletRequest = createMock(HttpServletRequest.class);
+
+    expect(configuration.getKerberosAuthenticationProperties()).andReturn(createProperties(false)).once();
+
+    replayAll();
 
     AmbariKerberosAuthenticationFilter filter = new AmbariKerberosAuthenticationFilter(
         authenticationManager,
@@ -122,47 +137,55 @@ public class AmbariKerberosAuthenticationFilterTest {
     );
 
     Assert.assertFalse(filter.shouldApply(httpServletRequest));
+
+    verifyAll();
   }
 
   @Test
   public void testDoFilterSuccessful() throws IOException, ServletException {
-    List<AmbariAuthenticationFilter> capturedFilters = new ArrayList<>();
+    Capture<? extends AmbariAuthenticationFilter> captureFilter = newCapture(CaptureType.ALL);
 
-    HttpServletRequest request = mock(HttpServletRequest.class);
-    HttpServletResponse response = mock(HttpServletResponse.class);
-    HttpSession session = mock(HttpSession.class);
-    FilterChain filterChain = mock(FilterChain.class);
+    // GIVEN
+    HttpServletRequest request = createMock(HttpServletRequest.class);
+    HttpServletResponse response = createMock(HttpServletResponse.class);
+    HttpSession session = createMock(HttpSession.class);
+    FilterChain filterChain = createMock(FilterChain.class);
 
-    when(request.getHeader("Authorization")).thenReturn("Negotiate ");
+    expect(request.getHeader("Authorization")).andReturn("Negotiate ").once();
+    expect(request.getHeader(startsWith("X-Forwarded-"))).andReturn(null).times(6);
+    expect(request.getRemoteAddr()).andReturn("1.2.3.4").once();
+    expect(request.getSession(false)).andReturn(session).once();
+    expect(request.getQueryString()).andReturn(null).once();
+    expect(request.getParameter(anyString())).andReturn(null).anyTimes();
+    expect(session.getId()).andReturn("sessionID").once();
 
-    when(request.getHeader(Mockito.startsWith("X-Forwarded-"))).thenReturn(null);
-    when(request.getRemoteAddr()).thenReturn("1.2.3.4");
-    when(request.getSession(false)).thenReturn(session);
-    when(request.getQueryString()).thenReturn(null);
-    when(request.getParameter(anyString())).thenReturn(null);
-    when(request.getDispatcherType()).thenReturn(DispatcherType.ASYNC);
-    when(session.getId()).thenReturn("sessionID");
+    expect(authenticationManager.authenticate(anyObject(Authentication.class)))
+        .andAnswer(new IAnswer<Authentication>() {
+          @Override
+          public Authentication answer() throws Throwable {
+            return (Authentication) getCurrentArguments()[0];
+          }
+        })
+        .anyTimes();
 
-    doReturn(createProperties(true)).when(configuration).getKerberosAuthenticationProperties();
+    expect(configuration.getKerberosAuthenticationProperties()).andReturn(createProperties(true)).once();
 
-    doAnswer(invocation -> {
-      capturedFilters.add((AmbariAuthenticationFilter) invocation.getArgument(0));
-      return null;
-    }).when(eventHandler).beforeAttemptAuthentication(any(), eq(request), eq(response));
+    eventHandler.beforeAttemptAuthentication(capture(captureFilter), eq(request), eq(response));
+    expectLastCall().once();
+    eventHandler.onSuccessfulAuthentication(capture(captureFilter), eq(request), eq(response), anyObject(Authentication.class));
+    expectLastCall().once();
 
-    when(authenticationManager.authenticate(any(Authentication.class))).thenAnswer(invocation -> invocation.getArgument(0));
+    filterChain.doFilter(request, response);
+    expectLastCall().once();
 
-    doAnswer(invocation -> {
-      capturedFilters.add((AmbariAuthenticationFilter) invocation.getArgument(0));
-      return null;
-    }).when(eventHandler).onSuccessfulAuthentication(any(), eq(request), eq(response), any(Authentication.class));
-
-    doNothing().when(filterChain).doFilter(request, response);
-
-    AmbariKerberosAuthenticationFilter filter = new AmbariKerberosAuthenticationFilter(authenticationManager, entryPoint, configuration, eventHandler);
+    replayAll();
+    // WHEN
+    AmbariAuthenticationFilter filter = new AmbariKerberosAuthenticationFilter(authenticationManager, entryPoint, configuration, eventHandler);
     filter.doFilter(request, response, filterChain);
-    verify(filterChain, times(1)).doFilter(any(), any());
+    // THEN
+    verifyAll();
 
+    List<? extends AmbariAuthenticationFilter> capturedFilters = captureFilter.getValues();
     for (AmbariAuthenticationFilter capturedFiltered : capturedFilters) {
       Assert.assertSame(filter, capturedFiltered);
     }
@@ -170,49 +193,50 @@ public class AmbariKerberosAuthenticationFilterTest {
 
   @Test
   public void testDoFilterUnsuccessful() throws IOException, ServletException {
-    List<AmbariAuthenticationFilter> capturedFilters = new ArrayList<>();
+    Capture<? extends AmbariAuthenticationFilter> captureFilter = newCapture(CaptureType.ALL);
 
-    HttpServletRequest request = mock(HttpServletRequest.class);
-    HttpServletResponse response = mock(HttpServletResponse.class);
-    HttpSession session = mock(HttpSession.class);
-    FilterChain filterChain = mock(FilterChain.class);
+    // GIVEN
+    HttpServletRequest request = createMock(HttpServletRequest.class);
+    HttpServletResponse response = createMock(HttpServletResponse.class);
+    HttpSession session = createMock(HttpSession.class);
+    FilterChain filterChain = createMock(FilterChain.class);
 
-    when(request.getHeader("Authorization")).thenReturn("Negotiate ");
-    when(request.getHeader(Mockito.startsWith("X-Forwarded-"))).thenReturn(null);
-    when(request.getRemoteAddr()).thenReturn("1.2.3.4");
-    when(request.getSession(false)).thenReturn(session);
-    when(request.getQueryString()).thenReturn(null);
-    when(request.getParameter(anyString())).thenReturn(null);
-    when(request.getDispatcherType()).thenReturn(DispatcherType.ASYNC);
-    when(session.getId()).thenReturn("sessionID");
+    expect(request.getHeader("Authorization")).andReturn("Negotiate ").once();
+    expect(request.getHeader(startsWith("X-Forwarded-"))).andReturn(null).times(6);
+    expect(request.getRemoteAddr()).andReturn("1.2.3.4").once();
+    expect(request.getSession(false)).andReturn(session).once();
+    expect(request.getQueryString()).andReturn(null).once();
+    expect(request.getParameter(anyString())).andReturn(null).anyTimes();
+    expect(session.getId()).andReturn("sessionID").once();
 
-    doReturn(createProperties(true)).when(configuration).getKerberosAuthenticationProperties();
+    expect(authenticationManager.authenticate(anyObject(Authentication.class))).andThrow(new InvalidUsernamePasswordCombinationException("user")).once();
 
-    doAnswer(invocation -> {
-      capturedFilters.add((AmbariAuthenticationFilter) invocation.getArgument(0));
-      return null;
-    }).when(eventHandler).beforeAttemptAuthentication(any(), eq(request), eq(response));
+    expect(configuration.getKerberosAuthenticationProperties()).andReturn(createProperties(true)).once();
 
-    when(authenticationManager.authenticate(any(Authentication.class))).thenThrow(new InvalidUsernamePasswordCombinationException("user"));
+    eventHandler.beforeAttemptAuthentication(capture(captureFilter), eq(request), eq(response));
+    expectLastCall().once();
+    eventHandler.onUnsuccessfulAuthentication(capture(captureFilter), eq(request), eq(response), anyObject(AmbariAuthenticationException.class));
+    expectLastCall().once();
 
-    doAnswer(invocation -> {
-      capturedFilters.add((AmbariAuthenticationFilter) invocation.getArgument(0));
-      return null;
-    }).when(eventHandler).onUnsuccessfulAuthentication(any(), eq(request), eq(response), any(AmbariAuthenticationException.class));
+    entryPoint.commence(eq(request), eq(response), anyObject(AmbariAuthenticationException.class));
+    expectLastCall().once();
 
-    doNothing().when(entryPoint).commence(eq(request), eq(response), any(AmbariAuthenticationException.class));
-
-    AmbariKerberosAuthenticationFilter filter = new AmbariKerberosAuthenticationFilter(authenticationManager, entryPoint, configuration, eventHandler);
+    replayAll();
+    // WHEN
+    AmbariAuthenticationFilter filter = new AmbariKerberosAuthenticationFilter(authenticationManager, entryPoint, configuration, eventHandler);
     filter.doFilter(request, response, filterChain);
+    // THEN
+    verifyAll();
 
+    List<? extends AmbariAuthenticationFilter> capturedFilters = captureFilter.getValues();
     for (AmbariAuthenticationFilter capturedFiltered : capturedFilters) {
       Assert.assertSame(filter, capturedFiltered);
     }
   }
 
   private AmbariKerberosAuthenticationProperties createProperties(Boolean enabled) {
-    AmbariKerberosAuthenticationProperties properties = mock(AmbariKerberosAuthenticationProperties.class);
-    when(properties.isKerberosAuthenticationEnabled()).thenReturn(enabled);
+    AmbariKerberosAuthenticationProperties properties = createMock(AmbariKerberosAuthenticationProperties.class);
+    expect(properties.isKerberosAuthenticationEnabled()).andReturn(enabled).once();
     return properties;
   }
 }
