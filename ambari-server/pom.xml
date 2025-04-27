@@ -1652,11 +1652,6 @@
       <artifactId>jettison</artifactId>
     </dependency>
     <dependency>
-      <groupId> org.codehaus.jackson</groupId>
-      <artifactId>jackson-jaxrs</artifactId>
-      <version>1.9.2</version>
-    </dependency>
-    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <scope>test</scope>
