@@ -1512,8 +1512,8 @@ INSERT INTO permission_roleauthorization(permission_id, authorization_id)
 INSERT INTO adminprivilege (privilege_id, permission_id, resource_id, principal_id) VALUES
   (1, 1, 1, 1);
 
-INSERT INTO metainfo(metainfo_key, metainfo_value) VALUES
-('version','3.0.0');
+INSERT INTO metainfo (metainfo_key, metainfo_value) VALUES
+('version','${ambariSchemaVersion}');
 COMMIT;
 
 -- Quartz tables
