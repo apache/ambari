@@ -137,7 +137,7 @@ public class UpgradeUserKerberosDescriptorTest {
     KerberosDescriptor updatedKerberosDescriptor = EasyMock.createMock(KerberosDescriptor.class);
 
     PowerMockito.mockStatic(KerberosDescriptorUpdateHelper.class);
-    PowerMockito.when(KerberosDescriptorUpdateHelper.updateUserKerberosDescriptor(previousDescriptor, newDescriptor, userDescriptor)).thenReturn(updatedKerberosDescriptor);
+    PowerMockito.when(KerberosDescriptorUpdateHelper.updateUserKerberosDescriptor(previousDescriptor, newDescriptor, userDescriptor)).thenAnswer(invocation -> updatedKerberosDescriptor);
     expect(kerberosDescriptorFactory.createInstance((Map)null)).andReturn(userDescriptor).atLeastOnce();
     expect(ambariMetaInfo.getKerberosDescriptor("HDP","2.5", false)).andReturn(newDescriptor).atLeastOnce();
     expect(ambariMetaInfo.getKerberosDescriptor("HDP","2.4",false)).andReturn(previousDescriptor).atLeastOnce();

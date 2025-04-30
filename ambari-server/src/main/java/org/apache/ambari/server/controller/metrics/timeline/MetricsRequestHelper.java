@@ -30,7 +30,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.ws.rs.HttpMethod;
+import jakarta.ws.rs.HttpMethod;
 
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.apache.hadoop.metrics2.sink.timeline.Precision;

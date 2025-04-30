@@ -21,9 +21,9 @@ package org.apache.ambari.server.api.services.views;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.BaseService;
@@ -124,12 +124,12 @@ public class ViewSubResourceService extends BaseService implements ViewResourceH
   }
 
   // get the JAX-RS media type from the view media type
-  private javax.ws.rs.core.MediaType getMediaType(MediaType type) {
+  private jakarta.ws.rs.core.MediaType getMediaType(MediaType type) {
     switch (type) {
       case TEXT_PLAIN:
-        return javax.ws.rs.core.MediaType.TEXT_PLAIN_TYPE;
+        return jakarta.ws.rs.core.MediaType.TEXT_PLAIN_TYPE;
       case APPLICATION_JSON:
-        return javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+        return jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
     }
     throw new IllegalArgumentException("Unknown media type " + type);
   }

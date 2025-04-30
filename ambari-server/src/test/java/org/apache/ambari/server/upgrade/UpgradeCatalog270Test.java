@@ -162,7 +162,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionDBAccessor;

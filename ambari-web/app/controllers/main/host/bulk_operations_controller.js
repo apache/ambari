@@ -438,7 +438,7 @@ App.BulkOperationsController = Em.Controller.extend({
 
       bodyClass: Em.View.extend({
         templateName: require('templates/main/host/delete_hosts_result_popup'),
-        message: Em.I18n.t('hosts.bulkOperation.deleteHosts.dryRun.message').format(undeletableHosts.length),
+        message: Em.I18n.t('hosts.bulkOperation.deleteHosts.result.cannot.delete').format(undeletableHosts.length),
         undeletableHosts: undeletableHosts,
         deletedHosts: deletedHosts,
         onToggleHost: function (host) {
@@ -778,7 +778,7 @@ App.BulkOperationsController = Em.Controller.extend({
 
       bodyClass: Em.View.extend({
         templateName: require('templates/main/host/delete_hosts_result_popup'),
-        message: Em.I18n.t('hosts.bulkOperation.delete.component.dryRun.message').format(componentName),
+        message: Em.I18n.t('hosts.bulkOperation.delete.component.result.cannot.delete').format(componentName),
         componentName: componentName,
         undeletableHosts: undeletableHosts,
         deletedHosts: deletedHosts,

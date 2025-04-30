@@ -25,7 +25,7 @@ import org.apache.ambari.view.migration.ViewDataMigrationException;
 import org.apache.ambari.view.migration.ViewDataMigrator;
 import org.springframework.beans.BeanUtils;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import java.util.Map;
 
 /**

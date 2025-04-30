@@ -18,10 +18,10 @@
 
 package org.apache.ambari.server.security.authentication;
 
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.audit.event.AuditEvent;

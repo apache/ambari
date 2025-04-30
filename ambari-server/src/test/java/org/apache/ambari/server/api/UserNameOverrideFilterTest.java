@@ -30,10 +30,10 @@ import static org.junit.Assert.assertTrue;
 import java.net.URLEncoder;
 import java.util.regex.Matcher;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.easymock.Capture;

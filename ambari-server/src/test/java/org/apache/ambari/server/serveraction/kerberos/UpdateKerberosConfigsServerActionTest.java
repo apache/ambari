@@ -29,7 +29,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.StreamSupport;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.controller.AmbariManagementController;

@@ -19,10 +19,10 @@ package org.apache.ambari.server.security.authentication;
 
 import java.io.IOException;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.ambari.server.security.AmbariEntryPoint;
 import org.apache.ambari.server.utils.RequestUtils;
@@ -130,7 +130,6 @@ public class AmbariBasicAuthenticationFilter extends BasicAuthenticationFilter i
    * @throws IOException
    * @throws ServletException
    */
-  @Override
   public void doFilterInternal(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, FilterChain filterChain) throws IOException, ServletException {
     if (eventHandler != null) {
       eventHandler.beforeAttemptAuthentication(this, httpServletRequest, httpServletResponse);
@@ -215,4 +214,6 @@ public class AmbariBasicAuthenticationFilter extends BasicAuthenticationFilter i
       return token.substring(0, delimiter);
     }
   }
+
+
 }

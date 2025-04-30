@@ -23,7 +23,7 @@ import static org.easymock.EasyMock.expect;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import javax.persistence.EntityTransaction;
+import jakarta.persistence.EntityTransaction;
 
 import org.easymock.EasyMockSupport;
 import org.junit.Assert;

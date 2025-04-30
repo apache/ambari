@@ -26,8 +26,8 @@ import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-import javax.servlet.SessionCookieConfig;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.SessionCookieConfig;
+import jakarta.servlet.http.HttpSession;
 
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.junit.Test;

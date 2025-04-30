@@ -24,12 +24,16 @@
         <relativePath>../ambari-project</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.apache.ambari</groupId>
     <artifactId>ambari-views</artifactId>
     <packaging>jar</packaging>
     <name>Ambari Views</name>
     <description>Ambari View interfaces.</description>
     <dependencies>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-jndi</artifactId>
+            <version>11.0.15</version>
+        </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>

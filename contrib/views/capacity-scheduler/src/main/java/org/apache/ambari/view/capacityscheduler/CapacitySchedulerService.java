@@ -18,7 +18,7 @@
 
 package org.apache.ambari.view.capacityscheduler;
 
-import javax.ws.rs.Path;
+import jakarta.ws.rs.Path;
 import org.apache.ambari.view.ViewContext;
 import com.google.inject.Inject;
 

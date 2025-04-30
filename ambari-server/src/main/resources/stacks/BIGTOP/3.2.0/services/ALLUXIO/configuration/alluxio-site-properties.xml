@@ -149,5 +149,6 @@ alluxio.worker.rpc.port={{alluxio_worker_rpc_port}}
 alluxio.worker.web.port={{alluxio_worker_web_port}}
 
         </value>
+        <on-ambari-upgrade add="true"/>
     </property>
 </configuration>

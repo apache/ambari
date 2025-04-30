@@ -28,10 +28,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-
 import org.apache.ambari.annotations.SwaggerOverwriteNestedAPI;
 import org.apache.ambari.annotations.SwaggerPreferredParent;
 import org.apache.maven.plugin.logging.Log;
@@ -47,6 +43,9 @@ import io.swagger.models.Response;
 import io.swagger.models.Swagger;
 import io.swagger.models.parameters.Parameter;
 import io.swagger.models.parameters.PathParameter;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 
 public class AmbariSwaggerReaderTest {
 

@@ -18,10 +18,10 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.metamodel.SetAttribute;
-import javax.persistence.metamodel.SingularAttribute;
-import javax.persistence.metamodel.StaticMetamodel;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.metamodel.SetAttribute;
+import jakarta.persistence.metamodel.SingularAttribute;
+import jakarta.persistence.metamodel.StaticMetamodel;
 
 import org.apache.ambari.server.state.alert.Scope;
 import org.apache.ambari.server.state.alert.SourceType;

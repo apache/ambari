@@ -25,7 +25,7 @@ import io.swagger.annotations.ApiModelProperty;
 
 /**
  * Response schema for endpoint {@link org.apache.ambari.server.api.services.StacksService#getStackService(String,
- *                              javax.ws.rs.core.HttpHeaders, javax.ws.rs.core.UriInfo, String, String, String)}
+ *                              jakarta.ws.rs.core.HttpHeaders, jakarta.ws.rs.core.UriInfo, String, String, String)}
  */
 public interface ThemeResponse extends ApiModel {
 

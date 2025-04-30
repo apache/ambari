@@ -54,44 +54,82 @@
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-hdfs</artifactId>
       <version>${hadoop.version}</version>
-        <exclusions>
-            <exclusion>
-                <groupId>tomcat</groupId>
-                <artifactId>jasper-runtime</artifactId>
-            </exclusion>
-          <!--removed for security bugs in version : 9.3.19.v20170502-->
-          <exclusion>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-util</artifactId>
-          </exclusion>
-        </exclusions>
+      <exclusions>
+        <exclusion>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <artifactId>*</artifactId>
+          <groupId>com.sun.jersey</groupId>
+        </exclusion>
+        <exclusion>
+          <groupId>tomcat</groupId>
+          <artifactId>jasper-runtime</artifactId>
+        </exclusion>
+        <!--removed for security bugs in version : 9.3.19.v20170502-->
+        <exclusion>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>jetty-util</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-common</artifactId>
       <version>${hadoop.version}</version>
-        <exclusions>
-          <exclusion>
-              <groupId>tomcat</groupId>
-              <artifactId>jasper-runtime</artifactId>
-          </exclusion>
-          <!--removed for security bugs in version : 9.3.19.v20170502-->
-          <exclusion>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-util</artifactId>
-          </exclusion>
-        </exclusions>
+      <exclusions>
+        <exclusion>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <artifactId>*</artifactId>
+          <groupId>com.sun.jersey</groupId>
+        </exclusion>
+        <exclusion>
+          <groupId>tomcat</groupId>
+          <artifactId>jasper-runtime</artifactId>
+        </exclusion>
+        <!--removed for security bugs in version : 9.3.19.v20170502-->
+        <exclusion>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>jetty-util</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-hdfs-client</artifactId>
       <version>${hadoop.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <artifactId>*</artifactId>
+          <groupId>com.sun.jersey</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-yarn-common</artifactId>
       <version>${hadoop.version}</version>
       <exclusions>
+        <exclusion>
+          <groupId>com.sun.jersey.contribs</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <artifactId>*</artifactId>
+          <groupId>com.sun.jersey</groupId>
+        </exclusion>
         <!--removed for security bugs in version : 9.3.19.v20170502-->
         <exclusion>
           <groupId>org.eclipse.jetty</groupId>
@@ -118,10 +156,7 @@
       <groupId>com.google.inject</groupId>
       <artifactId>guice</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.glassfish.jersey.containers</groupId>
-      <artifactId>jersey-container-servlet</artifactId>
-    </dependency>
+
     <dependency>
       <groupId>org.glassfish.jersey.media</groupId>
       <artifactId>jersey-media-multipart</artifactId>

@@ -35,10 +35,10 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.UriInfo;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.handlers.RequestHandler;
 import org.apache.ambari.server.api.predicate.InvalidQueryException;

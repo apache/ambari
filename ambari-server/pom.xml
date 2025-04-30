@@ -16,7 +16,6 @@
     <relativePath>../ambari-project</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <groupId>org.apache.ambari</groupId>
   <artifactId>ambari-server</artifactId>
   <packaging>jar</packaging>
   <name>Ambari Server</name>
@@ -69,7 +68,7 @@
     <xml.version>1.0</xml.version>
     <findbugs.version>2.0.0</findbugs.version>
     <equalsverifier.version>3.15.6</equalsverifier.version>
-    <persistence.version>2.2.3</persistence.version>
+    <persistence.version>3.1.0</persistence.version>
     <collections4.version>4.4</collections4.version>
     <commons.compress.version>1.21</commons.compress.version>
     <commons.text.version>1.10.0</commons.text.version>
@@ -802,6 +801,7 @@
             --add-opens java.xml/jdk.xml.internal=ALL-UNNAMED
             --add-opens java.naming/com.sun.jndi.ldap=ALL-UNNAMED
             --add-opens java.base/java.security=ALL-UNNAMED
+            --add-opens java.base/sun.nio.fs=ALL-UNNAMED
           </argLine>
 
           <!-- Each profile in the top-level pom.xml defines which test group categories to run. -->
@@ -1216,6 +1216,17 @@
   </profiles>
   <dependencies>
     <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-jndi</artifactId>
+      <version>${jetty.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.servlet</groupId>
+      <artifactId>jakarta.servlet-api</artifactId>
+      <version>6.0.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
       <groupId>nl.jqno.equalsverifier</groupId>
       <artifactId>equalsverifier</artifactId>
       <version>${equalsverifier.version}</version>
@@ -1318,6 +1329,12 @@
     <dependency>
       <groupId>org.springframework.security.kerberos</groupId>
       <artifactId>spring-security-kerberos-web</artifactId>
+      <version>2.1.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.security.kerberos</groupId>
+      <artifactId>spring-security-kerberos-core</artifactId>
+      <version>2.1.0</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
@@ -1368,6 +1385,7 @@
     <dependency>
       <groupId>org.eclipse.persistence</groupId>
       <artifactId>eclipselink</artifactId>
+      <version>4.0.1</version>
     </dependency>
     <dependency>
       <groupId>org.hamcrest</groupId>
@@ -1429,18 +1447,19 @@
       <groupId>org.apache.ant</groupId>
       <artifactId>ant-launcher</artifactId>
     </dependency>
-
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-server</artifactId>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty.websocket</groupId>
-      <artifactId>websocket-servlet</artifactId>
+      <artifactId>websocket-jetty-server</artifactId>
+      <version>${jetty.version}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty.websocket</groupId>
-      <artifactId>websocket-server</artifactId>
+      <artifactId>websocket-jetty-api</artifactId>
+      <version>${jetty.version}</version>
     </dependency>
     <dependency>
       <groupId>commons-codec</groupId>
@@ -1460,10 +1479,6 @@
       <groupId>commons-net</groupId>
       <artifactId>commons-net</artifactId>
       <version>${commons.net.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>javax.servlet-api</artifactId>
     </dependency>
     <dependency>
       <groupId>org.glassfish.jersey.containers</groupId>
@@ -1516,11 +1531,6 @@
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
       <version>${fasterxml.jackson.databind.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-core</artifactId>
-      <version>${fasterxml.jackson.version}</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.jaxrs</groupId>

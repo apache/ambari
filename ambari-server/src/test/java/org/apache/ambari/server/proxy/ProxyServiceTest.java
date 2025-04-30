@@ -18,7 +18,7 @@
 
 package org.apache.ambari.server.proxy;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_FORM_URLENCODED_TYPE;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_FORM_URLENCODED_TYPE;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
@@ -35,10 +35,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriBuilder;
 
 import org.apache.ambari.server.api.services.BaseServiceTest;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;

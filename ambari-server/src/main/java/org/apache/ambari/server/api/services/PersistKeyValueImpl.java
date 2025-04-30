@@ -25,8 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Response;
 
 import org.apache.ambari.server.orm.dao.KeyValueDAO;
 import org.apache.ambari.server.orm.entities.KeyValueEntity;

@@ -26,10 +26,10 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.SimpMessageType;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
-import org.springframework.messaging.support.ChannelInterceptorAdapter;
+import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageBuilder;
 
-public class AgentRegisteringQueueChecker extends ChannelInterceptorAdapter {
+public class AgentRegisteringQueueChecker implements ChannelInterceptor {
   private static final Logger LOG = LoggerFactory.getLogger(AgentsRegistrationQueue.class);
 
   @Autowired
@@ -38,8 +38,9 @@ public class AgentRegisteringQueueChecker extends ChannelInterceptorAdapter {
   @Override
   public Message<?> preSend(Message<?> message, MessageChannel channel) {
     StompHeaderAccessor headerAccessor= StompHeaderAccessor.wrap(message);
-    String sessionId = headerAccessor.getHeader("simpSessionId").toString();
-    if (SimpMessageType.CONNECT_ACK.equals(headerAccessor.getMessageType())
+    String sessionId = headerAccessor.getSessionId();
+//    String sessionId = headerAccessor.getHeader("simpSessionId").toString();
+    if (StompCommand.CONNECT.equals(headerAccessor.getCommand())
         && !agentsRegistrationQueue.offer(sessionId)) {
       StompHeaderAccessor headerAccessorError = StompHeaderAccessor.create(StompCommand.ERROR);
       headerAccessorError.setHeader("simpSessionId", sessionId);

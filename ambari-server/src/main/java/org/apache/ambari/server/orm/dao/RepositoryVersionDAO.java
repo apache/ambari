@@ -20,7 +20,7 @@ package org.apache.ambari.server.orm.dao;
 import java.text.MessageFormat;
 import java.util.List;
 
-import javax.persistence.TypedQuery;
+import jakarta.persistence.TypedQuery;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.RequiresSession;

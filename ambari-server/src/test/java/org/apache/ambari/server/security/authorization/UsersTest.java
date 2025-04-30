@@ -35,7 +35,8 @@ import java.util.List;
 import java.util.Objects;
 
 import javax.annotation.Nullable;
-import javax.persistence.EntityManager;
+
+import jakarta.persistence.EntityManager;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.AmbariServerConfiguration;

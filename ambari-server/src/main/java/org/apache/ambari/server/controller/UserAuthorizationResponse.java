@@ -17,8 +17,8 @@
  */
 package org.apache.ambari.server.controller;
 
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.UriInfo;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.services.users.UserAuthorizationService;
 

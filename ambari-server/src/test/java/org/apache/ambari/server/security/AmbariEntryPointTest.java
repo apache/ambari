@@ -24,9 +24,9 @@ import static org.easymock.EasyMock.expectLastCall;
 import java.io.IOException;
 import java.util.Properties;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.ambari.server.configuration.Configuration;
 import org.easymock.EasyMockSupport;

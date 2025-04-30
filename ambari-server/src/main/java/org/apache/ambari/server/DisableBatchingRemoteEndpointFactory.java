@@ -19,15 +19,18 @@ package org.apache.ambari.server;
 
 import org.eclipse.jetty.websocket.api.BatchMode;
 import org.eclipse.jetty.websocket.api.RemoteEndpoint;
-import org.eclipse.jetty.websocket.api.extensions.OutgoingFrames;
-import org.eclipse.jetty.websocket.common.LogicalConnection;
-import org.eclipse.jetty.websocket.common.RemoteEndpointFactory;
-import org.eclipse.jetty.websocket.common.WebSocketRemoteEndpoint;
+import org.eclipse.jetty.websocket.api.Session;
 
-
-public class DisableBatchingRemoteEndpointFactory implements RemoteEndpointFactory {
-  @Override
-  public RemoteEndpoint newRemoteEndpoint(LogicalConnection connection, OutgoingFrames outgoingFrames, BatchMode batchMode) {
-    return new WebSocketRemoteEndpoint(connection,outgoingFrames,BatchMode.OFF);
+//public class DisableBatchingRemoteEndpointFactory implements RemoteEndpointFactory {
+//  @Override
+//  public RemoteEndpoint newRemoteEndpoint(LogicalConnection connection, OutgoingFrames outgoingFrames, BatchMode batchMode) {
+//    return new WebSocketRemoteEndpoint(connection,outgoingFrames,BatchMode.OFF);
+//  }
+//}
+public class DisableBatchingRemoteEndpointFactory {
+  public RemoteEndpoint newRemoteEndpoint(Session session) {
+    RemoteEndpoint remote = session.getRemote();
+    remote.setBatchMode(BatchMode.OFF);
+    return remote;
   }
 }

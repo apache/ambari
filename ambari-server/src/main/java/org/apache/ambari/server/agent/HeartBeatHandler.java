@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
-import javax.inject.Named;
+import jakarta.inject.Named;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.HostNotFoundException;

@@ -21,9 +21,10 @@ package org.apache.ambari.server.api;
 import java.io.IOException;
 import java.lang.reflect.Method;
 
-import javax.servlet.RequestDispatcher;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.http.HttpStatus;
 import org.eclipse.jetty.server.Request;
@@ -50,7 +51,7 @@ public class AmbariViewErrorHandlerProxy extends ErrorHandler implements MethodH
 
 
   @Override
-  public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException {
+  public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
 
     if (isInternalError(request, response)) {
       //invoke the ambari error handler
@@ -58,18 +59,6 @@ public class AmbariViewErrorHandlerProxy extends ErrorHandler implements MethodH
     } else {
       //invoke the original errorhandler
       webAppErrorHandler.handle(target, baseRequest, request, response);
-    }
-  }
-
-  @Override
-  public void doError(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException {
-
-    if (isInternalError(request, response)) {
-      //invoke the ambari error handler
-      ambariErrorHandler.handle(target, baseRequest, request, response);
-    } else {
-      //invoke the original errorhandler
-      webAppErrorHandler.doError(target, baseRequest, request, response);
     }
   }
 

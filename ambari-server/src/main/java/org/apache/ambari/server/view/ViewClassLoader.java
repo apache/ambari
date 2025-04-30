@@ -25,6 +25,7 @@ import org.apache.ambari.server.view.configuration.ViewConfig;
 import org.eclipse.jetty.webapp.WebAppClassLoader;
 import org.eclipse.jetty.webapp.WebAppContext;
 
+
 /**
  * Class loader used to load classes and resources from a search path of URLs referring to both JAR files
  * and directories.  The URLs will be searched in the order specified for classes and resources before
@@ -67,21 +68,21 @@ public class ViewClassLoader extends WebAppClassLoader {
   // ----- helper methods ----------------------------------------------------
 
   // Get a context to initialize the class loader.
-  private static WebAppContext getInitContext(ViewConfig viewConfig) {
+  private static WebAppContext getInitContext(ViewConfig viewConfig) throws IOException {
 
     WebAppContext webAppContext = new WebAppContext();
 
     // add ambari classes as system classes
-    webAppContext.addSystemClass("org.apache.ambari.server.");
-    webAppContext.addSystemClass("org.apache.ambari.view.");
+    webAppContext.getSystemClassMatcher().add("org.apache.ambari.server.");
+    webAppContext.getSystemClassMatcher().add("org.apache.ambari.view.");
 
     // add com.google.inject as system classes to allow for injection in view components using the google annotation
-    webAppContext.addSystemClass("com.google.inject.");
+    webAppContext.getSystemClassMatcher().add("com.google.inject.");
 
     // add as system classes to avoid conflicts and linkage errors
-    webAppContext.addSystemClass("org.slf4j.");
-    webAppContext.addSystemClass("com.sun.jersey.");
-    webAppContext.addSystemClass("org.apache.velocity.");
+    webAppContext.getSystemClassMatcher().add("org.slf4j.");
+    webAppContext.getSystemClassMatcher().add("com.sun.jersey.");
+    webAppContext.getSystemClassMatcher().add("org.apache.velocity.");
 
     // set the class loader settings from the configuration
     if (viewConfig != null) {
@@ -91,5 +92,27 @@ public class ViewClassLoader extends WebAppClassLoader {
       }
     }
     return webAppContext;
+  }
+
+  @Override
+  public Class<?> loadClass(String name) throws ClassNotFoundException {
+    System.out.println("Attempting to load class: " + name);
+    try {
+      // First, try to load the class using the current class loader
+      Class<?> loadedClass = super.loadClass(name);
+      System.out.println("Class loaded successfully: " + name + " by " + this);
+      return loadedClass;
+    } catch (ClassNotFoundException e) {
+      System.out.println("Class not found in current loader: " + name + ", delegating to parent.");
+      // If not found, delegate to the parent class loader
+      if (getParent() != null) {
+        Class<?> parentLoadedClass = getParent().loadClass(name);
+        System.out.println("Class loaded successfully by parent: " + name);
+        return parentLoadedClass;
+      } else {
+        System.out.println("Class not found: " + name + " in both current and parent class loaders.");
+        throw e;
+      }
+    }
   }
 }

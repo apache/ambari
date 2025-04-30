@@ -20,21 +20,21 @@ package org.apache.ambari.server.orm.entities;
 
 import java.util.Objects;
 
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.OneToOne;
+import jakarta.persistence.Basic;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.NamedQueries;
+import jakarta.persistence.NamedQuery;
+import jakarta.persistence.OneToOne;
 
 import org.apache.ambari.server.state.HostState;
 import org.apache.commons.lang.StringUtils;
 
-@javax.persistence.Table(name = "hoststate")
+@jakarta.persistence.Table(name = "hoststate")
 @Entity
 @NamedQueries({
     @NamedQuery(name = "hostStateByHostId", query =
@@ -43,7 +43,7 @@ import org.apache.commons.lang.StringUtils;
 })
 public class HostStateEntity {
   
-  @javax.persistence.Column(name = "host_id", nullable = false, insertable = false, updatable = false)
+  @jakarta.persistence.Column(name = "host_id", nullable = false, insertable = false, updatable = false)
   @Id
   private Long hostId;
 
@@ -51,7 +51,7 @@ public class HostStateEntity {
   @Basic
   private Long availableMem = 0L;
 
-  @javax.persistence.Column(name = "time_in_state", nullable = false, insertable = true, updatable = true)
+  @jakarta.persistence.Column(name = "time_in_state", nullable = false, insertable = true, updatable = true)
   @Basic
   private Long timeInState = 0L;
 

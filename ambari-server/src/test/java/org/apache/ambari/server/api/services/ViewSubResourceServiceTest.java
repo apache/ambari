@@ -33,12 +33,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.PathParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
@@ -274,7 +274,7 @@ public class ViewSubResourceServiceTest extends BaseServiceTest {
     }
 
     @Override
-    protected ResultSerializer getResultSerializer(javax.ws.rs.core.MediaType mediaType) {
+    protected ResultSerializer getResultSerializer(jakarta.ws.rs.core.MediaType mediaType) {
       return getTestResultSerializer();
     }
   }

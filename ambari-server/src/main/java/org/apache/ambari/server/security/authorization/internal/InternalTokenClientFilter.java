@@ -20,8 +20,8 @@ package org.apache.ambari.server.security.authorization.internal;
 
 import java.io.IOException;
 
-import javax.ws.rs.client.ClientRequestContext;
-import javax.ws.rs.client.ClientRequestFilter;
+import jakarta.ws.rs.client.ClientRequestContext;
+import jakarta.ws.rs.client.ClientRequestFilter;
 
 import com.google.inject.Inject;
 

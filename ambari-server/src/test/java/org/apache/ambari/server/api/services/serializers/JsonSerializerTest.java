@@ -27,7 +27,7 @@ import static org.junit.Assert.assertEquals;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import javax.ws.rs.core.UriInfo;
+import jakarta.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.services.DeleteResultMetadata;
 import org.apache.ambari.server.api.services.Result;

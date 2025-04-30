@@ -84,9 +84,8 @@ SUSPEND_START_MODE = False
 ambari_provider_module_option = ""
 ambari_provider_module = os.environ.get("AMBARI_PROVIDER_MODULE")
 if ambari_provider_module is not None:
-  ambari_provider_module_option = (
-    "-Dprovider.module.class=" + ambari_provider_module + " "
-  )
+  ambari_provider_module_option = "-Dprovider.module.class=" + \
+                                  ambari_provider_module + " "
 
 jvm_args = os.getenv("AMBARI_JVM_ARGS", "-Xms512m -Xmx2048m")
 ENV_FOREGROUND_KEY = "AMBARI_SERVER_RUN_IN_FOREGROUND"

@@ -24,9 +24,9 @@ import static org.easymock.EasyMock.replay;
 
 import java.io.IOException;
 
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.core.MultivaluedHashMap;
 
 import org.junit.Test;
 
