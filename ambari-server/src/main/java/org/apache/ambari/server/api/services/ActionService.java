@@ -81,10 +81,10 @@ public class ActionService extends BaseService {
       @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
       @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
   })
-  public Response getActionDefinition(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                             @ApiParam(required = true) @PathParam("actionName") String actionName) {
+  public Response getActionDefinition(@Context HttpHeaders headers, @Context UriInfo ui,
+                                      @ApiParam(required = true) @PathParam("actionName") String actionName) {
 
-    return handleRequest(headers, body, ui, Request.Type.GET, createActionDefinitionResource(actionName));
+    return handleRequest(headers, null, ui, Request.Type.GET, createActionDefinitionResource(actionName));
   }
 
   /**
@@ -117,8 +117,8 @@ public class ActionService extends BaseService {
       @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
       @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
   })
-  public Response getActionDefinitions(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, body, ui, Request.Type.GET, createActionDefinitionResource(null));
+  public Response getActionDefinitions(@Context HttpHeaders headers, @Context UriInfo ui) {
+    return handleRequest(headers, null, ui, Request.Type.GET, createActionDefinitionResource(null));
   }
 
   /**

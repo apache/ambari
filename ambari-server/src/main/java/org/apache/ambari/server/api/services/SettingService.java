@@ -92,9 +92,9 @@ public class SettingService extends BaseService {
     @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
     @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
-  public Response getSettings(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
+  public Response getSettings(@Context HttpHeaders headers, @Context UriInfo ui) {
     ResourceInstance resource = createSettingResource(null);
-    return handleRequest(headers, body, ui, Request.Type.GET, resource);
+    return handleRequest(headers, null, ui, Request.Type.GET, resource);
   }
 
   /**
@@ -127,11 +127,10 @@ public class SettingService extends BaseService {
     @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
     @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
-  public Response getSetting(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-    @ApiParam(value = "setting name", required = true) @PathParam("settingName") String settingName
-  ) {
+  public Response getSetting(@Context HttpHeaders headers, @Context UriInfo ui,
+                             @ApiParam(value = "setting name", required = true) @PathParam("settingName") String settingName) {
     ResourceInstance resource = createSettingResource(settingName);
-    return handleRequest(headers, body, ui, Request.Type.GET, resource);
+    return handleRequest(headers, null, ui, Request.Type.GET, resource);
   }
 
   /**

@@ -105,10 +105,10 @@ public class RequestService extends BaseService {
       @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
       @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
   })
-  public Response getRequest(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+  public Response getRequest(@Context HttpHeaders headers, @Context UriInfo ui,
                              @ApiParam @PathParam("requestId") String requestId) {
 
-    return handleRequest(headers, body, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
         createRequestResource(m_clusterName, requestId));
   }
 
@@ -143,8 +143,8 @@ public class RequestService extends BaseService {
       @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
       @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
   })
-  public Response getRequests(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, body, ui, Request.Type.GET,
+  public Response getRequests(@Context HttpHeaders headers, @Context UriInfo ui) {
+    return handleRequest(headers, null, ui, Request.Type.GET,
         createRequestResource(m_clusterName, null));
   }
 

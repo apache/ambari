@@ -64,7 +64,6 @@ public class MpacksService extends BaseService {
    *
    * @param headers http headers
    * @param ui      uri info
-   * @param body    request body
    * @return All the existing mpack definitions
    *
    */
@@ -91,9 +90,8 @@ public class MpacksService extends BaseService {
     @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
     @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
-  public Response getMpacks(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, body, ui, Request.Type.GET,
-            createMpackResource(null));
+  public Response getMpacks(@Context HttpHeaders headers, @Context UriInfo ui) {
+    return handleRequest(headers, null, ui, Request.Type.GET, createMpackResource(null));
   }
 
   /**
@@ -145,11 +143,9 @@ public class MpacksService extends BaseService {
     @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
     @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
-  public Response getMpack(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-    @PathParam("id") String id) {
+  public Response getMpack(@Context HttpHeaders headers, @Context UriInfo ui, @PathParam("id") String id) {
 
-    return handleRequest(headers, body, ui, Request.Type.GET,
-            createMpackResource(id));
+    return handleRequest(headers, null, ui, Request.Type.GET, createMpackResource(id));
   }
 
   @DELETE

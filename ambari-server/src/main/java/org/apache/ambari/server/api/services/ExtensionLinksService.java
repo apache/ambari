@@ -49,18 +49,18 @@ public class ExtensionLinksService extends BaseService {
 
   @GET @ApiIgnore // until documented
   @Produces("text/plain")
-  public Response getExtensionLinks(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
+  public Response getExtensionLinks(@Context HttpHeaders headers, @Context UriInfo ui) {
 
-    return handleRequest(headers, body, ui, Request.Type.GET, createExtensionLinkResource(null));
+    return handleRequest(headers, null, ui, Request.Type.GET, createExtensionLinkResource(null));
   }
 
   @GET @ApiIgnore // until documented
   @Path("{linkId}")
   @Produces("text/plain")
-  public Response getExtensionLink(String body, @Context HttpHeaders headers,
+  public Response getExtensionLink(@Context HttpHeaders headers,
                                   @Context UriInfo ui, @PathParam("linkId") String linkId) {
 
-    return handleRequest(headers, body, ui, Request.Type.GET, createExtensionLinkResource(linkId));
+    return handleRequest(headers, null, ui, Request.Type.GET, createExtensionLinkResource(linkId));
   }
 
   @POST @ApiIgnore // until documented

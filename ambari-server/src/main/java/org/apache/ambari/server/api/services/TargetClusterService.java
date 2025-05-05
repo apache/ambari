@@ -54,10 +54,10 @@ public class TargetClusterService extends BaseService {
   @GET @ApiIgnore // until documented
   @Path("{targetName}")
   @Produces("text/plain")
-  public Response getTargetCluster(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                          @PathParam("targetName") String targetName) {
+  public Response getTargetCluster(@Context HttpHeaders headers, @Context UriInfo ui,
+                                   @PathParam("targetName") String targetName) {
 
-    return handleRequest(headers, body, ui, Request.Type.GET, createTargetClusterResource(targetName));
+    return handleRequest(headers, null, ui, Request.Type.GET, createTargetClusterResource(targetName));
   }
 
   /**
@@ -70,8 +70,9 @@ public class TargetClusterService extends BaseService {
    */
   @GET @ApiIgnore // until documented
   @Produces("text/plain")
-  public Response getTargetClusters(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, body, ui, Request.Type.GET, createTargetClusterResource(null));
+  public Response getTargetClusters(@Context HttpHeaders headers, @Context UriInfo ui) {
+
+    return handleRequest(headers, null, ui, Request.Type.GET, createTargetClusterResource(null));
   }
 
   /**

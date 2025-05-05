@@ -98,9 +98,10 @@ public class ViewInstanceService extends BaseService {
     @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
     @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = MSG_INVALID_ARGUMENTS),
   })
-  public Response getServices(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-    @PathParam("viewName") String viewName, @PathParam("version") String version) throws AuthorizationException {
-    return handleRequest(headers, body, ui, Request.Type.GET, createResource(viewName, version, null));
+  public Response getServices(@Context HttpHeaders headers, @Context UriInfo ui,
+                              @PathParam("viewName") String viewName,
+                              @PathParam("version") String version) throws AuthorizationException {
+    return handleRequest(headers, null, ui, Request.Type.GET, createResource(viewName, version, null));
   }
 
   /**
@@ -130,10 +131,11 @@ public class ViewInstanceService extends BaseService {
     @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
     @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = MSG_INVALID_ARGUMENTS),
   })
-  public Response getService(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-    @ApiParam(value = "view name") @PathParam("viewName") String viewName, @PathParam("version") String version,
-    @ApiParam(value = "instance name") @PathParam("instanceName") String instanceName) throws AuthorizationException {
-    return handleRequest(headers, body, ui, Request.Type.GET, createResource(viewName, version, instanceName));
+  public Response getService(@Context HttpHeaders headers, @Context UriInfo ui,
+                             @ApiParam(value = "view name") @PathParam("viewName") String viewName,
+                             @PathParam("version") String version,
+                             @ApiParam(value = "instance name") @PathParam("instanceName") String instanceName) throws AuthorizationException {
+    return handleRequest(headers, null, ui, Request.Type.GET, createResource(viewName, version, instanceName));
   }
 
   /**
