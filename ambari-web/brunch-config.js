@@ -29,7 +29,9 @@ module.exports.config = {
     assetsmanager: {
       copyTo: {
         'stylesheets/fonts' : ['vendor/theme/fonts/*'],
-        'api-docs' : ['api-docs/*']
+        'api-docs' : ['api-docs/*'],
+        'stylesheets/fonts' : ['vendor/theme/fonts/*'],
+        'img' : ['img/*']
       }
     }
   },

@@ -1,0 +1,39 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Web Project</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+  <!-- Then add other scripts -->
+  <script src="vendor.js"></script>
+  <script src="app.js"></script>
+</head>
+<body>
+  <div id="wrapper-app"></div>
+  <div id="root"></div>
+  <!-- <button onclick="loadReact()">Switch to React</button>
+  <button onclick="loadEmber()">Switch to Ember</button> -->
+  <script>
+      function loadReact() {
+          console.log('Loading React latest');
+          window.location.href = 'latest/#';
+      }
+      function loadEmber() {
+          console.log('Loading Ember classic');
+          window.location.href = 'classic/#';
+      }
+
+      if(window.location.href.includes("latest/#")){
+        localStorage.setItem("version","latest")
+      }
+      if(window.location.href.includes("classic/#")){
+        localStorage.setItem("version","classic")
+      }
+      if(localStorage.getItem("version")==="latest"){
+        loadReact()
+      }
+      else{
+        loadEmber()
+      }
+        </script>
+</body>
+</html>
