@@ -36,7 +36,7 @@
     <pyaes.install.dir>/usr/lib/ambari-server/lib/ambari_pyaes</pyaes.install.dir>
     <swagger.spec.dir>${basedir}/docs/api/generated/</swagger.spec.dir>
     <swagger.generated.resources.dir>${project.build.directory}/generated-sources/swagger/</swagger.generated.resources.dir>
-    <ambari-web-dir>${basedir}/../ambari-web/public</ambari-web-dir>
+    <ambari-web-dir>${basedir}/../ambari-web/target/classes</ambari-web-dir>
     <ambari-admin-dir>${basedir}/../ambari-admin</ambari-admin-dir>
     <contrib-views-dir>${basedir}/../contrib/views</contrib-views-dir>
     <resourceManagementSrcLocation>${project.basedir}/../ambari-common/src/main/python/resource_management</resourceManagementSrcLocation>
@@ -358,7 +358,7 @@
               <goal>copy-resources</goal>
             </goals>
             <configuration>
-              <outputDirectory>${ambari-web-dir}/api-docs</outputDirectory>
+              <outputDirectory>{basedir}/../ambari-web/classic/public/api-docs</outputDirectory>
               <resources>
                 <resource>
                   <directory>${swagger.generated.resources.dir}</directory>

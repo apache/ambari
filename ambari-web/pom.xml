@@ -32,6 +32,8 @@
         <ambari.dir>${project.parent.parent.basedir}</ambari.dir>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <nodemodules.dir>node_modules</nodemodules.dir> <!-- specify -Dnodemodules.dir option to reduce ambari-web build time by not re-downloading npm modules -->
+        <uidir>${basedir}/classic</uidir>
+        <ui2dir>${basedir}/latest</ui2dir>
     </properties>
     <build>
         <plugins>
@@ -77,7 +79,7 @@
                 <configuration>
                     <nodeVersion>v4.5.0</nodeVersion>
                     <yarnVersion>v0.23.2</yarnVersion>
-                    <workingDirectory>${basedir}</workingDirectory>
+                    <workingDirectory>${uidir}</workingDirectory>
                     <npmInheritsProxyConfigFromMaven>false</npmInheritsProxyConfigFromMaven>
                     <!-- setting npm_config_tmp environment variable is a workaround for
                          https://github.com/Medium/phantomjs/issues/673 -->
@@ -103,6 +105,41 @@
                             <arguments>install --ignore-engines --pure-lockfile</arguments>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>install-node-and-npm-react</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>install-node-and-npm</goal>
+                        </goals>
+                        <configuration>
+                            <nodeVersion>v20.11.0</nodeVersion>
+                            <npmVersion>10.8.3</npmVersion>
+                            <workingDirectory>${ui2dir}</workingDirectory>
+                            <npmInheritsProxyConfigFromMaven>false</npmInheritsProxyConfigFromMaven>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>npm-install-react</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                        <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                        <arguments>install</arguments>
+                        <workingDirectory>${ui2dir}</workingDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>npm-run-build-react</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>run build</arguments>
+                            <workingDirectory>${ui2dir}</workingDirectory>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
             <plugin>
@@ -118,8 +155,25 @@
                         </goals>
                         <configuration>
                             <executable>${executable.rmdir}</executable>
-                            <workingDirectory>${basedir}</workingDirectory>
+                            <workingDirectory>${uidir}</workingDirectory>
                             <commandlineArgs>${args.rm.clean} public ${nodemodules.dir}</commandlineArgs>
+                            <successCodes>
+                                <successCode>0</successCode>
+                                <successCode>1</successCode>
+                                <successCode>2</successCode>
+                            </successCodes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>clean-rmdir-ui2</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>${executable.rmdir}</executable>
+                            <workingDirectory>${ui2dir}</workingDirectory>
+                            <commandlineArgs>${args.rm.clean} dist ${nodemodules.dir}</commandlineArgs>
                             <successCodes>
                                 <successCode>0</successCode>
                                 <successCode>1</successCode>
@@ -135,8 +189,20 @@
                         </goals>
                         <configuration>
                             <executable>${executable.mkdir}</executable>
-                            <workingDirectory>${basedir}</workingDirectory>
+                            <workingDirectory>${uidir}</workingDirectory>
                             <commandlineArgs>${args.mkdir} public</commandlineArgs>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>clean-mkdir2</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>${executable.mkdir}</executable>
+                            <workingDirectory>${ui2dir}</workingDirectory>
+                            <commandlineArgs>${args.mkdir} dist</commandlineArgs>
                         </configuration>
                     </execution>
                     <execution>
@@ -146,8 +212,8 @@
                             <goal>exec</goal>
                         </goals>
                         <configuration>
-                            <workingDirectory>${basedir}</workingDirectory>
-                            <executable>${basedir}/node/${node.executable}</executable>
+                            <workingDirectory>${uidir}</workingDirectory>
+                            <executable>${uidir}/node/${node.executable}</executable>
                             <arguments>
                                 <argument>node_modules/brunch/bin/brunch</argument>
                                 <argument>build</argument>
@@ -163,8 +229,8 @@
                         <configuration>
                             <!-- sets Ambari version to make it accessible from code -->
                             <executable>${executable.shell}</executable>
-                            <workingDirectory>${basedir}</workingDirectory>
-                            <commandlineArgs>${args.shell} ${basedir}${dirsep}set-ambari-version.${fileextension.shell} ${ambariVersion}</commandlineArgs>
+                            <workingDirectory>${uidir}</workingDirectory>
+                            <commandlineArgs>${args.shell} ${uidir}${dirsep}set-ambari-version.${fileextension.shell} ${ambariVersion}</commandlineArgs>
                         </configuration>
                     </execution>
                     <execution>
@@ -176,8 +242,8 @@
                         <configuration>
                             <!-- sets default stack and version to use for install -->
                             <executable>${executable.shell}</executable>
-                            <workingDirectory>${basedir}</workingDirectory>
-                            <commandlineArgs>${args.shell} ${basedir}${dirsep}set-default-stack-version.${fileextension.shell} ${defaultStackVersion}</commandlineArgs>
+                            <workingDirectory>${uidir}</workingDirectory>
+                            <commandlineArgs>${args.shell} ${uidir}${dirsep}set-default-stack-version.${fileextension.shell} ${defaultStackVersion}</commandlineArgs>
                         </configuration>
                     </execution>
                     <execution>
@@ -189,8 +255,8 @@
                         <configuration>
                             <!-- enables experimental features if enableExperimental is set to true -->
                             <executable>${executable.shell}</executable>
-                            <workingDirectory>${basedir}</workingDirectory>
-                            <commandlineArgs>${args.shell} ${basedir}${dirsep}toggle-experimental.${fileextension.shell} ${enableExperimental}</commandlineArgs>
+                            <workingDirectory>${uidir}</workingDirectory>
+                            <commandlineArgs>${args.shell} ${uidir}${dirsep}toggle-experimental.${fileextension.shell} ${enableExperimental}</commandlineArgs>
                         </configuration>
                     </execution>
                     <execution>
@@ -202,7 +268,7 @@
                         <configuration>
                             <skip>${skipTests}</skip>
                             <executable>${executable.npm}</executable>
-                            <workingDirectory>${basedir}</workingDirectory>
+                            <workingDirectory>${uidir}</workingDirectory>
                             <commandlineArgs>${args.npm} test</commandlineArgs>
                         </configuration>
                     </execution>
@@ -224,7 +290,7 @@
                                 <apply executable="${executable.gzip}">
                                     <arg value="-f"/>
                                     <arg value="-c"/>
-                                    <fileset dir="${basedir}/public/img/">
+                                    <fileset dir="${uidir}/public/img/">
                                         <patternset>
                                             <include name="**/*.png"/>
                                         </patternset>
@@ -278,7 +344,98 @@
                     <submodules>false</submodules>
                 </configuration>
             </plugin>
-        </plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
+                        <id>copy-ember-resources</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/classes/classic</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>classic/public</directory>
+                                    <filtering>false</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+        </plugin>
+        <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
+                        <id>copy-react-resources</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/classes/latest</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>latest/dist</directory>
+                                    <filtering>false</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+        </plugin>
+        <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
+                        <id>copy-public-folder</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/classes</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>public</directory>
+                                    <includes>
+                                      <include>index.html</include>
+                                    </includes>
+                                    <filtering>false</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-image-resources</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/classes/img</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>classic/public/img</directory>
+                                    <filtering>false</filtering>
+                                    <includes>
+                                        <include>**/*</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+        </plugin>
+    </plugins>
     </build>
     <profiles>
         <profile>
@@ -292,7 +449,7 @@
                 <envClassifier>win</envClassifier>
                 <dirsep>\</dirsep>
                 <executable.brunch>cmd</executable.brunch>
-                <executable.gzip>${basedir}\gzip-content.cmd</executable.gzip>
+                <executable.gzip>${uidir}\gzip-content.cmd</executable.gzip>
                 <args.brunch>/C brunch</args.brunch>
                 <node.executable>node.exe</node.executable>
                 <executable.mkdir>cmd</executable.mkdir>
@@ -317,7 +474,7 @@
                 <envClassifier>linux</envClassifier>
                 <dirsep>/</dirsep>
                 <executable.brunch>brunch</executable.brunch>
-                <executable.gzip>${basedir}/gzip-content.sh</executable.gzip>
+                <executable.gzip>${uidir}/gzip-content.sh</executable.gzip>
                 <args.brunch></args.brunch>
                 <node.executable>node</node.executable>
                 <executable.mkdir>mkdir</executable.mkdir>

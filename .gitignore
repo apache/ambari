@@ -9,9 +9,11 @@
 /ambari-server/derby.log
 /ambari-server/pass.txt
 /ambari-web/npm-debug.log
-/ambari-web/public/
-/ambari-web/node_modules/
-/ambari-web/node/
+/ambari-web/classic/public/
+/ambari-web/classic/node_modules/
+/ambari-web/classic/node/
+node/
+mode_modules/
 *.pyc
 *.py~
 **/*.iml
