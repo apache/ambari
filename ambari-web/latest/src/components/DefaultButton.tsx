@@ -15,19 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Button } from "react-bootstrap";
 
-function App() {
-  function switchToClassic(){
-    window.location.href=window.location.href.replace("latest","classic")
-  }
-
-  return (
-    <>
-      <button className='btn' onClick={switchToClassic}>
-        Switch to classic UI
-      </button>
-    </>
-  )
+function DefaultButton({ className, ...props }: any) {
+  className = className ? className + " btn-default" : "btn-default";
+  return <Button className={className} {...props}></Button>;
 }
 
-export default App
+export default DefaultButton;

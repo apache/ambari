@@ -15,19 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-function App() {
-  function switchToClassic(){
-    window.location.href=window.location.href.replace("latest","classic")
-  }
-
-  return (
-    <>
-      <button className='btn' onClick={switchToClassic}>
-        Switch to classic UI
-      </button>
-    </>
-  )
-}
-
-export default App
+$primary: #3fae2a;
+$secondary: #323544;
+$tertiary: #b8bec4;
+$disabled: #666;
+$redirect-link-color: #0000ee;
+$danger: #dc3545;

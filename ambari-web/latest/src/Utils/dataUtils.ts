@@ -15,19 +15,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { get, has, set } from "lodash";
 
-function App() {
-  function switchToClassic(){
-    window.location.href=window.location.href.replace("latest","classic")
+export const groupPropertyValues=(collection:any[], key:string)=>{
+    const group:any = {};
+    collection.forEach(function(item:any) {
+      const value:any = get(item, key,"");
+      if (!has(group,value)) {
+        set(group,value,[item]);
+      }
+      else {
+        group[value]=[...group[value],item]
+      }
+    });
+    return group;
   }
-
-  return (
-    <>
-      <button className='btn' onClick={switchToClassic}>
-        Switch to classic UI
-      </button>
-    </>
-  )
-}
-
-export default App
