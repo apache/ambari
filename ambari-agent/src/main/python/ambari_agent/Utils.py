@@ -162,11 +162,12 @@ class Utils(object):
 
   @staticmethod
   def restartAgent(stop_event, graceful_stop_timeout=30):
-    ExitHelper().exitcode = AGENT_AUTO_RESTART_EXIT_CODE
+    exit_helper = ExitHelper()
+    exit_helper.exitcode = AGENT_AUTO_RESTART_EXIT_CODE
     stop_event.set()
 
     t = threading.Timer(
-      graceful_stop_timeout, ExitHelper().exit, [AGENT_AUTO_RESTART_EXIT_CODE]
+      graceful_stop_timeout, exit_helper.exit
     )
     t.start()
 
