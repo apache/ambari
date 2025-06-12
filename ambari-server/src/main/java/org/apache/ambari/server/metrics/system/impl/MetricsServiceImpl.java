@@ -30,6 +30,7 @@ import org.apache.ambari.server.metrics.system.MetricsSource;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.socket.config.WebSocketMessageBrokerStats;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -45,6 +46,9 @@ public class MetricsServiceImpl implements MetricsService {
   AmbariManagementController amc;
   @Inject
   STOMPUpdatePublisher STOMPUpdatePublisher;
+
+  private WebSocketMessageBrokerStats apiStompStats;
+  private WebSocketMessageBrokerStats agentStompStats;
 
   @Override
   public void start() {
@@ -119,6 +123,11 @@ public class MetricsServiceImpl implements MetricsService {
           STOMPUpdatePublisher.registerAPI(src);
           STOMPUpdatePublisher.registerAgent(src);
         }
+
+        if (src instanceof StompStatsMetricsSource && apiStompStats != null && agentStompStats != null) {
+          ((StompStatsMetricsSource) src).setApiStompStats(apiStompStats);
+          ((StompStatsMetricsSource) src).setAgentStompStats(agentStompStats);
+        }
         src.start();
       }
 
@@ -133,5 +142,13 @@ public class MetricsServiceImpl implements MetricsService {
 
   public static MetricsSink getSink() {
     return sink;
+  }
+
+  public void setApiStompStats(WebSocketMessageBrokerStats apiStompStats) {
+    this.apiStompStats = apiStompStats;
+  }
+
+  public void setAgentStompStats(WebSocketMessageBrokerStats agentStompStats) {
+    this.agentStompStats = agentStompStats;
   }
 }
