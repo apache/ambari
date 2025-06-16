@@ -597,7 +597,7 @@ class CheckHost(Script):
 
     if isinstance(db_connection_check_command, str):
       code, out = shell.call(
-        split(db_connection_check_command, comments=True), shell=False
+        split(db_connection_check_command, comments=True), shell=False, quiet=True
       )
     else:
       code, out = shell.call(db_connection_check_command, shell=False)
