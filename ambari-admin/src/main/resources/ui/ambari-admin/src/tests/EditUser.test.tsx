@@ -18,7 +18,7 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import EditUser from "../screens/Users/EditUser";
 import { describe, it, beforeEach, expect, vi } from "vitest";
-import "@testing-library/jest-dom/vitest";toast
+import "@testing-library/jest-dom/vitest";
 import UserGroupApi from "../api/userGroupApi";
 import { HashRouter } from "react-router-dom";
 import AppContent from "../context/AppContext";
@@ -44,12 +44,34 @@ describe("EditUser component", () => {
   let mockToastErrorMessage = "";
 
   toast.success = (message) => {
-    mockToastSuccessMessage = message as string;
+    if (typeof message === "string") {
+      mockToastSuccessMessage = message;
+    } else if (
+      message &&
+      typeof message === "object" &&
+      message.props &&
+      message.props.children
+    ) {
+      mockToastSuccessMessage = Array.isArray(message.props.children)
+        ? message.props.children.join("").replace(/\s+/g, " ").trim()
+        : String(message.props.children).replace(/\s+/g, " ").trim();
+    }
     return "";
   };
 
   toast.error = (message) => {
-    mockToastErrorMessage = message as string;
+    if (typeof message === "string") {
+      mockToastErrorMessage = message;
+    } else if (
+      message &&
+      typeof message === "object" &&
+      message.props &&
+      message.props.children
+    ) {
+      mockToastErrorMessage = Array.isArray(message.props.children)
+        ? message.props.children.join("").replace(/\s+/g, " ").trim()
+        : String(message.props.children).replace(/\s+/g, " ").trim();
+    }
     return "";
   };
 
@@ -226,9 +248,11 @@ describe("EditUser component", () => {
   });
 
   it("renders user access dropdown and selects an option", async () => {
-    PrivilegeApi.addClusterPrivileges = async () => {
-      toast.success("User access updated successfully");
+    PrivilegeApi.removeClusterPrivileges = async () => {
       return { status: 200 };
+    };
+    PrivilegeApi.addClusterPrivileges = async () => {
+      return { status: 201 };
     };
     renderComponent();
 
@@ -243,7 +267,7 @@ describe("EditUser component", () => {
 
     expect(userAccessSelect.value).toBe("Cluster User");
     await waitFor(() => {
-      expect(mockToastSuccessMessage).toBe("User access updated successfully");
+      expect(mockToastSuccessMessage).toBe("dsasd changed to Cluster User");
     });
   });
 

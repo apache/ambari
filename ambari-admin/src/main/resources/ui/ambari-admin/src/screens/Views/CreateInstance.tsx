@@ -44,7 +44,7 @@ import { useHistory } from "react-router";
 
 type CreateInstanceProps = {
   isOpen: boolean;
-  onClose: (showAddUserModal: boolean) => void;
+  onClose: () => void;
   viewDetails: ViewDetailsType;
   viewInstanceInfoToBeCloned?: any;
   successCallback: () => void;
@@ -380,7 +380,7 @@ export default function CreateInstance({
         <div className="toast-message">Created instance {instanceName}</div>
       );
       resetValues();
-      onClose(false);
+      onClose();
       successCallback();
       history.push(
         `views/${view}/versions/${version}/instances/${instanceName}/edit`
@@ -414,7 +414,7 @@ export default function CreateInstance({
     if (isFormUpdated()) {
       setShowCancelWarning(true);
     } else {
-      onClose(false);
+      onClose();
     }
   };
 
@@ -425,7 +425,7 @@ export default function CreateInstance({
 
   const handleWarningDiscard = () => {
     setShowCancelWarning(false);
-    onClose(false);
+    onClose();
   };
 
   return (

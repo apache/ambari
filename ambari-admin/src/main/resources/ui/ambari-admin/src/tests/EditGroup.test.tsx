@@ -44,12 +44,34 @@ describe("EditGroup component", () => {
   let mockToastErrorMessage = "";
 
   toast.success = (message) => {
-    mockToastSuccessMessage = message as string;
+    if (typeof message === "string") {
+      mockToastSuccessMessage = message;
+    } else if (
+      message &&
+      typeof message === "object" &&
+      message.props &&
+      message.props.children
+    ) {
+      mockToastSuccessMessage = Array.isArray(message.props.children)
+        ? message.props.children.join("").replace(/\s+/g, " ").trim()
+        : String(message.props.children).replace(/\s+/g, " ").trim();
+    }
     return "";
   };
 
   toast.error = (message) => {
-    mockToastErrorMessage = message as string;
+    if (typeof message === "string") {
+      mockToastErrorMessage = message;
+    } else if (
+      message &&
+      typeof message === "object" &&
+      message.props &&
+      message.props.children
+    ) {
+      mockToastErrorMessage = Array.isArray(message.props.children)
+        ? message.props.children.join("").replace(/\s+/g, " ").trim()
+        : String(message.props.children).replace(/\s+/g, " ").trim();
+    }
     return "";
   };
 
@@ -126,9 +148,11 @@ describe("EditGroup component", () => {
   });
 
   it("updates group privileges", async () => {
-    PrivilegeApi.addClusterPrivileges = async () => {
-      toast.success("group5 changed to Service Operator");
+    PrivilegeApi.removeClusterPrivileges = async () => {
       return { status: 200 };
+    };
+    PrivilegeApi.addClusterPrivileges = async () => {
+      return { status: 201 };
     };
     renderComponent();
 
