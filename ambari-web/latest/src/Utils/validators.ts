@@ -1,3 +1,4 @@
+
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -15,19 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-function App() {
-  function switchToClassic(){
-    window.location.href=window.location.href.replace("latest","classic")
-  }
-
-  return (
-    <>
-      <button className='btn' onClick={switchToClassic}>
-        Switch to classic UI
-      </button>
-    </>
-  )
-}
-
-export default App
+export const validateDateTime = (dateTime: string) => {
+  const date = new Date(dateTime);
+  return !isNaN(date.getTime());
+};

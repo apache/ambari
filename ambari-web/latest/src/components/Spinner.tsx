@@ -15,19 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Spinner as ReactSpinner } from "react-bootstrap";
 
-function App() {
-  function switchToClassic(){
-    window.location.href=window.location.href.replace("latest","classic")
-  }
-
+export default function Spinner() {
   return (
-    <>
-      <button className='btn' onClick={switchToClassic}>
-        Switch to classic UI
-      </button>
-    </>
-  )
+    <div className="d-flex justify-content-center align-items-center p-4">
+      <ReactSpinner />
+    </div>
+  );
 }
-
-export default App
