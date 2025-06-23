@@ -15,19 +15,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-function App() {
-  function switchToClassic(){
-    window.location.href=window.location.href.replace("latest","classic")
-  }
-
-  return (
-    <>
-      <button className='btn' onClick={switchToClassic}>
-        Switch to classic UI
-      </button>
-    </>
-  )
+.table thead,
+.table thead th {
+  color: #999 !important;
+  font-weight: 700 !important;
+}
+.table tbody td {
+  color: #666 !important;
+}
+.table tbody td:hover {
+  cursor: default;
+}
+.table > thead > tr > th,
+.table > tbody > tr > th,
+.table > tfoot > tr > th,
+.table > thead > tr > td,
+.table > tbody > tr > td,
+.table > tfoot > tr > td {
+  padding: 12px!important;
 }
 
-export default App
+.tabs {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.tabs a {
+  text-decoration: none;
+  color: black;
+  padding: 10px;
+}
+
+.tabs a.active {
+  font-weight: bold;
+  border-bottom: 2px solid green;
+}

@@ -15,19 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-function App() {
-  function switchToClassic(){
-    window.location.href=window.location.href.replace("latest","classic")
-  }
-
-  return (
-    <>
-      <button className='btn' onClick={switchToClassic}>
-        Switch to classic UI
-      </button>
-    </>
-  )
+function Center({children}:any){
+    return <div className="justify-content-center align-item-center mt-2">
+        {children}
+    </div>
 }
 
-export default App
+export default Center;

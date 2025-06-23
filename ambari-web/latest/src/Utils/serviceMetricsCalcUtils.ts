@@ -15,19 +15,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import bytesToSize from "./numberUtils.ts";
 
-function App() {
-  function switchToClassic(){
-    window.location.href=window.location.href.replace("latest","classic")
+export function findCapacityPercentage (dfsNonDFSCapacity:number, capacityTotal:number)  {
+  let percent:number|string = capacityTotal && dfsNonDFSCapacity && capacityTotal > 0 ? ((dfsNonDFSCapacity * 100) / capacityTotal).toFixed(2) : 0;
+  if (isNaN(percent as number) || percent as number < 0) {
+    percent = 'N/A';
   }
-
-  return (
-    <>
-      <button className='btn' onClick={switchToClassic}>
-        Switch to classic UI
-      </button>
-    </>
-  )
+  return `${percent}%`;
 }
 
-export default App
+export function diskPart (capacity:number, capacityTotal:number)  {
+    return `${bytesToSize(capacity, 1, 'parseFloat')} / ${bytesToSize(capacityTotal, 1, 'parseFloat')}`;
+}
+

@@ -15,19 +15,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import i18n from 'i18next';
+import { initReactI18next } from 'react-i18next';
+import LanguageDetector from 'i18next-browser-languagedetector';
+import englishTranslations from "./locales/en/translation.json"
 
-function App() {
-  function switchToClassic(){
-    window.location.href=window.location.href.replace("latest","classic")
-  }
+i18n
+  // detect user language
+  .use(LanguageDetector)
+  // pass the i18n instance to react-i18next.
+  .use(initReactI18next)
+  // init i18next
+  .init({
+    debug: true,
+    fallbackLng: 'en',
+    interpolation: {
+      escapeValue: false, // not needed for react as it escapes by default
+    },
+    resources: {
+      en: {
+        translation: englishTranslations
+      }
+    }
+  });
 
-  return (
-    <>
-      <button className='btn' onClick={switchToClassic}>
-        Switch to classic UI
-      </button>
-    </>
-  )
-}
-
-export default App
+export default i18n;

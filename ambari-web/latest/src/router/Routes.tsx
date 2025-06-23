@@ -15,19 +15,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-function App() {
-  function switchToClassic(){
-    window.location.href=window.location.href.replace("latest","classic")
-  }
-
+//@ts-nocheck
+import routesList from "./RoutesList";
+import { Routes as ReactRoutes, Route } from "react-router-dom";
+export default function Routes() {
   return (
-    <>
-      <button className='btn' onClick={switchToClassic}>
-        Switch to classic UI
-      </button>
-    </>
-  )
+    <ReactRoutes>
+      {routesList.map(
+        (
+          { path, Element }: { path?: string; Element: React.FC },
+          key: number
+        ) => 
+          path ? (
+            <Route path={path} key={key}></Route>
+          ) : null
+      )}
+    </ReactRoutes>
+  );
 }
-
-export default App
