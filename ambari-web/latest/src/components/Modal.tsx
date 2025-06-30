@@ -18,6 +18,7 @@
 import { Button, Modal as ReactModal } from "react-bootstrap";
 import DefaultButton from "./DefaultButton";
 import { ReactNode } from "react";
+import classNames from "classnames";
 
 export type ModalProps = {
   isOpen: boolean;
@@ -37,6 +38,7 @@ export type ModalProps = {
     cancelableViaSuccessBtn?: boolean;
     okButtonVariant?: string;
     okButtonDisabled?: boolean;
+    modalBodyClassName?: string;
     extraButtons?: {
       text: string;
       onClick: () => void;
@@ -67,6 +69,7 @@ export default function Modal({
     okButtonVariant = "success",
     cancelableViaSuccessBtn = true,
     okButtonDisabled = false,
+    modalBodyClassName = "",
     extraButtons = [],
   } = options;
 
@@ -78,10 +81,13 @@ export default function Modal({
     <ReactModal
       show={isOpen}
       onHide={onClose}
-      className={
-        `custom-modal-container make-scrollable custom-scrollbar ${className} ` +
+      className={classNames(
+        "custom-modal-container",
+        "make-scrollable",
+        "custom-scrollbar",
+        className,
         modalSize
-      }
+      )}
       data-testid="confirmation-modal"
     >
       <ReactModal.Header closeButton={cancelableViaIcon}>
@@ -89,7 +95,7 @@ export default function Modal({
           <h2>{modalTitle}</h2>
         </ReactModal.Title>
       </ReactModal.Header>
-      <ReactModal.Body>
+      <ReactModal.Body className={classNames(modalBodyClassName)}>
         <div className="pre-wrap">{modalBody}</div>
       </ReactModal.Body>
       {!shouldShowFooter ? null : (
@@ -107,7 +113,13 @@ export default function Modal({
           {sortedExtraButtons.map((button: any) => (
             <Button
               key={button.text}
-              className="ps-3 pe-3 text-white custom-btn"
+              className={classNames(
+                "ps-3",
+                "pe-3",
+                "text-white",
+                "custom-btn",
+                button.className
+              )}
               variant={button.variant}
               onClick={button.onClick}
               size={buttonSize}
@@ -118,9 +130,13 @@ export default function Modal({
           ))}
           {cancelableViaSuccessBtn ? (
             <Button
-              className={`ps-3 pe-3 text-white custom-btn ${
-                okButtonDisabled ? "disabled-btn" : ""
-              }`}
+              className={classNames(
+                "ps-3",
+                "pe-3",
+                "text-white",
+                "custom-btn",
+                { "disabled-btn": okButtonDisabled }
+              )}
               variant={okButtonVariant}
               onClick={successCallback}
               size={buttonSize}

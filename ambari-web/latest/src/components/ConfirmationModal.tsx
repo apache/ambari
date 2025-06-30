@@ -26,6 +26,7 @@ type ConfirmationModalProps = {
   successCallback: () => void;
   buttonVariant?: string;
   cancellable?: boolean;
+  okButtonText?: string;
 };
 
 export default function ConfirmationModal({
@@ -36,6 +37,7 @@ export default function ConfirmationModal({
   successCallback,
   buttonVariant = "success",
   cancellable = true,
+  okButtonText = "OK",
 }: ConfirmationModalProps) {
   return (
     <Modal
@@ -68,7 +70,7 @@ export default function ConfirmationModal({
           size="sm"
           data-testid="confirm-ok-btn"
         >
-          OK
+          {okButtonText}
         </Button>
       </Modal.Footer>
     </Modal>
