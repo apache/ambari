@@ -48,7 +48,12 @@ import AppContent from "../../context/AppContext";
 import Spinner from "../../components/Spinner";
 import Table from "../../components/Table";
 import WarningModal from "./WarningModal";
-import { constructLinkToEditInstance } from "../../screens/Users/EditUser"
+import { constructLinkToEditInstance } from "../../screens/Users/EditUser";
+import {
+  getClusterPrivileges,
+  getHighestUserRole,
+  getViewPrivileges,
+} from "./utility";
 
 type ParamsType = {
   groupName: string;
@@ -238,18 +243,18 @@ export default function EditGroup() {
   };
 
   const updateGroupDataPrivileges = async (value: PermissionLabel) => {
+    const currentClusterPrivileges = get(groupInfo, "privileges", []).filter(
+      (privilige) =>
+        get(privilige, "PrivilegeInfo.type") === PrivilegeType.CLUSTER
+    );
+    const removePrivilegesPromises = currentClusterPrivileges.map(
+      (privilege: any) =>
+        PrivilegeApi.removeClusterPrivileges(
+          clusterName,
+          get(privilege, "PrivilegeInfo.privilege_id")
+        )
+    );
     if (value === DefaultAccess.NONE) {
-      const currentClusterPrivileges = get(groupInfo, "privileges", []).filter(
-        (privilige) =>
-          get(privilige, "PrivilegeInfo.type") === PrivilegeType.CLUSTER
-      );
-      const removePrivilegesPromises = currentClusterPrivileges.map(
-        (privilege: any) =>
-          PrivilegeApi.removeClusterPrivileges(
-            clusterName,
-            get(privilege, "PrivilegeInfo.privilege_id")
-          )
-      );
       await Promise.all(removePrivilegesPromises);
       toast.success(
         <div className="toast-message">
@@ -259,6 +264,7 @@ export default function EditGroup() {
         </div>
       );
     } else {
+      await Promise.all(removePrivilegesPromises);
       const privilegesData: PrivilegesDataType[] = [
         {
           PrivilegeInfo: {
@@ -338,10 +344,18 @@ export default function EditGroup() {
         />
       ) : null}
       <div className="d-flex flex-wrap">
-        <Link to={"/userManagement?tab=groups"} className="custom-link" data-testid="groups-list-link">
+        <Link
+          to={"/userManagement?tab=groups"}
+          className="custom-link"
+          data-testid="groups-list-link"
+        >
           <h4>Groups</h4>
         </Link>
-        <h4 className="ms-2 make-all-grey">{`/ ${get(groupInfo, "Groups.group_name", "")}`}</h4>
+        <h4 className="ms-2 make-all-grey">{`/ ${get(
+          groupInfo,
+          "Groups.group_name",
+          ""
+        )}`}</h4>
       </div>
       <hr className="mb-4" />
       {loading ? (
@@ -366,7 +380,7 @@ export default function EditGroup() {
               name="groups"
               options={userOptions}
               className="basic-multi-select w-75"
-              placeholder="Add Group"
+              placeholder="Add User"
               value={groupMembers}
               onChange={(e) => setGroupMembers(e as SelectOptionType[])}
               isDisabled={
@@ -379,14 +393,16 @@ export default function EditGroup() {
               onClick={() => {
                 if (
                   get(groupInfo, "Groups.group_type", "").toLowerCase() ===
-                  "local" && JSON.stringify(previousMembers) !== JSON.stringify(newMembers)
+                    "local" &&
+                  JSON.stringify(previousMembers) !== JSON.stringify(newMembers)
                 ) {
                   updateGroupDataMembers();
                 }
               }}
               className={
                 get(groupInfo, "Groups.group_type", "").toLowerCase() !==
-                "local" || JSON.stringify(previousMembers) === JSON.stringify(newMembers)
+                  "local" ||
+                JSON.stringify(previousMembers) === JSON.stringify(newMembers)
                   ? "cursor-not-allowed opacity-50 ms-2"
                   : "ms-2"
               }
@@ -414,13 +430,12 @@ export default function EditGroup() {
               onChange={(e) =>
                 updateGroupDataPrivileges(e.target.value as PermissionLabel)
               }
-              value={get(
+              value={getHighestUserRole(
                 get(groupInfo, "privileges", []).filter(
                   (privilige) =>
                     get(privilige, "PrivilegeInfo.type") ===
                     PrivilegeType.CLUSTER
-                ),
-                "[0].PrivilegeInfo.permission_label"
+                )
               )}
               data-testid="group-access-dropdown"
             >
@@ -433,54 +448,26 @@ export default function EditGroup() {
           </Form.Group>
           <Form.Group className="d-flex mb-4">
             <Form.Label className="mt-2 width-15">Privileges</Form.Label>
-            {!get(groupInfo, "privileges", []).filter(
-              (privilige) =>
-                get(privilige, "PrivilegeInfo.type") === PrivilegeType.CLUSTER
-            )?.length &&
-            !get(groupInfo, "privileges", []).filter(
-              (privilige) =>
-                get(privilige, "PrivilegeInfo.type") === PrivilegeType.VIEW &&
-                get(privilige, "PrivilegeInfo.principal_type") ===
-                  PrincipalType.GROUP
-            )?.length ? (
+            {!getClusterPrivileges(groupInfo)?.length &&
+            !getViewPrivileges(groupInfo)?.length ? (
               <Alert className="w-75" variant="info">
                 This group does not have any privileges.
               </Alert>
             ) : (
               <div className="w-75 scrollable">
                 <Table
-                  data={get(groupInfo, "privileges", []).filter(
-                    (privilige) =>
-                      get(privilige, "PrivilegeInfo.type") ===
-                      PrivilegeType.CLUSTER
-                  )}
+                  data={getClusterPrivileges(groupInfo)}
                   columns={columnsInGroupPrivilegesCluster}
                 />
-                {get(groupInfo, "privileges", []).filter(
-                  (privilige) =>
-                    get(privilige, "PrivilegeInfo.type") ===
-                    PrivilegeType.CLUSTER
-                )?.length ? null : (
+                {getClusterPrivileges(groupInfo)?.length ? null : (
                   <div className="ps-2">No cluster privileges</div>
                 )}
                 <Table
-                  data={get(groupInfo, "privileges", []).filter(
-                    (privilige) =>
-                      get(privilige, "PrivilegeInfo.type") ===
-                        PrivilegeType.VIEW &&
-                      get(privilige, "PrivilegeInfo.principal_type") ===
-                        PrincipalType.GROUP
-                  )}
+                  data={getViewPrivileges(groupInfo)}
                   columns={columnsInGroupPrivilegesView}
                   className="mt-5"
                 />
-                {get(groupInfo, "privileges", []).filter(
-                  (privilige) =>
-                    get(privilige, "PrivilegeInfo.type") ===
-                      PrivilegeType.VIEW &&
-                    get(privilige, "PrivilegeInfo.principal_type") ===
-                      PrincipalType.GROUP
-                )?.length ? null : (
+                {getViewPrivileges(groupInfo)?.length ? null : (
                   <div className="ps-2">No view privileges</div>
                 )}
               </div>

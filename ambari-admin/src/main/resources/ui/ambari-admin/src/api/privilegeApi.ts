@@ -26,7 +26,7 @@ const PrivilegeApi = {
     const url = `/clusters/${clusterName}/privileges`;
     const response = await adminApi.request({
       url: url,
-      method: "PUT",
+      method: "POST",
       data: privilegesData
     });
     return response.data;
