@@ -39,7 +39,7 @@ import {
   PermissionLabel,
   SelectOptionType,
 } from "./types";
-import { PrivilegeType, PrincipalType, PermissionNameType, DefaultAccess } from "./enums";
+import { PrivilegeType, PrincipalType, DefaultAccess } from "./enums";
 import ConfirmationModal from "../../components/ConfirmationModal";
 import UserGroupApi from "../../api/userGroupApi";
 import Spinner from "../../components/Spinner";
@@ -54,6 +54,11 @@ import {
   getFromLocalStorage,
   parseJSONData,
 } from "../../api/Utility";
+import {
+  getClusterPrivileges,
+  getHighestUserRole,
+  getViewPrivileges,
+} from "./utility";
 
 type ParamsType = {
   userName: string;
@@ -304,19 +309,18 @@ export default function EditUser() {
   };
 
   const updateUserDataPrivileges = async (value: PermissionLabel) => {
+    const currentClusterPrivileges = get(userInfo, "privileges", []).filter(
+      (privilige) =>
+        get(privilige, "PrivilegeInfo.type") === PrivilegeType.CLUSTER
+    );
+    const removePrivilegesPromises = currentClusterPrivileges.map(
+      (privilege: any) =>
+        PrivilegeApi.removeClusterPrivileges(
+          clusterName,
+          get(privilege, "PrivilegeInfo.privilege_id")
+        )
+    );
     if (value === DefaultAccess.NONE) {
-      const currentClusterPrivileges = get(userInfo, "privileges", []).filter(
-        (privilige) =>
-          get(privilige, "PrivilegeInfo.type") === PrivilegeType.CLUSTER &&
-          get(privilige, "PrivilegeInfo.principal_type") === PrincipalType.USER
-      );
-      const removePrivilegesPromises = currentClusterPrivileges.map(
-        (privilege: any) =>
-          PrivilegeApi.removeClusterPrivileges(
-            clusterName,
-            get(privilege, "PrivilegeInfo.privilege_id")
-          )
-      );
       Promise.all(removePrivilegesPromises).then(() => {
         toast.success(
           <div className="toast-message">
@@ -328,6 +332,7 @@ export default function EditUser() {
         getUserData();
       });
     } else {
+      await Promise.all(removePrivilegesPromises);
       const privilegesData: PrivilegesDataType[] = [
         {
           PrivilegeInfo: {
@@ -635,13 +640,13 @@ export default function EditUser() {
                 onChange={(e) =>
                   updateUserDataPrivileges(e.target.value as PermissionLabel)
                 }
-                value={get(
-                  get(userInfo, "privileges", []).filter(
-                    (privilige) =>
-                      get(privilige, "PrivilegeInfo.type") ===
+                value={getHighestUserRole(
+                  get(userInfo, "privileges", []).filter((privilege: any) => {
+                    return (
+                      get(privilege, "PrivilegeInfo.type") ===
                       PrivilegeType.CLUSTER
-                  ),
-                  "[0].PrivilegeInfo.permission_label"
+                    );
+                  })
                 )}
                 data-testid="user-access-dropdown"
               >
@@ -659,56 +664,26 @@ export default function EditUser() {
               <Alert className="w-75" variant="info">
                 This user is an Ambari Admin and has all privileges.
               </Alert>
-            ) : !get(userInfo, "privileges", []).filter(
-                (privilige) =>
-                  get(privilige, "PrivilegeInfo.type") ===
-                    PrivilegeType.CLUSTER &&
-                  get(privilige, "PrivilegeInfo.principal_type") ===
-                    PrincipalType.USER
-              )?.length &&
-              !get(userInfo, "privileges", []).filter(
-                (privilige) =>
-                  get(privilige, "PrivilegeInfo.permission_name") ===
-                  PermissionNameType.VIEW_USER
-              )?.length ? (
+            ) : !getClusterPrivileges(userInfo)?.length &&
+              !getViewPrivileges(userInfo)?.length ? (
               <Alert className="w-75" variant="info">
                 This user does not have any privileges.
               </Alert>
             ) : (
               <div className="w-75 scrollable">
                 <Table
-                  data={get(userInfo, "privileges", []).filter(
-                    (privilige) =>
-                      get(privilige, "PrivilegeInfo.type") ===
-                        PrivilegeType.CLUSTER &&
-                      get(privilige, "PrivilegeInfo.principal_type") ===
-                        PrincipalType.USER
-                  )}
+                  data={getClusterPrivileges(userInfo)}
                   columns={columnsInUserPrivilegesCluster}
                 />
-                {get(userInfo, "privileges", []).filter(
-                  (privilige) =>
-                    get(privilige, "PrivilegeInfo.type") ===
-                      PrivilegeType.CLUSTER &&
-                    get(privilige, "PrivilegeInfo.principal_type") ===
-                      PrincipalType.USER
-                )?.length ? null : (
+                {getClusterPrivileges(userInfo)?.length ? null : (
                   <div className="ps-2">No cluster privileges</div>
                 )}
                 <Table
-                  data={get(userInfo, "privileges", []).filter(
-                    (privilige) =>
-                      get(privilige, "PrivilegeInfo.permission_name") ===
-                      PermissionNameType.VIEW_USER
-                  )}
+                  data={getViewPrivileges(userInfo)}
                   columns={columnsInUserPrivilegesView}
                   className="mt-5"
                 />
-                {get(userInfo, "privileges", []).filter(
-                  (privilige) =>
-                    get(privilige, "PrivilegeInfo.permission_name") ===
-                    PermissionNameType.VIEW_USER
-                )?.length ? null : (
+                {getViewPrivileges(userInfo)?.length ? null : (
                   <div className="ps-2">No view privileges</div>
                 )}
               </div>

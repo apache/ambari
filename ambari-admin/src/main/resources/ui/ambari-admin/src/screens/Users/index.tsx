@@ -53,6 +53,7 @@ import {
 } from "../../api/Utility";
 import AddUser from "./AddUser";
 import AddGroup from "./AddGroup";
+import { getHighestUserRole } from "./utility";
 
 export default function Users() {
   const [currentLoggedInUser, setCurrentLoggedInUser] = useState("");
@@ -292,27 +293,18 @@ export default function Users() {
         "Users.user_type",
         startCase(get(item, "Users.user_type", "").toLowerCase())
       );
-      const ambariAdminPrivileges = get(
-        get(item, "privileges", []).filter(
-          (privilege: any) =>
+
+      const privileges = get(item, "privileges", []).filter(
+        (privilege: any) => {
+          return (
+            get(privilege, "PrivilegeInfo.type") === PrivilegeType.CLUSTER ||
             get(privilege, "PrivilegeInfo.type") === PrivilegeType.AMBARI
-        ),
-        "[0].PrivilegeInfo.permission_label",
-        ""
+          );
+        }
       );
-      const clusterUserPrivileges = get(
-        get(item, "privileges", []).filter(
-          (privilege: any) =>
-            get(privilege, "PrivilegeInfo.type") === PrivilegeType.CLUSTER
-        ),
-        "[0].PrivilegeInfo.permission_label",
-        ""
-      );
-      if (ambariAdminPrivileges !== "") {
-        set(item, "Users.user_role", ambariAdminPrivileges);
-      } else {
-        set(item, "Users.user_role", clusterUserPrivileges);
-      }
+
+      set(item, "Users.user_role", getHighestUserRole(privileges));
+
       if (get(item, "Users.active")) {
         set(item, "Users.user_status", "Active");
       } else {
