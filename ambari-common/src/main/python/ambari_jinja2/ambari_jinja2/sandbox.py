@@ -74,7 +74,10 @@ except ImportError:
 
 #: register Python 2.6 abstract base classes
 try:
-  from collections import MutableSet, MutableMapping, MutableSequence
+  try:
+    from collections.abc import MutableSet, MutableMapping, MutableSequence
+  except ImportError:
+    from collections import MutableSet, MutableMapping, MutableSequence
 
   _mutable_set_types += (MutableSet,)
   _mutable_mapping_types += (MutableMapping,)
