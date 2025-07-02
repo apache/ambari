@@ -308,15 +308,39 @@
                     <excludes>
                         <exclude>.idea/**</exclude>
                         <exclude>package.json</exclude>
-                        <exclude>public/**</exclude>
-                        <exclude>public-static/**</exclude>
-                        <exclude>app/assets/**</exclude>
-                        <exclude>api-docs/**</exclude>
-                        <exclude>vendor/**</exclude>
-                        <exclude>node_modules/**</exclude>
-                        <exclude>node/**</exclude>
-                        <exclude>npm-debug.log</exclude>
                         <exclude>yarn.lock</exclude>
+                        <exclude>classic/package.json</exclude>
+                        <exclude>classic/public/**</exclude>
+                        <exclude>classic/public-static/**</exclude>
+                        <exclude>classic/app/assets/**</exclude>
+                        <exclude>classic/api-docs/**</exclude>
+                        <exclude>classic/vendor/**</exclude>
+                        <exclude>classic/node_modules/**</exclude>
+                        <exclude>classic/node/**</exclude>
+                        <exclude>classic/npm-debug.log</exclude>
+                        <exclude>classic/yarn.lock</exclude>
+                        <exclude>classic/package-lock.json</exclude>
+                        <exclude>latest/package.json</exclude>
+                        <exclude>latest/package-lock.json</exclude>
+                        <exclude>latest/yarn.lock</exclude>
+                        <exclude>latest/dist/**</exclude>
+                        <exclude>latest/node_modules/**</exclude>
+                        <exclude>latest/node/**</exclude>
+                        <exclude>latest/npm-debug.log</exclude>
+                        <exclude>latest/tsconfig.json</exclude>
+                        <exclude>latest/tsconfig.app.json</exclude>
+                        <exclude>latest/tsconfig.node.json</exclude>
+                        <exclude>latest/tsconfig.app.tsbuildinfo</exclude>
+                        <exclude>latest/tsconfig.node.tsbuildinfo</exclude>
+                        <exclude>latest/public/vite.svg</exclude>
+                        <exclude>latest/public/**.svg</exclude>
+                        <exclude>latest/src/assets/**.svg</exclude>
+                        <exclude>latest/src/assets/fonts/**.svg</exclude>
+                        <exclude>latest/src/assets/fonts/**.woff</exclude>
+                        <exclude>latest/src/locales/en/translation.json</exclude>
+                        <exclude>latest/README.md</exclude>
+                        <exclude>public/index.html</exclude>
+                        <exclude>latest/public/index.html</exclude>
                     </excludes>
                 </configuration>
                 <executions>
