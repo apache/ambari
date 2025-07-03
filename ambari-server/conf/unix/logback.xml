@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="30 seconds">
+  <!-- env -->
+  <property name="AMBARI_ROOT_DIR" value="/" />
+  <property name="AMBARI_LOG_DIR" value="${AMBARI_ROOT_DIR}/var/log/ambari-server" />
+  
+  <!-- Root logger -->
+  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${AMBARI_LOG_DIR}/ambari-server.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+      <fileNamePattern>${AMBARI_LOG_DIR}/ambari-server.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+      <maxFileSize>80MB</maxFileSize>
+      <maxHistory>60</maxHistory>
+    </rollingPolicy>
+    <encoder>
+      <pattern>%d{ISO8601} %-5level [%thread] %logger{36}:%line - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <!-- Log config changes -->
+  <appender name="CONFIG_CHANGE" class="ch.qos.logback.core.FileAppender">
+    <file>${AMBARI_LOG_DIR}/ambari-config-changes.log</file>
+    <encoder>
+      <pattern>%d{ISO8601} %-5level - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <!-- Log alert state changes -->
+  <appender name="ALERTS" class="ch.qos.logback.core.FileAppender">
+    <file>${AMBARI_LOG_DIR}/ambari-alerts.log</file>
+    <encoder>
+      <pattern>%d{ISO8601} %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <!-- Log database check process -->
+  <appender name="DB_CHECK" class="ch.qos.logback.core.FileAppender">
+    <file>${AMBARI_LOG_DIR}/ambari-server-check-database.log</file>
+    <encoder>
+      <pattern>%d{ISO8601} %-5level - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <!-- EclipsLink -> slf4j bridge -->
+  <appender name="ECLIPSELINK" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${AMBARI_LOG_DIR}/ambari-eclipselink.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+      <fileNamePattern>${AMBARI_LOG_DIR}/ambari-eclipselink.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+      <maxFileSize>50MB</maxFileSize>
+      <maxHistory>10</maxHistory>
+    </rollingPolicy>
+    <encoder>
+      <pattern>%msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <!-- Audit logging -->
+  <appender name="AUDIT" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${AMBARI_LOG_DIR}/ambari-audit.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+      <fileNamePattern>${AMBARI_LOG_DIR}/ambari-audit-%d{yyyy-MM-dd}-%i.log.gz</fileNamePattern>
+      <maxFileSize>50MB</maxFileSize>
+      <maxHistory>13</maxHistory>
+    </rollingPolicy>
+    <encoder>
+      <pattern>%msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <!-- log level -->
+  <logger name="configchange" level="INFO" additivity="false">
+    <appender-ref ref="CONFIG_CHANGE" />
+  </logger>
+  
+  <logger name="alerts" level="INFO" additivity="false">
+    <appender-ref ref="ALERTS" />
+  </logger>
+  
+  <logger name="org.apache.ambari.server.checks" level="INFO" additivity="false">
+    <appender-ref ref="DB_CHECK" />
+  </logger>
+  
+  <logger name="eclipselink" level="TRACE" additivity="false">
+    <appender-ref ref="ECLIPSELINK" />
+  </logger>
+  
+  <logger name="audit" level="INFO" additivity="false">
+    <appender-ref ref="AUDIT" />
+  </logger>
+  
+  <logger name="com.sun.jersey" level="WARN" />
+  <logger name="org.glassfish.jersey" level="WARN" />
+  <logger name="org.eclipse.jetty" level="WARN" />
+  <logger name="org.apache.hadoop.yarn.client" level="WARN" />
+  
+  <!-- log level -->
+  <logger name="org.apache.ambari.server.security.authorization" level="WARN" />
+  <logger name="org.apache.ambari.server.security.authorization.AuthorizationHelper" level="INFO" />
+  <logger name="org.apache.ambari.server.security.authorization.AmbariLdapBindAuthenticator" level="INFO" />
+
+  <!-- root -->
+  <root level="INFO">
+    <appender-ref ref="FILE" />
+  </root>
+</configuration>
+				
