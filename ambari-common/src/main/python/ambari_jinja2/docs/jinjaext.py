@@ -91,11 +91,12 @@ def format_function(name, aliases, func):
             signature = match.group(1)
     else:
         try:
-            argspec = inspect.getargspec(func)
+            sig = inspect.signature(func)
+            params = list(sig.parameters.values())
             if getattr(func, 'environmentfilter', False) or \
                getattr(func, 'contextfilter', False):
-                del argspec[0][0]
-            signature = inspect.formatargspec(*argspec)
+                params = params[1:]
+            signature = f"({', '.join(str(param) for param in params)})"
         except:
             pass
     result = [f'.. function:: {name}{signature}', '']
