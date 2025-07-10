@@ -51,6 +51,11 @@ require('controllers/main/admin/highAvailability/nameNode/rollbackHA/step1_contr
 require('controllers/main/admin/highAvailability/nameNode/rollbackHA/step2_controller');
 require('controllers/main/admin/highAvailability/nameNode/rollbackHA/step3_controller');
 require('controllers/main/admin/highAvailability/nameNode/rollbackHA/rollback_wizard_controller');
+require('controllers/main/admin/highAvailability/nameNode/multipleNN/wizard_controller');
+require('controllers/main/admin/highAvailability/nameNode/multipleNN/step1_controller');
+require('controllers/main/admin/highAvailability/nameNode/multipleNN/step2_controller');
+require('controllers/main/admin/highAvailability/nameNode/multipleNN/step3_controller');
+require('controllers/main/admin/highAvailability/nameNode/multipleNN/step4_controller');
 require('controllers/main/admin/highAvailability/resourceManager/wizard_controller');
 require('controllers/main/admin/highAvailability/resourceManager/step1_controller');
 require('controllers/main/admin/highAvailability/resourceManager/step2_controller');

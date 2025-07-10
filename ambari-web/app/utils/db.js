@@ -51,6 +51,7 @@ var InitialData = {
   'NameNodeFederationWizard': {},
   'RouterFederationWizard': {},
   'RollbackHighAvailabilityWizard': {},
+  'MultipleNameNodeWizard': {},
   'MainAdminStackAndUpgrade': {},
   'KerberosDisable': {},
   'tmp': {}

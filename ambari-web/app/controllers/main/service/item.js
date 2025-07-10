@@ -1513,6 +1513,12 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     });
   },
 
+  enableMultipleNamenode: function () {
+    var highAvailabilityController = App.router.get('mainAdminHighAvailabilityController');
+    highAvailabilityController.enableMultipleNamenode();
+  },
+
+
   openNameNodeFederationWizard: function () {
     var highAvailabilityController = App.router.get('mainAdminHighAvailabilityController');
     highAvailabilityController.enableNameNodeFederation();

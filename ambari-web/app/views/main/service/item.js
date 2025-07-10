@@ -248,6 +248,13 @@ App.MainServiceItemView = Em.View.extend(App.HiveInteractiveCheck, {
               break;
           }
         }
+        if (service.get('serviceTypes').contains('MULTIPLENN') && App.isAuthorized('SERVICE.ENABLE_HA')) {
+          switch (service.get('serviceName')) {
+            case 'HDFS':
+              options.push(actionMap.MULTIPLE_NN);
+              break;
+          }
+        }
         if (serviceCheckSupported) {
           options.push(actionMap.RUN_SMOKE_TEST);
         }
