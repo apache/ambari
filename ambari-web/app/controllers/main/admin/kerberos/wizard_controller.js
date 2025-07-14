@@ -217,25 +217,22 @@ App.KerberosWizardController = App.WizardController.extend(App.InstallComponent,
    */
   deleteKerberosService: function () {
     var serviceName = 'KERBEROS',
-      cachedService = App.cache.services.findProperty('ServiceInfo.service_name', serviceName),
-      modelService = App.Service.find(serviceName);
+        cachedService = App.cache.services.findProperty('ServiceInfo.service_name', serviceName),
+        modelService = App.Service.find(serviceName);
 
     if (cachedService) {
       App.cache.services.removeObject(cachedService);
     }
-    if (modelService && modelService.get('isLoaded')) {
+    if (modelService.get('isLoaded')) {
       App.serviceMapper.deleteRecord(modelService);
-      return App.ajax.send({
-        name: 'common.delete.service',
-        sender: this,
-        data: {
-          serviceName: serviceName,
-          clusterName: App.get('clusterName')
-        }
-      });
-    } else {
-      return $.Deferred().resolve().promise();
     }
+    return App.ajax.send({
+      name: 'common.delete.service',
+      sender: this,
+      data: {
+        serviceName: serviceName
+      }
+    });
   },
 
   /**
