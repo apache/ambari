@@ -217,8 +217,8 @@ App.KerberosWizardController = App.WizardController.extend(App.InstallComponent,
    */
   deleteKerberosService: function () {
     var serviceName = 'KERBEROS',
-        cachedService = App.cache.services.findProperty('ServiceInfo.service_name', serviceName),
-        modelService = App.Service.find(serviceName);
+      cachedService = App.cache.services.findProperty('ServiceInfo.service_name', serviceName),
+      modelService = App.Service.find(serviceName);
 
     if (cachedService) {
       App.cache.services.removeObject(cachedService);
