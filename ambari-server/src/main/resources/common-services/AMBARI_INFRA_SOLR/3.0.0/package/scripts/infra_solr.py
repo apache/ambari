@@ -174,7 +174,7 @@ class InfraSolr(Script):
       return
     zkmigrator = ZkMigrator(
       zk_host=params.zk_quorum,
-      java_exec=params.ambari_java_home,
+      java_exec=params.ambari_java_exec,
       java_home=params.ambari_java_home,
       jaas_file=params.infra_solr_jaas_file,
       user=params.infra_solr_user,
