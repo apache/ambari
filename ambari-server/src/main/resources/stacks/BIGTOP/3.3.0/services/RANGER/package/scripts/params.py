@@ -297,11 +297,8 @@ else:
 downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
 
 driver_curl_source = format("{jdk_location}/{jdbc_jar_name}")
-driver_curl_target = format("{java_share_dir}/{jdbc_jar_name}")
-previous_jdbc_jar = format("{java_share_dir}/{previous_jdbc_jar_name}")
-if stack_supports_config_versioning:
-  driver_curl_target = format("{ranger_home}/ews/lib/{jdbc_jar_name}")
-  previous_jdbc_jar = format("{ranger_home}/ews/lib/{previous_jdbc_jar_name}")
+driver_curl_target = format("{ranger_home}/ews/lib/{jdbc_jar_name}")
+previous_jdbc_jar = format("{ranger_home}/ews/lib/{previous_jdbc_jar_name}")
 
 if db_flavor.lower() == "sqla":
   downloaded_custom_connector = format("{tmp_dir}/sqla-client-jdbc.tar.gz")

@@ -465,23 +465,42 @@ def password_validation(password):
 def copy_jdbc_connector(ranger_home):
   import params
 
-  if params.jdbc_jar_name is None and params.driver_curl_source.endswith("/None"):
+  if params.jdbc_jar_name is None or params.driver_curl_source.endswith("/None"):
     error_message = format(
       "{db_flavor} jdbc driver cannot be downloaded from {jdk_location}\nPlease run 'ambari-server setup --jdbc-db={db_flavor} --jdbc-driver={{path_to_jdbc}}' on ambari-server host."
     )
     raise Fail(error_message)
 
-  if params.driver_curl_source and not params.driver_curl_source.endswith("/None"):
-    if params.previous_jdbc_jar and os.path.isfile(params.previous_jdbc_jar):
-      File(params.previous_jdbc_jar, action="delete")
+  ModifyPropertiesFile(
+    format("{ranger_home}/install.properties"),
+    properties=params.config["configurations"]["admin-properties"],
+    owner=params.unix_user,
+  )
+
+  if params.db_flavor.lower() == "sqla":
+    ModifyPropertiesFile(
+      format("{ranger_home}/install.properties"),
+      properties={"SQL_CONNECTOR_JAR": format("{ranger_home}/ews/lib/sajdbc4.jar")},
+      owner=params.unix_user,
+    )
+  else:
+    ModifyPropertiesFile(
+      format("{ranger_home}/install.properties"),
+      properties={"SQL_CONNECTOR_JAR": format("{driver_curl_target}")},
+      owner=params.unix_user,
+    )
+
+  if params.previous_jdbc_jar and os.path.isfile(params.previous_jdbc_jar):
+    if params.previous_jdbc_jar_name == params.jdbc_jar_name:
+      Logger.info(format("{params.previous_jdbc_jar} already exists. Skip to download it."))
+      return
+    File(params.previous_jdbc_jar, action="delete")
 
   File(
     params.downloaded_custom_connector,
     content=DownloadSource(params.driver_curl_source),
     mode=0o644,
   )
-
-  driver_curl_target = format("{ranger_home}/ews/lib/{jdbc_jar_name}")
 
   if params.db_flavor.lower() == "sqla":
     Execute(
@@ -524,25 +543,6 @@ def copy_jdbc_connector(ranger_home):
     )
 
     File(os.path.join(ranger_home, "ews", "lib", params.jdbc_jar_name), mode=0o644)
-
-  ModifyPropertiesFile(
-    format("{ranger_home}/install.properties"),
-    properties=params.config["configurations"]["admin-properties"],
-    owner=params.unix_user,
-  )
-
-  if params.db_flavor.lower() == "sqla":
-    ModifyPropertiesFile(
-      format("{ranger_home}/install.properties"),
-      properties={"SQL_CONNECTOR_JAR": format("{ranger_home}/ews/lib/sajdbc4.jar")},
-      owner=params.unix_user,
-    )
-  else:
-    ModifyPropertiesFile(
-      format("{ranger_home}/install.properties"),
-      properties={"SQL_CONNECTOR_JAR": format("{driver_curl_target}")},
-      owner=params.unix_user,
-    )
 
 
 def setup_usersync(upgrade_type=None):
