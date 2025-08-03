@@ -384,8 +384,8 @@ describe('App.WizardStep1Controller', function () {
 
     beforeEach(function () {
       this.controller = App.WizardStep1Controller.create({content: Em.Object.create({stacks: stacks})});
-      this.controller.get('content.stacks').setEach('usePublicRepo', true);
-      this.controller.get('content.stacks').setEach('useLocalRepo', false);
+      this.controller.get('content.stacks').setEach('usePublicRepo', false);
+      this.controller.get('content.stacks').setEach('useLocalRepo', true);
       this.controller.reopen({networkIssuesExist: true});
       this.controller.onNetworkIssuesExist();
     });
