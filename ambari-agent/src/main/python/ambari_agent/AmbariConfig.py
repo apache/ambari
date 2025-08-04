@@ -292,7 +292,7 @@ class AmbariConfig:
     policy = self.get(
       "agent",
       self.COMMAND_FILE_RETENTION_POLICY_PROPERTY,
-      default=self.COMMAND_FILE_RETENTION_POLICY_KEEP,
+      default=self.COMMAND_FILE_RETENTION_POLICY_REMOVE,
     )
     policies = [
       self.COMMAND_FILE_RETENTION_POLICY_KEEP,
