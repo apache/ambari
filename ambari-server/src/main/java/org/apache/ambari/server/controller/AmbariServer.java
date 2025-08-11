@@ -148,12 +148,14 @@ import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.server.handler.gzip.GzipHandler;
 import org.eclipse.jetty.server.session.DefaultSessionIdManager;
 import org.eclipse.jetty.server.session.SessionHandler;
+import org.eclipse.jetty.server.SymlinkAllowedResourceAliasChecker;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
+import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.websocket.server.config.JettyWebSocketServletContainerInitializer;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
@@ -520,6 +522,10 @@ public class AmbariServer {
       resources.setInitParameter("dirAllowed", "false");
       root.addServlet(resources, "/resources/*");
       resources.setInitOrder(5);
+
+      // Allow symlinked files in Jetty 11
+      Resource baseResource = Resource.newResource(resourcesDirectory.getParentFile().getAbsolutePath());
+      root.addAliasCheck(new SymlinkAllowedResourceAliasChecker(root, baseResource));
 
       if (configs.csrfProtectionEnabled()) {
         sh.setInitParameter("org.glassfish.jersey.server.ContainerRequestFilter",
