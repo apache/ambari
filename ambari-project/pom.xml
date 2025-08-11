@@ -25,6 +25,7 @@
   <name>Apache Ambari Project POM</name>
   <packaging>pom</packaging>
   <properties>
+    <build.os_arch>x86_64</build.os_arch>
     <skipSurefireTests>false</skipSurefireTests>
     <skipPythonTests>false</skipPythonTests>
     <skipFunctionalTests>true</skipFunctionalTests>

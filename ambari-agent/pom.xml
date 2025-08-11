@@ -422,7 +422,7 @@
             <fileEncoding>utf-8</fileEncoding>
           </postremoveScriptlet>
 
-          <needarch>x86_64</needarch>
+	  <needarch>${build.os_arch}</needarch>
           <autoRequires>false</autoRequires>
           <mappings>
             <mapping>
