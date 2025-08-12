@@ -79,6 +79,11 @@ def setup_ranger_plugin(
   cred_setup_prefix_override=None,
   plugin_home=None,
 ):
+  if stack_version_override is None:
+    stack_version = get_stack_version(component_select_name)
+  else:
+    stack_version = stack_version_override
+
   if not plugin_home:
     stack_root = Script.get_stack_root()
     service_name = str(service_name).lower()
@@ -113,11 +118,6 @@ def setup_ranger_plugin(
 
   if policymgr_mgr_url.endswith("/"):
     policymgr_mgr_url = policymgr_mgr_url.rstrip("/")
-
-  if stack_version_override is None:
-    stack_version = get_stack_version(component_select_name)
-  else:
-    stack_version = stack_version_override
 
   component_conf_dir = conf_dict
 
