@@ -838,6 +838,7 @@ describe('App.KerberosWizardStep2Controller', function() {
       expect(args[0]).to.be.eql({
         name: 'common.cluster.update',
         sender: controller,
+        dataType: 'text',
         data: {
           clusterName: 'c1',
           data: [{
