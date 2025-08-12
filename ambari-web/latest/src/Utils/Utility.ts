@@ -16,8 +16,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import moment from "moment-timezone";
+
 import _,{  startCase, get, has } from "lodash";
+import { detectUserTimezone, parseTimezones } from "./timezone";
 
 export const padNumber = (num: number) => (num < 10 ? `0${num}` : num);
 const components: any = {
@@ -128,23 +129,9 @@ const componentsMap: any = {
 };
 
 export const getUserTimezone = () => {
-  const timezone = moment.tz.guess();
-  const offset = moment.tz(timezone).format("Z");
-  const abbr = moment.tz(timezone).format("z");
-  const cities = moment.tz
-    .names()
-    .filter((name) => moment.tz(name).format("Z") === offset);
- 
-  const formattedContinent = cities.map((city) =>
-    city.split("/")[0].replace("_", " ")
-  )[0];
-  const formattedCities = cities.map((city) =>
-    city.split("/")[1].replace("_", " ")
-  );
- 
-  return `(UTC${offset} ${abbr}) ${formattedContinent} / ${formattedCities.join(
-    ", "
-  )}`;
+  const timeZones = parseTimezones();
+  const userTimezone = detectUserTimezone();
+  return timeZones.find((tz) => tz.value === userTimezone)?.label || "";
 };
  
 export const formatDate = (date: Date) => {
@@ -420,7 +407,7 @@ const getHighestPriorityStatus = (statuses: any[]) => {
     return statusOrder.indexOf(status) < statusOrder.indexOf(highestPriorityStatus)
         ? status
         : highestPriorityStatus;
-  }, statusOrder?.at(-1));
+  }, statusOrder[statusOrder.length - 1]);
 };
 
 export function sortPropertyLight(arr: any[], path: string, desc: boolean = false) {
