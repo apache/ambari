@@ -455,3 +455,8 @@ export function isShownOnAddServiceAssignMasterPage(component:string,isMaster:bo
   }
   return isVisible;
 }
+
+export const redirectToLogin = () => {
+  window.location.href = "#/login";
+  window.location.reload();
+};

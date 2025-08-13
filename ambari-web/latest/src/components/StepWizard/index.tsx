@@ -15,29 +15,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { FunctionComponent, memo, useState } from "react";
+import { FunctionComponent, memo, useContext, useState } from "react";
 import "./styles.scss";
 import classNames from "classnames";
-import { CheckLg} from "react-bootstrap-icons";
+import { CheckLg } from "react-bootstrap-icons";
 import ConfirmationModal from "../ConfirmationModal";
+import { get } from "lodash";
+
 interface StepWizardProps {
   wizardUtilities: any;
+  Context?: React.Context<any>;
 }
 
 const StepWizard: FunctionComponent<StepWizardProps> = ({
   wizardUtilities,
+  Context,
 }: any) => {
-  const {
-    activeStep,
-    wizardSteps,
-    jumpToStep,
-    canJumpFromCurrentStep,
-  } = wizardUtilities;
+  const { activeStep, wizardSteps, jumpToStep, canJumpFromCurrentStep } =
+    wizardUtilities;
+  const contextValue = useContext<any>(Context || {});
+  const flushStateToDb = get(contextValue, "flushStateToDb", "");
   const [jumpStep, setjumpStep] = useState(0);
   const [showNavigationModal, setShowNavigationModal] = useState(false);
-  console.log("active step in stepwizard ", activeStep)
   return (
-    <div className="step-wizard h-100" style={{ position: "relative" }}>
+    <div className="step-wizard h-95" style={{ position: "relative" }}>
       <ConfirmationModal
         isOpen={showNavigationModal}
         onClose={() => {
@@ -47,6 +48,9 @@ const StepWizard: FunctionComponent<StepWizardProps> = ({
         modalBody={`If you proceed to go back to Step ${jumpStep}, you will lose any changes you made.`}
         successCallback={() => {
           jumpToStep(jumpStep);
+          if (flushStateToDb) {
+            flushStateToDb("jump", jumpStep);
+          }
           setShowNavigationModal(false);
         }}
       />
@@ -58,8 +62,10 @@ const StepWizard: FunctionComponent<StepWizardProps> = ({
               <div
                 key={currentStep}
                 onClick={() => {
-                  setShowNavigationModal(true);
-                  setjumpStep(Number(currentStep));
+                  if (wizardSteps[activeStep].canGoBack) {
+                    setShowNavigationModal(true);
+                    setjumpStep(Number(currentStep));
+                  }
                 }}
                 className={classNames(
                   "d-flex align-items-center step-wizard-step cursor-pointer",
@@ -95,7 +101,7 @@ const StepWizard: FunctionComponent<StepWizardProps> = ({
           })}
         </div>
         <div className="px-5 py-4 w-100 mh-100 y-scroll wizard-content">
-          {wizardSteps[activeStep].Component}
+          {wizardSteps[activeStep]?.Component}
         </div>
       </div>
       {/* <div className="step-wizard-footer d-flex justify-content-between bg-white p-2">
