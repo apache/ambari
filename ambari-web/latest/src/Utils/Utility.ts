@@ -19,6 +19,9 @@
 
 import _,{  startCase, get, has } from "lodash";
 import { detectUserTimezone, parseTimezones } from "./timezone";
+import DOMPurify from "isomorphic-dompurify";
+import parse from 'html-react-parser';
+import { t } from "i18next";
 
 export const padNumber = (num: number) => (num < 10 ? `0${num}` : num);
 const components: any = {
@@ -455,3 +458,18 @@ export function isShownOnAddServiceAssignMasterPage(component:string,isMaster:bo
   }
   return isVisible;
 }
+
+export const translate = (messageKey: string) => {
+  return parse(DOMPurify.sanitize(t(messageKey), { USE_PROFILES: { html: true } } ));
+}
+
+// {translateWithVariables("admin.stackUpgrade.pauseUpgrade.warning", { "0": variable0, "1": variable1 })}
+export const translateWithVariables = (messageKey: string, replacements: Record<string, string> = {}) => {
+  let message = t(messageKey);
+
+  Object.entries(replacements).forEach(([key, value]) => {
+      message = message.replace(new RegExp(`\\{${key}\\}`, 'g'), value);
+  });
+
+  return parse(DOMPurify.sanitize(message, { USE_PROFILES: { html: true } }));
+};
