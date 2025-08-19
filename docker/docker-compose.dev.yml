@@ -1,0 +1,303 @@
+# Apache Ambari Development Docker Compose Configuration
+# This configuration provides a complete development environment for Ambari
+
+version: '3.8'
+
+services:
+  # PostgreSQL Database for Ambari
+  ambari-db:
+    image: postgres:15-alpine
+    container_name: ambari-db
+    hostname: ambari-db
+    environment:
+      POSTGRES_DB: ambari
+      POSTGRES_USER: ambari
+      POSTGRES_PASSWORD: bigdata
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+    volumes:
+      - ambari-db-data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    ports:
+      - "5432:5432"
+    networks:
+      - ambari-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ambari -d ambari"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Ambari Server
+  ambari-server:
+    build:
+      context: ..
+      dockerfile: docker/images/ambari/Dockerfile.server
+      target: development
+      args:
+        - UBUNTU_VERSION=22.04
+        - JAVA_VERSION=8
+        - MAVEN_VERSION=3.9.6
+    container_name: ambari-server
+    hostname: ambari-server
+    environment:
+      # Database configuration
+      - AMBARI_DB_HOST=ambari-db
+      - AMBARI_DB_PORT=5432
+      - AMBARI_DB_NAME=ambari
+      - AMBARI_DB_USER=ambari
+      - AMBARI_DB_PASSWORD=bigdata
+      
+      # Server configuration
+      - AMBARI_SERVER_HTTPS=false
+      - AMBARI_COMPONENT=server
+      
+      # Development settings
+      - AMBARI_DEBUG=true
+      - MAVEN_OPTS=-Xmx2g -XX:+UseG1GC
+      - JAVA_OPTS=-Xmx2g -Xms1g -XX:+UseG1GC -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+    volumes:
+      # Source code mount for live development
+      - ../:/workspace:cached
+      - ambari-server-data:/var/lib/ambari-server
+      - ambari-server-logs:/var/log/ambari-server
+      - ambari-server-conf:/etc/ambari-server/conf
+      # Maven cache for faster builds
+      - maven-cache:/home/ambari/.m2
+      # SSH keys for multi-node communication
+      - ssh-keys:/home/ambari/.ssh
+    ports:
+      - "8080:8080"     # Ambari Web UI
+      - "8441:8441"     # Ambari HTTPS
+      - "5005:5005"     # Java Debug Port
+    networks:
+      - ambari-network
+    depends_on:
+      ambari-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/health-check.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+
+  # Ambari Agent (can be scaled)
+  ambari-agent:
+    build:
+      context: ..
+      dockerfile: docker/images/ambari/Dockerfile.agent
+      target: development
+      args:
+        - UBUNTU_VERSION=22.04
+        - JAVA_VERSION=8
+    container_name: ambari-agent-1
+    hostname: ambari-agent-1
+    environment:
+      # Server connection
+      - AMBARI_SERVER_HOST=ambari-server
+      - AMBARI_SERVER_PORT=8080
+      - AMBARI_COMPONENT=agent
+      
+      # Agent configuration
+      - AGENT_HOSTNAME=ambari-agent-1
+      
+      # Development settings
+      - AMBARI_DEBUG=true
+      - JAVA_OPTS=-Xmx1g -Xms512m -XX:+UseG1GC -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5006
+    volumes:
+      # Source code mount for development
+      - ../:/workspace:cached
+      - ambari-agent-data:/var/lib/ambari-agent
+      - ambari-agent-logs:/var/log/ambari-agent
+      - ambari-agent-conf:/etc/ambari-agent/conf
+      # Shared SSH keys
+      - ssh-keys:/home/ambari/.ssh:ro
+    ports:
+      - "5006:5006"     # Java Debug Port
+    networks:
+      - ambari-network
+    depends_on:
+      - ambari-server
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/health-check.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+    privileged: true  # Required for some agent operations
+    stdin_open: true
+    tty: true
+
+  # Ambari Metrics Collector (Optional - controlled by METRICS_ENABLED)
+  ambari-metrics:
+    build:
+      context: ..
+      dockerfile: docker/images/ambari-metrics/Dockerfile
+      target: development
+      args:
+        - UBUNTU_VERSION=22.04
+        - JAVA_VERSION=8
+    container_name: ambari-metrics
+    hostname: ambari-metrics
+    environment:
+      # Metrics configuration
+      - AMS_HBASE_ROOTDIR=/var/lib/ambari-metrics-collector/hbase
+      - AMS_COLLECTOR_PORT=6188
+      - AMS_GRAFANA_ENABLED=true
+      - AMBARI_COMPONENT=metrics
+      
+      # Development settings
+      - AMBARI_DEBUG=true
+      - AMS_JAVA_OPTS=-Xmx1g -Xms512m -XX:+UseG1GC
+    volumes:
+      # Source code mount for development
+      - ../:/workspace:cached
+      - ambari-metrics-data:/var/lib/ambari-metrics-collector
+      - ambari-metrics-logs:/var/log/ambari-metrics-collector
+      - ambari-metrics-conf:/etc/ambari-metrics-collector/conf
+    ports:
+      - "6188:6188"     # Metrics Collector API
+      - "61888:61888"   # Metrics aggregation port
+    networks:
+      - ambari-network
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/health-check.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    profiles:
+      - metrics
+    deploy:
+      replicas: ${METRICS_ENABLED:-0}  # Default to 0, meaning metrics won't start unless METRICS_ENABLED is set
+
+  # Grafana for Metrics Visualization (Optional - controlled by GRAFANA_ENABLED)
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: ambari-grafana
+    hostname: grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=http://localhost:3000
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./config/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./config/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "3000:3000"     # Grafana Web UI
+    networks:
+      - ambari-network
+    depends_on:
+      - ambari-metrics
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    profiles:
+      - metrics
+    deploy:
+      replicas: ${GRAFANA_ENABLED:-0}  # Default to 0, controlled by GRAFANA_ENABLED
+
+  # Development Tools Container
+  dev-tools:
+    build:
+      context: ..
+      dockerfile: docker/images/ambari-base/Dockerfile
+      target: build
+    container_name: ambari-dev-tools
+    hostname: dev-tools
+    environment:
+      - AMBARI_DEBUG=true
+    volumes:
+      # Source code mount
+      - ../:/workspace:cached
+      # Maven cache
+      - maven-cache:/home/ambari/.m2
+      # Build artifacts
+      - build-cache:/workspace/target
+    working_dir: /workspace
+    networks:
+      - ambari-network
+    profiles:
+      - dev-tools
+    stdin_open: true
+    tty: true
+    command: ["bash"]
+
+# Networks
+networks:
+  ambari-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# Volumes
+volumes:
+  # Database
+  ambari-db-data:
+    driver: local
+  
+  # Ambari Server
+  ambari-server-data:
+    driver: local
+  ambari-server-logs:
+    driver: local
+  ambari-server-conf:
+    driver: local
+  
+  # Ambari Agent
+  ambari-agent-data:
+    driver: local
+  ambari-agent-logs:
+    driver: local
+  ambari-agent-conf:
+    driver: local
+  
+  # Ambari Metrics
+  ambari-metrics-data:
+    driver: local
+  ambari-metrics-logs:
+    driver: local
+  ambari-metrics-conf:
+    driver: local
+  
+  # Grafana
+  grafana-data:
+    driver: local
+  
+  # Shared volumes
+  maven-cache:
+    driver: local
+  ssh-keys:
+    driver: local
+  build-cache:
+    driver: local
+
+# Development specific configurations
+x-development-overrides:
+  # Common development settings
+  &dev-common
+  restart: "no"  # Don't restart automatically in dev
+  
+  # Volume mount for live development
+  &source-mount
+  - ../:/workspace:cached
+  
+  # Debug port configuration
+  &debug-ports
+  - "5005:5005"  # Server debug
+  - "5006:5006"  # Agent debug

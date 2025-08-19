@@ -1,0 +1,191 @@
+# Simplified Apache Ambari Docker Compose Configuration
+# This setup uses existing images and focuses on getting Ambari running quickly
+
+version: '3.8'
+
+services:
+  # PostgreSQL Database for Ambari
+  ambari-db:
+    image: postgres:15-alpine
+    container_name: ambari-database
+    hostname: ambari-db
+    environment:
+      POSTGRES_DB: ambari
+      POSTGRES_USER: ambari
+      POSTGRES_PASSWORD: bigdata
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    volumes:
+      - ambari-db-data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    ports:
+      - "5432:5432"
+    networks:
+      - ambari-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ambari -d ambari"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  # Zookeeper for coordination
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: ambari-zookeeper
+    hostname: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_INIT_LIMIT: 5
+      ZOOKEEPER_SYNC_LIMIT: 2
+    volumes:
+      - zookeeper-data:/var/lib/zookeeper/data
+      - zookeeper-logs:/var/lib/zookeeper/log
+    ports:
+      - "2181:2181"
+    networks:
+      - ambari-network
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+
+  # Hadoop NameNode
+  namenode:
+    image: apache/hadoop:3.3.6
+    container_name: hadoop-namenode
+    hostname: namenode
+    environment:
+      - CLUSTER_NAME=ambari-cluster
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+      - CORE_CONF_hadoop_http_staticuser_user=root
+      - HDFS_CONF_dfs_webhdfs_enabled=true
+      - HDFS_CONF_dfs_permissions_enabled=false
+      - HDFS_CONF_dfs_replication=1
+    volumes:
+      - namenode-data:/hadoop/dfs/name
+    ports:
+      - "9870:9870"     # NameNode Web UI
+      - "9001:9000"     # NameNode IPC (changed to avoid conflict)
+    networks:
+      - ambari-network
+    command: ["hdfs", "namenode"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9870"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+  # Hadoop DataNode
+  datanode:
+    image: apache/hadoop:3.3.6
+    container_name: hadoop-datanode
+    hostname: datanode
+    depends_on:
+      namenode:
+        condition: service_healthy
+    environment:
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+      - HDFS_CONF_dfs_webhdfs_enabled=true
+      - HDFS_CONF_dfs_permissions_enabled=false
+      - HDFS_CONF_dfs_datanode_use_datanode_hostname=false
+    volumes:
+      - datanode-data:/hadoop/dfs/data
+    ports:
+      - "9864:9864"     # DataNode Web UI
+    networks:
+      - ambari-network
+    command: ["hdfs", "datanode"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9864"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+  # YARN ResourceManager
+  resourcemanager:
+    image: apache/hadoop:3.3.6
+    container_name: hadoop-resourcemanager
+    hostname: resourcemanager
+    depends_on:
+      namenode:
+        condition: service_healthy
+    environment:
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+      - YARN_CONF_yarn_resourcemanager_hostname=resourcemanager
+      - YARN_CONF_yarn_resourcemanager_address=resourcemanager:8032
+      - YARN_CONF_yarn_resourcemanager_webapp_address=resourcemanager:8088
+    ports:
+      - "8088:8088"     # ResourceManager Web UI
+      - "8032:8032"     # ResourceManager IPC
+    networks:
+      - ambari-network
+    command: ["yarn", "resourcemanager"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8088"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+  # Grafana for visualization
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: ambari-grafana
+    hostname: grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=http://localhost:3000
+    volumes:
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3001:3000"     # Changed to avoid conflict with existing Grafana
+    networks:
+      - ambari-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+
+# Networks
+networks:
+  ambari-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# Volumes
+volumes:
+  # Database
+  ambari-db-data:
+    driver: local
+  
+  # Zookeeper
+  zookeeper-data:
+    driver: local
+  zookeeper-logs:
+    driver: local
+  
+  # Hadoop
+  namenode-data:
+    driver: local
+  datanode-data:
+    driver: local
+  
+  # Grafana
+  grafana-data:
+    driver: local

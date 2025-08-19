@@ -1,0 +1,396 @@
+# Apache Ambari Production Docker Compose Configuration
+# Based on best practices from Apache Pinot and other Apache projects
+
+version: '3.8'
+
+services:
+  # Zookeeper for coordination (following Pinot pattern)
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: ambari-zookeeper
+    hostname: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_INIT_LIMIT: 5
+      ZOOKEEPER_SYNC_LIMIT: 2
+      ZOOKEEPER_MAX_CLIENT_CNXNS: 60
+      ZOOKEEPER_AUTOPURGE_SNAP_RETAIN_COUNT: 3
+      ZOOKEEPER_AUTOPURGE_PURGE_INTERVAL: 24
+    volumes:
+      - zookeeper-data:/var/lib/zookeeper/data
+      - zookeeper-logs:/var/lib/zookeeper/log
+    ports:
+      - "2181:2181"
+    networks:
+      - ambari-network
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+
+  # PostgreSQL Database for Ambari
+  ambari-db:
+    image: postgres:15-alpine
+    container_name: ambari-database
+    hostname: ambari-db
+    environment:
+      POSTGRES_DB: ambari
+      POSTGRES_USER: ambari
+      POSTGRES_PASSWORD: bigdata
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - ambari-db-data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    ports:
+      - "5432:5432"
+    networks:
+      - ambari-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ambari -d ambari"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    command: >
+      postgres
+      -c max_connections=200
+      -c shared_buffers=256MB
+      -c effective_cache_size=1GB
+      -c maintenance_work_mem=64MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c default_statistics_target=100
+
+  # Ambari Server
+  ambari-server:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.server
+      target: runtime
+      args:
+        - UBUNTU_VERSION=22.04
+        - JAVA_VERSION=11
+        - MAVEN_VERSION=3.9.6
+    container_name: ambari-server
+    hostname: ambari-server
+    depends_on:
+      ambari-db:
+        condition: service_healthy
+      zookeeper:
+        condition: service_healthy
+    environment:
+      # Database configuration
+      - AMBARI_DB_HOST=ambari-db
+      - AMBARI_DB_PORT=5432
+      - AMBARI_DB_NAME=ambari
+      - AMBARI_DB_USER=ambari
+      - AMBARI_DB_PASSWORD=bigdata
+      
+      # Server configuration
+      - AMBARI_SERVER_HTTPS=false
+      - AMBARI_COMPONENT=server
+      
+      # JVM configuration (following Pinot pattern)
+      - JAVA_OPTS=-Xmx4G -Xms2G -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+UnlockExperimentalVMOptions -XX:+UseZGC
+      
+      # Zookeeper configuration
+      - AMBARI_ZK_CONNECT=zookeeper:2181
+    volumes:
+      - ambari-server-data:/var/lib/ambari-server
+      - ambari-server-logs:/var/log/ambari-server
+      - ambari-server-conf:/etc/ambari-server/conf
+    ports:
+      - "8080:8080"     # Ambari Web UI
+      - "8441:8441"     # Ambari HTTPS
+    networks:
+      - ambari-network
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/health-check.sh", "server"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 6G
+          cpus: '2.0'
+        reservations:
+          memory: 4G
+          cpus: '1.0'
+
+  # Ambari Agent (scalable)
+  ambari-agent:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.agent
+      target: runtime
+      args:
+        - UBUNTU_VERSION=22.04
+        - JAVA_VERSION=11
+    hostname: ambari-agent-{{.Task.Slot}}
+    depends_on:
+      ambari-server:
+        condition: service_healthy
+    environment:
+      # Server connection
+      - AMBARI_SERVER_HOST=ambari-server
+      - AMBARI_SERVER_PORT=8080
+      - AMBARI_COMPONENT=agent
+      
+      # JVM configuration
+      - JAVA_OPTS=-Xmx2G -Xms1G -XX:+UseG1GC -XX:MaxGCPauseMillis=200
+    volumes:
+      - ambari-agent-data:/var/lib/ambari-agent
+      - ambari-agent-logs:/var/log/ambari-agent
+      - ambari-agent-conf:/etc/ambari-agent/conf
+    networks:
+      - ambari-network
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/health-check.sh", "agent"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+    privileged: true
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 3G
+          cpus: '1.0'
+        reservations:
+          memory: 2G
+          cpus: '0.5'
+
+  # Ambari Metrics Collector
+  ambari-metrics:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.metrics
+      target: runtime
+      args:
+        - UBUNTU_VERSION=22.04
+        - JAVA_VERSION=11
+    container_name: ambari-metrics-collector
+    hostname: ambari-metrics
+    depends_on:
+      ambari-server:
+        condition: service_healthy
+    environment:
+      # Metrics configuration
+      - AMS_HBASE_ROOTDIR=/var/lib/ambari-metrics-collector/hbase
+      - AMS_COLLECTOR_PORT=6188
+      - AMBARI_COMPONENT=metrics
+      
+      # JVM configuration (following Pinot pattern)
+      - AMS_JAVA_OPTS=-Xmx2G -Xms1G -XX:+UseG1GC -XX:MaxGCPauseMillis=200
+      - HBASE_HEAPSIZE=1024m
+    volumes:
+      - ambari-metrics-data:/var/lib/ambari-metrics-collector
+      - ambari-metrics-logs:/var/log/ambari-metrics-collector
+      - ambari-metrics-conf:/etc/ambari-metrics-collector/conf
+    ports:
+      - "6188:6188"     # Metrics Collector API
+      - "61888:61888"   # Metrics aggregation port
+    networks:
+      - ambari-network
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/health-check.sh", "metrics"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 3G
+          cpus: '1.0'
+        reservations:
+          memory: 2G
+          cpus: '0.5'
+
+  # Grafana for Metrics Visualization (following Pinot pattern)
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: ambari-grafana
+    hostname: grafana
+    depends_on:
+      - ambari-metrics
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=http://localhost:3000
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+      - GF_SECURITY_ALLOW_EMBEDDING=true
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./config/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./config/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "3000:3000"
+    networks:
+      - ambari-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+
+  # Hadoop NameNode (for cluster setup)
+  namenode:
+    image: apache/hadoop:3.3.6
+    container_name: hadoop-namenode
+    hostname: namenode
+    environment:
+      - CLUSTER_NAME=ambari-cluster
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+      - CORE_CONF_hadoop_http_staticuser_user=root
+      - CORE_CONF_hadoop_proxyuser_hue_hosts=*
+      - CORE_CONF_hadoop_proxyuser_hue_groups=*
+      - HDFS_CONF_dfs_webhdfs_enabled=true
+      - HDFS_CONF_dfs_permissions_enabled=false
+      - HDFS_CONF_dfs_nameservices=mycluster
+      - HDFS_CONF_dfs_replication=2
+    volumes:
+      - namenode-data:/hadoop/dfs/name
+    ports:
+      - "9870:9870"     # NameNode Web UI
+      - "9001:9000"     # NameNode IPC (changed to avoid conflict)
+    networks:
+      - ambari-network
+    command: ["hdfs", "namenode"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9870"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+  # Hadoop DataNode (scalable)
+  datanode:
+    image: apache/hadoop:3.3.6
+    hostname: datanode-{{.Task.Slot}}
+    depends_on:
+      namenode:
+        condition: service_healthy
+    environment:
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+      - CORE_CONF_hadoop_http_staticuser_user=root
+      - HDFS_CONF_dfs_webhdfs_enabled=true
+      - HDFS_CONF_dfs_permissions_enabled=false
+      - HDFS_CONF_dfs_datanode_use_datanode_hostname=false
+      - HDFS_CONF_dfs_client_use_datanode_hostname=false
+      - HDFS_CONF_dfs_datanode_data_dir=/hadoop/dfs/data
+    volumes:
+      - datanode-data:/hadoop/dfs/data
+    ports:
+      - "9864"          # DataNode Web UI (dynamic port)
+    networks:
+      - ambari-network
+    command: ["hdfs", "datanode"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9864"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+    deploy:
+      replicas: 2
+
+  # YARN ResourceManager
+  resourcemanager:
+    image: apache/hadoop:3.3.6
+    container_name: hadoop-resourcemanager
+    hostname: resourcemanager
+    depends_on:
+      namenode:
+        condition: service_healthy
+    environment:
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+      - YARN_CONF_yarn_resourcemanager_hostname=resourcemanager
+      - YARN_CONF_yarn_resourcemanager_address=resourcemanager:8032
+      - YARN_CONF_yarn_resourcemanager_scheduler_address=resourcemanager:8030
+      - YARN_CONF_yarn_resourcemanager_resource_tracker_address=resourcemanager:8031
+      - YARN_CONF_yarn_resourcemanager_admin_address=resourcemanager:8033
+      - YARN_CONF_yarn_resourcemanager_webapp_address=resourcemanager:8088
+    ports:
+      - "8088:8088"     # ResourceManager Web UI
+      - "8032:8032"     # ResourceManager IPC
+    networks:
+      - ambari-network
+    command: ["yarn", "resourcemanager"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8088"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+# Networks
+networks:
+  ambari-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# Volumes
+volumes:
+  # Zookeeper
+  zookeeper-data:
+    driver: local
+  zookeeper-logs:
+    driver: local
+  
+  # Database
+  ambari-db-data:
+    driver: local
+  
+  # Ambari Server
+  ambari-server-data:
+    driver: local
+  ambari-server-logs:
+    driver: local
+  ambari-server-conf:
+    driver: local
+  
+  # Ambari Agent
+  ambari-agent-data:
+    driver: local
+  ambari-agent-logs:
+    driver: local
+  ambari-agent-conf:
+    driver: local
+  
+  # Ambari Metrics
+  ambari-metrics-data:
+    driver: local
+  ambari-metrics-logs:
+    driver: local
+  ambari-metrics-conf:
+    driver: local
+  
+  # Grafana
+  grafana-data:
+    driver: local
+  
+  # Hadoop
+  namenode-data:
+    driver: local
+  datanode-data:
+    driver: local

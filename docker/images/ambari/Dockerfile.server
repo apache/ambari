@@ -1,0 +1,202 @@
+# Multi-stage Dockerfile for Apache Ambari Server
+# Based on best practices from Apache Pinot and other Apache projects
+
+# Build stage
+FROM ubuntu:22.04 AS builder
+
+# Build arguments
+ARG MAVEN_VERSION=3.9.6
+ARG JAVA_VERSION=11
+ARG NODE_VERSION=18
+
+# Set environment variables
+ENV DEBIAN_FRONTEND=noninteractive
+ENV JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
+ENV MAVEN_HOME=/opt/maven
+ENV NODE_HOME=/opt/node
+ENV PATH=$PATH:$MAVEN_HOME/bin:$NODE_HOME/bin
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    openjdk-${JAVA_VERSION}-jdk \
+    maven \
+    nodejs \
+    npm \
+    curl \
+    wget \
+    git \
+    build-essential \
+    python3 \
+    python3-pip \
+    python3-dev \
+    rpm \
+    alien \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /workspace
+
+# Copy source code
+COPY . .
+
+# Build Ambari Server
+RUN mvn clean install -DskipTests -Drat.skip=true -Dfindbugs.skip=true \
+    && mvn clean package rpm:rpm -pl ambari-server -DskipTests -Drat.skip=true
+
+# Runtime stage
+FROM ubuntu:22.04 AS runtime
+
+# Runtime arguments
+ARG JAVA_VERSION=11
+
+# Set environment variables
+ENV DEBIAN_FRONTEND=noninteractive
+ENV JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
+ENV AMBARI_HOME=/opt/ambari
+ENV AMBARI_SERVER_HOME=/opt/ambari-server
+ENV PATH=$PATH:$AMBARI_SERVER_HOME/bin
+
+# Create ambari user
+RUN groupadd -r ambari && useradd -r -g ambari -d /home/ambari -s /bin/bash ambari \
+    && mkdir -p /home/ambari \
+    && chown -R ambari:ambari /home/ambari
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    openjdk-${JAVA_VERSION}-jre-headless \
+    python3 \
+    python3-pip \
+    postgresql-client \
+    curl \
+    wget \
+    netcat-openbsd \
+    procps \
+    net-tools \
+    sudo \
+    openssh-server \
+    rsync \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
+RUN pip3 install psycopg2-binary requests pyyaml
+
+# Copy built artifacts from builder stage
+COPY --from=builder /workspace/ambari-server/target/rpm/ambari-server/RPMS/noarch/*.rpm /tmp/
+
+# Convert and install RPM packages
+RUN cd /tmp && \
+    for rpm in *.rpm; do \
+        alien -d --scripts "$rpm"; \
+    done && \
+    dpkg -i *.deb && \
+    rm -f /tmp/*.rpm /tmp/*.deb
+
+# Create necessary directories
+RUN mkdir -p /var/lib/ambari-server \
+             /var/log/ambari-server \
+             /etc/ambari-server/conf \
+             /opt/ambari-server \
+    && chown -R ambari:ambari /var/lib/ambari-server \
+                              /var/log/ambari-server \
+                              /etc/ambari-server \
+                              /opt/ambari-server
+
+# Copy configuration files and scripts
+COPY docker/config/server/ /etc/ambari-server/conf/
+COPY docker/scripts/ /usr/local/bin/
+
+# Make scripts executable
+RUN chmod +x /usr/local/bin/*.sh
+
+# Create startup script
+RUN cat > /usr/local/bin/start-ambari-server.sh << 'EOF'
+#!/bin/bash
+set -e
+
+# Wait for database
+echo "Waiting for database connection..."
+while ! nc -z ${AMBARI_DB_HOST:-localhost} ${AMBARI_DB_PORT:-5432}; do
+    echo "Database not ready, waiting..."
+    sleep 5
+done
+echo "Database is ready!"
+
+# Setup database if not already done
+if [ ! -f /var/lib/ambari-server/.db-setup-done ]; then
+    echo "Setting up Ambari database..."
+    ambari-server setup --database=postgres \
+        --databasehost=${AMBARI_DB_HOST:-localhost} \
+        --databaseport=${AMBARI_DB_PORT:-5432} \
+        --databasename=${AMBARI_DB_NAME:-ambari} \
+        --databaseusername=${AMBARI_DB_USER:-ambari} \
+        --databasepassword=${AMBARI_DB_PASSWORD:-bigdata} \
+        --silent
+    
+    touch /var/lib/ambari-server/.db-setup-done
+    echo "Database setup completed!"
+fi
+
+# Start Ambari Server
+echo "Starting Ambari Server..."
+exec ambari-server start --debug=${AMBARI_DEBUG:-false}
+EOF
+
+RUN chmod +x /usr/local/bin/start-ambari-server.sh
+
+# Configure SSH
+RUN apt-get update && apt-get install -y openssh-server && \
+    mkdir -p /var/run/sshd && \
+    sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && \
+    sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
+
+# Configure sudo for ambari user
+RUN echo "ambari ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+
+# Switch to ambari user
+USER ambari
+
+# Expose ports
+EXPOSE 8080 8441 5005
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
+    CMD /usr/local/bin/health-check.sh server
+
+# Set working directory
+WORKDIR /home/ambari
+
+# Default command
+CMD ["/usr/local/bin/start-ambari-server.sh"]
+
+# Development stage
+FROM runtime AS development
+
+# Switch back to root for development tools
+USER root
+
+# Install development dependencies
+RUN apt-get update && apt-get install -y \
+    maven \
+    nodejs \
+    npm \
+    git \
+    vim \
+    less \
+    htop \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install global npm packages
+RUN npm install -g brunch
+
+# Create Maven cache directory
+RUN mkdir -p /home/ambari/.m2 && \
+    chown -R ambari:ambari /home/ambari/.m2
+
+# Switch back to ambari user
+USER ambari
+
+# Mount point for source code
+VOLUME ["/workspace"]
+
+# Default command for development
+CMD ["bash"]

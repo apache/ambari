@@ -1,0 +1,102 @@
+# Minimal Apache Ambari Docker Compose Configuration
+# This setup focuses on core infrastructure that works on ARM64 Macs
+
+version: '3.8'
+
+services:
+  # PostgreSQL Database for Ambari
+  ambari-db:
+    image: postgres:15-alpine
+    container_name: ambari-database
+    hostname: ambari-db
+    environment:
+      POSTGRES_DB: ambari
+      POSTGRES_USER: ambari
+      POSTGRES_PASSWORD: bigdata
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    volumes:
+      - ambari-db-data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    ports:
+      - "5433:5432"     # Changed port to avoid conflicts
+    networks:
+      - ambari-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ambari -d ambari"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  # Zookeeper for coordination
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: ambari-zookeeper
+    hostname: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_INIT_LIMIT: 5
+      ZOOKEEPER_SYNC_LIMIT: 2
+    volumes:
+      - zookeeper-data:/var/lib/zookeeper/data
+      - zookeeper-logs:/var/lib/zookeeper/log
+    ports:
+      - "2182:2181"     # Changed port to avoid conflicts
+    networks:
+      - ambari-network
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+
+  # Grafana for visualization
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: ambari-grafana-test
+    hostname: grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=http://localhost:3002
+    volumes:
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3002:3000"     # Changed port to avoid conflicts
+    networks:
+      - ambari-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+
+# Networks
+networks:
+  ambari-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16
+
+# Volumes
+volumes:
+  # Database
+  ambari-db-data:
+    driver: local
+  
+  # Zookeeper
+  zookeeper-data:
+    driver: local
+  zookeeper-logs:
+    driver: local
+  
+  # Grafana
+  grafana-data:
+    driver: local

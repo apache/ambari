@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<configuration>
+  <property>
+    <name>timeline.service.address</name>
+    <value>0.0.0.0:6188</value>
+    <description>Timeline service address</description>
+  </property>
+  
+  <property>
+    <name>timeline.service.webapp.address</name>
+    <value>0.0.0.0:6188</value>
+    <description>Timeline service webapp address</description>
+  </property>
+  
+  <property>
+    <name>timeline.service.webapp.https.address</name>
+    <value>0.0.0.0:61889</value>
+    <description>Timeline service webapp https address</description>
+  </property>
+  
+  <property>
+    <name>timeline.metrics.service.default.result.limit</name>
+    <value>15840</value>
+    <description>Default limit of number of result rows</description>
+  </property>
+  
+  <property>
+    <name>timeline.metrics.service.checkpointDelay</name>
+    <value>60</value>
+    <description>Time in seconds to sleep on the first run or when the checkpoint directory is empty</description>
+  </property>
+  
+  <property>
+    <name>timeline.metrics.service.resultset.fetchSize</name>
+    <value>2000</value>
+    <description>JDBC resultset fetch size</description>
+  </property>
+  
+  <property>
+    <name>timeline.metrics.cluster.aggregator.hourly.interval</name>
+    <value>3600</value>
+    <description>Time in seconds to aggregate hourly data</description>
+  </property>
+  
+  <property>
+    <name>timeline.metrics.cluster.aggregator.daily.interval</name>
+    <value>86400</value>
+    <description>Time in seconds to aggregate daily data</description>
+  </property>
+  
+  <property>
+    <name>timeline.metrics.host.aggregator.hourly.interval</name>
+    <value>3600</value>
+    <description>Time in seconds to aggregate hourly host data</description>
+  </property>
+  
+  <property>
+    <name>timeline.metrics.host.aggregator.daily.interval</name>
+    <value>86400</value>
+    <description>Time in seconds to aggregate daily host data</description>
+  </property>
+</configuration>

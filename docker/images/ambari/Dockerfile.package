@@ -1,0 +1,168 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
+
+# Package-based Dockerfile for Apache Ambari
+# This image uses pre-built packages instead of building from source
+
+ARG OPENJDK_IMAGE=openjdk
+ARG JDK_VERSION=8
+ARG UBUNTU_VERSION=20.04
+
+FROM ${OPENJDK_IMAGE}:${JDK_VERSION}-jre-slim
+
+# Build arguments
+ARG AMBARI_VERSION=2.7.5
+ARG AMBARI_REPO_URL=http://public-repo-1.hortonworks.com/ambari/ubuntu18/2.x/updates/2.7.5.0
+
+# Set environment variables
+ENV DEBIAN_FRONTEND=noninteractive
+ENV JAVA_HOME=/usr/local/openjdk-${JDK_VERSION}
+ENV AMBARI_HOME=/opt/ambari
+ENV PATH=$PATH:$AMBARI_HOME/bin
+
+# Create ambari user
+RUN groupadd -r ambari && useradd -r -g ambari -d /home/ambari -s /bin/bash ambari \
+    && mkdir -p /home/ambari \
+    && chown -R ambari:ambari /home/ambari
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    # Basic utilities
+    curl \
+    wget \
+    unzip \
+    zip \
+    tar \
+    gzip \
+    ca-certificates \
+    gnupg \
+    lsb-release \
+    # Python runtime
+    python3 \
+    python3-pip \
+    # Database clients
+    postgresql-client \
+    mysql-client \
+    # Network tools
+    net-tools \
+    netcat-openbsd \
+    telnet \
+    openssh-client \
+    openssh-server \
+    # System tools
+    sudo \
+    vim \
+    less \
+    htop \
+    procps \
+    psmisc \
+    rsync \
+    # SSL/TLS support
+    openssl \
+    # Time synchronization
+    ntp \
+    ntpdate \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
+RUN pip3 install --no-cache-dir \
+    psycopg2-binary \
+    requests \
+    pyyaml \
+    jinja2 \
+    psutil \
+    six
+
+# Add Ambari repository and install packages
+RUN wget -O - ${AMBARI_REPO_URL}/RPM-GPG-KEY/RPM-GPG-KEY-Jenkins | apt-key add - && \
+    echo "deb ${AMBARI_REPO_URL} Ambari main" > /etc/apt/sources.list.d/ambari.list && \
+    apt-get update && \
+    apt-get install -y \
+        ambari-server \
+        ambari-agent \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create necessary directories
+RUN mkdir -p \
+    /var/lib/ambari-server \
+    /var/log/ambari-server \
+    /var/lib/ambari-agent \
+    /var/log/ambari-agent \
+    /var/lib/ambari-metrics-collector \
+    /var/log/ambari-metrics-collector \
+    /etc/ambari-server/conf \
+    /etc/ambari-agent/conf \
+    /etc/ambari-metrics-collector/conf \
+    /opt/ambari \
+    && chown -R ambari:ambari \
+        /var/lib/ambari-* \
+        /var/log/ambari-* \
+        /etc/ambari-* \
+        /opt/ambari
+
+# Copy configuration files and scripts
+COPY bin/ /opt/ambari/bin/
+COPY etc/ /etc/ambari/
+COPY docker/scripts/ /usr/local/bin/
+
+# Make scripts executable
+RUN chmod +x /opt/ambari/bin/*.sh /usr/local/bin/*.sh
+
+# Configure SSH
+RUN apt-get update && apt-get install -y openssh-server && \
+    mkdir -p /var/run/sshd && \
+    sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && \
+    sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config && \
+    sed -i 's/UsePAM yes/UsePAM no/' /etc/ssh/sshd_config
+
+# SSH configuration for multi-node setups
+RUN mkdir -p /home/ambari/.ssh && \
+    ssh-keygen -t rsa -N '' -f /home/ambari/.ssh/id_rsa && \
+    cat /home/ambari/.ssh/id_rsa.pub >> /home/ambari/.ssh/authorized_keys && \
+    chmod 600 /home/ambari/.ssh/authorized_keys && \
+    chmod 700 /home/ambari/.ssh && \
+    chown -R ambari:ambari /home/ambari/.ssh
+
+# Configure sudo for ambari user
+RUN echo "ambari ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers.d/ambari && \
+    chmod 0440 /etc/sudoers.d/ambari
+
+# Switch to ambari user
+USER ambari
+
+# Expose ports
+EXPOSE 8080 8441 8440 6188 61888
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
+    CMD /usr/local/bin/health-check.sh
+
+# Set working directory
+WORKDIR /home/ambari
+
+# Default volumes
+VOLUME ["/var/log/ambari-server", "/var/log/ambari-agent", "/var/log/ambari-metrics-collector"]
+VOLUME ["/var/lib/ambari-server", "/var/lib/ambari-agent", "/var/lib/ambari-metrics-collector"]
+VOLUME ["/etc/ambari-server/conf", "/etc/ambari-agent/conf", "/etc/ambari-metrics-collector/conf"]
+
+# Entry point
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+
+# Default command
+CMD ["ambari-admin.sh"]

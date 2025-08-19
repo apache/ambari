@@ -1,0 +1,273 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
+
+# Apache Ambari Docker Compose Configuration
+# Based on Apache Pinot's docker-compose approach
+
+version: '3.7'
+
+services:
+  # PostgreSQL Database for Ambari
+  ambari-database:
+    image: ${POSTGRES_IMAGE:-postgres:13-alpine}
+    container_name: "ambari-database"
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: ambari
+      POSTGRES_USER: ambari
+      POSTGRES_PASSWORD: bigdata
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+    volumes:
+      - ambari-db-data:/var/lib/postgresql/data
+    networks:
+      - ambari-demo
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ambari -d ambari"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+
+  # Ambari Server
+  ambari-server:
+    image: ${AMBARI_IMAGE:-apache/ambari:latest}
+    command: "StartServer -zkAddress ambari-zookeeper:2181"
+    container_name: "ambari-server"
+    restart: unless-stopped
+    ports:
+      - "8080:8080"   # Ambari Web UI
+      - "8441:8441"   # Ambari HTTPS
+    environment:
+      # Database configuration
+      AMBARI_DB_HOST: ambari-database
+      AMBARI_DB_PORT: 5432
+      AMBARI_DB_NAME: ambari
+      AMBARI_DB_USER: ambari
+      AMBARI_DB_PASSWORD: bigdata
+      # Server configuration
+      AMBARI_COMPONENT: server
+      JAVA_OPTS: "-Dplugins.dir=/opt/ambari/plugins -Xms1G -Xmx4G -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -Xloggc:gc-ambari-server.log"
+    depends_on:
+      ambari-database:
+        condition: service_healthy
+    networks:
+      - ambari-demo
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/api/v1/clusters || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    volumes:
+      - ambari-server-data:/var/lib/ambari-server
+      - ambari-server-logs:/var/log/ambari-server
+
+  # Ambari Agent (can be scaled)
+  ambari-agent:
+    image: ${AMBARI_IMAGE:-apache/ambari:latest}
+    command: "StartAgent -server ambari-server"
+    container_name: "ambari-agent"
+    restart: unless-stopped
+    environment:
+      # Server connection
+      AMBARI_SERVER_HOST: ambari-server
+      AMBARI_SERVER_PORT: 8080
+      AMBARI_COMPONENT: agent
+      # Agent configuration
+      AGENT_HOSTNAME: ambari-agent
+      JAVA_OPTS: "-Xms512M -Xmx1G -XX:+UseG1GC -XX:MaxGCPauseMillis=200"
+    depends_on:
+      ambari-server:
+        condition: service_healthy
+    networks:
+      - ambari-demo
+    healthcheck:
+      test: ["CMD-SHELL", "/usr/local/bin/health-check.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    volumes:
+      - ambari-agent-data:/var/lib/ambari-agent
+      - ambari-agent-logs:/var/log/ambari-agent
+    privileged: true  # Required for some agent operations
+
+  # Ambari Metrics Collector (Optional - controlled by METRICS_ENABLED)
+  ambari-metrics:
+    image: ${AMBARI_IMAGE:-apache/ambari:latest}
+    command: "StartMetrics"
+    container_name: "ambari-metrics"
+    restart: unless-stopped
+    ports:
+      - "6188:6188"     # Metrics Collector API
+      - "61888:61888"   # Metrics aggregation port
+    environment:
+      # Metrics configuration
+      AMS_HBASE_ROOTDIR: /var/lib/ambari-metrics-collector/hbase
+      AMS_COLLECTOR_PORT: 6188
+      AMBARI_COMPONENT: metrics
+      JAVA_OPTS: "-Xms1G -Xmx2G -XX:+UseG1GC -XX:MaxGCPauseMillis=200"
+    depends_on:
+      ambari-server:
+        condition: service_healthy
+    networks:
+      - ambari-demo
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:6188/ws/v1/timeline/metrics/metadata || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+    volumes:
+      - ambari-metrics-data:/var/lib/ambari-metrics-collector
+      - ambari-metrics-logs:/var/log/ambari-metrics-collector
+    profiles:
+      - metrics
+    deploy:
+      replicas: ${METRICS_ENABLED:-0}  # Default to 0, meaning metrics won't start unless METRICS_ENABLED is set
+
+  # Grafana for Metrics Visualization (Optional)
+  ambari-grafana:
+    image: grafana/grafana:10.2.0
+    container_name: "ambari-grafana"
+    restart: unless-stopped
+    ports:
+      - "3000:3000"     # Grafana Web UI
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_INSTALL_PLUGINS: grafana-clock-panel,grafana-simple-json-datasource
+      GF_USERS_ALLOW_SIGN_UP: false
+      GF_SERVER_ROOT_URL: http://localhost:3000
+    depends_on:
+      - ambari-metrics
+    networks:
+      - ambari-demo
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    volumes:
+      - grafana-data:/var/lib/grafana
+    profiles:
+      - metrics
+    deploy:
+      replicas: ${GRAFANA_ENABLED:-0}  # Default to 0, controlled by GRAFANA_ENABLED
+
+  # Optional Zookeeper (for advanced setups)
+  ambari-zookeeper:
+    image: ${ZK_IMAGE:-zookeeper:3.8.1}
+    container_name: "ambari-zookeeper"
+    restart: unless-stopped
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - ambari-demo
+    healthcheck:
+      test: ["CMD", "zkServer.sh", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    volumes:
+      - zookeeper-data:/data
+      - zookeeper-logs:/datalog
+    profiles:
+      - zookeeper
+    deploy:
+      replicas: ${ZOOKEEPER_ENABLED:-0}  # Default to 0, controlled by ZOOKEEPER_ENABLED
+
+  # Optional Kafka (for streaming data)
+  ambari-kafka:
+    image: ${KAFKA_IMAGE:-bitnami/kafka:3.6}
+    container_name: "ambari-kafka"
+    restart: unless-stopped
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: ambari-zookeeper:2181/kafka
+      KAFKA_BROKER_ID: 0
+      KAFKA_ADVERTISED_HOST_NAME: kafka
+    depends_on:
+      ambari-zookeeper:
+        condition: service_healthy
+    networks:
+      - ambari-demo
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-broker-api-versions.sh --bootstrap-server kafka:9092"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    volumes:
+      - kafka-data:/bitnami/kafka
+    profiles:
+      - kafka
+    deploy:
+      replicas: ${KAFKA_ENABLED:-0}  # Default to 0, controlled by KAFKA_ENABLED
+
+# Networks
+networks:
+  ambari-demo:
+    name: ambari-demo
+    driver: bridge
+
+# Volumes
+volumes:
+  # Database
+  ambari-db-data:
+    driver: local
+  
+  # Ambari Server
+  ambari-server-data:
+    driver: local
+  ambari-server-logs:
+    driver: local
+  
+  # Ambari Agent
+  ambari-agent-data:
+    driver: local
+  ambari-agent-logs:
+    driver: local
+  
+  # Ambari Metrics (Optional)
+  ambari-metrics-data:
+    driver: local
+  ambari-metrics-logs:
+    driver: local
+  
+  # Grafana (Optional)
+  grafana-data:
+    driver: local
+  
+  # Zookeeper (Optional)
+  zookeeper-data:
+    driver: local
+  zookeeper-logs:
+    driver: local
+  
+  # Kafka (Optional)
+  kafka-data:
+    driver: local
