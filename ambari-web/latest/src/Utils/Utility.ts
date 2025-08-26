@@ -459,6 +459,12 @@ export function isShownOnAddServiceAssignMasterPage(component:string,isMaster:bo
   return isVisible;
 }
 
+
+export const redirectToLogin = () => {
+  window.location.href = "#/login";
+  window.location.reload();
+}
+
 export const translate = (messageKey: string) => {
   return parse(DOMPurify.sanitize(t(messageKey), { USE_PROFILES: { html: true } } ));
 }
