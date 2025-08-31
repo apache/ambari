@@ -19,6 +19,8 @@
 import StartAndTestKerberosClient from "./StartAndTestKerberosClient";
 import StopServices from "./StopServices";
 
+import KerberizeCluster from "./KerberizeCluster";
+
 export default {
   1: {
     label: "Get Started",
@@ -107,7 +109,7 @@ export default {
   7: {
     label: "Kerberize cluster",
     completed: false,
-    Component: <h1>Kerberize cluster</h1>,
+    Component: <KerberizeCluster />,
     canGoBack: true,
     isNextEnabled: false,
     name: "KERBERIZE_CLUSTER",
