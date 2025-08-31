@@ -18,8 +18,8 @@
 
 import StartAndTestKerberosClient from "./StartAndTestKerberosClient";
 import StopServices from "./StopServices";
-
 import KerberizeCluster from "./KerberizeCluster";
+import StartAndTestServices from "./StartAndTestServices";
 
 export default {
   1: {
@@ -118,7 +118,7 @@ export default {
   8: {
     label: "Start and Test Services",
     completed: false,
-    Component: <h1>Start and Test Services</h1>,
+    Component: <StartAndTestServices />,
     canGoBack: true,
     isNextEnabled: false,
     name: "START_AND_TEST_SERVICES",
