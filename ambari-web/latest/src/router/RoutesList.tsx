@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 import { RouteObject, Navigate, Outlet } from "react-router-dom";
+import StackAndVersions from "../screens/ClusterAdmin/StackAndVersions/StackAndVersions";
 function ComponentInProgress() {
   return <h1>Component In Progress</h1>;
 }
@@ -108,12 +109,8 @@ const RoutesList: RouteObject[] = [
             element: <Outlet />,
             children: [
               {
-                path: "stack/services",
-                element: <ComponentInProgress />,
-              },
-              {
-                path: "stack/versions",
-                element: <ComponentInProgress />,
+                path: "stack/:tabName",
+                element: <StackAndVersions />,
               },
               {
                 path: "serviceAutoStart",
