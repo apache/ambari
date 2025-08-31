@@ -17,6 +17,7 @@
  */
 
 import StartAndTestKerberosClient from "./StartAndTestKerberosClient";
+import StopServices from "./StopServices";
 
 export default {
   1: {
@@ -97,7 +98,7 @@ export default {
   6: {
     label: "Stop Services",
     completed: false,
-    Component: <h1>Stop services</h1>,
+    Component: <StopServices />,
     canGoBack: true,
     isNextEnabled: true,
     name: "STOP_SERVICES",
