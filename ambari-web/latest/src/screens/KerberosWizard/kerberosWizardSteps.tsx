@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+import StartAndTestKerberosClient from "./StartAndTestKerberosClient";
+
 export default {
   1: {
     label: "Get Started",
@@ -53,7 +55,7 @@ export default {
   3: {
     label: "Install and Test Kerberos Client",
     completed: false,
-    Component: <h1>Install and Test kerberos client</h1>,
+    Component: <StartAndTestKerberosClient />,
     canGoBack: true,
     isNextEnabled: false,
     name: "INSTALL_AND_TEST_KERBEROS_CLIENT",
