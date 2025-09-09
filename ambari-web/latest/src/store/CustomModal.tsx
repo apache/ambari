@@ -16,27 +16,33 @@
  * limitations under the License.
  */
 
-import { AppProvider } from "./store/context";
-import CustomModal from "./store/CustomModal";
-import { ModalProvider } from "./store/ModalContext";
+import React from "react";
+import { useModal } from "./ModalContext";
+import Modal, { ModalProps } from "../components/Modal";
+import { get } from "lodash";
 
-function App() {
-  function switchToClassic(){
-    window.location.href=window.location.href.replace("latest","classic")
-  }
+const CustomModal: React.FC = () => {
+  const { modalStack, hideModal } = useModal();
 
   return (
     <>
-      <AppProvider>
-        <ModalProvider>
-          <CustomModal />
-        </ModalProvider>
-      </AppProvider>
-      <button className='btn' onClick={switchToClassic}>
-        Switch to classic UI
-      </button>
+      {modalStack.map((modal, index) =>
+        React.isValidElement(modal) ? (
+          <React.Fragment key={index}>{modal}</React.Fragment>
+        ) : (
+          <Modal
+            key={index}
+            {...(modal as Omit<ModalProps, "isOpen">)}
+            isOpen={true}
+            onClose={() => {
+              hideModal();
+              get(modal, "onClose", () => {})();
+            }}
+          />
+        )
+      )}
     </>
-  )
-}
+  );
+};
 
-export default App
+export default CustomModal;
