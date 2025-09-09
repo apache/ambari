@@ -21,8 +21,8 @@ import DefaultButton from "./DefaultButton";
 type ConfirmationModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  modalTitle: string;
-  modalBody: string;
+  modalTitle: any;
+  modalBody: any;
   successCallback: () => void;
   buttonVariant?: string;
   cancellable?: boolean;
