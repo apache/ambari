@@ -20,19 +20,22 @@ export const misc = {
   /**
    * Convert value from bytes to appropriate measure 24364716
    */
-  formatBandwidth(value: number | null, unit = ""): string | number | null {
+  formatBandwidth(value: number, unit = "") {
+    let formattedValue: any = value;
     if (value) {
       if (value < 1024) {
-        return "<1KB";
-      } else if (value < 1048576) {
-        return (value / 1024).toFixed(1) + unit || "KB";
-      } else if (value >= 1048576 && value < 1073741824) {
-        return (value / 1048576).toFixed(1) + unit || "MB";
+        formattedValue = "<1KB";
       } else {
-        return (value / 1073741824).toFixed(2) + unit || "GB";
+        if (value < 1048576) {
+          formattedValue = (value / 1024).toFixed(1) + unit || "KB";
+        } else if (value >= 1048576 && value < 1073741824) {
+          formattedValue = (value / 1048576).toFixed(1) + unit || "MB";
+        } else {
+          formattedValue = (value / 1073741824).toFixed(2) + unit || "GB";
+        }
       }
     }
-    return value;
+    return formattedValue;
   },
 
   /**
