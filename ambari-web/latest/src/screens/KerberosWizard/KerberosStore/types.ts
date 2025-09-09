@@ -15,15 +15,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export enum ClusterProgressStatus {
-  PROVISIONING = "PROVISIONING",
-  ENABLING_NAMENODE_HA = "ENABLING_NAMENODE_HA",
-  ADDING_HOST = "ADDING_HOST",
-  ADDING_SERVICE = "ADDING_SERVICE",
-  ENABLING_KERBEROS = "ENABLING_KERBEROS",
+
+export interface State {
+  kerberosWizardSteps: any;
 }
-export enum ProgressStatus {
-  IN_PROGRESS = "IN_PROGRESS",
-  COMPLETED = "COMPLETED",
-  FAILED = "FAILED",
+
+export enum ActionTypes {
+  STORE_INFORMATION = "STORE INFORMATION",
+  SYNC_STATE = "SYNC STATE",
+  REMOVE_KEY = "REMOVE KEY",
 }
+
+export type Action =
+  | { type: ActionTypes.STORE_INFORMATION; payload: any }
+  | { type: ActionTypes.SYNC_STATE; payload: any }
+  | { type: ActionTypes.REMOVE_KEY; payload: any };

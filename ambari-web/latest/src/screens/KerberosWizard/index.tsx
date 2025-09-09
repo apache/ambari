@@ -15,15 +15,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export enum ClusterProgressStatus {
-  PROVISIONING = "PROVISIONING",
-  ENABLING_NAMENODE_HA = "ENABLING_NAMENODE_HA",
-  ADDING_HOST = "ADDING_HOST",
-  ADDING_SERVICE = "ADDING_SERVICE",
-  ENABLING_KERBEROS = "ENABLING_KERBEROS",
-}
-export enum ProgressStatus {
-  IN_PROGRESS = "IN_PROGRESS",
-  COMPLETED = "COMPLETED",
-  FAILED = "FAILED",
-}
+
+import StepWizard from "../../components/StepWizard";
+import useStepWizard from "../../hooks/useStepWizard";
+import { KerberosWizardProvider } from "./KerberosStore/context";
+import kerberosWizardSteps from "./kerberosWizardSteps";
+
+const KerberosWizard: React.FC = () => {
+  const stepWizardUtilities = useStepWizard(kerberosWizardSteps, 1, () => {});
+
+  return (
+    <KerberosWizardProvider stepWizardUtilities={stepWizardUtilities}>
+      <StepWizard wizardUtilities={stepWizardUtilities} />
+    </KerberosWizardProvider>
+  );
+};
+
+export default KerberosWizard;
