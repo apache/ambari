@@ -951,6 +951,10 @@ var urls = {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}?fields=metrics/dfs/namenode',
     'mock': '/data/hosts/HDP2/decommission_state.json'
   },
+  'host.host_component.decommission_status_ozone_datanode': {
+    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}?fields=metrics/ozone/manager',
+    'mock': '/data/hosts/HDP2/decommission_state.json'
+  },
   'host.region_servers.in_inservice': {
     'real': '/clusters/{clusterName}/host_components?HostRoles/component_name=HBASE_REGIONSERVER&HostRoles/desired_admin_state=INSERVICE&fields=HostRoles/host_name&minimal_response=true',
     'mock': ''

@@ -38,7 +38,8 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
     'DATANODE': App.DataNodeComponentView,
     'NODEMANAGER': App.NodeManagerComponentView,
     'HBASE_REGIONSERVER': App.RegionServerComponentView,
-    'TASKTRACKER': App.TaskTrackerComponentView
+    'TASKTRACKER': App.TaskTrackerComponentView,
+    'OZONE_DATANODE': App.OzoneDataNodeComponentView
   }),
 
   /**
