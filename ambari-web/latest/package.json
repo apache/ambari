@@ -14,6 +14,7 @@
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@stomp/stompjs": "^7.1.1",
     "@types/lodash": "^4.17.16",
+    "@types/react-select": "^5.0.0",
     "axios": "^1.11.0",
     "bootstrap": "^5.3.6",
     "classnames": "^2.5.1",
@@ -32,6 +33,7 @@
     "react-hot-toast": "^2.5.2",
     "react-i18next": "^15.5.1",
     "react-router-dom": "^7.6.0",
+    "react-select": "^5.10.2",
     "sass": "^1.88.0",
     "timeago.js": "^4.0.2"
   },
