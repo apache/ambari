@@ -738,7 +738,7 @@ public class ExecutionScheduleManager {
 
     batchRequestResponse.setReturnCode(retCode);
 
-    String responseString = (String) clientResponse.getEntity();
+    String responseString = clientResponse.readEntity(String.class);
     LOG.debug("Processing API response: status={}, body={}", retCode, responseString);
     Map<String, Object> httpResponseMap;
     try {
