@@ -26,7 +26,7 @@ from resource_management.libraries.functions.check_process_status import check_p
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
   FILE_TYPE_XML
-from ozone import ozone_service, setup_ozone_client
+from ozone import ozone_service, setup_ozone_client, validate_decommission_safety, restart_ozone_service_for_decommission
 from ozone_service import ozone_service_check
 
 class OzoneManager(Script):
@@ -79,7 +79,15 @@ class OzoneManager(Script):
     # Get the list of hosts to decommission from the command parameters
     hosts_to_decommission = params.slave_hosts if hasattr(params, 'slave_hosts') else []
     
-    if hosts_to_decommission:
+    if not hosts_to_decommission:
+      Logger.warning("No hosts provided for decommissioning")
+      return
+    
+    # Validate that decommissioning is safe (minimum 3 datanodes will remain)
+    if not validate_decommission_safety(hosts_to_decommission):
+      raise Exception("Decommission operation aborted: Would violate minimum datanode requirements (3 minimum for HA)")
+    
+    try:
       # Create exclude file with hosts to decommission
       exclude_file_path = format("{ozone_conf_dir}/dfs.exclude")
       Logger.info(format("Creating exclude file at {exclude_file_path}"))
@@ -97,8 +105,20 @@ class OzoneManager(Script):
               logoutput=True)
       
       Logger.info("Decommission command executed successfully")
-    else:
-      Logger.warning("No hosts provided for decommissioning")
+      
+      # Restart SCM and OM to ensure proper cluster state
+      Logger.info("Restarting Storage Container Manager and Ozone Manager after decommission")
+      try:
+        restart_ozone_service_for_decommission('scm')
+        restart_ozone_service_for_decommission('om')
+        Logger.info("SCM and OM restarted successfully after decommission")
+      except Exception as restart_error:
+        Logger.warning(format("Failed to restart services after decommission: {restart_error}"))
+        # Don't fail the decommission operation if restart fails
+        
+    except Exception as e:
+      Logger.error(format("Decommission operation failed: {e}"))
+      raise e
 
   def recommission(self, env):
     import params
@@ -109,7 +129,11 @@ class OzoneManager(Script):
     # Get the list of hosts to recommission from the command parameters
     hosts_to_recommission = params.slave_hosts if hasattr(params, 'slave_hosts') else []
     
-    if hosts_to_recommission:
+    if not hosts_to_recommission:
+      Logger.warning("No hosts provided for recommissioning")
+      return
+    
+    try:
       # Remove hosts from exclude file or create empty exclude file
       exclude_file_path = format("{ozone_conf_dir}/dfs.exclude")
       Logger.info(format("Updating exclude file at {exclude_file_path}"))
@@ -139,8 +163,20 @@ class OzoneManager(Script):
               logoutput=True)
       
       Logger.info("Recommission command executed successfully")
-    else:
-      Logger.warning("No hosts provided for recommissioning")
+      
+      # Restart SCM and OM to ensure proper cluster state
+      Logger.info("Restarting Storage Container Manager and Ozone Manager after recommission")
+      try:
+        restart_ozone_service_for_decommission('scm')
+        restart_ozone_service_for_decommission('om')
+        Logger.info("SCM and OM restarted successfully after recommission")
+      except Exception as restart_error:
+        Logger.warning(format("Failed to restart services after recommission: {restart_error}"))
+        # Don't fail the recommission operation if restart fails
+        
+    except Exception as e:
+      Logger.error(format("Recommission operation failed: {e}"))
+      raise e
 
   def security_status(self, env):
     import status_params

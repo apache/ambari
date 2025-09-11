@@ -168,3 +168,94 @@ def refresh_ozone_nodes():
   except Exception as e:
     Logger.error(format("Failed to refresh Ozone nodes: {e}"))
     raise e
+
+def get_active_datanode_count():
+  """
+  Get the count of active Ozone DataNodes
+  """
+  import params
+  import json
+  import re
+  
+  try:
+    # Execute ozone admin command to get DataNode report
+    cmd = format("{ozone_bin_dir}/ozone admin datanode list --json")
+    result = Execute(cmd,
+                    user=params.ozone_user,
+                    logoutput=True,
+                    returns=[0])
+    
+    # Parse the JSON output to count active datanodes
+    if result and hasattr(result, 'stdout'):
+      datanode_info = json.loads(result.stdout)
+      active_count = len([dn for dn in datanode_info if dn.get('operationalState') == 'IN_SERVICE'])
+      return active_count
+    
+    # Fallback: parse text output if JSON not available
+    cmd_text = format("{ozone_bin_dir}/ozone admin datanode list")
+    result_text = Execute(cmd_text,
+                         user=params.ozone_user,
+                         logoutput=True,
+                         returns=[0])
+    
+    if result_text and hasattr(result_text, 'stdout'):
+      # Count lines containing "IN_SERVICE" state
+      active_count = len(re.findall(r'IN_SERVICE', result_text.stdout))
+      return active_count
+      
+    return 0
+  except Exception as e:
+    Logger.warning(format("Failed to get active datanode count: {e}"))
+    return 0
+
+def restart_ozone_service_for_decommission(service_name):
+  """
+  Restart Ozone service after decommission operation
+  """
+  import params
+  
+  try:
+    Logger.info(format("Restarting {service_name} after decommission operation"))
+    
+    # Stop the service
+    stop_ozone_service(service_name)
+    
+    # Wait a moment before restart
+    import time
+    time.sleep(5)
+    
+    # Start the service
+    start_ozone_service(service_name)
+    
+    Logger.info(format("{service_name} restarted successfully after decommission"))
+  except Exception as e:
+    Logger.error(format("Failed to restart {service_name} after decommission: {e}"))
+    raise e
+
+def validate_decommission_safety(hosts_to_decommission):
+  """
+  Validate that decommissioning the specified hosts is safe
+  Returns True if safe, False otherwise
+  """
+  import params
+  
+  try:
+    # Get current active datanode count
+    active_count = get_active_datanode_count()
+    hosts_count = len(hosts_to_decommission)
+    
+    Logger.info(format("Current active datanodes: {active_count}, Hosts to decommission: {hosts_count}"))
+    
+    # Check if we'll have at least 3 active datanodes after decommission
+    remaining_datanodes = active_count - hosts_count
+    
+    if remaining_datanodes < 3:
+      Logger.error(format("Cannot decommission {hosts_count} datanodes. Only {remaining_datanodes} would remain, but minimum 3 required for HA."))
+      return False
+    
+    Logger.info(format("Decommission validation passed. {remaining_datanodes} datanodes will remain active."))
+    return True
+    
+  except Exception as e:
+    Logger.error(format("Failed to validate decommission safety: {e}"))
+    return False
