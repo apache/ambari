@@ -1,0 +1,179 @@
+<?xml version="1.0"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<metainfo>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>OZONE</name>
+      <displayName>Apache Ozone</displayName>
+      <comment>Apache Ozone is a scalable, redundant, and distributed object store for Hadoop</comment>
+      <version>1.0.0</version>
+
+      <components>
+        <component>
+          <name>OZONE_MANAGER</name>
+          <displayName>Ozone Manager</displayName>
+          <category>MASTER</category>
+          <cardinality>1-3</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <reassignAllowed>true</reassignAllowed>
+          <commandScript>
+            <script>scripts/ozone_manager.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1800</timeout>
+          </commandScript>
+          <logs>
+            <log>
+              <logId>ozone_manager</logId>
+              <primary>true</primary>
+            </log>
+            <log>
+              <logId>ozone_audit</logId>
+            </log>
+          </logs>
+          <customCommands>
+            <customCommand>
+              <name>DECOMMISSION</name>
+              <commandScript>
+                <script>scripts/ozone_manager.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+              </commandScript>
+              <background>true</background>
+            </customCommand>
+            <customCommand>
+              <name>RECOMMISSION</name>
+              <commandScript>
+                <script>scripts/ozone_manager.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+              </commandScript>
+              <background>true</background>
+            </customCommand>
+          </customCommands>
+        </component>
+
+        <component>
+          <name>OZONE_DATANODE</name>
+          <displayName>Ozone DataNode</displayName>
+          <category>SLAVE</category>
+          <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <decommissionAllowed>true</decommissionAllowed>
+          <commandScript>
+            <script>scripts/ozone_datanode.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1200</timeout>
+          </commandScript>
+          <bulkCommands>
+            <displayName>Ozone DataNodes</displayName>
+            <!-- Used by decommission and recommission -->
+            <masterComponent>OZONE_MANAGER</masterComponent>
+          </bulkCommands>
+          <logs>
+            <log>
+              <logId>ozone_datanode</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
+        </component>
+
+        <component>
+          <name>STORAGE_CONTAINER_MANAGER</name>
+          <displayName>Storage Container Manager</displayName>
+          <category>MASTER</category>
+          <cardinality>1-3</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <reassignAllowed>true</reassignAllowed>
+          <commandScript>
+            <script>scripts/storage_container_manager.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1800</timeout>
+          </commandScript>
+          <logs>
+            <log>
+              <logId>scm</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
+        </component>
+
+        <component>
+          <name>OZONE_CLIENT</name>
+          <displayName>Ozone Client</displayName>
+          <category>CLIENT</category>
+          <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <commandScript>
+            <script>scripts/ozone_client.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1200</timeout>
+          </commandScript>
+        </component>
+      </components>
+
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>any</osFamily>
+          <packages>
+            <package>
+              <name>ozone</name>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
+
+      <commandScript>
+        <script>scripts/service_check.py</script>
+        <scriptType>PYTHON</scriptType>
+        <timeout>300</timeout>
+      </commandScript>
+
+      <requiredServices>
+        <service>HDFS</service>
+      </requiredServices>
+
+      <configuration-dependencies>
+        <config-type>ozone-site</config-type>
+        <config-type>ozone-env</config-type>
+        <config-type>ozone-log4j</config-type>
+      </configuration-dependencies>
+
+      <restartRequiredAfterChange>true</restartRequiredAfterChange>
+
+      <widgetsDescriptor>
+        <page>
+          <display-name>Ozone</display-name>
+          <widgets>
+            <widget>
+              <display-name>Ozone Manager Status</display-name>
+              <widget-type>GAUGE</widget-type>
+              <metrics>
+                <metric>
+                  <name>ozone.OzoneManager.NumLiveDatanodes</name>
+                  <scope>ozone-site</scope>
+                </metric>
+              </metrics>
+            </widget>
+          </widgets>
+        </page>
+      </widgetsDescriptor>
+
+    </service>
+  </services>
+</metainfo>

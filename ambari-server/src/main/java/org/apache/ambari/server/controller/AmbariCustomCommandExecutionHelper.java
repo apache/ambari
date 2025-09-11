@@ -133,6 +133,7 @@ public class AmbariCustomCommandExecutionHelper {
     masterToSlaveMappingForDecom.put("RESOURCEMANAGER", "NODEMANAGER");
     masterToSlaveMappingForDecom.put("HBASE_MASTER", "HBASE_REGIONSERVER");
     masterToSlaveMappingForDecom.put("JOBTRACKER", "TASKTRACKER");
+    masterToSlaveMappingForDecom.put("OZONE_MANAGER", "OZONE_DATANODE");
   }
 
   public final static String DECOM_INCLUDED_HOSTS = "included_hosts";
