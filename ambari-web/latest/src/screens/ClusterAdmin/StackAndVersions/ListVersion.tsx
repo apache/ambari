@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { useContext, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import {
   Button,
   ButtonGroup,
@@ -31,6 +31,7 @@ import toast from "react-hot-toast";
 import Spinner from "../../../components/Spinner";
 import Table from "../../../components/Table";
 import { get } from "lodash";
+import Select from "react-select";
 import Modal from "../../../components/Modal";
 import usePolling from "../../../hooks/usePolling";
 import { Link } from "react-router-dom";
@@ -39,14 +40,36 @@ import { RequestApi } from "../../../api/requestApi";
 import OperationsProgress from "../../../components/OperationProgress";
 import { StackVersion } from "./types";
 
+const initialOptions = [
+  { key: "ALL", values: ["ALL"], count: 0 },
+  {
+    key: "NOT INSTALLED",
+    values: ["INSTALL_FAILED", "INSTALLING", "NOT_REQUIRED"],
+    count: 0,
+  },
+  { key: "UPGRADE READY", values: ["UPGRADE_READY"], count: 0 },
+  { key: "CURRENT", values: ["CURRENT"], count: 0 },
+  { key: "INSTALLED", values: ["INSTALLED"], count: 0 },
+  {
+    key: "UPGRADE/DOWNGRADE IN PROGRESS",
+    values: ["Upgrade/Downgrade in Progress"],
+    count: 0,
+  },
+  { key: "READY TO FINALIZE", values: ["Ready to Finalize"], count: 0 },
+];
+
 export default function Versions() {
   const [loading, setLoading] = useState(false);
+  const [options, setOptions] = useState(initialOptions);
+  const [selectedOption, setSelectedOption] = useState(options[0]);
   const [services, setServices] = useState<string[]>([]);
+  const [originalStacks, setOriginalStacks] = useState<StackVersion[]>([]);
   const [stacks, setStacks] = useState<StackVersion[]>([]);
   const { clusterName } = useContext(AppContext);
 
   const [versionModal, setVersionModal] = useState(false);
   const [installPackagesModal, setInstallPackagesModal] = useState(false);
+  const [manageVersionModal, setManageVersionsModal] = useState(false);
   const [repoModal, setRepoModal] = useState(false);
   const [hostModal, setHostModal] = useState(false);
   const [, setCompletionStatus] = useState(false);
@@ -62,12 +85,63 @@ export default function Versions() {
 
   const {} = usePolling(fetchServices, 1000);
 
+  useEffect(() => {
+    if (selectedOption.key !== "ALL") {
+      setStacks(
+        originalStacks.filter((stack) => {
+          return selectedOption.values.includes(
+            stack.ClusterStackVersions.state
+          );
+        })
+      );
+    } else {
+      setStacks(originalStacks);
+    }
+
+    const updatedOptions = options.map((option) => {
+      let count;
+      if (option.key === "ALL") {
+        count = originalStacks.length;
+      } else {
+        count = originalStacks.reduce((acc, stack) => {
+          if (option.values.includes(stack.ClusterStackVersions.state)) {
+            return acc + 1;
+          }
+          return acc;
+        }, 0);
+      }
+
+      return { ...option, count };
+    });
+
+    setOptions(updatedOptions);
+  }, [originalStacks, selectedOption]);
+
   async function fetchServices() {
     try {
-      if (!stacks) setLoading(true);
-      const response = await VersionsApi.getServices(clusterName);
+      if (originalStacks.length === 0) {
+        setLoading(true);
+      }
+      const response = await VersionsApi.getAllStacks(clusterName);
+      const stacks = response.items;
+      const currentStack = stacks.find(
+        (stack: StackVersion) => stack.ClusterStackVersions.state === "CURRENT"
+      );
+      if (currentStack) {
+        const currentRepositoryVersion =
+          currentStack.ClusterStackVersions.repository_version;
 
-      setStacks(response.items);
+        const filteredStacks = stacks.filter((stack: StackVersion) => {
+          return (
+            stack.ClusterStackVersions.repository_version >=
+            currentRepositoryVersion
+          );
+        });
+        setOriginalStacks(filteredStacks);
+      } else {
+        setOriginalStacks(stacks);
+      }
+
       const services = Object.keys(
         response.items[0].ClusterStackVersions.repository_summary.services
       );
@@ -78,6 +152,17 @@ export default function Versions() {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    fetchServices();
+  }, []);
+
+  const handleSelectChange = (selected: any) => {
+    const option = options.find((o) => o.key === selected.value);
+    if (option) {
+      setSelectedOption(option);
+    }
+  };
 
   if (loading) {
     return <Spinner />;
@@ -403,11 +488,29 @@ export default function Versions() {
   return (
     <>
       <div className="mt-4">
-        <div>
-          <Button variant="success" size="sm">
-            <FontAwesomeIcon icon={faExternalLink} /> Manage versions
-          </Button>
-        </div>
+        {/* TODO: Only show Manage versions button if user has CLUSTER.UPGRADE_DOWNGRADE_STACK permission */}
+        <Button
+          size="sm"
+          variant="success"
+          onClick={() => setManageVersionsModal(true)}
+        >
+          <FontAwesomeIcon className="mx-2" icon={faExternalLink} /> Manage
+          versions
+        </Button>
+        <Select
+          className="ms-3"
+          value={{
+            value: selectedOption.key,
+            label: `FILTER: ${selectedOption.key} (${selectedOption.count})`,
+          }}
+          onChange={handleSelectChange}
+          options={options.map((option) => {
+            return {
+              label: `${option.key} (${option.count})`,
+              value: option.key,
+            };
+          })}
+        />
         <Table data={services} columns={columns} />
       </div>
 
@@ -462,6 +565,25 @@ export default function Versions() {
           "go to hosts";
         }}
       />
+      {manageVersionModal && (
+        <Modal
+          modalTitle="Manage Versions"
+          isOpen={manageVersionModal}
+          onClose={() => setManageVersionsModal(false)}
+          modalBody="You are about to leave the Cluster Management interface and go to the Ambari Administration interface. You can return to cluster management by using the “Go to Dashboard” link in the Ambari Administration > Clusters section."
+          options={{
+            cancelableViaBtn: true,
+            cancelableViaIcon: true,
+            okButtonText: "OK",
+            cancelButtonText: "CANCEL",
+          }}
+          successCallback={() => {
+            setManageVersionsModal(false);
+            // TODO: Redirect to admin view
+            // redirectToAdminView();
+          }}
+        />
+      )}
     </>
   );
 }
