@@ -58,6 +58,130 @@ const VersionsApi = {
     });
     return response.data;
   },
+  getUpgradeId: async function (data: any, clusterName: string) {
+    const url = `/clusters/${clusterName}/upgrades`;
+    const response = await ambariApi.request({
+      url,
+      method: "POST",
+      data,
+    });
+    return response.data;
+  },
+  getUpgradeOperations: async function (id: number, clusterName: string) {
+    const url = `/clusters/${clusterName}/upgrades/${id}?upgrade_groups/UpgradeGroup/status!=PENDING&fields=Upgrade/progress_percent,Upgrade/request_context,Upgrade/request_status,Upgrade/direction,Upgrade/downgrade_allowed,upgrade_groups/UpgradeGroup,Upgrade/*,upgrade_groups/upgrade_items/UpgradeItem/status,upgrade_groups/upgrade_items/UpgradeItem/display_status,upgrade_groups/upgrade_items/UpgradeItem/context,upgrade_groups/upgrade_items/UpgradeItem/group_id,upgrade_groups/upgrade_items/UpgradeItem/progress_percent,upgrade_groups/upgrade_items/UpgradeItem/request_id,upgrade_groups/upgrade_items/UpgradeItem/skippable,upgrade_groups/upgrade_items/UpgradeItem/stage_id,upgrade_groups/upgrade_items/UpgradeItem/text&minimal_response=true`;
+    const response = await ambariApi.request({
+      url,
+      method: "GET",
+    });
+    return response.data;
+  },
+  getUpgradeItem: async function (
+    upgradeId: number,
+    groupId: number,
+    stageId: number,
+    clusterName: string
+  ) {
+    const url =
+      `/clusters/${clusterName}/upgrades/${upgradeId}/upgrade_groups/${groupId}/upgrade_items/${stageId}?fields=` +
+      [
+        "UpgradeItem/group_id",
+        "UpgradeItem/stage_id",
+        "tasks/Tasks/command_detail",
+        "tasks/Tasks/host_name",
+        "tasks/Tasks/role",
+        "tasks/Tasks/request_id",
+        "tasks/Tasks/stage_id",
+        "tasks/Tasks/status",
+        "tasks/Tasks/structured_out",
+      ].join(",") +
+      "&minimal_response=true";
+    const response = await ambariApi.request({
+      url: url,
+      method: "GET",
+    });
+    return response.data;
+  },
+  getTasksList: async function (
+    upgradeId: number,
+    groupId: number,
+    stageId: number,
+    clusterName: string
+  ) {
+    const url = `/clusters/${clusterName}/upgrades/${upgradeId}/upgrade_groups/${groupId}/upgrade_items/${stageId}?fields=UpgradeItem/group_id,UpgradeItem/stage_id,tasks/Tasks/command_detail,tasks/Tasks/host_name,tasks/Tasks/role,tasks/Tasks/request_id,tasks/Tasks/stage_id,tasks/Tasks/status,tasks/Tasks/structured_out&minimal_response=true`;
+    const response = await ambariApi.request({
+      url: url,
+      method: "GET",
+    });
+    return response.data;
+  },
+  getTasksLogs: async function (
+    upgradeId: number,
+    groupId: number,
+    stageId: number,
+    taskId: number,
+    clusterName: string
+  ) {
+    const url = `/clusters/${clusterName}/upgrades/${upgradeId}/upgrade_groups/${groupId}/upgrade_items/${stageId}/tasks/${taskId}`;
+    const response = await ambariApi.request({
+      url: url,
+      method: "GET",
+    });
+    return response.data;
+  },
+  setUpgradeItemState: async function (clusterName: string, data: any) {
+    const url = `/clusters/${clusterName}/upgrades/${data.upgradeId}/upgrade_groups/${data.groupId}/upgrade_items/${data.itemId}`;
+    const response = await ambariApi.request({
+      url,
+      method: "PUT",
+      data: JSON.stringify({
+        UpgradeItem: {
+          status: data.status,
+        },
+      }),
+    });
+    return response.data;
+  },
+  abortUpgrade: async function (clusterName: string, upgradeId: number) {
+    const url = `/clusters/${clusterName}/upgrades/${upgradeId}`;
+    const response = await ambariApi.request({
+      url,
+      method: "PUT",
+      data: JSON.stringify({
+        "Upgrade": {
+          "request_status": "ABORTED",
+          "suspended": "false"
+        },
+      }),
+    });
+    return response.data;
+  },
+  suspendUpgrade: async function (clusterName: string, upgradeId: number) {
+    const url = `/clusters/${clusterName}/upgrades/${upgradeId}`;
+    const response = await ambariApi.request({
+      url,
+      method: "PUT",
+      data: JSON.stringify({
+        "Upgrade": {
+          "request_status": "ABORTED",
+          "suspended": "true"
+        },
+      }),
+    });
+    return response.data;
+  },
+  retryUpgrade: async function (clusterName: string, upgradeId: number) {
+    const url = `/clusters/${clusterName}/upgrades/${upgradeId}`;
+    const response = await ambariApi.request({
+      url,
+      method: "PUT",
+      data: JSON.stringify({
+        "Upgrade": {
+          "request_status": "PENDING",
+        },
+      }),
+    });
+    return response.data; 
+  },
 };
 
 export default VersionsApi;
