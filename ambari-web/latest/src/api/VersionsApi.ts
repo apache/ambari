@@ -33,7 +33,19 @@ const VersionsApi = {
       method: "GET",
     });
     return response.data;
-  }, 
+  },
+  get_supported_upgradeTypes: async function (
+    stackName: string,
+    stackVersion: string,
+    toVersion: string
+  ) {
+    const url = `/stacks/${stackName}/versions/${stackVersion}/compatible_repository_versions?CompatibleRepositoryVersions/repository_version=${toVersion}`;
+    const response = await ambariApi.request({
+      url: url,
+      method: "GET",
+    });
+    return response.data;
+  },
 };
 
 export default VersionsApi;
