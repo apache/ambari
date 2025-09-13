@@ -465,7 +465,7 @@ export default function AssignMasters({
                             <Select
                               id={`select-${component}`}
                               value={{ label: hostname, value: hostname }}
-                              onChange={(selectedOption) => {
+                              onChange={(selectedOption: any) => {
                                 if (selectedOption) {
                                   handleComponentChange(
                                     component,
