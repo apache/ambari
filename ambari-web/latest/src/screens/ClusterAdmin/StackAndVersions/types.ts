@@ -125,6 +125,43 @@ type StackVersion = {
   repository_versions: RepositoryVersion[];
 }
 
+type UpgradeCheck = {
+  check: string;
+  check_type: string;
+  cluster_name: string;
+  failed_detail: Array<{
+    state: string;
+    label: string;
+    host_name: string;
+  }>;
+  failed_on: string[];
+  id: string;
+  reason: string;
+  repository_version_id: number;
+  status: string;
+  upgrade_type: string;
+}
+
+type Item = {
+  href: string;
+  UpgradeChecks: UpgradeCheck;
+}
+
+type Response = {
+  href: string;
+  items: Item[];
+}
+type ClusterCheckPopupData = {
+  header: any;
+  failTitle: any;
+  failAlert: any;
+  warningTitle: any;
+  warningAlert: any;
+  primary: any;
+  secondary: any;
+  bypassedFailures: boolean;
+}
+
 export type {
     RepositoryVersion,
     Service,
@@ -134,4 +171,8 @@ export type {
     Repository,
     ClusterStackVersion,
     StackVersion,
+    UpgradeCheck,
+    Item,
+    Response,
+    ClusterCheckPopupData
 };

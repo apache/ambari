@@ -46,6 +46,18 @@ const VersionsApi = {
     });
     return response.data;
   },
+  runPreUpgradeCheck: async function (
+    clusterName: string,
+    toId: string,
+    upgradeType: string
+  ) {
+    const url = `/clusters/${clusterName}/rolling_upgrades_check?fields=*&UpgradeChecks/repository_version_id=${toId}&UpgradeChecks/upgrade_type=${upgradeType}`;
+    const response = await ambariApi.request({
+      url: url,
+      method: "GET",
+    });
+    return response.data;
+  },
 };
 
 export default VersionsApi;
