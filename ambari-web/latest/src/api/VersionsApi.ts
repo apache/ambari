@@ -26,6 +26,14 @@ const VersionsApi = {
     });
     return response.data;
   },
+  getAllStacks: async function (clusterName: string) {
+    const url = `/clusters/${clusterName}/stack_versions?fields=*,repository_versions/*,repository_versions/operating_systems/OperatingSystems/*,repository_versions/operating_systems/repositories/*`;
+    const response = await ambariApi.request({
+      url: url,
+      method: "GET",
+    });
+    return response.data;
+  }, 
 };
 
 export default VersionsApi;
