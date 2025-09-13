@@ -23,7 +23,7 @@ import classNames from "classnames";
 export type ModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  modalTitle: string;
+  modalTitle: any;
   modalBody: ReactNode;
   className?:string;
   successCallback: () => void;
