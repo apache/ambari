@@ -151,6 +151,7 @@ type Response = {
   href: string;
   items: Item[];
 }
+
 type ClusterCheckPopupData = {
   header: any;
   failTitle: any;
@@ -161,6 +162,146 @@ type ClusterCheckPopupData = {
   secondary: any;
   bypassedFailures: boolean;
 }
+
+type TaskLog = {
+  Tasks: {
+    attempt_cnt: number;
+    cluster_name: string;
+    command: string;
+    command_detail: string;
+    custom_command_name: string;
+    end_time: number;
+    error_log: string;
+    exit_code: number;
+    host_name: string;
+    id: number;
+    ops_display_name: string | null;
+    output_log: string;
+    request_id: number;
+    role: string;
+    stage_id: number;
+    start_time: number;
+    status: string;
+    stderr: string;
+    stdout: string;
+    structured_out: {
+      direction: string;
+      repository_version_id: number;
+      upgrade_type: string;
+      version: string;
+    };
+  };
+};
+
+type Task = {
+  command_detail: string;
+  host_name: string;
+  id: number;
+  request_id: number;
+  role: string;
+  stage_id: number;
+  status: string;
+  structured_out: {
+    direction: string;
+    repository_version_id: number;
+    upgrade_type: string;
+    version: string;
+  };
+  logs?: TaskLog;
+};
+
+type UpgradeItem = {
+  UpgradeItem: {
+    context: string;
+    display_status: string;
+    group_id: number;
+    progress_percent: number;
+    request_id: number;
+    skippable: boolean;
+    stage_id: number;
+    status: string;
+    text: string;
+  };
+  tasks?: Task[];
+};
+
+type UpgradeGroup = {
+  [x: string]: any;
+  UpgradeGroup: {
+    completed_task_count: number;
+    display_status: string;
+    group_id: number;
+    in_progress_task_count: number;
+    name: string;
+    progress_percent: number;
+    request_id: number;
+    status: string;
+    title: string;
+    total_task_count: number;
+  },
+  upgrade_items: UpgradeItem[];
+};
+
+type Upgrade = {
+  associated_version: string;
+  cluster_name: string;
+  create_time: number;
+  direction: string;
+  downgrade_allowed: boolean;
+  end_time: number;
+  exclusive: boolean;
+  pack: string;
+  progress_percent: number;
+  request_context: string;
+  request_id: number;
+  request_status: string;
+  skip_failures: boolean;
+  skip_service_check_failures: boolean;
+  start_time: number;
+  suspended: boolean;
+  type: string;
+  upgrade_id: number;
+  upgrade_type: string;
+  versions: Record<string, any>;
+};
+
+type UpgradeData = {
+  Upgrade: Upgrade;
+  upgrade_groups: UpgradeGroup[];
+};
+
+type UpgradeParameters = {
+  isDowngrade: boolean;
+  downgradeAllowed: boolean;
+  isDowngradeAvailable?: boolean;
+  overallProgress: number;
+  activeGroup: UpgradeGroup | null;
+  runningItem: UpgradeItem | null;
+  failedItem: UpgradeItem | null;
+  manualItem: UpgradeItem | null;
+  plainManualItem: boolean;
+  isSlaveComponentFailuresItem: boolean;
+  isServiceCheckFailuresItem: boolean;
+  isFinalizeItem: boolean;
+  canSkipFailedItem: boolean;
+  isHoldingState: boolean;
+  requestInProgress: boolean;
+  areSlaveComponentFailuresHostsLoaded: boolean;
+  slaveComponentStructuredInfo: any;
+  areServiceCheckFailuresServicenamesLoaded?: boolean;
+  serviceCheckFailuresServicenames?: any;
+  upgradeStatus: string;
+  upgradeInit: boolean;
+  upgradeInProgress: boolean;
+  upgradeCompleted: boolean;
+  upgradeSuspended: boolean;
+  upgradeAborted: boolean;
+  upgradeHolding: boolean;
+  upgradeRunning: boolean;
+  showPauseButton: boolean;
+  upgradeStatusLabel: string;
+  upgradeAssociatedversion: string
+};
 
 export type {
     RepositoryVersion,
@@ -174,5 +315,10 @@ export type {
     UpgradeCheck,
     Item,
     Response,
-    ClusterCheckPopupData
+    ClusterCheckPopupData,
+    UpgradeData,
+    UpgradeGroup,
+    UpgradeItem,
+    Task,
+    UpgradeParameters
 };

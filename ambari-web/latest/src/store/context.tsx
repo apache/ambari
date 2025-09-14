@@ -62,6 +62,10 @@ interface AppContextProps {
   setCurrentStackVersion: (version: string) => void;
   upgradeId: number;
   setUpgradeId: (id: number) => void;
+  isPatchUpgrade: boolean;
+  setIsPatchUpgrade?: (isPatch: boolean) => void;
+  upgradeVersionDisplayName?: string;
+  setUpgradeVersionDisplayName?: (name: string) => void;
   userUrl?: string;
   sessionsValidated: boolean;
   sessionExists: boolean;
@@ -92,6 +96,10 @@ export const AppContext = createContext<AppContextProps>({
   setCurrentStackVersion: () => {},
   upgradeId: 0,
   setUpgradeId: () => {},
+  isPatchUpgrade: false,
+  setIsPatchUpgrade: () => {},
+  upgradeVersionDisplayName: "",
+  setUpgradeVersionDisplayName: () => {},
   sessionExists: false,
   sessionsValidated: false,
   clusterState: {}
@@ -113,6 +121,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const [upgradeDirection, setUpgradeDirection] = useState<string>("");
   const [upgradeSuspend, setUpgradeSuspend] = useState<boolean>(false);
   const [upgradeId, setUpgradeId] = useState<number>(0);
+  const [isPatchUpgrade, setIsPatchUpgrade] = useState<boolean>(false);
+  const [upgradeVersionDisplayName, setUpgradeVersionDisplayName] = useState<string>("");
   const [currentStackVersion, setCurrentStackVersion] = useState<string>("");
   const [ambariProperties, setAmbariProperties] = useState({});
   const [sessionsValidated, setSessionsValidated] = useState(false);
@@ -322,6 +332,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     setUpgradeId(upgradeId);
     setUpgradeState(upgradeState);
     setUpgradeSuspend(upgradeSuspend);
+
+    const isPatch = await ClusterApi.getPersistData("isPatchUpgrade");
+    setIsPatchUpgrade(isPatch);
+
+    const upgradeVersionDisplayName = await ClusterApi.getPersistData("upgradeVersionDisplayName");
+    setUpgradeVersionDisplayName(upgradeVersionDisplayName);
   };
 
   async function getUserUrl() {
@@ -477,6 +493,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         setCurrentStackVersion,
         upgradeId,
         setUpgradeId,
+        isPatchUpgrade,
+        setIsPatchUpgrade,
+        upgradeVersionDisplayName,
+        setUpgradeVersionDisplayName,
         userUrl,
         sessionExists,
         sessionsValidated,

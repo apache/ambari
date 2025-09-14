@@ -22,6 +22,7 @@ import { detectUserTimezone, parseTimezones } from "./timezone";
 import DOMPurify from "isomorphic-dompurify";
 import parse from 'html-react-parser';
 import { t } from "i18next";
+import { faCogs, faGears, faCheck, faTimes, faPause, faClock } from "@fortawesome/free-solid-svg-icons";
 
 export const padNumber = (num: number) => (num < 10 ? `0${num}` : num);
 const components: any = {
@@ -479,3 +480,89 @@ export const translateWithVariables = (messageKey: string, replacements: Record<
 
   return parse(DOMPurify.sanitize(message, { USE_PROFILES: { html: true } }));
 };
+
+export const getUpgradeRequestStatus = (
+  upgradeState: string,
+  isDowngrade: boolean = false
+) => {
+  let key = "";
+  switch (upgradeState) {
+    case "QUEUED":
+    case "PENDING":
+    case "IN_PROGRESS":
+      key = "admin.stackUpgrade.state.inProgress";
+      break;
+    case "COMPLETED":
+      key = "admin.stackUpgrade.state.completed";
+      break;
+    case "ABORTED":
+      key = "admin.stackUpgrade.state.paused";
+      break;
+    case "TIMEDOUT":
+    case "FAILED":
+    case "HOLDING_FAILED":
+    case "HOLDING_TIMEDOUT":
+    case "HOLDING":
+      key = "admin.stackUpgrade.state.paused";
+      break;
+    default:
+      key = "admin.stackUpgrade.state.init";
+      break;
+  }
+  if (key) {
+    key += isDowngrade ? ".downgrade" : "";
+    return key;
+  } else {
+    return "";
+  }
+};
+
+export const failedStatuses = [
+  "HOLDING_FAILED",
+  "HOLDING_TIMEDOUT",
+  "FAILED",
+  "TIMED_OUT",
+  "ABORTED",
+];
+export const activeStatuses = [
+  "HOLDING_FAILED",
+  "HOLDING_TIMEDOUT",
+  "FAILED",
+  "TIMED_OUT",
+  "HOLDING",
+  "IN_PROGRESS",
+  "ABORTED",
+];
+
+export const getUpgradeDisplayName = (upgradeType: string) => {
+  switch (upgradeType) {
+    case "ROLLING":
+      return "Rolling";
+    case "NON_ROLLING":
+      return "Express";
+    case "HOST_ORDERED":
+      return "Host-Ordered";
+    default:
+      return upgradeType;
+  }
+}
+
+export function getIconObject(status: string) {
+  switch (status.toUpperCase()) {
+    case "PENDING":
+    case "QUEUED":
+      return { icon: faCogs, color: "text-secondary" };
+    case "IN_PROGRESS":
+      return { icon: faGears, color: "text-info" };
+    case "COMPLETED":
+      return { icon: faCheck, color: "text-success" };
+    case "FAILED":
+      return { icon: faTimes, color: "text-danger" };
+    case "ABORTED":
+      return { icon: faPause, color: "text-ligth" };
+    case "TIMEDOUT":
+      return { icon: faClock, color: "text-warning" };
+    default:
+      return { icon: faPause, color: "text-light" };
+  }
+}
