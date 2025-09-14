@@ -33,7 +33,15 @@ const VersionsApi = {
       method: "GET",
     });
     return response.data;
-  }, 
+  },
+  getRepoDetails: async (stack: string, version: string) => {
+    const url = `/stacks/${stack}/versions?fields=repository_versions/operating_systems/repositories/*,repository_versions/operating_systems/OperatingSystems/*,repository_versions/RepositoryVersions/*&repository_versions/RepositoryVersions/repository_version=${version}`;
+    const response = await ambariApi.request({
+      url: url,
+      method: "GET",
+    });
+    return response.data;
+  },
 };
 
 export default VersionsApi;
