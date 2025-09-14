@@ -23,7 +23,7 @@ import classNames from "classnames";
 export type ModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  modalTitle: string;
+  modalTitle: any;
   modalBody: ReactNode;
   className?:string;
   successCallback: () => void;
@@ -31,7 +31,7 @@ export type ModalProps = {
     modalSize?: string;
     shouldShowFooter?: boolean;
     buttonSize?: "sm" | "lg" | undefined;
-    okButtonText?: string;
+    okButtonText?: any;
     cancelButtonText?: string;
     cancelableViaIcon?: boolean;
     cancelableViaBtn?: boolean;

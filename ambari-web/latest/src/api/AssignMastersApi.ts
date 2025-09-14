@@ -21,7 +21,7 @@ import { ambariApi } from "./config/axiosConfig";
 const AssignMastersApi = {
   getCpuInfo: async function (HOSTS: any) {
     const hostsParams = HOSTS.join(",");
-    const url = `/hosts?Hosts/host_name.in(${hostsParams})&fields=Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem,Hosts/ip,Hosts/os_type,Hosts/os_arch,Hosts/public_host_name&minimal_response=true&_=1731567268225`;
+    const url = `/hosts?Hosts/host_name.in(${hostsParams})&fields=Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem,Hosts/ip,Hosts/os_type,Hosts/os_arch,Hosts/public_host_name&minimal_response=true`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",

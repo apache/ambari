@@ -15,36 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export enum ClusterProgressStatus {
-  PROVISIONING = "PROVISIONING",
-  ENABLING_NAMENODE_HA = "ENABLING_NAMENODE_HA",
-  ADDING_HOST = "ADDING_HOST",
-  ADDING_SERVICE = "ADDING_SERVICE",
-  ENABLING_KERBEROS = "ENABLING_KERBEROS",
-}
-export enum ProgressStatus {
-  IN_PROGRESS = "IN_PROGRESS",
-  COMPLETED = "COMPLETED",
-  FAILED = "FAILED",
-}
 
+import { Card } from "react-bootstrap";
 
-export const serviceNameDisplayMapping = {
-  HDFS: "HDFS",
-  YARN: "YARN",
-  RANGER: "Ranger",
-  ZOOKEEPER: "Zookeeper",
-  HIVE: "Hive",
-  SPARK: "Spark3",
-  MAPREDUCE2: "MapReduce2",
-  TEZ: "Tez",
-  HBASE: "HBase",
-  KERBEROS: "Kerberos",
-  RANGER_KMS: "Ranger KMS",
-  AMBARI_METRICS: "Ambari Metrics",
-  TRINO: "Trino",
-  SSM: "SSM",
-  SQOOP: "Sqoop",
-  KYUUBI: "Kyuubi",
-  TRINO_GATEWAY: "Trino Gateway",
-};
+export default function AllConfigurationsTab() {
+  return (
+    <Card>
+      <h5 className="p-4">All Configurations Tab</h5>
+    </Card>
+  );
+}
