@@ -27,3 +27,24 @@ export enum ProgressStatus {
   COMPLETED = "COMPLETED",
   FAILED = "FAILED",
 }
+
+
+export const serviceNameDisplayMapping = {
+  HDFS: "HDFS",
+  YARN: "YARN",
+  RANGER: "Ranger",
+  ZOOKEEPER: "Zookeeper",
+  HIVE: "Hive",
+  SPARK: "Spark3",
+  MAPREDUCE2: "MapReduce2",
+  TEZ: "Tez",
+  HBASE: "HBase",
+  KERBEROS: "Kerberos",
+  RANGER_KMS: "Ranger KMS",
+  AMBARI_METRICS: "Ambari Metrics",
+  TRINO: "Trino",
+  SSM: "SSM",
+  SQOOP: "Sqoop",
+  KYUUBI: "Kyuubi",
+  TRINO_GATEWAY: "Trino Gateway",
+};
