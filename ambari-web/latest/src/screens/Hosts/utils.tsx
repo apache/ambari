@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { get } from "lodash";
+import { get, isEmpty } from "lodash";
 import { ComponentType } from "./enums";
 import { translate, translateWithVariables } from "../../Utils/Utility";
 
@@ -67,4 +67,26 @@ export const validateInteger = (
     }) as string;
   }
   return "";
+};
+
+export const getAllComponents = (serviceComponentInfo: any) => {
+  if (!isEmpty(serviceComponentInfo)) {
+    let allComponentsCopy: any[] = [];
+    get(serviceComponentInfo, "items", []).forEach((service: any) => {
+      allComponentsCopy = allComponentsCopy.concat(
+        get(service, "components", []).map((component: any) => {
+          return {
+            HostRoles: {
+              ...get(component, "StackServiceComponents"),
+              dependencies: get(component, "dependencies", []).map(
+                (d: any) => d.Dependencies.component_name
+              ),
+            },
+          };
+        })
+      );
+    });
+    return allComponentsCopy;
+  }
+  return [];
 };
