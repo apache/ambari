@@ -39,7 +39,7 @@ import VersionsApi from "../../../api/VersionsApi";
 import toast from "react-hot-toast";
 import Spinner from "../../../components/Spinner";
 import Table from "../../../components/Table";
-import { get } from "lodash";
+import { cloneDeep, get, set } from "lodash";
 import Select from "react-select";
 import Modal from "../../../components/Modal";
 import usePolling from "../../../hooks/usePolling";
@@ -49,6 +49,9 @@ import { RequestApi } from "../../../api/requestApi";
 import OperationsProgress from "../../../components/OperationProgress";
 import { ClusterCheckPopupData, Item, Response, StackVersion } from "./types";
 import { translate, translateWithVariables } from "../../../Utils/Utility";
+import modalManager from "../../../store/ModalManager";
+import ClusterApi from "../../../api/clusterApi";
+import Upgrade from "./Upgrade";
 
 const initialOptions = [
   { key: "ALL", values: ["ALL"], count: 0 },
@@ -141,8 +144,8 @@ export default function Versions() {
   const [upgradeMethods, setUpgradeMethods] = useState(initialUpgradeMethods);
   const [methodType, setMethodType] = useState("");
   const [currentUpgradeTypes, setCurrentUpgradeTypes] = useState<string[]>([]);
-  const { clusterName } = useContext(AppContext);
-
+  const { clusterName, setUpgradeId, upgradeState, setUpgradeVersionDisplayName } = useContext(AppContext);
+  
   const [versionModal, setVersionModal] = useState(false);
   const [installPackagesModal, setInstallPackagesModal] = useState(false);
   const [manageVersionModal, setManageVersionsModal] = useState(false);
@@ -150,13 +153,10 @@ export default function Versions() {
   const [hostModal, setHostModal] = useState(false);
   const [upgradeModal, setUpgradeModal] = useState(false);
   const [upgradeCheckModal, setUpgradeCheckModal] = useState(false);
-  const [upgradeConfirmationModal, setUpgradeConfirmationModal] =
-    useState(false);
+  const [upgradeConfirmationModal, setUpgradeConfirmationModal] = useState(false);
   const [, setCompletionStatus] = useState(false);
-
-  const [selectedStack, setSelectedStack] = useState<
-    StackVersion | undefined
-  >();
+  const [selectedStack, setSelectedStack] = useState<StackVersion>();
+  const selectedStackRef = useRef<StackVersion>(selectedStack);
   const [operations, setOperations] = useState({});
   const [payload, setPayload] = useState({});
 
@@ -243,20 +243,33 @@ export default function Versions() {
   }, []);
 
   useEffect(() => {
-    setUpgradeMethods(upgradeMethodsRef.current);
-  }, [upgradeMethodsRef.current]);
+    selectedStackRef.current = selectedStack;
+    // update the stacks with selectedStack
+    if (selectedStack) {
+      const updatedStacks = stacks.map((stack) => {
+        if (
+          stack.ClusterStackVersions.id ===
+          selectedStack.ClusterStackVersions.id
+        ) {
+          return selectedStack;
+        }
+        return stack;
+      });
+      setStacks(updatedStacks);
+    }
+  }, [selectedStack])
 
   useEffect(() => {
     upgradeMethodsRef.current = upgradeMethods;
 
     // Update the upgrade modal content when upgrade methods change
-    if (upgradeModal && selectedStack) {
+    if (upgradeModal && selectedStackRef.current) {
       const modalContent = (
         <div className="upgrade-modal">
           <div>
             You are about to perform an upgrade to{" "}
             <strong>
-              {selectedStack?.repository_versions[0]?.RepositoryVersions
+              {selectedStackRef.current?.repository_versions[0]?.RepositoryVersions
                 ?.display_name || "Unknown"}
             </strong>
           </div>
@@ -404,6 +417,7 @@ export default function Versions() {
             className="custom-link"
             onClick={() => {
               setSelectedStack(stackData);
+              selectedStackRef.current = stackData;
               setVersionModal(true);
             }}
           >
@@ -425,6 +439,9 @@ export default function Versions() {
             <Button
               variant="success"
               className="text-uppercase"
+              size="sm"
+              disabled={upgradeState !== "NOT_REQUIRED" &&
+                  upgradeState !== "COMPLETED"}
               onClick={() => handleUpgradeButton(stackData)}
             >
               Upgrade
@@ -432,6 +449,8 @@ export default function Versions() {
             <Dropdown.Toggle split variant="success" id="dropdown" />
             <Dropdown.Menu>
               <Dropdown.Item
+              disabled={upgradeState !== "NOT_REQUIRED" &&
+                  upgradeState !== "COMPLETED"}
                 onClick={() => installPackagesPayloadSet(stackData)}
               >
                 Re-install
@@ -439,8 +458,8 @@ export default function Versions() {
               <Dropdown.Item
                 onClick={() => {
                   showUpgradeProceedButton.current = false;
-                  if (selectedStack) {
-                    handleUpgradeClick(selectedStack);
+                  if (selectedStackRef.current) {
+                    handleUpgradeClick(selectedStackRef.current);
                   } else {
                     toast.error("No stack selected for upgrade.");
                   }
@@ -466,6 +485,7 @@ export default function Versions() {
 
   function installPackagesPayloadSet(stackData: StackVersion) {
     setSelectedStack(stackData);
+    selectedStackRef.current = stackData;
     const payload = {
       ClusterStackVersions: {
         stack: stackData.ClusterStackVersions.stack,
@@ -482,6 +502,7 @@ export default function Versions() {
 
   function handleUpgradeButton(stackData: StackVersion) {
     setSelectedStack(stackData);
+    selectedStackRef.current = stackData;
     switch (getButtonName(stackData)) {
       case "CURRENT":
         return;
@@ -510,8 +531,11 @@ export default function Versions() {
       },
     ];
     setOperations(operations);
-    if (selectedStack) {
-      selectedStack.ClusterStackVersions.state = "INTERMEDIATE";
+    let selectedStackCopy = cloneDeep(selectedStack);
+    if (selectedStackCopy) {
+      set(selectedStackCopy, "ClusterStackVersions.state", "INTERMEDIATE");
+      setSelectedStack(selectedStackCopy);
+      selectedStackRef.current = selectedStackCopy;
     }
     setInstallPackagesModal(false);
   }
@@ -537,7 +561,7 @@ export default function Versions() {
 
   function getInstallPackageModalBody() {
     const displayName =
-      selectedStack?.repository_versions?.[0]?.RepositoryVersions
+      selectedStackRef.current?.repository_versions?.[0]?.RepositoryVersions
         ?.display_name || "N/A";
     return (
       <div>
@@ -548,11 +572,11 @@ export default function Versions() {
   }
 
   function getVersionModalBody() {
-    if (!selectedStack || Object.keys(selectedStack).length === 0) {
+    if (!selectedStackRef.current || Object.keys(selectedStackRef.current).length === 0) {
       return null;
     }
 
-    const hostStates = selectedStack.ClusterStackVersions.host_states;
+    const hostStates = selectedStackRef.current.ClusterStackVersions.host_states;
     const installed = hostStates.INSTALLED.length;
     const current = hostStates.CURRENT.length;
     const notInstalled =
@@ -562,7 +586,7 @@ export default function Versions() {
       <div>
         <div className="d-flex justify-content-center">
           <div className="fw-bold">
-            {selectedStack?.repository_versions[0]?.RepositoryVersions
+            {selectedStackRef.current?.repository_versions[0]?.RepositoryVersions
               ?.display_name || "NA"}
           </div>
           <small className="mx-2">
@@ -581,14 +605,14 @@ export default function Versions() {
         <div className="mt-2 text-center">
           <small className="text-muted mt-2">
             (
-            {selectedStack?.repository_versions?.[0]?.RepositoryVersions
+            {selectedStackRef.current?.repository_versions?.[0]?.RepositoryVersions
               ?.repository_version || "NA"}
             )
           </small>
         </div>
         <div className="text-center">
-          {getButtonName(selectedStack) === "installing" ||
-          getButtonName(selectedStack) === "intermediateInstalling" ? (
+          {getButtonName(selectedStackRef.current) === "installing" ||
+          getButtonName(selectedStackRef.current) === "intermediateInstalling" ? (
             <Link to={""}>
               <OperationsProgress
                 operations={operations as any}
@@ -597,13 +621,16 @@ export default function Versions() {
                 setCompletionStatus={setCompletionStatus}
               />
             </Link>
-          ) : getButtonName(selectedStack) === "UPGRADE" ? (
+          ) : getButtonName(selectedStackRef.current) === "UPGRADE" ? (
             <Dropdown as={ButtonGroup}>
               <Button variant="success">Upgrade</Button>
               <Dropdown.Toggle split variant="success" id="dropdown" />
               <Dropdown.Menu>
                 <Dropdown.Item
-                  onClick={() => installPackagesPayloadSet(selectedStack)}
+                  onClick={() => {
+                    if(selectedStackRef.current)
+                      installPackagesPayloadSet(selectedStackRef.current)
+                    }}
                 >
                   Re-install
                 </Dropdown.Item>
@@ -615,9 +642,12 @@ export default function Versions() {
               className="mt-2"
               variant="success"
               size="sm"
-              onClick={() => handleUpgradeButton(selectedStack)}
+              onClick={() => {
+                if(selectedStackRef.current)
+                handleUpgradeButton(selectedStackRef.current)
+              }}
             >
-              {getButtonName(selectedStack)}
+              {getButtonName(selectedStackRef.current)}
             </Button>
           )}
         </div>
@@ -681,7 +711,7 @@ export default function Versions() {
         ? "Installed"
         : "Not installed";
     const versionName =
-      selectedStack?.repository_versions[0]?.RepositoryVersions?.display_name ||
+      selectedStackRef.current?.repository_versions[0]?.RepositoryVersions?.display_name ||
       "N/A";
     const hostList = hosts.join("\n\n");
 
@@ -862,7 +892,7 @@ export default function Versions() {
     }
     const header = translateWithVariables("popup.clusterCheck.Upgrade.header", {
       "0":
-        selectedStack?.repository_versions[0]?.RepositoryVersions
+        selectedStackRef.current?.repository_versions[0]?.RepositoryVersions
           ?.display_name || "Unknown",
     });
 
@@ -1094,12 +1124,12 @@ export default function Versions() {
   }
 
   function getPreCheckModalTitle() {
-    return `Upgrade to ${selectedStack?.repository_versions[0].RepositoryVersions.display_name}`;
+    return `Upgrade to ${selectedStackRef.current?.repository_versions[0].RepositoryVersions.display_name}`;
   }
 
   function getUpgradConfirmationModalBody() {
     const stackVersion =
-      selectedStack?.repository_versions[0].RepositoryVersions.display_name;
+      selectedStackRef.current?.repository_versions[0].RepositoryVersions.display_name;
     return `You are about to perform an ${methodType} Upgrade to ${stackVersion}. This will incur cluster downtime. Are you sure you want to proceed?`;
   }
 
@@ -1240,6 +1270,63 @@ export default function Versions() {
           }}
           successCallback={async () => {
             setUpgradeCheckModal(false);
+            if (showRerunButton.current) {
+              runPreUpgradeCheckOnly({
+                id: selectedStackRef.current?.ClusterStackVersions.id,
+                label:
+                  selectedStackRef.current?.repository_versions[0].RepositoryVersions
+                    .display_name,
+                type: methodType,
+              });
+            } else {
+              const payload = JSON.stringify({
+                Upgrade: {
+                  repository_version_id:
+                    selectedStackRef.current?.repository_versions[0].RepositoryVersions.id,
+                  upgrade_type: methodType,
+                  skip_failures: false,
+                  skip_service_check_failures: false,
+                  direction: "UPGRADE",
+                },
+              });
+              try {
+                const response = await VersionsApi.getUpgradeId(
+                  payload,
+                  clusterName
+                );
+                const upgradeId = response?.resources[0]?.Upgrade?.request_id;
+                setUpgradeId(upgradeId);
+                if(setUpgradeVersionDisplayName) {
+                  const versionDisplayName = get(selectedStackRef.current, "repository_versions[0].RepositoryVersions.display_name", "");
+                  setUpgradeVersionDisplayName(versionDisplayName);
+                  await ClusterApi.postPersistData(
+                    JSON.stringify({
+                      upgradeVersionDisplayName: JSON.stringify(versionDisplayName)
+                    })
+                  )
+                }
+                modalManager.show(<Upgrade upgradeId={upgradeId} />);
+              } catch (error) {
+                modalManager.show({
+                  modalTitle: "Upgrade could not be started",
+                  modalBody: (
+                    <div>
+                      {error instanceof Error ? error.message : String(error)}
+                    </div>
+                  ),
+                  onClose: () => {
+                    modalManager.hide();
+                  },
+                  successCallback: () => {
+                    modalManager.hide();
+                  },
+                  options: {
+                    cancelableViaIcon: true,
+                    cancelableViaBtn: false,
+                  },
+                });
+              }
+            }
           }}
         />
       ) : null}
