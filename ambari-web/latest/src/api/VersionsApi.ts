@@ -33,7 +33,31 @@ const VersionsApi = {
       method: "GET",
     });
     return response.data;
-  }, 
+  },
+  get_supported_upgradeTypes: async function (
+    stackName: string,
+    stackVersion: string,
+    toVersion: string
+  ) {
+    const url = `/stacks/${stackName}/versions/${stackVersion}/compatible_repository_versions?CompatibleRepositoryVersions/repository_version=${toVersion}`;
+    const response = await ambariApi.request({
+      url: url,
+      method: "GET",
+    });
+    return response.data;
+  },
+  runPreUpgradeCheck: async function (
+    clusterName: string,
+    toId: string,
+    upgradeType: string
+  ) {
+    const url = `/clusters/${clusterName}/rolling_upgrades_check?fields=*&UpgradeChecks/repository_version_id=${toId}&UpgradeChecks/upgrade_type=${upgradeType}`;
+    const response = await ambariApi.request({
+      url: url,
+      method: "GET",
+    });
+    return response.data;
+  },
 };
 
 export default VersionsApi;
