@@ -189,17 +189,7 @@ public class ExecutionScheduleManager {
 
       //Install all trusting cert SSL context for jersey client
       ClientConfig config = new ClientConfig();
-      /*config.getProperties().put(HTTPSProperties.PROPERTY_HTTPS_PROPERTIES, new HTTPSProperties(
-        new HostnameVerifier() {
-          @Override
-          public boolean verify( String s, SSLSession sslSession ) {
-            return true;
-          }
-        },
-        sc
-      ));*/
-
-      client = ClientBuilder.newBuilder().sslContext(sc).withConfig(config)
+      client = ClientBuilder.newBuilder().sslContext(sc).hostnameVerifier((hostname, session) -> true).withConfig(config)
               .build();
 
     } else {
