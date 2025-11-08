@@ -22,7 +22,7 @@ import { RequestApi } from "../api/requestApi";
 import { AppContext } from "../store/context";
 import { isFailed, isFinished } from "../Utils/Utility";
 import { ProgressStatus} from "../constants";
-import { Button, ProgressBar, Stack } from "react-bootstrap";
+import { Alert, Button, ProgressBar, Stack } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCircleCheck,
@@ -45,6 +45,7 @@ type PropTypes = {
     }
   ];
   dispatch?: (operationsState: any) => void;
+  errorCallback?: (errorMsg: string) => void;
 };
 
 type OperationRequestResponse = {
@@ -62,6 +63,7 @@ function OperationsProgress({
   setCompletionStatus,
   operations,
   dispatch,
+  errorCallback
 }: PropTypes) {
   const [operationsState, setOperationsState] = useState(operations);
   const operationsRef = useRef(operations);
@@ -222,6 +224,21 @@ function OperationsProgress({
                   label={`${Math.floor(stage.progress)}%`}
                 />
               ) : null}
+
+              {has(operation, "error") &&
+                isFinished(operation.status) &&
+                (errorCallback ? (
+                  (errorCallback(
+                    operation.error ||
+                      "Error: An error occurred during the operation."
+                  ),
+                  null)
+                ) : (
+                  <Alert variant="danger" className="scrollable-h15 mt-3">
+                    {operation.error ||
+                      "Error: An error occurred during the operation."}
+                  </Alert>
+                ))}
             </Stack>
           );
         })}

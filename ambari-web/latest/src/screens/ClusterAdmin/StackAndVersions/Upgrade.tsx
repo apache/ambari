@@ -18,6 +18,7 @@
 
 import { JSX, useContext, useState } from "react";
 import {
+  Alert,
   Badge,
   Button,
   Card,
@@ -27,16 +28,21 @@ import {
   Tab,
   Tabs,
 } from "react-bootstrap";
+import NestedCollapse from "../../../components/NestedCollapse";
 import _, { get } from "lodash";
 import Modal from "../../../components/Modal";
+import { useUpgrade } from "../../../hooks/useUpgrade";
 import Spinner from "../../../components/Spinner";
 import VersionsApi from "../../../api/VersionsApi";
 import { AppContext } from "../../../store/context";
 import toast from "react-hot-toast";
 import modalManager from "../../../store/ModalManager";
-import { getUpgradeDisplayName, translate, translateWithVariables } from "../../../Utils/Utility";
-import { useUpgrade } from "../../../hooks/useUpgrade";
-import NestedCollapse from "../../../components/NestedCollapse";
+import { getUpgradeDisplayName, initialUpgradeMethods, translate, translateWithVariables } from "../../../Utils/Utility";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faGears, faQuestionCircle } from "@fortawesome/free-solid-svg-icons";
+import Tooltip from "../../../components/Tooltip";
+import ClusterApi from "../../../api/clusterApi";
+import { iconMapping } from "./ListVersion";
 
 type upgradeProps = {
   upgradeId: number;
@@ -67,9 +73,12 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
   const [confirmDowngradeModal, setConfirmDowngradeModal] = useState(false);
   const [pauseUpgradeModal, setPauseUpgradeModal] = useState(false);
   const [failedHostsModal, setFailedhostsModal] = useState(false);
+  const [upgradeOptionsModal, setUpgradeOptionsModal] = useState(false);
   const [localLogs, setLocalLogs] = useState<any>(null);
   const [localTasks, setLocalTasks] = useState<any[]>([]);
-  const { clusterName, setUpgradeState, setUpgradeId, isPatchUpgrade, upgradeVersionDisplayName } = useContext(AppContext);
+  const [slaveComponentFailures, setSlaveComponentFailures] = useState(upgradeParameters.slaveComponentFailures);
+  const [serviceCheckFailures, setServiceCheckFailures] = useState(upgradeParameters.serviceCheckFailures);
+  const { clusterName, setUpgradeState, setUpgradeId, isPatchUpgrade, upgradeVersionDisplayName, setUpgradeIsFinalizeItem } = useContext(AppContext);
 
   function getShowDetailsButton() {
     
@@ -100,7 +109,7 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
                       variant="link"
                       onClick={() =>
                         handleCopy(
-                          logsToUse?.Tasks?.output_log ?? ""
+                          logsToUse?.Tasks?.stdout ?? ""
                         )
                       }
                     >
@@ -137,7 +146,7 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
                       variant="link"
                       onClick={() =>
                         handleCopy(
-                          logsToUse?.Tasks?.error_log ?? ""
+                          logsToUse?.Tasks?.stderr ?? ""
                         )
                       }
                     >
@@ -171,7 +180,7 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
   }
 
   function getUpgradeModalTitle() {
-    return `${getUpgradeDisplayName(data?.Upgrade.upgrade_type || "rolling")} ${
+    const titleText = `${getUpgradeDisplayName(data?.Upgrade.upgrade_type || "rolling")} ${
       isPatchUpgrade ? "Patch" : ""
     } ${data?.Upgrade.direction} ${
       data?.Upgrade.direction == "DOWNGRADE" ? "from" : "to"
@@ -180,15 +189,40 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
         ? upgradeVersionDisplayName
         : data?.Upgrade.associated_version
     }`;
+    
+    return (
+      <div className="d-flex justify-content-between align-items-center w-100">
+        <span>{titleText}</span>
+        {!onlyView && (
+          <Button
+            variant="link"
+            size="sm"
+            disabled={upgradeParameters.isDowngrade}
+            className="p-0 ms-2 custom-link"
+            onClick={() => setUpgradeOptionsModal(true)}
+            title="Upgrade Options"
+          >
+            <FontAwesomeIcon icon={faGears} className="custom-link me-1" />
+            Upgrade Options
+          </Button>
+        )}
+      </div>
+    );
   }
 
   async function startDowngrade() {
-    const payload = JSON.stringify({
-      "Upgrade": {
+    setUpgradeIsFinalizeItem(false);
+    await ClusterApi.postPersistData(
+      JSON.stringify({
+        upgradeIsFinalizeItem: JSON.stringify(false)
+      })
+    )
+    const payload = {
+      "Upgrade": { 
         "upgrade_type": data?.Upgrade.upgrade_type,
         "direction": "DOWNGRADE",
       }
-    })
+    }
 
     try {
       const response = await VersionsApi.getUpgradeId(payload, clusterName);
@@ -198,6 +232,7 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
       setUpgradeModal(false);
       
       modalManager.show(<Upgrade upgradeId={downgradeId} />);
+      window.location.reload();
     } catch (error) {
       modalManager.show({
         modalTitle: "Upgrade could not be started",
@@ -245,19 +280,19 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
     } catch (error) {
       console.error("Error aborting upgrade:", error);
       if(upgradeParameters.isDowngrade) {
-        // const header = translate( "admin.stackDowngrade.state.paused.fail.header");
-        let body = translate( "admin.stackDowngrade.state.paused.fail.body");
+        // const header = get(messages, "admin.stackDowngrade.state.paused.fail.header");
+        let body = "Downgrade could not be paused. Try again later."
         if(error) {
           body = body + ' ' + error;
         }
-        toast(body.toString());
+        toast(body);
       } else {
-        // const header = translate( "admin.stackUpgrade.state.paused.fail.header");
-        let body = translate( "admin.stackUpgrade.state.paused.fail.body");
+        // const header = get(messages, "admin.stackUpgrade.state.paused.fail.header");
+        let body = "Downgrade could not be paused. Try again later."
         if(error) {
           body = body + ' ' + error;
         }
-        toast(body.toString());
+        toast(body);
       }
     }
   }
@@ -302,24 +337,66 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
     } catch (error) {
       console.error("Error aborting upgrade:", error);
       if(upgradeParameters.isDowngrade) {
-        let body = translate( "admin.stackDowngrade.state.paused.fail.body");
+        let body = "Downgrade could not be paused. Try again later.";
         if(error) {
           body = body + ' ' + error;
         }
-        toast(body.toString());
+        toast(body);
       } else {
-        let body = translate( "admin.stackUpgrade.state.paused.fail.body");
+        let body = "Downgrade could not be paused. Try again later.";
         if(error) {
           body = body + ' ' + error;
         }
-        toast(body.toString());
+        toast(body);
       }
     }
   }
 
   function getFailedHostsMessage(slaveComponentStructuredInfo: any) {
     const count = get(slaveComponentStructuredInfo, "hosts.length", 0);
-    return translateWithVariables("admin.stackUpgrade.failedHosts, showHosts", count);
+    return translateWithVariables("admin.stackUpgrade.failedHosts.showHosts", {"0": count});
+  }
+
+  function getFailedHostsModalBody() {
+    const hostInfo = upgradeParameters.slaveComponentStructuredInfo;
+    const hosts = hostInfo?.hosts || [];
+    const hostDetails = hostInfo?.host_detail || {};
+    
+    return (
+      <div className="failed-hosts-modal-content">
+        <div className="mb-3">
+          <div className="text-muted">Upgrade failed on {hosts.length} hosts</div>
+        </div>
+        
+        {hosts.map((hostname: string, index: number) => {
+          const hostComponents = hostDetails[hostname] || [];
+          return (
+            <div key={index} className="host-item mb-3">
+              <div className="d-flex align-items-center mb-2">
+                <span className="me-2">▶</span>
+                <span className="text-primary fw-bold">{hostname}</span>
+                <span className="badge bg-info text-white ms-2 rounded-pill">
+                  {hostComponents.length}
+                </span>
+              </div>
+              
+              <div className="ms-3">
+                <div className="row">
+                  {hostComponents.map((component: any, componentIndex: number) => (
+                    <div key={componentIndex} className="col-6 mb-2">
+                      <div className="p-2 border rounded">
+                        <div className="fw-bold">{component.service}</div>
+                        <div className="text-muted small">{component.component}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
   }
 
   function parseManualItemText(text: any) {
@@ -376,7 +453,7 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
     return (
       <>
         <div className="d-flex justify-content-between mb-4">
-          <div>{translate( `${upgradeParameters.upgradeStatusLabel}`)}</div>
+          <div>{translate(`${upgradeParameters.upgradeStatusLabel}`)}</div>
           <div className="d-flex">
             <ProgressBar
               now={data?.Upgrade.progress_percent}
@@ -392,7 +469,7 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
               onClick={() => setPauseUpgradeModal(true)}
             >
               {upgradeParameters.isDowngrade ? 
-                translate( "admin.stackUpgrade.pauseDowngrade") : translate( "admin.stackUpgrade.pauseUpgrade")
+                translate("admin.stackUpgrade.pauseDowngrade") : translate("admin.stackUpgrade.pauseUpgrade")
               }
             </Button>
           )}
@@ -400,10 +477,10 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
         <Card className="mb-4">
           <Card.Body>
             <div className="d-flex-column">
-            {upgradeParameters.runningItem && (
+            {upgradeParameters.runningItem && !onlyView && (
               <>
                 <div className="d-flex justify-content-between align-items-center">
-                  <div>{translate( "admin.stackUpgrade.dialog.inProgress")} {" "} {currUpgradeItem?.UpgradeItem.context}</div>
+                  <div>{translate("admin.stackUpgrade.dialog.inProgress")} {" "} {currUpgradeItem?.UpgradeItem.context}</div>
                   <Button
                     variant="link"
                     onClick={() => handleShowDetailsClick(currUpgradeItem)}
@@ -415,12 +492,12 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
               </>
             )}
 
-            {upgradeParameters.failedItem && !upgradeParameters.upgradeSuspended && !upgradeParameters.runningItem &&
+            {upgradeParameters.failedItem && !onlyView && !upgradeParameters.upgradeSuspended && !upgradeParameters.runningItem &&
             !upgradeParameters.isSlaveComponentFailuresItem ? (
               <>
                 <div className="d-flex justify-content-between">
                   <div>
-                    {translate( "admin.stackUpgrade.dialog.failed")}
+                    {translate("admin.stackUpgrade.dialog.failed")}
                     {upgradeParameters.failedItem.UpgradeItem.text}
                   </div>
                   <Button
@@ -436,8 +513,8 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
                   <div>
                     {upgradeParameters.isDowngradeAvailable && (
                       <Button
-                        variant="link"
-                        className="text-uppercase"
+                        variant="danger"
+                        className="text-uppercase me-2"
                         disabled={upgradeParameters.requestInProgress}
                         onClick={() => setConfirmDowngradeModal(true)}
                       >
@@ -447,7 +524,7 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
                     {upgradeParameters.canSkipFailedItem && (
                       <Button
                         variant="warning"
-                        className="text-uppercase"
+                        className="text-uppercase me-2"
                         disabled={upgradeParameters.requestInProgress}
                         onClick={() => {
                             if(currUpgradeItem) {
@@ -459,7 +536,7 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
                           }
                         }
                       >
-                        {translate( "admin.stackUpgrade.dialog.continue")}
+                        {translate("admin.stackUpgrade.dialog.continue")}
                       </Button>
                     )} 
                     <Button
@@ -472,100 +549,114 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
                       }
                       }
                     >
-                      {translate( "common.retry")}
+                      {translate("common.retry")}
                     </Button>
                   </div>
                 </div>
               </>
             ) : null}
 
-            { upgradeParameters.isSlaveComponentFailuresItem && !upgradeParameters.upgradeSuspended && 
+            { upgradeParameters.isSlaveComponentFailuresItem && !onlyView && !upgradeParameters.upgradeSuspended && 
               <>
-                <div>
-                  <div>{translate( "admin.stackUpgrade.dialog.manual")}</div>
+                <div className="manual-steps-section">
+                  <div className="manual-steps-title">{translate("admin.stackUpgrade.dialog.manual")}</div>
+                  <div className="upgrade-failed-message">
+                    {translate("admin.stackUpgrade.failedHosts.message")}
+                  </div>
                   {upgradeParameters.areSlaveComponentFailuresHostsLoaded ? (
-                    <div>
-                      <div>{translate( "admin.stackUpgrade.failedHosts.message")}</div>
-                      <Badge onClick={() => setFailedhostsModal(true)} >{getFailedHostsMessage(upgradeParameters.slaveComponentStructuredInfo)}</Badge>
+                    <div className="failed-hosts-info">
+                      <span 
+                        className="custom-link" 
+                        onClick={() => setFailedhostsModal(true)}
+                      >
+                        {getFailedHostsMessage(upgradeParameters.slaveComponentStructuredInfo)}
+                      </span>
                     </div>
                   ) : <Spinner />}
-                  <div>
-                    <p>{translate( "admin.stackUpgrade.failedHosts.options")}</p>
-                    <ul>
-                      <li>{translate("admin.stackUpgrade.failedHosts.options.first")}</li>
-                      <li>{translate("admin.stackUpgrade.failedHosts.options.second")}</li>
+                  <div className="upgrade-options mt-2">
+                    <div className="options-title">{translate("admin.stackUpgrade.failedHosts.options")}</div>
+                    <ul className="options-list mt-2">
+                      <li className="mt-1">{translate("admin.stackUpgrade.failedHosts.options.first")}</li>
+                      <li className="mt-1">{translate("admin.stackUpgrade.failedHosts.options.second")}</li>
                     </ul>
                   </div>
                   {!upgradeParameters.isHoldingState && (
-                    <Form className="mx-2">
-                      <Form.Group controlId="manualCheck">
-                        <Form.Check
-                          type="checkbox"
-                          checked={isManualDone}
-                          onChange={() => setManualDone(!isManualDone)}
-                          label={translate(
-                            "admin.stackUpgrade.dialog.manualDone"
-                          )}
-                        />
-                      </Form.Group>
-                    </Form>
+                    <div className="manual-checkbox-container">
+                      <Form.Check
+                        type="checkbox"
+                        checked={isManualDone}
+                        onChange={() => setManualDone(!isManualDone)}
+                        label={translate("admin.stackUpgrade.dialog.manualDone")}
+                        className="manual-done-checkbox"
+                      />
+                    </div>
                   )}
                 </div>
-                <div className="justify-content-between">
-                    {upgradeParameters.isDowngradeAvailable ? (
+                <div className="d-flex justify-content-between mt-3">
+                  <div></div>
+                  <div>
+                    {upgradeParameters.isDowngradeAvailable && (
                       <Button
                         variant="danger"
+                        size="sm"
+                        className="me-2"
                         onClick={() => setConfirmDowngradeModal(true)}
                         disabled={upgradeParameters.requestInProgress}
                       >
-                        {translate( "common.downgrade")}
+                        {translate("common.downgrade")}
                       </Button>
-                    ) : null}
+                    )}
                     <Button
-                      variant="primary"
+                      variant="success"
+                      size="sm"
+                      className="me-2"
                       onClick={() => {
                         if(currUpgradeItem)
                           setUpgradeItemStatus(currUpgradeItem, "PENDING")
-                      }
-                      }
+                      }}
+                      disabled={upgradeParameters.requestInProgress}
                     >
-                      {translate( "common.retry")}
+                      {translate("common.retry")}
                     </Button>
                     <Button
-                      variant="primary"
+                      variant="success"
+                      size="sm"
                       onClick={() => {
+                        setManualDone(false);
                         if(currUpgradeItem)
                           setUpgradeItemStatus(currUpgradeItem, "COMPLETED")
-                      }
-                      }
+                      }}
+                      disabled={upgradeParameters.requestInProgress || !isManualDone}
                     >
-                      {translate( "common.proceed")}
+                      {translate("common.proceed")}
                     </Button>
                   </div>
+                  
+                </div>
               </>
             }
 
-            { upgradeParameters.isServiceCheckFailuresItem && !upgradeParameters.upgradeSuspended && 
+            { upgradeParameters.isServiceCheckFailuresItem && !onlyView && !upgradeParameters.upgradeSuspended && 
               <>
                 <div>
-                  <div>{translate( "admin.stackUpgrade.dialog.manual")}</div>
+                  <div>{translate("admin.stackUpgrade.dialog.manual")}</div>
                   {upgradeParameters.areServiceCheckFailuresServicenamesLoaded ? (
                     upgradeParameters.serviceCheckFailuresServicenames.length ? (
                       <div>
-                        <div>{translate( "admin.stackUpgrade.dialog.manual.serviceCheckFailures.title")}</div>
-                        <div>{translate( "admin.stackUpgrade.dialog.manual.serviceCheckFailures.msg1")}</div>
+                        <div>{translate("admin.stackUpgrade.dialog.manual.serviceCheckFailures.title")}</div>
+                        <div>{translate("admin.stackUpgrade.dialog.manual.serviceCheckFailures.msg1")}</div>
                         <ul className="failed-info-list">
                           {upgradeParameters.serviceCheckFailuresServicenames.map((serviceName: any, index: any) => (
                             <li key={index}>{serviceName}</li>
                           ))}
                         </ul>
-                        <div>{translate( "admin.stackUpgrade.dialog.manual.serviceCheckFailures.msg2")}</div>
+                        <div>{translate("admin.stackUpgrade.dialog.manual.serviceCheckFailures.msg2")}</div>
                       </div>
                     ) : upgradeParameters.slaveComponentStructuredInfo.hosts.length ? (
                       <div>
-                        <div>{translate( "admin.stackUpgrade.dialog.manual.slaveComponentFailures.title")}</div>
+                        <div>{translate("admin.stackUpgrade.dialog.manual.slaveComponentFailures.title")}</div>
                         <div>
-                          <div>{translate( "admin.stackUpgrade.failedHosts.message")}</div>
+                          <div>{translate("admin.stackUpgrade.failedHosts.message")}</div>
                           <Badge onClick={() => setFailedhostsModal(true)}>
                             {getFailedHostsMessage(upgradeParameters.slaveComponentStructuredInfo)}
                           </Badge>
@@ -606,31 +697,34 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
                       {upgradeParameters.isDowngradeAvailable ? (
                         <Button
                           variant="danger"
+                          className="me-2"
                           onClick={() => setConfirmDowngradeModal(true)}
                           disabled={upgradeParameters.requestInProgress}
                         >
-                          {translate( "common.downgrade")}
+                          {translate("common.downgrade")}
                         </Button>
                       ) : null}
                       <Button
                         variant="primary"
+                        className="me-2"
                         onClick={() => {
+                          setManualDone(false);
                           if(currUpgradeItem)
                             setUpgradeItemStatus(currUpgradeItem, "PENDING")
                         }
                         }
                       >
-                        {translate( "common.retry")}
+                        {translate("common.retry")}
                       </Button>
                     </div>
                   </div>
               </>
             }
 
-            {upgradeParameters.isFinalizeItem && !upgradeParameters.upgradeSuspended ? (
+            {upgradeParameters.isFinalizeItem && !onlyView && !upgradeParameters.upgradeSuspended ? (
               <>
                 <div className="mb-2">
-                  <div className="text-dark mb-2">{translate( "admin.stackUpgrade.dialog.manual")}</div>
+                  <div className="text-dark mb-2">{translate("admin.stackUpgrade.dialog.manual")}</div>
                   {upgradeParameters.isDowngrade ? (
                     <p className="manual-steps-content">
                       {translate(
@@ -695,6 +789,7 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
                         className="ms-2"
                         disabled={!isManualDone}
                         onClick={() => {
+                          setManualDone(false);
                           if(currUpgradeItem)
                             setUpgradeItemStatus(currUpgradeItem, "COMPLETED")
                         }
@@ -708,10 +803,10 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
               </>
             ) : null}
 
-            {upgradeParameters.plainManualItem && !upgradeParameters.isFinalizeItem && !upgradeParameters.upgradeSuspended ? (
+            {upgradeParameters.plainManualItem && !upgradeParameters.isFinalizeItem && !onlyView && !upgradeParameters.upgradeSuspended ? (
               <div>
                 <div className="mb-3">
-                  <div className="me-2 mt-1 text-dark">{translate( "admin.stackUpgrade.dialog.manual")}</div>
+                  <div className="me-2 mt-1 text-dark">{translate("admin.stackUpgrade.dialog.manual")}</div>
                   {upgradeParameters.manualItem?.UpgradeItem.text && upgradeParameters.manualItem.UpgradeItem.text.length > 0 ? (
                     parseManualItemText(upgradeParameters.manualItem.UpgradeItem.text).map((item, index) => {
                       return (
@@ -745,7 +840,7 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
                         onClick={() => setConfirmDowngradeModal(true)}
                         disabled={upgradeParameters.requestInProgress}
                       >
-                        {translate( "common.downgrade")}
+                        {translate("common.downgrade")}
                       </Button>
                     ) : null}
                     <Button
@@ -753,6 +848,7 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
                       className="mx-2"
                       disabled={!isManualDone}
                       onClick={() => {
+                        setManualDone(false);
                         if(currUpgradeItem)
                           setUpgradeItemStatus(currUpgradeItem, "COMPLETED")
                       }
@@ -770,9 +866,9 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
                 <div className="d-flex justify-content-between">
                 <div className="mt-3">
                   {upgradeParameters.isDowngrade ? (
-                    <label>{translate( "admin.stackUpgrade.dialog.suspended.downgrade")}</label>
+                    <label>{translate("admin.stackUpgrade.dialog.suspended.downgrade")}</label>
                   ) : (
-                    <label>{translate( "admin.stackUpgrade.dialog.suspended")}</label>
+                    <label>{translate("admin.stackUpgrade.dialog.suspended")}</label>
                   )}
                 </div>
 
@@ -780,12 +876,16 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
                   <Button
                     variant="primary"
                     onClick={() => resumeUpgrade()}
-                  >{translate( "admin.stackUpgrade.dialog.resume.downgrade")}</Button>
+                  >
+                    {translate("admin.stackUpgrade.dialog.resume.downgrade")}
+                  </Button>
                 ) : (
                   <Button
                     variant="primary"
                     onClick={() => resumeUpgrade()}
-                  >{translate( "admin.stackUpgrade.dialog.resume")}</Button>
+                  >
+                    {translate("admin.stackUpgrade.dialog.resume")}
+                  </Button>
                 )}
               </div>
             </>
@@ -810,6 +910,7 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
           fetchLogs={fetchLogs}
           handleCopy={handleCopy}
           handleOpenInNewTab={handleOpenInNewTab}
+          onlyView={onlyView}
         />
       </>
     );
@@ -828,6 +929,100 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
     return upgradeParameters.isDowngrade 
       ? translate("admin.stackUpgrade.pauseDowngrade") 
       : translate("admin.stackUpgrade.pauseUpgrade");
+  }
+
+  // Function to update upgrade options during active upgrade
+  async function updateUpgradeOptions() {
+    if (!upgradeId) {
+      toast.error("No active upgrade found");
+      return;
+    }
+
+    const payload = {
+      Upgrade: {
+        skip_failures: slaveComponentFailures.toString(),
+        skip_service_check_failures: serviceCheckFailures.toString(),
+      },
+    };
+
+    try {
+      await VersionsApi.updateUpgrade(upgradeId, payload, clusterName);
+      toast.success("Upgrade options updated successfully");
+      setUpgradeOptionsModal(false);
+    } catch (error) {
+      toast.error("Failed to update upgrade options");
+      console.error("Error updating upgrade options:", error);
+    }
+  }
+
+  // Function to generate upgrade options modal content (for active upgrades)
+  function getUpgradeOptionsModalContent() {
+    
+    return (
+      <div className="upgrade-modal">
+        <div>Choose the upgrade method:</div>
+        
+        <div className="upgrade-options-container">
+          {initialUpgradeMethods
+            .filter(
+              (method: any) =>
+                method.allowed
+            )
+            .map((method: any) => (
+              <div
+                key={method.type}
+                className={`upgrade-method disabled ${
+                  upgradeParameters.upgradeMethod === method.type ? "selected" : ""
+                }`}
+              >
+                <FontAwesomeIcon
+                  className="upgrade-method-icon"
+                  icon={iconMapping[method.icon]}
+                />
+                <div className="upgrade-method-title">{method.displayName}</div>
+                <div className="upgrade-method-description">
+                  {method.description}
+                </div>
+              </div>
+            ))}
+        </div>
+
+        <div className="upgrade-failure-tolerance mt-4">
+          <div>Select optional upgrade failure tolerance:
+            <Tooltip message={translate("admin.stackVersions.version.upgrade.upgradeOptions.tolerance.tooltip")}>
+              <FontAwesomeIcon
+                className="ms-1 custom-link cursor-pointer"
+                icon={faQuestionCircle}
+              />
+            </Tooltip>
+          </div>
+          <Form className="pt-2">
+            <Form.Group controlId="serviceCheckFailures">
+              <Form.Check
+                type="checkbox"
+                label="Skip all Service Check failures"
+                checked={serviceCheckFailures}
+                onChange={(e) => setServiceCheckFailures(e.target.checked)}
+              />
+            </Form.Group>
+            <Form.Group controlId="slaveComponentFailures">
+              <Form.Check
+                type="checkbox"
+                label="Skip all Slave Component failures"
+                checked={slaveComponentFailures}
+                onChange={(e) => setSlaveComponentFailures(e.target.checked)}
+              />
+            </Form.Group>
+          </Form>
+        </div>
+
+        <Alert variant="warning" className="mt-3">
+          Cluster alerts will still be visible and recorded in Ambari but
+          notifications (such as Email and SNMP) will be suppressed during the
+          upgrade.
+        </Alert>
+      </div>
+    );
   }
   
   return (
@@ -895,14 +1090,31 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
         <Modal
         isOpen={failedHostsModal}
         onClose={() => setFailedhostsModal(false)}
-        modalTitle={translate( "admin.stackUpgrade.failedHosts.header")}
-        modalBody={upgradeParameters.slaveComponentStructuredInfo}
+        modalTitle={translate("admin.stackUpgrade.failedHosts.header")}
+        modalBody={getFailedHostsModalBody()}
         options={{
-          okButtonText: translate( "common.close"),
+          okButtonText: translate("common.close"),
           modalSize: "modal-sm",
           cancelableViaIcon: true,
         }}
         successCallback={() => setFailedhostsModal(false)}
+        />
+      )}
+
+      {upgradeOptionsModal && (
+        <Modal
+          isOpen={upgradeOptionsModal}
+          onClose={() => setUpgradeOptionsModal(false)}
+          modalTitle="Upgrade Options"
+          modalBody={getUpgradeOptionsModalContent()}
+          options={{
+            modalSize: "modal-sm",
+            cancelableViaBtn: true,
+            cancelableViaIcon: true,
+            okButtonText: "OK",
+            cancelButtonText: "CANCEL",
+          }}
+          successCallback={() => updateUpgradeOptions()}
         />
       )}
     </>
