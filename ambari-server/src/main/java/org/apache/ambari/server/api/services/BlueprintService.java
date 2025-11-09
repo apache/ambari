@@ -86,8 +86,8 @@ public class BlueprintService extends BaseService {
       @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
       @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
   })
-  public Response getBlueprints(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, body, ui, Request.Type.GET, createBlueprintResource(null));
+  public Response getBlueprints(@Context HttpHeaders headers, @Context UriInfo ui) {
+    return handleRequest(headers, null, ui, Request.Type.GET, createBlueprintResource(null));
   }
 
   /**
@@ -117,9 +117,10 @@ public class BlueprintService extends BaseService {
       @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
       @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
   })
-  public Response getBlueprint(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                             @ApiParam @PathParam("blueprintName") String blueprintName) {
-  return handleRequest(headers, body, ui, Request.Type.GET, createBlueprintResource(blueprintName));
+  public Response getBlueprint(@Context HttpHeaders headers, @Context UriInfo ui,
+                               @ApiParam @PathParam("blueprintName") String blueprintName) {
+
+    return handleRequest(headers, null, ui, Request.Type.GET, createBlueprintResource(blueprintName));
   }
 
   /**

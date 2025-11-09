@@ -86,10 +86,10 @@ public class ViewVersionService extends BaseService {
     @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
     @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = MSG_INVALID_ARGUMENTS),
   })
-  public Response getVersions(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+  public Response getVersions(@Context HttpHeaders headers, @Context UriInfo ui,
                               @ApiParam(value = "view name") @PathParam("viewName") String viewName) {
 
-    return handleRequest(headers, body, ui, Request.Type.GET, createResource(viewName, null));
+    return handleRequest(headers, null, ui, Request.Type.GET, createResource(viewName, null));
   }
 
   /**
@@ -118,11 +118,11 @@ public class ViewVersionService extends BaseService {
     @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
     @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = MSG_INVALID_ARGUMENTS),
   })
-  public Response getVersion(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                              @ApiParam(value = "view name") @PathParam("viewName") String viewName,
-                              @PathParam("version") String version) {
+  public Response getVersion(@Context HttpHeaders headers, @Context UriInfo ui,
+                             @ApiParam(value = "view name") @PathParam("viewName") String viewName,
+                             @PathParam("version") String version) {
 
-    return handleRequest(headers, body, ui, Request.Type.GET, createResource(viewName, version));
+    return handleRequest(headers, null, ui, Request.Type.GET, createResource(viewName, version));
   }
 
   /**

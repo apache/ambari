@@ -127,11 +127,10 @@ public class ClusterService extends BaseService {
     @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
     @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
-  public Response getCluster(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-    @ApiParam(required = true) @PathParam("clusterName") String clusterName
-  ) {
+  public Response getCluster(@Context HttpHeaders headers, @Context UriInfo ui,
+                             @ApiParam(required = true) @PathParam("clusterName") String clusterName) {
     ResourceInstance resource = createClusterResource(clusterName);
-    return handleRequest(headers, body, ui, Request.Type.GET, resource);
+    return handleRequest(headers, null, ui, Request.Type.GET, resource);
   }
 
   /**
@@ -161,9 +160,9 @@ public class ClusterService extends BaseService {
     @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
     @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
-  public Response getClusters(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
+  public Response getClusters(@Context HttpHeaders headers, @Context UriInfo ui) {
     ResourceInstance resource = createClusterResource(null);
-    return handleRequest(headers, body, ui, Request.Type.GET, resource);
+    return handleRequest(headers, null, ui, Request.Type.GET, resource);
   }
 
   /**
@@ -264,7 +263,6 @@ public class ClusterService extends BaseService {
    * Handles: GET /clusters/{clusterID}/artifacts
    * Get all artifacts associated with the cluster.
    *
-   * @param body         request body
    * @param headers      http headers
    * @param ui           uri info
    * @param clusterName  cluster name
@@ -290,18 +288,16 @@ public class ClusterService extends BaseService {
     @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
     @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
-  public Response getClusterArtifacts(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-    @ApiParam(required = true) @PathParam("clusterName") String clusterName
-  ) {
+  public Response getClusterArtifacts(@Context HttpHeaders headers, @Context UriInfo ui,
+                                      @ApiParam(required = true) @PathParam("clusterName") String clusterName) {
     ResourceInstance resource = createArtifactResource(clusterName, null);
-    return handleRequest(headers, body, ui, Request.Type.GET, resource);
+    return handleRequest(headers, null, ui, Request.Type.GET, resource);
   }
 
   /**
    * Handles: GET /clusters/{clusterID}/artifacts/{artifactName}
    * Get an artifact resource instance.
    *
-   * @param body          request body
    * @param headers       http headers
    * @param ui            uri info
    * @param clusterName   cluster name
@@ -326,12 +322,11 @@ public class ClusterService extends BaseService {
     @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
     @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
   })
-  public Response getClusterArtifact(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-    @ApiParam(required = true) @PathParam("clusterName") String clusterName,
-    @ApiParam(required = true) @PathParam("artifactName") String artifactName
-  ) {
+  public Response getClusterArtifact(@Context HttpHeaders headers, @Context UriInfo ui,
+                                     @ApiParam(required = true) @PathParam("clusterName") String clusterName,
+                                     @ApiParam(required = true) @PathParam("artifactName") String artifactName) {
     ResourceInstance resource = createArtifactResource(clusterName, artifactName);
-    return handleRequest(headers, body, ui, Request.Type.GET, resource);
+    return handleRequest(headers, null, ui, Request.Type.GET, resource);
   }
 
   /**

@@ -82,8 +82,8 @@ public class UserService extends BaseService {
       @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
       @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
-  public Response getUsers(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, body, ui, Request.Type.GET, createUserResource(null));
+  public Response getUsers(@Context HttpHeaders headers, @Context UriInfo ui) {
+    return handleRequest(headers, null, ui, Request.Type.GET, createUserResource(null));
   }
 
   /**
@@ -109,9 +109,9 @@ public class UserService extends BaseService {
       @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
       @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
-  public Response getUser(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+  public Response getUser(@Context HttpHeaders headers, @Context UriInfo ui,
                           @ApiParam(value = "user name", required = true) @PathParam("userName") String userName) {
-    return handleRequest(headers, body, ui, Request.Type.GET, createUserResource(userName));
+    return handleRequest(headers, null, ui, Request.Type.GET, createUserResource(userName));
   }
 
   /**

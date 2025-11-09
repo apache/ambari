@@ -79,8 +79,8 @@ public class StacksService extends BaseService {
       @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
       @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
   })
-  public Response getStacks(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, body, ui, Request.Type.GET,
+  public Response getStacks(@Context HttpHeaders headers, @Context UriInfo ui) {
+    return handleRequest(headers, null, ui, Request.Type.GET,
         createStackResource(null));
   }
 
@@ -98,11 +98,11 @@ public class StacksService extends BaseService {
       @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
       @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
   })
-  public Response getStack(String body, @Context HttpHeaders headers,
+  public Response getStack(@Context HttpHeaders headers,
                            @Context UriInfo ui,
                            @ApiParam @PathParam("stackName") String stackName) {
 
-    return handleRequest(headers, body, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
         createStackResource(stackName));
   }
 
@@ -130,12 +130,10 @@ public class StacksService extends BaseService {
       @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
       @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
   })
-  public Response getStackVersions(String body,
-                                   @Context HttpHeaders headers,
-                                   @Context UriInfo ui,
+  public Response getStackVersions(@Context HttpHeaders headers, @Context UriInfo ui,
                                    @ApiParam @PathParam("stackName") String stackName) {
 
-    return handleRequest(headers, body, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
         createStackVersionResource(stackName, null));
   }
 
@@ -155,13 +153,11 @@ public class StacksService extends BaseService {
       @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
       @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
   })
-  public Response getStackVersion(String body,
-                                  @Context HttpHeaders headers,
-                                  @Context UriInfo ui,
+  public Response getStackVersion(@Context HttpHeaders headers, @Context UriInfo ui,
                                   @ApiParam @PathParam("stackName") String stackName,
                                   @ApiParam @PathParam("stackVersion") String stackVersion) {
 
-    return handleRequest(headers, body, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
         createStackVersionResource(stackName, stackVersion));
   }
 
@@ -197,12 +193,10 @@ public class StacksService extends BaseService {
       @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
       @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
   })
-  public Response getStackVersionLinks(String body,
-                                  @Context HttpHeaders headers,
-                                  @Context UriInfo ui,
-                                  @ApiParam @PathParam("stackName") String stackName,
-                                  @ApiParam @PathParam("stackVersion") String stackVersion) {
-    return handleRequest(headers, body, ui, Request.Type.GET,
+  public Response getStackVersionLinks(@Context HttpHeaders headers, @Context UriInfo ui,
+                                       @ApiParam @PathParam("stackName") String stackName,
+                                       @ApiParam @PathParam("stackVersion") String stackVersion) {
+    return handleRequest(headers, null, ui, Request.Type.GET,
         createExtensionLinkResource(stackName, stackVersion, null, null));
   }
 
@@ -235,12 +229,11 @@ public class StacksService extends BaseService {
       @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
       @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
   })
-  public Response getStackLevelConfigurations(String body, @Context HttpHeaders headers,
-                                   @Context UriInfo ui,
-                                   @ApiParam @PathParam("stackName") String stackName,
-                                   @ApiParam @PathParam("stackVersion") String stackVersion) {
+  public Response getStackLevelConfigurations(@Context HttpHeaders headers, @Context UriInfo ui,
+                                              @ApiParam @PathParam("stackName") String stackName,
+                                              @ApiParam @PathParam("stackVersion") String stackVersion) {
 
-    return handleRequest(headers, body, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
         createStackLevelConfigurationsResource(stackName, stackVersion, null));
   }
 
@@ -261,14 +254,12 @@ public class StacksService extends BaseService {
       @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
       @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
   })
-  public Response getStackLevelConfiguration(String body, @Context HttpHeaders headers,
-                                        @Context UriInfo ui,
-                                        @ApiParam @PathParam("stackName") String stackName,
-                                        @ApiParam @PathParam("stackVersion") String stackVersion,
-                                        @ApiParam @PathParam("serviceName") String serviceName,
-                                        @ApiParam @PathParam("propertyName") String propertyName) {
+  public Response getStackLevelConfiguration(@Context HttpHeaders headers, @Context UriInfo ui,
+                                             @ApiParam @PathParam("stackName") String stackName,
+                                             @ApiParam @PathParam("stackVersion") String stackVersion,
+                                             @ApiParam @PathParam("propertyName") String propertyName) {
 
-    return handleRequest(headers, body, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
         createStackLevelConfigurationsResource(stackName, stackVersion, propertyName));
   }
 
@@ -300,12 +291,11 @@ public class StacksService extends BaseService {
       @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
       @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
   })
-  public Response getStackServices(String body, @Context HttpHeaders headers,
-                                   @Context UriInfo ui,
+  public Response getStackServices(@Context HttpHeaders headers, @Context UriInfo ui,
                                    @ApiParam @PathParam("stackName") String stackName,
                                    @ApiParam @PathParam("stackVersion") String stackVersion) {
 
-    return handleRequest(headers, body, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
         createStackServiceResource(stackName, stackVersion, null));
   }
 
@@ -326,13 +316,12 @@ public class StacksService extends BaseService {
       @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
       @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
   })
-  public Response getStackService(String body, @Context HttpHeaders headers,
-                                  @Context UriInfo ui,
+  public Response getStackService(@Context HttpHeaders headers, @Context UriInfo ui,
                                   @ApiParam @PathParam("stackName") String stackName,
                                   @ApiParam @PathParam("stackVersion") String stackVersion,
                                   @ApiParam @PathParam("serviceName") String serviceName) {
 
-    return handleRequest(headers, body, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
         createStackServiceResource(stackName, stackVersion, serviceName));
   }
 
@@ -356,12 +345,11 @@ public class StacksService extends BaseService {
       @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
       @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
   })
-  public Response getStackArtifacts(String body, @Context HttpHeaders headers,
-                                              @Context UriInfo ui,
-                                              @ApiParam @PathParam("stackName") String stackName,
-                                              @ApiParam @PathParam("stackVersion") String stackVersion) {
+  public Response getStackArtifacts(@Context HttpHeaders headers, @Context UriInfo ui,
+                                    @ApiParam @PathParam("stackName") String stackName,
+                                    @ApiParam @PathParam("stackVersion") String stackVersion) {
 
-    return handleRequest(headers, body, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
         createStackArtifactsResource(stackName, stackVersion, null));
   }
 
@@ -382,11 +370,11 @@ public class StacksService extends BaseService {
       @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
       @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
   })
-  public Response getStackArtifact(String body, @Context HttpHeaders headers,
-                                   @Context UriInfo ui, @PathParam("stackName") String stackName,
+  public Response getStackArtifact(@Context HttpHeaders headers, @Context UriInfo ui,
+                                   @PathParam("stackName") String stackName,
                                    @ApiParam @PathParam("stackVersion") String stackVersion,
                                    @ApiParam @PathParam("artifactName") String artifactName) {
-    return handleRequest(headers, body, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
         createStackArtifactsResource(stackName, stackVersion, artifactName));
   }
 
@@ -418,13 +406,12 @@ public class StacksService extends BaseService {
       @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
       @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
   })
-  public Response getStackServiceArtifacts(String body, @Context HttpHeaders headers,
-                                  @Context UriInfo ui,
-                                  @ApiParam @PathParam("stackName") String stackName,
-                                  @ApiParam @PathParam("stackVersion") String stackVersion,
-                                  @ApiParam @PathParam("serviceName") String serviceName) {
+  public Response getStackServiceArtifacts(@Context HttpHeaders headers, @Context UriInfo ui,
+                                           @ApiParam @PathParam("stackName") String stackName,
+                                           @ApiParam @PathParam("stackVersion") String stackVersion,
+                                           @ApiParam @PathParam("serviceName") String serviceName) {
 
-    return handleRequest(headers, body, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
         createStackServiceArtifactsResource(stackName, stackVersion, serviceName, null));
   }
 
@@ -458,13 +445,12 @@ public class StacksService extends BaseService {
       @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
       @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
   })
-  public Response getStackServiceThemes(String body, @Context HttpHeaders headers,
-                                           @Context UriInfo ui,
-                                           @ApiParam @PathParam("stackName") String stackName,
-                                           @ApiParam @PathParam("stackVersion") String stackVersion,
-                                           @ApiParam @PathParam("serviceName") String serviceName) {
+  public Response getStackServiceThemes(@Context HttpHeaders headers, @Context UriInfo ui,
+                                        @ApiParam @PathParam("stackName") String stackName,
+                                        @ApiParam @PathParam("stackVersion") String stackVersion,
+                                        @ApiParam @PathParam("serviceName") String serviceName) {
 
-    return handleRequest(headers, body, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
       createStackServiceThemesResource(stackName, stackVersion, serviceName, null));
   }
 
@@ -485,14 +471,13 @@ public class StacksService extends BaseService {
       @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
       @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
   })
-  public Response getStackServiceTheme(String body, @Context HttpHeaders headers,
-                                           @Context UriInfo ui,
-                                           @ApiParam @PathParam("stackName") String stackName,
-                                           @ApiParam @PathParam("stackVersion") String stackVersion,
-                                           @ApiParam @PathParam("serviceName") String serviceName,
-                                           @ApiParam @PathParam("themeName") String themeName) {
+  public Response getStackServiceTheme(@Context HttpHeaders headers, @Context UriInfo ui,
+                                       @ApiParam @PathParam("stackName") String stackName,
+                                       @ApiParam @PathParam("stackVersion") String stackVersion,
+                                       @ApiParam @PathParam("serviceName") String serviceName,
+                                       @ApiParam @PathParam("themeName") String themeName) {
 
-    return handleRequest(headers, body, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
       createStackServiceThemesResource(stackName, stackVersion, serviceName, themeName));
   }
 
@@ -526,13 +511,12 @@ public class StacksService extends BaseService {
       @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
       @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
   })
-  public Response getStackServiceQuickLinksConfigurations(String body, @Context HttpHeaders headers,
-                                           @Context UriInfo ui,
-                                           @ApiParam @PathParam("stackName") String stackName,
-                                           @ApiParam @PathParam("stackVersion") String stackVersion,
-                                           @ApiParam @PathParam("serviceName") String serviceName) {
+  public Response getStackServiceQuickLinksConfigurations(@Context HttpHeaders headers, @Context UriInfo ui,
+                                                          @ApiParam @PathParam("stackName") String stackName,
+                                                          @ApiParam @PathParam("stackVersion") String stackVersion,
+                                                          @ApiParam @PathParam("serviceName") String serviceName) {
 
-    return handleRequest(headers, body, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
       createStackServiceQuickLinksResource(stackName, stackVersion, serviceName, null));
   }
 
@@ -554,14 +538,13 @@ public class StacksService extends BaseService {
       @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
       @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
   })
-  public Response getStackServiceQuickLinksConfiguration(String body, @Context HttpHeaders headers,
-                                           @Context UriInfo ui,
-                                           @ApiParam @PathParam("stackName") String stackName,
-                                           @ApiParam @PathParam("stackVersion") String stackVersion,
-                                           @ApiParam @PathParam("serviceName") String serviceName,
-                                           @ApiParam @PathParam("quickLinksConfigurationName") String quickLinksConfigurationName) {
+  public Response getStackServiceQuickLinksConfiguration(@Context HttpHeaders headers, @Context UriInfo ui,
+                                                         @ApiParam @PathParam("stackName") String stackName,
+                                                         @ApiParam @PathParam("stackVersion") String stackVersion,
+                                                         @ApiParam @PathParam("serviceName") String serviceName,
+                                                         @ApiParam @PathParam("quickLinksConfigurationName") String quickLinksConfigurationName) {
 
-    return handleRequest(headers, body, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
       createStackServiceQuickLinksResource(stackName, stackVersion, serviceName, quickLinksConfigurationName));
   }
 
@@ -583,14 +566,13 @@ public class StacksService extends BaseService {
       @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
       @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
   })
-  public Response getStackServiceArtifact(String body, @Context HttpHeaders headers,
-                                           @Context UriInfo ui,
-                                           @ApiParam @PathParam("stackName") String stackName,
-                                           @ApiParam @PathParam("stackVersion") String stackVersion,
-                                           @ApiParam @PathParam("serviceName") String serviceName,
-                                           @ApiParam @PathParam("artifactName") String artifactName) {
+  public Response getStackServiceArtifact(@Context HttpHeaders headers, @Context UriInfo ui,
+                                          @ApiParam @PathParam("stackName") String stackName,
+                                          @ApiParam @PathParam("stackVersion") String stackVersion,
+                                          @ApiParam @PathParam("serviceName") String serviceName,
+                                          @ApiParam @PathParam("artifactName") String artifactName) {
 
-    return handleRequest(headers, body, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
         createStackServiceArtifactsResource(stackName, stackVersion, serviceName, artifactName));
   }
 
@@ -624,14 +606,12 @@ public class StacksService extends BaseService {
       @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
       @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
   })
-  public Response getStackConfigurations(String body,
-                                         @Context HttpHeaders headers,
-                                         @Context UriInfo ui,
+  public Response getStackConfigurations(@Context HttpHeaders headers, @Context UriInfo ui,
                                          @ApiParam @PathParam("stackName") String stackName,
                                          @ApiParam @PathParam("stackVersion") String stackVersion,
                                          @ApiParam @PathParam("serviceName") String serviceName) {
 
-    return handleRequest(headers, body, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
         createStackConfigurationResource(stackName, stackVersion, serviceName, null));
   }
 
@@ -653,13 +633,12 @@ public class StacksService extends BaseService {
       @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
       @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
   })
-  public Response getStackConfiguration(String body, @Context HttpHeaders headers,
-                                        @Context UriInfo ui,
+  public Response getStackConfiguration(@Context HttpHeaders headers, @Context UriInfo ui,
                                         @ApiParam @PathParam("stackName") String stackName,
                                         @ApiParam @PathParam("stackVersion") String stackVersion,
                                         @ApiParam @PathParam("serviceName") String serviceName,
                                         @ApiParam @PathParam("propertyName") String propertyName) {
-    return handleRequest(headers, body, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
         createStackConfigurationResource(stackName, stackVersion, serviceName, propertyName));
   }
 
@@ -695,14 +674,13 @@ public class StacksService extends BaseService {
       @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
       @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
   })
-  public Response getStackConfigurationDependencies(String body, @Context HttpHeaders headers,
-                                        @Context UriInfo ui,
-                                        @ApiParam @PathParam("stackName") String stackName,
-                                        @ApiParam @PathParam("stackVersion") String stackVersion,
-                                        @ApiParam @PathParam("serviceName") String serviceName,
-                                        @ApiParam @PathParam("propertyName") String propertyName) {
+  public Response getStackConfigurationDependencies(@Context HttpHeaders headers, @Context UriInfo ui,
+                                                    @ApiParam @PathParam("stackName") String stackName,
+                                                    @ApiParam @PathParam("stackVersion") String stackVersion,
+                                                    @ApiParam @PathParam("serviceName") String serviceName,
+                                                    @ApiParam @PathParam("propertyName") String propertyName) {
 
-    return handleRequest(headers, body, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
         createStackConfigurationDependencyResource(stackName, stackVersion, serviceName, propertyName));
   }
 
@@ -736,14 +714,12 @@ public class StacksService extends BaseService {
       @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
       @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
   })
-  public Response getServiceComponents(String body,
-                                       @Context HttpHeaders headers,
-                                       @Context UriInfo ui,
+  public Response getServiceComponents(@Context HttpHeaders headers, @Context UriInfo ui,
                                        @ApiParam @PathParam("stackName") String stackName,
                                        @ApiParam @PathParam("stackVersion") String stackVersion,
                                        @ApiParam @PathParam("serviceName") String serviceName) {
 
-    return handleRequest(headers, body, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
         createStackServiceComponentResource(stackName, stackVersion, serviceName, null));
   }
 
@@ -779,14 +755,13 @@ public class StacksService extends BaseService {
       @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
       @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
   })
-  public Response getServiceComponentDependencies(String body, @Context HttpHeaders headers,
-                                                  @Context UriInfo ui,
+  public Response getServiceComponentDependencies(@Context HttpHeaders headers, @Context UriInfo ui,
                                                   @ApiParam @PathParam("stackName") String stackName,
                                                   @ApiParam @PathParam("stackVersion") String stackVersion,
                                                   @ApiParam @PathParam("serviceName") String serviceName,
                                                   @ApiParam @PathParam("componentName") String componentName) {
 
-    return handleRequest(headers, body, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
         createStackServiceComponentDependencyResource(stackName, stackVersion, serviceName, componentName, null));
   }
 
@@ -808,15 +783,14 @@ public class StacksService extends BaseService {
       @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
       @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
   })
-  public Response getServiceComponentDependency(String body, @Context HttpHeaders headers,
-                                      @Context UriInfo ui,
-                                      @ApiParam @PathParam("stackName") String stackName,
-                                      @ApiParam @PathParam("stackVersion") String stackVersion,
-                                      @ApiParam @PathParam("serviceName") String serviceName,
-                                      @ApiParam @PathParam("componentName") String componentName,
-                                      @ApiParam @PathParam("dependencyName") String dependencyName) {
+  public Response getServiceComponentDependency(@Context HttpHeaders headers, @Context UriInfo ui,
+                                                @ApiParam @PathParam("stackName") String stackName,
+                                                @ApiParam @PathParam("stackVersion") String stackVersion,
+                                                @ApiParam @PathParam("serviceName") String serviceName,
+                                                @ApiParam @PathParam("componentName") String componentName,
+                                                @ApiParam @PathParam("dependencyName") String dependencyName) {
 
-    return handleRequest(headers, body, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
         createStackServiceComponentDependencyResource(stackName, stackVersion, serviceName, componentName, dependencyName));
   }
 
@@ -837,14 +811,13 @@ public class StacksService extends BaseService {
       @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
       @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
   })
-  public Response getServiceComponent(String body, @Context HttpHeaders headers,
-                                      @Context UriInfo ui,
+  public Response getServiceComponent(@Context HttpHeaders headers, @Context UriInfo ui,
                                       @ApiParam @PathParam("stackName") String stackName,
                                       @ApiParam @PathParam("stackVersion") String stackVersion,
                                       @ApiParam @PathParam("serviceName") String serviceName,
                                       @ApiParam @PathParam("componentName") String componentName) {
 
-    return handleRequest(headers, body, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
         createStackServiceComponentResource(stackName, stackVersion, serviceName, componentName));
   }
 

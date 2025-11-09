@@ -101,11 +101,9 @@ public class HostService extends BaseService {
     @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
     @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
-  public Response getHost(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-    @ApiParam(value = "host name", required = true) @PathParam("hostName") String hostName
-  ) {
-    return handleRequest(headers, body, ui, Request.Type.GET,
-        createHostResource(m_clusterName, hostName));
+  public Response getHost(@Context HttpHeaders headers, @Context UriInfo ui,
+                          @ApiParam(value = "host name", required = true) @PathParam("hostName") String hostName) {
+    return handleRequest(headers, null, ui, Request.Type.GET, createHostResource(m_clusterName, hostName));
   }
 
   /**
@@ -134,9 +132,8 @@ public class HostService extends BaseService {
     @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
     @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
-  public Response getHosts(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, body, ui, Request.Type.GET,
-        createHostResource(m_clusterName, null));
+  public Response getHosts(@Context HttpHeaders headers, @Context UriInfo ui) {
+    return handleRequest(headers, null, ui, Request.Type.GET, createHostResource(m_clusterName, null));
   }
 
   /**

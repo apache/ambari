@@ -48,16 +48,16 @@ public class KerberosDescriptorService extends BaseService {
    */
   @GET @ApiIgnore // until documented
   @Produces("text/plain")
-  public Response getKerberosDescriptors(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, body, ui, Request.Type.GET, createKerberosDescriptorResource(null));
+  public Response getKerberosDescriptors(@Context HttpHeaders headers, @Context UriInfo ui) {
+    return handleRequest(headers, null, ui, Request.Type.GET, createKerberosDescriptorResource(null));
   }
 
   @GET @ApiIgnore // until documented
   @Path("{kerberosDescriptorName}")
   @Produces("text/plain")
-  public Response getKerberosDescriptor(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+  public Response getKerberosDescriptor(@Context HttpHeaders headers, @Context UriInfo ui,
                                         @PathParam("kerberosDescriptorName") String kerberosDescriptorName) {
-    return handleRequest(headers, body, ui, Request.Type.GET, createKerberosDescriptorResource(kerberosDescriptorName));
+    return handleRequest(headers, null, ui, Request.Type.GET, createKerberosDescriptorResource(kerberosDescriptorName));
   }
 
   @POST @ApiIgnore // until documented

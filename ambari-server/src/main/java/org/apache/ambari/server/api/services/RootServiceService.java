@@ -106,9 +106,9 @@ public class RootServiceService extends BaseService {
     @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
     @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
-  public Response getRootServices(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
+  public Response getRootServices(@Context HttpHeaders headers, @Context UriInfo ui) {
     ResourceInstance resource = createServiceResource(null);
-    return handleRequest(headers, body, ui, Request.Type.GET, resource);
+    return handleRequest(headers, null, ui, Request.Type.GET, resource);
   }
   
   @GET
@@ -127,11 +127,10 @@ public class RootServiceService extends BaseService {
     @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
     @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
-  public Response getRootService(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-    @ApiParam(value = "service name", required = true) @PathParam("serviceName") String serviceName
-  ) {
+  public Response getRootService(@Context HttpHeaders headers, @Context UriInfo ui,
+                                 @ApiParam(value = "service name", required = true) @PathParam("serviceName") String serviceName) {
     ResourceInstance resource = createServiceResource(serviceName);
-    return handleRequest(headers, body, ui, Request.Type.GET, resource);
+    return handleRequest(headers, null, ui, Request.Type.GET, resource);
   }
 
   @GET
@@ -150,9 +149,9 @@ public class RootServiceService extends BaseService {
     @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
     @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
-  public Response getRootHosts(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
+  public Response getRootHosts(@Context HttpHeaders headers, @Context UriInfo ui) {
     ResourceInstance resource = createHostResource(null);
-    return handleRequest(headers, body, ui, Request.Type.GET, resource);
+    return handleRequest(headers, null, ui, Request.Type.GET, resource);
   }
   
   @GET
@@ -170,11 +169,10 @@ public class RootServiceService extends BaseService {
     @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
     @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
-  public Response getRootHost(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-    @ApiParam(value = "host name", required = true) @PathParam("hostName") String hostName
-  ) {
+  public Response getRootHost(@Context HttpHeaders headers, @Context UriInfo ui,
+                              @ApiParam(value = "host name", required = true) @PathParam("hostName") String hostName) {
     ResourceInstance resource = createHostResource(hostName);
-    return handleRequest(headers, body, ui, Request.Type.GET, resource);
+    return handleRequest(headers, null, ui, Request.Type.GET, resource);
   }
   
   @GET
@@ -193,12 +191,11 @@ public class RootServiceService extends BaseService {
     @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
     @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
-  public Response getRootServiceHostComponents(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-    @ApiParam(value = "service name", required = true) @PathParam("serviceName") String serviceName,
-    @ApiParam(value = "host name", required = true) @PathParam("hostName") String hostName
-  ) {
+  public Response getRootServiceHostComponents(@Context HttpHeaders headers, @Context UriInfo ui,
+                                               @ApiParam(value = "service name", required = true) @PathParam("serviceName") String serviceName,
+                                               @ApiParam(value = "host name", required = true) @PathParam("hostName") String hostName) {
     ResourceInstance resource = createHostComponentResource(serviceName, hostName, null);
-    return handleRequest(headers, body, ui, Request.Type.GET, resource);
+    return handleRequest(headers, null, ui, Request.Type.GET, resource);
   }
   
   @GET
@@ -217,13 +214,13 @@ public class RootServiceService extends BaseService {
     @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
     @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
-  public Response getRootServiceHostComponent(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-    @ApiParam(value = "service name", required = true) @PathParam("serviceName") String serviceName,
-    @ApiParam(value = "host name", required = true) @PathParam("hostName") String hostName,
-    @ApiParam(value = "component name", required = true) @PathParam("hostComponent") String hostComponent
+  public Response getRootServiceHostComponent(@Context HttpHeaders headers, @Context UriInfo ui,
+                                              @ApiParam(value = "service name", required = true) @PathParam("serviceName") String serviceName,
+                                              @ApiParam(value = "host name", required = true) @PathParam("hostName") String hostName,
+                                              @ApiParam(value = "component name", required = true) @PathParam("hostComponent") String hostComponent
   ) {
     ResourceInstance resource = createHostComponentResource(serviceName, hostName, hostComponent);
-    return handleRequest(headers, body, ui, Request.Type.GET, resource);
+    return handleRequest(headers, null, ui, Request.Type.GET, resource);
   }
   
   @GET
@@ -242,11 +239,10 @@ public class RootServiceService extends BaseService {
     @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
     @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
-  public Response getRootServiceComponents(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-    @ApiParam(value = "service name", required = true) @PathParam("serviceName") String serviceName
-  ) {
+  public Response getRootServiceComponents(@Context HttpHeaders headers, @Context UriInfo ui,
+                                           @ApiParam(value = "service name", required = true) @PathParam("serviceName") String serviceName) {
     ResourceInstance resource = createServiceComponentResource(serviceName, null);
-    return handleRequest(headers, body, ui, Request.Type.GET, resource);
+    return handleRequest(headers, null, ui, Request.Type.GET, resource);
   }
   
   @GET
@@ -265,12 +261,11 @@ public class RootServiceService extends BaseService {
     @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
     @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
-  public Response getRootServiceComponent(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-    @ApiParam(value = "service name", required = true) @PathParam("serviceName") String serviceName,
-    @ApiParam(value = "component name", required = true) @PathParam("componentName") String componentName
-  ) {
+  public Response getRootServiceComponent(@Context HttpHeaders headers, @Context UriInfo ui,
+                                          @ApiParam(value = "service name", required = true) @PathParam("serviceName") String serviceName,
+                                          @ApiParam(value = "component name", required = true) @PathParam("componentName") String componentName) {
     ResourceInstance resource = createServiceComponentResource(serviceName, componentName);
-    return handleRequest(headers, body, ui, Request.Type.GET, resource);
+    return handleRequest(headers, null, ui, Request.Type.GET, resource);
   }
 
   @GET
@@ -289,12 +284,11 @@ public class RootServiceService extends BaseService {
     @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
     @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
-  public Response getRootServiceComponentHosts(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-    @ApiParam(value = "service name", required = true) @PathParam("serviceName") String serviceName,
-    @ApiParam(value = "component name", required = true) @PathParam("componentName") String componentName
-  ) {
+  public Response getRootServiceComponentHosts(@Context HttpHeaders headers, @Context UriInfo ui,
+                                               @ApiParam(value = "service name", required = true) @PathParam("serviceName") String serviceName,
+                                               @ApiParam(value = "component name", required = true) @PathParam("componentName") String componentName) {
     ResourceInstance resource = createHostComponentResource(serviceName, null, componentName);
-    return handleRequest(headers, body, ui, Request.Type.GET, resource);
+    return handleRequest(headers, null, ui, Request.Type.GET, resource);
   }
 
   @Path("{serviceName}/components/{componentName}/configurations")

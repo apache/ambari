@@ -54,10 +54,10 @@ public class FeedService extends BaseService {
   @GET @ApiIgnore // until documented
   @Path("{feedName}")
   @Produces("text/plain")
-  public Response getFeed(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                             @PathParam("feedName") String feedName) {
+  public Response getFeed(@Context HttpHeaders headers, @Context UriInfo ui,
+                          @PathParam("feedName") String feedName) {
 
-    return handleRequest(headers, body, ui, Request.Type.GET, createFeedResource(feedName));
+    return handleRequest(headers, null, ui, Request.Type.GET, createFeedResource(feedName));
   }
 
   /**
@@ -70,8 +70,8 @@ public class FeedService extends BaseService {
    */
   @GET @ApiIgnore // until documented
   @Produces("text/plain")
-  public Response getFeeds(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, body, ui, Request.Type.GET, createFeedResource(null));
+  public Response getFeeds(@Context HttpHeaders headers, @Context UriInfo ui) {
+    return handleRequest(headers, null, ui, Request.Type.GET, createFeedResource(null));
   }
 
   /**

@@ -84,8 +84,8 @@ public class ViewService extends BaseService {
     @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
     @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = MSG_INVALID_ARGUMENTS),
   })
-  public Response getViews(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, body, ui, Request.Type.GET, createViewResource(null));
+  public Response getViews(@Context HttpHeaders headers, @Context UriInfo ui) {
+    return handleRequest(headers, null, ui, Request.Type.GET, createViewResource(null));
   }
 
   /**
@@ -113,10 +113,10 @@ public class ViewService extends BaseService {
     @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
     @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = MSG_INVALID_ARGUMENTS),
   })
-  public Response getView(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+  public Response getView(@Context HttpHeaders headers, @Context UriInfo ui,
                           @ApiParam(value = "view name", required = true) @PathParam("viewName") String viewName) {
 
-    return handleRequest(headers, body, ui, Request.Type.GET, createViewResource(viewName));
+    return handleRequest(headers, null, ui, Request.Type.GET, createViewResource(viewName));
   }
 
   /**

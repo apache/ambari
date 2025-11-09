@@ -72,10 +72,11 @@ public class ActiveWidgetLayoutService extends BaseService {
     @ApiImplicitParam(name = "from", value = "The starting page resource (inclusive). Valid values are :offset | \"start\"", defaultValue = "0", dataType = "string", paramType = "query"),
     @ApiImplicitParam(name = "to", value = "The ending page resource (inclusive). Valid values are :offset | \"end\"", dataType = "string", paramType = "query")
   })
-  public Response getServices(String body, @Context HttpHeaders headers, @Context UriInfo ui, @ApiParam(value = "user name", required = true)
+  public Response getServices(@Context HttpHeaders headers, @Context UriInfo ui,
+                              @ApiParam(value = "user name", required = true)
                               @PathParam("userName") String userName) {
 
-    return handleRequest(headers, body, ui, Request.Type.GET, createResource(userName));
+    return handleRequest(headers, null, ui, Request.Type.GET, createResource(userName));
   }
 
   /**
