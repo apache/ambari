@@ -18,6 +18,8 @@
 import { Redirect } from "react-router-dom";
 import Users from "../screens/Users";
 import WIP from "../components/WIP";
+import Register from "../screens/StackVersions/Register";
+import { VersionsList } from "../screens/StackVersions";
 
 
 
@@ -43,19 +45,19 @@ export default [
   {
     path: "/stackVersions/create",
     exact: true,
-    Element: () => <WIP />,
+    Element: () => <Register readOnly={false} />,
     name: "Stack Versions",
   },
   {
     path: "/stackVersions/:stack/:version/edit",
     exact: true,
-    Element: () => <WIP />,
+    Element: () => <Register readOnly />,
     name: "Stack Versions",
   },
   {
     path: "/stackVersions",
     exact: true,
-    Element: () => <WIP />,
+    Element: () => <VersionsList />,
     name: "Stack Versions",
   },
   {
