@@ -190,6 +190,14 @@ const VersionsApi = {
     });
     return response.data;
   },
+  getUpgradeHistory: async function (clusterName: string) {
+    const url = `/clusters/${clusterName}/upgrades?fields=Upgrade`;
+    const response = await ambariApi.request({
+        url,
+        method: "GET"
+    });
+    return response.data;
+  },
 };
 
 export default VersionsApi;
