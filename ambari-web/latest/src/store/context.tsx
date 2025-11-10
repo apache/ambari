@@ -66,6 +66,8 @@ interface AppContextProps {
   setIsPatchUpgrade?: (isPatch: boolean) => void;
   upgradeVersionDisplayName?: string;
   setUpgradeVersionDisplayName?: (name: string) => void;
+  upgradeIsFinalizeItem: boolean;
+  setUpgradeIsFinalizeItem: (isFinalize: boolean) => void;
   userUrl?: string;
   sessionsValidated: boolean;
   sessionExists: boolean;
@@ -100,6 +102,8 @@ export const AppContext = createContext<AppContextProps>({
   setIsPatchUpgrade: () => {},
   upgradeVersionDisplayName: "",
   setUpgradeVersionDisplayName: () => {},
+  upgradeIsFinalizeItem: false,
+  setUpgradeIsFinalizeItem: () => {},
   sessionExists: false,
   sessionsValidated: false,
   clusterState: {}
@@ -121,6 +125,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const [upgradeDirection, setUpgradeDirection] = useState<string>("");
   const [upgradeSuspend, setUpgradeSuspend] = useState<boolean>(false);
   const [upgradeId, setUpgradeId] = useState<number>(0);
+  const [upgradeIsFinalizeItem, setUpgradeIsFinalizeItem] = useState<boolean>(false);
   const [isPatchUpgrade, setIsPatchUpgrade] = useState<boolean>(false);
   const [upgradeVersionDisplayName, setUpgradeVersionDisplayName] = useState<string>("");
   const [currentStackVersion, setCurrentStackVersion] = useState<string>("");
@@ -336,6 +341,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     const isPatch = await ClusterApi.getPersistData("isPatchUpgrade");
     setIsPatchUpgrade(isPatch);
 
+    const isFinalizeItem = await ClusterApi.getPersistData("upgradeIsFinalizeItem");
+    setUpgradeIsFinalizeItem(isFinalizeItem);
+
     const upgradeVersionDisplayName = await ClusterApi.getPersistData("upgradeVersionDisplayName");
     setUpgradeVersionDisplayName(upgradeVersionDisplayName);
   };
@@ -497,6 +505,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         setIsPatchUpgrade,
         upgradeVersionDisplayName,
         setUpgradeVersionDisplayName,
+        upgradeIsFinalizeItem,
+        setUpgradeIsFinalizeItem,
         userUrl,
         sessionExists,
         sessionsValidated,

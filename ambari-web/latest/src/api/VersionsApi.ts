@@ -198,6 +198,44 @@ const VersionsApi = {
     });
     return response.data;
   },
+  validateRepos: async function name(
+    stack: string,
+    stackVersion: string,
+    os: string,
+    repo: string,
+    payload: { base_url: string; repo_name: string }
+  ) {
+    const url = `/stacks/${stack}/versions/${stackVersion}/operating_systems/${os}/repositories/${repo}?validate_only=true`;
+    const response = await ambariApi.request({
+      url: url,
+      method: "POST",
+      data: { Repositories: payload },
+    });
+    return response.data;
+  },
+  saveRepoVersions: async function name(
+    stack: string,
+    stackVersion: string,
+    version_id: string,
+    payload: any
+  ) {
+    const url = `/stacks/${stack}/versions/${stackVersion}/repository_versions/${version_id}`;
+    const response = await ambariApi.request({
+      url: url,
+      method: "PUT",
+      data: payload,
+    });
+    return response.data;
+  },
+  updateUpgrade: async function (upgradeId: number, data: any, clusterName: string) {
+    const url = `/clusters/${clusterName}/upgrades/${upgradeId}`;
+    const response = await ambariApi.request({
+      url,
+      method: "PUT",
+      data,
+    });
+    return response.data;
+  }
 };
 
 export default VersionsApi;

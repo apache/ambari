@@ -20,7 +20,7 @@ import React from "react";
 import { OverlayTrigger, Popover } from "react-bootstrap";
 
 interface TooltipComponentProps {
-  message: string;
+  message: any;
   children: any;
   heading?: string;
   placement?: "top" | "right" | "bottom" | "left";

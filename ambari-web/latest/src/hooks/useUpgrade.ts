@@ -24,6 +24,7 @@ import { StackVersion, UpgradeData, UpgradeGroup, UpgradeItem, UpgradeParameters
 import { get, merge, set } from "lodash";
 import { failedStatuses, activeStatuses, getUpgradeRequestStatus } from "../Utils/Utility";
 import { AppContext } from "../store/context";
+import ClusterApi from "../api/clusterApi";
 
 export function useUpgrade(upgradeId: number, onlyView: boolean) {
   const [data, setData] = useState<UpgradeData | null>(null);
@@ -60,9 +61,12 @@ export function useUpgrade(upgradeId: number, onlyView: boolean) {
     upgradeRunning: false,
     showPauseButton: false,
     upgradeStatusLabel: "",
-    upgradeAssociatedversion: ""
+    upgradeAssociatedversion: "",
+    slaveComponentFailures: false,
+    serviceCheckFailures: false,
+    upgradeMethod: "",
   });
-  const { clusterName, setUpgradeState, setCurrentStackVersion } = useContext(AppContext);
+  const { clusterName, setUpgradeState, setCurrentStackVersion, setUpgradeIsFinalizeItem } = useContext(AppContext);
 
   const { pausePolling } = usePolling(fetchOperations, 6000);
   let slaveComponentStructuredInfo: any;
@@ -187,6 +191,17 @@ export function useUpgrade(upgradeId: number, onlyView: boolean) {
       if(isServiceCheckFailuresItem && manualItem)
         areServiceCheckFailuresServicenamesLoaded = await getServiceCheckItem(manualItem)
 
+      const serviceCheckFailures = get(data, "Upgrade.skip_service_check_failures", false);
+      const slaveComponentFailures = get(data, "Upgrade.skip_failures", false);
+      const upgradeMethod = get(data, "Upgrade.upgrade_type", "");
+
+      setUpgradeIsFinalizeItem(isFinalizeItem);
+      await ClusterApi.postPersistData(
+        JSON.stringify({
+          upgradeIsFinalizeItem: JSON.stringify(isFinalizeItem)
+        })
+      )
+
       setUpgradeParameters({
         isDowngrade: isDowngrade,
         isDowngradeAvailable: isDowngradeAvailable,
@@ -217,7 +232,10 @@ export function useUpgrade(upgradeId: number, onlyView: boolean) {
         upgradeRunning: upgradeRunning,
         showPauseButton: showPauseButton,
         upgradeStatusLabel: upgradeStatusLabel || "",
-        upgradeAssociatedversion: upgradeAssociatedversion
+        upgradeAssociatedversion: upgradeAssociatedversion,
+        slaveComponentFailures: slaveComponentFailures,
+        serviceCheckFailures: serviceCheckFailures,
+        upgradeMethod: upgradeMethod,
       });
     }
     fetchData();
@@ -315,9 +333,40 @@ export function useUpgrade(upgradeId: number, onlyView: boolean) {
     });
   };
 
-  const handleCopy = (text: string) => {
-    navigator.clipboard.writeText(text);
-    alert("Copied to clipboard");
+  const handleCopy = async (text: string) => {
+    try {
+      // Check if clipboard API is available (HTTPS required)
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        alert("Copied to clipboard");
+        return;
+      }
+      
+      // Fallback for HTTP or older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-999999px';
+      textArea.style.top = '-999999px';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      
+      try {
+        document.execCommand('copy');
+        alert("Copied to clipboard");
+      } catch (fallbackErr) {
+        console.error("Fallback copy failed: ", fallbackErr);
+        // Show user a message to manually copy
+        alert(`Please copy this manually: ${text}`);
+      }
+      
+      document.body.removeChild(textArea);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+      // Final fallback - show text for manual copy
+      alert(`Please copy this manually: ${text}`);
+    }
   };
 
   const handleOpenInNewTab = (content: string) => {
@@ -357,10 +406,16 @@ export function useUpgrade(upgradeId: number, onlyView: boolean) {
     }
   }
 
-  function finish() {
+  async function finish() {
     const upgradeVersion = get(data, "Upgrade.associated_version", "");
     setCurrentStackVersion(upgradeVersion);
     setUpgradeState("NOT_REQUIRED");
+    setUpgradeIsFinalizeItem(false);
+    await ClusterApi.postPersistData(
+      JSON.stringify({
+        upgradeIsFinalizeItem: JSON.stringify(false)
+      })
+    )
     window.location.reload();
   }
 
