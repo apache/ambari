@@ -45,6 +45,7 @@ type NestedCollapseProps = {
   ) => Promise<void>;
   handleCopy: (text: string) => void;
   handleOpenInNewTab: (content: string) => void;
+  onlyView: boolean;
 };
 
 type NestedSubCollapseProps = {
@@ -60,6 +61,7 @@ type NestedSubCollapseProps = {
   ) => Promise<void>;
   handleCopy: (text: string) => void;
   handleOpenInNewTab: (content: string) => void;
+  onlyView: boolean;
 };
 
 const SubCollapse = ({
@@ -70,7 +72,8 @@ const SubCollapse = ({
   fetchTasks,
   fetchLogs,
   handleCopy,
-  handleOpenInNewTab
+  handleOpenInNewTab,
+  onlyView
 }: NestedSubCollapseProps) => {
   const [logsActiveKeys, setLogsActiveKeys] = useState<{
     [key: number]: boolean;
@@ -115,11 +118,11 @@ const SubCollapse = ({
                   aria-expanded={activeKeys.includes(eventKey)}
                 >
                   <div className="d-flex justify-content-between">
-                    { getIconObject(item.UpgradeItem.display_status) && (
+                    { getIconObject(item.UpgradeItem.display_status, onlyView) && (
                       <FontAwesomeIcon 
-                        icon={getIconObject(item.UpgradeItem.display_status).icon}
+                        icon={getIconObject(item.UpgradeItem.display_status, onlyView).icon}
                         size="lg"
-                        className={`me-2 ${getIconObject(item.UpgradeItem.display_status).color}`}
+                        className={`me-2 ${getIconObject(item.UpgradeItem.display_status, onlyView).color}`}
                       />
                     )}
                     <div>{item.UpgradeItem.context}</div>
@@ -153,11 +156,11 @@ const SubCollapse = ({
                                   )
                                 }
                               >
-                                { getIconObject(task?.status) ? (
+                                { getIconObject(task?.status, onlyView) ? (
                                   <FontAwesomeIcon 
-                                    icon={getIconObject(task?.status).icon}
+                                    icon={getIconObject(task?.status, onlyView).icon}
                                     size="lg"
-                                    className={`me-2 ${getIconObject(item.UpgradeItem.display_status).color}`}
+                                    className={`me-2 ${getIconObject(item.UpgradeItem.display_status, onlyView).color}`}
                                   />
                                   ) : null
                                 }
@@ -186,7 +189,7 @@ const SubCollapse = ({
                                               variant="link"
                                               onClick={() =>
                                                 handleCopy(
-                                                  task.logs?.Tasks?.output_log as any
+                                                  task.logs?.Tasks?.stdout as any
                                                 )
                                               }
                                             >
@@ -223,7 +226,7 @@ const SubCollapse = ({
                                               variant="link"
                                               onClick={() =>
                                                 handleCopy(
-                                                  task.logs?.Tasks?.error_log as any
+                                                  task.logs?.Tasks?.stderr as any
                                                 )
                                               }
                                             >
@@ -272,7 +275,8 @@ export default function NestedCollapse({
   fetchTasks,
   fetchLogs,
   handleCopy,
-  handleOpenInNewTab
+  handleOpenInNewTab,
+  onlyView
 }: NestedCollapseProps) {
   const handleToggle = (key: string) => {
     setActiveKeys((prevKeys: string[]) =>
@@ -292,18 +296,18 @@ export default function NestedCollapse({
                 <Button
                   className="custom-link"
                   variant="link"
-                  disabled={group.UpgradeGroup.display_status === "ABORTED"}
+                  disabled={!onlyView && group.UpgradeGroup.display_status === "ABORTED"}
                   onClick={() => handleToggle(eventKey)}
                   aria-controls={eventKey}
                   aria-expanded={activeKeys.includes(eventKey)}
                 >
 
                   <div className="d-flex justify-content-between">
-                    { getIconObject(group.UpgradeGroup.display_status) && (
+                    { getIconObject(group.UpgradeGroup.display_status, onlyView) && (
                       <FontAwesomeIcon 
-                        icon={getIconObject(group.UpgradeGroup.display_status).icon}
+                        icon={getIconObject(group.UpgradeGroup.display_status, onlyView).icon}
                         size="lg"
-                        className={`me-2 ${getIconObject(group.UpgradeGroup.display_status).color}`}
+                        className={`me-2 ${getIconObject(group.UpgradeGroup.display_status, onlyView).color}`}
                       />
                     )}
                     <div>{group.UpgradeGroup.title}</div>
@@ -323,7 +327,9 @@ export default function NestedCollapse({
                 <div id={eventKey}>
                   <Card.Body>
                     <SubCollapse
-                      items={[...group.upgrade_items].reverse()}
+                      items={[...group.upgrade_items].filter(item => 
+                        onlyView || (item.UpgradeItem.status !== "PENDING" && item.UpgradeItem.display_status !== "ABORTED")
+                      ).reverse()}
                       groupId={group.UpgradeGroup.group_id}
                       activeKeys={activeKeys}
                       setActiveKeys={setActiveKeys}
@@ -331,6 +337,7 @@ export default function NestedCollapse({
                       fetchLogs={fetchLogs}
                       handleCopy={handleCopy}
                       handleOpenInNewTab={handleOpenInNewTab}
+                      onlyView={onlyView}
                     />
                   </Card.Body>
                 </div>

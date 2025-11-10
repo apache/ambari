@@ -22,7 +22,9 @@ import { detectUserTimezone, parseTimezones } from "./timezone";
 import DOMPurify from "isomorphic-dompurify";
 import parse from 'html-react-parser';
 import { t } from "i18next";
-import { faCogs, faGears, faCheck, faTimes, faPause, faClock } from "@fortawesome/free-solid-svg-icons";
+import { faCogs, faGears, faCheck, faPause, faClock, faMinus, faExclamationCircle, faShare } from "@fortawesome/free-solid-svg-icons";
+import modalManager from "../store/ModalManager";
+import { JSX } from "react";
 
 export const padNumber = (num: number) => (num < 10 ? `0${num}` : num);
 const components: any = {
@@ -547,7 +549,10 @@ export const getUpgradeDisplayName = (upgradeType: string) => {
   }
 }
 
-export function getIconObject(status: string) {
+export function getIconObject(status: string, onlyView: boolean) {
+  if(status === "ABORTED" && onlyView) {
+    return { icon: faMinus, color: "text-warning" };
+  }
   switch (status.toUpperCase()) {
     case "PENDING":
     case "QUEUED":
@@ -557,12 +562,111 @@ export function getIconObject(status: string) {
     case "COMPLETED":
       return { icon: faCheck, color: "text-success" };
     case "FAILED":
-      return { icon: faTimes, color: "text-danger" };
+      case "HOLDING_FAILED":
+      return { icon: faExclamationCircle, color: "text-danger" };
     case "ABORTED":
       return { icon: faPause, color: "text-ligth" };
+    case "HOLDING":
+    case "HOLDING_TIMEDOUT":
     case "TIMEDOUT":
       return { icon: faClock, color: "text-warning" };
+    case "SKIPPED_FAILED":
+      return { icon: faShare, color: "text-danger" };  
     default:
       return { icon: faPause, color: "text-light" };
   }
 }
+
+export const initialOptions = [
+  { key: "ALL", values: ["ALL"], count: 0 },
+  {
+    key: "NOT INSTALLED",
+    values: ["INSTALL_FAILED", "INSTALLING", "NOT_REQUIRED"],
+    count: 0,
+  },
+  { key: "UPGRADE READY", values: ["UPGRADE_READY"], count: 0 },
+  { key: "CURRENT", values: ["CURRENT"], count: 0 },
+  { key: "INSTALLED", values: ["INSTALLED"], count: 0 },
+  {
+    key: "UPGRADE/DOWNGRADE IN PROGRESS",
+    values: ["Upgrade/Downgrade in Progress"],
+    count: 0,
+  },
+  { key: "READY TO FINALIZE", values: ["Ready to Finalize"], count: 0 },
+];
+
+export const initialUpgradeMethods = [
+  {
+    displayName: translate(
+      "admin.stackVersions.version.upgrade.upgradeOptions.RU.title"
+    ),
+    type: "ROLLING",
+    icon: "faDashboard",
+    description: translate(
+      "admin.stackVersions.version.upgrade.upgradeOptions.RU.description"
+    ),
+    selected: false,
+    allowed: true,
+    isCheckComplete: false,
+    isCheckRequestInProgress: false,
+    precheckResultsMessage: "",
+    preCheckResultsModalContent: null as JSX.Element | null,
+    precheckResultsTitle: "",
+    action: "",
+    isWizardRestricted: false,
+  },
+  {
+    displayName: translate(
+      "admin.stackVersions.version.upgrade.upgradeOptions.EU.title"
+    ),
+    type: "NON_ROLLING",
+    icon: "faBolt",
+    description: translate(
+      "admin.stackVersions.version.upgrade.upgradeOptions.EU.description"
+    ),
+    selected: false,
+    allowed: true,
+    isCheckComplete: false,
+    isCheckRequestInProgress: false,
+    precheckResultsMessage: "",
+    preCheckResultsModalContent: null as JSX.Element | null,
+    precheckResultsTitle: "",
+    action: "",
+    isWizardRestricted: false,
+  },
+  {
+    displayName: translate(
+      "admin.stackVersions.version.upgrade.upgradeOptions.HOU.title"
+    ),
+    type: "HOST_ORDERED",
+    icon: "faBolt",
+    description: "",
+    selected: false,
+    allowed: false,
+    isCheckComplete: false,
+    isCheckRequestInProgress: false,
+    precheckResultsMessage: "",
+    preCheckResultsModalContent: null as JSX.Element | null,
+    precheckResultsTitle: "",
+    action: "",
+    cantBeStarted: true,
+  },
+];
+
+export const showAlertModal = (header: any, body: any) => {
+  const modalProps = {
+    modalTitle: header,
+    modalBody: body,
+    onClose: () => {},
+    successCallback: () => {
+      modalManager.hide();
+    },
+    options: {
+      buttonSize: "sm" as "sm" | "lg" | undefined,
+      cancelableViaIcon: true,
+      cancelableViaBtn: false,
+      okButtonVariant: "primary",
+    },
+  };
+  modalManager.show(modalProps);
+};
