@@ -513,25 +513,42 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
   }
 
   public Map<PropertyInfo.PropertyType, Set<String>> getConfigPropertiesTypes(String configType) {
-    if(!propertiesTypesCache.containsKey(configType)) {
+    if (!propertiesTypesCache.containsKey(configType)) {
       Map<PropertyInfo.PropertyType, Set<String>> propertiesTypes = new HashMap<>();
+
+      collectPropertyTypes(propertiesTypes, getProperties(), configType);
+
       Collection<ServiceInfo> services = getServices();
       for (ServiceInfo serviceInfo : services) {
-        for (PropertyInfo propertyInfo : serviceInfo.getProperties()) {
-          if (propertyInfo.getFilename().contains(configType) && !propertyInfo.getPropertyTypes().isEmpty()) {
-            Set<PropertyInfo.PropertyType> types = propertyInfo.getPropertyTypes();
-            for (PropertyInfo.PropertyType propertyType : types) {
-              if (!propertiesTypes.containsKey(propertyType)) {
-                propertiesTypes.put(propertyType, new HashSet<>());
-              }
-              propertiesTypes.get(propertyType).add(propertyInfo.getName());
-            }
-          }
-        }
+        collectPropertyTypes(propertiesTypes, serviceInfo.getProperties(), configType);
       }
       propertiesTypesCache.put(configType, propertiesTypes);
     }
     return propertiesTypesCache.get(configType);
+  }
+
+  private void collectPropertyTypes(Map<PropertyInfo.PropertyType, Set<String>> target,
+                                    Collection<PropertyInfo> sources,
+                                    String configType) {
+    if (sources == null) {
+      return;
+    }
+
+    for (PropertyInfo propertyInfo : sources) {
+      String filename = propertyInfo.getFilename();
+      if (filename == null || !filename.contains(configType)) {
+        continue;
+      }
+
+      Set<PropertyInfo.PropertyType> types = propertyInfo.getPropertyTypes();
+      if (types == null || types.isEmpty()) {
+        continue;
+      }
+
+      for (PropertyInfo.PropertyType propertyType : types) {
+        target.computeIfAbsent(propertyType, key -> new HashSet<>()).add(propertyInfo.getName());
+      }
+    }
   }
 
   /**
