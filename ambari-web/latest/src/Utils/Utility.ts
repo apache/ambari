@@ -653,9 +653,45 @@ export const initialUpgradeMethods = [
   },
 ];
 
+export const showErrorModal = (error: any) => {
+  const modalProps = {
+    modalTitle: translate("common.errorPopup.header"),
+    modalBody: error,
+    onClose: () => {},
+    successCallback: () => {
+      modalManager.hide();
+    },
+    options: {
+      buttonSize: "sm" as "sm" | "lg" | undefined,
+      cancelableViaIcon: true,
+      cancelableViaBtn: false,
+      okButtonVariant: "primary",
+    },
+  };
+  modalManager.show(modalProps);
+};
+
 export const showAlertModal = (header: any, body: any) => {
   const modalProps = {
     modalTitle: header,
+    modalBody: body,
+    onClose: () => {},
+    successCallback: () => {
+      modalManager.hide();
+    },
+    options: {
+      buttonSize: "sm" as "sm" | "lg" | undefined,
+      cancelableViaIcon: true,
+      cancelableViaBtn: false,
+      okButtonVariant: "primary",
+    },
+  };
+  modalManager.show(modalProps);
+};
+
+export const showRollingNothingToDoModal = (body: any) => {
+  const modalProps = {
+    modalTitle: translate("rolling.nothingToDo.header"),
     modalBody: body,
     onClose: () => {},
     successCallback: () => {

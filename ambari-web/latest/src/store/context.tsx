@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import React, {
   createContext,
   Dispatch,
@@ -72,6 +73,7 @@ interface AppContextProps {
   sessionsValidated: boolean;
   sessionExists: boolean;
   clusterState: any;
+  upgradeIsRunning: boolean;
 }
 
 export const AppContext = createContext<AppContextProps>({
@@ -106,7 +108,8 @@ export const AppContext = createContext<AppContextProps>({
   setUpgradeIsFinalizeItem: () => {},
   sessionExists: false,
   sessionsValidated: false,
-  clusterState: {}
+  clusterState: {},
+  upgradeIsRunning: false,
 });
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -147,6 +150,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const [stackConfigurations, setStackConfigurations] = useState([]);
 
   const [allHostNames, setAllHostNames] = useState([]);
+
+  const upgradeIsRunning = false; // TODO: This will be implemented soon to check if upgrade is running
+
   const fetchClusterServices = async () => {
     try {
       const clusterServices = await ChooseServicesApi.servicesList(clusterName);
@@ -511,6 +517,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         sessionExists,
         sessionsValidated,
         clusterState,
+        upgradeIsRunning,
       }}
     >
       {children}
