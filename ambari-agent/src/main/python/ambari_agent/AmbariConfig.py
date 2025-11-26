@@ -107,22 +107,22 @@ class AmbariConfig:
     global content
     self.config = configparser.RawConfigParser()
     self.config.readfp(io.StringIO(content))
-    self._cluster_cache_dir = os.path.join(
-      self.cache_dir, FileCache.CLUSTER_CACHE_DIRECTORY
-    )
-    self._alerts_cachedir = os.path.join(
-      self.cache_dir, FileCache.ALERTS_CACHE_DIRECTORY
-    )
+
+    # initialize derived paths for the cache directories
+    self._recalculate_cache_paths()
+
+  def _recalculate_cache_paths(self):
+    """
+    Recalculate all cache-related paths based on the current cache_dir value.
+    Keeps derived instance variables consistent with the parser-backed `cache_dir`.
+    """
+    self._cluster_cache_dir = os.path.join(self.cache_dir, FileCache.CLUSTER_CACHE_DIRECTORY)
+    self._alerts_cachedir = os.path.join(self.cache_dir, FileCache.ALERTS_CACHE_DIRECTORY)
     self._stacks_dir = os.path.join(self.cache_dir, FileCache.STACKS_CACHE_DIRECTORY)
-    self._common_services_dir = os.path.join(
-      self.cache_dir, FileCache.COMMON_SERVICES_DIRECTORY
-    )
-    self._extensions_dir = os.path.join(
-      self.cache_dir, FileCache.EXTENSIONS_CACHE_DIRECTORY
-    )
-    self._host_scripts_dir = os.path.join(
-      self.cache_dir, FileCache.HOST_SCRIPTS_CACHE_DIRECTORY
-    )
+    self._common_services_dir = os.path.join(self.cache_dir, FileCache.COMMON_SERVICES_DIRECTORY)
+    self._extensions_dir = os.path.join(self.cache_dir, FileCache.EXTENSIONS_CACHE_DIRECTORY)
+    self._host_scripts_dir = os.path.join(self.cache_dir, FileCache.HOST_SCRIPTS_CACHE_DIRECTORY)
+
 
   def get(self, section, value, default=None):
     try:
@@ -143,6 +143,8 @@ class AmbariConfig:
 
   def setConfig(self, customConfig):
     self.config = customConfig
+    # Recalculate derived paths when the underlying parser changes
+    self._recalculate_cache_paths()
 
   def getConfig(self):
     return self.config
@@ -363,9 +365,13 @@ class AmbariConfig:
 
   def load(self, data):
     self.config = configparser.RawConfigParser(data)
+    # Recalculate derived paths after loading config data
+    self._recalculate_cache_paths()
 
   def read(self, filename):
     self.config.read(filename)
+    # Recalculate derived paths after reading configuration file
+    self._recalculate_cache_paths()
 
   def getServerOption(self, url, name, default=None):
     from ambari_agent.NetUtil import NetUtil
