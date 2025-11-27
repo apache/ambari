@@ -20,13 +20,18 @@ limitations under the License.
 
 from ambari_commons.logging_utils import print_info_msg, print_error_msg
 from ambari_commons.os_utils import run_os_command
-from ambari_server.dbConfiguration import ensure_jdbc_driver_is_installed
+from ambari_server.dbConfiguration import (
+  ensure_jdbc_driver_is_installed,
+  LINUX_DBMS_KEYS_LIST,
+)
 from ambari_server.serverConfiguration import (
   configDefaults,
   get_ambari_properties,
   get_java_exe_path,
   read_ambari_user,
   get_db_type,
+  parse_properties_file,
+  JDBC_DATABASE_PROPERTY,
 )
 from ambari_server.setupSecurity import (
   generate_env,
@@ -106,6 +111,9 @@ def run_db_purge(options):
     )
     return 1
 
+  properties = get_ambari_properties()
+  parse_properties_file(options)
+  options.database_index = LINUX_DBMS_KEYS_LIST.index(properties[JDBC_DATABASE_PROPERTY])
   ensure_jdbc_driver_is_installed(options, get_ambari_properties())
 
   server_class_path = ServerClassPath(get_ambari_properties(), options)
