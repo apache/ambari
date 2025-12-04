@@ -49,6 +49,7 @@ module.exports.config = {
           'vendor/scripts/console-helper.js',
           'vendor/scripts/jquery-3.7.1.js',
           'vendor/scripts/jquery-migrate.js',
+          'vendor/scripts/jquery-migrate-deprecated.js',
           'vendor/scripts/handlebars-1.0.0.beta.6.js',
           'vendor/scripts/ember-latest.js',
           'vendor/scripts/ember-data-latest.js',
