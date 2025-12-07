@@ -74,6 +74,7 @@ interface AppContextProps {
   sessionExists: boolean;
   clusterState: any;
   upgradeIsRunning: boolean;
+  upgradeSuspended: boolean;
 }
 
 export const AppContext = createContext<AppContextProps>({
@@ -110,6 +111,7 @@ export const AppContext = createContext<AppContextProps>({
   sessionsValidated: false,
   clusterState: {},
   upgradeIsRunning: false,
+  upgradeSuspended: false,
 });
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -151,7 +153,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const [allHostNames, setAllHostNames] = useState([]);
 
-  const upgradeIsRunning = false; // TODO: This will be implemented soon to check if upgrade is running
+  // TODO: These will be implemented soon to check upgrade status
+  const upgradeIsRunning = false;
+  const upgradeSuspended = false;
 
   const fetchClusterServices = async () => {
     try {
@@ -518,6 +522,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         sessionsValidated,
         clusterState,
         upgradeIsRunning,
+        upgradeSuspended,
       }}
     >
       {children}

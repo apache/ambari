@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 export enum ClusterProgressStatus {
   PROVISIONING = "PROVISIONING",
   ENABLING_NAMENODE_HA = "ENABLING_NAMENODE_HA",
@@ -28,6 +29,26 @@ export enum ProgressStatus {
   FAILED = "FAILED",
 }
 
+export const serviceNameModelMapping: { [key: string]: string } = {
+  HDFS: "hdfs",
+  YARN: "yarn",
+  MAPREDUCE2: "mapreduce2",
+  TEZ: "tez",
+  HIVE: "hive",
+  HBASE: "hbase",
+  ZOOKEEPER: "zk",
+  AMBARI_METRICS: "ambari_metrics",
+  RANGER: "ranger",
+  RANGER_KMS: "ranger_kms",
+  KERBEROS: "kerberos",
+  SPARK3: "spark3",
+  SSM: "ssm",
+  TRINO: "trino",
+  SQOOP: "sqoop",
+  KYUUBI: "kyuubi",
+  TRINO_GATEWAY: "trino_gateway",
+  PINOT: "pinot",
+};
 
 export const serviceNameDisplayMapping = {
   HDFS: "HDFS",
@@ -47,4 +68,5 @@ export const serviceNameDisplayMapping = {
   SQOOP: "Sqoop",
   KYUUBI: "Kyuubi",
   TRINO_GATEWAY: "Trino Gateway",
+  PINOT: "Pinot",
 };
