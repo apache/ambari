@@ -74,7 +74,7 @@ class Facter(object):
         raise Exception("No config found, use default")
 
     except Exception as err:
-      log.warn(err)
+      log.warning(err)
     return config
 
   # Return first ip adress
@@ -200,7 +200,7 @@ class Facter(object):
                 for key, value in data.items():
                   systemResources[key] = data[key]
           except:
-            log.warn(
+            log.warning(
               f"Cannot read values from json files in {systemResourceDir}. it won't be used for gathering system resources."
             )
         else:
@@ -308,7 +308,7 @@ class FacterWindows(Facter):
       )
       return int(result)
     except:
-      log.warn("Can not get SwapFree")
+      log.warning("Can not get SwapFree")
     return 0
 
   # Return memoryfree
@@ -323,7 +323,7 @@ class FacterWindows(Facter):
       )
       return result
     except:
-      log.warn("Can not get MemoryFree")
+      log.warning("Can not get MemoryFree")
     return 0
 
   # Return memorytotal
@@ -338,7 +338,7 @@ class FacterWindows(Facter):
       )
       return result
     except:
-      log.warn("Can not get MemoryTotal")
+      log.warning("Can not get MemoryTotal")
     return 0
 
   # Return swapfree
@@ -353,7 +353,7 @@ class FacterWindows(Facter):
       )
       return result
     except:
-      log.warn("Can not get SwapFree")
+      log.warning("Can not get SwapFree")
     return 0
 
   # Return swapsize
@@ -368,7 +368,7 @@ class FacterWindows(Facter):
       )
       return result
     except:
-      log.warn("Can not get SwapFree")
+      log.warning("Can not get SwapFree")
     return 0
 
   # Return memorysize
@@ -383,7 +383,7 @@ class FacterWindows(Facter):
       )
       return result
     except:
-      log.warn("Can not get MemorySize")
+      log.warning("Can not get MemorySize")
     return 0
 
   def facterInfo(self):
@@ -437,7 +437,7 @@ class FacterLinux(Facter):
       return_code, stdout, stderr = run_os_command(FacterLinux.GET_IFCONFIG_SHORT_CMD)
       return stdout
     except OSError:
-      log.warn(f"Can't execute {FacterLinux.GET_IFCONFIG_SHORT_CMD}")
+      log.warning(f"Can't execute {FacterLinux.GET_IFCONFIG_SHORT_CMD}")
     return ""
 
   # Returns the output of `ip link` command
@@ -447,7 +447,7 @@ class FacterLinux(Facter):
       return_code, stdout, stderr = run_os_command(FacterLinux.GET_IP_LINK_CMD)
       return stdout
     except OSError:
-      log.warn(f"Can't execute {FacterLinux.GET_IP_LINK_CMD}")
+      log.warning(f"Can't execute {FacterLinux.GET_IP_LINK_CMD}")
     return ""
 
   @staticmethod
@@ -456,7 +456,7 @@ class FacterLinux(Facter):
       return_code, stdout, stderr = run_os_command(FacterLinux.GET_UPTIME_CMD)
       return stdout
     except OSError:
-      log.warn(f"Can't execute {FacterLinux.GET_UPTIME_CMD}")
+      log.warning(f"Can't execute {FacterLinux.GET_UPTIME_CMD}")
     return ""
 
   @staticmethod
@@ -465,7 +465,7 @@ class FacterLinux(Facter):
       return_code, stdout, stderr = run_os_command(FacterLinux.GET_MEMINFO_CMD)
       return stdout
     except OSError:
-      log.warn(f"Can't execute {FacterLinux.GET_MEMINFO_CMD}")
+      log.warning(f"Can't execute {FacterLinux.GET_MEMINFO_CMD}")
     return ""
 
   # Returns the FQDN of the host
@@ -479,7 +479,7 @@ class FacterLinux(Facter):
       if se_status:
         return True
     except OSError:
-      log.warn(f"Could not run {FacterLinux.GET_SE_LINUX_ST_CMD}: OK")
+      log.warning(f"Could not run {FacterLinux.GET_SE_LINUX_ST_CMD}: OK")
     return False
 
   def return_first_words_from_list(self, list):
@@ -549,7 +549,7 @@ class FacterLinux(Facter):
         )[20:24]
       )
     except Exception as err:
-      log.warn(f"Can't get the IP address for {ifname}")
+      log.warning(f"Can't get the IP address for {ifname}")
 
     return ip_address_by_ifname
 
@@ -566,7 +566,7 @@ class FacterLinux(Facter):
     if result != "":
       return result
     # If the host has neither `ifocnfig` command nor `ip` command, then return "OS NOT SUPPORTED"
-    log.warn(
+    log.warning(
       f"Can't get a network interfaces list from {self.DATA_IFCONFIG_SHORT_OUTPUT}"
     )
     return "OS NOT SUPPORTED"
@@ -578,7 +578,7 @@ class FacterLinux(Facter):
         self.data_return_first(FacterLinux.DIGITS_REGEXP, self.DATA_UPTIME_OUTPUT)
       )
     except ValueError:
-      log.warn(f"Can't get an uptime value from {self.DATA_UPTIME_OUTPUT}")
+      log.warning(f"Can't get an uptime value from {self.DATA_UPTIME_OUTPUT}")
       return 0
 
   # Return memoryfree
@@ -589,7 +589,7 @@ class FacterLinux(Facter):
         self.data_return_first(FacterLinux.FREEMEM_REGEXP, self.DATA_MEMINFO_OUTPUT)
       )
     except ValueError:
-      log.warn(f"Can't get free memory size from {self.DATA_MEMINFO_OUTPUT}")
+      log.warning(f"Can't get free memory size from {self.DATA_MEMINFO_OUTPUT}")
       return 0
 
   # Return memorytotal
@@ -599,7 +599,7 @@ class FacterLinux(Facter):
         self.data_return_first(FacterLinux.TOTALMEM_REGEXP, self.DATA_MEMINFO_OUTPUT)
       )
     except ValueError:
-      log.warn(f"Can't get total memory size from {self.DATA_MEMINFO_OUTPUT}")
+      log.warning(f"Can't get total memory size from {self.DATA_MEMINFO_OUTPUT}")
       return 0
 
   # Return swapfree
@@ -610,7 +610,7 @@ class FacterLinux(Facter):
         self.data_return_first(FacterLinux.SWAPFREE_REGEXP, self.DATA_MEMINFO_OUTPUT)
       )
     except ValueError:
-      log.warn(f"Can't get free swap memory size from {self.DATA_MEMINFO_OUTPUT}")
+      log.warning(f"Can't get free swap memory size from {self.DATA_MEMINFO_OUTPUT}")
       return 0
 
   # Return swapsize
@@ -621,7 +621,7 @@ class FacterLinux(Facter):
         self.data_return_first(FacterLinux.SWAPTOTAL_REGEXP, self.DATA_MEMINFO_OUTPUT)
       )
     except ValueError:
-      log.warn(f"Can't get total swap memory size from {self.DATA_MEMINFO_OUTPUT}")
+      log.warning(f"Can't get total swap memory size from {self.DATA_MEMINFO_OUTPUT}")
       return 0
 
   # Return memorysize
@@ -632,7 +632,7 @@ class FacterLinux(Facter):
         self.data_return_first(FacterLinux.TOTALMEM_REGEXP, self.DATA_MEMINFO_OUTPUT)
       )
     except ValueError:
-      log.warn(f"Can't get memory size from {self.DATA_MEMINFO_OUTPUT}")
+      log.warning(f"Can't get memory size from {self.DATA_MEMINFO_OUTPUT}")
       return 0
 
   def facterInfo(self):

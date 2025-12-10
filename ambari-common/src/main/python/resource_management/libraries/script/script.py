@@ -469,11 +469,11 @@ class Script(object):
       user = self.get_user()
 
       if log_folder == "":
-        Logger.logger.warn("Log folder for current script is not defined")
+        Logger.logger.warning("Log folder for current script is not defined")
         return
 
       if user == "":
-        Logger.logger.warn("User for current script is not defined")
+        Logger.logger.warning("User for current script is not defined")
         return
 
       show_logs(

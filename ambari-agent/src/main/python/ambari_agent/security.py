@@ -125,7 +125,7 @@ class VerifiedHTTPSConnection:
         logger.exception("Exception during conn.disconnect()")
 
       if isinstance(ex, socket_error):
-        logger.warn(f"Could not connect to {self.connection_url}. {str(ex)}")
+        logger.warning(f"Could not connect to {self.connection_url}. {str(ex)}")
 
       raise
 
@@ -306,7 +306,7 @@ class CertificateManager:
       if logger.isEnabledFor(logging.DEBUG):
         logger.debug("Sign response from Server: \n" + pprint.pformat(data))
     except Exception:
-      logger.warn("Malformed response! data: %s", data)
+      logger.warning("Malformed response! data: %s", data)
       data = {"result": "ERROR"}
     result = data["result"]
     if result == "OK":

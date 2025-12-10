@@ -162,7 +162,7 @@ class AmbariConfig:
         raise Exception(f"No config found at {configPath}, use default")
 
     except Exception as err:
-      logger.warn(err)
+      logger.warning(err)
     setattr(cls, "_conf_cache", config)
     return config
 

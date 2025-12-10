@@ -747,7 +747,7 @@ class HDFSRecommender(service_advisor.ServiceAdvisor):
           )
         else:
           # Since Kerberos is not enabled, we can not enable SSO
-          self.logger.warn(
+          self.logger.warning(
             "Enabling SSO integration for HDFS requires Kerberos, Since Kerberos is not enabled, SSO integration is not being recommended."
           )
           putHdfsSiteProperty("hadoop.http.authentication.type", "simple")

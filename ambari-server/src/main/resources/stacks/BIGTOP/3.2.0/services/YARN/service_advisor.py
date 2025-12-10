@@ -1460,7 +1460,7 @@ class YARNRecommender(service_advisor.ServiceAdvisor):
           )
         else:
           # Since Kerberos is not enabled, we can not enable SSO
-          self.logger.warn(
+          self.logger.warning(
             "Enabling SSO integration for Yarn requires Kerberos, Since Kerberos is not enabled, SSO integration is not being recommended."
           )
           putYarnSiteProperty("hadoop.http.authentication.type", "simple")
@@ -3814,7 +3814,7 @@ class MAPREDUCE2Recommender(YARNRecommender):
           )
         else:
           # Since Kerberos is not enabled, we can not enable SSO
-          self.logger.warn(
+          self.logger.warning(
             "Enabling SSO integration for MapReduce requires Kerberos, Since Kerberos is not enabled, SSO integration is not being recommended."
           )
           putMapRedSiteProperty("hadoop.http.authentication.type", "simple")

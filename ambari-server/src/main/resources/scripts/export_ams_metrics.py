@@ -117,7 +117,7 @@ class Utils:
       try:
         response_data = json.loads(connection.read())
       except Exception as e:
-        logger.warn(f"Error parsing json data returned from URI: {collector_uri}")
+        logger.warning(f"Error parsing json data returned from URI: {collector_uri}")
         logger.debug(str(e))
 
     return response_data
@@ -159,7 +159,7 @@ class Utils:
         Params.END_TIME = json["END_TIME"]
         Params.AGGREGATE = json["AGGREGATE"]
       else:
-        logger.warn(
+        logger.warning(
           "Not found config file in {0}".format(
             os.path.join(Params.INPUT_DIR), "configs"
           )
@@ -576,7 +576,7 @@ def main():
     )
 
     if Params.START_TIME == -1:
-      logger.warn(
+      logger.warning(
         "No start time provided, or it is in the wrong format. Please "
         "provide milliseconds since epoch or a value in YYYY-MM-DDTHH:mm:ssZ format"
       )
@@ -586,7 +586,7 @@ def main():
     Params.END_TIME = Utils.get_epoch(options.end_time)
 
     if Params.END_TIME == -1:
-      logger.warn(
+      logger.warning(
         "No end time provided, or it is in the wrong format. Please "
         "provide milliseconds since epoch or a value in YYYY-MM-DDTHH:mm:ssZ format"
       )
@@ -609,7 +609,7 @@ def main():
     FlaskServer(ams_metrics_processor)
 
   else:
-    logger.warn(
+    logger.warning(
       "Action '{0}' not supported. Please use action 'export' for exporting AMS metrics "
       "or use action 'run' for starting REST server".format(Params.ACTION)
     )

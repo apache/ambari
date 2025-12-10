@@ -210,7 +210,7 @@ class PythonExecutor(object):
       structured_out = {
         "msg": "Unable to read structured output from " + structured_out_path
       }
-      self.logger.warn(structured_out)
+      self.logger.warning(structured_out)
     except (OSError, IOError):
       structured_out = {}
     return out, error, structured_out
