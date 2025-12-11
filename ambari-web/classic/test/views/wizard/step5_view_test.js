@@ -207,6 +207,13 @@ describe('App.SelectHostView', function() {
 
   });
 
+  describe('should have jquery browser plugin', function() {
+    it('should test for both chrome and webkit', function() {
+      expect($.browser.chrome).to.be.true;
+      expect($.browser.webkit).to.be.true;
+    })
+  })
+
 });
 
 describe('App.InputHostView', function() {
