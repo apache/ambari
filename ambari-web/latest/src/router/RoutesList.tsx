@@ -15,11 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { RouteObject, Navigate, Outlet } from "react-router-dom";
 import StackAndVersions from "../screens/ClusterAdmin/StackAndVersions/StackAndVersions";
-function ComponentInProgress() {
-  return <h1>Component In Progress</h1>;
-}
+import { ComponentInProgress } from "../Utils/ComponentInProgress";
+import HostsList from "../screens/Hosts/HostsList";
+import { Hosts } from "../screens/Hosts";
 
 const RoutesList: RouteObject[] = [
   {
@@ -86,11 +87,19 @@ const RoutesList: RouteObject[] = [
           },
           {
             path: "hosts",
-            element: <ComponentInProgress />,
+            element: <HostsList />,
+          },
+          {
+            path: "hosts/component/:componentName",
+            element: <HostsList />,
+          },
+          {
+            path: "hosts/version/:versionName/:versionStatus",
+            element: <HostsList />,
           },
           {
             path: "hosts/:hostname/:tab",
-            element: <ComponentInProgress />,
+            element: <Hosts />,
           },
           {
             path: "host/add/:stepNumber",
