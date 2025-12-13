@@ -510,7 +510,7 @@ class WebSocket(object):
 
     if s.errors:
       for error in s.errors:
-        logger.warn("Error message received (%d) '%s'" % (error.code, error.reason))
+        logger.warning("Error message received (%d) '%s'" % (error.code, error.reason))
         self.close(error.code, error.reason)
       s.errors = []
       return False

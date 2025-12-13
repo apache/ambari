@@ -465,7 +465,7 @@ class HostInfoLinux(HostInfo):
       )
       return out, err, code
     except Exception as ex:
-      logger.warn(f"Checking service {service_name} status failed")
+      logger.warning(f"Checking service {service_name} status failed")
       return "", str(ex), 1
 
 

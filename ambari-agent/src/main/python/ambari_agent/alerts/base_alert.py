@@ -162,7 +162,7 @@ class BaseAlert(object):
       try:
         data["text"] = res_base_text.format(*res[1])
       except ValueError as value_error:
-        logger.warn(f"[Alert][{self.get_name()}] - {str(value_error)}")
+        logger.warning(f"[Alert][{self.get_name()}] - {str(value_error)}")
 
         # if there is a ValueError, it's probably because the text doesn't match the type of
         # positional arguemtns (ie {0:d} with a float)

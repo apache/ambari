@@ -66,7 +66,7 @@ class AlertCollector:
           alert = alert_map[alert_name]
 
           if not "uuid" in alert:
-            logger.warn(f"Alert {alert} does not have uuid key.")
+            logger.warning(f"Alert {alert} does not have uuid key.")
             continue
 
           if alert["uuid"] == alert_uuid:

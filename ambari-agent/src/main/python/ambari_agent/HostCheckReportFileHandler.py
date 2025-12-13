@@ -57,7 +57,7 @@ class HostCheckReportFileHandler:
         raise Exception("No config found, use default")
 
     except Exception as err:
-      logger.warn(err)
+      logger.warning(err)
     return config
 
   def writeHostChecksCustomActionsFile(self, structuredOutput):

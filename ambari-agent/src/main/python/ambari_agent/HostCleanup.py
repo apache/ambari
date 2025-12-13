@@ -116,7 +116,7 @@ class HostCleanup:
         raise Exception("No config found, use default")
 
     except Exception as err:
-      logger.warn(err)
+      logger.warning(err)
     return config
 
   def get_additional_dirs(self):
@@ -210,7 +210,7 @@ class HostCleanup:
           ","
         )
     except:
-      logger.warn("Cannot read package list: " + str(sys.exc_info()[0]))
+      logger.warning("Cannot read package list: " + str(sys.exc_info()[0]))
 
     try:
       proc_map = {}
@@ -230,13 +230,13 @@ class HostCleanup:
       if proc_map:
         propertyMap[PROCESS_SECTION] = proc_map
     except:
-      logger.warn("Cannot read process list: " + str(sys.exc_info()))
+      logger.warning("Cannot read process list: " + str(sys.exc_info()))
 
     try:
       if config.has_option(USER_SECTION, USER_KEY):
         propertyMap[USER_SECTION] = config.get(USER_SECTION, USER_KEY).split(",")
     except:
-      logger.warn("Cannot read user list: " + str(sys.exc_info()[0]))
+      logger.warning("Cannot read user list: " + str(sys.exc_info()[0]))
 
     try:
       if config.has_option(USER_SECTION, USER_HOMEDIR_KEY):
@@ -244,19 +244,19 @@ class HostCleanup:
           USER_SECTION, USER_HOMEDIR_KEY
         ).split(",")
     except:
-      logger.warn("Cannot read user homedir list: " + str(sys.exc_info()[0]))
+      logger.warning("Cannot read user homedir list: " + str(sys.exc_info()[0]))
 
     try:
       if config.has_option(REPO_SECTION, REPOS_KEY):
         propertyMap[REPO_SECTION] = config.get(REPO_SECTION, REPOS_KEY).split(",")
     except:
-      logger.warn("Cannot read repositories list: " + str(sys.exc_info()[0]))
+      logger.warning("Cannot read repositories list: " + str(sys.exc_info()[0]))
 
     try:
       if config.has_option(DIR_SECTION, DIR_KEY):
         propertyMap[DIR_SECTION] = config.get(DIR_SECTION, DIR_KEY).split(",")
     except:
-      logger.warn("Cannot read dir list: " + str(sys.exc_info()[0]))
+      logger.warning("Cannot read dir list: " + str(sys.exc_info()[0]))
 
     try:
       alt_map = {}
@@ -267,7 +267,7 @@ class HostCleanup:
       if alt_map:
         propertyMap[ALT_SECTION] = alt_map
     except:
-      logger.warn("Cannot read alternates list: " + str(sys.exc_info()[0]))
+      logger.warning("Cannot read alternates list: " + str(sys.exc_info()[0]))
 
     return propertyMap
 
@@ -286,7 +286,7 @@ class HostCleanup:
       out = p2.communicate()[0]
       logger.debug("alternatives --display " + alt_name + "\n, out = " + out)
     except:
-      logger.warn(
+      logger.warning(
         "Cannot process alternative named: "
         + alt_name
         + ","
@@ -333,7 +333,7 @@ class HostCleanup:
             out = self.get_alternatives_desc(alt_name)
 
             if not out:
-              logger.warn("No alternatives found for: " + alt_name)
+              logger.warning("No alternatives found for: " + alt_name)
               continue
             else:
               alternates = out.split("\n")
@@ -349,7 +349,7 @@ class HostCleanup:
                     command = ALT_ERASE_CMD.format(alt_name, alt_path)
                     (returncode, stdoutdata, stderrdata) = self.run_os_command(command)
                     if returncode != 0:
-                      logger.warn(
+                      logger.warning(
                         "Failed to remove alternative: "
                         + alt_name
                         + ", path: "
@@ -465,7 +465,7 @@ class HostCleanup:
       elif OSCheck.is_ubuntu_family():
         fileList = self.get_files_in_dir(REPO_PATH_UBUNTU)
       else:
-        logger.warn("Unsupported OS type, cannot get repository location.")
+        logger.warning("Unsupported OS type, cannot get repository location.")
         return []
 
       if fileList:
@@ -493,7 +493,7 @@ class HostCleanup:
         logger.debug("Executing: " + str(command))
         (returncode, stdoutdata, stderrdata) = self.run_os_command(command)
         if returncode != 0:
-          logger.warn("Erasing packages failed: " + stderrdata)
+          logger.warning("Erasing packages failed: " + stderrdata)
         else:
           logger.info("Erased packages successfully.\n" + stdoutdata)
     return 0
@@ -510,7 +510,7 @@ class HostCleanup:
                 try:
                   shutil.rmtree(path)
                 except:
-                  logger.warn(
+                  logger.warning(
                     f"Failed to remove dir {path} , error: {str(sys.exc_info()[0])}"
                   )
               else:
@@ -530,7 +530,7 @@ class HostCleanup:
           try:
             os.remove(path)
           except:
-            logger.warn(
+            logger.warning(
               f"Failed to delete file: {path}, error: {str(sys.exc_info()[0])}"
             )
         else:
@@ -541,7 +541,7 @@ class HostCleanup:
     groupDelCommand = GROUP_ERASE_CMD.format(HADOOP_GROUP)
     (returncode, stdoutdata, stderrdata) = self.run_os_command(groupDelCommand)
     if returncode != 0:
-      logger.warn("Cannot delete group : " + HADOOP_GROUP + ", " + stderrdata)
+      logger.warning("Cannot delete group : " + HADOOP_GROUP + ", " + stderrdata)
     else:
       logger.info("Successfully deleted group: " + HADOOP_GROUP)
 
@@ -553,7 +553,7 @@ class HostCleanup:
           stat = os.stat(fileToCheck)
         except OSError:
           stat = None
-          logger.warn("Cannot stat file, skipping: " + fileToCheck)
+          logger.warning("Cannot stat file, skipping: " + fileToCheck)
 
         if stat and stat.st_uid in userIds:
           self.do_erase_dir_silent([fileToCheck])
@@ -576,7 +576,7 @@ class HostCleanup:
           try:
             userIds.append(getpwnam(user).pw_uid)
           except Exception:
-            logger.warn("Cannot find user : " + user)
+            logger.warning("Cannot find user : " + user)
     return userIds
 
   def do_delete_users(self, userList):
@@ -586,7 +586,7 @@ class HostCleanup:
           command = USER_ERASE_CMD.format(user)
           (returncode, stdoutdata, stderrdata) = self.run_os_command(command)
           if returncode != 0:
-            logger.warn("Cannot delete user : " + user + ", " + stderrdata)
+            logger.warning("Cannot delete user : " + user + ", " + stderrdata)
           else:
             logger.info("Successfully deleted user: " + user)
       self.do_delete_group()
@@ -627,7 +627,7 @@ class HostCleanup:
     )
     (returncode, stdoutdata, stderrdata) = self.run_os_command(run_checks_command)
     if returncode != 0:
-      logger.warn(
+      logger.warning(
         "Failed to run host checks,\nstderr:\n "
         + stderrdata
         + "\n\nstdout:\n"
@@ -643,7 +643,7 @@ def backup_file(filePath):
     try:
       shutil.copyfile(filePath, filePath + "." + timestamp.strftime(format))
     except Exception as e:
-      logger.warn('Could not backup file "%s": %s' % (str(filePath, e)))
+      logger.warning('Could not backup file "%s": %s' % (str(filePath, e)))
   return 0
 
 

@@ -442,7 +442,7 @@ class RecoveryManager:
         else:
           if action_counter["warnedLastAttempt"] is False:
             action_counter["warnedLastAttempt"] = True
-            logger.warn(
+            logger.warning(
               "%s seconds has not passed since last occurrence %s seconds back for %s. "
               + "Will silently skip execution without warning till retry gap is passed",
               self.retry_gap_in_sec,
@@ -469,7 +469,7 @@ class RecoveryManager:
         else:
           if action_counter["warnedLastReset"] is False:
             action_counter["warnedLastReset"] = True
-            logger.warn(
+            logger.warning(
               "%s occurrences in %s minutes reached the limit for %s. "
               + "Will silently skip execution without warning till window is reset",
               action_counter["count"],
@@ -486,7 +486,7 @@ class RecoveryManager:
     else:
       if action_counter["warnedThresholdReached"] is False:
         action_counter["warnedThresholdReached"] = True
-        logger.warn(
+        logger.warning(
           "%s occurrences in agent life time reached the limit for %s. "
           + "Will silently skip execution without warning till window is reset",
           action_counter["lifetimeCount"],
@@ -652,23 +652,23 @@ class RecoveryManager:
     """
     self.recovery_enabled = False
     if max_count <= 0:
-      logger.warn("Recovery disabled: max_count must be a non-negative number")
+      logger.warning("Recovery disabled: max_count must be a non-negative number")
       return
 
     if window_in_min <= 0:
-      logger.warn("Recovery disabled: window_in_min must be a non-negative number")
+      logger.warning("Recovery disabled: window_in_min must be a non-negative number")
       return
 
     if retry_gap < 1:
-      logger.warn(
+      logger.warning(
         "Recovery disabled: retry_gap must be a positive number and at least 1"
       )
       return
     if retry_gap >= window_in_min:
-      logger.warn("Recovery disabled: retry_gap must be smaller than window_in_min")
+      logger.warning("Recovery disabled: retry_gap must be smaller than window_in_min")
       return
     if max_lifetime_count < 0 or max_lifetime_count < max_count:
-      logger.warn(
+      logger.warning(
         "Recovery disabled: max_lifetime_count must more than 0 and >= max_count"
       )
       return

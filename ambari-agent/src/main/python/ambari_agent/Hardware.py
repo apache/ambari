@@ -184,7 +184,7 @@ class Hardware:
       )
       dfdata = out
     except Exception as ex:
-      logger.warn("Checking disk usage failed: " + str(ex))
+      logger.warning("Checking disk usage failed: " + str(ex))
       dfdata = ""
 
     result_mounts = []

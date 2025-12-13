@@ -330,7 +330,7 @@ class HeartbeatThread(threading.Thread):
       )
     except ConnectionIsAlreadyClosed:
       # this happens when trying to connect to broken connection. Happens if ambari-server is restarted.
-      logger.warn(f"Connection failed while trying to connect to {destination}")
+      logger.warning(f"Connection failed while trying to connect to {destination}")
       raise
 
     try:

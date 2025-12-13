@@ -212,7 +212,7 @@ class FileCache:
             self.write_hash_sum(full_path, remote_hash)
             logger.info(f"Updated directory {full_path}")
           else:
-            logger.warn(
+            logger.warning(
               "Skipping empty archive: {0}. "
               "Expected archive was not found. Cached copy will be used.".format(
                 download_url
@@ -224,7 +224,7 @@ class FileCache:
     except CachingException as e:
       if self.tolerate_download_failures:
         # ignore
-        logger.warn(
+        logger.warning(
           "Error occurred during cache update. "
           "Error tolerate setting is set to true, so"
           " ignoring this error and continuing with current cache. "

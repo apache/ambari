@@ -136,7 +136,7 @@ class XmlParser(Parser):  # Used DOM parser to read data into a map
       if name != None:
         name_text = name.text if name.text else ""
       else:
-        logger.warn(
+        logger.warning(
           f"No name is found for one of the properties in {path}, ignoring it"
         )
         continue
@@ -144,7 +144,7 @@ class XmlParser(Parser):  # Used DOM parser to read data into a map
       if value != None:
         value_text = value.text if value.text else ""
       else:
-        logger.warn(
+        logger.warning(
           f'No value is found for "{name_text}" in {path}, using empty string for it'
         )
         value_text = ""
@@ -205,7 +205,7 @@ class ConfigMerge:
             ext in ConfigMerge.SUPPORTED_FILENAME_ENDINGS
             and not ConfigMerge.SUPPORTED_FILENAME_ENDINGS[ext] in root
           ):
-            logger.warn(f"File {file_path} is not configurable by Ambari. Skipping...")
+            logger.warning(f"File {file_path} is not configurable by Ambari. Skipping...")
             continue
           config_name = None
 
@@ -356,7 +356,7 @@ class ConfigMerge:
         conflict_filename = os.path.join(
           self.OUTPUT_DIR, configuration_type + "-conflicts.txt"
         )
-        logger.warn(
+        logger.warning(
           f"You have configurations conflicts for {configuration_type}. Please check {conflict_filename}"
         )
         with open(conflict_filename, "w") as fp:
@@ -367,7 +367,7 @@ class ConfigMerge:
         conflict_filename = os.path.join(
           self.OUTPUT_DIR, configuration_type + "-attributes-conflicts.txt"
         )
-        logger.warn(
+        logger.warning(
           f"You have property attribute conflicts for {configuration_type}. Please check {conflict_filename}"
         )
         with open(conflict_filename, "w") as fp:
@@ -430,7 +430,7 @@ class ConfigMerge:
 
     if configuration_diff_output and configuration_diff_output != "":
       conflict_filename = os.path.join(ConfigMerge.OUTPUT_DIR, "file-diff.txt")
-      logger.warn(f"You have file diff conflicts. Please check {conflict_filename}")
+      logger.warning(f"You have file diff conflicts. Please check {conflict_filename}")
       with open(conflict_filename, "w") as fp:
         fp.write(configuration_diff_output)
 

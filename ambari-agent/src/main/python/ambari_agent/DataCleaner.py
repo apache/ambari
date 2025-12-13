@@ -44,7 +44,7 @@ class DataCleaner(threading.Thread):
     self.file_max_age = config.get("agent", "data_cleanup_max_age", 86400)
     self.file_max_age = int(self.file_max_age) if self.file_max_age else None
     if self.file_max_age is None or self.file_max_age < 86400:  # keep for at least 24h
-      logger.warn(
+      logger.warning(
         "The minimum value allowed for data_cleanup_max_age is 1 "
         "day. Setting data_cleanup_max_age to 86400."
       )
@@ -57,7 +57,7 @@ class DataCleaner(threading.Thread):
     if (
       self.cleanup_interval is None or self.cleanup_interval < 3600
     ):  # wait at least 1 hour between runs
-      logger.warn(
+      logger.warning(
         "The minimum value allowed for data_cleanup_interval is 1 "
         "hour. Setting data_cleanup_interval to 3600."
       )
@@ -70,7 +70,7 @@ class DataCleaner(threading.Thread):
     if (
       self.cleanup_max_size_MB is None or self.cleanup_max_size_MB > 10000
     ):  # no more than 10 GBs
-      logger.warn(
+      logger.warning(
         "The maximum value allowed for cleanup_max_size_MB is 10000 MB (10 GB). "
         "Setting cleanup_max_size_MB to 10000."
       )
@@ -132,7 +132,7 @@ class DataCleaner(threading.Thread):
           pass
       else:
         # Did not reach below cap.
-        logger.warn(
+        logger.warning(
           "DataCleaner deleted an additional %d files, currently log files occupy %d bytes."
           % (count, total_size_bytes)
         )

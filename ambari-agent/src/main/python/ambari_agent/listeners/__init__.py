@@ -71,7 +71,7 @@ class EventListener(ambari_stomp.ConnectionListener):
     Here we handle some decode the message to json and check if it addressed to this specific event listener.
     """
     if not "destination" in headers:
-      logger.warn(
+      logger.warning(
         "Received event from server which does not contain 'destination' header"
       )
       return

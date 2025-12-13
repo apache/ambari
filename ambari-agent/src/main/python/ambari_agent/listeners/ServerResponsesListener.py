@@ -69,7 +69,7 @@ class ServerResponsesListener(EventListener):
           self.listener_functions_on_error[correlation_id](headers, message)
           del self.listener_functions_on_error[correlation_id]
     else:
-      logger.warn(
+      logger.warning(
         f"Received a message from server without a '{Constants.CORRELATION_ID_STRING}' header. Ignoring the message"
       )
 
