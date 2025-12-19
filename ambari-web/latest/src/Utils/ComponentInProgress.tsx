@@ -16,26 +16,6 @@
  * limitations under the License.
  */
 
-//TODO: This will be implemented soon to fetch auth info
-
-export const useAuth = () => {
-  const hasAuthorization = (authId: string) => {
-    return authId ? true : false; //TODO: will be implemented soon
-  };
-
-  const havePermissions = (authRoles: string) => {
-    return authRoles ? true : false; //TODO: will be implemented soon
-  };
-
-  const isAdmin = () => {
-    return true; //TODO: will be implemented soon
-  }
-
-  const isOperator = () => {
-    return true; //TODO: will be implemented soon
-  }
-
-  return { hasAuthorization, havePermissions, isAdmin, isOperator };
+export function ComponentInProgress() {
+    return <h1>Component In Progress</h1>;
 }
-
-export default useAuth;
