@@ -28,7 +28,12 @@ export enum ProgressStatus {
   COMPLETED = "COMPLETED",
   FAILED = "FAILED",
 }
-
+export enum ViewLevel {
+  REQUESTS = 1,
+  HOSTS = 2,
+  TASKS_LIST = 3,
+  TASK_LOGS = 4,
+}
 export const serviceNameModelMapping: { [key: string]: string } = {
   HDFS: "hdfs",
   YARN: "yarn",

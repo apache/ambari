@@ -15,22 +15,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { cloneDeep, filter, findIndex, get, has, set } from "lodash";
+
+import { cloneDeep, get, has, set } from "lodash";
 import { useContext, useEffect, useRef, useState } from "react";
-import usePolling from "../hooks/usePolling";
 import { RequestApi } from "../api/requestApi";
 import { AppContext } from "../store/context";
 import { isFailed, isFinished } from "../Utils/Utility";
-import { ProgressStatus} from "../constants";
+import { ProgressStatus } from "../constants";
 import { Alert, Button, ProgressBar, Stack } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faCircleCheck,
-  faTimes,
-  faUndo,
-} from "@fortawesome/free-solid-svg-icons";
+import { faUndo } from "@fortawesome/free-solid-svg-icons";
+//TODO: uncomment below code when background operations modal is implemented
 // import modalManager from "../store/ModalManager";
 // import BackgroundOperations from "../screens/BackgroundOperations";
+import { getStatusIcon } from "../Utils/statusIcons";
 
 type PropTypes = {
   title: string;
@@ -42,6 +40,10 @@ type PropTypes = {
       label: "string";
       callback: any;
       skippable: boolean;
+      requestId?: string | number;
+      status?: string;
+      progress?: number;
+      error?: string;
     }
   ];
   dispatch?: (operationsState: any) => void;
@@ -54,174 +56,326 @@ type OperationRequestResponse = {
     status: string;
   };
   href: string;
-  status?:number;
+  status?: number;
 };
 
 function OperationsProgress({
-  // title,
-  // description,
   setCompletionStatus,
   operations,
   dispatch,
-  errorCallback
+  errorCallback,
 }: PropTypes) {
   const [operationsState, setOperationsState] = useState(operations);
-  const operationsRef = useRef(operations);
-  const activeOperationId = useRef<any>(null);
+  const [activeOperationId, setActiveOperationId] = useState(-1);
   const { clusterName } = useContext(AppContext);
-  const { stopPolling, pausePolling, resumePolling } = usePolling(
-    trackCurrentRequestStatus
-  );
-  const activeRequestId = useRef<string|number>(0);
   const startedTasks: any = useRef([]);
-  async function trackCurrentRequestStatus() {
-    const operationsStateCopy = cloneDeep(operationsRef.current);
+
+  const trackCurrentRequestStatus = async (
+    requestId: number,
+    operationId: number
+  ) => {
+    const operationsStateCopy = cloneDeep(operationsState);
     const trackingStatusForOperation: any = operationsStateCopy.find(
-      (operation) => operation.id == activeOperationId.current
+      (operation) => operation.id == operationId
     );
-    if (activeRequestId.current) {
-      const activeRequestStatus = await RequestApi.getRequestStatus(
+    if (requestId) {
+      set(trackingStatusForOperation, "requestId", requestId);
+      const requestStatus = await RequestApi.getRequestStatus(
         clusterName,
-        activeRequestId.current as any
+        String(requestId)
       );
-      const { Requests } = activeRequestStatus;
-      if (activeRequestStatus?.Requests?.request_status) {
-        set(
-          trackingStatusForOperation,
-          "requestId",
-          activeRequestStatus?.Requests?.id
-        );
-        set(
-          trackingStatusForOperation,
-          "status",
-          activeRequestStatus?.Requests?.request_status||"FAILED"
-        );
-        set(
-          trackingStatusForOperation,
-          "progress",
-          activeRequestStatus?.Requests?.progress_percent
-        );
-        set(
-          trackingStatusForOperation,
-          "requestInfo",
-          activeRequestStatus?.Requests
-        );
-        const requestStages = filter(
-          activeRequestStatus.stages,
-          function (stage) {
-            return has(stage, "Stage.context");
-          }
-        );
-        set(trackCurrentRequestStatus, "stages", requestStages);
+      if (requestStatus?.Requests?.request_status) {
+        const { Requests } = requestStatus;
+        set(trackingStatusForOperation, "status", Requests?.request_status);
+        set(trackingStatusForOperation, "progress", Requests?.progress_percent);
+        set(trackingStatusForOperation, "requestInfo", Requests);
+        if (has(trackingStatusForOperation, "error")) {
+          delete trackingStatusForOperation.error;
+        }
+
+
         setOperationsState(operationsStateCopy);
-        operationsRef.current = operationsStateCopy;
-        console.log("Current request status is", Requests.request_status);
-        if (isFinished(Requests.request_status)) {
-          console.log("Operation Progress operation finished");
-          if (Requests.request_status === ProgressStatus.FAILED) {
-            pausePolling();
-          } else {
-            if (activeOperationId.current == (operations as any)?.at(-1)?.id) {
-              stopPolling();
-              setCompletionStatus(true);
-            } else {
-              const currentActiveIndex = findIndex(operations, [
-                "id",
-                Number(activeOperationId?.current),
-              ]);
-              executeTask(operationsRef.current[Number(currentActiveIndex) + 1]?.id);
-            }
-          }
+
+        if (!isFinished(Requests?.request_status)) {
+          setTimeout(() => {
+            trackCurrentRequestStatus(requestId, operationId);
+          }, 2000);
         }
       }
     }
-  }
-  async function executeTask(id: string | number) {
-    id = Number(id);
-    if (!startedTasks.current.includes(id)) {
-      activeOperationId.current = id;
-      startedTasks.current.push(id);
-      const operationsStateCopy = cloneDeep(operationsRef.current);
+  };
+
+  async function executeTask() {
+    if (!startedTasks.current.includes(activeOperationId)) {
+      startedTasks.current.push(activeOperationId);
+      const operationsStateCopy = cloneDeep(operationsState);
       const matchingOperation: any = operationsStateCopy.find(
-        (operation) => operation.id == id
+        (operation) => operation.id == activeOperationId
       );
+
+      if (
+        matchingOperation &&
+        matchingOperation?.status === ProgressStatus.IN_PROGRESS
+      ) {
+        trackCurrentRequestStatus(
+          matchingOperation.requestId,
+          activeOperationId
+        );
+        return;
+      }
+
       if (matchingOperation) {
         try {
-        const operationCallbackResponse:OperationRequestResponse = await matchingOperation?.callback();
-        if (operationCallbackResponse?.Requests) {
-          matchingOperation.requestId = operationCallbackResponse?.Requests?.id;
-          activeRequestId.current = operationCallbackResponse?.Requests?.id;
-        }
-        //TODO: @vhassija Please verify for all statusCode
-        else if(operationCallbackResponse?.status === 200|| !operationCallbackResponse){
-          if (activeOperationId.current == (operationsRef.current as any)?.at(-1)?.id) {
-            stopPolling();
-            setCompletionStatus(true);
-          } else {
-            const currentActiveIndex = operationsRef.current.findIndex((operation) => operation.id == activeOperationId.current);
-            executeTask(operationsRef.current[Number(currentActiveIndex) + 1]?.id);
-          }
-        }
-        else{
-          console.error("Operation failed with response", operationCallbackResponse);
-          matchingOperation.status = "FAILED";
-        }
-        }
-      catch(err){
-        console.error("Got request", err)
-        matchingOperation.status = "FAILED";
+          const operationCallbackResponse: OperationRequestResponse =
+            await matchingOperation?.callback();
 
+          if (operationCallbackResponse?.Requests) {
+            set(
+              matchingOperation,
+              "requestId",
+              operationCallbackResponse?.Requests?.id
+            );
+            trackCurrentRequestStatus(
+              matchingOperation.requestId,
+              activeOperationId
+            );
+          } else {
+            const statusCode = get(operationCallbackResponse, "[0].status", operationCallbackResponse?.status);
+
+            // Handle status codes by ranges in case of success or unknown response
+            if (
+              (statusCode && statusCode >= 200 && statusCode < 300) ||
+              !operationCallbackResponse
+            ) {
+              // 2xx Success status codes or empty response with no status code - treat as success
+              set(matchingOperation, "status", ProgressStatus.COMPLETED);
+              if (has(matchingOperation, "error")) {
+                delete matchingOperation.error;
+              }
+            } else {
+              // Unknown status code or response exists but no status code
+              set(matchingOperation, "status", ProgressStatus.FAILED);
+              if (statusCode) {
+                set(
+                  matchingOperation,
+                  "error",
+                  JSON.stringify(operationCallbackResponse) ||
+                    `Unknown Status Code (${statusCode}): ${JSON.stringify(
+                      operationCallbackResponse
+                    )}`
+                );
+              } else {
+                set(
+                  matchingOperation,
+                  "error",
+                  JSON.stringify(operationCallbackResponse) ||
+                    `Unknown response format: ${JSON.stringify(
+                      operationCallbackResponse
+                    )}`
+                );
+              }
+            }
+            setOperationsState(operationsStateCopy);
+          }
+        } catch (error: any) {
+          const statusCode = get(error, "status", "");
+          const errorMessage = get(error, "response.data.message", "");
+          // Handle status codes by ranges in case of error
+          if (statusCode && statusCode >= 300 && statusCode < 400) {
+            // 3xx Redirection status codes - treat as error for operations
+            set(matchingOperation, "status", ProgressStatus.FAILED);
+            set(
+              matchingOperation,
+              "error",
+              JSON.stringify(errorMessage) ||
+                `Redirection Error (${statusCode}): Operation requires manual intervention`
+            );
+          } else if (statusCode && statusCode >= 400 && statusCode < 500) {
+            // 4xx Client error status codes
+            set(matchingOperation, "status", ProgressStatus.FAILED);
+            set(
+              matchingOperation,
+              "error",
+              JSON.stringify(errorMessage) ||
+                `Client Error (${statusCode}): Please check the request parameters`
+            );
+          } else if (statusCode && statusCode >= 500 && statusCode < 600) {
+            // 5xx Server error status codes
+            set(matchingOperation, "status", ProgressStatus.FAILED);
+            set(
+              matchingOperation,
+              "error",
+              JSON.stringify(errorMessage) ||
+                `Server Error (${statusCode}): Please try again later or contact support`
+            );
+          } else {
+            // Unknown status code or response exists but no status code
+            set(matchingOperation, "status", ProgressStatus.FAILED);
+            if (statusCode) {
+              set(
+                matchingOperation,
+                "error",
+                JSON.stringify(errorMessage) ||
+                  `Unknown Status Code (${statusCode}): ${JSON.stringify(
+                    errorMessage
+                  )}`
+              );
+            } else {
+              set(
+                matchingOperation,
+                "error",
+                JSON.stringify(errorMessage) ||
+                  `Unknown response format: ${JSON.stringify(errorMessage)}`
+              );
+            }
+          }
+          setOperationsState(operationsStateCopy);
+        }
       }
-      }
-      setOperationsState(operationsStateCopy);
-      operationsRef.current = operationsStateCopy;
     }
   }
-  const retryOperation = () => {
-    startedTasks.current = startedTasks.current.filter((task:any) => {
-      task != activeOperationId.current;
-    });
-    executeTask(activeOperationId.current as any);
-    resumePolling();
+
+  const handleMoveToNextOperation = () => {
+    const currentActiveOperation = operationsState.find(
+      (operation) => operation.id == activeOperationId
+    );
+    if (
+      currentActiveOperation &&
+      isFinished(currentActiveOperation?.status || "")
+    ) {
+      if (currentActiveOperation?.status !== ProgressStatus.FAILED) {
+        if (activeOperationId == operationsState?.[operationsState?.length - 1]?.id) {
+          setCompletionStatus(true);
+        } else {
+          const currentActiveIndex = operationsState.findIndex(
+            (operation) => operation.id == activeOperationId
+          );
+          setActiveOperationId(
+            Number(operationsState[Number(currentActiveIndex) + 1]?.id)
+          );
+        }
+      }
+    }
   };
-  const renderStagesForOperation = (operation: any) => {
-    return (
+
+  const retryOperation = () => {
+    startedTasks.current = startedTasks.current.filter((task: any) => {
+      task != activeOperationId;
+    });
+    executeTask();
+  };
+
+  useEffect(() => {
+    if (activeOperationId >= 0) {
+      executeTask();
+    }
+  }, [activeOperationId]);
+
+  useEffect(() => {
+    if (dispatch) {
+      dispatch(operationsState);
+    }
+    handleMoveToNextOperation();
+  }, [JSON.stringify(operationsState)]);
+
+  useEffect(() => {
+    let activeIdx = -1;
+    let toBeStartedIdx = -1;
+    for (let i = operationsState.length - 1; i >= 0; i--) {
+      if (
+        get(operationsState[i], "requestId", "") ||
+        get(operationsState[i], "status", "")
+      ) {
+        activeIdx = i;
+        break;
+      }
+    }
+
+    if (activeIdx === -1) {
+      toBeStartedIdx = 0;
+    } else {
+      for (let i = 0; i <= activeIdx; i++) {
+        if (
+          get(operationsState[i], "requestId", "") ||
+          get(operationsState[i], "status", "")
+        ) {
+          startedTasks.current.push(operationsState[i].id);
+          if (isFinished(operationsState[i]?.status || "")) {
+            if (operationsState[i]?.status === ProgressStatus.FAILED) {
+              toBeStartedIdx = i;
+            } else {
+              toBeStartedIdx = i + 1;
+            }
+          } else {
+            toBeStartedIdx = i;
+          }
+        }
+      }
+    }
+    setActiveOperationId(Number(operationsState?.[toBeStartedIdx]?.id));
+    if(operationsState?.[toBeStartedIdx]?.requestId){
+      trackCurrentRequestStatus(operationsState?.[toBeStartedIdx]?.requestId as number, operationsState?.[toBeStartedIdx]?.id as number);
+    }
+
+  }, []);
+
+  return (
+    <div className="p-3">
       <Stack direction="vertical">
-        {operation.stages.map((stage: any) => {
+        {operationsState.map((operation: any) => {
           return (
             <Stack
               direction="horizontal"
               className="justify-content-between mt-3"
-              key={stage.context}
+              key={operation.label}
             >
               <div className="d-flex align-items-center">
-                {isFinished(stage.status) && (
-                  <FontAwesomeIcon icon={faCircleCheck} color="success" />
-                )}
-                {isFailed(stage.status) && (
-                  <FontAwesomeIcon icon={faTimes} color="danger" />
-                )}
-                <div>{stage.context} </div>
-                {isFailed(stage.status) ? (
+                {getStatusIcon(operation?.status)}
+                <div
+                  onClick={() => {
+                    if (operation.requestId || operation?.requestInfo?.id) {
+                      // modalManager.show(
+                      //   <BackgroundOperations
+                      //     isExplicitClick
+                      //     isOpen
+                      //     onClose={() => {
+                      //       modalManager.hide();
+                      //     }}
+                      //     rootLevel={ViewLevel.HOSTS}
+                      //     requestId={
+                      //       operation.requestId || operation?.requestInfo?.id
+                      //     }
+                      //   />
+                      // );
+                    }
+                  }}
+                  className={`${
+                    has(operation, "requestId") ||
+                    has(operation, "requestInfo.id")
+                      ? "custom-link"
+                      : ""
+                  }`}
+                >
+                  {operation.label}{" "}
+                </div>
+                {isFailed(operation.status) ? (
                   <Button
                     size="sm"
                     onClick={retryOperation}
                     variant="success"
-                    className="ms-2"
+                    className="mx-2"
                   >
                     <FontAwesomeIcon className="me-2" icon={faUndo} />
                     Retry Operation
                   </Button>
                 ) : null}
               </div>
-              {get(stage, "progress_percent", 0) &&
-              !isFinished(stage.status) ? (
+              {has(operation, "progress") && !isFinished(operation.status) ? (
                 <ProgressBar
-                  striped
                   className={`w-25`}
                   variant="info"
-                  now={stage.progress_percent}
-                  label={`${Math.floor(stage.progress)}%`}
+                  now={operation.progress}
+                  label={`${Math.floor(operation.progress)}%`}
                 />
               ) : null}
 
@@ -241,108 +395,6 @@ function OperationsProgress({
                 ))}
             </Stack>
           );
-        })}
-      </Stack>
-    );
-  };
-
-  useEffect(() => {
-    if(dispatch){
-      dispatch(operationsState);
-    }
-  }, [JSON.stringify(operationsState)]);
-
-  useEffect(() => {
-    let idx = -1;
-    for (let i = operationsRef.current.length - 1; i >= 0; i--) {
-      if (
-        get(operationsRef.current[i], "requestId", "") ||
-        get(operationsRef.current[i], "status", "")
-      ) {
-        idx = i;
-        activeOperationId.current = operationsRef.current?.[i]?.id;
-        break;
-      }
-    }
-    if (idx === -1) {
-      executeTask(operationsRef.current?.[0]?.id);
-    } else {
-      for (let i = 0; i <= idx; i++) {
-        if (
-          get(operationsRef.current[i], "requestId", "") ||
-          get(operationsRef.current[i], "status", "")
-        ) {
-          startedTasks.current.push(operationsRef.current[i].id);
-        }
-      }
-    }
-  }, []);
-
-
-  return (
-    <div className="p-3">
-      <Stack direction="vertical">
-        {operationsState.map((operation: any) => {
-          const operationStages = operation.stages || [];
-          if (operationStages.length) {
-            return renderStagesForOperation(operation);
-          } else {
-            return (
-              <Stack
-                direction="horizontal"
-                className="justify-content-between mt-3"
-                key={operation.label}
-              >
-                <div className="d-flex align-items-center">
-                  <div
-                    onClick={() => {
-                    //   modalManager.show(
-                    //     <BackgroundOperations
-                    //       isOpen
-                    //       onClose={() => {
-                    //         modalManager.hide();
-                    //       }}
-                    //       rootLevel={ViewLevel.HOSTS}
-                    //       requestId={
-                    //         operation.requestId || operation?.requestInfo?.id
-                    //       }
-                    //     />
-                    //   );
-                    }}
-                    className={`${
-                      isFinished(operation.status) ||
-                      has(operation, "progress") ||
-                      has(operation, "requestId")
-                        ? "custom-link"
-                        : ""
-                    }`}
-                  >
-                    {operation.label}{" "}
-                  </div>
-                  {isFailed(operation.status) ? (
-                    <Button
-                      size="sm"
-                      onClick={retryOperation}
-                      variant="success"
-                      className="ms-2"
-                    >
-                      <FontAwesomeIcon className="me-2" icon={faUndo} />
-                      Retry Operation
-                    </Button>
-                  ) : null}
-                </div>
-                {has(operation, "progress") && !isFinished(operation.status) ? (
-                  <ProgressBar
-                    striped
-                    className={`w-25`}
-                    variant="info"
-                    now={operation.progress}
-                    label={`${Math.floor(operation.progress)}%`}
-                  />
-                ) : null}
-              </Stack>
-            );
-          }
         })}
       </Stack>
     </div>
