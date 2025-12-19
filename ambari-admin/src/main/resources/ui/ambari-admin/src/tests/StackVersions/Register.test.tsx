@@ -44,7 +44,7 @@ describe("Register Component", () => {
   it("renders without crashing", () => {
     render(
       <AppContent.Provider value={mockContext}>
-        <Router history={createMemoryHistory()}>
+        <Router history={createMemoryHistory() as any}>
           <Register readOnly={false} />
         </Router>
       </AppContent.Provider>
@@ -54,7 +54,7 @@ describe("Register Component", () => {
   it("Check for all Version Definitions to be present on screen", async () => {
     render(
       <AppContent.Provider value={mockContext}>
-        <Router history={createMemoryHistory()}>
+        <Router history={createMemoryHistory() as any}>
           <Register readOnly={false} />
         </Router>
       </AppContent.Provider>
@@ -67,7 +67,7 @@ describe("Register Component", () => {
   it("Check for Stack Services Table to be present on the screen", async () => {
     render(
       <AppContent.Provider value={mockContext}>
-        <Router history={createMemoryHistory()}>
+        <Router history={createMemoryHistory() as any}>
           <Register readOnly={false} />
         </Router>
       </AppContent.Provider>
@@ -80,7 +80,7 @@ describe("Register Component", () => {
   it("Check for Operating Systems to be present on the screen", async () => {
     render(
       <AppContent.Provider value={mockContext}>
-        <Router history={createMemoryHistory()}>
+        <Router history={createMemoryHistory() as any}>
           <Register readOnly={false} />
         </Router>
       </AppContent.Provider>
@@ -94,7 +94,7 @@ describe("Register Component", () => {
   it("renders operating systems with repositories", async () => {
     render(
       <AppContent.Provider value={mockContext}>
-        <Router history={createMemoryHistory()}>
+        <Router history={createMemoryHistory() as any}>
           <Register readOnly={false} />
         </Router>
       </AppContent.Provider>
@@ -116,7 +116,7 @@ describe("Register Component", () => {
   it('should add an operating system when the dropdown option is clicked', async () => {
       render(
           <AppContent.Provider value={mockContext}>
-          <Router history={createMemoryHistory()}>
+          <Router history={createMemoryHistory() as any}>
               <Register readOnly={false} />
           </Router>
           </AppContent.Provider>
@@ -134,7 +134,7 @@ describe("Register Component", () => {
   it("should only show the operating systems to be added when remove was clicked", async () => {
     render(
         <AppContent.Provider value={mockContext}>
-          <Router history={createMemoryHistory()}>
+          <Router history={createMemoryHistory() as any}>
             <Register readOnly={false} />
           </Router>
         </AppContent.Provider>
@@ -165,7 +165,7 @@ describe("Register Component", () => {
   it('should  render modal on clicking why is this disabled', async () => {
     render(
         <AppContent.Provider value={mockContext}>
-          <Router history={createMemoryHistory()}>
+          <Router history={createMemoryHistory() as any}>
             <Register readOnly={false} />
           </Router>
         </AppContent.Provider>
@@ -180,7 +180,7 @@ describe("Register Component", () => {
   it('should render Use Local Repository when the checkbox is clicked', async () => {
       render(
           <AppContent.Provider value={mockContext}>
-          <Router history={createMemoryHistory()}>
+          <Router history={createMemoryHistory() as any}>
               <Register readOnly={false} />
           </Router>
           </AppContent.Provider>
@@ -192,7 +192,7 @@ describe("Register Component", () => {
   it('should render Skip Validation as unchecked by default', async () => {
       render(
           <AppContent.Provider value={mockContext}>
-          <Router history={createMemoryHistory()}>
+          <Router history={createMemoryHistory() as any}>
               <Register readOnly={false} />
           </Router>
           </AppContent.Provider>
@@ -204,7 +204,7 @@ describe("Register Component", () => {
   it('should render Use RedHat Satellite/Spacewalk as unchecked by default', async () => {
     render(
         <AppContent.Provider value={mockContext}>
-          <Router history={createMemoryHistory()}>
+          <Router history={createMemoryHistory() as any}>
             <Register readOnly={false} />
           </Router>
         </AppContent.Provider>
@@ -216,7 +216,7 @@ describe("Register Component", () => {
   it('should check and uncheck the Skip Validation checkbox', async () => {
     render(
         <AppContent.Provider value={mockContext}>
-          <Router history={createMemoryHistory()}>
+          <Router history={createMemoryHistory() as any}>
             <Register readOnly={false} />
           </Router>
         </AppContent.Provider>
@@ -235,7 +235,7 @@ describe("Register Component", () => {
   it('should check and uncheck the RedHat Satellite/Spacewalk checkbox', async () => {
     render(
         <AppContent.Provider value={mockContext}>
-          <Router history={createMemoryHistory()}>
+          <Router history={createMemoryHistory() as any}>
             <Register readOnly={false} />
           </Router>
         </AppContent.Provider>
@@ -254,7 +254,7 @@ describe("Register Component", () => {
   it('should render the modal when the checkbox is clicked', async () => {
       render(
           <AppContent.Provider value={mockContext}>
-            <Router history={createMemoryHistory()}>
+            <Router history={createMemoryHistory() as any}>
               <Register readOnly={false} />
             </Router>
           </AppContent.Provider>
@@ -292,7 +292,7 @@ describe("Register Component", () => {
   it('should show pencil icon when redhat satellite is checked', async () => {
     render(
         <AppContent.Provider value={mockContext}>
-          <Router history={createMemoryHistory()}>
+          <Router history={createMemoryHistory() as any}>
             <Register readOnly={false} />
           </Router>
         </AppContent.Provider>
@@ -313,7 +313,7 @@ describe("Register Component", () => {
   it('should render the cancel button', async () => {
       render(
           <AppContent.Provider value={mockContext}>
-          <Router history={createMemoryHistory()}>
+          <Router history={createMemoryHistory() as any}>
               <Register readOnly={false} />
           </Router>
           </AppContent.Provider>
@@ -325,7 +325,7 @@ describe("Register Component", () => {
   it('should render repo-base-url-input when there is no base url', async () => {
     render(
         <AppContent.Provider value={mockContext}>
-          <Router history={createMemoryHistory()}>
+          <Router history={createMemoryHistory() as any}>
             <Register readOnly={false} />
           </Router>
         </AppContent.Provider>
@@ -342,7 +342,7 @@ describe("Register Component", () => {
       'display invalid when Version Number is invalid', async () => {
       render(
           <AppContent.Provider value={mockContext}>
-          <Router history={createMemoryHistory()}>
+          <Router history={createMemoryHistory() as any}>
               <Register readOnly={false} />
           </Router>
           </AppContent.Provider>
@@ -365,7 +365,7 @@ describe("Register Component", () => {
   it('should click on checkbox skip repository url validation and click on save', async () => {
       render(
           <AppContent.Provider value={mockContext}>
-          <Router history={createMemoryHistory()}>
+          <Router history={createMemoryHistory() as any}>
               <Register readOnly={false} />
           </Router>
           </AppContent.Provider>
@@ -384,7 +384,7 @@ describe("Register Component", () => {
   it('should click on version-dropdown', async () => {
       render(
           <AppContent.Provider value={mockContext}>
-          <Router history={createMemoryHistory()}>
+          <Router history={createMemoryHistory() as any}>
               <Register readOnly={false} />
           </Router>
           </AppContent.Provider>
