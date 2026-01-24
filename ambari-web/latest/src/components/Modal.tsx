@@ -32,7 +32,7 @@ export type ModalProps = {
     shouldShowFooter?: boolean;
     buttonSize?: "sm" | "lg" | undefined;
     okButtonText?: any;
-    cancelButtonText?: string;
+    cancelButtonText?: any;
     cancelableViaIcon?: boolean;
     cancelableViaBtn?: boolean;
     cancelableViaSuccessBtn?: boolean;
