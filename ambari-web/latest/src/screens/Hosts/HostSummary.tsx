@@ -87,6 +87,7 @@ import {
   stopComponent,
   executeCustomCommand,
   installClients,
+  installComponent,
 } from "./actions";
 import { AppContext } from "../../store/context";
 import IHost from "../../models/host";
@@ -731,7 +732,17 @@ export default function HostsSummary({
                     <div
                         key="re-install-failed"
                         onClick={() => {
-                            //TODO: Will be implemented in future PR
+                        const data = {
+                          // getKDCSessionState, // TODO: will be added in future PR
+                        };
+                        setSelectedActionData(
+                          component,
+                          "install",
+                          false,
+                          installComponent,
+                          data
+                        );
+                        setShowConfirmationModal(true);
                         }}
                     >
                         Re-Install
@@ -784,7 +795,17 @@ export default function HostsSummary({
             <div
               key="re-install-init"
               onClick={() => {
-                //TODO: Will be implemented in future PR
+                const data = {
+                  // getKDCSessionState, TODO: will be added in future PR
+                };
+                setSelectedActionData(
+                  component,
+                  "install",
+                  false,
+                  installComponent,
+                  data
+                );
+                setShowConfirmationModal(true);
               }}
             >
               Re-Install
