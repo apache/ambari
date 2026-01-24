@@ -16,13 +16,14 @@
  * limitations under the License.
  */
 
-import { capitalize, cloneDeep, get, set } from "lodash";
+import { capitalize, cloneDeep, get, set, uniq } from "lodash";
 import { HostsApi } from "../../api/hostsApi";
 import {
   doDecommissionRegionServer,
   doRecommissionAndStart,
   getComponentDisplayName,
   getComponentName,
+  installHostComponentCall,
   parseNnCheckPointTime,
   showHbaseActiveWarning,
   showRegionServerWarning,
@@ -40,6 +41,7 @@ import {
 import ConfirmationModal from "../../components/ConfirmationModal";
 import { IHost } from "../../models/host";
 import { t } from "i18next";
+import { CompatibleComponent, ComponentDependency } from "./utils/ComponentDependency";
 
 export const sendComponentCommand = async (
   component: IHostComponent,
@@ -436,7 +438,185 @@ export const toggleMaintenanceMode = async (component: IHostComponent) => {
     data
   );
 };
-export const refreshConfigs = async (component: IHostComponent) => {
+function assert(condition: any, message: any) {
+  if (!condition) {
+    throw new Error(message);
+  }
+}
+
+const checkComponentDependencies = (
+  data: any,
+  component: IHostComponent,
+  opt: any
+) => {
+  var opt = opt || {};
+  opt.scope = opt.scope || "*";
+  var installedComponents;
+  switch (opt.scope) {
+    case "host":
+      assert(
+        "You should pass at least `hostName` or `installedComponents` to options.",
+        opt.hostName || opt.installedComponents
+      );
+      installedComponents = opt.installedComponents || [];
+      break;
+    default:
+      installedComponents = opt.installedComponents || [];
+      break;
+  }
+  return missingDependencies(data, component, installedComponents, opt)?.map(
+    (componentDependency: { chooseCompatible: (arg0: any) => any }) => {
+      return componentDependency.chooseCompatible(data.services);
+    }
+  );
+};
+
+const missingDependencies = (
+  data: any,
+  component: IHostComponent,
+  installedComponents: any,
+  opt: any
+) => {
+  opt = opt || {};
+  opt.scope = opt.scope || "*";
+  var dependencies: any = get(component, "dependencies", []);
+  dependencies =
+    opt.scope === "*"
+      ? dependencies
+      : dependencies.filter((item: any) => {
+          return item.Dependencies.scope === opt.scope;
+        });
+  if (dependencies.length === 0) return [];
+
+  var missingComponents = dependencies.filter((dependency: any) => {
+    return !installedComponents.some((installedComponent: IHostComponent) => {
+      const dependencyComponent = data.allComponents.find(
+        (host: IHostComponent) => {
+          return host.componentName === dependency.Dependencies.component_name;
+        }
+      );
+      return compatibleWith(
+        installedComponent,
+        dependencyComponent.componentName,
+        dependencyComponent.componentType
+      );
+    });
+  });
+  return missingComponents.map((missingComponent: any) => {
+    var componentFound = data.allComponents.find(
+      (hostComponent: IHostComponent) => {
+        return (
+          hostComponent.componentName ===
+          missingComponent.Dependencies.component_name
+        );
+      }
+    );
+    const compatibleComponents: CompatibleComponent[] = componentFound
+      ? [
+          {
+            componentName: componentFound.componentName,
+            serviceName: componentFound.serviceName,
+          },
+        ]
+      : [];
+
+    return new ComponentDependency(
+      missingComponent.Dependencies.component_name,
+      compatibleComponents
+    );
+  });
+};
+
+const compatibleWith = (component: any, compName: string, compType: string) => {
+  return (
+    component.componentName === compName ||
+    (component.componentType && component.componentType === compType)
+  );
+};
+
+export const installClients = async (
+  components: IHostComponent[],
+  data: any
+) => {
+  var clientsToInstall: IHostComponent[] = [],
+    clientsToAdd: IHostComponent[] = [],
+    missedComponents: any = [],
+    dependentComponents: any = [];
+
+  components.forEach((component) => {
+    if (["INIT", "INSTALL_FAILED"].includes(get(component, "workStatus"))) {
+      clientsToInstall.push(component);
+    } else if (typeof get(component, "workStatus") == "undefined") {
+      clientsToAdd.push(component);
+    }
+  });
+  clientsToAdd.forEach((component, _index, array) => {
+    var dependencies;
+    try {
+      dependencies = checkComponentDependencies(data, component, {
+        scope: "host",
+        installedComponents: get(data, "host.hostComponents", []),
+      });
+    } catch (error) {
+      dependencies = array.map((component) => {
+        get(component, "componentName").includes(getComponentName(component));
+      });
+    }
+    if (dependencies && dependencies.length > 0) {
+      missedComponents.push(dependencies);
+      dependentComponents.push(getComponentDisplayName(component));
+    }
+  });
+
+  missedComponents = uniq(missedComponents);
+  if (missedComponents && missedComponents.length) {
+    var popupMessage = t(
+      "host.host.addComponent.popup.clients.dependedComponents.body"
+    )
+      .replace("{0}", dependentComponents.join(", "))
+      .replace(
+        "{1}",
+        missedComponents
+          .map((component: IHostComponent) => {
+            getComponentDisplayName(component);
+          })
+          .join(", ")
+      );
+    showAlertModal(
+      t("host.host.addComponent.popup.dependedComponents.header"),
+      popupMessage
+    );
+  } else {
+    await data.getKDCSessionState(async () => {
+      var sendInstallCommand = function () {
+        if (clientsToInstall && clientsToInstall.length) {
+          sendComponentCommand(
+            clientsToInstall[0],
+            t("host.host.details.installClients"),
+            "INSTALLED"
+          );
+        }
+      };
+
+      if (clientsToAdd && clientsToAdd.length) {
+        // var message = clientsToAdd.map((component: IHostComponent) => {
+        //     return getComponentDisplayName(component)
+        //   }).join(", ");
+        // var componentObject = Object.create({
+        //   displayName: message
+        // });
+
+        // popup for add component modal.
+        sendInstallCommand();
+        clientsToAdd.forEach((component: IHostComponent) => {
+          installHostComponentCall(get(component, "hostName"), component, data, data?.setAllHostModels);
+        });
+      } else {
+        sendInstallCommand();
+      }
+    });
+  }
+};export const refreshConfigs = async (component: IHostComponent) => {
   const message = t("rollingrestart.context.ClientOnSelectedHost")
     .replace("{0}", getComponentDisplayName(component))
     .replace("{1}", get(component, "hostName"));
