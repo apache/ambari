@@ -156,6 +156,7 @@ class TestSecurity(unittest.TestCase):
     self.assertEqual(res, os.path.abspath("/dummy-keysdir/ca.crt"))
 
   @patch("os.path.exists")
+  @patch("os.path.getsize")
   @patch.object(security.CertificateManager, "loadSrvrCrt")
   @patch.object(security.CertificateManager, "getAgentKeyName")
   @patch.object(security.CertificateManager, "genAgentCrtReq")
@@ -169,6 +170,7 @@ class TestSecurity(unittest.TestCase):
     getAgentKeyName_mock,
     loadSrvrCrt_mock,
     exists_mock,
+    getsize_mock,
   ):
     self.config.set("security", "keysdir", "/dummy-keysdir")
     getAgentKeyName_mock.return_value = "dummy AgentKeyName"
@@ -177,6 +179,7 @@ class TestSecurity(unittest.TestCase):
 
     # Case when all files exist
     exists_mock.side_effect = [True, True, True]
+    getsize_mock.return_value = 100
     man.checkCertExists()
     self.assertFalse(loadSrvrCrt_mock.called)
     self.assertFalse(genAgentCrtReq_mock.called)
