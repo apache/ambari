@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { cloneDeep, get, set } from "lodash";
+import { capitalize, cloneDeep, get, set } from "lodash";
 import { HostsApi } from "../../api/hostsApi";
 import {
   doDecommissionRegionServer,
@@ -39,6 +39,7 @@ import {
 } from "../../Utils/Utility";
 import ConfirmationModal from "../../components/ConfirmationModal";
 import { IHost } from "../../models/host";
+import { t } from "i18next";
 
 export const sendComponentCommand = async (
   component: IHostComponent,
@@ -403,5 +404,35 @@ const executeCustomCommandErrorCallback = (error: any) => {
     translate("services.service.actions.run.executeCustomCommand.error"),
     translate("services.service.actions.run.executeCustomCommand.error") +
     error.message
+  );
+};
+
+export const toggleMaintenanceMode = async (component: IHostComponent) => {
+  if (component.isImpliedState()) return null;
+
+  const hostname = get(component, "hostName");
+  const clusterName = get(component, "clusterName");
+  const componentName = get(component, "componentName");
+  const state = get(component, "passiveState") === "ON" ? "OFF" : "ON";
+  const displayName = get(component, "displayName");
+  let message = t(
+    "passiveState.turn" + capitalize(state.toString()) + "For"
+  ).replace("{0}", displayName);
+
+  const data = JSON.stringify({
+    RequestInfo: {
+      context: message,
+    },
+    Body: {
+      HostRoles: {
+        maintenance_state: state,
+      },
+    },
+  });
+  await HostsApi.updateHostComponentForHost(
+    clusterName,
+    hostname,
+    componentName,
+    data
   );
 };
