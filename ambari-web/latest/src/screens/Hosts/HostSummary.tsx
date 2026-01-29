@@ -86,6 +86,7 @@ import {
   startComponent,
   stopComponent,
   executeCustomCommand,
+  installClients,
 } from "./actions";
 import { AppContext } from "../../store/context";
 import IHost from "../../models/host";
@@ -501,7 +502,23 @@ export default function HostsSummary({
             <div
               key="install"
               onClick={() => {
-                //TODO: Will be implemented in future PR
+                if (isInit(component)) {
+                  const data = {
+                    allComponents,
+                    clusterComponents,
+                    services,
+                    // getKDCSessionState, TODO: will be added in future PR.
+                    host: allHostModels[0],
+                  };
+                  setSelectedActionData(
+                    [component],
+                    "install",
+                    false,
+                    installClients,
+                    data
+                  );
+                  setShowConfirmationModal(true);
+                }
               }}
               className={isInit(component) ? "" : "disabled-btn"}
             >
@@ -516,7 +533,20 @@ export default function HostsSummary({
             <div
               key="re-install"
               onClick={() => {
-                //TODO: Will be implemented in future PR
+                  const data = {
+                  allComponents,
+                  clusterComponents,
+                  services,
+                  // getKDCSessionState, TODO: will be added in future PR.
+                };
+                setSelectedActionData(
+                  [component],
+                  "re-install",
+                  false,
+                  installClients,
+                  data
+                );
+                setShowConfirmationModal(true);
               }}
             >
               Re-Install
