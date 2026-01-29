@@ -436,3 +436,10 @@ export const toggleMaintenanceMode = async (component: IHostComponent) => {
     data
   );
 };
+export const refreshConfigs = async (component: IHostComponent) => {
+  const message = t("rollingrestart.context.ClientOnSelectedHost")
+    .replace("{0}", getComponentDisplayName(component))
+    .replace("{1}", get(component, "hostName"));
+
+  restartHostComponents([component], message, "HOST");
+};
