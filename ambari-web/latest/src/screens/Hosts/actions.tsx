@@ -664,3 +664,26 @@ export const installComponent = async (
     defaultSuccessCallbackWithoutReload(requestId);
   });
 };
+export const refreshComponentConfigs = async (component: IHostComponent) => {
+  const clusterName = get(component, "clusterName", "");
+  const context = t("requestInfo.refreshComponentConfigs").replace(
+    "{0}",
+    getComponentDisplayName(component)
+  );
+  const resource_filters = [
+    {
+      service_name: get(component, "serviceName"),
+      component_name: getComponentName(component),
+      hosts: get(component, "hostName"),
+    },
+  ];
+  const data = JSON.stringify({
+    RequestInfo: {
+      command: "CONFIGURE",
+      context: context,
+    },
+    "Requests/resource_filters": resource_filters,
+  });
+
+  await HostsApi.clusterRequests(clusterName, data);
+};
