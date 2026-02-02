@@ -29,7 +29,7 @@ import {
   showRegionServerWarning,
 } from "./utils";
 import { ComponentStatus } from "./enums";
-import { defaultSuccessCallback, restartHostComponents } from "./batchUtils";
+import { defaultSuccessCallback, defaultSuccessCallbackWithoutReload, restartHostComponents } from "./batchUtils";
 import modalManager from "../../store/ModalManager";
 import { nnCheckpointAgeAlertThreshold } from "../../data/configs/services/config";
 import { IHostComponent } from "../../models/hostComponent";
@@ -622,4 +622,45 @@ export const installClients = async (
     .replace("{1}", get(component, "hostName"));
 
   restartHostComponents([component], message, "HOST");
+};
+export const installComponent = async (
+  component: IHostComponent,
+  data: any
+) => {
+  const clusterName = get(component, "clusterName");
+  const hostName = get(component, "hostName");
+  const displayName = get(component, "displayName");
+  const serviceName = get(component, "serviceName");
+  const componentName = get(component, "componentName");
+
+  await data.getKDCSessionState(async () => {
+    const urlParams = "";
+
+    const data = JSON.stringify({
+      RequestInfo: {
+        context:
+          translate("requestInfo.installHostComponent") + " " + displayName,
+        operation_level: {
+          level: "HOST_COMPONENT",
+          cluster_name: clusterName,
+          host_name: hostName,
+          service_name: serviceName || null,
+        },
+      },
+      Body: {
+        HostRoles: {
+          state: "INSTALLED",
+        },
+      },
+    });
+    const response = await HostsApi.commonHostHostComponentUpdate(
+      clusterName,
+      hostName,
+      componentName,
+      urlParams,
+      data
+    );
+    const requestId = get(response, "Requests.id", -1);
+    defaultSuccessCallbackWithoutReload(requestId);
+  });
 };
