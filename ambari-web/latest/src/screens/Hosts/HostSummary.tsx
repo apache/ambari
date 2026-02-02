@@ -88,6 +88,7 @@ import {
   executeCustomCommand,
   installClients,
   installComponent,
+  refreshComponentConfigs
 } from "./actions";
 import { AppContext } from "../../store/context";
 import IHost from "../../models/host";
@@ -841,7 +842,13 @@ export default function HostsSummary({
             <div
               key="refresh-component-configs"
               onClick={() => {
-                //TODO: Will be implemented in future PR
+                setSelectedActionData(
+                  component,
+                  "refresh",
+                  false,
+                  refreshComponentConfigs
+                );
+                setShowConfirmationModal(true);
               }}
             >
               Refresh configs
