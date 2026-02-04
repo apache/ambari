@@ -88,7 +88,8 @@ import {
   executeCustomCommand,
   installClients,
   installComponent,
-  refreshComponentConfigs
+  refreshComponentConfigs,
+  deleteComponent,
 } from "./actions";
 import { AppContext } from "../../store/context";
 import IHost from "../../models/host";
@@ -107,6 +108,7 @@ import { hostMetricsOption } from "./constants";
 import usePolling from "../../hooks/usePolling";
 import classNames from "classnames";
 import { useAuth } from "../../hooks/useAuth";
+import useComponentAddDelete from "../../hooks/useComponentAddDelete";
 
 type HostSummaryProps = {
   allHostModels: IHost[];
@@ -135,6 +137,22 @@ export default function HostsSummary({
   //Note:- Below states should be part of the context
   const [allComponents, setAllComponents] = useState<IHostComponent[]>([]);
   const [addableComponents, setAddableComponents] = useState<any[]>([]);
+  // const { services: stackServices } = useStackServices(); //TODO will be added later.
+  // const { getConfigByName } =  useConfigs([], stackServices as any); // TODO will be added later.
+
+  const stackServices = "";
+  const getConfigByName = () => {};
+
+  // const serviceConfigMap = getServiceByConfigTypeMap(stackServices);
+  const {
+    deleteAndReconfigureComponent,
+    _doDeleteHostComponent,
+  } = useComponentAddDelete(
+    clusterComponents,
+    stackServices,
+    getConfigByName,
+    setAllHostModels
+  );
 
   const [summary, setSummary] = useState({
     Hostname: "",
@@ -828,7 +846,19 @@ export default function HostsSummary({
                   : ""
               }
               onClick={() => {
-                //TODO: Will be implemented in future PR
+                if (
+                  !isDeleteComponentDisabled(
+                    component,
+                    get(clusterComponents, "items", [])
+                  )
+                ) {
+                  const data = {
+                    deleteAndReconfigureComponent,
+                    _doDeleteHostComponent,
+                    navigate,
+                  };
+                  deleteComponent(component, data);
+                }
               }}
             >
               Delete

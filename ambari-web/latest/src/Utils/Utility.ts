@@ -69,7 +69,7 @@ const command: any = {
   "Included:": "Recommission:",
 };
 
-const serviceMap: any = {
+export const serviceMap: any = {
   HDFS: "HDFS",
   YARN: "YARN",
   MAPREDUCE2: "MapReduce2",
