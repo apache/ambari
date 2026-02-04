@@ -19,6 +19,7 @@
 import { capitalize, cloneDeep, get, set, uniq } from "lodash";
 import { HostsApi } from "../../api/hostsApi";
 import {
+  addDeleteComponentsMap,
   doDecommissionRegionServer,
   doRecommissionAndStart,
   getComponentDisplayName,
@@ -42,6 +43,7 @@ import ConfirmationModal from "../../components/ConfirmationModal";
 import { IHost } from "../../models/host";
 import { t } from "i18next";
 import { CompatibleComponent, ComponentDependency } from "./utils/ComponentDependency";
+import RecommendationModal from "../../components/RecommendationModal";
 
 export const sendComponentCommand = async (
   component: IHostComponent,
@@ -686,4 +688,26 @@ export const refreshComponentConfigs = async (component: IHostComponent) => {
   });
 
   await HostsApi.clusterRequests(clusterName, data);
+};
+export const deleteComponent = async (component: IHostComponent, data: any) => {
+  const componentName = get(component, "componentName");
+  const componentsMapItem = get(addDeleteComponentsMap, componentName);
+
+  if (componentsMapItem) {
+    data.deleteAndReconfigureComponent(componentsMapItem, component);
+  } else if (componentName === "JOURNALNODE") {
+    data.navigate("/main/services/highAvailability/JournalNode/manage/step1");
+  } else {
+    modalManager.show(
+      <RecommendationModal
+        isOpen={true}
+        onClose={() => {
+          modalManager.hide();
+        }}
+        componentDisplayName={getComponentDisplayName(component)}
+        add={false}
+        callback={() => data._doDeleteHostComponent(component)}
+      />
+    );
+  }
 };

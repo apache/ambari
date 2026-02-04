@@ -226,6 +226,44 @@ const serviceSpecificParams = {
   SSM: "host_components/processes/HostComponentProcess",
 };
 
+export const zooKeeperRelatedServices = [
+  {
+    serviceName: "HIVE",
+    typesToLoad: ["hive-site", "webhcat-site"],
+    typesToSave: ["hive-site", "webhcat-site"],
+  },
+  {
+    serviceName: "YARN",
+    typesToLoad: ["yarn-site", "zoo.cfg"],
+    typesToSave: ["yarn-site"],
+  },
+  {
+    serviceName: "HBASE",
+    typesToLoad: ["hbase-site"],
+    typesToSave: ["hbase-site"],
+  },
+  {
+    serviceName: "ACCUMULO",
+    typesToLoad: ["accumulo-site"],
+    typesToSave: ["accumulo-site"],
+  },
+  {
+    serviceName: "KAFKA",
+    typesToLoad: ["kafka-broker"],
+    typesToSave: ["kafka-broker"],
+  },
+  {
+    serviceName: "ATLAS",
+    typesToLoad: ["application-properties", "infra-solr-env"],
+    typesToSave: ["application-properties"],
+  },
+  {
+    serviceName: "STORM",
+    typesToLoad: ["storm-site"],
+    typesToSave: ["storm-site"],
+  },
+];
+
 var requestsRunningStatus = {
   updateServiceMetric: false,
 };
@@ -1481,3 +1519,15 @@ const createServiceComponent = (
     HostsApi.commonCreateComponent(clusterName, serviceName, payload);
   }
 };
+
+export function getServiceByConfigTypeMap(stackServices: any) {
+  let ret: any = {};
+  stackServices?.forEach(function (s: any) {
+    Object.keys(get(s, "StackServices.config_types", {})).forEach(function (
+      ct
+    ) {
+      ret[ct] = s;
+    });
+  });
+  return ret;
+}
