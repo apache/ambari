@@ -34,13 +34,13 @@ class ClusterAlertDefinitionsCache(ClusterCache):
   differently for every host.
   """
 
-  def __init__(self, cluster_cache_dir):
+  def __init__(self, cluster_cache_dir, secret=None):
     """
     Initializes the host level params cache.
     :param cluster_cache_dir:
     :return:
     """
-    super(ClusterAlertDefinitionsCache, self).__init__(cluster_cache_dir)
+    super(ClusterAlertDefinitionsCache, self).__init__(cluster_cache_dir, secret)
 
   def get_alert_definition_index_by_id(self, alert_dict, cluster_id, alert_id):
     definitions = alert_dict[cluster_id]["alertDefinitions"]

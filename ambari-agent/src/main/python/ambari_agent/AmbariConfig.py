@@ -469,6 +469,14 @@ class AmbariConfig:
     """
     return self.get("security", "ca_cert_path", default="")
 
+  def get_agent_secret(self):
+    """
+    Get agent secret used to authenticate with the server.
+
+    :return: agent secret string
+    """
+    return self.get('security', 'agent_secret', default="")
+
   @property
   def send_alert_changes_only(self):
     return bool(self.get("agent", "send_alert_changes_only", "0"))

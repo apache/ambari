@@ -22,6 +22,9 @@ import ambari_simplejson as json
 import os
 import threading
 from collections import defaultdict
+import ambari_pyaes
+from ambari_pbkdf2.pbkdf2 import PBKDF2
+
 
 from ambari_agent.Utils import Utils
 
@@ -38,7 +41,7 @@ class ClusterCache(dict):
 
   file_locks = defaultdict(threading.RLock)
 
-  def __init__(self, cluster_cache_dir):
+  def __init__(self, cluster_cache_dir, secret=None):
     """
     Initializes the cache.
     :param cluster_cache_dir:
@@ -46,6 +49,7 @@ class ClusterCache(dict):
     """
 
     self.cluster_cache_dir = cluster_cache_dir
+    self.secret = secret
 
     self.__current_cache_json_file = os.path.join(
       self.cluster_cache_dir, self.get_cache_name() + ".json"
@@ -63,8 +67,10 @@ class ClusterCache(dict):
     try:
       with self.__file_lock:
         if os.path.isfile(self.__current_cache_json_file):
-          with open(self.__current_cache_json_file, "r") as fp:
-            cache_dict = json.load(fp)
+          with open(self.__current_cache_json_file, "rb") as fp:  # Note: 'rb' for binary
+            encrypted_data = fp.read()
+            decrypted_json = self._decrypt_data(encrypted_data)
+            cache_dict = json.loads(decrypted_json)
 
         if os.path.isfile(self.__current_cache_hash_file):
           with open(self.__current_cache_hash_file, "r") as fp:
@@ -82,6 +88,85 @@ class ClusterCache(dict):
       # Example: hostname change and restart causes old topology loading to fail with exception
       logger.exception(f"Loading saved cache for {self.__class__.__name__} failed")
       self.rewrite_cache({}, None)
+
+  def encrypt(self, plaintext, encryption_key):
+    salt = os.urandom(16)
+    iv = os.urandom(16)
+
+    key = PBKDF2(encryption_key, salt, iterations=65536).read(16)
+    aes = ambari_pyaes.AESModeOfOperationCBC(key, iv=iv)
+
+    # ensure bytes
+    if not isinstance(plaintext, bytes):
+      plaintext = plaintext.encode()
+
+    # PKCS7 pad
+    padded = ambari_pyaes.util.append_PKCS7_padding(plaintext)
+
+    # CBC encrypt block-by-block
+    ciphertext = b""
+    for i in range(0, len(padded), 16):
+      block = padded[i:i + 16]
+      encrypted_block = aes.encrypt(block)  # must be exactly 16 bytes
+      ciphertext += encrypted_block
+
+    inner = "::".join([
+      salt.hex(),
+      iv.hex(),
+      ciphertext.hex()
+    ]).encode()
+
+    return f"${{enc=aes128_hex, value={inner.hex()}}}"
+
+  def decrypt(self, encrypted_value, encryption_key):
+    if isinstance(encrypted_value, bytes):
+      try:
+        ev_str = encrypted_value.decode()
+      except Exception:
+        ev_str = None
+    else:
+      ev_str = encrypted_value
+
+    if not ev_str or "value=" not in ev_str:
+      return encrypted_value
+
+    enc_text = ev_str.split("value=")[1][:-1]
+    # salt::iv::ciphertext(hex)
+    salt_hex, iv_hex, data_hex = (
+      bytes.fromhex(part)
+      for part in bytes.fromhex(enc_text).decode().split("::")
+    )
+
+    key = PBKDF2(encryption_key, salt_hex, iterations=65536).read(16)
+    aes = ambari_pyaes.AESModeOfOperationCBC(key, iv=iv_hex)
+
+    data = data_hex
+
+    # Decrypt block-by-block (required)
+    plaintext = b""
+    for i in range(0, len(data), 16):
+      block = data[i:i + 16]
+      plaintext += aes.decrypt(block)
+
+    # Remove padding
+    return ambari_pyaes.util.strip_PKCS7_padding(plaintext)
+
+  def _is_encryption_enabled(self):
+    return not self.secret
+
+  def _encrypt_data(self, data):
+    """Encrypt string data"""
+    if self._is_encryption_enabled():
+      return data
+    else:
+      return self.encrypt(data.encode(), self.secret)
+
+  def _decrypt_data(self, encrypted_data):
+    """Decrypt encrypted bytes to string"""
+    if self._is_encryption_enabled():
+      return encrypted_data
+    else:
+      return self.decrypt(encrypted_data, self.secret).decode()
 
   def get_cluster_indepedent_data(self):
     return self[ClusterCache.COMMON_DATA_CLUSTER]
@@ -141,8 +226,12 @@ class ClusterCache(dict):
       os.makedirs(self.cluster_cache_dir)
 
     with self.__file_lock:
+      # Encrypt JSON data
+      json_str = json.dumps(self, indent=2)
+      encrypted_json = self._encrypt_data(json_str)
+
       with open(self.__current_cache_json_file, "w") as f:
-        json.dump(self, f, indent=2)
+        f.write(encrypted_json)
 
       if self.hash is not None:
         with open(self.__current_cache_hash_file, "w") as fp:
@@ -173,7 +262,7 @@ class ClusterCache(dict):
     raise NotImplemented()
 
   def __deepcopy__(self, memo):
-    return self.__class__(self.cluster_cache_dir)
+    return self.__class__(self.cluster_cache_dir, self.secret)
 
   def __copy__(self):
-    return self.__class__(self.cluster_cache_dir)
+    return self.__class__(self.cluster_cache_dir, self.secret)
