@@ -27,16 +27,14 @@ import { State, Action } from "./types";
 import { reducer, initialState } from "./reducer";
 import { Client } from "@stomp/stompjs";
 import ClusterApi from "../api/clusterApi";
-import { ChooseServicesApi } from "../api/chooseServicesApi";
 import { ServicesApi } from "../api/servicesApi";
-import { get, isEmpty, isString, map, set } from "lodash";
-import ConfigsApi from "../api/configsApi";
-import {
-//   mapStackConfigProperties,
-  redirectToLogin,
-} from "../Utils/Utility";
+import { get, isEmpty, isString, isUndefined, map, set } from "lodash";
+import { mapStackConfigProperties, redirectToLogin } from "../Utils/Utility";
 import LoginApi from "../api/loginApi";
 import { db } from "../Utils/db";
+import useAuth from "../hooks/useAuth";
+import { ChooseServicesApi } from "../api/chooseServicesApi";
+import ConfigsApi from "../api/configsApi";
 // import {LocalStorageOps} from "../Utils/LocalStorageOps";
 
 interface AppContextProps {
@@ -73,8 +71,23 @@ interface AppContextProps {
   sessionsValidated: boolean;
   sessionExists: boolean;
   clusterState: any;
-  upgradeIsRunning: boolean;
+  userBgPreferences: boolean;
+  setUserBgPreferences: (value: boolean) => void;
+  // Background Operations - persistent cache like Ember.js singleton
+  backgroundOperations: any[];
+  setBackgroundOperations: (operations: any[]) => void;
+  updateBackgroundOperations: (newRequests: any[]) => void;
+  runningOperationsCount: number;
+  // Ember.js upgrade computed properties
+  upgradeInit: boolean;
+  upgradeInProgress: boolean;
+  upgradeCompleted: boolean;
+  upgradeHolding: boolean;
+  upgradeAborted: boolean;
   upgradeSuspended: boolean;
+  upgradeIsRunning: boolean;
+  wizardIsNotFinished: boolean;
+  isClusterInstalled?: boolean;
 }
 
 export const AppContext = createContext<AppContextProps>({
@@ -105,13 +118,28 @@ export const AppContext = createContext<AppContextProps>({
   setIsPatchUpgrade: () => {},
   upgradeVersionDisplayName: "",
   setUpgradeVersionDisplayName: () => {},
-  upgradeIsFinalizeItem: false,
-  setUpgradeIsFinalizeItem: () => {},
   sessionExists: false,
   sessionsValidated: false,
   clusterState: {},
-  upgradeIsRunning: false,
+  userBgPreferences: false,
+  setUserBgPreferences: () => {},
+  // Background Operations defaults
+  backgroundOperations: [],
+  setBackgroundOperations: () => {},
+  updateBackgroundOperations: () => {},
+  runningOperationsCount: 0,
+  // Ember.js upgrade computed properties defaults
+  upgradeInit: true,
+  upgradeInProgress: false,
+  upgradeCompleted: false,
+  upgradeHolding: false,
+  upgradeAborted: false,
   upgradeSuspended: false,
+  upgradeIsRunning: false,
+  upgradeIsFinalizeItem: false,
+  setUpgradeIsFinalizeItem: () => {},
+  wizardIsNotFinished: false,
+  isClusterInstalled: false,
 });
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -125,20 +153,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const [clusterName, setClusterName] = useState<string>("");
   const [isKerberosEnabled, setIsKerberosEnabled] = useState(false);
   const [cluster, setCluster] = useState<any>({});
+  const [isClusterInstalled, setIsClusterInstalled] = useState<boolean|undefined>(undefined);
   const [serviceComponentInfo, setServiceComponentInfo] = useState<any>({});
   const [upgradeState, setUpgradeState] = useState<string>("");
   const [upgradeDirection, setUpgradeDirection] = useState<string>("");
   const [upgradeSuspend, setUpgradeSuspend] = useState<boolean>(false);
   const [upgradeId, setUpgradeId] = useState<number>(0);
-  const [upgradeIsFinalizeItem, setUpgradeIsFinalizeItem] = useState<boolean>(false);
+  const [upgradeIsFinalizeItem, setUpgradeIsFinalizeItem] =
+    useState<boolean>(false);
   const [isPatchUpgrade, setIsPatchUpgrade] = useState<boolean>(false);
-  const [upgradeVersionDisplayName, setUpgradeVersionDisplayName] = useState<string>("");
+  const [upgradeVersionDisplayName, setUpgradeVersionDisplayName] =
+    useState<string>("");
   const [currentStackVersion, setCurrentStackVersion] = useState<string>("");
   const [ambariProperties, setAmbariProperties] = useState({});
   const [sessionsValidated, setSessionsValidated] = useState(false);
   const [sessionExists, setSessionExists] = useState(false);
   const [clusterState, setClusterState] = useState({});
   const [userUrl, setUserUrl] = useState("");
+  const { user } = useAuth();
+  const loginName = user?.user_name;
   const client = new Client({
     brokerURL: "/api/stomp/v1/websocket", // 'ws://localhost:15674/ws'
     debug: function (str) {
@@ -150,17 +183,78 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   });
   const [services, setServices] = useState([]);
   const [stackConfigurations, setStackConfigurations] = useState([]);
-
+  const [userBgPreferences, setUserBgPreferences] = useState(false);
   const [allHostNames, setAllHostNames] = useState([]);
 
-  // TODO: These will be implemented soon to check upgrade status
-  const upgradeIsRunning = false;
-  const upgradeSuspended = false;
+  // Background Operations - persistent cache like Ember.js singleton
+  const [backgroundOperations, setBackgroundOperations] = useState<any[]>([]);
+
+  const isUpgradeRequest = (request: any): boolean => {
+    const context =
+      request?.Requests?.request_context || request?.request_context;
+    return context
+      ? /(upgrading|downgrading)/.test(context.toLowerCase())
+      : false;
+  };
+
+  const fetchBackgroundOperations = async () => {
+    if (!clusterName || !isClusterInstalled) {
+      return;
+    }
+
+    const allClusterRequests = await ClusterApi.getRequests(clusterName, 20);
+    const newRequests = allClusterRequests.items.filter((request: any) => {
+      return !isUpgradeRequest(request);
+    });
+
+    updateBackgroundOperations(newRequests);
+  };
+
+  const updateBackgroundOperations = (newRequests: any[]) => {
+    const currentRequestIds: string[] = [];
+    const updatedRequests = [...backgroundOperations];
+
+    newRequests.forEach((newRequest: any) => {
+      currentRequestIds.push(newRequest.Requests.id);
+      const existingRequestIndex = updatedRequests.findIndex(
+        (existing: any) => existing.Requests.id === newRequest.Requests.id
+      );
+
+      if (existingRequestIndex >= 0) {
+        // Update existing request (like Ember.js rq.setProperties)
+        updatedRequests[existingRequestIndex] = newRequest;
+      } else {
+        // Add new request to the beginning (like Ember.js unshift)
+        updatedRequests.unshift(newRequest);
+      }
+    });
+
+    // Remove old requests that are no longer in the API response (like Ember.js removeOldRequests)
+    const finalRequests = updatedRequests.filter((request: any) =>
+      currentRequestIds.includes(request.Requests.id)
+    );
+
+    // Sort by request ID descending (like Ember.js sortProperty('id').reverse())
+    finalRequests.sort((a: any, b: any) => b.Requests.id - a.Requests.id);
+
+    setBackgroundOperations(finalRequests);
+  };
+
+  // Computed property for running operations count (like Ember.js)
+  const runningOperationsCount = backgroundOperations.filter((request: any) => {
+    const status = request?.Requests?.request_status;
+    return ["IN_PROGRESS", "QUEUED", "PENDING"].includes(status);
+  }).length;
 
   const fetchClusterServices = async () => {
+    if (!isClusterInstalled) {
+      return;
+    }
+
     try {
       const clusterServices = await ChooseServicesApi.servicesList(clusterName);
       setServices(clusterServices.items);
+      setAppLoaded(true);
     } catch (err) {
       setServices([]);
     }
@@ -180,12 +274,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   useEffect(() => {
-    if (clusterName) {
+    if (clusterName && isClusterInstalled) {
       fetchClusterServices();
       fetchAllHostNames();
       fetchUpgradeStates();
+      fetchBackgroundOperations();
+    } else if (!isUndefined(isClusterInstalled) && !isClusterInstalled) {
+      setAppLoaded(true);
     }
-  }, [clusterName]);
+  }, [clusterName, isClusterInstalled]);
+
+  useEffect(() => {
+    if (!clusterName || !isClusterInstalled) return;
+
+    const pollInterval = setInterval(() => {
+      fetchBackgroundOperations();
+    }, 30000); // Poll every 30 seconds like Ember.js
+
+    return () => {
+      clearInterval(pollInterval);
+    };
+  }, [clusterName, isClusterInstalled]);
 
   useEffect(() => {
     async function fetchStackConfigs() {
@@ -193,16 +302,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       const version = get(cluster, "version", "").split("-")[1];
       const serviceNames = map(services, "ServiceInfo.service_name").join(",");
       if (stack && version && serviceNames) {
-        //@ts-ignore
         const response = await ConfigsApi.getServiceConfigurations(
           stack,
           version,
           serviceNames
         );
-        //TODO: Uncomment this once mapStackConfigProperties is defined
-        // const stackConfigs = mapStackConfigProperties(response);
-        const stackConfigs:never[]=[];
-
+        const stackConfigs = mapStackConfigProperties(response);
         setStackConfigurations(stackConfigs);
       }
     }
@@ -230,12 +335,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         "items[0].Clusters.versionNum",
         get(clusterData, "items.[0].Clusters.version", "")?.split("-")[1]
       );
-      setCluster(clusterData?.items[0]?.Clusters);
+      const clusterInfo = clusterData?.items[0]?.Clusters;
+      setCluster(clusterInfo);
       setIsKerberosEnabled(
         clusterData?.items?.[0]?.Clusters?.security_type === "KERBEROS"
       );
+
+      const isInstalled = clusterInfo?.provisioning_state === "INSTALLED";
+      setIsClusterInstalled(isInstalled);
     } catch (error) {
-      console.error("Failed to fetch cluster data:", error);
+      setIsClusterInstalled(false);
     }
   };
 
@@ -251,13 +360,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const fetchAllHostNames = async () => {
+    if (!isClusterInstalled) {
+      return;
+    }
+
     try {
       const data = await ClusterApi.getHosts(clusterName);
       const hostNames = data.items.map((item: any) => item.Hosts.host_name);
       setAllHostNames(hostNames);
-    } catch (error) {
-      console.log("Error getting hosts");
-    }
+    } catch (error) {}
   };
   const getAmbariProperties = async () => {
     const response = await ClusterApi.loadAmbariProperties();
@@ -301,7 +412,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         //set login name in the app object within the ambari object
         initialAmbariLsData.app.loginName = encodeURIComponent(username);
         initialAmbariLsData.app.authenticated = true;
-         const params = { usr: "", loginName: encodeURIComponent(username) };
+        const params = { usr: "", loginName: encodeURIComponent(username) };
         const response = await LoginApi.handleSuccessfulLogin(params);
         initialAmbariLsData.app.user = response.data.Users;
         //convert JS object to JSON String and then encrypt the JSON String
@@ -323,39 +434,54 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const fetchUpgradeStates = async () => {
-    const response = await ClusterApi.getUpgradeState(clusterName);
+    if (!isClusterInstalled) {
+      return;
+    }
 
-    // response would have items get the last item.
-    const lastItemIndex = response?.items?.length - 1;
-    const upgradeState = get(
-      response,
-      `items[${lastItemIndex}].Upgrade.request_status`,
-      "NOT_REQUIRED"
-    );
-    const upgradeSuspend = get(
-      response,
-      `items[${lastItemIndex}].Upgrade.suspended`,
-      false
-    );
-    const upgradeId = get(
-      response,
-      `items[${lastItemIndex}].Upgrade.request_id`,
-      0
-    );
-    const upgradeDirection = get(response, `items[${lastItemIndex}].Upgrade.direction`, "UPGRADE");
-    setUpgradeDirection(upgradeDirection);
-    setUpgradeId(upgradeId);
-    setUpgradeState(upgradeState);
-    setUpgradeSuspend(upgradeSuspend);
+    try {
+      const response = await ClusterApi.getUpgradeState(clusterName);
+      // response would have items get the last item.
+      const lastItemIndex = response?.items?.length - 1;
+      const upgradeState = get(
+        response,
+        `items[${lastItemIndex}].Upgrade.request_status`,
+        "NOT_REQUIRED"
+      );
+      const upgradeSuspend = get(
+        response,
+        `items[${lastItemIndex}].Upgrade.suspended`,
+        false
+      );
+      const upgradeId = get(
+        response,
+        `items[${lastItemIndex}].Upgrade.request_id`,
+        0
+      );
+      const upgradeDirection = get(
+        response,
+        `items[${lastItemIndex}].Upgrade.direction`,
+        "UPGRADE"
+      );
+      setUpgradeDirection(upgradeDirection);
+      setUpgradeId(upgradeId);
+      setUpgradeState(upgradeState);
+      setUpgradeSuspend(upgradeSuspend);
 
-    const isPatch = await ClusterApi.getPersistData("isPatchUpgrade");
-    setIsPatchUpgrade(isPatch);
+      const isPatch = await ClusterApi.getPersistData("isPatchUpgrade");
+      setIsPatchUpgrade(isPatch);
 
-    const isFinalizeItem = await ClusterApi.getPersistData("upgradeIsFinalizeItem");
-    setUpgradeIsFinalizeItem(isFinalizeItem);
+      const isFinalizeItem = await ClusterApi.getPersistData(
+        "upgradeIsFinalizeItem"
+      );
+      setUpgradeIsFinalizeItem(isFinalizeItem);
 
-    const upgradeVersionDisplayName = await ClusterApi.getPersistData("upgradeVersionDisplayName");
-    setUpgradeVersionDisplayName(upgradeVersionDisplayName);
+      const upgradeVersionDisplayName = await ClusterApi.getPersistData(
+        "upgradeVersionDisplayName"
+      );
+      setUpgradeVersionDisplayName(upgradeVersionDisplayName);
+    } catch (error) {
+      console.error("Failed to fetch upgrade state:", error);
+    }
   };
 
   async function getUserUrl() {
@@ -363,6 +489,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       "USER_REDIRECTION_URL"
     );
     setUserUrl(persistedData);
+  }
+
+  async function getUserBgPreferences() {
+    try {
+      const persistedData = await ClusterApi.getPersistData(
+        "admin-settings-show-bg-" + loginName
+      );
+      if (!!persistedData) {
+        setUserBgPreferences(true);
+      } else {
+        setUserBgPreferences(false);
+      }
+    } catch (err) {
+      console.error("Could not fetch user bg preferences", err);
+    }
+  }
+  async function setUserBgPreferencesData(value: boolean) {
+    try {
+      setUserBgPreferences(value);
+      await ClusterApi.postPersistData(
+        JSON.stringify({
+          ["admin-settings-show-bg-" + loginName]: `${value}`,
+        })
+      );
+    } catch (err) {
+      console.error("Could not fetch user bg preferences", err);
+    }
   }
   useEffect(() => {
     async function moveAppToReadyState() {
@@ -375,10 +528,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         await getAmbariProperties();
         try {
           await getUserUrl();
-        } catch (err) {
-        } finally {
-          setAppLoaded(true);
-        }
+        } catch (err) {}
       } else {
       }
     }
@@ -386,10 +536,80 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   useEffect(() => {
-    if (!isEmpty(cluster)&&cluster?.versionNum&&cluster?.stack) {
+    if (!isEmpty(cluster) && cluster?.versionNum && cluster?.stack) {
       fetchServiceComponentInfo();
     }
   }, [cluster]);
+
+  useEffect(() => {
+    if (loginName) {
+      getUserBgPreferences();
+    }
+  }, [loginName]);
+
+  useEffect(() => {
+    const message = parsedSocketMessages[0];
+    if (!message) return;
+
+    if (get(message, "destination") === "/events/upgrade") {
+      if (get(message, "type") === "CREATE" || get(message, "type") === "UPDATE") {
+        // Extract upgrade state directly from WebSocket message if available
+        const upgradeStatus = get(message, "requestStatus") || get(message, "request_status");
+        const suspended = get(message, "suspended");
+        
+        if (upgradeStatus) {
+          setUpgradeState(upgradeStatus);
+        }
+        if (suspended !== undefined) {
+          setUpgradeSuspend(suspended);
+        }
+      }
+      fetchUpgradeStates();
+    }
+
+    // Handle background operations real-time updates
+    if (get(message, "destination") === "/events/requests") {
+      const requestContext = message.requestContext;
+      // Skip upgrade requests (same logic as in BackgroundOperations component)
+      if (
+        requestContext &&
+        /(upgrading|downgrading)/.test(requestContext.toLowerCase())
+      ) {
+        return;
+      }
+
+      // Only update if we have background operations to update
+      if (backgroundOperations.length > 0) {
+        const updatedOperations = [...backgroundOperations];
+        const matchingRequestIndex = updatedOperations.findIndex(
+          (existing: any) => existing.Requests.id === message.requestId
+        );
+
+        if (matchingRequestIndex >= 0) {
+          // Transform WebSocket message to match API format
+          const { Tasks, ...restProperties } = message;
+          const newRequestBody: any = {};
+          for (const property in restProperties) {
+            const transformedPropertyName = property
+              .replace(/([A-Z])/g, "_$1")
+              .toLowerCase();
+            newRequestBody[transformedPropertyName] = restProperties[property];
+          }
+
+          // Update existing request
+          updatedOperations[matchingRequestIndex] = {
+            ...updatedOperations[matchingRequestIndex],
+            Requests: newRequestBody,
+          };
+
+          setBackgroundOperations(updatedOperations);
+        }
+        setBackgroundOperations(updatedOperations);
+      } else {
+        fetchBackgroundOperations();
+      }
+    }
+  }, [parsedSocketMessages.length]);
 
   client.onConnect = function () {
     setSocketClient(client as any);
@@ -424,6 +644,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
           console.log("Error in parsing socket message");
         }
       } else {
+      }
+    });
+    client.subscribe("/events/upgrade", (message: any) => {
+      if (message.body) {
+        try {
+          const parsedMessage = JSON.parse(message.body);
+          set(parsedMessage, "destination", message.headers.destination);
+          setParsedSocketMessages((prevMessages) => [
+            parsedMessage,
+            ...prevMessages,
+          ]);
+        } catch {
+          console.log("Error in parsing socket message");
+        }
       }
     });
     client.subscribe("/events/hosts", (message: any) => {
@@ -483,7 +717,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     client.activate();
   }, []);
 
-  // add a  method to check if clusterExists if yes return clusterName from API otherwise return empty string
+  // Ember.js upgrade computed properties - implementing the same logic as ui/app/app.js
+  const upgradeInit = upgradeState === "NOT_REQUIRED";
+  const upgradeInProgress = upgradeState === "IN_PROGRESS";
+  const upgradeCompleted = upgradeState === "COMPLETED";
+  const upgradeHolding =
+    upgradeState.includes("HOLDING") ||
+    (upgradeState === "ABORTED" && !upgradeSuspend);
+  const upgradeAborted = upgradeState === "ABORTED" && !upgradeSuspend;
+  const upgradeSuspended = upgradeState === "ABORTED" && upgradeSuspend;
+  const upgradeIsRunning = upgradeInProgress || upgradeHolding;
+  // TODO: Add wizardWatcherController.isNonWizardUser check when available
+  const wizardIsNotFinished = upgradeIsRunning || upgradeSuspended;
 
   return (
     <AppContext.Provider
@@ -515,14 +760,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         setIsPatchUpgrade,
         upgradeVersionDisplayName,
         setUpgradeVersionDisplayName,
-        upgradeIsFinalizeItem,
-        setUpgradeIsFinalizeItem,
         userUrl,
         sessionExists,
         sessionsValidated,
         clusterState,
-        upgradeIsRunning,
+        userBgPreferences,
+        setUserBgPreferences: setUserBgPreferencesData,
+        // Background Operations
+        backgroundOperations,
+        setBackgroundOperations,
+        updateBackgroundOperations,
+        runningOperationsCount,
+        upgradeInit,
+        upgradeInProgress,
+        upgradeCompleted,
+        upgradeHolding,
+        upgradeAborted,
         upgradeSuspended,
+        upgradeIsRunning,
+        upgradeIsFinalizeItem,
+        setUpgradeIsFinalizeItem,
+        wizardIsNotFinished,
+        isClusterInstalled,
       }}
     >
       {children}
