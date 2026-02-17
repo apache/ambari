@@ -145,7 +145,6 @@ export default function UpgradeHistory() {
     const id = href.split("/").pop();
     return parseInt(id || "0", 0);
   }
-  // START GENAI
   function getUpgradeType(upgrade: Upgrade) {
     const upgradeType = upgrade.upgrade_type;
     const stackVersion = stacks.find(
@@ -161,7 +160,6 @@ export default function UpgradeHistory() {
 
     return getUpgradeDisplayName(upgradeType);
   }
-  // END GENAI
 
   const columns = [
     {
