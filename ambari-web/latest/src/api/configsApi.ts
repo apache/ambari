@@ -265,6 +265,18 @@ const ConfigsApi = {
     });
     return response.data.items;
   },
+  serviceMultiConfigurations: async function (
+    clusterName: string,
+    payload: any
+  ) {
+    const url = `/clusters/${clusterName}`;
+    const response = await ambariApi.request({
+      url,
+      method: "PUT",
+      data: payload,
+    });
+    return response.data;
+  },
 };
 
 export default ConfigsApi;

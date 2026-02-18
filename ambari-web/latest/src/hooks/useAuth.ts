@@ -15,27 +15,79 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { useUserContext } from '../store/UserContext';
 
-//TODO: This will be implemented soon to fetch auth info
-
+/**
+ * Custom hook for accessing user authentication and authorization data
+ */
 export const useAuth = () => {
-  const hasAuthorization = (authId: string) => {
-    return authId ? true : false; //TODO: will be implemented soon
+  const context = useUserContext();
+  
+  return {
+    // User data
+    user: context.user,
+    isAuthenticated: context.isAuthenticated,
+    isLoading: context.isLoading,
+    
+    // Authorization data
+    authorizations: context.authorizations,
+    privileges: context.privileges,
+    clusterPrivileges: context.clusterPrivileges,
+    viewPrivileges: context.viewPrivileges,
+    
+    // Helper methods
+    havePermissions: context.havePermissions,
+    hasAuthorization: context.hasAuthorization,
+    hasPrivilege: context.hasPrivilege,
+    isAdmin: context.isAdmin,
+    isOperator: context.isOperator,
+    isClusterUser: context.isClusterUser,
+    
+    // Actions
+    login: context.login,
+    logout: context.logout,
+    refreshUserData: context.refreshUserData
   };
+};
 
-  const havePermissions = (authRoles: string) => {
-    return authRoles ? true : false; //TODO: will be implemented soon
-  };
+/**
+ * Hook for checking specific authorizations
+ */
+export const useAuthorization = (authId: string) => {
+  const { hasAuthorization } = useAuth();
+  return hasAuthorization(authId);
+};
 
-  const isAdmin = () => {
-    return true; //TODO: will be implemented soon
-  }
+/**
+ * Hook for checking specific privileges
+ */
+export const usePrivilege = (permissionName: string, clusterName?: string) => {
+  const { hasPrivilege } = useAuth();
+  return hasPrivilege(permissionName, clusterName);
+};
 
-  const isOperator = () => {
-    return true; //TODO: will be implemented soon
-  }
+/**
+ * Hook for checking admin status
+ */
+export const useIsAdmin = () => {
+  const { isAdmin } = useAuth();
+  return isAdmin();
+};
 
-  return { hasAuthorization, havePermissions, isAdmin, isOperator };
-}
+/**
+ * Hook for checking operator status
+ */
+export const useIsOperator = () => {
+  const { isOperator } = useAuth();
+  return isOperator();
+};
+
+/**
+ * Hook for checking cluster user status
+ */
+export const useIsClusterUser = () => {
+  const { isClusterUser } = useAuth();
+  return isClusterUser();
+};
 
 export default useAuth;

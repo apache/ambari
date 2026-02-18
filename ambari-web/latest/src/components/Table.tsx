@@ -17,7 +17,6 @@
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 //@ts-nocheck
-// START GENAI@CHATGPT4
 import React from "react";
 import {
   ColumnDef,
