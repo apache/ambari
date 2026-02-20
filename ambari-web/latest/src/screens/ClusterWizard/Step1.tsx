@@ -167,7 +167,6 @@ export default function Step1({ wizardName = "clusterCreation" }) {
     }
   };
 
-  /* START GENAI */
   useEffect(() => {
     async function getVersionDefinitions() {
       const definitions: VersionDefinitionResponse =
@@ -195,7 +194,6 @@ export default function Step1({ wizardName = "clusterCreation" }) {
     }
     getVersionDefinitions();
   }, [state, wizardName, currentStep]);
-  /* END GENAI */
 
   useEffect(() => {
     if (!versionNumber) {
@@ -229,7 +227,6 @@ export default function Step1({ wizardName = "clusterCreation" }) {
     }
   }, [redhatSatellite]);
 
-  /* START GENAI */
   useEffect(() => {
     const stateData = get(
       state,
@@ -250,7 +247,6 @@ export default function Step1({ wizardName = "clusterCreation" }) {
       }
     }
   }, [state]);
-  /* END GENAI */
 
   const getOsfromRepoDetails = (oSystem: string, alreadyAddedOs: any) => {
     let operatingSystem;
@@ -299,7 +295,6 @@ export default function Step1({ wizardName = "clusterCreation" }) {
     }
   }, [operatingSystems, versionNumber, versionValidationError, skipValidation]);
 
-  /* START GENAI */
   useEffect(() => {
     async function getVersionOs() {
       const stateData = get(
@@ -350,7 +345,6 @@ export default function Step1({ wizardName = "clusterCreation" }) {
       getVersionOs();
     }
   }, [selectedVersion, state, wizardName, currentStep]);
-  /* END GENAI */
 
   function getColumns() {
     return [
@@ -660,11 +654,9 @@ export default function Step1({ wizardName = "clusterCreation" }) {
             if (validationResult?.status === "rejected") {
               allOsValidated = false;
               repo.hasError = true;
-              /* START GENAI */
               // Show error message to user when validation fails (Fix for TLHASD-1257)
               const errorReason = validationResult.reason?.message || validationResult.reason || "Invalid Base URL";
               toast.error(`Repository validation failed for ${repo.name} (${os.os}): ${errorReason}`);
-              /* END GENAI */
             } else {
               repo.hasError = false;
             }
@@ -1220,7 +1212,6 @@ export default function Step1({ wizardName = "clusterCreation" }) {
               }
             }
             Promise.allSettled(versionUpdatePromises).then(() => {
-              /* START GENAI */
               dispatch({
                 type: ActionTypes.STORE_INFORMATION,
                 payload: {
@@ -1236,7 +1227,6 @@ export default function Step1({ wizardName = "clusterCreation" }) {
                   },
                 },
               });
-              /* END GENAI */
               flushStateToDb("next");
               handleNextImperitive();
             });
