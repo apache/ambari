@@ -185,8 +185,7 @@ public class UpgradeEntity {
    * Uni-directional relationship between an upgrade an all of the components in
    * that upgrade.
    */
-  @OneToMany(orphanRemoval=true, cascade = { CascadeType.ALL })
-  @JoinColumn(name = "upgrade_id")
+  @OneToMany(orphanRemoval=true, mappedBy = "upgrade", cascade = { CascadeType.ALL })
   private List<UpgradeHistoryEntity> upgradeHistory;
 
   /**
