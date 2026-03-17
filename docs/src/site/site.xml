@@ -35,8 +35,8 @@
   </custom>
   <bannerLeft>
     <name>Ambari</name>
-    <src>http://ambari.apache.org/images/apache-ambari-project.png</src>
-    <href>http://ambari.apache.org/</href>
+    <src>https://ambari.apache.org/images/apache-ambari-project.png</src>
+    <href>https://ambari.apache.org/</href>
   </bannerLeft>
 
   <publishDate position="right"/>
@@ -71,7 +71,7 @@
     </links>
 
     <breadcrumbs>
-      <item name="Ambari" href="http://ambari.apache.org/"/>
+      <item name="Ambari" href="https://ambari.apache.org/"/>
     </breadcrumbs>
 
     <menu name="Ambari">
@@ -81,8 +81,8 @@
       <item name="IRC Channel" href="irc.html"/>
       <item name="Mailing Lists" href="mail-lists.html"/>
       <item name="Issue Tracking" href="issue-tracking.html"/>
-      <item name="User Group" href="http://www.meetup.com/Apache-Ambari-User-Group"/>
-      <item name="Project License" href="http://www.apache.org/licenses/"/>
+      <item name="User Group" href="https://www.meetup.com/Apache-Ambari-User-Group"/>
+      <item name="Project License" href="https://www.apache.org/licenses/"/>
     </menu>
 
     <menu name="Documentation">
@@ -136,49 +136,49 @@
     </menu>
 
     <menu name="Releases">
-      <item name="2.7.8" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-2.7.8"/>
-      <item name="2.7.7" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-2.7.7"/>
-      <item name="2.7.6" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-2.7.6"/>
-      <item name="2.7.5" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-2.7.5"/>
-      <item name="2.7.4" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-2.7.4"/>
-      <item name="2.7.3" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-2.7.3"/>
-      <item name="2.7.1" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-2.7.1"/>
-      <item name="2.7.0" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-2.7.0"/>
-      <item name="2.6.2" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-2.6.2"/>
-      <item name="2.6.1" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-2.6.1"/>
-      <item name="2.6.0" href="http://archive.apache.org/dist/ambari/ambari-2.6.0"/>
-      <item name="2.5.2" href="http://archive.apache.org/dist/ambari/ambari-2.5.2"/>
-      <item name="2.5.1" href="http://archive.apache.org/dist/ambari/ambari-2.5.1"/>
-      <item name="2.5.0" href="http://archive.apache.org/dist/ambari/ambari-2.5.0"/>
-      <item name="2.4.3" href="http://archive.apache.org/dist/ambari/ambari-2.4.3"/>
-      <item name="2.4.2" href="http://archive.apache.org/dist/ambari/ambari-2.4.2"/>
-      <item name="2.4.1" href="http://archive.apache.org/dist/ambari/ambari-2.4.1"/>
-      <item name="2.4.0" href="http://archive.apache.org/dist/ambari/ambari-2.4.0"/>
-      <item name="2.2.2" href="http://archive.apache.org/dist/ambari/ambari-2.2.2"/>
-      <item name="2.2.1" href="http://archive.apache.org/dist/ambari/ambari-2.2.1"/>
-      <item name="2.2.0" href="http://archive.apache.org/dist/ambari/ambari-2.2.0"/>
-      <item name="2.1.2" href="http://archive.apache.org/dist/ambari/ambari-2.1.2"/>
-      <item name="2.1.1" href="http://archive.apache.org/dist/ambari/ambari-2.1.1"/>
-      <item name="2.1.0" href="http://archive.apache.org/dist/ambari/ambari-2.1.0"/>
-      <item name="2.0.2" href="http://archive.apache.org/dist/ambari/ambari-2.0.2"/>
-      <item name="2.0.1" href="http://archive.apache.org/dist/ambari/ambari-2.0.1"/>
-      <item name="2.0.0" href="http://archive.apache.org/dist/ambari/ambari-2.0.0"/>
-      <item name="1.7.0" href="http://archive.apache.org/dist/ambari/ambari-1.7.0"/>
-      <item name="1.6.1" href="http://archive.apache.org/dist/ambari/ambari-1.6.1"/>
-      <item name="1.6.0" href="http://archive.apache.org/dist/ambari/ambari-1.6.0"/>
-      <item name="1.5.1" href="http://archive.apache.org/dist/ambari/ambari-1.5.1"/>
-      <item name="1.5.0" href="http://archive.apache.org/dist/ambari/ambari-1.5.0"/>
-      <item name="1.4.4" href="http://archive.apache.org/dist/ambari/ambari-1.4.4/"/>
-      <item name="1.4.3" href="http://archive.apache.org/dist/ambari/ambari-1.4.3/"/>
-      <item name="1.4.2" href="http://archive.apache.org/dist/ambari/ambari-1.4.2/"/>
-      <item name="1.4.1" href="http://archive.apache.org/dist/incubator/ambari/ambari-1.4.1/"/>
-      <item name="1.2.5" href="http://archive.apache.org/dist/incubator/ambari/ambari-1.2.5/"/>
-      <item name="1.2.4" href="http://archive.apache.org/dist/incubator/ambari/ambari-1.2.4/"/>
-      <item name="1.2.3" href="http://archive.apache.org/dist/incubator/ambari/ambari-1.2.3/"/>
-      <item name="1.2.2" href="http://archive.apache.org/dist/incubator/ambari/ambari-1.2.2/"/>
-      <item name="1.2.1" href="http://archive.apache.org/dist/incubator/ambari/ambari-1.2.1/"/>
-      <item name="1.2.0" href="http://archive.apache.org/dist/incubator/ambari/ambari-1.2.0/"/>
-      <item name="0.9" href="http://archive.apache.org/dist/incubator/ambari/ambari-0.9-incubating/"/>
+      <item name="2.7.8" href="https://www.apache.org/dyn/closer.cgi/ambari/ambari-2.7.8"/>
+      <item name="2.7.7" href="https://www.apache.org/dyn/closer.cgi/ambari/ambari-2.7.7"/>
+      <item name="2.7.6" href="https://www.apache.org/dyn/closer.cgi/ambari/ambari-2.7.6"/>
+      <item name="2.7.5" href="https://www.apache.org/dyn/closer.cgi/ambari/ambari-2.7.5"/>
+      <item name="2.7.4" href="https://www.apache.org/dyn/closer.cgi/ambari/ambari-2.7.4"/>
+      <item name="2.7.3" href="https://www.apache.org/dyn/closer.cgi/ambari/ambari-2.7.3"/>
+      <item name="2.7.1" href="https://www.apache.org/dyn/closer.cgi/ambari/ambari-2.7.1"/>
+      <item name="2.7.0" href="https://www.apache.org/dyn/closer.cgi/ambari/ambari-2.7.0"/>
+      <item name="2.6.2" href="https://www.apache.org/dyn/closer.cgi/ambari/ambari-2.6.2"/>
+      <item name="2.6.1" href="https://www.apache.org/dyn/closer.cgi/ambari/ambari-2.6.1"/>
+      <item name="2.6.0" href="https://archive.apache.org/dist/ambari/ambari-2.6.0"/>
+      <item name="2.5.2" href="https://archive.apache.org/dist/ambari/ambari-2.5.2"/>
+      <item name="2.5.1" href="https://archive.apache.org/dist/ambari/ambari-2.5.1"/>
+      <item name="2.5.0" href="https://archive.apache.org/dist/ambari/ambari-2.5.0"/>
+      <item name="2.4.3" href="https://archive.apache.org/dist/ambari/ambari-2.4.3"/>
+      <item name="2.4.2" href="https://archive.apache.org/dist/ambari/ambari-2.4.2"/>
+      <item name="2.4.1" href="https://archive.apache.org/dist/ambari/ambari-2.4.1"/>
+      <item name="2.4.0" href="https://archive.apache.org/dist/ambari/ambari-2.4.0"/>
+      <item name="2.2.2" href="https://archive.apache.org/dist/ambari/ambari-2.2.2"/>
+      <item name="2.2.1" href="https://archive.apache.org/dist/ambari/ambari-2.2.1"/>
+      <item name="2.2.0" href="https://archive.apache.org/dist/ambari/ambari-2.2.0"/>
+      <item name="2.1.2" href="https://archive.apache.org/dist/ambari/ambari-2.1.2"/>
+      <item name="2.1.1" href="https://archive.apache.org/dist/ambari/ambari-2.1.1"/>
+      <item name="2.1.0" href="https://archive.apache.org/dist/ambari/ambari-2.1.0"/>
+      <item name="2.0.2" href="https://archive.apache.org/dist/ambari/ambari-2.0.2"/>
+      <item name="2.0.1" href="https://archive.apache.org/dist/ambari/ambari-2.0.1"/>
+      <item name="2.0.0" href="https://archive.apache.org/dist/ambari/ambari-2.0.0"/>
+      <item name="1.7.0" href="https://archive.apache.org/dist/ambari/ambari-1.7.0"/>
+      <item name="1.6.1" href="https://archive.apache.org/dist/ambari/ambari-1.6.1"/>
+      <item name="1.6.0" href="https://archive.apache.org/dist/ambari/ambari-1.6.0"/>
+      <item name="1.5.1" href="https://archive.apache.org/dist/ambari/ambari-1.5.1"/>
+      <item name="1.5.0" href="https://archive.apache.org/dist/ambari/ambari-1.5.0"/>
+      <item name="1.4.4" href="https://archive.apache.org/dist/ambari/ambari-1.4.4/"/>
+      <item name="1.4.3" href="https://archive.apache.org/dist/ambari/ambari-1.4.3/"/>
+      <item name="1.4.2" href="https://archive.apache.org/dist/ambari/ambari-1.4.2/"/>
+      <item name="1.4.1" href="https://archive.apache.org/dist/incubator/ambari/ambari-1.4.1/"/>
+      <item name="1.2.5" href="https://archive.apache.org/dist/incubator/ambari/ambari-1.2.5/"/>
+      <item name="1.2.4" href="https://archive.apache.org/dist/incubator/ambari/ambari-1.2.4/"/>
+      <item name="1.2.3" href="https://archive.apache.org/dist/incubator/ambari/ambari-1.2.3/"/>
+      <item name="1.2.2" href="https://archive.apache.org/dist/incubator/ambari/ambari-1.2.2/"/>
+      <item name="1.2.1" href="https://archive.apache.org/dist/incubator/ambari/ambari-1.2.1/"/>
+      <item name="1.2.0" href="https://archive.apache.org/dist/incubator/ambari/ambari-1.2.0/"/>
+      <item name="0.9" href="https://archive.apache.org/dist/incubator/ambari/ambari-0.9-incubating/"/>
     </menu>
 
     <menu name="ASF" title="Apache Software Foundation">
