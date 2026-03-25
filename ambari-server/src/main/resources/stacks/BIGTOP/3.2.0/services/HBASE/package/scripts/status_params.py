@@ -33,6 +33,7 @@ from resource_management.libraries.script.script import Script
 SERVER_ROLE_DIRECTORY_MAP = {
   "HBASE_MASTER": "hbase-master",
   "HBASE_REGIONSERVER": "hbase-regionserver",
+  "HBASE_THRIFT": "hbase-master",
   "HBASE_CLIENT": "hbase-client",
 }
 
@@ -51,6 +52,7 @@ else:
 
   hbase_master_pid_file = format("{pid_dir}/hbase-{hbase_user}-master.pid")
   regionserver_pid_file = format("{pid_dir}/hbase-{hbase_user}-regionserver.pid")
+  thrift_pid_file = format("{pid_dir}/hbase-{hbase_user}-thrift.pid")
 
   # Security related/required params
   hostname = config["agentLevelParams"]["hostname"]

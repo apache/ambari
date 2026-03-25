@@ -186,7 +186,7 @@ class HBASEServiceAdvisor(service_advisor.ServiceAdvisor):
     )
 
   def isComponentUsingCardinalityForLayout(self, componentName):
-    return componentName == "PHOENIX_QUERY_SERVER"
+    return componentName in ["PHOENIX_QUERY_SERVER", "HBASE_THRIFT"]
 
 
 class HBASERecommender(service_advisor.ServiceAdvisor):

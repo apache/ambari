@@ -149,7 +149,10 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     region_servers_total: 'region_servers_total',
     phoenix_servers_started: 'phoenix_servers_started',
     phoenix_servers_installed: 'phoenix_servers_installed',
-    phoenix_servers_total: 'phoenix_servers_total'
+    phoenix_servers_total: 'phoenix_servers_total',
+    thrift_servers_started: 'thrift_servers_started',
+    thrift_servers_installed: 'thrift_servers_installed',
+    thrift_servers_total: 'thrift_servers_total'
   },
   stormConfig: {
     total_tasks: 'restApiComponent.tasksTotal',

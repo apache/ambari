@@ -97,6 +97,21 @@
           "regex": "",
           "site": "hbase-site"
         }
+      },
+      {
+        "name": "hbase_thrift_ui",
+        "label": "Thrift Server Info",
+        "component_name": "HBASE_THRIFT",
+        "url": "%@://%@:%@/",
+        "requires_user_name": "false",
+        "port": {
+          "http_property": "hbase.thrift.info.port",
+          "http_default_port": "9095",
+          "https_property": "hbase.thrift.info.port",
+          "https_default_port": "9095",
+          "regex": "",
+          "site": "hbase-thrift-site"
+        }
       }
     ]
   }

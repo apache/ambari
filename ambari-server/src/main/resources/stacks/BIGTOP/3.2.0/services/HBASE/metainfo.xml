@@ -99,6 +99,32 @@
         </component>
 
         <component>
+          <name>HBASE_THRIFT</name>
+          <displayName>HBase Thrift Server</displayName>
+          <category>SLAVE</category>
+          <cardinality>0+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <timelineAppid>hbase</timelineAppid>
+          <commandScript>
+            <script>scripts/hbase_thrift.py</script>
+            <scriptType>PYTHON</scriptType>
+          </commandScript>
+          <configFiles>
+            <configFile>
+              <type>xml</type>
+              <fileName>hbase-thrift-site.xml</fileName>
+              <dictionaryName>hbase-thrift-site</dictionaryName>
+            </configFile>
+          </configFiles>
+          <logs>
+            <log>
+              <logId>hbase_thrift</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
+        </component>
+
+        <component>
           <name>HBASE_CLIENT</name>
           <displayName>HBase Client</displayName>
           <category>CLIENT</category>
@@ -150,6 +176,7 @@
         <config-type>viewfs-mount-table</config-type>
         <config-type>hbase-policy</config-type>
         <config-type>hbase-site</config-type>
+        <config-type>hbase-thrift-site</config-type>
         <config-type>hbase-env</config-type>
         <config-type>hbase-log4j</config-type>
         <config-type>ranger-hbase-plugin-properties</config-type>

@@ -87,6 +87,11 @@ App.componentsStateMapper = App.QuickDataMapper.create({
       phoenix_servers_installed: 'INSTALLED_PATH',
       phoenix_servers_total: 'TOTAL_PATH'
     },
+    'HBASE_THRIFT': {
+      thrift_servers_started: 'STARTED_PATH',
+      thrift_servers_installed: 'INSTALLED_PATH',
+      thrift_servers_total: 'TOTAL_PATH'
+    },
     'GANGLIA_MONITOR': {
       ganglia_monitors_started: 'STARTED_PATH',
       ganglia_monitors_installed: 'INSTALLED_PATH',

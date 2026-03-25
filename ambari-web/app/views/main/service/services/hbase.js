@@ -50,6 +50,8 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
 
   phoenixServersText: Em.computed.countBasedMessage('service.phoenixServersTotal', '', Em.I18n.t('services.service.summary.viewHost'), Em.I18n.t('services.service.summary.viewHosts')),
 
+  thriftServersText: Em.computed.countBasedMessage('service.thriftServersTotal', '', Em.I18n.t('services.service.summary.viewHost'), Em.I18n.t('services.service.summary.viewHosts')),
+
   /**
    * One(!) active master component
    */
@@ -87,11 +89,19 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
     componentName: 'PHOENIX_QUERY_SERVER'
   }),
 
+  thriftServerComponent: Em.Object.create({
+    componentName: 'HBASE_THRIFT'
+  }),
+
   isRegionServerCreated: function () {
     return this.isServiceComponentCreated('HBASE_REGIONSERVER');
   }.property('App.router.clusterController.isComponentsStateLoaded'),
 
   isPhoenixQueryServerCreated: function () {
     return this.isServiceComponentCreated('PHOENIX_QUERY_SERVER');
+  }.property('App.router.clusterController.isComponentsStateLoaded'),
+
+  isThriftServerCreated: function () {
+    return this.isServiceComponentCreated('HBASE_THRIFT');
   }.property('App.router.clusterController.isComponentsStateLoaded')
 });
