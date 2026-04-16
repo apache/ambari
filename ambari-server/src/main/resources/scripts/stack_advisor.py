@@ -208,9 +208,9 @@ if __name__ == "__main__":
     main(sys.argv)
   except StackAdvisorException as stack_exception:
     traceback.print_exc()
-    print(f"Error occured in stack advisor.\nError details: {str(stack_exception)}")
+    print(f"Error occurred in stack advisor.\nError details: {str(stack_exception)}")
     sys.exit(1)
   except Exception as e:
     traceback.print_exc()
-    print(f"Error occured in stack advisor.\nError details: {str(e)}")
+    print(f"Error occurred in stack advisor.\nError details: {str(e)}")
     sys.exit(2)
