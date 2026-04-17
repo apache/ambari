@@ -51,8 +51,8 @@ abstract class AbstractKerberosDescriptorFactory {
     } else if (!file.isFile() || !file.canRead()) {
       throw new IOException(String.format("%s is not a readable file", file.getAbsolutePath()));
     } else {
-      try {
-        return new Gson().fromJson(new FileReader(file),
+      try (FileReader reader = new FileReader(file)) {
+        return new Gson().fromJson(reader,
             new TypeToken<Map<String, Object>>() {
             }.getType());
       } catch (JsonSyntaxException e) {
