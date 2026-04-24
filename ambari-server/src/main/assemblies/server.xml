@@ -464,6 +464,19 @@
       <outputDirectory>/usr/lib/ambari-server</outputDirectory>
       <unpack>false</unpack>
       <scope>runtime</scope>
+      <!--
+        Exclude legacy JARs brought transitively by dependencies
+(e.g., Hadoop, swagger-jaxrs) that conflict at runtime with the versions
+currently used by Ambari (ehcache 3.x, Jersey 2.x, JAX-RS 2.x).-->
+      <excludes>
+        <exclude>net.sf.ehcache:ehcache</exclude>
+        <exclude>com.sun.jersey:jersey-core</exclude>
+        <exclude>com.sun.jersey:jersey-server</exclude>
+        <exclude>com.sun.jersey:jersey-json</exclude>
+        <exclude>com.sun.jersey:jersey-servlet</exclude>
+        <exclude>com.sun.jersey:jersey-client</exclude>
+        <exclude>javax.ws.rs:jsr311-api</exclude>
+      </excludes>
     </dependencySet>
   </dependencySets>
 </assembly>
