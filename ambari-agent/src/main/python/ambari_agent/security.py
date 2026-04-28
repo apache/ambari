@@ -279,7 +279,8 @@ class CertificateManager:
     stream = opener.open(get_ca_url)
     response = stream.read()
     stream.close()
-    srvr_crt_f = open(self.getSrvrCrtName(), "w+")
+    # Fixed for Python 3: Write response as bytes
+    srvr_crt_f = open(self.getSrvrCrtName(), "wb")
     srvr_crt_f.write(response)
     srvr_crt_f.close()
 
@@ -291,7 +292,9 @@ class CertificateManager:
     passphrase_env_var = self.config.get("security", "passphrase_env_var_name")
     passphrase = os.environ[passphrase_env_var]
     register_data = {"csr": agent_crt_req_content, "passphrase": passphrase}
-    data = json.dumps(register_data)
+
+    # FIXED: Encode JSON string to bytes for Python 3 urllib compatibility
+    data = json.dumps(register_data).encode('utf-8')
     proxy_handler = urllib.request.ProxyHandler({})
     opener = urllib.request.build_opener(proxy_handler)
     urllib.request.install_opener(opener)
@@ -313,6 +316,7 @@ class CertificateManager:
       agentCrtContent = data["signedCa"]
       agentCrtF = open(self.getAgentCrtName(), "w")
       agentCrtF.write(agentCrtContent)
+      agentCrtF.close()
     else:
       # Possible exception is catched higher at Controller
       logger.error(
