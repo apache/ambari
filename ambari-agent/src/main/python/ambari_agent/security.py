@@ -280,6 +280,8 @@ class CertificateManager:
     response = stream.read()
     stream.close()
     # Fixed for Python 3: Write response as bytes
+    if isinstance(response, str):
+      response = response.encode('utf-8')
     srvr_crt_f = open(self.getSrvrCrtName(), "wb")
     srvr_crt_f.write(response)
     srvr_crt_f.close()
