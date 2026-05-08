@@ -29,7 +29,6 @@ from resource_management.core import utils
 from resource_management.core.exceptions import ComponentIsNotRunning, Fail
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import File, Execute
-from resource_management.core.shell import as_user, quote_bash_args
 from resource_management.libraries.functions import get_user_call_output
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.check_process_status import (
@@ -70,9 +69,6 @@ def hive_service(name, action="start", upgrade_type=None):
   )
 
   if action == "start":
-    if name == "hiveserver2":
-      check_fs_root(params.hive_conf_dir, params.execute_path)
-
     daemon_cmd = cmd
     hadoop_home = params.hadoop_home
     hive_bin = "hive"
@@ -187,27 +183,6 @@ def validate_connection(target_path_to_jdbc, hive_lib_path):
   except:
     show_logs(params.hive_log_dir, params.hive_user)
     raise
-
-
-def check_fs_root(conf_dir, execution_path):
-  import params
-
-  if not params.fs_root.startswith("hdfs://"):
-    Logger.info("Skipping fs root check as fs_root does not start with hdfs://")
-    return
-
-  metatool_cmd = format("hive --config {conf_dir} --service metatool")
-  cmd = as_user(
-    format("{metatool_cmd} -listFSRoot", env={"PATH": execution_path}), params.hive_user
-  ) + format(
-    " 2>/dev/null | grep hdfs:// | cut -f1,2,3 -d '/' | grep -v '{fs_root}' | head -1"
-  )
-  code, out = shell.call(cmd)
-
-  if code == 0 and out.strip() != "" and params.fs_root.strip() != out.strip():
-    out = out.strip()
-    cmd = format("{metatool_cmd} -updateLocation {fs_root} {out}")
-    Execute(cmd, user=params.hive_user, environment={"PATH": execution_path})
 
 
 @retry(times=30, sleep_time=10, err_class=Fail)
