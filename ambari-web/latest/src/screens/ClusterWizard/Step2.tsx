@@ -29,7 +29,6 @@ import { ActionTypes } from "./clusterStore/types";
 import WizardFooter from "../../components/StepWizard/WizardFooter";
 import { getStepData } from "../../Utils/Utility";
 import { ContextWrapper } from ".";
-import { get } from "lodash";
 
 type FormFields = {
   targetHosts: string;
@@ -49,11 +48,7 @@ export default function Step2({ installedHosts = [] }: Step2Props) {
     useState(false);
   const { Context } = useContext(ContextWrapper);
   const {
-    stepWizardUtilities: {
-      currentStep,
-      handleNextImperitive,
-      handleBackImperitive,
-    },
+    stepWizardUtilities: { currentStep, handleNextImperitive, handleBackImperitive },
   }: any = useContext(Context);
   const [sshFile, setSshFile] = useState<File | null>(null);
   const sshFileInputField = useRef<HTMLInputElement>(null);
@@ -404,6 +399,7 @@ export default function Step2({ installedHosts = [] }: Step2Props) {
                 <div className="d-flex make-all-grey">
                   <Form.Check
                     type="radio"
+                    id="ssh-registration-radio"
                     {...register("isSshRegistration")}
                     checked={isSshRegistration}
                     onChange={() =>
@@ -411,7 +407,7 @@ export default function Step2({ installedHosts = [] }: Step2Props) {
                     }
                     className="custom-checkbox"
                   />
-                  <Form.Label className="pt-1 ps-2">
+                  <Form.Label htmlFor="ssh-registration-radio" className="pt-1 ps-2">
                     Provide your{" "}
                     <Tooltip
                       message="The SSH Private Key File is used to connect to the target hosts in your cluster to install the Ambari Agent."
@@ -426,13 +422,14 @@ export default function Step2({ installedHosts = [] }: Step2Props) {
                 <div className="d-flex make-all-grey">
                   <Form.Check
                     type="radio"
+                    id="manual-registration-radio"
                     checked={!isSshRegistration}
                     onChange={() =>
                       setValue("isSshRegistration", !isSshRegistration)
                     }
                     className="custom-checkbox"
                   />
-                  <Form.Label className="pt-1 ps-2">
+                  <Form.Label htmlFor="manual-registration-radio" className="pt-1 ps-2">
                     Perform{" "}
                     <Tooltip
                       message="Manually registering the Ambari Agent on each host eliminates the need for SSH and should be performed prior to continuing cluster installation."
@@ -569,7 +566,8 @@ export default function Step2({ installedHosts = [] }: Step2Props) {
           flushStateToDb("cancel");
         }}
         onNext={() => {
-          get(registerRef, "current.click", () => {})?.();
+          //@ts-ignore
+          registerRef?.current?.click();
         }}
         onBack={() => {
           handleBackImperitive();

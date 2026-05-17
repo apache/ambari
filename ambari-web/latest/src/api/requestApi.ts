@@ -15,12 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { set } from "lodash";
-import { ambariApi } from "./config/axiosConfig";
+import { ambariApi, supressErrorAmbariApi } from "./config/axiosConfig";
 export const RequestApi = {
     getRequestStatus: async function (clusterName: string,requestId:string) {
         const url = `/clusters/${clusterName}/requests/${requestId}?fields=*,tasks/Tasks/request_id,tasks/Tasks/command,tasks/Tasks/command_detail,tasks/Tasks/ops_display_name,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status&minimal_response=true`;
-        const response = await ambariApi.request({
+        const response = await supressErrorAmbariApi.request({
             url: url,
             method: "GET",
         });
@@ -44,6 +45,7 @@ export const RequestApi = {
             "Content-Type":"text/plain"
           }
         });
+        set(response, "data.status", response.status);
         return response.data;
     },
     startServices: async function (clusterName: string, payload: any, params: string, method="PUT"){
@@ -68,6 +70,7 @@ export const RequestApi = {
           "Content-Type":"text/plain"
         }
       })
+      set(response, "data.status", response.status);
       return response.data;
     },
     postRequest: async function (clusterName: string, payload: any, method="POST") {
@@ -77,6 +80,7 @@ export const RequestApi = {
         method: method,
         data: payload,
       })
+      set(response, "data.status", response.status);
       return response.data;
     },
     getServices: async function (clusterName: string, payload: any, params: string, method="PUT"){
@@ -119,6 +123,7 @@ export const RequestApi = {
           "Content-Type":"text/plain"
         }
       })
+      set(response, "data.status", response.status);
       return response.data;
     },
     regenerateKeytabs: async function (clusterName: string, payload: any, params: string) {
@@ -131,6 +136,7 @@ export const RequestApi = {
           "Content-Type": "text/plain"
         }
       })
+      set(response, "data.status", response.status);
       return response.data;
     },
     kerberosDescriptor: async function (clusterName: string, payload: any) {

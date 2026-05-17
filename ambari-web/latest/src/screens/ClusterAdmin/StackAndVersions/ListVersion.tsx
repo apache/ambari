@@ -42,7 +42,7 @@ import {
 import { cloneDeep, get, set } from "lodash";
 import { Link, useNavigate } from "react-router-dom";
 import { StackVersion, Item, Response, ClusterCheckPopupData } from "./types";
-import VersionsApi from "../../../api/VersionsApi";
+import VersionsApi from "../../../api/versionsApi";
 import toast from "react-hot-toast";
 import Spinner from "../../../components/Spinner";
 import Modal from "../../../components/Modal";

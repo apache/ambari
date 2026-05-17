@@ -64,7 +64,7 @@ const WizardApi = {
       method: "GET",
     });
     return response.data;
-  },
+  }
 };
 
 export default WizardApi;

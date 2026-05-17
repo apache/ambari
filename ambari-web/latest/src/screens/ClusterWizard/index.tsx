@@ -15,11 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { createContext } from "react";
 import StepWizard from "../../components/StepWizard";
 import useStepWizard from "../../hooks/useStepWizard";
-// import { redirectToAdminView } from "../../Utils/adminViewRedirect";
+import { redirectToAdminView } from "../../Utils/adminViewRedirect";
 
 type PropTypes = {
   Context: any;
@@ -45,8 +44,8 @@ const ClusterCreationWizard = ({
 }: PropTypes) => {
   const stepWizardUtilities = useStepWizard(
     wizardSteps,
-    initialActiveStep
-    // redirectToAdminView
+    initialActiveStep,
+    redirectToAdminView
   );
 
   return (

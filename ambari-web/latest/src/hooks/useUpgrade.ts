@@ -17,7 +17,7 @@
  */
 
 import { useContext, useEffect, useState } from "react";
-import VersionsApi from "../api/VersionsApi";
+import VersionsApi from "../api/versionsApi";
 import usePolling from "./usePolling";
 import toast from "react-hot-toast";
 import { StackVersion, UpgradeData, UpgradeGroup, UpgradeItem, UpgradeParameters } from "../screens/ClusterAdmin/StackAndVersions/types";

@@ -18,7 +18,7 @@
 import { cloneDeep,get, isArray } from "lodash";
 import { getCardinalityValue } from "../../Utils/numberUtils";
 import { ComponentBlueprint } from "./types/ComponentBlueprint";
-// import { trimProperty } from "../CommonConfigs/ConfigUtils";
+import { trimProperty } from "../CommonConfigs/ConfigUtils";
 
 export const isHostname = (hostname: string): boolean => {
   const regex = new RegExp(
@@ -168,8 +168,7 @@ export function formatValuesBeforeSave(property:any){
       }
       break;
     default:
-      // return trimProperty(property, value);
-      return value
+      return trimProperty(property, value);
   }
 }
 

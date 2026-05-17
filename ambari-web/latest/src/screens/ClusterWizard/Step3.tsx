@@ -40,9 +40,9 @@ import { ActionTypes } from "./clusterStore/types";
 import wizardSteps from "./wizardSteps";
 import HostChecks, { getHostWithIssues } from "../Hosts/HostChecks";
 import { useHostChecks } from "../../hooks/useHostChecks";
+import { messages } from "../messages";
 import { ContextWrapper } from ".";
 import modalManager from "../../store/ModalManager";
-import { translate, translateWithVariables } from "../../Utils/Utility";
 
 interface Host {
   name: string;
@@ -177,7 +177,7 @@ export default function Step3({ wizardName = "clusterCreation" }: Step3Props) {
             (_host) => _host.bootStatus === BootStatus.RUNNING
           ) ||
           Date.now() - registrationStartedAt.current <
-          registrationTimeoutSecs * 1000
+            registrationTimeoutSecs * 1000
         ) {
           setTimeout(isHostsRegistered, 3000);
         } else {
@@ -547,8 +547,8 @@ export default function Step3({ wizardName = "clusterCreation" }: Step3Props) {
               currentStatus === BootStatus.REGISTERED
                 ? "text-success make-link"
                 : currentStatus === BootStatus.FAILED
-                  ? "text-danger make-link"
-                  : "text-info make-link"
+                ? "text-danger make-link"
+                : "text-info make-link"
             }
           >
             {statusText}
@@ -622,9 +622,10 @@ export default function Step3({ wizardName = "clusterCreation" }: Step3Props) {
     if (!registeredHosts) {
       return (
         <Alert variant="warning" className="mt-2">
-          {translateWithVariables("installer.step3.warnings.allFailed", {
-            "0": String(unregisteredHosts),
-          })}
+          {get(messages, "installer.step3.warnings.allFailed").replace(
+            "{0}",
+            unregisteredHosts
+          )}
         </Alert>
       );
     }
@@ -637,16 +638,17 @@ export default function Step3({ wizardName = "clusterCreation" }: Step3Props) {
       return (
         <Alert variant="warning" className="mt-2">
           <div>
-            {translateWithVariables("installer.step3.warnings.fails", {
-              "0": String(registeredHosts),
-            })}
+            {get(messages, "installer.step3.warnings.fails").replace(
+              "{0}",
+              registeredHosts
+            )}
             <span
               onClick={() => {
                 setShowHostCheck(true);
               }}
               className="ps-2 custom-link"
             >
-              {translate("installer.step3.warnings.linkText")}
+              {get(messages, "installer.step3.warnings.linkText")}
             </span>
           </div>
         </Alert>
@@ -655,17 +657,16 @@ export default function Step3({ wizardName = "clusterCreation" }: Step3Props) {
       return (
         <Alert variant="warning" className="mt-2">
           <div>
-            {translateWithVariables("installer.step3.warnings.someWarnings", {
-              "0": String(registeredHosts),
-              "1": String(unregisteredHosts),
-            })}
+            {get(messages, "installer.step3.warnings.someWarnings")
+              .replace("{0}", registeredHosts)
+              .replace("{1}", unregisteredHosts)}
             <span
               onClick={() => {
                 setShowHostCheck(true);
               }}
               className="ps-2 custom-link"
             >
-              {translate("installer.step3.warnings.linkText")}
+              {get(messages, "installer.step3.warnings.linkText")}
             </span>
           </div>
         </Alert>
@@ -673,16 +674,17 @@ export default function Step3({ wizardName = "clusterCreation" }: Step3Props) {
     } else {
       return (
         <Alert variant="success" className="mt-2">
-          {translateWithVariables("installer.step3.warnings.noWarnings", {
-            "0": String(registeredHosts),
-          })}
+          {get(messages, "installer.step3.warnings.noWarnings").replace(
+            "{0}",
+            registeredHosts
+          )}
           <span
             onClick={() => {
               setShowHostCheck(true);
             }}
             className="ps-2 custom-link"
           >
-            {translate("installer.step3.noWarnings.linkText")}
+            {get(messages, "installer.step3.noWarnings.linkText")}
           </span>
         </Alert>
       );
@@ -722,9 +724,9 @@ export default function Step3({ wizardName = "clusterCreation" }: Step3Props) {
           />
         ) : null}
         {showRemoveHostsModal ||
-          showOtherRegHostsModal ||
-          showRegLogModal ||
-          showSelectedHostsModal ? (
+        showOtherRegHostsModal ||
+        showRegLogModal ||
+        showSelectedHostsModal ? (
           <Modal {...getModalProps()} />
         ) : null}
         <div>
@@ -774,8 +776,9 @@ export default function Step3({ wizardName = "clusterCreation" }: Step3Props) {
                       <div key={radio.name}>
                         <span className="me-1">|</span>
                         <Form.Label
-                          className={`me-1 p-2 rounded-2 border-0 custom-radio-label ${selectedShowOption === radio.name ? "active" : ""
-                            }`}
+                          className={`me-1 p-2 rounded-2 border-0 custom-radio-label ${
+                            selectedShowOption === radio.name ? "active" : ""
+                          }`}
                           onClick={() =>
                             setSelectedShowOption(radio.name as ShowOptions)
                           }
@@ -841,13 +844,17 @@ export default function Step3({ wizardName = "clusterCreation" }: Step3Props) {
         onNext={() => {
           if (getHostWithIssues(hostCheckResult).length) {
             const modalProps = {
-              modalTitle: translate(
-                "installer.step3.hostWarningsPopup.hostHasWarnings.header"
-              ) as string,
-              modalBody: translate(
-                "installer.step3.hostWarningsPopup.hostHasWarnings"
-              ) as string,
-              onClose: () => { },
+              modalTitle: get(
+                messages,
+                "installer.step3.hostWarningsPopup.hostHasWarnings.header",
+                ""
+              ),
+              modalBody: get(
+                messages,
+                "installer.step3.hostWarningsPopup.hostHasWarnings",
+                ""
+              ),
+              onClose: () => {},
               successCallback: () => {
                 moveToNextStep();
                 modalManager.hide();

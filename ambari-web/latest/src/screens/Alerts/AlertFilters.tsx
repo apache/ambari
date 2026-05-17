@@ -20,7 +20,7 @@ import { useState, useEffect, useMemo, useContext } from 'react';
 import { Form, Row, Col, Dropdown } from 'react-bootstrap';
 import { MergedAlert } from './types';
 import { AlertStatus } from "./alertStatus.ts";
-import { ServiceApi } from '../../api/ServiceApi';
+import { ServiceApi } from '../../api/serviceApi.ts';
 import { AppContext } from '../../store/context';
 
 interface AlertFiltersProps {

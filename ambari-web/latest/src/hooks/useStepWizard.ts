@@ -15,8 +15,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { useState, useEffect } from "react";
-// import { useNavigate } from "react-router-dom";
 import { cloneDeep } from "lodash";
 import { Step } from "../types/StepWizard";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
@@ -118,7 +118,6 @@ const useStepWizard = (steps: any, initialActiveStep = 0, onCancel?: any) => {
       setActiveStep(stepNumber);
     }
   };
-  console.log("Wizard Steps in useStepWizard", wizardSteps);
 
   return {
     activeStep,

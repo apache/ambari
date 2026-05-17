@@ -17,7 +17,7 @@
  */
 
 import { useContext, useEffect, useState } from "react";
-import VersionsApi from "../api/VersionsApi";
+import VersionsApi from "../api/versionsApi";
 import { forEach, get } from "lodash";
 import { AppContext } from "../store/context";
 

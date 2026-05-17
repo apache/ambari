@@ -30,7 +30,7 @@ import {
   uniq,
 } from "lodash";
 import { useContext, useEffect, useRef, useState } from "react";
-import LogApi from "../../api/LogApi";
+import LogApi from "../../api/logApi";
 import { HostsApi } from "../../api/hostsApi";
 import {
   commandDetail,
@@ -38,7 +38,8 @@ import {
   isFinished,
   role,
 } from "../../Utils/Utility";
-import { ServiceApi } from "../../api/ServiceApi";
+import { ServiceApi } from "../../api/serviceApi";
+import { RequestApi } from "../../api/requestApi";
 import { Card, ProgressBar, Stack } from "react-bootstrap";
 import Table from "../../components/Table";
 import classNames from "classnames";
@@ -55,7 +56,6 @@ import { ContextWrapper } from ".";
 import { messages } from "../messages";
 import usePolling from "../../hooks/usePolling";
 import { AppContext } from "../../store/context";
-import { RequestApi } from "../../api/requestApi";
 
 type Step9Props = {
   wizardName?: string;

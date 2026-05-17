@@ -15,10 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { useEffect, useRef } from "react";
 
 const usePrevious = (value:any) => {
-    const ref = useRef<any>(null);
+    const ref = useRef<any>({});
     useEffect(() => {
       ref.current = value;
     });
