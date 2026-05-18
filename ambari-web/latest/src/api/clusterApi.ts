@@ -15,6 +15,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import { set } from "lodash";
 import { ambariApi, supressErrorAmbariApi } from "./config/axiosConfig";
 
 const ClusterApi = {
@@ -50,6 +52,7 @@ const ClusterApi = {
       method:"PUT",
       data
     })
+    set(response, "data.status", response?.status);
     return response.data
   },
   getCluster: async function (clusterName:string) {
@@ -62,7 +65,7 @@ const ClusterApi = {
   },
   getAllClusters: async function () {
     const url = `/clusters`;
-    const response = await ambariApi.request({
+    const response = await supressErrorAmbariApi.request({
       url: url,
       method: "GET",
     });
@@ -86,7 +89,7 @@ const ClusterApi = {
   },
   getRequestById: async function (clusterName: string,requestId:number|string) {
     const url = `/clusters/${clusterName}/requests/${requestId}?fields=*,tasks/Tasks/request_id,tasks/Tasks/command,tasks/Tasks/command_detail,tasks/Tasks/ops_display_name,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status&minimal_response=true`;
-    const response = await ambariApi.request({
+    const response = await supressErrorAmbariApi.request({
       url: url,
       method: "GET",
     });
@@ -116,7 +119,6 @@ const ClusterApi = {
         method: "GET"
     });
     const clusterName = response?.data?.items[0]?.Clusters?.cluster_name;
-    console.log("CLUSTER NAME", response.data.items[0].Clusters.cluster_name)
     return clusterName;
   },
   getClusterData: async function () {
@@ -127,8 +129,8 @@ const ClusterApi = {
     });
     return response.data;
   },
-  getPersistData: async function (key:any) {
-    const url = `/persist/${key}`;
+  getPersistData: async function (key?: any) {
+    const url = key ? `/persist/${key}` : '/persist';
     const response = await supressErrorAmbariApi.request({
       url: url,
       method: "GET",
@@ -197,7 +199,17 @@ const ClusterApi = {
       data: payload,
     });
     return response.data;
+  },
+
+  getClusterMetrics: async function (clusterName: string, fields: string) {
+    const url = `/clusters/${clusterName}?fields=${fields}`;
+    const response = await ambariApi.request({
+      url: url,
+      method: "GET",
+    });
+    return response.data;
+
   }
-  }
+}
 
 export default ClusterApi;

@@ -22,7 +22,7 @@ import { Container, Form, Row, Col, Button, Dropdown } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPowerOff } from '@fortawesome/free-solid-svg-icons';
 import { AppContext } from '../../store/context.tsx';
-import VersionsApi from '../../api/VersionsApi.ts';
+import VersionsApi from '../../api/versionsApi.ts';
 import Spinner from '../../components/Spinner.tsx';
 import Table from '../../components/Table.tsx';
 import { ColumnDef } from '@tanstack/react-table';

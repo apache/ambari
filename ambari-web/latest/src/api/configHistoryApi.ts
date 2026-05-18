@@ -15,18 +15,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { ambariApi } from "./config/axiosConfig";
 
-const LogApi = {
-
-  getLogData: async function (clusterName:string, requestId:string) {
-    const url = `/clusters/${clusterName}/requests/${requestId}?fields=tasks/Tasks/command,tasks/Tasks/command_detail,tasks/Tasks/ops_display_name,tasks/Tasks/exit_code,tasks/Tasks/start_time,tasks/Tasks/end_time,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status&minimal_response=true`;
+const ConfigHistoryApi = {
+  fetchPageSize: async (clusterName: string) => {
+    const url = `/clusters/${clusterName}/configurations/service_config_versions?page_size=1&minimal_response=true`;
     const response = await ambariApi.request({
-      url: url,
+      url,
+      method: "GET",
+    });
+    return response.data;
+  },
+  fetchConfigHistory: async (clusterName: string, parameters: string) => {
+    const url = `/clusters/${clusterName}/configurations/service_config_versions?${parameters}fields=service_config_version,user,group_id,group_name,is_current,createtime,service_name,hosts,service_config_version_note,is_cluster_compatible,stack_id&minimal_response=true`;
+    const response = await ambariApi.request({
+      url,
       method: "GET",
     });
     return response.data;
   },
 };
 
-export default LogApi;
+export default ConfigHistoryApi;

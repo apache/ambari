@@ -15,11 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 /* eslint-disable @typescript-eslint/ban-types */
 import { useEffect, useRef, useCallback, useState } from 'react';
 
 function usePolling(apiFunction: Function, interval = 2000) {
-  const savedCallback = useRef<Function>(null);
+  const savedCallback = useRef<Function | null>(null);
   const intervalId = useRef<NodeJS.Timeout | null>(null);
   const [isPaused, setIsPaused] = useState(false);
 
@@ -58,7 +59,7 @@ function usePolling(apiFunction: Function, interval = 2000) {
     }
   }, [interval, isPaused, stopPolling]);
 
-  return { stopPolling, pausePolling, resumePolling };
+  return { stopPolling, pausePolling, resumePolling, isPaused };
 }
 
 export default usePolling;

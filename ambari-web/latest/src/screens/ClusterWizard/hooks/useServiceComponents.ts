@@ -15,7 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { useContext, useEffect, useState } from "react";
+import { ChooseServicesApi } from "../../../api/chooseServicesApi";
 import {
   Service,
   ServicesResponse,
@@ -28,7 +30,6 @@ import { ContextWrapper } from "..";
 import { HostsApi } from "../../../api/hostsApi";
 import { AppContext } from "../../../store/context";
 import RecommendationsApi from "../../../api/recommendationsApi";
-import { ChooseServicesApi } from "../../../api/chooseServicesApi";
 
 enum ComponentCategory {
   CLIENT = "CLIENT",

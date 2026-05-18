@@ -17,7 +17,7 @@
  */
 import { useCallback, useContext, useEffect, useState } from "react";
 import { AppContext } from "../../store/context";
-import metricsApi from "../../api/metricsApi";
+import MetricsApi from "../../api/metricsApi";
 import { map } from "lodash";
 import Spinner from "../../components/Spinner";
 import { Card, CardBody, Col, Dropdown, Row } from "react-bootstrap";
@@ -148,7 +148,7 @@ function Heatmaps({ serviceName }: { serviceName: string }) {
 
   const loadRacks = useCallback(async () => {
     try {
-      const data = await metricsApi.getHostsForHeatmaps(clusterName);
+      const data = await MetricsApi.getHostsForHeatmaps(clusterName);
       const {  rackMap: newRackMap, racks: newRacks } = processHostsData(data);
 
       setRackMap(newRackMap);
@@ -168,7 +168,7 @@ function Heatmaps({ serviceName }: { serviceName: string }) {
       const racksLoaded = await loadRacks();
 
       if (racksLoaded) {
-        const data = await metricsApi.getHeatmapWidgets(clusterName, serviceName);
+        const data = await MetricsApi.getHeatmapWidgets(clusterName, serviceName);
         const allMetrics = map(data?.items, (item: any) => {
           item.WidgetInfo.metrics = JSON.parse(item.WidgetInfo.metrics);
           item.WidgetInfo.properties = JSON.parse(item.WidgetInfo.properties);
@@ -205,7 +205,7 @@ function Heatmaps({ serviceName }: { serviceName: string }) {
       try {
         let data;
         if (metric.service_name === "STACK") {
-          data = await metricsApi.getHostsMetrics(clusterName, [metric.metric_path]);
+          data = await MetricsApi.getHostsMetrics(clusterName, [metric.metric_path]);
 
           data.items.forEach((item: any) => {
             const metricCopy = { ...metric };
@@ -220,7 +220,7 @@ function Heatmaps({ serviceName }: { serviceName: string }) {
             }
           });
         } else {
-          data = await metricsApi.getHostComponentsMetrics(
+          data = await MetricsApi.getHostComponentsMetrics(
             clusterName,
             metric.service_name,
             metric.component_name,

@@ -17,6 +17,7 @@
  */
 
 import { useContext, useEffect, useState } from "react";
+import { ChooseServicesApi } from "../../api/chooseServicesApi";
 import Table from "../../components/Table";
 import { cloneDeep, forEach, get, isEmpty, map } from "lodash";
 import { Form } from "react-bootstrap";
@@ -35,7 +36,6 @@ import { getStepData } from "../../Utils/Utility";
 import { ContextWrapper } from ".";
 import { AppContext } from "../../store/context";
 import Spinner from "../../components/Spinner";
-import { ChooseServicesApi } from "../../api/chooseServicesApi";
 
 type Service = {
   displayName: string;
@@ -543,7 +543,7 @@ export default function Step4({ wizardName = "clusterCreation" }) {
             )}
             columns={fileSystemColumns}
           />
-          <h1 className="step-title">Choose Services</h1>
+          <h4 className="step-title">Choose Services</h4>
           <p className="step-description">
             Choose which services you want to install on your cluster.
           </p>

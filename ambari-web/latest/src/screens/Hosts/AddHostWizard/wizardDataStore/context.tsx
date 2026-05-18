@@ -31,7 +31,7 @@ import ClusterApi from "../../../../api/clusterApi";
 import { AppContext } from "../../../../store/context";
 import { forEach, get, isEmpty } from "lodash";
 import { excludeServicesOnDisplay } from "../../../ClusterWizard/constants";
-import VersionsApi from "../../../../api/VersionsApi";
+import VersionsApi from "../../../../api/versionsApi";
 import { HostsApi } from "../../../../api/hostsApi";
 import { getAllComponents } from "../../utils";
 import { ClusterProgressStatus } from "../../../../constants";

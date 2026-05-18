@@ -16,12 +16,11 @@
  * limitations under the License.
  */
 
-import { Card } from "react-bootstrap";
-
-export default function DirectoriesTab() {
-  return (
-    <Card>
-      <h5 className="p-4">Directories Tab</h5>
-    </Card>
-  );
+function OverlayBackdrop({isOpen}:{isOpen: boolean}) {
+    if(isOpen){
+        return <div className="overlay-backdrop"></div>
+    }
+    return null;
 }
+ 
+export default OverlayBackdrop;
