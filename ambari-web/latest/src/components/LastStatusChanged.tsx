@@ -15,11 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { useEffect, useState, memo } from 'react';
 import { format } from 'timeago.js';
 
 interface LastStatusChangedProps {
     timestamp: string | number | null;
+    rawTimestamp?: string | number | null; // Add support for raw timestamp like Ember.js
 }
 
 const parseCustomTimestamp = (timestamp: string | number | null): Date | null => {
@@ -67,13 +69,15 @@ const parseCustomTimestamp = (timestamp: string | number | null): Date | null =>
     }
 };
 
-const LastStatusChanged = memo(({ timestamp }: LastStatusChangedProps) => {
+const LastStatusChanged = memo(({ timestamp, rawTimestamp }: LastStatusChangedProps) => {
     const [formattedTime, setFormattedTime] = useState<string>('-');
 
     useEffect(() => {
         const updateFormattedTime = () => {
             try {
-                const date = parseCustomTimestamp(timestamp);
+                // Use rawTimestamp if available (like Ember.js lastTriggeredRaw), otherwise fall back to timestamp
+                const timestampToUse = rawTimestamp || timestamp;
+                const date = parseCustomTimestamp(timestampToUse);
                 if (date) {
                     setFormattedTime(format(date));
                 } else {
@@ -88,7 +92,7 @@ const LastStatusChanged = memo(({ timestamp }: LastStatusChangedProps) => {
         updateFormattedTime();
         const intervalId = setInterval(updateFormattedTime, 60000);
         return () => clearInterval(intervalId);
-    }, [timestamp]);
+    }, [timestamp, rawTimestamp]);
 
     // For the tooltip, use the original format if it's a string with comma, otherwise use locale string
     let tooltipDate = '-';
@@ -96,7 +100,8 @@ const LastStatusChanged = memo(({ timestamp }: LastStatusChangedProps) => {
         if (typeof timestamp === 'string' && timestamp.includes(',')) {
             tooltipDate = timestamp;
         } else {
-            const date = parseCustomTimestamp(timestamp);
+            const timestampToUse = rawTimestamp || timestamp;
+            const date = parseCustomTimestamp(timestampToUse);
             tooltipDate = date ? date.toLocaleString() : '-';
         }
     } catch (error) {
