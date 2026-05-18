@@ -15,8 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { AxiosResponse } from "axios";
-import { ambariApi } from "./config/axiosConfig";
+import { ambariApi, supressErrorAmbariApi } from "./config/axiosConfig";
+import { set } from "lodash";
 
 const ConfigsApi = {
   getServiceConfigurations: async function (
@@ -50,7 +52,7 @@ const ConfigsApi = {
     payload: any
   ) {
     const url = `stacks/${stack}/versions/${verison}/validations`;
-    const response = await ambariApi.request({
+    const response = await supressErrorAmbariApi.request({
       url: url,
       method: "POST",
       data: payload,
@@ -73,6 +75,20 @@ const ConfigsApi = {
     version: string
   ) {
     const url = `clusters/${clusterName}/configurations/service_config_versions?(service_name=${services}&service_config_version.in(${version}))`;
+    const response = await ambariApi.request({
+      url: url,
+      method: "GET",
+    });
+    return response.data;
+  },
+
+  getMultipleVersionConfigValues: async function (
+    clusterName: string,
+    serviceName: string,
+    version1: string,
+    version2: string
+  ) {
+    const url = `clusters/${clusterName}/configurations/service_config_versions?(service_name=${serviceName}&service_config_version.in(${version1},${version2}))`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
@@ -131,6 +147,14 @@ const ConfigsApi = {
     });
     return data;
   },
+   getConfigsByTagsForService: async function (clusterName: string, params: string) {
+    const url = `/clusters/${clusterName}/configurations?${params}`;
+    const response = await ambariApi.request({
+      url,
+      method: "GET",
+    });
+    return response
+  },
   updateServiceConfigurations: async function (clusterName: string, data: any) {
     const url = `/clusters/${clusterName}`;
     const response = await ambariApi.request({
@@ -154,9 +178,9 @@ const ConfigsApi = {
       method: "PUT",
       data: data.configs,
     });
+    set(response, "data.status", response.status);
     return response.data;
   },
-
   loadConfigsFromStack: async function (
     stack: string,
     version: string,
@@ -252,6 +276,18 @@ const ConfigsApi = {
     });
     return data;
   },
+  serviceMultiConfigurations: async function (
+    clusterName: string,
+    payload: any
+  ) {
+    const url = `/clusters/${clusterName}`;
+    const response = await ambariApi.request({
+      url,
+      method: "PUT",
+      data: payload,
+    });
+    return response.data;
+  },
   getServiceConfigVersions: async function (
     clusterName: string,
     serviceName: string
@@ -264,18 +300,6 @@ const ConfigsApi = {
       method: "GET",
     });
     return response.data.items;
-  },
-  serviceMultiConfigurations: async function (
-    clusterName: string,
-    payload: any
-  ) {
-    const url = `/clusters/${clusterName}`;
-    const response = await ambariApi.request({
-      url,
-      method: "PUT",
-      data: payload,
-    });
-    return response.data;
   },
 };
 
