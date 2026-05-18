@@ -22,7 +22,7 @@ import Spinner from "../../../components/Spinner";
 import Table from "../../../components/Table";
 import { Badge, Button } from "react-bootstrap";
 import { AppContext } from "../../../store/context";
-import VersionsApi from "../../../api/VersionsApi";
+import VersionsApi from "../../../api/versionsApi";
 
 interface Service {
   name: string;

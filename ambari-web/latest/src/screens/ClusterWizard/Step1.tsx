@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 /* eslint-disable no-useless-escape */
 /* eslint-disable no-unsafe-optional-chaining */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
@@ -53,7 +52,7 @@ import {
   faQuestionCircle,
   faUndo,
 } from "@fortawesome/free-solid-svg-icons";
-import VersionsApi from "../../api/VersionsApi";
+import VersionsApi from "../../api/versionsApi";
 import toast from "react-hot-toast";
 import AddVersionModal from "../../components/AddVersionModal";
 import LostNetworkModal from "../../components/LostNetworkModal";
@@ -916,7 +915,7 @@ export default function Step1({ wizardName = "clusterCreation" }) {
             </div>
           </Col>
           <div className="mx-4 mt-4">
-            <h1>Repositories</h1>
+            <h5>Repositories</h5>
             <p>
               Using a Public Repository requires Internet connectivity. Using a
               Local Repository requires you have configured the software in a

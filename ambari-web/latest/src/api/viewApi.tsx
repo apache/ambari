@@ -15,13 +15,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ambariApi } from "./config/axiosConfig";
 
-import { Card } from "react-bootstrap";
+/**
+ * Fetches a list of instance names from the Ambari API.
+ *
+ * @returns {Promise<any[]>} A promise that resolves to an array of instance names.
+ */
+const ViewApi = {
+  getInstances: async function() {
+    const url = `/views?fields=versions/ViewVersionInfo/version,versions/instances/ViewInstanceInfo,versions/*&versions/ViewVersionInfo/system=false`;
+    const response = await ambariApi.request({
+      url: url,
+      method: "GET",
+    });
 
-export default function AllConfigurationsTab() {
-  return (
-    <Card>
-      <h5 className="p-4">All Configurations Tab</h5>
-    </Card>
-  );
-}
+    
+    return response.data
+    
+  }
+};
+
+export default ViewApi;

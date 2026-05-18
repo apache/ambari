@@ -15,6 +15,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import { ReactNode } from "react";
 import { normalizeName } from "../screens/Hosts/helpers";
 import _, { startCase, get, has, isEmpty } from "lodash";
 import { messages } from "../screens/messages";
@@ -48,7 +50,6 @@ import DOMPurify from "isomorphic-dompurify";
 import parse from 'html-react-parser';
 import { t } from "i18next";
 import { HostsApi } from "../api/hostsApi";
-import { JSX } from "react";
 
 export const padNumber = (num: number) => (num < 10 ? `0${num}` : num);
 const components: any = {
@@ -1508,7 +1509,7 @@ export const initialUpgradeMethods = [
     isCheckComplete: false,
     isCheckRequestInProgress: false,
     precheckResultsMessage: "",
-    preCheckResultsModalContent: null as JSX.Element | null,
+    preCheckResultsModalContent: null as ReactNode,
     precheckResultsTitle: "",
     action: "",
     isWizardRestricted: false,
@@ -1529,7 +1530,7 @@ export const initialUpgradeMethods = [
     isCheckComplete: false,
     isCheckRequestInProgress: false,
     precheckResultsMessage: "",
-    preCheckResultsModalContent: null as JSX.Element | null,
+    preCheckResultsModalContent: null as ReactNode,
     precheckResultsTitle: "",
     action: "",
     isWizardRestricted: false,
@@ -1547,9 +1548,554 @@ export const initialUpgradeMethods = [
     isCheckComplete: false,
     isCheckRequestInProgress: false,
     precheckResultsMessage: "",
-    preCheckResultsModalContent: null as JSX.Element | null,
+    preCheckResultsModalContent: null as ReactNode,
     precheckResultsTitle: "",
     action: "",
     cantBeStarted: true,
   },
 ];
+
+export const createFallbackWidgetsForService = (
+  serviceName: string,
+  userName: string,
+) => {
+  const baseWidgets = [];
+
+  // Service-specific widget configurations
+  switch (serviceName.toUpperCase()) {
+    case "AMBARI_METRICS":
+      baseWidgets.push(
+        // Master Average Load
+        {
+          WidgetInfo: {
+            id: "service-metrics-ambari-metrics-master-average-load",
+            widget_name: "Average load",
+            widget_type: "GRAPH",
+            metrics: JSON.stringify([
+              {
+                name: "AverageLoad",
+                service_name: "AMBARI_METRICS",
+                component_name: "METRICS_COLLECTOR",
+                metric_path: "metrics/hbase/master/AverageLoad",
+              },
+            ]),
+            values: JSON.stringify([
+              {
+                name: "Average Load",
+                value: "${AverageLoad}",
+              },
+            ]),
+            properties: JSON.stringify({}),
+            scope: "USER",
+            author: userName,
+            description: "HBase master average load",
+          },
+        },
+        // RegionServer Regions
+        {
+          WidgetInfo: {
+            id: "service-metrics-ambari-metrics-region-server-regions",
+            widget_name: "Number of Regions",
+            widget_type: "GRAPH",
+            metrics: JSON.stringify([
+              {
+                name: "regions",
+                service_name: "AMBARI_METRICS",
+                component_name: "METRICS_COLLECTOR",
+                metric_path: "metrics/hbase/regionserver/regions",
+              },
+            ]),
+            values: JSON.stringify([
+              {
+                name: "Regions",
+                value: "${regions}",
+              },
+            ]),
+            properties: JSON.stringify({}),
+            scope: "USER",
+            author: userName,
+            description: "HBase RegionServer regions",
+          },
+        },
+        // RegionServer Store Files
+        {
+          WidgetInfo: {
+            id: "service-metrics-ambari-metrics-region-server-store-files",
+            widget_name: "Number of StoreFiles",
+            widget_type: "GRAPH",
+            metrics: JSON.stringify([
+              {
+                name: "storefiles",
+                service_name: "AMBARI_METRICS",
+                component_name: "METRICS_COLLECTOR",
+                metric_path: "metrics/hbase/regionserver/storefiles",
+              },
+            ]),
+            values: JSON.stringify([
+              {
+                name: "StoreFiles",
+                value: "${storefiles}",
+              },
+            ]),
+            properties: JSON.stringify({}),
+            scope: "USER",
+            author: userName,
+            description: "HBase RegionServer store files",
+          },
+        },
+        // RegionServer Requests
+        {
+          WidgetInfo: {
+            id: "service-metrics-ambari-metrics-region-server-requests",
+            widget_name: "Total Request Count",
+            widget_type: "GRAPH",
+            metrics: JSON.stringify([
+              {
+                name: "requests._rate",
+                service_name: "AMBARI_METRICS",
+                component_name: "METRICS_COLLECTOR",
+                metric_path: "metrics/hbase/regionserver/requests._rate",
+              },
+            ]),
+            values: JSON.stringify([
+              {
+                name: "Request Rate",
+                value: "${requests._rate}",
+              },
+            ]),
+            properties: JSON.stringify({}),
+            scope: "USER",
+            author: userName,
+            description: "HBase RegionServer requests",
+          },
+        },
+        // RegionServer Block Cache Hit Percent
+        {
+          WidgetInfo: {
+            id: "service-metrics-ambari-metrics-region-server-block-cache-hit-percent",
+            widget_name: "Block Cache Hit Percent",
+            widget_type: "GRAPH",
+            metrics: JSON.stringify([
+              {
+                name: "blockCacheHitPercent",
+                service_name: "AMBARI_METRICS",
+                component_name: "METRICS_COLLECTOR",
+                metric_path: "metrics/hbase/regionserver/blockCacheHitPercent",
+              },
+            ]),
+            values: JSON.stringify([
+              {
+                name: "Block Cache Hit %",
+                value: "${blockCacheHitPercent}",
+              },
+            ]),
+            properties: JSON.stringify({}),
+            scope: "USER",
+            author: userName,
+            description: "HBase RegionServer block cache hit percent",
+          },
+        },
+        // RegionServer Compaction Queue Size
+        {
+          WidgetInfo: {
+            id: "service-metrics-ambari-metrics-region-server-compaction-queue-size",
+            widget_name: "Compaction Queue Size",
+            widget_type: "GRAPH",
+            metrics: JSON.stringify([
+              {
+                name: "compactionQueueSize",
+                service_name: "AMBARI_METRICS",
+                component_name: "METRICS_COLLECTOR",
+                metric_path: "metrics/hbase/regionserver/compactionQueueSize",
+              },
+            ]),
+            values: JSON.stringify([
+              {
+                name: "Compaction Queue",
+                value: "${compactionQueueSize}",
+              },
+            ]),
+            properties: JSON.stringify({}),
+            scope: "USER",
+            author: userName,
+            description: "HBase RegionServer compaction queue size",
+          },
+        },
+      );
+      break;
+
+    case "HDFS":
+      baseWidgets.push(
+        // NameNode GC count
+        {
+          WidgetInfo: {
+            id: "hdfs-namenode-gc-count",
+            widget_name: "NameNode GC count",
+            widget_type: "GRAPH",
+            metrics: JSON.stringify([
+              {
+                name: "jvm.JvmMetrics.GcCount._rate",
+                service_name: "HDFS",
+                component_name: "NAMENODE",
+                metric_path: "metrics/jvm/gcCount._rate",
+                host_component_criteria:
+                  "host_components/metrics/dfs/FSNamesystem/HAState=active",
+              },
+              {
+                name: "jvm.JvmMetrics.GcCountG1 Old Generation._rate",
+                service_name: "HDFS",
+                component_name: "NAMENODE",
+                metric_path: "metrics/jvm/GcCountG1 Old Generation._rate",
+                host_component_criteria:
+                  "host_components/metrics/dfs/FSNamesystem/HAState=active",
+              },
+            ]),
+            values: JSON.stringify([
+              {
+                name: "GC total count",
+                value: "${jvm.JvmMetrics.GcCount._rate}",
+              },
+              {
+                name: "GC count of type major collection",
+                value: "${jvm.JvmMetrics.GcCountG1 Old Generation._rate}",
+              },
+            ]),
+            properties: JSON.stringify({
+              graph_type: "LINE",
+              time_range: "1",
+            }),
+            scope: "USER",
+            author: userName,
+            description:
+              "Count of total garbage collections and count of major type garbage collections of the JVM.",
+          },
+        },
+        // NameNode GC time
+        {
+          WidgetInfo: {
+            id: "hdfs-namenode-gc-time",
+            widget_name: "NameNode GC time",
+            widget_type: "GRAPH",
+            metrics: JSON.stringify([
+              {
+                name: "jvm.JvmMetrics.GcTimeMillisG1 Old Generation._rate",
+                service_name: "HDFS",
+                component_name: "NAMENODE",
+                metric_path: "metrics/jvm/GcTimeMillisG1 Old Generation._rate",
+                host_component_criteria:
+                  "host_components/metrics/dfs/FSNamesystem/HAState=active",
+              },
+            ]),
+            values: JSON.stringify([
+              {
+                name: "GC time in major collection",
+                value: "${jvm.JvmMetrics.GcTimeMillisG1 Old Generation._rate}",
+              },
+            ]),
+            properties: JSON.stringify({
+              display_unit: "ms",
+              graph_type: "LINE",
+              time_range: "1",
+            }),
+            scope: "USER",
+            author: userName,
+            description:
+              "Total time taken by major type garbage collections in milliseconds.",
+          },
+        },
+        // NN Connection Load
+        {
+          WidgetInfo: {
+            id: "hdfs-nn-connection-load",
+            widget_name: "NN Connection Load",
+            widget_type: "GRAPH",
+            metrics: JSON.stringify([
+              {
+                name: "rpc.rpc.client.NumOpenConnections",
+                service_name: "HDFS",
+                component_name: "NAMENODE",
+                metric_path: "metrics/rpc/client/NumOpenConnections",
+                host_component_criteria:
+                  "host_components/metrics/dfs/FSNamesystem/HAState=active",
+              },
+              {
+                name: "rpc.rpc.datanode.NumOpenConnections",
+                service_name: "HDFS",
+                component_name: "NAMENODE",
+                metric_path: "metrics/rpc/datanode/NumOpenConnections",
+                host_component_criteria:
+                  "host_components/metrics/dfs/FSNamesystem/HAState=active",
+              },
+            ]),
+            values: JSON.stringify([
+              {
+                name: "Open Client Connections",
+                value: "${rpc.rpc.client.NumOpenConnections}",
+              },
+              {
+                name: "Open Datanode Connections",
+                value: "${rpc.rpc.datanode.NumOpenConnections}",
+              },
+            ]),
+            properties: JSON.stringify({
+              graph_type: "LINE",
+              time_range: "1",
+            }),
+            scope: "USER",
+            author: userName,
+            description:
+              "Number of open RPC connections being managed by NameNode.",
+          },
+        },
+        // NameNode Heap
+        {
+          WidgetInfo: {
+            id: "hdfs-namenode-heap",
+            widget_name: "NameNode Heap",
+            widget_type: "GRAPH",
+            metrics: JSON.stringify([
+              {
+                name: "jvm.JvmMetrics.MemHeapCommittedM",
+                service_name: "HDFS",
+                component_name: "NAMENODE",
+                metric_path: "metrics/jvm/memHeapCommittedM",
+                host_component_criteria:
+                  "host_components/metrics/dfs/FSNamesystem/HAState=active",
+              },
+              {
+                name: "jvm.JvmMetrics.MemHeapUsedM",
+                service_name: "HDFS",
+                component_name: "NAMENODE",
+                metric_path: "metrics/jvm/memHeapUsedM",
+                host_component_criteria:
+                  "host_components/metrics/dfs/FSNamesystem/HAState=active",
+              },
+            ]),
+            values: JSON.stringify([
+              {
+                name: "JVM heap committed",
+                value: "${jvm.JvmMetrics.MemHeapCommittedM}",
+              },
+              {
+                name: "JVM heap used",
+                value: "${jvm.JvmMetrics.MemHeapUsedM}",
+              },
+            ]),
+            properties: JSON.stringify({
+              display_unit: "MB",
+              graph_type: "LINE",
+              time_range: "1",
+            }),
+            scope: "USER",
+            author: userName,
+            description:
+              "Heap memory committed and Heap memory used with respect to time.",
+          },
+        },
+        // Failed disk volumes
+        {
+          WidgetInfo: {
+            id: "hdfs-failed-disk-volumes",
+            widget_name: "Failed disk volumes",
+            widget_type: "NUMBER",
+            metrics: JSON.stringify([
+              {
+                name: "FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.NumFailedVolumes._sum",
+                service_name: "HDFS",
+                component_name: "DATANODE",
+                metric_path: "metrics/dfs/datanode/NumFailedVolumes",
+              },
+            ]),
+            values: JSON.stringify([
+              {
+                name: "Failed disk volumes",
+                value:
+                  "${FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.NumFailedVolumes._sum}",
+              },
+            ]),
+            properties: JSON.stringify({
+              display_unit: "",
+            }),
+            scope: "USER",
+            author: userName,
+            description:
+              "Number of Failed disk volumes across all DataNodes. Its indicative of HDFS bad health.",
+          },
+        },
+        // Blocks With Corrupted Replicas
+        {
+          WidgetInfo: {
+            id: "hdfs-blocks-corrupted-replicas",
+            widget_name: "Blocks With Corrupted Replicas",
+            widget_type: "NUMBER",
+            metrics: JSON.stringify([
+              {
+                name: "Hadoop:service=NameNode,name=FSNamesystem.CorruptBlocks",
+                service_name: "HDFS",
+                component_name: "NAMENODE",
+                metric_path: "metrics/dfs/FSNamesystem/CorruptBlocks",
+                host_component_criteria:
+                  "host_components/metrics/dfs/FSNamesystem/HAState=active",
+              },
+            ]),
+            values: JSON.stringify([
+              {
+                name: "Blocks With Corrupted Replicas",
+                value:
+                  "${Hadoop:service=NameNode,name=FSNamesystem.CorruptBlocks}",
+              },
+            ]),
+            properties: JSON.stringify({
+              warning_threshold: "0",
+              error_threshold: "50",
+            }),
+            scope: "USER",
+            author: userName,
+            description:
+              "Number represents data blocks with at least one corrupted replica (but not all of them). Its indicative of HDFS bad health.",
+          },
+        },
+        // Under Replicated Blocks
+        {
+          WidgetInfo: {
+            id: "hdfs-under-replicated-blocks",
+            widget_name: "Under Replicated Blocks",
+            widget_type: "NUMBER",
+            metrics: JSON.stringify([
+              {
+                name: "Hadoop:service=NameNode,name=FSNamesystem.UnderReplicatedBlocks",
+                service_name: "HDFS",
+                component_name: "NAMENODE",
+                metric_path: "metrics/dfs/FSNamesystem/UnderReplicatedBlocks",
+                host_component_criteria:
+                  "host_components/metrics/dfs/FSNamesystem/HAState=active",
+              },
+            ]),
+            values: JSON.stringify([
+              {
+                name: "Under Replicated Blocks",
+                value:
+                  "${Hadoop:service=NameNode,name=FSNamesystem.UnderReplicatedBlocks}",
+              },
+            ]),
+            properties: JSON.stringify({
+              warning_threshold: "0",
+              error_threshold: "50",
+            }),
+            scope: "USER",
+            author: userName,
+            description:
+              "Number represents file blocks that does not meet the replication factor criteria. Its indicative of HDFS bad health.",
+          },
+        },
+        // HDFS Space Utilization
+        {
+          WidgetInfo: {
+            id: "hdfs-space-utilization",
+            widget_name: "HDFS Space Utilization",
+            widget_type: "GAUGE",
+            metrics: JSON.stringify([
+              {
+                name: "FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.Remaining",
+                service_name: "HDFS",
+                component_name: "DATANODE",
+                metric_path:
+                  "metrics/FSDatasetState/org/apache/hadoop/hdfs/server/datanode/fsdataset/impl/FsDatasetImpl/Remaining",
+              },
+              {
+                name: "FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.Capacity",
+                service_name: "HDFS",
+                component_name: "DATANODE",
+                metric_path: "metrics/dfs/datanode/Capacity",
+              },
+            ]),
+            values: JSON.stringify([
+              {
+                name: "HDFS Space Utilization",
+                value:
+                  "${(FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.Capacity - FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.Remaining)/FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.Capacity}",
+              },
+            ]),
+            properties: JSON.stringify({
+              warning_threshold: "0.75",
+              error_threshold: "0.9",
+            }),
+            scope: "USER",
+            author: userName,
+            description: "Percentage of available space used in the DFS.",
+          },
+        },
+      );
+      break;
+
+    case "YARN":
+      baseWidgets.push({
+        WidgetInfo: {
+          id: "yarn-resourcemanager-heap",
+          widget_name: "ResourceManager Heap",
+          widget_type: "GRAPH",
+          metrics: JSON.stringify([
+            {
+              name: "resourcemanager_heap",
+              service_name: "YARN",
+              component_name: "RESOURCEMANAGER",
+              metric_path: "metrics/jvm/HeapMemoryUsed",
+            },
+          ]),
+          values: JSON.stringify([]),
+          properties: JSON.stringify({}),
+          scope: "USER",
+          author: userName,
+          description: "ResourceManager Heap Memory",
+        },
+      });
+      break;
+
+    case "HBASE":
+      baseWidgets.push({
+        WidgetInfo: {
+          id: "hbase-master-heap",
+          widget_name: "HBase Master Heap",
+          widget_type: "GRAPH",
+          metrics: JSON.stringify([
+            {
+              name: "hbase_master_heap",
+              service_name: "HBASE",
+              component_name: "HBASE_MASTER",
+              metric_path: "metrics/jvm/HeapMemoryUsed",
+            },
+          ]),
+          values: JSON.stringify([]),
+          properties: JSON.stringify({}),
+          scope: "USER",
+          author: userName,
+          description: "HBase Master Heap Memory",
+        },
+      });
+      break;
+
+    default:
+      baseWidgets.push({
+        WidgetInfo: {
+          id: `${serviceName.toLowerCase()}-default-widget`,
+          widget_name: `${serviceName} Default Widget`,
+          widget_type: "GRAPH",
+          metrics: JSON.stringify([
+            {
+              name: "default_metric",
+              service_name: serviceName,
+              component_name: "DEFAULT_COMPONENT",
+              metric_path: "metrics/jvm/HeapMemoryUsed",
+            },
+          ]),
+          values: JSON.stringify([]),
+          properties: JSON.stringify({}),
+          scope: "USER",
+          author: userName,
+          description: `Default ${serviceName} widget`,
+        },
+      });
+  }
+
+  return baseWidgets;
+};

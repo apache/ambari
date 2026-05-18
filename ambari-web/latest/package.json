@@ -27,6 +27,7 @@
     "isomorphic-dompurify": "^2.26.0",
     "js-cookie": "^3.0.5",
     "lodash": "^4.17.21",
+    "rc-slider": "^11.1.9",
     "react": "^19.0.0",
     "react-bootstrap": "^2.10.10",
     "react-bootstrap-icons": "^1.11.6",

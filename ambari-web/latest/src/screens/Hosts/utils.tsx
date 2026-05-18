@@ -29,7 +29,7 @@ import HostStackVersion, {
   IHostStackVersion,
 } from "../../models/hostStackVersion";
 import { Alert } from "react-bootstrap";
-import { ActionsApi } from "../../api/ActionsApi";
+import { ActionsApi } from "../../api/actionsApi.ts";
 import {
   showErrorModal,
   translate,

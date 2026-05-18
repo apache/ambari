@@ -15,58 +15,97 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ambariApi } from "./config/axiosConfig";
 
-const metricsApi = {
+import { ambariApi, supressErrorAmbariApi } from "./config/axiosConfig";
+
+const MetricsApi = {
   getWidgets: async function (userName: string, urlParams: string ) {
+    const url = `/users/${userName}/activeWidgetLayouts?${urlParams}`;
+
     try {
-      const url = `/users/${userName}/activeWidgetLayouts?${urlParams}`;
       const response = await ambariApi.request({
         url: url,
         method: "GET",
       });
       return response.data;
     } catch (error) {
-      console.warn("Error fetching active widgets from API, using fallback data:", error);
-      // Extract service name from urlParams (format: WidgetLayoutInfo/section_name=SERVICE_SUMMARY)
-      const serviceMatch = urlParams.match(/section_name=(\w+)_SUMMARY/);
-      const serviceName = serviceMatch ? serviceMatch[1] : "HDFS";
-      
-      // Return a fallback structure that matches the expected format
-      return {
-        items: [
-          {
-            WidgetLayoutInfo: {
-              id: "fallback-layout",
-              layout_name: `${serviceName.toLowerCase()}_dashboard`,
-              section_name: `${serviceName}_SUMMARY`,
-              scope: "USER",
-              widgets: [
-                {
-                  WidgetInfo: {
-                    id: "fallback-active-graph",
-                    widget_name: `${serviceName} Metrics Graph`,
-                    widget_type: "GRAPH",
-                    metrics: JSON.stringify([
-                      {
-                        name: "active_metric_graph",
-                        service_name: serviceName,
-                        component_name: serviceName === "HDFS" ? "NAMENODE" : "RESOURCEMANAGER",
-                        metric_path: "metrics/jvm/HeapMemoryMax",
-                      }
-                    ]),
-                    values: JSON.stringify([]),
-                    properties: JSON.stringify({}),
-                    scope: "USER",
-                    author: userName,
-                    description: "Active graph widget (fallback)"
-                  }
-                }
-              ]
-            }
-          }
-        ]
-      };
+      console.warn("Error fetching active widgets from API:", error);
+      throw error; // Let the caller handle the fallback logic
+    }
+  },
+
+  getDefaultWidgetLayoutByName: async function (layoutName: string) {
+    try {
+      const urlParams = `WidgetLayoutInfo/layout_name=${layoutName}`;
+      const url = `/widget_layouts?${urlParams}`;
+      const response = await supressErrorAmbariApi.request({
+        url: url,
+        method: "GET",
+      });
+      return response.data;
+    } catch (error) {
+      console.warn("Error fetching default widget layout:", error);
+      throw error;
+    }
+  },
+
+  createUserWidgetLayout: async function (clusterName: string, widgetLayoutData: any) {
+    try {
+      const url = `/clusters/${clusterName}/widget_layouts`;
+      const response = await ambariApi.request({
+        url: url,
+        method: "POST",
+        data: widgetLayoutData,
+      });
+      return response.data;
+    } catch (error) {
+      console.warn("Error creating user widget layout:", error);
+      throw error;
+    }
+  },
+
+  getAllActiveWidgetLayouts: async function (userName: string) {
+    try {
+      const url = `/users/${userName}/activeWidgetLayouts`;
+      const response = await ambariApi.request({
+        url: url,
+        method: "GET",
+      });
+      return response.data;
+    } catch (error) {
+      console.warn("Error fetching all active widget layouts:", error);
+      throw error;
+    }
+  },
+
+  saveActiveWidgetLayouts: async function (userName: string, activeWidgetLayouts: any) {
+    try {
+      const url = `/users/${userName}/activeWidgetLayouts`;
+      const response = await ambariApi.request({
+        url: url,
+        method: "PUT",
+        data: activeWidgetLayouts,
+      });
+      return response.data;
+    } catch (error) {
+      console.warn("Error saving active widget layouts:", error);
+      throw error;
+    }
+  },
+
+  getWidgetsByService: async function (clusterName: string, serviceName: string) {
+    try {
+      // Get widgets for the specific service
+      const urlParams = `WidgetInfo/widget_type.in(GRAPH,NUMBER,GAUGE)&WidgetInfo/scope=CLUSTER&WidgetInfo/metrics.matches(.*"service_name":"${serviceName}".*)&fields=*`;
+      const url = `/clusters/${clusterName}/widgets?${urlParams}`;
+      const response = await ambariApi.request({
+        url: url,
+        method: "GET",
+      });
+      return response.data;
+    } catch (error) {
+      console.warn("Error fetching widgets by service:", error);
+      throw error;
     }
   },
   getAllSharedWidgets: async function (clusterName: string) {
@@ -281,30 +320,21 @@ const metricsApi = {
     hostComponentCriteria: string,
     metricsPath: string
   ) {
+    // Don't encode the metrics path - let axios handle it properly
+    // encodeURIComponent breaks comma-separated field lists
+    const url = `/clusters/${clusterName}/host_components?HostRoles/component_name=${componentName}&${hostComponentCriteria}&fields=${metricsPath}&format=null_padding`;
+
     try {
-      const url = `/clusters/${clusterName}/host_components?HostRoles/component_name=${componentName}&${hostComponentCriteria}&fields=${metricsPath}&format=null_padding`;
       const response = await ambariApi.request({
         url: url,
         method: "GET",
       });
       return response.data;
     } catch (error) {
-      console.warn("Error fetching host component metrics, returning fallback data:", error);
-      // Return a fallback structure with empty metrics data
+      console.error("Error fetching host component metrics:", error);
+      // Return empty structure to avoid displaying incorrect data
       return {
-        items: [
-          {
-            href: "#",
-            HostRoles: {
-              component_name: componentName,
-              host_name: "localhost"
-            },
-            metrics: {
-              dfs: { namenode: { ClusterId: "fallback-cluster-id" } },
-              jvm: { HeapMemoryMax: 1073741824, HeapMemoryUsed: 536870912 }
-            }
-          }
-        ]
+        items: []
       };
     }
   },
@@ -314,25 +344,25 @@ const metricsApi = {
     serviceName: string,
     metricsPath: string
   ) {
+    // Don't encode the metrics path - let axios handle it properly
+    // encodeURIComponent breaks comma-separated field lists
+    const url = `/clusters/${clusterName}/services/${serviceName}/components/${componentName}?fields=${metricsPath}&format=null_padding`;
+
     try {
-      const url = `/clusters/${clusterName}/services/${serviceName}/components/${componentName}?fields=${metricsPath}&format=null_padding`;
       const response = await ambariApi.request({
         url: url,
         method: "GET",
       });
       return response.data;
     } catch (error) {
-      console.warn("Error fetching service component metrics, returning fallback data:", error);
-      // Return a fallback structure with empty metrics data
+      console.error("Error fetching service component metrics:", error);
+      // Return empty structure to avoid displaying incorrect data
       return {
         ServiceComponentInfo: {
           component_name: componentName,
           service_name: serviceName
         },
-        metrics: {
-          dfs: { namenode: { ClusterId: "fallback-cluster-id" } },
-          jvm: { HeapMemoryMax: 1073741824, HeapMemoryUsed: 536870912 }
-        }
+        metrics: {}
       };
     }
   },
@@ -407,4 +437,4 @@ const metricsApi = {
   },
 };
 
-export default metricsApi;
+export default MetricsApi;

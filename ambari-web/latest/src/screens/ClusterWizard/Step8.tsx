@@ -32,22 +32,21 @@ import {
   uniq,
 } from "lodash";
 import { ServicesResponse } from "./types/StackServiceComponent";
-import { ChooseServicesApi } from "../../api/ChooseServicesApi";
+import { ChooseServicesApi } from "../../api/chooseServicesApi";
 import Spinner from "../../components/Spinner";
 import { formatValuesBeforeSave, minToInstall } from "./utils";
 import { isHAComponentOnly } from "../../Utils/numberUtils";
-import VersionsApi from "../../api/VersionsApi";
+import VersionsApi from "../../api/versionsApi";
 import WizardFooter from "../../components/StepWizard/WizardFooter";
 import ClusterDeploymentApi from "../../api/ClusterDeployment";
 import ClusterApi from "../../api/clusterApi";
 import ExecuteTasksModal from "../../components/ExecuteTasksModal";
-import { ServiceApi } from "../../api/ServiceApi";
+import { ServiceApi } from "../../api/serviceApi";
 import { ActionTypes } from "./clusterStore/types";
 import { ContextWrapper } from ".";
-const { un }
 import { HostsApi } from "../../api/hostsApi";
 import useKDCSessionState from "../../hooks/useKDCSessionState";
-import KerberosApi from "../../api/KerberosApi";
+import KerberosApi from "../../api/kerberosApi";
 import { getConfigTagFromFileName } from "../CommonConfigs/ConfigUtils";
 import { AppContext } from "../../store/context";
 

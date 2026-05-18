@@ -22,7 +22,7 @@ import Tooltip from "./Tooltip";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faQuestionCircle } from "@fortawesome/free-solid-svg-icons";
 import { useState } from "react";
-import VersionsApi from "../api/VersionsApi";
+import VersionsApi from "../api/versionsApi";
 import toast from "react-hot-toast";
 
 type PropTypes = {

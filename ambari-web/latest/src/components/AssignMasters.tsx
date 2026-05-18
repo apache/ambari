@@ -17,42 +17,19 @@
  */
 
 import { useEffect, useReducer, useState } from "react";
-import { Row, Col, Form, Card, Button, CardBody } from "react-bootstrap";
+import { Row, Col, Form, Card, Button, CardBody, Alert } from "react-bootstrap";
+import { ChooseServicesApi } from "../api/chooseServicesApi";
+import AssignMastersApi from "../api/assignMastersApi";
 import { Utility } from "../Utils/Utility.ts";
 import { misc } from "../Utils/misc.ts";
 import Spinner from "./Spinner.tsx";
-import _, { filter, get, map, uniq } from "lodash";
+import { filter, get, map, uniq } from "lodash";
 import Select from "react-select";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons";
-import AssignMastersApi from "../api/AssignMastersApi.ts";
-import { ServicesResponse } from "../screens/ClusterWizard/types/StackServiceComponent.ts";
-import { ChooseServicesApi } from "../api/chooseServicesApi.ts";
-
-interface Host {
-  hostname: string;
-  cores: number;
-  memory: number;
-  components: string[];
-}
-
-interface Masters {
-  display_name: string;
-  component: string;
-  serviceId: string;
-  host_id: number;
-  hostName: string;
-  isInstalled?: boolean;
-}
-
-interface State {
-  hosts: { [key: string]: Host };
-}
-
-interface Action {
-  type: string;
-  payload: any;
-}
+import { blueprintUtils } from "../screens/ClusterWizard/utils.ts";
+import { maxToInstall, isMultipleAllowed } from "../screens/Hosts/utils.tsx";
+import { AssignMastersProps, Host, Masters, State, Action, ServicesResponse } from "../screens/ClusterWizard/types/AssignMastersTypes.ts";
 
 const initialState: State = {
   hosts: {},
@@ -77,12 +54,9 @@ function reducer(state: State, action: Action): State {
 
       // Add component to new host if newHost is not null and it doesn't already exist
       if (newHost && !updatedHosts[newHost].components.includes(component)) {
-        const index = updatedHosts[newHost].components.indexOf(component);
-        if (index !== -1) {
-          updatedHosts[newHost].components.splice(index + 1, 0, component);
-        } else {
-          updatedHosts[newHost].components.push(component);
-        }
+        updatedHosts[newHost].components.push(component);
+        // Note: We don't sort here as the sorting will be handled in the data preparation phase
+        // The components array in state.hosts is just for tracking which components are on which hosts
       }
 
       return {
@@ -95,22 +69,9 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-interface AssignMastersProps {
-  STACK: string;
-  VERSION: string;
-  superMasters: any;
-  hostsList: any;
-  services: string[];
-  setCanProceed: (canProcced: boolean) => void;
-  dispatch: any;
-  installedServices?: string[];
-  parentState?:any;
-}
-
 export default function AssignMasters({
   STACK,
   VERSION,
-  superMasters,
   hostsList,
   services,
   dispatch: dispatchParent,
@@ -125,6 +86,9 @@ export default function AssignMasters({
     ) || initialState);
   const [loading, setLoading] = useState(false);
   const [mastersData, setMastersData] = useState<Masters[]>([]);
+  const [servicesAndComponents, setServicesAndComponents] = useState<ServicesResponse | null>(null);
+  const [generalErrorMessages, setGeneralErrorMessages] = useState<string[]>([]);
+  const [generalWarningMessages, setGeneralWarningMessages] = useState<string[]>([]);
   const notMasters = ["MYSQL_SERVER", "HIVE_SERVER_INTERACTIVE"];
 
   useEffect(() => {
@@ -213,6 +177,14 @@ export default function AssignMasters({
         }
       });
 
+      // Sort hosts alphabetically and create a new sorted object
+      const sortedHostsData: { [key: string]: Host } = {};
+      Object.keys(hostsData)
+        .sort()
+        .forEach(hostname => {
+          sortedHostsData[hostname] = hostsData[hostname];
+        });
+
       // validations.
       const validationPayload = {
         hosts: hostnames,
@@ -228,15 +200,21 @@ export default function AssignMasters({
         },
         services: services,
       };
-      AssignMastersApi.postValidations(validationPayload, STACK, VERSION);
-      //TODO: Check for validations response.
-
-      setCanProceed(true);
-      const servicesAndComponents: ServicesResponse =
+      
+      try {
+        const validationResponse = await AssignMastersApi.postValidations(validationPayload, STACK, VERSION);
+        updateValidationsSuccessCallback(validationResponse);
+      } catch (error) {
+        console.error('Validation API call failed:', error);
+        setCanProceed(false);
+      }
+      const servicesAndComponentsData: ServicesResponse =
         await ChooseServicesApi.getServices(STACK, VERSION);
+      
+      setServicesAndComponents(servicesAndComponentsData);
 
       // Filter components based on is_master and ensure no duplicates on a single host
-      // except for superMaster components like ZOOKEEPER_SERVER which can be on multiple hosts
+      // except for components that allow multiple instances (using isMasterAddableInstallerWizard)
       const assignedComponents = new Set<string>();
       Object.keys(hostsData).forEach((hostname) => {
         hostsData[hostname].components = hostsData[hostname].components.filter(
@@ -244,25 +222,25 @@ export default function AssignMasters({
             if(notMasters.includes(component)) {
               return false;
             }
-            const serviceComponent = servicesAndComponents.items
+            const serviceComponent = servicesAndComponentsData.items
               .flatMap((service: any) => service.components)
               .find(
                 (comp: any) =>
-                  _.get(comp, "StackServiceComponents.component_name") ===
+                  get(comp, "StackServiceComponents.component_name") ===
                   component
               );
 
-            // Allow superMaster components on multiple hosts
-            if (superMasters.includes(component)) {
-              return serviceComponent && 
-                _.get(serviceComponent, "StackServiceComponents.is_master");
+            if (!serviceComponent || !get(serviceComponent, "StackServiceComponents.is_master")) {
+              return false;
             }
 
-            if (
-              serviceComponent &&
-              _.get(serviceComponent, "StackServiceComponents.is_master") &&
-              !assignedComponents.has(component)
-            ) {
+            const stackComponent = get(serviceComponent, "StackServiceComponents");
+            if (isMasterAddableInstallerWizard(stackComponent)) {
+              return true;
+            }
+
+            // For single-instance components, ensure no duplicates
+            if (!assignedComponents.has(component)) {
               assignedComponents.add(component);
               return true;
             }
@@ -271,9 +249,9 @@ export default function AssignMasters({
         );
       });
 
-      dispatch({ type: "SET_HOSTS_DATA", payload: hostsData });
+      dispatch({ type: "SET_HOSTS_DATA", payload: sortedHostsData });
       dispatchParent({
-        hostsData,
+        hostsData: sortedHostsData,
         mastersData: getTransformedMastersData(mastersData),
         state,
       });
@@ -283,11 +261,88 @@ export default function AssignMasters({
   }, []);
   
   useEffect(() => {
+    const transformedMastersData = getTransformedMastersData(mastersData);
     dispatchParent({
-      mastersData: getTransformedMastersData(mastersData),
+      mastersData: transformedMastersData,
       state,
     });
+    validateChange(transformedMastersData)
   }, [mastersData]);
+
+  const isMasterAddableOnlyOnHA = (component: any) => {
+    return ["NAMENODE", "RESOURCEMANAGER", "RANGER_ADMIN"].includes(
+      get(component, "component_name", "")
+    );
+  }
+
+  const isNotAddableOnlyInInstall = (component: any) => {
+    return [
+      "HIVE_METASTORE",
+      "HIVE_SERVER",
+      "RANGER_KMS_SERVER",
+      "OOZIE_SERVER",
+      "TIMELINE_READER",
+      "YARN_REGISTRY_DNS",
+    ].includes(get(component, "component_name", ""));
+  };
+
+  const isMasterAddableInstallerWizard = (component: any) => {
+    return (
+      get(component, "is_master", false) &&
+      isMultipleAllowed(component) &&
+      !isMasterAddableOnlyOnHA(component) &&
+      !isNotAddableOnlyInInstall(component)
+    );
+  };
+
+  const validateChange = async (transformedMastersData: any) => {
+    try {
+      const allHostnames = map(transformedMastersData, "host_name");
+      const hostnames = uniq(allHostnames);
+      const validationResponse = await AssignMastersApi.postValidations(
+        {
+          hosts: hostnames,
+          services,
+          validate: "host_groups",
+          recommendations: getValidationRequestBody(transformedMastersData),
+        },
+        STACK,
+        VERSION,
+      );
+      updateValidationsSuccessCallback(validationResponse);
+    } catch (error) {
+      console.error('Validation API call failed:', error);
+      setCanProceed(false);
+    }
+  };
+
+  const getValidationRequestBody = (transformedMastersData: any) => {
+    const allHostnames = map(transformedMastersData, "host_name");
+    const hostnames = uniq(allHostnames);
+    const masterBlueprint = blueprintUtils.getBlueprint(
+      hostnames,
+      getSelectedMastersGroupedMapping(transformedMastersData)
+    );
+
+    return masterBlueprint;
+  };
+
+  const getSelectedMastersGroupedMapping = (transformedMastersData: any) => {
+    const hostComponentMapping: any = [];
+    transformedMastersData.forEach((selectedMaster: any) => {
+      hostComponentMapping.push({
+        hostname: selectedMaster.host_name,
+        components: selectedMaster.masterServices.map(
+          (selectedComponent: any) => {
+            return {
+              name: selectedComponent.component,
+            };
+          }
+        ),
+      });
+    });
+    return hostComponentMapping;
+  };
 
   const getTransformedMastersData = (mastersDataToBeTransformed: any) => {
     const allHostnames = map(mastersDataToBeTransformed, "hostName");
@@ -309,11 +364,12 @@ export default function AssignMasters({
   };
 
   useEffect(() => {
-    async function setMasterComponentsData() {
-      const servicesAndComponents: ServicesResponse =
-        await ChooseServicesApi.getServices(STACK, VERSION);
+    function setMasterComponentsData() {
+      // Only proceed if we have cached services data
+      if (!servicesAndComponents) {
+        return;
+      }
 
-      
       const mastersData: Masters[] = Object.keys(state.hosts).flatMap(
         (hostname, index) =>
           state.hosts[hostname].components
@@ -323,37 +379,41 @@ export default function AssignMasters({
               .flatMap((service: any) => service.components)
               .find(
                 (comp: any) =>
-                  _.get(comp, "StackServiceComponents.component_name") ===
+                  get(comp, "StackServiceComponents.component_name") ===
                   component
               );
             return {
-              display_name: _.get(
+              display_name: get(
                 serviceComponent,
                 "StackServiceComponents.display_name"
               ),
               component: component,
-              serviceId: _.get(
+              serviceId: get(
                 serviceComponent,
                 "StackServiceComponents.service_name"
               ),
               isInstalled: installedServices?.includes(
-                _.get(serviceComponent, "StackServiceComponents.service_name")
+                get(serviceComponent, "StackServiceComponents.service_name")
               ),
               host_id: index + 1,
               hostName: hostname,
             };
           })
-          // Sort components alphabetically by display_name
-          .sort((a, b) => (a.display_name || '').localeCompare(b.display_name || ''))
       );
+      
+      // Sort all mastersData by display_name to ensure consistent ordering
+      const sortedMastersData = mastersData.sort((a, b) => 
+        (a.display_name || a.component).localeCompare(b.display_name || b.component)
+      );
+      
       dispatchParent({
-        mastersData: getTransformedMastersData(mastersData),
+        mastersData: getTransformedMastersData(sortedMastersData),
         state,
       });
-      setMastersData(mastersData);
+      setMastersData(sortedMastersData);
     }
     setMasterComponentsData();
-  }, [state.hosts]);
+  }, [state.hosts, servicesAndComponents]);
 
   const handleComponentChange = (
     component: string,
@@ -367,11 +427,36 @@ export default function AssignMasters({
       });
     }
   };
+  const getMaxNumberOfMasters = (componentName: string) => {
+    if (!servicesAndComponents) return 1;
+    
+    const serviceComponent = servicesAndComponents.items
+      .flatMap((service: any) => service.components)
+      .find(
+        (comp: any) =>
+          get(comp, "StackServiceComponents.component_name") === componentName
+      );
+
+    if (!serviceComponent) return 1;
+
+    const stackComponent = get(serviceComponent, "StackServiceComponents");
+    const maxToInstallValue = maxToInstall(stackComponent);
+    const hostsNumber = Object.keys(state.hosts).length;
+    
+    return Math.min(maxToInstallValue, hostsNumber);
+  };
 
   const handleAddComponent = (component: string) => {
+    const maxNumMasters = getMaxNumberOfMasters(component);
+    const currentMasters = mastersData.filter(master => master.component === component);
+    
+    if (currentMasters.length >= maxNumMasters) {
+      return false;
+    }
+
     // Find the first host that doesn't already have this component
     const availableHost = Object.keys(state.hosts).find((hostname) => {
-      return !_.get(state.hosts[hostname], "components", []).includes(
+      return !get(state.hosts[hostname], "components", []).includes(
         component as never
       );
     });
@@ -381,16 +466,89 @@ export default function AssignMasters({
         type: "UPDATE_COMPONENT_HOST",
         payload: { component, oldHost: null, newHost: availableHost, state },
       });
+      return true;
     }
+    return false;
   };
 
   const handleRemoveComponent = (component: string, hostname: string) => {
+    const currentMasters = mastersData.filter(master => master.component === component);
+    
+    // Don't allow removal if only one instance exists
+    if (currentMasters.length <= 1) {
+      return false;
+    }
+
     dispatch({
       type: "UPDATE_COMPONENT_HOST",
       payload: { component, oldHost: hostname, newHost: null, state },
     });
+    return true;
   };
 
+  /**
+  * Remove validation messages for components which are already installed
+  */
+  const filterNotInstalledComponents = (validationData: any) => {
+    return validationData.resources[0].items.filter((item: any) => {
+      const host = state.hosts[item.host];
+      return !host || !host.components.includes(item['component-name']);
+    });
+  };
+
+  /**
+   * Process validation response
+   */
+  const updateValidationsSuccessCallback = (data: any) => {
+    const newGeneralErrorMessages: string[] = [];
+    const newGeneralWarningMessages: string[] = [];
+    
+    // Clear existing validation messages from mastersData
+    const updatedMastersData = mastersData.map(master => {
+      const { warnMessage, errorMessage, ...rest } = master;
+      return {
+        ...rest,
+        warnMessage: "",
+        errorMessage: "",
+      };
+    });
+    
+    let anyErrors = false;
+
+    // Process validation data - filter out installed components
+    const validationData = filterNotInstalledComponents(data);
+    validationData
+      .filter((item: any) => item.type === 'host-component')
+      .forEach((item: any) => {
+        // Find the master component that matches this validation item
+        const masterIndex = updatedMastersData.findIndex(master => 
+          master.component === item['component-name'] && 
+          master.hostName === item.host
+        );
+        
+        if (masterIndex !== -1) {
+          if (item.level === 'ERROR') {
+            anyErrors = true;
+            generalErrorMessages.push(item.message);
+            updatedMastersData[masterIndex] = {
+              ...updatedMastersData[masterIndex],
+              errorMessage: item.message
+            };
+          } else if (item.level === 'WARN') {
+            generalWarningMessages.push(item.message);
+            updatedMastersData[masterIndex] = {
+              ...updatedMastersData[masterIndex],
+              warnMessage: item.message
+            };
+          }
+        }
+      });
+
+    setGeneralErrorMessages(newGeneralErrorMessages);
+    setGeneralWarningMessages(newGeneralWarningMessages);
+
+    setCanProceed(!anyErrors);
+  };
 
   return (
     <>
@@ -398,6 +556,30 @@ export default function AssignMasters({
       <p className="step-description">
         Assign master components to hosts you want to run them on.
       </p>
+      
+      {/* Display general validation messages */}
+      {generalErrorMessages.length > 0 && (
+        <Alert variant="danger" className="mb-3">
+          <strong>Validation Errors:</strong>
+          <ul className="mb-0 mt-2">
+            {generalErrorMessages.map((message, index) => (
+              <li key={index}>{message}</li>
+            ))}
+          </ul>
+        </Alert>
+      )}
+      
+      {generalWarningMessages.length > 0 && (
+        <Alert variant="warning" className="mb-3">
+          <strong>Validation Warnings:</strong>
+          <ul className="mb-0 mt-2">
+            {generalWarningMessages.map((message, index) => (
+              <li key={index}>{message}</li>
+            ))}
+          </ul>
+        </Alert>
+      )}
+      
       {loading ? (
         <Spinner />
       ) : (
@@ -405,57 +587,18 @@ export default function AssignMasters({
           <CardBody>
             <Row>
               <Col md={8}>
-                {(() => {
-                  // Get all components from all hosts
-                  const allComponentsWithHosts: Array<{component: string, hostname: string}> = [];
-                  
-                  // Collect all components with their assigned hosts
-                  Object.keys(state.hosts).forEach(hostname => {
-                    state.hosts[hostname].components.forEach(component => {
-                      allComponentsWithHosts.push({
-                        component,
-                        hostname
-                      });
-                    });
-                  });
-                  
-                  // Get display names for all components
-                  const componentDisplayNames: { [key: string]: string } = {};
-                  allComponentsWithHosts.forEach(({component, hostname}) => {
-                    const serviceComponent = mastersData.find(m => 
-                      m.component === component && m.hostName === hostname
-                    );
-                    if (serviceComponent) {
-                      // Use component as key to ensure uniqueness
-                      const key = `${component}-${hostname}`;
-                      componentDisplayNames[key] = serviceComponent.display_name || component;
-                    }
-                  });
-                  
-                  // Sort all components by their display names
-                  return allComponentsWithHosts
-                    // Filter out installed components
-                    .filter(({component, hostname}) => {
-                      const matchingMasterForInstall = mastersData.find(m => 
-                        m.component === component && m.hostName === hostname && m.isInstalled
-                      );
-                      return !(matchingMasterForInstall && matchingMasterForInstall.isInstalled);
-                    })
-                    // Sort by display name
-                    .sort((a, b) => {
-                      const keyA = `${a.component}-${a.hostname}`;
-                      const keyB = `${b.component}-${b.hostname}`;
-                      const displayNameA = componentDisplayNames[keyA] || a.component;
-                      const displayNameB = componentDisplayNames[keyB] || b.component;
-                      return displayNameA.localeCompare(displayNameB);
-                    })
-                    // Render each component
-                    .map(({component, hostname}) => {
-                      const key = `${component}-${hostname}`;
-                      const displayName = componentDisplayNames[key] || component;
-                      
-                      return (
-                        <Row key={`${hostname}-${component}`} className="mb-3">
+                {/* Render components using pre-sorted mastersData */}
+                {mastersData
+                  // Filter out installed components
+                  .filter((master) => !master.isInstalled)
+                  // Render each component
+                  .map((master) => {
+                    const { component, hostName: hostname, display_name, errorMessage, warnMessage } = master;
+                    const displayName = display_name || component;
+                    
+                    return (
+                      <div key={`${hostname}-${component}`}>
+                        <Row className="mb-3">
                           <Col xs={4} className="text-end mt-3">
                             <Form.Label className="fw-100">
                               {displayName}:
@@ -465,7 +608,7 @@ export default function AssignMasters({
                             <Select
                               id={`select-${component}`}
                               value={{ label: hostname, value: hostname }}
-                              onChange={(selectedOption: any) => {
+                              onChange={(selectedOption) => {
                                 if (selectedOption) {
                                   handleComponentChange(
                                     component,
@@ -478,7 +621,7 @@ export default function AssignMasters({
                                 .filter(
                                   (host) =>
                                     host === hostname ||
-                                    !_.get(
+                                    !get(
                                       state.hosts[host],
                                       "components",
                                       []
@@ -492,39 +635,96 @@ export default function AssignMasters({
                             />
                           </Col>
                           <Col xs={4} className="d-flex align-items-center">
-                            {superMasters.includes(component) && (
-                              <>
-                                {Object.keys(state.hosts).some(
-                                  (host) =>
-                                    !state.hosts[host].components.includes(
-                                      component
-                                    )
-                                ) ? (
-                                  <Button
-                                    variant="success"
-                                    size="sm"
-                                    onClick={() => handleAddComponent(component)}
-                                  >
-                                    <FontAwesomeIcon icon={faPlus} />
-                                  </Button>
-                                ) : (
-                                  <Button
-                                    variant="success"
-                                    size="sm"
-                                    onClick={() =>
-                                      handleRemoveComponent(component, hostname)
-                                    }
-                                  >
-                                    <FontAwesomeIcon icon={faMinus} />
-                                  </Button>
-                                )}
-                              </>
-                            )}
+                            {(() => {
+                              // Get the service component to check if it's addable in installer wizard
+                              const serviceComponent = servicesAndComponents?.items
+                                .flatMap((service: any) => service.components)
+                                .find(
+                                  (comp: any) =>
+                                    get(comp, "StackServiceComponents.component_name") === component
+                                );
+
+                              if (!serviceComponent) return null;
+                              const stackComponent = get(serviceComponent, "StackServiceComponents");
+                              const isAddableInInstallerWizard = isMasterAddableInstallerWizard(stackComponent);
+                              if (!isAddableInInstallerWizard) {
+                                return null;
+                              }
+
+                              const componentCount = Object.keys(state.hosts).filter(hostname => 
+                                state.hosts[hostname].components.includes(component)
+                              ).length;
+                              
+                              const totalHosts = Object.keys(state.hosts).length;
+                              
+                              // Logic based on Ember.js implementation:
+                              // 1. Show add control if current count < max allowed masters
+                              // 2. Show remove control if current count > 1 (for non-installed components)
+                              // 3. Respect the maxToInstall cardinality from stack definition
+                              const maxNumMasters = getMaxNumberOfMasters(component);
+                              let showPlusButton = false;
+                              let showMinusButton = false;
+                              
+                              // Show add button if we haven't reached the maximum
+                              if (componentCount < maxNumMasters) {
+                                showPlusButton = true;
+                              }
+                              
+                              // Show remove button if we have more than 1 instance
+                              if (componentCount > 1) {
+                                showMinusButton = true;
+                              }
+                              
+                              return (
+                                <div className="d-flex gap-1">
+                                  {showPlusButton && (
+                                    <Button
+                                      variant="success"
+                                      size="sm"
+                                      className="h15"
+                                      onClick={() => handleAddComponent(component)}
+                                      title={`Add ${component} (${componentCount}/${totalHosts})`}
+                                    >
+                                      <FontAwesomeIcon icon={faPlus} />
+                                    </Button>
+                                  )}
+                                  {showMinusButton && (
+                                    <Button
+                                      variant="secondary"
+                                      size="sm"
+                                      onClick={() => handleRemoveComponent(component, hostname)}
+                                      title={`Remove ${component} (${componentCount}/${totalHosts})`}
+                                    >
+                                      <FontAwesomeIcon icon={faMinus} />
+                                    </Button>
+                                  )}
+                                </div>
+                              );
+                            })()}
                           </Col>
                         </Row>
-                      );
-                    });
-                })()}
+                        {/* Display validation messages */}
+                        {errorMessage && (
+                          <Row className="mb-2">
+                            <Col xs={12}>
+                              <Alert variant="danger" className="py-2 small">
+                                <strong>Error:</strong> {errorMessage}
+                              </Alert>
+                            </Col>
+                          </Row>
+                        )}
+                        {warnMessage && (
+                          <Row className="mb-2">
+                            <Col xs={12}>
+                              <Alert variant="warning" className="py-2 small">
+                                <strong>Warning:</strong> {warnMessage}
+                              </Alert>
+                            </Col>
+                          </Row>
+                        )}
+                      </div>
+                    );
+                  })}
               </Col>
 
               <Col md={4}>

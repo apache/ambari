@@ -33,7 +33,7 @@ import _, { get } from "lodash";
 import Modal from "../../../components/Modal";
 import { useUpgrade } from "../../../hooks/useUpgrade";
 import Spinner from "../../../components/Spinner";
-import VersionsApi from "../../../api/VersionsApi";
+import VersionsApi from "../../../api/versionsApi";
 import { AppContext } from "../../../store/context";
 import toast from "react-hot-toast";
 import modalManager from "../../../store/ModalManager";

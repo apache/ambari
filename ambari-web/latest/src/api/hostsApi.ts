@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+import { set } from "lodash";
 import { ambariApi } from "./config/axiosConfig";
 
 export const HostsApi = {
@@ -181,6 +182,7 @@ export const HostsApi = {
         },
       },
     });
+    set(response, "data.status", response.status);
     return response.data;
   },
   updateHostComponents: async function (
@@ -209,6 +211,7 @@ export const HostsApi = {
         },
       }),
     });
+    set(response, "data.status", response?.status)
     return response.data;
   },
   deleteHostComponent: async function (
@@ -221,6 +224,7 @@ export const HostsApi = {
       url: url,
       method: "DELETE",
     });
+    set(response, "data.status", response.status);
     return response.data;
   },
   deleteHostComponents: async function (data: any, clusterName: string) {
@@ -239,6 +243,7 @@ export const HostsApi = {
       method: "POST",
       data: data,
     });
+     set(response, "data.status", response?.status)
     return response.data;
   },
   getHostsData: async function (fields: string) {
@@ -477,6 +482,16 @@ export const HostsApi = {
     });
     return response.data;
   },
+  commonServiceConfigurationsMove: async function (clusterName: string, data: any) {
+    const url = `/clusters/${clusterName}`;
+    const response = await ambariApi.request({
+      url: url,
+      method: "PUT",
+      data,
+    });
+    set(response, "data.status", response?.status)
+    return response.data;
+  },
   updateServicePassiveState: async function (
     clusterName: string,
     serviceName: string,
@@ -652,6 +667,33 @@ export const HostsApi = {
             service_name: data.serviceName,
             component_name: data.componentName,
             hosts: data.hosts,
+          },
+        ],
+      }),
+    });
+    return response.data;
+  },
+  transitionToObserver: async function (clusterName: string, data: any) {
+    const url = `/clusters/${clusterName}/requests`;
+    const response = await ambariApi.request({
+      url: url,
+      method: "POST",
+      data: JSON.stringify({
+        RequestInfo: {
+          context: data.context,
+          command: "MAKEOBSERVER",
+          operation_level: {
+            level: "HOST_COMPONENT",
+            cluster_name: clusterName,
+            host_name: data.hostName,
+            service_name: "HDFS",
+          },
+        },
+        "Requests/resource_filters": [
+          {
+            service_name: "HDFS",
+            component_name: "NAMENODE",
+            hosts: data.hostName,
           },
         ],
       }),

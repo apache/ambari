@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { ambariApi } from "./config/axiosConfig";
+import { ambariApi, supressErrorAmbariApi } from "./config/axiosConfig";
 
 const KerberosApi = {
   getKerberosDescriptorProperties: async function (
@@ -57,38 +57,65 @@ const KerberosApi = {
     });
     return response.data;
   },
-  saveKerberosData: async function (clusterName: string, payload: any) {
-    const url = `clusters/${clusterName}/artifacts/kerberos_descriptor`;
-    const response = await ambariApi.request({
+  saveKerberosData: async function(clusterName: string, payload: any) {
+    const url = `clusters/${clusterName}/artifacts/kerberos_descriptor`
+    const response = await supressErrorAmbariApi.request({
       url: url,
       method: "POST",
-      data: payload,
-    });
+      data: payload
+    })
+    return response.data;
+  },
+  saveAndEditKerberosData: async function(clusterName: string, payload: any) {
+    const url = `clusters/${clusterName}/artifacts/kerberos_descriptor`
+    const response = await supressErrorAmbariApi.request({
+      url: url,
+      method: "PUT",
+      data: payload
+    })
     return response.data;
   },
   postKDCAdminCredentials: async function (clusterName: string, payload: any) {
-    const url = `clusters/${clusterName}/credentials/kdc.admin.credential`;
-    const response = await ambariApi.request({
+    const url = `clusters/${clusterName}/credentials/kdc.admin.credential`
+    const response = await supressErrorAmbariApi.request({
       url: url,
       method: "POST",
-      data: payload,
-    });
+      data: payload
+    })
+    return response.data;
+  },
+  postKDCAdminCredentialsSupress: async function (clusterName: string, payload: any) {
+    const url = `clusters/${clusterName}/credentials/kdc.admin.credential`
+    const response = await supressErrorAmbariApi.request({
+      url: url,
+      method: "POST",
+      data: payload
+    })
+    return response.data;
+  },
+  submitKDCAdminCredentials: async function (clusterName: string, payload: any, method: string) {
+    const url = `clusters/${clusterName}/credentials/kdc.admin.credential`
+    const response = await supressErrorAmbariApi.request({
+      url: url,
+      method: method,
+      data: payload
+    })
     return response.data;
   },
   deleteKDCAdminCredentials: async function (clusterName: string) {
-    const url = `clusters/${clusterName}/credentials/kdc.admin.credential`;
+    const url = `clusters/${clusterName}/credentials/kdc.admin.credential`
     const response = await ambariApi.request({
       url: url,
       method: "DELETE",
-    });
+    })
     return response.data;
   },
   getKDCAdminCredentials: async function (clusterName: string) {
-    const url = `clusters/${clusterName}/credentials?fields=Credential/*`;
-    const response = await ambariApi.request({
+    const url = `clusters/${clusterName}/credentials?fields=Credential/*`
+    const response = await supressErrorAmbariApi.request({
       url: url,
       method: "GET",
-    });
+    })
     return response.data;
   },
 
@@ -110,7 +137,7 @@ const KerberosApi = {
     serviceName: string
   ) {
     const url = `clusters/${clusterName}/services/${serviceName}`;
-    const response = await ambariApi.request({
+    const response = await supressErrorAmbariApi.request({
       url: url,
       method: "DELETE",
     });
@@ -123,6 +150,15 @@ const KerberosApi = {
       url: url,
       method: "PUT",
       data: payloadData,
+    });
+    return response.data;
+  },
+
+  getCredentialStoreInfo: async function (clusterName: string) {
+    const url = `clusters/${clusterName}?fields=Clusters/credential_store_properties`;
+    const response = await ambariApi.request({
+      url: url,
+      method: "GET",
     });
     return response.data;
   },

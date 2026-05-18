@@ -26,16 +26,8 @@ import { HostsApi } from "../api/hostsApi";
 import usePolling from "./usePolling";
 import { cloneDeep, get, isEmpty, map, set } from "lodash";
 import { AppContext } from "../store/context";
+import { BootStatus } from "../screens/ClusterWizard/Step3";
 import { sortPropertyLight } from "../screens/Hosts/helpers";
-
-enum BootStatus {
-  PENDING = "PENDING",
-  DONE = "DONE",
-  REGISTERING = "REGISTERING",
-  REGISTERED = "REGISTERED",
-  FAILED = "FAILED",
-  RUNNING = "RUNNING",
-}
 
 type BootHostType = {
   name: string;

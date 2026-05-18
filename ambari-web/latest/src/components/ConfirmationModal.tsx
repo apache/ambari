@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { Button, Modal } from "react-bootstrap";
 import DefaultButton from "./DefaultButton";
 
@@ -26,7 +27,9 @@ type ConfirmationModalProps = {
   successCallback: () => void;
   buttonVariant?: string;
   cancellable?: boolean;
+  primaryButtonText?: string;
   okButtonText?: string;
+  isOkDisabled?: boolean;
 };
 
 export default function ConfirmationModal({
@@ -38,6 +41,7 @@ export default function ConfirmationModal({
   buttonVariant = "success",
   cancellable = true,
   okButtonText = "OK",
+  isOkDisabled,
 }: ConfirmationModalProps) {
   return (
     <Modal
@@ -47,7 +51,7 @@ export default function ConfirmationModal({
       className="custom-modal-container modal-width"
       data-testid="confirmation-modal"
     >
-      <Modal.Header>
+      <Modal.Header closeButton>
         <Modal.Title>
           <h3>{modalTitle}</h3>
         </Modal.Title>
@@ -69,6 +73,7 @@ export default function ConfirmationModal({
           onClick={successCallback}
           size="sm"
           data-testid="confirm-ok-btn"
+          disabled={isOkDisabled}
         >
           {okButtonText}
         </Button>

@@ -20,10 +20,14 @@ import React, { useState } from "react";
 
 interface ServiceContextType {
   allServiceModels: { [key: string]: any };
+  polledHostComponentsData: {};
+  serviceModels: { [key: string]: any };
 }
 
 export const ServiceContext = React.createContext<ServiceContextType>({
   allServiceModels: {},
+  polledHostComponentsData: () => {},
+  serviceModels: {},
 });
 
 interface ServiceProviderProps {
@@ -32,11 +36,16 @@ interface ServiceProviderProps {
 
 const ServiceProvider: React.FC<ServiceProviderProps> = ({ children }) => {
   const [allServiceModels, _setAllServiceModels] = useState<any>({});
+  const [polledHostComponentsData, _setPolledHostComponentsData] = useState<any>(
+    {}
+  );
   //TODO: will be implemented soon to fetch service models and set in context
   return (
     <ServiceContext.Provider
       value={{
         allServiceModels,
+        serviceModels: allServiceModels,
+        polledHostComponentsData
       }}
     >
       {children}

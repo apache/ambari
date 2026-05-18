@@ -34,13 +34,20 @@ export const useHostConfigUpdater = (
   hostApiQueryParams: any,
   allHostModels: Host[],
   setAllHostModels: Function,
-  setTotalItems?: Function
+  setTotalItems?: Function,
+  setPaginationLoading?: Function
 ) => {
   const [hostsData, setHostsData] = useState<any>({});
   const queryData = useRef({});
+  const allHostModelsRef = useRef<Host[]>(allHostModels);
 
   const { clusterName, serviceComponentInfo, parsedSocketMessages } =
     useContext(AppContext);
+
+  // Keep the ref updated with the latest allHostModels
+  useEffect(() => {
+    allHostModelsRef.current = allHostModels;
+  }, [allHostModels]);
 
   useEffect(() => {
     if (parsedSocketMessages.length) {
@@ -50,6 +57,9 @@ export const useHostConfigUpdater = (
           break;
         case "/events/hosts":
           updateHost(parsedSocketMessages[0]);
+          break;
+        case "/events/requests":
+          updateHostOnRequests(parsedSocketMessages[0]);
           break;
         default:
       }
@@ -100,7 +110,8 @@ export const useHostConfigUpdater = (
     );
 
     if (get(response, "items", []).length) {
-      const allHostModelsCopy = cloneDeep(allHostModels);
+      // Use the ref to get the latest allHostModels value, avoiding stale closure
+      const allHostModelsCopy = cloneDeep(allHostModelsRef.current);
       get(response, "items", []).forEach((host: any) => {
         const hostName = get(host, "Hosts.host_name", "");
         const hostModel = allHostModelsCopy.find(
@@ -132,7 +143,8 @@ export const useHostConfigUpdater = (
       staleConfigs: "staleConfigs",
       passiveState: "maintenanceState",
     };
-    let allHostModelsCopy = cloneDeep(allHostModels);
+    // Use the ref to get the latest allHostModels value
+    let allHostModelsCopy = cloneDeep(allHostModelsRef.current);
     get(message, "hostComponents", []).forEach((hostComponent: any) => {
       allHostModelsCopy.forEach((host: Host) => {
         host.hostComponents.forEach((hostComponentModel: HostComponent) => {
@@ -168,7 +180,8 @@ export const useHostConfigUpdater = (
       lastHeartBeatTime: "last_heartbeat_time",
       passiveState: "maintenance_state",
     };
-    let allHostModelsCopy = cloneDeep(allHostModels);
+    // Use the ref to get the latest allHostModels value
+    let allHostModelsCopy = cloneDeep(allHostModelsRef.current);
     allHostModelsCopy.forEach((host: Host) => {
       if (host.hostName === get(message, "host_name", "")) {
         Object.keys(config).forEach((key) => {
@@ -186,6 +199,73 @@ export const useHostConfigUpdater = (
         });
       }
     });
+    setAllHostModels(allHostModelsCopy);
+  };
+
+  const updateHostOnRequests = (message: any) => {
+
+    const requestContext = get(message, "requestContext", "").toLowerCase();
+    const requestStatus = get(message, "requestStatus", "");
+    const hostName = get(message, "Tasks.[0].hostName", "");
+
+    if (requestStatus !== "COMPLETED" || !hostName) {
+      return;
+    }
+
+    let operation = "";
+    let componentType = "";
+
+    if (requestContext.includes("decommission")) {
+      operation = "DECOMMISSION";
+      if (requestContext.includes("datanode")) {
+        componentType = "DATANODE";
+      } else if (requestContext.includes("nodemanager")) {
+        componentType = "NODEMANAGER";
+      } else if (requestContext.includes("regionserver")) {
+        componentType = "HBASE_REGIONSERVER";
+      } else if (requestContext.includes("tasktracker")) {
+        componentType = "TASKTRACKER";
+      }
+    } else if (requestContext.includes("recommission")) {
+      operation = "RECOMMISSION";
+      if (requestContext.includes("datanode")) {
+        componentType = "DATANODE";
+      } else if (requestContext.includes("nodemanager")) {
+        componentType = "NODEMANAGER";
+      } else if (requestContext.includes("regionserver")) {
+        componentType = "HBASE_REGIONSERVER";
+      } else if (requestContext.includes("tasktracker")) {
+        componentType = "TASKTRACKER";
+      }
+    }
+
+    if (operation && componentType) {
+      updateComponentAdminState(hostName, componentType, operation);
+    }
+  };
+
+  const updateComponentAdminState = (
+    hostName: string,
+    componentType: string,
+    operation: string
+  ) => {
+    // Use the ref to get the latest allHostModels value
+    const allHostModelsCopy = cloneDeep(allHostModelsRef.current);
+
+    allHostModelsCopy.forEach((host: Host) => {
+      if (host.hostName === hostName) {
+        host.hostComponents.forEach((hostComponent: HostComponent) => {
+          if (hostComponent.componentName === componentType) {
+            if (operation === "DECOMMISSION") {
+              set(hostComponent, "adminState", "DECOMMISSIONED");
+            } else if (operation === "RECOMMISSION") {
+              set(hostComponent, "adminState", "INSERVICE");
+            }
+          }
+        });
+      }
+    });
+
     setAllHostModels(allHostModelsCopy);
   };
 
@@ -410,5 +490,9 @@ export const useHostConfigUpdater = (
       allHostModelsCopy.push(hostModel);
     });
     setAllHostModels(allHostModelsCopy);
+
+    if (setPaginationLoading) {
+      setPaginationLoading(false);
+    }
   };
 };

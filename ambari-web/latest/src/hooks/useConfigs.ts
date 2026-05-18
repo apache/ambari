@@ -15,12 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import {  useRef, useEffect } from "react";
 import { find, get, isEmpty, isObject, merge } from "lodash";
 import {  filenameExceptions } from "../constants";
 import secureMappingObj from "../data/secure_mappings";
 import siteProperties from "../data/BIGTOP/site_properties";
-import propertyNameMapping from "../data/configs/propertyNameMapping"
+import propertyNameMapping from "../data/configs/propertyNameMapping";
 
 
 export const useConfigs = (configs?: any, stackServices = []) => {

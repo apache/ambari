@@ -695,19 +695,17 @@ export const useDecommissionable = (host: IHost) => {
       await componentHandler.loadDecommissionStatus(component);
     }
   };
-
+  
   useEffect(() => {
-    if (!isEmpty(host) && !isEmpty(get(serviceModels, "hdfs.nameNode"))) {
-      get(host, "hostComponents", []).forEach(
-        (hostComponent: IHostComponent) => {
-          loadComponentDecommissionStatus(hostComponent);
-        }
-      );
+    if (!isEmpty(host)) {    
+      get(host, "hostComponents", []).forEach((hostComponent: IHostComponent) => {
+        loadComponentDecommissionStatus(hostComponent);
+      });
     }
   }, [
     JSON.stringify(host),
     JSON.stringify(get(serviceModels, "hdfs.nameNode")),
-    JSON.stringify(get(serviceModels, "hbase.masterComponents")),
+    JSON.stringify(get(serviceModels, "hbase.masterComponents"))
   ]);
 
   return {
