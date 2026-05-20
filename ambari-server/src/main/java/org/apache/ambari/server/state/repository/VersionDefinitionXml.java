@@ -583,6 +583,17 @@ public class VersionDefinitionXml {
   private static VersionDefinitionXml load(InputStream stream) throws Exception {
 
     XMLInputFactory xmlFactory = XMLInputFactory.newInstance();
+    // Harden the XMLInputFactory against XXE
+    try {
+      xmlFactory.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.FALSE);
+    } catch (IllegalArgumentException ignored) {
+      // Property not supported by this implementation; ignore.
+    }
+    try {
+      xmlFactory.setProperty("javax.xml.stream.isSupportingExternalEntities", Boolean.FALSE);
+    } catch (IllegalArgumentException ignored) {
+      // Property not supported by this implementation; ignore.
+    }
     XMLStreamReader xmlReader = xmlFactory.createXMLStreamReader(stream);
 
     xmlReader.nextTag();
@@ -602,6 +613,22 @@ public class VersionDefinitionXml {
     Unmarshaller unmarshaller = ctx.createUnmarshaller();
 
     SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+    // Harden the SchemaFactory against XXE and external resource loading
+    try {
+      factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+    } catch (Exception ignored) {
+      // Feature not supported; ignore.
+    }
+    try {
+      factory.setProperty("http://apache.org/xml/properties/accessExternalDTD", "");
+    } catch (IllegalArgumentException ignored) {
+      // Property not supported by this implementation; ignore.
+    }
+    try {
+      factory.setProperty("http://apache.org/xml/properties/accessExternalSchema", "");
+    } catch (IllegalArgumentException ignored) {
+      // Property not supported by this implementation; ignore.
+    }
     Schema schema = factory.newSchema(new StreamSource(xsdStream));
     unmarshaller.setSchema(schema);
 

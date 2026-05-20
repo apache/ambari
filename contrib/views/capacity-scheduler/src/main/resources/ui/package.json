@@ -19,7 +19,7 @@
     "uglify-js-brunch": "^1.7.7",
     "clean-css-brunch": "^1.7.1",
     "bower": "^1.2.8",
-    "brunch": "^1.7.13",
+    "brunch": "^2.0.3",
     "scaffolt": "^0.4.3",
     "ember-precompile-brunch": "^0.1.0",
     "less-brunch": "^1.7.2"

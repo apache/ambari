@@ -24,6 +24,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,6 +69,36 @@ public class ProxyService {
 
   private final static Logger LOG = LoggerFactory.getLogger(ProxyService.class);
 
+  /**
+   * Validate that the proxied target URL is safe to use.
+   * This method restricts schemes and disallows obvious internal/loopback hosts.
+   */
+  private static boolean isValidProxyTarget(String url) {
+    if (url == null || url.isEmpty()) {
+      return false;
+    }
+    try {
+      URI uri = new URI(url);
+      String scheme = uri.getScheme();
+      if (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme)) {
+        return false;
+      }
+      String host = uri.getHost();
+      if (host == null || host.isEmpty()) {
+        return false;
+      }
+      String lowerHost = host.toLowerCase();
+      // Disallow loopback and obvious internal hosts; extend as needed.
+      if ("localhost".equals(lowerHost) || lowerHost.startsWith("127.")) {
+        return false;
+      }
+      return true;
+    } catch (URISyntaxException e) {
+      LOG.warn("Invalid proxy target URL syntax: {}", url, e);
+      return false;
+    }
+  }
+
   @GET @ApiIgnore // until documented
   public Response processGetRequestForwarding(@Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(REQUEST_TYPE_GET, ui, null, headers);
@@ -102,7 +134,14 @@ public class ProxyService {
         return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).type(MediaType.TEXT_PLAIN).
             entity(INVALID_PARAM_IN_URL).build();
       }
-      
+
+      // Validate the target URL to mitigate SSRF.
+      if (!isValidProxyTarget(url)) {
+        LOG.error("Rejected proxy request to invalid or disallowed URL {}", url);
+        return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).type(MediaType.TEXT_PLAIN)
+            .entity("Invalid or disallowed target URL").build();
+      }
+
       try {
         HttpURLConnection connection = urlStreamProvider.processURL(url, requestType, body, getHeaderParamsToForward(headers));
         int responseCode = connection.getResponseCode();
