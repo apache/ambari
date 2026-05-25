@@ -272,7 +272,7 @@ const useServiceComponents = (wizardName: string, initialData?: any) => {
           masterComponentHosts
         );
 
-        const clientHost = nonMasterHosts[0] || Object.keys(hosts)[Object.keys(hosts).length - 1];
+        const clientHost = nonMasterHosts[0] || Object.keys(hosts).at(-1);
 
         if (hasClientComponents) {
           allServiceComponents.push({
