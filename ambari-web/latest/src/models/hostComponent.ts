@@ -19,6 +19,7 @@
 import { get } from "lodash";
 import { IHostComponentLog } from "./hostComponentLog";
 import { IHost } from "./host";
+import { ComponentStatus } from "../screens/Hosts/enums";
 
 export interface IHostComponent {
   workStatus: string;
@@ -57,6 +58,7 @@ export interface IHostComponent {
   hasCriticalAlerts: boolean;
   alertsCount: number;
   clusterName: string;
+  nnHAState: string;
   isRunning(): boolean;
   isNotInstalled(): boolean;
   isSlave(): boolean;
@@ -110,10 +112,11 @@ class HostComponent implements IHostComponent {
   recoveryEnabled: boolean;
   advertiseVersion: boolean;
   clusterName: string;
+  nnHAState: string;
 
   constructor(props: IHostComponent) {
-    this.workStatus = get(props, "workStatus", "");
-    this.passiveState = get(props, "passiveState", "");
+    this.workStatus = get(props, "workStatus", ComponentStatus.INIT);
+    this.passiveState = get(props, "passiveState", "OFF");
     this.componentName = get(props, "componentName", "");
     this.displayName = get(props, "displayName", "");
     this.haStatus = get(props, "haStatus", "");
@@ -156,6 +159,7 @@ class HostComponent implements IHostComponent {
     this.hasCriticalAlerts = false;
     this.alertsCount = 0;
     this.clusterName = get(props, "clusterName", "");
+    this.nnHAState = get(props, "nnHAState", "");
   }
 
   isRunning(): boolean {

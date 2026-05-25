@@ -19,7 +19,7 @@
 import { get } from "lodash";
 import { IHost } from "./host";
 import { upperUnderscoreToText } from "../Utils/stringUtils";
-import { translate } from "../Utils/Utility";
+import { messages } from "../screens/messages";
 
 export interface IHostStackVersion {
   stack: string;
@@ -98,9 +98,7 @@ class HostStackVersion implements IHostStackVersion {
 
   static formatStatus(status: string): string {
     return HostStackVersion.statusDefinition.includes(status)
-      ? String(
-          translate(`hosts.host.stackVersions.status.${status.toLowerCase()}`)
-        )
+      ? get(messages, `hosts.host.stackVersions.status.${status.toLowerCase()}`)
       : upperUnderscoreToText(status);
   }
 
