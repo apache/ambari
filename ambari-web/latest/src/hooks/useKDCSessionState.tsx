@@ -17,7 +17,7 @@
  */
 
 import { useContext, useEffect, useRef, useState } from "react";
-import AdminApi from "../api/adminApi";
+import adminApi from "../api/adminApi";
 import { AppContext } from "../store/context";
 import { get } from "lodash";
 import modalManager from "../store/ModalManager";
@@ -31,7 +31,7 @@ function useKDCSessionState(cancelHandler: unknown) {
   async function getSecurityType(additionalCallback: any) {
     if (securityEnabled || isKerberosEnabled) {
       try {
-        const data = await AdminApi.getSecurityType(clusterName);
+        const data = await adminApi.getSecurityType(clusterName);
         const kdcType =
           data?.items?.[0]?.configurations?.find(
             (config: any) => config.type === "kerberos-env"
@@ -48,7 +48,7 @@ function useKDCSessionState(cancelHandler: unknown) {
   useEffect(() => {
     async function getSecurityStatus() {
       try {
-        const data = await AdminApi.getSecurityStatus(clusterName);
+        const data = await adminApi.getSecurityStatus(clusterName);
         setIsLoaded(true);
         const securityType = data.Clusters.security_type;
         setSecurityEnabled(securityType === "KERBEROS");
@@ -66,7 +66,7 @@ function useKDCSessionState(cancelHandler: unknown) {
     if (securityEnabled || isKerberosEnabled) {
       getSecurityType(async function () {
         if (kdc_type.current !== "none") {
-          const data = await AdminApi.getKerberosSessionState(clusterName);
+          const data = await adminApi.getKerberosSessionState(clusterName);
           const res = get(data, "Services.attributes.kdc_validation_result");
           get(data, "Services.attributes.kdc_validation_failure_details");
           if (res.toUpperCase() === "OK") {

@@ -16,17 +16,23 @@
  * limitations under the License.
  */
 
-import bytesToSize from "./numberUtils";
-
-export function findCapacityPercentage (dfsNonDFSCapacity:any, capacityTotal:any)  {
-  let percent:any = capacityTotal && dfsNonDFSCapacity && capacityTotal > 0 ? ((dfsNonDFSCapacity * 100) / capacityTotal).toFixed(2) : 0;
-  if (isNaN(percent) || percent < 0) {
-    percent = 'N/A';
+export interface ClusterRequests {
+    itemTotal: string
+    items: ClusterRequestItem[]
   }
-  return `${percent}%`;
-}
-
-export function diskPart (capacity:any, capacityTotal:any)  {
-    return `${bytesToSize(capacity, 1, 'parseFloat')} / ${bytesToSize(capacityTotal, 1, 'parseFloat')}`;
-}
-
+  
+  export interface ClusterRequestItem {
+    Requests: Requests
+  }
+  
+  export interface Requests {
+    cluster_name: string
+    end_time: number
+    id: number
+    progress_percent: number
+    request_context: string
+    request_status: string
+    start_time: number
+    user_name: string
+  }
+  

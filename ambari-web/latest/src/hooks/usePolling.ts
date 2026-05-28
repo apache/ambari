@@ -20,7 +20,7 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 
 function usePolling(apiFunction: Function, interval = 2000) {
-  const savedCallback = useRef<Function | null>(null);
+  const savedCallback = useRef<Function>();
   const intervalId = useRef<NodeJS.Timeout | null>(null);
   const [isPaused, setIsPaused] = useState(false);
 

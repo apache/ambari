@@ -15,56 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const InitialData = {
-  'app': {
-    'loginName': '',
-    'authenticated': false,
-    'configs': [],
-    'tags': [],
-    'tables': {
-      'filterConditions': {},
-      'displayLength': {},
-      'startIndex': {},
-      'sortingConditions': {},
-      'selectedItems': {}
-    }
-  },
 
-  'Installer': {},
-  'AddHost': {},
-  'AddService': {},
-  'WidgetWizard': {},
-  'KerberosWizard': {},
-  'ReassignMaster': {},
-  'AddSecurity': {},
-  'AddAlertDefinition': {
-    content: {}
-  },
-  'HighAvailabilityWizard': {},
-  'RMHighAvailabilityWizard': {},
-  'AddHawqStandbyWizard': {},
-  'RemoveHawqStandbyWizard': {},
-  'ActivateHawqStandbyWizard': {},
-  'RAHighAvailabilityWizard': {},
-  'NameNodeFederationWizard': {},
-  'RollbackHighAvailabilityWizard': {},
-  'MultipleNameNodeWizard': {},
-  'MainAdminStackAndUpgrade': {},
-  'KerberosDisable': {},
-  'tmp': {}
+import { Utility } from "./Utility";
 
-};
 export const LocalStorageOps = {
 
   setItem(key: string, value: string) {
-    localStorage.setItem(key, value);
+    localStorage.setItem(key, Utility.encryptData(value));
   },
 
   getItem(key: string) {
-    return localStorage.getItem(key);
+    return Utility.decryptData(localStorage.getItem(key)||"");
   },
-
-  cleanUpLocalStorage() {
-    localStorage.setItem("ambari", JSON.stringify(InitialData));
-  }
 }
