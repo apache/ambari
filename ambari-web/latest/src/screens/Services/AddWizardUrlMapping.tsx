@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-// @ts-nocheck
 import { useLocation } from "react-router-dom";
 import Modal from "../../components/Modal";
 import ClusterCreationWizard from "../ClusterWizard";

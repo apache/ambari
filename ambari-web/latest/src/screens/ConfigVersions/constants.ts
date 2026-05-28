@@ -16,40 +16,10 @@
  * limitations under the License.
  */
 
-.notification-bell {
-  position: relative;
-  .notification-bell-icon {
-    color: #999999;
-    cursor: pointer;
-    font-size: 16px;
-  }
-  .notification-count {
-    position: absolute;
-    top: -10px;
-    right: -10px;
-    background-color: red;
-    color: white;
-    border-radius: 50%;
-    padding: 5px;
-    font-size: 10px;
-  }
-}
-.alerts-modal {
-  .modal-dialog {
-    width: 50vw !important;
-  }
-  .modal-body {
-    max-height: 50vh !important;
-  }
-}
-.text-light{
-    color:rgb(102, 102, 102)!important;
-}
-.metric-description{
-    color:#999999!important;
-}
-.action-btn{
-  position:absolute;
-  top:-6px;
-  right:15px;
+export enum FilterLevels {
+  OVERRIDDEN = "Overridden",
+  CHANGED = "Changed",
+  FINAL = "Final",
+  ISSUES = "Issues",
+  CLEAR = "Clear",
 }

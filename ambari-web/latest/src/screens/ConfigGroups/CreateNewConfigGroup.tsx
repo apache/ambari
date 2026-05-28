@@ -60,6 +60,7 @@ export default function CreateNewConfigGroup({
         onSubmit={(e: any) => {
           e.preventDefault();
           successCallback(formData);
+          onClose();
         }}
       >
         <Modal.Body>

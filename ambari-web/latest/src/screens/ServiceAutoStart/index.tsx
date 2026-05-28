@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-// @ts-nocheck
 import { useContext, useEffect, useState } from "react";
 import { HostsApi } from "../../api/hostsApi";
 import { cloneDeep, filter, find, forEach, get, map, uniq } from "lodash";

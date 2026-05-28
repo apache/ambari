@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-// @ts-nocheck
 import { ActionsApi } from "../../api/actionsApi";
 import { useContext, useEffect, useState } from "react";
 import { AppContext } from "../../store/context";
@@ -124,7 +123,7 @@ export const Actions = ({ serviceName, className }: ActionsProps) => {
     upgradeSuspended,
     isClusterInstalled
   } = useContext(AppContext);
-  const { allServiceModels, serviceStatesData } = useContext(ServiceContext);
+  const { allServiceModels } = useContext(ServiceContext);
 
   // Authorization hooks - implementing Ember.js App.isAuthorized patterns
   const { hasAuthorization } = useAuth();
@@ -180,7 +179,6 @@ export const Actions = ({ serviceName, className }: ActionsProps) => {
     parsedSocketMessages: socketMessages,
     services,
     allHostNames,
-    serviceCheckSupportedMap,
   } = useContext(AppContext);
   const { serviceModels } = useContext(ServiceContext);
   const payloadOperationLevel = {
@@ -330,34 +328,56 @@ export const Actions = ({ serviceName, className }: ActionsProps) => {
       return false;
     }
 
-    function loadServiceStateFromCache() {
+    async function fetchServiceState() {
       if (
         clusterName &&
         serviceName &&
         installedServiceNames.includes(serviceName)
       ) {
-        const cachedServiceState = serviceStatesData.get(serviceName.toUpperCase());
-        if (cachedServiceState) {
-          setServiceState(cachedServiceState);
-        }
+        const response = await ServiceApi.getServiceState(
+          clusterName,
+          serviceName.toUpperCase()
+        );
+        setServiceState(response.data.ServiceInfo);
       }
     }
 
-    function fetchServiceCheckSupported() {
+    async function fetchServiceCheckSupported() {
       if (!allServiceModels || !allServiceModels[serviceNameModelMapping[serviceName]]) {
         return;
       }
 
-      const isServiceCheckSupportedFromStack = serviceCheckSupportedMap[serviceName] || false;
+      // Match Ember.js logic exactly: check if service supports service check from stack definition
+      let isServiceCheckSupportedFromStack = false;
+      
+      try {
+        const response = await ServiceApi.isServiceCheckSupported(
+          clusterName,
+          //@ts-ignore
+          serviceName,
+          stackName,
+          stackVersion
+        );
+        isServiceCheckSupportedFromStack = get(
+          response.data,
+          "StackServices.service_check_supported",
+          false
+        );
+      } catch (error) {
+        console.error("Error fetching service check support", error);
+        // Default to false if we can't determine support
+        isServiceCheckSupportedFromStack = false;
+      }
 
       // Apply Ember.js isSmokeTestDisabled logic
       let isSmokeTestDisabled = false;
-
+      
       if (isServiceClientOnly) {
         // For client-only services, service check is always enabled (not disabled)
         isSmokeTestDisabled = false;
       } else if (serviceName === "PXF") {
         // Special case for PXF: disabled if any PXF component is down
+        // This would need to be implemented if PXF is supported
         isSmokeTestDisabled = false; // Simplified for now
       } else {
         // For all other services, use isStopDisabled logic
@@ -371,9 +391,9 @@ export const Actions = ({ serviceName, className }: ActionsProps) => {
     }
 
     //fetchClusterName();
-    loadServiceStateFromCache();
+    fetchServiceState();
     fetchServiceCheckSupported();
-  }, [serviceName, clusterName, allServiceModels, serviceModels, serviceStatesData]);
+  }, [serviceName, clusterName, allServiceModels, serviceModels]);
 
   useEffect(() => {
     const message = socketMessages[0];
