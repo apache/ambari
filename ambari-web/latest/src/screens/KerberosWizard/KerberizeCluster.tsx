@@ -26,7 +26,7 @@ import { translate } from "../../Utils/Utility";
 import { get } from "lodash";
 import { ActionTypes } from "./KerberosStore/types";
 import useKDCSessionState from "../../hooks/useKDCSessionState";
-import OperationsProgress from "../../components/OperationProgress";
+import OperationsProgress from "../../components/OperationsProgress";
 
 function KerberizeCluster() {
   const {

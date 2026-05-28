@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { useContext, useEffect, useState } from "react";
 import ClusterApi from "../../api/clusterApi";
 import { Stack } from "react-bootstrap";
@@ -71,7 +72,7 @@ function TaskLogs({ requestId, task,clusterName:clusterNameProps }: TaskLogsProp
         direction="horizontal"
         className="justify-content-between mt-3 w-100"
       >
-        <h1>Task Logs</h1>
+        <h2>Task Logs</h2>
         <Stack direction="horizontal">
           <div
             className="custom-link"

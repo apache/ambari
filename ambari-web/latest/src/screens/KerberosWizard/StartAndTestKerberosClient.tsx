@@ -25,7 +25,7 @@ import { AppContext } from "../../store/context";
 import { translate } from "../../Utils/Utility";
 import { ActionTypes } from "./KerberosStore/types";
 import { get } from "lodash";
-import OperationsProgress from "../../components/OperationProgress";
+import OperationsProgress from "../../components/OperationsProgress";
 
 export default function StartAndTestKerberosClient() {
 

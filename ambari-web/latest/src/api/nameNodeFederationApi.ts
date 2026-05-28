@@ -19,7 +19,7 @@
 import { set } from "lodash";
 import { ambariApi } from "./config/axiosConfig";
 
-const NameNodeFederationApi = {
+const nameNodeFederationApi = {
     formatNameNode : async function(clusterName: string, payload: any) {
         const url = `/clusters/${clusterName}/requests`
         const response = await ambariApi.request({
@@ -53,4 +53,4 @@ const NameNodeFederationApi = {
     }
 }
 
-export default NameNodeFederationApi;
+export default nameNodeFederationApi;

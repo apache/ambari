@@ -16,18 +16,19 @@
  * limitations under the License.
  */
 
+// ambari-web/ui2/src/screens/Alerts/AlertDefinitionDetails.tsx
 import { useState, useEffect, useContext } from 'react';
-import Spinner from '../../components/Spinner.tsx';
+import Spinner from '../../components/Spinner';
 import HeaderSection from './HeaderSection';
 import AlertConfigSection from './AlertConfigSection';
 import InformationSection from './InformationSection';
 import AlertInstancesTable from './AlertInstancesTable';
 import { Container } from "react-bootstrap";
 import { useParams } from "react-router-dom";
-import { AlertsApi } from "../../api/alertsApi.ts";
-import { AppContext } from "../../store/context.tsx";
+import { AlertsApi } from "../../api/alertsApi";
+import { AppContext } from "../../store/context";
 import { processData } from './alertUtils';
-import { AlertStatusObject, MergedAlert } from './types.ts';
+import { AlertStatusObject, MergedAlert } from './types';
 
 interface AlertDefinitionResponseItem {
     AlertDefinition: {

@@ -21,7 +21,7 @@ import { AppContext } from "../../store/context";
 import { map } from "lodash";
 import { translate } from "../../Utils/Utility";
 import useKDCSessionState from "../../hooks/useKDCSessionState";
-import OperationsProgress from "../../components/OperationProgress";
+import OperationsProgress from "../../components/OperationsProgress";
 
 type disableKerberosProps = {
     setDisableKerberosInProgress:any;

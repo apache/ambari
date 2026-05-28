@@ -21,13 +21,12 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { RequestApi } from "../api/requestApi";
 import { AppContext } from "../store/context";
 import { isFailed, isFinished } from "../Utils/Utility";
-import { ProgressStatus } from "../constants";
+import { ProgressStatus, ViewLevel } from "../constants";
 import { Alert, Button, ProgressBar, Stack } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUndo } from "@fortawesome/free-solid-svg-icons";
-//TODO: uncomment below code when background operations modal is implemented
-// import modalManager from "../store/ModalManager";
-// import BackgroundOperations from "../screens/BackgroundOperations";
+import modalManager from "../store/ModalManager";
+import BackgroundOperations from "../screens/BackgroundOperations";
 import { getStatusIcon } from "../Utils/statusIcons";
 
 type PropTypes = {
@@ -244,7 +243,7 @@ function OperationsProgress({
       isFinished(currentActiveOperation?.status || "")
     ) {
       if (currentActiveOperation?.status !== ProgressStatus.FAILED) {
-        if (activeOperationId == operationsState?.[operationsState?.length - 1]?.id) {
+        if (activeOperationId == operationsState?.at(-1)?.id) {
           setCompletionStatus(true);
         } else {
           const currentActiveIndex = operationsState.findIndex(
@@ -334,19 +333,19 @@ function OperationsProgress({
                 <div
                   onClick={() => {
                     if (operation.requestId || operation?.requestInfo?.id) {
-                      // modalManager.show(
-                      //   <BackgroundOperations
-                      //     isExplicitClick
-                      //     isOpen
-                      //     onClose={() => {
-                      //       modalManager.hide();
-                      //     }}
-                      //     rootLevel={ViewLevel.HOSTS}
-                      //     requestId={
-                      //       operation.requestId || operation?.requestInfo?.id
-                      //     }
-                      //   />
-                      // );
+                      modalManager.show(
+                        <BackgroundOperations
+                          isExplicitClick
+                          isOpen
+                          onClose={() => {
+                            modalManager.hide();
+                          }}
+                          rootLevel={ViewLevel.HOSTS}
+                          requestId={
+                            operation.requestId || operation?.requestInfo?.id
+                          }
+                        />
+                      );
                     }
                   }}
                   className={`${

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import {AlertStatus} from "./alertStatus.ts";
+import {AlertStatus} from "./alertStatus";
 
 export const STATUS_PRIORITY_ORDER = ['unknown', 'ok', 'warning', 'critical'];
 

@@ -26,7 +26,7 @@ import { translate } from "../../Utils/Utility";
 import { ActionTypes } from "./KerberosStore/types";
 import { get } from "lodash";
 import { useNavigate } from "react-router";
-import OperationsProgress from "../../components/OperationProgress";
+import OperationsProgress from "../../components/OperationsProgress";
 
 function StartAndTestServices() {
 

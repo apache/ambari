@@ -25,7 +25,7 @@ import { Alert } from "react-bootstrap";
 import { translate } from "../../Utils/Utility";
 import { get } from "lodash";
 import { ActionTypes } from "./KerberosStore/types";
-import OperationsProgress from "../../components/OperationProgress";
+import OperationsProgress from "../../components/OperationsProgress";
 
 export default function StopServices() {
   const {

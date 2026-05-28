@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 //@ts-nocheck
 import { useContext, useEffect, useRef, useState } from "react";
 import { Card, Stack } from "react-bootstrap";
@@ -38,7 +39,7 @@ import { formatValuesBeforeSave, minToInstall } from "./utils";
 import { isHAComponentOnly } from "../../Utils/numberUtils";
 import VersionsApi from "../../api/versionsApi";
 import WizardFooter from "../../components/StepWizard/WizardFooter";
-import ClusterDeploymentApi from "../../api/ClusterDeployment";
+import ClusterDeploymentApi from "../../api/clusterDeployment";
 import ClusterApi from "../../api/clusterApi";
 import ExecuteTasksModal from "../../components/ExecuteTasksModal";
 import { ServiceApi } from "../../api/serviceApi";

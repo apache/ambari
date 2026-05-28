@@ -17,22 +17,22 @@
  */
 
 import { useState, useEffect } from 'react';
-import Spinner from '../../components/Spinner.tsx';
-import { AlertsApi } from '../../api/alertsApi.ts';
-import Table from '../../components/Table.tsx';
+import Spinner from '../../components/Spinner';
+import { AlertsApi } from '../../api/alertsApi';
+import Table from '../../components/Table';
 import "../../styles/app.scss";
 import { Button, Form } from 'react-bootstrap';
-import Modal from '../../components/Modal.tsx';
-import CopyButton from '../../components/CopyButton.tsx';
-import { isWithin24Hours } from '../../Utils/Utility.ts';
-import Paginator from "../../components/Paginator.tsx";
-import usePagination from '../../hooks/usePagination.ts';
+import Modal from '../../components/Modal';
+import CopyButton from '../../components/CopyButton';
+import { isWithin24Hours } from '../../Utils/Utility';
+import Paginator from "../../components/Paginator";
+import usePagination from '../../hooks/usePagination';
 import { SortingState } from "@tanstack/react-table";
 import { Link } from "react-router-dom";
-import LastStatusChanged from "../../components/LastStatusChanged.tsx";
+import LastStatusChanged from "../../components/LastStatusChanged";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBriefcase } from '@fortawesome/free-solid-svg-icons';
-import { formatStatus } from '../../Utils/Utility.ts';
+import { formatStatus } from '../../Utils/Utility';
 
 interface AlertInstancesTableProps {
     clusterName: string;

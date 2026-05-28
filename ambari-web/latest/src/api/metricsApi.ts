@@ -18,7 +18,7 @@
 
 import { ambariApi, supressErrorAmbariApi } from "./config/axiosConfig";
 
-const MetricsApi = {
+const metricsApi = {
   getWidgets: async function (userName: string, urlParams: string ) {
     const url = `/users/${userName}/activeWidgetLayouts?${urlParams}`;
 
@@ -437,4 +437,4 @@ const MetricsApi = {
   },
 };
 
-export default MetricsApi;
+export default metricsApi;

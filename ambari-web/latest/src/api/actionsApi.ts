@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { ambariApi } from "./config/axiosConfig.ts";
+import { ambariApi } from "./config/axiosConfig";
 
 export const ActionsApi = {
   serviceAction: async function (

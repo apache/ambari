@@ -16,21 +16,21 @@
  * limitations under the License.
  */
 
-import Table from '../../components/Table.tsx';
-import LastStatusChanged from "../../components/LastStatusChanged.tsx";
-import Paginator from "../../components/Paginator.tsx";
-import usePagination from '../../hooks/usePagination.ts';
-import Spinner from "../../components/Spinner.tsx";
+import Table from '../../components/Table';
+import LastStatusChanged from "../../components/LastStatusChanged";
+import Paginator from "../../components/Paginator";
+import usePagination from '../../hooks/usePagination';
+import Spinner from "../../components/Spinner";
 import {useEffect, useState, useContext} from 'react';
-import {AlertsApi} from "../../api/alertsApi.ts";
-import {getCurrTimeInSec} from "../../Utils/Utility.ts";
-import {AlertDefinition, AlertGroupItem, AlertRow, MergedAlert} from "./types.ts";
+import {AlertsApi} from "../../api/alertsApi";
+import {getCurrTimeInSec} from "../../Utils/Utility";
+import {AlertDefinition, AlertGroupItem, AlertRow, MergedAlert} from "./types";
 import {Container} from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faPowerOff, faBriefcase} from '@fortawesome/free-solid-svg-icons';
 import Modal from '../../components/Modal';
-import {AppContext} from '../../store/context.tsx';
-import { processData, filterAlerts, sortAlerts } from './alertUtils.ts';
+import {AppContext} from '../../store/context';
+import { processData, filterAlerts, sortAlerts } from './alertUtils';
 import '../../styles/app.scss';
 import {Link} from "react-router-dom";
 import {SortingState} from "@tanstack/react-table";

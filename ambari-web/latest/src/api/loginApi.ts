@@ -16,8 +16,8 @@
  * limitations under the License.
  */
 
-import {ambariApi} from "./config/axiosConfig.ts";
-import {misc} from "../Utils/misc.ts";
+import {ambariApi} from "./config/axiosConfig";
+import {misc} from "../Utils/misc";
 import { db } from "../Utils/db";
 import Cookies from 'js-cookie';
 

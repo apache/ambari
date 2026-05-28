@@ -18,7 +18,7 @@
 
 import { ambariApi } from "./config/axiosConfig";
 
-const ComponentApi = {
+const componentApi = {
 
   editComponent: async function (clusterName:string,data:any) {
     const url = `/clusters/${clusterName}/components`;
@@ -31,4 +31,4 @@ const ComponentApi = {
   },
 };
 
-export default ComponentApi;
+export default componentApi;
