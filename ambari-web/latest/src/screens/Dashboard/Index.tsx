@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-// @ts-nocheck
 import { Col, Row, Tab, Tabs } from "react-bootstrap";
 import DashboardMetrics from "./Metrics";
 import DashboardConfigHistory from "./ConfigHistory";

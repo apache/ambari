@@ -15,9 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { useCallback, useContext, useEffect, useState } from "react";
 import { AppContext } from "../../store/context";
-import MetricsApi from "../../api/metricsApi";
+import metricsApi from "../../api/metricsApi";
 import { map } from "lodash";
 import Spinner from "../../components/Spinner";
 import { Card, CardBody, Col, Dropdown, Row } from "react-bootstrap";
@@ -148,7 +149,7 @@ function Heatmaps({ serviceName }: { serviceName: string }) {
 
   const loadRacks = useCallback(async () => {
     try {
-      const data = await MetricsApi.getHostsForHeatmaps(clusterName);
+      const data = await metricsApi.getHostsForHeatmaps(clusterName);
       const {  rackMap: newRackMap, racks: newRacks } = processHostsData(data);
 
       setRackMap(newRackMap);
@@ -168,7 +169,7 @@ function Heatmaps({ serviceName }: { serviceName: string }) {
       const racksLoaded = await loadRacks();
 
       if (racksLoaded) {
-        const data = await MetricsApi.getHeatmapWidgets(clusterName, serviceName);
+        const data = await metricsApi.getHeatmapWidgets(clusterName, serviceName);
         const allMetrics = map(data?.items, (item: any) => {
           item.WidgetInfo.metrics = JSON.parse(item.WidgetInfo.metrics);
           item.WidgetInfo.properties = JSON.parse(item.WidgetInfo.properties);
@@ -205,7 +206,7 @@ function Heatmaps({ serviceName }: { serviceName: string }) {
       try {
         let data;
         if (metric.service_name === "STACK") {
-          data = await MetricsApi.getHostsMetrics(clusterName, [metric.metric_path]);
+          data = await metricsApi.getHostsMetrics(clusterName, [metric.metric_path]);
 
           data.items.forEach((item: any) => {
             const metricCopy = { ...metric };
@@ -220,7 +221,7 @@ function Heatmaps({ serviceName }: { serviceName: string }) {
             }
           });
         } else {
-          data = await MetricsApi.getHostComponentsMetrics(
+          data = await metricsApi.getHostComponentsMetrics(
             clusterName,
             metric.service_name,
             metric.component_name,
@@ -388,9 +389,9 @@ function Heatmaps({ serviceName }: { serviceName: string }) {
             {heatmapMetric && racks.length > 0 ? (
               <div>
                 <div className="mb-3">
-                  <h1 className="p-2 rounded">
+                  <h2 className="p-2 rounded">
                     {selectedMetric?.widget_name || "Heatmap"}
-                  </h1>
+                  </h2>
                 </div>
 
                 <HeatmapGrid
