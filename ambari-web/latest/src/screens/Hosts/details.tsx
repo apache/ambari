@@ -43,6 +43,7 @@ import { IHostStackVersion } from "../../models/hostStackVersion";
 import { Alert } from "react-bootstrap";
 import { IHostComponent } from "../../models/hostComponent";
 import { ComponentStatus } from "./enums";
+import BackgroundOperations from "../BackgroundOperations";
 import { checkNnLastCheckpointTime } from "./actions";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faWarning } from "@fortawesome/free-solid-svg-icons";
@@ -51,9 +52,7 @@ import {
   downloadClientConfigsCall,
   ResourceTypeEnum,
 } from "./supportClientConfigsDownload";
-//TODO: uncomment below lines and their usages after these components are available
-// import BackgroundOperations from "../BackgroundOperations";
-// import RecommendationModal from "../../components/RecommendationModal";
+import RecommendationModal from "../../components/RecommendationModal";
 
 export const doAction = (option: any) => {
   switch (option.action) {
@@ -257,15 +256,15 @@ export const sendComponentsCommand = async (
   );
   const requestId = get(response, "Requests.id", -1);
   if (requestId !== -1) {
-    // modalManager.show(
-    //   <BackgroundOperations
-    //     isOpen={true}
-    //     onClose={() => {
-    //       modalManager.hide();
-    //     }}
-    //     requestId={requestId}
-    //   />
-    // );
+    modalManager.show(
+      <BackgroundOperations
+        isOpen={true}
+        onClose={() => {
+          modalManager.hide();
+        }}
+        requestId={requestId}
+      />
+    );
   }
 };
 
@@ -552,15 +551,15 @@ const doRecoverHost = async (batches: any[], clusterName: string) => {
 const recoverHostSuccessCallback = (response: any) => {
   const requestId = get(response, "data.resources.[0].RequestSchedule.id", -1);
   if (requestId !== -1) {
-    // modalManager.show(
-    //   <BackgroundOperations
-    //     isOpen={true}
-    //     onClose={() => {
-    //       modalManager.hide();
-    //     }}
-    //     requestId={requestId}
-    //   />
-    // );
+    modalManager.show(
+      <BackgroundOperations
+        isOpen={true}
+        onClose={() => {
+          modalManager.hide();
+        }}
+        requestId={requestId}
+      />
+    );
   }
 };
 
@@ -679,7 +678,7 @@ const raiseDeleteComponentsError = (
 };
 
 const reconfigureAndDeleteHost = (
-  _container: any,
+  container: any,
   context: any,
   properties: any
 ) => {
@@ -710,25 +709,25 @@ const reconfigureAndDeleteHost = (
     }
   );
 
-  // modalManager.show(
-  //   <RecommendationModal
-  //     isOpen={true}
-  //     onClose={() => {
-  //       modalManager.hide();
-  //     }}
-  //     componentDisplayName={reconfiguredComponents.join(", ")}
-  //     add={false}
-  //     callback={() => confirmDeleteHost(container, context)}
-  //     commonMessage={
-  //       translateWithVariables(
-  //         "hosts.host.delete.componentsRequireReconfigure",
-  //         {
-  //           "0": reconfiguredComponents.join(", "),
-  //         }
-  //       ) as string
-  //     }
-  //   />
-  // );
+  modalManager.show(
+    <RecommendationModal
+      isOpen={true}
+      onClose={() => {
+        modalManager.hide();
+      }}
+      componentDisplayName={reconfiguredComponents.join(", ")}
+      add={false}
+      callback={() => confirmDeleteHost(container, context)}
+      commonMessage={
+        translateWithVariables(
+          "hosts.host.delete.componentsRequireReconfigure",
+          {
+            "0": reconfiguredComponents.join(", "),
+          }
+        ) as string
+      }
+    />
+  );
 };
 
 const confirmDeleteHost = (container: any, context: any) => {

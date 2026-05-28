@@ -16,18 +16,14 @@
  * limitations under the License.
  */
 
-// import Step10 from "../../ClusterWizard/Step10";
-// import Step3 from "../../ClusterWizard/Step3";
-// import Step8 from "../../ClusterWizard/Step8";
-// import Step9 from "../../ClusterWizard/Step9";
+import Step10 from "../../ClusterWizard/Step10";
+import Step3 from "../../ClusterWizard/Step3";
+import Step8 from "../../ClusterWizard/Step8";
+import Step9 from "../../ClusterWizard/Step9";
 import AddHostConfigurations from "./AddHostConfigurations";
 import Step2Wrapper from "./Step2Wrapper";
-// import Step6 from "../../ClusterWizard/Step6";
+import Step6 from "../../ClusterWizard/Step6";
 import { translate } from "../../../Utils/Utility";
-
-function ComponentInProgress() {
-  return <h1>Component In Progress</h1>;
-}
 
 export default {
   1: {
@@ -36,9 +32,7 @@ export default {
     Component: <Step2Wrapper />,
     canGoBack: false,
     isNextEnabled: false,
-    nextLabel: String(
-      translate("installer.step2.registerAndConfirm")
-    ).toUpperCase(),
+    nextLabel: String(translate("installer.step2.registerAndConfirm")).toUpperCase(),
     name: "HOSTS",
     keysToRemove: [
       "HOST_STATUS",
@@ -51,8 +45,7 @@ export default {
   2: {
     label: translate("installer.step3.header"),
     completed: false,
-    Component: <ComponentInProgress />,
-    // Component: <Step3 wizardName="addHost" />,
+    Component: <Step3 wizardName="addHost" />,
     canGoBack: true,
     isNextEnabled: true,
     onNext: () => {
@@ -69,8 +62,7 @@ export default {
   3: {
     label: translate("installer.step6.header"),
     completed: false,
-    Component: <ComponentInProgress />,
-    // Component: <Step6 wizardName="addHost" />,
+    Component: <Step6 wizardName="addHost" />,
     canGoBack: true,
     isNextEnabled: false,
     name: "SLAVES_AND_CLIENTS",
@@ -89,8 +81,7 @@ export default {
   5: {
     label: translate("common.review"),
     completed: false,
-    Component: <ComponentInProgress />,
-    // Component: <Step8 wizardName="addHost" />,
+    Component: <Step8 wizardName="addHost" />,
     canGoBack: true,
     nextLabel: String(translate("common.deploy")).toUpperCase(),
     isNextEnabled: false,
@@ -100,8 +91,7 @@ export default {
   6: {
     label: translate("installer.step9.header"),
     completed: false,
-    Component: <ComponentInProgress />,
-    // Component: <Step9 wizardName="addHost" />,
+    Component: <Step9 wizardName="addHost" />,
     canGoBack: false,
     isNextEnabled: false,
     name: "INSTALL_START_TEST",
@@ -110,8 +100,7 @@ export default {
   7: {
     label: translate("installer.step10.header"),
     completed: false,
-    Component: <ComponentInProgress />,
-    // Component: <Step10 wizardName="addHost" />,
+    Component: <Step10 wizardName="addHost" />,
     canGoBack: false,
     isNextEnabled: false,
     keyToRemove: [],
