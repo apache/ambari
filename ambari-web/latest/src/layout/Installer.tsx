@@ -16,9 +16,24 @@
  * limitations under the License.
  */
 
-$primary: #3fae2a;
-$secondary: #323544;
-$tertiary: #b8bec4;
-$disabled: #666;
-$redirect-link-color: #0000ee;
-$danger: #dc3545;
+import { FunctionComponent } from "react";
+import NavBar from "../components/Navbar";
+import LicenseFooter from "../components/LicenseFooter";
+import { Outlet } from "react-router-dom";
+
+ 
+const InstallerLayout: FunctionComponent = () => {
+    return(
+        <>
+            <div className="d-flex flex-column h-95">
+                <NavBar viewsList={[]} subPath="Installer"/>
+                <div className="h-100" style={{ paddingBottom: '50px' }}>
+                    <Outlet/>
+                </div>
+            </div>
+            <LicenseFooter hasSidebar={false} />
+        </>
+    )
+}
+ 
+export default InstallerLayout;

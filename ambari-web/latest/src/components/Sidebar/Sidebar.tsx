@@ -16,9 +16,36 @@
  * limitations under the License.
  */
 
-$primary: #3fae2a;
-$secondary: #323544;
-$tertiary: #b8bec4;
-$disabled: #666;
-$redirect-link-color: #0000ee;
-$danger: #dc3545;
+type SideBarProps = {
+  isRoot?: boolean;
+  isSidebarCollapsed: boolean;
+  setIsSidebarCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
+  clusterExists?: boolean;
+};
+
+const SideBar = ({
+  isSidebarCollapsed,
+  setIsSidebarCollapsed,
+}: SideBarProps) => {
+  return isSidebarCollapsed ? (
+    <div className="sidebar-collapsed">
+      <button
+        className="toggle-button"
+        onClick={() => setIsSidebarCollapsed(false)}
+      >
+        &#9776;
+      </button>
+    </div>
+  ) : (
+    <div className="sidebar">
+      <button
+        className="toggle-button"
+        onClick={() => setIsSidebarCollapsed(true)}
+      >
+        &#9776;
+      </button>
+    </div>
+  );
+};
+
+export default SideBar;

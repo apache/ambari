@@ -16,9 +16,9 @@
  * limitations under the License.
  */
 
-$primary: #3fae2a;
-$secondary: #323544;
-$tertiary: #b8bec4;
-$disabled: #666;
-$redirect-link-color: #0000ee;
-$danger: #dc3545;
+export type ViewListType = {
+    view_name: string;
+    version: string;
+    instance_name: string;
+    [key: string]: any; // Add other properties as needed
+};

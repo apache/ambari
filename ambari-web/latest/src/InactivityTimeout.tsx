@@ -16,9 +16,20 @@
  * limitations under the License.
  */
 
-$primary: #3fae2a;
-$secondary: #323544;
-$tertiary: #b8bec4;
-$disabled: #666;
-$redirect-link-color: #0000ee;
-$danger: #dc3545;
+interface InactivityTimeoutProps {
+  timeout?: number; // Make optional since we'll get it from server properties
+}
+
+const InactivityTimeout: React.FC<InactivityTimeoutProps> = ({ timeout: propTimeout }) => {
+  return (
+    <div className="inactivity-timeout">
+      {propTimeout ? (
+        <p>Your session will expire after {propTimeout} minutes of inactivity.</p>
+      ) : (
+        <p>Loading inactivity timeout...</p>
+      )}
+    </div>
+  );
+};
+
+export default InactivityTimeout;

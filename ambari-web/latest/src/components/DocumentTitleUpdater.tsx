@@ -16,9 +16,10 @@
  * limitations under the License.
  */
 
-$primary: #3fae2a;
-$secondary: #323544;
-$tertiary: #b8bec4;
-$disabled: #666;
-$redirect-link-color: #0000ee;
-$danger: #dc3545;
+const DocumentTitleUpdater = () => {
+  return (
+    <div>In Progress</div>
+  );
+};
+
+export default DocumentTitleUpdater;

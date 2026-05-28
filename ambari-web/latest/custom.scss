@@ -1,0 +1,234 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+.form-control:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.1rem rgba(0, 123, 255, 0.25);
+}
+.custom-width {
+  width: 33.333%;
+}
+#version-dropdown-button strong {
+  font-weight: bold;
+}
+.discard-button {
+  background-color: white;
+  color: grey;
+  border: 1px solid darkgrey;
+  border-radius: 0.25rem;
+}
+
+.discard-button:hover {
+  background-color: grey;
+  color: white;
+}
+
+.hover-effect-version-dropdown {
+  color: grey !important;
+  background-color: white !important;
+  transition: color 0.3s, background-color 0.3s !important;
+}
+
+.hover-effect-version-dropdown:hover {
+  color: white !important;
+  background-color: grey !important;
+}
+
+.hover-effect-make-current-btn {
+  color: green !important;
+  background-color: white !important;
+  transition: color 0.3s, background-color 0.3s !important;
+}
+
+.hover-effect-make-current-btn:hover {
+  color: white !important;
+  background-color: #429929 !important;
+}
+.version-search {
+  border-color: #b5b2b2 !important;
+}
+.version-search:focus {
+  border-color: #a2c7f3 !important;
+}
+.search-icon-box:hover {
+  background-color: grey !important;
+  border-color: #b5b2b2 !important;
+}
+
+.search-icon-box:hover .search-icon {
+  color: white !important;
+}
+
+.pointer-transition {
+  cursor: pointer !important;
+  transition: background-color 0.3s ease !important;
+}
+
+.version-card,
+.version-card-current,
+.version-card-default {
+  max-width: 88% !important;
+  flex: 1 !important;
+  height: 75px !important;
+  background-color: inherit !important;
+}
+.version-card-current {
+  background-color: #f2f9f2 !important;
+}
+.version-card-default {
+  background-color: white !important;
+}
+.version-card:hover,
+.version-card-current:hover,
+.version-card-default:hover {
+  background-color: inherit !important;
+}
+
+.progress-bar {
+  transition: width 0.6s ease !important; /* Adjust the duration and easing function as needed */
+}
+.custom-restart-dn-text-input-width {
+  width: 30% !important;
+}
+.navbar-item.show {
+  display: flex !important;
+}
+.bg-lightest {
+  background: #eeeeee !important;
+}
+.widget-card {
+  width: 350px;
+  height: 200px;
+  position: relative;
+  border: 1px solid black;
+}
+
+.widget-card-percentage {
+  position: absolute;
+  top: 55%;
+  left: 47%;
+}
+
+.hover-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.9); /* semi-transparent background */
+  color: black;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  z-index: 1;
+}
+
+.widget-card:hover .hover-content {
+  display: flex;
+}
+
+.maintenance-icon {
+  color: #888;
+  margin-right: 8px;
+}
+
+.refresh-icon {
+  margin-right: 8px;
+  color: #888;
+}
+.fs-18{
+  font-size: 18px !important;
+}
+.pointer{
+  cursor: pointer !important;
+}
+
+.h-100vh {
+  height: 100vh !important;
+}
+
+.bg-blue {
+  background-color: #198754 !important;
+}
+
+.action-btn {
+  .btn {
+    color: white !important;
+    padding: 6px 20px !important;
+  }
+}
+.bg-cogs {
+  position: relative !important;
+}
+.fw-500 {
+  font-weight: 500 !important;
+}
+
+.w-300 {
+  width: 300%;
+  max-width: 300%;
+}
+.fs-16 {
+  font-size: 16px !important;
+}
+.h-95{
+  height:95% !important;
+}
+.rc-slider-mark-text{
+  white-space: nowrap !important;
+}
+
+.overlay-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 10000;
+  opacity: 25%;
+}
+
+.bg-danger-super-subtle{
+  background-color: #f8d7da !important;
+}
+
+.request-progress-bar{
+  height:20px!important;
+  .progress-bar.bg-success{
+    background-color: #5cb85c!important;
+  }
+  .progress-bar.bg-info{
+    background-color: #5bc0de!important;
+  }
+    .progress-bar.bg-warning{
+    background-color: #f0ad4e!important;
+  }
+  .progress-bar.bg-danger{
+    background-color: #d9534f!important;
+  }
+}
+
+.no-scrollbar {
+    -ms-overflow-style: none!important;  /* Internet Explorer 10+ */
+    scrollbar-width: none!important;  /* Firefox, Safari 18.2+, Chromium 121+ */
+}
+.no-scrollbar::-webkit-scrollbar { 
+    display: none!important;  /* Older Safari and Chromium */
+}

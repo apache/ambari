@@ -21,6 +21,7 @@ import { ambariApi } from "./config/axiosConfig";
 interface ServiceStateData {
   serviceName: string;
   state: string;
+  maintenance_state: string;
   alertsCount: number;
   hasCriticalAlerts: boolean;
 }
@@ -30,85 +31,122 @@ class CentralizedServiceStateApi {
   private lastFetchTime: number = 0;
   private readonly CACHE_DURATION = 5000; // 5 seconds cache
   private subscribers: ((data: Map<string, ServiceStateData>) => void)[] = [];
+  private pendingRequest: Promise<Map<string, ServiceStateData>> | null = null;
 
   /**
-   * Fetches all service states and alerts in a single API call (Ember.js pattern)
-   * This replaces individual ServiceApi.getServiceState() calls
+   * Calculate alert counts per service from alert summary and definitions.
    */
-  async fetchAllServiceStatesAndAlerts(clusterName: string): Promise<Map<string, ServiceStateData>> {
+  private calculateServiceAlertCounts(
+    alertSummary?: { alerts_summary_grouped: any[] },
+    alertDefinitions?: any[]
+  ): Map<string, { alertsCount: number, hasCriticalAlerts: boolean }> {
+    const serviceAlerts = new Map<string, { alertsCount: number, hasCriticalAlerts: boolean }>();
+
+    if (!alertSummary?.alerts_summary_grouped || !alertDefinitions) {
+      return serviceAlerts;
+    }
+
+    // Create map of definition_id -> service_name
+    const definitionIdToService = new Map<number, string>();
+    alertDefinitions.forEach((def: any) => {
+      if (def.id && def.service_name) {
+        definitionIdToService.set(def.id, def.service_name);
+      }
+    });
+
+    // Group alerts by service_name and count CRITICAL + WARNING
+    alertSummary.alerts_summary_grouped.forEach((alert: any) => {
+      const definitionId = alert.definition_id;
+      if (!definitionId) return;
+
+      const serviceName = definitionIdToService.get(definitionId);
+      if (!serviceName) return;
+
+      const criticalCount = alert.summary?.CRITICAL?.count || 0;
+      const warningCount = alert.summary?.WARNING?.count || 0;
+      const totalCount = criticalCount + warningCount;
+      const hasCritical = criticalCount > 0;
+
+      if (!serviceAlerts.has(serviceName)) {
+        serviceAlerts.set(serviceName, { alertsCount: 0, hasCriticalAlerts: false });
+      }
+
+      const current = serviceAlerts.get(serviceName)!;
+      current.alertsCount += totalCount;
+      current.hasCriticalAlerts = current.hasCriticalAlerts || hasCritical;
+    });
+
+    return serviceAlerts;
+  }
+
+  /**
+   * Fetches service states and calculates alert counts.
+   * Deduplicates concurrent requests and caches results.
+   */
+  async fetchAllServiceStatesAndAlerts(
+    clusterName: string,
+    alertSummary?: { alerts_summary_grouped: any[] },
+    alertDefinitions?: any[]
+  ): Promise<Map<string, ServiceStateData>> {
     const now = Date.now();
-    
+
     // Return cached data if still fresh
     if (now - this.lastFetchTime < this.CACHE_DURATION && this.cache.size > 0) {
       return this.cache;
     }
 
-    try {
-      const response = await ambariApi.request({
-        url: `/clusters/${clusterName}/services?fields=ServiceInfo/state,ServiceInfo/maintenance_state&minimal_response=true`,
-        method: "GET",
-      });
-
-      // Get alerts with proper maintenance state filtering (following Ember pattern)
-      // This API call will return NO items for services/components in maintenance mode
-      const alertsResponse = await ambariApi.request({
-        url: `/clusters/${clusterName}/alerts?fields=Alert/service_name,Alert/state&Alert/state.in(CRITICAL,WARNING)&Alert/maintenance_state.in(OFF)&minimal_response=true`,
-        method: "GET",
-      });
-
-      const newCache = new Map<string, ServiceStateData>();
-
-      // Count alerts per service - API already filters out maintenance mode alerts
-      const serviceAlertsCount: { [key: string]: { critical: number; warning: number } } = {};
-      
-      alertsResponse.data.items?.forEach((alert: any) => {
-        const serviceName = alert.Alert?.service_name;
-        const alertState = alert.Alert?.state;
-        
-        if (serviceName && alertState) {
-          if (!serviceAlertsCount[serviceName]) {
-            serviceAlertsCount[serviceName] = { critical: 0, warning: 0 };
-          }
-          
-          if (alertState === 'CRITICAL') {
-            serviceAlertsCount[serviceName].critical++;
-          } else if (alertState === 'WARNING') {
-            serviceAlertsCount[serviceName].warning++;
-          }
-        }
-      });
-
-      response.data.items?.forEach((service: any) => {
-        const serviceName = service.ServiceInfo.service_name;
-        const state = service.ServiceInfo.state;
-        
-        // Use API-filtered alert counts (already excludes maintenance mode alerts)
-        const serviceAlerts = serviceAlertsCount[serviceName] || { critical: 0, warning: 0 };
-        const criticalAlerts = serviceAlerts.critical;
-        const warningAlerts = serviceAlerts.warning;
-        
-        const alertsCount = criticalAlerts + warningAlerts;
-        const hasCriticalAlerts = criticalAlerts > 0;
-
-        newCache.set(serviceName, {
-          serviceName,
-          state,
-          alertsCount,
-          hasCriticalAlerts,
-        });
-      });
-
-      this.cache = newCache;
-      this.lastFetchTime = now;
-
-      // Notify subscribers
-      this.notifySubscribers();
-
-      return this.cache;
-    } catch (error) {
-      // Return existing cache on error
-      return this.cache;
+    // REQUEST DEDUPLICATION: If a request is already pending, return that promise
+    if (this.pendingRequest) {
+      return this.pendingRequest;
     }
+
+    const executeRequest = async (): Promise<Map<string, ServiceStateData>> => {
+      try {
+        const response = await ambariApi.request({
+          url: `/clusters/${clusterName}/services?fields=ServiceInfo/state,ServiceInfo/maintenance_state&minimal_response=true`,
+          method: "GET",
+        });
+
+        const newCache = new Map<string, ServiceStateData>();
+
+        const serviceAlertCounts = this.calculateServiceAlertCounts(alertSummary, alertDefinitions);
+
+        response.data.items?.forEach((service: any) => {
+          const serviceName = service.ServiceInfo.service_name;
+          const state = service.ServiceInfo.state;
+          const maintenance_state = service.ServiceInfo.maintenance_state;
+
+          const alertData = serviceAlertCounts.get(serviceName) || { alertsCount: 0, hasCriticalAlerts: false };
+
+          newCache.set(serviceName, {
+            serviceName,
+            state,
+            maintenance_state,
+            alertsCount: alertData.alertsCount,
+            hasCriticalAlerts: alertData.hasCriticalAlerts,
+          });
+        });
+
+        this.cache = newCache;
+        this.lastFetchTime = now;
+
+        // Notify subscribers
+        this.notifySubscribers();
+
+        return this.cache;
+      } catch (error) {
+        console.error('Error fetching service states:', error);
+        // Return existing cache on error
+        return this.cache;
+      } finally {
+        // Clear pending request when done
+        this.pendingRequest = null;
+      }
+    };
+
+    // Set and execute pending request
+    this.pendingRequest = executeRequest();
+    return this.pendingRequest;
   }
 
   /**

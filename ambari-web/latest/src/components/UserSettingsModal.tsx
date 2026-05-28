@@ -16,9 +16,29 @@
  * limitations under the License.
  */
 
-$primary: #3fae2a;
-$secondary: #323544;
-$tertiary: #b8bec4;
-$disabled: #666;
-$redirect-link-color: #0000ee;
-$danger: #dc3545;
+import Modal from "./Modal";
+
+type UserSettingsModalProps = {
+  isOpen: boolean;
+  onClose: () => void;
+};
+
+const UserSettingsModal = ({ isOpen, onClose }: UserSettingsModalProps) => {
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      modalTitle="User Settings"
+      modalBody={<div/>}
+      successCallback={() => {}}
+      options={{
+        modalSize: "modal-lg",
+        okButtonText: "SAVE",
+        cancelButtonText: "CANCEL",
+        okButtonVariant: "success"
+      }}
+    />
+  )
+}
+
+export default UserSettingsModal;

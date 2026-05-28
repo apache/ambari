@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { User, UserContextType, Authorization, Privilege} from '../types/auth';
 import LoginApi from '../api/loginApi';
