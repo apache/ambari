@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-// @ts-nocheck
 import { useContext, useEffect, useState } from "react";
 import { Alert, Button, Modal as ReactModal } from "react-bootstrap";
 import Modal from "../../components/Modal";
@@ -32,10 +31,10 @@ import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { AppContext } from "../../store/context";
 import KerberosIdentities from "./KerberosIdentities";
 import modalManager from "../../store/ModalManager";
-import ManageKdcCredentials from "../Kerberos/manageKdcCredentials";
 import { useLocation, useNavigate } from "react-router-dom";
 import { discardChanges, EnableKerberosContext } from "./KerberosStore/context";
 import UpgradeGuard from "../../components/UpgradeGuard";
+import ManageKdcCredentials from "../Kerberos/manageKdcCredentials";
 
 export default function EnableKerberos() {
   const [isKerberosEnabled, setIsKerberosEnabled] = useState(false);

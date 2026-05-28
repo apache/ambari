@@ -16,17 +16,18 @@
  * limitations under the License.
  */
 
+import { KerberosWizardProvider } from "./KerberosStore/context";
 import StepWizard from "../../components/StepWizard";
 import useStepWizard from "../../hooks/useStepWizard";
-import { KerberosWizardProvider } from "./KerberosStore/context";
 import kerberosWizardSteps from "./kerberosWizardSteps";
+
 
 const KerberosWizard: React.FC = () => {
   const stepWizardUtilities = useStepWizard(kerberosWizardSteps, 1, () => {});
 
   return (
     <KerberosWizardProvider stepWizardUtilities={stepWizardUtilities}>
-      <StepWizard wizardUtilities={stepWizardUtilities} />
+      <StepWizard  wizardUtilities={stepWizardUtilities} />
     </KerberosWizardProvider>
   );
 };

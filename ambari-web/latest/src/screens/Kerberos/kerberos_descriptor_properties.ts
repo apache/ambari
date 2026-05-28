@@ -16,18 +16,33 @@
  * limitations under the License.
  */
 
-export interface State {
-    kerberosWizardSteps: any;
-}
-  
-export enum ActionTypes {
-    STORE_INFORMATION = "STORE INFORMATION",
-    SYNC_STATE = "SYNC STATE",
-    REMOVE_KEY = "REMOVE KEY"
+interface kerberosDescriptorProperty {
+  name: string;
+  index: number;
+  placeholderText?: string;
 }
 
-export type Action =
-| { type: ActionTypes.STORE_INFORMATION; payload: any; }
-| { type: ActionTypes.SYNC_STATE; payload: any }
-| { type: ActionTypes.REMOVE_KEY; payload: any };
-  
+const kerberosDescriptorProperties: kerberosDescriptorProperty[] = [
+    {
+      "name": "keytab_dir",
+      "index": 3
+    },
+    {
+      "name": "realm",
+      "index": 4
+    },
+    {
+      "name": "additional_realms",
+      "index": 5,
+      "placeholderText": "common.optional"
+    },
+    {
+      "name": "principal_suffix",
+      "index": 6,
+      "placeholderText": "common.optional"
+    }
+];
+
+export { kerberosDescriptorProperties }
+
+

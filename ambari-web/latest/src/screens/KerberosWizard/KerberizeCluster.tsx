@@ -17,16 +17,16 @@
  */
 
 import { useContext, useEffect, useState } from "react";
+import { RequestApi } from "../../api/requestApi";
+import WizardFooter from "../../components/StepWizard/WizardFooter";
+import { EnableKerberosContext } from "./KerberosStore/context";
 import { AppContext } from "../../store/context";
 import { Alert } from "react-bootstrap";
 import { translate } from "../../Utils/Utility";
 import { get } from "lodash";
-// import useKDCSessionState from "../../hooks/useKDCSessionState";
-import { EnableKerberosContext } from "./KerberosStore/context";
-import { RequestApi } from "../../api/requestApi";
-import OperationsProgress from "../../components/OperationProgress";
 import { ActionTypes } from "./KerberosStore/types";
-import WizardFooter from "../../components/StepWizard/WizardFooter";
+import useKDCSessionState from "../../hooks/useKDCSessionState";
+import OperationsProgress from "../../components/OperationProgress";
 
 function KerberizeCluster() {
   const {
@@ -38,9 +38,10 @@ function KerberizeCluster() {
   } = useContext(EnableKerberosContext);
 
   const [completionStatus, setCompletionStatus] = useState(false);
+  const [stepOperations, setStepOperations] = useState<any>([]);
   const [nextEnabled, setNextEnabled] = useState(false);
   const { clusterName } = useContext(AppContext);
-  // const { getKDCSessionState } = useKDCSessionState(() => {});
+  const { getKDCSessionState } = useKDCSessionState(() => {});
 
   useEffect(() => {
     if (completionStatus) {
@@ -48,15 +49,16 @@ function KerberizeCluster() {
     }
   }, [completionStatus]);
 
-  const operations = [
+
+  const initialOperations = [
     {
       id: "1",
       label: "Preparing Operations",
       skippable: false,
       context: "Preparing Operations",
       callback: async () => {
-        // return new Promise((resolve) => {
-          // getKDCSessionState(async () => {
+        return new Promise((resolve) => {
+          getKDCSessionState(async () => {
             const preparingOperationsPayload = {
               Clusters: {
                 security_type: "KERBEROS",
@@ -66,26 +68,48 @@ function KerberizeCluster() {
               clusterName,
               preparingOperationsPayload
             );
-            // resolve(requestData);
-            return requestData;
-          // });
-        // });
+            resolve(requestData);
+          });
+        });
       },
     },
   ];
+
+  const savedOperationsState = get(
+    state,
+    `kerberosWizardSteps.${wizardSteps[7].name}.data.operationsState`
+  );
+
+  useEffect(() => {
+    const operations = (() => {
+      if (savedOperationsState && Array.isArray(savedOperationsState)) {
+        return initialOperations.map((originalOp) => {
+          const savedOp = savedOperationsState.find(
+            (saved: any) => saved.id === originalOp.id
+          );
+          return savedOp
+            ? { ...originalOp, ...savedOp, callback: originalOp.callback }
+            : originalOp;
+        });
+      }
+
+      return initialOperations;
+    })();
+    setStepOperations(operations);
+  }, [JSON.stringify(savedOperationsState)]);
+
+  if (!stepOperations || stepOperations.length === 0) {
+    return <div>Loading...</div>;
+  }
+
+
   return (
     <>
       { completionStatus &&
         <Alert variant="success">{translate("admin.kerberos.wizard.step7.notice.completed")}</Alert>
       }
       <OperationsProgress
-        operations={
-          (get(
-            state,
-            `kerberosWizardSteps.${wizardSteps[7].name}.data.operationsState`,
-            
-          ) as any) ||
-          (operations as any)}
+        operations={stepOperations as any}
         title="Kerberize Cluster"
         description="Kerberize Cluster"
         setCompletionStatus={setCompletionStatus}

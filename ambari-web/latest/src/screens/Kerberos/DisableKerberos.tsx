@@ -16,130 +16,131 @@
  * limitations under the License.
  */
 import { useContext, useEffect, useState } from "react";
+import { RequestApi } from "../../api/requestApi";
 import { AppContext } from "../../store/context";
 import { map } from "lodash";
 import { translate } from "../../Utils/Utility";
-import { RequestApi } from "../../api/requestApi";
+import useKDCSessionState from "../../hooks/useKDCSessionState";
 import OperationsProgress from "../../components/OperationProgress";
 
 type disableKerberosProps = {
-  setDisableKerberosInProgress: any;
-};
+    setDisableKerberosInProgress:any;
+}
 
-export default function disableKerberos({
-  setDisableKerberosInProgress,
-}: disableKerberosProps) {
-  const [completionStatus, setCompletionStatus] = useState(false);
+export default function disableKerberos({setDisableKerberosInProgress}:disableKerberosProps) {
+  const [completionStatus, setCompletionStatus] = useState(false)
   const { clusterName, services } = useContext(AppContext);
-  // TODO: use useKDCSessionState whenever available
+  const { getKDCSessionState } = useKDCSessionState(() => {});
 
-  useEffect(() => {
+  useEffect(()=>{
     setDisableKerberosInProgress(!completionStatus);
-  }, [completionStatus]);
+  },[completionStatus])
 
   const operations = [
     {
-      id: "1",
-      label: "Start Zookeeper",
-      skippable: false,
-      context: "Start required services",
-      callback: async () => {
-        const zookeeperPayload = {
-          RequestInfo: {
-            context: "Start required services",
-            operation_level: {
-              level: "CLUSTER",
-              cluster_name: `${clusterName}`,
-            },
-          },
-          Body: {
-            ServiceInfo: {
-              state: "STARTED",
-            },
-          },
-        };
-        const params = "ServiceInfo/service_name.in(ZOOKEEPER)";
-        const requestData = await RequestApi.getServicesWithStatus(
-          clusterName,
-          zookeeperPayload,
-          params
-        );
-        return requestData;
-      },
-    },
+        id: "1",
+        label: "Start Zookeeper",
+        skippable: false,
+        context: "Start required services",
+        callback: async () => {
+            const zookeeperPayload = {
+                "RequestInfo": {
+                    "context": "Start required services",
+                    "operation_level": {
+                        "level": "CLUSTER",
+                        "cluster_name": `${clusterName}`
+                    }
+                },
+                "Body": {
+                    "ServiceInfo": {
+                        "state": "STARTED"
+                    }
+                }
+            }
+            const params = "ServiceInfo/service_name.in(ZOOKEEPER)"
+            const requestData = await RequestApi.getServicesWithStatus(
+                clusterName, 
+                zookeeperPayload,
+                params
+            )
+            return requestData;
+        }
+    },    
     {
-      id: "2",
-      label: "Stop Required Services",
-      skippable: false,
-      context: "Stop required services",
-      callback: async () => {
-        const servicesPayload = {
-          RequestInfo: {
-            context: "Stop required services",
-            operation_level: {
-              level: "CLUSTER",
-              cluster_name: `${clusterName}`,
-            },
-          },
-          Body: {
-            ServiceInfo: {
-              state: "INSTALLED",
-            },
-          },
-        };
-        const serviceNames = map(
-          services.filter(
-            (service) => service.ServiceInfo.service_name !== "ZOOKEEPER"
-          ),
-          "ServiceInfo.service_name"
-        ).join(",");
+        id: "2",
+        label: "Stop Required Services",
+        skippable: false,
+        context: "Stop required services",
+        callback: async () => {
+            const servicesPayload = {
+                "RequestInfo": {
+                    "context": "Stop required services",
+                    "operation_level": {
+                        "level": "CLUSTER",
+                        "cluster_name": `${clusterName}`
+                    }
+                },
+                "Body": {
+                    "ServiceInfo": {
+                        "state": "INSTALLED"
+                    }
+                }
+            }
+            const serviceNames = map(
+                services.filter((service) => service.ServiceInfo.service_name !== "ZOOKEEPER"),
+                "ServiceInfo.service_name"
+              ).join(",");
 
-        const params = `ServiceInfo/service_name.in(${serviceNames})`;
-        const requestData = await RequestApi.getServicesWithStatus(
-          clusterName,
-          servicesPayload,
-          params
-        );
-        return requestData;
-      },
+            const params = `ServiceInfo/service_name.in(${serviceNames})`
+            const requestData = await RequestApi.getServicesWithStatus(
+                clusterName, 
+                servicesPayload,
+                params
+            )
+            return requestData;
+        }
     },
     {
-      id: "3",
-      label: "Unkerberize Cluster",
-      skippable: false,
-      context: "Unkerbize cluster",
-      callback: async () => {
-        const payload = {
-          Clusters: {
-            security_type: "NONE",
-          },
-        };
-        const requestData = await RequestApi.preparingOperations(
-          clusterName,
-          payload
-        );
-        return requestData;
-      },
+        id: "3",
+        label: "Unkerberize Cluster",
+        skippable: false,
+        context: "Unkerbize cluster",
+        callback: async () => {
+            return new Promise((resolve) => {
+                getKDCSessionState(async () => {
+                    const payload = {
+                        "Clusters": {
+                            "security_type": "NONE"
+                        }
+                    }
+                    const requestData = await RequestApi.preparingOperations(
+                        clusterName,
+                        payload
+                    )
+                    resolve(requestData);   
+                });
+            })
+        }
     },
     {
-      id: "4",
-      label: "Remove Kerberos",
-      skippable: false,
-      context: "remove kerberos",
-      callback: async () => {
-        const payload = {
-          Clusters: {
-            security_type: "NONE",
-          },
-        };
-        const params = "manage_kerberos_identities=false";
-        const requestData = await RequestApi.preparingOperations(
-          clusterName,
-          payload,
-          params
-        );
-        return requestData;
-      },
+        id: "4",
+        label: "Remove Kerberos",
+        skippable: false,
+        context: "remove kerberos",
+        callback: async () => {
+            const payload = {
+                "Clusters": {
+                    "security_type": "NONE"
+                }
+            }
+            const params = "manage_kerberos_identities=false"
+            const requestData = await RequestApi.preparingOperations(
+                clusterName,
+                payload,
+                params
+            )
+            return requestData;
+        }
     },
     {
       id: "5",
@@ -148,18 +149,18 @@ export default function disableKerberos({
       context: "Start services",
       callback: async () => {
         const startAndTestServicesPayload = {
-          RequestInfo: {
-            context: "Start services",
-            operation_level: {
-              level: "CLUSTER",
-              cluster_name: `${clusterName}`,
+            "RequestInfo": {
+                "context": "Start services",
+                "operation_level": {
+                    "level": "CLUSTER",
+                    "cluster_name": `${clusterName}`
+                }
             },
-          },
-          Body: {
-            ServiceInfo: {
-              state: "STARTED",
-            },
-          },
+            "Body": {
+                "ServiceInfo": {
+                    "state": "STARTED"
+                }
+            }
         };
         const requestData = await RequestApi.startServices(
           clusterName,
@@ -172,11 +173,11 @@ export default function disableKerberos({
   ];
   return (
     <>
-      {completionStatus && (
-        <div className="alert alert-success">
-          {translate("admin.security.disable.body.success.header")}
-        </div>
-      )}
+        { completionStatus && (
+            <div className="alert alert-success">
+                {translate('admin.security.disable.body.success.header')}
+            </div>
+        )}
       <OperationsProgress
         operations={operations as any}
         title="Disable kerberos"

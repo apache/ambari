@@ -19,8 +19,8 @@
 import { cloneDeep } from "lodash";
 import { State, Action, ActionTypes } from "./types";
 
-export const initialState: State = {
-  kerberosWizardSteps: {},
+export const initialState: State = { 
+  kerberosWizardSteps: {} 
 };
 
 export const reducer = (state: State, action: Action): State => {
