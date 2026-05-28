@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import React from 'react';
 import { Card, CardHeader, CardBody, Row, Col } from 'react-bootstrap';
 import Spinner from '../Spinner';
@@ -48,7 +49,7 @@ const HeatmapRack: React.FC<HeatmapRackProps> = ({
   return (
     <Card className="h-100">
       <CardHeader>
-        <h1 className="mb-0">{rack.name}</h1>
+        <h3 className="mb-0">{rack.name}</h3>
       </CardHeader>
       <CardBody className="p-2">
         {rack.isLoaded ? (

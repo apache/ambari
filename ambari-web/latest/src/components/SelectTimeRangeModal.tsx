@@ -59,11 +59,14 @@ export default function SelectTimeRangeModal({
       return;
     }
 
-    const startTimeNumber = getTimeInNumber(formData.startTime.value);
+    let startTimeNumber = getTimeInNumber(formData.startTime.value);
     let endTimeNumber = getTimeInNumber(formData.endTime.value);
 
     if (selectedDuration !== "Custom") {
-      endTimeNumber = startTimeNumber + durationMap[selectedDuration];
+      // For predefined durations, calculate backwards from the start time
+      // This makes it consistent with "Last X hours" behavior
+      endTimeNumber = startTimeNumber;
+      startTimeNumber = startTimeNumber - durationMap[selectedDuration];
     }
 
     successCallback({
@@ -125,7 +128,9 @@ export default function SelectTimeRangeModal({
     return (
       <Form>
         <Form.Group className="mb-3">
-          <Form.Label>Start Time</Form.Label>
+          <Form.Label>
+            {selectedDuration === "Custom" ? "Start Time" : "End Time (go back from this time)"}
+          </Form.Label>
           <Form.Control
             value={get(formData, "startTime.value", "")}
             type="datetime-local"

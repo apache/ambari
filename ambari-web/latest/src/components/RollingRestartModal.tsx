@@ -322,19 +322,19 @@ export default function RollingRestartModal({
             </Form.Label>
           </Form.Group>
           {suggestTurnOnMaintenanceMsg() && (
-            <Form.Group className="mb-3 d-flex">
-              <Form.Check
-                checked={formData.turnOnMm}
-                onChange={() =>
-                  setFormData({
-                    ...formData,
-                    turnOnMm: !get(formData, "turnOnMm"),
-                  })
-                }
-                className="custom-checkbox w-25 d-flex justify-content-end"
-              />
-              <Form.Label className="mt-1 ms-2">{turnOnMmMsg()}</Form.Label>
-            </Form.Group>
+            <Form.Group className="mb-3 d-flex" >
+            <Form.Check
+              checked={formData.turnOnMm}
+              onChange={() =>
+                setFormData({
+                  ...formData,
+                  turnOnMm: !get(formData, "turnOnMm"),
+                })
+              }
+              className="custom-checkbox w-25 d-flex justify-content-end"
+            />
+            <Form.Label className="mt-1 ms-2">{turnOnMmMsg()}</Form.Label>
+          </Form.Group>
           )}
         </Form>
         {errorsList.length > 0 && (
@@ -367,11 +367,9 @@ export default function RollingRestartModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      modalTitle={
-        translateWithVariables("rollingrestart.dialog.title", {
-          "0": hostComponentName,
-        }) as string
-      }
+      modalTitle={translateWithVariables("rollingrestart.dialog.title", {
+        "0": hostComponentName,
+      })}
       modalBody={getModalBody()}
       successCallback={() => {
         successCallback(
@@ -389,7 +387,7 @@ export default function RollingRestartModal({
         cancelableViaBtn: true,
         okButtonVariant: "primary",
         okButtonDisabled: errorsList.length > 0,
-        okButtonText: translate("rollingrestart.dialog.primary") as string,
+        okButtonText: translate("rollingrestart.dialog.primary"),
       }}
     />
   );

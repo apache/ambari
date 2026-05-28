@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+import type { JSX } from "react";
 import { normalizeName } from "../screens/Hosts/helpers";
 import _, { startCase, get, has, isEmpty } from "lodash";
 import { messages } from "../screens/messages";

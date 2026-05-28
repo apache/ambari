@@ -20,16 +20,16 @@ import { useEffect, useReducer, useState } from "react";
 import { Row, Col, Form, Card, Button, CardBody, Alert } from "react-bootstrap";
 import { ChooseServicesApi } from "../api/chooseServicesApi";
 import AssignMastersApi from "../api/assignMastersApi";
-import { Utility } from "../Utils/Utility.ts";
-import { misc } from "../Utils/misc.ts";
-import Spinner from "./Spinner.tsx";
+import { Utility } from "../Utils/Utility";
+import { misc } from "../Utils/misc";
+import Spinner from "./Spinner";
 import { filter, get, map, uniq } from "lodash";
 import Select from "react-select";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons";
-import { blueprintUtils } from "../screens/ClusterWizard/utils.ts";
-import { maxToInstall, isMultipleAllowed } from "../screens/Hosts/utils.tsx";
-import { AssignMastersProps, Host, Masters, State, Action, ServicesResponse } from "../screens/ClusterWizard/types/AssignMastersTypes.ts";
+import { blueprintUtils } from "../screens/ClusterWizard/utils";
+import { maxToInstall, isMultipleAllowed } from "../screens/Hosts/utils";
+import { AssignMastersProps, Host, Masters, State, Action, ServicesResponse } from "../screens/ClusterWizard/types/AssignMastersTypes";
 
 const initialState: State = {
   hosts: {},

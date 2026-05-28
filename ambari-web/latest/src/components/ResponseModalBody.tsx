@@ -16,12 +16,21 @@
  * limitations under the License.
  */
 
-import { Spinner as ReactSpinner } from "react-bootstrap";
+import CopyButton from './CopyButton';
 
-export default function Spinner() {
-  return (
-    <div className="d-flex justify-content-center align-items-center p-4">
-      <ReactSpinner />
-    </div>
-  );
+type ResponseModalBodyProps = {
+    responseText: string;
+};
+
+export default function ResponseModalBody({ responseText }: ResponseModalBodyProps) {
+    return (
+        <div>
+            {/* Copy Button */}
+            <div className="d-flex justify-content-end mb-2">
+                <CopyButton textToCopy={responseText} />
+            </div>
+            {/* Response Text */}
+            <div className="pre-wrap">{responseText}</div>
+        </div>
+    );
 }
