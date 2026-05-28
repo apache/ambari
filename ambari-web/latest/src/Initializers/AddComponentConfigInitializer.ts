@@ -19,7 +19,7 @@
 import HaConfigInitializer from "./HaConfigInitializer";
 import { HostsBasedInitializer } from "./HostsBasedInitializer";
 import ControlFlowInitializer from "./ControlFlowInitializer";
-import UtilitiesForInitialziers from "./UtilitiesForInitialziers.ts";
+import UtilitiesForInitialziers from "./UtilitiesForInitialziers";
 
 type ConfigProperty = {
   name: string;

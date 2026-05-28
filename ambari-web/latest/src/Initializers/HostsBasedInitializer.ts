@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import {ExtendedTopologyLocalDB, NnHaConfigDependencies} from "../Utils/configs.ts";
+import {ExtendedTopologyLocalDB, NnHaConfigDependencies} from "../Utils/configs";
 
 type ConfigProperty = {
   value: string;

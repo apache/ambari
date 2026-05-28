@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { HostsBasedInitializer } from "./HostsBasedInitializer.ts";
+import { HostsBasedInitializer } from "./HostsBasedInitializer";
 
 type ConfigProperty = {
     name: string;
