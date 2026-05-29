@@ -17,7 +17,7 @@
  */
 
 import { useContext } from "react";
-import { AppContext } from "../store/context.tsx";
+import { AppContext } from "../store/context";
 import { serviceCache } from "../Utils/cacheUtils";
 
 /**

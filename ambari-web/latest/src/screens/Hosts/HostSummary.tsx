@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+
+import type { JSX } from "react";
 import {
   useCallback,
   useContext,
@@ -40,7 +42,7 @@ import {
   faRefresh,
   faWarning,
 } from "@fortawesome/free-solid-svg-icons";
-import { get, isEmpty, startCase, uniq } from "lodash";
+import { get, isEmpty, set, startCase, uniq } from "lodash";
 import Modal from "../../components/Modal";
 import Table from "../../components/Table";
 import { ComponentStatus, ComponentType, PassiveStateOnFilters } from "./enums";
@@ -80,24 +82,32 @@ import {
 import {
   checkNnLastCheckpointTime,
   decommission,
+  installClients,
   recommission,
+  refreshComponentConfigs,
+  refreshConfigs,
   restartAllStaleConfigComponents,
   restartComponent,
   startComponent,
   stopComponent,
-  executeCustomCommand,
-  installClients,
-  installComponent,
-  refreshComponentConfigs,
+  toggleMaintenanceMode,
   deleteComponent,
+  addComponentWithCheck,
+  installComponent,
+  executeCustomCommand,
+  transitionToObserver,
 } from "./actions";
 import { AppContext } from "../../store/context";
 import IHost from "../../models/host";
 import { IHostStackVersion } from "../../models/hostStackVersion";
-import { IHostComponent } from "../../models/hostComponent";
+import HostComponent, { IHostComponent } from "../../models/hostComponent";
 import Spinner from "../../components/Spinner";
 import modalManager from "../../store/ModalManager";
 import SetRackInfoModal from "./SetRackInfoModal";
+import useKDCSessionState from "../../hooks/useKDCSessionState";
+import useComponentAddDelete from "./hooks/useComponentAddDelete";
+import useStackServices from "../../hooks/useStackServices";
+import { useConfigs } from "../../hooks/useConfigs";
 import {
   useDecommissionable,
   decommissionableComponents,
@@ -108,7 +118,6 @@ import { hostMetricsOption } from "./constants";
 import usePolling from "../../hooks/usePolling";
 import classNames from "classnames";
 import { useAuth } from "../../hooks/useAuth";
-import useComponentAddDelete from "../../hooks/useComponentAddDelete";
 
 type HostSummaryProps = {
   allHostModels: IHost[];
@@ -125,6 +134,7 @@ export default function HostsSummary({
 }: HostSummaryProps) {
   const { clusterName, serviceComponentInfo, services, upgradeIsRunning, upgradeSuspended } =
     useContext(AppContext);
+  const [isUpgradeInProgress, setIsUpgradeInProgress] = useState(false);
   const { allServiceModels: serviceModels } = useContext(ServiceContext);
   const params = useParams();
   const navigate = useNavigate();
@@ -137,16 +147,15 @@ export default function HostsSummary({
   //Note:- Below states should be part of the context
   const [allComponents, setAllComponents] = useState<IHostComponent[]>([]);
   const [addableComponents, setAddableComponents] = useState<any[]>([]);
-  // const { services: stackServices } = useStackServices(); //TODO will be added later.
-  // const { getConfigByName } =  useConfigs([], stackServices as any); // TODO will be added later.
-
-  const stackServices = "";
-  const getConfigByName = () => {};
+  const { getKDCSessionState } = useKDCSessionState(() => { });
+  const { services: stackServices } = useStackServices();
+  const { getConfigByName } = useConfigs([], stackServices as any);
 
   // const serviceConfigMap = getServiceByConfigTypeMap(stackServices);
   const {
     deleteAndReconfigureComponent,
     _doDeleteHostComponent,
+    addAndReconfigureComponent,
   } = useComponentAddDelete(
     clusterComponents,
     stackServices,
@@ -194,6 +203,9 @@ export default function HostsSummary({
     populateHostMetricesData,
     15000
   );
+  useEffect(() => {
+    setIsUpgradeInProgress(upgradeIsRunning && !upgradeSuspended);
+  }, [upgradeIsRunning, upgradeSuspended]);
 
   useEffect(() => {
     if (!selectedMetricsOption.toUpperCase().startsWith("CUSTOM")) {
@@ -262,9 +274,6 @@ export default function HostsSummary({
 
   // Authorization hooks - implementing Ember.js host component authorization patterns
   const { hasAuthorization } = useAuth();
-
-  // Use computed upgrade properties instead of utility function
-  const isUpgradeInProgress = upgradeIsRunning && !upgradeSuspended;
 
   // Check specific authorizations for host component operations
   const canStartStopServices = hasAuthorization("SERVICE.START_STOP");
@@ -497,7 +506,7 @@ export default function HostsSummary({
 
   const getActions = useCallback(
     (component: IHostComponent) => {
-      const actions: React.ReactElement[] = [];
+      const actions: JSX.Element[] = [];
       const state = get(component, "workStatus", "") as ComponentStatus;
 
       //Actions of Clients
@@ -508,7 +517,13 @@ export default function HostsSummary({
             <div
               key="refresh-configs"
               onClick={() => {
-                //TODO: Will be implemented in future PR
+                setSelectedActionData(
+                  component,
+                  "refresh",
+                  false,
+                  refreshConfigs
+                );
+                setShowConfirmationModal(true);
               }}
             >
               Refresh configs
@@ -527,7 +542,7 @@ export default function HostsSummary({
                     allComponents,
                     clusterComponents,
                     services,
-                    // getKDCSessionState, TODO: will be added in future PR.
+                    getKDCSessionState,
                     host: allHostModels[0],
                   };
                   setSelectedActionData(
@@ -553,11 +568,11 @@ export default function HostsSummary({
             <div
               key="re-install"
               onClick={() => {
-                  const data = {
+                const data = {
                   allComponents,
                   clusterComponents,
                   services,
-                  // getKDCSessionState, TODO: will be added in future PR.
+                  getKDCSessionState,
                 };
                 setSelectedActionData(
                   [component],
@@ -751,17 +766,17 @@ export default function HostsSummary({
                     <div
                         key="re-install-failed"
                         onClick={() => {
-                        const data = {
-                          // getKDCSessionState, // TODO: will be added in future PR
-                        };
-                        setSelectedActionData(
-                          component,
-                          "install",
-                          false,
-                          installComponent,
-                          data
-                        );
-                        setShowConfirmationModal(true);
+                            const data = {
+                                getKDCSessionState,
+                            };
+                            setSelectedActionData(
+                                component,
+                                "install",
+                                false,
+                                installComponent,
+                                data
+                            );
+                            setShowConfirmationModal(true);
                         }}
                     >
                         Re-Install
@@ -796,7 +811,17 @@ export default function HostsSummary({
           <div
             key="maintenance-mode"
             onClick={() => {
-              //TODO: Will be implemented in future PR
+              if (isToggleMaintenanceModeAvailable(component)) {
+                setSelectedActionData(
+                  component,
+                  isActive(component)
+                    ? "turn on maintenance mode"
+                    : "turn off maintenance mode",
+                  false,
+                  toggleMaintenanceMode
+                );
+                setShowConfirmationModal(true);
+              }
             }}
             className={
               isToggleMaintenanceModeAvailable(component) ? "" : "disabled-btn"
@@ -815,7 +840,7 @@ export default function HostsSummary({
               key="re-install-init"
               onClick={() => {
                 const data = {
-                  // getKDCSessionState, TODO: will be added in future PR
+                  getKDCSessionState,
                 };
                 setSelectedActionData(
                   component,
@@ -892,16 +917,31 @@ export default function HostsSummary({
             component,
             get(clusterComponents, "items", [])
           ).forEach((cmd: any, index: number) => {
-            actions.push(
-              <div
-                key={`custom-master-${index}`}
-                onClick={() => {
-                  executeCustomCommand(cmd, component);
-                }}
-              >
-                {get(cmd, "label", "")}
-              </div>
-            );
+            // Handle special "Transition To Observer" command for NAMENODE
+            if (get(cmd, "command", "") === "MAKEOBSERVER" && 
+                getComponentName(component) === "NAMENODE") {
+              actions.push(
+                <div
+                  key={`transition-observer-${index}`}
+                  onClick={() => {
+                    transitionToObserver(component);
+                  }}
+                >
+                  {get(cmd, "label", "")}
+                </div>
+              );
+            } else {
+              actions.push(
+                <div
+                  key={`custom-master-${index}`}
+                  onClick={() => {
+                    executeCustomCommand(cmd, component);
+                  }}
+                >
+                  {get(cmd, "label", "")}
+                </div>
+              );
+            }
           });
         }
       }
@@ -961,7 +1001,7 @@ export default function HostsSummary({
       return {};
     }
 
-    const actionsMap: Record<string, React.ReactElement[]> = {};
+    const actionsMap: Record<string, JSX.Element[]> = {};
     allHostModels[0].hostComponents.forEach((component: IHostComponent) => {
       const componentId = `${component.serviceName}-${component.componentName}-${component.hostName}`;
       actionsMap[componentId] = getActions(component);
@@ -984,12 +1024,34 @@ export default function HostsSummary({
         id: "name",
         width: "50%",
         cell: (info: any) => {
-          const serviceName = get(info, "row.original.serviceName", "");
+          const component = get(info, "row.original", {});
+          const serviceName = get(component, "serviceName", "");
+          const componentName = get(component, "componentName", "");
+          const hostName = get(component, "hostName", "");
+          
+          // Get HA state from service models for ResourceManager
+          let rmHAState = "";
+          if (componentName === "RESOURCEMANAGER" && serviceModels?.yarn) {
+            const yarnMasterComponents = serviceModels.yarn.masterComponents || [];
+            const rmComponent = yarnMasterComponents.find((mc: any) => mc.componentName === "RESOURCEMANAGER");
+            if (rmComponent && rmComponent.hostComponents && rmComponent.hostComponents.length > 1) {
+              const hostComp = rmComponent.hostComponents.find((hc: any) => 
+                get(hc, "HostRoles.host_name") === hostName
+              );
+              if (hostComp && get(hostComp, "HostRoles.ha_state")) {
+                rmHAState = startCase(get(hostComp, "HostRoles.ha_state", "").toLowerCase());
+              }
+            }
+          }
+          
+          const nnHAState = get(component, "nnHAState", "");
+          const haState = rmHAState || nnHAState;
+          
           return (
             <div className="d-flex">
               <div className="me-2">
-                {get(info, "row.original.nnHAState", "") ? startCase(get(info, "row.original.nnHAState", "")) + " " : ""}
-                {get(info, "row.original.displayName", "")}
+                {haState ? startCase(haState) + " " : ""}
+                {get(component, "displayName", "")}
                 {" / "}
               </div>
               <Link
@@ -998,7 +1060,7 @@ export default function HostsSummary({
               >
                 <div>{startCase(serviceName.toLowerCase())}</div>
               </Link>
-              <div>{get(info, "row.original.nnHAState", "") ? " - " + clusterName : ""}</div>
+              <div>{haState ? " - " + clusterName : ""}</div>
             </div>
           );
         },
@@ -1048,7 +1110,7 @@ export default function HostsSummary({
               {!isStarting && (
                 <Dropdown.Menu className="rounded-0">
                   {availableActions.map(
-                    (action: React.ReactElement, index: number) => (
+                    (action: JSX.Element, index: number) => (
                       <Dropdown.Item key={index}>{action}</Dropdown.Item>
                     )
                   )}
@@ -1198,7 +1260,27 @@ export default function HostsSummary({
                         <Dropdown.Item
                           key={component.component_name}
                           onClick={() => {
-                            //TODO: Will be implemented in future PR
+                            const data = {
+                              addAndReconfigureComponent,
+                              clusterComponents,
+                              allComponents,
+                              fromServiceSummary: false,
+                              getKDCSessionState,
+                              navigate,
+                              services,
+                              host: allHostModels[0],
+                              setAllHostModels,
+                            };
+                            let comp1 = new HostComponent(
+                              allComponents.find(
+                                (c) =>
+                                  getComponentName(c) ===
+                                  component.component_name
+                              ) as IHostComponent
+                            );
+                            set(comp1, "hostName", allHostModels[0].hostName);
+                            set(comp1, "clusterName", clusterName);
+                            addComponentWithCheck(comp1, data);
                           }}
                         >
                           {component.display_name}

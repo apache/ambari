@@ -18,7 +18,7 @@
 
 import ConfigInitializer from "./ConfigInitializer";
 //@ts-ignore
-import NnHaConfigInitializer from "../Utils/configs.ts";
+import NnHaConfigInitializer from "../Utils/configs";
 
 class HaConfigInitializer extends ConfigInitializer {
     constructor() {

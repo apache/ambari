@@ -18,8 +18,9 @@
 
 import { useState } from "react";
 import Modal from "../../components/Modal";
+import { messages } from "../messages";
+import { get } from "lodash";
 import { Alert, Form } from "react-bootstrap";
-import { translate } from "../../Utils/Utility";
 
 type InvalidKDCPopupProps = {
     isOpen: boolean;
@@ -27,7 +28,7 @@ type InvalidKDCPopupProps = {
     handleSave: (adminPrincipal: string, adminPassword: string, saveCredentials: boolean) => void;
 };
 
-export default function InvalidKDCPopup({isOpen, onClose, handleSave}: InvalidKDCPopupProps): React.ReactElement {
+export default function invalidKDCPopup({isOpen, onClose, handleSave}: InvalidKDCPopupProps): React.ReactElement {
     const [adminPrincipal, setAdminPrincipal] = useState("");
     const [adminPassword, setAdminPassword] = useState("");
     const [saveCredentials, setSaveCredentials] = useState(false);
@@ -58,6 +59,7 @@ export default function InvalidKDCPopup({isOpen, onClose, handleSave}: InvalidKD
                     <Form.Group controlId="saveCredentials">
                         <Form.Check
                         type="checkbox"
+                        id="save-admin-credentials-checkbox"
                         label="Save Admin Credentials"
                         checked={saveCredentials}
                         onChange={(e) => setSaveCredentials(e.target.checked)}
@@ -77,7 +79,7 @@ export default function InvalidKDCPopup({isOpen, onClose, handleSave}: InvalidKD
             <Modal
                 isOpen={isOpen}
                 onClose={() => onClose()}
-                modalTitle={translate("popup.invalid.KDC.header")}
+                modalTitle={get(messages, "popup.invalid.KDC.header", "")}
                 modalBody={getModalBody()}
                 options={{
                     okButtonText: "SAVE",

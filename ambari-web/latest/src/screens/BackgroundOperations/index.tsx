@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { useContext, useEffect, useState } from "react";
 import ClusterApi from "../../api/clusterApi";
 import {  filter, get } from "lodash";
@@ -534,7 +535,7 @@ function BackgroundOperations({
         } = info;
         const request = get(rowData, "Requests", {});
         return ["PENDING"].includes(request.request_status) ? (
-          <div role="button" aria-label="Interactive element" onClick={() => openDetails(rowData)}>Not Started</div>
+          <div onClick={() => openDetails(rowData)}>Not Started</div>
         ) : (
           <div
             className="p-1 cursor-pointer"
@@ -740,7 +741,7 @@ function BackgroundOperations({
           direction="horizontal"
           className="justify-content-between mt-3 w-100"
         >
-          <h1>{runningOperationsCount} Background Operations Running</h1>
+          <h2>{runningOperationsCount} Background Operations Running</h2>
           <Filters
             items={filteredClusterRequests}
             allItems={backgroundOperations}

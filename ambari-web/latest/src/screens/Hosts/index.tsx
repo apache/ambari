@@ -16,13 +16,11 @@
  * limitations under the License.
  */
 
-//TODO: uncomment the commented imports and their usages after those components are available
-
 import { Button, Col, Nav, Row, Tab } from "react-bootstrap";
 import HostsSummary from "./HostSummary";
-// import HostConfigs from "./HostConfigs";
-// import HostAlerts from "../Alerts/HostAlerts";
-// import HostStackVersions from "../Alerts/HostStackVersions";
+import HostConfigs from "./HostConfigs";
+import HostAlerts from "../Alerts/HostAlerts";
+import HostStackVersions from "../Alerts/HostStackVersions";
 import NestedDropdown from "../../components/NestedDropdown";
 import { forEach, get } from "lodash";
 import { useContext, useEffect, useMemo, useState } from "react";
@@ -39,30 +37,29 @@ import modalManager from "../../store/ModalManager";
 import useStackVersion from "../../hooks/useStackVersion";
 import { HostsApi } from "../../api/hostsApi";
 import Spinner from "../../components/Spinner";
-// import { ServiceContext } from "../../store/ServiceContext";
+import { ServiceContext } from "../../store/ServiceContext";
 import useKDCSessionState from "../../hooks/useKDCSessionState";
-// import useStackServices from "../../hooks/useStackServices";
-// import { useConfigs } from "../../hooks/useConfigs";
-// import useComponentAddDelete from "./hooks/useComponentAddDelete";
+import useStackServices from "../../hooks/useStackServices";
+import { useConfigs } from "../../hooks/useConfigs";
+import useComponentAddDelete from "./hooks/useComponentAddDelete";
 import { translate, translateWithVariables } from "../../Utils/Utility";
 import classNames from "classnames";
 import { useAuth } from "../../hooks/useAuth";
-import { ComponentInProgress } from "../../Utils/ComponentInProgress";
 
 export function Hosts() {
   const params = useParams();
   const navigate = useNavigate();
   const { isKerberosEnabled, clusterName, upgradeIsRunning } =
     useContext(AppContext);
-  // const { allServiceModels: serviceModels } = useContext(ServiceContext);
+  const { allServiceModels: serviceModels } = useContext(ServiceContext);
   const [allHostModels, setAllHostModels] = useState<IHost[]>([]);
   const { stackVersionList } = useStackVersion();
   const [showHostCheck, setShowHostCheck] = useState(false);
   const [clusterComponents, setClusterComponents] = useState<any>({});
   const [loading, setLoading] = useState(true);
 
-  // const { services: stackServices } = useStackServices();
-  // const { getConfigByName } = useConfigs([], stackServices as any);
+  const { services: stackServices } = useStackServices();
+  const { getConfigByName } = useConfigs([], stackServices as any);
   const { getKDCSessionState } = useKDCSessionState(() => {});
   const [activeTab, setActiveTab] = useState(params.tab || "summary");
 
@@ -97,18 +94,18 @@ export function Hosts() {
   const { startHostCheck, stopHostCheck, isHostCheckRunning, hostCheckResult } =
     useHostChecks();
 
-  // const {
-  //   _doDeleteHostComponent,
-  //   applyConfigsCustomization,
-  //   putConfigsToServer,
-  //   clearConfigsChanges,
-  //   loadComponentRelatedConfigs,
-  // } = useComponentAddDelete(
-  //   clusterComponents,
-  //   stackServices,
-  //   getConfigByName,
-  //   setAllHostModels
-  // );
+  const {
+    _doDeleteHostComponent,
+    applyConfigsCustomization,
+    putConfigsToServer,
+    clearConfigsChanges,
+    loadComponentRelatedConfigs,
+  } = useComponentAddDelete(
+    clusterComponents,
+    stackServices,
+    getConfigByName,
+    setAllHostModels
+  );
 
   const getBootHostsProp = () => {
     let bootHosts = [];
@@ -158,8 +155,7 @@ export function Hosts() {
     },
     configs: {
       title: "CONFIGS",
-      component: <ComponentInProgress />,
-      // component: <HostConfigs />,
+      component: <HostConfigs />,
     },
     alerts: {
       title: (
@@ -178,13 +174,11 @@ export function Hosts() {
           </Button>
         </>
       ),
-      component: <ComponentInProgress />,
-      // component: <HostAlerts hostname={params.hostname} />,
+      component: <HostAlerts hostname={params.hostname} />,
     },
     versions: {
       title: "VERSIONS",
-      component: <ComponentInProgress />,
-      // component: <HostStackVersions />,
+      component: <HostStackVersions />,
     },
   };
 
@@ -324,18 +318,18 @@ export function Hosts() {
         icon: "remove",
         iconClass: "text-danger",
         onClick: () => {
-          // doAction({
-          //   action: "deleteHost",
-          //   hostName: hostName,
-          //   host: get(allHostModels, "[0]"),
-          //   clusterComponents: get(clusterComponents, "items", []),
-          //   serviceModels: serviceModels,
-          //   doDeleteHostComponent: _doDeleteHostComponent,
-          //   applyConfigsCustomization,
-          //   putConfigsToServer,
-          //   clearConfigsChanges,
-          //   loadComponentRelatedConfigs,
-          // });
+          doAction({
+            action: "deleteHost",
+            hostName: hostName,
+            host: get(allHostModels, "[0]"),
+            clusterComponents: get(clusterComponents, "items", []),
+            serviceModels: serviceModels,
+            doDeleteHostComponent: _doDeleteHostComponent,
+            applyConfigsCustomization,
+            putConfigsToServer,
+            clearConfigsChanges,
+            loadComponentRelatedConfigs,
+          });
         },
       });
     }

@@ -39,25 +39,25 @@ type RepositoryVersion = {
     };
   };
   operating_systems: OperatingSystem[];
-};
+}
 
 type Service = {
   name: string;
   versions: Version[];
   display_name: string;
-};
+}
 
 type Version = {
   version: string;
   components: any[];
-};
+}
 
 type StackService = {
   name: string;
   display_name: string;
   comment: string;
   versions: string[];
-};
+}
 
 type OperatingSystem = {
   href: string;
@@ -69,7 +69,7 @@ type OperatingSystem = {
     stack_version: string;
   };
   repositories: Repository[];
-};
+}
 
 type Repository = {
   href: string;
@@ -90,7 +90,7 @@ type Repository = {
     tags: any[];
     unique: boolean;
   };
-};
+}
 
 type ClusterStackVersion = {
   cluster_name: string;
@@ -118,13 +118,13 @@ type ClusterStackVersion = {
     NOT_REQUIRED: string[];
     OUT_OF_SYNC: string[];
   };
-};
+}
 
 type StackVersion = {
   href: string;
   ClusterStackVersions: ClusterStackVersion;
   repository_versions: RepositoryVersion[];
-};
+}
 
 type UpgradeCheck = {
   check: string;
@@ -141,28 +141,28 @@ type UpgradeCheck = {
   repository_version_id: number;
   status: string;
   upgrade_type: string;
-};
+}
 
 type Item = {
   href: string;
   UpgradeChecks: UpgradeCheck;
-};
+}
 
 type Response = {
   href: string;
   items: Item[];
-};
+}
 
 type ClusterCheckPopupData = {
-  header: any;
-  failTitle: any;
-  failAlert: any;
-  warningTitle: any;
-  warningAlert: any;
-  primary: any;
-  secondary: any;
+  header: string;
+  failTitle: string;
+  failAlert: string;
+  warningTitle: string;
+  warningAlert: string;
+  primary: string;
+  secondary: string;
   bypassedFailures: boolean;
-};
+}
 
 type TaskLog = {
   Tasks: {
@@ -239,7 +239,7 @@ type UpgradeGroup = {
     status: string;
     title: string;
     total_task_count: number;
-  };
+  },
   upgrade_items: UpgradeItem[];
 };
 
@@ -308,21 +308,21 @@ type UpgradeParameters = {
 };
 
 export type {
-  RepositoryVersion,
-  Service,
-  Version,
-  StackService,
-  OperatingSystem,
-  Repository,
-  ClusterStackVersion,
-  StackVersion,
-  UpgradeCheck,
-  Item,
-  Response,
-  ClusterCheckPopupData,
-  UpgradeData,
-  UpgradeGroup,
-  UpgradeItem,
-  Task,
-  UpgradeParameters,
+    RepositoryVersion,
+    Service,
+    Version,
+    StackService,
+    OperatingSystem,
+    Repository,
+    ClusterStackVersion,
+    StackVersion,
+    UpgradeCheck,
+    Item,
+    Response,
+    ClusterCheckPopupData,
+    UpgradeData,
+    UpgradeGroup,
+    UpgradeItem,
+    Task,
+    UpgradeParameters
 };

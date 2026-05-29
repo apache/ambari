@@ -17,12 +17,14 @@
  */
 
 import { useContext, useEffect, useState } from "react";
+import VersionsApi from "../../../api/versionsApi";
 import toast from "react-hot-toast";
 import Spinner from "../../../components/Spinner";
 import Table from "../../../components/Table";
-import { Badge, Button } from "react-bootstrap";
+import { Badge, Button} from "react-bootstrap";
 import { AppContext } from "../../../store/context";
-import VersionsApi from "../../../api/versionsApi";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../../hooks/useAuth";
 
 interface Service {
   name: string;
@@ -33,19 +35,38 @@ interface Service {
 
 export default function ListStack() {
   const [services, setServices] = useState<Service[]>([]);
+  const [serviceDetails, setServiceDetails] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const { clusterName } = useContext(AppContext);
+  const navigate = useNavigate();
+
+  // Authorization hooks - implementing Ember.js service authorization patterns
+  const { hasAuthorization } = useAuth();
+  
+  // Check specific authorizations for service operations
+  const canAddDeleteServices = hasAuthorization('SERVICE.ADD_DELETE_SERVICES');
 
   useEffect(() => {
     const fetchServices = async () => {
       try {
         setLoading(true);
         const response = await VersionsApi.getServices(clusterName);
+        
+        const currentItem = response.items.find(
+          (item: any) => item.ClusterStackVersions.state === "CURRENT"
+        );
+        
+        if (!currentItem) {
+          toast.error("No current stack version found");
+          setLoading(false);
+          return;
+        }
+        
         const serviceDetails =
-          response.items[0].repository_versions[0].RepositoryVersions
+          currentItem.repository_versions[0].RepositoryVersions
             .stack_services;
         const serviceSummary =
-          response.items[0].ClusterStackVersions.repository_summary.services;
+          currentItem.ClusterStackVersions.repository_summary.services;
         const combinedServices: Service[] = serviceDetails.map(
           (service: any) => {
             return {
@@ -60,6 +81,7 @@ export default function ListStack() {
         );
 
         setServices(combinedServices);
+        setServiceDetails(serviceDetails); // Store service details for navigation
         setLoading(false);
       } catch (err) {
         toast.error("Failed to fetch data");
@@ -93,14 +115,25 @@ export default function ListStack() {
         info.getValue() === "Installed" ? (
           <Badge bg="success">{info.getValue()}</Badge>
         ) : (
-          <Button
-            variant="link"
-            size="sm"
-            disabled={info.getValue() === "Installed"}
+          <Button 
+            variant="link" 
+            size="sm" 
+            disabled={info.getValue() === "Installed" || !canAddDeleteServices} 
             onClick={() => {
-              //TODO: will be added once we have add service flow
-              // navigate("/main/service/add/step1");
+              if (canAddDeleteServices) {
+                // Get the actual service name from the service data
+                const serviceName = serviceDetails.find(
+                  (service: any) => service.display_name === info.row.original.name
+                )?.name;
+                
+                // Store preselected service in localStorage temporarily
+                localStorage.setItem('preselectedService', serviceName || info.row.original.name);
+                
+                // Navigate to Add Service wizard
+                navigate("/main/service/add/step1");
+              }
             }}
+            title={!canAddDeleteServices ? "You do not have permission to add services. Required permission: SERVICE.ADD_DELETE_SERVICES" : ""}
           >
             {info.getValue()}
           </Button>

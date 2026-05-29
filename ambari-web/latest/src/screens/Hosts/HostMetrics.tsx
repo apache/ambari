@@ -21,13 +21,12 @@ import { hostMetricsOption } from "./constants";
 import { get } from "lodash";
 import { getComponentName } from "./utils";
 import { IHost } from "../../models/host";
-//TODO: Enable these widgets when metrics are available
-// import NameNodeHeap from "../Dashboard/widgets/NameNodeHeap";
-// import NameNodeRpc from "../Dashboard/widgets/NameNodeRpc";
-// import NameNodeUptime from "../Dashboard/widgets/NameNodeUptime";
+import NameNodeHeap from "../Dashboard/widgets/NameNodeHeap";
+import NameNodeRpc from "../Dashboard/widgets/NameNodeRpc";
+import NameNodeUptime from "../Dashboard/widgets/NameNodeUptime";
 import HostMetricsGraph from "./HostMetricsGraph";
 import { translate } from "../../Utils/Utility";
-// import NameNodeCpuPieChartView from "../Dashboard/widgets/NameNodeCpuPieChartView";
+import NameNodeCpuPieChartView from "../Dashboard/widgets/NameNodeCpuPieChartView";
 
 type HostMetricsProps = {
   metricsData: any;
@@ -89,7 +88,7 @@ export const HostMetrics = ({
                   {translate("dashboard.widgets.NameNodeHeap")}
                 </div>
                 <div className="d-flex justify-content-center pb-4 pt-3 text-muted">
-                  {/* <NameNodeHeap /> */}
+                  <NameNodeHeap />
                 </div>
               </Card>
               <Card className="widget-card h-100 border-light border-2 w-50 mx-4 rounded-0">
@@ -97,7 +96,7 @@ export const HostMetrics = ({
                   {translate("dashboard.widgets.NameNodeCpu")}
                 </div>
                 <div className="d-flex justify-content-center pb-4 pt-3 text-muted">
-                  {/* <NameNodeCpuPieChartView /> */}
+                  <NameNodeCpuPieChartView />
                 </div>
               </Card>
             </div>
@@ -107,7 +106,7 @@ export const HostMetrics = ({
                   {translate("dashboard.widgets.NameNodeRpc")}
                 </div>
                 <div className="px-4 pb-4 pt-3 text-center text-muted">
-                  {/* <NameNodeRpc /> */}
+                  <NameNodeRpc />
                 </div>
               </Card>
               <Card className="widget-card h-100 border-light border-2 w-50 mx-4 rounded-0">
@@ -115,7 +114,7 @@ export const HostMetrics = ({
                   {translate("dashboard.widgets.NameNodeUptime")}
                 </div>
                 <div className="px-4 pb-4 pt-3 text-center text-muted">
-                  {/* <NameNodeUptime /> */}
+                  <NameNodeUptime />
                 </div>
               </Card>
             </div>

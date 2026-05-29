@@ -17,22 +17,22 @@
  */
 
 import { useEffect, useState, useContext } from "react";
-import { AlertsApi } from "../../api/alertsApi.ts";
-import { MergedAlert } from "./types.ts";
+import { AlertsApi } from "../../api/alertsApi";
+import { MergedAlert } from "./types";
 import { Container, Button } from "react-bootstrap";
 import { Link } from "react-router-dom";
-import { AppContext } from "../../store/context.tsx";
-import Table from "../../components/Table.tsx";
-import Paginator from "../../components/Paginator.tsx";
-import usePagination from "../../hooks/usePagination.ts";
-import Spinner from "../../components/Spinner.tsx";
-import AlertFilters from "./AlertFilters.tsx";
+import { AppContext } from "../../store/context";
+import Table from "../../components/Table";
+import Paginator from "../../components/Paginator";
+import usePagination from "../../hooks/usePagination";
+import Spinner from "../../components/Spinner";
+import AlertFilters from "./AlertFilters";
 import { ColumnDef } from "@tanstack/react-table";
-import { AlertStatus, AlertStatusDisplay } from "./alertStatus.ts";
-import { sortAlerts } from "./alertUtils.ts";
+import { AlertStatus, AlertStatusDisplay } from "./alertStatus";
+import { sortAlerts } from "./alertUtils";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMedkit } from "@fortawesome/free-solid-svg-icons";
-import usePolling from "../../hooks/usePolling.ts";
+import usePolling from "../../hooks/usePolling";
 
 interface HostAlertsProps {
   hostname?: string;

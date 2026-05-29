@@ -105,72 +105,118 @@ export const AddHostProvider: React.FC<{
   };
 
   const setStackAndVersion = async () => {
-    const response = await VersionsApi.getServices(clusterName);
-    const repoVersionId = get(
-      response,
-      "items.[0].ClusterStackVersions.repository_version",
-      ""
-    );
-    const repo = get(response, "items.[0].repository_versions", []).find(
-      (version: any) => get(version, "RepositoryVersions.id") === repoVersionId
-    )?.RepositoryVersions;
-    const repoVersion = get(repo, "repository_version", "");
-    const repoDisplayName = get(repo, "display_name", "");
-    const stackName = get(response, "items.[0].ClusterStackVersions.stack", "");
-    const stackVersion = get(
-      response,
-      "items.[0].ClusterStackVersions.version",
-      ""
-    );
-    const repoData = await VersionsApi.getRepoDetails(stackName, repoVersion);
-    const os = get(
-      repoData,
-      "items.[0].repository_versions.[0].operating_systems.[0]",
-      {}
-    );
-    const repos = get(os, "repositories", []).map((repo: any) => {
-      return {
-        id: get(repo, "Repositories.repo_id"),
-        defaultId: get(repo, "Repositories.repo_id"),
-        baseUrl: get(repo, "Repositories.base_url"),
-        name: get(repo, "Repositories.repo_name"),
-        defaultUrl: get(repo, "Repositories.default_base_url"),
+    try {
+      const response = await VersionsApi.getServices(clusterName);
+      
+      // Find the current stack version instead of just using the first one
+      const currentStack = response.items.find(
+        (stack: any) => stack.ClusterStackVersions.state === "CURRENT"
+      );
+      
+      // Use the current stack if found, otherwise fallback to the first one
+      const stackToUse = currentStack || response.items[0];
+      
+      const repoVersionId = get(
+        stackToUse,
+        "ClusterStackVersions.repository_version",
+        ""
+      );
+      const repo = get(stackToUse, "repository_versions", []).find(
+        (version: any) => get(version, "RepositoryVersions.id") === repoVersionId
+      )?.RepositoryVersions;
+      const repoVersion = get(repo, "repository_version", "");
+      const repoDisplayName = get(repo, "display_name", "");
+      const stackName = get(stackToUse, "ClusterStackVersions.stack", "");
+      const stackVersion = get(
+        stackToUse,
+        "ClusterStackVersions.version",
+        ""
+      );
+      const repoData = await VersionsApi.getRepoDetails(stackName, repoVersion);
+      const os = get(
+        repoData,
+        "items.[0].repository_versions.[0].operating_systems.[0]",
+        {}
+      );
+      const repos = get(os, "repositories", []).map((repo: any) => {
+        return {
+          id: get(repo, "Repositories.repo_id"),
+          defaultId: get(repo, "Repositories.repo_id"),
+          baseUrl: get(repo, "Repositories.base_url"),
+          name: get(repo, "Repositories.repo_name"),
+          defaultUrl: get(repo, "Repositories.default_base_url"),
+        };
+      });
+      const data = {
+        selectedVersion: {
+          id: repoDisplayName,
+          stack_name: stackName,
+          stack_version: stackVersion,
+        },
+        selectedStack: {
+          id: repoDisplayName,
+          stack_name: stackName,
+          stack_version: stackVersion,
+        },
+        operatingSystems: {
+          [repoDisplayName]: [
+            {
+              os: get(os, "OperatingSystems.os_type", ""),
+              isAdded: true,
+              repos: repos,
+            },
+          ],
+        },
       };
-    });
-    const data = {
-      selectedVersion: {
-        id: repoDisplayName,
-        stack_name: stackName,
-        stack_version: stackVersion,
-      },
-      selectedStack: {
-        id: repoDisplayName,
-        stack_name: stackName,
-        stack_version: stackVersion,
-      },
-      operatingSystems: {
-        [repoDisplayName]: [
-          {
-            os: get(os, "OperatingSystems.os_type", ""),
-            isAdded: true,
-            repos: repos,
-          },
-        ],
-      },
-    };
-    dispatch({
-      type: ActionTypes.STORE_INFORMATION,
-      payload: {
-        step: "VERSION",
-        data: data,
-      },
-    });
+      dispatch({
+        type: ActionTypes.STORE_INFORMATION,
+        payload: {
+          step: "VERSION",
+          data: data,
+        },
+      });
+    } catch (error) {
+      console.error("Error setting stack and version:", error);
+      // Set fallback data to prevent undefined errors
+      const fallbackData = {
+        selectedVersion: {
+          id: "",
+          stack_name: "",
+          stack_version: "",
+        },
+        selectedStack: {
+          id: "",
+          stack_name: "",
+          stack_version: "",
+        },
+        operatingSystems: {},
+      };
+      dispatch({
+        type: ActionTypes.STORE_INFORMATION,
+        payload: {
+          step: "VERSION",
+          data: fallbackData,
+        },
+      });
+    }
   };
 
   useEffect(() => {
     syncUserPersistedData();
     getHostComponents();
   }, []);
+
+  // Ensure cluster name, services, and stack/version are loaded when AppContext data becomes available
+  useEffect(() => {
+    if (clusterName) {
+      setClusterName();
+      
+      // Also load stack and version when we have all required data
+      if (!isEmpty(services) && !isEmpty(serviceComponentInfo)) {
+        setStackAndVersion();
+      }
+    }
+  }, [clusterName, services, serviceComponentInfo]);
 
   useEffect(() => {
     if (isDataPersisted.current) {

@@ -39,8 +39,7 @@ import {
   showRollingRestartPopup,
 } from "./batchUtils";
 import { checkNnLastCheckpointTime } from "./actions";
-//TODO: Uncomment the below import and its usage once BackgroundOperations component is available
-// import BackgroundOperations from "../BackgroundOperations";
+import BackgroundOperations from "../BackgroundOperations";
 import { ComponentStatus } from "./enums";
 import {
   showErrorModal,
@@ -567,15 +566,15 @@ const bulkOperationForHostComponentsSuccessCallback = (
       })
     );
   } else {
-    // modalManager.show(
-    //   <BackgroundOperations
-    //     isOpen={true}
-    //     onClose={() => {
-    //       modalManager.hide();
-    //     }}
-    //     requestId={get(response, "data.Requests.id", "")}
-    //   />
-    // );
+    modalManager.show(
+      <BackgroundOperations
+        isOpen={true}
+        onClose={() => {
+          modalManager.hide();
+        }}
+        requestId={get(response, "data.Requests.id", "")}
+      />
+    );
   }
 };
 

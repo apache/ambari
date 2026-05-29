@@ -26,7 +26,7 @@ import { useSpark3ConfigUpdater } from "../hooks/useSpark3ConfigUpdater";
 import { useKerberosConfigUpdater } from "../hooks/useKerberosConfigUpdater";
 import { useRangerKMSConfigUpdater } from "../hooks/useRangerKMSConfigUpdater";
 import { useAmbariMetricsConfigUpdater } from "../hooks/useAmbariMetricsConfigUpdater";
-import { useTrinoConfigUpdater } from "../hooks/useTrinoConfigUpdater.tsx";
+import { useTrinoConfigUpdater } from "../hooks/useTrinoConfigUpdater";
 import { useSSMConfigUpdater } from "../hooks/useSSMConfigUpdater";
 import { useYarnConfigUpdater } from "../hooks/useYarnConfigUpdater";
 import { useHiveConfigUpdater } from "../hooks/useHiveConfigUpdater";

@@ -25,7 +25,7 @@ export type ModalProps = {
   onClose: () => void;
   modalTitle: any;
   modalBody: ReactNode;
-  className?:string;
+  className?: string;
   successCallback: () => void;
   options: {
     modalSize?: string;
@@ -56,7 +56,7 @@ export default function Modal({
   modalBody,
   successCallback,
   options,
-  className
+  className,
 }: ModalProps) {
   const {
     modalSize = "modal-width", //Other options are modal-sm, modal-md, modal-lg - Change via prop

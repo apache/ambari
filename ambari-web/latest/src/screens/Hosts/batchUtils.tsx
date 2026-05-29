@@ -20,8 +20,7 @@ import { forEach, get, set } from "lodash";
 import { HostsApi } from "../../api/hostsApi";
 import { IHostComponent } from "../../models/hostComponent";
 import modalManager from "../../store/ModalManager";
-//TODO: Uncomment the below import and its usage once BackgroundOperations component is available
-// import BackgroundOperations from "../BackgroundOperations";
+import BackgroundOperations from "../BackgroundOperations";
 import RollingRestartModal from "../../components/RollingRestartModal";
 import {
   showErrorModal,
@@ -116,15 +115,15 @@ export const restartHostComponents = async (
     const response = await HostsApi.clusterRequests(clusterName, data);
     const requestId = get(response, "Requests.id", -1);
     if (requestId !== -1) {
-      // modalManager.show(
-      //   <BackgroundOperations
-      //     isOpen={true}
-      //     onClose={() => {
-      //       modalManager.hide();
-      //     }}
-      //     requestId={requestId}
-      //   />
-      // );
+      modalManager.show(
+        <BackgroundOperations
+          isOpen={true}
+          onClose={() => {
+            modalManager.hide();
+          }}
+          requestId={requestId}
+        />
+      );
     }
   }
 };
@@ -366,36 +365,36 @@ const getBatchesForRollingRestartRequest = (
 
 export const defaultSuccessCallback = (requestId: number) => {
   if (requestId !== -1) {
-    // modalManager.show(
-    //   <BackgroundOperations
-    //     isOpen={true}
-    //     onClose={() => {
-    //       modalManager.hide();
-    //       if (
-    //         window.location.hash.match(
-    //           /^#\/main\/services\/[A-Za-z]+\/summary$/
-    //         )
-    //       ) {
-    //         window.location.reload();
-    //       }
-    //     }}
-    //     requestId={requestId}
-    //   />
-    // );
+    modalManager.show(
+      <BackgroundOperations
+        isOpen={true}
+        onClose={() => {
+          modalManager.hide();
+          if (
+            window.location.hash.match(
+              /^#\/main\/services\/[A-Za-z]+\/summary$/
+            )
+          ) {
+            window.location.reload();
+          }
+        }}
+        requestId={requestId}
+      />
+    );
   }
 };
 
 export const defaultSuccessCallbackWithoutReload = (requestId: number) => {
   if (requestId !== -1) {
-    // modalManager.show(
-    //   <BackgroundOperations
-    //     isOpen={true}
-    //     onClose={() => {
-    //       modalManager.hide();
-    //     }}
-    //     requestId={requestId}
-    //   />
-    // );
+    modalManager.show(
+      <BackgroundOperations
+        isOpen={true}
+        onClose={() => {
+          modalManager.hide();
+        }}
+        requestId={requestId}
+      />
+    );
   }
 };
 

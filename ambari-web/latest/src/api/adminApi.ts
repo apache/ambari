@@ -18,7 +18,7 @@
 
 import { ambariApi } from "./config/axiosConfig";
 
-const AdminApi = {
+const adminApi = {
 
   getNnCheckPointStatus: async function (clusterName:string, hostName:string) {
     const url = `/clusters/${clusterName}/hosts/${hostName}/host_components/NAMENODE`;
@@ -70,4 +70,4 @@ const AdminApi = {
   }
 };
 
-export default AdminApi
+export default adminApi

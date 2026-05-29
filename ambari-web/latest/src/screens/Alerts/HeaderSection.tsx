@@ -21,14 +21,14 @@ import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPencil, faArrowLeft, faBriefcase } from "@fortawesome/free-solid-svg-icons";
 import { Button, Form, Row, Col } from 'react-bootstrap';
-import { getStatusClass, formatStatus } from '../../Utils/Utility.ts';
+import { getStatusClass, formatStatus } from '../../Utils/Utility';
 import "../../styles/app.scss";
 import { MergedAlert } from './types';
-import { AlertsApi } from "../../api/alertsApi.ts";
-import { AppContext } from "../../store/context.tsx";
+import { AlertsApi } from "../../api/alertsApi";
+import { AppContext } from "../../store/context";
 import { useAuth } from '../../hooks/useAuth';
 
-import {AlertStatus} from "./alertStatus.ts";
+import {AlertStatus} from "./alertStatus";
 
 interface StatusItem {
     status: AlertStatus;

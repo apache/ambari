@@ -18,18 +18,22 @@
 
 import { get, set, compact, map, flatten, isArray, has } from "lodash";
 import { useState, useRef, useContext, useEffect } from "react";
+import { HostsApi } from "../../../api/hostsApi";
+import { IHostComponent } from "../../../models/hostComponent";
+import { AppContext } from "../../../store/context";
+import { zooKeeperRelatedServices, serviceMap } from "../../../Utils/Utility";
 import { t } from "i18next";
-import { IHost } from "../models/host";
-import { AppContext } from "../store/context";
-import { IHostComponent } from "../models/hostComponent";
-import modalManager from "../store/ModalManager";
-import { serviceMap } from "../Utils/Utility";
-import { HostsApi } from "../api/hostsApi";
-import { getComponentDisplayName, getServiceByConfigTypeMap, zooKeeperRelatedServices } from "../screens/Hosts/utils";
-import RecommendationModal from "../components/RecommendationModal";
-// import AddHiveComponentsInitializer from "../../../Initializers/AddHiveComponentsInitializer";
-// import AddZooKeeperComponentsInitializer from "../../../Initializers/AddZooKeeperComponentsInitializer";
-// import RecommendationModal from "../../../components/RecommendationModal";
+import {
+  getComponentDisplayName,
+  getServiceByConfigTypeMap,
+  installHostComponentCall,
+} from "../utils";
+import AddHiveComponentsInitializer from "../../../Initializers/AddHiveComponentsInitializer";
+import AddZooKeeperComponentsInitializer from "../../../Initializers/AddZooKeeperComponentsInitializer";
+import { ServiceContext } from "../../../store/ServiceContext";
+import { IHost } from "../../../models/host";
+import modalManager from "../../../store/ModalManager";
+import RecommendationModal from "../../../components/RecommendationModal";
 
 function useComponentAddDelete(
   clusterComponents: any,
@@ -40,9 +44,9 @@ function useComponentAddDelete(
   ) => void
 ) {
   const { clusterName, services } = useContext(AppContext);
-  // const { allServiceModels } = useContext(ServiceContext);
-  // const isNameNodeHAEnabled =
-  //   allServiceModels["hdfs"]?.isNameNodeHaEnabled || false;
+  const { allServiceModels } = useContext(ServiceContext);
+  const isNameNodeHAEnabled =
+    allServiceModels["hdfs"]?.isNameNodeHaEnabled || false;
   const [configs, setConfigs] = useState({});
   // const [isReconfigureRequired, setIsReconfigureRequired] = useState(false);
   const isReconfigureRequired = useRef(false);
@@ -118,6 +122,140 @@ function useComponentAddDelete(
   useEffect(() => {
     recommendedPropertiesToChangeRef.current = recommendedPropertiesToChange;
   }, [recommendedPropertiesToChange]);
+
+  const addAndReconfigureComponent = async (
+    componentsMapItem: any,
+    hostName: string,
+    component: any,
+    data: any
+  ) => {
+    componentHere.current = component;
+    set(componentProperties.current, "selectedHost", hostName);
+    if (componentsMapItem.addPropertyName) {
+      set(componentProperties.current, componentsMapItem.addPropertyName, true);
+    }
+    if (componentsMapItem.hostPropertyName) {
+      set(
+        componentProperties.current,
+        componentsMapItem.hostPropertyName,
+        hostName
+      );
+      set(component, "hostName", hostName);
+    }
+
+    await loadComponentRelatedConfigs(
+      componentsMapItem.configTagsCallbackName,
+      componentsMapItem.configsCallbackName
+    );
+
+    // Get service name from component or data
+    const serviceName = data.serviceName || get(component, "serviceName") || "";
+    const componentName =
+      data.componentNameFromService || get(component, "componentName") || "";
+
+    if (recommendedPropertiesToChangeRef.current.length === 0) {
+      modalManager.show(
+        <RecommendationModal
+          isOpen={true}
+          onClose={() => {
+            modalManager.hide();
+          }}
+          componentDisplayName={getComponentDisplayName(component)}
+          add={true}
+          callback={() => {
+            installHostComponentCall(
+              hostName,
+              component,
+              data,
+              setAllHostModels
+            );
+          }}
+          fromService={
+            data.fromServiceSummary ? data.fromServiceSummary : false
+          }
+          selectRecommendedProperties={(newProperties: any) => {
+            recommendedPropertiesToChangeRef.current = newProperties;
+          }}
+          serviceName={serviceName}
+          componentName={componentName}
+          validDropDownHosts={
+            data.validDropDownHosts ? data.validDropDownHosts : []
+          }
+          handleHostChange={async (selectedHost) => {
+            modalManager.hide();
+            component.hostName = selectedHost;
+            await addAndReconfigureComponent(
+              componentsMapItem,
+              selectedHost,
+              component,
+              data
+            );
+          }}
+          selectedHostForDropDown={hostName}
+        />
+      );
+    } else {
+      modalManager.show(
+        <RecommendationModal
+          isOpen
+          onClose={() => {
+            modalManager.hide();
+          }}
+          componentDisplayName={getComponentDisplayName(component)}
+          add
+          recommendedPropertiesToChange={
+            recommendedPropertiesToChangeRef.current
+          }
+          selectRecommendedProperties={(newProperties: any) => {
+            recommendedPropertiesToChangeRef.current = newProperties;
+          }}
+          callback={(selectedProperties: any) => {
+            setRecommendedPropertiesToChange(selectedProperties);
+            installAndReconfigureComponent(
+              hostName,
+              component,
+              componentsMapItem,
+              data
+            );
+          }}
+          fromService={
+            data.fromServiceSummary ? data.fromServiceSummary : false
+          }
+          serviceName={serviceName}
+          componentName={componentName}
+          validDropDownHosts={
+            data.validDropDownHosts ? data.validDropDownHosts : []
+          }
+          handleHostChange={async (selectedHost) => {
+            modalManager.hide();
+            addAndReconfigureComponent(
+              componentsMapItem,
+              selectedHost,
+              component,
+              data
+            );
+          }}
+          selectedHostForDropDown={hostName}
+        />
+      );
+    }
+  };
+
+  const installAndReconfigureComponent = async (
+    hostName: string,
+    component: any,
+    componentsMapItem: any,
+    data: any
+  ) => {
+    applyConfigsCustomization();
+    await installHostComponentCall(hostName, component, data, setAllHostModels);
+    await putConfigsToServer(
+      groupedPropertiesToChange.current,
+      get(component, "componentName")
+    );
+    set(componentProperties.current, componentsMapItem.addPropertyName, false);
+    clearConfigsChanges(true);
+  };
 
   const putConfigsToServer = async (
     groups: any,
@@ -254,13 +392,13 @@ function useComponentAddDelete(
     var groups: any = [];
     var serviceNames = map(services, "ServiceInfo.service_name");
     var zookeeperRelatedServices = zooKeeperRelatedServices.slice(0);
-    // if (isNameNodeHAEnabled) {
-    //   zookeeperRelatedServices.push({
-    //     serviceName: "HDFS",
-    //     typesToLoad: ["core-site"],
-    //     typesToSave: ["core-site"],
-    //   });
-    // }
+    if (isNameNodeHAEnabled) {
+      zookeeperRelatedServices.push({
+        serviceName: "HDFS",
+        typesToLoad: ["core-site"],
+        typesToSave: ["core-site"],
+      });
+    }
     zookeeperRelatedServices.forEach((service: any) => {
       if (serviceNames.includes(service.serviceName)) {
         var group: any = {
@@ -515,13 +653,13 @@ function useComponentAddDelete(
     let configs: any = {};
     let attributes: any = {};
     let userSetup: any = {};
-    // let localDB: any = {
-      masterComponentHosts: getHiveHosts()
-    // };
+    let localDB: any = {
+      masterComponentHosts: getHiveHosts(),
+    };
     let dependencies: any = {
       hiveMetastorePort: "",
     };
-    // let initializer = new AddHiveComponentsInitializer(); TODO
+    let initializer = new AddHiveComponentsInitializer();
     saveLoadedConfigs(data);
     data.items.forEach((item: any) => {
       configs[item.type] = item.properties;
@@ -547,13 +685,12 @@ function useComponentAddDelete(
               value: currentValue,
               filename: fileName,
             };
-            // TODO: Use initializer to get default value
-            // const configProperty = initializer.initialValue(
-            //   propertyDef,
-            //   localDB,
-            //   dependencies
-            // );
-            // initializer.updateSiteObj(configs[fileName], configProperty);
+            const configProperty = initializer.initialValue(
+              propertyDef,
+              localDB,
+              dependencies
+            );
+            initializer.updateSiteObj(configs[fileName], configProperty);
             if (
               isReconfigureRequired.current &&
               currentValue !== configs[fileName][propertyName]
@@ -645,7 +782,7 @@ function useComponentAddDelete(
         },
       },
     ];
-    // initializer.cleanup(); TODO
+    initializer.cleanup();
     setConfigsChanges(newGroups);
   };
 
@@ -720,13 +857,13 @@ function useComponentAddDelete(
 
     let zookeeperRelatedServices = zooKeeperRelatedServices.slice(0);
     // handle HA enabled case.
-    // if (isNameNodeHAEnabled) {
-    //   zookeeperRelatedServices.push({
-    //     serviceName: "HDFS",
-    //     typesToLoad: ["core-site"],
-    //     typesToSave: ["core-site"],
-    //   });
-    // }
+    if (isNameNodeHAEnabled) {
+      zookeeperRelatedServices.push({
+        serviceName: "HDFS",
+        typesToLoad: ["core-site"],
+        typesToSave: ["core-site"],
+      });
+    }
     zookeeperRelatedServices.forEach((service: any) => {
       if (
         services.some(
@@ -919,12 +1056,12 @@ function useComponentAddDelete(
   };
 
   const updateZkConfigs = (configs: any) => {
-    // const portValue = configs["zoo.cfg"]?.clientPort;
-    // const zkPort = typeof portValue === "undefined" ? "2181" : portValue;
-    // const infraSolrZnode =
-    //   configs["infra-solr-env"]?.infra_solr_znode || "/ambari-solr";
+    const portValue = configs["zoo.cfg"]?.clientPort;
+    const zkPort = typeof portValue === "undefined" ? "2181" : portValue;
+    const infraSolrZnode =
+      configs["infra-solr-env"]?.infra_solr_znode || "/ambari-solr";
 
-    // const initializer = new AddZooKeeperComponentsInitializer(); TODO
+    const initializer = new AddZooKeeperComponentsInitializer();
     //@ts-ignore
     initializer.setup();
     const hostComponentsTopology: any = {
@@ -963,11 +1100,10 @@ function useComponentAddDelete(
       });
     }
 
-    // TODO
-    // const dependencies = {
-    //   zkClientPort: zkPort,
-    //   infraSolrZnode,
-    // };
+    const dependencies = {
+      zkClientPort: zkPort,
+      infraSolrZnode,
+    };
 
     hostComponentsTopology.masterComponentHosts = masterComponents;
 
@@ -980,14 +1116,13 @@ function useComponentAddDelete(
           name: propertyName,
           value: currentValue,
         };
-        //TODO
-        // const configProperty = initializer.initialValue(
-        //   propertyDef,
-        //   hostComponentsTopology,
-        //   dependencies
-        // );
+        const configProperty = initializer.initialValue(
+          propertyDef,
+          hostComponentsTopology,
+          dependencies
+        );
 
-        // initializer.updateSiteObj(configs[fileName], configProperty);
+        initializer.updateSiteObj(configs[fileName], configProperty);
 
         if (currentValue !== configs[fileName][propertyName]) {
           const service = getServiceByConfigTypeMap(stackServices)[fileName];
@@ -1061,7 +1196,9 @@ function useComponentAddDelete(
     getUrlParamsForConfigsRequest,
     applyConfigsCustomization,
     putConfigsToServer,
+    addAndReconfigureComponent,
     setRecommendedPropertiesToChange,
+    installAndReconfigureComponent,
   };
 }
 

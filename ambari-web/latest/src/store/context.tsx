@@ -27,14 +27,14 @@ import { State, Action } from "./types";
 import { reducer, initialState } from "./reducer";
 import { Client } from "@stomp/stompjs";
 import ClusterApi from "../api/clusterApi";
+import { ChooseServicesApi } from "../api/chooseServicesApi";
 import { ServicesApi } from "../api/servicesApi";
 import { get, isEmpty, isString, isUndefined, map, set } from "lodash";
+import ConfigsApi from "../api/configsApi";
 import { mapStackConfigProperties, redirectToLogin } from "../Utils/Utility";
 import LoginApi from "../api/loginApi";
 import { db } from "../Utils/db";
 import useAuth from "../hooks/useAuth";
-import { ChooseServicesApi } from "../api/chooseServicesApi";
-import ConfigsApi from "../api/configsApi";
 // import {LocalStorageOps} from "../Utils/LocalStorageOps";
 
 interface AppContextProps {
@@ -155,7 +155,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const [cluster, setCluster] = useState<any>({});
   const [isClusterInstalled, setIsClusterInstalled] = useState<boolean|undefined>(undefined);
   const [serviceComponentInfo, setServiceComponentInfo] = useState<any>({});
-  const [upgradeState, setUpgradeState] = useState<string>("");
+  const [upgradeState, setUpgradeState] = useState<string>("NOT_REQUIRED");
   const [upgradeDirection, setUpgradeDirection] = useState<string>("");
   const [upgradeSuspend, setUpgradeSuspend] = useState<boolean>(false);
   const [upgradeId, setUpgradeId] = useState<number>(0);
@@ -517,6 +517,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       console.error("Could not fetch user bg preferences", err);
     }
   }
+
   useEffect(() => {
     async function moveAppToReadyState() {
       const isAuthenticated = await fetchUserInfo();
@@ -552,6 +553,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!message) return;
 
     if (get(message, "destination") === "/events/upgrade") {
+      // Fix for flaky service actions dropdown during upgrade pause
+      // Update upgrade state immediately from WebSocket message to prevent UI flicker
       if (get(message, "type") === "CREATE" || get(message, "type") === "UPDATE") {
         // Extract upgrade state directly from WebSocket message if available
         const upgradeStatus = get(message, "requestStatus") || get(message, "request_status");

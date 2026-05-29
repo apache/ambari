@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import AddComponentConfigInitializer from "./AddComponentConfigInitializer.ts";
+import AddComponentConfigInitializer from "./AddComponentConfigInitializer";
 
 class AddHiveComponentsInitializer extends AddComponentConfigInitializer {
   //@ts-ignore

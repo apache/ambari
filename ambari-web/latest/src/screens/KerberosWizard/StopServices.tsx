@@ -17,15 +17,15 @@
  */
 
 import { useContext, useEffect, useState } from "react";
+import { RequestApi } from "../../api/requestApi";
+import { EnableKerberosContext } from "./KerberosStore/context";
 import WizardFooter from "../../components/StepWizard/WizardFooter";
 import { AppContext } from "../../store/context";
 import { Alert } from "react-bootstrap";
 import { translate } from "../../Utils/Utility";
 import { get } from "lodash";
-import { EnableKerberosContext } from "./KerberosStore/context";
-import { RequestApi } from "../../api/requestApi";
-import OperationsProgress from "../../components/OperationProgress";
 import { ActionTypes } from "./KerberosStore/types";
+import OperationsProgress from "../../components/OperationsProgress";
 
 export default function StopServices() {
   const {
@@ -38,6 +38,7 @@ export default function StopServices() {
 
   const [completionStatus, setCompletionStatus] = useState(false);
   const [nextEnabled, setNextEnabled] = useState(false);
+  const [stepOperations, setStepOperations] = useState<any>([]);
   const { clusterName } = useContext(AppContext);
 
   useEffect(() => {
@@ -46,7 +47,8 @@ export default function StopServices() {
     }
   }, [completionStatus]);
 
-  const operations = [
+
+  const initialOperations = [
     {
       id: "1",
       label: "Stop services",
@@ -77,19 +79,43 @@ export default function StopServices() {
     },
   ];
 
+  const savedOperationsState = get(
+    state,
+    `kerberosWizardSteps.${wizardSteps[6].name}.data.operationsState`,
+    null
+  );
+
+  useEffect(() => {
+    const operations = (() => {
+      if (savedOperationsState && Array.isArray(savedOperationsState)) {
+        return initialOperations.map((originalOp) => {
+          const savedOp = savedOperationsState.find(
+            (saved: any) => saved.id === originalOp.id
+          );
+          return savedOp
+            ? { ...originalOp, ...savedOp, callback: originalOp.callback }
+            : originalOp;
+        });
+      }
+
+      return initialOperations;
+    })();
+    setStepOperations(operations);
+  }, [JSON.stringify(savedOperationsState)]);
+
+
+  if(!stepOperations || stepOperations.length===0){
+    return <div>Loading...</div>
+  }
+
+
   return (
     <>
       { completionStatus &&
         <Alert variant="success">{translate("admin.kerberos.wizard.step6.notice.completed")}</Alert>
       }
       <OperationsProgress
-        operations={
-          (get(
-            state,
-            `kerberosWizardSteps.${wizardSteps[6].name}.data.operationsState`,
-            null
-          ) as any) ||
-          (operations as any)}
+        operations={stepOperations as any}
         title="Stop services"
         description="Stop services"
         setCompletionStatus={setCompletionStatus}

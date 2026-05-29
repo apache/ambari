@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+// ambari-web/ui2/src/utils/alertUtils.ts
 import { AlertGroupItem, MergedAlert, SummariesItem, SummaryData, SearchFilter, AlertDefinition } from "./types";
 import { TIME_RANGES } from "./constants";
 import { AlertStatus } from "./alertStatus";

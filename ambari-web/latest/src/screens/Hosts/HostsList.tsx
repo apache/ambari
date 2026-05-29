@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+
 import {
   useCallback,
   useContext,
@@ -92,6 +93,7 @@ export default function HostsList() {
     useContext(AppContext);
   const { allServiceModels: serviceModels } = useContext(ServiceContext);
   const [loading, setLoading] = useState(true);
+  const [paginationLoading, setPaginationLoading] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [allHostModels, setAllHostModels] = useState<Host[]>([]);
@@ -139,7 +141,8 @@ export default function HostsList() {
     hostApiQueryParams,
     currentHostModels,
     setCurrentHostModels,
-    setTotalItems
+    setTotalItems,
+    setPaginationLoading
   );
 
   const modalProps = useRef({
@@ -278,6 +281,7 @@ export default function HostsList() {
         (currentPage - 1) * itemsPerPage
       }`;
     }
+    setPaginationLoading(true);
     setHostApiQueryParams(hostApiQueryParamsCopy);
     setCurrentPage(1);
   }, [filterString]);
@@ -292,6 +296,7 @@ export default function HostsList() {
       } else {
         hostApiQueryParamsCopy.RequestInfo.query = `page_size=${itemsPerPage}&from=0`;
       }
+      setPaginationLoading(true);
       setHostApiQueryParams(hostApiQueryParamsCopy);
     } else {
       setCurrentPage(1);
@@ -311,6 +316,7 @@ export default function HostsList() {
         (currentPage - 1) * itemsPerPage
       }`;
     }
+    setPaginationLoading(true);
     setHostApiQueryParams(hostApiQueryParamsCopy);
   }, [currentPage]);
 
@@ -1346,7 +1352,9 @@ export default function HostsList() {
                 selectedFilters={selectedFilters}
                 setSelectedFilters={setSelectedFilters}
               />
-              {currentHostModels.length === 0 ? (
+              {paginationLoading ? (
+                <Spinner />
+              ) : currentHostModels.length === 0 ? (
                 <div className="text-muted p-3">
                   {translate("hosts.table.noHosts")}
                 </div>
