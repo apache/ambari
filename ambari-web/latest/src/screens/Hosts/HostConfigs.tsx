@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { useContext, useEffect, useState } from "react"; 
+import { useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { ConfigPropertiesType } from "../CommonConfigs/types";
 import { ambari_metrics_properties } from "../../data/configs/services/ambari_metrics_properties";

@@ -1,0 +1,55 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+.notification-bell {
+  position: relative;
+  .notification-bell-icon {
+    color: #999999;
+    cursor: pointer;
+    font-size: 16px;
+  }
+  .notification-count {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background-color: red;
+    color: white;
+    border-radius: 50%;
+    padding: 5px;
+    font-size: 10px;
+  }
+}
+.alerts-modal {
+  .modal-dialog {
+    width: 50vw !important;
+  }
+  .modal-body {
+    max-height: 50vh !important;
+  }
+}
+.text-light{
+    color:rgb(102, 102, 102)!important;
+}
+.metric-description{
+    color:#999999!important;
+}
+.action-btn{
+  position:absolute;
+  top:-6px;
+  right:15px;
+}

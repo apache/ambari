@@ -1,4 +1,3 @@
-
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,7 +16,7 @@
  * limitations under the License.
  */
 
-import {AlertStatus} from "./alertStatus.ts";
+import {AlertStatus} from "./alertStatus";
 
 export interface AlertDefinition {
     repeat_tolerance_enabled: any;

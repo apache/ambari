@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 @import "../../scss/variables/colors.scss";
 .step-wizard-step-count {
   border: 2px solid $disabled;
@@ -74,6 +75,10 @@
   background-color: #323544;
   height: 100%;
 }
+
+.wizard-content {
+  padding-bottom: 140px !important; /* Add space for both WizardFooter and LicenseFooter */
+}
 .cursor-pointer{
   cursor: pointer!important;
 }
@@ -83,9 +88,155 @@
 .bg-disabled{
   background-color:#666!important;
 }
-.step-wizard-footer {
-  position: absolute;
-  bottom: -40px;
-  left: 0px;
+
+.version-services-table {
+  margin-top: 195px!important;
+  z-index:999!important;
+  tr,td{
+    background:transparent!important;
+  }
+  tr{
+  border-bottom: 1px solid #d2d9dd!important;
+  }
+}
+.versions-slides-bar {
+  border-left: 1px solid #d2d9dd;
+  overflow-x: auto;
+  margin-top: 70px;
+}
+
+.upgrade-dropdown.show{
+  display:flex!important;
+  justify-content: center!important;
+  margin:0px 4rem!important;
+  .dropdown-toggle-split{
+    align-items:center!important;
+  }
+
+}
+
+.upgrade-dropdown.show.popup{
+  margin:0px 9rem!important;
+}
+
+.version-box {
+  min-width: 200px;
+  max-width: 250px;
+  border-top: 1px solid #d2d9dd;
+  border-right: 1px solid #d2d9dd;
+  border-bottom: 1px solid #d2d9dd;
+  position: relative;
   width: 100%;
+  background-color: #fff;
+  height:600px!important;
+}
+
+.version-box.current {
+  background: none repeat 0 0 #e6f1f6;
+  box-shadow: 0 8px 6px -6px black;
+}
+
+.upgrade-modal {
+  .modal-title h2 {
+    color: #666;
+    font-size: 20px;
+    font-weight: 500;
+  }
+
+  .upgrade-options-container {
+    display: flex;
+    justify-content: space-between;
+    margin: 20px 0;
+  }
+
+  .upgrade-method {
+    width: 48%;
+    border: 1px solid #ddd;
+    border-radius: 0;
+    background-color: #f5f5f5;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .upgrade-method:hover {
+    background-color: #eaeaea;
+  }
+
+  .upgrade-method.selected {
+    border: 2px solid #1491c1;
+    background-color: #f5f5f5;
+  }
+
+  .upgrade-method-icon {
+    font-size: 36px;
+    margin-bottom: 10px;
+  }
+
+  .upgrade-method-title {
+    font-size: 18px;
+    font-weight: 500;
+    margin-bottom: 10px;
+  }
+
+  .upgrade-method-description {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 15px;
+  }
+
+  .upgrade-method-checks {
+    font-size: 13px;
+    margin-top: 10px;
+  }
+
+  .upgrade-failure-tolerance {
+    margin: 20px 0;
+  }
+
+  .upgrade-warning {
+    background-color: #fcf8e3;
+    border: 1px solid #faebcc;
+    color: #8a6d3b;
+    padding: 15px;
+    margin: 15px 0;
+  }
+
+  .modal-footer {
+    border-top: 1px solid #ddd;
+    padding: 15px;
+  }
+
+  .btn-cancel {
+    background-color: #fff;
+    color: #666;
+    border: 1px solid #ccc;
+    text-transform: uppercase;
+  }
+
+  .btn-proceed {
+    background-color: #5cb85c;
+    color: #fff;
+    border: 1px solid #4cae4c;
+    text-transform: uppercase;
+  }
+}
+
+#config-notifications::after{
+    display:none!important;
+  
+}
+
+.configurations-dropdown{
+  max-height: 60vh!important;
+  max-width: 60vw!important;
+  overflow-y: auto!important;
+  .dropdown-item:active{
+    background:transparent!important;
+  }
 }

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import React from "react";
+import type { JSX } from "react";
 import {
   faCheck,
   faClock,
@@ -34,6 +34,7 @@ type RequestStatus =
   | "PENDING"
   | "QUEUED"
   | "IN_PROGRESS"
+  | "CURRENTLY_EXECUTING"
   | "COMPLETED"
   | "FAILED"
   | "HOLDING_FAILED"
@@ -57,6 +58,7 @@ const STATUS_ICON_MAP: Record<RequestStatus, StatusIconConfig> = {
   PENDING: { icon: faCog, color: "gray", shouldShowOpacity: true },
   QUEUED: { icon: faCog, color: "gray" },
   IN_PROGRESS: { icon: faCogs, color: "blue" },
+  CURRENTLY_EXECUTING: { icon: faCheck, color: "#28a745" }, // Green checkmark for currently executing
   COMPLETED: { icon: faCheck, color: "green" },
   FAILED: { icon: faExclamation, color: "red" },
   HOLDING_FAILED: { icon: faExclamation, color: "red" },
@@ -78,7 +80,7 @@ const DEFAULT_STATUS_CONFIG: StatusIconConfig = {
 
 export const getStatusIcon = (
   requestStatus: string | undefined
-): React.ReactElement => {
+): JSX.Element => {
   const config =
     requestStatus && requestStatus in STATUS_ICON_MAP
       ? STATUS_ICON_MAP[requestStatus as RequestStatus]

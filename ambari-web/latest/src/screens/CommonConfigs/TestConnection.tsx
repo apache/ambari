@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { Button, Spinner, Stack } from "react-bootstrap";
 import { ConfigPropertiesType } from "./types";
 import KerberosApi from "../../api/kerberosApi";

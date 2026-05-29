@@ -17,16 +17,16 @@
  */
 
 import { useContext, useEffect, useState } from "react";
+import { RequestApi } from "../../api/requestApi";
+import WizardFooter from "../../components/StepWizard/WizardFooter";
+import { EnableKerberosContext } from "./KerberosStore/context"
 import { AppContext } from "../../store/context";
 import { Alert } from "react-bootstrap";
 import { translate } from "../../Utils/Utility";
+import { ActionTypes } from "./KerberosStore/types";
 import { get } from "lodash";
 import { useNavigate } from "react-router";
-import { RequestApi } from "../../api/requestApi";
-import OperationsProgress from "../../components/OperationProgress";
-import WizardFooter from "../../components/StepWizard/WizardFooter";
-import { EnableKerberosContext } from "./KerberosStore/context";
-import { ActionTypes } from "./KerberosStore/types";
+import OperationsProgress from "../../components/OperationsProgress";
 
 function StartAndTestServices() {
 
@@ -38,7 +38,8 @@ function StartAndTestServices() {
   } = useContext(EnableKerberosContext);
 
   const [completionStatus, setCompletionStatus] = useState(false);
-  const [ nextEnabled, setNextEnabled ] = useState(false)
+  const [ nextEnabled, setNextEnabled ] = useState(true)
+  const [stepOperations, setStepOperations] = useState<any>([]);
   const { clusterName } = useContext(AppContext);
   const navigate = useNavigate();
   
@@ -48,7 +49,8 @@ function StartAndTestServices() {
     }
   },[completionStatus])
 
-  const operations = [
+
+  const initialOperations = [
     {
       id: "1",
       label: "Start And Test Services",
@@ -79,19 +81,43 @@ function StartAndTestServices() {
     },
   ];
 
+  const savedOperationsState = get(
+    state,
+    `kerberosWizardSteps.${wizardSteps[8].name}.data.operationsState`,
+    null
+  );
+
+  useEffect(() => {
+    const operations = (() => {
+      if (savedOperationsState && Array.isArray(savedOperationsState)) {
+        return initialOperations.map((originalOp) => {
+          const savedOp = savedOperationsState.find(
+            (saved: any) => saved.id === originalOp.id
+          );
+          return savedOp
+            ? { ...originalOp, ...savedOp, callback: originalOp.callback }
+            : originalOp;
+        });
+      }
+
+      return initialOperations;
+    })();
+    setStepOperations(operations);
+  }, [JSON.stringify(savedOperationsState)]);
+
+
+  if(!stepOperations || stepOperations.length===0){
+    return <div>Loading...</div>
+  }
+
+
   return (
     <>
       { completionStatus &&
         <Alert variant="success">{translate("admin.kerberos.wizard.step8.notice.completed")}</Alert>
       }
       <OperationsProgress
-        operations={
-          (get(
-            state,
-            `kerberosWizardSteps.${wizardSteps[8].name}.data.operationsState`,
-            null
-          ) as any) ||
-          (operations as any)}
+        operations={stepOperations as any}
         title="Start And Test Services"
         description="Start and Test Services"
         setCompletionStatus={setCompletionStatus}
@@ -112,9 +138,11 @@ function StartAndTestServices() {
         step={currentStep}
         onNext={() => {
           navigate(`/main/admin/kerberos/`);
+          window.location.reload();
         }}
         onCancel={() => {
           navigate(`/main/admin/kerberos/`);
+          window.location.reload();
         }}
         onBack={() => {
           flushStateToDb("back");

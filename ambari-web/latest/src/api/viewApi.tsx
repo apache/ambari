@@ -17,6 +17,8 @@
  */
 import { ambariApi } from "./config/axiosConfig";
 
+
+
 /**
  * Fetches a list of instance names from the Ambari API.
  *
@@ -36,4 +38,7 @@ const ViewApi = {
   }
 };
 
+
+
 export default ViewApi;
+

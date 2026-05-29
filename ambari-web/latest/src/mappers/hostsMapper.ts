@@ -54,6 +54,7 @@ export const hostMapper = {
     hostName: "HostRoles.host_name",
     adminState: "HostRoles.desired_admin_state",
     clusterIdValue: "metrics.dfs.namenode.ClusterId",
+    nnHAState: "metrics.dfs.FSNamesystem.HAState",
     cardinality: "HostRoles.cardinality",
     customCommands: "HostRoles.custom_commands",
     reassignAllowed: "HostRoles.reassign_allowed",

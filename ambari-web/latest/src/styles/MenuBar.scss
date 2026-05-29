@@ -1,0 +1,101 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+.VS-search {
+  position: relative;
+  width: 100%;
+
+  .VS-search-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 4px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: white;
+  }
+
+  .search-facet {
+    display: flex;
+    align-items: center;
+    background-color: #e9ecef;
+    border: 1px solid #dee2e6;
+    border-radius: 3px;
+    padding: 2px 6px;
+    margin: 2px;
+    font-size: 14px;
+
+    .category {
+      color: #495057;
+      margin-right: 4px;
+    }
+
+    .search-facet-input {
+      margin: 0 4px;
+    }
+
+    .search-facet-remove {
+      cursor: pointer;
+      color: #6c757d;
+      margin-left: 4px;
+      font-size: 16px;
+      line-height: 1;
+
+      &:hover {
+        color: #dc3545;
+      }
+    }
+  }
+
+  .search-input-wrapper {
+    position: relative;
+    flex: 1;
+    min-width: 150px;
+
+    .search-input {
+      width: 100%;
+      border: none;
+      outline: none;
+      padding: 4px;
+      font-size: 14px;
+
+      &::placeholder {
+        color: #6c757d;
+      }
+    }
+
+    .dropdown-menu {
+      width: 100%;
+      max-height: 300px;
+      overflow-y: auto;
+      margin-top: 4px;
+      padding: 4px 0;
+      font-size: 14px;
+
+      .dropdown-item {
+        padding: 6px 12px;
+        cursor: pointer;
+
+        &:hover {
+          background-color: #f8f9fa;
+        }
+      }
+    }
+  }
+}

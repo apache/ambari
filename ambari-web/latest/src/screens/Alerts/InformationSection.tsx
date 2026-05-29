@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+// ambari-web/ui2/src/screens/Alerts/InformationSection.tsx
 import React, { useEffect, useState, useContext } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -23,15 +24,15 @@ import {
   faPowerOff,
   faUndo,
 } from "@fortawesome/free-solid-svg-icons";
-import Modal from "../../components/Modal.tsx";
-import FormattedTimestamp from "../../components/FormattedTimestamp.tsx";
+import Modal from "../../components/Modal";
+import FormattedTimestamp from "../../components/FormattedTimestamp";
 import { Link } from "react-router-dom";
 import { Row, Col, Container, Form, InputGroup } from "react-bootstrap";
 import { MergedAlert } from "./types";
-import { AlertsApi } from "../../api/alertsApi.ts";
-import ClusterApi from "../../api/clusterApi.ts";
-import { ambariApi } from "../../api/config/axiosConfig.ts";
-import { AppContext } from "../../store/context.tsx";
+import { AlertsApi } from "../../api/alertsApi";
+import ClusterApi from "../../api/clusterApi";
+import { ambariApi } from "../../api/config/axiosConfig";
+import { AppContext } from "../../store/context";
 import { useParams } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 

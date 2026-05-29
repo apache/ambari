@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { useContext, useEffect, useState } from "react";
 import ClusterApi from "../../api/clusterApi";
 import { cloneDeep, filter, find, get, isEmpty } from "lodash";
@@ -151,7 +152,7 @@ function TasksList({
         direction="horizontal"
         className="justify-content-between mt-3 w-100"
       >
-        <h1>Tasks</h1>
+        <h2>Tasks</h2>
         <Filters
           items={filteredTasks}
           allItems={hostTasks}

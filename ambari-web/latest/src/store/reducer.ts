@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { State, Action, ActionTypes } from "./types";
 
 export const initialState: State = { selectedOption: "dashboard" };

@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 .table thead,
 .table thead th {
   color: #999 !important;
@@ -50,4 +51,8 @@
 .tabs a.active {
   font-weight: bold;
   border-bottom: 2px solid green;
+}
+
+.display-inline {
+  display: inline;
 }

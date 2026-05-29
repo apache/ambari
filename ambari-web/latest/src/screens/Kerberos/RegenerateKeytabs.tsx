@@ -17,12 +17,13 @@
  */
 
 import { useContext, useEffect, useRef, useState } from "react";
-import { ProgressStatus } from "../../constants";
-import usePolling from "../../hooks/usePolling";
-import { isFinished } from "../../Utils/Utility";
-import { AppContext } from "../../store/context";
 import { RequestApi } from "../../api/requestApi";
+import BackgroundOperations from "../BackgroundOperations";
+import { ProgressStatus, ViewLevel } from "../../constants";
+import usePolling from "../../hooks/usePolling";
+import { isFinished, showAlertModal } from "../../Utils/Utility";
 import KerberosApi from "../../api/kerberosApi";
+import { AppContext } from "../../store/context";
 import InvalidKDCPopup from "./InvalidKdcPopup";
 
 type RegenerateKeytabsProps = {
@@ -34,7 +35,6 @@ export default function RegenerateKeytabs({
   missingHostCheck,
   restartComponentsCheck,
 }: RegenerateKeytabsProps) {
-  // @ts-ignore
   const [showBgOperation, setShowBgOperation] = useState(false);
   const [showInvalidKDCPopup, setShowInvalidKDCPopup] = useState(false);
   const requestId = useRef<string | number>("");
@@ -111,9 +111,15 @@ export default function RegenerateKeytabs({
       );
       requestId.current = requestData.Requests.id;
       if (requestId.current !== "") setShowBgOperation(true);
-    } catch (error) {
+    } catch (error: any) {
       console.log("Error regenerating keytabs: ", error);
-      setShowInvalidKDCPopup(true);
+      const errorMessage = error?.response?.data?.message;
+      if (errorMessage.includes("Missing KDC administrator credentials")) {
+        setShowInvalidKDCPopup(true);
+      }
+      else {
+        showAlertModal("Error", errorMessage);
+      }
     }
   }
 
@@ -146,14 +152,14 @@ export default function RegenerateKeytabs({
 
   return (
     <>
-      {/* {showBgOperation ? (
+      {showBgOperation ? (
         <BackgroundOperations
           isOpen={showBgOperation}
           onClose={() => setShowBgOperation(false)}
           rootLevel={ViewLevel.REQUESTS}
           requestId={requestId.current}
         />
-      ) : null} */}
+      ) : null}
 
       <InvalidKDCPopup
         isOpen={showInvalidKDCPopup}

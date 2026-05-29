@@ -17,6 +17,7 @@
  */
 
 import { filter, forEach, set } from "lodash";
+import ConfigsApi from "../../api/configsApi";
 import { useEffect, useState } from "react";
 import { useConfigs } from "../../hooks/useConfigs";
 import useStackServices from "../../hooks/useStackServices";
@@ -25,9 +26,8 @@ import Spinner from "../../components/Spinner";
 import Table from "../../components/Table";
 import Center from "../../components/Center";
 import { useContext } from "react";
-import { AppContext } from "../../store/context.tsx";
+import { AppContext } from "../../store/context";
 import UpgradeGuard from "../../components/UpgradeGuard";
-import ConfigsApi from "../../api/configsApi.ts";
 
 function ServiceAccounts() {
   const { clusterName } = useContext(AppContext);
@@ -116,7 +116,7 @@ function ServiceAccounts() {
     <UpgradeGuard>
       <Card className="m-4">
         <CardBody>
-          <h1 style={{fontSize:20}}>Service Users and Groups</h1>
+          <h3 style={{fontSize:20}}>Service Users and Groups</h3>
           <Table data={accounts} columns={columns}/>
         </CardBody>
       </Card>

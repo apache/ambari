@@ -29,17 +29,16 @@ import HostStackVersion, {
   IHostStackVersion,
 } from "../../models/hostStackVersion";
 import { Alert } from "react-bootstrap";
-import { ActionsApi } from "../../api/actionsApi.ts";
+import { ActionsApi } from "../../api/actionsApi";
 import {
   showErrorModal,
   translate,
   translateWithVariables,
 } from "../../Utils/Utility";
-//TODO: Uncomment the below import and its usage once BackgroundOperations component is available
-// import BackgroundOperations from "../BackgroundOperations"; 
-import { IHost } from "../../models/host.ts";
-import { HostsApi } from "../../api/hostsApi.ts";
-import { defaultSuccessCallbackWithoutReload } from "./batchUtils.tsx";
+import BackgroundOperations from "../BackgroundOperations";
+import { HostsApi } from "../../api/hostsApi";
+import { defaultSuccessCallbackWithoutReload } from "./batchUtils";
+import { IHost } from "../../models/host";
 
 export const hostComponentCustomCommandMap = {
   REFRESHQUEUES: {
@@ -225,44 +224,6 @@ const serviceSpecificParams = {
   HDFS: "host_components/metrics/dfs/namenode/ClusterId",
   SSM: "host_components/processes/HostComponentProcess",
 };
-
-export const zooKeeperRelatedServices = [
-  {
-    serviceName: "HIVE",
-    typesToLoad: ["hive-site", "webhcat-site"],
-    typesToSave: ["hive-site", "webhcat-site"],
-  },
-  {
-    serviceName: "YARN",
-    typesToLoad: ["yarn-site", "zoo.cfg"],
-    typesToSave: ["yarn-site"],
-  },
-  {
-    serviceName: "HBASE",
-    typesToLoad: ["hbase-site"],
-    typesToSave: ["hbase-site"],
-  },
-  {
-    serviceName: "ACCUMULO",
-    typesToLoad: ["accumulo-site"],
-    typesToSave: ["accumulo-site"],
-  },
-  {
-    serviceName: "KAFKA",
-    typesToLoad: ["kafka-broker"],
-    typesToSave: ["kafka-broker"],
-  },
-  {
-    serviceName: "ATLAS",
-    typesToLoad: ["application-properties", "infra-solr-env"],
-    typesToSave: ["application-properties"],
-  },
-  {
-    serviceName: "STORM",
-    typesToLoad: ["storm-site"],
-    typesToSave: ["storm-site"],
-  },
-];
 
 var requestsRunningStatus = {
   updateServiceMetric: false,
@@ -617,8 +578,17 @@ export const getCustomCommands = (
   clusterComponents: any
 ) => {
   //TODO: Revisit this function
-  const commands = get(component, "customCommands", []);
+  let commands: string[] = get(component, "customCommands", []);
   let customCommands: any[] = [];
+
+  // Add MAKEOBSERVER command for NAMENODE components
+  if (getComponentName(component) === "NAMENODE" && 
+      get(component, "workStatus", "") === ComponentStatus.STARTED) {
+    if (!commands.includes("MAKEOBSERVER")) {
+      commands = [...commands, "MAKEOBSERVER"];
+    }
+  }
+
   commands.forEach((command: string) => {
     if (
       !isSlave(component) &&
@@ -976,15 +946,15 @@ const decommissionSuccessCallback = (data: any) => {
     get(data, "Requests.id", "") ||
     get(data, "data.resources.[0].RequestSchedule.id", -1);
   if (requestId) {
-    // modalManager.show(
-    //   <BackgroundOperations
-    //     isOpen={true}
-    //     onClose={() => {
-    //       modalManager.hide();
-    //     }}
-    //     requestId={requestId}
-    //   />
-    // );
+    modalManager.show(
+      <BackgroundOperations
+        isOpen={true}
+        onClose={() => {
+          modalManager.hide();
+        }}
+        requestId={requestId}
+      />
+    );
   }
 };
 
@@ -1259,11 +1229,6 @@ export const validateInteger = (
   return "";
 };
 
-export const getClusterUpgradeStatusForHost = (upgradeState: string) => {
-  return upgradeState === "IN_PROGRESS" || upgradeState.includes("HOLDING");
-};
-
-
 export const installHostComponentCall = async (
   hostName: any,
   component: IHostComponent,
@@ -1531,3 +1496,7 @@ export function getServiceByConfigTypeMap(stackServices: any) {
   });
   return ret;
 }
+
+export const getClusterUpgradeStatusForHost = (upgradeState: string) => {
+  return upgradeState === "IN_PROGRESS" || upgradeState.includes("HOLDING");
+};

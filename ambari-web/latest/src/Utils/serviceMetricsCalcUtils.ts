@@ -15,17 +15,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import bytesToSize from "./numberUtils.ts";
 
-export function findCapacityPercentage (dfsNonDFSCapacity:number, capacityTotal:number)  {
-  let percent:number|string = capacityTotal && dfsNonDFSCapacity && capacityTotal > 0 ? ((dfsNonDFSCapacity * 100) / capacityTotal).toFixed(2) : 0;
-  if (isNaN(percent as number) || percent as number < 0) {
+import bytesToSize from "./numberUtils";
+
+export function findCapacityPercentage (dfsNonDFSCapacity:any, capacityTotal:any)  {
+  let percent:any = capacityTotal && dfsNonDFSCapacity && capacityTotal > 0 ? ((dfsNonDFSCapacity * 100) / capacityTotal).toFixed(2) : 0;
+  if (isNaN(percent) || percent < 0) {
     percent = 'N/A';
   }
   return `${percent}%`;
 }
 
-export function diskPart (capacity:number, capacityTotal:number)  {
+export function diskPart (capacity:any, capacityTotal:any)  {
     return `${bytesToSize(capacity, 1, 'parseFloat')} / ${bytesToSize(capacityTotal, 1, 'parseFloat')}`;
 }
 

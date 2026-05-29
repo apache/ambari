@@ -15,16 +15,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { Col, Row, Tab, Tabs } from "react-bootstrap";
+import ServiceSummary from "./ServiceSummary";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import "./styles/services.scss";
+import ServiceConfigs from "../ServiceConfigs";
+import { Actions } from "./Actions";
 import { useContext, useEffect, useState } from "react";
+import Metrics from "../Metrics/ServiceMetrics";
 import { AppContext } from "../../store/context";
 import { map } from "lodash";
 import Heatmaps from "../Heatmaps";
 import { useAuth } from "../../hooks/useAuth";
-// import AuthGuard from "../../components/AuthGuard";
-// import RestartWarning from "./RestartWarning";
+import AuthGuard from "../../components/AuthGuard";
+import RestartWarning from "./RestartWarning";
 
 enum TabNames {
   SUMMARY = "summary",
@@ -51,10 +56,9 @@ function ServiceDashboard({
   ].includes(upgradeState);
 
   // Check CLUSTER.VIEW_CONFIGS permission like in Ember.js ui/app/views/main/service/item.js
-  //@ts-ignore
   const hasConfigTab =
     havePermissions("CLUSTER.VIEW_CONFIGS") &&
-    !configTabsUpgradeBlocked&&
+    !configTabsUpgradeBlocked &&
     !upgradeState?.toLowerCase()?.includes("holding");
   const serviceTabs: { [key: string]: string[] } = {
     HDFS: ["summary", "heatmaps", "configs", "metrics"],
@@ -140,14 +144,14 @@ function ServiceDashboard({
           >
             <Tab eventKey="summary" title="Summary">
               <div className="mt-2" />
-              {/* <AuthGuard requireAuthorization="SERVICE.START_STOP">
+              <AuthGuard requireAuthorization="SERVICE.START_STOP">
                 <RestartWarning serviceName={serviceName!} />
               </AuthGuard>
               <ServiceSummary
                 serviceName={serviceName as string}
                 //@ts-ignore
                 selectedTab={selectedTab}
-              /> */}
+              />
             </Tab>
             {serviceName &&
               serviceTabs[serviceName.toUpperCase()]?.includes(
@@ -160,7 +164,7 @@ function ServiceDashboard({
                 </Tab>
               )}
             {/* Configs Tab - Requires CLUSTER.VIEW_CONFIGS permission like Ember.js ui/app/views/main/service/item.js */}
-            {/* {hasConfigTab && (
+            {hasConfigTab && (
               <Tab eventKey={`configs`} title="configs">
                 {selectedTab === "configs" ? (
                   <div className="mt-2">
@@ -169,17 +173,17 @@ function ServiceDashboard({
                   </div>
                 ) : null}
               </Tab>
-            )} */}
-            {/* {serviceName &&
+            )}
+            {serviceName &&
               serviceTabs[serviceName.toUpperCase()]?.includes(
                 TabNames.METRICS
               ) && (
                 <Tab eventKey="metrics" title="Metrics">
                   <Metrics serviceName={serviceName as string} />
                 </Tab>
-              )} */}
+              )}
           </Tabs>
-          {/* <Actions serviceName={serviceName!} className="action-btn" /> */}
+          <Actions serviceName={serviceName!} className="action-btn" />
         </Col>
       </Row>
     </div>

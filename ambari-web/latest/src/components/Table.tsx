@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 //@ts-nocheck
 import React from "react";
@@ -85,7 +86,7 @@ const Table: React.FC<TableProps> = ({
         {showHeader ? (
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id}>
+              <tr key={headerGroup.id} >
                 {headerGroup.headers.map((header) => {
                   return (
                     <th key={header.id} colSpan={header.colSpan}>
@@ -123,7 +124,7 @@ const Table: React.FC<TableProps> = ({
                             header.column.columnDef.header,
                             header.getContext()
                           )}
-                          {header.column.getCanSort() && (
+                          {header.column.getCanSort() && header.column.columnDef.sortingFn!=="auto" && (
                             <span className="ms-1">
                               {header.column.getIsSorted() === "asc" ? (
                                 <FontAwesomeIcon icon={faCaretUp} />
@@ -146,11 +147,12 @@ const Table: React.FC<TableProps> = ({
         <tbody>
           {table.getRowModel().rows.map((row) => {
             return (
-              <tr key={row.id} className="text-break" role="listitem">
+              <tr key={row.id} className="text-break bg-danger-subtle" role="listitem">
                 {row.getVisibleCells().map((cell) => {
                   return (
                     <td
                       key={cell.id}
+                      className={get(cell, "row.original.className", "")}
                       style={{
                         width: get(cell, "column.columnDef.width", "auto"),
                         border:

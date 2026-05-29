@@ -1,0 +1,99 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import { Alert, Button, Form, Modal } from "react-bootstrap";
+import DefaultButton from "./DefaultButton";
+import { useState } from "react";
+
+type RestartAllConfirmationModalProps = {
+  isOpen: boolean;
+  onClose: () => void;
+  modalTitle: string;
+  modalBody?: string;
+  successCallback: () => void;
+  buttonVariant?: string;
+  serviceName: string;
+  enableMaintenanceMode: () => Promise<void>;
+};
+
+export default function RestartAllConfirmationModal({
+  isOpen,
+  onClose,
+  modalTitle,
+  successCallback,
+  buttonVariant = "success",
+  serviceName,
+  enableMaintenanceMode,
+}: RestartAllConfirmationModalProps) {
+  const [isMaintenanceModeChecked, setIsMaintenanceModeChecked] =
+    useState(false);
+
+  return (
+    <Modal
+      show={isOpen}
+      onHide={onClose}
+      size="lg"
+      className="custom-modal-container modal-width"
+      data-testid="confirmation-modal"
+    >
+      <Modal.Header closeButton>
+        <Modal.Title>
+          <h3>{modalTitle}</h3>
+        </Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <>You are about to restart {serviceName}</>
+        <Alert variant="warning" className="mt-3">
+          This will trigger alerts as the services will be restarted. To
+          suppress alerts, turn on Maintenance Mode for {serviceName} prior to
+          running restart all
+        </Alert>
+        <div className="mt-3">
+          <Form.Check
+            type="checkbox"
+            label={`Turn on maintenance mode for ${serviceName}`}
+            id="maintenance-mode-checkbox"
+            onChange={(e) => setIsMaintenanceModeChecked(e.target.checked)}
+          />
+        </div>
+      </Modal.Body>
+      <Modal.Footer className="d-flex justify-content-end">
+        <DefaultButton
+          size="sm"
+          onClick={onClose}
+          data-testid="confirm-cancel-btn"
+        >
+          CANCEL
+        </DefaultButton>
+        <Button
+          className="custom-btn"
+          variant={buttonVariant}
+          size="sm"
+          data-testid="confirm-ok-btn"
+          onClick={async () => {
+            if (isMaintenanceModeChecked) {
+              await enableMaintenanceMode();
+            }
+            successCallback();
+          }}
+        >
+          CONFIRM RESTART ALL
+        </Button>
+      </Modal.Footer>
+    </Modal>
+  );
+}

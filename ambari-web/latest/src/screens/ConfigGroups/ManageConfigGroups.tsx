@@ -16,9 +16,6 @@
  * limitations under the License.
  */
 
-
-//TODO: un-comment the below commented lines once cluster creation context is available
-
 import {
   Alert,
   Button,
@@ -28,13 +25,8 @@ import {
   Modal as ReactModal,
 } from "react-bootstrap";
 import DefaultButton from "../../components/DefaultButton";
-import { 
-  // useContext, 
-  useEffect, 
-  useRef, 
-  useState 
-} from "react";
-// import { ClusterCreationContext } from "../ClusterWizard/clusterStore/context";
+import { useContext, useEffect, useRef, useState } from "react";
+import { ClusterCreationContext } from "../ClusterWizard/clusterStore/context";
 import { cloneDeep, get, isEmpty, set, sortBy } from "lodash";
 import Spinner from "../../components/Spinner";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -50,7 +42,9 @@ import {
   HostDataType,
 } from "./types";
 import ConfigGroupApi from "../../api/configGroupApi";
-// import { ActionTypes } from "../ClusterWizard/clusterStore/types";
+import { ActionTypes } from "../ClusterWizard/clusterStore/types";
+import { useAuth } from "../../hooks/useAuth";
+import classNames from "classnames";
 
 type ManageConfigGroupsProps = {
   isOpen: boolean;
@@ -81,7 +75,7 @@ export default function ManageConfigGroups({
   });
   const [desiredConfigsData, setDesiredConfigsData] =
     useState<DesiredConfigsType>({ items: [] });
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState<string>("");
   const [selectedHosts, setSelectedHosts] = useState<string[]>([]);
   const [showCreateNewConfigGroupModal, setShowCreateNewConfigGroupModal] =
@@ -90,8 +84,16 @@ export default function ManageConfigGroups({
   const [showPropertiesModal, setShowPropertiesModal] = useState(false);
   const [showSelectConfigHostsModal, setShowSelectConfigHostsModal] =
     useState(false);
+  const [enableSave, setEnableSave] = useState(false);
 
-  // const { state, dispatch } = useContext(ClusterCreationContext);
+  const { state, dispatch } = useContext(ClusterCreationContext);
+
+  // Authorization hooks - implementing Ember.js config groups authorization patterns
+  const { hasAuthorization } = useAuth();
+
+  // Check specific authorizations for config groups operations
+  // Based on Ember.js canEdit logic: App.isAuthorized('SERVICE.MODIFY_CONFIGS')
+  const canModifyConfigs = hasAuthorization("SERVICE.MODIFY_CONFIGS");
 
   const isRenameConfigGroup = useRef(false);
   const config = useRef({
@@ -101,27 +103,32 @@ export default function ManageConfigGroups({
   const previousConfigGroupData = useRef<ConfigGroupType>({ items: [] });
 
   useEffect(() => {
-    if (clusterName) {
-      getConfigGroupData();
-      getHostsDataUsingClusterName();
-    } else {
-      getHostsDataUsingHostName();
+    if (isOpen) {
+      if (clusterName) {
+        getConfigGroupData();
+        getHostsDataUsingClusterName();
+      } else {
+        getHostsDataUsingHostName();
+      }
     }
-  }, [clusterName, hostNames]);
-
-  // useEffect(() => {
-  //   let data = get(
-  //     state,
-  //     "clusterCreationSteps.step7.data.configGroupData",
-  //     {}
-  //   );
-  //   if (!isEmpty(data)) {
-  //     setConfigGroupData(data);
-  //   }
-  // }, [state]);
+  }, [isOpen, clusterName, hostNames]);
 
   useEffect(() => {
-    if (hostData?.items.length) {
+    let data = get(
+      state,
+      "clusterCreationSteps.step7.data.configGroupData",
+      {}
+    );
+    if (!isEmpty(data)) {
+      setConfigGroupData(data);
+    }
+  }, [state]);
+
+  useEffect(() => {
+    if (
+      hostData?.items.length && 
+      !getMatchingConfig(configGroupData, "group_name", "Default")
+    ) {
       addDefaultConfigGroup();
     }
   }, [hostData, configGroupData]);
@@ -151,29 +158,82 @@ export default function ManageConfigGroups({
     setSelectedHosts([]);
   }, [selectedGroup]);
 
+  useEffect(() => {
+    if (clusterName) {
+      // For existing clusters, compare with previous data to detect changes
+      const configGroupsToBeDeleted = get(
+        previousConfigGroupData.current,
+        "items",
+        []
+      ).filter(
+        (configGroup) =>
+          !getMatchingConfig(
+            configGroupData,
+            "id",
+            get(configGroup, "ConfigGroup.id")
+          )
+      );
+
+      const configGroupsToBeAdded = get(configGroupData, "items", []).filter(
+        (configGroup) =>
+          get(configGroup, "ConfigGroup.group_name") !== "Default" &&
+          !getMatchingConfig(
+            previousConfigGroupData.current,
+            "id",
+            get(configGroup, "ConfigGroup.id")
+          )
+      );
+
+      const configGroupsToBeUpdated = get(configGroupData, "items", []).filter(
+        (configGroup) =>
+          get(previousConfigGroupData.current, "items", []).some(
+            (oldConfigGroup) =>
+              get(oldConfigGroup, "ConfigGroup.id") ===
+                get(configGroup, "ConfigGroup.id") &&
+              !doesConfigsMatch(oldConfigGroup, configGroup, [
+                "group_name",
+                "description",
+                "hosts",
+              ])
+          )
+      );
+
+      if (
+        configGroupsToBeDeleted.length ||
+        configGroupsToBeAdded.length ||
+        configGroupsToBeUpdated.length
+      ) {
+        setEnableSave(true);
+      } else {
+        setEnableSave(false);
+      }
+    } else {
+      const hasNonDefaultGroups = get(configGroupData, "items", []).some(
+        (configGroup) => get(configGroup, "ConfigGroup.group_name") !== "Default"
+      );
+      
+      setEnableSave(hasNonDefaultGroups);
+    }
+  }, [JSON.stringify(configGroupData), clusterName]);
+
   const getHostsDataUsingHostName = async () => {
-    setLoading(true);
     const response = await ConfigGroupApi.getHostsInfoUsingHostNames(
       hostNames,
       "Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem,Hosts/ip,Hosts/os_type,Hosts/os_arch,Hosts/public_host_name&minimal_response=true"
     );
     //TODO: from the context take out the host-component mapping and add it in response
     setHostData(response);
-    setLoading(false);
   };
 
   const getHostsDataUsingClusterName = async () => {
-    setLoading(true);
     const response = await ConfigGroupApi.getHostsInfoUsingClusterName(
       clusterName,
       "Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem,Hosts/ip,Hosts/os_type,Hosts/os_arch,Hosts/public_host_name,host_components&minimal_response=true"
     );
     setHostData(response);
-    setLoading(false);
   };
 
   const getConfigGroupData = async () => {
-    setLoading(true);
     const response = await ConfigGroupApi.getConfigGroupInfo(
       clusterName,
       serviceName,
@@ -194,17 +254,14 @@ export default function ManageConfigGroups({
       configString = configString.slice(0, -1);
       getDesiredConfigsData(configString);
     }
-    setLoading(false);
   };
 
   const getDesiredConfigsData = async (configString: string) => {
-    setLoading(true);
     const response = await ConfigGroupApi.getDesiredConfigsInfo(
       clusterName,
       configString
     );
     setDesiredConfigsData(response);
-    setLoading(false);
   };
 
   const sortConfigs = (configGroupItemList: ConfigGroupItemType[]) => {
@@ -239,8 +296,9 @@ export default function ManageConfigGroups({
         get(configGroupItem, "ConfigGroup.group_name")
       )
     ) {
-      let newConfigGroupData = { ...configGroupData };
-      newConfigGroupData?.items?.push(configGroupItem);
+      let newConfigGroupData = cloneDeep(configGroupData);
+      let clonedConfigGroupItem = cloneDeep(configGroupItem);
+      newConfigGroupData?.items?.push(clonedConfigGroupItem);
       set(newConfigGroupData, "items", sortConfigs(newConfigGroupData?.items));
       setConfigGroupData(newConfigGroupData);
     } else {
@@ -252,7 +310,9 @@ export default function ManageConfigGroups({
     if (!getMatchingConfig(configGroupData, "group_name", "Default")) {
       let hostsInOtherConfigGroups: string[] = [];
 
-      get(configGroupData, "items", []).forEach((configGroup) => {
+      const configGroupDataClone = cloneDeep(configGroupData);
+      
+      get(configGroupDataClone, "items", []).forEach((configGroup) => {
         if (get(configGroup, "ConfigGroup.group_name") !== "Default") {
           hostsInOtherConfigGroups = hostsInOtherConfigGroups.concat(
             get(configGroup, "ConfigGroup.hosts", []).map((host) =>
@@ -262,21 +322,24 @@ export default function ManageConfigGroups({
         }
       });
 
+      const availableHostsForDefault = get(hostData, "items", [])
+        .filter(
+          (host) =>
+            !hostsInOtherConfigGroups.includes(get(host, "Hosts.host_name"))
+        )
+        .map((host) => {
+          return {
+            host_name: get(host, "Hosts.host_name"),
+          };
+        });
+
       let defaultConfigGroup: ConfigGroupItemType = {
         ConfigGroup: {
           description: `Default cluster level ${serviceName} configuration`,
           group_name: "Default",
-          hosts: get(hostData, "items", [])
-            .filter(
-              (host) =>
-                !hostsInOtherConfigGroups.includes(get(host, "Hosts.host_name"))
-            )
-            .map((host) => {
-              return {
-                host_name: get(host, "Hosts.host_name"),
-              };
-            }),
+          hosts: availableHostsForDefault,
           tag: `${serviceName}`,
+          desired_configs: [],
         },
       };
 
@@ -388,7 +451,8 @@ export default function ManageConfigGroups({
     groupName: string,
     hostsToBeRemoved: string[]
   ) => {
-    let newConfigGroupData = { ...configGroupData };
+    // Use deep clone to avoid reference issues
+    let newConfigGroupData = cloneDeep(configGroupData);
     get(newConfigGroupData, "items", []).forEach((configGroup) => {
       if (get(configGroup, "ConfigGroup.group_name") === groupName) {
         let newHosts = get(configGroup, "ConfigGroup.hosts", []).filter(
@@ -401,7 +465,7 @@ export default function ManageConfigGroups({
   };
 
   const addHostsToGroup = (groupName: string, hostsToBeAdded: string[]) => {
-    let newConfigGroupData = { ...configGroupData };
+    let newConfigGroupData = cloneDeep(configGroupData);
     get(newConfigGroupData, "items", []).forEach((configGroup) => {
       if (get(configGroup, "ConfigGroup.group_name") === groupName) {
         let additionalHosts = hostsToBeAdded.map((host: string) => {
@@ -409,10 +473,8 @@ export default function ManageConfigGroups({
             host_name: host,
           };
         });
-        let newHosts = [
-          ...get(configGroup, "ConfigGroup.hosts", []),
-          ...additionalHosts,
-        ];
+        let existingHosts = cloneDeep(get(configGroup, "ConfigGroup.hosts", []));
+        let newHosts = [...existingHosts, ...additionalHosts];
         set(configGroup, "ConfigGroup.hosts", newHosts);
       }
     });
@@ -534,26 +596,38 @@ export default function ManageConfigGroups({
         )
       );
 
-      await Promise.all([
-        ...addApiPromises,
-        ...deleteApiPromises,
-        ...updateApiPromises,
-      ]);
+      if (
+        addApiPromises.length ||
+        deleteApiPromises.length ||
+        updateApiPromises.length
+      ) {
+        await Promise.all([
+          ...addApiPromises,
+          ...deleteApiPromises,
+          ...updateApiPromises,
+        ]);
+      }
     } else {
-      // const prevState = get(
-      //   state,
-      //   "clusterCreationSteps.step7.data.configGroupData",
-      //   {}
-      // );
-      // dispatch({
-      //   type: ActionTypes.STORE_INFORMATION,
-      //   payload: {
-      //     step: "step7",
-      //     data: { ...prevState, configGroupData: configGroupData },
-      //   },
-      // });
+      const prevState = get(
+        state,
+        "clusterCreationSteps.step7.data.configGroupData",
+        {}
+      );
+      dispatch({
+        type: ActionTypes.STORE_INFORMATION,
+        payload: {
+          step: "step7",
+          data: { ...prevState, configGroupData: configGroupData },
+        },
+      });
     }
+    
+    // Trigger config group refresh in all components that use config groups
+    // This ensures that ChooseConfigGroup and other components refresh their data
     successCallback();
+    
+    // Close the modal after successful save
+    onClose();
   };
 
   const isRemoveHostDisabled = () => {
@@ -589,7 +663,6 @@ export default function ManageConfigGroups({
               set(formConfig, "ConfigGroup.tag", serviceName);
               addConfigGroup(formConfig);
             }
-            unsetConfigGroupModal();
           }}
           existingConfigGroups={get(configGroupData, "items", []).map(
             (configGroup) => get(configGroup, "ConfigGroup.group_name")
@@ -640,8 +713,38 @@ export default function ManageConfigGroups({
           onClose={() => setShowSelectConfigHostsModal(false)}
           successCallback={(hostsToBeAdded: any) => {
             setShowSelectConfigHostsModal(false);
-            addHostsToGroup(selectedGroup, hostsToBeAdded);
-            removeHostsFromGroup("Default", hostsToBeAdded);
+            
+            let newConfigGroupData = cloneDeep(configGroupData);
+            
+            get(newConfigGroupData, "items", []).forEach((configGroup) => {
+              //@ts-ignore
+              const groupName = get(configGroup, "ConfigGroup.group_name");
+              const currentHosts = get(configGroup, "ConfigGroup.hosts", []);
+              
+              // Remove hosts that are being moved to the new group
+              const hostsToKeep = currentHosts.filter(
+                (host) => !hostsToBeAdded.includes(get(host, "host_name", ""))
+              );
+              
+              set(configGroup, "ConfigGroup.hosts", hostsToKeep);
+            });
+            
+            // Then, add hosts to the selected group
+            get(newConfigGroupData, "items", []).forEach((configGroup) => {
+              if (get(configGroup, "ConfigGroup.group_name") === selectedGroup) {
+                let additionalHosts = hostsToBeAdded.map((host: string) => {
+                  return {
+                    host_name: host,
+                  };
+                });
+                let existingHosts = cloneDeep(get(configGroup, "ConfigGroup.hosts", []));
+                let newHosts = [...existingHosts, ...additionalHosts];
+                set(configGroup, "ConfigGroup.hosts", newHosts);
+              }
+            });
+            
+            // Update state once with both changes
+            setConfigGroupData(newConfigGroupData);
           }}
           configGroupName={selectedGroup}
           hostsList={getHostsForDefaultGroup()}
@@ -656,7 +759,10 @@ export default function ManageConfigGroups({
         <ReactModal.Header closeButton className="text-muted">
           <h2>Manage {serviceName} Configuration Groups</h2>
         </ReactModal.Header>
-        <Form onSubmit={handleSave}>
+        <Form onSubmit={(e) => {
+          e.preventDefault();
+          handleSave();
+        }}>
           <ReactModal.Body>
             <Alert variant="info" className="text-muted fs-12 mb-5">
               You can apply different sets of {serviceName} configurations to
@@ -668,7 +774,7 @@ export default function ManageConfigGroups({
             </Alert>
             <div className="d-flex w-100 mb-4">
               <div className="w-30 me-4">
-                <Card className="p-2 rounded-1 w-100 h-100px mb-3 scrollable custom-scrollbar">
+                <Card className="p-2 rounded-1 w-100 h-250px mb-3 scrollable custom-scrollbar">
                   {get(configGroupData, "items", []).map((configGroup) => {
                     return (
                       <div
@@ -694,67 +800,78 @@ export default function ManageConfigGroups({
                   })}
                 </Card>
                 <div className="d-flex justify-content-end">
-                  <DefaultButton
-                    className="me-2"
-                    onClick={() => setShowCreateNewConfigGroupModal(true)}
-                  >
-                    <FontAwesomeIcon icon={faPlus} />
-                  </DefaultButton>
-                  <DefaultButton
-                    className={
-                      selectedGroup === "Default" ? "disabled-btn me-2" : "me-2"
-                    }
-                    onClick={() => setShowConfirmationModal(true)}
-                    disabled={selectedGroup === "Default"}
-                  >
-                    <FontAwesomeIcon icon={faMinus} />
-                  </DefaultButton>
-                  <Dropdown>
-                    <Dropdown.Toggle
-                      variant="transparent"
-                      className="btn-default"
+                  {/* Create Config Group - Requires SERVICE.MODIFY_CONFIGS authorization */}
+                  {canModifyConfigs && (
+                    <DefaultButton
+                      className="me-2"
+                      onClick={() => setShowCreateNewConfigGroupModal(true)}
                     >
-                      <FontAwesomeIcon icon={faCog} className="me-2" />
-                    </Dropdown.Toggle>
-                    <Dropdown.Menu className="rounded-0">
-                      <Dropdown.Item
-                        onClick={() => {
-                          if (selectedGroup !== "Default") {
-                            isRenameConfigGroup.current = true;
+                      <FontAwesomeIcon icon={faPlus} />
+                    </DefaultButton>
+                  )}
+                  {/* Delete Config Group - Requires SERVICE.MODIFY_CONFIGS authorization */}
+                  {canModifyConfigs && (
+                    <DefaultButton
+                      className={
+                        selectedGroup === "Default"
+                          ? "disabled-btn me-2"
+                          : "me-2"
+                      }
+                      onClick={() => setShowConfirmationModal(true)}
+                      disabled={selectedGroup === "Default"}
+                    >
+                      <FontAwesomeIcon icon={faMinus} />
+                    </DefaultButton>
+                  )}
+                  {/* Edit Config Group Dropdown - Requires SERVICE.MODIFY_CONFIGS authorization */}
+                  {canModifyConfigs && (
+                    <Dropdown>
+                      <Dropdown.Toggle
+                        variant="transparent"
+                        className="btn-default"
+                      >
+                        <FontAwesomeIcon icon={faCog} className="me-2" />
+                      </Dropdown.Toggle>
+                      <Dropdown.Menu className="rounded-0">
+                        <Dropdown.Item
+                          onClick={() => {
+                            if (selectedGroup !== "Default") {
+                              isRenameConfigGroup.current = true;
+                              config.current = {
+                                name: selectedGroup,
+                                description:
+                                  getPropertyFromSelectedConfig("description"),
+                              };
+                              setShowCreateNewConfigGroupModal(true);
+                            }
+                          }}
+                          className={
+                            selectedGroup === "Default" ? "disabled-btn" : ""
+                          }
+                          disabled={selectedGroup === "Default"}
+                        >
+                          Rename
+                        </Dropdown.Item>
+                        <Dropdown.Item
+                          onClick={() => {
+                            isRenameConfigGroup.current = false;
                             config.current = {
-                              name: selectedGroup,
+                              name: selectedGroup + " Copy",
                               description:
                                 getPropertyFromSelectedConfig("description"),
                             };
                             setShowCreateNewConfigGroupModal(true);
-                          }
-                        }}
-                        className={
-                          selectedGroup === "Default" ? "disabled-btn" : ""
-                        }
-                        disabled={selectedGroup === "Default"}
-                      >
-                        Rename
-                      </Dropdown.Item>
-                      <Dropdown.Item
-                        onClick={() => {
-                          isRenameConfigGroup.current = false;
-                          config.current = {
-                            name: selectedGroup + " Copy",
-                            description:
-                              getPropertyFromSelectedConfig("description"),
-                          };
-                          setShowCreateNewConfigGroupModal(true);
-                        }}
-                      >
-                        Duplicate
-                      </Dropdown.Item>
-                    </Dropdown.Menu>
-                  </Dropdown>
+                          }}
+                        >
+                          Duplicate
+                        </Dropdown.Item>
+                      </Dropdown.Menu>
+                    </Dropdown>
+                  )}
                 </div>
               </div>
               <div className="w-70">
-                <Card className="p-2 w-75 rounded-1 w-100 h-100px mb-3 scrollable custom-scrollbar">
+                <Card className="p-2 w-75 rounded-1 w-100 h-250px mb-3 scrollable custom-scrollbar">
                   {getPropertyFromSelectedConfig("hosts")?.map(
                     (host: { [key: string]: string }) => {
                       return (
@@ -776,26 +893,32 @@ export default function ManageConfigGroups({
                   )}
                 </Card>
                 <div className="d-flex justify-content-end">
-                  <DefaultButton
-                    className={
-                      isAddHostDisabled() ? "disabled-btn me-2" : "me-2"
-                    }
-                    disabled={isAddHostDisabled()}
-                    onClick={() => setShowSelectConfigHostsModal(true)}
-                  >
-                    <FontAwesomeIcon icon={faPlus} />
-                  </DefaultButton>
-                  <DefaultButton
-                    className={isRemoveHostDisabled() ? "disabled-btn" : ""}
-                    disabled={isRemoveHostDisabled()}
-                    onClick={() => {
-                      removeHostsFromGroup(selectedGroup, selectedHosts);
-                      addHostsToGroup("Default", selectedHosts);
-                      setSelectedHosts([]);
-                    }}
-                  >
-                    <FontAwesomeIcon icon={faMinus} />
-                  </DefaultButton>
+                  {/* Add Hosts to Config Group - Requires SERVICE.MODIFY_CONFIGS authorization */}
+                  {canModifyConfigs && (
+                    <DefaultButton
+                      className={
+                        isAddHostDisabled() ? "disabled-btn me-2" : "me-2"
+                      }
+                      disabled={isAddHostDisabled()}
+                      onClick={() => setShowSelectConfigHostsModal(true)}
+                    >
+                      <FontAwesomeIcon icon={faPlus} />
+                    </DefaultButton>
+                  )}
+                  {/* Remove Hosts from Config Group - Requires SERVICE.MODIFY_CONFIGS authorization */}
+                  {canModifyConfigs && (
+                    <DefaultButton
+                      className={isRemoveHostDisabled() ? "disabled-btn" : ""}
+                      disabled={isRemoveHostDisabled()}
+                      onClick={() => {
+                        removeHostsFromGroup(selectedGroup, selectedHosts);
+                        addHostsToGroup("Default", selectedHosts);
+                        setSelectedHosts([]);
+                      }}
+                    >
+                      <FontAwesomeIcon icon={faMinus} />
+                    </DefaultButton>
+                  )}
                 </div>
                 <div className="d-flex">
                   <div className="ps-5 mb-2 d-flex-column">
@@ -823,9 +946,25 @@ export default function ManageConfigGroups({
           </ReactModal.Body>
           <ReactModal.Footer>
             <DefaultButton onClick={onClose}>CANCEL</DefaultButton>
-            <Button type="submit" className="custom-btn text-white">
-              SAVE
-            </Button>
+            {/* Save Config Groups - Requires SERVICE.MODIFY_CONFIGS authorization */}
+            {canModifyConfigs && (
+              <Button
+                type="submit"
+                className={classNames("custom-btn text-white", {
+                  "disabled-btn": !enableSave,
+                })}
+                disabled={!enableSave}
+              >
+                SAVE
+              </Button>
+            )}
+            {/* Show unauthorized message if user lacks permissions */}
+            {!canModifyConfigs && (
+              <div className="text-muted small">
+                You do not have permission to modify configuration groups.
+                Required permission: SERVICE.MODIFY_CONFIGS
+              </div>
+            )}
           </ReactModal.Footer>
         </Form>
       </ReactModal>

@@ -16,7 +16,13 @@
  * limitations under the License.
  */
 
-import { get, startCase } from "lodash";
+import { get } from "lodash";
+
+// Helper function to capitalize only the first letter (matching Ember's .capitalize())
+const capitalize = (str: string): string => {
+  if (!str) return "";
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+};
 
 const components = {
   API: "API",
@@ -61,12 +67,10 @@ export const normalizeName = (name: string) => {
     suffixRegExp.lastIndex = 0;
     const matches = suffixRegExp.exec(name);
     if (matches) {
-      name =
-        startCase(matches[1].toLowerCase()) +
-        startCase(matches[2].toLowerCase());
+      name = capitalize(matches[1]) + capitalize(matches[2]);
     }
   }
-  return startCase(name.toLowerCase());
+  return capitalize(name);
 };
 
 export const normalizeNameBySeparators = (
@@ -90,7 +94,7 @@ export const normalizeNameBySeparators = (
       break;
     }
   }
-  return startCase(name.toLowerCase());
+  return capitalize(name);
 };
 
 export const sortPropertyLight = (data: any[], path: any) => {

@@ -15,18 +15,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { get, has, set } from "lodash";
 
-export const groupPropertyValues=(collection:any[], key:string)=>{
-    const group:any = {};
-    collection.forEach(function(item:any) {
-      const value:any = get(item, key,"");
-      if (!has(group,value)) {
-        set(group,value,[item]);
-      }
-      else {
-        group[value]=[...group[value],item]
-      }
-    });
-    return group;
+import {  get, has } from "lodash";
+
+export const groupPropertyValues = (collection: any[], key: string) => {
+  const group: any = {};
+  for (let item of collection) {
+    const value: any = get(item, key, "");
+    if (!has(group, value)) {
+      //@ts-ignore  
+      group[value] = [item];
+      // set(group, value, [item]);
+    } else {
+        group[value] = [...group[value], item];
+    }
   }
+  return group;
+};

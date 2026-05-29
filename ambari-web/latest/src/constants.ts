@@ -17,6 +17,7 @@
  */
 
 
+
 export enum ReadOptions {
   FILE = "file",
   URL = "url",
@@ -57,7 +58,6 @@ export const serviceNames = {
   HBASE: "HBASE",
 };
 
-// SHOULD BE STANDARDISED SERVICE NAME
 export const serviceNameModelMapping: { [key: string]: string } = {
   HDFS: "hdfs",
   YARN: "yarn",

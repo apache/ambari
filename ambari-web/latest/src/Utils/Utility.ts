@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { ReactNode } from "react";
+import type { JSX } from "react";
 import { normalizeName } from "../screens/Hosts/helpers";
 import _, { startCase, get, has, isEmpty } from "lodash";
 import { messages } from "../screens/messages";
@@ -412,7 +412,6 @@ export function commandDetail(
   return result;
 }
 
-
 export const pluralize = (
   count: number,
   noun: string,
@@ -484,7 +483,7 @@ export const getHighestPriorityStatus = (statuses: any[]) => {
       statusOrder.indexOf(highestPriorityStatus)
       ? status
       : highestPriorityStatus;
-  }, statusOrder[statusOrder.length - 1]);
+  }, statusOrder.at(-1));
 };
 
 export function sortPropertyLight(
@@ -1509,7 +1508,7 @@ export const initialUpgradeMethods = [
     isCheckComplete: false,
     isCheckRequestInProgress: false,
     precheckResultsMessage: "",
-    preCheckResultsModalContent: null as ReactNode,
+    preCheckResultsModalContent: null as JSX.Element | null,
     precheckResultsTitle: "",
     action: "",
     isWizardRestricted: false,
@@ -1530,7 +1529,7 @@ export const initialUpgradeMethods = [
     isCheckComplete: false,
     isCheckRequestInProgress: false,
     precheckResultsMessage: "",
-    preCheckResultsModalContent: null as ReactNode,
+    preCheckResultsModalContent: null as JSX.Element | null,
     precheckResultsTitle: "",
     action: "",
     isWizardRestricted: false,
@@ -1548,7 +1547,7 @@ export const initialUpgradeMethods = [
     isCheckComplete: false,
     isCheckRequestInProgress: false,
     precheckResultsMessage: "",
-    preCheckResultsModalContent: null as ReactNode,
+    preCheckResultsModalContent: null as JSX.Element | null,
     precheckResultsTitle: "",
     action: "",
     cantBeStarted: true,

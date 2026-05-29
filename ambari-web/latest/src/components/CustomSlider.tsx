@@ -95,7 +95,7 @@ const CustomSlider: React.FC<CustomSliderProps> = ({
         step={step}
         marks={marks}
         value={displayValue}
-        onChange={(val: number | number[]) => {
+        onChange={(val) => {
           // Convert the slider value back to the original unit before passing to parent
           const originalUnitValue = convertValue(val as number, unit, propertyUnit, false) as number;
           onChange(originalUnitValue);

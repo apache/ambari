@@ -1,0 +1,212 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+.editable-list-container {
+  position: relative;
+  margin-bottom: 25px;
+  cursor: pointer;
+  padding: 10px;
+}
+
+.editable-list-container:hover .pencil-box {
+  opacity: 1;
+}
+
+.editable-list-container.disabled .pencil-box {
+  display: none;
+}
+
+.editable-list-container.well {
+  padding: 10px;
+  position: relative;
+  margin-bottom: 25px;
+  cursor: pointer;
+}
+
+.editable-list-container.well.edit-mode {
+  cursor: default;
+}
+
+.editable-list-container.well.disabled {
+  background: white;
+}
+
+.editable-list-container.edit-mode:hover .pencil-box {
+  opacity: 0;
+}
+
+.editable-list-container.edit-mode .items-box ul.items-list li.item.add-item-input input {
+  display: inline-block !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  position: relative;
+  padding: 0;
+  margin: 0;
+  border: none;
+  width: 50px;
+  height: 18px;
+  box-shadow: none;
+  -webkit-transition: none;
+  -moz-transition: none;
+  -o-transition: none;
+  transition: none;
+}
+
+.editable-list-container.edit-mode .items-box ul.items-list li.item .close {
+  display: inline-block;
+}
+
+.editable-list-container .actions-panel {
+  position: absolute;
+  right: 5px;
+  bottom: -42px;
+  padding: 2px 5px 5px 5px;
+  background: #f5f5f5;
+  border: 1px solid #e3e3e3;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  -webkit-transition: all 0.3s;
+  -o-transition: all 0.3s;
+  transition: all 0.3s;
+  -ms-transform-origin: 0% 0%;
+  -webkit-transform-origin: 0% 0%;
+  transform-origin: 0% 0%;
+  -webkit-transform: rotateX(0deg);
+  -ms-transform: rotateX(0deg);
+  -o-transform: rotateX(0deg);
+  transform: rotateX(0deg);
+}
+
+.editable-list-container .actions-panel .btn-xs {
+  padding: 1px 5px;
+  font-size: 12px;
+  line-height: 1.5;
+  border-radius: 3px;
+}
+
+.editable-list-container .actions-panel svg {
+  font-size: 12px;
+}
+
+.editable-list-container .actions-panel .btn-default svg {
+  color: #000;
+}
+
+.editable-list-container .actions-panel .btn-primary svg {
+  color: white;
+}
+
+.editable-list-container .items-box ul.items-list {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.editable-list-container .items-box ul.items-list li.item {
+  display: inline-block;
+  padding: 4px 8px;
+  margin: 0 5px 5px 2px;
+  background: white;
+  border: 1px solid #ebebeb;
+  max-width: 100%;
+  white-space: nowrap;
+  position: relative;
+}
+
+.editable-list-container .items-box ul.items-list li.item.add-item {
+  color: #ddd;
+}
+
+.editable-list-container .items-box ul.items-list li.item.deletable {
+  padding-right: 25px;
+}
+
+.editable-list-container .items-box ul.items-list li.item.global {
+  background-color: #f5f5f5;
+}
+
+.editable-list-container .items-box ul.items-list li.item a {
+  color: #555;
+  text-decoration: none;
+}
+
+.editable-list-container .items-box ul.items-list li.item .close {
+  margin: -2px 0 0 5px;
+  width: 13px;
+  outline: none;
+  position: absolute;
+  display: none;
+  background: none;
+  border: none;
+  font-size: 18px;
+  line-height: 1;
+  color: #000;
+  text-shadow: 0 1px 0 #fff;
+  opacity: 0.2;
+  cursor: pointer;
+  padding: 0;
+  right: 4px;
+  top: 2px;
+}
+
+.editable-list-container .items-box ul.items-list li.item .close:hover,
+.editable-list-container .items-box ul.items-list li.item .close:focus {
+  color: #000;
+  text-decoration: none;
+  cursor: pointer;
+  opacity: 0.5;
+}
+
+.editable-list-container .pencil-box {
+  position: absolute;
+  right: 5px;
+  top: 5px;
+  opacity: 0;
+  -webkit-transition: all 0.3s;
+  -o-transition: all 0.3s;
+  transition: all 0.3s;
+}
+
+.typeahead-box {
+  position: absolute;
+  left: 0;
+  margin-top: 5px;
+  background: white;
+  border: 1px solid #ebebeb;
+  z-index: 1000;
+  min-width: 65px;
+  max-height: 150px;
+  overflow: auto;
+}
+
+.typeahead-box ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.typeahead-box ul li {
+  padding: 3px 5px;
+  display: block;
+  cursor: pointer;
+}
+
+.typeahead-box ul li.selected,
+.typeahead-box ul li:hover {
+  background: #eee;
+}

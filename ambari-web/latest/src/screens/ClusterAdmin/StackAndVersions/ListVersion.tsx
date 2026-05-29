@@ -17,6 +17,7 @@
  */
 
 import {useContext, useEffect, useRef, useState, useCallback } from "react";
+import { messages } from "../../messages";
 import {
   Badge,
   Button,
@@ -37,27 +38,32 @@ import {
   IconDefinition,
   faExclamationTriangle,
   faBug,
+  faArrowLeft,
   faQuestionCircle
 } from "@fortawesome/free-solid-svg-icons";
 import { cloneDeep, get, set } from "lodash";
+import { RequestApi } from "../../../api/requestApi";
 import { Link, useNavigate } from "react-router-dom";
 import { StackVersion, Item, Response, ClusterCheckPopupData } from "./types";
 import VersionsApi from "../../../api/versionsApi";
 import toast from "react-hot-toast";
 import Spinner from "../../../components/Spinner";
 import Modal from "../../../components/Modal";
+import OperationsProgress from "../../../components/OperationsProgress";
 import usePolling from "../../../hooks/usePolling";
 import Tooltip from "../../../components/Tooltip";
 import Select from "react-select";
 import { AppContext } from "../../../store/context";
 import modalManager from "../../../store/ModalManager";
-import Table from "../../../components/Table";
-import { initialOptions, initialUpgradeMethods, showAlertModal, translate, getUpgradeRequestStatus, translateWithVariables } from "../../../Utils/Utility";
-import ClusterApi from "../../../api/clusterApi";
-import OperationsProgress from "../../../components/OperationProgress";
 import Upgrade from "./Upgrade";
-import { RequestApi } from "../../../api/requestApi";
+import Table from "../../../components/Table";
 import RepoModal from "../../../components/RepoModal";
+import { initialOptions, initialUpgradeMethods, showAlertModal, translate, getUpgradeRequestStatus, translateWithVariables } from "../../../Utils/Utility";
+import stringUtilsObj from "../../../Utils/StringUtilsObj";
+import { redirectToAdminView } from "../../../Utils/adminViewRedirect";
+import ClusterApi from "../../../api/clusterApi";
+import { useAuth } from "../../../hooks/useAuth";
+import { HostsApi } from "../../../api/hostsApi";
 
 export const iconMapping: { [key: string]: IconDefinition } = {
   faDashboard: faDashboard,
@@ -76,17 +82,24 @@ export default function Versions() {
   const [methodType, setMethodType] = useState("");
   const [, setCompletionStatus] = useState(false);
   const [selectedStack, setSelectedStack] = useState<StackVersion>();
-  const selectedStackRef = useRef<StackVersion>(selectedStack);
+  const selectedStackRef = useRef<StackVersion | undefined>(undefined);
   const [currentUpgradeTypes, setCurrentUpgradeTypes] = useState<string[]>([]);
   const [isOperationInProgress, setIsOperationInProgress] = useState(false);
   const [operationsState, setOperationsState] = useState<any[]>([]);
   const [slaveComponentFailures, setSlaveComponentFailures] = useState(false);
   const [serviceCheckFailures, setServiceCheckFailures] = useState(false);
   const [isRestoring, setIsRestoring] = useState(true);
-  const { clusterName, setUpgradeId, upgradeState, setIsPatchUpgrade, setUpgradeVersionDisplayName, allHostNames, upgradeVersionDisplayName, upgradeId, upgradeDirection } = useContext(AppContext);
+  const { clusterName, setUpgradeId, upgradeState, setIsPatchUpgrade, setUpgradeVersionDisplayName, allHostNames, upgradeVersionDisplayName, upgradeId, upgradeDirection, upgradeIsRunning, upgradeSuspended } = useContext(AppContext);
   
   const packagesPayloadRef = useRef<any>({});
   
+  // Authorization hooks - implementing Ember.js stack/version authorization patterns
+  const { hasAuthorization } = useAuth();
+  
+  // Check specific authorizations for stack/version operations
+  const canUpgradeDowngrade = hasAuthorization('CLUSTER.UPGRADE_DOWNGRADE_STACK');
+  const canManageStackVersions = hasAuthorization("AMBARI.MANAGE_STACK_VERSIONS");
+
   const [versionModal, setVersionModal] = useState(false);
   const [installPackagesModal, setInstallPackagesModal] = useState(false);
   const [hostModal, setHostModal] = useState(false);
@@ -95,6 +108,9 @@ export default function Versions() {
   const [upgradeConfirmationModal, setUpgradeConfirmationModal] = useState(false);
   const [manageVersionModal, setManageVersionsModal] = useState(false);
   const [alertModal, setAlertModal] = useState(false);
+  const [confirmRevertPatchUpradeModal, setConfirmRevertPatchUpgradeModal] = useState(false);
+  const [confirmReinstallModal, setConfirmReinstallModal] = useState(false);
+  const [confirmRemoveModal, setConfirmRemoveModal] = useState(false);
 
   const hostModalContent = useRef("");
   const hostModalTitle = useRef("");
@@ -113,7 +129,7 @@ export default function Versions() {
   
   // Refs for fast switching between upgrade methods
   const methodTypeRef = useRef("");
-
+  const isUpgradeInProgress = upgradeIsRunning && !upgradeSuspended;
   const navigate = useNavigate();
 
   const {} = usePolling(fetchServices, 6000);
@@ -154,10 +170,25 @@ export default function Versions() {
           currentStack.ClusterStackVersions.repository_version;
 
         const filteredStacks = stacks.filter((stack: StackVersion) => {
-          return (
-            stack.ClusterStackVersions.repository_version >=
-            currentRepositoryVersion
-          );
+          if (stack.ClusterStackVersions.state === "CURRENT") {
+            return true;
+          }
+          
+          const stackVersionType = stack.repository_versions[0]?.RepositoryVersions?.stack_name;
+          const currentStackName = currentStack.repository_versions[0]?.RepositoryVersions?.stack_name;
+          const isPatch = stack.repository_versions[0]?.RepositoryVersions?.type === "PATCH";
+          const isMaint = stack.repository_versions[0]?.RepositoryVersions?.type === "MAINT";
+          const stackRepoVersion = stack.ClusterStackVersions.repository_version;
+          
+          if (stackVersionType === currentStackName) {
+            if (isPatch || isMaint) {
+              const stackVersion = stack.repository_versions[0]?.RepositoryVersions?.repository_version;
+              const currentVersion = currentStack.repository_versions[0]?.RepositoryVersions?.repository_version;
+              return stringUtilsObj.compareVersions(String(stackVersion), String(currentVersion)) > 0;
+            }
+            return stringUtilsObj.compareVersions(String(stackRepoVersion), String(currentRepositoryVersion)) >= 0;
+          }
+          return true;
         });
         setOriginalStacks(filteredStacks);
       } else {
@@ -247,15 +278,38 @@ export default function Versions() {
       .find(stack => stack.repository_versions[0].RepositoryVersions.type === 'STANDARD');
     
     if (errorStack) {
+      const outOfSyncHosts = [
+        ...errorStack.ClusterStackVersions.host_states.INSTALL_FAILED,
+        ...errorStack.ClusterStackVersions.host_states.OUT_OF_SYNC
+      ];
+      
       setStackVersionError({
         title: translate('admin.stackVersions.version.errors.outOfSync.title'),
         description: translate('admin.stackVersions.version.errors.outOfSync.desc'),
-        stackFullName: errorStack.repository_versions[0].RepositoryVersions.stack_name + '-' + errorStack.repository_versions[0].RepositoryVersions.repository_version
+        stackFullName: errorStack.repository_versions[0].RepositoryVersions.stack_name + '-' + errorStack.repository_versions[0].RepositoryVersions.repository_version,
+        repoId: errorStack.ClusterStackVersions.id,
+        outOfSyncHosts: outOfSyncHosts
       });
     } else {
       setStackVersionError(null);
     }
   }, [originalStacks]);
+
+  // useEffect(()=>{
+  //   const matchingOption= options.find((opt) => opt.key === selectedOption.key);
+  //   if(matchingOption){
+  //     setSelectedOption(matchingOption);
+  //   }
+  // },[options])
+
+  useEffect(()=>{
+    const matchingOption= options.find((opt) => opt.key === selectedOption.key);
+    if(matchingOption && matchingOption.count !== selectedOption.count){
+      setSelectedOption(matchingOption);
+    }
+  },[options])
+
+
 
   useEffect(() => {
     selectedStackRef.current = selectedStack;
@@ -370,8 +424,20 @@ export default function Versions() {
   }
 
   function getStackHeader(stackData: StackVersion) {
+    const isOutOfSync = stackData.ClusterStackVersions.state === 'OUT_OF_SYNC';
+    
     return (
-      <div className={`p-2`}>
+      <div className={`p-2 position-relative`}>
+        {isOutOfSync && (
+          <div className="position-absolute top-0 end-0 p-2">
+            <Tooltip message="Out of Sync" placement="top">
+              <FontAwesomeIcon 
+                icon={faExclamationTriangle} 
+                className="text-warning" 
+              />
+            </Tooltip>
+          </div>
+        )}
         <p className="text-center fs-16 fw-500">
           {stackData.repository_versions[0].RepositoryVersions.display_name}
         </p>
@@ -427,6 +493,7 @@ export default function Versions() {
                 selectedStackRef.current = stackData;
                 modalManager.show(<Upgrade upgradeId={upgradeId} />);
               }}
+              disabled={!canUpgradeDowngrade}
             >
               {translate(getUpgradeStatus(stackData).statusText || "admin.stackUpgrade.state.inProgress")}
             </Button>
@@ -440,6 +507,27 @@ export default function Versions() {
               >
                 CURRENT
               </Button>
+              {stackData.ClusterStackVersions.supports_revert && (
+                <>
+                  <Dropdown.Toggle
+                    size="sm"
+                    split
+                    variant="success"
+                    id="dropdown-split-basic"
+                  />
+                  <Dropdown.Menu className="dropdown-menu-right">
+                      <Dropdown.Item
+                        onClick={() => {
+                          setSelectedStack(stackData)
+                          selectedStackRef.current = stackData; 
+                          setConfirmRevertPatchUpgradeModal(true)
+                        }}
+                      >
+                        Revert
+                      </Dropdown.Item>
+                  </Dropdown.Menu>
+                </>
+              )}
             </Dropdown>
 
           ) : getButtonName(stackData) === "upgrade" ? (
@@ -449,7 +537,7 @@ export default function Versions() {
                 className="text-uppercase"
                 size="sm"
                 disabled={(upgradeState !== "NOT_REQUIRED" &&
-                  upgradeState !== "COMPLETED")}
+                  upgradeState !== "COMPLETED") || !canUpgradeDowngrade}
                 onClick={() => handleUpgradeButton(stackData)}
               >
                 Upgrade
@@ -459,6 +547,7 @@ export default function Versions() {
                 split
                 variant="success"
                 id="dropdown"
+                disabled={!canUpgradeDowngrade}
               />
               <Dropdown.Menu className="dropdown-menu-right">
                 <Dropdown.Item
@@ -486,6 +575,20 @@ export default function Versions() {
                 </Dropdown.Item>
               </Dropdown.Menu>
             </Dropdown>
+          ) : getButtonName(stackData) === "installed" ? (
+            <Button
+              variant="success"
+              className="text-uppercase"
+              disabled
+              size="sm"
+            >
+              INSTALLED
+            </Button>
+          ) : getButtonName(stackData) === "installError" ? (
+            <div className="text-center text-warning">
+              <FontAwesomeIcon icon={faWarning} className="me-2"/>
+              <span className="fw-bold">{translate('admin.stackVersions.version.installError')}</span>
+            </div>
           ) : (
             <Button
               variant="success"
@@ -608,16 +711,20 @@ export default function Versions() {
       ).length === 0 &&
       bypassedFailures
     ) {
-      failTitle = translate(
+      failTitle = get(
+        messages,
         "popup.clusterCheck.Upgrade.bypassed-failures.title"
       );
-      failAlert = translate(
+      failAlert = get(
+        messages,
         "popup.clusterCheck.Upgrade.bypassed-failures.alert"
       );
     }
-    const header = translateWithVariables("popup.clusterCheck.Upgrade.header", {
-      "0": selectedStackRef.current?.repository_versions[0]?.RepositoryVersions?.display_name || "Unknown"
-    });
+    const headerTemplate = get(messages, "popup.clusterCheck.Upgrade.header");
+    const header = headerTemplate.replace(
+      "{0}",
+      selectedStackRef.current?.repository_versions[0]?.RepositoryVersions?.display_name || "Unknown"
+    );
 
     const warningTitle = translate(
       "popup.clusterCheck.Upgrade.warning.title"
@@ -644,10 +751,11 @@ export default function Versions() {
         failAlert: failAlert,
         warningTitle: warningTitle,
         warningAlert: warningAlert,
-        primary: translate(
+        primary: get(
+          messages,
           "admin.stackVersions.version.upgrade.upgradeOptions.preCheck.rerun"
         ),
-        secondary: translate("common.cancel"),
+        secondary: get(messages, "common.cancel"),
         bypassedFailures: bypassedFailures,
       },
       configs,
@@ -749,7 +857,7 @@ export default function Versions() {
           }`
         : "Passed";
     if(upgradeCheckResult1 === "Passed") {
-      upgradeCheckModalContent1 = <div>{translate("admin.stackVersions.version.upgrade.upgradeOptions.preCheck.allPassed.msg")}</div>
+      upgradeCheckModalContent1 = translate("admin.stackVersions.version.upgrade.upgradeOptions.preCheck.allPassed.msg")
     }
     // set the content of modal & message in the method.
     const methodIndex = upgradeMethodsRef.current.findIndex(
@@ -1072,10 +1180,12 @@ export default function Versions() {
     switch (stackState) {
       case "CURRENT":
         return "current";
+      case "OUT_OF_SYNC":
+        return "installError";
       case "INSTALL_FAILED":
         return "re-install";
       case "INSTALLED":
-        return "upgrade";
+        return shouldShowUpgradeButton(stackData) ? "upgrade" : "installed";
       case "INSTALLING":
         return "installing";
       case "INTERMEDIATE":
@@ -1083,6 +1193,61 @@ export default function Versions() {
       default:
         return "install_packages";
     }
+  }
+
+  // Enhanced upgrade button logic similar to Ember.js implementation
+  function shouldShowUpgradeButton(stackData: StackVersion): boolean {
+    // Sort stacks by version like Ember.js does, then find first CURRENT (like Ember.js)
+    const sortedStacks = [...originalStacks].sort((a, b) => {
+      const versionA = a.repository_versions[0]?.RepositoryVersions.repository_version || '';
+      const versionB = b.repository_versions[0]?.RepositoryVersions.repository_version || '';
+      return stringUtilsObj.compareVersions(versionA, versionB);
+    });
+    
+    const currentVersion = sortedStacks.find(
+      (stack: StackVersion) => stack.ClusterStackVersions.state === "CURRENT"
+    );
+    
+    if (!currentVersion) {
+      return true; // If no current version, allow upgrade
+    }
+
+    const currentRepoVersion = currentVersion.repository_versions[0]?.RepositoryVersions;
+    const targetRepoVersion = stackData.repository_versions[0]?.RepositoryVersions;
+    
+    if (!currentRepoVersion || !targetRepoVersion) {
+      return false;
+    }
+
+    // Check if it's a different stack or higher version (like Ember.js)
+    const isDifferentStack = currentRepoVersion.stack_name !== targetRepoVersion.stack_name;
+    const isVersionHigher = stringUtilsObj.compareVersions(
+      targetRepoVersion.repository_version,
+      currentRepoVersion.repository_version
+    ) > 0;
+
+    if (!isDifferentStack && !isVersionHigher) {
+      return false; // Don't show upgrade for same or lower versions of same stack
+    }
+
+    // Check service upgradeability (like Ember.js)
+    const isStandardVersion = targetRepoVersion.type === "STANDARD";
+    if (isStandardVersion) {
+      return true; // Standard versions are always upgradeable
+    }
+
+    // For PATCH/MAINT versions, check if there are upgradeable services (like Ember.js)
+    const repositorySummary = stackData.ClusterStackVersions?.repository_summary;
+    if (repositorySummary?.services) {
+      const hasUpgradeableServices = Object.entries(repositorySummary.services).some(([serviceName, serviceInfo]: [string, any]) => {
+        // Check if service exists in cluster AND is marked as upgradeable (like Ember.js isUpgradable check)
+        return services.includes(serviceName) && serviceInfo.upgrade === true;
+      });
+      
+      return hasUpgradeableServices;
+    }
+
+    return false;
   }
 
   function getInstallPackageModalBody() {
@@ -1129,16 +1294,29 @@ export default function Versions() {
                         hostStates.INSTALLING.length;
     const notInstalledHosts = (selectedStackRef.current.ClusterStackVersions.state === "NOT_REQUIRED") ? allHostNames : [...hostStates.INSTALL_FAILED, ...hostStates.OUT_OF_SYNC, ...hostStates.INSTALLING];
 
+    const isOutOfSync = selectedStackRef.current.ClusterStackVersions.state === 'OUT_OF_SYNC';
+    
     return (
       <div className="m-n2">
         <div className="bg-info-subtle p-2">
           <div className="d-flex justify-content-between">
-            <div></div>
+            <div className="ms-2">
+              {isOutOfSync && (
+                <Tooltip message="Out of Sync" placement="right">
+                  <FontAwesomeIcon 
+                    icon={faExclamationTriangle} 
+                    className="text-warning" 
+                  />
+                </Tooltip>
+              )}
+            </div>
             <h2 className="text-dark ms-4">
               {selectedStackRef.current?.repository_versions[0]?.RepositoryVersions
                 ?.display_name || "NA"}
             </h2>
             <h2 className="mx-2">
+              {/* Only show repository edit icon if user has CLUSTER.UPGRADE_DOWNGRADE_STACK permission */}
+              {canUpgradeDowngrade && (
                 <Tooltip message="Click to Edit Repositories" placement="top">
                   <FontAwesomeIcon
                     className="fs-16 text-info"
@@ -1156,6 +1334,7 @@ export default function Versions() {
                     icon={faEdit}
                   />
                 </Tooltip>
+              )}
             </h2>
           </div>
           <div className="mt-2 text-center mb-2">
@@ -1192,9 +1371,15 @@ export default function Versions() {
               onClick={() => {
                 modalManager.show(<Upgrade upgradeId={upgradeId} />);
               }}
+              disabled={!canUpgradeDowngrade}
             >
               {translate(getUpgradeStatus(selectedStackRef.current).statusText || "admin.stackUpgrade.state.inProgress")}
             </Button>  
+            ) : getButtonName(selectedStackRef.current) === "installError" ? (
+              <div className="text-center text-warning py-2">
+                <FontAwesomeIcon icon={faWarning} className="me-2"/>
+                <span className="fw-bold fs-5">{translate('admin.stackVersions.version.installError')}</span>
+              </div>
             ) : getButtonName(selectedStackRef.current) === "upgrade" ? (
               <Dropdown as={ButtonGroup} className="upgrade-dropdown popup">
                 <Button
@@ -1202,7 +1387,7 @@ export default function Versions() {
                   size="sm"
                   className="text-uppercase"
                   disabled={!selectedStackRef.current || (upgradeState !== "NOT_REQUIRED" &&
-                  upgradeState !== "COMPLETED")}
+                  upgradeState !== "COMPLETED") || !canUpgradeDowngrade}
                   onClick={() => {
                     if (selectedStackRef.current) {
                       showUpgradeProceedButton.current = true;
@@ -1216,7 +1401,7 @@ export default function Versions() {
                   split
                   size="sm"
                   variant="success"
-                  disabled={!selectedStackRef.current}
+                  disabled={!selectedStackRef.current || !canUpgradeDowngrade}
                   id="dropdown-split-basic"
                 />
                 <Dropdown.Menu className="dropdown-menu-right">
@@ -1354,6 +1539,212 @@ export default function Versions() {
     }
   }
 
+  function getRevertPatchUpgradeModalBody() {
+    if (!selectedStackRef.current?.ClusterStackVersions.supports_revert) {
+      return <p>Revert is not supported for this version.</p>;
+    }
+    
+    const parentStackId = selectedStackRef.current?.repository_versions[0].RepositoryVersions.parent_id;
+    
+    const parentStack = stacks.find(
+      stack => stack.ClusterStackVersions.id === parentStackId
+    );
+    
+    if (!parentStack) {
+      return <p>Could not find the target stack version for revert.</p>;
+    }
+    
+    const fromVersion = selectedStackRef.current?.repository_versions[0].RepositoryVersions.display_name;
+    const toVersion = parentStack.repository_versions[0].RepositoryVersions.display_name;
+    
+    const servicesToBeReverted = [];
+    const currentServices = selectedStackRef.current?.ClusterStackVersions.repository_summary.services;
+    const targetServices = parentStack.ClusterStackVersions.repository_summary.services;
+    
+    for (const [serviceName, serviceInfo] of Object.entries(currentServices)) {
+      if (targetServices[serviceName]) {
+        servicesToBeReverted.push({
+          displayName: serviceName,
+          fromVersion: serviceInfo.version,
+          toVersion: targetServices[serviceName].version
+        });
+      }
+    }
+   
+    const revertTableColumns = [
+      {
+        accessorKey: "displayName",
+        header: "",
+        cell: (info: any) => info.getValue(),
+      },
+      {
+        accessorKey: "toVersion",
+        header: toVersion,
+        cell: (info: any) => (
+          <div className="service-version-info">
+            <span className="badge bg-light">{info.getValue()}</span>
+          </div>
+        ),
+      },
+      {
+        accessorKey: "arrow",
+        header: "",
+        cell: () => <FontAwesomeIcon className="me-2" icon={faArrowLeft}/>,
+      },
+      {
+        accessorKey: "fromVersion",
+        header: fromVersion,
+        cell: (info: any) => (
+          <div className="service-version-info">
+            <span className="badge bg-light">{info.getValue()}</span>
+          </div>
+        ),
+      },
+    ];
+
+    return (
+      <>
+        <div>{translate("admin.stackVersions.upgrade.patch.revert.confirmation")}</div>
+        <div className="mt-1">
+          <Table 
+            columns={revertTableColumns} 
+            data={servicesToBeReverted} 
+            showHeader={true} 
+            scrollable={false}
+          />
+        </div>
+      </>
+    );
+  }
+
+  async function revertPatchUpgrade() {
+    const payload = {
+      "Upgrade": {
+        "revert_upgrade_id": selectedStackRef.current?.ClusterStackVersions.revert_upgrade_id,
+      }
+    }
+
+    try {
+      const response = await VersionsApi.getUpgradeId(
+        payload,
+        clusterName
+      );
+      const upgradeId = response?.resources[0]?.Upgrade?.request_id;
+      setUpgradeId(upgradeId);
+
+      if(setIsPatchUpgrade) {
+        const isPatch = get(selectedStackRef.current, "repository_versions[0].RepositoryVersions.type", "STANDARD") === "PATCH";
+        setIsPatchUpgrade(isPatch);
+
+        await ClusterApi.postPersistData(
+          JSON.stringify({
+            isPatchUpgrade: JSON.stringify(isPatch)
+          })
+        )
+      }
+      if(setUpgradeVersionDisplayName) {
+        const versionDisplayName = get(selectedStackRef.current, "repository_versions[0].RepositoryVersions.display_name", "");
+        setUpgradeVersionDisplayName(versionDisplayName);
+        await ClusterApi.postPersistData(
+          JSON.stringify({
+            upgradeVersionDisplayName: JSON.stringify(versionDisplayName)
+          })
+        )
+      }
+      modalManager.show(<Upgrade upgradeId={upgradeId} />);
+    } catch (error) {
+      modalManager.show({
+        modalTitle: "Upgrade could not be started",
+        modalBody: (
+          <div>
+            {error instanceof Error ? error.message : String(error)}
+          </div>
+        ),
+        onClose: () => {
+          modalManager.hide();
+        },
+        successCallback: () => {
+          modalManager.hide();
+        },
+        options: {
+          cancelableViaIcon: true,
+          cancelableViaBtn: false,
+        },
+      });
+    }
+  }
+
+  // Handle reinstall of out-of-sync components
+  async function handleReinstallOutOfSyncComponents() {
+    if (!stackVersionError) return;
+    
+    const outOfSyncHosts = stackVersionError.outOfSyncHosts;
+    
+    if (!outOfSyncHosts || outOfSyncHosts.length === 0) {
+      toast.error("No out-of-sync hosts found.");
+      return;
+    }
+    
+    try {
+      await HostsApi.updateHostComponents(
+        clusterName,
+        `HostRoles/host_name.in(${outOfSyncHosts.join(',')})&HostRoles/state=INSTALL_FAILED`,
+        {
+          context: translate("hosts.host.maintainance.reinstallFailedComponents.context"),
+          HostRoles: {
+            state: 'INSTALLED'
+          },
+          query: `HostRoles/host_name.in(${outOfSyncHosts.join(',')})&HostRoles/state=INSTALL_FAILED`
+        }
+      );
+      
+      toast.success("Reinstall request submitted successfully");
+      setConfirmReinstallModal(false);
+      
+      // Refresh stacks after a delay
+      setTimeout(() => {
+        fetchServices();
+      }, 2000);
+    } catch (error: any) {
+      console.error("Error reinstalling components:", error);
+      toast.error(error?.message || "Failed to reinstall components");
+    }
+  }
+
+  // Handle remove of out-of-sync components
+  async function handleRemoveOutOfSyncComponents() {
+    if (!stackVersionError) return;
+    
+    const outOfSyncHosts = stackVersionError.outOfSyncHosts;
+    
+    if (!outOfSyncHosts || outOfSyncHosts.length === 0) {
+      toast.error("No out-of-sync hosts found.");
+      return;
+    }
+    
+    try {
+      await HostsApi.deleteHostComponents(
+        {
+          RequestInfo: {
+            query: `HostRoles/host_name.in(${outOfSyncHosts.join(',')})&HostRoles/state=INSTALL_FAILED`
+          }
+        },
+        clusterName
+      );
+      
+      toast.success("Remove request submitted successfully");
+      setConfirmRemoveModal(false);
+      
+      // Refresh stacks after a delay
+      setTimeout(() => {
+        fetchServices();
+      }, 2000);
+    } catch (error: any) {
+      console.error("Error removing components:", error);
+      toast.error(error?.message || "Failed to remove components");
+    }
+  }
+
   // Function to generate upgrade modal content
   function getUpgradeModalContent() {
     if (!selectedStackRef.current) return null;
@@ -1473,20 +1864,42 @@ export default function Versions() {
     <>
       {stackVersionError && (
         <div className="alert alert-warning mt-3">
-          <div>
-            <div className="me-2">
+          <div className="d-flex align-items-start">
+            <div className="me-3">
               <FontAwesomeIcon icon={faExclamationTriangle} />
             </div>
-            <div>
-              <h4 className="display-inline me-1">{stackVersionError.title}</h4>
-              <span>{stackVersionError.stackFullName}</span>
-              <div>{stackVersionError.description}</div>
+            <div className="flex-grow-1">
+              <h4 className="d-inline me-2 mb-2">
+                {stackVersionError.title}
+              </h4>
+              <span className="badge bg-secondary">{stackVersionError.stackFullName}</span>
+              <div className="mt-2">{stackVersionError.description}</div>
             </div>
+            {canManageStackVersions && (
+              <div className="d-flex gap-2 ms-3">
+                <Button
+                  variant="warning"
+                  size="sm"
+                  onClick={() => setConfirmReinstallModal(true)}
+                >
+                  {translate('common.reinstall')}
+                </Button>
+                <Button
+                  variant="warning"
+                  size="sm"
+                  onClick={() => setConfirmRemoveModal(true)}
+                >
+                  {translate('common.remove')}
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       )}
       <div className="mt-4">
         <div className="d-flex">
+           {/* Only show Manage versions button if user has CLUSTER.UPGRADE_DOWNGRADE_STACK permission */}
+           {canManageStackVersions && !isUpgradeInProgress && (
              <Button
                   size="sm"
                   variant="success"
@@ -1495,6 +1908,7 @@ export default function Versions() {
                   <FontAwesomeIcon className="mx-2" icon={faExternalLink} />{" "}
                   Manage versions
                 </Button>
+           )}
                <Select
                className="ms-3"
                 value={{
@@ -1774,7 +2188,97 @@ export default function Versions() {
             cancelButtonText: "CANCEL",
           }}
           successCallback={() => {
-            // redirectToAdminView("stackVersions");
+            redirectToAdminView("stackVersions");
+          }}
+        />
+      )}
+
+      { confirmRevertPatchUpradeModal && (
+        <Modal 
+          isOpen={confirmRevertPatchUpradeModal}
+          onClose={() => setConfirmRevertPatchUpgradeModal(false)}
+          modalTitle={translate("popup.confirmation.commonHeader")}
+          modalBody={getRevertPatchUpgradeModalBody()}
+          options={{
+            okButtonText: get(messages, "admin.stackUpgrade.revertPatch.okButton"),
+            cancelableViaIcon: true,
+            cancelableViaBtn: true,
+            modalSize: "modal-sm",
+          }}
+          successCallback={() => {
+            setConfirmRevertPatchUpgradeModal(false);
+            revertPatchUpgrade();
+          }}
+        />
+        )
+      }
+
+      {/* Reinstall Out of Sync Components Confirmation Modal */}
+      {confirmReinstallModal && stackVersionError && (
+        <Modal
+          isOpen={confirmReinstallModal}
+          onClose={() => setConfirmReinstallModal(false)}
+          modalTitle={translate("admin.stackVersions.version.errors.outOfSync.reinstall.title")}
+          modalBody={
+            <div>
+              <p>
+                {translate("hosts.host.maintainance.reinstallFailedComponents.context")}
+              </p>
+              <p>
+                <strong>Affected Hosts ({stackVersionError.outOfSyncHosts.length}):</strong>
+              </p>
+              <div>
+                {stackVersionError.outOfSyncHosts.map((host: string, index: number) => (
+                  <div key={index}>{host}</div>
+                ))}
+              </div>
+            </div>
+          }
+          options={{
+            cancelableViaBtn: true,
+            cancelableViaIcon: true,
+            okButtonText: translate("common.reinstall"),
+            cancelButtonText: translate("common.cancel"),
+          }}
+          successCallback={() => {
+            handleReinstallOutOfSyncComponents();
+          }}
+        />
+      )}
+
+      {/* Remove Out of Sync Components Confirmation Modal */}
+      {confirmRemoveModal && stackVersionError && (
+        <Modal
+          isOpen={confirmRemoveModal}
+          onClose={() => setConfirmRemoveModal(false)}
+          modalTitle={translate("admin.stackVersions.version.errors.outOfSync.remove.title")}
+          modalBody={
+            <div>
+              <p>
+                {translate("hosts.host.maintainance.removeFailedComponents.context")}
+              </p>
+              <div className="alert alert-danger">
+                <FontAwesomeIcon icon={faExclamationTriangle} className="me-2" />
+                <strong>Warning:</strong> This action will permanently remove failed components from the selected hosts.
+              </div>
+              <p>
+                <strong>Affected Hosts ({stackVersionError.outOfSyncHosts.length}):</strong>
+              </p>
+              <div>
+                {stackVersionError.outOfSyncHosts.map((host: string, index: number) => (
+                  <div key={index}>{host}</div>
+                ))}
+              </div>
+            </div>
+          }
+          options={{
+            cancelableViaBtn: true,
+            cancelableViaIcon: true,
+            okButtonText: translate("common.remove"),
+            cancelButtonText: translate("common.cancel"),
+          }}
+          successCallback={() => {
+            handleRemoveOutOfSyncComponents();
           }}
         />
       )}

@@ -125,7 +125,7 @@ export default function HostChecks({
   const [selectedHost, setSelectedHost] = useState(HostOption.ALL);
 
   const showHostListModal = (hostsList: any[]) => {
-    const modalProps = {
+    modalManager.show({
       onClose: () => {},
       modalTitle: "List of hosts",
       modalBody: getHostListModalBody(hostsList),
@@ -136,8 +136,7 @@ export default function HostChecks({
         cancelableViaIcon: true,
         cancelableViaBtn: false,
       },
-    };
-    modalManager.show(modalProps);
+    });
   };
 
   const getHostListModalBody = (hostsList: any[]) => {
@@ -257,11 +256,7 @@ export default function HostChecks({
         });
 
       restWarningCategories.forEach((category) => {
-        const issue = get(
-          issuesCopy,
-          get(restWarningCategoriesToIssuesKeyMap, category),
-          {}
-        );
+        const issue = get(issuesCopy, get(restWarningCategoriesToIssuesKeyMap, category), {});
         set(issue, "count", get(filteredHostCheckRes, category, []).length);
         set(
           issue,
@@ -508,16 +503,12 @@ export default function HostChecks({
         <Modal
           isOpen={isOpen}
           onClose={onClose}
-          modalTitle={String(
-            translate("installer.step3.warnings.popup.header")
-          )}
+          modalTitle={translate("installer.step3.warnings.popup.header")}
           modalBody={getModalBody()}
           successCallback={successCallback}
           options={{
             okButtonDisabled: loading,
-            okButtonText: String(
-              translate("installer.step3.hostWarningsPopup.rerunChecks")
-            ).toUpperCase(),
+            okButtonText: String(translate("installer.step3.hostWarningsPopup.rerunChecks")).toUpperCase(),
             okButtonVariant: "warning",
             cancelButtonText: String(translate("common.close")).toUpperCase(),
             cancelableViaIcon: true,
