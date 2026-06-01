@@ -15,11 +15,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Redirect } from "react-router-dom";
+import ClusterInformation from "../screens/ClusterManagement/ClusterInformation";
+import RemoteClusters from "../screens/ClusterManagement/RemoteClusters";
+import RegisterRemoteCluster from "../screens/ClusterManagement/RemoteClusters/RegisterRemoteCluster";
+import EditRemoteCluster from "../screens/ClusterManagement/RemoteClusters/EditRemoteCluster";
 import Users from "../screens/Users";
-import WIP from "../components/WIP";
-import Register from "../screens/StackVersions/Register";
-import { VersionsList } from "../screens/StackVersions";
+import EditGroup from "../screens/Users/EditGroup";
+import EditUser from "../screens/Users/EditUser";
+import Views from "../screens/Views";
+import EditInstance from "../screens/Views/EditInstance";
+import CreateShortUrl from "../screens/Views/CreateShortUrl";
+import Dashboard from "../screens/ClusterManagement/Dasboard";
+import { Redirect } from "react-router-dom";
+import { Register, VersionsList } from "../screens/ClusterManagement/StackVersions";
 
 
 
@@ -27,19 +35,19 @@ export default [
   {
     path: "/main/dashboard",
     exact: true,
-    Element: () => <WIP />,
+    Element: () => <Dashboard />,
     name: "Home",
   },
   {
     path: "/dashboard",
     exact: true,
-    Element: () => <WIP />,
+    Element: () => <Dashboard />,
     name: "Dashboard",
   },
   {
     path: "/clusterInformation",
     exact: true,
-    Element: () => <WIP />,
+    Element: () => <ClusterInformation />,
     name: "Cluster Information",
   },
   {
@@ -63,19 +71,19 @@ export default [
   {
     path: "/remoteClusters/:clusterName/edit",
     exact: true,
-    Element: () => <WIP />,
+    Element: () => <EditRemoteCluster />,
     name: "Edit Remote Cluster",
   },
   {
     path: "/remoteClusters/create",
     exact: true,
-    Element: () => <WIP />,
+    Element: () => <RegisterRemoteCluster />,
     name: "Register Remote Cluster",
   },
   {
     path: "/remoteClusters",
     exact: true,
-    Element: () => <WIP />,
+    Element: () => <RemoteClusters />,
     name: "Remote Clusters",
   },
   {
@@ -87,31 +95,31 @@ export default [
   {
     path: "/users/:userName/edit",
     exact: true,
-    Element: () => <WIP />,
+    Element: () => <EditUser />,
     name: "Users",
   },
   {
     path: "/groups/:groupName/edit",
     exact: true,
-    Element: () => <WIP />,
+    Element: () => <EditGroup />,
     name: "Groups",
   },
   {
     path:`/views/:viewName/versions/:version/instances/:instanceName/edit`,
     exact:true,
-    Element:()=><WIP/>,
+    Element:()=><EditInstance/>,
     name:"Views",
   },
   {
     path: "/views",
     exact: true,
-    Element: () => <WIP />,
+    Element: () => <Views />,
     name: "Views",
   },
   {
     path: '/urls/link/:view_name/:version/:instance_name',
     exact: true,
-    Element: () => <WIP/>,
+    Element: () => <CreateShortUrl/>,
     name: 'Views'
   },
   {
