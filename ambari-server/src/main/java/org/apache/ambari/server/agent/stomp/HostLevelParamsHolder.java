@@ -34,6 +34,7 @@ import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.state.BlueprintProvisioningState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.commons.collections4.MapUtils;
@@ -58,6 +59,12 @@ public class HostLevelParamsHolder extends AgentHostDataHolder<HostLevelParamsUp
   @Inject
   public HostLevelParamsHolder(AmbariEventPublisher ambariEventPublisher) {
     ambariEventPublisher.register(this);
+  }
+
+  @Override
+  public HostLevelParamsUpdateEvent getCurrentData(Long hostId,
+      Map<Long, Map<String, DesiredConfig>> cachedClustersDesiredConfigs) throws AmbariException {
+    return getCurrentData(hostId);
   }
 
   @Override

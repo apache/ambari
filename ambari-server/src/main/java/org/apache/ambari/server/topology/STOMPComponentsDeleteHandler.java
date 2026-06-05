@@ -18,7 +18,9 @@
 package org.apache.ambari.server.topology;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
@@ -35,6 +37,7 @@ import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMet
 import org.apache.ambari.server.events.TopologyUpdateEvent;
 import org.apache.ambari.server.events.UpdateEventType;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.DesiredConfig;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -95,13 +98,14 @@ public class STOMPComponentsDeleteHandler {
 
   private void updateNonTopologyAgentInfo(Set<Long> changedHosts, Long clusterId) throws AmbariException {
 
+    Map<Long, Map<String, DesiredConfig>> cachedClustersDesiredConfigs = new HashMap<>();
     for (Long hostId : changedHosts) {
       if (clusterId != null) {
         alertDefinitionsHolder.get().updateData(alertDefinitionsHolder.get().getDeleteCluster(clusterId, hostId));
-        agentConfigsHolder.get().updateData(agentConfigsHolder.get().getCurrentDataExcludeCluster(hostId, clusterId));
+        agentConfigsHolder.get().updateData(agentConfigsHolder.get().getCurrentDataExcludeCluster(hostId, clusterId, cachedClustersDesiredConfigs));
         hostLevelParamsHolder.get().updateData(hostLevelParamsHolder.get().getCurrentDataExcludeCluster(hostId, clusterId));
       } else {
-        agentConfigsHolder.get().updateData(agentConfigsHolder.get().getCurrentData(hostId));
+        agentConfigsHolder.get().updateData(agentConfigsHolder.get().getCurrentData(hostId, cachedClustersDesiredConfigs));
         hostLevelParamsHolder.get().updateData(hostLevelParamsHolder.get().getCurrentData(hostId));
       }
     }

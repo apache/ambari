@@ -536,6 +536,23 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
+  public Map<Long, ConfigGroup> getConfigGroupsByHostId(Long hostId) {
+    Map<Long, ConfigGroup> configGroups = new HashMap<>();
+
+    for (Entry<Long, ConfigGroup> groupEntry : clusterConfigGroups.entrySet()) {
+      Long id = groupEntry.getKey();
+      ConfigGroup group = groupEntry.getValue();
+      for (Host host : group.getHosts().values()) {
+        if (Objects.equals(hostId, host.getHostId())) {
+          configGroups.put(id, group);
+          break;
+        }
+      }
+    }
+    return configGroups;
+  }
+
+  @Override
   public ConfigGroup getConfigGroupsById(Long configId) {
     return clusterConfigGroups.get(configId);
   }

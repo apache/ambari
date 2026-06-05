@@ -530,6 +530,14 @@ public interface Cluster {
       throws AmbariException;
 
   /**
+   * Find all config groups associated with the given hostId
+   * @param hostId
+   * @return Map of config group id to config group
+   */
+  Map<Long, ConfigGroup> getConfigGroupsByHostId(Long hostId)
+      throws AmbariException;
+
+  /**
    * Find config group by config group id
    * @param configId id of config group to return
    * @return config group

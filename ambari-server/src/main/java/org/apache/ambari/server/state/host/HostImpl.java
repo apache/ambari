@@ -1125,7 +1125,7 @@ public class HostImpl implements Host {
       }
     ));
 
-    Map<Long, ConfigGroup> configGroups = (cluster == null) ? new HashMap<>() : cluster.getConfigGroupsByHostname(getHostName());
+    Map<Long, ConfigGroup> configGroups = (cluster == null) ? new HashMap<>() : cluster.getConfigGroupsByHostId(getHostId());
     if (configGroups == null || configGroups.isEmpty()) {
       return hostConfigMap;
     }
