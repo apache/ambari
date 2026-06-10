@@ -17,7 +17,7 @@
 #}
 [network_topology]
 {% for host in all_hosts %}
-{% if host in slave_hosts %}
+{% if host in slave_hosts or host in nm_host %}
 {{host}}={{all_racks[loop.index-1]}}
 {{all_ipv4_ips[loop.index-1]}}={{all_racks[loop.index-1]}}
 {% endif %}
