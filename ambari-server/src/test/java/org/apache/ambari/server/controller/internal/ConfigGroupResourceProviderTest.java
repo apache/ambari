@@ -583,6 +583,267 @@ public class ConfigGroupResourceProviderTest {
   }
 
   @Test
+  public void testUpdateConfigGroupScopesToPreviousAndNewMemberHosts() throws Exception {
+    // The config group already has members h1 and h2; the update keeps only h1.
+    // Agent config update must be scoped to the union of previous and new members (h1, h2) so the
+    // removed host (h2) is reverted to the cluster-default config.
+    Authentication authentication = TestAuthenticationFactory.createAdministrator();
+
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
+    ConfigHelper configHelper = createMock(ConfigHelper.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    Host h1 = createNiceMock(Host.class);
+    Host h2 = createNiceMock(Host.class);
+    HostEntity hostEntity1 = createMock(HostEntity.class);
+
+    final ConfigGroup configGroup = createNiceMock(ConfigGroup.class);
+    ConfigGroupResponse configGroupResponse = createNiceMock(ConfigGroupResponse.class);
+
+    expect(cluster.isConfigTypeExists("core-site")).andReturn(true).anyTimes();
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(managementController.getAuthName()).andReturn("admin").anyTimes();
+    expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
+    expect(clusters.getHost("h1")).andReturn(h1);
+    expect(hostDAO.findByName("h1")).andReturn(hostEntity1).anyTimes();
+    expect(hostDAO.findById(1L)).andReturn(hostEntity1).anyTimes();
+    expect(hostEntity1.getHostId()).andReturn(1L).atLeastOnce();
+    expect(h1.getHostId()).andReturn(1L).anyTimes();
+    expect(h2.getHostId()).andReturn(2L).anyTimes();
+    expect(managementController.getConfigGroupUpdateResults((ConfigGroupRequest) anyObject())).
+        andReturn(new ConfigGroupResponse(1L, "", "", "", "", new HashSet<>(), new HashSet<>())).atLeastOnce();
+
+    expect(configGroup.getName()).andReturn("test-1").anyTimes();
+    expect(configGroup.getId()).andReturn(25L).anyTimes();
+    expect(configGroup.getTag()).andReturn("tag-1").anyTimes();
+    // existing members of the group before the update
+    Map<Long, Host> existingHosts = new HashMap<>();
+    existingHosts.put(1L, h1);
+    existingHosts.put(2L, h2);
+    expect(configGroup.getHosts()).andReturn(existingHosts).anyTimes();
+    expect(configGroup.convertToResponse()).andReturn(configGroupResponse).anyTimes();
+    expect(configGroupResponse.getClusterName()).andReturn("Cluster100").anyTimes();
+    expect(configGroupResponse.getId()).andReturn(25L).anyTimes();
+
+    expect(cluster.getConfigGroups()).andStubAnswer(new IAnswer<Map<Long, ConfigGroup>>() {
+      @Override
+      public Map<Long, ConfigGroup> answer() throws Throwable {
+        Map<Long, ConfigGroup> configGroupMap = new HashMap<>();
+        configGroupMap.put(configGroup.getId(), configGroup);
+        return configGroupMap;
+      }
+    });
+
+    // capture the hosts the agent config update is scoped to
+    Capture<List<Long>> hostIdsCapture = newCapture();
+    configHelper.updateAgentConfigs(anyObject(Cluster.class), capture(hostIdsCapture));
+
+    replay(managementController, clusters, cluster, configGroup, response, configGroupResponse,
+        configHelper, hostDAO, hostEntity1, h1, h2);
+
+    ConfigGroupResourceProvider provider = (ConfigGroupResourceProvider)
+        AbstractControllerResourceProvider.getResourceProvider(Resource.Type.ConfigGroup, managementController);
+    Provider<ConfigHelper> configHelperProvider = createNiceMock(Provider.class);
+    expect(configHelperProvider.get()).andReturn(configHelper).anyTimes();
+    replay(configHelperProvider);
+    Field m_configHelper = ConfigGroupResourceProvider.class.getDeclaredField("m_configHelper");
+    m_configHelper.setAccessible(true);
+    m_configHelper.set(provider, configHelperProvider);
+
+    Map<String, Object> properties = new LinkedHashMap<>();
+
+    Set<Map<String, Object>> hostSet = new HashSet<>();
+    Map<String, Object> host1 = new HashMap<>();
+    host1.put(ConfigGroupResourceProvider.HOST_NAME, "h1");
+    hostSet.add(host1);
+
+    Set<Map<String, Object>> configSet = new HashSet<>();
+    Map<String, String> configMap = new HashMap<>();
+    Map<String, Object> configs = new HashMap<>();
+    configs.put("type", "core-site");
+    configs.put("tag", "version100");
+    configMap.put("key1", "value1");
+    configs.put("properties", configMap);
+    configSet.add(configs);
+
+    properties.put(ConfigGroupResourceProvider.CLUSTER_NAME, "Cluster100");
+    properties.put(ConfigGroupResourceProvider.GROUP_NAME, "test-1");
+    properties.put(ConfigGroupResourceProvider.TAG, "tag-1");
+    properties.put(ConfigGroupResourceProvider.HOSTS, hostSet);
+    properties.put(ConfigGroupResourceProvider.DESIRED_CONFIGS, configSet);
+
+    Map<String, String> mapRequestProps = new HashMap<>();
+    mapRequestProps.put("context", "Called from a test");
+
+    Request request = PropertyHelper.getUpdateRequest(properties, mapRequestProps);
+
+    Predicate predicate = new PredicateBuilder().property
+        (ConfigGroupResourceProvider.CLUSTER_NAME).equals("Cluster100").and().
+        property(ConfigGroupResourceProvider.ID).equals(25L).toPredicate();
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
+    provider.updateResources(request, predicate);
+
+    verify(configHelper);
+    List<Long> capturedHostIds = hostIdsCapture.getValue();
+    assertEquals(2, capturedHostIds.size());
+    assertTrue(capturedHostIds.contains(1L));
+    assertTrue(capturedHostIds.contains(2L));
+  }
+
+  @Test
+  public void testCreateConfigGroupWithoutHostsSkipsAgentConfigUpdate() throws Exception {
+    // A config group created with no member hosts must not trigger an agent config update;
+    // an empty host list would otherwise fall back to updating every host in the cluster
+    // (see AgentConfigsHolder#updateData).
+    Authentication authentication = TestAuthenticationFactory.createAdministrator();
+
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    ConfigGroupFactory configGroupFactory = createNiceMock(ConfigGroupFactory.class);
+    ConfigGroup configGroup = createNiceMock(ConfigGroup.class);
+    ConfigHelper configHelper = createMock(ConfigHelper.class);
+
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
+    expect(cluster.getClusterName()).andReturn("Cluster100").anyTimes();
+    expect(cluster.isConfigTypeExists(anyString())).andReturn(true).anyTimes();
+    expect(managementController.getConfigGroupFactory()).andReturn(configGroupFactory).anyTimes();
+    expect(managementController.getAuthName()).andReturn("admin").anyTimes();
+    expect(configGroupFactory.createNew(anyObject(Cluster.class), anyObject(), anyObject(),
+        anyObject(), anyObject(), anyObject(), anyObject())).andReturn(configGroup).anyTimes();
+
+    // configHelper.updateAgentConfigs is intentionally NOT expected; the strict mock fails if it is called.
+    replay(managementController, clusters, cluster, configGroupFactory, configGroup, configHelper);
+
+    ConfigGroupResourceProvider provider = (ConfigGroupResourceProvider)
+        AbstractControllerResourceProvider.getResourceProvider(Resource.Type.ConfigGroup, managementController);
+    Provider<ConfigHelper> configHelperProvider = createNiceMock(Provider.class);
+    expect(configHelperProvider.get()).andReturn(configHelper).anyTimes();
+    replay(configHelperProvider);
+    Field m_configHelper = ConfigGroupResourceProvider.class.getDeclaredField("m_configHelper");
+    m_configHelper.setAccessible(true);
+    m_configHelper.set(provider, configHelperProvider);
+
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
+    Map<String, Object> properties = new LinkedHashMap<>();
+
+    Set<Map<String, Object>> configSet = new HashSet<>();
+    Map<String, String> configMap = new HashMap<>();
+    Map<String, Object> configs = new HashMap<>();
+    configs.put("type", "core-site");
+    configs.put("tag", "version100");
+    configMap.put("key1", "value1");
+    configs.put("properties", configMap);
+    configSet.add(configs);
+
+    properties.put(ConfigGroupResourceProvider.CLUSTER_NAME, "Cluster100");
+    properties.put(ConfigGroupResourceProvider.GROUP_NAME, "test-1");
+    properties.put(ConfigGroupResourceProvider.TAG, "tag-1");
+    // no HOSTS property: the group has no member hosts
+    properties.put(ConfigGroupResourceProvider.DESIRED_CONFIGS, configSet);
+    propertySet.add(properties);
+
+    Request request = PropertyHelper.getCreateRequest(propertySet, null);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
+    provider.createResources(request);
+
+    // strict configHelper mock verifies updateAgentConfigs was never invoked
+    verify(configHelper);
+  }
+
+  @Test
+  public void testUpdateConfigGroupWithoutHostsSkipsAgentConfigUpdate() throws Exception {
+    // Updating a config group to have no member hosts (and it had none before) must not trigger an
+    // agent config update; an empty host list would otherwise fall back to updating every host in
+    // the cluster (see AgentConfigsHolder#updateData).
+    Authentication authentication = TestAuthenticationFactory.createAdministrator();
+
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    ConfigHelper configHelper = createMock(ConfigHelper.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+
+    final ConfigGroup configGroup = createNiceMock(ConfigGroup.class);
+    ConfigGroupResponse configGroupResponse = createNiceMock(ConfigGroupResponse.class);
+
+    expect(cluster.isConfigTypeExists("core-site")).andReturn(true).anyTimes();
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(managementController.getAuthName()).andReturn("admin").anyTimes();
+    expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
+    expect(managementController.getConfigGroupUpdateResults((ConfigGroupRequest) anyObject())).
+        andReturn(new ConfigGroupResponse(1L, "", "", "", "", new HashSet<>(), new HashSet<>())).anyTimes();
+
+    expect(configGroup.getName()).andReturn("test-1").anyTimes();
+    expect(configGroup.getId()).andReturn(25L).anyTimes();
+    expect(configGroup.getTag()).andReturn("tag-1").anyTimes();
+    // the group has no members before the update, and the update sets none
+    expect(configGroup.getHosts()).andReturn(new HashMap<>()).anyTimes();
+    expect(configGroup.convertToResponse()).andReturn(configGroupResponse).anyTimes();
+    expect(configGroupResponse.getClusterName()).andReturn("Cluster100").anyTimes();
+    expect(configGroupResponse.getId()).andReturn(25L).anyTimes();
+
+    expect(cluster.getConfigGroups()).andStubAnswer(new IAnswer<Map<Long, ConfigGroup>>() {
+      @Override
+      public Map<Long, ConfigGroup> answer() throws Throwable {
+        Map<Long, ConfigGroup> configGroupMap = new HashMap<>();
+        configGroupMap.put(configGroup.getId(), configGroup);
+        return configGroupMap;
+      }
+    });
+
+    // configHelper.updateAgentConfigs is intentionally NOT expected; the strict mock fails if it is called.
+    replay(managementController, clusters, cluster, configGroup, configGroupResponse, configHelper);
+
+    ConfigGroupResourceProvider provider = (ConfigGroupResourceProvider)
+        AbstractControllerResourceProvider.getResourceProvider(Resource.Type.ConfigGroup, managementController);
+    Provider<ConfigHelper> configHelperProvider = createNiceMock(Provider.class);
+    expect(configHelperProvider.get()).andReturn(configHelper).anyTimes();
+    replay(configHelperProvider);
+    Field m_configHelper = ConfigGroupResourceProvider.class.getDeclaredField("m_configHelper");
+    m_configHelper.setAccessible(true);
+    m_configHelper.set(provider, configHelperProvider);
+
+    Map<String, Object> properties = new LinkedHashMap<>();
+
+    Set<Map<String, Object>> configSet = new HashSet<>();
+    Map<String, String> configMap = new HashMap<>();
+    Map<String, Object> configs = new HashMap<>();
+    configs.put("type", "core-site");
+    configs.put("tag", "version100");
+    configMap.put("key1", "value1");
+    configs.put("properties", configMap);
+    configSet.add(configs);
+
+    properties.put(ConfigGroupResourceProvider.CLUSTER_NAME, "Cluster100");
+    properties.put(ConfigGroupResourceProvider.GROUP_NAME, "test-1");
+    properties.put(ConfigGroupResourceProvider.TAG, "tag-1");
+    // no HOSTS property: the update leaves the group with no member hosts
+    properties.put(ConfigGroupResourceProvider.DESIRED_CONFIGS, configSet);
+
+    Map<String, String> mapRequestProps = new HashMap<>();
+    mapRequestProps.put("context", "Called from a test");
+
+    Request request = PropertyHelper.getUpdateRequest(properties, mapRequestProps);
+
+    Predicate predicate = new PredicateBuilder().property
+        (ConfigGroupResourceProvider.CLUSTER_NAME).equals("Cluster100").and().
+        property(ConfigGroupResourceProvider.ID).equals(25L).toPredicate();
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
+    provider.updateResources(request, predicate);
+
+    // strict configHelper mock verifies updateAgentConfigs was never invoked
+    verify(configHelper);
+  }
+
+  @Test
   public void testGetConfigGroupAsAmbariAdministrator() throws Exception {
     testGetConfigGroup(TestAuthenticationFactory.createAdministrator());
   }

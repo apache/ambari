@@ -30,6 +30,7 @@ import org.apache.ambari.server.agent.stomp.dto.Hashable;
 import org.apache.ambari.server.events.STOMPEvent;
 import org.apache.ambari.server.events.STOMPHostEvent;
 import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
+import org.apache.ambari.server.state.DesiredConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,6 +47,7 @@ public abstract class AgentHostDataHolder<T extends STOMPHostEvent & Hashable> e
   private final ConcurrentHashMap<Long, T> data = new ConcurrentHashMap<>();
 
   protected abstract T getCurrentData(Long hostId) throws AmbariException;
+  protected abstract T getCurrentData(Long hostId, Map<Long, Map<String, DesiredConfig>> cachedClustersDesiredConfigs) throws AmbariException;
   protected abstract T handleUpdate(T current, T update) throws AmbariException;
 
   public T getUpdateIfChanged(String agentHash, Long hostId) throws AmbariException {
@@ -61,6 +63,26 @@ public abstract class AgentHostDataHolder<T extends STOMPHostEvent & Hashable> e
     T hostData;
     try {
       hostData = getCurrentData(hostId);
+    } catch (AmbariException e) {
+      LOG.error("Error during retrieving initial value for host: {} and class {}", hostId, getClass().getName(), e);
+      throw new AmbariRuntimeException("Error during retrieving initial value for host: " + hostId + " and class: " + getClass().getName(), e);
+    }
+    if (regenerateHash) {
+      regenerateDataIdentifiers(hostData);
+    }
+    return hostData;
+  }
+
+  public T initializeDataIfNeeded(Long hostId, boolean regenerateHash,
+      Map<Long, Map<String, DesiredConfig>> cachedClustersDesiredConfigs) throws AmbariRuntimeException {
+    return data.computeIfAbsent(hostId, id -> initializeData(hostId, regenerateHash, cachedClustersDesiredConfigs));
+  }
+
+  private T initializeData(Long hostId, boolean regenerateHash,
+      Map<Long, Map<String, DesiredConfig>> cachedClustersDesiredConfigs) {
+    T hostData;
+    try {
+      hostData = getCurrentData(hostId, cachedClustersDesiredConfigs);
     } catch (AmbariException e) {
       LOG.error("Error during retrieving initial value for host: {} and class {}", hostId, getClass().getName(), e);
       throw new AmbariRuntimeException("Error during retrieving initial value for host: " + hostId + " and class: " + getClass().getName(), e);

@@ -22,6 +22,14 @@ import java.util.SortedMap;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
+/**
+ * Configs sent to an agent for a single cluster.
+ *
+ * The configurations are intentionally kept in {@link SortedMap}s so the JSON serialization
+ * has a stable, deterministic key order. The per-host config hash is computed from this JSON
+ * (see AgentDataHolder#getHash); an unstable key order would make the hash change for unchanged
+ * configs and trigger spurious config updates (and stale-config / restart prompts) on every agent.
+ */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ClusterConfigs {
   private SortedMap<String, SortedMap<String, String>> configurations;

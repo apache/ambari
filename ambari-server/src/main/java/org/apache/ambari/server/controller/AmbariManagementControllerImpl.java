@@ -1852,6 +1852,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       new LinkedList<>();
     ServiceConfigVersionResponse serviceConfigVersionResponse = null;
     boolean nonServiceConfigsChanged = false;
+    // Config types actually changed in this request; used to scope the agent-config push to the
+    // hosts whose components depend on them (empty => fall back to updating all hosts).
+    Set<String> changedConfigTypes = new HashSet<>();
 
     if (desiredConfigs != null && request.getServiceConfigVersionRequest() != null) {
       String msg = "Unable to set desired configs and rollback at same time, request = " + request;
@@ -1990,6 +1993,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           for (Config config : configs) {
             Config existingConfig = cluster.getDesiredConfigByType(config.getType());
             existingConfigTypeToConfig.put(config.getType(), existingConfig);
+            changedConfigTypes.add(config.getType());
           }
 
           String authName = getAuthName();
@@ -2165,7 +2169,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
     }
     if (fireAgentUpdates && (serviceConfigVersionResponse != null || nonServiceConfigsChanged)) {
-      configHelper.updateAgentConfigs(Collections.singleton(cluster.getClusterName()));
+      // Scope the agent-config push to hosts whose components depend on the changed config types.
+      // When changedConfigTypes is empty (e.g. service-config-version revert path), this falls back
+      // to updating all cluster hosts.
+      configHelper.updateAgentConfigs(Collections.singleton(cluster.getClusterName()), changedConfigTypes);
     }
 
     if (requestStageContainer != null) {

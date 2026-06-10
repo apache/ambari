@@ -41,6 +41,7 @@ import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.alert.AlertDefinitionFactory;
 import org.apache.ambari.server.state.alert.AlertDefinitionHash;
@@ -75,6 +76,12 @@ public class AlertDefinitionsHolder extends AgentHostDataHolder<AlertDefinitions
   @Inject
   public AlertDefinitionsHolder(AmbariEventPublisher eventPublisher) {
     eventPublisher.register(this);
+  }
+
+  @Override
+  protected AlertDefinitionsAgentUpdateEvent getCurrentData(Long hostId,
+      Map<Long, Map<String, DesiredConfig>> cachedClustersDesiredConfigs) throws AmbariException {
+    return getCurrentData(hostId);
   }
 
   @Override

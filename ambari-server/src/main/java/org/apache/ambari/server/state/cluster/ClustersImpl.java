@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutionException;
 
 import jakarta.persistence.RollbackException;
 
@@ -76,6 +77,7 @@ import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
@@ -86,6 +88,7 @@ import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.host.HostFactory;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.utils.RetryHelper;
+import org.apache.ambari.server.utils.ThreadPools;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
@@ -156,6 +159,9 @@ public class ClustersImpl implements Clusters {
 
   @Inject
   private Provider<AgentConfigsHolder> m_agentConfigsHolder;
+
+  @Inject
+  private ThreadPools threadPools;
 
   @Inject
   private Provider<MetadataHolder> m_metadataHolder;
@@ -318,13 +324,24 @@ public class ClustersImpl implements Clusters {
     }
     hostClustersMap = hostClustersMapTemp;
     clusterHostsMap1 = clusterHostsMap1Temp;
-    // init host configs
-    for (Long hostId : hostsById.keySet()) {
-      try {
-        m_agentConfigsHolder.get().initializeDataIfNeeded(hostId, true);
-      } catch (AmbariRuntimeException e) {
-        LOG.error("Agent configs initialization was failed", e);
-      }
+    // init host configs in parallel on the shared default ForkJoinPool; the per-batch cache
+    // must be concurrent since it is populated from multiple threads.
+    Map<Long, Map<String, DesiredConfig>> cachedClustersDesiredConfigs = new ConcurrentHashMap<>();
+    try {
+      threadPools.getDefaultForkJoinPool().submit(() ->
+        hostsById.keySet().parallelStream().forEach(hostId -> {
+          try {
+            m_agentConfigsHolder.get().initializeDataIfNeeded(hostId, true, cachedClustersDesiredConfigs);
+          } catch (AmbariRuntimeException e) {
+            LOG.error("Agent configs initialization was failed", e);
+          }
+        })
+      ).get();
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      LOG.error("Agent configs initialization was failed", e);
+    } catch (ExecutionException e) {
+      LOG.error("Agent configs initialization was failed", e);
     }
   }
 
