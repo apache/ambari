@@ -41,6 +41,8 @@ describe('App.MainDashboardServiceHbaseView', function () {
 
   App.TestAliases.testAsComputedCountBasedMessage(getView(), 'phoenixServersText', 'service.phoenixServersTotal', '', Em.I18n.t('services.service.summary.viewHost'), Em.I18n.t('services.service.summary.viewHosts'));
 
+  App.TestAliases.testAsComputedCountBasedMessage(getView(), 'thriftServersText', 'service.thriftServersTotal', '', Em.I18n.t('services.service.summary.viewHost'), Em.I18n.t('services.service.summary.viewHosts'));
+
   describe('#averageLoad', function () {
 
     beforeEach(function () {

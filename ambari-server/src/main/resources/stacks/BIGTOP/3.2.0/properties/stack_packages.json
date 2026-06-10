@@ -67,6 +67,18 @@
           "STANDARD": [
             "hbase-regionserver"
           ]
+        },
+        "HBASE_THRIFT": {
+          "STACK-SELECT-PACKAGE": "hbase-master",
+          "INSTALL": [
+            "hbase-master"
+          ],
+          "PATCH": [
+            "hbase-master"
+          ],
+          "STANDARD": [
+            "hbase-master"
+          ]
         }
       },
       "HDFS": {

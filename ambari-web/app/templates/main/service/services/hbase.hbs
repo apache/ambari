@@ -67,6 +67,25 @@
             </div>
           </div>
         {{/if}}
+        {{! ThriftServers }}
+        {{#if view.isThriftServerCreated}}
+          <div {{bindAttr class=":row :component :col-md-3 view.thriftServerComponent.componentName"}}>
+            <div class="summary-value main-info">
+              <span>
+                {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.thriftServersStarted" totalComponentsBinding="view.service.thriftServersTotal"}}
+                  {{#if App.router.clusterController.isServiceContentFullyLoaded}}
+                    {{view.liveComponents}}/{{view.totalComponents}}
+                  {{/if}}
+                {{/view}}
+              </span>
+              {{t common.live}}
+            </div>
+            <div class="summary-label">
+              <a
+                href="#" {{action filterHosts view.thriftServerComponent}}>{{t dashboard.services.hbase.thriftServers}}</a>
+            </div>
+          </div>
+        {{/if}}
         {{! Regions in Transition }}
         <div class="row col-md-3 regions-in-trnasition">
           <div class="summary-value main-info">{{view.service.regionsInTransition}}</div>
