@@ -570,15 +570,15 @@ def decommission():
     )
     pass
 
-    # regenerate topology_mappings.data
-    File(
-      params.net_topology_mapping_data_file_path,
-      content=Template("topology_mappings.data.j2"),
-      owner=params.hdfs_user,
-      group=params.user_group,
-      mode=0o644,
-      only_if=format("test -d {hadoop_conf_dir}")
-    )
+  # regenerate topology_mappings.data
+  File(
+    params.net_topology_mapping_data_file_path,
+    content=Template("topology_mappings.data.j2"),
+    owner=params.hdfs_user,
+    group=params.user_group,
+    mode=0o644,
+    only_if=format("test -d {hadoop_conf_dir}")
+  )
 
   if not params.update_files_only:
     Execute(nn_kinit_cmd, user=hdfs_user)
