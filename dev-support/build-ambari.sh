@@ -30,7 +30,7 @@ REPO_NAME=contrib/views/node.js/target
 rm -rf $REPO_NAME
 mkdir -p $REPO_NAME.tmp
 pushd $REPO_NAME.tmp
-  curl --retry 3 --retry-delay 5 -k http://nodejs.org/dist/v4.5.0/node-v4.5.0-linux-x64.tar.gz | tar xzvf -
+  curl --retry 3 --retry-delay 5 -k https://nodejs.org/dist/v4.5.0/node-v4.5.0-linux-x64.tar.gz | tar xzvf -
   mv node-v4.5.0-linux-x64/* .
   rmdir node-v4.5.0-linux-x64
 popd
