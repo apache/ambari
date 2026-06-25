@@ -21,7 +21,7 @@ import LastStatusChanged from "../../components/LastStatusChanged";
 import Paginator from "../../components/Paginator";
 import usePagination from '../../hooks/usePagination';
 import Spinner from "../../components/Spinner";
-import {useEffect, useState, useContext} from 'react';
+import {useEffect, useState, useContext, useCallback} from 'react';
 import {AlertsApi} from "../../api/alertsApi";
 import {getCurrTimeInSec} from "../../Utils/Utility";
 import {AlertDefinition, AlertGroupItem, AlertRow, MergedAlert} from "./types";
@@ -37,6 +37,7 @@ import {SortingState} from "@tanstack/react-table";
 import MenuBar from './MenuBar'
 import {formatAlertStatusDisplay} from "./alertStatus";
 import { useAuth } from '../../hooks/useAuth';
+import usePolling from '../../hooks/usePolling';
 
 interface SearchFilter {
     category: string;
@@ -99,7 +100,7 @@ const Alerts = () => {
         return serviceCounts;
     };
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         if (!clusterName) {
             console.error('No cluster name provided');
             return;
@@ -135,26 +136,28 @@ const Alerts = () => {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [clusterName]);
+
+    // Use usePolling hook with pause/resume based on modal state
+    const { pausePolling, resumePolling } = usePolling(fetchData, 30000);
 
     useEffect(() => {
         console.log('Initial render with clusterName:', clusterName);
         if (clusterName) {
-            fetchData();
             fetchAlertDefinitions();
-
-            // Only set up polling if modal is not open
-            if (!isModalOpen) {
-                const pollInterval = setInterval(() => {
-                    fetchData();
-                }, 30000); // 30 seconds
-
-                return () => clearInterval(pollInterval);
-            }
         } else {
             console.error('No cluster name available');
         }
-    }, [clusterName, isModalOpen]);
+    }, [clusterName]);
+
+    // Control polling based on modal state
+    useEffect(() => {
+        if (isModalOpen) {
+            pausePolling();
+        } else {
+            resumePolling();
+        }
+    }, [isModalOpen, pausePolling, resumePolling]);
 
     const fetchAlertDefinitions = async () => {
         try {
