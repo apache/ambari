@@ -313,7 +313,7 @@ function Heatmaps({ serviceName }: { serviceName: string }) {
 
   const getSelectedMetricValue = useCallback(async () => {
     if (!selectedMetric) {
-      return null;
+      return;
     }
     loadMetrics();
   }, [selectedMetric, loadMetrics]);

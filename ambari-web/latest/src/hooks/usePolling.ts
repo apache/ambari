@@ -21,13 +21,14 @@ import { useEffect, useRef, useCallback, useState } from 'react';
 
 function usePolling(apiFunction: Function, interval = 2000) {
   const savedCallback = useRef<Function | undefined>(undefined);
-  const intervalId = useRef<NodeJS.Timeout | null>(null);
+  const timeoutId = useRef<NodeJS.Timeout | null>(null);
+  const isPausedRef = useRef(false);
   const [isPaused, setIsPaused] = useState(false);
 
   const stopPolling = useCallback(() => {
-    if (intervalId.current) {
-      clearInterval(intervalId.current);
-      intervalId.current = null;
+    if (timeoutId.current) {
+      clearTimeout(timeoutId.current);
+      timeoutId.current = null;
     }
   }, []);
 
@@ -40,23 +41,44 @@ function usePolling(apiFunction: Function, interval = 2000) {
     setIsPaused(false);
   }, []);
 
+  useEffect(() => {
+    isPausedRef.current = isPaused;
+  }, [isPaused]);
+
   // Remember the latest callback.
   useEffect(() => {
     savedCallback.current = apiFunction;
   }, [apiFunction]);
 
-  // Set up the interval.
+  // Set up the timeout-based polling.
   useEffect(() => {
-    function tick() {
-      if (savedCallback.current) {
-        savedCallback.current();
+    async function tick() {
+      if (!savedCallback.current || isPausedRef.current) {
+        return;
+      }
+
+      try {
+        // Execute the API call and wait for it to complete
+        await Promise.resolve(savedCallback.current());
+      } catch (error) {
+        // Log error but don't break polling
+        console.error('Polling error:', error);
+      } finally {
+        // Schedule next poll only after current request completes
+        if (!isPausedRef.current && interval !== null) {
+          timeoutId.current = setTimeout(tick, interval);
+        }
       }
     }
-    
-    if (!isPaused && interval !== null) {
-      intervalId.current = setInterval(tick, interval);
-      return () => stopPolling();
+
+    // Start polling if not paused
+    if (!isPausedRef.current && interval !== null) {
+      // Initial call
+      tick();
     }
+
+    // Cleanup on unmount or when dependencies change
+    return () => stopPolling();
   }, [interval, isPaused, stopPolling]);
 
   return { stopPolling, pausePolling, resumePolling, isPaused };

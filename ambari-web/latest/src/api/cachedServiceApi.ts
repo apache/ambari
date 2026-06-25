@@ -29,6 +29,7 @@ class CachedServiceApiManager {
   private isPolling = false;
   private pollingInterval: NodeJS.Timeout | null = null;
   private subscribers = new Set<(data: any) => void>();
+  private pendingRequest: Promise<any> | null = null;
 
   static getInstance(): CachedServiceApiManager {
     if (!CachedServiceApiManager.instance) {
@@ -69,10 +70,11 @@ class CachedServiceApiManager {
   /**
    * Centralized API call for all service components
    * Similar to Ember.js approach - one call for all services
+   * REQUEST DEDUPLICATION: If a request is already in progress, return the pending promise
    */
   async fetchAllServiceComponents(clusterName: string, forceRefresh: boolean = false): Promise<any> {
     const cacheKey = 'all_components_data';
-    
+
     // Check cache first (unless force refresh)
     if (!forceRefresh) {
       const cachedData = serviceCache.get(cacheKey);
@@ -81,21 +83,30 @@ class CachedServiceApiManager {
       }
     }
 
+    // REQUEST DEDUPLICATION: If a request is already pending, return that promise
+    // This prevents multiple simultaneous API calls
+    if (this.pendingRequest) {
+      return this.pendingRequest;
+    }
+
     try {
-      
+
       // OPTIMIZED: Use the same comprehensive fields as the main ServiceContext for consistency
       const fields = `ServiceComponentInfo/service_name,host_components/HostRoles/display_name,host_components/HostRoles/host_name,host_components/HostRoles/public_host_name,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,host_components/HostRoles/stale_configs,host_components/HostRoles/ha_state,host_components/HostRoles/desired_admin_state,host_components/metrics/jvm/memHeapUsedM,host_components/metrics/jvm/HeapMemoryMax,host_components/metrics/jvm/HeapMemoryUsed,host_components/metrics/jvm/memHeapCommittedM,host_components/metrics/mapred/jobtracker/trackers_decommissioned,host_components/metrics/cpu/cpu_wio,host_components/metrics/rpc/client/RpcQueueTime_avg_time,host_components/metrics/dfs/FSNamesystem/*,host_components/metrics/dfs/namenode/Version,host_components/metrics/dfs/namenode/LiveNodes,host_components/metrics/dfs/namenode/DeadNodes,host_components/metrics/dfs/namenode/DecomNodes,host_components/metrics/dfs/namenode/TotalFiles,host_components/metrics/dfs/namenode/UpgradeFinalized,host_components/metrics/dfs/namenode/Safemode,host_components/metrics/runtime/StartTime,host_components/metrics/hbase/master/IsActiveMaster,host_components/metrics/hbase/master/MasterStartTime,host_components/metrics/hbase/master/MasterActiveTime,host_components/metrics/hbase/master/AverageLoad,host_components/metrics/master/AssignmentManager/ritCount,host_components/metrics/dfs/namenode/ClusterId,host_components/processes/HostComponentProcess,host_components/metrics/yarn/Queue,host_components/metrics/yarn/ClusterMetrics/NumActiveNMs,host_components/metrics/yarn/ClusterMetrics/NumLostNMs,host_components/metrics/yarn/ClusterMetrics/NumUnhealthyNMs,host_components/metrics/yarn/ClusterMetrics/NumRebootedNMs,host_components/metrics/yarn/ClusterMetrics/NumDecommissionedNMs,ServiceComponentInfo/category,ServiceComponentInfo/installed_count,ServiceComponentInfo/started_count,ServiceComponentInfo/init_count,ServiceComponentInfo/install_failed_count,ServiceComponentInfo/unknown_count,ServiceComponentInfo/total_count,ServiceComponentInfo/display_name&minimal_response=true`;
-      
-      const response = await ServiceApi.getAllServiceComponentsListAndInitialMetrics(
+
+      // Set pending request to prevent duplicate calls
+      this.pendingRequest = ServiceApi.getAllServiceComponentsListAndInitialMetrics(
         clusterName,
         fields
       );
 
+      const response = await this.pendingRequest;
+
       if (response?.data?.items) {
-        
+
         // Cache the consolidated data
         serviceCache.set(cacheKey, response.data, 30000); // 30 second TTL
-        
+
         // Also cache by individual service for quick access
         const serviceGroups = this.groupComponentsByService(response.data.items);
         Object.entries(serviceGroups).forEach(([serviceName, data]) => {
@@ -104,11 +115,17 @@ class CachedServiceApiManager {
 
         // Notify subscribers immediately
         this.notifySubscribers(response.data);
-        
+
         return response.data;
       }
-    } catch (error) {
+
       return null;
+    } catch (error) {
+      console.error('Error fetching service components:', error);
+      return null;
+    } finally {
+      // Clear pending request when done (success or error)
+      this.pendingRequest = null;
     }
   }
 
@@ -133,20 +150,31 @@ class CachedServiceApiManager {
 
   /**
    * Start centralized polling - similar to Ember.js approach
+   * Uses timeout-based polling to prevent overlapping requests
    */
   startPolling(clusterName: string, intervalMs: number = 5000): void {
     if (this.isPolling) return;
-    
+
     this.isPolling = true;
-    
-    // Initial fetch
-    this.fetchAllServiceComponents(clusterName);
-    
-    // Set up polling interval
-    this.pollingInterval = setInterval(() => {
-      this.fetchAllServiceComponents(clusterName);
-    }, intervalMs);
-    
+
+    // Timeout-based polling to prevent overlapping requests
+    const poll = async () => {
+      if (!this.isPolling) return;
+
+      try {
+        await this.fetchAllServiceComponents(clusterName);
+      } catch (error) {
+        console.error('Polling error:', error);
+      } finally {
+        // Schedule next poll ONLY after current request completes
+        if (this.isPolling) {
+          this.pollingInterval = setTimeout(poll, intervalMs);
+        }
+      }
+    };
+
+    // Start initial poll
+    poll();
   }
 
   /**
@@ -155,7 +183,7 @@ class CachedServiceApiManager {
    */
   pausePolling(): void {
     if (this.pollingInterval) {
-      clearInterval(this.pollingInterval);
+      clearTimeout(this.pollingInterval);
       this.pollingInterval = null;
     }
   }
@@ -165,9 +193,21 @@ class CachedServiceApiManager {
    */
   resumePolling(clusterName?: string, intervalMs: number = 5000): void {
     if (this.isPolling && !this.pollingInterval && clusterName) {
-      this.pollingInterval = setInterval(() => {
-        this.fetchAllServiceComponents(clusterName);
-      }, intervalMs);
+      const poll = async () => {
+        if (!this.isPolling) return;
+
+        try {
+          await this.fetchAllServiceComponents(clusterName);
+        } catch (error) {
+          console.error('Polling error:', error);
+        } finally {
+          if (this.isPolling) {
+            this.pollingInterval = setTimeout(poll, intervalMs);
+          }
+        }
+      };
+
+      poll();
     }
   }
 
@@ -176,7 +216,7 @@ class CachedServiceApiManager {
    */
   stopPolling(): void {
     if (this.pollingInterval) {
-      clearInterval(this.pollingInterval);
+      clearTimeout(this.pollingInterval);
       this.pollingInterval = null;
     }
     this.isPolling = false;

@@ -16,13 +16,14 @@
  * limitations under the License.
  */
 
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, useCallback } from "react";
 import { ServiceContext } from "../../../store/ServiceContext";
 import ChartContainer from "../ChartContainer";
 import { Doughnut } from "react-chartjs-2";
 import { ArcElement, Tooltip, Chart as ChartJs } from "chart.js";
 import { AppContext } from "../../../store/context";
 import metricsApi from "../../../api/metricsApi";
+import usePolling from "../../../hooks/usePolling";
 
 ChartJs.register(ArcElement, Tooltip);
 
@@ -31,15 +32,6 @@ export default function NameNodeCpuPieChartView({ subGroupId = "" }) {
   const { clusterName } = useContext(AppContext);
   const [cpuWio, setCpuWio] = useState<number | null>(null);
   const [nnHostName, setNnHostName] = useState("");
-  const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
-    };
-  }, [intervalId]);
 
   useEffect(() => {
     const isHaEnabled = allServiceModels?.hdfs?.isHaEnabled;
@@ -58,15 +50,13 @@ export default function NameNodeCpuPieChartView({ subGroupId = "" }) {
         setNnHostName(nameNode.hostName);
       }
     }
+  }, [allServiceModels, subGroupId]);
 
-    if (nnHostName) {
-      getValue();
-      const id = setInterval(() => getValue(), 60000);
-      setIntervalId(id);
+  const getValue = useCallback(async () => {
+    if (!nnHostName || !clusterName) {
+      return;
     }
-  }, [allServiceModels, subGroupId, nnHostName]);
 
-  const getValue = async () => {
     try {
       const response = await metricsApi.getNameNodeCpuWio(
         clusterName,
@@ -76,7 +66,10 @@ export default function NameNodeCpuPieChartView({ subGroupId = "" }) {
     } catch (error) {
       console.error("Error fetching NameNode CPU data:", error);
     }
-  };
+  }, [clusterName, nnHostName]);
+
+  // Use usePolling hook for automatic polling
+  usePolling(getValue, 60000);
 
   const value = cpuWio !== null ? (cpuWio >= 100 ? 100 : cpuWio) : 0;
   const percent = value.toFixed(1);

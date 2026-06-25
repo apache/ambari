@@ -172,22 +172,24 @@ const ServiceProvider: React.FC<ServiceProviderProps> = ({ children }) => {
   }, [allModelsLoaded]);
 
   /**
-   * OPTIMIZED: Single API call for all maintenance and stale alerts data
-   * This replaces multiple separate API calls with one consolidated call
-   * Uses the exact API endpoint structure you provided in the task description
+   * OPTIMIZED: Use cached data from CachedServiceApi instead of making duplicate API call
+   * This replaces the duplicate API call with cached data usage
    */
   const fetchOptimizedMaintenanceAndStaleData = async () => {
     try {
-      // Single optimized API call with all required fields for maintenance and stale configs
-      const optimizedFields = `ServiceComponentInfo/service_name,host_components/HostRoles/display_name,host_components/HostRoles/host_name,host_components/HostRoles/public_host_name,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,host_components/HostRoles/stale_configs,host_components/HostRoles/ha_state,host_components/HostRoles/desired_admin_state,host_components/metrics/jvm/memHeapUsedM,host_components/metrics/jvm/HeapMemoryMax,host_components/metrics/jvm/HeapMemoryUsed,host_components/metrics/jvm/memHeapCommittedM,host_components/metrics/mapred/jobtracker/trackers_decommissioned,host_components/metrics/cpu/cpu_wio,host_components/metrics/rpc/client/RpcQueueTime_avg_time,host_components/metrics/dfs/FSNamesystem/*,host_components/metrics/dfs/namenode/Version,host_components/metrics/dfs/namenode/LiveNodes,host_components/metrics/dfs/namenode/DeadNodes,host_components/metrics/dfs/namenode/DecomNodes,host_components/metrics/dfs/namenode/TotalFiles,host_components/metrics/dfs/namenode/UpgradeFinalized,host_components/metrics/dfs/namenode/Safemode,host_components/metrics/runtime/StartTime,host_components/metrics/hbase/master/IsActiveMaster,host_components/metrics/hbase/master/MasterStartTime,host_components/metrics/hbase/master/MasterActiveTime,host_components/metrics/hbase/master/AverageLoad,host_components/metrics/master/AssignmentManager/ritCount,host_components/metrics/dfs/namenode/ClusterId,host_components/processes/HostComponentProcess,host_components/metrics/yarn/Queue,host_components/metrics/yarn/ClusterMetrics/NumActiveNMs,host_components/metrics/yarn/ClusterMetrics/NumLostNMs,host_components/metrics/yarn/ClusterMetrics/NumUnhealthyNMs,host_components/metrics/yarn/ClusterMetrics/NumRebootedNMs,host_components/metrics/yarn/ClusterMetrics/NumDecommissionedNMs,ServiceComponentInfo/category,ServiceComponentInfo/installed_count,ServiceComponentInfo/started_count,ServiceComponentInfo/init_count,ServiceComponentInfo/install_failed_count,ServiceComponentInfo/unknown_count,ServiceComponentInfo/total_count,ServiceComponentInfo/display_name&minimal_response=true`;
-      
-      const optimizedResponse = await ServiceApi.getAllServiceComponentsListAndInitialMetrics(
-        clusterName,
-        optimizedFields
-      );
+      // USE CACHED DATA instead of making new API call
+      // CachedServiceApi is already polling this same endpoint
+      const cachedData = cachedServiceApi.getAllComponentData();
 
-      if (!isEmpty(optimizedResponse?.data)) {
-        const responseData = optimizedResponse.data;
+      if (!cachedData) {
+        // If no cached data yet, fetch it once (will be cached for subsequent calls)
+        await cachedServiceApi.fetchAllServiceComponents(clusterName);
+        return;
+      }
+
+      const responseData = cachedData;
+
+      if (!isEmpty(responseData)) {
         
         // Process stale configs for all services following Ember logic
         // In Ember: isRestartRequired = serviceComponents.filterProperty('staleConfigHosts.length').length > 0
@@ -384,28 +386,42 @@ const ServiceProvider: React.FC<ServiceProviderProps> = ({ children }) => {
         }
       });
 
-      // Start centralized service state and alerts polling
-      const pollServiceStates = async () => {
-        const statesData = await centralizedServiceStateApi.fetchAllServiceStatesAndAlerts(clusterName);
-        setServiceStatesData(statesData);
-      };
-      
       // Subscribe to centralized service state updates
       const unsubscribeServiceStates = centralizedServiceStateApi.subscribe((data) => {
         setServiceStatesData(data);
       });
-      
-      // Initial fetch
+
+      // Start centralized service state and alerts polling with timeout-based approach
+      let serviceStateTimeout: NodeJS.Timeout | null = null;
+      let isPollingActive = true;
+
+      const pollServiceStates = async () => {
+        if (!isPollingActive) return;
+
+        try {
+          const statesData = await centralizedServiceStateApi.fetchAllServiceStatesAndAlerts(clusterName);
+          setServiceStatesData(statesData);
+        } catch (error) {
+          console.error('Error polling service states:', error);
+        } finally {
+          // Schedule next poll ONLY after current request completes
+          if (isPollingActive) {
+            serviceStateTimeout = setTimeout(pollServiceStates, 5000);
+          }
+        }
+      };
+
+      // Start initial poll
       pollServiceStates();
-      
-      // Set up polling interval
-      const serviceStateInterval = setInterval(pollServiceStates, 5000);
 
       return () => {
         unsubscribe();
         unsubscribeServiceStates();
         cachedServiceApi.stopPolling();
-        clearInterval(serviceStateInterval);
+        isPollingActive = false;
+        if (serviceStateTimeout) {
+          clearTimeout(serviceStateTimeout);
+        }
       };
     }
   }, [clusterName, allModelsLoaded]);
