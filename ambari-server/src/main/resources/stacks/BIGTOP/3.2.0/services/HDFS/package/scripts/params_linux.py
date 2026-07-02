@@ -236,7 +236,14 @@ klist_path_local = get_klist_path(
 kinit_path_local = get_kinit_path(
   default("/configurations/kerberos-env/executable_search_paths", None)
 )
+
+# topology files
+net_topology_mapping_data_file_path = os.path.join(hadoop_conf_dir, "topology_mappings.data")
+
 # hosts
+all_hosts = default("/clusterHostInfo/all_hosts", [])
+all_racks = default("/clusterHostInfo/all_racks", [])
+all_ipv4_ips = default("/clusterHostInfo/all_ipv4_ips", [])
 hostname = config["agentLevelParams"]["hostname"]
 rm_host = default("/clusterHostInfo/resourcemanager_hosts", [])
 public_hostname = config["agentLevelParams"]["public_hostname"]

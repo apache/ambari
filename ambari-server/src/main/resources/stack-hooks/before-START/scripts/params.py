@@ -385,6 +385,7 @@ all_hosts = default("/clusterHostInfo/all_hosts", [])
 all_racks = default("/clusterHostInfo/all_racks", [])
 all_ipv4_ips = default("/clusterHostInfo/all_ipv4_ips", [])
 slave_hosts = default("/clusterHostInfo/datanode_hosts", [])
+nm_hosts = default("/clusterHostInfo/nodemanager_hosts", [])
 
 # topology files
 net_topology_script_file_path = "/etc/hadoop/conf/topology_script.py"
