@@ -44,15 +44,14 @@ import java.util.regex.Pattern;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
-
-import jakarta.ws.rs.client.Client;
-import jakarta.ws.rs.client.ClientBuilder;
-import jakarta.ws.rs.client.ClientRequestFilter;
-import jakarta.ws.rs.client.Entity;
-import jakarta.ws.rs.client.Invocation;
-import jakarta.ws.rs.client.WebTarget;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.ClientRequestFilter;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionDBAccessor;
@@ -738,7 +737,7 @@ public class ExecutionScheduleManager {
 
     batchRequestResponse.setReturnCode(retCode);
 
-    String responseString = clientResponse.readEntity(String.class);
+    String responseString = (String) clientResponse.getEntity();
     LOG.debug("Processing API response: status={}, body={}", retCode, responseString);
     Map<String, Object> httpResponseMap;
     try {
@@ -906,7 +905,8 @@ public class ExecutionScheduleManager {
   }*/
 
   protected BatchRequestResponse performApiGetRequest(String relativeUri, boolean queryAllFields) {
-    WebTarget target = extendApiResource(ambariWebResource, relativeUri);
+    Client client = ClientBuilder.newClient();
+    WebTarget target = client.target(relativeUri);
     if (queryAllFields) {
       target = target.queryParam("fields", "*");
     }
@@ -914,14 +914,14 @@ public class ExecutionScheduleManager {
     try {
       response = target.request().get();
     } catch (Exception e) {
-      LOG.error("Exception occurred during API request to {}: {}", relativeUri, e.getMessage(), e);
       response = null;
     }
     return convertToBatchRequestResponse(response);
   }
 
   protected BatchRequestResponse performApiRequest(String relativeUri, String body, String method, Integer userId) {
-    WebTarget target = extendApiResource(ambariWebResource, relativeUri);
+    Client client = ClientBuilder.newClient();
+    WebTarget target = client.target(relativeUri);
     Response response;
     try {
       Invocation.Builder invocationBuilder = target.request().header(USER_ID_HEADER, userId);
@@ -937,7 +937,6 @@ public class ExecutionScheduleManager {
         throw new IllegalArgumentException("Invalid HTTP method: " + method);
       }
     } catch (Exception e) {
-      LOG.error("Exception occurred during API request to {}: {}", relativeUri, e.getMessage(), e);
       response = null;
     }
     return convertToBatchRequestResponse(response);

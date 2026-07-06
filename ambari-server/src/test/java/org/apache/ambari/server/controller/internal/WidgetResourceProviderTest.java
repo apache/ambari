@@ -361,13 +361,7 @@ public class WidgetResourceProviderTest {
     Assert.assertFalse(oldName.equals(entity.getWidgetName()));
     Assert.assertFalse(oldMetrics.equals(entity.getMetrics()));
     Assert.assertFalse(oldProperties.equals(entity.getProperties()));
-    Assert.assertEquals("[\n" +
-            "  {\n" +
-            "    \"name\": \"new_value\",\n" +
-            "    \"new_name\": \"new_value2\"\n" +
-            "  }\n" +
-            "]",entity.getMetrics());
-
+    Assert.assertEquals("[{\"name\":\"new_value\",\"new_name\":\"new_value2\"}]",entity.getMetrics());
     // Depends on hashing, string representation can be different
     Assert.assertTrue(CollectionPresentationUtils.isJsonsEquals("{\"new_property\":\"new_value2\",\"property1\":\"new_value1\"}", entity.getProperties()));
     Assert.assertEquals("widget name2",entity.getWidgetName());

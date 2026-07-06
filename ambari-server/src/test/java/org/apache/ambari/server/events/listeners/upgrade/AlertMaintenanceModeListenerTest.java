@@ -22,7 +22,7 @@ import static org.easymock.EasyMock.createNiceMock;
 import java.util.ArrayList;
 import java.util.List;
 
-import jakarta.persistence.EntityManager;
+import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.events.AlertUpdateEvent;
 import org.apache.ambari.server.events.MaintenanceModeEvent;

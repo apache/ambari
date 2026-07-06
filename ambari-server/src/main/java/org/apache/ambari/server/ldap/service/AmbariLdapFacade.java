@@ -18,8 +18,8 @@ package org.apache.ambari.server.ldap.service;
 import java.util.Map;
 import java.util.Set;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
+import javax.inject.Inject;
+import javax.inject.Singleton;
 
 import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
 import org.slf4j.Logger;

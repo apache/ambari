@@ -346,17 +346,11 @@ class ZeppelinServer(Script):
       + params.zeppelin_log_file,
       user=params.zeppelin_user,
     )
-    pid_files = glob.glob(
+    pidfile = glob.glob(
       os.path.join(
         status_params.zeppelin_pid_dir, "zeppelin-" + params.zeppelin_user + "*.pid"
       )
-    )
-    if pid_files:
-      pidfile = pid_files[0]
-    else:
-      # Handle the case when no PID files are found
-      Logger.info("No Zeppelin PID files found in directory: %s" % status_params.zeppelin_pid_dir)
-      pidfile = None
+    )[0]
     Logger.info(format("Pid file is: {pidfile}"))
 
   def status(self, env):
@@ -735,7 +729,7 @@ class ZeppelinServer(Script):
         del interpreter_settings[key]
 
     hive_interactive_properties_key = "hive_interactive"
-    for setting_key in list(interpreter_settings.keys()):
+    for setting_key in interpreter_settings.keys():
       interpreter = interpreter_settings[setting_key]
       if (
         interpreter["group"] == "jdbc"

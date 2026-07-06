@@ -28,7 +28,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
 
-import jakarta.persistence.EntityManager;
+import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.actionmanager.ActionDBAccessor;
 import org.apache.ambari.server.actionmanager.ActionManager;

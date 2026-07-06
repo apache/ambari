@@ -23,7 +23,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.List;
 
-import jakarta.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequest;
 
 import org.easymock.EasyMockSupport;
 import org.junit.Assert;

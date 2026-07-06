@@ -20,8 +20,8 @@ package org.apache.ambari.server.orm.entities;
 import java.io.Serializable;
 import java.util.Objects;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Id;
+import javax.persistence.Column;
+import javax.persistence.Id;
 
 public class WidgetLayoutUserWidgetEntityPK  implements Serializable {
 

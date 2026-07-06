@@ -18,19 +18,19 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import jakarta.persistence.Basic;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinColumns;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import javax.persistence.Basic;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinColumns;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 
 /**
  * Represents a property of a View instance.
  */
-@jakarta.persistence.IdClass(ViewInstanceDataEntityPK.class)
+@javax.persistence.IdClass(ViewInstanceDataEntityPK.class)
 @Table(name = "viewinstancedata")
 @Entity
 public class ViewInstanceDataEntity {

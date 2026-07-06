@@ -312,7 +312,6 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend(App.KDCCred
     return App.ajax.send({
       name: 'common.cluster.update',
       sender: this,
-      dataType: 'text',
       data: {
         clusterName: App.get('clusterName'),
         data: [{

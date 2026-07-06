@@ -535,16 +535,7 @@ class JDKSetup(object):
       properties.process_pair(AMBARI_JAVA_HOME_PROPERTY, args.ambari_java_home)
       properties.removeOldProp(JDK_NAME_PROPERTY)
       properties.removeOldProp(JCE_NAME_PROPERTY)
-
-      if not ambariOnly:
-        properties.process_pair(STACK_JAVA_HOME_PROPERTY, args.ambari_java_home)
-        properties.removeOldProp(STACK_JDK_NAME_PROPERTY)
-        properties.removeOldProp(STACK_JCE_NAME_PROPERTY)
-
-      self._ensure_java_home_env_var_is_set(args.ambari_java_home)
-      self.jdk_index = self.custom_jdk_number
-      print('Setting AMBARI_JAVA_HOME for Ambari finished')
-
+      print("Setting AMBARI_JAVA_HOME for Ambari finished")
 
     if args.java_home:
       # java_home was specified among the command-line arguments. Use it as custom JDK location.

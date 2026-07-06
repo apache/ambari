@@ -161,7 +161,7 @@
 export AMS_INSTANCE_NAME={{hostname}}
 
 # The java implementation to use. Java 1.6 required.
-export JAVA_HOME={{java_home}}
+export JAVA_HOME={{java64_home}}
 
 # Collector Log directory for log4j
 export AMS_COLLECTOR_LOG_DIR={{ams_collector_log_dir}}

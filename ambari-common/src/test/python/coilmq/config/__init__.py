@@ -102,7 +102,7 @@ def init_logging(logfile=None, loglevel=logging.INFO, configfile=None):
     logging.config.fileConfig(configfile)
     if logfile:
       msg = "Config file conflicts with explicitly specified logfile; config file takes precedence."
-      logging.warning(msg)
+      logging.warn(msg)
   else:
     format = "%(asctime)s [%(threadName)s] %(name)s - %(levelname)s - %(message)s"
     if logfile:

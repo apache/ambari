@@ -34,8 +34,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 
 import javax.annotation.Nullable;
-
-import jakarta.inject.Inject;
+import javax.inject.Inject;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;

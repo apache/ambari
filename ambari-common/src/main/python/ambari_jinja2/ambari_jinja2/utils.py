@@ -547,10 +547,7 @@ class LRUCache(object):
 
 # register the LRU cache as mutable mapping if possible
 try:
-  try:
-    from collections.abc import MutableMapping
-  except ImportError:
-    from collections import MutableMapping
+  from collections import MutableMapping
 
   MutableMapping.register(LRUCache)
 except ImportError:

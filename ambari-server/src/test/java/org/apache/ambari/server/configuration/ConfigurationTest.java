@@ -28,7 +28,6 @@ import static org.powermock.api.easymock.PowerMock.verifyAll;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
@@ -38,7 +37,6 @@ import java.util.Properties;
 
 import org.apache.ambari.annotations.ConfigurationMarkdown;
 import org.apache.ambari.annotations.Markdown;
-import org.apache.ambari.annotations.ConfigurationMarkdown;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration.ConfigurationProperty;
 import org.apache.ambari.server.configuration.Configuration.ConnectionPoolType;

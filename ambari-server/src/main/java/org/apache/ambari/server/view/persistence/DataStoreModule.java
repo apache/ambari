@@ -23,8 +23,8 @@ import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER
 
 import java.util.Map;
 
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.Persistence;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
 
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;

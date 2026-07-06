@@ -169,44 +169,33 @@ public class AmbariMetricsHadoopSinkVersionCheckTest {
 
     AmbariManagementController ambariManagementControllerMock = Mockito.mock(AmbariManagementController.class);
     PowerMockito.mockStatic(AmbariServer.class);
-    when(AmbariServer.getController()).thenAnswer(
-      invocation -> ambariManagementControllerMock);
+    when(AmbariServer.getController()).thenReturn(ambariManagementControllerMock);
 
     ResourceProvider resourceProviderMock = mock(ResourceProvider.class);
     PowerMockito.mockStatic(AbstractControllerResourceProvider.class);
-    when(AbstractControllerResourceProvider.getResourceProvider(Mockito.eq(Resource.Type.Request), any(AmbariManagementController.class))).thenAnswer(
-      invocation -> resourceProviderMock);
+    when(AbstractControllerResourceProvider.getResourceProvider(Mockito.eq(Resource.Type.Request), any(AmbariManagementController.class))).thenReturn(resourceProviderMock);
 
     PowerMockito.mockStatic(PropertyHelper.class);
     Request requestMock = mock(Request.class);
-    when(PropertyHelper.getCreateRequest(any(), any())).thenAnswer(invocation -> requestMock);
-    when(PropertyHelper.getPropertyId("Requests", "id")).thenAnswer(
-      invocation -> "requestIdProp");
+    when(PropertyHelper.getCreateRequest(any(), any())).thenReturn(requestMock);
+    when(PropertyHelper.getPropertyId("Requests", "id")).thenReturn("requestIdProp");
 
     RequestStatus requestStatusMock = mock(RequestStatus.class);
     Resource responseResourceMock = mock(Resource.class);
-    when(resourceProviderMock.createResources(requestMock)).thenAnswer(
-      invocation -> requestStatusMock);
-    when(requestStatusMock.getRequestResource()).thenAnswer(
-      invocation -> responseResourceMock);
-    when(responseResourceMock.getPropertyValue(anyString())).thenAnswer(
-      invocation -> 100l);
+    when(resourceProviderMock.createResources(requestMock)).thenReturn(requestStatusMock);
+    when(requestStatusMock.getRequestResource()).thenReturn(responseResourceMock);
+    when(responseResourceMock.getPropertyValue(anyString())).thenReturn(100l);
 
     Clusters clustersMock = mock(Clusters.class);
-    when(ambariManagementControllerMock.getClusters()).thenAnswer(
-      invocation -> clustersMock);
+    when(ambariManagementControllerMock.getClusters()).thenReturn(clustersMock);
     Cluster clusterMock = mock(Cluster.class);
-    when(clustersMock.getCluster("c1")).thenAnswer(invocation -> clusterMock);
-    when(clusterMock.getHosts(eq("AMBARI_METRICS"), eq("METRICS_MONITOR"))).thenAnswer(
-      invocation -> Collections.singleton("h1"));
+    when(clustersMock.getCluster("c1")).thenReturn(clusterMock);
+    when(clusterMock.getHosts(eq("AMBARI_METRICS"), eq("METRICS_MONITOR"))).thenReturn(Collections.singleton("h1"));
 
     RequestDAO requestDAOMock = mock(RequestDAO.class);
     RequestEntity requestEntityMock  = mock(RequestEntity.class);
-    when(requestDAOMock.findByPks(Collections.singleton(100l), true)).thenAnswer(
-      invocation -> Collections.singletonList(requestEntityMock));
-    when(requestEntityMock.getStatus()).thenAnswer(
-        invocation -> HostRoleStatus.IN_PROGRESS
-    ).thenAnswer(invocation -> HostRoleStatus.COMPLETED);
+    when(requestDAOMock.findByPks(Collections.singleton(100l), true)).thenReturn(Collections.singletonList(requestEntityMock));
+    when(requestEntityMock.getStatus()).thenReturn(HostRoleStatus.IN_PROGRESS).thenReturn(HostRoleStatus.COMPLETED);
 
     Field requestDaoField = m_check.getClass().getDeclaredField("requestDAO");
     requestDaoField.setAccessible(true);
@@ -227,16 +216,16 @@ public class AmbariMetricsHadoopSinkVersionCheckTest {
   public void testPerformFail() throws Exception{
     AmbariManagementController ambariManagementControllerMock = Mockito.mock(AmbariManagementController.class);
     PowerMockito.mockStatic(AmbariServer.class);
-    when(AmbariServer.getController()).thenAnswer(invocation -> ambariManagementControllerMock);
+    when(AmbariServer.getController()).thenReturn(ambariManagementControllerMock);
 
     ResourceProvider resourceProviderMock = mock(ResourceProvider.class);
     PowerMockito.mockStatic(AbstractControllerResourceProvider.class);
-    when(AbstractControllerResourceProvider.getResourceProvider(Mockito.eq(Resource.Type.Request), any(AmbariManagementController.class))).thenAnswer(invocation -> resourceProviderMock);
+    when(AbstractControllerResourceProvider.getResourceProvider(Mockito.eq(Resource.Type.Request), any(AmbariManagementController.class))).thenReturn(resourceProviderMock);
 
     PowerMockito.mockStatic(PropertyHelper.class);
     Request requestMock = mock(Request.class);
-    when(PropertyHelper.getCreateRequest(any(), any())).thenAnswer(invocation -> requestMock);
-    when(PropertyHelper.getPropertyId("Requests", "id")).thenAnswer(invocation -> "requestIdProp");
+    when(PropertyHelper.getCreateRequest(any(), any())).thenReturn(requestMock);
+    when(PropertyHelper.getPropertyId("Requests", "id")).thenReturn("requestIdProp");
 
     RequestStatus requestStatusMock = mock(RequestStatus.class);
     Resource responseResourceMock = mock(Resource.class);

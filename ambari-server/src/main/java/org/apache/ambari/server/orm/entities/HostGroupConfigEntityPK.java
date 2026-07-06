@@ -18,8 +18,8 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Id;
+import javax.persistence.Column;
+import javax.persistence.Id;
 
 /**
  * Composite primary key for HostGroupConfigEntity.

@@ -32,4 +32,7 @@ def get_architecture():
   if architecture:
     return architecture
 
+  if platform.processor() == "powerpc" or platform.machine().startswith("ppc"):
+    return "ppc64le"
+
   return "amd64"

@@ -19,7 +19,7 @@ package org.apache.ambari.server.upgrade;
 
 import java.sql.SQLException;
 
-import jakarta.persistence.Table;
+import javax.persistence.Table;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.DBAccessor;

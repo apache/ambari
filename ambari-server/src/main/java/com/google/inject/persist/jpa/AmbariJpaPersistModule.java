@@ -27,8 +27,8 @@ import java.lang.reflect.Proxy;
 import java.util.List;
 import java.util.Map;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
@@ -68,7 +68,7 @@ public class AmbariJpaPersistModule extends PersistModule {
     bindConstant().annotatedWith(Jpa.class).to(jpaUnit);
 
     bind(AmbariJpaPersistService.class).in(Singleton.class);
-    bind(JpaPersistOptions.class).annotatedWith(Jpa.class).toInstance( JpaPersistOptions.builder().setAutoBeginWorkOnEntityManagerCreation(true).build());
+
     bind(PersistService.class).to(AmbariJpaPersistService.class);
     bind(UnitOfWork.class).to(AmbariJpaPersistService.class);
     bind(EntityManager.class).toProvider(AmbariJpaPersistService.class);

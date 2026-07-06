@@ -29,20 +29,19 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-import jakarta.servlet.AsyncContext;
-import jakarta.servlet.DispatcherType;
-import jakarta.servlet.RequestDispatcher;
-import jakarta.servlet.ServletConnection;
-import jakarta.servlet.ServletContext;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.ServletInputStream;
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
-import jakarta.servlet.http.HttpUpgradeHandler;
-import jakarta.servlet.http.Part;
+import javax.servlet.AsyncContext;
+import javax.servlet.DispatcherType;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.ServletInputStream;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import javax.servlet.http.HttpUpgradeHandler;
+import javax.servlet.http.Part;
 
 import org.apache.ambari.server.api.query.QueryImpl;
 import org.apache.ambari.server.api.resources.HostComponentResourceDefinition;
@@ -133,8 +132,8 @@ public class DefaultEventCreatorTest {
       }
 
       @Override
-      public jakarta.servlet.http.Cookie[] getCookies() {
-        return new jakarta.servlet.http.Cookie[0];
+      public javax.servlet.http.Cookie[] getCookies() {
+        return new javax.servlet.http.Cookie[0];
       }
 
       @Override
@@ -248,6 +247,11 @@ public class DefaultEventCreatorTest {
 
       @Override
       public boolean isRequestedSessionIdFromURL() {
+        return false;
+      }
+
+      @Override
+      public boolean isRequestedSessionIdFromUrl() {
         return false;
       }
 
@@ -405,6 +409,11 @@ public class DefaultEventCreatorTest {
       }
 
       @Override
+      public String getRealPath(String s) {
+        return null;
+      }
+
+      @Override
       public int getRemotePort() {
         return 0;
       }
@@ -456,21 +465,6 @@ public class DefaultEventCreatorTest {
 
       @Override
       public DispatcherType getDispatcherType() {
-        return null;
-      }
-
-      @Override
-      public String getRequestId() {
-        return "";
-      }
-
-      @Override
-      public String getProtocolRequestId() {
-        return "";
-      }
-
-      @Override
-      public ServletConnection getServletConnection() {
         return null;
       }
     }));

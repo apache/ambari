@@ -20,10 +20,12 @@ package org.apache.ambari.server.security.authentication.kerberos;
 
 import java.io.IOException;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.configuration.Configuration;
@@ -151,13 +153,25 @@ public class AmbariKerberosAuthenticationFilter extends SpnegoAuthenticationProc
     return false;
   }
 
+  /**
+   * Performs the logic for this filter.
+   * <p>
+   * Checks whether the authentication information is filled. If it is not, then a login failed audit event is logged.
+   * <p>
+   * Then, forwards the workflow to {@link SpnegoAuthenticationProcessingFilter#doFilter(ServletRequest, ServletResponse, FilterChain)}
+   *
+   * @param servletRequest  the request
+   * @param servletResponse the response
+   * @param filterChain     the Spring filter chain
+   * @throws IOException
+   * @throws ServletException
+   */
   @Override
-  protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-          throws ServletException, IOException {
+  public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
     if (eventHandler != null) {
-      eventHandler.beforeAttemptAuthentication(this, request, response);
+      eventHandler.beforeAttemptAuthentication(AmbariKerberosAuthenticationFilter.this, servletRequest, servletResponse);
     }
 
-    super.doFilter(request, response, filterChain);
+    super.doFilter(servletRequest, servletResponse, filterChain);
   }
 }

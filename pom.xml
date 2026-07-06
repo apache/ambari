@@ -79,7 +79,7 @@
     <url>https://issues.apache.org/jira/browse/AMBARI</url>
   </issueManagement>
   <properties>
-    <revision>3.1.0.0-SNAPSHOT</revision>
+    <revision>3.0.0.0-SNAPSHOT</revision>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <clover.license>${user.home}/clover.license</clover.license>
     <jdk.version>17</jdk.version>
@@ -96,7 +96,7 @@
     <distMgmtSnapshotsUrl>https://repository.apache.org/content/repositories/snapshots</distMgmtSnapshotsUrl>
     <assemblyPhase>package</assemblyPhase> <!-- use -DassemblyPhase=none to skip building tarball, useful when you want purely compile jar -->
     <rpm-maven-plugin.version>2.1.4</rpm-maven-plugin.version>
-    <eclipselink.version>4.0.2</eclipselink.version>
+    <eclipselink.version>2.7.14</eclipselink.version>
   </properties>
   <pluginRepositories>
     <pluginRepository>

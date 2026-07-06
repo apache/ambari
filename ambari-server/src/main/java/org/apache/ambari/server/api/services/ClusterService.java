@@ -23,18 +23,18 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import jakarta.ws.rs.DELETE;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.PUT;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.HttpHeaders;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.UriInfo;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.parsers.BodyParseException;
@@ -127,10 +127,11 @@ public class ClusterService extends BaseService {
     @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
     @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
-  public Response getCluster(@Context HttpHeaders headers, @Context UriInfo ui,
-                             @ApiParam(required = true) @PathParam("clusterName") String clusterName) {
+  public Response getCluster(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+    @ApiParam(required = true) @PathParam("clusterName") String clusterName
+  ) {
     ResourceInstance resource = createClusterResource(clusterName);
-    return handleRequest(headers, null, ui, Request.Type.GET, resource);
+    return handleRequest(headers, body, ui, Request.Type.GET, resource);
   }
 
   /**
@@ -160,9 +161,9 @@ public class ClusterService extends BaseService {
     @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
     @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
-  public Response getClusters(@Context HttpHeaders headers, @Context UriInfo ui) {
+  public Response getClusters(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
     ResourceInstance resource = createClusterResource(null);
-    return handleRequest(headers, null, ui, Request.Type.GET, resource);
+    return handleRequest(headers, body, ui, Request.Type.GET, resource);
   }
 
   /**
@@ -263,6 +264,7 @@ public class ClusterService extends BaseService {
    * Handles: GET /clusters/{clusterID}/artifacts
    * Get all artifacts associated with the cluster.
    *
+   * @param body         request body
    * @param headers      http headers
    * @param ui           uri info
    * @param clusterName  cluster name
@@ -288,16 +290,18 @@ public class ClusterService extends BaseService {
     @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
     @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
-  public Response getClusterArtifacts(@Context HttpHeaders headers, @Context UriInfo ui,
-                                      @ApiParam(required = true) @PathParam("clusterName") String clusterName) {
+  public Response getClusterArtifacts(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+    @ApiParam(required = true) @PathParam("clusterName") String clusterName
+  ) {
     ResourceInstance resource = createArtifactResource(clusterName, null);
-    return handleRequest(headers, null, ui, Request.Type.GET, resource);
+    return handleRequest(headers, body, ui, Request.Type.GET, resource);
   }
 
   /**
    * Handles: GET /clusters/{clusterID}/artifacts/{artifactName}
    * Get an artifact resource instance.
    *
+   * @param body          request body
    * @param headers       http headers
    * @param ui            uri info
    * @param clusterName   cluster name
@@ -322,11 +326,12 @@ public class ClusterService extends BaseService {
     @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
     @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
   })
-  public Response getClusterArtifact(@Context HttpHeaders headers, @Context UriInfo ui,
-                                     @ApiParam(required = true) @PathParam("clusterName") String clusterName,
-                                     @ApiParam(required = true) @PathParam("artifactName") String artifactName) {
+  public Response getClusterArtifact(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+    @ApiParam(required = true) @PathParam("clusterName") String clusterName,
+    @ApiParam(required = true) @PathParam("artifactName") String artifactName
+  ) {
     ResourceInstance resource = createArtifactResource(clusterName, artifactName);
-    return handleRequest(headers, null, ui, Request.Type.GET, resource);
+    return handleRequest(headers, body, ui, Request.Type.GET, resource);
   }
 
   /**
@@ -505,7 +510,7 @@ public class ClusterService extends BaseService {
    * @return the hosts service
    */
   @Path("{clusterName}/hosts")
-  public HostService getHostHandler(@Context jakarta.ws.rs.core.Request request, @PathParam("clusterName") String clusterName) {
+  public HostService getHostHandler(@Context javax.ws.rs.core.Request request, @PathParam("clusterName") String clusterName) {
     return new HostService(clusterName);
   }
 
@@ -518,7 +523,7 @@ public class ClusterService extends BaseService {
    * @return the services service
    */
   @Path("{clusterName}/services")
-  public ServiceService getServiceHandler(@Context jakarta.ws.rs.core.Request request, @ApiParam @PathParam("clusterName") String clusterName) {
+  public ServiceService getServiceHandler(@Context javax.ws.rs.core.Request request, @ApiParam @PathParam("clusterName") String clusterName) {
     return new ServiceService(clusterName);
   }
 
@@ -531,7 +536,7 @@ public class ClusterService extends BaseService {
    * @return the configuration service
    */
   @Path("{clusterName}/configurations")
-  public ConfigurationService getConfigurationHandler(@Context jakarta.ws.rs.core.Request request, @PathParam("clusterName") String clusterName) {
+  public ConfigurationService getConfigurationHandler(@Context javax.ws.rs.core.Request request, @PathParam("clusterName") String clusterName) {
     return new ConfigurationService(clusterName);
   }
 
@@ -544,7 +549,7 @@ public class ClusterService extends BaseService {
    * @return the requests service
    */
   @Path("{clusterName}/requests")
-  public RequestService getRequestHandler(@Context jakarta.ws.rs.core.Request request, @PathParam("clusterName") String clusterName) {
+  public RequestService getRequestHandler(@Context javax.ws.rs.core.Request request, @PathParam("clusterName") String clusterName) {
     return new RequestService(clusterName);
   }
 
@@ -558,7 +563,7 @@ public class ClusterService extends BaseService {
    * @return  the host component service with no parent set
    */
   @Path("{clusterName}/host_components")
-  public HostComponentService getHostComponentHandler(@Context jakarta.ws.rs.core.Request request, @PathParam("clusterName") String clusterName) {
+  public HostComponentService getHostComponentHandler(@Context javax.ws.rs.core.Request request, @PathParam("clusterName") String clusterName) {
     return new HostComponentService(clusterName, null);
   }
 
@@ -572,7 +577,7 @@ public class ClusterService extends BaseService {
    * @return  the host component service with no parent set
    */
   @Path("{clusterName}/kerberos_identities")
-  public HostKerberosIdentityService getHostKerberosIdentityHandler(@Context jakarta.ws.rs.core.Request request, @PathParam("clusterName") String clusterName) {
+  public HostKerberosIdentityService getHostKerberosIdentityHandler(@Context javax.ws.rs.core.Request request, @PathParam("clusterName") String clusterName) {
     return new HostKerberosIdentityService(clusterName, null);
   }
 
@@ -586,7 +591,7 @@ public class ClusterService extends BaseService {
    * @return  the host component service with no parent set
    */
   @Path("{clusterName}/components")
-  public ComponentService getComponentHandler(@Context jakarta.ws.rs.core.Request request, @PathParam("clusterName") String clusterName) {
+  public ComponentService getComponentHandler(@Context javax.ws.rs.core.Request request, @PathParam("clusterName") String clusterName) {
     return new ComponentService(clusterName, null);
   }
 
@@ -599,7 +604,7 @@ public class ClusterService extends BaseService {
    * @return  the workflow service
    */
   @Path("{clusterName}/workflows")
-  public WorkflowService getWorkflowHandler(@Context jakarta.ws.rs.core.Request request, @PathParam("clusterName") String clusterName) {
+  public WorkflowService getWorkflowHandler(@Context javax.ws.rs.core.Request request, @PathParam("clusterName") String clusterName) {
     return new WorkflowService(clusterName);
   }
 
@@ -612,7 +617,7 @@ public class ClusterService extends BaseService {
    * @return  the config group service
    */
   @Path("{clusterName}/config_groups")
-  public ConfigGroupService getConfigGroupService(@Context jakarta.ws.rs.core.Request request, @PathParam("clusterName") String clusterName) {
+  public ConfigGroupService getConfigGroupService(@Context javax.ws.rs.core.Request request, @PathParam("clusterName") String clusterName) {
     return new ConfigGroupService(clusterName);
   }
 
@@ -626,7 +631,7 @@ public class ClusterService extends BaseService {
    */
   @Path("{clusterName}/request_schedules")
   public RequestScheduleService getRequestScheduleService
-                             (@Context jakarta.ws.rs.core.Request request, @PathParam ("clusterName") String clusterName) {
+                             (@Context javax.ws.rs.core.Request request, @PathParam ("clusterName") String clusterName) {
     return new RequestScheduleService(clusterName);
   }
 
@@ -640,7 +645,7 @@ public class ClusterService extends BaseService {
    */
   @Path("{clusterName}/alert_definitions")
   public AlertDefinitionService getAlertDefinitionService(
-      @Context jakarta.ws.rs.core.Request request, @PathParam("clusterName") String clusterName) {
+      @Context javax.ws.rs.core.Request request, @PathParam("clusterName") String clusterName) {
     return new AlertDefinitionService(clusterName);
   }
 
@@ -655,7 +660,7 @@ public class ClusterService extends BaseService {
    */
   @Path("{clusterName}/alert_groups")
   public AlertGroupService getAlertGroups(
-      @Context jakarta.ws.rs.core.Request request,
+      @Context javax.ws.rs.core.Request request,
       @PathParam("clusterName") String clusterName) {
     return new AlertGroupService(clusterName);
   }
@@ -671,7 +676,7 @@ public class ClusterService extends BaseService {
    * @return the privileges service
    */
   @Path("{clusterName}/privileges")
-  public PrivilegeService getPrivilegeService(@Context jakarta.ws.rs.core.Request request, @PathParam ("clusterName") String clusterName) {
+  public PrivilegeService getPrivilegeService(@Context javax.ws.rs.core.Request request, @PathParam ("clusterName") String clusterName) {
     return new ClusterPrivilegeService(clusterName);
   }
 
@@ -685,7 +690,7 @@ public class ClusterService extends BaseService {
    */
   @Path("{clusterName}/alerts")
   public AlertService getAlertService(
-      @Context jakarta.ws.rs.core.Request request, @PathParam("clusterName") String clusterName) {
+      @Context javax.ws.rs.core.Request request, @PathParam("clusterName") String clusterName) {
     return new AlertService(clusterName, null, null);
   }
 
@@ -701,7 +706,7 @@ public class ClusterService extends BaseService {
    */
   @Path("{clusterName}/alert_history")
   public AlertHistoryService getAlertHistoryService(
-      @Context jakarta.ws.rs.core.Request request,
+      @Context javax.ws.rs.core.Request request,
       @PathParam("clusterName") String clusterName) {
     return new AlertHistoryService(clusterName, null, null);
   }
@@ -718,7 +723,7 @@ public class ClusterService extends BaseService {
    */
   @Path("{clusterName}/alert_notices")
   public AlertNoticeService getAlertNoticeService(
-      @Context jakarta.ws.rs.core.Request request,
+      @Context javax.ws.rs.core.Request request,
       @PathParam("clusterName") String clusterName) {
     return new AlertNoticeService(clusterName);
   }
@@ -734,7 +739,7 @@ public class ClusterService extends BaseService {
    * @return the cluster stack versions service
    */
   @Path("{clusterName}/stack_versions")
-  public ClusterStackVersionService getClusterStackVersionService(@Context jakarta.ws.rs.core.Request request,
+  public ClusterStackVersionService getClusterStackVersionService(@Context javax.ws.rs.core.Request request,
       @PathParam("clusterName") String clusterName) {
     return new ClusterStackVersionService(clusterName);
   }
@@ -749,7 +754,7 @@ public class ClusterService extends BaseService {
    */
   @Path("{clusterName}/upgrades")
   public UpgradeService getUpgradeService(
-      @Context jakarta.ws.rs.core.Request request,
+      @Context javax.ws.rs.core.Request request,
       @PathParam("clusterName") String clusterName) {
     return new UpgradeService(clusterName);
   }
@@ -764,7 +769,7 @@ public class ClusterService extends BaseService {
    */
   @Path("{clusterName}/upgrade_summary")
   public UpgradeSummaryService getUpgradeSummaryService(
-      @Context jakarta.ws.rs.core.Request request,
+      @Context javax.ws.rs.core.Request request,
       @PathParam("clusterName") String clusterName) {
     return new UpgradeSummaryService(clusterName);
   }
@@ -778,7 +783,7 @@ public class ClusterService extends BaseService {
    * @return the pre-upgrade checks service.
    */
   @Path("{clusterName}/rolling_upgrades_check")
-  public PreUpgradeCheckService getPreUpgradeCheckService(@Context jakarta.ws.rs.core.Request request, @PathParam("clusterName") String clusterName) {
+  public PreUpgradeCheckService getPreUpgradeCheckService(@Context javax.ws.rs.core.Request request, @PathParam("clusterName") String clusterName) {
     return new PreUpgradeCheckService(clusterName);
   }
 
@@ -786,7 +791,7 @@ public class ClusterService extends BaseService {
    * Gets the widget layout service
    */
   @Path("{clusterName}/widget_layouts")
-  public WidgetLayoutService getWidgetLayoutService(@Context jakarta.ws.rs.core.Request request,
+  public WidgetLayoutService getWidgetLayoutService(@Context javax.ws.rs.core.Request request,
                                                     @PathParam ("clusterName") String clusterName) {
 
     return new WidgetLayoutService(clusterName);
@@ -796,7 +801,7 @@ public class ClusterService extends BaseService {
    * Gets the widget service
    */
   @Path("{clusterName}/widgets")
-  public WidgetService getWidgetService(@Context jakarta.ws.rs.core.Request request,
+  public WidgetService getWidgetService(@Context javax.ws.rs.core.Request request,
                                                     @PathParam ("clusterName") String clusterName) {
 
     return new WidgetService(clusterName);
@@ -811,7 +816,7 @@ public class ClusterService extends BaseService {
    */
   @Path("{clusterName}/credentials")
   public CredentialService getCredentials(
-      @Context jakarta.ws.rs.core.Request request,
+      @Context javax.ws.rs.core.Request request,
       @PathParam("clusterName") String clusterName) {
     return new CredentialService(clusterName);
   }
@@ -826,7 +831,7 @@ public class ClusterService extends BaseService {
    */
   @Path("{clusterName}/kerberos_descriptors")
   public ClusterKerberosDescriptorService getCompositeKerberosDescriptor(
-      @Context jakarta.ws.rs.core.Request request,
+      @Context javax.ws.rs.core.Request request,
       @PathParam("clusterName") String clusterName) {
     return new ClusterKerberosDescriptorService(clusterName);
   }
@@ -840,7 +845,7 @@ public class ClusterService extends BaseService {
    * @return a new instance of the LoggingService
    */
   @Path("{clusterName}/logging")
-  public LoggingService getLogging(@Context jakarta.ws.rs.core.Request request,
+  public LoggingService getLogging(@Context javax.ws.rs.core.Request request,
                                    @PathParam("clusterName") String clusterName) {
     return AmbariServer.getController().getLoggingService(clusterName);
   }

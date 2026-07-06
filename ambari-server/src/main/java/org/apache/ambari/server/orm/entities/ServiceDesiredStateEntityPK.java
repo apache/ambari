@@ -20,14 +20,14 @@ package org.apache.ambari.server.orm.entities;
 
 import java.io.Serializable;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Id;
+import javax.persistence.Column;
+import javax.persistence.Id;
 
 @SuppressWarnings("serial")
 public class ServiceDesiredStateEntityPK implements Serializable {
   private Long clusterId;
 
-  @jakarta.persistence.Column(name = "cluster_id", nullable = false, insertable = true, updatable = true, length = 10)
+  @javax.persistence.Column(name = "cluster_id", nullable = false, insertable = true, updatable = true, length = 10)
   @Id
   public Long getClusterId() {
     return clusterId;

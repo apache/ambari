@@ -251,14 +251,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.HostComponentValidationMixi
       host.checkboxes.filterProperty('isInstalled', false).forEach(function (checkbox) {
         if (checkbox.component === component) {
           if (!checkbox.isDisabled) {
-            var newCheckValue = checked;
-            Em.set(checkbox, 'checked', newCheckValue);
-            Em.run.next(() => {
-              var input = document.getElementById(checkbox.uId);
-              if (input && input.checked !== newCheckValue) {
-                input.checked = newCheckValue;
-              }
-            });
+            Em.set(checkbox, 'checked', checked);
           }
         }
       });

@@ -19,7 +19,7 @@ package org.apache.ambari.server.controller.logging;
 
 import java.util.List;
 
-import jakarta.inject.Inject;
+import javax.inject.Inject;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;

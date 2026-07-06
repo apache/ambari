@@ -18,8 +18,8 @@
 
 package org.apache.ambari.server.controller;
 
-import jakarta.ws.rs.core.HttpHeaders;
-import jakarta.ws.rs.core.UriInfo;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.services.views.ViewPrivilegeService;
 import org.apache.ambari.server.controller.internal.ClusterResourceProvider;

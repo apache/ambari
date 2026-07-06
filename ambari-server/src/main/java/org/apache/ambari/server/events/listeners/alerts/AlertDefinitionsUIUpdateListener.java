@@ -23,7 +23,7 @@ import static org.apache.ambari.server.events.AlertDefinitionEventType.UPDATE;
 import java.util.Collections;
 import java.util.Map;
 
-import jakarta.inject.Provider;
+import javax.inject.Provider;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;

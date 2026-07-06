@@ -31,8 +31,8 @@ import static org.junit.Assert.assertSame;
 import java.util.Collections;
 import java.util.List;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.TypedQuery;
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.junit.Before;

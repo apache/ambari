@@ -20,7 +20,7 @@ package org.apache.ambari.server.agent.stomp;
 
 import java.util.Objects;
 
-import jakarta.inject.Inject;
+import javax.inject.Inject;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.stomp.dto.Hashable;

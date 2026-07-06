@@ -887,11 +887,6 @@ td[data-qa="toggle-component"] input[checked="checked"] + label::after,
   font-size: 9px !important;
   background: transparent;
 }
-
-table.host-operation-table td[data-qa="toggle-component"] input[checked="checked"] + label::after {
-  position: static !important;
-}
-
 th[data-qa="confirm-hosts-table-heading-cell"] label[checked="checked"]:after {
   top: -11px !important;
 }
@@ -906,8 +901,6 @@ th[data-qa="confirm-hosts-table-heading-cell"] label[checked="checked"]:after {
 .navigation-bar-container {
   height: auto;
   width: 230px;
-  display: flex;
-  flex-direction: column;
   background-color: #323544;
   padding: 0;
   -ms-overflow-style: none;
@@ -916,7 +909,6 @@ th[data-qa="confirm-hosts-table-heading-cell"] label[checked="checked"]:after {
 }
 .navigation-bar-container ul.nav.side-nav-header {
   width: 230px;
-  max-height: 50px;
   transition: width 0.5s ease-out;
 }
 .navigation-bar-container ul.nav.side-nav-header li.navigation-header {
@@ -986,12 +978,6 @@ th[data-qa="confirm-hosts-table-heading-cell"] label[checked="checked"]:after {
   background-color: #323544;
   width: 230px;
   transition: width 0.5s ease-out;
-}
-.navigation-bar-container ul.nav.side-nav-menu{
-  max-height: calc(100vh - 110px); 
-}
-.navigation-bar-container ul.nav.side-nav-footer{
-  max-height: 50px;
 }
 .navigation-bar-container ul.nav.side-nav-menu li,
 .navigation-bar-container ul.nav.side-nav-footer li {
@@ -1343,19 +1329,17 @@ th[data-qa="confirm-hosts-table-heading-cell"] label[checked="checked"]:after {
   z-index: 2079;
 }
 .navigation-bar-fit-height .side-nav-header {
-  /* position: absolute; */
-  /* top: 0; */
+  position: absolute;
+  top: 0;
 }
 .navigation-bar-fit-height .side-nav-menu {
-  /* position: absolute; */
-  /* top: 55px; */
+  position: absolute;
+  top: 55px;
 }
 .navigation-bar-fit-height .side-nav-footer {
-  /* position: absolute; */
-  position: fixed;
+  position: absolute;
   bottom: 0;
 }
-
 .navigation-bar-fit-height .more-actions .dropdown-menu {
   position: fixed;
   top: auto;

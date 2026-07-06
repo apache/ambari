@@ -14,7 +14,7 @@
 
 package org.apache.ambari.server.topology.validators;
 
-import jakarta.inject.Inject;
+import javax.inject.Inject;
 
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.InvalidTopologyException;

@@ -1360,18 +1360,6 @@
                 Cloudera
             </organization>
         </developer>
-        <developer>
-            <id>sandeepk</id>
-            <name>Sandeep Kumar</name>
-            <email>sandeepk@apache.org</email>
-            <timezone>+5.5</timezone>
-            <roles>
-                <role>Committer</role>
-            </roles>
-            <organization>
-                VISA
-            </organization>
-        </developer>
       </developers>
       <contributors>
         <contributor>

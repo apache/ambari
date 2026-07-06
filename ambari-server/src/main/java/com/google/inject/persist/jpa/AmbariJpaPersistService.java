@@ -31,9 +31,7 @@ public class AmbariJpaPersistService extends JpaPersistService {
 
   @Inject
   public AmbariJpaPersistService(@Jpa String persistenceUnitName, @Jpa Map<?, ?> persistenceProperties) {
-    super( JpaPersistOptions.builder()
-            .setAutoBeginWorkOnEntityManagerCreation(true)
-            .build(), persistenceUnitName, persistenceProperties);
+    super(persistenceUnitName, persistenceProperties);
   }
 
   /**

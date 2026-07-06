@@ -19,7 +19,7 @@ package org.apache.ambari.server.upgrade;
 
 import java.sql.SQLException;
 
-import jakarta.inject.Inject;
+import javax.inject.Inject;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;

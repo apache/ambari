@@ -18,13 +18,13 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import jakarta.persistence.metamodel.SingularAttribute;
+import javax.persistence.metamodel.SingularAttribute;
 
 /**
  * This class exists so that JPQL can use static singular attributes that are
  * strongly typed as opposed to Java reflection like HostEntity.get("fieldname")
  */
-@jakarta.persistence.metamodel.StaticMetamodel(HostEntity.class)
+@javax.persistence.metamodel.StaticMetamodel(HostEntity.class)
 public class HostEntity_ {
   public static volatile SingularAttribute<HostEntity, Long> hostId;
   public static volatile SingularAttribute<HostEntity, String> hostName;

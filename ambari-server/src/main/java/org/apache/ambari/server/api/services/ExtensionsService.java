@@ -22,14 +22,14 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.HttpHeaders;
-import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.UriInfo;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.api.resources.ResourceInstance;
@@ -47,51 +47,55 @@ public class ExtensionsService extends BaseService {
 
   @GET @ApiIgnore // until documented
   @Produces("text/plain")
-  public Response getExtensions(@Context HttpHeaders headers, @Context UriInfo ui) {
+  public Response getExtensions(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
 
-    return handleRequest(headers, null, ui, Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createExtensionResource(null));
   }
 
   @GET @ApiIgnore // until documented
   @Path("{extensionName}")
   @Produces("text/plain")
-  public Response getExtension(@Context HttpHeaders headers, @Context UriInfo ui,
-                               @PathParam("extensionName") String extensionName) {
+  public Response getExtension(String body, @Context HttpHeaders headers,
+                           @Context UriInfo ui,
+                           @PathParam("extensionName") String extensionName) {
 
-    return handleRequest(headers, null, ui, Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createExtensionResource(extensionName));
   }
 
   @GET @ApiIgnore // until documented
   @Path("{extensionName}/versions")
   @Produces("text/plain")
-  public Response getExtensionVersions(@Context HttpHeaders headers, @Context UriInfo ui,
-                                       @PathParam("extensionName") String extensionName) {
+  public Response getExtensionVersions(String body,
+                                   @Context HttpHeaders headers,
+                                   @Context UriInfo ui, @PathParam("extensionName") String extensionName) {
 
-    return handleRequest(headers, null, ui, Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createExtensionVersionResource(extensionName, null));
   }
 
   @GET @ApiIgnore // until documented
   @Path("{extensionName}/versions/{extensionVersion}")
   @Produces("text/plain")
-  public Response getExtensionVersion(@Context HttpHeaders headers, @Context UriInfo ui,
-                                      @PathParam("extensionName") String extensionName,
-                                      @PathParam("extensionVersion") String extensionVersion) {
+  public Response getExtensionVersion(String body,
+                                  @Context HttpHeaders headers,
+                                  @Context UriInfo ui, @PathParam("extensionName") String extensionName,
+                                  @PathParam("extensionVersion") String extensionVersion) {
 
-    return handleRequest(headers, null, ui, Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createExtensionVersionResource(extensionName, extensionVersion));
   }
 
   @GET @ApiIgnore // until documented
   @Path("{extensionName}/versions/{extensionVersion}/links")
   @Produces("text/plain")
-  public Response getExtensionVersionLinks(@Context HttpHeaders headers,
-                                           @Context UriInfo ui, @PathParam("extensionName") String extensionName,
-                                           @PathParam("extensionVersion") String extensionVersion) {
+  public Response getExtensionVersionLinks(String body,
+                                  @Context HttpHeaders headers,
+                                  @Context UriInfo ui, @PathParam("extensionName") String extensionName,
+                                  @PathParam("extensionVersion") String extensionVersion) {
 
-    return handleRequest(headers, null, ui, Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createExtensionLinkResource(null, null, extensionName, extensionVersion));
   }
 

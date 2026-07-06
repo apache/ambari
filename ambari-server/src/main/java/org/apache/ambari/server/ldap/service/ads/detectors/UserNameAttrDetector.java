@@ -14,8 +14,8 @@
 
 package org.apache.ambari.server.ldap.service.ads.detectors;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
+import javax.inject.Inject;
+import javax.inject.Singleton;
 
 import org.apache.ambari.server.configuration.AmbariServerConfigurationKey;
 import org.apache.directory.api.ldap.model.entry.Entry;

@@ -201,14 +201,16 @@ def _getsignature(func, skipfirst, instance=False):
     regargs = regargs[1:]
 
   if inPy3k:
-    parts = []
-    if regargs:
-      parts.extend(regargs)
-    if varargs:
-      parts.append("*" + varargs)
-    if varkw:
-      parts.append("**" + varkw)
-    signature = "(" + ", ".join(parts) + ")"
+    signature = inspect.formatargspec(
+      regargs,
+      varargs,
+      varkw,
+      defaults,
+      kwonly,
+      kwonlydef,
+      ann,
+      formatvalue=lambda value: "",
+    )
   else:
     signature = inspect.formatargspec(
       regargs, varargs, varkwargs, defaults, formatvalue=lambda value: ""

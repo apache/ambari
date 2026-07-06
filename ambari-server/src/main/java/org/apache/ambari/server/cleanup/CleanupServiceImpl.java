@@ -19,7 +19,7 @@ package org.apache.ambari.server.cleanup;
 
 import java.util.Set;
 
-import jakarta.inject.Inject;
+import javax.inject.Inject;
 
 import org.apache.ambari.server.orm.dao.Cleanable;
 import org.slf4j.Logger;

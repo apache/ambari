@@ -14,7 +14,7 @@
 
 package org.apache.ambari.server.ldap.service.ads.detectors;
 
-import jakarta.inject.Inject;
+import javax.inject.Inject;
 
 import org.apache.ambari.server.configuration.AmbariServerConfigurationKey;
 import org.apache.directory.api.ldap.model.entry.Entry;
