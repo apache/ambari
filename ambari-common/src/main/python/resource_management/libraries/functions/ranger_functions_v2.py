@@ -178,7 +178,7 @@ class RangeradminV2:
         Logger.error("Connection failed to Ranger Admin !")
     elif is_stack_supports_ranger_kerberos and is_security_enabled:
       ranger_lookup_user = "rangerlookup"
-      admin_password = unicode(admin_password)
+      admin_password = str(admin_password)
       user_resp_code = self.create_ambari_admin_user(
         ranger_lookup_user, admin_password, format("{admin_uname}:{admin_password}")
       )

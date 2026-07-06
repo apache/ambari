@@ -88,7 +88,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
-import javax.persistence.RollbackException;
+
+import jakarta.persistence.RollbackException;
 
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;

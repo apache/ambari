@@ -20,15 +20,15 @@ package org.apache.ambari.server.api.services.users;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.BaseService;
@@ -72,10 +72,11 @@ public class ActiveWidgetLayoutService extends BaseService {
     @ApiImplicitParam(name = "from", value = "The starting page resource (inclusive). Valid values are :offset | \"start\"", defaultValue = "0", dataType = "string", paramType = "query"),
     @ApiImplicitParam(name = "to", value = "The ending page resource (inclusive). Valid values are :offset | \"end\"", dataType = "string", paramType = "query")
   })
-  public Response getServices(String body, @Context HttpHeaders headers, @Context UriInfo ui, @ApiParam(value = "user name", required = true)
+  public Response getServices(@Context HttpHeaders headers, @Context UriInfo ui,
+                              @ApiParam(value = "user name", required = true)
                               @PathParam("userName") String userName) {
 
-    return handleRequest(headers, body, ui, Request.Type.GET, createResource(userName));
+    return handleRequest(headers, null, ui, Request.Type.GET, createResource(userName));
   }
 
   /**

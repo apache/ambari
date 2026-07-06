@@ -27,8 +27,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import javax.persistence.EntityManager;
-import javax.persistence.NamedQuery;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.NamedQuery;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;

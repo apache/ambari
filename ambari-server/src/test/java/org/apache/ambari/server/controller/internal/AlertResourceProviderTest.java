@@ -37,7 +37,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 
 import org.apache.ambari.server.api.query.render.AlertStateSummary;
 import org.apache.ambari.server.api.query.render.AlertSummaryGroupedRenderer;

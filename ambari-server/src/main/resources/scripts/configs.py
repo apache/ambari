@@ -195,13 +195,13 @@ def read_xml_data_to_map(path):
     if name != None:
       name_text = name.text if name.text else ""
     else:
-      logger.warn(f"No name is found for one of the properties in {path}, ignoring it")
+      logger.warning(f"No name is found for one of the properties in {path}, ignoring it")
       continue
 
     if value != None:
       value_text = value.text if value.text else ""
     else:
-      logger.warn(
+      logger.warning(
         f'No value is found for "{name_text}" in {path}, using empty string for it'
       )
       value_text = ""

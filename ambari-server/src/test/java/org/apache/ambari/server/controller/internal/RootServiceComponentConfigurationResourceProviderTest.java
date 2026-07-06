@@ -34,7 +34,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 
 import org.apache.ambari.server.api.services.RootServiceComponentConfigurationService;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorHelper;

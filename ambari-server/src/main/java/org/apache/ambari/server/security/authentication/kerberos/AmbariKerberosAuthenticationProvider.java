@@ -18,7 +18,7 @@
 
 package org.apache.ambari.server.security.authentication.kerberos;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.ambari.server.security.authentication.AmbariProxiedUserDetailsImpl;
 import org.apache.ambari.server.security.authentication.tproxy.TrustedProxyAuthenticationDetails;

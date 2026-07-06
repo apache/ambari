@@ -53,7 +53,7 @@ class AlertStatusReporter(threading.Thread):
     Run an endless loop which reports all the alert statuses got from collector
     """
     if self.alert_reports_interval == 0:
-      logger.warn(
+      logger.warning(
         "AlertStatusReporter is turned off. Some functionality might not work correctly."
       )
       return
@@ -142,7 +142,7 @@ class AlertStatusReporter(threading.Thread):
         ):
           changed_alerts.append(alert)
       else:
-        logger.warn(
+        logger.warning(
           "Cannot find alert definition for alert='{0}', alert_state='{1}'.".format(
             alert_name, alert_state
           )

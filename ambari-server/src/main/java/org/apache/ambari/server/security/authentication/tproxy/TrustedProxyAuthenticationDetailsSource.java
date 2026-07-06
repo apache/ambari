@@ -18,7 +18,7 @@
 
 package org.apache.ambari.server.security.authentication.tproxy;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.springframework.security.authentication.AuthenticationDetailsSource;
 

@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 
 import org.apache.ambari.server.orm.entities.AmbariConfigurationEntity;
 import org.easymock.Capture;

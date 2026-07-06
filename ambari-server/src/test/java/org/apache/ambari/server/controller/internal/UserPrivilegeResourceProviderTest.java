@@ -28,7 +28,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 
 import org.apache.ambari.server.configuration.AmbariServerConfiguration;
 import org.apache.ambari.server.controller.UserPrivilegeResponse;

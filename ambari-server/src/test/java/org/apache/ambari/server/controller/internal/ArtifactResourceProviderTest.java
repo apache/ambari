@@ -44,7 +44,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.Predicate;

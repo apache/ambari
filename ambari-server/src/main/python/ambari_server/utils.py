@@ -365,11 +365,6 @@ def check_reverse_lookup():
   return False
 
 
-def on_powerpc():
-  """True if we are running on a Power PC platform."""
-  return platform.processor() == "powerpc" or platform.machine().startswith("ppc")
-
-
 XML_HEADER = """<?xml version="1.0"?>
 <!--
    Licensed to the Apache Software Foundation (ASF) under one or more

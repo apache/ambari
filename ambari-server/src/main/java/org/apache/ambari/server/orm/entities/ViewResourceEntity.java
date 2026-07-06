@@ -21,18 +21,18 @@ package org.apache.ambari.server.orm.entities;
 import java.util.Arrays;
 import java.util.Collection;
 
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import jakarta.persistence.Basic;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
 /**
  * Represents a resource of a View.
  */
-@javax.persistence.IdClass(ViewResourceEntityPK.class)
+@jakarta.persistence.IdClass(ViewResourceEntityPK.class)
 @Table(name = "viewresource")
 @Entity
 public class ViewResourceEntity {

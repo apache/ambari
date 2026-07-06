@@ -23,8 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.UriInfo;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
@@ -66,7 +66,7 @@ public class ClusterStackVersionServiceTest extends BaseServiceTest {
   public void testGetRepositoryVersionService() {
     ClusterStackVersionService clusterStackVersionService = new TestClusterStackVersionService("cluster");
     RepositoryVersionService rvs =
-            clusterStackVersionService.getRepositoryVersionService(EasyMock.createMock(javax.ws.rs.core.Request.class), "1");
+            clusterStackVersionService.getRepositoryVersionService(EasyMock.createMock(jakarta.ws.rs.core.Request.class), "1");
     TestCase.assertNotNull(rvs);
   }
 

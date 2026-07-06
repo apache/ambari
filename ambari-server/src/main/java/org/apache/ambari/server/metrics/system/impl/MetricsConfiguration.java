@@ -124,4 +124,30 @@ public class MetricsConfiguration {
 
     return new MetricsConfiguration(subsetProperties);
   }
+
+  /**
+   * For enabling stompStats Metrics, append 'stats' in metric.sources.
+   * @return true if StompStatsMetricsSource is configured, false otherwise.
+   */
+  public static boolean isStompStatMetricsConfigured() {
+    MetricsConfiguration configuration = getMetricsConfiguration();
+    String commaSeparatedSources = configuration.getProperty("metric.sources");
+    if (StringUtils.isEmpty(commaSeparatedSources)) {
+      return false;
+    }
+
+    String[] sourceNames = commaSeparatedSources.split(",");
+    for (String sourceName : sourceNames) {
+      if (StringUtils.isEmpty(sourceName)) {
+        continue;
+      }
+      sourceName = sourceName.trim();
+
+      String className = configuration.getProperty("source." + sourceName + ".class");
+      if (className.equals(StompStatsMetricsSource.class.getName())) {
+        return true;
+      }
+    }
+    return false;
+  }
 }

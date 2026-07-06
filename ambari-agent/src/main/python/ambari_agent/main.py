@@ -174,7 +174,7 @@ def resolve_ambari_config():
       raise Exception(f"No config found at {configPath}, use default")
 
   except Exception as err:
-    logger.warn(err)
+    logger.warning(err)
 
 
 def check_sudo():
@@ -201,7 +201,7 @@ def check_sudo():
     )  # bad sudo configurations
 
   if run_time > 2:
-    logger.warn(
+    logger.warning(
       (
         "Sudo commands on this host are running slowly ('{0}' took {1} seconds).\n"
         + "This will create a significant slow down for ambari-agent service tasks."
@@ -515,7 +515,7 @@ def main(options, initializer_module, heartbeat_stop_callback=None):
         server_ip = socket.gethostbyname(server_hostname)
         logger.info("Connecting to Ambari server at %s (%s)", server_url, server_ip)
       except socket.error:
-        logger.warn(
+        logger.warning(
           "Unable to determine the IP address of the Ambari server '%s'",
           server_hostname,
         )

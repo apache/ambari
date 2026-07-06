@@ -20,7 +20,7 @@ package org.apache.ambari.server.api.services;
 
 import java.util.Collections;
 
-import javax.ws.rs.Path;
+import jakarta.ws.rs.Path;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;

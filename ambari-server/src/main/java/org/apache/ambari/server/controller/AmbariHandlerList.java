@@ -25,12 +25,12 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.inject.Inject;
-import javax.inject.Provider;
-import javax.inject.Singleton;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.inject.Inject;
+import jakarta.inject.Provider;
+import jakarta.inject.Singleton;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.ambari.server.api.AmbariErrorHandler;
 import org.apache.ambari.server.api.AmbariPersistFilter;
@@ -261,7 +261,6 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
     webAppContext.addFilter(new FilterHolder(persistFilter), "/*", AmbariServer.DISPATCHER_TYPES);
     webAppContext.addFilter(new FilterHolder(springSecurityFilter), "/*", AmbariServer.DISPATCHER_TYPES);
     webAppContext.setAllowNullPathInfo(true);
-
 
     if (webAppContext.getErrorHandler() != null) {
       ErrorHandler errorHandlerProxy = createAmbariViewErrorHandlerProxy(webAppContext.getErrorHandler());

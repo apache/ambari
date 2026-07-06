@@ -58,7 +58,10 @@ public class ThemeModule extends BaseModule<ThemeModule, ThemeInfo> implements V
       try {
         reader = new FileReader(themeFile);
       } catch (FileNotFoundException e) {
-        LOG.error("Theme file not found");
+        LOG.error("Theme file not found: {}", themeFile.getAbsolutePath());
+        setValid(false);
+        addError("Theme file not found: " + themeFile.getAbsolutePath());
+        return;
       }
       try {
         Theme theme = mapper.readValue(reader, Theme.class);
@@ -70,6 +73,14 @@ public class ThemeModule extends BaseModule<ThemeModule, ThemeInfo> implements V
         LOG.error("Unable to parse theme file ", e);
         setValid(false);
         addError("Unable to parse theme file " + themeFile);
+      } finally {
+        if (reader != null) {
+          try {
+            reader.close();
+          } catch (IOException e) {
+            LOG.warn("Failed to close theme file reader", e);
+          }
+        }
       }
     }
   }

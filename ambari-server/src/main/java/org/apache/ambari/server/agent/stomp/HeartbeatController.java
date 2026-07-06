@@ -27,7 +27,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import javax.ws.rs.WebApplicationException;
+import jakarta.ws.rs.WebApplicationException;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.AgentSessionManager;

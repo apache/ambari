@@ -123,7 +123,7 @@ class NetUtil:
         break
       else:
         if logger is not None:
-          logger.warn(
+          logger.warning(
             "Server at {0} is not reachable, sleeping for {1} seconds...".format(
               server_url, self.connect_retry_delay
             )

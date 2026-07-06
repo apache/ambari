@@ -48,7 +48,7 @@ from ambari_commons.logging_utils import (
 )
 from ambari_server.properties import Properties
 from ambari_server.userInput import get_validated_string_input
-from ambari_server.utils import compare_versions, locate_file, on_powerpc
+from ambari_server.utils import compare_versions, locate_file
 from ambari_server.ambariPath import AmbariPath
 from ambari_server.userInput import get_YN_input
 
@@ -208,10 +208,6 @@ JDK_RELEASES = "java.releases"
 class JavaHomeType(Enum):
   GLOBAL = JAVA_HOME_PROPERTY
   AMBARI = AMBARI_JAVA_HOME_PROPERTY
-
-
-if on_powerpc():
-  JDK_RELEASES += ".ppc64le"
 
 VIEWS_DIR_PROPERTY = "views.dir"
 

@@ -20,18 +20,19 @@
     <artifactId>ambari</artifactId>
     <version>${revision}</version>
   </parent>
-  <groupId>org.apache.ambari</groupId>
   <artifactId>ambari-project</artifactId>
   <description>Apache Ambari Project POM</description>
   <name>Apache Ambari Project POM</name>
   <packaging>pom</packaging>
   <properties>
+    <build.os_arch>x86_64</build.os_arch>
+    <skipSurefireTests>false</skipSurefireTests>
     <skipPythonTests>false</skipPythonTests>
     <skipFunctionalTests>true</skipFunctionalTests>
     <solr.version>5.5.2</solr.version>
     <ambari.dir>${project.parent.basedir}</ambari.dir>
     <powermock.version>2.0.9</powermock.version>
-    <jetty.version>9.4.12.v20180830</jetty.version>
+    <jetty.version>11.0.24</jetty.version>
     <ldap-api.version>1.0.0</ldap-api.version>
     <checkstyle.version>8.9</checkstyle.version>
     <swagger.version>1.6.8</swagger.version>
@@ -39,17 +40,17 @@
     <slf4j.version>2.0.0</slf4j.version>
     <reload4j.version>1.2.22</reload4j.version>
     <logback.version>1.2.13</logback.version>
-    <guice.version>5.1.0</guice.version>
-    <spring.version>5.3.22</spring.version>
-    <spring.security.version>5.7.8</spring.security.version>
+    <guice.version>7.0.0</guice.version>
+    <spring.version>6.0.23</spring.version>
+    <spring.security.version>6.0.8</spring.security.version>
     <fasterxml.jackson.version>2.18.2</fasterxml.jackson.version>
     <fasterxml.jackson.databind.version>2.18.2</fasterxml.jackson.databind.version>
-    <postgres.version>42.3.8</postgres.version>
+    <postgres.version>42.3.9</postgres.version>
     <testContainers.version>1.17.6</testContainers.version>
     <forkCount>4</forkCount>
     <reuseForks>false</reuseForks>
     <surefire.argLine>-Xmx1024m -Xms512m</surefire.argLine>
-    <jersey.version>2.41</jersey.version>
+    <jersey.version>3.1.5</jersey.version>
   </properties>
   <profiles>
     <profile>
@@ -225,7 +226,7 @@
       <dependency>
         <groupId>org.apache.derby</groupId>
         <artifactId>derby</artifactId>
-        <version>10.12.1.1</version>
+        <version>10.17.1.0</version>
       </dependency>
       <dependency>
         <groupId>org.springframework.security</groupId>
@@ -245,7 +246,7 @@
       <dependency>
         <groupId>org.springframework.security.kerberos</groupId>
         <artifactId>spring-security-kerberos-web</artifactId>
-        <version>1.0.1.RELEASE</version>
+        <version>2.1.0</version>
       </dependency>
       <dependency>
         <groupId>org.springframework</groupId>
@@ -407,7 +408,7 @@
       </dependency>
       <dependency>
         <groupId>org.eclipse.jetty.websocket</groupId>
-        <artifactId>websocket-server</artifactId>
+        <artifactId>websocket-jetty-server</artifactId>
         <version>${jetty.version}</version>
       </dependency>
       <dependency>
@@ -434,11 +435,6 @@
         <groupId>commons-lang</groupId>
         <artifactId>commons-lang</artifactId>
         <version>2.6</version>
-      </dependency>
-      <dependency>
-        <groupId>javax.servlet</groupId>
-        <artifactId>javax.servlet-api</artifactId>
-        <version>3.1.0</version>
       </dependency>
       <dependency>
         <groupId>org.glassfish.jersey.core</groupId>
@@ -536,6 +532,11 @@
       </dependency>
       <dependency>
         <groupId>org.springframework</groupId>
+        <artifactId>spring-beans</artifactId>
+        <version>${spring.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework</groupId>
         <artifactId>spring-context-support</artifactId>
         <version>${spring.version}</version>
       </dependency>
@@ -587,7 +588,7 @@
       <dependency>
         <groupId>org.codehaus.groovy</groupId>
         <artifactId>groovy-all</artifactId>
-        <version>2.1.8</version>
+        <version>2.4.21</version>
       </dependency>
       <dependency>
         <groupId>org.codehaus.groovy.modules.http-builder</groupId>
@@ -667,6 +668,9 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
+          <configuration>
+            <skip>${skipSurefireTests}</skip>
+          </configuration>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>

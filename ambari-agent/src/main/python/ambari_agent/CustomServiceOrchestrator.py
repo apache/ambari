@@ -147,7 +147,7 @@ class CustomServiceOrchestrator(object):
         log_process_information(logger)
         shell.kill_process_with_children(pid)
       else:
-        logger.warn(f"Unable to find process associated with taskId = {task_id}")
+        logger.warning(f"Unable to find process associated with taskId = {task_id}")
 
   def get_py_executor(self, forced_command_name):
     """

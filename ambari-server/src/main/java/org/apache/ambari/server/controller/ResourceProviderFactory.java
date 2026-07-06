@@ -19,7 +19,7 @@
 
 package org.apache.ambari.server.controller;
 
-import javax.inject.Named;
+import jakarta.inject.Named;
 
 import org.apache.ambari.server.controller.internal.AlertTargetResourceProvider;
 import org.apache.ambari.server.controller.internal.ClusterStackVersionResourceProvider;

@@ -293,12 +293,12 @@ public class ComponentsInstallationCheckTest {
     Mockito.when(hcsMetricsMonitor.getHostName()).thenReturn("host3");
 
     // Mock the static method
-    PowerMockito.when(HostComponentSummary.getHostComponentSummaries("HDFS", "NAMENODE")).thenReturn(Arrays.asList(hcsNameNode));
-    PowerMockito.when(HostComponentSummary.getHostComponentSummaries("HDFS", "DATANODE")).thenReturn(Arrays.asList(hcsDataNode1, hcsDataNode2, hcsDataNode3));
-    PowerMockito.when(HostComponentSummary.getHostComponentSummaries("HDFS", "ZKFC")).thenReturn(Arrays.asList(hcsZKFC));
-    PowerMockito.when(HostComponentSummary.getHostComponentSummaries("TEZ", "TEZ_CLIENT")).thenReturn(Arrays.asList(hcsTezClient));
-    PowerMockito.when(HostComponentSummary.getHostComponentSummaries("AMBARI_METRICS", "METRICS_COLLECTOR")).thenReturn(Arrays.asList(hcsMetricsCollector));
-    PowerMockito.when(HostComponentSummary.getHostComponentSummaries("AMBARI_METRICS", "METRICS_MONITOR")).thenReturn(Arrays.asList(hcsMetricsMonitor));
+    PowerMockito.when(HostComponentSummary.getHostComponentSummaries("HDFS", "NAMENODE")).thenAnswer(invocation -> Arrays.asList(hcsNameNode));
+    PowerMockito.when(HostComponentSummary.getHostComponentSummaries("HDFS", "DATANODE")).thenAnswer(invocation -> Arrays.asList(hcsDataNode1, hcsDataNode2, hcsDataNode3));
+    PowerMockito.when(HostComponentSummary.getHostComponentSummaries("HDFS", "ZKFC")).thenAnswer(invocation -> Arrays.asList(hcsZKFC));
+    PowerMockito.when(HostComponentSummary.getHostComponentSummaries("TEZ", "TEZ_CLIENT")).thenAnswer(invocation -> Arrays.asList(hcsTezClient));
+    PowerMockito.when(HostComponentSummary.getHostComponentSummaries("AMBARI_METRICS", "METRICS_COLLECTOR")).thenAnswer(invocation -> Arrays.asList(hcsMetricsCollector));
+    PowerMockito.when(HostComponentSummary.getHostComponentSummaries("AMBARI_METRICS", "METRICS_MONITOR")).thenAnswer(invocation -> Arrays.asList(hcsMetricsMonitor));
     for (String hostName : hosts.keySet()) {
       Mockito.when(clusters.getHost(hostName)).thenReturn(hosts.get(hostName));
     }

@@ -23,8 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.ws.rs.Path;
-
 import org.apache.ambari.annotations.SwaggerOverwriteNestedAPI;
 import org.apache.ambari.annotations.SwaggerPreferredParent;
 import org.apache.maven.plugin.logging.Log;
@@ -47,6 +45,7 @@ import io.swagger.models.Tag;
 import io.swagger.models.parameters.Parameter;
 import io.swagger.models.parameters.PathParameter;
 import io.swagger.models.properties.StringProperty;
+import jakarta.ws.rs.Path;
 
 /**
  * Customized {@link com.github.kongchen.swagger.docgen.reader.ClassSwaggerReader} implementation to

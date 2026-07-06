@@ -20,18 +20,18 @@ package org.apache.ambari.server.api.services;
 
 import java.util.Collections;
 
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.ActionResponse;
@@ -81,10 +81,10 @@ public class ActionService extends BaseService {
       @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
       @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
   })
-  public Response getActionDefinition(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                             @ApiParam(required = true) @PathParam("actionName") String actionName) {
+  public Response getActionDefinition(@Context HttpHeaders headers, @Context UriInfo ui,
+                                      @ApiParam(required = true) @PathParam("actionName") String actionName) {
 
-    return handleRequest(headers, body, ui, Request.Type.GET, createActionDefinitionResource(actionName));
+    return handleRequest(headers, null, ui, Request.Type.GET, createActionDefinitionResource(actionName));
   }
 
   /**
@@ -117,8 +117,8 @@ public class ActionService extends BaseService {
       @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
       @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
   })
-  public Response getActionDefinitions(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, body, ui, Request.Type.GET, createActionDefinitionResource(null));
+  public Response getActionDefinitions(@Context HttpHeaders headers, @Context UriInfo ui) {
+    return handleRequest(headers, null, ui, Request.Type.GET, createActionDefinitionResource(null));
   }
 
   /**

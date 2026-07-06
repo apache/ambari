@@ -19,17 +19,17 @@ package org.apache.ambari.server.api.services;
 
 import java.util.Collections;
 
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.MpackResponse.MpackResponseWrapper;
@@ -64,7 +64,6 @@ public class MpacksService extends BaseService {
    *
    * @param headers http headers
    * @param ui      uri info
-   * @param body    request body
    * @return All the existing mpack definitions
    *
    */
@@ -91,9 +90,8 @@ public class MpacksService extends BaseService {
     @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
     @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
-  public Response getMpacks(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, body, ui, Request.Type.GET,
-            createMpackResource(null));
+  public Response getMpacks(@Context HttpHeaders headers, @Context UriInfo ui) {
+    return handleRequest(headers, null, ui, Request.Type.GET, createMpackResource(null));
   }
 
   /**
@@ -145,11 +143,9 @@ public class MpacksService extends BaseService {
     @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
     @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
-  public Response getMpack(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-    @PathParam("id") String id) {
+  public Response getMpack(@Context HttpHeaders headers, @Context UriInfo ui, @PathParam("id") String id) {
 
-    return handleRequest(headers, body, ui, Request.Type.GET,
-            createMpackResource(id));
+    return handleRequest(headers, null, ui, Request.Type.GET, createMpackResource(id));
   }
 
   @DELETE

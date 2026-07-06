@@ -2,16 +2,16 @@ package org.apache.ambari.server.api.services;
 
 import java.util.Collections;
 
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriInfo;
 
 import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.api.resources.ResourceInstance;
@@ -48,16 +48,16 @@ public class KerberosDescriptorService extends BaseService {
    */
   @GET @ApiIgnore // until documented
   @Produces("text/plain")
-  public Response getKerberosDescriptors(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, body, ui, Request.Type.GET, createKerberosDescriptorResource(null));
+  public Response getKerberosDescriptors(@Context HttpHeaders headers, @Context UriInfo ui) {
+    return handleRequest(headers, null, ui, Request.Type.GET, createKerberosDescriptorResource(null));
   }
 
   @GET @ApiIgnore // until documented
   @Path("{kerberosDescriptorName}")
   @Produces("text/plain")
-  public Response getKerberosDescriptor(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+  public Response getKerberosDescriptor(@Context HttpHeaders headers, @Context UriInfo ui,
                                         @PathParam("kerberosDescriptorName") String kerberosDescriptorName) {
-    return handleRequest(headers, body, ui, Request.Type.GET, createKerberosDescriptorResource(kerberosDescriptorName));
+    return handleRequest(headers, null, ui, Request.Type.GET, createKerberosDescriptorResource(kerberosDescriptorName));
   }
 
   @POST @ApiIgnore // until documented

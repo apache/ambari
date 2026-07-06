@@ -709,9 +709,9 @@ def kill_process_with_children(base_pid):
   if (
     get_existing_pids(all_child_pids) and error_log
   ):  # we're unable to kill all requested PIDs
-    _logger.warn("Process termination error log:\n")
+    _logger.warning("Process termination error log:\n")
     for error_item in error_log:
-      _logger.warn(
+      _logger.warning(
         f"PID: {error_item[0]}, Process: {error_item[1]}, Exception message: {error_item[2]}"
       )
 
@@ -842,7 +842,7 @@ class shellRunnerWindows(shellRunner):
   # Run any command
   def run(self, script, user=None):
     global _logger
-    _logger.warn("user argument ignored on windows")
+    _logger.warning("user argument ignored on windows")
     code = 0
     if isinstance(script, list):
       cmd = " ".join(script)
@@ -862,7 +862,7 @@ class shellRunnerWindows(shellRunner):
 
   def runPowershell(self, f=None, script_block=None, args=set()):
     global _logger
-    _logger.warn("user argument ignored on windows")
+    _logger.warning("user argument ignored on windows")
 
     cmd = None
     if f:
@@ -894,7 +894,7 @@ class shellRunnerLinux(shellRunner):
       if self._threadLocal is not None:
         os.setuid(self._threadLocal.uid)
     except Exception as e:
-      _logger.warn(f"Unable to switch user for running command. Error details: {e}")
+      _logger.warning(f"Unable to switch user for running command. Error details: {e}")
 
   # Run any command
   def run(self, script, user=None):
@@ -908,7 +908,7 @@ class shellRunnerLinux(shellRunner):
       if self._threadLocal is not None:
         self._threadLocal.uid = user
     except Exception as e:
-      _logger.warn(f"Unable to switch user for RUN_COMMAND. Error details: {e}")
+      _logger.warning(f"Unable to switch user for RUN_COMMAND. Error details: {e}")
 
     cmd = script
 

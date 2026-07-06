@@ -37,7 +37,8 @@ var urls = {
     'mock': '/data/wizard/deploy/poll_1.json',
     'format': function (data) {
       return {
-        data: JSON.stringify(data.data)
+        data: JSON.stringify(data.data),
+        dataType: 'text'
       };
     }
   },

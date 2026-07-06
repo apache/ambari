@@ -56,7 +56,7 @@ class ComponentStatusExecutor(threading.Thread):
     Run an endless loop which executes all status commands every 'status_commands_run_interval' seconds.
     """
     if self.status_commands_run_interval == 0:
-      self.logger.warn(
+      self.logger.warning(
         "ComponentStatusExecutor is turned off. Some functionality might not work correctly."
       )
       return

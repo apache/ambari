@@ -185,7 +185,7 @@ def _get_disk_usage(path=None):
   free = 0
   drives = []
   bitmask = ctypes.windll.kernel32.GetLogicalDrives()
-  for letter in string.uppercase:
+  for letter in string.ascii_uppercase:
     if bitmask & 1:
       drives.append(letter)
     bitmask >>= 1

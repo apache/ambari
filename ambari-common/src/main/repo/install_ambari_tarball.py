@@ -199,7 +199,7 @@ class Installer:
     if packages_string is None:
       err_msg = "No os dependencies found. "
       if self.skip_dependencies:
-        logger.warn(err_msg)
+        logger.warning(err_msg)
       else:
         raise Exception(err_msg)
 

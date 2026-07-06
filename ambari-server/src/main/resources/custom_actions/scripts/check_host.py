@@ -371,7 +371,8 @@ class CheckHost(Script):
     ambari_server_hostname = config["commandParams"]["ambari_server_host"]
     check_db_connection_jar_name = "DBConnectionVerification.jar"
     jdk_location = config["commandParams"]["jdk_location"]
-    java_home = config["commandParams"]["java_home"]
+    ambari_java_home = config["ambariLevelParams"]["ambari_java_home"]
+    java_home = ambari_java_home
     db_name = config["commandParams"]["db_name"]
     no_jdbc_error_message = None
 
@@ -596,7 +597,7 @@ class CheckHost(Script):
 
     if isinstance(db_connection_check_command, str):
       code, out = shell.call(
-        split(db_connection_check_command, comments=True), shell=False
+        split(db_connection_check_command, comments=True), shell=False, quiet=True
       )
     else:
       code, out = shell.call(db_connection_check_command, shell=False)

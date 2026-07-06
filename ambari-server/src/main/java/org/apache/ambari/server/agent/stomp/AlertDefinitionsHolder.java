@@ -25,9 +25,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
-import javax.inject.Inject;
-import javax.inject.Provider;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Provider;
+import jakarta.inject.Singleton;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.AmbariRuntimeException;

@@ -26,11 +26,11 @@ import static org.easymock.EasyMock.verify;
 
 import java.util.Collections;
 
-import javax.persistence.EntityManager;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.persistence.EntityManager;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.configuration.AmbariServerConfiguration;

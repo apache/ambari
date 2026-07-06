@@ -17,9 +17,12 @@
  */
 package org.apache.ambari.server.configuration.spring;
 
+import java.util.Arrays;
+
 import org.apache.ambari.server.security.AmbariEntryPoint;
 import org.apache.ambari.server.security.authentication.AmbariDelegatingAuthenticationFilter;
 import org.apache.ambari.server.security.authentication.AmbariLocalAuthenticationProvider;
+import org.apache.ambari.server.security.authentication.RequestBodyCachingFilter;
 import org.apache.ambari.server.security.authentication.jwt.AmbariJwtAuthenticationProvider;
 import org.apache.ambari.server.security.authentication.kerberos.AmbariAuthToLocalUserDetailsService;
 import org.apache.ambari.server.security.authentication.kerberos.AmbariKerberosAuthenticationProvider;
@@ -35,10 +38,11 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
@@ -46,7 +50,7 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 @EnableWebSecurity
 @Import(GuiceBeansConfig.class)
 @ComponentScan("org.apache.ambari.server.security")
-public class ApiSecurityConfig extends WebSecurityConfigurerAdapter{
+public class ApiSecurityConfig {
 
   private final GuiceBeansConfig guiceBeansConfig;
 
@@ -57,55 +61,51 @@ public class ApiSecurityConfig extends WebSecurityConfigurerAdapter{
   @Autowired
   private AmbariAuthorizationFilter authorizationFilter;
 
-  public ApiSecurityConfig(GuiceBeansConfig guiceBeansConfig) {
+  public ApiSecurityConfig(GuiceBeansConfig guiceBeansConfig){
     this.guiceBeansConfig = guiceBeansConfig;
   }
 
-  @Autowired
-  public void configureAuthenticationManager(AuthenticationManagerBuilder auth,
-                                             AmbariJwtAuthenticationProvider ambariJwtAuthenticationProvider,
-                                             AmbariPamAuthenticationProvider ambariPamAuthenticationProvider,
-                                             AmbariLocalAuthenticationProvider ambariLocalAuthenticationProvider,
-                                             AmbariLdapAuthenticationProvider ambariLdapAuthenticationProvider,
-                                             AmbariInternalAuthenticationProvider ambariInternalAuthenticationProvider,
-                                             AmbariKerberosAuthenticationProvider ambariKerberosAuthenticationProvider
-  ) {
-    auth.authenticationProvider(ambariJwtAuthenticationProvider)
-        .authenticationProvider(ambariPamAuthenticationProvider)
-        .authenticationProvider(ambariLocalAuthenticationProvider)
-        .authenticationProvider(ambariLdapAuthenticationProvider)
-        .authenticationProvider(ambariInternalAuthenticationProvider)
-        .authenticationProvider(ambariKerberosAuthenticationProvider);
-  }
-
-  @Override
   @Bean
-  public AuthenticationManager authenticationManagerBean() throws Exception {
-    return super.authenticationManagerBean();
-  }
-
-  @Override
-  protected void configure(HttpSecurity http) throws Exception {
+  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http.csrf().disable()
-        .authorizeRequests().anyRequest().authenticated()
-        .and()
-        .headers().httpStrictTransportSecurity().disable()
-        .frameOptions().disable().and()
-        .exceptionHandling().authenticationEntryPoint(ambariEntryPoint)
-        .and()
-        .addFilterBefore(guiceBeansConfig.ambariUserAuthorizationFilter(), BasicAuthenticationFilter.class)
-        .addFilterAt(delegatingAuthenticationFilter, BasicAuthenticationFilter.class)
-        .addFilterBefore(authorizationFilter, FilterSecurityInterceptor.class);
+            .authorizeHttpRequests(authz -> authz.anyRequest().authenticated())
+            .headers(headers -> headers.httpStrictTransportSecurity().disable().frameOptions().disable())
+            .exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(ambariEntryPoint))
+            .sessionManagement(sessionManagement -> sessionManagement
+                    .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+            .addFilterBefore(new RequestBodyCachingFilter(), BasicAuthenticationFilter.class)
+            .addFilterBefore(guiceBeansConfig.ambariUserAuthorizationFilter(), BasicAuthenticationFilter.class)
+            .addFilterAt(delegatingAuthenticationFilter, BasicAuthenticationFilter.class)
+            .addFilterBefore(authorizationFilter, FilterSecurityInterceptor.class);
+    return http.build();
   }
 
+  @Bean
+  public AuthenticationManager authenticationManager(
+          AmbariJwtAuthenticationProvider ambariJwtAuthenticationProvider,
+          AmbariPamAuthenticationProvider ambariPamAuthenticationProvider,
+          AmbariLocalAuthenticationProvider ambariLocalAuthenticationProvider,
+          AmbariLdapAuthenticationProvider ambariLdapAuthenticationProvider,
+          AmbariInternalAuthenticationProvider ambariInternalAuthenticationProvider,
+          AmbariKerberosAuthenticationProvider ambariKerberosAuthenticationProvider) {
+    return new ProviderManager(Arrays.asList(
+            ambariJwtAuthenticationProvider,
+            ambariPamAuthenticationProvider,
+            ambariLocalAuthenticationProvider,
+            ambariLdapAuthenticationProvider,
+            ambariInternalAuthenticationProvider,
+            ambariKerberosAuthenticationProvider
+    ));
+  }
+  
   @Bean
   public AmbariKerberosAuthenticationProvider ambariKerberosAuthenticationProvider(
-      AmbariKerberosTicketValidator ambariKerberosTicketValidator,
-      AmbariAuthToLocalUserDetailsService authToLocalUserDetailsService,
-      AmbariProxiedUserDetailsService proxiedUserDetailsService) {
+          AmbariKerberosTicketValidator ambariKerberosTicketValidator,
+          AmbariAuthToLocalUserDetailsService authToLocalUserDetailsService,
+          AmbariProxiedUserDetailsService proxiedUserDetailsService) {
 
     return new AmbariKerberosAuthenticationProvider(authToLocalUserDetailsService,
-        proxiedUserDetailsService,
-        ambariKerberosTicketValidator);
+            proxiedUserDetailsService,
+            ambariKerberosTicketValidator);
   }
 }

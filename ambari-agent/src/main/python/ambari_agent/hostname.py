@@ -64,7 +64,7 @@ def hostname(config):
           f"Read hostname '{cached_hostname}' using agent:hostname_script '{scriptname}'"
         )
       else:
-        logger.warn(
+        logger.warning(
           f"Execution of '{scriptname}' failed with exit code {osStat.returncode}. err='{err.strip()}'\nout='{out.strip()}'"
         )
         cached_hostname = socket.getfqdn()
@@ -73,7 +73,7 @@ def hostname(config):
         )
     except:
       cached_hostname = socket.getfqdn()
-      logger.warn(
+      logger.warning(
         f"Unexpected error while retrieving hostname: '{sys.exc_info()}', defaulting to socket.getfqdn()"
       )
       logger.info(f"Read hostname '{cached_hostname}' using socket.getfqdn().")
@@ -114,7 +114,7 @@ def public_hostname(config):
         )
         return cached_public_hostname
       else:
-        logger.warn(
+        logger.warning(
           f"Execution of '{scriptname}' returned {output.returncode}. {err.strip()}\n{out.strip()}"
         )
   except:

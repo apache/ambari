@@ -24,7 +24,7 @@ import static org.easymock.EasyMock.reset;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.KerberosKeytabEntity;

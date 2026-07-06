@@ -21,17 +21,17 @@ package org.apache.ambari.server.api.services;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.HostResponse;
@@ -101,11 +101,9 @@ public class HostService extends BaseService {
     @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
     @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
-  public Response getHost(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-    @ApiParam(value = "host name", required = true) @PathParam("hostName") String hostName
-  ) {
-    return handleRequest(headers, body, ui, Request.Type.GET,
-        createHostResource(m_clusterName, hostName));
+  public Response getHost(@Context HttpHeaders headers, @Context UriInfo ui,
+                          @ApiParam(value = "host name", required = true) @PathParam("hostName") String hostName) {
+    return handleRequest(headers, null, ui, Request.Type.GET, createHostResource(m_clusterName, hostName));
   }
 
   /**
@@ -134,9 +132,8 @@ public class HostService extends BaseService {
     @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
     @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
-  public Response getHosts(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, body, ui, Request.Type.GET,
-        createHostResource(m_clusterName, null));
+  public Response getHosts(@Context HttpHeaders headers, @Context UriInfo ui) {
+    return handleRequest(headers, null, ui, Request.Type.GET, createHostResource(m_clusterName, null));
   }
 
   /**
@@ -358,7 +355,7 @@ public class HostService extends BaseService {
    */
   @Path("{hostName}/alert_history")
   public AlertHistoryService getAlertHistoryService(
-      @Context javax.ws.rs.core.Request request,
+      @Context jakarta.ws.rs.core.Request request,
       @PathParam("hostName") String hostName) {
 
     return new AlertHistoryService(m_clusterName, null, hostName);
@@ -372,7 +369,7 @@ public class HostService extends BaseService {
    * @return the host stack versions service
    */
   @Path("{hostName}/stack_versions")
-  public HostStackVersionService getHostStackVersionService(@Context javax.ws.rs.core.Request request,
+  public HostStackVersionService getHostStackVersionService(@Context jakarta.ws.rs.core.Request request,
       @PathParam("hostName") String hostName) {
 
     return new HostStackVersionService(hostName, m_clusterName);

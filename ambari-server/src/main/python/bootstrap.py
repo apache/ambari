@@ -1101,7 +1101,7 @@ class BootstrapDefault(Bootstrap):
           "at {0}. Please delete it manually".format(self.getPasswordFile())
         )
         self.host_log.write(message)
-        logging.warn(message)
+        logging.warning(message)
 
     self.createDoneFile(last_retcode)
     self.status["return_code"] = last_retcode
@@ -1139,7 +1139,7 @@ class PBootstrap:
           elapsedtime = time.time() - starttime
           if elapsedtime > HOST_BOOTSTRAP_TIMEOUT:
             # bootstrap timed out
-            logging.warn(
+            logging.warning(
               f"Bootstrap at host {bootstrap.host} timed out and will be interrupted"
             )
             bootstrap.interruptBootstrap()

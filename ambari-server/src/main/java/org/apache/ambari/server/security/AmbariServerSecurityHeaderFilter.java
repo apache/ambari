@@ -18,7 +18,7 @@
 
 package org.apache.ambari.server.security;
 
-import javax.servlet.ServletRequest;
+import jakarta.servlet.ServletRequest;
 
 import org.apache.ambari.server.configuration.Configuration;
 

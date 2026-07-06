@@ -261,7 +261,10 @@ class Context(object):
 
 # register the context as mapping if possible
 try:
-  from collections import Mapping
+  try:
+    from collections.abc import Mapping
+  except ImportError:
+    from collections import Mapping
 
   Mapping.register(Context)
 except ImportError:

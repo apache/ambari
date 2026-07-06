@@ -38,7 +38,7 @@
 #
 #
 
-{% for key, value in zoo_cfg_properties_map.iteritems() -%}
+{% for key, value in zoo_cfg_properties_map.items() -%}
   {{key}}={{value}}
 {% endfor %}
 {% for host in zookeeper_hosts -%}

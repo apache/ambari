@@ -77,7 +77,7 @@ class PortAlert(BaseAlert):
 
     # check warning threshold for sanity
     if self.warning_timeout >= 30:
-      logger.warn(
+      logger.warning(
         "[Alert][{0}] The warning threshold of {1}s is too large, resetting to {2}s".format(
           self.get_name(), str(self.warning_timeout), str(DEFAULT_WARNING_TIMEOUT)
         )
@@ -87,7 +87,7 @@ class PortAlert(BaseAlert):
 
     # check critical threshold for sanity
     if self.critical_timeout >= 30:
-      logger.warn(
+      logger.warning(
         "[Alert][{0}] The critical threshold of {1}s is too large, resetting to {2}s".format(
           self.get_name(), str(self.critical_timeout), str(DEFAULT_CRITICAL_TIMEOUT)
         )

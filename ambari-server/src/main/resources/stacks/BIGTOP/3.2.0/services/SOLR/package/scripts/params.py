@@ -85,9 +85,12 @@ solr_user_nproc_limit = default(
 
 # shared configs
 java_home = config["ambariLevelParams"]["java_home"]
-ambari_java_home = default("/ambariLevelParams/ambari_java_home", None)
-java64_home = ambari_java_home if ambari_java_home is not None else java_home
+ambari_java_home = config['ambariLevelParams']['ambari_java_home']
+ambari_java_exec = format("{ambari_java_home}/bin/java")
+
+java64_home = java_home
 java_exec = format("{java64_home}/bin/java")
+
 zookeeper_hosts_list = config["clusterHostInfo"]["zookeeper_server_hosts"]
 zookeeper_hosts_list.sort()
 # get comma separated list of zookeeper hosts from clusterHostInfo
