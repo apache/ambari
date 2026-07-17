@@ -243,55 +243,68 @@ App.QueueAdapter = DS.Adapter.extend({
     },'App: QueueAdapter#findAllTagged ' + tag);
   },
 
-  getNodeLabels:function (store) {
-    var uri = [_getCapacitySchedulerViewUri(this),'nodeLabels'].join('/');
-    var stackId = store.get('stackId'),
-    stackVersion = stackId.substr(stackId.indexOf('-') + 1);
+  getNodeLabels: function (store) {
+    var uri = [_getCapacitySchedulerViewUri(this), 'nodeLabels'].join('/'),
+        adapter = this;
 
     if (App.testMode)
       uri = uri + ".json";
 
-    return new Ember.RSVP.Promise(function(resolve, reject) {
-      _ajax(uri,'GET').then(function(data) {
-        var parsedData;
-        
-        try {
-          parsedData = JSON.parse(data);
-        } catch(e) {
-          console.warn('Failed to parse node labels data:', e);
-          parsedData = null;
-        }
-
-        if (parsedData !== null) {
-          store.set('isNodeLabelsConfiguredByRM', true);
-        } else {
-          store.set('isNodeLabelsConfiguredByRM', false);
-        }
-
-        if (stackVersion >= 2.5) {
-          if (parsedData && Em.isArray(parsedData.nodeLabelInfo)) {
-            labels = parsedData.nodeLabelInfo;
-          } else {
-            labels = (parsedData && parsedData.nodeLabelInfo)?[parsedData.nodeLabelInfo]:[];
-          }
-          Ember.run(null, resolve, labels.map(function (label) {
-            return {name:label.name,exclusivity:label.exclusivity};
-          }));
-        } else {
-          if (parsedData && Em.isArray(parsedData.nodeLabels)) {
-            labels = parsedData.nodeLabels;
-          } else {
-            labels = (parsedData && parsedData.nodeLabels)?[parsedData.nodeLabels]:[];
-          }
-          Ember.run(null, resolve, labels.map(function (label) {
-            return {name:label};
-          }));
-        }
-      }, function(jqXHR) {
+    return new Ember.RSVP.Promise(function (resolve, reject) {
+      _ajax(uri, 'GET').then(function (data) {
+        var result = adapter.parseNodeLabels(data);
+        store.set('isNodeLabelsConfiguredByRM', result.configured);
+        Ember.run(null, resolve, result.labels);
+      }, function (jqXHR) {
         jqXHR.then = null;
         Ember.run(null, reject, jqXHR);
       });
-    }.bind(this),'App: QueueAdapter#getNodeLabels');
+    }.bind(this), 'App: QueueAdapter#getNodeLabels');
+  },
+
+  /**
+   * Normalizes the ResourceManager node-label response into a flat list.
+   *
+   * Tolerates a JSON string or an already-parsed object, the optional
+   * `nodeLabelsInfo` wrapper, both the current `nodeLabelInfo` and the legacy
+   * `nodeLabels` shapes, and a single label object instead of an array.
+   * `exclusivity` is coerced to a real Boolean (Boolean or the strings
+   * "true"/"false"). The response format is derived from the payload shape,
+   * not from the stack version.
+   *
+   * @param  {String|Object} data  raw ResourceManager response
+   * @return {{configured: Boolean, labels: Array}}
+   */
+  parseNodeLabels: function (data) {
+    var parsedData;
+
+    try {
+      parsedData = (typeof data === 'string') ? JSON.parse(data) : data;
+    } catch (e) {
+      console.warn('Failed to parse node labels data:', e);
+      parsedData = null;
+    }
+
+    var configured = (parsedData !== null && parsedData !== undefined),
+        labels = [];
+
+    if (parsedData && parsedData.nodeLabelsInfo) {
+      parsedData = parsedData.nodeLabelsInfo;
+    }
+
+    if (parsedData && parsedData.nodeLabelInfo) {
+      labels = Em.isArray(parsedData.nodeLabelInfo) ? parsedData.nodeLabelInfo : [parsedData.nodeLabelInfo];
+      labels = labels.map(function (label) {
+        return { name: label.name, exclusivity: label.exclusivity === true || label.exclusivity === 'true' };
+      });
+    } else if (parsedData && parsedData.nodeLabels) {
+      labels = Em.isArray(parsedData.nodeLabels) ? parsedData.nodeLabels : [parsedData.nodeLabels];
+      labels = labels.map(function (label) {
+        return { name: (label && label.name !== undefined) ? label.name : label };
+      });
+    }
+
+    return { configured: configured, labels: labels };
   },
 
   getPrivilege:function () {
