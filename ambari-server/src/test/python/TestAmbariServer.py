@@ -8736,7 +8736,7 @@ class TestAmbariServer(TestCase):
 
     self.assertEqual(url, str(request.get_full_url()))
     self.assertEqual(
-      '[{"Event": {"specs": [{"principal_type": "users", "sync_type": "all"}, {"principal_type": "groups", "sync_type": "all"}]}}]',
+      b'[{"Event": {"specs": [{"principal_type": "users", "sync_type": "all"}, {"principal_type": "groups", "sync_type": "all"}]}}]',
       request.data,
     )
 
@@ -8791,7 +8791,7 @@ class TestAmbariServer(TestCase):
 
     self.assertEqual(url, str(request.get_full_url()))
     self.assertEqual(
-      '[{"Event": {"specs": [{"principal_type": "users", "sync_type": "all", "post_process_existing_users": "true"}, {"principal_type": "groups", "sync_type": "all", "post_process_existing_users": "true"}]}}]',
+      b'[{"Event": {"specs": [{"principal_type": "users", "sync_type": "all", "post_process_existing_users": "true"}, {"principal_type": "groups", "sync_type": "all", "post_process_existing_users": "true"}]}}]',
       request.data,
     )
 
@@ -8852,7 +8852,7 @@ class TestAmbariServer(TestCase):
     request = urlopen_mock.call_args_list[0][0][0]
 
     self.assertEqual(
-      '[{"Event": {"specs": [{"principal_type": "users", "sync_type": "specific", "names": "bob, tom"}]}}]',
+      b'[{"Event": {"specs": [{"principal_type": "users", "sync_type": "specific", "names": "bob, tom"}]}}]',
       request.data,
     )
 
@@ -8913,7 +8913,7 @@ class TestAmbariServer(TestCase):
     request = urlopen_mock.call_args_list[0][0][0]
 
     self.assertEqual(
-      '[{"Event": {"specs": [{"principal_type": "users", "sync_type": "specific", "names": "bob, tom", "post_process_existing_users": "true"}]}}]',
+      b'[{"Event": {"specs": [{"principal_type": "users", "sync_type": "specific", "names": "bob, tom", "post_process_existing_users": "true"}]}}]',
       request.data,
     )
 
@@ -8974,7 +8974,7 @@ class TestAmbariServer(TestCase):
     request = urlopen_mock.call_args_list[0][0][0]
 
     self.assertEqual(
-      '[{"Event": {"specs": [{"principal_type": "groups", "sync_type": "specific", "names": "group1, group2"}]}}]',
+      b'[{"Event": {"specs": [{"principal_type": "groups", "sync_type": "specific", "names": "group1, group2"}]}}]',
       request.data,
     )
 
@@ -9035,7 +9035,7 @@ class TestAmbariServer(TestCase):
     request = urlopen_mock.call_args_list[0][0][0]
 
     self.assertEqual(
-      '[{"Event": {"specs": [{"principal_type": "groups", "sync_type": "specific", "names": "group1, group2", "post_process_existing_users": "true"}]}}]',
+      b'[{"Event": {"specs": [{"principal_type": "groups", "sync_type": "specific", "names": "group1, group2", "post_process_existing_users": "true"}]}}]',
       request.data,
     )
 
@@ -9141,7 +9141,7 @@ class TestAmbariServer(TestCase):
     request = urlopen_mock.call_args_list[0][0][0]
 
     self.assertEqual(
-      '[{"Event": {"specs": [{"principal_type": "users", "sync_type": "existing"}, {"principal_type": "groups", "sync_type": "existing"}]}}]',
+      b'[{"Event": {"specs": [{"principal_type": "users", "sync_type": "existing"}, {"principal_type": "groups", "sync_type": "existing"}]}}]',
       request.data,
     )
 
@@ -9194,7 +9194,7 @@ class TestAmbariServer(TestCase):
     request = urlopen_mock.call_args_list[0][0][0]
 
     self.assertEqual(
-      '[{"Event": {"specs": [{"principal_type": "users", "sync_type": "existing", "post_process_existing_users": "true"}, {"principal_type": "groups", "sync_type": "existing", "post_process_existing_users": "true"}]}}]',
+      b'[{"Event": {"specs": [{"principal_type": "users", "sync_type": "existing", "post_process_existing_users": "true"}, {"principal_type": "groups", "sync_type": "existing", "post_process_existing_users": "true"}]}}]',
       request.data,
     )
 
