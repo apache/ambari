@@ -944,8 +944,8 @@ public class AmbariMetaInfo {
 
       Gson gson = new Gson();
 
-      try {
-        map = gson.fromJson(new FileReader(svc.getMetricsFile()), type);
+      try (FileReader reader = new FileReader(svc.getMetricsFile())) {
+        map = gson.fromJson(reader, type);
 
         svc.setMetrics(processMetricDefinition(map));
 
