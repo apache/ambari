@@ -95,7 +95,7 @@
     <ehcache.version>3.10.0</ehcache.version>
     <nimbus.jose.jwt.version>5.9</nimbus.jose.jwt.version>
     <jsch.version>0.1.54</jsch.version>
-    <c3p0.version>0.9.5.4</c3p0.version>
+    <c3p0.version>[0.14.0]</c3p0.version>
     <metrics.core.version>3.1.0</metrics.core.version>
     <metrics.jvm.version>3.1.0</metrics.jvm.version>
     <libpam4j.version>1.10</libpam4j.version>
@@ -2023,7 +2023,7 @@
     <dependency>
       <groupId>com.mchange</groupId>
       <artifactId>c3p0</artifactId>
-      <version>[${c3p0.version}]</version>
+      <version>[${c3p0.version}</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
