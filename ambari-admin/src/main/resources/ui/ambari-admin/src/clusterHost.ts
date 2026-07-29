@@ -1,4 +1,4 @@
-// export const DEV_VITE_API_PROXY_TARGET="http://sl73tskrapd1164.visa.com:8080"
+// export const DEV_VITE_API_PROXY_TARGET="http://host_name:8080"
 // export const PROD_VITE_API_PROXY_TARGET=""
 
 // // # When setting up the project, make sure to set the TOKEN environment variable.

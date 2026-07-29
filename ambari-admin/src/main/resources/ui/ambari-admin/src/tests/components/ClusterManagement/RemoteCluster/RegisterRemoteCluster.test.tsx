@@ -138,7 +138,7 @@ describe("RegisterRemoteCluster component", () => {
     fireEvent.change(getClusterName(), { target: { value: "TestCluster1" } });
     fireEvent.change(getClusterUrl(), {
       target: {
-        value: "http://clusterHost.visa.com:8080/api/v1/clusters/clusterName",
+        value: "http://clusterHost:8080/api/v1/clusters/clusterName",
       },
     });
     fireEvent.change(getClusterUserName(), { target: { value: "admin" } });
@@ -163,7 +163,7 @@ describe("RegisterRemoteCluster component", () => {
     fireEvent.change(getClusterName(), { target: { value: "TestCluster1" } });
     fireEvent.change(getClusterUrl(), {
       target: {
-        value: "http://clusterHost.visa.com:8080/api/v1/clusters/clusterName",
+        value: "http://clusterHost:8080/api/v1/clusters/clusterName",
       },
     });
     fireEvent.change(getClusterUserName(), { target: { value: "admin" } });
