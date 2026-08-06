@@ -262,7 +262,7 @@ def perform_changes_via_rest_api(
   request.add_header("Authorization", f"Basic {admin_auth}")
   request.add_header("X-Requested-By", "ambari")
   if request_data is not None:
-    request.data = json.dumps(request_data)
+    request.data = json.dumps(request_data).encode("utf-8")
   request.get_method = lambda: get_method
 
   with closing(

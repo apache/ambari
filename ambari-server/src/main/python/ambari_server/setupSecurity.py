@@ -626,7 +626,7 @@ def sync_ldap(options):
   if get_verbose():
     sys.stdout.write("\nCalling API " + url + " : " + str(bodies) + "\n")
 
-  request.data = json.dumps(bodies)
+  request.data = json.dumps(bodies).encode("utf-8")
   request.get_method = lambda: "POST"
 
   try:
@@ -646,7 +646,7 @@ def sync_ldap(options):
   request.add_header("Authorization", f"Basic {admin_auth}")
   request.add_header("X-Requested-By", "ambari")
   body = [{"LDAP": {"synced_groups": "*", "synced_users": "*"}}]
-  request.data = json.dumps(body)
+  request.data = json.dumps(body).encode("utf-8")
   request.get_method = lambda: "GET"
   request_in_progress = True
 
