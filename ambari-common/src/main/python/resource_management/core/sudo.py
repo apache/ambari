@@ -139,7 +139,7 @@ if os.geteuid() == 0:
       raise
 
   def makedir(path, mode):
-    os.mkdir(path)
+    os.mkdir(path, mode)
 
   def symlink(source, link_name):
     os.symlink(source, link_name)
