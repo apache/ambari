@@ -50,7 +50,13 @@ const SideBar = ({
   isSidebarCollapsed,
   setIsSidebarCollapsed,
 }: SideBarProps) => {
-  const { clusterName, services: contextServices, upgradeInProgress, upgradeHolding } = useContext(AppContext);
+  const {
+    clusterName,
+    services: contextServices,
+    supports,
+    upgradeHolding,
+    upgradeInProgress,
+  } = useContext(AppContext);
   const [openOptions, setOpenOptions] = useState<string[]>([SideItemLabels.SERVICES]);
   const [selectedOption, setSelectedOption] = useState<string>("");
   const { allServiceModels  } = useContext(ServiceContext);
@@ -60,7 +66,12 @@ const SideBar = ({
   const { hasAuthorization } = useAuth();
   
   // Get authorization-aware sidebar items using computed upgrade properties
-  const authorizedSideItemList = getSideItemList(hasAuthorization, upgradeInProgress, upgradeHolding);
+  const authorizedSideItemList = getSideItemList(
+    hasAuthorization,
+    supports,
+    upgradeInProgress,
+    upgradeHolding,
+  );
   const [services, setServices] = useState<
     {
       name: string;

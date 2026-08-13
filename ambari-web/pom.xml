@@ -138,6 +138,9 @@
                         <configuration>
                             <arguments>run build</arguments>
                             <workingDirectory>${ui2dir}</workingDirectory>
+                            <environmentVariables>
+                                <VITE_AMBARI_VERSION>${ambariVersion}</VITE_AMBARI_VERSION>
+                            </environmentVariables>
                         </configuration>
                     </execution>
                 </executions>

@@ -45,10 +45,7 @@ import { AlertsApi } from "../api/alertsApi.ts";
 import { redirectToAdminView } from "../Utils/adminViewRedirect";
 import modalManager from "../store/ModalManager.ts";
 import BackgroundOperations from "../screens/BackgroundOperations/index.tsx";
-import { db } from "../Utils/db";
-import Cookies from "universal-cookie";
 import { useCallback } from "react";
-import { isString } from "lodash";
 import { useAuth } from "../hooks/useAuth";
 
 type NavbarOption = {
@@ -63,6 +60,8 @@ type NavbarOption = {
 type NavBarProps = {
   subPath: string;
   viewsList: any[];
+  clusterControls?: boolean;
+  homePath?: string;
   runningRequestsCount?: number;
   hostMaintenanceState?: string;
   hostname?: string;
@@ -71,6 +70,8 @@ type NavBarProps = {
 export default function NavBar({
   subPath,
   viewsList,
+  clusterControls = true,
+  homePath = "/main/dashboard/metrics",
   runningRequestsCount,
   hostMaintenanceState,
   hostname,
@@ -86,34 +87,12 @@ export default function NavBar({
     warning: 0,
   });
   const location = useLocation();
-  const localStorageData = db.getItem("ambari");
-  let login = "";
-  if (localStorageData) {
-    let parsedData = {};
-    try {
-      parsedData = JSON.parse(localStorageData || "{}");
-      if (isString(parsedData)) {
-        parsedData = JSON.parse(parsedData);
-      }
-    } catch (err) {
-      console.log("Error parsing ambari data", err);
-      parsedData = {};
-    }
-
-    let ambari: any = parsedData;
-    if (ambari?.app?.loginName) {
-      login = ambari.app.loginName;
-      // If we already have a username, we can consider the user authenticated
-    }
-  }
-
   const [selectedFilter, setSelectedFilter] = useState("all");
   const { clusterName, cluster } = useContext(AppContext);
   const [showAmbariAboutModal, setShowAmbariAboutModal] = useState(false);
   
   const isClusterInstalled = cluster?.provisioning_state === "INSTALLED";
   const navigate = useNavigate();
-  const cookies = new Cookies();
 
   const isInstaller = () => {
     const path = location.pathname;
@@ -200,73 +179,50 @@ export default function NavBar({
     return viewsList?.length;
   };
 
-  const logOffBeforeSend = useCallback((headers: Record<string, string>) => {
-    headers["Authorization"] = "";
-    return headers;
-  }, []);
+  // Authorization hooks - implementing Ember.js showSettingsPopup authorization pattern
+  const { user, hasAuthorization, logout } = useAuth();
+  const { isNonWizardUser, upgradeIsRunning, upgradeSuspended } = useContext(AppContext);
 
   const handleSignOut = useCallback(async () => {
-    try {
-      stopPolling();
-      db.cleanUp();
-      db.setItem("ambari", JSON.stringify(db.getInitialData()));
-
-      localStorage.removeItem("ambari");
-
-      sessionStorage.clear();
-
-      cookies.remove("AMBARISESSIONID", {
-        path: "/", // Cookie is set with path '/'
-        domain: "localhost", // Cookie is set for localhost
-        secure: true, // Cookie has secure flag
-        sameSite: "lax", // Default SameSite value
-      });
-
-      const response = await fetch("/logout", {
-        method: "GET",
-        headers: logOffBeforeSend({
-          "Content-Type": "text/plain",
-        }),
-      });
-
-      if (response.ok) {
-        window.location.href = "/#/login";
-      } else {
-        window.location.href = "/#/login";
-      }
-    } catch (error) {
-      window.location.href = "/#/login";
-    }
-  }, [navigate, stopPolling]);
-
-  // Authorization hooks - implementing Ember.js showSettingsPopup authorization pattern
-  const { isAdmin } = useAuth();
-  const { upgradeIsRunning, upgradeSuspended } = useContext(AppContext);
+    stopPolling();
+    await logout();
+    navigate("/login", { replace: true });
+  }, [logout, navigate, stopPolling]);
 
   // Check if upgrade is blocking operations (running but not suspended)
   // FIXED: Add additional check for upgrade suspended state to prevent flaky behavior
   // When upgrade is suspended/paused, admin options should be available
   const isUpgradeBlocking = upgradeIsRunning && !upgradeSuspended;
 
+  const canUseRestrictedNavigation = !isUpgradeBlocking && !isNonWizardUser;
+  const canManageAmbari = canUseRestrictedNavigation && hasAuthorization(
+    "AMBARI.ADD_DELETE_CLUSTERS, AMBARI.ASSIGN_ROLES, AMBARI.EDIT_STACK_REPOS, AMBARI.MANAGE_GROUPS, AMBARI.MANAGE_STACK_VERSIONS, AMBARI.MANAGE_USERS, AMBARI.MANAGE_VIEWS, AMBARI.RENAME_CLUSTER"
+  );
+  const canSeeSettings = canUseRestrictedNavigation
+    && hasAuthorization("AMBARI.MANAGE_SETTINGS");
+  const canOpenSettings = !isNonWizardUser
+    && hasAuthorization("CLUSTER.UPGRADE_DOWNGRADE_STACK");
+
   const navbarOptions: NavbarOption[] = [
     {
       label: "About",
       callback: () => setShowAmbariAboutModal(true),
     },
-    // FIXED: Consolidate admin checks to eliminate code duplication (AI code review suggestion)
-    // Admin options should be available when upgrade is suspended/paused
-    ...(isAdmin()
+    ...(canManageAmbari
       ? [
           {
             label: "Manage Ambari",
-            callback: () => {
-              // First navigate to adminView route
-              redirectToAdminView();
-            },
+            callback: () => void redirectToAdminView(),
           },
+        ]
+      : []),
+    ...(canSeeSettings
+      ? [
           {
             label: "Settings",
-            callback: () => setShowUserSettingsModal(true),
+            callback: () => {
+              if (canOpenSettings) setShowUserSettingsModal(true);
+            },
           },
         ]
       : []),
@@ -275,26 +231,6 @@ export default function NavBar({
       callback: handleSignOut,
     },
   ];
-
-  // FIXED: Apply upgrade blocking logic only to the callback functions, not to the dropdown items visibility
-  // This prevents flaky behavior where dropdown items disappear during upgrade pause
-  const getNavbarOptionsWithUpgradeCheck = () => {
-    return navbarOptions.map(option => {
-      // Block admin actions during active upgrades (not suspended)
-      if ((option.label === "Manage Ambari" || option.label === "Settings") && isUpgradeBlocking) {
-        return {
-          ...option,
-          callback: () => {
-            // Could show a message that admin functions are disabled during upgrade
-            console.log("Admin functions are disabled during active upgrade");
-          }
-        };
-      }
-      return option;
-    });
-  };
-
-  const finalNavbarOptions = getNavbarOptionsWithUpgradeCheck();
 
   return (
     <div>
@@ -321,7 +257,7 @@ export default function NavBar({
                 className="me-1"
                 icon={faHome}
                 style={{ fontSize: 24, cursor: "pointer" }}
-                onClick={() => navigate("/main/dashboard/metrics")}
+                onClick={() => navigate(homePath)}
               />
               {hostname && hostMaintenanceState === "ON" ? (
                 <div className="d-flex align-items-center">
@@ -353,7 +289,7 @@ export default function NavBar({
               {clusterName}
             </Nav.Link>
             <div style={{ width: "20px" }}></div>
-            {isInstaller() ? null : (
+            {isInstaller() || !clusterControls ? null : (
               <div
                 onClick={() => {
                   modalManager.show(
@@ -382,7 +318,7 @@ export default function NavBar({
               </div>
             )}
             <div style={{ width: "20px" }}></div>
-            {isInstaller() ? null : (
+            {isInstaller() || !clusterControls ? null : (
               <NotificationDropdown
                 notifications={filteredNotifications}
                 onFilterChange={setSelectedFilter}
@@ -440,19 +376,19 @@ export default function NavBar({
                 data-bs-toggle="dropdown"
               >
                 <FontAwesomeIcon icon={faUser} className="me-2" />
-                <div className="navbar-text navbar-size">{login}</div>
+                <div className="navbar-text navbar-size">{user?.user_name || ""}</div>
               </Dropdown.Toggle>
               <Dropdown.Menu className="rounded-0">
-                {finalNavbarOptions.slice(0, -1).map((option) => (
+                {navbarOptions.slice(0, -1).map((option) => (
                   <Dropdown.Item key={option.label} onClick={option.callback}>
                     {option.label}
                   </Dropdown.Item>
                 ))}
                 <DropdownDivider />
                 <Dropdown.Item
-                  onClick={finalNavbarOptions[finalNavbarOptions.length - 1].callback}
+                  onClick={navbarOptions[navbarOptions.length - 1].callback}
                 >
-                  {finalNavbarOptions[finalNavbarOptions.length - 1].label}
+                  {navbarOptions[navbarOptions.length - 1].label}
                 </Dropdown.Item>
               </Dropdown.Menu>
             </Dropdown>

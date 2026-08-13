@@ -18,21 +18,17 @@
 
 import {ambariApi} from "./config/axiosConfig";
 import {misc} from "../Utils/misc";
-import { db } from "../Utils/db";
 import Cookies from 'js-cookie';
 
 interface LoginParams {
   usr: string;
   loginName: string;
 }
-interface dataLoginType {
-  Users: any;
-  loginData: any;
+export interface LoginMessage {
+  text: string;
+  buttonText: string;
 }
-interface LoginDataParamsType {
-  loginName: string;
-  loginData: any;
-}
+
 const LoginApi = {
 
   authenticate: async function (username: string, password: string) {
@@ -44,11 +40,12 @@ const LoginApi = {
         'Content-Type': 'text/plain',
         Authorization: "Basic " + hashForUserNamePassword,
       },
+      skipAuthRedirect: true,
     });
     return response;
   },
   handleSuccessfulLogin: async function (params: LoginParams) {
-    const url = `/users/${encodeURIComponent(params.loginName)}?fields=*,privileges/PrivilegeInfo/cluster_name,privileges/PrivilegeInfo/permission_name`;
+    const url = `/users/${encodeURIComponent(params.loginName)}?fields=*,privileges/PrivilegeInfo/*`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
@@ -68,31 +65,42 @@ const LoginApi = {
     });
     return response;
   },
-  afterLoginSuccessCallback: async function(data: dataLoginType) {
-    const response = await ambariApi.request({
-      url: "/settings/motd",
+  loadPrivileges: async function(loginName: string) {
+    return ambariApi.request({
+      url: `/users/${encodeURIComponent(loginName)}/privileges?fields=*`,
       method: "GET",
-      data: {
-        loginName: data.Users.user_name,
-        loginData: data
-      }
     });
-    return response.data;
   },
-  setClusterDataCallback: async function(params: LoginDataParamsType) {
-    const requestData = {
-      loginName: params.loginName,
-      loginData: params.loginData
-    };
-    const response = await ambariApi.request({
+  probeSession: async function() {
+    return ambariApi.request({
       url: "/clusters?fields=Clusters/provisioning_state,Clusters/security_type,Clusters/version,Clusters/cluster_id",
-      data: requestData,
-    })
-    return response;
+      method: "GET",
+    });
+  },
+  loadLoginMessage: async function(): Promise<LoginMessage | null> {
+    try {
+      const response = await ambariApi.request({
+        url: "/settings/motd",
+        method: "GET",
+      });
+      const content = response.data?.Settings?.content;
+      if (typeof content !== "string") {
+        return null;
+      }
+      const parsed = JSON.parse(content.replace(/\n/g, "\\n"));
+      if (parsed?.status !== "true" || !parsed?.text) {
+        return null;
+      }
+      return {
+        text: String(parsed.text).replace(/(\r\n|\n|\r)/g, "\n"),
+        buttonText: parsed.button ? String(parsed.button) : "OK",
+      };
+    } catch {
+      return null;
+    }
   },
   logout: async () => {
-    Cookies.remove('AMBARISESSIONID', { path: '/' ,domain: 'localhost', secure: true })    
-    console.log('After logout cookies:', document.cookie);
+    Cookies.remove('AMBARISESSIONID', { path: '/' });
     const timestamp = Date.now();
     try {
       const response = await ambariApi.request({
@@ -108,23 +116,12 @@ const LoginApi = {
         }
       });
 
-      // Only clean up and redirect on successful logout
-      if (response.status === 200) {
-        db.cleanUp();
-            // Remove AMBARI-SESSION-ID cookie
-        // // Clear auth header
-        // delete ambariApi.defaults.headers.common['Authorization'];
-        // // Clear JWT cookie
-        // document.cookie = "jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-        window.location.replace('/#/login');
-      }
       return response;
     } catch (error) {
       console.error('Logout failed:', error);
-      throw error; // Let the UI handle the error
+      throw error;
     }
   },
   
 }
 export default LoginApi;
-

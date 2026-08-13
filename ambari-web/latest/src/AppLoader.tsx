@@ -17,151 +17,187 @@
  */
 
 import { useContext, useEffect, useState } from "react";
-import { AppContext } from "./store/context";
-import { createHashRouter, RouterProvider } from "react-router-dom";
-import RoutesList from "./router/RoutesList";
-import { LocalStorageOps } from "./Utils/LocalStorageOps";
-import clusterApi from "./api/clusterApi";
-import { useLocation } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
-import { toBePreservedPaths } from "./constants";
-import ClusterApi from "./api/clusterApi";
-import { ProgressBar } from "react-bootstrap";
+import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Alert, Button, ProgressBar } from "react-bootstrap";
+import { AppContext, AppProvider } from "./store/context";
+import { ModalProvider } from "./store/ModalContext";
+import { useAuth } from "./hooks/useAuth";
 import usePolling from "./hooks/usePolling";
+import ClusterApi from "./api/clusterApi";
+import { toBePreservedPaths } from "./constants";
+import {
+  consumePreferredPath,
+  normalizeInternalPath,
+  savePreferredPath,
+} from "./Utils/authNavigation";
+import CustomModal from "./store/CustomModal";
+import DocumentTitleUpdater from "./components/DocumentTitleUpdater";
+import InactivityTimeout from "./InactivityTimeout";
+import LoginMessageModal from "./screens/Authentication/LoginMessageModal";
+import { isViewOnlyUser, selectLandingPath } from "./Utils/authPolicy";
 
-// Separate component for route tracking that will be used inside router
-export function RouteTracker() {
-  const [lastVisitedURL] = useState(
-    () => LocalStorageOps.getItem("lastVisitedURL") || "/#/installer/step0"
+export function AuthenticatedApplication() {
+  const {
+    isAuthenticated,
+    isLoading,
+    loginMessage,
+    retrySession,
+    sessionError,
+  } = useAuth();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated && location.pathname !== "/") {
+      savePreferredPath(`${location.pathname}${location.search}`);
+    }
+  }, [isAuthenticated, isLoading, location.pathname, location.search]);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      return;
+    }
+
+    let stopped = false;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    const keepAlive = async () => {
+      try {
+        await ClusterApi.noopPolling();
+      } catch {
+        // The global response handler owns authentication failures.
+      } finally {
+        if (!stopped) {
+          timeoutId = setTimeout(keepAlive, 60_000);
+        }
+      }
+    };
+    timeoutId = setTimeout(keepAlive, 60_000);
+    return () => {
+      stopped = true;
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [isAuthenticated]);
+
+  if (isLoading) {
+    return <div className="p-5"><h2>Loading...</h2></div>;
+  }
+  if (sessionError) {
+    return (
+      <div className="container py-5">
+        <Alert variant="danger">
+          <Alert.Heading>Unable to validate the Ambari session</Alert.Heading>
+          <p>{sessionError}</p>
+          <Button variant="outline-danger" onClick={() => void retrySession()}>
+            Retry
+          </Button>
+        </Alert>
+      </div>
+    );
+  }
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  if (loginMessage) {
+    return <LoginMessageModal />;
+  }
+
+  return (
+    <AppProvider>
+      <ModalProvider>
+        <ApplicationLoader />
+      </ModalProvider>
+    </AppProvider>
   );
-  const [hasCluster, setHasCluster] = useState<boolean | null>(null);
-  const [isClusterChecked, setIsClusterChecked] = useState(false);
-  const unpreservedPaths = ["/", "/login"];
+}
 
+export function LandingRoute() {
+  const { cluster, isClusterInstalled } = useContext(AppContext);
+  const { authorizations } = useAuth();
+  const preferredPath = consumePreferredPath();
+  return <Navigate to={selectLandingPath({
+    clusterInstalled: Boolean(isClusterInstalled),
+    clusterName: cluster?.cluster_name,
+    preferredPath,
+    viewOnly: isViewOnlyUser(authorizations),
+  })} replace />;
+}
+
+export function RouteTracker() {
+  const { cluster, isClusterInstalled } = useContext(AppContext);
   const location = useLocation();
   const navigate = useNavigate();
 
-  async function saveUserUrl() {
-    const currentURL = location.pathname;
-    await ClusterApi.postPersistData(
-      JSON.stringify({
-        USER_REDIRECTION_URL: currentURL,
-      })
-    );
-  }
-
-  // URL tracking effect
   useEffect(() => {
-    const currentURL = location.pathname;
-    console.log("currentURL", currentURL);
-    if (!unpreservedPaths.includes(currentURL)) {
-      LocalStorageOps.setItem("lastVisitedURL", "/#" + currentURL);
-    }
-    //Check if toBePreservedPaths has any key with location.pathname substring
-    if (
-      Object.keys(toBePreservedPaths).some((path) => currentURL.includes(path))
-    ) {
-      saveUserUrl();
-    }
-  }, [location]);
-
-  // Check if cluster exists when component mounts
-  useEffect(() => {
-    async function checkCluster() {
-      try {
-        const response = await clusterApi.getClusterData();
-        const firstCluster = response?.items?.[0]?.Clusters;
-        if (firstCluster && firstCluster?.provisioning_state === "INSTALLED")
-          setHasCluster(true);
-      } catch (error) {
-        console.error("Error checking cluster existence:", error);
-        setHasCluster(false);
-      } finally {
-        setIsClusterChecked(true);
-      }
-    }
-    checkCluster();
-  }, []); // Run only once on mount
-
-  // Handle routing after cluster check
-  useEffect(() => {
-    if (!isClusterChecked) return;
-
-    const currentURL = location.pathname;
-    const hashExclusiveUrl = LocalStorageOps.getItem("lastVisitedURL")?.replace(
-      "/#",
-      ""
-    );
-    let relocationPath = currentURL;
-    if (hasCluster && currentURL.includes("/installer")) {
-      relocationPath = "/main/dashboard/metrics";
-    } else if (!hasCluster && currentURL.includes("/main")) {
-      relocationPath = "/installer/step0";
-    } else {
-      if (currentURL === "/") {
-        if (hashExclusiveUrl&&hasCluster) {
-          relocationPath = hashExclusiveUrl;
-        } else {
-          if (hasCluster) {
-            relocationPath = "/main/dashboard/metrics";
-          } else {
-            relocationPath = "/installer/step0";
-          }
-        }
-      } else {
-        relocationPath = currentURL;
-      }
-    }
-
-    navigate(relocationPath);
-  }, [isClusterChecked, hasCluster, lastVisitedURL]);
-
-  useEffect(() => {
-    if (hasCluster === null) {
+    const currentPath = normalizeInternalPath(`${location.pathname}${location.search}`);
+    if (!currentPath || location.pathname === "/") {
       return;
     }
-    const currentURL = location.pathname;
-    if (hasCluster && currentURL.startsWith("/installer")) {
-      navigate("/main/dashboard/metrics");
-    } else if (!hasCluster && currentURL.startsWith("/main")) {
-      navigate("/installer/step0");
+
+    savePreferredPath(currentPath);
+    if (Object.keys(toBePreservedPaths).some((path) => location.pathname.includes(path))) {
+      void ClusterApi.postPersistData({ USER_REDIRECTION_URL: currentPath });
     }
-  }, [location, hasCluster]);
+  }, [location.pathname, location.search]);
+
+  useEffect(() => {
+    if (isClusterInstalled && location.pathname.startsWith("/installer")) {
+      navigate("/main/dashboard/metrics", { replace: true });
+    } else if (
+      cluster?.cluster_name
+      && !isClusterInstalled
+      && location.pathname.startsWith("/main")
+    ) {
+      navigate("/installer/step0", { replace: true });
+    }
+  }, [cluster?.cluster_name, isClusterInstalled, location.pathname, navigate]);
 
   return null;
 }
 
-function AppLoader() {
-  const { isAppLoaded } = useContext(AppContext);
+function ApplicationLoader() {
+  const { initializationError, isAppLoaded, retryInitialization } = useContext(AppContext);
   const [progress, setProgress] = useState(0);
+  const { stopPolling } = usePolling(
+    () => setProgress((value) => Math.min(value + 10, 90)),
+    500,
+  );
 
   useEffect(() => {
     if (isAppLoaded) {
       stopPolling();
     }
-  }, [isAppLoaded]);
-  function incrementProgress() {
-    setProgress((p) => p + 20);
+  }, [isAppLoaded, stopPolling]);
+
+  if (initializationError) {
+    return (
+      <div className="container py-5">
+        <Alert variant="danger">
+          <Alert.Heading>Unable to initialize Ambari</Alert.Heading>
+          <p>{initializationError}</p>
+          <Button variant="outline-danger" onClick={retryInitialization}>Retry</Button>
+        </Alert>
+      </div>
+    );
   }
-
-  const { stopPolling } = usePolling(incrementProgress,500);
-
-  const router = createHashRouter([...(RoutesList as any)]);
   if (!isAppLoaded) {
     return (
       <div className="vh-100 mt-0">
         <div className="p-5">
           <h2>Loading...</h2>
-          <ProgressBar  variant="blue" now={progress} className="mt-3" />
+          <ProgressBar variant="blue" now={progress} className="mt-3" />
         </div>
       </div>
     );
   }
+
   return (
     <>
-      <RouterProvider router={router} />
+      <RouteTracker />
+      <DocumentTitleUpdater />
+      <InactivityTimeout />
+      <CustomModal />
+      <Outlet />
     </>
   );
 }
 
-export default AppLoader;
+export default ApplicationLoader;

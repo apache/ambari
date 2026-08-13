@@ -29,12 +29,12 @@ import { Client } from "@stomp/stompjs";
 import ClusterApi from "../api/clusterApi";
 import { ChooseServicesApi } from "../api/chooseServicesApi";
 import { ServicesApi } from "../api/servicesApi";
-import { get, isEmpty, isString, isUndefined, map, set } from "lodash";
+import { get, isEmpty, isUndefined, map, set } from "lodash";
 import ConfigsApi from "../api/configsApi";
-import { mapStackConfigProperties, redirectToLogin } from "../Utils/Utility";
-import LoginApi from "../api/loginApi";
-import { db } from "../Utils/db";
+import { mapStackConfigProperties } from "../Utils/Utility";
 import useAuth from "../hooks/useAuth";
+import { parsePersistedValue, persistedPayload } from "../Utils/persistedSettings";
+import { DEFAULT_SUPPORTS } from "../constants";
 // import {LocalStorageOps} from "../Utils/LocalStorageOps";
 
 interface AppContextProps {
@@ -47,11 +47,16 @@ interface AppContextProps {
   services: any[];
   cluster: any;
   isAppLoaded: boolean;
+  initializationError: string | null;
+  retryInitialization: () => void;
   serviceComponentInfo: any;
   isKerberosEnabled: boolean;
   stackConfigurations: any;
   allHostNames: string[];
   ambariProperties: any;
+  ambariServerVersion?: string;
+  supports: Record<string, boolean>;
+  setSupports: (supports: Record<string, boolean>) => void;
   upgradeState: string;
   setUpgradeState: (state: string) => void;
   upgradeDirection: string;
@@ -73,6 +78,7 @@ interface AppContextProps {
   clusterState: any;
   userBgPreferences: boolean;
   setUserBgPreferences: (value: boolean) => void;
+  syncUserBgPreferences: (value: boolean) => void;
   // Background Operations - persistent cache like Ember.js singleton
   backgroundOperations: any[];
   setBackgroundOperations: (operations: any[]) => void;
@@ -87,6 +93,7 @@ interface AppContextProps {
   upgradeSuspended: boolean;
   upgradeIsRunning: boolean;
   wizardIsNotFinished: boolean;
+  isNonWizardUser: boolean;
   isClusterInstalled?: boolean;
 }
 
@@ -100,11 +107,16 @@ export const AppContext = createContext<AppContextProps>({
   services: [],
   cluster: {},
   isAppLoaded: false,
+  initializationError: null,
+  retryInitialization: () => {},
   serviceComponentInfo: {},
   isKerberosEnabled: false,
   stackConfigurations: [],
   allHostNames: [],
   ambariProperties: {},
+  ambariServerVersion: "",
+  supports: DEFAULT_SUPPORTS,
+  setSupports: () => {},
   upgradeState: "",
   setUpgradeState: () => {},
   upgradeDirection: "",
@@ -123,6 +135,7 @@ export const AppContext = createContext<AppContextProps>({
   clusterState: {},
   userBgPreferences: false,
   setUserBgPreferences: () => {},
+  syncUserBgPreferences: () => {},
   // Background Operations defaults
   backgroundOperations: [],
   setBackgroundOperations: () => {},
@@ -139,6 +152,7 @@ export const AppContext = createContext<AppContextProps>({
   upgradeIsFinalizeItem: false,
   setUpgradeIsFinalizeItem: () => {},
   wizardIsNotFinished: false,
+  isNonWizardUser: false,
   isClusterInstalled: false,
 });
 
@@ -149,6 +163,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isSocketConnected, setIsSocketConnected] = useState(false);
   const [socketClient, setSocketClient] = useState(null);
   const [isAppLoaded, setAppLoaded] = useState(false);
+  const [initializationError, setInitializationError] = useState<string | null>(null);
+  const [initializationAttempt, setInitializationAttempt] = useState(0);
   const [parsedSocketMessages, setParsedSocketMessages] = useState<any[]>([]);
   const [clusterName, setClusterName] = useState<string>("");
   const [isKerberosEnabled, setIsKerberosEnabled] = useState(false);
@@ -166,21 +182,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     useState<string>("");
   const [currentStackVersion, setCurrentStackVersion] = useState<string>("");
   const [ambariProperties, setAmbariProperties] = useState({});
-  const [sessionsValidated, setSessionsValidated] = useState(false);
-  const [sessionExists, setSessionExists] = useState(false);
+  const [ambariServerVersion, setAmbariServerVersion] = useState("");
+  const [supports, setSupports] = useState(DEFAULT_SUPPORTS);
+  const [wizardUser, setWizardUser] = useState("");
   const [clusterState, setClusterState] = useState({});
   const [userUrl, setUserUrl] = useState("");
-  const { user } = useAuth();
+  const { authorizations, user } = useAuth();
   const loginName = user?.user_name;
-  const client = new Client({
-    brokerURL: "/api/stomp/v1/websocket", // 'ws://localhost:15674/ws'
-    debug: function (str) {
-      console.log(str);
-    },
-    reconnectDelay: 1000,
-    heartbeatIncoming: 1000,
-    heartbeatOutgoing: 1000,
-  });
+  const isOnlyViewUser = authorizations.length === 0
+    || (authorizations.length === 1
+      && authorizations[0].authorization_id === "VIEW.USE");
+  const [client] = useState(() => new Client({
+      brokerURL: "/api/stomp/v1/websocket", // 'ws://localhost:15674/ws'
+      debug: function (str) {
+        console.log(str);
+      },
+      reconnectDelay: 1000,
+      heartbeatIncoming: 1000,
+      heartbeatOutgoing: 1000,
+    }));
   const [services, setServices] = useState([]);
   const [stackConfigurations, setStackConfigurations] = useState([]);
   const [userBgPreferences, setUserBgPreferences] = useState(false);
@@ -257,6 +277,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       setAppLoaded(true);
     } catch (err) {
       setServices([]);
+      setInitializationError("Ambari could not load the installed cluster services.");
     }
   };
 
@@ -270,10 +291,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   useEffect(() => {
-    fetchClusterState();
-  }, []);
+    if (!isOnlyViewUser) {
+      void fetchClusterState();
+    }
+  }, [isOnlyViewUser]);
 
   useEffect(() => {
+    if (isOnlyViewUser) {
+      setAppLoaded(true);
+      return;
+    }
     if (clusterName && isClusterInstalled) {
       fetchClusterServices();
       fetchAllHostNames();
@@ -282,7 +309,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     } else if (!isUndefined(isClusterInstalled) && !isClusterInstalled) {
       setAppLoaded(true);
     }
-  }, [clusterName, isClusterInstalled]);
+  }, [clusterName, isClusterInstalled, isOnlyViewUser, initializationAttempt]);
 
   useEffect(() => {
     if (!clusterName || !isClusterInstalled) return;
@@ -334,16 +361,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     fetchStackConfigs();
   }, [services, cluster]);
 
-  const fetchClusterName = async () => {
-    try {
-      const name = await ClusterApi.getClusterName();
-      setClusterName(name);
-    } catch (error) {
-      console.error("Failed to fetch cluster name:", error);
-    }
-  };
   const fetchClusterData = async () => {
-    try {
       const clusterData = await ClusterApi.getClusterData();
       set(
         clusterData,
@@ -356,16 +374,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         get(clusterData, "items.[0].Clusters.version", "")?.split("-")[1]
       );
       const clusterInfo = clusterData?.items[0]?.Clusters;
-      setCluster(clusterInfo);
+      setCluster(clusterInfo || {});
+      setClusterName(clusterInfo?.cluster_name || "");
       setIsKerberosEnabled(
         clusterData?.items?.[0]?.Clusters?.security_type === "KERBEROS"
       );
 
       const isInstalled = clusterInfo?.provisioning_state === "INSTALLED";
       setIsClusterInstalled(isInstalled);
-    } catch (error) {
-      setIsClusterInstalled(false);
-    }
   };
 
   const fetchServiceComponentInfo = async () => {
@@ -392,65 +408,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   };
   const getAmbariProperties = async () => {
     const response = await ClusterApi.loadAmbariProperties();
-    setAmbariProperties(response);
-  };
-  const fetchUserInfo = async () => {
-    try {
-      try {
-        let username = "";
-        const ambariLocalData = db.getItem("ambari");
-        if (ambariLocalData) {
-          let parsedData = {};
-          try {
-            parsedData = JSON.parse(db.getItem("ambari") || "{}");
-            if (isString(parsedData)) {
-              parsedData = JSON.parse(parsedData);
-            }
-          } catch (err) {
-            console.log("Error parsing ambari data", err);
-            parsedData = {};
-          }
-
-          let ambari: any = parsedData;
-          if (ambari?.app?.loginName) {
-            username = ambari.app.loginName;
-            // If we already have a username, we can consider the user authenticated
-            if (!username) {
-              window.location.href = "/#/login";
-            }
-            setSessionsValidated(true);
-            setSessionExists(true);
-          }
-        } else {
-          redirectToLogin();
-        }
-        // If we don't have user info in localStorage
-
-        //fetch initial LS value for key ambari with empty fields
-        let initialAmbariLsData: any = { app: {} };
-
-        //set login name in the app object within the ambari object
-        initialAmbariLsData.app.loginName = encodeURIComponent(username);
-        initialAmbariLsData.app.authenticated = true;
-        const params = { usr: "", loginName: encodeURIComponent(username) };
-        const response = await LoginApi.handleSuccessfulLogin(params);
-        initialAmbariLsData.app.user = response.data.Users;
-        //convert JS object to JSON String and then encrypt the JSON String
-        initialAmbariLsData = JSON.stringify(initialAmbariLsData);
-        //encrypt the data and store it in Local Storage
-        db.setItem("ambari", initialAmbariLsData);
-        return true;
-      } catch (error) {
-        setSessionsValidated(true);
-        setSessionExists(false);
-        return false;
-      }
-    } catch (err) {
-      console.log("Error in fetching user info", err);
-      setSessionsValidated(true);
-      setSessionExists(false);
-      return false;
-    }
+    setAmbariProperties(response?.RootServiceComponents?.properties || {});
+    setAmbariServerVersion(response?.RootServiceComponents?.component_version || "");
   };
 
   const fetchUpgradeStates = async () => {
@@ -516,11 +475,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       const persistedData = await ClusterApi.getPersistData(
         "admin-settings-show-bg-" + loginName
       );
-      if (!!persistedData) {
-        setUserBgPreferences(true);
-      } else {
-        setUserBgPreferences(false);
-      }
+      setUserBgPreferences(parsePersistedValue(persistedData, true));
     } catch (err) {
       console.error("Could not fetch user bg preferences", err);
     }
@@ -528,11 +483,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   async function setUserBgPreferencesData(value: boolean) {
     try {
       setUserBgPreferences(value);
-      await ClusterApi.postPersistData(
-        JSON.stringify({
-          ["admin-settings-show-bg-" + loginName]: `${value}`,
-        })
-      );
+      await ClusterApi.postPersistData(persistedPayload({
+        ["admin-settings-show-bg-" + loginName]: value,
+      }));
     } catch (err) {
       console.error("Could not fetch user bg preferences", err);
     }
@@ -540,21 +493,36 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
   useEffect(() => {
     async function moveAppToReadyState() {
-      const isAuthenticated = await fetchUserInfo();
-      setSessionsValidated(true);
-      setSessionExists(true);
-      if (isAuthenticated) {
-        await fetchClusterName();
-        await fetchClusterData();
+      setAppLoaded(false);
+      setInitializationError(null);
+      const supportsKey = `user-pref-${loginName || ""}-supports`;
+      try {
+        const [savedSupports, wizardData] = await Promise.all([
+          ClusterApi.getPersistData(supportsKey).catch(() => null),
+          ClusterApi.getPersistData("wizard-data").catch(() => null),
+        ]);
+        setSupports({
+          ...DEFAULT_SUPPORTS,
+          ...parsePersistedValue(savedSupports, {}),
+        });
+        setWizardUser(parsePersistedValue<{ userName?: string }>(wizardData, {}).userName || "");
+
         await getAmbariProperties();
-        try {
-          await getUserUrl();
-        } catch (err) {}
-      } else {
+        if (isOnlyViewUser) {
+          setAppLoaded(true);
+          return;
+        }
+
+        await fetchClusterData();
+        await getUserUrl().catch(() => undefined);
+      } catch (error: any) {
+        setInitializationError(
+          error?.response?.data?.message || "Ambari could not initialize the application shell.",
+        );
       }
     }
-    moveAppToReadyState();
-  }, []);
+    void moveAppToReadyState();
+  }, [initializationAttempt, isOnlyViewUser, loginName]);
 
   useEffect(() => {
     if (!isEmpty(cluster) && cluster?.versionNum && cluster?.stack) {
@@ -637,22 +605,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   client.onConnect = function () {
     setSocketClient(client as any);
     setIsSocketConnected(true);
-    client.subscribe("/events/requests", (message: any) => {
-      // called when the client receives a STOMP message from the server
-      if (message.body) {
-        try {
-          const parsedMessage = JSON.parse(message.body);
-          //TODO: parsedSocketMessages can exceed to very long list, need to limit it to some constant
-          setParsedSocketMessages((prevMessages) => [
-            parsedMessage,
-            ...prevMessages,
-          ]);
-        } catch {
-          console.log("Error in parsing socket message");
-        }
-      } else {
-      }
-    });
     client.subscribe("/events/services", (message: any) => {
       // called when the client receives a STOMP message from the server
       if (message.body) {
@@ -735,10 +687,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     console.error("Broker reported error: " + frame.headers["message"]);
     console.error("Additional details: " + frame.body);
   };
+  client.onDisconnect = function () {
+    setSocketClient(null);
+    setIsSocketConnected(false);
+  };
+  client.onWebSocketClose = function () {
+    setSocketClient(null);
+    setIsSocketConnected(false);
+  };
 
   useEffect(() => {
+    if (isOnlyViewUser) {
+      return;
+    }
     client.activate();
-  }, []);
+    return () => {
+      void client.deactivate();
+    };
+  }, [client, isOnlyViewUser]);
 
   // Ember.js upgrade computed properties - implementing the same logic as ui/app/app.js
   const upgradeInit = upgradeState === "NOT_REQUIRED";
@@ -750,8 +716,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const upgradeAborted = upgradeState === "ABORTED" && !upgradeSuspend;
   const upgradeSuspended = upgradeState === "ABORTED" && upgradeSuspend;
   const upgradeIsRunning = upgradeInProgress || upgradeHolding;
-  // TODO: Add wizardWatcherController.isNonWizardUser check when available
-  const wizardIsNotFinished = upgradeIsRunning || upgradeSuspended;
+  const isNonWizardUser = Boolean(wizardUser && wizardUser !== loginName);
+  const wizardIsNotFinished = upgradeIsRunning || upgradeSuspended || isNonWizardUser;
 
   return (
     <AppContext.Provider
@@ -764,9 +730,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         clusterName,
         cluster,
         isAppLoaded,
+        initializationError,
+        retryInitialization: () => setInitializationAttempt((value) => value + 1),
         services,
         serviceComponentInfo,
         ambariProperties,
+        ambariServerVersion,
+        supports,
+        setSupports,
         isKerberosEnabled,
         stackConfigurations,
         allHostNames,
@@ -784,11 +755,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         upgradeVersionDisplayName,
         setUpgradeVersionDisplayName,
         userUrl,
-        sessionExists,
-        sessionsValidated,
+        sessionExists: true,
+        sessionsValidated: true,
         clusterState,
         userBgPreferences,
         setUserBgPreferences: setUserBgPreferencesData,
+        syncUserBgPreferences: setUserBgPreferences,
         // Background Operations
         backgroundOperations,
         setBackgroundOperations,
@@ -804,6 +776,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         upgradeIsFinalizeItem,
         setUpgradeIsFinalizeItem,
         wizardIsNotFinished,
+        isNonWizardUser,
         isClusterInstalled,
       }}
     >

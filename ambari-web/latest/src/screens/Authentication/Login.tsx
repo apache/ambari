@@ -27,24 +27,44 @@ import {
   Image,
 } from "react-bootstrap";
 import React, { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import AmbariLogo from "../../assets/img/ambari-logo.png";
 import "../../../custom.scss";
-import { LocalStorageOps } from "../../Utils/LocalStorageOps";
 import { useUserContext } from "../../store/UserContext";
+import { LOCAL_LOGIN_PATH } from "../../Utils/authNavigation";
+import LoginMessageModal from "./LoginMessageModal";
 
-export const Login = () => {
+export const Login = ({ isLocalLogin = false }: { isLocalLogin?: boolean }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
   // Use the UserContext for authentication
-  const { login, isLoading, loginError } = useUserContext();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const {
+    login,
+    isAuthenticated,
+    isLoading,
+    loginError,
+    loginMessage,
+  } = useUserContext();
 
   useEffect(()=>{
     if (loginError) {
       setErrorMessage(loginError);
     }
-  },[loginError])
+  },[loginError]);
+
+  useEffect(() => {
+    document.title = "Ambari";
+  }, []);
+
+  useEffect(() => {
+    if (isAuthenticated && !loginMessage) {
+      navigate("/", { replace: true });
+    }
+  }, [isAuthenticated, loginMessage, navigate]);
 
   const handleSignIn = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -53,79 +73,16 @@ export const Login = () => {
     try {
       // Use the UserContext login method
       const success = await login(username, password);
-      console.log("Login success:", success);
-      if (success) {
-        // Redirect after successful login
-        const hashExclusiveUrl = LocalStorageOps.getItem(
-          "lastVisitedURL"
-        )?.replace("/#", "");
-
-        if (hashExclusiveUrl) {
-          window?.location?.replace("/#" + hashExclusiveUrl);
-        } else {
-          window.location.replace("/#");
-        }
-        window.location.reload();
-      } else {
+      if (!success) {
         setErrorMessage(loginError || "Login failed. Please check your credentials.");
       }
-    } catch (error: any) {
+    } catch {
       setErrorMessage(loginError || "An unexpected error occurred during login.");
     }
   };
-  // const handleLoginSuccess = async (params: LoginParams) => {
-  //   try {
-  //     const response = await LoginApi.handleSuccessfulLogin(params);
-  //     await afterLoginSuccess(response.data, params as any);
-  //     setErrorMessage("");
-  //   } catch (error) {
-  //     handleLoginError(error);
-  //   }
-  // };
-  // const afterLoginSuccess = async (data: dataLoginType, params: LoginDataParamsType) => {
-  //   try {
-  //     await LoginApi.afterLoginSuccessCallback(data);
-  //     // if (afterLoginSuccessCallbackResponse.status !== 200) {
-  //     //   throw new Error("after login success callback failed");
-  //     // }
-  //     await setClusterData(params);
-  //   } catch (error) {
-  //     await setClusterData(params);
-  //     handleLoginError(error);
-  //   }
-  // }
-  // const setClusterData = async (params: LoginDataParamsType) => {
-  //   try {
-  //     const response = await LoginApi.setClusterDataCallback(params)
-  //     if (!response.data.items) {
-  //       throw new Error("Failed to set cluster data");
-  //     }
-  //     await loadAuthorizations(params as any);
-  //     setErrorMessage("");
-  //   } catch (error) {
-  //     handleLoginError(error);
-  //   }
-  // }
-  // const loadAuthorizations = async (params: LoginParams) => {
-  //   try {
-  //     const response = await LoginApi.loadAuthorizationsCallback(params);
-  //     const authorizationIds = response.data.items.map(
-  //       (item: any) => item.AuthorizationInfo.authorization_id
-  //     );
-
-  //     let ambariData = JSON.parse(Utility.decryptData(db.getItem("ambari") || "") || "");
-  //     console.log("ambariData", ambariData)
-  //     ambariData.app.auth = authorizationIds;
-  //     db.setItem("ambari", Utility.encryptData(JSON.stringify(ambariData)));
-
-  //     // After successful login and authorization, redirect to metrics dashboard
-  //     window.location.href = '/#/main/dashboard/metrics';
-  //   } catch (error) {
-  //     handleLoginError(error);
-  //   }
-  // }
   return (
     <>
+      <LoginMessageModal />
       <div
         className="w-100 d-flex align-items-center py-2 px-4"
         style={{ background: "#313d54" }}
@@ -143,6 +100,11 @@ export const Login = () => {
                 <Card.Title className="text-start">
                   <h2>Sign in</h2>
                 </Card.Title>
+                {isLocalLogin && new URLSearchParams(location.search).has("redirectError") ? (
+                  <Alert variant="warning" className="my-3">
+                    External authentication could not be completed. Use local Ambari credentials.
+                  </Alert>
+                ) : null}
                 {errorMessage ? (
                   <Alert variant="danger" className="my-3">
                     {errorMessage}
@@ -173,6 +135,11 @@ export const Login = () => {
                   >
                     {isLoading ? "Signing In..." : "SIGN IN"}
                   </Button>
+                  {!isLocalLogin ? (
+                    <a className="d-block mt-3" href={`#${LOCAL_LOGIN_PATH}`}>
+                      Sign in with local credentials
+                    </a>
+                  ) : null}
                 </Form.Group>
               </Form>
             </Card>

@@ -1,0 +1,632 @@
+# Ember 非 Metrics 命名 AJAX 接口目录
+
+> 由 `tools/extract-ember-baseline.mjs` 生成，请勿手工编辑。URL 默认追加 `/api/v1`；Method 中的 `DYNAMIC` 只表示 HTTP method 由运行时表达式决定，动态 URL 单独标为 `DYNAMIC_URL`。调用者计数为经典前端 `app/` 目录中的字符串引用数。
+
+- 纳入定义：288
+- 排除 Metrics 定义：95
+- 有经典前端调用证据：235
+- 未发现经典前端调用证据：53
+
+| 请求名 | Method | URL（不含默认 prefix） | format 输入键 | Prefix | 模块 | 调用者 | 定义 |
+| --- | --- | --- | --- | --- | --- | ---: | --- |
+| `common.cluster.update` | `PUT` | `/clusters/{clusterName}` | `data` | `/api/v1 (default)` | 安全、高可用与联邦 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L34) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/kerberos/step2_controller.js:313` |  |  |  |  |  |
+| `common.services.update` | `PUT` | `/clusters/{clusterName}/services?{urlParams}` | `ServiceInfo`, `clusterName`, `context` | `/api/v1 (default)` | 安装向导、服务与配置、Stack 与升级、安全、高可用与联邦、Views | 15 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L46) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/rollback_controller.js:223`<br>`ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/rollback_controller.js:348`<br>`ambari-web/classic/app/controllers/main/admin/kerberos/step3_controller.js:43`<br>`ambari-web/classic/app/controllers/main/admin/kerberos/step6_controller.js:26`<br>`ambari-web/classic/app/controllers/main/admin/kerberos/step8_controller.js:27`<br>`ambari-web/classic/app/controllers/main/service.js:164`<br>`ambari-web/classic/app/controllers/main/service.js:203`<br>`ambari-web/classic/app/controllers/main/service.js:254`<br>`ambari-web/classic/app/controllers/main/service/add_controller.js:463`<br>`ambari-web/classic/app/controllers/wizard.js:427`<br>`ambari-web/classic/app/controllers/wizard/step9_controller.js:491`<br>`ambari-web/classic/app/controllers/wizard/step9_controller.js:499`<br>`ambari-web/classic/app/mixins/wizard/wizardProgressPageController.js:463`<br>`ambari-web/classic/app/mixins/wizard/wizardProgressPageController.js:511`<br>`ambari-web/classic/app/views/main/admin/stack_upgrade/custom_cluster_checks/custom_cluster_checks_view.js:50` |  |  |  |  |  |
+| `common.service.update` | `PUT` | `/clusters/{clusterName}/services/{serviceName}` | `ServiceInfo`, `clusterName`, `context`, `serviceName` | `/api/v1 (default)` | 服务与配置 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L68) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/service/item.js:600` |  |  |  |  |  |
+| `common.service_component.info` | `GET` | `/clusters/{clusterName}/services/{serviceName}/components/{componentName}?{urlParams}` | 无 `format()` | `/api/v1 (default)` | 安全、高可用与联邦 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L91) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/kerberos/step3_controller.js:77` |  |  |  |  |  |
+| `common.service.hdfs.getNnCheckPointTime` | `GET` | `/clusters/{clusterName}/services/HDFS/components/NAMENODE?fields=host_components/metrics/dfs/FSNamesystem/HAState,host_components/metrics/dfs/FSNamesystem/LastCheckpointTime,host_components/metrics/dfs/namenode/ClusterId` | 无 `format()` | `/api/v1 (default)` | 服务与配置 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L96) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/service/item.js:406` |  |  |  |  |  |
+| `common.host_component.getNnCheckPointTime` | `GET` | `/clusters/{clusterName}/hosts/{host}/host_components/NAMENODE?fields=metrics/dfs/FSNamesystem/HAState,metrics/dfs/FSNamesystem/LastCheckpointTime` | 无 `format()` | `/api/v1 (default)` | 主机 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L101) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/host/details.js:422` |  |  |  |  |  |
+| `common.host_component.update` | `PUT` | `/clusters/{clusterName}/host_components` | `HostRoles`, `context`, `query` | `/api/v1 (default)` | 主机、服务与配置 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L106) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/service/add_controller.js:506` |  |  |  |  |  |
+| `common.host.host_components.create` | `POST` | `/clusters/{clusterName}/hosts` | `host_components`, `query` | `/api/v1 (default)` | 主机 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L125) |
+| `common.host.host_components.update` | `PUT` | `/clusters/{clusterName}/hosts/{hostName}/host_components?{urlParams}` | `HostRoles`, `clusterName`, `context`, `hostName`, `query` | `/api/v1 (default)` | 主机 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L143) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/host/details.js:338` |  |  |  |  |  |
+| `common.host.host_component.update` | `PUT` | `/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}?{urlParams}` | `HostRoles`, `clusterName`, `context`, `hostName`, `serviceName` | `/api/v1 (default)` | 主机、服务与配置 | 7 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L167) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/host/details.js:338`<br>`ambari-web/classic/app/controllers/main/host/details.js:1839`<br>`ambari-web/classic/app/controllers/main/service/reassign/step4_controller.js:519`<br>`ambari-web/classic/app/controllers/main/service/reassign/step4_controller.js:566`<br>`ambari-web/classic/app/controllers/main/service/reassign/step6_controller.js:202`<br>`ambari-web/classic/app/mixins/main/host/details/host_components/install_component.js:68`<br>`ambari-web/classic/app/mixins/wizard/wizardProgressPageController.js:653` |  |  |  |  |  |
+| `common.hosts.all` | `GET` | `/clusters/{clusterName}/host_components?{urlParams}&minimal_response=true` | 无 `format()` | `/api/v1 (default)` | 主机 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L191) |
+| `common.service.configurations` | `PUT` | `/clusters/{clusterName}` | `desired_config` | `/api/v1 (default)` | 认证与应用外壳、主机、安全、高可用与联邦 | 9 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L196) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/federation/routerBasedFederation/step3_controller.js:97`<br>`ambari-web/classic/app/controllers/main/admin/highAvailability/hawq/activateStandby/step3_controller.js:94`<br>`ambari-web/classic/app/controllers/main/admin/highAvailability/hawq/addStandby/step4_controller.js:73`<br>`ambari-web/classic/app/controllers/main/admin/highAvailability/hawq/removeStandby/step3_controller.js:88`<br>`ambari-web/classic/app/controllers/main/admin/highAvailability/journalNode/step4_controller.js:72`<br>`ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/step5_controller.js:83`<br>`ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/step9_controller.js:247`<br>`ambari-web/classic/app/controllers/main/admin/highAvailability/resourceManager/step4_controller.js:121`<br>`ambari-web/classic/app/controllers/main/host/details.js:1336` |  |  |  |  |  |
+| `common.service.multiConfigurations` | `PUT` | `/clusters/{clusterName}` | `configs` | `/api/v1 (default)` | 认证与应用外壳、安全、高可用与联邦 | 4 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L211) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/federation/routerBasedFederation/step4_controller.js:55`<br>`ambari-web/classic/app/controllers/main/admin/federation/step4_controller.js:77`<br>`ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/step9_controller.js:228`<br>`ambari-web/classic/app/controllers/main/admin/highAvailability/rangerAdmin/step4_controller.js:88` |  |  |  |  |  |
+| `common.across.services.configurations` | `PUT` | `/clusters/{clusterName}` | `data` | `/api/v1 (default)` | 安装向导、服务与配置、安全、高可用与联邦 | 4 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L222) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/kerberos/step2_controller.js:229`<br>`ambari-web/classic/app/controllers/main/service/reassign/step4_controller.js:294`<br>`ambari-web/classic/app/controllers/wizard/step8_controller.js:1549`<br>`ambari-web/classic/app/mixins/common/configs/configs_saver.js:631` |  |  |  |  |  |
+| `common.request.polling` | `GET` | `/clusters/{clusterName}/requests/{requestId}?fields=tasks/Tasks/request_id,tasks/Tasks/command,tasks/Tasks/command_detail,tasks/Tasks/ops_display_name,tasks/Tasks/start_time,tasks/Tasks/end_time,tasks/Tasks/exit_code,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status,tasks/Tasks/structured_out,Requests/*&tasks/Tasks/stage_id={stageId}` | 无 `format()` | `/api/v1 (default)` | 安全、高可用与联邦、后台操作与通用能力 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L234) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/highAvailability/progress_popup_controller.js:113` |  |  |  |  |  |
+| `ambari.service.load_server_version` | `GET` | `/services/AMBARI?fields=components/RootServiceComponents/component_version&components/RootServiceComponents/component_name=AMBARI_SERVER&minimal_response=true` | 无 `format()` | `/api/v1 (default)` | 认证与应用外壳、Stack 与升级、Views | 3 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L239) |
+|  |  | 调用位置：`ambari-web/classic/app/router.js:632`<br>`ambari-web/classic/app/router.js:977`<br>`ambari-web/classic/app/views/main/admin/stack_upgrade/versions_view.js:221` |  |  |  |  |  |
+| `service.flume.agent.command` | `PUT` | `/clusters/{clusterName}/hosts/{host}/host_components/FLUME_HANDLER` | `agentName`, `clusterName`, `context`, `host`, `state` | `/api/v1 (default)` | 服务与配置 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L245) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/service/info/summary.js:318` |  |  |  |  |  |
+| `common.host_components.update` | `PUT` | `/clusters/{clusterName}/host_components?{urlParams}` | `HostRoles`, `clusterName`, `context`, `level`, `query` | `/api/v1 (default)` | 安装向导、主机、Stack 与升级 | 9 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L272) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:1680`<br>`ambari-web/classic/app/controllers/main/host/add_controller.js:446`<br>`ambari-web/classic/app/controllers/main/host/bulk_operations_controller.js:150`<br>`ambari-web/classic/app/controllers/main/host/bulk_operations_controller.js:251`<br>`ambari-web/classic/app/controllers/main/host/bulk_operations_controller.js:619`<br>`ambari-web/classic/app/controllers/main/host/bulk_operations_controller.js:831`<br>`ambari-web/classic/app/controllers/wizard.js:427`<br>`ambari-web/classic/app/controllers/wizard/step9_controller.js:472`<br>`ambari-web/classic/app/mixins/wizard/wizardProgressPageController.js:626` |  |  |  |  |  |
+| `common.hosts.delete` | `DELETE` | `/clusters/{clusterName}/hosts{urlParams}` | `query` | `/api/v1 (default)` | 主机 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L295) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/host/bulk_operations_controller.js:375` |  |  |  |  |  |
+| `common.service.passive` | `PUT` | `/clusters/{clusterName}/services/{serviceName}` | `passive_state`, `requestInfo` | `/api/v1 (default)` | 后台操作与通用能力 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L309) |
+|  |  | 调用位置：`ambari-web/classic/app/utils/batch_scheduled_requests.js:300` |  |  |  |  |  |
+| `common.service.host_component.update` | `PUT` | `/clusters/{clusterName}/host_components` | `clusterName`, `context`, `query`, `serviceName`, `state` | `/api/v1 (default)` | 主机、服务与配置 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L329) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/service/item.js:573` |  |  |  |  |  |
+| `common.host.host_component.passive` | `PUT` | `/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}` | `context`, `passive_state` | `/api/v1 (default)` | 主机、服务与配置、安全、高可用与联邦 | 6 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L355) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/rollback_controller.js:479`<br>`ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/step5_controller.js:52`<br>`ambari-web/classic/app/controllers/main/host/details.js:2375`<br>`ambari-web/classic/app/controllers/main/service/reassign/step4_controller.js:255`<br>`ambari-web/classic/app/controllers/main/service/reassign/step6_controller.js:161`<br>`ambari-web/classic/app/controllers/main/service/reassign/step7_controller.js:66` |  |  |  |  |  |
+| `common.host.with_host_component` | `GET` | `/clusters/{clusterName}/hosts?host_components/HostRoles/component_name={componentName}&minimal_response=true` | 无 `format()` | `/api/v1 (default)` | 主机 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L375) |
+| `common.batch.request_schedules` | `POST` | `/clusters/{clusterName}/request_schedules` | `batches`, `intervalTimeSeconds`, `tolerateSize` | `/api/v1 (default)` | 主机、服务与配置、后台操作与通用能力 | 8 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L380) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/host/details.js:2143`<br>`ambari-web/classic/app/controllers/main/host/details.js:2251`<br>`ambari-web/classic/app/controllers/main/host/details.js:3195`<br>`ambari-web/classic/app/controllers/main/service/item.js:789`<br>`ambari-web/classic/app/mixins/main/service/configs/component_actions_by_configs.js:233`<br>`ambari-web/classic/app/mixins/main/service/configs/component_actions_by_configs.js:297`<br>`ambari-web/classic/app/utils/batch_scheduled_requests.js:333`<br>`ambari-web/classic/app/utils/batch_scheduled_requests.js:632` |  |  |  |  |  |
+| `common.delete.host` | `DELETE` | `/clusters/{clusterName}/hosts/{hostName}` | 无 `format()` | `/api/v1 (default)` | 主机 | 2 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L402) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/host/details.js:607`<br>`ambari-web/classic/app/controllers/main/host/details.js:2829` |  |  |  |  |  |
+| `common.delete.host_component` | `DELETE` | `/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}` | 无 `format()` | `/api/v1 (default)` | 主机、服务与配置、安全、高可用与联邦 | 9 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L406) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/rollback_controller.js:461`<br>`ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/rollback_controller.js:550`<br>`ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/step9_controller.js:311`<br>`ambari-web/classic/app/controllers/main/admin/kerberos/step6_controller.js:60`<br>`ambari-web/classic/app/controllers/main/host/details.js:607`<br>`ambari-web/classic/app/controllers/main/service/reassign/step4_controller.js:443`<br>`ambari-web/classic/app/controllers/main/service/reassign/step6_controller.js:134`<br>`ambari-web/classic/app/controllers/main/service/reassign/step7_controller.js:85`<br>`ambari-web/classic/app/mixins/wizard/wizardProgressPageController.js:769` |  |  |  |  |  |
+| `common.delete.user` | `DELETE` | `/users/{user}` | 无 `format()` | `/api/v1 (default)` | 跨模块与待人工归类 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L410) |
+| `common.delete.config_group` | `DELETE` | `/clusters/{clusterName}/config_groups/{id}` | 无 `format()` | `/api/v1 (default)` | 服务与配置 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L414) |
+|  |  | 调用位置：`ambari-web/classic/app/mixins/main/service/configs/config_overridable.js:419` |  |  |  |  |  |
+| `common.delete.cluster` | `DELETE` | `/clusters/{name}` | 无 `format()` | `/api/v1 (default)` | 安装向导 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L418) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/wizard/step8_controller.js:754` |  |  |  |  |  |
+| `common.delete.service` | `DELETE` | `/clusters/{clusterName}/services/{serviceName}` | 无 `format()` | `/api/v1 (default)` | 服务与配置、安全、高可用与联邦 | 3 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L422) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/kerberos/disable_controller.js:66`<br>`ambari-web/classic/app/controllers/main/admin/kerberos/wizard_controller.js:230`<br>`ambari-web/classic/app/controllers/main/service/item.js:2058` |  |  |  |  |  |
+| `common.delete.request_schedule` | `DELETE` | `/clusters/{clusterName}/request_schedules/{request_schedule_id}` | 无 `format()` | `/api/v1 (default)` | 后台操作与通用能力 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L427) |
+|  |  | 调用位置：`ambari-web/classic/app/utils/batch_scheduled_requests.js:742` |  |  |  |  |  |
+| `common.get.request.status` | `GET` | `/clusters/{clusterName}/requests/{requestId}?fields=Requests/request_status` | 无 `format()` | `/api/v1 (default)` | 后台操作与通用能力 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L431) |
+| `alerts.load_alert_groups` | `GET` | `/clusters/{clusterName}/alert_groups?fields=*` | 无 `format()` | `/api/v1 (default)` | 告警 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L435) |
+| `alerts.load_an_alert_group` | `GET` | `/clusters/{clusterName}/alert_groups/{group_id}` | 无 `format()` | `/api/v1 (default)` | 告警 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L439) |
+| `alert_groups.create` | `POST` | `/clusters/{clusterName}/alert_groups` | `definitions`, `name`, `targets` | `/api/v1 (default)` | 告警 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L443) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/alerts/manage_alert_groups_controller.js:476` |  |  |  |  |  |
+| `alert_groups.update` | `PUT` | `/clusters/{clusterName}/alert_groups/{group_id}` | `definitions`, `name`, `targets` | `/api/v1 (default)` | 告警 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L459) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/alerts/manage_alert_groups_controller.js:508` |  |  |  |  |  |
+| `alert_groups.delete` | `DELETE` | `/clusters/{clusterName}/alert_groups/{group_id}` | 无静态 `data.*` 引用 | `/api/v1 (default)` | 告警 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L475) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/alerts/manage_alert_groups_controller.js:542` |  |  |  |  |  |
+| `alerts.load_all_alert_definitions` | `GET` | `/clusters/{clusterName}/alert_definitions?fields=*` | 无 `format()` | `/api/v1 (default)` | 告警 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L484) |
+| `alerts.notifications` | `GET` | `/alert_targets?fields=*` | 无 `format()` | `/api/v1 (default)` | 告警 | 2 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L488) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/alerts/manage_alert_groups_controller.js:210`<br>`ambari-web/classic/app/controllers/main/alerts/manage_alert_notifications_controller.js:363` |  |  |  |  |  |
+| `alerts.instances` | `GET` | `/clusters/{clusterName}/alerts?fields=*` | 无 `format()` | `/api/v1 (default)` | 告警 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L492) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/alerts/alert_instances_controller.js:113` |  |  |  |  |  |
+| `alerts.instances.unhealthy` | `GET` | `/clusters/{clusterName}/alerts?fields=*&Alert/state.in(CRITICAL,WARNING)&{paginationInfo}` | 无 `format()` | `/api/v1 (default)` | 告警 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L496) |
+| `alerts.instances.by_definition` | `GET` | `/clusters/{clusterName}/alerts?fields=*&Alert/definition_id={definitionId}` | 无 `format()` | `/api/v1 (default)` | 告警 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L500) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/alerts/alert_instances_controller.js:104` |  |  |  |  |  |
+| `alerts.instances.by_host` | `GET` | `/clusters/{clusterName}/alerts?fields=*&Alert/host_name={hostName}` | 无 `format()` | `/api/v1 (default)` | 主机、告警 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L504) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/alerts/alert_instances_controller.js:95` |  |  |  |  |  |
+| `alerts.update_alert_definition` | `PUT` | `/clusters/{clusterName}/alert_definitions/{id}` | `data` | `/api/v1 (default)` | 告警 | 6 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L508) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/alert_definitions_controller.js:110`<br>`ambari-web/classic/app/controllers/main/alerts/definition_configs_controller.js:654`<br>`ambari-web/classic/app/controllers/main/alerts/definition_details_controller.js:155`<br>`ambari-web/classic/app/controllers/main/alerts/definition_details_controller.js:246`<br>`ambari-web/classic/app/controllers/main/alerts/definition_details_controller.js:265`<br>`ambari-web/classic/app/controllers/main/alerts/definition_details_controller.js:309` |  |  |  |  |  |
+| `alerts.create_alert_definition` | `POST` | `/clusters/{clusterName}/alert_definitions/` | `data` | `/api/v1 (default)` | 告警 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L518) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/alerts/add_alert_definition/add_alert_definition_controller.js:38` |  |  |  |  |  |
+| `alerts.delete_alert_definition` | `DELETE` | `/clusters/{clusterName}/alert_definitions/{id}` | 无 `format()` | `/api/v1 (default)` | 告警 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L528) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/alerts/definition_details_controller.js:189` |  |  |  |  |  |
+| `alerts.create_alert_notification` | `POST` | `/alert_targets?{urlParams}` | `data` | `/api/v1 (default)` | 安装向导、告警 | 2 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L533) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/alerts/manage_alert_notifications_controller.js:860`<br>`ambari-web/classic/app/controllers/wizard/step8_controller.js:1706` |  |  |  |  |  |
+| `alerts.update_alert_notification` | `PUT` | `/alert_targets/{id}` | `data` | `/api/v1 (default)` | 告警 | 2 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L543) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/alerts/manage_alert_notifications_controller.js:898`<br>`ambari-web/classic/app/controllers/main/alerts/manage_alert_notifications_controller.js:977` |  |  |  |  |  |
+| `alerts.delete_alert_notification` | `DELETE` | `/alert_targets/{id}` | 无 `format()` | `/api/v1 (default)` | 告警 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L553) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/alerts/manage_alert_notifications_controller.js:939` |  |  |  |  |  |
+| `alerts.get_instances_history` | `GET` | `/clusters/{clusterName}/alert_history?(AlertHistory/definition_name={definitionName})&(AlertHistory/timestamp>={timestamp})` | 无 `format()` | `/api/v1 (default)` | 告警 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L558) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/alerts/definition_details_controller.js:91` |  |  |  |  |  |
+| `background_operations.get_most_recent` | `GET` | `/clusters/{clusterName}/requests?to=end&page_size={operationsCount}&fields=Requests/end_time,Requests/id,Requests/progress_percent,Requests/request_context,Requests/request_status,Requests/start_time,Requests/cluster_name,Requests/user_name&minimal_response=true` | 无 `format()` | `/api/v1 (default)` | 后台操作与通用能力 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L562) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/global/background_operations_controller.js:208` |  |  |  |  |  |
+| `background_operations.get_by_request` | `GET` | `/clusters/{clusterName}/requests/{requestId}?fields=*,tasks/Tasks/request_id,tasks/Tasks/command,tasks/Tasks/command_detail,tasks/Tasks/ops_display_name,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status&minimal_response=true` | 无 `format()` | `/api/v1 (default)` | 安全、高可用与联邦、后台操作与通用能力 | 4 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L569) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/global/background_operations_controller.js:222`<br>`ambari-web/classic/app/controllers/main/admin/highAvailability/progress_popup_controller.js:111`<br>`ambari-web/classic/app/mixins/wizard/wizardProgressPageController.js:689`<br>`ambari-web/classic/app/utils/polling.js:149` |  |  |  |  |  |
+| `background_operations.get_by_task` | `GET` | `/clusters/{clusterName}/requests/{requestId}/tasks/{taskId}` | 无 `format()` | `/api/v1 (default)` | 安装向导、安全、高可用与联邦、后台操作与通用能力 | 4 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L574) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/global/background_operations_controller.js:215`<br>`ambari-web/classic/app/controllers/main/admin/highAvailability/progress_popup_controller.js:275`<br>`ambari-web/classic/app/controllers/wizard/step9_controller.js:990`<br>`ambari-web/classic/app/utils/polling.js:118` |  |  |  |  |  |
+| `background_operations.abort_request` | `PUT` | `/clusters/{clusterName}/requests/{requestId}` | 无静态 `data.*` 引用 | `/api/v1 (default)` | 主机、后台操作与通用能力 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L579) |
+|  |  | 调用位置：`ambari-web/classic/app/utils/host_progress_popup.js:255` |  |  |  |  |  |
+| `service.item.smoke` | `POST` | `/clusters/{clusterName}/requests` | `actionName`, `displayName`, `operationLevel`, `serviceName` | `/api/v1 (default)` | 服务与配置、安全、高可用与联邦 | 2 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L594) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/kerberos/step3_controller.js:90`<br>`ambari-web/classic/app/controllers/main/service/item.js:1293` |  |  |  |  |  |
+| `service.item.rebalanceHdfsNodes` | `POST` | `/clusters/{clusterName}/requests` | `hosts`, `threshold` | `/api/v1 (default)` | 服务与配置 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L614) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/service/item.js:843` |  |  |  |  |  |
+| `cancel.background.operation` | `PUT` | `/clusters/{clusterName}/requests/{requestId}` | 无静态 `data.*` 引用 | `/api/v1 (default)` | 主机、Views、后台操作与通用能力 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L636) |
+|  |  | 调用位置：`ambari-web/classic/app/views/common/host_progress_popup_body_view.js:1018` |  |  |  |  |  |
+| `service.item.refreshQueueYarnRequest` | `POST` | `/clusters/{clusterName}/requests` | `command`, `componentName`, `context`, `forceRefreshConfigTags`, `hosts`, `serviceName` | `/api/v1 (default)` | 服务与配置、后台操作与通用能力 | 2 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L657) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/service/item.js:646`<br>`ambari-web/classic/app/models/configs/theme/config_action.js:110` |  |  |  |  |  |
+| `service.item.startStopLdapKnox` | `POST` | `/clusters/{clusterName}/requests` | `command`, `componentName`, `context`, `host`, `serviceName` | `/api/v1 (default)` | 服务与配置 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L679) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/service/item.js:693` |  |  |  |  |  |
+| `service.item.updateHBaseReplication` | `POST` | `/clusters/{clusterName}/requests` | `hosts`, `replication_cluster_keys`, `replication_peers` | `/api/v1 (default)` | 服务与配置 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L700) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/service/item.js:976` |  |  |  |  |  |
+| `service.item.stopHBaseReplication` | `POST` | `/clusters/{clusterName}/requests` | `hosts`, `replication_peers` | `/api/v1 (default)` | 服务与配置 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L725) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/service/item.js:1041` |  |  |  |  |  |
+| `service.item.executeCustomCommand` | `POST` | `/clusters/{clusterName}/requests` | `command`, `componentName`, `context`, `hosts`, `serviceName` | `/api/v1 (default)` | 主机、服务与配置、安全、高可用与联邦 | 6 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L751) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/highAvailability/hawq/activateStandby/step3_controller.js:43`<br>`ambari-web/classic/app/controllers/main/admin/highAvailability/hawq/removeStandby/step3_controller.js:42`<br>`ambari-web/classic/app/controllers/main/host/details.js:3047`<br>`ambari-web/classic/app/controllers/main/service/item.js:741`<br>`ambari-web/classic/app/controllers/main/service/item.js:1545`<br>`ambari-web/classic/app/controllers/main/service/item.js:1569` |  |  |  |  |  |
+| `configs.theme` | `GET` | `{stackVersionUrl}/services/{serviceName}/themes?ThemeInfo/default=true&fields=*` | 无 `format()` | `/api/v1 (default)` | 服务与配置 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L773) |
+|  |  | 调用位置：`ambari-web/classic/app/mixins/main/service/themes_mapping.js:40` |  |  |  |  |  |
+| `configs.theme.services` | `GET` | `{stackVersionUrl}/services?StackServices/service_name.in({serviceNames})&themes/ThemeInfo/default=true&fields=themes/*` | 无 `format()` | `/api/v1 (default)` | 服务与配置 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L778) |
+|  |  | 调用位置：`ambari-web/classic/app/mixins/main/service/themes_mapping.js:74` |  |  |  |  |  |
+| `configs.quicklinksconfig` | `GET` | `{stackVersionUrl}/services/{serviceName}/quicklinks?QuickLinkInfo/default=true&fields=*` | 无 `format()` | `/api/v1 (default)` | Views | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L785) |
+|  |  | 调用位置：`ambari-web/classic/app/views/common/quick_view_link_view.js:133` |  |  |  |  |  |
+| `configs.quicklinksconfig.services` | `GET` | `{stackVersionUrl}/services?StackServices/service_name.in({serviceNames})&quicklinks/QuickLinkInfo/default=true&fields=quicklinks/*` | 无 `format()` | `/api/v1 (default)` | 跨模块与待人工归类 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L790) |
+| `configs.config_groups.load.all` | `GET` | `/clusters/{clusterName}/config_groups?fields=*` | 无 `format()` | `/api/v1 (default)` | 服务与配置 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L797) |
+| `configs.config_groups.load.services` | `GET` | `/clusters/{clusterName}/config_groups?ConfigGroup/tag.in({serviceNames})&fields=*` | 无 `format()` | `/api/v1 (default)` | 服务与配置 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L802) |
+|  |  | 调用位置：`ambari-web/classic/app/mixins/main/service/groups_mapping.js:41` |  |  |  |  |  |
+| `configs.stack_configs.load.cluster_configs` | `GET` | `{stackVersionUrl}?fields=configurations/*,Versions/config_types/*` | 无 `format()` | `/api/v1 (default)` | 后台操作与通用能力 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L809) |
+|  |  | 调用位置：`ambari-web/classic/app/utils/config.js:1045` |  |  |  |  |  |
+| `configs.stack_configs.load.all` | `GET` | `{stackVersionUrl}/services?fields=configurations/*,StackServices/config_types/*` | 无 `format()` | `/api/v1 (default)` | 后台操作与通用能力 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L814) |
+|  |  | 调用位置：`ambari-web/classic/app/utils/config.js:1062` |  |  |  |  |  |
+| `configs.stack_configs.load.services` | `GET` | `{stackVersionUrl}/services?StackServices/service_name.in({serviceList})&fields=configurations/*,configurations/dependencies/*,StackServices/config_types/*` | 无 `format()` | `/api/v1 (default)` | 后台操作与通用能力 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L819) |
+|  |  | 调用位置：`ambari-web/classic/app/utils/config.js:1062` |  |  |  |  |  |
+| `configs.stack_configs.load.service` | `GET` | `{stackVersionUrl}/services/{serviceName}?fields=configurations/*,StackServices/config_types/*` | 无 `format()` | `/api/v1 (default)` | 跨模块与待人工归类 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L824) |
+| `configs.config_versions.load` | `GET` | `/clusters/{clusterName}/configurations/service_config_versions?service_name={serviceName}&service_config_version={configVersion}&fields=*` | 无 `format()` | `/api/v1 (default)` | 跨模块与待人工归类 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L831) |
+| `configs.config_versions.load.group` | `GET` | `/clusters/{clusterName}/configurations/service_config_versions?service_name={serviceName}&group_id={id}&fields=*` | 无 `format()` | `/api/v1 (default)` | 跨模块与待人工归类 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L836) |
+| `configs.config_versions.load.current_versions` | `GET` | `/clusters/{clusterName}/configurations/service_config_versions?service_name.in({serviceNames})&is_current=true&fields=*` | 无 `format()` | `/api/v1 (default)` | 跨模块与待人工归类 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L841) |
+| `service.load_config_groups` | `GET` | `/clusters/{clusterName}/config_groups?ConfigGroup/tag={serviceName}&fields=*` | 无 `format()` | `/api/v1 (default)` | 服务与配置 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L847) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/service/manage_config_groups_controller.js:446` |  |  |  |  |  |
+| `reassign.load_configs` | `GET` | `/clusters/{clusterName}/configurations?{urlParams}` | 无 `format()` | `/api/v1 (default)` | 主机、服务与配置、安全、高可用与联邦 | 13 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L851) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/highAvailability/hawq/activateStandby/step3_controller.js:72`<br>`ambari-web/classic/app/controllers/main/admin/highAvailability/hawq/addStandby/step3_controller.js:96`<br>`ambari-web/classic/app/controllers/main/admin/highAvailability/hawq/addStandby/step4_controller.js:53`<br>`ambari-web/classic/app/controllers/main/admin/highAvailability/hawq/removeStandby/step3_controller.js:71`<br>`ambari-web/classic/app/controllers/main/admin/highAvailability/rangerAdmin/step4_controller.js:62`<br>`ambari-web/classic/app/controllers/main/admin/highAvailability/resourceManager/step3_controller.js:86`<br>`ambari-web/classic/app/controllers/main/admin/highAvailability/resourceManager/step4_controller.js:75`<br>`ambari-web/classic/app/controllers/main/admin/highAvailability/resourceManager/step4_controller.js:88`<br>`ambari-web/classic/app/controllers/main/admin/highAvailability/resourceManager/step4_controller.js:101`<br>`ambari-web/classic/app/controllers/main/host/details.js:1719`<br>`ambari-web/classic/app/controllers/main/service/info/summary.js:179`<br>`ambari-web/classic/app/controllers/main/service/reassign/step1_controller.js:79`<br>`ambari-web/classic/app/controllers/main/service/reassign/step3_controller.js:316` |  |  |  |  |  |
+| `reassign.save_configs` | `PUT` | `/clusters/{clusterName}` | `properties`, `service_config_version_note`, `siteName` | `/api/v1 (default)` | 跨模块与待人工归类 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L856) |
+| `config.cluster` | `GET` | `{stackVersionUrl}/configurations?fields=*` | 无 `format()` | `/api/v1 (default)` | 跨模块与待人工归类 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L875) |
+| `config.advanced` | `GET` | `{stackVersionUrl}/services/{serviceName}/configurations?fields=*` | 无 `format()` | `/api/v1 (default)` | 跨模块与待人工归类 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L879) |
+| `config.advanced.multiple.services` | `GET` | `{stackVersionUrl}/services?StackServices/service_name.in({serviceNames})&fields=configurations/*` | 无 `format()` | `/api/v1 (default)` | 跨模块与待人工归类 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L883) |
+| `config.advanced.partial` | `GET` | `{stackVersionUrl}/services/?StackServices/service_name.in({serviceList})&fields=configurations/*{queryFilter}` | 无 `format()` | `/api/v1 (default)` | 跨模块与待人工归类 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L887) |
+| `config.config_types` | `GET` | `{stackVersionUrl}/services/{serviceName}?fields=StackServices/config_types` | 无 `format()` | `/api/v1 (default)` | 跨模块与待人工归类 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L891) |
+| `config.tags` | `GET` | `/clusters/{clusterName}?fields=Clusters/desired_configs` | 无 `format()` | `/api/v1 (default)` | 认证与应用外壳、安装向导、主机、服务与配置、安全、高可用与联邦 | 17 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L895) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/global/configuration_controller.js:145`<br>`ambari-web/classic/app/controllers/main/admin/federation/routerBasedFederation/step3_controller.js:51`<br>`ambari-web/classic/app/controllers/main/admin/federation/step3_controller.js:54`<br>`ambari-web/classic/app/controllers/main/admin/highAvailability/hawq/activateStandby/step3_controller.js:63`<br>`ambari-web/classic/app/controllers/main/admin/highAvailability/hawq/addStandby/step3_controller.js:82`<br>`ambari-web/classic/app/controllers/main/admin/highAvailability/hawq/addStandby/step4_controller.js:44`<br>`ambari-web/classic/app/controllers/main/admin/highAvailability/hawq/removeStandby/step3_controller.js:62`<br>`ambari-web/classic/app/controllers/main/admin/highAvailability/journalNode/step2_controller.js:66`<br>`ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/step3_controller.js:65`<br>`ambari-web/classic/app/controllers/main/admin/highAvailability/rangerAdmin/step4_controller.js:46`<br>`ambari-web/classic/app/controllers/main/admin/highAvailability/resourceManager/step3_controller.js:70`<br>`ambari-web/classic/app/controllers/main/admin/highAvailability/resourceManager/step4_controller.js:66`<br>`ambari-web/classic/app/controllers/main/host/details.js:1689`<br>`ambari-web/classic/app/controllers/main/service/info/summary.js:149`<br>`ambari-web/classic/app/controllers/main/service/reassign/step1_controller.js:45`<br>`ambari-web/classic/app/controllers/main/service/reassign/step3_controller.js:293`<br>`ambari-web/classic/app/controllers/wizard/step7_controller.js:1176` |  |  |  |  |  |
+| `config.tags.site` | `GET` | `/clusters/{clusterName}?fields=Clusters/desired_configs/{site}` | 无 `format()` | `/api/v1 (default)` | 后台操作与通用能力 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L899) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/global/update_controller.js:704` |  |  |  |  |  |
+| `config.tags_and_groups` | `GET` | `/clusters/{clusterName}?fields=Clusters/desired_configs,config_groups/*{urlParams}` | 无 `format()` | `/api/v1 (default)` | 跨模块与待人工归类 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L903) |
+| `config_groups.all_fields` | `GET` | `/clusters/{clusterName}/config_groups?fields=*` | 无 `format()` | `/api/v1 (default)` | 主机、服务与配置 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L907) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/host/addHost/step4_controller.js:28` |  |  |  |  |  |
+| `config_groups.get_config_group_by_id` | `GET` | `/clusters/{clusterName}/config_groups/{id}` | 无 `format()` | `/api/v1 (default)` | 服务与配置 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L911) |
+| `config_groups.update_config_group` | `PUT` | `/clusters/{clusterName}/config_groups/{id}` | `configGroup` | `/api/v1 (default)` | 安装向导、主机、服务与配置 | 3 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L915) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/host/add_controller.js:270`<br>`ambari-web/classic/app/controllers/wizard/step8_controller.js:1598`<br>`ambari-web/classic/app/mixins/common/configs/configs_saver.js:607` |  |  |  |  |  |
+| `config.on_site` | `GET` | `/clusters/{clusterName}/configurations?{params}` | 无 `format()` | `/api/v1 (default)` | 后台操作与通用能力 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L929) |
+|  |  | 调用位置：`ambari-web/classic/app/utils/config.js:819` |  |  |  |  |  |
+| `config.host_overrides` | `GET` | `/clusters/{clusterName}/configurations?{params}` | 无 `format()` | `/api/v1 (default)` | 主机、服务与配置 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L933) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/service/manage_config_groups_controller.js:540` |  |  |  |  |  |
+| `config.tags.selected` | `GET` | `/clusters/{clusterName}/configurations?type.in({tags})` | 无 `format()` | `/api/v1 (default)` | 跨模块与待人工归类 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L938) |
+| `credentials.store.info` | `GET` | `/clusters/{clusterName}?fields=Clusters/credential_store_properties` | 无 `format()` | `/api/v1 (default)` | 后台操作与通用能力 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L943) |
+|  |  | 调用位置：`ambari-web/classic/app/utils/credentials.js:214` |  |  |  |  |  |
+| `credentials.list` | `GET` | `/clusters/{clusterName}/credentials?fields=Credential/*` | 无 `format()` | `/api/v1 (default)` | 后台操作与通用能力 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L948) |
+|  |  | 调用位置：`ambari-web/classic/app/utils/credentials.js:178` |  |  |  |  |  |
+| `credentials.get` | `GET` | `/clusters/{clusterName}/credentials/{alias}` | 无 `format()` | `/api/v1 (default)` | 后台操作与通用能力 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L953) |
+|  |  | 调用位置：`ambari-web/classic/app/utils/credentials.js:128` |  |  |  |  |  |
+| `credentials.create` | `POST` | `/clusters/{clusterName}/credentials/{alias}` | `resource` | `/api/v1 (default)` | 后台操作与通用能力 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L958) |
+|  |  | 调用位置：`ambari-web/classic/app/utils/credentials.js:70` |  |  |  |  |  |
+| `credentials.update` | `PUT` | `/clusters/{clusterName}/credentials/{alias}` | `resource` | `/api/v1 (default)` | 后台操作与通用能力 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L971) |
+|  |  | 调用位置：`ambari-web/classic/app/utils/credentials.js:159` |  |  |  |  |  |
+| `credentials.delete` | `DELETE` | `/clusters/{clusterName}/credentials/{alias}` | 无 `format()` | `/api/v1 (default)` | 后台操作与通用能力 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L984) |
+|  |  | 调用位置：`ambari-web/classic/app/utils/credentials.js:196` |  |  |  |  |  |
+| `host.host_component.add_new_component` | `POST` | `/clusters/{clusterName}/hosts?Hosts/host_name={hostName}` | `data` | `/api/v1 (default)` | 主机 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L990) |
+|  |  | 调用位置：`ambari-web/classic/app/mixins/main/host/details/host_components/install_component.js:30` |  |  |  |  |  |
+| `host.host_component.add_new_components` | `POST` | `/clusters/{clusterName}/hosts` | `data` | `/api/v1 (default)` | 主机 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1001) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/host/bulk_operations_controller.js:592` |  |  |  |  |  |
+| `host.host_component.delete_components` | `DELETE` | `/clusters/{clusterName}/host_components` | `data` | `/api/v1 (default)` | 主机、Stack 与升级 | 2 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1012) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:1655`<br>`ambari-web/classic/app/controllers/main/host/bulk_operations_controller.js:718` |  |  |  |  |  |
+| `host.host_component.slave_desired_admin_state` | `GET` | `/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}/?fields=HostRoles/desired_admin_state` | 无 `format()` | `/api/v1 (default)` | 主机 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1022) |
+|  |  | 调用位置：`ambari-web/classic/app/mixins/main/host/details/host_components/decommissionable.js:158` |  |  |  |  |  |
+| `host.host_component.decommission_status` | `GET` | `/clusters/{clusterName}/services/{serviceName}/components/{componentName}/?fields=ServiceComponentInfo,host_components/HostRoles/state` | 无 `format()` | `/api/v1 (default)` | 主机 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1026) |
+|  |  | 调用位置：`ambari-web/classic/app/mixins/main/host/details/host_components/decommissionable.js:201` |  |  |  |  |  |
+| `host_components.hbase_regionserver.active` | `GET` | `/clusters/{clusterName}/host_components?HostRoles/component_name=HBASE_REGIONSERVER&HostRoles/maintenance_state=OFF&HostRoles/desired_admin_state=INSERVICE&HostRoles/host_name.in({hostNames})` | 无 `format()` | `/api/v1 (default)` | 主机 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1030) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/host/bulk_operations_controller.js:954` |  |  |  |  |  |
+| `host.host_component.decommission_status_datanode` | `GET` | `/clusters/{clusterName}/host_components?HostRoles/component_name=NAMENODE&HostRoles/host_name.in({hostNames})&fields=metrics/dfs/namenode` | 无 `format()` | `/api/v1 (default)` | 主机、Views | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1034) |
+|  |  | 调用位置：`ambari-web/classic/app/views/main/host/details/host_component_views/datanode_view.js:35` |  |  |  |  |  |
+| `host.host_component.decommission_status_regionserver` | `GET` | `/clusters/{clusterName}/host_components?HostRoles/component_name=HBASE_MASTER&HostRoles/host_name={hostName}&fields=metrics/hbase/master/liveRegionServersHosts,metrics/hbase/master/deadRegionServersHosts&minimal_response=true` | 无 `format()` | `/api/v1 (default)` | 主机、Views | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1038) |
+|  |  | 调用位置：`ambari-web/classic/app/views/main/host/details/host_component_views/regionserver_view.js:32` |  |  |  |  |  |
+| `host.region_servers.in_inservice` | `GET` | `/clusters/{clusterName}/host_components?HostRoles/component_name=HBASE_REGIONSERVER&HostRoles/desired_admin_state=INSERVICE&fields=HostRoles/host_name&minimal_response=true` | 无 `format()` | `/api/v1 (default)` | 主机 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1041) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/host/details.js:1993` |  |  |  |  |  |
+| `host.host_component.decommission_slave` | `POST` | `/clusters/{clusterName}/requests` | `clusterName`, `command`, `componentName`, `context`, `hostName`, `serviceName`, `slaveType` | `/api/v1 (default)` | 主机 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1045) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/host/details.js:1956` |  |  |  |  |  |
+| `host.host_component.refresh_configs` | `POST` | `/clusters/{clusterName}/requests` | `context`, `resource_filters` | `/api/v1 (default)` | 主机 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1072) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/host/details.js:1662` |  |  |  |  |  |
+| `admin.security_status` | `GET` | `/clusters/{clusterName}?fields=Clusters/security_type` | 无静态 `data.*` 引用 | `/api/v1 (default)` | 安全、高可用与联邦 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1420) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/kerberos.js:308` |  |  |  |  |  |
+| `cluster.load_cluster_name` | `GET` | `/clusters?fields=Clusters/security_type,Clusters/version,Clusters/cluster_id` | 无 `format()` | `/api/v1 (default)` | 后台操作与通用能力 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1429) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/global/cluster_controller.js:111` |  |  |  |  |  |
+| `cluster.load_last_upgrade` | `GET` | `/clusters/{clusterName}/upgrades?fields=Upgrade/*` | 无 `format()` | `/api/v1 (default)` | Stack 与升级、后台操作与通用能力 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1433) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/global/cluster_controller.js:533` |  |  |  |  |  |
+| `cluster.update_upgrade_version` | `GET` | `/stacks/{stackName}/versions?fields=services/StackServices,Versions` | `data` | `/api/v1 (default)` | Stack 与升级 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1437) |
+| `cluster.load_repositories` | `GET` | `/stacks/{stackName}/versions/{stackVersion}/operating_systems?fields=repositories/*,OperatingSystems/*` | `data` | `/api/v1 (default)` | 安装向导、Stack 与升级 | 2 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1446) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:2090`<br>`ambari-web/classic/app/controllers/wizard/step8_controller.js:404` |  |  |  |  |  |
+| `cluster.load_repo_version` | `GET` | `/stacks/{stackName}/versions?fields=repository_versions/operating_systems/repositories/*,repository_versions/operating_systems/OperatingSystems/*,repository_versions/RepositoryVersions/display_name&repository_versions/RepositoryVersions/repository_version={repositoryVersion}` | 无 `format()` | `/api/v1 (default)` | 安装向导、Stack 与升级 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1455) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/wizard/step8_controller.js:347` |  |  |  |  |  |
+| `cluster.load_detailed_repo_version` | `GET` | `/clusters/{clusterName}/stack_versions?fields=repository_versions/RepositoryVersions/repository_version,ClusterStackVersions/stack,ClusterStackVersions/version&minimal_response=true` | 无 `format()` | `/api/v1 (default)` | Stack 与升级、后台操作与通用能力 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1459) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/global/cluster_controller.js:502` |  |  |  |  |  |
+| `cluster.load_current_repo_stack_services` | `GET` | `/clusters/{clusterName}/stack_versions?fields=repository_versions/RepositoryVersions/stack_services,ClusterStackVersions/stack,ClusterStackVersions/version` | 无 `format()` | `/api/v1 (default)` | 安装向导、Stack 与升级 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1463) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/wizard.js:687` |  |  |  |  |  |
+| `cluster.save_provisioning_state` | `PUT` | `/clusters/{clusterName}` | `state` | `/api/v1 (default)` | 安装向导 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1467) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/installer.js:1124` |  |  |  |  |  |
+| `cluster.logging.searchEngine` | `GET` | `/clusters/{clusterName}/logging/searchEngine?{query}` | 无 `format()` | `/api/v1 (default)` | 跨模块与待人工归类 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1481) |
+| `admin.high_availability.polling` | `GET` | `/clusters/{clusterName}/requests/{requestId}?fields=tasks/*,Requests/*` | 无 `format()` | `/api/v1 (default)` | 跨模块与待人工归类 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1485) |
+| `admin.high_availability.getNnCheckPointStatus` | `GET` | `/clusters/{clusterName}/hosts/{hostName}/host_components/NAMENODE` | 无 `format()` | `/api/v1 (default)` | 安全、高可用与联邦 | 2 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1489) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/rollbackHA/step2_controller.js:27`<br>`ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/step4_controller.js:38` |  |  |  |  |  |
+| `admin.high_availability.getNnCheckPointsStatuses` | `GET` | `/clusters/{clusterName}/host_components?HostRoles/component_name=NAMENODE&HostRoles/host_name.in({hostNames})&fields=HostRoles/desired_state,metrics/dfs/namenode&minimal_response=true` | 无 `format()` | `/api/v1 (default)` | 安全、高可用与联邦 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1493) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/highAvailability/journalNode/step3_controller.js:51` |  |  |  |  |  |
+| `admin.high_availability.getJnCheckPointStatus` | `GET` | `/clusters/{clusterName}/hosts/{hostName}/host_components/JOURNALNODE?fields=metrics` | 无 `format()` | `/api/v1 (default)` | 安全、高可用与联邦 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1497) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/step6_controller.js:80` |  |  |  |  |  |
+| `admin.high_availability.getHostComponent` | `GET` | `/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}` | 无 `format()` | `/api/v1 (default)` | 主机、安全、高可用与联邦 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1501) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/rollback_controller.js:501` |  |  |  |  |  |
+| `common.create_component` | `POST` | `/clusters/{clusterName}/services?ServiceInfo/service_name={serviceName}` | `componentName` | `/api/v1 (default)` | 主机 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1505) |
+|  |  | 调用位置：`ambari-web/classic/app/mixins/main/host/details/host_components/install_component.js:134` |  |  |  |  |  |
+| `admin.high_availability.load_configs` | `GET` | `/clusters/{clusterName}/configurations?(type=core-site&tag={coreSiteTag})\|(type=hdfs-site&tag={hdfsSiteTag})` | 无 `format()` | `/api/v1 (default)` | 安全、高可用与联邦 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1523) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/rollback_controller.js:414` |  |  |  |  |  |
+| `admin.save_configs` | `PUT` | `/clusters/{clusterName}` | `properties`, `siteName` | `/api/v1 (default)` | 告警、安全、高可用与联邦 | 7 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1527) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/rollback_controller.js:364`<br>`ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/rollback_controller.js:377`<br>`ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/rollback_controller.js:391`<br>`ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/rollback_controller.js:428`<br>`ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/rollback_controller.js:438`<br>`ambari-web/classic/app/controllers/main/admin/service_auto_start.js:152`<br>`ambari-web/classic/app/controllers/main/alerts/alert_definitions_actions_controller.js:240` |  |  |  |  |  |
+| `admin.high_availability.load_hbase_configs` | `GET` | `/clusters/{clusterName}/configurations?type=hbase-site&tag={hbaseSiteTag}` | 无 `format()` | `/api/v1 (default)` | 安全、高可用与联邦 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1544) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/rollback_controller.js:239` |  |  |  |  |  |
+| `admin.security.cluster_configs` | `GET` | `/clusters/{clusterName}` | 无静态 `data.*` 引用 | `/api/v1 (default)` | 安全、高可用与联邦 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1548) |
+| `admin.security.cluster_configs.kerberos` | `GET` | `/clusters/{clusterName}/configurations/service_config_versions?service_name=KERBEROS&is_current=true` | 无静态 `data.*` 引用 | `/api/v1 (default)` | 安全、高可用与联邦 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1557) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/kerberos.js:450` |  |  |  |  |  |
+| `admin.get.all_configurations` | `GET` | `/clusters/{clusterName}/configurations?{urlParams}` | 无静态 `data.*` 引用 | `/api/v1 (default)` | 认证与应用外壳、主机、安全、高可用与联邦 | 10 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1566) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/federation/routerBasedFederation/step3_controller.js:63`<br>`ambari-web/classic/app/controllers/main/admin/federation/step3_controller.js:73`<br>`ambari-web/classic/app/controllers/main/admin/highAvailability/journalNode/step2_controller.js:81`<br>`ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/step3_controller.js:214`<br>`ambari-web/classic/app/controllers/main/host/details.js:927`<br>`ambari-web/classic/app/controllers/main/host/details.js:961`<br>`ambari-web/classic/app/controllers/main/host/details.js:980`<br>`ambari-web/classic/app/controllers/main/host/details.js:1181`<br>`ambari-web/classic/app/controllers/main/host/details.js:1203`<br>`ambari-web/classic/app/controllers/main/host/details.js:1424` |  |  |  |  |  |
+| `kerberos.session.state` | `GET` | `/clusters/{clusterName}/services/KERBEROS?fields=Services/attributes/kdc_validation_result,Services/attributes/kdc_validation_failure_details` | 无 `format()` | `/api/v1 (default)` | 安全、高可用与联邦 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1576) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/kerberos.js:423` |  |  |  |  |  |
+| `admin.kerberize.cluster` | `PUT` | `/clusters/{clusterName}` | `data` | `/api/v1 (default)` | 安全、高可用与联邦 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1581) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/kerberos/step7_controller.js:42` |  |  |  |  |  |
+| `admin.unkerberize.cluster` | `PUT` | `/clusters/{clusterName}` | 无静态 `data.*` 引用 | `/api/v1 (default)` | 安全、高可用与联邦 | 4 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1591) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/kerberos/disable_controller.js:48`<br>`ambari-web/classic/app/controllers/main/admin/kerberos/step5_controller.js:104`<br>`ambari-web/classic/app/controllers/main/admin/kerberos/step7_controller.js:70`<br>`ambari-web/classic/app/controllers/main/admin/kerberos/wizard_controller.js:245` |  |  |  |  |  |
+| `admin.kerberize.cluster.force` | `PUT` | `/clusters/{clusterName}?force_toggle_kerberos=true` | 无静态 `data.*` 引用 | `/api/v1 (default)` | 安全、高可用与联邦 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1605) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/kerberos/step7_controller.js:55` |  |  |  |  |  |
+| `admin.unkerberize.cluster.skip` | `PUT` | `/clusters/{clusterName}?manage_kerberos_identities=false` | 无静态 `data.*` 引用 | `/api/v1 (default)` | 安全、高可用与联邦 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1620) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/kerberos/disable_controller.js:57` |  |  |  |  |  |
+| `get.cluster.artifact` | `GET` | `/clusters/{clusterName}/artifacts/{artifactName}?fields=artifact_data` | 无 `format()` | `/api/v1 (default)` | 跨模块与待人工归类 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1635) |
+| `admin.kerberize.stack_descriptor` | `GET` | `/clusters/{clusterName}/kerberos_descriptors/STACK` | 无 `format()` | `/api/v1 (default)` | 跨模块与待人工归类 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1639) |
+| `admin.kerberize.cluster_descriptor_artifact` | `GET` | `/clusters/{clusterName}/artifacts/kerberos_descriptor?fields=artifact_data` | 无 `format()` | `/api/v1 (default)` | 安装向导 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1643) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/wizard/step7_controller.js:1885` |  |  |  |  |  |
+| `admin.kerberize.cluster_descriptor` | `GET` | `/clusters/{clusterName}/kerberos_descriptors/COMPOSITE{queryParams}` | 无 `format()` | `/api/v1 (default)` | 安全、高可用与联邦 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1647) |
+|  |  | 调用位置：`ambari-web/classic/app/mixins/wizard/addSecurityConfigs.js:423` |  |  |  |  |  |
+| `admin.kerberize.cluster_descriptor.stack` | `GET` | `/clusters/{clusterName}/kerberos_descriptors/STACK` | 无 `format()` | `/api/v1 (default)` | 安全、高可用与联邦 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1651) |
+|  |  | 调用位置：`ambari-web/classic/app/mixins/wizard/addSecurityConfigs.js:433` |  |  |  |  |  |
+| `admin.kerberos.cluster.artifact.create` | `POST` | `/clusters/{clusterName}/artifacts/{artifactName}` | `data` | `/api/v1 (default)` | 安装向导、安全、高可用与联邦 | 3 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1655) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/kerberos.js:584`<br>`ambari-web/classic/app/controllers/wizard/step8_controller.js:895`<br>`ambari-web/classic/app/mixins/wizard/addSecurityConfigs.js:860` |  |  |  |  |  |
+| `admin.kerberos.cluster.artifact.update` | `PUT` | `/clusters/{clusterName}/artifacts/{artifactName}` | `data` | `/api/v1 (default)` | 安装向导、安全、高可用与联邦 | 3 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1664) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/kerberos.js:557`<br>`ambari-web/classic/app/controllers/wizard/step8_controller.js:895`<br>`ambari-web/classic/app/mixins/wizard/addSecurityConfigs.js:878` |  |  |  |  |  |
+| `admin.kerberos.cluster.csv` | `GET` | `/clusters/{clusterName}/kerberos_identities?fields=*&format=csv` | `data` | `/api/v1 (default)` | 安全、高可用与联邦 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1673) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/kerberos/step5_controller.js:64` |  |  |  |  |  |
+| `admin.poll.kerberize.cluster.request` | `GET` | `/clusters/{clusterName}/requests/{requestId}?fields=stages/Stage/context,stages/Stage/status,stages/Stage/progress_percent,stages/tasks/*,Requests/*` | 无 `format()` | `/api/v1 (default)` | 后台操作与通用能力 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1683) |
+|  |  | 调用位置：`ambari-web/classic/app/mixins/wizard/wizardProgressPageController.js:159` |  |  |  |  |  |
+| `admin.stack_upgrade.run_upgrade` | `PUT` | `/clusters/{clusterName}` | `data` | `/api/v1 (default)` | Stack 与升级 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1687) |
+| `admin.user.create` | `POST` | `/users/{user}` | `data` | `/api/v1 (default)` | 跨模块与待人工归类 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1697) |
+| `admin.user.edit` | `PUT` | `/users/{user}` | `data` | `/api/v1 (default)` | 跨模块与待人工归类 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1708) |
+| `admin.stack_upgrade.do_poll` | `GET` | `/clusters/{cluster}/requests/{requestId}?fields=tasks/*` | 无 `format()` | `/api/v1 (default)` | Stack 与升级 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1719) |
+| `admin.upgrade.data` | `GET` | `/clusters/{clusterName}/upgrades/{id}?upgrade_groups/UpgradeGroup/status!=PENDING&fields=Upgrade/progress_percent,Upgrade/request_context,Upgrade/request_status,Upgrade/direction,Upgrade/downgrade_allowed,upgrade_groups/UpgradeGroup,Upgrade/*,upgrade_groups/upgrade_items/UpgradeItem/status,upgrade_groups/upgrade_items/UpgradeItem/display_status,upgrade_groups/upgrade_items/UpgradeItem/context,upgrade_groups/upgrade_items/UpgradeItem/group_id,upgrade_groups/upgrade_items/UpgradeItem/progress_percent,upgrade_groups/upgrade_items/UpgradeItem/request_id,upgrade_groups/upgrade_items/UpgradeItem/skippable,upgrade_groups/upgrade_items/UpgradeItem/stage_id,upgrade_groups/upgrade_items/UpgradeItem/text&minimal_response=true` | 无 `format()` | `/api/v1 (default)` | Stack 与升级 | 2 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1723) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:462`<br>`ambari-web/classic/app/controllers/main/admin/stack_upgrade_history_controller.js:84` |  |  |  |  |  |
+| `admin.upgrade.state` | `GET` | `/clusters/{clusterName}/upgrades/{id}?fields=Upgrade/*` | 无 `format()` | `/api/v1 (default)` | Stack 与升级 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1740) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:462` |  |  |  |  |  |
+| `admin.upgrade.finalizeContext` | `GET` | `/clusters/{clusterName}/upgrades/{id}?upgrade_groups/upgrade_items/UpgradeItem/status=HOLDING&fields=upgrade_groups/upgrade_items/UpgradeItem/context` | 无 `format()` | `/api/v1 (default)` | Stack 与升级 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1744) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:1963` |  |  |  |  |  |
+| `admin.upgrade.upgrade_item` | `GET` | `/clusters/{clusterName}/upgrades/{upgradeId}/upgrade_groups/{groupId}/upgrade_items/{stageId}?fields=UpgradeItem/group_id,UpgradeItem/stage_id,tasks/Tasks/command_detail,tasks/Tasks/host_name,tasks/Tasks/role,tasks/Tasks/request_id,tasks/Tasks/stage_id,tasks/Tasks/status,tasks/Tasks/structured_out&minimal_response=true` | 无 `format()` | `/api/v1 (default)` | Stack 与升级 | 2 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1748) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:627`<br>`ambari-web/classic/app/controllers/main/admin/stack_upgrade_history_controller.js:161` |  |  |  |  |  |
+| `admin.upgrade.upgrade_task` | `GET` | `/clusters/{clusterName}/upgrades/{upgradeId}/upgrade_groups/{groupId}/upgrade_items/{stageId}/tasks/{taskId}` | 无 `format()` | `/api/v1 (default)` | Stack 与升级 | 2 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1762) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:681`<br>`ambari-web/classic/app/controllers/main/admin/stack_upgrade_history_controller.js:214` |  |  |  |  |  |
+| `admin.upgrade.service_checks` | `GET` | `/clusters/{clusterName}/upgrades/{upgradeId}/upgrade_groups?upgrade_items/UpgradeItem/status=COMPLETED&upgrade_items/tasks/Tasks/status.in(FAILED,ABORTED,TIMEDOUT)&upgrade_items/tasks/Tasks/command=SERVICE_CHECK&fields=upgrade_items/tasks/Tasks/command_detail,tasks/Tasks/ops_display_name,upgrade_items/tasks/Tasks/status&minimal_response=true` | 无 `format()` | `/api/v1 (default)` | Stack 与升级、Views | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1766) |
+|  |  | 调用位置：`ambari-web/classic/app/views/main/admin/stack_upgrade/upgrade_wizard_view.js:311` |  |  |  |  |  |
+| `admin.upgrade.update.options` | `PUT` | `/clusters/{clusterName}/upgrades/{upgradeId}` | `skipComponentFailures`, `skipSCFailures` | `/api/v1 (default)` | Stack 与升级 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1769) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:1234` |  |  |  |  |  |
+| `admin.upgrade.start` | `POST` | `/clusters/{clusterName}/upgrades` | `id`, `skipComponentFailures`, `skipSCFailures`, `type` | `/api/v1 (default)` | Stack 与升级 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1784) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:877` |  |  |  |  |  |
+| `admin.downgrade.start` | `POST` | `/clusters/{clusterName}/upgrades` | `upgradeType` | `/api/v1 (default)` | Stack 与升级 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1803) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:791` |  |  |  |  |  |
+| `admin.upgrade.abort` | `PUT` | `/clusters/{clusterName}/upgrades/{upgradeId}` | 无静态 `data.*` 引用 | `/api/v1 (default)` | Stack 与升级 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1818) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:774` |  |  |  |  |  |
+| `admin.upgrade.suspend` | `PUT` | `/clusters/{clusterName}/upgrades/{upgradeId}` | 无静态 `data.*` 引用 | `/api/v1 (default)` | Stack 与升级 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1833) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:813` |  |  |  |  |  |
+| `admin.upgrade.retry` | `PUT` | `/clusters/{clusterName}/upgrades/{upgradeId}` | 无静态 `data.*` 引用 | `/api/v1 (default)` | Stack 与升级 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1848) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:862` |  |  |  |  |  |
+| `admin.upgrade.revert` | `POST` | `/clusters/{clusterName}/upgrades` | `upgradeId` | `/api/v1 (default)` | Stack 与升级 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1862) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:2219` |  |  |  |  |  |
+| `admin.upgrade.upgradeItem.setState` | `PUT` | `/clusters/{clusterName}/upgrades/{upgradeId}/upgrade_groups/{groupId}/upgrade_items/{itemId}` | `status` | `/api/v1 (default)` | Stack 与升级 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1877) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:2057` |  |  |  |  |  |
+| `admin.stack_versions.all` | `GET` | `/clusters/{clusterName}/stack_versions?fields=ClusterStackVersions/*,repository_versions/RepositoryVersions/*&minimal_response=true` | 无 `format()` | `/api/v1 (default)` | 跨模块与待人工归类 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1891) |
+| `admin.stack_version.install.repo_version` | `POST` | `/clusters/{clusterName}/stack_versions` | `ClusterStackVersions` | `/api/v1 (default)` | Stack 与升级 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1895) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:1596` |  |  |  |  |  |
+| `admin.stack_versions.edit.repo` | `PUT` | `/stacks/{stackName}/versions/{stackVersion}/repository_versions/{repoVersionId}` | `repoVersion` | `/api/v1 (default)` | 安装向导、Stack 与升级 | 2 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1908) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/installer.js:823`<br>`ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:1770` |  |  |  |  |  |
+| `admin.stack_versions.validate.repo` | `POST` | `/stacks/{stackName}/versions/{stackVersion}/operating_systems/{osType}/repositories/{repoId}?validate_only=true` | `baseUrl`, `repoName` | `/api/v1 (default)` | Stack 与升级 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1918) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:1833` |  |  |  |  |  |
+| `admin.stack_versions.discard` | `PUT` | `/stacks/{stackName}/versions/{stackVersion}/repository_versions/{id}` | 无静态 `data.*` 引用 | `/api/v1 (default)` | Stack 与升级 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1934) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:2254` |  |  |  |  |  |
+| `admin.upgrade.pre_upgrade_check` | `GET` | `/clusters/{clusterName}/rolling_upgrades_check?fields=*&UpgradeChecks/repository_version_id={id}&UpgradeChecks/upgrade_type={type}` | 无 `format()` | `/api/v1 (default)` | Stack 与升级 | 2 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1949) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:1296`<br>`ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:1463` |  |  |  |  |  |
+| `admin.upgrade.get_supported_upgradeTypes` | `GET` | `/stacks/{stackName}/versions/{stackVersion}/compatible_repository_versions?CompatibleRepositoryVersions/repository_version={toVersion}` | 无 `format()` | `/api/v1 (default)` | Stack 与升级 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1954) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:1319` |  |  |  |  |  |
+| `admin.upgrade.get_compatible_versions` | `GET` | `/stacks/{stackName}/versions/{stackVersion}/compatible_repository_versions?fields=CompatibleRepositoryVersions/repository_version&minimal_response=true` | 无 `format()` | `/api/v1 (default)` | Stack 与升级 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1959) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:501` |  |  |  |  |  |
+| `admin.kerberos_security.checks` | `GET` | `''` | 无 `format()` | `/api/v1 (default)` | 安全、高可用与联邦 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1964) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/kerberos.js:235` |  |  |  |  |  |
+| `admin.kerberos_security.test_connection` | `GET` | `/kdc_check/{kdcHostname}` | 无静态 `data.*` 引用 | `/api/v1 (default)` | 安全、高可用与联邦、Views | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1970) |
+|  |  | 调用位置：`ambari-web/classic/app/views/common/controls_view.js:1333` |  |  |  |  |  |
+| `admin.kerberos_security.regenerate_keytabs` | `PUT` | `/clusters/{clusterName}?regenerate_keytabs={type}` | 无静态 `data.*` 引用 | `/api/v1 (default)` | 安全、高可用与联邦 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1980) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/kerberos.js:183` |  |  |  |  |  |
+| `admin.kerberos_security.regenerate_keytabs.service` | `PUT` | `/clusters/{clusterName}?regenerate_keytabs=all&regenerate_components={serviceName}&config_update_policy=none` | 无静态 `data.*` 引用 | `/api/v1 (default)` | 服务与配置、安全、高可用与联邦 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1995) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/service/item.js:890` |  |  |  |  |  |
+| `admin.kerberos_security.regenerate_keytabs.host` | `PUT` | `/clusters/{clusterName}?regenerate_keytabs=all&regenerate_hosts={hostName}&config_update_policy=none` | 无静态 `data.*` 引用 | `/api/v1 (default)` | 主机、安全、高可用与联邦 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2010) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/host/details.js:3268` |  |  |  |  |  |
+| `wizard.step1.post_version_definition_file.xml` | `POST` | `/version_definitions?dry_run=true` | `data` | `/api/v1 (default)` | 安装向导、Stack 与升级 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2025) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/installer.js:588` |  |  |  |  |  |
+| `wizard.step1.post_version_definition_file.url` | `POST` | `/version_definitions?dry_run=true` | `data` | `/api/v1 (default)` | 安装向导、Stack 与升级 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2039) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/installer.js:588` |  |  |  |  |  |
+| `wizard.step8.post_version_definition_file.xml` | `POST` | `/version_definitions` | `data` | `/api/v1 (default)` | 安装向导、Stack 与升级 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2049) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/installer.js:655` |  |  |  |  |  |
+| `wizard.step8.post_version_definition_file` | `POST` | `/version_definitions` | `data` | `/api/v1 (default)` | 安装向导、Stack 与升级 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2063) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/installer.js:655` |  |  |  |  |  |
+| `wizard.step1.get_repo_version_by_id` | `GET` | `/stacks/{stackName}/versions?fields=repository_versions/operating_systems/repositories/*,repository_versions/RepositoryVersions/*&repository_versions/RepositoryVersions/id={repoId}&Versions/stack_version={stackVersion}` | 无 `format()` | `/api/v1 (default)` | Stack 与升级 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2073) |
+| `wizard.step1.get_supported_os_types` | `GET` | `/stacks/{stackName}/versions/{stackVersion}?fields=operating_systems/repositories/Repositories` | 无 `format()` | `/api/v1 (default)` | 安装向导 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2080) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/installer.js:702` |  |  |  |  |  |
+| `wizard.advanced_repositories.valid_url` | `PUT` | `/stacks/{stackName}/versions/{stackVersion}/operating_systems/{osType}/repositories/{repoId}` | `data` | `/api/v1 (default)` | 安装向导、Stack 与升级、Views | 2 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2085) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/installer.js:910`<br>`ambari-web/classic/app/views/main/admin/stack_upgrade/services_view.js:241` |  |  |  |  |  |
+| `wizard.get_version_definitions` | `GET` | `/version_definitions` | 无 `format()` | `/api/v1 (default)` | 安装向导、Stack 与升级 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2095) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/wizard/step8_controller.js:836` |  |  |  |  |  |
+| `wizard.delete_repository_versions` | `DELETE` | `/stacks/{stackName}/versions/{stackVersion}/repository_versions/{id}` | 无 `format()` | `/api/v1 (default)` | 安装向导、Stack 与升级 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2098) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/wizard/step8_controller.js:863` |  |  |  |  |  |
+| `wizard.service_components` | `GET` | `{stackUrl}/services?fields=StackServices/*,components/*,components/dependencies/Dependencies/scope,components/dependencies/Dependencies/service_name,components/dependencies/Dependencies/type,artifacts/Artifacts/artifact_name` | 无 `format()` | `/api/v1 (default)` | 安装向导、后台操作与通用能力 | 2 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2102) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/global/cluster_controller.js:399`<br>`ambari-web/classic/app/controllers/wizard.js:630` |  |  |  |  |  |
+| `wizard.step9.installer.get_host_status` | `GET` | `/clusters/{cluster}/hosts?fields=Hosts/host_state,host_components/HostRoles/state` | 无 `format()` | `/api/v1 (default)` | 安装向导、主机 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2106) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/wizard/step9_controller.js:1109` |  |  |  |  |  |
+| `wizard.step9.load_log` | `GET` | `/clusters/{cluster}/requests/{requestId}?fields=tasks/Tasks/command,tasks/Tasks/command_detail,tasks/Tasks/ops_display_name,tasks/Tasks/exit_code,tasks/Tasks/start_time,tasks/Tasks/end_time,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status&minimal_response=true` | 无静态 `data.*` 引用 | `/api/v1 (default)` | 安装向导 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2110) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/wizard/step9_controller.js:1041` |  |  |  |  |  |
+| `wizard.step8.existing_cluster_names` | `GET` | `/clusters` | 无 `format()` | `/api/v1 (default)` | 安装向导 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2120) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/wizard/step8_controller.js:719` |  |  |  |  |  |
+| `wizard.step8.create_cluster` | `POST` | `/clusters/{cluster}` | `data` | `/api/v1 (default)` | 安装向导 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2125) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/wizard/step8_controller.js:992` |  |  |  |  |  |
+| `wizard.step8.create_selected_services` | `POST` | `/clusters/{cluster}/services` | `data` | `/api/v1 (default)` | 安装向导、安全、高可用与联邦 | 2 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2137) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/kerberos/wizard_controller.js:204`<br>`ambari-web/classic/app/controllers/wizard/step8_controller.js:1014` |  |  |  |  |  |
+| `wizard.step8.create_components` | `POST` | `/clusters/{cluster}/services?ServiceInfo/service_name={serviceName}` | `data` | `/api/v1 (default)` | 安装向导 | 2 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2149) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/wizard/step8_controller.js:1088`<br>`ambari-web/classic/app/controllers/wizard/step8_controller.js:1108` |  |  |  |  |  |
+| `wizard.step8.register_host_to_cluster` | `POST` | `/clusters/{cluster}/hosts` | `data` | `/api/v1 (default)` | 安装向导、主机 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2161) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/wizard/step8_controller.js:1133` |  |  |  |  |  |
+| `wizard.step8.register_host_to_component` | `POST` | `/clusters/{cluster}/hosts` | `data` | `/api/v1 (default)` | 安装向导、主机、安全、高可用与联邦 | 3 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2173) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/kerberos/wizard_controller.js:275`<br>`ambari-web/classic/app/controllers/wizard/step8_controller.js:1463`<br>`ambari-web/classic/app/mixins/wizard/wizardProgressPageController.js:569` |  |  |  |  |  |
+| `wizard.step8.apply_configuration_groups` | `POST` | `/clusters/{cluster}/config_groups` | `data` | `/api/v1 (default)` | 安装向导、服务与配置 | 2 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2185) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/wizard/step8_controller.js:1582`<br>`ambari-web/classic/app/mixins/common/configs/configs_saver.js:586` |  |  |  |  |  |
+| `wizard.step8.set_local_repos` | `PUT` | `{stackVersionURL}/operating_systems/{osType}/repositories/{repoId}` | `data` | `/api/v1 (default)` | Stack 与升级 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2197) |
+| `wizard.step3.jdk_check` | `POST` | `/requests` | `host_names`, `java_home`, `jdk_location` | `/api/v1 (default)` | 安装向导 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2208) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/wizard/step3_controller.js:732` |  |  |  |  |  |
+| `wizard.step3.jdk_check.get_results` | `GET` | `/requests/{requestIndex}?fields=*,tasks/Tasks/host_name,tasks/Tasks/status,tasks/Tasks/structured_out` | 无 `format()` | `/api/v1 (default)` | 安装向导 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2232) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/wizard/step3_controller.js:751` |  |  |  |  |  |
+| `wizard.step3.host_info` | `GET` | `/hosts?fields=Hosts/total_mem,Hosts/cpu_count,Hosts/disk_info,Hosts/last_agent_env,Hosts/host_name,Hosts/os_type,Hosts/os_arch,Hosts/os_family,Hosts/ip` | 无静态 `data.*` 引用 | `/api/v1 (default)` | 主机 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2236) |
+|  |  | 调用位置：`ambari-web/classic/app/mixins/main/host/details/actions/check_host.js:254` |  |  |  |  |  |
+| `wizard.loadrecommendations` | `POST` | `{stackVersionUrl}/recommendations` | `hosts`, `recommend`, `recommendations`, `services` | `/api/v1 (default)` | 安装向导、主机 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2247) |
+|  |  | 调用位置：`ambari-web/classic/app/mixins/common/hosts/host_component_recommendation_mixin.js:117` |  |  |  |  |  |
+| `config.recommendations` | `POST` | `{stackVersionUrl}/recommendations` | `dataToSend` | `/api/v1 (default)` | 安装向导、服务与配置、安全、高可用与联邦 | 4 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2270) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/highAvailability/resourceManager/step3_controller.js:202`<br>`ambari-web/classic/app/controllers/main/admin/kerberos/step4_controller.js:343`<br>`ambari-web/classic/app/mixins/common/configs/enhanced_configs.js:336`<br>`ambari-web/classic/app/mixins/wizard/addSecurityConfigs.js:759` |  |  |  |  |  |
+| `config.validations` | `POST` | `{stackVersionUrl}/validations` | `hosts`, `recommendations`, `services`, `validate` | `/api/v1 (default)` | 主机 | 2 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2282) |
+|  |  | 调用位置：`ambari-web/classic/app/mixins/common/hosts/host_component_validation_mixin.js:96`<br>`ambari-web/classic/app/mixins/common/serverValidator.js:197` |  |  |  |  |  |
+| `preinstalled.checks` | `POST` | `/requests` | `RequestInfo`, `resource_filters` | `/api/v1 (default)` | 主机 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2299) |
+|  |  | 调用位置：`ambari-web/classic/app/mixins/main/host/details/actions/check_host.js:145` |  |  |  |  |  |
+| `preinstalled.checks.tasks` | `GET` | `/requests/{requestId}?fields=Requests/inputs,Requests/request_status,tasks/Tasks/host_name,tasks/Tasks/structured_out/host_resolution_check/hosts_with_failures,tasks/Tasks/structured_out/host_resolution_check/failed_count,tasks/Tasks/structured_out/installed_packages,tasks/Tasks/structured_out/last_agent_env_check,tasks/Tasks/structured_out/transparentHugePage,tasks/Tasks/stdout,tasks/Tasks/stderr,tasks/Tasks/error_log,tasks/Tasks/command_detail,tasks/Tasks/status&minimal_response=true` | 无 `format()` | `/api/v1 (default)` | 主机 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2313) |
+|  |  | 调用位置：`ambari-web/classic/app/mixins/main/host/details/actions/check_host.js:189` |  |  |  |  |  |
+| `persist.get.text` | `GET` | `/persist/{key}` | 无静态 `data.*` 引用 | `/api/v1 (default)` | 跨模块与待人工归类 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2329) |
+|  |  | 调用位置：`ambari-web/classic/app/mixins/common/persist.js:68` |  |  |  |  |  |
+| `persist.get` | `GET` | `/persist/{key}` | 无 `format()` | `/api/v1 (default)` | 跨模块与待人工归类 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2340) |
+|  |  | 调用位置：`ambari-web/classic/app/mixins/common/persist.js:49` |  |  |  |  |  |
+| `persist.post` | `POST` | `/persist` | `keyValuePair` | `/api/v1 (default)` | 跨模块与待人工归类 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2345) |
+|  |  | 调用位置：`ambari-web/classic/app/mixins/common/persist.js:129` |  |  |  |  |  |
+| `wizard.step3.rerun_checks` | `GET` | `/hosts?fields=Hosts/last_agent_env` | 无静态 `data.*` 引用 | `/api/v1 (default)` | 主机 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2356) |
+|  |  | 调用位置：`ambari-web/classic/app/mixins/main/host/details/actions/check_host.js:444` |  |  |  |  |  |
+| `wizard.step3.bootstrap` | `GET` | `/bootstrap/{bootRequestId}` | 无 `format()` | `/api/v1 (default)` | 安装向导 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2365) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/wizard/step3_controller.js:485` |  |  |  |  |  |
+| `wizard.step3.is_hosts_registered` | `GET` | `/hosts?fields=Hosts/host_status` | 无 `format()` | `/api/v1 (default)` | 安装向导、主机 | 2 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2369) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/wizard/step3_controller.js:575`<br>`ambari-web/classic/app/controllers/wizard/step3_controller.js:670` |  |  |  |  |  |
+| `wizard.stacks` | `GET` | `/stacks` | 无 `format()` | `/api/v1 (default)` | 安装向导 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2373) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/installer.js:238` |  |  |  |  |  |
+| `wizard.stacks_versions` | `GET` | `/stacks/{stackName}/versions?fields=Versions,operating_systems/repositories/Repositories` | 无 `format()` | `/api/v1 (default)` | 跨模块与待人工归类 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2377) |
+| `wizard.stacks_versions_definitions` | `GET` | `/version_definitions?fields=VersionDefinition/stack_default,VersionDefinition/stack_repo_update_link_exists,VersionDefinition/max_jdk,VersionDefinition/min_jdk,operating_systems/repositories/Repositories/*,operating_systems/OperatingSystems/*,VersionDefinition/stack_services,VersionDefinition/repository_version&VersionDefinition/show_available=true&VersionDefinition/stack_name={stackName}` | 无 `format()` | `/api/v1 (default)` | 安装向导 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2382) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/installer.js:272` |  |  |  |  |  |
+| `wizard.launch_bootstrap` | `POST` | `/bootstrap` | `bootStrapData`, `popup` | `/api/v1 (default)` | 安装向导 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2387) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/wizard.js:515` |  |  |  |  |  |
+| `router.login` | `POST` | `/auth` | 无静态 `data.*` 引用 | `/api/v1 (default)` | 认证与应用外壳 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2399) |
+|  |  | 调用位置：`ambari-web/classic/app/router.js:422` |  |  |  |  |  |
+| `router.afterLogin` | `GET` | `/users/{loginName}?fields=*,privileges/PrivilegeInfo/cluster_name,privileges/PrivilegeInfo/permission_name` | 无静态 `data.*` 引用 | `/api/v1 (default)` | 认证与应用外壳 | 2 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2413) |
+|  |  | 调用位置：`ambari-web/classic/app/router.js:297`<br>`ambari-web/classic/app/router.js:443` |  |  |  |  |  |
+| `users.all` | `GET` | `/users/?fields=*` | 无 `format()` | `/api/v1 (default)` | 跨模块与待人工归类 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2426) |
+| `users.privileges` | `GET` | `/privileges?fields=*` | 无 `format()` | `/api/v1 (default)` | 跨模块与待人工归类 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2430) |
+| `router.user.privileges` | `GET` | `/users/{userName}/privileges?fields=*` | 无 `format()` | `/api/v1 (default)` | 认证与应用外壳 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2434) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/global/user_settings_controller.js:202` |  |  |  |  |  |
+| `router.user.authorizations` | `GET` | `/users/{userName}/authorizations?fields=*` | 无 `format()` | `/api/v1 (default)` | 认证与应用外壳、后台操作与通用能力 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2438) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/global/cluster_controller.js:420` |  |  |  |  |  |
+| `router.login.clusters` | `GET` | `/clusters?fields=Clusters/provisioning_state,Clusters/security_type,Clusters/version,Clusters/cluster_id` | 无 `format()` | `/api/v1 (default)` | 认证与应用外壳 | 3 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2442) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/application.js:125`<br>`ambari-web/classic/app/router.js:275`<br>`ambari-web/classic/app/router.js:572` |  |  |  |  |  |
+| `router.login.message` | `GET` | `/settings/motd` | 无 `format()` | `/api/v1 (default)` | 认证与应用外壳 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2446) |
+|  |  | 调用位置：`ambari-web/classic/app/router.js:464` |  |  |  |  |  |
+| `router.logoff` | `GET` | `/logout` | 无静态 `data.*` 引用 | `/api/v1 (default)` | 认证与应用外壳 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2450) |
+|  |  | 调用位置：`ambari-web/classic/app/router.js:738` |  |  |  |  |  |
+| `ambari.service` | `GET` | `/services/AMBARI/components/AMBARI_SERVER{fields}` | 无 `format()` | `/api/v1 (default)` | 安装向导、后台操作与通用能力 | 6 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2461) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/global/cluster_controller.js:411`<br>`ambari-web/classic/app/controllers/installer.js:426`<br>`ambari-web/classic/app/controllers/wizard/step2_controller.js:523`<br>`ambari-web/classic/app/controllers/wizard/step3_controller.js:707`<br>`ambari-web/classic/app/controllers/wizard/step7_controller.js:1566`<br>`ambari-web/classic/app/controllers/wizard/step9_controller.js:1226` |  |  |  |  |  |
+| `config_groups.create` | `POST` | `/clusters/{clusterName}/config_groups` | `data` | `/api/v1 (default)` | 服务与配置 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2466) |
+|  |  | 调用位置：`ambari-web/classic/app/mixins/main/service/configs/config_overridable.js:260` |  |  |  |  |  |
+| `config_groups.update` | `PUT` | `/clusters/{clusterName}/config_groups/{id}` | `data` | `/api/v1 (default)` | 服务与配置 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2476) |
+|  |  | 调用位置：`ambari-web/classic/app/mixins/main/service/configs/config_overridable.js:310` |  |  |  |  |  |
+| `request_schedule.get` | `GET` | `/clusters/{clusterName}/request_schedules/{request_schedule_id}` | 无 `format()` | `/api/v1 (default)` | 后台操作与通用能力 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2486) |
+|  |  | 调用位置：`ambari-web/classic/app/utils/batch_scheduled_requests.js:714` |  |  |  |  |  |
+| `request_schedule.get.pending` | `GET` | `/clusters/{clusterName}/request_schedules?fields=*&(RequestSchedule/status.in(SCHEDULED,IN_PROGRESS))` | 无 `format()` | `/api/v1 (default)` | 安装向导、后台操作与通用能力 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2490) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/wizard/step7/assign_master_controller.js:86` |  |  |  |  |  |
+| `restart.hostComponents` | `POST` | `/clusters/{clusterName}/requests` | `context`, `operation_level`, `resource_filters` | `/api/v1 (default)` | 主机、服务与配置、后台操作与通用能力 | 2 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2494) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/service/reassign/step4_controller.js:552`<br>`ambari-web/classic/app/utils/batch_scheduled_requests.js:256` |  |  |  |  |  |
+| `restart.allServices` | `POST` | `/clusters/{clusterName}/requests` | `clusterName` | `/api/v1 (default)` | 服务与配置 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2512) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/service.js:184` |  |  |  |  |  |
+| `restart.staleConfigs` | `POST` | `/clusters/{clusterName}/requests` | `clusterName` | `/api/v1 (default)` | 服务与配置 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2534) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/service.js:349` |  |  |  |  |  |
+| `restart.custom.filter` | `POST` | `/clusters/{clusterName}/requests` | `context`, `filter` | `/api/v1 (default)` | 安全、高可用与联邦 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2556) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/federation/step4_controller.js:185` |  |  |  |  |  |
+| `bulk_request.decommission` | `POST` | `/clusters/{clusterName}/requests` | `clusterName`, `componentName`, `context`, `parameters`, `serviceName` | `/api/v1 (default)` | 主机、后台操作与通用能力 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2578) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/host/bulk_operations_controller.js:922` |  |  |  |  |  |
+| `bulk_request.hosts.passive_state` | `PUT` | `/clusters/{clusterName}/hosts` | `hostNames`, `passive_state`, `requestInfo` | `/api/v1 (default)` | 主机、Stack 与升级、Views、后台操作与通用能力 | 3 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2600) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/host/bulk_operations_controller.js:502`<br>`ambari-web/classic/app/controllers/main/host/details.js:2342`<br>`ambari-web/classic/app/views/main/admin/stack_upgrade/custom_cluster_checks/custom_cluster_checks_maintenance_view.js:30` |  |  |  |  |  |
+| `bulk_request.hosts.update_rack_id` | `PUT` | `/clusters/{clusterName}/hosts` | `hostNames`, `rackId`, `requestInfo` | `/api/v1 (default)` | 主机、后台操作与通用能力 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2622) |
+|  |  | 调用位置：`ambari-web/classic/app/utils/hosts.js:248` |  |  |  |  |  |
+| `bulk_request.hosts.all_components.passive_state` | `PUT` | `/clusters/{clusterName}/host_components` | `passive_state`, `query`, `requestInfo` | `/api/v1 (default)` | 主机、后台操作与通用能力 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2643) |
+| `views.info` | `GET` | `/views` | 无 `format()` | `/api/v1 (default)` | Views | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2663) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/views_controller.js:50` |  |  |  |  |  |
+| `views.instances` | `GET` | `/views?fields=versions/instances/ViewInstanceInfo,versions/ViewVersionInfo/label&versions/ViewVersionInfo/system=false` | 无 `format()` | `/api/v1 (default)` | Views | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2670) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/views_controller.js:61` |  |  |  |  |  |
+| `host.host_components.filtered` | `POST` | `/clusters/{clusterName}/hosts?{fields}` | `parameters` | `/api/v1 (default)` | 主机、后台操作与通用能力 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2687) |
+|  |  | 调用位置：`ambari-web/classic/app/utils/batch_scheduled_requests.js:188` |  |  |  |  |  |
+| `host.stack_versions.install` | `POST` | `/clusters/{clusterName}/hosts/{hostName}/stack_versions` | `version` | `/api/v1 (default)` | 主机 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2702) |
+|  |  | 调用位置：`ambari-web/classic/app/mixins/main/host/details/actions/install_new_version.js:42` |  |  |  |  |  |
+| `host.logging` | `GET` | `/clusters/{clusterName}/hosts/{hostName}?fields=host_components/logging,host_components/HostRoles/service_name{fields}{query}&minimal_response=true` | 无 `format()` | `/api/v1 (default)` | 主机、后台操作与通用能力 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2719) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/global/update_controller.js:730` |  |  |  |  |  |
+| `components.filter_by_status` | `GET` | `/clusters/{clusterName}/components?fields=host_components/HostRoles/host_name,ServiceComponentInfo/component_name,ServiceComponentInfo/started_count{urlParams}&minimal_response=true` | 无 `format()` | `/api/v1 (default)` | 服务与配置 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2723) |
+|  |  | 调用位置：`ambari-web/classic/app/mixins/common/configs/configs_saver.js:881` |  |  |  |  |  |
+| `components.get_category` | `GET` | `/clusters/{clusterName}/components?fields=ServiceComponentInfo/component_name,ServiceComponentInfo/service_name,ServiceComponentInfo/category,ServiceComponentInfo/recovery_enabled,ServiceComponentInfo/total_count&minimal_response=true` | 无 `format()` | `/api/v1 (default)` | 跨模块与待人工归类 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2727) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/service_auto_start.js:134` |  |  |  |  |  |
+| `components.get.staleConfigs` | `GET` | `/clusters/{clusterName}/components?host_components/HostRoles/stale_configs=true&fields=host_components/HostRoles/host_name&minimal_response=true` | 无 `format()` | `/api/v1 (default)` | 后台操作与通用能力 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2731) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/global/cluster_controller.js:264` |  |  |  |  |  |
+| `components.update` | `PUT` | `/clusters/{clusterName}/components?{urlParams}` | `ServiceComponentInfo`, `query` | `/api/v1 (default)` | 跨模块与待人工归类 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2736) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/service_auto_start.js:164` |  |  |  |  |  |
+| `hosts.all.install` | `GET` | `/hosts?minimal_response=true` | 无 `format()` | `/api/v1 (default)` | 主机 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2751) |
+| `hosts.all` | `GET` | `/clusters/{clusterName}/hosts?minimal_response=true` | 无 `format()` | `/api/v1 (default)` | 主机、安全、高可用与联邦、Views、后台操作与通用能力 | 2 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2755) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/global/cluster_controller.js:461`<br>`ambari-web/classic/app/views/main/admin/highAvailability/nameNode/rollbackHA/step1_view.js:35` |  |  |  |  |  |
+| `hosts.with_public_host_names` | `GET` | `/clusters/{clusterName}/hosts?fields=Hosts/public_host_name&minimal_response=true` | 无 `format()` | `/api/v1 (default)` | 主机 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2759) |
+| `hosts.for_quick_links` | `GET` | `/clusters/{clusterName}/hosts?Hosts/host_name.in({hosts})&fields=Hosts/public_host_name{urlParams}&minimal_response=true` | 无 `format()` | `/api/v1 (default)` | 主机、Views | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2763) |
+|  |  | 调用位置：`ambari-web/classic/app/views/common/quick_view_link_view.js:213` |  |  |  |  |  |
+| `hosts.confirmed.install` | `GET` | `/hosts?fields=Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem,Hosts/maintenance_state&minimal_response=true` | 无 `format()` | `/api/v1 (default)` | 主机 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2767) |
+| `hosts.confirmed` | `GET` | `/clusters/{clusterName}/hosts?fields=host_components/HostRoles/state&minimal_response=true` | 无 `format()` | `/api/v1 (default)` | 安装向导、主机 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2771) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/wizard.js:1282` |  |  |  |  |  |
+| `hosts.with_searchTerm` | `POST` | `/clusters/{clusterName}/hosts?fields=Hosts/{facet}&minimal_response=true&page_size={page_size}` | `facet`, `searchTerm` | `/api/v1 (default)` | 主机 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2775) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/host/combo_search_box.js:28` |  |  |  |  |  |
+| `hosts.confirmed.minimal` | `GET` | `/clusters/{clusterName}/hosts?fields=host_components/HostRoles/state&minimal_response=true` | 无 `format()` | `/api/v1 (default)` | 主机、Views | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2790) |
+|  |  | 调用位置：`ambari-web/classic/app/views/main/host/add_view.js:41` |  |  |  |  |  |
+| `hosts.heartbeat_lost` | `GET` | `/clusters/{clusterName}/hosts?Hosts/host_state=HEARTBEAT_LOST` | 无 `format()` | `/api/v1 (default)` | 主机、安全、高可用与联邦 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2794) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/kerberos/step3_controller.js:67` |  |  |  |  |  |
+| `host_components.all` | `GET` | `/clusters/{clusterName}/host_components?fields=HostRoles/host_name&minimal_response=true` | 无 `format()` | `/api/v1 (default)` | 主机 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2798) |
+| `host_components.with_services_names` | `GET` | `/clusters/{clusterName}/host_components?fields=component/ServiceComponentInfo/service_name,HostRoles/host_name&minimal_response=true` | 无 `format()` | `/api/v1 (default)` | 主机 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2802) |
+| `components.get_installed` | `GET` | `/clusters/{clusterName}/components` | 无 `format()` | `/api/v1 (default)` | 跨模块与待人工归类 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2806) |
+| `custom_action.create` | `POST` | `/requests` | `filteredHosts`, `requestInfo` | `/api/v1 (default)` | 服务与配置、Views | 2 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2819) |
+|  |  | 调用位置：`ambari-web/classic/app/views/common/configs/widgets/test_db_connection_widget_view.js:227`<br>`ambari-web/classic/app/views/common/controls_view.js:1369` |  |  |  |  |  |
+| `cluster.custom_action.create` | `POST` | `/clusters/{clusterName}/requests` | `filteredHosts`, `requestInfo` | `/api/v1 (default)` | 服务与配置、Views | 3 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2841) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/service/reassign/step4_controller.js:664`<br>`ambari-web/classic/app/views/common/configs/widgets/test_db_connection_widget_view.js:227`<br>`ambari-web/classic/app/views/common/controls_view.js:1369` |  |  |  |  |  |
+| `custom_action.request` | `GET` | `/requests/{requestId}/tasks/{taskId}` | `requestId`, `taskId` | `/api/v1 (default)` | 服务与配置、Views、后台操作与通用能力 | 6 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2863) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/service/reassign/step4_controller.js:682`<br>`ambari-web/classic/app/controllers/main/service/reassign/step4_controller.js:706`<br>`ambari-web/classic/app/views/common/configs/widgets/test_db_connection_widget_view.js:247`<br>`ambari-web/classic/app/views/common/configs/widgets/test_db_connection_widget_view.js:268`<br>`ambari-web/classic/app/views/common/controls_view.js:1389`<br>`ambari-web/classic/app/views/common/controls_view.js:1410` |  |  |  |  |  |
+| `hosts.high_availability.wizard` | `GET` | `/clusters/{clusterName}/hosts?fields=Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem,Hosts/maintenance_state&minimal_response=true` | 无 `format()` | `/api/v1 (default)` | 主机、服务与配置、Views | 3 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2873) |
+|  |  | 调用位置：`ambari-web/classic/app/mixins/wizard/assign_master_components.js:605`<br>`ambari-web/classic/app/mixins/wizard/wizardHostsLoading.js:44`<br>`ambari-web/classic/app/views/main/service/reassign_view.js:38` |  |  |  |  |  |
+| `hosts.security.wizard` | `GET` | `/clusters/{clusterName}/hosts?fields=host_components/HostRoles/service_name&minimal_response=true` | 无 `format()` | `/api/v1 (default)` | 主机、安全、高可用与联邦 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2877) |
+| `host_component.installed.on_hosts` | `GET` | `/clusters/{clusterName}/host_components?HostRoles/component_name={componentName}&HostRoles/host_name.in({hostNames})&fields=HostRoles/host_name&minimal_response=true` | 无 `format()` | `/api/v1 (default)` | 主机 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2881) |
+|  |  | 调用位置：`ambari-web/classic/app/mixins/wizard/wizardProgressPageController.js:418` |  |  |  |  |  |
+| `hosts.by_component.one` | `GET` | `/clusters/{clusterName}/hosts?host_components/HostRoles/component_name.in({componentNames})&fields=host_components,Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem,Hosts/ip,Hosts/os_type,Hosts/os_arch,Hosts/public_host_name&page_size=1&minimal_response=true` | 无 `format()` | `/api/v1 (default)` | 主机 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2885) |
+| `hosts.by_component.all` | `GET` | `/clusters/{clusterName}/hosts?host_components/HostRoles/component_name.in({componentNames})&fields=host_components,Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem,Hosts/ip,Hosts/os_type,Hosts/os_arch,Hosts/public_host_name&minimal_response=true` | 无 `format()` | `/api/v1 (default)` | 主机 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2889) |
+| `hosts.config_groups` | `GET` | `/clusters/{clusterName}/hosts?fields=Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem,Hosts/ip,Hosts/os_type,Hosts/os_arch,Hosts/public_host_name,host_components&minimal_response=true` | 无 `format()` | `/api/v1 (default)` | 主机、服务与配置 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2893) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/service/manage_config_groups_controller.js:308` |  |  |  |  |  |
+| `hosts.info.install` | `GET` | `/hosts?Hosts/host_name.in({hostNames})&fields=Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem,Hosts/ip,Hosts/os_type,Hosts/os_arch,Hosts/public_host_name&minimal_response=true` | 无 `format()` | `/api/v1 (default)` | 主机、服务与配置 | 2 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2897) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/service/manage_config_groups_controller.js:1058`<br>`ambari-web/classic/app/mixins/wizard/assign_master_components.js:605` |  |  |  |  |  |
+| `hosts.ips` | `GET` | `/hosts?Hosts/host_name.in({hostNames})&fields=Hosts/ip` | 无 `format()` | `/api/v1 (default)` | 主机 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2901) |
+|  |  | 调用位置：`ambari-web/classic/app/mappers/service_metrics_mapper.js:335` |  |  |  |  |  |
+| `hosts.host_components.pre_load` | `GET` | `data.url [DYNAMIC_URL]` | `url` | `/api/v1 (default)` | 主机、后台操作与通用能力 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2905) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/global/update_controller.js:473` |  |  |  |  |  |
+| `hosts.metrics.lazy_load` | `POST` | `data.url [DYNAMIC_URL]` | `parameters`, `url` | `/api/v1 (default)` | 主机、后台操作与通用能力 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2914) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/global/update_controller.js:405` |  |  |  |  |  |
+| `hosts.bulk.operations` | `POST` | `/clusters/{clusterName}/hosts?fields=Hosts/host_name,Hosts/host_state,Hosts/maintenance_state,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,Hosts/total_mem,stack_versions/HostStackVersions,stack_versions/repository_versions/RepositoryVersions/repository_version,stack_versions/repository_versions/RepositoryVersions/id,host_components/HostRoles/stale_configshost_components/HostRoles/service_name&minimal_response=true` | `parameters` | `/api/v1 (default)` | 主机 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2930) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/host/bulk_operations_controller.js:1097` |  |  |  |  |  |
+| `logtail.get` | `GET` | `/clusters/{clusterName}/logging/searchEngine?component_name={logComponentName}&host_name={hostName}&pageSize={pageSize}&startIndex={startIndex}` | 无 `format()` | `/api/v1 (default)` | Views | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2951) |
+|  |  | 调用位置：`ambari-web/classic/app/views/common/log_tail_view.js:135` |  |  |  |  |  |
+| `service.serviceConfigVersions.get` | `GET` | `/clusters/{clusterName}/configurations/service_config_versions?service_name={serviceName}&fields=service_config_version,user,hosts,group_id,group_name,is_current,createtime,service_name,service_config_version_note,stack_id,is_cluster_compatible&sortBy=service_config_version.desc&minimal_response=true` | 无 `format()` | `/api/v1 (default)` | 服务与配置 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2956) |
+|  |  | 调用位置：`ambari-web/classic/app/mixins/common/configs/configs_loader.js:49` |  |  |  |  |  |
+| `service.serviceConfigVersions.get.current` | `GET` | `/clusters/{clusterName}/configurations/service_config_versions?service_name.in({serviceNames})&is_current=true&fields=*` | 无 `format()` | `/api/v1 (default)` | 服务与配置 | 2 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2960) |
+|  |  | 调用位置：`ambari-web/classic/app/mixins/common/configs/configs_loader.js:110`<br>`ambari-web/classic/app/mixins/main/service/configs/hive_interactive_check.js:26` |  |  |  |  |  |
+| `service.serviceConfigVersions.get.current.not.default` | `GET` | `/clusters/{clusterName}/configurations/service_config_versions?is_current=true&group_id>0&fields=*` | 无 `format()` | `/api/v1 (default)` | 安装向导 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2964) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/wizard/step7_controller.js:421` |  |  |  |  |  |
+| `service.serviceConfigVersions.get.total` | `GET` | `/clusters/{clusterName}/configurations/service_config_versions?page_size=1&minimal_response=true` | 无 `format()` | `/api/v1 (default)` | 跨模块与待人工归类 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2968) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/dashboard/config_history_controller.js:141` |  |  |  |  |  |
+| `service.serviceConfigVersion.get` | `GET` | `/clusters/{clusterName}/configurations/service_config_versions?service_name={serviceName}&service_config_version={serviceConfigVersion}` | 无 `format()` | `/api/v1 (default)` | 跨模块与待人工归类 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2972) |
+| `service.serviceConfigVersions.get.multiple` | `GET` | `/clusters/{clusterName}/configurations/service_config_versions?(service_name={serviceName}%26service_config_version.in({serviceConfigVersions})){additionalParams}` | `additionalParams`, `serviceConfigVersions` | `/api/v1 (default)` | 服务与配置 | 2 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2976) |
+|  |  | 调用位置：`ambari-web/classic/app/mixins/common/configs/configs_comparator.js:393`<br>`ambari-web/classic/app/mixins/common/configs/configs_loader.js:177` |  |  |  |  |  |
+| `service.serviceConfigVersions.get.suggestions` | `GET` | `/clusters/{clusterName}/configurations/service_config_versions?fields={key}&minimal_response=true` | 无 `format()` | `/api/v1 (default)` | 跨模块与待人工归类 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2986) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/dashboard/config_history_controller.js:210` |  |  |  |  |  |
+| `service.serviceConfigVersion.revert` | `PUT` | `/clusters/{clusterName}` | `data` | `/api/v1 (default)` | 服务与配置、Views | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2990) |
+|  |  | 调用位置：`ambari-web/classic/app/views/common/configs/config_versions_control_view.js:201` |  |  |  |  |  |
+| `service.mysql.clean` | `POST` | `/clusters/{clusterName}/requests` | `host` | `/api/v1 (default)` | 服务与配置 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L3001) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/service/reassign/step4_controller.js:486` |  |  |  |  |  |
+| `service.mysql.configure` | `POST` | `/clusters/{clusterName}/requests` | `host` | `/api/v1 (default)` | 服务与配置 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L3021) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/service/reassign/step4_controller.js:507` |  |  |  |  |  |
+| `service.mysql.testHiveConnection` | `POST` | `/requests` | `db_connection_url`, `db_name`, `db_pass`, `db_user`, `hosts`, `java_home`, `jdk_location`, `jdk_name` | `/api/v1 (default)` | 跨模块与待人工归类 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L3041) |
+| `service.components.load` | `GET` | `/clusters/{clusterName}/services?fields=components&minimal_response=true` | 无 `format()` | `/api/v1 (default)` | 跨模块与待人工归类 | 0 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L3216) |
+| `nameNode.federation.formatNameNode` | `POST` | `/clusters/{clusterName}/requests` | `host` | `/api/v1 (default)` | 安全、高可用与联邦 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L3221) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/federation/step4_controller.js:119` |  |  |  |  |  |
+| `nameNode.federation.formatZKFC` | `POST` | `/clusters/{clusterName}/requests` | `host` | `/api/v1 (default)` | 安全、高可用与联邦 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L3241) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/federation/step4_controller.js:131` |  |  |  |  |  |
+| `nameNode.federation.bootstrapNameNode` | `POST` | `/clusters/{clusterName}/requests` | `host` | `/api/v1 (default)` | 安装向导、安全、高可用与联邦 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L3260) |
+|  |  | 调用位置：`ambari-web/classic/app/controllers/main/admin/federation/step4_controller.js:165` |  |  |  |  |  |
+| `hiveServerInteractive.getStatus` | `GET` | `http://:/leader [dynamic: 'http://' + data.hsiHost + ':' + data.port + '/leader'] [DYNAMIC_URL]` | `hsiHost`, `port` | `/api/v1 (default)` | 跨模块与待人工归类 | 1 | [source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L3279) |
+|  |  | 调用位置：`ambari-web/classic/app/mappers/service_metrics_mapper.js:353` |  |  |  |  |  |
+
+## 已排除的 Metrics 请求
+
+- `hosts.metrics` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1089))
+- `hosts.metrics.host_component` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1093))
+- `service.metrics.flume.channel_fill_percent` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1097))
+- `service.metrics.flume.channel_size` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1102))
+- `service.metrics.flume.sink_drain_success` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1107))
+- `service.metrics.flume.sink_connection_failed` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1112))
+- `service.metrics.flume.source_accepted` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1117))
+- `service.metrics.flume.channel_size_for_all` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1122))
+- `service.metrics.flume.channel_size_for_all.mma` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1125))
+- `service.metrics.flume.channel_size_for_all.sum` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1128))
+- `service.metrics.flume.gc` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1131))
+- `service.metrics.flume.jvm_heap_used` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1136))
+- `service.metrics.flume.jvm_threads_runnable` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1141))
+- `service.metrics.flume.cpu_user` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1146))
+- `service.metrics.flume.incoming_event_put_successCount` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1151))
+- `service.metrics.flume.incoming_event_put_successCount.mma` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1154))
+- `service.metrics.flume.incoming_event_put_successCount.sum` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1157))
+- `service.metrics.flume.outgoing_event_take_success_count` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1160))
+- `service.metrics.flume.outgoing_event_take_success_count.mma` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1163))
+- `service.metrics.flume.outgoing_event_take_success_count.sum` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1166))
+- `service.metrics.hbase.cluster_requests` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1169))
+- `service.metrics.hbase.hlog_split_size` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1174))
+- `service.metrics.hbase.hlog_split_time` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1179))
+- `service.metrics.hbase.regionserver_queuesize` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1184))
+- `service.metrics.hbase.regionserver_regions` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1189))
+- `service.metrics.hbase.regionserver_rw_requests` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1194))
+- `service.metrics.ambari_metrics.master.average_load` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1199))
+- `service.metrics.ambari_metrics.region_server.store_files` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1204))
+- `service.metrics.ambari_metrics.region_server.regions` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1209))
+- `service.metrics.ambari_metrics.region_server.request` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1214))
+- `service.metrics.ambari_metrics.region_server.block_cache_hit_percent` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1219))
+- `service.metrics.ambari_metrics.region_server.compaction_queue_size` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1224))
+- `service.metrics.ambari_metrics.aggregated` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1229))
+- `service.metrics.hdfs.block_status` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1234))
+- `service.metrics.hdfs.file_operations` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1239))
+- `service.metrics.hdfs.gc` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1244))
+- `service.metrics.hdfs.io` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1249))
+- `service.metrics.hdfs.jvm_heap` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1254))
+- `service.metrics.hdfs.jvm_threads` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1259))
+- `service.metrics.hdfs.rpc` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1264))
+- `service.metrics.hdfs.space_utilization` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1269))
+- `service.metrics.yarn.gc` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1274))
+- `service.metrics.yarn.jobs_threads` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1279))
+- `service.metrics.yarn.rpc` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1284))
+- `service.metrics.yarn.jobs_heap` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1289))
+- `service.metrics.yarn.queue.allocated` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1294))
+- `service.metrics.yarn.queue.allocated.container` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1299))
+- `service.metrics.yarn.node.manager.statuses` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1304))
+- `service.metrics.yarn.queue.memory.resource` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1309))
+- `service.metrics.yarn.queue.apps.states.current` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1328))
+- `service.metrics.yarn.queue.apps.states.finished` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1333))
+- `service.metrics.kafka.broker.topic` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1338))
+- `service.metrics.kafka.controller.KafkaController` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1342))
+- `service.metrics.kafka.controller.ControllerStats` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1346))
+- `service.metrics.kafka.log.LogFlushStats` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1350))
+- `service.metrics.kafka.server.ReplicaManager` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1354))
+- `service.metrics.kafka.server.ReplicaFetcherManager` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1358))
+- `service.metrics.storm.nimbus` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1362))
+- `dashboard.cluster_metrics.cpu` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1366))
+- `dashboard.cluster_metrics.load` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1371))
+- `dashboard.cluster_metrics.memory` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1376))
+- `dashboard.cluster_metrics.network` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1381))
+- `host.metrics.aggregated` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1386))
+- `host.metrics.cpu` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1390))
+- `host.metrics.disk` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1395))
+- `host.metrics.load` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1400))
+- `host.metrics.memory` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1405))
+- `host.metrics.network` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1410))
+- `host.metrics.processes` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L1415))
+- `host.host_component.flume.metrics` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2674))
+- `host.host_component.flume.metrics.timeseries` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2678))
+- `hosts.heatmaps` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2810))
+- `namenode.cpu_wio` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L2814))
+- `widgets.get` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L3069))
+- `widgets.all.shared.get` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L3074))
+- `widgets.all.mine.get` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L3079))
+- `widgets.layout.stackDefined.get` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L3084))
+- `widget.layout.id.get` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L3089))
+- `widget.layout.name.get` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L3094))
+- `widget.layout.delete` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L3099))
+- `widget.layout.get` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L3104))
+- `widget.layout.edit` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L3109))
+- `widget.layout.create` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L3120))
+- `widgets.layout.userDefined.get` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L3131))
+- `widgets.layouts.get` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L3136))
+- `widgets.layouts.active.get` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L3141))
+- `widgets.layouts.all.active.get` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L3146))
+- `widget.activelayouts.edit` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L3152))
+- `widget.action.delete` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L3164))
+- `widgets.serviceComponent.metrics.get` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L3174))
+- `widgets.hostComponent.metrics.get` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L3179))
+- `widgets.hosts.metrics.get` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L3184))
+- `widgets.wizard.metrics.get` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L3189))
+- `widgets.wizard.add` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L3194))
+- `widgets.wizard.edit` ([source](../../../../ambari-web/classic/app/utils/ajax/ajax.js#L3205))
