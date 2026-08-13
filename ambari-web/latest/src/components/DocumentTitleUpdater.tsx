@@ -16,10 +16,26 @@
  * limitations under the License.
  */
 
-const DocumentTitleUpdater = () => {
-  return (
-    <div>In Progress</div>
-  );
-};
+import { useContext, useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import { AppContext } from "../store/context";
 
-export default DocumentTitleUpdater;
+export default function DocumentTitleUpdater() {
+  const { clusterName } = useContext(AppContext);
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.pathname.startsWith("/experimental")) {
+      document.title = "Ambari - Experimental";
+    } else if (clusterName) {
+      const displayName = clusterName.length > 13
+        ? `${clusterName.slice(0, 10)}...`
+        : clusterName;
+      document.title = `Ambari - ${displayName}`;
+    } else {
+      document.title = "Ambari";
+    }
+  }, [clusterName, location.pathname]);
+
+  return null;
+}

@@ -15,83 +15,47 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useEffect, useState } from "react";
-import { Image } from "react-bootstrap";
-import { ServiceApi } from "./api/serviceApi";
-import { get } from "lodash";
-import Spinner from "./components/Spinner";
-import Modal from "./components/Modal";
-import AmbariLogo from "./assets/img/ambari-logo.png"
 
-type AmbariAboutModalProps = {
-  isOpen: boolean;
-  onClose: () => void;
-};
+import { useContext } from "react";
+import { Image } from "react-bootstrap";
+import Modal from "./components/Modal";
+import AmbariLogo from "./assets/img/ambari-logo.png";
+import { AppContext } from "./store/context";
 
 export default function AmbariAboutModal({
   isOpen,
   onClose,
-}: AmbariAboutModalProps) {
-  
-  const [loading, setLoading] = useState(false);
-  const [ ambariVersion, setAmbariVersion ] = useState(false);
-  useEffect(() => {
-    async function getAmbariAboutInfo() {
-      setLoading(true);
-      const data: any = await ServiceApi.adminAboutInfo(
-        "RootServiceComponents/component_version,RootServiceComponents/properties/server.os_family&minimal_response=true"
-      );
-      console.log("version", get(data, "RootServiceComponents.component_version"))
-      setAmbariVersion(get(data, "RootServiceComponents.component_version"));
-      setLoading(false);
-    }
-    if (!ambariVersion) {
-      getAmbariAboutInfo();
-    }
-  }, []);
-
-  const modalBody = loading ? (
-    <Spinner />
-  ) : (
-    <div className="d-flex">
-      <Image
-        src={AmbariLogo}
-        height={75}
-        width={75}
-        className="me-5"
-      />
-      <div>
-        <h2>Apache Ambari</h2>
-        <div className="mb-3">Version {ambariVersion}</div>
-        <div>
-          <a href="http://ambari.apache.org/" className="custom-link">
-            Get involved!
-          </a>
-        </div>
-        <div>
-          <a
-            href="http://www.apache.org/licenses/LICENSE-2.0"
-            className="custom-link"
-          >
-            Licensed under the Apache License, Version 2.0
-          </a>
-        </div>
-      </div>
-    </div>
-  );
-
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+}) {
+  const { ambariServerVersion } = useContext(AppContext);
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
       modalTitle="About"
-      modalBody={modalBody}
+      modalBody={(
+        <div className="d-flex">
+          <Image src={AmbariLogo} height={75} width={75} className="me-5" />
+          <div>
+            <h2>Apache Ambari</h2>
+            <div className="mb-3">Version {ambariServerVersion || "N/A"}</div>
+            <div><a href="https://ambari.apache.org/" className="custom-link">Get involved!</a></div>
+            <div>
+              <a href="https://www.apache.org/licenses/LICENSE-2.0" className="custom-link">
+                Licensed under the Apache License, Version 2.0
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
       successCallback={onClose}
       options={{
         modalSize: "modal-lg",
         okButtonText: "OK",
         cancelableViaBtn: false,
-        okButtonVariant: "success"
+        okButtonVariant: "success",
       }}
     />
   );

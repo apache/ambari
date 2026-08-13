@@ -19,6 +19,13 @@
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import { get } from "lodash";
+import { handleAuthenticationError } from "../../Utils/authNavigation";
+
+declare module "axios" {
+  export interface AxiosRequestConfig {
+    skipAuthRedirect?: boolean;
+  }
+}
 
 const config = {
   development: {
@@ -63,13 +70,10 @@ const createAxiosInstance = (baseURL: string, headers = {}) => {
 
   instance.interceptors.response.use(undefined, (error) => {
     const responseMessage = get(error, "response.data.message", undefined);
-    // Check for 403 Forbidden status
-    if (error.response && error.response.status === 403) {
-      // Redirect to login page
-      window.location.href = "/#/login";
-      return Promise.reject(error);
+    if (error.response && !error.config?.skipAuthRedirect) {
+      handleAuthenticationError(error.response);
     }
-    if (responseMessage && error.response.status !== 400) {
+    if (responseMessage && error.response?.status !== 400 && !error.config?.skipAuthRedirect) {
       toast.error(responseMessage);
     }
     return Promise.reject(error);
@@ -93,11 +97,8 @@ const createSupressErrorAxiosInstance = (baseURL: string, headers = {}) => {
   });
 
   instance.interceptors.response.use(undefined, (error) => {
-    // Check for 403 Forbidden status
-    if (error.response && error.response.status === 403) {
-      // Redirect to login page
-      window.location.href = "/#/login";
-      return Promise.reject(error);
+    if (error.response && !error.config?.skipAuthRedirect) {
+      handleAuthenticationError(error.response);
     }
     return Promise.reject(error);
   });

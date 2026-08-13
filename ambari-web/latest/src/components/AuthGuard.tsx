@@ -18,7 +18,7 @@
 
 import React from "react";
 import { useAuth } from "../hooks/useAuth";
-import { Alert } from "react-bootstrap";
+import { Navigate } from "react-router-dom";
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -116,12 +116,16 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requireAuthorization,
   requirePrivilege,
   clusterName,
-  //@ts-ignore
   redirectTo = "/login",
 }) => {
-  const handleUnauthorized = () => {
-    
-  };
+  const { isAuthenticated, isLoading } = useAuth();
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (requireAuth && !isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
 
   return (
     <AuthGuard
@@ -131,12 +135,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       requireAuthorization={requireAuthorization}
       requirePrivilege={requirePrivilege}
       clusterName={clusterName}
-      onUnauthorized={handleUnauthorized}
-      fallback={
-        <Alert variant="danger" className="m-3">
-          You do not have permission to view this content.
-        </Alert>
-      }
+      fallback={<Navigate to={redirectTo} replace />}
     >
       {children}
     </AuthGuard>

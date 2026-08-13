@@ -74,7 +74,7 @@ export default function Modal({
   } = options;
 
   const sortedExtraButtons = Array.isArray(extraButtons)
-    ? extraButtons.sort((a: any, b: any) => (a.order || 0) - (b.order || 0))
+    ? [...extraButtons].sort((a: any, b: any) => (a.order || 0) - (b.order || 0))
     : [];
 
   return (
@@ -110,24 +110,34 @@ export default function Modal({
               {cancelButtonText}
             </DefaultButton>
           ) : null}
-          {sortedExtraButtons.map((button: any) => (
-            <Button
-              key={button.text}
-              className={classNames(
-                "ps-3",
-                "pe-3",
-                "text-white",
-                "custom-btn",
-                button.className
-              )}
-              variant={button.variant}
-              onClick={button.onClick}
-              size={buttonSize}
-              {...button}
-            >
-              {button.text}
-            </Button>
-          ))}
+          {sortedExtraButtons.map((button: any) => {
+            const {
+              text,
+              onClick,
+              order: _order,
+              className: buttonClassName,
+              variant,
+              ...buttonProps
+            } = button;
+            return (
+              <Button
+                {...buttonProps}
+                key={text}
+                className={classNames(
+                  "ps-3",
+                  "pe-3",
+                  "text-white",
+                  "custom-btn",
+                  buttonClassName
+                )}
+                variant={variant}
+                onClick={onClick}
+                size={buttonSize}
+              >
+                {text}
+              </Button>
+            );
+          })}
           {cancelableViaSuccessBtn ? (
             <Button
               className={classNames(

@@ -79,10 +79,10 @@ interface DbData {
       this.data = this.getDb() || InitialData;
     }
 
-    private checkNamespace(namespace: string): boolean {
+    private checkNamespace(data: DbData, namespace: string): boolean {
       if (!namespace) return false;
-      if (!this.data[namespace]) {
-        this.data[namespace] = {};
+      if (!data[namespace]) {
+        data[namespace] = {};
       }
       return true;
     }
@@ -90,7 +90,12 @@ interface DbData {
     getDb(): DbData | null {
       try {
         const stored = localStorage.getItem('ambari');
-        return stored ? JSON.parse(stored) : null;
+        if (!stored) return null;
+        try {
+          return JSON.parse(Utility.decryptData(stored));
+        } catch {
+          return JSON.parse(stored);
+        }
       } catch (e) {
         console.error('Error reading from localStorage:', e);
         return null;
@@ -99,7 +104,7 @@ interface DbData {
 
     private setDb(data: DbData): void {
       try {
-        localStorage.setItem('ambari', JSON.stringify(data));
+        localStorage.setItem('ambari', Utility.encryptData(JSON.stringify(data)));
       } catch (e) {
         console.error('Error writing to localStorage:', e);
       }
@@ -108,8 +113,14 @@ interface DbData {
     getItem(key: string): string | null {
       const value = localStorage.getItem(key);
       if (value === null) return null;
-      return Utility.decryptData(value);
-}
+      const decrypted = Utility.decryptData(value);
+      try {
+        JSON.parse(decrypted);
+        return decrypted;
+      } catch {
+        return value;
+      }
+    }
     setItem(key: string, value: string): void {
       try {
         // Always encrypt before storing to ensure consistency
@@ -124,34 +135,63 @@ interface DbData {
     }
 
     cleanUp(): void {
-      this.data = InitialData;
+      this.data = JSON.parse(JSON.stringify(InitialData));
       this.setDb(this.data);
     }
 
+    clearSession(): void {
+      const data = this.getDb() || this.getInitialData();
+      data.app = {
+        ...data.app,
+        loginName: '',
+        authenticated: false,
+      };
+      delete data.app.user;
+      delete data.app.auth;
+      this.data = data;
+      this.setDb(data);
+    }
+
     createNameSpace(namespace: string): void {
-      if (!this.data[namespace]) {
-        this.data[namespace] = {};
-        this.setDb(this.data);
+      const data = this.getDb() || this.getInitialData();
+      if (!data[namespace]) {
+        data[namespace] = {};
+        this.data = data;
+        this.setDb(data);
       }
     }
 
     // Core get/set methods
     get(namespace: string, key: string): any {
       const data = this.getDb();
-      if (!data || !this.checkNamespace(namespace)) return null;
+      if (!data || !this.checkNamespace(data, namespace)) return null;
       return key.includes('user-pref') ? 
         data[namespace][key] : 
         this.getNestedValue(data[namespace], key);
     }
 
     set(namespace: string, key: string, value: any): void {
-      const data = this.getDb() || InitialData;
-      if (!this.checkNamespace(namespace)) return;
+      const data = this.getDb() || this.getInitialData();
+      if (!this.checkNamespace(data, namespace)) return;
       if (key.includes('user-pref')) {
         data[namespace][key] = value;
       } else {
         this.setNestedValue(data[namespace], key, value);
       }
+      this.data = data;
+      this.setDb(data);
+    }
+
+    setSession(loginName: string, user: unknown, authorizations: string[]): void {
+      const data = this.getDb() || this.getInitialData();
+      data.app = {
+        ...data.app,
+        loginName: encodeURIComponent(loginName),
+        authenticated: true,
+        user,
+        auth: authorizations,
+      };
+      this.data = data;
       this.setDb(data);
     }
 
@@ -169,7 +209,7 @@ interface DbData {
       target[last] = value;
     }
 
-    getInitialData(): string {
+    getInitialData(): DbData {
       return JSON.parse(JSON.stringify(InitialData));
     }
 

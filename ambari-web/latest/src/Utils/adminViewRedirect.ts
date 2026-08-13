@@ -17,5 +17,6 @@
  */
 
 export async function redirectToAdminView(adminPage = "") {
-  console.log("Redirecting to admin view:", adminPage);
+  const suffix = adminPage ? `?page=${encodeURIComponent(adminPage)}` : "";
+  window.location.hash = `/adminView${suffix}`;
 }

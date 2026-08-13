@@ -53,6 +53,7 @@ export interface UserContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  sessionError: string | null;
   
   // Authorization data
   authorizations: Authorization[];
@@ -75,11 +76,17 @@ export interface UserContextType {
   isClusterUser: () => boolean;
   isClusterOperator: () => boolean;
   loginError: string | null;
+  loginMessage: {
+    text: string;
+    buttonText: string;
+  } | null;
   
   // Actions
   login: (username: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
   refreshUserData: () => Promise<void>;
+  retrySession: () => Promise<void>;
+  acknowledgeLoginMessage: () => void;
 }
 
 export interface LoginResponse {
