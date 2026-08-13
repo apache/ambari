@@ -18,9 +18,9 @@
 
 import { useContext, useEffect, useState } from "react";
 import ClusterApi from "../../api/clusterApi";
-import { cloneDeep, filter, find, get, isEmpty, map, uniq } from "lodash";
+import { filter, get, isEmpty, map, uniq } from "lodash";
 import { groupPropertyValues } from "../../Utils/dataUtils";
-import { ProgressBar, Stack } from "react-bootstrap";
+import { Alert, Button, ProgressBar, Stack } from "react-bootstrap";
 import Table from "../../components/Table";
 import {
   faCheck,
@@ -37,6 +37,16 @@ import Paginator from "../../components/Paginator";
 import { ViewLevel } from "../../constants";
 import { AppContext } from "../../store/context";
 import Filters from "./Filters";
+import {
+  BackgroundTask,
+  isOperationTerminal,
+  isRequestScheduleRunning,
+  sourceRequestScheduleId,
+  upsertTaskEvents,
+} from "../../Utils/backgroundOperations";
+import RequestScheduleApi from "../../api/requestScheduleApi";
+import { useAuth } from "../../hooks/useAuth";
+import toast from "react-hot-toast";
 
 type HostProgressProps = {
   requestId: number | string;
@@ -45,16 +55,6 @@ type HostProgressProps = {
   setSelectedLevel: (value: ViewLevel) => void;
   setSelectedRequestId: (id: number) => void;
   clusterName?: string;
-};
-type Task = {
-  command: string;
-  command_detail: string;
-  host_name: string;
-  id: number;
-  ops_display_name: string;
-  request_id: number;
-  role: string;
-  status: string;
 };
 function HostProgress({
   requestId,
@@ -69,9 +69,17 @@ function HostProgress({
   const { clusterName: cName } = useContext(AppContext);
   const [filteredHosts, setFilteredHosts] = useState([]);
   const [selectedFilter, setSelectedFilter] = useState<any>(null);
+  const [error, setError] = useState("");
+  const [scheduleId, setScheduleId] = useState<number | null>(null);
+  const [scheduleStatus, setScheduleStatus] = useState("");
+  const [scheduleError, setScheduleError] = useState("");
+  const [isCancellingSchedule, setIsCancellingSchedule] = useState(false);
   const clusterName = clusterNameProps || cName;
+  const { isSocketConnected } = useContext(AppContext);
+  const { hasAuthorization } = useAuth();
+  const canCancelSchedule = hasAuthorization("SERVICE.START_STOP");
 
-  const getProgress = (tasks: Task[]) => {
+  const getProgress = (tasks: BackgroundTask[]) => {
     if (!tasks || !tasks.length) {
       return 0;
     }
@@ -82,7 +90,8 @@ function HostProgress({
       get(groupedByStatus, "COMPLETED", []).length +
       get(groupedByStatus, "FAILED", []).length +
       get(groupedByStatus, "ABORTED", []).length +
-      get(groupedByStatus, "TIMEDOUT", []).length;
+      get(groupedByStatus, "TIMEDOUT", []).length +
+      get(groupedByStatus, "SKIPPED_FAILED", []).length;
     const queuedActions = get(groupedByStatus, "QUEUED", []).length;
     const inProgressActions = get(groupedByStatus, "IN_PROGRESS", []).length;
 
@@ -102,26 +111,18 @@ function HostProgress({
   } = usePagination(hostDetails);
 
   useEffect(() => {
-    if (!isEmpty(latestMessage)) {
-      const hostDetailsCopy = cloneDeep(hostDetails);
-      map(hostDetails, function (_host: any) {
-        for (const task of latestMessage.Tasks) {
-          const matchingHost: any = find(hostDetailsCopy, [
-            "host",
-            task.hostName,
-          ]);
-          if (matchingHost) {
-            const matchingTask = find(matchingHost.tasks, [
-              "Tasks.id",
-              task.id,
-            ]);
-            if (matchingTask) {
-              matchingTask.Tasks.status = task.status;
-            }
-          }
-        }
+    if (!isEmpty(latestMessage) && Array.isArray(latestMessage.Tasks)) {
+      setHostDetails((current: any[]) => {
+        const allTasks = upsertTaskEvents(
+          current.flatMap((host: any) => host.tasks),
+          latestMessage.Tasks,
+        );
+        const hosts = uniq(allTasks.map((task) => task.Tasks.host_name));
+        return hosts.map((host) => {
+          const tasks = allTasks.filter((task) => task.Tasks.host_name === host);
+          return { host, progress: getProgress(tasks), tasks };
+        }) as any;
       });
-      setHostDetails(hostDetailsCopy as any);
     }
   }, [latestMessage]);
   useEffect(() => {
@@ -139,7 +140,6 @@ function HostProgress({
   const getStatus = (tasks: any[]) => {
     let isCompleted = true;
     let hasInProgressTasks = false;
-    let hasCompletedTasks = false;
     let tasksLength = tasks.length;
     
     for (let i = 0; i < tasksLength; i++) {
@@ -147,7 +147,7 @@ function HostProgress({
       if (taskStatus !== "COMPLETED") {
         isCompleted = false;
       }
-      if (taskStatus === "FAILED") {
+      if (taskStatus === "FAILED" || taskStatus === "SKIPPED_FAILED") {
         return ["FAILED", faExclamation, "danger", false];
       }
       if (taskStatus === "ABORTED") {
@@ -159,14 +159,10 @@ function HostProgress({
       if (taskStatus === "IN_PROGRESS") {
         hasInProgressTasks = true;
       }
-      if (taskStatus === "COMPLETED") {
-        hasCompletedTasks = true;
-      }
     }
     
-    // If all tasks are completed, show the special green checkmark
-    if (isCompleted && hasCompletedTasks) {
-      return ["CURRENTLY_EXECUTING", faCheck, "success", false]; // Use CURRENTLY_EXECUTING to get green checkmark
+    if (isCompleted && tasksLength > 0) {
+      return ["SUCCESS", faCheck, "success", false];
     }
     
     if (hasInProgressTasks) {
@@ -181,7 +177,7 @@ function HostProgress({
       );
       
       if (hasActivelyExecutingTasks) {
-        return ["CURRENTLY_EXECUTING", faCogs, "warning", true]; // Use warning variant for bright orange
+        return ["IN_PROGRESS", faCogs, "warning", true];
       } else {
         return ["IN_PROGRESS", faCogs, "info", true];
       }
@@ -189,30 +185,77 @@ function HostProgress({
     
     return ["PENDING", faCogs, "info", true];
   };
-  async function getHostProgressDetails() {
+  async function getHostProgressDetails(isActive = () => true): Promise<boolean> {
     setLoading(true);
-    const requestTasks = await ClusterApi.getRequestById(
-      clusterName,
-      requestId
-    );
-    const allTasks = get(requestTasks, "tasks", []);
-    const allHosts = map(allTasks, "Tasks.host_name");
-    const uniqueHosts = uniq(allHosts);
-    const hosts = map(uniqueHosts, function (host) {
-      const hostTasks = filter(allTasks, ["Tasks.host_name", host]);
-      const progress = getProgress(hostTasks);
-      return {
-        host,
-        progress,
-        tasks: hostTasks,
-      };
-    });
-    setHostDetails(hosts as any);
-    setLoading(false);
+    setError("");
+    try {
+      const requestTasks = await ClusterApi.getRequestById(clusterName, requestId);
+      const sourceScheduleId = sourceRequestScheduleId(requestTasks);
+      if (!isActive()) return true;
+      setScheduleId(sourceScheduleId);
+      const allTasks = get(requestTasks, "tasks", []);
+      const allHosts = map(allTasks, "Tasks.host_name");
+      const uniqueHosts = uniq(allHosts);
+      const hosts = map(uniqueHosts, function (host) {
+        const hostTasks = filter(allTasks, ["Tasks.host_name", host]);
+        const progress = getProgress(hostTasks);
+        return { host, progress, tasks: hostTasks };
+      });
+      if (isActive()) setHostDetails(hosts as any);
+      return isOperationTerminal(get(requestTasks, "Requests.request_status"));
+    } catch {
+      if (isActive()) setError("Ambari could not load request hosts and tasks.");
+      return false;
+    } finally {
+      if (isActive()) setLoading(false);
+    }
   }
   useEffect(() => {
-    getHostProgressDetails();
-  }, []);
+    let active = true;
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    const load = async () => {
+      const finished = await getHostProgressDetails(() => active);
+      if (active && !isSocketConnected && !finished) {
+        timeout = setTimeout(load, 5000);
+      }
+    };
+    void load();
+    return () => {
+      active = false;
+      if (timeout) clearTimeout(timeout);
+    };
+  }, [clusterName, isSocketConnected, requestId]);
+
+  async function refreshScheduleStatus() {
+    if (scheduleId === null) return;
+    setScheduleError("");
+    try {
+      const response = await RequestScheduleApi.fetch(clusterName, scheduleId);
+      setScheduleStatus(get(response, "RequestSchedule.status", ""));
+    } catch {
+      setScheduleError("Ambari could not load the request schedule status.");
+    }
+  }
+
+  useEffect(() => {
+    setScheduleStatus("");
+    setScheduleError("");
+    void refreshScheduleStatus();
+  }, [clusterName, scheduleId]);
+
+  async function cancelSchedule() {
+    if (scheduleId === null || isCancellingSchedule || !canCancelSchedule) return;
+    setIsCancellingSchedule(true);
+    try {
+      await RequestScheduleApi.cancel(clusterName, scheduleId);
+      await refreshScheduleStatus();
+      toast.success("Future operations in this request schedule were cancelled.");
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Ambari could not cancel the request schedule.");
+    } finally {
+      setIsCancellingSchedule(false);
+    }
+  }
   const columns = [
     {
       id: "hostname",
@@ -278,8 +321,47 @@ function HostProgress({
     );
   }
 
+  if (error) {
+    return (
+      <Center>
+        <Stack direction="vertical" className="align-items-center gap-2">
+          <div className="text-danger">{error}</div>
+          <Button size="sm" variant="outline-primary" onClick={() => void getHostProgressDetails()}>
+            Retry
+          </Button>
+        </Stack>
+      </Center>
+    );
+  }
+
   return (
     <>
+      {scheduleId !== null && isRequestScheduleRunning(scheduleStatus) ? (
+        <Alert variant="info" className="d-flex align-items-center justify-content-between">
+          <span>Future operations of this batch request can be aborted.</span>
+          {canCancelSchedule ? (
+            <Button
+              variant="warning"
+              size="sm"
+              disabled={isCancellingSchedule}
+              onClick={() => void cancelSchedule()}
+            >
+              {isCancellingSchedule ? "Cancelling..." : "Abort Request Schedule"}
+            </Button>
+          ) : null}
+        </Alert>
+      ) : null}
+      {scheduleId !== null && scheduleStatus === "DISABLED" ? (
+        <Alert variant="info">Future operations of this batch request have been aborted.</Alert>
+      ) : null}
+      {scheduleError ? (
+        <Alert variant="danger" className="d-flex align-items-center justify-content-between">
+          <span>{scheduleError}</span>
+          <Button size="sm" variant="outline-danger" onClick={() => void refreshScheduleStatus()}>
+            Retry
+          </Button>
+        </Alert>
+      ) : null}
       <Stack
         direction="horizontal"
         className="justify-content-between mt-3 w-100"

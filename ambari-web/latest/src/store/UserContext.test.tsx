@@ -122,4 +122,32 @@ describe("user session lifecycle", () => {
     expect(currentContext.user).toBeNull();
     expect(db.get("Installer", "currentStep")).toBeUndefined();
   });
+
+  it("identifies only the exact CLUSTER.USER privilege as a cluster user", async () => {
+    mocks.authenticate.mockResolvedValue({});
+    mocks.loadAuthorizationsCallback.mockResolvedValue({ data: { items: [] } });
+    mocks.handleSuccessfulLogin.mockResolvedValue({
+      data: {
+        Users: user,
+        privileges: [{ PrivilegeInfo: { permission_name: "SERVICE.ADMINISTRATOR" } }],
+      },
+    });
+    await renderProvider();
+
+    await act(async () => {
+      expect(await currentContext.login("operator/name", "secret")).toBe(true);
+    });
+    expect(currentContext.isClusterUser()).toBe(false);
+
+    mocks.handleSuccessfulLogin.mockResolvedValue({
+      data: {
+        Users: user,
+        privileges: [{ PrivilegeInfo: { permission_name: "CLUSTER.USER" } }],
+      },
+    });
+    await act(async () => {
+      expect(await currentContext.login("operator/name", "secret")).toBe(true);
+    });
+    expect(currentContext.isClusterUser()).toBe(true);
+  });
 });

@@ -18,6 +18,7 @@
 
 import { useState, useEffect } from "react";
 import Select from "react-select";
+import CreatableSelect from "react-select/creatable";
 import { Badge, Button } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faClose } from "@fortawesome/free-solid-svg-icons";
@@ -139,6 +140,7 @@ export default function ConfigHistoryComboSearch({
           )
       )
     );
+    addFilterCallback?.();
   }
 
   // Reset all filters
@@ -146,6 +148,7 @@ export default function ConfigHistoryComboSearch({
     setFilters([]);
     setSelectedField(null);
     setSelectedValue(null);
+    addFilterCallback?.();
   }
 
   return (
@@ -159,22 +162,27 @@ export default function ConfigHistoryComboSearch({
           className="w-15 me-2"
           isClearable
         />
-        <Select
-          value={selectedValue}
-          onChange={(value) =>
-            setSelectedValue(value as { label: string; value: string })
-          }
-          options={valueOptions}
-          placeholder="Value"
-          className="w-15 me-2"
-          isClearable
-          isDisabled={!selectedField}
-          onInputChange={(inputValue) => {
-            if (!valueOptions.length && inputValue) {
-              setSelectedValue({ label: inputValue, value: inputValue });
-            }
-          }}
-        />
+        {selectedField?.value === "user" || selectedField?.value === "service_config_version_note" ? (
+          <CreatableSelect
+            value={selectedValue}
+            onChange={(value) => setSelectedValue(value as { label: string; value: string })}
+            options={valueOptions}
+            placeholder="Value"
+            className="w-15 me-2"
+            isClearable
+            formatCreateLabel={(value) => `Use "${value}"`}
+          />
+        ) : (
+          <Select
+            value={selectedValue}
+            onChange={(value) => setSelectedValue(value as { label: string; value: string })}
+            options={valueOptions}
+            placeholder="Value"
+            className="w-15 me-2"
+            isClearable
+            isDisabled={!selectedField}
+          />
+        )}
         <Button
           disabled={!selectedField || !selectedValue}
           size="sm"

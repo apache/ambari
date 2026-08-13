@@ -227,7 +227,10 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     () => hasAuthorization("CLUSTER.ADMINISTRATOR"),
     [hasAuthorization],
   );
-  const isClusterUser = useCallback(() => !isOperator(), [isOperator]);
+  const isClusterUser = useCallback(
+    () => privileges.length === 1 && privileges[0].permission_name === "CLUSTER.USER",
+    [privileges],
+  );
   const isClusterOperator = useCallback(() => isOperator() && !privileges.some(
     (privilege) => privilege.permission_name === "AMBARI.ADMINISTRATOR",
   ), [isOperator, privileges]);

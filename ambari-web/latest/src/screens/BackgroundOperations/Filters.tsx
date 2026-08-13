@@ -17,8 +17,8 @@
  */
 
 import {get} from "lodash";
-import { useEffect, useState } from "react";
 import Select from "react-select";
+import { statusMatchesFilter } from "../../Utils/backgroundOperations";
 type FiltersProps = {
   items: any;
   allItems: any;
@@ -28,7 +28,6 @@ type FiltersProps = {
   successLevel?:'completed'|'success'
 };
 function Filters({
-  items,
   allItems,
   statusKey,
   selectedFilter,
@@ -52,7 +51,7 @@ function Filters({
     },
     {
       label: `Pending (${
-        allItems.filter((item: any) => get(item, statusKey) === "PENDING")
+        allItems.filter((item: any) => statusMatchesFilter(get(item, statusKey), "PENDING"))
           .length
       })`,
       value: filterMap.pending,
@@ -66,13 +65,13 @@ function Filters({
     },
     {
       label: `Failed (${
-        allItems.filter((item: any) => get(item, statusKey) === "FAILED").length
+        allItems.filter((item: any) => statusMatchesFilter(get(item, statusKey), "FAILED")).length
       })`,
       value: filterMap.failed,
     },
     {
       label: `Success (${
-        allItems.filter((item: any) => get(item, statusKey) === "COMPLETED"||get(item, statusKey) === "SUCCESS")
+        allItems.filter((item: any) => statusMatchesFilter(get(item, statusKey), "SUCCESS"))
           .length
       })`,
       value: successLevel === 'completed' ? filterMap.completed : filterMap.success,
@@ -92,46 +91,20 @@ function Filters({
       value: filterMap.timedout,
     },
   ];
-  const [filterOptionsState, setFilterOptionsState] = useState<any>(
-    filterOptions()
-  );
+  const currentOptions = filterOptions();
 
-  useEffect(() => {
-    setFilterOptionsState(filterOptions());
-    if (!selectedFilter) {
-      setSelectedFilter(filterOptions()[0]);
-    } else {
-      //Replace Value in Label when item length changes
-      const selectedValue = filterOptions().find(
-        (item: any) => item.value === selectedFilter.value
-      );
-      const selectedLabel = selectedValue?.label.split("(")[0];
-      let selectedCount = 0;
-      if (selectedValue?.value === filterMap.all) {
-        selectedCount = allItems.length;
-      } else {
-        selectedCount = allItems.filter(
-          (item: any) =>
-            get(item, statusKey) === selectedFilter?.value?.toUpperCase()
-        ).length;
-      }
-      const newLabel = `${selectedLabel} (${selectedCount})`;
-      const newValue = {
-        ...selectedValue,
-        label: newLabel,
-      };
-      setSelectedFilter(newValue);
-    }
-  }, [items.length]);
+  const currentSelection = currentOptions.find(
+    (option) => option.value === selectedFilter?.value,
+  ) || currentOptions[0];
   return (
     <>
       <Select
-        options={filterOptionsState}
+        options={currentOptions}
         styles={{
           // Fixes the overlapping problem of the component
           menu: (provided) => ({ ...provided, zIndex: 9999 }),
         }}
-        value={selectedFilter}
+        value={currentSelection}
         className="w-25"
         isSearchable={false}
         onChange={(value) => {

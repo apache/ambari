@@ -16,8 +16,8 @@
  * limitations under the License.
  */
 
-import { useCallback, useContext, useEffect, useState, useTransition } from "react";
-import { useBlocker, useParams } from "react-router-dom";
+import { useCallback, useContext, useEffect, useRef, useState, useTransition } from "react";
+import { useBlocker, useLocation, useNavigate, useParams } from "react-router-dom";
 import ConfigsApi from "../../api/configsApi";
 import { useAuth } from "../../hooks/useAuth";
 import { AuthGuard } from "../../components/AuthGuard";
@@ -69,6 +69,10 @@ import useServerValidation from "../../hooks/useServerValidation";
 import { translate } from "../../Utils/Utility";
 import { kyuubi_properties } from "../../data/configs/services/kyuubi_properties";
 import { sqoop_properties } from "../../data/configs/services/sqoop_properties";
+import {
+  ConfigHistoryNavigationState,
+  resolveConfigHistorySelection,
+} from "../../Utils/configHistory";
 
 type ServiceConfigsProps = {
   serviceName?: string;
@@ -80,6 +84,18 @@ export default function ServiceConfigs({
   const { serviceName: serviceNameParams } = useParams();
   const serviceName =
     serviceNameProps?.toUpperCase() || serviceNameParams?.toUpperCase() || "";
+  const location = useLocation();
+  const navigate = useNavigate();
+  const locationSelection = location.state as ConfigHistoryNavigationState | null;
+  const pendingHistorySelection = useRef<ConfigHistoryNavigationState | null>(
+    locationSelection?.serviceName === serviceName ? locationSelection : null,
+  );
+
+  useEffect(() => {
+    if (pendingHistorySelection.current) {
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  }, [location.pathname, navigate]);
 
   // Authorization hooks - implementing Ember.js App.isAuthorized patterns
   const { hasAuthorization } = useAuth();
@@ -369,21 +385,41 @@ export default function ServiceConfigs({
         clusterName,
         servicesToFetch
       );
-      setPropertyValues(response);
-      
       // Find the default version for the currently selected service
       const currentServiceItems = response.items.filter((item: any) => 
         item.service_name === serviceName && item.group_name === "Default"
       );
       
       if (currentServiceItems.length > 0) {
-        const latestDefaultVersion = get(currentServiceItems[0], "service_config_version", "");
+        const latestDefaultVersion = String(get(currentServiceItems[0], "service_config_version", ""));
+        const historySelection = pendingHistorySelection.current;
+        const selection = resolveConfigHistorySelection(latestDefaultVersion, historySelection);
+        let selectedPropertyValues = response;
+        if (selection.versionsToLoad) {
+          const selectedResponse = await ConfigsApi.getVersionConfigValues(
+            clusterName,
+            serviceName,
+            selection.versionsToLoad,
+          );
+          selectedPropertyValues = {
+            ...response,
+            items: [
+              ...response.items.filter((item: any) => item.service_name !== serviceName),
+              ...selectedResponse.items,
+            ],
+          };
+        }
+        setPropertyValues(selectedPropertyValues);
         setDefaultVersionNumber(latestDefaultVersion);
+        setConfigGroup(selection.configGroup);
         // Only set firstVersion if not already set (to preserve comparison state)
         if (!firstVersion) {
-          setFirstVersion(latestDefaultVersion);
+          setFirstVersion(selection.selectedVersion);
         }
-        setSelectedVersion(latestDefaultVersion);
+        setSelectedVersion(selection.selectedVersion);
+        pendingHistorySelection.current = null;
+      } else {
+        setPropertyValues(response);
       }
     } catch (error) {
       console.error("Error fetching property values:", error);
@@ -1226,7 +1262,7 @@ export default function ServiceConfigs({
                 isComparing={isComparing}
                 setIsComparing={setIsComparing}
                 setVersionCompared={setVersionCompared}
-                versionToShow={defaultVersionNumber || ""}
+                versionToShow={selectedVersion || defaultVersionNumber || ""}
                 onMakeCurrentComplete={() => {
                   getPropertiesValues();
                 }}

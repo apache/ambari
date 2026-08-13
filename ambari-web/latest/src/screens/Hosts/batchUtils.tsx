@@ -305,12 +305,14 @@ const doPostBatchRollingRestartRequest = async (
   };
   try {
     const response = await HostsApi.batchRequest(clusterName, data);
-    const requestID = get(
+    const scheduleId = get(
       response,
       "data.resources.[0].RequestSchedule.id",
       -1
     );
-    defaultSuccessCallbackWithoutReload(requestID);
+    if (scheduleId !== -1) {
+      defaultSuccessCallbackWithoutReload();
+    }
   } catch (error) {
     defaultErrorCallback(error);
   }
@@ -384,18 +386,16 @@ export const defaultSuccessCallback = (requestId: number) => {
   }
 };
 
-export const defaultSuccessCallbackWithoutReload = (requestId: number) => {
-  if (requestId !== -1) {
-    modalManager.show(
-      <BackgroundOperations
-        isOpen={true}
-        onClose={() => {
-          modalManager.hide();
-        }}
-        requestId={requestId}
-      />
-    );
-  }
+export const defaultSuccessCallbackWithoutReload = (requestId?: number) => {
+  modalManager.show(
+    <BackgroundOperations
+      isOpen={true}
+      onClose={() => {
+        modalManager.hide();
+      }}
+      requestId={requestId}
+    />
+  );
 };
 
 export const defaultErrorCallback = (error: any) => {
