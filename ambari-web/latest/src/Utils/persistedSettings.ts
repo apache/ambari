@@ -35,4 +35,3 @@ export function persistedPayload(values: Record<string, unknown>): Record<string
     Object.entries(values).map(([key, value]) => [key, JSON.stringify(value)]),
   );
 }
-
