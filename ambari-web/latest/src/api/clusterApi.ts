@@ -122,7 +122,7 @@ const ClusterApi = {
     return clusterName;
   },
   getClusterData: async function () {
-    const url= `/clusters?fields=Clusters/provisioning_state,Clusters/security_type,Clusters/version,Clusters/cluster_id`;
+    const url= `/clusters?fields=Clusters/cluster_name,Clusters/provisioning_state,Clusters/security_type,Clusters/version,Clusters/cluster_id`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
@@ -176,7 +176,7 @@ const ClusterApi = {
       url: '/services/AMBARI/components/AMBARI_SERVER',
       method: 'GET',
       params: {
-        fields: 'RootServiceComponents/properties/user.inactivity.timeout.default',
+        fields: 'RootServiceComponents/properties/user.inactivity.timeout.default,RootServiceComponents/properties/user.inactivity.timeout.role.readonly.default',
         _: Date.now() // Cache buster
       }
     });

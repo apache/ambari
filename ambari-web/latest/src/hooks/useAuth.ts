@@ -29,6 +29,7 @@ export const useAuth = () => {
     user: context.user,
     isAuthenticated: context.isAuthenticated,
     isLoading: context.isLoading,
+    sessionError: context.sessionError,
     
     // Authorization data
     authorizations: context.authorizations,
@@ -47,7 +48,10 @@ export const useAuth = () => {
     // Actions
     login: context.login,
     logout: context.logout,
-    refreshUserData: context.refreshUserData
+    refreshUserData: context.refreshUserData,
+    retrySession: context.retrySession,
+    loginMessage: context.loginMessage,
+    acknowledgeLoginMessage: context.acknowledgeLoginMessage,
   };
 };
 

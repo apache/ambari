@@ -16,283 +16,217 @@
  * limitations under the License.
  */
 
-import { RouteObject, Navigate, Outlet } from "react-router-dom";
-import ClusterCreationWizard from "../screens/ClusterWizard";
-import { Login } from "../screens/Authentication/Login.tsx";
+import { Navigate, Outlet, RouteObject } from "react-router-dom";
+import { AuthenticatedApplication, LandingRoute } from "../AppLoader";
+import { ProtectedRoute } from "../components/AuthGuard";
+import AdminRouteGuard from "../components/AdminRouteGuard";
 import InstallerLayout from "../layout/Installer";
-import HostsList from "../screens/Hosts/HostsList.tsx";
-import Alerts from "../screens/Alerts/Alerts.tsx";
-import DashboardLayout from "../layout/Dashboard";
-import ServiceAutoStart from "../screens/ServiceAutoStart/index.tsx";
-import ServiceAccounts from "../screens/ServiceAccounts/index.tsx";
-import EnableKerberos from "../screens/KerberosWizard/EnableKerberos.tsx";
-import { Actions } from "../screens/Services/Actions.tsx";
-import AlertDefinitionDetails from "../screens/Alerts/AlertDefinitionDetails.tsx";
-import ServiceDashboard from "../screens/Services/ServiceDashboard.tsx";
-import { redirectToAdminView } from "../Utils/adminViewRedirect";
-import { Hosts } from "../screens/Hosts/index.tsx";
-import Spinner from "../components/Spinner";
-import ViewDetails from "../screens/Views/ViewDetails.tsx";
-import ViewsListPage from "../screens/Views/ViewsListPage";
-import { RouteTracker } from "../AppLoader.tsx";
-import StackAndVersions from "../screens/ClusterAdmin/StackAndVersions/StackAndVersions.tsx";
+import MainLayout from "../layout/Main";
+import InstallerVersionGuard from "../layout/InstallerVersionGuard";
+import ClusterCreationWizard from "../screens/ClusterWizard";
 import {
   ClusterCreationContext,
   ClusterCreationProvider,
-} from "../screens/ClusterWizard/clusterStore/context.tsx";
-import wizardSteps from "../screens/ClusterWizard/wizardSteps.tsx";
-import ServiceLoader from "../screens/Services/ServiceLoader.tsx";
-import Dashboard from "../screens/Dashboard/Index.tsx";
-import AddWizardUrlMapping from "../screens/Services/AddWizardUrlMapping.tsx";
-import { ProtectedRoute } from "../components/AuthGuard";
-import AdminRouteGuard from "../components/AdminRouteGuard";
+} from "../screens/ClusterWizard/clusterStore/context";
+import wizardSteps from "../screens/ClusterWizard/wizardSteps";
+import { Login } from "../screens/Authentication/Login";
+import HostsList from "../screens/Hosts/HostsList";
+import { Hosts } from "../screens/Hosts";
+import Alerts from "../screens/Alerts/Alerts";
+import AlertDefinitionDetails from "../screens/Alerts/AlertDefinitionDetails";
+import ServiceAutoStart from "../screens/ServiceAutoStart";
+import ServiceAccounts from "../screens/ServiceAccounts";
+import EnableKerberos from "../screens/KerberosWizard/EnableKerberos";
+import { Actions } from "../screens/Services/Actions";
+import ServiceDashboard from "../screens/Services/ServiceDashboard";
+import ServiceLoader from "../screens/Services/ServiceLoader";
+import AddWizardUrlMapping from "../screens/Services/AddWizardUrlMapping";
+import ViewDetails from "../screens/Views/ViewDetails";
+import ViewsListPage from "../screens/Views/ViewsListPage";
+import StackAndVersions from "../screens/ClusterAdmin/StackAndVersions/StackAndVersions";
+import Dashboard from "../screens/Dashboard/Index";
+import AdminViewRedirect from "../screens/Authentication/AdminViewRedirect";
+import Experimental from "../screens/Experimental";
+import FeatureRouteGuard from "../components/FeatureRouteGuard";
+import AdminViewRouteGuard from "../components/AdminViewRouteGuard";
 
 const RoutesList: RouteObject[] = [
   {
     path: "/",
-    element: (
-      <>
-        <RouteTracker />
-        <Outlet />
-      </>
-    ),
+    element: <Outlet />,
     children: [
+      { path: "login", element: <Login /> },
+      { path: "login/local", element: <Login isLocalLogin /> },
       {
-        path: "installer",
-        element: <InstallerLayout />,
+        element: <AuthenticatedApplication />,
         children: [
+          { index: true, element: <LandingRoute /> },
           {
-            path: ":stepNumber",
+            path: "adminView",
             element: (
-              <ClusterCreationWizard
-                Context={ClusterCreationContext}
-                Provider={ClusterCreationProvider}
-                wizardSteps={wizardSteps as any}
-              />
+              <AdminViewRouteGuard>
+                <AdminViewRedirect />
+              </AdminViewRouteGuard>
             ),
           },
-        ],
-      },
-      {
-        path: "/login",
-        element: <Login />,
-      },
-
-      {
-        path: "/main",
-        element: (
-          <>
-            <DashboardLayout />
-          </>
-        ),
-        children: [
           {
-            path: "service/add/:stepNumber",
-            element: <AddWizardUrlMapping />,
+            path: "experimental",
+            element: (
+              <ProtectedRoute
+                requireAuthorization="AMBARI.MANAGE_SETTINGS"
+                redirectTo="/"
+              >
+                <Experimental />
+              </ProtectedRoute>
+            ),
           },
           {
-            path: "dashboard",
-            element: <Outlet />,
+            path: "installer",
+            element: <InstallerVersionGuard><InstallerLayout /></InstallerVersionGuard>,
             children: [
               {
-                index: true,
-                element: <Navigate to="metrics" replace />,
-              },
-              {
-                path: ":tabName",
-                element: <Dashboard />,
+                path: ":stepNumber",
+                element: (
+                  <ClusterCreationWizard
+                    Context={ClusterCreationContext}
+                    Provider={ClusterCreationProvider}
+                    wizardSteps={wizardSteps as any}
+                  />
+                ),
               },
             ],
           },
           {
-            path: "actions",
-            element: <Actions serviceName="HDFS" />,
-          },
-
-          {
-            path: "services",
-            element: <Outlet />,
+            path: "main",
+            element: <MainLayout />,
             children: [
+              { path: "service/add/:stepNumber", element: <AddWizardUrlMapping /> },
               {
-                path: ":serviceName",
+                path: "dashboard",
+                element: <Outlet />,
+                children: [
+                  { index: true, element: <Navigate to="metrics" replace /> },
+                  { path: ":tabName", element: <Dashboard /> },
+                ],
+              },
+              { path: "actions", element: <Actions serviceName="HDFS" /> },
+              {
+                path: "services",
                 element: <Outlet />,
                 children: [
                   {
-                    path: ":tabName",
-                    element: <ServiceDashboard />,
+                    path: ":serviceName",
+                    element: <Outlet />,
+                    children: [
+                      { path: ":tabName", element: <ServiceDashboard /> },
+                    ],
+                  },
+                  {
+                    path: "highAvailability/:componentName/enable/:stepNumber",
+                    element: <ServiceLoader />,
+                  },
+                  {
+                    path: ":componentName/federation/:stepNumber",
+                    element: <ServiceLoader />,
+                  },
+                  {
+                    path: "highAvailability/:componentName/manage/:stepNumber",
+                    element: <ServiceLoader />,
                   },
                 ],
               },
               {
-                path: "highAvailability/:componentName/enable/:stepNumber",
+                path: "service/reassign/:componentName/:stepNumber",
                 element: <ServiceLoader />,
               },
+              { path: "hosts", element: <HostsList /> },
+              { path: "hosts/component/:componentName", element: <HostsList /> },
+              { path: "hosts/version/:versionName/:versionStatus", element: <HostsList /> },
+              { path: "hosts/:hostname/:tab", element: <Hosts /> },
+              { path: "host/add/:stepNumber", element: <AddWizardUrlMapping /> },
+              { path: "alerts", element: <Alerts /> },
+              { path: "alerts/:alertId", element: <AlertDefinitionDetails /> },
               {
-                path:":componentName/federation/:stepNumber",
-                element: <ServiceLoader />,
-              },
-              {
-                path: "highAvailability/:componentName/manage/:stepNumber",
-                element: <ServiceLoader />,
-              },
-              
-            ],
-          },
-          {
-            path:"service",
-            element:<Outlet/>,
-            children:[{
-              path:"reassign/:componentName/:stepNumber",
-              element:<ServiceLoader />
-            }]
-          },
-          {
-            path: "hosts",
-            element: <HostsList />,
-          },
-          {
-            path: "hosts/component/:componentName",
-            element: <HostsList />,
-          },
-          {
-            path: "hosts/version/:versionName/:versionStatus",
-            element: <HostsList />,
-          },
-          {
-            path: "hosts/:hostname/:tab",
-            element: <Hosts />,
-          },
-          {
-            path: "host/add/:stepNumber",
-            element: (
-              <AddWizardUrlMapping />
-            ),
-          },
-          {
-            path: "alerts",
-            element: <Alerts />,
-          },
-          {
-            path: "alerts/:alertId",
-            element: <AlertDefinitionDetails />,
-          },
-          {
-            path: "admin",
-            element: (
-              <AdminRouteGuard>
-                <Outlet />
-              </AdminRouteGuard>
-            ),
-            children: [
-              {
-                index: true,
-                element: <Navigate to="stack/services" replace />,
-              },
-              {
-                path: "stack/:tabName",
+                path: "admin",
                 element: (
-                  <ProtectedRoute 
-                    requireAuthorization="CLUSTER.VIEW_STACK_DETAILS, CLUSTER.UPGRADE_DOWNGRADE_STACK"
-                    redirectTo="/main/dashboard/metrics"
-                  >
-                    <StackAndVersions />
-                  </ProtectedRoute>
+                  <AdminRouteGuard>
+                    <Outlet />
+                  </AdminRouteGuard>
                 ),
+                children: [
+                  { index: true, element: <Navigate to="stack/services" replace /> },
+                  {
+                    path: "stack/:tabName",
+                    element: (
+                      <ProtectedRoute
+                        requireAuthorization="CLUSTER.VIEW_STACK_DETAILS, CLUSTER.UPGRADE_DOWNGRADE_STACK"
+                        redirectTo="/main/dashboard/metrics"
+                      >
+                        <StackAndVersions />
+                      </ProtectedRoute>
+                    ),
+                  },
+                  {
+                    path: "serviceAutoStart",
+                    element: (
+                      <FeatureRouteGuard feature="serviceAutoStart">
+                        <ProtectedRoute
+                          requireAuthorization="SERVICE.MANAGE_AUTO_START, CLUSTER.MANAGE_AUTO_START"
+                          redirectTo="/main/dashboard/metrics"
+                        >
+                          <ServiceAutoStart />
+                        </ProtectedRoute>
+                      </FeatureRouteGuard>
+                    ),
+                  },
+                  {
+                    path: "serviceAccounts",
+                    element: (
+                      <ProtectedRoute
+                        requireAuthorization="SERVICE.SET_SERVICE_USERS_GROUPS"
+                        redirectTo="/main/dashboard/metrics"
+                      >
+                        <ServiceAccounts />
+                      </ProtectedRoute>
+                    ),
+                  },
+                  {
+                    path: "kerberos",
+                    element: (
+                      <FeatureRouteGuard feature="enableToggleKerberos">
+                        <ProtectedRoute
+                          requireAuthorization="CLUSTER.TOGGLE_KERBEROS"
+                          redirectTo="/main/dashboard/metrics"
+                        >
+                          <EnableKerberos />
+                        </ProtectedRoute>
+                      </FeatureRouteGuard>
+                    ),
+                  },
+                  {
+                    path: "kerberos/enable/:stepNumber",
+                    element: (
+                      <FeatureRouteGuard feature="enableToggleKerberos">
+                        <ProtectedRoute
+                          requireAuthorization="CLUSTER.TOGGLE_KERBEROS"
+                          redirectTo="/main/dashboard/metrics"
+                        >
+                          <EnableKerberos />
+                        </ProtectedRoute>
+                      </FeatureRouteGuard>
+                    ),
+                  },
+                ],
               },
-              {
-                path: "serviceAutoStart",
-                element: (
-                  <ProtectedRoute 
-                    requireAuthorization="SERVICE.START_STOP"
-                    redirectTo="/main/dashboard/metrics"
-                  >
-                    <ServiceAutoStart />
-                  </ProtectedRoute>
-                ),
-              },
-              {
-                path: "serviceAccounts",
-                element: (
-                  <ProtectedRoute 
-                    requireAuthorization="SERVICE.SET_SERVICE_USERS_GROUPS"
-                    redirectTo="/main/dashboard/metrics"
-                  >
-                    <ServiceAccounts />
-                  </ProtectedRoute>
-                ),
-              },
-              {
-                path: "kerberos",
-                element: (
-                  <ProtectedRoute 
-                    requireAuthorization="CLUSTER.TOGGLE_KERBEROS"
-                    redirectTo="/main/dashboard/metrics"
-                  >
-                    <EnableKerberos />
-                  </ProtectedRoute>
-                ),
-              },
-              {
-                path: "kerberos/enable/:stepNumber",
-                element: (
-                  <ProtectedRoute 
-                    requireAuthorization="CLUSTER.TOGGLE_KERBEROS"
-                    redirectTo="/main/dashboard/metrics"
-                  >
-                    <EnableKerberos />
-                  </ProtectedRoute>
-                ),
-              }
-            ],
-          },
-          {
-            path: "views/:viewName/:viewVersion/:instanceName/*",
-            element: <ViewDetails />,
-          },
-          {
-            path: "view",
-            element: <ViewsListPage />,
-          },
-          {
-            path: "view/:viewName",
-            element: <Navigate to="/main/view" replace />,
-          },
-        ],
-      },
-      {
-        path: "main",
-        element: (
-          <>
-            {/* <DashboardWrapper /> */}
-            <Outlet />
-          </>
-        ),
-        children: [
-          {
-            path: "admin",
-            element: <Outlet />,
-            children: [
-              {
-                path: "serviceAccounts",
-                element: <ServiceAccounts />,
-              },
+              { path: "views/:viewName/:viewVersion/:instanceName/*", element: <ViewDetails /> },
+              { path: "view", element: <ViewsListPage /> },
+              { path: "view/:viewName", element: <Navigate to="/main/view" replace /> },
             ],
           },
         ],
       },
+      { path: "*", element: <Navigate to="/" replace /> },
     ],
-  },
-  {
-    path: "adminView",
-    loader: () => {
-      redirectToAdminView();
-      return null;
-    },
-    element: <Spinner />, // This won't actually render as we'll redirect immediately
-  },
-  {
-    path: "/login",
-    element: <Login />,
   },
 ];
 

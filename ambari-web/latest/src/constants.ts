@@ -147,6 +147,35 @@ export const toBePreservedPaths = {
   kerberos: "KERBEROS_WIZARD_LAST_PATH",
 };
 
+export const DEFAULT_SUPPORTS: Record<string, boolean> = {
+  preUpgradeCheck: true,
+  displayOlderVersions: false,
+  autoRollbackHA: false,
+  alwaysEnableManagedMySQLForHive: false,
+  preKerberizeCheck: false,
+  customizeAgentUserAccount: false,
+  installGanglia: false,
+  opsDuringRollingUpgrade: false,
+  customizedWidgetLayout: false,
+  showPageLoadTime: false,
+  skipComponentStartAfterInstall: false,
+  preInstallChecks: false,
+  serviceAutoStart: true,
+  logSearch: true,
+  redhatSatellite: false,
+  addingNewRepository: false,
+  kerberosStackAdvisor: true,
+  logCountVizualization: false,
+  createAlerts: false,
+  enabledWizardForHostOrderedUpgrade: true,
+  manageJournalNode: true,
+  enableToggleKerberos: true,
+  enableAddDeleteServices: true,
+  regenerateKeytabsOnSingleHost: false,
+  disableCredentialsAutocompleteForRepoUrls: true,
+  enableNewServiceRestartOptions: false,
+};
+
 export const selectMasterComponentsForService = {
   HIVE: ["HIVE_METASTORE", "HIVE_SERVER"],
   ZOOKEEPER: ["ZOOKEEPER_SERVER"],

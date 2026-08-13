@@ -43,7 +43,12 @@ enum SideItemLabels {
  * Generate sidebar items with authorization checks
  * Based on Ember.js ui/app/views/main/admin.js authorization patterns
  */
-const getSideItemList = (hasAuthorization: (auth: string) => boolean, upgradeInProgress: boolean = false, upgradeHolding: boolean = false): SideItem[] => {
+const getSideItemList = (
+  hasAuthorization: (auth: string) => boolean,
+  supports: Record<string, boolean>,
+  upgradeInProgress: boolean = false,
+  upgradeHolding: boolean = false,
+): SideItem[] => {
   const adminChildren: SideItem[] = [];
   
   // Stack and Versions - Requires CLUSTER.VIEW_STACK_DETAILS OR CLUSTER.UPGRADE_DOWNGRADE_STACK (matches Ember.js)
@@ -71,7 +76,8 @@ const getSideItemList = (hasAuthorization: (auth: string) => boolean, upgradeInP
   }
   
   // Kerberos - Requires CLUSTER.TOGGLE_KERBEROS
-  if (hasAuthorization('CLUSTER.TOGGLE_KERBEROS') || upgradeInProgress || upgradeHolding) {
+  if (supports.enableToggleKerberos
+    && (hasAuthorization('CLUSTER.TOGGLE_KERBEROS') || upgradeInProgress || upgradeHolding)) {
     adminChildren.push({
       id: SideItemLabels.KERBEROS,
       icon: <></>,
@@ -83,7 +89,9 @@ const getSideItemList = (hasAuthorization: (auth: string) => boolean, upgradeInP
   }
   
   // Service Auto Start - Requires SERVICE.START_STOP authorization (matches ServiceAutoStart component)
-  if (hasAuthorization('SERVICE.START_STOP') || upgradeInProgress || upgradeHolding) {
+  const canSeeAutoStart = hasAuthorization('SERVICE.START_STOP, CLUSTER.MODIFY_CONFIGS')
+    && hasAuthorization('SERVICE.MANAGE_AUTO_START, CLUSTER.MANAGE_AUTO_START');
+  if (supports.serviceAutoStart && (canSeeAutoStart || upgradeInProgress || upgradeHolding)) {
     adminChildren.push({
       id: SideItemLabels.SERVICE_AUTO_START,
       icon: <></>,

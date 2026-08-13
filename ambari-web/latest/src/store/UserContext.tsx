@@ -16,58 +16,73 @@
  * limitations under the License.
  */
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { User, UserContextType, Authorization, Privilege} from '../types/auth';
-import LoginApi from '../api/loginApi';
-import { db } from '../Utils/db';
-import { isString } from 'lodash';
-import { AppContext } from './context';
+import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { isString } from "lodash";
+import LoginApi, { LoginMessage } from "../api/loginApi";
+import { db } from "../Utils/db";
+import {
+  resetExternalRedirectCount,
+  SESSION_EXPIRED_EVENT,
+} from "../Utils/authNavigation";
+import { Authorization, Privilege, User, UserContextType } from "../types/auth";
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const useUserContext = () => {
   const context = useContext(UserContext);
   if (!context) {
-    throw new Error('useUserContext must be used within a UserProvider');
+    throw new Error("useUserContext must be used within a UserProvider");
   }
   return context;
 };
 
-interface UserProviderProps {
-  children: React.ReactNode;
+function storedLoginName(): string | null {
+  const value = db.getItem("ambari");
+  if (!value) {
+    return null;
+  }
+
+  try {
+    let parsed: any = JSON.parse(value);
+    if (isString(parsed)) {
+      parsed = JSON.parse(parsed);
+    }
+    return parsed?.app?.loginName ? decodeURIComponent(parsed.app.loginName) : null;
+  } catch {
+    return null;
+  }
 }
 
-export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
+export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [authorizations, setAuthorizations] = useState<Authorization[]>([]);
   const [privileges, setPrivileges] = useState<Privilege[]>([]);
   const [clusterPrivileges, setClusterPrivileges] = useState<Record<string, string[]>>({});
-  const [viewPrivileges, setViewPrivileges] = useState<Record<string, { privileges: string[]; version: string; view_name: string }>>({});
+  const [viewPrivileges, setViewPrivileges] = useState<Record<string, {
+    privileges: string[];
+    version: string;
+    view_name: string;
+  }>>({});
   const [loginError, setLoginError] = useState<string | null>(null);
-  
-  // Access AppContext for upgrade state - this will be available after AppProvider wraps UserProvider
-  const appContext = useContext(AppContext);
-  // Parse privileges into cluster and view privileges
-  const parsePrivileges = useCallback((privilegesList: Privilege[]) => {
+  const [loginMessage, setLoginMessage] = useState<LoginMessage | null>(null);
+  const [sessionError, setSessionError] = useState<string | null>(null);
+
+  const parsePrivileges = useCallback((items: Privilege[]) => {
     const clusters: Record<string, string[]> = {};
     const views: Record<string, { privileges: string[]; version: string; view_name: string }> = {};
 
-    privilegesList.forEach((privilege) => {
-      if (privilege.type === 'CLUSTER' && privilege.cluster_name) {
-        if (!clusters[privilege.cluster_name]) {
-          clusters[privilege.cluster_name] = [];
-        }
+    items.forEach((privilege) => {
+      if (privilege.type === "CLUSTER" && privilege.cluster_name) {
+        clusters[privilege.cluster_name] ??= [];
         clusters[privilege.cluster_name].push(privilege.permission_label);
-      } else if (privilege.type === 'VIEW' && privilege.instance_name) {
-        if (!views[privilege.instance_name]) {
-          views[privilege.instance_name] = {
-            privileges: [],
-            version: privilege.version || '',
-            view_name: privilege.view_name || ''
-          };
-        }
+      } else if (privilege.type === "VIEW" && privilege.instance_name) {
+        views[privilege.instance_name] ??= {
+          privileges: [],
+          version: privilege.version || "",
+          view_name: privilege.view_name || "",
+        };
         views[privilege.instance_name].privileges.push(privilege.permission_label);
       }
     });
@@ -76,299 +91,186 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     setViewPrivileges(views);
   }, []);
 
-  // Helper methods - implementing Ember.js App.havePermissions and App.isAuthorized logic
-  const havePermissions = useCallback((authRoles: string): boolean => {
-    if (!authorizations.length) {
-      return false;
+  const clearSession = useCallback(() => {
+    setUser(null);
+    setIsAuthenticated(false);
+    setAuthorizations([]);
+    setPrivileges([]);
+    setClusterPrivileges({});
+    setViewPrivileges({});
+    setLoginMessage(null);
+    db.clearSession();
+  }, []);
+
+  const loadSession = useCallback(async (loginName: string): Promise<User> => {
+    const [userResponse, authorizationResponse, message] = await Promise.all([
+      LoginApi.handleSuccessfulLogin({ usr: "", loginName }),
+      LoginApi.loadAuthorizationsCallback({ usr: "", loginName }),
+      LoginApi.loadLoginMessage(),
+    ]);
+    const userData = userResponse.data.Users as User | undefined;
+    if (!userData) {
+      throw new Error("Ambari did not return the authenticated user");
     }
 
-    const authRolesList = authRoles.split(',').map(role => role.trim());
-    
-    // When Upgrade running(not suspended) only operations related to upgrade should be allowed
-    // This matches the Ember.js logic in ui/app/app.js
-    const upgradeState = appContext?.upgradeState || 'NOT_REQUIRED';
-    const upgradeSuspended = appContext?.upgradeSuspend || false;
-    
-    // Check if upgrade is blocking operations
-    if ((!upgradeSuspended &&
-         !authRolesList.includes('CLUSTER.UPGRADE_DOWNGRADE_STACK') &&
-         !authRolesList.includes('CLUSTER.MANAGE_USER_PERSISTED_DATA')) &&
-        // TODO: Add supports.opsDuringRollingUpgrade check when available
-        !['NOT_REQUIRED', 'COMPLETED'].includes(upgradeState)) {
-      return false;
-    }
-    
-    return authRolesList.some(auth => 
-      authorizations.some(authorization => authorization.authorization_id === auth)
+    const mappedPrivileges = (userResponse.data.privileges || []).map(
+      (item: any) => item.PrivilegeInfo,
     );
-  }, [authorizations, appContext?.upgradeState, appContext?.upgradeSuspend]);
+    const mappedAuthorizations = (authorizationResponse.data.items || []).map(
+      (item: any) => item.AuthorizationInfo,
+    );
 
-  const hasAuthorization = useCallback((authId: string): boolean => {
-    // This implements App.isAuthorized logic: havePermissions + wizard check
-    // For now, we'll use havePermissions. Wizard check can be added later when needed
-    
-    // Special case: Cluster operators should have HOST.ADD_DELETE_COMPONENTS permission
-    // This matches Ember.js behavior where cluster operators can manage components
-    if (authId === 'HOST.ADD_DELETE_COMPONENTS') {
-      // Check if user has explicit authorization OR is a cluster operator
-      return havePermissions(authId) || havePermissions('CLUSTER.ADMINISTRATOR');
+    setUser(userData);
+    setPrivileges(mappedPrivileges);
+    setAuthorizations(mappedAuthorizations);
+    parsePrivileges(mappedPrivileges);
+    const authorizationIds = mappedAuthorizations.map(
+      (authorization: Authorization) => authorization.authorization_id,
+    );
+    db.setSession(userData.user_name, userData, authorizationIds);
+    setLoginMessage(message);
+    setIsAuthenticated(true);
+    resetExternalRedirectCount();
+    return userData;
+  }, [parsePrivileges]);
+
+  const initializeUser = useCallback(async () => {
+    setIsLoading(true);
+    setSessionError(null);
+    try {
+      const response = await LoginApi.probeSession();
+      const responseUser = response.headers?.user as string | undefined;
+      const loginName = responseUser || storedLoginName();
+      if (!loginName) {
+        clearSession();
+        return;
+      }
+
+      await loadSession(loginName);
+    } catch (error: any) {
+      clearSession();
+      const status = error?.response?.status;
+      if (status !== 401 && status !== 403) {
+        setSessionError(
+          error?.response?.data?.message || "Ambari Server could not validate the current session.",
+        );
+      }
+    } finally {
+      setIsLoading(false);
     }
-    
-    return havePermissions(authId);
+  }, [clearSession, loadSession]);
+
+  const login = useCallback(async (username: string, password: string): Promise<boolean> => {
+    setIsLoading(true);
+    setLoginError(null);
+    try {
+      await LoginApi.authenticate(username, password);
+      await loadSession(username);
+      return true;
+    } catch (error: any) {
+      clearSession();
+      const status = error?.response?.status;
+      if (status === 403) {
+        setLoginError(error?.response?.data?.message || "Invalid username or password.");
+      } else if (status === 500) {
+        setLoginError(error?.response?.data?.message || "Ambari Server could not complete the login request.");
+      } else {
+        setLoginError(error?.response?.data?.message || "Unable to sign in to Ambari.");
+      }
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [clearSession, loadSession]);
+
+  const logout = useCallback(async () => {
+    clearSession();
+    db.cleanUp();
+    sessionStorage.clear();
+    localStorage.removeItem("lastVisitedURL");
+    void LoginApi.logout().catch(() => {
+      // Client cleanup and navigation must not depend on server logoff success.
+    });
+  }, [clearSession]);
+
+  const refreshUserData = useCallback(async () => {
+    if (user?.user_name) {
+      await loadSession(user.user_name);
+    }
+  }, [loadSession, user]);
+
+  const havePermissions = useCallback((authorizationIds: string): boolean => {
+    const requested = authorizationIds.split(",").map((value) => value.trim());
+    return requested.some((id) => authorizations.some(
+      (authorization) => authorization.authorization_id === id,
+    ));
+  }, [authorizations]);
+
+  const hasAuthorization = useCallback((authorizationId: string): boolean => {
+    if (authorizationId === "HOST.ADD_DELETE_COMPONENTS") {
+      return havePermissions(authorizationId) || havePermissions("CLUSTER.ADMINISTRATOR");
+    }
+    return havePermissions(authorizationId);
   }, [havePermissions]);
 
   const hasPrivilege = useCallback((permissionName: string, clusterName?: string): boolean => {
     if (clusterName) {
       return clusterPrivileges[clusterName]?.includes(permissionName) || false;
     }
-    // Check across all clusters if no specific cluster is provided
-    return Object.values(clusterPrivileges).some(privs => privs.includes(permissionName));
+    return Object.values(clusterPrivileges).some((items) => items.includes(permissionName));
   }, [clusterPrivileges]);
 
-  const isAdmin = useCallback((): boolean => {
-    const hasAmbariAdmin = privileges.some(privilege => 
-      privilege.permission_name === 'AMBARI.ADMINISTRATOR'
-    );
-    
-    if (hasAmbariAdmin) {
-      return true;
-    }
-    
-    // Check if user has CLUSTER.ADMINISTRATOR permission for any cluster
-    return hasAuthorization('CLUSTER.ADMINISTRATOR');
-  }, [privileges, hasAuthorization]);
+  const isAdmin = useCallback(() => privileges.some(
+    (privilege) => privilege.permission_name === "AMBARI.ADMINISTRATOR",
+  ) || hasAuthorization("CLUSTER.ADMINISTRATOR"), [hasAuthorization, privileges]);
+  const isOperator = useCallback(
+    () => hasAuthorization("CLUSTER.ADMINISTRATOR"),
+    [hasAuthorization],
+  );
+  const isClusterUser = useCallback(() => !isOperator(), [isOperator]);
+  const isClusterOperator = useCallback(() => isOperator() && !privileges.some(
+    (privilege) => privilege.permission_name === "AMBARI.ADMINISTRATOR",
+  ), [isOperator, privileges]);
 
-  const isOperator = useCallback((): boolean => {
-    // Based on Ember.js router.js loginGetClustersSuccessCallback logic:
-    // isOperator is set to true when user has CLUSTER.ADMINISTRATOR permission
-    // This matches the exact logic in router.js lines 670-675
-    return hasAuthorization('CLUSTER.ADMINISTRATOR');
-  }, [hasAuthorization]);
-
-  const isClusterUser = useCallback((): boolean => {
-    // Based on Ember.js router.js loginGetClustersSuccessCallback logic:
-    // isClusterUser is set to false when user has CLUSTER.ADMINISTRATOR permission
-    // This matches the exact logic in router.js lines 670-675
-    return !hasAuthorization('CLUSTER.ADMINISTRATOR');
-  }, [hasAuthorization]);
-
-  // Additional role helper - isClusterOperator (same as isOperator but more explicit naming)
-  const isClusterOperator = useCallback((): boolean => {
-    // This follows the users_mapper.js logic: user has CLUSTER.ADMINISTRATOR but not AMBARI.ADMINISTRATOR
-    const hasAmbariAdmin = privileges.some(privilege => 
-      privilege.permission_name === 'AMBARI.ADMINISTRATOR'
-    );
-    return hasAuthorization('CLUSTER.ADMINISTRATOR') && !hasAmbariAdmin;
-  }, [hasAuthorization, privileges]);
-
-  // Load user authorizations
-  const loadAuthorizations = useCallback(async (loginName: string): Promise<Authorization[]> => {
-    try {
-      const response = await LoginApi.loadAuthorizationsCallback({
-        usr: '',
-        loginName: encodeURIComponent(loginName)
-      });
-      
-      const authList = response.data.items.map((item: any) => item.AuthorizationInfo);
-      setAuthorizations(authList);
-      
-      // Store in database similar to Ember implementation
-      const authIds = authList.map((auth: Authorization) => auth.authorization_id);
-      db.set('app', 'auth', authIds);
-      
-      return authList;
-    } catch (error) {
-      console.error('Failed to load authorizations:', error);
-      return [];
-    }
-  }, []);
-
-  // Load user data and privileges
-  const loadUserData = useCallback(async (loginName: string): Promise<User | null> => {
-    try {
-      const response = await LoginApi.handleSuccessfulLogin({
-        usr: '',
-        loginName: encodeURIComponent(loginName)
-      });
-
-      const userData = response.data.Users;
-      setUser(userData);
-
-      // Load privileges if they exist in the response
-      if (response.data.privileges) {
-        // Map the privileges from the API response structure
-        const mappedPrivileges = response.data.privileges.map((item: any) => item.PrivilegeInfo);
-        setPrivileges(mappedPrivileges);
-        parsePrivileges(mappedPrivileges);
-      }
-
-      return userData;
-    } catch (error) {
-      console.error('Failed to load user data:', error);
-      return null;
-    }
-  }, [parsePrivileges]);
-
-  // Initialize user from stored data
-  const initializeUser = useCallback(async (): Promise<boolean> => {
-    try {
-      setIsLoading(true);
-      
-      const ambariLocalData = db.getItem('ambari');
-      if (!ambariLocalData) {
-        setIsLoading(false);
-        return false;
-      }
-
-      let parsedData: any = {};
-      try {
-        parsedData = JSON.parse(ambariLocalData);
-        if (isString(parsedData)) {
-          parsedData = JSON.parse(parsedData);
-        }
-      } catch (err) {
-        console.error('Error parsing ambari data:', err);
-        setIsLoading(false);
-        return false;
-      }
-
-      const loginName = parsedData?.app?.loginName;
-      if (!loginName) {
-        setIsLoading(false);
-        return false;
-      }
-
-      // Load user data and authorizations
-      const [userData] = await Promise.all([
-        loadUserData(decodeURIComponent(loginName)),
-        loadAuthorizations(decodeURIComponent(loginName))
-      ]);
-
-      if (userData) {
-        setIsAuthenticated(true);
-        setIsLoading(false);
-        return true;
-      }
-
-      setIsLoading(false);
-      return false;
-    } catch (error) {
-      console.error('Failed to initialize user:', error);
-      setIsLoading(false);
-      return false;
-    }
-  }, [loadUserData, loadAuthorizations]);
-
-  // Login method
-  const login = useCallback(async (username: string, password: string): Promise<boolean> => {
-    try {
-      setIsLoading(true);
-      
-      // Authenticate user
-      await LoginApi.authenticate(username, password);
-      
-      // Store initial data
-      const initialAmbariLsData = {
-        app: {
-          loginName: encodeURIComponent(username),
-          authenticated: true
-        }
-      };
-      
-      db.setItem('ambari', JSON.stringify(initialAmbariLsData));
-      
-      // Load user data and authorizations
-      const [userData] = await Promise.all([
-        loadUserData(username),
-        loadAuthorizations(username)
-      ]);
-
-      if (userData) {
-        // Update stored data with user info
-        const updatedData = {
-          app: {
-            loginName: encodeURIComponent(username),
-            authenticated: true,
-            user: userData
-          }
-        };
-        db.setItem('ambari', JSON.stringify(updatedData));
-        
-        setIsAuthenticated(true);
-        setIsLoading(false);
-        setLoginError(null);
-        return true;
-      }
-      setIsLoading(false);
-      return false;
-    } catch (error:any) {
-      setLoginError(error?.response?.data?.message || 'Login failed');
-      setIsLoading(false);
-      return false;
-    }
-  }, [loadUserData, loadAuthorizations]);
-
-  // Logout method
-  const logout = useCallback(async (): Promise<void> => {
-    try {
-      await LoginApi.logout();
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      // Clear all user data
-      setUser(null);
-      setIsAuthenticated(false);
-      setAuthorizations([]);
-      setPrivileges([]);
-      setClusterPrivileges({});
-      setViewPrivileges({});
-      db.cleanUp();
-    }
-  }, []);
-
-  // Refresh user data
-  const refreshUserData = useCallback(async (): Promise<void> => {
-    if (user?.user_name) {
-      await Promise.all([
-        loadUserData(user.user_name),
-        loadAuthorizations(user.user_name)
-      ]);
-    }
-  }, [user, loadUserData, loadAuthorizations]);
-
-  // Initialize on mount
   useEffect(() => {
-    initializeUser();
+    const expireSession = () => {
+      clearSession();
+      setSessionError(null);
+      setIsLoading(false);
+    };
+    window.addEventListener(SESSION_EXPIRED_EVENT, expireSession);
+    return () => window.removeEventListener(SESSION_EXPIRED_EVENT, expireSession);
+  }, [clearSession]);
+
+  useEffect(() => {
+    void initializeUser();
   }, [initializeUser]);
 
-  // Update parsed privileges when privileges change
-  useEffect(() => {
-    parsePrivileges(privileges);
-  }, [privileges, parsePrivileges]);
-
-  const contextValue: UserContextType = {
-    user,
-    isAuthenticated,
-    isLoading,
-    authorizations,
-    privileges,
-    clusterPrivileges,
-    viewPrivileges,
-    havePermissions,
-    hasAuthorization,
-    hasPrivilege,
-    isAdmin,
-    isOperator,
-    isClusterUser,
-    isClusterOperator,
-    login,
-    logout,
-    refreshUserData,
-    loginError
-  };
-
   return (
-    <UserContext.Provider value={contextValue}>
+    <UserContext.Provider value={{
+      user,
+      isAuthenticated,
+      isLoading,
+      sessionError,
+      authorizations,
+      privileges,
+      clusterPrivileges,
+      viewPrivileges,
+      havePermissions,
+      hasAuthorization,
+      hasPrivilege,
+      isAdmin,
+      isOperator,
+      isClusterUser,
+      isClusterOperator,
+      login,
+      logout,
+      refreshUserData,
+      retrySession: initializeUser,
+      loginError,
+      loginMessage,
+      acknowledgeLoginMessage: () => setLoginMessage(null),
+    }}>
       {children}
     </UserContext.Provider>
   );
