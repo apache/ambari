@@ -59,6 +59,19 @@ class JiraClientTest(unittest.TestCase):
         None,
     ), http.calls[0])
 
+  def test_update_issue_description_uses_normalized_issue_key(self):
+    http = FakeHttpClient()
+    client = ambari_ai.JiraClient("https://jira.example", http_client=http)
+
+    client.update_issue_description("ambari-26474", "h2. Failure details")
+
+    self.assertEqual((
+        "PUT",
+        "/rest/api/2/issue/AMBARI-26474",
+        {"fields": {"description": "h2. Failure details"}},
+        None,
+    ), http.calls[0])
+
 
 class GitHubClientTest(unittest.TestCase):
 
@@ -110,6 +123,38 @@ class GitHubClientTest(unittest.TestCase):
 
 
 class FormattingTest(unittest.TestCase):
+
+  def test_markdown_to_jira_converts_headings_lists_links_and_code(self):
+    markdown = """## Problem
+
+* Existing bullet
+- Another bullet
+1. First step
+2. Second step with `RequestSchedule.id`
+
+[Baseline](https://example.invalid/baseline)
+
+```shell
+npm test
+```"""
+
+    self.assertEqual("""h2. Problem
+
+* Existing bullet
+* Another bullet
+# First step
+# Second step with {{RequestSchedule.id}}
+
+[Baseline|https://example.invalid/baseline]
+
+{code:shell}
+npm test
+{code}""", ambari_ai.markdown_to_jira(markdown))
+
+  def test_markdown_to_jira_does_not_interpret_hash_headings_as_lists(self):
+    result = ambari_ai.markdown_to_jira("## Scope\n\n### Detail")
+
+    self.assertEqual("h2. Scope\n\nh3. Detail", result)
 
   def test_pull_request_title_matches_ambari_3995(self):
     self.assertEqual(

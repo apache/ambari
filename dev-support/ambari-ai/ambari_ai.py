@@ -141,6 +141,13 @@ class JiraClient:
     }
     return self.http.request("POST", "/rest/api/2/issue", payload=payload)
 
+  def update_issue_description(self, issue_key: str, description: str) -> None:
+    self.http.request(
+        "PUT",
+        "/rest/api/2/issue/{}".format(parse.quote(normalize_issue_key(issue_key))),
+        payload={"fields": {"description": description}},
+    )
+
   def get_issue(self, issue_key: str) -> Dict[str, Any]:
     return self.http.request(
         "GET",
@@ -358,6 +365,70 @@ def pull_request_title(issue_key: str, summary: str) -> str:
   return "{}: {}".format(issue_key, normalize_summary(issue_key, summary))
 
 
+def markdown_to_jira(value: str) -> str:
+  """Convert the Markdown accepted by the CLI to Jira wiki markup."""
+  lines = []
+  in_code_block = False
+  code_language = ""
+
+  for line in value.splitlines():
+    fence = re.fullmatch(r"\s*```([^`]*)\s*", line)
+    if fence:
+      if in_code_block:
+        lines.append("{code}")
+        in_code_block = False
+        code_language = ""
+      else:
+        code_language = fence.group(1).strip()
+        lines.append("{code%s}" % (":" + code_language if code_language else ""))
+        in_code_block = True
+      continue
+
+    if in_code_block:
+      lines.append(line)
+      continue
+
+    heading = re.match(r"^(#{1,6})\s+(.+)$", line)
+    if heading:
+      line = "h{}. {}".format(len(heading.group(1)), heading.group(2))
+    else:
+      unordered = re.match(r"^(\s*)[-+]\s+(.+)$", line)
+      ordered = re.match(r"^(\s*)\d+[.)]\s+(.+)$", line)
+      if unordered:
+        depth = max(1, len(unordered.group(1)) // 2 + 1)
+        line = "{} {}".format("*" * depth, unordered.group(2))
+      elif ordered:
+        depth = max(1, len(ordered.group(1)) // 2 + 1)
+        line = "{} {}".format("#" * depth, ordered.group(2))
+
+    protected = []
+
+    def protect(replacement: str) -> str:
+      protected.append(replacement)
+      return "\x00{}\x00".format(len(protected) - 1)
+
+    line = re.sub(
+        r"`([^`\n]+)`",
+        lambda match: protect("{{" + match.group(1) + "}}"),
+        line,
+    )
+    line = re.sub(
+        r"\[([^\]\n]+)\]\(([^)\s]+)\)",
+        lambda match: protect("[{}|{}]".format(match.group(1), match.group(2))),
+        line,
+    )
+    line = re.sub(r"\*\*([^*\n]+)\*\*", r"*\1*", line)
+    line = re.sub(r"__([^_\n]+)__", r"*\1*", line)
+    line = re.sub(r"(?<!\*)\*([^*\n]+)\*(?!\*)", r"_\1_", line)
+    for index, replacement in enumerate(protected):
+      line = line.replace("\x00{}\x00".format(index), replacement)
+    lines.append(line)
+
+  if in_code_block:
+    lines.append("{code}")
+  return "\n".join(lines)
+
+
 def build_pull_request_body(
     changes: str,
     test_result: str,
@@ -426,12 +497,23 @@ def github_client_from_environment(review: bool = False) -> GitHubClient:
 
 
 def command_issue_create(args: argparse.Namespace) -> Dict[str, Any]:
-  description = read_argument(args.description, args.description_file, "description")
+  description = markdown_to_jira(
+      read_argument(args.description, args.description_file, "description"))
   client = jira_client_from_environment()
   issue = client.create_issue(args.type, args.summary.strip(), description)
   key = issue["key"]
   base_url = os.environ.get("ASF_JIRA_URL", DEFAULT_JIRA_URL).rstrip("/")
   return {"key": key, "url": "{}/browse/{}".format(base_url, key)}
+
+
+def command_issue_update(args: argparse.Namespace) -> Dict[str, Any]:
+  issue_key = normalize_issue_key(args.issue)
+  description = markdown_to_jira(
+      read_argument(args.description, args.description_file, "description"))
+  client = jira_client_from_environment()
+  client.update_issue_description(issue_key, description)
+  base_url = os.environ.get("ASF_JIRA_URL", DEFAULT_JIRA_URL).rstrip("/")
+  return {"key": issue_key, "url": "{}/browse/{}".format(base_url, issue_key)}
 
 
 def command_pr_create(args: argparse.Namespace) -> Dict[str, Any]:
@@ -571,6 +653,13 @@ def build_parser() -> argparse.ArgumentParser:
   issue_create.add_argument("--description")
   issue_create.add_argument("--description-file")
   issue_create.set_defaults(handler=command_issue_create)
+
+  issue_update = issue_subparsers.add_parser(
+      "update", help="Update an AMBARI issue description")
+  issue_update.add_argument("--issue", required=True)
+  issue_update.add_argument("--description")
+  issue_update.add_argument("--description-file")
+  issue_update.set_defaults(handler=command_issue_update)
 
   pr_parser = subparsers.add_parser("pr", help="Manage GitHub pull requests")
   pr_subparsers = pr_parser.add_subparsers(dest="action", required=True)

@@ -37,11 +37,22 @@ otherwise use `git@github.com:<GITHUB_FORK_REPO>.git`.
 
 ## Create an issue
 
+Issue descriptions accept Markdown. The tool converts headings, lists, links,
+and code to Jira wiki markup before submitting the description.
+
 ```shell
 python3 dev-support/ambari-ai/ambari_ai.py issue create \
   --type Bug \
   --summary "Fix ambari server py test" \
   --description "Describe the failure, expected behavior, and scope."
+```
+
+Update an existing issue description with the same conversion:
+
+```shell
+python3 dev-support/ambari-ai/ambari_ai.py issue update \
+  --issue AMBARI-26474 \
+  --description-file path/to/issue.md
 ```
 
 ## Create a pull request
