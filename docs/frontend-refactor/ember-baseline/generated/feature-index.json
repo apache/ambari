@@ -1,0 +1,7016 @@
+[
+  {
+    "id": "AUTH-001",
+    "summary": "访问 `/` 自动跳转登录页；登录页清空主界面标题并连接 login outlet",
+    "section": "功能清单",
+    "moduleFile": "01-auth-shell.md",
+    "line": 7
+  },
+  {
+    "id": "AUTH-002",
+    "summary": "用户名密码使用 UTF-8 Base64 组成 Basic Authorization，先验证身份，再加载当前用户、privileges 和集群",
+    "section": "功能清单",
+    "moduleFile": "01-auth-shell.md",
+    "line": 8
+  },
+  {
+    "id": "AUTH-003",
+    "summary": "支持 Knox/外部 JWT 登录跳转；401/403 响应中的 `jwtProviderUrl` 附加当前 URL 作为返回地址",
+    "section": "功能清单",
+    "moduleFile": "01-auth-shell.md",
+    "line": 9
+  },
+  {
+    "id": "AUTH-004",
+    "summary": "已被服务端认证但 localStorage 未标记时，从响应 `User` header 恢复用户会话",
+    "section": "功能清单",
+    "moduleFile": "01-auth-shell.md",
+    "line": 10
+  },
+  {
+    "id": "AUTH-005",
+    "summary": "登录成功加载登录消息设置；启用的消息以 modal 展示，用户确认后继续",
+    "section": "功能清单",
+    "moduleFile": "01-auth-shell.md",
+    "line": 11
+  },
+  {
+    "id": "AUTH-006",
+    "summary": "根据集群和权限决定首屏：已安装集群进入 Dashboard/恢复路径，无集群进入 Admin View，仅 View 用户进入 Views，未完成集群进入 Installer",
+    "section": "功能清单",
+    "moduleFile": "01-auth-shell.md",
+    "line": 12
+  },
+  {
+    "id": "AUTH-007",
+    "summary": "退出时停止主界面 polling、清 localStorage/向导状态/权限、发送 logoff，并回登录页",
+    "section": "功能清单",
+    "moduleFile": "01-auth-shell.md",
+    "line": 13
+  },
+  {
+    "id": "AUTH-008",
+    "summary": "维持服务端会话 keep-alive，主路由进入后启动",
+    "section": "功能清单",
+    "moduleFile": "01-auth-shell.md",
+    "line": 14
+  },
+  {
+    "id": "SHELL-001",
+    "summary": "主应用进入时升级 localStorage schema，加载 supports、Ambari properties、cluster name、Views，再初始化全局模型和 polling",
+    "section": "功能清单",
+    "moduleFile": "01-auth-shell.md",
+    "line": 15
+  },
+  {
+    "id": "SHELL-002",
+    "summary": "全局导航包含 Dashboard、Services、Hosts、Alerts、Admin、Views，并由权限、安装状态、已安装服务和 feature flag 控制",
+    "section": "功能清单",
+    "moduleFile": "01-auth-shell.md",
+    "line": 16
+  },
+  {
+    "id": "SHELL-003",
+    "summary": "保存用户 preferred path，登录后恢复到原 route",
+    "section": "功能清单",
+    "moduleFile": "01-auth-shell.md",
+    "line": 17
+  },
+  {
+    "id": "SHELL-004",
+    "summary": "页面标题、breadcrumb、侧边服务菜单、全局 spinner/loading overlay 随 route 和模型加载状态更新",
+    "section": "功能清单",
+    "moduleFile": "01-auth-shell.md",
+    "line": 18
+  },
+  {
+    "id": "SHELL-005",
+    "summary": "Inactivity timeout 按 admin 与 readonly Ambari property 选择时长，监听 window/iframe 的 mousemove、keypress、click，每秒检查活跃时间，并在超时前 60 秒显示继续会话/退出倒计时",
+    "section": "功能清单",
+    "moduleFile": "01-auth-shell.md",
+    "line": 19
+  },
+  {
+    "id": "SHELL-006",
+    "summary": "About 弹窗显示 controller 中已缓存的 Ambari Server 版本；没有 click-time 版本请求",
+    "section": "功能清单",
+    "moduleFile": "01-auth-shell.md",
+    "line": 20
+  },
+  {
+    "id": "SHELL-007",
+    "summary": "Experimental 页面读取支持开关，允许逐项修改并 Save/Cancel；Reset UI States 会清本地 DB/cache/向导/cluster status，并向服务端持久化 `wizard-data={}`",
+    "section": "功能清单",
+    "moduleFile": "01-auth-shell.md",
+    "line": 21
+  },
+  {
+    "id": "SHELL-008",
+    "summary": "版本不一致检查在 Installer 进入前阻止继续并提示 server/web client mismatch",
+    "section": "功能清单",
+    "moduleFile": "01-auth-shell.md",
+    "line": 22
+  },
+  {
+    "id": "SHELL-009",
+    "summary": "User Settings popup 可保存是否自动展示 Background Operations 和 timezone，并列出当前用户的 cluster/View privileges",
+    "section": "功能清单",
+    "moduleFile": "01-auth-shell.md",
+    "line": 23
+  },
+  {
+    "id": "BG-001",
+    "summary": "顶部 Background Operations 展示 request 列表、状态、进度、context、开始/结束时间",
+    "section": "后台操作",
+    "moduleFile": "02-background-dashboard.md",
+    "line": 7
+  },
+  {
+    "id": "BG-002",
+    "summary": "展开 request 查看 stages/tasks，按 host、role、command 和状态展示",
+    "section": "后台操作",
+    "moduleFile": "02-background-dashboard.md",
+    "line": 8
+  },
+  {
+    "id": "BG-003",
+    "summary": "打开单 task 查看 stdout、stderr 及对应 output/error log 路径，并可复制或在新窗口打开已加载文本",
+    "section": "后台操作",
+    "moduleFile": "02-background-dashboard.md",
+    "line": 9
+  },
+  {
+    "id": "BG-004",
+    "summary": "从服务、主机、安装和升级动作打开对应 request progress，而不是另建进度模型",
+    "section": "后台操作",
+    "moduleFile": "02-background-dashboard.md",
+    "line": 10
+  },
+  {
+    "id": "BG-005",
+    "summary": "request/task 失败时显示失败主机与日志，允许相关业务流程触发 retry",
+    "section": "后台操作",
+    "moduleFile": "02-background-dashboard.md",
+    "line": 11
+  },
+  {
+    "id": "BG-006",
+    "summary": "支持 request schedule：批量启动/停止/重启可立即执行或按时间调度",
+    "section": "后台操作",
+    "moduleFile": "02-background-dashboard.md",
+    "line": 12
+  },
+  {
+    "id": "BG-007",
+    "summary": "polling 避免同类请求重叠，页面退出或 controller disable 时停止",
+    "section": "后台操作",
+    "moduleFile": "02-background-dashboard.md",
+    "line": 13
+  },
+  {
+    "id": "BG-008",
+    "summary": "原生 WebSocket/STOMP 推送 host-component、alert summary、topology、config、service、host、alert definition/group、upgrade、background request及动态 task detail，再由 mapper/controller更新 Ember Data；初始原生连接失败改用 SockJS eventsource/xhr polling系列 transport",
+    "section": "后台操作",
+    "moduleFile": "02-background-dashboard.md",
+    "line": 14
+  },
+  {
+    "id": "BG-009",
+    "summary": "对可中止的运行中/未知状态 request 显示 Abort，确认后将 request status 更新为 `ABORTED` 并附加 abort reason",
+    "section": "后台操作",
+    "moduleFile": "02-background-dashboard.md",
+    "line": 15
+  },
+  {
+    "id": "DASH-001",
+    "summary": "Dashboard 默认 route 会转到 Metrics 页面",
+    "section": "Dashboard 非 Metrics",
+    "moduleFile": "02-background-dashboard.md",
+    "line": 23
+  },
+  {
+    "id": "DASH-002",
+    "summary": "Config History 列出 service config versions，包括 service、version、author、创建时间、note、group、current 和 cluster-compatible 状态",
+    "section": "Dashboard 非 Metrics",
+    "moduleFile": "02-background-dashboard.md",
+    "line": 24
+  },
+  {
+    "id": "DASH-003",
+    "summary": "从配置历史记录跳到对应 Service Configs，并预选该 config version",
+    "section": "Dashboard 非 Metrics",
+    "moduleFile": "02-background-dashboard.md",
+    "line": 25
+  },
+  {
+    "id": "DASH-004",
+    "summary": "Config History 查看某版本的 hosts/config group 关联和版本说明",
+    "section": "Dashboard 非 Metrics",
+    "moduleFile": "02-background-dashboard.md",
+    "line": 26
+  },
+  {
+    "id": "DASH-005",
+    "summary": "Dashboard service/host/alert health 汇总与导航来自 Dashboard Widget",
+    "section": "Dashboard 非 Metrics",
+    "moduleFile": "02-background-dashboard.md",
+    "line": 27
+  },
+  {
+    "id": "HOST-LIST-001",
+    "summary": "分页列出 host name、IP、rack、health/heartbeat、maintenance、components、stack versions 和选中状态",
+    "section": "列表、搜索与选择",
+    "moduleFile": "03-hosts.md",
+    "line": 9
+  },
+  {
+    "id": "HOST-LIST-002",
+    "summary": "按 host name、IP、rack、health、maintenance、component、component state、stale config、version 等字段筛选和排序",
+    "section": "列表、搜索与选择",
+    "moduleFile": "03-hosts.md",
+    "line": 10
+  },
+  {
+    "id": "HOST-LIST-003",
+    "summary": "Combo Search 组合多个 facet、operator 和值，支持添加、移除、恢复 token",
+    "section": "列表、搜索与选择",
+    "moduleFile": "03-hosts.md",
+    "line": 11
+  },
+  {
+    "id": "HOST-LIST-004",
+    "summary": "单选、多选、全选当前结果、清空选择，并在跨分页/筛选后保留目标 host 集合",
+    "section": "列表、搜索与选择",
+    "moduleFile": "03-hosts.md",
+    "line": 12
+  },
+  {
+    "id": "HOST-LIST-005",
+    "summary": "从 host 行跳详情、从 host health/alert 数跳该 host Alerts、从 service component 链接反向筛 Hosts",
+    "section": "列表、搜索与选择",
+    "moduleFile": "03-hosts.md",
+    "line": 13
+  },
+  {
+    "id": "HOST-LIST-006",
+    "summary": "Hosts CSV/列表导出",
+    "section": "列表、搜索与选择",
+    "moduleFile": "03-hosts.md",
+    "line": 14
+  },
+  {
+    "id": "HOST-BULK-001",
+    "summary": "批量启动、停止、重启选定 host 上的某类 component",
+    "section": "批量操作",
+    "moduleFile": "03-hosts.md",
+    "line": 20
+  },
+  {
+    "id": "HOST-BULK-002",
+    "summary": "批量进入/退出 Host Maintenance Mode",
+    "section": "批量操作",
+    "moduleFile": "03-hosts.md",
+    "line": 21
+  },
+  {
+    "id": "HOST-BULK-003",
+    "summary": "批量进入/退出 Component Maintenance Mode",
+    "section": "批量操作",
+    "moduleFile": "03-hosts.md",
+    "line": 22
+  },
+  {
+    "id": "HOST-BULK-004",
+    "summary": "批量 decommission/recommission DataNode、NodeManager、RegionServer 等 slave",
+    "section": "批量操作",
+    "moduleFile": "03-hosts.md",
+    "line": 23
+  },
+  {
+    "id": "HOST-BULK-005",
+    "summary": "批量重新安装或安装 component/client",
+    "section": "批量操作",
+    "moduleFile": "03-hosts.md",
+    "line": 24
+  },
+  {
+    "id": "HOST-BULK-006",
+    "summary": "批量 refresh configs / configure components",
+    "section": "批量操作",
+    "moduleFile": "03-hosts.md",
+    "line": 25
+  },
+  {
+    "id": "HOST-BULK-007",
+    "summary": "批量设置 Rack ID",
+    "section": "批量操作",
+    "moduleFile": "03-hosts.md",
+    "line": 26
+  },
+  {
+    "id": "HOST-BULK-008",
+    "summary": "批量删除 hosts 前做可删除性检查，区分可删与跳过项",
+    "section": "批量操作",
+    "moduleFile": "03-hosts.md",
+    "line": 27
+  },
+  {
+    "id": "HOST-BULK-009",
+    "summary": "批量删除同类 host components，先校验最小实例数与组件状态",
+    "section": "批量操作",
+    "moduleFile": "03-hosts.md",
+    "line": 28
+  },
+  {
+    "id": "HOST-BULK-010",
+    "summary": "批量动作支持立即执行或 schedule，并显示 request context/progress",
+    "section": "批量操作",
+    "moduleFile": "03-hosts.md",
+    "line": 29
+  },
+  {
+    "id": "HOST-DETAIL-001",
+    "summary": "Summary 显示 host health、IP/rack、OS、uptime、disk/memory/CPU 基本信息、component 列表及状态",
+    "section": "Host 详情与主机动作",
+    "moduleFile": "03-hosts.md",
+    "line": 35
+  },
+  {
+    "id": "HOST-DETAIL-002",
+    "summary": "设置单 host Rack ID",
+    "section": "Host 详情与主机动作",
+    "moduleFile": "03-hosts.md",
+    "line": 36
+  },
+  {
+    "id": "HOST-DETAIL-003",
+    "summary": "Host 进入/退出 Maintenance Mode",
+    "section": "Host 详情与主机动作",
+    "moduleFile": "03-hosts.md",
+    "line": 37
+  },
+  {
+    "id": "HOST-DETAIL-004",
+    "summary": "删除单 host",
+    "section": "Host 详情与主机动作",
+    "moduleFile": "03-hosts.md",
+    "line": 38
+  },
+  {
+    "id": "HOST-DETAIL-005",
+    "summary": "Recover Host 在确认所有 host components 均处于 STOPPED、INSTALL_FAILED 或 INIT 后，批量把全部 components 依次置为 `INIT`、`INSTALLED`；Kerberos 集群追加该 host keytab regeneration",
+    "section": "Host 详情与主机动作",
+    "moduleFile": "03-hosts.md",
+    "line": 39
+  },
+  {
+    "id": "HOST-DETAIL-006",
+    "summary": "下载 host 上全部 client configs 或单个 client config",
+    "section": "Host 详情与主机动作",
+    "moduleFile": "03-hosts.md",
+    "line": 40
+  },
+  {
+    "id": "HOST-DETAIL-007",
+    "summary": "重新生成该 host 的 Kerberos keytabs",
+    "section": "Host 详情与主机动作",
+    "moduleFile": "03-hosts.md",
+    "line": 41
+  },
+  {
+    "id": "HOST-DETAIL-008",
+    "summary": "从 Host Actions 启动、停止或重启该 host 上全部可操作的非 client components",
+    "section": "Host 详情与主机动作",
+    "moduleFile": "03-hosts.md",
+    "line": 42
+  },
+  {
+    "id": "HOST-DETAIL-009",
+    "summary": "Check Host 对当前 host 发起 pre-installed/environment checks，轮询 task 并按 JDK、repository、disk、THP 等类别显示 warnings，可 rerun",
+    "section": "Host 详情与主机动作",
+    "moduleFile": "03-hosts.md",
+    "line": 43
+  },
+  {
+    "id": "HOST-DETAIL-010",
+    "summary": "Host Summary 中按 service/log level 显示的 log-count donut",
+    "section": "Host 详情与主机动作",
+    "moduleFile": "03-hosts.md",
+    "line": 44
+  },
+  {
+    "id": "HOST-COMP-001",
+    "summary": "启动、停止、重启 component",
+    "section": "Host Component 动作",
+    "moduleFile": "03-hosts.md",
+    "line": 50
+  },
+  {
+    "id": "HOST-COMP-002",
+    "summary": "安装/重新安装 component 或 client",
+    "section": "Host Component 动作",
+    "moduleFile": "03-hosts.md",
+    "line": 51
+  },
+  {
+    "id": "HOST-COMP-003",
+    "summary": "添加可选 component 到 host",
+    "section": "Host Component 动作",
+    "moduleFile": "03-hosts.md",
+    "line": 52
+  },
+  {
+    "id": "HOST-COMP-004",
+    "summary": "删除 component",
+    "section": "Host Component 动作",
+    "moduleFile": "03-hosts.md",
+    "line": 53
+  },
+  {
+    "id": "HOST-COMP-005",
+    "summary": "Decommission/Recommission slave component",
+    "section": "Host Component 动作",
+    "moduleFile": "03-hosts.md",
+    "line": 54
+  },
+  {
+    "id": "HOST-COMP-006",
+    "summary": "进入/退出 Component Maintenance Mode",
+    "section": "Host Component 动作",
+    "moduleFile": "03-hosts.md",
+    "line": 55
+  },
+  {
+    "id": "HOST-COMP-007",
+    "summary": "Refresh configs / refresh component configs",
+    "section": "Host Component 动作",
+    "moduleFile": "03-hosts.md",
+    "line": 56
+  },
+  {
+    "id": "HOST-COMP-008",
+    "summary": "执行 stack 定义的 custom command",
+    "section": "Host Component 动作",
+    "moduleFile": "03-hosts.md",
+    "line": 57
+  },
+  {
+    "id": "HOST-COMP-009",
+    "summary": "Move Master 进入 Reassign Master wizard",
+    "section": "Host Component 动作",
+    "moduleFile": "03-hosts.md",
+    "line": 58
+  },
+  {
+    "id": "HOST-COMP-010",
+    "summary": "Upgrade component / 安装 host stack version",
+    "section": "Host Component 动作",
+    "moduleFile": "03-hosts.md",
+    "line": 59
+  },
+  {
+    "id": "HOST-COMP-011",
+    "summary": "Host Component 为 `UPGRADE_FAILED` 时，状态图标和 action 菜单静态代码会显示 Re-upgrade，确认后尝试重新提交 component upgrade",
+    "section": "Host Component 动作",
+    "moduleFile": "03-hosts.md",
+    "line": 60
+  },
+  {
+    "id": "HOST-TAB-001",
+    "summary": "Configs 按 service 展示该 host 的 config group/override 与属性",
+    "section": "详情子页",
+    "moduleFile": "03-hosts.md",
+    "line": 66
+  },
+  {
+    "id": "HOST-TAB-002",
+    "summary": "Host Alerts 列出该 host 的 alert instances，可跳 service 和 definition",
+    "section": "详情子页",
+    "moduleFile": "03-hosts.md",
+    "line": 67
+  },
+  {
+    "id": "HOST-TAB-003",
+    "summary": "Stack Versions 列出每个 repo version 的 host 状态并可发起安装",
+    "section": "详情子页",
+    "moduleFile": "03-hosts.md",
+    "line": 68
+  },
+  {
+    "id": "HOST-TAB-004",
+    "summary": "Logs 列 service/component log files，打开/尾随日志并跳 Log Search UI",
+    "section": "详情子页",
+    "moduleFile": "03-hosts.md",
+    "line": 69
+  },
+  {
+    "id": "HOST-LOG-001",
+    "summary": "`/main/hosts/:host_id/logs:query` 展示该 host 的 component log file 元数据，支持按 service/component/file 选择",
+    "section": "Host Logs 与 Log Search 外链",
+    "moduleFile": "03-hosts.md",
+    "line": 75
+  },
+  {
+    "id": "HOST-LOG-002",
+    "summary": "打开日志 tail popup，选择 tail 数量并加载文本；可复制或把当前内容写入新窗口",
+    "section": "Host Logs 与 Log Search 外链",
+    "moduleFile": "03-hosts.md",
+    "line": 76
+  },
+  {
+    "id": "HOST-LOG-003",
+    "summary": "从 host log 行或 tail popup 打开 Log Search UI，并带 host、component、path/query 参数",
+    "section": "Host Logs 与 Log Search 外链",
+    "moduleFile": "03-hosts.md",
+    "line": 77
+  },
+  {
+    "id": "HOST-LOG-004",
+    "summary": "Background Operation、wizard 和普通 logs popup 可复制 stdout/stderr，或把当前文本/HTML写入新窗口",
+    "section": "Host Logs 与 Log Search 外链",
+    "moduleFile": "03-hosts.md",
+    "line": 78
+  },
+  {
+    "id": "HOST-TAB-005",
+    "summary": "Metrics route/tab",
+    "section": "Host Logs 与 Log Search 外链",
+    "moduleFile": "03-hosts.md",
+    "line": 79
+  },
+  {
+    "id": "HOST-ADD-001",
+    "summary": "Step 1 Install Options",
+    "section": "Add Host Wizard",
+    "moduleFile": "03-hosts.md",
+    "line": 87
+  },
+  {
+    "id": "HOST-ADD-002",
+    "summary": "Step 2 Confirm Hosts",
+    "section": "Add Host Wizard",
+    "moduleFile": "03-hosts.md",
+    "line": 88
+  },
+  {
+    "id": "HOST-ADD-003",
+    "summary": "Step 3 Assign Slaves and Clients",
+    "section": "Add Host Wizard",
+    "moduleFile": "03-hosts.md",
+    "line": 89
+  },
+  {
+    "id": "HOST-ADD-004",
+    "summary": "Step 4 Config Groups",
+    "section": "Add Host Wizard",
+    "moduleFile": "03-hosts.md",
+    "line": 90
+  },
+  {
+    "id": "HOST-ADD-005",
+    "summary": "Step 5 Review",
+    "section": "Add Host Wizard",
+    "moduleFile": "03-hosts.md",
+    "line": 91
+  },
+  {
+    "id": "HOST-ADD-006",
+    "summary": "Step 6 Install, Start and Test",
+    "section": "Add Host Wizard",
+    "moduleFile": "03-hosts.md",
+    "line": 92
+  },
+  {
+    "id": "HOST-ADD-007",
+    "summary": "Step 7 Summary",
+    "section": "Add Host Wizard",
+    "moduleFile": "03-hosts.md",
+    "line": 93
+  },
+  {
+    "id": "HOST-ADD-008",
+    "summary": "Wizard 恢复与取消",
+    "section": "Add Host Wizard",
+    "moduleFile": "03-hosts.md",
+    "line": 94
+  },
+  {
+    "id": "SVC-NAV-001",
+    "summary": "左侧列出已安装 services、health/state、restart required 和 alerts，选择后进入 Summary",
+    "section": "Service 导航与全局动作",
+    "moduleFile": "04-services-configs.md",
+    "line": 11
+  },
+  {
+    "id": "SVC-ALL-001",
+    "summary": "Add Service 打开 7 步向导",
+    "section": "Service 导航与全局动作",
+    "moduleFile": "04-services-configs.md",
+    "line": 12
+  },
+  {
+    "id": "SVC-ALL-002",
+    "summary": "Start All Services",
+    "section": "Service 导航与全局动作",
+    "moduleFile": "04-services-configs.md",
+    "line": 13
+  },
+  {
+    "id": "SVC-ALL-003",
+    "summary": "Stop All Services",
+    "section": "Service 导航与全局动作",
+    "moduleFile": "04-services-configs.md",
+    "line": 14
+  },
+  {
+    "id": "SVC-ALL-004",
+    "summary": "Restart All Required",
+    "section": "Service 导航与全局动作",
+    "moduleFile": "04-services-configs.md",
+    "line": 15
+  },
+  {
+    "id": "SVC-ALL-005",
+    "summary": "下载所有 services 的 client configs",
+    "section": "Service 导航与全局动作",
+    "moduleFile": "04-services-configs.md",
+    "line": 16
+  },
+  {
+    "id": "SVC-ACT-001",
+    "summary": "Start/Stop/Restart Service",
+    "section": "单 Service 动作",
+    "moduleFile": "04-services-configs.md",
+    "line": 22
+  },
+  {
+    "id": "SVC-ACT-002",
+    "summary": "Run Service Check",
+    "section": "单 Service 动作",
+    "moduleFile": "04-services-configs.md",
+    "line": 23
+  },
+  {
+    "id": "SVC-ACT-003",
+    "summary": "Service 进入/退出 Maintenance Mode",
+    "section": "单 Service 动作",
+    "moduleFile": "04-services-configs.md",
+    "line": 24
+  },
+  {
+    "id": "SVC-ACT-004",
+    "summary": "Restart Required Components",
+    "section": "单 Service 动作",
+    "moduleFile": "04-services-configs.md",
+    "line": 25
+  },
+  {
+    "id": "SVC-ACT-005",
+    "summary": "Delete Service",
+    "section": "单 Service 动作",
+    "moduleFile": "04-services-configs.md",
+    "line": 26
+  },
+  {
+    "id": "SVC-ACT-006",
+    "summary": "Refresh YARN Queues",
+    "section": "单 Service 动作",
+    "moduleFile": "04-services-configs.md",
+    "line": 27
+  },
+  {
+    "id": "SVC-ACT-007",
+    "summary": "HDFS Rebalance 启动/停止",
+    "section": "单 Service 动作",
+    "moduleFile": "04-services-configs.md",
+    "line": 28
+  },
+  {
+    "id": "SVC-ACT-008",
+    "summary": "Knox LDAP start/stop、HBase replication start/stop 等 service-specific command",
+    "section": "单 Service 动作",
+    "moduleFile": "04-services-configs.md",
+    "line": 29
+  },
+  {
+    "id": "SVC-ACT-009",
+    "summary": "执行任意 stack custom command",
+    "section": "单 Service 动作",
+    "moduleFile": "04-services-configs.md",
+    "line": 30
+  },
+  {
+    "id": "SVC-ACT-010",
+    "summary": "启用 HA/Federation、Manage JournalNodes、HAWQ standby 或 Move Master",
+    "section": "单 Service 动作",
+    "moduleFile": "04-services-configs.md",
+    "line": 31
+  },
+  {
+    "id": "SVC-ACT-011",
+    "summary": "下载当前 service 的全部 client configs 或指定 client component config",
+    "section": "单 Service 动作",
+    "moduleFile": "04-services-configs.md",
+    "line": 32
+  },
+  {
+    "id": "SVC-SUM-001",
+    "summary": "显示 service 状态、master/slave/client components、host 分布、alerts、maintenance 和 restart required",
+    "section": "Summary 非 Metrics",
+    "moduleFile": "04-services-configs.md",
+    "line": 38
+  },
+  {
+    "id": "SVC-SUM-002",
+    "summary": "component/host 链接跳 Host detail 或按 component 筛 Hosts",
+    "section": "Summary 非 Metrics",
+    "moduleFile": "04-services-configs.md",
+    "line": 39
+  },
+  {
+    "id": "SVC-SUM-003",
+    "summary": "对单 component 执行 start/stop/restart、maintenance、custom command",
+    "section": "Summary 非 Metrics",
+    "moduleFile": "04-services-configs.md",
+    "line": 40
+  },
+  {
+    "id": "SVC-SUM-004",
+    "summary": "Flume agent start/stop",
+    "section": "Summary 非 Metrics",
+    "moduleFile": "04-services-configs.md",
+    "line": 41
+  },
+  {
+    "id": "SVC-SUM-005",
+    "summary": "Service-specific Quick Links 跳外部 Web UI；Ambari View 是另一套 route/iframe 机制",
+    "section": "Summary 非 Metrics",
+    "moduleFile": "04-services-configs.md",
+    "line": 42
+  },
+  {
+    "id": "SVC-QL-001",
+    "summary": "从当前 stack service 的已合并 quicklinks descriptor 加载链接定义，客户端最终只保留 `visible=true` 的项",
+    "section": "Quick Links 与浏览器外链",
+    "moduleFile": "04-services-configs.md",
+    "line": 48
+  },
+  {
+    "id": "SVC-QL-002",
+    "summary": "根据 descriptor 的 protocol checks、当前 site properties 和 `hdfs-site/dfs.http.policy` 选择 HTTP/HTTPS",
+    "section": "Quick Links 与浏览器外链",
+    "moduleFile": "04-services-configs.md",
+    "line": 49
+  },
+  {
+    "id": "SVC-QL-003",
+    "summary": "为 descriptor 关联 component 加载内部 host 到 public host 映射，并按单 host、多 host、多 nameservice/master group生成链接组",
+    "section": "Quick Links 与浏览器外链",
+    "moduleFile": "04-services-configs.md",
+    "line": 50
+  },
+  {
+    "id": "SVC-QL-004",
+    "summary": "从 config property、正则和默认值解析端口，把 `${config-type/property-name}` placeholder 与可选登录用户名代入 URL template",
+    "section": "Quick Links 与浏览器外链",
+    "moduleFile": "04-services-configs.md",
+    "line": 51
+  },
+  {
+    "id": "SVC-QL-005",
+    "summary": "应用 service 特例：Ranger 优先使用 `admin-properties/policymgr_external_url`；MapReduce2 可从配置中的 host:port 反查 public host；Oozie 只列 STARTED server",
+    "section": "Quick Links 与浏览器外链",
+    "moduleFile": "04-services-configs.md",
+    "line": 52
+  },
+  {
+    "id": "SVC-QL-006",
+    "summary": "对 HDFS NameNode、YARN ResourceManager、HBase Master 标注 Active/Standby 并按 group 展示",
+    "section": "Quick Links 与浏览器外链",
+    "moduleFile": "04-services-configs.md",
+    "line": 53
+  },
+  {
+    "id": "SVC-QL-007",
+    "summary": "点击链接以 `target=\"_blank\"` 打开最终外部 URL",
+    "section": "Quick Links 与浏览器外链",
+    "moduleFile": "04-services-configs.md",
+    "line": 54
+  },
+  {
+    "id": "SVC-CONFIG-001",
+    "summary": "按 stack theme、tab、section、category 展示 service 配置，支持文本、密码、checkbox、select、radio、slider、目录、数据库等控件",
+    "section": "Service Configs",
+    "moduleFile": "04-services-configs.md",
+    "line": 60
+  },
+  {
+    "id": "SVC-CONFIG-002",
+    "summary": "展示当前值、推荐值、默认值、是否 required、只读、错误/警告、单位和描述",
+    "section": "Service Configs",
+    "moduleFile": "04-services-configs.md",
+    "line": 61
+  },
+  {
+    "id": "SVC-CONFIG-003",
+    "summary": "编辑配置并执行前端校验、依赖配置联动和 stack advisor recommendations；普通属性与 theme widget 支持 value/list 选择、widget/text 编辑切换、设置推荐值、undo saved value 和切换 final flag",
+    "section": "Service Configs",
+    "moduleFile": "04-services-configs.md",
+    "line": 62
+  },
+  {
+    "id": "SVC-CONFIG-004",
+    "summary": "保存新 config version，填写 note，显示 changed properties 和 dependent services",
+    "section": "Service Configs",
+    "moduleFile": "04-services-configs.md",
+    "line": 63
+  },
+  {
+    "id": "SVC-CONFIG-005",
+    "summary": "未保存修改时离开 route，弹出 Save/Discard/Cancel",
+    "section": "Service Configs",
+    "moduleFile": "04-services-configs.md",
+    "line": 64
+  },
+  {
+    "id": "SVC-CONFIG-006",
+    "summary": "浏览 config version 历史，选择旧版、比较版本、显示新增/删除/修改项",
+    "section": "Service Configs",
+    "moduleFile": "04-services-configs.md",
+    "line": 65
+  },
+  {
+    "id": "SVC-CONFIG-007",
+    "summary": "将历史 version 设为 current / revert",
+    "section": "Service Configs",
+    "moduleFile": "04-services-configs.md",
+    "line": 66
+  },
+  {
+    "id": "SVC-CONFIG-008",
+    "summary": "Host override：为 config group 创建 override、删除 override、恢复 saved/default value，并可对 override 独立设置推荐值与 final flag",
+    "section": "Service Configs",
+    "moduleFile": "04-services-configs.md",
+    "line": 67
+  },
+  {
+    "id": "SVC-CONFIG-009",
+    "summary": "显示并操作 restart required：按 service/host/component restart，支持 rolling restart",
+    "section": "Service Configs",
+    "moduleFile": "04-services-configs.md",
+    "line": 68
+  },
+  {
+    "id": "SVC-CONFIG-010",
+    "summary": "测试数据库连接：创建 custom action，查询 request 中的 task ID，再轮询 task 结果",
+    "section": "Service Configs",
+    "moduleFile": "04-services-configs.md",
+    "line": 69
+  },
+  {
+    "id": "SVC-CONFIG-011",
+    "summary": "在允许的 Advanced category 中新增自定义 property，支持单条 key/value 与多行 `key=value` bulk mode；可删除 user property",
+    "section": "Service Configs",
+    "moduleFile": "04-services-configs.md",
+    "line": 70
+  },
+  {
+    "id": "CFG-GROUP-001",
+    "summary": "列出 service 的 default 与非 default config groups、hosts 数和属性 overrides",
+    "section": "Config Groups",
+    "moduleFile": "04-services-configs.md",
+    "line": 76
+  },
+  {
+    "id": "CFG-GROUP-002",
+    "summary": "创建 group，填写名称/描述并选择 hosts",
+    "section": "Config Groups",
+    "moduleFile": "04-services-configs.md",
+    "line": 77
+  },
+  {
+    "id": "CFG-GROUP-003",
+    "summary": "重命名、修改描述、复制 group",
+    "section": "Config Groups",
+    "moduleFile": "04-services-configs.md",
+    "line": 78
+  },
+  {
+    "id": "CFG-GROUP-004",
+    "summary": "添加/移除 hosts；移动 host 时从原 group 调整",
+    "section": "Config Groups",
+    "moduleFile": "04-services-configs.md",
+    "line": 79
+  },
+  {
+    "id": "CFG-GROUP-005",
+    "summary": "删除非 default group",
+    "section": "Config Groups",
+    "moduleFile": "04-services-configs.md",
+    "line": 80
+  },
+  {
+    "id": "CFG-GROUP-006",
+    "summary": "查看 group properties 并进入对应 Configs 编辑",
+    "section": "Config Groups",
+    "moduleFile": "04-services-configs.md",
+    "line": 81
+  },
+  {
+    "id": "SVC-ADD-001",
+    "summary": "Choose Services",
+    "section": "Add Service Wizard",
+    "moduleFile": "04-services-configs.md",
+    "line": 87
+  },
+  {
+    "id": "SVC-ADD-002",
+    "summary": "Assign Masters",
+    "section": "Add Service Wizard",
+    "moduleFile": "04-services-configs.md",
+    "line": 88
+  },
+  {
+    "id": "SVC-ADD-003",
+    "summary": "Assign Slaves and Clients",
+    "section": "Add Service Wizard",
+    "moduleFile": "04-services-configs.md",
+    "line": 89
+  },
+  {
+    "id": "SVC-ADD-004",
+    "summary": "Customize Services",
+    "section": "Add Service Wizard",
+    "moduleFile": "04-services-configs.md",
+    "line": 90
+  },
+  {
+    "id": "SVC-ADD-005",
+    "summary": "Review",
+    "section": "Add Service Wizard",
+    "moduleFile": "04-services-configs.md",
+    "line": 91
+  },
+  {
+    "id": "SVC-ADD-006",
+    "summary": "Install, Start and Test",
+    "section": "Add Service Wizard",
+    "moduleFile": "04-services-configs.md",
+    "line": 92
+  },
+  {
+    "id": "SVC-ADD-007",
+    "summary": "Summary",
+    "section": "Add Service Wizard",
+    "moduleFile": "04-services-configs.md",
+    "line": 93
+  },
+  {
+    "id": "SVC-ADD-008",
+    "summary": "恢复与互斥",
+    "section": "Add Service Wizard",
+    "moduleFile": "04-services-configs.md",
+    "line": 94
+  },
+  {
+    "id": "SVC-MOVE-001",
+    "summary": "Get Started / Assign Master",
+    "section": "Reassign Master Wizard",
+    "moduleFile": "04-services-configs.md",
+    "line": 100
+  },
+  {
+    "id": "SVC-MOVE-002",
+    "summary": "Review",
+    "section": "Reassign Master Wizard",
+    "moduleFile": "04-services-configs.md",
+    "line": 101
+  },
+  {
+    "id": "SVC-MOVE-003",
+    "summary": "Configure Component",
+    "section": "Reassign Master Wizard",
+    "moduleFile": "04-services-configs.md",
+    "line": 102
+  },
+  {
+    "id": "SVC-MOVE-004",
+    "summary": "Manual Commands",
+    "section": "Reassign Master Wizard",
+    "moduleFile": "04-services-configs.md",
+    "line": 103
+  },
+  {
+    "id": "SVC-MOVE-005",
+    "summary": "Start and Test Services",
+    "section": "Reassign Master Wizard",
+    "moduleFile": "04-services-configs.md",
+    "line": 104
+  },
+  {
+    "id": "SVC-MOVE-006",
+    "summary": "Rollback",
+    "section": "Reassign Master Wizard",
+    "moduleFile": "04-services-configs.md",
+    "line": 105
+  },
+  {
+    "id": "ALERT-LIST-001",
+    "summary": "列出 Alert Definitions，显示 service/component、name、state、enabled、latest status、last checked/changed、notification 和 check count",
+    "section": "Definitions 列表与快速入口",
+    "moduleFile": "05-alerts.md",
+    "line": 9
+  },
+  {
+    "id": "ALERT-LIST-002",
+    "summary": "按 definition name、service、component、state、enabled 等筛选和排序",
+    "section": "Definitions 列表与快速入口",
+    "moduleFile": "05-alerts.md",
+    "line": 10
+  },
+  {
+    "id": "ALERT-LIST-003",
+    "summary": "点击 definition 进入详情；从 service/host/全局 critical-warning 弹窗进入对应 definition 或全部 Alerts",
+    "section": "Definitions 列表与快速入口",
+    "moduleFile": "05-alerts.md",
+    "line": 11
+  },
+  {
+    "id": "ALERT-LIST-004",
+    "summary": "在列表直接启用/禁用 definition",
+    "section": "Definitions 列表与快速入口",
+    "moduleFile": "05-alerts.md",
+    "line": 12
+  },
+  {
+    "id": "ALERT-LIST-005",
+    "summary": "Actions 菜单提供 Create Alert、Manage Groups、Manage Notifications、Manage Settings",
+    "section": "Definitions 列表与快速入口",
+    "moduleFile": "05-alerts.md",
+    "line": 13
+  },
+  {
+    "id": "ALERT-DEF-001",
+    "summary": "展示 definition label、description/type、service/component、scope/source、interval、threshold/config、groups、notification、enabled 和 repeat tolerance",
+    "section": "Definition 详情与实例",
+    "moduleFile": "05-alerts.md",
+    "line": 19
+  },
+  {
+    "id": "ALERT-DEF-002",
+    "summary": "编辑 label",
+    "section": "Definition 详情与实例",
+    "moduleFile": "05-alerts.md",
+    "line": 20
+  },
+  {
+    "id": "ALERT-DEF-003",
+    "summary": "编辑通用 alert configs/thresholds",
+    "section": "Definition 详情与实例",
+    "moduleFile": "05-alerts.md",
+    "line": 21
+  },
+  {
+    "id": "ALERT-DEF-004",
+    "summary": "启用/禁用 definition",
+    "section": "Definition 详情与实例",
+    "moduleFile": "05-alerts.md",
+    "line": 22
+  },
+  {
+    "id": "ALERT-DEF-005",
+    "summary": "编辑 repeat tolerance/check count；接受 1 到 99 或隐藏 sentinel `DEBUG`，也可关闭 repeat tolerance",
+    "section": "Definition 详情与实例",
+    "moduleFile": "05-alerts.md",
+    "line": 23
+  },
+  {
+    "id": "ALERT-DEF-006",
+    "summary": "删除自定义 definition",
+    "section": "Definition 详情与实例",
+    "moduleFile": "05-alerts.md",
+    "line": 24
+  },
+  {
+    "id": "ALERT-DEF-007",
+    "summary": "列出当前 instances，显示 service/host、state、last check、response；可跳 service 或 host alerts",
+    "section": "Definition 详情与实例",
+    "moduleFile": "05-alerts.md",
+    "line": 25
+  },
+  {
+    "id": "ALERT-DEF-008",
+    "summary": "打开 instance response/log 文本",
+    "section": "Definition 详情与实例",
+    "moduleFile": "05-alerts.md",
+    "line": 26
+  },
+  {
+    "id": "ALERT-DEF-009",
+    "summary": "查询最近 24 小时 instance history，并按 host 显示返回记录数量",
+    "section": "Definition 详情与实例",
+    "moduleFile": "05-alerts.md",
+    "line": 27
+  },
+  {
+    "id": "ALERT-DEF-010",
+    "summary": "编辑中离开 route 时弹 Save/Discard/Cancel",
+    "section": "Definition 详情与实例",
+    "moduleFile": "05-alerts.md",
+    "line": 28
+  },
+  {
+    "id": "ALERT-CREATE-001",
+    "summary": "Step 1 Choose Alert Type",
+    "section": "创建 Alert Definition",
+    "moduleFile": "05-alerts.md",
+    "line": 34
+  },
+  {
+    "id": "ALERT-CREATE-002",
+    "summary": "Step 2 Define Alert and Thresholds",
+    "section": "创建 Alert Definition",
+    "moduleFile": "05-alerts.md",
+    "line": 35
+  },
+  {
+    "id": "ALERT-CREATE-003",
+    "summary": "Step 3 Review",
+    "section": "创建 Alert Definition",
+    "moduleFile": "05-alerts.md",
+    "line": 36
+  },
+  {
+    "id": "ALERT-CREATE-004",
+    "summary": "Done 创建 definition 并返回 Alerts",
+    "section": "创建 Alert Definition",
+    "moduleFile": "05-alerts.md",
+    "line": 37
+  },
+  {
+    "id": "ALERT-CREATE-005",
+    "summary": "向导前后导航",
+    "section": "创建 Alert Definition",
+    "moduleFile": "05-alerts.md",
+    "line": 38
+  },
+  {
+    "id": "ALERT-GROUP-001",
+    "summary": "按 service 列出 groups、description、definitions 和 notification targets",
+    "section": "Alert Groups",
+    "moduleFile": "05-alerts.md",
+    "line": 44
+  },
+  {
+    "id": "ALERT-GROUP-002",
+    "summary": "创建 group",
+    "section": "Alert Groups",
+    "moduleFile": "05-alerts.md",
+    "line": 45
+  },
+  {
+    "id": "ALERT-GROUP-003",
+    "summary": "重命名、修改描述、复制 group",
+    "section": "Alert Groups",
+    "moduleFile": "05-alerts.md",
+    "line": 46
+  },
+  {
+    "id": "ALERT-GROUP-004",
+    "summary": "给 group 添加/移除 definitions，支持按 service/component 筛选与多选",
+    "section": "Alert Groups",
+    "moduleFile": "05-alerts.md",
+    "line": 47
+  },
+  {
+    "id": "ALERT-GROUP-005",
+    "summary": "给 group 关联/取消 notification targets",
+    "section": "Alert Groups",
+    "moduleFile": "05-alerts.md",
+    "line": 48
+  },
+  {
+    "id": "ALERT-GROUP-006",
+    "summary": "删除非 default group",
+    "section": "Alert Groups",
+    "moduleFile": "05-alerts.md",
+    "line": 49
+  },
+  {
+    "id": "ALERT-GROUP-007",
+    "summary": "保存时先并发删除，全部回调后再并发更新和创建；无错误时关闭并刷新 notifications",
+    "section": "Alert Groups",
+    "moduleFile": "05-alerts.md",
+    "line": 50
+  },
+  {
+    "id": "ALERT-NOTIFY-001",
+    "summary": "列出 notification name、type、enabled、global/group scope、severity 和 description",
+    "section": "Alert Notifications",
+    "moduleFile": "05-alerts.md",
+    "line": 56
+  },
+  {
+    "id": "ALERT-NOTIFY-002",
+    "summary": "创建 Email notification",
+    "section": "Alert Notifications",
+    "moduleFile": "05-alerts.md",
+    "line": 57
+  },
+  {
+    "id": "ALERT-NOTIFY-003",
+    "summary": "创建 SNMP v1/v2c notification",
+    "section": "Alert Notifications",
+    "moduleFile": "05-alerts.md",
+    "line": 58
+  },
+  {
+    "id": "ALERT-NOTIFY-004",
+    "summary": "创建 Custom SNMP notification",
+    "section": "Alert Notifications",
+    "moduleFile": "05-alerts.md",
+    "line": 59
+  },
+  {
+    "id": "ALERT-NOTIFY-005",
+    "summary": "创建 Alert Script notification",
+    "section": "Alert Notifications",
+    "moduleFile": "05-alerts.md",
+    "line": 60
+  },
+  {
+    "id": "ALERT-NOTIFY-006",
+    "summary": "设置 Global 或选择 groups，选择 Critical/Warning/OK/Unknown 等 severity",
+    "section": "Alert Notifications",
+    "moduleFile": "05-alerts.md",
+    "line": 61
+  },
+  {
+    "id": "ALERT-NOTIFY-007",
+    "summary": "编辑或复制 notification",
+    "section": "Alert Notifications",
+    "moduleFile": "05-alerts.md",
+    "line": 62
+  },
+  {
+    "id": "ALERT-NOTIFY-008",
+    "summary": "启用/禁用 notification",
+    "section": "Alert Notifications",
+    "moduleFile": "05-alerts.md",
+    "line": 63
+  },
+  {
+    "id": "ALERT-NOTIFY-009",
+    "summary": "删除 notification",
+    "section": "Alert Notifications",
+    "moduleFile": "05-alerts.md",
+    "line": 64
+  },
+  {
+    "id": "ALERT-NOTIFY-010",
+    "summary": "添加/删除自定义 property",
+    "section": "Alert Notifications",
+    "moduleFile": "05-alerts.md",
+    "line": 65
+  },
+  {
+    "id": "ALERT-SET-001",
+    "summary": "Alert check count/repeat tolerance 可按 definition 编辑",
+    "section": "全局告警设置",
+    "moduleFile": "05-alerts.md",
+    "line": 71
+  },
+  {
+    "id": "ALERT-SET-002",
+    "summary": "Manage Alert Settings 修改 `cluster-env.alerts_repeat_tolerance`，接受 1 到 99 或 `DEBUG` 后调用 config save",
+    "section": "全局告警设置",
+    "moduleFile": "05-alerts.md",
+    "line": 72
+  },
+  {
+    "id": "ALERT-SET-003",
+    "summary": "Service/cluster maintenance 与 toggle alerts 会改变告警呈现和通知",
+    "section": "全局告警设置",
+    "moduleFile": "05-alerts.md",
+    "line": 73
+  },
+  {
+    "id": "STACK-SVC-001",
+    "summary": "列当前 stack 的 services、版本、安装状态和 repository version 信息",
+    "section": "Stack Services 与仓库",
+    "moduleFile": "06-stack-upgrades-admin.md",
+    "line": 9
+  },
+  {
+    "id": "STACK-SVC-002",
+    "summary": "从未安装 service 跳 Add Service",
+    "section": "Stack Services 与仓库",
+    "moduleFile": "06-stack-upgrades-admin.md",
+    "line": 10
+  },
+  {
+    "id": "STACK-SVC-003",
+    "summary": "查看各 OS repository ID、base URL、mirrors list",
+    "section": "Stack Services 与仓库",
+    "moduleFile": "06-stack-upgrades-admin.md",
+    "line": 11
+  },
+  {
+    "id": "STACK-SVC-004",
+    "summary": "编辑 repository base URL，恢复原值、清 local repository、保存",
+    "section": "Stack Services 与仓库",
+    "moduleFile": "06-stack-upgrades-admin.md",
+    "line": 12
+  },
+  {
+    "id": "STACK-SVC-005",
+    "summary": "验证 repository URL，可选择 skip validation",
+    "section": "Stack Services 与仓库",
+    "moduleFile": "06-stack-upgrades-admin.md",
+    "line": 13
+  },
+  {
+    "id": "VER-LIST-001",
+    "summary": "列出 repo versions，显示 display name/version、stack、type、host counts、service support 和状态",
+    "section": "Versions 列表与包安装",
+    "moduleFile": "06-stack-upgrades-admin.md",
+    "line": 19
+  },
+  {
+    "id": "VER-LIST-002",
+    "summary": "按 Not Installed、All、Upgrade Ready、Installed、Current、In Process、Ready to Finalize 筛选",
+    "section": "Versions 列表与包安装",
+    "moduleFile": "06-stack-upgrades-admin.md",
+    "line": 20
+  },
+  {
+    "id": "VER-LIST-003",
+    "summary": "展开 version 详情，查看 services、repositories、hosts 状态和不可升级原因",
+    "section": "Versions 列表与包安装",
+    "moduleFile": "06-stack-upgrades-admin.md",
+    "line": 21
+  },
+  {
+    "id": "VER-LIST-004",
+    "summary": "按 version status 查看 Current/Installed/Not Installed hosts，并跳 Hosts 过滤结果",
+    "section": "Versions 列表与包安装",
+    "moduleFile": "06-stack-upgrades-admin.md",
+    "line": 22
+  },
+  {
+    "id": "VER-LIST-005",
+    "summary": "Install/Reinstall Packages 到全体适用 hosts",
+    "section": "Versions 列表与包安装",
+    "moduleFile": "06-stack-upgrades-admin.md",
+    "line": 23
+  },
+  {
+    "id": "VER-LIST-006",
+    "summary": "对单 host 安装 version",
+    "section": "Versions 列表与包安装",
+    "moduleFile": "06-stack-upgrades-admin.md",
+    "line": 24
+  },
+  {
+    "id": "VER-LIST-007",
+    "summary": "处理 OUT_OF_SYNC component：reinstall 或 remove",
+    "section": "Versions 列表与包安装",
+    "moduleFile": "06-stack-upgrades-admin.md",
+    "line": 25
+  },
+  {
+    "id": "VER-LIST-008",
+    "summary": "Hide 未使用/安装失败的 repository version",
+    "section": "Versions 列表与包安装",
+    "moduleFile": "06-stack-upgrades-admin.md",
+    "line": 26
+  },
+  {
+    "id": "VER-LIST-009",
+    "summary": "Manage Versions 跳独立 Admin View",
+    "section": "Versions 列表与包安装",
+    "moduleFile": "06-stack-upgrades-admin.md",
+    "line": 27
+  },
+  {
+    "id": "UPG-START-001",
+    "summary": "判断目标 version 是否 compatible 并加载支持的 upgrade types",
+    "section": "发起 Upgrade/Downgrade",
+    "moduleFile": "06-stack-upgrades-admin.md",
+    "line": 33
+  },
+  {
+    "id": "UPG-START-002",
+    "summary": "Upgrade Options 选择 Rolling、Express 或 Host Ordered",
+    "section": "发起 Upgrade/Downgrade",
+    "moduleFile": "06-stack-upgrades-admin.md",
+    "line": 34
+  },
+  {
+    "id": "UPG-START-003",
+    "summary": "设置 slave component failure 与 service check failure tolerance",
+    "section": "发起 Upgrade/Downgrade",
+    "moduleFile": "06-stack-upgrades-admin.md",
+    "line": 35
+  },
+  {
+    "id": "UPG-START-004",
+    "summary": "运行/rerun Pre-Upgrade Checks，按 Required/Warning/Bypassed 展示",
+    "section": "发起 Upgrade/Downgrade",
+    "moduleFile": "06-stack-upgrades-admin.md",
+    "line": 36
+  },
+  {
+    "id": "UPG-START-005",
+    "summary": "执行额外 custom cluster checks：maintenance、host heartbeat、previous upgrade、component installation 和 service checks",
+    "section": "发起 Upgrade/Downgrade",
+    "moduleFile": "06-stack-upgrades-admin.md",
+    "line": 37
+  },
+  {
+    "id": "UPG-START-006",
+    "summary": "确认后创建 Upgrade",
+    "section": "发起 Upgrade/Downgrade",
+    "moduleFile": "06-stack-upgrades-admin.md",
+    "line": 38
+  },
+  {
+    "id": "UPG-START-007",
+    "summary": "从 aborted/failed upgrade 发起 Downgrade 或 retry Upgrade",
+    "section": "发起 Upgrade/Downgrade",
+    "moduleFile": "06-stack-upgrades-admin.md",
+    "line": 39
+  },
+  {
+    "id": "UPG-START-008",
+    "summary": "Patch/Maint upgrade 和 revert",
+    "section": "发起 Upgrade/Downgrade",
+    "moduleFile": "06-stack-upgrades-admin.md",
+    "line": 40
+  },
+  {
+    "id": "UPG-RUN-001",
+    "summary": "加载 upgrade groups/items/tasks，显示总进度、当前 group、item 和状态",
+    "section": "Upgrade 执行状态机",
+    "moduleFile": "06-stack-upgrades-admin.md",
+    "line": 46
+  },
+  {
+    "id": "UPG-RUN-002",
+    "summary": "展开 group/item/task 详情，查看 host、role、command、stdout/stderr，并可 Copy 或在新窗口打开已加载日志",
+    "section": "Upgrade 执行状态机",
+    "moduleFile": "06-stack-upgrades-admin.md",
+    "line": 47
+  },
+  {
+    "id": "UPG-RUN-003",
+    "summary": "HOLDING/manual step 显示说明，用户确认已完成后 Proceed，将当前 UpgradeItem 设为 `COMPLETED`",
+    "section": "Upgrade 执行状态机",
+    "moduleFile": "06-stack-upgrades-admin.md",
+    "line": 48
+  },
+  {
+    "id": "UPG-RUN-004",
+    "summary": "失败 item 可 Retry、Skip/Ignore and Proceed 或查看失败 hosts",
+    "section": "Upgrade 执行状态机",
+    "moduleFile": "06-stack-upgrades-admin.md",
+    "line": 49
+  },
+  {
+    "id": "UPG-RUN-005",
+    "summary": "Pause/Suspend Upgrade 或 Downgrade",
+    "section": "Upgrade 执行状态机",
+    "moduleFile": "06-stack-upgrades-admin.md",
+    "line": 50
+  },
+  {
+    "id": "UPG-RUN-006",
+    "summary": "Resume paused Upgrade/Downgrade",
+    "section": "Upgrade 执行状态机",
+    "moduleFile": "06-stack-upgrades-admin.md",
+    "line": 51
+  },
+  {
+    "id": "UPG-RUN-007",
+    "summary": "Abort 当前 Upgrade 是发起 Downgrade 的前置操作，或 previous-upgrade custom check 的 legacy 修复动作",
+    "section": "Upgrade 执行状态机",
+    "moduleFile": "06-stack-upgrades-admin.md",
+    "line": 52
+  },
+  {
+    "id": "UPG-RUN-008",
+    "summary": "关闭 progress modal 时升级继续在后台；返回 Versions 可重新打开",
+    "section": "Upgrade 执行状态机",
+    "moduleFile": "06-stack-upgrades-admin.md",
+    "line": 53
+  },
+  {
+    "id": "UPG-RUN-009",
+    "summary": "其他用户发起升级时当前用户显示 initiator 和只读/non-wizard 状态",
+    "section": "Upgrade 执行状态机",
+    "moduleFile": "06-stack-upgrades-admin.md",
+    "line": 54
+  },
+  {
+    "id": "UPG-RUN-010",
+    "summary": "Upgrade 期间 suppress notifications、限制部分 host/service operations",
+    "section": "Upgrade 执行状态机",
+    "moduleFile": "06-stack-upgrades-admin.md",
+    "line": 55
+  },
+  {
+    "id": "UPG-RUN-011",
+    "summary": "加载 skipped service checks 和 failed hosts，最终确认风险",
+    "section": "Upgrade 执行状态机",
+    "moduleFile": "06-stack-upgrades-admin.md",
+    "line": 56
+  },
+  {
+    "id": "UPG-RUN-012",
+    "summary": "Finalize Upgrade/Downgrade 将最后一个 manual/finalize UpgradeItem 设为 `COMPLETED`；Finalize Later 复用 Pause/Suspend 流程",
+    "section": "Upgrade 执行状态机",
+    "moduleFile": "06-stack-upgrades-admin.md",
+    "line": 57
+  },
+  {
+    "id": "UPG-HIST-001",
+    "summary": "列出 Upgrade/Downgrade 历史，显示 direction、type、repository/name/type、service from/to versions、status、start/duration/end time",
+    "section": "Upgrade History",
+    "moduleFile": "06-stack-upgrades-admin.md",
+    "line": 63
+  },
+  {
+    "id": "UPG-HIST-002",
+    "summary": "按九类筛选：All、Upgrade、Downgrade，以及分别针对 Upgrade/Downgrade 的 Successful、Aborted、Failed",
+    "section": "Upgrade History",
+    "moduleFile": "06-stack-upgrades-admin.md",
+    "line": 64
+  },
+  {
+    "id": "UPG-HIST-003",
+    "summary": "选择历史记录后通过 request ID 加载 summary、groups/items/task 状态",
+    "section": "Upgrade History",
+    "moduleFile": "06-stack-upgrades-admin.md",
+    "line": 65
+  },
+  {
+    "id": "ADMIN-ACCT-001",
+    "summary": "`/main/admin/serviceAccounts` 汇总所有 configs 中 displayType 为 `user`、category 为 `Users and Groups` 的 service users/groups",
+    "section": "Service Accounts",
+    "moduleFile": "06-stack-upgrades-admin.md",
+    "line": 71
+  },
+  {
+    "id": "ADMIN-ACCT-002",
+    "summary": "按定义顺序只读显示 service account 名和值",
+    "section": "Service Accounts",
+    "moduleFile": "06-stack-upgrades-admin.md",
+    "line": 72
+  },
+  {
+    "id": "ADMIN-AUTO-001",
+    "summary": "`/main/admin/serviceAutoStart` 加载全局 auto-start/recovery 开关",
+    "section": "Service Auto Start",
+    "moduleFile": "06-stack-upgrades-admin.md",
+    "line": 78
+  },
+  {
+    "id": "ADMIN-AUTO-002",
+    "summary": "按 service 分组列 restartable 且已安装 components，逐项开关 `recovery_enabled`",
+    "section": "Service Auto Start",
+    "moduleFile": "06-stack-upgrades-admin.md",
+    "line": 79
+  },
+  {
+    "id": "ADMIN-AUTO-003",
+    "summary": "保存全局 `cluster-env.recovery_enabled` 和变更 component 集合",
+    "section": "Service Auto Start",
+    "moduleFile": "06-stack-upgrades-admin.md",
+    "line": 80
+  },
+  {
+    "id": "ADMIN-AUTO-004",
+    "summary": "离页有未保存修改时选择 Save/Discard/Cancel",
+    "section": "Service Auto Start",
+    "moduleFile": "06-stack-upgrades-admin.md",
+    "line": 81
+  },
+  {
+    "id": "INST-MODE-001",
+    "summary": "全新集群",
+    "section": "安装模式与复用边界",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 16
+  },
+  {
+    "id": "INST-MODE-002",
+    "summary": "Add Host",
+    "section": "安装模式与复用边界",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 17
+  },
+  {
+    "id": "INST-MODE-003",
+    "summary": "Add Service",
+    "section": "安装模式与复用边界",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 18
+  },
+  {
+    "id": "INST-MODE-004",
+    "summary": "Public Repository",
+    "section": "安装模式与复用边界",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 19
+  },
+  {
+    "id": "INST-MODE-005",
+    "summary": "Local Repository + VDF/XML file",
+    "section": "安装模式与复用边界",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 20
+  },
+  {
+    "id": "INST-MODE-006",
+    "summary": "Local Repository + VDF URL",
+    "section": "安装模式与复用边界",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 21
+  },
+  {
+    "id": "INST-MODE-007",
+    "summary": "Linux SSH 自动 bootstrap",
+    "section": "安装模式与复用边界",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 22
+  },
+  {
+    "id": "INST-MODE-008",
+    "summary": "手工 Agent 注册",
+    "section": "安装模式与复用边界",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 23
+  },
+  {
+    "id": "INST-MODE-009",
+    "summary": "Kerberized Add Host",
+    "section": "安装模式与复用边界",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 24
+  },
+  {
+    "id": "INST-MODE-010",
+    "summary": "Kerberized Add Service",
+    "section": "安装模式与复用边界",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 25
+  },
+  {
+    "id": "INST-MODE-011",
+    "summary": "HDPWIN PowerShell 自动 bootstrap",
+    "section": "安装模式与复用边界",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 26
+  },
+  {
+    "id": "INST-ENTRY-001",
+    "summary": "全新 Installer `/installer/step0` 到 `step10`",
+    "section": "三类向导入口门禁",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 72
+  },
+  {
+    "id": "INST-ENTRY-002",
+    "summary": "Add Service `/main/service/add/step1` 到 `step7`",
+    "section": "三类向导入口门禁",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 73
+  },
+  {
+    "id": "INST-ENTRY-003",
+    "summary": "Add Host `/main/host/add/step1` 到 `step7`",
+    "section": "三类向导入口门禁",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 74
+  },
+  {
+    "id": "INST-FLOW-001",
+    "summary": "登录后无已安装集群进入 Installer；已有未完成状态恢复对应 step",
+    "section": "进入、恢复与取消",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 80
+  },
+  {
+    "id": "INST-FLOW-002",
+    "summary": "每步保存 currentStep、已选 stack/services/hosts/components/configs/recommendations 到 local DB/persist",
+    "section": "进入、恢复与取消",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 81
+  },
+  {
+    "id": "INST-FLOW-003",
+    "summary": "另一窗口或崩溃后根据 `wizardControllerName`、clusterState 和 currentStep 恢复",
+    "section": "进入、恢复与取消",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 82
+  },
+  {
+    "id": "INST-FLOW-004",
+    "summary": "Cancel Install 显示确认，确认后只路由到 `/adminView`",
+    "section": "进入、恢复与取消",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 83
+  },
+  {
+    "id": "INST-FLOW-005",
+    "summary": "防止 Back/Next 双击；request 运行中禁用导航",
+    "section": "进入、恢复与取消",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 84
+  },
+  {
+    "id": "INST-FLOW-006",
+    "summary": "向导所有权与多窗口恢复",
+    "section": "进入、恢复与取消",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 85
+  },
+  {
+    "id": "INST-0-001",
+    "summary": "输入 cluster name",
+    "section": "Step 0 Get Started",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 91
+  },
+  {
+    "id": "INST-0-002",
+    "summary": "加载可安装 stack 列表并初始化向导数据",
+    "section": "Step 0 Get Started",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 92
+  },
+  {
+    "id": "INST-1-001",
+    "summary": "选择 stack 与 version definition",
+    "section": "Step 1 Select Version",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 98
+  },
+  {
+    "id": "INST-1-002",
+    "summary": "选择 Public Repository",
+    "section": "Step 1 Select Version",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 99
+  },
+  {
+    "id": "INST-1-003",
+    "summary": "选择 Local Repository，通过上传 VDF/XML 或输入 VDF URL 添加 version",
+    "section": "Step 1 Select Version",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 100
+  },
+  {
+    "id": "INST-1-004",
+    "summary": "按 OS 编辑 Base URL、添加/移除 OS、恢复默认或清空",
+    "section": "Step 1 Select Version",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 101
+  },
+  {
+    "id": "INST-1-005",
+    "summary": "Retry repository validation",
+    "section": "Step 1 Select Version",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 102
+  },
+  {
+    "id": "INST-1-006",
+    "summary": "校验 Ambari Server JDK 与 version definition 的 `min_jdk`/`max_jdk` 范围",
+    "section": "Step 1 Select Version",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 103
+  },
+  {
+    "id": "INST-1-007",
+    "summary": "Local Repository 可切换 RedHat Satellite/Spacewalk 管理仓库模式",
+    "section": "Step 1 Select Version",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 104
+  },
+  {
+    "id": "INST-2-001",
+    "summary": "输入 host names，支持 `[01-10]` pattern 展开",
+    "section": "Step 2 Install Options",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 110
+  },
+  {
+    "id": "INST-2-002",
+    "summary": "选择 Linux SSH 自动安装 Ambari Agent",
+    "section": "Step 2 Install Options",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 111
+  },
+  {
+    "id": "INST-2-003",
+    "summary": "选择手工注册 Agent",
+    "section": "Step 2 Install Options",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 112
+  },
+  {
+    "id": "INST-2-004",
+    "summary": "对无点 hostname/IP 等可疑输入弹 warning，用户可返回修改或确认继续",
+    "section": "Step 2 Install Options",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 113
+  },
+  {
+    "id": "INST-2-005",
+    "summary": "Add Host 独有 `Skip host checks` checkbox",
+    "section": "Step 2 Install Options",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 114
+  },
+  {
+    "id": "INST-3-001",
+    "summary": "Linux SSH 或 HDPWIN PowerShell 自动模式启动 bootstrap，轮询每 host 的 RUNNING/DONE/FAILED 与日志",
+    "section": "Step 3 Confirm Hosts",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 120
+  },
+  {
+    "id": "INST-3-002",
+    "summary": "轮询 Agent registration，将 DONE 转 REGISTERING/REGISTERED，超时标失败",
+    "section": "Step 3 Confirm Hosts",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 121
+  },
+  {
+    "id": "INST-3-003",
+    "summary": "展示 host 状态分类和单 host bootstrap `bootLog`",
+    "section": "Step 3 Confirm Hosts",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 122
+  },
+  {
+    "id": "INST-3-004",
+    "summary": "单个/多选失败 host Retry，重新 bootstrap/注册",
+    "section": "Step 3 Confirm Hosts",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 123
+  },
+  {
+    "id": "INST-3-005",
+    "summary": "单个/多选 Remove host",
+    "section": "Step 3 Confirm Hosts",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 124
+  },
+  {
+    "id": "INST-3-006",
+    "summary": "运行 host checks：hostname resolution、last-agent-env、installed packages、existing repos、THP，并由 host info 补 OS/disk 分类",
+    "section": "Step 3 Confirm Hosts",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 125
+  },
+  {
+    "id": "INST-3-007",
+    "summary": "检查 JDK 并展示 host-specific warning",
+    "section": "Step 3 Confirm Hosts",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 126
+  },
+  {
+    "id": "INST-3-008",
+    "summary": "显示不在当前输入中的其他 registered hosts",
+    "section": "Step 3 Confirm Hosts",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 127
+  },
+  {
+    "id": "INST-4-001",
+    "summary": "列出 stack installable services，单选/全选/取消，按 stack 可用 file system 分组",
+    "section": "Step 4 Choose Services",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 133
+  },
+  {
+    "id": "INST-4-002",
+    "summary": "自动提示并选择 required dependencies",
+    "section": "Step 4 Choose Services",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 134
+  },
+  {
+    "id": "INST-4-003",
+    "summary": "校验 file system 选择、多个 DFS、Ozone/Spark/Ranger 等互斥/建议组合",
+    "section": "Step 4 Choose Services",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 135
+  },
+  {
+    "id": "INST-4-004",
+    "summary": "Choose Services 组合校验完全在客户端",
+    "section": "Step 4 Choose Services",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 136
+  },
+  {
+    "id": "INST-5-001",
+    "summary": "Stack Advisor 推荐 master component 到 hosts 的初始布局",
+    "section": "Step 5 Assign Masters",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 142
+  },
+  {
+    "id": "INST-5-002",
+    "summary": "用户为每个 master 更换 host，并显示当前 assignment 可匹配的校验问题",
+    "section": "Step 5 Assign Masters",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 143
+  },
+  {
+    "id": "INST-5-003",
+    "summary": "动态 services/components 变化后清旧 recommendations 并重算",
+    "section": "Step 5 Assign Masters",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 144
+  },
+  {
+    "id": "INST-6-001",
+    "summary": "以 host x component 矩阵分配 slave/client，支持列 All/None",
+    "section": "Step 6 Assign Slaves and Clients",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 150
+  },
+  {
+    "id": "INST-6-002",
+    "summary": "合并 Master 与 Slave/Client selection 形成 Blueprint",
+    "section": "Step 6 Assign Slaves and Clients",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 151
+  },
+  {
+    "id": "INST-6-003",
+    "summary": "服务端校验 Blueprint，按 general/host/component 显示 ERROR 与 WARN，并在 host x component 矩阵标色",
+    "section": "Step 6 Assign Slaves and Clients",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 152
+  },
+  {
+    "id": "INST-6-004",
+    "summary": "恢复 recommendations 和已选 hosts",
+    "section": "Step 6 Assign Slaves and Clients",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 153
+  },
+  {
+    "id": "INST-7-001",
+    "summary": "按 service/theme/category 配置所有 selected services",
+    "section": "Step 7 Customize Services",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 159
+  },
+  {
+    "id": "INST-7-002",
+    "summary": "Accounts、Credentials、Databases、Directories 专用 tabs",
+    "section": "Step 7 Customize Services",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 160
+  },
+  {
+    "id": "INST-7-003",
+    "summary": "Stack Advisor recommendations、dependent config changes、required changes",
+    "section": "Step 7 Customize Services",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 161
+  },
+  {
+    "id": "INST-7-004",
+    "summary": "测试数据库连接和外部依赖",
+    "section": "Step 7 Customize Services",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 162
+  },
+  {
+    "id": "INST-7-005",
+    "summary": "加载已存在 host overrides/config groups（Add Service/Host 复用路径）",
+    "section": "Step 7 Customize Services",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 163
+  },
+  {
+    "id": "INST-7-006",
+    "summary": "Pre-Install Checks 仅为空壳",
+    "section": "Step 7 Customize Services",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 164
+  },
+  {
+    "id": "INST-7-007",
+    "summary": "Config 改变可增加 components/改变 host assignment，并回写后续 Review blueprint",
+    "section": "Step 7 Customize Services",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 165
+  },
+  {
+    "id": "INST-7-008",
+    "summary": "后退且已有修改时确认是否丢弃",
+    "section": "Step 7 Customize Services",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 166
+  },
+  {
+    "id": "INST-8-001",
+    "summary": "汇总 cluster、repositories、services、masters、slave/client、hosts 和 configs",
+    "section": "Step 8 Review",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 172
+  },
+  {
+    "id": "INST-8-002",
+    "summary": "Print Review",
+    "section": "Step 8 Review",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 173
+  },
+  {
+    "id": "INST-8-003",
+    "summary": "Download CSV",
+    "section": "Step 8 Review",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 174
+  },
+  {
+    "id": "INST-8-004",
+    "summary": "Generate Blueprint ZIP",
+    "section": "Step 8 Review",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 175
+  },
+  {
+    "id": "INST-8-005",
+    "summary": "Submit 先查询所有既有 cluster",
+    "section": "Step 8 Review",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 176
+  },
+  {
+    "id": "INST-8-008",
+    "summary": "既有集群删除是非事务批量副作用",
+    "section": "Step 8 Review",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 177
+  },
+  {
+    "id": "INST-8-009",
+    "summary": "全局 Version Definition/Repository Version 清理链",
+    "section": "Step 8 Review",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 178
+  },
+  {
+    "id": "INST-8-006",
+    "summary": "将 cluster、services、components、configs、hosts、host-components、config groups 等创建请求按依赖加入串行 queue",
+    "section": "Step 8 Review",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 179
+  },
+  {
+    "id": "INST-8-007",
+    "summary": "Local Repository 提交 selected VDF（非 dry-run），随后更新 repository OS 信息",
+    "section": "Step 8 Review",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 180
+  },
+  {
+    "id": "INST-9-001",
+    "summary": "分阶段 Install、Start、Service Check，按 service/host/task 展示进度",
+    "section": "Step 9 Install, Start and Test",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 199
+  },
+  {
+    "id": "INST-9-002",
+    "summary": "展示每 host 的 tasks、command detail、stdout/stderr/error log，可复制/新窗口",
+    "section": "Step 9 Install, Start and Test",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 200
+  },
+  {
+    "id": "INST-9-003",
+    "summary": "按 status 分类 hosts，显示 failed hosts details",
+    "section": "Step 9 Install, Start and Test",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 201
+  },
+  {
+    "id": "INST-9-004",
+    "summary": "Retry failed install",
+    "section": "Step 9 Install, Start and Test",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 202
+  },
+  {
+    "id": "INST-9-005",
+    "summary": "部署期间禁止普通 route 离开",
+    "section": "Step 9 Install, Start and Test",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 203
+  },
+  {
+    "id": "INST-9-006",
+    "summary": "Deploy Next 保存完成阶段 cluster state 并进入 Summary",
+    "section": "Step 9 Install, Start and Test",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 204
+  },
+  {
+    "id": "INST-10-001",
+    "summary": "汇总各 services 的安装、启动、check 成功/警告/失败",
+    "section": "Step 10 Summary",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 210
+  },
+  {
+    "id": "INST-10-003",
+    "summary": "Summary 保留不可达 `back` route handler",
+    "section": "Step 10 Summary",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 211
+  },
+  {
+    "id": "INST-10-002",
+    "summary": "全新 Installer Complete 清向导、请求将 cluster provisioning state 设为 `INSTALLED`、clusterState 重置 `DEFAULT`，进入 Dashboard",
+    "section": "Step 10 Summary",
+    "moduleFile": "07-cluster-installation.md",
+    "line": 212
+  },
+  {
+    "id": "KRB-ENTRY-001",
+    "summary": "加载 cluster security type；`KERBEROS` 显示已启用页面，否则显示 Enable",
+    "section": "入口、权限与前置检查",
+    "moduleFile": "08-kerberos.md",
+    "line": 9
+  },
+  {
+    "id": "KRB-ENTRY-002",
+    "summary": "访问页面、显示 Enable/Disable/Edit 受权限和 feature flag 双重控制",
+    "section": "入口、权限与前置检查",
+    "moduleFile": "08-kerberos.md",
+    "line": 10
+  },
+  {
+    "id": "KRB-ENTRY-003",
+    "summary": "Enable 前逐条展示已安装服务的特殊 warning",
+    "section": "入口、权限与前置检查",
+    "moduleFile": "08-kerberos.md",
+    "line": 11
+  },
+  {
+    "id": "KRB-ENTRY-004",
+    "summary": "可选 Pre-Kerberize Checks",
+    "section": "入口、权限与前置检查",
+    "moduleFile": "08-kerberos.md",
+    "line": 12
+  },
+  {
+    "id": "KRB-ENTRY-005",
+    "summary": "启动向导并登记所有者/恢复状态",
+    "section": "入口、权限与前置检查",
+    "moduleFile": "08-kerberos.md",
+    "line": 13
+  },
+  {
+    "id": "KRB-MODE-001",
+    "summary": "Existing MIT KDC，后端值 `mit-kdc`",
+    "section": "四种启用模式",
+    "moduleFile": "08-kerberos.md",
+    "line": 19
+  },
+  {
+    "id": "KRB-MODE-002",
+    "summary": "Existing Active Directory，后端值 `active-directory`",
+    "section": "四种启用模式",
+    "moduleFile": "08-kerberos.md",
+    "line": 20
+  },
+  {
+    "id": "KRB-MODE-003",
+    "summary": "Existing IPA，后端值 `ipa`",
+    "section": "四种启用模式",
+    "moduleFile": "08-kerberos.md",
+    "line": 21
+  },
+  {
+    "id": "KRB-MODE-004",
+    "summary": "Manage principals and keytabs manually，后端值 `none`",
+    "section": "四种启用模式",
+    "moduleFile": "08-kerberos.md",
+    "line": 22
+  },
+  {
+    "id": "KRB-1-001",
+    "summary": "在 MIT、AD、IPA、Manual 四种模式间单选",
+    "section": "Step 1 Get Started",
+    "moduleFile": "08-kerberos.md",
+    "line": 32
+  },
+  {
+    "id": "KRB-1-002",
+    "summary": "逐项确认所选模式的部署前置条件",
+    "section": "Step 1 Get Started",
+    "moduleFile": "08-kerberos.md",
+    "line": 33
+  },
+  {
+    "id": "KRB-2-001",
+    "summary": "从 stack 加载 KERBEROS config types，按 KDC 模式过滤字段并填 `kdc_type`",
+    "section": "Step 2 Configure Kerberos",
+    "moduleFile": "08-kerberos.md",
+    "line": 39
+  },
+  {
+    "id": "KRB-2-002",
+    "summary": "测试 KDC connection",
+    "section": "Step 2 Configure Kerberos",
+    "moduleFile": "08-kerberos.md",
+    "line": 40
+  },
+  {
+    "id": "KRB-2-003",
+    "summary": "自动模式创建 KERBEROS service、KERBEROS_CLIENT service component 和所有 host-components",
+    "section": "Step 2 Configure Kerberos",
+    "moduleFile": "08-kerberos.md",
+    "line": 41
+  },
+  {
+    "id": "KRB-2-004",
+    "summary": "保存 `kerberos-env` 等 desired configs",
+    "section": "Step 2 Configure Kerberos",
+    "moduleFile": "08-kerberos.md",
+    "line": 42
+  },
+  {
+    "id": "KRB-2-005",
+    "summary": "创建 live KDC admin session/credentials",
+    "section": "Step 2 Configure Kerberos",
+    "moduleFile": "08-kerberos.md",
+    "line": 43
+  },
+  {
+    "id": "KRB-2-006",
+    "summary": "Manual/IPA 强制安全选项",
+    "section": "Step 2 Configure Kerberos",
+    "moduleFile": "08-kerberos.md",
+    "line": 44
+  },
+  {
+    "id": "KRB-2-007",
+    "summary": "Step 2 的精确失败传播并不一致",
+    "section": "Step 2 Configure Kerberos",
+    "moduleFile": "08-kerberos.md",
+    "line": 45
+  },
+  {
+    "id": "KRB-3-001",
+    "summary": "安装 KERBEROS_CLIENT 到所有 hosts；若 service component 仍为 INIT 先把 KERBEROS service 置 INSTALLED",
+    "section": "Step 3 Install And Test Kerberos Client",
+    "moduleFile": "08-kerberos.md",
+    "line": 51
+  },
+  {
+    "id": "KRB-3-002",
+    "summary": "执行 KERBEROS service check",
+    "section": "Step 3 Install And Test Kerberos Client",
+    "moduleFile": "08-kerberos.md",
+    "line": 52
+  },
+  {
+    "id": "KRB-3-003",
+    "summary": "完成后检查 HEARTBEAT_LOST hosts",
+    "section": "Step 3 Install And Test Kerberos Client",
+    "moduleFile": "08-kerberos.md",
+    "line": 53
+  },
+  {
+    "id": "KRB-3-004",
+    "summary": "失败任务支持 Retry，也可勾选整步 `Ignore errors and continue` 后继续",
+    "section": "Step 3 Install And Test Kerberos Client",
+    "moduleFile": "08-kerberos.md",
+    "line": 54
+  },
+  {
+    "id": "KRB-3-005",
+    "summary": "Manual 模式完全跳过本步",
+    "section": "Step 3 Install And Test Kerberos Client",
+    "moduleFile": "08-kerberos.md",
+    "line": 55
+  },
+  {
+    "id": "KRB-4-001",
+    "summary": "读取 Kerberos descriptor，生成 Global、Ambari Principals 和已安装 service 的 identity 配置",
+    "section": "Step 4 Configure Identities",
+    "moduleFile": "08-kerberos.md",
+    "line": 61
+  },
+  {
+    "id": "KRB-4-002",
+    "summary": "Stack Advisor 推荐 identity/config 值",
+    "section": "Step 4 Configure Identities",
+    "moduleFile": "08-kerberos.md",
+    "line": 62
+  },
+  {
+    "id": "KRB-4-003",
+    "summary": "编辑 principal/keytab/name/rule 等 descriptor 属性",
+    "section": "Step 4 Configure Identities",
+    "moduleFile": "08-kerberos.md",
+    "line": 63
+  },
+  {
+    "id": "KRB-4-004",
+    "summary": "创建或更新 cluster `kerberos_descriptor` artifact",
+    "section": "Step 4 Configure Identities",
+    "moduleFile": "08-kerberos.md",
+    "line": 64
+  },
+  {
+    "id": "KRB-4-005",
+    "summary": "提交 descriptor 后先调用 unkerberize 清理半完成 security state，再进入 Confirm",
+    "section": "Step 4 Configure Identities",
+    "moduleFile": "08-kerberos.md",
+    "line": 65
+  },
+  {
+    "id": "KRB-4-006",
+    "summary": "Enable Step load 等待 COMPOSITE descriptor GET",
+    "section": "Step 4 Configure Identities",
+    "moduleFile": "08-kerberos.md",
+    "line": 66
+  },
+  {
+    "id": "KRB-5-001",
+    "summary": "按所选模式展示最终 KDC properties",
+    "section": "Step 5 Confirm Configuration",
+    "moduleFile": "08-kerberos.md",
+    "line": 72
+  },
+  {
+    "id": "KRB-5-002",
+    "summary": "下载 `kerberos.csv`",
+    "section": "Step 5 Confirm Configuration",
+    "moduleFile": "08-kerberos.md",
+    "line": 73
+  },
+  {
+    "id": "KRB-5-003",
+    "summary": "Manual 模式提示必须依据 CSV 人工创建 principals、keytabs 并分发到目标路径",
+    "section": "Step 5 Confirm Configuration",
+    "moduleFile": "08-kerberos.md",
+    "line": 74
+  },
+  {
+    "id": "KRB-5-004",
+    "summary": "Exit Wizard",
+    "section": "Step 5 Confirm Configuration",
+    "moduleFile": "08-kerberos.md",
+    "line": 75
+  },
+  {
+    "id": "KRB-6-001",
+    "summary": "停止所有 services",
+    "section": "Step 6 Stop Services",
+    "moduleFile": "08-kerberos.md",
+    "line": 81
+  },
+  {
+    "id": "KRB-6-002",
+    "summary": "在 YARN 已安装、ATS 不支持 Kerberos 且 APP_TIMELINE_SERVER 存在时删除该 component",
+    "section": "Step 6 Stop Services",
+    "moduleFile": "08-kerberos.md",
+    "line": 82
+  },
+  {
+    "id": "KRB-7-001",
+    "summary": "将 `Clusters.security_type` 改为 `KERBEROS` 并启动服务端 KERBERIZE_CLUSTER request",
+    "section": "Step 7 Kerberize Cluster",
+    "moduleFile": "08-kerberos.md",
+    "line": 88
+  },
+  {
+    "id": "KRB-7-002",
+    "summary": "失败后允许回 Step 4 修 descriptor，或 Retry",
+    "section": "Step 7 Kerberize Cluster",
+    "moduleFile": "08-kerberos.md",
+    "line": 89
+  },
+  {
+    "id": "KRB-7-003",
+    "summary": "controller 中保留 `unkerberizeCluster()` 清理方法",
+    "section": "Step 7 Kerberize Cluster",
+    "moduleFile": "08-kerberos.md",
+    "line": 90
+  },
+  {
+    "id": "KRB-8-001",
+    "summary": "启动所有 services，并按 Ambari property 决定是否同时跑 smoke tests",
+    "section": "Step 8 Start And Test Services",
+    "moduleFile": "08-kerberos.md",
+    "line": 96
+  },
+  {
+    "id": "KRB-8-002",
+    "summary": "request 失败也允许 Complete",
+    "section": "Step 8 Start And Test Services",
+    "moduleFile": "08-kerberos.md",
+    "line": 97
+  },
+  {
+    "id": "KRB-8-003",
+    "summary": "Complete 清 Kerberos wizard local DB/status 并返回 Kerberos 管理页",
+    "section": "Step 8 Start And Test Services",
+    "moduleFile": "08-kerberos.md",
+    "line": 98
+  },
+  {
+    "id": "KRB-DIS-001",
+    "summary": "前置",
+    "section": "Disable Kerberos",
+    "moduleFile": "08-kerberos.md",
+    "line": 104
+  },
+  {
+    "id": "KRB-DIS-002",
+    "summary": "1 Start ZooKeeper",
+    "section": "Disable Kerberos",
+    "moduleFile": "08-kerberos.md",
+    "line": 105
+  },
+  {
+    "id": "KRB-DIS-003",
+    "summary": "2 Stop Required Services",
+    "section": "Disable Kerberos",
+    "moduleFile": "08-kerberos.md",
+    "line": 106
+  },
+  {
+    "id": "KRB-DIS-004",
+    "summary": "3 Unkerberize Cluster",
+    "section": "Disable Kerberos",
+    "moduleFile": "08-kerberos.md",
+    "line": 107
+  },
+  {
+    "id": "KRB-DIS-005",
+    "summary": "3 failure skip",
+    "section": "Disable Kerberos",
+    "moduleFile": "08-kerberos.md",
+    "line": 108
+  },
+  {
+    "id": "KRB-DIS-006",
+    "summary": "4 Remove Kerberos",
+    "section": "Disable Kerberos",
+    "moduleFile": "08-kerberos.md",
+    "line": 109
+  },
+  {
+    "id": "KRB-DIS-007",
+    "summary": "5 Start Services",
+    "section": "Disable Kerberos",
+    "moduleFile": "08-kerberos.md",
+    "line": 110
+  },
+  {
+    "id": "KRB-DIS-008",
+    "summary": "退出与恢复边界",
+    "section": "Disable Kerberos",
+    "moduleFile": "08-kerberos.md",
+    "line": 111
+  },
+  {
+    "id": "KRB-DIS-009",
+    "summary": "关闭 Disable modal 的清理链误调用 `addServiceController.finish()`",
+    "section": "Disable Kerberos",
+    "moduleFile": "08-kerberos.md",
+    "line": 112
+  },
+  {
+    "id": "KRB-MGMT-001",
+    "summary": "查看按 Global、Ambari Principals、各 service 分类的 composite identities/configs",
+    "section": "已启用后的管理能力",
+    "moduleFile": "08-kerberos.md",
+    "line": 118
+  },
+  {
+    "id": "KRB-MGMT-002",
+    "summary": "Edit、Cancel、Save identities",
+    "section": "已启用后的管理能力",
+    "moduleFile": "08-kerberos.md",
+    "line": 119
+  },
+  {
+    "id": "KRB-MGMT-003",
+    "summary": "保存 identity 变更后 regenerate keytabs",
+    "section": "已启用后的管理能力",
+    "moduleFile": "08-kerberos.md",
+    "line": 120
+  },
+  {
+    "id": "KRB-MGMT-004",
+    "summary": "集群级 Regenerate Keytabs",
+    "section": "已启用后的管理能力",
+    "moduleFile": "08-kerberos.md",
+    "line": 121
+  },
+  {
+    "id": "KRB-MGMT-005",
+    "summary": "服务级 Regenerate Keytabs",
+    "section": "已启用后的管理能力",
+    "moduleFile": "08-kerberos.md",
+    "line": 122
+  },
+  {
+    "id": "KRB-MGMT-006",
+    "summary": "主机级 Regenerate Keytabs",
+    "section": "已启用后的管理能力",
+    "moduleFile": "08-kerberos.md",
+    "line": 123
+  },
+  {
+    "id": "KRB-MGMT-007",
+    "summary": "Regenerate 成功后关联后台操作",
+    "section": "已启用后的管理能力",
+    "moduleFile": "08-kerberos.md",
+    "line": 124
+  },
+  {
+    "id": "KRB-MGMT-008",
+    "summary": "下载当前 identities CSV",
+    "section": "已启用后的管理能力",
+    "moduleFile": "08-kerberos.md",
+    "line": 125
+  },
+  {
+    "id": "KRB-MGMT-009",
+    "summary": "artifact update 的 404 create fallback 存在实现缺陷",
+    "section": "已启用后的管理能力",
+    "moduleFile": "08-kerberos.md",
+    "line": 126
+  },
+  {
+    "id": "KRB-CRED-001",
+    "summary": "检测 persistent credential store 能力",
+    "section": "KDC Credential Store",
+    "moduleFile": "08-kerberos.md",
+    "line": 132
+  },
+  {
+    "id": "KRB-CRED-002",
+    "summary": "查询 `kdc.admin.credential` 是否存在",
+    "section": "KDC Credential Store",
+    "moduleFile": "08-kerberos.md",
+    "line": 133
+  },
+  {
+    "id": "KRB-CRED-003",
+    "summary": "保存 KDC admin principal/password",
+    "section": "KDC Credential Store",
+    "moduleFile": "08-kerberos.md",
+    "line": 134
+  },
+  {
+    "id": "KRB-CRED-004",
+    "summary": "删除已持久化 KDC credential",
+    "section": "KDC Credential Store",
+    "moduleFile": "08-kerberos.md",
+    "line": 135
+  },
+  {
+    "id": "KRB-CRED-005",
+    "summary": "其他向导需要 KDC 时验证 session",
+    "section": "KDC Credential Store",
+    "moduleFile": "08-kerberos.md",
+    "line": 136
+  },
+  {
+    "id": "KRB-CRED-006",
+    "summary": "Credential CRUD 的失败传播被吞掉",
+    "section": "KDC Credential Store",
+    "moduleFile": "08-kerberos.md",
+    "line": 137
+  },
+  {
+    "id": "KRB-X-001",
+    "summary": "Add Service",
+    "section": "与安装和日常运维的联动",
+    "moduleFile": "08-kerberos.md",
+    "line": 143
+  },
+  {
+    "id": "KRB-X-002",
+    "summary": "Add Host",
+    "section": "与安装和日常运维的联动",
+    "moduleFile": "08-kerberos.md",
+    "line": 144
+  },
+  {
+    "id": "KRB-X-003",
+    "summary": "Add/Delete Host Component",
+    "section": "与安装和日常运维的联动",
+    "moduleFile": "08-kerberos.md",
+    "line": 145
+  },
+  {
+    "id": "KRB-X-004",
+    "summary": "Reassign Master/HA/Federation",
+    "section": "与安装和日常运维的联动",
+    "moduleFile": "08-kerberos.md",
+    "line": 146
+  },
+  {
+    "id": "KRB-X-005",
+    "summary": "Service/Host restart",
+    "section": "与安装和日常运维的联动",
+    "moduleFile": "08-kerberos.md",
+    "line": 147
+  },
+  {
+    "id": "KRB-REC-001",
+    "summary": "Enable 每次切 step 保存完整 local DB snapshot 到 cluster status",
+    "section": "恢复、退出与静态边界",
+    "moduleFile": "08-kerberos.md",
+    "line": 153
+  },
+  {
+    "id": "KRB-REC-002",
+    "summary": "Enable 保存 task statuses、task request IDs 和旧 request IDs",
+    "section": "恢复、退出与静态边界",
+    "moduleFile": "08-kerberos.md",
+    "line": 154
+  },
+  {
+    "id": "KRB-REC-003",
+    "summary": "Enable 所有 step 的 `unroutePath()` 返回 false",
+    "section": "恢复、退出与静态边界",
+    "moduleFile": "08-kerberos.md",
+    "line": 155
+  },
+  {
+    "id": "KRB-REC-004",
+    "summary": "Enable 未完成时 Exit 执行 discard",
+    "section": "恢复、退出与静态边界",
+    "moduleFile": "08-kerberos.md",
+    "line": 156
+  },
+  {
+    "id": "KRB-REC-005",
+    "summary": "Manual CSV 完成度无法由静态 UI证明",
+    "section": "恢复、退出与静态边界",
+    "moduleFile": "08-kerberos.md",
+    "line": 157
+  },
+  {
+    "id": "KRB-REC-006",
+    "summary": "Disable 不在全局 wizard controller-route 恢复表",
+    "section": "恢复、退出与静态边界",
+    "moduleFile": "08-kerberos.md",
+    "line": 158
+  },
+  {
+    "id": "KRB-RISK-001",
+    "summary": "Step 3 在 `supports.autoRollbackHA=true` 且 task 失败时会显示 Rollback，但 controller 没有 `rollback()` handler；Skip 仍没有可达 state",
+    "section": "已知缺陷与验证门槛",
+    "moduleFile": "08-kerberos.md",
+    "line": 164
+  },
+  {
+    "id": "KRB-RISK-002",
+    "summary": "Step 7 的孤立 unkerberize 方法与真实 Retry 分离",
+    "section": "已知缺陷与验证门槛",
+    "moduleFile": "08-kerberos.md",
+    "line": 165
+  },
+  {
+    "id": "KRB-RISK-003",
+    "summary": "Credential save/update/delete 失败会被 UI 报成成功，且保存失败可重放原 KDC 请求",
+    "section": "已知缺陷与验证门槛",
+    "moduleFile": "08-kerberos.md",
+    "line": 166
+  },
+  {
+    "id": "KRB-RISK-004",
+    "summary": "descriptor 404 fallback 可能因未定义 `self` 直接抛错，也不会接续 regenerate",
+    "section": "已知缺陷与验证门槛",
+    "moduleFile": "08-kerberos.md",
+    "line": 167
+  },
+  {
+    "id": "KRB-RISK-005",
+    "summary": "`credentials_test.js` 中 create/update 失败语义和 store type helper 测试被 `describe.skip`",
+    "section": "已知缺陷与验证门槛",
+    "moduleFile": "08-kerberos.md",
+    "line": 168
+  },
+  {
+    "id": "NNHA-SCOPE-001",
+    "summary": "主流程 route 为 `/highAvailability/NameNode/enable`，内部固定 Step 1 到 Step 9；modal route 名为 `main.services.enableHighAvailability`",
+    "section": "范围、证据与 Metrics 边界",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 9
+  },
+  {
+    "id": "NNHA-SCOPE-002",
+    "summary": "JN 管理 route 为 `/highAvailability/JournalNode/manage`，内部代码固定 Step 1 到 Step 7；纯删除隐藏 Step 3/5，用户看到重新编号后的五步",
+    "section": "范围、证据与 Metrics 边界",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 10
+  },
+  {
+    "id": "NNHA-SCOPE-003",
+    "summary": "本模块排除 Metrics 产品页面、图表、widget 和安装 helper 的全局 metrics refresh；保留 checkpoint/JN formatted 安全门槛中的 `metrics/dfs/...`，因为字段直接决定 Next",
+    "section": "范围、证据与 Metrics 边界",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 11
+  },
+  {
+    "id": "NNHA-SCOPE-004",
+    "summary": "AMS 只保留 HA 配置迁移：若 `ams-hbase-site/hbase.rootdir` 包含当前 NN host，则改成 nameservice；AMS 已安装时 Step 9 无论该值是否匹配都会重提交完整 `ams-hbase-site` snapshot。除此之外 AMS/Metrics 功能均 `OUT_OF_SCOPE`",
+    "section": "范围、证据与 Metrics 边界",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 12
+  },
+  {
+    "id": "NNHA-SCOPE-005",
+    "summary": "权威证据为 route/controller/view/template、五层网络清单、通用 progress/install mixin 和旧 Karma tests；静态代码与实际可达性冲突时本文显式标为 `STATIC_ONLY`、`PLACEHOLDER` 或 `NEEDS_RUNTIME_VALIDATION`",
+    "section": "范围、证据与 Metrics 边界",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 13
+  },
+  {
+    "id": "NNHA-ENTRY-001",
+    "summary": "HDFS Service Actions 在未启用 HA 时显示 Enable NameNode HA，调用统一 HA controller 后进入九步 modal",
+    "section": "Enable NameNode HA 入口与前置条件",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 19
+  },
+  {
+    "id": "NNHA-ENTRY-002",
+    "summary": "HA 已启用后 `TOGGLE_NN_HA` 的 action/label 虽计算为 Disable，但 `isHidden=App.isHaEnabled`",
+    "section": "Enable NameNode HA 入口与前置条件",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 20
+  },
+  {
+    "id": "NNHA-ENTRY-003",
+    "summary": "Stack upgrade 的 Secondary NameNode custom check 可显示 Enable 按钮并复用同一前置检查",
+    "section": "Enable NameNode HA 入口与前置条件",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 21
+  },
+  {
+    "id": "NNHA-ENTRY-004",
+    "summary": "进入前对找到的第一个 NameNode 检查 `workStatus === STARTED`",
+    "section": "Enable NameNode HA 入口与前置条件",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 22
+  },
+  {
+    "id": "NNHA-ENTRY-005",
+    "summary": "进入前要求至少三个 ZooKeeper Server component",
+    "section": "Enable NameNode HA 入口与前置条件",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 23
+  },
+  {
+    "id": "NNHA-ENTRY-006",
+    "summary": "进入前要求至少三台注册主机",
+    "section": "Enable NameNode HA 入口与前置条件",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 24
+  },
+  {
+    "id": "NNHA-ENTRY-007",
+    "summary": "任一 master component 显式 maintenance `passiveState=ON` 或 implied maintenance 时阻止",
+    "section": "Enable NameNode HA 入口与前置条件",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 25
+  },
+  {
+    "id": "NNHA-ENTRY-008",
+    "summary": "直接访问 route 时 route 本身没有重新执行权限与上述业务前置检查",
+    "section": "Enable NameNode HA 入口与前置条件",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 26
+  },
+  {
+    "id": "NNHA-STEP1-001",
+    "summary": "阅读停机维护窗口、自动与人工步骤说明，并输入 Nameservice ID",
+    "section": "Step 1 Get Started",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 34
+  },
+  {
+    "id": "NNHA-STEP1-002",
+    "summary": "UI 强提示：若 HBase 正在运行应退出向导并先停止 HBase",
+    "section": "Step 1 Get Started",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 35
+  },
+  {
+    "id": "NNHA-STEP1-003",
+    "summary": "安装 HAWQ 时额外提示完成 HA 后必须人工更新 HAWQ filespace",
+    "section": "Step 1 Get Started",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 36
+  },
+  {
+    "id": "NNHA-STEP2-001",
+    "summary": "分配一台 Additional NameNode 和至少三台 JournalNode；现有 NameNode 标为 Current",
+    "section": "Step 2 Select Hosts",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 42
+  },
+  {
+    "id": "NNHA-STEP2-002",
+    "summary": "同一种多实例 master 的 host 必须唯一，目标 host 必须存在",
+    "section": "Step 2 Select Hosts",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 43
+  },
+  {
+    "id": "NNHA-STEP2-003",
+    "summary": "JN 最大数由 stack component cardinality 与可用 host 数共同限制，可大于 3",
+    "section": "Step 2 Select Hosts",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 44
+  },
+  {
+    "id": "NNHA-STEP2-004",
+    "summary": "Back 回 Step 1；Next 同时记录 Additional NN 和 SNN host 供 rollback 数据使用",
+    "section": "Step 2 Select Hosts",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 45
+  },
+  {
+    "id": "NNHA-STEP3-001",
+    "summary": "Review 展示 Current NN、待删除 SNN、待安装 Additional NN 和全部待安装 JN",
+    "section": "Step 3 Review",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 51
+  },
+  {
+    "id": "NNHA-STEP3-002",
+    "summary": "只允许编辑 `hdfs-site/dfs.journalnode.edits.dir`；其余 HA 与依赖服务配置只读",
+    "section": "Step 3 Review",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 52
+  },
+  {
+    "id": "NNHA-STEP3-003",
+    "summary": "按已安装服务加载 HBase、Accumulo、AMS、HAWQ、Ranger 相关当前 tags/configs",
+    "section": "Step 3 Review",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 53
+  },
+  {
+    "id": "NNHA-STEP3-004",
+    "summary": "Next 保存 `hdfs-site`、`core-site`，条件保存 `hbase-site`、`ranger-env` 原 tags，供后续提交/静态 rollback 使用",
+    "section": "Step 3 Review",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 54
+  },
+  {
+    "id": "NNHA-STEP4-001",
+    "summary": "用户登录 Current NN，依次以 HDFS user 执行 `hdfs dfsadmin -safemode enter` 和 `hdfs dfsadmin -saveNamespace`",
+    "section": "Step 4 Create Checkpoint",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 60
+  },
+  {
+    "id": "NNHA-STEP4-002",
+    "summary": "Next 只在 `Safemode` 非空且 `LastAppliedOrWrittenTxId - MostRecentCheckpointTxId <= 1` 时启用",
+    "section": "Step 4 Create Checkpoint",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 61
+  },
+  {
+    "id": "NNHA-STEP4-003",
+    "summary": "desired state 非 `STARTED` 时显示错误说明",
+    "section": "Step 4 Create Checkpoint",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 62
+  },
+  {
+    "id": "NNHA-STEP4-004",
+    "summary": "点击已启用 Next 后先检查 KDC session，再进入自动变更阶段",
+    "section": "Step 4 Create Checkpoint",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 63
+  },
+  {
+    "id": "NNHA-STEP5-001",
+    "summary": "1 Stop All Services",
+    "section": "Step 5 Configure Components",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 69
+  },
+  {
+    "id": "NNHA-STEP5-002",
+    "summary": "2 Install Additional NameNode",
+    "section": "Step 5 Configure Components",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 70
+  },
+  {
+    "id": "NNHA-STEP5-003",
+    "summary": "3 Install JournalNodes",
+    "section": "Step 5 Configure Components",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 71
+  },
+  {
+    "id": "NNHA-STEP5-004",
+    "summary": "4 Reconfigure HDFS",
+    "section": "Step 5 Configure Components",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 72
+  },
+  {
+    "id": "NNHA-STEP5-005",
+    "summary": "Kerberos 集群的重配置分支",
+    "section": "Step 5 Configure Components",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 73
+  },
+  {
+    "id": "NNHA-STEP5-006",
+    "summary": "5 Start JournalNodes",
+    "section": "Step 5 Configure Components",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 74
+  },
+  {
+    "id": "NNHA-STEP5-007",
+    "summary": "6 Disable Secondary NameNode",
+    "section": "Step 5 Configure Components",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 75
+  },
+  {
+    "id": "NNHA-STEP6-001",
+    "summary": "用户登录 Current NN，以 HDFS user 执行 `hdfs namenode -initializeSharedEdits`",
+    "section": "Step 6 Initialize JournalNodes",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 81
+  },
+  {
+    "id": "NNHA-STEP6-002",
+    "summary": "对响应解析 `metrics.dfs.journalnode.journalsStatus`，要求当前 nameservice 的 `Formatted === \"true\"`",
+    "section": "Step 6 Initialize JournalNodes",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 82
+  },
+  {
+    "id": "NNHA-STEP6-003",
+    "summary": "经典实现只在收到前三个响应时判定，并要求当次计数为 3",
+    "section": "Step 6 Initialize JournalNodes",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 83
+  },
+  {
+    "id": "NNHA-STEP7-001",
+    "summary": "1 Start ZooKeeper Servers",
+    "section": "Step 7 Start Components",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 89
+  },
+  {
+    "id": "NNHA-STEP7-002",
+    "summary": "2 条件 Start Ambari Infra",
+    "section": "Step 7 Start Components",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 90
+  },
+  {
+    "id": "NNHA-STEP7-003",
+    "summary": "3 条件 Start MySQL Server",
+    "section": "Step 7 Start Components",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 91
+  },
+  {
+    "id": "NNHA-STEP7-004",
+    "summary": "4 条件 Start Ranger",
+    "section": "Step 7 Start Components",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 92
+  },
+  {
+    "id": "NNHA-STEP7-005",
+    "summary": "5 Start Current NameNode",
+    "section": "Step 7 Start Components",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 93
+  },
+  {
+    "id": "NNHA-STEP8-001",
+    "summary": "在 Current NN 执行 `hdfs zkfc -formatZK`",
+    "section": "Step 8 Initialize Metadata",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 99
+  },
+  {
+    "id": "NNHA-STEP8-002",
+    "summary": "在 Additional NN 执行 `hdfs namenode -bootstrapStandby`",
+    "section": "Step 8 Initialize Metadata",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 100
+  },
+  {
+    "id": "NNHA-STEP8-003",
+    "summary": "点击 Next 先检查 KDC session，再弹“已执行人工步骤”确认；确认后才进入 Step 9",
+    "section": "Step 8 Initialize Metadata",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 101
+  },
+  {
+    "id": "NNHA-STEP9-001",
+    "summary": "1 Start Additional NameNode",
+    "section": "Step 9 Finalize HA Setup",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 107
+  },
+  {
+    "id": "NNHA-STEP9-002",
+    "summary": "2 Install ZKFC；3 Start ZKFC",
+    "section": "Step 9 Finalize HA Setup",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 108
+  },
+  {
+    "id": "NNHA-STEP9-003",
+    "summary": "4 条件 Install PXF",
+    "section": "Step 9 Finalize HA Setup",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 109
+  },
+  {
+    "id": "NNHA-STEP9-004",
+    "summary": "5 条件 Reconfigure Ranger",
+    "section": "Step 9 Finalize HA Setup",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 110
+  },
+  {
+    "id": "NNHA-STEP9-005",
+    "summary": "6 条件 Reconfigure HBase",
+    "section": "Step 9 Finalize HA Setup",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 111
+  },
+  {
+    "id": "NNHA-STEP9-006",
+    "summary": "7 条件 Reconfigure AMS",
+    "section": "Step 9 Finalize HA Setup",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 112
+  },
+  {
+    "id": "NNHA-STEP9-007",
+    "summary": "8 条件 Reconfigure Accumulo",
+    "section": "Step 9 Finalize HA Setup",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 113
+  },
+  {
+    "id": "NNHA-STEP9-008",
+    "summary": "9 条件 Reconfigure HAWQ",
+    "section": "Step 9 Finalize HA Setup",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 114
+  },
+  {
+    "id": "NNHA-STEP9-009",
+    "summary": "10 Delete Secondary NameNode",
+    "section": "Step 9 Finalize HA Setup",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 115
+  },
+  {
+    "id": "NNHA-STEP9-010",
+    "summary": "11 Stop HDFS；12 Start All Services",
+    "section": "Step 9 Finalize HA Setup",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 116
+  },
+  {
+    "id": "NNHA-STEP9-011",
+    "summary": "完成",
+    "section": "Step 9 Finalize HA Setup",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 117
+  },
+  {
+    "id": "NNHA-CONFIG-001",
+    "summary": "`hdfs-site/dfs.nameservices`、`dfs.internal.nameservices`",
+    "section": "NameNode HA 配置契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 123
+  },
+  {
+    "id": "NNHA-CONFIG-002",
+    "summary": "`dfs.ha.namenodes.<ns>`",
+    "section": "NameNode HA 配置契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 124
+  },
+  {
+    "id": "NNHA-CONFIG-003",
+    "summary": "`dfs.namenode.rpc-address.<ns>.nn1/nn2`",
+    "section": "NameNode HA 配置契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 125
+  },
+  {
+    "id": "NNHA-CONFIG-004",
+    "summary": "`dfs.namenode.http-address.<ns>.nn1/nn2`、HTTPS 对应键",
+    "section": "NameNode HA 配置契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 126
+  },
+  {
+    "id": "NNHA-CONFIG-005",
+    "summary": "`dfs.namenode.shared.edits.dir`",
+    "section": "NameNode HA 配置契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 127
+  },
+  {
+    "id": "NNHA-CONFIG-006",
+    "summary": "`core-site/fs.defaultFS`、`ha.zookeeper.quorum`",
+    "section": "NameNode HA 配置契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 128
+  },
+  {
+    "id": "NNHA-CONFIG-007",
+    "summary": "`dfs.ha.fencing.methods`、`dfs.ha.automatic-failover.enabled`、`dfs.namenode.safemode.threshold-pct`",
+    "section": "NameNode HA 配置契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 129
+  },
+  {
+    "id": "NNHA-CONFIG-008",
+    "summary": "删除旧 HDFS properties",
+    "section": "NameNode HA 配置契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 130
+  },
+  {
+    "id": "NNHA-CONFIG-009",
+    "summary": "`dfs.journalnode.edits.dir`",
+    "section": "NameNode HA 配置契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 131
+  },
+  {
+    "id": "NNHA-CONFIG-010",
+    "summary": "`hbase-site/hbase.rootdir`",
+    "section": "NameNode HA 配置契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 132
+  },
+  {
+    "id": "NNHA-CONFIG-011",
+    "summary": "`accumulo-site/instance.volumes` 与 `.replacements`",
+    "section": "NameNode HA 配置契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 133
+  },
+  {
+    "id": "NNHA-CONFIG-012",
+    "summary": "`ams-hbase-site/hbase.rootdir`",
+    "section": "NameNode HA 配置契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 134
+  },
+  {
+    "id": "NNHA-CONFIG-013",
+    "summary": "`hawq-site/hawq_dfs_url`",
+    "section": "NameNode HA 配置契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 135
+  },
+  {
+    "id": "NNHA-CONFIG-014",
+    "summary": "`hdfs-client`",
+    "section": "NameNode HA 配置契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 136
+  },
+  {
+    "id": "NNHA-CONFIG-015",
+    "summary": "Ranger `xasecure.audit.destination.hdfs.dir`",
+    "section": "NameNode HA 配置契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 137
+  },
+  {
+    "id": "NNHA-CONFIG-016",
+    "summary": "config 保存形状",
+    "section": "NameNode HA 配置契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 138
+  },
+  {
+    "id": "JN-ENTRY-001",
+    "summary": "HDFS Service Actions 显示 Manage JournalNodes",
+    "section": "Manage JournalNodes 入口与模式",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 144
+  },
+  {
+    "id": "JN-ENTRY-002",
+    "summary": "Service Actions 外层 template 以 `RUN_CUSTOM_COMMAND/RUN_SERVICE_CHECK/START_STOP/TOGGLE_MAINTENANCE/ENABLE_HA` 的 OR 显示按钮；生成 Manage JN 选项的内层分支只接受除 `START_STOP` 外的另外四项 OR",
+    "section": "Manage JournalNodes 入口与模式",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 145
+  },
+  {
+    "id": "JN-ENTRY-003",
+    "summary": "服务入口点击后要求模型中同时存在 display label `Active NameNode` 和 `Standby NameNode`",
+    "section": "Manage JournalNodes 入口与模式",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 146
+  },
+  {
+    "id": "JN-ENTRY-004",
+    "summary": "Host Details 的 Add JournalNode 先读取 Kerberos 类型并检查 KDC session，再确认进入向导；Manual Kerberos 跳过 session并在确认文案追加 warning。Delete JournalNode 不做 KDC 检查，直接确认进入同一向导",
+    "section": "Manage JournalNodes 入口与模式",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 147
+  },
+  {
+    "id": "JN-ENTRY-005",
+    "summary": "删除按钮在全局 JN count <= 3 时 disabled",
+    "section": "Manage JournalNodes 入口与模式",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 148
+  },
+  {
+    "id": "JN-MODE-001",
+    "summary": "Add-only",
+    "section": "Manage JournalNodes 入口与模式",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 149
+  },
+  {
+    "id": "JN-MODE-002",
+    "summary": "Delete-only",
+    "section": "Manage JournalNodes 入口与模式",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 150
+  },
+  {
+    "id": "JN-MODE-003",
+    "summary": "Mixed add/delete",
+    "section": "Manage JournalNodes 入口与模式",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 151
+  },
+  {
+    "id": "JN-MODE-004",
+    "summary": "No-op",
+    "section": "Manage JournalNodes 入口与模式",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 152
+  },
+  {
+    "id": "JN-STEP1-001",
+    "summary": "以当前 JN hosts 初始化 assignment，可增、删或换 host",
+    "section": "Step 1 Assign JournalNodes",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 160
+  },
+  {
+    "id": "JN-STEP1-002",
+    "summary": "最大 JN 数为 `min(stack/host cardinality, existingCount * 2 - 1)`",
+    "section": "Step 1 Assign JournalNodes",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 161
+  },
+  {
+    "id": "JN-STEP1-003",
+    "summary": "Next 保存最终 master topology，后续通过与实时模型差集计算 add/delete hosts",
+    "section": "Step 1 Assign JournalNodes",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 162
+  },
+  {
+    "id": "JN-STEP2-001",
+    "summary": "Review 明列待安装与待删除 JN hosts，并展示只读 HDFS shared-edits 变化",
+    "section": "Step 2 Review",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 168
+  },
+  {
+    "id": "JN-STEP2-002",
+    "summary": "非 Federation 更新 `dfs.namenode.shared.edits.dir`",
+    "section": "Step 2 Review",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 169
+  },
+  {
+    "id": "JN-STEP2-003",
+    "summary": "NameNode Federation 更新每个 `dfs.namenode.shared.edits.dir.<ns>`",
+    "section": "Step 2 Review",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 170
+  },
+  {
+    "id": "JN-STEP2-004",
+    "summary": "Next 保存 config snapshot/tag/nameservice；纯删除直达 Step 4，其余进入 Step 3",
+    "section": "Step 2 Review",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 171
+  },
+  {
+    "id": "JN-STEP3-001",
+    "summary": "单 namespace 在 Active NN 执行 safemode enter 和 saveNamespace",
+    "section": "Step 3 Save Namespace",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 177
+  },
+  {
+    "id": "JN-STEP3-002",
+    "summary": "多 namespace 为每个 namespace显示 `-fs hdfs://<ns>` 的 safemode/saveNamespace 命令",
+    "section": "Step 3 Save Namespace",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 178
+  },
+  {
+    "id": "JN-STEP3-003",
+    "summary": "多 namespace 选择每组检查 host：先使用 Active NN 模型；缺 Active 时优先该组 `STARTED` NN，否则第一台",
+    "section": "Step 3 Save Namespace",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 179
+  },
+  {
+    "id": "JN-STEP3-004",
+    "summary": "所有返回项均需 `Safemode` 非空且 txid checkpoint 差 <= 1 才启用 Next",
+    "section": "Step 3 Save Namespace",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 180
+  },
+  {
+    "id": "JN-STEP3-005",
+    "summary": "响应 item 数没有与 namespace 数做等量校验",
+    "section": "Step 3 Save Namespace",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 181
+  },
+  {
+    "id": "JN-STEP4-001",
+    "summary": "1 Stop Standby NameNode",
+    "section": "Step 4 Add/Remove JournalNodes",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 187
+  },
+  {
+    "id": "JN-STEP4-002",
+    "summary": "2 Stop Services",
+    "section": "Step 4 Add/Remove JournalNodes",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 188
+  },
+  {
+    "id": "JN-STEP4-003",
+    "summary": "3 Add JournalNodes",
+    "section": "Step 4 Add/Remove JournalNodes",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 189
+  },
+  {
+    "id": "JN-STEP4-004",
+    "summary": "4 Delete JournalNodes",
+    "section": "Step 4 Add/Remove JournalNodes",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 190
+  },
+  {
+    "id": "JN-STEP4-005",
+    "summary": "删除多台 JN 的聚合缺陷",
+    "section": "Step 4 Add/Remove JournalNodes",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 191
+  },
+  {
+    "id": "JN-STEP4-006",
+    "summary": "5 Reconfigure HDFS",
+    "section": "Step 4 Add/Remove JournalNodes",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 192
+  },
+  {
+    "id": "JN-STEP5-001",
+    "summary": "从任一现有 JN host 打包 Journal directories，复制到所有新 JN并在相同位置解压",
+    "section": "Step 5 Copy JournalNode Directories",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 198
+  },
+  {
+    "id": "JN-STEP5-002",
+    "summary": "用户点击 Next 表示人工完成",
+    "section": "Step 5 Copy JournalNode Directories",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 199
+  },
+  {
+    "id": "JN-STEP6-001",
+    "summary": "Step 6 从当前 `App.HostComponent` model 读取 JN hosts并 PUT `STARTED`",
+    "section": "Step 6 Start JournalNodes 与 Step 7 Start All Services",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 205
+  },
+  {
+    "id": "JN-STEP7-001",
+    "summary": "Step 7 将全部 services PUT `STARTED`，不运行 smoke tests",
+    "section": "Step 6 Start JournalNodes 与 Step 7 Start All Services",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 206
+  },
+  {
+    "id": "NNHA-PROGRESS-001",
+    "summary": "严格串行",
+    "section": "通用进度、错误、日志与 Kerberos",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 212
+  },
+  {
+    "id": "NNHA-PROGRESS-002",
+    "summary": "request 轮询",
+    "section": "通用进度、错误、日志与 Kerberos",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 213
+  },
+  {
+    "id": "NNHA-PROGRESS-003",
+    "summary": "终态聚合",
+    "section": "通用进度、错误、日志与 Kerberos",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 214
+  },
+  {
+    "id": "NNHA-PROGRESS-004",
+    "summary": "Retry",
+    "section": "通用进度、错误、日志与 Kerberos",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 215
+  },
+  {
+    "id": "NNHA-PROGRESS-005",
+    "summary": "Skip",
+    "section": "通用进度、错误、日志与 Kerberos",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 216
+  },
+  {
+    "id": "NNHA-PROGRESS-006",
+    "summary": "host/task 详情",
+    "section": "通用进度、错误、日志与 Kerberos",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 217
+  },
+  {
+    "id": "NNHA-PROGRESS-007",
+    "summary": "install KDC gate",
+    "section": "通用进度、错误、日志与 Kerberos",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 218
+  },
+  {
+    "id": "NNHA-PROGRESS-008",
+    "summary": "install chain 容错缺陷",
+    "section": "通用进度、错误、日志与 Kerberos",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 219
+  },
+  {
+    "id": "NNHA-PROGRESS-009",
+    "summary": "mixed topology refresh",
+    "section": "通用进度、错误、日志与 Kerberos",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 220
+  },
+  {
+    "id": "NNHA-PROGRESS-010",
+    "summary": "component install wire chain",
+    "section": "通用进度、错误、日志与 Kerberos",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 221
+  },
+  {
+    "id": "NNHA-PROGRESS-011",
+    "summary": "invalid-KDC credential 保存",
+    "section": "通用进度、错误、日志与 Kerberos",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 222
+  },
+  {
+    "id": "NNHA-RECOVERY-001",
+    "summary": "NNHA snapshot",
+    "section": "关闭、持久化与恢复",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 228
+  },
+  {
+    "id": "NNHA-RECOVERY-002",
+    "summary": "NNHA 刷新恢复",
+    "section": "关闭、持久化与恢复",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 229
+  },
+  {
+    "id": "NNHA-RECOVERY-003",
+    "summary": "NNHA Step 1-4 关闭",
+    "section": "关闭、持久化与恢复",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 230
+  },
+  {
+    "id": "NNHA-RECOVERY-004",
+    "summary": "`autoRollbackHA=false` 且 Step > 4 关闭",
+    "section": "关闭、持久化与恢复",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 231
+  },
+  {
+    "id": "NNHA-RECOVERY-005",
+    "summary": "`autoRollbackHA=true`",
+    "section": "关闭、持久化与恢复",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 232
+  },
+  {
+    "id": "JN-RECOVERY-001",
+    "summary": "JN snapshot",
+    "section": "关闭、持久化与恢复",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 233
+  },
+  {
+    "id": "JN-RECOVERY-002",
+    "summary": "JN 关闭",
+    "section": "关闭、持久化与恢复",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 234
+  },
+  {
+    "id": "JN-RECOVERY-003",
+    "summary": "JN 恢复不可靠",
+    "section": "关闭、持久化与恢复",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 235
+  },
+  {
+    "id": "NNHA-RECOVERY-006",
+    "summary": "persist 权限",
+    "section": "关闭、持久化与恢复",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 236
+  },
+  {
+    "id": "NNHA-ROLLBACK-001",
+    "summary": "注册 route `/highAvailability/NameNode/rollbackHA`，route 名 `main.services.rollbackHighAvailability`",
+    "section": "Rollback 与 Disable 的真实可达性",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 242
+  },
+  {
+    "id": "NNHA-ROLLBACK-002",
+    "summary": "注册 rollback Step 2",
+    "section": "Rollback 与 Disable 的真实可达性",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 243
+  },
+  {
+    "id": "NNHA-ROLLBACK-003",
+    "summary": "注册 rollback Step 3",
+    "section": "Rollback 与 Disable 的真实可达性",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 244
+  },
+  {
+    "id": "NNHA-ROLLBACK-004",
+    "summary": "`disableHighAvailability()`",
+    "section": "Rollback 与 Disable 的真实可达性",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 245
+  },
+  {
+    "id": "NNHA-ROLLBACK-005",
+    "summary": "单体 `HighAvailabilityRollbackController`",
+    "section": "Rollback 与 Disable 的真实可达性",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 246
+  },
+  {
+    "id": "NNHA-ROLLBACK-006",
+    "summary": "单体 controller 自身导航/状态",
+    "section": "Rollback 与 Disable 的真实可达性",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 247
+  },
+  {
+    "id": "NNHA-ROLLBACK-007",
+    "summary": "单体 controller 接口/类型错误",
+    "section": "Rollback 与 Disable 的真实可达性",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 248
+  },
+  {
+    "id": "NNHA-ROLLBACK-008",
+    "summary": "产品基线结论",
+    "section": "Rollback 与 Disable 的真实可达性",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 249
+  },
+  {
+    "id": "HA-API-001",
+    "summary": "`hosts.confirmed` GET",
+    "section": "后端接口契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 257
+  },
+  {
+    "id": "HA-API-002",
+    "summary": "`hosts.high_availability.wizard` GET",
+    "section": "后端接口契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 258
+  },
+  {
+    "id": "HA-API-003",
+    "summary": "`wizard.loadrecommendations` POST",
+    "section": "后端接口契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 259
+  },
+  {
+    "id": "HA-API-004",
+    "summary": "`config.tags` GET",
+    "section": "后端接口契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 260
+  },
+  {
+    "id": "HA-API-005",
+    "summary": "`admin.get.all_configurations` GET",
+    "section": "后端接口契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 261
+  },
+  {
+    "id": "HA-API-031",
+    "summary": "`config.on_site` GET",
+    "section": "后端接口契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 262
+  },
+  {
+    "id": "HA-API-006",
+    "summary": "`admin.high_availability.getNnCheckPointStatus` GET",
+    "section": "后端接口契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 263
+  },
+  {
+    "id": "HA-API-007",
+    "summary": "`admin.high_availability.getNnCheckPointsStatuses` GET",
+    "section": "后端接口契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 264
+  },
+  {
+    "id": "HA-API-008",
+    "summary": "`admin.high_availability.getJnCheckPointStatus` GET",
+    "section": "后端接口契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 265
+  },
+  {
+    "id": "HA-API-009",
+    "summary": "`common.services.update` PUT",
+    "section": "后端接口契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 266
+  },
+  {
+    "id": "HA-API-010",
+    "summary": "`common.host_components.update` PUT",
+    "section": "后端接口契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 267
+  },
+  {
+    "id": "HA-API-011",
+    "summary": "`common.host.host_component.update` PUT",
+    "section": "后端接口契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 268
+  },
+  {
+    "id": "HA-API-012",
+    "summary": "`common.host.host_component.passive` PUT",
+    "section": "后端接口契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 269
+  },
+  {
+    "id": "HA-API-013",
+    "summary": "`common.delete.host_component` DELETE",
+    "section": "后端接口契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 270
+  },
+  {
+    "id": "HA-API-014",
+    "summary": "`common.service.configurations` PUT",
+    "section": "后端接口契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 271
+  },
+  {
+    "id": "HA-API-015",
+    "summary": "`common.service.multiConfigurations` PUT",
+    "section": "后端接口契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 272
+  },
+  {
+    "id": "HA-API-016",
+    "summary": "`host_component.installed.on_hosts` GET",
+    "section": "后端接口契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 273
+  },
+  {
+    "id": "HA-API-017",
+    "summary": "`common.create_component` POST",
+    "section": "后端接口契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 274
+  },
+  {
+    "id": "HA-API-018",
+    "summary": "`wizard.step8.register_host_to_component` POST",
+    "section": "后端接口契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 275
+  },
+  {
+    "id": "HA-API-019",
+    "summary": "direct `App.HttpClient` GET",
+    "section": "后端接口契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 276
+  },
+  {
+    "id": "HA-API-020",
+    "summary": "direct `App.HttpClient` GET",
+    "section": "后端接口契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 277
+  },
+  {
+    "id": "HA-API-021",
+    "summary": "`background_operations.get_by_request` GET",
+    "section": "后端接口契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 278
+  },
+  {
+    "id": "HA-API-022",
+    "summary": "`common.request.polling` GET",
+    "section": "后端接口契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 279
+  },
+  {
+    "id": "HA-API-023",
+    "summary": "`background_operations.get_by_task` GET",
+    "section": "后端接口契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 280
+  },
+  {
+    "id": "HA-API-024",
+    "summary": "`admin.security.cluster_configs.kerberos` GET",
+    "section": "后端接口契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 281
+  },
+  {
+    "id": "HA-API-025",
+    "summary": "`kerberos.session.state` GET",
+    "section": "后端接口契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 282
+  },
+  {
+    "id": "HA-API-026",
+    "summary": "`credentials.get/create/update` GET/POST/PUT",
+    "section": "后端接口契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 283
+  },
+  {
+    "id": "HA-API-027",
+    "summary": "`persist.get` GET",
+    "section": "后端接口契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 284
+  },
+  {
+    "id": "HA-API-028",
+    "summary": "`persist.post` POST",
+    "section": "后端接口契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 285
+  },
+  {
+    "id": "HA-API-029",
+    "summary": "`hosts.all` GET",
+    "section": "后端接口契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 286
+  },
+  {
+    "id": "HA-API-030",
+    "summary": "静态 rollback接口集合",
+    "section": "后端接口契约",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 287
+  },
+  {
+    "id": "JN-RISK-001",
+    "summary": "NNHA Step 4 与 Step 6 对服务端 JSON字符串直接 `JSON.parse`，无 try/catch；poll GET没有 error callback/reschedule",
+    "section": "已知实现风险与 React 决策",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 293
+  },
+  {
+    "id": "JN-RISK-002",
+    "summary": "NNHA Step 6只等前三个 JN响应",
+    "section": "已知实现风险与 React 决策",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 294
+  },
+  {
+    "id": "JN-RISK-003",
+    "summary": "JN Step 4多 DELETE第一台 success可提前推进",
+    "section": "已知实现风险与 React 决策",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 295
+  },
+  {
+    "id": "JN-RISK-004",
+    "summary": "JN Step 6依赖可能未刷新的 Ember model",
+    "section": "已知实现风险与 React 决策",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 296
+  },
+  {
+    "id": "JN-RISK-005",
+    "summary": "多 namespace checkpoint不验证返回基数/身份",
+    "section": "已知实现风险与 React 决策",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 297
+  },
+  {
+    "id": "JN-RISK-006",
+    "summary": "JN Review配置数组 reload时可能累积重复项",
+    "section": "已知实现风险与 React 决策",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 298
+  },
+  {
+    "id": "JN-RISK-007",
+    "summary": "component register error仍继续 Install，service-component create失败被吞",
+    "section": "已知实现风险与 React 决策",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 299
+  },
+  {
+    "id": "JN-RISK-008",
+    "summary": "JN route可由Host Details绕过Active/Standby检查，且直接URL无统一业务 gate",
+    "section": "已知实现风险与 React 决策",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 300
+  },
+  {
+    "id": "JN-RISK-009",
+    "summary": "JN critical progress关闭无确认/回退，NNHA无auto rollback时只清状态",
+    "section": "已知实现风险与 React 决策",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 301
+  },
+  {
+    "id": "JN-RISK-010",
+    "summary": "注册 rollback只是空壳，静态完整rollback未接线且含错误接口/类型",
+    "section": "已知实现风险与 React 决策",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 302
+  },
+  {
+    "id": "HA-TEST-001",
+    "summary": "NNHA Step 1-9 controllers/views",
+    "section": "测试证据与运行态验收矩阵",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 308
+  },
+  {
+    "id": "HA-TEST-002",
+    "summary": "JN Step 1-7",
+    "section": "测试证据与运行态验收矩阵",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 309
+  },
+  {
+    "id": "HA-TEST-003",
+    "summary": "通用 progress/popup",
+    "section": "测试证据与运行态验收矩阵",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 310
+  },
+  {
+    "id": "HA-TEST-004",
+    "summary": "配置迁移",
+    "section": "测试证据与运行态验收矩阵",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 311
+  },
+  {
+    "id": "HA-TEST-005",
+    "summary": "入口/权限",
+    "section": "测试证据与运行态验收矩阵",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 312
+  },
+  {
+    "id": "HA-TEST-006",
+    "summary": "恢复/关闭/owner",
+    "section": "测试证据与运行态验收矩阵",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 313
+  },
+  {
+    "id": "HA-TEST-007",
+    "summary": "rollback",
+    "section": "测试证据与运行态验收矩阵",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 314
+  },
+  {
+    "id": "HA-TEST-008",
+    "summary": "大于三台JN",
+    "section": "测试证据与运行态验收矩阵",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 315
+  },
+  {
+    "id": "HA-TEST-009",
+    "summary": "JN并发删除/模型刷新",
+    "section": "测试证据与运行态验收矩阵",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 316
+  },
+  {
+    "id": "HA-TEST-010",
+    "summary": "Federation checkpoint",
+    "section": "测试证据与运行态验收矩阵",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 317
+  },
+  {
+    "id": "HA-TEST-011",
+    "summary": "Kerberos模式",
+    "section": "测试证据与运行态验收矩阵",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 318
+  },
+  {
+    "id": "HA-TEST-012",
+    "summary": "完整成功与断点恢复",
+    "section": "测试证据与运行态验收矩阵",
+    "moduleFile": "09-namenode-journalnode-ha.md",
+    "line": 319
+  },
+  {
+    "id": "RMHA-ENTRY-001",
+    "summary": "`CONDITIONAL`",
+    "section": "路由与入口",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 18
+  },
+  {
+    "id": "RMHA-ENTRY-002",
+    "summary": "`CONDITIONAL`",
+    "section": "路由与入口",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 19
+  },
+  {
+    "id": "RMHA-ENTRY-003",
+    "summary": "`CONFIRMED`",
+    "section": "路由与入口",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 20
+  },
+  {
+    "id": "RMHA-ENTRY-004",
+    "summary": "`CONDITIONAL`",
+    "section": "路由与入口",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 21
+  },
+  {
+    "id": "RMHA-ENTRY-005",
+    "summary": "`CONFIRMED`",
+    "section": "路由与入口",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 22
+  },
+  {
+    "id": "RAHA-ENTRY-001",
+    "summary": "`CONDITIONAL`",
+    "section": "路由与入口",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 23
+  },
+  {
+    "id": "RAHA-ENTRY-002",
+    "summary": "`CONDITIONAL`",
+    "section": "路由与入口",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 24
+  },
+  {
+    "id": "RAHA-ENTRY-003",
+    "summary": "`CONFIRMED`",
+    "section": "路由与入口",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 25
+  },
+  {
+    "id": "RAHA-ENTRY-004",
+    "summary": "`CONFIRMED`",
+    "section": "路由与入口",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 26
+  },
+  {
+    "id": "HA-STATIC-001",
+    "summary": "`STATIC_ONLY`",
+    "section": "路由与入口",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 27
+  },
+  {
+    "id": "RMHA-1-001",
+    "summary": "`CONFIRMED`",
+    "section": "Step 1 Get Started",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 35
+  },
+  {
+    "id": "RMHA-1-002",
+    "summary": "`CONFIRMED`",
+    "section": "Step 1 Get Started",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 36
+  },
+  {
+    "id": "RMHA-2-001",
+    "summary": "`CONFIRMED`",
+    "section": "Step 2 Select Host",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 42
+  },
+  {
+    "id": "RMHA-2-002",
+    "summary": "`CONFIRMED`",
+    "section": "Step 2 Select Host",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 43
+  },
+  {
+    "id": "RMHA-2-003",
+    "summary": "`CONFIRMED`",
+    "section": "Step 2 Select Host",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 44
+  },
+  {
+    "id": "RMHA-2-004",
+    "summary": "`CONFIRMED`",
+    "section": "Step 2 Select Host",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 45
+  },
+  {
+    "id": "RMHA-2-005",
+    "summary": "`CONFIRMED`",
+    "section": "Step 2 Select Host",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 46
+  },
+  {
+    "id": "RMHA-2-006",
+    "summary": "`NEEDS_RUNTIME_VALIDATION`",
+    "section": "Step 2 Select Host",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 47
+  },
+  {
+    "id": "RMHA-3-001",
+    "summary": "`CONFIRMED`",
+    "section": "Step 3 Review",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 53
+  },
+  {
+    "id": "RMHA-3-002",
+    "summary": "`CONFIRMED`",
+    "section": "Step 3 Review",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 54
+  },
+  {
+    "id": "RMHA-3-003",
+    "summary": "`CONFIRMED`",
+    "section": "Step 3 Review",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 55
+  },
+  {
+    "id": "RMHA-3-004",
+    "summary": "`CONDITIONAL`",
+    "section": "Step 3 Review",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 56
+  },
+  {
+    "id": "RMHA-3-005",
+    "summary": "`CONFIRMED`",
+    "section": "Step 3 Review",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 57
+  },
+  {
+    "id": "RMHA-3-006",
+    "summary": "`CONFIRMED`",
+    "section": "Step 3 Review",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 58
+  },
+  {
+    "id": "RMHA-3-007",
+    "summary": "`CONDITIONAL`",
+    "section": "Step 3 Review",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 59
+  },
+  {
+    "id": "RMHA-3-008",
+    "summary": "`NEEDS_RUNTIME_VALIDATION`",
+    "section": "Step 3 Review",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 60
+  },
+  {
+    "id": "RMHA-CFG-001",
+    "summary": "`yarn-site`",
+    "section": "ResourceManager 配置契约",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 68
+  },
+  {
+    "id": "RMHA-CFG-002",
+    "summary": "`yarn-site`",
+    "section": "ResourceManager 配置契约",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 69
+  },
+  {
+    "id": "RMHA-CFG-003",
+    "summary": "`yarn-site`",
+    "section": "ResourceManager 配置契约",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 70
+  },
+  {
+    "id": "RMHA-CFG-004",
+    "summary": "`yarn-site`",
+    "section": "ResourceManager 配置契约",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 71
+  },
+  {
+    "id": "RMHA-CFG-005",
+    "summary": "`yarn-site`",
+    "section": "ResourceManager 配置契约",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 72
+  },
+  {
+    "id": "RMHA-CFG-006",
+    "summary": "`yarn-site`",
+    "section": "ResourceManager 配置契约",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 73
+  },
+  {
+    "id": "RMHA-CFG-007",
+    "summary": "`yarn-site`",
+    "section": "ResourceManager 配置契约",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 74
+  },
+  {
+    "id": "RMHA-CFG-008",
+    "summary": "`yarn-site`",
+    "section": "ResourceManager 配置契约",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 75
+  },
+  {
+    "id": "RMHA-CFG-009",
+    "summary": "`yarn-site`",
+    "section": "ResourceManager 配置契约",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 76
+  },
+  {
+    "id": "RMHA-CFG-010",
+    "summary": "`yarn-site`",
+    "section": "ResourceManager 配置契约",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 77
+  },
+  {
+    "id": "RMHA-CFG-011",
+    "summary": "`yarn-site`",
+    "section": "ResourceManager 配置契约",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 78
+  },
+  {
+    "id": "RMHA-CFG-012",
+    "summary": "`yarn-client`",
+    "section": "ResourceManager 配置契约",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 79
+  },
+  {
+    "id": "RMHA-CFG-013",
+    "summary": "`yarn-client`",
+    "section": "ResourceManager 配置契约",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 80
+  },
+  {
+    "id": "RMHA-CFG-014",
+    "summary": "`core-site`",
+    "section": "ResourceManager 配置契约",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 81
+  },
+  {
+    "id": "RMHA-CFG-015",
+    "summary": "三个 site",
+    "section": "ResourceManager 配置契约",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 82
+  },
+  {
+    "id": "RMHA-4-001",
+    "summary": "`CONFIRMED`",
+    "section": "Step 4 Configure Components",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 88
+  },
+  {
+    "id": "RMHA-4-002",
+    "summary": "`CONDITIONAL`",
+    "section": "Step 4 Configure Components",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 89
+  },
+  {
+    "id": "RMHA-4-003",
+    "summary": "`CONFIRMED`",
+    "section": "Step 4 Configure Components",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 90
+  },
+  {
+    "id": "RMHA-4-004",
+    "summary": "`CONDITIONAL`",
+    "section": "Step 4 Configure Components",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 91
+  },
+  {
+    "id": "RMHA-4-005",
+    "summary": "`CONFIRMED`",
+    "section": "Step 4 Configure Components",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 92
+  },
+  {
+    "id": "RMHA-4-006",
+    "summary": "`CONFIRMED`",
+    "section": "Step 4 Configure Components",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 93
+  },
+  {
+    "id": "RMHA-4-007",
+    "summary": "`CONFIRMED`",
+    "section": "Step 4 Configure Components",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 94
+  },
+  {
+    "id": "RMHA-4-008",
+    "summary": "`CONFIRMED`",
+    "section": "Step 4 Configure Components",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 95
+  },
+  {
+    "id": "RMHA-4-009",
+    "summary": "`CONFIRMED`",
+    "section": "Step 4 Configure Components",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 96
+  },
+  {
+    "id": "RAHA-1-001",
+    "summary": "`CONFIRMED`",
+    "section": "Step 1 Get Started",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 104
+  },
+  {
+    "id": "RAHA-1-002",
+    "summary": "`CONFIRMED`",
+    "section": "Step 1 Get Started",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 105
+  },
+  {
+    "id": "RAHA-1-003",
+    "summary": "`CONFIRMED`",
+    "section": "Step 1 Get Started",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 106
+  },
+  {
+    "id": "RAHA-1-004",
+    "summary": "`CONFIRMED`",
+    "section": "Step 1 Get Started",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 107
+  },
+  {
+    "id": "RAHA-2-001",
+    "summary": "`CONFIRMED`",
+    "section": "Step 2 Select Hosts",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 113
+  },
+  {
+    "id": "RAHA-2-002",
+    "summary": "`CONFIRMED`",
+    "section": "Step 2 Select Hosts",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 114
+  },
+  {
+    "id": "RAHA-2-003",
+    "summary": "`CONFIRMED`",
+    "section": "Step 2 Select Hosts",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 115
+  },
+  {
+    "id": "RAHA-2-004",
+    "summary": "`CONFIRMED`",
+    "section": "Step 2 Select Hosts",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 116
+  },
+  {
+    "id": "RAHA-2-005",
+    "summary": "`CONFIRMED`",
+    "section": "Step 2 Select Hosts",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 117
+  },
+  {
+    "id": "RAHA-3-001",
+    "summary": "`CONFIRMED`",
+    "section": "Step 3 Review",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 123
+  },
+  {
+    "id": "RAHA-3-002",
+    "summary": "`CONDITIONAL`",
+    "section": "Step 3 Review",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 124
+  },
+  {
+    "id": "RAHA-3-003",
+    "summary": "`CONFIRMED`",
+    "section": "Step 3 Review",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 125
+  },
+  {
+    "id": "RAHA-3-004",
+    "summary": "`STATIC_ONLY`",
+    "section": "Step 3 Review",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 126
+  },
+  {
+    "id": "RAHA-4-001",
+    "summary": "`CONFIRMED`",
+    "section": "Step 4 Install, Start and Test",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 132
+  },
+  {
+    "id": "RAHA-4-002",
+    "summary": "`CONDITIONAL`",
+    "section": "Step 4 Install, Start and Test",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 133
+  },
+  {
+    "id": "RAHA-4-003",
+    "summary": "`CONDITIONAL`",
+    "section": "Step 4 Install, Start and Test",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 134
+  },
+  {
+    "id": "RAHA-4-004",
+    "summary": "`CONFIRMED`",
+    "section": "Step 4 Install, Start and Test",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 135
+  },
+  {
+    "id": "RAHA-4-005",
+    "summary": "`CONFIRMED`",
+    "section": "Step 4 Install, Start and Test",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 136
+  },
+  {
+    "id": "RAHA-4-006",
+    "summary": "`CONFIRMED`",
+    "section": "Step 4 Install, Start and Test",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 137
+  },
+  {
+    "id": "HA-COMMON-FAIL-001",
+    "summary": "`CONFIRMED`",
+    "section": "共用失败、恢复与 Kerberos 语义",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 143
+  },
+  {
+    "id": "HA-COMMON-FAIL-002",
+    "summary": "`CONFIRMED`",
+    "section": "共用失败、恢复与 Kerberos 语义",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 144
+  },
+  {
+    "id": "HA-COMMON-FAIL-003",
+    "summary": "`CONFIRMED`",
+    "section": "共用失败、恢复与 Kerberos 语义",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 145
+  },
+  {
+    "id": "HA-COMMON-FAIL-004",
+    "summary": "`CONFIRMED`",
+    "section": "共用失败、恢复与 Kerberos 语义",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 146
+  },
+  {
+    "id": "HA-COMMON-FAIL-005",
+    "summary": "`CONFIRMED`",
+    "section": "共用失败、恢复与 Kerberos 语义",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 147
+  },
+  {
+    "id": "HA-COMMON-FAIL-006",
+    "summary": "`STATIC_ONLY`",
+    "section": "共用失败、恢复与 Kerberos 语义",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 148
+  },
+  {
+    "id": "HA-COMMON-REC-001",
+    "summary": "`CONFIRMED`",
+    "section": "共用失败、恢复与 Kerberos 语义",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 149
+  },
+  {
+    "id": "HA-COMMON-REC-002",
+    "summary": "`CONFIRMED`",
+    "section": "共用失败、恢复与 Kerberos 语义",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 150
+  },
+  {
+    "id": "HA-COMMON-REC-003",
+    "summary": "`NEEDS_RUNTIME_VALIDATION`",
+    "section": "共用失败、恢复与 Kerberos 语义",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 151
+  },
+  {
+    "id": "HA-COMMON-REC-004",
+    "summary": "`CONFIRMED`",
+    "section": "共用失败、恢复与 Kerberos 语义",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 152
+  },
+  {
+    "id": "HA-COMMON-REC-005",
+    "summary": "`CONFIRMED`",
+    "section": "共用失败、恢复与 Kerberos 语义",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 153
+  },
+  {
+    "id": "HA-COMMON-REC-006",
+    "summary": "`CONFIRMED`",
+    "section": "共用失败、恢复与 Kerberos 语义",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 154
+  },
+  {
+    "id": "HA-COMMON-REC-007",
+    "summary": "`STATIC_ONLY`",
+    "section": "共用失败、恢复与 Kerberos 语义",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 155
+  },
+  {
+    "id": "HA-COMMON-REC-008",
+    "summary": "`CONFIRMED`",
+    "section": "共用失败、恢复与 Kerberos 语义",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 156
+  },
+  {
+    "id": "HA-COMMON-KRB-001",
+    "summary": "`CONDITIONAL`",
+    "section": "共用失败、恢复与 Kerberos 语义",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 157
+  },
+  {
+    "id": "HA-COMMON-KRB-002",
+    "summary": "`CONDITIONAL`",
+    "section": "共用失败、恢复与 Kerberos 语义",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 158
+  },
+  {
+    "id": "HA-COMMON-KRB-003",
+    "summary": "`CONFIRMED`",
+    "section": "共用失败、恢复与 Kerberos 语义",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 159
+  },
+  {
+    "id": "HA-COMMON-KRB-004",
+    "summary": "`NEEDS_RUNTIME_VALIDATION`",
+    "section": "共用失败、恢复与 Kerberos 语义",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 160
+  },
+  {
+    "id": "HA-COMMON-KRB-005",
+    "summary": "`STATIC_ONLY`",
+    "section": "共用失败、恢复与 Kerberos 语义",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 161
+  },
+  {
+    "id": "HA-COMMON-KRB-006",
+    "summary": "`STATIC_ONLY`",
+    "section": "共用失败、恢复与 Kerberos 语义",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 162
+  },
+  {
+    "id": "HA-COMMON-INSTALL-001",
+    "summary": "`CONFIRMED`",
+    "section": "组件安装请求链",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 170
+  },
+  {
+    "id": "HA-COMMON-INSTALL-002",
+    "summary": "`CONFIRMED`",
+    "section": "组件安装请求链",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 171
+  },
+  {
+    "id": "HA-COMMON-INSTALL-003",
+    "summary": "`CONFIRMED`",
+    "section": "组件安装请求链",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 172
+  },
+  {
+    "id": "HA-COMMON-INSTALL-004",
+    "summary": "`CONFIRMED`",
+    "section": "组件安装请求链",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 173
+  },
+  {
+    "id": "HA-COMMON-INSTALL-005",
+    "summary": "`CONFIRMED`",
+    "section": "组件安装请求链",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 174
+  },
+  {
+    "id": "HA-COMMON-INSTALL-006",
+    "summary": "`CONFIRMED`",
+    "section": "组件安装请求链",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 175
+  },
+  {
+    "id": "HA-COMMON-INSTALL-007",
+    "summary": "`NEEDS_RUNTIME_VALIDATION`",
+    "section": "组件安装请求链",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 176
+  },
+  {
+    "id": "HA-STATIC-002",
+    "summary": "`NEEDS_RUNTIME_VALIDATION`",
+    "section": "React 对照必测场景",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 218
+  },
+  {
+    "id": "HA-STATIC-003",
+    "summary": "`NEEDS_RUNTIME_VALIDATION`",
+    "section": "React 对照必测场景",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 219
+  },
+  {
+    "id": "HA-STATIC-004",
+    "summary": "`NEEDS_RUNTIME_VALIDATION`",
+    "section": "React 对照必测场景",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 220
+  },
+  {
+    "id": "HA-STATIC-005",
+    "summary": "`NEEDS_RUNTIME_VALIDATION`",
+    "section": "React 对照必测场景",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 221
+  },
+  {
+    "id": "HA-STATIC-006",
+    "summary": "`NEEDS_RUNTIME_VALIDATION`",
+    "section": "React 对照必测场景",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 222
+  },
+  {
+    "id": "HA-STATIC-007",
+    "summary": "`NEEDS_RUNTIME_VALIDATION`",
+    "section": "React 对照必测场景",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 223
+  },
+  {
+    "id": "HA-STATIC-008",
+    "summary": "`NEEDS_RUNTIME_VALIDATION`",
+    "section": "React 对照必测场景",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 224
+  },
+  {
+    "id": "HA-STATIC-009",
+    "summary": "`NEEDS_RUNTIME_VALIDATION`",
+    "section": "React 对照必测场景",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 225
+  },
+  {
+    "id": "HA-STATIC-010",
+    "summary": "`NEEDS_RUNTIME_VALIDATION`",
+    "section": "React 对照必测场景",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 226
+  },
+  {
+    "id": "HA-STATIC-011",
+    "summary": "`NEEDS_RUNTIME_VALIDATION`",
+    "section": "React 对照必测场景",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 227
+  },
+  {
+    "id": "HA-STATIC-012",
+    "summary": "`NEEDS_RUNTIME_VALIDATION`",
+    "section": "React 对照必测场景",
+    "moduleFile": "10-rm-ranger-ha.md",
+    "line": 228
+  },
+  {
+    "id": "NNF-ENTRY-001",
+    "summary": "HDFS Service Actions 的 Enable NameNode Federation，进入 `/main/services/NameNode/federation/step1`",
+    "section": "入口、权限与可见性",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 11
+  },
+  {
+    "id": "RBF-ENTRY-001",
+    "summary": "HDFS Service Actions 的 Enable Router-based Federation，进入 `/main/services/NameNode/federation/routerBasedFederation/step1`",
+    "section": "入口、权限与可见性",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 12
+  },
+  {
+    "id": "HAWQ-ENTRY-001",
+    "summary": "HAWQ Service Actions 的 Add HAWQ Standby，进入 `/main/services/highAvailability/Hawq/add/step1`",
+    "section": "入口、权限与可见性",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 13
+  },
+  {
+    "id": "HAWQ-ENTRY-002",
+    "summary": "HAWQ Master custom command 的 Remove HAWQ Standby，进入 `/main/services/highAvailability/Hawq/remove/step1`",
+    "section": "入口、权限与可见性",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 14
+  },
+  {
+    "id": "HAWQ-ENTRY-003",
+    "summary": "HAWQ Standby custom command 的 Activate HAWQ Standby，进入 `/main/services/highAvailability/Hawq/activate/step1`",
+    "section": "入口、权限与可见性",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 15
+  },
+  {
+    "id": "FHF-ENTRY-001",
+    "summary": "五条向导都会调用 `dataLoading()`、把对应 HDFS/HAWQ 设为当前 service、暂停常规 update controller，再在大 modal 内连接当前 step outlet",
+    "section": "入口、权限与可见性",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 16
+  },
+  {
+    "id": "FHF-ENTRY-002",
+    "summary": "五个 wizard view 插入 modal 时都通过 `WizardHostsLoading` 固定 GET 一次全部 host，并把结果写入 `content.hosts`",
+    "section": "入口、权限与可见性",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 17
+  },
+  {
+    "id": "FHF-ENTRY-003",
+    "summary": "五个 wizard controller 在首次构造已安装 master mapping 时调用 `loadMasterComponentHosts()`",
+    "section": "入口、权限与可见性",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 18
+  },
+  {
+    "id": "NNF-1-001",
+    "summary": "查看已有 nameservice 列表和不可逆/风险提示，输入新的 nameservice ID",
+    "section": "Step 1 Get Started",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 28
+  },
+  {
+    "id": "NNF-1-002",
+    "summary": "nameservice ID 格式严格为 1 至 63 个字符，只允许 ASCII 字母、数字、连字符，且首尾不能是连字符",
+    "section": "Step 1 Get Started",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 29
+  },
+  {
+    "id": "NNF-1-003",
+    "summary": "与已有 nameservice ID 的重复校验依赖异步 namespace model",
+    "section": "Step 1 Get Started",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 30
+  },
+  {
+    "id": "NNF-2-001",
+    "summary": "查看全部现有 NameNode（Current）并为新 namespace 固定选择两个 Additional NameNode host",
+    "section": "Step 2 Select Hosts",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 36
+  },
+  {
+    "id": "NNF-2-002",
+    "summary": "可在 host 下拉框中修改两个新增 NameNode 位置",
+    "section": "Step 2 Select Hosts",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 37
+  },
+  {
+    "id": "NNF-2-003",
+    "summary": "Next 保存所有现有和新增 master-component-host 映射",
+    "section": "Step 2 Select Hosts",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 38
+  },
+  {
+    "id": "NNF-3-001",
+    "summary": "Review 当前与新增 NameNode host，并等待配置加载",
+    "section": "Step 3 Review And Configurations",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 44
+  },
+  {
+    "id": "NNF-3-002",
+    "summary": "查看向导生成的 HDFS/Ranger/Accumulo 变更",
+    "section": "Step 3 Review And Configurations",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 45
+  },
+  {
+    "id": "NNF-3-003",
+    "summary": "修改新 namespace 的 JournalNode directory",
+    "section": "Step 3 Review And Configurations",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 46
+  },
+  {
+    "id": "NNF-4-001",
+    "summary": "1 `stopRequiredServices`",
+    "section": "Step 4 Configure Components",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 54
+  },
+  {
+    "id": "NNF-4-002",
+    "summary": "2 `reconfigureServices`",
+    "section": "Step 4 Configure Components",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 55
+  },
+  {
+    "id": "NNF-4-003",
+    "summary": "3 `installNameNode`",
+    "section": "Step 4 Configure Components",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 56
+  },
+  {
+    "id": "NNF-4-004",
+    "summary": "4 `installZKFC`",
+    "section": "Step 4 Configure Components",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 57
+  },
+  {
+    "id": "NNF-4-005",
+    "summary": "5 `startJournalNodes`",
+    "section": "Step 4 Configure Components",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 58
+  },
+  {
+    "id": "NNF-4-006",
+    "summary": "6 `startInfraSolr`",
+    "section": "Step 4 Configure Components",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 59
+  },
+  {
+    "id": "NNF-4-007",
+    "summary": "7 `startRangerAdmin`",
+    "section": "Step 4 Configure Components",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 60
+  },
+  {
+    "id": "NNF-4-008",
+    "summary": "8 `startRangerUsersync`",
+    "section": "Step 4 Configure Components",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 61
+  },
+  {
+    "id": "NNF-4-009",
+    "summary": "9 `startNameNodes`",
+    "section": "Step 4 Configure Components",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 62
+  },
+  {
+    "id": "NNF-4-010",
+    "summary": "10 `startZKFCs`",
+    "section": "Step 4 Configure Components",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 63
+  },
+  {
+    "id": "NNF-4-011",
+    "summary": "11 `formatNameNode`",
+    "section": "Step 4 Configure Components",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 64
+  },
+  {
+    "id": "NNF-4-012",
+    "summary": "12 `formatZKFC`",
+    "section": "Step 4 Configure Components",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 65
+  },
+  {
+    "id": "NNF-4-013",
+    "summary": "13 `startZKFC`",
+    "section": "Step 4 Configure Components",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 66
+  },
+  {
+    "id": "NNF-4-014",
+    "summary": "14 `startNameNode`",
+    "section": "Step 4 Configure Components",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 67
+  },
+  {
+    "id": "NNF-4-015",
+    "summary": "15 `bootstrapNameNode`",
+    "section": "Step 4 Configure Components",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 68
+  },
+  {
+    "id": "NNF-4-016",
+    "summary": "16 `startZKFC2`",
+    "section": "Step 4 Configure Components",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 69
+  },
+  {
+    "id": "NNF-4-017",
+    "summary": "17 `startNameNode2`",
+    "section": "Step 4 Configure Components",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 70
+  },
+  {
+    "id": "NNF-4-018",
+    "summary": "18 `restartAllServices`",
+    "section": "Step 4 Configure Components",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 71
+  },
+  {
+    "id": "NNF-4-019",
+    "summary": "Complete",
+    "section": "Step 4 Configure Components",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 72
+  },
+  {
+    "id": "NNF-CFG-001",
+    "summary": "`dfs.nameservices`、`dfs.internal.nameservices`",
+    "section": "NameNode Federation 配置变换",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 78
+  },
+  {
+    "id": "NNF-CFG-002",
+    "summary": "`dfs.ha.namenodes.<newNs>`",
+    "section": "NameNode Federation 配置变换",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 79
+  },
+  {
+    "id": "NNF-CFG-003",
+    "summary": "`dfs.namenode.rpc-address.<newNs>.<newNnId>`",
+    "section": "NameNode Federation 配置变换",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 80
+  },
+  {
+    "id": "NNF-CFG-004",
+    "summary": "`dfs.namenode.http-address.*`、`dfs.namenode.https-address.*`",
+    "section": "NameNode Federation 配置变换",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 81
+  },
+  {
+    "id": "NNF-CFG-005",
+    "summary": "`dfs.client.failover.proxy.provider.<newNs>`",
+    "section": "NameNode Federation 配置变换",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 82
+  },
+  {
+    "id": "NNF-CFG-006",
+    "summary": "`dfs.namenode.shared.edits.dir.<newNs>`",
+    "section": "NameNode Federation 配置变换",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 83
+  },
+  {
+    "id": "NNF-CFG-007",
+    "summary": "`dfs.journalnode.edits.dir.<newNs>`",
+    "section": "NameNode Federation 配置变换",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 84
+  },
+  {
+    "id": "NNF-CFG-008",
+    "summary": "原 namespace 的 scoped JN/shared edits",
+    "section": "NameNode Federation 配置变换",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 85
+  },
+  {
+    "id": "NNF-CFG-009",
+    "summary": "`dfs.namenode.servicerpc-address.*`",
+    "section": "NameNode Federation 配置变换",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 86
+  },
+  {
+    "id": "NNF-CFG-010",
+    "summary": "generic JN 属性清理",
+    "section": "NameNode Federation 配置变换",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 87
+  },
+  {
+    "id": "NNF-CFG-011",
+    "summary": "Ranger TagSync mapping",
+    "section": "NameNode Federation 配置变换",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 88
+  },
+  {
+    "id": "NNF-CFG-012",
+    "summary": "Accumulo volumes",
+    "section": "NameNode Federation 配置变换",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 89
+  },
+  {
+    "id": "NNF-CFG-013",
+    "summary": "写入原子边界",
+    "section": "NameNode Federation 配置变换",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 90
+  },
+  {
+    "id": "RBF-1-001",
+    "summary": "1 Get Started",
+    "section": "Steps 1-3",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 98
+  },
+  {
+    "id": "RBF-2-001",
+    "summary": "2 Select Hosts",
+    "section": "Steps 1-3",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 99
+  },
+  {
+    "id": "RBF-2-002",
+    "summary": "2 host 校验",
+    "section": "Steps 1-3",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 100
+  },
+  {
+    "id": "RBF-2-003",
+    "summary": "2 Next",
+    "section": "Steps 1-3",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 101
+  },
+  {
+    "id": "RBF-3-001",
+    "summary": "3 Review",
+    "section": "Steps 1-3",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 102
+  },
+  {
+    "id": "RBF-3-002",
+    "summary": "3 配置写入",
+    "section": "Steps 1-3",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 103
+  },
+  {
+    "id": "RBF-3-003",
+    "summary": "3 Next",
+    "section": "Steps 1-3",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 104
+  },
+  {
+    "id": "RBF-4-001",
+    "summary": "1 `installRouter`",
+    "section": "Step 4 Configure Router",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 110
+  },
+  {
+    "id": "RBF-4-002",
+    "summary": "2 `startRouters`",
+    "section": "Step 4 Configure Router",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 111
+  },
+  {
+    "id": "RBF-4-003",
+    "summary": "Complete",
+    "section": "Step 4 Configure Router",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 112
+  },
+  {
+    "id": "RBF-4-004",
+    "summary": "不可达代码",
+    "section": "Step 4 Configure Router",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 113
+  },
+  {
+    "id": "RBF-CFG-001",
+    "summary": "`dfs.federation.router.monitor.namenode`",
+    "section": "Router-based Federation 配置变换",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 119
+  },
+  {
+    "id": "RBF-CFG-002",
+    "summary": "`dfs.federation.router.default.nameserviceId`",
+    "section": "Router-based Federation 配置变换",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 120
+  },
+  {
+    "id": "RBF-CFG-003",
+    "summary": "`zk-dt-secret-manager.zkAuthType`",
+    "section": "Router-based Federation 配置变换",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 121
+  },
+  {
+    "id": "RBF-CFG-004",
+    "summary": "`zk-dt-secret-manager.zkConnectionString`",
+    "section": "Router-based Federation 配置变换",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 122
+  },
+  {
+    "id": "RBF-CFG-005",
+    "summary": "编辑与 override",
+    "section": "Router-based Federation 配置变换",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 123
+  },
+  {
+    "id": "HAWQ-ADD-1-001",
+    "summary": "1 Get Started",
+    "section": "HAWQ Add Standby 四步状态机",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 131
+  },
+  {
+    "id": "HAWQ-ADD-2-001",
+    "summary": "2 Select Host",
+    "section": "HAWQ Add Standby 四步状态机",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 132
+  },
+  {
+    "id": "HAWQ-ADD-2-002",
+    "summary": "2 client validation",
+    "section": "HAWQ Add Standby 四步状态机",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 133
+  },
+  {
+    "id": "HAWQ-ADD-2-003",
+    "summary": "2 advisor validation",
+    "section": "HAWQ Add Standby 四步状态机",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 134
+  },
+  {
+    "id": "HAWQ-ADD-3-001",
+    "summary": "3 Review",
+    "section": "HAWQ Add Standby 四步状态机",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 135
+  },
+  {
+    "id": "HAWQ-ADD-3-002",
+    "summary": "3 人工数据目录门禁",
+    "section": "HAWQ Add Standby 四步状态机",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 136
+  },
+  {
+    "id": "HAWQ-ADD-4-001",
+    "summary": "1 `stopRequiredServices`",
+    "section": "HAWQ Add Standby 四步状态机",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 137
+  },
+  {
+    "id": "HAWQ-ADD-4-002",
+    "summary": "2 `installHawqStandbyMaster`",
+    "section": "HAWQ Add Standby 四步状态机",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 138
+  },
+  {
+    "id": "HAWQ-ADD-4-003",
+    "summary": "3 `reconfigureHAWQ`",
+    "section": "HAWQ Add Standby 四步状态机",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 139
+  },
+  {
+    "id": "HAWQ-ADD-4-004",
+    "summary": "4 `startRequiredServices`",
+    "section": "HAWQ Add Standby 四步状态机",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 140
+  },
+  {
+    "id": "HAWQ-ADD-4-005",
+    "summary": "Complete",
+    "section": "HAWQ Add Standby 四步状态机",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 141
+  },
+  {
+    "id": "HAWQ-REMOVE-1-001",
+    "summary": "1 Get Started",
+    "section": "HAWQ Remove Standby 三步状态机",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 149
+  },
+  {
+    "id": "HAWQ-REMOVE-2-001",
+    "summary": "2 Review",
+    "section": "HAWQ Remove Standby 三步状态机",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 150
+  },
+  {
+    "id": "HAWQ-REMOVE-2-002",
+    "summary": "2 irreversible confirm",
+    "section": "HAWQ Remove Standby 三步状态机",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 151
+  },
+  {
+    "id": "HAWQ-REMOVE-3-001",
+    "summary": "1 `removeStandby`",
+    "section": "HAWQ Remove Standby 三步状态机",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 152
+  },
+  {
+    "id": "HAWQ-REMOVE-3-002",
+    "summary": "2 `stopRequiredServices`",
+    "section": "HAWQ Remove Standby 三步状态机",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 153
+  },
+  {
+    "id": "HAWQ-REMOVE-3-003",
+    "summary": "3 `reconfigureHAWQ`",
+    "section": "HAWQ Remove Standby 三步状态机",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 154
+  },
+  {
+    "id": "HAWQ-REMOVE-3-004",
+    "summary": "4 `deleteHawqStandbyComponent`",
+    "section": "HAWQ Remove Standby 三步状态机",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 155
+  },
+  {
+    "id": "HAWQ-REMOVE-3-005",
+    "summary": "5 `startRequiredServices`",
+    "section": "HAWQ Remove Standby 三步状态机",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 156
+  },
+  {
+    "id": "HAWQ-REMOVE-3-006",
+    "summary": "Complete",
+    "section": "HAWQ Remove Standby 三步状态机",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 157
+  },
+  {
+    "id": "HAWQ-ACT-1-001",
+    "summary": "1 Get Started",
+    "section": "HAWQ Activate Standby 三步状态机",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 167
+  },
+  {
+    "id": "HAWQ-ACT-2-001",
+    "summary": "2 Review",
+    "section": "HAWQ Activate Standby 三步状态机",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 168
+  },
+  {
+    "id": "HAWQ-ACT-2-002",
+    "summary": "2 irreversible confirm",
+    "section": "HAWQ Activate Standby 三步状态机",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 169
+  },
+  {
+    "id": "HAWQ-ACT-3-001",
+    "summary": "1 `activateStandby`",
+    "section": "HAWQ Activate Standby 三步状态机",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 170
+  },
+  {
+    "id": "HAWQ-ACT-3-002",
+    "summary": "2 `stopRequiredServices`",
+    "section": "HAWQ Activate Standby 三步状态机",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 171
+  },
+  {
+    "id": "HAWQ-ACT-3-003",
+    "summary": "3 `reconfigureHAWQ`",
+    "section": "HAWQ Activate Standby 三步状态机",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 172
+  },
+  {
+    "id": "HAWQ-ACT-3-004",
+    "summary": "4 `installHawqMaster`",
+    "section": "HAWQ Activate Standby 三步状态机",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 173
+  },
+  {
+    "id": "HAWQ-ACT-3-005",
+    "summary": "5 `deleteOldHawqMaster`",
+    "section": "HAWQ Activate Standby 三步状态机",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 174
+  },
+  {
+    "id": "HAWQ-ACT-3-006",
+    "summary": "6 `deleteHawqStandby`",
+    "section": "HAWQ Activate Standby 三步状态机",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 175
+  },
+  {
+    "id": "HAWQ-ACT-3-007",
+    "summary": "7 `startRequiredServices`",
+    "section": "HAWQ Activate Standby 三步状态机",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 176
+  },
+  {
+    "id": "HAWQ-ACT-3-008",
+    "summary": "Complete",
+    "section": "HAWQ Activate Standby 三步状态机",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 177
+  },
+  {
+    "id": "HAWQ-CFG-001",
+    "summary": "`hawq_standby_address_host`",
+    "section": "HAWQ 配置与历史 Stack 契约",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 185
+  },
+  {
+    "id": "HAWQ-CFG-002",
+    "summary": "`hawq_master_address_host`",
+    "section": "HAWQ 配置与历史 Stack 契约",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 186
+  },
+  {
+    "id": "HAWQ-CFG-003",
+    "summary": "`hawq_master_directory`",
+    "section": "HAWQ 配置与历史 Stack 契约",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 187
+  },
+  {
+    "id": "HAWQ-CFG-004",
+    "summary": "component cardinality",
+    "section": "HAWQ 配置与历史 Stack 契约",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 188
+  },
+  {
+    "id": "HAWQ-CFG-005",
+    "summary": "service/component dependency",
+    "section": "HAWQ 配置与历史 Stack 契约",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 189
+  },
+  {
+    "id": "HAWQ-CFG-006",
+    "summary": "Kerberos identity",
+    "section": "HAWQ 配置与历史 Stack 契约",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 190
+  },
+  {
+    "id": "HAWQ-CFG-007",
+    "summary": "custom command timeout",
+    "section": "HAWQ 配置与历史 Stack 契约",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 191
+  },
+  {
+    "id": "FHF-KRB-001",
+    "summary": "所有 component install command",
+    "section": "Kerberos 条件分支",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 197
+  },
+  {
+    "id": "FHF-KRB-002",
+    "summary": "HAWQ Add Step 3",
+    "section": "Kerberos 条件分支",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 198
+  },
+  {
+    "id": "FHF-KRB-003",
+    "summary": "HAWQ Remove/Activate Step 2",
+    "section": "Kerberos 条件分支",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 199
+  },
+  {
+    "id": "FHF-KRB-004",
+    "summary": "Federation/RBF",
+    "section": "Kerberos 条件分支",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 200
+  },
+  {
+    "id": "FHF-KRB-005",
+    "summary": "RBF stack descriptor",
+    "section": "Kerberos 条件分支",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 201
+  },
+  {
+    "id": "FHF-KRB-006",
+    "summary": "HAWQ descriptor",
+    "section": "Kerberos 条件分支",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 202
+  },
+  {
+    "id": "FHF-KRB-007",
+    "summary": "通用 KDC 类型分支",
+    "section": "Kerberos 条件分支",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 203
+  },
+  {
+    "id": "FHF-KRB-008",
+    "summary": "KDC session 无效",
+    "section": "Kerberos 条件分支",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 204
+  },
+  {
+    "id": "FHF-KRB-009",
+    "summary": "credential 保存异常",
+    "section": "Kerberos 条件分支",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 205
+  },
+  {
+    "id": "FHF-PROG-001",
+    "summary": "严格串行",
+    "section": "通用进度、失败、重试与日志",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 211
+  },
+  {
+    "id": "FHF-PROG-002",
+    "summary": "request 轮询",
+    "section": "通用进度、失败、重试与日志",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 212
+  },
+  {
+    "id": "FHF-PROG-003",
+    "summary": "终态聚合",
+    "section": "通用进度、失败、重试与日志",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 213
+  },
+  {
+    "id": "FHF-PROG-004",
+    "summary": "Retry",
+    "section": "通用进度、失败、重试与日志",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 214
+  },
+  {
+    "id": "FHF-PROG-005",
+    "summary": "Skip",
+    "section": "通用进度、失败、重试与日志",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 215
+  },
+  {
+    "id": "FHF-PROG-006",
+    "summary": "最后任务失败",
+    "section": "通用进度、失败、重试与日志",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 216
+  },
+  {
+    "id": "FHF-PROG-007",
+    "summary": "host/task 日志",
+    "section": "通用进度、失败、重试与日志",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 217
+  },
+  {
+    "id": "FHF-PROG-008",
+    "summary": "安装链与部分幂等",
+    "section": "通用进度、失败、重试与日志",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 218
+  },
+  {
+    "id": "FHF-PROG-009",
+    "summary": "删除幂等保护",
+    "section": "通用进度、失败、重试与日志",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 219
+  },
+  {
+    "id": "FHF-PROG-010",
+    "summary": "service/component mutation",
+    "section": "通用进度、失败、重试与日志",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 220
+  },
+  {
+    "id": "FHF-REC-001",
+    "summary": "step snapshot",
+    "section": "退出、持久化与恢复",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 226
+  },
+  {
+    "id": "FHF-REC-002",
+    "summary": "progress 刷新",
+    "section": "退出、持久化与恢复",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 227
+  },
+  {
+    "id": "FHF-REC-003",
+    "summary": "NameNode/RBF 关闭",
+    "section": "退出、持久化与恢复",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 228
+  },
+  {
+    "id": "FHF-REC-004",
+    "summary": "HAWQ 关闭",
+    "section": "退出、持久化与恢复",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 229
+  },
+  {
+    "id": "FHF-REC-005",
+    "summary": "完成",
+    "section": "退出、持久化与恢复",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 230
+  },
+  {
+    "id": "FHF-REC-006",
+    "summary": "wizard ownership",
+    "section": "退出、持久化与恢复",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 231
+  },
+  {
+    "id": "FHF-REC-007",
+    "summary": "Federation cluster state",
+    "section": "退出、持久化与恢复",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 232
+  },
+  {
+    "id": "FHF-REC-008",
+    "summary": "HAWQ cluster state",
+    "section": "退出、持久化与恢复",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 233
+  },
+  {
+    "id": "FHF-REC-009",
+    "summary": "persist 权限",
+    "section": "退出、持久化与恢复",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 234
+  },
+  {
+    "id": "FHF-API-001",
+    "summary": "`hosts.high_availability.wizard` GET",
+    "section": "接口契约表",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 242
+  },
+  {
+    "id": "FHF-API-002",
+    "summary": "`wizard.loadrecommendations` POST",
+    "section": "接口契约表",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 243
+  },
+  {
+    "id": "FHF-API-003",
+    "summary": "`config.validations` POST",
+    "section": "接口契约表",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 244
+  },
+  {
+    "id": "FHF-API-004",
+    "summary": "`config.tags` GET",
+    "section": "接口契约表",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 245
+  },
+  {
+    "id": "FHF-API-005",
+    "summary": "`admin.get.all_configurations` GET",
+    "section": "接口契约表",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 246
+  },
+  {
+    "id": "FHF-API-006",
+    "summary": "`reassign.load_configs` GET",
+    "section": "接口契约表",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 247
+  },
+  {
+    "id": "FHF-API-007",
+    "summary": "`common.service.configurations` PUT",
+    "section": "接口契约表",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 248
+  },
+  {
+    "id": "FHF-API-008",
+    "summary": "`common.service.multiConfigurations` PUT",
+    "section": "接口契约表",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 249
+  },
+  {
+    "id": "FHF-API-009",
+    "summary": "`common.services.update` PUT",
+    "section": "接口契约表",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 250
+  },
+  {
+    "id": "FHF-API-010",
+    "summary": "`host_component.installed.on_hosts` GET",
+    "section": "接口契约表",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 251
+  },
+  {
+    "id": "FHF-API-011",
+    "summary": "`common.create_component` POST",
+    "section": "接口契约表",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 252
+  },
+  {
+    "id": "FHF-API-012",
+    "summary": "`wizard.step8.register_host_to_component` POST",
+    "section": "接口契约表",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 253
+  },
+  {
+    "id": "FHF-API-013",
+    "summary": "`common.host_components.update` PUT",
+    "section": "接口契约表",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 254
+  },
+  {
+    "id": "FHF-API-014",
+    "summary": "`common.delete.host_component` DELETE",
+    "section": "接口契约表",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 255
+  },
+  {
+    "id": "FHF-API-015",
+    "summary": "`service.item.executeCustomCommand` POST",
+    "section": "接口契约表",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 256
+  },
+  {
+    "id": "FHF-API-016",
+    "summary": "`nameNode.federation.formatNameNode` POST",
+    "section": "接口契约表",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 257
+  },
+  {
+    "id": "FHF-API-017",
+    "summary": "`nameNode.federation.formatZKFC` POST",
+    "section": "接口契约表",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 258
+  },
+  {
+    "id": "FHF-API-018",
+    "summary": "`nameNode.federation.bootstrapNameNode` POST",
+    "section": "接口契约表",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 259
+  },
+  {
+    "id": "FHF-API-019",
+    "summary": "`restart.custom.filter` POST",
+    "section": "接口契约表",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 260
+  },
+  {
+    "id": "FHF-API-020",
+    "summary": "`background_operations.get_by_request` GET",
+    "section": "接口契约表",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 261
+  },
+  {
+    "id": "FHF-API-021",
+    "summary": "`common.request.polling` GET",
+    "section": "接口契约表",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 262
+  },
+  {
+    "id": "FHF-API-022",
+    "summary": "`background_operations.get_by_task` GET",
+    "section": "接口契约表",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 263
+  },
+  {
+    "id": "FHF-API-023",
+    "summary": "`admin.security.cluster_configs.kerberos` GET",
+    "section": "接口契约表",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 264
+  },
+  {
+    "id": "FHF-API-024",
+    "summary": "`kerberos.session.state` GET",
+    "section": "接口契约表",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 265
+  },
+  {
+    "id": "FHF-API-025",
+    "summary": "`persist.get` GET",
+    "section": "接口契约表",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 266
+  },
+  {
+    "id": "FHF-API-026",
+    "summary": "`persist.post` POST",
+    "section": "接口契约表",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 267
+  },
+  {
+    "id": "FHF-API-027",
+    "summary": "direct `App.HttpClient.get` GET",
+    "section": "接口契约表",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 268
+  },
+  {
+    "id": "FHF-API-028",
+    "summary": "`credentials.get` GET",
+    "section": "接口契约表",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 269
+  },
+  {
+    "id": "FHF-API-029",
+    "summary": "`credentials.create` POST",
+    "section": "接口契约表",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 270
+  },
+  {
+    "id": "FHF-API-030",
+    "summary": "`credentials.update` PUT",
+    "section": "接口契约表",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 271
+  },
+  {
+    "id": "FHF-API-031",
+    "summary": "`config.on_site` GET",
+    "section": "接口契约表",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 272
+  },
+  {
+    "id": "FHF-RISK-001",
+    "summary": "所有五条 route 缺权限和资源 guard",
+    "section": "旧版已确认缺陷与 React 处理原则",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 278
+  },
+  {
+    "id": "FHF-RISK-002",
+    "summary": "RBF Review 自动提前保存",
+    "section": "旧版已确认缺陷与 React 处理原则",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 279
+  },
+  {
+    "id": "FHF-RISK-003",
+    "summary": "RBF 请求 sender 是错误全局对象",
+    "section": "旧版已确认缺陷与 React 处理原则",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 280
+  },
+  {
+    "id": "FHF-RISK-004",
+    "summary": "RBF 假定 config type 已存在",
+    "section": "旧版已确认缺陷与 React 处理原则",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 281
+  },
+  {
+    "id": "FHF-RISK-005",
+    "summary": "RBF progress 有不可达重配置代码",
+    "section": "旧版已确认缺陷与 React 处理原则",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 282
+  },
+  {
+    "id": "FHF-RISK-006",
+    "summary": "Ranger defaultFS mapping 重复追加",
+    "section": "旧版已确认缺陷与 React 处理原则",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 283
+  },
+  {
+    "id": "FHF-RISK-007",
+    "summary": "Federation persist 状态名不匹配",
+    "section": "旧版已确认缺陷与 React 处理原则",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 284
+  },
+  {
+    "id": "FHF-RISK-009",
+    "summary": "通用 Rollback 错接向导",
+    "section": "旧版已确认缺陷与 React 处理原则",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 285
+  },
+  {
+    "id": "FHF-RISK-010",
+    "summary": "关闭只是忘记状态，不撤销副作用",
+    "section": "旧版已确认缺陷与 React 处理原则",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 286
+  },
+  {
+    "id": "FHF-RISK-011",
+    "summary": "HAWQ wizard owner 不一致",
+    "section": "旧版已确认缺陷与 React 处理原则",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 287
+  },
+  {
+    "id": "FHF-RISK-012",
+    "summary": "最后一项失败仍能完成",
+    "section": "旧版已确认缺陷与 React 处理原则",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 288
+  },
+  {
+    "id": "FHF-RISK-013",
+    "summary": "HAWQ 已无当前 Server stack",
+    "section": "旧版已确认缺陷与 React 处理原则",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 289
+  },
+  {
+    "id": "FHF-RISK-014",
+    "summary": "component install 吞掉创建错误",
+    "section": "旧版已确认缺陷与 React 处理原则",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 290
+  },
+  {
+    "id": "FHF-RISK-015",
+    "summary": "HAWQ Add 配置加载错误不一致",
+    "section": "旧版已确认缺陷与 React 处理原则",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 291
+  },
+  {
+    "id": "FHF-RISK-016",
+    "summary": "HAWQ Activate 泄漏全局变量",
+    "section": "旧版已确认缺陷与 React 处理原则",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 292
+  },
+  {
+    "id": "FHF-RISK-017",
+    "summary": "HAWQ Remove 不等待初始化",
+    "section": "旧版已确认缺陷与 React 处理原则",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 293
+  },
+  {
+    "id": "FHF-RISK-018",
+    "summary": "HAWQ Remove/Activate Step 1 markup 无效",
+    "section": "旧版已确认缺陷与 React 处理原则",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 294
+  },
+  {
+    "id": "FHF-RISK-019",
+    "summary": "component existence GET 失败会卡住 task",
+    "section": "旧版已确认缺陷与 React 处理原则",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 295
+  },
+  {
+    "id": "FHF-RISK-020",
+    "summary": "Federation 配置读取失败会留下永久 gate",
+    "section": "旧版已确认缺陷与 React 处理原则",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 296
+  },
+  {
+    "id": "FHF-TEST-001",
+    "summary": "NameNode Federation tests",
+    "section": "测试覆盖与运行态场景",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 302
+  },
+  {
+    "id": "FHF-TEST-002",
+    "summary": "Router Federation tests",
+    "section": "测试覆盖与运行态场景",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 303
+  },
+  {
+    "id": "FHF-TEST-003",
+    "summary": "HAWQ Add tests",
+    "section": "测试覆盖与运行态场景",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 304
+  },
+  {
+    "id": "FHF-TEST-004",
+    "summary": "HAWQ Remove tests",
+    "section": "测试覆盖与运行态场景",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 305
+  },
+  {
+    "id": "FHF-TEST-005",
+    "summary": "HAWQ Activate tests",
+    "section": "测试覆盖与运行态场景",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 306
+  },
+  {
+    "id": "FHF-TEST-006",
+    "summary": "排除项检查",
+    "section": "测试覆盖与运行态场景",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 307
+  },
+  {
+    "id": "FHF-RUNTIME-001",
+    "summary": "NameNode HA 首次扩为 Federation；再次添加第三个 namespace",
+    "section": "测试覆盖与运行态场景",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 313
+  },
+  {
+    "id": "FHF-RUNTIME-002",
+    "summary": "Federation 分别安装/不安装 Ranger、Accumulo、Infra",
+    "section": "测试覆盖与运行态场景",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 314
+  },
+  {
+    "id": "FHF-RUNTIME-003",
+    "summary": "RBF 单/多 Router、缺失 `hdfs-rbf-site`、Step 3 关闭/请求失败",
+    "section": "测试覆盖与运行态场景",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 315
+  },
+  {
+    "id": "FHF-RUNTIME-004",
+    "summary": "自动 Kerberos、Manual Kerberos、KDC session 过期/取消",
+    "section": "测试覆盖与运行态场景",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 316
+  },
+  {
+    "id": "FHF-RUNTIME-005",
+    "summary": "每个 command 注入 FAILED/TIMEDOUT/ABORTED，刷新页面后 Retry",
+    "section": "测试覆盖与运行态场景",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 317
+  },
+  {
+    "id": "FHF-RUNTIME-006",
+    "summary": "Step 1/Review/progress 分别关闭；原用户/另一用户重进",
+    "section": "测试覆盖与运行态场景",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 318
+  },
+  {
+    "id": "FHF-RUNTIME-007",
+    "summary": "兼容历史 HAWQ stack 的 Add/Remove/Activate 全流程与每阶段中断",
+    "section": "测试覆盖与运行态场景",
+    "moduleFile": "11-federation-hawq.md",
+    "line": 319
+  },
+  {
+    "id": "VIEW-SCOPE-001",
+    "summary": "后端对象层级是 View definition -> View version -> View instance；Ember 最终只建立扁平的 `App.ViewInstance[]`",
+    "section": "范围与对象模型",
+    "moduleFile": "12-views.md",
+    "line": 11
+  },
+  {
+    "id": "VIEW-SCOPE-002",
+    "summary": "Ember 只消费 instance 的 icon、label、visible、version、description、view name、short URL、instance name 和 context path",
+    "section": "范围与对象模型",
+    "moduleFile": "12-views.md",
+    "line": 12
+  },
+  {
+    "id": "VIEW-SCOPE-003",
+    "summary": "`/views/{view}/{version}/{instance}/...` 是 Ambari Server 提供的 View Web context，不是 `/api/v1` REST route，也不是 Ember hash route",
+    "section": "范围与对象模型",
+    "moduleFile": "12-views.md",
+    "line": 13
+  },
+  {
+    "id": "VIEW-SCOPE-004",
+    "summary": "内置 `ADMIN_VIEW` 是独立 AngularJS Admin Console；Ember 只有入口判断、版本发现和整页跳转",
+    "section": "范围与对象模型",
+    "moduleFile": "12-views.md",
+    "line": 14
+  },
+  {
+    "id": "VIEW-ROUTE-001",
+    "summary": "`#/main/views/`，`main.views.index`",
+    "section": "Route 与页面状态",
+    "moduleFile": "12-views.md",
+    "line": 20
+  },
+  {
+    "id": "VIEW-ROUTE-002",
+    "summary": "`#/main/views/:viewName/:version/:instanceName`，`main.views.viewDetails`",
+    "section": "Route 与页面状态",
+    "moduleFile": "12-views.md",
+    "line": 21
+  },
+  {
+    "id": "VIEW-ROUTE-003",
+    "summary": "`#/main/view/`，`main.view.index`",
+    "section": "Route 与页面状态",
+    "moduleFile": "12-views.md",
+    "line": 22
+  },
+  {
+    "id": "VIEW-ROUTE-004",
+    "summary": "`#/main/view/:viewName/:shortName`，`main.view.shortViewDetails`",
+    "section": "Route 与页面状态",
+    "moduleFile": "12-views.md",
+    "line": 23
+  },
+  {
+    "id": "VIEW-ROUTE-005",
+    "summary": "`#/adminView`，顶层 `adminView` state；route pattern 为 `/adminView`",
+    "section": "Route 与页面状态",
+    "moduleFile": "12-views.md",
+    "line": 24
+  },
+  {
+    "id": "VIEW-ROUTE-006",
+    "summary": "`/views/:view/:version/:instance/...`，无 `#`",
+    "section": "Route 与页面状态",
+    "moduleFile": "12-views.md",
+    "line": 25
+  },
+  {
+    "id": "VIEW-LIST-001",
+    "summary": "已登录时先查询是否存在任何 View definition",
+    "section": "Instance 发现与列表",
+    "moduleFile": "12-views.md",
+    "line": 33
+  },
+  {
+    "id": "VIEW-LIST-002",
+    "summary": "加载所有 version 下的 instance 并扁平化",
+    "section": "Instance 发现与列表",
+    "moduleFile": "12-views.md",
+    "line": 34
+  },
+  {
+    "id": "VIEW-LIST-003",
+    "summary": "只纳入服务端返回的非 system、已部署 version 中，且 `ViewInstanceInfo.visible` 为 truthy 的 instance",
+    "section": "Instance 发现与列表",
+    "moduleFile": "12-views.md",
+    "line": 35
+  },
+  {
+    "id": "VIEW-LIST-004",
+    "summary": "计算 instance 展示字段和 fallback",
+    "section": "Instance 发现与列表",
+    "moduleFile": "12-views.md",
+    "line": 36
+  },
+  {
+    "id": "VIEW-LIST-005",
+    "summary": "显示 `Your Views` 表格",
+    "section": "Instance 发现与列表",
+    "moduleFile": "12-views.md",
+    "line": 37
+  },
+  {
+    "id": "VIEW-LIST-006",
+    "summary": "无可见 instance 时显示 `No views`",
+    "section": "Instance 发现与列表",
+    "moduleFile": "12-views.md",
+    "line": 38
+  },
+  {
+    "id": "VIEW-LIST-007",
+    "summary": "`dataLoading()` 每 50ms 等待 `isDataLoaded=true` 后才接 outlet",
+    "section": "Instance 发现与列表",
+    "moduleFile": "12-views.md",
+    "line": 39
+  },
+  {
+    "id": "VIEW-LIST-008",
+    "summary": "main、installer、显式 Views route 和登录分流都可触发 `loadAmbariViews()`",
+    "section": "Instance 发现与列表",
+    "moduleFile": "12-views.md",
+    "line": 40
+  },
+  {
+    "id": "VIEW-NAV-001",
+    "summary": "View-only、无 cluster 权限或安装路由无权限时的自动分流",
+    "section": "可到达入口",
+    "moduleFile": "12-views.md",
+    "line": 46
+  },
+  {
+    "id": "VIEW-NAV-002",
+    "summary": "已安装集群的顶部九宫格 Views 下拉",
+    "section": "可到达入口",
+    "moduleFile": "12-views.md",
+    "line": 47
+  },
+  {
+    "id": "VIEW-NAV-003",
+    "summary": "直接访问 `#/main/views` 或 `#/main/view`",
+    "section": "可到达入口",
+    "moduleFile": "12-views.md",
+    "line": 48
+  },
+  {
+    "id": "VIEW-URL-001",
+    "summary": "为列表项生成经典 UI 内部 URL",
+    "section": "URL 选择与 instance 匹配",
+    "moduleFile": "12-views.md",
+    "line": 56
+  },
+  {
+    "id": "VIEW-URL-002",
+    "summary": "regular URL 解析",
+    "section": "URL 选择与 instance 匹配",
+    "moduleFile": "12-views.md",
+    "line": 57
+  },
+  {
+    "id": "VIEW-URL-003",
+    "summary": "short URL 解析",
+    "section": "URL 选择与 instance 匹配",
+    "moduleFile": "12-views.md",
+    "line": 58
+  },
+  {
+    "id": "VIEW-URL-004",
+    "summary": "instance 匹配后保存 `viewPath`",
+    "section": "URL 选择与 instance 匹配",
+    "moduleFile": "12-views.md",
+    "line": 59
+  },
+  {
+    "id": "VIEW-URL-005",
+    "summary": "route 参数没有匹配任何已加载 instance",
+    "section": "URL 选择与 instance 匹配",
+    "moduleFile": "12-views.md",
+    "line": 60
+  },
+  {
+    "id": "VIEW-URL-006",
+    "summary": "已认证状态刷新 regular/short deep link",
+    "section": "URL 选择与 instance 匹配",
+    "moduleFile": "12-views.md",
+    "line": 61
+  },
+  {
+    "id": "VIEW-PATH-001",
+    "summary": "无 query",
+    "section": "`viewPath` 转换算法",
+    "moduleFile": "12-views.md",
+    "line": 76
+  },
+  {
+    "id": "VIEW-PATH-002",
+    "summary": "`?foo=bar&count=1`",
+    "section": "`viewPath` 转换算法",
+    "moduleFile": "12-views.md",
+    "line": 77
+  },
+  {
+    "id": "VIEW-PATH-003",
+    "summary": "`?viewPath=%2Fuser%2Fadmin%2Faddress`",
+    "section": "`viewPath` 转换算法",
+    "moduleFile": "12-views.md",
+    "line": 78
+  },
+  {
+    "id": "VIEW-PATH-004",
+    "summary": "`?viewPath=%2Fuser%2Fadmin%2Faddress&foo=bar&count=1`",
+    "section": "`viewPath` 转换算法",
+    "moduleFile": "12-views.md",
+    "line": 79
+  },
+  {
+    "id": "VIEW-PATH-005",
+    "summary": "`?viewPath=%2F%23%2Ftez-app%2Fapplication_...`",
+    "section": "`viewPath` 转换算法",
+    "moduleFile": "12-views.md",
+    "line": 80
+  },
+  {
+    "id": "VIEW-PATH-006",
+    "summary": "非法 percent encoding，例如 `?viewPath=%E0%A4%A`",
+    "section": "`viewPath` 转换算法",
+    "moduleFile": "12-views.md",
+    "line": 81
+  },
+  {
+    "id": "VIEW-PATH-007",
+    "summary": "普通 query 的其他参数名/值中仅包含子串 `viewPath`",
+    "section": "`viewPath` 转换算法",
+    "moduleFile": "12-views.md",
+    "line": 82
+  },
+  {
+    "id": "VIEW-IFRAME-001",
+    "summary": "details outlet 本身渲染为 iframe",
+    "section": "iframe 承载与渲染生命周期",
+    "moduleFile": "12-views.md",
+    "line": 90
+  },
+  {
+    "id": "VIEW-IFRAME-002",
+    "summary": "生成 iframe src",
+    "section": "iframe 承载与渲染生命周期",
+    "moduleFile": "12-views.md",
+    "line": 91
+  },
+  {
+    "id": "VIEW-IFRAME-003",
+    "summary": "details 使用宽屏 contrib-view 布局",
+    "section": "iframe 承载与渲染生命周期",
+    "moduleFile": "12-views.md",
+    "line": 92
+  },
+  {
+    "id": "VIEW-IFRAME-004",
+    "summary": "插入 iframe 时立即 resize，以后每 5 秒 resize",
+    "section": "iframe 承载与渲染生命周期",
+    "moduleFile": "12-views.md",
+    "line": 93
+  },
+  {
+    "id": "VIEW-IFRAME-005",
+    "summary": "销毁 details view 时清理 resize interval",
+    "section": "iframe 承载与渲染生命周期",
+    "moduleFile": "12-views.md",
+    "line": 94
+  },
+  {
+    "id": "VIEW-IFRAME-006",
+    "summary": "iframe 内活动计入 Ambari inactivity timeout",
+    "section": "iframe 承载与渲染生命周期",
+    "moduleFile": "12-views.md",
+    "line": 95
+  },
+  {
+    "id": "VIEW-IFRAME-007",
+    "summary": "经典 iframe 没有 sandbox 限制",
+    "section": "iframe 承载与渲染生命周期",
+    "moduleFile": "12-views.md",
+    "line": 96
+  },
+  {
+    "id": "VIEW-IFRAME-008",
+    "summary": "iframe navigation 没有 Ember loading/error/retry UI",
+    "section": "iframe 承载与渲染生命周期",
+    "moduleFile": "12-views.md",
+    "line": 97
+  },
+  {
+    "id": "VIEW-IFRAME-009",
+    "summary": "View 内部导航不回写宿主 Ember URL",
+    "section": "iframe 承载与渲染生命周期",
+    "moduleFile": "12-views.md",
+    "line": 98
+  },
+  {
+    "id": "VIEW-ONLY-001",
+    "summary": "已有 cluster，`isOnlyViewUser=true`",
+    "section": "判定语义",
+    "moduleFile": "12-views.md",
+    "line": 113
+  },
+  {
+    "id": "VIEW-ONLY-002",
+    "summary": "已有 cluster，普通 cluster/Ambari 用户",
+    "section": "判定语义",
+    "moduleFile": "12-views.md",
+    "line": 114
+  },
+  {
+    "id": "VIEW-ONLY-003",
+    "summary": "没有 cluster，`isOnlyViewUser=true` 或 authorization 为空",
+    "section": "判定语义",
+    "moduleFile": "12-views.md",
+    "line": 115
+  },
+  {
+    "id": "VIEW-ONLY-004",
+    "summary": "没有 cluster，非 View-only 用户",
+    "section": "判定语义",
+    "moduleFile": "12-views.md",
+    "line": 116
+  },
+  {
+    "id": "VIEW-ONLY-005",
+    "summary": "cluster provisioning 未完成，当前不在 View route",
+    "section": "判定语义",
+    "moduleFile": "12-views.md",
+    "line": 117
+  },
+  {
+    "id": "VIEW-ONLY-006",
+    "summary": "直接进入 `/installer` 但无 `AMBARI.ADD_DELETE_CLUSTERS`",
+    "section": "判定语义",
+    "moduleFile": "12-views.md",
+    "line": 118
+  },
+  {
+    "id": "VIEW-ONLY-007",
+    "summary": "已认证用户直接打开 regular/short deep link",
+    "section": "判定语义",
+    "moduleFile": "12-views.md",
+    "line": 119
+  },
+  {
+    "id": "VIEW-ONLY-008",
+    "summary": "未认证用户直接打开 deep link后完成登录",
+    "section": "判定语义",
+    "moduleFile": "12-views.md",
+    "line": 120
+  },
+  {
+    "id": "VIEW-INIT-001",
+    "summary": "1. `main.enter` 先确认认证",
+    "section": "进入 main 的初始化请求链",
+    "moduleFile": "12-views.md",
+    "line": 128
+  },
+  {
+    "id": "VIEW-INIT-002",
+    "summary": "2. 认证成功后先加载 supports",
+    "section": "进入 main 的初始化请求链",
+    "moduleFile": "12-views.md",
+    "line": 129
+  },
+  {
+    "id": "VIEW-INIT-003",
+    "summary": "3. supports 请求完成后启动 keep-alive",
+    "section": "进入 main 的初始化请求链",
+    "moduleFile": "12-views.md",
+    "line": 130
+  },
+  {
+    "id": "VIEW-INIT-004",
+    "summary": "4. 同步等待 Ambari Server properties",
+    "section": "进入 main 的初始化请求链",
+    "moduleFile": "12-views.md",
+    "line": 131
+  },
+  {
+    "id": "VIEW-INIT-005",
+    "summary": "5. properties 成功后并行发现 Views并确认 cluster identity",
+    "section": "进入 main 的初始化请求链",
+    "moduleFile": "12-views.md",
+    "line": 132
+  },
+  {
+    "id": "VIEW-INIT-006",
+    "summary": "6a. cluster 已安装且为 View-only",
+    "section": "进入 main 的初始化请求链",
+    "moduleFile": "12-views.md",
+    "line": 133
+  },
+  {
+    "id": "VIEW-INIT-007",
+    "summary": "6b. cluster 未安装",
+    "section": "进入 main 的初始化请求链",
+    "moduleFile": "12-views.md",
+    "line": 134
+  },
+  {
+    "id": "VIEW-ONLY-009",
+    "summary": "左侧运维导航",
+    "section": "View-only 外壳差异",
+    "moduleFile": "12-views.md",
+    "line": 140
+  },
+  {
+    "id": "VIEW-ONLY-010",
+    "summary": "顶部 Views 下拉及 cluster notifications",
+    "section": "View-only 外壳差异",
+    "moduleFile": "12-views.md",
+    "line": 141
+  },
+  {
+    "id": "VIEW-ONLY-011",
+    "summary": "Ambari logo / Dashboard 跳转",
+    "section": "View-only 外壳差异",
+    "moduleFile": "12-views.md",
+    "line": 142
+  },
+  {
+    "id": "VIEW-ONLY-012",
+    "summary": "用户菜单",
+    "section": "View-only 外壳差异",
+    "moduleFile": "12-views.md",
+    "line": 143
+  },
+  {
+    "id": "VIEW-X-001",
+    "summary": "普通 Service Quick Links 是另一套外部 Web UI 链接机制",
+    "section": "Service 页面与 View 的交叉入口",
+    "moduleFile": "12-views.md",
+    "line": 151
+  },
+  {
+    "id": "VIEW-X-002",
+    "summary": "Hive summary 留有 View link 扩展点",
+    "section": "Service 页面与 View 的交叉入口",
+    "moduleFile": "12-views.md",
+    "line": 152
+  },
+  {
+    "id": "VIEW-X-003",
+    "summary": "通用 Service Summary 的 Views panel 已被注释",
+    "section": "Service 页面与 View 的交叉入口",
+    "moduleFile": "12-views.md",
+    "line": 153
+  },
+  {
+    "id": "VIEW-X-004",
+    "summary": "配置或服务端生成的 View deep link 可以携带 `viewPath`",
+    "section": "Service 页面与 View 的交叉入口",
+    "moduleFile": "12-views.md",
+    "line": 154
+  },
+  {
+    "id": "VIEW-ADMIN-001",
+    "summary": "无 cluster 的登录后默认入口",
+    "section": "Admin View 发现与跳转",
+    "moduleFile": "12-views.md",
+    "line": 162
+  },
+  {
+    "id": "VIEW-ADMIN-002",
+    "summary": "用户菜单 `Manage Ambari`",
+    "section": "Admin View 发现与跳转",
+    "moduleFile": "12-views.md",
+    "line": 163
+  },
+  {
+    "id": "VIEW-ADMIN-003",
+    "summary": "Stack Versions 的 `Manage Versions`",
+    "section": "Admin View 发现与跳转",
+    "moduleFile": "12-views.md",
+    "line": 164
+  },
+  {
+    "id": "VIEW-ADMIN-004",
+    "summary": "选择 Admin View version",
+    "section": "Admin View 发现与跳转",
+    "moduleFile": "12-views.md",
+    "line": 165
+  },
+  {
+    "id": "VIEW-ADMIN-005",
+    "summary": "构造 Admin Console URL",
+    "section": "Admin View 发现与跳转",
+    "moduleFile": "12-views.md",
+    "line": 166
+  },
+  {
+    "id": "VIEW-ADMIN-006",
+    "summary": "`ADMIN_VIEW` 不进入普通 View 目录",
+    "section": "Admin View 发现与跳转",
+    "moduleFile": "12-views.md",
+    "line": 167
+  },
+  {
+    "id": "VIEW-PERM-001",
+    "summary": "`VIEW.USE` authorization",
+    "section": "权限与可见性模型",
+    "moduleFile": "12-views.md",
+    "line": 190
+  },
+  {
+    "id": "VIEW-PERM-002",
+    "summary": "`VIEW.USER` permission",
+    "section": "权限与可见性模型",
+    "moduleFile": "12-views.md",
+    "line": 191
+  },
+  {
+    "id": "VIEW-PERM-003",
+    "summary": "服务端 instance access",
+    "section": "权限与可见性模型",
+    "moduleFile": "12-views.md",
+    "line": 192
+  },
+  {
+    "id": "VIEW-PERM-004",
+    "summary": "`AMBARI.MANAGE_VIEWS`",
+    "section": "权限与可见性模型",
+    "moduleFile": "12-views.md",
+    "line": 193
+  },
+  {
+    "id": "VIEW-PERM-005",
+    "summary": "`CLUSTER.UPGRADE_DOWNGRADE_STACK`",
+    "section": "权限与可见性模型",
+    "moduleFile": "12-views.md",
+    "line": 194
+  },
+  {
+    "id": "VIEW-PERM-006",
+    "summary": "`AMBARI.MANAGE_STACK_VERSIONS`",
+    "section": "权限与可见性模型",
+    "moduleFile": "12-views.md",
+    "line": 195
+  },
+  {
+    "id": "VIEW-PERM-007",
+    "summary": "`AMBARI.ADD_DELETE_CLUSTERS`",
+    "section": "权限与可见性模型",
+    "moduleFile": "12-views.md",
+    "line": 196
+  },
+  {
+    "id": "VIEW-PERM-008",
+    "summary": "wizard owner",
+    "section": "权限与可见性模型",
+    "moduleFile": "12-views.md",
+    "line": 197
+  },
+  {
+    "id": "VIEW-RISK-001",
+    "summary": "两阶段 View 查询增加一次往返；reload 不重置 loaded且不去重并发",
+    "section": "已知旧版风险与 React 验收要求",
+    "moduleFile": "12-views.md",
+    "line": 271
+  },
+  {
+    "id": "VIEW-RISK-002",
+    "summary": "空列表、403/500 和 instance load failure 显示相同 `No views`",
+    "section": "已知旧版风险与 React 验收要求",
+    "moduleFile": "12-views.md",
+    "line": 272
+  },
+  {
+    "id": "VIEW-RISK-003",
+    "summary": "invalid regular/short deep link没有 not-found恢复，并可能复用 singleton details controller 的旧 content",
+    "section": "已知旧版风险与 React 验收要求",
+    "moduleFile": "12-views.md",
+    "line": 273
+  },
+  {
+    "id": "VIEW-RISK-004",
+    "summary": "`viewPath` 依赖旧 Ember把 query附到最后一个动态参数；parser用 substring而非 query key识别且不捕获 `decodeURIComponent` 的 `URIError`",
+    "section": "已知旧版风险与 React 验收要求",
+    "moduleFile": "12-views.md",
+    "line": 274
+  },
+  {
+    "id": "VIEW-RISK-005",
+    "summary": "iframe读取 content document、绑定事件且无 sandbox，隐含同源假设",
+    "section": "已知旧版风险与 React 验收要求",
+    "moduleFile": "12-views.md",
+    "line": 275
+  },
+  {
+    "id": "VIEW-RISK-006",
+    "summary": "iframe没有 load/error lifecycle，并用全局 selector取第一个 iframe resize",
+    "section": "已知旧版风险与 React 验收要求",
+    "moduleFile": "12-views.md",
+    "line": 276
+  },
+  {
+    "id": "VIEW-RISK-007",
+    "summary": "View route无客户端逐 instance permission guard",
+    "section": "已知旧版风险与 React 验收要求",
+    "moduleFile": "12-views.md",
+    "line": 277
+  },
+  {
+    "id": "VIEW-RISK-008",
+    "summary": "`isOnlyViewUser` 把空 authorization 当 View-only，并受 upgrade/wizard全局 gate影响",
+    "section": "已知旧版风险与 React 验收要求",
+    "moduleFile": "12-views.md",
+    "line": 278
+  },
+  {
+    "id": "VIEW-RISK-009",
+    "summary": "Manage Ambari 链接权限、`/adminView` route guard和 Manage Versions权限是三套不同条件",
+    "section": "已知旧版风险与 React 验收要求",
+    "moduleFile": "12-views.md",
+    "line": 279
+  },
+  {
+    "id": "VIEW-RISK-010",
+    "summary": "Admin version用字符串排序并假设至少一个合法 component version",
+    "section": "已知旧版风险与 React 验收要求",
+    "moduleFile": "12-views.md",
+    "line": 280
+  },
+  {
+    "id": "VIEW-RISK-011",
+    "summary": "generic service-to-View panel和 Hive hook当前未启用",
+    "section": "已知旧版风险与 React 验收要求",
+    "moduleFile": "12-views.md",
+    "line": 281
+  },
+  {
+    "id": "VIEW-RISK-012",
+    "summary": "View-only 仍依赖 supports -> `ambari.service` -> cluster identity这条 main外壳链；`ambari.service` 或未完成 cluster 的 persist失败会阻断 success串接；keep-alive只在 logoff成功时显式关闭",
+    "section": "已知旧版风险与 React 验收要求",
+    "moduleFile": "12-views.md",
+    "line": 282
+  },
+  {
+    "id": "GATE-AUTH-001",
+    "summary": "逗号分隔权限是 OR",
+    "section": "权限判定语义",
+    "moduleFile": "13-permissions-flags.md",
+    "line": 9
+  },
+  {
+    "id": "GATE-AUTH-002",
+    "summary": "`isAuthorized` 增加向导所有权限制",
+    "section": "权限判定语义",
+    "moduleFile": "13-permissions-flags.md",
+    "line": 10
+  },
+  {
+    "id": "GATE-AUTH-003",
+    "summary": "`havePermissions` 不受向导所有权限制",
+    "section": "权限判定语义",
+    "moduleFile": "13-permissions-flags.md",
+    "line": 11
+  },
+  {
+    "id": "GATE-AUTH-004",
+    "summary": "Upgrade 全局互斥及 OR 表达式污染",
+    "section": "权限判定语义",
+    "moduleFile": "13-permissions-flags.md",
+    "line": 12
+  },
+  {
+    "id": "GATE-AUTH-005",
+    "summary": "无权限模型即全部拒绝",
+    "section": "权限判定语义",
+    "moduleFile": "13-permissions-flags.md",
+    "line": 13
+  },
+  {
+    "id": "GATE-AUTH-006",
+    "summary": "只有 View 权限的用户走独立导航",
+    "section": "权限判定语义",
+    "moduleFile": "13-permissions-flags.md",
+    "line": 14
+  },
+  {
+    "id": "GATE-AUTH-007",
+    "summary": "Cluster Administrator 提升前端角色标志",
+    "section": "权限判定语义",
+    "moduleFile": "13-permissions-flags.md",
+    "line": 15
+  },
+  {
+    "id": "GATE-AUTH-008",
+    "summary": "UI 权限不是服务端授权替代品",
+    "section": "权限判定语义",
+    "moduleFile": "13-permissions-flags.md",
+    "line": 16
+  },
+  {
+    "id": "GATE-RUNTIME-001",
+    "summary": "`App.stackVersionsAvailable=true`",
+    "section": "其他 Runtime UI Gates",
+    "moduleFile": "13-permissions-flags.md",
+    "line": 112
+  },
+  {
+    "id": "GATE-RUNTIME-002",
+    "summary": "`App.upgradeHistoryAvailable=false`",
+    "section": "其他 Runtime UI Gates",
+    "moduleFile": "13-permissions-flags.md",
+    "line": 113
+  },
+  {
+    "id": "GATE-RUNTIME-003",
+    "summary": "`App.enableDigitalClock=false`",
+    "section": "其他 Runtime UI Gates",
+    "moduleFile": "13-permissions-flags.md",
+    "line": 114
+  },
+  {
+    "id": "GATE-META-001",
+    "summary": "`StackService.isInstallable`、已安装 service names、service dependencies",
+    "section": "Stack、Service 与 Component Metadata 条件",
+    "moduleFile": "13-permissions-flags.md",
+    "line": 120
+  },
+  {
+    "id": "GATE-META-002",
+    "summary": "service `serviceTypes` 包含 `HA_MODE`",
+    "section": "Stack、Service 与 Component Metadata 条件",
+    "moduleFile": "13-permissions-flags.md",
+    "line": 121
+  },
+  {
+    "id": "GATE-META-003",
+    "summary": "service `serviceTypes` 包含 `FEDERATION`",
+    "section": "Stack、Service 与 Component Metadata 条件",
+    "moduleFile": "13-permissions-flags.md",
+    "line": 122
+  },
+  {
+    "id": "GATE-META-004",
+    "summary": "service `serviceTypes` 包含 `DFSRouter`",
+    "section": "Stack、Service 与 Component Metadata 条件",
+    "moduleFile": "13-permissions-flags.md",
+    "line": 123
+  },
+  {
+    "id": "GATE-META-005",
+    "summary": "component cardinality/min/max、`isMaster`、`isClient`、`isSlave`、`isHAComponentOnly`",
+    "section": "Stack、Service 与 Component Metadata 条件",
+    "moduleFile": "13-permissions-flags.md",
+    "line": 124
+  },
+  {
+    "id": "GATE-META-006",
+    "summary": "`components.reassignable`",
+    "section": "Stack、Service 与 Component Metadata 条件",
+    "moduleFile": "13-permissions-flags.md",
+    "line": 125
+  },
+  {
+    "id": "GATE-META-007",
+    "summary": "`components.decommissionAllowed`",
+    "section": "Stack、Service 与 Component Metadata 条件",
+    "moduleFile": "13-permissions-flags.md",
+    "line": 126
+  },
+  {
+    "id": "GATE-META-008",
+    "summary": "stack component custom commands",
+    "section": "Stack、Service 与 Component Metadata 条件",
+    "moduleFile": "13-permissions-flags.md",
+    "line": 127
+  },
+  {
+    "id": "GATE-META-009",
+    "summary": "config types/themes/value attributes/dependencies",
+    "section": "Stack、Service 与 Component Metadata 条件",
+    "moduleFile": "13-permissions-flags.md",
+    "line": 128
+  },
+  {
+    "id": "GATE-META-010",
+    "summary": "Windows stack/stack family/version",
+    "section": "Stack、Service 与 Component Metadata 条件",
+    "moduleFile": "13-permissions-flags.md",
+    "line": 129
+  },
+  {
+    "id": "GATE-STATE-001",
+    "summary": "service/component desired/current state",
+    "section": "状态、Maintenance 与长流程互斥",
+    "moduleFile": "13-permissions-flags.md",
+    "line": 135
+  },
+  {
+    "id": "GATE-STATE-002",
+    "summary": "host/component/service maintenance",
+    "section": "状态、Maintenance 与长流程互斥",
+    "moduleFile": "13-permissions-flags.md",
+    "line": 136
+  },
+  {
+    "id": "GATE-STATE-003",
+    "summary": "heartbeat/host health",
+    "section": "状态、Maintenance 与长流程互斥",
+    "moduleFile": "13-permissions-flags.md",
+    "line": 137
+  },
+  {
+    "id": "GATE-STATE-004",
+    "summary": "stale configs/restart required",
+    "section": "状态、Maintenance 与长流程互斥",
+    "moduleFile": "13-permissions-flags.md",
+    "line": 138
+  },
+  {
+    "id": "GATE-STATE-005",
+    "summary": "background request/schedule already active",
+    "section": "状态、Maintenance 与长流程互斥",
+    "moduleFile": "13-permissions-flags.md",
+    "line": 139
+  },
+  {
+    "id": "GATE-STATE-006",
+    "summary": "`wizardWatcherController.isNonWizardUser`",
+    "section": "状态、Maintenance 与长流程互斥",
+    "moduleFile": "13-permissions-flags.md",
+    "line": 140
+  },
+  {
+    "id": "GATE-STATE-007",
+    "summary": "upgrade state",
+    "section": "状态、Maintenance 与长流程互斥",
+    "moduleFile": "13-permissions-flags.md",
+    "line": 141
+  },
+  {
+    "id": "GATE-STATE-008",
+    "summary": "Kerberos security type/KDC session",
+    "section": "状态、Maintenance 与长流程互斥",
+    "moduleFile": "13-permissions-flags.md",
+    "line": 142
+  },
+  {
+    "id": "GATE-STATE-009",
+    "summary": "cluster provisioning/wizard `clusterState`",
+    "section": "状态、Maintenance 与长流程互斥",
+    "moduleFile": "13-permissions-flags.md",
+    "line": 143
+  },
+  {
+    "id": "GATE-RISK-001",
+    "summary": "`!isWindows && isAuthorized(KERBEROS) \\|\\| upgradeRunning`",
+    "section": "已知优先级与迁移风险",
+    "moduleFile": "13-permissions-flags.md",
+    "line": 149
+  },
+  {
+    "id": "GATE-RISK-002",
+    "summary": "Admin parent `enter` 接受四种权限 OR，但 `routePath` 主要要求 upgrade permission",
+    "section": "已知优先级与迁移风险",
+    "moduleFile": "13-permissions-flags.md",
+    "line": 150
+  },
+  {
+    "id": "GATE-RISK-003",
+    "summary": "Service actions 外层用多个 permissions OR",
+    "section": "已知优先级与迁移风险",
+    "moduleFile": "13-permissions-flags.md",
+    "line": 151
+  },
+  {
+    "id": "GATE-RISK-006",
+    "summary": "upgrade例外按整条 permission字符串判断",
+    "section": "已知优先级与迁移风险",
+    "moduleFile": "13-permissions-flags.md",
+    "line": 152
+  },
+  {
+    "id": "GATE-RISK-004",
+    "summary": "Client feature flags 可在 Experimental 页面修改",
+    "section": "已知优先级与迁移风险",
+    "moduleFile": "13-permissions-flags.md",
+    "line": 153
+  },
+  {
+    "id": "GATE-RISK-005",
+    "summary": "某些权限只出现在独立 Admin Console入口",
+    "section": "已知优先级与迁移风险",
+    "moduleFile": "13-permissions-flags.md",
+    "line": 154
+  }
+]

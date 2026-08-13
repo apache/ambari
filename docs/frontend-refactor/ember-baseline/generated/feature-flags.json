@@ -1,0 +1,585 @@
+[
+  {
+    "name": "alwaysEnableManagedMySQLForHive",
+    "kinds": [
+      "JavaScript"
+    ],
+    "callers": [
+      "ambari-web/classic/app/utils/configs/config_initializer.js:155"
+    ],
+    "uses": [
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/utils/configs/config_initializer.js",
+        "line": 155
+      }
+    ]
+  },
+  {
+    "name": "autoRollbackHA",
+    "kinds": [
+      "JavaScript"
+    ],
+    "callers": [
+      "ambari-web/classic/app/mixins/wizard/wizardProgressPageController.js:369",
+      "ambari-web/classic/app/routes/high_availability_routes.js:48",
+      "ambari-web/classic/app/routes/high_availability_routes.js:63"
+    ],
+    "uses": [
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/mixins/wizard/wizardProgressPageController.js",
+        "line": 369
+      },
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/routes/high_availability_routes.js",
+        "line": 48
+      },
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/routes/high_availability_routes.js",
+        "line": 63
+      }
+    ]
+  },
+  {
+    "name": "createAlerts",
+    "kinds": [
+      "JavaScript"
+    ],
+    "callers": [
+      "ambari-web/classic/app/controllers/main/alerts/alert_definitions_actions_controller.js:31",
+      "ambari-web/classic/app/controllers/main/alerts/alert_definitions_actions_controller.js:60"
+    ],
+    "uses": [
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/controllers/main/alerts/alert_definitions_actions_controller.js",
+        "line": 31
+      },
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/controllers/main/alerts/alert_definitions_actions_controller.js",
+        "line": 60
+      }
+    ]
+  },
+  {
+    "name": "customizeAgentUserAccount",
+    "kinds": [
+      "Handlebars",
+      "JavaScript"
+    ],
+    "callers": [
+      "ambari-web/classic/app/controllers/wizard/step2_controller.js:160",
+      "ambari-web/classic/app/controllers/wizard/step3_controller.js:201",
+      "ambari-web/classic/app/controllers/wizard/step3_controller.js:381",
+      "ambari-web/classic/app/templates/wizard/step2.hbs:166"
+    ],
+    "uses": [
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/controllers/wizard/step2_controller.js",
+        "line": 160
+      },
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/controllers/wizard/step3_controller.js",
+        "line": 201
+      },
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/controllers/wizard/step3_controller.js",
+        "line": 381
+      },
+      {
+        "kind": "Handlebars",
+        "source": "ambari-web/classic/app/templates/wizard/step2.hbs",
+        "line": 166
+      }
+    ]
+  },
+  {
+    "name": "disableCredentialsAutocompleteForRepoUrls",
+    "kinds": [
+      "JavaScript"
+    ],
+    "callers": [
+      "ambari-web/classic/app/views/wizard/step1_view.js:327"
+    ],
+    "uses": [
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/views/wizard/step1_view.js",
+        "line": 327
+      }
+    ]
+  },
+  {
+    "name": "displayOlderVersions",
+    "kinds": [
+      "JavaScript"
+    ],
+    "callers": [
+      "ambari-web/classic/app/mappers/hosts_mapper.js:183",
+      "ambari-web/classic/app/views/main/admin/stack_upgrade/versions_view.js:190"
+    ],
+    "uses": [
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/mappers/hosts_mapper.js",
+        "line": 183
+      },
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/views/main/admin/stack_upgrade/versions_view.js",
+        "line": 190
+      }
+    ]
+  },
+  {
+    "name": "enableAddDeleteServices",
+    "kinds": [
+      "Handlebars",
+      "JavaScript"
+    ],
+    "callers": [
+      "ambari-web/classic/app/routes/add_service_routes.js:27",
+      "ambari-web/classic/app/views/main/admin/stack_upgrade/services_view.js:58",
+      "ambari-web/classic/app/views/main/service/item.js:373",
+      "ambari-web/classic/app/templates/main/service/all_services_actions.hbs:25"
+    ],
+    "uses": [
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/routes/add_service_routes.js",
+        "line": 27
+      },
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/views/main/admin/stack_upgrade/services_view.js",
+        "line": 58
+      },
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/views/main/service/item.js",
+        "line": 373
+      },
+      {
+        "kind": "Handlebars",
+        "source": "ambari-web/classic/app/templates/main/service/all_services_actions.hbs",
+        "line": 25
+      }
+    ]
+  },
+  {
+    "name": "enabledWizardForHostOrderedUpgrade",
+    "kinds": [
+      "JavaScript"
+    ],
+    "callers": [
+      "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:230"
+    ],
+    "uses": [
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js",
+        "line": 230
+      }
+    ]
+  },
+  {
+    "name": "enableNewServiceRestartOptions",
+    "kinds": [
+      "JavaScript"
+    ],
+    "callers": [
+      "ambari-web/classic/app/views/main/service/item.js:191"
+    ],
+    "uses": [
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/views/main/service/item.js",
+        "line": 191
+      }
+    ]
+  },
+  {
+    "name": "enableToggleKerberos",
+    "kinds": [
+      "Handlebars",
+      "JavaScript"
+    ],
+    "callers": [
+      "ambari-web/classic/app/routes/main.js:475",
+      "ambari-web/classic/app/views/main/admin.js:42",
+      "ambari-web/classic/app/views/main/menu.js:119",
+      "ambari-web/classic/app/templates/main/admin/kerberos.hbs:23",
+      "ambari-web/classic/app/templates/main/admin/kerberos.hbs:42",
+      "ambari-web/classic/app/templates/main/admin/kerberos.hbs:64"
+    ],
+    "uses": [
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/routes/main.js",
+        "line": 475
+      },
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/views/main/admin.js",
+        "line": 42
+      },
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/views/main/menu.js",
+        "line": 119
+      },
+      {
+        "kind": "Handlebars",
+        "source": "ambari-web/classic/app/templates/main/admin/kerberos.hbs",
+        "line": 23
+      },
+      {
+        "kind": "Handlebars",
+        "source": "ambari-web/classic/app/templates/main/admin/kerberos.hbs",
+        "line": 42
+      },
+      {
+        "kind": "Handlebars",
+        "source": "ambari-web/classic/app/templates/main/admin/kerberos.hbs",
+        "line": 64
+      }
+    ]
+  },
+  {
+    "name": "installGanglia",
+    "kinds": [
+      "JavaScript"
+    ],
+    "callers": [
+      "ambari-web/classic/app/models/stack_service.js:229",
+      "ambari-web/classic/app/models/stack_version/service_simple.js:32",
+      "ambari-web/classic/app/views/main/admin/stack_upgrade/services_view.js:33"
+    ],
+    "uses": [
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/models/stack_service.js",
+        "line": 229
+      },
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/models/stack_version/service_simple.js",
+        "line": 32
+      },
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/views/main/admin/stack_upgrade/services_view.js",
+        "line": 33
+      }
+    ]
+  },
+  {
+    "name": "kerberosStackAdvisor",
+    "kinds": [
+      "JavaScript"
+    ],
+    "callers": [
+      "ambari-web/classic/app/controllers/main/admin/kerberos/step4_controller.js:44"
+    ],
+    "uses": [
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/controllers/main/admin/kerberos/step4_controller.js",
+        "line": 44
+      }
+    ]
+  },
+  {
+    "name": "logCountVizualization",
+    "kinds": [
+      "Handlebars"
+    ],
+    "callers": [
+      "ambari-web/classic/app/templates/main/host/summary.hbs:173"
+    ],
+    "uses": [
+      {
+        "kind": "Handlebars",
+        "source": "ambari-web/classic/app/templates/main/host/summary.hbs",
+        "line": 173
+      }
+    ]
+  },
+  {
+    "name": "logSearch",
+    "kinds": [
+      "Handlebars",
+      "JavaScript"
+    ],
+    "callers": [
+      "ambari-web/classic/app/controllers/global/update_controller.js:252",
+      "ambari-web/classic/app/routes/main.js:333",
+      "ambari-web/classic/app/views/common/host_progress_popup_body_view.js:996",
+      "ambari-web/classic/app/views/main/host/menu.js:64",
+      "ambari-web/classic/app/views/main/host/menu.js:60",
+      "ambari-web/classic/app/templates/common/host_progress_popup.hbs:267"
+    ],
+    "uses": [
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/controllers/global/update_controller.js",
+        "line": 252
+      },
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/routes/main.js",
+        "line": 333
+      },
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/views/common/host_progress_popup_body_view.js",
+        "line": 996
+      },
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/views/main/host/menu.js",
+        "line": 64
+      },
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/views/main/host/menu.js",
+        "line": 60
+      },
+      {
+        "kind": "Handlebars",
+        "source": "ambari-web/classic/app/templates/common/host_progress_popup.hbs",
+        "line": 267
+      }
+    ]
+  },
+  {
+    "name": "manageJournalNode",
+    "kinds": [
+      "JavaScript"
+    ],
+    "callers": [
+      "ambari-web/classic/app/models/host_component.js:422",
+      "ambari-web/classic/app/views/main/service/item.js:217"
+    ],
+    "uses": [
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/models/host_component.js",
+        "line": 422
+      },
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/views/main/service/item.js",
+        "line": 217
+      }
+    ]
+  },
+  {
+    "name": "opsDuringRollingUpgrade",
+    "kinds": [
+      "JavaScript"
+    ],
+    "callers": [
+      "ambari-web/classic/app/app.js:165",
+      "ambari-web/classic/app/views/main/admin/stack_upgrade/services_view.js:27"
+    ],
+    "uses": [
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/app.js",
+        "line": 165
+      },
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/views/main/admin/stack_upgrade/services_view.js",
+        "line": 27
+      }
+    ]
+  },
+  {
+    "name": "preInstallChecks",
+    "kinds": [
+      "Handlebars",
+      "JavaScript"
+    ],
+    "callers": [
+      "ambari-web/classic/app/controllers/wizard/step7_controller.js:182",
+      "ambari-web/classic/app/controllers/wizard/step7_controller.js:181",
+      "ambari-web/classic/app/templates/wizard/step7.hbs:43",
+      "ambari-web/classic/app/templates/wizard/step7_with_category_tabs.hbs:61"
+    ],
+    "uses": [
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/controllers/wizard/step7_controller.js",
+        "line": 182
+      },
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/controllers/wizard/step7_controller.js",
+        "line": 181
+      },
+      {
+        "kind": "Handlebars",
+        "source": "ambari-web/classic/app/templates/wizard/step7.hbs",
+        "line": 43
+      },
+      {
+        "kind": "Handlebars",
+        "source": "ambari-web/classic/app/templates/wizard/step7_with_category_tabs.hbs",
+        "line": 61
+      }
+    ]
+  },
+  {
+    "name": "preKerberizeCheck",
+    "kinds": [
+      "JavaScript"
+    ],
+    "callers": [
+      "ambari-web/classic/app/controllers/main/admin/kerberos.js:233"
+    ],
+    "uses": [
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/controllers/main/admin/kerberos.js",
+        "line": 233
+      }
+    ]
+  },
+  {
+    "name": "preUpgradeCheck",
+    "kinds": [
+      "JavaScript"
+    ],
+    "callers": [
+      "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:1134",
+      "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:1221",
+      "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:1288",
+      "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:1460"
+    ],
+    "uses": [
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js",
+        "line": 1134
+      },
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js",
+        "line": 1221
+      },
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js",
+        "line": 1288
+      },
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js",
+        "line": 1460
+      }
+    ]
+  },
+  {
+    "name": "regenerateKeytabsOnSingleHost",
+    "kinds": [
+      "JavaScript"
+    ],
+    "callers": [
+      "ambari-web/classic/app/views/main/host/details.js:80"
+    ],
+    "uses": [
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/views/main/host/details.js",
+        "line": 80
+      }
+    ]
+  },
+  {
+    "name": "serviceAutoStart",
+    "kinds": [
+      "JavaScript"
+    ],
+    "callers": [
+      "ambari-web/classic/app/views/main/admin.js:52",
+      "ambari-web/classic/app/views/main/menu.js:130"
+    ],
+    "uses": [
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/views/main/admin.js",
+        "line": 52
+      },
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/views/main/menu.js",
+        "line": 130
+      }
+    ]
+  },
+  {
+    "name": "showPageLoadTime",
+    "kinds": [
+      "JavaScript"
+    ],
+    "callers": [
+      "ambari-web/classic/app/utils/load_timer.js:31"
+    ],
+    "uses": [
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/utils/load_timer.js",
+        "line": 31
+      }
+    ]
+  },
+  {
+    "name": "skipComponentStartAfterInstall",
+    "kinds": [
+      "JavaScript"
+    ],
+    "callers": [
+      "ambari-web/classic/app/controllers/wizard/step9_controller.js:622",
+      "ambari-web/classic/app/controllers/wizard/step9_controller.js:696",
+      "ambari-web/classic/app/controllers/wizard/step9_controller.js:853",
+      "ambari-web/classic/app/controllers/wizard/step9_controller.js:934",
+      "ambari-web/classic/app/controllers/wizard/step9_controller.js:1166"
+    ],
+    "uses": [
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/controllers/wizard/step9_controller.js",
+        "line": 622
+      },
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/controllers/wizard/step9_controller.js",
+        "line": 696
+      },
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/controllers/wizard/step9_controller.js",
+        "line": 853
+      },
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/controllers/wizard/step9_controller.js",
+        "line": 934
+      },
+      {
+        "kind": "JavaScript",
+        "source": "ambari-web/classic/app/controllers/wizard/step9_controller.js",
+        "line": 1166
+      }
+    ]
+  }
+]

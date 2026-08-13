@@ -1,0 +1,1273 @@
+[
+  {
+    "name": "AMBARI.ADD_DELETE_CLUSTERS",
+    "kinds": [
+      "isAuthorized"
+    ],
+    "callers": [
+      "ambari-web/classic/app/controllers/wizard/step7_controller.js:498",
+      "ambari-web/classic/app/routes/installer.js:42",
+      "ambari-web/classic/app/routes/main.js:66",
+      "ambari-web/classic/app/templates/application.hbs:76"
+    ],
+    "uses": [
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/controllers/wizard/step7_controller.js",
+        "line": 498
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/routes/installer.js",
+        "line": 42
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/routes/main.js",
+        "line": 66
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/application.hbs",
+        "line": 76
+      }
+    ]
+  },
+  {
+    "name": "AMBARI.ASSIGN_ROLES",
+    "kinds": [
+      "isAuthorized"
+    ],
+    "callers": [
+      "ambari-web/classic/app/templates/application.hbs:76"
+    ],
+    "uses": [
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/application.hbs",
+        "line": 76
+      }
+    ]
+  },
+  {
+    "name": "AMBARI.EDIT_STACK_REPOS",
+    "kinds": [
+      "isAuthorized"
+    ],
+    "callers": [
+      "ambari-web/classic/app/templates/application.hbs:76"
+    ],
+    "uses": [
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/application.hbs",
+        "line": 76
+      }
+    ]
+  },
+  {
+    "name": "AMBARI.MANAGE_GROUPS",
+    "kinds": [
+      "isAuthorized"
+    ],
+    "callers": [
+      "ambari-web/classic/app/templates/application.hbs:76"
+    ],
+    "uses": [
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/application.hbs",
+        "line": 76
+      }
+    ]
+  },
+  {
+    "name": "AMBARI.MANAGE_SETTINGS",
+    "kinds": [
+      "isAuthorized"
+    ],
+    "callers": [
+      "ambari-web/classic/app/router.js:988",
+      "ambari-web/classic/app/router.js:1005",
+      "ambari-web/classic/app/templates/application.hbs:88",
+      "ambari-web/classic/app/templates/common/host_progress_popup_footer.hbs:19"
+    ],
+    "uses": [
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/router.js",
+        "line": 988
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/router.js",
+        "line": 1005
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/application.hbs",
+        "line": 88
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/common/host_progress_popup_footer.hbs",
+        "line": 19
+      }
+    ]
+  },
+  {
+    "name": "AMBARI.MANAGE_STACK_VERSIONS",
+    "kinds": [
+      "havePermissions",
+      "isAuthorized"
+    ],
+    "callers": [
+      "ambari-web/classic/app/views/main/admin/stack_upgrade/upgrade_version_box_view.js:64",
+      "ambari-web/classic/app/templates/application.hbs:76",
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/versions.hbs:32",
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/versions.hbs:47",
+      "ambari-web/classic/app/templates/main/host/stack_versions.hbs:57"
+    ],
+    "uses": [
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/admin/stack_upgrade/upgrade_version_box_view.js",
+        "line": 64
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/application.hbs",
+        "line": 76
+      },
+      {
+        "kind": "havePermissions",
+        "source": "ambari-web/classic/app/templates/main/admin/stack_upgrade/versions.hbs",
+        "line": 32
+      },
+      {
+        "kind": "havePermissions",
+        "source": "ambari-web/classic/app/templates/main/admin/stack_upgrade/versions.hbs",
+        "line": 47
+      },
+      {
+        "kind": "havePermissions",
+        "source": "ambari-web/classic/app/templates/main/host/stack_versions.hbs",
+        "line": 57
+      }
+    ]
+  },
+  {
+    "name": "AMBARI.MANAGE_USERS",
+    "kinds": [
+      "isAuthorized"
+    ],
+    "callers": [
+      "ambari-web/classic/app/templates/application.hbs:76"
+    ],
+    "uses": [
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/application.hbs",
+        "line": 76
+      }
+    ]
+  },
+  {
+    "name": "AMBARI.MANAGE_VIEWS",
+    "kinds": [
+      "isAuthorized"
+    ],
+    "callers": [
+      "ambari-web/classic/app/templates/application.hbs:76"
+    ],
+    "uses": [
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/application.hbs",
+        "line": 76
+      }
+    ]
+  },
+  {
+    "name": "AMBARI.RENAME_CLUSTER",
+    "kinds": [
+      "isAuthorized"
+    ],
+    "callers": [
+      "ambari-web/classic/app/templates/application.hbs:76"
+    ],
+    "uses": [
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/application.hbs",
+        "line": 76
+      }
+    ]
+  },
+  {
+    "name": "CLUSTER.MANAGE_ALERT_NOTIFICATIONS",
+    "kinds": [
+      "isAuthorized"
+    ],
+    "callers": [
+      "ambari-web/classic/app/controllers/main/alerts/alert_definitions_actions_controller.js:45"
+    ],
+    "uses": [
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/controllers/main/alerts/alert_definitions_actions_controller.js",
+        "line": 45
+      }
+    ]
+  },
+  {
+    "name": "CLUSTER.MANAGE_AUTO_START",
+    "kinds": [
+      "isAuthorized"
+    ],
+    "callers": [
+      "ambari-web/classic/app/routes/main.js:668",
+      "ambari-web/classic/app/views/main/admin.js:51",
+      "ambari-web/classic/app/views/main/admin/service_auto_start.js:51",
+      "ambari-web/classic/app/views/main/menu.js:129"
+    ],
+    "uses": [
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/routes/main.js",
+        "line": 668
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/admin.js",
+        "line": 51
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/admin/service_auto_start.js",
+        "line": 51
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/menu.js",
+        "line": 129
+      }
+    ]
+  },
+  {
+    "name": "CLUSTER.MANAGE_USER_PERSISTED_DATA",
+    "kinds": [
+      "havePermissions",
+      "isAuthorized"
+    ],
+    "callers": [
+      "ambari-web/classic/app/mixins/common/persist.js:107",
+      "ambari-web/classic/app/templates/experimental.hbs:59"
+    ],
+    "uses": [
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/mixins/common/persist.js",
+        "line": 107
+      },
+      {
+        "kind": "havePermissions",
+        "source": "ambari-web/classic/app/templates/experimental.hbs",
+        "line": 59
+      }
+    ]
+  },
+  {
+    "name": "CLUSTER.MANAGE_WIDGETS",
+    "kinds": [
+      "isAuthorized"
+    ],
+    "callers": [
+      "ambari-web/classic/app/mixins/common/widgets/widget_mixin.js:695",
+      "ambari-web/classic/app/mixins/common/widgets/widget_mixin.js:696"
+    ],
+    "uses": [
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/mixins/common/widgets/widget_mixin.js",
+        "line": 695
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/mixins/common/widgets/widget_mixin.js",
+        "line": 696
+      }
+    ]
+  },
+  {
+    "name": "CLUSTER.MODIFY_CONFIGS",
+    "kinds": [
+      "isAuthorized"
+    ],
+    "callers": [
+      "ambari-web/classic/app/views/main/admin.js:51",
+      "ambari-web/classic/app/views/main/menu.js:52",
+      "ambari-web/classic/app/views/main/menu.js:129"
+    ],
+    "uses": [
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/admin.js",
+        "line": 51
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/menu.js",
+        "line": 52
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/menu.js",
+        "line": 129
+      }
+    ]
+  },
+  {
+    "name": "CLUSTER.TOGGLE_ALERTS",
+    "kinds": [
+      "isAuthorized"
+    ],
+    "callers": [
+      "ambari-web/classic/app/templates/main/alerts/alert_definition/alert_definition_state.hbs:19"
+    ],
+    "uses": [
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/main/alerts/alert_definition/alert_definition_state.hbs",
+        "line": 19
+      }
+    ]
+  },
+  {
+    "name": "CLUSTER.TOGGLE_KERBEROS",
+    "kinds": [
+      "isAuthorized"
+    ],
+    "callers": [
+      "ambari-web/classic/app/models/cluster_states.js:149",
+      "ambari-web/classic/app/routes/main.js:433",
+      "ambari-web/classic/app/routes/main.js:475",
+      "ambari-web/classic/app/views/main/admin.js:41",
+      "ambari-web/classic/app/views/main/menu.js:52",
+      "ambari-web/classic/app/views/main/menu.js:118",
+      "ambari-web/classic/app/templates/main/admin/kerberos.hbs:22",
+      "ambari-web/classic/app/templates/main/admin/kerberos.hbs:41",
+      "ambari-web/classic/app/templates/main/admin/kerberos.hbs:63"
+    ],
+    "uses": [
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/models/cluster_states.js",
+        "line": 149
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/routes/main.js",
+        "line": 433
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/routes/main.js",
+        "line": 475
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/admin.js",
+        "line": 41
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/menu.js",
+        "line": 52
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/menu.js",
+        "line": 118
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/main/admin/kerberos.hbs",
+        "line": 22
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/main/admin/kerberos.hbs",
+        "line": 41
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/main/admin/kerberos.hbs",
+        "line": 63
+      }
+    ]
+  },
+  {
+    "name": "CLUSTER.UPGRADE_DOWNGRADE_STACK",
+    "kinds": [
+      "isAuthorized"
+    ],
+    "callers": [
+      "ambari-web/classic/app/controllers/application.js:86",
+      "ambari-web/classic/app/controllers/global/user_settings_controller.js:189",
+      "ambari-web/classic/app/controllers/main/admin/kerberos.js:662",
+      "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:1993",
+      "ambari-web/classic/app/router.js:971",
+      "ambari-web/classic/app/router.js:989",
+      "ambari-web/classic/app/routes/main.js:433",
+      "ambari-web/classic/app/routes/main.js:442",
+      "ambari-web/classic/app/routes/stack_upgrade_routes.js:29",
+      "ambari-web/classic/app/views/main/admin.js:26",
+      "ambari-web/classic/app/views/main/admin/stack_upgrade/services_view.js:26",
+      "ambari-web/classic/app/views/main/admin/stack_upgrade/upgrade_version_box_view.js:208",
+      "ambari-web/classic/app/views/main/admin/stack_upgrade/upgrade_version_box_view.js:389",
+      "ambari-web/classic/app/views/main/menu.js:52",
+      "ambari-web/classic/app/views/main/menu.js:101"
+    ],
+    "uses": [
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/controllers/application.js",
+        "line": 86
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/controllers/global/user_settings_controller.js",
+        "line": 189
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/controllers/main/admin/kerberos.js",
+        "line": 662
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js",
+        "line": 1993
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/router.js",
+        "line": 971
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/router.js",
+        "line": 989
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/routes/main.js",
+        "line": 433
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/routes/main.js",
+        "line": 442
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/routes/stack_upgrade_routes.js",
+        "line": 29
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/admin.js",
+        "line": 26
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/admin/stack_upgrade/services_view.js",
+        "line": 26
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/admin/stack_upgrade/upgrade_version_box_view.js",
+        "line": 208
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/admin/stack_upgrade/upgrade_version_box_view.js",
+        "line": 389
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/menu.js",
+        "line": 52
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/menu.js",
+        "line": 101
+      }
+    ]
+  },
+  {
+    "name": "CLUSTER.VIEW_CONFIGS",
+    "kinds": [
+      "havePermissions"
+    ],
+    "callers": [
+      "ambari-web/classic/app/views/main/service/item.js:405"
+    ],
+    "uses": [
+      {
+        "kind": "havePermissions",
+        "source": "ambari-web/classic/app/views/main/service/item.js",
+        "line": 405
+      }
+    ]
+  },
+  {
+    "name": "CLUSTER.VIEW_STACK_DETAILS",
+    "kinds": [
+      "isAuthorized"
+    ],
+    "callers": [
+      "ambari-web/classic/app/routes/main.js:433",
+      "ambari-web/classic/app/views/main/admin.js:26",
+      "ambari-web/classic/app/views/main/menu.js:52",
+      "ambari-web/classic/app/views/main/menu.js:101"
+    ],
+    "uses": [
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/routes/main.js",
+        "line": 433
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/admin.js",
+        "line": 26
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/menu.js",
+        "line": 52
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/menu.js",
+        "line": 101
+      }
+    ]
+  },
+  {
+    "name": "HOST.ADD_DELETE_COMPONENTS",
+    "kinds": [
+      "havePermissions",
+      "isAuthorized"
+    ],
+    "callers": [
+      "ambari-web/classic/app/views/main/host/hosts_table_menu_view.js:129",
+      "ambari-web/classic/app/views/main/service/item.js:318",
+      "ambari-web/classic/app/templates/main/host.hbs:25",
+      "ambari-web/classic/app/templates/main/host/details/host_component.hbs:22",
+      "ambari-web/classic/app/templates/main/host/details/host_component.hbs:196",
+      "ambari-web/classic/app/templates/main/host/summary.hbs:19",
+      "ambari-web/classic/app/templates/main/host/summary.hbs:40"
+    ],
+    "uses": [
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/host/hosts_table_menu_view.js",
+        "line": 129
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/service/item.js",
+        "line": 318
+      },
+      {
+        "kind": "havePermissions",
+        "source": "ambari-web/classic/app/templates/main/host.hbs",
+        "line": 25
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/main/host/details/host_component.hbs",
+        "line": 22
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/main/host/details/host_component.hbs",
+        "line": 196
+      },
+      {
+        "kind": "havePermissions",
+        "source": "ambari-web/classic/app/templates/main/host/summary.hbs",
+        "line": 19
+      },
+      {
+        "kind": "havePermissions",
+        "source": "ambari-web/classic/app/templates/main/host/summary.hbs",
+        "line": 40
+      }
+    ]
+  },
+  {
+    "name": "HOST.ADD_DELETE_HOSTS",
+    "kinds": [
+      "havePermissions",
+      "isAuthorized"
+    ],
+    "callers": [
+      "ambari-web/classic/app/views/main/host/details.js:84",
+      "ambari-web/classic/app/views/main/host/hosts_table_menu_view.js:329",
+      "ambari-web/classic/app/templates/main/host.hbs:25",
+      "ambari-web/classic/app/templates/main/host/bulk_operation_menu.hbs:22"
+    ],
+    "uses": [
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/host/details.js",
+        "line": 84
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/host/hosts_table_menu_view.js",
+        "line": 329
+      },
+      {
+        "kind": "havePermissions",
+        "source": "ambari-web/classic/app/templates/main/host.hbs",
+        "line": 25
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/main/host/bulk_operation_menu.hbs",
+        "line": 22
+      }
+    ]
+  },
+  {
+    "name": "HOST.TOGGLE_MAINTENANCE",
+    "kinds": [
+      "havePermissions",
+      "isAuthorized"
+    ],
+    "callers": [
+      "ambari-web/classic/app/views/main/host/details.js:65",
+      "ambari-web/classic/app/views/main/host/hosts_table_menu_view.js:302",
+      "ambari-web/classic/app/templates/main/host.hbs:25",
+      "ambari-web/classic/app/templates/main/host/details/host_component.hbs:173",
+      "ambari-web/classic/app/templates/main/host/summary.hbs:19",
+      "ambari-web/classic/app/templates/main/host/summary.hbs:97"
+    ],
+    "uses": [
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/host/details.js",
+        "line": 65
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/host/hosts_table_menu_view.js",
+        "line": 302
+      },
+      {
+        "kind": "havePermissions",
+        "source": "ambari-web/classic/app/templates/main/host.hbs",
+        "line": 25
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/main/host/details/host_component.hbs",
+        "line": 173
+      },
+      {
+        "kind": "havePermissions",
+        "source": "ambari-web/classic/app/templates/main/host/summary.hbs",
+        "line": 19
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/main/host/summary.hbs",
+        "line": 97
+      }
+    ]
+  },
+  {
+    "name": "SERVICE.ADD_DELETE_SERVICES",
+    "kinds": [
+      "isAuthorized"
+    ],
+    "callers": [
+      "ambari-web/classic/app/routes/add_service_routes.js:27",
+      "ambari-web/classic/app/views/main/admin/stack_upgrade/services_view.js:58",
+      "ambari-web/classic/app/views/main/service/item.js:373",
+      "ambari-web/classic/app/templates/main/service/all_services_actions.hbs:19",
+      "ambari-web/classic/app/templates/main/service/all_services_actions.hbs:24"
+    ],
+    "uses": [
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/routes/add_service_routes.js",
+        "line": 27
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/admin/stack_upgrade/services_view.js",
+        "line": 58
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/service/item.js",
+        "line": 373
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/main/service/all_services_actions.hbs",
+        "line": 19
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/main/service/all_services_actions.hbs",
+        "line": 24
+      }
+    ]
+  },
+  {
+    "name": "SERVICE.COMPARE_CONFIGS",
+    "kinds": [
+      "havePermissions"
+    ],
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/service_version_box.hbs:49"
+    ],
+    "uses": [
+      {
+        "kind": "havePermissions",
+        "source": "ambari-web/classic/app/templates/common/configs/service_version_box.hbs",
+        "line": 49
+      }
+    ]
+  },
+  {
+    "name": "SERVICE.DECOMMISSION_RECOMMISSION",
+    "kinds": [
+      "havePermissions",
+      "isAuthorized"
+    ],
+    "callers": [
+      "ambari-web/classic/app/views/main/host/hosts_table_menu_view.js:154",
+      "ambari-web/classic/app/templates/main/host/details/host_component.hbs:69"
+    ],
+    "uses": [
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/host/hosts_table_menu_view.js",
+        "line": 154
+      },
+      {
+        "kind": "havePermissions",
+        "source": "ambari-web/classic/app/templates/main/host/details/host_component.hbs",
+        "line": 69
+      }
+    ]
+  },
+  {
+    "name": "SERVICE.ENABLE_HA",
+    "kinds": [
+      "isAuthorized"
+    ],
+    "callers": [
+      "ambari-web/classic/app/models/cluster_states.js:147",
+      "ambari-web/classic/app/views/main/service/item.js:172",
+      "ambari-web/classic/app/views/main/service/item.js:221",
+      "ambari-web/classic/app/views/main/service/item.js:237",
+      "ambari-web/classic/app/views/main/service/item.js:244",
+      "ambari-web/classic/app/templates/main/service/item.hbs:24"
+    ],
+    "uses": [
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/models/cluster_states.js",
+        "line": 147
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/service/item.js",
+        "line": 172
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/service/item.js",
+        "line": 221
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/service/item.js",
+        "line": 237
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/service/item.js",
+        "line": 244
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/main/service/item.hbs",
+        "line": 24
+      }
+    ]
+  },
+  {
+    "name": "SERVICE.MANAGE_AUTO_START",
+    "kinds": [
+      "isAuthorized"
+    ],
+    "callers": [
+      "ambari-web/classic/app/routes/main.js:668",
+      "ambari-web/classic/app/views/main/admin.js:51",
+      "ambari-web/classic/app/views/main/menu.js:129"
+    ],
+    "uses": [
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/routes/main.js",
+        "line": 668
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/admin.js",
+        "line": 51
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/menu.js",
+        "line": 129
+      }
+    ]
+  },
+  {
+    "name": "SERVICE.MANAGE_CONFIG_GROUPS",
+    "kinds": [
+      "isAuthorized"
+    ],
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/service_config.hbs:63",
+      "ambari-web/classic/app/templates/common/configs/service_config.hbs:77",
+      "ambari-web/classic/app/templates/common/configs/service_config_wizard.hbs:37",
+      "ambari-web/classic/app/templates/common/configs/service_config_wizard.hbs:73"
+    ],
+    "uses": [
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/common/configs/service_config.hbs",
+        "line": 63
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/common/configs/service_config.hbs",
+        "line": 77
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/common/configs/service_config_wizard.hbs",
+        "line": 37
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/common/configs/service_config_wizard.hbs",
+        "line": 73
+      }
+    ]
+  },
+  {
+    "name": "SERVICE.MODIFY_CONFIGS",
+    "kinds": [
+      "havePermissions",
+      "isAuthorized"
+    ],
+    "callers": [
+      "ambari-web/classic/app/controllers/main/service/info/configs.js:161",
+      "ambari-web/classic/app/views/common/configs/controls_view.js:29",
+      "ambari-web/classic/app/templates/common/configs/notifications_configs.hbs:62",
+      "ambari-web/classic/app/templates/common/configs/notifications_configs.hbs:104",
+      "ambari-web/classic/app/templates/common/configs/overriddenProperty.hbs:46",
+      "ambari-web/classic/app/templates/common/configs/service_config_category.hbs:103",
+      "ambari-web/classic/app/templates/common/configs/service_version_box.hbs:54",
+      "ambari-web/classic/app/templates/common/configs/widgets/controls/create_override.hbs:20",
+      "ambari-web/classic/app/templates/common/configs/widgets/controls/remove_override.hbs:21",
+      "ambari-web/classic/app/templates/main/host/summary.hbs:19"
+    ],
+    "uses": [
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/controllers/main/service/info/configs.js",
+        "line": 161
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/common/configs/controls_view.js",
+        "line": 29
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/common/configs/notifications_configs.hbs",
+        "line": 62
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/common/configs/notifications_configs.hbs",
+        "line": 104
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/common/configs/overriddenProperty.hbs",
+        "line": 46
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/common/configs/service_config_category.hbs",
+        "line": 103
+      },
+      {
+        "kind": "havePermissions",
+        "source": "ambari-web/classic/app/templates/common/configs/service_version_box.hbs",
+        "line": 54
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/common/configs/widgets/controls/create_override.hbs",
+        "line": 20
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/common/configs/widgets/controls/remove_override.hbs",
+        "line": 21
+      },
+      {
+        "kind": "havePermissions",
+        "source": "ambari-web/classic/app/templates/main/host/summary.hbs",
+        "line": 19
+      }
+    ]
+  },
+  {
+    "name": "SERVICE.MOVE",
+    "kinds": [
+      "isAuthorized"
+    ],
+    "callers": [
+      "ambari-web/classic/app/models/host_component.js:449",
+      "ambari-web/classic/app/templates/main/host/details/host_component.hbs:164"
+    ],
+    "uses": [
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/models/host_component.js",
+        "line": 449
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/main/host/details/host_component.hbs",
+        "line": 164
+      }
+    ]
+  },
+  {
+    "name": "SERVICE.RUN_CUSTOM_COMMAND",
+    "kinds": [
+      "isAuthorized"
+    ],
+    "callers": [
+      "ambari-web/classic/app/views/main/service/item.js:172",
+      "ambari-web/classic/app/templates/main/service/item.hbs:24"
+    ],
+    "uses": [
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/service/item.js",
+        "line": 172
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/main/service/item.hbs",
+        "line": 24
+      }
+    ]
+  },
+  {
+    "name": "SERVICE.RUN_SERVICE_CHECK",
+    "kinds": [
+      "isAuthorized"
+    ],
+    "callers": [
+      "ambari-web/classic/app/views/main/service/item.js:172",
+      "ambari-web/classic/app/templates/main/service/item.hbs:24"
+    ],
+    "uses": [
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/service/item.js",
+        "line": 172
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/main/service/item.hbs",
+        "line": 24
+      }
+    ]
+  },
+  {
+    "name": "SERVICE.SET_SERVICE_USERS_GROUPS",
+    "kinds": [
+      "isAuthorized"
+    ],
+    "callers": [
+      "ambari-web/classic/app/routes/main.js:433",
+      "ambari-web/classic/app/routes/main.js:649",
+      "ambari-web/classic/app/views/main/admin.js:33",
+      "ambari-web/classic/app/views/main/menu.js:52",
+      "ambari-web/classic/app/views/main/menu.js:109"
+    ],
+    "uses": [
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/routes/main.js",
+        "line": 433
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/routes/main.js",
+        "line": 649
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/admin.js",
+        "line": 33
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/menu.js",
+        "line": 52
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/menu.js",
+        "line": 109
+      }
+    ]
+  },
+  {
+    "name": "SERVICE.START_STOP",
+    "kinds": [
+      "havePermissions",
+      "isAuthorized"
+    ],
+    "callers": [
+      "ambari-web/classic/app/utils/host_progress_popup.js:475",
+      "ambari-web/classic/app/views/main/admin.js:51",
+      "ambari-web/classic/app/views/main/host/details.js:43",
+      "ambari-web/classic/app/views/main/host/hosts_table_menu_view.js:95",
+      "ambari-web/classic/app/views/main/host/hosts_table_menu_view.js:260",
+      "ambari-web/classic/app/views/main/menu.js:52",
+      "ambari-web/classic/app/views/main/menu.js:129",
+      "ambari-web/classic/app/views/main/service/item.js:168",
+      "ambari-web/classic/app/templates/main/host/details/host_component.hbs:126",
+      "ambari-web/classic/app/templates/main/host/summary.hbs:19",
+      "ambari-web/classic/app/templates/main/service/all_services_actions.hbs:19",
+      "ambari-web/classic/app/templates/main/service/all_services_actions.hbs:34",
+      "ambari-web/classic/app/templates/main/service/info/configs.hbs:22",
+      "ambari-web/classic/app/templates/main/service/info/summary.hbs:20",
+      "ambari-web/classic/app/templates/main/service/item.hbs:24"
+    ],
+    "uses": [
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/utils/host_progress_popup.js",
+        "line": 475
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/admin.js",
+        "line": 51
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/host/details.js",
+        "line": 43
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/host/hosts_table_menu_view.js",
+        "line": 95
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/host/hosts_table_menu_view.js",
+        "line": 260
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/menu.js",
+        "line": 52
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/menu.js",
+        "line": 129
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/service/item.js",
+        "line": 168
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/main/host/details/host_component.hbs",
+        "line": 126
+      },
+      {
+        "kind": "havePermissions",
+        "source": "ambari-web/classic/app/templates/main/host/summary.hbs",
+        "line": 19
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/main/service/all_services_actions.hbs",
+        "line": 19
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/main/service/all_services_actions.hbs",
+        "line": 34
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/main/service/info/configs.hbs",
+        "line": 22
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/main/service/info/summary.hbs",
+        "line": 20
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/main/service/item.hbs",
+        "line": 24
+      }
+    ]
+  },
+  {
+    "name": "SERVICE.TOGGLE_ALERTS",
+    "kinds": [
+      "isAuthorized"
+    ],
+    "callers": [
+      "ambari-web/classic/app/routes/add_alert_definition_routes.js:26",
+      "ambari-web/classic/app/templates/main/alerts.hbs:24",
+      "ambari-web/classic/app/templates/main/alerts/definition_details.hbs:43",
+      "ambari-web/classic/app/templates/main/alerts/definition_details.hbs:75",
+      "ambari-web/classic/app/templates/main/alerts/definition_details.hbs:113",
+      "ambari-web/classic/app/templates/main/alerts/definition_details.hbs:124",
+      "ambari-web/classic/app/templates/main/alerts/definition_details.hbs:185"
+    ],
+    "uses": [
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/routes/add_alert_definition_routes.js",
+        "line": 26
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/main/alerts.hbs",
+        "line": 24
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/main/alerts/definition_details.hbs",
+        "line": 43
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/main/alerts/definition_details.hbs",
+        "line": 75
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/main/alerts/definition_details.hbs",
+        "line": 113
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/main/alerts/definition_details.hbs",
+        "line": 124
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/main/alerts/definition_details.hbs",
+        "line": 185
+      }
+    ]
+  },
+  {
+    "name": "SERVICE.TOGGLE_MAINTENANCE",
+    "kinds": [
+      "isAuthorized"
+    ],
+    "callers": [
+      "ambari-web/classic/app/views/main/service/item.js:172",
+      "ambari-web/classic/app/templates/main/service/item.hbs:24"
+    ],
+    "uses": [
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/service/item.js",
+        "line": 172
+      },
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/templates/main/service/item.hbs",
+        "line": 24
+      }
+    ]
+  },
+  {
+    "name": "SERVICE.VIEW_OPERATIONAL_LOGS",
+    "kinds": [
+      "havePermissions",
+      "isAuthorized"
+    ],
+    "callers": [
+      "ambari-web/classic/app/views/main/host/menu.js:61",
+      "ambari-web/classic/app/templates/common/host_progress_popup.hbs:269"
+    ],
+    "uses": [
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/views/main/host/menu.js",
+        "line": 61
+      },
+      {
+        "kind": "havePermissions",
+        "source": "ambari-web/classic/app/templates/common/host_progress_popup.hbs",
+        "line": 269
+      }
+    ]
+  },
+  {
+    "name": "VIEW.USE",
+    "kinds": [
+      "isAuthorized"
+    ],
+    "callers": [
+      "ambari-web/classic/app/app.js:67"
+    ],
+    "uses": [
+      {
+        "kind": "isAuthorized",
+        "source": "ambari-web/classic/app/app.js",
+        "line": 67
+      }
+    ]
+  }
+]

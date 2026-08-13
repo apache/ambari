@@ -1,0 +1,562 @@
+[
+  {
+    "kind": "target=_blank anchor",
+    "expression": "<a data-qa=\"license-link\" href=\"http://www.apache.org/licenses/LICENSE-2.0\" target=\"_blank\" rel=\"noopener noreferrer\">",
+    "source": "ambari-web/classic/app/assets/index.html",
+    "line": 48,
+    "semanticKind": "STATIC_EXTERNAL_LINK",
+    "networkEffect": "NAVIGATION_REQUEST",
+    "urlContract": "http://www.apache.org/licenses/LICENSE-2.0",
+    "notes": "经典应用 footer 的 Apache License 外链。"
+  },
+  {
+    "kind": "target=_blank anchor",
+    "expression": "<a data-qa=\"third-party-link\" href=\"/licenses/NOTICE.txt\" target=\"_blank\" rel=\"noopener noreferrer\">",
+    "source": "ambari-web/classic/app/assets/index.html",
+    "line": 49,
+    "semanticKind": "STATIC_NOTICE_DOCUMENT",
+    "networkEffect": "REMOTE_REQUEST",
+    "urlContract": "GET /licenses/NOTICE.txt",
+    "notes": "经典应用 footer 打开同源第三方 NOTICE 静态文档。"
+  },
+  {
+    "kind": "location.reload",
+    "expression": "location.reload();",
+    "source": "ambari-web/classic/app/controllers/global/user_settings_controller.js",
+    "line": 327,
+    "semanticKind": "PAGE_RELOAD",
+    "networkEffect": "NAVIGATION_REQUEST",
+    "urlContract": "reload current Ambari document after show_bg/timezone preference requests settle",
+    "notes": "两个 preference mutation 都用 `.always()` 串联；成功或失败均可 reload 以应用 timezone。"
+  },
+  {
+    "kind": "location.reload",
+    "expression": "location.reload();",
+    "source": "ambari-web/classic/app/controllers/main.js",
+    "line": 122,
+    "semanticKind": "PAGE_RELOAD",
+    "networkEffect": "NAVIGATION_REQUEST",
+    "urlContract": "delayed reload of current Ambari document after route/status change",
+    "notes": "cluster 已安装时，route 或 install status observer 延迟 `App.pageReloadTime` 后 reload。"
+  },
+  {
+    "kind": "window.open",
+    "expression": "window.open();",
+    "source": "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js",
+    "line": 2329,
+    "semanticKind": "LOCAL_DOCUMENT",
+    "networkEffect": "LOCAL_ONLY",
+    "urlContract": "about:blank; writes generated HTML configuration diff",
+    "notes": "新窗口只接收内存中生成的 HTML，不请求后端。"
+  },
+  {
+    "kind": "window.location.reload",
+    "expression": "window.location.reload();",
+    "source": "ambari-web/classic/app/controllers/main/alerts/alert_definitions_actions_controller.js",
+    "line": 251,
+    "semanticKind": "PAGE_RELOAD",
+    "networkEffect": "NAVIGATION_REQUEST",
+    "urlContract": "reload current Ambari document after starting repeat-tolerance config save",
+    "notes": "配置 PUT 不被 await；保存请求仍在途时立即整页 reload，可能中断或隐藏失败结果。"
+  },
+  {
+    "kind": "location.reload",
+    "expression": "location.reload();",
+    "source": "ambari-web/classic/app/controllers/main/host/bulk_operations_controller.js",
+    "line": 453,
+    "semanticKind": "PAGE_RELOAD",
+    "networkEffect": "NAVIGATION_REQUEST",
+    "urlContract": "reload current Ambari document after bulk host-delete result closes",
+    "notes": "成功/部分失败结果都整页刷新，先清除已删除 host selection。"
+  },
+  {
+    "kind": "location.reload",
+    "expression": "location.reload();",
+    "source": "ambari-web/classic/app/controllers/main/host/bulk_operations_controller.js",
+    "line": 792,
+    "semanticKind": "PAGE_RELOAD",
+    "networkEffect": "NAVIGATION_REQUEST",
+    "urlContract": "reload current Ambari document after bulk host-component-delete result primary action",
+    "notes": "结果 popup 的 Primary 与 Close 各有独立 reload 调用。"
+  },
+  {
+    "kind": "location.reload",
+    "expression": "location.reload();",
+    "source": "ambari-web/classic/app/controllers/main/host/bulk_operations_controller.js",
+    "line": 797,
+    "semanticKind": "PAGE_RELOAD",
+    "networkEffect": "NAVIGATION_REQUEST",
+    "urlContract": "reload current Ambari document after bulk host-component-delete result closes",
+    "notes": "结果 popup 的 Close 分支整页重建 host/component 模型。"
+  },
+  {
+    "kind": "window.location.reload",
+    "expression": "window.location.reload();",
+    "source": "ambari-web/classic/app/controllers/main/service/item.js",
+    "line": 2042,
+    "semanticKind": "PAGE_RELOAD",
+    "networkEffect": "NAVIGATION_REQUEST",
+    "urlContract": "reload current Ambari document after service deletion confirmation",
+    "notes": "用户关闭删除成功确认后整页 reload，以 REST 启动链重新构建 cluster/service 模型。"
+  },
+  {
+    "kind": "window.open",
+    "expression": "window.open(event.context.get('internalAmbariUrl'));",
+    "source": "ambari-web/classic/app/controllers/main/views_controller.js",
+    "line": 112,
+    "semanticKind": "INTERNAL_AMBARI_ROUTE",
+    "networkEffect": "NAVIGATION_REQUEST",
+    "urlContract": "#/main/view/{viewName}/{shortUrl} or #/main/views/{viewName}/{version}/{instanceName}",
+    "notes": "新浏览上下文打开 Ember hash route，随后由 View details iframe 请求 context。"
+  },
+  {
+    "kind": "location.reload",
+    "expression": "location.reload();",
+    "source": "ambari-web/classic/app/controllers/wizard.js",
+    "line": 1528,
+    "semanticKind": "PAGE_RELOAD",
+    "networkEffect": "NAVIGATION_REQUEST",
+    "urlContract": "reload current Ambari document after generic long-running wizard exit cleanup",
+    "notes": "HA/Federation 等共享 `exitWizard()` 在 status persist settle 后 transition 并 reload。"
+  },
+  {
+    "kind": "location.reload",
+    "expression": "location.reload();'>\"",
+    "source": "ambari-web/classic/app/mixins/common/reload_popup.js",
+    "line": 63,
+    "semanticKind": "PAGE_RELOAD",
+    "networkEffect": "NAVIGATION_REQUEST",
+    "urlContract": "reload current Ambari document from the stale-page popup link",
+    "notes": "reload 调用位于运行时编译的 inline onclick；用户点击时执行。"
+  },
+  {
+    "kind": "window.open",
+    "expression": "window.open(url);",
+    "source": "ambari-web/classic/app/mixins/main/host/details/support_client_configs_download.js",
+    "line": 39,
+    "semanticKind": "AMBARI_REST_DOWNLOAD",
+    "networkEffect": "REMOTE_REQUEST",
+    "urlContract": "GET one of the five generated client-config contracts (`?format=client_config_tar`)",
+    "notes": "精确 resource-scope URL 见 client-config-downloads 清单。"
+  },
+  {
+    "kind": "redirectByURL call",
+    "expression": "this.redirectByURL(responseJson.jwtProviderUrl + encodeURIComponent(this.getCurrentLocationUrl()));",
+    "source": "ambari-web/classic/app/router.js",
+    "line": 349,
+    "semanticKind": "JWT_PROVIDER_REDIRECT",
+    "networkEffect": "NAVIGATION_REQUEST",
+    "urlContract": "{401/403 response jwtProviderUrl}{encoded current window URL}{redirected query flag}",
+    "notes": "认证失败响应驱动的外部 IdP 整页跳转；redirect counter 仅限制循环，不约束 provider origin。"
+  },
+  {
+    "kind": "replaceWindowLocation call",
+    "expression": "App.replaceWindowLocation(App.appURLRoot + 'views/ADMIN_VIEW/' + latestVersion + '/INSTANCE/#/')",
+    "source": "ambari-web/classic/app/router.js",
+    "line": 669,
+    "semanticKind": "ADMIN_VIEW_REDIRECT",
+    "networkEffect": "NAVIGATION_REQUEST",
+    "urlContract": "{appURLRoot}views/ADMIN_VIEW/{lexicallyLatestServerComponentVersion}/INSTANCE/#/",
+    "notes": "无 cluster 的 Admin View 分流；location.replace 整页离开 Ember。"
+  },
+  {
+    "kind": "window.location.reload",
+    "expression": "window.location.reload();",
+    "source": "ambari-web/classic/app/router.js",
+    "line": 773,
+    "semanticKind": "PAGE_RELOAD",
+    "networkEffect": "NAVIGATION_REQUEST",
+    "urlContract": "reload current Ambari document after logout when cluster model was loaded",
+    "notes": "先 transition 到 login，下一 run-loop 再整页 reload。"
+  },
+  {
+    "kind": "window.location assignment",
+    "expression": "window.location = preferredPath",
+    "source": "ambari-web/classic/app/router.js",
+    "line": 806,
+    "semanticKind": "PREFERRED_PATH_REDIRECT",
+    "networkEffect": "NAVIGATION_REQUEST",
+    "urlContract": "{saved preferredPath beginning with / or #, except a path containing #/login}",
+    "notes": "`startsWith(\"/\")` 也接受 `//host/path`，因此旧实现可能发生 protocol-relative 跨源导航；React 应按已知安全缺陷处理。"
+  },
+  {
+    "kind": "window.location assignment",
+    "expression": "window.location = url",
+    "source": "ambari-web/classic/app/router.js",
+    "line": 889,
+    "semanticKind": "WINDOW_LOCATION_SETTER",
+    "networkEffect": "NAVIGATION_REQUEST",
+    "urlContract": "window.location={callerSuppliedUrl}",
+    "notes": "JWT redirect helper 的最终可测试 setter；实际 provider 数据入口另列。"
+  },
+  {
+    "kind": "location.reload",
+    "expression": "location.reload();",
+    "source": "ambari-web/classic/app/routes/activate_hawq_standby_routes.js",
+    "line": 56,
+    "semanticKind": "PAGE_RELOAD",
+    "networkEffect": "NAVIGATION_REQUEST",
+    "urlContract": "reload current Ambari document after closing an unfinished Activate HAWQ Standby wizard",
+    "notes": "cluster status persist 以 `alwaysCallback` 收尾，失败也 transition 后 reload。"
+  },
+  {
+    "kind": "location.reload",
+    "expression": "location.reload();",
+    "source": "ambari-web/classic/app/routes/activate_hawq_standby_routes.js",
+    "line": 178,
+    "semanticKind": "PAGE_RELOAD",
+    "networkEffect": "NAVIGATION_REQUEST",
+    "urlContract": "reload current Ambari document after completing Activate HAWQ Standby",
+    "notes": "完成清理 persist 以 `alwaysCallback` 收尾。"
+  },
+  {
+    "kind": "location.reload",
+    "expression": "location.reload();",
+    "source": "ambari-web/classic/app/routes/add_alert_definition_routes.js",
+    "line": 141,
+    "semanticKind": "PAGE_RELOAD",
+    "networkEffect": "NAVIGATION_REQUEST",
+    "urlContract": "reload current Ambari document after Add Alert Definition completes",
+    "notes": "清理向导状态后 transition 到 Alerts；status persist 失败也 reload。"
+  },
+  {
+    "kind": "location.reload",
+    "expression": "location.reload();",
+    "source": "ambari-web/classic/app/routes/add_hawq_standby_routes.js",
+    "line": 57,
+    "semanticKind": "PAGE_RELOAD",
+    "networkEffect": "NAVIGATION_REQUEST",
+    "urlContract": "reload current Ambari document after closing an unfinished Add HAWQ Standby wizard",
+    "notes": "cluster status persist 以 `alwaysCallback` 收尾，失败也 reload。"
+  },
+  {
+    "kind": "location.reload",
+    "expression": "location.reload();",
+    "source": "ambari-web/classic/app/routes/add_hawq_standby_routes.js",
+    "line": 202,
+    "semanticKind": "PAGE_RELOAD",
+    "networkEffect": "NAVIGATION_REQUEST",
+    "urlContract": "reload current Ambari document after completing Add HAWQ Standby",
+    "notes": "完成清理 persist 以 `alwaysCallback` 收尾。"
+  },
+  {
+    "kind": "location.reload",
+    "expression": "location.reload();",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 549,
+    "semanticKind": "PAGE_RELOAD",
+    "networkEffect": "NAVIGATION_REQUEST",
+    "urlContract": "reload current Ambari document after Disable Kerberos closes",
+    "notes": "Disable 清理和 cluster status persist 以 `alwaysCallback` 收尾，随后返回 Kerberos 页并 reload。"
+  },
+  {
+    "kind": "location.reload",
+    "expression": "location.reload();",
+    "source": "ambari-web/classic/app/routes/ra_high_availability_routes.js",
+    "line": 179,
+    "semanticKind": "PAGE_RELOAD",
+    "networkEffect": "NAVIGATION_REQUEST",
+    "urlContract": "reload current Ambari document after Ranger Admin HA completes",
+    "notes": "完成清理 persist 以 `alwaysCallback` 收尾。"
+  },
+  {
+    "kind": "location.reload",
+    "expression": "location.reload();",
+    "source": "ambari-web/classic/app/routes/reassign_master_routes.js",
+    "line": 314,
+    "semanticKind": "PAGE_RELOAD",
+    "networkEffect": "NAVIGATION_REQUEST",
+    "urlContract": "reload current Ambari document after Reassign Master completes",
+    "notes": "cluster status persist 以 `alwaysCallback` 收尾，失败也 transition 后 reload。"
+  },
+  {
+    "kind": "location.reload",
+    "expression": "location.reload();",
+    "source": "ambari-web/classic/app/routes/remove_hawq_standby_routes.js",
+    "line": 63,
+    "semanticKind": "PAGE_RELOAD",
+    "networkEffect": "NAVIGATION_REQUEST",
+    "urlContract": "reload current Ambari document after confirmed close of an active Remove HAWQ Standby wizard",
+    "notes": "确认关闭后清理状态；persist 成功或失败都 reload。"
+  },
+  {
+    "kind": "location.reload",
+    "expression": "location.reload();",
+    "source": "ambari-web/classic/app/routes/remove_hawq_standby_routes.js",
+    "line": 81,
+    "semanticKind": "PAGE_RELOAD",
+    "networkEffect": "NAVIGATION_REQUEST",
+    "urlContract": "reload current Ambari document after closing an inactive Remove HAWQ Standby wizard",
+    "notes": "非活动阶段无需确认，但同样在 persist settle 后 reload。"
+  },
+  {
+    "kind": "location.reload",
+    "expression": "location.reload();",
+    "source": "ambari-web/classic/app/routes/remove_hawq_standby_routes.js",
+    "line": 189,
+    "semanticKind": "PAGE_RELOAD",
+    "networkEffect": "NAVIGATION_REQUEST",
+    "urlContract": "reload current Ambari document after completing Remove HAWQ Standby",
+    "notes": "完成清理 persist 以 `alwaysCallback` 收尾。"
+  },
+  {
+    "kind": "location.reload",
+    "expression": "location.reload();",
+    "source": "ambari-web/classic/app/routes/rollbackHA_routes.js",
+    "line": 154,
+    "semanticKind": "PAGE_RELOAD",
+    "networkEffect": "NAVIGATION_REQUEST",
+    "urlContract": "reload current Ambari document after NameNode HA rollback completes",
+    "notes": "本分支不等待 cluster status persist，transition 后下一 run-loop 直接 reload。"
+  },
+  {
+    "kind": "location.reload",
+    "expression": "location.reload();",
+    "source": "ambari-web/classic/app/routes/stack_upgrade_routes.js",
+    "line": 83,
+    "semanticKind": "PAGE_RELOAD",
+    "networkEffect": "NAVIGATION_REQUEST",
+    "urlContract": "conditionally reload current Ambari document when closing an upgrade wizard",
+    "notes": "只在全局 upgrade state 为 NOT_REQUIRED 或 COMPLETED 时 reload 并 reset wizard owner。"
+  },
+  {
+    "kind": "new UI anchor",
+    "expression": "<a href=\"/latest/#\">",
+    "source": "ambari-web/classic/app/templates/application.hbs",
+    "line": 70,
+    "semanticKind": "NEW_UI_NAVIGATION",
+    "networkEffect": "NAVIGATION_REQUEST",
+    "urlContract": "GET /latest/#",
+    "notes": "用户菜单的 Switch Experience 整页导航到新版前端入口。"
+  },
+  {
+    "kind": "target=_blank anchor",
+    "expression": "<a href=\"http://ambari.apache.org/\" target=\"_blank\" rel=\"noopener noreferrer\">",
+    "source": "ambari-web/classic/app/templates/common/about.hbs",
+    "line": 30,
+    "semanticKind": "STATIC_EXTERNAL_LINK",
+    "networkEffect": "NAVIGATION_REQUEST",
+    "urlContract": "http://ambari.apache.org/",
+    "notes": "About 弹窗静态项目链接。"
+  },
+  {
+    "kind": "target=_blank anchor",
+    "expression": "<a href=\"http://www.apache.org/licenses/LICENSE-2.0\" target=\"_blank\" rel=\"noopener noreferrer\">",
+    "source": "ambari-web/classic/app/templates/common/about.hbs",
+    "line": 32,
+    "semanticKind": "STATIC_EXTERNAL_LINK",
+    "networkEffect": "NAVIGATION_REQUEST",
+    "urlContract": "http://www.apache.org/licenses/LICENSE-2.0",
+    "notes": "About 弹窗静态 license 链接。"
+  },
+  {
+    "kind": "target=_blank anchor",
+    "expression": "<a {{bindAttr href=\"view.formatedLink\" class=\":pull-right view.isLodaded::disabled\"}} target=\"_blank\" rel=\"noopener noreferrer\">",
+    "source": "ambari-web/classic/app/templates/common/host_progress_popup.hbs",
+    "line": 345,
+    "semanticKind": "EXTERNAL_LOG_SEARCH",
+    "networkEffect": "NAVIGATION_REQUEST",
+    "urlContract": "{Log Search UI quick-link URL}{hostLog.linkTail}",
+    "notes": "依赖 Log Search service quick-link descriptor 和已加载日志上下文。"
+  },
+  {
+    "kind": "target=_blank anchor",
+    "expression": "<a class=\"open-in-log-search\" {{bindAttr href=\"view.logSearchUrl\"}} target=\"_blank\" rel=\"noopener noreferrer\">",
+    "source": "ambari-web/classic/app/templates/common/modal_popups/log_tail_popup.hbs",
+    "line": 32,
+    "semanticKind": "EXTERNAL_LOG_SEARCH",
+    "networkEffect": "NAVIGATION_REQUEST",
+    "urlContract": "{Log Search quick-link template}/#/logs/serviceLogs;{component/host/file query}",
+    "notes": "在 Log Search service 和 quick-link 可用时显示。"
+  },
+  {
+    "kind": "target=_blank anchor",
+    "expression": "<a {{bindAttr href=\"controller.content.helpUrl\"}} target=\"_blank\" rel=\"noopener noreferrer\">",
+    "source": "ambari-web/classic/app/templates/main/alerts/definition_details.hbs",
+    "line": 196,
+    "semanticKind": "EXTERNAL_ALERT_HELP",
+    "networkEffect": "NAVIGATION_REQUEST",
+    "urlContract": "{AlertDefinition.help_url}",
+    "notes": "只在定义有 help URL 时显示，URL 由后端数据提供。"
+  },
+  {
+    "kind": "target=_blank anchor",
+    "expression": "<a {{bindAttr href=\"view.formatedLink\"}} target=\"_blank\" rel=\"log-file-name-tooltip noopener noreferrer\" {{translateAttr title=\"popup.logTail.openInLogSearch\"}} class=\"pull-righ...",
+    "source": "ambari-web/classic/app/templates/main/host/logs.hbs",
+    "line": 46,
+    "semanticKind": "EXTERNAL_LOG_SEARCH",
+    "networkEffect": "NAVIGATION_REQUEST",
+    "urlContract": "{Log Search UI quick-link URL}{file.linkTail}",
+    "notes": "主机日志页按文件构造 Log Search 深链。"
+  },
+  {
+    "kind": "target=_blank anchor",
+    "expression": "<a {{bindAttr href=\"url\"}} target=\"_blank\" rel=\"noopener noreferrer\">",
+    "source": "ambari-web/classic/app/templates/main/service/info/summary.hbs",
+    "line": 103,
+    "semanticKind": "EXTERNAL_QUICK_LINK",
+    "networkEffect": "NAVIGATION_REQUEST",
+    "urlContract": "{stack quicklinks descriptor + current configs + selected public host/protocol/port}",
+    "notes": "多 master/group 的服务 Quick Links。"
+  },
+  {
+    "kind": "target=_blank anchor",
+    "expression": "<a {{bindAttr href=\"url\"}} target=\"_blank\" rel=\"noopener noreferrer\">",
+    "source": "ambari-web/classic/app/templates/main/service/info/summary.hbs",
+    "line": 111,
+    "semanticKind": "EXTERNAL_QUICK_LINK",
+    "networkEffect": "NAVIGATION_REQUEST",
+    "urlContract": "{stack quicklinks descriptor + current configs + selected public host/protocol/port}",
+    "notes": "单 host/平铺的服务 Quick Links。"
+  },
+  {
+    "kind": "target=_blank anchor",
+    "expression": "<a href=\"#\" target=\"_blank\" {{action goToView link.viewInstance target=\"controller\"}}>",
+    "source": "ambari-web/classic/app/templates/main/service/services/hive.hbs",
+    "line": 54,
+    "semanticKind": "INTERNAL_AMBARI_ROUTE",
+    "networkEffect": "CONDITIONAL",
+    "urlContract": "{ViewInstance.internalAmbariUrl}",
+    "notes": "遗留 Hive-to-View hook；当前 `viewsToShow` 为空，默认无可见链接，有 runtime extension 时才路由。"
+  },
+  {
+    "kind": "dynamic image src",
+    "expression": "<img {{bindAttr src=\"instance.iconPath\"}}>",
+    "source": "ambari-web/classic/app/templates/main/views.hbs",
+    "line": 28,
+    "semanticKind": "VIEW_ICON_RESOURCE",
+    "networkEffect": "REMOTE_REQUEST",
+    "urlContract": "GET {ViewInstanceInfo.icon_path}",
+    "notes": "由后端 View instance metadata 驱动的动态图片请求；不是固定构建图片。"
+  },
+  {
+    "kind": "anchor href",
+    "expression": ".href = url",
+    "source": "ambari-web/classic/app/utils/configs/database.js",
+    "line": 223,
+    "semanticKind": "URL_PARSER_NO_NETWORK",
+    "networkEffect": "NO_NETWORK",
+    "urlContract": "none; assigns caller URL to a detached anchor to read `.hostname`",
+    "notes": "只借浏览器 URL parser 解析 hostname。"
+  },
+  {
+    "kind": "window.open",
+    "expression": "window.open('');",
+    "source": "ambari-web/classic/app/utils/file_utils.js",
+    "line": 76,
+    "semanticKind": "LOCAL_DOCUMENT",
+    "networkEffect": "LOCAL_ONLY",
+    "urlContract": "about:blank; writes caller-provided text/HTML",
+    "notes": "本地内容预览。"
+  },
+  {
+    "kind": "anchor href",
+    "expression": ".href = file",
+    "source": "ambari-web/classic/app/utils/file_utils.js",
+    "line": 91,
+    "semanticKind": "LOCAL_DOWNLOAD",
+    "networkEffect": "LOCAL_ONLY",
+    "urlContract": "data:attachment/{fileType};charset=utf-8,{encodedData}",
+    "notes": "Safari fallback 的本地 data URL 下载。"
+  },
+  {
+    "kind": "location.replace",
+    "expression": "window.location.replace(location);",
+    "source": "ambari-web/classic/app/utils/helper.js",
+    "line": 1115,
+    "semanticKind": "ADMIN_VIEW_REDIRECT_HELPER",
+    "networkEffect": "NAVIGATION_REQUEST",
+    "urlContract": "window.location.replace({callerSuppliedLocation})",
+    "notes": "可测试的 helper 实现；真实业务调用点另列。"
+  },
+  {
+    "kind": "window.open",
+    "expression": "window.open();",
+    "source": "ambari-web/classic/app/views/common/host_progress_popup_body_view.js",
+    "line": 1044,
+    "semanticKind": "LOCAL_DOCUMENT",
+    "networkEffect": "LOCAL_ONLY",
+    "urlContract": "about:blank; writes selected task/component log text",
+    "notes": "不发新后端请求。"
+  },
+  {
+    "kind": "window.open",
+    "expression": "window.open();",
+    "source": "ambari-web/classic/app/views/common/modal_popups/log_tail_popup.js",
+    "line": 57,
+    "semanticKind": "LOCAL_DOCUMENT",
+    "networkEffect": "LOCAL_ONLY",
+    "urlContract": "about:blank; writes already-loaded log tail",
+    "notes": "不发新后端请求。"
+  },
+  {
+    "kind": "window.open",
+    "expression": "window.open();",
+    "source": "ambari-web/classic/app/views/common/modal_popups/logs_popup.js",
+    "line": 43,
+    "semanticKind": "LOCAL_DOCUMENT",
+    "networkEffect": "LOCAL_ONLY",
+    "urlContract": "about:blank; writes task log HTML already in the DOM",
+    "notes": "不发新后端请求。"
+  },
+  {
+    "kind": "window.open",
+    "expression": "window.open().document;",
+    "source": "ambari-web/classic/app/views/main/admin/stack_upgrade/failed_hosts_modal_view.js",
+    "line": 77,
+    "semanticKind": "LOCAL_DOCUMENT",
+    "networkEffect": "LOCAL_ONLY",
+    "urlContract": "about:blank; writes failed-host JSON",
+    "notes": "不发新后端请求。"
+  },
+  {
+    "kind": "window.open",
+    "expression": "window.open(),",
+    "source": "ambari-web/classic/app/views/main/admin/stack_upgrade/upgrade_task_view.js",
+    "line": 174,
+    "semanticKind": "LOCAL_DOCUMENT",
+    "networkEffect": "LOCAL_ONLY",
+    "urlContract": "about:blank; writes already-loaded upgrade task log",
+    "notes": "不发新后端请求。"
+  },
+  {
+    "kind": "replaceWindowLocation call",
+    "expression": "App.replaceWindowLocation(App.appURLRoot + 'views/ADMIN_VIEW/' + latestVersion + '/INSTANCE/#/')",
+    "source": "ambari-web/classic/app/views/main/admin/stack_upgrade/versions_view.js",
+    "line": 233,
+    "semanticKind": "ADMIN_VIEW_REDIRECT",
+    "networkEffect": "NAVIGATION_REQUEST",
+    "urlContract": "{appURLRoot}views/ADMIN_VIEW/{lexicallyLatestServerComponentVersion}/INSTANCE/#/",
+    "notes": "Manage Versions 确认后整页跳转 Admin View。"
+  },
+  {
+    "kind": "iframe computed src",
+    "expression": "src: function() {",
+    "source": "ambari-web/classic/app/views/main/views/details.js",
+    "line": 85,
+    "semanticKind": "VIEW_WEB_CONTEXT",
+    "networkEffect": "REMOTE_REQUEST",
+    "urlContract": "{window.location.protocol}//{window.location.host}{ViewInstanceInfo.context_path}/{viewPath}",
+    "notes": "同源 View application iframe；不是 `/api/v1` REST。"
+  },
+  {
+    "kind": "window.open",
+    "expression": "window.open('');",
+    "source": "ambari-web/classic/app/views/wizard/step3/hostWarningPopupBody_view.js",
+    "line": 480,
+    "semanticKind": "LOCAL_DOCUMENT",
+    "networkEffect": "LOCAL_ONLY",
+    "urlContract": "about:blank; writes bootstrap warning details",
+    "notes": "不发新后端请求。"
+  },
+  {
+    "kind": "window.open",
+    "expression": "window.open();",
+    "source": "ambari-web/classic/app/views/wizard/step9/hostLogPopupBody_view.js",
+    "line": 197,
+    "semanticKind": "LOCAL_DOCUMENT",
+    "networkEffect": "LOCAL_ONLY",
+    "urlContract": "about:blank; writes already-loaded install task logs",
+    "notes": "不发新后端请求。"
+  }
+]

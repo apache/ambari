@@ -1,0 +1,2084 @@
+[
+  {
+    "name": "abortUpgrade",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/custom_cluster_checks/custom_cluster_checks_prev_upgrade.hbs:23",
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/custom_cluster_checks/custom_cluster_checks_prev_upgrade.hbs:26"
+    ]
+  },
+  {
+    "name": "actionHandler",
+    "callers": [
+      "ambari-web/classic/app/templates/main/alerts/alert_definitions_actions.hbs:23"
+    ]
+  },
+  {
+    "name": "activateNextPage",
+    "callers": [
+      "ambari-web/classic/app/templates/common/grid/pager.hbs:24"
+    ]
+  },
+  {
+    "name": "activatePage",
+    "callers": [
+      "ambari-web/classic/app/templates/common/grid/pager.hbs:22"
+    ]
+  },
+  {
+    "name": "activatePrevPage",
+    "callers": [
+      "ambari-web/classic/app/templates/common/grid/pager.hbs:20"
+    ]
+  },
+  {
+    "name": "addAlertGroup",
+    "callers": [
+      "ambari-web/classic/app/templates/main/alerts/manage_alert_groups_popup.hbs:38"
+    ]
+  },
+  {
+    "name": "addAlertNotification",
+    "callers": [
+      "ambari-web/classic/app/templates/main/alerts/manage_alert_notifications_popup.hbs:35"
+    ]
+  },
+  {
+    "name": "addComponentWithCheck",
+    "callers": [
+      "ambari-web/classic/app/templates/main/host/summary.hbs:49"
+    ]
+  },
+  {
+    "name": "addConfigGroup",
+    "callers": [
+      "ambari-web/classic/app/templates/main/service/manage_configuration_groups_popup.hbs:37"
+    ]
+  },
+  {
+    "name": "addCustomPropertyHandler",
+    "callers": [
+      "ambari-web/classic/app/templates/main/alerts/create_alert_notification.hbs:359"
+    ]
+  },
+  {
+    "name": "addDefinitions",
+    "callers": [
+      "ambari-web/classic/app/templates/main/alerts/manage_alert_groups_popup.hbs:70"
+    ]
+  },
+  {
+    "name": "addHost",
+    "callers": [
+      "ambari-web/classic/app/templates/main/host/bulk_operation_menu.hbs:23"
+    ]
+  },
+  {
+    "name": "addHosts",
+    "callers": [
+      "ambari-web/classic/app/templates/main/service/manage_configuration_groups_popup.hbs:65"
+    ]
+  },
+  {
+    "name": "addItem",
+    "callers": [
+      "ambari-web/classic/app/templates/common/editable_list.hbs:41"
+    ]
+  },
+  {
+    "name": "addOS",
+    "callers": [
+      "ambari-web/classic/app/templates/wizard/step1.hbs:126"
+    ]
+  },
+  {
+    "name": "applyFilter",
+    "callers": [
+      "ambari-web/classic/app/templates/common/grid/header.hbs:22"
+    ]
+  },
+  {
+    "name": "back",
+    "callers": [
+      "ambari-web/classic/app/templates/common/assign_master_components.hbs:164",
+      "ambari-web/classic/app/templates/main/admin/federation/routerBasedFederation/step3.hbs:50",
+      "ambari-web/classic/app/templates/main/admin/federation/step3.hbs:57",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/hawq/activateStandby/step2.hbs:55",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/hawq/addStandby/step3.hbs:57",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/hawq/removeStandby/step2.hbs:42",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/journalNode/step2.hbs:89",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/nameNode/step3.hbs:77",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/rangerAdmin/step3.hbs:61",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/resourceManager/step3.hbs:60",
+      "ambari-web/classic/app/templates/main/alerts/add_alert_definition/step2.hbs:28",
+      "ambari-web/classic/app/templates/main/alerts/add_alert_definition/step3.hbs:33",
+      "ambari-web/classic/app/templates/main/alerts/definition_details.hbs:54",
+      "ambari-web/classic/app/templates/main/host/addHost/step4.hbs:55",
+      "ambari-web/classic/app/templates/main/service/reassign/step3.hbs:67",
+      "ambari-web/classic/app/templates/wizard/step1.hbs:249",
+      "ambari-web/classic/app/templates/wizard/step2.hbs:199",
+      "ambari-web/classic/app/templates/wizard/step3.hbs:162",
+      "ambari-web/classic/app/templates/wizard/step4.hbs:101",
+      "ambari-web/classic/app/templates/wizard/step6.hbs:112",
+      "ambari-web/classic/app/templates/wizard/step7.hbs:36",
+      "ambari-web/classic/app/templates/wizard/step7_with_category_tabs.hbs:53",
+      "ambari-web/classic/app/templates/wizard/step8.hbs:87"
+    ]
+  },
+  {
+    "name": "backToTaskList",
+    "callers": [
+      "ambari-web/classic/app/templates/wizard/step9/step9HostTasksLogPopup.hbs:85"
+    ]
+  },
+  {
+    "name": "cancelEdit",
+    "callers": [
+      "ambari-web/classic/app/templates/main/alerts/definition_details.hbs:32"
+    ]
+  },
+  {
+    "name": "cancelEditConfigs",
+    "callers": [
+      "ambari-web/classic/app/templates/main/alerts/definition_details.hbs:89"
+    ]
+  },
+  {
+    "name": "cancelInstall",
+    "callers": [
+      "ambari-web/classic/app/templates/wizard/installer_cancel_button.hbs:22"
+    ]
+  },
+  {
+    "name": "changedDependentGroup",
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/service_config.hbs:114",
+      "ambari-web/classic/app/templates/common/configs/services_config.hbs:107"
+    ]
+  },
+  {
+    "name": "changeVersion",
+    "callers": [
+      "ambari-web/classic/app/templates/wizard/step1.hbs:46"
+    ]
+  },
+  {
+    "name": "checkAndStartKerberosWizard",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/kerberos.hbs:65"
+    ]
+  },
+  {
+    "name": "checkboxClick",
+    "callers": [
+      "ambari-web/classic/app/templates/wizard/step6.hbs:83"
+    ]
+  },
+  {
+    "name": "clearAllGroups",
+    "callers": [
+      "ambari-web/classic/app/templates/main/alerts/create_alert_notification.hbs:55"
+    ]
+  },
+  {
+    "name": "clearAllSeverity",
+    "callers": [
+      "ambari-web/classic/app/templates/main/alerts/create_alert_notification.hbs:74"
+    ]
+  },
+  {
+    "name": "clearFilter",
+    "callers": [
+      "ambari-web/classic/app/templates/common/filter_combo_cleanable.hbs:25"
+    ]
+  },
+  {
+    "name": "clearFilterColumn",
+    "callers": [
+      "ambari-web/classic/app/templates/common/filter_combo_cleanable.hbs:44"
+    ]
+  },
+  {
+    "name": "clearGroupLocalRepository",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/services.hbs:89"
+    ]
+  },
+  {
+    "name": "clearSelection",
+    "callers": [
+      "ambari-web/classic/app/templates/main/host.hbs:140"
+    ]
+  },
+  {
+    "name": "compare",
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/config_versions_dropdown.hbs:63"
+    ]
+  },
+  {
+    "name": "complete",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/stack_upgrade_wizard.hbs:154",
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/stack_upgrade_wizard.hbs:196",
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/stack_upgrade_wizard.hbs:240",
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/stack_upgrade_wizard.hbs:294",
+      "ambari-web/classic/app/templates/wizard/step10.hbs:59"
+    ]
+  },
+  {
+    "name": "confirmDelete",
+    "callers": [
+      "ambari-web/classic/app/templates/main/alerts/manage_alert_groups_popup.hbs:40",
+      "ambari-web/classic/app/templates/main/service/manage_configuration_groups_popup.hbs:39"
+    ]
+  },
+  {
+    "name": "confirmDowngrade",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/stack_upgrade_wizard.hbs:124",
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/stack_upgrade_wizard.hbs:152",
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/stack_upgrade_wizard.hbs:193",
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/stack_upgrade_wizard.hbs:235",
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/stack_upgrade_wizard.hbs:292"
+    ]
+  },
+  {
+    "name": "confirmPauseDowngrade",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/stack_upgrade_wizard.hbs:38"
+    ]
+  },
+  {
+    "name": "confirmPauseUpgrade",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/stack_upgrade_wizard.hbs:41",
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/stack_upgrade_wizard.hbs:195"
+    ]
+  },
+  {
+    "name": "confirmRecoverHost",
+    "callers": [
+      "ambari-web/classic/app/templates/main/host/details.hbs:58"
+    ]
+  },
+  {
+    "name": "connectToDatabase",
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/widgets/test_db_connection_widget.hbs:24",
+      "ambari-web/classic/app/templates/common/form/check_db_connection.hbs:24"
+    ]
+  },
+  {
+    "name": "continue",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/stack_upgrade_wizard.hbs:128"
+    ]
+  },
+  {
+    "name": "copyErrLog",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/upgrade_task.hbs:59"
+    ]
+  },
+  {
+    "name": "copyOutLog",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/upgrade_task.hbs:43"
+    ]
+  },
+  {
+    "name": "createOverrideProperty",
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/controls.hbs:32",
+      "ambari-web/classic/app/templates/common/configs/widgets/controls/create_override.hbs:23"
+    ]
+  },
+  {
+    "name": "decrementValue",
+    "callers": [
+      "ambari-web/classic/app/templates/common/form/spinner_input.hbs:21"
+    ]
+  },
+  {
+    "name": "deleteAlertNotification",
+    "callers": [
+      "ambari-web/classic/app/templates/main/alerts/manage_alert_notifications_popup.hbs:39"
+    ]
+  },
+  {
+    "name": "deleteComponent",
+    "callers": [
+      "ambari-web/classic/app/templates/main/host/details/host_component.hbs:198"
+    ]
+  },
+  {
+    "name": "deleteDefinitions",
+    "callers": [
+      "ambari-web/classic/app/templates/main/alerts/manage_alert_groups_popup.hbs:72"
+    ]
+  },
+  {
+    "name": "deleteHosts",
+    "callers": [
+      "ambari-web/classic/app/templates/main/service/manage_configuration_groups_popup.hbs:66"
+    ]
+  },
+  {
+    "name": "deselectAllNodes",
+    "callers": [
+      "ambari-web/classic/app/templates/wizard/step6.hbs:66"
+    ]
+  },
+  {
+    "name": "displayComponents",
+    "callers": [
+      "ambari-web/classic/app/templates/main/host.hbs:116"
+    ]
+  },
+  {
+    "name": "displayVersions",
+    "callers": [
+      "ambari-web/classic/app/templates/main/host.hbs:111"
+    ]
+  },
+  {
+    "name": "doAbortRequestSchedule",
+    "callers": [
+      "ambari-web/classic/app/templates/common/host_progress_popup.hbs:138"
+    ]
+  },
+  {
+    "name": "doAction",
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/service_version_box.hbs:22",
+      "ambari-web/classic/app/templates/common/configs/service_version_box.hbs:46",
+      "ambari-web/classic/app/templates/common/configs/service_version_box.hbs:50",
+      "ambari-web/classic/app/templates/common/configs/service_version_box.hbs:55",
+      "ambari-web/classic/app/templates/main/host/details.hbs:33",
+      "ambari-web/classic/app/templates/main/service/item.hbs:40",
+      "ambari-web/classic/app/templates/main/service/item.hbs:50"
+    ]
+  },
+  {
+    "name": "doCancel",
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/service_config.hbs:222",
+      "ambari-web/classic/app/templates/experimental.hbs:53",
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/services.hbs:95"
+    ]
+  },
+  {
+    "name": "done",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/highAvailability/journalNode/step3.hbs:38",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/journalNode/step5.hbs:32",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/nameNode/rollbackHA/step1.hbs:48",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/nameNode/step4.hbs:33",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/nameNode/step6.hbs:28",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/nameNode/step8.hbs:31",
+      "ambari-web/classic/app/templates/main/alerts/add_alert_definition/step3.hbs:34"
+    ]
+  },
+  {
+    "name": "doResetUIStates",
+    "callers": [
+      "ambari-web/classic/app/templates/experimental.hbs:61"
+    ]
+  },
+  {
+    "name": "doRestoreDefaultValue",
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/controls.hbs:39",
+      "ambari-web/classic/app/templates/common/configs/overriddenProperty.hbs:41",
+      "ambari-web/classic/app/templates/common/modal_popups/prompt_popup.hbs:31",
+      "ambari-web/classic/app/templates/common/modal_popups/update_replication_popup.hbs:50",
+      "ambari-web/classic/app/templates/wizard/step1.hbs:168"
+    ]
+  },
+  {
+    "name": "doRestoreToEmpty",
+    "callers": [
+      "ambari-web/classic/app/templates/wizard/step1.hbs:174"
+    ]
+  },
+  {
+    "name": "doSave",
+    "callers": [
+      "ambari-web/classic/app/templates/experimental.hbs:54"
+    ]
+  },
+  {
+    "name": "doSelectConfigGroup",
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/selectCreateConfigGroup.hbs:40"
+    ]
+  },
+  {
+    "name": "downloadAllClientConfigs",
+    "callers": [
+      "ambari-web/classic/app/templates/main/host/details.hbs:45",
+      "ambari-web/classic/app/templates/main/service/all_services_actions.hbs:63"
+    ]
+  },
+  {
+    "name": "downloadClientConfigs",
+    "callers": [
+      "ambari-web/classic/app/templates/main/host/details.hbs:50"
+    ]
+  },
+  {
+    "name": "downloadCSV",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/kerberos.hbs:36",
+      "ambari-web/classic/app/templates/wizard/step8.hbs:102"
+    ]
+  },
+  {
+    "name": "duplicateAlertGroup",
+    "callers": [
+      "ambari-web/classic/app/templates/main/alerts/manage_alert_groups_popup.hbs:50"
+    ]
+  },
+  {
+    "name": "duplicateAlertNotification",
+    "callers": [
+      "ambari-web/classic/app/templates/main/alerts/manage_alert_notifications_popup.hbs:53"
+    ]
+  },
+  {
+    "name": "duplicateConfigGroup",
+    "callers": [
+      "ambari-web/classic/app/templates/main/service/manage_configuration_groups_popup.hbs:49"
+    ]
+  },
+  {
+    "name": "edit",
+    "callers": [
+      "ambari-web/classic/app/templates/main/alerts/definition_details.hbs:44"
+    ]
+  },
+  {
+    "name": "editAlertNotification",
+    "callers": [
+      "ambari-web/classic/app/templates/main/alerts/manage_alert_notifications_popup.hbs:48"
+    ]
+  },
+  {
+    "name": "editConfigs",
+    "callers": [
+      "ambari-web/classic/app/templates/main/alerts/definition_details.hbs:77"
+    ]
+  },
+  {
+    "name": "editRepeatTolerance",
+    "callers": [
+      "ambari-web/classic/app/templates/main/alerts/definition_details.hbs:186"
+    ]
+  },
+  {
+    "name": "editRepoId",
+    "callers": [
+      "ambari-web/classic/app/templates/wizard/step1/editable_repo.hbs:25"
+    ]
+  },
+  {
+    "name": "editRepositories",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/upgrade_version_box.hbs:25"
+    ]
+  },
+  {
+    "name": "enableEditMode",
+    "callers": [
+      "ambari-web/classic/app/templates/common/editable_list.hbs:20",
+      "ambari-web/classic/app/templates/common/editable_list.hbs:66"
+    ]
+  },
+  {
+    "name": "enableOrDisableAlertNotification",
+    "callers": [
+      "ambari-web/classic/app/templates/main/alerts/manage_alert_notifications_popup.hbs:59",
+      "ambari-web/classic/app/templates/main/alerts/manage_alert_notifications_popup.hbs:65"
+    ]
+  },
+  {
+    "name": "evaluateStep",
+    "callers": [
+      "ambari-web/classic/app/templates/wizard/step2.hbs:207"
+    ]
+  },
+  {
+    "name": "excludeSelected",
+    "callers": [
+      "ambari-web/classic/app/templates/common/log_file_search.hbs:106"
+    ]
+  },
+  {
+    "name": "executeCustomCommand",
+    "callers": [
+      "ambari-web/classic/app/templates/main/host/details/host_component.hbs:101",
+      "ambari-web/classic/app/templates/main/host/details/host_component.hbs:216"
+    ]
+  },
+  {
+    "name": "exitWizard",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/kerberos/step5.hbs:55"
+    ]
+  },
+  {
+    "name": "filterByKey",
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/addPropertyWindow.hbs:78"
+    ]
+  },
+  {
+    "name": "filterHosts",
+    "callers": [
+      "ambari-web/classic/app/templates/main/service/info/summary/client_components.hbs:25",
+      "ambari-web/classic/app/templates/main/service/info/summary/hdfs/slaves.hbs:42",
+      "ambari-web/classic/app/templates/main/service/info/summary/hdfs/slaves.hbs:63",
+      "ambari-web/classic/app/templates/main/service/info/summary/hdfs/slaves.hbs:83",
+      "ambari-web/classic/app/templates/main/service/info/summary/hdfs/slaves.hbs:94",
+      "ambari-web/classic/app/templates/main/service/info/summary/slave_components.hbs:28",
+      "ambari-web/classic/app/templates/main/service/services/flume.hbs:22",
+      "ambari-web/classic/app/templates/main/service/services/hbase.hbs:47",
+      "ambari-web/classic/app/templates/main/service/services/hbase.hbs:66",
+      "ambari-web/classic/app/templates/main/service/services/onefs.hbs:63",
+      "ambari-web/classic/app/templates/main/service/services/ranger.hbs:43",
+      "ambari-web/classic/app/templates/main/service/services/storm.hbs:42",
+      "ambari-web/classic/app/templates/main/service/services/yarn.hbs:45",
+      "ambari-web/classic/app/templates/main/service/services/yarn.hbs:55",
+      "ambari-web/classic/app/templates/main/service/services/zookeeper.hbs:32"
+    ]
+  },
+  {
+    "name": "filterSelected",
+    "callers": [
+      "ambari-web/classic/app/templates/main/host.hbs:136"
+    ]
+  },
+  {
+    "name": "firstPage",
+    "callers": [
+      "ambari-web/classic/app/templates/common/pagination.hbs:26"
+    ]
+  },
+  {
+    "name": "generateBlueprintConfirmation",
+    "callers": [
+      "ambari-web/classic/app/templates/wizard/step8.hbs:104"
+    ]
+  },
+  {
+    "name": "gotoAddService",
+    "callers": [
+      "ambari-web/classic/app/templates/main/service/all_services_actions.hbs:29"
+    ]
+  },
+  {
+    "name": "goToAddService",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/services.hbs:42"
+    ]
+  },
+  {
+    "name": "goToAdminView",
+    "callers": [
+      "ambari-web/classic/app/templates/application.hbs:78"
+    ]
+  },
+  {
+    "name": "gotoAlertDetails",
+    "callers": [
+      "ambari-web/classic/app/templates/common/modal_popups/alerts_popup.hbs:42",
+      "ambari-web/classic/app/templates/main/alerts.hbs:58",
+      "ambari-web/classic/app/templates/main/alerts/alert_notifications_popup.hbs:53",
+      "ambari-web/classic/app/templates/main/service/info/service_alert_popup.hbs:26"
+    ]
+  },
+  {
+    "name": "gotoAllAlerts",
+    "callers": [
+      "ambari-web/classic/app/templates/main/alerts/alert_notifications_popup.hbs:73"
+    ]
+  },
+  {
+    "name": "goToCategory",
+    "callers": [
+      "ambari-web/classic/app/templates/main/side-menu-item.hbs:38"
+    ]
+  },
+  {
+    "name": "gotoConfigs",
+    "callers": [
+      "ambari-web/classic/app/templates/main/service/services/flume.hbs:23"
+    ]
+  },
+  {
+    "name": "goToConfigs",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/custom_cluster_checks/custom_cluster_checks_service_warning.hbs:24",
+      "ambari-web/classic/app/templates/main/service/menu_item.hbs:27"
+    ]
+  },
+  {
+    "name": "goToDashboard",
+    "callers": [
+      "ambari-web/classic/app/templates/application.hbs:28",
+      "ambari-web/classic/app/templates/application.hbs:31"
+    ]
+  },
+  {
+    "name": "goToDashboardView",
+    "callers": [
+      "ambari-web/classic/app/templates/main/dashboard.hbs:24"
+    ]
+  },
+  {
+    "name": "goToHostAlerts",
+    "callers": [
+      "ambari-web/classic/app/templates/main/alerts/definition_details.hbs:248",
+      "ambari-web/classic/app/templates/main/alerts/instance_service_host.hbs:30",
+      "ambari-web/classic/app/templates/main/host.hbs:80"
+    ]
+  },
+  {
+    "name": "goToSection",
+    "callers": [
+      "ambari-web/classic/app/templates/main/side-menu-item.hbs:43"
+    ]
+  },
+  {
+    "name": "goToService",
+    "callers": [
+      "ambari-web/classic/app/templates/main/alerts/definition_details.hbs:239",
+      "ambari-web/classic/app/templates/main/alerts/instance_service_host.hbs:21"
+    ]
+  },
+  {
+    "name": "goToServiceConfigs",
+    "callers": [
+      "ambari-web/classic/app/templates/main/dashboard/config_history.hbs:56"
+    ]
+  },
+  {
+    "name": "gotoStep0",
+    "callers": [
+      "ambari-web/classic/app/templates/installer.hbs:28"
+    ]
+  },
+  {
+    "name": "gotoStep1",
+    "callers": [
+      "ambari-web/classic/app/templates/installer.hbs:29",
+      "ambari-web/classic/app/templates/main/admin/federation/routerBasedFederation/wizard.hbs:23",
+      "ambari-web/classic/app/templates/main/admin/federation/wizard.hbs:23",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/hawq/activateStandby/wizard.hbs:23",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/hawq/addStandby/wizard.hbs:23",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/hawq/removeStandby/wizard.hbs:23",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/journalNode/wizard.hbs:23",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/nameNode/rollbackHA/rollback_wizard.hbs:23",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/nameNode/wizard.hbs:23",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/rangerAdmin/wizard.hbs:24",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/resourceManager/wizard.hbs:23",
+      "ambari-web/classic/app/templates/main/admin/kerberos/wizard.hbs:23",
+      "ambari-web/classic/app/templates/main/alerts/add_alert_definition/add_alert_definition.hbs:24",
+      "ambari-web/classic/app/templates/main/host/add.hbs:23",
+      "ambari-web/classic/app/templates/main/service/add.hbs:23",
+      "ambari-web/classic/app/templates/main/service/reassign.hbs:23"
+    ]
+  },
+  {
+    "name": "gotoStep10",
+    "callers": [
+      "ambari-web/classic/app/templates/installer.hbs:38"
+    ]
+  },
+  {
+    "name": "gotoStep2",
+    "callers": [
+      "ambari-web/classic/app/templates/installer.hbs:30",
+      "ambari-web/classic/app/templates/main/admin/federation/routerBasedFederation/wizard.hbs:24",
+      "ambari-web/classic/app/templates/main/admin/federation/wizard.hbs:24",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/hawq/activateStandby/wizard.hbs:24",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/hawq/addStandby/wizard.hbs:24",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/hawq/removeStandby/wizard.hbs:24",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/journalNode/wizard.hbs:24",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/nameNode/rollbackHA/rollback_wizard.hbs:24",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/nameNode/wizard.hbs:24",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/rangerAdmin/wizard.hbs:25",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/resourceManager/wizard.hbs:24",
+      "ambari-web/classic/app/templates/main/admin/kerberos/wizard.hbs:24",
+      "ambari-web/classic/app/templates/main/alerts/add_alert_definition/add_alert_definition.hbs:25",
+      "ambari-web/classic/app/templates/main/host/add.hbs:24",
+      "ambari-web/classic/app/templates/main/service/add.hbs:24",
+      "ambari-web/classic/app/templates/main/service/reassign.hbs:24"
+    ]
+  },
+  {
+    "name": "gotoStep3",
+    "callers": [
+      "ambari-web/classic/app/templates/installer.hbs:31",
+      "ambari-web/classic/app/templates/main/admin/federation/routerBasedFederation/wizard.hbs:25",
+      "ambari-web/classic/app/templates/main/admin/federation/wizard.hbs:25",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/hawq/activateStandby/wizard.hbs:25",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/hawq/addStandby/wizard.hbs:25",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/hawq/removeStandby/wizard.hbs:25",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/journalNode/wizard.hbs:25",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/nameNode/rollbackHA/rollback_wizard.hbs:25",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/nameNode/wizard.hbs:25",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/rangerAdmin/wizard.hbs:26",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/resourceManager/wizard.hbs:25",
+      "ambari-web/classic/app/templates/main/admin/kerberos/wizard.hbs:25",
+      "ambari-web/classic/app/templates/main/alerts/add_alert_definition/add_alert_definition.hbs:26",
+      "ambari-web/classic/app/templates/main/host/add.hbs:25",
+      "ambari-web/classic/app/templates/main/service/add.hbs:25",
+      "ambari-web/classic/app/templates/main/service/reassign.hbs:25",
+      "ambari-web/classic/app/templates/main/service/reassign.hbs:28"
+    ]
+  },
+  {
+    "name": "gotoStep4",
+    "callers": [
+      "ambari-web/classic/app/templates/installer.hbs:32",
+      "ambari-web/classic/app/templates/main/admin/federation/routerBasedFederation/wizard.hbs:26",
+      "ambari-web/classic/app/templates/main/admin/federation/wizard.hbs:26",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/hawq/addStandby/wizard.hbs:26",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/journalNode/wizard.hbs:26",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/nameNode/wizard.hbs:26",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/rangerAdmin/wizard.hbs:27",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/resourceManager/wizard.hbs:26",
+      "ambari-web/classic/app/templates/main/admin/kerberos/wizard.hbs:26",
+      "ambari-web/classic/app/templates/main/host/add.hbs:26",
+      "ambari-web/classic/app/templates/main/service/add.hbs:26",
+      "ambari-web/classic/app/templates/main/service/reassign.hbs:26",
+      "ambari-web/classic/app/templates/main/service/reassign.hbs:29"
+    ]
+  },
+  {
+    "name": "gotoStep5",
+    "callers": [
+      "ambari-web/classic/app/templates/installer.hbs:33",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/journalNode/wizard.hbs:27",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/nameNode/wizard.hbs:27",
+      "ambari-web/classic/app/templates/main/admin/kerberos/wizard.hbs:27",
+      "ambari-web/classic/app/templates/main/host/add.hbs:27",
+      "ambari-web/classic/app/templates/main/service/add.hbs:27"
+    ]
+  },
+  {
+    "name": "gotoStep6",
+    "callers": [
+      "ambari-web/classic/app/templates/installer.hbs:34",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/journalNode/wizard.hbs:28",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/nameNode/wizard.hbs:28",
+      "ambari-web/classic/app/templates/main/admin/kerberos/wizard.hbs:28",
+      "ambari-web/classic/app/templates/main/host/add.hbs:28",
+      "ambari-web/classic/app/templates/main/service/add.hbs:28"
+    ]
+  },
+  {
+    "name": "gotoStep7",
+    "callers": [
+      "ambari-web/classic/app/templates/installer.hbs:35",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/journalNode/wizard.hbs:29",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/nameNode/wizard.hbs:29",
+      "ambari-web/classic/app/templates/main/admin/kerberos/wizard.hbs:29",
+      "ambari-web/classic/app/templates/main/host/add.hbs:29",
+      "ambari-web/classic/app/templates/main/service/add.hbs:29"
+    ]
+  },
+  {
+    "name": "gotoStep8",
+    "callers": [
+      "ambari-web/classic/app/templates/installer.hbs:36",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/nameNode/wizard.hbs:30",
+      "ambari-web/classic/app/templates/main/admin/kerberos/wizard.hbs:30"
+    ]
+  },
+  {
+    "name": "gotoStep9",
+    "callers": [
+      "ambari-web/classic/app/templates/installer.hbs:37",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/nameNode/wizard.hbs:31"
+    ]
+  },
+  {
+    "name": "goToVersions",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/versions.hbs:48"
+    ]
+  },
+  {
+    "name": "goToView",
+    "callers": [
+      "ambari-web/classic/app/templates/main/service/services/hive.hbs:54"
+    ]
+  },
+  {
+    "name": "handleClick",
+    "callers": [
+      "ambari-web/classic/app/templates/common/button_progress.hbs:19"
+    ]
+  },
+  {
+    "name": "hostLogPopup",
+    "callers": [
+      "ambari-web/classic/app/templates/wizard/step3.hbs:99",
+      "ambari-web/classic/app/templates/wizard/step9.hbs:92"
+    ]
+  },
+  {
+    "name": "hostWarningsPopup",
+    "callers": [
+      "ambari-web/classic/app/templates/wizard/step3.hbs:147"
+    ]
+  },
+  {
+    "name": "hostWithInstallFailed",
+    "callers": [
+      "ambari-web/classic/app/templates/wizard/step9.hbs:116"
+    ]
+  },
+  {
+    "name": "includeSelected",
+    "callers": [
+      "ambari-web/classic/app/templates/common/log_file_search.hbs:103"
+    ]
+  },
+  {
+    "name": "incrementValue",
+    "callers": [
+      "ambari-web/classic/app/templates/common/form/spinner_input.hbs:27"
+    ]
+  },
+  {
+    "name": "installClient",
+    "callers": [
+      "ambari-web/classic/app/templates/main/host/details/host_component.hbs:87",
+      "ambari-web/classic/app/templates/main/host/details/host_component.hbs:93"
+    ]
+  },
+  {
+    "name": "installComponent",
+    "callers": [
+      "ambari-web/classic/app/templates/main/host/details/host_component.hbs:157",
+      "ambari-web/classic/app/templates/main/host/details/host_component.hbs:189"
+    ]
+  },
+  {
+    "name": "installVersionConfirmation",
+    "callers": [
+      "ambari-web/classic/app/templates/main/host/stack_versions.hbs:58"
+    ]
+  },
+  {
+    "name": "lastPage",
+    "callers": [
+      "ambari-web/classic/app/templates/common/pagination.hbs:31"
+    ]
+  },
+  {
+    "name": "logoff",
+    "callers": [
+      "ambari-web/classic/app/templates/application.hbs:101"
+    ]
+  },
+  {
+    "name": "mainClickAction",
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/config_versions_dropdown.hbs:37"
+    ]
+  },
+  {
+    "name": "maintananceOff",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/custom_cluster_checks/custom_cluster_checks_maintenance.hbs:24"
+    ]
+  },
+  {
+    "name": "makeConfigsEditable",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/kerberos.hbs:43"
+    ]
+  },
+  {
+    "name": "makeConfigsUneditable",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/kerberos.hbs:54"
+    ]
+  },
+  {
+    "name": "makeCurrent",
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/config_versions_control.hbs:37"
+    ]
+  },
+  {
+    "name": "manageConfigurationGroup",
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/service_config.hbs:79",
+      "ambari-web/classic/app/templates/common/configs/service_config_wizard.hbs:40",
+      "ambari-web/classic/app/templates/common/configs/service_config_wizard.hbs:76"
+    ]
+  },
+  {
+    "name": "moveComponent",
+    "callers": [
+      "ambari-web/classic/app/templates/main/host/details/host_component.hbs:166"
+    ]
+  },
+  {
+    "name": "moveTableBottom",
+    "callers": [
+      "ambari-web/classic/app/templates/common/log_file_search.hbs:80"
+    ]
+  },
+  {
+    "name": "moveTableTop",
+    "callers": [
+      "ambari-web/classic/app/templates/common/log_file_search.hbs:79"
+    ]
+  },
+  {
+    "name": "moveTo",
+    "callers": [
+      "ambari-web/classic/app/templates/common/breadcrumbs.hbs:23"
+    ]
+  },
+  {
+    "name": "navigateToHostLogs",
+    "callers": [
+      "ambari-web/classic/app/templates/common/host_progress_popup.hbs:270"
+    ]
+  },
+  {
+    "name": "navigateToLogUI",
+    "callers": [
+      "ambari-web/classic/app/templates/common/log_file_search.hbs:81"
+    ]
+  },
+  {
+    "name": "next",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/federation/routerBasedFederation/step1.hbs:26",
+      "ambari-web/classic/app/templates/main/admin/federation/routerBasedFederation/step3.hbs:51",
+      "ambari-web/classic/app/templates/main/admin/federation/step1.hbs:56",
+      "ambari-web/classic/app/templates/main/admin/federation/step3.hbs:58",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/hawq/activateStandby/step1.hbs:24",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/hawq/addStandby/step1.hbs:24",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/hawq/removeStandby/step1.hbs:24",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/journalNode/step1.hbs:23",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/journalNode/step2.hbs:90",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/nameNode/rollbackHA/step2.hbs:26",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/nameNode/rollbackHA/step3.hbs:23",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/nameNode/step1.hbs:51",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/nameNode/step3.hbs:78",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/rangerAdmin/step1.hbs:44",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/rangerAdmin/step3.hbs:62",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/resourceManager/step1.hbs:26",
+      "ambari-web/classic/app/templates/main/alerts/add_alert_definition/step2.hbs:29",
+      "ambari-web/classic/app/templates/main/host/addHost/step4.hbs:62",
+      "ambari-web/classic/app/templates/main/service/reassign/step1.hbs:28",
+      "ambari-web/classic/app/templates/main/service/reassign/step5.hbs:31",
+      "ambari-web/classic/app/templates/wizard/step1.hbs:256",
+      "ambari-web/classic/app/templates/wizard/step6.hbs:119",
+      "ambari-web/classic/app/templates/wizard/step7_with_category_tabs.hbs:64"
+    ]
+  },
+  {
+    "name": "nextPage",
+    "callers": [
+      "ambari-web/classic/app/templates/common/pagination.hbs:29"
+    ]
+  },
+  {
+    "name": "notifySecurityOffPopup",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/kerberos.hbs:24"
+    ]
+  },
+  {
+    "name": "onCancel",
+    "callers": [
+      "ambari-web/classic/app/templates/main/service/info/save_popup_footer.hbs:21"
+    ]
+  },
+  {
+    "name": "onClose",
+    "callers": [
+      "ambari-web/classic/app/templates/common/modal_popup.hbs:27"
+    ]
+  },
+  {
+    "name": "onDelete",
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/queuePopup_footer.hbs:21"
+    ]
+  },
+  {
+    "name": "onDiscard",
+    "callers": [
+      "ambari-web/classic/app/templates/main/service/info/save_popup_footer.hbs:24"
+    ]
+  },
+  {
+    "name": "onEditClick",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/services.hbs:110"
+    ]
+  },
+  {
+    "name": "onHostClick",
+    "callers": [
+      "ambari-web/classic/app/templates/common/host_progress_popup.hbs:157"
+    ]
+  },
+  {
+    "name": "onOpClick",
+    "callers": [
+      "ambari-web/classic/app/templates/common/host_progress_popup.hbs:63"
+    ]
+  },
+  {
+    "name": "onPrimary",
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/queuePopup_footer.hbs:28",
+      "ambari-web/classic/app/templates/common/editable_list.hbs:61",
+      "ambari-web/classic/app/templates/common/host_progress_popup_footer.hbs:28",
+      "ambari-web/classic/app/templates/common/modal_popup.hbs:67",
+      "ambari-web/classic/app/templates/wizard/step3/step3_host_warning_popup_footer.hbs:35"
+    ]
+  },
+  {
+    "name": "onSave",
+    "callers": [
+      "ambari-web/classic/app/templates/main/service/info/save_popup_footer.hbs:28"
+    ]
+  },
+  {
+    "name": "onSecondary",
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/queuePopup_footer.hbs:33",
+      "ambari-web/classic/app/templates/common/editable_list.hbs:58",
+      "ambari-web/classic/app/templates/common/modal_popup.hbs:63",
+      "ambari-web/classic/app/templates/wizard/step3/step3_host_warning_popup_footer.hbs:31"
+    ]
+  },
+  {
+    "name": "onTaskClick",
+    "callers": [
+      "ambari-web/classic/app/templates/common/host_progress_popup.hbs:227"
+    ]
+  },
+  {
+    "name": "onThird",
+    "callers": [
+      "ambari-web/classic/app/templates/common/modal_popup.hbs:59"
+    ]
+  },
+  {
+    "name": "onToggleBlock",
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/notifications_configs.hbs:20",
+      "ambari-web/classic/app/templates/common/configs/service_config_category.hbs:19",
+      "ambari-web/classic/app/templates/common/configs/service_config_layout_tab_compare.hbs:42",
+      "ambari-web/classic/app/templates/wizard/step3/step3_host_warnings_popup.hbs:52"
+    ]
+  },
+  {
+    "name": "onToggleHost",
+    "callers": [
+      "ambari-web/classic/app/templates/main/host/bulk_add_delete_confirm_popup.hbs:30",
+      "ambari-web/classic/app/templates/main/host/delete_hosts_result_popup.hbs:34"
+    ]
+  },
+  {
+    "name": "openConfigsInNewWindow",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/upgrade_configs_merge_table.hbs:20",
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/upgrade_configs_recommend_table.hbs:20"
+    ]
+  },
+  {
+    "name": "openDetails",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/failed_hosts_modal.hbs:24"
+    ]
+  },
+  {
+    "name": "openErrorLog",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/upgrade_task.hbs:56"
+    ]
+  },
+  {
+    "name": "openFullResponse",
+    "callers": [
+      "ambari-web/classic/app/templates/main/alerts/definition_details.hbs:258"
+    ]
+  },
+  {
+    "name": "openInNewTab",
+    "callers": [
+      "ambari-web/classic/app/templates/common/modal_popups/log_tail_popup.hbs:28"
+    ]
+  },
+  {
+    "name": "openLogFile",
+    "callers": [
+      "ambari-web/classic/app/templates/main/host/logs.hbs:44"
+    ]
+  },
+  {
+    "name": "openOutLog",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/upgrade_task.hbs:40"
+    ]
+  },
+  {
+    "name": "openPublicOptionDisabledWindow",
+    "callers": [
+      "ambari-web/classic/app/templates/wizard/step1.hbs:96"
+    ]
+  },
+  {
+    "name": "openTaskLogInDialog",
+    "callers": [
+      "ambari-web/classic/app/templates/common/host_progress_popup.hbs:279",
+      "ambari-web/classic/app/templates/common/modal_popups/logs_popup.hbs:23",
+      "ambari-web/classic/app/templates/wizard/step9/step9HostTasksLogPopup.hbs:79"
+    ]
+  },
+  {
+    "name": "openUpgradeDialog",
+    "callers": [
+      "ambari-web/classic/app/templates/application.hbs:209"
+    ]
+  },
+  {
+    "name": "openVersionBoxPopup",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/upgrade_version_column.hbs:50"
+    ]
+  },
+  {
+    "name": "openWarningsInDialog",
+    "callers": [
+      "ambari-web/classic/app/templates/wizard/step3/step3_host_warnings_popup.hbs:38"
+    ]
+  },
+  {
+    "name": "previousPage",
+    "callers": [
+      "ambari-web/classic/app/templates/common/pagination.hbs:28"
+    ]
+  },
+  {
+    "name": "printReview",
+    "callers": [
+      "ambari-web/classic/app/templates/wizard/step8.hbs:101"
+    ]
+  },
+  {
+    "name": "refreshComponentConfigs",
+    "callers": [
+      "ambari-web/classic/app/templates/main/host/details/host_component.hbs:207"
+    ]
+  },
+  {
+    "name": "refreshConfigs",
+    "callers": [
+      "ambari-web/classic/app/templates/main/host/details/host_component.hbs:81"
+    ]
+  },
+  {
+    "name": "regenerateKeytabs",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/kerberos.hbs:27"
+    ]
+  },
+  {
+    "name": "registeredHostsPopup",
+    "callers": [
+      "ambari-web/classic/app/templates/wizard/step3.hbs:141"
+    ]
+  },
+  {
+    "name": "reinstallComponent",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/custom_cluster_checks/custom_cluster_checks_components_installation.hbs:24"
+    ]
+  },
+  {
+    "name": "reinstallOutOfSyncComponents",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/versions.hbs:34"
+    ]
+  },
+  {
+    "name": "remove",
+    "callers": [
+      "ambari-web/classic/app/templates/wizard/step3.hbs:104"
+    ]
+  },
+  {
+    "name": "removeCompareVersionBar",
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/config_versions_control.hbs:32"
+    ]
+  },
+  {
+    "name": "removeCustomPropertyHandler",
+    "callers": [
+      "ambari-web/classic/app/templates/main/alerts/create_alert_notification.hbs:353"
+    ]
+  },
+  {
+    "name": "removeFromItems",
+    "callers": [
+      "ambari-web/classic/app/templates/common/editable_list.hbs:27"
+    ]
+  },
+  {
+    "name": "removeKeyword",
+    "callers": [
+      "ambari-web/classic/app/templates/common/log_file_search.hbs:68"
+    ]
+  },
+  {
+    "name": "removeOS",
+    "callers": [
+      "ambari-web/classic/app/templates/wizard/step1.hbs:189"
+    ]
+  },
+  {
+    "name": "removeOutOfSyncComponents",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/versions.hbs:37"
+    ]
+  },
+  {
+    "name": "removeOverride",
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/overriddenProperty.hbs:48",
+      "ambari-web/classic/app/templates/common/configs/widgets/controls/remove_override.hbs:23"
+    ]
+  },
+  {
+    "name": "removeProperty",
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/controls.hbs:46",
+      "ambari-web/classic/app/templates/common/configs/notifications_configs.hbs:65"
+    ]
+  },
+  {
+    "name": "removeSelectedHosts",
+    "callers": [
+      "ambari-web/classic/app/templates/wizard/step3.hbs:30"
+    ]
+  },
+  {
+    "name": "renameAlertGroup",
+    "callers": [
+      "ambari-web/classic/app/templates/main/alerts/manage_alert_groups_popup.hbs:47"
+    ]
+  },
+  {
+    "name": "renameConfigGroup",
+    "callers": [
+      "ambari-web/classic/app/templates/main/service/manage_configuration_groups_popup.hbs:46"
+    ]
+  },
+  {
+    "name": "requestMoreOperations",
+    "callers": [
+      "ambari-web/classic/app/templates/common/host_progress_popup.hbs:105"
+    ]
+  },
+  {
+    "name": "resetKeywordsDateFilter",
+    "callers": [
+      "ambari-web/classic/app/templates/common/log_file_search.hbs:38"
+    ]
+  },
+  {
+    "name": "resetKeywordsFilter",
+    "callers": [
+      "ambari-web/classic/app/templates/common/log_file_search.hbs:74"
+    ]
+  },
+  {
+    "name": "resetLevelsFilter",
+    "callers": [
+      "ambari-web/classic/app/templates/common/log_file_search.hbs:53"
+    ]
+  },
+  {
+    "name": "restartAllRequired",
+    "callers": [
+      "ambari-web/classic/app/templates/main/service/all_services_actions.hbs:55"
+    ]
+  },
+  {
+    "name": "restartAllStaleConfigComponents",
+    "callers": [
+      "ambari-web/classic/app/templates/main/host/summary.hbs:23",
+      "ambari-web/classic/app/templates/main/service/info/configs.hbs:37",
+      "ambari-web/classic/app/templates/main/service/info/summary.hbs:35"
+    ]
+  },
+  {
+    "name": "restartComponent",
+    "callers": [
+      "ambari-web/classic/app/templates/main/host/details/host_component.hbs:119"
+    ]
+  },
+  {
+    "name": "restoreCachedValues",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/service_auto_start.hbs:69"
+    ]
+  },
+  {
+    "name": "restoreValue",
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/widgets/controls/undo.hbs:21"
+    ]
+  },
+  {
+    "name": "resumeUpgrade",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/custom_cluster_checks/custom_cluster_checks_prev_upgrade.hbs:20",
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/stack_upgrade_wizard.hbs:318",
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/stack_upgrade_wizard.hbs:322"
+    ]
+  },
+  {
+    "name": "retry",
+    "callers": [
+      "ambari-web/classic/app/templates/common/progress.hbs:27",
+      "ambari-web/classic/app/templates/main/admin/kerberos/step3.hbs:23",
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/stack_upgrade_wizard.hbs:131",
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/stack_upgrade_wizard.hbs:238",
+      "ambari-web/classic/app/templates/main/service/reconfigure.hbs:52",
+      "ambari-web/classic/app/templates/wizard/step9.hbs:37"
+    ]
+  },
+  {
+    "name": "retryRepoUrls",
+    "callers": [
+      "ambari-web/classic/app/templates/wizard/step1.hbs:239"
+    ]
+  },
+  {
+    "name": "retrySelectedHosts",
+    "callers": [
+      "ambari-web/classic/app/templates/wizard/step3.hbs:36"
+    ]
+  },
+  {
+    "name": "retryTask",
+    "callers": [
+      "ambari-web/classic/app/templates/common/progress.hbs:54",
+      "ambari-web/classic/app/templates/main/admin/kerberos/step3.hbs:49"
+    ]
+  },
+  {
+    "name": "revertToOriginal",
+    "callers": [
+      "ambari-web/classic/app/templates/wizard/step1/editable_repo.hbs:28"
+    ]
+  },
+  {
+    "name": "rollback",
+    "callers": [
+      "ambari-web/classic/app/templates/common/progress.hbs:62",
+      "ambari-web/classic/app/templates/main/admin/kerberos/step3.hbs:58"
+    ]
+  },
+  {
+    "name": "rollingRestartStaleConfigSlaveComponents",
+    "callers": [
+      "ambari-web/classic/app/templates/main/service/info/configs.hbs:41",
+      "ambari-web/classic/app/templates/main/service/info/summary.hbs:39"
+    ]
+  },
+  {
+    "name": "routeToAlertDefinition",
+    "callers": [
+      "ambari-web/classic/app/templates/main/host/host_alerts.hbs:54"
+    ]
+  },
+  {
+    "name": "routeToService",
+    "callers": [
+      "ambari-web/classic/app/templates/main/host/details/host_component.hbs:55",
+      "ambari-web/classic/app/templates/main/host/host_alerts.hbs:50"
+    ]
+  },
+  {
+    "name": "runAction",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/upgrade_options.hbs:50",
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/upgrade_version_box.hbs:47",
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/upgrade_version_box.hbs:55",
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/upgrade_version_box.hbs:65",
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/upgrade_version_box.hbs:83",
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/upgrade_version_column.hbs:56",
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/upgrade_version_column.hbs:64",
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/upgrade_version_column.hbs:75",
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/upgrade_version_column.hbs:93"
+    ]
+  },
+  {
+    "name": "runPreInstallChecks",
+    "callers": [
+      "ambari-web/classic/app/templates/wizard/step7.hbs:44",
+      "ambari-web/classic/app/templates/wizard/step7_with_category_tabs.hbs:62"
+    ]
+  },
+  {
+    "name": "runSmokeTest",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/custom_cluster_checks/custom_services_checks.hbs:24"
+    ]
+  },
+  {
+    "name": "save",
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/service_config.hbs:226"
+    ]
+  },
+  {
+    "name": "saveConfigs",
+    "callers": [
+      "ambari-web/classic/app/templates/main/alerts/definition_details.hbs:91"
+    ]
+  },
+  {
+    "name": "saveEdit",
+    "callers": [
+      "ambari-web/classic/app/templates/main/alerts/definition_details.hbs:34"
+    ]
+  },
+  {
+    "name": "saveRepoUrls",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/services.hbs:101"
+    ]
+  },
+  {
+    "name": "scrollTabsLeft",
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/services_config.hbs:21",
+      "ambari-web/classic/app/templates/wizard/step7/directories_tab.hbs:20"
+    ]
+  },
+  {
+    "name": "scrollTabsRight",
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/services_config.hbs:44",
+      "ambari-web/classic/app/templates/wizard/step7/directories_tab.hbs:43"
+    ]
+  },
+  {
+    "name": "selectAllGroups",
+    "callers": [
+      "ambari-web/classic/app/templates/main/alerts/create_alert_notification.hbs:54"
+    ]
+  },
+  {
+    "name": "selectAllNodes",
+    "callers": [
+      "ambari-web/classic/app/templates/wizard/step6.hbs:63"
+    ]
+  },
+  {
+    "name": "selectAllSeverity",
+    "callers": [
+      "ambari-web/classic/app/templates/main/alerts/create_alert_notification.hbs:73"
+    ]
+  },
+  {
+    "name": "selectCategory",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/upgrade_history.hbs:39",
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/versions.hbs:63",
+      "ambari-web/classic/app/templates/wizard/step3.hbs:47",
+      "ambari-web/classic/app/templates/wizard/step9.hbs:49"
+    ]
+  },
+  {
+    "name": "selectConfigGroup",
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/service_config.hbs:87",
+      "ambari-web/classic/app/templates/common/configs/service_config_wizard.hbs:32",
+      "ambari-web/classic/app/templates/common/configs/service_config_wizard.hbs:67"
+    ]
+  },
+  {
+    "name": "selectedHostsPopup",
+    "callers": [
+      "ambari-web/classic/app/templates/wizard/step3.hbs:124"
+    ]
+  },
+  {
+    "name": "selectFilterColumn",
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/overrideWindow.hbs:49",
+      "ambari-web/classic/app/templates/common/filter_combo_cleanable.hbs:34",
+      "ambari-web/classic/app/templates/common/filter_combobox.hbs:29"
+    ]
+  },
+  {
+    "name": "selectFilterComponent",
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/overrideWindow.hbs:74",
+      "ambari-web/classic/app/templates/main/alerts/add_definition_to_group_popup.hbs:47"
+    ]
+  },
+  {
+    "name": "selectFilterService",
+    "callers": [
+      "ambari-web/classic/app/templates/main/alerts/add_definition_to_group_popup.hbs:72"
+    ]
+  },
+  {
+    "name": "selectHost",
+    "callers": [
+      "ambari-web/classic/app/templates/main/service/services/flume.hbs:46"
+    ]
+  },
+  {
+    "name": "selectHostCategory",
+    "callers": [
+      "ambari-web/classic/app/templates/common/host_progress_popup.hbs:126"
+    ]
+  },
+  {
+    "name": "selectMethod",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/upgrade_options.hbs:37"
+    ]
+  },
+  {
+    "name": "selectOption",
+    "callers": [
+      "ambari-web/classic/app/templates/common/form/dropdown.hbs:26"
+    ]
+  },
+  {
+    "name": "selectOS",
+    "callers": [
+      "ambari-web/classic/app/templates/wizard/step1_addLocalRepository.hbs:29"
+    ]
+  },
+  {
+    "name": "selectRepoInList",
+    "callers": [
+      "ambari-web/classic/app/templates/wizard/step1.hbs:30"
+    ]
+  },
+  {
+    "name": "selectService",
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/services_config.hbs:28",
+      "ambari-web/classic/app/templates/common/configs/services_config.hbs:56",
+      "ambari-web/classic/app/templates/main/service/services/mapreduce2.hbs:24",
+      "ambari-web/classic/app/templates/main/service/services/zookeeper.hbs:23",
+      "ambari-web/classic/app/templates/wizard/step7/directories_tab.hbs:27"
+    ]
+  },
+  {
+    "name": "selectServiceCategory",
+    "callers": [
+      "ambari-web/classic/app/templates/common/host_progress_popup.hbs:36"
+    ]
+  },
+  {
+    "name": "selectTab",
+    "callers": [
+      "ambari-web/classic/app/templates/wizard/step7_with_category_tabs.hbs:24"
+    ]
+  },
+  {
+    "name": "selectTaskCategory",
+    "callers": [
+      "ambari-web/classic/app/templates/common/host_progress_popup.hbs:212"
+    ]
+  },
+  {
+    "name": "selectType",
+    "callers": [
+      "ambari-web/classic/app/templates/main/alerts/add_alert_definition/step1.hbs:26"
+    ]
+  },
+  {
+    "name": "setActiveLogTab",
+    "callers": [
+      "ambari-web/classic/app/templates/common/host_progress_popup.hbs:296"
+    ]
+  },
+  {
+    "name": "setActiveSubTab",
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/service_config_layout_tab.hbs:58"
+    ]
+  },
+  {
+    "name": "setActiveTab",
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/service_config.hbs:124",
+      "ambari-web/classic/app/templates/common/configs/service_config_wizard.hbs:95"
+    ]
+  },
+  {
+    "name": "setActiveTaskLogTab",
+    "callers": [
+      "ambari-web/classic/app/templates/common/host_progress_popup.hbs:292"
+    ]
+  },
+  {
+    "name": "setConfigValue",
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/widgets/combo_config_widget.hbs:29"
+    ]
+  },
+  {
+    "name": "setErrorActive",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/upgrade_task.hbs:32"
+    ]
+  },
+  {
+    "name": "setRackId",
+    "callers": [
+      "ambari-web/classic/app/templates/main/host/summary.hbs:98"
+    ]
+  },
+  {
+    "name": "setRecommendedValue",
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/controls.hbs:53",
+      "ambari-web/classic/app/templates/common/configs/widgets/controls/set_recommended.hbs:23"
+    ]
+  },
+  {
+    "name": "setTimeRange",
+    "callers": [
+      "ambari-web/classic/app/templates/common/time_range_list.hbs:24"
+    ]
+  },
+  {
+    "name": "setView",
+    "callers": [
+      "ambari-web/classic/app/templates/application.hbs:122",
+      "ambari-web/classic/app/templates/main/views.hbs:26"
+    ]
+  },
+  {
+    "name": "showAboutPopup",
+    "callers": [
+      "ambari-web/classic/app/templates/application.hbs:69"
+    ]
+  },
+  {
+    "name": "showAddPropertyWindow",
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/notifications_configs.hbs:109",
+      "ambari-web/classic/app/templates/common/configs/service_config_category.hbs:107"
+    ]
+  },
+  {
+    "name": "showAlertsPopup",
+    "callers": [
+      "ambari-web/classic/app/templates/main/service/services/mapreduce2.hbs:26",
+      "ambari-web/classic/app/templates/main/service/services/zookeeper.hbs:25"
+    ]
+  },
+  {
+    "name": "showAll",
+    "callers": [
+      "ambari-web/classic/app/templates/main/host/bulk_operation_confirm_popup.hbs:34"
+    ]
+  },
+  {
+    "name": "showChangedDependentConfigs",
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/service_config.hbs:110",
+      "ambari-web/classic/app/templates/common/configs/services_config.hbs:100"
+    ]
+  },
+  {
+    "name": "showComponentsShouldBeRestarted",
+    "callers": [
+      "ambari-web/classic/app/templates/main/service/info/configs.hbs:26",
+      "ambari-web/classic/app/templates/main/service/info/summary.hbs:24"
+    ]
+  },
+  {
+    "name": "showConfigProperty",
+    "callers": [
+      "ambari-web/classic/app/templates/common/modal_popups/config_recommendation_popup.hbs:48",
+      "ambari-web/classic/app/templates/common/modal_popups/config_recommendation_popup.hbs:108",
+      "ambari-web/classic/app/templates/common/modal_popups/dependent_configs_list.hbs:46",
+      "ambari-web/classic/app/templates/common/modal_popups/dependent_configs_list.hbs:51",
+      "ambari-web/classic/app/templates/common/modal_popups/dependent_configs_table.hbs:56"
+    ]
+  },
+  {
+    "name": "showDetails",
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/service_config.hbs:35",
+      "ambari-web/classic/app/templates/main/host.hbs:77",
+      "ambari-web/classic/app/templates/main/service/info/summary/master_components.hbs:49"
+    ]
+  },
+  {
+    "name": "showFailedHosts",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/stack_upgrade_wizard.hbs:209",
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/stack_upgrade_wizard.hbs:269"
+    ]
+  },
+  {
+    "name": "showHostProgressPopup",
+    "callers": [
+      "ambari-web/classic/app/templates/common/progress.hbs:42",
+      "ambari-web/classic/app/templates/main/admin/kerberos/step3.hbs:37"
+    ]
+  },
+  {
+    "name": "showHosts",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/upgrade_version_box.hbs:102",
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/upgrade_version_box.hbs:108",
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/upgrade_version_box.hbs:114",
+      "ambari-web/classic/app/templates/wizard/component_hosts.hbs:23"
+    ]
+  },
+  {
+    "name": "showHostsPopup",
+    "callers": [
+      "ambari-web/classic/app/templates/wizard/step3/step3_host_warnings_popup.hbs:91"
+    ]
+  },
+  {
+    "name": "showHostsShouldBeRestarted",
+    "callers": [
+      "ambari-web/classic/app/templates/main/service/info/configs.hbs:27",
+      "ambari-web/classic/app/templates/main/service/info/summary.hbs:25"
+    ]
+  },
+  {
+    "name": "showHostsWithLostHeartBeat",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/kerberos/step3.hbs:83"
+    ]
+  },
+  {
+    "name": "showInstallProgress",
+    "callers": [
+      "ambari-web/classic/app/templates/main/host/stack_versions.hbs:47"
+    ]
+  },
+  {
+    "name": "showLogsPopup",
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/widgets/test_db_connection_widget.hbs:27",
+      "ambari-web/classic/app/templates/common/form/check_db_connection.hbs:27"
+    ]
+  },
+  {
+    "name": "showManageKDCCredentialsPopup",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/kerberos.hbs:30"
+    ]
+  },
+  {
+    "name": "showPopup",
+    "callers": [
+      "ambari-web/classic/app/templates/application.hbs:137"
+    ]
+  },
+  {
+    "name": "showProperties",
+    "callers": [
+      "ambari-web/classic/app/templates/main/service/manage_configuration_groups_popup.hbs:72"
+    ]
+  },
+  {
+    "name": "showSavePopup",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/service_auto_start.hbs:70"
+    ]
+  },
+  {
+    "name": "showSelectGroupPopup",
+    "callers": [
+      "ambari-web/classic/app/templates/common/modal_popups/dependent_configs_table.hbs:65"
+    ]
+  },
+  {
+    "name": "showServiceAlertsPopup",
+    "callers": [
+      "ambari-web/classic/app/templates/main/service/info/summary.hbs:59",
+      "ambari-web/classic/app/templates/main/service/info/summary/master_components.hbs:40"
+    ]
+  },
+  {
+    "name": "showSettingsPopup",
+    "callers": [
+      "ambari-web/classic/app/templates/application.hbs:90"
+    ]
+  },
+  {
+    "name": "showUpgradeHistoryRecord",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/upgrade_history.hbs:73"
+    ]
+  },
+  {
+    "name": "skipTask",
+    "callers": [
+      "ambari-web/classic/app/templates/common/progress.hbs:68",
+      "ambari-web/classic/app/templates/main/admin/kerberos/step3.hbs:64"
+    ]
+  },
+  {
+    "name": "startAllService",
+    "callers": [
+      "ambari-web/classic/app/templates/main/service/all_services_actions.hbs:39"
+    ]
+  },
+  {
+    "name": "startComponent",
+    "callers": [
+      "ambari-web/classic/app/templates/main/host/details/host_component.hbs:139"
+    ]
+  },
+  {
+    "name": "startFlumeAgent",
+    "callers": [
+      "ambari-web/classic/app/templates/main/service/services/flume.hbs:70"
+    ]
+  },
+  {
+    "name": "startRemoveHost",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/custom_cluster_checks/custom_cluster_checks_hosts_heartbeat.hbs:24"
+    ]
+  },
+  {
+    "name": "stopAllService",
+    "callers": [
+      "ambari-web/classic/app/templates/main/service/all_services_actions.hbs:47"
+    ]
+  },
+  {
+    "name": "stopComponent",
+    "callers": [
+      "ambari-web/classic/app/templates/main/host/details/host_component.hbs:129"
+    ]
+  },
+  {
+    "name": "stopFlumeAgent",
+    "callers": [
+      "ambari-web/classic/app/templates/main/service/services/flume.hbs:76"
+    ]
+  },
+  {
+    "name": "stopRebalanceHDFS",
+    "callers": [
+      "ambari-web/classic/app/templates/common/host_progress_popup.hbs:328"
+    ]
+  },
+  {
+    "name": "submit",
+    "callers": [
+      "ambari-web/classic/app/templates/common/assign_master_components.hbs:172",
+      "ambari-web/classic/app/templates/login.hbs:36",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/hawq/activateStandby/step2.hbs:56",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/hawq/addStandby/step3.hbs:58",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/hawq/removeStandby/step2.hbs:43",
+      "ambari-web/classic/app/templates/main/admin/highAvailability/resourceManager/step3.hbs:61",
+      "ambari-web/classic/app/templates/main/admin/kerberos.hbs:58",
+      "ambari-web/classic/app/templates/main/service/reassign/step3.hbs:69",
+      "ambari-web/classic/app/templates/wizard/step0.hbs:48",
+      "ambari-web/classic/app/templates/wizard/step3.hbs:169",
+      "ambari-web/classic/app/templates/wizard/step4.hbs:109",
+      "ambari-web/classic/app/templates/wizard/step7.hbs:46",
+      "ambari-web/classic/app/templates/wizard/step8.hbs:95",
+      "ambari-web/classic/app/templates/wizard/step9.hbs:128"
+    ]
+  },
+  {
+    "name": "submitKeywordsValue",
+    "callers": [
+      "ambari-web/classic/app/templates/common/log_file_search.hbs:25"
+    ]
+  },
+  {
+    "name": "switchHostGroup",
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/service_config.hbs:64"
+    ]
+  },
+  {
+    "name": "textTrigger",
+    "callers": [
+      "ambari-web/classic/app/templates/common/host_progress_popup.hbs:284",
+      "ambari-web/classic/app/templates/common/modal_popups/logs_popup.hbs:21",
+      "ambari-web/classic/app/templates/common/selectable_popup.hbs:22",
+      "ambari-web/classic/app/templates/main/host/bulk_operation_confirm_popup.hbs:22",
+      "ambari-web/classic/app/templates/wizard/step9/step9HostTasksLogPopup.hbs:82"
+    ]
+  },
+  {
+    "name": "toggleAdvancedOptions",
+    "callers": [
+      "ambari-web/classic/app/templates/common/service_restart.hbs:37"
+    ]
+  },
+  {
+    "name": "toggleBulkMode",
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/addPropertyWindow.hbs:26"
+    ]
+  },
+  {
+    "name": "toggleCheckBox",
+    "callers": [
+      "ambari-web/classic/app/templates/wizard/step4.hbs:36",
+      "ambari-web/classic/app/templates/wizard/step4.hbs:76"
+    ]
+  },
+  {
+    "name": "toggleCollapsed",
+    "callers": [
+      "ambari-web/classic/app/templates/wizard/step7/directories_theme_layout.hbs:28"
+    ]
+  },
+  {
+    "name": "toggleCopy",
+    "callers": [
+      "ambari-web/classic/app/templates/common/modal_popups/log_tail_popup.hbs:24"
+    ]
+  },
+  {
+    "name": "toggleDetails",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/stack_upgrade_wizard.hbs:59",
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/stack_upgrade_wizard.hbs:66",
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/stack_upgrade_wizard.hbs:95",
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/stack_upgrade_wizard.hbs:102"
+    ]
+  },
+  {
+    "name": "toggleExpanded",
+    "callers": [
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/upgrade_group.hbs:23",
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/upgrade_group.hbs:48",
+      "ambari-web/classic/app/templates/main/admin/stack_upgrade/upgrade_task.hbs:22"
+    ]
+  },
+  {
+    "name": "toggleFilter",
+    "callers": [
+      "ambari-web/classic/app/templates/common/grid/header.hbs:19"
+    ]
+  },
+  {
+    "name": "toggleFinalFlag",
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/controls.hbs:25",
+      "ambari-web/classic/app/templates/common/configs/overriddenProperty.hbs:28",
+      "ambari-web/classic/app/templates/common/configs/widgets/controls/final.hbs:22"
+    ]
+  },
+  {
+    "name": "toggleIssuesFilter",
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/services_config.hbs:119",
+      "ambari-web/classic/app/templates/common/configs/services_config.hbs:125"
+    ]
+  },
+  {
+    "name": "toggleMaintenanceMode",
+    "callers": [
+      "ambari-web/classic/app/templates/main/host/details/host_component.hbs:177"
+    ]
+  },
+  {
+    "name": "toggleOption",
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/widgets/list_config_widget.hbs:27"
+    ]
+  },
+  {
+    "name": "toggleRestartMessageView",
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/service_config.hbs:22"
+    ]
+  },
+  {
+    "name": "toggleShowLessStatus",
+    "callers": [
+      "ambari-web/classic/app/templates/main/dashboard/config_history.hbs:76",
+      "ambari-web/classic/app/templates/main/dashboard/config_history.hbs:79"
+    ]
+  },
+  {
+    "name": "toggleShowSelectedDefs",
+    "callers": [
+      "ambari-web/classic/app/templates/main/alerts/add_definition_to_group_popup.hbs:30"
+    ]
+  },
+  {
+    "name": "toggleShowSelectedHosts",
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/overrideWindow.hbs:31"
+    ]
+  },
+  {
+    "name": "toggleState",
+    "callers": [
+      "ambari-web/classic/app/templates/main/alerts/alert_definition/alert_definition_state.hbs:20",
+      "ambari-web/classic/app/templates/main/alerts/definition_details.hbs:114",
+      "ambari-web/classic/app/templates/main/alerts/definition_details.hbs:125"
+    ]
+  },
+  {
+    "name": "toggleTaskLog",
+    "callers": [
+      "ambari-web/classic/app/templates/wizard/step9/step9HostTasksLogPopup.hbs:48"
+    ]
+  },
+  {
+    "name": "toggleWidgetView",
+    "callers": [
+      "ambari-web/classic/app/templates/common/configs/widgets/controls/edit.hbs:24"
+    ]
+  },
+  {
+    "name": "unSelectAll",
+    "callers": [
+      "ambari-web/classic/app/templates/wizard/step3.hbs:129"
+    ]
+  },
+  {
+    "name": "upgradeComponent",
+    "callers": [
+      "ambari-web/classic/app/templates/main/host/details/host_component.hbs:25",
+      "ambari-web/classic/app/templates/main/host/details/host_component.hbs:149"
+    ]
+  },
+  {
+    "name": "uploadVdf",
+    "callers": [
+      "ambari-web/classic/app/templates/wizard/step1.hbs:54"
+    ]
+  }
+]

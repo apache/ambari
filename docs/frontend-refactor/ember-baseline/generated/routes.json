@@ -1,0 +1,802 @@
+[
+  {
+    "fragment": "/",
+    "source": "ambari-web/classic/app/router.js",
+    "line": 915
+  },
+  {
+    "fragment": "/login:suffix",
+    "source": "ambari-web/classic/app/router.js",
+    "line": 926
+  },
+  {
+    "fragment": "/adminView",
+    "source": "ambari-web/classic/app/router.js",
+    "line": 969
+  },
+  {
+    "fragment": "/experimental",
+    "source": "ambari-web/classic/app/router.js",
+    "line": 986
+  },
+  {
+    "fragment": "/highAvailability/Hawq/activate",
+    "source": "ambari-web/classic/app/routes/activate_hawq_standby_routes.js",
+    "line": 22
+  },
+  {
+    "fragment": "/step1",
+    "source": "ambari-web/classic/app/routes/activate_hawq_standby_routes.js",
+    "line": 99
+  },
+  {
+    "fragment": "/step2",
+    "source": "ambari-web/classic/app/routes/activate_hawq_standby_routes.js",
+    "line": 124
+  },
+  {
+    "fragment": "/step3",
+    "source": "ambari-web/classic/app/routes/activate_hawq_standby_routes.js",
+    "line": 148
+  },
+  {
+    "fragment": "/alerts/add",
+    "source": "ambari-web/classic/app/routes/add_alert_definition_routes.js",
+    "line": 23
+  },
+  {
+    "fragment": "/step1",
+    "source": "ambari-web/classic/app/routes/add_alert_definition_routes.js",
+    "line": 68
+  },
+  {
+    "fragment": "/step2",
+    "source": "ambari-web/classic/app/routes/add_alert_definition_routes.js",
+    "line": 87
+  },
+  {
+    "fragment": "/step3",
+    "source": "ambari-web/classic/app/routes/add_alert_definition_routes.js",
+    "line": 114
+  },
+  {
+    "fragment": "/highAvailability/Hawq/add",
+    "source": "ambari-web/classic/app/routes/add_hawq_standby_routes.js",
+    "line": 22
+  },
+  {
+    "fragment": "/step1",
+    "source": "ambari-web/classic/app/routes/add_hawq_standby_routes.js",
+    "line": 100
+  },
+  {
+    "fragment": "/step2",
+    "source": "ambari-web/classic/app/routes/add_hawq_standby_routes.js",
+    "line": 120
+  },
+  {
+    "fragment": "/step3",
+    "source": "ambari-web/classic/app/routes/add_hawq_standby_routes.js",
+    "line": 149
+  },
+  {
+    "fragment": "/step4",
+    "source": "ambari-web/classic/app/routes/add_hawq_standby_routes.js",
+    "line": 172
+  },
+  {
+    "fragment": "/host/add",
+    "source": "ambari-web/classic/app/routes/add_host_routes.js",
+    "line": 22
+  },
+  {
+    "fragment": "/step1",
+    "source": "ambari-web/classic/app/routes/add_host_routes.js",
+    "line": 98
+  },
+  {
+    "fragment": "/step2",
+    "source": "ambari-web/classic/app/routes/add_host_routes.js",
+    "line": 132
+  },
+  {
+    "fragment": "/step3",
+    "source": "ambari-web/classic/app/routes/add_host_routes.js",
+    "line": 176
+  },
+  {
+    "fragment": "/step4",
+    "source": "ambari-web/classic/app/routes/add_host_routes.js",
+    "line": 213
+  },
+  {
+    "fragment": "/step5",
+    "source": "ambari-web/classic/app/routes/add_host_routes.js",
+    "line": 248
+  },
+  {
+    "fragment": "/step6",
+    "source": "ambari-web/classic/app/routes/add_host_routes.js",
+    "line": 293
+  },
+  {
+    "fragment": "/step7",
+    "source": "ambari-web/classic/app/routes/add_host_routes.js",
+    "line": 351
+  },
+  {
+    "fragment": "/enable",
+    "source": "ambari-web/classic/app/routes/add_kerberos_routes.js",
+    "line": 21
+  },
+  {
+    "fragment": "/step1",
+    "source": "ambari-web/classic/app/routes/add_kerberos_routes.js",
+    "line": 118
+  },
+  {
+    "fragment": "/step2",
+    "source": "ambari-web/classic/app/routes/add_kerberos_routes.js",
+    "line": 145
+  },
+  {
+    "fragment": "/step3",
+    "source": "ambari-web/classic/app/routes/add_kerberos_routes.js",
+    "line": 190
+  },
+  {
+    "fragment": "/step4",
+    "source": "ambari-web/classic/app/routes/add_kerberos_routes.js",
+    "line": 214
+  },
+  {
+    "fragment": "/step5",
+    "source": "ambari-web/classic/app/routes/add_kerberos_routes.js",
+    "line": 255
+  },
+  {
+    "fragment": "/step6",
+    "source": "ambari-web/classic/app/routes/add_kerberos_routes.js",
+    "line": 295
+  },
+  {
+    "fragment": "/step7",
+    "source": "ambari-web/classic/app/routes/add_kerberos_routes.js",
+    "line": 322
+  },
+  {
+    "fragment": "/step8",
+    "source": "ambari-web/classic/app/routes/add_kerberos_routes.js",
+    "line": 346
+  },
+  {
+    "fragment": "/service/add",
+    "source": "ambari-web/classic/app/routes/add_service_routes.js",
+    "line": 24
+  },
+  {
+    "fragment": "/step1",
+    "source": "ambari-web/classic/app/routes/add_service_routes.js",
+    "line": 121
+  },
+  {
+    "fragment": "/step2",
+    "source": "ambari-web/classic/app/routes/add_service_routes.js",
+    "line": 159
+  },
+  {
+    "fragment": "/step3",
+    "source": "ambari-web/classic/app/routes/add_service_routes.js",
+    "line": 194
+  },
+  {
+    "fragment": "/step4",
+    "source": "ambari-web/classic/app/routes/add_service_routes.js",
+    "line": 246
+  },
+  {
+    "fragment": "/step5",
+    "source": "ambari-web/classic/app/routes/add_service_routes.js",
+    "line": 309
+  },
+  {
+    "fragment": "/step6",
+    "source": "ambari-web/classic/app/routes/add_service_routes.js",
+    "line": 351
+  },
+  {
+    "fragment": "/step7",
+    "source": "ambari-web/classic/app/routes/add_service_routes.js",
+    "line": 401
+  },
+  {
+    "fragment": "/NameNode/federation/routerBasedFederation",
+    "source": "ambari-web/classic/app/routes/dfsrouter_federation_routes.js",
+    "line": 22
+  },
+  {
+    "fragment": "/step1",
+    "source": "ambari-web/classic/app/routes/dfsrouter_federation_routes.js",
+    "line": 78
+  },
+  {
+    "fragment": "/step2",
+    "source": "ambari-web/classic/app/routes/dfsrouter_federation_routes.js",
+    "line": 96
+  },
+  {
+    "fragment": "/step3",
+    "source": "ambari-web/classic/app/routes/dfsrouter_federation_routes.js",
+    "line": 120
+  },
+  {
+    "fragment": "/step4",
+    "source": "ambari-web/classic/app/routes/dfsrouter_federation_routes.js",
+    "line": 142
+  },
+  {
+    "fragment": "/highAvailability/NameNode/enable",
+    "source": "ambari-web/classic/app/routes/high_availability_routes.js",
+    "line": 22
+  },
+  {
+    "fragment": "/step1",
+    "source": "ambari-web/classic/app/routes/high_availability_routes.js",
+    "line": 102
+  },
+  {
+    "fragment": "/step2",
+    "source": "ambari-web/classic/app/routes/high_availability_routes.js",
+    "line": 126
+  },
+  {
+    "fragment": "/step3",
+    "source": "ambari-web/classic/app/routes/high_availability_routes.js",
+    "line": 162
+  },
+  {
+    "fragment": "/step4",
+    "source": "ambari-web/classic/app/routes/high_availability_routes.js",
+    "line": 195
+  },
+  {
+    "fragment": "/step5",
+    "source": "ambari-web/classic/app/routes/high_availability_routes.js",
+    "line": 217
+  },
+  {
+    "fragment": "/step6",
+    "source": "ambari-web/classic/app/routes/high_availability_routes.js",
+    "line": 239
+  },
+  {
+    "fragment": "/step7",
+    "source": "ambari-web/classic/app/routes/high_availability_routes.js",
+    "line": 259
+  },
+  {
+    "fragment": "/step8",
+    "source": "ambari-web/classic/app/routes/high_availability_routes.js",
+    "line": 281
+  },
+  {
+    "fragment": "/step9",
+    "source": "ambari-web/classic/app/routes/high_availability_routes.js",
+    "line": 303
+  },
+  {
+    "fragment": "/installer",
+    "source": "ambari-web/classic/app/routes/installer.js",
+    "line": 22
+  },
+  {
+    "fragment": "/step0",
+    "source": "ambari-web/classic/app/routes/installer.js",
+    "line": 91
+  },
+  {
+    "fragment": "/step1",
+    "source": "ambari-web/classic/app/routes/installer.js",
+    "line": 149
+  },
+  {
+    "fragment": "/step2",
+    "source": "ambari-web/classic/app/routes/installer.js",
+    "line": 185
+  },
+  {
+    "fragment": "/step3",
+    "source": "ambari-web/classic/app/routes/installer.js",
+    "line": 217
+  },
+  {
+    "fragment": "/step4",
+    "source": "ambari-web/classic/app/routes/installer.js",
+    "line": 268
+  },
+  {
+    "fragment": "/step5",
+    "source": "ambari-web/classic/app/routes/installer.js",
+    "line": 309
+  },
+  {
+    "fragment": "/step6",
+    "source": "ambari-web/classic/app/routes/installer.js",
+    "line": 352
+  },
+  {
+    "fragment": "/step7",
+    "source": "ambari-web/classic/app/routes/installer.js",
+    "line": 400
+  },
+  {
+    "fragment": "/step8",
+    "source": "ambari-web/classic/app/routes/installer.js",
+    "line": 474
+  },
+  {
+    "fragment": "/step9",
+    "source": "ambari-web/classic/app/routes/installer.js",
+    "line": 513
+  },
+  {
+    "fragment": "/step10",
+    "source": "ambari-web/classic/app/routes/installer.js",
+    "line": 577
+  },
+  {
+    "fragment": "dashboard",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 25
+  },
+  {
+    "fragment": "/main",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 28
+  },
+  {
+    "fragment": "/",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 107
+  },
+  {
+    "fragment": "/test",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 116
+  },
+  {
+    "fragment": "dashboard",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 126
+  },
+  {
+    "fragment": "/dashboard",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 129
+  },
+  {
+    "fragment": "/",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 134
+  },
+  {
+    "fragment": "/",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 164
+  },
+  {
+    "fragment": "/config_history",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 193
+  },
+  {
+    "fragment": "hosts",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 216
+  },
+  {
+    "fragment": "/hosts",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 223
+  },
+  {
+    "fragment": "/",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 225
+  },
+  {
+    "fragment": "/:host_id",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 248
+  },
+  {
+    "fragment": "/",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 255
+  },
+  {
+    "fragment": "/summary",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 260
+  },
+  {
+    "fragment": "/configs",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 287
+  },
+  {
+    "fragment": "/alerts",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 299
+  },
+  {
+    "fragment": "/stackVersions",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 319
+  },
+  {
+    "fragment": "/logs:query",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 331
+  },
+  {
+    "fragment": "alerts",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 378
+  },
+  {
+    "fragment": "/alerts",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 384
+  },
+  {
+    "fragment": "/",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 386
+  },
+  {
+    "fragment": "/:alert_definition_id",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 399
+  },
+  {
+    "fragment": "/admin",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 428
+  },
+  {
+    "fragment": "/",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 455
+  },
+  {
+    "fragment": "/authentication",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 460
+  },
+  {
+    "fragment": "/kerberos",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 473
+  },
+  {
+    "fragment": "/",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 480
+  },
+  {
+    "fragment": "/disableSecurity",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 490
+  },
+  {
+    "fragment": "/stack",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 578
+  },
+  {
+    "fragment": "/",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 587
+  },
+  {
+    "fragment": "/services",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 597
+  },
+  {
+    "fragment": "/versions",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 607
+  },
+  {
+    "fragment": "/history",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 619
+  },
+  {
+    "fragment": "/advanced",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 635
+  },
+  {
+    "fragment": "/serviceAccounts",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 647
+  },
+  {
+    "fragment": "/serviceAutoStart",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 666
+  },
+  {
+    "fragment": "/audit",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 688
+  },
+  {
+    "fragment": "/services",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 754
+  },
+  {
+    "fragment": "/",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 756
+  },
+  {
+    "fragment": "/:service_id",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 782
+  },
+  {
+    "fragment": "/",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 802
+  },
+  {
+    "fragment": "/summary",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 805
+  },
+  {
+    "fragment": "/configs",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 826
+  },
+  {
+    "fragment": "/audit",
+    "source": "ambari-web/classic/app/routes/main.js",
+    "line": 872
+  },
+  {
+    "fragment": "/highAvailability/JournalNode/manage",
+    "source": "ambari-web/classic/app/routes/manage_journalnode_routes.js",
+    "line": 22
+  },
+  {
+    "fragment": "/step1",
+    "source": "ambari-web/classic/app/routes/manage_journalnode_routes.js",
+    "line": 81
+  },
+  {
+    "fragment": "/step2",
+    "source": "ambari-web/classic/app/routes/manage_journalnode_routes.js",
+    "line": 103
+  },
+  {
+    "fragment": "/step3",
+    "source": "ambari-web/classic/app/routes/manage_journalnode_routes.js",
+    "line": 135
+  },
+  {
+    "fragment": "/step4",
+    "source": "ambari-web/classic/app/routes/manage_journalnode_routes.js",
+    "line": 157
+  },
+  {
+    "fragment": "/step5",
+    "source": "ambari-web/classic/app/routes/manage_journalnode_routes.js",
+    "line": 183
+  },
+  {
+    "fragment": "/step6",
+    "source": "ambari-web/classic/app/routes/manage_journalnode_routes.js",
+    "line": 203
+  },
+  {
+    "fragment": "/step7",
+    "source": "ambari-web/classic/app/routes/manage_journalnode_routes.js",
+    "line": 225
+  },
+  {
+    "fragment": "/NameNode/federation",
+    "source": "ambari-web/classic/app/routes/namenode_federation_routes.js",
+    "line": 22
+  },
+  {
+    "fragment": "/step1",
+    "source": "ambari-web/classic/app/routes/namenode_federation_routes.js",
+    "line": 78
+  },
+  {
+    "fragment": "/step2",
+    "source": "ambari-web/classic/app/routes/namenode_federation_routes.js",
+    "line": 97
+  },
+  {
+    "fragment": "/step3",
+    "source": "ambari-web/classic/app/routes/namenode_federation_routes.js",
+    "line": 121
+  },
+  {
+    "fragment": "/step4",
+    "source": "ambari-web/classic/app/routes/namenode_federation_routes.js",
+    "line": 143
+  },
+  {
+    "fragment": "/highAvailability/RangerAdmin/enable",
+    "source": "ambari-web/classic/app/routes/ra_high_availability_routes.js",
+    "line": 22
+  },
+  {
+    "fragment": "/step1",
+    "source": "ambari-web/classic/app/routes/ra_high_availability_routes.js",
+    "line": 82
+  },
+  {
+    "fragment": "/step2",
+    "source": "ambari-web/classic/app/routes/ra_high_availability_routes.js",
+    "line": 101
+  },
+  {
+    "fragment": "/step3",
+    "source": "ambari-web/classic/app/routes/ra_high_availability_routes.js",
+    "line": 131
+  },
+  {
+    "fragment": "/step4",
+    "source": "ambari-web/classic/app/routes/ra_high_availability_routes.js",
+    "line": 152
+  },
+  {
+    "fragment": "/service/reassign",
+    "source": "ambari-web/classic/app/routes/reassign_master_routes.js",
+    "line": 22
+  },
+  {
+    "fragment": "/step1",
+    "source": "ambari-web/classic/app/routes/reassign_master_routes.js",
+    "line": 116
+  },
+  {
+    "fragment": "/step2",
+    "source": "ambari-web/classic/app/routes/reassign_master_routes.js",
+    "line": 140
+  },
+  {
+    "fragment": "/step3",
+    "source": "ambari-web/classic/app/routes/reassign_master_routes.js",
+    "line": 179
+  },
+  {
+    "fragment": "/step4",
+    "source": "ambari-web/classic/app/routes/reassign_master_routes.js",
+    "line": 222
+  },
+  {
+    "fragment": "/step5",
+    "source": "ambari-web/classic/app/routes/reassign_master_routes.js",
+    "line": 261
+  },
+  {
+    "fragment": "/step6",
+    "source": "ambari-web/classic/app/routes/reassign_master_routes.js",
+    "line": 291
+  },
+  {
+    "fragment": "/step7",
+    "source": "ambari-web/classic/app/routes/reassign_master_routes.js",
+    "line": 326
+  },
+  {
+    "fragment": "/highAvailability/Hawq/remove",
+    "source": "ambari-web/classic/app/routes/remove_hawq_standby_routes.js",
+    "line": 22
+  },
+  {
+    "fragment": "/step1",
+    "source": "ambari-web/classic/app/routes/remove_hawq_standby_routes.js",
+    "line": 110
+  },
+  {
+    "fragment": "/step2",
+    "source": "ambari-web/classic/app/routes/remove_hawq_standby_routes.js",
+    "line": 135
+  },
+  {
+    "fragment": "/step3",
+    "source": "ambari-web/classic/app/routes/remove_hawq_standby_routes.js",
+    "line": 159
+  },
+  {
+    "fragment": "/highAvailability/ResourceManager/enable",
+    "source": "ambari-web/classic/app/routes/rm_high_availability_routes.js",
+    "line": 22
+  },
+  {
+    "fragment": "/step1",
+    "source": "ambari-web/classic/app/routes/rm_high_availability_routes.js",
+    "line": 82
+  },
+  {
+    "fragment": "/step2",
+    "source": "ambari-web/classic/app/routes/rm_high_availability_routes.js",
+    "line": 102
+  },
+  {
+    "fragment": "/step3",
+    "source": "ambari-web/classic/app/routes/rm_high_availability_routes.js",
+    "line": 133
+  },
+  {
+    "fragment": "/step4",
+    "source": "ambari-web/classic/app/routes/rm_high_availability_routes.js",
+    "line": 156
+  },
+  {
+    "fragment": "/highAvailability/NameNode/rollbackHA",
+    "source": "ambari-web/classic/app/routes/rollbackHA_routes.js",
+    "line": 22
+  },
+  {
+    "fragment": "/step1",
+    "source": "ambari-web/classic/app/routes/rollbackHA_routes.js",
+    "line": 76
+  },
+  {
+    "fragment": "/step2",
+    "source": "ambari-web/classic/app/routes/rollbackHA_routes.js",
+    "line": 97
+  },
+  {
+    "fragment": "/step3",
+    "source": "ambari-web/classic/app/routes/rollbackHA_routes.js",
+    "line": 120
+  },
+  {
+    "fragment": "stack/upgrade",
+    "source": "ambari-web/classic/app/routes/stack_upgrade_routes.js",
+    "line": 22
+  },
+  {
+    "fragment": "/view",
+    "source": "ambari-web/classic/app/routes/view.js",
+    "line": 27
+  },
+  {
+    "fragment": "/",
+    "source": "ambari-web/classic/app/routes/view.js",
+    "line": 39
+  },
+  {
+    "fragment": "/:viewName/:shortName",
+    "source": "ambari-web/classic/app/routes/view.js",
+    "line": 48
+  },
+  {
+    "fragment": "/views",
+    "source": "ambari-web/classic/app/routes/views.js",
+    "line": 25
+  },
+  {
+    "fragment": "/",
+    "source": "ambari-web/classic/app/routes/views.js",
+    "line": 30
+  },
+  {
+    "fragment": "/:viewName/:version/:instanceName",
+    "source": "ambari-web/classic/app/routes/views.js",
+    "line": 41
+  }
+]
