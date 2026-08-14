@@ -38,7 +38,7 @@ type PrivilegeGroup = {
 
 export default function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
   const { user, isAdmin, hasAuthorization } = useAuth();
-  const { syncUserBgPreferences } = useContext(AppContext);
+  const { syncUserBgPreferences, syncUserTimezone } = useContext(AppContext);
   const [showBackgroundOperations, setShowBackgroundOperations] = useState(true);
   const [timezone, setTimezone] = useState(detectUserTimezone());
   const [initialTimezone, setInitialTimezone] = useState("");
@@ -113,6 +113,7 @@ export default function UserSettingsModal({ isOpen, onClose }: UserSettingsModal
         [timezoneKey]: timezone,
       }));
       syncUserBgPreferences(showBackgroundOperations);
+      syncUserTimezone(timezone);
       onClose();
       if (timezone !== initialTimezone) {
         window.location.reload();

@@ -180,7 +180,7 @@ export default function NavBar({
   };
 
   // Authorization hooks - implementing Ember.js showSettingsPopup authorization pattern
-  const { user, hasAuthorization, logout } = useAuth();
+  const { user, hasAuthorization, isClusterUser, logout } = useAuth();
   const { isNonWizardUser, upgradeIsRunning, upgradeSuspended } = useContext(AppContext);
 
   const handleSignOut = useCallback(async () => {
@@ -202,6 +202,7 @@ export default function NavBar({
     && hasAuthorization("AMBARI.MANAGE_SETTINGS");
   const canOpenSettings = !isNonWizardUser
     && hasAuthorization("CLUSTER.UPGRADE_DOWNGRADE_STACK");
+  const canOpenBackgroundOperations = !isClusterUser();
 
   const navbarOptions: NavbarOption[] = [
     {
@@ -289,7 +290,7 @@ export default function NavBar({
               {clusterName}
             </Nav.Link>
             <div style={{ width: "20px" }}></div>
-            {isInstaller() || !clusterControls ? null : (
+            {isInstaller() || !clusterControls || !canOpenBackgroundOperations ? null : (
               <div
                 onClick={() => {
                   modalManager.show(

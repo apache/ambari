@@ -45,7 +45,7 @@ import { messages } from "../screens/messages";
 import ClusterApi from "../api/clusterApi";
 import { processData } from '../screens/Alerts/alertUtils';
 import useAuth from "../hooks/useAuth";
-import { isUpgradeRequest } from "../screens/BackgroundOperations/index";
+import { isUpgradeRequest } from "../Utils/backgroundOperations";
 import { HostsApi } from "../api/hostsApi";
 /**
  * DashboardLayout component is responsible for rendering the main layout of the dashboard.
@@ -153,7 +153,7 @@ const DashboardLayout = () => {
     const requestsCopy = cloneDeep(requestsRef.current) || [];
     requestMessages.reverse().forEach((message) => {
       const request = message;
-      if (request && !isUpgradeRequest({request_context: request.requestContext})) {
+      if (request && !isUpgradeRequest(request)) {
         const requestId = request.requestId;
         // Check if the request already exists in the state
         const existingRequest = requestsCopy.find(

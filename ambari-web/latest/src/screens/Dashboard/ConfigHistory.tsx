@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppContext } from "../../store/context";
 import ConfigHistoryApi from "../../api/configHistoryApi";
@@ -24,7 +24,7 @@ import Spinner from "../../components/Spinner";
 import Table from "../../components/Table";
 import { ceil, get } from "lodash";
 import Paginator from "../../components/Paginator";
-import { Card, Button } from "react-bootstrap";
+import { Badge, Button, Card } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faFilter,
@@ -34,220 +34,184 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import ConfigHistoryComboSearch from "./ConfigHistoryFilterBar";
 import DefaultButton from "../../components/DefaultButton";
+import {
+  buildConfigHistoryParameters,
+  canOpenConfigHistoryItem,
+  ConfigHistoryFilter,
+  ConfigHistoryItem,
+  configHistoryNavigationState,
+  formatConfigHistoryDate,
+  transformConfigHistoryItems,
+} from "../../Utils/configHistory";
+
+type SelectOption = { label: string; value: string };
+
+function NotesCell({ notes = "" }: { notes?: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const hasMore = notes.length > 80;
+  const visibleNotes = hasMore && !expanded ? notes.slice(0, 80) : notes;
+
+  return (
+    <span>
+      {visibleNotes}
+      {hasMore ? (
+        <Button
+          variant="link"
+          size="sm"
+          className="border-0 p-0 ms-1 align-baseline"
+          onClick={() => setExpanded((value) => !value)}
+        >
+          {expanded ? "<< Less" : ">> More"}
+        </Button>
+      ) : null}
+    </span>
+  );
+}
 
 export default function DashboardConfigHistory() {
-  const { clusterName } = useContext(AppContext);
+  const {
+    clusterName,
+    parsedSocketMessages,
+    services,
+    userTimezone,
+  } = useContext(AppContext);
   const navigate = useNavigate();
-  const [configHistorydata, setConfigHistoryData] = useState<any[]>([]);
-  const [totalItems, setTotalItems] = useState(0);
+  const [configHistoryData, setConfigHistoryData] = useState<ConfigHistoryItem[]>([]);
+  const [filteredTotal, setFilteredTotal] = useState(0);
+  const [overallTotal, setOverallTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
-  const [filters, setFilters] = useState<any[]>([]);
+  const [filters, setFilters] = useState<ConfigHistoryFilter[]>([]);
   const [showFilters, setShowFilters] = useState(false);
+  const [refreshSequence, setRefreshSequence] = useState(0);
+  const requestSequence = useRef(0);
 
-  const serviceOptions = [
-    { label: "HDFS", value: "HDFS" },
-    { label: "YARN", value: "YARN" },
-    { label: "HBASE", value: "HBASE" },
-    { label: "ZOOKEEPER", value: "ZOOKEEPER" },
-    { label: "HIVE", value: "HIVE" },
-    { label: "SPARK3", value: "SPARK3" },
-    { label: "RANGER", value: "RANGER" },
-    { label: "TEZ", value: "TEZ" },
-    { label: "MAPREDUCE2", value: "MAPREDUCE2" },
-    { label: "Ranger KMS", value: "RANGER_KMS" },
-    { label: "SSM", value: "SSM" },
-    { label: "Ambari Metrics", value: "AMBARI_METRICS" },
-    { label: "Kerberos", value: "KERBEROS" },
-  ];
-
-  // Dynamic group, user, and notes options
-  const [groupOptions, setGroupOptions] = useState<
-    { label: string; value: string }[]
-  >([]);
-  const [userOptions, setUserOptions] = useState<
-    { label: string; value: string }[]
-  >([]);
-  const [notesOptions, setNotesOptions] = useState<
-    { label: string; value: string }[]
-  >([]);
-
-  const [sortState, setSortState] = useState({
+  const installedServices = services
+    .map((service) => get(service, "ServiceInfo.service_name", ""))
+    .filter(Boolean);
+  const [serviceOptions, setServiceOptions] = useState<SelectOption[]>([]);
+  const [groupOptions, setGroupOptions] = useState<SelectOption[]>([]);
+  const [userOptions, setUserOptions] = useState<SelectOption[]>([]);
+  const [notesOptions, setNotesOptions] = useState<SelectOption[]>([]);
+  const [sortState, setSortState] = useState<{
+    columnName: string;
+    order: "asc" | "desc";
+  }>({
     columnName: "createtime",
     order: "desc",
   });
 
-  const maxPage = ceil(totalItems / pageSize);
+  const maxPage = Math.max(1, ceil(filteredTotal / pageSize));
+  const latestConfigEvent = parsedSocketMessages.find(
+    (message) => message.destination === "/events/configs",
+  );
+
+  useEffect(() => {
+    if (latestConfigEvent) {
+      setRefreshSequence((value) => value + 1);
+    }
+  }, [latestConfigEvent]);
+
+  useEffect(() => {
+    if (!clusterName) return;
+    let active = true;
+
+    async function fetchSupportingData() {
+      const [totalResult, servicesResult, groupsResult, usersResult, notesResult] = await Promise.allSettled([
+        ConfigHistoryApi.fetchTotal(clusterName),
+        ConfigHistoryApi.fetchSuggestions(clusterName, "service_name"),
+        ConfigHistoryApi.fetchSuggestions(clusterName, "group_name"),
+        ConfigHistoryApi.fetchSuggestions(clusterName, "user"),
+        ConfigHistoryApi.fetchSuggestions(clusterName, "service_config_version_note"),
+      ]);
+      if (!active) return;
+
+      if (totalResult.status === "fulfilled") {
+        setOverallTotal(Number(totalResult.value.itemTotal) || 0);
+      }
+      const options = (result: PromiseSettledResult<string[]>) =>
+        result.status === "fulfilled"
+          ? result.value.map((value) => ({ label: value, value }))
+          : [];
+      setServiceOptions(options(servicesResult));
+      setGroupOptions(options(groupsResult));
+      setUserOptions(options(usersResult));
+      setNotesOptions(options(notesResult));
+    }
+
+    void fetchSupportingData();
+    return () => {
+      active = false;
+    };
+  }, [clusterName, refreshSequence]);
+
+  useEffect(() => {
+    if (!clusterName) return;
+    const sequence = ++requestSequence.current;
+
+    async function fetchConfigHistory() {
+      setLoading(true);
+      setLoadError("");
+      try {
+        const parameters = buildConfigHistoryParameters({
+          currentPage,
+          pageSize,
+          sortColumn: sortState.columnName,
+          sortOrder: sortState.order,
+          filters,
+        });
+        const response = await ConfigHistoryApi.fetchConfigHistory(clusterName, parameters);
+        if (sequence !== requestSequence.current) return;
+        setConfigHistoryData(transformConfigHistoryItems(response.items));
+        setFilteredTotal(Number(response.itemTotal) || 0);
+      } catch (error) {
+        if (sequence !== requestSequence.current) return;
+        console.error("Error fetching configuration history:", error);
+        setLoadError("Ambari could not load configuration history.");
+      } finally {
+        if (sequence === requestSequence.current) {
+          setLoading(false);
+        }
+      }
+    }
+
+    void fetchConfigHistory();
+  }, [clusterName, currentPage, filters, pageSize, refreshSequence, sortState]);
 
   const changePage = (newPage: number) => {
-    const safePage = Math.max(1, Math.min(newPage, maxPage));
-    setCurrentPage(safePage);
+    setCurrentPage(Math.max(1, Math.min(newPage, maxPage)));
   };
 
-  function getGreaterThanTimestamp(value: string) {
-    const now = Date.now();
-    let msAgo = 0;
-    if (value.endsWith("h")) {
-      msAgo = parseInt(value) * 60 * 60 * 1000;
-    } else if (value.endsWith("d")) {
-      msAgo = parseInt(value) * 24 * 60 * 60 * 1000;
-    } else {
-      return "";
-    }
-    const timestamp = now - msAgo;
-    return encodeURIComponent(">" + timestamp);
-  }
-
-  function buildFilterParams() {
-    // Only the most recent filter for each field
-    const lastFilterMap = new Map();
-    filters.forEach((f) => {
-      lastFilterMap.set(f.field.value, f);
-    });
-    return Array.from(lastFilterMap.values())
-      .map((f) => {
-        if (
-          f.field.value === "user" ||
-          f.field.value === "service_config_version_note"
-        ) {
-          return `&${f.field.value}.matches(.*${encodeURIComponent(
-            f.value.value
-          )}*.)`;
-        }
-        if (f.field.value === "createtime") {
-          // Convert "1h", "7d", etc. to timestamp
-          const encoded = getGreaterThanTimestamp(f.value.value);
-          if (encoded) {
-            return `&createtime${encoded}`;
-          }
-          return "";
-        }
-        return `&${f.field.value}=${encodeURIComponent(f.value.value)}`;
-      })
-      .join("");
-  }
-    
-
-  function transformConfigHistoryData(data: any[]) {
-    return data?.map((item) => ({
-      serviceConfigVersion: item.service_config_version,
-      user: item.user,
-      groupId: item.group_id,
-      groupName: item.group_name,
-      isCurrent: item.is_current,
-      createTime: item.createtime,
-      serviceName: item.service_name,
-      hosts: item.hosts,
-      serviceConfigVersionNote: item.service_config_version_note,
-      isClusterCompatible: item.is_cluster_compatible,
-      stackId: item.stack_id,
-    }));
-  }
-
-  async function fetchConfigHistory(currPage: number) {
-    setLoading(true);
-    try {
-      const from = (currPage - 1) * pageSize;
-      const filterParams = buildFilterParams();
-      const parameters = `page_size=${pageSize}&from=${from}&sortBy=${sortState.columnName}.${sortState.order}${filterParams}&`;
-      const response = await ConfigHistoryApi.fetchConfigHistory(
-        clusterName,
-        parameters
-      );
-      const transformed = transformConfigHistoryData(response.items);
-      setConfigHistoryData(transformed);
-      setTotalItems(response.itemTotal);
-    } catch (error) {
-      console.log("Error fetching configuration history:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    if (currentPage !== 1) {
-      setCurrentPage(1);
-    } else {
-      fetchConfigHistory(1);
-    }
-  }, [pageSize]);
-
-  useEffect(() => {
-    fetchConfigHistory(currentPage);
-  }, [
-    currentPage,
-    clusterName,
-    sortState.columnName,
-    sortState.order,
-    filters,
-  ]);
-
-
-  useEffect(() => {
-    async function fetchAllOptions() {
-      const response = await ConfigHistoryApi.fetchConfigHistory(
-        clusterName,
-        ""
-      );
-      const transformed = transformConfigHistoryData(response.items);
-
-      const uniqueGroups = Array.from(
-        new Set(transformed.map((item) => item.groupName).filter(Boolean))
-      ).map((group) => ({ label: group, value: group }));
-
-      const uniqueUsers = Array.from(
-        new Set(transformed.map((item) => item.user).filter(Boolean))
-      ).map((user) => ({ label: user, value: user }));
-
-      const uniqueNotes = Array.from(
-        new Set(transformed.map((item) => item.serviceConfigVersionNote).filter(Boolean))
-      ).map((note) => ({ label: note, value: note }));
-
-      setGroupOptions(uniqueGroups);
-      setUserOptions(uniqueUsers);
-      setNotesOptions(uniqueNotes);
-    }
-    fetchAllOptions();
-  }, [clusterName]);
-
-  // Sorting icon logic
-  const getSortIcon = (colName: string) => {
-    if (sortState.columnName !== colName) {
+  const getSortIcon = (columnName: string) => {
+    if (sortState.columnName !== columnName) {
       return <FontAwesomeIcon className="text-muted" icon={faSort} />;
     }
-    if (sortState.order === "asc") {
-      return <FontAwesomeIcon className="text-info" icon={faSortAsc} />;
-    }
-    return <FontAwesomeIcon className="text-info" icon={faSortDesc} />;
+    return (
+      <FontAwesomeIcon
+        className="text-info"
+        icon={sortState.order === "asc" ? faSortAsc : faSortDesc}
+      />
+    );
   };
 
-  const handleSortClick = (colName: string) => {
-    setSortState((prev) => {
-      if (prev.columnName === colName) {
-        return {
-          columnName: colName,
-          order: prev.order === "asc" ? "desc" : "asc",
-        };
-      } else {
-        return {
-          columnName: colName,
-          order: "asc",
-        };
-      }
-    });
+  const handleSortClick = (columnName: string) => {
+    setSortState((current) => ({
+      columnName,
+      order: current.columnName === columnName && current.order === "asc" ? "desc" : "asc",
+    }));
     setCurrentPage(1);
   };
 
-  const getHeader = (headerString: string, columnId: string) => (
+  const getHeader = (label: string, columnName: string) => (
     <Button
       variant="transparent"
       className="d-flex m-0 p-0 border-0 align-items-center"
-      onClick={() => handleSortClick(columnId)}
-      style={{ userSelect: "none" }}
+      onClick={() => handleSortClick(columnName)}
     >
-      <div className="me-1 text-muted">{headerString}</div>
-      <div>{getSortIcon(columnId)}</div>
+      <span className="me-1 text-muted">{label}</span>
+      {getSortIcon(columnName)}
     </Button>
   );
 
@@ -257,96 +221,118 @@ export default function DashboardConfigHistory() {
       header: getHeader("Service", "service_name"),
       width: "15%",
       cell: (info: any) => {
-        const serviceName = get(info, "row.original.serviceName");
-        const versionNumber = get(info, "row.original.serviceConfigVersion");
-        
-        const handleServiceClick = () => {
-          navigate(`/main/services/${serviceName}/configs`);
-        };
-        
-        return (
-          <div className="status-container" style={{ cursor: "pointer" }} onClick={handleServiceClick}>
-            <span className="bg-info text-white px-2 rounded">
-              {versionNumber}
-            </span>
-            <span className="mx-2 text-info">{serviceName}</span>
-          </div>
+        const item = info.row.original as ConfigHistoryItem;
+        const canOpen = canOpenConfigHistoryItem(item, installedServices);
+        const label = (
+          <>
+            <Badge bg="info">V{item.serviceConfigVersion}</Badge>
+            <span className="ms-2">{item.serviceName}</span>
+          </>
+        );
+
+        return canOpen ? (
+          <Button
+            variant="link"
+            className="border-0 p-0 text-decoration-none"
+            onClick={() => navigate(`/main/services/${item.serviceName}/configs`, {
+              state: configHistoryNavigationState(item),
+            })}
+          >
+            {label}
+          </Button>
+        ) : (
+          <span title={item.groupName === "Deleted" ? "This config group was deleted." : "This service is not installed."}>
+            {label}
+          </span>
         );
       },
     },
     {
       id: "group_name",
       header: getHeader("Config Group", "group_name"),
-      width: "15%",
+      width: "14%",
       cell: (info: any) => {
-        const groupName = get(info, "row.original.groupName");
-        const versionName = get(info, "row.original.isCurrent");
+        const item = info.row.original as ConfigHistoryItem;
         return (
-          <div className="status-container">
-            <span>{groupName} </span>
-            {versionName && (
-              <span className="bg-primary text-white px-2 rounded ms-2">
-                Current
-              </span>
-            )}
-          </div>
+          <span>
+            {item.groupName || "Default"}
+            {item.isCurrent ? <Badge bg="success" className="ms-2">Current</Badge> : null}
+          </span>
+        );
+      },
+    },
+    {
+      id: "hosts",
+      header: "Hosts",
+      width: "16%",
+      cell: (info: any) => {
+        const item = info.row.original as ConfigHistoryItem;
+        if ((item.groupName || "Default") === "Default") {
+          return <span>Hosts not assigned to another group</span>;
+        }
+        return item.hosts?.length ? (
+          <span title={item.hosts.join(", ")}>{item.hosts.join(", ")}</span>
+        ) : (
+          <span>None</span>
         );
       },
     },
     {
       id: "createtime",
       header: getHeader("Created", "createtime"),
-      width: "25%",
+      width: "18%",
       cell: (info: any) => {
-        const createTime = get(info, "row.original.createTime");
-        if (!createTime) return null;
-        const date = new Date(createTime);
-        const formatted = date.toLocaleString("en-US", {
-          weekday: "short",
-          year: "numeric",
-          month: "short",
-          day: "2-digit",
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-          timeZone: "Europe/Moscow",
-        });
-        return <span>{formatted.replace(",", "")}</span>;
+        const createTime = (info.row.original as ConfigHistoryItem).createTime;
+        return createTime ? <span>{formatConfigHistoryDate(createTime, userTimezone)}</span> : null;
       },
     },
     {
       id: "user",
       header: getHeader("Author", "user"),
-      width: "20%",
-      cell: (info: any) => get(info, "row.original.user"),
+      width: "12%",
+      cell: (info: any) => (info.row.original as ConfigHistoryItem).user,
+    },
+    {
+      id: "is_cluster_compatible",
+      header: "Compatible",
+      width: "10%",
+      cell: (info: any) => {
+        const compatible = (info.row.original as ConfigHistoryItem).isClusterCompatible;
+        return compatible === undefined ? "Unknown" : (
+          <Badge bg={compatible ? "success" : "warning"} text={compatible ? undefined : "dark"}>
+            {compatible ? "Yes" : "No"}
+          </Badge>
+        );
+      },
     },
     {
       id: "service_config_version_note",
       header: getHeader("Notes", "service_config_version_note"),
-      cell: (info: any) => get(info, "row.original.serviceConfigVersionNote"),
+      cell: (info: any) => (
+        <NotesCell notes={(info.row.original as ConfigHistoryItem).serviceConfigVersionNote} />
+      ),
     },
   ];
-
-  if (loading) {
-    return <Spinner />;
-  }
 
   return (
     <Card>
       <div className="d-flex justify-content-between p-3">
-        <h2>Config History</h2>
-        <div className="d-flex">
-          <DefaultButton
-            className="me-2"
-            onClick={() => setShowFilters(!showFilters)}
-            data-testid="filter-users-btn"
-          >
-            <FontAwesomeIcon icon={faFilter} />
-          </DefaultButton>
+        <div>
+          <h2>Config History</h2>
+          <span className="text-muted">
+            {filteredTotal} of {overallTotal || filteredTotal} versions showing
+          </span>
         </div>
+        <DefaultButton
+          className="align-self-start"
+          onClick={() => setShowFilters((value) => !value)}
+          data-testid="config-history-filter-button"
+        >
+          <FontAwesomeIcon icon={faFilter} />
+        </DefaultButton>
       </div>
       <div className="p-2 m-3">
-        {showFilters && (
+        {showFilters ? (
           <ConfigHistoryComboSearch
             filters={filters}
             setFilters={setFilters}
@@ -354,25 +340,39 @@ export default function DashboardConfigHistory() {
             groupOptions={groupOptions}
             userOptions={userOptions}
             notesOptions={notesOptions}
-            addFilterCallback={()=>{
-              setCurrentPage(1)
-            }}
+            addFilterCallback={() => setCurrentPage(1)}
           />
+        ) : null}
+        {loadError ? (
+          <div className="text-center py-5">
+            <p className="text-danger">{loadError}</p>
+            <Button variant="outline-primary" onClick={() => setRefreshSequence((value) => value + 1)}>
+              Retry
+            </Button>
+          </div>
+        ) : loading ? (
+          <Spinner />
+        ) : (
+          <>
+            <Table
+              columns={columns}
+              data={configHistoryData}
+              hover
+              entityName="config history"
+            />
+            <Paginator
+              currentPage={currentPage}
+              maxPage={maxPage}
+              changePage={changePage}
+              itemsPerPage={pageSize}
+              setItemsPerPage={(value) => {
+                setPageSize(value);
+                setCurrentPage(1);
+              }}
+              totalItems={filteredTotal}
+            />
+          </>
         )}
-        <Table
-          columns={columns}
-          data={configHistorydata}
-          hover
-          entityName="config history"
-        />
-        <Paginator
-          currentPage={currentPage}
-          maxPage={maxPage}
-          changePage={changePage}
-          itemsPerPage={pageSize}
-          setItemsPerPage={setPageSize}
-          totalItems={totalItems}
-        />
       </div>
     </Card>
   );

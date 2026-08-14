@@ -144,7 +144,7 @@ export function isOperationRunning(status: string): boolean {
  * @returns boolean indicating if operation is finished
  */
 export function isOperationFinished(status: string): boolean {
-  return ['COMPLETED', 'FAILED', 'ABORTED', 'TIMEDOUT'].includes(status?.toUpperCase());
+  return ['COMPLETED', 'FAILED', 'ABORTED', 'TIMEDOUT', 'SKIPPED_FAILED'].includes(status?.toUpperCase());
 }
 
 /**

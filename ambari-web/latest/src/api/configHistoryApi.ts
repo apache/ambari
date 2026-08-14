@@ -18,8 +18,22 @@
 
 import { ambariApi } from "./config/axiosConfig";
 
+const HISTORY_FIELDS = [
+  "service_config_version",
+  "user",
+  "group_id",
+  "group_name",
+  "is_current",
+  "createtime",
+  "service_name",
+  "hosts",
+  "service_config_version_note",
+  "is_cluster_compatible",
+  "stack_id",
+].join(",");
+
 const ConfigHistoryApi = {
-  fetchPageSize: async (clusterName: string) => {
+  fetchTotal: async (clusterName: string) => {
     const url = `/clusters/${clusterName}/configurations/service_config_versions?page_size=1&minimal_response=true`;
     const response = await ambariApi.request({
       url,
@@ -28,12 +42,32 @@ const ConfigHistoryApi = {
     return response.data;
   },
   fetchConfigHistory: async (clusterName: string, parameters: string) => {
-    const url = `/clusters/${clusterName}/configurations/service_config_versions?${parameters}fields=service_config_version,user,group_id,group_name,is_current,createtime,service_name,hosts,service_config_version_note,is_cluster_compatible,stack_id&minimal_response=true`;
+    const prefix = parameters ? `${parameters}&` : "";
+    const url = `/clusters/${clusterName}/configurations/service_config_versions?${prefix}fields=${HISTORY_FIELDS}&minimal_response=true`;
     const response = await ambariApi.request({
       url,
       method: "GET",
     });
     return response.data;
+  },
+  fetchSuggestions: async (clusterName: string, field: string) => {
+    const allowedFields = new Set([
+      "group_name",
+      "service_config_version_note",
+      "service_name",
+      "user",
+    ]);
+    if (!allowedFields.has(field)) {
+      throw new Error(`Unsupported config history suggestion field: ${field}`);
+    }
+    const response = await ambariApi.request({
+      url: `/clusters/${clusterName}/configurations/service_config_versions`,
+      method: "GET",
+      params: { fields: field, minimal_response: true },
+    });
+    return Array.from(new Set(
+      (response.data.items || []).map((item: Record<string, unknown>) => item[field]).filter(Boolean),
+    )) as string[];
   },
 };
 
