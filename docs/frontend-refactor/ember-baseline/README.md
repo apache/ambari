@@ -1,3 +1,20 @@
+<!---
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+
 # Ambari Web Ember Feature Baseline
 
 This document set describes the non-Metrics user features and backend APIs of `ambari-web/classic` on the `frontend-refactor` branch. It is the authoritative legacy baseline for subsequent React gap analysis and feature parity acceptance. When static records conflict with source code or runtime behavior, recheck the source and verify runtime behavior; the documents must not override facts.
