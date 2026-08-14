@@ -170,12 +170,19 @@ npm test
 
   def test_pull_request_body_matches_repository_template(self):
     body = ambari_ai.build_pull_request_body(
+        "AMBARI-26474",
         "Fix TestAmbariServer initialization.",
         "The affected test passed.",
         "mvn test -Dpython.test.mask=TestAmbariServer.py",
         ["Before: failed", "After: passed"],
     )
 
+    self.assertTrue(
+        body.startswith(
+            "Issue: [AMBARI-26474]"
+            "(https://issues.apache.org/jira/browse/AMBARI-26474)\n\n"
+        )
+    )
     self.assertIn("## What changes were proposed in this pull request?", body)
     self.assertIn("Fix TestAmbariServer initialization.", body)
     self.assertIn("## How was this patch tested?", body)
