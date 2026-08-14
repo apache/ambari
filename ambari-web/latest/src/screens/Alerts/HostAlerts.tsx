@@ -16,36 +16,106 @@
  * limitations under the License.
  */
 
-import { useEffect, useState, useContext } from "react";
-import { AlertsApi } from "../../api/alertsApi";
-import { MergedAlert } from "./types";
-import { Container, Button } from "react-bootstrap";
-import { Link } from "react-router-dom";
-import { AppContext } from "../../store/context";
-import Table from "../../components/Table";
-import Paginator from "../../components/Paginator";
-import usePagination from "../../hooks/usePagination";
-import Spinner from "../../components/Spinner";
-import AlertFilters from "./AlertFilters";
-import { ColumnDef } from "@tanstack/react-table";
-import { AlertStatus, AlertStatusDisplay } from "./alertStatus";
-import { sortAlerts } from "./alertUtils";
+import { useContext, useState } from "react";
+import { Alert, Button, Container } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMedkit } from "@fortawesome/free-solid-svg-icons";
+import { ColumnDef, SortingState } from "@tanstack/react-table";
+import { Link } from "react-router-dom";
+import { AlertsApi } from "../../api/alertsApi";
+import Paginator from "../../components/Paginator";
+import Spinner from "../../components/Spinner";
+import Table from "../../components/Table";
+import usePagination from "../../hooks/usePagination";
 import usePolling from "../../hooks/usePolling";
+import { AppContext } from "../../store/context";
+import { ServiceContext } from "../../store/ServiceContext";
+import AlertFilters from "./AlertFilters";
+import { AlertStatus, AlertStatusDisplay } from "./alertStatus";
+import { sortAlerts } from "./alertUtils";
+import { MergedAlert } from "./types";
 
 interface HostAlertsProps {
   hostname?: string;
 }
 
+const statusClassMap: { [key in AlertStatus]: string } = {
+  [AlertStatus.CRITICAL]: "status-critical",
+  [AlertStatus.WARNING]: "status-warning",
+  [AlertStatus.OK]: "status-ok",
+  [AlertStatus.UNKNOWN]: "status-unknown",
+  [AlertStatus.NONE]: "status-none",
+};
+
 const HostAlerts = ({ hostname }: HostAlertsProps) => {
   const { clusterName } = useContext(AppContext);
+  const { allServiceModels } = useContext(ServiceContext);
   const [alerts, setAlerts] = useState<MergedAlert[]>([]);
   const [filteredAlerts, setFilteredAlerts] = useState<MergedAlert[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [sorting, setSorting] = useState<{ id: string; desc: boolean }[]>([
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const [sorting, setSorting] = useState<SortingState>([
     { id: "statuses", desc: true },
   ]);
+
+  const serviceDisplayName = (serviceName: string) => {
+    const service = Object.values(allServiceModels || {}).find(
+      (model: any) => String(model?.serviceName).toUpperCase() === serviceName,
+    ) as any;
+    return service?.displayName || serviceName.replaceAll("_", " ");
+  };
+
+  const fetchData = async () => {
+    if (!clusterName || !hostname) {
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      setLoadError("");
+      const response = await AlertsApi.getHostAlertInstances(clusterName, hostname);
+      const mappedAlerts = (response.items || [])
+        .filter((item: any) => item.Alert)
+        .map((item: any) => {
+          const serviceName = item.Alert.service_name || "";
+          return {
+            serviceName,
+            serviceDisplayName: serviceDisplayName(serviceName),
+            latest_text: item.Alert.text || "",
+            label: item.Alert.label,
+            statuses: [{
+              status: item.Alert.state,
+              count: 1,
+              last_status_changed: item.Alert.latest_timestamp,
+              latest_text: item.Alert.text || "",
+            }],
+            last_status_changed: item.Alert.latest_timestamp,
+            alert_definition_id: item.Alert.definition_id,
+            maintenance_state: item.Alert.maintenance_state,
+          } as MergedAlert;
+        });
+      setAlerts(mappedAlerts);
+    } catch (error: any) {
+      setLoadError(
+        error?.response?.data?.message || "Ambari could not load alerts for this host.",
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  usePolling(fetchData, 10000);
+
+  let sortedAlerts = filteredAlerts;
+  if (sorting.length) {
+    const { id, desc } = sorting[0];
+    const fieldMap: Record<string, string> = {
+      statuses: "status",
+      serviceDisplayName: "service_name",
+      label: "name",
+    };
+    sortedAlerts = sortAlerts(filteredAlerts, fieldMap[id] || id, id === "statuses" ? desc : !desc);
+  }
 
   const {
     currentItems,
@@ -54,88 +124,23 @@ const HostAlerts = ({ hostname }: HostAlertsProps) => {
     maxPage,
     itemsPerPage,
     setItemsPerPage,
-  } = usePagination(filteredAlerts);
-
-  const fetchData = async () => {
-    if (clusterName && hostname) {
-      try {
-        const currTime = Date.now();
-        const alertsResponse = await AlertsApi.getAlertsList(
-          clusterName,
-          currTime,
-          hostname
-        );
-        const mappedAlerts = alertsResponse.items
-          .filter((item: { Alert: any }) => item.Alert)
-          .filter((item: any) => item.Alert.maintenance_state !== "ON") // Filter out alerts from components in maintenance mode
-          .map((item: any) => ({
-            serviceDisplayName: item.Alert.service_name,
-            latest_text: item.Alert.text || item.Alert.latest_text || "",
-            label: item.Alert.label,
-            statuses: [
-              {
-                status: item.Alert.state,
-                count: item.Alert.occurrences,
-                last_status_changed: item.Alert.latest_timestamp,
-              },
-            ],
-            last_status_changed: item.Alert.latest_timestamp,
-            alert_definition_id: item.Alert.definition_id,
-            maintenance_state: item.Alert.maintenance_state,
-          }));
-        setAlerts(mappedAlerts);
-        setFilteredAlerts(mappedAlerts);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-  };
-
-  usePolling(fetchData, 10000);
-
-  useEffect(()=>{
-   fetchData(); 
-  },[])
-
-  const truncateText = (text: string, maxLength: number = 60) => {
-    if (!text) return "";
-    return text.length > maxLength
-      ? text.substring(0, maxLength) + "..."
-      : text;
-  };
-
-  useEffect(() => {
-    if (sorting.length > 0) {
-      const { id, desc } = sorting[0];
-      const fieldMap: { [key: string]: string } = {
-        statuses: "status",
-        serviceDisplayName: "service_name",
-      };
-      const sortField = fieldMap[id] || id;
-      const sortedData = sortAlerts(alerts, sortField, desc);
-      setFilteredAlerts(sortedData);
-    } else {
-      setFilteredAlerts(alerts);
-    }
-  }, [sorting, alerts]);
+  } = usePagination(sortedAlerts);
 
   const columns: ColumnDef<MergedAlert, any>[] = [
     {
       header: "Service",
       accessorKey: "serviceDisplayName",
-      cell: (info) => {
-        const serviceName = info.row.original.serviceDisplayName || "";
-        if (serviceName.toLowerCase() === "ambari") {
-          return <span>{serviceName}</span>;
+      cell: ({ row }) => {
+        const serviceName = row.original.serviceName || "";
+        if (serviceName === "AMBARI") {
+          return <span>{row.original.serviceDisplayName}</span>;
         }
         return (
           <Link
-            to={`/main/services/${serviceName}/summary`}
+            to={`/main/services/${encodeURIComponent(serviceName)}/summary`}
             className="custom-link"
           >
-            {serviceName}
+            {row.original.serviceDisplayName}
           </Link>
         );
       },
@@ -143,90 +148,64 @@ const HostAlerts = ({ hostname }: HostAlertsProps) => {
     {
       header: "Alert Definition Name",
       accessorKey: "label",
-      cell: (info) => (
+      cell: ({ row }) => (
         <Link
-          to={`/main/alerts/${info.row.original.alert_definition_id}`}
+          to={`/main/alerts/${row.original.alert_definition_id}`}
           className="custom-link"
         >
-          {info.row.original.label || ""}
+          {row.original.label || ""}
         </Link>
       ),
     },
     {
       header: "Status",
       accessorKey: "statuses",
-      cell: (info) => {
-        const isInMaintenance = info.row.original.maintenance_state === "ON";
-        const statuses = info.row.original.statuses || [];
-        const statusClassMap: { [key in AlertStatus]: string } = {
-          [AlertStatus.CRITICAL]: "status-critical",
-          [AlertStatus.WARNING]: "status-warning",
-          [AlertStatus.OK]: "status-ok",
-          [AlertStatus.UNKNOWN]: "status-unknown",
-          [AlertStatus.NONE]: "status-none",
-        };
-        const getStatusClass = (status: string | undefined) =>
-          status
-            ? statusClassMap[status.toLowerCase() as AlertStatus] ||
-              "status-none"
-            : "status-none";
-
+      cell: ({ row }) => {
+        const isInMaintenance = row.original.maintenance_state === "ON";
+        const status = row.original.statuses[0]?.status || AlertStatus.NONE;
+        const normalizedStatus = status.toLowerCase() as AlertStatus;
         return (
-          <div className="status-container">
-            {statuses.length > 0 ? (
-              statuses.map(
-                (
-                  statusItem: { status: string; count: number },
-                  index: number
-                ) => (
-                  <div key={statusItem.status} className="status-row">
-                    <Button
-                      key={statusItem.status}
-                      className={`alert-item alert-status-box ${getStatusClass(
-                        statusItem.status
-                      )} ${index > 0 ? "mt-1" : ""} ${
-                        isInMaintenance ? "bg-light" : ""
-                      }`}
-                    >
-                      {isInMaintenance && (
-                        <FontAwesomeIcon
-                          className="text-dark fs-12 me-1"
-                          icon={faMedkit}
-                        />
-                      )}
-                      {AlertStatusDisplay[statusItem.status.toLowerCase()] ||
-                        statusItem.status.toUpperCase()}
-                    </Button>
-                  </div>
-                )
-              )
-            ) : (
-              <Button className="alert-item alert-status-box status-none">
-                {AlertStatusDisplay[AlertStatus.NONE]}
-              </Button>
-            )}
-          </div>
+          <span className={`alert-item alert-status-box ${
+            isInMaintenance ? "bg-light text-dark" : statusClassMap[normalizedStatus] || "status-none"
+          }`}>
+            {isInMaintenance ? (
+              <FontAwesomeIcon className="me-1" icon={faMedkit} title="Maintenance mode" />
+            ) : null}
+            {AlertStatusDisplay[normalizedStatus] || status.toUpperCase()}
+          </span>
         );
       },
     },
     {
       header: "Response",
       accessorKey: "latest_text",
-      cell: (info) => {
-        const { latest_text } = info.row.original;
-        return (
-          <span className="text-truncate">
-            {truncateText(latest_text || "")}
-          </span>
-        );
-      },
+      cell: ({ row }) => (
+        <span className="text-truncate" title={row.original.latest_text}>
+          {row.original.latest_text || ""}
+        </span>
+      ),
     },
   ];
 
   return (
     <div className="mx-5">
       <Container className="p-4 bg-white">
-        <h2 className="table-title col-sm-1">Alerts</h2>
+        <h2 className="table-title">Alerts</h2>
+        {loadError ? (
+          <Alert variant="danger">
+            {loadError}{" "}
+            <Button
+              size="sm"
+              variant="outline-danger"
+              onClick={() => {
+                setIsLoading(alerts.length === 0);
+                void fetchData();
+              }}
+            >
+              Retry
+            </Button>
+          </Alert>
+        ) : null}
         {isLoading ? (
           <Spinner />
         ) : (
@@ -240,14 +219,16 @@ const HostAlerts = ({ hostname }: HostAlertsProps) => {
               sorting={sorting}
               onSortingChange={setSorting}
             />
-            <Paginator
-              currentPage={currentPage}
-              maxPage={maxPage}
-              changePage={changePage}
-              itemsPerPage={itemsPerPage}
-              setItemsPerPage={setItemsPerPage}
-              totalItems={filteredAlerts.length}
-            />
+            {sortedAlerts.length ? (
+              <Paginator
+                currentPage={currentPage}
+                maxPage={maxPage}
+                changePage={changePage}
+                itemsPerPage={itemsPerPage}
+                setItemsPerPage={setItemsPerPage}
+                totalItems={sortedAlerts.length}
+              />
+            ) : null}
           </div>
         )}
       </Container>

@@ -42,10 +42,10 @@ import {
   faRefresh,
   faWarning,
 } from "@fortawesome/free-solid-svg-icons";
-import { get, isEmpty, set, startCase, uniq } from "lodash";
+import { get, isEmpty, map, set, startCase, uniq } from "lodash";
 import Modal from "../../components/Modal";
 import Table from "../../components/Table";
-import { ComponentStatus, ComponentType, PassiveStateOnFilters } from "./enums";
+import { ComponentStatus, ComponentType } from "./enums";
 import Tooltip from "../../components/Tooltip";
 import { getCmponentsToBeRestarted } from "./HostsList";
 import SelectTimeRangeModal from "../../components/SelectTimeRangeModal";
@@ -64,14 +64,11 @@ import {
   getComponentDisplayName,
   getComponentName,
   getCustomCommands,
-  isActive,
   isAddableToHost,
   isDeletable,
   isDeleteComponentDisabled,
-  isEnableHiveInteractive,
   isInit,
   isMoveComponentDisabled,
-  isOozieServerAddable,
   isReassignable,
   isRefreshConfigsAllowed,
   isRestartable,
@@ -79,6 +76,12 @@ import {
   isStart,
   maxToInstall,
 } from "./utils";
+import ConfigsApi from "../../api/configsApi";
+import {
+  type HostComponentConfigRules,
+  hostComponentConfigRules,
+  shouldExcludeAddableHostComponent,
+} from "../../Utils/hosts";
 import {
   checkNnLastCheckpointTime,
   decommission,
@@ -147,6 +150,12 @@ export default function HostsSummary({
   //Note:- Below states should be part of the context
   const [allComponents, setAllComponents] = useState<IHostComponent[]>([]);
   const [addableComponents, setAddableComponents] = useState<any[]>([]);
+  const [componentRules, setComponentRules] = useState<HostComponentConfigRules>({
+    enableHiveInteractive: false,
+    hiveDatabaseType: "",
+    isOozieServerAddable: true,
+  });
+  const [componentRulesLoaded, setComponentRulesLoaded] = useState(false);
   const { getKDCSessionState } = useKDCSessionState(() => { });
   const { services: stackServices } = useStackServices();
   const { getConfigByName } = useConfigs([], stackServices as any);
@@ -234,10 +243,46 @@ export default function HostsSummary({
   }, [serviceComponentInfo]);
 
   useEffect(() => {
-    if (!isEmpty(allComponents)) {
+    if (!isEmpty(allComponents) && componentRulesLoaded) {
       getAddableComponents();
     }
-  }, [allComponents, allHostModels, clusterComponents]);
+  }, [allComponents, allHostModels, clusterComponents, componentRules, componentRulesLoaded]);
+
+  useEffect(() => {
+    let active = true;
+    const installedServices = map(services, "ServiceInfo.service_name") as string[];
+    const relevantServices = ["HIVE", "OOZIE"].filter((serviceName) =>
+      installedServices.includes(serviceName),
+    );
+    setComponentRulesLoaded(false);
+    if (!clusterName || !relevantServices.length) {
+      setComponentRules(hostComponentConfigRules({}, installedServices));
+      setComponentRulesLoaded(true);
+      return () => {
+        active = false;
+      };
+    }
+
+    void ConfigsApi.getConfigValues(clusterName, relevantServices.join(","))
+      .then((response) => {
+        if (active) {
+          setComponentRules(hostComponentConfigRules(response, installedServices));
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setComponentRules(hostComponentConfigRules({}, installedServices));
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setComponentRulesLoaded(true);
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [clusterName, JSON.stringify(map(services, "ServiceInfo.service_name"))]);
 
   useEffect(() => {
     if (!isEmpty(allHostModels)) {
@@ -278,17 +323,23 @@ export default function HostsSummary({
   // Check specific authorizations for host component operations
   const canStartStopServices = hasAuthorization("SERVICE.START_STOP");
   const canAddDeleteServices = hasAuthorization("HOST.ADD_DELETE_COMPONENTS");
-  const canModifyConfigs = hasAuthorization("SERVICE.MODIFY_CONFIGS");
-  const canManageHostComponents = hasAuthorization(
-    "HOST.ADD_DELETE_COMPONENTS"
+  const canDecommissionRecommission = hasAuthorization(
+    "SERVICE.DECOMMISSION_RECOMMISSION"
   );
+  const canRunCustomCommands = hasAuthorization("SERVICE.RUN_CUSTOM_COMMAND");
+  const canToggleComponentMaintenance =
+    hasAuthorization("SERVICE.TOGGLE_MAINTENANCE") ||
+    hasAuthorization("HOST.TOGGLE_MAINTENANCE");
+  const canToggleHostMaintenance = hasAuthorization("HOST.TOGGLE_MAINTENANCE");
   const canMoveComponents = hasAuthorization("SERVICE.MOVE");
 
   const canPerformActions =
     canStartStopServices ||
     canAddDeleteServices ||
-    canModifyConfigs ||
-    canManageHostComponents;
+    canDecommissionRecommission ||
+    canRunCustomCommands ||
+    canToggleComponentMaintenance ||
+    canMoveComponents;
 
   const getHostMetrics = async (startTime: number, endTime: number) => {
     // Use a unique cache-busting parameter that includes the time range
@@ -345,12 +396,11 @@ export default function HostsSummary({
         !installedComponents.includes(getComponentName(component)) &&
         !hasCardinalityConflict(component)
       ) {
-        if (
-          (getComponentName(component) === "OOZIE_SERVER" &&
-            !isOozieServerAddable()) ||
-          (getComponentName(component) === "HIVE_SERVER_INTERACTIVE" &&
-            !isEnableHiveInteractive())
-        ) {
+        if (shouldExcludeAddableHostComponent(
+          getComponentName(component),
+          installedServices,
+          componentRules,
+        )) {
           return;
         }
         components.push({
@@ -495,13 +545,7 @@ export default function HostsSummary({
   };
 
   const isToggleMaintenanceModeAvailable = (component: IHostComponent) => {
-    return (
-      isActive(component) ||
-      ![
-        PassiveStateOnFilters.IMPLIED_FROM_SERVICE,
-        PassiveStateOnFilters.IMPLIED_FROM_SERVICE_AND_HOST,
-      ].includes(get(component, "passiveState") as PassiveStateOnFilters)
-    );
+    return !component.isImpliedState();
   };
 
   const getActions = useCallback(
@@ -511,8 +555,8 @@ export default function HostsSummary({
 
       //Actions of Clients
       if (get(component, "componentCategory", "") === ComponentType.CLIENT) {
-        // Refresh configs - Requires SERVICE.MODIFY_CONFIGS authorization
-        if (canModifyConfigs) {
+        // Refresh and custom commands use the semantic custom-command permission.
+        if (canRunCustomCommands) {
           actions.push(
             <div
               key="refresh-configs"
@@ -589,15 +633,17 @@ export default function HostsSummary({
           );
         }
 
-        // Custom commands - Requires SERVICE.START_STOP authorization
-        if (canStartStopServices) {
+        if (canRunCustomCommands) {
           getClientCustomCommands(component).forEach(
             (cmd: any, index: number) => {
               actions.push(
                 <div
                   key={`custom-${index}`}
+                  className={get(cmd, "disabled", false) ? "disabled-btn" : ""}
                   onClick={() => {
-                    executeCustomCommand(cmd, component);
+                    if (!get(cmd, "disabled", false)) {
+                      executeCustomCommand(cmd, component);
+                    }
                   }}
                 >
                   {get(cmd, "label", "")}
@@ -609,10 +655,10 @@ export default function HostsSummary({
       }
       //Actions of Masters and Slaves
       else {
-        // Decommission - Requires SERVICE.START_STOP authorization
+        // Decommission and recommission have an independent service permission.
         if (
           isComponentDecommissionAvailable(component) &&
-          canStartStopServices
+          canDecommissionRecommission
         ) {
           actions.push(
             <div
@@ -642,7 +688,7 @@ export default function HostsSummary({
         // Recommission - Requires SERVICE.START_STOP authorization
         if (
           isComponentRecommissionAvailable(component) &&
-          canStartStopServices
+          canDecommissionRecommission
         ) {
           actions.push(
             <div
@@ -753,10 +799,6 @@ export default function HostsSummary({
                 }
             }
 
-            if (state === ComponentStatus.UPGRADE_FAILED) {
-                actions.push(<div key="retry-upgrade">Retry Upgrade</div>);
-            }
-
             // Re-Install Failed - Requires SERVICE.ADD_DELETE_SERVICES authorization
             if (
                 state === ComponentStatus.INSTALL_FAILED &&
@@ -786,19 +828,20 @@ export default function HostsSummary({
 
             // Move operations - Requires SERVICE.MOVE authorization
             if (canMoveComponents && isReassignable(component, getClusterHosts().length)) {
+                const moveDisabled = isMoveComponentDisabled(
+                    component,
+                    getClusterHosts().length,
+                    get(clusterComponents, "items", [])
+                );
                 actions.push(
                     <div
                         key="move"
-                        onClick={() => moveComponent(component)}
-                        className={
-                            isMoveComponentDisabled(
-                                component,
-                                getClusterHosts().length,
-                                get(clusterComponents, "items", [])
-                            )
-                                ? "disabled-btn"
-                                : ""
-                        }
+                        onClick={() => {
+                          if (!moveDisabled) {
+                            moveComponent(component);
+                          }
+                        }}
+                        className={moveDisabled ? "disabled-btn" : ""}
                     >
                         Move
                     </div>
@@ -806,15 +849,15 @@ export default function HostsSummary({
             }
         }
 
-        // Maintenance Mode - Always available (no specific authorization required)
-        actions.push(
+        if (canToggleComponentMaintenance) {
+          actions.push(
           <div
             key="maintenance-mode"
             onClick={() => {
               if (isToggleMaintenanceModeAvailable(component)) {
                 setSelectedActionData(
                   component,
-                  isActive(component)
+                  component.isActive()
                     ? "turn on maintenance mode"
                     : "turn off maintenance mode",
                   false,
@@ -827,11 +870,12 @@ export default function HostsSummary({
               isToggleMaintenanceModeAvailable(component) ? "" : "disabled-btn"
             }
           >
-            {isActive(component)
+            {component.isActive()
               ? "Turn On Maintenance Mode"
               : "Turn Off Maintenance Mode"}
           </div>
-        );
+          );
+        }
 
         // Re-Install Init - Requires SERVICE.ADD_DELETE_SERVICES authorization
         if (isInit(component) && canAddDeleteServices) {
@@ -865,7 +909,8 @@ export default function HostsSummary({
               className={
                 isDeleteComponentDisabled(
                   component,
-                  get(clusterComponents, "items", [])
+                  get(clusterComponents, "items", []),
+                  componentRules.hiveDatabaseType,
                 )
                   ? "disabled-btn"
                   : ""
@@ -874,7 +919,8 @@ export default function HostsSummary({
                 if (
                   !isDeleteComponentDisabled(
                     component,
-                    get(clusterComponents, "items", [])
+                    get(clusterComponents, "items", []),
+                    componentRules.hiveDatabaseType,
                   )
                 ) {
                   const data = {
@@ -891,8 +937,7 @@ export default function HostsSummary({
           );
         }
 
-        // Refresh configs - Requires SERVICE.MODIFY_CONFIGS authorization
-        if (isRefreshConfigsAllowed(component) && canModifyConfigs) {
+        if (isRefreshConfigsAllowed(component) && canRunCustomCommands) {
           actions.push(
             <div
               key="refresh-component-configs"
@@ -911,8 +956,7 @@ export default function HostsSummary({
           );
         }
 
-        // Custom commands - Requires SERVICE.START_STOP authorization
-        if (canStartStopServices) {
+        if (canRunCustomCommands) {
           getCustomCommands(
             component,
             get(clusterComponents, "items", [])
@@ -923,8 +967,11 @@ export default function HostsSummary({
               actions.push(
                 <div
                   key={`transition-observer-${index}`}
+                  className={get(cmd, "disabled", false) ? "disabled-btn" : ""}
                   onClick={() => {
-                    transitionToObserver(component);
+                    if (!get(cmd, "disabled", false)) {
+                      transitionToObserver(component);
+                    }
                   }}
                 >
                   {get(cmd, "label", "")}
@@ -934,8 +981,11 @@ export default function HostsSummary({
               actions.push(
                 <div
                   key={`custom-master-${index}`}
+                  className={get(cmd, "disabled", false) ? "disabled-btn" : ""}
                   onClick={() => {
-                    executeCustomCommand(cmd, component);
+                    if (!get(cmd, "disabled", false)) {
+                      executeCustomCommand(cmd, component);
+                    }
                   }}
                 >
                   {get(cmd, "label", "")}
@@ -954,6 +1004,12 @@ export default function HostsSummary({
       JSON.stringify(allHostModels),
       clusterName,
       JSON.stringify(serviceModels),
+      canAddDeleteServices,
+      canDecommissionRecommission,
+      canMoveComponents,
+      canRunCustomCommands,
+      canStartStopServices,
+      canToggleComponentMaintenance,
     ]
   );
 
@@ -1322,7 +1378,7 @@ export default function HostsSummary({
                       {/* Edit Rack - Requires HOST.ADD_DELETE_COMPONENTS authorization */}
                       {key === "Rack" &&
                       get(summary, key) &&
-                      canManageHostComponents &&
+                      canToggleHostMaintenance &&
                       !isUpgradeInProgress ? (
                         <FontAwesomeIcon
                           icon={faPencil}

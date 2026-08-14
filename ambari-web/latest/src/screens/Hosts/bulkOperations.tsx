@@ -64,18 +64,11 @@ export const bulkOperationConfirm = (
   getKDCSessionState: (callback: () => Promise<void>) => Promise<void>,
   selectedFilters: SelectedFilters
 ) => {
-  let queryParams: any[] = [];
-  if (selection === "selected") {
-    if (hostsNames.length) {
-      queryParams.push({
-        key: "Hosts/host_name",
-        value: hostsNames,
-        type: "MULTIPLE",
-      });
-    }
-  } else if (selection === "filtered") {
-    queryParams = getQueryParameters(selectedFilters);
-  }
+  const queryParams = buildBulkHostQueryParams(
+    selection,
+    hostsNames,
+    selectedFilters,
+  );
   getHostsForBulkOperations(
     queryParams,
     operationData,
@@ -87,6 +80,29 @@ export const bulkOperationConfirm = (
   );
 };
 
+export const buildBulkHostQueryParams = (
+  selection: string,
+  hostNames: string[],
+  selectedFilters: SelectedFilters,
+) => {
+  let queryParams: any[] = [];
+  if (selection === "selected") {
+    if (hostNames.length) {
+      queryParams.push({
+        key: "Hosts/host_name",
+        value: hostNames,
+        type: "MULTIPLE",
+      });
+    }
+  } else if (selection === "filtered") {
+    queryParams = getQueryParameters(selectedFilters);
+  }
+  return queryParams;
+};
+
+export const isBulkComponentDeleteVisible = (selection: string) =>
+  selection !== "all";
+
 const getHostsForBulkOperations = async (
   queryParams: any,
   operationData: any,
@@ -96,20 +112,26 @@ const getHostsForBulkOperations = async (
   serviceModels: any,
   getKDCSessionState: (callback: () => Promise<void>) => Promise<void>
 ) => {
-  const data = {
-    parameters: computeParameters(queryParams),
-    operationData: operationData,
-  };
-  const response = await HostsApi.getHostsBulkOperations(clusterName, data);
-  getHostsForBulkOperationSuccessCallback(
-    response,
-    data,
-    stackVersionList,
-    clusterName,
-    serviceComponentInfo,
-    serviceModels,
-    getKDCSessionState
-  );
+  try {
+    const data = {
+      parameters: computeParameters(queryParams),
+      operationData: operationData,
+    };
+    const response = await HostsApi.getHostsBulkOperations(clusterName, data);
+    getHostsForBulkOperationSuccessCallback(
+      response,
+      data,
+      stackVersionList,
+      clusterName,
+      serviceComponentInfo,
+      serviceModels,
+      getKDCSessionState
+    );
+  } catch (error) {
+    showErrorModal(
+      get(error, "response.data.message", get(error, "message", "Unable to load hosts for this operation."))
+    );
+  }
 };
 
 const getHostsForBulkOperationSuccessCallback = (
@@ -160,6 +182,11 @@ const getHostsForBulkOperationSuccessCallback = (
       );
       return;
     }
+    operationData.repositoryVersion = get(
+      repoVersion,
+      "repository_version",
+      get(repoVersion, "repositoryVersion.repositoryVersion", "")
+    );
     hostNamesSkipped = getSkippedForPassiveStateHosts(hosts, repoVersion);
   }
 
@@ -217,7 +244,9 @@ const getBulkOperationConfirmPopupModalBody = (
           "Components on these hosts are stopped so decommission will be skipped.";
         break;
       case "PASSIVE_STATE":
-        bodyMessageExtended = `Some hosts have components from a stack which is not current. Before bringing these hosts out of maintenance mode, it is recommended that you upgrade their components to {target version}`; //TODO: determine the target version
+        if (operationData.state === "OFF") {
+          bodyMessageExtended = `Some hosts have components from a stack which is not current. Before bringing these hosts out of maintenance mode, it is recommended that you upgrade their components to ${operationData.repositoryVersion || "the current version"}.`;
+        }
         break;
       default:
         bodyMessageExtended = "";
@@ -310,7 +339,11 @@ const getSkippedForDecommissionHosts = (
 
 const getSkippedForPassiveStateHosts = (hosts: any, repoVersion: any) => {
   const hostNames = hosts.map((host: any) => host.hostName);
-  const outOfSyncHosts = get(repoVersion, "outOfSyncHosts", []);
+  const outOfSyncHosts = get(
+    repoVersion,
+    "out_of_sync_hosts",
+    get(repoVersion, "outOfSyncHosts", [])
+  );
   const hostNamesSkipped = outOfSyncHosts.filter((host: any) =>
     hostNames.includes(host)
   );
@@ -520,14 +553,9 @@ const getComponentsFromServerForHostsCallback = async (
     };
 
     if (operationData.action === "INSTALLED" && isHDFSStarted) {
-      if (nn_hosts.length === 1) {
-        checkNnLastCheckpointTime(request, nn_hosts[0], clusterName);
-      }
-      if (nn_hosts.length > 1) {
-        //checkNnLastCheckpointTime(request); TODO: yet to be implemented from service side
-      }
+      void checkNnLastCheckpointTime(request, nn_hosts, clusterName);
     } else {
-      request();
+      void request();
     }
   } else {
     modalManager.show({
@@ -567,12 +595,12 @@ const bulkOperationForHostComponentsSuccessCallback = (
     );
   } else {
     modalManager.show(
-      <BackgroundOperations
+        <BackgroundOperations
         isOpen={true}
         onClose={() => {
           modalManager.hide();
         }}
-        requestId={get(response, "data.Requests.id", "")}
+        requestId={get(response, "Requests.id", "")}
       />
     );
   }
@@ -627,20 +655,27 @@ const getComponentsFromServerForRestartCallback = (
   const nn_count = namenodes.length;
 
   if (nn_count === 1 && isHDFSStarted) {
-    const hostName = namenodes[0].hostName;
-    checkNnLastCheckpointTime(
-      restartHostComponents(
+    void checkNnLastCheckpointTime(
+      () => restartHostComponents(
         hostComponents,
         "Restart all components on the selected hosts",
         "HOST"
       ),
-      hostName,
+      namenodes[0].hostName,
       clusterName
     );
   } else if (nn_count > 1 && isHDFSStarted) {
-    // checkNnLastCheckpointTime(restartHostComponents(hostComponents, "Restart all components on the selected hosts", "HOST")); TODO: yet to be implemented from service side
+    void checkNnLastCheckpointTime(
+      () => restartHostComponents(
+        hostComponents,
+        "Restart all components on the selected hosts",
+        "HOST"
+      ),
+      namenodes.map((namenode: any) => namenode.hostName),
+      clusterName
+    );
   } else {
-    restartHostComponents(
+    void restartHostComponents(
       hostComponents,
       "Restart all components on the selected hosts",
       "HOST"

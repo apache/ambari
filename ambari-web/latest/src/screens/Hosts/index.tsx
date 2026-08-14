@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { Button, Col, Nav, Row, Tab } from "react-bootstrap";
+import { Alert, Button, Col, Nav, Row, Tab } from "react-bootstrap";
 import HostsSummary from "./HostSummary";
 import HostConfigs from "./HostConfigs";
 import HostAlerts from "../Alerts/HostAlerts";
@@ -29,7 +29,6 @@ import { useHostConfigUpdater } from "../../hooks/useHostConfigUpdater";
 import { useParams, useNavigate } from "react-router-dom";
 import { IHostComponent } from "../../models/hostComponent";
 import { AppContext } from "../../store/context";
-import { supports } from "../../data/configs/services/config";
 import { confirmRecoverHost, doAction } from "./details";
 import { useHostChecks } from "../../hooks/useHostChecks";
 import HostChecks from "./HostChecks";
@@ -45,18 +44,28 @@ import useComponentAddDelete from "./hooks/useComponentAddDelete";
 import { translate, translateWithVariables } from "../../Utils/Utility";
 import classNames from "classnames";
 import { useAuth } from "../../hooks/useAuth";
+import HostLogs from "./HostLogs";
+import useKerberosMode from "../../hooks/useKerberosMode";
 
 export function Hosts() {
   const params = useParams();
   const navigate = useNavigate();
-  const { isKerberosEnabled, clusterName, upgradeIsRunning } =
+  const {
+    isKerberosEnabled,
+    clusterName,
+    services,
+    supports,
+    upgradeIsRunning,
+  } =
     useContext(AppContext);
   const { allServiceModels: serviceModels } = useContext(ServiceContext);
   const [allHostModels, setAllHostModels] = useState<IHost[]>([]);
-  const { stackVersionList } = useStackVersion();
+  const { stackVersion, stackVersionList } = useStackVersion();
   const [showHostCheck, setShowHostCheck] = useState(false);
   const [clusterComponents, setClusterComponents] = useState<any>({});
   const [loading, setLoading] = useState(true);
+  const [clusterLoadError, setClusterLoadError] = useState<string | null>(null);
+  const [clusterRetryCount, setClusterRetryCount] = useState(0);
 
   const { services: stackServices } = useStackServices();
   const { getConfigByName } = useConfigs([], stackServices as any);
@@ -64,7 +73,8 @@ export function Hosts() {
   const [activeTab, setActiveTab] = useState(params.tab || "summary");
 
   // Authorization hooks - implementing Ember.js host authorization patterns
-  const { hasAuthorization, isAdmin, isOperator, havePermissions } = useAuth();
+  const { hasAuthorization, isAdmin, isOperator } = useAuth();
+  const { isLoaded: isKerberosModeLoaded, isManualKerberos } = useKerberosMode();
 
   // Use computed upgrade property instead of utility function
   const isUpgradeInProgress = upgradeIsRunning;
@@ -73,14 +83,15 @@ export function Hosts() {
   const canStartStopServices = hasAuthorization("SERVICE.START_STOP");
   const canToggleHostMaintenance = hasAuthorization("HOST.TOGGLE_MAINTENANCE");
   const canAddDeleteHosts = hasAuthorization("HOST.ADD_DELETE_HOSTS");
-  const canViewConfigs =
-    hasAuthorization("SERVICE.VIEW_CONFIGS") ||
-    hasAuthorization("CLUSTER.VIEW_CONFIGS");
+  const canViewOperationalLogs = hasAuthorization("SERVICE.VIEW_OPERATIONAL_LOGS");
   const canRunHostChecks = isAdmin() || isOperator();
-
-  // Overall permission check for Host Actions menu - matches Ember template logic
-  // {{#havePermissions "HOST.ADD_DELETE_COMPONENTS, HOST.TOGGLE_MAINTENANCE, HOST.ADD_DELETE_HOSTS"}}
-  const canShowHostActions = havePermissions("HOST.ADD_DELETE_COMPONENTS, HOST.TOGGLE_MAINTENANCE, HOST.ADD_DELETE_HOSTS");
+  const isLogSearchInstalled = services.some(
+    (service: any) => get(service, "ServiceInfo.service_name") === "LOGSEARCH",
+  );
+  const canShowLogs = Boolean(
+    supports.logSearch && isLogSearchInstalled && canViewOperationalLogs,
+  );
+  const stackVersionsAvailable = stackVersionList.length > 0;
 
   const hostApiQueryParams = useMemo(() => {
     return {
@@ -88,9 +99,13 @@ export function Hosts() {
         query: `Hosts/host_name.in(${params.hostname})`,
       },
     };
-  }, []);
+  }, [params.hostname]);
 
-  useHostConfigUpdater(hostApiQueryParams, allHostModels, setAllHostModels);
+  const hostData = useHostConfigUpdater(
+    hostApiQueryParams,
+    allHostModels,
+    setAllHostModels,
+  );
   const { startHostCheck, stopHostCheck, isHostCheckRunning, hostCheckResult } =
     useHostChecks();
 
@@ -100,6 +115,7 @@ export function Hosts() {
     putConfigsToServer,
     clearConfigsChanges,
     loadComponentRelatedConfigs,
+    groupedPropertiesToChange,
   } = useComponentAddDelete(
     clusterComponents,
     stackServices,
@@ -124,8 +140,16 @@ export function Hosts() {
   }, [params.tab]);
 
   useEffect(() => {
-    getClusterComponents();
-  }, [get(allHostModels, "[0].hostComponents", []).length]);
+    if (clusterName && allHostModels.length) {
+      void getClusterComponents();
+    }
+  }, [clusterName, get(allHostModels, "[0].hostComponents", []).length, clusterRetryCount]);
+
+  useEffect(() => {
+    if (!hostData.isLoading && !hostData.error && allHostModels.length === 0) {
+      navigate("/main/hosts", { replace: true });
+    }
+  }, [allHostModels.length, hostData.error, hostData.isLoading, navigate]);
 
   useEffect(() => {
     if (showHostCheck) {
@@ -142,7 +166,7 @@ export function Hosts() {
     };
   };
 
-  const tabs = {
+  const tabs: Record<string, { title: React.ReactNode; component: React.ReactNode }> = {
     summary: {
       title: "SUMMARY",
       component: (
@@ -174,13 +198,32 @@ export function Hosts() {
           </Button>
         </>
       ),
-      component: <HostAlerts hostname={params.hostname} />,
-    },
-    versions: {
-      title: "VERSIONS",
-      component: <HostStackVersions />,
+      component: <HostAlerts key={params.hostname} hostname={params.hostname} />,
     },
   };
+  if (stackVersionsAvailable) {
+    tabs.stackVersions = {
+      title: "VERSIONS",
+      component: <HostStackVersions host={allHostModels[0]} />,
+    };
+  }
+  if (canShowLogs) {
+    tabs.logs = {
+      title: "LOGS",
+      component: <HostLogs hostName={params.hostname || ""} />,
+    };
+  }
+
+  useEffect(() => {
+    if (params.tab === "versions" && stackVersionsAvailable) {
+      navigate(`/main/hosts/${params.hostname}/stackVersions`, { replace: true });
+      return;
+    }
+    const versionStateLoaded = stackVersion !== undefined;
+    if (params.tab && versionStateLoaded && !Object.hasOwn(tabs, params.tab)) {
+      navigate(`/main/hosts/${params.hostname}/summary`, { replace: true });
+    }
+  }, [canShowLogs, params.hostname, params.tab, stackVersion, stackVersionsAvailable]);
 
   const isActive = () => {
     return get(allHostModels, "[0]")?.isActive();
@@ -188,19 +231,26 @@ export function Hosts() {
 
   const getClusterComponents = async () => {
     setLoading(true);
-    const response = await HostsApi.getClusterComponents(
-      clusterName,
-      "ServiceComponentInfo/service_name,host_components/HostRoles/display_name,host_components/HostRoles/host_name,host_components/HostRoles/public_host_name,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,host_components/HostRoles/stale_configs,host_components/HostRoles/ha_state,host_components/HostRoles/desired_admin_state,&minimal_response=true"
-    );
-    setClusterComponents(response);
-    setLoading(false);
+    setClusterLoadError(null);
+    try {
+      const response = await HostsApi.getClusterComponents(
+        clusterName,
+        "ServiceComponentInfo/service_name,host_components/HostRoles/display_name,host_components/HostRoles/host_name,host_components/HostRoles/public_host_name,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,host_components/HostRoles/stale_configs,host_components/HostRoles/ha_state,host_components/HostRoles/desired_admin_state,&minimal_response=true"
+      );
+      setClusterComponents(response);
+    } catch (error: any) {
+      setClusterLoadError(
+        error?.response?.data?.message || "Ambari could not load host component data.",
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getMaintenanceOptions = () => {
     const isNotHeartBeating =
       get(allHostModels, "[0].state", "") === "HEARTBEAT_LOST";
     const hostName = get(allHostModels, "[0].hostName", "");
-    const isManualKerberos = false; // TODO: replace this hardcoded value with App.get('router.mainAdminKerberosController.isManualKerberos')
     let result: any[] = [];
 
     // SERVICE.START_STOP authorization check for component operations
@@ -294,12 +344,11 @@ export function Hosts() {
     if (
       isKerberosEnabled &&
       supports.regenerateKeytabsOnSingleHost &&
-      canToggleHostMaintenance &&
-      !isUpgradeInProgress
+      isKerberosModeLoaded &&
+      !isManualKerberos
     ) {
       result.push({
         label: translate("admin.kerberos.button.regenerateKeytabs"),
-        isVisible: isKerberosEnabled || isManualKerberos,
         icon: "repeat",
         onClick: () => {
           doAction({
@@ -321,6 +370,7 @@ export function Hosts() {
           doAction({
             action: "deleteHost",
             hostName: hostName,
+            clusterName: clusterName,
             host: get(allHostModels, "[0]"),
             clusterComponents: get(clusterComponents, "items", []),
             serviceModels: serviceModels,
@@ -329,6 +379,7 @@ export function Hosts() {
             putConfigsToServer,
             clearConfigsChanges,
             loadComponentRelatedConfigs,
+            groupedPropertiesToChange,
           });
         },
       });
@@ -369,11 +420,6 @@ export function Hosts() {
   };
 
   const getClients = () => {
-    // Only return client configs if user has permission to view configs
-    if (!canViewConfigs) {
-      return [];
-    }
-
     let clients: any[] = [];
     const hostName = get(allHostModels, "[0].hostName", "");
     const hostComponents = get(allHostModels, "[0].hostComponents", []);
@@ -412,9 +458,8 @@ export function Hosts() {
   const buildHostActionsSubmenu = () => {
     const submenu = [...getMaintenanceOptions()];
 
-    // Add client configs download if user has permission and there are clients
     const clients = getClients();
-    if (canViewConfigs && clients.length > 0) {
+    if (clients.length > 0) {
       submenu.push({
         label: translate("services.service.actions.downloadClientConfigs"),
         submenu: clients,
@@ -482,13 +527,34 @@ export function Hosts() {
             </Nav>
           </Col>
           <Col className="d-flex justify-content-end">
-            {canShowHostActions && (
-              <NestedDropdown menu={hostActionsMenu} dropDirection="start" />
-            )}
+            <NestedDropdown menu={hostActionsMenu} dropDirection="start" />
           </Col>
         </Row>
         <Row>
-          {loading ? (
+          {hostData.error || clusterLoadError ? (
+            <Col className="p-4">
+              <Alert variant="danger">
+                {hostData.error || clusterLoadError}{" "}
+                <Button
+                  size="sm"
+                  variant="outline-danger"
+                  onClick={() => {
+                    if (hostData.error) {
+                      hostData.retry();
+                    }
+                    if (clusterLoadError) {
+                      setClusterRetryCount((value) => value + 1);
+                    }
+                  }}
+                >
+                  Retry
+                </Button>{" "}
+                <Button size="sm" variant="outline-secondary" onClick={() => navigate("/main/hosts")}>
+                  Back to Hosts
+                </Button>
+              </Alert>
+            </Col>
+          ) : loading || hostData.isLoading ? (
             <Spinner />
           ) : (
             <Col className="p-4">

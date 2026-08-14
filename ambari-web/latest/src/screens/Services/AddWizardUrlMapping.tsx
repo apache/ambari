@@ -105,12 +105,11 @@ function AddHostWizardModal() {
               </div>
             }
             onClose={() => {
-              flushStateToDb("cancel");
               modalManager.hide();
             }}
-            successCallback={() => {
+            successCallback={async () => {
+              await flushStateToDb("cancel");
               modalManager.hide();
-              window.location.href = "/#/main/hosts";
             }}
           />
         );

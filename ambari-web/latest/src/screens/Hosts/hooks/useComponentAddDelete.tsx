@@ -21,7 +21,11 @@ import { useState, useRef, useContext, useEffect } from "react";
 import { HostsApi } from "../../../api/hostsApi";
 import { IHostComponent } from "../../../models/hostComponent";
 import { AppContext } from "../../../store/context";
-import { zooKeeperRelatedServices, serviceMap } from "../../../Utils/Utility";
+import {
+  showErrorModal,
+  zooKeeperRelatedServices,
+  serviceMap,
+} from "../../../Utils/Utility";
 import { t } from "i18next";
 import {
   getComponentDisplayName,
@@ -104,16 +108,19 @@ function useComponentAddDelete(
         }}
         //@ts-ignore
         setRecommendedPropertiesToChange={setRecommendedPropertiesToChange}
-        callback={(properties: any) => {
+        callback={async (properties: any) => {
           setRecommendedPropertiesToChange(properties);
-          _doDeleteHostComponent(component, () => {
+          try {
+            await _doDeleteHostComponent(component);
             applyConfigsCustomization();
-            putConfigsToServer(
+            await putConfigsToServer(
               groupedPropertiesToChange.current,
               get(component, "componentName")
             );
             clearConfigsChanges();
-          });
+          } catch (error) {
+            showErrorModal(get(error, "response.data.message", get(error, "message", "Unable to delete the host component.")));
+          }
         }}
       />
     );
@@ -148,8 +155,8 @@ function useComponentAddDelete(
       componentsMapItem.configsCallbackName
     );
 
-    // Get service name from component or data
-    const serviceName = data.serviceName || get(component, "serviceName") || "";
+    // The component metadata is authoritative when this hook is reused across services.
+    const serviceName = get(component, "serviceName") || data.serviceName || "";
     const componentName =
       data.componentNameFromService || get(component, "componentName") || "";
 
@@ -291,11 +298,7 @@ function useComponentAddDelete(
         }
       });
     }
-    try {
-      await Promise.all(requests);
-    } catch (error) {
-      console.error("Error while saving configurations: ", error);
-    }
+    await Promise.all(requests);
   };
 
   const applyConfigsCustomization = () => {
@@ -327,17 +330,16 @@ function useComponentAddDelete(
 
   const _doDeleteHostComponent = async (
     component: IHostComponent,
-    deleteComponentSuccessCallback?: Function,
-    callback?: Function
+    deleteComponentSuccessCallback?: (componentName: string, hostName: string) => void | Promise<void>,
+    callback?: () => void | Promise<void>
   ) => {
     const componentName = get(component, "componentName");
     const hostName = get(component, "hostName");
-    const url = componentName
-      ? `/clusters/${clusterName}/hosts/${hostName}/host_components/${componentName}`
-      : `/clusters/${clusterName}/hosts/${hostName}`;
-
     try {
-      await HostsApi.componentDelete(url);
+      if (!componentName) {
+        throw new Error("A component name is required for component deletion.");
+      }
+      await HostsApi.deleteHostComponent(clusterName, hostName, componentName);
       if (setAllHostModels) {
         setAllHostModels((prevModels: IHost[]) => {
           return prevModels.map((host) => {
@@ -357,15 +359,16 @@ function useComponentAddDelete(
         });
       }
       if (deleteComponentSuccessCallback) {
-        deleteComponentSuccessCallback(componentName, hostName);
+        await deleteComponentSuccessCallback(componentName, hostName);
       }
 
       if (callback) {
-        callback();
+        await callback();
       }
       _deletedHostComponentError.current = "";
     } catch (err) {
       _deletedHostComponentError.current = JSON.stringify(err);
+      throw err;
     }
   };
 

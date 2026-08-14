@@ -19,6 +19,21 @@
 import { ambariApi } from "./config/axiosConfig";
 
 const WizardApi = {
+  launchBootstrap: async (data: Record<string, unknown>) => {
+    const response = await ambariApi.request({
+      url: "/bootstrap",
+      method: "POST",
+      data,
+    });
+    return response.data;
+  },
+  getBootstrapStatus: async (requestId: string) => {
+    const response = await ambariApi.request({
+      url: `/bootstrap/${encodeURIComponent(requestId)}`,
+      method: "GET",
+    });
+    return response.data;
+  },
   isHostsRegistered: async () => {
     const url = `/hosts?fields=Hosts/host_status`;
     const response = await ambariApi.request({

@@ -18,6 +18,7 @@
 
 import { set } from "lodash";
 import { ambariApi } from "./config/axiosConfig";
+import { buildHostSuggestionPredicate } from "../Utils/hosts";
 
 export const HostsApi = {
   getAllHosts: async function (clusterName: string) {
@@ -48,7 +49,7 @@ export const HostsApi = {
     clusterName: string,
     requestData: any
   ) {
-    const url = `/clusters/${clusterName}/hosts`;
+    const url = `/clusters/${encodeURIComponent(clusterName)}/hosts`;
     const response = await ambariApi.request({
       url,
       method: "POST",
@@ -70,7 +71,7 @@ export const HostsApi = {
     hostName: string,
     fields: string
   ) {
-    const url = `clusters/${clusterName}/hosts/${hostName}?fields=${fields}`;
+    const url = `/clusters/${encodeURIComponent(clusterName)}/hosts/${encodeURIComponent(hostName)}?fields=${fields}`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
@@ -190,7 +191,7 @@ export const HostsApi = {
     urlParams: string,
     data: any
   ) {
-    const url = `/clusters/${clusterName}/host_components?${urlParams}`;
+    const url = `/clusters/${encodeURIComponent(clusterName)}/host_components?${urlParams}`;
     const response = await ambariApi.request({
       url: url,
       method: "PUT",
@@ -271,7 +272,7 @@ export const HostsApi = {
       "host_components/HostRoles/state,host_components/HostRoles/maintenance_state," +
       "Hosts/total_mem,stack_versions/HostStackVersions,stack_versions/repository_versions/RepositoryVersions/repository_version," +
       "stack_versions/repository_versions/RepositoryVersions/id," +
-      "host_components/HostRoles/stale_configs" +
+      "host_components/HostRoles/stale_configs," +
       "host_components/HostRoles/service_name&minimal_response=true";
     const response = await ambariApi.request({
       url: url,
@@ -635,18 +636,21 @@ export const HostsApi = {
     clusterName: string,
     data: any
   ) {
-    const url = `/clusters/${clusterName}/hosts?fields=Hosts/${data.filter}&minimal_response=true&page_size=${data.pageSize}`;
+    const url = `/clusters/${encodeURIComponent(clusterName)}/hosts`;
     const response = await ambariApi.request({
       url: url,
       method: "POST",
+      params: {
+        fields: `Hosts/${data.filter}`,
+        minimal_response: true,
+        page_size: data.pageSize,
+      },
       headers: {
         "X-Http-Method-Override": "GET",
       },
       data: JSON.stringify({
         RequestInfo: {
-          query: data.searchTerm
-            ? "Hosts/" + data.filter + ".matches(.*" + data.searchTerm + ".*)"
-            : "",
+          query: buildHostSuggestionPredicate(data.filter, data.searchTerm),
         },
       }),
     });

@@ -43,6 +43,10 @@ import { useHostChecks } from "../../hooks/useHostChecks";
 import { messages } from "../messages";
 import { ContextWrapper } from ".";
 import modalManager from "../../store/ModalManager";
+import {
+  addHostRegistrationTimeoutSecs,
+  buildBootstrapPayload,
+} from "../../Utils/hostWizard";
 
 interface Host {
   name: string;
@@ -123,6 +127,10 @@ export default function Step3({ wizardName = "clusterCreation" }: Step3Props) {
   };
 
   const registrationStartedAt = useRef<any>(null);
+  const registrationTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const bootstrapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const bootstrapStarted = useRef(false);
+  const isMounted = useRef(true);
   //TODO: Remove this hack
   const serviceCheckStarted = useRef(false);
   const hostsRef = useRef<Host[]>([]);
@@ -136,7 +144,6 @@ export default function Step3({ wizardName = "clusterCreation" }: Step3Props) {
     setItemsPerPage,
   } = usePagination(hostsToBeDisplayed);
 
-  const registrationTimeoutSecs = 15;
   const bootStatusFilterMapping = {
     [ShowOptions.ALL]: [
       BootStatus.PENDING,
@@ -167,32 +174,26 @@ export default function Step3({ wizardName = "clusterCreation" }: Step3Props) {
   useEffect(() => {
     hostsRef.current = hosts;
     if (hostsRef.current.length) {
-      if (!registrationStartedAt.current) {
+      const installOptions = get(
+        state,
+        `${wizardName}Steps.${wizardSteps[2].name}.data`,
+        {},
+      );
+      if (installOptions.isSshRegistration) {
+        if (!bootstrapStarted.current && hostsRef.current.some(
+          (host) => host.bootStatus === BootStatus.PENDING,
+        )) {
+          void startAutomaticBootstrap(installOptions);
+        } else if (
+          !registrationStartedAt.current
+          && hostsRef.current.some((host) => host.bootStatus === BootStatus.DONE)
+        ) {
+          startRegistration();
+        }
+      } else if (!registrationStartedAt.current) {
         startRegistration();
       }
 
-      if (isRegistrationInProgress()) {
-        if (
-          hostsRef.current.some(
-            (_host) => _host.bootStatus === BootStatus.RUNNING
-          ) ||
-          Date.now() - registrationStartedAt.current <
-            registrationTimeoutSecs * 1000
-        ) {
-          setTimeout(isHostsRegistered, 3000);
-        } else {
-          let updatedHosts = hostsRef.current.map((_host) => {
-            if (_host.bootStatus === BootStatus.REGISTERING) {
-              _host.bootStatus = BootStatus.FAILED;
-              _host.bootLog =
-                (_host.bootLog || "") +
-                "Registration with the server failed.\n\n";
-            }
-            return _host;
-          });
-          setHosts(updatedHosts);
-        }
-      }
     }
     let showOptionsTemp = [...showOptions];
     showOptionsTemp.forEach((option) => {
@@ -206,6 +207,16 @@ export default function Step3({ wizardName = "clusterCreation" }: Step3Props) {
     setHostsToBeDisplayed(hosts);
     applyFilters();
   }, [hosts]);
+
+  useEffect(() => () => {
+    isMounted.current = false;
+    if (registrationTimer.current) {
+      clearTimeout(registrationTimer.current);
+    }
+    if (bootstrapTimer.current) {
+      clearTimeout(bootstrapTimer.current);
+    }
+  }, []);
 
   useEffect(() => {
     applyFilters();
@@ -250,10 +261,138 @@ export default function Step3({ wizardName = "clusterCreation" }: Step3Props) {
     }
   };
 
+  const failRegistrationHosts = () => {
+    setHosts((current) => current.map((host) =>
+      host.bootStatus === BootStatus.REGISTERING
+        ? {
+            ...host,
+            bootStatus: BootStatus.FAILED,
+            bootLog: `${host.bootLog || ""}Registration with the server failed.\n\n`,
+          }
+        : host,
+    ));
+  };
+
+  const scheduleRegistrationPoll = (installOptions: any) => {
+    const timeoutSecs = addHostRegistrationTimeoutSecs(
+      Boolean(installOptions.isSshRegistration),
+    );
+    const bootstrapStillRunning = hostsRef.current.some(
+      (host) => host.bootStatus === BootStatus.RUNNING,
+    );
+    const withinTimeout = registrationStartedAt.current !== null
+      && Date.now() - registrationStartedAt.current < timeoutSecs * 1000;
+    if (bootstrapStillRunning || withinTimeout) {
+      if (registrationTimer.current) {
+        clearTimeout(registrationTimer.current);
+      }
+      registrationTimer.current = setTimeout(() => void isHostsRegistered(), 3000);
+    } else {
+      failRegistrationHosts();
+    }
+  };
+
+  const failBootstrapHosts = (message: string) => {
+    if (!isMounted.current) {
+      return;
+    }
+    setHosts((current) => current.map((host) =>
+      [BootStatus.PENDING, BootStatus.RUNNING].includes(host.bootStatus as BootStatus)
+        ? { ...host, bootStatus: BootStatus.FAILED, bootLog: message }
+        : host,
+    ));
+  };
+
+  const pollBootstrap = async (requestId: string) => {
+    try {
+      const response = await WizardApi.getBootstrapStatus(requestId);
+      if (!isMounted.current) {
+        return;
+      }
+      const statuses = Array.isArray(response.hostsStatus)
+        ? response.hostsStatus
+        : response.hostsStatus
+          ? [response.hostsStatus]
+          : [];
+      setHosts((current) => current.map((host) => {
+        const update = statuses.find((item: any) => item.hostName === host.name);
+        if (!update) {
+          return response.status === "ERROR" && host.bootStatus !== BootStatus.REGISTERED
+            ? { ...host, bootStatus: BootStatus.FAILED, bootLog: response.log || "Bootstrap failed." }
+            : host;
+        }
+        const status = [BootStatus.DONE, BootStatus.FAILED, BootStatus.RUNNING]
+          .includes(update.status)
+          ? update.status
+          : host.bootStatus;
+        return {
+          ...host,
+          bootStatus: status,
+          bootLog: update.log || host.bootLog,
+        };
+      }));
+      const terminal = response.status === "ERROR"
+        || (statuses.length > 0 && statuses.every((item: any) =>
+          [BootStatus.DONE, BootStatus.FAILED].includes(item.status),
+        ));
+      if (!terminal) {
+        bootstrapTimer.current = setTimeout(() => void pollBootstrap(requestId), 3000);
+      }
+    } catch (error: any) {
+      bootstrapStarted.current = false;
+      failBootstrapHosts(
+        error?.response?.data?.message || "Ambari could not bootstrap the selected hosts.",
+      );
+    }
+  };
+
+  const startAutomaticBootstrap = async (installOptions: any) => {
+    bootstrapStarted.current = true;
+    setHosts((current) => current.map((host) =>
+      host.bootStatus === BootStatus.PENDING
+        ? { ...host, bootStatus: BootStatus.RUNNING, bootLog: "Setting up Ambari Agent...\n\n" }
+        : host,
+    ));
+    try {
+      const response = await WizardApi.launchBootstrap(buildBootstrapPayload({
+        agentUserAccount: installOptions.agentUserAccount,
+        customizeAgentUserAccount: Boolean(installOptions.customizeAgentUserAccount),
+        hosts: installOptions.targetHosts || [],
+        sshKey: installOptions.sshKey,
+        sshPortNumber: installOptions.sshPortNumber,
+        sshUserAccount: installOptions.sshUserAccount,
+      }));
+      const requestId = String(response.requestId ?? "");
+      if (!requestId || response.status === "ERROR") {
+        bootstrapStarted.current = false;
+        failBootstrapHosts(response.log || "Ambari could not start host bootstrap.");
+        return;
+      }
+      await pollBootstrap(requestId);
+    } catch (error: any) {
+      bootstrapStarted.current = false;
+      failBootstrapHosts(
+        error?.response?.data?.message || "Ambari could not start host bootstrap.",
+      );
+    }
+  };
+
   const isHostsRegistered = async () => {
-    const response = await WizardApi.isHostsRegistered();
-    if (response) {
-      isHostsRegisteredSuccessCallback(response);
+    try {
+      const response = await WizardApi.isHostsRegistered();
+      if (response && isMounted.current) {
+        isHostsRegisteredSuccessCallback(response);
+      }
+    } catch {
+      if (!isMounted.current || !isRegistrationInProgress()) {
+        return;
+      }
+      const installOptions = get(
+        state,
+        `${wizardName}Steps.${wizardSteps[2].name}.data`,
+        {},
+      );
+      scheduleRegistrationPoll(installOptions);
     }
   };
 
@@ -297,7 +436,16 @@ export default function Step3({ wizardName = "clusterCreation" }: Step3Props) {
       return updatedHost;
     });
 
+    hostsRef.current = updatedHosts;
     setHosts(updatedHosts);
+    if (isRegistrationInProgress()) {
+      const installOptions = get(
+        state,
+        `${wizardName}Steps.${wizardSteps[2].name}.data`,
+        {},
+      );
+      scheduleRegistrationPoll(installOptions);
+    }
   };
 
   const loadHosts = () => {
@@ -314,7 +462,7 @@ export default function Step3({ wizardName = "clusterCreation" }: Step3Props) {
     )
       ? "PENDING"
       : "DONE";
-    hostInfo.forEach((host: string[]) => {
+    hostInfo.forEach((host: string) => {
       allHosts.push({
         name: host,
         bootStatus: bootStatus,
@@ -329,13 +477,19 @@ export default function Step3({ wizardName = "clusterCreation" }: Step3Props) {
     let updatedHosts = hostsRef.current.map((_host) => {
       let updatedHost = { ..._host };
       if (updatedHost.bootStatus === BootStatus.FAILED) {
-        updatedHost.bootStatus = BootStatus.DONE;
+        const automatic = get(
+          state,
+          `${wizardName}Steps.${wizardSteps[2].name}.data.isSshRegistration`,
+          true,
+        );
+        updatedHost.bootStatus = automatic ? BootStatus.PENDING : BootStatus.DONE;
         updatedHost.bootLog = "Retrying ...\n\n";
       }
       return updatedHost;
     });
     setHosts(updatedHosts);
     registrationStartedAt.current = null;
+    bootstrapStarted.current = false;
   };
 
   const startHostCheckLocal = (hostsList: Host[]) => {

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { Button, Card, Form } from "react-bootstrap";
+import { Alert, Button, Card, Form } from "react-bootstrap";
 import DefaultButton from "../../components/DefaultButton";
 import { useContext, useEffect, useRef, useState } from "react";
 import Tooltip from "../../components/Tooltip";
@@ -29,6 +29,7 @@ import { ActionTypes } from "./clusterStore/types";
 import WizardFooter from "../../components/StepWizard/WizardFooter";
 import { getStepData } from "../../Utils/Utility";
 import { ContextWrapper } from ".";
+import { prepareHostInput } from "../../Utils/hostWizard";
 
 type FormFields = {
   targetHosts: string;
@@ -36,14 +37,22 @@ type FormFields = {
   sshKey: string;
   sshUserAccount: string;
   sshPortNumber: number;
+  agentUserAccount: string;
 };
 
 interface Step2Props {
   wizardName?: string;
   installedHosts?: string[];
+  customizeAgentUserAccount?: boolean;
+  isWindowsStack?: boolean;
 }
 
-export default function Step2({ installedHosts = [] }: Step2Props) {
+export default function Step2({
+  wizardName = "clusterCreation",
+  installedHosts = [],
+  customizeAgentUserAccount = false,
+  isWindowsStack = false,
+}: Step2Props) {
   const [showManualRegistrationWarning, setShowManualRegistrationWarning] =
     useState(false);
   const { Context } = useContext(ContextWrapper);
@@ -64,8 +73,10 @@ export default function Step2({ installedHosts = [] }: Step2Props) {
     formState: { errors },
   } = useForm<FormFields>({
     defaultValues: {
+      isSshRegistration: true,
       sshUserAccount: "root",
       sshPortNumber: 22,
+      agentUserAccount: "root",
     },
   });
   const [formData, setFormData] = useState<FormFields>();
@@ -95,17 +106,22 @@ export default function Step2({ installedHosts = [] }: Step2Props) {
   }, [isSshRegistration]);
 
   useEffect(() => {
-    const stepData = getStepData(state, currentStep.name, "");
-    if (stepData) {
-      // setValue("isSshRegistration", stepData?.isSshRegistration);
-      // setValue("sshKey", stepData?.sshKey!);
-      // setValue("targetHosts", stepData?.targetHosts?.join("\n"));
-      // setValue("sshUserAccount", stepData?.sshUserAccount);
-      // setValue("sshPortNumber", stepData?.sshPortNumber);
-      // installedHosts= stepData?.installedHosts || [];
-      // setHostNameArr(stepData?.targetHosts || []);
+    const stepData = getStepData(
+      state,
+      currentStep.name,
+      "",
+      `${wizardName}Steps`,
+    );
+    if (stepData && Object.keys(stepData).length) {
+      setValue("isSshRegistration", stepData.isSshRegistration ?? true);
+      setValue("sshKey", stepData.sshKey || "");
+      setValue("targetHosts", (stepData.targetHosts || []).join("\n"));
+      setValue("sshUserAccount", stepData.sshUserAccount || "root");
+      setValue("sshPortNumber", stepData.sshPortNumber || 22);
+      setValue("agentUserAccount", stepData.agentUserAccount || "root");
+      setHostNameArr(stepData.targetHosts || []);
     }
-  }, []);
+  }, [currentStep.name, setValue, state, wizardName]);
 
   const handleFileChange = (e: any) => {
     const file = e.target.files[0];
@@ -142,99 +158,58 @@ export default function Step2({ installedHosts = [] }: Step2Props) {
     return true;
   };
 
-  const parseHostNamesAsPatternExpression = (hostNames: string[]) => {
-    let tempArr: string[] = [];
-    let isPatternExpressionPresent = false;
-    hostNames.forEach((hostName) => {
-      const patternMatch = hostName.match(/(.*)\[(\d+)-(\d+)\](.*)/);
-
-      if (patternMatch) {
-        const [_, prefix, start, end, suffix] = patternMatch;
-        let hnlen = tempArr.length;
-        for (let i = parseInt(start); i <= parseInt(end); i++) {
-          isPatternExpressionPresent = true;
-          tempArr.push(`${prefix}${i}${suffix}`);
-        }
-        if (hnlen === tempArr.length) {
-          tempArr.push(hostName);
-        }
-      } else {
-        tempArr.push(hostName);
-      }
-    });
-
-    tempArr = Array.from(new Set(tempArr));
-
-    setHostNameArr(tempArr);
-    return isPatternExpressionPresent;
-  };
-
-  const updateHostNameArr = (targetHostsData: string) => {
-    let targetHosts = targetHostsData
-      .split(new RegExp("\\s+", "g"))
-      .filter((host) => host.trim() !== "");
-    let isPatternExpressionPresent =
-      parseHostNamesAsPatternExpression(targetHosts);
-
-    setHostNameArr((prevHostNameArr) => {
-      let tempNotInstalledHostNameArr: string[] = [];
-      let tempInputtedAgainHostNameArr: string[] = [];
-      prevHostNameArr.forEach((hostName) => {
-        if (installedHosts.includes(hostName)) {
-          tempInputtedAgainHostNameArr.push(hostName);
-        } else {
-          tempNotInstalledHostNameArr.push(hostName);
-        }
-      });
-
-      setInputtedAgainHostNames(tempInputtedAgainHostNameArr);
-
-      if (!tempNotInstalledHostNameArr.length) {
-        setError("targetHosts", {
-          message: "All these hosts are already part of the cluster",
-        });
-        return prevHostNameArr;
-      }
-
-      if (isPatternExpressionPresent) {
-        setShowPatternExpressionModal(true);
-      } else {
-        if (tempInputtedAgainHostNameArr.length) {
-          setShowInstalledHostnameWarning(true);
-        } else {
-          if (isAllHostNamesValid(tempNotInstalledHostNameArr)) {
-            if (!isSshRegistration) {
-              setShowBeforeProceedModal(true);
-            }
-          } else {
-            setShowInvalidHostnameWarning(true);
-          }
-        }
-      }
-
-      return tempNotInstalledHostNameArr;
-    });
-  };
-
   const onSubmit: SubmitHandler<FormFields> = (data) => {
-    setFormData(data);
-    const apiData = updateHostNameArr(data.targetHosts);
-    console.log("API Data: ", apiData);
+    const prepared = prepareHostInput(data.targetHosts, installedHosts);
+    const submission = {
+      ...data,
+      agentUserAccount: customizeAgentUserAccount
+        ? data.agentUserAccount
+        : "root",
+      isSshRegistration: isWindowsStack || data.isSshRegistration,
+      sshKey: isWindowsStack ? "" : data.sshKey,
+      sshUserAccount: isWindowsStack ? "" : data.sshUserAccount,
+      sshPortNumber: isWindowsStack ? 0 : data.sshPortNumber,
+    };
+    clearErrors("targetHosts");
+    setFormData(submission);
+    setHostNameArr(prepared.hosts);
+    setInputtedAgainHostNames(prepared.alreadyInstalled);
+    if (!prepared.hosts.length) {
+      setError("targetHosts", {
+        message: "All these hosts are already part of the cluster",
+      });
+    } else if (prepared.hadPattern) {
+      setShowPatternExpressionModal(true);
+    } else if (prepared.alreadyInstalled.length) {
+      setShowInstalledHostnameWarning(true);
+    } else if (!isAllHostNamesValid(prepared.hosts)) {
+      setShowInvalidHostnameWarning(true);
+    } else if (!submission.isSshRegistration) {
+      setShowBeforeProceedModal(true);
+    } else {
+      moveToNextStep(submission, prepared.hosts);
+    }
   };
 
-  useEffect(() => {
-    if (registerRef.current) enableNext();
-  }, [registerRef.current]);
+  useEffect(() => enableNext(), []);
 
-  const moveToNextStep = () => {
+  const moveToNextStep = (
+    submission: FormFields | undefined = formData,
+    hosts: string[] = hostNameArr,
+  ) => {
+    if (!submission || hosts.length === 0) {
+      return;
+    }
     dispatch({
       type: ActionTypes.STORE_INFORMATION,
       payload: {
         step: currentStep.name,
         data: {
-          ...formData,
-          targetHosts: hostNameArr,
+          ...submission,
+          targetHosts: hosts,
           installedHosts: installedHosts,
+          useSsh: !isWindowsStack && submission.isSshRegistration,
+          customizeAgentUserAccount,
         },
       },
     });
@@ -395,7 +370,7 @@ export default function Step2({ installedHosts = [] }: Step2Props) {
             </div>
             <div>
               <h2 className="mb-3">Host Registration Information</h2>
-              <div className="d-flex justify-content-between w-75 mb-3">
+              {!isWindowsStack && <div className="d-flex justify-content-between w-75 mb-3">
                 <div className="d-flex make-all-grey">
                   <Form.Check
                     type="radio"
@@ -441,8 +416,13 @@ export default function Step2({ installedHosts = [] }: Step2Props) {
                     on hosts and do not use SSH
                   </Form.Label>
                 </div>
-              </div>
-              <div className="d-flex mb-2">
+              </div>}
+              {isWindowsStack && (
+                <Alert variant="info">
+                  Windows hosts use PowerShell Remoting; SSH settings are not required.
+                </Alert>
+              )}
+              {!isWindowsStack && <><div className="d-flex mb-2">
                 <DefaultButton
                   onClick={handleChooseFileClick}
                   disabled={!isSshRegistration}
@@ -545,6 +525,26 @@ export default function Step2({ installedHosts = [] }: Step2Props) {
                   )}
                 </div>
               </div>
+              {customizeAgentUserAccount && (
+                <div className="d-flex w-100 mt-3">
+                  <div className="d-flex justify-content-between w-75">
+                    <Form.Label className="pt-2">Ambari Agent User Account</Form.Label>
+                    <Form.Control
+                      {...register("agentUserAccount", {
+                        required: isSshRegistration ? "Agent user name is required" : false,
+                      })}
+                      type="text"
+                      className={errors.agentUserAccount ? "w-50 border-danger" : "w-50"}
+                      disabled={!isSshRegistration}
+                    />
+                  </div>
+                  {errors.agentUserAccount && (
+                    <div className="text-danger mt-3 ms-3">
+                      <FontAwesomeIcon icon={faCircleXmark} /> {errors.agentUserAccount.message}
+                    </div>
+                  )}
+                </div>
+              )}</>}
             </div>
             <div className="mt-4">
               <Button
