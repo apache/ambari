@@ -942,17 +942,16 @@ export const doDecommissionRegionServer = async (
 };
 
 const decommissionSuccessCallback = (data: any) => {
-  const requestId =
-    get(data, "Requests.id", "") ||
-    get(data, "data.resources.[0].RequestSchedule.id", -1);
-  if (requestId) {
+  const requestId = get(data, "Requests.id", "");
+  const scheduleId = get(data, "data.resources.[0].RequestSchedule.id", -1);
+  if (requestId || scheduleId !== -1) {
     modalManager.show(
       <BackgroundOperations
         isOpen={true}
         onClose={() => {
           modalManager.hide();
         }}
-        requestId={requestId}
+        requestId={requestId || undefined}
       />
     );
   }

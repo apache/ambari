@@ -18,8 +18,8 @@
 
 import { useContext, useEffect, useState } from "react";
 import ClusterApi from "../../api/clusterApi";
-import { cloneDeep, filter, find, get, isEmpty } from "lodash";
-import { Stack } from "react-bootstrap";
+import { filter, get, isEmpty } from "lodash";
+import { Button, Stack } from "react-bootstrap";
 import Table from "../../components/Table";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Spinner from "../../components/Spinner";
@@ -28,6 +28,7 @@ import { ViewLevel } from "../../constants";
 import { AppContext } from "../../store/context";
 import Filters from "./Filters";
 import { commandDetail } from "../../Utils/Utility";
+import { statusMatchesFilter, upsertTaskEvents } from "../../Utils/backgroundOperations";
 
 type TasksListProps = {
   requestId: number | string;
@@ -57,49 +58,45 @@ function TasksList({
   const [selectedFilter, setSelectedFilter] = useState<any>(null);
   const [filteredTasks, setFilteredTasks] = useState([]);
   const [requestInputs, setRequestInputs] = useState<any>(null);
+  const [error, setError] = useState("");
   const clusterName = clusterNameProps || cName;
 
   async function getHostTasksDetails() {
     setLoading(true);
-    const requestTasks = await ClusterApi.getRequestById(
-      clusterName,
-      requestId
-    );
-    const allTasks = get(requestTasks, "tasks", []);
-    // Get request inputs from the Requests object
-    const inputs = get(requestTasks, "Requests.inputs", null);
-    setRequestInputs(inputs);
-    setHostTasks(filter(allTasks, ["Tasks.host_name", selectedHost]) as any);
-    setLoading(false);
+    setError("");
+    try {
+      const requestTasks = await ClusterApi.getRequestById(clusterName, requestId);
+      const allTasks = get(requestTasks, "tasks", []);
+      setRequestInputs(get(requestTasks, "Requests.inputs", null));
+      setHostTasks(filter(allTasks, ["Tasks.host_name", selectedHost]) as any);
+    } catch {
+      setError("Ambari could not load tasks for this host.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
-    if (!isEmpty(latestMessage)) {
-      const hostTasksCopy = cloneDeep(hostTasks);
-      for (const task of latestMessage.Tasks) {
-        const matchingTask: any = find(hostTasksCopy, ["Tasks.id", task.id]);
-        if (matchingTask) {
-          matchingTask.Tasks.status = task.status;
-        }
-      }
-      setHostTasks(hostTasksCopy as any);
+    if (!isEmpty(latestMessage) && Array.isArray(latestMessage.Tasks)) {
+      setHostTasks((current: any[]) => upsertTaskEvents(
+        current,
+        latestMessage.Tasks.filter((task: any) => task.hostName === selectedHost),
+      ) as any);
     }
-  }, [latestMessage]);
+  }, [latestMessage, selectedHost]);
   useEffect(() => {
     if (selectedFilter?.value) {
-      setFilteredTasks(
-        filter(hostTasks, [
-          "Tasks.status",
-          selectedFilter.value.toUpperCase(),
-        ]) as any
-      );
+      setFilteredTasks(filter(hostTasks, (task: any) => statusMatchesFilter(
+        get(task, "Tasks.status"),
+        selectedFilter.value,
+      )) as any);
     } else {
       setFilteredTasks(hostTasks);
     }
   }, [selectedFilter, hostTasks]);
   useEffect(() => {
-    getHostTasksDetails();
-  }, []);
+    void getHostTasksDetails();
+  }, [clusterName, requestId, selectedHost]);
   const columns = [
     {
       id: "name",
@@ -142,6 +139,19 @@ function TasksList({
     return (
       <Center>
         <Spinner />
+      </Center>
+    );
+  }
+
+  if (error) {
+    return (
+      <Center>
+        <Stack direction="vertical" className="align-items-center gap-2">
+          <div className="text-danger">{error}</div>
+          <Button size="sm" variant="outline-primary" onClick={() => void getHostTasksDetails()}>
+            Retry
+          </Button>
+        </Stack>
       </Center>
     );
   }

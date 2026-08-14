@@ -118,18 +118,22 @@ export const VersionsList = ({
       }
     }
     fetchVersionsListData();
-  }, []);
+  }, [clusterName, serviceName]);
 
   useEffect(() => {
     const current = filteredVersions.find((item) => item.isCurrent);
-    if (current) {
+    const requested = filteredVersions.find(
+      (item) => String(item.version) === String(versionToShow),
+    );
+    const selected = requested || current;
+    if (selected) {
       if(!isComparing) {
-        setCurrentVersion(current.version);
+        setCurrentVersion(selected.version);
       }
-      setPreviousVersion(current.version);
-      onVersionChange(current.version);
+      setPreviousVersion(current?.version || selected.version);
+      onVersionChange(selected.version);
     }
-  }, [versionsData, configGroup]);
+  }, [versionsData, configGroup, versionToShow]);
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);

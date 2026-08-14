@@ -49,7 +49,15 @@ import TasksList from "./TasksList";
 import TaskLogs from "./TaskLogs";
 import Filters from "./Filters";
 import Center from "../../components/Center";
-import { calculateDurationSummary, isOperationRunning } from "../../Utils/dateUtils";
+import { calculateDurationSummary } from "../../Utils/dateUtils";
+import {
+  canAbortOperation,
+  isUpgradeRequest,
+  shouldShowBackgroundOperations,
+  statusMatchesFilter,
+} from "../../Utils/backgroundOperations";
+import { useAuth } from "../../hooks/useAuth";
+import toast from "react-hot-toast";
 
 type PropTypes = {
   isOpen: boolean;
@@ -61,11 +69,6 @@ type PropTypes = {
   isExplicitClick?: boolean;
 };
 
-export function isUpgradeRequest(request: any): boolean {
-  const context = request?.Requests?.request_context || request?.request_context;
-  return context ? /(upgrading|downgrading)/.test(context.toLowerCase()) : false;
-}
-
 function BackgroundOperations({
   isOpen,
   onClose,
@@ -75,22 +78,42 @@ function BackgroundOperations({
   clusterName,
   isExplicitClick = false,
 }: PropTypes) {
+  const initialLevel = requestId && rootLevel === ViewLevel.REQUESTS
+    ? ViewLevel.HOSTS
+    : rootLevel;
   const [selectedRequest, setSelectedRequest] = useState<any>({});
   const [selectedRequestId, setSelectedRequestId] = useState(requestId);
   const [filteredClusterRequests, setFilteredClusterRequests] = useState<any[]>([]);
   const [selectedFilter, setSelectedFilter] = useState<any>(null);
   const [noMoreRequestsToShow, setNoMoreRequestsToShow] = useState(false);
-  const [pageSize, setPageSize] = useState<number>(20);
-  const [latestMessage, setLatestMessage] = useState({});
   const [isLoadingRequests, setIsLoadingRequests] = useState(false);
+  const [loadError, setLoadError] = useState("");
+  const [isAborting, setIsAborting] = useState(false);
+  const { hasAuthorization, isClusterUser } = useAuth();
+  const canAbortRequests = hasAuthorization("SERVICE.START_STOP");
+  const isBackgroundOperationsRestricted = isClusterUser();
   const {
     clusterName: cName,
     userBgPreferences,
     setUserBgPreferences,
     backgroundOperations,
+    fetchBackgroundOperationsSnapshot,
+    backgroundOperationsPageSize: pageSize,
+    setBackgroundOperationsPageSize: setPageSize,
     updateBackgroundOperations,
     runningOperationsCount,
+    parsedSocketMessages,
+    isClusterInstalled,
   } = useContext(AppContext);
+  const shouldHideAutomaticPopup = !shouldShowBackgroundOperations(
+    userBgPreferences,
+    isExplicitClick,
+    isBackgroundOperationsRestricted,
+  );
+  const latestMessage = parsedSocketMessages.find((message) =>
+    message.destination === "/events/requests"
+      && Number(message.requestId) === Number(selectedRequestId)
+  ) || {};
   
   // Check if this is truly the first load (no cached data)
   const isInitialLoad = backgroundOperations.length === 0;
@@ -100,8 +123,10 @@ function BackgroundOperations({
       const filteredRequests = filter(
         backgroundOperations,
         (req: any) =>
-          get(req, "Requests.request_status") ===
-          selectedFilter.value.toUpperCase()
+          statusMatchesFilter(
+            get(req, "Requests.request_status"),
+            selectedFilter.value,
+          )
       );
       setFilteredClusterRequests(filteredRequests as any);
     } else {
@@ -112,101 +137,49 @@ function BackgroundOperations({
   async function getClusterRequests() {
     try {
       setIsLoadingRequests(true);
-      const allClusterRequests = await ClusterApi.getRequests(
-        clusterName || cName,
-        pageSize
-      );
-      if (Number(allClusterRequests.itemTotal) < pageSize) {
-        setNoMoreRequestsToShow(true);
+      setLoadError("");
+      const canUseSharedSnapshot = (!clusterName || clusterName === cName)
+        && Boolean(isClusterInstalled);
+      const allClusterRequests = canUseSharedSnapshot
+        ? await fetchBackgroundOperationsSnapshot(pageSize)
+        : await ClusterApi.getRequests(clusterName || cName, pageSize);
+      if (!allClusterRequests) return;
+      setNoMoreRequestsToShow(Number(allClusterRequests.itemTotal) <= pageSize);
+      if (!canUseSharedSnapshot) {
+        const newRequests = allClusterRequests.items.filter((request: any) => {
+          return !isUpgradeRequest(request);
+        });
+        updateBackgroundOperations(newRequests);
       }
-      const newRequests = allClusterRequests.items.filter((request: any) => {
-        return !isUpgradeRequest(request);
-      });
-      
-      // Use global context update function (like Ember.js singleton)
-      updateBackgroundOperations(newRequests);
     } catch (error) {
       console.error("Error fetching cluster requests:", error);
-      // On error, keep existing requests if we have them (better UX)
-      if (backgroundOperations.length === 0) {
-        updateBackgroundOperations([]);
-      }
+      setLoadError("Ambari could not load background operations.");
     } finally {
       setIsLoadingRequests(false);
     }
   }
   async function getRequestDetails() {
     if (requestId) {
-      const requestDetails = await ClusterApi.getRequestById(
-        clusterName || cName,
-        requestId
-      );
-      setSelectedRequest(requestDetails.Requests);
+      try {
+        setLoadError("");
+        const requestDetails = await ClusterApi.getRequestById(
+          clusterName || cName,
+          requestId
+        );
+        setSelectedRequest(requestDetails.Requests);
+      } catch {
+        setLoadError("Ambari could not load the selected background operation.");
+      }
     }
   }
-  const [selectedLevel, setSelectedLevel] = useState(rootLevel);
+  const [selectedLevel, setSelectedLevel] = useState(initialLevel);
   const [showModal, setShowModal] = useState(false);
   const [showAbortedModal, setShowAbortedModal] = useState(false);
   const [selectedHost, setSelectedHost] = useState(host);
   const [selectedTask, setSelectedTask] = useState<any>({});
-  const { client, isSocketConnected } = useContext(AppContext);
-  
   useEffect(() => {
     getSetFilteredRequests();
   }, [backgroundOperations, selectedFilter]);
-  
-  // Add WebSocket subscription for real-time updates when modal is open
-  useEffect(() => {
-    let requestSubscription: any;
-    if (isSocketConnected && isOpen && client) {
-      requestSubscription = client.subscribe(
-        "/events/requests",
-        (subscriptionMessage: any) => {
-          const message = JSON.parse(subscriptionMessage.body);
-          
-          if (isUpgradeRequest({Requests: {request_context: message.requestContext}})) {
-            return;
-          }
-          
-          setLatestMessage(message);
-          
-          // Update global background operations cache
-          const updatedOperations = [...backgroundOperations];
-          const matchingRequestIndex = updatedOperations.findIndex(
-            (existing: any) => existing.Requests.id === message.requestId
-          );
-          
-          if (matchingRequestIndex >= 0) {
-            const { Tasks, ...restProperties } = message;
-            const newRequestBody: any = {};
-            for (const property in restProperties) {
-              const transformedPropertyName = property
-                .replace(/([A-Z])/g, "_$1")
-                .toLowerCase();
-              newRequestBody[transformedPropertyName] = restProperties[property];
-            }
-            
-            
-            // Update the global cache directly
-            updatedOperations[matchingRequestIndex] = {
-              ...updatedOperations[matchingRequestIndex],
-              Requests: newRequestBody
-            };
-            
-            updateBackgroundOperations(updatedOperations.map(op => op));
-          } else {
-            getClusterRequests();
-          }
-        }
-      );
-      
-      return () => {
-        if (requestSubscription) {
-          requestSubscription.unsubscribe();
-        }
-      };
-    }
-  }, [isSocketConnected, isOpen, client, backgroundOperations]);
   function getBreadcrumbs() {
     const inferredBreadcrumbs = [];
     //@ts-expect-error
@@ -410,27 +383,33 @@ function BackgroundOperations({
   }
   useEffect(() => {
     // Always fetch fresh data when modal opens, but show cached data immediately
-    if (isOpen) {
+    if (isOpen && !isBackgroundOperationsRestricted && !shouldHideAutomaticPopup) {
       getClusterRequests();
     }
-    if (isOpen && requestId) {
+    if (isOpen && requestId && !isBackgroundOperationsRestricted && !shouldHideAutomaticPopup) {
       getRequestDetails();
     }
-  }, [pageSize, isOpen]);
-  //@ts-ignore
-  function isFinished(status: string) {
-    return ["FAILED", "ABORTED", "COMPLETED"].includes(status);
-  }
-  //@ts-ignore
-  function isRunning(status: string) {
-    return isOperationRunning(status);
-  }
+  }, [
+    pageSize,
+    isOpen,
+    requestId,
+    clusterName,
+    cName,
+    isBackgroundOperationsRestricted,
+    shouldHideAutomaticPopup,
+  ]);
+
+  useEffect(() => {
+    if (isOpen && (isBackgroundOperationsRestricted || shouldHideAutomaticPopup)) {
+      onClose();
+    }
+  }, [isBackgroundOperationsRestricted, isOpen, onClose, shouldHideAutomaticPopup]);
 
   const getStatus = (requestStatus: string) => {
     if (requestStatus == "COMPLETED") {
       return ["SUCCESS", faCheck, "success", false];
     }
-    if (requestStatus === "FAILED") {
+    if (requestStatus === "FAILED" || requestStatus === "SKIPPED_FAILED") {
       return ["FAILED", faExclamation, "danger", false];
     }
     if (requestStatus === "ABORTED") {
@@ -584,17 +563,24 @@ function BackgroundOperations({
             className="p-1 cursor-pointer"
             onClick={() => openDetails(rowData)}
           >
-            {["IN_PROGRESS", "PENDING"].includes(request.request_status) ? (
+            {canAbortOperation(
+              request.request_status,
+              canAbortRequests,
+              isAborting && Number(selectedRequest.id) === Number(request.id),
+            ) ? (
               <Tooltip message="Abort Operation">
-                <FontAwesomeIcon
-                  icon={faStop}
-                  className="text-danger"
+                <Button
+                  variant="link"
+                  className="border-0 p-0 text-danger"
+                  aria-label="Abort Operation"
                   onClick={(e) => {
                     e.stopPropagation();
                     setSelectedRequest(request);
                     setShowModal(true);
                   }}
-                ></FontAwesomeIcon>
+                >
+                  <FontAwesomeIcon icon={faStop} />
+                </Button>
               </Tooltip>
             ) : null}
           </div>
@@ -631,6 +617,10 @@ function BackgroundOperations({
                 ?.requestContext
             } operation`}
             successCallback={async () => {
+              if (isAborting) {
+                return;
+              }
+              setIsAborting(true);
               try {
                 await ClusterApi.updateRequest(
                   clusterName || cName,
@@ -644,12 +634,28 @@ function BackgroundOperations({
                 );
                 setShowAbortedModal(true);
                 setShowModal(false);
-              } catch (_err) {
-                //Do Nothing
+                await getClusterRequests();
+              } catch (error: any) {
+                const message = error?.response?.data?.message
+                  || "Ambari could not abort the selected operation.";
+                toast.error(message);
+              } finally {
+                setIsAborting(false);
               }
             }}
+            isOkDisabled={isAborting}
           />
-          {isLoadingRequests && isInitialLoad ? (
+          {loadError ? (
+            <Center>
+              <Stack direction="vertical" className="align-items-center gap-2">
+                <div className="text-danger">{loadError}</div>
+                <Button size="sm" variant="outline-primary" onClick={() => void getClusterRequests()}>
+                  Retry
+                </Button>
+              </Stack>
+            </Center>
+          ) : null}
+          {!loadError && isLoadingRequests && isInitialLoad ? (
             <Center>
               <div className="d-flex align-items-center">
                 <div className="spinner-border spinner-border-sm me-2" role="status">
@@ -658,11 +664,11 @@ function BackgroundOperations({
                 Loading background operations...
               </div>
             </Center>
-          ) : !filteredClusterRequests.length ? (
+          ) : !loadError && !filteredClusterRequests.length ? (
             <Center>
               <div>No requests to show</div>
             </Center>
-          ) : (
+          ) : !loadError ? (
             <>
               <Table
                 // showHeader={false}
@@ -692,7 +698,7 @@ function BackgroundOperations({
                 </div>
               ) : null}
             </>
-          )}
+          ) : null}
         </>
       );
     }
@@ -754,8 +760,7 @@ function BackgroundOperations({
     }
   }
 
-  if (userBgPreferences && !isExplicitClick) {
-    onClose();
+  if (isBackgroundOperationsRestricted || shouldHideAutomaticPopup) {
     return null;
   }
 
@@ -767,11 +772,11 @@ function BackgroundOperations({
             <Stack direction="horizontal">
               {getBreadcrumbs()?.map((breadcrumb: any, index: number) => {
                 return index === getBreadcrumbs().length - 1 ? (
-                  <Modal.Title className="text-muted">
+                  <Modal.Title key={`${breadcrumb.level}-${index}`} className="text-muted">
                     <h2>{breadcrumb?.name}</h2>
                   </Modal.Title>
                 ) : (
-                  <Stack direction="horizontal">
+                  <Stack key={`${breadcrumb.level}-${index}`} direction="horizontal">
                     <Modal.Title
                       className="text-info cursor-pointer"
                       onClick={() => {
@@ -799,9 +804,9 @@ function BackgroundOperations({
           type={"checkbox"}
           id={`hide-bg-operations`}
           onChange={(e) => {
-            setUserBgPreferences(e.target.checked);
+            setUserBgPreferences(!e.target.checked);
           }}
-          checked={userBgPreferences}
+          checked={!userBgPreferences}
           label={
             <div className="mt-1">
               Do not show this dialog again when starting a background operation

@@ -1082,15 +1082,14 @@ export const Actions = ({ serviceName, className }: ActionsProps) => {
 
     //@ts-ignore
     const response = await ActionsApi.actionRequest(clusterName, payloadData);
-    const requestId = get(response.data.resources[0], "RequestSchedule.id", -1);
-    if (requestId !== -1) {
+    const scheduleId = get(response.data.resources[0], "RequestSchedule.id", -1);
+    if (scheduleId !== -1) {
       modalManager.show(
         <BackgroundOperations
           isOpen={true}
           onClose={() => {
             modalManager.hide();
           }}
-          requestId={requestId}
         />
       );
     }

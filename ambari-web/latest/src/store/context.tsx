@@ -19,8 +19,10 @@
 import React, {
   createContext,
   Dispatch,
+  useCallback,
   useEffect,
   useReducer,
+  useRef,
   useState,
 } from "react";
 import { State, Action } from "./types";
@@ -35,6 +37,16 @@ import { mapStackConfigProperties } from "../Utils/Utility";
 import useAuth from "../hooks/useAuth";
 import { parsePersistedValue, persistedPayload } from "../Utils/persistedSettings";
 import { DEFAULT_SUPPORTS } from "../constants";
+import { detectUserTimezone } from "../Utils/timezone";
+import {
+  BackgroundRequest,
+  replaceRequestSnapshot,
+  upsertRequestEvent,
+} from "../Utils/backgroundOperations";
+import {
+  createStompTransport,
+  shouldFallbackToSockJs,
+} from "../Utils/stompTransport";
 // import {LocalStorageOps} from "../Utils/LocalStorageOps";
 
 interface AppContextProps {
@@ -79,10 +91,17 @@ interface AppContextProps {
   userBgPreferences: boolean;
   setUserBgPreferences: (value: boolean) => void;
   syncUserBgPreferences: (value: boolean) => void;
+  userTimezone: string;
+  syncUserTimezone: (value: string) => void;
   // Background Operations - persistent cache like Ember.js singleton
   backgroundOperations: any[];
-  setBackgroundOperations: (operations: any[]) => void;
+  setBackgroundOperations: React.Dispatch<React.SetStateAction<BackgroundRequest[]>>;
   updateBackgroundOperations: (newRequests: any[]) => void;
+  fetchBackgroundOperationsSnapshot: (
+    pageSize?: number,
+  ) => Promise<BackgroundRequestPage | null>;
+  backgroundOperationsPageSize: number;
+  setBackgroundOperationsPageSize: (size: number) => void;
   runningOperationsCount: number;
   // Ember.js upgrade computed properties
   upgradeInit: boolean;
@@ -96,6 +115,11 @@ interface AppContextProps {
   isNonWizardUser: boolean;
   isClusterInstalled?: boolean;
 }
+
+type BackgroundRequestPage = {
+  items: BackgroundRequest[];
+  itemTotal?: number;
+};
 
 export const AppContext = createContext<AppContextProps>({
   state: initialState,
@@ -133,13 +157,18 @@ export const AppContext = createContext<AppContextProps>({
   sessionExists: false,
   sessionsValidated: false,
   clusterState: {},
-  userBgPreferences: false,
+  userBgPreferences: true,
   setUserBgPreferences: () => {},
   syncUserBgPreferences: () => {},
+  userTimezone: detectUserTimezone(),
+  syncUserTimezone: () => {},
   // Background Operations defaults
   backgroundOperations: [],
   setBackgroundOperations: () => {},
   updateBackgroundOperations: () => {},
+  fetchBackgroundOperationsSnapshot: async () => null,
+  backgroundOperationsPageSize: 20,
+  setBackgroundOperationsPageSize: () => {},
   runningOperationsCount: 0,
   // Ember.js upgrade computed properties defaults
   upgradeInit: true,
@@ -192,73 +221,82 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const isOnlyViewUser = authorizations.length === 0
     || (authorizations.length === 1
       && authorizations[0].authorization_id === "VIEW.USE");
+  const useSockJs = useRef(typeof WebSocket === "undefined");
+  const hasConnectedSocket = useRef(false);
+  const backgroundFetchPromise = useRef<{
+    pageSize: number;
+    promise: Promise<BackgroundRequestPage>;
+  } | null>(null);
+  const backgroundOperationsPageSizeRef = useRef(20);
   const [client] = useState(() => new Client({
-      brokerURL: "/api/stomp/v1/websocket", // 'ws://localhost:15674/ws'
-      debug: function (str) {
-        console.log(str);
-      },
-      reconnectDelay: 1000,
-      heartbeatIncoming: 1000,
-      heartbeatOutgoing: 1000,
-    }));
+    webSocketFactory: () => createStompTransport(useSockJs.current, window.location),
+    reconnectDelay: 6000,
+    heartbeatIncoming: 10000,
+    heartbeatOutgoing: 10000,
+  }));
   const [services, setServices] = useState([]);
   const [stackConfigurations, setStackConfigurations] = useState([]);
-  const [userBgPreferences, setUserBgPreferences] = useState(false);
+  const [userBgPreferences, setUserBgPreferences] = useState(true);
+  const [userTimezone, setUserTimezone] = useState(detectUserTimezone());
   const [allHostNames, setAllHostNames] = useState([]);
 
   // Background Operations - persistent cache like Ember.js singleton
-  const [backgroundOperations, setBackgroundOperations] = useState<any[]>([]);
+  const [backgroundOperations, setBackgroundOperations] = useState<BackgroundRequest[]>([]);
+  const [backgroundOperationsPageSize, setBackgroundOperationsPageSizeState] = useState(20);
 
-  const isUpgradeRequest = (request: any): boolean => {
-    const context =
-      request?.Requests?.request_context || request?.request_context;
-    return context
-      ? /(upgrading|downgrading)/.test(context.toLowerCase())
-      : false;
-  };
+  const setBackgroundOperationsPageSize = useCallback((size: number) => {
+    backgroundOperationsPageSizeRef.current = size;
+    setBackgroundOperationsPageSizeState(size);
+  }, []);
 
-  const fetchBackgroundOperations = async () => {
+  const updateBackgroundOperations = useCallback((newRequests: BackgroundRequest[]) => {
+    setBackgroundOperations(replaceRequestSnapshot(newRequests));
+  }, []);
+
+  const fetchBackgroundOperations = useCallback(async (
+    requestedPageSize = backgroundOperationsPageSizeRef.current,
+  ): Promise<BackgroundRequestPage | null> => {
     if (!clusterName || !isClusterInstalled) {
-      return;
+      return null;
+    }
+    if (requestedPageSize > backgroundOperationsPageSizeRef.current) {
+      setBackgroundOperationsPageSize(requestedPageSize);
     }
 
-    const allClusterRequests = await ClusterApi.getRequests(clusterName, 20);
-    const newRequests = allClusterRequests.items.filter((request: any) => {
-      return !isUpgradeRequest(request);
+    const activeRequest = backgroundFetchPromise.current;
+    if (activeRequest) {
+      const response = await activeRequest.promise;
+      return backgroundOperationsPageSizeRef.current > activeRequest.pageSize
+        ? fetchBackgroundOperations(backgroundOperationsPageSizeRef.current)
+        : response;
+    }
+
+    const pageSize = backgroundOperationsPageSizeRef.current;
+    const requestEntry = {
+      pageSize,
+      promise: Promise.resolve({ items: [] } as BackgroundRequestPage),
+    };
+    const operation = ClusterApi.getRequests(clusterName, pageSize).then((response) => {
+      const page = response as BackgroundRequestPage;
+      updateBackgroundOperations(page.items);
+      return page;
     });
-
-    updateBackgroundOperations(newRequests);
-  };
-
-  const updateBackgroundOperations = (newRequests: any[]) => {
-    const currentRequestIds: string[] = [];
-    const updatedRequests = [...backgroundOperations];
-
-    newRequests.forEach((newRequest: any) => {
-      currentRequestIds.push(newRequest.Requests.id);
-      const existingRequestIndex = updatedRequests.findIndex(
-        (existing: any) => existing.Requests.id === newRequest.Requests.id
-      );
-
-      if (existingRequestIndex >= 0) {
-        // Update existing request (like Ember.js rq.setProperties)
-        updatedRequests[existingRequestIndex] = newRequest;
-      } else {
-        // Add new request to the beginning (like Ember.js unshift)
-        updatedRequests.unshift(newRequest);
+    requestEntry.promise = operation.finally(() => {
+      if (backgroundFetchPromise.current === requestEntry) {
+        backgroundFetchPromise.current = null;
       }
     });
-
-    // Remove old requests that are no longer in the API response (like Ember.js removeOldRequests)
-    const finalRequests = updatedRequests.filter((request: any) =>
-      currentRequestIds.includes(request.Requests.id)
-    );
-
-    // Sort by request ID descending (like Ember.js sortProperty('id').reverse())
-    finalRequests.sort((a: any, b: any) => b.Requests.id - a.Requests.id);
-
-    setBackgroundOperations(finalRequests);
-  };
+    backgroundFetchPromise.current = requestEntry;
+    const response = await requestEntry.promise;
+    return backgroundOperationsPageSizeRef.current > pageSize
+      ? fetchBackgroundOperations(backgroundOperationsPageSizeRef.current)
+      : response;
+  }, [
+    clusterName,
+    isClusterInstalled,
+    setBackgroundOperationsPageSize,
+    updateBackgroundOperations,
+  ]);
 
   // Computed property for running operations count (like Ember.js)
   const runningOperationsCount = backgroundOperations.filter((request: any) => {
@@ -305,7 +343,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       fetchClusterServices();
       fetchAllHostNames();
       fetchUpgradeStates();
-      fetchBackgroundOperations();
     } else if (!isUndefined(isClusterInstalled) && !isClusterInstalled) {
       setAppLoaded(true);
     }
@@ -341,7 +378,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         clearTimeout(pollTimeout);
       }
     };
-  }, [clusterName, isClusterInstalled]);
+  }, [clusterName, fetchBackgroundOperations, isClusterInstalled]);
 
   useEffect(() => {
     async function fetchStackConfigs() {
@@ -470,14 +507,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     setUserUrl(persistedData);
   }
 
-  async function getUserBgPreferences() {
+  async function getUserSettings() {
     try {
-      const persistedData = await ClusterApi.getPersistData(
-        "admin-settings-show-bg-" + loginName
-      );
-      setUserBgPreferences(parsePersistedValue(persistedData, true));
+      const persistedData = await ClusterApi.getPersistData();
+      setUserBgPreferences(parsePersistedValue(
+        persistedData?.[`admin-settings-show-bg-${loginName}`],
+        true,
+      ));
+      setUserTimezone(parsePersistedValue(
+        persistedData?.[`admin-settings-timezone-${loginName}`],
+        detectUserTimezone(),
+      ));
     } catch (err) {
-      console.error("Could not fetch user bg preferences", err);
+      console.error("Could not fetch user settings", err);
     }
   }
   async function setUserBgPreferencesData(value: boolean) {
@@ -532,7 +574,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
   useEffect(() => {
     if (loginName) {
-      getUserBgPreferences();
+      void getUserSettings();
     }
   }, [loginName]);
 
@@ -558,153 +600,89 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       fetchUpgradeStates();
     }
 
-    // Handle background operations real-time updates
-    if (get(message, "destination") === "/events/requests") {
-      const requestContext = message.requestContext;
-      // Skip upgrade requests (same logic as in BackgroundOperations component)
-      if (
-        requestContext &&
-        /(upgrading|downgrading)/.test(requestContext.toLowerCase())
-      ) {
-        return;
-      }
-
-      // Only update if we have background operations to update
-      if (backgroundOperations.length > 0) {
-        const updatedOperations = [...backgroundOperations];
-        const matchingRequestIndex = updatedOperations.findIndex(
-          (existing: any) => existing.Requests.id === message.requestId
-        );
-
-        if (matchingRequestIndex >= 0) {
-          // Transform WebSocket message to match API format
-          const { Tasks, ...restProperties } = message;
-          const newRequestBody: any = {};
-          for (const property in restProperties) {
-            const transformedPropertyName = property
-              .replace(/([A-Z])/g, "_$1")
-              .toLowerCase();
-            newRequestBody[transformedPropertyName] = restProperties[property];
-          }
-
-          // Update existing request
-          updatedOperations[matchingRequestIndex] = {
-            ...updatedOperations[matchingRequestIndex],
-            Requests: newRequestBody,
-          };
-
-          setBackgroundOperations(updatedOperations);
-        }
-        setBackgroundOperations(updatedOperations);
-      } else {
-        fetchBackgroundOperations();
-      }
-    }
-  }, [parsedSocketMessages.length]);
-
-  client.onConnect = function () {
-    setSocketClient(client as any);
-    setIsSocketConnected(true);
-    client.subscribe("/events/services", (message: any) => {
-      // called when the client receives a STOMP message from the server
-      if (message.body) {
-        try {
-          const parsedMessage = JSON.parse(message.body);
-          //TODO: parsedSocketMessages can exceed to very long list, need to limit it to some constant
-          setParsedSocketMessages((prevMessages) => [
-            parsedMessage,
-            ...prevMessages,
-          ]);
-        } catch {
-          console.log("Error in parsing socket message");
-        }
-      } else {
-      }
-    });
-    client.subscribe("/events/upgrade", (message: any) => {
-      if (message.body) {
-        try {
-          const parsedMessage = JSON.parse(message.body);
-          set(parsedMessage, "destination", message.headers.destination);
-          setParsedSocketMessages((prevMessages) => [
-            parsedMessage,
-            ...prevMessages,
-          ]);
-        } catch {
-          console.log("Error in parsing socket message");
-        }
-      }
-    });
-    client.subscribe("/events/hosts", (message: any) => {
-      if (message.body) {
-        try {
-          const parsedMessage = JSON.parse(message.body);
-          set(parsedMessage, "destination", message.headers.destination);
-          setParsedSocketMessages((prevMessages) => [
-            parsedMessage,
-            ...prevMessages,
-          ]);
-        } catch {
-          console.log("Error in parsing socket message");
-        }
-      } else {
-      }
-    });
-    client.subscribe("/events/requests", (message: any) => {
-      if (message.body) {
-        try {
-          const parsedMessage = JSON.parse(message.body);
-          set(parsedMessage, "destination", message.headers.destination);
-          setParsedSocketMessages((prevMessages) => [
-            parsedMessage,
-            ...prevMessages,
-          ]);
-        } catch {
-          console.log("Error in parsing socket message");
-        }
-      } else {
-      }
-    });
-    client.subscribe("/events/hostcomponents", (message: any) => {
-      if (message.body) {
-        try {
-          const parsedMessage = JSON.parse(message.body);
-          set(parsedMessage, "destination", message.headers.destination);
-          setParsedSocketMessages((prevMessages) => [
-            parsedMessage,
-            ...prevMessages,
-          ]);
-        } catch {
-          console.log("Error in parsing socket message");
-        }
-      } else {
-      }
-    });
-  };
-
-  client.onStompError = function (frame: any) {
-    // Will be invoked in case of error encountered at Broker
-    console.error("Broker reported error: " + frame.headers["message"]);
-    console.error("Additional details: " + frame.body);
-  };
-  client.onDisconnect = function () {
-    setSocketClient(null);
-    setIsSocketConnected(false);
-  };
-  client.onWebSocketClose = function () {
-    setSocketClient(null);
-    setIsSocketConnected(false);
-  };
+  }, [parsedSocketMessages]);
 
   useEffect(() => {
     if (isOnlyViewUser) {
       return;
     }
+    let active = true;
+    const destinations = [
+      "/events/hostcomponents",
+      "/events/alerts",
+      "/events/ui_topologies",
+      "/events/configs",
+      "/events/services",
+      "/events/hosts",
+      "/events/alert_definitions",
+      "/events/alert_group",
+      "/events/upgrade",
+      "/events/requests",
+    ];
+    client.onConnect = () => {
+      hasConnectedSocket.current = true;
+      setSocketClient(client as any);
+      setIsSocketConnected(true);
+      void fetchBackgroundOperations().catch(() => {
+        // The existing snapshot remains visible until the next REST reconciliation.
+      });
+      destinations.forEach((destination) => {
+        client.subscribe(destination, (message) => {
+          try {
+            const parsedMessage = JSON.parse(message.body);
+            parsedMessage.destination = destination;
+            if (destination === "/events/requests") {
+              setBackgroundOperations((current) => (
+                upsertRequestEvent(
+                  current,
+                  parsedMessage,
+                  backgroundOperationsPageSizeRef.current,
+                )
+              ));
+            }
+            setParsedSocketMessages((current) => [parsedMessage, ...current].slice(0, 200));
+          } catch {
+            console.error(`Ambari ignored a malformed STOMP message from ${destination}.`);
+          }
+        });
+      });
+    };
+    const switchInitialConnectionToSockJs = () => {
+      if (!shouldFallbackToSockJs(useSockJs.current, hasConnectedSocket.current)) {
+        return false;
+      }
+      useSockJs.current = true;
+      void client.deactivate({ force: true }).then(() => {
+        if (active) client.activate();
+      });
+      return true;
+    };
+    client.onStompError = (frame) => {
+      console.error("Ambari STOMP broker error:", frame.headers.message, frame.body);
+      switchInitialConnectionToSockJs();
+    };
+    client.onWebSocketError = () => {
+      switchInitialConnectionToSockJs();
+    };
+    client.onDisconnect = () => {
+      setSocketClient(null);
+      setIsSocketConnected(false);
+    };
+    client.onWebSocketClose = () => {
+      setSocketClient(null);
+      setIsSocketConnected(false);
+      switchInitialConnectionToSockJs();
+    };
     client.activate();
     return () => {
+      active = false;
+      client.onConnect = () => undefined;
+      client.onDisconnect = () => undefined;
+      client.onWebSocketClose = () => undefined;
+      client.onWebSocketError = () => undefined;
       void client.deactivate();
     };
-  }, [client, isOnlyViewUser]);
+  }, [client, fetchBackgroundOperations, isOnlyViewUser]);
 
   // Ember.js upgrade computed properties - implementing the same logic as ui/app/app.js
   const upgradeInit = upgradeState === "NOT_REQUIRED";
@@ -761,10 +739,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         userBgPreferences,
         setUserBgPreferences: setUserBgPreferencesData,
         syncUserBgPreferences: setUserBgPreferences,
+        userTimezone,
+        syncUserTimezone: setUserTimezone,
         // Background Operations
         backgroundOperations,
         setBackgroundOperations,
         updateBackgroundOperations,
+        fetchBackgroundOperationsSnapshot: fetchBackgroundOperations,
+        backgroundOperationsPageSize,
+        setBackgroundOperationsPageSize,
         runningOperationsCount,
         upgradeInit,
         upgradeInProgress,
