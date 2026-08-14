@@ -1,96 +1,96 @@
-# 基线整理方法
+# Baseline Organization Method
 
-## 目标
+## Objectives
 
-这套基线回答四个问题：
+This baseline answers four questions:
 
-1. 用户在经典 Ember 中能做什么？
-2. 在什么权限、feature flag、服务状态和向导状态下可以做？
-3. 操作会调用哪些后端接口，成功、失败和异步执行分别如何处理？
-4. 哪些源码和测试能证明上述行为？
+1. What can users do in the legacy Ember frontend?
+2. Under which permissions, feature flags, service states, and wizard states can they do it?
+3. Which backend interfaces do the operations call, and how are success, failure, and asynchronous execution handled?
+4. Which source code and tests provide evidence for this behavior?
 
-它不以“页面看起来相似”为完成标准，而以行为等价为标准。
+Completion is measured by behavioral equivalence, not by whether the pages look similar.
 
-## 功能记录字段
+## Functional Record Fields
 
-模块文档中的每个功能使用稳定 ID，并尽量包含以下字段：
+Each function in the module documentation uses a stable ID and should include the following fields where possible:
 
-| 字段 | 含义 |
+| Field | Meaning |
 | --- | --- |
-| ID | 模块内稳定标识，后续 React 对照不得重新编号 |
-| 入口 | route、菜单、按钮、弹窗或自动触发点 |
-| 前置/权限 | permission、feature flag、已安装服务、组件状态、升级/向导互斥条件 |
-| 用户行为 | 用户可执行的原子动作，而不是页面名称 |
-| 成功结果 | 页面变化、模型刷新、后台 request、导航或下载 |
-| 异常/边界 | 禁用、确认、服务端错误、轮询终止、重试、取消和恢复 |
-| 请求 | `App.ajax` 请求名；直接请求用 `DIRECT:<位置>` |
-| 证据 | route/controller/template/mixin/test 的源码位置 |
+| ID | Stable identifier within the module; do not renumber it for later React comparison |
+| Entry point | route, menu, button, popup, or automatically triggered point |
+| Preconditions/permissions | permission, feature flag, installed service, component state, and upgrade/wizard mutual-exclusion conditions |
+| User action | Atomic action that the user can perform, rather than a page name |
+| Success result | Page changes, model refresh, background request, navigation, or download |
+| Exception/boundary | Disabled state, confirmation, server error, polling termination, retry, cancellation, and recovery |
+| Request | `App.ajax` request name; use `DIRECT:<位置>` for direct requests |
+| Evidence | Source location in route/controller/template/mixin/test |
 
-## 证据等级
+## Evidence Levels
 
-| 标记 | 定义 |
+| Marker | Definition |
 | --- | --- |
-| `CONFIRMED` | route/controller/template/API/test 中至少两类证据互相印证 |
-| `STATIC_ONLY` | 静态代码存在，但需真实 Ambari Server、特定 stack 或外部服务验证 |
-| `CONDITIONAL` | 仅在权限、feature flag、service/component/stack 条件成立时存在 |
-| `PLACEHOLDER` | 只有路由或 outlet 壳，当前经典树中未找到完整页面实现 |
-| `OUT_OF_SCOPE` | Metrics 或独立 AngularJS Admin Console 等明确排除内容 |
+| `CONFIRMED` | At least two types of evidence in route/controller/template/API/test corroborate each other |
+| `STATIC_ONLY` | Static code exists, but requires validation with a real Ambari Server, specific stack, or external service |
+| `CONDITIONAL` | Exists only when permission, feature flag, service/component, or stack conditions are met |
+| `PLACEHOLDER` | Only a route or outlet shell exists; no complete page implementation was found in the current legacy tree |
+| `OUT_OF_SCOPE` | Explicitly excluded content such as Metrics or the separate AngularJS Admin Console |
 
-模块表默认均为 `CONFIRMED` 或 `CONDITIONAL`。其他状态会在条目中明确写出。
+Module tables default to `CONFIRMED` or `CONDITIONAL`. Other states are stated explicitly in the entry.
 
-## 接口识别
+## Interface Identification
 
-经典 Ember 有四类网络路径：
+The legacy Ember frontend has four types of network path:
 
-1. `App.ajax.send({name: ...})`：请求名注册在 `app/utils/ajax/ajax.js`。默认 method 是 `GET`，默认 prefix 是 `/api/v1`，`format()` 可动态覆盖 method、URL、body 和 header。
-2. 绕过命名注册表的直接 HTTP：包括 `App.HttpClient`、原生 `XMLHttpRequest` 和 jQuery AJAX；URL 常在 controller、view 或 util 中动态构造。
-3. 浏览器导航和下载：Quick Link、View iframe、client config download、日志新窗口和本地生成文件可能通过 `window.open`、`href` 或 iframe 发起，不经过前两类请求封装。
-4. STOMP 实时通道：原生 WebSocket 连接 `{ws|wss}://{host}{:port}/api/stomp/v1/websocket`，首次失败后以 SockJS `{http|https}://{host}{:port}/api/stomp/v1` 回退；destination、payload、订阅/退订、重连和 REST reconciliation 见 `generated/realtime-channels.json`。
+1. `App.ajax.send({name: ...})`: The request name is registered in `app/utils/ajax/ajax.js`. The default method is `GET`, the default prefix is `/api/v1`, and `format()` can dynamically override the method, URL, body, and header.
+2. Direct HTTP that bypasses the named registry: This includes `App.HttpClient`, native `XMLHttpRequest`, and jQuery AJAX; URLs are often constructed dynamically in a controller, view, or util.
+3. Browser navigation and downloads: Quick Links, View iframes, client config downloads, log windows, and locally generated files may use `window.open`, `href`, or an iframe without going through either of the preceding request wrappers.
+4. STOMP realtime channels: A native WebSocket connects to `{ws|wss}://{host}{:port}/api/stomp/v1/websocket`, then falls back to SockJS at `{http|https}://{host}{:port}/api/stomp/v1` after the first failure. See `generated/realtime-channels.json` for destinations, payloads, subscription/unsubscription, reconnection, and REST reconciliation.
 
-长 GET URL 超过 `2048` 字符时，`App.ajax` 会改为 `POST` 并发送 `X-Http-Method-Override: GET`，查询表达式放入 `RequestInfo.query`。React 迁移不能只复制表面的 GET method。
+When a GET URL exceeds `2048` characters, `App.ajax` changes it to `POST` and sends `X-Http-Method-Override: GET`, placing the query expression in `RequestInfo.query`. The React migration must not copy only the apparent GET method.
 
-接口目录中：
+In the interface inventory:
 
-- URL 不包含默认 `/api/v1`；若定义覆盖 `apiPrefix`，会单独列出。
-- Method 列的 `DYNAMIC` 只表示 HTTP method 依赖运行时数据；URL 依赖 `format()`/caller 表达式时单独记录 `hasDynamicUrl=true` 并在 Markdown 标 `DYNAMIC_URL`。两者不得混用。
-- `ajax-endpoints.json` 的 `formatExpression` 保存注册表中的完整 `format()` 函数；这是 mutation body、header、dataType 和动态 URL 的定义侧权威证据。
-- `ajax-calls.json` 逐调用点保存请求名表达式、内联 `data` 顶层键、回调类型和源码位置；这是同一请求在不同业务场景如何传参的调用侧权威证据。
-- “调用者 0”表示在经典 `app/` 中未找到同名字符串引用，可能是遗留定义、动态构造或测试专用，不能直接当作用户功能。
-- 动态请求对象和动态请求名不能仅靠语法安全归并；调用点仍以 `DYNAMIC` 保留，但 `tools/contracts/dynamic-ajax-resolutions.mjs` 已逐点审计其候选请求、dispatch条件和开放边界。`ajax-calls.json` 中 `RESOLVED_CLOSED` 表示候选闭集，`RESOLVED_OPEN_BOUNDARY` 表示当前经典调用者已枚举但 wrapper/model/mixin 仍允许运行时传入其他值。
-- `UNREGISTERED` 表示静态请求名实际不在 AJAX 注册表；`App.ajax.send` 会 warning 并返回 `null`，不会发出 HTTP。必须区分用户可达旧缺陷和不可达遗留 controller，不能为 React虚构 endpoint。
-- 相同 REST endpoint 可能由多个请求名以不同 payload、context、operation level 使用，迁移时不能仅按 URL 去重。
-- `generated/api-by-module/` 不是模块接口全集。生成器只把请求名和调用者路径拼接后用宽正则启发式归类；共享请求可能跨模块重复或误归类，模块专属请求也可能被归到其他模块或“跨模块与待人工归类”，因此模块页的缺席不能证明旧 UI 没有该请求。
+- URLs do not include the default `/api/v1`; an override of `apiPrefix` is listed separately.
+- `DYNAMIC` in the Method column means only that the HTTP method depends on runtime data. When the URL depends on a `format()`/caller expression, it is recorded separately as `hasDynamicUrl=true` and marked `DYNAMIC_URL` in Markdown. The two markers must not be conflated.
+- `formatExpression` in `ajax-endpoints.json` preserves the complete `format()` function from the registry; it is the authoritative definition-side evidence for mutation bodies, headers, dataType, and dynamic URLs.
+- `ajax-calls.json` records the request-name expression, top-level inline `data` keys, callback type, and source location for each call site; it is the authoritative call-site evidence for how the same request receives parameters in different business contexts.
+- "0 callers" means that no same-name string reference was found in the legacy `app/`. The definition may be legacy, dynamically constructed, or test-only and must not be treated directly as a user feature.
+- Dynamic request objects and dynamic request names cannot be safely consolidated by syntax alone. Call sites remain marked `DYNAMIC`, while `tools/contracts/dynamic-ajax-resolutions.mjs` audits their candidate requests, dispatch conditions, and open boundaries individually. In `ajax-calls.json`, `RESOLVED_CLOSED` means the candidate set is closed, while `RESOLVED_OPEN_BOUNDARY` means the current legacy callers have been enumerated but the wrapper/model/mixin can still receive other runtime values.
+- `UNREGISTERED` means that a static request name is not actually in the AJAX registry; `App.ajax.send` issues a warning and returns `null` without sending HTTP. User-reachable legacy defects must be distinguished from unreachable legacy controllers; React must not invent an endpoint.
+- The same REST endpoint may be used by multiple request names with different payloads, contexts, and operation levels. The migration must not deduplicate by URL alone.
+- `generated/api-by-module/` is not a complete module interface inventory. The generator concatenates request names and caller paths and classifies them with broad regular-expression heuristics. Shared requests may be duplicated or misclassified across modules, and module-specific requests may be assigned to another page or to "cross-cutting and pending manual classification"; therefore, absence from a module page does not prove that the legacy UI lacks the request.
 
-权威接口核对不能依赖任何单一目录或单一请求定义表，必须联合检查 `ajax-endpoints`（命名请求定义）、`ajax-calls`（实际调用点和动态 dispatch）、`direct-http-calls`（绕过注册表的 HTTP）、`browser-network-entrypoints`（导航、下载和 iframe）以及 `realtime-channels`（WebSocket/SockJS）。`api-by-module` 仅用于寻找候选入口，不能替代这五层证据；所有层仍应用下述 Metrics 排除规则。
+Authoritative interface verification cannot rely on any single inventory or request definition table. It must jointly inspect `ajax-endpoints` (named request definitions), `ajax-calls` (actual call sites and dynamic dispatch), `direct-http-calls` (HTTP that bypasses the registry), `browser-network-entrypoints` (navigation, downloads, and iframes), and `realtime-channels` (WebSocket/SockJS). `api-by-module` is used only to find candidate entry points and cannot replace these five layers of evidence; all layers remain subject to the Metrics exclusion rules below.
 
-## Metrics 排除规则
+## Metrics Exclusion Rules
 
-以下内容从功能和接口基线中排除：
+The following are excluded from the functional and interface baseline:
 
-- 请求名或源码模块明确属于 metrics、heatmap、timeline、chart 数据。
-- 所有调用者均位于 Metrics/Heatmap/指标 Widget 代码中的通用请求。
-- Dashboard/Service 的指标 Widget 管理。
+- Request names or source modules explicitly belonging to metrics, heatmap, timeline, or chart data.
+- Shared requests whose callers are all located in Metrics/Heatmap/metric Widget code.
+- Dashboard/Service metric Widget management.
 
-以下内容保留：
+The following are retained:
 
-- HA、decommission 等操作为判断安全条件而读取的 metrics 字段。
-- 非 Metrics 的请求进度、主机健康、组件状态、告警状态和升级进度。
-- 配置历史、日志搜索、后台 operation 和 service check。
-- 同一直接 HTTP 响应同时含 topology/state 与指标字段时，只保留 component topology、state、maintenance、stale config、HA state、Active/Standby 等运维字段；指标数值不因共用响应而进入基线。
-- `hosts.ips` 和 `hiveServerInteractive.getStatus` 虽由名为 `service_metrics_mapper` 的 mapper 调用，实际分别用于 host/IP 映射和 Hive Interactive Active/Standby quick-link 标识，按非指标运维能力保留。
+- metrics fields read by operations such as HA and decommission to determine safety conditions.
+- Non-Metrics request progress, host health, component state, alert state, and upgrade progress.
+- Configuration history, log search, background operations, and service checks.
+- When the same direct HTTP response contains both topology/state and metric fields, retain only operational fields such as component topology, state, maintenance, stale config, HA state, and Active/Standby; metric values do not enter the baseline merely because they share a response.
+- Although `hosts.ips` and `hiveServerInteractive.getStatus` are called by the mapper named `service_metrics_mapper`, they are actually used for host/IP mapping and the Hive Interactive Active/Standby quick-link indicator, respectively, and are retained as non-metric operational capabilities.
 
-## 静态提取局限
+## Static Extraction Limitations
 
-- 早期 Ember route 是嵌套对象，生成器只列 route fragment，不计算最终 URL。
-- `name`、URL 或 method 经变量传递时，静态提取可能只能记录动态表达式。
-- Handlebars 的动态 action、view 内部 click handler、observer 和定时器不一定出现在 action 清单。
-- Stack service descriptors、theme JSON 和 server-side feature metadata 会改变可见服务、组件、配置项和命令。
-- Knox、LDAP/Kerberos、Log Search、HAWQ 等能力需要真实外部环境才能验证完整结果。
+- Early Ember routes are nested objects, so the generator lists only route fragments and does not calculate final URLs.
+- When `name`, URL, or method is passed through a variable, static extraction may record only a dynamic expression.
+- Dynamic Handlebars actions, internal view click handlers, observers, and timers may not appear in the action inventory.
+- Stack service descriptors, theme JSON, and server-side feature metadata can change the visible services, components, configuration items, and commands.
+- Capabilities such as Knox, LDAP/Kerberos, Log Search, and HAWQ require a real external environment to validate their complete results.
 
-## React 对比步骤
+## React Comparison Steps
 
-1. 以功能 ID 为行建立矩阵，不按 React 文件组织。
-2. 对每行核对 route/入口、可见条件、权限、操作、payload、异步状态、错误路径和恢复行为。
-3. 从 React API 层反向关联到功能 ID，找出“有接口无入口”和“有页面无请求”两类缺口。
-4. 对 `STATIC_ONLY` 和 `CONDITIONAL` 项安排真实集群场景测试。
-5. 将确认过的 React 测试路径写回矩阵，但不修改旧版事实描述。
+1. Build the matrix with one row per feature ID, rather than organizing it by React file.
+2. For each row, verify the route/entry point, visibility conditions, permissions, operations, payload, asynchronous state, error path, and recovery behavior.
+3. Trace back from the React API layer to feature IDs to identify two types of gap: an interface with no entry point and a page with no request.
+4. Arrange real-cluster scenario tests for `STATIC_ONLY` and `CONDITIONAL` items.
+5. Record confirmed React test paths in the matrix without changing the legacy factual description.

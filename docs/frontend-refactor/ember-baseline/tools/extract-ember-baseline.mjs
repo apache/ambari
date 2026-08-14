@@ -850,24 +850,24 @@ function classifyModules(definition) {
   const evidence = `${definition.name} ${definition.callers.join(' ')}`;
   const modules = [];
   const rules = [
-    ['认证与应用外壳', /router|login|application|user_settings|inactiv|keepalive/i],
-    ['安装向导', /installer|wizard\/step|controllers\/wizard|bootstrap|recommendation|blueprint/i],
-    ['主机', /main\/host|hosts?|host_component/i],
-    ['服务与配置', /main\/service|service_config|config_group|configs?\//i],
-    ['告警', /alerts?|alert_/i],
-    ['Stack 与升级', /stack_and_upgrade|stack_upgrade|repo|version_definition|upgrades?/i],
-    ['安全、高可用与联邦', /kerberos|security|highAvailability|federation|journal|namenode|resourceManager|rangerAdmin|hawq/i],
+    ['Authentication and Application Shell', /router|login|application|user_settings|inactiv|keepalive/i],
+    ['Installation Wizards', /installer|wizard\/step|controllers\/wizard|bootstrap|recommendation|blueprint/i],
+    ['Hosts', /main\/host|hosts?|host_component/i],
+    ['Services and Configs', /main\/service|service_config|config_group|configs?\//i],
+    ['Alerts', /alerts?|alert_/i],
+    ['Stack and Upgrades', /stack_and_upgrade|stack_upgrade|repo|version_definition|upgrades?/i],
+    ['Security, HA, and Federation', /kerberos|security|highAvailability|federation|journal|namenode|resourceManager|rangerAdmin|hawq/i],
     ['Views', /main\/views|routes\/view|views?\./i],
-    ['后台操作与通用能力', /background|request|cluster_controller|update_controller|utils\//i],
+    ['Background Operations and Common Capabilities', /background|request|cluster_controller|update_controller|utils\//i],
   ];
   for (const [name, pattern] of rules) {
     if (pattern.test(evidence)) modules.push(name);
   }
-  return modules.length ? modules : ['跨模块与待人工归类'];
+  return modules.length ? modules : ['Cross-Module and Manual Classification'];
 }
 
 function classifyModule(definition) {
-  return classifyModules(definition).join('、');
+  return classifyModules(definition).join(', ');
 }
 
 const DIRECT_HTTP_CONTRACTS = {
@@ -875,25 +875,25 @@ const DIRECT_HTTP_CONTRACTS = {
     semanticKind: 'CLUSTER_MODEL_LOAD',
     urlContract: 'GET /api/v1/clusters/{clusterName}?fields=Clusters',
     operationalFields: ['Clusters/*'],
-    notes: '初始加载 cluster identity/security/credential-store 等基础模型；complete 在 mapper 后刷新 isCredentialStorePersistent。',
+    notes: 'Initial load of core cluster identity/security/credential-store models; complete refreshes isCredentialStorePersistent after the mapper runs.',
   },
   'ambari-web/classic/app/controllers/global/cluster_controller.js:384': {
     semanticKind: 'DYNAMIC_HOST_MODEL_LOAD_HELPER',
     urlContract: 'GET {callerSuppliedRealUrl}; test mode uses /data/hosts/HDP2/hosts.json',
     operationalFields: ['caller supplied'],
-    notes: '`requestHosts()` 在经典 app 树中无生产调用者，只有 controller unit test；保留为 STATIC_ONLY 遗留 helper。',
+    notes: '`requestHosts()` has no production caller in the classic app tree and is used only by a controller unit test; retained as a STATIC_ONLY legacy helper.',
   },
   'ambari-web/classic/app/controllers/global/cluster_controller.js:449': {
     semanticKind: 'CLUSTER_MODEL_REFRESH',
     urlContract: 'GET /api/v1/clusters/{clusterName}?fields=Clusters',
     operationalFields: ['Clusters/*'],
-    notes: '运行期刷新 cluster mapper；complete callback 为空。',
+    notes: 'Refreshes the cluster mapper at runtime; the complete callback is empty.',
   },
   'ambari-web/classic/app/controllers/global/cluster_controller.js:485': {
     semanticKind: 'ORIGINAL_REQUEST_REPLAY',
     urlContract: '{ajaxOpt.type} {ajaxOpt.url}; payload/headers/callbacks are the original failed jQuery request',
     operationalFields: ['original request dependent'],
-    notes: '先保存 KDC credential，再原样重放 `ajaxOpt`；不是新 endpoint，也不得丢失原 success/error/statusCode 处理。',
+    notes: 'Saves the KDC credential first, then replays `ajaxOpt` unchanged; this is not a new endpoint and must preserve the original success/error/statusCode handling.',
   },
   'ambari-web/classic/app/controllers/global/update_controller.js:323': {
     semanticKind: 'HOST_MODEL_LOAD',
@@ -905,7 +905,7 @@ const DIRECT_HTTP_CONTRACTS = {
       'logging metadata when supports.logSearch',
       'NameNode ClusterId and HAState when HDFS is loaded',
     ],
-    notes: '响应也可条件性携带 disk/load/cpu/memory 指标字段，这些数值排除；过滤、排序、分页和超长 GET override 行为必须保留。',
+    notes: 'The response may also conditionally include disk/load/cpu/memory metric fields, which are excluded; filtering, sorting, pagination, and oversized-GET override behavior must be preserved.',
   },
   'ambari-web/classic/app/controllers/global/update_controller.js:568': {
     semanticKind: 'COMPONENT_TOPOLOGY_LOAD',
@@ -915,85 +915,85 @@ const DIRECT_HTTP_CONTRACTS = {
       'host/display/public-host/state/maintenance/stale-config/ha-state/desired-admin-state',
       'HDFS ClusterId and HBase IsActiveMaster operational selectors',
     ],
-    notes: '共用 serviceMetricsMapper 且后续请求会携带大量指标；本基线只保留 topology/state/HA/Active-Standby 等运维语义。',
+    notes: 'Shares serviceMetricsMapper and subsequent requests include many metrics; this baseline retains only operational semantics such as topology/state/HA/Active-Standby.',
   },
   'ambari-web/classic/app/controllers/global/update_controller.js:615': {
     semanticKind: 'SERVICE_STATE_LOAD',
     urlContract: 'GET /api/v1/clusters/{clusterName}/services?fields=ServiceInfo/state,ServiceInfo/maintenance_state,ServiceInfo/desired_repository_version_id,components/ServiceComponentInfo/component_name&minimal_response=true',
     operationalFields: ['service state/maintenance/desired repository version', 'component names'],
-    notes: '集群初始化的 service 模型加载。',
+    notes: 'Loads the service model during cluster initialization.',
   },
   'ambari-web/classic/app/controllers/global/update_controller.js:626': {
     semanticKind: 'COMPONENT_STATE_LOAD',
     urlContract: 'GET /api/v1/clusters/{clusterName}/components/?fields=ServiceComponentInfo/{service_name,category,installed_count,started_count,init_count,install_failed_count,unknown_count,total_count,display_name},host_components/HostRoles/host_name&minimal_response=true',
     operationalFields: ['component category and aggregate state counts', 'host component host names'],
-    notes: '用于服务组件状态和拓扑映射。',
+    notes: 'Used to map service-component state and topology.',
   },
   'ambari-web/classic/app/controllers/global/update_controller.js:639': {
     semanticKind: 'ALERT_DEFINITION_LOAD',
     urlContract: 'GET /api/v1/clusters/{clusterName}/alert_definitions?fields=AlertDefinition/{component_name,description,enabled,repeat_tolerance,repeat_tolerance_enabled,id,ignore_host,interval,label,name,scope,service_name,source,help_url}',
     operationalFields: ['alert definition configuration and source'],
-    notes: '初始加载全部告警定义。',
+    notes: 'Initial load of all alert definitions.',
   },
   'ambari-web/classic/app/controllers/global/update_controller.js:654': {
     semanticKind: 'UNHEALTHY_ALERT_LOAD',
     urlContract: 'GET /api/v1/clusters/{clusterName}/alerts?fields={Alert operational fields}&Alert/state.in(CRITICAL,WARNING)&Alert/maintenance_state.in(OFF)&from={from}&page_size={pageSize}',
     operationalFields: ['critical/warning non-maintenance alert instances', 'repeat-tolerance remaining', 'timestamps/text/host/service/component'],
-    notes: '只载入非健康且 maintenance OFF 的分页实例。',
+    notes: 'Loads only paginated non-healthy instances with maintenance OFF.',
   },
   'ambari-web/classic/app/controllers/global/update_controller.js:665': {
     semanticKind: 'ALERT_GROUPED_SUMMARY_LOAD',
     urlContract: 'GET /api/v1/clusters/{clusterName}/alerts?format=groupedSummary',
     operationalFields: ['server grouped alert summary'],
-    notes: '为告警定义摘要 mapper 加载服务端分组统计。',
+    notes: 'Loads server-side grouped statistics for the alert-definition summary mapper.',
   },
   'ambari-web/classic/app/controllers/global/update_controller.js:676': {
     semanticKind: 'ALERT_GROUP_LOAD',
     urlContract: 'GET /api/v1/clusters/{clusterName}/alert_groups?fields=AlertGroup/{default,definitions,id,name,targets}',
     operationalFields: ['alert group membership and targets'],
-    notes: '初始加载告警组。',
+    notes: 'Initial load of alert groups.',
   },
   'ambari-web/classic/app/controllers/global/update_controller.js:682': {
     semanticKind: 'ALERT_TARGET_LOAD',
     urlContract: 'GET /api/v1/alert_targets?fields=*',
     operationalFields: ['all alert target/notification fields'],
-    notes: '根级 alert target 资源，不带 cluster path。',
+    notes: 'Root-level alert target resource without a cluster path.',
   },
   'ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:2025': {
     semanticKind: 'STACK_VERSION_LOAD',
     urlContract: 'GET /api/v1/clusters/{clusterName}/stack_versions?fields={full: *,repository_versions/*,... | update: ClusterStackVersions/*}',
     operationalFields: ['cluster stack versions', 'repository/OS/repository details on full load'],
-    notes: '`fullLoad` 选择初始全量 URL 或运行期轻量 URL。',
+    notes: '`fullLoad` selects the initial full URL or the lightweight runtime URL.',
   },
   'ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:2041': {
     semanticKind: 'REPOSITORY_VERSION_LOAD',
     urlContract: 'GET /api/v1/stacks?fields=versions/repository_versions/RepositoryVersions,versions/repository_versions/operating_systems/*,versions/repository_versions/operating_systems/repositories/*',
     operationalFields: ['stack repository versions', 'OS and repository definitions'],
-    notes: '全量 repository-version model 加载。',
+    notes: 'Full repository-version model load.',
   },
   'ambari-web/classic/app/controllers/main/admin/stack_upgrade_history_controller.js:69': {
     semanticKind: 'UPGRADE_HISTORY_LOAD',
     urlContract: 'GET /api/v1/clusters/{clusterName}/upgrades?fields=Upgrade',
     operationalFields: ['Upgrade/*'],
-    notes: '历史列表 complete 时即 resolve；HttpClient error 不调 complete，可留下未解决 promise。',
+    notes: 'The historical list resolves when complete is called; HttpClient errors do not call complete and may leave the promise unresolved.',
   },
   'ambari-web/classic/app/controllers/main/dashboard/config_history_controller.js:131': {
     semanticKind: 'CONFIG_HISTORY_LOAD',
     urlContract: 'GET /api/v1/clusters/{clusterName}/configurations/service_config_versions?{filterAndSortPredicates}fields=service_config_version,user,group_id,group_name,is_current,createtime,service_name,hosts,service_config_version_note,is_cluster_compatible,stack_id&minimal_response=true',
     operationalFields: ['service config version history and compatibility metadata'],
-    notes: '过滤、排序条件由 table mixin 动态生成。',
+    notes: 'Filter and sort conditions are generated dynamically by the table mixin.',
   },
   'ambari-web/classic/app/utils/polling.js:67': {
     semanticKind: 'GENERIC_MUTATION_POLL_HELPER',
     urlContract: 'PUT {App.Poll.url}; body={App.Poll.data}; response is text or JSON with Requests.id',
     operationalFields: ['Requests.id when asynchronous', 'caller-defined task/request polling data'],
-    notes: '经典 app 树未发现 `App.Poll.create()` 生产调用，只有 unit test；空/非 JSON 成功会直接标记 success，有 request ID 才转轮询。',
+    notes: 'No production call to `App.Poll.create()` was found in the classic app tree, only a unit test; empty/non-JSON success is marked successful directly, and polling begins only when a request ID exists.',
   },
   'ambari-web/classic/app/views/main/admin/stack_upgrade/custom_cluster_checks/custom_cluster_ckecks_host_hearbeat_view.js:52': {
     semanticKind: 'HOST_DELETE_PREFLIGHT_LOAD',
     urlContract: 'GET /api/v1/clusters/{clusterName}/hosts/?Hosts/host_name.in({hostName})&fields={host,host-component,stack-version,logging and metric fields}&minimal_response=true&page_size=10&from=0&sortBy=Hosts/host_name.asc',
     operationalFields: ['host and host-component state/maintenance/stale-config/desired-admin-state', 'stack versions and logging', 'NameNode ClusterId/HAState safety selectors'],
-    notes: '升级前 heartbeat check 中的安全删除流程；响应携带 disk/load/cpu/memory 指标但该指标展示不纳入。',
+    notes: 'Safe deletion flow in the pre-upgrade heartbeat check; the response includes disk/load/cpu/memory metrics, but their display is excluded.',
   },
 };
 
@@ -1007,299 +1007,299 @@ const pageReloadContract = (urlContract, notes) => ({
 const BROWSER_NETWORK_CONTRACTS = {
   'ambari-web/classic/app/controllers/global/user_settings_controller.js:327': pageReloadContract(
     'reload current Ambari document after show_bg/timezone preference requests settle',
-    '两个 preference mutation 都用 `.always()` 串联；成功或失败均可 reload 以应用 timezone。',
+    'Both preference mutations are chained with `.always()`; either success or failure can trigger a reload to apply the timezone.',
   ),
   'ambari-web/classic/app/controllers/main.js:122': pageReloadContract(
     'delayed reload of current Ambari document after route/status change',
-    'cluster 已安装时，route 或 install status observer 延迟 `App.pageReloadTime` 后 reload。',
+    'When the cluster is installed, a route or install-status observer reloads after the `App.pageReloadTime` delay.',
   ),
   'ambari-web/classic/app/controllers/main/host/bulk_operations_controller.js:453': pageReloadContract(
     'reload current Ambari document after bulk host-delete result closes',
-    '成功/部分失败结果都整页刷新，先清除已删除 host selection。',
+    'Both successful and partially failed results reload the entire page after clearing the deleted host selection.',
   ),
   'ambari-web/classic/app/controllers/main/host/bulk_operations_controller.js:792': pageReloadContract(
     'reload current Ambari document after bulk host-component-delete result primary action',
-    '结果 popup 的 Primary 与 Close 各有独立 reload 调用。',
+    'The result popup has separate reload calls for Primary and Close.',
   ),
   'ambari-web/classic/app/controllers/main/host/bulk_operations_controller.js:797': pageReloadContract(
     'reload current Ambari document after bulk host-component-delete result closes',
-    '结果 popup 的 Close 分支整页重建 host/component 模型。',
+    'The result popup Close branch rebuilds the host/component models on the entire page.',
   ),
   'ambari-web/classic/app/controllers/main/alerts/alert_definitions_actions_controller.js:251': {
     semanticKind: 'PAGE_RELOAD',
     networkEffect: 'NAVIGATION_REQUEST',
     urlContract: 'reload current Ambari document after starting repeat-tolerance config save',
-    notes: '配置 PUT 不被 await；保存请求仍在途时立即整页 reload，可能中断或隐藏失败结果。',
+    notes: 'The config PUT is not awaited; the page reloads immediately while the save request is in flight, which may interrupt or hide failure results.',
   },
   'ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:2329': {
     semanticKind: 'LOCAL_DOCUMENT',
     networkEffect: 'LOCAL_ONLY',
     urlContract: 'about:blank; writes generated HTML configuration diff',
-    notes: '新窗口只接收内存中生成的 HTML，不请求后端。',
+    notes: 'The new window receives only generated in-memory HTML and does not request the backend.',
   },
   'ambari-web/classic/app/controllers/main/views_controller.js:112': {
     semanticKind: 'INTERNAL_AMBARI_ROUTE',
     networkEffect: 'NAVIGATION_REQUEST',
     urlContract: '#/main/view/{viewName}/{shortUrl} or #/main/views/{viewName}/{version}/{instanceName}',
-    notes: '新浏览上下文打开 Ember hash route，随后由 View details iframe 请求 context。',
+    notes: 'The new browsing context opens an Ember hash route, after which the View details iframe requests its context.',
   },
   'ambari-web/classic/app/controllers/main/service/item.js:2042': {
     semanticKind: 'PAGE_RELOAD',
     networkEffect: 'NAVIGATION_REQUEST',
     urlContract: 'reload current Ambari document after service deletion confirmation',
-    notes: '用户关闭删除成功确认后整页 reload，以 REST 启动链重新构建 cluster/service 模型。',
+    notes: 'After the user closes the delete-success confirmation, the page reloads and rebuilds cluster/service models through the REST startup chain.',
   },
   'ambari-web/classic/app/mixins/main/host/details/support_client_configs_download.js:39': {
     semanticKind: 'AMBARI_REST_DOWNLOAD',
     networkEffect: 'REMOTE_REQUEST',
     urlContract: 'GET one of the five generated client-config contracts (`?format=client_config_tar`)',
-    notes: '精确 resource-scope URL 见 client-config-downloads 清单。',
+    notes: 'See the client-config-downloads catalog for the exact resource-scope URL.',
   },
   'ambari-web/classic/app/utils/configs/database.js:223': {
     semanticKind: 'URL_PARSER_NO_NETWORK',
     networkEffect: 'NO_NETWORK',
     urlContract: 'none; assigns caller URL to a detached anchor to read `.hostname`',
-    notes: '只借浏览器 URL parser 解析 hostname。',
+    notes: 'Uses only the browser URL parser to read the hostname.',
   },
   'ambari-web/classic/app/utils/file_utils.js:76': {
     semanticKind: 'LOCAL_DOCUMENT',
     networkEffect: 'LOCAL_ONLY',
     urlContract: 'about:blank; writes caller-provided text/HTML',
-    notes: '本地内容预览。',
+    notes: 'Local content preview.',
   },
   'ambari-web/classic/app/utils/file_utils.js:91': {
     semanticKind: 'LOCAL_DOWNLOAD',
     networkEffect: 'LOCAL_ONLY',
     urlContract: 'data:attachment/{fileType};charset=utf-8,{encodedData}',
-    notes: 'Safari fallback 的本地 data URL 下载。',
+    notes: 'Local data-URL download for the Safari fallback.',
   },
   'ambari-web/classic/app/utils/helper.js:1115': {
     semanticKind: 'ADMIN_VIEW_REDIRECT_HELPER',
     networkEffect: 'NAVIGATION_REQUEST',
     urlContract: 'window.location.replace({callerSuppliedLocation})',
-    notes: '可测试的 helper 实现；真实业务调用点另列。',
+    notes: 'Testable helper implementation; actual business call sites are listed separately.',
   },
   'ambari-web/classic/app/views/common/host_progress_popup_body_view.js:1044': {
     semanticKind: 'LOCAL_DOCUMENT',
     networkEffect: 'LOCAL_ONLY',
     urlContract: 'about:blank; writes selected task/component log text',
-    notes: '不发新后端请求。',
+    notes: 'Sends no new backend request.',
   },
   'ambari-web/classic/app/views/common/modal_popups/log_tail_popup.js:57': {
     semanticKind: 'LOCAL_DOCUMENT',
     networkEffect: 'LOCAL_ONLY',
     urlContract: 'about:blank; writes already-loaded log tail',
-    notes: '不发新后端请求。',
+    notes: 'Sends no new backend request.',
   },
   'ambari-web/classic/app/views/common/modal_popups/logs_popup.js:43': {
     semanticKind: 'LOCAL_DOCUMENT',
     networkEffect: 'LOCAL_ONLY',
     urlContract: 'about:blank; writes task log HTML already in the DOM',
-    notes: '不发新后端请求。',
+    notes: 'Sends no new backend request.',
   },
   'ambari-web/classic/app/views/main/admin/stack_upgrade/failed_hosts_modal_view.js:77': {
     semanticKind: 'LOCAL_DOCUMENT',
     networkEffect: 'LOCAL_ONLY',
     urlContract: 'about:blank; writes failed-host JSON',
-    notes: '不发新后端请求。',
+    notes: 'Sends no new backend request.',
   },
   'ambari-web/classic/app/views/main/admin/stack_upgrade/upgrade_task_view.js:174': {
     semanticKind: 'LOCAL_DOCUMENT',
     networkEffect: 'LOCAL_ONLY',
     urlContract: 'about:blank; writes already-loaded upgrade task log',
-    notes: '不发新后端请求。',
+    notes: 'Sends no new backend request.',
   },
   'ambari-web/classic/app/views/wizard/step3/hostWarningPopupBody_view.js:480': {
     semanticKind: 'LOCAL_DOCUMENT',
     networkEffect: 'LOCAL_ONLY',
     urlContract: 'about:blank; writes bootstrap warning details',
-    notes: '不发新后端请求。',
+    notes: 'Sends no new backend request.',
   },
   'ambari-web/classic/app/views/wizard/step9/hostLogPopupBody_view.js:197': {
     semanticKind: 'LOCAL_DOCUMENT',
     networkEffect: 'LOCAL_ONLY',
     urlContract: 'about:blank; writes already-loaded install task logs',
-    notes: '不发新后端请求。',
+    notes: 'Sends no new backend request.',
   },
   'ambari-web/classic/app/router.js:669': {
     semanticKind: 'ADMIN_VIEW_REDIRECT',
     networkEffect: 'NAVIGATION_REQUEST',
     urlContract: '{appURLRoot}views/ADMIN_VIEW/{lexicallyLatestServerComponentVersion}/INSTANCE/#/',
-    notes: '无 cluster 的 Admin View 分流；location.replace 整页离开 Ember。',
+    notes: 'Admin View branch for no cluster; location.replace leaves Ember with a full-page navigation.',
   },
   'ambari-web/classic/app/router.js:349': {
     semanticKind: 'JWT_PROVIDER_REDIRECT',
     networkEffect: 'NAVIGATION_REQUEST',
     urlContract: '{401/403 response jwtProviderUrl}{encoded current window URL}{redirected query flag}',
-    notes: '认证失败响应驱动的外部 IdP 整页跳转；redirect counter 仅限制循环，不约束 provider origin。',
+    notes: 'Authentication-failure response drives a full-page redirect to the external IdP; the redirect counter limits only loops and does not constrain the provider origin.',
   },
   'ambari-web/classic/app/router.js:773': {
     semanticKind: 'PAGE_RELOAD',
     networkEffect: 'NAVIGATION_REQUEST',
     urlContract: 'reload current Ambari document after logout when cluster model was loaded',
-    notes: '先 transition 到 login，下一 run-loop 再整页 reload。',
+    notes: 'Transitions to login first, then reloads the page on the next run loop.',
   },
   'ambari-web/classic/app/router.js:806': {
     semanticKind: 'PREFERRED_PATH_REDIRECT',
     networkEffect: 'NAVIGATION_REQUEST',
     urlContract: '{saved preferredPath beginning with / or #, except a path containing #/login}',
-    notes: '`startsWith("/")` 也接受 `//host/path`，因此旧实现可能发生 protocol-relative 跨源导航；React 应按已知安全缺陷处理。',
+    notes: '`startsWith("/")` also accepts `//host/path`, so the legacy implementation may perform protocol-relative cross-origin navigation; React should treat this as a known security defect.',
   },
   'ambari-web/classic/app/router.js:889': {
     semanticKind: 'WINDOW_LOCATION_SETTER',
     networkEffect: 'NAVIGATION_REQUEST',
     urlContract: 'window.location={callerSuppliedUrl}',
-    notes: 'JWT redirect helper 的最终可测试 setter；实际 provider 数据入口另列。',
+    notes: 'Final testable setter for the JWT redirect helper; the actual provider data entry point is listed separately.',
   },
   'ambari-web/classic/app/routes/activate_hawq_standby_routes.js:56': pageReloadContract(
     'reload current Ambari document after closing an unfinished Activate HAWQ Standby wizard',
-    'cluster status persist 以 `alwaysCallback` 收尾，失败也 transition 后 reload。',
+    'Cluster status persistence ends with `alwaysCallback`; failure also triggers a transition followed by reload.',
   ),
   'ambari-web/classic/app/routes/activate_hawq_standby_routes.js:178': pageReloadContract(
     'reload current Ambari document after completing Activate HAWQ Standby',
-    '完成清理 persist 以 `alwaysCallback` 收尾。',
+    'Cleanup persistence ends with `alwaysCallback`.',
   ),
   'ambari-web/classic/app/routes/add_alert_definition_routes.js:141': pageReloadContract(
     'reload current Ambari document after Add Alert Definition completes',
-    '清理向导状态后 transition 到 Alerts；status persist 失败也 reload。',
+    'Cleans up wizard state and transitions to Alerts; status-persistence failure also reloads.',
   ),
   'ambari-web/classic/app/routes/add_hawq_standby_routes.js:57': pageReloadContract(
     'reload current Ambari document after closing an unfinished Add HAWQ Standby wizard',
-    'cluster status persist 以 `alwaysCallback` 收尾，失败也 reload。',
+    'Cluster status persistence ends with `alwaysCallback`; failure also reloads.',
   ),
   'ambari-web/classic/app/routes/add_hawq_standby_routes.js:202': pageReloadContract(
     'reload current Ambari document after completing Add HAWQ Standby',
-    '完成清理 persist 以 `alwaysCallback` 收尾。',
+    'Cleanup persistence ends with `alwaysCallback`.',
   ),
   'ambari-web/classic/app/routes/main.js:549': pageReloadContract(
     'reload current Ambari document after Disable Kerberos closes',
-    'Disable 清理和 cluster status persist 以 `alwaysCallback` 收尾，随后返回 Kerberos 页并 reload。',
+    'Disable cleanup and cluster status persistence end with `alwaysCallback`, then return to the Kerberos page and reload.',
   ),
   'ambari-web/classic/app/routes/ra_high_availability_routes.js:179': pageReloadContract(
     'reload current Ambari document after Ranger Admin HA completes',
-    '完成清理 persist 以 `alwaysCallback` 收尾。',
+    'Cleanup persistence ends with `alwaysCallback`.',
   ),
   'ambari-web/classic/app/routes/reassign_master_routes.js:314': pageReloadContract(
     'reload current Ambari document after Reassign Master completes',
-    'cluster status persist 以 `alwaysCallback` 收尾，失败也 transition 后 reload。',
+    'Cluster status persistence ends with `alwaysCallback`; failure also triggers a transition followed by reload.',
   ),
   'ambari-web/classic/app/routes/remove_hawq_standby_routes.js:63': pageReloadContract(
     'reload current Ambari document after confirmed close of an active Remove HAWQ Standby wizard',
-    '确认关闭后清理状态；persist 成功或失败都 reload。',
+    'Cleans up state after confirmed close; both persistence success and failure reload.',
   ),
   'ambari-web/classic/app/routes/remove_hawq_standby_routes.js:81': pageReloadContract(
     'reload current Ambari document after closing an inactive Remove HAWQ Standby wizard',
-    '非活动阶段无需确认，但同样在 persist settle 后 reload。',
+    'No confirmation is required during the inactive phase, but reload still occurs after persistence settles.',
   ),
   'ambari-web/classic/app/routes/remove_hawq_standby_routes.js:189': pageReloadContract(
     'reload current Ambari document after completing Remove HAWQ Standby',
-    '完成清理 persist 以 `alwaysCallback` 收尾。',
+    'Cleanup persistence ends with `alwaysCallback`.',
   ),
   'ambari-web/classic/app/routes/rollbackHA_routes.js:154': pageReloadContract(
     'reload current Ambari document after NameNode HA rollback completes',
-    '本分支不等待 cluster status persist，transition 后下一 run-loop 直接 reload。',
+    'This branch does not wait for cluster status persistence; it transitions and reloads directly on the next run loop.',
   ),
   'ambari-web/classic/app/routes/stack_upgrade_routes.js:83': pageReloadContract(
     'conditionally reload current Ambari document when closing an upgrade wizard',
-    '只在全局 upgrade state 为 NOT_REQUIRED 或 COMPLETED 时 reload 并 reset wizard owner。',
+    'Reloads and resets the wizard owner only when global upgrade state is NOT_REQUIRED or COMPLETED.',
   ),
   'ambari-web/classic/app/controllers/wizard.js:1528': pageReloadContract(
     'reload current Ambari document after generic long-running wizard exit cleanup',
-    'HA/Federation 等共享 `exitWizard()` 在 status persist settle 后 transition 并 reload。',
+    'Shared `exitWizard()` flows such as HA/Federation transition and reload after status persistence settles.',
   ),
   'ambari-web/classic/app/mixins/common/reload_popup.js:63': pageReloadContract(
     'reload current Ambari document from the stale-page popup link',
-    'reload 调用位于运行时编译的 inline onclick；用户点击时执行。',
+    'The reload call is in a runtime-compiled inline onclick and executes when the user clicks.',
   ),
   'ambari-web/classic/app/views/main/admin/stack_upgrade/versions_view.js:233': {
     semanticKind: 'ADMIN_VIEW_REDIRECT',
     networkEffect: 'NAVIGATION_REQUEST',
     urlContract: '{appURLRoot}views/ADMIN_VIEW/{lexicallyLatestServerComponentVersion}/INSTANCE/#/',
-    notes: 'Manage Versions 确认后整页跳转 Admin View。',
+    notes: 'After Manage Versions confirmation, performs a full-page navigation to Admin View.',
   },
   'ambari-web/classic/app/views/main/views/details.js:85': {
     semanticKind: 'VIEW_WEB_CONTEXT',
     networkEffect: 'REMOTE_REQUEST',
     urlContract: '{window.location.protocol}//{window.location.host}{ViewInstanceInfo.context_path}/{viewPath}',
-    notes: '同源 View application iframe；不是 `/api/v1` REST。',
+    notes: 'Same-origin View application iframe; not `/api/v1` REST.',
   },
   'ambari-web/classic/app/templates/common/about.hbs:30': {
     semanticKind: 'STATIC_EXTERNAL_LINK',
     networkEffect: 'NAVIGATION_REQUEST',
     urlContract: 'http://ambari.apache.org/',
-    notes: 'About 弹窗静态项目链接。',
+    notes: 'Static project link in the About modal.',
   },
   'ambari-web/classic/app/templates/common/about.hbs:32': {
     semanticKind: 'STATIC_EXTERNAL_LINK',
     networkEffect: 'NAVIGATION_REQUEST',
     urlContract: 'http://www.apache.org/licenses/LICENSE-2.0',
-    notes: 'About 弹窗静态 license 链接。',
+    notes: 'Static license link in the About modal.',
   },
   'ambari-web/classic/app/assets/index.html:48': {
     semanticKind: 'STATIC_EXTERNAL_LINK',
     networkEffect: 'NAVIGATION_REQUEST',
     urlContract: 'http://www.apache.org/licenses/LICENSE-2.0',
-    notes: '经典应用 footer 的 Apache License 外链。',
+    notes: 'External Apache License link in the legacy application footer.',
   },
   'ambari-web/classic/app/assets/index.html:49': {
     semanticKind: 'STATIC_NOTICE_DOCUMENT',
     networkEffect: 'REMOTE_REQUEST',
     urlContract: 'GET /licenses/NOTICE.txt',
-    notes: '经典应用 footer 打开同源第三方 NOTICE 静态文档。',
+    notes: 'The legacy application footer opens a same-origin third-party NOTICE document.',
   },
   'ambari-web/classic/app/templates/application.hbs:70': {
     semanticKind: 'NEW_UI_NAVIGATION',
     networkEffect: 'NAVIGATION_REQUEST',
     urlContract: 'GET /latest/#',
-    notes: '用户菜单的 Switch Experience 整页导航到新版前端入口。',
+    notes: 'The user menu navigates to the new frontend entry point with a full-page navigation through Switch Experience.',
   },
   'ambari-web/classic/app/templates/common/host_progress_popup.hbs:345': {
     semanticKind: 'EXTERNAL_LOG_SEARCH',
     networkEffect: 'NAVIGATION_REQUEST',
     urlContract: '{Log Search UI quick-link URL}{hostLog.linkTail}',
-    notes: '依赖 Log Search service quick-link descriptor 和已加载日志上下文。',
+    notes: 'Depends on the Log Search service quick-link descriptor and loaded log context.',
   },
   'ambari-web/classic/app/templates/common/modal_popups/log_tail_popup.hbs:32': {
     semanticKind: 'EXTERNAL_LOG_SEARCH',
     networkEffect: 'NAVIGATION_REQUEST',
     urlContract: '{Log Search quick-link template}/#/logs/serviceLogs;{component/host/file query}',
-    notes: '在 Log Search service 和 quick-link 可用时显示。',
+    notes: 'Shown when the Log Search service and quick link are available.',
   },
   'ambari-web/classic/app/templates/main/alerts/definition_details.hbs:196': {
     semanticKind: 'EXTERNAL_ALERT_HELP',
     networkEffect: 'NAVIGATION_REQUEST',
     urlContract: '{AlertDefinition.help_url}',
-    notes: '只在定义有 help URL 时显示，URL 由后端数据提供。',
+    notes: 'Shown only when the definition has a help URL supplied by backend data.',
   },
   'ambari-web/classic/app/templates/main/host/logs.hbs:46': {
     semanticKind: 'EXTERNAL_LOG_SEARCH',
     networkEffect: 'NAVIGATION_REQUEST',
     urlContract: '{Log Search UI quick-link URL}{file.linkTail}',
-    notes: '主机日志页按文件构造 Log Search 深链。',
+    notes: 'The host logs page constructs a Log Search deep link for the selected file.',
   },
   'ambari-web/classic/app/templates/main/service/info/summary.hbs:103': {
     semanticKind: 'EXTERNAL_QUICK_LINK',
     networkEffect: 'NAVIGATION_REQUEST',
     urlContract: '{stack quicklinks descriptor + current configs + selected public host/protocol/port}',
-    notes: '多 master/group 的服务 Quick Links。',
+    notes: 'Service Quick Links for multiple masters/groups.',
   },
   'ambari-web/classic/app/templates/main/service/info/summary.hbs:111': {
     semanticKind: 'EXTERNAL_QUICK_LINK',
     networkEffect: 'NAVIGATION_REQUEST',
     urlContract: '{stack quicklinks descriptor + current configs + selected public host/protocol/port}',
-    notes: '单 host/平铺的服务 Quick Links。',
+    notes: 'Service Quick Links for a single host or flat layout.',
   },
   'ambari-web/classic/app/templates/main/service/services/hive.hbs:54': {
     semanticKind: 'INTERNAL_AMBARI_ROUTE',
     networkEffect: 'CONDITIONAL',
     urlContract: '{ViewInstance.internalAmbariUrl}',
-    notes: '遗留 Hive-to-View hook；当前 `viewsToShow` 为空，默认无可见链接，有 runtime extension 时才路由。',
+    notes: 'Legacy Hive-to-View hook; `viewsToShow` is currently empty, so no link is visible by default and routing occurs only with a runtime extension.',
   },
   'ambari-web/classic/app/templates/main/views.hbs:28': {
     semanticKind: 'VIEW_ICON_RESOURCE',
     networkEffect: 'REMOTE_REQUEST',
     urlContract: 'GET {ViewInstanceInfo.icon_path}',
-    notes: '由后端 View instance metadata 驱动的动态图片请求；不是固定构建图片。',
+    notes: 'Dynamic image request driven by backend View-instance metadata; not a fixed built image.',
   },
 };
 
@@ -1547,29 +1547,29 @@ function extractFeatureIndex() {
 
 function renderAjaxCatalog(definitions, excludedDefinitions) {
   const lines = [
-    '# Ember 非 Metrics 命名 AJAX 接口目录',
+    '# Ember Non-Metrics Named AJAX API Catalog',
     '',
-    '> 由 `tools/extract-ember-baseline.mjs` 生成，请勿手工编辑。URL 默认追加 `/api/v1`；Method 中的 `DYNAMIC` 只表示 HTTP method 由运行时表达式决定，动态 URL 单独标为 `DYNAMIC_URL`。调用者计数为经典前端 `app/` 目录中的字符串引用数。',
+    '> Generated by `tools/extract-ember-baseline.mjs`; do not edit manually. URLs use `/api/v1` by default; `DYNAMIC` in the Method column means only that the HTTP method is determined by a runtime expression, while dynamic URLs are marked separately as `DYNAMIC_URL`. Caller counts are string-reference counts in the classic frontend `app/` directory.',
     '',
-    `- 纳入定义：${definitions.length}`,
-    `- 排除 Metrics 定义：${excludedDefinitions.length}`,
-    `- 有经典前端调用证据：${definitions.filter((item) => item.callers.length > 0).length}`,
-    `- 未发现经典前端调用证据：${definitions.filter((item) => item.callers.length === 0).length}`,
+    `- Included definitions: ${definitions.length}`,
+    `- Excluded Metrics definitions: ${excludedDefinitions.length}`,
+    `- With legacy frontend call evidence: ${definitions.filter((item) => item.callers.length > 0).length}`,
+    `- Without legacy frontend call evidence: ${definitions.filter((item) => item.callers.length === 0).length}`,
     '',
-    '| 请求名 | Method | URL（不含默认 prefix） | format 输入键 | Prefix | 模块 | 调用者 | 定义 |',
+    '| Request name | Method | URL (without default prefix) | format input keys | Prefix | Module | Callers | Definition |',
     '| --- | --- | --- | --- | --- | --- | ---: | --- |',
   ];
   for (const definition of definitions) {
     const inputKeys = definition.hasFormat
-      ? (definition.inputKeys.length ? definition.inputKeys.map((key) => `\`${escapeMarkdown(key)}\``).join(', ') : '无静态 `data.*` 引用')
-      : '无 `format()`';
+      ? (definition.inputKeys.length ? definition.inputKeys.map((key) => `\`${escapeMarkdown(key)}\``).join(', ') : 'No static `data.*` references')
+      : 'No `format()`';
     const endpoint = `${definition.endpoint}${definition.hasDynamicUrl ? ' [DYNAMIC_URL]' : ''}`;
     lines.push(`| \`${escapeMarkdown(definition.name)}\` | \`${definition.methods.join('/')}\` | \`${escapeMarkdown(endpoint)}\` | ${inputKeys} | \`${escapeMarkdown(definition.apiPrefix)}\` | ${classifyModule(definition)} | ${definition.callers.length} | [source](../../../../${definition.source}#L${definition.line}) |`);
     if (definition.callers.length) {
-      lines.push(`|  |  | 调用位置：${definition.callers.map((caller) => `\`${escapeMarkdown(caller)}\``).join('<br>')} |  |  |  |  |  |`);
+      lines.push(`|  |  | Call sites: ${definition.callers.map((caller) => `\`${escapeMarkdown(caller)}\``).join('<br>')} |  |  |  |  |  |`);
     }
   }
-  lines.push('', '## 已排除的 Metrics 请求', '', excludedDefinitions.map((item) => `- \`${item.name}\` ([source](../../../../${item.source}#L${item.line}))`).join('\n'), '');
+  lines.push('', '## Excluded Metrics Requests', '', excludedDefinitions.map((item) => `- \`${item.name}\` ([source](../../../../${item.source}#L${item.line}))`).join('\n'), '');
   return lines.join('\n');
 }
 
@@ -1579,13 +1579,13 @@ function renderAjaxCalls(calls, includedRequestNames) {
   const dynamicMissingCandidates = new Set(dynamicCalls.flatMap((call) =>
     call.candidateRequestNames.filter((name) => !includedRequestNames.has(name))));
   const lines = [
-    '# Ember 非 Metrics AJAX 调用点',
+    '# Ember Non-Metrics AJAX Call Sites',
     '',
-    '> 由 `tools/extract-ember-baseline.mjs` 生成。每行是一个 `App.ajax.send(...)` 调用点；动态请求按 `tools/contracts/dynamic-ajax-resolutions.mjs` 的人工审计契约解析。参数键只列调用对象中 `data: {...}` 的顶层键。',
+    '> Generated by `tools/extract-ember-baseline.mjs`. Each row is an `App.ajax.send(...)` call site; dynamic requests are resolved using the manual-audit contracts in `tools/contracts/dynamic-ajax-resolutions.mjs`. Parameter keys list only top-level keys in `data: {...}` on the call object.',
     '',
-    `共 ${calls.length} 个调用点，其中 ${calls.filter((call) => call.registrationStatus === 'REGISTERED').length} 个命中纳入范围的注册请求，${calls.filter((call) => call.registrationStatus === 'UNREGISTERED').length} 个静态请求名未在注册表定义，${calls.filter((call) => call.registrationStatus === 'DYNAMIC').length} 个使用动态表达式。`,
+    `${calls.length} call sites: ${calls.filter((call) => call.registrationStatus === 'REGISTERED').length} match in-scope registered requests, ${calls.filter((call) => call.registrationStatus === 'UNREGISTERED').length} use static request names absent from the registry, and ${calls.filter((call) => call.registrationStatus === 'DYNAMIC').length} use dynamic expressions.`,
     '',
-    '| 请求名/表达式 | 注册状态 | 调用参数 | 回调 | 位置 |',
+    '| Request name/expression | Registration status | Call parameters | Callbacks | Location |',
     '| --- | --- | --- | --- | --- |',
   ];
   for (const call of calls) {
@@ -1595,33 +1595,33 @@ function renderAjaxCalls(calls, includedRequestNames) {
     const data = call.dataKeys.length
       ? call.dataKeys.map((key) => `\`${escapeMarkdown(key)}\``).join(', ')
       : call.dataExpression
-        ? `表达式：\`${escapeMarkdown(call.dataExpression)}\``
-        : '未发现内联 `data`';
+        ? `Expression: \`${escapeMarkdown(call.dataExpression)}\``
+        : 'No inline `data` found';
     const callbacks = call.callbacks.length
       ? call.callbacks.map((key) => `\`${key}\``).join(', ')
-      : '默认处理';
+      : 'Default handling';
     lines.push(`| ${request} | \`${call.registrationStatus}\` | ${data} | ${callbacks} | [source](../../../../${call.source}#L${call.line}) |`);
   }
   lines.push(
     '',
-    '## 动态调用解析',
+    '## Dynamic Call Resolution',
     '',
-    `动态解析：${dynamicCalls.length}/${dynamicCalls.length} 个调用点已绑定契约，${dynamicCandidateNames.size} 个唯一候选请求名，${dynamicMissingCandidates.size} 个候选未命中纳入注册表。`,
+    `Dynamic resolution: ${dynamicCalls.length}/${dynamicCalls.length} call sites have contracts, ${dynamicCandidateNames.size} unique candidate request names, and ${dynamicMissingCandidates.size} candidates absent from the in-scope registry.`,
     '',
-    '| 位置/表达式 | 解析状态 | 分派种类 | 候选请求名 | 分派条件 | 运行时边界 |',
+    '| Location/expression | Resolution status | Dispatch kind | Candidate request names | Dispatch condition | Runtime boundary |',
     '| --- | --- | --- | --- | --- | --- |',
   );
   for (const call of dynamicCalls) {
     const candidates = call.candidateRequestNames
       .map((name) => `\`${escapeMarkdown(name)}\``)
       .join('<br>');
-    lines.push(`| [source](../../../../${call.source}#L${call.line})<br>\`${escapeMarkdown(call.requestExpression)}\` | \`${call.resolutionStatus}\` | \`${call.dispatchKind}\` | ${candidates} | ${escapeMarkdown(call.dispatchCondition)} | ${escapeMarkdown(call.boundaryNotes)}<br>证据：${call.evidence.map((item) => `\`${escapeMarkdown(item)}\``).join('<br>')} |`);
+    lines.push(`| [source](../../../../${call.source}#L${call.line})<br>\`${escapeMarkdown(call.requestExpression)}\` | \`${call.resolutionStatus}\` | \`${call.dispatchKind}\` | ${candidates} | ${escapeMarkdown(call.dispatchCondition)} | ${escapeMarkdown(call.boundaryNotes)}<br>Evidence: ${call.evidence.map((item) => `\`${escapeMarkdown(item)}\``).join('<br>')} |`);
   }
   lines.push(
     '',
-    '`RESOLVED_CLOSED` 表示当前生产分支可穷举；`RESOLVED_OPEN_BOUNDARY` 表示当前候选已穷举，但通用 wrapper、model metadata、mixin property 或 FIFO queue 仍可被未来代码扩展。',
+    '`RESOLVED_CLOSED` means the current production branches are enumerable; `RESOLVED_OPEN_BOUNDARY` means the current candidates are enumerable but a generic wrapper, model metadata, mixin property, or FIFO queue may be extended by future code.',
     '',
-    '`UNREGISTERED` 是经典代码实际调用但 `app/utils/ajax/ajax.js` 没有同名定义的遗留行为。它不是有效后端契约；迁移时应先确认预期 endpoint，再决定修复或保留兼容行为。',
+    '`UNREGISTERED` is legacy behavior where the classic code calls a name with no matching definition in `app/utils/ajax/ajax.js`. It is not a valid backend contract; migration must first confirm the intended endpoint before fixing or preserving compatibility behavior.',
     '',
   );
   return lines.join('\n');
@@ -1629,51 +1629,51 @@ function renderAjaxCalls(calls, includedRequestNames) {
 
 function renderDirectCalls(calls) {
   const lines = [
-    '# Ember 非 Metrics 直接 HTTP 调用',
+    '# Ember Non-Metrics Direct HTTP Calls',
     '',
-    '> 由 `tools/extract-ember-baseline.mjs` 生成。这些调用绕过 `App.ajax` 命名注册表；每条已人工还原业务语义、URL 契约和本基线保留的运维字段。生成器遇到新调用而没有语义契约时会直接失败。',
+    '> Generated by `tools/extract-ember-baseline.mjs`. These calls bypass the `App.ajax` named registry; each has manually reconstructed business semantics, URL contract, and operational fields retained by this baseline. The generator fails if it encounters a new call without a semantic contract.',
     '',
-    `共 ${calls.length} 个静态调用点。`,
+    `${calls.length} static call sites.`,
     '',
-    '| 语义 | Method / 范围 | URL 契约 | 保留字段 | 行为/边界 | 位置 |',
+    '| Semantics | Method / Scope | URL Contract | Retained Fields | Behavior/Boundary | Location |',
     '| --- | --- | --- | --- | --- | --- |',
   ];
   for (const call of calls) {
     const fields = call.operationalFields.map((field) => `\`${escapeMarkdown(field)}\``).join('<br>');
-    lines.push(`| \`${call.semanticKind}\`<br>${call.kind} | \`${call.method}\` / \`${call.scope}\` | \`${escapeMarkdown(call.urlContract)}\` | ${fields} | ${escapeMarkdown(call.notes)}<br>调用：\`${escapeMarkdown(call.expression)}\` | [source](../../../../${call.source}#L${call.line}) |`);
+    lines.push(`| \`${call.semanticKind}\`<br>${call.kind} | \`${call.method}\` / \`${call.scope}\` | \`${escapeMarkdown(call.urlContract)}\` | ${fields} | ${escapeMarkdown(call.notes)}<br>Call: \`${escapeMarkdown(call.expression)}\` | [source](../../../../${call.source}#L${call.line}) |`);
   }
-  lines.push('', '`MIXED` 调用同时返回指标字段和非 Metrics 运维字段。本文只纳入表中列明的 topology/state/maintenance/stale config/HA/Active-Standby/安全判断字段；指标数值仍排除。`ORIGINAL_REQUEST_REPLAY` 是保存 KDC credential 后重放原请求，不能当成一个固定 endpoint。', '');
+  lines.push('', '`MIXED` calls return both metric fields and non-Metrics operational fields. This document includes only the topology/state/maintenance/stale config/HA/Active-Standby/safety-decision fields listed in the table; metric values remain excluded. `ORIGINAL_REQUEST_REPLAY` replays the original request after saving the KDC credential and is not a fixed endpoint.', '');
   return lines.join('\n');
 }
 
 function renderBrowserNetworkEntrypoints(entries) {
   const lines = [
-    '# Ember 非 Metrics 浏览器网络与下载入口',
+    '# Ember Non-Metrics Browser Network and Download Entry Points',
     '',
-    '> 由 `tools/extract-ember-baseline.mjs` 生成。每个命令式入口、整页 reload/redirect、View iframe/icon 和非 Metrics 声明式导航链接均已人工分类。生成器遇到新入口而没有语义契约时会直接失败。普通启动脚本、样式表、favicon 和固定 UI 图片属于构建/静态资源，不在本目录范围。',
+    '> Generated by `tools/extract-ember-baseline.mjs`. Each command entry point, full-page reload/redirect, View iframe/icon, and non-Metrics declarative navigation link is manually classified. The generator fails if it encounters a new entry point without a semantic contract. Ordinary startup scripts, stylesheets, favicons, and fixed UI images are build/static resources outside this catalog.',
     '',
-    `共 ${entries.length} 个候选调用点。`,
+    `${entries.length} candidate call sites.`,
     '',
-    '| 语义 | 网络效果 | URL / 内容契约 | 表达式 | 边界 | 位置 |',
+    '| Semantics | Network Effect | URL / Content Contract | Expression | Boundary | Location |',
     '| --- | --- | --- | --- | --- | --- |',
   ];
   for (const entry of entries) {
     lines.push(`| \`${entry.semanticKind}\`<br>${entry.kind} | \`${entry.networkEffect}\` | \`${escapeMarkdown(entry.urlContract)}\` | \`${escapeMarkdown(entry.expression)}\` | ${escapeMarkdown(entry.notes)} | [source](../../../../${entry.source}#L${entry.line}) |`);
   }
   const effects = [...new Set(entries.map((entry) => entry.networkEffect))].sort();
-  lines.push('', `网络效果分类：${effects.map((effect) => `\`${effect}\``).join('、')}。\`LOCAL_ONLY\` 和 \`NO_NETWORK\` 不是后端接口，但仍是 React 需保留或明确变更的用户行为。`, '');
+  lines.push('', `Network effect categories: ${effects.map((effect) => `\`${effect}\``).join(', ')}. \`LOCAL_ONLY\` and \`NO_NETWORK\` are not backend APIs, but remain user behavior that React must preserve or explicitly change.`, '');
   return lines.join('\n');
 }
 
 function renderClientConfigDownloads(contracts) {
   const lines = [
-    '# Ember Client Config 浏览器下载契约',
+    '# Ember Client Config Browser Download Contracts',
     '',
-    '> 由 `tools/extract-ember-baseline.mjs` 生成。五种 resource scope 共用一个 mixin，并由 `window.open()` 直接请求 archive；不会进入 `App.ajax` 或直接 HTTP 调用计数。',
+    '> Generated by `tools/extract-ember-baseline.mjs`. Five resource scopes share one mixin and request the archive directly through `window.open()`; they are not included in `App.ajax` or direct HTTP call counts.',
     '',
-    `共 ${contracts.length} 种 resource scope。`,
+    `${contracts.length} resource scopes.`,
     '',
-    '| Resource type | Method | URL（含 `/api/v1` 后的路径） | 分支位置 |',
+    '| Resource Type | Method | URL (path after `/api/v1`) | Branch Location |',
     '| --- | --- | --- | --- |',
   ];
   for (const contract of contracts) {
@@ -1684,7 +1684,7 @@ function renderClientConfigDownloads(contracts) {
 }
 
 function renderRealtimeLocations(locations) {
-  if (!locations.length) return '无';
+  if (!locations.length) return 'None';
   return locations
     .map(({ source, line }) => `[source](../../../../${source}#L${line})`)
     .join('<br>');
@@ -1700,23 +1700,23 @@ function renderRealtimeChannels({ transports, subscriptions, lifecycle }) {
   ).length;
   const dynamicDestinations = subscriptions.length - staticDestinations;
   const lines = [
-    '# Ember 非 Metrics 实时通道契约',
+    '# Ember Non-Metrics Realtime Channel Contract',
     '',
-    '> 由 `tools/extract-ember-baseline.mjs` 从已审计的静态 contract 生成。本文冻结 classic UI 的 STOMP/WebSocket/SockJS 行为，不包含 Metrics 时序数据通道。',
+    '> Generated by `tools/extract-ember-baseline.mjs` from the audited static contract. This document freezes classic UI STOMP/WebSocket/SockJS behavior and excludes Metrics time-series channels.',
     '',
-    '## 可校验摘要',
+    '## Verifiable Summary',
     '',
-    `- transports：${transports.length}`,
-    `- destinations：${subscriptions.length}（${staticDestinations} static + ${dynamicDestinations} dynamic）`,
-    `- subscribe sites：${countSites('subscribeSites')}`,
-    `- addHandler sites：${countSites('addHandlerSites')}`,
-    `- removeHandler sites：${countSites('removeHandlerSites')}`,
-    `- business unsubscribe sites：${countSites('unsubscribeSites')}`,
-    `- lifecycle contracts：${lifecycle.length}`,
+    `- transports: ${transports.length}`,
+    `- destinations: ${subscriptions.length} (${staticDestinations} static + ${dynamicDestinations} dynamic)`,
+    `- subscribe sites: ${countSites('subscribeSites')}`,
+    `- addHandler sites: ${countSites('addHandlerSites')}`,
+    `- removeHandler sites: ${countSites('removeHandlerSites')}`,
+    `- business unsubscribe sites: ${countSites('unsubscribeSites')}`,
+    `- lifecycle contracts: ${lifecycle.length}`,
     '',
     '## Transport',
     '',
-    '| ID / 类型 | URL | 协议与心跳 | Fallback / 重连 | 风险边界 | Source / Test |',
+    '| ID / Type | URL | Protocol and Heartbeat | Fallback / Reconnection | Failure Boundaries | Source / Test |',
     '| --- | --- | --- | --- | --- | --- |',
   ];
   for (const transport of transports) {
@@ -1732,17 +1732,17 @@ function renderRealtimeChannels({ transports, subscriptions, lifecycle }) {
       `reconnect: ${transport.reconnect.policy}`,
     ].map(escapeMarkdown).join('<br>');
     const locations = [
-      `实现：${renderRealtimeLocations(transport.sourceLocations)}`,
-      `测试：${renderRealtimeLocations(transport.testLocations)}`,
+      `Implementation: ${renderRealtimeLocations(transport.sourceLocations)}`,
+      `Tests: ${renderRealtimeLocations(transport.testLocations)}`,
     ].join('<br>');
     lines.push(`| \`${transport.id}\`<br>\`${transport.kind}\` | \`${escapeMarkdown(transport.urlTemplate)}\` | ${protocolDetail} | ${recovery} | ${transport.failureBoundaries.map(escapeMarkdown).join('<br>')} | ${locations} |`);
   }
 
   lines.push(
     '',
-    '## Destination 契约',
+    '## Destination Contract',
     '',
-    '| ID / Destination | Event | Ember 消费字段 | Handler chain | Lifecycle | REST reconcile | 风险边界 | Source |',
+    '| ID / Destination | Event | Ember Consumed Fields | Handler Chain | Lifecycle | REST Reconciliation | Failure Boundaries | Source |',
     '| --- | --- | --- | --- | --- | --- | --- | --- |',
   );
   for (const subscription of subscriptions) {
@@ -1761,7 +1761,7 @@ function renderRealtimeChannels({ transports, subscriptions, lifecycle }) {
       ['test', subscription.testLocations],
     ]
       .filter(([, locations]) => locations.length)
-      .map(([name, locations]) => `${name}：${renderRealtimeLocations(locations)}`)
+      .map(([name, locations]) => `${name}: ${renderRealtimeLocations(locations)}`)
       .join('<br>');
     lines.push(`| \`${subscription.id}\`<br>\`${escapeMarkdown(subscription.destinationTemplate)}\` | \`${escapeMarkdown(subscription.eventClass)}\` | ${consumedFields} | ${handlers} | ${escapeMarkdown(subscription.lifecycle)} | ${escapeMarkdown(subscription.restReconciliation)} | ${subscription.failureBoundaries.map(escapeMarkdown).join('<br>')} | ${sources} |`);
   }
@@ -1784,13 +1784,13 @@ function renderRealtimeChannels({ transports, subscriptions, lifecycle }) {
   lines.push(
     '## Lifecycle',
     '',
-    '| ID / 名称 | 行为 | 风险边界 | Source / Test |',
+    '| ID / Name | Behavior | Failure Boundaries | Source / Test |',
     '| --- | --- | --- | --- |',
   );
   for (const entry of lifecycle) {
     const locations = [
-      `实现：${renderRealtimeLocations(entry.sourceLocations)}`,
-      `测试：${renderRealtimeLocations(entry.testLocations)}`,
+      `Implementation: ${renderRealtimeLocations(entry.sourceLocations)}`,
+      `Tests: ${renderRealtimeLocations(entry.testLocations)}`,
     ].join('<br>');
     lines.push(`| \`${entry.id}\`<br>\`${entry.name}\` | ${escapeMarkdown(entry.behavior)} | ${entry.failureBoundaries.map(escapeMarkdown).join('<br>')} | ${locations} |`);
   }
@@ -1804,13 +1804,13 @@ function renderNamedUsageCatalog(title, description, items) {
     '',
     `> ${description}`,
     '',
-    `共 ${items.length} 个不同名称。`,
+    `${items.length} distinct names.`,
     '',
-    '| 名称 | 使用形式 | 调用点数 | 位置 |',
+    '| Name | Usage Form | Call Sites | Locations |',
     '| --- | --- | ---: | --- |',
   ];
   for (const item of items) {
-    const kinds = item.kinds?.length ? item.kinds.map((kind) => `\`${kind}\``).join(', ') : '静态引用';
+    const kinds = item.kinds?.length ? item.kinds.map((kind) => `\`${kind}\``).join(', ') : 'Static reference';
     lines.push(`| \`${escapeMarkdown(item.name)}\` | ${kinds} | ${item.callers.length} | ${item.callers.map((caller) => `\`${escapeMarkdown(caller)}\``).join('<br>')} |`);
   }
   lines.push('');
@@ -1819,13 +1819,13 @@ function renderNamedUsageCatalog(title, description, items) {
 
 function renderFeatureIndex(features) {
   const lines = [
-    '# Ember 稳定功能索引',
+    '# Ember Stable Feature Index',
     '',
-    '> 由 `tools/extract-ember-baseline.mjs` 从 `01` 至 `13` 模块文档生成，请勿手工编辑。`00` 方法论、`14` React 矩阵和 `15` 审计报告不会被识别为功能来源。',
+    '> Generated by `tools/extract-ember-baseline.mjs` from module documents `01` through `13`; do not edit manually. `00` methodology, `14` React matrix, and `15` audit report are not recognized as feature sources.',
     '',
-    `共 ${features.length} 个稳定功能 ID。`,
+    `${features.length} stable feature IDs.`,
     '',
-    '| 功能 ID | 模块 | 小节 | 摘要 | 定义 |',
+    '| Feature ID | Module | Section | Summary | Definition |',
     '| --- | --- | --- | --- | --- |',
   ];
   for (const feature of features) {
@@ -1837,13 +1837,13 @@ function renderFeatureIndex(features) {
 
 function renderRoutes(routes) {
   const lines = [
-    '# Ember 非 Metrics 路由片段',
+    '# Ember Non-Metrics Route Fragments',
     '',
-    '> 由 `tools/extract-ember-baseline.mjs` 生成。旧版使用嵌套 `Em.Route`，表中是源码中的 route fragment，不是已拼接的最终 URL。',
+    '> Generated by `tools/extract-ember-baseline.mjs`. The legacy frontend uses nested `Em.Route`; the table contains route fragments from source, not concatenated final URLs.',
     '',
-    `共 ${routes.length} 个非 Metrics route fragment。`,
+    `${routes.length} non-Metrics route fragments.`,
     '',
-    '| Route fragment | 位置 |',
+    '| Route fragment | Location |',
     '| --- | --- |',
   ];
   for (const route of routes) {
@@ -1855,13 +1855,13 @@ function renderRoutes(routes) {
 
 function renderActions(actions) {
   const lines = [
-    '# Ember 非 Metrics 模板动作',
+    '# Ember Non-Metrics Template Actions',
     '',
-    '> 由 `tools/extract-ember-baseline.mjs` 生成。该表用于发现用户可触发行为；动态 action 和仅由 JavaScript 触发的行为仍需查阅模块文档与源码。',
+    '> Generated by `tools/extract-ember-baseline.mjs`. This table identifies user-triggerable behavior; dynamic actions and behavior triggered only by JavaScript still require review of the module documents and source.',
     '',
-    `共 ${actions.length} 个不同 action 名。`,
+    `${actions.length} distinct action names.`,
     '',
-    '| Action | 出现次数 | 模板位置 |',
+    '| Action | Occurrences | Template Locations |',
     '| --- | ---: | --- |',
   ];
   for (const action of actions) {
@@ -1880,23 +1880,23 @@ function renderModuleCatalog(moduleName, definitions) {
     callers: definition.callers,
   }));
   const lines = [
-    `# ${moduleName}：Ember 非 Metrics 命名 AJAX 候选索引`,
+    `# ${moduleName}: Ember Non-Metrics Named AJAX Candidate Index`,
     '',
-    '> 由 `tools/extract-ember-baseline.mjs` 生成。该页只按请求名和调用者路径的宽正则启发式归类：共享请求可能跨模块混入或重复，模块请求也可能漏列或归到其他页。它不是模块接口全集；权威核对必须联合 `../ajax-endpoints.json`、`../ajax-calls.json`、`../direct-http-calls.json`、`../browser-network-entrypoints.json` 和 `../realtime-channels.json`。',
+    '> Generated by `tools/extract-ember-baseline.mjs`. This page uses broad regular-expression heuristics over request names and caller paths: shared requests may be mixed across modules or duplicated, and module requests may be omitted or assigned elsewhere. It is not a complete module API catalog; authoritative review must combine `../ajax-endpoints.json`, `../ajax-calls.json`, `../direct-http-calls.json`, `../browser-network-entrypoints.json`, and `../realtime-channels.json`.',
     '',
-    `共 ${definitions.length} 个命名请求候选。`,
-    `候选内容 SHA-256：\`${sha256Json(contentContract)}\`。`,
+    `${definitions.length} named request candidates.`,
+    `Candidate content SHA-256: \`${sha256Json(contentContract)}\`.`,
     '',
-    '| 请求名 | Method | URL（不含默认 prefix） | format 输入键 | 调用位置 |',
+    '| Request Name | Method | URL (without default prefix) | format Input Keys | Call Sites |',
     '| --- | --- | --- | --- | --- |',
   ];
   for (const definition of definitions) {
     const callers = definition.callers.length
       ? definition.callers.map((caller) => `\`${escapeMarkdown(caller)}\``).join('<br>')
-      : '未发现经典前端字符串调用证据';
+      : 'No legacy frontend string-call evidence found';
     const inputKeys = definition.hasFormat
-      ? (definition.inputKeys.length ? definition.inputKeys.map((key) => `\`${escapeMarkdown(key)}\``).join(', ') : '无静态 `data.*` 引用')
-      : '无 `format()`';
+      ? (definition.inputKeys.length ? definition.inputKeys.map((key) => `\`${escapeMarkdown(key)}\``).join(', ') : 'No static `data.*` references')
+      : 'No `format()`';
     const endpoint = `${definition.endpoint}${definition.hasDynamicUrl ? ' [DYNAMIC_URL]' : ''}`;
     lines.push(`| \`${escapeMarkdown(definition.name)}\` | \`${definition.methods.join('/')}\` | \`${escapeMarkdown(endpoint)}\` | ${inputKeys} | ${callers} |`);
   }
@@ -1942,13 +1942,13 @@ writeGenerated('direct-http-calls.md', renderDirectCalls(directCalls));
 writeGenerated('browser-network-entrypoints.md', renderBrowserNetworkEntrypoints(browserNetworkEntrypoints));
 writeGenerated('client-config-downloads.md', renderClientConfigDownloads(clientConfigDownloads));
 writeGenerated('permissions.md', renderNamedUsageCatalog(
-  'Ember 非 Metrics Permission 使用点',
-  '由 `tools/extract-ember-baseline.mjs` 生成。识别 JavaScript 与 Handlebars 中静态字符串形式的 `isAuthorized`/`havePermissions`；helper 动态参数和服务端 privilege 仍需人工审计。',
+  'Ember Non-Metrics Permission Usage',
+  'Generated by `tools/extract-ember-baseline.mjs`. Identifies static-string `isAuthorized`/`havePermissions` forms in JavaScript and Handlebars; helper dynamic arguments and server privileges still require manual audit.',
   permissionUses,
 ));
 writeGenerated('feature-flags.md', renderNamedUsageCatalog(
-  'Ember 非 Metrics Feature Flag 使用点',
-  '由 `tools/extract-ember-baseline.mjs` 生成。识别 JavaScript 和 Handlebars 中的 `App.supports.flag` 及 `App.get(\'supports.flag\')`；默认值和服务端覆盖语义见手写权限文档。',
+  'Ember Non-Metrics Feature Flag Usage',
+  'Generated by `tools/extract-ember-baseline.mjs`. Identifies `App.supports.flag` and `App.get(\'supports.flag\')` in JavaScript and Handlebars; see the authored permissions document for default values and server override semantics.',
   featureFlagUses,
 ));
 writeGenerated('routes.md', renderRoutes(routes));
@@ -1979,16 +1979,16 @@ for (const definition of definitions) {
   }
 }
 const moduleFileNames = new Map([
-  ['认证与应用外壳', 'auth-shell.md'],
-  ['安装向导', 'installation-wizards.md'],
-  ['主机', 'hosts.md'],
-  ['服务与配置', 'services-configs.md'],
-  ['告警', 'alerts.md'],
-  ['Stack 与升级', 'stack-upgrades.md'],
-  ['安全、高可用与联邦', 'security-ha-federation.md'],
+  ['Authentication and Application Shell', 'auth-shell.md'],
+  ['Installation Wizards', 'installation-wizards.md'],
+  ['Hosts', 'hosts.md'],
+  ['Services and Configs', 'services-configs.md'],
+  ['Alerts', 'alerts.md'],
+  ['Stack and Upgrades', 'stack-upgrades.md'],
+  ['Security, HA, and Federation', 'security-ha-federation.md'],
   ['Views', 'views.md'],
-  ['后台操作与通用能力', 'background-common.md'],
-  ['跨模块与待人工归类', 'cross-cutting.md'],
+  ['Background Operations and Common Capabilities', 'background-common.md'],
+  ['Cross-Module and Manual Classification', 'cross-cutting.md'],
 ]);
 const moduleDir = path.join(outputRoot, 'api-by-module');
 fs.mkdirSync(moduleDir, { recursive: true });

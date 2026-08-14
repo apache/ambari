@@ -1,294 +1,294 @@
-# Ambari Views 模块
+# Ambari Views Module
 
-经典 Ember 的 Ambari Views 功能由三个不同层次组成：Ember 负责列出当前用户可见的 View instance、解析两套 hash URL，并把 instance 的服务端 context path 嵌入同源 iframe；具体 View 应用由 Ambari Server 在 `/views/...` 下提供；用户、组、权限和 View instance 的管理则由独立 AngularJS Admin Console 提供。三者不能在 React 对照时合并成一个页面功能。
+The legacy Ember Ambari Views feature has three distinct layers: Ember lists View instances visible to the current user, parses two hash URL forms, and embeds an instance's server context path in a same-origin iframe; Ambari Server provides the individual View application under `/views/...`; and a separate AngularJS Admin Console manages users, groups, permissions, and View instances. React comparison must not combine these into one page feature.
 
-本文中的 `View` 专指 Ambari View extension，不是 Ember `Em.View` UI 类。默认均为 `CONFIRMED`；明确标为 `STATIC_ONLY`、`CONDITIONAL`、`PLACEHOLDER` 或 `OUT_OF_SCOPE` 的条目按 [00-methodology.md](00-methodology.md) 的证据等级处理。
+`View` in this document means an Ambari View extension, not the Ember `Em.View` UI class. Entries are `CONFIRMED` by default; entries explicitly marked `STATIC_ONLY`, `CONDITIONAL`, `PLACEHOLDER`, or `OUT_OF_SCOPE` follow the evidence levels in [00-methodology.md](00-methodology.md).
 
-## 范围与对象模型
+## Scope and Object Model
 
-| ID | 基线事实 | React 对照边界 | 主要证据 | 等级 |
+| ID | Baseline fact | React comparison boundary | Primary evidence | Level |
 | --- | --- | --- | --- | --- |
-| VIEW-SCOPE-001 | 后端对象层级是 View definition -> View version -> View instance；Ember 最终只建立扁平的 `App.ViewInstance[]` | 同一 View 的不同 version/instance 必须保留为不同对象，不能只按 `view_name` 去重 | `app/controllers/main/views_controller.js`、`app/models/view_instance.js` | `CONFIRMED` |
-| VIEW-SCOPE-002 | Ember 只消费 instance 的 icon、label、visible、version、description、view name、short URL、instance name 和 context path | View parameters、properties、cluster binding、instance lifecycle 和授权 CRUD 不属于这个 Ember 页面 | `app/controllers/main/views_controller.js#loadViewInstancesSuccess` | `CONFIRMED` |
-| VIEW-SCOPE-003 | `/views/{view}/{version}/{instance}/...` 是 Ambari Server 提供的 View Web context，不是 `/api/v1` REST route，也不是 Ember hash route | React shell可以承载该 context，但不能把 View 自身应用误写成 React 重构范围 | `app/views/main/views/details.js#src`、`ViewInstanceInfo.context_path` | `CONFIRMED` |
-| VIEW-SCOPE-004 | 内置 `ADMIN_VIEW` 是独立 AngularJS Admin Console；Ember 只有入口判断、版本发现和整页跳转 | Admin Console 内的用户、组、角色、集群权限、repository、View instance/short URL/权限管理均为 `OUT_OF_SCOPE` | `app/router.js#transitionToAdminView`、`ambari-admin/src/main/resources/ui/admin-web` | `OUT_OF_SCOPE` |
+| VIEW-SCOPE-001 | The backend object hierarchy is View definition -> View version -> View instance; Ember ultimately creates a flat `App.ViewInstance[]` | Different versions/instances of the same View must remain distinct objects and must not be deduplicated only by `view_name` | `app/controllers/main/views_controller.js`, `app/models/view_instance.js` | `CONFIRMED` |
+| VIEW-SCOPE-002 | Ember consumes only the instance icon, label, visible, version, description, view name, short URL, instance name, and context path | View parameters, properties, cluster binding, instance lifecycle, and authorization CRUD are outside this Ember page | `app/controllers/main/views_controller.js#loadViewInstancesSuccess` | `CONFIRMED` |
+| VIEW-SCOPE-003 | `/views/{view}/{version}/{instance}/...` is the View Web context provided by Ambari Server, not an `/api/v1` REST route or an Ember hash route | The React shell may host this context, but the View application itself must not be described as part of the React refactor scope | `app/views/main/views/details.js#src`, `ViewInstanceInfo.context_path` | `CONFIRMED` |
+| VIEW-SCOPE-004 | Built-in `ADMIN_VIEW` is a separate AngularJS Admin Console; Ember provides only entry checks, version discovery, and full-page navigation | Users, groups, roles, cluster permissions, repositories, and View instance/short URL/permission management inside the Admin Console are `OUT_OF_SCOPE` | `app/router.js#transitionToAdminView`, `ambari-admin/src/main/resources/ui/admin-web` | `OUT_OF_SCOPE` |
 
-## Route 与页面状态
+## Routes and Page State
 
-| ID | URL / route state | 行为 | 主要证据 | 等级 |
+| ID | URL / route state | Behavior | Primary evidence | Level |
 | --- | --- | --- | --- | --- |
-| VIEW-ROUTE-001 | `#/main/views/`，`main.views.index` | 等待 View instance 数据完成后，把 `mainViews` 列表接到 main outlet | `app/routes/views.js#index`、`app/views/main/views_view.js` | `CONFIRMED` |
-| VIEW-ROUTE-002 | `#/main/views/:viewName/:version/:instanceName`，`main.views.viewDetails` | 用完整 identity 匹配预加载的 instance，把 `mainViewsDetails` iframe 接到 outlet | `app/routes/views.js#viewDetails` | `CONFIRMED` |
-| VIEW-ROUTE-003 | `#/main/view/`，`main.view.index` | singular route 的 index 同样显示完整 View 列表；进入父 route 时已经切换到 contrib-view 宽屏布局 | `app/routes/view.js#index` | `CONFIRMED` |
-| VIEW-ROUTE-004 | `#/main/view/:viewName/:shortName`，`main.view.shortViewDetails` | 以 `viewName + shortUrl` 匹配预加载 instance，再显示相同 iframe | `app/routes/view.js#shortViewDetails`、`test/models/view_instance_test.js` | `CONFIRMED` |
-| VIEW-ROUTE-005 | `#/adminView`，顶层 `adminView` state；route pattern 为 `/adminView` | 这是 hash router 中无 outlet 的过渡 route；通过 server version 找到 Admin View URL 后执行整页 `location.replace`。不得把 route pattern 误写成浏览器根路径 `/adminView` | `app/router.js#adminView`、`app/router.js#adminViewInfoSuccessCallback` | `CONFIRMED` |
-| VIEW-ROUTE-006 | `/views/:view/:version/:instance/...`，无 `#` | 浏览器直接请求 View application 的 server context；不经过 `main.views.viewDetails` | `app/views/main/views/details.js#src`、`app/router.js#adminViewInfoSuccessCallback` | `CONFIRMED` |
+| VIEW-ROUTE-001 | `#/main/views/`, `main.views.index` | Waits for View instance data to finish, then connects the `mainViews` list to the main outlet | `app/routes/views.js#index`, `app/views/main/views_view.js` | `CONFIRMED` |
+| VIEW-ROUTE-002 | `#/main/views/:viewName/:version/:instanceName`, `main.views.viewDetails` | Matches a preloaded instance by complete identity and connects the `mainViewsDetails` iframe to the outlet | `app/routes/views.js#viewDetails` | `CONFIRMED` |
+| VIEW-ROUTE-003 | `#/main/view/`, `main.view.index` | The singular-route index also displays the complete View list; entering the parent route switches to the contrib-view wide layout | `app/routes/view.js#index` | `CONFIRMED` |
+| VIEW-ROUTE-004 | `#/main/view/:viewName/:shortName`, `main.view.shortViewDetails` | Matches a preloaded instance by `viewName + shortUrl` and displays the same iframe | `app/routes/view.js#shortViewDetails`, `test/models/view_instance_test.js` | `CONFIRMED` |
+| VIEW-ROUTE-005 | `#/adminView`, top-level `adminView` state; route pattern is `/adminView` | This is an outlet-less transition route in the hash router; after finding the Admin View URL from the server version, it performs full-page `location.replace`. Do not describe the route pattern as the browser root path `/adminView` | `app/router.js#adminView`, `app/router.js#adminViewInfoSuccessCallback` | `CONFIRMED` |
+| VIEW-ROUTE-006 | `/views/:view/:version/:instance/...`, without `#` | The browser directly requests the View application's server context and does not pass through `main.views.viewDetails` | `app/views/main/views/details.js#src`, `app/router.js#adminViewInfoSuccessCallback` | `CONFIRMED` |
 
-`main.views` 父 route 没有 breadcrumb；regular detail 的 breadcrumb label 绑定 instance label。`main.view` 父 route 定义了 label breadcrumb，但 short detail 显式设为 `null`。这是两套 URL 在经典 UI 中可见的差异，不应假定它们只是字符串别名。
+The `main.views` parent route has no breadcrumb; regular-detail breadcrumb text is bound to the instance label. The `main.view` parent route defines a label breadcrumb, but short detail explicitly sets it to `null`. This is a visible difference between the two URL forms in the legacy UI and must not be treated as a string alias.
 
-## Instance 发现与列表
+## Instance Discovery and Listing
 
-| ID | 功能与行为 | 成功结果 | 异常/边界 | 后端请求 | 主要证据 | 等级 |
+| ID | Function and behavior | Success result | Exceptions/boundaries | Backend request | Primary evidence | Level |
 | --- | --- | --- | --- | --- | --- | --- |
-| VIEW-LIST-001 | 已登录时先查询是否存在任何 View definition | 有 `items` 才继续加载所有非 system version 的 instances；无 item 直接完成为空数组 | 未登录时不发请求；route 的认证由 main 父 route 处理 | `views.info` | `app/controllers/main/views_controller.js#loadAmbariViews`、controller tests | `CONFIRMED` |
-| VIEW-LIST-002 | 加载所有 version 下的 instance 并扁平化 | 每个可见 instance 变成一个 `App.ViewInstance`，保持服务端遍历顺序 | 没有客户端分页、排序、搜索或手工 refresh | `views.instances` | `app/controllers/main/views_controller.js#loadViewInstancesSuccess` | `CONFIRMED` |
-| VIEW-LIST-003 | 只纳入服务端返回的非 system、已部署 version 中，且 `ViewInstanceInfo.visible` 为 truthy 的 instance | 隐藏 instance、内置 system View 和未部署 version 的 instance 不出现在目录、顶部 View 菜单 | `system=false` 是显式 query；服务端 View 资源 provider 只为 `DEPLOYED` version 构造可返回 instances，前端没有显式 status predicate；`visible` 在响应后过滤，模板再做防御性判断 | `views.instances` | AJAX definition、controller、server View resource provider、`main/views.hbs` | `CONFIRMED` |
-| VIEW-LIST-004 | 计算 instance 展示字段和 fallback | icon 缺失用 `/img/ambari-view-default.png`；label 优先 `instance.label`、再 `version.label`、再 `view_name`；description 缺失显示 `No description` | `href` 直接取 `context_path + '/'`，不在客户端重建 server context | `views.instances` | `main/views_controller.js:83-94`、messages | `CONFIRMED` |
-| VIEW-LIST-005 | 显示 `Your Views` 表格 | 每行显示 icon、label、version、description；点击整行用 `window.open(internalAmbariUrl)` 打开新的浏览上下文 | 浏览器可按设置选择 tab/window；action 无 context 时不做任何事 | 无新请求 | `app/templates/main/views.hbs`、`#setView`、controller tests | `CONFIRMED` |
-| VIEW-LIST-006 | 无可见 instance 时显示 `No views` | 空响应和加载错误最终使用同一个空状态 | 经典 UI 不区分“确实为空”“无 instance 权限”和“请求失败” | `views.info`、`views.instances` | controller error callbacks、template | `CONFIRMED` |
-| VIEW-LIST-007 | `dataLoading()` 每 50ms 等待 `isDataLoaded=true` 后才接 outlet | 首次请求成功、空结果或 error callback 都会解除等待 | 没有 Views 专属 spinner；若请求根本没有进入任何 callback，promise 会无限等待 | 无新请求 | `main/views_controller.js#dataLoading`、routes | `CONFIRMED` |
-| VIEW-LIST-008 | main、installer、显式 Views route 和登录分流都可触发 `loadAmbariViews()` | 后续成功会替换整个 instance 数组 | 不去重并发请求，也不在刷新前把 `isDataLoaded` 重置为 false；首次完成后的 route 可以先消费旧数组，再被异步结果更新 | `views.info`、`views.instances` | `app/routes/main.js`、`app/routes/installer.js`、两条 Views routes | `STATIC_ONLY` |
+| VIEW-LIST-001 | First checks whether any View definition exists for a logged-in user | Continues to load instances from all non-system versions only when `items` exists; no item completes with an empty array | Sends no request when unauthenticated; the main parent route handles route authentication | `views.info` | `app/controllers/main/views_controller.js#loadAmbariViews`, controller tests | `CONFIRMED` |
+| VIEW-LIST-002 | Loads instances from all versions and flattens them | Each visible instance becomes an `App.ViewInstance` in server traversal order | No client-side pagination, sorting, search, or manual refresh | `views.instances` | `app/controllers/main/views_controller.js#loadViewInstancesSuccess` | `CONFIRMED` |
+| VIEW-LIST-003 | Includes only instances returned by the server from non-system, deployed versions with truthy `ViewInstanceInfo.visible` | Hidden instances, built-in system Views, and instances from undeployed versions are absent from the directory and top View menu | `system=false` is an explicit query; the server View resource provider constructs returned instances only for `DEPLOYED` versions, while the frontend has no explicit status predicate; `visible` is filtered after response and the template applies a defensive check | `views.instances` | AJAX definition, controller, server View resource provider, `main/views.hbs` | `CONFIRMED` |
+| VIEW-LIST-004 | Computes instance display fields and fallbacks | Missing icon uses `/img/ambari-view-default.png`; label prefers `instance.label`, then `version.label`, then `view_name`; missing description displays `No description` | `href` is `context_path + '/'` directly; the client does not reconstruct the server context | `views.instances` | `main/views_controller.js:83-94`, messages | `CONFIRMED` |
+| VIEW-LIST-005 | Displays the `Your Views` table | Each row displays icon, label, version, and description; clicking the row calls `window.open(internalAmbariUrl)` to open a new browsing context | The browser may choose a tab/window according to settings; the action does nothing without context | No new request | `app/templates/main/views.hbs`, `#setView`, controller tests | `CONFIRMED` |
+| VIEW-LIST-006 | Displays `No views` when no visible instance exists | Empty response and load error ultimately use the same empty state | The legacy UI does not distinguish genuinely empty, unauthorized instances, and request failure | `views.info`, `views.instances` | Controller error callbacks, template | `CONFIRMED` |
+| VIEW-LIST-007 | `dataLoading()` checks every 50ms and connects the outlet only after `isDataLoaded=true` | Initial request success, empty result, or error callback all release the wait | No Views-specific spinner; if a request reaches no callback, the promise waits forever | No new request | `main/views_controller.js#dataLoading`, routes | `CONFIRMED` |
+| VIEW-LIST-008 | main, installer, explicit Views routes, and login branching can all trigger `loadAmbariViews()` | A later success replaces the entire instance array | Does not deduplicate concurrent requests or reset `isDataLoaded` to false before refresh; a route after the first completion can consume the old array before async results update it | `views.info`, `views.instances` | `app/routes/main.js`, `app/routes/installer.js`, both Views routes | `STATIC_ONLY` |
 
-### 可到达入口
+### Reachable Entry Points
 
-| ID | 入口 | 经典行为 | 前置/边界 | 等级 |
+| ID | Entry | Legacy behavior | Preconditions/boundaries | Level |
 | --- | --- | --- | --- | --- |
-| VIEW-NAV-001 | View-only、无 cluster 权限或安装路由无权限时的自动分流 | 进入 `main.views.index`，这是 View 列表最主要的显式入口 | 详见“登录与 View-only 用户” | `CONFIRMED` |
-| VIEW-NAV-002 | 已安装集群的顶部九宫格 Views 下拉 | 从 `ApplicationView.views` 列所有 visible instances；点击调用同一 `setView` 并打开新浏览上下文；空时显示 disabled `No Views` | 只在 `applicationController.enableLinks=true` 时出现，即 cluster 已安装且加载完成，并且不是 View-only 用户 | `CONFIRMED` |
-| VIEW-NAV-003 | 直接访问 `#/main/views` 或 `#/main/view` | 认证后显示列表 | 当前 `MainSideMenuView.content` 没有创建 Views 菜单项；虽然保留 `isViewsItem/goToSection('views')` 代码和单测，不能据此认定当前侧栏有 Views 入口 | `STATIC_ONLY` |
+| VIEW-NAV-001 | Automatic branching for View-only users, users without cluster permission, or installer routes without permission | Enters `main.views.index`, the primary explicit entry to the View list | See "Login and View-only Users" | `CONFIRMED` |
+| VIEW-NAV-002 | Top-grid Views dropdown for an installed cluster | Lists all visible instances from `ApplicationView.views`; clicking calls the same `setView` and opens a new browsing context; empty state displays disabled `No Views` | Appears only when `applicationController.enableLinks=true`, meaning the cluster is installed/loaded and the user is not View-only | `CONFIRMED` |
+| VIEW-NAV-003 | Direct access to `#/main/views` or `#/main/view` | Displays the list after authentication | Current `MainSideMenuView.content` does not create a Views menu item; although `isViewsItem/goToSection('views')` code and tests remain, they do not prove a current sidebar entry | `STATIC_ONLY` |
 
-## Regular、Short URL 与 View 内部路径
+## Regular, Short URLs, and Internal View Paths
 
-### URL 选择与 instance 匹配
+### URL Selection and Instance Matching
 
-| ID | 功能与行为 | 精确规则 | 异常/边界 | 主要证据 | 等级 |
+| ID | Function and behavior | Exact rule | Exceptions/boundaries | Primary evidence | Level |
 | --- | --- | --- | --- | --- | --- |
-| VIEW-URL-001 | 为列表项生成经典 UI 内部 URL | 有 `shortUrl` 时生成 `#/main/view/{viewName}/{shortUrl}`；否则生成 `#/main/views/{viewName}/{version}/{instanceName}` | 不做 URL encoding；名称合法性依赖 Admin Console/服务端 | `app/models/view_instance.js#internalAmbariUrl`、model tests | `CONFIRMED` |
-| VIEW-URL-002 | regular URL 解析 | 构造 `/views/{viewName}/{version}/{instanceName}/`，选择 `instance.href.endsWith(constructedPath)` 的第一个对象 | `endsWith` 允许 `context_path` 带 proxy/root 前缀；route 不按参数请求单个 instance | `app/routes/views.js#connectOutlets` | `CONFIRMED` |
-| VIEW-URL-003 | short URL 解析 | 先按 `viewName` 过滤，再取 `shortUrl == shortName` 的第一个对象；version 和 instance name 不出现在 URL | short name 的唯一性与授权由服务端管理；客户端对重复结果没有冲突 UI | `app/routes/view.js#connectOutlets` | `CONFIRMED` |
-| VIEW-URL-004 | instance 匹配后保存 `viewPath` | 在 connect outlet 前把解析结果写入所选 `App.ViewInstance`，iframe src 使用它 | 对象在全局数组中复用；下一次无内部路径的导航会把它重置为空字符串 | 两条 route、details view | `CONFIRMED` |
-| VIEW-URL-005 | route 参数没有匹配任何已加载 instance | 仍调用 `connectOutlet('mainViewsDetails', undefined)`；旧 Ember 只有 context truthy 才更新 singleton controller.content，因此同一会话从有效 instance再导航到无匹配 URL 会确定复用旧 instance及其可能残留的 `viewPath`。冷启动 controller content为空时，`src` computed对 `content.href/viewPath` 求值会生成异常或畸形 URL | 没有 not-found、无权限、返回列表或 retry 状态；warm navigation存在 stale-instance泄漏，冷启动表现仍需浏览器验证 | 两条 route、`vendor/scripts/ember-latest.js#connectOutlet`、details controller/view | `STATIC_ONLY` |
-| VIEW-URL-006 | 已认证状态刷新 regular/short deep link | 内存模型从空开始，main/Views route 重新发现 instances，details route 等待 `isDataLoaded` 后重新匹配并创建 iframe | instance 必须仍被 API 返回且 visible；任一目录请求失败即落入 VIEW-URL-005，没有持久化 snapshot 或单 instance fallback 请求 | main route、两条 Views routes、controller | `CONFIRMED` |
+| VIEW-URL-001 | Generates the legacy UI internal URL for a list item | Generates `#/main/view/{viewName}/{shortUrl}` when `shortUrl` exists; otherwise generates `#/main/views/{viewName}/{version}/{instanceName}` | Does not URL-encode; name validity depends on the Admin Console/server | `app/models/view_instance.js#internalAmbariUrl`, model tests | `CONFIRMED` |
+| VIEW-URL-002 | Parses a regular URL | Constructs `/views/{viewName}/{version}/{instanceName}/` and selects the first object where `instance.href.endsWith(constructedPath)` | `endsWith` permits `context_path` to include a proxy/root prefix; the route does not request an individual instance by parameters | `app/routes/views.js#connectOutlets` | `CONFIRMED` |
+| VIEW-URL-003 | Parses a short URL | First filters by `viewName`, then takes the first object with `shortUrl == shortName`; version and instance name do not appear in the URL | Short-name uniqueness and authorization are managed by the server; the client has no conflict UI for duplicate results | `app/routes/view.js#connectOutlets` | `CONFIRMED` |
+| VIEW-URL-004 | Saves `viewPath` after matching an instance | Writes the parsed result to the selected `App.ViewInstance` before connecting the outlet; the iframe src uses it | The object is reused in the global array; the next navigation without an internal path resets it to an empty string | Both routes, details view | `CONFIRMED` |
+| VIEW-URL-005 | Route parameters match no loaded instance | Still calls `connectOutlet('mainViewsDetails', undefined)`; legacy Ember updates singleton controller.content only when context is truthy, so navigating in one session from a valid instance to an unmatched URL definitely reuses the old instance and any residual `viewPath`. With empty controller content on cold start, `src` computed evaluation of `content.href/viewPath` produces an exception or malformed URL | No not-found, unauthorized, return-to-list, or retry state; warm navigation leaks a stale instance, while cold-start behavior still requires browser validation | Both routes, `vendor/scripts/ember-latest.js#connectOutlet`, details controller/view | `STATIC_ONLY` |
+| VIEW-URL-006 | Refreshes a regular/short deep link in an authenticated state | In-memory models start empty; main/Views routes rediscover instances, and details routes wait for `isDataLoaded` before matching and creating the iframe | The instance must still be returned by the API and visible; any directory-request failure falls into VIEW-URL-005, with no persisted snapshot or single-instance fallback request | Main route, both Views routes, controller | `CONFIRMED` |
 
-### `viewPath` 转换算法
+### `viewPath` Conversion Algorithm
 
-`viewPath` 用于从 Ambari hash route 深链到 View application 内部页面，例如 Tez application history。regular 和 short route 各自复制了一份完全相同的解析逻辑：
+`viewPath` deep-links from an Ambari hash route to an internal View application page, such as Tez application history. The regular and short routes each duplicate the exact same parsing logic:
 
-1. 从浏览器当前 URL 的第一个 `?` 开始取 query；没有 `?` 时解析为空。
-2. query 包含 `viewPath` 时，从最后一个 `?viewPath=` 之后取全部内容并执行 `decodeURIComponent`；代码只正确识别 `?viewPath=`，因此它必须是第一个 query 参数，`&viewPath=` 会产生错误切片。
-3. 把解码结果中的第一个 `&` 替换为 `?`，从而把其余参数变成 View 内部 query；后续 `&` 保留。
-4. 旧 Ember router 可能把 query 附在最后一个动态 route 参数上，因此再从 `instanceName` 或 `shortName` 的最后一个 `?` 处截断，用截断值匹配 instance。
-5. 如果最后一个动态参数实际上没有携带 query，代码把已解析的 `viewPath` 清空；这是旧 router query 解析方式的耦合点。
-6. 转发前移除一个开头 `/`，因为 `instance.href` 已以 `/` 结尾。
+1. Takes the query from the first `?` in the browser's current URL; with no `?`, the parsed value is empty.
+2. When the query contains `viewPath`, takes everything after the last `?viewPath=` and runs `decodeURIComponent`; the code correctly recognizes only `?viewPath=`, so it must be the first query parameter and `&viewPath=` produces an incorrect slice.
+3. Replaces the first `&` in the decoded result with `?`, turning the remaining parameters into the internal View query; later `&` characters remain.
+4. Because the legacy Ember router may attach the query to the final dynamic route parameter, truncates `instanceName` or `shortName` at its last `?` and uses the truncated value to match the instance.
+5. If the final dynamic parameter did not actually carry a query, clears the parsed `viewPath`; this is coupled to the old router's query parsing.
+6. Removes one leading `/` before forwarding because `instance.href` already ends with `/`.
 
-| ID | 输入示例 | `parseViewPath` 结果 | 最终追加形式 | 证据/等级 |
+| ID | Input example | `parseViewPath` result | Final appended form | Evidence/level |
 | --- | --- | --- | --- | --- |
-| VIEW-PATH-001 | 无 query | 空字符串 | `{context_path}/` | route code；`CONFIRMED` |
-| VIEW-PATH-002 | `?foo=bar&count=1` | `?foo=bar&count=1` | 是否转发取决于 query 是否进入最后一个 route 参数 | route test 只验证 parser；`STATIC_ONLY` |
-| VIEW-PATH-003 | `?viewPath=%2Fuser%2Fadmin%2Faddress` | `/user/admin/address` | `{context_path}/user/admin/address` | `test/routes/views_test.js`；`CONFIRMED` |
-| VIEW-PATH-004 | `?viewPath=%2Fuser%2Fadmin%2Faddress&foo=bar&count=1` | `/user/admin/address?foo=bar&count=1` | `{context_path}/user/admin/address?foo=bar&count=1` | `test/routes/views_test.js`；`CONFIRMED` |
-| VIEW-PATH-005 | `?viewPath=%2F%23%2Ftez-app%2Fapplication_...` | `/#/tez-app/application_...` | `{context_path}/#/tez-app/application_...` | route code、Tez history URL template；`CONDITIONAL` |
-| VIEW-PATH-006 | 非法 percent encoding，例如 `?viewPath=%E0%A4%A` | `decodeURIComponent` 同步抛 `URIError` | 没有 try/catch、route error state或 fallback，details outlet不会按正常链连接 | 两条 route code；`STATIC_ONLY` |
-| VIEW-PATH-007 | 普通 query 的其他参数名/值中仅包含子串 `viewPath` | `path.contains('viewPath')` 会误入特殊解析，再以 `lastIndexOf('?viewPath=')=-1` 计算错误 slice | parser没有按 query key解析，可能丢失或篡改原 query；现有 tests未覆盖 | 两条 route code；`STATIC_ONLY` |
+| VIEW-PATH-001 | No query | Empty string | `{context_path}/` | Route code; `CONFIRMED` |
+| VIEW-PATH-002 | `?foo=bar&count=1` | `?foo=bar&count=1` | Forwarding depends on whether the query enters the final route parameter | Route test validates only the parser; `STATIC_ONLY` |
+| VIEW-PATH-003 | `?viewPath=%2Fuser%2Fadmin%2Faddress` | `/user/admin/address` | `{context_path}/user/admin/address` | `test/routes/views_test.js`; `CONFIRMED` |
+| VIEW-PATH-004 | `?viewPath=%2Fuser%2Fadmin%2Faddress&foo=bar&count=1` | `/user/admin/address?foo=bar&count=1` | `{context_path}/user/admin/address?foo=bar&count=1` | `test/routes/views_test.js`; `CONFIRMED` |
+| VIEW-PATH-005 | `?viewPath=%2F%23%2Ftez-app%2Fapplication_...` | `/#/tez-app/application_...` | `{context_path}/#/tez-app/application_...` | Route code, Tez history URL template; `CONDITIONAL` |
+| VIEW-PATH-006 | Invalid percent encoding, such as `?viewPath=%E0%A4%A` | `decodeURIComponent` synchronously throws `URIError` | No try/catch, route error state, or fallback; the details outlet does not connect through the normal chain | Both route implementations; `STATIC_ONLY` |
+| VIEW-PATH-007 | An unrelated query name/value contains only the substring `viewPath` | `path.contains('viewPath')` enters special parsing incorrectly, then calculates a bad slice with `lastIndexOf('?viewPath=')=-1` | The parser does not parse query keys and may lose or alter the original query; existing tests do not cover it | Both route implementations; `STATIC_ONLY` |
 
-short route 没有独立 parser test，且现有 route test 只调用 regular route 的 `parseViewPath()`；React 必须分别验证 regular/short URL、普通 query、encoded slash、hash 和多个 query 参数。
+The short route has no independent parser test, and the existing route test calls only the regular route's `parseViewPath()`; React must separately validate regular/short URLs, ordinary queries, encoded slashes, hashes, and multiple query parameters.
 
-## iframe 承载与渲染生命周期
+## iframe Hosting and Rendering Lifecycle
 
-| ID | 功能与行为 | 精确行为 | 异常/边界 | 主要证据 | 等级 |
+| ID | Function and behavior | Exact behavior | Exceptions/boundaries | Primary evidence | Level |
 | --- | --- | --- | --- | --- | --- |
-| VIEW-IFRAME-001 | details outlet 本身渲染为 iframe | `tagName=iframe`，绑定 `src`、`seamless`、`allowfullscreen`，CSS 为 100% 宽、最小 100% 高、无边框 | 没有单独的 details template | `app/views/main/views/details.js`、`app/styles/application.less` | `CONFIRMED` |
-| VIEW-IFRAME-002 | 生成 iframe src | 强制使用当前 `protocol + '//' + host`，再追加服务端返回的 `context_path + '/'` 和解析后的 `viewPath` | 不接受 instance 返回的外部 origin；View context 按同源访问设计 | details view `src` | `CONFIRMED` |
-| VIEW-IFRAME-003 | details 使用宽屏 contrib-view 布局 | regular detail 进入/退出时添加/移除 body class；singular `/main/view` 父 route 对其 index 和 short detail统一处理 | navbar 仍保持固定 container 宽度，主内容扩展为 auto | routes、`bootstrap_overrides.less` | `CONFIRMED` |
-| VIEW-IFRAME-004 | 插入 iframe 时立即 resize，以后每 5 秒 resize | 高度取 View body `scrollHeight` 与 viewport 去除 header/footer 后高度的较大值；resize 前后保持宿主 window scrollTop | selector 查找 document 中所有 iframe但只读取第一个；多 iframe 页面可能选错对象 | details view `didInsertElement/resizeFunction` | `STATIC_ONLY` |
-| VIEW-IFRAME-005 | 销毁 details view 时清理 resize interval | 已保存 interval 才清除，避免离页后继续改 DOM | 无独立测试 | details view `willDestroyElement` | `STATIC_ONLY` |
-| VIEW-IFRAME-006 | iframe 内活动计入 Ambari inactivity timeout | details 插入后重新启动/绑定 inactivity monitor；宿主对 iframe `contentWindow` 的 mousemove、keypress、click 绑定 `keepActive` | 依赖同源；跨源 redirect 或浏览器限制下访问 `contentWindow.document`/事件可能失败，代码无 catch | details view、`app/controllers/main.js#bindActivityEventMonitors` | `STATIC_ONLY` |
-| VIEW-IFRAME-007 | 经典 iframe 没有 sandbox 限制 | 只声明 seamless 和 fullscreen；View 与 Ambari shell共享 origin/session | React 若新增 sandbox/CSP，必须验证 View 登录、导航、下载、弹窗和剪贴板等兼容性 | details view attributes | `CONFIRMED` |
-| VIEW-IFRAME-008 | iframe navigation 没有 Ember loading/error/retry UI | 等待的只是 instance 目录请求；iframe 发出浏览器 GET 后没有 `load/error` handler、spinner、timeout 或错误占位 | server 404/500、View deploy failure、内容脚本异常由 iframe/浏览器自行呈现 | details view、routes | `CONFIRMED` |
-| VIEW-IFRAME-009 | View 内部导航不回写宿主 Ember URL | shell 没有监听 iframe location、history 或 `postMessage`；宿主只把初始 `viewPath` 写入 `src` | 浏览器刷新只恢复宿主 URL 中原有的 `viewPath`，不能保证恢复用户随后在 iframe 内到达的页面；View 自身持久化另论 | details view、两条 routes | `STATIC_ONLY` |
+| VIEW-IFRAME-001 | The details outlet renders as an iframe | `tagName=iframe`, bound to `src`, `seamless`, and `allowfullscreen`; CSS is 100% width, minimum 100% height, and borderless | No separate details template | `app/views/main/views/details.js`, `app/styles/application.less` | `CONFIRMED` |
+| VIEW-IFRAME-002 | Generates the iframe src | Forces the current `protocol + '//' + host`, then appends server-returned `context_path + '/'` and parsed `viewPath` | Does not accept an external origin returned by the instance; View context is designed for same-origin access | Details view `src` | `CONFIRMED` |
+| VIEW-IFRAME-003 | Details use the wide contrib-view layout | Regular detail adds/removes a body class on entry/exit; the singular `/main/view` parent route applies the same treatment to its index and short detail | Navbar retains a fixed container width while main content expands to auto | Routes, `bootstrap_overrides.less` | `CONFIRMED` |
+| VIEW-IFRAME-004 | Resizes immediately after iframe insertion and every 5 seconds thereafter | Height is the larger of the View body `scrollHeight` and viewport height after removing header/footer; preserves host window scrollTop before/after resize | Selector finds all iframes in the document but reads only the first; pages with multiple iframes may select the wrong object | Details view `didInsertElement/resizeFunction` | `STATIC_ONLY` |
+| VIEW-IFRAME-005 | Clears the resize interval when destroying the details view | Clears only a saved interval to prevent DOM changes after leaving the page | No dedicated test | Details view `willDestroyElement` | `STATIC_ONLY` |
+| VIEW-IFRAME-006 | Activity inside the iframe counts toward the Ambari inactivity timeout | Restarts/binds the inactivity monitor after details insertion; binds mousemove, keypress, and click on the iframe `contentWindow` to `keepActive` | Depends on same-origin access; cross-origin redirect or browser restrictions may make `contentWindow.document`/events fail, and the code has no catch | Details view, `app/controllers/main.js#bindActivityEventMonitors` | `STATIC_ONLY` |
+| VIEW-IFRAME-007 | The legacy iframe has no sandbox restriction | Declares only seamless and fullscreen; the View and Ambari shell share origin/session | If React adds sandbox/CSP, validate View login, navigation, downloads, popups, clipboard, and related compatibility | Details view attributes | `CONFIRMED` |
+| VIEW-IFRAME-008 | Iframe navigation has no Ember loading/error/retry UI | Only the instance-directory request is awaited; after the iframe browser GET, there is no `load/error` handler, spinner, timeout, or error placeholder | Server 404/500, View deployment failure, and content-script errors are rendered by the iframe/browser | Details view, routes | `CONFIRMED` |
+| VIEW-IFRAME-009 | Internal View navigation does not update the host Ember URL | The shell does not listen to iframe location, history, or `postMessage`; the host writes only the initial `viewPath` to `src` | Browser refresh restores only the original `viewPath` in the host URL and cannot guarantee the page later reached inside the iframe; View-side persistence is separate | Details view, both routes | `STATIC_ONLY` |
 
-## 登录与 View-only 用户
+## Login and View-only Users
 
-### 判定语义
+### Determination Semantics
 
-`App.auth` 来自 `GET /users/{user}/authorizations?fields=*` 的唯一 `AuthorizationInfo.authorization_id` 集合。经典代码将以下两种情况定义为 `isOnlyViewUser=true`：
+`App.auth` is the set of unique `AuthorizationInfo.authorization_id` values from `GET /users/{user}/authorizations?fields=*`. The legacy code defines `isOnlyViewUser=true` in either of these cases:
 
-- authorization 集合存在但为空数组；
-- 集合长度恰好为 1，唯一值为 `VIEW.USE`，并且当时 `App.isAuthorized('VIEW.USE')` 仍为 true。
+- The authorization collection exists but is an empty array.
+- The collection length is exactly 1, its only value is `VIEW.USE`, and `App.isAuthorized('VIEW.USE')` is still true at that time.
 
-第二个条件通过 `isAuthorized`，因此也会继承 upgrade 全局权限限制和 `wizardWatcherController.isNonWizardUser` 限制。这是旧版静态语义，不应简化成“存在任意 View privilege”。
+The second condition goes through `isAuthorized`, so it also inherits global upgrade restrictions and the `wizardWatcherController.isNonWizardUser` restriction. This is legacy static semantics and must not be simplified to "has any View privilege."
 
-| ID | 场景 | 登录/进入 main 后的精确结果 | 主要请求 | 主要证据 | 等级 |
+| ID | Scenario | Exact result after login/entering main | Primary requests | Primary evidence | Level |
 | --- | --- | --- | --- | --- | --- |
-| VIEW-ONLY-001 | 已有 cluster，`isOnlyViewUser=true` | 登录后主动加载 Views 并转 `main.views.index`；进入 main 时仍加载 supports、keep-alive、Ambari properties、cluster identity 和 Views，但不执行 repo detail check、`mainController.initialize()`、STOMP 或完整 cluster 运维模型加载，只把 cluster controller 标为 loaded 以显示 outlet | `persist.get`、`ambari.service`、`cluster.load_cluster_name`（条件）、`views.info`、`views.instances`、keep-alive `router.login.clusters` | `app/router.js#loginGetClustersSuccessCallback`、`app/routes/main.js` | `CONFIRMED` |
-| VIEW-ONLY-002 | 已有 cluster，普通 cluster/Ambari 用户 | 走正常 preferred path / Dashboard 初始化；main 同时后台加载 View instances，供顶部 Views 下拉使用 | auth、cluster、Views 请求 | router、main route | `CONFIRMED` |
-| VIEW-ONLY-003 | 没有 cluster，`isOnlyViewUser=true` 或 authorization 为空 | 直接进入 `main.views.index` | auth、cluster、Views 请求 | router；相关 login route suite 为 skipped test | `STATIC_ONLY` |
-| VIEW-ONLY-004 | 没有 cluster，非 View-only 用户 | 不进 Installer，而是探测 Ambari Server version 并跳独立 Admin View；探测失败回 Views 列表 | `ambari.service.load_server_version` | router、router tests | `CONFIRMED` |
-| VIEW-ONLY-005 | cluster provisioning 未完成，当前不在 View route | cluster state 属于 installer states 且有 `AMBARI.ADD_DELETE_CLUSTERS` 时恢复 Installer；否则转 Views | cluster status/persist | `app/routes/main.js`、router redirections mixin | `CONFIRMED` |
-| VIEW-ONLY-006 | 直接进入 `/installer` 但无 `AMBARI.ADD_DELETE_CLUSTERS` | 加载 supports、版本和 Views 后转 `main.views.index` | server version、Views 请求 | `app/routes/installer.js` | `CONFIRMED` |
-| VIEW-ONLY-007 | 已认证用户直接打开 regular/short deep link | main route 发现 current state 已是 `viewDetails/shortViewDetails` 时不覆盖为 index，保留目标 View | Views 请求 | `app/routes/main.js:53-56` | `CONFIRMED` |
-| VIEW-ONLY-008 | 未认证用户直接打开 deep link后完成登录 | 普通 cluster 用户可由 `transitionToApp()` 恢复安全校验后的 relative preferred path；View-only 分支直接调用 `transitionToViews()`，静态代码没有显式恢复原 details path | auth、cluster、Views 请求 | `app/router.js#transitionToApp/#transitionToViews` | `STATIC_ONLY` |
+| VIEW-ONLY-001 | Existing cluster, `isOnlyViewUser=true` | Actively loads Views after login and transitions to `main.views.index`; entering main still loads supports, keep-alive, Ambari properties, cluster identity, and Views, but skips repo detail checks, `mainController.initialize()`, STOMP, and full cluster operations models, setting only the cluster controller loaded to display the outlet | `persist.get`, `ambari.service`, conditional `cluster.load_cluster_name`, `views.info`, `views.instances`, keep-alive `router.login.clusters` | `app/router.js#loginGetClustersSuccessCallback`, `app/routes/main.js` | `CONFIRMED` |
+| VIEW-ONLY-002 | Existing cluster, ordinary cluster/Ambari user | Uses normal preferred-path/Dashboard initialization; main also loads View instances in the background for the top Views dropdown | Auth, cluster, and Views requests | Router, main route | `CONFIRMED` |
+| VIEW-ONLY-003 | No cluster, `isOnlyViewUser=true` or empty authorization | Enters `main.views.index` directly | Auth, cluster, and Views requests | Router; related login route suite is a skipped test | `STATIC_ONLY` |
+| VIEW-ONLY-004 | No cluster, non-View-only user | Does not enter Installer; probes the Ambari Server version and navigates to the separate Admin View; probe failure returns to the Views list | `ambari.service.load_server_version` | Router, router tests | `CONFIRMED` |
+| VIEW-ONLY-005 | Cluster provisioning is incomplete and the current route is not a View route | Restores Installer when cluster state is an installer state and `AMBARI.ADD_DELETE_CLUSTERS` exists; otherwise transitions to Views | Cluster status/persistence | `app/routes/main.js`, router redirections mixin | `CONFIRMED` |
+| VIEW-ONLY-006 | Directly enters `/installer` without `AMBARI.ADD_DELETE_CLUSTERS` | Loads supports, version, and Views, then transitions to `main.views.index` | Server version and Views requests | `app/routes/installer.js` | `CONFIRMED` |
+| VIEW-ONLY-007 | Authenticated user directly opens a regular/short deep link | When main finds current state already `viewDetails/shortViewDetails`, it does not replace it with index and preserves the target View | Views requests | `app/routes/main.js:53-56` | `CONFIRMED` |
+| VIEW-ONLY-008 | Unauthenticated user opens a deep link and completes login | An ordinary cluster user can have the security-checked relative preferred path restored by `transitionToApp()`; the View-only branch directly calls `transitionToViews()`, and static code has no explicit restoration of the original details path | Auth, cluster, and Views requests | `app/router.js#transitionToApp/#transitionToViews` | `STATIC_ONLY` |
 
-### 进入 main 的初始化请求链
+### Main Initialization Request Chain
 
-View-only 只跳过集群运维数据初始化，不是“只请求 Views”。进入 `/main` 父 route 后，普通用户和 View-only 用户先走同一条外壳链；下表顺序和等待关系是 React 对照基准：
+View-only skips only cluster operations-data initialization; it does not "request only Views." After entering the `/main` parent route, ordinary and View-only users first use the same shell chain. The following order and waiting relationships are the React comparison baseline:
 
-| ID | 顺序/条件 | 请求与精确行为 | 失败/并发边界 | 主要证据 | 等级 |
+| ID | Sequence/condition | Request and exact behavior | Failure/concurrency boundary | Primary evidence | Level |
 | --- | --- | --- | --- | --- | --- |
-| VIEW-INIT-001 | 1. `main.enter` 先确认认证 | `getAuthenticated()` 获取或复用登录阶段保存的 `router.login.clusters` jqXHR；新页面会请求 cluster provisioning/security/version/id，刚登录时通常复用已经完成或进行中的同名请求 | 认证检查失败保存当前 hash 为 preferred path 并回 login；“复用请求”意味着不能按 route 次数推断网络次数 | `app/router.js#getClusterDataRequest/#getAuthenticated`、`app/routes/main.js:35` | `CONFIRMED` |
-| VIEW-INIT-002 | 2. 认证成功后先加载 supports | `persist.get` 读取 key `user-pref-{loginName}-supports`，有响应时覆盖 `App.supports` 中的同名值 | route 使用 `.complete()`，所以 404、无数据或请求失败都继续；失败保留编译时默认 supports | `app/controllers/experimental.js#loadSupports`、`app/mixins/common/persist.js#getUserPref`、`app/routes/main.js:38` | `CONFIRMED` |
-| VIEW-INIT-003 | 3. supports 请求完成后启动 keep-alive | `startKeepAlivePoller()` 只在 `isPollerRunning=false` 时注册定时器；首次不是立即请求，而是在 60,000ms 后调用 `router.login.clusters`，以后由 AJAX complete callback安排下一次 | View-only 用户也保持该 poller；它只是维持/验证会话，不把响应映射为完整 cluster model。只有 logoff请求成功才显式置 `isPollerRunning=false`；logoff error callback为空 | `app/controllers/application.js#startKeepAlivePoller/#getStack`、`app/utils/updater.js`、`app/router.js#logOffSuccessCallback`、`app/config.js#sessionKeepAliveInterval` | `CONFIRMED` |
-| VIEW-INIT-004 | 4. 同步等待 Ambari Server properties | `ambari.service` 无 `fields` 参数时请求 AMBARI_SERVER root component；成功保存 server properties/clock/version、判断 custom JDK/MySQL OS family并启动 inactivity monitor | main route用 `.then(success)` 串接后续步骤，而请求的 error callback 是空函数；失败会无专用提示地阻断这次 route 中的 cluster name/loaded 分支，尽管登录/Views route可能已另行触发过 View discovery | `app/controllers/global/cluster_controller.js#loadAmbariPropertiesSuccess`、`app/routes/main.js:40` | `CONFIRMED` |
-| VIEW-INIT-005 | 5. properties 成功后并行发现 Views并确认 cluster identity | 先异步调用 `loadAmbariViews()`，不等待其完成；随后 `loadClusterName(false)`。若全局已有 `clusterName + clusterId`，后者只同步本地状态；否则发 `cluster.load_cluster_name` 并等待 | Views route自身也会调用 discovery，故可能与 main 请求重叠；cluster name失败使用全局 reload/error流程，main分支不会继续 | main route、cluster controller、Views controller | `CONFIRMED` |
-| VIEW-INIT-006 | 6a. cluster 已安装且为 View-only | 保留已打开的 regular/short detail，否则转 `main.views.index`，再直接设 `clusterController.isLoaded=true` | 明确不调用 `checkDetailedRepoVersion()`、`mainController.initialize()`、`App.StompClient.connect()`、`loadClusterData()`；因此不加载 hosts/services/alerts/upgrades/user settings等运维模型 | `app/routes/main.js:47-58`、`app/controllers/main.js#initialize` | `CONFIRMED` |
-| VIEW-INIT-007 | 6b. cluster 未安装 | 下一 tick 用 `persist.get` 读取 `CLUSTER_CURRENT_STATUS`；请求成功后，当前不在 View route且状态属于 installer states时，有 `AMBARI.ADD_DELETE_CLUSTERS` 恢复 Installer，否则进入 Views；已在 regular/short View route则不抢占 | main使用 jqXHR `.then(success)`：404虽静默沿用默认状态，promise仍为 rejected，其他错误还显示 update error modal；两者都不执行该 success分支，可能留下只靠已连接 View route工作的 partial-init状态 | `app/models/cluster_states.js#updateFromServer`、`app/routes/main.js:60-78` | `CONFIRMED` |
+| VIEW-INIT-001 | 1. `main.enter` verifies authentication first | `getAuthenticated()` obtains or reuses the `router.login.clusters` jqXHR saved during login; a new page requests cluster provisioning/security/version/id, while just after login it usually reuses the completed or in-progress request | Authentication failure saves the current hash as the preferred path and returns to login; request reuse means network count cannot be inferred from route count | `app/router.js#getClusterDataRequest/#getAuthenticated`, `app/routes/main.js:35` | `CONFIRMED` |
+| VIEW-INIT-002 | 2. Loads supports after authentication succeeds | `persist.get` reads `user-pref-{loginName}-supports`; when a response exists, overwrites matching values in `App.supports` | Route uses `.complete()`, so 404, no data, or request failure continues; failure preserves compile-time default supports | `app/controllers/experimental.js#loadSupports`, `app/mixins/common/persist.js#getUserPref`, `app/routes/main.js:38` | `CONFIRMED` |
+| VIEW-INIT-003 | 3. Starts keep-alive after supports completes | `startKeepAlivePoller()` registers a timer only when `isPollerRunning=false`; the first request is not immediate and calls `router.login.clusters` after 60,000ms, with later calls scheduled by the AJAX complete callback | View-only users also keep this poller; it maintains/verifies the session and does not map the response to a complete cluster model. Only successful logoff explicitly sets `isPollerRunning=false`; logoff error callback is empty | `app/controllers/application.js#startKeepAlivePoller/#getStack`, `app/utils/updater.js`, `app/router.js#logOffSuccessCallback`, `app/config.js#sessionKeepAliveInterval` | `CONFIRMED` |
+| VIEW-INIT-004 | 4. Waits synchronously for Ambari Server properties | `ambari.service` without `fields` requests the AMBARI_SERVER root component; success saves server properties/clock/version, determines custom JDK/MySQL OS family, and starts the inactivity monitor | Main route chains later steps through `.then(success)`, while the request error callback is empty; failure silently blocks this route's cluster-name/loaded branch even though login/Views routes may have triggered View discovery separately | `app/controllers/global/cluster_controller.js#loadAmbariPropertiesSuccess`, `app/routes/main.js:40` | `CONFIRMED` |
+| VIEW-INIT-005 | 5. Discovers Views and confirms cluster identity in parallel after properties succeed | Asynchronously calls `loadAmbariViews()` without waiting; then calls `loadClusterName(false)`. If global `clusterName + clusterId` already exists, the latter synchronizes local state only; otherwise sends `cluster.load_cluster_name` and waits | Views routes also call discovery, so requests may overlap with main; cluster-name failure uses the global reload/error flow and the main branch does not continue | Main route, cluster controller, Views controller | `CONFIRMED` |
+| VIEW-INIT-006 | 6a. Installed cluster and View-only | Preserves an open regular/short detail or transitions to `main.views.index`, then directly sets `clusterController.isLoaded=true` | Explicitly does not call `checkDetailedRepoVersion()`, `mainController.initialize()`, `App.StompClient.connect()`, or `loadClusterData()`; therefore does not load operational models such as hosts/services/alerts/upgrades/user settings | `app/routes/main.js:47-58`, `app/controllers/main.js#initialize` | `CONFIRMED` |
+| VIEW-INIT-007 | 6b. Uninstalled cluster | On the next tick, uses `persist.get` to read `CLUSTER_CURRENT_STATUS`; after success, when not on a View route and state is an installer state, restores Installer if `AMBARI.ADD_DELETE_CLUSTERS` exists, otherwise enters Views; an existing regular/short View route is not preempted | Main uses jqXHR `.then(success)`: 404 silently keeps default state but the promise remains rejected, while other errors also show an update-error modal; neither executes the success branch, potentially leaving partial initialization that works only through an already-connected View route | `app/models/cluster_states.js#updateFromServer`, `app/routes/main.js:60-78` | `CONFIRMED` |
 
-### View-only 外壳差异
+### View-only Shell Differences
 
-| ID | 行为 | 旧版结果 | 等级 |
+| ID | Behavior | Legacy result | Level |
 | --- | --- | --- | --- |
-| VIEW-ONLY-009 | 左侧运维导航 | 不创建 Dashboard、Services、Hosts、Alerts 项；通常也没有 Admin 项 | `CONFIRMED` |
-| VIEW-ONLY-010 | 顶部 Views 下拉及 cluster notifications | `enableLinks=false`，所以全部隐藏；View-only 用户通过当前列表或 iframe工作，而不是再用九宫格切换 | `CONFIRMED` |
-| VIEW-ONLY-011 | Ambari logo / Dashboard 跳转 | `goToDashboard` 因 `enableLinks=false` 不导航 | `CONFIRMED` |
-| VIEW-ONLY-012 | 用户菜单 | About、Switch Experience、Sign out 仍存在；Manage Ambari 是否出现另按 Ambari 级权限判断 | `CONFIRMED` |
+| VIEW-ONLY-009 | Left operations navigation | Does not create Dashboard, Services, Hosts, or Alerts items; usually no Admin item either | `CONFIRMED` |
+| VIEW-ONLY-010 | Top Views dropdown and cluster notifications | `enableLinks=false`, so both are hidden; View-only users work through the current list or iframe rather than switching through the top grid | `CONFIRMED` |
+| VIEW-ONLY-011 | Ambari logo/Dashboard navigation | `goToDashboard` does not navigate because `enableLinks=false` | `CONFIRMED` |
+| VIEW-ONLY-012 | User menu | About, Switch Experience, and Sign out remain; Manage Ambari visibility is determined separately by Ambari-level permissions | `CONFIRMED` |
 
-Views route 本身没有显式 `VIEW.USE` guard。Ember 依赖 main route 的认证和 server 对 `/api/v1/views` 返回集的授权过滤；客户端只再检查 `system=false` 和 `visible`。React 不能用 `visible` 代替服务端授权，也不能因为用户拥有 cluster 权限就假定其能使用每个 instance。
+Views routes have no explicit `VIEW.USE` guard. Ember relies on main-route authentication and server authorization filtering of the `/api/v1/views` response set; the client checks only `system=false` and `visible` afterward. React must not use `visible` as a substitute for server authorization or assume that cluster permission grants access to every instance.
 
-## Service 页面与 View 的交叉入口
+## Service and View Cross-Entry Points
 
-| ID | 经典源码状态 | 行为/边界 | 主要证据 | 等级 |
+| ID | Legacy source state | Behavior/boundary | Primary evidence | Level |
 | --- | --- | --- | --- | --- |
-| VIEW-X-001 | 普通 Service Quick Links 是另一套外部 Web UI 链接机制 | `App.QuickLinksView` 从 stack metadata/config/host 生成 URL；只有最终 URL 明确指向 `#/main/view/...` 时才复用本文 short route，不能把所有 Quick Link 当成 Ambari View | `app/views/common/quick_view_link_view.js`、service summary template | `CONFIRMED` |
-| VIEW-X-002 | Hive summary 留有 View link 扩展点 | `viewsToShow` 按 instance name 白名单并可覆盖 label，模板把结果交给 `goToView()`；但当前类默认 `{}`，全仓库没有运行代码填充，所以当前基线不会显示任何该类链接 | `app/views/main/service/services/hive.js`、Hive template、summary controller | `PLACEHOLDER` |
-| VIEW-X-003 | 通用 Service Summary 的 Views panel 已被注释 | computed `views` 和对应 Handlebars section 都不执行，不能作为 React 必须复刻的入口 | `app/views/main/service/info/summary.js:72-78`、summary template `131-145` | `PLACEHOLDER` |
-| VIEW-X-004 | 配置或服务端生成的 View deep link 可以携带 `viewPath` | 例如 Tez history URL template 把目标 application path编码进 `viewPath`；最终仍由 regular/short route 和 iframe处理 | Views routes、Tez configuration/advisor | `CONDITIONAL` |
+| VIEW-X-001 | Ordinary Service Quick Links are a separate external Web UI link mechanism | `App.QuickLinksView` generates URLs from stack metadata/config/host; it reuses this document's short route only when the final URL explicitly targets `#/main/view/...`, so not every Quick Link is an Ambari View | `app/views/common/quick_view_link_view.js`, service summary template | `CONFIRMED` |
+| VIEW-X-002 | Hive summary retains a View-link extension point | `viewsToShow` uses an instance-name allowlist and can override labels; the template passes results to `goToView()`. The current class defaults to `{}`, and no runtime code populates it across the repository, so the current baseline displays no such links | `app/views/main/service/services/hive.js`, Hive template, summary controller | `PLACEHOLDER` |
+| VIEW-X-003 | The generic Service Summary Views panel is commented out | The computed `views` and corresponding Handlebars section do not execute and are not an entry React must reproduce | `app/views/main/service/info/summary.js:72-78`, summary template `131-145` | `PLACEHOLDER` |
+| VIEW-X-004 | Config- or server-generated View deep links can carry `viewPath` | For example, the Tez history URL template encodes the target application path into `viewPath`; regular/short routes and the iframe still process it | Views routes, Tez configuration/advisor | `CONDITIONAL` |
 
-Hive 模板中的 `<a target="_blank">` 同时绑定 Ember action，而 controller 的实际 action 是 `App.router.route(internalAmbariUrl)`；若未来重新启用此扩展点，究竟新 tab 还是当前 tab取决于旧 Ember action 的事件处理，必须运行态验证，不能只依据 HTML `target`。
+Hive's `<a target="_blank">` template also binds an Ember action, while the controller's actual action is `App.router.route(internalAmbariUrl)`. If this extension point is re-enabled, whether it opens a new tab or the current tab depends on legacy Ember event handling and requires runtime validation; HTML `target` alone is insufficient.
 
-## Admin View 发现与跳转
+## Admin View Discovery and Navigation
 
-| ID | 入口/行为 | 权限与结果 | 失败/边界 | 后端请求 | 主要证据 | 等级 |
+| ID | Entry/behavior | Permission and result | Failure/boundary | Backend request | Primary evidence | Level |
 | --- | --- | --- | --- | --- | --- | --- |
-| VIEW-ADMIN-001 | 无 cluster 的登录后默认入口 | 非 View-only 用户调用 `transitionToAdminView()`；成功后整页进入 Admin Console | 请求 error callback 不显示默认 error modal，而是回 `main.views.index` | `ambari.service.load_server_version` | router、router tests | `CONFIRMED` |
-| VIEW-ADMIN-002 | 用户菜单 `Manage Ambari` | `showManageAmbari` 成立且用户拥有模板列出的任一 Ambari 级管理权限时显示，点击进入 `#/adminView` state | route又硬性要求已登录且 `CLUSTER.UPGRADE_DOWNGRADE_STACK`，否则转 login；入口权限和 route guard不一致。该 route 的 server-version请求没有 error callback：500/401/407/413 走默认 modal，403/404等默认静默；任何失败都不会执行登录后 `transitionToAdminView()` 所用的 Views fallback，并停在无 outlet state | `ambari.service.load_server_version` | application template/controller、router、AJAX default error handler | `CONFIRMED` |
-| VIEW-ADMIN-003 | Stack Versions 的 `Manage Versions` | `havePermissions('AMBARI.MANAGE_STACK_VERSIONS')` 为真才显示，且非当前 wizard owner时 disabled；确认“离开 Cluster Management”后探测版本并整页跳转 | `havePermissions` 还受全局 upgrade state、`supports.opsDuringRollingUpgrade` 和 `App.auth` 门控，不是只看 permission string；请求失败走全局 AJAX error，取消确认不请求 | `ambari.service.load_server_version` | versions template/view、`app/app.js#havePermissions`、version view tests | `CONFIRMED` |
-| VIEW-ADMIN-004 | 选择 Admin View version | 对每个 component 映射 `RootServiceComponents.component_version`，默认字符串排序，取最后一项，再用 `/[^\d.-]/g` 删除 build suffix | 映射不滤掉 `undefined`；这是 lexicographic 而非 semantic version sort；空数组、缺 version 或异常版本格式可能在 `.replace()` 前后失败且没有专用恢复 | 同上 | router callback、tests | `CONFIRMED` |
-| VIEW-ADMIN-005 | 构造 Admin Console URL | `App.appURLRoot + 'views/ADMIN_VIEW/' + latestVersion + '/INSTANCE/#/'`，然后 `window.location.replace()` | replace 不保留当前 Ember 页面为浏览器 back history entry；proxy root 由 `appURLRoot` 提供 | 浏览器导航 | router、helper、config | `CONFIRMED` |
-| VIEW-ADMIN-006 | `ADMIN_VIEW` 不进入普通 View 目录 | instance 查询排除 `ViewVersionInfo/system=true`；fixture 中 Admin instance 也为 `visible=false` | 管理入口不能依赖普通 instance 列表是否加载成功 | `views.instances` | AJAX query、Views fixtures | `CONFIRMED` |
+| VIEW-ADMIN-001 | Post-login default entry with no cluster | A non-View-only user calls `transitionToAdminView()` and enters the Admin Console as a full page on success | Request error callback does not show the default error modal and instead returns to `main.views.index` | `ambari.service.load_server_version` | Router, router tests | `CONFIRMED` |
+| VIEW-ADMIN-002 | User-menu `Manage Ambari` | Shown when `showManageAmbari` is true and the user has any Ambari-level management permission listed by the template; clicking enters `#/adminView` state | The route also requires login and `CLUSTER.UPGRADE_DOWNGRADE_STACK`, otherwise it goes to login; entry permission and route guard differ. The route's server-version request has no error callback: 500/401/407/413 use the default modal, while 403/404 and others are silently defaulted; no failure uses the Views fallback from post-login `transitionToAdminView()`, leaving an outlet-less state | `ambari.service.load_server_version` | Application template/controller, router, AJAX default error handler | `CONFIRMED` |
+| VIEW-ADMIN-003 | Stack Versions `Manage Versions` | Shown only when `havePermissions('AMBARI.MANAGE_STACK_VERSIONS')` is true and disabled for a non-current wizard owner; after confirming "leave Cluster Management", probes the version and navigates as a full page | `havePermissions` also gates on global upgrade state, `supports.opsDuringRollingUpgrade`, and `App.auth`, not only the permission string; request failure uses global AJAX error, and cancelled confirmation sends no request | `ambari.service.load_server_version` | Versions template/view, `app/app.js#havePermissions`, version view tests | `CONFIRMED` |
+| VIEW-ADMIN-004 | Selects the Admin View version | Maps each component's `RootServiceComponents.component_version`, uses default string sorting, takes the last item, and removes the build suffix with `/[^\d.-]/g` | Does not filter `undefined`; this is lexicographic rather than semantic version sorting. Empty arrays, missing versions, or malformed versions may fail before/after `.replace()` without dedicated recovery | Same as above | Router callback, tests | `CONFIRMED` |
+| VIEW-ADMIN-005 | Constructs the Admin Console URL | Uses `App.appURLRoot + 'views/ADMIN_VIEW/' + latestVersion + '/INSTANCE/#/'`, then calls `window.location.replace()` | replace does not retain the current Ember page as a browser back-history entry; `appURLRoot` provides the proxy root | Browser navigation | Router, helper, config | `CONFIRMED` |
+| VIEW-ADMIN-006 | `ADMIN_VIEW` does not enter the ordinary View directory | Instance query excludes `ViewVersionInfo/system=true`; the Admin instance in fixtures is also `visible=false` | The management entry must not depend on ordinary instance-list load success | `views.instances` | AJAX query, Views fixtures | `CONFIRMED` |
 
-`Manage Ambari` 模板中的权限集合为 `AMBARI.ADD_DELETE_CLUSTERS`、`AMBARI.ASSIGN_ROLES`、`AMBARI.EDIT_STACK_REPOS`、`AMBARI.MANAGE_GROUPS`、`AMBARI.MANAGE_STACK_VERSIONS`、`AMBARI.MANAGE_USERS`、`AMBARI.MANAGE_VIEWS`、`AMBARI.RENAME_CLUSTER`。`AMBARI.MANAGE_USERS` 在模板字符串中重复一次，不改变 OR 语义。
+The `Manage Ambari` template permission set is `AMBARI.ADD_DELETE_CLUSTERS`, `AMBARI.ASSIGN_ROLES`, `AMBARI.EDIT_STACK_REPOS`, `AMBARI.MANAGE_GROUPS`, `AMBARI.MANAGE_STACK_VERSIONS`, `AMBARI.MANAGE_USERS`, `AMBARI.MANAGE_VIEWS`, and `AMBARI.RENAME_CLUSTER`. `AMBARI.MANAGE_USERS` is repeated in the template string, which does not change OR semantics.
 
-### AngularJS Admin Console 边界
+### AngularJS Admin Console Boundary
 
-以下能力虽由同一 Ambari Server 发布，但当前 Ember 没有实现，React Ember 对照矩阵不得把它们记到本文功能 ID 下：
+Although the following capabilities are served by the same Ambari Server, the current Ember frontend does not implement them; the React-versus-Ember comparison matrix must not record them under this document's feature IDs:
 
-- View definition/version 的部署状态和清单管理。
-- 创建、clone、编辑、删除 View instance。
-- 设置 display label、description、visibility、properties、local/remote/custom cluster binding。
-- 创建和维护 short URL。
-- 给用户/组授予 View permission，以及管理 cluster permissions。
-- 用户、组、角色、remote cluster 和其他 Admin Console 管理页面。
+- View definition/version deployment status and inventory management.
+- Creating, cloning, editing, and deleting View instances.
+- Setting display label, description, visibility, properties, and local/remote/custom cluster binding.
+- Creating and maintaining short URLs.
+- Granting View permission to users/groups and managing cluster permissions.
+- Users, groups, roles, remote clusters, and other Admin Console management pages.
 
-若 React 重构决定同时替代 AngularJS Admin Console，应建立独立基线，不得根据本文的跳转行为推断其 CRUD 细节。
+If the React refactor also replaces the AngularJS Admin Console, create a separate baseline; do not infer its CRUD details from the navigation behavior in this document.
 
-普通 View application 也有自己的前端、resource endpoints 和业务流程。经典 shell 只把其 Web context 放入 iframe，无法从 `ambari-web/classic` 穷举每个已部署 View 的内部 API；需要迁移具体 View 时，应按对应 View artifact/source 另建基线。本文只要求 shell 的发现、路由、承载、授权边界和浏览器导航等价。
+An ordinary View application also has its own frontend, resource endpoints, and business flow. The legacy shell only places its Web context in an iframe and cannot enumerate every deployed View's internal API from `ambari-web/classic`; when migrating a specific View, create a separate baseline from that View's artifact/source. This document requires parity only for shell discovery, routes, hosting, authorization boundaries, and browser navigation.
 
-## 权限与可见性模型
+## Permission and Visibility Model
 
-| ID | 权限/条件 | 经典 Ember 中的实际作用 | 关键边界 | 等级 |
+| ID | Permission/condition | Actual role in legacy Ember | Key boundary | Level |
 | --- | --- | --- | --- | --- |
-| VIEW-PERM-001 | `VIEW.USE` authorization | 与 authorization 集合长度共同计算 `isOnlyViewUser` | 不是 route 内逐 instance guard；还受全局 `isAuthorized` 状态限制 | `CONFIRMED` |
-| VIEW-PERM-002 | `VIEW.USER` permission | 是 View instance privilege 的后端 permission name，可在用户 privilege 数据中出现 | Ember Views controller 不直接检查 `VIEW.USER`；不要与 `VIEW.USE` authorization id 混用 | `STATIC_ONLY` |
-| VIEW-PERM-003 | 服务端 instance access | 决定 `/api/v1/views` 对当前 session 返回哪些 resources，并保护 `/views/{context}` | 客户端的 `visible=true` 只是展示开关，不是授权 | `STATIC_ONLY` |
-| VIEW-PERM-004 | `AMBARI.MANAGE_VIEWS` | 只是 `Manage Ambari` 入口 OR 权限之一 | View instance CRUD 位于 AngularJS；该权限本身不让 Ember route执行 CRUD | `CONFIRMED` |
-| VIEW-PERM-005 | `CLUSTER.UPGRADE_DOWNGRADE_STACK` | `/adminView` transition route 的硬 guard | 与 `Manage Ambari` 链接使用的 Ambari 级权限集合不一致 | `CONFIRMED` |
-| VIEW-PERM-006 | `AMBARI.MANAGE_STACK_VERSIONS` | 显示 Stack Versions 页的 `Manage Versions` Admin View 入口 | 仅控制该入口，不控制普通 View 使用 | `CONFIRMED` |
-| VIEW-PERM-007 | `AMBARI.ADD_DELETE_CLUSTERS` | 决定未完成安装/Installer route 应恢复向导还是 fallback 到 Views | 不是 View 使用权限 | `CONFIRMED` |
-| VIEW-PERM-008 | wizard owner | Stack Versions 的外部管理按钮对 non-wizard user disabled；安装 Step 9 明确允许退出到 Admin View/Views | 普通 View 列表和 iframe没有统一的 wizard 禁止逻辑 | `CONFIRMED` |
+| VIEW-PERM-001 | `VIEW.USE` authorization | Combines with authorization-collection length to compute `isOnlyViewUser` | Not a per-instance route guard; also subject to global `isAuthorized` state | `CONFIRMED` |
+| VIEW-PERM-002 | `VIEW.USER` permission | Backend permission name for View-instance privileges and may appear in user privilege data | Ember Views controller does not check `VIEW.USER` directly; do not confuse it with the `VIEW.USE` authorization ID | `STATIC_ONLY` |
+| VIEW-PERM-003 | Server-side instance access | Determines which resources `/api/v1/views` returns for the current session and protects `/views/{context}` | Client `visible=true` is only a display switch, not authorization | `STATIC_ONLY` |
+| VIEW-PERM-004 | `AMBARI.MANAGE_VIEWS` | One of the OR permissions for the `Manage Ambari` entry | View-instance CRUD is in AngularJS; this permission alone does not make the Ember route perform CRUD | `CONFIRMED` |
+| VIEW-PERM-005 | `CLUSTER.UPGRADE_DOWNGRADE_STACK` | Hard guard for the `/adminView` transition route | Differs from the Ambari-level permission set used by the `Manage Ambari` link | `CONFIRMED` |
+| VIEW-PERM-006 | `AMBARI.MANAGE_STACK_VERSIONS` | Displays the `Manage Versions` Admin View entry on Stack Versions | Controls only this entry, not ordinary View use | `CONFIRMED` |
+| VIEW-PERM-007 | `AMBARI.ADD_DELETE_CLUSTERS` | Determines whether an incomplete installation/Installer route restores the wizard or falls back to Views | Not a View-use permission | `CONFIRMED` |
+| VIEW-PERM-008 | Wizard owner | Disables external management buttons on Stack Versions for a non-wizard user; installation Step 9 explicitly permits exit to Admin View/Views | Ordinary View list and iframe have no unified wizard prohibition | `CONFIRMED` |
 
-用户设置 controller 会把 `PrivilegeInfo.type='VIEW'` 的 instance name、view name、version 和 permission labels 分组用于 privilege 展示；该逻辑不参与 View 列表过滤或 route 授权。
+The user-settings controller groups instance name, view name, version, and permission labels where `PrivilegeInfo.type='VIEW'` for privilege display; this logic does not participate in View-list filtering or route authorization.
 
-## 后端接口契约
+## Backend API Contract
 
-### Views 直接使用的命名请求
+### Named Requests Used Directly by Views
 
-| 请求名 | Method | 完整 URL | 请求时机 | 关键响应字段 | 失败行为 |
+| Request name | Method | Full URL | Request timing | Key response fields | Failure behavior |
 | --- | --- | --- | --- | --- | --- |
-| `views.info` | `GET` | `/api/v1/views` | `loadAmbariViews()` 的第一阶段 | `items[]`，Ember只判断长度 | 自定义 error callback 清空列表并置 `isDataLoaded=true`，不走默认 error modal |
-| `views.instances` | `GET` | `/api/v1/views?fields=versions/instances/ViewInstanceInfo,versions/ViewVersionInfo/label&versions/ViewVersionInfo/system=false` | 仅 `views.info.items.length > 0` | `items[].versions[].ViewVersionInfo.label`、`versions[].instances[].ViewInstanceInfo` | 自定义 error callback 清空列表并置 loaded，不区分 401/403/404/500 |
-| `ambari.service.load_server_version` | `GET` | `/api/v1/services/AMBARI?fields=components/RootServiceComponents/component_version&components/RootServiceComponents/component_name=AMBARI_SERVER&minimal_response=true` | 无 cluster fallback、`/adminView` route、Manage Versions | `components[].RootServiceComponents.component_version` | 登录 fallback 回 Views；显式 `/adminView`/Manage Versions 没有同样 fallback，使用默认处理或停留 |
+| `views.info` | `GET` | `/api/v1/views` | First phase of `loadAmbariViews()` | `items[]`; Ember checks only length | Custom error callback clears the list and sets `isDataLoaded=true`, without the default error modal |
+| `views.instances` | `GET` | `/api/v1/views?fields=versions/instances/ViewInstanceInfo,versions/ViewVersionInfo/label&versions/ViewVersionInfo/system=false` | Only when `views.info.items.length > 0` | `items[].versions[].ViewVersionInfo.label`, `versions[].instances[].ViewInstanceInfo` | Custom error callback clears the list and sets loaded, without distinguishing 401/403/404/500 |
+| `ambari.service.load_server_version` | `GET` | `/api/v1/services/AMBARI?fields=components/RootServiceComponents/component_version&components/RootServiceComponents/component_name=AMBARI_SERVER&minimal_response=true` | No-cluster fallback, `/adminView` route, and Manage Versions | `components[].RootServiceComponents.component_version` | Login fallback returns to Views; explicit `/adminView`/Manage Versions has no equivalent fallback and uses default handling or remains |
 
-`ViewInstanceInfo` 的前端契约如下：
+The frontend contract for `ViewInstanceInfo` is:
 
-| 响应字段 | Ember model 字段 | 使用方式 |
+| Response field | Ember model field | Usage |
 | --- | --- | --- |
-| `icon_path` | `iconPath` | 列表 icon；空时默认图片 |
-| `label` | `label` | 列表、顶部下拉、regular breadcrumb |
-| `visible` | `visible` | 客户端最终过滤 |
-| `version` | `version` | 列表和 regular hash URL |
-| `description` | `description` | 列表描述；空时 fallback |
-| `view_name` | `viewName` | 两套 hash URL 和匹配键 |
-| `short_url` | `shortUrl` | 存在时优先生成 singular short URL |
-| `instance_name` | `instanceName` | regular hash URL 和 conditional service hook |
-| `context_path` | `href` | 追加 `/` 后作为 iframe server path；必须视为服务端事实 |
+| `icon_path` | `iconPath` | List icon; default image when empty |
+| `label` | `label` | List, top dropdown, regular breadcrumb |
+| `visible` | `visible` | Final client-side filter |
+| `version` | `version` | List and regular hash URL |
+| `description` | `description` | List description; fallback when empty |
+| `view_name` | `viewName` | Both hash URLs and matching key |
+| `short_url` | `shortUrl` | Prefer singular short URL when present |
+| `instance_name` | `instanceName` | Regular hash URL and conditional service hook |
+| `context_path` | `href` | Appends `/` and serves as the iframe server path; must be treated as server fact |
 
-### 登录、main 外壳与权限分流依赖的请求
+### Requests Used by Login, the Main Shell, and Permission Branching
 
-| 请求名 | Method | URL / key | 请求时机及与 Views 的关系 | 失败语义 |
+| Request name | Method | URL/key | Request timing and relation to Views | Failure semantics |
 | --- | --- | --- | --- | --- |
-| `router.login` | `POST` | `/api/v1/auth` | 本地登录提交；UTF-8 `username:password` 的 Base64 放入 Basic Authorization header | 403显示认证错误，500显示 server error，其他状态走通用登录失败；外部 JWT分支见认证文档 |
-| `router.afterLogin` | `GET` | `/api/v1/users/{loginName}?fields=*,privileges/PrivilegeInfo/cluster_name,privileges/PrivilegeInfo/permission_name` | 建立登录用户和 privilege上下文 | 失败走 login error，不进入 Views 分流 |
-| `router.user.authorizations` | `GET` | `/api/v1/users/{userName}/authorizations?fields=*` | 建立 `App.auth`；`VIEW.USE` 与集合长度共同决定 View-only | login链使用 `.complete()` 后继续，因此失败时 `App.auth` 可能仍为空/旧值，需运行态验证 |
-| `router.login.message` | `GET` | `/api/v1/settings/motd` | authorizations 完成后读取登录消息，确认或无有效消息后才继续 cluster分流 | error、空值或非法 JSON均按“无消息”继续 |
-| `router.login.clusters` | `GET` | `/api/v1/clusters?fields=Clusters/provisioning_state,Clusters/security_type,Clusters/version,Clusters/cluster_id` | 登录分流、`main.getAuthenticated()` 以及每 60 秒 keep-alive共用；决定 normal app、Installer、Views或 Admin View | 认证探测失败回 login；keep-alive没有业务 error UI，由 updater complete继续调度 |
-| `persist.get`（supports） | `GET` | `/api/v1/persist/user-pref-{loginName}-supports` | 每次进入 main/installer 前合并 per-user feature flags | 空/404/error均保留 defaults并继续 |
-| `ambari.service`（main） | `GET` | `/api/v1/services/AMBARI/components/AMBARI_SERVER` | View-only 也读取 server properties/clock/version并建立 inactivity timeout | 空 error callback；main链的后续 success串接被截断 |
-| `cluster.load_cluster_name` | `GET` | `/api/v1/clusters?fields=Clusters/security_type,Clusters/version,Clusters/cluster_id` | 仅在 `App.clusterName` 或 `App.clusterId` 缺失，或调用方要求 reload时发出；设置 cluster name/id/stack/security | 使用 reload error handler；失败不进入 View-only loaded分支 |
-| `persist.get`（cluster status） | `GET` | `/api/v1/persist/CLUSTER_CURRENT_STATUS` | 仅 cluster provisioning未完成时恢复 installer/wizard状态并决定是否 fallback Views | 历史值可替换 local DB；404沿用默认但 jqXHR仍拒绝，其他错误显示 modal并拒绝，main的 `.then(success)` 均不继续 |
+| `router.login` | `POST` | `/api/v1/auth` | Local login submission; Base64 of UTF-8 `username:password` is placed in the Basic Authorization header | 403 displays an authentication error, 500 displays a server error, and other statuses use generic login failure; see the authentication document for the external JWT branch |
+| `router.afterLogin` | `GET` | `/api/v1/users/{loginName}?fields=*,privileges/PrivilegeInfo/cluster_name,privileges/PrivilegeInfo/permission_name` | Establishes the logged-in user and privilege context | Failure uses login error and does not enter Views branching |
+| `router.user.authorizations` | `GET` | `/api/v1/users/{userName}/authorizations?fields=*` | Establishes `App.auth`; `VIEW.USE` and collection length jointly determine View-only | Login chain continues through `.complete()`, so `App.auth` may remain empty/old after failure; requires runtime validation |
+| `router.login.message` | `GET` | `/api/v1/settings/motd` | Reads the login message after authorizations complete and continues cluster branching after confirmation or no valid message | Error, empty value, or invalid JSON all continue as "no message" |
+| `router.login.clusters` | `GET` | `/api/v1/clusters?fields=Clusters/provisioning_state,Clusters/security_type,Clusters/version,Clusters/cluster_id` | Shared by login branching, `main.getAuthenticated()`, and 60-second keep-alive; determines normal app, Installer, Views, or Admin View | Authentication probe failure returns to login; keep-alive has no business error UI and updater complete schedules the next call |
+| `persist.get` (supports) | `GET` | `/api/v1/persist/user-pref-{loginName}-supports` | Merges per-user feature flags before each main/installer entry | Empty/404/error preserves defaults and continues |
+| `ambari.service` (main) | `GET` | `/api/v1/services/AMBARI/components/AMBARI_SERVER` | View-only also reads server properties/clock/version and establishes the inactivity timeout | Empty error callback; later success chaining in the main flow is cut off |
+| `cluster.load_cluster_name` | `GET` | `/api/v1/clusters?fields=Clusters/security_type,Clusters/version,Clusters/cluster_id` | Sent only when `App.clusterName` or `App.clusterId` is missing or a caller requests reload; sets cluster name/id/stack/security | Uses the reload error handler; failure does not enter the View-only loaded branch |
+| `persist.get` (cluster status) | `GET` | `/api/v1/persist/CLUSTER_CURRENT_STATUS` | Restores installer/wizard state and decides whether to fall back to Views only when cluster provisioning is incomplete | Historical value can replace the local DB; 404 keeps defaults but jqXHR remains rejected, while other errors show a modal and reject; neither continues main's `.then(success)` |
 
-### 绕过 `App.ajax` 的浏览器请求/导航
+### Browser Requests/Navigation Bypassing `App.ajax`
 
-Views controller、route 和 details view 中没有 `App.HttpClient.get`、原生 `XMLHttpRequest` 或直接 `$.ajax` 调用，因此 [generated/direct-http-calls.md](generated/direct-http-calls.md) 没有 Views 专属调用点。但迁移时仍必须追踪三类不在命名请求表中的浏览器行为：
+Views controllers, routes, and details view contain no `App.HttpClient.get`, native `XMLHttpRequest`, or direct `$.ajax` calls, so [generated/direct-http-calls.md](generated/direct-http-calls.md) has no Views-specific call site. Migration must still track these three browser behaviors that are outside the named-request table:
 
-| 标识 | 行为 | 网络/历史语义 |
+| Identifier | Behavior | Network/history semantics |
 | --- | --- | --- |
-| `NAV:ViewInstance.internalAmbariUrl` | `window.open('#/main/view...')` 或 `window.open('#/main/views...')` | 打开同一 Ambari shell 的新浏览上下文，再由 route加载 iframe |
-| `BROWSER_GET:ViewInstanceInfo.context_path` | iframe `src={origin}{context_path}/{viewPath}` | 浏览器直接 GET View Web application及其静态资源，共享当前 Ambari session |
-| `NAV:ADMIN_VIEW` | `window.location.replace('{appURLRoot}views/ADMIN_VIEW/{version}/INSTANCE/#/')` | 整页离开 Ember shell并替换当前 history entry |
+| `NAV:ViewInstance.internalAmbariUrl` | `window.open('#/main/view...')` or `window.open('#/main/views...')` | Opens a new browsing context for the same Ambari shell, then the route loads the iframe |
+| `BROWSER_GET:ViewInstanceInfo.context_path` | iframe `src={origin}{context_path}/{viewPath}` | Browser directly performs a GET for the View Web application and static resources, sharing the current Ambari session |
+| `NAV:ADMIN_VIEW` | `window.location.replace('{appURLRoot}views/ADMIN_VIEW/{version}/INSTANCE/#/')` | Leaves the Ember shell as a full page and replaces the current history entry |
 
-[generated/api-by-module/views.md](generated/api-by-module/views.md) 只是按请求名和 caller path 宽匹配的候选索引；跨模块命中不等于 Views 页面直接调用，缺席也不能证明没有请求。权威网络核对必须联合 [AJAX 定义](generated/ajax-endpoints.md)、[AJAX 调用点](generated/ajax-calls.md)、[direct HTTP](generated/direct-http-calls.md)、[browser entrypoints](generated/browser-network-entrypoints.md) 和 [realtime channels](generated/realtime-channels.md)。
+[generated/api-by-module/views.md](generated/api-by-module/views.md) is only a candidate index using broad request-name and caller-path matching; a cross-module match is not a direct Views-page call, and absence does not prove that no request exists. Authoritative network verification must combine [AJAX definitions](generated/ajax-endpoints.md), [AJAX call sites](generated/ajax-calls.md), [direct HTTP](generated/direct-http-calls.md), [browser entrypoints](generated/browser-network-entrypoints.md), and [realtime channels](generated/realtime-channels.md).
 
-## 源码与测试反向核对
+## Source and Test Cross-Check
 
-| 核对对象 | 已证实行为 | 测试状态/缺口 |
+| Review target | Confirmed behavior | Test status/gap |
 | --- | --- | --- |
-| `test/controllers/main/views_controller_test.js` | 登录后才请求、两阶段 load、空/error 归零、instance field mapping、`setView` 调用 `window.open` | 只覆盖一个 visible instance；未覆盖 hidden/system、多 version、多 instance、fallback label/icon/description、并发 reload |
-| `test/models/view_instance_test.js` | 有 short URL 走 singular route，无 short URL 走 regular route | 未覆盖需要 encoding 的 names、空字段和 proxy root |
-| `test/routes/views_test.js` | regular route 的 `parseViewPath` 对无 query、普通 query、encoded path、path + query 的输出 | 未执行完整 `connectOutlets`；short route parser、参数切片、instance lookup、invalid route 未测 |
-| `test/views/main/views_view_test.js` | `MainViewsView.views` 绑定 controller array | 未渲染 template action、empty state、visible filter |
-| `test/router_test.js#adminViewInfoSuccessCallback` | 多 component version 取排序末项，去除 custom build suffix，生成 Admin View URL | version 选择测试存在；整个 `loginGetClustersSuccessCallback` suite 为 `describe.skip`，无 cluster/View-only矩阵并非 active regression coverage |
-| `test/router_test.js#transitionToViews/#adminViewInfoErrorCallback` | 加载 Views并转 index；Admin version请求失败回 Views | 不覆盖 `/adminView` route guard 与链接权限不一致 |
-| `test/views/main/admin/stack_upgrade/version_view_test.js` | Manage Versions 确认后请求 server version并 `location.replace` | 覆盖普通/custom version；不覆盖取消、请求失败、空 components、lexical version陷阱 |
-| `test/views/main/menu_test.js` | dormant `goToSection('views')` branch可调用 router | 不证明 `MainSideMenuView.content` 当前实际创建 Views item |
-| `test/controllers/application_test.js`、`test/controllers/global/cluster_controller_test.js` | `enableLinks` 排除 View-only、keep-alive发送 `router.login.clusters`、Ambari properties/cluster name请求及成功映射 | 没有 main route集成测试证明 VIEW-INIT-001 到 VIEW-INIT-007 的完整顺序、失败短路和定时器清理 |
-| `generated/template-actions.md` 对 Views 文件的反向清点 | 当前可达 Views动作只有列表/顶部下拉的两个 `setView` 和用户菜单的 `goToAdminView`；Hive `goToView` 对应空扩展点 | 静态 action提取不覆盖 view click handler、动态 action或 iframe内部应用；未发现额外 Views mutation不等于运行态绝对不存在 |
-| `app/views/main/views/details.js` | iframe src、resize、interval、inactivity | 没有专用 unit/integration test，全部需要浏览器运行态验证 |
+| `test/controllers/main/views_controller_test.js` | Requests only after login, two-phase load, empty/error reset, instance field mapping, and `setView` calling `window.open` | Covers only one visible instance; no hidden/system, multiple version, multiple instance, fallback label/icon/description, or concurrent reload coverage |
+| `test/models/view_instance_test.js` | Uses the singular route with a short URL and the regular route without one | Does not cover names requiring encoding, empty fields, or proxy root |
+| `test/routes/views_test.js` | Regular-route `parseViewPath` output for no query, ordinary query, encoded path, and path + query | Does not execute complete `connectOutlets`; short-route parser, parameter slicing, instance lookup, and invalid route are untested |
+| `test/views/main/views_view_test.js` | `MainViewsView.views` binds the controller array | Does not render template actions, empty state, or visible filter |
+| `test/router_test.js#adminViewInfoSuccessCallback` | Takes the last sorted component version, removes custom build suffix, and generates the Admin View URL | Version-selection test exists; the entire `loginGetClustersSuccessCallback` suite is `describe.skip`, so no cluster/View-only matrix is active regression coverage |
+| `test/router_test.js#transitionToViews/#adminViewInfoErrorCallback` | Loads Views and transitions to index; Admin version request failure returns to Views | Does not cover inconsistent `/adminView` route guard and link permissions |
+| `test/views/main/admin/stack_upgrade/version_view_test.js` | Manage Versions requests the server version and calls `location.replace` after confirmation | Covers ordinary/custom versions; does not cover cancellation, request failure, empty components, or lexical-version traps |
+| `test/views/main/menu_test.js` | Dormant `goToSection('views')` branch can call the router | Does not prove that current `MainSideMenuView.content` creates a Views item |
+| `test/controllers/application_test.js`, `test/controllers/global/cluster_controller_test.js` | `enableLinks` excludes View-only, keep-alive sends `router.login.clusters`, and Ambari properties/cluster-name requests and success mapping | No main-route integration test proves the full order, failure short-circuit, and timer cleanup for VIEW-INIT-001 through VIEW-INIT-007 |
+| Reverse inventory of Views files in `generated/template-actions.md` | Currently reachable Views actions are the two list/top-dropdown `setView` actions and user-menu `goToAdminView`; Hive `goToView` is an empty extension point | Static action extraction does not cover View click handlers, dynamic actions, or iframe applications; finding no additional Views mutation does not prove runtime absence |
+| `app/views/main/views/details.js` | iframe src, resize, interval, inactivity | No dedicated unit/integration test; all require browser runtime validation |
 
-## 已知旧版风险与 React 验收要求
+## Known Legacy Risks and React Acceptance Requirements
 
-| ID | 旧版风险/歧义 | React 对照处理 |
+| ID | Legacy risk/ambiguity | React comparison handling |
 | --- | --- | --- |
-| VIEW-RISK-001 | 两阶段 View 查询增加一次往返；reload 不重置 loaded且不去重并发 | 若 React 合并/缓存请求，仍需证明最终授权过滤、刷新和错误语义；行为改变标 `BEHAVIOR_DIFF` |
-| VIEW-RISK-002 | 空列表、403/500 和 instance load failure 显示相同 `No views` | React 新增可诊断 error/retry 是合理改进，但不能在矩阵中误标成旧版已存在 |
-| VIEW-RISK-003 | invalid regular/short deep link没有 not-found恢复，并可能复用 singleton details controller 的旧 content | React 若修复，记录新行为并分别测试 cold/warm navigation、unknown、hidden、unauthorized、deleted instance，禁止显示上一 instance |
-| VIEW-RISK-004 | `viewPath` 依赖旧 Ember把 query附到最后一个动态参数；parser用 substring而非 query key识别且不捕获 `decodeURIComponent` 的 `URIError` | 必须用真实浏览器覆盖两套 URL、hash/query、query 参数顺序、无关字段包含 `viewPath`、非法 percent encoding、encoded slash、proxy/Knox路径；不能只移植 parser unit test |
-| VIEW-RISK-005 | iframe读取 content document、绑定事件且无 sandbox，隐含同源假设 | React 改 iframe policy前验证所有保留 View；跨源支持如为新需求应独立设计 |
-| VIEW-RISK-006 | iframe没有 load/error lifecycle，并用全局 selector取第一个 iframe resize | React 可改进，但需验证高度、宿主滚动、View内部路由、下载和 inactivity timeout |
-| VIEW-RISK-007 | View route无客户端逐 instance permission guard | 服务端 REST/context授权必须保留；React 可增加 route guard，但不能信任客户端 metadata作为安全边界 |
-| VIEW-RISK-008 | `isOnlyViewUser` 把空 authorization 当 View-only，并受 upgrade/wizard全局 gate影响 | 对照测试必须使用 authorization payload，不要只按 privilege label或用户名构造角色 |
-| VIEW-RISK-009 | Manage Ambari 链接权限、`/adminView` route guard和 Manage Versions权限是三套不同条件 | 不得用一个统一 `canManageViews` boolean静默改变旧入口；若统一应标 `BEHAVIOR_DIFF` 并由维护者确认 |
-| VIEW-RISK-010 | Admin version用字符串排序并假设至少一个合法 component version | 多 Ambari Server、custom build、`2.9`/`2.10`、空/坏响应都需测试；可改为服务端事实或 semantic sort |
-| VIEW-RISK-011 | generic service-to-View panel和 Hive hook当前未启用 | React 不应根据注释或空扩展点认定功能缺失；只有确认 stack/runtime注入后才从 `PLACEHOLDER` 升级 |
-| VIEW-RISK-012 | View-only 仍依赖 supports -> `ambari.service` -> cluster identity这条 main外壳链；`ambari.service` 或未完成 cluster 的 persist失败会阻断 success串接；keep-alive只在 logoff成功时显式关闭 | React 不得因“只需 Views”删掉 keep-alive/inactivity/session上下文；若改成可降级并显示错误，应标 `BEHAVIOR_DIFF` 并覆盖 partial-init、logout失败和恢复 |
+| VIEW-RISK-001 | Two-phase View queries add one round trip; reload does not reset loaded or deduplicate concurrent requests | If React combines/caches requests, still prove final authorization filtering, refresh, and error semantics; mark behavior changes `BEHAVIOR_DIFF` |
+| VIEW-RISK-002 | Empty list, 403/500, and instance-load failure display the same `No views` | Adding diagnosable error/retry in React is a reasonable improvement, but must not be marked as existing legacy behavior in the matrix |
+| VIEW-RISK-003 | Invalid regular/short deep links have no not-found recovery and may reuse old content from the singleton details controller | If React fixes this, record the new behavior and separately test cold/warm navigation, unknown, hidden, unauthorized, and deleted instances; never display the previous instance |
+| VIEW-RISK-004 | `viewPath` depends on legacy Ember attaching the query to the final dynamic parameter; parser uses substring rather than query-key recognition and does not catch `decodeURIComponent` `URIError` | Use real-browser coverage for both URL forms, hash/query, query-parameter order, unrelated fields containing `viewPath`, invalid percent encoding, encoded slash, and proxy/Knox paths; do not only port parser unit tests |
+| VIEW-RISK-005 | Iframe reads the content document, binds events, and has no sandbox, implying same-origin access | Validate every retained View before changing iframe policy in React; design cross-origin support separately if it is a new requirement |
+| VIEW-RISK-006 | Iframe has no load/error lifecycle and uses a global selector to resize the first iframe | React may improve this, but must validate height, host scrolling, internal View routes, downloads, and inactivity timeout |
+| VIEW-RISK-007 | View routes have no client-side per-instance permission guard | Preserve server REST/context authorization; React may add a route guard but must not trust client metadata as the security boundary |
+| VIEW-RISK-008 | `isOnlyViewUser` treats empty authorization as View-only and is affected by global upgrade/wizard gates | Comparison tests must use authorization payloads rather than constructing roles only from privilege labels or usernames |
+| VIEW-RISK-009 | Manage Ambari link permissions, `/adminView` route guard, and Manage Versions permissions are three different conditions | Do not silently change legacy entry points with one `canManageViews` boolean; if unified, mark `BEHAVIOR_DIFF` and obtain maintainer confirmation |
+| VIEW-RISK-010 | Admin version uses string sorting and assumes at least one valid component version | Test multiple Ambari Server components, custom builds, `2.9`/`2.10`, and empty/bad responses; may use server fact or semantic sorting instead |
+| VIEW-RISK-011 | Generic service-to-View panel and Hive hook are currently disabled | React must not infer missing functionality from comments or empty extension points; upgrade from `PLACEHOLDER` only after stack/runtime injection is confirmed |
+| VIEW-RISK-012 | View-only still depends on the main-shell chain supports -> `ambari.service` -> cluster identity; `ambari.service` or incomplete-cluster persistence failure blocks success chaining; keep-alive is explicitly stopped only on successful logoff | React must not remove keep-alive/inactivity/session context because it "only needs Views"; if made degradable with displayed errors, mark `BEHAVIOR_DIFF` and cover partial-init, logout failure, and recovery |
 
-### 最低运行态场景
+### Minimum Runtime Scenarios
 
-1. 一个用户分别拥有零 authorization、仅 `VIEW.USE`、cluster + View、多个 View instance privileges，核对首屏、菜单和 API 返回集。
-2. 同一 View 存在多个 version/instance，包含 visible/hidden、system/non-system、带和不带 short URL的组合。
-3. regular 与 short deep link分别覆盖无内部路径、`viewPath` slash、hash route、query 参数、刷新和登录前访问。
-4. View REST 401/403/500、instance删除、context 404/500、View deploy中和 iframe script error，记录旧版与 React error状态。
-5. View 内容高度变化、宿主滚动、inactivity warning/logout、View内弹窗/下载/fullscreen以及离页 interval清理。
-6. Ambari 安装在非根 proxy path/Knox路径下，核对 `endsWith` instance匹配、hash URL、iframe context和 Admin View `appURLRoot`。
-7. 无 cluster的 View-only、Ambari admin、普通无权限用户分别登录，核对 Views/Admin View fallback。
-8. 多个 Ambari Server component version、custom suffix和两位数 minor version，核对 Admin View版本选择与失败恢复。
-9. View-only main初始化分别注入 supports、Ambari properties、cluster identity和persist失败，并用虚拟时钟确认 keep-alive首次延迟、重复进入不重复注册，以及 logoff成功/失败时不同的停止行为。
+1. Use users with zero authorization, only `VIEW.USE`, cluster + View, and multiple View instance privileges, and verify the first screen, menus, and API response set.
+2. Use one View with multiple versions/instances, including visible/hidden, system/non-system, and with/without short URL combinations.
+3. Cover regular and short deep links with no internal path, `viewPath` slash, hash route, query parameters, refresh, and pre-login access.
+4. Cover View REST 401/403/500, instance deletion, context 404/500, View deployment in progress, and iframe script errors, recording legacy and React error states.
+5. Cover View content-height changes, host scrolling, inactivity warning/logout, in-View popups/downloads/fullscreen, and interval cleanup after exit.
+6. Install Ambari under a non-root proxy path/Knox path and verify `endsWith` instance matching, hash URLs, iframe context, and Admin View `appURLRoot`.
+7. Log in separately as a View-only user with no cluster, an Ambari administrator, and an ordinary unauthorized user, and verify Views/Admin View fallbacks.
+8. Use multiple Ambari Server component versions, custom suffixes, and two-digit minor versions, and verify Admin View version selection and failure recovery.
+9. Inject supports, Ambari properties, cluster identity, and persistence failures into View-only main initialization; use a virtual clock to verify initial keep-alive delay, no duplicate registration on re-entry, and different stop behavior after successful/failed logoff.

@@ -11,7 +11,7 @@
     "operationalFields": [
       "Clusters/*"
     ],
-    "notes": "初始加载 cluster identity/security/credential-store 等基础模型；complete 在 mapper 后刷新 isCredentialStorePersistent。"
+    "notes": "Initial load of core cluster identity/security/credential-store models; complete refreshes isCredentialStorePersistent after the mapper runs."
   },
   {
     "kind": "HttpClient",
@@ -25,7 +25,7 @@
     "operationalFields": [
       "caller supplied"
     ],
-    "notes": "`requestHosts()` 在经典 app 树中无生产调用者，只有 controller unit test；保留为 STATIC_ONLY 遗留 helper。"
+    "notes": "`requestHosts()` has no production caller in the classic app tree and is used only by a controller unit test; retained as a STATIC_ONLY legacy helper."
   },
   {
     "kind": "HttpClient",
@@ -39,7 +39,7 @@
     "operationalFields": [
       "Clusters/*"
     ],
-    "notes": "运行期刷新 cluster mapper；complete callback 为空。"
+    "notes": "Refreshes the cluster mapper at runtime; the complete callback is empty."
   },
   {
     "kind": "jQuery AJAX",
@@ -53,7 +53,7 @@
     "operationalFields": [
       "original request dependent"
     ],
-    "notes": "先保存 KDC credential，再原样重放 `ajaxOpt`；不是新 endpoint，也不得丢失原 success/error/statusCode 处理。"
+    "notes": "Saves the KDC credential first, then replays `ajaxOpt` unchanged; this is not a new endpoint and must preserve the original success/error/statusCode handling."
   },
   {
     "kind": "HttpClient",
@@ -71,7 +71,7 @@
       "logging metadata when supports.logSearch",
       "NameNode ClusterId and HAState when HDFS is loaded"
     ],
-    "notes": "响应也可条件性携带 disk/load/cpu/memory 指标字段，这些数值排除；过滤、排序、分页和超长 GET override 行为必须保留。"
+    "notes": "The response may also conditionally include disk/load/cpu/memory metric fields, which are excluded; filtering, sorting, pagination, and oversized-GET override behavior must be preserved."
   },
   {
     "kind": "HttpClient",
@@ -87,7 +87,7 @@
       "host/display/public-host/state/maintenance/stale-config/ha-state/desired-admin-state",
       "HDFS ClusterId and HBase IsActiveMaster operational selectors"
     ],
-    "notes": "共用 serviceMetricsMapper 且后续请求会携带大量指标；本基线只保留 topology/state/HA/Active-Standby 等运维语义。"
+    "notes": "Shares serviceMetricsMapper and subsequent requests include many metrics; this baseline retains only operational semantics such as topology/state/HA/Active-Standby."
   },
   {
     "kind": "HttpClient",
@@ -102,7 +102,7 @@
       "service state/maintenance/desired repository version",
       "component names"
     ],
-    "notes": "集群初始化的 service 模型加载。"
+    "notes": "Loads the service model during cluster initialization."
   },
   {
     "kind": "HttpClient",
@@ -117,7 +117,7 @@
       "component category and aggregate state counts",
       "host component host names"
     ],
-    "notes": "用于服务组件状态和拓扑映射。"
+    "notes": "Used to map service-component state and topology."
   },
   {
     "kind": "HttpClient",
@@ -131,7 +131,7 @@
     "operationalFields": [
       "alert definition configuration and source"
     ],
-    "notes": "初始加载全部告警定义。"
+    "notes": "Initial load of all alert definitions."
   },
   {
     "kind": "HttpClient",
@@ -147,7 +147,7 @@
       "repeat-tolerance remaining",
       "timestamps/text/host/service/component"
     ],
-    "notes": "只载入非健康且 maintenance OFF 的分页实例。"
+    "notes": "Loads only paginated non-healthy instances with maintenance OFF."
   },
   {
     "kind": "HttpClient",
@@ -161,7 +161,7 @@
     "operationalFields": [
       "server grouped alert summary"
     ],
-    "notes": "为告警定义摘要 mapper 加载服务端分组统计。"
+    "notes": "Loads server-side grouped statistics for the alert-definition summary mapper."
   },
   {
     "kind": "HttpClient",
@@ -175,7 +175,7 @@
     "operationalFields": [
       "alert group membership and targets"
     ],
-    "notes": "初始加载告警组。"
+    "notes": "Initial load of alert groups."
   },
   {
     "kind": "HttpClient",
@@ -189,7 +189,7 @@
     "operationalFields": [
       "all alert target/notification fields"
     ],
-    "notes": "根级 alert target 资源，不带 cluster path。"
+    "notes": "Root-level alert target resource without a cluster path."
   },
   {
     "kind": "HttpClient",
@@ -204,7 +204,7 @@
       "cluster stack versions",
       "repository/OS/repository details on full load"
     ],
-    "notes": "`fullLoad` 选择初始全量 URL 或运行期轻量 URL。"
+    "notes": "`fullLoad` selects the initial full URL or the lightweight runtime URL."
   },
   {
     "kind": "HttpClient",
@@ -219,7 +219,7 @@
       "stack repository versions",
       "OS and repository definitions"
     ],
-    "notes": "全量 repository-version model 加载。"
+    "notes": "Full repository-version model load."
   },
   {
     "kind": "HttpClient",
@@ -233,7 +233,7 @@
     "operationalFields": [
       "Upgrade/*"
     ],
-    "notes": "历史列表 complete 时即 resolve；HttpClient error 不调 complete，可留下未解决 promise。"
+    "notes": "The historical list resolves when complete is called; HttpClient errors do not call complete and may leave the promise unresolved."
   },
   {
     "kind": "HttpClient",
@@ -247,7 +247,7 @@
     "operationalFields": [
       "service config version history and compatibility metadata"
     ],
-    "notes": "过滤、排序条件由 table mixin 动态生成。"
+    "notes": "Filter and sort conditions are generated dynamically by the table mixin."
   },
   {
     "kind": "jQuery AJAX",
@@ -262,7 +262,7 @@
       "Requests.id when asynchronous",
       "caller-defined task/request polling data"
     ],
-    "notes": "经典 app 树未发现 `App.Poll.create()` 生产调用，只有 unit test；空/非 JSON 成功会直接标记 success，有 request ID 才转轮询。"
+    "notes": "No production call to `App.Poll.create()` was found in the classic app tree, only a unit test; empty/non-JSON success is marked successful directly, and polling begins only when a request ID exists."
   },
   {
     "kind": "HttpClient",
@@ -278,6 +278,6 @@
       "stack versions and logging",
       "NameNode ClusterId/HAState safety selectors"
     ],
-    "notes": "升级前 heartbeat check 中的安全删除流程；响应携带 disk/load/cpu/memory 指标但该指标展示不纳入。"
+    "notes": "Safe deletion flow in the pre-upgrade heartbeat check; the response includes disk/load/cpu/memory metrics, but their display is excluded."
   }
 ]

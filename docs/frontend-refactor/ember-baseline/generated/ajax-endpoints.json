@@ -24,7 +24,7 @@
       "ambari-web/classic/app/controllers/main/admin/kerberos/step2_controller.js:313"
     ],
     "modules": [
-      "安全、高可用与联邦"
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -70,10 +70,10 @@
       "ambari-web/classic/app/views/main/admin/stack_upgrade/custom_cluster_checks/custom_cluster_checks_view.js:50"
     ],
     "modules": [
-      "安装向导",
-      "服务与配置",
-      "Stack 与升级",
-      "安全、高可用与联邦",
+      "Installation Wizards",
+      "Services and Configs",
+      "Stack and Upgrades",
+      "Security, HA, and Federation",
       "Views"
     ]
   },
@@ -107,7 +107,7 @@
       "ambari-web/classic/app/controllers/main/service/item.js:600"
     ],
     "modules": [
-      "服务与配置"
+      "Services and Configs"
     ]
   },
   {
@@ -133,7 +133,7 @@
       "ambari-web/classic/app/controllers/main/admin/kerberos/step3_controller.js:77"
     ],
     "modules": [
-      "安全、高可用与联邦"
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -159,7 +159,7 @@
       "ambari-web/classic/app/controllers/main/service/item.js:406"
     ],
     "modules": [
-      "服务与配置"
+      "Services and Configs"
     ]
   },
   {
@@ -185,7 +185,7 @@
       "ambari-web/classic/app/controllers/main/host/details.js:422"
     ],
     "modules": [
-      "主机"
+      "Hosts"
     ]
   },
   {
@@ -215,8 +215,8 @@
       "ambari-web/classic/app/controllers/main/service/add_controller.js:506"
     ],
     "modules": [
-      "主机",
-      "服务与配置"
+      "Hosts",
+      "Services and Configs"
     ]
   },
   {
@@ -243,7 +243,7 @@
     "sourceContractSha256": "c3e8dff97cc7869d0da76af9d52de4fb8b54c94a8018c9e3a6fbef28456afd56",
     "callers": [],
     "modules": [
-      "主机"
+      "Hosts"
     ]
   },
   {
@@ -275,7 +275,7 @@
       "ambari-web/classic/app/controllers/main/host/details.js:338"
     ],
     "modules": [
-      "主机"
+      "Hosts"
     ]
   },
   {
@@ -313,8 +313,8 @@
       "ambari-web/classic/app/mixins/wizard/wizardProgressPageController.js:653"
     ],
     "modules": [
-      "主机",
-      "服务与配置"
+      "Hosts",
+      "Services and Configs"
     ]
   },
   {
@@ -338,7 +338,7 @@
     "sourceContractSha256": "64723f58106e6d8138ad48381375f60ca691ac2f95f3c0a5689cfe95e717ce28",
     "callers": [],
     "modules": [
-      "主机"
+      "Hosts"
     ]
   },
   {
@@ -376,9 +376,9 @@
       "ambari-web/classic/app/controllers/main/host/details.js:1336"
     ],
     "modules": [
-      "认证与应用外壳",
-      "主机",
-      "安全、高可用与联邦"
+      "Authentication and Application Shell",
+      "Hosts",
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -411,8 +411,8 @@
       "ambari-web/classic/app/controllers/main/admin/highAvailability/rangerAdmin/step4_controller.js:88"
     ],
     "modules": [
-      "认证与应用外壳",
-      "安全、高可用与联邦"
+      "Authentication and Application Shell",
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -443,9 +443,9 @@
       "ambari-web/classic/app/mixins/common/configs/configs_saver.js:631"
     ],
     "modules": [
-      "安装向导",
-      "服务与配置",
-      "安全、高可用与联邦"
+      "Installation Wizards",
+      "Services and Configs",
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -471,8 +471,8 @@
       "ambari-web/classic/app/controllers/main/admin/highAvailability/progress_popup_controller.js:113"
     ],
     "modules": [
-      "安全、高可用与联邦",
-      "后台操作与通用能力"
+      "Security, HA, and Federation",
+      "Background Operations and Common Capabilities"
     ]
   },
   {
@@ -500,8 +500,8 @@
       "ambari-web/classic/app/views/main/admin/stack_upgrade/versions_view.js:221"
     ],
     "modules": [
-      "认证与应用外壳",
-      "Stack 与升级",
+      "Authentication and Application Shell",
+      "Stack and Upgrades",
       "Views"
     ]
   },
@@ -536,7 +536,7 @@
       "ambari-web/classic/app/controllers/main/service/info/summary.js:318"
     ],
     "modules": [
-      "服务与配置"
+      "Services and Configs"
     ]
   },
   {
@@ -576,9 +576,9 @@
       "ambari-web/classic/app/mixins/wizard/wizardProgressPageController.js:626"
     ],
     "modules": [
-      "安装向导",
-      "主机",
-      "Stack 与升级"
+      "Installation Wizards",
+      "Hosts",
+      "Stack and Upgrades"
     ]
   },
   {
@@ -606,7 +606,7 @@
       "ambari-web/classic/app/controllers/main/host/bulk_operations_controller.js:375"
     ],
     "modules": [
-      "主机"
+      "Hosts"
     ]
   },
   {
@@ -637,7 +637,7 @@
       "ambari-web/classic/app/utils/batch_scheduled_requests.js:300"
     ],
     "modules": [
-      "后台操作与通用能力"
+      "Background Operations and Common Capabilities"
     ]
   },
   {
@@ -669,8 +669,8 @@
       "ambari-web/classic/app/controllers/main/service/item.js:573"
     ],
     "modules": [
-      "主机",
-      "服务与配置"
+      "Hosts",
+      "Services and Configs"
     ]
   },
   {
@@ -704,9 +704,9 @@
       "ambari-web/classic/app/controllers/main/service/reassign/step7_controller.js:66"
     ],
     "modules": [
-      "主机",
-      "服务与配置",
-      "安全、高可用与联邦"
+      "Hosts",
+      "Services and Configs",
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -730,7 +730,7 @@
     "sourceContractSha256": "f87f51d9ec6fb0b231ecc437d527cbd13d766f2990228b3ecff597a803adb7f3",
     "callers": [],
     "modules": [
-      "主机"
+      "Hosts"
     ]
   },
   {
@@ -769,9 +769,9 @@
       "ambari-web/classic/app/utils/batch_scheduled_requests.js:632"
     ],
     "modules": [
-      "主机",
-      "服务与配置",
-      "后台操作与通用能力"
+      "Hosts",
+      "Services and Configs",
+      "Background Operations and Common Capabilities"
     ]
   },
   {
@@ -798,7 +798,7 @@
       "ambari-web/classic/app/controllers/main/host/details.js:2829"
     ],
     "modules": [
-      "主机"
+      "Hosts"
     ]
   },
   {
@@ -832,9 +832,9 @@
       "ambari-web/classic/app/mixins/wizard/wizardProgressPageController.js:769"
     ],
     "modules": [
-      "主机",
-      "服务与配置",
-      "安全、高可用与联邦"
+      "Hosts",
+      "Services and Configs",
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -858,7 +858,7 @@
     "sourceContractSha256": "ee14b5974522d92f67b15d68b6f4161d420cd8fa79008f82f298f1397bd1c4d7",
     "callers": [],
     "modules": [
-      "跨模块与待人工归类"
+      "Cross-Module and Manual Classification"
     ]
   },
   {
@@ -884,7 +884,7 @@
       "ambari-web/classic/app/mixins/main/service/configs/config_overridable.js:419"
     ],
     "modules": [
-      "服务与配置"
+      "Services and Configs"
     ]
   },
   {
@@ -910,7 +910,7 @@
       "ambari-web/classic/app/controllers/wizard/step8_controller.js:754"
     ],
     "modules": [
-      "安装向导"
+      "Installation Wizards"
     ]
   },
   {
@@ -938,8 +938,8 @@
       "ambari-web/classic/app/controllers/main/service/item.js:2058"
     ],
     "modules": [
-      "服务与配置",
-      "安全、高可用与联邦"
+      "Services and Configs",
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -965,7 +965,7 @@
       "ambari-web/classic/app/utils/batch_scheduled_requests.js:742"
     ],
     "modules": [
-      "后台操作与通用能力"
+      "Background Operations and Common Capabilities"
     ]
   },
   {
@@ -989,7 +989,7 @@
     "sourceContractSha256": "20ff027d75b4a840c7eb1822455bbebb5471e13f2cfaa31bc31e75eced11a09e",
     "callers": [],
     "modules": [
-      "后台操作与通用能力"
+      "Background Operations and Common Capabilities"
     ]
   },
   {
@@ -1013,7 +1013,7 @@
     "sourceContractSha256": "cbcf87be677c31e402b67d64fa030ffd3bf634c467209eb8f60c9029394e157b",
     "callers": [],
     "modules": [
-      "告警"
+      "Alerts"
     ]
   },
   {
@@ -1037,7 +1037,7 @@
     "sourceContractSha256": "4e749db02a725343d7aacf10dd176ce0e2808d01c58909f08dd3e38f5663a1dc",
     "callers": [],
     "modules": [
-      "告警"
+      "Alerts"
     ]
   },
   {
@@ -1069,7 +1069,7 @@
       "ambari-web/classic/app/controllers/main/alerts/manage_alert_groups_controller.js:476"
     ],
     "modules": [
-      "告警"
+      "Alerts"
     ]
   },
   {
@@ -1101,7 +1101,7 @@
       "ambari-web/classic/app/controllers/main/alerts/manage_alert_groups_controller.js:508"
     ],
     "modules": [
-      "告警"
+      "Alerts"
     ]
   },
   {
@@ -1129,7 +1129,7 @@
       "ambari-web/classic/app/controllers/main/alerts/manage_alert_groups_controller.js:542"
     ],
     "modules": [
-      "告警"
+      "Alerts"
     ]
   },
   {
@@ -1153,7 +1153,7 @@
     "sourceContractSha256": "30df08fb137d31183e21c838657e853e0d3e03bb969aec9c01f1e2331c6af4a3",
     "callers": [],
     "modules": [
-      "告警"
+      "Alerts"
     ]
   },
   {
@@ -1180,7 +1180,7 @@
       "ambari-web/classic/app/controllers/main/alerts/manage_alert_notifications_controller.js:363"
     ],
     "modules": [
-      "告警"
+      "Alerts"
     ]
   },
   {
@@ -1206,7 +1206,7 @@
       "ambari-web/classic/app/controllers/main/alerts/alert_instances_controller.js:113"
     ],
     "modules": [
-      "告警"
+      "Alerts"
     ]
   },
   {
@@ -1230,7 +1230,7 @@
     "sourceContractSha256": "22ffedf66521ee0a8f2c3bb8112d84adb1642c82f8a7ebc4e1345b745222cc42",
     "callers": [],
     "modules": [
-      "告警"
+      "Alerts"
     ]
   },
   {
@@ -1256,7 +1256,7 @@
       "ambari-web/classic/app/controllers/main/alerts/alert_instances_controller.js:104"
     ],
     "modules": [
-      "告警"
+      "Alerts"
     ]
   },
   {
@@ -1282,8 +1282,8 @@
       "ambari-web/classic/app/controllers/main/alerts/alert_instances_controller.js:95"
     ],
     "modules": [
-      "主机",
-      "告警"
+      "Hosts",
+      "Alerts"
     ]
   },
   {
@@ -1318,7 +1318,7 @@
       "ambari-web/classic/app/controllers/main/alerts/definition_details_controller.js:309"
     ],
     "modules": [
-      "告警"
+      "Alerts"
     ]
   },
   {
@@ -1348,7 +1348,7 @@
       "ambari-web/classic/app/controllers/main/alerts/add_alert_definition/add_alert_definition_controller.js:38"
     ],
     "modules": [
-      "告警"
+      "Alerts"
     ]
   },
   {
@@ -1374,7 +1374,7 @@
       "ambari-web/classic/app/controllers/main/alerts/definition_details_controller.js:189"
     ],
     "modules": [
-      "告警"
+      "Alerts"
     ]
   },
   {
@@ -1405,8 +1405,8 @@
       "ambari-web/classic/app/controllers/wizard/step8_controller.js:1706"
     ],
     "modules": [
-      "安装向导",
-      "告警"
+      "Installation Wizards",
+      "Alerts"
     ]
   },
   {
@@ -1437,7 +1437,7 @@
       "ambari-web/classic/app/controllers/main/alerts/manage_alert_notifications_controller.js:977"
     ],
     "modules": [
-      "告警"
+      "Alerts"
     ]
   },
   {
@@ -1463,7 +1463,7 @@
       "ambari-web/classic/app/controllers/main/alerts/manage_alert_notifications_controller.js:939"
     ],
     "modules": [
-      "告警"
+      "Alerts"
     ]
   },
   {
@@ -1489,7 +1489,7 @@
       "ambari-web/classic/app/controllers/main/alerts/definition_details_controller.js:91"
     ],
     "modules": [
-      "告警"
+      "Alerts"
     ]
   },
   {
@@ -1515,7 +1515,7 @@
       "ambari-web/classic/app/controllers/global/background_operations_controller.js:208"
     ],
     "modules": [
-      "后台操作与通用能力"
+      "Background Operations and Common Capabilities"
     ]
   },
   {
@@ -1544,8 +1544,8 @@
       "ambari-web/classic/app/utils/polling.js:149"
     ],
     "modules": [
-      "安全、高可用与联邦",
-      "后台操作与通用能力"
+      "Security, HA, and Federation",
+      "Background Operations and Common Capabilities"
     ]
   },
   {
@@ -1574,9 +1574,9 @@
       "ambari-web/classic/app/utils/polling.js:118"
     ],
     "modules": [
-      "安装向导",
-      "安全、高可用与联邦",
-      "后台操作与通用能力"
+      "Installation Wizards",
+      "Security, HA, and Federation",
+      "Background Operations and Common Capabilities"
     ]
   },
   {
@@ -1604,8 +1604,8 @@
       "ambari-web/classic/app/utils/host_progress_popup.js:255"
     ],
     "modules": [
-      "主机",
-      "后台操作与通用能力"
+      "Hosts",
+      "Background Operations and Common Capabilities"
     ]
   },
   {
@@ -1639,8 +1639,8 @@
       "ambari-web/classic/app/controllers/main/service/item.js:1293"
     ],
     "modules": [
-      "服务与配置",
-      "安全、高可用与联邦"
+      "Services and Configs",
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -1671,7 +1671,7 @@
       "ambari-web/classic/app/controllers/main/service/item.js:843"
     ],
     "modules": [
-      "服务与配置"
+      "Services and Configs"
     ]
   },
   {
@@ -1699,9 +1699,9 @@
       "ambari-web/classic/app/views/common/host_progress_popup_body_view.js:1018"
     ],
     "modules": [
-      "主机",
+      "Hosts",
       "Views",
-      "后台操作与通用能力"
+      "Background Operations and Common Capabilities"
     ]
   },
   {
@@ -1737,8 +1737,8 @@
       "ambari-web/classic/app/models/configs/theme/config_action.js:110"
     ],
     "modules": [
-      "服务与配置",
-      "后台操作与通用能力"
+      "Services and Configs",
+      "Background Operations and Common Capabilities"
     ]
   },
   {
@@ -1772,7 +1772,7 @@
       "ambari-web/classic/app/controllers/main/service/item.js:693"
     ],
     "modules": [
-      "服务与配置"
+      "Services and Configs"
     ]
   },
   {
@@ -1804,7 +1804,7 @@
       "ambari-web/classic/app/controllers/main/service/item.js:976"
     ],
     "modules": [
-      "服务与配置"
+      "Services and Configs"
     ]
   },
   {
@@ -1835,7 +1835,7 @@
       "ambari-web/classic/app/controllers/main/service/item.js:1041"
     ],
     "modules": [
-      "服务与配置"
+      "Services and Configs"
     ]
   },
   {
@@ -1874,9 +1874,9 @@
       "ambari-web/classic/app/controllers/main/service/item.js:1569"
     ],
     "modules": [
-      "主机",
-      "服务与配置",
-      "安全、高可用与联邦"
+      "Hosts",
+      "Services and Configs",
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -1902,7 +1902,7 @@
       "ambari-web/classic/app/mixins/main/service/themes_mapping.js:40"
     ],
     "modules": [
-      "服务与配置"
+      "Services and Configs"
     ]
   },
   {
@@ -1928,7 +1928,7 @@
       "ambari-web/classic/app/mixins/main/service/themes_mapping.js:74"
     ],
     "modules": [
-      "服务与配置"
+      "Services and Configs"
     ]
   },
   {
@@ -1978,7 +1978,7 @@
     "sourceContractSha256": "dda962e689b992d0d66357ba2479f791a999350382f8bea646c861d575ecf15d",
     "callers": [],
     "modules": [
-      "跨模块与待人工归类"
+      "Cross-Module and Manual Classification"
     ]
   },
   {
@@ -2002,7 +2002,7 @@
     "sourceContractSha256": "b25bbbb8d90630065ad8a3775200ce9da3248f7b564913584f37b4706c5e33ca",
     "callers": [],
     "modules": [
-      "服务与配置"
+      "Services and Configs"
     ]
   },
   {
@@ -2028,7 +2028,7 @@
       "ambari-web/classic/app/mixins/main/service/groups_mapping.js:41"
     ],
     "modules": [
-      "服务与配置"
+      "Services and Configs"
     ]
   },
   {
@@ -2054,7 +2054,7 @@
       "ambari-web/classic/app/utils/config.js:1045"
     ],
     "modules": [
-      "后台操作与通用能力"
+      "Background Operations and Common Capabilities"
     ]
   },
   {
@@ -2080,7 +2080,7 @@
       "ambari-web/classic/app/utils/config.js:1062"
     ],
     "modules": [
-      "后台操作与通用能力"
+      "Background Operations and Common Capabilities"
     ]
   },
   {
@@ -2106,7 +2106,7 @@
       "ambari-web/classic/app/utils/config.js:1062"
     ],
     "modules": [
-      "后台操作与通用能力"
+      "Background Operations and Common Capabilities"
     ]
   },
   {
@@ -2130,7 +2130,7 @@
     "sourceContractSha256": "e1295fa5c2c652ec4d0bcf4aae0043c58c5deb2736beedc6688d7d22ad159413",
     "callers": [],
     "modules": [
-      "跨模块与待人工归类"
+      "Cross-Module and Manual Classification"
     ]
   },
   {
@@ -2154,7 +2154,7 @@
     "sourceContractSha256": "5f6db79e196578d1840fe2a51792e09d68db2298ff6b7716484bd35645071112",
     "callers": [],
     "modules": [
-      "跨模块与待人工归类"
+      "Cross-Module and Manual Classification"
     ]
   },
   {
@@ -2178,7 +2178,7 @@
     "sourceContractSha256": "5835ebfbbd304633d3637d0125befa37371c855de06233f9de00fb906a3e89b2",
     "callers": [],
     "modules": [
-      "跨模块与待人工归类"
+      "Cross-Module and Manual Classification"
     ]
   },
   {
@@ -2202,7 +2202,7 @@
     "sourceContractSha256": "7be40e9a0a4918330d1cdc696475afc91f777b263593e5f77e55783cb976166e",
     "callers": [],
     "modules": [
-      "跨模块与待人工归类"
+      "Cross-Module and Manual Classification"
     ]
   },
   {
@@ -2228,7 +2228,7 @@
       "ambari-web/classic/app/controllers/main/service/manage_config_groups_controller.js:446"
     ],
     "modules": [
-      "服务与配置"
+      "Services and Configs"
     ]
   },
   {
@@ -2266,9 +2266,9 @@
       "ambari-web/classic/app/controllers/main/service/reassign/step3_controller.js:316"
     ],
     "modules": [
-      "主机",
-      "服务与配置",
-      "安全、高可用与联邦"
+      "Hosts",
+      "Services and Configs",
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -2296,7 +2296,7 @@
     "sourceContractSha256": "9c2dac84952dfe9ec0430fd8cc89e325f99449ef038bf2d4a55c6c01ee688bc4",
     "callers": [],
     "modules": [
-      "跨模块与待人工归类"
+      "Cross-Module and Manual Classification"
     ]
   },
   {
@@ -2320,7 +2320,7 @@
     "sourceContractSha256": "999ed5c18fbd68d48c7cfa1e4d80e78fd09052bb8847a874965d790ea882f87d",
     "callers": [],
     "modules": [
-      "跨模块与待人工归类"
+      "Cross-Module and Manual Classification"
     ]
   },
   {
@@ -2344,7 +2344,7 @@
     "sourceContractSha256": "f0d6be657760d9b44dce95dca5e0d55483a7cccdc090dcc7075db90c42b23e24",
     "callers": [],
     "modules": [
-      "跨模块与待人工归类"
+      "Cross-Module and Manual Classification"
     ]
   },
   {
@@ -2368,7 +2368,7 @@
     "sourceContractSha256": "cca6bbd20b49a6b4428dd3fc5f4ddb21b5291d6efbacbedd1071fb41ebb1bda2",
     "callers": [],
     "modules": [
-      "跨模块与待人工归类"
+      "Cross-Module and Manual Classification"
     ]
   },
   {
@@ -2392,7 +2392,7 @@
     "sourceContractSha256": "90d824ecc22fafe86fe77a83221f347d0db9a34a227298f8250f0c6091c7f898",
     "callers": [],
     "modules": [
-      "跨模块与待人工归类"
+      "Cross-Module and Manual Classification"
     ]
   },
   {
@@ -2416,7 +2416,7 @@
     "sourceContractSha256": "94dda330287df3d8011024936b113a9c0b46e80cf4b143f8d717617f86b7e970",
     "callers": [],
     "modules": [
-      "跨模块与待人工归类"
+      "Cross-Module and Manual Classification"
     ]
   },
   {
@@ -2458,11 +2458,11 @@
       "ambari-web/classic/app/controllers/wizard/step7_controller.js:1176"
     ],
     "modules": [
-      "认证与应用外壳",
-      "安装向导",
-      "主机",
-      "服务与配置",
-      "安全、高可用与联邦"
+      "Authentication and Application Shell",
+      "Installation Wizards",
+      "Hosts",
+      "Services and Configs",
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -2488,7 +2488,7 @@
       "ambari-web/classic/app/controllers/global/update_controller.js:704"
     ],
     "modules": [
-      "后台操作与通用能力"
+      "Background Operations and Common Capabilities"
     ]
   },
   {
@@ -2512,7 +2512,7 @@
     "sourceContractSha256": "b66aae8d59c81824206c185829251186430a8fb73779f964407d8e00a4b08adc",
     "callers": [],
     "modules": [
-      "跨模块与待人工归类"
+      "Cross-Module and Manual Classification"
     ]
   },
   {
@@ -2538,8 +2538,8 @@
       "ambari-web/classic/app/controllers/main/host/addHost/step4_controller.js:28"
     ],
     "modules": [
-      "主机",
-      "服务与配置"
+      "Hosts",
+      "Services and Configs"
     ]
   },
   {
@@ -2563,7 +2563,7 @@
     "sourceContractSha256": "287c49603935c5f0598a861ed021b132bdbaf0ea8370ba5fd2fe899b6a90ecbf",
     "callers": [],
     "modules": [
-      "服务与配置"
+      "Services and Configs"
     ]
   },
   {
@@ -2593,9 +2593,9 @@
       "ambari-web/classic/app/mixins/common/configs/configs_saver.js:607"
     ],
     "modules": [
-      "安装向导",
-      "主机",
-      "服务与配置"
+      "Installation Wizards",
+      "Hosts",
+      "Services and Configs"
     ]
   },
   {
@@ -2621,7 +2621,7 @@
       "ambari-web/classic/app/utils/config.js:819"
     ],
     "modules": [
-      "后台操作与通用能力"
+      "Background Operations and Common Capabilities"
     ]
   },
   {
@@ -2647,8 +2647,8 @@
       "ambari-web/classic/app/controllers/main/service/manage_config_groups_controller.js:540"
     ],
     "modules": [
-      "主机",
-      "服务与配置"
+      "Hosts",
+      "Services and Configs"
     ]
   },
   {
@@ -2672,7 +2672,7 @@
     "sourceContractSha256": "b240a1eb9d95dc6b5590b36e3a3be3166ebdeda93080addf49fe1eec3dbd1062",
     "callers": [],
     "modules": [
-      "跨模块与待人工归类"
+      "Cross-Module and Manual Classification"
     ]
   },
   {
@@ -2698,7 +2698,7 @@
       "ambari-web/classic/app/utils/credentials.js:214"
     ],
     "modules": [
-      "后台操作与通用能力"
+      "Background Operations and Common Capabilities"
     ]
   },
   {
@@ -2724,7 +2724,7 @@
       "ambari-web/classic/app/utils/credentials.js:178"
     ],
     "modules": [
-      "后台操作与通用能力"
+      "Background Operations and Common Capabilities"
     ]
   },
   {
@@ -2750,7 +2750,7 @@
       "ambari-web/classic/app/utils/credentials.js:128"
     ],
     "modules": [
-      "后台操作与通用能力"
+      "Background Operations and Common Capabilities"
     ]
   },
   {
@@ -2778,7 +2778,7 @@
       "ambari-web/classic/app/utils/credentials.js:70"
     ],
     "modules": [
-      "后台操作与通用能力"
+      "Background Operations and Common Capabilities"
     ]
   },
   {
@@ -2806,7 +2806,7 @@
       "ambari-web/classic/app/utils/credentials.js:159"
     ],
     "modules": [
-      "后台操作与通用能力"
+      "Background Operations and Common Capabilities"
     ]
   },
   {
@@ -2832,7 +2832,7 @@
       "ambari-web/classic/app/utils/credentials.js:196"
     ],
     "modules": [
-      "后台操作与通用能力"
+      "Background Operations and Common Capabilities"
     ]
   },
   {
@@ -2862,7 +2862,7 @@
       "ambari-web/classic/app/mixins/main/host/details/host_components/install_component.js:30"
     ],
     "modules": [
-      "主机"
+      "Hosts"
     ]
   },
   {
@@ -2892,7 +2892,7 @@
       "ambari-web/classic/app/controllers/main/host/bulk_operations_controller.js:592"
     ],
     "modules": [
-      "主机"
+      "Hosts"
     ]
   },
   {
@@ -2923,8 +2923,8 @@
       "ambari-web/classic/app/controllers/main/host/bulk_operations_controller.js:718"
     ],
     "modules": [
-      "主机",
-      "Stack 与升级"
+      "Hosts",
+      "Stack and Upgrades"
     ]
   },
   {
@@ -2950,7 +2950,7 @@
       "ambari-web/classic/app/mixins/main/host/details/host_components/decommissionable.js:158"
     ],
     "modules": [
-      "主机"
+      "Hosts"
     ]
   },
   {
@@ -2976,7 +2976,7 @@
       "ambari-web/classic/app/mixins/main/host/details/host_components/decommissionable.js:201"
     ],
     "modules": [
-      "主机"
+      "Hosts"
     ]
   },
   {
@@ -3002,7 +3002,7 @@
       "ambari-web/classic/app/controllers/main/host/bulk_operations_controller.js:954"
     ],
     "modules": [
-      "主机"
+      "Hosts"
     ]
   },
   {
@@ -3028,7 +3028,7 @@
       "ambari-web/classic/app/views/main/host/details/host_component_views/datanode_view.js:35"
     ],
     "modules": [
-      "主机",
+      "Hosts",
       "Views"
     ]
   },
@@ -3055,7 +3055,7 @@
       "ambari-web/classic/app/views/main/host/details/host_component_views/regionserver_view.js:32"
     ],
     "modules": [
-      "主机",
+      "Hosts",
       "Views"
     ]
   },
@@ -3082,7 +3082,7 @@
       "ambari-web/classic/app/controllers/main/host/details.js:1993"
     ],
     "modules": [
-      "主机"
+      "Hosts"
     ]
   },
   {
@@ -3118,7 +3118,7 @@
       "ambari-web/classic/app/controllers/main/host/details.js:1956"
     ],
     "modules": [
-      "主机"
+      "Hosts"
     ]
   },
   {
@@ -3149,7 +3149,7 @@
       "ambari-web/classic/app/controllers/main/host/details.js:1662"
     ],
     "modules": [
-      "主机"
+      "Hosts"
     ]
   },
   {
@@ -3175,7 +3175,7 @@
       "ambari-web/classic/app/controllers/main/admin/kerberos.js:308"
     ],
     "modules": [
-      "安全、高可用与联邦"
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -3201,7 +3201,7 @@
       "ambari-web/classic/app/controllers/global/cluster_controller.js:111"
     ],
     "modules": [
-      "后台操作与通用能力"
+      "Background Operations and Common Capabilities"
     ]
   },
   {
@@ -3227,8 +3227,8 @@
       "ambari-web/classic/app/controllers/global/cluster_controller.js:533"
     ],
     "modules": [
-      "Stack 与升级",
-      "后台操作与通用能力"
+      "Stack and Upgrades",
+      "Background Operations and Common Capabilities"
     ]
   },
   {
@@ -3254,7 +3254,7 @@
     "sourceContractSha256": "1a38e31b901e2c328825699ccc72066589809c54a1adbcd9b097151316bb481d",
     "callers": [],
     "modules": [
-      "Stack 与升级"
+      "Stack and Upgrades"
     ]
   },
   {
@@ -3283,8 +3283,8 @@
       "ambari-web/classic/app/controllers/wizard/step8_controller.js:404"
     ],
     "modules": [
-      "安装向导",
-      "Stack 与升级"
+      "Installation Wizards",
+      "Stack and Upgrades"
     ]
   },
   {
@@ -3310,8 +3310,8 @@
       "ambari-web/classic/app/controllers/wizard/step8_controller.js:347"
     ],
     "modules": [
-      "安装向导",
-      "Stack 与升级"
+      "Installation Wizards",
+      "Stack and Upgrades"
     ]
   },
   {
@@ -3337,8 +3337,8 @@
       "ambari-web/classic/app/controllers/global/cluster_controller.js:502"
     ],
     "modules": [
-      "Stack 与升级",
-      "后台操作与通用能力"
+      "Stack and Upgrades",
+      "Background Operations and Common Capabilities"
     ]
   },
   {
@@ -3364,8 +3364,8 @@
       "ambari-web/classic/app/controllers/wizard.js:687"
     ],
     "modules": [
-      "安装向导",
-      "Stack 与升级"
+      "Installation Wizards",
+      "Stack and Upgrades"
     ]
   },
   {
@@ -3393,7 +3393,7 @@
       "ambari-web/classic/app/controllers/installer.js:1124"
     ],
     "modules": [
-      "安装向导"
+      "Installation Wizards"
     ]
   },
   {
@@ -3417,7 +3417,7 @@
     "sourceContractSha256": "333c7640d01e148aa2646ca5b8a72abbd388aa2d1ea76b1e4e7d90e4156004c3",
     "callers": [],
     "modules": [
-      "跨模块与待人工归类"
+      "Cross-Module and Manual Classification"
     ]
   },
   {
@@ -3441,7 +3441,7 @@
     "sourceContractSha256": "cff9c21294d6b07d6c50b7d998119479181817fcbed00f846dfe388124065d5c",
     "callers": [],
     "modules": [
-      "跨模块与待人工归类"
+      "Cross-Module and Manual Classification"
     ]
   },
   {
@@ -3468,7 +3468,7 @@
       "ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/step4_controller.js:38"
     ],
     "modules": [
-      "安全、高可用与联邦"
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -3494,7 +3494,7 @@
       "ambari-web/classic/app/controllers/main/admin/highAvailability/journalNode/step3_controller.js:51"
     ],
     "modules": [
-      "安全、高可用与联邦"
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -3520,7 +3520,7 @@
       "ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/step6_controller.js:80"
     ],
     "modules": [
-      "安全、高可用与联邦"
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -3546,8 +3546,8 @@
       "ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/rollback_controller.js:501"
     ],
     "modules": [
-      "主机",
-      "安全、高可用与联邦"
+      "Hosts",
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -3575,7 +3575,7 @@
       "ambari-web/classic/app/mixins/main/host/details/host_components/install_component.js:134"
     ],
     "modules": [
-      "主机"
+      "Hosts"
     ]
   },
   {
@@ -3601,7 +3601,7 @@
       "ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/rollback_controller.js:414"
     ],
     "modules": [
-      "安全、高可用与联邦"
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -3636,8 +3636,8 @@
       "ambari-web/classic/app/controllers/main/alerts/alert_definitions_actions_controller.js:240"
     ],
     "modules": [
-      "告警",
-      "安全、高可用与联邦"
+      "Alerts",
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -3663,7 +3663,7 @@
       "ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/rollback_controller.js:239"
     ],
     "modules": [
-      "安全、高可用与联邦"
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -3687,7 +3687,7 @@
     "sourceContractSha256": "98493671cd6630a1e5f50dd75e91fd6b014dc740c324f04be7bf5904fa10c802",
     "callers": [],
     "modules": [
-      "安全、高可用与联邦"
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -3713,7 +3713,7 @@
       "ambari-web/classic/app/controllers/main/admin/kerberos.js:450"
     ],
     "modules": [
-      "安全、高可用与联邦"
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -3748,9 +3748,9 @@
       "ambari-web/classic/app/controllers/main/host/details.js:1424"
     ],
     "modules": [
-      "认证与应用外壳",
-      "主机",
-      "安全、高可用与联邦"
+      "Authentication and Application Shell",
+      "Hosts",
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -3776,7 +3776,7 @@
       "ambari-web/classic/app/controllers/main/admin/kerberos.js:423"
     ],
     "modules": [
-      "安全、高可用与联邦"
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -3804,7 +3804,7 @@
       "ambari-web/classic/app/controllers/main/admin/kerberos/step7_controller.js:42"
     ],
     "modules": [
-      "安全、高可用与联邦"
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -3833,7 +3833,7 @@
       "ambari-web/classic/app/controllers/main/admin/kerberos/wizard_controller.js:245"
     ],
     "modules": [
-      "安全、高可用与联邦"
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -3859,7 +3859,7 @@
       "ambari-web/classic/app/controllers/main/admin/kerberos/step7_controller.js:55"
     ],
     "modules": [
-      "安全、高可用与联邦"
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -3885,7 +3885,7 @@
       "ambari-web/classic/app/controllers/main/admin/kerberos/disable_controller.js:57"
     ],
     "modules": [
-      "安全、高可用与联邦"
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -3909,7 +3909,7 @@
     "sourceContractSha256": "e6083afe394f90ccc15641c96014c2d439e06546ea3485fcf4d5e5e771821c60",
     "callers": [],
     "modules": [
-      "跨模块与待人工归类"
+      "Cross-Module and Manual Classification"
     ]
   },
   {
@@ -3933,7 +3933,7 @@
     "sourceContractSha256": "6483ca5ef8aa7f0fef7259755c3b5072576286e66c43b3d6d0f5944ddbded004",
     "callers": [],
     "modules": [
-      "跨模块与待人工归类"
+      "Cross-Module and Manual Classification"
     ]
   },
   {
@@ -3959,7 +3959,7 @@
       "ambari-web/classic/app/controllers/wizard/step7_controller.js:1885"
     ],
     "modules": [
-      "安装向导"
+      "Installation Wizards"
     ]
   },
   {
@@ -3985,7 +3985,7 @@
       "ambari-web/classic/app/mixins/wizard/addSecurityConfigs.js:423"
     ],
     "modules": [
-      "安全、高可用与联邦"
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -4011,7 +4011,7 @@
       "ambari-web/classic/app/mixins/wizard/addSecurityConfigs.js:433"
     ],
     "modules": [
-      "安全、高可用与联邦"
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -4041,8 +4041,8 @@
       "ambari-web/classic/app/mixins/wizard/addSecurityConfigs.js:860"
     ],
     "modules": [
-      "安装向导",
-      "安全、高可用与联邦"
+      "Installation Wizards",
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -4072,8 +4072,8 @@
       "ambari-web/classic/app/mixins/wizard/addSecurityConfigs.js:878"
     ],
     "modules": [
-      "安装向导",
-      "安全、高可用与联邦"
+      "Installation Wizards",
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -4101,7 +4101,7 @@
       "ambari-web/classic/app/controllers/main/admin/kerberos/step5_controller.js:64"
     ],
     "modules": [
-      "安全、高可用与联邦"
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -4127,7 +4127,7 @@
       "ambari-web/classic/app/mixins/wizard/wizardProgressPageController.js:159"
     ],
     "modules": [
-      "后台操作与通用能力"
+      "Background Operations and Common Capabilities"
     ]
   },
   {
@@ -4155,7 +4155,7 @@
     "sourceContractSha256": "5166ff046f9518dbcb061e7cd3ca36862ac586ab14d08d04e409bc1699974983",
     "callers": [],
     "modules": [
-      "Stack 与升级"
+      "Stack and Upgrades"
     ]
   },
   {
@@ -4183,7 +4183,7 @@
     "sourceContractSha256": "58d2a93983cbc0eb3d48a756ceeef0dd04673934ae3600fb23028de722312066",
     "callers": [],
     "modules": [
-      "跨模块与待人工归类"
+      "Cross-Module and Manual Classification"
     ]
   },
   {
@@ -4211,7 +4211,7 @@
     "sourceContractSha256": "50ad9eb107067ebfebb49bb07d09a1248ba98379d3e149c6dc086b9347672f51",
     "callers": [],
     "modules": [
-      "跨模块与待人工归类"
+      "Cross-Module and Manual Classification"
     ]
   },
   {
@@ -4235,7 +4235,7 @@
     "sourceContractSha256": "1888b5e9a2b8796c3298c7236b09f8c8309fbd7d00f9bc35267e67cef0e71bd7",
     "callers": [],
     "modules": [
-      "Stack 与升级"
+      "Stack and Upgrades"
     ]
   },
   {
@@ -4262,7 +4262,7 @@
       "ambari-web/classic/app/controllers/main/admin/stack_upgrade_history_controller.js:84"
     ],
     "modules": [
-      "Stack 与升级"
+      "Stack and Upgrades"
     ]
   },
   {
@@ -4288,7 +4288,7 @@
       "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:462"
     ],
     "modules": [
-      "Stack 与升级"
+      "Stack and Upgrades"
     ]
   },
   {
@@ -4314,7 +4314,7 @@
       "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:1963"
     ],
     "modules": [
-      "Stack 与升级"
+      "Stack and Upgrades"
     ]
   },
   {
@@ -4341,7 +4341,7 @@
       "ambari-web/classic/app/controllers/main/admin/stack_upgrade_history_controller.js:161"
     ],
     "modules": [
-      "Stack 与升级"
+      "Stack and Upgrades"
     ]
   },
   {
@@ -4368,7 +4368,7 @@
       "ambari-web/classic/app/controllers/main/admin/stack_upgrade_history_controller.js:214"
     ],
     "modules": [
-      "Stack 与升级"
+      "Stack and Upgrades"
     ]
   },
   {
@@ -4394,7 +4394,7 @@
       "ambari-web/classic/app/views/main/admin/stack_upgrade/upgrade_wizard_view.js:311"
     ],
     "modules": [
-      "Stack 与升级",
+      "Stack and Upgrades",
       "Views"
     ]
   },
@@ -4424,7 +4424,7 @@
       "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:1234"
     ],
     "modules": [
-      "Stack 与升级"
+      "Stack and Upgrades"
     ]
   },
   {
@@ -4455,7 +4455,7 @@
       "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:877"
     ],
     "modules": [
-      "Stack 与升级"
+      "Stack and Upgrades"
     ]
   },
   {
@@ -4483,7 +4483,7 @@
       "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:791"
     ],
     "modules": [
-      "Stack 与升级"
+      "Stack and Upgrades"
     ]
   },
   {
@@ -4509,7 +4509,7 @@
       "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:774"
     ],
     "modules": [
-      "Stack 与升级"
+      "Stack and Upgrades"
     ]
   },
   {
@@ -4535,7 +4535,7 @@
       "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:813"
     ],
     "modules": [
-      "Stack 与升级"
+      "Stack and Upgrades"
     ]
   },
   {
@@ -4561,7 +4561,7 @@
       "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:862"
     ],
     "modules": [
-      "Stack 与升级"
+      "Stack and Upgrades"
     ]
   },
   {
@@ -4589,7 +4589,7 @@
       "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:2219"
     ],
     "modules": [
-      "Stack 与升级"
+      "Stack and Upgrades"
     ]
   },
   {
@@ -4617,7 +4617,7 @@
       "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:2057"
     ],
     "modules": [
-      "Stack 与升级"
+      "Stack and Upgrades"
     ]
   },
   {
@@ -4641,7 +4641,7 @@
     "sourceContractSha256": "a7f02ad53334d09c623d47b8b8a1fd5c2f22c84b3a06d2668cb28a2365285075",
     "callers": [],
     "modules": [
-      "跨模块与待人工归类"
+      "Cross-Module and Manual Classification"
     ]
   },
   {
@@ -4671,7 +4671,7 @@
       "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:1596"
     ],
     "modules": [
-      "Stack 与升级"
+      "Stack and Upgrades"
     ]
   },
   {
@@ -4700,8 +4700,8 @@
       "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:1770"
     ],
     "modules": [
-      "安装向导",
-      "Stack 与升级"
+      "Installation Wizards",
+      "Stack and Upgrades"
     ]
   },
   {
@@ -4730,7 +4730,7 @@
       "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:1833"
     ],
     "modules": [
-      "Stack 与升级"
+      "Stack and Upgrades"
     ]
   },
   {
@@ -4756,7 +4756,7 @@
       "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:2254"
     ],
     "modules": [
-      "Stack 与升级"
+      "Stack and Upgrades"
     ]
   },
   {
@@ -4783,7 +4783,7 @@
       "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:1463"
     ],
     "modules": [
-      "Stack 与升级"
+      "Stack and Upgrades"
     ]
   },
   {
@@ -4809,7 +4809,7 @@
       "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:1319"
     ],
     "modules": [
-      "Stack 与升级"
+      "Stack and Upgrades"
     ]
   },
   {
@@ -4835,7 +4835,7 @@
       "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:501"
     ],
     "modules": [
-      "Stack 与升级"
+      "Stack and Upgrades"
     ]
   },
   {
@@ -4861,7 +4861,7 @@
       "ambari-web/classic/app/controllers/main/admin/kerberos.js:235"
     ],
     "modules": [
-      "安全、高可用与联邦"
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -4887,7 +4887,7 @@
       "ambari-web/classic/app/views/common/controls_view.js:1333"
     ],
     "modules": [
-      "安全、高可用与联邦",
+      "Security, HA, and Federation",
       "Views"
     ]
   },
@@ -4914,7 +4914,7 @@
       "ambari-web/classic/app/controllers/main/admin/kerberos.js:183"
     ],
     "modules": [
-      "安全、高可用与联邦"
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -4940,8 +4940,8 @@
       "ambari-web/classic/app/controllers/main/service/item.js:890"
     ],
     "modules": [
-      "服务与配置",
-      "安全、高可用与联邦"
+      "Services and Configs",
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -4967,8 +4967,8 @@
       "ambari-web/classic/app/controllers/main/host/details.js:3268"
     ],
     "modules": [
-      "主机",
-      "安全、高可用与联邦"
+      "Hosts",
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -4998,8 +4998,8 @@
       "ambari-web/classic/app/controllers/installer.js:588"
     ],
     "modules": [
-      "安装向导",
-      "Stack 与升级"
+      "Installation Wizards",
+      "Stack and Upgrades"
     ]
   },
   {
@@ -5029,8 +5029,8 @@
       "ambari-web/classic/app/controllers/installer.js:588"
     ],
     "modules": [
-      "安装向导",
-      "Stack 与升级"
+      "Installation Wizards",
+      "Stack and Upgrades"
     ]
   },
   {
@@ -5060,8 +5060,8 @@
       "ambari-web/classic/app/controllers/installer.js:655"
     ],
     "modules": [
-      "安装向导",
-      "Stack 与升级"
+      "Installation Wizards",
+      "Stack and Upgrades"
     ]
   },
   {
@@ -5091,8 +5091,8 @@
       "ambari-web/classic/app/controllers/installer.js:655"
     ],
     "modules": [
-      "安装向导",
-      "Stack 与升级"
+      "Installation Wizards",
+      "Stack and Upgrades"
     ]
   },
   {
@@ -5116,7 +5116,7 @@
     "sourceContractSha256": "162a1b428d1054fb4b0a5f97e8d050ee09e70fe09bf510cf61576281f9af08e1",
     "callers": [],
     "modules": [
-      "Stack 与升级"
+      "Stack and Upgrades"
     ]
   },
   {
@@ -5142,7 +5142,7 @@
       "ambari-web/classic/app/controllers/installer.js:702"
     ],
     "modules": [
-      "安装向导"
+      "Installation Wizards"
     ]
   },
   {
@@ -5171,8 +5171,8 @@
       "ambari-web/classic/app/views/main/admin/stack_upgrade/services_view.js:241"
     ],
     "modules": [
-      "安装向导",
-      "Stack 与升级",
+      "Installation Wizards",
+      "Stack and Upgrades",
       "Views"
     ]
   },
@@ -5199,8 +5199,8 @@
       "ambari-web/classic/app/controllers/wizard/step8_controller.js:836"
     ],
     "modules": [
-      "安装向导",
-      "Stack 与升级"
+      "Installation Wizards",
+      "Stack and Upgrades"
     ]
   },
   {
@@ -5226,8 +5226,8 @@
       "ambari-web/classic/app/controllers/wizard/step8_controller.js:863"
     ],
     "modules": [
-      "安装向导",
-      "Stack 与升级"
+      "Installation Wizards",
+      "Stack and Upgrades"
     ]
   },
   {
@@ -5254,8 +5254,8 @@
       "ambari-web/classic/app/controllers/wizard.js:630"
     ],
     "modules": [
-      "安装向导",
-      "后台操作与通用能力"
+      "Installation Wizards",
+      "Background Operations and Common Capabilities"
     ]
   },
   {
@@ -5281,8 +5281,8 @@
       "ambari-web/classic/app/controllers/wizard/step9_controller.js:1109"
     ],
     "modules": [
-      "安装向导",
-      "主机"
+      "Installation Wizards",
+      "Hosts"
     ]
   },
   {
@@ -5308,7 +5308,7 @@
       "ambari-web/classic/app/controllers/wizard/step9_controller.js:1041"
     ],
     "modules": [
-      "安装向导"
+      "Installation Wizards"
     ]
   },
   {
@@ -5334,7 +5334,7 @@
       "ambari-web/classic/app/controllers/wizard/step8_controller.js:719"
     ],
     "modules": [
-      "安装向导"
+      "Installation Wizards"
     ]
   },
   {
@@ -5364,7 +5364,7 @@
       "ambari-web/classic/app/controllers/wizard/step8_controller.js:992"
     ],
     "modules": [
-      "安装向导"
+      "Installation Wizards"
     ]
   },
   {
@@ -5393,8 +5393,8 @@
       "ambari-web/classic/app/controllers/wizard/step8_controller.js:1014"
     ],
     "modules": [
-      "安装向导",
-      "安全、高可用与联邦"
+      "Installation Wizards",
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -5425,7 +5425,7 @@
       "ambari-web/classic/app/controllers/wizard/step8_controller.js:1108"
     ],
     "modules": [
-      "安装向导"
+      "Installation Wizards"
     ]
   },
   {
@@ -5455,8 +5455,8 @@
       "ambari-web/classic/app/controllers/wizard/step8_controller.js:1133"
     ],
     "modules": [
-      "安装向导",
-      "主机"
+      "Installation Wizards",
+      "Hosts"
     ]
   },
   {
@@ -5488,9 +5488,9 @@
       "ambari-web/classic/app/mixins/wizard/wizardProgressPageController.js:569"
     ],
     "modules": [
-      "安装向导",
-      "主机",
-      "安全、高可用与联邦"
+      "Installation Wizards",
+      "Hosts",
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -5521,8 +5521,8 @@
       "ambari-web/classic/app/mixins/common/configs/configs_saver.js:586"
     ],
     "modules": [
-      "安装向导",
-      "服务与配置"
+      "Installation Wizards",
+      "Services and Configs"
     ]
   },
   {
@@ -5550,7 +5550,7 @@
     "sourceContractSha256": "2fcd7fc40f90871bb769cbad5614f2a12219e7bf1955d74aa5938be99ce833b8",
     "callers": [],
     "modules": [
-      "Stack 与升级"
+      "Stack and Upgrades"
     ]
   },
   {
@@ -5582,7 +5582,7 @@
       "ambari-web/classic/app/controllers/wizard/step3_controller.js:732"
     ],
     "modules": [
-      "安装向导"
+      "Installation Wizards"
     ]
   },
   {
@@ -5608,7 +5608,7 @@
       "ambari-web/classic/app/controllers/wizard/step3_controller.js:751"
     ],
     "modules": [
-      "安装向导"
+      "Installation Wizards"
     ]
   },
   {
@@ -5634,7 +5634,7 @@
       "ambari-web/classic/app/mixins/main/host/details/actions/check_host.js:254"
     ],
     "modules": [
-      "主机"
+      "Hosts"
     ]
   },
   {
@@ -5665,8 +5665,8 @@
       "ambari-web/classic/app/mixins/common/hosts/host_component_recommendation_mixin.js:117"
     ],
     "modules": [
-      "安装向导",
-      "主机"
+      "Installation Wizards",
+      "Hosts"
     ]
   },
   {
@@ -5697,9 +5697,9 @@
       "ambari-web/classic/app/mixins/wizard/addSecurityConfigs.js:759"
     ],
     "modules": [
-      "安装向导",
-      "服务与配置",
-      "安全、高可用与联邦"
+      "Installation Wizards",
+      "Services and Configs",
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -5731,7 +5731,7 @@
       "ambari-web/classic/app/mixins/common/serverValidator.js:197"
     ],
     "modules": [
-      "主机"
+      "Hosts"
     ]
   },
   {
@@ -5762,7 +5762,7 @@
       "ambari-web/classic/app/mixins/main/host/details/actions/check_host.js:145"
     ],
     "modules": [
-      "主机"
+      "Hosts"
     ]
   },
   {
@@ -5788,7 +5788,7 @@
       "ambari-web/classic/app/mixins/main/host/details/actions/check_host.js:189"
     ],
     "modules": [
-      "主机"
+      "Hosts"
     ]
   },
   {
@@ -5814,7 +5814,7 @@
       "ambari-web/classic/app/mixins/common/persist.js:68"
     ],
     "modules": [
-      "跨模块与待人工归类"
+      "Cross-Module and Manual Classification"
     ]
   },
   {
@@ -5840,7 +5840,7 @@
       "ambari-web/classic/app/mixins/common/persist.js:49"
     ],
     "modules": [
-      "跨模块与待人工归类"
+      "Cross-Module and Manual Classification"
     ]
   },
   {
@@ -5868,7 +5868,7 @@
       "ambari-web/classic/app/mixins/common/persist.js:129"
     ],
     "modules": [
-      "跨模块与待人工归类"
+      "Cross-Module and Manual Classification"
     ]
   },
   {
@@ -5894,7 +5894,7 @@
       "ambari-web/classic/app/mixins/main/host/details/actions/check_host.js:444"
     ],
     "modules": [
-      "主机"
+      "Hosts"
     ]
   },
   {
@@ -5920,7 +5920,7 @@
       "ambari-web/classic/app/controllers/wizard/step3_controller.js:485"
     ],
     "modules": [
-      "安装向导"
+      "Installation Wizards"
     ]
   },
   {
@@ -5947,8 +5947,8 @@
       "ambari-web/classic/app/controllers/wizard/step3_controller.js:670"
     ],
     "modules": [
-      "安装向导",
-      "主机"
+      "Installation Wizards",
+      "Hosts"
     ]
   },
   {
@@ -5974,7 +5974,7 @@
       "ambari-web/classic/app/controllers/installer.js:238"
     ],
     "modules": [
-      "安装向导"
+      "Installation Wizards"
     ]
   },
   {
@@ -5998,7 +5998,7 @@
     "sourceContractSha256": "a0909f33b6881d9d96489b8ac52e8a694f7090243789046c6d3dd9d62cf7c5e9",
     "callers": [],
     "modules": [
-      "跨模块与待人工归类"
+      "Cross-Module and Manual Classification"
     ]
   },
   {
@@ -6024,7 +6024,7 @@
       "ambari-web/classic/app/controllers/installer.js:272"
     ],
     "modules": [
-      "安装向导"
+      "Installation Wizards"
     ]
   },
   {
@@ -6053,7 +6053,7 @@
       "ambari-web/classic/app/controllers/wizard.js:515"
     ],
     "modules": [
-      "安装向导"
+      "Installation Wizards"
     ]
   },
   {
@@ -6079,7 +6079,7 @@
       "ambari-web/classic/app/router.js:422"
     ],
     "modules": [
-      "认证与应用外壳"
+      "Authentication and Application Shell"
     ]
   },
   {
@@ -6106,7 +6106,7 @@
       "ambari-web/classic/app/router.js:443"
     ],
     "modules": [
-      "认证与应用外壳"
+      "Authentication and Application Shell"
     ]
   },
   {
@@ -6130,7 +6130,7 @@
     "sourceContractSha256": "6d0e2a2645feed09a086005cc96856d892fe87df7a461da24aa80c3f492c37c2",
     "callers": [],
     "modules": [
-      "跨模块与待人工归类"
+      "Cross-Module and Manual Classification"
     ]
   },
   {
@@ -6154,7 +6154,7 @@
     "sourceContractSha256": "5ed8b2350307f09a6b1353d993a53d544cfd912b5f3f81ebd3fd93dcae96c84b",
     "callers": [],
     "modules": [
-      "跨模块与待人工归类"
+      "Cross-Module and Manual Classification"
     ]
   },
   {
@@ -6180,7 +6180,7 @@
       "ambari-web/classic/app/controllers/global/user_settings_controller.js:202"
     ],
     "modules": [
-      "认证与应用外壳"
+      "Authentication and Application Shell"
     ]
   },
   {
@@ -6206,8 +6206,8 @@
       "ambari-web/classic/app/controllers/global/cluster_controller.js:420"
     ],
     "modules": [
-      "认证与应用外壳",
-      "后台操作与通用能力"
+      "Authentication and Application Shell",
+      "Background Operations and Common Capabilities"
     ]
   },
   {
@@ -6235,7 +6235,7 @@
       "ambari-web/classic/app/router.js:572"
     ],
     "modules": [
-      "认证与应用外壳"
+      "Authentication and Application Shell"
     ]
   },
   {
@@ -6261,7 +6261,7 @@
       "ambari-web/classic/app/router.js:464"
     ],
     "modules": [
-      "认证与应用外壳"
+      "Authentication and Application Shell"
     ]
   },
   {
@@ -6287,7 +6287,7 @@
       "ambari-web/classic/app/router.js:738"
     ],
     "modules": [
-      "认证与应用外壳"
+      "Authentication and Application Shell"
     ]
   },
   {
@@ -6318,8 +6318,8 @@
       "ambari-web/classic/app/controllers/wizard/step9_controller.js:1226"
     ],
     "modules": [
-      "安装向导",
-      "后台操作与通用能力"
+      "Installation Wizards",
+      "Background Operations and Common Capabilities"
     ]
   },
   {
@@ -6349,7 +6349,7 @@
       "ambari-web/classic/app/mixins/main/service/configs/config_overridable.js:260"
     ],
     "modules": [
-      "服务与配置"
+      "Services and Configs"
     ]
   },
   {
@@ -6379,7 +6379,7 @@
       "ambari-web/classic/app/mixins/main/service/configs/config_overridable.js:310"
     ],
     "modules": [
-      "服务与配置"
+      "Services and Configs"
     ]
   },
   {
@@ -6405,7 +6405,7 @@
       "ambari-web/classic/app/utils/batch_scheduled_requests.js:714"
     ],
     "modules": [
-      "后台操作与通用能力"
+      "Background Operations and Common Capabilities"
     ]
   },
   {
@@ -6431,8 +6431,8 @@
       "ambari-web/classic/app/controllers/wizard/step7/assign_master_controller.js:86"
     ],
     "modules": [
-      "安装向导",
-      "后台操作与通用能力"
+      "Installation Wizards",
+      "Background Operations and Common Capabilities"
     ]
   },
   {
@@ -6465,9 +6465,9 @@
       "ambari-web/classic/app/utils/batch_scheduled_requests.js:256"
     ],
     "modules": [
-      "主机",
-      "服务与配置",
-      "后台操作与通用能力"
+      "Hosts",
+      "Services and Configs",
+      "Background Operations and Common Capabilities"
     ]
   },
   {
@@ -6497,7 +6497,7 @@
       "ambari-web/classic/app/controllers/main/service.js:184"
     ],
     "modules": [
-      "服务与配置"
+      "Services and Configs"
     ]
   },
   {
@@ -6527,7 +6527,7 @@
       "ambari-web/classic/app/controllers/main/service.js:349"
     ],
     "modules": [
-      "服务与配置"
+      "Services and Configs"
     ]
   },
   {
@@ -6558,7 +6558,7 @@
       "ambari-web/classic/app/controllers/main/admin/federation/step4_controller.js:185"
     ],
     "modules": [
-      "安全、高可用与联邦"
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -6592,8 +6592,8 @@
       "ambari-web/classic/app/controllers/main/host/bulk_operations_controller.js:922"
     ],
     "modules": [
-      "主机",
-      "后台操作与通用能力"
+      "Hosts",
+      "Background Operations and Common Capabilities"
     ]
   },
   {
@@ -6627,10 +6627,10 @@
       "ambari-web/classic/app/views/main/admin/stack_upgrade/custom_cluster_checks/custom_cluster_checks_maintenance_view.js:30"
     ],
     "modules": [
-      "主机",
-      "Stack 与升级",
+      "Hosts",
+      "Stack and Upgrades",
       "Views",
-      "后台操作与通用能力"
+      "Background Operations and Common Capabilities"
     ]
   },
   {
@@ -6662,8 +6662,8 @@
       "ambari-web/classic/app/utils/hosts.js:248"
     ],
     "modules": [
-      "主机",
-      "后台操作与通用能力"
+      "Hosts",
+      "Background Operations and Common Capabilities"
     ]
   },
   {
@@ -6693,8 +6693,8 @@
     "sourceContractSha256": "8027c320f3c284d9565798f1be0fe02b35a56a885ea56a79576acb777d26efb6",
     "callers": [],
     "modules": [
-      "主机",
-      "后台操作与通用能力"
+      "Hosts",
+      "Background Operations and Common Capabilities"
     ]
   },
   {
@@ -6776,8 +6776,8 @@
       "ambari-web/classic/app/utils/batch_scheduled_requests.js:188"
     ],
     "modules": [
-      "主机",
-      "后台操作与通用能力"
+      "Hosts",
+      "Background Operations and Common Capabilities"
     ]
   },
   {
@@ -6805,7 +6805,7 @@
       "ambari-web/classic/app/mixins/main/host/details/actions/install_new_version.js:42"
     ],
     "modules": [
-      "主机"
+      "Hosts"
     ]
   },
   {
@@ -6831,8 +6831,8 @@
       "ambari-web/classic/app/controllers/global/update_controller.js:730"
     ],
     "modules": [
-      "主机",
-      "后台操作与通用能力"
+      "Hosts",
+      "Background Operations and Common Capabilities"
     ]
   },
   {
@@ -6858,7 +6858,7 @@
       "ambari-web/classic/app/mixins/common/configs/configs_saver.js:881"
     ],
     "modules": [
-      "服务与配置"
+      "Services and Configs"
     ]
   },
   {
@@ -6884,7 +6884,7 @@
       "ambari-web/classic/app/controllers/main/admin/service_auto_start.js:134"
     ],
     "modules": [
-      "跨模块与待人工归类"
+      "Cross-Module and Manual Classification"
     ]
   },
   {
@@ -6910,7 +6910,7 @@
       "ambari-web/classic/app/controllers/global/cluster_controller.js:264"
     ],
     "modules": [
-      "后台操作与通用能力"
+      "Background Operations and Common Capabilities"
     ]
   },
   {
@@ -6939,7 +6939,7 @@
       "ambari-web/classic/app/controllers/main/admin/service_auto_start.js:164"
     ],
     "modules": [
-      "跨模块与待人工归类"
+      "Cross-Module and Manual Classification"
     ]
   },
   {
@@ -6963,7 +6963,7 @@
     "sourceContractSha256": "22f9fb5923369b51336eb0aea145409e523728978bdcdfb618619c42743ae523",
     "callers": [],
     "modules": [
-      "主机"
+      "Hosts"
     ]
   },
   {
@@ -6990,10 +6990,10 @@
       "ambari-web/classic/app/views/main/admin/highAvailability/nameNode/rollbackHA/step1_view.js:35"
     ],
     "modules": [
-      "主机",
-      "安全、高可用与联邦",
+      "Hosts",
+      "Security, HA, and Federation",
       "Views",
-      "后台操作与通用能力"
+      "Background Operations and Common Capabilities"
     ]
   },
   {
@@ -7017,7 +7017,7 @@
     "sourceContractSha256": "2c8bfbb9f10e263aecce95f646f8f0f707716e0be0d8b0b49d9fd2decc35d67c",
     "callers": [],
     "modules": [
-      "主机"
+      "Hosts"
     ]
   },
   {
@@ -7043,7 +7043,7 @@
       "ambari-web/classic/app/views/common/quick_view_link_view.js:213"
     ],
     "modules": [
-      "主机",
+      "Hosts",
       "Views"
     ]
   },
@@ -7068,7 +7068,7 @@
     "sourceContractSha256": "27d662220fe098d6659c7fdba38b52346f367c97d24ebe149b97474186c72c30",
     "callers": [],
     "modules": [
-      "主机"
+      "Hosts"
     ]
   },
   {
@@ -7094,8 +7094,8 @@
       "ambari-web/classic/app/controllers/wizard.js:1282"
     ],
     "modules": [
-      "安装向导",
-      "主机"
+      "Installation Wizards",
+      "Hosts"
     ]
   },
   {
@@ -7126,7 +7126,7 @@
       "ambari-web/classic/app/controllers/main/host/combo_search_box.js:28"
     ],
     "modules": [
-      "主机"
+      "Hosts"
     ]
   },
   {
@@ -7152,7 +7152,7 @@
       "ambari-web/classic/app/views/main/host/add_view.js:41"
     ],
     "modules": [
-      "主机",
+      "Hosts",
       "Views"
     ]
   },
@@ -7179,8 +7179,8 @@
       "ambari-web/classic/app/controllers/main/admin/kerberos/step3_controller.js:67"
     ],
     "modules": [
-      "主机",
-      "安全、高可用与联邦"
+      "Hosts",
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -7204,7 +7204,7 @@
     "sourceContractSha256": "f0b588cdd6dd03d695d065dcfc54544225d40036e0496bb3b4c22f92c329e0d9",
     "callers": [],
     "modules": [
-      "主机"
+      "Hosts"
     ]
   },
   {
@@ -7228,7 +7228,7 @@
     "sourceContractSha256": "0825106c95225ff58cec05fb83b8a59618cc8f381a5fee67431195a7a128acd2",
     "callers": [],
     "modules": [
-      "主机"
+      "Hosts"
     ]
   },
   {
@@ -7252,7 +7252,7 @@
     "sourceContractSha256": "98f605a0473c60774e80402c30aa83ca81bc03c90d3fbd69b0a831fff54d7c5c",
     "callers": [],
     "modules": [
-      "跨模块与待人工归类"
+      "Cross-Module and Manual Classification"
     ]
   },
   {
@@ -7284,7 +7284,7 @@
       "ambari-web/classic/app/views/common/controls_view.js:1369"
     ],
     "modules": [
-      "服务与配置",
+      "Services and Configs",
       "Views"
     ]
   },
@@ -7318,7 +7318,7 @@
       "ambari-web/classic/app/views/common/controls_view.js:1369"
     ],
     "modules": [
-      "服务与配置",
+      "Services and Configs",
       "Views"
     ]
   },
@@ -7353,9 +7353,9 @@
       "ambari-web/classic/app/views/common/controls_view.js:1410"
     ],
     "modules": [
-      "服务与配置",
+      "Services and Configs",
       "Views",
-      "后台操作与通用能力"
+      "Background Operations and Common Capabilities"
     ]
   },
   {
@@ -7383,8 +7383,8 @@
       "ambari-web/classic/app/views/main/service/reassign_view.js:38"
     ],
     "modules": [
-      "主机",
-      "服务与配置",
+      "Hosts",
+      "Services and Configs",
       "Views"
     ]
   },
@@ -7409,8 +7409,8 @@
     "sourceContractSha256": "cc5c8fcac17a87057f3dd9bca6dca97e868757a990f85b669a2a4cc8a2db751e",
     "callers": [],
     "modules": [
-      "主机",
-      "安全、高可用与联邦"
+      "Hosts",
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -7436,7 +7436,7 @@
       "ambari-web/classic/app/mixins/wizard/wizardProgressPageController.js:418"
     ],
     "modules": [
-      "主机"
+      "Hosts"
     ]
   },
   {
@@ -7460,7 +7460,7 @@
     "sourceContractSha256": "1a2ff629d0891e061545e22c461bab4521cc62add335642e2ad808eae0e93d22",
     "callers": [],
     "modules": [
-      "主机"
+      "Hosts"
     ]
   },
   {
@@ -7484,7 +7484,7 @@
     "sourceContractSha256": "a40afa49fdb909dacee7112d14c1b19d39cdb3f974ed7263d4e79b4f94fcddaa",
     "callers": [],
     "modules": [
-      "主机"
+      "Hosts"
     ]
   },
   {
@@ -7510,8 +7510,8 @@
       "ambari-web/classic/app/controllers/main/service/manage_config_groups_controller.js:308"
     ],
     "modules": [
-      "主机",
-      "服务与配置"
+      "Hosts",
+      "Services and Configs"
     ]
   },
   {
@@ -7538,8 +7538,8 @@
       "ambari-web/classic/app/mixins/wizard/assign_master_components.js:605"
     ],
     "modules": [
-      "主机",
-      "服务与配置"
+      "Hosts",
+      "Services and Configs"
     ]
   },
   {
@@ -7565,7 +7565,7 @@
       "ambari-web/classic/app/mappers/service_metrics_mapper.js:335"
     ],
     "modules": [
-      "主机"
+      "Hosts"
     ]
   },
   {
@@ -7595,8 +7595,8 @@
       "ambari-web/classic/app/controllers/global/update_controller.js:473"
     ],
     "modules": [
-      "主机",
-      "后台操作与通用能力"
+      "Hosts",
+      "Background Operations and Common Capabilities"
     ]
   },
   {
@@ -7629,8 +7629,8 @@
       "ambari-web/classic/app/controllers/global/update_controller.js:405"
     ],
     "modules": [
-      "主机",
-      "后台操作与通用能力"
+      "Hosts",
+      "Background Operations and Common Capabilities"
     ]
   },
   {
@@ -7660,7 +7660,7 @@
       "ambari-web/classic/app/controllers/main/host/bulk_operations_controller.js:1097"
     ],
     "modules": [
-      "主机"
+      "Hosts"
     ]
   },
   {
@@ -7712,7 +7712,7 @@
       "ambari-web/classic/app/mixins/common/configs/configs_loader.js:49"
     ],
     "modules": [
-      "服务与配置"
+      "Services and Configs"
     ]
   },
   {
@@ -7739,7 +7739,7 @@
       "ambari-web/classic/app/mixins/main/service/configs/hive_interactive_check.js:26"
     ],
     "modules": [
-      "服务与配置"
+      "Services and Configs"
     ]
   },
   {
@@ -7765,7 +7765,7 @@
       "ambari-web/classic/app/controllers/wizard/step7_controller.js:421"
     ],
     "modules": [
-      "安装向导"
+      "Installation Wizards"
     ]
   },
   {
@@ -7791,7 +7791,7 @@
       "ambari-web/classic/app/controllers/main/dashboard/config_history_controller.js:141"
     ],
     "modules": [
-      "跨模块与待人工归类"
+      "Cross-Module and Manual Classification"
     ]
   },
   {
@@ -7815,7 +7815,7 @@
     "sourceContractSha256": "c89c7f548bcd3e23415d88d558698bcab6a136ae1d2d39f420c64381e8589a86",
     "callers": [],
     "modules": [
-      "跨模块与待人工归类"
+      "Cross-Module and Manual Classification"
     ]
   },
   {
@@ -7845,7 +7845,7 @@
       "ambari-web/classic/app/mixins/common/configs/configs_loader.js:177"
     ],
     "modules": [
-      "服务与配置"
+      "Services and Configs"
     ]
   },
   {
@@ -7871,7 +7871,7 @@
       "ambari-web/classic/app/controllers/main/dashboard/config_history_controller.js:210"
     ],
     "modules": [
-      "跨模块与待人工归类"
+      "Cross-Module and Manual Classification"
     ]
   },
   {
@@ -7899,7 +7899,7 @@
       "ambari-web/classic/app/views/common/configs/config_versions_control_view.js:201"
     ],
     "modules": [
-      "服务与配置",
+      "Services and Configs",
       "Views"
     ]
   },
@@ -7930,7 +7930,7 @@
       "ambari-web/classic/app/controllers/main/service/reassign/step4_controller.js:486"
     ],
     "modules": [
-      "服务与配置"
+      "Services and Configs"
     ]
   },
   {
@@ -7960,7 +7960,7 @@
       "ambari-web/classic/app/controllers/main/service/reassign/step4_controller.js:507"
     ],
     "modules": [
-      "服务与配置"
+      "Services and Configs"
     ]
   },
   {
@@ -7995,7 +7995,7 @@
     "sourceContractSha256": "11bf19bd64130548b236d3cf9ffb5774cb10c8a4145f2c4f023788391f6d3880",
     "callers": [],
     "modules": [
-      "跨模块与待人工归类"
+      "Cross-Module and Manual Classification"
     ]
   },
   {
@@ -8019,7 +8019,7 @@
     "sourceContractSha256": "9dcf1b74f3afdd45038a089260870290332ee4c159293cc6f20a2eaa06a449dd",
     "callers": [],
     "modules": [
-      "跨模块与待人工归类"
+      "Cross-Module and Manual Classification"
     ]
   },
   {
@@ -8049,7 +8049,7 @@
       "ambari-web/classic/app/controllers/main/admin/federation/step4_controller.js:119"
     ],
     "modules": [
-      "安全、高可用与联邦"
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -8079,7 +8079,7 @@
       "ambari-web/classic/app/controllers/main/admin/federation/step4_controller.js:131"
     ],
     "modules": [
-      "安全、高可用与联邦"
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -8109,8 +8109,8 @@
       "ambari-web/classic/app/controllers/main/admin/federation/step4_controller.js:165"
     ],
     "modules": [
-      "安装向导",
-      "安全、高可用与联邦"
+      "Installation Wizards",
+      "Security, HA, and Federation"
     ]
   },
   {
@@ -8141,7 +8141,7 @@
       "ambari-web/classic/app/mappers/service_metrics_mapper.js:353"
     ],
     "modules": [
-      "跨模块与待人工归类"
+      "Cross-Module and Manual Classification"
     ]
   }
 ]

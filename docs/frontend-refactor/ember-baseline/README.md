@@ -1,90 +1,90 @@
-# Ambari Web Ember 功能基线
+# Ambari Web Ember Feature Baseline
 
-本文档集描述 `frontend-refactor` 分支中 `ambari-web/classic` 的非 Metrics 用户功能和后端接口，作为后续 React 查缺补漏与行为等价验收的权威旧版基线。静态记录与源码或运行态冲突时，仍必须回查源码并验证运行态，不能以文档覆盖事实。
+This document set describes the non-Metrics user features and backend APIs of `ambari-web/classic` on the `frontend-refactor` branch. It is the authoritative legacy baseline for subsequent React gap analysis and feature parity acceptance. When static records conflict with source code or runtime behavior, recheck the source and verify runtime behavior; the documents must not override facts.
 
-## 基线信息
+## Baseline Information
 
-| 项目 | 值 |
+| Item | Value |
 | --- | --- |
-| Git 分支 | `frontend-refactor` |
-| Git 提交 | `8ac5c5a1346687bc46b4651c42b07237fe0e9ca9` |
-| 经典前端 | `ambari-web/classic`，早期 Ember `Em.Router/Em.Route` 架构 |
-| React 对照工程 | `ambari-web/latest` |
-| REST 默认前缀 | `/api/v1` |
-| 静态基线规模 | 288 个非 Metrics 命名 AJAX 定义、394 个纳入调用点（27 个动态、3 个未注册）、19 个直接 HTTP 调用点、56 个浏览器网络候选、5 种 client config 下载、160 个 route fragment、299 个模板 action、1002 个稳定功能 ID |
+| Git branch | `frontend-refactor` |
+| Git commit | `8ac5c5a1346687bc46b4651c42b07237fe0e9ca9` |
+| Legacy frontend | `ambari-web/classic`, early Ember `Em.Router/Em.Route` architecture |
+| React comparison project | `ambari-web/latest` |
+| REST default prefix | `/api/v1` |
+| Static baseline size | 288 non-Metrics named AJAX definitions, 394 included call sites (27 dynamic, 3 unregistered), 19 direct HTTP call sites, 56 browser network candidates, 5 client-config downloads, 160 route fragments, 299 template actions, and 1002 stable feature IDs |
 
-提交号是分析起点，不表示文档只能用于该提交。经典前端发生修改后，应重新运行提取器并审阅生成差异。
+The commit is the analysis starting point and does not restrict the documents to that commit. Rerun the extractor and review generated differences after changes to the legacy frontend.
 
-## 范围
+## Scope
 
-纳入范围：
+Included:
 
-- `ambari-web/classic/app` 中登录、会话、全局导航、后台操作、集群安装、Hosts、Services、Configs、Alerts、Stack/Versions/Upgrade、Kerberos、HA/Federation、Views 等 Ember 功能。
-- 页面可见性、按钮权限、feature flag、服务/组件/stack 前置条件、向导恢复、失败重试和确认弹窗。
-- `App.ajax` 命名请求及动态 dispatch、绕过命名注册表的 `App.HttpClient`/`XMLHttpRequest`/jQuery AJAX、浏览器导航/下载和 STOMP/WebSocket/SockJS 实时通道。
-- 能证明旧版行为的 controller、route、template、mixin、view、model、mapper 和 test 位置。
+- Ember features in `ambari-web/classic/app`, including login, sessions, global navigation, Background Operations, cluster installation, Hosts, Services, Configs, Alerts, Stack/Versions/Upgrade, Kerberos, HA/Federation, and Views.
+- Page visibility, button permissions, feature flags, service/component/stack prerequisites, wizard recovery, failure retry, and confirmation modals.
+- Named `App.ajax` requests and dynamic dispatch; `App.HttpClient`/`XMLHttpRequest`/jQuery AJAX calls that bypass the named registry; browser navigation/downloads; and STOMP/WebSocket/SockJS realtime channels.
+- Controller, route, template, mixin, view, model, mapper, and test locations that provide evidence of legacy behavior.
 
-明确排除：
+Explicitly excluded:
 
-- 所有 Metrics 能力，包括 Dashboard Metrics、Cluster Metrics、Host/Service Metrics、Heatmap、Horizon Chart、AMS timeline 查询、指标图表和指标数据导出。
-- 依赖指标定义的 Dashboard/Service Widget 布局、创建、编辑、共享和删除。
-- `ambari-admin/src/main/resources/ui/admin-web` 的 AngularJS Admin Console。用户、组、角色、集群权限、View 实例管理属于另一个旧前端，不是 Ember 功能；本文只记录 Ember 跳转到 Admin View 的行为。
-- 后端 API 本身存在但经典 Ember 从未引用的服务端能力。
+- All Metrics capabilities, including Dashboard Metrics, Cluster Metrics, Host/Service Metrics, Heatmap, Horizon Chart, AMS timeline queries, metric charts, and metric-data export.
+- Dashboard/Service Widget layout, creation, editing, sharing, and deletion that depend on metric definitions.
+- The AngularJS Admin Console under `ambari-admin/src/main/resources/ui/admin-web`. User, group, role, cluster-permission, and View-instance management belong to another legacy frontend and are not Ember features; this document records only Ember navigation to Admin View.
+- Backend capabilities that exist in the API but are never referenced by the legacy Ember frontend.
 
-注意：HA 前置检查可能读取 `metrics/...` 字段，例如 NameNode checkpoint 时间。这是 HA 运维流程而不是 Metrics 展示功能，因此仍纳入。
+Note: HA prerequisite checks may read `metrics/...` fields, such as the NameNode checkpoint time. This supports the HA operational workflow rather than Metrics presentation and is therefore included.
 
-## 文档导航
+## Document Navigation
 
-| 文档 | 内容 |
+| Document | Contents |
 | --- | --- |
-| [00-methodology.md](00-methodology.md) | 证据等级、功能记录字段、接口提取规则和 React 对比方法 |
-| [01-auth-shell.md](01-auth-shell.md) | 登录、SSO、本地登录、会话、全局加载、权限和导航 |
-| [02-background-dashboard.md](02-background-dashboard.md) | 后台操作、轮询、Dashboard 非 Metrics、配置历史 |
-| [03-hosts.md](03-hosts.md) | Hosts 列表、批量操作、详情、组件、配置、告警、版本、日志、加主机向导 |
-| [04-services-configs.md](04-services-configs.md) | Services 导航、服务动作、摘要、配置、配置组、加服务和迁移 Master |
-| [05-alerts.md](05-alerts.md) | Alert Definitions、实例、通知、组、创建/编辑/删除和权限 |
-| [06-stack-upgrades-admin.md](06-stack-upgrades-admin.md) | Stack/Versions、仓库、版本安装、升级/降级、升级历史和 Admin 集群设置 |
-| [07-cluster-installation.md](07-cluster-installation.md) | 0 到 10 步集群安装向导、恢复、校验、部署和完成 |
-| [08-kerberos.md](08-kerberos.md) | MIT/AD/IPA/Manual Kerberos、八步启用、禁用、identities、keytabs 和 KDC credentials |
-| [09-namenode-journalnode-ha.md](09-namenode-journalnode-ha.md) | NameNode HA、JournalNode Management、checkpoint 与 rollback |
-| [10-rm-ranger-ha.md](10-rm-ranger-ha.md) | ResourceManager HA 与 Ranger Admin HA |
-| [11-federation-hawq.md](11-federation-hawq.md) | NameNode/Router Federation 与 HAWQ standby 长流程 |
-| [12-views.md](12-views.md) | Views 列表、长短 URL、iframe、只拥有 View 权限的用户和 Admin View 跳转 |
-| [13-permissions-flags.md](13-permissions-flags.md) | 权限、feature flag、服务/stack/component/status 条件统一索引 |
-| [14-react-gap-matrix.md](14-react-gap-matrix.md) | 后续 React 对照的状态、场景和评审门禁 |
-| [15-five-pass-audit.md](15-five-pass-audit.md) | 五轮反向审计的输入、发现、修正和剩余风险 |
-| [api/README.md](api/README.md) | 接口目录入口、调用约定和常用 payload 语义 |
+| [00-methodology.md](00-methodology.md) | Evidence levels, feature-record fields, API extraction rules, and React comparison method |
+| [01-auth-shell.md](01-auth-shell.md) | Login, SSO, local login, sessions, global loading, permissions, and navigation |
+| [02-background-dashboard.md](02-background-dashboard.md) | Background Operations, polling, non-Metrics Dashboard, and configuration history |
+| [03-hosts.md](03-hosts.md) | Hosts list, bulk operations, details, components, configs, alerts, versions, logs, and Add Host wizard |
+| [04-services-configs.md](04-services-configs.md) | Services navigation, service actions, summary, configs, config groups, Add Service, and Move Master |
+| [05-alerts.md](05-alerts.md) | Alert Definitions, instances, notifications, groups, create/edit/delete, and permissions |
+| [06-stack-upgrades-admin.md](06-stack-upgrades-admin.md) | Stack/Versions, repositories, version installation, upgrade/downgrade, upgrade history, and Admin cluster settings |
+| [07-cluster-installation.md](07-cluster-installation.md) | Cluster installation wizard Steps 0 through 10, recovery, validation, deployment, and completion |
+| [08-kerberos.md](08-kerberos.md) | MIT/AD/IPA/Manual Kerberos, eight-step enablement, disablement, identities, keytabs, and KDC credentials |
+| [09-namenode-journalnode-ha.md](09-namenode-journalnode-ha.md) | NameNode HA, JournalNode Management, checkpoint, and rollback |
+| [10-rm-ranger-ha.md](10-rm-ranger-ha.md) | ResourceManager HA and Ranger Admin HA |
+| [11-federation-hawq.md](11-federation-hawq.md) | NameNode/Router Federation and the HAWQ Standby long workflow |
+| [12-views.md](12-views.md) | Views list, long and short URLs, iframe, View-only users, and Admin View navigation |
+| [13-permissions-flags.md](13-permissions-flags.md) | Unified index of permissions, feature flags, and service/stack/component/status conditions |
+| [14-react-gap-matrix.md](14-react-gap-matrix.md) | Statuses, scenarios, and review gates for later React comparison |
+| [15-five-pass-audit.md](15-five-pass-audit.md) | Inputs, findings, corrections, and remaining risks from the five-pass reverse audit |
+| [api/README.md](api/README.md) | API catalog entry point, calling conventions, and common payload semantics |
 
-## 自动生成的证据目录
+## Generated Evidence Catalog
 
-| 文件 | 用途 |
+| File | Purpose |
 | --- | --- |
-| [generated/ajax-endpoints.md](generated/ajax-endpoints.md) | 非 Metrics 命名 AJAX 定义、固定/动态 method、独立的动态 URL 标记、调用位置和已排除 Metrics 请求 |
-| [generated/ajax-endpoints.json](generated/ajax-endpoints.json) | 供脚本和后续 React 差异分析使用的结构化版本 |
-| [generated/ajax-calls.md](generated/ajax-calls.md) | 394 个调用点、动态请求候选解析和3个未注册旧调用 |
-| [generated/direct-http-calls.md](generated/direct-http-calls.md) | 绕过 `App.ajax` 的直接 HTTP 调用 |
-| [generated/browser-network-entrypoints.md](generated/browser-network-entrypoints.md) | 浏览器导航、reload、下载、动态图片/iframe及本地窗口入口；普通构建静态资源明确排除 |
-| [generated/client-config-downloads.md](generated/client-config-downloads.md) | 五种 client config resource scope下载契约 |
-| [generated/realtime-channels.md](generated/realtime-channels.md) | STOMP transport、11个destination、payload、生命周期和故障边界 |
-| [generated/permissions.md](generated/permissions.md) | 经典代码实际消费的 permission名称与调用点 |
-| [generated/feature-flags.md](generated/feature-flags.md) | `App.supports` feature flag名称与调用点 |
-| [generated/routes.md](generated/routes.md) | 非 Metrics route fragment 及定义位置 |
-| [generated/template-actions.md](generated/template-actions.md) | 非 Metrics 模板 action 及出现位置 |
-| [generated/feature-index.md](generated/feature-index.md) | 手写模块稳定 ID的机器索引 |
-| [generated/api-by-module](generated/api-by-module) | 按请求名和调用路径宽正则自动归类的候选索引；会跨模块混入、重复和漏项，不是接口全集 |
+| [generated/ajax-endpoints.md](generated/ajax-endpoints.md) | Non-Metrics named AJAX definitions, fixed/dynamic methods, separate dynamic-URL markers, call sites, and excluded Metrics requests |
+| [generated/ajax-endpoints.json](generated/ajax-endpoints.json) | Structured version for scripts and subsequent React gap analysis |
+| [generated/ajax-calls.md](generated/ajax-calls.md) | 394 call sites, dynamic-request candidate resolution, and 3 unregistered legacy calls |
+| [generated/direct-http-calls.md](generated/direct-http-calls.md) | Direct HTTP calls that bypass `App.ajax` |
+| [generated/browser-network-entrypoints.md](generated/browser-network-entrypoints.md) | Browser navigation, reload, downloads, dynamic images/iframes, and local-window entry points; ordinary built static assets are explicitly excluded |
+| [generated/client-config-downloads.md](generated/client-config-downloads.md) | Contracts for five client-config resource scopes |
+| [generated/realtime-channels.md](generated/realtime-channels.md) | STOMP transport, 11 destinations, payloads, lifecycle, and failure boundaries |
+| [generated/permissions.md](generated/permissions.md) | Permission names actually consumed by the legacy code and their call sites |
+| [generated/feature-flags.md](generated/feature-flags.md) | `App.supports` feature flag names and call sites |
+| [generated/routes.md](generated/routes.md) | Non-Metrics route fragments and definition locations |
+| [generated/template-actions.md](generated/template-actions.md) | Non-Metrics template actions and occurrence locations |
+| [generated/feature-index.md](generated/feature-index.md) | Machine index of stable IDs from the authored modules |
+| [generated/api-by-module](generated/api-by-module) | Heuristic candidate index grouped by request name and caller path using broad matching; it mixes, duplicates, and omits entries across modules and is not a complete API catalog |
 
-重新生成：
+Regenerate with:
 
 ```bash
 node docs/frontend-refactor/ember-baseline/tools/extract-ember-baseline.mjs
 ```
 
-提取器只依赖 Node.js 内置模块，不要求 `npm install`。生成文件不得手工修改。
+The extractor uses only built-in Node.js modules and does not require `npm install`. Do not edit generated files manually.
 
-## 使用规则
+## Usage Rules
 
-1. 旧版功能是否存在，以模块文档中的稳定功能 ID 为准。
-2. 网络契约核对必须联合 `generated/ajax-endpoints.json`、`ajax-calls.json`、`direct-http-calls.json`、`browser-network-entrypoints.json` 和 `realtime-channels.json`；不得用 `api-by-module` 或其中任一单表代替联合核对。
-3. 模块文档描述用户行为；生成目录描述静态事实。两者冲突时必须回到源码和运行态验证，不能直接猜测。
-4. React 对比不得仅比较路由或组件文件名，必须比较入口、权限、成功结果、失败路径、异步请求和恢复行为。
-5. 一个功能只有在 React 的 UI、API、权限、错误处理和测试全部等价时，才能标记为 `COVERED`。
+1. Use the stable feature IDs in the module documents as the authority for whether a legacy feature exists.
+2. Review network contracts jointly using `generated/ajax-endpoints.json`, `ajax-calls.json`, `direct-http-calls.json`, `browser-network-entrypoints.json`, and `realtime-channels.json`; do not replace the combined review with `api-by-module` or any single catalog.
+3. Module documents describe user behavior; the generated catalog describes static facts. When they conflict, return to the source and verify runtime behavior rather than guessing.
+4. React comparison must not compare only route or component filenames; compare entry points, permissions, success results, failure paths, asynchronous requests, and recovery behavior.
+5. A feature may be marked `COVERED` only when its React UI, API, permissions, error handling, and tests are all equivalent.

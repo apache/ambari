@@ -739,67 +739,67 @@ const catalogs = {
   ajaxEndpoints: {
     json: 'ajax-endpoints.json',
     markdown: 'ajax-endpoints.md',
-    pattern: /- 纳入定义：(\d+)/,
+    pattern: /- Included definitions: (\d+)/,
     label: 'included AJAX definitions',
   },
   excludedMetricsDefinitions: {
     json: 'excluded-metrics-ajax-endpoints.json',
     markdown: 'ajax-endpoints.md',
-    pattern: /- 排除 Metrics 定义：(\d+)/,
+    pattern: /- Excluded Metrics definitions: (\d+)/,
     label: 'excluded Metrics AJAX definitions',
   },
   ajaxCalls: {
     json: 'ajax-calls.json',
     markdown: 'ajax-calls.md',
-    pattern: /共 (\d+) 个调用点/,
+    pattern: /(\d+) call sites:/,
     label: 'AJAX calls',
   },
   directHttpCalls: {
     json: 'direct-http-calls.json',
     markdown: 'direct-http-calls.md',
-    pattern: /共 (\d+) 个静态调用点/,
+    pattern: /(\d+) static call sites\./,
     label: 'direct HTTP calls',
   },
   browserNetworkEntrypoints: {
     json: 'browser-network-entrypoints.json',
     markdown: 'browser-network-entrypoints.md',
-    pattern: /共 (\d+) 个候选调用点/,
+    pattern: /(\d+) candidate call sites\./,
     label: 'browser network entrypoints',
   },
   clientConfigDownloads: {
     json: 'client-config-downloads.json',
     markdown: 'client-config-downloads.md',
-    pattern: /共 (\d+) 种 resource scope/,
+    pattern: /(\d+) resource scopes\./,
     label: 'client config download scopes',
   },
   permissions: {
     json: 'permissions.json',
     markdown: 'permissions.md',
-    pattern: /共 (\d+) 个不同名称/,
+    pattern: /(\d+) distinct names\./,
     label: 'permissions',
   },
   featureFlags: {
     json: 'feature-flags.json',
     markdown: 'feature-flags.md',
-    pattern: /共 (\d+) 个不同名称/,
+    pattern: /(\d+) distinct names\./,
     label: 'feature flags',
   },
   routes: {
     json: 'routes.json',
     markdown: 'routes.md',
-    pattern: /共 (\d+) 个非 Metrics route fragment/,
+    pattern: /(\d+) non-Metrics route fragments\./,
     label: 'route fragments',
   },
   templateActions: {
     json: 'template-actions.json',
     markdown: 'template-actions.md',
-    pattern: /共 (\d+) 个不同 action 名/,
+    pattern: /(\d+) distinct action names\./,
     label: 'template actions',
   },
   featureIndex: {
     json: 'feature-index.json',
     markdown: 'feature-index.md',
-    pattern: /共 (\d+) 个稳定功能 ID/,
+    pattern: /(\d+) stable feature IDs\./,
     label: 'feature IDs',
   },
 };
@@ -987,13 +987,13 @@ for (const [property, expected] of Object.entries(expectedRealtimeCallSiteCounts
 if (fs.existsSync(realtimeCatalog.markdownFile)) {
   const markdown = read(realtimeCatalog.markdownFile);
   const summaryPatterns = {
-    transports: /- transports：(\d+)/,
-    destinations: /- destinations：(\d+)（(\d+) static \+ (\d+) dynamic）/,
-    subscribeSites: /- subscribe sites：(\d+)/,
-    addHandlerSites: /- addHandler sites：(\d+)/,
-    removeHandlerSites: /- removeHandler sites：(\d+)/,
-    unsubscribeSites: /- business unsubscribe sites：(\d+)/,
-    lifecycle: /- lifecycle contracts：(\d+)/,
+    transports: /- transports: (\d+)/,
+    destinations: /- destinations: (\d+) \((\d+) static \+ (\d+) dynamic\)/,
+    subscribeSites: /- subscribe sites: (\d+)/,
+    addHandlerSites: /- addHandler sites: (\d+)/,
+    removeHandlerSites: /- removeHandler sites: (\d+)/,
+    unsubscribeSites: /- business unsubscribe sites: (\d+)/,
+    lifecycle: /- lifecycle contracts: (\d+)/,
   };
   const summaryMatches = Object.fromEntries(Object.entries(summaryPatterns).map(([name, pattern]) => {
     const match = markdown.match(pattern);
@@ -1207,17 +1207,17 @@ if (dynamicMissingCandidateNames.size !== 0) {
   errors.push(`Expected no unregistered dynamic AJAX candidates, found ${dynamicMissingCandidateNames.size}`);
 }
 const ajaxCallsMarkdown = read(catalogs.ajaxCalls.markdownFile);
-const ajaxStatusMatch = ajaxCallsMarkdown.match(/其中 (\d+) 个命中纳入范围的注册请求，(\d+) 个静态请求名未在注册表定义，(\d+) 个使用动态表达式/);
+const ajaxStatusMatch = ajaxCallsMarkdown.match(/(\d+) call sites: (\d+) match in-scope registered requests, (\d+) use static request names absent from the registry, and (\d+) use dynamic expressions\./);
 if (!ajaxStatusMatch) {
   errors.push('Could not parse AJAX registration status counts from ajax-calls.md');
 } else {
-  const stated = ajaxStatusMatch.slice(1).map(Number);
+  const stated = ajaxStatusMatch.slice(2).map(Number);
   const actual = [ajaxCallsByStatus.REGISTERED, ajaxCallsByStatus.UNREGISTERED, ajaxCallsByStatus.DYNAMIC];
   if (stated.some((value, index) => value !== actual[index])) {
     errors.push(`AJAX status counts ${stated.join('/')} do not match JSON ${actual.join('/')}`);
   }
 }
-const dynamicResolutionSummaryMatch = ajaxCallsMarkdown.match(/动态解析：(\d+)\/(\d+) 个调用点已绑定契约，(\d+) 个唯一候选请求名，(\d+) 个候选未命中纳入注册表/);
+const dynamicResolutionSummaryMatch = ajaxCallsMarkdown.match(/Dynamic resolution: (\d+)\/(\d+) call sites have contracts, (\d+) unique candidate request names, and (\d+) candidates absent from the in-scope registry\./);
 if (!dynamicResolutionSummaryMatch) {
   errors.push('Could not parse dynamic AJAX resolution summary from ajax-calls.md');
 } else {
@@ -1318,16 +1318,16 @@ for (const scope of ['CLUSTER', 'HOST', 'SERVICE', 'SERVICE_COMPONENT', 'HOST_CO
 if (clientScopes.size !== 5) errors.push(`Expected exactly 5 client config download scopes, found ${clientScopes.size}`);
 
 const apiByModuleFiles = new Map([
-  ['认证与应用外壳', 'auth-shell.md'],
-  ['安装向导', 'installation-wizards.md'],
-  ['主机', 'hosts.md'],
-  ['服务与配置', 'services-configs.md'],
-  ['告警', 'alerts.md'],
-  ['Stack 与升级', 'stack-upgrades.md'],
-  ['安全、高可用与联邦', 'security-ha-federation.md'],
+  ['Authentication and Application Shell', 'auth-shell.md'],
+  ['Installation Wizards', 'installation-wizards.md'],
+  ['Hosts', 'hosts.md'],
+  ['Services and Configs', 'services-configs.md'],
+  ['Alerts', 'alerts.md'],
+  ['Stack and Upgrades', 'stack-upgrades.md'],
+  ['Security, HA, and Federation', 'security-ha-federation.md'],
   ['Views', 'views.md'],
-  ['后台操作与通用能力', 'background-common.md'],
-  ['跨模块与待人工归类', 'cross-cutting.md'],
+  ['Background Operations and Common Capabilities', 'background-common.md'],
+  ['Cross-Module and Manual Classification', 'cross-cutting.md'],
 ]);
 for (const [moduleName, fileName] of apiByModuleFiles) {
   const file = path.join(generatedRoot, 'api-by-module', fileName);
@@ -1336,7 +1336,7 @@ for (const [moduleName, fileName] of apiByModuleFiles) {
     continue;
   }
   const expectedCount = catalogs.ajaxEndpoints.items.filter((item) => item.modules?.includes(moduleName)).length;
-  const statedCount = parseCount(file, /共 (\d+) 个命名请求候选/, `${moduleName} API module candidate count`);
+  const statedCount = parseCount(file, /(\d+) named request candidates\./, `${moduleName} API module candidate count`);
   if (expectedCount !== statedCount) {
     errors.push(`api-by-module/${fileName} reports ${statedCount}, expected ${expectedCount}`);
   }
@@ -1348,7 +1348,7 @@ for (const [moduleName, fileName] of apiByModuleFiles) {
     inputKeys: definition.inputKeys,
     callers: definition.callers,
   }));
-  const statedHash = read(file).match(/候选内容 SHA-256：`([a-f0-9]{64})`/)?.[1];
+  const statedHash = read(file).match(/Candidate content SHA-256: `([a-f0-9]{64})`/)?.[1];
   const expectedHash = sha256Json(expectedContract);
   if (statedHash !== expectedHash) {
     errors.push(`api-by-module/${fileName} content SHA-256 ${statedHash ?? 'missing'} does not match ${expectedHash}`);
@@ -1358,7 +1358,7 @@ for (const [moduleName, fileName] of apiByModuleFiles) {
 const readmeFile = path.join(baselineRoot, 'README.md');
 if (fs.existsSync(readmeFile)) {
   const readme = read(readmeFile);
-  const readmeCounts = readme.match(/(\d+) 个非 Metrics 命名 AJAX 定义、(\d+) 个纳入调用点（(\d+) 个动态、(\d+) 个未注册）、(\d+) 个直接 HTTP 调用点、(\d+) 个浏览器网络候选、(\d+) 种 client config 下载、(\d+) 个 route fragment、(\d+) 个模板 action、(\d+) 个稳定功能 ID/);
+  const readmeCounts = readme.match(/(\d+) non-Metrics named AJAX definitions, (\d+) included call sites \((\d+) dynamic, (\d+) unregistered\), (\d+) direct HTTP call sites, (\d+) browser network candidates, (\d+) client-config downloads, (\d+) route fragments, (\d+) template actions, and (\d+) stable feature IDs/);
   if (!readmeCounts) {
     errors.push('README baseline count sentence is missing or has an unexpected format');
   } else {
@@ -1459,7 +1459,7 @@ const actualFivePassAuditCounts = {
 const fivePassAuditFile = path.join(baselineRoot, '15-five-pass-audit.md');
 if (fs.existsSync(fivePassAuditFile)) {
   const auditSource = read(fivePassAuditFile);
-  const auditCountBlock = auditSource.match(/## 机器冻结计数[\s\S]*?```json\s*\n([\s\S]*?)\n```/);
+  const auditCountBlock = auditSource.match(/## Machine-Frozen Counts[\s\S]*?```json\s*\n([\s\S]*?)\n```/);
   if (!auditCountBlock) {
     errors.push('15-five-pass-audit.md has no machine count JSON block');
   } else {
