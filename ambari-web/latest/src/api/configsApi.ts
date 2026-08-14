@@ -88,7 +88,7 @@ const ConfigsApi = {
     version1: string,
     version2: string
   ) {
-    const url = `clusters/${clusterName}/configurations/service_config_versions?(service_name=${serviceName}&service_config_version.in(${version1},${version2}))`;
+    const url = `clusters/${clusterName}/configurations/service_config_versions?(service_name=${serviceName}%26service_config_version.in(${version1},${version2}))`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
@@ -237,7 +237,7 @@ const ConfigsApi = {
   getDesiredConfigsInfo: async (
     clusterName: string
   ): Promise<AxiosResponse> => {
-    const url = `/clusters/${clusterName}?fields=Clusters/desired_configs&_=${Date.now()}\``;
+    const url = `/clusters/${clusterName}?fields=Clusters/desired_configs&_=${Date.now()}`;
     const response = await ambariApi.request({
       url,
       method: "GET",

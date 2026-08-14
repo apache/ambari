@@ -166,23 +166,54 @@ export default function TestConnection({
 
   const { services, ambariProperties, clusterName } = useContext(AppContext);
 
+  const failConnection = (error: unknown, fallbackMessage: string) => {
+    const message = get(error, "response.data.message", get(error, "message", fallbackMessage));
+    setTaskID(null);
+    setRequestId(null);
+    pausePolling();
+    setIsConnecting(false);
+    setIsConnectionSuccessful(false);
+    setErrorMessage({
+      error_log: "Connection Test Failed",
+      stderr: message || fallbackMessage,
+      output_log: "Connection test did not complete",
+      stdout: "Retry the connection test after resolving the reported error.",
+    });
+  };
+
   const getTaskStatus = async () => {
-    if (requestId !== null && taskID !== null) {
+    if (requestId === null || taskID === null) {
+      return;
+    }
+
+    try {
       const response = await RequestApi.getTaskStatus(requestId, taskID);
       updateTaskStatus(response);
-    } else {
-      console.warn("requestId or taskID is null");
+    } catch (error) {
+      failConnection(error, "Unable to read the connection test task status.");
     }
   };
   const updateTaskStatus = (response: any) => {
     const status = get(response, "Tasks.status", null);
     if (status) {
       if (status === "COMPLETED") {
+        const structuredOut = get(
+          response,
+          "Tasks.structured_out.db_connection_check"
+        );
         setTaskID(null);
         setRequestId(null);
         pausePolling();
         setIsConnecting(false);
-        setIsConnectionSuccessful(true);
+        if (structuredOut && Number(structuredOut.exit_code) !== 0) {
+          setIsConnectionSuccessful(false);
+          setErrorMessage({
+            ...get(response, "Tasks", {}),
+            structuredOut: structuredOut.message,
+          });
+        } else {
+          setIsConnectionSuccessful(true);
+        }
       } else if (status === "FAILED" || status === "ABORTED" || status === "TIMEDOUT") {
         setTaskID(null);
         setRequestId(null);
@@ -193,19 +224,21 @@ export default function TestConnection({
       } else {
         console.log("Task is still in progress, current status:", status);
       }
+    } else {
+      failConnection(response, "The connection test task has no status.");
     }
   };
   const { pausePolling, resumePolling } = usePolling(getTaskStatus, 1000);
 
   useEffect(() => {
     pausePolling();
-  }, []);
+  }, [pausePolling]);
 
   useEffect(() => {
     if (taskID && requestId) {
       resumePolling();
     }
-  }, [taskID]);
+  }, [taskID, requestId, resumePolling]);
 
   const installedServicesInCluster = services.map(
     (service) => service.ServiceInfo.service_name
@@ -436,41 +469,61 @@ export default function TestConnection({
         );
         if (response) {
           if (response.Requests.status === "Accepted") {
-            onCreateActionSuccess(response);
+            await onCreateActionSuccess(response);
+          } else {
+            failConnection(response, "The connection test request was not accepted.");
           }
+        } else {
+          failConnection(response, "The connection test request returned no response.");
         }
       } catch (error) {
-        setIsConnectionSuccessful(false);
         console.error("Error creating cluster custom action");
+        failConnection(error, "Unable to create the connection test request.");
       }
     } else {
       try {
         const response = await ClusterApi.createCustomAction(payload);
         if (response) {
           if (response.Requests.status === "Accepted") {
-            onCreateActionSuccess(response);
+            await onCreateActionSuccess(response);
+          } else {
+            failConnection(response, "The connection test request was not accepted.");
           }
+        } else {
+          failConnection(response, "The connection test request returned no response.");
         }
       } catch (error) {
         console.log(
           "Error creating custom action for service not installed",
           error
         );
-        setIsConnectionSuccessful(false);
+        failConnection(error, "Unable to create the connection test request.");
       }
     }
   };
 
   const onCreateActionSuccess = async (response: any) => {
     const requestId = response.Requests.id;
-    if (requestId) {
-      setRequestId(requestId);
+    if (!requestId) {
+      failConnection(response, "The connection test response did not include a request ID.");
+      return;
+    }
+
+    setRequestId(requestId);
+    try {
       const requestResponse = await RequestApi.getTaskId(requestId);
       const taskIdFromResponse = get(requestResponse, "items.0.Tasks.id", null);
 
-      if (taskIdFromResponse) {
-        setTaskID(taskIdFromResponse);
+      if (!taskIdFromResponse) {
+        failConnection(
+          requestResponse,
+          "The connection test request did not include a task ID."
+        );
+        return;
       }
+      setTaskID(taskIdFromResponse);
+    } catch (error) {
+      failConnection(error, "Unable to load the connection test task.");
     }
   };
 
@@ -500,6 +553,9 @@ export default function TestConnection({
   };
 
   const handleButtonClick = () => {
+    setErrorMessage(null);
+    setIsConnectionSuccessful(false);
+    setShowErrorMessage(false);
     if (serviceName === "KERBEROS") {
       testKDCConnection();
     } else {

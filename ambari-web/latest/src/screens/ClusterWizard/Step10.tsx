@@ -313,17 +313,19 @@ function Step10({ wizardName = "clusterCreation" }: Step10Props) {
         onNext={async () => {
           const clusterName = getStepData("NAME", "clusterName");
 
-          await ClusterApi.updateCluster(clusterName, {
-            Clusters: {
-              provisioning_state: "INSTALLED",
-            },
-          });
-          if(wizardName==="clusterCreation"){
-          await syncConfigGroupsToServer(clusterName, state);
+          if (wizardName === "clusterCreation") {
+            await ClusterApi.updateCluster(clusterName, {
+              Clusters: {
+                provisioning_state: "INSTALLED",
+              },
+            });
+            await syncConfigGroupsToServer(clusterName, state);
+            flushStateToDb("cancel");
+            window.location.href = "#/main/dashboard/metrics";
+            window.location.reload();
+          } else {
+            await flushStateToDb("cancel");
           }
-          flushStateToDb("cancel");
-          window.location.href = "#/main/dashboard/metrics";
-          window.location.reload();
         }}
         onCancel={() => {
           flushStateToDb("cancel");

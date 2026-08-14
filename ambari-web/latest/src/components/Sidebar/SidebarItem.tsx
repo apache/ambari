@@ -42,6 +42,9 @@ import modalManager from "../../store/ModalManager";
 import { useAuth } from "../../hooks/useAuth";
 import { serviceNameModelMapping } from "../../constants";
 import RunAllServiceCheck from "./RunAllServiceCheck";
+import { checkNnLastCheckpointTime } from "../../screens/Hosts/actions";
+import { get } from "lodash";
+import { canManageServices } from "../../Utils/servicePermissions";
 
 // interface SidebarElement {
 //   id: string;
@@ -62,6 +65,17 @@ interface SidebarItemProps {
   hasChildren?: boolean;
 }
 
+type NameNodeHostComponent = {
+  HostRoles?: { host_name?: string; state?: string };
+  hostName?: string;
+  state?: string;
+};
+
+type NameNodeComponent = {
+  componentName?: string;
+  hostComponents?: NameNodeHostComponent[];
+};
+
 const SidebarItem = ({
   ele,
   onClick,
@@ -75,6 +89,9 @@ const SidebarItem = ({
     upgradeIsRunning,
     upgradeSuspended,
     services: contextServices,
+    supports,
+    wizardIsNotFinished,
+    runningOperationsCount,
   } = useContext(AppContext);
   const { allServiceModels } = useContext(ServiceContext);
   const location = useLocation();
@@ -107,42 +124,30 @@ const SidebarItem = ({
     let hasStoppedServices = false;
     let hasStartedServices = false;
     let hasServicesRequiringRestart = false;
-    let totalServices = 0;
-    let startedServicesCount = 0;
-    let stoppedServicesCount = 0;
-
     contextServices.forEach((service: any) => {
       const serviceName = service.ServiceInfo?.service_name;
-      const serviceState =
-        allServiceModels?.[serviceNameModelMapping[serviceName]]?.serviceState;
+      const serviceModel =
+        allServiceModels?.[serviceNameModelMapping[serviceName]];
+      const serviceState = serviceModel?.serviceState;
+      const healthStatus = serviceModel?.healthStatus;
 
-      // Count total services (excluding client-only services for start/stop operations)
-      const isClientOnlyService = allServiceModels?.[serviceNameModelMapping[serviceName]]?.isClientOnlyService;
-      if (!isClientOnlyService) {
-        totalServices++;
-      }
+      const isClientOnlyService = serviceModel?.isClientOnlyService;
 
       // Following Ember.js logic: check for red status (stopped/installed services)
       // Ember: stoppedServices = content.filter(_service => _service.get('healthStatus') === 'red')
-      if (
-        serviceState === "INSTALLED" ||
-        serviceState === "INIT" ||
-        serviceState === "INSTALL_FAILED" ||
-        serviceState === "STOPPED"
-      ) {
+      if (!isClientOnlyService && (healthStatus === "red" ||
+          serviceState === "INSTALLED" ||
+          serviceState === "INIT" ||
+          serviceState === "INSTALL_FAILED" ||
+          serviceState === "STOPPED")) {
         hasStoppedServices = true;
-        if (!isClientOnlyService) {
-          stoppedServicesCount++;
-        }
       }
 
       // Following Ember.js logic: check for green status (started services)
       // Ember: !content.someProperty('healthStatus', 'green')
-      if (serviceState === "STARTED") {
+      if (!isClientOnlyService &&
+          (healthStatus === "green" || serviceState === "STARTED")) {
         hasStartedServices = true;
-        if (!isClientOnlyService) {
-          startedServicesCount++;
-        }
       }
 
       if (allServiceModels?.[serviceNameModelMapping[serviceName]]?.isRestartRequiredForService) {
@@ -150,30 +155,104 @@ const SidebarItem = ({
       }
     });
 
-    // Check if ALL non-client-only services are started
-    const allServicesStarted = totalServices > 0 && startedServicesCount === totalServices;
-    
-    // Check if ALL non-client-only services are stopped
-    const allServicesStopped = totalServices > 0 && stoppedServicesCount === totalServices;
-
     return {
       hasStoppedServices,
       hasStartedServices,
       hasServicesRequiringRestart,
-      allServicesStarted,
-      allServicesStopped,
     };
   };
 
   const {
+    hasStoppedServices,
+    hasStartedServices,
     hasServicesRequiringRestart,
-    allServicesStarted,
-    allServicesStopped,
   } = getServiceStates();
 
-  // Check if user has any service operation permissions and upgrade is not blocking
+  const canAddService = canManageServices({
+    authorized: canAddDeleteServices,
+    featureEnabled: supports.enableAddDeleteServices,
+    wizardIsNotFinished,
+  });
+  const isStartStopBusy = runningOperationsCount > 0;
+
   const hasAnyServiceOperationPermissions =
-    (canAddDeleteServices || canStartStopServices) && !isUpgradeBlocking;
+    (canAddDeleteServices || canStartStopServices) &&
+    !isUpgradeBlocking;
+
+  const executeAllServicesAction = async (
+    label: string,
+    action: () => Promise<unknown>
+  ) => {
+    try {
+      await action();
+      showBackgroundModal();
+    } catch (error) {
+      const message = get(
+        error,
+        "response.data.message",
+        get(error, "message", `${label} could not be submitted.`)
+      );
+      modalManager.show({
+        modalTitle: `${label} Failed`,
+        modalBody: message,
+        successCallback: () => {
+          modalManager.hide();
+          void executeAllServicesAction(label, action);
+        },
+        onClose: () => modalManager.hide(),
+        options: { okButtonText: "RETRY" },
+      });
+    }
+  };
+
+  const confirmAllServicesAction = (
+    label: string,
+    message: string,
+    action: () => Promise<unknown>
+  ) => {
+    modalManager.show({
+      modalTitle: "Confirmation",
+      modalBody: message,
+      successCallback: () => {
+        modalManager.hide();
+        void executeAllServicesAction(label, action);
+      },
+      onClose: () => modalManager.hide(),
+      options: { okButtonText: `CONFIRM ${label.toUpperCase()}` },
+    });
+  };
+
+  const confirmStopAllServices = () => {
+    const showConfirmation = () =>
+      confirmAllServicesAction(
+        "Stop All",
+        "You are about to stop all services.",
+        () => stopAllServices(clusterName)
+      );
+    const hdfsMasterComponents = get(
+      allServiceModels,
+      "hdfs.masterComponents",
+      []
+    ) as NameNodeComponent[];
+    const nameNodeHost = hdfsMasterComponents
+      .find((component) => component.componentName === "NAMENODE")
+      ?.hostComponents?.find(
+        (hostComponent) =>
+          get(hostComponent, "HostRoles.state", hostComponent.state) ===
+          "STARTED"
+      );
+    const hostName = get(
+      nameNodeHost,
+      "HostRoles.host_name",
+      nameNodeHost?.hostName
+    );
+
+    if (hostName) {
+      void checkNnLastCheckpointTime(showConfirmation, hostName, clusterName);
+    } else {
+      showConfirmation();
+    }
+  };
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     // If this is the Cluster Admin item and it's currently closed, navigate to the first admin route
     // Only navigate when opening the menu, not when closing it, and only if not already on an admin page
@@ -227,8 +306,7 @@ const SidebarItem = ({
                   />
                 }
               >
-                {/* Add Service - Requires SERVICE.ADD_DELETE_SERVICES authorization and no upgrade blocking */}
-                {canAddDeleteServices && !isUpgradeBlocking && (
+                {canAddService && (
                   <Dropdown.Item
                     onClick={() => {
                       navigate("/main/service/add/step1");
@@ -239,14 +317,16 @@ const SidebarItem = ({
                   </Dropdown.Item>
                 )}
 
-                {/* Start All - Disabled when all services are started (TLHASD-997 fix) */}
                 {canStartStopServices && (
                   <Dropdown.Item
-                    disabled={allServicesStarted}
-                    onClick={async () => {
-                      if (!allServicesStarted) {
-                        await startAllServices(clusterName);
-                        showBackgroundModal();
+                    disabled={!hasStoppedServices || isStartStopBusy}
+                    onClick={() => {
+                      if (hasStoppedServices && !isStartStopBusy) {
+                        confirmAllServicesAction(
+                          "Start All",
+                          "You are about to start all services.",
+                          () => startAllServices(clusterName)
+                        );
                       }
                     }}
                   >
@@ -255,14 +335,12 @@ const SidebarItem = ({
                   </Dropdown.Item>
                 )}
 
-                {/* Stop All - Disabled when all services are stopped (TLHASD-997 consistency fix) */}
                 {canStartStopServices && (
                   <Dropdown.Item
-                    disabled={allServicesStopped}
-                    onClick={async () => {
-                      if (!allServicesStopped) {
-                        await stopAllServices(clusterName);
-                        showBackgroundModal();
+                    disabled={!hasStartedServices || isStartStopBusy}
+                    onClick={() => {
+                      if (hasStartedServices && !isStartStopBusy) {
+                        confirmStopAllServices();
                       }
                     }}
                   >
@@ -275,16 +353,18 @@ const SidebarItem = ({
                 {canStartStopServices && (
                   <Dropdown.Item
                     disabled={!hasServicesRequiringRestart}
-                    onClick={async () => {
+                    onClick={() => {
                       if (hasServicesRequiringRestart) {
                         modalManager.show({
                           modalTitle: "Confirmation",
                           modalBody:
                             "This will trigger alerts as the service is restarted. To suppress alerts, turn on Maintenance Mode for services listed above prior to running Restart All Required",
-                          successCallback: async () => {
+                          successCallback: () => {
                             modalManager.hide();
-                            await restartAllRequired(clusterName);
-                            showBackgroundModal();
+                            void executeAllServicesAction(
+                              "Restart All Required",
+                              () => restartAllRequired(clusterName)
+                            );
                           },
                           onClose: () => {
                             modalManager.hide();

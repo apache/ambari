@@ -82,7 +82,7 @@ export default function ChooseConfigGroup({
   const { hasAuthorization } = useAuth();
   
   // Check specific authorizations for config groups operations
-  const canModifyConfigs = hasAuthorization('SERVICE.MODIFY_CONFIGS');
+  const canManageConfigGroups = hasAuthorization('SERVICE.MANAGE_CONFIG_GROUPS');
 
   const manageConfigGroup = useMemo(
     () => ({
@@ -109,11 +109,10 @@ export default function ChooseConfigGroup({
 
   const allOptions = useMemo(
     () => {
-      // Only include "Manage Config Group" option if user has SERVICE.MODIFY_CONFIGS permission
       const baseOptions = [defaultOption, ...options];
-      return canModifyConfigs ? [manageConfigGroup, ...baseOptions] : baseOptions;
+      return canManageConfigGroups ? [manageConfigGroup, ...baseOptions] : baseOptions;
     },
-    [manageConfigGroup, defaultOption, options, canModifyConfigs]
+    [manageConfigGroup, defaultOption, options, canManageConfigGroups]
   );
 
   const fetchConfigGroups = async () => {

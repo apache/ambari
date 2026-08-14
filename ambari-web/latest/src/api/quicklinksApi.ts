@@ -20,11 +20,20 @@ import { ambariApi } from "./config/axiosConfig";
 
 export const QuicklinksApi = {
     getQuicklinks: async (stackVersion: string,stackName:string, serviceName: string) => {
-        const url = `/stacks/${stackName}/versions/${stackVersion}/services/${serviceName}/quicklinks?QuickLinkInfo/default=true&fields=*&_=${Date.now()}'`;
+        const url = `/stacks/${stackName}/versions/${stackVersion}/services/${serviceName}/quicklinks?QuickLinkInfo/default=true&fields=*&_=${Date.now()}`;
         const response = await ambariApi.request({
             url: url,
             method: "GET",
         });
         return response;
-    }
-}
+    },
+    getPublicHostNames: async (clusterName: string, hostNames: string[]) => {
+        const hosts = hostNames.map(encodeURIComponent).join(",");
+        const url = `/clusters/${clusterName}/hosts?Hosts/host_name.in(${hosts})&fields=Hosts/public_host_name&minimal_response=true`;
+        const response = await ambariApi.request({
+            url,
+            method: "GET",
+        });
+        return response.data;
+    },
+};

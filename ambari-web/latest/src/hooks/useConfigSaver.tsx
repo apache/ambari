@@ -51,7 +51,6 @@ export const useConfigSaver = (
   serviceConfigVersionNote: string
 ) => {
   const [saveInProgress, setSaveInProgress] = useState(false);
-  const [saveConfigsFlag, setSaveConfigsFlag] = useState(true);
 
   const heapsizeException = [
     "hadoop_heapsize",
@@ -80,28 +79,30 @@ export const useConfigSaver = (
 
   const serviceNames = services.map((service: any) => service.ServiceInfo?.service_name) || [];
 
-  const saveStepConfigs = () => {
+  const saveStepConfigs = async () => {
     if (!isSubmitDisabled) {
-      // startSave();
-      // showWarningPopupsBeforeSave();
-      saveConfigs();
+      return saveConfigs();
     }
+    return false;
   };
 
-  const saveConfigs = async () => {
+  const saveConfigs = async (): Promise<boolean> => {
     startSave();
     try {
       if (selectedConfigGroup === "Default") {
-        saveConfigsForDefaultGroup();
+        await saveConfigsForDefaultGroup();
       } else {
-        saveConfigsForNonDefaultGroup();
+        await saveConfigsForNonDefaultGroup();
       }
+      return true;
+    } catch {
+      return false;
     } finally {
       completeSave();
     }
   };
 
-  const saveConfigsForNonDefaultGroup = () => {
+  const saveConfigsForNonDefaultGroup = async () => {
     if (selectedConfigGroup && selectedConfigGroup !== "Default") {
       const overriddenConfigs = getConfigsForGroup(
         configProperties,
@@ -112,7 +113,7 @@ export const useConfigSaver = (
         !isEmpty(overriddenConfigs) && 
         isOverriddenConfigsModified(overriddenConfigs)
       ) {
-        saveGroup(overriddenConfigs);
+        await saveGroup(overriddenConfigs);
       } else {
         putConfigGroupChangesSuccess();
       }
@@ -131,7 +132,7 @@ export const useConfigSaver = (
     return hasChangedConfigs;
   };
 
-  const saveConfigsForDefaultGroup = () => {
+  const saveConfigsForDefaultGroup = async () => {
     let data: any = [];
     Object.keys(configProperties).map((serviceName: string) => {
       var serviceConfigs = getServiceConfigToSave(
@@ -144,9 +145,9 @@ export const useConfigSaver = (
     });
 
     if (data.length) {
-      putChangedConfigurations(data);
+      await putChangedConfigurations(data);
     } else {
-      onDoPutClusterConfigurations();
+      onDoPutClusterConfigurations(true);
     }
   };
 
@@ -426,8 +427,9 @@ export const useConfigSaver = (
     }
 
     if (
-      Object.keys(attributes.final).length ||
-      Object.keys(attributes.password).length
+      Object.values(attributes).some(
+        (attributeValues) => Object.keys(attributeValues).length > 0
+      )
     ) {
       desired_config.properties_attributes = attributes;
     }
@@ -477,13 +479,14 @@ export const useConfigSaver = (
 
   const addM = (name: string, value: string) => {
     return (
+      typeof value === "string" &&
       heapsizeRegExp.test(name) &&
       !heapsizeException.includes(name) &&
       !value.endsWith("m")
     );
   };
 
-  const saveGroup = (overriddenConfigs: PropertyType[]) => {
+  const saveGroup = async (overriddenConfigs: PropertyType[]) => {
     const fileNamesToSave = [...new Set(
       overriddenConfigs
         .map(config => config.fileName)
@@ -498,8 +501,9 @@ export const useConfigSaver = (
     const groupId = get(configGroup, 'ConfigGroup.id');
     
     if (!groupId) {
-      console.error('Config group ID not found');
-      return;
+      const error = new Error("Config group ID not found");
+      doPUTClusterConfigurationSiteErrorCallback();
+      throw error;
     }
 
     // Prepare the configs specifically for this config group
@@ -510,7 +514,7 @@ export const useConfigSaver = (
         // For non-default groups, we need to use the override value for this specific group
         value: (config.overrideValues || []).find(
           (ov: any) => ov.groupName === selectedConfigGroup
-        )?.value || config.value
+        )?.value ?? config.value
       };
     });
 
@@ -533,7 +537,7 @@ export const useConfigSaver = (
     };
 
     groupData.ConfigGroup.id = groupId;
-    updateConfigGroup(groupData);
+    await updateConfigGroup(groupData);
   };
 
   // const createConfigGroup = () => {
@@ -569,24 +573,25 @@ export const useConfigSaver = (
   };
 
   const putConfigGroupChangesSuccess = () => {
-    setSaveConfigsFlag(true);
-    onDoPutClusterConfigurations();
+    onDoPutClusterConfigurations(true);
   };
 
   const doPUTClusterConfigurationSiteSuccessCallback = () => {
     let doConfigActions = true;
-    onDoPutClusterConfigurations(doConfigActions);
+    onDoPutClusterConfigurations(true, doConfigActions);
   };
 
   const doPUTClusterConfigurationSiteErrorCallback = () => {
-    setSaveConfigsFlag(false);
-    onDoPutClusterConfigurations();
+    onDoPutClusterConfigurations(false);
   };
 
-  const onDoPutClusterConfigurations = (doConfigActions?: boolean) => {
+  const onDoPutClusterConfigurations = (
+    isSuccess: boolean,
+    doConfigActions?: boolean
+  ) => {
     let status = "unknown";
     let result = {
-      flag: saveConfigsFlag,
+      flag: isSuccess,
       message: "",
       value: "",
     };

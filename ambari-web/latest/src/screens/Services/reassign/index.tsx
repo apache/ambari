@@ -26,6 +26,7 @@ import { mastersNotShown, serviceNameModelMapping } from "../../../constants";
 import { camelCase, map, startCase, filter } from "lodash";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faShuffle } from "@fortawesome/free-solid-svg-icons";
+import { getComponentHostNames } from "../../../Utils/reassignValidation";
 
 type ReassignComponentProps = {
   serviceName: string;
@@ -107,6 +108,19 @@ function ReassignComponent({
       {allMasters?.length && !isMappingOnly
         ? allMasters.map((master: any) => (
             <DropdownItem
+              key={master}
+              disabled={
+                allHostNames.length > 0 &&
+                allHostNames.every((hostName) => {
+                  const component = allServiceModels[
+                    serviceNameModelMapping[serviceNameProp]
+                  ]?.masterComponents?.find(
+                    (item: { componentName?: string }) =>
+                      item.componentName === master
+                  );
+                  return getComponentHostNames(component).includes(hostName);
+                })
+              }
               onClick={() => {
                 navigate(`/main/service/reassign/${master}/step1`);
               }}
