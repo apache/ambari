@@ -1,0 +1,283 @@
+[
+  {
+    "kind": "HttpClient",
+    "method": "GET",
+    "expression": "App.HttpClient.get(clusterUrl, App.clusterMapper, {",
+    "source": "ambari-web/classic/app/controllers/global/cluster_controller.js",
+    "line": 194,
+    "scope": "NON_METRICS",
+    "semanticKind": "CLUSTER_MODEL_LOAD",
+    "urlContract": "GET /api/v1/clusters/{clusterName}?fields=Clusters",
+    "operationalFields": [
+      "Clusters/*"
+    ],
+    "notes": "Initial load of core cluster identity/security/credential-store models; complete refreshes isCredentialStorePersistent after the mapper runs."
+  },
+  {
+    "kind": "HttpClient",
+    "method": "GET",
+    "expression": "App.HttpClient.get(url, App.hostsMapper, {",
+    "source": "ambari-web/classic/app/controllers/global/cluster_controller.js",
+    "line": 384,
+    "scope": "NON_METRICS",
+    "semanticKind": "DYNAMIC_HOST_MODEL_LOAD_HELPER",
+    "urlContract": "GET {callerSuppliedRealUrl}; test mode uses /data/hosts/HDP2/hosts.json",
+    "operationalFields": [
+      "caller supplied"
+    ],
+    "notes": "`requestHosts()` has no production caller in the classic app tree and is used only by a controller unit test; retained as a STATIC_ONLY legacy helper."
+  },
+  {
+    "kind": "HttpClient",
+    "method": "GET",
+    "expression": "App.HttpClient.get(clusterUrl, App.clusterMapper, {",
+    "source": "ambari-web/classic/app/controllers/global/cluster_controller.js",
+    "line": 449,
+    "scope": "NON_METRICS",
+    "semanticKind": "CLUSTER_MODEL_REFRESH",
+    "urlContract": "GET /api/v1/clusters/{clusterName}?fields=Clusters",
+    "operationalFields": [
+      "Clusters/*"
+    ],
+    "notes": "Refreshes the cluster mapper at runtime; the complete callback is empty."
+  },
+  {
+    "kind": "jQuery AJAX",
+    "method": "DYNAMIC",
+    "expression": "$.ajax(ajaxOpt);",
+    "source": "ambari-web/classic/app/controllers/global/cluster_controller.js",
+    "line": 485,
+    "scope": "NON_METRICS",
+    "semanticKind": "ORIGINAL_REQUEST_REPLAY",
+    "urlContract": "{ajaxOpt.type} {ajaxOpt.url}; payload/headers/callbacks are the original failed jQuery request",
+    "operationalFields": [
+      "original request dependent"
+    ],
+    "notes": "Saves the KDC credential first, then replays `ajaxOpt` unchanged; this is not a new endpoint and must preserve the original success/error/statusCode handling."
+  },
+  {
+    "kind": "HttpClient",
+    "method": "GET",
+    "expression": "App.HttpClient.get(realUrl, App.hostsMapper, {",
+    "source": "ambari-web/classic/app/controllers/global/update_controller.js",
+    "line": 323,
+    "scope": "MIXED",
+    "semanticKind": "HOST_MODEL_LOAD",
+    "urlContract": "GET-over-POST /api/v1/clusters/{clusterName}/hosts?fields={runtimeFields}&minimal_response=true&{pagination}&{sort}; RequestInfo.query={hostPredicate}",
+    "operationalFields": [
+      "Hosts rack/name/maintenance/public_host/cpu_count/ph_cpu_count/status/state/heartbeat/ip/os/agent-env",
+      "host component state/maintenance/stale-config/service/display/desired-admin-state",
+      "stack/repository version identity",
+      "logging metadata when supports.logSearch",
+      "NameNode ClusterId and HAState when HDFS is loaded"
+    ],
+    "notes": "The response may also conditionally include disk/load/cpu/memory metric fields, which are excluded; filtering, sorting, pagination, and oversized-GET override behavior must be preserved."
+  },
+  {
+    "kind": "HttpClient",
+    "method": "GET",
+    "expression": "App.HttpClient.get(servicesUrl, App.serviceMetricsMapper, {",
+    "source": "ambari-web/classic/app/controllers/global/update_controller.js",
+    "line": 568,
+    "scope": "MIXED",
+    "semanticKind": "COMPONENT_TOPOLOGY_LOAD",
+    "urlContract": "GET /api/v1/clusters/{clusterName}/components/?{runtimeComponentPredicates}&fields={runtimeFields}&minimal_response=true",
+    "operationalFields": [
+      "service/component identity and master/client topology",
+      "host/display/public-host/state/maintenance/stale-config/ha-state/desired-admin-state",
+      "HDFS ClusterId and HBase IsActiveMaster operational selectors"
+    ],
+    "notes": "Shares serviceMetricsMapper and subsequent requests include many metrics; this baseline retains only operational semantics such as topology/state/HA/Active-Standby."
+  },
+  {
+    "kind": "HttpClient",
+    "method": "GET",
+    "expression": "App.HttpClient.get(componentConfigUrl, App.serviceMapper, {",
+    "source": "ambari-web/classic/app/controllers/global/update_controller.js",
+    "line": 615,
+    "scope": "NON_METRICS",
+    "semanticKind": "SERVICE_STATE_LOAD",
+    "urlContract": "GET /api/v1/clusters/{clusterName}/services?fields=ServiceInfo/state,ServiceInfo/maintenance_state,ServiceInfo/desired_repository_version_id,components/ServiceComponentInfo/component_name&minimal_response=true",
+    "operationalFields": [
+      "service state/maintenance/desired repository version",
+      "component names"
+    ],
+    "notes": "Loads the service model during cluster initialization."
+  },
+  {
+    "kind": "HttpClient",
+    "method": "GET",
+    "expression": "App.HttpClient.get(url, App.componentsStateMapper, {",
+    "source": "ambari-web/classic/app/controllers/global/update_controller.js",
+    "line": 626,
+    "scope": "NON_METRICS",
+    "semanticKind": "COMPONENT_STATE_LOAD",
+    "urlContract": "GET /api/v1/clusters/{clusterName}/components/?fields=ServiceComponentInfo/{service_name,category,installed_count,started_count,init_count,install_failed_count,unknown_count,total_count,display_name},host_components/HostRoles/host_name&minimal_response=true",
+    "operationalFields": [
+      "component category and aggregate state counts",
+      "host component host names"
+    ],
+    "notes": "Used to map service-component state and topology."
+  },
+  {
+    "kind": "HttpClient",
+    "method": "GET",
+    "expression": "App.HttpClient.get(url, App.alertDefinitionsMapper, {",
+    "source": "ambari-web/classic/app/controllers/global/update_controller.js",
+    "line": 639,
+    "scope": "NON_METRICS",
+    "semanticKind": "ALERT_DEFINITION_LOAD",
+    "urlContract": "GET /api/v1/clusters/{clusterName}/alert_definitions?fields=AlertDefinition/{component_name,description,enabled,repeat_tolerance,repeat_tolerance_enabled,id,ignore_host,interval,label,name,scope,service_name,source,help_url}",
+    "operationalFields": [
+      "alert definition configuration and source"
+    ],
+    "notes": "Initial load of all alert definitions."
+  },
+  {
+    "kind": "HttpClient",
+    "method": "GET",
+    "expression": "App.HttpClient.get(url, App.alertInstanceMapper, {",
+    "source": "ambari-web/classic/app/controllers/global/update_controller.js",
+    "line": 654,
+    "scope": "NON_METRICS",
+    "semanticKind": "UNHEALTHY_ALERT_LOAD",
+    "urlContract": "GET /api/v1/clusters/{clusterName}/alerts?fields={Alert operational fields}&Alert/state.in(CRITICAL,WARNING)&Alert/maintenance_state.in(OFF)&from={from}&page_size={pageSize}",
+    "operationalFields": [
+      "critical/warning non-maintenance alert instances",
+      "repeat-tolerance remaining",
+      "timestamps/text/host/service/component"
+    ],
+    "notes": "Loads only paginated non-healthy instances with maintenance OFF."
+  },
+  {
+    "kind": "HttpClient",
+    "method": "GET",
+    "expression": "App.HttpClient.get(url, App.alertDefinitionSummaryMapper, {",
+    "source": "ambari-web/classic/app/controllers/global/update_controller.js",
+    "line": 665,
+    "scope": "NON_METRICS",
+    "semanticKind": "ALERT_GROUPED_SUMMARY_LOAD",
+    "urlContract": "GET /api/v1/clusters/{clusterName}/alerts?format=groupedSummary",
+    "operationalFields": [
+      "server grouped alert summary"
+    ],
+    "notes": "Loads server-side grouped statistics for the alert-definition summary mapper."
+  },
+  {
+    "kind": "HttpClient",
+    "method": "GET",
+    "expression": "App.HttpClient.get(url, App.alertGroupsMapper, {",
+    "source": "ambari-web/classic/app/controllers/global/update_controller.js",
+    "line": 676,
+    "scope": "NON_METRICS",
+    "semanticKind": "ALERT_GROUP_LOAD",
+    "urlContract": "GET /api/v1/clusters/{clusterName}/alert_groups?fields=AlertGroup/{default,definitions,id,name,targets}",
+    "operationalFields": [
+      "alert group membership and targets"
+    ],
+    "notes": "Initial load of alert groups."
+  },
+  {
+    "kind": "HttpClient",
+    "method": "GET",
+    "expression": "App.HttpClient.get(App.get('apiPrefix') + '/alert_targets?fields=*', App.alertNotificationMapper, {",
+    "source": "ambari-web/classic/app/controllers/global/update_controller.js",
+    "line": 682,
+    "scope": "NON_METRICS",
+    "semanticKind": "ALERT_TARGET_LOAD",
+    "urlContract": "GET /api/v1/alert_targets?fields=*",
+    "operationalFields": [
+      "all alert target/notification fields"
+    ],
+    "notes": "Root-level alert target resource without a cluster path."
+  },
+  {
+    "kind": "HttpClient",
+    "method": "GET",
+    "expression": "App.HttpClient.get(this.getUrl(true, fullLoad), App.stackVersionMapper, {",
+    "source": "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js",
+    "line": 2025,
+    "scope": "NON_METRICS",
+    "semanticKind": "STACK_VERSION_LOAD",
+    "urlContract": "GET /api/v1/clusters/{clusterName}/stack_versions?fields={full: *,repository_versions/*,... | update: ClusterStackVersions/*}",
+    "operationalFields": [
+      "cluster stack versions",
+      "repository/OS/repository details on full load"
+    ],
+    "notes": "`fullLoad` selects the initial full URL or the lightweight runtime URL."
+  },
+  {
+    "kind": "HttpClient",
+    "method": "GET",
+    "expression": "App.HttpClient.get(this.getUrl(false, true), App.repoVersionMapper, {",
+    "source": "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js",
+    "line": 2041,
+    "scope": "NON_METRICS",
+    "semanticKind": "REPOSITORY_VERSION_LOAD",
+    "urlContract": "GET /api/v1/stacks?fields=versions/repository_versions/RepositoryVersions,versions/repository_versions/operating_systems/*,versions/repository_versions/operating_systems/repositories/*",
+    "operationalFields": [
+      "stack repository versions",
+      "OS and repository definitions"
+    ],
+    "notes": "Full repository-version model load."
+  },
+  {
+    "kind": "HttpClient",
+    "method": "GET",
+    "expression": "App.HttpClient.get(this.get('upgradeHistoryUrl'), App.stackUpgradeHistoryMapper, {",
+    "source": "ambari-web/classic/app/controllers/main/admin/stack_upgrade_history_controller.js",
+    "line": 69,
+    "scope": "NON_METRICS",
+    "semanticKind": "UPGRADE_HISTORY_LOAD",
+    "urlContract": "GET /api/v1/clusters/{clusterName}/upgrades?fields=Upgrade",
+    "operationalFields": [
+      "Upgrade/*"
+    ],
+    "notes": "The historical list resolves when complete is called; HttpClient errors do not call complete and may leave the promise unresolved."
+  },
+  {
+    "kind": "HttpClient",
+    "method": "GET",
+    "expression": "App.HttpClient.get(this.getUrl(queryParams), App.serviceConfigVersionsMapper, {",
+    "source": "ambari-web/classic/app/controllers/main/dashboard/config_history_controller.js",
+    "line": 131,
+    "scope": "NON_METRICS",
+    "semanticKind": "CONFIG_HISTORY_LOAD",
+    "urlContract": "GET /api/v1/clusters/{clusterName}/configurations/service_config_versions?{filterAndSortPredicates}fields=service_config_version,user,group_id,group_name,is_current,createtime,service_name,hosts,service_config_version_note,is_cluster_compatible,stack_id&minimal_response=true",
+    "operationalFields": [
+      "service config version history and compatibility metadata"
+    ],
+    "notes": "Filter and sort conditions are generated dynamically by the table mixin."
+  },
+  {
+    "kind": "jQuery AJAX",
+    "method": "DYNAMIC",
+    "expression": "$.ajax({",
+    "source": "ambari-web/classic/app/utils/polling.js",
+    "line": 67,
+    "scope": "NON_METRICS",
+    "semanticKind": "GENERIC_MUTATION_POLL_HELPER",
+    "urlContract": "PUT {App.Poll.url}; body={App.Poll.data}; response is text or JSON with Requests.id",
+    "operationalFields": [
+      "Requests.id when asynchronous",
+      "caller-defined task/request polling data"
+    ],
+    "notes": "No production call to `App.Poll.create()` was found in the classic app tree, only a unit test; empty/non-JSON success is marked successful directly, and polling begins only when a request ID exists."
+  },
+  {
+    "kind": "HttpClient",
+    "method": "GET",
+    "expression": "App.HttpClient.get(url, App.hostsMapper, {",
+    "source": "ambari-web/classic/app/views/main/admin/stack_upgrade/custom_cluster_checks/custom_cluster_ckecks_host_hearbeat_view.js",
+    "line": 52,
+    "scope": "MIXED",
+    "semanticKind": "HOST_DELETE_PREFLIGHT_LOAD",
+    "urlContract": "GET /api/v1/clusters/{clusterName}/hosts/?Hosts/host_name.in({hostName})&fields={host,host-component,stack-version,logging and metric fields}&minimal_response=true&page_size=10&from=0&sortBy=Hosts/host_name.asc",
+    "operationalFields": [
+      "host and host-component state/maintenance/stale-config/desired-admin-state",
+      "stack versions and logging",
+      "NameNode ClusterId/HAState safety selectors"
+    ],
+    "notes": "Safe deletion flow in the pre-upgrade heartbeat check; the response includes disk/load/cpu/memory metrics, but their display is excluded."
+  }
+]

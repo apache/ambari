@@ -1,0 +1,6151 @@
+[
+  {
+    "requestName": "router.login.clusters",
+    "requestExpression": "'router.login.clusters'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "callback"
+    ],
+    "source": "ambari-web/classic/app/controllers/application.js",
+    "line": 124
+  },
+  {
+    "requestName": null,
+    "requestExpression": "queryParams.name",
+    "registrationStatus": "DYNAMIC",
+    "dataKeys": [],
+    "dataExpression": "queryParams.data",
+    "callbacks": [
+      "success",
+      "callback"
+    ],
+    "source": "ambari-web/classic/app/controllers/global/background_operations_controller.js",
+    "line": 178,
+    "resolutionStatus": "RESOLVED_CLOSED",
+    "dispatchKind": "HELPER_RETURN_PROPERTY",
+    "candidateRequestNames": [
+      "background_operations.get_most_recent",
+      "background_operations.get_by_task",
+      "background_operations.get_by_request"
+    ],
+    "dispatchCondition": "getQueryParams() defaults to get_most_recent; TASK_DETAILS selects get_by_task; TASKS_LIST or HOSTS_LIST selects get_by_request.",
+    "boundaryNotes": "The current production set is closed. Unknown levelInfo.name values retain the get_most_recent default.",
+    "evidence": [
+      "ambari-web/classic/app/controllers/global/background_operations_controller.js:204-228",
+      "ambari-web/classic/app/utils/ajax/ajax.js:562,569,574"
+    ]
+  },
+  {
+    "requestName": "cluster.load_cluster_name",
+    "requestExpression": "'cluster.load_cluster_name'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "args",
+      "callback",
+      "errorLogMessage",
+      "reloadPopupText",
+      "shouldUseDefaultHandler"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error",
+      "callback"
+    ],
+    "source": "ambari-web/classic/app/controllers/global/cluster_controller.js",
+    "line": 110
+  },
+  {
+    "requestName": "components.get.staleConfigs",
+    "requestExpression": "'components.get.staleConfigs'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "callback"
+    ],
+    "source": "ambari-web/classic/app/controllers/global/cluster_controller.js",
+    "line": 263
+  },
+  {
+    "requestName": "wizard.service_components",
+    "requestExpression": "'wizard.service_components'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "stackUrl",
+      "stackVersion"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/global/cluster_controller.js",
+    "line": 398
+  },
+  {
+    "requestName": "ambari.service",
+    "requestExpression": "'ambari.service'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/global/cluster_controller.js",
+    "line": 410
+  },
+  {
+    "requestName": "router.user.authorizations",
+    "requestExpression": "'router.user.authorizations'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "userName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/global/cluster_controller.js",
+    "line": 419
+  },
+  {
+    "requestName": "hosts.all",
+    "requestExpression": "'hosts.all'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/global/cluster_controller.js",
+    "line": 460
+  },
+  {
+    "requestName": "cluster.load_detailed_repo_version",
+    "requestExpression": "'cluster.load_detailed_repo_version'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/global/cluster_controller.js",
+    "line": 501
+  },
+  {
+    "requestName": "cluster.load_last_upgrade",
+    "requestExpression": "'cluster.load_last_upgrade'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/controllers/global/cluster_controller.js",
+    "line": 532
+  },
+  {
+    "requestName": "config.tags",
+    "requestExpression": "'config.tags'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/controllers/global/configuration_controller.js",
+    "line": 144
+  },
+  {
+    "requestName": "hosts.metrics.lazy_load",
+    "requestExpression": "'hosts.metrics.lazy_load'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "parameters",
+      "url"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/global/update_controller.js",
+    "line": 404
+  },
+  {
+    "requestName": "hosts.host_components.pre_load",
+    "requestExpression": "'hosts.host_components.pre_load'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "callback",
+      "url"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/global/update_controller.js",
+    "line": 472
+  },
+  {
+    "requestName": "config.tags.site",
+    "requestExpression": "'config.tags.site'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "site"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "callback"
+    ],
+    "source": "ambari-web/classic/app/controllers/global/update_controller.js",
+    "line": 703
+  },
+  {
+    "requestName": "host.logging",
+    "requestExpression": "'host.logging'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "callback",
+      "fields",
+      "hostName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/global/update_controller.js",
+    "line": 729
+  },
+  {
+    "requestName": "router.user.privileges",
+    "requestExpression": "'router.user.privileges'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "userName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/global/user_settings_controller.js",
+    "line": 201
+  },
+  {
+    "requestName": "wizard.stacks",
+    "requestExpression": "'wizard.stacks'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/installer.js",
+    "line": 237
+  },
+  {
+    "requestName": "wizard.stacks_versions_definitions",
+    "requestExpression": "'wizard.stacks_versions_definitions'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "dfd",
+      "stackName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/installer.js",
+    "line": 271
+  },
+  {
+    "requestName": "ambari.service",
+    "requestExpression": "'ambari.service'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "fields"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/installer.js",
+    "line": 425
+  },
+  {
+    "requestName": null,
+    "requestExpression": "name",
+    "registrationStatus": "DYNAMIC",
+    "dataKeys": [
+      "data",
+      "dfd"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/installer.js",
+    "line": 590,
+    "resolutionStatus": "RESOLVED_CLOSED",
+    "dispatchKind": "LOCAL_TERNARY",
+    "candidateRequestNames": [
+      "wizard.step1.post_version_definition_file.xml",
+      "wizard.step1.post_version_definition_file.url"
+    ],
+    "dispatchCondition": "A truthy isXMLdata selects the XML dry-run request; otherwise the URL/JSON dry-run request is used.",
+    "boundaryNotes": "The current production set is closed.",
+    "evidence": [
+      "ambari-web/classic/app/controllers/installer.js:586-600",
+      "ambari-web/classic/app/utils/ajax/ajax.js:2025,2039"
+    ]
+  },
+  {
+    "requestName": null,
+    "requestExpression": "name",
+    "registrationStatus": "DYNAMIC",
+    "dataKeys": [
+      "data",
+      "dfd"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/installer.js",
+    "line": 656,
+    "resolutionStatus": "RESOLVED_CLOSED",
+    "dispatchKind": "LOCAL_TERNARY",
+    "candidateRequestNames": [
+      "wizard.step8.post_version_definition_file.xml",
+      "wizard.step8.post_version_definition_file"
+    ],
+    "dispatchCondition": "isXMLdata == true selects the XML request; otherwise the JSON request is used.",
+    "boundaryNotes": "The current production set is closed. The source intentionally uses loose equality.",
+    "evidence": [
+      "ambari-web/classic/app/controllers/installer.js:653-666",
+      "ambari-web/classic/app/utils/ajax/ajax.js:2049,2063"
+    ]
+  },
+  {
+    "requestName": "wizard.step1.get_supported_os_types",
+    "requestExpression": "'wizard.step1.get_supported_os_types'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "dfd",
+      "stackInfo",
+      "stackName",
+      "stackVersion",
+      "versionDefinition"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/installer.js",
+    "line": 701
+  },
+  {
+    "requestName": "admin.stack_versions.edit.repo",
+    "requestExpression": "'admin.stack_versions.edit.repo'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "repoVersion",
+      "repoVersionId",
+      "stackName",
+      "stackVersion"
+    ],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/controllers/installer.js",
+    "line": 822
+  },
+  {
+    "requestName": "wizard.advanced_repositories.valid_url",
+    "requestExpression": "'wizard.advanced_repositories.valid_url'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "data",
+      "dfd",
+      "osId",
+      "osType",
+      "repoId",
+      "stackName",
+      "stackVersion"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/installer.js",
+    "line": 909
+  },
+  {
+    "requestName": "cluster.save_provisioning_state",
+    "requestExpression": "'cluster.save_provisioning_state'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "state"
+    ],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/controllers/installer.js",
+    "line": 1123
+  },
+  {
+    "requestName": "config.tags",
+    "requestExpression": "'config.tags'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/federation/routerBasedFederation/step3_controller.js",
+    "line": 50
+  },
+  {
+    "requestName": "admin.get.all_configurations",
+    "requestExpression": "'admin.get.all_configurations'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "urlParams"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/federation/routerBasedFederation/step3_controller.js",
+    "line": 62
+  },
+  {
+    "requestName": "common.service.configurations",
+    "requestExpression": "'common.service.configurations'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "desired_config"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/federation/routerBasedFederation/step3_controller.js",
+    "line": 96
+  },
+  {
+    "requestName": "common.service.multiConfigurations",
+    "requestExpression": "'common.service.multiConfigurations'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "configs"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/federation/routerBasedFederation/step4_controller.js",
+    "line": 54
+  },
+  {
+    "requestName": "config.tags",
+    "requestExpression": "'config.tags'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/federation/step3_controller.js",
+    "line": 53
+  },
+  {
+    "requestName": "admin.get.all_configurations",
+    "requestExpression": "'admin.get.all_configurations'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "urlParams"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/federation/step3_controller.js",
+    "line": 72
+  },
+  {
+    "requestName": "common.service.multiConfigurations",
+    "requestExpression": "'common.service.multiConfigurations'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "configs"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/federation/step4_controller.js",
+    "line": 76
+  },
+  {
+    "requestName": "nameNode.federation.formatNameNode",
+    "requestExpression": "'nameNode.federation.formatNameNode'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "host"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/federation/step4_controller.js",
+    "line": 118
+  },
+  {
+    "requestName": "nameNode.federation.formatZKFC",
+    "requestExpression": "'nameNode.federation.formatZKFC'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "host"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/federation/step4_controller.js",
+    "line": 130
+  },
+  {
+    "requestName": "nameNode.federation.bootstrapNameNode",
+    "requestExpression": "'nameNode.federation.bootstrapNameNode'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "host"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/federation/step4_controller.js",
+    "line": 164
+  },
+  {
+    "requestName": "restart.custom.filter",
+    "requestExpression": "'restart.custom.filter'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "context",
+      "filter"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/federation/step4_controller.js",
+    "line": 184
+  },
+  {
+    "requestName": "service.item.executeCustomCommand",
+    "requestExpression": "'service.item.executeCustomCommand'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "command",
+      "componentName",
+      "context",
+      "hosts",
+      "serviceName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/hawq/activateStandby/step3_controller.js",
+    "line": 42
+  },
+  {
+    "requestName": "config.tags",
+    "requestExpression": "'config.tags'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/hawq/activateStandby/step3_controller.js",
+    "line": 62
+  },
+  {
+    "requestName": "reassign.load_configs",
+    "requestExpression": "'reassign.load_configs'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "type",
+      "urlParams"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/hawq/activateStandby/step3_controller.js",
+    "line": 71
+  },
+  {
+    "requestName": "common.service.configurations",
+    "requestExpression": "'common.service.configurations'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "desired_config"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/hawq/activateStandby/step3_controller.js",
+    "line": 93
+  },
+  {
+    "requestName": "config.tags",
+    "requestExpression": "'config.tags'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "serviceConfig"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/hawq/addStandby/step3_controller.js",
+    "line": 81
+  },
+  {
+    "requestName": "reassign.load_configs",
+    "requestExpression": "'reassign.load_configs'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "serviceConfig",
+      "urlParams"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/hawq/addStandby/step3_controller.js",
+    "line": 95
+  },
+  {
+    "requestName": "config.tags",
+    "requestExpression": "'config.tags'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/hawq/addStandby/step4_controller.js",
+    "line": 43
+  },
+  {
+    "requestName": "reassign.load_configs",
+    "requestExpression": "'reassign.load_configs'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "type",
+      "urlParams"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/hawq/addStandby/step4_controller.js",
+    "line": 52
+  },
+  {
+    "requestName": "common.service.configurations",
+    "requestExpression": "'common.service.configurations'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "desired_config"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/hawq/addStandby/step4_controller.js",
+    "line": 72
+  },
+  {
+    "requestName": "service.item.executeCustomCommand",
+    "requestExpression": "'service.item.executeCustomCommand'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "command",
+      "componentName",
+      "context",
+      "hosts",
+      "serviceName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/hawq/removeStandby/step3_controller.js",
+    "line": 41
+  },
+  {
+    "requestName": "config.tags",
+    "requestExpression": "'config.tags'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/hawq/removeStandby/step3_controller.js",
+    "line": 61
+  },
+  {
+    "requestName": "reassign.load_configs",
+    "requestExpression": "'reassign.load_configs'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "type",
+      "urlParams"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/hawq/removeStandby/step3_controller.js",
+    "line": 70
+  },
+  {
+    "requestName": "common.service.configurations",
+    "requestExpression": "'common.service.configurations'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "desired_config"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/hawq/removeStandby/step3_controller.js",
+    "line": 87
+  },
+  {
+    "requestName": "config.tags",
+    "requestExpression": "'config.tags'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/journalNode/step2_controller.js",
+    "line": 65
+  },
+  {
+    "requestName": "admin.get.all_configurations",
+    "requestExpression": "'admin.get.all_configurations'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "urlParams"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/journalNode/step2_controller.js",
+    "line": 80
+  },
+  {
+    "requestName": "admin.high_availability.getNnCheckPointsStatuses",
+    "requestExpression": "'admin.high_availability.getNnCheckPointsStatuses'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": "{ hostNames }",
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/journalNode/step3_controller.js",
+    "line": 50
+  },
+  {
+    "requestName": "common.service.configurations",
+    "requestExpression": "'common.service.configurations'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "desired_config"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/journalNode/step4_controller.js",
+    "line": 71
+  },
+  {
+    "requestName": "admin.high_availability.getNnCheckPointStatus",
+    "requestExpression": "'admin.high_availability.getNnCheckPointStatus'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "hostName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/rollbackHA/step2_controller.js",
+    "line": 26
+  },
+  {
+    "requestName": "common.services.update",
+    "requestExpression": "'common.services.update'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "ServiceInfo",
+      "context"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/rollback_controller.js",
+    "line": 222
+  },
+  {
+    "requestName": "admin.high_availability.load_hbase_configs",
+    "requestExpression": "'admin.high_availability.load_hbase_configs'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "hbaseSiteTag"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/rollback_controller.js",
+    "line": 238
+  },
+  {
+    "requestName": "admin.high_availability.load_accumulo_configs",
+    "requestExpression": "'admin.high_availability.load_accumulo_configs'",
+    "registrationStatus": "UNREGISTERED",
+    "dataKeys": [
+      "accumuloSiteTag"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/rollback_controller.js",
+    "line": 251
+  },
+  {
+    "requestName": "admin.high_availability.load_hawq_configs",
+    "requestExpression": "'admin.high_availability.load_hawq_configs'",
+    "registrationStatus": "UNREGISTERED",
+    "dataKeys": [
+      "tagName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/rollback_controller.js",
+    "line": 265
+  },
+  {
+    "requestName": "common.services.update",
+    "requestExpression": "'common.services.update'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "ServiceInfo",
+      "context"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/rollback_controller.js",
+    "line": 347
+  },
+  {
+    "requestName": "admin.save_configs",
+    "requestExpression": "'admin.save_configs'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "properties",
+      "siteName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/rollback_controller.js",
+    "line": 363
+  },
+  {
+    "requestName": "admin.save_configs",
+    "requestExpression": "'admin.save_configs'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "properties",
+      "siteName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/rollback_controller.js",
+    "line": 376
+  },
+  {
+    "requestName": "admin.save_configs",
+    "requestExpression": "'admin.save_configs'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "properties",
+      "siteName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/rollback_controller.js",
+    "line": 390
+  },
+  {
+    "requestName": "admin.high_availability.load_configs",
+    "requestExpression": "'admin.high_availability.load_configs'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "coreSiteTag",
+      "hdfsSiteTag"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/rollback_controller.js",
+    "line": 413
+  },
+  {
+    "requestName": "admin.save_configs",
+    "requestExpression": "'admin.save_configs'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "properties",
+      "siteName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/rollback_controller.js",
+    "line": 427
+  },
+  {
+    "requestName": "admin.save_configs",
+    "requestExpression": "'admin.save_configs'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "properties",
+      "siteName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/rollback_controller.js",
+    "line": 437
+  },
+  {
+    "requestName": "common.delete.host_component",
+    "requestExpression": "'common.delete.host_component'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "componentName",
+      "hostName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/rollback_controller.js",
+    "line": 460
+  },
+  {
+    "requestName": "common.host.host_component.passive",
+    "requestExpression": "'common.host.host_component.passive'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "callback",
+      "componentName",
+      "hostName",
+      "passive_state",
+      "taskNum"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/rollback_controller.js",
+    "line": 478
+  },
+  {
+    "requestName": "admin.high_availability.getHostComponent",
+    "requestExpression": "'admin.high_availability.getHostComponent'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "callback",
+      "componentName",
+      "hostName",
+      "taskNum"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/rollback_controller.js",
+    "line": 500
+  },
+  {
+    "requestName": "common.delete.host_component",
+    "requestExpression": "'common.delete.host_component'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "componentName",
+      "hostName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/rollback_controller.js",
+    "line": 549
+  },
+  {
+    "requestName": "config.tags",
+    "requestExpression": "'config.tags'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/step3_controller.js",
+    "line": 64
+  },
+  {
+    "requestName": "admin.get.all_configurations",
+    "requestExpression": "'admin.get.all_configurations'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "urlParams"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/step3_controller.js",
+    "line": 213
+  },
+  {
+    "requestName": "admin.high_availability.getNnCheckPointStatus",
+    "requestExpression": "'admin.high_availability.getNnCheckPointStatus'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "hostName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/step4_controller.js",
+    "line": 37
+  },
+  {
+    "requestName": "common.host.host_component.passive",
+    "requestExpression": "'common.host.host_component.passive'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "componentName",
+      "hostName",
+      "passive_state"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/step5_controller.js",
+    "line": 51
+  },
+  {
+    "requestName": "common.service.configurations",
+    "requestExpression": "'common.service.configurations'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "desired_config"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/step5_controller.js",
+    "line": 82
+  },
+  {
+    "requestName": "admin.high_availability.getJnCheckPointStatus",
+    "requestExpression": "'admin.high_availability.getJnCheckPointStatus'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "hostName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/step6_controller.js",
+    "line": 79
+  },
+  {
+    "requestName": "common.service.multiConfigurations",
+    "requestExpression": "'common.service.multiConfigurations'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "configs"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/step9_controller.js",
+    "line": 227
+  },
+  {
+    "requestName": "common.service.configurations",
+    "requestExpression": "'common.service.configurations'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "desired_config"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/step9_controller.js",
+    "line": 246
+  },
+  {
+    "requestName": "common.delete.host_component",
+    "requestExpression": "'common.delete.host_component'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "componentName",
+      "hostName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/nameNode/step9_controller.js",
+    "line": 310
+  },
+  {
+    "requestName": null,
+    "requestExpression": "name",
+    "registrationStatus": "DYNAMIC",
+    "dataKeys": [
+      "requestId",
+      "stageId"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/progress_popup_controller.js",
+    "line": 122,
+    "resolutionStatus": "RESOLVED_CLOSED",
+    "dispatchKind": "LOCAL_BRANCH",
+    "candidateRequestNames": [
+      "background_operations.get_by_request",
+      "common.request.polling"
+    ],
+    "dispatchCondition": "A null or undefined stageId selects get_by_request; every other value selects common.request.polling. Numeric zero is normalized to string \"0\".",
+    "boundaryNotes": "The current production set is closed. One request is sent for every requestId with the same selected name.",
+    "evidence": [
+      "ambari-web/classic/app/controllers/main/admin/highAvailability/progress_popup_controller.js:108-131",
+      "ambari-web/classic/test/controllers/main/admin/highAvailability/progress_popup_controller_test.js:166-224",
+      "ambari-web/classic/app/utils/ajax/ajax.js:234,569"
+    ]
+  },
+  {
+    "requestName": "background_operations.get_by_task",
+    "requestExpression": "'background_operations.get_by_task'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "requestId",
+      "taskId"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "callback"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/progress_popup_controller.js",
+    "line": 274
+  },
+  {
+    "requestName": "config.tags",
+    "requestExpression": "'config.tags'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/rangerAdmin/step4_controller.js",
+    "line": 45
+  },
+  {
+    "requestName": "reassign.load_configs",
+    "requestExpression": "'reassign.load_configs'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "urlParams"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/rangerAdmin/step4_controller.js",
+    "line": 61
+  },
+  {
+    "requestName": "common.service.multiConfigurations",
+    "requestExpression": "'common.service.multiConfigurations'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "configs"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/rangerAdmin/step4_controller.js",
+    "line": 87
+  },
+  {
+    "requestName": "config.tags",
+    "requestExpression": "'config.tags'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "serviceConfig"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/resourceManager/step3_controller.js",
+    "line": 69
+  },
+  {
+    "requestName": "reassign.load_configs",
+    "requestExpression": "'reassign.load_configs'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "serviceConfig",
+      "urlParams"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/resourceManager/step3_controller.js",
+    "line": 85
+  },
+  {
+    "requestName": "config.recommendations",
+    "requestExpression": "'config.recommendations'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "dataToSend",
+      "stackVersionUrl"
+    ],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/resourceManager/step3_controller.js",
+    "line": 201
+  },
+  {
+    "requestName": "config.tags",
+    "requestExpression": "'config.tags'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/resourceManager/step4_controller.js",
+    "line": 65
+  },
+  {
+    "requestName": "reassign.load_configs",
+    "requestExpression": "'reassign.load_configs'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "type",
+      "urlParams"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/resourceManager/step4_controller.js",
+    "line": 74
+  },
+  {
+    "requestName": "reassign.load_configs",
+    "requestExpression": "'reassign.load_configs'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "type",
+      "urlParams"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/resourceManager/step4_controller.js",
+    "line": 87
+  },
+  {
+    "requestName": "reassign.load_configs",
+    "requestExpression": "'reassign.load_configs'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "type",
+      "urlParams"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/resourceManager/step4_controller.js",
+    "line": 100
+  },
+  {
+    "requestName": "common.service.configurations",
+    "requestExpression": "'common.service.configurations'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "desired_config"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/highAvailability/resourceManager/step4_controller.js",
+    "line": 120
+  },
+  {
+    "requestName": "admin.kerberos_security.regenerate_keytabs",
+    "requestExpression": "\"admin.kerberos_security.regenerate_keytabs\"",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "type",
+      "withAutoRestart"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/kerberos.js",
+    "line": 182
+  },
+  {
+    "requestName": "admin.kerberos_security.checks",
+    "requestExpression": "\"admin.kerberos_security.checks\"",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/kerberos.js",
+    "line": 234
+  },
+  {
+    "requestName": "admin.security_status",
+    "requestExpression": "'admin.security_status'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/kerberos.js",
+    "line": 307
+  },
+  {
+    "requestName": "kerberos.session.state",
+    "requestExpression": "'kerberos.session.state'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "callback"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/kerberos.js",
+    "line": 422
+  },
+  {
+    "requestName": "admin.security.cluster_configs.kerberos",
+    "requestExpression": "'admin.security.cluster_configs.kerberos'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "additionalCallback",
+      "clusterName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/kerberos.js",
+    "line": 449
+  },
+  {
+    "requestName": "admin.kerberos.cluster.artifact.update",
+    "requestExpression": "'admin.kerberos.cluster.artifact.update'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "artifactName",
+      "data"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/kerberos.js",
+    "line": 556
+  },
+  {
+    "requestName": "admin.kerberos.cluster.artifact.create",
+    "requestExpression": "'admin.kerberos.cluster.artifact.create'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": "{ artifactName, data }",
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/kerberos.js",
+    "line": 583
+  },
+  {
+    "requestName": "admin.unkerberize.cluster",
+    "requestExpression": "'admin.unkerberize.cluster'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/kerberos/disable_controller.js",
+    "line": 47
+  },
+  {
+    "requestName": "admin.unkerberize.cluster.skip",
+    "requestExpression": "'admin.unkerberize.cluster.skip'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/kerberos/disable_controller.js",
+    "line": 56
+  },
+  {
+    "requestName": "common.delete.service",
+    "requestExpression": "'common.delete.service'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "serviceName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/kerberos/disable_controller.js",
+    "line": 65
+  },
+  {
+    "requestName": "common.across.services.configurations",
+    "requestExpression": "'common.across.services.configurations'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "data"
+    ],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/controllers/main/admin/kerberos/step2_controller.js",
+    "line": 228
+  },
+  {
+    "requestName": "common.cluster.update",
+    "requestExpression": "'common.cluster.update'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "clusterName",
+      "data"
+    ],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/controllers/main/admin/kerberos/step2_controller.js",
+    "line": 312
+  },
+  {
+    "requestName": "common.services.update",
+    "requestExpression": "'common.services.update'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "ServiceInfo",
+      "context",
+      "urlParams"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/kerberos/step3_controller.js",
+    "line": 42
+  },
+  {
+    "requestName": "hosts.heartbeat_lost",
+    "requestExpression": "'hosts.heartbeat_lost'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "clusterName"
+    ],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/controllers/main/admin/kerberos/step3_controller.js",
+    "line": 66
+  },
+  {
+    "requestName": "common.service_component.info",
+    "requestExpression": "'common.service_component.info'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "componentName",
+      "serviceName",
+      "urlParams"
+    ],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/controllers/main/admin/kerberos/step3_controller.js",
+    "line": 76
+  },
+  {
+    "requestName": "service.item.smoke",
+    "requestExpression": "'service.item.smoke'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "actionName",
+      "displayName",
+      "operationLevel",
+      "serviceName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/kerberos/step3_controller.js",
+    "line": 89
+  },
+  {
+    "requestName": "config.recommendations",
+    "requestExpression": "'config.recommendations'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "dataToSend",
+      "stackVersionUrl"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/kerberos/step4_controller.js",
+    "line": 342
+  },
+  {
+    "requestName": "admin.kerberos.cluster.csv",
+    "requestExpression": "'admin.kerberos.cluster.csv'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "skipDownload"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/kerberos/step5_controller.js",
+    "line": 63
+  },
+  {
+    "requestName": "admin.unkerberize.cluster",
+    "requestExpression": "'admin.unkerberize.cluster'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/kerberos/step5_controller.js",
+    "line": 103
+  },
+  {
+    "requestName": "common.services.update",
+    "requestExpression": "'common.services.update'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "ServiceInfo",
+      "context"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/kerberos/step6_controller.js",
+    "line": 25
+  },
+  {
+    "requestName": "common.delete.host_component",
+    "requestExpression": "'common.delete.host_component'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "componentName",
+      "hostName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/kerberos/step6_controller.js",
+    "line": 59
+  },
+  {
+    "requestName": "admin.unkerberize.cluster",
+    "requestExpression": "'admin.unkerberize.cluster'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/kerberos/step7_controller.js",
+    "line": 69
+  },
+  {
+    "requestName": "common.services.update",
+    "requestExpression": "'common.services.update'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "ServiceInfo",
+      "context",
+      "urlParams"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/kerberos/step8_controller.js",
+    "line": 26
+  },
+  {
+    "requestName": "wizard.step8.create_selected_services",
+    "requestExpression": "'wizard.step8.create_selected_services'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "cluster",
+      "data"
+    ],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/controllers/main/admin/kerberos/wizard_controller.js",
+    "line": 203
+  },
+  {
+    "requestName": "common.delete.service",
+    "requestExpression": "'common.delete.service'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "serviceName"
+    ],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/controllers/main/admin/kerberos/wizard_controller.js",
+    "line": 229
+  },
+  {
+    "requestName": "admin.unkerberize.cluster",
+    "requestExpression": "'admin.unkerberize.cluster'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/controllers/main/admin/kerberos/wizard_controller.js",
+    "line": 244
+  },
+  {
+    "requestName": "wizard.step8.register_host_to_component",
+    "requestExpression": "'wizard.step8.register_host_to_component'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "cluster",
+      "data"
+    ],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/controllers/main/admin/kerberos/wizard_controller.js",
+    "line": 274
+  },
+  {
+    "requestName": "components.get_category",
+    "requestExpression": "'components.get_category'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/service_auto_start.js",
+    "line": 133
+  },
+  {
+    "requestName": "admin.save_configs",
+    "requestExpression": "'admin.save_configs'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "properties",
+      "siteName"
+    ],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/controllers/main/admin/service_auto_start.js",
+    "line": 151
+  },
+  {
+    "requestName": "components.update",
+    "requestExpression": "'components.update'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "ServiceComponentInfo",
+      "query"
+    ],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/controllers/main/admin/service_auto_start.js",
+    "line": 163
+  },
+  {
+    "requestName": null,
+    "requestExpression": "(onlyState) ? 'admin.upgrade.state' : 'admin.upgrade.data'",
+    "registrationStatus": "DYNAMIC",
+    "dataKeys": [
+      "id"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js",
+    "line": 461,
+    "resolutionStatus": "RESOLVED_CLOSED",
+    "dispatchKind": "INLINE_TERNARY",
+    "candidateRequestNames": [
+      "admin.upgrade.state",
+      "admin.upgrade.data"
+    ],
+    "dispatchCondition": "A truthy onlyState loads only Upgrade fields; otherwise the full upgrade group and item data is loaded.",
+    "boundaryNotes": "The current production set is closed.",
+    "evidence": [
+      "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js:452-471",
+      "ambari-web/classic/app/utils/ajax/ajax.js:1723,1740"
+    ]
+  },
+  {
+    "requestName": "admin.upgrade.get_compatible_versions",
+    "requestExpression": "'admin.upgrade.get_compatible_versions'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "stackName",
+      "stackVersion"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js",
+    "line": 500
+  },
+  {
+    "requestName": "admin.upgrade.upgrade_item",
+    "requestExpression": "'admin.upgrade.upgrade_item'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "groupId",
+      "stageId",
+      "upgradeId"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js",
+    "line": 626
+  },
+  {
+    "requestName": "admin.upgrade.upgrade_task",
+    "requestExpression": "'admin.upgrade.upgrade_task'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "groupId",
+      "stageId",
+      "task",
+      "taskId",
+      "upgradeId"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js",
+    "line": 680
+  },
+  {
+    "requestName": "admin.upgrade.abort",
+    "requestExpression": "'admin.upgrade.abort'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "isDowngrade",
+      "upgradeId"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js",
+    "line": 773
+  },
+  {
+    "requestName": "admin.downgrade.start",
+    "requestExpression": "'admin.downgrade.start'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "id",
+      "isDowngrade",
+      "label",
+      "upgradeType",
+      "value"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "callback"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js",
+    "line": 790
+  },
+  {
+    "requestName": "admin.upgrade.suspend",
+    "requestExpression": "'admin.upgrade.suspend'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "isDowngrade",
+      "upgradeId"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js",
+    "line": 812
+  },
+  {
+    "requestName": "admin.upgrade.retry",
+    "requestExpression": "'admin.upgrade.retry'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "upgradeId"
+    ],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js",
+    "line": 861
+  },
+  {
+    "requestName": "admin.upgrade.start",
+    "requestExpression": "'admin.upgrade.start'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": "version",
+    "callbacks": [
+      "success",
+      "error",
+      "callback"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js",
+    "line": 876
+  },
+  {
+    "requestName": "admin.upgrade.update.options",
+    "requestExpression": "'admin.upgrade.update.options'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "skipComponentFailures",
+      "skipSCFailures",
+      "upgradeId"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js",
+    "line": 1233
+  },
+  {
+    "requestName": "admin.upgrade.pre_upgrade_check",
+    "requestExpression": "\"admin.upgrade.pre_upgrade_check\"",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": "data",
+    "callbacks": [
+      "success",
+      "error",
+      "callback"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js",
+    "line": 1295
+  },
+  {
+    "requestName": "admin.upgrade.get_supported_upgradeTypes",
+    "requestExpression": "\"admin.upgrade.get_supported_upgradeTypes\"",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": "data",
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js",
+    "line": 1318
+  },
+  {
+    "requestName": "admin.upgrade.pre_upgrade_check",
+    "requestExpression": "\"admin.upgrade.pre_upgrade_check\"",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": "params",
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js",
+    "line": 1462
+  },
+  {
+    "requestName": "admin.stack_version.install.repo_version",
+    "requestExpression": "'admin.stack_version.install.repo_version'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": "data",
+    "callbacks": [
+      "success",
+      "error",
+      "callback"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js",
+    "line": 1595
+  },
+  {
+    "requestName": "host.host_component.delete_components",
+    "requestExpression": "'host.host_component.delete_components'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "data"
+    ],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js",
+    "line": 1654
+  },
+  {
+    "requestName": "common.host_components.update",
+    "requestExpression": "'common.host_components.update'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "HostRoles",
+      "context",
+      "query"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js",
+    "line": 1679
+  },
+  {
+    "requestName": "admin.stack_versions.edit.repo",
+    "requestExpression": "'admin.stack_versions.edit.repo'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "repoVersion",
+      "repoVersionId",
+      "stackName",
+      "stackVersion"
+    ],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js",
+    "line": 1769
+  },
+  {
+    "requestName": "admin.stack_versions.validate.repo",
+    "requestExpression": "'admin.stack_versions.validate.repo'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "baseUrl",
+      "osType",
+      "repo",
+      "repoId",
+      "repoName",
+      "stackName",
+      "stackVersion"
+    ],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js",
+    "line": 1832
+  },
+  {
+    "requestName": "admin.upgrade.finalizeContext",
+    "requestExpression": "'admin.upgrade.finalizeContext'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js",
+    "line": 1962
+  },
+  {
+    "requestName": "admin.upgrade.upgradeItem.setState",
+    "requestExpression": "'admin.upgrade.upgradeItem.setState'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "groupId",
+      "itemId",
+      "status",
+      "upgradeId"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "callback"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js",
+    "line": 2056
+  },
+  {
+    "requestName": "cluster.load_repositories",
+    "requestExpression": "'cluster.load_repositories'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "stackName",
+      "stackVersion"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js",
+    "line": 2089
+  },
+  {
+    "requestName": "admin.upgrade.revert",
+    "requestExpression": "'admin.upgrade.revert'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "id",
+      "isDowngrade",
+      "label",
+      "upgradeId",
+      "value"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error",
+      "callback"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js",
+    "line": 2218
+  },
+  {
+    "requestName": "admin.stack_versions.discard",
+    "requestExpression": "'admin.stack_versions.discard'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "id",
+      "stackName",
+      "stackVersion"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "callback"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/stack_and_upgrade_controller.js",
+    "line": 2253
+  },
+  {
+    "requestName": "admin.upgrade.data",
+    "requestExpression": "'admin.upgrade.data'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "id"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/stack_upgrade_history_controller.js",
+    "line": 83
+  },
+  {
+    "requestName": "admin.upgrade.upgrade_item",
+    "requestExpression": "'admin.upgrade.upgrade_item'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "groupId",
+      "stageId",
+      "upgradeId"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/stack_upgrade_history_controller.js",
+    "line": 160
+  },
+  {
+    "requestName": "admin.upgrade.upgrade_task",
+    "requestExpression": "'admin.upgrade.upgrade_task'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "groupId",
+      "stageId",
+      "task",
+      "taskId",
+      "upgradeId"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/admin/stack_upgrade_history_controller.js",
+    "line": 213
+  },
+  {
+    "requestName": "alerts.update_alert_definition",
+    "requestExpression": "'alerts.update_alert_definition'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "data",
+      "id"
+    ],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/controllers/main/alert_definitions_controller.js",
+    "line": 109
+  },
+  {
+    "requestName": "alerts.create_alert_definition",
+    "requestExpression": "'alerts.create_alert_definition'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "data"
+    ],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/controllers/main/alerts/add_alert_definition/add_alert_definition_controller.js",
+    "line": 37
+  },
+  {
+    "requestName": "admin.save_configs",
+    "requestExpression": "'admin.save_configs'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "properties",
+      "siteName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/alerts/alert_definitions_actions_controller.js",
+    "line": 239
+  },
+  {
+    "requestName": null,
+    "requestExpression": "ajaxData",
+    "registrationStatus": "DYNAMIC",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/controllers/main/alerts/alert_instances_controller.js",
+    "line": 118,
+    "resolutionStatus": "RESOLVED_CLOSED",
+    "dispatchKind": "OPTIONS_OBJECT_SWITCH",
+    "candidateRequestNames": [
+      "alerts.instances.by_host",
+      "alerts.instances.by_definition",
+      "alerts.instances"
+    ],
+    "dispatchCondition": "sourceType HOST selects by_host; ALERT_DEFINITION selects by_definition; all other values select all alert instances.",
+    "boundaryNotes": "The current production set is closed. Scheduled refreshes reuse the previously selected sourceType and sourceName.",
+    "evidence": [
+      "ambari-web/classic/app/controllers/main/alerts/alert_instances_controller.js:83-118,126-172",
+      "ambari-web/classic/app/utils/ajax/ajax.js:492,500,504"
+    ]
+  },
+  {
+    "requestName": "alerts.update_alert_definition",
+    "requestExpression": "'alerts.update_alert_definition'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "data",
+      "id"
+    ],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/controllers/main/alerts/definition_configs_controller.js",
+    "line": 653
+  },
+  {
+    "requestName": "alerts.get_instances_history",
+    "requestExpression": "'alerts.get_instances_history'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "definitionName",
+      "timestamp"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/alerts/definition_details_controller.js",
+    "line": 90
+  },
+  {
+    "requestName": "alerts.update_alert_definition",
+    "requestExpression": "'alerts.update_alert_definition'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "data",
+      "id"
+    ],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/controllers/main/alerts/definition_details_controller.js",
+    "line": 154
+  },
+  {
+    "requestName": "alerts.delete_alert_definition",
+    "requestExpression": "'alerts.delete_alert_definition'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "id"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/alerts/definition_details_controller.js",
+    "line": 188
+  },
+  {
+    "requestName": "alerts.update_alert_definition",
+    "requestExpression": "'alerts.update_alert_definition'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "data",
+      "id"
+    ],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/controllers/main/alerts/definition_details_controller.js",
+    "line": 245
+  },
+  {
+    "requestName": "alerts.update_alert_definition",
+    "requestExpression": "'alerts.update_alert_definition'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "data",
+      "id"
+    ],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/controllers/main/alerts/definition_details_controller.js",
+    "line": 264
+  },
+  {
+    "requestName": "alerts.update_alert_definition",
+    "requestExpression": "'alerts.update_alert_definition'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "data",
+      "id"
+    ],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/controllers/main/alerts/definition_details_controller.js",
+    "line": 308
+  },
+  {
+    "requestName": "alerts.notifications",
+    "requestExpression": "'alerts.notifications'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/alerts/manage_alert_groups_controller.js",
+    "line": 209
+  },
+  {
+    "requestName": null,
+    "requestExpression": "sendData",
+    "registrationStatus": "DYNAMIC",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/controllers/main/alerts/manage_alert_groups_controller.js",
+    "line": 493,
+    "resolutionStatus": "RESOLVED_CLOSED",
+    "dispatchKind": "STATIC_OPTIONS_OBJECT",
+    "candidateRequestNames": [
+      "alert_groups.create"
+    ],
+    "dispatchCondition": "postNewAlertGroup constructs an options object with a fixed request name.",
+    "boundaryNotes": "This is semantically static; it is classified as dynamic only because the complete options object is passed by variable.",
+    "evidence": [
+      "ambari-web/classic/app/controllers/main/alerts/manage_alert_groups_controller.js:464-493",
+      "ambari-web/classic/app/utils/ajax/ajax.js:443"
+    ]
+  },
+  {
+    "requestName": null,
+    "requestExpression": "sendData",
+    "registrationStatus": "DYNAMIC",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/controllers/main/alerts/manage_alert_groups_controller.js",
+    "line": 530,
+    "resolutionStatus": "RESOLVED_CLOSED",
+    "dispatchKind": "STATIC_OPTIONS_OBJECT",
+    "candidateRequestNames": [
+      "alert_groups.update"
+    ],
+    "dispatchCondition": "updateAlertGroup constructs an options object with a fixed request name.",
+    "boundaryNotes": "This is semantically static; it is classified as dynamic only because the complete options object is passed by variable.",
+    "evidence": [
+      "ambari-web/classic/app/controllers/main/alerts/manage_alert_groups_controller.js:506-530",
+      "ambari-web/classic/app/utils/ajax/ajax.js:459"
+    ]
+  },
+  {
+    "requestName": null,
+    "requestExpression": "sendData",
+    "registrationStatus": "DYNAMIC",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/controllers/main/alerts/manage_alert_groups_controller.js",
+    "line": 561,
+    "resolutionStatus": "RESOLVED_CLOSED",
+    "dispatchKind": "STATIC_OPTIONS_OBJECT",
+    "candidateRequestNames": [
+      "alert_groups.delete"
+    ],
+    "dispatchCondition": "removeAlertGroup constructs an options object with a fixed request name.",
+    "boundaryNotes": "This is semantically static; it is classified as dynamic only because the complete options object is passed by variable.",
+    "evidence": [
+      "ambari-web/classic/app/controllers/main/alerts/manage_alert_groups_controller.js:540-561",
+      "ambari-web/classic/app/utils/ajax/ajax.js:475"
+    ]
+  },
+  {
+    "requestName": "alerts.notifications",
+    "requestExpression": "'alerts.notifications'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/alerts/manage_alert_notifications_controller.js",
+    "line": 362
+  },
+  {
+    "requestName": "alerts.create_alert_notification",
+    "requestExpression": "'alerts.create_alert_notification'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "data"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/alerts/manage_alert_notifications_controller.js",
+    "line": 859
+  },
+  {
+    "requestName": "alerts.update_alert_notification",
+    "requestExpression": "'alerts.update_alert_notification'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "data",
+      "id"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/alerts/manage_alert_notifications_controller.js",
+    "line": 897
+  },
+  {
+    "requestName": "alerts.delete_alert_notification",
+    "requestExpression": "'alerts.delete_alert_notification'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "id"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/alerts/manage_alert_notifications_controller.js",
+    "line": 938
+  },
+  {
+    "requestName": "alerts.update_alert_notification",
+    "requestExpression": "'alerts.update_alert_notification'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "data",
+      "id"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/alerts/manage_alert_notifications_controller.js",
+    "line": 976
+  },
+  {
+    "requestName": "service.serviceConfigVersions.get.total",
+    "requestExpression": "'service.serviceConfigVersions.get.total'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": "{}",
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/dashboard/config_history_controller.js",
+    "line": 140
+  },
+  {
+    "requestName": "service.serviceConfigVersions.get.suggestions",
+    "requestExpression": "'service.serviceConfigVersions.get.suggestions'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": "{ key }",
+    "callbacks": [],
+    "source": "ambari-web/classic/app/controllers/main/dashboard/config_history_controller.js",
+    "line": 209
+  },
+  {
+    "requestName": "config_groups.all_fields",
+    "requestExpression": "'config_groups.all_fields'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/host/addHost/step4_controller.js",
+    "line": 27
+  },
+  {
+    "requestName": "config_groups.update_config_group",
+    "requestExpression": "'config_groups.update_config_group'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "configGroup",
+      "id"
+    ],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/controllers/main/host/add_controller.js",
+    "line": 269
+  },
+  {
+    "requestName": "common.host_components.update",
+    "requestExpression": "\"common.host_components.update\"",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "HostRoles",
+      "context",
+      "level",
+      "query"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/host/add_controller.js",
+    "line": 445
+  },
+  {
+    "requestName": "common.host_components.update",
+    "requestExpression": "'common.host_components.update'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "HostRoles",
+      "context",
+      "hostName",
+      "noOpsMessage",
+      "query"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/host/bulk_operations_controller.js",
+    "line": 149
+  },
+  {
+    "requestName": "common.host_components.update",
+    "requestExpression": "'common.host_components.update'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "HostRoles",
+      "context",
+      "noOpsMessage",
+      "query"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/host/bulk_operations_controller.js",
+    "line": 250
+  },
+  {
+    "requestName": "common.hosts.delete",
+    "requestExpression": "'common.hosts.delete'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "hosts",
+      "query"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/host/bulk_operations_controller.js",
+    "line": 374
+  },
+  {
+    "requestName": "bulk_request.hosts.passive_state",
+    "requestExpression": "'bulk_request.hosts.passive_state'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "hostNames",
+      "passive_state",
+      "requestInfo"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/host/bulk_operations_controller.js",
+    "line": 501
+  },
+  {
+    "requestName": "host.host_component.add_new_components",
+    "requestExpression": "'host.host_component.add_new_components'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "context",
+      "data"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/host/bulk_operations_controller.js",
+    "line": 591
+  },
+  {
+    "requestName": "common.host_components.update",
+    "requestExpression": "'common.host_components.update'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "HostRoles",
+      "context",
+      "query"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/host/bulk_operations_controller.js",
+    "line": 618
+  },
+  {
+    "requestName": "host.host_component.delete_components",
+    "requestExpression": "'host.host_component.delete_components'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "componentName",
+      "data"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/host/bulk_operations_controller.js",
+    "line": 717
+  },
+  {
+    "requestName": "common.host_components.update",
+    "requestExpression": "'common.host_components.update'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "HostRoles",
+      "context",
+      "level",
+      "noOpsMessage",
+      "query"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/host/bulk_operations_controller.js",
+    "line": 830
+  },
+  {
+    "requestName": "bulk_request.decommission",
+    "requestExpression": "'bulk_request.decommission'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "componentName",
+      "context",
+      "noOpsMessage",
+      "parameters",
+      "serviceName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/host/bulk_operations_controller.js",
+    "line": 921
+  },
+  {
+    "requestName": "host_components.hbase_regionserver.active",
+    "requestExpression": "'host_components.hbase_regionserver.active'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "hostNames"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/host/bulk_operations_controller.js",
+    "line": 953
+  },
+  {
+    "requestName": "hosts.bulk.operations",
+    "requestExpression": "'hosts.bulk.operations'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "operationData",
+      "parameters"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/host/bulk_operations_controller.js",
+    "line": 1096
+  },
+  {
+    "requestName": "hosts.with_searchTerm",
+    "requestExpression": "'hosts.with_searchTerm'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "facet",
+      "page_size",
+      "searchTerm"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/host/combo_search_box.js",
+    "line": 27
+  },
+  {
+    "requestName": null,
+    "requestExpression": "(Array.isArray(component)) ? 'common.host.host_components.update' : 'common.host.host_component.update'",
+    "registrationStatus": "DYNAMIC",
+    "dataKeys": [],
+    "dataExpression": "data",
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/host/details.js",
+    "line": 337,
+    "resolutionStatus": "RESOLVED_CLOSED",
+    "dispatchKind": "INLINE_TERNARY",
+    "candidateRequestNames": [
+      "common.host.host_components.update",
+      "common.host.host_component.update"
+    ],
+    "dispatchCondition": "An array selects the multi-component update on one host; a non-array component selects the single host-component update.",
+    "boundaryNotes": "The current production set is closed. The non-array branch expects an Ember component object.",
+    "evidence": [
+      "ambari-web/classic/app/controllers/main/host/details.js:322-344",
+      "ambari-web/classic/app/utils/ajax/ajax.js:143,167"
+    ]
+  },
+  {
+    "requestName": "common.host_component.getNnCheckPointTime",
+    "requestExpression": "'common.host_component.getNnCheckPointTime'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "host"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/host/details.js",
+    "line": 421
+  },
+  {
+    "requestName": null,
+    "requestExpression": "(Em.isNone(componentName)) ? 'common.delete.host' : 'common.delete.host_component'",
+    "registrationStatus": "DYNAMIC",
+    "dataKeys": [
+      "componentName",
+      "hostName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/host/details.js",
+    "line": 606,
+    "resolutionStatus": "RESOLVED_CLOSED",
+    "dispatchKind": "INLINE_TERNARY",
+    "candidateRequestNames": [
+      "common.delete.host",
+      "common.delete.host_component"
+    ],
+    "dispatchCondition": "A null or undefined componentName deletes the host; every other value deletes a host component.",
+    "boundaryNotes": "The current production set is closed. An empty string is not Em.isNone and therefore selects the host-component endpoint.",
+    "evidence": [
+      "ambari-web/classic/app/controllers/main/host/details.js:598-616",
+      "ambari-web/classic/app/utils/ajax/ajax.js:402,406"
+    ]
+  },
+  {
+    "requestName": "host.host_component.upgrade",
+    "requestExpression": "'host.host_component.upgrade'",
+    "registrationStatus": "UNREGISTERED",
+    "dataKeys": [
+      "component",
+      "componentName",
+      "data",
+      "hostName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/host/details.js",
+    "line": 654
+  },
+  {
+    "requestName": "admin.get.all_configurations",
+    "requestExpression": "'admin.get.all_configurations'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "urlParams"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/host/details.js",
+    "line": 926
+  },
+  {
+    "requestName": "admin.get.all_configurations",
+    "requestExpression": "'admin.get.all_configurations'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "urlParams"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/host/details.js",
+    "line": 960
+  },
+  {
+    "requestName": "admin.get.all_configurations",
+    "requestExpression": "'admin.get.all_configurations'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "urlParams"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/host/details.js",
+    "line": 979
+  },
+  {
+    "requestName": "admin.get.all_configurations",
+    "requestExpression": "'admin.get.all_configurations'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "webHCat"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/host/details.js",
+    "line": 1180
+  },
+  {
+    "requestName": "admin.get.all_configurations",
+    "requestExpression": "'admin.get.all_configurations'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": "{ urlParams }",
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/host/details.js",
+    "line": 1202
+  },
+  {
+    "requestName": "common.service.configurations",
+    "requestExpression": "'common.service.configurations'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "componentName",
+      "desired_config"
+    ],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/controllers/main/host/details.js",
+    "line": 1335
+  },
+  {
+    "requestName": "admin.get.all_configurations",
+    "requestExpression": "'admin.get.all_configurations'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": "{ urlParams }",
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/host/details.js",
+    "line": 1423
+  },
+  {
+    "requestName": "host.host_component.refresh_configs",
+    "requestExpression": "'host.host_component.refresh_configs'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "context",
+      "resource_filters"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/host/details.js",
+    "line": 1661
+  },
+  {
+    "requestName": "config.tags",
+    "requestExpression": "'config.tags'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "callback"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/host/details.js",
+    "line": 1688
+  },
+  {
+    "requestName": "reassign.load_configs",
+    "requestExpression": "'reassign.load_configs'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "urlParams"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/host/details.js",
+    "line": 1718
+  },
+  {
+    "requestName": "common.host.host_component.update",
+    "requestExpression": "'common.host.host_component.update'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "HostRoles",
+      "component",
+      "componentName",
+      "context",
+      "hostName",
+      "serviceName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/host/details.js",
+    "line": 1838
+  },
+  {
+    "requestName": "host.host_component.decommission_slave",
+    "requestExpression": "'host.host_component.decommission_slave'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "command",
+      "componentName",
+      "context",
+      "hostName",
+      "serviceName",
+      "slaveType"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/host/details.js",
+    "line": 1955
+  },
+  {
+    "requestName": "host.region_servers.in_inservice",
+    "requestExpression": "'host.region_servers.in_inservice'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "hostNames"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/host/details.js",
+    "line": 1992
+  },
+  {
+    "requestName": "common.batch.request_schedules",
+    "requestExpression": "'common.batch.request_schedules'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "batches",
+      "intervalTimeSeconds",
+      "tolerateSize"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/host/details.js",
+    "line": 2142
+  },
+  {
+    "requestName": "common.batch.request_schedules",
+    "requestExpression": "'common.batch.request_schedules'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "batches",
+      "intervalTimeSeconds",
+      "tolerateSize"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/host/details.js",
+    "line": 2250
+  },
+  {
+    "requestName": "bulk_request.hosts.passive_state",
+    "requestExpression": "'bulk_request.hosts.passive_state'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "hostNames",
+      "passive_state",
+      "requestInfo"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/host/details.js",
+    "line": 2341
+  },
+  {
+    "requestName": "common.host.host_component.passive",
+    "requestExpression": "'common.host.host_component.passive'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "component",
+      "componentName",
+      "context",
+      "hostName",
+      "passive_state"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/host/details.js",
+    "line": 2374
+  },
+  {
+    "requestName": "common.delete.host",
+    "requestExpression": "'common.delete.host'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "hostName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/host/details.js",
+    "line": 2828
+  },
+  {
+    "requestName": "service.item.executeCustomCommand",
+    "requestExpression": "'service.item.executeCustomCommand'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "command",
+      "componentName",
+      "context",
+      "hosts",
+      "serviceName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/host/details.js",
+    "line": 3046
+  },
+  {
+    "requestName": "common.batch.request_schedules",
+    "requestExpression": "'common.batch.request_schedules'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "batches",
+      "intervalTimeSeconds",
+      "tolerateSize"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/host/details.js",
+    "line": 3194
+  },
+  {
+    "requestName": "admin.kerberos_security.regenerate_keytabs.host",
+    "requestExpression": "\"admin.kerberos_security.regenerate_keytabs.host\"",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "clusterName",
+      "hostName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/host/details.js",
+    "line": 3267
+  },
+  {
+    "requestName": "common.services.update",
+    "requestExpression": "'common.services.update'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "ServiceInfo",
+      "context",
+      "query"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service.js",
+    "line": 163
+  },
+  {
+    "requestName": "restart.allServices",
+    "requestExpression": "'restart.allServices'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/controllers/main/service.js",
+    "line": 183
+  },
+  {
+    "requestName": "common.services.update",
+    "requestExpression": "'common.services.update'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "ServiceInfo",
+      "context"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service.js",
+    "line": 202
+  },
+  {
+    "requestName": "common.services.update",
+    "requestExpression": "'common.services.update'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "ServiceInfo",
+      "context"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service.js",
+    "line": 253
+  },
+  {
+    "requestName": "restart.staleConfigs",
+    "requestExpression": "'restart.staleConfigs'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service.js",
+    "line": 348
+  },
+  {
+    "requestName": null,
+    "requestExpression": "name",
+    "registrationStatus": "DYNAMIC",
+    "dataKeys": [],
+    "dataExpression": "data",
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service/add_controller.js",
+    "line": 468,
+    "resolutionStatus": "RESOLVED_OPEN_BOUNDARY",
+    "dispatchKind": "PARAMETER_WRAPPER",
+    "candidateRequestNames": [
+      "common.services.update"
+    ],
+    "dispatchCondition": "The only production caller invokes installServicesRequest with common.services.update.",
+    "boundaryNotes": "The wrapper can accept any future request name. A test injects wizard.step3.host_info, but that is not a production call path.",
+    "evidence": [
+      "ambari-web/classic/app/controllers/main/service/add_controller.js:459-474",
+      "ambari-web/classic/app/controllers/main/service/add_controller.js:463",
+      "ambari-web/classic/test/controllers/main/service/add_controller_test.js:863",
+      "ambari-web/classic/app/utils/ajax/ajax.js:46"
+    ]
+  },
+  {
+    "requestName": "config.tags",
+    "requestExpression": "'config.tags'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "callback"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service/info/summary.js",
+    "line": 148
+  },
+  {
+    "requestName": "reassign.load_configs",
+    "requestExpression": "'reassign.load_configs'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "urlParams"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service/info/summary.js",
+    "line": 178
+  },
+  {
+    "requestName": "service.flume.agent.command",
+    "requestExpression": "'service.flume.agent.command'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "agentName",
+      "context",
+      "host",
+      "state"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service/info/summary.js",
+    "line": 317
+  },
+  {
+    "requestName": "common.service.hdfs.getNnCheckPointTime",
+    "requestExpression": "'common.service.hdfs.getNnCheckPointTime'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": "{ clusterIdValue }",
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service/item.js",
+    "line": 405
+  },
+  {
+    "requestName": "common.service.host_component.update",
+    "requestExpression": "'common.service.host_component.update'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "query",
+      "serviceName",
+      "state"
+    ],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/controllers/main/service/item.js",
+    "line": 572
+  },
+  {
+    "requestName": "common.service.update",
+    "requestExpression": "'common.service.update'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": "data",
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service/item.js",
+    "line": 599
+  },
+  {
+    "requestName": "service.item.refreshQueueYarnRequest",
+    "requestExpression": "'service.item.refreshQueueYarnRequest'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "command",
+      "componentName",
+      "context",
+      "forceRefreshConfigTags",
+      "hosts",
+      "serviceName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service/item.js",
+    "line": 645
+  },
+  {
+    "requestName": "service.item.startStopLdapKnox",
+    "requestExpression": "'service.item.startStopLdapKnox'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "command",
+      "componentName",
+      "context",
+      "host",
+      "serviceName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service/item.js",
+    "line": 692
+  },
+  {
+    "requestName": "service.item.executeCustomCommand",
+    "requestExpression": "'service.item.executeCustomCommand'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "command",
+      "componentName",
+      "context",
+      "hosts",
+      "serviceName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service/item.js",
+    "line": 740
+  },
+  {
+    "requestName": "common.batch.request_schedules",
+    "requestExpression": "'common.batch.request_schedules'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "batches",
+      "intervalTimeSeconds",
+      "tolerateSize"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service/item.js",
+    "line": 788
+  },
+  {
+    "requestName": "service.item.rebalanceHdfsNodes",
+    "requestExpression": "'service.item.rebalanceHdfsNodes'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "hosts",
+      "threshold"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service/item.js",
+    "line": 842
+  },
+  {
+    "requestName": "admin.kerberos_security.regenerate_keytabs.service",
+    "requestExpression": "\"admin.kerberos_security.regenerate_keytabs.service\"",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "clusterName",
+      "serviceName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service/item.js",
+    "line": 889
+  },
+  {
+    "requestName": "service.item.updateHBaseReplication",
+    "requestExpression": "'service.item.updateHBaseReplication'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "hosts",
+      "replication_cluster_keys",
+      "replication_peers"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service/item.js",
+    "line": 975
+  },
+  {
+    "requestName": "service.item.stopHBaseReplication",
+    "requestExpression": "'service.item.stopHBaseReplication'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "hosts",
+      "replication_peers"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service/item.js",
+    "line": 1040
+  },
+  {
+    "requestName": "service.item.smoke",
+    "requestExpression": "'service.item.smoke'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": "requestData",
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service/item.js",
+    "line": 1292
+  },
+  {
+    "requestName": "service.item.executeCustomCommand",
+    "requestExpression": "'service.item.executeCustomCommand'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "command",
+      "componentName",
+      "context",
+      "hosts",
+      "serviceName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service/item.js",
+    "line": 1544
+  },
+  {
+    "requestName": "service.item.executeCustomCommand",
+    "requestExpression": "'service.item.executeCustomCommand'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "command",
+      "componentName",
+      "context",
+      "forceRefreshConfigTags",
+      "hosts",
+      "serviceName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service/item.js",
+    "line": 1568
+  },
+  {
+    "requestName": "common.delete.service",
+    "requestExpression": "'common.delete.service'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "serviceName",
+      "servicesToDeleteNext"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service/item.js",
+    "line": 2057
+  },
+  {
+    "requestName": "hosts.config_groups",
+    "requestExpression": "'hosts.config_groups'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": "{}",
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service/manage_config_groups_controller.js",
+    "line": 307
+  },
+  {
+    "requestName": "service.load_config_groups",
+    "requestExpression": "'service.load_config_groups'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "serviceName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service/manage_config_groups_controller.js",
+    "line": 445
+  },
+  {
+    "requestName": "config.host_overrides",
+    "requestExpression": "'config.host_overrides'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "params",
+      "typeTagToGroupMap"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service/manage_config_groups_controller.js",
+    "line": 539
+  },
+  {
+    "requestName": "hosts.info.install",
+    "requestExpression": "'hosts.info.install'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "hostNames"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service/manage_config_groups_controller.js",
+    "line": 1057
+  },
+  {
+    "requestName": "config.tags",
+    "requestExpression": "'config.tags'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service/reassign/step1_controller.js",
+    "line": 44
+  },
+  {
+    "requestName": "reassign.load_configs",
+    "requestExpression": "'reassign.load_configs'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "urlParams"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service/reassign/step1_controller.js",
+    "line": 78
+  },
+  {
+    "requestName": "config.tags",
+    "requestExpression": "'config.tags'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service/reassign/step3_controller.js",
+    "line": 292
+  },
+  {
+    "requestName": "reassign.load_configs",
+    "requestExpression": "'reassign.load_configs'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "urlParams"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service/reassign/step3_controller.js",
+    "line": 315
+  },
+  {
+    "requestName": "common.host.host_component.passive",
+    "requestExpression": "'common.host.host_component.passive'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "componentName",
+      "hostName",
+      "passive_state"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service/reassign/step4_controller.js",
+    "line": 254
+  },
+  {
+    "requestName": "common.across.services.configurations",
+    "requestExpression": "'common.across.services.configurations'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "data"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service/reassign/step4_controller.js",
+    "line": 293
+  },
+  {
+    "requestName": "common.delete.host_component",
+    "requestExpression": "'common.delete.host_component'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "componentName",
+      "hostName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service/reassign/step4_controller.js",
+    "line": 442
+  },
+  {
+    "requestName": "service.mysql.clean",
+    "requestExpression": "'service.mysql.clean'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "host"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service/reassign/step4_controller.js",
+    "line": 485
+  },
+  {
+    "requestName": "service.mysql.configure",
+    "requestExpression": "'service.mysql.configure'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "host"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service/reassign/step4_controller.js",
+    "line": 506
+  },
+  {
+    "requestName": "common.host.host_component.update",
+    "requestExpression": "'common.host.host_component.update'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "HostRoles",
+      "componentName",
+      "context",
+      "hostName",
+      "serviceName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service/reassign/step4_controller.js",
+    "line": 518
+  },
+  {
+    "requestName": "restart.hostComponents",
+    "requestExpression": "'restart.hostComponents'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "context",
+      "operation_level",
+      "resource_filters"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service/reassign/step4_controller.js",
+    "line": 551
+  },
+  {
+    "requestName": "common.host.host_component.update",
+    "requestExpression": "'common.host.host_component.update'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "HostRoles",
+      "componentName",
+      "context",
+      "hostName",
+      "serviceName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service/reassign/step4_controller.js",
+    "line": 565
+  },
+  {
+    "requestName": "cluster.custom_action.create",
+    "requestExpression": "'cluster.custom_action.create'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "filteredHosts",
+      "requestInfo"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service/reassign/step4_controller.js",
+    "line": 663
+  },
+  {
+    "requestName": "custom_action.request",
+    "requestExpression": "'custom_action.request'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "requestId"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service/reassign/step4_controller.js",
+    "line": 681
+  },
+  {
+    "requestName": "custom_action.request",
+    "requestExpression": "'custom_action.request'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "requestId",
+      "taskId"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service/reassign/step4_controller.js",
+    "line": 705
+  },
+  {
+    "requestName": "common.delete.host_component",
+    "requestExpression": "'common.delete.host_component'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "componentName",
+      "hostName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service/reassign/step6_controller.js",
+    "line": 133
+  },
+  {
+    "requestName": "common.host.host_component.passive",
+    "requestExpression": "'common.host.host_component.passive'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "componentName",
+      "hostName",
+      "passive_state"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service/reassign/step6_controller.js",
+    "line": 160
+  },
+  {
+    "requestName": "common.host.host_component.update",
+    "requestExpression": "'common.host.host_component.update'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": "data",
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service/reassign/step6_controller.js",
+    "line": 201
+  },
+  {
+    "requestName": "common.host.host_component.passive",
+    "requestExpression": "'common.host.host_component.passive'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "componentName",
+      "hostName",
+      "passive_state"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service/reassign/step7_controller.js",
+    "line": 65
+  },
+  {
+    "requestName": "common.delete.host_component",
+    "requestExpression": "'common.delete.host_component'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "componentName",
+      "hostName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/service/reassign/step7_controller.js",
+    "line": 84
+  },
+  {
+    "requestName": "views.info",
+    "requestExpression": "'views.info'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/views_controller.js",
+    "line": 49
+  },
+  {
+    "requestName": "views.instances",
+    "requestExpression": "'views.instances'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/main/views_controller.js",
+    "line": 60
+  },
+  {
+    "requestName": null,
+    "requestExpression": "isRetry ? 'common.host_components.update' : 'common.services.update'",
+    "registrationStatus": "DYNAMIC",
+    "dataKeys": [],
+    "dataExpression": "data",
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/wizard.js",
+    "line": 426,
+    "resolutionStatus": "RESOLVED_CLOSED",
+    "dispatchKind": "INLINE_TERNARY",
+    "candidateRequestNames": [
+      "common.host_components.update",
+      "common.services.update"
+    ],
+    "dispatchCondition": "A retry installs unfinished host components; an initial run installs services in INIT state.",
+    "boundaryNotes": "The current production set is closed.",
+    "evidence": [
+      "ambari-web/classic/app/controllers/wizard.js:401-432",
+      "ambari-web/classic/app/utils/ajax/ajax.js:46,272"
+    ]
+  },
+  {
+    "requestName": "wizard.launch_bootstrap",
+    "requestExpression": "'wizard.launch_bootstrap'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "bootStrapData",
+      "popup"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/wizard.js",
+    "line": 514
+  },
+  {
+    "requestName": "wizard.service_components",
+    "requestExpression": "'wizard.service_components'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "stackUrl",
+      "stackVersion"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/wizard.js",
+    "line": 629
+  },
+  {
+    "requestName": "cluster.load_current_repo_stack_services",
+    "requestExpression": "'cluster.load_current_repo_stack_services'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "clusterName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/wizard.js",
+    "line": 686
+  },
+  {
+    "requestName": "hosts.confirmed",
+    "requestExpression": "'hosts.confirmed'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": "{}",
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/wizard.js",
+    "line": 1281
+  },
+  {
+    "requestName": "ambari.service",
+    "requestExpression": "'ambari.service'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/wizard/step2_controller.js",
+    "line": 522
+  },
+  {
+    "requestName": "wizard.step3.bootstrap",
+    "requestExpression": "'wizard.step3.bootstrap'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "bootRequestId",
+      "callback",
+      "numPolls",
+      "shouldUseDefaultHandler",
+      "timeout"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/wizard/step3_controller.js",
+    "line": 484
+  },
+  {
+    "requestName": "wizard.step3.is_hosts_registered",
+    "requestExpression": "'wizard.step3.is_hosts_registered'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "callback",
+      "shouldUseDefaultHandler",
+      "timeout"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/wizard/step3_controller.js",
+    "line": 574
+  },
+  {
+    "requestName": "wizard.step3.is_hosts_registered",
+    "requestExpression": "'wizard.step3.is_hosts_registered'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/wizard/step3_controller.js",
+    "line": 669
+  },
+  {
+    "requestName": "ambari.service",
+    "requestExpression": "'ambari.service'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "fields"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/wizard/step3_controller.js",
+    "line": 706
+  },
+  {
+    "requestName": "wizard.step3.jdk_check",
+    "requestExpression": "'wizard.step3.jdk_check'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "host_names",
+      "java_home",
+      "jdk_location"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/wizard/step3_controller.js",
+    "line": 731
+  },
+  {
+    "requestName": "wizard.step3.jdk_check.get_results",
+    "requestExpression": "'wizard.step3.jdk_check.get_results'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "requestIndex"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/wizard/step3_controller.js",
+    "line": 750
+  },
+  {
+    "requestName": "request_schedule.get.pending",
+    "requestExpression": "'request_schedule.get.pending'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "hostComponent"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/wizard/step7/assign_master_controller.js",
+    "line": 85
+  },
+  {
+    "requestName": "service.serviceConfigVersions.get.current.not.default",
+    "requestExpression": "'service.serviceConfigVersions.get.current.not.default'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/wizard/step7_controller.js",
+    "line": 420
+  },
+  {
+    "requestName": "config.tags",
+    "requestExpression": "'config.tags'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/wizard/step7_controller.js",
+    "line": 1175
+  },
+  {
+    "requestName": "ambari.service",
+    "requestExpression": "'ambari.service'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "fields"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/wizard/step7_controller.js",
+    "line": 1565
+  },
+  {
+    "requestName": "admin.kerberize.cluster_descriptor_artifact",
+    "requestExpression": "'admin.kerberize.cluster_descriptor_artifact'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/controllers/wizard/step7_controller.js",
+    "line": 1883
+  },
+  {
+    "requestName": "cluster.load_repo_version",
+    "requestExpression": "'cluster.load_repo_version'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "repositoryVersion",
+      "stackName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/wizard/step8_controller.js",
+    "line": 346
+  },
+  {
+    "requestName": "cluster.load_repositories",
+    "requestExpression": "'cluster.load_repositories'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "stackName",
+      "stackVersion"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/wizard/step8_controller.js",
+    "line": 403
+  },
+  {
+    "requestName": "wizard.step8.existing_cluster_names",
+    "requestExpression": "'wizard.step8.existing_cluster_names'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/wizard/step8_controller.js",
+    "line": 718
+  },
+  {
+    "requestName": "common.delete.cluster",
+    "requestExpression": "'common.delete.cluster'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "isLast",
+      "name"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/wizard/step8_controller.js",
+    "line": 753
+  },
+  {
+    "requestName": "wizard.get_version_definitions",
+    "requestExpression": "'wizard.get_version_definitions'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/wizard/step8_controller.js",
+    "line": 835
+  },
+  {
+    "requestName": "wizard.delete_repository_versions",
+    "requestExpression": "'wizard.delete_repository_versions'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "id",
+      "stackName",
+      "stackVersion"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/wizard/step8_controller.js",
+    "line": 862
+  },
+  {
+    "requestName": null,
+    "requestExpression": "ajaxOpts",
+    "registrationStatus": "DYNAMIC",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/controllers/wizard/step8_controller.js",
+    "line": 906,
+    "resolutionStatus": "RESOLVED_CLOSED",
+    "dispatchKind": "OPTIONS_OBJECT_TERNARY",
+    "candidateRequestNames": [
+      "admin.kerberos.cluster.artifact.update",
+      "admin.kerberos.cluster.artifact.create"
+    ],
+    "dispatchCondition": "descriptorExists === true selects update; otherwise create. A truthy instant sends here, while a falsy instant enqueues the same options object.",
+    "boundaryNotes": "The current production set is closed. The same pair also appears in the upstream set for queue.shift().",
+    "evidence": [
+      "ambari-web/classic/app/controllers/wizard/step8_controller.js:890-909",
+      "ambari-web/classic/app/utils/ajax/ajax.js:1655,1664"
+    ]
+  },
+  {
+    "requestName": null,
+    "requestExpression": "name",
+    "registrationStatus": "DYNAMIC",
+    "dataKeys": [],
+    "dataExpression": "data",
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/wizard/step9_controller.js",
+    "line": 511,
+    "resolutionStatus": "RESOLVED_CLOSED",
+    "dispatchKind": "LOCAL_SWITCH",
+    "candidateRequestNames": [
+      "common.host_components.update",
+      "common.services.update"
+    ],
+    "dispatchCondition": "addHostController selects host_components; addServiceController and the default branch select services.",
+    "boundaryNotes": "The current production set is closed. Unknown controllerName values retain the common.services.update default.",
+    "evidence": [
+      "ambari-web/classic/app/controllers/wizard/step9_controller.js:466-517",
+      "ambari-web/classic/app/utils/ajax/ajax.js:46,272"
+    ]
+  },
+  {
+    "requestName": "background_operations.get_by_task",
+    "requestExpression": "'background_operations.get_by_task'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "clusterName",
+      "requestId",
+      "taskId"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/wizard/step9_controller.js",
+    "line": 989
+  },
+  {
+    "requestName": "wizard.step9.load_log",
+    "requestExpression": "'wizard.step9.load_log'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "args",
+      "callback",
+      "cluster",
+      "numPolls",
+      "polling",
+      "requestId",
+      "timeout"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/wizard/step9_controller.js",
+    "line": 1040
+  },
+  {
+    "requestName": "wizard.step9.installer.get_host_status",
+    "requestExpression": "'wizard.step9.installer.get_host_status'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "cluster"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/controllers/wizard/step9_controller.js",
+    "line": 1108
+  },
+  {
+    "requestName": "ambari.service",
+    "requestExpression": "'ambari.service'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "fields"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/controllers/wizard/step9_controller.js",
+    "line": 1225
+  },
+  {
+    "requestName": "hosts.ips",
+    "requestExpression": "'hosts.ips'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "hostNames"
+    ],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/mappers/service_metrics_mapper.js",
+    "line": 334
+  },
+  {
+    "requestName": "hiveServerInteractive.getStatus",
+    "requestExpression": "'hiveServerInteractive.getStatus'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "hsiHost",
+      "port"
+    ],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/mappers/service_metrics_mapper.js",
+    "line": 352
+  },
+  {
+    "requestName": "service.serviceConfigVersions.get.multiple",
+    "requestExpression": "'service.serviceConfigVersions.get.multiple'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "serviceConfigVersions",
+      "serviceName"
+    ],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/mixins/common/configs/configs_comparator.js",
+    "line": 392
+  },
+  {
+    "requestName": "service.serviceConfigVersions.get",
+    "requestExpression": "'service.serviceConfigVersions.get'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "serviceName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/mixins/common/configs/configs_loader.js",
+    "line": 48
+  },
+  {
+    "requestName": "service.serviceConfigVersions.get.current",
+    "requestExpression": "'service.serviceConfigVersions.get.current'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "serviceNames"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/mixins/common/configs/configs_loader.js",
+    "line": 109
+  },
+  {
+    "requestName": "service.serviceConfigVersions.get.multiple",
+    "requestExpression": "'service.serviceConfigVersions.get.multiple'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "additionalParams",
+      "serviceConfigVersions",
+      "serviceName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/mixins/common/configs/configs_loader.js",
+    "line": 176
+  },
+  {
+    "requestName": null,
+    "requestExpression": "ajaxOptions",
+    "registrationStatus": "DYNAMIC",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/mixins/common/configs/configs_saver.js",
+    "line": 595,
+    "resolutionStatus": "RESOLVED_CLOSED",
+    "dispatchKind": "STATIC_OPTIONS_OBJECT",
+    "candidateRequestNames": [
+      "wizard.step8.apply_configuration_groups"
+    ],
+    "dispatchCondition": "createConfigGroup constructs an options object with a fixed request name.",
+    "boundaryNotes": "This is semantically static. An optional success callback does not change the request name.",
+    "evidence": [
+      "ambari-web/classic/app/mixins/common/configs/configs_saver.js:584-595",
+      "ambari-web/classic/app/utils/ajax/ajax.js:2185"
+    ]
+  },
+  {
+    "requestName": null,
+    "requestExpression": "ajaxOptions",
+    "registrationStatus": "DYNAMIC",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/mixins/common/configs/configs_saver.js",
+    "line": 617,
+    "resolutionStatus": "RESOLVED_CLOSED",
+    "dispatchKind": "STATIC_OPTIONS_OBJECT",
+    "candidateRequestNames": [
+      "config_groups.update_config_group"
+    ],
+    "dispatchCondition": "updateConfigGroup constructs an options object with a fixed request name.",
+    "boundaryNotes": "This is semantically static. An optional success callback does not change the request name.",
+    "evidence": [
+      "ambari-web/classic/app/mixins/common/configs/configs_saver.js:605-617",
+      "ambari-web/classic/app/utils/ajax/ajax.js:915"
+    ]
+  },
+  {
+    "requestName": null,
+    "requestExpression": "ajaxData",
+    "registrationStatus": "DYNAMIC",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/mixins/common/configs/configs_saver.js",
+    "line": 644,
+    "resolutionStatus": "RESOLVED_CLOSED",
+    "dispatchKind": "STATIC_OPTIONS_OBJECT",
+    "candidateRequestNames": [
+      "common.across.services.configurations"
+    ],
+    "dispatchCondition": "putChangedConfigurations constructs an options object with a fixed request name.",
+    "boundaryNotes": "This is semantically static. Optional success and always callbacks do not change the request name.",
+    "evidence": [
+      "ambari-web/classic/app/mixins/common/configs/configs_saver.js:629-644",
+      "ambari-web/classic/app/utils/ajax/ajax.js:222"
+    ]
+  },
+  {
+    "requestName": "components.filter_by_status",
+    "requestExpression": "'components.filter_by_status'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "clusterName",
+      "urlParams"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/mixins/common/configs/configs_saver.js",
+    "line": 880
+  },
+  {
+    "requestName": "config.recommendations",
+    "requestExpression": "'config.recommendations'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "dataToSend",
+      "stackVersionUrl"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error",
+      "callback"
+    ],
+    "source": "ambari-web/classic/app/mixins/common/configs/enhanced_configs.js",
+    "line": 335
+  },
+  {
+    "requestName": "wizard.loadrecommendations",
+    "requestExpression": "'wizard.loadrecommendations'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": "recommendationData",
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/mixins/common/hosts/host_component_recommendation_mixin.js",
+    "line": 116
+  },
+  {
+    "requestName": "config.validations",
+    "requestExpression": "'config.validations'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": "validationData",
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/mixins/common/hosts/host_component_validation_mixin.js",
+    "line": 95
+  },
+  {
+    "requestName": "persist.get",
+    "requestExpression": "'persist.get'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "data",
+      "key"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/mixins/common/persist.js",
+    "line": 48
+  },
+  {
+    "requestName": "persist.get.text",
+    "requestExpression": "'persist.get.text'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "key"
+    ],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/mixins/common/persist.js",
+    "line": 67
+  },
+  {
+    "requestName": "persist.post",
+    "requestExpression": "'persist.post'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "keyValuePair"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/mixins/common/persist.js",
+    "line": 128
+  },
+  {
+    "requestName": "config.validations",
+    "requestExpression": "'config.validations'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": "validationData",
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/mixins/common/serverValidator.js",
+    "line": 196
+  },
+  {
+    "requestName": "preinstalled.checks",
+    "requestExpression": "'preinstalled.checks'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "RequestInfo",
+      "resource_filters"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/mixins/main/host/details/actions/check_host.js",
+    "line": 144
+  },
+  {
+    "requestName": "preinstalled.checks.tasks",
+    "requestExpression": "'preinstalled.checks.tasks'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "requestId"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/mixins/main/host/details/actions/check_host.js",
+    "line": 188
+  },
+  {
+    "requestName": "wizard.step3.host_info",
+    "requestExpression": "'wizard.step3.host_info'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/mixins/main/host/details/actions/check_host.js",
+    "line": 253
+  },
+  {
+    "requestName": "wizard.step3.rerun_checks",
+    "requestExpression": "'wizard.step3.rerun_checks'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error",
+      "callback"
+    ],
+    "source": "ambari-web/classic/app/mixins/main/host/details/actions/check_host.js",
+    "line": 443
+  },
+  {
+    "requestName": "host.stack_versions.install",
+    "requestExpression": "'host.stack_versions.install'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "hostName",
+      "version"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/mixins/main/host/details/actions/install_new_version.js",
+    "line": 41
+  },
+  {
+    "requestName": "host.host_component.slave_desired_admin_state",
+    "requestExpression": "'host.host_component.slave_desired_admin_state'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "componentName",
+      "hostName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/mixins/main/host/details/host_components/decommissionable.js",
+    "line": 157
+  },
+  {
+    "requestName": "host.host_component.decommission_status",
+    "requestExpression": "'host.host_component.decommission_status'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "componentName",
+      "hostName",
+      "serviceName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/mixins/main/host/details/host_components/decommissionable.js",
+    "line": 200
+  },
+  {
+    "requestName": "host.host_component.add_new_component",
+    "requestExpression": "'host.host_component.add_new_component'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "component",
+      "data",
+      "hostName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/mixins/main/host/details/host_components/install_component.js",
+    "line": 29
+  },
+  {
+    "requestName": "common.host.host_component.update",
+    "requestExpression": "'common.host.host_component.update'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "HostRoles",
+      "component",
+      "componentName",
+      "context",
+      "hostName",
+      "serviceName",
+      "urlParams"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/mixins/main/host/details/host_components/install_component.js",
+    "line": 67
+  },
+  {
+    "requestName": "common.create_component",
+    "requestExpression": "'common.create_component'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "componentName",
+      "serviceName"
+    ],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/mixins/main/host/details/host_components/install_component.js",
+    "line": 133
+  },
+  {
+    "requestName": null,
+    "requestExpression": "config_action.get('popupProperties').primaryButton.metaData.name",
+    "registrationStatus": "DYNAMIC",
+    "dataKeys": [
+      "command",
+      "componentName",
+      "context",
+      "forceRefreshConfigTags",
+      "hosts",
+      "serviceName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "error"
+    ],
+    "source": "ambari-web/classic/app/mixins/main/service/configs/component_actions_by_configs.js",
+    "line": 112,
+    "resolutionStatus": "RESOLVED_OPEN_BOUNDARY",
+    "dispatchKind": "MODEL_METADATA_LOOKUP",
+    "candidateRequestNames": [
+      "service.item.refreshQueueYarnRequest"
+    ],
+    "dispatchCondition": "The code selects ConfigAction records with actionType showPopup. The only current showPopup fixture supplies service.item.refreshQueueYarnRequest.",
+    "boundaryNotes": "The current data set is closed, but ConfigAction is an extension boundary. A future fixture or runtime record can add a name, and this sender does not validate registration.",
+    "evidence": [
+      "ambari-web/classic/app/mixins/main/service/configs/component_actions_by_configs.js:54-94,109-124",
+      "ambari-web/classic/app/models/configs/theme/config_action.js:65-120",
+      "ambari-web/classic/app/utils/ajax/ajax.js:657"
+    ]
+  },
+  {
+    "requestName": "common.batch.request_schedules",
+    "requestExpression": "'common.batch.request_schedules'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "batches",
+      "displayName",
+      "hostName",
+      "intervalTimeSeconds",
+      "tolerateSize"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/mixins/main/service/configs/component_actions_by_configs.js",
+    "line": 232
+  },
+  {
+    "requestName": "common.batch.request_schedules",
+    "requestExpression": "'common.batch.request_schedules'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "batches",
+      "intervalTimeSeconds",
+      "tolerateSize"
+    ],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/mixins/main/service/configs/component_actions_by_configs.js",
+    "line": 296
+  },
+  {
+    "requestName": "config_groups.create",
+    "requestExpression": "'config_groups.create'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "data",
+      "modelData"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/mixins/main/service/configs/config_overridable.js",
+    "line": 259
+  },
+  {
+    "requestName": null,
+    "requestExpression": "sendData",
+    "registrationStatus": "DYNAMIC",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/mixins/main/service/configs/config_overridable.js",
+    "line": 329,
+    "resolutionStatus": "RESOLVED_CLOSED",
+    "dispatchKind": "STATIC_OPTIONS_OBJECT",
+    "candidateRequestNames": [
+      "config_groups.update"
+    ],
+    "dispatchCondition": "updateConfigurationGroup constructs an options object with a fixed request name.",
+    "boundaryNotes": "This is semantically static; callbacks stored on the options object do not change the request name.",
+    "evidence": [
+      "ambari-web/classic/app/mixins/main/service/configs/config_overridable.js:308-329",
+      "ambari-web/classic/app/utils/ajax/ajax.js:2476"
+    ]
+  },
+  {
+    "requestName": null,
+    "requestExpression": "sendData",
+    "registrationStatus": "DYNAMIC",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/mixins/main/service/configs/config_overridable.js",
+    "line": 439,
+    "resolutionStatus": "RESOLVED_CLOSED",
+    "dispatchKind": "STATIC_OPTIONS_OBJECT",
+    "candidateRequestNames": [
+      "common.delete.config_group"
+    ],
+    "dispatchCondition": "deleteConfigurationGroup constructs an options object with a fixed request name.",
+    "boundaryNotes": "This is semantically static; callbacks stored on the options object do not change the request name.",
+    "evidence": [
+      "ambari-web/classic/app/mixins/main/service/configs/config_overridable.js:416-439",
+      "ambari-web/classic/app/utils/ajax/ajax.js:414"
+    ]
+  },
+  {
+    "requestName": "service.serviceConfigVersions.get.current",
+    "requestExpression": "'service.serviceConfigVersions.get.current'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "serviceNames"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/mixins/main/service/configs/hive_interactive_check.js",
+    "line": 25
+  },
+  {
+    "requestName": "configs.config_groups.load.services",
+    "requestExpression": "'configs.config_groups.load.services'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "dfd",
+      "serviceNames"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/mixins/main/service/groups_mapping.js",
+    "line": 40
+  },
+  {
+    "requestName": "configs.theme",
+    "requestExpression": "'configs.theme'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "serviceName",
+      "stackVersionUrl"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/mixins/main/service/themes_mapping.js",
+    "line": 39
+  },
+  {
+    "requestName": "configs.theme.services",
+    "requestExpression": "'configs.theme.services'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "serviceNames",
+      "stackVersionUrl"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/mixins/main/service/themes_mapping.js",
+    "line": 73
+  },
+  {
+    "requestName": "admin.kerberize.cluster_descriptor",
+    "requestExpression": "'admin.kerberize.cluster_descriptor'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "queryParams"
+    ],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/mixins/wizard/addSecurityConfigs.js",
+    "line": 421
+  },
+  {
+    "requestName": "admin.kerberize.cluster_descriptor.stack",
+    "requestExpression": "'admin.kerberize.cluster_descriptor.stack'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/mixins/wizard/addSecurityConfigs.js",
+    "line": 431
+  },
+  {
+    "requestName": "config.recommendations",
+    "requestExpression": "'config.recommendations'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "dataToSend",
+      "stackVersionUrl"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/mixins/wizard/addSecurityConfigs.js",
+    "line": 758
+  },
+  {
+    "requestName": "admin.kerberos.cluster.artifact.create",
+    "requestExpression": "'admin.kerberos.cluster.artifact.create'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "artifactName",
+      "data"
+    ],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/mixins/wizard/addSecurityConfigs.js",
+    "line": 859
+  },
+  {
+    "requestName": "admin.kerberos.cluster.artifact.update",
+    "requestExpression": "'admin.kerberos.cluster.artifact.update'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "artifactName",
+      "data"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/mixins/wizard/addSecurityConfigs.js",
+    "line": 877
+  },
+  {
+    "requestName": null,
+    "requestExpression": "isInstaller ? 'hosts.info.install' : 'hosts.high_availability.wizard'",
+    "registrationStatus": "DYNAMIC",
+    "dataKeys": [
+      "hostNames"
+    ],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/mixins/wizard/assign_master_components.js",
+    "line": 604,
+    "resolutionStatus": "RESOLVED_CLOSED",
+    "dispatchKind": "LOCAL_TERNARY",
+    "candidateRequestNames": [
+      "hosts.info.install",
+      "hosts.high_availability.wizard"
+    ],
+    "dispatchCondition": "installerController in wizardController.name or content.controllerName selects install host information; all other wizards select existing-cluster HA host information.",
+    "boundaryNotes": "The current production set is closed.",
+    "evidence": [
+      "ambari-web/classic/app/mixins/wizard/assign_master_components.js:601-612",
+      "ambari-web/classic/app/utils/ajax/ajax.js:2873,2897"
+    ]
+  },
+  {
+    "requestName": "hosts.high_availability.wizard",
+    "requestExpression": "'hosts.high_availability.wizard'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": "{}",
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/mixins/wizard/wizardHostsLoading.js",
+    "line": 43
+  },
+  {
+    "requestName": null,
+    "requestExpression": "this.get('request.ajaxName')",
+    "registrationStatus": "DYNAMIC",
+    "dataKeys": [],
+    "dataExpression": "this.get('request.ajaxData')",
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/mixins/wizard/wizardProgressPageController.js",
+    "line": 129,
+    "resolutionStatus": "RESOLVED_OPEN_BOUNDARY",
+    "dispatchKind": "MIXIN_REQUEST_PROPERTY",
+    "candidateRequestNames": [
+      "admin.kerberize.cluster",
+      "admin.kerberize.cluster.force"
+    ],
+    "dispatchCondition": "submitRequest is reached only on an isSingleRequestPage path. Kerberos Step 7 is the only current production controller setting that flag; initial execution selects the normal request and retry selects force.",
+    "boundaryNotes": "The base mixin remains an extension boundary because a future single-request subclass can supply another request.ajaxName. Other current HA, federation, JournalNode, and Kerberos subclasses use command/task mode and do not reach this sender.",
+    "evidence": [
+      "ambari-web/classic/app/mixins/wizard/wizardProgressPageController.js:60-75,127-140",
+      "ambari-web/classic/app/controllers/main/admin/kerberos/step7_controller.js:21-61,82-88",
+      "ambari-web/classic/app/routes/add_kerberos_routes.js:321-333",
+      "ambari-web/classic/app/utils/ajax/ajax.js:1581,1605"
+    ]
+  },
+  {
+    "requestName": "admin.poll.kerberize.cluster.request",
+    "requestExpression": "'admin.poll.kerberize.cluster.request'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "requestId"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/mixins/wizard/wizardProgressPageController.js",
+    "line": 158
+  },
+  {
+    "requestName": "host_component.installed.on_hosts",
+    "requestExpression": "'host_component.installed.on_hosts'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "componentName",
+      "hostNames"
+    ],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/mixins/wizard/wizardProgressPageController.js",
+    "line": 417
+  },
+  {
+    "requestName": "common.services.update",
+    "requestExpression": "'common.services.update'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": "data",
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/mixins/wizard/wizardProgressPageController.js",
+    "line": 462
+  },
+  {
+    "requestName": "common.services.update",
+    "requestExpression": "'common.services.update'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": "data",
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/mixins/wizard/wizardProgressPageController.js",
+    "line": 510
+  },
+  {
+    "requestName": "wizard.step8.register_host_to_component",
+    "requestExpression": "'wizard.step8.register_host_to_component'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "cluster",
+      "componentName",
+      "data",
+      "hostName",
+      "serviceName",
+      "taskNum"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/mixins/wizard/wizardProgressPageController.js",
+    "line": 568
+  },
+  {
+    "requestName": "common.host_components.update",
+    "requestExpression": "'common.host_components.update'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "HostRoles",
+      "componentName",
+      "context",
+      "hostName",
+      "query",
+      "serviceName",
+      "taskNum"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/mixins/wizard/wizardProgressPageController.js",
+    "line": 625
+  },
+  {
+    "requestName": "common.host.host_component.update",
+    "requestExpression": "'common.host.host_component.update'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "HostRoles",
+      "componentName",
+      "hostName",
+      "serviceName",
+      "taskNum"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/mixins/wizard/wizardProgressPageController.js",
+    "line": 652
+  },
+  {
+    "requestName": "background_operations.get_by_request",
+    "requestExpression": "'background_operations.get_by_request'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "requestId"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/mixins/wizard/wizardProgressPageController.js",
+    "line": 688
+  },
+  {
+    "requestName": "common.delete.host_component",
+    "requestExpression": "'common.delete.host_component'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "componentName",
+      "hostName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/mixins/wizard/wizardProgressPageController.js",
+    "line": 768
+  },
+  {
+    "requestName": "router.login.clusters",
+    "requestExpression": "'router.login.clusters'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/router.js",
+    "line": 274
+  },
+  {
+    "requestName": "router.afterLogin",
+    "requestExpression": "'router.afterLogin'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "loginName",
+      "usr"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/router.js",
+    "line": 296
+  },
+  {
+    "requestName": "router.login",
+    "requestExpression": "'router.login'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "auth",
+      "loginName",
+      "usr"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/router.js",
+    "line": 421
+  },
+  {
+    "requestName": "router.afterLogin",
+    "requestExpression": "'router.afterLogin'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "loginName",
+      "usr"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/router.js",
+    "line": 442
+  },
+  {
+    "requestName": "router.login.message",
+    "requestExpression": "'router.login.message'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": "requestData",
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/router.js",
+    "line": 463
+  },
+  {
+    "requestName": "router.login.clusters",
+    "requestExpression": "'router.login.clusters'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": "requestData",
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/router.js",
+    "line": 571
+  },
+  {
+    "requestName": "ambari.service.load_server_version",
+    "requestExpression": "'ambari.service.load_server_version'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/router.js",
+    "line": 631
+  },
+  {
+    "requestName": "router.logoff",
+    "requestExpression": "'router.logoff'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/router.js",
+    "line": 737
+  },
+  {
+    "requestName": "ambari.service.load_server_version",
+    "requestExpression": "'ambari.service.load_server_version'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/router.js",
+    "line": 976
+  },
+  {
+    "requestName": null,
+    "requestExpression": "queue.shift()",
+    "registrationStatus": "DYNAMIC",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/utils/ajax/ajax_queue.js",
+    "line": 151,
+    "resolutionStatus": "RESOLVED_OPEN_BOUNDARY",
+    "dispatchKind": "FIFO_OPTIONS_QUEUE",
+    "candidateRequestNames": [
+      "wizard.step8.create_cluster",
+      "wizard.step8.create_selected_services",
+      "wizard.step8.create_components",
+      "wizard.step8.register_host_to_cluster",
+      "wizard.step8.register_host_to_component",
+      "common.across.services.configurations",
+      "wizard.step8.apply_configuration_groups",
+      "config_groups.update_config_group",
+      "alerts.create_alert_notification",
+      "admin.kerberos.cluster.artifact.update",
+      "admin.kerberos.cluster.artifact.create",
+      "common.host_component.update"
+    ],
+    "dispatchCondition": "FIFO dispatch from two current production queue instances. Wizard Step 8 conditionally contributes the first eleven request types; Add Service additional-client installation contributes common.host_component.update.",
+    "boundaryNotes": "The current production set contains twelve unique names. The queue class is open: addRequest checks only a nonblank name and sender shape, not ajax.js registration. Production code has no addRequests call or direct queue push.",
+    "evidence": [
+      "ambari-web/classic/app/utils/ajax/ajax_queue.js:107-151",
+      "ambari-web/classic/app/mixins/wizard/wizardDeployProgressController.js:54-64",
+      "ambari-web/classic/app/controllers/wizard/step8_controller.js:201-202,890-909,945-973,991-1018,1087-1093,1132-1137,1462-1467,1548-1553,1581-1604,1705-1711",
+      "ambari-web/classic/app/controllers/main/service/add_controller.js:128,499-527",
+      "ambari-web/classic/app/utils/ajax/ajax.js:106,222,533,915,1655,1664,2125,2137,2149,2161,2173,2185"
+    ]
+  },
+  {
+    "requestName": "host.host_components.filtered",
+    "requestExpression": "'host.host_components.filtered'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "callback",
+      "fields",
+      "parameters"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/utils/batch_scheduled_requests.js",
+    "line": 187
+  },
+  {
+    "requestName": "restart.hostComponents",
+    "requestExpression": "'restart.hostComponents'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "context",
+      "operation_level",
+      "query",
+      "resource_filters"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/utils/batch_scheduled_requests.js",
+    "line": 255
+  },
+  {
+    "requestName": "common.service.passive",
+    "requestExpression": "'common.service.passive'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "passive_state",
+      "requestInfo",
+      "serviceName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/utils/batch_scheduled_requests.js",
+    "line": 299
+  },
+  {
+    "requestName": "common.batch.request_schedules",
+    "requestExpression": "'common.batch.request_schedules'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "batches",
+      "intervalTimeSeconds",
+      "tolerateSize"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/utils/batch_scheduled_requests.js",
+    "line": 332
+  },
+  {
+    "requestName": "common.batch.request_schedules",
+    "requestExpression": "'common.batch.request_schedules'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "batches",
+      "intervalTimeSeconds",
+      "tolerateSize"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/utils/batch_scheduled_requests.js",
+    "line": 631
+  },
+  {
+    "requestName": "request_schedule.get",
+    "requestExpression": "'request_schedule.get'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "request_schedule_id"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/utils/batch_scheduled_requests.js",
+    "line": 713
+  },
+  {
+    "requestName": "common.delete.request_schedule",
+    "requestExpression": "'common.delete.request_schedule'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "request_schedule_id"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/utils/batch_scheduled_requests.js",
+    "line": 741
+  },
+  {
+    "requestName": "config.on_site",
+    "requestExpression": "'config.on_site'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "params"
+    ],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/utils/config.js",
+    "line": 818
+  },
+  {
+    "requestName": "configs.stack_configs.load.cluster_configs",
+    "requestExpression": "'configs.stack_configs.load.cluster_configs'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "stackVersionUrl"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/utils/config.js",
+    "line": 1044
+  },
+  {
+    "requestName": null,
+    "requestExpression": "name",
+    "registrationStatus": "DYNAMIC",
+    "dataKeys": [
+      "serviceList",
+      "stackVersionUrl"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/utils/config.js",
+    "line": 1063,
+    "resolutionStatus": "RESOLVED_CLOSED",
+    "dispatchKind": "LOCAL_TERNARY",
+    "candidateRequestNames": [
+      "configs.stack_configs.load.services",
+      "configs.stack_configs.load.all"
+    ],
+    "dispatchCondition": "serviceNames is normalized to an array; a nonempty array selects specified services and an empty array selects all services.",
+    "boundaryNotes": "The current production set is closed.",
+    "evidence": [
+      "ambari-web/classic/app/utils/config.js:1060-1071",
+      "ambari-web/classic/app/utils/ajax/ajax.js:814,819"
+    ]
+  },
+  {
+    "requestName": "credentials.create",
+    "requestExpression": "'credentials.create'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "alias",
+      "clusterName",
+      "resource"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "error"
+    ],
+    "source": "ambari-web/classic/app/utils/credentials.js",
+    "line": 68
+  },
+  {
+    "requestName": "credentials.get",
+    "requestExpression": "'credentials.get'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "alias",
+      "callback",
+      "clusterName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/utils/credentials.js",
+    "line": 126
+  },
+  {
+    "requestName": "credentials.update",
+    "requestExpression": "'credentials.update'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "alias",
+      "clusterName",
+      "resource"
+    ],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/utils/credentials.js",
+    "line": 157
+  },
+  {
+    "requestName": "credentials.list",
+    "requestExpression": "'credentials.list'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "callback",
+      "clusterName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/utils/credentials.js",
+    "line": 176
+  },
+  {
+    "requestName": "credentials.delete",
+    "requestExpression": "'credentials.delete'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "alias",
+      "clusterName"
+    ],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/utils/credentials.js",
+    "line": 194
+  },
+  {
+    "requestName": "credentials.store.info",
+    "requestExpression": "'credentials.store.info'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "callback",
+      "clusterName"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/utils/credentials.js",
+    "line": 212
+  },
+  {
+    "requestName": "background_operations.abort_request",
+    "requestExpression": "'background_operations.abort_request'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "requestId",
+      "requestName",
+      "serviceInfo"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/utils/host_progress_popup.js",
+    "line": 254
+  },
+  {
+    "requestName": "bulk_request.hosts.update_rack_id",
+    "requestExpression": "'bulk_request.hosts.update_rack_id'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "hostNames",
+      "hostNamesArray",
+      "rackId",
+      "requestInfo"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/utils/hosts.js",
+    "line": 247
+  },
+  {
+    "requestName": "background_operations.get_by_task",
+    "requestExpression": "'background_operations.get_by_task'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "requestId",
+      "taskId"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/utils/polling.js",
+    "line": 117
+  },
+  {
+    "requestName": "background_operations.get_by_request",
+    "requestExpression": "'background_operations.get_by_request'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "callback",
+      "requestId"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/utils/polling.js",
+    "line": 148
+  },
+  {
+    "requestName": "service.serviceConfigVersion.revert",
+    "requestExpression": "'service.serviceConfigVersion.revert'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "data"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/views/common/configs/config_versions_control_view.js",
+    "line": 200
+  },
+  {
+    "requestName": null,
+    "requestExpression": "(isServiceInstalled) ? 'cluster.custom_action.create' : 'custom_action.create'",
+    "registrationStatus": "DYNAMIC",
+    "dataKeys": [
+      "filteredHosts",
+      "requestInfo"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/views/common/configs/widgets/test_db_connection_widget_view.js",
+    "line": 226,
+    "resolutionStatus": "RESOLVED_CLOSED",
+    "dispatchKind": "INLINE_TERNARY",
+    "candidateRequestNames": [
+      "cluster.custom_action.create",
+      "custom_action.create"
+    ],
+    "dispatchCondition": "A loaded service model selects the cluster-scoped custom action; otherwise the top-level pre-cluster custom action is used.",
+    "boundaryNotes": "The current production set is closed. The runtime boundary is the service model isLoaded state.",
+    "evidence": [
+      "ambari-web/classic/app/views/common/configs/widgets/test_db_connection_widget_view.js:215-237",
+      "ambari-web/classic/app/utils/ajax/ajax.js:2819,2841"
+    ]
+  },
+  {
+    "requestName": "custom_action.request",
+    "requestExpression": "'custom_action.request'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "requestId"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/views/common/configs/widgets/test_db_connection_widget_view.js",
+    "line": 246
+  },
+  {
+    "requestName": "custom_action.request",
+    "requestExpression": "'custom_action.request'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "requestId",
+      "taskId"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/views/common/configs/widgets/test_db_connection_widget_view.js",
+    "line": 267
+  },
+  {
+    "requestName": "admin.kerberos_security.test_connection",
+    "requestExpression": "'admin.kerberos_security.test_connection'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "kdcHostname"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/views/common/controls_view.js",
+    "line": 1332
+  },
+  {
+    "requestName": null,
+    "requestExpression": "(isServiceInstalled) ? 'cluster.custom_action.create' : 'custom_action.create'",
+    "registrationStatus": "DYNAMIC",
+    "dataKeys": [
+      "filteredHosts",
+      "requestInfo"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/views/common/controls_view.js",
+    "line": 1368,
+    "resolutionStatus": "RESOLVED_CLOSED",
+    "dispatchKind": "INLINE_TERNARY",
+    "candidateRequestNames": [
+      "cluster.custom_action.create",
+      "custom_action.create"
+    ],
+    "dispatchCondition": "A loaded parent service model selects the cluster-scoped custom action; otherwise the top-level pre-cluster custom action is used.",
+    "boundaryNotes": "The current production set is closed. This is a separate legacy database-control implementation from the dedicated widget view.",
+    "evidence": [
+      "ambari-web/classic/app/views/common/controls_view.js:1365-1379",
+      "ambari-web/classic/app/utils/ajax/ajax.js:2819,2841"
+    ]
+  },
+  {
+    "requestName": "custom_action.request",
+    "requestExpression": "'custom_action.request'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "requestId"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/views/common/controls_view.js",
+    "line": 1388
+  },
+  {
+    "requestName": "custom_action.request",
+    "requestExpression": "'custom_action.request'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "requestId",
+      "taskId"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/views/common/controls_view.js",
+    "line": 1409
+  },
+  {
+    "requestName": "cancel.background.operation",
+    "requestExpression": "'cancel.background.operation'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "requestId"
+    ],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/views/common/host_progress_popup_body_view.js",
+    "line": 1017
+  },
+  {
+    "requestName": "logtail.get",
+    "requestExpression": "'logtail.get'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "hostName",
+      "logComponentName",
+      "pageSize",
+      "startIndex"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "error"
+    ],
+    "source": "ambari-web/classic/app/views/common/log_tail_view.js",
+    "line": 133
+  },
+  {
+    "requestName": "configs.quicklinksconfig",
+    "requestExpression": "'configs.quicklinksconfig'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "serviceName",
+      "stackVersionUrl"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/views/common/quick_view_link_view.js",
+    "line": 132
+  },
+  {
+    "requestName": "hosts.for_quick_links",
+    "requestExpression": "'hosts.for_quick_links'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "clusterName",
+      "hosts",
+      "urlParams"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/views/common/quick_view_link_view.js",
+    "line": 212
+  },
+  {
+    "requestName": "hosts.all",
+    "requestExpression": "'hosts.all'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": "{}",
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/views/main/admin/highAvailability/nameNode/rollbackHA/step1_view.js",
+    "line": 34
+  },
+  {
+    "requestName": "bulk_request.hosts.passive_state",
+    "requestExpression": "'bulk_request.hosts.passive_state'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "hostNames",
+      "passive_state",
+      "requestInfo"
+    ],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/views/main/admin/stack_upgrade/custom_cluster_checks/custom_cluster_checks_maintenance_view.js",
+    "line": 29
+  },
+  {
+    "requestName": "common.services.update",
+    "requestExpression": "'common.services.update'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": "data",
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/views/main/admin/stack_upgrade/custom_cluster_checks/custom_cluster_checks_view.js",
+    "line": 49
+  },
+  {
+    "requestName": "wizard.advanced_repositories.valid_url",
+    "requestExpression": "'wizard.advanced_repositories.valid_url'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "data",
+      "osType",
+      "repoId",
+      "stackName",
+      "stackVersion"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/views/main/admin/stack_upgrade/services_view.js",
+    "line": 240
+  },
+  {
+    "requestName": "admin.upgrade.service_checks",
+    "requestExpression": "'admin.upgrade.service_checks'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "upgradeId"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success"
+    ],
+    "source": "ambari-web/classic/app/views/main/admin/stack_upgrade/upgrade_wizard_view.js",
+    "line": 310
+  },
+  {
+    "requestName": "ambari.service.load_server_version",
+    "requestExpression": "'ambari.service.load_server_version'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": null,
+    "callbacks": [],
+    "source": "ambari-web/classic/app/views/main/admin/stack_upgrade/versions_view.js",
+    "line": 220
+  },
+  {
+    "requestName": "hosts.confirmed.minimal",
+    "requestExpression": "'hosts.confirmed.minimal'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": "{}",
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/views/main/host/add_view.js",
+    "line": 40
+  },
+  {
+    "requestName": "host.host_component.decommission_status_datanode",
+    "requestExpression": "'host.host_component.decommission_status_datanode'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [
+      "componentName",
+      "hostNames"
+    ],
+    "dataExpression": null,
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/views/main/host/details/host_component_views/datanode_view.js",
+    "line": 34
+  },
+  {
+    "requestName": "host.host_component.decommission_status_regionserver",
+    "requestExpression": "'host.host_component.decommission_status_regionserver'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": "{ hostName, desiredAdminState }",
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/views/main/host/details/host_component_views/regionserver_view.js",
+    "line": 31
+  },
+  {
+    "requestName": "hosts.high_availability.wizard",
+    "requestExpression": "'hosts.high_availability.wizard'",
+    "registrationStatus": "REGISTERED",
+    "dataKeys": [],
+    "dataExpression": "{}",
+    "callbacks": [
+      "success",
+      "error"
+    ],
+    "source": "ambari-web/classic/app/views/main/service/reassign_view.js",
+    "line": 37
+  }
+]

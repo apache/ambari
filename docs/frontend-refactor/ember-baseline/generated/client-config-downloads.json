@@ -1,0 +1,37 @@
+[
+  {
+    "resourceType": "CLUSTER",
+    "endpoint": "/clusters/{clusterName}/components?format=client_config_tar",
+    "method": "GET (browser download)",
+    "source": "ambari-web/classic/app/mixins/main/host/details/support_client_configs_download.js",
+    "line": 69
+  },
+  {
+    "resourceType": "HOST",
+    "endpoint": "/clusters/{clusterName}/hosts/{hostName}/host_components?format=client_config_tar",
+    "method": "GET (browser download)",
+    "source": "ambari-web/classic/app/mixins/main/host/details/support_client_configs_download.js",
+    "line": 63
+  },
+  {
+    "resourceType": "SERVICE",
+    "endpoint": "/clusters/{clusterName}/services/{serviceName}/components?format=client_config_tar",
+    "method": "GET (browser download)",
+    "source": "ambari-web/classic/app/mixins/main/host/details/support_client_configs_download.js",
+    "line": 66
+  },
+  {
+    "resourceType": "SERVICE_COMPONENT",
+    "endpoint": "/clusters/{clusterName}/services/{serviceName}/components/{componentName}?format=client_config_tar",
+    "method": "GET (browser download)",
+    "source": "ambari-web/classic/app/mixins/main/host/details/support_client_configs_download.js",
+    "line": 57
+  },
+  {
+    "resourceType": "HOST_COMPONENT",
+    "endpoint": "/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}?format=client_config_tar",
+    "method": "GET (browser download)",
+    "source": "ambari-web/classic/app/mixins/main/host/details/support_client_configs_download.js",
+    "line": 60
+  }
+]
