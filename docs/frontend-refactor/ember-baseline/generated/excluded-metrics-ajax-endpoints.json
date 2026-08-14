@@ -1,0 +1,2156 @@
+[
+  {
+    "name": "hosts.metrics",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/hosts?fields={metricName}",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/hosts?fields={metricName}'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1089,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "3fc38bea55c2ac57795e441467e2932ed77ef325c0329c7b12b432ca0c14e06b",
+    "callers": []
+  },
+  {
+    "name": "hosts.metrics.host_component",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/services/{serviceName}/components/{componentName}?fields=host_components/{metricName}",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/services/{serviceName}/components/{componentName}?fields=host_components/{metricName}'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1093,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "72f8f46d5b5e09d91fb30cbb9e7ba0b2198fb11a0a52f245b986109b27df7b42",
+    "callers": []
+  },
+  {
+    "name": "service.metrics.flume.channel_fill_percent",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=host_components/metrics/flume/flume/CHANNEL/ChannelFillPercentage[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=host_components/metrics/flume/flume/CHANNEL/ChannelFillPercentage[{fromSeconds},{toSeconds},{stepSeconds}]'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1097,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "1008fe62bde273bcf40fa15768c3e890a7d17574ebe421ea834d013204a8a1a2",
+    "callers": [
+      "ambari-web/classic/app/views/main/service/info/metrics/flume/channel_fill_pct.js:34"
+    ]
+  },
+  {
+    "name": "service.metrics.flume.channel_size",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=host_components/metrics/flume/flume/CHANNEL/ChannelSize[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=host_components/metrics/flume/flume/CHANNEL/ChannelSize[{fromSeconds},{toSeconds},{stepSeconds}]'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1102,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "8540305c9839f4d713d73c017376ce772a4a7ef878d62cbe9220c83fa6890f0e",
+    "callers": [
+      "ambari-web/classic/app/views/main/service/info/metrics/flume/channel_size.js:33"
+    ]
+  },
+  {
+    "name": "service.metrics.flume.sink_drain_success",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=host_components/metrics/flume/flume/SINK/EventDrainSuccessCount[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=host_components/metrics/flume/flume/SINK/EventDrainSuccessCount[{fromSeconds},{toSeconds},{stepSeconds}]'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1107,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "1d56aae9e43a6fbab80e7b7fc85ed62aa1cf030a46f48db9a1e5100fc032c55b",
+    "callers": [
+      "ambari-web/classic/app/views/main/service/info/metrics/flume/sink_drain_success.js:33"
+    ]
+  },
+  {
+    "name": "service.metrics.flume.sink_connection_failed",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=host_components/metrics/flume/flume/SINK/ConnectionFailedCount[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=host_components/metrics/flume/flume/SINK/ConnectionFailedCount[{fromSeconds},{toSeconds},{stepSeconds}]'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1112,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "7f585b0fe5e2d090213b76dd73550028dbcbe8bdec9d2ca2b010774d10d65dfc",
+    "callers": [
+      "ambari-web/classic/app/views/main/service/info/metrics/flume/sink_connection_failed.js:33"
+    ]
+  },
+  {
+    "name": "service.metrics.flume.source_accepted",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=host_components/metrics/flume/flume/SOURCE/EventAcceptedCount[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=host_components/metrics/flume/flume/SOURCE/EventAcceptedCount[{fromSeconds},{toSeconds},{stepSeconds}]'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1117,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "2d2cae8cd5e9a16a17da8e77849415dfe14f23392c2dd0f6f1efe085df601bc1",
+    "callers": [
+      "ambari-web/classic/app/views/main/service/info/metrics/flume/source_accepted.js:33"
+    ]
+  },
+  {
+    "name": "service.metrics.flume.channel_size_for_all",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/ChannelSize/rate[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/ChannelSize/rate[{fromSeconds},{toSeconds},{stepSeconds}]'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1122,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "d1bff1d47a043e8e9701791957f3ef626354d4ccdb21dcb0f14ea8184a70719e",
+    "callers": []
+  },
+  {
+    "name": "service.metrics.flume.channel_size_for_all.mma",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/ChannelSize/rate/avg[{fromSeconds},{toSeconds},{stepSeconds}],metrics/flume/flume/CHANNEL/ChannelSize/rate/max[{fromSeconds},{toSeconds},{stepSeconds}],metrics/flume/flume/CHANNEL/ChannelSize/rate/min[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/ChannelSize/rate/avg[{fromSeconds},{toSeconds},{stepSeconds}],metrics/flume/f...",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1125,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "be72ed0af77d13e7da3d36ecb3cd86ec052acc95e3f2ab9efdcb273eb8b1935f",
+    "callers": [
+      "ambari-web/classic/app/views/main/service/info/metrics/flume/channel_size_mma.js:33"
+    ]
+  },
+  {
+    "name": "service.metrics.flume.channel_size_for_all.sum",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/ChannelSize/rate/sum[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/ChannelSize/rate/sum[{fromSeconds},{toSeconds},{stepSeconds}]'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1128,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "c251ba775bc55fbfa84bdef09416700656bdd411f0fc021fce221cc6d4dbf1ed",
+    "callers": [
+      "ambari-web/classic/app/views/main/service/info/metrics/flume/channel_sum.js:34"
+    ]
+  },
+  {
+    "name": "service.metrics.flume.gc",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=host_components/metrics/jvm/gcTimeMillis[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=host_components/metrics/jvm/gcTimeMillis[{fromSeconds},{toSeconds},{stepSeconds}]'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1131,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "0ae5a414e4c98f427f8321bf848722f2cc97fc69ce7d45745f8990efb32c8d13",
+    "callers": [
+      "ambari-web/classic/app/views/main/service/info/metrics/flume/gc.js:34"
+    ]
+  },
+  {
+    "name": "service.metrics.flume.jvm_heap_used",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=host_components/metrics/jvm/memHeapUsedM[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=host_components/metrics/jvm/memHeapUsedM[{fromSeconds},{toSeconds},{stepSeconds}]'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1136,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "04d3b1b408a84138cc3343bf76b564d8a350165a45a1eb3027900eb5f1e05087",
+    "callers": [
+      "ambari-web/classic/app/views/main/service/info/metrics/flume/jvm_heap.js:35"
+    ]
+  },
+  {
+    "name": "service.metrics.flume.jvm_threads_runnable",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=host_components/metrics/jvm/threadsRunnable[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=host_components/metrics/jvm/threadsRunnable[{fromSeconds},{toSeconds},{stepSeconds}]'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1141,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "70e4810279122c33756d0d30142938804ff9ebc1e602f77a688fbfd4f1639334",
+    "callers": [
+      "ambari-web/classic/app/views/main/service/info/metrics/flume/jvm_threads_runnable.js:34"
+    ]
+  },
+  {
+    "name": "service.metrics.flume.cpu_user",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=host_components/metrics/cpu/cpu_user[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=host_components/metrics/cpu/cpu_user[{fromSeconds},{toSeconds},{stepSeconds}]'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1146,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "957cd5ca550fe0a135d3804f79b22d085403420b5d9848a49800215d70d9ba63",
+    "callers": [
+      "ambari-web/classic/app/views/main/service/info/metrics/flume/cpu_user.js:35"
+    ]
+  },
+  {
+    "name": "service.metrics.flume.incoming_event_put_successCount",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/EventPutSuccessCount/rate[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/EventPutSuccessCount/rate[{fromSeconds},{toSeconds},{stepSeconds}]'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1151,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "42cb62490313d84bd7837676875a7fde4a34d93ace6ad02d2d557fd34acdb0c9",
+    "callers": []
+  },
+  {
+    "name": "service.metrics.flume.incoming_event_put_successCount.mma",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/EventPutSuccessCount/rate/avg[{fromSeconds},{toSeconds},{stepSeconds}],metrics/flume/flume/CHANNEL/EventPutSuccessCount/rate/max[{fromSeconds},{toSeconds},{stepSeconds}],metrics/flume/flume/CHANNEL/EventPutSuccessCount/rate/min[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/EventPutSuccessCount/rate/avg[{fromSeconds},{toSeconds},{stepSeconds}],metric...",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1154,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "be89466e95b5ef2e6aaf861297067463eeb6781ad75d44a3e1a842e893764772",
+    "callers": [
+      "ambari-web/classic/app/views/main/service/info/metrics/flume/flume_incoming_mma.js:33"
+    ]
+  },
+  {
+    "name": "service.metrics.flume.incoming_event_put_successCount.sum",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/EventPutSuccessCount/rate/sum[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/EventPutSuccessCount/rate/sum[{fromSeconds},{toSeconds},{stepSeconds}]'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1157,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "2813183229c58be0767317255eed42bd1262d5f651eb5e9dcc01fb65bf1411d0",
+    "callers": [
+      "ambari-web/classic/app/views/main/service/info/metrics/flume/flume_incoming_sum.js:32"
+    ]
+  },
+  {
+    "name": "service.metrics.flume.outgoing_event_take_success_count",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/EventTakeSuccessCount/rate[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/EventTakeSuccessCount/rate[{fromSeconds},{toSeconds},{stepSeconds}]'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1160,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "16b41de1881b30b00392d545f2134a25453cdbb4854122168792d29d12f620c1",
+    "callers": []
+  },
+  {
+    "name": "service.metrics.flume.outgoing_event_take_success_count.mma",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/EventTakeSuccessCount/rate/avg[{fromSeconds},{toSeconds},{stepSeconds}],metrics/flume/flume/CHANNEL/EventTakeSuccessCount/rate/max[{fromSeconds},{toSeconds},{stepSeconds}],metrics/flume/flume/CHANNEL/EventTakeSuccessCount/rate/min[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/EventTakeSuccessCount/rate/avg[{fromSeconds},{toSeconds},{stepSeconds}],metri...",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1163,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "ffc4f940025898de0be7444973f808b508a85358ba03bbda4e7db03b64c1dd16",
+    "callers": [
+      "ambari-web/classic/app/views/main/service/info/metrics/flume/flume_outgoing_mma.js:33"
+    ]
+  },
+  {
+    "name": "service.metrics.flume.outgoing_event_take_success_count.sum",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/EventTakeSuccessCount/rate/sum[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/EventTakeSuccessCount/rate/sum[{fromSeconds},{toSeconds},{stepSeconds}]'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1166,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "c25bd286ed4b10100af88f9ed2ca5408f3fc83de9c1a3c3b1d82fab1dbf3eb46",
+    "callers": [
+      "ambari-web/classic/app/views/main/service/info/metrics/flume/flume_outgoing_sum.js:32"
+    ]
+  },
+  {
+    "name": "service.metrics.hbase.cluster_requests",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/services/HBASE/components/HBASE_MASTER?fields=metrics/hbase/master/cluster_requests[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/services/HBASE/components/HBASE_MASTER?fields=metrics/hbase/master/cluster_requests[{fromSeconds},{toSeconds},{stepSeconds}]'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1169,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "415772032c39182915dc4b91a05a1b2b27f5a9071f1e1e1e99b245c1f8c31ba4",
+    "callers": []
+  },
+  {
+    "name": "service.metrics.hbase.hlog_split_size",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/services/HBASE/components/HBASE_MASTER?fields=metrics/hbase/master/splitSize_avg_time[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/services/HBASE/components/HBASE_MASTER?fields=metrics/hbase/master/splitSize_avg_time[{fromSeconds},{toSeconds},{stepSeconds}]'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1174,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "ab8884d7f036829b2a7caf3966981f1660060fc8d23ed9c21060a131311226d7",
+    "callers": []
+  },
+  {
+    "name": "service.metrics.hbase.hlog_split_time",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/services/HBASE/components/HBASE_MASTER?fields=metrics/hbase/master/splitTime_avg_time[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/services/HBASE/components/HBASE_MASTER?fields=metrics/hbase/master/splitTime_avg_time[{fromSeconds},{toSeconds},{stepSeconds}]'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1179,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "3f8367b4307eac3f8c323a401cf01baec0cd6faa157faed00225431a7cdae705",
+    "callers": []
+  },
+  {
+    "name": "service.metrics.hbase.regionserver_queuesize",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/services/HBASE/components/HBASE_REGIONSERVER?fields=metrics/hbase/regionserver/flushQueueSize[{fromSeconds},{toSeconds},{stepSeconds}],metrics/hbase/regionserver/compactionQueueSize[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/services/HBASE/components/HBASE_REGIONSERVER?fields=metrics/hbase/regionserver/flushQueueSize[{fromSeconds},{toSeconds},{stepSeconds}],metrics/hbase/reg...",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1184,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "c3f58ff9eb98ddc30a2f8cdfea540d1beff4f1363d34e88a8e53e191f7e428de",
+    "callers": []
+  },
+  {
+    "name": "service.metrics.hbase.regionserver_regions",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/services/HBASE/components/HBASE_REGIONSERVER?fields=metrics/hbase/regionserver/regions[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/services/HBASE/components/HBASE_REGIONSERVER?fields=metrics/hbase/regionserver/regions[{fromSeconds},{toSeconds},{stepSeconds}]'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1189,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "9e4573ab93ed845eb5cd594dbb49f9a9471dbf2504072657d0d52d729333e1a4",
+    "callers": []
+  },
+  {
+    "name": "service.metrics.hbase.regionserver_rw_requests",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/services/HBASE/components/HBASE_REGIONSERVER?fields=metrics/hbase/regionserver/readRequestsCount[{fromSeconds},{toSeconds},{stepSeconds}],metrics/hbase/regionserver/writeRequestsCount[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/services/HBASE/components/HBASE_REGIONSERVER?fields=metrics/hbase/regionserver/readRequestsCount[{fromSeconds},{toSeconds},{stepSeconds}],metrics/hbase/...",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1194,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "8d04de5c813f2434fc31e7eda9dbb6ea4d17694da7d7d5f527939885c4216b76",
+    "callers": []
+  },
+  {
+    "name": "service.metrics.ambari_metrics.master.average_load",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/services/AMBARI_METRICS/components/METRICS_COLLECTOR?fields=metrics/hbase/master/AverageLoad[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/services/AMBARI_METRICS/components/METRICS_COLLECTOR?fields=metrics/hbase/master/AverageLoad[{fromSeconds},{toSeconds},{stepSeconds}]'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1199,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "8c8332c8d4a4fb6c5fb6ddc74bce73b51e2d12163dcea3a21442e4543ffd5195",
+    "callers": [
+      "ambari-web/classic/app/views/main/service/info/metrics/ambari_metrics/master_average_load.js:32"
+    ]
+  },
+  {
+    "name": "service.metrics.ambari_metrics.region_server.store_files",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/services/AMBARI_METRICS/components/METRICS_COLLECTOR?fields=metrics/hbase/regionserver/storefiles[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/services/AMBARI_METRICS/components/METRICS_COLLECTOR?fields=metrics/hbase/regionserver/storefiles[{fromSeconds},{toSeconds},{stepSeconds}]'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1204,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "63053ff501632811f3b986eefcbbc2213fb0bf9a2e881bcb304dd03bf0ce7b68",
+    "callers": [
+      "ambari-web/classic/app/views/main/service/info/metrics/ambari_metrics/regionserver_store_files.js:33"
+    ]
+  },
+  {
+    "name": "service.metrics.ambari_metrics.region_server.regions",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/services/AMBARI_METRICS/components/METRICS_COLLECTOR?fields=metrics/hbase/regionserver/regions[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/services/AMBARI_METRICS/components/METRICS_COLLECTOR?fields=metrics/hbase/regionserver/regions[{fromSeconds},{toSeconds},{stepSeconds}]'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1209,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "f2c91553d50d293e87b7f980e657139a42d171c8813d9bc72ac9a99d5d315986",
+    "callers": [
+      "ambari-web/classic/app/views/main/service/info/metrics/ambari_metrics/regionserver_regions.js:32"
+    ]
+  },
+  {
+    "name": "service.metrics.ambari_metrics.region_server.request",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/services/AMBARI_METRICS/components/METRICS_COLLECTOR?fields=metrics/hbase/regionserver/requests._rate[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/services/AMBARI_METRICS/components/METRICS_COLLECTOR?fields=metrics/hbase/regionserver/requests._rate[{fromSeconds},{toSeconds},{stepSeconds}]'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1214,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "c080164363639b668c01a365514ffe20de6d9227a5199f8d82a9b362610a7f26",
+    "callers": [
+      "ambari-web/classic/app/views/main/service/info/metrics/ambari_metrics/regionserver_requests.js:32"
+    ]
+  },
+  {
+    "name": "service.metrics.ambari_metrics.region_server.block_cache_hit_percent",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/services/AMBARI_METRICS/components/METRICS_COLLECTOR?fields=metrics/hbase/regionserver/blockCacheHitPercent[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/services/AMBARI_METRICS/components/METRICS_COLLECTOR?fields=metrics/hbase/regionserver/blockCacheHitPercent[{fromSeconds},{toSeconds},{stepSeconds}]'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1219,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "3d1da1b350eedaab2c39461c3695157a8499fe3bbb9fd53c7642a6a942df7b2e",
+    "callers": [
+      "ambari-web/classic/app/views/main/service/info/metrics/ambari_metrics/regionserver_block_cache_hit_percent.js:34"
+    ]
+  },
+  {
+    "name": "service.metrics.ambari_metrics.region_server.compaction_queue_size",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/services/AMBARI_METRICS/components/METRICS_COLLECTOR?fields=metrics/hbase/regionserver/compactionQueueSize[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/services/AMBARI_METRICS/components/METRICS_COLLECTOR?fields=metrics/hbase/regionserver/compactionQueueSize[{fromSeconds},{toSeconds},{stepSeconds}]'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1224,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "4276ffecd7049cb886e0c1e535ed85f0a200b023ac23c087ad83269e282667f8",
+    "callers": [
+      "ambari-web/classic/app/views/main/service/info/metrics/ambari_metrics/regionserver_compaction_queue_size.js:32"
+    ]
+  },
+  {
+    "name": "service.metrics.ambari_metrics.aggregated",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/services/AMBARI_METRICS/components/METRICS_COLLECTOR?fields={fields}",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/services/AMBARI_METRICS/components/METRICS_COLLECTOR?fields={fields}'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1229,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "ed23141b5054e44f6868615c4e944a16e8cba3d00c0844650628714084d9668f",
+    "callers": [
+      "ambari-web/classic/app/views/main/service/info/metrics/ambari_metrics/master_average_load.js:35",
+      "ambari-web/classic/app/views/main/service/info/metrics/ambari_metrics/regionserver_block_cache_hit_percent.js:37",
+      "ambari-web/classic/app/views/main/service/info/metrics/ambari_metrics/regionserver_compaction_queue_size.js:35",
+      "ambari-web/classic/app/views/main/service/info/metrics/ambari_metrics/regionserver_regions.js:35",
+      "ambari-web/classic/app/views/main/service/info/metrics/ambari_metrics/regionserver_requests.js:35",
+      "ambari-web/classic/app/views/main/service/info/metrics/ambari_metrics/regionserver_store_files.js:36"
+    ]
+  },
+  {
+    "name": "service.metrics.hdfs.block_status",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/hosts/{nameNodeName}/host_components/NAMENODE?fields=metrics/dfs/FSNamesystem/PendingReplicationBlocks[{fromSeconds},{toSeconds},{stepSeconds}],metrics/dfs/FSNamesystem/UnderReplicatedBlocks[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/hosts/{nameNodeName}/host_components/NAMENODE?fields=metrics/dfs/FSNamesystem/PendingReplicationBlocks[{fromSeconds},{toSeconds},{stepSeconds}],metrics/...",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1234,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "343bc284ff2a53b69b3400e363348c24dfa55d4e51f0fa9a3ec28397dc413eae",
+    "callers": []
+  },
+  {
+    "name": "service.metrics.hdfs.file_operations",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/hosts/{nameNodeName}/host_components/NAMENODE?fields=metrics/dfs/namenode/FileInfoOps[{fromSeconds},{toSeconds},{stepSeconds}],metrics/dfs/namenode/CreateFileOps[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/hosts/{nameNodeName}/host_components/NAMENODE?fields=metrics/dfs/namenode/FileInfoOps[{fromSeconds},{toSeconds},{stepSeconds}],metrics/dfs/namenode/Crea...",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1239,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "fa6c7f3502e3f307fe9ab55c71820def0029445d97dbd78ca9ff292ed38b685e",
+    "callers": []
+  },
+  {
+    "name": "service.metrics.hdfs.gc",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/hosts/{nameNodeName}/host_components/NAMENODE?fields=metrics/jvm/gcTimeMillis[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/hosts/{nameNodeName}/host_components/NAMENODE?fields=metrics/jvm/gcTimeMillis[{fromSeconds},{toSeconds},{stepSeconds}]'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1244,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "9e32c32dc416dd5350757a2d0ac267bd0ceaff404fe4c96118ce34f0935dc6a0",
+    "callers": []
+  },
+  {
+    "name": "service.metrics.hdfs.io",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/services/HDFS/components/DATANODE?fields=metrics/dfs/datanode/bytes_written[{fromSeconds},{toSeconds},{stepSeconds}],metrics/dfs/datanode/bytes_read[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/services/HDFS/components/DATANODE?fields=metrics/dfs/datanode/bytes_written[{fromSeconds},{toSeconds},{stepSeconds}],metrics/dfs/datanode/bytes_read[{fr...",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1249,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "7588858a4419be48381f1c99d59b3c913ca43be64252563ed21fcb637465a359",
+    "callers": []
+  },
+  {
+    "name": "service.metrics.hdfs.jvm_heap",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/hosts/{nameNodeName}/host_components/NAMENODE?fields=metrics/jvm/memNonHeapUsedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memNonHeapCommittedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memHeapUsedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memHeapCommittedM[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/hosts/{nameNodeName}/host_components/NAMENODE?fields=metrics/jvm/memNonHeapUsedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memNonHeapCommitte...",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1254,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "effcb3726457caadcfe20e3d153c76a32402cf88a133ce88ba42e5e855db832f",
+    "callers": []
+  },
+  {
+    "name": "service.metrics.hdfs.jvm_threads",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/hosts/{nameNodeName}/host_components/NAMENODE?fields=metrics/jvm/threadsRunnable[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/threadsBlocked[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/threadsWaiting[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/threadsTimedWaiting[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/hosts/{nameNodeName}/host_components/NAMENODE?fields=metrics/jvm/threadsRunnable[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/threadsBlocked[{fr...",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1259,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "ce5fe9c41676d54e3accf3f8404b1e898e95e0b6fdf6b0ce3ee4e8a175e1eb76",
+    "callers": []
+  },
+  {
+    "name": "service.metrics.hdfs.rpc",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/hosts/{nameNodeName}/host_components/NAMENODE?fields=metrics/rpc/client/RpcQueueTime_avg_time[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/hosts/{nameNodeName}/host_components/NAMENODE?fields=metrics/rpc/client/RpcQueueTime_avg_time[{fromSeconds},{toSeconds},{stepSeconds}]'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1264,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "cdefe76a75e440358fd3ec68cb83e1b39fd7ccfcaec522489427a90b9ccb7900",
+    "callers": []
+  },
+  {
+    "name": "service.metrics.hdfs.space_utilization",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/hosts/{nameNodeName}/host_components/NAMENODE?fields=metrics/dfs/FSNamesystem/CapacityRemaining[{fromSeconds},{toSeconds},{stepSeconds}],metrics/dfs/FSNamesystem/CapacityUsed[{fromSeconds},{toSeconds},{stepSeconds}],metrics/dfs/FSNamesystem/CapacityTotal[{fromSeconds},{toSeconds},{stepSeconds}],metrics/dfs/FSNamesystem/CapacityNonDFSUsed[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/hosts/{nameNodeName}/host_components/NAMENODE?fields=metrics/dfs/FSNamesystem/CapacityRemaining[{fromSeconds},{toSeconds},{stepSeconds}],metrics/dfs/FSN...",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1269,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "f64420dc8f60784d81d34041c615b7dc4ebeb00e4f9c097ac66546ce5bae4366",
+    "callers": []
+  },
+  {
+    "name": "service.metrics.yarn.gc",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/hosts/{resourceManager}/host_components/RESOURCEMANAGER?fields=metrics/jvm/gcTimeMillis[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/hosts/{resourceManager}/host_components/RESOURCEMANAGER?fields=metrics/jvm/gcTimeMillis[{fromSeconds},{toSeconds},{stepSeconds}]'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1274,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "4b9da8367d7e4f91f3c636186cea21b07991bbbe3e227401da6c2bf180139a26",
+    "callers": []
+  },
+  {
+    "name": "service.metrics.yarn.jobs_threads",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/hosts/{resourceManager}/host_components/RESOURCEMANAGER?fields=metrics/jvm/threadsRunnable[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/threadsBlocked[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/threadsWaiting[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/threadsTimedWaiting[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/hosts/{resourceManager}/host_components/RESOURCEMANAGER?fields=metrics/jvm/threadsRunnable[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/threadsB...",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1279,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "91d9251e54d5640f650e47045041770b6bd73d02f224dc79003ef204958d7496",
+    "callers": []
+  },
+  {
+    "name": "service.metrics.yarn.rpc",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/hosts/{resourceManager}/host_components/RESOURCEMANAGER?fields=metrics/rpc/RpcQueueTime_avg_time[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/hosts/{resourceManager}/host_components/RESOURCEMANAGER?fields=metrics/rpc/RpcQueueTime_avg_time[{fromSeconds},{toSeconds},{stepSeconds}]'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1284,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "947b3d87790ffad95fa24fe1104b125135c8a535577e3ed6d5f79f26227e23cc",
+    "callers": []
+  },
+  {
+    "name": "service.metrics.yarn.jobs_heap",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/hosts/{resourceManager}/host_components/RESOURCEMANAGER?fields=metrics/jvm/memNonHeapUsedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memNonHeapCommittedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memHeapUsedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memHeapCommittedM[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/hosts/{resourceManager}/host_components/RESOURCEMANAGER?fields=metrics/jvm/memNonHeapUsedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memNonHe...",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1289,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "d1e6ca62f1f1095657aea00fa5947bcbbaec87ed43d6eaf06a83c4243bdeb735",
+    "callers": []
+  },
+  {
+    "name": "service.metrics.yarn.queue.allocated",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/hosts/{resourceManager}/host_components/RESOURCEMANAGER?fields=metrics/yarn/Queue/root/AvailableMB[{fromSeconds},{toSeconds},{stepSeconds}],metrics/yarn/Queue/root/PendingMB[{fromSeconds},{toSeconds},{stepSeconds}],metrics/yarn/Queue/root/AllocatedMB[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/hosts/{resourceManager}/host_components/RESOURCEMANAGER?fields=metrics/yarn/Queue/root/AvailableMB[{fromSeconds},{toSeconds},{stepSeconds}],metrics/yarn...",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1294,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "a1c5a659844b568645400d349f3ce5786c3cd18e44ed50b3eba2feb52deb7669",
+    "callers": []
+  },
+  {
+    "name": "service.metrics.yarn.queue.allocated.container",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/hosts/{resourceManager}/host_components/RESOURCEMANAGER?fields=metrics/yarn/Queue/root/AllocatedContainers[{fromSeconds},{toSeconds},{stepSeconds}],metrics/yarn/Queue/root/ReservedContainers[{fromSeconds},{toSeconds},{stepSeconds}],metrics/yarn/Queue/root/PendingContainers[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/hosts/{resourceManager}/host_components/RESOURCEMANAGER?fields=metrics/yarn/Queue/root/AllocatedContainers[{fromSeconds},{toSeconds},{stepSeconds}],metr...",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1299,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "5cd50096548b56b984888ef94ca98d415a7f52706b821f1a3cb19716b8b28567",
+    "callers": []
+  },
+  {
+    "name": "service.metrics.yarn.node.manager.statuses",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/hosts/{resourceManager}/host_components/RESOURCEMANAGER?fields=metrics/yarn/ClusterMetrics/NumActiveNMs[{fromSeconds},{toSeconds},{stepSeconds}],metrics/yarn/ClusterMetrics/NumDecommissionedNMs[{fromSeconds},{toSeconds},{stepSeconds}],metrics/yarn/ClusterMetrics/NumLostNMs[{fromSeconds},{toSeconds},{stepSeconds}],metrics/yarn/ClusterMetrics/NumRebootedNMs[{fromSeconds},{toSeconds},{stepSeconds}],metrics/yarn/ClusterMetrics/NumUnhealthyNMs[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/hosts/{resourceManager}/host_components/RESOURCEMANAGER?fields=metrics/yarn/ClusterMetrics/NumActiveNMs[{fromSeconds},{toSeconds},{stepSeconds}],metrics...",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1304,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "204042943ea56c1622e36f79ba9442b74abd4d22acb000fe99b8b7a66de2cd89",
+    "callers": []
+  },
+  {
+    "name": "service.metrics.yarn.queue.memory.resource",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/hosts/{resourceManager}/host_components/RESOURCEMANAGER?fields=",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/hosts/{resourceManager}/host_components/RESOURCEMANAGER?fields='",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": true,
+    "formatExpression": "function (data, opt) {\n      var field1 = 'metrics/yarn/Queue/{queueName}/AllocatedMB[{fromSeconds},{toSeconds},{stepSeconds}]';\n      var field2 = 'metrics/yarn/Queue/{queueName}/AvailableMB[{fromSeconds},{toSeconds},{stepSeconds}]';\n      if (opt.url != null && data.queueNames != null && data.queueNames.length > 0) {\n        data.queueNames.forEach(function (q) {\n          data.queueName = q;\n          opt.url += (formatUrl(field1, data) + \",\");\n          opt.url += (formatUrl(field2, data) + \",\");\n        });\n      } else {\n        opt.url += (formatUrl(field1, data) + \",\");\n        opt.url += (formatUrl(field2, data) + \",\");\n      }\n    }",
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [
+      "queueName",
+      "queueNames"
+    ],
+    "line": 1309,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "1a32fc3ed138abf63211daeba3ce85b30f554f32a6e8e81692412b0a0a4e62d0",
+    "callers": []
+  },
+  {
+    "name": "service.metrics.yarn.queue.apps.states.current",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/hosts/{resourceManager}/host_components/RESOURCEMANAGER?fields=metrics/yarn/Queue/root/AppsPending[{fromSeconds},{toSeconds},{stepSeconds}],metrics/yarn/Queue/root/AppsRunning[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/hosts/{resourceManager}/host_components/RESOURCEMANAGER?fields=metrics/yarn/Queue/root/AppsPending[{fromSeconds},{toSeconds},{stepSeconds}],metrics/yarn...",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1328,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "dcd20b263ec3f97131a473aaf98bef00282020b2cfdc2164cdb37961bfcb9803",
+    "callers": []
+  },
+  {
+    "name": "service.metrics.yarn.queue.apps.states.finished",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/hosts/{resourceManager}/host_components/RESOURCEMANAGER?fields=metrics/yarn/Queue/root/AppsKilled[{fromSeconds},{toSeconds},{stepSeconds}],metrics/yarn/Queue/root/AppsFailed[{fromSeconds},{toSeconds},{stepSeconds}],metrics/yarn/Queue/root/AppsSubmitted[{fromSeconds},{toSeconds},{stepSeconds}],metrics/yarn/Queue/root/AppsCompleted[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/hosts/{resourceManager}/host_components/RESOURCEMANAGER?fields=metrics/yarn/Queue/root/AppsKilled[{fromSeconds},{toSeconds},{stepSeconds}],metrics/yarn/...",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1333,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "6ed4a964762d2c7bd1144a6c6c5eef266f2728af106691b35a1fa295f7021307",
+    "callers": []
+  },
+  {
+    "name": "service.metrics.kafka.broker.topic",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/services/KAFKA/components/KAFKA_BROKER?fields=metrics/kafka/server/BrokerTopicMetrics/AllTopicsBytesInPerSec/1MinuteRate[{fromSeconds},{toSeconds},{stepSeconds}],metrics/kafka/server/BrokerTopicMetrics/AllTopicsBytesOutPerSec/1MinuteRate[{fromSeconds},{toSeconds},{stepSeconds}],metrics/kafka/server/BrokerTopicMetrics/AllTopicsMessagesInPerSec/1MinuteRate[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/services/KAFKA/components/KAFKA_BROKER?fields=metrics/kafka/server/BrokerTopicMetrics/AllTopicsBytesInPerSec/1MinuteRate[{fromSeconds},{toSeconds},{step...",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1338,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "b2f872c5009243332b095e637033754ca7f959999ffc8c54427c18c010e9e491",
+    "callers": []
+  },
+  {
+    "name": "service.metrics.kafka.controller.KafkaController",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/services/KAFKA/components/KAFKA_BROKER?fields=metrics/kafka/controller/KafkaController/ActiveControllerCount[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/services/KAFKA/components/KAFKA_BROKER?fields=metrics/kafka/controller/KafkaController/ActiveControllerCount[{fromSeconds},{toSeconds},{stepSeconds}]'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1342,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "a023396103d0f6f16f9b165ebcf5337c7563ddbb892b654b586b64c22b0b3205",
+    "callers": []
+  },
+  {
+    "name": "service.metrics.kafka.controller.ControllerStats",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/services/KAFKA/components/KAFKA_BROKER?fields=metrics/kafka/controller/ControllerStats/LeaderElectionRateAndTimeMs/1MinuteRate[{fromSeconds},{toSeconds},{stepSeconds}],metrics/kafka/controller/ControllerStats/UncleanLeaderElectionsPerSec/1MinuteRate[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/services/KAFKA/components/KAFKA_BROKER?fields=metrics/kafka/controller/ControllerStats/LeaderElectionRateAndTimeMs/1MinuteRate[{fromSeconds},{toSeconds}...",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1346,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "a2f542a9231f73c0c0b506369344f800d0f27882a3bb78a0018e47b2abd9b0c4",
+    "callers": []
+  },
+  {
+    "name": "service.metrics.kafka.log.LogFlushStats",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/services/KAFKA/components/KAFKA_BROKER?fields=metrics/kafka/log/LogFlushStats/LogFlushRateAndTimeMs/1MinuteRate[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/services/KAFKA/components/KAFKA_BROKER?fields=metrics/kafka/log/LogFlushStats/LogFlushRateAndTimeMs/1MinuteRate[{fromSeconds},{toSeconds},{stepSeconds}]'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1350,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "0ffb792d2a92f696b21fb0746f7efa12dae8ad2763bf4a7a33f7b7d6c096c5a7",
+    "callers": []
+  },
+  {
+    "name": "service.metrics.kafka.server.ReplicaManager",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/services/KAFKA/components/KAFKA_BROKER?fields=metrics/kafka/server/ReplicaManager/PartitionCount[{fromSeconds},{toSeconds},{stepSeconds}],metrics/kafka/server/ReplicaManager/UnderReplicatedPartitions[{fromSeconds},{toSeconds},{stepSeconds}],metrics/kafka/server/BrokerTopicMetrics/ReplicaManager/LeaderCount[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/services/KAFKA/components/KAFKA_BROKER?fields=metrics/kafka/server/ReplicaManager/PartitionCount[{fromSeconds},{toSeconds},{stepSeconds}],metrics/kafka/...",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1354,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "4a37bcaed80893f22a3b1c5c0bb6509ee6060bf061bd74b22770dee79b51c272",
+    "callers": []
+  },
+  {
+    "name": "service.metrics.kafka.server.ReplicaFetcherManager",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/services/KAFKA/components/KAFKA_BROKER?fields=metrics/kafka/server/ReplicaFetcherManager/Replica-MaxLag[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/services/KAFKA/components/KAFKA_BROKER?fields=metrics/kafka/server/ReplicaFetcherManager/Replica-MaxLag[{fromSeconds},{toSeconds},{stepSeconds}]'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1358,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "787daf9f0ab76e0bbcd68e5700343576af58431bc6d44ff9f98a7c7d9263d6c6",
+    "callers": []
+  },
+  {
+    "name": "service.metrics.storm.nimbus",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/services/STORM/components/NIMBUS?fields={metricsTemplate}",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/services/STORM/components/NIMBUS?fields={metricsTemplate}'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1362,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "a0a0bab1a7a7d0bc6e1448d150d74e1debdf9ec4cdb2859225938d6573c6d13d",
+    "callers": []
+  },
+  {
+    "name": "dashboard.cluster_metrics.cpu",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}?fields=metrics/cpu/Nice._avg[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/System._avg[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/User._avg[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/Idle._avg[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}?fields=metrics/cpu/Nice._avg[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/System._avg[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/User....",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1366,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "348ff77e0c75ea4cc5a19991ee2ae53a35a4a408a0507cfb9c6ca3abf42585a1",
+    "callers": [
+      "ambari-web/classic/app/views/main/dashboard/cluster_metrics/cpu.js:32"
+    ]
+  },
+  {
+    "name": "dashboard.cluster_metrics.load",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/?fields=metrics/load/1-min._avg[{fromSeconds},{toSeconds},{stepSeconds}],metrics/load/CPUs._avg[{fromSeconds},{toSeconds},{stepSeconds}],metrics/load/Nodes._avg[{fromSeconds},{toSeconds},{stepSeconds}],metrics/load/Procs._avg[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/?fields=metrics/load/1-min._avg[{fromSeconds},{toSeconds},{stepSeconds}],metrics/load/CPUs._avg[{fromSeconds},{toSeconds},{stepSeconds}],metrics/load/No...",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1371,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "d18128df5a93bd00473fa785a3f4957081fc20f07e026ecc2e122bca9b29086a",
+    "callers": [
+      "ambari-web/classic/app/views/main/dashboard/cluster_metrics/load.js:33"
+    ]
+  },
+  {
+    "name": "dashboard.cluster_metrics.memory",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/?fields=metrics/memory/Buffer._avg[{fromSeconds},{toSeconds},{stepSeconds}],metrics/memory/Cache._avg[{fromSeconds},{toSeconds},{stepSeconds}],metrics/memory/Share._avg[{fromSeconds},{toSeconds},{stepSeconds}],metrics/memory/Swap._avg[{fromSeconds},{toSeconds},{stepSeconds}],metrics/memory/Total._avg[{fromSeconds},{toSeconds},{stepSeconds}],metrics/memory/Use._avg[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/?fields=metrics/memory/Buffer._avg[{fromSeconds},{toSeconds},{stepSeconds}],metrics/memory/Cache._avg[{fromSeconds},{toSeconds},{stepSeconds}],metrics/m...",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1376,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "ce09f8ccfabfbd8c3ed765a503eca5ee10f457f81566683e79fa0a7563f013fc",
+    "callers": [
+      "ambari-web/classic/app/views/main/dashboard/cluster_metrics/memory.js:32"
+    ]
+  },
+  {
+    "name": "dashboard.cluster_metrics.network",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/?fields=metrics/network/In._avg[{fromSeconds},{toSeconds},{stepSeconds}],metrics/network/Out._avg[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/?fields=metrics/network/In._avg[{fromSeconds},{toSeconds},{stepSeconds}],metrics/network/Out._avg[{fromSeconds},{toSeconds},{stepSeconds}]'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1381,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "053d3f2e8adb98d505fc6ddcd2f30216574d088ab0f2d5b97dca245c8b83407f",
+    "callers": [
+      "ambari-web/classic/app/views/main/dashboard/cluster_metrics/network.js:33"
+    ]
+  },
+  {
+    "name": "host.metrics.aggregated",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/hosts/{hostName}?fields={fields}",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/hosts/{hostName}?fields={fields}'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1386,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "65040ce3e1705b5c0dc8e38e89109ff6d313502facfcf6b179056d0172aebebe",
+    "callers": [
+      "ambari-web/classic/app/views/main/host/metrics/cpu.js:37",
+      "ambari-web/classic/app/views/main/host/metrics/disk.js:38",
+      "ambari-web/classic/app/views/main/host/metrics/load.js:37",
+      "ambari-web/classic/app/views/main/host/metrics/memory.js:38",
+      "ambari-web/classic/app/views/main/host/metrics/network.js:38",
+      "ambari-web/classic/app/views/main/host/metrics/processes.js:37"
+    ]
+  },
+  {
+    "name": "host.metrics.cpu",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/hosts/{hostName}?fields=metrics/cpu/cpu_user[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/cpu_wio[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/cpu_nice[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/cpu_aidle[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/cpu_system[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/cpu_idle[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/hosts/{hostName}?fields=metrics/cpu/cpu_user[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/cpu_wio[{fromSeconds},{toSeconds},{stepSeconds}],metri...",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1390,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "4edc2a638557c8351b0425d76ade1469bee225b747205424c7c448fb33cb07bb",
+    "callers": [
+      "ambari-web/classic/app/views/main/host/metrics/cpu.js:34"
+    ]
+  },
+  {
+    "name": "host.metrics.disk",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/hosts/{hostName}?fields=metrics/disk/disk_total[{fromSeconds},{toSeconds},{stepSeconds}],metrics/disk/disk_free[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/hosts/{hostName}?fields=metrics/disk/disk_total[{fromSeconds},{toSeconds},{stepSeconds}],metrics/disk/disk_free[{fromSeconds},{toSeconds},{stepSeconds}]'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1395,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "559ed204c790f41331fa973488e2ae4a6ec37989ae897103e647b4b1cbdf6109",
+    "callers": [
+      "ambari-web/classic/app/views/main/host/metrics/disk.js:35"
+    ]
+  },
+  {
+    "name": "host.metrics.load",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/hosts/{hostName}?fields=metrics/load/load_fifteen[{fromSeconds},{toSeconds},{stepSeconds}],metrics/load/load_one[{fromSeconds},{toSeconds},{stepSeconds}],metrics/load/load_five[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/hosts/{hostName}?fields=metrics/load/load_fifteen[{fromSeconds},{toSeconds},{stepSeconds}],metrics/load/load_one[{fromSeconds},{toSeconds},{stepSeconds}...",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1400,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "812093e0f682518a810245b3ee523eb71ece6a0d4ac82343fee5b1e846c7f4a0",
+    "callers": [
+      "ambari-web/classic/app/views/main/host/metrics/load.js:34"
+    ]
+  },
+  {
+    "name": "host.metrics.memory",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/hosts/{hostName}?fields=metrics/memory/swap_free[{fromSeconds},{toSeconds},{stepSeconds}],metrics/memory/mem_shared[{fromSeconds},{toSeconds},{stepSeconds}],metrics/memory/mem_free[{fromSeconds},{toSeconds},{stepSeconds}],metrics/memory/mem_cached[{fromSeconds},{toSeconds},{stepSeconds}],metrics/memory/mem_buffers[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/hosts/{hostName}?fields=metrics/memory/swap_free[{fromSeconds},{toSeconds},{stepSeconds}],metrics/memory/mem_shared[{fromSeconds},{toSeconds},{stepSecon...",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1405,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "c6e596c20c60704cdaf7e60dbedb8c179e662cb963299ac4b5a0629ac1750e61",
+    "callers": [
+      "ambari-web/classic/app/views/main/host/metrics/memory.js:35"
+    ]
+  },
+  {
+    "name": "host.metrics.network",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/hosts/{hostName}?fields=metrics/network/bytes_in[{fromSeconds},{toSeconds},{stepSeconds}],metrics/network/bytes_out[{fromSeconds},{toSeconds},{stepSeconds}],metrics/network/pkts_in[{fromSeconds},{toSeconds},{stepSeconds}],metrics/network/pkts_out[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/hosts/{hostName}?fields=metrics/network/bytes_in[{fromSeconds},{toSeconds},{stepSeconds}],metrics/network/bytes_out[{fromSeconds},{toSeconds},{stepSecon...",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1410,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "323e0f789de2b8d281b2c31bf1d1d97d1fa40dc5d8c3cebc3c4e04e42589b9dc",
+    "callers": [
+      "ambari-web/classic/app/views/main/host/metrics/network.js:35"
+    ]
+  },
+  {
+    "name": "host.metrics.processes",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/hosts/{hostName}?fields=metrics/process/proc_total[{fromSeconds},{toSeconds},{stepSeconds}],metrics/process/proc_run[{fromSeconds},{toSeconds},{stepSeconds}]",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/hosts/{hostName}?fields=metrics/process/proc_total[{fromSeconds},{toSeconds},{stepSeconds}],metrics/process/proc_run[{fromSeconds},{toSeconds},{stepSeco...",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 1415,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "375ff8231c4645119d87c09a5d8fc6a425d85fc15f11d602ae790b6af3c1c365",
+    "callers": [
+      "ambari-web/classic/app/views/main/host/metrics/processes.js:34"
+    ]
+  },
+  {
+    "name": "host.host_component.flume.metrics",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/hosts/{hostName}/host_components/FLUME_HANDLER?fields=metrics/flume/flume/{flumeComponent}/*",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/hosts/{hostName}/host_components/FLUME_HANDLER?fields=metrics/flume/flume/{flumeComponent}/*'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 2674,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "3f0b8ede01f2ed235a7149c3c7b17b76f417bb2d5b39539469e83ecb5fdead17",
+    "callers": [
+      "ambari-web/classic/app/views/main/service/info/metrics/flume/flume_metric_graphs.js:31"
+    ]
+  },
+  {
+    "name": "host.host_component.flume.metrics.timeseries",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "data.url",
+    "endpointSource": "format",
+    "endpointExpression": "data.url",
+    "hasDynamicUrl": true,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": true,
+    "formatExpression": "function (data) {\n      return {\n        url: data.url\n      }\n    }",
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [
+      "data.url"
+    ],
+    "inputKeys": [
+      "url"
+    ],
+    "line": 2678,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "1e0c65a00aec451ea8d3ae9a60040fdb412ca436e9e09aa5b10d11b91cdf367d",
+    "callers": [
+      "ambari-web/classic/app/views/main/service/info/metrics/flume/flume_metric_graph.js:42"
+    ]
+  },
+  {
+    "name": "hosts.heatmaps",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/hosts?fields=Hosts/rack_info,Hosts/host_name,Hosts/public_host_name,Hosts/os_type,Hosts/ip,host_components,metrics/disk,metrics/cpu/cpu_system,metrics/cpu/cpu_user,metrics/memory/mem_total,metrics/memory/mem_free&minimal_response=true",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/hosts?fields=Hosts/rack_info,Hosts/host_name,Hosts/public_host_name,Hosts/os_type,Hosts/ip,host_components,metrics/disk,metrics/cpu/cpu_system,metrics/c...",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 2810,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "fb78d5a9e81e6453e720c123112a819fbbe7839e0b3e731f853556ce44ecc4ce",
+    "callers": [
+      "ambari-web/classic/app/controllers/main/charts/heatmap.js:147"
+    ]
+  },
+  {
+    "name": "namenode.cpu_wio",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/hosts/{nnHost}?fields=metrics/cpu",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/hosts/{nnHost}?fields=metrics/cpu'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 2814,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "ea874a02dc0fc7512e6886a18a8e1b4b757050a15ed5c7fb5db68a767d1ad8fd",
+    "callers": [
+      "ambari-web/classic/app/views/main/dashboard/widgets/namenode_cpu.js:57"
+    ]
+  },
+  {
+    "name": "widgets.get",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/widgets?{urlParams}",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/widgets?{urlParams}'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 3069,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "43b23ed633186cce0698a4f622ccb68eac1b9924ede12345ac2e06754e6afde2",
+    "callers": [
+      "ambari-web/classic/app/controllers/main/charts/heatmap.js:129",
+      "ambari-web/classic/app/mixins/common/widgets/widget_section.js:199"
+    ]
+  },
+  {
+    "name": "widgets.all.shared.get",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/widgets?WidgetInfo/scope=CLUSTER&fields=*",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/widgets?WidgetInfo/scope=CLUSTER&fields=*'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 3074,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "14cb65d59047fa94c6fa389016a75aaa6ec8dbdaad6884ce8079ad9cb8d78f3a",
+    "callers": [
+      "ambari-web/classic/app/controllers/main/service/info/metric.js:83"
+    ]
+  },
+  {
+    "name": "widgets.all.mine.get",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/widgets?WidgetInfo/scope=USER&WidgetInfo/author={loginName}&fields=*",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/widgets?WidgetInfo/scope=USER&WidgetInfo/author={loginName}&fields=*'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 3079,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "8f525d90ede905fea683738d27b22edbff2d76744cd7964f644b17afd5ae0432",
+    "callers": [
+      "ambari-web/classic/app/controllers/main/service/info/metric.js:138"
+    ]
+  },
+  {
+    "name": "widgets.layout.stackDefined.get",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "{stackVersionURL}/services/{serviceName}/artifacts/widget_descriptor",
+    "endpointSource": "real",
+    "endpointExpression": "'{stackVersionURL}/services/{serviceName}/artifacts/widget_descriptor'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 3084,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "cdd2abc48fea9cbc7a4586439ce6d46ce6d23be839ab4fa38b19228b5a34d0df",
+    "callers": []
+  },
+  {
+    "name": "widget.layout.id.get",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/widget_layouts/{layoutId}",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/widget_layouts/{layoutId}'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 3089,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "855ab53e37f165e861c836f4c9aa83be9add56ee0cd1bd78eb5f30d86faca992",
+    "callers": []
+  },
+  {
+    "name": "widget.layout.name.get",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/widget_layouts?WidgetLayoutInfo/layout_name={name}",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/widget_layouts?WidgetLayoutInfo/layout_name={name}'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 3094,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "f5f637c7159f76919cc6cf9ef0622f6778dbb7c9ebbeacb8044f3b36c95b5c52",
+    "callers": [
+      "ambari-web/classic/app/controllers/main/service/widgets/create/wizard_controller.js:400"
+    ]
+  },
+  {
+    "name": "widget.layout.delete",
+    "methods": [
+      "DELETE"
+    ],
+    "endpoint": "/clusters/{clusterName}/widget_layouts/{layoutId}",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/widget_layouts/{layoutId}'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": "'DELETE'",
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 3099,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "9247492bb560a86c8c00dd76f399b23955be10964370113c4b24526112cc93a3",
+    "callers": [
+      "ambari-web/classic/app/mixins/common/widgets/widget_section.js:519"
+    ]
+  },
+  {
+    "name": "widget.layout.get",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/widget_layouts?{urlParams}",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/widget_layouts?{urlParams}'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 3104,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "bc537eacf53aa54b370c3a5f49242d771d8a627f3055e219fe43d0b88346fa55",
+    "callers": [
+      "ambari-web/classic/app/mixins/common/widgets/widget_section.js:295"
+    ]
+  },
+  {
+    "name": "widget.layout.edit",
+    "methods": [
+      "PUT"
+    ],
+    "endpoint": "/clusters/{clusterName}/widget_layouts/{layoutId}",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/widget_layouts/{layoutId}'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": true,
+    "formatExpression": "function (data) {\n      return {\n        type: 'PUT',\n        data: JSON.stringify(data.data)\n      }\n    }",
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [
+      "'PUT'"
+    ],
+    "formatUrlExpressions": [],
+    "inputKeys": [
+      "data"
+    ],
+    "line": 3109,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "e7c159a50033c22f19a7bf283797e37ee5566372f1693ffc51a3d28c54d77916",
+    "callers": [
+      "ambari-web/classic/app/controllers/main/service/info/metric.js:219",
+      "ambari-web/classic/app/controllers/main/service/info/metric.js:275",
+      "ambari-web/classic/app/mixins/common/widgets/widget_section.js:346",
+      "ambari-web/classic/app/mixins/common/widgets/widget_section.js:390"
+    ]
+  },
+  {
+    "name": "widget.layout.create",
+    "methods": [
+      "POST"
+    ],
+    "endpoint": "/clusters/{clusterName}/widget_layouts",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/widget_layouts'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": true,
+    "formatExpression": "function (data) {\n      return {\n        type: 'POST',\n        data: JSON.stringify(data.data)\n      }\n    }",
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [
+      "'POST'"
+    ],
+    "formatUrlExpressions": [],
+    "inputKeys": [
+      "data"
+    ],
+    "line": 3120,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "db16443567922debfbf1a57ebedbb5772ba0a71c96481c62cb03e88491b37296",
+    "callers": [
+      "ambari-web/classic/app/mixins/common/widgets/widget_section.js:320"
+    ]
+  },
+  {
+    "name": "widgets.layout.userDefined.get",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/users/{loginName}/widget_layouts?section_name={sectionName}",
+    "endpointSource": "real",
+    "endpointExpression": "'/users/{loginName}/widget_layouts?section_name={sectionName}'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 3131,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "ea0a84051118e01e797dad54416785dc3553f413b209bfdad8adfa1215ebc6ae",
+    "callers": []
+  },
+  {
+    "name": "widgets.layouts.get",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/users?widget_layouts/section_name={sectionName}&widget_layouts/scope=CLUSTER",
+    "endpointSource": "real",
+    "endpointExpression": "'/users?widget_layouts/section_name={sectionName}&widget_layouts/scope=CLUSTER'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 3136,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "f2fb8cc4501e1ee251b19de7dabb72d01088cdf741022d6e6e690abb52d5eb01",
+    "callers": [
+      "ambari-web/classic/app/controllers/main/service/info/metric.js:61"
+    ]
+  },
+  {
+    "name": "widgets.layouts.active.get",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/users/{userName}/activeWidgetLayouts?{urlParams}",
+    "endpointSource": "real",
+    "endpointExpression": "'/users/{userName}/activeWidgetLayouts?{urlParams}'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 3141,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "43fdda78905cde35673cdb8aa18b988e21ac571666d8461425435738952613a1",
+    "callers": [
+      "ambari-web/classic/app/mixins/common/widgets/widget_section.js:128"
+    ]
+  },
+  {
+    "name": "widgets.layouts.all.active.get",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/users/{userName}/activeWidgetLayouts",
+    "endpointSource": "real",
+    "endpointExpression": "'/users/{userName}/activeWidgetLayouts'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 3146,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "c25ac14b992e0fc1869764aa3020cdcfd49180c35ae15020615ca02814119bdf",
+    "callers": [
+      "ambari-web/classic/app/mixins/common/widgets/widget_section.js:265"
+    ]
+  },
+  {
+    "name": "widget.activelayouts.edit",
+    "methods": [
+      "PUT"
+    ],
+    "endpoint": "/users/{userName}/activeWidgetLayouts/",
+    "endpointSource": "real",
+    "endpointExpression": "'/users/{userName}/activeWidgetLayouts/'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": true,
+    "formatExpression": "function (data) {\n      return {\n        type: 'PUT',\n        data: JSON.stringify(data.data)\n      }\n    }",
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [
+      "'PUT'"
+    ],
+    "formatUrlExpressions": [],
+    "inputKeys": [
+      "data"
+    ],
+    "line": 3152,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "9bf376ffbcd54f6752e84e4d255f47659449cdcc0e6f1070fa9276b2c659f562",
+    "callers": [
+      "ambari-web/classic/app/mixins/common/widgets/widget_section.js:357"
+    ]
+  },
+  {
+    "name": "widget.action.delete",
+    "methods": [
+      "DELETE"
+    ],
+    "endpoint": "/clusters/{clusterName}/widgets/{id}",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/widgets/{id}'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": true,
+    "formatExpression": "function (data) {\n      return {\n        type: 'DELETE'\n      }\n    }",
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [
+      "'DELETE'"
+    ],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 3164,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "8f81d7efaacebf83d7db3e69b42571f51b98964c7c7e3d3ff2106a43eec34adb",
+    "callers": [
+      "ambari-web/classic/app/controllers/main/service/info/metric.js:324"
+    ]
+  },
+  {
+    "name": "widgets.serviceComponent.metrics.get",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/services/{serviceName}/components/{componentName}?fields={metricPaths}&format=null_padding",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/services/{serviceName}/components/{componentName}?fields={metricPaths}&format=null_padding'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 3174,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "f5fa47f20070a2e0bd7bf3175251307a25f9ff980e34d63101677287f28bdb3b",
+    "callers": [
+      "ambari-web/classic/app/mixins/common/widgets/widget_mixin.js:216",
+      "ambari-web/classic/app/mixins/common/widgets/widget_mixin.js:391"
+    ]
+  },
+  {
+    "name": "widgets.hostComponent.metrics.get",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/host_components?HostRoles/component_name={componentName}{hostComponentCriteria}&fields={metricPaths}&format=null_padding{selectedHostsParam}",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/host_components?HostRoles/component_name={componentName}{hostComponentCriteria}&fields={metricPaths}&format=null_padding{selectedHostsParam}'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 3179,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "c2e55419a11c0654ff5cf74eaf83443f63da964a49da3b6f895bbe9d42149a4d",
+    "callers": [
+      "ambari-web/classic/app/mixins/common/widgets/widget_mixin.js:271"
+    ]
+  },
+  {
+    "name": "widgets.hosts.metrics.get",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "/clusters/{clusterName}/hosts?fields={metricPaths}",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/hosts?fields={metricPaths}'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 3184,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "dc61a61a166ca5f508cf776dfca265965f97602f1bf7af8df55aa5a766de8314",
+    "callers": [
+      "ambari-web/classic/app/mixins/common/widgets/widget_mixin.js:420"
+    ]
+  },
+  {
+    "name": "widgets.wizard.metrics.get",
+    "methods": [
+      "GET"
+    ],
+    "endpoint": "{stackVersionURL}/services?artifacts/Artifacts/artifact_name=metrics_descriptor&StackServices/service_name.in({serviceNames})&fields=artifacts/*",
+    "endpointSource": "real",
+    "endpointExpression": "'{stackVersionURL}/services?artifacts/Artifacts/artifact_name=metrics_descriptor&StackServices/service_name.in({serviceNames})&fields=artifacts/*'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": false,
+    "formatExpression": null,
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [],
+    "formatUrlExpressions": [],
+    "inputKeys": [],
+    "line": 3189,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "3e4f8494f00ef40071f7f579804cea6383723bdc4b8ca689e65cb7347a1e02b0",
+    "callers": [
+      "ambari-web/classic/app/controllers/main/service/widgets/create/wizard_controller.js:208"
+    ]
+  },
+  {
+    "name": "widgets.wizard.add",
+    "methods": [
+      "POST"
+    ],
+    "endpoint": "/clusters/{clusterName}/widgets/",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/widgets/'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": true,
+    "formatExpression": "function (data) {\n      return {\n        type: 'POST',\n        data: JSON.stringify(data.data)\n      };\n    }",
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [
+      "'POST'"
+    ],
+    "formatUrlExpressions": [],
+    "inputKeys": [
+      "data"
+    ],
+    "line": 3194,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "46e221e2f2777c35d850252730f22bf7cba8e4c8bc8a7ad062a769b2ee66471a",
+    "callers": [
+      "ambari-web/classic/app/controllers/main/service/widgets/create/wizard_controller.js:340",
+      "ambari-web/classic/app/mixins/common/widgets/widget_mixin.js:643",
+      "ambari-web/classic/app/mixins/common/widgets/widget_section.js:209"
+    ]
+  },
+  {
+    "name": "widgets.wizard.edit",
+    "methods": [
+      "PUT"
+    ],
+    "endpoint": "/clusters/{clusterName}/widgets/{widgetId}",
+    "endpointSource": "real",
+    "endpointExpression": "'/clusters/{clusterName}/widgets/{widgetId}'",
+    "hasDynamicUrl": false,
+    "apiPrefix": "/api/v1 (default)",
+    "hasFormat": true,
+    "formatExpression": "function (data) {\n      return {\n        type: 'PUT',\n        data: JSON.stringify(data.data)\n      };\n    }",
+    "topLevelTypeExpression": null,
+    "formatTypeExpressions": [
+      "'PUT'"
+    ],
+    "formatUrlExpressions": [],
+    "inputKeys": [
+      "data"
+    ],
+    "line": 3205,
+    "source": "ambari-web/classic/app/utils/ajax/ajax.js",
+    "sourceContractSha256": "8c5b062dbd8759eed826d6d8f9eb51eaea5286ffe4acf15a42a0001f365b3309",
+    "callers": [
+      "ambari-web/classic/app/controllers/main/service/info/metric.js:355",
+      "ambari-web/classic/app/controllers/main/service/widgets/edit_controller.js:123"
+    ]
+  }
+]
