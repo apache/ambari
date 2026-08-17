@@ -37,6 +37,10 @@ import { getAllComponents } from "../../../Hosts/utils";
 import { ServiceApi } from "../../../../api/serviceApi";
 import { ClusterProgressStatus } from "../../../../constants";
 import modalManager from "../../../../store/ModalManager";
+import {
+  CANCEL_ADD_SERVICE_WIZARD_EVENT,
+  clearAddServiceWizardState,
+} from "../../../../Utils/addServicePersistence";
 
 interface AddServiceContextProps {
   state: State;
@@ -73,6 +77,7 @@ export const AddServiceProvider: React.FC<{
   const isCancelled = useRef(false);
   const requestSequence = useRef(0);
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+  const cancelWizardRef = useRef<(() => Promise<void>) | null>(null);
 
   // Custom debounced persist function with cancellation capability
   const debouncedPersist = () => {
@@ -385,15 +390,7 @@ export const AddServiceProvider: React.FC<{
 
     try {
       // Clear the persisted state with the latest sequence number
-      await ClusterApi.postPersistData(
-        JSON.stringify({
-          ADD_SERVICE: JSON.stringify({
-            ...initialState,
-            requestSequence: cancelSequence,
-          }),
-          CLUSTER_STATE: JSON.stringify({}),
-        })
-      );
+      await clearAddServiceWizardState(initialState, cancelSequence);
     } catch (error: any) {
       console.error('Error clearing persisted data:', error);
     } finally {
@@ -402,6 +399,23 @@ export const AddServiceProvider: React.FC<{
       window.location.reload();
     }
   }
+
+  cancelWizardRef.current = flushOnCancel;
+
+  useEffect(() => {
+    const cancelWizard = () => {
+      void cancelWizardRef.current?.();
+    };
+    window.addEventListener(CANCEL_ADD_SERVICE_WIZARD_EVENT, cancelWizard);
+    return () => {
+      window.removeEventListener(CANCEL_ADD_SERVICE_WIZARD_EVENT, cancelWizard);
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+        debounceTimer.current = null;
+      }
+      isCancelled.current = true;
+    };
+  }, []);
 
   async function flushOnStepChange(nextStep: number) {
     if (nextStep >= 1) {
@@ -437,19 +451,15 @@ export const AddServiceProvider: React.FC<{
     );
     switch (operation) {
       case "cancel":
-        flushOnCancel();
-        break;
+        return flushOnCancel();
       case "back":
-        flushOnStepChange(Number(activeStep) - 1);
-        break;
+        return flushOnStepChange(Number(activeStep) - 1);
       case "next":
-        flushOnStepChange(Number(activeStep) + 1);
-        break;
+        return flushOnStepChange(Number(activeStep) + 1);
       case "jump":
-        flushOnStepChange(jumpStep);
-        break;
+        return flushOnStepChange(jumpStep);
       default:
-        flushCurrentData();
+        return flushCurrentData();
     }
   }
 

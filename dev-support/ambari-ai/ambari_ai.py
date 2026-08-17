@@ -430,6 +430,7 @@ def markdown_to_jira(value: str) -> str:
 
 
 def build_pull_request_body(
+    issue_key: str,
     changes: str,
     test_result: str,
     test_command: Optional[str] = None,
@@ -442,6 +443,9 @@ def build_pull_request_body(
     test_parts.extend(["", "\n".join(item.strip() for item in evidence)])
 
   return "\n".join([
+      "Issue: [{}]({}/browse/{})".format(
+          issue_key, DEFAULT_JIRA_URL, issue_key),
+      "",
       "## What changes were proposed in this pull request?",
       "",
       changes.strip(),
@@ -556,7 +560,7 @@ def command_pr_create(args: argparse.Namespace) -> Dict[str, Any]:
     created = False
   else:
     body = build_pull_request_body(
-        changes, test_result, args.test_command, args.evidence)
+        issue_key, changes, test_result, args.test_command, args.evidence)
     pull = github.create_pull_request(title, body, head, args.base, args.draft)
     created = True
 

@@ -61,7 +61,6 @@ import BackgroundOperations from "../BackgroundOperations";
 import modalManager from "../../store/ModalManager";
 import ReassignComponent from "./reassign";
 import {
-  displayNameServiceMapping,
   // selectClientComponentsForService,
   // selectMasterComponentsForService,
   // selectSlaveComponentsForService,
@@ -104,6 +103,7 @@ import {
   translate,
   translateWithVariables,
 } from "../../Utils/Utility";
+import { canManageServices } from "../../Utils/servicePermissions";
 
 interface ActionsProps {
   serviceName: string;
@@ -121,7 +121,9 @@ export const Actions = ({ serviceName, className }: ActionsProps) => {
     clusterName,
     upgradeIsRunning,
     upgradeSuspended,
-    isClusterInstalled
+    isClusterInstalled,
+    supports,
+    wizardIsNotFinished,
   } = useContext(AppContext);
   const { allServiceModels } = useContext(ServiceContext);
 
@@ -130,11 +132,8 @@ export const Actions = ({ serviceName, className }: ActionsProps) => {
 
   // Check specific authorizations like in Ember.js ui/app/views/main/service/item.js
   const canStartStop = hasAuthorization("SERVICE.START_STOP");
-  const canRunCustomCommands =
-    hasAuthorization("SERVICE.RUN_CUSTOM_COMMAND") ||
-    hasAuthorization("SERVICE.RUN_SERVICE_CHECK") ||
-    hasAuthorization("SERVICE.TOGGLE_MAINTENANCE") ||
-    hasAuthorization("SERVICE.ENABLE_HA");
+  const canRunCustomCommands = hasAuthorization("SERVICE.RUN_CUSTOM_COMMAND");
+  const canRunServiceCheck = hasAuthorization("SERVICE.RUN_SERVICE_CHECK");
   const canAddDeleteServices = hasAuthorization("SERVICE.ADD_DELETE_SERVICES");
   const canAddDeleteComponents = hasAuthorization("HOST.ADD_DELETE_COMPONENTS");
   const canEnableHA = hasAuthorization("SERVICE.ENABLE_HA");
@@ -149,7 +148,7 @@ export const Actions = ({ serviceName, className }: ActionsProps) => {
     canAddDeleteComponents ||
     canEnableHA ||
     canMoveComponents ||
-    hasAuthorization("SERVICE.RUN_SERVICE_CHECK") ||
+    canRunServiceCheck ||
     hasAuthorization("SERVICE.TOGGLE_MAINTENANCE");
 
   // Use computed upgrade properties instead of basic state checks
@@ -766,25 +765,42 @@ export const Actions = ({ serviceName, className }: ActionsProps) => {
   };
 
   const toggleMaintenanceMode = async () => {
-    //@ts-ignore
-    await ActionsApi.turnOnOffMaintenance(
-      clusterName,
-      // @ts-ignore
-      serviceName,
-      {
+    const targetState = desiredMaintenceState();
+    try {
+      await ActionsApi.turnOnOffMaintenance(clusterName, serviceName, {
         requestInfo: `Turn ${startCase(
-          lowerCase(desiredMaintenceState())
+          lowerCase(targetState)
         )} Maintenance Mode for ${serviceName}`,
-        passive_state: desiredMaintenceState(),
-      }
-    );
-    setModalInfo({
-      title: `Information`,
-      body: `Maintenance Mode has been turned ${lowerCase(
-        desiredMaintenceState()
-      )}. It may take a few minutes for the alerts to be suppressed.`,
-    });
-    setShowConfirmationModal(true);
+        passive_state: targetState,
+      });
+      setServiceState((currentState: Record<string, unknown>) => ({
+        ...currentState,
+        maintenance_state: targetState,
+      }));
+      setModalInfo({
+        title: `Information`,
+        body: `Maintenance Mode has been turned ${lowerCase(
+          targetState
+        )}. It may take a few minutes for the alerts to be suppressed.`,
+      });
+      setShowConfirmationModal(true);
+    } catch (error) {
+      const message = get(
+        error,
+        "response.data.message",
+        get(error, "message", "Maintenance Mode could not be updated.")
+      );
+      modalManager.show({
+        modalTitle: "Maintenance Mode Failed",
+        modalBody: message,
+        successCallback: () => {
+          modalManager.hide();
+          void toggleMaintenanceMode();
+        },
+        onClose: () => modalManager.hide(),
+        options: { okButtonText: "RETRY" },
+      });
+    }
   };
   const desiredMaintenceState = (): string => {
     return get(serviceState, "maintenance_state", "") === "OFF" ? "ON" : "OFF";
@@ -1093,15 +1109,6 @@ export const Actions = ({ serviceName, className }: ActionsProps) => {
         />
       );
     }
-  };
-
-  const getClientName = () => {
-    const serviceObject = get(
-      serviceModels,
-      get(serviceNameModelMapping, get(displayNameServiceMapping, serviceName)),
-      {}
-    );
-    return get(serviceObject, "clientComponents.[0].componentName", "");
   };
 
   const handleThresholdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1932,7 +1939,7 @@ export const Actions = ({ serviceName, className }: ActionsProps) => {
           );
 
           // Return the mapped components
-          return filteredComponentActions.map((componentAction) => (
+          return canStartStop ? filteredComponentActions.map((componentAction) => (
             <DropdownItem
               key={componentAction.component}
               onClick={() => restartComponent(componentAction.component)}
@@ -1949,7 +1956,7 @@ export const Actions = ({ serviceName, className }: ActionsProps) => {
                   : null
               }
             </DropdownItem>
-          ));
+          )) : null;
         })()}
         {/* High Availability Features - Requires SERVICE.ENABLE_HA authorization */}
         {canEnableHA && serviceName === "HDFS" && !isHAEnabled() && (
@@ -1959,8 +1966,7 @@ export const Actions = ({ serviceName, className }: ActionsProps) => {
         {canEnableHA && serviceName === "HDFS" && (
           <EnableNamenodeFederation />
         )}
-        {/* Manage JournalNodes - No specific authorization required, only HA state and host count checks */}
-        {serviceName === "HDFS" && canManageJournalNodes() && (
+        {canEnableHA && serviceName === "HDFS" && canManageJournalNodes() && (
           <ManageJournalNodes />
         )}
         {canEnableHA && serviceName === "YARN" && !isRMHAEnabled() && (
@@ -1990,9 +1996,8 @@ export const Actions = ({ serviceName, className }: ActionsProps) => {
               onClick={() => {
                 downloadClientConfigsCall({
                   clusterName: clusterName,
-                  componentName: getClientName(),
                   serviceName: serviceName,
-                  resourceType: ResourceTypeEnum.SERVICE_COMPONENT,
+                  resourceType: ResourceTypeEnum.SERVICE,
                 });
               }}
             >
@@ -2009,7 +2014,7 @@ export const Actions = ({ serviceName, className }: ActionsProps) => {
             </Dropdown.Item>
           )}
 
-        {serviceName === "HDFS" ? (
+        {canRunCustomCommands && serviceName === "HDFS" ? (
           <DropdownItem
             // key={componentAction.component}
             onClick={() => rebalanceComponent()}
@@ -2206,7 +2211,7 @@ export const Actions = ({ serviceName, className }: ActionsProps) => {
             Add Zookeeper Server
           </Dropdown.Item>
         )}
-        {serviceName === "HDFS" ? (
+        {canRunCustomCommands && serviceName === "HDFS" ? (
           <DropdownItem
             onClick={async () => {
               //show popup modal
@@ -2236,7 +2241,7 @@ export const Actions = ({ serviceName, className }: ActionsProps) => {
             {ServiceActionEnums.refreshNodes}
           </DropdownItem>
         ) : null}
-        {serviceName === "YARN" ? (
+        {canRunCustomCommands && serviceName === "YARN" ? (
           <DropdownItem
             onClick={async () => {
               //show popup modal
@@ -2273,7 +2278,11 @@ export const Actions = ({ serviceName, className }: ActionsProps) => {
         )}
 
         {/* Service Deletion - Requires SERVICE.ADD_DELETE_SERVICES authorization */}
-        {canAddDeleteServices && (
+        {canManageServices({
+          authorized: canAddDeleteServices,
+          featureEnabled: supports.enableAddDeleteServices,
+          wizardIsNotFinished,
+        }) && (
           <DropdownItem
             onClick={() => {
               const serviceModel =
@@ -2357,11 +2366,8 @@ export const Actions = ({ serviceName, className }: ActionsProps) => {
           </DropdownItem>
         )}
 
-        {/* Service Check - Requires SERVICE.RUN_CUSTOM_COMMAND, SERVICE.RUN_SERVICE_CHECK, SERVICE.TOGGLE_MAINTENANCE, or SERVICE.ENABLE_HA authorization (matches Ember.js logic) */}
-        {(hasAuthorization("SERVICE.RUN_CUSTOM_COMMAND") || 
-          hasAuthorization("SERVICE.RUN_SERVICE_CHECK") || 
-          hasAuthorization("SERVICE.TOGGLE_MAINTENANCE") || 
-          hasAuthorization("SERVICE.ENABLE_HA")) && (
+        {/* Service Check uses its semantic service-check authorization. */}
+        {canRunServiceCheck && (
           <DropdownItem
             // key={serviceName}
             onClick={() => runServiceCheck()}

@@ -266,22 +266,9 @@ export const serviceSupportsHttps = (serviceName: string): boolean => {
  * Following Ember.js service-specific protocol logic
  */
 export const getServiceProtocol = (
-  serviceName: string,
+  _serviceName: string,
   configProperties: ConfigProperty[],
   protocolConfig?: ProtocolConfig
 ): string => {
-  const serviceConfig = getServiceSSLConfig(serviceName);
-  
-  if (!serviceConfig) {
-    // Fallback to global SSL detection
-    return setProtocol(configProperties, protocolConfig);
-  }
-
-  // If service doesn't support HTTPS, always return HTTP
-  if (!serviceConfig.supportsHttps) {
-    return 'http';
-  }
-
-  // Use Ember.js setProtocol logic for services that support HTTPS
   return setProtocol(configProperties, protocolConfig);
 };

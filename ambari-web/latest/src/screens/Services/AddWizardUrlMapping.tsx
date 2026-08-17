@@ -30,10 +30,10 @@ import {
   AddHostProvider,
 } from "../Hosts/AddHostWizard/wizardDataStore/context";
 import addHostWizardSteps from "../Hosts/AddHostWizard/addHostWizardSteps";
-import { useContext } from "react";
+import { ComponentProps, useContext } from "react";
+import { CANCEL_ADD_SERVICE_WIZARD_EVENT } from "../../Utils/addServicePersistence";
 
 function AddWizardUrlMapping() {
-  const {flushStateToDb} = useContext(AddHostContext)
   const location = useLocation();
   function mapUrlToComponent() {
     if (location.pathname.includes("service/add")) {
@@ -56,8 +56,9 @@ function AddWizardUrlMapping() {
                   modalManager.hide();
                 }}
                 successCallback={() => {
-                  modalManager.hide();
-                  window.location.href = "/#/main/dashboard/metrics";
+                  window.dispatchEvent(
+                    new Event(CANCEL_ADD_SERVICE_WIZARD_EVENT)
+                  );
                 }}
               />
             );
@@ -79,50 +80,61 @@ function AddWizardUrlMapping() {
         ></Modal>
       );
     } else if (location.pathname.includes("host/add")) {
-      return (
-        <Modal
-          isOpen={true}
-          onClose={() => {
-            modalManager.show(
-              <Modal
-                options={{}}
-                modalTitle="Confirmation"
-                isOpen={true}
-                modalBody={
-                  <div>
-                    Are you sure you want to cancel the host addition? All your
-                    progress will be lost.
-                  </div>
-                }
-                onClose={() => {
-                  flushStateToDb("cancel");
-                  modalManager.hide();
-                }}
-                successCallback={() => {
-                  modalManager.hide();
-                  window.location.href = "/#/main/hosts";
-                }}
-              />
-            );
-          }}
-          modalTitle="Add Hosts"
-          options={{
-            modalSize: "modal-wizard",
-            shouldShowFooter: false,
-          }}
-          successCallback={() => {}}
-          modalBody={
-            <ClusterCreationWizard
-              Context={AddHostContext}
-              Provider={AddHostProvider}
-              wizardSteps={addHostWizardSteps as any}
-              initialActiveStep={1}
-            />
-          }
-        ></Modal>
-      );
+      return <AddHostWizardModal />;
     }
   }
   return mapUrlToComponent();
 }
+
+function AddHostWizardModal() {
+  const { flushStateToDb } = useContext(AddHostContext);
+
+  return (
+    <Modal
+      isOpen={true}
+      onClose={() => {
+        modalManager.show(
+          <Modal
+            options={{}}
+            modalTitle="Confirmation"
+            isOpen={true}
+            modalBody={
+              <div>
+                Are you sure you want to cancel the host addition? All your
+                progress will be lost.
+              </div>
+            }
+            onClose={() => {
+              flushStateToDb("cancel");
+              modalManager.hide();
+            }}
+            successCallback={() => {
+              modalManager.hide();
+              window.location.href = "/#/main/hosts";
+            }}
+          />
+        );
+      }}
+      modalTitle="Add Hosts"
+      options={{
+        modalSize: "modal-wizard",
+        shouldShowFooter: false,
+      }}
+      successCallback={() => {}}
+      modalBody={
+        <ClusterCreationWizard
+          Context={AddHostContext}
+          Provider={AddHostProvider}
+          wizardSteps={
+            addHostWizardSteps as unknown as ComponentProps<
+              typeof ClusterCreationWizard
+            >["wizardSteps"]
+          }
+          initialActiveStep={1}
+        />
+      }
+    />
+  );
+}
+
 export default AddWizardUrlMapping;

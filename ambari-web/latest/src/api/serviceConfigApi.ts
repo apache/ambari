@@ -26,9 +26,9 @@ export const ServiceConfigApi = {
         });
         return response;
     },
-    setIsCurrent: async function (clusterName: string, selectedServices: string[]) {
+    getCurrentServiceConfigs: async function (clusterName: string, selectedServices: string[]) {
         const servicesQuery = selectedServices.join(',');
-        const url = `/clusters/${clusterName}/configurations/service_config_versions?service_name.in(${servicesQuery})&is_current=true&fields=*&_=${Date.now()}\`;`
+        const url = `/clusters/${clusterName}/configurations/service_config_versions?service_name.in(${servicesQuery})&is_current=true&fields=*&_=${Date.now()}`;
         const response = await ambariApi.request({
             url: url,
             method: "GET",

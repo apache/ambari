@@ -18,7 +18,7 @@
 
 import { Col, Row, Tab, Tabs } from "react-bootstrap";
 import ServiceSummary from "./ServiceSummary";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import "./styles/services.scss";
 import ServiceConfigs from "../ServiceConfigs";
 import { Actions } from "./Actions";
@@ -30,6 +30,7 @@ import Heatmaps from "../Heatmaps";
 import { useAuth } from "../../hooks/useAuth";
 import AuthGuard from "../../components/AuthGuard";
 import RestartWarning from "./RestartWarning";
+import { resolveServiceNavigation } from "../../Utils/serviceNavigation";
 
 enum TabNames {
   SUMMARY = "summary",
@@ -38,6 +39,33 @@ enum TabNames {
   METRICS = "metrics",
 }
 
+const serviceTabs: Record<string, string[]> = {
+  HDFS: ["summary", "heatmaps", "configs", "metrics"],
+  YARN: ["summary", "heatmaps", "configs", "metrics"],
+  HIVE: ["summary", "configs"],
+  KAFKA: ["summary", "configs"],
+  ZOOKEEPER: ["summary", "configs"],
+  HBASE: ["summary", "heatmaps", "configs", "metrics"],
+  ATLAS: ["summary", "configs"],
+  RANGER: ["summary", "configs"],
+  RANGER_KMS: ["summary", "configs"],
+  SOLR: ["summary", "configs"],
+  FLUME: ["summary", "configs"],
+  AMBARI_METRICS: ["summary", "configs", "metrics"],
+  AMBARI_INFRA_SOLR: ["summary", "configs"],
+  LIVY: ["summary", "configs"],
+  TEZ: ["summary", "configs"],
+  KERBEROS: ["summary", "configs"],
+  MAPREDUCE2: ["summary", "configs"],
+  SQOOP: ["summary", "configs"],
+  SPARK3: ["summary", "configs"],
+  KYUUBI: ["summary", "configs"],
+  TRINO: ["summary", "configs"],
+  TRINO_GATEWAY: ["summary", "configs"],
+  SSM: ["summary", "configs"],
+  PINOT: ["summary", "configs"],
+};
+
 function ServiceDashboard({
   serviceName: serviceNameProps,
 }: {
@@ -45,56 +73,14 @@ function ServiceDashboard({
 }) {
   // Authorization hooks - implementing Ember.js hasConfigTab logic
   const { havePermissions } = useAuth();
-  const { upgradeState } = useContext(AppContext);
-
-  const configTabsUpgradeBlocked = [
-    "IN_PROGRESS",
-    "PENDING",
-    "HOLDING_FAILED",
-    "HOLDING_TIMEDOUT",
-    "HOLDING",
-  ].includes(upgradeState);
-
   // Check CLUSTER.VIEW_CONFIGS permission like in Ember.js ui/app/views/main/service/item.js
-  const hasConfigTab =
-    havePermissions("CLUSTER.VIEW_CONFIGS") &&
-    !configTabsUpgradeBlocked &&
-    !upgradeState?.toLowerCase()?.includes("holding");
-  const serviceTabs: { [key: string]: string[] } = {
-    HDFS: ["summary", "heatmaps", "configs", "metrics"],
-    YARN: ["summary", "heatmaps", "configs", "metrics"],
-    HIVE: ["summary", "configs"],
-    KAFKA: ["summary", "configs"],
-    ZOOKEEPER: ["summary", "configs"],
-    HBASE: ["summary", "heatmaps", "configs", "metrics"],
-    ATLAS: ["summary", "configs"],
-    RANGER: ["summary", "configs"],
-    RANGER_KMS: ["summary", "configs"],
-    SOLR: ["summary", "configs"],
-    FLUME: ["summary", "configs"],
-    AMBARI_METRICS: ["summary", "configs", "metrics"],
-    AMBARI_INFRA_SOLR: ["summary", "configs"],
-    LIVY: ["summary", "configs"],
-    TEZ: ["summary", "configs"],
-    KERBEROS: ["summary", "configs"],
-    MAPREDUCE2: ["summary", "configs"],
-    SQOOP: ["summary", "configs"],
-    SPARK3: ["summary", "configs"],
-    KYUUBI: ["summary", "configs"],
-    TRINO: ["summary", "configs"],
-    TRINO_GATEWAY: ["summary", "configs"],
-    SSM: ["summary", "configs"],
-    PINOT: ["summary", "configs"],
-  };
-
+  const hasConfigTab = havePermissions("CLUSTER.VIEW_CONFIGS");
   const { serviceName: serviceNameParams } = useParams();
   const serviceName = serviceNameParams || serviceNameProps;
   const { tabName } = useParams();
-  const [selectedTab, setSelectedTab] = useState(tabName);
+  const [selectedTab, setSelectedTab] = useState(tabName || TabNames.SUMMARY);
   const { services, clusterName } = useContext(AppContext);
-  const selectedServices = map(services, "ServiceInfo.service_name");
   const navigate = useNavigate();
-  const location = useLocation();
 
   useEffect(() => {
     // Don't run URL replacement logic if services are still loading
@@ -102,32 +88,31 @@ function ServiceDashboard({
     if (!services || services.length === 0) {
       return;
     }
+    const selectedServices = map(services, "ServiceInfo.service_name");
     
-    if (
-      serviceNameParams &&
-      !selectedServices.includes(serviceNameParams) &&
-      location.pathname.includes(serviceNameParams)
-    ) {
-      if (clusterName) {
-        navigate(
-          location.pathname.replace(serviceNameParams, selectedServices?.[0])
-        );
-      } else {
-        navigate("/installer/step0");
-      }
-    } else {
-      if (!selectedTab) {
-        setSelectedTab(TabNames.SUMMARY);
-      }
-      if (
-        serviceName &&
-        selectedTab &&
-        !serviceTabs[serviceName.toUpperCase()]?.includes(selectedTab)
-      ) {
-        setSelectedTab(TabNames.SUMMARY);
-      }
+    const selection = resolveServiceNavigation({
+      availableTabs: serviceTabs,
+      canViewConfigs: hasConfigTab,
+      installedServices: selectedServices,
+      requestedService: serviceName,
+      requestedTab: tabName,
+    });
+    setSelectedTab(selection.selectedTab);
+
+    if (serviceNameParams && selection.redirectPath) {
+      navigate(clusterName ? selection.redirectPath : "/installer/step0", {
+        replace: true,
+      });
     }
-  }, [serviceName, serviceNameParams, location, services]); // Add services to dependencies
+  }, [
+    clusterName,
+    hasConfigTab,
+    navigate,
+    serviceName,
+    serviceNameParams,
+    services,
+    tabName,
+  ]);
 
   return (
     <div className="p-4">
@@ -137,7 +122,8 @@ function ServiceDashboard({
             id="service-tabs"
             className="ambari-tabs"
             activeKey={selectedTab}
-            onSelect={(tab: any) => {
+            onSelect={(tab) => {
+              if (!tab) return;
               navigate(`/main/services/${serviceName}/${tab}`);
               setSelectedTab(tab);
             }}

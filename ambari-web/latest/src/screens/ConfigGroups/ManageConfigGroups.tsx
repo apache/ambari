@@ -45,6 +45,11 @@ import ConfigGroupApi from "../../api/configGroupApi";
 import { ActionTypes } from "../ClusterWizard/clusterStore/types";
 import { useAuth } from "../../hooks/useAuth";
 import classNames from "classnames";
+import {
+  buildConfigGroupUpdatePlan,
+  moveHostsToConfigGroup,
+  removeConfigGroupAndReturnHosts,
+} from "../../Utils/configGroupSavePlan";
 
 type ManageConfigGroupsProps = {
   isOpen: boolean;
@@ -85,17 +90,18 @@ export default function ManageConfigGroups({
   const [showSelectConfigHostsModal, setShowSelectConfigHostsModal] =
     useState(false);
   const [enableSave, setEnableSave] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
 
   const { state, dispatch } = useContext(ClusterCreationContext);
 
   // Authorization hooks - implementing Ember.js config groups authorization patterns
   const { hasAuthorization } = useAuth();
 
-  // Check specific authorizations for config groups operations
-  // Based on Ember.js canEdit logic: App.isAuthorized('SERVICE.MODIFY_CONFIGS')
-  const canModifyConfigs = hasAuthorization("SERVICE.MODIFY_CONFIGS");
+  const canManageConfigGroups = hasAuthorization("SERVICE.MANAGE_CONFIG_GROUPS");
 
   const isRenameConfigGroup = useRef(false);
+  const isDuplicateConfigGroup = useRef(false);
   const config = useRef({
     name: "",
     description: "",
@@ -357,18 +363,6 @@ export default function ManageConfigGroups({
     );
   };
 
-  const removeConfigGroup = (configGroupName: string) => {
-    let newConfigGroupData = { ...configGroupData };
-    set(
-      newConfigGroupData,
-      "items",
-      get(newConfigGroupData, "items", []).filter(
-        (item) => get(item, "ConfigGroup.group_name") !== configGroupName
-      )
-    );
-    setConfigGroupData(newConfigGroupData);
-  };
-
   const updateConfigGroup = (
     configGroupName: string,
     configGroupItem: ConfigGroupItemType
@@ -402,20 +396,21 @@ export default function ManageConfigGroups({
   const unsetConfigGroupModal = () => {
     setShowCreateNewConfigGroupModal(false);
     isRenameConfigGroup.current = false;
+    isDuplicateConfigGroup.current = false;
     config.current = {
       name: "",
       description: "",
     };
   };
 
-  const getHostsForDefaultGroup = () => {
-    const defaultGroup = getItemFromConfigGroups(configGroupData, "Default");
-    if (!defaultGroup) return [];
-    const hosts = get(defaultGroup, "[0].ConfigGroup.hosts", []).map(
-      (host) => host.host_name
+  const getHostsAvailableForSelectedGroup = () => {
+    const selectedGroupHosts = new Set(
+      (getPropertyFromSelectedConfig("hosts") || []).map(
+        (host: { host_name?: string }) => host.host_name
+      )
     );
-    return get(hostData, "items", []).filter((host) =>
-      hosts.includes(get(host, "Hosts.host_name"))
+    return get(hostData, "items", []).filter(
+      (host) => !selectedGroupHosts.has(get(host, "Hosts.host_name"))
     );
   };
 
@@ -445,40 +440,6 @@ export default function ManageConfigGroups({
       });
     }
     return size;
-  };
-
-  const removeHostsFromGroup = (
-    groupName: string,
-    hostsToBeRemoved: string[]
-  ) => {
-    // Use deep clone to avoid reference issues
-    let newConfigGroupData = cloneDeep(configGroupData);
-    get(newConfigGroupData, "items", []).forEach((configGroup) => {
-      if (get(configGroup, "ConfigGroup.group_name") === groupName) {
-        let newHosts = get(configGroup, "ConfigGroup.hosts", []).filter(
-          (host) => !hostsToBeRemoved.includes(get(host, "host_name", ""))
-        );
-        set(configGroup, "ConfigGroup.hosts", newHosts);
-      }
-    });
-    setConfigGroupData(newConfigGroupData);
-  };
-
-  const addHostsToGroup = (groupName: string, hostsToBeAdded: string[]) => {
-    let newConfigGroupData = cloneDeep(configGroupData);
-    get(newConfigGroupData, "items", []).forEach((configGroup) => {
-      if (get(configGroup, "ConfigGroup.group_name") === groupName) {
-        let additionalHosts = hostsToBeAdded.map((host: string) => {
-          return {
-            host_name: host,
-          };
-        });
-        let existingHosts = cloneDeep(get(configGroup, "ConfigGroup.hosts", []));
-        let newHosts = [...existingHosts, ...additionalHosts];
-        set(configGroup, "ConfigGroup.hosts", newHosts);
-      }
-    });
-    setConfigGroupData(newConfigGroupData);
   };
 
   const doesConfigsMatch = (
@@ -511,7 +472,14 @@ export default function ManageConfigGroups({
     return {
       ConfigGroup: {
         description: get(configGroup, "ConfigGroup.description", ""),
-        desired_configs: get(configGroup, "ConfigGroup.desired_configs", []),
+        desired_configs: get(
+          configGroup,
+          "ConfigGroup.desired_configs",
+          []
+        ).map((config: DesiredConfigsItemType) => ({
+          type: get(config, "type"),
+          tag: get(config, "tag"),
+        })),
         group_name: get(configGroup, "ConfigGroup.group_name", ""),
         hosts: get(configGroup, "ConfigGroup.hosts", []).map((host) => {
           return {
@@ -537,7 +505,10 @@ export default function ManageConfigGroups({
   };
 
   const handleSave = async () => {
-    if (clusterName) {
+    setSaving(true);
+    setSaveError("");
+    try {
+      if (clusterName) {
       const configGroupsToBeDeleted = get(
         previousConfigGroupData.current,
         "items",
@@ -575,39 +546,51 @@ export default function ManageConfigGroups({
           )
       );
 
-      const addApiPromises = configGroupsToBeAdded.map((configGroup) =>
-        ConfigGroupApi.addConfigGroup(clusterName, [
-          getDataForApiFormat(configGroup),
-        ])
+      const { toClear, toSet } = buildConfigGroupUpdatePlan(
+        get(previousConfigGroupData.current, "items", []),
+        configGroupsToBeUpdated
       );
 
-      const deleteApiPromises = configGroupsToBeDeleted.map((configGroup) =>
-        ConfigGroupApi.removeConfigGroup(
-          clusterName,
-          get(configGroup, "ConfigGroup.id", "").toString()
+      // Ambari enforces one non-default group per service. Clear source hosts
+      // before assigning them to a target group or deleting their old group.
+      await Promise.all(
+        [...configGroupsToBeDeleted, ...toClear].map((configGroup) => {
+          const data = getDataForApiFormat(configGroup);
+          return ConfigGroupApi.updateConfigGroup(
+            clusterName,
+            get(configGroup, "ConfigGroup.id", "").toString(),
+            {
+              ...data,
+              ConfigGroup: { ...data.ConfigGroup, hosts: [] },
+            }
+          );
+        })
+      );
+      await Promise.all(
+        configGroupsToBeDeleted.map((configGroup) =>
+          ConfigGroupApi.removeConfigGroup(
+            clusterName,
+            get(configGroup, "ConfigGroup.id", "").toString()
+          )
         )
       );
-
-      const updateApiPromises = configGroupsToBeUpdated.map((configGroup) =>
-        ConfigGroupApi.updateConfigGroup(
-          clusterName,
-          get(configGroup, "ConfigGroup.id", "").toString(),
-          getDataForApiFormat(configGroup)
+      await Promise.all(
+        toSet.map((configGroup) =>
+          ConfigGroupApi.updateConfigGroup(
+            clusterName,
+            get(configGroup, "ConfigGroup.id", "").toString(),
+            getDataForApiFormat(configGroup)
+          )
         )
       );
-
-      if (
-        addApiPromises.length ||
-        deleteApiPromises.length ||
-        updateApiPromises.length
-      ) {
-        await Promise.all([
-          ...addApiPromises,
-          ...deleteApiPromises,
-          ...updateApiPromises,
-        ]);
-      }
-    } else {
+      await Promise.all(
+        configGroupsToBeAdded.map((configGroup) =>
+          ConfigGroupApi.addConfigGroup(clusterName, [
+            getDataForApiFormat(configGroup),
+          ])
+        )
+      );
+      } else {
       const prevState = get(
         state,
         "clusterCreationSteps.step7.data.configGroupData",
@@ -620,14 +603,23 @@ export default function ManageConfigGroups({
           data: { ...prevState, configGroupData: configGroupData },
         },
       });
+      }
+
+      successCallback();
+      onClose();
+    } catch (error) {
+      setSaveError(
+        String(
+          get(
+            error,
+            "response.data.message",
+            get(error, "message", "Unable to save configuration groups.")
+          )
+        )
+      );
+    } finally {
+      setSaving(false);
     }
-    
-    // Trigger config group refresh in all components that use config groups
-    // This ensures that ChooseConfigGroup and other components refresh their data
-    successCallback();
-    
-    // Close the modal after successful save
-    onClose();
   };
 
   const isRemoveHostDisabled = () => {
@@ -635,7 +627,10 @@ export default function ManageConfigGroups({
   };
 
   const isAddHostDisabled = () => {
-    return selectedGroup === "Default" || !getHostsForDefaultGroup().length;
+    return (
+      selectedGroup === "Default" ||
+      !getHostsAvailableForSelectedGroup().length
+    );
   };
 
   if (loading) {
@@ -661,6 +656,13 @@ export default function ManageConfigGroups({
             } else {
               set(formConfig, "ConfigGroup.hosts", []);
               set(formConfig, "ConfigGroup.tag", serviceName);
+              set(
+                formConfig,
+                "ConfigGroup.desired_configs",
+                isDuplicateConfigGroup.current
+                  ? cloneDeep(getPropertyFromSelectedConfig("desired_configs"))
+                  : []
+              );
               addConfigGroup(formConfig);
             }
           }}
@@ -678,13 +680,13 @@ export default function ManageConfigGroups({
           modalTitle="Confirmation"
           modalBody="Are you sure?"
           successCallback={() => {
-            addHostsToGroup(
-              "Default",
-              getPropertyFromSelectedConfig("hosts").map(
-                (host: { [key: string]: string }) => host?.host_name
-              )
-            );
-            removeConfigGroup(selectedGroup);
+            setConfigGroupData((current) => ({
+              ...current,
+              items: removeConfigGroupAndReturnHosts(
+                current.items,
+                selectedGroup
+              ),
+            }));
             setSelectedGroup("Default");
             setShowConfirmationModal(false);
           }}
@@ -713,41 +715,17 @@ export default function ManageConfigGroups({
           onClose={() => setShowSelectConfigHostsModal(false)}
           successCallback={(hostsToBeAdded: any) => {
             setShowSelectConfigHostsModal(false);
-            
-            let newConfigGroupData = cloneDeep(configGroupData);
-            
-            get(newConfigGroupData, "items", []).forEach((configGroup) => {
-              //@ts-ignore
-              const groupName = get(configGroup, "ConfigGroup.group_name");
-              const currentHosts = get(configGroup, "ConfigGroup.hosts", []);
-              
-              // Remove hosts that are being moved to the new group
-              const hostsToKeep = currentHosts.filter(
-                (host) => !hostsToBeAdded.includes(get(host, "host_name", ""))
-              );
-              
-              set(configGroup, "ConfigGroup.hosts", hostsToKeep);
-            });
-            
-            // Then, add hosts to the selected group
-            get(newConfigGroupData, "items", []).forEach((configGroup) => {
-              if (get(configGroup, "ConfigGroup.group_name") === selectedGroup) {
-                let additionalHosts = hostsToBeAdded.map((host: string) => {
-                  return {
-                    host_name: host,
-                  };
-                });
-                let existingHosts = cloneDeep(get(configGroup, "ConfigGroup.hosts", []));
-                let newHosts = [...existingHosts, ...additionalHosts];
-                set(configGroup, "ConfigGroup.hosts", newHosts);
-              }
-            });
-            
-            // Update state once with both changes
-            setConfigGroupData(newConfigGroupData);
+            setConfigGroupData((current) => ({
+              ...current,
+              items: moveHostsToConfigGroup(
+                current.items,
+                selectedGroup,
+                hostsToBeAdded
+              ),
+            }));
           }}
           configGroupName={selectedGroup}
-          hostsList={getHostsForDefaultGroup()}
+          hostsList={getHostsAvailableForSelectedGroup()}
         />
       ) : null}
       <ReactModal
@@ -764,6 +742,7 @@ export default function ManageConfigGroups({
           handleSave();
         }}>
           <ReactModal.Body>
+            {saveError ? <Alert variant="danger">{saveError}</Alert> : null}
             <Alert variant="info" className="text-muted fs-12 mb-5">
               You can apply different sets of {serviceName} configurations to
               groups of hosts by managing {serviceName} Configuration Groups and
@@ -800,8 +779,7 @@ export default function ManageConfigGroups({
                   })}
                 </Card>
                 <div className="d-flex justify-content-end">
-                  {/* Create Config Group - Requires SERVICE.MODIFY_CONFIGS authorization */}
-                  {canModifyConfigs && (
+                  {canManageConfigGroups && (
                     <DefaultButton
                       className="me-2"
                       onClick={() => setShowCreateNewConfigGroupModal(true)}
@@ -809,8 +787,7 @@ export default function ManageConfigGroups({
                       <FontAwesomeIcon icon={faPlus} />
                     </DefaultButton>
                   )}
-                  {/* Delete Config Group - Requires SERVICE.MODIFY_CONFIGS authorization */}
-                  {canModifyConfigs && (
+                  {canManageConfigGroups && (
                     <DefaultButton
                       className={
                         selectedGroup === "Default"
@@ -823,8 +800,7 @@ export default function ManageConfigGroups({
                       <FontAwesomeIcon icon={faMinus} />
                     </DefaultButton>
                   )}
-                  {/* Edit Config Group Dropdown - Requires SERVICE.MODIFY_CONFIGS authorization */}
-                  {canModifyConfigs && (
+                  {canManageConfigGroups && (
                     <Dropdown>
                       <Dropdown.Toggle
                         variant="transparent"
@@ -855,10 +831,12 @@ export default function ManageConfigGroups({
                         <Dropdown.Item
                           onClick={() => {
                             isRenameConfigGroup.current = false;
+                            isDuplicateConfigGroup.current = true;
                             config.current = {
                               name: selectedGroup + " Copy",
-                              description:
-                                getPropertyFromSelectedConfig("description"),
+                              description: `${getPropertyFromSelectedConfig(
+                                "description"
+                              )} (Copy)`,
                             };
                             setShowCreateNewConfigGroupModal(true);
                           }}
@@ -893,8 +871,7 @@ export default function ManageConfigGroups({
                   )}
                 </Card>
                 <div className="d-flex justify-content-end">
-                  {/* Add Hosts to Config Group - Requires SERVICE.MODIFY_CONFIGS authorization */}
-                  {canModifyConfigs && (
+                  {canManageConfigGroups && (
                     <DefaultButton
                       className={
                         isAddHostDisabled() ? "disabled-btn me-2" : "me-2"
@@ -905,14 +882,19 @@ export default function ManageConfigGroups({
                       <FontAwesomeIcon icon={faPlus} />
                     </DefaultButton>
                   )}
-                  {/* Remove Hosts from Config Group - Requires SERVICE.MODIFY_CONFIGS authorization */}
-                  {canModifyConfigs && (
+                  {canManageConfigGroups && (
                     <DefaultButton
                       className={isRemoveHostDisabled() ? "disabled-btn" : ""}
                       disabled={isRemoveHostDisabled()}
                       onClick={() => {
-                        removeHostsFromGroup(selectedGroup, selectedHosts);
-                        addHostsToGroup("Default", selectedHosts);
+                        setConfigGroupData((current) => ({
+                          ...current,
+                          items: moveHostsToConfigGroup(
+                            current.items,
+                            "Default",
+                            selectedHosts
+                          ),
+                        }));
                         setSelectedHosts([]);
                       }}
                     >
@@ -946,23 +928,22 @@ export default function ManageConfigGroups({
           </ReactModal.Body>
           <ReactModal.Footer>
             <DefaultButton onClick={onClose}>CANCEL</DefaultButton>
-            {/* Save Config Groups - Requires SERVICE.MODIFY_CONFIGS authorization */}
-            {canModifyConfigs && (
+            {canManageConfigGroups && (
               <Button
                 type="submit"
                 className={classNames("custom-btn text-white", {
                   "disabled-btn": !enableSave,
                 })}
-                disabled={!enableSave}
+                disabled={!enableSave || saving}
               >
-                SAVE
+                {saving ? "SAVING" : "SAVE"}
               </Button>
             )}
             {/* Show unauthorized message if user lacks permissions */}
-            {!canModifyConfigs && (
+            {!canManageConfigGroups && (
               <div className="text-muted small">
                 You do not have permission to modify configuration groups.
-                Required permission: SERVICE.MODIFY_CONFIGS
+                Required permission: SERVICE.MANAGE_CONFIG_GROUPS
               </div>
             )}
           </ReactModal.Footer>

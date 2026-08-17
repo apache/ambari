@@ -46,12 +46,15 @@ import {
 } from "./ConfigUtils";
 import TestConnection from "./TestConnection";
 import Modal from "../../components/Modal";
-import { configValidator } from "../../Utils/validators";
 import useEnhancedConfigs from "../../hooks/useEnhancedConfigs";
 import OverlayBackdrop from "../../components/OverlayBackdrop";
 import { useAuth } from "../../hooks/useAuth";
 import Tooltip from "../../components/Tooltip";
 import { formatParamsForDisplay, formatParamsForSave, shouldUseMultilineFormatting } from "../../Utils/jvmFormatUtils";
+import {
+  parseCustomPropertyInput,
+  validateCustomPropertyKey,
+} from "../../Utils/customConfigProperties";
 
 type AdvancedConfigsType = {
   configPropertiesData: any;
@@ -555,54 +558,12 @@ function AdvancedConfigs({
   };
 
   const parseMultiPropertyInput = (input: string) => {
-    const lines = input.split('\n').map(line => line.trim()).filter(line => line.length > 0);
-    const properties: PropertyType[] = [];
-    const errors: string[] = [];
-    const seenKeys = new Set<string>();
-
-    lines.forEach((line, index) => {
-      const lineNumber = index + 1;
-      
-
-      if (!line.includes('=')) {
-        errors.push(`Line ${lineNumber}: Invalid format. Expected key=value`);
-        return;
-      }
-
-      const equalIndex = line.indexOf('=');
-      const key = line.substring(0, equalIndex).trim();
-      const value = line.substring(equalIndex + 1).trim();
-
-
-      if (!key) {
-        errors.push(`Line ${lineNumber}: Key cannot be empty`);
-        return;
-      }
-
-      if (!configValidator.isValidConfigKey(key)) {
-        errors.push(`Line ${lineNumber}: Invalid key "${key}". Only alphanumerics, hyphens, underscores, asterisks and periods are allowed.`);
-        return;
-      }
-
-
-      if (seenKeys.has(key)) {
-        errors.push(`Line ${lineNumber}: Duplicate key "${key}"`);
-        return;
-      }
-
-
-      // Check if property exists and is visible (not removed)
-      const existingProperty = advancedConfigs[chosenService][customPropertyType]?.properties?.[key];
-      if (existingProperty && existingProperty.isVisible !== false && existingProperty.value !== null) {
-        errors.push(`Line ${lineNumber}: Property "${key}" already exists`);
-        return;
-      }
-
-      seenKeys.add(key);
-
-
-      const propertyTypes = selectedPropertyTypes.length > 0 ? selectedPropertyTypes : ['TEXT'];
-      const property: PropertyType = {
+    const existingProperties =
+      advancedConfigs[chosenService][customPropertyType]?.properties || {};
+    const parsed = parseCustomPropertyInput(input, existingProperties);
+    const propertyTypes =
+      selectedPropertyTypes.length > 0 ? selectedPropertyTypes : ["TEXT"];
+    const properties: PropertyType[] = parsed.properties.map(({ key, value }) => ({
         propertyName: key,
         propertyAttributes: { 
           type: getInputTypeFromPropertyType(propertyTypes),
@@ -615,12 +576,9 @@ function AdvancedConfigs({
         fileName: customPropertyType.replace(/^Custom\s*/, "") + ".xml",
         propertyType: propertyTypes,
         isEditable: true,
-      };
+      }));
 
-      properties.push(property);
-    });
-
-    return { properties, errors };
+    return { properties, errors: parsed.errors };
   };
 
   const validateMultiPropertyInput = (input: string) => {
@@ -630,19 +588,10 @@ function AdvancedConfigs({
   };
 
   const validateSingleProperty = (property: PropertyType) => {
-    const key = property.propertyName.trim();
-    if (!key) {
-      return "Property key is required";
-    }
-    if (!configValidator.isValidConfigKey(key)) {
-      return "Invalid key. Only alphanumerics, hyphens, underscores, asterisks and periods are allowed.";
-    }
-    // Check if property exists and is visible (not removed)
-    const existingProperty = advancedConfigs[chosenService][customPropertyType]?.properties?.[key];
-    if (existingProperty && existingProperty.isVisible !== false && existingProperty.value !== null) {
-      return `Property "${key}" already exists`;
-    }
-    return "";
+    return validateCustomPropertyKey(
+      property.propertyName,
+      advancedConfigs[chosenService][customPropertyType]?.properties || {}
+    );
   };
 
   const handleModeToggle = (multiMode: boolean) => {
@@ -695,13 +644,15 @@ function AdvancedConfigs({
 
       if (newCustomProperty && newCustomProperty.propertyName.trim()) {
         const advancedConfigsCopy = cloneDeep(advancedConfigs);
+        const propertyName = newCustomProperty.propertyName.trim();
         if (!advancedConfigsCopy[chosenService][customPropertyType].properties) {
           advancedConfigsCopy[chosenService][customPropertyType].properties = {};
         }
         advancedConfigsCopy[chosenService][customPropertyType].properties[
-          newCustomProperty.propertyName
+          propertyName
         ] = {
           ...newCustomProperty,
+          propertyName,
           // Mark as not found in original property values since it's a new custom property
           foundInPropertyValues: false,
         };
@@ -1318,22 +1269,11 @@ function AdvancedConfigs({
                         onChange={(e) => {
                           const newProperty = cloneDeep(newCustomProperty);
                           newProperty.propertyName = e.target.value;
-                          if (newProperty.propertyName === "") {
-                            newProperty.errorMessage = "This is required";
-                          } else if (
-                            !configValidator.isValidConfigKey(newProperty.propertyName)
-                          ) {
-                            newProperty.errorMessage =
-                              "Invalid Key. Only alphanumerics, hyphens, underscores, asterisks and periods are allowed.";
-                          } else {
-                            // Check if property exists and is visible (not removed)
-                            const existingProperty = advancedConfigs[chosenService][customPropertyType]?.properties?.[newProperty.propertyName.trim()];
-                            if (existingProperty && existingProperty.isVisible !== false && existingProperty.value !== null) {
-                              newProperty.errorMessage = `Property "${newProperty.propertyName}" already exists`;
-                            } else {
-                              newProperty.errorMessage = "";
-                            }
-                          }
+                          newProperty.errorMessage = validateCustomPropertyKey(
+                            newProperty.propertyName,
+                            advancedConfigs[chosenService][customPropertyType]
+                              ?.properties || {}
+                          );
                           setNewCustomProperty(newProperty);
                         }}
                       />

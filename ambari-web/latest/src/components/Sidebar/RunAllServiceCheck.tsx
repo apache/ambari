@@ -37,12 +37,7 @@ const RunAllServiceCheck = () => {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
 
-  // Check authorization - requires SERVICE.RUN_CUSTOM_COMMAND, SERVICE.RUN_SERVICE_CHECK, SERVICE.TOGGLE_MAINTENANCE, or SERVICE.ENABLE_HA
-  const canRunServiceCheck =
-    hasAuthorization("SERVICE.RUN_CUSTOM_COMMAND") ||
-    hasAuthorization("SERVICE.RUN_SERVICE_CHECK") ||
-    hasAuthorization("SERVICE.TOGGLE_MAINTENANCE") ||
-    hasAuthorization("SERVICE.ENABLE_HA");
+  const canRunServiceCheck = hasAuthorization("SERVICE.RUN_SERVICE_CHECK");
 
   // Block during active upgrade (not suspended)
   const isUpgradeBlocking = upgradeIsRunning && !upgradeSuspended;

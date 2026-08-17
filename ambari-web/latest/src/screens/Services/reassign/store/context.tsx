@@ -30,18 +30,21 @@ interface ReassignContextProps {
   dispatch: Dispatch<Action>;
   stepWizardUtilities?: any;
   flushStateToDb?: any;
+  hasManualCommands: boolean;
 }
 
 export const ReassignContext = createContext<ReassignContextProps>({
   state: initialState,
   dispatch: () => undefined,
   flushStateToDb: () => undefined,
+  hasManualCommands: false,
 });
 
 export const ReassignProvider: React.FC<{
   stepWizardUtilities: any;
+  hasManualCommands: boolean;
   children: React.ReactNode;
-}> = ({ stepWizardUtilities, children }) => {
+}> = ({ stepWizardUtilities, hasManualCommands, children }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
   const [currStepData, setCurrStepData] = useState({});
   const isDataPersisted = useRef(false);
@@ -196,7 +199,13 @@ export const ReassignProvider: React.FC<{
 
   return (
     <ReassignContext.Provider
-      value={{ state, dispatch, stepWizardUtilities, flushStateToDb }}
+      value={{
+        state,
+        dispatch,
+        stepWizardUtilities,
+        flushStateToDb,
+        hasManualCommands,
+      }}
     >
       {children}
     </ReassignContext.Provider>
