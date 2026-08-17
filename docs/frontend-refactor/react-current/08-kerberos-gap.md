@@ -53,6 +53,23 @@ forcing, missing Step 3 host-component installation, missing Stack Advisor,
 lost progress recovery, incorrect exit cleanup, swallowed credential failures,
 and incomplete Disable and Regenerate sequencing.
 
+## Final Audit Gap Checkpoint
+
+The five-pass audit found the following additional defects after the first
+implementation pass. This checkpoint is intentionally recorded before the
+corresponding React fixes.
+
+| Affected IDs | Classic executable behavior | React behavior at this checkpoint | Confirmed gap | Executable acceptance criteria |
+| --- | --- | --- | --- | --- |
+| `KRB-ENTRY-002`, `KRB-DIS-001` | `/main/admin/kerberos/disableSecurity` is a guarded route that opens the Disable workflow. | Only the management route and Enable step route are registered. | A valid Classic deep link falls through the React catch-all route. | Navigate directly to `disableSecurity` as an authorized user and observe the YARN warning or Disable confirmation; verify permission, feature, upgrade, and non-owner guards redirect before rendering it. |
+| `KRB-ENTRY-002`, `KRB-ENTRY-005`, `KRB-REC-001`, `KRB-REC-004` | Entering Enable writes `wizard-data` with the login name and controller; `App.isAuthorized` denies other users; completion and discard reset ownership. | Step recovery is persisted, but no owner is written or cleared and Kerberos routes/sidebar do not consume `isNonWizardUser`. | Another user can enter and mutate an active wizard, while the document incorrectly calls ownership complete. | Assert the start payload contains the current login name and Kerberos controller, every completion/discard payload clears it, and all three Kerberos routes plus the sidebar reject a non-owner. |
+| `KRB-DIS-006`, `KRB-DIS-008` | Delete success advances the sequence, and Disable close returns to the Kerberos page and reloads current cluster state. | Delete helpers discard HTTP status, so a non-empty successful body can be marked failed; Complete only closes the modal and leaves stale enabled state. | Successful Disable can stall or continue to display Kerberos as enabled. | Return the DELETE HTTP status, accept every 2xx response, and after Complete reload `Clusters/security_type`, navigate to the canonical Kerberos URL, and render the disabled state. |
+| `KRB-MGMT-007` | Each accepted Regenerate action submits a new request; optional restart begins only after that request completes. | The parent boolean is never reset, so submission failure and closing Background Operations make later Regenerate actions no-ops. | Regenerate is effectively one-shot until page reload. | Close or fail one Regenerate attempt, open the dialog again, and assert a second mutation request is submitted; retain at-most-once restart behavior for each request. |
+| `KRB-REC-002`, `KRB-RISK-005` | Operation errors are reported through controller state and persisted wizard state supports recovery. | `OperationsProgress` invokes `errorCallback` while rendering, and wizard persistence rejections become unhandled promises with no retry UI. | Parent state can be updated during child render and a failed checkpoint can silently lose reload recovery. | Report each terminal error from an effect exactly once; make recovery-load and checkpoint-save failures visible and retryable without duplicating the mutation operation. |
+
+These findings supersede any stronger claim in the provisional status rows
+below until their acceptance tests and build verification pass.
+
 ## Post-Implementation Status
 
 The final statuses below are mutually exclusive and total all 81 baseline IDs.
