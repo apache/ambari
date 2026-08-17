@@ -99,4 +99,3 @@ operation. They also cannot prove server-side principal/keytab effects, service
 restart convergence, websocket/background presentation, or refresh after a
 server restart. Do not mark this issue operationally complete until the runtime
 matrix in `08-kerberos-gap.md` has been executed against real environments.
-
