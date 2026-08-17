@@ -30,6 +30,7 @@ import {
   buildAddHostConfigGroupUpdates,
 } from "../../../Utils/hostWizard";
 import { ActionTypes } from "./wizardDataStore/types";
+import { wizardCheckpoint } from "../../ClusterWizard/installationProgress";
 
 function requestIdFrom(response: any): string | number | undefined {
   return response?.Requests?.id ?? response?.data?.Requests?.id ?? response?.id;
@@ -143,6 +144,11 @@ export default function AddHostReview() {
     setDeployError("");
 
     try {
+      await Promise.resolve(flushStateToDb(
+        "checkpoint",
+        -1,
+        wizardCheckpoint("addHost", "PREP"),
+      ));
       await waitForKDCSession();
 
       if (!hostsRegistered.current) {
@@ -236,7 +242,11 @@ export default function AddHostReview() {
         clusterStatus,
         deploymentStage: "Installation request launched",
       });
-      await Promise.resolve(flushStateToDb("next"));
+      await Promise.resolve(flushStateToDb(
+        "next",
+        -1,
+        wizardCheckpoint("addHost", "INSTALLING"),
+      ));
       handleNextImperitive();
     } catch (error: any) {
       setDeployError(String(errorMessage(error)));

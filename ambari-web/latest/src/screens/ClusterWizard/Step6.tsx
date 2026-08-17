@@ -32,6 +32,10 @@ import useServiceComponents from "./hooks/useServiceComponents";
 import WizardFooter from "../../components/StepWizard/WizardFooter";
 import { ActionTypes } from "./clusterStore/types";
 import { ContextWrapper } from ".";
+import {
+  nextAddServiceStep,
+  previousAddServiceStep,
+} from "../Services/AddServiceWizard/addServiceNavigation";
 import { getStepData } from "../../Utils/Utility";
 import modalManager from "../../store/ModalManager";
 import Modal from "../../components/Modal";
@@ -59,6 +63,7 @@ function Step6({ wizardName = "clusterCreation" }: Step6Props) {
       currentStep,
       handleNextImperitive,
       handleBackImperitive,
+      jumpToStep,
     },
   }: any = useContext(Context);
   const initialServiceComponents = get(
@@ -80,6 +85,11 @@ function Step6({ wizardName = "clusterCreation" }: Step6Props) {
   } = useServiceComponents(wizardName, initialServiceComponents);
 
   const [nextEnabled, setNextEnabled] = useState(false);
+  const addServiceFlow = get(
+    state,
+    "addServiceSteps.SERVICES.data.addServiceFlow",
+    {},
+  );
 
   const enableNext = () => {
     setNextEnabled(true);
@@ -429,6 +439,30 @@ function Step6({ wizardName = "clusterCreation" }: Step6Props) {
     return changedComponents;
   };
 
+  const saveAssignmentsAndContinue = async () => {
+    dispatch({
+      type: ActionTypes.STORE_INFORMATION,
+      payload: {
+        step: currentStep.name,
+        data: {
+          serviceComponents:
+            wizardName === "addHost"
+              ? getAdditionalServiceComponents()
+              : serviceComponents,
+          allServiceComponentsList,
+        },
+      },
+    });
+    if (wizardName === "addService") {
+      const nextStep = nextAddServiceStep(3, addServiceFlow);
+      await Promise.resolve(flushStateToDb("jump", nextStep));
+      jumpToStep(nextStep);
+    } else {
+      await Promise.resolve(flushStateToDb("next"));
+      handleNextImperitive();
+    }
+  };
+
   const showValidationIssuesModal = () => {
     if (validationErrors.length > 0) {
       modalManager.show(
@@ -449,22 +483,7 @@ function Step6({ wizardName = "clusterCreation" }: Step6Props) {
           }}
           successCallback={() => {
             modalManager.hide();
-            // Proceed to next step
-            dispatch({
-              type: ActionTypes.STORE_INFORMATION,
-              payload: {
-                step: currentStep.name,
-                data: {
-                  serviceComponents:
-                    wizardName === "addHost"
-                      ? getAdditionalServiceComponents()
-                      : serviceComponents,
-                  allServiceComponentsList,
-                },
-              },
-            });
-            flushStateToDb("next");
-            handleNextImperitive();
+            void saveAssignmentsAndContinue();
           }}
           onClose={() => {
             modalManager.hide();
@@ -472,22 +491,7 @@ function Step6({ wizardName = "clusterCreation" }: Step6Props) {
         />
       );
     } else {
-      // No validation issues, proceed normally
-      dispatch({
-        type: ActionTypes.STORE_INFORMATION,
-        payload: {
-          step: currentStep.name,
-          data: {
-            serviceComponents:
-              wizardName === "addHost"
-                ? getAdditionalServiceComponents()
-                : serviceComponents,
-            allServiceComponentsList,
-          },
-        },
-      });
-      flushStateToDb("next");
-      handleNextImperitive();
+      void saveAssignmentsAndContinue();
     }
   };
 
@@ -653,9 +657,15 @@ function Step6({ wizardName = "clusterCreation" }: Step6Props) {
         onCancel={() => {
           flushStateToDb("cancel");
         }}
-        onBack={() => {
-          flushStateToDb("back");
-          handleBackImperitive();
+        onBack={async () => {
+          if (wizardName === "addService") {
+            const previousStep = previousAddServiceStep(3, addServiceFlow);
+            await Promise.resolve(flushStateToDb("jump", previousStep));
+            jumpToStep(previousStep);
+          } else {
+            await Promise.resolve(flushStateToDb("back"));
+            handleBackImperitive();
+          }
         }}
         step={currentStep}
       />

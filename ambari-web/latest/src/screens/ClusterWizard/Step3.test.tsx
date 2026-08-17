@@ -22,7 +22,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ContextWrapper } from ".";
 
 const mocks = vi.hoisted(() => ({
+  getBootstrapStatus: vi.fn(),
   isHostsRegistered: vi.fn(),
+  launchBootstrap: vi.fn(),
   loadAmbariProperties: vi.fn(),
   startHostCheck: vi.fn(),
 }));
@@ -31,7 +33,11 @@ vi.mock("../../api/clusterApi", () => ({
   default: { loadAmbariProperties: mocks.loadAmbariProperties },
 }));
 vi.mock("../../api/wizardApi", () => ({
-  default: { isHostsRegistered: mocks.isHostsRegistered },
+  default: {
+    getBootstrapStatus: mocks.getBootstrapStatus,
+    isHostsRegistered: mocks.isHostsRegistered,
+    launchBootstrap: mocks.launchBootstrap,
+  },
 }));
 vi.mock("../../hooks/useHostChecks", () => ({
   useHostChecks: () => ({
@@ -120,5 +126,59 @@ describe("Confirm Hosts registration polling", () => {
       await vi.advanceTimersByTimeAsync(3000);
     });
     expect(mocks.isHostsRegistered).toHaveBeenCalledTimes(2);
+  });
+
+  it("resumes a persisted bootstrap request instead of launching another one", async () => {
+    mocks.getBootstrapStatus.mockResolvedValue({
+      hostsStatus: [{ hostName: "host1", status: "RUNNING", log: "Installing" }],
+      status: "RUNNING",
+    });
+    const contextValue = {
+      dispatch: vi.fn(),
+      flushStateToDb: vi.fn(),
+      state: {
+        addHostSteps: {
+          HOSTS: {
+            data: {
+              installedHosts: [],
+              isSshRegistration: true,
+              targetHosts: ["host1"],
+            },
+          },
+          HOST_STATUS: {
+            data: {
+              bootstrapRequestId: "23",
+              hostsStatus: [{
+                bootLog: "Installing",
+                bootStatus: "RUNNING",
+                isChecked: false,
+                name: "host1",
+              }],
+            },
+          },
+        },
+      },
+      stepWizardUtilities: {
+        currentStep: { name: "HOST_STATUS" },
+        handleBackImperitive: vi.fn(),
+        handleNextImperitive: vi.fn(),
+      },
+    };
+    const WizardContext = createContext(contextValue);
+
+    render(
+      <ContextWrapper.Provider value={{ Context: WizardContext }}>
+        <WizardContext.Provider value={contextValue}>
+          <Step3 wizardName="addHost" />
+        </WizardContext.Provider>
+      </ContextWrapper.Provider>,
+    );
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mocks.getBootstrapStatus).toHaveBeenCalledWith("23");
+    expect(mocks.launchBootstrap).not.toHaveBeenCalled();
   });
 });

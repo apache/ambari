@@ -55,7 +55,9 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import VersionsApi from "../../api/versionsApi";
 import toast from "react-hot-toast";
-import AddVersionModal from "../../components/AddVersionModal";
+import AddVersionModal, {
+  VersionDefinitionSource,
+} from "../../components/AddVersionModal";
 import LostNetworkModal from "../../components/LostNetworkModal";
 import Table from "../../components/Table";
 import DefaultButton from "../../components/DefaultButton";
@@ -66,6 +68,8 @@ import { ActionTypes } from "./clusterStore/types";
 import { getStepData } from "../../Utils/Utility";
 import wizardSteps from "./wizardSteps";
 import { ContextWrapper } from ".";
+import { AppContext } from "../../store/context";
+import { isJdkCompatible } from "./versionSelection";
 
 enum RepositoryType {
   PUBLIC = "public",
@@ -88,7 +92,7 @@ export default function Step1({ wizardName = "clusterCreation" }) {
   );
   //   const history = useHistory();
   const [selectedChoice, setSelectedChoice] = useState<string>(
-    RepositoryType.LOCAL
+    RepositoryType.PUBLIC
   );
   const { stack, version } = useParams<any>();
   const [versionNumber, setVersionNumber] = useState(
@@ -108,6 +112,9 @@ export default function Step1({ wizardName = "clusterCreation" }) {
   const [showRedhatInfoModal, setShowRedhatInfoModal] =
     useState<boolean>(false);
   const [showAddVersionModal, setShowAddVersionModal] = useState(false);
+  const [showJdkWarning, setShowJdkWarning] = useState(false);
+  const [versionDefinitionSource, setVersionDefinitionSource] =
+    useState<VersionDefinitionSource | undefined>();
   const [addedVersions, setAddedVersions] = useState<{
     [key: string]: { label: string; value: string }[];
   }>({});
@@ -127,6 +134,7 @@ export default function Step1({ wizardName = "clusterCreation" }) {
       handleBackImperitive,
     },
   }: any = useContext(Context);
+  const { ambariProperties } = useContext(AppContext);
 
   const enableNext = () => {
     setNextEnabled(true);
@@ -169,31 +177,48 @@ export default function Step1({ wizardName = "clusterCreation" }) {
 
   useEffect(() => {
     async function getVersionDefinitions() {
-      const definitions: VersionDefinitionResponse =
-        await VersionsApi.getVersionDefinitions();
-      const sortedItems = definitions.items.sort((a: any, b: any) => {
-        const versionA = parseFloat(a.VersionDefinition.id.split("-")[1]);
-        const versionB = parseFloat(b.VersionDefinition.id.split("-")[1]);
+      try {
+        const stateData = get(
+          state,
+          `${wizardName}Steps.${currentStep.name}.data`,
+          {},
+        );
+        const stacks = await VersionsApi.getStacks();
+        const stackName = get(stateData, "selectedStack.stack_name")
+          || stack
+          || get(stacks, "items[0].Stacks.stack_name", "");
+        if (!stackName) {
+          throw new Error("No installable stack is available.");
+        }
+        const definitions: VersionDefinitionResponse =
+          await VersionsApi.getVersionDefinitions(stackName);
+        const sortedItems = [...(definitions.items || [])].sort((a: any, b: any) => {
+          const versionA = parseFloat(a.VersionDefinition.id.split("-")[1]);
+          const versionB = parseFloat(b.VersionDefinition.id.split("-")[1]);
 
-        return versionB - versionA;
-      });
-      setVersionDefinitions(sortedItems);
-      setNetworkIssues(definitions.items);
-      
-      const stateData = get(
-        state,
-        `${wizardName}Steps.${currentStep.name}.data`,
-        {}
-      );
-      
-      if (isEmpty(stateData)) {
-        // Only set defaults if no previous state exists
-        setSelectedStack(sortedItems[0]?.VersionDefinition);
-        selectNewVersion(sortedItems[0]?.VersionDefinition);
+          return versionB - versionA;
+        });
+        if (!sortedItems.length) {
+          throw new Error(`No installable version definition is available for ${stackName}.`);
+        }
+        setVersionDefinitions(sortedItems);
+        setNetworkIssues(sortedItems);
+
+        if (isEmpty(stateData)) {
+          setSelectedStack(sortedItems[0].VersionDefinition);
+          selectNewVersion(sortedItems[0].VersionDefinition);
+        }
+      } catch (error: any) {
+        toast.error(
+          error?.response?.data?.message
+            || error?.message
+            || "Could not load version definitions.",
+        );
+        jumpToStep(0, true);
       }
     }
-    getVersionDefinitions();
-  }, [state, wizardName, currentStep]);
+    void getVersionDefinitions();
+  }, [wizardName]);
 
   useEffect(() => {
     if (!versionNumber) {
@@ -237,10 +262,11 @@ export default function Step1({ wizardName = "clusterCreation" }) {
       // Fix for TLHASD-1260: Ensure proper state restoration for base URL persistence
       setSelectedVersion(stateData?.selectedVersion);
       setSelectedStack(stateData?.selectedStack); // Fixed typo: was 'selelectedStack'
-      setSelectedChoice(stateData?.selectedChoice);
-      setSkipValidation(stateData?.skipValidation);
-      setRedhatSatellite(stateData?.redhatSatellite);
+      setSelectedChoice(stateData?.selectedChoice ?? RepositoryType.PUBLIC);
+      setSkipValidation(Boolean(stateData?.skipValidation));
+      setRedhatSatellite(Boolean(stateData?.redhatSatellite));
       setOperatingSystems(stateData?.operatingSystems);
+      setVersionDefinitionSource(stateData?.versionDefinitionSource);
       // Fix for TLHASD-1260: Restore addedVersions from XML uploads
       if (stateData?.addedVersions) {
         setAddedVersions(stateData.addedVersions);
@@ -273,6 +299,7 @@ export default function Step1({ wizardName = "clusterCreation" }) {
         for (const repo of oSystem.repos) {
           if (
             oSystem.isAdded &&
+            !redhatSatellite &&
             !(
               remotePattern.test(repo.baseUrl) ||
               localPattern.test(repo.baseUrl)
@@ -293,7 +320,7 @@ export default function Step1({ wizardName = "clusterCreation" }) {
     } else {
       enableNext();
     }
-  }, [operatingSystems, versionNumber, versionValidationError, skipValidation]);
+  }, [operatingSystems, versionNumber, versionValidationError, skipValidation, redhatSatellite]);
 
   useEffect(() => {
     async function getVersionOs() {
@@ -310,6 +337,7 @@ export default function Step1({ wizardName = "clusterCreation" }) {
       
       const versionOperatingSystems =
         await VersionsApi.getVersionOperatingSystems(
+          selectedStack.stack_name,
           selectedStack.stack_version
         );
       let alreadyAddedOs: any = [];
@@ -319,9 +347,15 @@ export default function Step1({ wizardName = "clusterCreation" }) {
             return {
               id: repo.Repositories.repo_id,
               defaultId: repo.Repositories.repo_id,
-              baseUrl: "",
+              baseUrl:
+                repo.Repositories.base_url
+                || repo.Repositories.default_base_url
+                || "",
               name: repo?.Repositories?.repo_name,
-              defaultUrl: "",
+              defaultUrl:
+                repo.Repositories.default_base_url
+                || repo.Repositories.base_url
+                || "",
             };
           });
           const matchingOs = undefined;
@@ -614,7 +648,7 @@ export default function Step1({ wizardName = "clusterCreation" }) {
     if (!isAllOsValidated()) {
       return;
     }
-    if (skipValidation) {
+    if (skipValidation || redhatSatellite) {
       //   saveVersion();
       return true;
     } else {
@@ -629,7 +663,7 @@ export default function Step1({ wizardName = "clusterCreation" }) {
         for (const repo of repos) {
           versionValidationPromises.push(
             VersionsApi.validateRepos(
-              selectedStack.stack_version,
+              selectedStack.stack_name,
               selectedStack.stack_version,
               oSystem.os,
               repo.id,
@@ -691,7 +725,10 @@ export default function Step1({ wizardName = "clusterCreation" }) {
     }
   }
 
-  const readVersionCallback = async (versionResources: any) => {
+  const readVersionCallback = async (
+    versionResources: any,
+    source: VersionDefinitionSource,
+  ) => {
     try {
       const addedVersionOperatingSystems =
         versionResources?.resources?.[0]?.operating_systems;
@@ -699,7 +736,8 @@ export default function Step1({ wizardName = "clusterCreation" }) {
 
       const versionOperatingSystems =
         await VersionsApi.getVersionOperatingSystems(
-          selectedStack.stack_version
+          addedVersion.stack_name,
+          addedVersion.stack_version
         );
       const newVersion = {
         label: `${addedVersion.stack_name}-${addedVersion.repository_version}`,
@@ -765,6 +803,7 @@ export default function Step1({ wizardName = "clusterCreation" }) {
       setVersionNumber(
         addedVersionName.splice(2, addedVersionName.length).join(".")
       );
+      setVersionDefinitionSource(source);
       setShowAddVersionModal(false);
     } catch (err) {
       toast.error("Could not read version");
@@ -786,6 +825,76 @@ export default function Step1({ wizardName = "clusterCreation" }) {
   //         value: savedRepositoryVersionDetails?.repository_version,
   //     },
   // ];
+
+  const saveVersionSelection = async () => {
+    const allValidated = await validateRepos();
+    if (!allValidated) {
+      disableNext();
+      return;
+    }
+
+    const operatingSystemsCopy = cloneDeep(operatingSystems);
+    const allAddedOs = operatingSystemsCopy?.[selectedVersion.id]?.filter(
+      (oSystem) => oSystem.isAdded,
+    ) || [];
+    const versionUpdatePromises = allAddedOs.flatMap((oSystem) =>
+      oSystem.repos.map((repo) => VersionsApi.updateOSInfo(
+        selectedStack.stack_name,
+        selectedStack.stack_version,
+        oSystem.os,
+        repo.id,
+        {
+          Repositories: {
+            base_url: repo.baseUrl,
+            repo_name: repo.name,
+            verify_base_url: !skipValidation && !redhatSatellite,
+          },
+        },
+      )),
+    );
+
+    try {
+      await Promise.all(versionUpdatePromises);
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message
+          || "Ambari could not save the repository configuration.",
+      );
+      return;
+    }
+
+    dispatch({
+      type: ActionTypes.STORE_INFORMATION,
+      payload: {
+        step: currentStep.name,
+        data: {
+          selectedVersion,
+          selectedStack,
+          selectedChoice,
+          skipValidation,
+          redhatSatellite,
+          operatingSystems,
+          addedVersions,
+          versionDefinitionSource,
+        },
+      },
+    });
+    await Promise.resolve(flushStateToDb("next"));
+    handleNextImperitive();
+  };
+
+  const continueAfterJdkValidation = () => {
+    const compatible = isJdkCompatible(
+      ambariProperties?.["java.version"],
+      selectedStack?.min_jdk,
+      selectedStack?.max_jdk,
+    );
+    if (!compatible) {
+      setShowJdkWarning(true);
+      return;
+    }
+    void saveVersionSelection();
+  };
 
   return (
     <>
@@ -823,6 +932,22 @@ export default function Step1({ wizardName = "clusterCreation" }) {
         onClose={() => {
           setShowRegistrationModal(false);
         }}
+      />
+      <ConfirmationModal
+        modalTitle="Unsupported JDK Version"
+        modalBody={`The selected ${selectedStack?.stack_name || "stack"} ${
+          selectedStack?.stack_version || ""
+        } version requires JDK ${selectedStack?.min_jdk || selectedStack?.max_jdk} through ${
+          selectedStack?.max_jdk || selectedStack?.min_jdk
+        }, but Ambari Server uses ${ambariProperties?.["java.version"]}.`}
+        isOpen={showJdkWarning}
+        successCallback={() => {
+          setShowJdkWarning(false);
+          void saveVersionSelection();
+        }}
+        onClose={() => setShowJdkWarning(false)}
+        buttonVariant="danger"
+        okButtonText="PROCEED ANYWAY"
       />
       <div className="step-title">Select Version</div>
       <div className="step-description mt-2">
@@ -1118,6 +1243,7 @@ export default function Step1({ wizardName = "clusterCreation" }) {
                   checked={skipValidation}
                   type="checkbox"
                   id="skipValidation"
+                  disabled={redhatSatellite}
                   onChange={() => {
                     setSkipValidation(!skipValidation);
                   }}
@@ -1181,62 +1307,12 @@ export default function Step1({ wizardName = "clusterCreation" }) {
         lifted
         isNextEnabled={nextEnabled}
         step={currentStep}
-        onNext={async () => {
-          const allValidated = await validateRepos();
-          if (!allValidated) {
-            disableNext();
-          } else {
-            const operatingSystemsCopy = cloneDeep(operatingSystems);
-            const versionUpdatePromises = [];
-            const allAddedOs = operatingSystemsCopy?.[
-              selectedVersion.id
-            ].filter((oSystem) => oSystem.isAdded);
-            for (const oSystem of allAddedOs) {
-              const repos = oSystem.repos;
-              for (const repo of repos) {
-                versionUpdatePromises.push(
-                  VersionsApi.updateOSInfo(
-                    selectedStack.stack_name,
-                    selectedStack.stack_version,
-                    oSystem.os,
-                    repo.id,
-                    {
-                      Repositories: {
-                        base_url: repo.baseUrl,
-                        repo_name: repo.name,
-                        verify_base_url: true,
-                      },
-                    }
-                  )
-                );
-              }
-            }
-            Promise.allSettled(versionUpdatePromises).then(() => {
-              dispatch({
-                type: ActionTypes.STORE_INFORMATION,
-                payload: {
-                  step: currentStep.name,
-                  data: {
-                    selectedVersion,
-                    selectedStack,
-                    selectedChoice,
-                    skipValidation,
-                    redhatSatellite,
-                    operatingSystems,
-                    addedVersions,
-                  },
-                },
-              });
-              flushStateToDb("next");
-              handleNextImperitive();
-            });
-          }
-        }}
+        onNext={continueAfterJdkValidation}
         onCancel={() => {
           flushStateToDb("cancel");
         }}
-        onBack={() => {
-          flushStateToDb("back");
+        onBack={async () => {
+          await Promise.resolve(flushStateToDb("back"));
           handleBackImperitive();
         }}
       />

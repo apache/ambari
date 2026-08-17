@@ -96,7 +96,7 @@ describe("Add Host persistence", () => {
     fireEvent.click(screen.getByRole("button", { name: "Retry" }));
 
     expect(await screen.findByRole("button", { name: "Persist" })).toBeTruthy();
-    expect(mocks.getPersistData).toHaveBeenCalledTimes(2);
+    expect(mocks.getPersistData).toHaveBeenCalledTimes(3);
   });
 
   it("serializes persistence requests", async () => {

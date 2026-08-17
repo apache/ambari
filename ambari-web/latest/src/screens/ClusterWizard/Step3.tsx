@@ -103,10 +103,6 @@ export default function Step3({ wizardName = "clusterCreation" }: Step3Props) {
   ]);
   const [showHostCheck, setShowHostCheck] = useState(false);
 
-  const { startHostCheck, isHostCheckRunning, hostCheckResult } = useHostChecks(
-    false,
-    true
-  );
   const { Context } = useContext(ContextWrapper);
   const {
     state,
@@ -118,6 +114,40 @@ export default function Step3({ wizardName = "clusterCreation" }: Step3Props) {
       handleBackImperitive,
     },
   }: any = useContext(Context);
+  const restoredConfirmData = get(
+    state,
+    `${wizardName}Steps.HOST_STATUS.data`,
+    {},
+  );
+  const confirmDataRef = useRef<Record<string, any>>(restoredConfirmData);
+  const persistConfirmData = (data: Record<string, any>) => {
+    confirmDataRef.current = { ...confirmDataRef.current, ...data };
+    dispatch({
+      type: ActionTypes.STORE_INFORMATION,
+      payload: {
+        step: "HOST_STATUS",
+        data: confirmDataRef.current,
+      },
+    });
+  };
+  const { startHostCheck, isHostCheckRunning, hostCheckResult } = useHostChecks(
+    wizardName === "addHost",
+    true,
+    {
+      initialHosts: restoredConfirmData.hostsStatus || restoredConfirmData.hosts || [],
+      initialRequestID: restoredConfirmData.hostCheckRequestId,
+      initialWarningData: restoredConfirmData.hostCheckResult,
+      onStateChange: ({ isRunning, requestID, warningData }) => {
+        persistConfirmData({
+          hostCheckCompleted:
+            confirmDataRef.current.hostCheckStarted && !isRunning && requestID === -1,
+          hostCheckRequestId: requestID,
+          hostCheckResult: warningData,
+          hostCheckRunning: isRunning,
+        });
+      },
+    },
+  );
   const [nextEnabled, setNextEnabled] = useState(false);
   const enableNext = () => {
     setNextEnabled(true);
@@ -126,14 +156,32 @@ export default function Step3({ wizardName = "clusterCreation" }: Step3Props) {
     setNextEnabled(false);
   };
 
-  const registrationStartedAt = useRef<any>(null);
+  const registrationStartedAt = useRef<any>(
+    restoredConfirmData.registrationStartedAt ?? null,
+  );
+  const registrationDeadline = useRef<number | null>(
+    restoredConfirmData.registrationDeadline ?? null,
+  );
   const registrationTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const bootstrapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const bootstrapStarted = useRef(false);
+  const bootstrapRequestId = useRef<string | null>(
+    restoredConfirmData.bootstrapRequestId || null,
+  );
+  const bootstrapStarted = useRef(Boolean(bootstrapRequestId.current));
+  const bootstrapPollStarted = useRef(false);
+  const registrationPollInFlight = useRef(false);
+  const registrationResumeStarted = useRef(false);
   const isMounted = useRef(true);
   //TODO: Remove this hack
-  const serviceCheckStarted = useRef(false);
+  const serviceCheckStarted = useRef(Boolean(
+    restoredConfirmData.hostCheckStarted || restoredConfirmData.hostCheckCompleted,
+  ));
   const hostsRef = useRef<Host[]>([]);
+  const shouldSkipHostChecks = wizardName === "addHost" && Boolean(get(
+    state,
+    `${wizardName}Steps.${wizardSteps[2].name}.data.skipHostChecks`,
+    false,
+  ));
 
   const {
     currentItems,
@@ -164,15 +212,23 @@ export default function Step3({ wizardName = "clusterCreation" }: Step3Props) {
   }, []);
 
   useEffect(() => {
-    if (
-      !isEmpty(get(state, `${wizardName}Steps.${wizardSteps[2].name}.data`, {}))
-    ) {
+    if (!isEmpty(get(state, `${wizardName}Steps.${wizardSteps[2].name}.data`, {}))) {
       loadHosts();
     }
-  }, [state]);
+  }, [wizardName]);
 
   useEffect(() => {
     hostsRef.current = hosts;
+    if (hostsRef.current.length) {
+      persistConfirmData({
+        hosts,
+        hostsStatus: hosts,
+        otherRegHosts,
+        bootstrapRequestId: bootstrapRequestId.current,
+        registrationStartedAt: registrationStartedAt.current,
+        registrationDeadline: registrationDeadline.current,
+      });
+    }
     if (hostsRef.current.length) {
       const installOptions = get(
         state,
@@ -180,18 +236,42 @@ export default function Step3({ wizardName = "clusterCreation" }: Step3Props) {
         {},
       );
       if (installOptions.isSshRegistration) {
-        if (!bootstrapStarted.current && hostsRef.current.some(
+        if (
+          bootstrapRequestId.current
+          && !bootstrapPollStarted.current
+          && hostsRef.current.some((host) =>
+            [BootStatus.PENDING, BootStatus.RUNNING].includes(
+              host.bootStatus as BootStatus,
+            ),
+          )
+        ) {
+          bootstrapStarted.current = true;
+          bootstrapPollStarted.current = true;
+          void pollBootstrap(bootstrapRequestId.current);
+        } else if (!bootstrapStarted.current && hostsRef.current.some(
           (host) => host.bootStatus === BootStatus.PENDING,
         )) {
           void startAutomaticBootstrap(installOptions);
-        } else if (
-          !registrationStartedAt.current
-          && hostsRef.current.some((host) => host.bootStatus === BootStatus.DONE)
-        ) {
-          startRegistration();
+        } else if (hostsRef.current.some((host) =>
+          [BootStatus.DONE, BootStatus.REGISTERING].includes(
+            host.bootStatus as BootStatus,
+          ),
+        )) {
+          if (!registrationStartedAt.current) {
+            startRegistration();
+          } else if (!registrationResumeStarted.current) {
+            registrationResumeStarted.current = true;
+            void isHostsRegistered();
+          }
         }
       } else if (!registrationStartedAt.current) {
         startRegistration();
+      } else if (
+        isRegistrationInProgress()
+        && !registrationResumeStarted.current
+      ) {
+        registrationResumeStarted.current = true;
+        void isHostsRegistered();
       }
 
     }
@@ -249,15 +329,34 @@ export default function Step3({ wizardName = "clusterCreation" }: Step3Props) {
 
   const beginHostsCheck = () => {
     if (!isRegistrationInProgress() && hostsRef.current.length > 0) {
-      startHostCheckLocal(hostsRef.current);
       serviceCheckStarted.current = true;
+      if (shouldSkipHostChecks) {
+        if (getRegisteredHosts(hostsRef.current).length) {
+          enableNext();
+        }
+      } else {
+        startHostCheckLocal(hostsRef.current);
+      }
     }
   };
 
   const startRegistration = () => {
     if (registrationStartedAt.current === null) {
-      registrationStartedAt.current = Date.now();
-      isHostsRegistered();
+      const installOptions = get(
+        state,
+        `${wizardName}Steps.${wizardSteps[2].name}.data`,
+        {},
+      );
+      const startedAt = Date.now();
+      registrationStartedAt.current = startedAt;
+      registrationResumeStarted.current = true;
+      registrationDeadline.current = startedAt
+        + addHostRegistrationTimeoutSecs(Boolean(installOptions.isSshRegistration)) * 1000;
+      persistConfirmData({
+        registrationStartedAt: startedAt,
+        registrationDeadline: registrationDeadline.current,
+      });
+      void isHostsRegistered();
     }
   };
 
@@ -280,8 +379,11 @@ export default function Step3({ wizardName = "clusterCreation" }: Step3Props) {
     const bootstrapStillRunning = hostsRef.current.some(
       (host) => host.bootStatus === BootStatus.RUNNING,
     );
-    const withinTimeout = registrationStartedAt.current !== null
-      && Date.now() - registrationStartedAt.current < timeoutSecs * 1000;
+    if (registrationDeadline.current === null && registrationStartedAt.current !== null) {
+      registrationDeadline.current = registrationStartedAt.current + timeoutSecs * 1000;
+    }
+    const withinTimeout = registrationDeadline.current !== null
+      && Date.now() < registrationDeadline.current;
     if (bootstrapStillRunning || withinTimeout) {
       if (registrationTimer.current) {
         clearTimeout(registrationTimer.current);
@@ -337,9 +439,15 @@ export default function Step3({ wizardName = "clusterCreation" }: Step3Props) {
         ));
       if (!terminal) {
         bootstrapTimer.current = setTimeout(() => void pollBootstrap(requestId), 3000);
+      } else {
+        bootstrapStarted.current = false;
+        bootstrapRequestId.current = null;
+        persistConfirmData({ bootstrapRequestId: null });
       }
     } catch (error: any) {
       bootstrapStarted.current = false;
+      bootstrapRequestId.current = null;
+      persistConfirmData({ bootstrapRequestId: null });
       failBootstrapHosts(
         error?.response?.data?.message || "Ambari could not bootstrap the selected hosts.",
       );
@@ -368,9 +476,14 @@ export default function Step3({ wizardName = "clusterCreation" }: Step3Props) {
         failBootstrapHosts(response.log || "Ambari could not start host bootstrap.");
         return;
       }
+      bootstrapRequestId.current = requestId;
+      bootstrapPollStarted.current = true;
+      persistConfirmData({ bootstrapRequestId: requestId });
       await pollBootstrap(requestId);
     } catch (error: any) {
       bootstrapStarted.current = false;
+      bootstrapRequestId.current = null;
+      persistConfirmData({ bootstrapRequestId: null });
       failBootstrapHosts(
         error?.response?.data?.message || "Ambari could not start host bootstrap.",
       );
@@ -378,6 +491,8 @@ export default function Step3({ wizardName = "clusterCreation" }: Step3Props) {
   };
 
   const isHostsRegistered = async () => {
+    if (registrationPollInFlight.current) return;
+    registrationPollInFlight.current = true;
     try {
       const response = await WizardApi.isHostsRegistered();
       if (response && isMounted.current) {
@@ -393,6 +508,8 @@ export default function Step3({ wizardName = "clusterCreation" }: Step3Props) {
         {},
       );
       scheduleRegistrationPoll(installOptions);
+    } finally {
+      registrationPollInFlight.current = false;
     }
   };
 
@@ -420,7 +537,15 @@ export default function Step3({ wizardName = "clusterCreation" }: Step3Props) {
         updatedHost.bootStatus = BootStatus.REGISTERING;
         updatedHost.bootLog =
           (updatedHost.bootLog || "") + "Registering with the server...\n\n";
-        registrationStartedAt.current = Date.now();
+        const startedAt = Date.now();
+        const installOptions = get(
+          state,
+          `${wizardName}Steps.${wizardSteps[2].name}.data`,
+          {},
+        );
+        registrationStartedAt.current = startedAt;
+        registrationDeadline.current = startedAt
+          + addHostRegistrationTimeoutSecs(Boolean(installOptions.isSshRegistration)) * 1000;
       } else if (
         updatedHost.bootStatus === BootStatus.REGISTERING &&
         data.items.find(
@@ -449,6 +574,13 @@ export default function Step3({ wizardName = "clusterCreation" }: Step3Props) {
   };
 
   const loadHosts = () => {
+    const restoredHosts = restoredConfirmData.hostsStatus || restoredConfirmData.hosts;
+    if (Array.isArray(restoredHosts) && restoredHosts.length) {
+      hostsRef.current = restoredHosts;
+      setHosts(restoredHosts);
+      setOtherRegHosts(restoredConfirmData.otherRegHosts || []);
+      return;
+    }
     const hostInfo = get(
       state,
       `${wizardName}Steps.${wizardSteps[2].name}.data.targetHosts`,
@@ -489,7 +621,16 @@ export default function Step3({ wizardName = "clusterCreation" }: Step3Props) {
     });
     setHosts(updatedHosts);
     registrationStartedAt.current = null;
+    registrationResumeStarted.current = false;
+    registrationDeadline.current = null;
     bootstrapStarted.current = false;
+    bootstrapPollStarted.current = false;
+    bootstrapRequestId.current = null;
+    persistConfirmData({
+      bootstrapRequestId: null,
+      registrationDeadline: null,
+      registrationStartedAt: null,
+    });
   };
 
   const startHostCheckLocal = (hostsList: Host[]) => {
@@ -498,6 +639,10 @@ export default function Step3({ wizardName = "clusterCreation" }: Step3Props) {
       !hostsList.every((host) => host.bootStatus === BootStatus.FAILED)
     ) {
       disableNext();
+      persistConfirmData({
+        hostCheckCompleted: false,
+        hostCheckStarted: true,
+      });
       startHostCheck(getRegisteredHosts(hostsList));
     }
   };
@@ -760,6 +905,14 @@ export default function Step3({ wizardName = "clusterCreation" }: Step3Props) {
       return null;
     }
 
+    if (shouldSkipHostChecks) {
+      return (
+        <Alert variant="warning" className="mt-2">
+          Host checks were skipped. JDK compatibility is checked independently.
+        </Alert>
+      );
+    }
+
     if (isHostCheckRunning) {
       return (
         <Alert variant="info" className="mt-2">
@@ -845,15 +998,25 @@ export default function Step3({ wizardName = "clusterCreation" }: Step3Props) {
     }
   };
 
-  const moveToNextStep = () => {
+  const moveToNextStep = async () => {
+    confirmDataRef.current = {
+      ...confirmDataRef.current,
+      bootstrapRequestId: bootstrapRequestId.current,
+      hostCheckResult,
+      hosts,
+      hostsStatus: hostsRef.current,
+      otherRegHosts,
+      registrationDeadline: registrationDeadline.current,
+      registrationStartedAt: registrationStartedAt.current,
+    };
     dispatch({
       type: ActionTypes.STORE_INFORMATION,
       payload: {
         step: currentStep.name,
-        data: { hosts, otherRegHosts, hostsStatus: hostsRef.current },
+        data: confirmDataRef.current,
       },
     });
-    flushStateToDb("next");
+    await Promise.resolve(flushStateToDb("next"));
     handleNextImperitive();
   };
 
@@ -871,7 +1034,7 @@ export default function Step3({ wizardName = "clusterCreation" }: Step3Props) {
               setShowHostCheck(false);
             }}
             successCallback={() => {
-              startHostCheck(getRegisteredHosts(hostsRef.current));
+              startHostCheckLocal(hostsRef.current);
             }}
             loading={isHostCheckRunning}
             hostCheckResult={hostCheckResult}
@@ -1029,8 +1192,8 @@ export default function Step3({ wizardName = "clusterCreation" }: Step3Props) {
           flushStateToDb("cancel");
         }}
         isBackEnabled={serviceCheckStarted.current && !isHostCheckRunning}
-        onBack={() => {
-          flushStateToDb("back")
+        onBack={async () => {
+          await Promise.resolve(flushStateToDb("back"));
           handleBackImperitive();
         }}
       />

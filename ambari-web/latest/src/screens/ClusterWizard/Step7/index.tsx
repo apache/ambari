@@ -21,7 +21,7 @@ import WizardApi from "../../../api/wizardApi";
 import Spinner from "../../../components/Spinner";
 import CredentialsTab, { processDataForCredentialsTab } from "./CredentialsTab";
 import AccountsTab from "./AccountsTab";
-import { Nav, Row, Tab } from "react-bootstrap";
+import { Button, Modal as BootstrapModal, Nav, Row, Tab } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faAlignJustify,
@@ -77,6 +77,11 @@ import DependentConfigurationsModal from "../../../components/DependentConfigura
 import { ServiceContext } from "../../../store/ServiceContext";
 import { serviceNameModelMapping } from "../../../constants";
 import { fetchComponentHostNamesByComponent } from "../../CommonConfigs/ConfigUtils";
+import {
+  nextAddServiceStep,
+  previousAddServiceStep,
+} from "../../Services/AddServiceWizard/addServiceNavigation";
+import { shouldWarnBeforeSkippingPreInstallChecks } from "../preInstallChecks";
 
 type PropTypes = {
   wizardName?: string;
@@ -84,7 +89,7 @@ type PropTypes = {
 
 export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
   const { Context } = useContext(ContextWrapper);
-  const { clusterName } = useContext(AppContext);
+  const { clusterName, supports } = useContext(AppContext);
   const { allServiceModels } = useContext(ServiceContext);
   const {
     state,
@@ -98,6 +103,11 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
     const stepData = get(state, `${wizardName}Steps.${stepName}.data`, {});
     return get(stepData, dataKey, "");
   };
+  const addServiceFlow = get(
+    state,
+    "addServiceSteps.SERVICES.data.addServiceFlow",
+    {},
+  );
   const [themes, setThemes] = useState<any>(
     getStepData("CONFIGURATION", "themes") || {}
   );
@@ -124,6 +134,11 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
 
   const [configPropertiesLoaded, setConfigPropertiesLoaded] = useState(false);
   const [propertyValues, setPropertyValues] = useState<any>({});
+  const [preInstallChecksWereRun, setPreInstallChecksWereRun] = useState(
+    Boolean(getStepData("CONFIGURATION", "preInstallChecksWereRun")),
+  );
+  const [showPreInstallChecks, setShowPreInstallChecks] = useState(false);
+  const [showSkippedChecksWarning, setShowSkippedChecksWarning] = useState(false);
 
   const hostsData = get(
     state,
@@ -184,13 +199,20 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
         themes,
         configs,
         stackLevelConfigs,
+        preInstallChecksWereRun,
       },
     };
     dispatch({
       type: ActionTypes.STORE_INFORMATION,
       payload: data,
     });
-  }, [JSON.stringify(configProperties), configs, themes, stackLevelConfigs]);
+  }, [
+    JSON.stringify(configProperties),
+    configs,
+    themes,
+    stackLevelConfigs,
+    preInstallChecksWereRun,
+  ]);
 
   const initialServiceComponents = get(
     state,
@@ -2185,14 +2207,37 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
     };
   };
 
-  const handleNext = () => {
-    if (tabMapping[selectedTab].nextTab && wizardName === "clusterCreation") {
-      flushStateToDb("next");
-      setSelectedTab(tabMapping?.[selectedTab]?.nextTab as string);
+  const continueAfterConfiguration = async () => {
+    if (wizardName === "addService") {
+      const nextStep = nextAddServiceStep(4, addServiceFlow);
+      await Promise.resolve(flushStateToDb("jump", nextStep));
+      jumpToStep(nextStep);
     } else {
-      flushStateToDb("next");
+      await Promise.resolve(flushStateToDb("next"));
       handleNextImperitive();
     }
+  };
+
+  const runPreInstallChecks = () => {
+    setPreInstallChecksWereRun(true);
+    setShowSkippedChecksWarning(false);
+    setShowPreInstallChecks(true);
+  };
+
+  const handleNext = async () => {
+    if (tabMapping[selectedTab].nextTab && wizardName === "clusterCreation") {
+      setSelectedTab(tabMapping?.[selectedTab]?.nextTab as string);
+      return;
+    }
+    if (shouldWarnBeforeSkippingPreInstallChecks(
+      wizardName,
+      Boolean(supports.preInstallChecks),
+      preInstallChecksWereRun,
+    )) {
+      setShowSkippedChecksWarning(true);
+      return;
+    }
+    await continueAfterConfiguration();
   };
 
   const addServiceTabMapping = () => {
@@ -2225,6 +2270,45 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
 
   return (
     <>
+      <BootstrapModal
+        show={showSkippedChecksWarning}
+        onHide={() => setShowSkippedChecksWarning(false)}
+      >
+        <BootstrapModal.Header closeButton>
+          <BootstrapModal.Title>Skipping Pre Install Checks</BootstrapModal.Title>
+        </BootstrapModal.Header>
+        <BootstrapModal.Body>
+          Skipping Pre Install Checks is not recommended.
+        </BootstrapModal.Body>
+        <BootstrapModal.Footer>
+          <Button variant="secondary" onClick={runPreInstallChecks}>
+            Run Pre Install Checks
+          </Button>
+          <Button
+            variant="primary"
+            onClick={() => {
+              setShowSkippedChecksWarning(false);
+              void continueAfterConfiguration();
+            }}
+          >
+            Ignore and Proceed
+          </Button>
+        </BootstrapModal.Footer>
+      </BootstrapModal>
+      <BootstrapModal
+        show={showPreInstallChecks}
+        onHide={() => setShowPreInstallChecks(false)}
+      >
+        <BootstrapModal.Header closeButton>
+          <BootstrapModal.Title>Pre Install Checks</BootstrapModal.Title>
+        </BootstrapModal.Header>
+        <BootstrapModal.Body />
+        <BootstrapModal.Footer>
+          <Button variant="primary" onClick={() => setShowPreInstallChecks(false)}>
+            Close
+          </Button>
+        </BootstrapModal.Footer>
+      </BootstrapModal>
       <div>
         {/* Dependent Configurations Warning Banner for Add Service */}
         {wizardName === "addService" && getDependentConfigsSummary() && (
@@ -2292,15 +2376,28 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
       <WizardFooter
         isNextEnabled={isNextEnabled}
         lifted
-        onNext={handleNext}
+        onNext={() => void handleNext()}
         onCancel={() => {
           flushStateToDb("cancel");
         }}
-        onBack={() => {
-          flushStateToDb("back");
-          jumpToStep(6);
+        onBack={async () => {
+          if (wizardName === "addService") {
+            const previousStep = previousAddServiceStep(4, addServiceFlow);
+            await Promise.resolve(flushStateToDb("jump", previousStep));
+            jumpToStep(previousStep);
+          } else {
+            await Promise.resolve(flushStateToDb("back"));
+            jumpToStep(6);
+          }
         }}
         step={currentStep}
+        sideItems={
+          wizardName === "clusterCreation" && supports.preInstallChecks ? (
+            <Button size="sm" variant="outline-secondary" onClick={runPreInstallChecks}>
+              Pre Install Checks
+            </Button>
+          ) : null
+        }
       />
       
       {/* Dependent Configurations Modal */}
