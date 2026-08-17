@@ -83,7 +83,7 @@ did not require regeneration.
 | `VER-LIST-004` | `STATICALLY_ALIGNED` | Current/Installed/Not Installed host counts open a host list and can navigate to the matching Hosts filter; zero counts are disabled. | React calculates the three lists, disables zero counts, shows hostnames, and routes to `/main/hosts/version/:versionName/:versionStatus`. Host filtering is owned by Module 03 and has focused tests there. | Integration-test encoded version names, each status, empty lists, Back navigation, and the Module 03 filtered results. |
 | `VER-LIST-005` | `PARTIAL` | After confirmation, authorized users POST `ClusterStackVersions.{stack,version,repository_version}`. Server orchestration skips maintenance/inapplicable hosts; request ID is persisted and progress survives refresh. Duplicate installs are blocked. | React sends the correct POST and wraps it in persisted operation progress. Several install/reinstall entries omit a local `CLUSTER.UPGRADE_DOWNGRADE_STACK` check, and restored operation ownership is a global array not tied to repository/request reconciliation. | Assert permission on every entry, confirmation, exact POST, maintenance/inapplicable hosts, duplicate clicks, timeout/error/Retry, refresh restore, and terminal reconciliation. |
 | `VER-LIST-006` | `STATICALLY_ALIGNED` | Host Stack Versions POSTs one `HostStackVersions` record for the selected host and repository version. | Module 03 uses encoded cluster/host paths and the correct payload in `versionsApi.installHostStackVersion`; focused API and Host Stack Versions tests exist. | Run the Module 03 single-host install scenarios on a live cluster, including rejected install and refresh recovery. |
-| `VER-LIST-007` | `INCORRECT` | OUT_OF_SYNC recovery confirms affected hosts, obtains the KDC session when needed, and only reinstalls/removes INSTALL_FAILED components after server/component cardinality and state checks. | React bulk-updates or deletes every INSTALL_FAILED component on the listed hosts without the KDC prerequisite or component/minimum-instance safety evaluation. A fixed two-second refresh replaces request progress. | Kerberized and non-Kerberized tests must cover last-instance protection, mixed component states, exact query/body, no-op response, request progress, rejection, Retry, and refresh reconciliation. |
+| `VER-LIST-007` | `INCORRECT` | OUT_OF_SYNC recovery confirms affected hosts, obtains the KDC session when needed, and bulk-updates or deletes only components matching `HostRoles/state=INSTALL_FAILED`. Contrary to the earlier written baseline, executable Classic code performs no client-side component-cardinality or minimum-instance check here (`stack_and_upgrade_controller.js:1646-1693`; controller tests at `:3800-3860`). | React sends the same state-constrained bulk mutations and now obtains the KDC session, but operation progress, no-op feedback, rejection recovery, and refresh reconciliation still require completion and runtime proof. | Kerberized and non-Kerberized tests must cover mixed component states, exact query/body, no-op response, request progress, rejection, Retry, and refresh reconciliation. |
 | `VER-LIST-008` | `MISSING` | Hide confirms and PUTs `RepositoryVersions.hidden=true`; it is available only for unused/failed repository versions and never deletes the resource. | React exposes no Hide/Discard action and its API layer only has an unrelated DELETE helper. | Assert eligible PATCH/MAINT/unused/failed states, in-use/CURRENT denial, confirmation, exact PUT, failure retention/Retry, and disappearance after refresh. |
 | `VER-LIST-009` | `STATICALLY_ALIGNED` | Manage Versions confirms leaving Cluster Management, loads the Ambari Server version, and navigates to the ADMIN_VIEW instance. | React confirms and uses the authenticated `/adminView?page=stackVersions` redirect path; the shared guard resolves the installed Admin View version and authorization. | Browser-test missing/one/multiple Admin View versions, insufficient privilege, popup cancellation, redirect failure, and return to Dashboard. |
 
@@ -93,7 +93,7 @@ did not require regeneration.
 | --- | --- | --- | --- | --- |
 | `UPG-START-001` | `PARTIAL` | Classic loads the compatible repository set for the current stack, then obtains server-supported upgrade types for a selected installed target. Incompatible direct jumps and uninstalled targets cannot start. | React calls the supported-types endpoint after selection but never uses its compatible-versions API. Its local predicate permits every different stack and can expose an incompatible target. | Assert compatible/incompatible same-stack and cross-stack targets, installed requirement, empty/malformed compatibility responses, and server rejection without opening Start. |
 | `UPG-START-002` | `PARTIAL` | Server upgrade types drive Rolling, Express, and Host Ordered choices; Host Ordered additionally requires `supports.enabledWizardForHostOrderedUpgrade`. | React filters by server types, but Host Ordered is hard-coded `allowed=false` and the flag is never read. Method selection state also survives between unrelated targets. | Test every server type set and both flag values, target switches, no-supported-method state, and exact selected `upgrade_type`. |
-| `UPG-START-003` | `PARTIAL` | Slave-component and service-check tolerance controls are enabled only for upgrade types that support them and are serialized as `skip_failures` and `skip_service_check_failures`. | React always exposes both controls and sends string booleans in the correct fields; it does not apply per-method tolerance eligibility or reliably reset them between targets. | Assert control visibility/disablement per type, state reset, confirmation text, and exact POST/active-upgrade PUT payloads. |
+| `UPG-START-003` | `PARTIAL` | The shared Classic Upgrade Options template displays both slave-component and service-check tolerance controls for the upgrade flow generally (`upgrade_options.hbs:65-81`); it does not gate them per method. Both values are serialized as `skip_failures` and `skip_service_check_failures`. | React correctly exposes both controls and sends string booleans in the matching fields, but must reliably reset them between unrelated targets. | Assert both controls for every supported method, target-switch state reset, confirmation text, and exact POST/active-upgrade PUT payloads. |
 | `UPG-START-004` | `INCORRECT` | When `supports.preUpgradeCheck` is false Classic starts directly; otherwise checks classify FAIL, WARNING, and BYPASS, block required failures, allow warning/bypass confirmation, support rerun, and expose config merge details. | React always runs checks, uses inconsistent `ERROR` versus server/Classic `FAIL` detection, caches results without invalidation, and can enable Proceed while a request is still loading. | Flag-test direct start, classify all statuses, block FAIL, confirm WARNING/BYPASS, rerun after server change, reject/stale response handling, target switch, and unmount cancellation. |
 | `UPG-START-005` | `MISSING` | Classic adds client checks for maintenance mode, heartbeat/removal, previous upgrade, component installation, and service checks, with item-specific repair actions. The previous-upgrade Finalize button is a documented broken binding and must not be copied. | React only renders generic server check results/config merge data; none of the custom check views, repair requests, or host/service detail flows exist. | Exercise every check type, item details, authorized repair and rerun, repair rejection, no-host/no-service cases, and explicitly assert no invented previous-upgrade Finalize action. |
 | `UPG-START-006` | `PARTIAL` | An authorized user confirms, sees notification suppression and Express downtime warnings, and POSTs repository ID, type, tolerance fields, and UPGRADE direction with a long timeout. Failure leaves the target recoverable. | React sends the correct core payload and warnings, but mutation permission is inconsistently enforced across entries, duplicate submission is not blocked, and no explicit long timeout/cancellation ownership exists. | Assert all entry permissions, Rolling/Express warnings, double-click, timeout, server rejection, Retry, and one created upgrade ID. |
@@ -221,3 +221,79 @@ authenticated users or fault injection.
 5. Run focused and full Vitest, TypeScript/Vite build, lint where practical,
    baseline validation, and `git diff --check`; keep live-only scenarios in the
    runtime matrix until exercised against a real cluster.
+
+## Post-Implementation Status
+
+The audit tables above intentionally preserve the pre-implementation React
+state reviewed at `4fb6dadf190007b831fdd2d08a9a9c6431b252b9`. The following
+table records the result after the Module 06 implementation. `STATIC_COMPLETE`
+means the Classic flow, client boundary, and request contract are represented
+in React and reviewed in source. It does not promote any row in the Runtime
+Acceptance Matrix to passed; every live-cluster row remains `RUNTIME_PENDING`.
+
+| ID | Source status | Implemented evidence and remaining runtime acceptance |
+| --- | --- | --- |
+| `STACK-SVC-001` | `STATIC_COMPLETE` | Current-stack and fallback service loads now expose stable load errors and Retry; live stack metadata shapes remain pending. |
+| `STACK-SVC-002` | `STATIC_COMPLETE` | Add Service applies permission, feature flag, upgrade, ownership, Kerberos, preselection, and return-path gates; both wizard exits require browser acceptance. |
+| `STACK-SVC-003` | `STATIC_COMPLETE` | Missing cluster stack versions fall back to stack operating systems and repositories, including mirror metadata and recoverable loading. |
+| `STACK-SVC-004` | `STATIC_COMPLETE` | Versions entry uses `AMBARI.MANAGE_STACK_VERSIONS`, popup Save uses admin/non-operator eligibility, and the legacy fallback remains separately editable. |
+| `STACK-SVC-005` | `STATIC_COMPLETE` | Repository validation is keyed by OS plus repo ID, reports individual failures, and supports Revert, Cancel, Skip, and explicit Save Anyway without swallowing PUT failures. |
+| `VER-LIST-001` | `STATIC_COMPLETE` | Hidden, older-version, repository type, current-stack, and compatibility rules now drive visible versions with retryable loads. |
+| `VER-LIST-002` | `STATIC_COMPLETE` | All seven filters and counts use derived server-state semantics; helper tests cover not-installed, ready, current, installed, active, and finalize states. |
+| `VER-LIST-003` | `STATIC_COMPLETE` | Version cards, details, service versions, repository OS data, host states, and state-gated actions use defensive nested-data access; full live metadata remains pending. |
+| `VER-LIST-004` | `STATIC_COMPLETE` | Existing host lists and encoded Hosts navigation remain unchanged and aligned; Module 03 owns destination behavior. |
+| `VER-LIST-005` | `STATIC_COMPLETE` | Every bulk install/reinstall entry now shares permission, ownership, active-upgrade, and duplicate-operation gates while retaining persisted operation recovery. |
+| `VER-LIST-006` | `STATIC_COMPLETE` | Existing single-host payload and Module 03 ownership remain unchanged; real Agent orchestration remains pending. |
+| `VER-LIST-007` | `STATIC_COMPLETE` | OUT_OF_SYNC actions retain the Classic `INSTALL_FAILED` query, obtain KDC state, serialize requests, surface rejection, and refresh authoritative state. |
+| `VER-LIST-008` | `STATIC_COMPLETE` | Eligible unused, failed, PATCH, and MAINT versions confirm and PUT `RepositoryVersions.hidden=true`; in-use versions stay unavailable. |
+| `VER-LIST-009` | `STATIC_COMPLETE` | Existing authenticated Admin View redirect remains unchanged and aligned. |
+| `UPG-START-001` | `STATIC_COMPLETE` | Compatible repository versions constrain targets before supported upgrade types are requested. |
+| `UPG-START-002` | `STATIC_COMPLETE` | Server types plus `enabledWizardForHostOrderedUpgrade` determine the three methods and target switches reset selection state. |
+| `UPG-START-003` | `STATIC_COMPLETE` | Both Classic tolerance controls remain available and reset per target; start and active-update payloads use the two string boolean fields. |
+| `UPG-START-004` | `STATIC_COMPLETE` | `preUpgradeCheck` bypass, FAIL/WARNING/BYPASS classification, loading gates, generation-based stale-result rejection, rerun, and config details are implemented. |
+| `UPG-START-005` | `STATIC_COMPLETE` | Custom service, maintenance, heartbeat, component, service-check, and previous-upgrade actions render details and rerun only after successful repair; the broken Classic Finalize binding is absent. |
+| `UPG-START-006` | `STATIC_COMPLETE` | Start is permission/ownership gated, single-flight, recoverable, and claims ownership before creating the upgrade request. |
+| `UPG-START-007` | `STATIC_COMPLETE` | Downgrade abort waiting is bounded and cancellable, failures remain visible, and suspended or terminal Retry restarts polling. |
+| `UPG-START-008` | `STATIC_COMPLETE` | Revert eligibility, affected services, `revert_upgrade_id`, target identity, persistence failure, and rejected-start recovery are represented. |
+| `UPG-RUN-001` | `STATIC_COMPLETE` | Polling has one initial request, remains sequential, exposes stable errors, stops on teardown/terminal state, and can be explicitly restarted. |
+| `UPG-RUN-002` | `STATIC_COMPLETE` | Every task and log is loaded lazily, item changes clear local detail, and Copy/Open operate per task. |
+| `UPG-RUN-003` | `STATIC_COMPLETE` | Existing manual instructions, acknowledgement, exact status PUT, and rejection behavior remain aligned. |
+| `UPG-RUN-004` | `STATIC_COMPLETE` | Failed and timed-out items remain current actionable items, status writes are single-flight, detail failures expose Retry, and successful Retry resumes polling. |
+| `UPG-RUN-005` | `STATIC_COMPLETE` | Pause changes local state and closes only after the suspend PUT succeeds; rejection leaves the wizard open with a visible error. |
+| `UPG-RUN-006` | `STATIC_COMPLETE` | Resume is single-flight, retains suspended state on failure, exposes Retry, and restarts the stopped poller after success. |
+| `UPG-RUN-007` | `STATIC_COMPLETE` | Abort remains limited to downgrade and previous-upgrade repair; no generic Stop action was added. |
+| `UPG-RUN-008` | `STATIC_COMPLETE` | `/main/admin/stack/upgrade` restores the active request, close/unmount stops local polling, and terminal completion clears browser ownership before reload. |
+| `UPG-RUN-009` | `STATIC_COMPLETE` | Upgrade start persists the initiator before POST; refresh and upgrade events reload ownership, non-owners see the initiator and retain read-only progress/log access. |
+| `UPG-RUN-010` | `STATIC_COMPLETE` | Module 06 mutation and route guards consistently apply upgrade, suspended, ownership, and `opsDuringRollingUpgrade` boundaries. |
+| `UPG-RUN-011` | `STATIC_COMPLETE` | Final risk loads the Classic service-check endpoint, safely parses service/host failures, handles `TIMEDOUT`, and exposes detail Retry plus permitted decisions. |
+| `UPG-RUN-012` | `STATIC_COMPLETE` | Finalize and Finalize Later are single-flight, retain visible rejection, render skipped checks, and allow terminal recovery even if browser persistence fails. |
+| `UPG-HIST-001` | `STATIC_COMPLETE` | History and repository metadata load together with Retry, safe removed-repository fallback, and running end-time handling. |
+| `UPG-HIST-002` | `STATIC_COMPLETE` | The existing nine conjunction filters remain unchanged and aligned. |
+| `UPG-HIST-003` | `STATIC_COMPLETE` | Read-only detail performs one explicit load with no poll interval, supports load/detail Retry, lazy logs, unmount, and second-record selection. |
+| `ADMIN-ACCT-001` | `STATIC_COMPLETE` | Existing exact route permission remains; current stack/config loads now terminate on error with Retry. |
+| `ADMIN-ACCT-002` | `STATIC_COMPLETE` | User/group definitions preserve source order, visibility, duplicates, and read-only values without edit or Save controls. |
+| `ADMIN-AUTO-001` | `STATIC_COMPLETE` | Parent and child guards recognize both auto-start permissions; direct routing intentionally applies `serviceAutoStart` consistently with menu visibility. |
+| `ADMIN-AUTO-002` | `STATIC_COMPLETE` | Installed non-client components are filtered by category/count, grouped by service, read-only for service permission, and reloadable after failure. |
+| `ADMIN-AUTO-003` | `STATIC_COMPLETE` | Config, enable, and disable writes run concurrently; partial failure reloads server truth, preserves only remaining changes, disables duplicates, and supports Retry. |
+| `ADMIN-AUTO-004` | `STATIC_COMPLETE` | Router transitions and browser unload are blocked for edits; Save, Discard, and Cancel preserve the intended destination and failure behavior. |
+
+### Shared-File Scope
+
+No parallel-module conflict was observed. Cross-boundary changes were kept to
+the minimum needed for Module 06:
+
+| File | Module 06 reason |
+| --- | --- |
+| `src/Utils/Utility.ts` | Recognize Ambari's `TIMEDOUT` status in upgrade failure/active derivation. |
+| `src/components/AdminRouteGuard.tsx` | Permit the two Auto Start capabilities to reach their guarded child route. |
+| `src/components/UpgradeGuard.tsx` | Honor `opsDuringRollingUpgrade` for Module 06 admin operations. |
+| `src/components/Table.tsx` | Consume the existing `noBorder` presentation prop instead of leaking it to the DOM. |
+| `src/hooks/usePolling.ts` | Provide explicit restart semantics after a terminal Module 06 request is retried. |
+| `src/hooks/useStackServices.ts` | Load current stack service definitions with cancellation and recoverable errors for Service Accounts. |
+| `src/store/context.tsx` | Restore typed upgrade persistence and refresh the initiating user on upgrade events. |
+| `src/screens/KerberosWizard/KerberosStore/context.tsx` | Return Kerberos Add Service completion to the Module 06 Stack tab. |
+| `src/screens/Services/AddServiceWizard/wizardDataStore/context.tsx` | Return ordinary Add Service completion to the Module 06 Stack tab. |
+
+All live scenarios in the Runtime Acceptance Matrix remain pending because this
+worktree has no Ambari Server, Agents, repository metadata, multi-user fixture,
+or fault-injection cluster.

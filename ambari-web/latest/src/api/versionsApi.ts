@@ -111,6 +111,23 @@ const VersionsApi = {
     });
     return response.data;
   },
+  hideRepositoryVersion: async function (
+    stack: string,
+    stackVersion: string,
+    versionId: number
+  ) {
+    const url = `/stacks/${encodeURIComponent(stack)}/versions/${encodeURIComponent(stackVersion)}/repository_versions/${versionId}`;
+    const response = await ambariApi.request({
+      url,
+      method: "PUT",
+      data: {
+        RepositoryVersions: {
+          hidden: "true",
+        },
+      },
+    });
+    return response.data;
+  },
   getRepoDetails: async (stack: string, version: string) => {
     const url = `/stacks/${stack}/versions?fields=repository_versions/operating_systems/repositories/*,repository_versions/operating_systems/OperatingSystems/*,repository_versions/RepositoryVersions/*&repository_versions/RepositoryVersions/repository_version=${version}`;
     const response = await ambariApi.request({
@@ -191,6 +208,36 @@ const VersionsApi = {
     });
     return response.data;
   },
+  getStackOperatingSystems: async function (stackName: string, stackVersion: string) {
+    const response = await ambariApi.request({
+      url: `/stacks/${encodeURIComponent(stackName)}/versions/${encodeURIComponent(stackVersion)}/operating_systems`,
+      method: "GET",
+      params: {
+        fields: "repositories/*,OperatingSystems/*",
+      },
+    });
+    return response.data;
+  },
+  saveStackRepository: async function (
+    stackName: string,
+    stackVersion: string,
+    osType: string,
+    repositoryId: string,
+    baseUrl: string,
+    verifyBaseUrl: boolean,
+  ) {
+    const response = await ambariApi.request({
+      url: `/stacks/${encodeURIComponent(stackName)}/versions/${encodeURIComponent(stackVersion)}/operating_systems/${encodeURIComponent(osType)}/repositories/${encodeURIComponent(repositoryId)}`,
+      method: "PUT",
+      data: {
+        Repositories: {
+          base_url: baseUrl,
+          verify_base_url: verifyBaseUrl,
+        },
+      },
+    });
+    return response.data;
+  },
   installHostStackVersion: async function (
     clusterName: string,
     hostName: string,
@@ -254,6 +301,91 @@ const VersionsApi = {
     const response = await ambariApi.request({
       url: url,
       method: "GET",
+    });
+    return response.data;
+  },
+  startRequiredServices: async function (clusterName: string, serviceNames: string[]) {
+    const query = `ServiceInfo/service_name.in(${serviceNames.join(",")})`;
+    const response = await ambariApi.request({
+      url: `/clusters/${encodeURIComponent(clusterName)}/services?${query}`,
+      method: "PUT",
+      data: {
+        RequestInfo: {
+          context: "Start required services",
+          operation_level: {
+            level: "CLUSTER",
+            cluster_name: clusterName,
+          },
+        },
+        Body: {
+          ServiceInfo: { state: "STARTED" },
+        },
+      },
+    });
+    return response.data;
+  },
+  disableHostsMaintenance: async function (clusterName: string, hostNames: string[]) {
+    const query = `Hosts/host_name.in(${hostNames.join(",")})`;
+    const response = await ambariApi.request({
+      url: `/clusters/${encodeURIComponent(clusterName)}/hosts`,
+      method: "PUT",
+      data: {
+        RequestInfo: {
+          context: "Turn off maintenance mode",
+          query,
+        },
+        Body: {
+          Hosts: { maintenance_state: "OFF" },
+        },
+      },
+    });
+    return response.data;
+  },
+  reinstallFailedComponent: async function (
+    clusterName: string,
+    hostName: string,
+    serviceName: string,
+    componentName: string,
+  ) {
+    const response = await ambariApi.request({
+      url: `/clusters/${encodeURIComponent(clusterName)}/hosts/${encodeURIComponent(hostName)}/host_components/${encodeURIComponent(componentName)}`,
+      method: "PUT",
+      data: {
+        RequestInfo: {
+          context: `Install ${componentName}`,
+          operation_level: {
+            level: "HOST_COMPONENT",
+            cluster_name: clusterName,
+            host_name: hostName,
+            service_name: serviceName,
+          },
+        },
+        Body: {
+          HostRoles: { state: "INSTALLED" },
+        },
+      },
+    });
+    return response.data;
+  },
+  runServiceCheck: async function (clusterName: string, serviceName: string) {
+    const command = serviceName === "ZOOKEEPER"
+      ? "ZOOKEEPER_QUORUM_SERVICE_CHECK"
+      : `${serviceName}_SERVICE_CHECK`;
+    const response = await ambariApi.request({
+      url: `/clusters/${encodeURIComponent(clusterName)}/requests`,
+      method: "POST",
+      data: {
+        RequestInfo: {
+          command,
+          context: `${serviceName} Service Check`,
+          operation_level: {
+            level: "SERVICE",
+            cluster_name: clusterName,
+            service_name: serviceName,
+          },
+        },
+        "Requests/resource_filters": [{ service_name: serviceName }],
+      },
     });
     return response.data;
   },
@@ -337,6 +469,21 @@ const VersionsApi = {
     const response = await ambariApi.request({
       url: url,
       method: "GET",
+    });
+    return response.data;
+  },
+  getFailedServiceChecks: async function (clusterName: string, upgradeId: number) {
+    const url = `/clusters/${encodeURIComponent(clusterName)}/upgrades/${upgradeId}/upgrade_groups`;
+    const response = await ambariApi.request({
+      url,
+      method: "GET",
+      params: {
+        "upgrade_items/UpgradeItem/status": "COMPLETED",
+        "upgrade_items/tasks/Tasks/status.in": "FAILED,ABORTED,TIMEDOUT",
+        "upgrade_items/tasks/Tasks/command": "SERVICE_CHECK",
+        fields: "upgrade_items/tasks/Tasks/command_detail,tasks/Tasks/ops_display_name,upgrade_items/tasks/Tasks/status",
+        minimal_response: true,
+      },
     });
     return response.data;
   },

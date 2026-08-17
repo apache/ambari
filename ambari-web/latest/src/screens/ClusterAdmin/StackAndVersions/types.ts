@@ -291,6 +291,7 @@ type UpgradeParameters = {
   slaveComponentStructuredInfo: any;
   areServiceCheckFailuresServicenamesLoaded?: boolean;
   serviceCheckFailuresServicenames?: any;
+  skippedServiceChecks: string[];
   upgradeStatus: string;
   upgradeInit: boolean;
   upgradeInProgress: boolean;

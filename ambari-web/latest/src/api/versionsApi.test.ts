@@ -66,4 +66,114 @@ describe("versions API", () => {
       },
     });
   });
+
+  it("loads the legacy operating-system repository fallback", async () => {
+    await VersionsApi.getStackOperatingSystems("HDP/name", "3.1 version");
+
+    expect(mocks.request).toHaveBeenCalledWith({
+      url: "/stacks/HDP%2Fname/versions/3.1%20version/operating_systems",
+      method: "GET",
+      params: {
+        fields: "repositories/*,OperatingSystems/*",
+      },
+    });
+  });
+
+  it("saves one legacy fallback repository with optional URL validation", async () => {
+    await VersionsApi.saveStackRepository(
+      "HDP/name",
+      "3.1 version",
+      "redhat 8",
+      "HDP/utils",
+      "https://repo.example.test/HDP",
+      false,
+    );
+
+    expect(mocks.request).toHaveBeenCalledWith({
+      url: "/stacks/HDP%2Fname/versions/3.1%20version/operating_systems/redhat%208/repositories/HDP%2Futils",
+      method: "PUT",
+      data: {
+        Repositories: {
+          base_url: "https://repo.example.test/HDP",
+          verify_base_url: false,
+        },
+      },
+    });
+  });
+
+  it("hides a repository version without deleting it", async () => {
+    await VersionsApi.hideRepositoryVersion("HDP/name", "3.1 version", 42);
+
+    expect(mocks.request).toHaveBeenCalledWith({
+      url: "/stacks/HDP%2Fname/versions/3.1%20version/repository_versions/42",
+      method: "PUT",
+      data: {
+        RepositoryVersions: {
+          hidden: "true",
+        },
+      },
+    });
+  });
+
+  it("loads failed and skipped service checks for final risk review", async () => {
+    await VersionsApi.getFailedServiceChecks("cluster/name", 17);
+
+    expect(mocks.request).toHaveBeenCalledWith({
+      url: "/clusters/cluster%2Fname/upgrades/17/upgrade_groups",
+      method: "GET",
+      params: {
+        "upgrade_items/UpgradeItem/status": "COMPLETED",
+        "upgrade_items/tasks/Tasks/status.in": "FAILED,ABORTED,TIMEDOUT",
+        "upgrade_items/tasks/Tasks/command": "SERVICE_CHECK",
+        fields: "upgrade_items/tasks/Tasks/command_detail,tasks/Tasks/ops_display_name,upgrade_items/tasks/Tasks/status",
+        minimal_response: true,
+      },
+    });
+  });
+
+  it("uses the Classic host maintenance repair payload", async () => {
+    await VersionsApi.disableHostsMaintenance("cluster/name", ["host1", "host2"]);
+
+    expect(mocks.request).toHaveBeenCalledWith({
+      url: "/clusters/cluster%2Fname/hosts",
+      method: "PUT",
+      data: {
+        RequestInfo: {
+          context: "Turn off maintenance mode",
+          query: "Hosts/host_name.in(host1,host2)",
+        },
+        Body: {
+          Hosts: { maintenance_state: "OFF" },
+        },
+      },
+    });
+  });
+
+  it("uses the Classic failed-component reinstall payload", async () => {
+    await VersionsApi.reinstallFailedComponent(
+      "cluster/name",
+      "host one",
+      "HDFS",
+      "DATA/NODE",
+    );
+
+    expect(mocks.request).toHaveBeenCalledWith({
+      url: "/clusters/cluster%2Fname/hosts/host%20one/host_components/DATA%2FNODE",
+      method: "PUT",
+      data: {
+        RequestInfo: {
+          context: "Install DATA/NODE",
+          operation_level: {
+            level: "HOST_COMPONENT",
+            cluster_name: "cluster/name",
+            host_name: "host one",
+            service_name: "HDFS",
+          },
+        },
+        Body: {
+          HostRoles: { state: "INSTALLED" },
+        },
+      },
+    });
+  });
 });

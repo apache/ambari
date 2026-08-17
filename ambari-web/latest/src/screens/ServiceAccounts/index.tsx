@@ -16,90 +16,103 @@
  * limitations under the License.
  */
 
-import { filter, forEach, set } from "lodash";
 import ConfigsApi from "../../api/configsApi";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useConfigs } from "../../hooks/useConfigs";
 import useStackServices from "../../hooks/useStackServices";
-import { Card, CardBody } from "react-bootstrap";
+import { Alert, Button, Card, CardBody } from "react-bootstrap";
 import Spinner from "../../components/Spinner";
 import Table from "../../components/Table";
 import Center from "../../components/Center";
 import { useContext } from "react";
 import { AppContext } from "../../store/context";
 import UpgradeGuard from "../../components/UpgradeGuard";
+import { serviceAccountConfigs } from "./serviceAccountUtils";
 
 function ServiceAccounts() {
   const { clusterName } = useContext(AppContext);
-  const [serverConfigs, setServerConfigs] = useState([]);
-  const { services: stackServices } = useStackServices();
-  const [isLoading,setIsLoading]=useState(true);
-  const [accounts,setAccounts]=useState([]);
+  const {
+    services: stackServices,
+    loading: stackServicesLoading,
+    error: stackServicesError,
+    retry: retryStackServices,
+  } = useStackServices();
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [accounts, setAccounts] = useState<any[]>([]);
+  const [configRetryAttempt, setConfigRetryAttempt] = useState(0);
   const { getConfigsFromJSON } = useConfigs(
-    serverConfigs,
+    [],
     stackServices as any
   );
+  const getConfigsFromJSONRef = useRef(getConfigsFromJSON);
 
   useEffect(() => {
-    console.log("Server Configs", serverConfigs);
-    if (serverConfigs.length) {
-      createConfigObject();
-    }
-  }, [serverConfigs.length]);
+    getConfigsFromJSONRef.current = getConfigsFromJSON;
+  }, [getConfigsFromJSON]);
 
-  const getConfigBySites = async (tags: any[]) => {
-    let urlParams: string[] = [];
-    tags.forEach(function (_tag: any) {
-      urlParams.push("(type=" + _tag.siteName + "&tag=" + _tag.tagName + ")");
-    });
-    const allProperties = await ConfigsApi.getConfigsByTags(
-      clusterName,
-      urlParams.join("|")
-    );
-
-    console.log("All Properties are", allProperties);
-    setServerConfigs(allProperties.items);
-    // return get(allProperties, "items.0.properties", []);
-  };
-
-  const createConfigObject = () => {
-    let configs: any = [];
-    serverConfigs.forEach(function (configObject: any) {
-      configs = configs.concat(getConfigsFromJSON(configObject));
-    });
-    
-    let miscConfigs = filter(configs, (config) => {
-      return config.displayType === "user" && 
-             config.category === "Users and Groups" &&
-             config.isVisible !== false;
-    });
-    
-    // Ensure all configs are visible and sort them for consistent display
-    forEach(miscConfigs, function (config) {
-      set(config, "isVisible", true);
-    });
-    
-    // Sort by display name for consistent ordering like classic UI
-    miscConfigs = miscConfigs.sort((a: any, b: any) => {
-      return (a.displayName || a.name).localeCompare(b.displayName || b.name);
-    });
-    
-    setAccounts(miscConfigs as any);
-    setIsLoading(false);
-  };
-
-  const getClusterConfigs = async () => {
-    const tags = await ConfigsApi.updateConfigTags(clusterName);
-    await getConfigBySites(tags);
-  };
   useEffect(() => {
     if (stackServices.length) {
-      getClusterConfigs();
+      const getClusterConfigs = async () => {
+        setIsLoading(true);
+        setLoadError(null);
+        try {
+          const tags = await ConfigsApi.updateConfigTags(clusterName);
+          const urlParams = tags.map(
+            (tag: any) => `(type=${tag.siteName}&tag=${tag.tagName})`
+          );
+          const response = await ConfigsApi.getConfigsByTags(
+            clusterName,
+            urlParams.join("|")
+          );
+          let configs: any[] = [];
+          (response.items || []).forEach((configObject: any) => {
+            configs = configs.concat(getConfigsFromJSONRef.current(configObject));
+          });
+          setAccounts(serviceAccountConfigs(configs));
+        } catch (error: any) {
+          setLoadError(
+            error?.response?.data?.message
+              || error?.message
+              || "Service accounts could not be loaded"
+          );
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      void getClusterConfigs();
+    } else if (!stackServicesLoading && !stackServicesError) {
+      setAccounts([]);
+      setIsLoading(false);
     }
-  }, [stackServices.length]);
+  }, [clusterName, configRetryAttempt, stackServices, stackServicesError, stackServicesLoading]);
 
-  if(isLoading){
-    return <Center><Spinner/></Center>
+  if (stackServicesLoading || isLoading) {
+    return <Center><Spinner /></Center>;
+  }
+
+  const effectiveLoadError = stackServicesError || loadError;
+  if (effectiveLoadError) {
+    return (
+      <UpgradeGuard>
+        <Alert variant="danger" className="m-4 d-flex justify-content-between align-items-center">
+          <span>{effectiveLoadError}</span>
+          <Button
+            size="sm"
+            variant="outline-danger"
+            onClick={() => {
+              if (stackServicesError) {
+                retryStackServices();
+              } else {
+                setConfigRetryAttempt((attempt) => attempt + 1);
+              }
+            }}
+          >
+            Retry
+          </Button>
+        </Alert>
+      </UpgradeGuard>
+    );
   }
 
   const columns=[{
@@ -111,7 +124,6 @@ function ServiceAccounts() {
     accessorKey:"value",
     id:"value"
   }]
-  console.log("Accounts are",accounts)
   return (
     <UpgradeGuard>
       <Card className="m-4">

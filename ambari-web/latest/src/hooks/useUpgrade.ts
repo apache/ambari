@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import VersionsApi from "../api/versionsApi";
 import usePolling from "./usePolling";
 import toast from "react-hot-toast";
@@ -25,12 +25,27 @@ import { get, merge, set } from "lodash";
 import { failedStatuses, activeStatuses, getUpgradeRequestStatus } from "../Utils/Utility";
 import { AppContext } from "../store/context";
 import ClusterApi from "../api/clusterApi";
+import {
+  isTerminalUpgradeStatus,
+  serviceCheckFailureSummary,
+  skippedServiceCheckNames,
+  slaveComponentFailureDetails,
+} from "../screens/ClusterAdmin/StackAndVersions/upgradeUtils";
+import { persistedPayload } from "../Utils/persistedSettings";
 
 export function useUpgrade(upgradeId: number, onlyView: boolean) {
   const [data, setData] = useState<UpgradeData | null>(null);
   const [groups, setGroups] = useState<UpgradeGroup[]>([]);
   const [currUpgradeItem, setCurrUpgradeItem] = useState<UpgradeItem | null>(null);
   const [currentStack, setCurrentStack] = useState<StackVersion | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [detailLoadError, setDetailLoadError] = useState<string | null>(null);
+  const [statusUpdateError, setStatusUpdateError] = useState<string | null>(null);
+  const [detailLoadAttempt, setDetailLoadAttempt] = useState(0);
+  const failureDetailsCache = useRef(new Map<string, any>());
+  const completedUpgradeHandled = useRef(false);
+  const hasLoadedData = useRef(false);
   const [upgradeParameters, setUpgradeParameters] = useState<UpgradeParameters>({
     isDowngrade: false,
     downgradeAllowed: true,
@@ -50,7 +65,8 @@ export function useUpgrade(upgradeId: number, onlyView: boolean) {
     areSlaveComponentFailuresHostsLoaded: false,
     slaveComponentStructuredInfo: "",
     areServiceCheckFailuresServicenamesLoaded: false,
-    serviceCheckFailuresServicenames: "",
+    serviceCheckFailuresServicenames: [],
+    skippedServiceChecks: [],
     upgradeStatus: "NOT_REQUIRED",
     upgradeInit: false,
     upgradeInProgress: false,
@@ -68,78 +84,96 @@ export function useUpgrade(upgradeId: number, onlyView: boolean) {
   });
   const { clusterName, setUpgradeState, setCurrentStackVersion, setUpgradeIsFinalizeItem } = useContext(AppContext);
 
-  const { pausePolling } = usePolling(fetchOperations, 6000);
-  let slaveComponentStructuredInfo: any;
-  let serviceCheckFailuresServicenames: any;
-
-  async function fetchOperations() {
+  const fetchOperations = useCallback(async () => {
+    if (!hasLoadedData.current) {
+      setLoading(true);
+    }
     try {
       const response = await VersionsApi.getUpgradeOperations(upgradeId, clusterName);
+      hasLoadedData.current = true;
+      setLoadError(null);
       setData(response);
-    } catch (error) {
-      toast.error("Failed to fetch data");
+      return response;
+    } catch (error: any) {
+      setLoadError(error?.response?.data?.message || error?.message || "Upgrade data could not be loaded");
+      throw error;
+    } finally {
+      setLoading(false);
     }
-  }
+  }, [clusterName, upgradeId]);
+
+  const { resumePolling, stopPolling } = usePolling(fetchOperations, onlyView ? null : 6000);
 
   useEffect(() => {
-    fetchOperations();
-    if(onlyView) pausePolling();
-  }, [])
+    hasLoadedData.current = false;
+    completedUpgradeHandled.current = false;
+    failureDetailsCache.current.clear();
+  }, [clusterName, upgradeId]);
+
+  useEffect(() => {
+    if (onlyView) {
+      void fetchOperations().catch(() => undefined);
+    }
+  }, [fetchOperations, onlyView]);
 
   const finalizeContext : string = 'Confirm Finalize';
   const slaveFailuresContext : string = "Check Component Versions";
   const serviceCheckFailuresContext: string = "Verifying Skipped Failures";
 
   useEffect(() => {
-    if (data) {
-      if(onlyView) {
-        setGroups(data.upgrade_groups);
-        return;
-      }
-      
-      setUpgradeState(data.Upgrade.request_status);
-      setGroups((prevGroups) => mergeGroups(prevGroups, data.upgrade_groups));
-
-      if(data.Upgrade?.request_status === 'COMPLETED') {
-        finish();
-      }
+    if (!data) return;
+    if (onlyView) {
+      setGroups(data.upgrade_groups || []);
+      return;
     }
-  }, [data]);
+
+    setUpgradeState(data.Upgrade.request_status);
+    setGroups((prevGroups) => mergeGroups(prevGroups, data.upgrade_groups || []));
+
+    if (data.Upgrade?.request_status === "COMPLETED") {
+      stopPolling();
+      if (!completedUpgradeHandled.current) {
+        completedUpgradeHandled.current = true;
+        setCurrentStackVersion(get(data, "Upgrade.associated_version", ""));
+        setUpgradeState("NOT_REQUIRED");
+        setUpgradeIsFinalizeItem(false);
+        void ClusterApi.postPersistData(persistedPayload({
+          upgradeIsFinalizeItem: false,
+          "wizard-data": {},
+        })).catch(() => {
+          toast.error("The completed upgrade state could not be persisted in this browser");
+        }).finally(() => window.location.reload());
+      }
+    } else if (isTerminalUpgradeStatus(data.Upgrade?.request_status)) {
+      stopPolling();
+    }
+  }, [data, onlyView, setCurrentStackVersion, setUpgradeIsFinalizeItem, setUpgradeState, stopPolling]);
 
   useEffect(() => {
+    let active = true;
     const fetchData = async () => {
       const getUpgradeItem = async (item: UpgradeItem) => {
         const groupId = item?.UpgradeItem.group_id;
         const stageId = item?.UpgradeItem.stage_id;
-        const response = await VersionsApi.getUpgradeItem(upgradeId, groupId, stageId, clusterName);
-        const info = response.tasks[0];
-        if(info && info.Tasks && info.Tasks?.structured_out) {
-          slaveComponentStructuredInfo = info.Tasks.structured_out;
+        const key = `item-${groupId}-${stageId}`;
+        if (!failureDetailsCache.current.has(key)) {
+          failureDetailsCache.current.set(
+            key,
+            await VersionsApi.getUpgradeItem(upgradeId, groupId, stageId, clusterName),
+          );
         }
-        return true;
+        return failureDetailsCache.current.get(key);
       }
 
-      const getServiceCheckItem = async (item: UpgradeItem) => {
-        const groupId = item?.UpgradeItem.group_id;
-        const stageId = item?.UpgradeItem.stage_id;
-        const response = await VersionsApi.getUpgradeItem(upgradeId, groupId, stageId, clusterName);
-        const task = response.tasks[0];
-        let info = {
-          hosts: [] as string[],
-          host_detail: {}
+      const getSkippedServiceChecks = async () => {
+        const key = `service-checks-${upgradeId}`;
+        if (!failureDetailsCache.current.has(key)) {
+          failureDetailsCache.current.set(
+            key,
+            await VersionsApi.getFailedServiceChecks(clusterName, upgradeId),
+          );
         }
-
-        if (task && task.Tasks && task.Tasks?.structured_out && task.Tasks?.structured_out?.failures) {
-          set(serviceCheckFailuresServicenames, task.Tasks?.structured_out.failures?.service_check, [])
-          if (task.Tasks.structured_out.failures.host_component) {
-            task.Tasks.structured_out.failures.host_component.forEach((hostName: string) => {
-              info.hosts.push(hostName);
-            })
-            info.host_detail = task.Tasks.structured_out.failures.host_component;
-          }
-        slaveComponentStructuredInfo = info;
-        }
-        return true;
+        return failureDetailsCache.current.get(key);
       }
 
       const currItem = groups
@@ -152,8 +186,10 @@ export function useUpgrade(upgradeId: number, onlyView: boolean) {
             "HOLDING_PENDING",
             "HOLDING_TIMEDOUT",
             "HOLDING",
+            ...failedStatuses,
           ].includes(item.UpgradeItem.status)
         );
+      if (!active) return;
       setCurrUpgradeItem(currItem || null);
       
       const upgradeAssociatedversion = get(data, "Upgrade.associated_version", "");
@@ -166,7 +202,7 @@ export function useUpgrade(upgradeId: number, onlyView: boolean) {
       const upgradeAborted = (upgradeStatus === "ABORTED") && !isSuspended;
       const upgradeHolding = (upgradeStatus.includes("HOLDING") || upgradeAborted);
       const upgradeRunning = (upgradeInProgress || upgradeHolding);
-      const showPauseButton = (!upgradeSuspended && !upgradeCompleted && !upgradeInit);
+      const showPauseButton = !upgradeSuspended && upgradeRunning;
       const isDowngrade = get(data, "Upgrade.direction", "") === "DOWNGRADE";
       const isDowngradeAvailable = get(data, "Upgrade.downgrade_allowed", false);
 
@@ -183,26 +219,66 @@ export function useUpgrade(upgradeId: number, onlyView: boolean) {
       const canSkipFailedItem = failedItem ? failedItem.UpgradeItem.skippable : true;
       const isHoldingState = failedItem ? failedItem.UpgradeItem.status.includes("HOLDING") || failedItem.UpgradeItem.status === "ABORTED" : false;
       let areSlaveComponentFailuresHostsLoaded = false;
+      let slaveComponentStructuredInfo = { hosts: [] as string[], host_detail: {} };
+      let serviceCheckFailuresServicenames: string[] = [];
+      let skippedServiceChecks: string[] = [];
 
-      if(isSlaveComponentFailuresItem && slaveItem) 
-        areSlaveComponentFailuresHostsLoaded = await getUpgradeItem(slaveItem);
+      setDetailLoadError(null);
+      if(isSlaveComponentFailuresItem && slaveItem) {
+        try {
+          slaveComponentStructuredInfo = slaveComponentFailureDetails(await getUpgradeItem(slaveItem));
+          areSlaveComponentFailuresHostsLoaded = true;
+        } catch (error: any) {
+          const message = error?.response?.data?.message || error?.message || "Failed component details could not be loaded";
+          if (active) {
+            setDetailLoadError(message);
+            toast.error(message);
+          }
+        }
+      }
 
       let areServiceCheckFailuresServicenamesLoaded = false;
-      if(isServiceCheckFailuresItem && manualItem)
-        areServiceCheckFailuresServicenamesLoaded = await getServiceCheckItem(manualItem)
+      if(isServiceCheckFailuresItem && manualItem) {
+        try {
+          const summary = serviceCheckFailureSummary(await getUpgradeItem(manualItem));
+          serviceCheckFailuresServicenames = summary.serviceNames;
+          slaveComponentStructuredInfo = summary.hostDetails;
+          areServiceCheckFailuresServicenamesLoaded = true;
+        } catch (error: any) {
+          const message = error?.response?.data?.message || error?.message || "Service check failure details could not be loaded";
+          if (active) {
+            setDetailLoadError(message);
+            toast.error(message);
+          }
+        }
+      }
+      if (isFinalizeItem) {
+        try {
+          skippedServiceChecks = skippedServiceCheckNames(await getSkippedServiceChecks());
+        } catch (error: any) {
+          const message = error?.response?.data?.message || error?.message || "Skipped service checks could not be loaded";
+          if (active) {
+            setDetailLoadError(message);
+            toast.error(message);
+          }
+        }
+      }
 
       const serviceCheckFailures = get(data, "Upgrade.skip_service_check_failures", false);
       const slaveComponentFailures = get(data, "Upgrade.skip_failures", false);
       const upgradeMethod = get(data, "Upgrade.upgrade_type", "");
 
-      setUpgradeIsFinalizeItem(isFinalizeItem);
-      await ClusterApi.postPersistData(
-        JSON.stringify({
-          upgradeIsFinalizeItem: JSON.stringify(isFinalizeItem)
-        })
-      )
+      if (!active) return;
+      if (!onlyView) {
+        setUpgradeIsFinalizeItem(isFinalizeItem);
+        await ClusterApi.postPersistData(
+          persistedPayload({ upgradeIsFinalizeItem: isFinalizeItem }),
+        ).catch(() => {
+          toast.error("The current upgrade step could not be persisted in this browser");
+        });
+      }
 
-      setUpgradeParameters({
+      setUpgradeParameters((previous) => ({
         isDowngrade: isDowngrade,
         isDowngradeAvailable: isDowngradeAvailable,
         downgradeAllowed: data?.Upgrade.downgrade_allowed || false,
@@ -217,10 +293,11 @@ export function useUpgrade(upgradeId: number, onlyView: boolean) {
         isFinalizeItem,
         canSkipFailedItem,
         isHoldingState,
-        requestInProgress: false,
+        requestInProgress: previous.requestInProgress,
         areSlaveComponentFailuresHostsLoaded,
         slaveComponentStructuredInfo,
         serviceCheckFailuresServicenames,
+        skippedServiceChecks,
         areServiceCheckFailuresServicenamesLoaded,
         upgradeStatus: upgradeStatus,
         upgradeInit: upgradeInit,
@@ -236,10 +313,13 @@ export function useUpgrade(upgradeId: number, onlyView: boolean) {
         slaveComponentFailures: slaveComponentFailures,
         serviceCheckFailures: serviceCheckFailures,
         upgradeMethod: upgradeMethod,
-      });
+      }));
     }
-    fetchData();
-  }, [groups]);
+    void fetchData();
+    return () => {
+      active = false;
+    };
+  }, [clusterName, data, detailLoadAttempt, groups, onlyView, setUpgradeIsFinalizeItem, upgradeId]);
 
   const mergeGroups = (
     prevGroups: UpgradeGroup[],
@@ -303,6 +383,7 @@ export function useUpgrade(upgradeId: number, onlyView: boolean) {
       }
       return prevItem;
     });
+    return tasks;
   };
 
   const fetchLogs = async (groupId: number, stageId: number, taskId: number) => {
@@ -331,6 +412,7 @@ export function useUpgrade(upgradeId: number, onlyView: boolean) {
       }
       return prevItem;
     });
+    return logs;
   };
 
   const handleCopy = async (text: string) => {
@@ -378,7 +460,11 @@ export function useUpgrade(upgradeId: number, onlyView: boolean) {
   };
 
   const setUpgradeItemStatus = async (item: UpgradeItem, status: string) => {
+    if (upgradeParameters.requestInProgress) {
+      return;
+    }
     setUpgradeParameters((prev) => ({ ...prev, requestInProgress: true }));
+    setStatusUpdateError(null);
     const reqData = {
         upgradeId: upgradeId,
         itemId: item.UpgradeItem.stage_id,
@@ -388,6 +474,7 @@ export function useUpgrade(upgradeId: number, onlyView: boolean) {
 
     try {
         await VersionsApi.setUpgradeItemState(clusterName, reqData);
+        resumePolling();
         // set the currItem status to status
         setGroups((prevGroups) =>
           prevGroups.map((group) => ({
@@ -399,24 +486,13 @@ export function useUpgrade(upgradeId: number, onlyView: boolean) {
             ),
           }))
         );
-    } catch (error) {
-        toast.error("Failed to update status");
+    } catch (error: any) {
+        const message = error?.response?.data?.message || error?.message || "Failed to update upgrade item status";
+        setStatusUpdateError(message);
+        toast.error(message);
     } finally {
         setUpgradeParameters((prev) => ({ ...prev, requestInProgress: false }));
     }
-  }
-
-  async function finish() {
-    const upgradeVersion = get(data, "Upgrade.associated_version", "");
-    setCurrentStackVersion(upgradeVersion);
-    setUpgradeState("NOT_REQUIRED");
-    setUpgradeIsFinalizeItem(false);
-    await ClusterApi.postPersistData(
-      JSON.stringify({
-        upgradeIsFinalizeItem: JSON.stringify(false)
-      })
-    )
-    window.location.reload();
   }
 
   return {
@@ -430,6 +506,16 @@ export function useUpgrade(upgradeId: number, onlyView: boolean) {
     handleCopy,
     handleOpenInNewTab,
     upgradeParameters,
-    setUpgradeItemStatus
+    setUpgradeItemStatus,
+    loadError,
+    loading,
+    detailLoadError,
+    statusUpdateError,
+    resumePolling,
+    retryFetch: fetchOperations,
+    retryFailureDetails: () => {
+      failureDetailsCache.current.clear();
+      setDetailLoadAttempt((attempt) => attempt + 1);
+    },
   };
 }

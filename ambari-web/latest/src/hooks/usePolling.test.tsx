@@ -17,11 +17,26 @@
  */
 
 import { act, cleanup, render } from "@testing-library/react";
+import { useEffect } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import usePolling from "./usePolling";
 
 function PollingHarness({ callback }: { callback: () => Promise<void> }) {
   usePolling(callback, 1000);
+  return null;
+}
+
+type PollingControls = ReturnType<typeof usePolling>;
+
+function ControlledPollingHarness({
+  callback,
+  onControls,
+}: {
+  callback: () => Promise<void>;
+  onControls: (controls: PollingControls) => void;
+}) {
+  const controls = usePolling(callback, 1000);
+  useEffect(() => onControls(controls), [controls, onControls]);
   return null;
 }
 
@@ -45,5 +60,27 @@ describe("usePolling", () => {
     await act(async () => vi.advanceTimersByTimeAsync(5000));
 
     expect(callback).toHaveBeenCalledTimes(1);
+  });
+
+  it("restarts polling after an explicit stop", async () => {
+    vi.useFakeTimers();
+    const callback = vi.fn(async () => undefined);
+    let controls: PollingControls | undefined;
+    render(
+      <ControlledPollingHarness
+        callback={callback}
+        onControls={(value) => { controls = value; }}
+      />,
+    );
+    await act(async () => Promise.resolve());
+    expect(callback).toHaveBeenCalledTimes(1);
+
+    act(() => controls?.stopPolling());
+    await act(async () => vi.advanceTimersByTimeAsync(5000));
+    expect(callback).toHaveBeenCalledTimes(1);
+
+    act(() => controls?.resumePolling());
+    await act(async () => Promise.resolve());
+    expect(callback).toHaveBeenCalledTimes(2);
   });
 });

@@ -141,7 +141,9 @@ export const KerberosWizardProvider: React.FC<{
         CLUSTER_STATE: JSON.stringify({}),
       })
     );
-    navigate(`/main/admin/kerberos/`);
+    const returnPath = localStorage.getItem("module06WizardReturnPath");
+    localStorage.removeItem("module06WizardReturnPath");
+    navigate(returnPath || `/main/admin/kerberos/`);
   }
 
   async function flushOnStepChange(nextStep: number) {

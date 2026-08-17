@@ -113,6 +113,7 @@ interface AppContextProps {
   upgradeIsRunning: boolean;
   wizardIsNotFinished: boolean;
   isNonWizardUser: boolean;
+  wizardUser: string;
   isClusterInstalled?: boolean;
 }
 
@@ -182,6 +183,7 @@ export const AppContext = createContext<AppContextProps>({
   setUpgradeIsFinalizeItem: () => {},
   wizardIsNotFinished: false,
   isNonWizardUser: false,
+  wizardUser: "",
   isClusterInstalled: false,
 });
 
@@ -483,18 +485,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       setUpgradeState(upgradeState);
       setUpgradeSuspend(upgradeSuspend);
 
-      const isPatch = await ClusterApi.getPersistData("isPatchUpgrade");
-      setIsPatchUpgrade(isPatch);
-
-      const isFinalizeItem = await ClusterApi.getPersistData(
-        "upgradeIsFinalizeItem"
-      );
-      setUpgradeIsFinalizeItem(isFinalizeItem);
-
-      const upgradeVersionDisplayName = await ClusterApi.getPersistData(
-        "upgradeVersionDisplayName"
-      );
-      setUpgradeVersionDisplayName(upgradeVersionDisplayName);
+      const persistedUpgradeState = await Promise.allSettled([
+        ClusterApi.getPersistData("isPatchUpgrade"),
+        ClusterApi.getPersistData("upgradeIsFinalizeItem"),
+        ClusterApi.getPersistData("upgradeVersionDisplayName"),
+        ClusterApi.getPersistData("wizard-data"),
+      ]);
+      const [isPatch, isFinalizeItem, upgradeVersionDisplayName, wizardData] = persistedUpgradeState;
+      if (isPatch.status === "fulfilled") {
+        setIsPatchUpgrade(parsePersistedValue(isPatch.value, false));
+      }
+      if (isFinalizeItem.status === "fulfilled") {
+        setUpgradeIsFinalizeItem(parsePersistedValue(isFinalizeItem.value, false));
+      }
+      if (upgradeVersionDisplayName.status === "fulfilled") {
+        setUpgradeVersionDisplayName(parsePersistedValue(upgradeVersionDisplayName.value, ""));
+      }
+      if (wizardData.status === "fulfilled") {
+        setWizardUser(parsePersistedValue<{ userName?: string }>(wizardData.value, {}).userName || "");
+      }
     } catch (error) {
       console.error("Failed to fetch upgrade state:", error);
     }
@@ -760,6 +769,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         setUpgradeIsFinalizeItem,
         wizardIsNotFinished,
         isNonWizardUser,
+        wizardUser,
         isClusterInstalled,
       }}
     >

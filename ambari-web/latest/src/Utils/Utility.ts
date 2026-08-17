@@ -745,6 +745,7 @@ export const failedStatuses = [
   "HOLDING_FAILED",
   "HOLDING_TIMEDOUT",
   "FAILED",
+  "TIMEDOUT",
   "TIMED_OUT",
   "ABORTED",
 ];
@@ -752,6 +753,7 @@ export const activeStatuses = [
   "HOLDING_FAILED",
   "HOLDING_TIMEDOUT",
   "FAILED",
+  "TIMEDOUT",
   "TIMED_OUT",
   "HOLDING",
   "IN_PROGRESS",
