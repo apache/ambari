@@ -24,7 +24,7 @@ import Spinner from "../../components/Spinner";
 import {useEffect, useState, useContext, useCallback} from 'react';
 import {AlertsApi} from "../../api/alertsApi";
 import {getCurrTimeInSec} from "../../Utils/Utility";
-import {AlertDefinition, AlertGroupItem, AlertRow, MergedAlert} from "./types";
+import {AlertDefinition, AlertGroupItem, AlertRow, MergedAlert, SearchFilter} from "./types";
 import {Container} from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faPowerOff, faBriefcase} from '@fortawesome/free-solid-svg-icons';
@@ -39,43 +39,48 @@ import {formatAlertStatusDisplay} from "./alertStatus";
 import { useAuth } from '../../hooks/useAuth';
 import usePolling from '../../hooks/usePolling';
 
-interface SearchFilter {
-    category: string;
-    value: string;
-}
+const DEFAULT_ALERT_SORTING: SortingState = [{ id: 'statuses', desc: true }];
+
+const loadAlertListViewState = (clusterName: string): {
+    sorting: SortingState;
+    searchFilters: SearchFilter[];
+} => {
+    if (!clusterName || typeof window === 'undefined') {
+        return { sorting: DEFAULT_ALERT_SORTING, searchFilters: [] };
+    }
+    try {
+        const saved = JSON.parse(window.sessionStorage.getItem(`ambari.alerts.view.${clusterName}`) || '{}');
+        return {
+            sorting: Array.isArray(saved.sorting) ? saved.sorting : DEFAULT_ALERT_SORTING,
+            searchFilters: Array.isArray(saved.searchFilters) ? saved.searchFilters : [],
+        };
+    } catch {
+        return { sorting: DEFAULT_ALERT_SORTING, searchFilters: [] };
+    }
+};
 
 const Alerts = () => {
-    const { clusterName, upgradeIsRunning, upgradeSuspended } = useContext(AppContext);
+    const { clusterName } = useContext(AppContext);
+    const initialViewState = loadAlertListViewState(clusterName);
     const [alerts, setAlerts] = useState<MergedAlert[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [sorting, setSorting] = useState<SortingState>([
-        {
-            id: 'statuses',
-            desc: true // Sort in descending order to show critical alerts first
-        }
-    ]);
+    const [sorting, setSorting] = useState<SortingState>(initialViewState.sorting);
     const [alertGroups, setAlertGroups] = useState<AlertGroupItem[]>([]);
     const [alertDefinitions, setAlertDefinitions] = useState<AlertDefinition[]>([]);
-    const [searchFilters, setSearchFilters] = useState<SearchFilter[]>([]);
+    const [searchFilters, setSearchFilters] = useState<SearchFilter[]>(initialViewState.searchFilters);
     const [filteredAlerts, setFilteredAlerts] = useState<MergedAlert[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [listLoadError, setListLoadError] = useState('');
+    const [definitionLoadError, setDefinitionLoadError] = useState('');
     
     // Authorization hooks - implementing Ember.js alert authorization patterns
     const { hasAuthorization } = useAuth();
     
     // Check specific authorizations for alert operations
-    const canToggleAlerts = hasAuthorization('SERVICE.TOGGLE_ALERTS');
-    const canManageNotifications = hasAuthorization('CLUSTER.MANAGE_ALERT_NOTIFICATIONS');
-    
-    // Check if user has any alert management permissions
-    const hasAnyAlertPermissions = canToggleAlerts || canManageNotifications;
-    
-    // Check if upgrade is blocking operations (running but not suspended)
-    const isUpgradeBlocking = upgradeIsRunning && !upgradeSuspended;
+    const canToggleAlerts = hasAuthorization('CLUSTER.TOGGLE_ALERTS');
 
     const countAlertsByService = (alertGroups: AlertGroupItem[]) => {
         if (!alertGroups || !Array.isArray(alertGroups) || alertGroups.length === 0) {
-            console.log('No alert groups available for counting');
             return {};
         }
 
@@ -102,13 +107,12 @@ const Alerts = () => {
 
     const fetchData = useCallback(async () => {
         if (!clusterName) {
-            console.error('No cluster name provided');
             return;
         }
 
         const currTime = getCurrTimeInSec();
         try {
-            console.log('Fetching alerts for cluster:', clusterName);
+            setListLoadError('');
             const [alertsResponse, summariesResponse] = await Promise.all([
                 AlertsApi.getAlerts(
                     clusterName,
@@ -118,21 +122,16 @@ const Alerts = () => {
                 AlertsApi.getGroupFormattedAlertsNotifications(clusterName, currTime),
             ]);
 
-            console.log('Alert Groups Response:', alertsResponse);
-            console.log('Alert Summary Response:', summariesResponse);
-
             if (!alertsResponse || !alertsResponse.items) {
-                console.error('Invalid alert groups response:', alertsResponse);
-                return;
+                throw new Error('Invalid Alert Groups response');
             }
 
             const processedAlerts = processData(alertsResponse, summariesResponse);
             setAlerts(processedAlerts);
             const alertGroups = alertsResponse.items;
-            console.log('Setting alert groups:', alertGroups);
             setAlertGroups(alertGroups);
-        } catch (error) {
-            console.error('Error fetching data:', error);
+        } catch {
+            setListLoadError('Ambari could not load Alerts. Retry the request.');
         } finally {
             setIsLoading(false);
         }
@@ -142,13 +141,18 @@ const Alerts = () => {
     const { pausePolling, resumePolling } = usePolling(fetchData, 30000);
 
     useEffect(() => {
-        console.log('Initial render with clusterName:', clusterName);
         if (clusterName) {
             fetchAlertDefinitions();
-        } else {
-            console.error('No cluster name available');
         }
     }, [clusterName]);
+
+    useEffect(() => {
+        if (!clusterName) return;
+        window.sessionStorage.setItem(`ambari.alerts.view.${clusterName}`, JSON.stringify({
+            sorting,
+            searchFilters,
+        }));
+    }, [clusterName, searchFilters, sorting]);
 
     // Control polling based on modal state
     useEffect(() => {
@@ -173,13 +177,13 @@ const Alerts = () => {
                     label: item.AlertDefinition.label || item.AlertDefinition.name,
                     component_name: item.AlertDefinition.component_name || 'N/A'
                 }));
-                console.log('Fetched alert definitions:', definitions);
                 setAlertDefinitions(definitions);
+                setDefinitionLoadError('');
             } else {
-                console.error('No alert definitions found in response:', response);
+                throw new Error('No Alert Definitions in response');
             }
-        } catch (error) {
-            console.error('Error fetching alert definitions:', error);
+        } catch {
+            setDefinitionLoadError('Ambari could not load Alert Definitions. Retry the request.');
         }
     };
 
@@ -232,15 +236,16 @@ const Alerts = () => {
         const [isEnabled, setIsEnabled] = useState(alert.enabled);
         const [showModal, setShowModal] = useState(false);
         const [isUpdating, setIsUpdating] = useState(false);
+        const [toggleError, setToggleError] = useState('');
 
         const handleToggleState = () => {
+            setToggleError('');
             setShowModal(true);
         };
 
         const handleConfirmToggle = async () => {
             if (!alert.id) {
-                console.error('Alert ID is missing');
-                setShowModal(false);
+                setToggleError('Alert Definition ID is missing.');
                 return;
             }
             
@@ -252,11 +257,11 @@ const Alerts = () => {
                 // Refresh the alerts list
                 fetchData();
                 fetchAlertDefinitions();
-            } catch (error) {
-                console.error('Error updating alert state:', error);
+                setShowModal(false);
+            } catch {
+                setToggleError('Ambari could not update the Alert Definition. Retry the request.');
             } finally {
                 setIsUpdating(false);
-                setShowModal(false);
             }
         };
 
@@ -266,8 +271,7 @@ const Alerts = () => {
 
         return (
             <>
-                {/* Show enabled status for all users, but only make it clickable for authorized users and when not upgrading */}
-                {canToggleAlerts && !isUpgradeBlocking ? (
+                {canToggleAlerts ? (
                     <div className="custom-link" onClick={handleToggleState}>
                         <FontAwesomeIcon className={'mx-1'} icon={faPowerOff} />
                         {isEnabled ? 'Enabled' : 'Disabled'}
@@ -283,7 +287,10 @@ const Alerts = () => {
                     isOpen={showModal}
                     onClose={handleCancelToggle}
                     modalTitle="Confirmation"
-                    modalBody={isEnabled ? "You are about to Disable this alert definition" : "You are about to Enable this alert definition"}
+                    modalBody={<>
+                        <div>{isEnabled ? "You are about to Disable this alert definition" : "You are about to Enable this alert definition"}</div>
+                        {toggleError && <div className="alert alert-danger mt-3">{toggleError}</div>}
+                    </>}
                     successCallback={handleConfirmToggle}
                     options={{
                         okButtonText: isEnabled ? "Confirm Disable" : "Confirm Enable",
@@ -554,14 +561,23 @@ const Alerts = () => {
                 <Spinner />
             ) : (
                 <>
+                    {(listLoadError || definitionLoadError) && (
+                        <div className="alert alert-danger d-flex justify-content-between align-items-center">
+                            <span>{listLoadError || definitionLoadError}</span>
+                            <button className="btn btn-outline-danger" onClick={() => {
+                                setIsLoading(true);
+                                void Promise.all([fetchData(), fetchAlertDefinitions()]);
+                            }}>Retry</button>
+                        </div>
+                    )}
                     <MenuBar
                         title="Alerts"
                         alertGroups={alertGroups}
                         alertCounts={alertCounts}
                         onSearch={handleSearch}
+                        searchFilters={searchFilters}
                         alertDefinitions={alertDefinitions}
                         onModalStateChange={setIsModalOpen}
-                        hasAnyAlertPermissions={hasAnyAlertPermissions}
                     />
                     <Table
                         columns={columns}

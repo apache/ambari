@@ -178,7 +178,7 @@
 | `ALERT-DEF-003` | `05-alerts.md` | Definition Details and Instances | Edits general alert configs/thresholds | [source](../05-alerts.md#L38) |
 | `ALERT-DEF-004` | `05-alerts.md` | Definition Details and Instances | Enables/disables a definition | [source](../05-alerts.md#L39) |
 | `ALERT-DEF-005` | `05-alerts.md` | Definition Details and Instances | Edits repeat tolerance/check count; accepts 1 through 99 or the hidden sentinel \`DEBUG\`, and can disable repeat tolerance | [source](../05-alerts.md#L40) |
-| `ALERT-DEF-006` | `05-alerts.md` | Definition Details and Instances | Deletes a custom definition | [source](../05-alerts.md#L41) |
+| `ALERT-DEF-006` | `05-alerts.md` | Definition Details and Instances | Contains an unreachable controller method for deleting a definition; this is \`BROKEN/DEAD_CODE\`, not a user-facing feature | [source](../05-alerts.md#L41) |
 | `ALERT-DEF-007` | `05-alerts.md` | Definition Details and Instances | Lists current instances, displaying service/host, state, last check, and response; can navigate to service or host alerts | [source](../05-alerts.md#L42) |
 | `ALERT-DEF-008` | `05-alerts.md` | Definition Details and Instances | Opens instance response/log text | [source](../05-alerts.md#L43) |
 | `ALERT-DEF-009` | `05-alerts.md` | Definition Details and Instances | Queries instance history from the last 24 hours and displays returned record counts by host | [source](../05-alerts.md#L44) |
@@ -188,9 +188,9 @@
 | `ALERT-CREATE-003` | `05-alerts.md` | Create Alert Definition | Step 3 Review | [source](../05-alerts.md#L53) |
 | `ALERT-CREATE-004` | `05-alerts.md` | Create Alert Definition | Done creates the definition and returns to Alerts | [source](../05-alerts.md#L54) |
 | `ALERT-CREATE-005` | `05-alerts.md` | Create Alert Definition | Wizard forward/back navigation | [source](../05-alerts.md#L55) |
-| `ALERT-GROUP-001` | `05-alerts.md` | Alert Groups | Lists groups, descriptions, definitions, and notification targets by service | [source](../05-alerts.md#L61) |
+| `ALERT-GROUP-001` | `05-alerts.md` | Alert Groups | Lists groups, definitions, and notification targets by service | [source](../05-alerts.md#L61) |
 | `ALERT-GROUP-002` | `05-alerts.md` | Alert Groups | Creates a group | [source](../05-alerts.md#L62) |
-| `ALERT-GROUP-003` | `05-alerts.md` | Alert Groups | Renames, edits the description of, or copies a group | [source](../05-alerts.md#L63) |
+| `ALERT-GROUP-003` | `05-alerts.md` | Alert Groups | Renames or copies a group | [source](../05-alerts.md#L63) |
 | `ALERT-GROUP-004` | `05-alerts.md` | Alert Groups | Adds/removes definitions from a group, with service/component filtering and multi-select | [source](../05-alerts.md#L64) |
 | `ALERT-GROUP-005` | `05-alerts.md` | Alert Groups | Associates or disassociates notification targets with a group | [source](../05-alerts.md#L65) |
 | `ALERT-GROUP-006` | `05-alerts.md` | Alert Groups | Deletes a non-default group | [source](../05-alerts.md#L66) |
