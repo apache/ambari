@@ -1,3 +1,20 @@
+<!---
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+
 # Five-Pass Independent Reverse Audit of the Ember Baseline
 
 This report records five independent reverse-audit passes over non-Metrics features and APIs in `ambari-web/classic` at baseline commit `8ac5c5a1346687bc46b4651c42b07237fe0e9ca9`. Each pass re-enumerated source facts from a different entry point and recorded the input size, findings, corrections incorporated into the module documents, and risks that static analysis cannot eliminate.
