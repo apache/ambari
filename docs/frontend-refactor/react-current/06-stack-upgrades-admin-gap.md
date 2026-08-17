@@ -26,6 +26,7 @@
 | Feature IDs | 43 non-Metrics IDs from `STACK-SVC-001` through `ADMIN-AUTO-004` |
 | Review date | 2026-08-17 |
 | Metrics boundary | Metrics, Heatmaps, metric display data, and Metrics widget management are excluded |
+| Delivery | ASF JIRA `AMBARI-26630`; branch `AMBARI-26630`; PR base `frontend-refactor` |
 
 This audit compared every Module 06 feature with the executable Classic source,
 the React routes/components/hooks/API layer, and the Ambari Server resource
