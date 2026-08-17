@@ -53,6 +53,7 @@ import {
   ResourceTypeEnum,
 } from "./supportClientConfigsDownload";
 import RecommendationModal from "../../components/RecommendationModal";
+import { deleteHostComponentsInOrder } from "../../Utils/hosts";
 
 export const doAction = (option: any) => {
   switch (option.action) {
@@ -676,7 +677,7 @@ const raiseDeleteComponentsError = (
   modalManager.show(modalProps);
 };
 
-const reconfigureAndDeleteHost = (
+const reconfigureAndDeleteHost = async (
   container: any,
   context: any,
   properties: any
@@ -688,8 +689,8 @@ const reconfigureAndDeleteHost = (
     "loadComponentRelatedConfigs"
   );
 
-  get(context, "host.hostComponents", []).forEach(
-    (component: IHostComponent) => {
+  try {
+    for (const component of get(context, "host.hostComponents", [])) {
       const componentsMapItem = addDeleteComponentsMap[component.componentName];
       if (componentsMapItem) {
         reconfiguredComponents.push(component.displayName);
@@ -699,14 +700,19 @@ const reconfigureAndDeleteHost = (
         if (componentsMapItem.addPropertyName) {
           set(properties, componentsMapItem.addPropertyName, true);
         }
-        loadComponentRelatedConfigs(
+        await loadComponentRelatedConfigs(
           componentsMapItem.configTagsCallbackName,
           componentsMapItem.configsCallbackName,
           properties
         );
       }
     }
-  );
+  } catch (error) {
+    showErrorModal(
+      get(error, "response.data.message", get(error, "message", "Unable to load component configuration."))
+    );
+    return;
+  }
 
   modalManager.show(
     <RecommendationModal
@@ -816,7 +822,7 @@ const confirmDeleteHost = (container: any, context: any) => {
       </div>
     ),
     successCallback: () => {
-      doDeleteHost(context, container, {}, {});
+      void doDeleteHost(context, container);
       modalManager.hide();
     },
     options: {
@@ -830,11 +836,9 @@ const confirmDeleteHost = (container: any, context: any) => {
   modalManager.show(modalProps);
 };
 
-const doDeleteHost = (
+const doDeleteHost = async (
   context: any,
-  container: any,
-  groupedPropertiesToChange: any,
-  deletedHostComponentError: any
+  container: any
 ) => {
   const allComponents = get(context, "host.hostComponents", []);
   const doDeleteHostComponent = get(context, "doDeleteHostComponent");
@@ -845,48 +849,33 @@ const doDeleteHost = (
   );
   const putConfigsToServer = get(context, "putConfigsToServer", () => {});
   const clearConfigsChanges = get(context, "clearConfigsChanges", () => {});
-  let deleteRequests = [];
-
-  const deleteHost = async () => {
-    if (allComponents.length > 0) {
-      for (const component of allComponents) {
-        deleteRequests.push(doDeleteHostComponent(component));
-      }
-      try {
-        await Promise.all(deleteRequests);
-        if (container.isReconfigureRequired) {
-          const reconfiguredComponents = allComponents
-            .filter(
-              (component: IHostComponent) =>
-                addDeleteComponentsMap[component.componentName]
-            )
-            .map((component: any) => component.displayName)
-            .join(", ");
-          applyConfigsCustomization();
-          putConfigsToServer(groupedPropertiesToChange, reconfiguredComponents);
-          clearConfigsChanges();
-        }
-        await deleteHostCall(context);
-      } catch (e) {
-        set(
-          deletedHostComponentError,
-          "xhr.responseText",
-          `{"message": "${get(
-            deletedHostComponentError,
-            "xhr.statusText",
-            ""
-          )}"}`
-        );
-        showErrorModal(get(deletedHostComponentError, "xhr.responseText", ""));
-      }
+  try {
+    await deleteHostComponentsInOrder(allComponents, doDeleteHostComponent);
+    if (container.isReconfigureRequired) {
+      const reconfiguredComponents = allComponents
+        .filter(
+          (component: IHostComponent) =>
+            addDeleteComponentsMap[component.componentName]
+        )
+        .map((component: any) => component.displayName)
+        .join(", ");
+      applyConfigsCustomization();
+      await putConfigsToServer(
+        get(context, "groupedPropertiesToChange.current", []),
+        reconfiguredComponents
+      );
+      clearConfigsChanges();
     }
-  };
-
-  return deleteHost();
+    await deleteHostCall(context);
+  } catch (error) {
+    showErrorModal(
+      get(error, "response.data.message", get(error, "message", "Unable to delete the host."))
+    );
+  }
 };
 
 const deleteHostCall = async (context: any) => {
-  const clusterName = get(context, "host.cluster", "");
+  const clusterName = get(context, "clusterName", get(context, "host.cluster", ""));
   const hostName = get(context, "host.hostName", "");
   try {
     await HostsApi.deleteHost(clusterName, hostName);

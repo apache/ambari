@@ -35,6 +35,7 @@ import VersionsApi from "../../../../api/versionsApi";
 import { HostsApi } from "../../../../api/hostsApi";
 import { getAllComponents } from "../../utils";
 import { ClusterProgressStatus } from "../../../../constants";
+import { Alert, Button } from "react-bootstrap";
 
 interface AddHostContextProps {
   state: State;
@@ -55,13 +56,32 @@ export const AddHostProvider: React.FC<{
   stepWizardUtilities: any;
   children: React.ReactNode;
 }> = ({ stepWizardUtilities, children }) => {
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const [state, reducerDispatch] = useReducer(reducer, initialState);
   const [currStepData, setCurrStepData] = useState({});
   const [installedHosts, setInstalledHosts] = useState([]);
+  const [isHydrated, setIsHydrated] = useState(false);
+  const [initializationError, setInitializationError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   const { clusterName, services, serviceComponentInfo } =
     useContext(AppContext);
 
   const isDataPersisted = useRef(false);
+  const persistenceQueue = useRef<Promise<void>>(Promise.resolve());
+  const stateRef = useRef<State>(initialState);
+  const currStepDataRef = useRef<Record<string, any>>({});
+
+  const dispatch: Dispatch<Action> = (action) => {
+    stateRef.current = reducer(stateRef.current, action);
+    reducerDispatch(action);
+  };
+
+  const queuePersistence = (operation: () => Promise<void>) => {
+    const nextOperation = persistenceQueue.current
+      .catch(() => undefined)
+      .then(operation);
+    persistenceQueue.current = nextOperation.catch(() => undefined);
+    return nextOperation;
+  };
 
   const getInstalledServices = () => {
     const serviceNames = services.map((service: any) =>
@@ -115,6 +135,9 @@ export const AddHostProvider: React.FC<{
       
       // Use the current stack if found, otherwise fallback to the first one
       const stackToUse = currentStack || response.items[0];
+      if (!stackToUse) {
+        throw new Error("No stack version is available for this cluster.");
+      }
       
       const repoVersionId = get(
         stackToUse,
@@ -177,58 +200,62 @@ export const AddHostProvider: React.FC<{
       });
     } catch (error) {
       console.error("Error setting stack and version:", error);
-      // Set fallback data to prevent undefined errors
-      const fallbackData = {
-        selectedVersion: {
-          id: "",
-          stack_name: "",
-          stack_version: "",
-        },
-        selectedStack: {
-          id: "",
-          stack_name: "",
-          stack_version: "",
-        },
-        operatingSystems: {},
-      };
-      dispatch({
-        type: ActionTypes.STORE_INFORMATION,
-        payload: {
-          step: "VERSION",
-          data: fallbackData,
-        },
-      });
+      throw error;
     }
   };
 
   useEffect(() => {
-    syncUserPersistedData();
-    getHostComponents();
-  }, []);
+    void syncUserPersistedData();
+  }, [retryCount]);
 
-  // Ensure cluster name, services, and stack/version are loaded when AppContext data becomes available
   useEffect(() => {
-    if (clusterName) {
+    if (isHydrated && clusterName && !state.addHostSteps?.NAME) {
       setClusterName();
-      
-      // Also load stack and version when we have all required data
-      if (!isEmpty(services) && !isEmpty(serviceComponentInfo)) {
-        setStackAndVersion();
-      }
     }
-  }, [clusterName, services, serviceComponentInfo]);
+  }, [clusterName, isHydrated, state.addHostSteps?.NAME]);
+
+  useEffect(() => {
+    if (
+      isHydrated
+      && !isEmpty(services)
+      && !isEmpty(serviceComponentInfo)
+      && !state.addHostSteps?.SERVICES
+    ) {
+      getInstalledServices();
+    }
+  }, [isHydrated, services, serviceComponentInfo, state.addHostSteps?.SERVICES]);
+
+  useEffect(() => {
+    if (
+      isHydrated
+      && clusterName
+      && !isEmpty(services)
+      && !isEmpty(serviceComponentInfo)
+      && !state.addHostSteps?.VERSION
+    ) {
+      void setStackAndVersion().catch((error: any) => {
+        setInitializationError(
+          error?.response?.data?.message || error?.message || "Ambari could not load the cluster stack version.",
+        );
+      });
+    }
+  }, [clusterName, isHydrated, services, serviceComponentInfo, state.addHostSteps?.VERSION]);
+
+  useEffect(() => {
+    if (isHydrated && clusterName && !isEmpty(serviceComponentInfo)) {
+      void getHostComponents().catch((error: any) => {
+        setInitializationError(
+          error?.response?.data?.message || "Ambari could not load installed hosts.",
+        );
+      });
+    }
+  }, [clusterName, isHydrated, serviceComponentInfo, retryCount]);
 
   useEffect(() => {
     if (isDataPersisted.current) {
-      flushCurrentData();
+      void queuePersistence(() => flushCurrentData(state, currStepData));
     }
   }, [state.addHostSteps, currStepData]);
-
-  useEffect(() => {
-    if (!isEmpty(services) && !isEmpty(serviceComponentInfo)) {
-      getInstalledServices();
-    }
-  }, [services, serviceComponentInfo]);
 
   const getHostComponents = async () => {
     const response = await HostsApi.getHostComponentsDetails(
@@ -279,6 +306,8 @@ export const AddHostProvider: React.FC<{
   };
 
   async function syncUserPersistedData() {
+    setInitializationError(null);
+    setIsHydrated(false);
     try {
       const persistedData = await ClusterApi.getPersistData("ADD_HOST");
       if (!isEmpty(get(persistedData, "addHostSteps", {}))) {
@@ -290,10 +319,12 @@ export const AddHostProvider: React.FC<{
       if (get(persistedData, "activeStep", "")) {
         try {
           const activeStepName = get(persistedData, "activeStep");
-          setCurrStepData({
+          const restoredStepData = {
             progressStatus: ClusterProgressStatus.ADDING_HOST,
             stepName: activeStepName,
-          });
+          };
+          currStepDataRef.current = restoredStepData;
+          setCurrStepData(restoredStepData);
           let activeStepNumber = Object.keys(
             stepWizardUtilities.wizardSteps
           ).find((stepName) => {
@@ -307,59 +338,69 @@ export const AddHostProvider: React.FC<{
           console.error("Error while jumping to step", err);
         }
       } else {
-        getInstalledServices();
-        setClusterName();
-        setStackAndVersion();
         stepWizardUtilities.jumpToStep(1, true);
       }
-    } finally {
       isDataPersisted.current = true;
+      setIsHydrated(true);
+    } catch (error: any) {
+      isDataPersisted.current = false;
+      setInitializationError(
+        error?.response?.data?.message || "Ambari could not restore the Add Host wizard.",
+      );
+      setIsHydrated(false);
     }
   }
 
-  async function flushCurrentData() {
+  async function flushCurrentData(
+    stateSnapshot: State = stateRef.current,
+    stepSnapshot: Record<string, any> = currStepDataRef.current,
+  ) {
     await ClusterApi.postPersistData(
       JSON.stringify({
         ADD_HOST: JSON.stringify({
-          ...state,
-          activeStep: get(currStepData, "stepName", ""),
+          ...stateSnapshot,
+          activeStep: get(stepSnapshot, "stepName", ""),
         }),
-        CLUSTER_STATE: JSON.stringify(currStepData),
+        CLUSTER_STATE: JSON.stringify(stepSnapshot),
       })
     );
   }
 
-  function flushOnCancel() {
-    ClusterApi.postPersistData(
+  async function flushOnCancel() {
+    await queuePersistence(() => ClusterApi.postPersistData(
       JSON.stringify({
         ADD_HOST: JSON.stringify(initialState),
         CLUSTER_STATE: JSON.stringify({}),
-      })
-    );
-    window.location.href = "/#/main/hosts";
+      }),
+    ));
+    window.location.assign("/main/hosts");
   }
 
   async function flushOnStepChange(nextStep: number) {
     if (nextStep >= 1) {
-      let nextStepDetails = stepWizardUtilities.wizardSteps?.[nextStep];
+      const nextStepDetails = stepWizardUtilities.wizardSteps?.[nextStep];
+      const nextAddHostSteps = { ...stateRef.current.addHostSteps };
       if (nextStepDetails?.keysToRemove) {
         nextStepDetails.keysToRemove.forEach((key: string) => {
-          if (state?.addHostSteps?.[key]) {
-            dispatch({
-              type: ActionTypes.REMOVE_KEY,
-              payload: { key },
-            });
-          }
+          delete nextAddHostSteps[key];
         });
       }
-      setCurrStepData({
+      const nextState = {
+        ...stateRef.current,
+        addHostSteps: nextAddHostSteps,
+      };
+      dispatch({ type: ActionTypes.SYNC_STATE, payload: nextState });
+      const nextStepData = {
         progressStatus: ClusterProgressStatus.ADDING_HOST,
         stepName: stepWizardUtilities?.wizardSteps?.[nextStep]?.name,
-      });
+      };
+      currStepDataRef.current = nextStepData;
+      setCurrStepData(nextStepData);
+      await queuePersistence(() => flushCurrentData(nextState, nextStepData));
     }
   }
 
-  function flushStateToDb(
+  async function flushStateToDb(
     operation: string = "default",
     jumpStep: number = -1
   ) {
@@ -373,19 +414,22 @@ export const AddHostProvider: React.FC<{
     );
     switch (operation) {
       case "cancel":
-        flushOnCancel();
+        await flushOnCancel();
         break;
       case "back":
-        flushOnStepChange(Number(activeStep) - 1);
+        await flushOnStepChange(Number(activeStep) - 1);
         break;
       case "next":
-        flushOnStepChange(Number(activeStep) + 1);
+        await flushOnStepChange(Number(activeStep) + 1);
         break;
       case "jump":
-        flushOnStepChange(jumpStep);
+        await flushOnStepChange(jumpStep);
         break;
       default:
-        flushCurrentData();
+        await queuePersistence(() => flushCurrentData(
+          stateRef.current,
+          currStepDataRef.current,
+        ));
     }
   }
 
@@ -399,7 +443,18 @@ export const AddHostProvider: React.FC<{
         installedHosts,
       }}
     >
-      {children}
+      {initializationError ? (
+        <Alert variant="danger" className="m-4">
+          {initializationError}{" "}
+          <Button
+            size="sm"
+            variant="outline-danger"
+            onClick={() => setRetryCount((value) => value + 1)}
+          >
+            Retry
+          </Button>
+        </Alert>
+      ) : children}
     </AddHostContext.Provider>
   );
 };

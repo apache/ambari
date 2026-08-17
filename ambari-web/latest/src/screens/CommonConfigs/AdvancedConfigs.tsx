@@ -812,7 +812,11 @@ function AdvancedConfigs({
                                                 {renderInput(
                                                   {
                                                     ...currentConfigPropertyValue,
-                                                    isEditable: configGroup === "Default" && currentConfigPropertyValue.isEditable
+                                                    isEditable:
+                                                      !hostConfigs &&
+                                                      canEditConfigs &&
+                                                      configGroup === "Default" &&
+                                                      currentConfigPropertyValue.isEditable
                                                   },
                                                   function (
                                                     e: any,
@@ -954,7 +958,8 @@ function AdvancedConfigs({
                                             </Tooltip>
                                           )}
 
-                                      {config.includes("Custom") &&
+                                      {!hostConfigs &&
+                                        config.includes("Custom") &&
                                         canEditConfigs && (
                                           <Tooltip
                                             message="Remove this custom property"
@@ -985,7 +990,8 @@ function AdvancedConfigs({
                                           </Tooltip>
                                         )}
 
-                                      {displayUndoRedo &&
+                                      {!hostConfigs &&
+                                      displayUndoRedo &&
                                       canEditConfigs &&
                                       currentConfigPropertyValue.value !==
                                         currentConfigPropertyValue.previousValue &&
@@ -1006,7 +1012,7 @@ function AdvancedConfigs({
                                         />
                                         </Tooltip>
                                       ) : null}
-                                      {displayUndoRedo && canEditConfigs && configGroup === "Default" && (
+                                      {!hostConfigs && displayUndoRedo && canEditConfigs && configGroup === "Default" && (
                                         <Tooltip
                                           message="Reset to default value"
                                           placement="top"
@@ -1057,6 +1063,8 @@ function AdvancedConfigs({
                                                   propertyValue:
                                                     overrideValue.previousValue,
                                                   isEditable:
+                                                    !hostConfigs &&
+                                                    canEditConfigs &&
                                                     configGroup !== "Default",
                                                 },
                                                 function (
@@ -1080,7 +1088,7 @@ function AdvancedConfigs({
                                             </Stack>
                                           </Col>
                                           <Col md={2}>
-                                            {configGroup === "Default" ? (
+                                            {!hostConfigs && (configGroup === "Default" ? (
                                               <h4
                                                 className="text-info"
                                                 onClick={() => {
@@ -1124,7 +1132,7 @@ function AdvancedConfigs({
                                                   />
                                                 </Tooltip>
                                               </Stack>
-                                            )}
+                                            ))}
                                           </Col>
                                         </Row>
                                       );
@@ -1137,7 +1145,7 @@ function AdvancedConfigs({
                         return null;
                       }
                     )}
-                    {config.includes("Custom") ? (
+                    {!hostConfigs && canEditConfigs && config.includes("Custom") ? (
                       <h4
                         className="text-info ms-2 mt-2"
                         onClick={() => {

@@ -85,7 +85,7 @@ class HostStackVersion implements IHostStackVersion {
   }
 
   installDisabled(): boolean {
-    return !this.installEnabled;
+    return !this.installEnabled();
   }
 
   updateObject(updates: Partial<IHostStackVersion>) {

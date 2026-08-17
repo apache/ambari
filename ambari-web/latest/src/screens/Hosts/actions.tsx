@@ -41,6 +41,7 @@ import {
 } from "./utils/ComponentDependency";
 import {
   showAlertModal,
+  showErrorModal,
   translate,
   translateWithVariables,
 } from "../../Utils/Utility";
@@ -48,6 +49,7 @@ import { addDeleteComponentsMap } from "../../Utils/Utility";
 import RecommendationModal from "../../components/RecommendationModal";
 import ConfirmationModal from "../../components/ConfirmationModal";
 import { IHost } from "../../models/host";
+import ConfigsApi from "../../api/configsApi";
 
 export const sendComponentCommand = async (
   component: IHostComponent,
@@ -118,37 +120,58 @@ export const restartAllStaleConfigComponents = async (
 };
 
 export const checkNnLastCheckpointTime = async (
-  callback: Function | Promise<any>,
-  hostName: string,
+  callback: () => void | Promise<void>,
+  hostNames: string | string[],
   clusterName: string
 ) => {
-  const isNNCheckpointTooOld = await pullNnCheckPointTime(
-    hostName,
-    clusterName
+  const names = Array.isArray(hostNames) ? hostNames : [hostNames];
+  const checkpointStates = await Promise.all(
+    names.map(async (hostName) => {
+      try {
+        return await pullNnCheckPointTime(hostName, clusterName);
+      } catch {
+        return null;
+      }
+    })
   );
-  if (isNNCheckpointTooOld) {
-    //TODO: get the hdfs user and remove the hardcoded hdfs user from below commands
+  const oldCheckpointHosts = checkpointStates.filter(
+    (hostName): hostName is string => typeof hostName === "string" && Boolean(hostName)
+  );
+  const isCheckpointUnavailable = checkpointStates.some(
+    (checkpointState) => checkpointState == null
+  );
+
+  const continueOperation = async () => {
+    modalManager.hide();
+    await callback();
+  };
+
+  if (oldCheckpointHosts.length) {
+    let hdfsUser = "<hdfs-user>";
+    try {
+      const currentConfigs = await ConfigsApi.getConfigValues(clusterName, "HDFS");
+      const hadoopEnv = get(currentConfigs, "items", [])
+        .flatMap((item: Record<string, unknown>) => get(item, "configurations", []))
+        .find((config: Record<string, unknown>) => config.type === "hadoop-env");
+      hdfsUser = get(hadoopEnv, "properties.hdfs_user", hdfsUser);
+    } catch {
+      // The operation can still proceed with the same placeholder used by classic Ambari.
+    }
+    const hosts = oldCheckpointHosts.join(", ");
     const msg =
       `The last HDFS checkpoint is older than ${nnCheckpointAgeAlertThreshold} hours. ` +
       "Make sure that you have taken a checkpoint before proceeding. Otherwise, the NameNode(s) can take a very long time to start up." +
-      `\n\n1. Login to the NameNode host ${isNNCheckpointTooOld}` +
+      `\n\n1. Login to the NameNode host${oldCheckpointHosts.length > 1 ? "s" : ""} ${hosts}` +
       "\n\n2. Put the NameNode in Safe Mode (read-only mode): \n\n" +
-      "    sudo su hdfs -l -c 'hdfs dfsadmin -safemode enter'" +
+      `    sudo su ${hdfsUser} -l -c 'hdfs dfsadmin -safemode enter'` +
       "\n\n3. Once in Safe Mode, create a Checkpoint:\n\n" +
-      "    sudo su hdfs -l -c 'hdfs dfsadmin -saveNamespace" +
+      `    sudo su ${hdfsUser} -l -c 'hdfs dfsadmin -saveNamespace'` +
       "\n";
     const modalProps = {
       modalTitle: "Warning",
       modalBody: msg,
       onClose: () => {},
-      successCallback: async () => {
-        if (typeof callback === "function") {
-          callback();
-        } else if (callback instanceof Promise) {
-          await callback;
-        }
-        modalManager.hide();
-      },
+      successCallback: continueOperation,
       options: {
         okButtonText: "Next",
         okButtonVariant: "primary",
@@ -158,20 +181,13 @@ export const checkNnLastCheckpointTime = async (
       },
     };
     modalManager.show(modalProps);
-  } else if (isNNCheckpointTooOld === null) {
+  } else if (isCheckpointUnavailable) {
     const modalProps = {
       modalTitle: "Warning",
       modalBody:
         "Could not determine the age of the last HDFS checkpoint. Please ensure that you have a recent checkpoint. Otherwise, the NameNode(s) can take a very long time to start up.",
       onClose: () => {},
-      successCallback: async () => {
-        if (typeof callback === "function") {
-          callback();
-        } else if (callback instanceof Promise) {
-          await callback;
-        }
-        modalManager.hide();
-      },
+      successCallback: continueOperation,
       options: {
         okButtonText: "Proceed Anyway",
         okButtonVariant: "danger",
@@ -182,11 +198,7 @@ export const checkNnLastCheckpointTime = async (
     };
     modalManager.show(modalProps);
   } else {
-    if (typeof callback === "function") {
-      callback();
-    } else if (callback instanceof Promise) {
-      await callback;
-    }
+    await callback();
   }
 };
 
@@ -364,9 +376,7 @@ export const installClients = async (
       .replace(
         "{1}",
         missedComponents
-          .map((component: IHostComponent) => {
-            getComponentDisplayName(component);
-          })
+          .map((component: IHostComponent) => getComponentDisplayName(component))
           .join(", ")
       );
     showAlertModal(
@@ -603,7 +613,7 @@ export const deleteComponent = async (component: IHostComponent, data: any) => {
   const componentsMapItem = get(addDeleteComponentsMap, componentName);
 
   if (componentsMapItem) {
-    data.deleteAndReconfigureComponent(componentsMapItem, component);
+    await data.deleteAndReconfigureComponent(componentsMapItem, component);
   } else if (componentName === "JOURNALNODE") {
     data.navigate("/main/services/highAvailability/JournalNode/manage/step1");
   } else {
@@ -615,7 +625,19 @@ export const deleteComponent = async (component: IHostComponent, data: any) => {
         }}
         componentDisplayName={getComponentDisplayName(component)}
         add={false}
-        callback={() => data._doDeleteHostComponent(component)}
+        callback={async () => {
+          try {
+            await data._doDeleteHostComponent(component);
+          } catch (error) {
+            showErrorModal(
+              get(
+                error,
+                "response.data.message",
+                get(error, "message", "Unable to delete the host component.")
+              )
+            );
+          }
+        }}
       />
     );
   }
@@ -626,7 +648,7 @@ export const addComponentWithCheck = async (
   data: any
 ) => {
   await data.getKDCSessionState(async () => {
-    addComponent(component, data);
+    await addComponent(component, data);
   });
 };
 
@@ -656,7 +678,7 @@ export const addComponent = async (component: IHostComponent, data: any) => {
   }
 
   if (componentsMapItem) {
-    data.addAndReconfigureComponent(
+    await data.addAndReconfigureComponent(
       componentsMapItem,
       hostName,
       component,
@@ -665,8 +687,8 @@ export const addComponent = async (component: IHostComponent, data: any) => {
   } else if (componentName === "JOURNALNODE") {
     data.navigate("/main/services/highAvailability/JournalNode/manage/step1");
   } else {
-    // Get service name from component or data
-    const serviceName = data.serviceName || get(component, "serviceName") || "";
+    // The component metadata is authoritative when this action is reused across services.
+    const serviceName = get(component, "serviceName") || data.serviceName || "";
     const componentNameForModal = data.componentNameFromService || get(component, "componentName") || "";
     
     modalManager.show(

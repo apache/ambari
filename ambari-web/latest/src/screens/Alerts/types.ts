@@ -122,6 +122,7 @@ export interface MergedAlert {
     name: string;
     label: string;
     description: string;
+    serviceName?: string;
     serviceDisplayName: string;
     component_name: string;
     alert_definition_id: number;

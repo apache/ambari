@@ -26,7 +26,7 @@ import {
   useState,
 } from "react";
 import { useParams } from "react-router-dom";
-import { Button, Card, Form, ProgressBar } from "react-bootstrap";
+import { Alert, Button, Card, Form, ProgressBar } from "react-bootstrap";
 import { cloneDeep, get, isEmpty, startCase } from "lodash";
 import DefaultButton from "../../components/DefaultButton";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -51,7 +51,10 @@ import { Link } from "react-router-dom";
 import { ComponentStatus, HostStatus } from "./enums";
 import { serviceNameToModelKeyMap, sortByColIdToKeyMapping } from "./constants";
 import NestedDropdown from "../../components/NestedDropdown";
-import { bulkOperationConfirm } from "./bulkOperations";
+import {
+  bulkOperationConfirm,
+  isBulkComponentDeleteVisible,
+} from "./bulkOperations";
 import { AppContext } from "../../store/context";
 import useStackVersion from "../../hooks/useStackVersion";
 import { ServiceContext } from "../../store/ServiceContext";
@@ -96,7 +99,6 @@ export default function HostsList() {
   const [paginationLoading, setPaginationLoading] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [allHostModels, setAllHostModels] = useState<Host[]>([]);
   const [currentHostModels, setCurrentHostModels] = useState<Host[]>([]);
   const [allHostCount, setAllHostCount] = useState(0);
   const [selectedHosts, setSelectedHosts] = useState<string[]>([]);
@@ -112,6 +114,8 @@ export default function HostsList() {
     },
   });
   const [clusterComponents, setClusterComponents] = useState<any>({});
+  const [clusterLoadError, setClusterLoadError] = useState<string | null>(null);
+  const [clusterRetryCount, setClusterRetryCount] = useState(0);
   const [maxPage, setMaxPage] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -137,7 +141,7 @@ export default function HostsList() {
   // {{#havePermissions "HOST.ADD_DELETE_COMPONENTS, HOST.TOGGLE_MAINTENANCE, HOST.ADD_DELETE_HOSTS"}}
   const canShowHostActions = havePermissions("HOST.ADD_DELETE_COMPONENTS, HOST.TOGGLE_MAINTENANCE, HOST.ADD_DELETE_HOSTS");
 
-  useHostConfigUpdater(
+  const hostData = useHostConfigUpdater(
     hostApiQueryParams,
     currentHostModels,
     setCurrentHostModels,
@@ -155,8 +159,10 @@ export default function HostsList() {
   });
 
   useEffect(() => {
-    getClusterComponents();
-  }, []);
+    if (clusterName) {
+      void getClusterComponents();
+    }
+  }, [clusterName, clusterRetryCount]);
 
   useEffect(() => {
     if (params.componentName && !isEmpty(clusterComponents)) {
@@ -251,20 +257,16 @@ export default function HostsList() {
   }, [currentHostModels]);
 
   useEffect(() => {
-    if (
-      get(hostApiQueryParams, "RequestInfo.query", "") === "page_size=10&from=0"
-    ) {
+    if (!filterString) {
       setAllHostCount(totalItems);
-      setAllHostModels(currentHostModels);
     }
-  }),
-    [JSON.stringify(hostApiQueryParams), totalItems];
+  }, [filterString, totalItems]);
 
   useEffect(() => {
     const queryParams = getQueryParameters(selectedFilters);
     const computedQueryParams = computeParameters(queryParams);
     setFilterString(computedQueryParams);
-  }, [selectedFilters.length]);
+  }, [selectedFilters]);
 
   useEffect(() => {
     setMaxPage(Math.ceil(totalItems / itemsPerPage));
@@ -329,11 +331,20 @@ export default function HostsList() {
 
   const getClusterComponents = async () => {
     setLoading(true);
-    const response = await HostsApi.getClusterComponents(
-      clusterName,
-      "ServiceComponentInfo/service_name,host_components/HostRoles/display_name,host_components/HostRoles/host_name,host_components/HostRoles/public_host_name,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,host_components/HostRoles/stale_configs,host_components/HostRoles/ha_state,host_components/HostRoles/desired_admin_state,&minimal_response=true"
-    );
-    setClusterComponents(response);
+    setClusterLoadError(null);
+    try {
+      const response = await HostsApi.getClusterComponents(
+        clusterName,
+        "ServiceComponentInfo/service_name,host_components/HostRoles/display_name,host_components/HostRoles/host_name,host_components/HostRoles/public_host_name,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,host_components/HostRoles/stale_configs,host_components/HostRoles/ha_state,host_components/HostRoles/desired_admin_state,&minimal_response=true"
+      );
+      setClusterComponents(response);
+    } catch (error: any) {
+      setClusterLoadError(
+        error?.response?.data?.message || "Ambari could not load host component data.",
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const isAllSelected = () => {
@@ -806,27 +817,29 @@ export default function HostsList() {
                 selectedFilters
               ),
           },
-          {
-            label: "Set Rack",
-            onClick: () =>
-              bulkOperationConfirm(
-                {
-                  action: "SET_RACK_INFO",
-                  message: "Set Rack",
-                  callback: setCurrentHostModels,
-                },
-                hostsNames,
-                selection,
-                clusterName,
-                stackVersionList,
-                serviceComponentInfo,
-                serviceModels,
-                getKDCSessionState,
-                selectedFilters
-              ),
-          },
         ]);
       }
+
+      // Ember exposes Set Rack whenever the outer Host Actions permission gate is open.
+      result.push({
+        label: "Set Rack",
+        onClick: () =>
+          bulkOperationConfirm(
+            {
+              action: "SET_RACK_INFO",
+              message: "Set Rack",
+              callback: setCurrentHostModels,
+            },
+            hostsNames,
+            selection,
+            clusterName,
+            stackVersionList,
+            serviceComponentInfo,
+            serviceModels,
+            getKDCSessionState,
+            selectedFilters
+          ),
+      });
 
       // HOST.ADD_DELETE_HOSTS authorization check for delete host operation
       if (canAddDeleteHosts) {
@@ -997,7 +1010,8 @@ export default function HostsList() {
               getKDCSessionState,
               selectedFilters
             ),
-          isVisible: false,
+          // Classic deliberately omits component deletion only for All Hosts.
+          isVisible: isBulkComponentDeleteVisible(selection),
         },
       ]);
     }
@@ -1075,7 +1089,6 @@ export default function HostsList() {
   };
 
   const getHostActionsMenuSecondLevel = (selection: string) => {
-    //TODO: Add the actions based on user authorizations/permissions
     let secondLevelMenu = [
       {
         label: "Hosts",
@@ -1084,21 +1097,9 @@ export default function HostsList() {
     ];
 
     let components: any = {};
-    let installedServices: any[] = [];
-
-    if (getSelectedAndFilteredHostsCount("filtered") !== 0) {
-      currentHostModels.forEach((host) => {
-        get(host, "hostComponents", []).forEach((component) => {
-          installedServices.push(get(component, "serviceName", ""));
-        });
-      });
-    } else {
-      allHostModels.forEach((host) => {
-        get(host, "hostComponents", []).forEach((component) => {
-          installedServices.push(get(component, "serviceName", ""));
-        });
-      });
-    }
+    const installedServices = get(clusterComponents, "items", [])
+      .filter((component: any) => get(component, "host_components", []).length > 0)
+      .map((component: any) => get(component, "ServiceComponentInfo.service_name", ""));
 
     const allComponents = getAllComponents(serviceComponentInfo);
     allComponents.forEach((component: any) => {
@@ -1197,7 +1198,11 @@ export default function HostsList() {
   }, [
     JSON.stringify(currentHostModels),
     JSON.stringify(stackVersionList),
-    selectedHosts.length,
+    JSON.stringify(selectedHosts),
+    JSON.stringify(selectedFilters),
+    JSON.stringify(clusterComponents),
+    JSON.stringify(serviceComponentInfo),
+    clusterName,
     allHostCount,
     totalItems,
     canStartStopServices,
@@ -1340,7 +1345,25 @@ export default function HostsList() {
               )}
             </div>
           </div>
-          {loading ? (
+          {hostData.error || clusterLoadError ? (
+            <Alert variant="danger" className="m-3">
+              {hostData.error || clusterLoadError}{" "}
+              <Button
+                size="sm"
+                variant="outline-danger"
+                onClick={() => {
+                  if (hostData.error) {
+                    hostData.retry();
+                  }
+                  if (clusterLoadError) {
+                    setClusterRetryCount((value) => value + 1);
+                  }
+                }}
+              >
+                Retry
+              </Button>
+            </Alert>
+          ) : loading || hostData.isLoading ? (
             <Spinner />
           ) : (
             <div>

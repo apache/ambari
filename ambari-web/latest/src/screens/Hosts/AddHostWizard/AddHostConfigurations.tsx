@@ -16,19 +16,24 @@
  * limitations under the License.
  */
 
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { AppContext } from "../../../store/context";
 import ConfigGroupApi from "../../../api/configGroupApi";
-import { cloneDeep, forEach, get, isEmpty, set } from "lodash";
+import { cloneDeep, get, isEmpty, set } from "lodash";
 import Table from "../../../components/Table";
-import { Form } from "react-bootstrap";
+import { Alert, Button, Form } from "react-bootstrap";
 import WizardFooter from "../../../components/StepWizard/WizardFooter";
 import { ContextWrapper } from "../../ClusterWizard";
 import { ActionTypes } from "./wizardDataStore/types";
 import { translate } from "../../../Utils/Utility";
+import Spinner from "../../../components/Spinner";
+import {
+  buildAddHostConfigGroups,
+  selectedAddHostServices,
+} from "../../../Utils/hostWizard";
 
 export default function AddHostConfigurations() {
-  const { clusterName, services } = useContext(AppContext);
+  const { clusterName } = useContext(AppContext);
   const { Context } = useContext(ContextWrapper);
   const {
     dispatch,
@@ -50,49 +55,61 @@ export default function AddHostConfigurations() {
 
   const [configGroups, setConfigGroups] = useState({});
   const [formData, setFormData] = useState(initialConfigs);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const skipped = useRef(false);
+  const selectedServices = useMemo(() => selectedAddHostServices(
+    get(state, "addHostSteps.SLAVES_AND_CLIENTS.data.serviceComponents", []),
+    get(state, "addHostSteps.SLAVES_AND_CLIENTS.data.allServiceComponentsList", []),
+  ), [state]);
 
   useEffect(() => {
-    getConfigGroups();
-  }, []);
+    if (!clusterName) {
+      return;
+    }
+    if (selectedServices.length === 0) {
+      if (!skipped.current) {
+        skipped.current = true;
+        dispatch({
+          type: ActionTypes.STORE_INFORMATION,
+          payload: { step: currentStep.name, data: { configurations: [] } },
+        });
+        void Promise.resolve(flushStateToDb("next")).then(handleNextImperitive);
+      }
+      setLoading(false);
+      return;
+    }
+    void getConfigGroups();
+  }, [clusterName, retryCount, selectedServices.join(",")]);
 
   useEffect(() => {
     if (!isEmpty(configGroups)) {
-      let data: any = [];
-      forEach(services, (service: any) => {
-        const serviceName = get(service, "ServiceInfo.service_name");
-        data.push({
-          serviceName: serviceName,
-          configGroups: get(configGroups, "items", [])
-            .filter(
-              (configGroup: any) =>
-                serviceName === get(configGroup, "ConfigGroup.tag")
-            )
-            .map((configGroup: any) => {
-              return {
-                ...get(configGroup, "ConfigGroup"),
-                isSelected: false,
-              };
-            }),
-        });
-      });
-      forEach(data, (service) => {
-        service?.configGroups.unshift({
-          cluster_name: clusterName,
-          description: "",
-          desired_configs: [],
-          group_name: "Default",
-          hosts: [],
-          tag: service?.serviceName,
-          isSelected: true,
-        });
-      });
-      setFormData(data);
+      setFormData(buildAddHostConfigGroups(
+        selectedServices,
+        configGroups,
+        clusterName,
+        initialConfigs,
+      ));
     }
-  }, [configGroups]);
+  }, [configGroups, clusterName, selectedServices.join(",")]);
 
   const getConfigGroups = async () => {
-    const response = await ConfigGroupApi.getConfigGroups(clusterName, "*");
-    setConfigGroups(response);
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await ConfigGroupApi.getConfigGroupsForServices(
+        clusterName,
+        selectedServices,
+      );
+      setConfigGroups(response);
+    } catch (requestError: any) {
+      setError(
+        requestError?.response?.data?.message || "Ambari could not load configuration groups.",
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getSelectedConfigGroupName = (configGroups: any[]) => {
@@ -176,9 +193,17 @@ export default function AddHostConfigurations() {
       <p className="make-all-grey step-description">
         {translate("addHost.step4.title")}
       </p>
-      <Table data={formData} columns={columnInTable} />
+      {error && (
+        <Alert variant="danger">
+          {error}{" "}
+          <Button size="sm" variant="outline-danger" onClick={() => setRetryCount((value) => value + 1)}>
+            Retry
+          </Button>
+        </Alert>
+      )}
+      {loading ? <Spinner /> : <Table data={formData} columns={columnInTable} />}
       <WizardFooter
-        isNextEnabled={true}
+        isNextEnabled={!loading && !error}
         step={currentStep}
         onNext={() => {
           moveToNextStep();

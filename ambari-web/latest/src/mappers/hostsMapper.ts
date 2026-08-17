@@ -82,6 +82,7 @@ export const hostMapper = {
     repo: "repository_versions[0].RepositoryVersions",
     repoVersion: "repository_versions[0].RepositoryVersions.repository_version",
     displayName: "repository_versions[0].RepositoryVersions.display_name",
+    isVisible: "is_visible",
     status: "HostStackVersions.state",
     hostName: "HostStackVersions.host_name",
   },

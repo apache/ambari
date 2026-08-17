@@ -23,6 +23,7 @@ function usePolling(apiFunction: Function, interval = 2000) {
   const savedCallback = useRef<Function | undefined>(undefined);
   const timeoutId = useRef<NodeJS.Timeout | null>(null);
   const isPausedRef = useRef(false);
+  const isActiveRef = useRef(false);
   const [isPaused, setIsPaused] = useState(false);
 
   const stopPolling = useCallback(() => {
@@ -52,8 +53,10 @@ function usePolling(apiFunction: Function, interval = 2000) {
 
   // Set up the timeout-based polling.
   useEffect(() => {
+    isActiveRef.current = true;
+
     async function tick() {
-      if (!savedCallback.current || isPausedRef.current) {
+      if (!savedCallback.current || isPausedRef.current || !isActiveRef.current) {
         return;
       }
 
@@ -65,7 +68,7 @@ function usePolling(apiFunction: Function, interval = 2000) {
         console.error('Polling error:', error);
       } finally {
         // Schedule next poll only after current request completes
-        if (!isPausedRef.current && interval !== null) {
+        if (isActiveRef.current && !isPausedRef.current && interval !== null) {
           timeoutId.current = setTimeout(tick, interval);
         }
       }
@@ -78,7 +81,10 @@ function usePolling(apiFunction: Function, interval = 2000) {
     }
 
     // Cleanup on unmount or when dependencies change
-    return () => stopPolling();
+    return () => {
+      isActiveRef.current = false;
+      stopPolling();
+    };
   }, [interval, isPaused, stopPolling]);
 
   return { stopPolling, pausePolling, resumePolling, isPaused };

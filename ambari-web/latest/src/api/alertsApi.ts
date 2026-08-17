@@ -74,6 +74,22 @@ export const AlertsApi = {
     });
     return response.data
   },
+  getHostAlertInstances: async function (
+    clusterName: string,
+    hostName: string,
+    time: number = Date.now()
+  ) {
+    const response = await ambariApi.request({
+      url: `/clusters/${encodeURIComponent(clusterName)}/alerts`,
+      method: "GET",
+      params: {
+        fields: "*",
+        "Alert/host_name": hostName,
+        _: time,
+      },
+    });
+    return response.data;
+  },
   getAlertDetails: async function (
     clusterName: string,
       alert_id: string,

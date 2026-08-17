@@ -27,8 +27,15 @@ import HostStackVersion, {
   IHostStackVersion,
 } from "../models/hostStackVersion";
 import { sortBasedOnMasterSlave } from "../screens/Hosts/utils";
-import { PassiveStateOnFilters } from "../screens/Hosts/enums";
 import usePolling from "./usePolling";
+import {
+  applyCompletedDecommissionRequest,
+  applyHostComponentEvent,
+  applyHostEvent,
+  applyHostStackVersionVisibility,
+  shouldLoadCompatibleRepositoryVersions,
+} from "../Utils/hosts";
+import VersionsApi from "../api/versionsApi";
 
 export const useHostConfigUpdater = (
   hostApiQueryParams: any,
@@ -38,10 +45,19 @@ export const useHostConfigUpdater = (
   setPaginationLoading?: Function
 ) => {
   const [hostsData, setHostsData] = useState<any>({});
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
   const queryData = useRef({});
   const allHostModelsRef = useRef<Host[]>(allHostModels);
 
-  const { clusterName, serviceComponentInfo, parsedSocketMessages } =
+  const {
+    cluster,
+    clusterName,
+    parsedSocketMessages,
+    serviceComponentInfo,
+    supports,
+  } =
     useContext(AppContext);
 
   // Keep the ref updated with the latest allHostModels
@@ -53,13 +69,25 @@ export const useHostConfigUpdater = (
     if (parsedSocketMessages.length) {
       switch (get(parsedSocketMessages[0], "destination", "")) {
         case "/events/hostcomponents":
-          updateHostComponent(parsedSocketMessages[0]);
+          setAllHostModels(
+            applyHostComponentEvent(
+              allHostModelsRef.current,
+              parsedSocketMessages[0],
+            ),
+          );
           break;
         case "/events/hosts":
-          updateHost(parsedSocketMessages[0]);
+          setAllHostModels(
+            applyHostEvent(allHostModelsRef.current, parsedSocketMessages[0]),
+          );
           break;
         case "/events/requests":
-          updateHostOnRequests(parsedSocketMessages[0]);
+          setAllHostModels(
+            applyCompletedDecommissionRequest(
+              allHostModelsRef.current,
+              parsedSocketMessages[0],
+            ),
+          );
           break;
         default:
       }
@@ -67,10 +95,27 @@ export const useHostConfigUpdater = (
   }, [parsedSocketMessages]);
 
   useEffect(() => {
-    if (!isEmpty(serviceComponentInfo)) {
-      getHostsData();
+    if (clusterName && !isEmpty(serviceComponentInfo)) {
+      setLoadError(null);
+      setIsLoading(true);
+      void getHostsData()
+        .catch((error) => {
+          setLoadError(
+            get(error, "response.data.message", "Ambari could not load host data."),
+          );
+          setPaginationLoading?.(false);
+        })
+        .finally(() => setIsLoading(false));
     }
-  }, [serviceComponentInfo, hostApiQueryParams]);
+  }, [
+    clusterName,
+    serviceComponentInfo,
+    hostApiQueryParams,
+    retryCount,
+    get(cluster, "stack", ""),
+    get(cluster, "versionNum", ""),
+    supports.displayOlderVersions,
+  ]);
 
   useEffect(() => {
     if (!isEmpty(hostsData)) {
@@ -136,188 +181,6 @@ export const useHostConfigUpdater = (
   };
 
   usePolling(getHostMetrics, 15000);
-
-  const updateHostComponent = (message: any) => {
-    const config = {
-      workStatus: "currentState",
-      staleConfigs: "staleConfigs",
-      passiveState: "maintenanceState",
-    };
-    // Use the ref to get the latest allHostModels value
-    let allHostModelsCopy = cloneDeep(allHostModelsRef.current);
-    get(message, "hostComponents", []).forEach((hostComponent: any) => {
-      allHostModelsCopy.forEach((host: Host) => {
-        host.hostComponents.forEach((hostComponentModel: HostComponent) => {
-          if (
-            hostComponentModel.componentName ===
-            get(hostComponent, "componentName")
-          ) {
-            Object.keys(config).forEach((key) => {
-              if (get(hostComponent, config[key as keyof typeof config])) {
-                set(
-                  hostComponentModel,
-                  key,
-                  get(
-                    hostComponent,
-                    config[key as keyof typeof config],
-                    get(hostComponentModel, key)
-                  )
-                );
-              }
-            });
-          }
-        });
-      });
-    });
-    setAllHostModels(allHostModelsCopy);
-  };
-
-  const updateHost = (message: any) => {
-    const config = {
-      alertsSummary: "alerts_summary",
-      healthStatus: "host_status",
-      state: "host_state",
-      lastHeartBeatTime: "last_heartbeat_time",
-      passiveState: "maintenance_state",
-    };
-    // Use the ref to get the latest allHostModels value
-    let allHostModelsCopy = cloneDeep(allHostModelsRef.current);
-    allHostModelsCopy.forEach((host: Host) => {
-      if (host.hostName === get(message, "host_name", "")) {
-        Object.keys(config).forEach((key) => {
-          if (get(message, config[key as keyof typeof config])) {
-            set(
-              host,
-              key,
-              get(message, config[key as keyof typeof config], get(host, key))
-            );
-
-            if (key === "passiveState") {
-              handlePassiveStateChange(config, key, message, host);
-            }
-          }
-        });
-      }
-    });
-    setAllHostModels(allHostModelsCopy);
-  };
-
-  const updateHostOnRequests = (message: any) => {
-
-    const requestContext = get(message, "requestContext", "").toLowerCase();
-    const requestStatus = get(message, "requestStatus", "");
-    const hostName = get(message, "Tasks.[0].hostName", "");
-
-    if (requestStatus !== "COMPLETED" || !hostName) {
-      return;
-    }
-
-    let operation = "";
-    let componentType = "";
-
-    if (requestContext.includes("decommission")) {
-      operation = "DECOMMISSION";
-      if (requestContext.includes("datanode")) {
-        componentType = "DATANODE";
-      } else if (requestContext.includes("nodemanager")) {
-        componentType = "NODEMANAGER";
-      } else if (requestContext.includes("regionserver")) {
-        componentType = "HBASE_REGIONSERVER";
-      } else if (requestContext.includes("tasktracker")) {
-        componentType = "TASKTRACKER";
-      }
-    } else if (requestContext.includes("recommission")) {
-      operation = "RECOMMISSION";
-      if (requestContext.includes("datanode")) {
-        componentType = "DATANODE";
-      } else if (requestContext.includes("nodemanager")) {
-        componentType = "NODEMANAGER";
-      } else if (requestContext.includes("regionserver")) {
-        componentType = "HBASE_REGIONSERVER";
-      } else if (requestContext.includes("tasktracker")) {
-        componentType = "TASKTRACKER";
-      }
-    }
-
-    if (operation && componentType) {
-      updateComponentAdminState(hostName, componentType, operation);
-    }
-  };
-
-  const updateComponentAdminState = (
-    hostName: string,
-    componentType: string,
-    operation: string
-  ) => {
-    // Use the ref to get the latest allHostModels value
-    const allHostModelsCopy = cloneDeep(allHostModelsRef.current);
-
-    allHostModelsCopy.forEach((host: Host) => {
-      if (host.hostName === hostName) {
-        host.hostComponents.forEach((hostComponent: HostComponent) => {
-          if (hostComponent.componentName === componentType) {
-            if (operation === "DECOMMISSION") {
-              set(hostComponent, "adminState", "DECOMMISSIONED");
-            } else if (operation === "RECOMMISSION") {
-              set(hostComponent, "adminState", "INSERVICE");
-            }
-          }
-        });
-      }
-    });
-
-    setAllHostModels(allHostModelsCopy);
-  };
-
-  const handlePassiveStateChange = (
-    config: any,
-    key: string,
-    message: any,
-    host: Host
-  ) => {
-    host.hostComponents.forEach((hostComponent: HostComponent) => {
-      const currentPassiveState = get(hostComponent, "passiveState", "");
-      const desiredPassiveState = get(
-        message,
-        config[key as keyof typeof config],
-        get(host, key)
-      );
-      if (desiredPassiveState !== currentPassiveState) {
-        if (desiredPassiveState === "OFF") {
-          if (
-            currentPassiveState ===
-            PassiveStateOnFilters.IMPLIED_FROM_SERVICE_AND_HOST
-          ) {
-            set(
-              hostComponent,
-              "passiveState",
-              PassiveStateOnFilters.IMPLIED_FROM_SERVICE
-            );
-          } else if (
-            currentPassiveState === PassiveStateOnFilters.IMPLIED_FROM_HOST
-          ) {
-            set(hostComponent, "passiveState", desiredPassiveState);
-          }
-        } else {
-          if (
-            currentPassiveState === PassiveStateOnFilters.IMPLIED_FROM_SERVICE
-          ) {
-            set(
-              hostComponent,
-              "passiveState",
-              PassiveStateOnFilters.IMPLIED_FROM_SERVICE_AND_HOST
-            );
-          } else if (currentPassiveState === "OFF") {
-            set(
-              hostComponent,
-              "passiveState",
-              PassiveStateOnFilters.IMPLIED_FROM_HOST
-            );
-          }
-        }
-      }
-    });
-  };
 
   const getHostNamesForCurrentFilters = async (url: string) => {
     const response = await HostsApi.getHostComponentsDetails(clusterName, url);
@@ -386,6 +249,32 @@ export const useHostConfigUpdater = (
 
     const response = await HostsApi.getHostsList(clusterName, url, data);
 
+    const stackName = get(cluster, "stack", "");
+    const stackVersion = get(cluster, "versionNum", "");
+    let compatibleRepositoryVersions: string[] = [];
+    if (shouldLoadCompatibleRepositoryVersions(
+      get(response, "items", []),
+      stackName,
+      stackVersion,
+    )) {
+      const compatibleResponse = await VersionsApi.getCompatibleRepositoryVersions(
+        stackName,
+        stackVersion,
+      );
+      compatibleRepositoryVersions = get(compatibleResponse, "items", [])
+        .map((item: any) => get(
+          item,
+          "CompatibleRepositoryVersions.repository_version",
+          "",
+        ))
+        .filter(Boolean);
+    }
+    applyHostStackVersionVisibility(
+      get(response, "items", []),
+      compatibleRepositoryVersions,
+      Boolean(supports.displayOlderVersions),
+    );
+
     let allComponents: any[] = [];
     get(serviceComponentInfo, "items", []).forEach((service: any) => {
       allComponents = allComponents.concat(
@@ -408,16 +297,17 @@ export const useHostConfigUpdater = (
     }
 
     get(response, "items", []).forEach((host: any) => {
-      get(host, "host_components", []).forEach((component: any) =>
+      get(host, "host_components", []).forEach((component: any) => {
+        const metadata = allComponents.find(
+          (candidate) =>
+            get(candidate, "HostRoles.component_name") ===
+            get(component, "HostRoles.component_name"),
+        );
         set(component, "HostRoles", {
           ...get(component, "HostRoles", {}),
-          ...allComponents.filter(
-            (c) =>
-              get(c, "HostRoles.component_name") ===
-              get(component, "HostRoles.component_name")
-          )[0].HostRoles,
-        })
-      );
+          ...get(metadata, "HostRoles", {}),
+        });
+      });
       if (!isGetHostsList()) {
         set(
           host,
@@ -494,5 +384,11 @@ export const useHostConfigUpdater = (
     if (setPaginationLoading) {
       setPaginationLoading(false);
     }
+  };
+
+  return {
+    error: loadError,
+    isLoading,
+    retry: () => setRetryCount((value) => value + 1),
   };
 };

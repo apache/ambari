@@ -131,19 +131,23 @@ export const restartHostComponents = async (
 export const getComponentsFromServer = async (
   options: any,
   clusterName: string,
-  callBack: (responseData: any) => void
+  callBack: (responseData: any) => void | Promise<void>
 ) => {
-  const requestParameters = constructComponentsCallUrl(options);
-  const data = {
-    parameters: requestParameters.params,
-    fields: requestParameters.fields,
-  };
-  const responseData: any = await HostsApi.getHostComponents(
-    clusterName,
-    requestParameters.fields,
-    data
-  );
-  callBack(responseData);
+  try {
+    const requestParameters = constructComponentsCallUrl(options);
+    const data = {
+      parameters: requestParameters.params,
+      fields: requestParameters.fields,
+    };
+    const responseData: any = await HostsApi.getHostComponents(
+      clusterName,
+      requestParameters.fields,
+      data
+    );
+    await callBack(responseData);
+  } catch (error) {
+    showErrorModal(get(error, "response.data.message", get(error, "message", "Unable to load host components.")));
+  }
 };
 
 const constructComponentsCallUrl = (options: any) => {
