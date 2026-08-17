@@ -297,3 +297,16 @@ the minimum needed for Module 06:
 All live scenarios in the Runtime Acceptance Matrix remain pending because this
 worktree has no Ambari Server, Agents, repository metadata, multi-user fixture,
 or fault-injection cluster.
+
+## Verification Record
+
+| Command | Result |
+| --- | --- |
+| `npm test` in `ambari-web/latest` | Passed: 63 test files and 224 tests. Expected failure-path stderr and React Bootstrap jsdom transition warnings were emitted without test failures. |
+| `npm run build` in `ambari-web/latest` | Passed: TypeScript project build and Vite production build, 3,287 modules transformed. Existing Sass, duplicate-case, `eval`, and chunk-size warnings remain outside Module 06. |
+| `node docs/frontend-refactor/ember-baseline/tools/validate-ember-baseline.mjs` | Passed with 1,002 feature IDs and no warnings or errors after regenerating the Module 06 feature-index rows. |
+| Changed-file `npx eslint ...` | Failed on the existing frontend `any`, legacy `@ts-ignore`, hook, and shared-file lint debt. No lint success is claimed; TypeScript and production build passed. |
+| `git diff --check` | Passed. |
+
+The automated results above are static/local evidence only. They do not replace
+any `RUNTIME_PENDING` row in the live-cluster acceptance matrix.
