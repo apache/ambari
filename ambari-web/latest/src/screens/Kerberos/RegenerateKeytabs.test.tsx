@@ -46,8 +46,17 @@ vi.mock("../../hooks/useKDCSessionState", () => ({
 }));
 
 vi.mock("../BackgroundOperations", () => ({
-  default: ({ requestId }: { requestId: string | number }) => (
-    <div>Background request {requestId}</div>
+  default: ({
+    requestId,
+    onClose,
+  }: {
+    requestId: string | number;
+    onClose: () => void;
+  }) => (
+    <div>
+      Background request {requestId}
+      <button onClick={onClose}>Close operations</button>
+    </div>
   ),
 }));
 
@@ -73,6 +82,7 @@ describe("RegenerateKeytabs", () => {
     const restart = vi.spyOn(RequestApi, "postRequest").mockResolvedValue({
       Requests: { id: 20 },
     } as any);
+    const onFinished = vi.fn();
 
     render(
       <AppContext.Provider
@@ -85,6 +95,7 @@ describe("RegenerateKeytabs", () => {
         <RegenerateKeytabs
           missingHostCheck={false}
           restartComponentsCheck
+          onFinished={onFinished}
         />
       </AppContext.Provider>,
     );
@@ -102,5 +113,33 @@ describe("RegenerateKeytabs", () => {
       await pollingState.callback?.();
     });
     expect(restart).toHaveBeenCalledTimes(1);
+
+    screen.getByRole("button", { name: "Close operations" }).click();
+    expect(onFinished).toHaveBeenCalledTimes(1);
+  });
+
+  it("releases the parent trigger after submission failure", async () => {
+    vi.spyOn(RequestApi, "regenerateKeytabs").mockRejectedValue(
+      new Error("submission failed"),
+    );
+    const onFinished = vi.fn();
+
+    render(
+      <AppContext.Provider
+        value={
+          { clusterName: "c1" } as unknown as ComponentProps<
+            typeof AppContext.Provider
+          >["value"]
+        }
+      >
+        <RegenerateKeytabs
+          missingHostCheck={false}
+          restartComponentsCheck={false}
+          onFinished={onFinished}
+        />
+      </AppContext.Provider>,
+    );
+
+    await waitFor(() => expect(onFinished).toHaveBeenCalledTimes(1));
   });
 });

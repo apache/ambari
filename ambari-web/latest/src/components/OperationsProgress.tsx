@@ -80,11 +80,14 @@ function OperationsProgress({
   const pollingGeneration = useRef<Map<string | number, number>>(new Map());
   const isMounted = useRef(true);
   const setCompletionStatusRef = useRef(setCompletionStatus);
+  const errorCallbackRef = useRef(errorCallback);
+  const reportedError = useRef("");
   const trackCurrentRequestStatusRef = useRef<(
     requestId: number | string,
     operationId: number | string,
   ) => Promise<void>>(async () => undefined);
   setCompletionStatusRef.current = setCompletionStatus;
+  errorCallbackRef.current = errorCallback;
 
   const updateOperationsState = (nextState: any) => {
     operationsStateRef.current = nextState;
@@ -489,6 +492,23 @@ function OperationsProgress({
   }, [JSON.stringify(operationsState)]);
 
   useEffect(() => {
+    const failedOperation = operationsState.find(
+      (operation) => operation.error && isFinished(operation.status || ""),
+    );
+    if (!failedOperation) {
+      reportedError.current = "";
+      return;
+    }
+    const message = failedOperation.error
+      || "Error: An error occurred during the operation.";
+    const errorKey = `${failedOperation.id}:${failedOperation.status}:${message}`;
+    if (errorCallbackRef.current && reportedError.current !== errorKey) {
+      reportedError.current = errorKey;
+      errorCallbackRef.current(message);
+    }
+  }, [operationsState]);
+
+  useEffect(() => {
     let activeIdx = -1;
     for (let i = 0; i < operationsStateRef.current.length; i++) {
       const operation = operationsStateRef.current[i];
@@ -610,18 +630,12 @@ function OperationsProgress({
 
               {has(operation, "error") &&
                 isFinished(operation.status) &&
-                (errorCallback ? (
-                  (errorCallback(
-                    operation.error ||
-                      "Error: An error occurred during the operation."
-                  ),
-                  null)
-                ) : (
+                (!errorCallback ? (
                   <Alert variant="danger" className="scrollable-h15 mt-3">
                     {operation.error ||
                       "Error: An error occurred during the operation."}
                   </Alert>
-                ))}
+                ) : null)}
             </Stack>
           );
         })}

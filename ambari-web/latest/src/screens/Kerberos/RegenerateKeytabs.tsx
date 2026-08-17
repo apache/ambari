@@ -29,11 +29,13 @@ import { responseErrorMessage } from "../../Utils/httpError";
 type RegenerateKeytabsProps = {
   missingHostCheck: boolean;
   restartComponentsCheck: boolean;
+  onFinished: () => void;
 };
 
 export default function RegenerateKeytabs({
   missingHostCheck,
   restartComponentsCheck,
+  onFinished,
 }: RegenerateKeytabsProps) {
   const [showBgOperation, setShowBgOperation] = useState(false);
   const [backgroundRequestId, setBackgroundRequestId] = useState<
@@ -43,6 +45,10 @@ export default function RegenerateKeytabs({
   const restartCheckRef = useRef(restartComponentsCheck);
   const restartStarted = useRef(false);
   const regenerateStarted = useRef(false);
+  const regenerateFinished = useRef(false);
+  const closeRequested = useRef(false);
+  const onFinishedRef = useRef(onFinished);
+  onFinishedRef.current = onFinished;
   const { clusterName } = useContext(AppContext);
   const { getKDCSessionState } = useKDCSessionState(() => {});
 
@@ -75,6 +81,7 @@ export default function RegenerateKeytabs({
           "Error",
           responseErrorMessage(error, "Ambari could not regenerate keytabs."),
         );
+        onFinishedRef.current();
       }
     }
 
@@ -84,13 +91,16 @@ export default function RegenerateKeytabs({
     regenerateStarted.current = true;
     void getKDCSessionState(
       regenerate,
-      (error) => showAlertModal(
-        "Error",
-        responseErrorMessage(
-          error,
-          "Ambari could not validate the KDC administrator session.",
-        ),
-      ),
+      (error) => {
+        showAlertModal(
+          "Error",
+          responseErrorMessage(
+            error,
+            "Ambari could not validate the KDC administrator session.",
+          ),
+        );
+        onFinishedRef.current();
+      },
     );
   }, [clusterName, getKDCSessionState, missingHostCheck]);
 
@@ -116,6 +126,7 @@ export default function RegenerateKeytabs({
     const { Requests } = requestStatus;
     if (isFinished(Requests.request_status)) {
       pausePolling();
+      regenerateFinished.current = true;
       if (
         Requests.request_status === ProgressStatus.COMPLETED
         && restartCheckRef.current
@@ -132,7 +143,12 @@ export default function RegenerateKeytabs({
               "Ambari could not restart components after regenerating keytabs.",
             ),
           );
+          if (closeRequested.current) {
+            onFinishedRef.current();
+          }
         }
+      } else if (closeRequested.current) {
+        onFinishedRef.current();
       }
     }
   }
@@ -164,7 +180,18 @@ export default function RegenerateKeytabs({
       {showBgOperation ? (
         <BackgroundOperations
           isOpen={showBgOperation}
-          onClose={() => setShowBgOperation(false)}
+          onClose={() => {
+            setShowBgOperation(false);
+            if (
+              !restartCheckRef.current
+              || restartStarted.current
+              || regenerateFinished.current
+            ) {
+              onFinishedRef.current();
+            } else {
+              closeRequested.current = true;
+            }
+          }}
           rootLevel={ViewLevel.REQUESTS}
           requestId={backgroundRequestId}
         />

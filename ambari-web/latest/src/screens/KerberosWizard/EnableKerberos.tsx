@@ -42,7 +42,7 @@ import UpgradeGuard from "../../components/UpgradeGuard";
 import ManageKdcCredentials from "../Kerberos/manageKdcCredentials";
 import credentialsUtils from "../../Utils/credentialsUtils";
 import useKerberosMode from "../../hooks/useKerberosMode";
-import { useAuthorization } from "../../hooks/useAuth";
+import { useAuth, useAuthorization } from "../../hooks/useAuth";
 import { responseErrorMessage } from "../../Utils/httpError";
 import {
   failedPreKerberizeChecks,
@@ -51,7 +51,7 @@ import {
   kerberosWizardStartPayload,
   shouldBlockKerberosWizardNavigation,
 } from "../../Utils/kerberosWizard";
-import ClusterApi from "../../api/clusterApi";
+import { postKerberosWizardPersistData } from "../../Utils/kerberosWizardPersistence";
 
 export default function EnableKerberos() {
   const [isKerberosEnabled, setIsKerberosEnabled] = useState(false);
@@ -81,8 +81,10 @@ export default function EnableKerberos() {
   const [wizardExitError, setWizardExitError] = useState("");
   const [wizardExitRunning, setWizardExitRunning] = useState(false);
   const allowWizardExit = useRef(false);
+  const disableRouteStarted = useRef(false);
 
   const { clusterName, clusterState, services, supports } = useContext(AppContext);
+  const { user } = useAuth();
   const canDownloadCsv = useAuthorization("CLUSTER.UPGRADE_DOWNGRADE_STACK");
   const {
     isLoaded: isKerberosModeLoaded,
@@ -211,8 +213,14 @@ export default function EnableKerberos() {
 
   const enterEnableKerberosWizard = async () => {
     setPreCheckError("");
+    if (!user?.user_name) {
+      setPreCheckError("Ambari could not identify the Kerberos wizard owner.");
+      return;
+    }
     try {
-      await ClusterApi.postPersistData(kerberosWizardStartPayload());
+      await postKerberosWizardPersistData(
+        kerberosWizardStartPayload(user.user_name),
+      );
       setDisableKerberosModal(false);
       navigate(`/main/admin/kerberos/enable/step1`);
     } catch (error) {
@@ -265,6 +273,36 @@ export default function EnableKerberos() {
       setDisableKerberosModal2(true);
     }
   };
+
+  useEffect(() => {
+    const isDisableRoute = location.pathname.endsWith(
+      "/kerberos/disableSecurity",
+    );
+    if (!isDisableRoute) {
+      disableRouteStarted.current = false;
+      return;
+    }
+    if (loading || securityLoadError || disableRouteStarted.current) {
+      return;
+    }
+    if (!isKerberosEnabled) {
+      navigate("/main/admin/kerberos/", { replace: true });
+      return;
+    }
+    disableRouteStarted.current = true;
+    if (hasYarn) {
+      setDisableKerberosModal(true);
+    } else {
+      setDisableKerberosModal2(true);
+    }
+  }, [
+    hasYarn,
+    isKerberosEnabled,
+    loading,
+    location.pathname,
+    navigate,
+    securityLoadError,
+  ]);
 
   const regenerateAfterIdentitySave = () => {
     setMissingHostCheck(false);
@@ -337,7 +375,7 @@ export default function EnableKerberos() {
             </Button>
             {isKerberosModeLoaded && !kerberosModeError && !isManualKerberos && (
               <Button
-                disabled={identitiesEditing}
+                disabled={identitiesEditing || regenerateKeytabs}
                 onClick={() => setKeytabsModal(true)}
               >
                 REGENERATE KEYTABS
@@ -524,8 +562,10 @@ export default function EnableKerberos() {
             setDisableKerberosInProgress={setDisableKerberosInProgress}
           />
         }
-        successCallback={() => {
+        successCallback={async () => {
           setDisableKerberos(false);
+          navigate("/main/admin/kerberos/", { replace: true });
+          await isSecurityEnabled();
         }}
         options={{
           okButtonText: "Complete",
@@ -541,6 +581,7 @@ export default function EnableKerberos() {
         successCallback={() => {
           setQuitDisableKerberosModal(false);
           setDisableKerberos(false);
+          navigate("/main/admin/kerberos/", { replace: true });
         }}
         modalTitle="Confirmation"
         modalBody="You are in the process of disabling security on your cluster. Are you sure you want to quit?
@@ -565,7 +606,7 @@ export default function EnableKerberos() {
             if (!location.pathname.endsWith("/step8")) {
               await discardChanges(clusterName);
             }
-            await ClusterApi.postPersistData(
+            await postKerberosWizardPersistData(
               kerberosWizardPersistenceResetPayload(),
             );
             finishWizardExit();
@@ -594,6 +635,7 @@ export default function EnableKerberos() {
         <RegenerateKeytabs
           missingHostCheck={missingHostCheck}
           restartComponentsCheck={restartComponentsCheck}
+          onFinished={() => setRegenerateKeytabs(false)}
         />
       ) : null}
     </UpgradeGuard>

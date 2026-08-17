@@ -38,6 +38,7 @@ vi.mock("react-router-dom", async () => {
 
 const testState = vi.hoisted(() => ({
   canDownloadCsv: true,
+  userName: "operator",
   mode: {
     isLoaded: true,
     isManualKerberos: false,
@@ -53,6 +54,7 @@ vi.mock("../../hooks/useKerberosMode", () => ({
 
 vi.mock("../../hooks/useAuth", () => ({
   useAuthorization: () => testState.canDownloadCsv,
+  useAuth: () => ({ user: { user_name: testState.userName } }),
 }));
 
 vi.mock("../../Utils/credentialsUtils", () => ({
@@ -72,7 +74,16 @@ vi.mock("./KerberosIdentities", () => ({
 }));
 
 vi.mock("../Kerberos/RegenerateKeytabs", () => ({
-  default: () => <div>Regenerate request started</div>,
+  default: ({ onFinished }: { onFinished: () => void }) => (
+    <div>
+      Regenerate request started
+      <button onClick={onFinished}>Finish regenerate</button>
+    </div>
+  ),
+}));
+
+vi.mock("../Kerberos/DisableKerberos", () => ({
+  default: () => <div>Disable workflow</div>,
 }));
 
 vi.mock("./index", () => ({
@@ -90,7 +101,7 @@ vi.mock("../../components/Modal", () => ({
     isOpen: boolean;
     modalTitle: ReactNode;
     modalBody: ReactNode;
-    successCallback: () => void;
+    successCallback: () => void | Promise<void>;
     options: { okButtonDisabled?: boolean; okButtonText?: string };
   }) =>
     isOpen ? (
@@ -108,10 +119,12 @@ const renderPage = ({
   contextKerberosEnabled = true,
   services = [],
   supports = { preKerberizeCheck: false },
+  initialEntry = "/main/admin/kerberos",
 }: {
   contextKerberosEnabled?: boolean;
   services?: Array<{ ServiceInfo?: { service_name?: string } }>;
   supports?: Record<string, boolean>;
+  initialEntry?: string;
 } = {}) => {
   return render(
     <AppContext.Provider
@@ -124,7 +137,7 @@ const renderPage = ({
         } as unknown as ComponentProps<typeof AppContext.Provider>["value"]
       }
     >
-      <MemoryRouter initialEntries={["/main/admin/kerberos"]}>
+      <MemoryRouter initialEntries={[initialEntry]}>
         <EnableKerberos />
       </MemoryRouter>
     </AppContext.Provider>,
@@ -134,6 +147,7 @@ const renderPage = ({
 describe("EnableKerberos management entry", () => {
   beforeEach(() => {
     testState.canDownloadCsv = true;
+    testState.userName = "operator";
     testState.mode = {
       isLoaded: true,
       isManualKerberos: false,
@@ -236,7 +250,54 @@ describe("EnableKerberos management entry", () => {
       progressStatus: "ENABLING_KERBEROS",
       stepName: "GET_STARTED",
     });
+    expect(JSON.parse(persisted["wizard-data"])).toEqual({
+      userName: "operator",
+      controllerName: "kerberosWizardController",
+    });
     expect(await screen.findByText("Enable wizard")).toBeTruthy();
+  });
+
+  it("opens Disable from the Classic deep link", async () => {
+    renderPage({ initialEntry: "/main/admin/kerberos/disableSecurity" });
+
+    expect(await screen.findByText("Confirmation")).toBeTruthy();
+  });
+
+  it("reloads security state after Disable completes", async () => {
+    vi.mocked(KerberosApi.getSecurityType)
+      .mockResolvedValueOnce({
+        Clusters: { security_type: "KERBEROS" },
+      } as Awaited<ReturnType<typeof KerberosApi.getSecurityType>>)
+      .mockResolvedValueOnce({
+        Clusters: { security_type: "NONE" },
+      } as Awaited<ReturnType<typeof KerberosApi.getSecurityType>>);
+    renderPage();
+    await screen.findByText(/Kerberos security is Enabled/);
+
+    fireEvent.click(screen.getByRole("button", { name: "DISABLE KERBEROS" }));
+    fireEvent.click(await screen.findByRole("button", { name: "OK" }));
+    expect(await screen.findByText("Disable workflow")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Complete" }));
+
+    expect(await screen.findByText("Kerberos security is disabled")).toBeTruthy();
+    expect(KerberosApi.getSecurityType).toHaveBeenCalledTimes(2);
+  });
+
+  it("allows Regenerate to be started again after its tracker finishes", async () => {
+    renderPage();
+    await screen.findByText(/Kerberos security is Enabled/);
+
+    fireEvent.click(screen.getByRole("button", { name: "REGENERATE KEYTABS" }));
+    fireEvent.click(await screen.findByRole("button", { name: "OK" }));
+    fireEvent.click(await screen.findByRole("button", { name: "OK" }));
+    expect(await screen.findByText("Regenerate request started")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Finish regenerate" }));
+    await waitFor(() => {
+      expect(screen.queryByText("Regenerate request started")).toBeNull();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "REGENERATE KEYTABS" }));
+    expect(await screen.findByText("Regenerate Keytabs")).toBeTruthy();
   });
 
   it("blocks Enable when an optional pre-Kerberize check fails", async () => {

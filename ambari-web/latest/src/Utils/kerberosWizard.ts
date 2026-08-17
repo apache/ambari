@@ -205,6 +205,7 @@ export function kerberosWizardPersistenceResetPayload() {
   return JSON.stringify({
     ENABLING_KERBEROS: JSON.stringify({ kerberosWizardSteps: {} }),
     CLUSTER_STATE: JSON.stringify({}),
+    "wizard-data": JSON.stringify({}),
   });
 }
 
@@ -220,7 +221,7 @@ const KERBEROS_WIZARD_STEP_NAMES = [
   "START_AND_TEST_SERVICES",
 ];
 
-export function kerberosWizardStartPayload() {
+export function kerberosWizardStartPayload(userName: string) {
   return JSON.stringify({
     ENABLING_KERBEROS: JSON.stringify({
       kerberosWizardSteps: {},
@@ -229,6 +230,10 @@ export function kerberosWizardStartPayload() {
     CLUSTER_STATE: JSON.stringify({
       progressStatus: "ENABLING_KERBEROS",
       stepName: "GET_STARTED",
+    }),
+    "wizard-data": JSON.stringify({
+      userName,
+      controllerName: "kerberosWizardController",
     }),
   });
 }

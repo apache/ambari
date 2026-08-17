@@ -56,8 +56,13 @@ describe("Kerberos API", () => {
   });
 
   it("uses exact encoded ATS discovery and deletion resources", async () => {
+    mocks.request
+      .mockResolvedValueOnce({ data: { items: [] } })
+      .mockResolvedValueOnce({ data: { deleted: true }, status: 202 });
     await KerberosApi.getAppTimelineServerHosts("cluster/name");
-    await KerberosApi.deleteAppTimelineServer("cluster/name", "host/one");
+    await expect(
+      KerberosApi.deleteAppTimelineServer("cluster/name", "host/one"),
+    ).resolves.toEqual({ deleted: true, status: 202 });
 
     expect(mocks.request).toHaveBeenNthCalledWith(1, {
       url: "clusters/cluster%2Fname/host_components?HostRoles/component_name=APP_TIMELINE_SERVER&fields=HostRoles/host_name&minimal_response=true",
@@ -67,6 +72,13 @@ describe("Kerberos API", () => {
       url: "clusters/cluster%2Fname/hosts/host%2Fone/host_components/APP_TIMELINE_SERVER",
       method: "DELETE",
     });
+  });
+
+  it("retains the HTTP status for a successful Kerberos service deletion", async () => {
+    mocks.request.mockResolvedValueOnce({ data: {}, status: 204 });
+
+    await expect(KerberosApi.deleteKerberosService("c1", "KERBEROS"))
+      .resolves.toEqual({ status: 204 });
   });
 
   it("uses the Classic Step 3 client state and install contracts", async () => {

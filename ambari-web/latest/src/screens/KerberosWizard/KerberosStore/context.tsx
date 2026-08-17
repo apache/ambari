@@ -29,6 +29,11 @@ import {translate } from "../../../Utils/Utility";
 import { useNavigate } from "react-router-dom";
 import { RequestApi } from "../../../api/requestApi";
 import KerberosApi from "../../../api/kerberosApi";
+import { Alert, Button } from "react-bootstrap";
+import Spinner from "../../../components/Spinner";
+import { responseErrorMessage } from "../../../Utils/httpError";
+import { kerberosWizardPersistenceResetPayload } from "../../../Utils/kerberosWizard";
+import { postKerberosWizardPersistData } from "../../../Utils/kerberosWizardPersistence";
 
 interface KerberosWizardContextProps {
   state: State;
@@ -66,20 +71,25 @@ export const KerberosWizardProvider: React.FC<{
   const [state, dispatch] = useReducer(reducer, initialState);
   const isDataPersisted = useRef(false);
   const [currStepData, setCurrStepData] = useState({});
+  const [isRecoveryLoading, setIsRecoveryLoading] = useState(true);
+  const [recoveryLoadError, setRecoveryLoadError] = useState("");
+  const [persistenceError, setPersistenceError] = useState("");
   const {clusterName} = useContext(AppContext);
   const navigate = useNavigate();
 
   useEffect(() => {
-    syncUserPersistedData();
+    void syncUserPersistedData();
   }, [])
 
   useEffect(() => {
     if (isDataPersisted.current) {
-      flushCurrentData();
+      void flushCurrentData().catch(() => undefined);
     }
   }, [state.kerberosWizardSteps, currStepData]);
 
   async function syncUserPersistedData() {
+    setIsRecoveryLoading(true);
+    setRecoveryLoadError("");
     try {
       const persistedData = await ClusterApi.getPersistData(
         "ENABLING_KERBEROS"
@@ -116,29 +126,40 @@ export const KerberosWizardProvider: React.FC<{
       } else {
         stepWizardUtilities.jumpToStep(1, true);
       }
-    } finally {
       isDataPersisted.current = true;
+    } catch (error) {
+      setRecoveryLoadError(responseErrorMessage(
+        error,
+        "Ambari could not load the Enable Kerberos recovery state.",
+      ));
+    } finally {
+      setIsRecoveryLoading(false);
     }
   }
 
   async function flushCurrentData() {
-    await ClusterApi.postPersistData(
-      JSON.stringify({
-        ENABLING_KERBEROS: JSON.stringify({
-          ...state,
-          activeStep: get(currStepData, "stepName", ""),
-        }),
-        CLUSTER_STATE: JSON.stringify(currStepData),
-      })
-    );
+    const payload = JSON.stringify({
+      ENABLING_KERBEROS: JSON.stringify({
+        ...state,
+        activeStep: get(currStepData, "stepName", ""),
+      }),
+      CLUSTER_STATE: JSON.stringify(currStepData),
+    });
+    try {
+      await postKerberosWizardPersistData(payload);
+      setPersistenceError("");
+    } catch (error) {
+      setPersistenceError(responseErrorMessage(
+        error,
+        "Ambari could not save the Enable Kerberos recovery state.",
+      ));
+      throw error;
+    }
   }
 
   async function flushOnCancel() {
-    await ClusterApi.postPersistData(
-      JSON.stringify({
-        ENABLING_KERBEROS: JSON.stringify(initialState),
-        CLUSTER_STATE: JSON.stringify({}),
-      })
+    await postKerberosWizardPersistData(
+      kerberosWizardPersistenceResetPayload(),
     );
     if (onWizardExitReady) {
       onWizardExitReady();
@@ -211,10 +232,36 @@ export const KerberosWizardProvider: React.FC<{
     );
   }
 
+  if (isRecoveryLoading) {
+    return <Spinner />;
+  }
+
+  if (recoveryLoadError) {
+    return (
+      <Alert variant="danger" className="m-3">
+        <div>{recoveryLoadError}</div>
+        <Button className="mt-3" onClick={() => void syncUserPersistedData()}>
+          Retry
+        </Button>
+      </Alert>
+    );
+  }
+
   return (
     <EnableKerberosContext.Provider
       value={{ state, dispatch, stepWizardUtilities, flushStateToDb, onExitPopUp }}
     >
+      {persistenceError && (
+        <Alert variant="danger" className="m-3">
+          <div>{persistenceError}</div>
+          <Button
+            className="mt-3"
+            onClick={() => void flushCurrentData().catch(() => undefined)}
+          >
+            Retry
+          </Button>
+        </Alert>
+      )}
       {children}
     </EnableKerberosContext.Provider>
   );

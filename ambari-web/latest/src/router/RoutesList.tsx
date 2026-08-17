@@ -244,27 +244,46 @@ const RoutesList: RouteObject[] = [
                   {
                     path: "kerberos",
                     element: (
-                      <FeatureRouteGuard feature="enableToggleKerberos">
-                        <ProtectedRoute
-                          requireAuthorization="CLUSTER.TOGGLE_KERBEROS"
-                          redirectTo="/main/dashboard/metrics"
-                        >
-                          <EnableKerberos />
-                        </ProtectedRoute>
-                      </FeatureRouteGuard>
+                      <ServiceOperationRouteGuard>
+                        <FeatureRouteGuard feature="enableToggleKerberos">
+                          <ProtectedRoute
+                            requireAuthorization="CLUSTER.TOGGLE_KERBEROS"
+                            redirectTo="/main/dashboard/metrics"
+                          >
+                            <EnableKerberos />
+                          </ProtectedRoute>
+                        </FeatureRouteGuard>
+                      </ServiceOperationRouteGuard>
                     ),
                   },
                   {
                     path: "kerberos/enable/:stepNumber",
                     element: (
-                      <FeatureRouteGuard feature="enableToggleKerberos">
-                        <ProtectedRoute
-                          requireAuthorization="CLUSTER.TOGGLE_KERBEROS"
-                          redirectTo="/main/dashboard/metrics"
-                        >
-                          <EnableKerberos />
-                        </ProtectedRoute>
-                      </FeatureRouteGuard>
+                      <ServiceOperationRouteGuard>
+                        <FeatureRouteGuard feature="enableToggleKerberos">
+                          <ProtectedRoute
+                            requireAuthorization="CLUSTER.TOGGLE_KERBEROS"
+                            redirectTo="/main/dashboard/metrics"
+                          >
+                            <EnableKerberos />
+                          </ProtectedRoute>
+                        </FeatureRouteGuard>
+                      </ServiceOperationRouteGuard>
+                    ),
+                  },
+                  {
+                    path: "kerberos/disableSecurity",
+                    element: (
+                      <ServiceOperationRouteGuard>
+                        <FeatureRouteGuard feature="enableToggleKerberos">
+                          <ProtectedRoute
+                            requireAuthorization="CLUSTER.TOGGLE_KERBEROS"
+                            redirectTo="/main/dashboard/metrics"
+                          >
+                            <EnableKerberos />
+                          </ProtectedRoute>
+                        </FeatureRouteGuard>
+                      </ServiceOperationRouteGuard>
                     ),
                   },
                 ],

@@ -301,10 +301,11 @@ describe("Kerberos wizard utilities", () => {
       kerberosWizardSteps: {},
     });
     expect(JSON.parse(payload.CLUSTER_STATE)).toEqual({});
+    expect(JSON.parse(payload["wizard-data"])).toEqual({});
   });
 
   it("initializes and resolves Enable Kerberos recovery routes", () => {
-    const payload = JSON.parse(kerberosWizardStartPayload());
+    const payload = JSON.parse(kerberosWizardStartPayload("operator"));
 
     expect(JSON.parse(payload.ENABLING_KERBEROS)).toEqual({
       kerberosWizardSteps: {},
@@ -313,6 +314,10 @@ describe("Kerberos wizard utilities", () => {
     expect(JSON.parse(payload.CLUSTER_STATE)).toEqual({
       progressStatus: "ENABLING_KERBEROS",
       stepName: "GET_STARTED",
+    });
+    expect(JSON.parse(payload["wizard-data"])).toEqual({
+      userName: "operator",
+      controllerName: "kerberosWizardController",
     });
     expect(kerberosWizardRecoveryPath({
       progressStatus: "ENABLING_KERBEROS",

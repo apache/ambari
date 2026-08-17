@@ -28,8 +28,8 @@ import { get } from "lodash";
 import { useNavigate } from "react-router-dom";
 import OperationsProgress from "../../components/OperationsProgress";
 import { ProgressStatus } from "../../constants";
-import ClusterApi from "../../api/clusterApi";
 import { kerberosWizardPersistenceResetPayload } from "../../Utils/kerberosWizard";
+import { postKerberosWizardPersistData } from "../../Utils/kerberosWizardPersistence";
 import { responseErrorMessage } from "../../Utils/httpError";
 
 function StartAndTestServices() {
@@ -123,7 +123,7 @@ function StartAndTestServices() {
     setIsCompleting(true);
     setCompletionError("");
     try {
-      await ClusterApi.postPersistData(
+      await postKerberosWizardPersistData(
         kerberosWizardPersistenceResetPayload(),
       );
       navigate(`/main/admin/kerberos/`);

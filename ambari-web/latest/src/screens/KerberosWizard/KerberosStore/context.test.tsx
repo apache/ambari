@@ -103,7 +103,7 @@ describe("Kerberos wizard discard", () => {
       </MemoryRouter>,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Cancel wizard" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Cancel wizard" }));
     const confirmation = show.mock.calls[0][0];
     if (!isValidElement<{ successCallback: () => Promise<void> }>(confirmation)) {
       throw new Error("Expected a confirmation modal");
@@ -112,5 +112,99 @@ describe("Kerberos wizard discard", () => {
 
     await waitFor(() => expect(onWizardExitReady).toHaveBeenCalledTimes(1));
     expect(ClusterApi.postPersistData).toHaveBeenCalledTimes(1);
+    const resetPayload = JSON.parse(
+      vi.mocked(ClusterApi.postPersistData).mock.calls[0][0],
+    );
+    expect(JSON.parse(resetPayload["wizard-data"])).toEqual({});
+  });
+
+  it("shows recovery load failure and retries before rendering the wizard", async () => {
+    vi.spyOn(ClusterApi, "getPersistData")
+      .mockRejectedValueOnce(new Error("load failed"))
+      .mockResolvedValueOnce(
+        {} as Awaited<ReturnType<typeof ClusterApi.getPersistData>>,
+      );
+    const stepWizardUtilities = {
+      wizardSteps: { 1: { name: "GET_STARTED" } },
+      currentStep: { name: "GET_STARTED" },
+      jumpToStep: vi.fn(),
+    };
+
+    render(
+      <MemoryRouter>
+        <AppContext.Provider
+          value={
+            { clusterName: "c1" } as unknown as ComponentProps<
+              typeof AppContext.Provider
+            >["value"]
+          }
+        >
+          <KerberosWizardProvider stepWizardUtilities={stepWizardUtilities}>
+            <div>Wizard content</div>
+          </KerberosWizardProvider>
+        </AppContext.Provider>
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText(
+      "Ambari could not load the Enable Kerberos recovery state.",
+    )).toBeTruthy();
+    expect(screen.queryByText("Wizard content")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+
+    expect(await screen.findByText("Wizard content")).toBeTruthy();
+    expect(ClusterApi.getPersistData).toHaveBeenCalledTimes(2);
+  });
+
+  it("makes a checkpoint save failure visible and retryable", async () => {
+    vi.spyOn(ClusterApi, "getPersistData").mockResolvedValue(
+      {} as Awaited<ReturnType<typeof ClusterApi.getPersistData>>,
+    );
+    vi.spyOn(ClusterApi, "postPersistData")
+      .mockRejectedValueOnce(new Error("save failed"))
+      .mockResolvedValueOnce(
+        {} as Awaited<ReturnType<typeof ClusterApi.postPersistData>>,
+      );
+    const stepWizardUtilities = {
+      wizardSteps: { 1: { name: "GET_STARTED" } },
+      currentStep: { name: "GET_STARTED" },
+      jumpToStep: vi.fn(),
+    };
+
+    function SaveButton() {
+      const { flushStateToDb } = useContext(EnableKerberosContext);
+      return (
+        <button onClick={() => void flushStateToDb().catch(() => undefined)}>
+          Save checkpoint
+        </button>
+      );
+    }
+
+    render(
+      <MemoryRouter>
+        <AppContext.Provider
+          value={
+            { clusterName: "c1" } as unknown as ComponentProps<
+              typeof AppContext.Provider
+            >["value"]
+          }
+        >
+          <KerberosWizardProvider stepWizardUtilities={stepWizardUtilities}>
+            <SaveButton />
+          </KerberosWizardProvider>
+        </AppContext.Provider>
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(await screen.findByRole("button", { name: "Save checkpoint" }));
+    expect(await screen.findByText(
+      "Ambari could not save the Enable Kerberos recovery state.",
+    )).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+
+    await waitFor(() => expect(ClusterApi.postPersistData).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(screen.queryByText(
+      "Ambari could not save the Enable Kerberos recovery state.",
+    )).toBeNull());
   });
 });

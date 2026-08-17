@@ -48,6 +48,7 @@ const getSideItemList = (
   supports: Record<string, boolean>,
   upgradeInProgress: boolean = false,
   upgradeHolding: boolean = false,
+  isNonWizardUser: boolean = false,
 ): SideItem[] => {
   const adminChildren: SideItem[] = [];
   
@@ -76,7 +77,7 @@ const getSideItemList = (
   }
   
   // Kerberos - Requires CLUSTER.TOGGLE_KERBEROS
-  if (supports.enableToggleKerberos
+  if (!isNonWizardUser && supports.enableToggleKerberos
     && (hasAuthorization('CLUSTER.TOGGLE_KERBEROS') || upgradeInProgress || upgradeHolding)) {
     adminChildren.push({
       id: SideItemLabels.KERBEROS,

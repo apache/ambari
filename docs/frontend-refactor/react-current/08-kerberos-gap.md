@@ -56,19 +56,54 @@ and incomplete Disable and Regenerate sequencing.
 ## Final Audit Gap Checkpoint
 
 The five-pass audit found the following additional defects after the first
-implementation pass. This checkpoint is intentionally recorded before the
+implementation pass. Commit `434801dd80` records this checkpoint before the
 corresponding React fixes.
 
-| Affected IDs | Classic executable behavior | React behavior at this checkpoint | Confirmed gap | Executable acceptance criteria |
+| Affected IDs | Classic executable behavior | React behavior at checkpoint | Confirmed gap | Executable acceptance and final evidence |
 | --- | --- | --- | --- | --- |
-| `KRB-ENTRY-002`, `KRB-DIS-001` | `/main/admin/kerberos/disableSecurity` is a guarded route that opens the Disable workflow. | Only the management route and Enable step route are registered. | A valid Classic deep link falls through the React catch-all route. | Navigate directly to `disableSecurity` as an authorized user and observe the YARN warning or Disable confirmation; verify permission, feature, upgrade, and non-owner guards redirect before rendering it. |
-| `KRB-ENTRY-002`, `KRB-ENTRY-005`, `KRB-REC-001`, `KRB-REC-004` | Entering Enable writes `wizard-data` with the login name and controller; `App.isAuthorized` denies other users; completion and discard reset ownership. | Step recovery is persisted, but no owner is written or cleared and Kerberos routes/sidebar do not consume `isNonWizardUser`. | Another user can enter and mutate an active wizard, while the document incorrectly calls ownership complete. | Assert the start payload contains the current login name and Kerberos controller, every completion/discard payload clears it, and all three Kerberos routes plus the sidebar reject a non-owner. |
-| `KRB-DIS-006`, `KRB-DIS-008` | Delete success advances the sequence, and Disable close returns to the Kerberos page and reloads current cluster state. | Delete helpers discard HTTP status, so a non-empty successful body can be marked failed; Complete only closes the modal and leaves stale enabled state. | Successful Disable can stall or continue to display Kerberos as enabled. | Return the DELETE HTTP status, accept every 2xx response, and after Complete reload `Clusters/security_type`, navigate to the canonical Kerberos URL, and render the disabled state. |
-| `KRB-MGMT-007` | Each accepted Regenerate action submits a new request; optional restart begins only after that request completes. | The parent boolean is never reset, so submission failure and closing Background Operations make later Regenerate actions no-ops. | Regenerate is effectively one-shot until page reload. | Close or fail one Regenerate attempt, open the dialog again, and assert a second mutation request is submitted; retain at-most-once restart behavior for each request. |
-| `KRB-REC-002`, `KRB-RISK-005` | Operation errors are reported through controller state and persisted wizard state supports recovery. | `OperationsProgress` invokes `errorCallback` while rendering, and wizard persistence rejections become unhandled promises with no retry UI. | Parent state can be updated during child render and a failed checkpoint can silently lose reload recovery. | Report each terminal error from an effect exactly once; make recovery-load and checkpoint-save failures visible and retryable without duplicating the mutation operation. |
+| `KRB-ENTRY-002`, `KRB-DIS-001` | `/main/admin/kerberos/disableSecurity` is a guarded route that opens the Disable workflow. | Only the management route and Enable step route were registered. | A valid Classic deep link fell through the React catch-all route. | `RoutesList.test.tsx` asserts all three paths; `EnableKerberos.test.tsx` enters the deep link and observes Disable confirmation. Permission, flag, upgrade, and owner guards wrap every path. `RESOLVED`. |
+| `KRB-ENTRY-002`, `KRB-ENTRY-005`, `KRB-REC-001`, `KRB-REC-004` | Entering Enable writes `wizard-data` with the login name and controller; `App.isAuthorized` denies other users; completion and discard reset ownership. | Step recovery was persisted, but no owner was written or cleared and Kerberos routes/sidebar did not consume `isNonWizardUser`. | Another user could enter and mutate an active wizard. | Payload tests assert owner create/reset, route guards reject conflicting wizards, and `SideItemList.test.tsx` hides Kerberos for a non-owner. `RESOLVED`. |
+| `KRB-DIS-006`, `KRB-DIS-008` | Delete success advances the sequence, and Disable close returns to the Kerberos page and reloads current cluster state. | Delete helpers discarded HTTP status, so a non-empty successful body could be marked failed; Complete only closed the modal. | Successful Disable could stall or continue to display Kerberos as enabled. | API tests assert retained 2xx status; the completion test reloads `Clusters/security_type`, returns to the canonical URL, and renders disabled state. Server-restart recovery remains a runtime boundary. `RESOLVED_STATICALLY`. |
+| `KRB-MGMT-007` | Each accepted Regenerate action submits a new request; optional restart begins only after that request completes. | The parent boolean was never reset, so submission failure and closing Background Operations made later actions no-ops. | Regenerate was one-shot until page reload. | Component tests release the trigger on submission failure/close, start it again, and retain at-most-once restart per returned request. `RESOLVED`. |
+| `KRB-REC-002`, `KRB-RISK-005` | Operation errors are reported through controller state and persisted wizard state supports recovery. | `OperationsProgress` invoked `errorCallback` while rendering, and persistence rejection had no Retry. | Parent state could update during child render and a failed checkpoint could silently lose recovery. | Tests report each terminal error from an effect once, expose recovery-load/checkpoint Retry, and serialize checkpoints before reset so old state cannot overwrite completion. `RESOLVED`. |
 
-These findings supersede any stronger claim in the provisional status rows
-below until their acceptance tests and build verification pass.
+## Classic Executable Workflows
+
+The source-backed Classic flows used for every Feature ID are summarized here;
+endpoint details are retained in the contract table below.
+
+* Entry (`KRB-ENTRY-*`) loads `Clusters/security_type`, enforces permission,
+  feature, upgrade, and wizard-owner restrictions, presents installed-service
+  warnings and optional prechecks, persists the owner and Step 1, then routes
+  to the resumable wizard.
+* Steps 1-2 (`KRB-MODE-*`, `KRB-1-*`, `KRB-2-*`) choose MIT, AD, IPA, or Manual,
+  gate the exact prerequisite checklist, validate visible stack properties,
+  test KDC access, delete stale Kerberos resources, create service/component/
+  host resources, save desired configs, and create or update the credential
+  alias in dependency order. Any failed prerequisite stops the transition.
+* Steps 3-5 (`KRB-3-*` through `KRB-5-*`) install the Kerberos service or named
+  clients according to component state, validate the session and heartbeat,
+  load COMPOSITE identities, call Stack Advisor on first load, save descriptor
+  edits, show the mode-specific confirmation, and provide Manual CSV before
+  service mutation begins.
+* Steps 6-8 (`KRB-6-*` through `KRB-8-*`) stop services, conditionally delete
+  unsupported ATS, submit Kerberize, poll the returned request, allow force
+  Retry after failure, start services with the configured smoke-test policy,
+  and clear recovery/ownership only when completion is accepted.
+* Disable (`KRB-DIS-*`) follows confirmation with start ZooKeeper, stop all
+  other services, session-gated unkerberize, explicit no-identity Skip after
+  failure, idempotent KERBEROS deletion, service restart, canonical navigation,
+  and security-state reload. In-progress unkerberize cannot be abandoned.
+* Management and credentials (`KRB-MGMT-*`, `KRB-CRED-*`) edit COMPOSITE
+  identities, await descriptor fallback, regenerate all or missing keytabs,
+  optionally restart only after that request completes, authorize CSV
+  separately, and implement alias list/create/update/delete plus invalid-session
+  replay without exposing the secret.
+* Integration and recovery (`KRB-X-*`, `KRB-REC-*`, `KRB-RISK-*`) preserve the
+  Add Service/Host, Hosts, Services, Reassign, HA, and Federation ownership
+  boundaries; serialize owner/step/operation checkpoints, resume request IDs,
+  guard route exit, and apply the documented compatibility fixes instead of
+  reproducing unreachable or false-success Classic paths.
 
 ## Post-Implementation Status
 
@@ -92,13 +127,17 @@ proven from source or unit tests.
 
 ### Entry, Modes, and Steps 1-2
 
-| ID | Final status | React evidence or boundary |
+Every row below is also an executable acceptance assertion: the described
+React behavior must be observable with the named mode, request, failure, or
+permission condition, and its final status must remain true after refresh.
+
+| ID | Final status | React final behavior and executable acceptance |
 | --- | --- | --- |
 | `KRB-ENTRY-001` | `STATICALLY_ALIGNED` | Security type loading has spinner, visible failure, and Retry. |
-| `KRB-ENTRY-002` | `STATICALLY_ALIGNED` | Both Kerberos routes require `CLUSTER.TOGGLE_KERBEROS` and `enableToggleKerberos`. |
+| `KRB-ENTRY-002` | `STATICALLY_ALIGNED` | All three Kerberos routes require `CLUSTER.TOGGLE_KERBEROS`, `enableToggleKerberos`, and no conflicting upgrade or non-owner wizard. |
 | `KRB-ENTRY-003` | `STATICALLY_ALIGNED` | The installed-service warning map preserves the Classic YARN warning and blocks entry until confirmed. |
 | `KRB-ENTRY-004` | `STATICALLY_ALIGNED` | Optional pre-Kerberize checks preserve the API-root request, block `FAIL`, show reasons, and allow Retry. |
-| `KRB-ENTRY-005` | `STATICALLY_ALIGNED` | Step 1 ownership is persisted before navigation and an active `CLUSTER_STATE` reopens the saved step. |
+| `KRB-ENTRY-005` | `STATICALLY_ALIGNED` | Login owner/controller and Step 1 are persisted before navigation; an active `CLUSTER_STATE` reopens the saved step only for the owner. |
 | `KRB-MODE-001` | `STATICALLY_ALIGNED` | MIT settings, automatic resources, KDC session, client install, and managed identities are retained. |
 | `KRB-MODE-002` | `STATICALLY_ALIGNED` | AD fields and password-policy inputs are mode-visible and use the automatic flow. |
 | `KRB-MODE-003` | `STATICALLY_ALIGNED` | IPA forces package and krb5.conf management off while retaining identity management. |
@@ -115,7 +154,7 @@ proven from source or unit tests.
 
 ### Steps 3-8
 
-| ID | Final status | React evidence or boundary |
+| ID | Final status | React final behavior and executable acceptance |
 | --- | --- | --- |
 | `KRB-3-001` | `STATICALLY_ALIGNED` | Reads `KERBEROS_CLIENT` state; INIT installs the service, otherwise all named host-components are installed. |
 | `KRB-3-002` | `STATICALLY_ALIGNED` | Service check forces the KDC session gate before security is enabled, and credential cancellation rejects the task. |
@@ -143,16 +182,16 @@ proven from source or unit tests.
 
 ### Disable and Management
 
-| ID | Final status | React evidence or boundary |
+| ID | Final status | React final behavior and executable acceptance |
 | --- | --- | --- |
-| `KRB-DIS-001` | `STATICALLY_ALIGNED` | Route permission, upgrade guard, service warning, confirmation, and unsaved-edit lock are present. |
+| `KRB-DIS-001` | `STATICALLY_ALIGNED` | Management and `disableSecurity` deep-link routes enforce permission, feature, upgrade, and owner guards before warning, confirmation, and unsaved-edit lock. |
 | `KRB-DIS-002` | `STATICALLY_ALIGNED` | ZooKeeper is started independently. |
 | `KRB-DIS-003` | `STATICALLY_ALIGNED` | All non-ZooKeeper services are stopped. |
 | `KRB-DIS-004` | `STATICALLY_ALIGNED` | Normal unkerberize uses a validated KDC session. |
 | `KRB-DIS-005` | `STATICALLY_ALIGNED` | Failed unkerberize exposes the explicit `manage_kerberos_identities=false` Skip request. |
-| `KRB-DIS-006` | `COMPATIBILITY_FIX` | KERBEROS deletion is idempotent and cannot strand the modal. |
+| `KRB-DIS-006` | `COMPATIBILITY_FIX` | KERBEROS deletion retains its 2xx status and remains idempotent on failure, so either response advances instead of stranding the modal. |
 | `KRB-DIS-007` | `STATICALLY_ALIGNED` | Services restart with the same service-check property decision. |
-| `KRB-DIS-008` | `NEEDS_RUNTIME_VALIDATION` | Disable remains modal-local like Classic; refresh/server-restart behavior must be tested before and after every mutation. |
+| `KRB-DIS-008` | `NEEDS_RUNTIME_VALIDATION` | Complete returns to the canonical route and reloads security state; mid-flow refresh/server-restart behavior must still be tested before and after every mutation. |
 | `KRB-DIS-009` | `COMPATIBILITY_FIX` | React does not reset unrelated Add Service state when Disable closes. |
 | `KRB-MGMT-001` | `STATICALLY_ALIGNED` | Composite identities render by Global, Ambari, and installed service. |
 | `KRB-MGMT-002` | `STATICALLY_ALIGNED` | Edit/Discard/Save, realm read-only behavior, validation, and management-button locking are present. |
@@ -160,13 +199,13 @@ proven from source or unit tests.
 | `KRB-MGMT-004` | `STATICALLY_ALIGNED` | Automatic clusters expose all/missing plus automatic/manual restart selection. |
 | `KRB-MGMT-005` | `STATICALLY_ALIGNED` | Service actions retain service-scoped Regenerate with `config_update_policy=none`. |
 | `KRB-MGMT-006` | `STATICALLY_ALIGNED` | Host action requires the feature flag, enabled automatic Kerberos, and host-scoped Regenerate. |
-| `KRB-MGMT-007` | `COMPATIBILITY_FIX` | React polls the returned Regenerate request, pauses on every terminal state, and starts at most one restart request after success, independent of unrelated global requests. |
+| `KRB-MGMT-007` | `COMPATIBILITY_FIX` | React polls the returned Regenerate request, starts at most one restart after success, releases the trigger after close/failure, and permits a later independent Regenerate. |
 | `KRB-MGMT-008` | `STATICALLY_ALIGNED` | CSV requires `CLUSTER.UPGRADE_DOWNGRADE_STACK` and is available in either mode. |
 | `KRB-MGMT-009` | `COMPATIBILITY_FIX` | PUT 404 -> POST -> Regenerate is one observable promise; the undefined Classic `self` path is not reproduced. |
 
 ### Credentials, Integration, Recovery, and Risks
 
-| ID | Final status | React evidence or boundary |
+| ID | Final status | React final behavior and executable acceptance |
 | --- | --- | --- |
 | `KRB-CRED-001` | `STATICALLY_ALIGNED` | Persistent store capability and non-Manual mode control Manage visibility. |
 | `KRB-CRED-002` | `STATICALLY_ALIGNED` | Credential listing determines presence without exposing a secret. |
@@ -179,17 +218,17 @@ proven from source or unit tests.
 | `KRB-X-003` | `CROSS_MODULE_BOUNDARY` | Hosts owns component add/delete and post-recovery host Regenerate. |
 | `KRB-X-004` | `CROSS_MODULE_BOUNDARY` | Reassign/HA/Federation own identity/config synchronization and task ordering. |
 | `KRB-X-005` | `CROSS_MODULE_BOUNDARY` | Services/Hosts own affected-component restart behavior. |
-| `KRB-REC-001` | `STATICALLY_ALIGNED` | Start and each step persist owner, active step, form state, and cluster progress state. |
-| `KRB-REC-002` | `STATICALLY_ALIGNED` | Operations persist status/request ID and resume polling without duplicate mutation requests. |
+| `KRB-REC-001` | `STATICALLY_ALIGNED` | Start persists login owner/controller plus active step and cluster state; each step persists form/progress, and all completion/discard paths clear ownership. |
+| `KRB-REC-002` | `STATICALLY_ALIGNED` | Serialized checkpoints persist status/request ID, expose load/save Retry, resume polling without duplicate mutation, and cannot overwrite a later reset. |
 | `KRB-REC-003` | `STATICALLY_ALIGNED` | Step 1-7 client navigation and page unload are guarded; Step 2/6/7 retain specialized warnings. |
-| `KRB-REC-004` | `STATICALLY_ALIGNED` | Incomplete exit waits for both cleanup attempts and persistence reset, then releases the outer route guard for one navigation without a second confirmation; Step 8 is the explicit no-discard exception. |
+| `KRB-REC-004` | `STATICALLY_ALIGNED` | Incomplete exit waits for cleanup and serialized state/owner reset, then releases the route guard for one navigation; Step 8 is the explicit no-discard exception. |
 | `KRB-REC-005` | `NEEDS_RUNTIME_VALIDATION` | Missing Manual principals/keytabs and backend error equivalence cannot be established statically. |
 | `KRB-REC-006` | `NEEDS_RUNTIME_VALIDATION` | Disable refresh/server-restart recovery remains a live boundary inherited from its modal ownership. |
 | `KRB-RISK-001` | `COMPATIBILITY_FIX` | Broken Rollback and unreachable Skip are not rendered. |
 | `KRB-RISK-002` | `STATICALLY_ALIGNED` | Retry directly force-kerberizes without inventing compensating cleanup. |
 | `KRB-RISK-003` | `COMPATIBILITY_FIX` | Credential failures reject and stop the protected request. |
 | `KRB-RISK-004` | `COMPATIBILITY_FIX` | Descriptor fallback is chained through Regenerate. |
-| `KRB-RISK-005` | `COMPATIBILITY_FIX` | Focused tests cover create/update fallback, authorization/server rejection, failed deletion/save, and duplicate submission locks. |
+| `KRB-RISK-005` | `COMPATIBILITY_FIX` | Focused tests cover fallback/rejection, failed deletion/save, duplicate locks, DELETE status, owner guards, persistence Retry/order, Disable refresh, and repeated Regenerate. |
 
 ## Five Independent Audit Passes
 
@@ -234,7 +273,7 @@ because that is the executable Classic contract. The Step 7 Retry keeps direct
 
 | Check | Result |
 | --- | --- |
-| `npm test` in `ambari-web/latest` | Passed: 67 files and 251 tests. Expected failure-path console output and existing timer warnings remain visible. |
+| `npm test` in `ambari-web/latest` | Passed: 70 files and 263 tests. Expected failure-path console output and existing timer warnings remain visible. |
 | `npm run build` in `ambari-web/latest` | Passed TypeScript and the Vite production build. Existing Sass deprecations, duplicate service-loader cases, `eval`, and bundle-size warnings remain. |
 | `./node_modules/.bin/eslint . --format json` | Repository-wide lint remains failing, but Module 08 reduces the baseline from 5,854 errors / 461 warnings (6,315 total) to 5,847 errors / 451 warnings (6,298 total). |
 | `node docs/frontend-refactor/ember-baseline/tools/validate-ember-baseline.mjs` | Passed with 1,002 feature IDs and no warnings or errors. |

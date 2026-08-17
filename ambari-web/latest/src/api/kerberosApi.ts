@@ -168,7 +168,7 @@ const KerberosApi = {
       url: url,
       method: "DELETE",
     });
-    return response.data;
+    return { ...(response.data ?? {}), status: response.status };
   },
 
   createAdminSession: async function (clusterName: string, payloadData: any) {
@@ -281,7 +281,7 @@ const KerberosApi = {
       url,
       method: "DELETE",
     });
-    return response.data;
+    return { ...(response.data ?? {}), status: response.status };
   },
 };
 

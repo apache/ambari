@@ -27,6 +27,7 @@ import OperationsProgress from "./OperationsProgress";
 const renderProgress = (
   operations: ComponentProps<typeof OperationsProgress>["operations"],
   setCompletionStatus = vi.fn(),
+  errorCallback?: (message: string) => void,
 ) => {
   const result = render(
     <AppContext.Provider
@@ -41,6 +42,7 @@ const renderProgress = (
         description="Operations"
         operations={operations}
         setCompletionStatus={setCompletionStatus}
+        errorCallback={errorCallback}
       />
     </AppContext.Provider>,
   );
@@ -216,5 +218,22 @@ describe("OperationsProgress", () => {
     await waitFor(() => expect(check).toHaveBeenCalledTimes(2));
     await waitFor(() => expect(heartbeat).toHaveBeenCalledTimes(2));
     await waitFor(() => expect(setCompletionStatus).toHaveBeenCalledWith(true));
+  });
+
+  it("reports a terminal error after render and only once per failure", async () => {
+    const errorCallback = vi.fn();
+    renderProgress([
+      {
+        id: 1,
+        label: "Failed request",
+        callback: vi.fn(),
+        skippable: false,
+        status: ProgressStatus.FAILED,
+        error: "Request failed",
+      },
+    ], vi.fn(), errorCallback);
+
+    await waitFor(() => expect(errorCallback).toHaveBeenCalledWith("Request failed"));
+    expect(errorCallback).toHaveBeenCalledTimes(1);
   });
 });

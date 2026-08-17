@@ -32,6 +32,7 @@ comparison and runtime matrix are recorded in
 ## Scope
 
 * Preserve permission and feature gates, security-status loading, installed-service warnings, and optional pre-Kerberize checks.
+* Preserve the Classic Disable deep link and wizard-owner exclusion across routes and navigation.
 * Implement MIT, Active Directory, IPA, and Manual mode visibility, forced values, prerequisites, and navigation.
 * Make Step 2 resource/config/session creation ordered, failure-propagating, retryable, and duplicate-safe.
 * Install KERBEROS_CLIENT through the Classic INIT versus initialized branches and run service/heartbeat checks with Retry and Ignore Errors.
@@ -39,6 +40,7 @@ comparison and runtime matrix are recorded in
 * Preserve mode-specific confirmation and Manual CSV responsibility with visible download failure.
 * Stop services, perform ATS compatibility cleanup, force-retry Kerberize, and start/test services with persisted request recovery.
 * Complete or exit the wizard through atomic recovery-state cleanup and formal best-effort unkerberize/service deletion.
+* Serialize recovery checkpoints before completion/discard reset and expose load/save Retry without replaying mutations.
 * Implement Disable sequencing, unkerberize Skip, idempotent service removal, service-check policy, and completion gating.
 * Align identity management, automatic/Manual Regenerate, persistent KDC credential management, and invalid-session replay.
 * Add focused tests for request shapes, mode branches, failure ordering, polling/recovery, credential CRUD, and compatibility fixes.
@@ -48,6 +50,7 @@ comparison and runtime matrix are recorded in
 
 * All 81 baseline IDs have a mutually exclusive status and evidence in the React comparison.
 * The Kerberos routes require `CLUSTER.TOGGLE_KERBEROS` and `enableToggleKerberos`; CSV retains its independent upgrade authorization.
+* A non-owner cannot see or enter Kerberos while another user owns a wizard, and every completion/discard path clears ownership.
 * Step 1 uses the Classic prerequisite sets and shows the ONEFS item only when ONEFS is installed.
 * Manual and IPA forced configuration values are included in the submitted desired configs.
 * Step 2 stops after any failed prerequisite, retains input, unlocks Retry, and never reports false success.
@@ -57,8 +60,10 @@ comparison and runtime matrix are recorded in
 * Steps 3, 6, 7, and 8 recover request IDs and poll existing work instead of repeating mutations.
 * Exit from Steps 1-7 attempts unkerberize and KERBEROS deletion before clearing state; Step 8 never rolls back enabled security.
 * Disable exposes the identity-management Skip only after unkerberize failure and cannot hang on obsolete-service deletion.
+* Disable deep linking opens the same guarded flow, and Complete reloads the current security type on the canonical route.
 * Credential CRUD failures remain errors, retain input, and never replay the protected operation.
 * Regenerate tracks its returned request and starts optional component restart only after successful completion.
+* Submission failure or tracker close releases Regenerate so a later action submits a new request.
 * Every timer and request poll is invalidated on terminal state, retry, dependency change, or unmount.
 * Focused frontend tests, TypeScript, build, lint, baseline validation, and helper tests pass or have pre-existing failures documented exactly.
 * The real-cluster runtime matrix passes before operational parity is claimed.
