@@ -34,7 +34,7 @@ const credentialsUtils = {
   createCredentials: async function (
     clusterName: string,
     alias: string,
-    resource: string
+    resource: any
   ) {
     return await CredentialsApi.createCredentials(clusterName, alias, {
       resource,
@@ -58,7 +58,7 @@ const credentialsUtils = {
   updateCredentials: async function (
     clusterName: string,
     alias: string,
-    resource: string
+    resource: any
   ) {
     return await CredentialsApi.updateCredentials(clusterName, alias, {
       resource,
@@ -67,29 +67,18 @@ const credentialsUtils = {
   createOrUpdateCredentials: async function (
     clusterName: string,
     alias: string,
-    resource: string
+    resource: any
   ) {
-    const self = this;
-    self.getCredential(
-      clusterName,
-      alias,
-      async () => {
-        await self.updateCredentials(clusterName, alias, resource);
-        var status = arguments[1];
-        var result = arguments[2];
-        if (status === "success") {
-          return result;
-        }
-      },
-      async () => {
-        await self.createCredentials(clusterName, alias, resource);
-        var status = arguments[1];
-        var result = arguments[2];
-        if (status === "success") {
-          return result;
-        }
+    try {
+      await CredentialsApi.getCredentials(clusterName, alias);
+      return await this.updateCredentials(clusterName, alias, resource);
+    } catch (error: any) {
+      const status = error?.response?.status ?? error?.status;
+      if (status !== 404) {
+        throw error;
       }
-    );
+      return await this.createCredentials(clusterName, alias, resource);
+    }
   },
   credentials: async function (clusterName: string, callback: Function) {
     const data = await CredentialsApi.listCredentials(clusterName);
@@ -98,7 +87,7 @@ const credentialsUtils = {
   removeCredentials: async function (clusterName: string, alias: string) {
     return await CredentialsApi.deleteCredentials(clusterName, alias);
   },
-  storageInfo: async function (clusterName: string, callback: Function) {
+  storageInfo: async function (clusterName: string, callback?: Function) {
     const json = await CredentialsApi.credentialsStoreInfo(clusterName);
     if (json.Clusters) {
       const storage = json?.Clusters?.credential_store_properties ?? {};
@@ -107,21 +96,22 @@ const credentialsUtils = {
         storage[this.STORE_TYPES.PERSISTENT_PATH] === "true";
       storeTypesObject[this.STORE_TYPES.TEMPORARY_KEY] =
         storage[this.STORE_TYPES.TEMPORARY_PATH] === "true";
-      callback(storeTypesObject);
+      callback?.(storeTypesObject);
+      return storeTypesObject;
     } else {
-      callback(null);
+      callback?.(null);
+      return null;
     }
   },
-  isStorePersisted: function (clusterName: string) {
-    return this.storeTypeStatus(clusterName, this.STORE_TYPES.PERSISTENT_KEY);
+  isStorePersisted: async function (clusterName: string) {
+    return await this.storeTypeStatus(clusterName, this.STORE_TYPES.PERSISTENT_KEY);
   },
-  isStoreTemporary: function (clusterName: string) {
-    return this.storeTypeStatus(clusterName, this.STORE_TYPES.TEMPORARY_KEY);
+  isStoreTemporary: async function (clusterName: string) {
+    return await this.storeTypeStatus(clusterName, this.STORE_TYPES.TEMPORARY_KEY);
   },
-  storeTypeStatus: function (clusterName: string, type: string) {
-    this.storageInfo(clusterName, function (storage: any) {
-      return storage?.[type];
-    });
+  storeTypeStatus: async function (clusterName: string, type: string) {
+    const storage = await this.storageInfo(clusterName);
+    return storage?.[type] ?? false;
   },
   createCredentialResource: function (
     principal: string,

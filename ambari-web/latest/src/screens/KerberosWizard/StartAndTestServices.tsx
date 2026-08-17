@@ -25,22 +25,28 @@ import { Alert } from "react-bootstrap";
 import { translate } from "../../Utils/Utility";
 import { ActionTypes } from "./KerberosStore/types";
 import { get } from "lodash";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import OperationsProgress from "../../components/OperationsProgress";
+import { ProgressStatus } from "../../constants";
+import ClusterApi from "../../api/clusterApi";
+import { kerberosWizardPersistenceResetPayload } from "../../Utils/kerberosWizard";
+import { responseErrorMessage } from "../../Utils/httpError";
 
 function StartAndTestServices() {
 
   const {
     state,
     dispatch,
-    flushStateToDb,
-    stepWizardUtilities: { wizardSteps, currentStep, handleBackImperitive},
+    stepWizardUtilities: { wizardSteps, currentStep},
   } = useContext(EnableKerberosContext);
 
   const [completionStatus, setCompletionStatus] = useState(false);
-  const [ nextEnabled, setNextEnabled ] = useState(true)
+  const [ nextEnabled, setNextEnabled ] = useState(false)
+  const [hasFailed, setHasFailed] = useState(false);
   const [stepOperations, setStepOperations] = useState<any>([]);
-  const { clusterName } = useContext(AppContext);
+  const [isCompleting, setIsCompleting] = useState(false);
+  const [completionError, setCompletionError] = useState("");
+  const { clusterName, ambariProperties } = useContext(AppContext);
   const navigate = useNavigate();
   
   useEffect(()=>{
@@ -74,7 +80,7 @@ function StartAndTestServices() {
         const requestData = await RequestApi.startServices(
           clusterName,
           startAndTestServicesPayload,
-          "run_smoke_test=true"
+          `run_smoke_test=${ambariProperties?.["skip.service.checks"] !== "true"}`
         );
         return requestData;
       },
@@ -110,18 +116,49 @@ function StartAndTestServices() {
     return <div>Loading...</div>
   }
 
+  const completeWizard = async () => {
+    if (isCompleting) {
+      return;
+    }
+    setIsCompleting(true);
+    setCompletionError("");
+    try {
+      await ClusterApi.postPersistData(
+        kerberosWizardPersistenceResetPayload(),
+      );
+      navigate(`/main/admin/kerberos/`);
+      window.location.reload();
+    } catch (error) {
+      setCompletionError(
+        responseErrorMessage(
+          error,
+          "Ambari could not clear the Kerberos wizard recovery state.",
+        ),
+      );
+      setIsCompleting(false);
+    }
+  };
+
 
   return (
     <>
       { completionStatus &&
         <Alert variant="success">{translate("admin.kerberos.wizard.step8.notice.completed")}</Alert>
       }
+      {completionError && <Alert variant="danger">{completionError}</Alert>}
       <OperationsProgress
         operations={stepOperations as any}
         title="Start And Test Services"
         description="Start and Test Services"
         setCompletionStatus={setCompletionStatus}
         dispatch={(operationsState: any) => {
+          const failed = operationsState.some(
+            (operation: any) => operation.status === ProgressStatus.FAILED,
+          );
+          setHasFailed(failed);
+          if (failed) {
+            setNextEnabled(true);
+          }
           dispatch({
             type: ActionTypes.STORE_INFORMATION,
             payload: {
@@ -133,21 +170,17 @@ function StartAndTestServices() {
           });
         }}
       />
+      {hasFailed && (
+        <Alert variant="warning">
+          Some services failed to start or pass their checks. Complete the wizard and repair them from the service pages, or retry the failed operation.
+        </Alert>
+      )}
       <WizardFooter
-        isNextEnabled={nextEnabled}
+        isNextEnabled={nextEnabled && !isCompleting}
         step={currentStep}
-        onNext={() => {
-          navigate(`/main/admin/kerberos/`);
-          window.location.reload();
-        }}
-        onCancel={() => {
-          navigate(`/main/admin/kerberos/`);
-          window.location.reload();
-        }}
-        onBack={() => {
-          flushStateToDb("back");
-          handleBackImperitive();
-        }}
+        onNext={() => void completeWizard()}
+        onCancel={() => void completeWizard()}
+        onBack={() => {}}
       />
     </>
   );

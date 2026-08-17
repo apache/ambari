@@ -19,6 +19,7 @@
 import { useContext, useEffect, useState } from "react";
 import adminApi from "../api/adminApi";
 import { AppContext } from "../store/context";
+import { responseErrorMessage } from "../Utils/httpError";
 
 export function kerberosTypeFromConfig(response: any): string {
   return response?.items?.[0]?.configurations?.find(
@@ -30,26 +31,36 @@ export default function useKerberosMode() {
   const { clusterName, isKerberosEnabled } = useContext(AppContext);
   const [kdcType, setKdcType] = useState("");
   const [isLoaded, setIsLoaded] = useState(!isKerberosEnabled);
+  const [loadError, setLoadError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let active = true;
     if (!isKerberosEnabled || !clusterName) {
       setKdcType("");
+      setLoadError("");
       setIsLoaded(true);
       return () => {
         active = false;
       };
     }
     setIsLoaded(false);
+    setLoadError("");
     void adminApi.getSecurityType(clusterName)
       .then((response) => {
         if (active) {
           setKdcType(kerberosTypeFromConfig(response));
         }
       })
-      .catch(() => {
+      .catch((error) => {
         if (active) {
           setKdcType("");
+          setLoadError(
+            responseErrorMessage(
+              error,
+              "Ambari could not determine the current Kerberos mode.",
+            ),
+          );
         }
       })
       .finally(() => {
@@ -60,11 +71,13 @@ export default function useKerberosMode() {
     return () => {
       active = false;
     };
-  }, [clusterName, isKerberosEnabled]);
+  }, [clusterName, isKerberosEnabled, reloadKey]);
 
   return {
     isLoaded,
     isManualKerberos: isKerberosEnabled && kdcType === "none",
     kdcType,
+    loadError,
+    retry: () => setReloadKey((value) => value + 1),
   };
 }

@@ -40,6 +40,16 @@ function wrapper({ children }: PropsWithChildren) {
   return <AppContext.Provider value={contextValue}>{children}</AppContext.Provider>;
 }
 
+function disabledSecurityWrapper({ children }: PropsWithChildren) {
+  return (
+    <AppContext.Provider
+      value={{ ...contextValue, isKerberosEnabled: false }}
+    >
+      {children}
+    </AppContext.Provider>
+  );
+}
+
 describe("useKDCSessionState", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -82,5 +92,36 @@ describe("useKDCSessionState", () => {
 
     expect(operationCompleted).toBe(true);
     expect(adminApi.getKerberosSessionState).not.toHaveBeenCalled();
+  });
+
+  it("can validate the wizard KDC session before cluster security is enabled", async () => {
+    vi.mocked(adminApi.getSecurityStatus).mockResolvedValue({
+      Clusters: { security_type: "NONE" },
+    } as any);
+    vi.mocked(adminApi.getSecurityType).mockResolvedValue({
+      items: [{
+        configurations: [{
+          type: "kerberos-env",
+          properties: { kdc_type: "mit-kdc" },
+        }],
+      }],
+    } as any);
+    vi.mocked(adminApi.getKerberosSessionState).mockResolvedValue({
+      Services: { attributes: { kdc_validation_result: "OK" } },
+    } as any);
+    const callback = vi.fn();
+    const { result } = renderHook(() => useKDCSessionState(() => {}), {
+      wrapper: disabledSecurityWrapper,
+    });
+
+    await result.current.getKDCSessionState(
+      callback,
+      vi.fn(),
+      { forceCheck: true },
+    );
+
+    expect(adminApi.getSecurityType).toHaveBeenCalledWith("c1");
+    expect(adminApi.getKerberosSessionState).toHaveBeenCalledWith("c1");
+    expect(callback).toHaveBeenCalledTimes(1);
   });
 });

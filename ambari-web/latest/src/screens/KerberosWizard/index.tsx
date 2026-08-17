@@ -22,11 +22,20 @@ import useStepWizard from "../../hooks/useStepWizard";
 import kerberosWizardSteps from "./kerberosWizardSteps";
 
 
-const KerberosWizard: React.FC = () => {
+type KerberosWizardProps = {
+  onWizardExitReady?: () => void;
+};
+
+const KerberosWizard: React.FC<KerberosWizardProps> = ({
+  onWizardExitReady,
+}) => {
   const stepWizardUtilities = useStepWizard(kerberosWizardSteps, 1, () => {});
 
   return (
-    <KerberosWizardProvider stepWizardUtilities={stepWizardUtilities}>
+    <KerberosWizardProvider
+      stepWizardUtilities={stepWizardUtilities}
+      onWizardExitReady={onWizardExitReady}
+    >
       <StepWizard  wizardUtilities={stepWizardUtilities} />
     </KerberosWizardProvider>
   );

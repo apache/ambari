@@ -26,7 +26,7 @@ import modalManager from "../../../store/ModalManager";
 import ConfirmationModal from "../../../components/ConfirmationModal";
 import { AppContext } from "../../../store/context";
 import {translate } from "../../../Utils/Utility";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { RequestApi } from "../../../api/requestApi";
 import KerberosApi from "../../../api/kerberosApi";
 
@@ -44,12 +44,10 @@ export async function discardChanges(clusterName: string) {
           "security_type": "NONE"
       }
     }
-    try {
-      await RequestApi.preparingOperations(clusterName, payload)
-      await KerberosApi.deleteKerberosService(clusterName, "KERBEROS")
-    } catch (error) {
-      console.log("Unable to remove kerberos", error)
-    }
+    await RequestApi.preparingOperations(clusterName, payload).catch(() => undefined);
+    await KerberosApi.deleteKerberosService(clusterName, "KERBEROS").catch(
+      () => undefined,
+    );
   }
 
 export const EnableKerberosContext =
@@ -63,7 +61,8 @@ export const EnableKerberosContext =
 export const KerberosWizardProvider: React.FC<{
   stepWizardUtilities:any;
   children: React.ReactNode;
-}> = ({ stepWizardUtilities, children }) => {
+  onWizardExitReady?: () => void;
+}> = ({ stepWizardUtilities, children, onWizardExitReady }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
   const isDataPersisted = useRef(false);
   const [currStepData, setCurrStepData] = useState({});
@@ -141,7 +140,11 @@ export const KerberosWizardProvider: React.FC<{
         CLUSTER_STATE: JSON.stringify({}),
       })
     );
-    navigate(`/main/admin/kerberos/`);
+    if (onWizardExitReady) {
+      onWizardExitReady();
+    } else {
+      navigate(`/main/admin/kerberos/`);
+    }
   }
 
   async function flushOnStepChange(nextStep: number) {
@@ -178,19 +181,15 @@ export const KerberosWizardProvider: React.FC<{
     );
     switch (operation) {
       case "cancel":
-        flushOnCancel();
-        break;
+        return flushOnCancel();
       case "back":
-        flushOnStepChange(Number(activeStep) - 1);
-        break;
+        return flushOnStepChange(Number(activeStep) - 1);
       case "next":
-        flushOnStepChange(Number(activeStep) + 1);
-        break;
+        return flushOnStepChange(Number(activeStep) + 1);
       case "jump":
-        flushOnStepChange(jumpStep);
-        break;
+        return flushOnStepChange(jumpStep);
       default:
-        flushCurrentData();
+        return flushCurrentData();
     }
   }
 
@@ -201,10 +200,11 @@ export const KerberosWizardProvider: React.FC<{
         onClose={() => modalManager.hide()}
         modalTitle={translate("popup.confirmation.commonHeader")}
         modalBody={isCritical ? translate('admin.kerberos.wizard.exit.critical.msg'): translate('admin.kerberos.wizard.exit.warning.msg')}
-        successCallback={() => {
-          if(!skipDiscardChanges)
-            discardChanges(clusterName);
-          flushStateToDb("cancel");
+        successCallback={async () => {
+          if(!skipDiscardChanges) {
+            await discardChanges(clusterName);
+          }
+          await flushStateToDb("cancel");
           modalManager.hide();
         }}
       />

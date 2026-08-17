@@ -21,11 +21,18 @@ import { RequestApi } from "../../api/requestApi";
 import { EnableKerberosContext } from "./KerberosStore/context";
 import WizardFooter from "../../components/StepWizard/WizardFooter";
 import { AppContext } from "../../store/context";
-import { Alert } from "react-bootstrap";
+import { Alert, Button } from "react-bootstrap";
 import { translate } from "../../Utils/Utility";
 import { get } from "lodash";
 import { ActionTypes } from "./KerberosStore/types";
 import OperationsProgress from "../../components/OperationsProgress";
+import KerberosApi from "../../api/kerberosApi";
+import {
+  appTimelineServerHost,
+  doesAppTimelineServerSupportKerberos,
+  isMissingHostComponentError,
+} from "../../Utils/kerberosWizard";
+import { responseErrorMessage } from "../../Utils/httpError";
 
 export default function StopServices() {
   const {
@@ -33,13 +40,15 @@ export default function StopServices() {
     dispatch,
     flushStateToDb,
     onExitPopUp,
-    stepWizardUtilities: { wizardSteps, currentStep, handleNextImperitive, handleBackImperitive},
+    stepWizardUtilities: { wizardSteps, currentStep, handleNextImperitive, jumpToStep},
   } = useContext(EnableKerberosContext);
 
   const [completionStatus, setCompletionStatus] = useState(false);
   const [nextEnabled, setNextEnabled] = useState(false);
   const [stepOperations, setStepOperations] = useState<any>([]);
-  const { clusterName } = useContext(AppContext);
+  const [setupError, setSetupError] = useState("");
+  const [setupRetry, setSetupRetry] = useState(0);
+  const { clusterName, services, serviceComponentInfo } = useContext(AppContext);
 
   useEffect(() => {
     if (completionStatus) {
@@ -48,37 +57,6 @@ export default function StopServices() {
   }, [completionStatus]);
 
 
-  const initialOperations = [
-    {
-      id: "1",
-      label: "Stop services",
-      skippable: false,
-      context: "Stop services",
-      callback: async () => {
-        const stopServicesPayload = {
-          RequestInfo: {
-            context: "Stop services",
-            operation_level: {
-              level: "CLUSTER",
-              cluster_name: `${clusterName}`,
-            },
-          },
-          Body: {
-            ServiceInfo: {
-              state: "INSTALLED",
-            },
-          },
-        };
-
-        const requestData = await RequestApi.stopServices(
-          clusterName,
-          stopServicesPayload
-        );
-        return requestData;
-      },
-    },
-  ];
-
   const savedOperationsState = get(
     state,
     `kerberosWizardSteps.${wizardSteps[6].name}.data.operationsState`,
@@ -86,23 +64,118 @@ export default function StopServices() {
   );
 
   useEffect(() => {
-    const operations = (() => {
-      if (savedOperationsState && Array.isArray(savedOperationsState)) {
-        return initialOperations.map((originalOp) => {
-          const savedOp = savedOperationsState.find(
-            (saved: any) => saved.id === originalOp.id
+    let active = true;
+    const loadOperations = async () => {
+      setSetupError("");
+      setStepOperations([]);
+      setCompletionStatus(false);
+      setNextEnabled(false);
+      try {
+        let timelineServerHost = "";
+        const yarnInstalled = services.some(
+          (service: any) => service?.ServiceInfo?.service_name === "YARN",
+        );
+        if (
+          yarnInstalled
+          && !doesAppTimelineServerSupportKerberos(serviceComponentInfo)
+        ) {
+          timelineServerHost = appTimelineServerHost(
+            await KerberosApi.getAppTimelineServerHosts(clusterName),
           );
-          return savedOp
-            ? { ...originalOp, ...savedOp, callback: originalOp.callback }
-            : originalOp;
-        });
+        }
+
+        const operations = [
+          {
+            id: "1",
+            label: "Stop services",
+            skippable: false,
+            context: "Stop services",
+            callback: async () => RequestApi.stopServices(clusterName, {
+              RequestInfo: {
+                context: "Stop services",
+                operation_level: {
+                  level: "CLUSTER",
+                  cluster_name: clusterName,
+                },
+              },
+              Body: {
+                ServiceInfo: {
+                  state: "INSTALLED",
+                },
+              },
+            }),
+          },
+          ...(timelineServerHost ? [{
+            id: "2",
+            label: "Delete ATS",
+            skippable: false,
+            context: "Delete ATS",
+            callback: async () => {
+              try {
+                return await KerberosApi.deleteAppTimelineServer(
+                  clusterName,
+                  timelineServerHost,
+                );
+              } catch (error) {
+                if (isMissingHostComponentError(error)) {
+                  return { status: 204 };
+                }
+                throw error;
+              }
+            },
+          }] : []),
+        ];
+
+        const recoveredOperations = Array.isArray(savedOperationsState)
+          ? operations.map((originalOperation) => {
+              const savedOperation = savedOperationsState.find(
+                (saved: any) => saved.id === originalOperation.id,
+              );
+              return savedOperation
+                ? {
+                    ...originalOperation,
+                    ...savedOperation,
+                    callback: originalOperation.callback,
+                  }
+                : originalOperation;
+            })
+          : operations;
+        if (active) {
+          setStepOperations(recoveredOperations);
+        }
+      } catch (error) {
+        if (active) {
+          setSetupError(responseErrorMessage(
+            error,
+            "Ambari could not determine whether the Application Timeline Server must be removed.",
+          ));
+        }
       }
+    };
 
-      return initialOperations;
-    })();
-    setStepOperations(operations);
-  }, [JSON.stringify(savedOperationsState)]);
+    void loadOperations();
+    return () => {
+      active = false;
+    };
+  }, [
+    clusterName,
+    savedOperationsState,
+    serviceComponentInfo,
+    services,
+    setupRetry,
+  ]);
 
+
+  if (setupError) {
+    return (
+      <Alert variant="danger">
+        <div>{setupError}</div>
+        <Button className="mt-3" onClick={() => setSetupRetry((value) => value + 1)}>
+          Retry
+        </Button>
+      </Alert>
+    );
+  }
 
   if(!stepOperations || stepOperations.length===0){
     return <div>Loading...</div>
@@ -142,8 +215,8 @@ export default function StopServices() {
           onExitPopUp(false, false);
         }}
         onBack={() => {
-          flushStateToDb("back");
-          handleBackImperitive();
+          flushStateToDb("jump", 4);
+          jumpToStep(4, true);
         }}
       />
     </>

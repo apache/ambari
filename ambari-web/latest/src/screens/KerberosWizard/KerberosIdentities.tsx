@@ -16,16 +16,22 @@
  * limitations under the License.
  */
 
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import KerberosApi from "../../api/kerberosApi";
 import { ServicesStackDescriptorConfigs } from "../Kerberos/addSecurityConfigs";
 import useKerberosConfigs from "../Kerberos/useKerberosConfigs";
 import { get, isEmpty, cloneDeep } from "lodash";
-import { Button, Tab, Tabs } from "react-bootstrap";
+import { Alert, Button, Tab, Tabs } from "react-bootstrap";
 import AdvancedConfigs from "../CommonConfigs/AdvancedConfigs";
 import Spinner from "../../components/Spinner";
 import { AppContext } from "../../store/context";
-import { getConfigTagFromFileName, getTotalErros } from "../CommonConfigs/ConfigUtils";
+import { getTotalErros } from "../CommonConfigs/ConfigUtils";
+import {
+  collectDescriptorFormValues,
+  removeDescriptorIdentityReferences,
+  updateKerberosDescriptor as applyDescriptorValues,
+} from "../../Utils/kerberosWizard";
+import { responseErrorMessage } from "../../Utils/httpError";
 
 interface ConfigProperties {
     propertyName: string;
@@ -69,16 +75,30 @@ type StepConfig = {
 };
 
 
-function KerberosIdentities() {
+type KerberosIdentitiesProps = {
+  onIdentitiesSaved?: () => void;
+  onEditModeChange?: (isEditing: boolean) => void;
+};
+
+function KerberosIdentities({
+  onIdentitiesSaved,
+  onEditModeChange,
+}: KerberosIdentitiesProps) {
 
   const [ loading, setLoading ] = useState(false);
   const { configId, kerberosIdentitiesMap } = useKerberosConfigs();
   const [ result, setResult ] = useState<Record<string, any>>({})
   const [ tabErrors, setTabErrors ] = useState({});
-  const [ stepConfigs, setStepConfigs] = useState<StepConfig[]>([]);
   const [isEditMode,setIsEditMode] = useState<boolean>(false);
   const { clusterName, stackConfigurations, services } = useContext(AppContext);
   const [ saveEnabled, setSaveEnabled ] = useState<boolean>(false);
+  const [loadError, setLoadError] = useState("");
+  const [saveError, setSaveError] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const getStepConfigsRef = useRef<(configs: unknown) => StepConfig[]>(() => []);
+  const transformDataRef = useRef<(data: unknown[]) => KerberosConfigProperties>(
+    () => ({}),
+  );
 
 
   useEffect(() => {
@@ -90,24 +110,29 @@ function KerberosIdentities() {
   useEffect(() => {
     async function getKerberosIdentities() {
       setLoading(true);
-      const kerberosDescriptor =
-        await KerberosApi.getKerberosDescriptorProperties("true", clusterName);
+      setLoadError("");
+      try {
+        const kerberosDescriptor =
+          await KerberosApi.getKerberosDescriptorProperties("true", clusterName);
 
-      const stepConfigs = ServicesStackDescriptorConfigs(
-        kerberosDescriptor,
-        kerberosIdentitiesMap,
-        configId
-      );
-      
-      const kerberosConfigs = getStepConfigs(stepConfigs);
-      setStepConfigs(kerberosConfigs);
-
-      const result = transformData(kerberosConfigs)
-      setResult(result)
-      setLoading(false);
+        const descriptorConfigs = ServicesStackDescriptorConfigs(
+          kerberosDescriptor,
+          kerberosIdentitiesMap,
+          configId
+        );
+        const kerberosConfigs = getStepConfigsRef.current(descriptorConfigs);
+        setResult(transformDataRef.current(kerberosConfigs));
+      } catch (error) {
+        setLoadError(responseErrorMessage(
+          error,
+          "Ambari could not load the Kerberos descriptor.",
+        ));
+      } finally {
+        setLoading(false);
+      }
     }
-    getKerberosIdentities();
-  }, [isEditMode]);
+    void getKerberosIdentities();
+  }, [clusterName, configId, isEditMode, kerberosIdentitiesMap]);
 
   const transformData = (data: any[]): KerberosConfigProperties => {
     const kerberosConfigProperties: KerberosConfigProperties = {};
@@ -133,7 +158,7 @@ function KerberosIdentities() {
         const configs = get(section, 'configs', []);
         configs.forEach((config: { propertyDisplayValue: any; errorMessages: any; confirmPassword: any; }) => {
           if (get(config, 'category', '') === categoryName && get(config,"isVisible",false)) {
-            let name = get(config, 'name', '');
+            const name: string = get(config, 'name', '');
             kerberosConfigProperties[serviceName][categoryName].properties[name] = {
               propertyName: name,
               propertyDisplayname: get(config, 'displayName', ''),
@@ -146,6 +171,7 @@ function KerberosIdentities() {
               previousValue: get(config, 'previousValue', ''),
               value: get(config, 'value', ''),
               final: get(config, 'final', 'false'),
+              filename: get(config, 'filename', ''),
               ...(config.propertyDisplayValue && { propertyDisplayValue: config.propertyDisplayValue }),
               ...(config.errorMessages && { errorMessages: config.errorMessages }),
               ...(config.confirmPassword && { confirmPassword: config.confirmPassword }),
@@ -161,7 +187,7 @@ function KerberosIdentities() {
   
 
   function getStepConfigs(configs: any) {
-    var configProperties = prepareConfigProperties(configs);
+    let configProperties = prepareConfigProperties(configs);
 
     configProperties = sortConfigs(configProperties);
     const newStepConfigs = createServiceConfig(configProperties);
@@ -169,11 +195,11 @@ function KerberosIdentities() {
   }
 
   function prepareConfigProperties(configs: any) {
-    let installedServiceNames = ["Cluster", "AMBARI"].concat(
+    const installedServiceNames = ["Cluster", "AMBARI"].concat(
       services.map((service: any) => service.ServiceInfo?.service_name)
     );
     let configPropertiesCopy = cloneDeep(configs);
-    let siteProperties = stackConfigurations;
+    const siteProperties = stackConfigurations;
 
     configPropertiesCopy = configPropertiesCopy.filter(
       (item: { serviceName: string }) =>
@@ -288,8 +314,7 @@ function KerberosIdentities() {
   }
 
   function createCategoryForServices() {
-    var services1 = services;
-    return services1.map((item) => ({
+    return services.map((item) => ({
       name: item.ServiceInfo?.service_name,
       displayName: item.ServiceInfo?.service_name,
       collapsedByDefault: true,
@@ -311,148 +336,44 @@ function KerberosIdentities() {
     );
   }
 
-  /**
-   * This function updates stack/service/component level kerberos descriptor identities (principal and keytab)
-   * with the values entered by the user on the rendered UI.
-   * @param {Array} identities
-   * @param {Object} config
-   * @return {boolean}
-   */
-  const updateDescriptorIdentityConfig = (identities: any[], config: any) => {
-    let isConfigUpdated = false;
-  
-    const updatedIdentities = identities.map((identity) => {
-      const updatedIdentity = cloneDeep(identity);
-      const keys = Object.keys(identity).filter((key) => key !== 'name');
-  
-      keys.forEach((item) => {
-        const prop = updatedIdentity[item];
-  
-        // Compare UI rendered config against identity with `configuration attribute` (Most of the identities have `configuration attribute`)
-        const isIdentityWithConfig = (
-          prop.configuration &&
-          prop.configuration.split('/')[0] === getConfigTagFromFileName(config.filename) &&
-          prop.configuration.split('/')[1] === config.name
-        );
-  
-        // Compare UI rendered config against identity without `configuration attribute` (For example spnego principal and keytab)
-        const isIdentityWithoutConfig = (
-          !prop.configuration &&
-          identity.name === config.name.split('_')[0] &&
-          item === config.name.split('_')[1]
-        );
-  
-        if (isIdentityWithConfig || isIdentityWithoutConfig) {
-          updatedIdentity[item] = { ...prop, [item === 'keytab' ? 'file' : 'value']: config.value };
-          isConfigUpdated = true;
-        }
-      });
-  
-      return updatedIdentity;
-    });
-  
-    return { isConfigUpdated, updatedIdentities };
-  };
-  
-  const updateDescriptorConfigs = (configurations: any, config: any) => {
-    let isConfigUpdated = false;
-  
-    if (configurations) {
-      if (Array.isArray(configurations)) {
-        configurations.forEach((configuration) => {
-          for (const key in configuration) {
-            if (configuration[key].hasOwnProperty(config.name) && getConfigTagFromFileName(config.filename) === key) {
-              configuration[key][config.name] = config.value;
-              isConfigUpdated = true;
-            }
-          }
-        });
-      } else if (configurations.hasOwnProperty(config.name) && getConfigTagFromFileName(config.filename) === 'stackConfigs') {
-        configurations[config.name] = config.value;
-        isConfigUpdated = true;
-      }
-    }
-  
-    return isConfigUpdated;
-  };
-  
-  const updateResourceIdentityConfigs = (resource: any, config: any, isStackResource = false) => {
-    let isConfigUpdated;
-    const identities = resource.identities;
-    const properties = isStackResource ? resource.properties : resource.configurations;
-    isConfigUpdated = updateDescriptorConfigs(properties, config);
-  
-    let updatedResource = cloneDeep(resource);
-  
-    if (!isConfigUpdated && identities) {
-      const { isConfigUpdated: identityUpdated, updatedIdentities } = updateDescriptorIdentityConfig(identities, config);
-      isConfigUpdated = identityUpdated;
-      if (identityUpdated) {
-        updatedResource = {
-          ...resource,
-          identities: updatedIdentities
-        };
-      }
-    }
-  
-    return { isConfigUpdated, updatedResource };
-  };
-  
-  const updateKerberosDescriptor = (kerberosDescriptor: any, configs: any[]) => {
-    let updatedKerberosDescriptor = cloneDeep(kerberosDescriptor);
-  
-    configs.forEach((config) => {
-      let isConfigUpdated;
-      const isStackResource = true;
-      let result = updateResourceIdentityConfigs(updatedKerberosDescriptor, config, isStackResource);
-      isConfigUpdated = result.isConfigUpdated;
-      updatedKerberosDescriptor = result.updatedResource;
-  
-      if (!isConfigUpdated) {
-        updatedKerberosDescriptor.services = updatedKerberosDescriptor.services.map((service: any) => {
-          let result = updateResourceIdentityConfigs(service, config);
-          isConfigUpdated = result.isConfigUpdated;
-          let updatedService = result.updatedResource;
-  
-          if (!isConfigUpdated) {
-            updatedService.components = (service.components || []).map((component: any) => {
-              let result = updateResourceIdentityConfigs(component, config);
-              isConfigUpdated = result.isConfigUpdated;
-              return result.updatedResource;
-            });
-          }
-  
-          return updatedService;
-        });
-      }
-    });
-  
-    return updatedKerberosDescriptor;
-  };
-  
+  getStepConfigsRef.current = getStepConfigs;
+  transformDataRef.current = transformData;
+
   async function saveConfigurations() {
     const response = await KerberosApi.getKerberosDescriptorProperties("true", clusterName);
-    const kerberosDescriptor = get(response, "KerberosDescriptor.kerberos_descriptor", []);
-    const configs = stepConfigs.reduce((acc: any[], stepConfig: StepConfig) => acc.concat(stepConfig.configs), []);
-    const updatedKerberosDescriptor = updateKerberosDescriptor(kerberosDescriptor, configs);
+    const kerberosDescriptor = get(response, "KerberosDescriptor.kerberos_descriptor", {});
+    const configs = collectDescriptorFormValues(result);
+    const updatedKerberosDescriptor = removeDescriptorIdentityReferences(
+      applyDescriptorValues(kerberosDescriptor, configs),
+    );
     
     const payload = {
       "artifact_data":
       updatedKerberosDescriptor
     }
     
-    await KerberosApi.saveKerberosData(clusterName, payload);
+    await KerberosApi.updateKerberosDescriptor(clusterName, payload);
   }     
 
-  if(loading || isEmpty(result)) {
+  if(loading) {
     return <Spinner />
+  }
+
+  if (loadError || isEmpty(result)) {
+    return (
+      <Alert variant="danger">
+        {loadError || "The Kerberos descriptor did not contain editable identities."}
+      </Alert>
+    );
   }
 
   return (
     <div className="mt-4">
+        {saveError && <Alert variant="danger">{saveError}</Alert>}
         {!isEditMode && <div className="d-flex justify-content-end">
             <Button variant="secondary" disabled={isEditMode} onClick={()=>{
                 setIsEditMode(true);
+                onEditModeChange?.(true);
             }}>Edit</Button>
         </div>}
         <div className="mt-3">
@@ -464,6 +385,7 @@ function KerberosIdentities() {
                         chosenService={"KERBEROS_GENERAL"}
                         setTabErrors={setTabErrors}
                         displayUndoRedo={false}
+                        canEdit={isEditMode}
                     />
                 </Tab>
                 <Tab eventKey="advanced" title="Advanced">
@@ -473,13 +395,38 @@ function KerberosIdentities() {
                         chosenService={"KERBEROS_ADVANCED"}
                         setTabErrors  ={setTabErrors}
                         displayUndoRedo={false}
+                        canEdit={isEditMode}
                     />
                 </Tab>
             </Tabs>
         </div>
         {isEditMode && <div className="mt-3 d-flex justify-content-end">
-            <Button className="mx-2" variant="light" onClick={()=>setIsEditMode(false)}>Discard</Button>
-            <Button disabled={!saveEnabled} onClick={()=>saveConfigurations()}>Save</Button>
+            <Button className="mx-2" variant="light" onClick={() => {
+              setIsEditMode(false);
+              onEditModeChange?.(false);
+            }}>Discard</Button>
+            <Button
+              disabled={!saveEnabled || isSaving}
+              onClick={async () => {
+                setIsSaving(true);
+                setSaveError("");
+                try {
+                  await saveConfigurations();
+                  setIsEditMode(false);
+                  onEditModeChange?.(false);
+                  onIdentitiesSaved?.();
+                } catch (error) {
+                  setSaveError(responseErrorMessage(
+                    error,
+                    "Ambari could not save the Kerberos identities. Correct the problem and retry.",
+                  ));
+                } finally {
+                  setIsSaving(false);
+                }
+              }}
+            >
+              {isSaving ? "Saving..." : "Save"}
+            </Button>
         </div>}
     </div>
   );

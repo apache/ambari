@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { Button, Card } from "react-bootstrap";
+import { Alert, Button, Card } from "react-bootstrap";
 import { kdcProperties } from "./constants";
 import { saveAs } from "file-saver";
 import { ConfigPropertiesType } from "../CommonConfigs/types";
@@ -26,6 +26,8 @@ import WizardFooter from "../../components/StepWizard/WizardFooter";
 import { EnableKerberosContext } from "./KerberosStore/context"
 import { get } from "lodash";
 import { AppContext } from "../../store/context";
+import { isManualKdcPlan } from "../../Utils/kerberosWizard";
+import { responseErrorMessage } from "../../Utils/httpError";
 
 export default function ConfirmConfiguration() {
 
@@ -43,10 +45,12 @@ export default function ConfirmConfiguration() {
   const { clusterName } = useContext(AppContext);
   const [isDownloading, setIsDownloading] = useState(false);
   const [nextEnabled, setNextEnabled ] = useState(true)
+  const [downloadError, setDownloadError] = useState("");
 
   const fetchCSVData = async () => {
     setIsDownloading(true);
     setNextEnabled(false)
+    setDownloadError("");
     try {
       const response = await KerberosApi.downloadKerberosIdentitiesCsv(
         clusterName
@@ -54,7 +58,10 @@ export default function ConfirmConfiguration() {
       const blob = new Blob([response], { type: "text/csv" });
       saveAs(blob, `kerberos.csv`);
     } catch (error) {
-      console.error("Error downloading CSV:", error);
+      setDownloadError(responseErrorMessage(
+        error,
+        "Ambari could not download the Kerberos identities CSV.",
+      ));
     }
     setIsDownloading(false);
     setNextEnabled(true)
@@ -66,28 +73,38 @@ export default function ConfirmConfiguration() {
         <h4>Confirm Configurations</h4>
         <p>Please review the configuration before continuing the setup process</p>
         <p>
-          Using the Download CSV button, you can download a csv file which
-          contains a list of the principals and keytabs that will automatically be
-          created by Ambari.
+          {isManualKdcPlan(kdcType)
+            ? "Download the required principals and keytabs. Do not continue until they have been created and distributed to the cluster hosts."
+            : "Using the Download CSV button, you can download a CSV file containing the principals and keytabs that Ambari will create."}
         </p>
+        {isManualKdcPlan(kdcType) && (
+          <Alert variant="warning">
+            Ambari cannot verify that manually managed principals and keytabs have been distributed.
+          </Alert>
+        )}
+        {downloadError && <Alert variant="danger">{downloadError}</Alert>}
 
         <Card className="p-4">
           <Card className="p-4 grey-card">
-            {kdcProps[kdcType].map((property: string) => {
+            {(kdcProps[kdcType] ?? []).map((property: string) => {
               const [name, section] = property.split(":");
+              const config = configs?.KERBEROS?.[section]?.properties?.[name];
+              if (config?.value === undefined || config?.value === "") {
+                return null;
+              }
               return (
                 <div key={property} className="mb-2">
-                  {
-                    configs["KERBEROS"][section].properties[name]
-                      .propertyDisplayname
-                  }{" "}
-                  : {configs["KERBEROS"][section].properties[name].value}
+                  {config.propertyDisplayname || name}: {String(config.value)}
                 </div>
               );
             })}
           </Card>
           <div className="mt-4 d-flex justify-content-end">
-            <Button className="mx-1" variant="outline-secondary">
+            <Button
+              className="mx-1"
+              variant="outline-secondary"
+              onClick={() => onExitPopUp(false, false)}
+            >
               EXIT WIZARD
             </Button>
             <Button variant="outline-primary" disabled={isDownloading} onClick={fetchCSVData}>

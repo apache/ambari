@@ -22,9 +22,9 @@ import BackgroundOperations from "../BackgroundOperations";
 import { ProgressStatus, ViewLevel } from "../../constants";
 import usePolling from "../../hooks/usePolling";
 import { isFinished, showAlertModal } from "../../Utils/Utility";
-import KerberosApi from "../../api/kerberosApi";
 import { AppContext } from "../../store/context";
-import InvalidKDCPopup from "./InvalidKdcPopup";
+import useKDCSessionState from "../../hooks/useKDCSessionState";
+import { responseErrorMessage } from "../../Utils/httpError";
 
 type RegenerateKeytabsProps = {
   missingHostCheck: boolean;
@@ -36,40 +36,103 @@ export default function RegenerateKeytabs({
   restartComponentsCheck,
 }: RegenerateKeytabsProps) {
   const [showBgOperation, setShowBgOperation] = useState(false);
-  const [showInvalidKDCPopup, setShowInvalidKDCPopup] = useState(false);
+  const [backgroundRequestId, setBackgroundRequestId] = useState<
+    string | number
+  >("");
   const requestId = useRef<string | number>("");
   const restartCheckRef = useRef(restartComponentsCheck);
+  const restartStarted = useRef(false);
+  const regenerateStarted = useRef(false);
   const { clusterName } = useContext(AppContext);
+  const { getKDCSessionState } = useKDCSessionState(() => {});
 
-  const { stopPolling, pausePolling, resumePolling } = usePolling(
+  const { pausePolling, resumePolling } = usePolling(
     getRequestStatus,
     3000
   );
 
   useEffect(() => {
-    regenerate();
-  }, []);
+    async function regenerate() {
+      const payload = {
+        Clusters: {
+          security_type: "KERBEROS",
+        },
+      };
+      try {
+        const params = missingHostCheck
+          ? "regenerate_keytabs=missing"
+          : "regenerate_keytabs=all";
+        const requestData = await RequestApi.regenerateKeytabs(
+          clusterName,
+          payload,
+          params
+        );
+        requestId.current = requestData.Requests.id;
+        setBackgroundRequestId(requestData.Requests.id);
+        if (requestId.current !== "") setShowBgOperation(true);
+      } catch (error) {
+        showAlertModal(
+          "Error",
+          responseErrorMessage(error, "Ambari could not regenerate keytabs."),
+        );
+      }
+    }
+
+    if (regenerateStarted.current) {
+      return;
+    }
+    regenerateStarted.current = true;
+    void getKDCSessionState(
+      regenerate,
+      (error) => showAlertModal(
+        "Error",
+        responseErrorMessage(
+          error,
+          "Ambari could not validate the KDC administrator session.",
+        ),
+      ),
+    );
+  }, [clusterName, getKDCSessionState, missingHostCheck]);
 
   useEffect(() => {
+    restartCheckRef.current = restartComponentsCheck;
     if (restartComponentsCheck) {
       resumePolling();
     } else {
       pausePolling();
     }
-  }, [restartComponentsCheck]);
+  }, [pausePolling, restartComponentsCheck, resumePolling]);
 
   async function getRequestStatus() {
+    if (!requestId.current) {
+      return;
+    }
     if (!restartCheckRef.current) pausePolling();
 
-    const requestStatus: any = await RequestApi.getRequestStatus(
+    const requestStatus = await RequestApi.getRequestStatus(
       clusterName,
       requestId.current as string
     );
     const { Requests } = requestStatus;
     if (isFinished(Requests.request_status)) {
-      if (Requests.request_status === ProgressStatus.COMPLETED) {
-        stopPolling();
-        if (restartCheckRef.current) restartComponents();
+      pausePolling();
+      if (
+        Requests.request_status === ProgressStatus.COMPLETED
+        && restartCheckRef.current
+        && !restartStarted.current
+      ) {
+        restartStarted.current = true;
+        try {
+          await restartComponents();
+        } catch (error) {
+          showAlertModal(
+            "Error",
+            responseErrorMessage(
+              error,
+              "Ambari could not restart components after regenerating keytabs.",
+            ),
+          );
+        }
       }
     }
   }
@@ -92,63 +155,9 @@ export default function RegenerateKeytabs({
       restartPayload
     );
     requestId.current = requestData.Requests.id;
+    setBackgroundRequestId(requestData.Requests.id);
+    setShowBgOperation(true);
   }
-
-  async function regenerate() {
-    const payload = {
-      Clusters: {
-        security_type: "KERBEROS",
-      },
-    };
-    try {
-      const params = missingHostCheck
-        ? "regenerate_keytabs=missing"
-        : "regenerate_keytabs=all";
-      const requestData = await RequestApi.regenerateKeytabs(
-        clusterName,
-        payload,
-        params
-      );
-      requestId.current = requestData.Requests.id;
-      if (requestId.current !== "") setShowBgOperation(true);
-    } catch (error: any) {
-      console.log("Error regenerating keytabs: ", error);
-      const errorMessage = error?.response?.data?.message;
-      if (errorMessage.includes("Missing KDC administrator credentials")) {
-        setShowInvalidKDCPopup(true);
-      }
-      else {
-        showAlertModal("Error", errorMessage);
-      }
-    }
-  }
-
-  const handleSaveInvalidKDC = async (
-    adminPrincipal: string,
-    adminPassword: string,
-    saveCredentials: boolean
-  ) => {
-    setShowInvalidKDCPopup(false);
-    const payload = {
-      Credential: {
-        key: adminPassword,
-        principal: adminPrincipal,
-        type: saveCredentials ? "persisted" : "temporary",
-      },
-    };
-
-    try {
-      await KerberosApi.postKDCAdminCredentials(
-        clusterName,
-        payload
-      );
-
-      // Retry the regenerateKeytabs API call with the provided credentials
-      await regenerate();
-    } catch (error) {
-      console.error("Error posting KDC Admin Credentials:", error);
-    }
-  };
 
   return (
     <>
@@ -157,15 +166,9 @@ export default function RegenerateKeytabs({
           isOpen={showBgOperation}
           onClose={() => setShowBgOperation(false)}
           rootLevel={ViewLevel.REQUESTS}
-          requestId={requestId.current}
+          requestId={backgroundRequestId}
         />
       ) : null}
-
-      <InvalidKDCPopup
-        isOpen={showInvalidKDCPopup}
-        onClose={() => setShowInvalidKDCPopup(false)}
-        handleSave={handleSaveInvalidKDC}
-      />
     </>
   );
 }
