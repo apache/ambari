@@ -852,7 +852,7 @@ export default function Config({
                 />
               </div>
             )}
-            {canEditConfigs && (
+            {!hostConfigs && canEditConfigs && (
               <Tooltip
                 message={
                   isTextMode
@@ -955,7 +955,7 @@ export default function Config({
                 />
               </div>
             )}
-            {allowSwitchToTextBox && canEditConfigs && (
+            {!hostConfigs && allowSwitchToTextBox && canEditConfigs && (
               <Tooltip
                 message={
                   isComboTextMode
@@ -1122,22 +1122,24 @@ export default function Config({
                 </div>
               </div>
             )}
-            <Tooltip
-              message={
-                isTimeTextMode
-                  ? "Switch back to time interval mode"
-                  : "Switch to text input mode"
-              }
-              placement="top"
-            >
-              <FontAwesomeIcon
-                icon={faPen}
-                className={`ms-4 ${isTimeTextMode ? "text-primary" : ""} ${
-                  property.isEditable ? "pointer" : ""
-                }`}
-                onClick={property.isEditable ? toggleTimeMode : undefined}
-              />
-            </Tooltip>
+            {!hostConfigs && canEditConfigs && (
+              <Tooltip
+                message={
+                  isTimeTextMode
+                    ? "Switch back to time interval mode"
+                    : "Switch to text input mode"
+                }
+                placement="top"
+              >
+                <FontAwesomeIcon
+                  icon={faPen}
+                  className={`ms-4 ${isTimeTextMode ? "text-primary" : ""} ${
+                    property.isEditable ? "pointer" : ""
+                  }`}
+                  onClick={property.isEditable ? toggleTimeMode : undefined}
+                />
+              </Tooltip>
+            )}
           </div>
         );
 
@@ -1191,22 +1193,24 @@ export default function Config({
                 </Form>
               </div>
             )}
-            <Tooltip
-              message={
-                isToggleTextMode
-                  ? "Switch back to toggle mode"
-                  : "Switch to text input mode"
-              }
-              placement="top"
-            >
-              <FontAwesomeIcon
-                icon={faPen}
-                className={`ms-4 ${isToggleTextMode ? "text-primary" : ""} ${
-                  property.isEditable ? "pointer" : ""
-                }`}
-                onClick={property.isEditable ? toggleToggleMode : undefined}
-              />
-            </Tooltip>
+            {!hostConfigs && canEditConfigs && (
+              <Tooltip
+                message={
+                  isToggleTextMode
+                    ? "Switch back to toggle mode"
+                    : "Switch to text input mode"
+                }
+                placement="top"
+              >
+                <FontAwesomeIcon
+                  icon={faPen}
+                  className={`ms-4 ${isToggleTextMode ? "text-primary" : ""} ${
+                    property.isEditable ? "pointer" : ""
+                  }`}
+                  onClick={property.isEditable ? toggleToggleMode : undefined}
+                />
+              </Tooltip>
+            )}
           </div>
         );
 
@@ -2578,6 +2582,8 @@ export default function Config({
                                                                                           {
                                                                                             ...property,
                                                                                             isEditable:
+                                                                                              !hostConfigs &&
+                                                                                              canEditConfigs &&
                                                                                               currentConfigGroup ===
                                                                                                 "Default" &&
                                                                                               property.isEditable,
@@ -2709,6 +2715,7 @@ export default function Config({
                                                                                       }
                                                                                     >
                                                                                       {!hostConfigs &&
+                                                                                        canEditConfigs &&
                                                                                         property?.supportsFinal && (
                                                                                           <Tooltip
                                                                                             message={
@@ -2838,7 +2845,8 @@ export default function Config({
                                                                                               />
                                                                                             </Tooltip>
                                                                                           )}
-                                                                                      {displayUndoRedo &&
+                                                                                      {!hostConfigs &&
+                                                                                      displayUndoRedo &&
                                                                                       property.value !==
                                                                                         property.previousValue &&
                                                                                       canEditConfigs &&
@@ -2857,7 +2865,8 @@ export default function Config({
                                                                                           }
                                                                                         />
                                                                                       ) : null}
-                                                                                      {displayUndoRedo &&
+                                                                                      {!hostConfigs &&
+                                                                                        displayUndoRedo &&
                                                                                         canEditConfigs &&
                                                                                         currentConfigGroup ===
                                                                                           "Default" && (
@@ -2925,6 +2934,8 @@ export default function Config({
                                                                                                   value:
                                                                                                     overrideValue.value,
                                                                                                   isEditable:
+                                                                                                    !hostConfigs &&
+                                                                                                    canEditConfigs &&
                                                                                                     currentConfigGroup !==
                                                                                                     "Default",
                                                                                                 },
@@ -2962,7 +2973,7 @@ export default function Config({
                                                                                                 1
                                                                                               }
                                                                                             >
-                                                                                              {currentConfigGroup ===
+                                                                                              {!hostConfigs && (currentConfigGroup ===
                                                                                               "Default" ? (
                                                                                                 <h4
                                                                                                   className="text-info"
@@ -3031,7 +3042,7 @@ export default function Config({
                                                                                                     }}
                                                                                                   />
                                                                                                 </Stack>
-                                                                                              )}
+                                                                                              ))}
                                                                                             </Col>
                                                                                           </Row>
                                                                                         );

@@ -16,135 +16,119 @@
  * limitations under the License.
  */
 
-import { useState, useEffect, useMemo, useContext } from 'react';
-import { Form, Row, Col, Dropdown } from 'react-bootstrap';
-import { MergedAlert } from './types';
+import { useContext, useEffect, useMemo, useState } from "react";
+import { Col, Form, Row } from "react-bootstrap";
+import { ServiceContext } from "../../store/ServiceContext";
 import { AlertStatus } from "./alertStatus";
-import { ServiceApi } from '../../api/serviceApi';
-import { AppContext } from '../../store/context';
+import { MergedAlert } from "./types";
 
 interface AlertFiltersProps {
-    data: MergedAlert[];
-    onFilter: (filteredData: MergedAlert[]) => void;
+  data: MergedAlert[];
+  onFilter: (filteredData: MergedAlert[]) => void;
 }
 
-interface AlertItem {
-    serviceDisplayName: string;
-    label: string;
-    statuses: Array<{ status: string; count: number }>;
-    latest_text?: string;
-}
-
-const formatServiceName = (name: string): string => {
-    return name.replace(/_/g, ' ');
+type ServiceOption = {
+  name: string;
+  displayName: string;
 };
 
 const AlertFilters = ({ data, onFilter }: AlertFiltersProps) => {
-    const { clusterName } = useContext(AppContext);
-    const [serviceFilter, setServiceFilter] = useState<string>('');
-    const [alertNameFilter, setAlertNameFilter] = useState<string>('');
-    const [statusFilter, setStatusFilter] = useState<string>('');
-    const [responseFilter, setResponseFilter] = useState<string>('');
-    const [services, setServices] = useState<string[]>([]);
+  const { allServiceModels } = useContext(ServiceContext);
+  const [serviceFilter, setServiceFilter] = useState("");
+  const [alertNameFilter, setAlertNameFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [responseFilter, setResponseFilter] = useState("");
 
-    const uniqueStatuses = Object.values(AlertStatus).map(status => status.toUpperCase());
+  const services = useMemo<ServiceOption[]>(() => {
+    const options = new Map<string, string>();
+    Object.values(allServiceModels || {}).forEach((service: any) => {
+      const name = String(service?.serviceName || "").toUpperCase();
+      if (name) {
+        options.set(name, service.displayName || name.replaceAll("_", " "));
+      }
+    });
+    data.forEach((alert) => {
+      const name = alert.serviceName || alert.serviceDisplayName;
+      if (name) {
+        options.set(name, alert.serviceDisplayName || name.replaceAll("_", " "));
+      }
+    });
+    return [...options].map(([name, displayName]) => ({ name, displayName }));
+  }, [allServiceModels, data]);
 
-    useEffect(() => {
-        const fetchServices = async () => {
-            try {
-                const response = await ServiceApi.getAllServices(clusterName);
-                const serviceNames = response.items.map(item => item.ServiceInfo.service_name);
-                setServices(['All', ...serviceNames]);
-            } catch (error) {
-                console.error('Error fetching services:', error);
-                setServices(['All']);
-            }
-        };
-        fetchServices();
-    }, [clusterName]);
-
-    const filteredData = useMemo(() => {
-        return data.filter((item: AlertItem) => {
-            const matchesService = serviceFilter === '' || item.serviceDisplayName === serviceFilter;
-            const matchesAlertName = item.label?.toLowerCase().includes(alertNameFilter.toLowerCase()) || false;
-            const matchesStatus = statusFilter === '' || item.statuses.some(status => status.status.toUpperCase() === statusFilter);
-            const matchesResponse = !responseFilter || (item.latest_text?.toLowerCase() || '').includes(responseFilter.toLowerCase());
-            return matchesService && matchesAlertName && matchesStatus && matchesResponse;
-        });
-    }, [serviceFilter, alertNameFilter, statusFilter, responseFilter, data]);
-
-    useEffect(() => {
-        onFilter(filteredData);
-    }, [filteredData, onFilter]);
-
-    return (
-        <Form className="filter-container mb-3">
-            <Row>
-                <Col>
-                    <Form.Group controlId="serviceFilter">
-                        <Form.Label>Service</Form.Label>
-                        <Dropdown>
-                            <Dropdown.Toggle variant="default" id="dropdown-basic">
-                                {serviceFilter ? formatServiceName(serviceFilter) : "All"}
-                            </Dropdown.Toggle>
-
-                            <Dropdown.Menu>
-                                {services.map((service, index) => (
-                                    <Dropdown.Item 
-                                        key={index} 
-                                        onClick={() => setServiceFilter(service === 'All' ? '' : service)}
-                                    >
-                                        {service === 'All' ? service : formatServiceName(service)}
-                                    </Dropdown.Item>
-                                ))}
-                            </Dropdown.Menu>
-                        </Dropdown>
-                    </Form.Group>
-                </Col>
-                <Col>
-                    <Form.Group controlId="alertNameFilter">
-                        <Form.Label>Alert Definition Name</Form.Label>
-                        <Form.Control
-                            type="text"
-                            placeholder="Any"
-                            value={alertNameFilter}
-                            onChange={(e) => setAlertNameFilter(e.target.value)}
-                        />
-                    </Form.Group>
-                </Col>
-                <Col>
-                    <Form.Group controlId="statusFilter">
-                        <Form.Label>Status</Form.Label>
-                        <Dropdown>
-                            <Dropdown.Toggle variant="default" id="dropdown-basic">
-                                {statusFilter || "All"}
-                            </Dropdown.Toggle>
-
-                            <Dropdown.Menu>
-                                <Dropdown.Item onClick={() => setStatusFilter('')}>All</Dropdown.Item>
-                                {uniqueStatuses.map((status, index) => (
-                                    <Dropdown.Item key={index} onClick={() => setStatusFilter(status)}>
-                                        {status}
-                                    </Dropdown.Item>
-                                ))}
-                            </Dropdown.Menu>
-                        </Dropdown>
-                    </Form.Group>
-                </Col>
-                <Col>
-                    <Form.Group controlId="responseFilter">
-                        <Form.Label>Response</Form.Label>
-                        <Form.Control
-                            type="text"
-                            placeholder="Any"
-                            value={responseFilter}
-                            onChange={(e) => setResponseFilter(e.target.value)}
-                        />
-                    </Form.Group>
-                </Col>
-            </Row>
-        </Form>
+  const filteredData = useMemo(() => data.filter((item) => {
+    const serviceName = item.serviceName || item.serviceDisplayName;
+    const matchesService = !serviceFilter || serviceName === serviceFilter;
+    const matchesAlertName = item.label?.toLowerCase().includes(alertNameFilter.toLowerCase()) || false;
+    const matchesStatus = !statusFilter || item.statuses.some(
+      (status) => status.status.toUpperCase() === statusFilter,
     );
+    const matchesResponse = !responseFilter || (item.latest_text || "")
+      .toLowerCase()
+      .includes(responseFilter.toLowerCase());
+    return matchesService && matchesAlertName && matchesStatus && matchesResponse;
+  }), [alertNameFilter, data, responseFilter, serviceFilter, statusFilter]);
+
+  useEffect(() => {
+    onFilter(filteredData);
+  }, [filteredData, onFilter]);
+
+  return (
+    <Form className="filter-container mb-3">
+      <Row>
+        <Col>
+          <Form.Group controlId="hostAlertServiceFilter">
+            <Form.Label>Service</Form.Label>
+            <Form.Select
+              value={serviceFilter}
+              onChange={(event) => setServiceFilter(event.target.value)}
+            >
+              <option value="">All</option>
+              {services.map((service) => (
+                <option key={service.name} value={service.name}>{service.displayName}</option>
+              ))}
+            </Form.Select>
+          </Form.Group>
+        </Col>
+        <Col>
+          <Form.Group controlId="hostAlertNameFilter">
+            <Form.Label>Alert Definition Name</Form.Label>
+            <Form.Control
+              type="text"
+              placeholder="Any"
+              value={alertNameFilter}
+              onChange={(event) => setAlertNameFilter(event.target.value)}
+            />
+          </Form.Group>
+        </Col>
+        <Col>
+          <Form.Group controlId="hostAlertStatusFilter">
+            <Form.Label>Status</Form.Label>
+            <Form.Select
+              value={statusFilter}
+              onChange={(event) => setStatusFilter(event.target.value)}
+            >
+              <option value="">All</option>
+              {Object.values(AlertStatus).map((status) => (
+                <option key={status} value={status.toUpperCase()}>{status.toUpperCase()}</option>
+              ))}
+            </Form.Select>
+          </Form.Group>
+        </Col>
+        <Col>
+          <Form.Group controlId="hostAlertResponseFilter">
+            <Form.Label>Response</Form.Label>
+            <Form.Control
+              type="text"
+              placeholder="Any"
+              value={responseFilter}
+              onChange={(event) => setResponseFilter(event.target.value)}
+            />
+          </Form.Group>
+        </Col>
+      </Row>
+    </Form>
+  );
 };
 
 export default AlertFilters;

@@ -19,9 +19,19 @@
 import { useContext } from "react";
 import Step2 from "../../ClusterWizard/Step2";
 import { AddHostContext } from "./wizardDataStore/context";
+import { AppContext } from "../../../store/context";
 
 export default function Step2Wrapper() {
   const { installedHosts } = useContext(AddHostContext);
+  const { cluster, supports } = useContext(AppContext);
+  const stackName = cluster?.stack || String(cluster?.version || "").split("-")[0];
 
-  return <Step2 wizardName={"addHost"} installedHosts={installedHosts} />;
+  return (
+    <Step2
+      wizardName="addHost"
+      installedHosts={installedHosts}
+      customizeAgentUserAccount={Boolean(supports.customizeAgentUserAccount)}
+      isWindowsStack={stackName === "HDPWIN"}
+    />
+  );
 }

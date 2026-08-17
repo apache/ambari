@@ -22,27 +22,26 @@ import { AppContext } from "../store/context";
 import { get } from "lodash";
 import modalManager from "../store/ModalManager";
 import InvalidKdcPopup from "../components/InvalidKdcPopup";
-//@ts-ignore
-function useKDCSessionState(cancelHandler: unknown) {
+
+type KDCSessionCallback = () => void | Promise<void>;
+type KDCSessionErrorCallback = (error: unknown) => void;
+type KerberosConfiguration = {
+  properties?: { kdc_type?: string };
+  type?: string;
+};
+
+function useKDCSessionState(_cancelHandler: unknown) {
   const [securityEnabled, setSecurityEnabled] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const { clusterName, isKerberosEnabled } = useContext(AppContext);
   const kdc_type = useRef("");
-  async function getSecurityType(additionalCallback: any) {
+  async function getSecurityType() {
     if (securityEnabled || isKerberosEnabled) {
-      try {
-        const data = await adminApi.getSecurityType(clusterName);
-        const kdcType =
-          data?.items?.[0]?.configurations?.find(
-            (config: any) => config.type === "kerberos-env"
-          )?.properties?.kdc_type ?? "none";
-        kdc_type.current = kdcType;
-        additionalCallback();
-      } catch (err) {
-        console.error("Could not get security type", err);
-      }
-    } else {
-      additionalCallback();
+      const data = await adminApi.getSecurityType(clusterName);
+      kdc_type.current =
+        data?.items?.[0]?.configurations?.find(
+          (config: KerberosConfiguration) => config.type === "kerberos-env"
+        )?.properties?.kdc_type ?? "none";
     }
   }
   useEffect(() => {
@@ -52,7 +51,7 @@ function useKDCSessionState(cancelHandler: unknown) {
         setIsLoaded(true);
         const securityType = data.Clusters.security_type;
         setSecurityEnabled(securityType === "KERBEROS");
-      } catch (error) {
+      } catch {
         setIsLoaded(true);
         modalManager.show(<InvalidKdcPopup />);
       }
@@ -62,30 +61,39 @@ function useKDCSessionState(cancelHandler: unknown) {
     }
   }, [clusterName]);
 
-  const getKDCSessionState = async (callback: Function) => {
-    if (securityEnabled || isKerberosEnabled) {
-      getSecurityType(async function () {
+  const getKDCSessionState = async (
+    callback: KDCSessionCallback,
+    errorCallback?: KDCSessionErrorCallback,
+  ): Promise<void> => {
+    try {
+      if (securityEnabled || isKerberosEnabled) {
+        await getSecurityType();
         if (kdc_type.current !== "none") {
           const data = await adminApi.getKerberosSessionState(clusterName);
-          const res = get(data, "Services.attributes.kdc_validation_result");
-          get(data, "Services.attributes.kdc_validation_failure_details");
-          if (res.toUpperCase() === "OK") {
-            callback();
+          const result = get(data, "Services.attributes.kdc_validation_result", "");
+          if (result.toUpperCase() === "OK") {
+            await callback();
           } else {
             modalManager.show(
               <InvalidKdcPopup
                 getKdcSessionState={() => {
-                  getKDCSessionState(callback);
+                  void getKDCSessionState(callback, errorCallback);
                 }}
               />
             );
           }
         } else {
-          callback();
+          await callback();
         }
-      });
-    } else {
-      callback();
+      } else {
+        await callback();
+      }
+    } catch (error) {
+      if (errorCallback) {
+        errorCallback(error);
+        return;
+      }
+      console.error("Could not validate the KDC session", error);
     }
   };
 

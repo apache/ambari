@@ -75,7 +75,7 @@ export const hostComponentCustomCommandMap = {
     ),
     label: translate("services.service.actions.run.rebalanceHdfsNodes"),
   },
-  TRANSITION_NAMENODE: {
+  MAKEOBSERVER: {
     action: "makeObserver",
     customCommand: "MAKEOBSERVER",
     context: translate("services.service.actions.run.makeObserver.context"),
@@ -183,50 +183,6 @@ export const addDeleteComponentsMap: any = {
     configTagsCallbackName: "loadRangerConfigs",
     configsCallbackName: "onLoadRangerConfigs",
   },
-};
-
-const serviceComponentMetrics = [
-  "host_components/metrics/jvm/memHeapUsedM",
-  "host_components/metrics/jvm/HeapMemoryMax",
-  "host_components/metrics/jvm/HeapMemoryUsed",
-  "host_components/metrics/jvm/memHeapCommittedM",
-  "host_components/metrics/mapred/jobtracker/trackers_decommissioned",
-  "host_components/metrics/cpu/cpu_wio",
-  "host_components/metrics/rpc/client/RpcQueueTime_avg_time",
-  "host_components/metrics/dfs/FSNamesystem/*",
-  "host_components/metrics/dfs/namenode/Version",
-  "host_components/metrics/dfs/namenode/LiveNodes",
-  "host_components/metrics/dfs/namenode/DeadNodes",
-  "host_components/metrics/dfs/namenode/DecomNodes",
-  "host_components/metrics/dfs/namenode/TotalFiles",
-  "host_components/metrics/dfs/namenode/UpgradeFinalized",
-  "host_components/metrics/dfs/namenode/Safemode",
-  "host_components/metrics/runtime/StartTime",
-];
-
-const serviceSpecificParams = {
-  FLUME: "host_components/processes/HostComponentProcess",
-  YARN:
-    "host_components/metrics/yarn/Queue," +
-    "host_components/metrics/yarn/ClusterMetrics/NumActiveNMs," +
-    "host_components/metrics/yarn/ClusterMetrics/NumLostNMs," +
-    "host_components/metrics/yarn/ClusterMetrics/NumUnhealthyNMs," +
-    "host_components/metrics/yarn/ClusterMetrics/NumRebootedNMs," +
-    "host_components/metrics/yarn/ClusterMetrics/NumDecommissionedNMs",
-  HBASE:
-    "host_components/metrics/hbase/master/IsActiveMaster," +
-    "host_components/metrics/hbase/master/MasterStartTime," +
-    "host_components/metrics/hbase/master/MasterActiveTime," +
-    "host_components/metrics/hbase/master/AverageLoad," +
-    "host_components/metrics/master/AssignmentManager/ritCount",
-  STORM:
-    "metrics/api/v1/cluster/summary,metrics/api/v1/topology/summary,metrics/api/v1/nimbus/summary",
-  HDFS: "host_components/metrics/dfs/namenode/ClusterId",
-  SSM: "host_components/processes/HostComponentProcess",
-};
-
-var requestsRunningStatus = {
-  updateServiceMetric: false,
 };
 
 export const populateHostComponentModels = (hostComponent: any) => {
@@ -376,14 +332,6 @@ export const getCardinalityValue = (
   }
 };
 
-export const isOozieServerAddable = () => {
-  return true; //TODO: get it from the context once it is implemented as of now it is hardcoded
-};
-
-export const isEnableHiveInteractive = () => {
-  return false; //TODO: get it from the context once it is implemented as of now it is hardcoded
-};
-
 export const sortBasedOnMasterSlave = (data: any, key: string) => {
   const masterComponents = data.filter(
     (component: any) => get(component, key, "") === ComponentType.MASTER
@@ -470,7 +418,8 @@ export const isDeletable = (component: IHostComponent, serviceModels: any) => {
 
 export const isDeleteComponentDisabled = (
   component: IHostComponent,
-  clusterComponents: any
+  clusterComponents: any,
+  hiveDatabaseType = "",
 ) => {
   const stackComponentCount = minToInstall(component);
   const componentName = getComponentName(component);
@@ -490,12 +439,7 @@ export const isDeleteComponentDisabled = (
     componentName === "MYSQL_SERVER" &&
     get(component, "serviceName", "") === "HIVE"
   ) {
-    const db_type = ["Existing"]; //TODO: visit it again, refer it from same method from file host_component_view.js in existing ambari - reading from configs file
-    if (db_type.includes("Existing") && status) {
-      return false;
-    } else {
-      return true;
-    }
+    return !(hiveDatabaseType.includes("Existing") && status);
   }
 
   if (componentName === "JOURNALNODE") {
@@ -577,17 +521,8 @@ export const getCustomCommands = (
   component: IHostComponent,
   clusterComponents: any
 ) => {
-  //TODO: Revisit this function
-  let commands: string[] = get(component, "customCommands", []);
+  const commands: string[] = get(component, "customCommands", []);
   let customCommands: any[] = [];
-
-  // Add MAKEOBSERVER command for NAMENODE components
-  if (getComponentName(component) === "NAMENODE" && 
-      get(component, "workStatus", "") === ComponentStatus.STARTED) {
-    if (!commands.includes("MAKEOBSERVER")) {
-      commands = [...commands, "MAKEOBSERVER"];
-    }
-  }
 
   commands.forEach((command: string) => {
     if (
@@ -604,6 +539,7 @@ export const getCustomCommands = (
       component: get(component, "componentName", ""),
       command: command,
       context: get(hostComponentCustomCommandMap, command + ".context", ""),
+      disabled: get(hostComponentCustomCommandMap, command + ".disabled", false),
     });
   });
   return customCommands;
@@ -1244,7 +1180,12 @@ export const installHostComponentCall = async (
   const updatedComponent = { ...component, hostName: hostName };
 
   try {
-    updateAndCreateServiceComponent(componentName, data, clusterName);
+    await ensureServiceComponent(
+      componentName,
+      get(component, "serviceName", ""),
+      data,
+      clusterName
+    );
     const payload = {
       RequestInfo: {
         context:
@@ -1265,9 +1206,17 @@ export const installHostComponentCall = async (
       hostName,
       payload
     );
-    addNewComponentSuccessCallback(res, {}, { component: updatedComponent }, setAllHostModels);
+    await addNewComponentSuccessCallback(
+      res,
+      {},
+      { component: updatedComponent },
+      setAllHostModels
+    );
   } catch (error) {
-    console.log("error in updating and creating service component", error);
+    showErrorModal(
+      get(error, "response.data.message", get(error, "message", "Unable to add the host component."))
+    );
+    throw error;
   }
 };
 
@@ -1347,141 +1296,32 @@ const addNewComponentSuccessCallback = async (
   defaultSuccessCallbackWithoutReload(requestId);
 };
 
-const updateAndCreateServiceComponent = async(
+const ensureServiceComponent = async (
   componentName: string,
+  serviceName: string,
   data: any,
   clusterName: string
 ) => {
-  var url =
-    "/components/?fields=ServiceComponentInfo/service_name," +
-    "ServiceComponentInfo/category,ServiceComponentInfo/installed_count,ServiceComponentInfo/started_count,ServiceComponentInfo/init_count,ServiceComponentInfo/install_failed_count,ServiceComponentInfo/unknown_count,ServiceComponentInfo/total_count,ServiceComponentInfo/display_name,host_components/HostRoles/host_name&minimal_response=true";
-  try {
-    await HostsApi.updateComponentsState(clusterName, url);
-    updateServiceMetric(
-      componentName,
-      data,
-      createServiceComponent,
-      clusterName
-    );
-  } catch (error) {
-    console.log("error in updating and creating service component", error);
-  }
-};
-
-const getConditionalFields = (data: any) => {
-  let conditionalFields = serviceComponentMetrics.slice(0);
-  let serviceParams = cloneDeep(serviceSpecificParams);
-  set(serviceParams, "ONEFS", "metrics/*,");
-
-  data.services.forEach((service: any) => {
-    const urlParams = get(serviceParams, service.ServiceInfo.service_name);
-    if (urlParams) {
-      conditionalFields.push(urlParams);
-    }
-  });
-
-  return conditionalFields;
-};
-
-const isComponentPresent = (
-  componentName: string,
-  allServiceComponents: any
-) => {
-  return allServiceComponents.items?.some((item: any) => {
+  const allServiceComponents = get(data, "clusterComponents", {});
+  const isPresent = get(allServiceComponents, "items", []).some((item: any) => {
     return get(item, "ServiceComponentInfo.component_name") === componentName;
   });
-};
-
-const updateServiceMetric = async (
-  componentName: string,
-  data: any,
-  callback: Function,
-  clusterName: string
-) => {
-  const isATSPresent = isComponentPresent(
-    "APP_TIMELINE_SERVER",
-    data.clusterComponents
-  );
-  const isHaEnabled = false;
-
-  const conditionalFields = getConditionalFields(data);
-  const conditionalFieldsString =
-    conditionalFields.length > 0 ? "," + conditionalFields.join(",") : "";
-  const isFlumeInstalled = data.services.filter(
-    (service: any) => service.ServiceInfo.service_name === "FLUME"
-  );
-  const isATSInstalled =
-    data.services.filter(
-      (service: any) => service.ServiceInfo.service_name === "YARN"
-    ) && isATSPresent;
-  const flumeHandlerParam = isFlumeInstalled
-    ? "ServiceComponentInfo/component_name=FLUME_HANDLER|"
-    : "";
-  const atsHandlerParam = isATSInstalled
-    ? "ServiceComponentInfo/component_name=APP_TIMELINE_SERVER|"
-    : "";
-  const haComponents = isHaEnabled
-    ? "ServiceComponentInfo/component_name=JOURNALNODE|ServiceComponentInfo/component_name=ZKFC|"
-    : "";
-  const url =
-    "/components/?" +
-    flumeHandlerParam +
-    atsHandlerParam +
-    haComponents +
-    "ServiceComponentInfo/category.in(MASTER,CLIENT)&fields=" +
-    "ServiceComponentInfo/service_name," +
-    "host_components/HostRoles/display_name," +
-    "host_components/HostRoles/host_name," +
-    "host_components/HostRoles/public_host_name," +
-    "host_components/HostRoles/state," +
-    "host_components/HostRoles/maintenance_state," +
-    "host_components/HostRoles/stale_configs," +
-    "host_components/HostRoles/ha_state," +
-    "host_components/HostRoles/desired_admin_state," +
-    conditionalFieldsString +
-    "&minimal_response=true";
-
-  if (!requestsRunningStatus.updateServiceMetric) {
-    requestsRunningStatus.updateServiceMetric = true;
-    try {
-      await HostsApi.updateServiceMetric(clusterName, url);
-      requestsRunningStatus.updateServiceMetric = false;
-      callback(componentName, data, clusterName);
-    } catch (error) {
-      console.log("error in updating service metric", error);
-    }
-  } else {
-    callback(componentName, data, clusterName);
-  }
-};
-
-const createServiceComponent = (
-  componentName: string,
-  data: any,
-  clusterName: string
-) => {
-  const allServiceComponents = data.clusterComponents;
-
-  if (
-    allServiceComponents &&
-    isComponentPresent(componentName, allServiceComponents)
-  ) {
+  if (isPresent) {
     return;
-  } else {
-    const payload = {
-      components: [
-        {
-          ServiceComponentInfo: {
-            component_name: componentName,
-          },
-        },
-      ],
-    };
-    const serviceName = allServiceComponents.items.find((item: any) => {
-      return item.ServiceComponentInfo.component_name === componentName;
-    }).ServiceComponentInfo.service_name;
-    HostsApi.commonCreateComponent(clusterName, serviceName, payload);
   }
+  if (!serviceName) {
+    throw new Error(`Unable to determine the service for ${componentName}.`);
+  }
+  const payload = {
+    components: [
+      {
+        ServiceComponentInfo: {
+          component_name: componentName,
+        },
+      },
+    ],
+  };
+  await HostsApi.commonCreateComponent(clusterName, serviceName, payload);
 };
 
 export function getServiceByConfigTypeMap(stackServices: any) {

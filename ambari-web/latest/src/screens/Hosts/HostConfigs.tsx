@@ -29,8 +29,8 @@ import { tez_properties } from "../../data/configs/services/tez_properties";
 import { yarn_properties } from "../../data/configs/services/yarn_properties";
 import { zookeeper_properties } from "../../data/configs/services/zookeeper_properties";
 import { kerberos_properties } from "../../data/configs/services/kerberos_properties";
-import { get, isEmpty, map, find } from "lodash";
-import { Card, Dropdown, Badge } from "react-bootstrap";
+import { cloneDeep, get, isEmpty, map } from "lodash";
+import { Alert, Badge, Button, Card, Form } from "react-bootstrap";
 import Config from "../CommonConfigs/Config";
 import {
   fetchComponentHostNamesByComponent,
@@ -45,8 +45,13 @@ import { HostsApi } from "../../api/hostsApi";
 import Spinner from "../../components/Spinner";
 import { ServiceContext } from "../../store/ServiceContext";
 import { serviceNameModelMapping } from "../../constants";
-import { translate } from "../../Utils/Utility";
 import Modal from "../../components/Modal";
+import { useAuth } from "../../hooks/useAuth";
+import { messages } from "../messages";
+import {
+  buildConfigGroupMembershipUpdates,
+  buildHostConfigGroupState,
+} from "../../Utils/hostConfigs";
 
 export default function Hostconfigs() {
   const params = useParams();
@@ -57,24 +62,27 @@ export default function Hostconfigs() {
   const [configs, setConfigs] = useState<any>({});
   const [configProperties, setConfigProperties] = useState({});
   const [propertyValues, setPropertyValues] = useState<any>({});
-  const [defaultVersionNumber, setDefaultVersionNumber] = useState<string>();
-  const [selectedVersion, setSelectedVersion] = useState<string>();
   const [showChangeConfigGroupModal, setShowChangeConfigGroupModal] = useState<boolean>(false);
   const [selectedConfigGroup, setSelectedConfigGroup] = useState<string>("Default");
   const [configGroup, setConfigGroup] = useState<string>("Default");
-  const [hostData, setHostData] = useState<any>(null);
-  const [hostConfigGroups, setHostConfigGroups] = useState<any[]>([]);
-  const [availableConfigGroups, setAvailableConfigGroups] = useState<string[]>(["Default"]);
-  const [serviceConfigGroups, setServiceConfigGroups] = useState<{ [key: string]: string[] }>({});
+  const [groupsByService, setGroupsByService] = useState<Record<string, any[]>>({});
+  const [assignedGroupByService, setAssignedGroupByService] = useState<Record<string, string>>({});
   const [currentService, setCurrentService] = useState<string>("");
   const [hostServices, setHostServices] = useState<string[]>([]);
+  const [loadError, setLoadError] = useState("");
+  const [groupChangeError, setGroupChangeError] = useState("");
+  const [isChangingGroup, setIsChangingGroup] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
   const { clusterName, services, cluster } = useContext(AppContext);
   const { allServiceModels } = useContext(ServiceContext);
+  const { hasAuthorization } = useAuth();
   const stackName = get(cluster, "stack");
   const stackVersion = get(cluster, "versionNum");
+  const canManageConfigGroups = hasAuthorization("SERVICE.MANAGE_CONFIG_GROUPS");
 
   const serviceInCluster = map(services, "ServiceInfo.service_name");
+  const serviceOrderKey = serviceInCluster.join(",");
 
   const propertiesFileMap: { [key: string]: any } = {
     HDFS: hdfs_properties,
@@ -90,19 +98,98 @@ export default function Hostconfigs() {
   };
 
   useEffect(() => {
-    if (serviceInCluster.length > 0 && hostName) {
-      getHostData();
+    let active = true;
+    if (!clusterName || !hostName || !stackName || !stackVersion) {
+      return () => {
+        active = false;
+      };
     }
-  }, [services, hostName]);
 
-  useEffect(() => {
-    if (hostData && hostServices.length > 0) {
-      getConfigurations();
-      getThemes();
-      getHostConfigGroups();
-      getPropertiesValues();
-    }
-  }, [hostData, hostServices]);
+    const loadHostConfigurations = async () => {
+      setLoading(true);
+      setLoadError("");
+      try {
+        const hostResponse = await HostsApi.getHostData(
+          clusterName,
+          hostName,
+          "host_components/HostRoles/service_name,host_components/HostRoles/component_name,host_components/HostRoles/display_name",
+        );
+        const componentServices = [...new Set(
+          get(hostResponse, "host_components", [])
+            .map((component: any) => get(component, "HostRoles.service_name"))
+            .filter(Boolean),
+        )] as string[];
+        const servicesOnHost = componentServices.sort((left, right) => {
+          const leftIndex = serviceInCluster.indexOf(left);
+          const rightIndex = serviceInCluster.indexOf(right);
+          return (leftIndex === -1 ? Number.MAX_SAFE_INTEGER : leftIndex)
+            - (rightIndex === -1 ? Number.MAX_SAFE_INTEGER : rightIndex);
+        });
+
+        if (!active) return;
+        setHostServices(servicesOnHost);
+        if (!servicesOnHost.length) {
+          setCurrentService("");
+          setConfigs({});
+          setThemes({});
+          setPropertyValues({});
+          setGroupsByService({});
+          setAssignedGroupByService({});
+          return;
+        }
+
+        const serviceNames = servicesOnHost.join(",");
+        const [configResponse, themeResponse, groupResponse, valueResponse] = await Promise.all([
+          WizardApi.getStackConfigurations(
+            stackName,
+            stackVersion,
+            serviceNames,
+            "configurations/*,configurations/dependencies/*,StackServices/config_types/*",
+          ),
+          WizardApi.getStackThemes(
+            stackName,
+            stackVersion,
+            serviceNames,
+            "themes/*",
+          ),
+          ConfigGroupApi.getConfigGroupsForServices(clusterName, servicesOnHost),
+          ConfigsApi.getConfigValues(clusterName, serviceNames),
+        ]);
+
+        if (!active) return;
+        const groupState = buildHostConfigGroupState(
+          groupResponse.items || [],
+          servicesOnHost,
+          hostName,
+        );
+        const firstService = servicesOnHost[0];
+        const firstGroup = groupState.assignedGroupByService[firstService] || "Default";
+        setThemes(themeResponse);
+        setPropertyValues(valueResponse);
+        setGroupsByService(groupState.groupsByService);
+        setAssignedGroupByService(groupState.assignedGroupByService);
+        setCurrentService(firstService);
+        setConfigGroup(firstGroup);
+        setSelectedConfigGroup(firstGroup);
+        setConfigs(configResponse);
+      } catch (error: any) {
+        if (active) {
+          setLoadError(
+            error?.response?.data?.message || "Ambari could not load host configurations.",
+          );
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void loadHostConfigurations();
+    return () => {
+      active = false;
+    };
+  }, [clusterName, hostName, serviceOrderKey, stackName, stackVersion, retryCount]);
 
   useEffect(() => {
     if (!isEmpty(configs)) {
@@ -110,182 +197,9 @@ export default function Hostconfigs() {
     }
   }, [configs, propertyValues, JSON.stringify(allServiceModels)]);
 
-  // Custom callback to handle service changes from Config component
   const onServiceChange = (selectedService: string) => {
     if (selectedService !== currentService && hostServices.includes(selectedService)) {
       handleServiceChange(selectedService);
-    }
-  };
-
-  const getThemes = async () => {
-    if (hostServices.length === 0) return;
-
-    setLoading(true);
-    try {
-      const response = await WizardApi.getStackThemes(
-        stackName,
-        stackVersion,
-        hostServices.join(","),
-        "themes/*"
-      );
-      setThemes(response);
-    } catch (error) {
-      console.error("Error fetching themes:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getConfigurations = async () => {
-    if (hostServices.length === 0) return;
-
-    setLoading(true);
-    try {
-      const response = await WizardApi.getStackConfigurations(
-        stackName,
-        stackVersion,
-        hostServices.join(","),
-        "configurations/*,configurations/dependencies/*,StackServices/config_types/*"
-      );
-      setConfigs(response);
-    } catch (error) {
-      console.error("Error fetching configurations:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getHostData = async () => {
-    if (!hostName) return;
-
-    setLoading(true);
-    try {
-      const response = await HostsApi.getHostData(
-        clusterName,
-        hostName,
-        "host_components/HostRoles/service_name,host_components/HostRoles/component_name,host_components/HostRoles/display_name"
-      );
-      setHostData(response);
-
-      // Extract services running on this host
-      const hostComponents = get(response, "host_components", []);
-      const servicesOnHost = [...new Set(hostComponents.map((comp: any) =>
-        get(comp, "HostRoles.service_name")
-      ))].filter(Boolean) as string[];
-
-      setHostServices(servicesOnHost);
-    } catch (error) {
-      console.error("Error fetching host data:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getHostConfigGroups = async () => {
-    if (!hostName || hostServices.length === 0) return;
-
-    try {
-      const configGroups = [];
-      const serviceSpecificGroups: { [key: string]: string[] } = {};
-
-      // Initialize each service with Default group
-      hostServices.forEach(service => {
-        serviceSpecificGroups[service] = ["Default"];
-      });
-
-      // Get config groups for each service running on this host
-      for (const serviceName of hostServices) {
-        const response = await ConfigGroupApi.getConfigGroupInfo(
-          clusterName,
-          serviceName,
-          "ConfigGroup/group_name,ConfigGroup/hosts,ConfigGroup/tag"
-        );
-
-        if (response.items) {
-          // Filter config groups that include this host
-          const relevantGroups = response.items.filter((group: any) => {
-            const hosts = get(group, "ConfigGroup.hosts", []);
-            return hosts.some((host: any) => host.host_name === hostName);
-          });
-
-          // Store service-specific config groups
-          const serviceGroups = ["Default"];
-          relevantGroups.forEach((group: any) => {
-            const groupName = get(group, "ConfigGroup.group_name");
-            if (groupName && !serviceGroups.includes(groupName)) {
-              serviceGroups.push(groupName);
-            }
-          });
-          serviceSpecificGroups[serviceName] = serviceGroups;
-
-          configGroups.push(...relevantGroups.map((group: any) => ({
-            ...group,
-            serviceName: serviceName
-          })));
-        }
-      }
-
-      setHostConfigGroups(configGroups);
-      setServiceConfigGroups(serviceSpecificGroups);
-
-      // Set initial service and config groups
-      if (hostServices.length > 0) {
-        const firstService = hostServices[0];
-        setCurrentService(firstService);
-        setAvailableConfigGroups(serviceSpecificGroups[firstService] || ["Default"]);
-
-        // Set the config group for the first service
-        const serviceGroups = serviceSpecificGroups[firstService] || ["Default"];
-        const primaryGroup = serviceGroups.find(group => group !== "Default") || "Default";
-        setConfigGroup(primaryGroup);
-        setSelectedConfigGroup(primaryGroup);
-      }
-    } catch (error) {
-      console.error("Error fetching host config groups:", error);
-      // Fallback to Default if there's an error
-      setAvailableConfigGroups(["Default"]);
-      setConfigGroup("Default");
-      setSelectedConfigGroup("Default");
-    }
-  };
-
-  const getPropertiesValues = async () => {
-    if (hostServices.length === 0) return;
-
-    setLoading(true);
-    try {
-      // Fetch configs for services running on this host only
-      const response = await ConfigsApi.getConfigValues(
-        clusterName,
-        hostServices.join(",")
-      );
-      setPropertyValues(response);
-
-      // Handle config group specific values
-      response.items.map((item: any) => {
-        const groupName = get(item, "group_name", "Default");
-        if (groupName === "Default") {
-          const latestDefaultVersion = get(item, "service_config_version", "");
-          setDefaultVersionNumber(latestDefaultVersion);
-          setSelectedVersion(latestDefaultVersion);
-        }
-
-        // If this host belongs to a specific config group, prioritize that group's configs
-        if (hostConfigGroups.length > 0) {
-          const hostGroup = find(hostConfigGroups, (group) => {
-            const hosts = get(group, "ConfigGroup.hosts", []);
-            return hosts.some((host: any) => host.host_name === hostName);
-          });
-
-          if (hostGroup && groupName === get(hostGroup, "ConfigGroup.group_name")) {
-            setSelectedVersion(get(item, "service_config_version", ""));
-          }
-        }
-      });
-    } catch (error) {
-      console.error("Error fetching property values:", error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -503,10 +417,8 @@ export default function Hostconfigs() {
                       final: "",
                       fileName: type + ".xml",
                       propertyType: [],
-                      type: type,
-                      isEditable:
-                        configGroup === "Default" &&
-                        selectedVersion === defaultVersionNumber,
+                    type: type,
+                    isEditable: false,
                     };
                   }
                 }
@@ -655,6 +567,14 @@ export default function Hostconfigs() {
       updatedConfigProperties
     );
 
+    Object.values(updatedConfigProperties).forEach((serviceConfigs) => {
+      Object.values(serviceConfigs).forEach((section) => {
+        Object.values(section.properties).forEach((property) => {
+          property.isEditable = false;
+        });
+      });
+    });
+
     setConfigProperties(updatedConfigProperties);
   };
 
@@ -688,26 +608,15 @@ export default function Hostconfigs() {
 
   const handleServiceChange = (selectedService: string) => {
     setCurrentService(selectedService);
-
-    // Update available config groups for the selected service
-    const serviceGroups = serviceConfigGroups[selectedService] || ["Default"];
-    setAvailableConfigGroups(serviceGroups);
-
-    // Reset to Default or first available group for the service
-    const defaultGroup = serviceGroups.includes("Default") ? "Default" : serviceGroups[0];
-    setConfigGroup(defaultGroup);
-    setSelectedConfigGroup(defaultGroup);
-
-    // Refresh config properties for the new service and group
-    if (!isEmpty(configs)) {
-      getConfigProperties();
-    }
+    const assignedGroup = assignedGroupByService[selectedService] || "Default";
+    setConfigGroup(assignedGroup);
+    setSelectedConfigGroup(assignedGroup);
   };
 
   const setVisibilityForKerberosProperties = (
     configProps: ConfigPropertiesType
   ) => {
-    const updatedConfigs = { ...configProps };
+    const updatedConfigs = cloneDeep(configProps);
 
     if (!serviceInCluster.includes("KERBEROS")) {
       return updatedConfigs;
@@ -733,19 +642,19 @@ export default function Hostconfigs() {
       });
     };
 
-    switch (kdcType.value.toLowerCase()) {
-      case translate("admin.kerberos.wizard.step1.option.manual"):
+    switch (String(kdcType.value).toLowerCase()) {
+      case messages["admin.kerberos.wizard.step1.option.manual"].toLowerCase():
         updatePropertyVisibility("kdc_hosts", false);
         updatePropertyVisibility("admin_server_host", false);
         updatePropertyVisibility("domains", false);
         break;
 
-      case translate("admin.kerberos.wizard.step1.option.ad"):
+      case messages["admin.kerberos.wizard.step1.option.ad"].toLowerCase():
         updatePropertyVisibility("container_dn", true);
         updatePropertyVisibility("ldap_url", true);
         break;
 
-      case translate("admin.kerberos.wizard.step1.option.ipa"):
+      case messages["admin.kerberos.wizard.step1.option.ipa"].toLowerCase():
         updatePropertyVisibility("group", true);
         Object.values(updatedConfigs["KERBEROS"]).forEach((section) => {
           const manageKrb5Conf = section.properties["manage_krb5_conf"];
@@ -763,6 +672,9 @@ export default function Hostconfigs() {
         break;
     }
 
+    if (!updatedConfigs["KERBEROS"]?.["KDC"]?.properties) {
+      return updatedConfigs;
+    }
     updatedConfigs["KERBEROS"]["KDC"].properties["Test.KDC.Connection"] = {
       propertyName: "Test.KDC.Connection",
       propertyDisplayname: " ",
@@ -775,38 +687,110 @@ export default function Hostconfigs() {
       previousValue: "TEST KDC CONNECTION",
       value: "TEST KDC CONNECTION",
       final: "false",
-      isEditable: true,
+      isEditable: false,
     };
 
     return updatedConfigs;
   };
 
-  const getChangeConfigGroupModalBody = () => {
-    return <div className="d-flex h-25">
-      <div className="mt-2 me-2">Groups: </div>
-      <Dropdown>
-        <Dropdown.Toggle variant="outline-secondary" size="sm">
-          {selectedConfigGroup}
-        </Dropdown.Toggle>
-        <Dropdown.Menu className="bring-to-front">
+  const availableConfigGroups = [
+    "Default",
+    ...(groupsByService[currentService] || []).map(
+      (group) => get(group, "ConfigGroup.group_name", ""),
+    ).filter(Boolean),
+  ];
+
+  const changeConfigGroup = async () => {
+    if (
+      !hostName
+      || !currentService
+      || selectedConfigGroup === configGroup
+      || isChangingGroup
+      || !canManageConfigGroups
+    ) {
+      return;
+    }
+
+    const updates = buildConfigGroupMembershipUpdates(
+      groupsByService[currentService] || [],
+      currentService,
+      configGroup,
+      selectedConfigGroup,
+      hostName,
+    );
+    setIsChangingGroup(true);
+    setGroupChangeError("");
+    try {
+      for (const update of updates) {
+        await ConfigGroupApi.updateConfigGroup(
+          clusterName,
+          update.groupId,
+          update.payload,
+        );
+      }
+      setGroupsByService((current) => ({
+        ...current,
+        [currentService]: current[currentService].map((group) => (
+          updates.find((update) => update.groupId === String(get(group, "ConfigGroup.id")))?.group
+          || group
+        )),
+      }));
+      setAssignedGroupByService((current) => ({
+        ...current,
+        [currentService]: selectedConfigGroup,
+      }));
+      setConfigGroup(selectedConfigGroup);
+      setShowChangeConfigGroupModal(false);
+    } catch (error: any) {
+      setGroupChangeError(
+        error?.response?.data?.message || "Ambari could not change this host's config group.",
+      );
+    } finally {
+      setIsChangingGroup(false);
+    }
+  };
+
+  const getChangeConfigGroupModalBody = () => (
+    <div>
+      <Form.Group controlId="hostConfigGroup">
+        <Form.Label>Group</Form.Label>
+        <Form.Select
+          value={selectedConfigGroup}
+          disabled={isChangingGroup}
+          onChange={(event) => setSelectedConfigGroup(event.target.value)}
+        >
           {availableConfigGroups.map((groupName) => (
-            <Dropdown.Item
-              key={groupName}
-              active={groupName === configGroup}
-              onClick={() => {
-                setSelectedConfigGroup(groupName);
-              }}
-            >
-              {groupName}
-            </Dropdown.Item>
+            <option key={groupName} value={groupName}>{groupName}</option>
           ))}
-        </Dropdown.Menu>
-      </Dropdown>
-    </div>;
-  }
+        </Form.Select>
+      </Form.Group>
+      {groupChangeError ? (
+        <Alert className="mt-3 mb-0" variant="danger">{groupChangeError}</Alert>
+      ) : null}
+    </div>
+  );
 
   if (loading) {
     return <Spinner />;
+  }
+
+  if (loadError) {
+    return (
+      <Alert variant="danger">
+        {loadError}{" "}
+        <Button
+          size="sm"
+          variant="outline-danger"
+          onClick={() => setRetryCount((value) => value + 1)}
+        >
+          Retry
+        </Button>
+      </Alert>
+    );
+  }
+
+  if (!hostServices.length) {
+    return <Alert variant="info">There are no configurable services on this host.</Alert>;
   }
 
   return (
@@ -814,22 +798,22 @@ export default function Hostconfigs() {
       {showChangeConfigGroupModal && (
         <Modal
           isOpen={showChangeConfigGroupModal}
-          onClose={() => setShowChangeConfigGroupModal(false)}
+          onClose={() => {
+            if (!isChangingGroup) {
+              setSelectedConfigGroup(configGroup);
+              setGroupChangeError("");
+              setShowChangeConfigGroupModal(false);
+            }
+          }}
           modalTitle="Change Group"
           modalBody={getChangeConfigGroupModalBody()}
-          successCallback={() => {
-            setConfigGroup(selectedConfigGroup);
-            if (!isEmpty(configs)) {
-              getConfigProperties();
-            }
-            setShowChangeConfigGroupModal(false);
-          }}
+          successCallback={() => void changeConfigGroup()}
           options={{
             cancelableViaBtn: true,
             cancelableViaIcon: true,
             buttonSize: "sm",
             okButtonVariant: "primary",
-            okButtonDisabled: configGroup === selectedConfigGroup,
+            okButtonDisabled: configGroup === selectedConfigGroup || isChangingGroup,
             modalBodyClassName: "h-150px"
           }}
         />
@@ -856,8 +840,18 @@ export default function Hostconfigs() {
                   >
                     {configGroup}
                   </Badge>
-                  {availableConfigGroups.length > 1 && (
-                    <div className="custom-link" onClick={() => setShowChangeConfigGroupModal(true)}>Change</div>
+                  {canManageConfigGroups && availableConfigGroups.length > 1 && (
+                    <Button
+                      className="p-0 align-baseline"
+                      variant="link"
+                      onClick={() => {
+                        setSelectedConfigGroup(configGroup);
+                        setGroupChangeError("");
+                        setShowChangeConfigGroupModal(true);
+                      }}
+                    >
+                      Change
+                    </Button>
                   )}
                 </div>
               </div>

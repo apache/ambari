@@ -16,11 +16,11 @@
  * limitations under the License.
  */
 
-import Step10 from "../../ClusterWizard/Step10";
 import Step3 from "../../ClusterWizard/Step3";
-import Step8 from "../../ClusterWizard/Step8";
-import Step9 from "../../ClusterWizard/Step9";
 import AddHostConfigurations from "./AddHostConfigurations";
+import AddHostInstall from "./AddHostInstall";
+import AddHostReview from "./AddHostReview";
+import AddHostSummary from "./AddHostSummary";
 import Step2Wrapper from "./Step2Wrapper";
 import Step6 from "../../ClusterWizard/Step6";
 import { translate } from "../../../Utils/Utility";
@@ -81,7 +81,7 @@ export default {
   5: {
     label: translate("common.review"),
     completed: false,
-    Component: <Step8 wizardName="addHost" />,
+    Component: <AddHostReview />,
     canGoBack: true,
     nextLabel: String(translate("common.deploy")).toUpperCase(),
     isNextEnabled: false,
@@ -91,7 +91,7 @@ export default {
   6: {
     label: translate("installer.step9.header"),
     completed: false,
-    Component: <Step9 wizardName="addHost" />,
+    Component: <AddHostInstall />,
     canGoBack: false,
     isNextEnabled: false,
     name: "INSTALL_START_TEST",
@@ -100,7 +100,7 @@ export default {
   7: {
     label: translate("installer.step10.header"),
     completed: false,
-    Component: <Step10 wizardName="addHost" />,
+    Component: <AddHostSummary />,
     canGoBack: false,
     isNextEnabled: false,
     keyToRemove: [],

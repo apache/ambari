@@ -73,7 +73,7 @@ const ConfigGroupApi = {
     return response.data;
   },
   updateConfigGroup: async (clusterName: string, configGroupId: string, data: any) => {
-    const url = `clusters/${clusterName}/config_groups/${configGroupId}`;
+    const url = `/clusters/${encodeURIComponent(clusterName)}/config_groups/${encodeURIComponent(configGroupId)}`;
     const response = await ambariApi.request({
       url,
       method: "PUT",
@@ -86,6 +86,18 @@ const ConfigGroupApi = {
     fields: string
   ) => {
     const url = `clusters/${clusterName}/config_groups?fields=${fields}`;
+    const response = await ambariApi.request({
+      url,
+      method: "GET",
+    });
+    return response.data;
+  },
+  getConfigGroupsForServices: async (
+    clusterName: string,
+    serviceNames: string[],
+  ) => {
+    const servicePredicate = serviceNames.map(encodeURIComponent).join(",");
+    const url = `/clusters/${encodeURIComponent(clusterName)}/config_groups?ConfigGroup/tag.in(${servicePredicate})&fields=*`;
     const response = await ambariApi.request({
       url,
       method: "GET",

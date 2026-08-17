@@ -191,6 +191,25 @@ const VersionsApi = {
     });
     return response.data;
   },
+  installHostStackVersion: async function (
+    clusterName: string,
+    hostName: string,
+    version: { stack: string; version: string; repoVersion: string }
+  ) {
+    const url = `/clusters/${encodeURIComponent(clusterName)}/hosts/${encodeURIComponent(hostName)}/stack_versions`;
+    const response = await ambariApi.request({
+      url,
+      method: "POST",
+      data: {
+        HostStackVersions: {
+          stack: version.stack,
+          version: version.version,
+          repository_version: version.repoVersion,
+        },
+      },
+    });
+    return response.data;
+  },
   getAllStacks: async function (clusterName: string) {
     const url = `/clusters/${clusterName}/stack_versions?fields=*,repository_versions/*,repository_versions/operating_systems/OperatingSystems/*,repository_versions/operating_systems/repositories/*`;
     const response = await ambariApi.request({
@@ -208,6 +227,21 @@ const VersionsApi = {
     const response = await ambariApi.request({
       url: url,
       method: "GET",
+    });
+    return response.data;
+  },
+  getCompatibleRepositoryVersions: async function (
+    stackName: string,
+    stackVersion: string,
+  ) {
+    const url = `/stacks/${encodeURIComponent(stackName)}/versions/${encodeURIComponent(stackVersion)}/compatible_repository_versions`;
+    const response = await ambariApi.request({
+      url,
+      method: "GET",
+      params: {
+        fields: "CompatibleRepositoryVersions/repository_version",
+        minimal_response: true,
+      },
     });
     return response.data;
   },
