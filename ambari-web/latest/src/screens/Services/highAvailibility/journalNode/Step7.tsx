@@ -24,11 +24,18 @@ import { startAllServices } from "../../../../Utils/taskUtils";
 import { AppContext } from "../../../../store/context";
 import WizardFooter from "../../../../components/StepWizard/WizardFooter";
 import modalManager from "../../../../store/ModalManager";
+import { getStepData } from "../../../../Utils/Utility";
+import { manageJournalNodesSteps } from "./wizardSteps";
+import { mergeSavedOperations } from "../haWorkflowUtils";
+import { Alert } from "react-bootstrap";
 
 function Step7() {
   const { clusterName } = useContext(AppContext);
   const [completionStatus, setCompletionStatus] = useState(false);
+  const [isCompleting, setIsCompleting] = useState(false);
+  const [completionError, setCompletionError] = useState("");
   const {
+    state,
     dispatch,
     flushStateToDb,
     stepWizardUtilities: { currentStep, handleBackImperitive },
@@ -43,16 +50,47 @@ function Step7() {
       },
     },
   ];
+  const savedOperationsState = getStepData(
+    state,
+    manageJournalNodesSteps.START_ALL_SERVICES,
+    "operationsState",
+    "manageJournalNodesSteps",
+  );
+  const restoredOperations = mergeSavedOperations(
+    operations,
+    savedOperationsState,
+  );
+  const completeWizard = async () => {
+    setIsCompleting(true);
+    setCompletionError("");
+    try {
+      await flushStateToDb("complete");
+      modalManager.hide();
+      window.location.href = "/#/main/services/HDFS/summary";
+    } catch (error: unknown) {
+      const persistenceError = error as {
+        message?: string;
+        response?: { data?: { message?: string } };
+      };
+      setCompletionError(
+        persistenceError.response?.data?.message ||
+          persistenceError.message ||
+          "Ambari could not clear the Manage JournalNodes workflow checkpoint.",
+      );
+      setIsCompleting(false);
+    }
+  };
   return (
     <>
+      {completionError ? <Alert variant="danger">{completionError}</Alert> : null}
       <h3 className="step-title">Start services</h3>
       <div className="mt-3">
         <OperationsProgress
           title=""
           description=""
           setCompletionStatus={setCompletionStatus}
-          operations={operations as any}
-          dispatch={(operationsState: any) => {
+          operations={restoredOperations as any}
+          dispatch={async (operationsState: any) => {
             dispatch({
               type: ActionTypes.STORE_INFORMATION,
               payload: {
@@ -62,21 +100,22 @@ function Step7() {
                 },
               },
             });
+            await flushStateToDb();
           }}
         />
       </div>
       <WizardFooter
         step={currentStep}
-        isNextEnabled={completionStatus}
-        onNext={() => {
-          flushStateToDb("cancel"); // Clear persisted data on completion
-          modalManager.hide();
-          window.location.href = "/#/main/services/HDFS/summary";
-        }}
+        isNextEnabled={completionStatus && !isCompleting}
+        onNext={() => void completeWizard()}
         onBack={() => {
           flushStateToDb("back");
           handleBackImperitive();
         }}
+        onCancel={() => {
+          void flushStateToDb("cancel");
+        }}
+        cancelConfirmationBody="JournalNode changes have started. Exiting preserves the workflow checkpoint so the operation can be resumed. Any incomplete recovery must be performed manually before changing HDFS topology again."
       />
     </>
   );

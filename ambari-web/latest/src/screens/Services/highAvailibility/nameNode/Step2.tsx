@@ -24,15 +24,20 @@ import { ActionTypes } from "./store/types";
 import WizardFooter from "../../../../components/StepWizard/WizardFooter";
 import AssignMastersAddable from "../../../../components/AssignMastersAddable";
 import { Card } from "react-bootstrap";
+import { isValidNameNodeHaAssignment } from "../haWorkflowUtils";
 
 function Step2() {
   const { services } = useContext(AppContext);
   const {
     dispatch,
     flushStateToDb,
-    stepWizardUtilities: { handleNextImperitive, currentStep, jumpToStep },
+    stepWizardUtilities: {
+      handleNextImperitive,
+      handleBackImperitive,
+      currentStep,
+    },
   } = useContext(EnableHighAvailibilityContext);
-  const [isNextEnabled] = useState(true);
+  const [isNextEnabled, setIsNextEnabled] = useState(false);
   return (
     <>
       <div className="step-title">Select Hosts</div>
@@ -58,7 +63,10 @@ function Step2() {
             showAdditionalPrefix={["NAMENODE"]}
             mastersAddableInHA={[]}
             services={map(services, "ServiceInfo.service_name")}
-            dispatch={(payload:any) => {
+            dispatch={(payload: any) => {
+              setIsNextEnabled(
+                isValidNameNodeHaAssignment(payload.masterComponentHosts),
+              );
               dispatch({
                 type: ActionTypes.STORE_INFORMATION,
                 payload: {
@@ -73,16 +81,16 @@ function Step2() {
       <WizardFooter
         step={currentStep}
         isNextEnabled={isNextEnabled}
-        onBack={() => {
-          flushStateToDb("back");
-          jumpToStep(1);
+        onBack={async () => {
+          await flushStateToDb("back");
+          await handleBackImperitive();
         }}
-        onNext={() => {
-          flushStateToDb("next");
-          handleNextImperitive();
+        onNext={async () => {
+          await flushStateToDb("next");
+          await handleNextImperitive();
         }}
         onCancel={() => {
-          flushStateToDb("cancel");
+          void flushStateToDb("cancel");
         }}
       />
     </>

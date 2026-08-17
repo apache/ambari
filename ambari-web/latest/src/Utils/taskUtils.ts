@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { filter, find, isArray, map, set } from "lodash";
+import { filter, find, isArray, map } from "lodash";
 import { HostsApi } from "../api/hostsApi";
 import { ServiceApi } from "../api/serviceApi";
 import { role } from "./Utility";
@@ -107,91 +107,81 @@ async function performCreateInstallComponentTask(
   services: string[],
   serviceObj: any
 ) {
-  try {
-    const hostNames = Array.isArray(hostName) ? hostName : [hostName];
-    const data = await HostsApi.getInstalledHostsForHostComponents(
-      clusterName,
-      componentName,
-      hostNames.join(",")
-    );
-    const hostsWithComponents: any = map(data.items, "HostRoles.host_name");
-    const result = hostNames.map(function (item) {
-      return {
-        componentName: componentName,
-        hostName: item,
-        hasComponent: hostsWithComponents.includes(item),
-      };
-    });
-    const hostsWithoutComponents = map(
-      filter(result, ["hasComponent", false]),
-      "hostName"
-    );
-    let taskNum = 1;
-    const requestData = {
-      RequestInfo: {
-        query: hostsWithoutComponents
-          .map(function (item) {
-            return "Hosts/host_name=" + item;
-          })
-          .join("|"),
-      },
-      Body: {
-        host_components: [
-          {
-            HostRoles: {
-              component_name: componentName,
-            },
-          },
-        ],
-      },
+  void services;
+  const hostNames = Array.isArray(hostName) ? hostName : [hostName];
+  const data = await HostsApi.getInstalledHostsForHostComponents(
+    clusterName,
+    componentName,
+    hostNames.join(",")
+  );
+  const hostsWithComponents: any = map(data.items, "HostRoles.host_name");
+  const result = hostNames.map(function (item) {
+    return {
+      componentName: componentName,
+      hostName: item,
+      hasComponent: hostsWithComponents.includes(item),
     };
-    if (!!hostsWithoutComponents.length) {
-      let allServiceComponents: any = [];
-      //@ts-ignore
-      let componentResponse = null;
-      services.forEach(function (_service: any) {
-        const _serviceComponents = [
-          ...serviceObj.masterComponents,
-          ...serviceObj.clientComponents,
-          ...serviceObj.slaveComponents,
-        ];
-        allServiceComponents = allServiceComponents.concat(_serviceComponents);
-      });
-      if (map(allServiceComponents, "component_name").includes(componentName)) {
-        return null;
-      } else {
-        componentResponse = await ServiceApi.createComponent(
-          clusterName,
-          serviceName,
-          componentName
-        );
-      }
+  });
+  const hostsWithoutComponents = map(
+    filter(result, ["hasComponent", false]),
+    "hostName"
+  );
+  const taskNum = 1;
+  const requestData = {
+    RequestInfo: {
+      query: hostsWithoutComponents
+        .map(function (item) {
+          return "Hosts/host_name=" + item;
+        })
+        .join("|"),
+    },
+    Body: {
+      host_components: [
+        {
+          HostRoles: {
+            component_name: componentName,
+          },
+        },
+      ],
+    },
+  };
+  if (hostsWithoutComponents.length) {
+    const allServiceComponents = [
+      ...(serviceObj?.masterComponents || []),
+      ...(serviceObj?.clientComponents || []),
+      ...(serviceObj?.slaveComponents || []),
+    ];
+    const serviceComponentExists = allServiceComponents.some(
+      (component: any) =>
+        (component.component_name || component.componentName) === componentName,
+    );
+    if (!serviceComponentExists) {
       try {
-        await HostsApi.registerHostToComponent(clusterName, requestData);
-      } catch (err) {
-      } finally {
-        return await updateComponent(
-          clusterName,
-          componentName,
-          hostName,
-          serviceName,
-          "Install",
-          taskNum
+        await ServiceApi.createComponent(clusterName, serviceName, componentName);
+      } catch (error: any) {
+        const message = String(
+          error?.response?.data?.message || error?.message || "",
         );
+        if (!/already exists|resourcealreadyexists/i.test(message)) {
+          throw error;
+        }
       }
-    } else {
-      return await updateComponent(
-        clusterName,
-        componentName,
-        map(result, "hostName"),
-        serviceName,
-        "Install",
-        taskNum
-      );
     }
-  } catch (err) {
-    console.log("Error in createInstallComponentTask", err);
+    await HostsApi.registerHostToComponent(clusterName, requestData);
   }
+
+  if (!hostsWithoutComponents.length) {
+    return { status: 200 };
+  }
+
+  return await updateComponent(
+    clusterName,
+    componentName,
+    hostsWithoutComponents,
+    serviceName,
+    "Install",
+    taskNum
+  );
 }
 
 export async function startServices(
@@ -366,7 +356,8 @@ export async function deleteComponent(
   clusterName: string,
   componentName: string,
   hostName: string,
-  serviceName: string
+  serviceName: string,
+  ignoreMissing = false,
 ) {
   try {
     // First stop the component
@@ -380,14 +371,27 @@ export async function deleteComponent(
     );
     
     // Then delete the component from the host
-    const response= await HostsApi.deleteHostComponent(
+    const response = await HostsApi.deleteHostComponent(
       clusterName,
       hostName,
       componentName
     );
-    set(response,"data.status",response.status);
-    return response.data;
-  } catch (err) {
+    return response;
+  } catch (err: any) {
+    const message = String(
+      err?.response?.data?.message ||
+        err?.response?.data ||
+        err?.message ||
+        "",
+    );
+    if (
+      ignoreMissing &&
+      (err?.response?.status === 404 ||
+        err?.status === 404 ||
+        /NoSuchResourceException/i.test(message))
+    ) {
+      return { status: 200 };
+    }
     console.error(`Error deleting component ${componentName} from host ${hostName}:`, err);
     throw err;
   }
