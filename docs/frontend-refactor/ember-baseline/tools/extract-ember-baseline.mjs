@@ -1,6 +1,24 @@
 #!/usr/bin/env node
 
 /*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
  * Generates traceable inventories for the classic Ambari Web application.
  * This intentionally uses only Node built-ins so it can run before npm install.
  */
@@ -19,6 +37,24 @@ const appRoot = path.join(classicRoot, 'app');
 const baselineRoot = path.resolve(scriptDir, '..');
 const outputRoot = path.resolve(scriptDir, '..', 'generated');
 const ajaxFile = path.join(appRoot, 'utils/ajax/ajax.js');
+const MARKDOWN_LICENSE_HEADER = `<!---
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+
+`;
 
 const METRICS_MARKERS = [
   /metrics?/i,
@@ -1905,8 +1941,9 @@ function renderModuleCatalog(moduleName, definitions) {
 }
 
 function writeGenerated(fileName, content) {
-  fs.mkdirSync(outputRoot, { recursive: true });
-  fs.writeFileSync(path.join(outputRoot, fileName), content);
+  const outputFile = path.join(outputRoot, fileName);
+  fs.mkdirSync(path.dirname(outputFile), { recursive: true });
+  fs.writeFileSync(outputFile, `${MARKDOWN_LICENSE_HEADER}${content}`);
 }
 
 function writeJson(fileName, value) {
@@ -1990,11 +2027,9 @@ const moduleFileNames = new Map([
   ['Background Operations and Common Capabilities', 'background-common.md'],
   ['Cross-Module and Manual Classification', 'cross-cutting.md'],
 ]);
-const moduleDir = path.join(outputRoot, 'api-by-module');
-fs.mkdirSync(moduleDir, { recursive: true });
 for (const [moduleName, moduleDefinitions] of definitionsByModule) {
-  fs.writeFileSync(
-    path.join(moduleDir, moduleFileNames.get(moduleName)),
+  writeGenerated(
+    path.join('api-by-module', moduleFileNames.get(moduleName)),
     renderModuleCatalog(moduleName, moduleDefinitions),
   );
 }
