@@ -41,6 +41,7 @@ import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Tooltip from "../../components/Tooltip";
 import { getComponentAlerts } from "./alertUtils";
+import FlumeSummary from "./FlumeSummary";
 
 // Helper function to get component display name for alert modal titles
 const getComponentDisplayName = (componentName: string): string => {
@@ -3859,6 +3860,8 @@ function ServiceComponents({
         return <TRINOGATEWAYSummary alerts={alerts} />;
       case "pinot":
         return <PINOTSummary alerts={alerts} />;
+      case "flume":
+        return <FlumeSummary />;
 
       default:
         return <></>;

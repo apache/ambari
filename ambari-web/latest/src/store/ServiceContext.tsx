@@ -48,6 +48,7 @@ import PinotService from "../models/pinot.ts";
 
 interface ServiceContextType {
   allServiceModels: { [key: string]: any };
+  allModelsLoaded: boolean;
   serviceModels: { [key: string]: any };
   updateRegistry: Function;
   polledHostComponentsData: {};
@@ -58,6 +59,7 @@ interface ServiceContextType {
 
 export const ServiceContext = React.createContext<ServiceContextType>({
   allServiceModels: {},
+  allModelsLoaded: false,
   serviceModels: {},
   updateRegistry: () => {},
   polledHostComponentsData: () => {},
@@ -453,6 +455,7 @@ const ServiceProvider: React.FC<ServiceProviderProps> = ({ children }) => {
     <ServiceContext.Provider
       value={{
         allServiceModels,
+        allModelsLoaded,
         serviceModels: allServiceModels,
         updateRegistry,
         polledHostComponentsData,

@@ -49,6 +49,7 @@ import AdminViewRedirect from "../screens/Authentication/AdminViewRedirect";
 import Experimental from "../screens/Experimental";
 import FeatureRouteGuard from "../components/FeatureRouteGuard";
 import AdminViewRouteGuard from "../components/AdminViewRouteGuard";
+import ServiceOperationRouteGuard from "../components/ServiceOperationRouteGuard";
 
 const RoutesList: RouteObject[] = [
   {
@@ -100,7 +101,21 @@ const RoutesList: RouteObject[] = [
             path: "main",
             element: <MainLayout />,
             children: [
-              { path: "service/add/:stepNumber", element: <AddWizardUrlMapping /> },
+              {
+                path: "service/add/:stepNumber",
+                element: (
+                  <FeatureRouteGuard feature="enableAddDeleteServices">
+                    <ProtectedRoute
+                      requireAuthorization="SERVICE.ADD_DELETE_SERVICES"
+                      redirectTo="/main/dashboard/metrics"
+                    >
+                      <ServiceOperationRouteGuard>
+                        <AddWizardUrlMapping />
+                      </ServiceOperationRouteGuard>
+                    </ProtectedRoute>
+                  </FeatureRouteGuard>
+                ),
+              },
               {
                 path: "dashboard",
                 element: <Outlet />,
@@ -123,21 +138,57 @@ const RoutesList: RouteObject[] = [
                   },
                   {
                     path: "highAvailability/:componentName/enable/:stepNumber",
-                    element: <ServiceLoader />,
+                    element: (
+                      <ProtectedRoute
+                        requireAuthorization="SERVICE.ENABLE_HA"
+                        redirectTo="/main/dashboard/metrics"
+                      >
+                        <ServiceOperationRouteGuard>
+                          <ServiceLoader />
+                        </ServiceOperationRouteGuard>
+                      </ProtectedRoute>
+                    ),
                   },
                   {
                     path: ":componentName/federation/:stepNumber",
-                    element: <ServiceLoader />,
+                    element: (
+                      <ProtectedRoute
+                        requireAuthorization="SERVICE.ENABLE_HA"
+                        redirectTo="/main/dashboard/metrics"
+                      >
+                        <ServiceOperationRouteGuard>
+                          <ServiceLoader />
+                        </ServiceOperationRouteGuard>
+                      </ProtectedRoute>
+                    ),
                   },
                   {
                     path: "highAvailability/:componentName/manage/:stepNumber",
-                    element: <ServiceLoader />,
+                    element: (
+                      <ProtectedRoute
+                        requireAuthorization="SERVICE.ENABLE_HA"
+                        redirectTo="/main/dashboard/metrics"
+                      >
+                        <ServiceOperationRouteGuard>
+                          <ServiceLoader />
+                        </ServiceOperationRouteGuard>
+                      </ProtectedRoute>
+                    ),
                   },
                 ],
               },
               {
                 path: "service/reassign/:componentName/:stepNumber",
-                element: <ServiceLoader />,
+                element: (
+                  <ProtectedRoute
+                    requireAuthorization="SERVICE.MOVE"
+                    redirectTo="/main/dashboard/metrics"
+                  >
+                    <ServiceOperationRouteGuard>
+                      <ServiceLoader />
+                    </ServiceOperationRouteGuard>
+                  </ProtectedRoute>
+                ),
               },
               { path: "hosts", element: <HostsList /> },
               { path: "hosts/component/:componentName", element: <HostsList /> },

@@ -77,19 +77,56 @@ export const ServiceApi = {
     return response;
   },
 
-  createComponent:async function(clusterName:string,serviceName:string,componentName:string){
-    const url=`/clusters/${clusterName}/services?ServiceInfo/service_name=${serviceName}`;
-    const response=await ambariApi.request({
+  updateFlumeAgent: async function (
+    clusterName: string,
+    hostName: string,
+    agentName: string,
+    state: "STARTED" | "INSTALLED",
+    context: string
+  ) {
+    return ambariApi.request({
+      url: `/clusters/${clusterName}/hosts/${hostName}/host_components/FLUME_HANDLER`,
+      method: "PUT",
+      data: {
+        RequestInfo: {
+          context,
+          flume_handler: agentName,
+          operation_level: {
+            level: "HOST_COMPONENT",
+            cluster_name: clusterName,
+            service_name: "FLUME",
+            host_name: hostName,
+          },
+        },
+        Body: {
+          HostRoles: {
+            state,
+          },
+        },
+      },
+    });
+  },
+
+  createComponent: async function (
+    clusterName: string,
+    serviceName: string,
+    componentName: string
+  ) {
+    const url = `/clusters/${clusterName}/services?ServiceInfo/service_name=${serviceName}`;
+    const response = await ambariApi.request({
       url,
-      data:{
-        components:[{
-          ServiceComponentInfo:{
-            component_name:componentName
-          }
-        }]
-      }
-    })
-    return response.data
+      method: "POST",
+      data: {
+        components: [
+          {
+            ServiceComponentInfo: {
+              component_name: componentName,
+            },
+          },
+        ],
+      },
+    });
+    return response.data;
   },
 
   updateService: async function (
@@ -128,7 +165,7 @@ export const ServiceApi = {
   },
 
   getAllServiceComponentsListAndInitialMetrics: async (clusterName: string, fields: string) => {
-    const url = `clusters/${clusterName}/components/?fields=${fields}&_=${Date.now()}\``
+    const url = `/clusters/${clusterName}/components?fields=${fields}&_=${Date.now()}`;
     const response = await ambariApi.request({url: url,
       method: "GET",
     });

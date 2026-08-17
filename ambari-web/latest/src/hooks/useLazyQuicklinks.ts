@@ -27,6 +27,22 @@ import {
   setProtocol,
   getServiceProtocol,
 } from "../Utils/sslProtocolUtils";
+import { useAuth } from "./useAuth";
+import {
+  createPublicHostNameMap,
+  QuicklinkConfiguration,
+  resolveQuicklinkConfigPlaceholders,
+  substituteQuicklinkTemplate,
+} from "../Utils/quicklinks";
+
+type QuicklinkHostComponent = {
+  HostRoles?: { host_name?: string; state?: string };
+};
+
+type QuicklinkComponentInfo = {
+  ServiceComponentInfo?: { component_name?: string };
+  host_components?: QuicklinkHostComponent[];
+};
 
 /**
  * Lazy-loading quicklinks hook following Ember.js pattern
@@ -41,11 +57,13 @@ import {
 export const useLazyQuicklinks = (serviceName: string) => {
   const { clusterName, cluster, isClusterInstalled } = useContext(AppContext);
   const { polledHostComponentsData, allServiceModels } = useContext(ServiceContext);
+  const { user } = useAuth();
 
   const [quicklinks, setQuicklinks] = useState<any>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const currentServiceRef = useRef<string>(serviceName);
+  const publicHostNamesRef = useRef(new Map<string, string>());
 
   // Memoized hostname extraction
   const memoizedGetHostName = useCallback(
@@ -173,52 +191,42 @@ export const useLazyQuicklinks = (serviceName: string) => {
           }
         }
 
+        if (serviceName.toUpperCase() === "MAPREDUCE2" && link.port) {
+          const configuredHostProperty = link.port[`${protocol}_config`];
+          const configuredHostSite = configProperties.find(
+            (conf: QuicklinkConfiguration) => conf.type === link.port.site
+          );
+          const configuredHostAndPort =
+            configuredHostSite?.properties?.[configuredHostProperty];
+          const configuredHost = configuredHostAndPort?.match(
+            /([\w\d.-]+):(\d+)/
+          )?.[1];
+          if (configuredHost) {
+            host = configuredHost;
+          }
+        }
+
+        host = publicHostNamesRef.current.get(host) || host;
+
         // Handle port configuration with regex
         if (link.port) {
           port = extractPortWithRegex(link.port, protocol, configProperties);
         }
 
-        // Replace URL template placeholders following Ember.js pattern
-        if (link.requires_user_name === "true") {
-          // This would need user name - for now we'll use empty string
-          finalUrl = finalUrl.replace(/%@/g, (match: string, index: number) => {
-            switch (index) {
-              case 0:
-                return protocol;
-              case 1:
-                return host;
-              case 2:
-                return port;
-              case 3:
-                return ""; // username placeholder
-              default:
-                return match;
-            }
-          });
-        } else {
-          // Replace placeholders: protocol, host, port
-          let replacementIndex = 0;
-          finalUrl = finalUrl.replace(/%@/g, () => {
-            switch (replacementIndex++) {
-              case 0:
-                return protocol;
-              case 1:
-                return host;
-              case 2:
-                return port;
-              default:
-                return "";
-            }
-          });
-        }
-
-
-        return finalUrl;
+        finalUrl = substituteQuicklinkTemplate(
+          finalUrl,
+          protocol,
+          host,
+          port,
+          user?.user_name || "",
+          link.requires_user_name === "true"
+        );
+        return resolveQuicklinkConfigPlaceholders(finalUrl, configProperties);
       } catch (error) {
         return link.url;
       }
     },
-    [extractPortWithRegex, parseHostFromUri, serviceName]
+    [extractPortWithRegex, parseHostFromUri, serviceName, user?.user_name]
   );
 
   // Check if any quicklinks have overridden host configuration (following Ember.js hasOverriddenHost pattern)
@@ -1139,9 +1147,10 @@ export const useLazyQuicklinks = (serviceName: string) => {
       }
 
       const processedLinks: any[] = [];
+      publicHostNamesRef.current = new Map();
 
       // Get component information for all services (following Ember.js isRelatedComponentInstalled pattern)
-      let allComponentInfo: any = null;
+      let allComponentInfo: QuicklinkComponentInfo[] | null = null;
       try {
         const componentFields = `ServiceComponentInfo/service_name,ServiceComponentInfo/component_name,ServiceComponentInfo/total_count,host_components/HostRoles/host_name,host_components/HostRoles/state&minimal_response=true`;
         const componentResponse =
@@ -1152,6 +1161,29 @@ export const useLazyQuicklinks = (serviceName: string) => {
         allComponentInfo = componentResponse.data.items;
       } catch (error) {
         // Will fallback to original logic if this fails
+      }
+
+      if (allComponentInfo) {
+        const hostNames = [
+          ...new Set<string>(
+            allComponentInfo.flatMap((component) =>
+              (component.host_components || [])
+                .map((hostComponent) =>
+                  get(hostComponent, "HostRoles.host_name")
+                )
+                .filter((hostName): hostName is string => Boolean(hostName))
+            )
+          ),
+        ];
+        if (hostNames.length > 0) {
+          const publicHosts = await QuicklinksApi.getPublicHostNames(
+            clusterName,
+            hostNames
+          );
+          publicHostNamesRef.current = createPublicHostNameMap(
+            publicHosts.items || []
+          );
+        }
       }
 
       // Check service-specific HA status
@@ -1870,7 +1902,6 @@ export const useLazyQuicklinks = (serviceName: string) => {
             });
           });
         } else {
-          // Non-HA processing with sophisticated SSL detection
           links.forEach((link: any) => {
             if (link.removed || !link.visible) {
               return;
@@ -1878,24 +1909,44 @@ export const useLazyQuicklinks = (serviceName: string) => {
 
             try {
 
-              // Use sophisticated SSL detection for non-HA services
-              const finalUrl = reconstructURL(
-                link,
-                configurations,
-                undefined,
-                protocolConfig
-              );
-              const hostName = memoizedGetHostName(finalUrl);
+              const relatedComponent = allComponentInfo
+                ? find(
+                    allComponentInfo,
+                    (item) =>
+                      get(item, "ServiceComponentInfo.component_name") ===
+                      link.component_name
+                  )
+                : null;
+              const componentHosts = (relatedComponent?.host_components || [])
+                .filter(
+                  (hostComponent) =>
+                    serviceName.toUpperCase() !== "OOZIE" ||
+                    get(hostComponent, "HostRoles.state") === "STARTED"
+                )
+                .map((hostComponent) =>
+                  get(hostComponent, "HostRoles.host_name")
+                );
+              const hostsToRender =
+                link.host || !allComponentInfo ? [undefined] : componentHosts;
 
+              hostsToRender.forEach((componentHost: string | undefined) => {
+                const finalUrl = reconstructURL(
+                  link,
+                  configurations,
+                  componentHost,
+                  protocolConfig
+                );
+                const hostName = memoizedGetHostName(finalUrl);
 
-              if (finalUrl && hostName) {
-                processedLinks.push({
-                  label: link.label,
-                  url: finalUrl,
-                  hostName: hostName,
-                  componentName: link.component_name,
-                });
-              }
+                if (finalUrl && hostName) {
+                  processedLinks.push({
+                    label: link.label,
+                    url: finalUrl,
+                    hostName,
+                    componentName: link.component_name,
+                  });
+                }
+              });
             } catch (error) {
               if (serviceName.toUpperCase() === "PINOT") {
                 console.error("[PINOT DEBUG] Error processing link:", error);
@@ -1905,7 +1956,10 @@ export const useLazyQuicklinks = (serviceName: string) => {
         }
       });
 
-      return processedLinks;
+      return processedLinks.map((link) => ({
+        ...link,
+        hostName: publicHostNamesRef.current.get(link.hostName) || link.hostName,
+      }));
     },
     [
       serviceName,

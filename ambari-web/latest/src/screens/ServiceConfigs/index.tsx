@@ -1205,14 +1205,21 @@ export default function ServiceConfigs({
     );
   }
 
-  function saveConfigs() {
-    saveStepConfigs();
+  async function saveConfigs() {
+    const saved = await saveStepConfigs();
+    if (!saved) {
+      return false;
+    }
+
     setShowSaveConfigModal(false);
     setShowValidationErrorsModal(false);
+    setShowUnsaveChangesModal(false);
     setServiceConfigVersionNote("");
-    setTimeout(() => {
-      getPropertiesValues();
-    }, 1000);
+    await getPropertiesValues();
+    if (blocker.state === "blocked") {
+      blocker.proceed();
+    }
+    return true;
   }
 
   if (!configsLoaded || loading) {
@@ -1239,9 +1246,6 @@ export default function ServiceConfigs({
               modalBody={getValidationsModalBody()}
               successCallback={() => {
                 saveConfigs();
-                if (blocker.state === 'blocked') {
-                  blocker.proceed();
-                }
               }}
               options={{
                 okButtonText: "PROCEED ANYWAYS",

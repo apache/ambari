@@ -63,7 +63,7 @@ export default function SelectConfigGroupHosts({
   const [filterString, setFilterString] = useState<string>("");
 
   useEffect(() => {
-    const currentHosts = hostsList.map((host) => {
+    const currentHosts = cloneDeep(hostsList).map((host) => {
       set(host, "isChecked", false);
       set(host, "isShown", true);
       let totalDiskCapacity =
@@ -83,7 +83,7 @@ export default function SelectConfigGroupHosts({
       return host;
     });
     setHosts(currentHosts);
-  }, []);
+  }, [hostsList]);
 
   useEffect(() => {
     if (hosts.length) {
@@ -245,13 +245,14 @@ export default function SelectConfigGroupHosts({
           <h2>Select Configuration Group Hosts</h2>
         </ReactModal.Header>
         <Form
-          onSubmit={() =>
+          onSubmit={(event) => {
+            event.preventDefault();
             successCallback(
               getHostsWithProperty("isChecked").map((host) =>
                 get(host, "Hosts.host_name", "")
               )
             )
-          }
+          }}
         >
           <ReactModal.Body>
             <Alert variant="info" className="text-muted fs-12 mb-4">

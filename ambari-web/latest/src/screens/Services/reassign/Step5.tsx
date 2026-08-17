@@ -35,6 +35,7 @@ import ConfigsApi from "../../../api/configsApi";
 import { AppContext } from "../../../store/context";
 import { ServiceContext } from "../../../store/ServiceContext";
 import { showConfirmationPopup } from "../../Hosts/utils";
+import { getDatabaseManualCommands } from "../../../Utils/reassignManualCommands";
 
 function Step5() {
   const { componentName } = useParams<{ componentName: string }>();
@@ -166,11 +167,23 @@ function Step5() {
     const targetHost = reassignHosts.target;
 
     let hdfsUser = "hdfs";
+    let hadoopGroup = "hadoop";
     get(configs, "items.[0].configurations", []).forEach((config: any) => {
       if (config.type === "hadoop-env") {
         hdfsUser = config.properties["hdfs_user"] || hdfsUser;
+        hadoopGroup = config.properties["user_group"] || hadoopGroup;
       }
     });
+
+    const databaseSteps = getDatabaseManualCommands({
+      componentName: componentName || "",
+      groupName: hadoopGroup,
+      sourceHost,
+      targetHost,
+    });
+    if (databaseSteps) {
+      return { steps: databaseSteps };
+    }
 
     if (componentName === "NAMENODE") {
       if (isHaEnabled) {

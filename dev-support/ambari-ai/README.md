@@ -80,7 +80,8 @@ Base:     trunk
 
 The summary is read from JIRA unless `--summary` is supplied. The branch is
 created from `origin/trunk` by default. Use `--base` and `--base-ref` for a
-different target.
+different target. The generated pull request body starts with a link to the
+corresponding ASF JIRA issue.
 
 ## Approve and merge
 

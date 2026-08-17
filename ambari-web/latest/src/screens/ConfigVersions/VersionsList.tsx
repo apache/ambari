@@ -39,6 +39,7 @@ import { ServiceConfigApi } from "../../api/serviceConfigApi";
 import { AppContext } from "../../store/context";
 import { toast } from "react-hot-toast";
 import Config from "../CommonConfigs/Config";
+import { useAuth } from "../../hooks/useAuth";
 
 interface VersionsListProps {
   serviceName: string;
@@ -75,20 +76,13 @@ export const VersionsList = ({
   const [serviceConfigVersionNote, setServiceConfigVersionNote] = useState("");
   const [makeCurrentNote, setMakeCurrentNote] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const selectedServices = [
-    "RANGER_KMS",
-    "AMBARI_METRICS",
-    "RANGER",
-    "YARN",
-    "ZOOKEEPER",
-    "HIVE",
-    "TEZ",
-    "HBASE",
-    "MAPREDUCE2",
-    "SPARK3",
-  ];
-
-  const {clusterName} = useContext(AppContext);
+  const { clusterName, services } = useContext(AppContext);
+  const { hasAuthorization } = useAuth();
+  const canCompareConfigs = hasAuthorization("SERVICE.COMPARE_CONFIGS");
+  const canModifyConfigs = hasAuthorization("SERVICE.MODIFY_CONFIGS");
+  const selectedServices = services.map(
+    (service) => service.ServiceInfo.service_name
+  );
 
   useEffect(()=>{
     setCurrentVersionParent?.(currentVersion)
@@ -233,7 +227,7 @@ export const VersionsList = ({
 
   const setVersion = async () => {
     try {
-      await ServiceConfigApi.setIsCurrent(clusterName, selectedServices);
+      await ServiceConfigApi.getCurrentServiceConfigs(clusterName, selectedServices);
     } catch (error) {
       console.error("Failed to set current version", error);
       throw error;
@@ -277,7 +271,7 @@ export const VersionsList = ({
           <strong style={{ fontWeight: "bold" }}>{currentVersion}</strong>
         </Dropdown.Toggle>
         <span id="make-current-btn" className="ms-1">
-          {previousVersion !== currentVersion && !isComparing ? (
+          {previousVersion !== currentVersion && !isComparing && canModifyConfigs ? (
             <Button
               className="rounded-1 border-1 hover-effect-make-current-btn"
               onClick={() => {
@@ -388,7 +382,7 @@ export const VersionsList = ({
                     </div>
                   </Dropdown.Item>
                 </Card>
-                {item.version !== currentVersion && !isComparing && (
+                {item.version !== currentVersion && !isComparing && canCompareConfigs && (
                   <OverlayTrigger placement="top" overlay={renderTooltip}>
                     <span className="pointer-transition">
                       {/*<FaExchangeAlt className="ms-2" onClick={() => handleCompareVersions(item.version)} />*/}

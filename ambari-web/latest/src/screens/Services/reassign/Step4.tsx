@@ -18,13 +18,12 @@
 
 import { useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Alert } from "react-bootstrap";
+import { Alert, Button } from "react-bootstrap";
 import { ReassignContext } from "./store/context";
 import { ActionTypes } from "./store/types";
 import WizardFooter from "../../../components/StepWizard/WizardFooter";
 import {
   componentsWithCheckDBStep,
-  componentsWithManualCommands,
   reassignSteps,
   relatedServicesMap,
   serviceToConfigSiteMap,
@@ -49,6 +48,8 @@ import OperationsProgress from "../../../components/OperationsProgress";
 import InvalidKDCPopup from "../../Kerberos/InvalidKdcPopup";
 import KerberosApi from "../../../api/kerberosApi";
 import useKDCSessionState from "../../../hooks/useKDCSessionState";
+import modalManager from "../../../store/ModalManager";
+import { isMissingHostComponentError } from "../../../Utils/reassignValidation";
 
 interface ReassignData {
   component_name: string;
@@ -67,14 +68,13 @@ function Step4() {
     state,
     dispatch,
     flushStateToDb,
+    hasManualCommands,
     stepWizardUtilities: { currentStep, handleNextImperitive, jumpToStep },
   } = useContext(ReassignContext);
   const installedServices = map(services, "ServiceInfo.service_name");
 
   // Check if this is the final step (no manual commands)
-  const isLastStep = !componentsWithManualCommands.includes(
-    componentName || ""
-  );
+  const isLastStep = !hasManualCommands;
 
   // State management
   const [tasks, setTasks] = useState<any[]>([]);
@@ -89,6 +89,8 @@ function Step4() {
   const { getKDCSessionState } = useKDCSessionState(null);
   const [showInvalidKDCPopup, setShowInvalidKDCPopup] = useState(false);
   const [stepOperations, setStepOperations] = useState<any>([]);
+  const [rollbackInProgress, setRollbackInProgress] = useState(false);
+  const [rollbackError, setRollbackError] = useState("");
 
   const assignMastersData = getStepData(
     state,
@@ -230,9 +232,7 @@ function Step4() {
       service_id: getServiceForComponent(componentName || ""),
       sourceHost: sourceHost,
       targetHost: targetHost,
-      hasManualSteps: componentsWithManualCommands.includes(
-        componentName || ""
-      ),
+      hasManualSteps: hasManualCommands,
     };
   };
 
@@ -1330,6 +1330,39 @@ function Step4() {
     return await Promise.all(requests);
   };
 
+  const putTargetHostComponentsInMaintenanceMode = async () => {
+    const reassignData = getReassignData();
+    await Promise.all(
+      hostComponents.map((component) =>
+        HostsApi.updateHostComponentPassiveState(
+          clusterName,
+          reassignData.targetHost,
+          component,
+          { context: undefined, passive_state: "ON" }
+        )
+      )
+    );
+  };
+
+  const deleteTargetHostComponents = async () => {
+    const reassignData = getReassignData();
+    await Promise.all(
+      hostComponents.map(async (component) => {
+        try {
+          await HostsApi.deleteHostComponent(
+            clusterName,
+            reassignData.targetHost,
+            component
+          );
+        } catch (error) {
+          if (!isMissingHostComponentError(error)) {
+            throw error;
+          }
+        }
+      })
+    );
+  };
+
   const configureMySqlServer = async () => {
     const reassignData = getReassignData();
     let hostname = "";
@@ -1562,8 +1595,8 @@ function Step4() {
       const requestResponse = await RequestApi.getTaskId(checkDBRequestId);
       if (requestResponse?.items?.[0]?.Tasks?.id) {
         const taskResponse = await getDBConnTaskInfo(
-          requestResponse.items[0].Tasks.id,
-          checkDBRequestId
+          checkDBRequestId,
+          requestResponse.items[0].Tasks.id
         );
         return taskResponse;
       }
@@ -1606,10 +1639,14 @@ function Step4() {
     }
 
     if (/PENDING|QUEUED|IN_PROGRESS/.test(task.status)) {
-      setTimeout(async () => {
-        const result = await getDBConnTaskInfo(checkDBRequestId, checkDBTaskId);
-        return result;
-      }, 3000);
+      return new Promise((resolve, reject) => {
+        setTimeout(() => {
+          getDBConnTaskInfo(checkDBRequestId, checkDBTaskId).then(
+            resolve,
+            reject
+          );
+        }, 3000);
+      });
     }
   };
 
@@ -1706,6 +1743,7 @@ function Step4() {
     const operations = tasks.map((task) => ({
       id: task.id,
       label: task.title,
+      command: task.command,
       skippable: false,
       callback: async () => {
         try {
@@ -1758,6 +1796,49 @@ function Step4() {
     }));
     return operations;
   }
+
+  const rollbackDatabaseMove = async () => {
+    setRollbackInProgress(true);
+    setRollbackError("");
+    try {
+      await putTargetHostComponentsInMaintenanceMode();
+      await deleteTargetHostComponents();
+      await cleanMySqlServer();
+      await configureMySqlServer();
+      await startRequiredServices();
+      await flushStateToDb("complete");
+      const serviceName = getServiceForComponent(componentName || "");
+      window.location.href = `/#/main/services/${serviceName}/summary`;
+    } catch (error: unknown) {
+      const fallbackMessage =
+        error instanceof Error
+          ? error.message
+          : "The rollback operation failed.";
+      setRollbackError(
+        get(
+          error,
+          "response.data.message",
+          fallbackMessage
+        )
+      );
+    } finally {
+      setRollbackInProgress(false);
+    }
+  };
+
+  const confirmDatabaseRollback = () => {
+    modalManager.show({
+      modalTitle: "Rollback Component Move",
+      modalBody:
+        "The database connection test failed. Remove the component from the target host, restore the database service configuration, and restart the affected services?",
+      successCallback: () => {
+        modalManager.hide();
+        void rollbackDatabaseMove();
+      },
+      onClose: () => modalManager.hide(),
+      options: { okButtonText: "ROLLBACK" },
+    });
+  };
 
   const handleNext = async () => {
     if (isLastStep) {
@@ -1847,6 +1928,23 @@ function Step4() {
       ) : (
         <Spinner />
       )}
+
+      {stepOperations.some(
+        (operation: { command?: string; status?: string }) =>
+          operation.command === "testDBConnection" &&
+          operation.status === "FAILED"
+      ) ? (
+        <div className="mt-3">
+          {rollbackError ? <Alert variant="danger">{rollbackError}</Alert> : null}
+          <Button
+            variant="danger"
+            disabled={rollbackInProgress}
+            onClick={confirmDatabaseRollback}
+          >
+            {rollbackInProgress ? "ROLLING BACK" : "ROLLBACK"}
+          </Button>
+        </div>
+      ) : null}
 
       <WizardFooter
         step={currentStep}
