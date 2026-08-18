@@ -39,11 +39,15 @@ export const isWithinTimeRange = (lastStatusChanged: string | null, timeRangeVal
     if (!lastStatusChanged || lastStatusChanged === 'Unknown') return false;
 
     const now = new Date().getTime();
-    const alertTime = new Date(lastStatusChanged).getTime();
+    const normalized = String(lastStatusChanged).trim();
+    const numericTimestamp = /^\d+$/.test(normalized) ? Number(normalized) : NaN;
+    const alertTime = Number.isFinite(numericTimestamp)
+        ? (normalized.length <= 10 ? numericTimestamp * 1000 : numericTimestamp)
+        : new Date(normalized).getTime();
     const hours = TIME_RANGES[timeRangeValue as keyof typeof TIME_RANGES] || 0;
     const timeRange = hours * 60 * 60 * 1000;
 
-    return (now - alertTime) <= timeRange;
+    return Number.isFinite(alertTime) && now >= alertTime && (now - alertTime) <= timeRange;
 };
 
 export const sortAlerts = (alerts: MergedAlert[], sortField: string, isAsc: boolean): MergedAlert[] => {
@@ -87,10 +91,13 @@ export const filterAlerts = (alerts: MergedAlert[], filters: SearchFilter[]): Me
         return filters.every(filter => {
             switch (filter.category) {
                 case 'Alert Definition Name':
-                    return alert.label.toLowerCase().includes(filter.value.toLowerCase());
+                    return (alert.label || '').toLowerCase().includes(filter.value.toLowerCase());
 
                 case 'Service':
-                    return alert.serviceDisplayName.toLowerCase() === filter.value.toLowerCase();
+                    return (alert.serviceDisplayName || '').toLowerCase() === filter.value.toLowerCase();
+
+                case 'Component':
+                    return (alert.component_name || 'N/A').toLowerCase() === filter.value.toLowerCase();
 
                 case 'Status':
                     // Handle empty statuses as NONE
@@ -105,7 +112,7 @@ export const filterAlerts = (alerts: MergedAlert[], filters: SearchFilter[]): Me
                     return alert.statuses[0] && isWithinTimeRange(alert.statuses[0].last_status_changed, filter.value);
 
                 case 'Group':
-                    return alert.groups === filter.value;
+                    return (alert.groups || '').split(',').map((group) => group.trim()).includes(filter.value);
 
                 case 'State':
                     return alert.state === filter.value;
@@ -127,7 +134,6 @@ export const getTimeRangeValue = (range: string): Date | null => {
 
 export const getCategoryValues = (category: string, alertGroups: AlertGroupItem[]): string[] => {
     if (!alertGroups || !Array.isArray(alertGroups) || alertGroups.length === 0) {
-        console.log('No alert groups available for category:', category);
         return [];
     }
 
@@ -146,6 +152,15 @@ export const getCategoryValues = (category: string, alertGroups: AlertGroupItem[
                 (group.AlertGroup.definitions || []).map(def => {
                     if (typeof def === 'object' && 'service_name' in def) {
                         return (def as AlertDefinition).service_name;
+                    }
+                    return '';
+                }).filter(name => name !== '')
+            )));
+        case 'Component':
+            return Array.from(new Set(alertGroups.flatMap(group =>
+                (group.AlertGroup.definitions || []).map(def => {
+                    if (typeof def === 'object' && 'component_name' in def) {
+                        return (def as AlertDefinition).component_name || 'N/A';
                     }
                     return '';
                 }).filter(name => name !== '')
@@ -261,7 +276,6 @@ export const processData = (
         const definitionId = String(item.definition_id);
         const summary = item.summary;
 
-        // FIXED: Include both regular alerts and maintenance mode alerts
         const statusesWithCounts = Object.keys(summary || {})
             .filter((state) => {
                 const stateData = summary?.[state];

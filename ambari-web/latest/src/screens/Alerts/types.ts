@@ -39,7 +39,7 @@ export interface AlertGroup {
     cluster_name: string;
     name: string;
     id: number;
-    targets?: AlertTarget[];
+    targets?: Array<number | AlertTarget>;
     _deleted?: boolean;
     _isModified?: boolean;
     _isNew?: boolean;
@@ -54,7 +54,7 @@ export interface AlertGroupState {
     name: string;
     default: boolean;
     definitions: AlertDefinitionReference[];
-    targets: AlertTarget[];
+    targets: Array<number | AlertTarget>;
     _isModified?: boolean;
     _isNew?: boolean;
     _deleted?: boolean;
@@ -127,7 +127,7 @@ export interface MergedAlert {
     component_name: string;
     alert_definition_id: number;
     source_type: string;
-    statuses: { status: AlertStatus; count: number; last_status_changed: string | null; latest_text: string }[];
+    statuses: { status: AlertStatus; count: number; maintenance_count?: number; last_status_changed: string | null; latest_text: string }[];
     last_status_changed: string | null;
     lastTriggeredFormatted: string;
     lastTriggeredAgoFormatted: string;
@@ -140,6 +140,11 @@ export interface MergedAlert {
     repeat_tolerance?: any;
     repeat_tolerance_enabled?: boolean;
     maintenance_state?: string;
+}
+
+export interface AlertEditorHandle {
+    save: () => Promise<boolean>;
+    discard: () => void;
 }
 
 export interface SummaryData {

@@ -1086,7 +1086,7 @@
   },
   {
     "id": "ALERT-DEF-006",
-    "summary": "Deletes a custom definition",
+    "summary": "Contains an unreachable controller method for deleting a definition; this is `BROKEN/DEAD_CODE`, not a user-facing feature",
     "section": "Definition Details and Instances",
     "moduleFile": "05-alerts.md",
     "line": 41
@@ -1156,7 +1156,7 @@
   },
   {
     "id": "ALERT-GROUP-001",
-    "summary": "Lists groups, descriptions, definitions, and notification targets by service",
+    "summary": "Lists groups, definitions, and notification targets by service",
     "section": "Alert Groups",
     "moduleFile": "05-alerts.md",
     "line": 61
@@ -1170,7 +1170,7 @@
   },
   {
     "id": "ALERT-GROUP-003",
-    "summary": "Renames, edits the description of, or copies a group",
+    "summary": "Renames or copies a group",
     "section": "Alert Groups",
     "moduleFile": "05-alerts.md",
     "line": 63

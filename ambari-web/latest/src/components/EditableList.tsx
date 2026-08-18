@@ -49,28 +49,14 @@ const EditableList: React.FC<EditableListProps> = ({
 
   // Update typeahead when input changes
   useEffect(() => {
-    console.log('Typeahead update - Input:', input, 'Resources:', resources.length, 'Current items:', items.length);
-    
     if (input) {
       const inputValue = isCaseSensitive ? input : input.toLowerCase();
-      console.log('Filtering with input value:', inputValue);
-      
       const availableItems = resources.filter(resource => {
         const nameToCompare = isCaseSensitive ? resource.AlertTarget.name : resource.AlertTarget.name.toLowerCase();
         const alreadyExists = items.some(item => item.AlertTarget.name === resource.AlertTarget.name);
         const matchesInput = nameToCompare.indexOf(inputValue) >= 0;
-        
-        console.log('Checking resource:', resource.AlertTarget.name, {
-          nameToCompare,
-          matchesInput,
-          alreadyExists,
-          shouldInclude: matchesInput && !alreadyExists
-        });
-        
         return matchesInput && !alreadyExists;
       });
-      
-      console.log('Available items for typeahead:', availableItems.map(item => item.AlertTarget.name));
       setTypeahead(availableItems);
       setSelectedTypeahead(0);
     } else {
@@ -106,27 +92,11 @@ const EditableList: React.FC<EditableListProps> = ({
   };
 
   const addItem = (itemToAdd: AlertNotification) => {
-    console.log('Adding item to list:', itemToAdd.AlertTarget.name, itemToAdd);
-    console.log('Current items before adding:', items.map(item => item.AlertTarget.name));
-    console.log('Current input value before clearing:', input);
-    
     const updatedItems = [...items, itemToAdd];
-    console.log('Updated items after adding:', updatedItems.map(item => item.AlertTarget.name));
-    console.log('Calling onItemsChange with:', updatedItems);
-    
-    // Clear input and typeahead immediately
     setInput('');
     setTypeahead([]);
     setSelectedTypeahead(0);
-    console.log('Input, typeahead, and selection cleared');
-    
     onItemsChange(updatedItems);
-    
-    // Additional debug - check if items prop updates
-    setTimeout(() => {
-      console.log('Items prop after onItemsChange call:', items.map(item => item.AlertTarget.name));
-      console.log('Input value after timeout:', input);
-    }, 100);
   };
 
   const handleInputKeyDown = (event: React.KeyboardEvent) => {
@@ -146,14 +116,6 @@ const EditableList: React.FC<EditableListProps> = ({
     }
   };
 
-  // Debug logging
-  console.log('EditableList items:', items.map(item => ({
-    name: item.AlertTarget.name,
-    global: item.AlertTarget.global,
-    id: item.AlertTarget.id,
-    groups: item.AlertTarget.groups
-  })));
-
   return (
     <div className={`editable-list-container well ${editMode ? 'edit-mode' : ''}`}>
       <div className="items-box" onClick={!editMode ? enableEditMode : undefined}>
@@ -163,7 +125,6 @@ const EditableList: React.FC<EditableListProps> = ({
               <span>
                 <a href="#" onClick={(e) => e.preventDefault()}>
                   {item.AlertTarget.name}
-                  {/* Debug info */}
                   <small style={{ color: '#999', marginLeft: '5px' }}>
                     ({item.AlertTarget.global ? 'Global' : 'Custom'})
                   </small>
@@ -174,7 +135,6 @@ const EditableList: React.FC<EditableListProps> = ({
                     className="close"
                     onClick={(e) => {
                       e.stopPropagation();
-                      console.log('Removing notification:', item.AlertTarget.name, 'global:', item.AlertTarget.global);
                       removeFromItems(item);
                     }}
                   >
