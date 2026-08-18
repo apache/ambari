@@ -22,6 +22,7 @@ const mocks = vi.hoisted(() => ({
   get: vi.fn(),
   create: vi.fn(),
   update: vi.fn(),
+  storeInfo: vi.fn(),
 }));
 
 vi.mock("../api/credentialsApi", () => ({
@@ -29,6 +30,7 @@ vi.mock("../api/credentialsApi", () => ({
     getCredentials: mocks.get,
     createCredentials: mocks.create,
     updateCredentials: mocks.update,
+    credentialsStoreInfo: mocks.storeInfo,
   },
 }));
 
@@ -55,9 +57,12 @@ describe("credentialsUtils.createOrUpdateCredentials", () => {
     );
   });
 
-  it("creates only after an explicit missing-credential response", async () => {
+  it.each([
+    { response: { status: 404 } },
+    { response: { data: { message: "NoSuchResourceException" } } },
+  ])("creates only after an explicit missing-credential response", async (error) => {
     mocks.get.mockRejectedValue({
-      response: { status: 404, data: { message: "NoSuchResourceException" } },
+      ...error,
     });
 
     await credentialsUtils.createOrUpdateCredentials("c1", "kdc", resource);
@@ -66,8 +71,8 @@ describe("credentialsUtils.createOrUpdateCredentials", () => {
     expect(mocks.update).not.toHaveBeenCalled();
   });
 
-  it("does not create or replay after a credential lookup failure", async () => {
-    const lookupError = new Error("credential API unavailable");
+  it.each([401, 403, 500])("propagates lookup status %s without writing", async (status) => {
+    const lookupError = { response: { status } };
     mocks.get.mockRejectedValue(lookupError);
 
     await expect(
@@ -75,5 +80,19 @@ describe("credentialsUtils.createOrUpdateCredentials", () => {
     ).rejects.toBe(lookupError);
     expect(mocks.create).not.toHaveBeenCalled();
     expect(mocks.update).not.toHaveBeenCalled();
+  });
+
+  it("returns credential-store support instead of losing the async result", async () => {
+    mocks.storeInfo.mockResolvedValue({
+      Clusters: {
+        credential_store_properties: {
+          "storage.persistent": "true",
+          "storage.temporary": "false",
+        },
+      },
+    });
+
+    await expect(credentialsUtils.isStorePersisted("c1")).resolves.toBe(true);
+    await expect(credentialsUtils.isStoreTemporary("c1")).resolves.toBe(false);
   });
 });

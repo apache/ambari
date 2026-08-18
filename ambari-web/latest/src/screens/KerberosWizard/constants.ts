@@ -44,8 +44,6 @@ export const preconditionOptions = {
     Options: {
       "All cluster hosts are joined to the IPA domain and hosts are registered in DNS":
         false,
-      "A password policy is in place that sets no expiry for created principals":
-        false,
       "If you do not plan on using Ambari to manage the krb5.conf, ensure the following is set in each krb5.conf file in your cluster: default_ccache_name = /tmp/krb5cc_%{uid}":
         false,
       "The Java Cryptography Extensions (JCE) have been setup on the Ambari Server host and all hosts in the cluster.":
@@ -66,6 +64,25 @@ export const preconditionOptions = {
     },
   },
 };
+
+const ONEFS_PRECONDITION =
+  "The Isilon administrator has setup all appropriate principals in OneFS";
+
+export function createKerberosPreconditionOptions(
+  installedServiceNames: string[],
+) {
+  const result: Record<string, { Options: Record<string, boolean> }> =
+    Object.fromEntries(
+    Object.entries(preconditionOptions).map(([plan, value]) => [
+      plan,
+      { Options: { ...value.Options } },
+    ]),
+  );
+  if (installedServiceNames.includes("ONEFS")) {
+    result["Existing MIT KDC"].Options[ONEFS_PRECONDITION] = false;
+  }
+  return result;
+}
 
 export const kdcProperties = {
   "Existing MIT KDC": ['kdc_type:KDC', 'kdc_hosts:KDC', 'realm:KDC', 'executable_search_paths:Advanced kerberos-env'],

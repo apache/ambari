@@ -20,12 +20,16 @@ import { RequestApi } from "../../api/requestApi";
 import { useContext, useEffect, useState } from "react";
 import WizardFooter from "../../components/StepWizard/WizardFooter";
 import { EnableKerberosContext } from "./KerberosStore/context"
-import { Alert } from "react-bootstrap";
+import { Alert, Form } from "react-bootstrap";
 import { AppContext } from "../../store/context";
 import { translate } from "../../Utils/Utility";
 import { ActionTypes } from "./KerberosStore/types";
 import { get } from "lodash";
 import OperationsProgress from "../../components/OperationsProgress";
+import KerberosApi from "../../api/kerberosApi";
+import { ProgressStatus } from "../../constants";
+import { runKerberosClientInstall } from "../../Utils/kerberosWizard";
+import useKDCSessionState from "../../hooks/useKDCSessionState";
 
 export default function StartAndTestKerberosClient() {
 
@@ -38,16 +42,11 @@ export default function StartAndTestKerberosClient() {
   } = useContext(EnableKerberosContext);
 
   const [ completionStatus, setCompletionStatus ] = useState(false);
-  const [ nextEnabled, setNextEnabled ] = useState(true)
+  const [ignoreErrors, setIgnoreErrors] = useState(false);
+  const [hasFailed, setHasFailed] = useState(false);
   const [stepOperations, setStepOperations] = useState<any>([]);
-  const { clusterName } = useContext(AppContext);
-
-  useEffect(() => {
-    if(completionStatus) {
-      setNextEnabled(true);
-    }
-  }, [ completionStatus ]);
-
+  const { allHostNames, clusterName } = useContext(AppContext);
+  const { getKDCSessionState } = useKDCSessionState(() => {});
 
   const initialOperations = [
     {
@@ -55,36 +54,21 @@ export default function StartAndTestKerberosClient() {
       label: "Install Kerberos Client",
       skippable: false,
       context: "Install Kerberos Service",
-      callback: async () => {
-        const installKerberosClientPayload =
-        {
-          "RequestInfo": {
-              "context": "Install Kerberos Service",
-              "operation_level": {
-                  "level": "CLUSTER",
-                  "cluster_name": `${clusterName}`
-              }
-          },
-          "Body": {
-              "ServiceInfo": {
-                  "state": "INSTALLED"
-              }
-          }
-      }
-      const requestData = await RequestApi.performRequests(
-        clusterName,
-        installKerberosClientPayload
-      );
-      
-      return requestData;
-      },
+      callback: () => runKerberosClientInstall({
+        getKerberosClientState: () =>
+          KerberosApi.getKerberosClientState(clusterName),
+        installKerberosService: () =>
+          KerberosApi.installKerberosService(clusterName),
+        installKerberosClients: () =>
+          KerberosApi.installKerberosClients(clusterName, allHostNames),
+      }),
     },
     {
       id: 2,
       label: "Test Kerberos Client",
       skippable: false,
       context: "Kerberos Service Check",
-      callback: async () => {
+      callback: () => new Promise((resolve, reject) => {
         const TestKerberosClientPayload = {
           "RequestInfo": {
             "context": "Kerberos Service Check",
@@ -100,11 +84,32 @@ export default function StartAndTestKerberosClient() {
             }
           ]
         }
-        const requestData = await RequestApi.postRequest(
-          clusterName,
-          TestKerberosClientPayload
+        void getKDCSessionState(
+          async () => {
+            resolve(await RequestApi.postRequest(
+              clusterName,
+              TestKerberosClientPayload,
+            ));
+          },
+          reject,
+          { forceCheck: true },
         );
-        return requestData;
+      }),
+    },
+    {
+      id: 3,
+      label: "Check Host Heartbeats",
+      skippable: false,
+      context: "Check Host Heartbeats",
+      retryFromOperationId: 1,
+      callback: async () => {
+        const response = await KerberosApi.getHeartbeatLostHosts(clusterName);
+        const hosts = (response?.items ?? []).map(
+          (item: any) => item?.Hosts?.host_name,
+        ).filter(Boolean);
+        if (hosts.length > 0) {
+          throw new Error(`Heartbeat is lost for: ${hosts.join(", ")}`);
+        }
       },
     },
   ];
@@ -150,6 +155,9 @@ export default function StartAndTestKerberosClient() {
         description="Install and Test Kerberos Client"
         setCompletionStatus={setCompletionStatus}
         dispatch={(operationsState: any) => {
+          setHasFailed(operationsState.some(
+            (operation: any) => operation.status === ProgressStatus.FAILED,
+          ));
           dispatch({
             type: ActionTypes.STORE_INFORMATION,
             payload: {
@@ -162,8 +170,18 @@ export default function StartAndTestKerberosClient() {
         }}
       />
 
+      {hasFailed && (
+        <Form.Check
+          className="px-3"
+          id="kerberos-ignore-client-errors"
+          checked={ignoreErrors}
+          onChange={(event) => setIgnoreErrors(event.target.checked)}
+          label="Ignore errors and continue to the next step"
+        />
+      )}
+
       <WizardFooter
-        isNextEnabled={nextEnabled}
+        isNextEnabled={completionStatus || (hasFailed && ignoreErrors)}
         step={currentStep}
         onNext={() => {
             flushStateToDb("next");

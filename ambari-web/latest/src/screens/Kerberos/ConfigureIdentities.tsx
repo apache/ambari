@@ -16,12 +16,12 @@
  * limitations under the License.
  */
 
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import KerberosApi from "../../api/kerberosApi";
 import { ServicesStackDescriptorConfigs } from "./addSecurityConfigs";
 import useKerberosConfigs from "./useKerberosConfigs";
 import { get, isEmpty, cloneDeep } from "lodash";
-import { Alert, Tab, Tabs } from "react-bootstrap";
+import { Alert, Button, Tab, Tabs } from "react-bootstrap";
 import AdvancedConfigs from "../CommonConfigs/AdvancedConfigs";
 import Spinner from "../../components/Spinner";
 import WizardFooter from "../../components/StepWizard/WizardFooter";
@@ -29,8 +29,21 @@ import { EnableKerberosContext } from "../KerberosWizard/KerberosStore/context";
 import { ActionTypes } from "../KerberosWizard/KerberosStore/types";
 import { ConfigPropertiesType } from "../CommonConfigs/types";
 import { AppContext } from "../../store/context";
-import { getConfigTagFromFileName, getTotalErros } from "../CommonConfigs/ConfigUtils";
+import { getTotalErros } from "../CommonConfigs/ConfigUtils";
 import { translate } from "../../Utils/Utility";
+import { RequestApi } from "../../api/requestApi";
+import {
+  applyKerberosRecommendations,
+  buildDesiredConfigTagQuery,
+  buildKerberosRecommendationPayload,
+  collectDescriptorFormValues,
+  isManualKdcPlan,
+  removeDescriptorIdentityReferences,
+  updateKerberosDescriptor as applyDescriptorValues,
+} from "../../Utils/kerberosWizard";
+import { responseErrorMessage } from "../../Utils/httpError";
+import ConfigsApi from "../../api/configsApi";
+import { generateHostGroups } from "../../Utils/Utility";
 
 interface ConfigProperties {
     propertyName: string;
@@ -80,7 +93,13 @@ function ConfigureIdentities() {
     dispatch,
     flushStateToDb,
     onExitPopUp,
-    stepWizardUtilities: { currentStep, handleNextImperitive, wizardSteps, handleBackImperitive},
+    stepWizardUtilities: {
+      currentStep,
+      handleNextImperitive,
+      wizardSteps,
+      handleBackImperitive,
+      jumpToStep,
+    },
   } = useContext(EnableKerberosContext);
 
   const [ loading, setLoading ] = useState(false);
@@ -88,30 +107,121 @@ function ConfigureIdentities() {
   const [ result, setResult ] = useState<Record<string, any>>({})
   const [ tabErrors, setTabErrors ] = useState({});
   const [ nextEnabled, setNextEnabled ] = useState(false);
-  const [ stepConfigs, setStepConfigs] = useState<StepConfig[]>([]);
-  const { clusterName, stackConfigurations, services } = useContext(AppContext);
-  const configsStep2: ConfigPropertiesType = get(state, `kerberosWizardSteps.${wizardSteps[1].name}.data.configProperties`, {})
+  const [loadError, setLoadError] = useState("");
+  const [submitError, setSubmitError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
+  const getStepConfigsRef = useRef<(configs: unknown) => StepConfig[]>(() => []);
+  const transformDataRef = useRef<(data: unknown[]) => KerberosConfigProperties>(
+    () => ({}),
+  );
+  const {
+    allHostNames,
+    cluster,
+    clusterName,
+    services,
+    stackConfigurations,
+    supports,
+  } = useContext(AppContext);
+  const configsStep2: ConfigPropertiesType = get(state, `kerberosWizardSteps.${wizardSteps[2].name}.data.configProperties`, {})
+  const selectedKdcPlan = get(
+    state,
+    `kerberosWizardSteps.${wizardSteps[1].name}.data.selectedKdcPlan`,
+    "",
+  );
+  const storedResult = get(
+    state,
+    `kerberosWizardSteps.${wizardSteps[4].name}.data.result`,
+    null,
+  );
 
   useEffect(() => {
+    let active = true;
     async function getKerberosIdentities() {
+      if (!isEmpty(storedResult)) {
+        setResult(storedResult);
+        setLoadError("");
+        return;
+      }
       setLoading(true);
-      const kerberosDescriptor =
-        await KerberosApi.getKerberosDescriptorProperties("true", clusterName);
+      setLoadError("");
+      try {
+        const kerberosDescriptor =
+          await KerberosApi.getKerberosDescriptorProperties("true", clusterName);
 
-      const stepConfigs = ServicesStackDescriptorConfigs(
-        kerberosDescriptor,
-        kerberosIdentitiesMap,
-        configId
-      );
-      const kerberosConfigs = getStepConfigs(stepConfigs);
-      setStepConfigs(kerberosConfigs);
+        const descriptorConfigs = ServicesStackDescriptorConfigs(
+          kerberosDescriptor,
+          kerberosIdentitiesMap,
+          configId
+        );
+        const kerberosConfigs = getStepConfigsRef.current(descriptorConfigs);
+        let nextResult = transformDataRef.current(kerberosConfigs);
 
-      const result = transformData(kerberosConfigs)
-      setResult(result)
-      setLoading(false);
+        if (supports.kerberosStackAdvisor) {
+          const stackName = get(cluster, "version", "").split("-")[0];
+          const stackVersion = get(cluster, "version", "").split("-")[1];
+          if (!stackName || !stackVersion) {
+            throw new Error("The cluster stack version is unavailable.");
+          }
+          const desiredConfigResponse = await ConfigsApi.loadConfigTags(clusterName);
+          const configQuery = buildDesiredConfigTagQuery(
+            desiredConfigResponse?.Clusters?.desired_configs,
+          );
+          const configurations = configQuery
+            ? (await ConfigsApi.getConfigsByTags(clusterName, configQuery))?.items ?? []
+            : [];
+          const hostGroups = await generateHostGroups(clusterName, allHostNames);
+          const recommendationPayload = buildKerberosRecommendationPayload({
+            hostNames: allHostNames,
+            serviceNames: [
+              ...services.map((service: any) =>
+                service.ServiceInfo?.service_name,
+              ).filter(Boolean),
+              "KERBEROS",
+            ],
+            hostGroups,
+            configurations,
+            descriptorConfigs,
+          });
+          const recommendations = await ConfigsApi.getRecommendations(
+            stackName,
+            stackVersion,
+            recommendationPayload,
+          );
+          nextResult = applyKerberosRecommendations(nextResult, recommendations);
+        }
+
+        if (active) {
+          setResult(nextResult);
+        }
+      } catch (error) {
+        if (active) {
+          setLoadError(responseErrorMessage(
+            error,
+            "Ambari could not load the Kerberos descriptor and recommendations.",
+          ));
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
     }
-    getKerberosIdentities();
-  }, []);
+    void getKerberosIdentities();
+    return () => {
+      active = false;
+    };
+  }, [
+    allHostNames,
+    cluster,
+    clusterName,
+    configId,
+    kerberosIdentitiesMap,
+    loadAttempt,
+    services,
+    storedResult,
+    supports.kerberosStackAdvisor,
+  ]);
 
   useEffect(() => {
    const noErros = getTotalErros(tabErrors);
@@ -156,6 +266,7 @@ function ConfigureIdentities() {
               previousValue: get(config, 'previousValue', ''),
               value: get(config, 'value', ''),
               final: get(config, 'final', 'false'),
+              filename: get(config, 'filename', ''),
               ...(config.propertyDisplayValue && { propertyDisplayValue: config.propertyDisplayValue }),
               ...(config.errorMessages && { errorMessages: config.errorMessages }),
               ...(config.confirmPassword && { confirmPassword: config.confirmPassword }),
@@ -171,7 +282,7 @@ function ConfigureIdentities() {
   
 
   function getStepConfigs(configs: any) {
-    var configProperties = prepareConfigProperties(configs);
+    let configProperties = prepareConfigProperties(configs);
 
     configProperties = sortConfigs(configProperties);
     const newStepConfigs = createServiceConfig(configProperties);
@@ -179,11 +290,11 @@ function ConfigureIdentities() {
   }
 
   function prepareConfigProperties(configs: any) {
-    let installedServiceNames = ["Cluster", "AMBARI"].concat(
+    const installedServiceNames = ["Cluster", "AMBARI"].concat(
       services.map((service: any) => service.ServiceInfo?.service_name)
     );
     let configPropertiesCopy = cloneDeep(configs);
-    let siteProperties = stackConfigurations;
+    const siteProperties = stackConfigurations;
 
     configPropertiesCopy = configPropertiesCopy.filter(
       (item: { serviceName: string }) =>
@@ -314,8 +425,7 @@ function ConfigureIdentities() {
   }
 
   function createCategoryForServices() {
-    var services1 = services;
-    return services1.map((item) => ({
+    return services.map((item) => ({
       name: item.ServiceInfo?.service_name,
       displayName: item.ServiceInfo?.service_name,
       collapsedByDefault: true,
@@ -337,140 +447,47 @@ function ConfigureIdentities() {
     );
   }
 
-  /**
-   * This function updates stack/service/component level kerberos descriptor identities (principal and keytab)
-   * with the values entered by the user on the rendered UI.
-   * @param {Array} identities
-   * @param {Object} config
-   * @return {boolean}
-   */
-  const updateDescriptorIdentityConfig = (identities: any[], config: any) => {
-    let isConfigUpdated = false;
-  
-    const updatedIdentities = identities.map((identity) => {
-      const updatedIdentity = cloneDeep(identity);
-      const keys = Object.keys(identity).filter((key) => key !== 'name');
-  
-      keys.forEach((item) => {
-        const prop = updatedIdentity[item];
-  
-        // Compare UI rendered config against identity with `configuration attribute` (Most of the identities have `configuration attribute`)
-        const isIdentityWithConfig = (
-          prop.configuration &&
-          prop.configuration.split('/')[0] === getConfigTagFromFileName(config.filename) &&
-          prop.configuration.split('/')[1] === config.name
-        );
-  
-        // Compare UI rendered config against identity without `configuration attribute` (For example spnego principal and keytab)
-        const isIdentityWithoutConfig = (
-          !prop.configuration &&
-          identity.name === config.name.split('_')[0] &&
-          item === config.name.split('_')[1]
-        );
-  
-        if (isIdentityWithConfig || isIdentityWithoutConfig) {
-          updatedIdentity[item] = { ...prop, [item === 'keytab' ? 'file' : 'value']: config.value };
-          isConfigUpdated = true;
-        }
-      });
-  
-      return updatedIdentity;
-    });
-  
-    return { isConfigUpdated, updatedIdentities };
-  };
-  
-  const updateDescriptorConfigs = (configurations: any, config: any) => {
-    let isConfigUpdated = false;
-  
-    if (configurations) {
-      if (Array.isArray(configurations)) {
-        configurations.forEach((configuration) => {
-          for (const key in configuration) {
-            if (configuration[key].hasOwnProperty(config.name) && getConfigTagFromFileName(config.filename) === key) {
-              configuration[key][config.name] = config.value;
-              isConfigUpdated = true;
-            }
-          }
-        });
-      } else if (configurations.hasOwnProperty(config.name) && getConfigTagFromFileName(config.filename) === 'stackConfigs') {
-        configurations[config.name] = config.value;
-        isConfigUpdated = true;
-      }
-    }
-  
-    return isConfigUpdated;
-  };
-  
-  const updateResourceIdentityConfigs = (resource: any, config: any, isStackResource = false) => {
-    let isConfigUpdated;
-    const identities = resource.identities;
-    const properties = isStackResource ? resource.properties : resource.configurations;
-    isConfigUpdated = updateDescriptorConfigs(properties, config);
-  
-    let updatedResource = cloneDeep(resource);
-  
-    if (!isConfigUpdated && identities) {
-      const { isConfigUpdated: identityUpdated, updatedIdentities } = updateDescriptorIdentityConfig(identities, config);
-      isConfigUpdated = identityUpdated;
-      if (identityUpdated) {
-        updatedResource = {
-          ...resource,
-          identities: updatedIdentities
-        };
-      }
-    }
-  
-    return { isConfigUpdated, updatedResource };
-  };
-  
-  const updateKerberosDescriptor = (kerberosDescriptor: any, configs: any[]) => {
-    let updatedKerberosDescriptor = cloneDeep(kerberosDescriptor);
-  
-    configs.forEach((config) => {
-      let isConfigUpdated;
-      const isStackResource = true;
-      let result = updateResourceIdentityConfigs(updatedKerberosDescriptor, config, isStackResource);
-      isConfigUpdated = result.isConfigUpdated;
-      updatedKerberosDescriptor = result.updatedResource;
-  
-      if (!isConfigUpdated) {
-        updatedKerberosDescriptor.services = updatedKerberosDescriptor.services.map((service: any) => {
-          let result = updateResourceIdentityConfigs(service, config);
-          isConfigUpdated = result.isConfigUpdated;
-          let updatedService = result.updatedResource;
-  
-          if (!isConfigUpdated) {
-            updatedService.components = (service.components || []).map((component: any) => {
-              let result = updateResourceIdentityConfigs(component, config);
-              isConfigUpdated = result.isConfigUpdated;
-              return result.updatedResource;
-            });
-          }
-  
-          return updatedService;
-        });
-      }
-    });
-  
-    return updatedKerberosDescriptor;
-  };
-  
+  getStepConfigsRef.current = getStepConfigs;
+  transformDataRef.current = transformData;
+
   async function saveConfigurations() {
     const response = await KerberosApi.getKerberosDescriptorProperties("true", clusterName);
-    const kerberosDescriptor = get(response, "KerberosDescriptor.kerberos_descriptor", []);
-    const configs = stepConfigs.reduce((acc: any[], stepConfig: StepConfig) => acc.concat(stepConfig.configs), []);
-    const updatedKerberosDescriptor = updateKerberosDescriptor(kerberosDescriptor, configs);
+    const kerberosDescriptor = get(response, "KerberosDescriptor.kerberos_descriptor", {});
+    const configs = collectDescriptorFormValues(result);
+    const updatedKerberosDescriptor = removeDescriptorIdentityReferences(
+      applyDescriptorValues(kerberosDescriptor, configs),
+    );
     
     const payload = {
       "artifact_data":
       updatedKerberosDescriptor
     }
-    await KerberosApi.saveKerberosData(clusterName, payload);
+    await KerberosApi.createKerberosDescriptor(clusterName, payload);
+
+    try {
+      await RequestApi.preparingOperations(clusterName, {
+        Clusters: { security_type: "NONE" },
+      });
+    } catch {
+      // Classic advances after this cleanup request settles in either state.
+    }
   }
 
-  if(loading || isEmpty(result)) {
+  if(loading) {
     return <Spinner />
+  }
+
+  if (loadError || isEmpty(result)) {
+    return (
+      <Alert variant="danger">
+        <div>
+          {loadError || "The Kerberos descriptor did not contain editable identities."}
+        </div>
+        <Button className="mt-3" onClick={() => setLoadAttempt((value) => value + 1)}>
+          Retry
+        </Button>
+      </Alert>
+    );
   }
 
   return (
@@ -478,6 +495,7 @@ function ConfigureIdentities() {
         <div>
             <h5> Configure Identities</h5>
             <p>Configure principal name and keytab location for service users and hadoop service components.</p>
+            {submitError && <Alert variant="danger">{submitError}</Alert>}
         </div>
         <div>
             <Tabs defaultActiveKey="general">
@@ -488,6 +506,7 @@ function ConfigureIdentities() {
                         chosenService={"KERBEROS_GENERAL"}
                         setTabErrors={setTabErrors}
                         displayUndoRedo={false}
+                        canEdit
                     />
                 </Tab>
                 <Tab eventKey="advanced" title="Advanced">
@@ -497,6 +516,7 @@ function ConfigureIdentities() {
                         chosenService={"KERBEROS_ADVANCED"}
                         setTabErrors  ={setTabErrors}
                         displayUndoRedo={false}
+                        canEdit
                     />
                 </Tab>
             </Tabs>
@@ -505,25 +525,41 @@ function ConfigureIdentities() {
           {translate("installer.step7.noIssues")}
         </Alert>
         <WizardFooter
-          isNextEnabled={nextEnabled}
+          isNextEnabled={nextEnabled && !isSubmitting}
           step={currentStep}
-          onNext={() => {
+          onNext={async () => {
             if(result) {
               dispatch({
                 type: ActionTypes.STORE_INFORMATION,
                 payload: { step: currentStep.name, data: {result}}
               })
             }
-            saveConfigurations();
-            flushStateToDb("next");
-            handleNextImperitive();
+            setIsSubmitting(true);
+            setSubmitError("");
+            try {
+              await saveConfigurations();
+              flushStateToDb("next");
+              handleNextImperitive();
+            } catch (error) {
+              setSubmitError(responseErrorMessage(
+                error,
+                "Ambari could not save the Kerberos descriptor. Correct the problem and retry.",
+              ));
+            } finally {
+              setIsSubmitting(false);
+            }
           }}
           onCancel={() => {
             onExitPopUp(false, false);
           }}
           onBack={() => {
-            flushStateToDb("back")
-            handleBackImperitive();
+            if (isManualKdcPlan(selectedKdcPlan)) {
+              flushStateToDb("jump", 2);
+              jumpToStep(2, true);
+            } else {
+              flushStateToDb("back")
+              handleBackImperitive();
+            }
           }}
         />
     </div>

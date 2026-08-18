@@ -26,9 +26,14 @@ import modalManager from "../../../store/ModalManager";
 import ConfirmationModal from "../../../components/ConfirmationModal";
 import { AppContext } from "../../../store/context";
 import {translate } from "../../../Utils/Utility";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { RequestApi } from "../../../api/requestApi";
 import KerberosApi from "../../../api/kerberosApi";
+import { Alert, Button } from "react-bootstrap";
+import Spinner from "../../../components/Spinner";
+import { responseErrorMessage } from "../../../Utils/httpError";
+import { kerberosWizardPersistenceResetPayload } from "../../../Utils/kerberosWizard";
+import { postKerberosWizardPersistData } from "../../../Utils/kerberosWizardPersistence";
 
 interface KerberosWizardContextProps {
   state: State;
@@ -44,12 +49,10 @@ export async function discardChanges(clusterName: string) {
           "security_type": "NONE"
       }
     }
-    try {
-      await RequestApi.preparingOperations(clusterName, payload)
-      await KerberosApi.deleteKerberosService(clusterName, "KERBEROS")
-    } catch (error) {
-      console.log("Unable to remove kerberos", error)
-    }
+    await RequestApi.preparingOperations(clusterName, payload).catch(() => undefined);
+    await KerberosApi.deleteKerberosService(clusterName, "KERBEROS").catch(
+      () => undefined,
+    );
   }
 
 export const EnableKerberosContext =
@@ -63,24 +66,30 @@ export const EnableKerberosContext =
 export const KerberosWizardProvider: React.FC<{
   stepWizardUtilities:any;
   children: React.ReactNode;
-}> = ({ stepWizardUtilities, children }) => {
+  onWizardExitReady?: () => void;
+}> = ({ stepWizardUtilities, children, onWizardExitReady }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
   const isDataPersisted = useRef(false);
   const [currStepData, setCurrStepData] = useState({});
+  const [isRecoveryLoading, setIsRecoveryLoading] = useState(true);
+  const [recoveryLoadError, setRecoveryLoadError] = useState("");
+  const [persistenceError, setPersistenceError] = useState("");
   const {clusterName} = useContext(AppContext);
   const navigate = useNavigate();
 
   useEffect(() => {
-    syncUserPersistedData();
+    void syncUserPersistedData();
   }, [])
 
   useEffect(() => {
     if (isDataPersisted.current) {
-      flushCurrentData();
+      void flushCurrentData().catch(() => undefined);
     }
   }, [state.kerberosWizardSteps, currStepData]);
 
   async function syncUserPersistedData() {
+    setIsRecoveryLoading(true);
+    setRecoveryLoadError("");
     try {
       const persistedData = await ClusterApi.getPersistData(
         "ENABLING_KERBEROS"
@@ -117,33 +126,48 @@ export const KerberosWizardProvider: React.FC<{
       } else {
         stepWizardUtilities.jumpToStep(1, true);
       }
-    } finally {
       isDataPersisted.current = true;
+    } catch (error) {
+      setRecoveryLoadError(responseErrorMessage(
+        error,
+        "Ambari could not load the Enable Kerberos recovery state.",
+      ));
+    } finally {
+      setIsRecoveryLoading(false);
     }
   }
 
   async function flushCurrentData() {
-    await ClusterApi.postPersistData(
-      JSON.stringify({
-        ENABLING_KERBEROS: JSON.stringify({
-          ...state,
-          activeStep: get(currStepData, "stepName", ""),
-        }),
-        CLUSTER_STATE: JSON.stringify(currStepData),
-      })
-    );
+    const payload = JSON.stringify({
+      ENABLING_KERBEROS: JSON.stringify({
+        ...state,
+        activeStep: get(currStepData, "stepName", ""),
+      }),
+      CLUSTER_STATE: JSON.stringify(currStepData),
+    });
+    try {
+      await postKerberosWizardPersistData(payload);
+      setPersistenceError("");
+    } catch (error) {
+      setPersistenceError(responseErrorMessage(
+        error,
+        "Ambari could not save the Enable Kerberos recovery state.",
+      ));
+      throw error;
+    }
   }
 
   async function flushOnCancel() {
-    await ClusterApi.postPersistData(
-      JSON.stringify({
-        ENABLING_KERBEROS: JSON.stringify(initialState),
-        CLUSTER_STATE: JSON.stringify({}),
-      })
+    await postKerberosWizardPersistData(
+      kerberosWizardPersistenceResetPayload(),
     );
-    const returnPath = localStorage.getItem("module06WizardReturnPath");
-    localStorage.removeItem("module06WizardReturnPath");
-    navigate(returnPath || `/main/admin/kerberos/`);
+    if (onWizardExitReady) {
+      onWizardExitReady();
+    } else {
+      const returnPath = localStorage.getItem("module06WizardReturnPath");
+      localStorage.removeItem("module06WizardReturnPath");
+      navigate(returnPath || `/main/admin/kerberos/`);
+    }
   }
 
   async function flushOnStepChange(nextStep: number) {
@@ -180,19 +204,15 @@ export const KerberosWizardProvider: React.FC<{
     );
     switch (operation) {
       case "cancel":
-        flushOnCancel();
-        break;
+        return flushOnCancel();
       case "back":
-        flushOnStepChange(Number(activeStep) - 1);
-        break;
+        return flushOnStepChange(Number(activeStep) - 1);
       case "next":
-        flushOnStepChange(Number(activeStep) + 1);
-        break;
+        return flushOnStepChange(Number(activeStep) + 1);
       case "jump":
-        flushOnStepChange(jumpStep);
-        break;
+        return flushOnStepChange(jumpStep);
       default:
-        flushCurrentData();
+        return flushCurrentData();
     }
   }
 
@@ -203,13 +223,29 @@ export const KerberosWizardProvider: React.FC<{
         onClose={() => modalManager.hide()}
         modalTitle={translate("popup.confirmation.commonHeader")}
         modalBody={isCritical ? translate('admin.kerberos.wizard.exit.critical.msg'): translate('admin.kerberos.wizard.exit.warning.msg')}
-        successCallback={() => {
-          if(!skipDiscardChanges)
-            discardChanges(clusterName);
-          flushStateToDb("cancel");
+        successCallback={async () => {
+          if(!skipDiscardChanges) {
+            await discardChanges(clusterName);
+          }
+          await flushStateToDb("cancel");
           modalManager.hide();
         }}
       />
+    );
+  }
+
+  if (isRecoveryLoading) {
+    return <Spinner />;
+  }
+
+  if (recoveryLoadError) {
+    return (
+      <Alert variant="danger" className="m-3">
+        <div>{recoveryLoadError}</div>
+        <Button className="mt-3" onClick={() => void syncUserPersistedData()}>
+          Retry
+        </Button>
+      </Alert>
     );
   }
 
@@ -217,6 +253,17 @@ export const KerberosWizardProvider: React.FC<{
     <EnableKerberosContext.Provider
       value={{ state, dispatch, stepWizardUtilities, flushStateToDb, onExitPopUp }}
     >
+      {persistenceError && (
+        <Alert variant="danger" className="m-3">
+          <div>{persistenceError}</div>
+          <Button
+            className="mt-3"
+            onClick={() => void flushCurrentData().catch(() => undefined)}
+          >
+            Retry
+          </Button>
+        </Alert>
+      )}
       {children}
     </EnableKerberosContext.Provider>
   );

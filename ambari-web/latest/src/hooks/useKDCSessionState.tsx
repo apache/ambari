@@ -25,6 +25,9 @@ import InvalidKdcPopup from "../components/InvalidKdcPopup";
 
 type KDCSessionCallback = () => void | Promise<void>;
 type KDCSessionErrorCallback = (error: unknown) => void;
+type KDCSessionOptions = {
+  forceCheck?: boolean;
+};
 type KerberosConfiguration = {
   properties?: { kdc_type?: string };
   type?: string;
@@ -35,8 +38,8 @@ function useKDCSessionState(_cancelHandler: unknown) {
   const [isLoaded, setIsLoaded] = useState(false);
   const { clusterName, isKerberosEnabled } = useContext(AppContext);
   const kdc_type = useRef("");
-  async function getSecurityType() {
-    if (securityEnabled || isKerberosEnabled) {
+  async function getSecurityType(forceCheck = false) {
+    if (forceCheck || securityEnabled || isKerberosEnabled) {
       const data = await adminApi.getSecurityType(clusterName);
       kdc_type.current =
         data?.items?.[0]?.configurations?.find(
@@ -64,10 +67,11 @@ function useKDCSessionState(_cancelHandler: unknown) {
   const getKDCSessionState = async (
     callback: KDCSessionCallback,
     errorCallback?: KDCSessionErrorCallback,
+    options: KDCSessionOptions = {},
   ): Promise<void> => {
     try {
-      if (securityEnabled || isKerberosEnabled) {
-        await getSecurityType();
+      if (options.forceCheck || securityEnabled || isKerberosEnabled) {
+        await getSecurityType(options.forceCheck);
         if (kdc_type.current !== "none") {
           const data = await adminApi.getKerberosSessionState(clusterName);
           const result = get(data, "Services.attributes.kdc_validation_result", "");
@@ -80,7 +84,7 @@ function useKDCSessionState(_cancelHandler: unknown) {
             modalManager.show(
               <InvalidKdcPopup
                 getKdcSessionState={() => {
-                  void getKDCSessionState(callback, errorCallback);
+                  void getKDCSessionState(callback, errorCallback, options);
                 }}
                 onCancel={() =>
                   reportCredentialFailure(

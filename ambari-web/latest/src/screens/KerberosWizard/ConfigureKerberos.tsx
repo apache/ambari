@@ -20,7 +20,7 @@ import { useContext, useEffect, useState } from "react";
 import { ConfigPropertiesType, InputType } from "../CommonConfigs/types";
 import WizardApi from "../../api/wizardApi";
 import { isEmpty } from "lodash";
-import { Card, Nav, Spinner } from "react-bootstrap";
+import { Alert, Button, Card, Nav, Spinner } from "react-bootstrap";
 import AdvancedConfigs from "../CommonConfigs/AdvancedConfigs";
 import { kerberos_properties } from "../../data/configs/services/kerberos_properties";
 import WizardFooter from "../../components/StepWizard/WizardFooter";
@@ -31,13 +31,19 @@ import { kerberos_ui_properties } from "../../data/configs/kerberos_ui_propertie
 import KerberosApi from "../../api/kerberosApi";
 import { AppContext } from "../../store/context";
 import ClusterDeploymentApi from "../../api/clusterDeployment";
-import { preconditionOptionsValueMapper } from "./constants";
 import {
   getConfigCategories,
   getTotalErros,
   validateAllProperties,
 } from "../CommonConfigs/ConfigUtils";
 import credentialsUtils from "../../Utils/credentialsUtils";
+import {
+  applyKdcPlanVisibility,
+  buildKerberosConfigurationPayload,
+  isManualKdcPlan,
+  runKerberosConfiguration,
+} from "../../Utils/kerberosWizard";
+import { responseErrorMessage } from "../../Utils/httpError";
 
 export default function ConfigureKerberos() {
   const {
@@ -50,6 +56,7 @@ export default function ConfigureKerberos() {
       handleNextImperitive,
       wizardSteps,
       handleBackImperitive,
+      jumpToStep,
     },
   } = useContext(EnableKerberosContext);
 
@@ -60,6 +67,9 @@ export default function ConfigureKerberos() {
   const [loading, setLoading] = useState<boolean>(true);
   const [tabErrors, setTabErrors] = useState({});
   const [nextEnabled, setNextEnabled] = useState(false);
+  const [loadError, setLoadError] = useState("");
+  const [submitError, setSubmitError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { clusterName, allHostNames, cluster } = useContext(AppContext);
   const stackName = get(cluster, "version", "").split("-")[0];
@@ -77,16 +87,6 @@ export default function ConfigureKerberos() {
     const noErros = getTotalErros(tabErrors);
     setNextEnabled(noErros);
   }, [tabErrors]);
-
-  const kerberosConfigMap: { [key: string]: string[] } = {
-    "Existing Active Directory": [
-      "ldap_url:KDC",
-      "container_dn:KDC",
-      "ad_create_attributes_template:Advanced kerberos-env",
-    ],
-    "Existing MIT KDC": ["kdc_create_attributes:Advanced kerberos-env"],
-    "Existing IPA": ["ipa_user_group:Advanced kerberos-env"],
-  };
 
   useEffect(() => {
     getConfigurations();
@@ -143,14 +143,23 @@ export default function ConfigureKerberos() {
 
   const getConfigurations = async () => {
     setLoading(true);
-    const response = await WizardApi.getStackConfigurations(
-      stackName,
-      stackVersion,
-      services.join(","),
-      "configurations/*,configurations/dependencies/*,StackServices/config_types/*"
-    );
-    setConfigs(response);
-    setLoading(false);
+    setLoadError("");
+    try {
+      const response = await WizardApi.getStackConfigurations(
+        stackName,
+        stackVersion,
+        services.join(","),
+        "configurations/*,configurations/dependencies/*,StackServices/config_types/*"
+      );
+      setConfigs(response);
+    } catch (error) {
+      setLoadError(responseErrorMessage(
+        error,
+        "Ambari could not load the Kerberos configuration definitions.",
+      ));
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getConfigProperties = () => {
@@ -365,20 +374,6 @@ export default function ConfigureKerberos() {
       });
     });
 
-    Object.keys(kerberosConfigMap).forEach((type: string) => {
-      if (type !== kdcType) {
-        kerberosConfigMap[type].forEach((property) => {
-          const [name, category] = property.split(":");
-          // delete KerberosConfigProperties[serviceName][category].properties[
-          //   name
-          // ];
-          KerberosConfigProperties[serviceName][category].properties[
-            name
-          ].isVisible = false;
-        });
-      }
-    });
-
     KerberosConfigProperties[serviceName]["KDC"].properties[
       "Test.KDC.Connection"
     ] = {
@@ -415,107 +410,32 @@ export default function ConfigureKerberos() {
       }
     }
 
+    KerberosConfigProperties = applyKdcPlanVisibility(
+      KerberosConfigProperties,
+      kdcType,
+    );
     KerberosConfigProperties = validateAllProperties(KerberosConfigProperties);
 
     setConfigProperties(KerberosConfigProperties);
   };
 
-  const createConfiurations = async () => {
-    const serviceConfigData: {
-      [key: string]: {
-        properties: {
-          [key: string]: string;
-        };
-      };
-    } = {};
-
-    const allConfigData: any = [];
-
-    let configDataToSave = {};
-
-    Object.keys(configProperties[serviceName]).forEach((configType: string) => {
-      Object.keys(configProperties[serviceName][configType].properties).forEach(
-        (propertyName: string) => {
-          const property =
-            configProperties[serviceName][configType].properties[propertyName];
-          const type = get(property, "type");
-
-          if (type) {
-            if (!serviceConfigData[type]) {
-              serviceConfigData[type] = {
-                properties: {},
-              };
-            }
-
-            serviceConfigData[type].properties[propertyName] = get(
-              property,
-              "value"
-            );
-
-            if (propertyName === "kdc_type") {
-              serviceConfigData[type].properties[propertyName] =
-                preconditionOptionsValueMapper[get(property, "value")];
-            }
-          }
-        }
-      );
-    });
-
-    Object.keys(serviceConfigData).forEach((type: string) => {
-      allConfigData.push({
-        type: type,
-        properties: serviceConfigData[type].properties,
-        service_config_version_note:
-          "This is the initial configuration created by Enable Kerberos wizard.",
-      });
-    });
-
-    if (allConfigData.length) {
-      configDataToSave = {
-        Clusters: {
-          desired_config: allConfigData,
-        },
-      };
-    }
-
-    if (configDataToSave) {
-      try {
-        const response = await KerberosApi.createKerberosConfigurations(
-          clusterName,
-          [configDataToSave]
-        );
-        return response;
-      } catch (error) {
-        console.error("Error creating Kerberos configurations:", error);
-        throw error;
-      }
-    }
+  const createConfigurations = async () => {
+    return await KerberosApi.createKerberosConfigurations(
+      clusterName,
+      buildKerberosConfigurationPayload(configProperties, kdcType),
+    );
   };
 
   const getKdcCredentialsType = async () => {
-    // First check if persistent storage is supported
-    return new Promise((resolve) => {
-      credentialsUtils.storageInfo(clusterName, (storage: any) => {
-        const isStorePersisted =
-          storage?.[credentialsUtils.STORE_TYPES.PERSISTENT_KEY];
-
-        if (isStorePersisted) {
-          // If persistent storage is supported, check the checkbox state
-          const persistCredentials =
-            configProperties[serviceName]?.["Kadmin"]?.properties?.[
-              "persist_credentials"
-            ]?.value;
-          resolve(
-            persistCredentials === "true" || persistCredentials === true
-              ? "persisted"
-              : "temporary"
-          );
-        } else {
-          // If persistent storage is not supported, always return "temporary"
-          resolve("temporary");
-        }
-      });
-    });
+    const storage = await credentialsUtils.storageInfo(clusterName);
+    const persistCredentials =
+      configProperties[serviceName]?.["Kadmin"]?.properties?.[
+        "persist_credentials"
+      ]?.value;
+    return storage?.[credentialsUtils.STORE_TYPES.PERSISTENT_KEY]
+      && (persistCredentials === "true" || persistCredentials === true)
+      ? credentialsUtils.STORE_TYPES.PERSISTENT
+      : credentialsUtils.STORE_TYPES.TEMPORARY;
   };
 
   const createKerberosAdminSession = async () => {
@@ -526,49 +446,48 @@ export default function ConfigureKerberos() {
       configProperties[serviceName]["Kadmin"].properties["admin_password"]
         .value;
 
-    const kdcCredentialsType = await getKdcCredentialsType();
-    const payload = {
-      Credential: {
-        key: adminPasswordValue,
-        principal: adminPrincipalValue,
-        type: kdcCredentialsType,
-      },
-    };
-
-    try {
-      const response = await KerberosApi.postKDCAdminCredentialsSupress(
-        clusterName,
-        payload
-      );
-      return response;
-    } catch (error) {
-      console.log("Error creating a kerberos admin session");
+    if (isManualKdcPlan(kdcType)) {
+      return await KerberosApi.createAdminSession(clusterName, [{
+        session_attributes: {
+          kerberos_admin: {
+            principal: adminPrincipalValue,
+            password: adminPasswordValue,
+          },
+        },
+      }]);
     }
+    const kdcCredentialsType = await getKdcCredentialsType();
+    const resource = credentialsUtils.createCredentialResource(
+      adminPrincipalValue,
+      adminPasswordValue,
+      kdcCredentialsType as string,
+    );
+    return await credentialsUtils.createOrUpdateCredentials(
+      clusterName,
+      credentialsUtils.ALIAS.KDC_CREDENTIALS,
+      resource as any,
+    );
   };
 
   const deleteKerberosService = async () => {
     try {
-      const response = await KerberosApi.deleteKerberosService(
+      return await KerberosApi.deleteKerberosService(
         clusterName,
         serviceName
       );
-      return response;
-    } catch (error) {
-      console.log("Error deleting Kerberos");
+    } catch (error: any) {
+      if ((error?.response?.status ?? error?.status) !== 404) {
+        throw error;
+      }
     }
   };
 
   const createKerberosService = async () => {
     const payloadData = { ServiceInfo: { service_name: "KERBEROS" } };
-    try {
-      const response = await ClusterDeploymentApi.createSelectedServices(
-        clusterName,
-        payloadData
-      );
-      return response;
-    } catch (error) {
-      console.log("Error creating Kerberos service");
-    }
+    return await ClusterDeploymentApi.createSelectedServices(
+      clusterName,
+      payloadData
+    );
   };
 
   const createServiceComponent = async (componentName: string) => {
@@ -581,16 +500,11 @@ export default function ConfigureKerberos() {
         },
       ],
     };
-    try {
-      const response = await ClusterDeploymentApi.addRequestToCreateComponent(
-        clusterName,
-        serviceName,
-        payloadData
-      );
-      return response;
-    } catch (error) {
-      console.log("Error creating Kerberos service component");
-    }
+    return await ClusterDeploymentApi.addRequestToCreateComponent(
+      clusterName,
+      serviceName,
+      payloadData
+    );
   };
 
   const createKerberosHostComponents = async () => {
@@ -616,15 +530,10 @@ export default function ConfigureKerberos() {
       },
     };
 
-    try {
-      const response = await ClusterDeploymentApi.registerHostToCluster(
-        clusterName,
-        payloadData
-      );
-      return response;
-    } catch (error) {
-      console.log("Error creating kerberos host components");
-    }
+    return await ClusterDeploymentApi.registerHostToCluster(
+      clusterName,
+      payloadData
+    );
   };
 
   const createKerberosResources = async () => {
@@ -633,19 +542,28 @@ export default function ConfigureKerberos() {
     await createKerberosHostComponents();
   };
 
-  const configureKerberos = async () => {
-    await createKerberosResources();
-    await createConfiurations();
-    await createKerberosAdminSession();
-  };
-
   const onSubmitConfigureKerberos = async () => {
-    await deleteKerberosService();
-    await configureKerberos();
+    await runKerberosConfiguration(kdcType, {
+      deleteKerberosService,
+      createKerberosResources,
+      createConfigurations,
+      createKerberosAdminSession,
+    });
   };
 
-  if (isEmpty(configProperties) || loading) {
+  if (loading) {
     return <Spinner />;
+  }
+
+  if (loadError || isEmpty(configProperties)) {
+    return (
+      <Alert variant="danger">
+        <div>{loadError || "No Kerberos configuration definitions were returned."}</div>
+        <Button className="mt-3" variant="outline-danger" onClick={getConfigurations}>
+          Retry
+        </Button>
+      </Alert>
+    );
   }
 
   return (
@@ -654,6 +572,7 @@ export default function ConfigureKerberos() {
         <div className="p-2">
           <h4>Configure Kerberos</h4>
           <p>Please configure kerberos related properties.</p>
+          {submitError && <Alert variant="danger">{submitError}</Alert>}
 
           <Card>
             <Nav>
@@ -666,12 +585,13 @@ export default function ConfigureKerberos() {
               configPropertiesData={configProperties}
               displayUndoRedo={false}
               setTabErrors={setTabErrors}
+              canEdit
             />
           </Card>
         </div>
       </div>
       <WizardFooter
-        isNextEnabled={nextEnabled}
+        isNextEnabled={nextEnabled && !isSubmitting}
         step={currentStep}
         onNext={async () => {
           if (configProperties) {
@@ -680,12 +600,28 @@ export default function ConfigureKerberos() {
               payload: { step: currentStep.name, data: { configProperties } },
             });
           }
-          await onSubmitConfigureKerberos();
-          flushStateToDb("next");
-          handleNextImperitive();
+          setIsSubmitting(true);
+          setSubmitError("");
+          try {
+            await onSubmitConfigureKerberos();
+            if (isManualKdcPlan(kdcType)) {
+              flushStateToDb("jump", 4);
+              jumpToStep(4, true);
+            } else {
+              flushStateToDb("next");
+              handleNextImperitive();
+            }
+          } catch (error) {
+            setSubmitError(responseErrorMessage(
+              error,
+              "Ambari could not save the Kerberos configuration. Correct the problem and retry.",
+            ));
+          } finally {
+            setIsSubmitting(false);
+          }
         }}
         onCancel={() => {
-          onExitPopUp(false, true);
+          onExitPopUp(false, false);
         }}
         onBack={() => {
           flushStateToDb("back");

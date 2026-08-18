@@ -56,6 +56,7 @@ const SideBar = ({
     supports,
     upgradeHolding,
     upgradeInProgress,
+    isNonWizardUser,
   } = useContext(AppContext);
   const [openOptions, setOpenOptions] = useState<string[]>([SideItemLabels.SERVICES]);
   const [selectedOption, setSelectedOption] = useState<string>("");
@@ -71,6 +72,7 @@ const SideBar = ({
     supports,
     upgradeInProgress,
     upgradeHolding,
+    isNonWizardUser,
   );
   const [services, setServices] = useState<
     {

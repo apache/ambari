@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { kerberosIdentities } from "./Kerberos_identitites";
 
 type KerberosIdentity = {
@@ -29,7 +29,20 @@ type KerberosIdentity = {
 
 function useKerberosConfigs() {
     const [kerberosIdentitiesMap, setKerberosIdentitiesMap] = useState<Record<string, KerberosIdentity>>({});
-    const configTagFromFilenameMap: Record<string, string> = {};
+    const configTagFromFilenameMap = useRef<Record<string, string>>({});
+
+    const getConfigTagFromFileName = useCallback((filename: string): string => {
+        if (configTagFromFilenameMap.current[filename])
+            return configTagFromFilenameMap.current[filename];
+
+        const ret = filename.endsWith('.xml') ? filename.slice(0, -4) : filename;
+        configTagFromFilenameMap.current[filename] = ret;
+        return ret;
+    }, []);
+
+    const configId = useCallback((name: string, filename: string): string => {
+        return name + "__" + getConfigTagFromFileName(filename);
+    }, [getConfigTagFromFileName]);
 
     useEffect(() => {
         const map: Record<string, KerberosIdentity> = {};
@@ -37,20 +50,7 @@ function useKerberosConfigs() {
           map[configId(c.name, c.filename)] = c;
         });
         setKerberosIdentitiesMap(map);
-    }, [kerberosIdentities]);
-
-    const configId = (name: string, filename: string): string => {
-        return name + "__" + getConfigTagFromFileName(filename);
-    };
-
-    const getConfigTagFromFileName = (filename: string): string => {
-        if (configTagFromFilenameMap[filename]) 
-            return configTagFromFilenameMap[filename];
-
-        const ret = filename.endsWith('.xml') ? filename.slice(0, -4) : filename;
-        configTagFromFilenameMap[filename] = ret;
-        return ret;
-    };
+    }, [configId]);
 
     return { configId, getConfigTagFromFileName, kerberosIdentitiesMap };
 }
