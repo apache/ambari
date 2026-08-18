@@ -21,7 +21,7 @@ import { RequestApi } from "../../../../api/requestApi";
 import { AppContext } from "../../../../store/context";
 import { EnableHighAvailibilityContext } from "./store/context";
 import { getStepData, role } from "../../../../Utils/Utility";
-import { filter, find, forEach, get, has, map, uniq } from "lodash";
+import { filter, find, has, map, uniq } from "lodash";
 import {
   createInstallComponentTask,
   reconfigureSites,
@@ -35,6 +35,11 @@ import ConfigsApi from "../../../../api/configsApi";
 import WizardFooter from "../../../../components/StepWizard/WizardFooter";
 import { ActionTypes } from "./store/types";
 import useKDCSessionState from "../../../../hooks/useKDCSessionState";
+import {
+  buildDesiredConfigQuery,
+  mergeReviewedConfigs,
+  mergeSavedOperations,
+} from "../haWorkflowUtils";
 
 function Step5() {
   const { clusterName, services, isKerberosEnabled } = useContext(AppContext);
@@ -56,40 +61,27 @@ function Step5() {
     "enableHighAvailibilitySteps"
   );
   const selectedServices = map(services, "ServiceInfo.service_name");
-  const mergeConfigProperties = (item: any, configTypeObject: any): any => {
-    if (!configTypeObject) {
-      return item;
-    }
 
-    return {
-      ...item,
-      properties: {
-        ...item.properties,
-        ...configTypeObject.properties,
-      },
-    };
-  };
-
-  async function updateConfigProperties(configItems: any) {
-    console.log("Confog Items are", configItems);
-    const data = getStepData(
-      state,
-      enableNamenodeSteps.REVIEW,
-      "overridenProperties",
-      "enableHighAvailibilitySteps"
-    );
-
+  async function updateConfigProperties(configData: any) {
     const siteNames = ["hdfs-site", "core-site"].concat(
-      getRangerSiteNames(data)
+      getRangerSiteNames(configData)
     );
+    const missingSites = siteNames.filter(
+      (siteName) => !find(configData?.items, ["type", siteName]),
+    );
+    if (missingSites.length) {
+      throw new Error(
+        `The NameNode HA configuration is missing: ${missingSites.join(", ")}.`,
+      );
+    }
     const note = `This configuration is created by Enable ${role(
       "NAMENODE",
       false
     )} HA wizard`;
-    const configData = reconfigureSites(siteNames, data, note);
+    const desiredConfig = reconfigureSites(siteNames, configData, note);
     try {
       await ConfigsApi.updateServiceConfigurations(clusterName, {
-        desired_config: configData,
+        desired_config: desiredConfig,
       });
       const nnHostNames = map(
         filter(masterComponentHosts, ["component", "NAMENODE"]),
@@ -111,7 +103,40 @@ function Step5() {
       );
     } catch (err) {
       console.error("Could not update configs", err);
+      throw err;
     }
+  }
+
+  async function loadCurrentSecureConfigs(reviewedConfigs: any) {
+    const siteNames = ["hdfs-site", "core-site"].concat(
+      getRangerSiteNames(reviewedConfigs),
+    );
+    const tagsResponse = await ConfigsApi.loadConfigTags(clusterName);
+    const query = buildDesiredConfigQuery(
+      tagsResponse?.Clusters?.desired_configs,
+      siteNames,
+    );
+    const currentConfigs = await ConfigsApi.getConfigsByTags(clusterName, query);
+    const loadedTypes = new Set(
+      (currentConfigs?.items || []).map((item: any) => item.type),
+    );
+    const missingSites = siteNames.filter((siteName) => !loadedTypes.has(siteName));
+    if (missingSites.length) {
+      throw new Error(
+        `Ambari did not return the current configuration for: ${missingSites.join(", ")}.`,
+      );
+    }
+    const configsToRemove = getStepData(
+      state,
+      enableNamenodeSteps.REVIEW,
+      "configsToRemove",
+      "enableHighAvailibilitySteps",
+    );
+    return mergeReviewedConfigs(
+      currentConfigs,
+      reviewedConfigs,
+      configsToRemove,
+    );
   }
 
   function getRangerSiteNames(data: any) {
@@ -222,70 +247,17 @@ function Step5() {
       label: "Reconfigure HDFS",
       skippable: false,
       callback: async () => {
-        const data = getStepData(
+        const reviewedConfigs = getStepData(
           state,
           enableNamenodeSteps.REVIEW,
           "overridenProperties",
           "enableHighAvailibilitySteps"
         );
         if (isKerberosEnabled) {
-          //@ts-ignore
-          const stepConfigs = getStepData(
-            state,
-            enableNamenodeSteps.REVIEW,
-            "stepConfigs",
-            "enableHighAvailibilitySteps"
-          );
-          const data = getStepData(
-            state,
-            enableNamenodeSteps.REVIEW,
-            "overridenProperties",
-            "enableHighAvailibilitySteps"
-          );
-          let configItems = data.items.map(function (item: any) {
-            var fileName = get(item, "type");
-            var configTypeObject = find(data.items, ["type", fileName]);
-            if (configTypeObject) {
-              mergeConfigProperties(
-                item.properties,
-                configTypeObject.properties
-              );
-            }
-            return item;
-          });
-          console.log("State is", state);
-          const configsToRemove = getStepData(
-            state,
-            enableNamenodeSteps.REVIEW,
-            "configsToRemove",
-            "enableHighAvailibilitySteps"
-          );
-          forEach(configsToRemove, (properties: any, type: string) => {
-            let matchingConfigItem = find(configItems, (item) => {
-              return item.type === type;
-            });
-            for (let toBeDeletedProperty of properties) {
-              if (
-                matchingConfigItem &&
-                matchingConfigItem.properties &&
-                has(matchingConfigItem.properties, toBeDeletedProperty)
-              ) {
-                delete matchingConfigItem.properties[toBeDeletedProperty];
-              }
-            }
-            configItems = configItems.map((item: any) => {
-              if (item.type === type) {
-                return matchingConfigItem;
-              }
-              return item;
-            });
-          });
-          const result = await updateConfigProperties(configItems);
-          return result || { status: 200 }; // Return success status for OperationsProgress
-        } else {
-          const result = await updateConfigProperties(data);
-          return result || { status: 200 }; // Return success status for OperationsProgress
+          const currentConfigs = await loadCurrentSecureConfigs(reviewedConfigs);
+          return await updateConfigProperties(currentConfigs);
         }
+        return await updateConfigProperties(reviewedConfigs);
       },
     },
     ...(isKerberosEnabled
@@ -309,6 +281,7 @@ function Step5() {
                 );
               } catch (error) {
                 console.log("Error regenerating keytabs: ", error);
+                throw error;
               }
             },
           },
@@ -362,21 +335,7 @@ function Step5() {
   );
 
   useEffect(() => {
-    const finalOperations = (() => {
-      if (savedOperationsState && Array.isArray(savedOperationsState)) {
-        return operations.map((originalOp) => {
-          const savedOp = savedOperationsState.find(
-            (saved: any) => saved.id === originalOp.id
-          );
-          return savedOp
-            ? { ...originalOp, ...savedOp, callback: originalOp.callback }
-            : originalOp;
-        });
-      }
-
-      return operations;
-    })();
-    setStepOperations(finalOperations);
+    setStepOperations(mergeSavedOperations(operations, savedOperationsState));
   }, [JSON.stringify(savedOperationsState)]);
 
   if (!stepOperations || stepOperations.length === 0) {
@@ -391,7 +350,7 @@ function Step5() {
         description=""
         setCompletionStatus={setCompletionStatus}
         operations={stepOperations as any}
-        dispatch={(operationsState: any) => {
+        dispatch={async (operationsState: any) => {
           dispatch({
             type: ActionTypes.STORE_INFORMATION,
             payload: {
@@ -401,22 +360,24 @@ function Step5() {
               },
             },
           });
+          await flushStateToDb();
         }}
       />
       <WizardFooter
         step={currentStep}
         isNextEnabled={completionStatus}
-        onNext={() => {
-          flushStateToDb("next");
-          handleNextImperitive();
+        onNext={async () => {
+          await flushStateToDb("next");
+          await handleNextImperitive();
         }}
         onBack={() => {
           flushStateToDb("back");
           jumpToStep(4);
         }}
         onCancel={() => {
-          flushStateToDb("cancel");
+          void flushStateToDb("cancel");
         }}
+        cancelConfirmationBody="NameNode HA changes have started. Exiting preserves the workflow checkpoint so the operation can be resumed. Complete the documented manual recovery before making further HDFS topology changes."
       />
     </>
   );

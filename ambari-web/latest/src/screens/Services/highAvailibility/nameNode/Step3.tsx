@@ -40,6 +40,7 @@ import {
   Accordion,
   Alert,
   Badge,
+  Button,
   Card,
   Col,
   Form,
@@ -54,6 +55,7 @@ import classNames from "classnames";
 import WizardFooter from "../../../../components/StepWizard/WizardFooter";
 import { ActionTypes } from "./store/types";
 import useHDFSConfigsTags from "../../../../hooks/useConfigsTags";
+import { updateReviewedConfigValue } from "../haWorkflowUtils";
 //@ts-ignore
 interface ConfigResponse {
   Clusters: {
@@ -70,7 +72,11 @@ function Step3() {
     state,
     dispatch,
     flushStateToDb,
-    stepWizardUtilities: { currentStep, handleNextImperitive, jumpToStep },
+    stepWizardUtilities: {
+      currentStep,
+      handleNextImperitive,
+      handleBackImperitive,
+    },
   } = useContext(EnableHighAvailibilityContext);
   const { clusterName, services } = useContext(AppContext);
   const serverConfigDataRef = useRef<any>([]);
@@ -79,9 +85,14 @@ function Step3() {
   const [stepConfigs, setStepConfigs] = useState<any>(null);
   const [selectedService, setSelectedService] = useState({});
   const [errors, setErrors] = useState<any>({});
-  const { configsData } = useHDFSConfigsTags();
+  const {
+    configsData,
+    configsError,
+    isConfigsLoading,
+    reloadConfigs,
+  } = useHDFSConfigsTags();
+  const [configBuildError, setConfigBuildError] = useState("");
   const [overridenProperties, setOverridenProperties] = useState({});
-  const configTagsLoaded = useRef(false);
   const configsToRemove: any = {
     "hdfs-site": [
       "dfs.namenode.secondary.http-address",
@@ -131,11 +142,13 @@ function Step3() {
 
   function tweakServiceConfigs(configs: any) {
     console.log("Initial Configs", configs);
-    const localDB = getStepData(
-      state,
-      "SELECT_HOSTS",
-      "",
-      "enableHighAvailibilitySteps"
+    const localDB = cloneDeep(
+      getStepData(
+        state,
+        "SELECT_HOSTS",
+        "",
+        "enableHighAvailibilitySteps",
+      ),
     );
     const allHostComponents = flatten(
       map(clusterHostComponentsMapping, "host_components")
@@ -166,8 +179,6 @@ function Step3() {
         masterComponent.component = masterComponent.component_name;
       }
     }
-    console.log("Groupings is", groupings);
-    console.log("local db is", localDB);
     const dependencies = _prepareDependencies();
     configs.forEach(function (config: any) {
       NnHaConfigInitializer.prototype.initialValue(
@@ -177,7 +188,6 @@ function Step3() {
       );
       config.isOverridable = false;
     });
-    console.log("Final COnfigs", configs);
   }
   function removeConfigs(configs: any) {
     Object.keys(configsToRemove).forEach(function (site) {
@@ -220,12 +230,14 @@ function Step3() {
     setSelectedService(serviceConfig?.configCategories?.[0]?.name);
   }
   async function loadConfigsTags() {
+    setConfigBuildError("");
     try {
-      serverConfigDataRef.current = configsData;
-      removeConfigs(configsData);
-      tweakServiceConfigs(ha_properties.haConfig.configs);
-      const overridenPropertiesCopy = cloneDeep(configsData);
-      for (const siteConfig of ha_properties.haConfig.configs) {
+      const serverConfigs = removeConfigs(cloneDeep(configsData));
+      serverConfigDataRef.current = serverConfigs;
+      const haConfig = cloneDeep(ha_properties.haConfig);
+      tweakServiceConfigs(haConfig.configs);
+      const overridenPropertiesCopy = cloneDeep(serverConfigs);
+      for (const siteConfig of haConfig.configs) {
         const site = get(siteConfig, "filename", "");
         const correspondingSite = find(overridenPropertiesCopy.items, [
           "type",
@@ -242,9 +254,14 @@ function Step3() {
         }
       }
       setOverridenProperties(overridenPropertiesCopy);
-      renderServiceConfigs(ha_properties.haConfig);
+      renderServiceConfigs(haConfig);
     } catch (configErr) {
       console.error("Error loading config tags", configErr);
+      setConfigBuildError(
+        configErr instanceof Error
+          ? configErr.message
+          : "Ambari could not prepare the NameNode HA configuration review.",
+      );
     }
   }
   useEffect(() => {
@@ -253,22 +270,31 @@ function Step3() {
       configsData &&
       !isEmpty(configsData) 
     ) {
-      configTagsLoaded.current = true;
       loadConfigsTags();
     }
-  }, [clusterHostComponentsMapping, configsData, overridenProperties]);
+  }, [clusterHostComponentsMapping, configsData]);
   useEffect(() => {
     async function makeApiCalls() {
-      await getClusterComponents();
+      try {
+        await getClusterComponents();
+      } catch (error: any) {
+        setConfigBuildError(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Ambari could not load the cluster component topology.",
+        );
+      }
     }
     makeApiCalls();
   }, []);
   function getMastersInfo() {
-    const step2Data = getStepData(
-      state,
-      "SELECT_HOSTS",
-      "masterComponentHosts",
-      "enableHighAvailibilitySteps"
+    const step2Data = cloneDeep(
+      getStepData(
+        state,
+        "SELECT_HOSTS",
+        "masterComponentHosts",
+        "enableHighAvailibilitySteps",
+      ),
     );
     for (let masterComponent of step2Data) {
       if (!has(masterComponent, "serviceId") || !masterComponent.serviceId) {
@@ -401,11 +427,12 @@ function Step3() {
     const stepConfigsCopy: any = cloneDeep(stepConfigs);
     const property = find(stepConfigsCopy.configs, ["name", propertyName]);
     property.changedValue = value;
-    const copiedProperties = cloneDeep(overridenProperties);
-    const allProperties = flatten(
-      map(get(copiedProperties, "items"), "properties")
+    const copiedProperties = updateReviewedConfigValue(
+      overridenProperties as Parameters<typeof updateReviewedConfigValue>[0],
+      property.filename,
+      propertyName,
+      value,
     );
-    allProperties[propertyName as any] = value;
     setOverridenProperties(copiedProperties);
     setStepConfigs(stepConfigsCopy);
   }
@@ -448,7 +475,46 @@ function Step3() {
   useEffect(() => {
     validateForErrors();
   }, [stepConfigs]);
-  if (!stepConfigs || isEmpty(overridenProperties)) {
+  const reviewError = configsError || configBuildError;
+  if (reviewError) {
+    return (
+      <>
+        <div className="step-title">Review</div>
+        <Alert variant="danger" className="mt-3">
+          {reviewError}
+          <Button
+            className="ms-3"
+            size="sm"
+            onClick={() => {
+              setConfigBuildError("");
+              setStepConfigs(null);
+              void reloadConfigs();
+              void getClusterComponents().catch((error: any) => {
+                setConfigBuildError(
+                  error?.response?.data?.message ||
+                    error?.message ||
+                    "Ambari could not load the cluster component topology.",
+                );
+              });
+            }}
+          >
+            Retry
+          </Button>
+        </Alert>
+        <WizardFooter
+          step={currentStep}
+          isNextEnabled={false}
+          onNext={() => undefined}
+          onBack={async () => {
+            await flushStateToDb("back");
+            await handleBackImperitive();
+          }}
+          onCancel={() => void flushStateToDb("cancel")}
+        />
+      </>
+    );
+  }
+  if (isConfigsLoading || !stepConfigs || isEmpty(overridenProperties)) {
     return <Spinner />;
   }
   return (
@@ -608,11 +674,11 @@ function Step3() {
             Object.keys(errors)?.filter((error) => errors[error].message !== "")
               .length === 0)
         }
-        onBack={() => {
-          flushStateToDb("back");
-          jumpToStep(2);
+        onBack={async () => {
+          await flushStateToDb("back");
+          await handleBackImperitive();
         }}
-        onNext={() => {
+        onNext={async () => {
           dispatch({
             type: ActionTypes.STORE_INFORMATION,
             payload: {
@@ -625,11 +691,11 @@ function Step3() {
               },
             },
           });
-          flushStateToDb("next");
-          handleNextImperitive();
+          await flushStateToDb("next");
+          await handleNextImperitive();
         }}
         onCancel={() => {
-          flushStateToDb("cancel");
+          void flushStateToDb("cancel");
         }}
       />
     </>

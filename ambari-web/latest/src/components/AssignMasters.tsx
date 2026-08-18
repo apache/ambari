@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { useEffect, useReducer, useState } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import { Row, Col, Form, Card, Button, CardBody, Alert } from "react-bootstrap";
 import { ChooseServicesApi } from "../api/chooseServicesApi";
 import AssignMastersApi from "../api/assignMastersApi";
@@ -30,6 +30,11 @@ import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { blueprintUtils } from "../screens/ClusterWizard/utils";
 import { maxToInstall, isMultipleAllowed } from "../screens/Hosts/utils";
 import { AssignMastersProps, Host, Masters, State, Action, ServicesResponse } from "../screens/ClusterWizard/types/AssignMastersTypes";
+import {
+  getMasterValidationMessages,
+  masterValidationKey,
+  MasterValidationMessages,
+} from "../screens/ClusterWizard/masterValidation";
 
 const initialState: State = {
   hosts: {},
@@ -78,6 +83,7 @@ export default function AssignMasters({
   installedServices,
   parentState,
   setCanProceed,
+  setHasValidationIssues = () => {},
 }: AssignMastersProps) {
   const [state, dispatch] = useReducer(reducer, get(
       parentState,
@@ -87,8 +93,9 @@ export default function AssignMasters({
   const [loading, setLoading] = useState(false);
   const [mastersData, setMastersData] = useState<Masters[]>([]);
   const [servicesAndComponents, setServicesAndComponents] = useState<ServicesResponse | null>(null);
-  const [generalErrorMessages, setGeneralErrorMessages] = useState<string[]>([]);
-  const [generalWarningMessages, setGeneralWarningMessages] = useState<string[]>([]);
+  const [validationMessages, setValidationMessages] =
+    useState<MasterValidationMessages>({});
+  const validationSequence = useRef(0);
   const notMasters = ["MYSQL_SERVER", "HIVE_SERVER_INTERACTIVE"];
 
   useEffect(() => {
@@ -185,29 +192,6 @@ export default function AssignMasters({
           sortedHostsData[hostname] = hostsData[hostname];
         });
 
-      // validations.
-      const validationPayload = {
-        hosts: hostnames,
-        validate: "host_groups",
-        recommendations: {
-          blueprint: {
-            configurations: null,
-            host_groups: firstBlueprint,
-          },
-          blueprint_cluster_binding: {
-            host_groups: firstBlueprintClusterBinding,
-          },
-        },
-        services: services,
-      };
-      
-      try {
-        const validationResponse = await AssignMastersApi.postValidations(validationPayload, STACK, VERSION);
-        updateValidationsSuccessCallback(validationResponse);
-      } catch (error) {
-        console.error('Validation API call failed:', error);
-        setCanProceed(false);
-      }
       const servicesAndComponentsData: ServicesResponse =
         await ChooseServicesApi.getServices(STACK, VERSION);
       
@@ -296,6 +280,12 @@ export default function AssignMasters({
   };
 
   const validateChange = async (transformedMastersData: any) => {
+    const sequence = ++validationSequence.current;
+    if (!transformedMastersData.length) {
+      setCanProceed(false);
+      return;
+    }
+    setCanProceed(false);
     try {
       const allHostnames = map(transformedMastersData, "host_name");
       const hostnames = uniq(allHostnames);
@@ -309,9 +299,13 @@ export default function AssignMasters({
         STACK,
         VERSION,
       );
+      if (sequence !== validationSequence.current) return;
       updateValidationsSuccessCallback(validationResponse);
     } catch (error) {
+      if (sequence !== validationSequence.current) return;
       console.error('Validation API call failed:', error);
+      setValidationMessages({});
+      setHasValidationIssues(false);
       setCanProceed(false);
     }
   };
@@ -487,67 +481,13 @@ export default function AssignMasters({
   };
 
   /**
-  * Remove validation messages for components which are already installed
-  */
-  const filterNotInstalledComponents = (validationData: any) => {
-    return validationData.resources[0].items.filter((item: any) => {
-      const host = state.hosts[item.host];
-      return !host || !host.components.includes(item['component-name']);
-    });
-  };
-
-  /**
    * Process validation response
    */
   const updateValidationsSuccessCallback = (data: any) => {
-    const newGeneralErrorMessages: string[] = [];
-    const newGeneralWarningMessages: string[] = [];
-    
-    // Clear existing validation messages from mastersData
-    const updatedMastersData = mastersData.map(master => {
-      const { warnMessage, errorMessage, ...rest } = master;
-      return {
-        ...rest,
-        warnMessage: "",
-        errorMessage: "",
-      };
-    });
-    
-    let anyErrors = false;
-
-    // Process validation data - filter out installed components
-    const validationData = filterNotInstalledComponents(data);
-    validationData
-      .filter((item: any) => item.type === 'host-component')
-      .forEach((item: any) => {
-        // Find the master component that matches this validation item
-        const masterIndex = updatedMastersData.findIndex(master => 
-          master.component === item['component-name'] && 
-          master.hostName === item.host
-        );
-        
-        if (masterIndex !== -1) {
-          if (item.level === 'ERROR') {
-            anyErrors = true;
-            generalErrorMessages.push(item.message);
-            updatedMastersData[masterIndex] = {
-              ...updatedMastersData[masterIndex],
-              errorMessage: item.message
-            };
-          } else if (item.level === 'WARN') {
-            generalWarningMessages.push(item.message);
-            updatedMastersData[masterIndex] = {
-              ...updatedMastersData[masterIndex],
-              warnMessage: item.message
-            };
-          }
-        }
-      });
-
-    setGeneralErrorMessages(newGeneralErrorMessages);
-    setGeneralWarningMessages(newGeneralWarningMessages);
-
-    setCanProceed(!anyErrors);
+    const messages = getMasterValidationMessages(data, mastersData);
+    setValidationMessages(messages);
+    setHasValidationIssues(Object.keys(messages).length > 0);
+    setCanProceed(true);
   };
 
   return (
@@ -556,29 +496,6 @@ export default function AssignMasters({
       <p className="step-description">
         Assign master components to hosts you want to run them on.
       </p>
-      
-      {/* Display general validation messages */}
-      {generalErrorMessages.length > 0 && (
-        <Alert variant="danger" className="mb-3">
-          <strong>Validation Errors:</strong>
-          <ul className="mb-0 mt-2">
-            {generalErrorMessages.map((message, index) => (
-              <li key={index}>{message}</li>
-            ))}
-          </ul>
-        </Alert>
-      )}
-      
-      {generalWarningMessages.length > 0 && (
-        <Alert variant="warning" className="mb-3">
-          <strong>Validation Warnings:</strong>
-          <ul className="mb-0 mt-2">
-            {generalWarningMessages.map((message, index) => (
-              <li key={index}>{message}</li>
-            ))}
-          </ul>
-        </Alert>
-      )}
       
       {loading ? (
         <Spinner />
@@ -593,7 +510,11 @@ export default function AssignMasters({
                   .filter((master) => !master.isInstalled)
                   // Render each component
                   .map((master) => {
-                    const { component, hostName: hostname, display_name, errorMessage, warnMessage } = master;
+                    const { component, hostName: hostname, display_name } = master;
+                    const { errorMessage, warnMessage } =
+                      validationMessages[
+                        masterValidationKey(hostname, component)
+                      ] || {};
                     const displayName = display_name || component;
                     
                     return (

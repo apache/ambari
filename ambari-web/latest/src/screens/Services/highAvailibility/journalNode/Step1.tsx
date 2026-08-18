@@ -18,21 +18,46 @@
 
 import { useContext, useState } from "react";
 import { AppContext } from "../../../../store/context";
-import { map } from "lodash";
+import { find, flatten, get, map } from "lodash";
 import { ActionTypes } from "./store/types";
 import WizardFooter from "../../../../components/StepWizard/WizardFooter";
 import AssignMastersAddable from "../../../../components/AssignMastersAddable";
 import { Card } from "react-bootstrap";
 import { ManageJournalNodesContext } from "./store/context";
+import { ServiceContext } from "../../../../store/ServiceContext";
+import { getJournalNodeChangeSet } from "../haWorkflowUtils";
 
 function Step1() {
-  const { services } = useContext(AppContext);
+  const { services, allHostNames } = useContext(AppContext);
+  const { allServiceModels } = useContext(ServiceContext);
   const {
     dispatch,
     flushStateToDb,
     stepWizardUtilities: { handleNextImperitive, currentStep },
   } = useContext(ManageJournalNodesContext);
-  const [isNextEnabled] = useState(true);
+  const journalNodeComponent = find(
+    flatten([
+      allServiceModels?.hdfs?.masterComponents || [],
+      allServiceModels?.hdfs?.slaveComponents || [],
+    ]),
+    ["componentName", "JOURNALNODE"],
+  );
+  const originalJournalNodeHosts = map(
+    journalNodeComponent?.hostComponents ||
+      allServiceModels?.hdfs?.journalNodes ||
+      [],
+    (hostComponent: any) =>
+      get(hostComponent, "HostRoles.host_name", hostComponent.hostName),
+  ).filter(Boolean);
+  const existingCount = Math.max(
+    journalNodeComponent?.totalCount || 0,
+    originalJournalNodeHosts.length,
+  );
+  const maximumJournalNodes = Math.min(
+    allHostNames.length,
+    Math.max(3, existingCount * 2 - 1),
+  );
+  const [isNextEnabled, setIsNextEnabled] = useState(false);
   return (
     <>
       <div className="step-title">Assign JournalNodes</div>
@@ -42,15 +67,25 @@ function Step1() {
       <Card className="mt-2">
         <Card.Body>
           <AssignMastersAddable
-           showJournalNode
+            showJournalNode
             mastersToShow={["JOURNALNODE"]}
-            mastersToAdd={["JOURNALNODE"]}
+            mastersToAdd={[]}
             mastersToCreate={[]}
             showCurrentPrefix={["JOURNALNODE"]}
             showAdditionalPrefix={["JOURNALNODE"]}
             services={map(services, "ServiceInfo.service_name")}
             mastersAddableInHA={["JOURNALNODE"]}
+            maximumMasterCount={maximumJournalNodes}
             dispatch={(payload:any) => {
+              const changeSet = getJournalNodeChangeSet(
+                payload.masterComponentHosts,
+                originalJournalNodeHosts,
+              );
+              setIsNextEnabled(
+                changeSet.finalHosts.length >= 3 &&
+                  changeSet.finalHosts.length <= maximumJournalNodes &&
+                  !changeSet.isNoOp,
+              );
               dispatch({
                 type: ActionTypes.STORE_INFORMATION,
                 payload: {
@@ -58,7 +93,7 @@ function Step1() {
                   data: payload,
                 },
               });
-              flushStateToDb();
+              void flushStateToDb();
             }}
           />
         </Card.Body>
@@ -66,13 +101,13 @@ function Step1() {
       <WizardFooter
         step={currentStep}
         isNextEnabled={isNextEnabled}
-        onCancel={()=>{
-          flushStateToDb("cancel");
+        onCancel={() => {
+          void flushStateToDb("cancel");
         }}
         onBack={() => {}}
-        onNext={() => {
-          flushStateToDb("next");
-          handleNextImperitive();
+        onNext={async () => {
+          await flushStateToDb("next");
+          await handleNextImperitive();
         }}
       />
     </>

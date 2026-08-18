@@ -36,6 +36,10 @@ import { getStepData } from "../../Utils/Utility";
 import { ContextWrapper } from ".";
 import { AppContext } from "../../store/context";
 import Spinner from "../../components/Spinner";
+import {
+  deriveAddServiceFlow,
+  nextAddServiceStep,
+} from "../Services/AddServiceWizard/addServiceNavigation";
 
 type Service = {
   displayName: string;
@@ -47,6 +51,11 @@ type Service = {
   required: string[];
   isIgnored?: boolean;
   isHiddenOnDisplay: boolean;
+  hasClient?: boolean;
+  hasConfigs?: boolean;
+  hasMaster?: boolean;
+  hasNonMastersWithCustomAssignment?: boolean;
+  hasSlave?: boolean;
 };
 
 type ErrorType = {
@@ -68,7 +77,7 @@ export default function Step4({ wizardName = "clusterCreation" }) {
     serviceContextLoading = false,
     handleBackImperitive,
     installedServices: installedServicesProps = [],
-    stepWizardUtilities: { currentStep, handleNextImperitive },
+    stepWizardUtilities: { currentStep, handleNextImperitive, jumpToStep },
   }: any = useContext(Context);
   const { services: servicesContext } = useContext(AppContext);
   let installedServices = installedServicesProps;
@@ -128,6 +137,25 @@ export default function Step4({ wizardName = "clusterCreation" }) {
     setServices(updatedServices);
   };
 
+  const saveServicesAndContinue = async () => {
+    const flow = deriveAddServiceFlow(services);
+    dispatch({
+      type: ActionTypes.STORE_INFORMATION,
+      payload: {
+        step: currentStep.name,
+        data: { services, addServiceFlow: flow },
+      },
+    });
+    if (wizardName === "addService") {
+      const nextStep = nextAddServiceStep(1, flow);
+      await Promise.resolve(flushStateToDb("jump", nextStep));
+      jumpToStep(nextStep);
+    } else {
+      await Promise.resolve(flushStateToDb("next"));
+      handleNextImperitive();
+    }
+  };
+
   const validateSelectedServices = () => {
     const selectedServices = Object.values(services).filter(
       (service) => service.selected === true
@@ -154,17 +182,7 @@ export default function Step4({ wizardName = "clusterCreation" }) {
     if (newErrorStack.length > 0) {
       setShowModal(true);
     } else {
-      dispatch({
-        type: ActionTypes.STORE_INFORMATION,
-        payload: {
-          step: currentStep.name,
-          data: {
-            services,
-          },
-        },
-      });
-      flushStateToDb("next");
-      handleNextImperitive();
+      void saveServicesAndContinue();
     }
   };
 
@@ -282,6 +300,10 @@ export default function Step4({ wizardName = "clusterCreation" }) {
         );
         const transformedData: { [key: string]: any } = {};
         chooseServices.items.forEach((service: any) => {
+          const components = get(service, "components", []).map(
+            (component: any) => component.StackServiceComponents || {},
+          );
+          const configTypes = get(service, "StackServices.config_types");
           transformedData[service.StackServices.service_name] = {
             displayName: service.StackServices.display_name,
             serviceName: service.StackServices.service_name,
@@ -299,6 +321,21 @@ export default function Step4({ wizardName = "clusterCreation" }) {
             ),
             isHiddenOnDisplay: excludeServicesOnDisplay.includes(
               service.StackServices.service_name
+            ),
+            hasClient: components.some((component: any) => component.is_client),
+            hasConfigs: configTypes == null
+              ? true
+              : (Array.isArray(configTypes)
+                  ? configTypes.length > 0
+                  : Object.keys(configTypes).length > 0),
+            hasMaster: components.some((component: any) => component.is_master),
+            hasNonMastersWithCustomAssignment: components.some((component: any) =>
+              !component.is_master
+              && !component.is_client
+              && component.cardinality !== "ALL",
+            ),
+            hasSlave: components.some((component: any) =>
+              component.is_slave || component.component_category === "SLAVE",
             ),
           };
         });
@@ -564,29 +601,10 @@ export default function Step4({ wizardName = "clusterCreation" }) {
               onClose={() => {
                 if (errorStack[0].modalType === ModalType.MISSING_SERVICE) {
                   handleCloseLimitiedFunctionalityModal();
-                  dispatch({
-                    type: ActionTypes.STORE_INFORMATION,
-                    payload: {
-                      step: currentStep.name,
-                      data: {
-                        services,
-                      },
-                    },
-                  });
-                  flushStateToDb("next");
-                  handleNextImperitive();
+                  void saveServicesAndContinue();
                 } else {
                   handleCloseAddServiceModal();
                 }
-                dispatch({
-                  type: ActionTypes.STORE_INFORMATION,
-                  payload: {
-                    step: currentStep.name,
-                    data: {
-                      services,
-                    },
-                  },
-                });
               }}
               onCancel={() => setShowModal(false)}
               title={renderModalTitle(
@@ -609,11 +627,9 @@ export default function Step4({ wizardName = "clusterCreation" }) {
         onNext={() => {
           validateSelectedServices();
         }}
-        onCancel={() => {
-          flushStateToDb("cancel");
-        }}
-        onBack={() => {
-          flushStateToDb("back");
+        onCancel={() => void flushStateToDb("cancel")}
+        onBack={async () => {
+          await Promise.resolve(flushStateToDb("back"));
           handleBackImperitive();
         }}
         isNextEnabled={!nextDisabled}

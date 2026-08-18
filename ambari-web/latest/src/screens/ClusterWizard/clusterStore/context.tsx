@@ -19,6 +19,7 @@
 import React, {
   createContext,
   Dispatch,
+  useCallback,
   useEffect,
   useReducer,
   useRef,
@@ -30,7 +31,10 @@ import ClusterApi from "../../../api/clusterApi";
 import { get, isEmpty } from "lodash";
 import { redirectToAdminView } from "../../../Utils/adminViewRedirect";
 import { ClusterProgressStatus } from "../../../constants";
-import { useDebounce } from "../../../hooks/useDebounce";
+import { Alert, Button } from "react-bootstrap";
+import { claimWizard, releaseWizard } from "../../../Utils/wizardOwnership";
+import { resolveRecoveryStep } from "../wizardRecovery";
+import { AppContext } from "../../../store/context";
 
 interface ClusterCreationContextProps {
   state: State;
@@ -50,23 +54,44 @@ export const ClusterCreationProvider: React.FC<{
   stepWizardUtilities: any;
   children: React.ReactNode;
 }> = ({ stepWizardUtilities, children }) => {
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const [state, reducerDispatch] = useReducer(reducer, initialState);
   const [currStepData, setCurrStepData] = useState({});
-  const debouncedPersist=useDebounce(flushCurrentData,500);
+  const [initializationError, setInitializationError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const { loginName } = React.useContext(AppContext);
 
   const isDataPersisted = useRef(false);
+  const persistenceQueue = useRef<Promise<void>>(Promise.resolve());
+  const stateRef = useRef<State>(initialState);
+  const currStepDataRef = useRef<Record<string, any>>({});
 
-  useEffect(() => {
-    syncUserPersistedData();
+  const dispatch: Dispatch<Action> = (action) => {
+    stateRef.current = reducer(stateRef.current, action);
+    reducerDispatch(action);
+  };
+
+  const queuePersistence = useCallback((operation: () => Promise<any>) => {
+    const nextOperation = persistenceQueue.current
+      .catch(() => undefined)
+      .then(operation)
+      .then(() => undefined);
+    persistenceQueue.current = nextOperation.catch(() => undefined);
+    return nextOperation;
   }, []);
 
   useEffect(() => {
+    void syncUserPersistedData();
+  }, [retryCount]);
+
+  useEffect(() => {
     if (isDataPersisted.current) {
-      debouncedPersist();
+      void queuePersistence(() => flushCurrentData(state, currStepData));
     }
   }, [state.clusterCreationSteps, currStepData]);
 
   async function syncUserPersistedData() {
+    setInitializationError(null);
+    isDataPersisted.current = false;
     try {
       const persistedData = await ClusterApi.getPersistData("CLUSTER_CURRENT");
       if (!isEmpty(get(persistedData, "clusterCreationSteps", {}))) {
@@ -76,76 +101,93 @@ export const ClusterCreationProvider: React.FC<{
         });
       }
       const clusterState = await ClusterApi.getPersistData("CLUSTER_STATE");
-      if (
-        clusterState &&
-        get(clusterState, "progressStatus") === ClusterProgressStatus.PROVISIONING &&
-        get(clusterState, "stepName", "") !== ""
-      ) {
+      const classicStep = resolveRecoveryStep(
+        "clusterCreation",
+        get(clusterState, "clusterState"),
+      );
+      const activeStepName = get(clusterState, "stepName", "");
+      const storedStep = Object.keys(stepWizardUtilities.wizardSteps).find(
+        (stepNumber) =>
+          stepWizardUtilities.wizardSteps?.[stepNumber]?.name === activeStepName,
+      );
+      const activeStep = classicStep ?? (storedStep === undefined ? 0 : Number(storedStep));
+      if (clusterState && (classicStep !== undefined || activeStepName)) {
+        currStepDataRef.current = clusterState;
         setCurrStepData(clusterState);
-        try {
-          const activeStepName = clusterState.stepName;
-          let activeStepNumber = Object.keys(
-            stepWizardUtilities.wizardSteps
-          ).find((stepName) => {
-            return (
-              stepWizardUtilities.wizardSteps?.[stepName]?.name ===
-              activeStepName
-            );
-          });
-          stepWizardUtilities.jumpToStep(Number(activeStepNumber), true);
-        } catch (err) {
-          console.error("Error while jumping to step", err);
-        }
-      } else {
-        stepWizardUtilities.jumpToStep(0, true);
       }
-    } finally {
+      stepWizardUtilities.jumpToStep(activeStep, true);
+      if (loginName) {
+        await claimWizard(loginName, "clusterCreation");
+      }
       isDataPersisted.current = true;
+    } catch (error: any) {
+      setInitializationError(
+        error?.response?.data?.message
+          || error?.message
+          || "Ambari could not restore the cluster installation wizard.",
+      );
     }
   }
 
-  async function flushCurrentData() {
+  async function flushCurrentData(
+    stateSnapshot: State = stateRef.current,
+    stepSnapshot: Record<string, any> = currStepDataRef.current,
+  ) {
     await ClusterApi.postPersistData(
       JSON.stringify({
-        CLUSTER_CURRENT: JSON.stringify(state),
-        CLUSTER_STATE: JSON.stringify(currStepData),
+        CLUSTER_CURRENT: JSON.stringify(stateSnapshot),
+        CLUSTER_STATE: JSON.stringify(stepSnapshot),
       })
     );
   }
 
-  function flushOnCancel() {
-    ClusterApi.postPersistData(
+  async function flushOnCancel() {
+    await queuePersistence(() => flushCurrentData());
+    await releaseWizard();
+    redirectToAdminView();
+  }
+
+  async function flushOnComplete() {
+    await queuePersistence(() => ClusterApi.postPersistData(
       JSON.stringify({
         CLUSTER_CURRENT: JSON.stringify(initialState),
         CLUSTER_STATE: JSON.stringify({}),
       })
-    );
-    redirectToAdminView();
+    ));
+    await releaseWizard();
   }
 
-  async function flushOnStepChange(nextStep: number) {
+  async function flushOnStepChange(nextStep: number, clusterState?: string) {
     if (nextStep >= 0) {
-      let nextStepDetails = stepWizardUtilities.wizardSteps?.[nextStep];
+      const nextStepDetails = stepWizardUtilities.wizardSteps?.[nextStep];
+      const nextClusterCreationSteps = {
+        ...stateRef.current.clusterCreationSteps,
+      };
       if (nextStepDetails?.keysToRemove) {
         nextStepDetails.keysToRemove.forEach((key: string) => {
-          if (state?.clusterCreationSteps?.[key]) {
-            dispatch({
-              type: ActionTypes.REMOVE_KEY,
-              payload: { key },
-            });
-          }
+          delete nextClusterCreationSteps[key];
         });
       }
-      setCurrStepData({
+      const nextState = {
+        ...stateRef.current,
+        clusterCreationSteps: nextClusterCreationSteps,
+      };
+      dispatch({ type: ActionTypes.SYNC_STATE, payload: nextState });
+      const nextStepData = {
         progressStatus: ClusterProgressStatus.PROVISIONING,
         stepName: stepWizardUtilities?.wizardSteps?.[nextStep]?.name,
-      });
+        ...(clusterState ? { clusterState } : {}),
+      };
+      currStepDataRef.current = nextStepData;
+      setCurrStepData(nextStepData);
+      await queuePersistence(() => flushCurrentData(nextState, nextStepData));
     }
   }
 
-  function flushStateToDb(
+  async function flushStateToDb(
     operation: string = "default",
-    jumpStep: number = -1
+    jumpStep: number = -1,
+    clusterState?: string,
   ) {
     let activeStep = Object.keys(stepWizardUtilities.wizardSteps).find(
       (stepName) => {
@@ -157,19 +199,34 @@ export const ClusterCreationProvider: React.FC<{
     );
     switch (operation) {
       case "cancel":
-        flushOnCancel();
+        await flushOnCancel();
+        break;
+      case "complete":
+        await flushOnComplete();
         break;
       case "back":
-        flushOnStepChange(Number(activeStep) - 1);
+        await flushOnStepChange(Number(activeStep) - 1, clusterState);
         break;
       case "next":
-        flushOnStepChange(Number(activeStep) + 1);
+        await flushOnStepChange(Number(activeStep) + 1, clusterState);
         break;
       case "jump":
-        flushOnStepChange(jumpStep);
+        await flushOnStepChange(jumpStep, clusterState);
         break;
+      case "checkpoint": {
+        const nextStepData = {
+          ...currStepDataRef.current,
+          progressStatus: ClusterProgressStatus.PROVISIONING,
+          stepName: stepWizardUtilities.currentStep.name,
+          clusterState,
+        };
+        currStepDataRef.current = nextStepData;
+        setCurrStepData(nextStepData);
+        await queuePersistence(() => flushCurrentData(stateRef.current, nextStepData));
+        break;
+      }
       default:
-        flushCurrentData();
+        await queuePersistence(() => flushCurrentData());
     }
   }
 
@@ -182,7 +239,18 @@ export const ClusterCreationProvider: React.FC<{
         flushStateToDb,
       }}
     >
-      {children}
+      {initializationError ? (
+        <Alert variant="danger" className="m-4">
+          {initializationError}{" "}
+          <Button
+            size="sm"
+            variant="outline-danger"
+            onClick={() => setRetryCount((value) => value + 1)}
+          >
+            Retry
+          </Button>
+        </Alert>
+      ) : children}
     </ClusterCreationContext.Provider>
   );
 };

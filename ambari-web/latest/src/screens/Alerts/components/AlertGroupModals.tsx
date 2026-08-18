@@ -33,6 +33,7 @@ import {
 } from "../types";
 import EditableList from "../../../components/EditableList";
 import Select from "react-select";
+import { validateRepeatTolerance } from '../../../Utils/alertDefinitions';
 
 // Helper function to get definitions from a group
 const getDefinitions = (
@@ -68,22 +69,17 @@ const getGroupNotifications = (
 ): AlertNotification[] => {
   if (!group || !notifications.length) return [];
 
-  const groupId = getGroupId(group);
-  if (!groupId) return [];
+  const targets = "AlertGroup" in group
+    ? group.AlertGroup.targets || []
+    : group.targets || [];
+  const targetIds = new Set(targets.flatMap((target) => {
+    const id = Number(typeof target === "number" ? target : target.id);
+    return Number.isFinite(id) && id > 0 ? [id] : [];
+  }));
 
-  // Filter notifications that are associated with this group
   return notifications.filter((notification) => {
-    const target = notification.AlertTarget;
-
-    // If notification is global, it applies to all groups
-    if (target.global) return true;
-
-    // If notification has specific groups, check if this group is included
-    if (target.groups && Array.isArray(target.groups)) {
-      return target.groups.includes(groupId);
-    }
-
-    return false;
+    const id = Number(notification.AlertTarget.id);
+    return Number.isFinite(id) && targetIds.has(id);
   });
 };
 
@@ -156,6 +152,7 @@ interface ManageAlertGroupsModalProps {
     notifications: AlertNotification[]
   ) => void;
   onManageNotifications?: () => void;
+  onRetry?: () => void;
 }
 
 export const ManageAlertGroupsModal: React.FC<ManageAlertGroupsModalProps> = ({
@@ -179,6 +176,7 @@ export const ManageAlertGroupsModal: React.FC<ManageAlertGroupsModalProps> = ({
   successMessage,
   notifications,
   onNotificationsChange,
+  onRetry,
   // onManageNotifications
 }) => {
   // Filter out deleted groups
@@ -213,7 +211,8 @@ export const ManageAlertGroupsModal: React.FC<ManageAlertGroupsModalProps> = ({
               className="alert alert-danger"
               style={{ marginBottom: "15px", fontWeight: "bold" }}
             >
-              {errorMessage}
+              <span>{errorMessage}</span>
+              {onRetry && <button className="btn btn-outline-danger ms-3" onClick={onRetry}>Retry</button>}
             </div>
           </div>
         </div>
@@ -755,8 +754,8 @@ export const AddDefinitionsModal: React.FC<AddDefinitionsModalProps> = ({
 };
 
 interface ManageAlertSettingsModalProps {
-  alertCheckCount: number | string;
-  setAlertCheckCount: (count: number | string) => void;
+  alertCheckCount: string;
+  setAlertCheckCount: (count: string) => void;
   setIsSaveDisabled: (disabled: boolean) => void;
   modalError: string;
   modalSuccess: string;
@@ -774,19 +773,9 @@ export const ManageAlertSettingsModal: React.FC<
   const [validationError, setValidationError] = React.useState<string>("");
 
   const validateInput = (value: string): boolean => {
-    if (value === "DEBUG") {
-      setValidationError("");
-      return true;
-    }
-
-    const intValue = parseInt(value, 10);
-    if (isNaN(intValue) || intValue < 1 || intValue > 99) {
-      setValidationError("Input should be an integer between 1 and 99.");
-      return false;
-    }
-
-    setValidationError("");
-    return true;
+    const error = validateRepeatTolerance(value);
+    setValidationError(error || "");
+    return error === null;
   };
 
   const handleInputChange = (value: string) => {

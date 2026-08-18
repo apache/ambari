@@ -28,9 +28,11 @@ interface PropTypes {
   onNext: Function;
   isNextEnabled: boolean;
   isBackEnabled?: boolean;
+  isCancelEnabled?: boolean;
   onCancel?: () => void;
   lifted?: boolean;
   sideItems?: any;
+  cancelConfirmationBody?: string;
 }
 
 function WizardFooter({
@@ -40,8 +42,10 @@ function WizardFooter({
   isNextEnabled,
   onCancel = () => {},
   isBackEnabled = true,
+  isCancelEnabled = true,
   lifted = false,
   sideItems,
+  cancelConfirmationBody = "Are you sure you want to cancel the operation?",
 }: PropTypes) {
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   return (
@@ -61,7 +65,7 @@ function WizardFooter({
         }}
         options={{}}
         modalTitle="Confirmation"
-        modalBody="Are you sure you want to cancel the operation?"
+        modalBody={cancelConfirmationBody}
         successCallback={() => {
           onCancel();
         }}
@@ -86,6 +90,7 @@ function WizardFooter({
           onClick={() => {
             setShowConfirmationModal(true);
           }}
+          disabled={!isCancelEnabled}
         >
           <span className="ms-1">CANCEL</span>
         </Button>

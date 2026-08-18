@@ -23,6 +23,7 @@ import WizardFooter from "../../../../components/StepWizard/WizardFooter";
 import { filter, find } from "lodash";
 import { getStepData } from "../../../../Utils/Utility";
 import useKDCSessionState from "../../../../hooks/useKDCSessionState";
+import ConfirmationModal from "../../../../components/ConfirmationModal";
 
 function Step8() {
   const {
@@ -33,6 +34,10 @@ function Step8() {
   const [isNextEnabled] = useState(true);
   const [namenodeHost, setNamenodeHost] = useState("");
   const [additionalNamenodeHost, setAdditionalNamenodeHost] = useState("");
+  const [showCompletionConfirmation, setShowCompletionConfirmation] =
+    useState(false);
+  const [validationError, setValidationError] = useState("");
+  const [isFinalizing, setIsFinalizing] = useState(false);
   const { getKDCSessionState } = useKDCSessionState(() => {});
 
   const masterComponentHosts = getStepData(
@@ -41,10 +46,13 @@ function Step8() {
     "masterComponentHosts",
     "enableHighAvailibilitySteps"
   );
-  console.log("State is", state);
-  // useEffect(() => {
-  //   handleNextImperitive();
-  // }, []);
+  const hdfsUser =
+    getStepData(
+      state,
+      "GET_STARTED",
+      "hdfsUser",
+      "enableHighAvailibilitySteps",
+    ) || "hdfs";
   useEffect(() => {
     const hostName = find(
       filter(masterComponentHosts, ["component", "NAMENODE"]),
@@ -60,6 +68,31 @@ function Step8() {
 
   return (
     <>
+      <ConfirmationModal
+        isOpen={showCompletionConfirmation}
+        onClose={() => setShowCompletionConfirmation(false)}
+        modalTitle="Confirm Manual Steps"
+        modalBody="Confirm that formatZK and bootstrapStandby completed successfully before finalizing NameNode HA."
+        isOkDisabled={isFinalizing}
+        successCallback={async () => {
+          setIsFinalizing(true);
+          setValidationError("");
+          try {
+            await flushStateToDb("next");
+            await handleNextImperitive();
+            setShowCompletionConfirmation(false);
+          } catch (error: any) {
+            setShowCompletionConfirmation(false);
+            setValidationError(
+              error?.response?.data?.message ||
+                error?.message ||
+                "Ambari could not persist the NameNode HA checkpoint.",
+            );
+          } finally {
+            setIsFinalizing(false);
+          }
+        }}
+      />
       <div>
         <div className="step-title">
           Manual Steps Required: Create Checkpoint on NameNode
@@ -76,7 +109,7 @@ function Step8() {
                   Initialize the metadata for NameNode automatic failover by
                   running:
                   <div className="code-snippet fs-12 mt-2">
-                    sudo su hdfs -l -c 'hdfs zkfc -formatZK'
+                    sudo su {hdfsUser} -l -c 'hdfs zkfc -formatZK'
                   </div>
                 </li>
                 <li className="mt-3 fs-12">
@@ -98,7 +131,7 @@ function Step8() {
                   Initialize the metadata for the Additional NameNode by
                   running:
                   <div className="code-snippet fs-12 mt-2">
-                    sudo su hdfs -l -c 'hdfs namenode -bootstrapStandby'
+                    sudo su {hdfsUser} -l -c 'hdfs namenode -bootstrapStandby'
                   </div>
                 </li>
               </ol>
@@ -108,6 +141,11 @@ function Step8() {
         <div className="fs-12">
           Please proceed once you have completed the steps above.
         </div>
+        {validationError ? (
+          <Alert variant="danger" className="mt-3">
+            {validationError}
+          </Alert>
+        ) : null}
       </div>
       <WizardFooter
         onBack={() => {
@@ -117,14 +155,22 @@ function Step8() {
         step={currentStep}
         isNextEnabled={isNextEnabled}
         onNext={() => {
-          getKDCSessionState(() => {
-            flushStateToDb("next");
-            handleNextImperitive();
-          });
+          setValidationError("");
+          void getKDCSessionState(
+            () => setShowCompletionConfirmation(true),
+            (error: any) => {
+              setValidationError(
+                error?.response?.data?.message ||
+                  error?.message ||
+                  "Ambari could not validate the KDC session.",
+              );
+            },
+          );
         }}
         onCancel={() => {
-          flushStateToDb("cancel");
+          void flushStateToDb("cancel");
         }}
+        cancelConfirmationBody="NameNode HA changes have started. Exiting preserves the workflow checkpoint so the operation can be resumed. Complete the documented manual recovery before making further HDFS topology changes."
       />
     </>
   );

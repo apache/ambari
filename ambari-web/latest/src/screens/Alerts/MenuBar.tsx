@@ -18,7 +18,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Row, Col, Button } from 'react-bootstrap';
-import { AlertDefinition, AlertGroupItem } from './types';
+import { AlertDefinition, AlertGroupItem, SearchFilter } from './types';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFilter, faXmarkCircle } from '@fortawesome/free-solid-svg-icons';
 import { ALERT_SEARCH_CATEGORIES } from './constants';
@@ -26,28 +26,22 @@ import { getCategoryValues, getTimeRangeValue } from './alertUtils';
 import '../../styles/MenuBar.scss';
 import { ActionsButton } from './ActionsButton';
 
-interface SearchFilter {
-    category: string;
-    value: string;
-}
-
 interface MenuBarProps {
     title: string;
     alertGroups: AlertGroupItem[];
     alertCounts: Record<string, number>;
     onSearch: (filters: SearchFilter[]) => void;
+    searchFilters: SearchFilter[];
     alertDefinitions?: AlertDefinition[];
     onModalStateChange?: (isOpen: boolean) => void;
-    hasAnyAlertPermissions?: boolean;
 }
 
-const MenuBar: React.FC<MenuBarProps> = ({ title, alertGroups, onSearch,
-                                             alertDefinitions, onModalStateChange, hasAnyAlertPermissions = true
+const MenuBar: React.FC<MenuBarProps> = ({ title, alertGroups, onSearch, searchFilters,
+                                             alertDefinitions, onModalStateChange
     }) => {
-    const [showSearch, setShowSearch] = useState(false);
+    const [showSearch, setShowSearch] = useState(searchFilters.length > 0);
     const [selectedCategory, setSelectedCategory] = useState('');
     const [inputValue, setInputValue] = useState('');
-    const [searchFilters, setSearchFilters] = useState<SearchFilter[]>([]);
     const [suggestions, setSuggestions] = useState<string[]>([]);
     const [showCategories, setShowCategories] = useState(false);
     const searchRef = useRef<HTMLDivElement>(null);
@@ -78,7 +72,6 @@ const MenuBar: React.FC<MenuBarProps> = ({ title, alertGroups, onSearch,
         setInputValue(value);
         if (selectedCategory) {
             const categoryValues = getCategoryValues(selectedCategory, alertGroups || []);
-            console.log('Category values:', categoryValues);
             setSuggestions(
                 categoryValues.filter(item =>
                     item.toLowerCase().includes(value.toLowerCase())
@@ -88,12 +81,10 @@ const MenuBar: React.FC<MenuBarProps> = ({ title, alertGroups, onSearch,
     };
 
     const handleCategorySelect = (category: string) => {
-        console.log('Selected category:', category);
         setSelectedCategory(category);
         setShowCategories(false);
         setInputValue('');
         setSuggestions(getCategoryValues(category, alertGroups || []));
-        console.log('Available suggestions:', getCategoryValues(category, alertGroups || []));
     };
 
     const handleSuggestionSelect = (suggestion: string) => {
@@ -107,7 +98,6 @@ const MenuBar: React.FC<MenuBarProps> = ({ title, alertGroups, onSearch,
             }
             const newFilter = { category: selectedCategory, value: filterValue };
             const newFilters = [...searchFilters, newFilter];
-            setSearchFilters(newFilters);
             setSelectedCategory('');
             setInputValue('');
             setSuggestions([]);
@@ -117,12 +107,10 @@ const MenuBar: React.FC<MenuBarProps> = ({ title, alertGroups, onSearch,
 
     const removeFilter = (index: number) => {
         const newFilters = searchFilters.filter((_, i) => i !== index);
-        setSearchFilters(newFilters);
         onSearch(newFilters);
     };
 
     const clearAllFilters = () => {
-        setSearchFilters([]);
         onSearch([]);
     };
 
@@ -136,14 +124,11 @@ const MenuBar: React.FC<MenuBarProps> = ({ title, alertGroups, onSearch,
                     <Button className="btn btn-default me-2" onClick={toggleSearch}>
                         <FontAwesomeIcon icon={faFilter} />
                     </Button>
-                    {/* Only show Actions button if user has any alert management permissions */}
-                    {hasAnyAlertPermissions && (
-                        <ActionsButton
-                            alertGroups={alertGroups}
-                            allAlertDefinitions={alertDefinitions}
-                            onModalStateChange={onModalStateChange}
-                        />
-                    )}
+                    <ActionsButton
+                        alertGroups={alertGroups}
+                        allAlertDefinitions={alertDefinitions}
+                        onModalStateChange={onModalStateChange}
+                    />
                 </div>
             </div>
             {showSearch && (

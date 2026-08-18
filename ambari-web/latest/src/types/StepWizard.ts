@@ -19,11 +19,12 @@
 import { ReactNode } from "react";
 
 export interface Step {
-  label: String;
-  completed: Boolean;
+  label: string;
+  completed: boolean;
   Component: ReactNode;
-  canGoBack: Boolean;
-  isNextEnabled: Boolean;
-  onNext?:any;
-  nextLabel?:String;
+  canGoBack: boolean;
+  isNextEnabled: boolean;
+  hidden?: boolean;
+  onNext?: any;
+  nextLabel?: string;
 }

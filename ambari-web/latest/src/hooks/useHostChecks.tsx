@@ -33,6 +33,17 @@ type BootHostType = {
   name: string;
 };
 
+type HostCheckRecoveryOptions = {
+  initialHosts?: BootHostType[];
+  initialRequestID?: number;
+  initialWarningData?: any;
+  onStateChange?: (state: {
+    isRunning: boolean;
+    requestID: number;
+    warningData: any;
+  }) => void;
+};
+
 export const initialWarningData: any = {
   allWarnings: [],
   repoCategoryWarnings: [],
@@ -45,20 +56,27 @@ export const initialWarningData: any = {
 
 export const useHostChecks = (
   isAddHostWizard = false,
-  isClusterInstallationWizard = false
+  isClusterInstallationWizard = false,
+  recovery: HostCheckRecoveryOptions = {},
 ) => {
   const { clusterName, ambariProperties } = useContext(AppContext);
 
-  const [requestID, setRequestID] = useState(-1);
-  const [warningData, setWarningData] = useState<any>(initialWarningData);
+  const [requestID, setRequestID] = useState<number>(
+    recovery.initialRequestID ?? -1,
+  );
+  const [warningData, setWarningData] = useState<any>(
+    recovery.initialWarningData || initialWarningData,
+  );
   const [componentInfo, setComponentInfo] = useState({});
-  const [isHostCheckRunning, setIsHostCheckRunning] = useState(false);
+  const [isHostCheckRunning, setIsHostCheckRunning] = useState(
+    recovery.initialRequestID != null && recovery.initialRequestID !== -1,
+  );
 
   const hostsPackagesData = useRef([]);
   const hostCheckResult = useRef(null);
   const skipBootstrap = useRef(false);
   const hostPackagesData = useRef([]);
-  const bootHosts = useRef<BootHostType[]>([]);
+  const bootHosts = useRef<BootHostType[]>(recovery.initialHosts || []);
   const dataForHostCheck = useRef({});
 
   const getHostCheckTasks = async () => {
@@ -69,9 +87,9 @@ export const useHostChecks = (
 
     const response = await HostsApi.getRequestStatus(
       requestID,
-      "Requests/inputs,Requests/request_status,tasks/Tasks/host_name,tasks/Tasks/structured_out/host_resolution_check/hosts_with_failures,tasks/Tasks/structured_out/host_resolution_check/failed_count,tasks/Tasks/structured_out/installed_packages,tasks/Tasks/structured_out/last_agent_env_check,tasks/Tasks/structured_out/transparentHugePage,tasks/Tasks/stdout,tasks/Tasks/stderr,tasks/Tasks/error_log,tasks/Tasks/command_detail,tasks/Tasks/status&minimal_response=true"
+      "Requests/inputs,Requests/request_status,Requests/end_time,tasks/Tasks/host_name,tasks/Tasks/structured_out/host_resolution_check/hosts_with_failures,tasks/Tasks/structured_out/host_resolution_check/failed_count,tasks/Tasks/structured_out/installed_packages,tasks/Tasks/structured_out/last_agent_env_check,tasks/Tasks/structured_out/transparentHugePage,tasks/Tasks/structured_out/java_home_check/exit_code,tasks/Tasks/stdout,tasks/Tasks/stderr,tasks/Tasks/error_log,tasks/Tasks/command_detail,tasks/Tasks/status&minimal_response=true"
     );
-    getHostCheckTasksSuccess(response);
+    await getHostCheckTasksSuccess(response);
   };
 
   const { pausePolling, resumePolling } = usePolling(getHostCheckTasks, 1000);
@@ -88,6 +106,14 @@ export const useHostChecks = (
       resumePolling();
     }
   }, [requestID]);
+
+  useEffect(() => {
+    recovery.onStateChange?.({
+      isRunning: isHostCheckRunning,
+      requestID,
+      warningData,
+    });
+  }, [isHostCheckRunning, requestID, warningData]);
 
   const getClusterComponents = async () => {
     const response = await HostsApi.getClusterComponents(
@@ -1019,7 +1045,68 @@ export const useHostChecks = (
     setWarningData(warningDataCopy);
   };
 
-  const getHostCheckTasksSuccess = (data: any) => {
+  const finishHostCheck = () => {
+    pausePolling();
+    setIsHostCheckRunning(false);
+    setRequestID(-1);
+  };
+
+  const launchJdkCheck = async () => {
+    const hostNames = map(bootHosts.current, "name").join(",");
+    const properties = get(ambariProperties, "RootServiceComponents.properties", {});
+    if (!hostNames || properties["jdk.name"]) {
+      finishHostCheck();
+      return;
+    }
+    const response = await HostsApi.makeRequest({
+      RequestInfo: {
+        action: "check_host",
+        context: "Check hosts",
+        parameters: {
+          check_execute_list: "java_home_check",
+          java_home: properties["java.home"],
+          jdk_location: properties.jdk_location,
+          threshold: "60",
+        },
+      },
+      "Requests/resource_filters": [{ hosts: hostNames }],
+    });
+    const nextRequestID = get(response, "Requests.id", -1);
+    if (nextRequestID === -1) {
+      finishHostCheck();
+      return;
+    }
+    setRequestID(nextRequestID);
+  };
+
+  const parseJdkCheckResults = (data: any) => {
+    const invalidHosts = get(data, "tasks", []).filter(
+      (task: any) => Number(get(
+        task,
+        "Tasks.structured_out.java_home_check.exit_code",
+        0,
+      )) === 1,
+    ).map((task: any) => get(task, "Tasks.host_name", ""));
+    const javaHome = get(
+      ambariProperties,
+      "RootServiceComponents.properties.java.home",
+      "",
+    );
+    setWarningData((current: any) => ({
+      ...current,
+      jdkCategoryWarnings: invalidHosts.length ? [{
+        category: "jdk",
+        hosts: invalidHosts.map((hostName: string) =>
+          `${hostName} does not have a valid JDK at ${javaHome}.`,
+        ),
+        hostsLong: invalidHosts,
+        hostsNames: invalidHosts,
+        name: `Invalid JDK location ${javaHome}`,
+      }] : [],
+    }));
+  };
+
+  const getHostCheckTasksSuccess = async (data: any) => {
     if (isEmpty(data)) {
       getGeneralHostCheck();
       return;
@@ -1027,7 +1114,6 @@ export const useHostChecks = (
     if (finishStates.includes(get(data, "Requests.request_status"))) {
       if (get(data, "Requests.inputs", "").includes("last_agent_env_check")) {
         pausePolling();
-        setIsHostCheckRunning(false);
         hostsPackagesData.current = get(data, "tasks", []).map((task: any) => {
           const installedPackages = get(
             task,
@@ -1045,7 +1131,15 @@ export const useHostChecks = (
           };
         });
         hostCheckResult.current = data;
-        getHostInfo();
+        await getHostInfo();
+        try {
+          await launchJdkCheck();
+        } catch {
+          finishHostCheck();
+        }
+      } else if (get(data, "Requests.inputs", "").includes("java_home_check")) {
+        parseJdkCheckResults(data);
+        finishHostCheck();
       } else if (
         get(data, "Requests.inputs", "").includes("host_resolution_check")
       ) {

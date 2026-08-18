@@ -24,6 +24,7 @@ export const ALERT_SEARCH_CATEGORIES = [
     'Status',
     'Alert Definition Name',
     'Service',
+    'Component',
     'Last Status Changed',
     'State',
     'Group',

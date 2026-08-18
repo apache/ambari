@@ -278,11 +278,11 @@ export const isRequestRunning = (status: string) => {
 };
 
 export const isFinished = (status: string) => {
-  return ["FAILED", "ABORTED", "COMPLETED"].includes(status);
+  return ["FAILED", "TIMEDOUT", "ABORTED", "COMPLETED"].includes(status);
 };
 
 export const isFailed = (status: string) => {
-  return ["FAILED"].includes(status);
+  return ["FAILED", "TIMEDOUT", "ABORTED"].includes(status);
 };
 export const role = (role: string, isServiceRole: boolean) => {
   if (isServiceRole) {

@@ -30,6 +30,8 @@ export interface Item {
 export interface VersionDefinition {
     id: string
     repository_version: string
+    min_jdk?: string
+    max_jdk?: string
     show_available: boolean
     stack_default: boolean
     stack_name: string

@@ -115,6 +115,7 @@ interface AppContextProps {
   isNonWizardUser: boolean;
   wizardUser: string;
   isClusterInstalled?: boolean;
+  loginName: string;
 }
 
 type BackgroundRequestPage = {
@@ -185,6 +186,7 @@ export const AppContext = createContext<AppContextProps>({
   isNonWizardUser: false,
   wizardUser: "",
   isClusterInstalled: false,
+  loginName: "",
 });
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -771,6 +773,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         isNonWizardUser,
         wizardUser,
         isClusterInstalled,
+        loginName: loginName || "",
       }}
     >
       {children}

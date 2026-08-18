@@ -16,14 +16,14 @@
  * limitations under the License.
  */
 
-import { useState, useContext } from 'react';
+import { forwardRef, useContext, useEffect, useImperativeHandle, useState } from 'react';
 import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPencil, faArrowLeft, faBriefcase } from "@fortawesome/free-solid-svg-icons";
 import { Button, Form, Row, Col } from 'react-bootstrap';
 import { getStatusClass, formatStatus } from '../../Utils/Utility';
 import "../../styles/app.scss";
-import { MergedAlert } from './types';
+import { AlertEditorHandle, MergedAlert } from './types';
 import { AlertsApi } from "../../api/alertsApi";
 import { AppContext } from "../../store/context";
 import { useAuth } from '../../hooks/useAuth';
@@ -41,14 +41,22 @@ interface StatusItem {
 interface HeaderSectionProps {
     alertDefinition: MergedAlert;
     statuses: StatusItem[];
+    onDirtyChange?: (dirty: boolean) => void;
+    onAlertDefinitionUpdate?: (updatedDefinition: Partial<MergedAlert>) => void;
 }
 
-const HeaderSection = ({ alertDefinition, statuses }: HeaderSectionProps) => {
+const HeaderSection = forwardRef<AlertEditorHandle, HeaderSectionProps>(({
+    alertDefinition,
+    statuses,
+    onDirtyChange,
+    onAlertDefinitionUpdate,
+}, ref) => {
     const { clusterName, upgradeIsRunning, upgradeSuspended } = useContext(AppContext);
     const [isEditing, setIsEditing] = useState(false);
     const [label, setLabel] = useState(alertDefinition.label);
     const [hasError, setHasError] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
+    const [saveError, setSaveError] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     
     // Authorization hooks - implementing Ember.js alert authorization patterns
@@ -59,6 +67,10 @@ const HeaderSection = ({ alertDefinition, statuses }: HeaderSectionProps) => {
     
     // Check if upgrade is blocking operations (running but not suspended)
     const isUpgradeBlocking = upgradeIsRunning && !upgradeSuspended;
+
+    useEffect(() => {
+        if (!isEditing) setLabel(alertDefinition.label);
+    }, [alertDefinition.label, isEditing]);
 
     // Validation regex for alert definition name
     const validNameRegex = /^[a-zA-Z0-9_\-\s\[\]%]+$/;
@@ -86,6 +98,8 @@ const HeaderSection = ({ alertDefinition, statuses }: HeaderSectionProps) => {
 
     const handleEditClick = () => {
         setIsEditing(true);
+        setSaveError('');
+        onDirtyChange?.(true);
     };
 
     const handleCancelEdit = () => {
@@ -93,18 +107,21 @@ const HeaderSection = ({ alertDefinition, statuses }: HeaderSectionProps) => {
         setLabel(alertDefinition.label);
         setHasError(false);
         setErrorMessage('');
+        setSaveError('');
+        onDirtyChange?.(false);
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         setLabel(value);
         setHasError(!validateInput(value));
+        setSaveError('');
     };
 
-    const handleSaveEdit = async () => {
+    const handleSaveEdit = async (): Promise<boolean> => {
         if (!validateInput(label)) {
             setHasError(true);
-            return;
+            return false;
         }
 
         setIsSubmitting(true);
@@ -118,17 +135,24 @@ const HeaderSection = ({ alertDefinition, statuses }: HeaderSectionProps) => {
                 }
             );
             
-            // Update local state
-            alertDefinition.label = label;
+            onAlertDefinitionUpdate?.({ label });
             setIsEditing(false);
+            setSaveError('');
+            onDirtyChange?.(false);
+            return true;
         } catch (error) {
             console.error('Failed to update alert definition:', error);
-            setErrorMessage('Failed to update alert definition. Please try again.');
-            setHasError(true);
+            setSaveError('Failed to update alert definition. Please try again.');
+            return false;
         } finally {
             setIsSubmitting(false);
         }
     };
+
+    useImperativeHandle(ref, () => ({
+        save: handleSaveEdit,
+        discard: handleCancelEdit,
+    }));
 
     return (
         <Row className="alert-definition-details-header gap-4 mb-4">
@@ -149,6 +173,7 @@ const HeaderSection = ({ alertDefinition, statuses }: HeaderSectionProps) => {
                                         {errorMessage}
                                     </div>
                                 )}
+                                {saveError && <div className="text-danger mt-1">{saveError}</div>}
                             </Col>
                             <Col md={4} className="edit-buttons align-content-center align-items-end">
                                 <Button 
@@ -234,6 +259,8 @@ const HeaderSection = ({ alertDefinition, statuses }: HeaderSectionProps) => {
             </Col>
         </Row>
     );
-};
+});
+
+HeaderSection.displayName = 'HeaderSection';
 
 export default HeaderSection;

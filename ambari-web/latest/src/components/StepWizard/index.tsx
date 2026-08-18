@@ -22,6 +22,7 @@ import classNames from "classnames";
 import { CheckLg } from "react-bootstrap-icons";
 import ConfirmationModal from "../ConfirmationModal";
 import { get } from "lodash";
+import { getVisibleStepNumbers } from "../../hooks/useStepWizard";
 
 interface StepWizardProps {
   wizardUtilities: any;
@@ -38,6 +39,8 @@ const StepWizard: FunctionComponent<StepWizardProps> = ({
   const flushStateToDb = get(contextValue, "flushStateToDb", "");
   const [jumpStep, setjumpStep] = useState(0);
   const [showNavigationModal, setShowNavigationModal] = useState(false);
+  const visibleStepNumbers = getVisibleStepNumbers(wizardSteps);
+  const jumpStepDisplayNumber = visibleStepNumbers.indexOf(jumpStep) + 1;
   return (
     <div className="step-wizard h-95" style={{ position: "relative" }}>
       <ConfirmationModal
@@ -46,7 +49,7 @@ const StepWizard: FunctionComponent<StepWizardProps> = ({
           setShowNavigationModal(false);
         }}
         modalTitle="Navigation Warning"
-        modalBody={`If you proceed to go back to Step ${jumpStep}, you will lose any changes you made.`}
+        modalBody={`If you proceed to go back to Step ${jumpStepDisplayNumber}, you will lose any changes you made.`}
         successCallback={() => {
           jumpToStep(jumpStep);
           if (flushStateToDb) {
@@ -57,7 +60,7 @@ const StepWizard: FunctionComponent<StepWizardProps> = ({
       />
       <div className="d-flex h-100">
         <div className="wizard-nav p-2">
-          {Object.keys(wizardSteps).map((currentStep) => {
+          {visibleStepNumbers.map((currentStep, visibleIndex) => {
             const step = wizardSteps[currentStep];
             return (
               <div
@@ -87,7 +90,7 @@ const StepWizard: FunctionComponent<StepWizardProps> = ({
                     {step.completed ? (
                       <CheckLg className="text-white fw-5" />
                     ) : (
-                      currentStep
+                      visibleIndex + 1
                     )}
                   </div>
                 </div>

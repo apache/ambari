@@ -30,9 +30,11 @@ import ClusterApi from "../../../../api/clusterApi";
 import { LocalStorageOps } from "../../../../Utils/LocalStorageOps";
 import { AppContext } from "../../../../store/context";
 import { ClusterProgressStatus } from "../../../../constants";
+import { ServiceContext } from "../../../../store/ServiceContext";
 
 function ValidateEnablement() {
-  const {services, clusterState}=useContext(AppContext);
+  const { allServiceModels } = useContext(ServiceContext);
+  const { services, clusterState, allHostNames } = useContext(AppContext);
   const { hostComponents: serviceHostComponents, serviceComponents } =
     useHostComponents(map(services, "ServiceInfo.service_name"));
   const stepWizardUtilities = useStepWizard(wizardSteps, 0);
@@ -111,6 +113,12 @@ function ValidateEnablement() {
       filter(hostComponents, ["component_name", "ZOOKEEPER_SERVER"]).length < 3
     ) {
       messages.push(t("admin.highAvailability.error.zooKeeperNum"));
+    }
+    if (allHostNames.length < 3) {
+      messages.push("NameNode HA requires at least three registered hosts.");
+    }
+    if (allServiceModels?.hdfs?.isNameNodeHaEnabled) {
+      messages.push("NameNode HA is already enabled for HDFS.");
     }
     if (
       some(filter(hostComponents, ["isMaster", true]), [

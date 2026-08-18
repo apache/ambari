@@ -35,16 +35,7 @@ import { ambariApi } from "../../api/config/axiosConfig";
 import { AppContext } from "../../store/context";
 import { useParams } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
-
-interface AlertDefinitionResponseItem {
-  AlertDefinition: {
-    id: number;
-    repeat_tolerance: any;
-    repeat_tolerance_enabled: boolean;
-    help_url?: string;
-    [key: string]: any;
-  };
-}
+import { validateRepeatTolerance } from '../../Utils/alertDefinitions';
 
 const InformationSection = ({
   alertDefinition,
@@ -57,13 +48,13 @@ const InformationSection = ({
     useContext(AppContext);
   const params = useParams<{ alertId?: string }>();
   const [showToleranceModal, setShowToleranceModal] = useState(false);
-  const [toleranceValue, setToleranceValue] = useState<number>(
-    alertDefinition.repeat_tolerance || 1
+  const [toleranceValue, setToleranceValue] = useState<string>(
+    String(alertDefinition.repeat_tolerance ?? 1)
   );
   const [isUpdatingTolerance, setIsUpdatingTolerance] = useState(false);
   const [toleranceError, setToleranceError] = useState<string | null>(null);
-  const [localRepeatTolerance, setLocalRepeatTolerance] = useState<number>(
-    alertDefinition.repeat_tolerance || 1
+  const [localRepeatTolerance, setLocalRepeatTolerance] = useState<string>(
+    String(alertDefinition.repeat_tolerance ?? 1)
   );
   const [localRepeatToleranceEnabled, setLocalRepeatToleranceEnabled] =
     useState<boolean>(alertDefinition.repeat_tolerance_enabled || false);
@@ -91,13 +82,7 @@ const InformationSection = ({
   });
 
   useEffect(() => {
-    console.log("InformationSection - Alert Definition changed:", {
-      repeat_tolerance: alertDefinition.repeat_tolerance,
-      repeat_tolerance_enabled: alertDefinition.repeat_tolerance_enabled,
-      alert_definition_id: alertDefinition.alert_definition_id,
-    });
-
-    setLocalRepeatTolerance(alertDefinition.repeat_tolerance || 1);
+    setLocalRepeatTolerance(String(alertDefinition.repeat_tolerance ?? 1));
     setLocalRepeatToleranceEnabled(
       alertDefinition.repeat_tolerance_enabled || false
     );
@@ -177,31 +162,21 @@ const InformationSection = ({
     try {
       const alertDefinitionId = params.alertId;
       if (alertDefinitionId) {
-        const alertDefinitionResponse = await AlertsApi.getAlertDefinition(
-          clusterName,
-          "AlertDefinition/component_name,AlertDefinition/description,AlertDefinition/enabled,AlertDefinition/repeat_tolerance,AlertDefinition/repeat_tolerance_enabled,AlertDefinition/id,AlertDefinition/ignore_host,AlertDefinition/interval,AlertDefinition/label,AlertDefinition/name,AlertDefinition/scope,AlertDefinition/service_name,AlertDefinition/source,AlertDefinition/help_url",
-          Date.now()
+        const alertDefinitionResponse = await AlertsApi.getAlertDefinitionById(
+          clusterName, alertDefinitionId, Date.now(),
         );
-
-        const alertDefinitionDetails = alertDefinitionResponse.items.find(
-          (item: AlertDefinitionResponseItem) =>
-            item.AlertDefinition.id === parseInt(alertDefinitionId)
-        );
+        const alertDefinitionDetails = alertDefinitionResponse?.AlertDefinition ||
+          alertDefinitionResponse?.items?.[0]?.AlertDefinition;
 
         if (alertDefinitionDetails) {
-          // Update local state
-          setLocalRepeatTolerance(
-            alertDefinitionDetails.AlertDefinition.repeat_tolerance
-          );
+          setLocalRepeatTolerance(String(alertDefinitionDetails.repeat_tolerance ?? 1));
           setLocalRepeatToleranceEnabled(
-            alertDefinitionDetails.AlertDefinition.repeat_tolerance_enabled
+            Boolean(alertDefinitionDetails.repeat_tolerance_enabled)
           );
-
-          // Update parent component data
-          alertDefinition.repeat_tolerance =
-            alertDefinitionDetails.AlertDefinition.repeat_tolerance;
-          alertDefinition.repeat_tolerance_enabled =
-            alertDefinitionDetails.AlertDefinition.repeat_tolerance_enabled;
+          onAlertDefinitionUpdate?.({
+            repeat_tolerance: alertDefinitionDetails.repeat_tolerance,
+            repeat_tolerance_enabled: alertDefinitionDetails.repeat_tolerance_enabled,
+          });
         }
       }
     } catch (error) {
@@ -214,8 +189,8 @@ const InformationSection = ({
     // If repeat_tolerance_enabled is true, use repeat_tolerance, otherwise use global default
     const initialValue = localRepeatToleranceEnabled
       ? localRepeatTolerance
-      : parseInt(globalRepeatTolerance);
-    setToleranceValue(initialValue || 1);
+      : globalRepeatTolerance;
+    setToleranceValue(String(initialValue || '1'));
     setToleranceError(null);
     setShowToleranceModal(true);
   };
@@ -226,24 +201,13 @@ const InformationSection = ({
   };
 
   const validateToleranceInput = (value: string | number): boolean => {
-    const stringValue = value.toString();
-    if (stringValue === "DEBUG") {
-      setToleranceError(null);
-      return true;
-    }
-
-    const intValue = parseInt(stringValue, 10);
-    if (isNaN(intValue) || intValue < 1 || intValue > 99) {
-      setToleranceError("Input should be an integer between 1 and 99.");
-      return false;
-    }
-
-    setToleranceError(null);
-    return true;
+    const error = validateRepeatTolerance(value);
+    setToleranceError(error);
+    return error === null;
   };
 
   const handleToleranceInputChange = (value: string) => {
-    setToleranceValue(value as any);
+    setToleranceValue(value);
     validateToleranceInput(value);
   };
 
@@ -264,7 +228,7 @@ const InformationSection = ({
         clusterName,
         alertDefinition.alert_definition_id,
         {
-          "AlertDefinition/repeat_tolerance": toleranceValue.toString(),
+          "AlertDefinition/repeat_tolerance": toleranceValue,
           "AlertDefinition/repeat_tolerance_enabled": enableRepeatTolerance,
         }
       );
@@ -272,10 +236,6 @@ const InformationSection = ({
       // Update local state to reflect changes immediately
       setLocalRepeatTolerance(toleranceValue);
       setLocalRepeatToleranceEnabled(enableRepeatTolerance);
-
-      // Update parent component data
-      alertDefinition.repeat_tolerance = toleranceValue;
-      alertDefinition.repeat_tolerance_enabled = enableRepeatTolerance;
 
       if (onAlertDefinitionUpdate) {
         onAlertDefinitionUpdate({
@@ -541,7 +501,7 @@ const InformationSection = ({
                   icon={faUndo}
                   className="text-warning ms-2 cursor-pointer"
                   onClick={() => {
-                    setToleranceValue(parseInt(globalRepeatTolerance) || 1);
+                    setToleranceValue(globalRepeatTolerance || '1');
                     setToleranceError(null);
                   }}
                 />
