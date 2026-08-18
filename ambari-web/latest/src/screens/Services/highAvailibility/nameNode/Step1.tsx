@@ -34,16 +34,47 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMultiply } from "@fortawesome/free-solid-svg-icons";
 import classNames from "classnames";
 import { ActionTypes } from "./store/types";
+import { AppContext } from "../../../../store/context";
+import ConfigsApi from "../../../../api/configsApi";
+import { getStepData } from "../../../../Utils/Utility";
+import { getHdfsUser } from "../haWorkflowUtils";
 
 function Step1() {
   const [isNextEnabled, setIsNextEnabled] = useState(false);
   const [nameserviceId, setNameserviceId] = useState("");
   const {
+    state,
     dispatch,
     stepWizardUtilities: { currentStep, handleNextImperitive, jumpToStep },
     flushStateToDb
   } = useContext(EnableHighAvailibilityContext);
+  const { clusterName, services } = useContext(AppContext);
+  const [hdfsUser, setHdfsUser] = useState("hdfs");
   const [nameError, setNameError] = useState("");
+  const isHawqInstalled = services.some(
+    (service: any) => service?.ServiceInfo?.service_name === "HAWQ",
+  );
+  useEffect(() => {
+    const savedData = getStepData(
+      state,
+      "GET_STARTED",
+      "",
+      "enableHighAvailibilitySteps",
+    );
+    if (savedData?.nameserviceId) setNameserviceId(savedData.nameserviceId);
+    if (savedData?.hdfsUser) setHdfsUser(savedData.hdfsUser);
+  }, [state]);
+  useEffect(() => {
+    async function loadHdfsUser() {
+      try {
+        const configData = await ConfigsApi.getConfigValues(clusterName, "HDFS");
+        setHdfsUser(getHdfsUser(configData));
+      } catch {
+        setHdfsUser((currentUser) => currentUser || "hdfs");
+      }
+    }
+    if (clusterName) void loadHdfsUser();
+  }, [clusterName]);
   useEffect(() => {
     if (nameserviceId) {
       let nameSarviceIdRegex =
@@ -81,6 +112,11 @@ function Step1() {
       </p>
       <Alert className="mt-2" variant="warning">
         If you have HBase running, please exit this wizard and stop HBase first
+        {isHawqInstalled ? (
+          <div className="mt-2">
+            HAWQ filespace must be updated manually after NameNode HA is enabled.
+          </div>
+        ) : null}
       </Alert>
       <Card className="mt-2">
         <CardBody>
@@ -138,21 +174,22 @@ function Step1() {
           flushStateToDb("back");
           jumpToStep(0);
         }}
-        onNext={() => {
+        onNext={async () => {
           dispatch({
             type: ActionTypes.STORE_INFORMATION,
             payload: {
               step: currentStep.name,
               data: {
                 nameserviceId,
+                hdfsUser,
               },
             },
           });
-          flushStateToDb("next");
-          handleNextImperitive();
+          await flushStateToDb("next");
+          await handleNextImperitive();
         }}
         onCancel={() => {
-          flushStateToDb("cancel");
+          void flushStateToDb("cancel");
         }}
       />
     </>

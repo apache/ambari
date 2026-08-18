@@ -26,11 +26,25 @@ import modalManager from "../store/ModalManager";
 import credentialsUtils from "../Utils/credentialsUtils";
 import { AppContext } from "../store/context";
 
-function InvalidKdcPopup({getKdcSessionState}:any) {
+interface InvalidKdcPopupProps {
+  getKdcSessionState?: () => void;
+  onCancel?: (error: Error) => void;
+  onError?: (error: unknown) => void;
+}
+
+function InvalidKdcPopup({
+  getKdcSessionState,
+  onCancel,
+  onError,
+}: InvalidKdcPopupProps) {
   const [principal, setPrincipal] = useState("");
   const [password, setPassword] = useState("");
   const [saveCreds, setSaveCreds] = useState(false);
-  const { clusterName } = useContext(AppContext);
+  const [credentialError, setCredentialError] = useState("");
+  const { clusterName, cluster } = useContext(AppContext);
+  const canPersistCredentials =
+    cluster?.Clusters?.credential_store_properties?.["storage.persistent"] ===
+    "true";
   if(!clusterName){
     return null;
   }
@@ -39,22 +53,43 @@ function InvalidKdcPopup({getKdcSessionState}:any) {
       isOpen={true}
       onClose={() => {
         modalManager.hide();
+        onCancel?.(new Error("KDC credential entry was cancelled."));
       }}
       successCallback={async () => {
-        modalManager.hide();
-        const resource = credentialsUtils.createCredentialResource(
-          principal,
-          password,
-          saveCreds
-            ? credentialsUtils.STORE_TYPES.PERSISTENT
-            : credentialsUtils.STORE_TYPES.TEMPORARY
-        );
-        await credentialsUtils.createOrUpdateCredentials(
-          clusterName,
-          credentialsUtils.ALIAS.KDC_CREDENTIALS,
-          resource as any
-        );
-        setTimeout(getKdcSessionState, 1000);
+        setCredentialError("");
+        try {
+          const resource = credentialsUtils.createCredentialResource(
+            principal,
+            password,
+            saveCreds
+              ? credentialsUtils.STORE_TYPES.PERSISTENT
+              : credentialsUtils.STORE_TYPES.TEMPORARY
+          );
+          await credentialsUtils.createOrUpdateCredentials(
+            clusterName,
+            credentialsUtils.ALIAS.KDC_CREDENTIALS,
+            resource,
+          );
+          modalManager.hide();
+          if (getKdcSessionState) {
+            window.setTimeout(getKdcSessionState, 1000);
+          }
+        } catch (error: unknown) {
+          const credentialSaveError = error as {
+            message?: string;
+            response?: { data?: { message?: string } };
+          };
+          const message =
+            credentialSaveError.response?.data?.message ||
+            credentialSaveError.message ||
+            "Ambari could not save the KDC credentials.";
+          if (onError) {
+            modalManager.hide();
+            onError(error);
+          } else {
+            setCredentialError(message);
+          }
+        }
       }}
       modalTitle="Admin session expiration error"
       modalBody={
@@ -64,6 +99,9 @@ function InvalidKdcPopup({getKdcSessionState}:any) {
               Missing KDC administrator credentials. Please enter admin
               principal and password.
             </Alert>
+            {credentialError ? (
+              <Alert variant="danger">{credentialError}</Alert>
+            ) : null}
             <Form.Label className="mt-2">Admin Principal</Form.Label>
 
             <Form.Control
@@ -85,13 +123,20 @@ function InvalidKdcPopup({getKdcSessionState}:any) {
               <Form.Check
                 id="save-creds"
                 checked={saveCreds}
+                disabled={!canPersistCredentials}
                 onChange={(e) => {
                   setSaveCreds(e.target.checked);
                 }}
               ></Form.Check>
               <Form.Label className="ms-2 mt-1" htmlFor="save-creds">
                 Save Admin Credentials
-                <Tooltip message="Ambari is not configured for storing credentials">
+                <Tooltip
+                  message={
+                    canPersistCredentials
+                      ? "Store the KDC credential in Ambari's persistent credential store"
+                      : "Ambari is not configured for storing credentials"
+                  }
+                >
                   <FontAwesomeIcon
                     className="ms-1 custom-link cursor-pointer"
                     icon={faQuestionCircle}

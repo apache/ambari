@@ -16,15 +16,20 @@
  * limitations under the License.
  */
 
-import { ReactNode } from "react";
+import { describe, expect, it } from "vitest";
+import { isFailed, isFinished } from "./Utility";
 
-export interface Step {
-  label: string;
-  completed: boolean;
-  Component: ReactNode;
-  canGoBack: boolean;
-  isNextEnabled: boolean;
-  hidden?: boolean;
-  onNext?: any;
-  nextLabel?: string;
-}
+describe("operation terminal states", () => {
+  it.each(["FAILED", "TIMEDOUT", "ABORTED"])(
+    "treats %s as a retryable terminal failure",
+    (status) => {
+      expect(isFinished(status)).toBe(true);
+      expect(isFailed(status)).toBe(true);
+    },
+  );
+
+  it("treats COMPLETED as terminal but successful", () => {
+    expect(isFinished("COMPLETED")).toBe(true);
+    expect(isFailed("COMPLETED")).toBe(false);
+  });
+});

@@ -19,14 +19,16 @@
 import { useContext, useEffect, useState } from "react";
 import { getStepData } from "../../../../Utils/Utility";
 import { EnableHighAvailibilityContext } from "./store/context";
-import { filter, find, map } from "lodash";
+import { filter, find, get, map } from "lodash";
 import { startServices, updateComponent } from "../../../../Utils/taskUtils";
 import { AppContext } from "../../../../store/context";
-import { ServiceContext } from "../../../../store/ServiceContext";
 import OperationsProgress from "../../../../components/OperationsProgress";
 import WizardFooter from "../../../../components/StepWizard/WizardFooter";
 import { ActionTypes } from "./store/types";
 import { enableNamenodeSteps } from "./wizardSteps";
+import { mergeSavedOperations } from "../haWorkflowUtils";
+import { HostsApi } from "../../../../api/hostsApi";
+import { Alert, Button } from "react-bootstrap";
 
 enum COMMANDS {
   startZooKeeperServers = "startZooKeeperServers",
@@ -44,9 +46,10 @@ function Step7() {
     stepWizardUtilities: { currentStep, handleNextImperitive, jumpToStep },
   } = useContext(EnableHighAvailibilityContext);
   const { clusterName, services } = useContext(AppContext);
-  const { serviceModels: allServiceModels }: any = useContext(ServiceContext);
   const [completionStatus, setCompletionStatus] = useState(false);
   const [stepOperations, setStepOperations] = useState<any>([]);
+  const [topologyError, setTopologyError] = useState("");
+  const [topologyRetry, setTopologyRetry] = useState(0);
   const masterComponentHosts = getStepData(
     state,
     "SELECT_HOSTS",
@@ -56,48 +59,48 @@ function Step7() {
 
   const selectedServices = map(services, "ServiceInfo.service_name");
 
-  function initializeTasks() {
-    let id = 0;
+  function initializeTasks(componentItems: any[]) {
     const allOps = [];
-    const tasksToRemove = [];
-    const rangerMasterComponents =
-      allServiceModels?.["ranger"]?.masterComponents;
-    if (!selectedServices.includes("AMBARI_INFRA_SOLR")) {
-      tasksToRemove.push(COMMANDS.startAmbariInfra);
-    }
-    if (
-      !selectedServices.includes("RANGER")||
-      find(rangerMasterComponents, ["componentName", "RANGER_ADMIN"])
-        ?.installedCount === 0
-    ) {
-      tasksToRemove.push(COMMANDS.startRanger);
-    }
-    tasksToRemove.push(COMMANDS.startMysqlServer);
+    const component = (componentName: string) =>
+      find(componentItems, [
+        "ServiceComponentInfo.component_name",
+        componentName,
+      ]);
+    const componentHosts = (componentName: string) =>
+      map(
+        get(component(componentName), "host_components", []),
+        (hostComponent: any) => get(hostComponent, "HostRoles.host_name"),
+      ).filter(Boolean);
+    const isInstalled = (componentName: string) =>
+      Number(
+        get(component(componentName), "ServiceComponentInfo.installed_count", 0),
+      ) > 0;
+    const hasInfraModel = componentItems.some(
+      (item: any) =>
+        get(item, "ServiceComponentInfo.service_name") ===
+        "AMBARI_INFRA_SOLR",
+    );
 
-    if (!tasksToRemove.includes(COMMANDS.startZooKeeperServers)) {
+    allOps.push({
+      id: COMMANDS.startZooKeeperServers,
+      label: "Start Zookeeper Servers",
+      skippable: false,
+      callback: async () =>
+        await updateComponent(
+          clusterName,
+          "ZOOKEEPER_SERVER",
+          componentHosts("ZOOKEEPER_SERVER"),
+          "ZOOKEEPER",
+          "Start",
+          1,
+        ),
+    });
+    if (
+      selectedServices.includes("AMBARI_INFRA_SOLR") &&
+      hasInfraModel
+    ) {
       allOps.push({
-        id: id++,
-        label: "Start Zookeeper Servers",
-        skippable: false,
-        callback: async () => {
-          const hostNames = map(
-            filter(masterComponentHosts, ["component", "ZOOKEEPER_SERVER"]),
-            "hostName"
-          );
-          return await updateComponent(
-            clusterName,
-            "ZOOKEEPER_SERVER",
-            hostNames,
-            "HDFS",
-            "Start",
-            1
-          );
-        },
-      });
-    }
-    if (!tasksToRemove.includes(COMMANDS.startAmbariInfra)) {
-      allOps.push({
-        id: id++,
+        id: COMMANDS.startAmbariInfra,
         label: "Start Ambari Infra",
         skippable: false,
         callback: async () => {
@@ -110,20 +113,32 @@ function Step7() {
         },
       });
     }
-    if (!tasksToRemove.includes(COMMANDS.startRanger)) {
-      const hostNames = map(
-        filter(masterComponentHosts, ["component", "RANGER_ADMIN"]),
-        "hostName"
-      );
+    if (isInstalled("MYSQL_SERVER")) {
       allOps.push({
-        id: id++,
+        id: COMMANDS.startMysqlServer,
+        label: "Start MySQL Server",
+        skippable: false,
+        callback: async () =>
+          await updateComponent(
+            clusterName,
+            "MYSQL_SERVER",
+            componentHosts("MYSQL_SERVER"),
+            "HIVE",
+            "Start",
+            1,
+          ),
+      });
+    }
+    if (selectedServices.includes("RANGER") && isInstalled("RANGER_ADMIN")) {
+      allOps.push({
+        id: COMMANDS.startRanger,
         label: "Start Ranger",
         skippable: false,
         callback: async () => {
           return await updateComponent(
             clusterName,
             "RANGER_ADMIN",
-            hostNames,
+            componentHosts("RANGER_ADMIN"),
             "RANGER",
             "Start",
             1
@@ -131,62 +146,106 @@ function Step7() {
         },
       });
     }
-    if (!tasksToRemove.includes(COMMANDS.startNameNode)) {
-      const hostName=map(filter(masterComponentHosts, (masterComponentHost:any)=>{
-        return masterComponentHost.component === "NAMENODE" && masterComponentHost.isInstalled;
-      }),"hostName");
-      allOps.push({
-        id: id++,
-        label: "Start NameNode",
-        skippable: false,
-        callback: async () => {
-          return await updateComponent(
-            clusterName,
-            "NAMENODE",
-            hostName,
-            "HDFS",
-            "Start",
-            1
-          );
-        },
-      });
-    }
+    const currentNameNodeHost = map(
+      filter(
+        masterComponentHosts,
+        (masterComponentHost: any) =>
+          masterComponentHost.component === "NAMENODE" &&
+          masterComponentHost.isInstalled,
+      ),
+      "hostName",
+    );
+    allOps.push({
+      id: COMMANDS.startNameNode,
+      label: "Start NameNode",
+      skippable: false,
+      callback: async () =>
+        await updateComponent(
+          clusterName,
+          "NAMENODE",
+          currentNameNodeHost,
+          "HDFS",
+          "Start",
+          1,
+        ),
+    });
     return allOps;
   }
- const savedOperationsState = getStepData(
+  const savedOperationsState = getStepData(
     state,
     enableNamenodeSteps.START_COMPONENTS,
     "operationsState",
     "enableHighAvailibilitySteps"
   );
-  useEffect(()=>{
-    const operations = (() => {
-       const initialOperations = initializeTasks();
-      if (savedOperationsState && Array.isArray(savedOperationsState)) {
-        return initialOperations.map((originalOp) => {
-          const savedOp = savedOperationsState.find(
-            (saved: any) => saved.id === originalOp.id
-          );
-          return savedOp
-            ? { ...originalOp, ...savedOp, callback: originalOp.callback }
-            : originalOp;
-        });
-      }
-
-      return initialOperations;
-    })();
-    setStepOperations(operations);
-  },[JSON.stringify(savedOperationsState)])
-
   useEffect(() => {
-    initializeTasks();
-  }, []);
-
-
-
-
-
-
+    let cancelled = false;
+    const loadTopology = async () => {
+      setTopologyError("");
+      setStepOperations([]);
+      try {
+        const fields =
+          "ServiceComponentInfo/service_name,ServiceComponentInfo/component_name," +
+          "ServiceComponentInfo/installed_count,host_components/HostRoles/host_name";
+        const response = await HostsApi.getClusterComponents(clusterName, fields);
+        const componentItems = response?.items || [];
+        const zooKeeper = find(componentItems, [
+          "ServiceComponentInfo.component_name",
+          "ZOOKEEPER_SERVER",
+        ]);
+        const currentNameNode = find(
+          masterComponentHosts || [],
+          (item: any) => item.component === "NAMENODE" && item.isInstalled,
+        );
+        if (
+          !componentItems.length ||
+          !get(zooKeeper, "host_components", []).length ||
+          !currentNameNode?.hostName
+        ) {
+          throw new Error(
+            "Ambari could not resolve the ZooKeeper and current NameNode topology.",
+          );
+        }
+        if (!cancelled) {
+          setStepOperations(
+            mergeSavedOperations(
+              initializeTasks(componentItems),
+              savedOperationsState,
+            ),
+          );
+        }
+      } catch (error: any) {
+        if (!cancelled) {
+          setTopologyError(
+            error?.response?.data?.message ||
+              error?.message ||
+              "Ambari could not load the component topology.",
+          );
+        }
+      }
+    };
+    void loadTopology();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    clusterName,
+    topologyRetry,
+    JSON.stringify(savedOperationsState),
+  ]);
+  if (topologyError) {
+    return (
+      <Alert variant="danger">
+        {topologyError}
+        <Button
+          size="sm"
+          className="ms-3"
+          onClick={() => setTopologyRetry((value) => value + 1)}
+        >
+          Retry
+        </Button>
+      </Alert>
+    );
+  }
   if (!stepOperations || stepOperations.length === 0) {
     return <div>Loading...</div>;
   }
@@ -199,7 +258,7 @@ function Step7() {
         description=""
         setCompletionStatus={setCompletionStatus}
         operations={stepOperations as any}
-        dispatch={(operationsState: any) => {
+        dispatch={async (operationsState: any) => {
           dispatch({
             type: ActionTypes.STORE_INFORMATION,
             payload: {
@@ -209,22 +268,24 @@ function Step7() {
               },
             },
           });
+          await flushStateToDb();
         }}
       />
       <WizardFooter
         step={currentStep}
         isNextEnabled={completionStatus}
-        onNext={() => {
-          flushStateToDb("next");
-          handleNextImperitive();
+        onNext={async () => {
+          await flushStateToDb("next");
+          await handleNextImperitive();
         }}
         onBack={() => {
           jumpToStep(6);
           flushStateToDb("back");
         }}
         onCancel={() => {
-          flushStateToDb("cancel");
+          void flushStateToDb("cancel");
         }}
+        cancelConfirmationBody="NameNode HA changes have started. Exiting preserves the workflow checkpoint so the operation can be resumed. Complete the documented manual recovery before making further HDFS topology changes."
       />
     </>
   );
