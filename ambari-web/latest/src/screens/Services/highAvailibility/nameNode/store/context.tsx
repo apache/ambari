@@ -24,12 +24,19 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { Alert, Button } from "react-bootstrap";
+import { get, isEmpty } from "lodash";
 import { State, Action, ActionTypes } from "./types";
 import { reducer, initialState } from "./reducer";
 import ClusterApi from "../../../../../api/clusterApi";
-import { get, isEmpty } from "lodash";
 import { ClusterProgressStatus } from "../../../../../constants";
 import modalManager from "../../../../../store/ModalManager";
+import Spinner from "../../../../../components/Spinner";
+import {
+  parsePersistedValue,
+  persistedPayload,
+} from "../../../../../Utils/persistedSettings";
+import useAuth from "../../../../../hooks/useAuth";
 
 interface EnableHighAvailibilityContextProps {
   state: State;
@@ -49,131 +56,178 @@ export const EnableHighAvailibilityProvider: React.FC<{
   stepWizardUtilities: any;
   children: React.ReactNode;
 }> = ({ stepWizardUtilities, children }) => {
-  const [state, dispatch] = useReducer(reducer, initialState);
-  const [currStepData, setCurrStepData] = useState({});
+  const { user } = useAuth();
+  const workflowOwner = user?.user_name || "";
+  const [state, reducerDispatch] = useReducer(reducer, initialState);
+  const [isHydrated, setIsHydrated] = useState(false);
+  const [initializationError, setInitializationError] = useState("");
+  const [retryCount, setRetryCount] = useState(0);
+  const stateRef = useRef<State>(initialState);
+  const currStepDataRef = useRef<Record<string, any>>({});
+  const persistenceQueue = useRef<Promise<void>>(Promise.resolve());
 
-  const isDataPersisted = useRef(false);
+  const dispatch: Dispatch<Action> = (action) => {
+    stateRef.current = reducer(stateRef.current, action);
+    reducerDispatch(action);
+  };
+
+  const queuePersistence = (operation: () => Promise<void>) => {
+    const nextOperation = persistenceQueue.current
+      .catch(() => undefined)
+      .then(operation);
+    persistenceQueue.current = nextOperation.catch(() => undefined);
+    return nextOperation;
+  };
 
   useEffect(() => {
-    syncUserPersistedData();
-  }, []);
-
-  useEffect(() => {
-    if (isDataPersisted.current) {
-      flushCurrentData();
-    }
-  }, [state.enableHighAvailibilitySteps, currStepData]);
+    void syncUserPersistedData();
+  }, [retryCount]);
 
   async function syncUserPersistedData() {
+    setIsHydrated(false);
+    setInitializationError("");
     try {
-      const persistedData = await ClusterApi.getPersistData(
-        "HIGH_AVAILIBILITY_NAMENODE"
-      );
-      if (!isEmpty(get(persistedData, "enableHighAvailibilitySteps", {}))) {
-        dispatch({
-          type: ActionTypes.SYNC_STATE,
-          payload: persistedData,
-        });
+      let response: unknown = initialState;
+      try {
+        response = await ClusterApi.getPersistData(
+          "HIGH_AVAILIBILITY_NAMENODE",
+        );
+      } catch (error: any) {
+        if (error?.response?.status !== 404 && error?.status !== 404) {
+          throw error;
+        }
       }
-      if (get(persistedData, "activeStep", "")) {
-        try {
-          const activeStepName = get(persistedData, "activeStep");
-          setCurrStepData({
-            progressStatus: ClusterProgressStatus.ENABLING_NAMENODE_HA,
-            stepName: activeStepName,
-          });
-          let activeStepNumber = Object.keys(
-            stepWizardUtilities.wizardSteps
-          ).find((stepName) => {
-            return (
-              stepWizardUtilities.wizardSteps?.[stepName]?.name ===
-              activeStepName
-            );
-          });
+      const persistedData = parsePersistedValue(response, initialState);
+      if (!isEmpty(get(persistedData, "enableHighAvailibilitySteps", {}))) {
+        dispatch({ type: ActionTypes.SYNC_STATE, payload: persistedData });
+      }
+      const activeStepName = get(persistedData, "activeStep", "");
+      if (activeStepName) {
+        const restoredStepData = {
+          progressStatus: ClusterProgressStatus.ENABLING_NAMENODE_HA,
+          stepName: activeStepName,
+        };
+        currStepDataRef.current = restoredStepData;
+        const activeStepNumber = Object.keys(
+          stepWizardUtilities.wizardSteps,
+        ).find(
+          (stepName) =>
+            stepWizardUtilities.wizardSteps[stepName]?.name === activeStepName,
+        );
+        if (activeStepNumber !== undefined) {
           stepWizardUtilities.jumpToStep(Number(activeStepNumber), true);
-        } catch (err) {
-          console.error("Error while jumping to step", err);
         }
       } else {
         stepWizardUtilities.jumpToStep(0, true);
       }
-    } finally {
-      isDataPersisted.current = true;
+      setIsHydrated(true);
+    } catch (error: any) {
+      setInitializationError(
+        error?.response?.data?.message ||
+          "Ambari could not restore the NameNode HA workflow.",
+      );
     }
   }
 
-  async function flushCurrentData() {
+  async function flushCurrentData(
+    stateSnapshot: State = stateRef.current,
+    stepSnapshot: Record<string, any> = currStepDataRef.current,
+  ) {
     await ClusterApi.postPersistData(
-      JSON.stringify({
-        HIGH_AVAILIBILITY_NAMENODE: JSON.stringify({
-          ...state,
-          activeStep: get(currStepData, "stepName", ""),
-        }),
-        CLUSTER_STATE: JSON.stringify(currStepData),
-      })
+      persistedPayload({
+        HIGH_AVAILIBILITY_NAMENODE: {
+          ...stateSnapshot,
+          activeStep: get(stepSnapshot, "stepName", ""),
+        },
+        CLUSTER_STATE: stepSnapshot,
+        "wizard-data": { userName: workflowOwner },
+      }),
     );
   }
 
-  function flushOnCancel() {
-    ClusterApi.postPersistData(
-      JSON.stringify({
-        HIGH_AVAILIBILITY_NAMENODE: JSON.stringify(initialState),
-        CLUSTER_STATE: JSON.stringify({}),
-      })
+  async function clearPersistedState() {
+    await queuePersistence(() =>
+      ClusterApi.postPersistData(
+        persistedPayload({
+          HIGH_AVAILIBILITY_NAMENODE: initialState,
+          CLUSTER_STATE: {},
+          "wizard-data": {},
+        }),
+      ),
     );
+  }
+
+  async function flushOnCancel() {
+    if (stepWizardUtilities.activeStep >= 4) {
+      await queuePersistence(() => flushCurrentData());
+    } else {
+      await clearPersistedState();
+    }
     modalManager.hide();
     window.location.href = "/#/main/services/HDFS/summary";
   }
 
-  async function flushOnStepChange(nextStep: number) {
-    if (nextStep >= 0) {
-      let nextStepDetails = stepWizardUtilities.wizardSteps?.[nextStep];
-      if (nextStepDetails?.keysToRemove) {
-        nextStepDetails.keysToRemove.forEach((key: string) => {
-          if (state?.enableHighAvailibilitySteps?.[key]) {
-            dispatch({
-              type: ActionTypes.REMOVE_KEY,
-              payload: { key },
-            });
-          }
-        });
-      }
-      setCurrStepData({
-        progressStatus: ClusterProgressStatus.ENABLING_NAMENODE_HA,
-        stepName: stepWizardUtilities?.wizardSteps?.[nextStep]?.name,
+  async function flushOnStepChange(nextStep: number | undefined) {
+    if (nextStep === undefined || nextStep < 0) return;
+    const nextStepDetails = stepWizardUtilities.wizardSteps[nextStep];
+    let nextState = stateRef.current;
+    nextStepDetails?.keysToRemove?.forEach((key: string) => {
+      nextState = reducer(nextState, {
+        type: ActionTypes.REMOVE_KEY,
+        payload: { key },
       });
+    });
+    if (nextState !== stateRef.current) {
+      dispatch({ type: ActionTypes.SYNC_STATE, payload: nextState });
+    }
+    const nextStepData = {
+      progressStatus: ClusterProgressStatus.ENABLING_NAMENODE_HA,
+      stepName: nextStepDetails?.name,
+    };
+    currStepDataRef.current = nextStepData;
+    await queuePersistence(() => flushCurrentData(nextState, nextStepData));
+  }
+
+  async function flushStateToDb(
+    operation: string = "default",
+    jumpStep: number = -1,
+  ) {
+    switch (operation) {
+      case "cancel":
+        await flushOnCancel();
+        break;
+      case "complete":
+        await clearPersistedState();
+        break;
+      case "back":
+        await flushOnStepChange(stepWizardUtilities.prevStepNumber);
+        break;
+      case "next":
+        await flushOnStepChange(stepWizardUtilities.nextStepNumber);
+        break;
+      case "jump":
+        await flushOnStepChange(jumpStep);
+        break;
+      default:
+        await queuePersistence(() => flushCurrentData());
     }
   }
 
-  function flushStateToDb(
-    operation: string = "default",
-    jumpStep: number = -1
-  ) {
-    let activeStep = Object.keys(stepWizardUtilities.wizardSteps).find(
-      (stepName) => {
-        return (
-          stepWizardUtilities.wizardSteps?.[stepName]?.name ===
-          stepWizardUtilities.currentStep.name
-        );
-      }
+  if (initializationError) {
+    return (
+      <Alert variant="danger">
+        {initializationError}
+        <Button
+          size="sm"
+          className="ms-3"
+          onClick={() => setRetryCount((value) => value + 1)}
+        >
+          Retry
+        </Button>
+      </Alert>
     );
-    switch (operation) {
-      case "cancel":
-        flushOnCancel();
-        break;
-      case "back":
-        flushOnStepChange(Number(activeStep) - 1);
-        break;
-      case "next":
-        flushOnStepChange(Number(activeStep) + 1);
-        break;
-      case "jump":
-        flushOnStepChange(jumpStep);
-        break;
-      default:
-        flushCurrentData();
-    }
   }
+  if (!isHydrated) return <Spinner />;
 
   return (
     <EnableHighAvailibilityContext.Provider

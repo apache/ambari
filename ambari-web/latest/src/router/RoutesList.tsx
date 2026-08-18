@@ -16,7 +16,8 @@
  * limitations under the License.
  */
 
-import { Navigate, Outlet, RouteObject } from "react-router-dom";
+import { ReactNode } from "react";
+import { Navigate, Outlet, RouteObject, useParams } from "react-router-dom";
 import { AuthenticatedApplication, LandingRoute } from "../AppLoader";
 import { ProtectedRoute } from "../components/AuthGuard";
 import AdminRouteGuard from "../components/AdminRouteGuard";
@@ -34,6 +35,7 @@ import HostsList from "../screens/Hosts/HostsList";
 import { Hosts } from "../screens/Hosts";
 import Alerts from "../screens/Alerts/Alerts";
 import AlertDefinitionDetails from "../screens/Alerts/AlertDefinitionDetails";
+import AlertDefinitionWizard from "../screens/Alerts/AlertDefinitionWizard";
 import ServiceAutoStart from "../screens/ServiceAutoStart";
 import ServiceAccounts from "../screens/ServiceAccounts";
 import EnableKerberos from "../screens/KerberosWizard/EnableKerberos";
@@ -50,6 +52,19 @@ import Experimental from "../screens/Experimental";
 import FeatureRouteGuard from "../components/FeatureRouteGuard";
 import AdminViewRouteGuard from "../components/AdminViewRouteGuard";
 import ServiceOperationRouteGuard from "../components/ServiceOperationRouteGuard";
+
+const NameNodePersistenceRouteGuard = ({ children }: { children: ReactNode }) => {
+  const { componentName } = useParams();
+  if (componentName !== "NameNode") return <>{children}</>;
+  return (
+    <ProtectedRoute
+      requireAuthorization="CLUSTER.MANAGE_USER_PERSISTED_DATA"
+      redirectTo="/main/dashboard/metrics"
+    >
+      {children}
+    </ProtectedRoute>
+  );
+};
 
 const RoutesList: RouteObject[] = [
   {
@@ -88,11 +103,18 @@ const RoutesList: RouteObject[] = [
               {
                 path: ":stepNumber",
                 element: (
-                  <ClusterCreationWizard
-                    Context={ClusterCreationContext}
-                    Provider={ClusterCreationProvider}
-                    wizardSteps={wizardSteps as any}
-                  />
+                  <ProtectedRoute
+                    requireAuthorization="AMBARI.ADD_DELETE_CLUSTERS"
+                    redirectTo="/main/view"
+                  >
+                    <ServiceOperationRouteGuard>
+                      <ClusterCreationWizard
+                        Context={ClusterCreationContext}
+                        Provider={ClusterCreationProvider}
+                        wizardSteps={wizardSteps as any}
+                      />
+                    </ServiceOperationRouteGuard>
+                  </ProtectedRoute>
                 ),
               },
             ],
@@ -139,14 +161,16 @@ const RoutesList: RouteObject[] = [
                   {
                     path: "highAvailability/:componentName/enable/:stepNumber",
                     element: (
-                      <ProtectedRoute
-                        requireAuthorization="SERVICE.ENABLE_HA"
-                        redirectTo="/main/dashboard/metrics"
-                      >
-                        <ServiceOperationRouteGuard>
-                          <ServiceLoader />
-                        </ServiceOperationRouteGuard>
-                      </ProtectedRoute>
+                      <NameNodePersistenceRouteGuard>
+                        <ProtectedRoute
+                          requireAuthorization="SERVICE.ENABLE_HA"
+                          redirectTo="/main/dashboard/metrics"
+                        >
+                          <ServiceOperationRouteGuard>
+                            <ServiceLoader />
+                          </ServiceOperationRouteGuard>
+                        </ProtectedRoute>
+                      </NameNodePersistenceRouteGuard>
                     ),
                   },
                   {
@@ -165,14 +189,21 @@ const RoutesList: RouteObject[] = [
                   {
                     path: "highAvailability/:componentName/manage/:stepNumber",
                     element: (
-                      <ProtectedRoute
-                        requireAuthorization="SERVICE.ENABLE_HA"
-                        redirectTo="/main/dashboard/metrics"
-                      >
-                        <ServiceOperationRouteGuard>
-                          <ServiceLoader />
-                        </ServiceOperationRouteGuard>
-                      </ProtectedRoute>
+                      <FeatureRouteGuard feature="manageJournalNode">
+                        <ProtectedRoute
+                          requireAuthorization="CLUSTER.MANAGE_USER_PERSISTED_DATA"
+                          redirectTo="/main/dashboard/metrics"
+                        >
+                          <ProtectedRoute
+                            requireAuthorization="SERVICE.RUN_CUSTOM_COMMAND, SERVICE.RUN_SERVICE_CHECK, SERVICE.TOGGLE_MAINTENANCE, SERVICE.ENABLE_HA, HOST.ADD_DELETE_COMPONENTS"
+                            redirectTo="/main/dashboard/metrics"
+                          >
+                            <ServiceOperationRouteGuard>
+                              <ServiceLoader />
+                            </ServiceOperationRouteGuard>
+                          </ProtectedRoute>
+                        </ProtectedRoute>
+                      </FeatureRouteGuard>
                     ),
                   },
                 ],
@@ -194,8 +225,31 @@ const RoutesList: RouteObject[] = [
               { path: "hosts/component/:componentName", element: <HostsList /> },
               { path: "hosts/version/:versionName/:versionStatus", element: <HostsList /> },
               { path: "hosts/:hostname/:tab", element: <Hosts /> },
-              { path: "host/add/:stepNumber", element: <AddWizardUrlMapping /> },
+              {
+                path: "host/add/:stepNumber",
+                element: (
+                  <ProtectedRoute
+                    requireAuthorization="HOST.ADD_DELETE_HOSTS"
+                    redirectTo="/main/hosts"
+                  >
+                    <ServiceOperationRouteGuard>
+                      <AddWizardUrlMapping />
+                    </ServiceOperationRouteGuard>
+                  </ProtectedRoute>
+                ),
+              },
               { path: "alerts", element: <Alerts /> },
+              {
+                path: "alerts/add/:stepNumber",
+                element: (
+                  <ProtectedRoute
+                    requireAuthorization="SERVICE.TOGGLE_ALERTS"
+                    redirectTo="/main/alerts"
+                  >
+                    <AlertDefinitionWizard />
+                  </ProtectedRoute>
+                ),
+              },
               { path: "alerts/:alertId", element: <AlertDefinitionDetails /> },
               {
                 path: "admin",

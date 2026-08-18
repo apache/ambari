@@ -21,9 +21,18 @@ import adminApi from "../api/adminApi";
 import { AppContext } from "../store/context";
 import { responseErrorMessage } from "../Utils/httpError";
 
-export function kerberosTypeFromConfig(response: any): string {
+type KerberosConfigResponse = {
+  items?: Array<{
+    configurations?: Array<{
+      type?: string;
+      properties?: { kdc_type?: string };
+    }>;
+  }>;
+};
+
+export function kerberosTypeFromConfig(response: KerberosConfigResponse): string {
   return response?.items?.[0]?.configurations?.find(
-    (configuration: any) => configuration.type === "kerberos-env",
+    (configuration) => configuration.type === "kerberos-env",
   )?.properties?.kdc_type || "none";
 }
 
@@ -31,33 +40,33 @@ export default function useKerberosMode() {
   const { clusterName, isKerberosEnabled } = useContext(AppContext);
   const [kdcType, setKdcType] = useState("");
   const [isLoaded, setIsLoaded] = useState(!isKerberosEnabled);
-  const [loadError, setLoadError] = useState("");
+  const [error, setError] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let active = true;
     if (!isKerberosEnabled || !clusterName) {
       setKdcType("");
-      setLoadError("");
+      setError("");
       setIsLoaded(true);
       return () => {
         active = false;
       };
     }
     setIsLoaded(false);
-    setLoadError("");
+    setError("");
     void adminApi.getSecurityType(clusterName)
       .then((response) => {
         if (active) {
           setKdcType(kerberosTypeFromConfig(response));
         }
       })
-      .catch((error) => {
+      .catch((requestError) => {
         if (active) {
           setKdcType("");
-          setLoadError(
+          setError(
             responseErrorMessage(
-              error,
+              requestError,
               "Ambari could not determine the current Kerberos mode.",
             ),
           );
@@ -74,10 +83,12 @@ export default function useKerberosMode() {
   }, [clusterName, isKerberosEnabled, reloadKey]);
 
   return {
+    error,
     isLoaded,
     isManualKerberos: isKerberosEnabled && kdcType === "none",
     kdcType,
-    loadError,
+    loadError: error,
+    reload: () => setReloadKey((value) => value + 1),
     retry: () => setReloadKey((value) => value + 1),
   };
 }

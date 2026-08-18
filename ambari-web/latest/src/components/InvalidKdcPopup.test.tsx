@@ -17,26 +17,38 @@
  */
 
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { ComponentProps } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AppContext } from "../store/context";
-import modalManager from "../store/ModalManager";
-import credentialsUtils from "../Utils/credentialsUtils";
+
+const mocks = vi.hoisted(() => ({
+  hide: vi.fn(),
+  isStorePersisted: vi.fn(),
+  saveCredentials: vi.fn(),
+}));
+
+vi.mock("../store/ModalManager", () => ({
+  default: { show: vi.fn(), hide: mocks.hide },
+}));
+vi.mock("../Utils/credentialsUtils", () => ({
+  default: {
+    STORE_TYPES: { PERSISTENT: "persisted", TEMPORARY: "temporary" },
+    ALIAS: { KDC_CREDENTIALS: "kdc.admin.credential" },
+    createCredentialResource: vi.fn((principal, key, type) => ({
+      principal,
+      key,
+      type,
+    })),
+    createOrUpdateCredentials: mocks.saveCredentials,
+    isStorePersisted: mocks.isStorePersisted,
+  },
+}));
+
 import InvalidKdcPopup from "./InvalidKdcPopup";
 
-const renderDialog = (getKdcSessionState = vi.fn(), onCancel = vi.fn()) =>
+const renderDialog = (props = {}) =>
   render(
-    <AppContext.Provider
-      value={
-        { clusterName: "c1" } as unknown as ComponentProps<
-          typeof AppContext.Provider
-        >["value"]
-      }
-    >
-      <InvalidKdcPopup
-        getKdcSessionState={getKdcSessionState}
-        onCancel={onCancel}
-      />
+    <AppContext.Provider value={{ clusterName: "c1" } as never}>
+      <InvalidKdcPopup {...props} />
     </AppContext.Provider>,
   );
 
@@ -51,21 +63,19 @@ const fillCredentials = () => {
 
 describe("InvalidKdcPopup", () => {
   beforeEach(() => {
-    vi.spyOn(credentialsUtils, "isStorePersisted").mockResolvedValue(true);
-    vi.spyOn(modalManager, "hide").mockImplementation(() => undefined);
+    mocks.isStorePersisted.mockResolvedValue(true);
+    mocks.saveCredentials.mockResolvedValue({});
   });
 
   afterEach(() => {
     cleanup();
-    vi.restoreAllMocks();
+    vi.clearAllMocks();
   });
 
   it("does not close or replay the protected request when credential storage fails", async () => {
-    vi.spyOn(credentialsUtils, "createOrUpdateCredentials").mockRejectedValue(
-      new Error("Credential write failed"),
-    );
+    mocks.saveCredentials.mockRejectedValue(new Error("Credential write failed"));
     const retryProtectedRequest = vi.fn();
-    renderDialog(retryProtectedRequest);
+    renderDialog({ getKdcSessionState: retryProtectedRequest });
     fillCredentials();
 
     fireEvent.click(screen.getByRole("button", { name: "SAVE" }));
@@ -75,31 +85,41 @@ describe("InvalidKdcPopup", () => {
         "Ambari could not save the KDC administrator credentials.",
       ),
     ).toBeTruthy();
-    expect(modalManager.hide).not.toHaveBeenCalled();
+    expect(mocks.hide).not.toHaveBeenCalled();
     expect(retryProtectedRequest).not.toHaveBeenCalled();
   });
 
   it("closes and revalidates only after credentials are saved", async () => {
-    vi.spyOn(credentialsUtils, "createOrUpdateCredentials").mockResolvedValue(
-      {} as any,
-    );
     const retryProtectedRequest = vi.fn().mockResolvedValue(undefined);
-    renderDialog(retryProtectedRequest);
+    renderDialog({ getKdcSessionState: retryProtectedRequest });
     fillCredentials();
 
     fireEvent.click(screen.getByRole("button", { name: "SAVE" }));
 
-    await waitFor(() => expect(modalManager.hide).toHaveBeenCalledTimes(1));
-    expect(retryProtectedRequest).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(mocks.hide).toHaveBeenCalledOnce());
+    expect(retryProtectedRequest).toHaveBeenCalledOnce();
   });
 
   it("reports cancellation to the waiting protected operation", () => {
     const onCancel = vi.fn();
-    renderDialog(vi.fn(), onCancel);
+    renderDialog({ onCancel });
 
     fireEvent.click(screen.getAllByRole("button", { name: "CANCEL" }).at(-1)!);
 
-    expect(modalManager.hide).toHaveBeenCalledTimes(1);
-    expect(onCancel).toHaveBeenCalledTimes(1);
+    expect(mocks.hide).toHaveBeenCalledOnce();
+    expect(onCancel).toHaveBeenCalledWith(expect.any(Error));
+  });
+
+  it("fails the protected operation through its error callback", async () => {
+    const saveError = new Error("credential store unavailable");
+    mocks.saveCredentials.mockRejectedValue(saveError);
+    const onError = vi.fn();
+    renderDialog({ getKdcSessionState: vi.fn(), onError });
+    fillCredentials();
+
+    fireEvent.click(screen.getByRole("button", { name: "SAVE" }));
+
+    await waitFor(() => expect(onError).toHaveBeenCalledWith(saveError));
+    expect(mocks.hide).toHaveBeenCalledOnce();
   });
 });

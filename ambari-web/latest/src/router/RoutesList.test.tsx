@@ -16,9 +16,29 @@
  * limitations under the License.
  */
 
-import { describe, expect, it } from "vitest";
+import { isValidElement, ReactElement } from "react";
 import { RouteObject } from "react-router-dom";
+import { describe, expect, it } from "vitest";
+import { ProtectedRoute } from "../components/AuthGuard";
+import FeatureRouteGuard from "../components/FeatureRouteGuard";
+import ServiceOperationRouteGuard from "../components/ServiceOperationRouteGuard";
 import RoutesList from "./RoutesList";
+
+function child(route: RouteObject, path?: string) {
+  const result = route.children?.find((candidate) => candidate.path === path);
+  if (!result) throw new Error(`Route ${path || "<pathless>"} was not found.`);
+  return result;
+}
+
+type GuardProps = {
+  children: ReactElement<GuardProps>;
+  requireAuthorization?: string;
+};
+
+function element(route: RouteObject): ReactElement<GuardProps> {
+  if (!isValidElement(route.element)) throw new Error("Route has no React element.");
+  return route.element as ReactElement<GuardProps>;
+}
 
 function routePaths(routes: RouteObject[]): string[] {
   return routes.flatMap((route) => [
@@ -26,6 +46,34 @@ function routePaths(routes: RouteObject[]): string[] {
     ...routePaths(route.children ?? []),
   ]);
 }
+
+describe("installation route contracts", () => {
+  const root = RoutesList[0];
+  const authenticated = child(root);
+  const installer = child(authenticated, "installer");
+  const main = child(authenticated, "main");
+
+  it("protects Installer and Add Host with their mutation permissions and operation guard", () => {
+    const installerRoute = element(child(installer, ":stepNumber"));
+    expect(installerRoute.type).toBe(ProtectedRoute);
+    expect(installerRoute.props.requireAuthorization).toBe("AMBARI.ADD_DELETE_CLUSTERS");
+    expect(installerRoute.props.children.type).toBe(ServiceOperationRouteGuard);
+
+    const addHostRoute = element(child(main, "host/add/:stepNumber"));
+    expect(addHostRoute.type).toBe(ProtectedRoute);
+    expect(addHostRoute.props.requireAuthorization).toBe("HOST.ADD_DELETE_HOSTS");
+    expect(addHostRoute.props.children.type).toBe(ServiceOperationRouteGuard);
+  });
+
+  it("retains the Add Service feature, permission, and operation gates", () => {
+    const addServiceRoute = element(child(main, "service/add/:stepNumber"));
+    expect(addServiceRoute.type).toBe(FeatureRouteGuard);
+    const permissionRoute = addServiceRoute.props.children;
+    expect(permissionRoute.type).toBe(ProtectedRoute);
+    expect(permissionRoute.props.requireAuthorization).toBe("SERVICE.ADD_DELETE_SERVICES");
+    expect(permissionRoute.props.children.type).toBe(ServiceOperationRouteGuard);
+  });
+});
 
 describe("Kerberos routes", () => {
   it("registers management, Enable recovery, and Classic Disable paths", () => {

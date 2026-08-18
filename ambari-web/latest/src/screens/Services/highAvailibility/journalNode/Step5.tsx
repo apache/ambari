@@ -19,18 +19,24 @@
 import { useContext } from "react";
 import { ServiceContext } from "../../../../store/ServiceContext";
 import Spinner from "../../../../components/Spinner";
-import { Card } from "react-bootstrap";
+import { Alert, Button, Card } from "react-bootstrap";
 import WizardFooter from "../../../../components/StepWizard/WizardFooter";
 import { ManageJournalNodesContext } from "./store/context";
-import { cloneDeep, filter, find, get, map, sortBy, uniq } from "lodash";
+import { filter, find } from "lodash";
 import { getStepData } from "../../../../Utils/Utility";
 import useHDFSConfigsTags from "../../../../hooks/useConfigsTags";
+import { getJournalNodeDirectories } from "../haWorkflowUtils";
 
 function Step5() {
   const { allServiceModels } = useContext(ServiceContext);
   const hdfsModel = allServiceModels["hdfs"];
   const namespacesLoaded = hdfsModel?.isNamespaceLoaded;
-  const { configsData } = useHDFSConfigsTags();
+  const {
+    configsData,
+    configsError,
+    isConfigsLoading,
+    reloadConfigs,
+  } = useHDFSConfigsTags();
   const {
     state,
     flushStateToDb,
@@ -41,59 +47,29 @@ function Step5() {
     },
   } = useContext(ManageJournalNodesContext);
 
+  const step1Data = getStepData(
+    state,
+    "ASSIGN_JOURNALNODES",
+    "masterComponentHosts",
+    "manageJournalNodesSteps",
+  );
+  const currentJournalNodes = find(
+    filter(step1Data, ["component", "JOURNALNODE"]),
+    ["isInstalled", true],
+  )?.hostName;
+  const hdfsSiteConfigs = find(configsData?.items, ["type", "hdfs-site"]);
+  const directoryEvaluation = getJournalNodeDirectories(
+    hdfsModel,
+    hdfsSiteConfigs?.properties,
+  );
+  const directoryError = directoryEvaluation.missingProperties.length
+    ? `Ambari could not load the JournalNode directory configuration: ${directoryEvaluation.missingProperties.join(
+        ", ",
+      )}.`
+    : "";
+
   function getBodyText() {
-    const step1Data = getStepData(
-      state,
-      "ASSIGN_JOURNALNODES",
-      "masterComponentHosts",
-      "manageJournalNodesSteps"
-    );
-    const masterComponentGroups = (function () {
-      let result: any = [];
-      const componentsCopy = cloneDeep(get(hdfsModel, "masterComponents"));
-      const allNameNodes = map(
-        componentsCopy.find(
-          (component: any) => component.componentName === "NAMENODE"
-        )?.hostComponents,
-        "HostRoles"
-      );
-      allNameNodes.forEach((nameNode: any) => {
-        const nameSpace = nameNode.haNameSpace || "default";
-        const hostName = nameNode.hostName;
-        const clusterId = nameNode.clusterIdValue || "default";
-        const existingNameSpace = find(result, ["name", nameSpace]);
-        const currentNameSpace = existingNameSpace || {
-          name: nameSpace,
-          title: nameSpace,
-          hosts: [],
-          components: ["NAMENODE", "ZKFC"],
-          clusterId,
-        };
-        if (!existingNameSpace) {
-          result.push(currentNameSpace);
-        }
-        if (!currentNameSpace.hosts.includes(hostName)) {
-          currentNameSpace.hosts.push(hostName);
-        }
-      });
-      return sortBy(result, "name");
-    })();
-    const currentJournalNodes = find(
-      filter(step1Data, ["component", "JOURNALNODE"]),
-      ["isInstalled", true]
-    )?.hostName;
-    const nameSpaces = map(masterComponentGroups, "name");
-    const hdfsSiteConfigs = find(configsData?.items, ["type", "hdfs-site"]);
-    const configProperties = hdfsSiteConfigs ? hdfsSiteConfigs.properties : {};
-    const directories =
-      nameSpaces.length > 1
-        ? uniq(
-            nameSpaces.map(
-              (ns) => configProperties[`dfs.journalnode.edits.dir.${ns}`]
-            )
-          )
-        : [configProperties["dfs.journalnode.edits.dir"]];
-    const directoriesString = directories.map((dir) => `${dir}`).join(", ");
+    const directoriesString = directoryEvaluation.directories.join(", ");
     return (
       <ul>
         <li>
@@ -112,7 +88,18 @@ function Step5() {
     );
   }
 
-  if (!namespacesLoaded) {
+  if (configsError || (!isConfigsLoading && directoryError)) {
+    return (
+      <Alert variant="danger">
+        {configsError || directoryError}
+        <Button className="ms-3" size="sm" onClick={() => void reloadConfigs()}>
+          Retry
+        </Button>
+      </Alert>
+    );
+  }
+
+  if (!namespacesLoaded || isConfigsLoading) {
     return <Spinner />;
   }
 
@@ -132,13 +119,13 @@ function Step5() {
           handleBackImperitive();
         }}
         step={currentStep}
-        isNextEnabled={hdfsModel.isNamespaceLoaded}
-        onNext={() => {
-          flushStateToDb("next");
-          handleNextImperitive();
+        isNextEnabled={hdfsModel.isNamespaceLoaded && !directoryError}
+        onNext={async () => {
+          await flushStateToDb("next");
+          await handleNextImperitive();
         }}
         onCancel={() => {
-          flushStateToDb("cancel");
+          void flushStateToDb("cancel");
         }}
       />
     </div>

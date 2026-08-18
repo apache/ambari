@@ -19,9 +19,9 @@
 import React, { useState, useContext, useEffect } from 'react';
 import Modal from '../../components/Modal';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEnvelope, faGear, faTh } from '@fortawesome/free-solid-svg-icons';
+import { faEnvelope, faGear, faPlus, faTh } from '@fortawesome/free-solid-svg-icons';
 import { AlertGroupItem, AlertDefinition, AlertNotification, AlertGroupState } from './types';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { AppContext } from '../../store/context';
 import { 
   ManageAlertGroupsModal, 
@@ -43,6 +43,22 @@ import { useAuth } from '../../hooks/useAuth';
 import ClusterApi from '../../api/clusterApi';
 import ConfigsApi from '../../api/configsApi';
 import { ambariApi } from '../../api/config/axiosConfig';
+import { getAlertActionPolicy } from '../../Utils/alertPolicy';
+import {
+  executeAlertGroupSave,
+  planAlertGroupSave,
+  reconcileAlertGroupSave,
+  reconcileAlertGroupSaveWithServer,
+  validateAlertGroupName,
+} from '../../Utils/alertGroups';
+import {
+  buildAlertNotificationPayload,
+  notificationBuiltInKeys,
+  notificationTypeToUi,
+  validateAlertNotificationForm,
+  type AlertNotificationForm,
+} from '../../Utils/alertNotifications';
+import { validateRepeatTolerance } from '../../Utils/alertDefinitions';
 
 interface ActionsButtonProps {
   alertGroups: AlertGroupItem[];
@@ -52,20 +68,19 @@ interface ActionsButtonProps {
 
 export const ActionsButton: React.FC<ActionsButtonProps> = ({ 
   alertGroups: initialAlertGroups, 
-  allAlertDefinitions}) => {
+  allAlertDefinitions,
+  onModalStateChange}) => {
   // Context and URL params
   const { clusterName: urlClusterName } = useParams<{ clusterName: string }>();
-  const { clusterName: contextClusterName, upgradeIsRunning, upgradeSuspended } = useContext(AppContext);
+  const { clusterName: contextClusterName, supports } = useContext(AppContext);
+  const navigate = useNavigate();
   
   // Authorization hooks - implementing Ember.js alert authorization patterns
   const { hasAuthorization } = useAuth();
   
   // Check specific authorizations for alert operations
   const canManageNotifications = hasAuthorization('CLUSTER.MANAGE_ALERT_NOTIFICATIONS');
-  
-  // Check if upgrade is blocking operations (running but not suspended)
-  // During upgrades, alert actions should be disabled to match legacy UI behavior
-  const isUpgradeBlocking = upgradeIsRunning && !upgradeSuspended;
+  const actionPolicy = getAlertActionPolicy(Boolean(supports.createAlerts), canManageNotifications);
   
   const [clusterName] = useState<string>(urlClusterName || contextClusterName || '');
   
@@ -83,6 +98,8 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
   const [isSaveDisabled, setIsSaveDisabled] = useState<boolean>(true);
   const [modalError, setModalError] = useState<string>('');
   const [modalSuccess, setModalSuccess] = useState<string>('');
+  const [groupLoadError, setGroupLoadError] = useState<string>('');
+  const [notificationLoadError, setNotificationLoadError] = useState<string>('');
 
   // State for notifications
   const [notifications, setNotifications] = useState<AlertNotification[]>([]);
@@ -125,7 +142,7 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
   const [scriptDispatchProperty, setScriptDispatchProperty] = useState<string>('');
   
   // State for alert settings
-  const [alertCheckCount, setAlertCheckCount] = useState(1);
+  const [alertCheckCount, setAlertCheckCount] = useState('1');
   
   // State for modals
   const [modalContent, setModalContent] = useState<string>('');
@@ -162,6 +179,25 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
   // State for showing the main modal
   const [showMainModal, setShowMainModal] = useState<boolean>(false);
 
+  useEffect(() => {
+    onModalStateChange?.(
+      showMainModal || showNewModal || showAddDefinitionModal || showRenameModal ||
+      showDuplicateModal || showDeleteConfirmation || showDeleteNotificationModal ||
+      showNotificationFormModal || showResultsModal,
+    );
+  }, [
+    onModalStateChange,
+    showAddDefinitionModal,
+    showDeleteConfirmation,
+    showDeleteNotificationModal,
+    showDuplicateModal,
+    showMainModal,
+    showNewModal,
+    showNotificationFormModal,
+    showRenameModal,
+    showResultsModal,
+  ]);
+
   // Helper function to get group name
   const getGroupName = (group: AlertGroupItem | AlertGroupState | null): string => {
     if (!group) return '';
@@ -181,8 +217,9 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
 
   // Check if a group name already exists
   const groupNameExists = (name: string): boolean => {
+    const normalized = name.trim().toLowerCase();
     return alertGroups.some(group => 
-      group.AlertGroup.name.toLowerCase() === name.toLowerCase() && 
+      group.AlertGroup.name.trim().toLowerCase() === normalized &&
       !group.AlertGroup._deleted
     );
   };
@@ -533,9 +570,8 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
       setErrorMessage('');
       setModalError('');
       
-      if (!newGroupName.trim()) {
-        throw new Error('Group name cannot be empty');
-      }
+      const nameError = validateAlertGroupName(newGroupName);
+      if (nameError) throw new Error(nameError);
       
       // Check if a group with this name already exists
       if (groupNameExists(newGroupName)) {
@@ -551,9 +587,10 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
       const newGroup: AlertGroupItem = {
         AlertGroup: {
           id: tempId,
-          name: newGroupName,
+          name: newGroupName.trim(),
           default: false,
           definitions: [],
+          targets: [],
           _isNew: true,
           _isModified: false,
           _deleted: false,
@@ -602,9 +639,8 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
     }
     
     try {
-      if (!duplicateGroupName.trim()) {
-        throw new Error('Group name cannot be empty');
-      }
+      const nameError = validateAlertGroupName(duplicateGroupName);
+      if (nameError) throw new Error(nameError);
       
       // Check if a group with this name already exists
       if (groupNameExists(duplicateGroupName)) {
@@ -619,15 +655,19 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
       const definitionsToDuplicate = 'AlertGroup' in groupToDuplicate 
         ? [...(groupToDuplicate.AlertGroup.definitions || [])]
         : [...(groupToDuplicate.definitions || [])];
+      const targetsToDuplicate = 'AlertGroup' in groupToDuplicate
+        ? [...(groupToDuplicate.AlertGroup.targets || [])]
+        : [...(groupToDuplicate.targets || [])];
       
       
       // Create a new group with the duplicated data
       const newGroup: AlertGroupItem = {
         AlertGroup: {
           id: tempId,
-          name: duplicateGroupName,
+          name: duplicateGroupName.trim(),
           default: false,
           definitions: definitionsToDuplicate,
+          targets: targetsToDuplicate,
           _isNew: true,
           _isModified: false,
           _deleted: false,
@@ -675,8 +715,11 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
     
     try {
       const currentName = getGroupName(groupToRename);
+      const normalizedName = renameGroupName.trim();
+      const nameError = validateAlertGroupName(renameGroupName);
+      if (nameError) throw new Error(nameError);
       
-      if (!renameGroupName || renameGroupName === currentName) {
+      if (normalizedName === currentName.trim()) {
         handleCloseModal();
         return; // User didn't change the name
       }
@@ -684,7 +727,7 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
       // Check if a group with this name already exists (excluding the current group)
       const groupId = 'AlertGroup' in groupToRename ? groupToRename.AlertGroup.id : groupToRename.id;
       const nameExists = alertGroups.some(group => 
-        group.AlertGroup.name.toLowerCase() === renameGroupName.toLowerCase() && 
+        group.AlertGroup.name.trim().toLowerCase() === normalizedName.toLowerCase() &&
         group.AlertGroup.id !== groupId &&
         !group.AlertGroup._deleted
       );
@@ -700,7 +743,7 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
           ...groupToRename,
           AlertGroup: {
             ...groupToRename.AlertGroup,
-            name: renameGroupName,
+            name: normalizedName,
             _isModified: true
           }
         };
@@ -729,7 +772,7 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
         // Handle AlertGroupState structure
         const updatedGroup = {
           ...groupToRename,
-          name: renameGroupName,
+          name: normalizedName,
           _isModified: true
         };
         
@@ -743,7 +786,7 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
                 ...g,
                 AlertGroup: {
                   ...g.AlertGroup,
-                  name: renameGroupName,
+                  name: normalizedName,
                   _isModified: true
                 }
               };
@@ -809,12 +852,16 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
 
   // Handle save global alert settings
   const handleSaveGlobalAlertSettings = async (): Promise<void> => {
+    const validationError = validateRepeatTolerance(alertCheckCount);
+    if (validationError) {
+      setModalError(validationError);
+      return;
+    }
+
     try {
       setLoading(true);
       setModalError('');
       setModalSuccess('');
-      
-      console.log('Saving global alert check count:', alertCheckCount);
       
       // Update the cluster-env configuration with the new alerts_repeat_tolerance value
       const response = await ClusterApi.getCluster(clusterName);
@@ -840,7 +887,7 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
           // This prevents data loss by preserving all existing configuration
           const updatedProperties = {
             ...existingProperties,
-            alerts_repeat_tolerance: alertCheckCount.toString()
+            alerts_repeat_tolerance: alertCheckCount
           };
 
           // Save the updated configuration using the proper service config API structure
@@ -884,216 +931,76 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
       setLoading(true);
       setErrorMessage('');
       setModalError('');
-      
-      
-      // Find groups that need to be created, updated, or deleted
-      const groupsToCreate: AlertGroupItem[] = [];
-      const groupsToUpdate: AlertGroupItem[] = [];
-      const groupsToDelete: AlertGroupItem[] = [];
-      
-      alertGroups.forEach(group => {
-        
-        // Determine which operation to perform
-        if (group.AlertGroup._deleted) {
-          // Add to delete list regardless of ID - we'll filter out negative IDs later
-          groupsToDelete.push(group);
-        } else if (group.AlertGroup._isNew) {
-          groupsToCreate.push(group);
-        } else if (group.AlertGroup._isModified) {
-          // Only add to update list if it's an existing group (has a positive ID)
-          if (group.AlertGroup.id > 0) {
-            groupsToUpdate.push(group);
-          }
-        }
-      });
-      
-      
-      // Store counts for the results modal - do this BEFORE making API calls
-      // to ensure we show the correct counts even if some API calls fail
-      const newCount = groupsToCreate.length;
-      const updatedCount = groupsToUpdate.length;
-      
-      // For deletes, only count groups with positive IDs that need to be deleted on the server
-      const groupsToDeleteOnServer = groupsToDelete.filter(group => group.AlertGroup.id > 0);
-      const removedCount = groupsToDeleteOnServer.length;
-      
-      
-      // Save the counts to state variables
-      setResultsNewCount(newCount);
-      setResultsUpdatedCount(updatedCount);
-      setResultsRemovedCount(removedCount);
-      
-      // Also save to a separate state variable to ensure we have the values after the modal closes
+      const plan = planAlertGroupSave(alertGroups);
+      const newCount = plan.create.length;
+      const updatedCount = plan.update.length;
+      const removedCount = plan.delete.length;
+
       setPendingChanges({
         create: newCount,
         update: updatedCount,
         delete: removedCount
       });
-      
-      // Track successful and failed operations
-      const successfulOperations = {
-        create: 0,
-        update: 0,
-        delete: 0
-      };
-      
-      const failedOperations = {
-        create: 0,
-        update: 0,
-        delete: 0
-      };
-      
-      // Process each type of operation separately
-      
-      // 0. Process notification changes for modified groups
-      for (const group of groupsToUpdate) {
-        try {
-          const groupId = group.AlertGroup.id;
-          
-          // Get current notifications for this group
-          //@ts-ignore
-          const currentGroupNotifications = notifications.filter(notification => {
-            const target = notification.AlertTarget;
-            if (target.global) return true;
-            if (target.groups && Array.isArray(target.groups)) {
-              return target.groups.includes(groupId);
-            }
-            return false;
-          });
-          
-          
-        } catch (error) {
-          console.error('Error processing notification changes for group:', group.AlertGroup.id, error);
-        }
+      const result = await executeAlertGroupSave(plan, {
+        create: (_group, payload) => AlertsApi.createAlertGroup(clusterName, payload),
+        update: (group, payload) => AlertsApi.updateAlertGroup(clusterName, group.AlertGroup.id, payload),
+        delete: (group) => AlertsApi.deleteAlertGroup(clusterName, group.AlertGroup.id),
+      });
+
+      const locallyReconciledGroups = reconcileAlertGroupSave(alertGroups, result.failures);
+      let serverGroups: AlertGroupItem[] | null = null;
+      try {
+        const response = await AlertsApi.getAlertGroups(clusterName);
+        if (!Array.isArray(response?.items)) throw new Error('Invalid Alert Groups response');
+        serverGroups = response.items.map((item: any) => ({ AlertGroup: item.AlertGroup }));
+      } catch (error) {
+        console.error('Error refreshing alert groups after save:', error);
       }
-      
-      // 1. Create operations
-      for (const group of groupsToCreate) {
-        try {
-          const { name, definitions = [] } = group.AlertGroup;
-          const definitionIds = definitions.map(def => typeof def === 'number' ? def : def.id);
-          
-          // Create request payload - only include definitions if there are any
-          const payload: any = {
-            AlertGroup: {
-              name
-            }
-          };
-          
-          // Only add definitions if there are any
-          if (definitionIds.length > 0) {
-            payload.AlertGroup.definitions = definitionIds;
-          }
-          
-          
-          await AlertsApi.createAlertGroup(clusterName, payload);
-          successfulOperations.create++;
-        } catch (error) {
-          console.error('Error creating group:', error);
-          failedOperations.create++;
-        }
+
+      let reconciledGroups = locallyReconciledGroups;
+      let remainingFailures = result.failures;
+      if (serverGroups && result.failures.length > 0) {
+        const reconciliation = reconcileAlertGroupSaveWithServer(
+          serverGroups,
+          alertGroups,
+          result.failures,
+        );
+        reconciledGroups = reconciliation.groups;
+        remainingFailures = reconciliation.failures;
       }
-      
-      // 2. Update operations
-      for (const group of groupsToUpdate) {
-        try {
-          const { id, name, definitions = [] } = group.AlertGroup;
-          
-          const definitionIds = definitions.map(def => typeof def === 'number' ? def : def.id);
-          
-          // Create request payload - only include definitions if there are any
-          const payload: any = {
-            AlertGroup: {
-              name
-            }
-          };
-          
-          // Only add definitions if there are any
-          if (definitionIds.length > 0) {
-            payload.AlertGroup.definitions = definitionIds;
-          }
-          
-          
-          await AlertsApi.updateAlertGroup(clusterName, id, payload);
-          successfulOperations.update++;
-        } catch (error) {
-          console.error('Error updating group:', error);
-          failedOperations.update++;
-        }
-      }
-      
-      // 3. Delete operations
-      for (const group of groupsToDeleteOnServer) {
-        try {
-          const { id } = group.AlertGroup;
-          
-          
-          await AlertsApi.deleteAlertGroup(clusterName, id);
-          successfulOperations.delete++;
-        } catch (error) {
-          console.error('Error deleting group:', error);
-          failedOperations.delete++;
-        }
-      }
-      
-      
-      // Check if there were any failures
-      const hasFailures = 
-        failedOperations.create > 0 || 
-        failedOperations.update > 0 || 
-        failedOperations.delete > 0;
-      
-      if (hasFailures) {
-        // Show error message about partial success
-        const errorMsg = `Some operations failed: ${failedOperations.create} creations, ${failedOperations.update} updates, ${failedOperations.delete} deletions failed.`;
+
+      if (remainingFailures.length > 0) {
+        const failedCounts = remainingFailures.reduce((counts, failure) => {
+          counts[failure.kind] += 1;
+          return counts;
+        }, { create: 0, update: 0, delete: 0 });
+        const errorMsg = `Some operations failed: ${failedCounts.create} creations, ${failedCounts.update} updates, ${failedCounts.delete} deletions failed. Review the pending changes and try again.${serverGroups ? '' : ' The server refresh also failed; only failed operations remain pending locally.'}`;
+        setAlertGroups(reconciledGroups);
+        setSelectedGroup(null);
         setErrorMessage(errorMsg);
         setModalError(errorMsg);
-        
-        // Clear error message after a delay
-        setTimeout(() => {
-          setErrorMessage('');
-          setModalError('');
-        }, 5000);
+        setIsSaveDisabled(false);
+        return;
       }
-      
-      // Reset the _isNew, _isModified, and _deleted flags and remove deleted groups
-      const updatedGroups = alertGroups
-        .filter(group => !group.AlertGroup._deleted) // Remove deleted groups
-        .map(group => ({
-          ...group,
-          AlertGroup: {
-            ...group.AlertGroup,
-            _isNew: false,
-            _isModified: false
-          }
-        }));
-      
-      
-      // Update the state with the new groups
-      setAlertGroups(updatedGroups);
-      
-      // Close the main modal
+
+      if (!serverGroups) {
+        setAlertGroups(locallyReconciledGroups);
+        setSelectedGroup(null);
+        setGroupLoadError('The changes were saved, but Alert Groups could not be reloaded. Retry the load before closing.');
+        setIsSaveDisabled(true);
+        return;
+      }
+
+      setAlertGroups(serverGroups);
+      setSelectedGroup(null);
       setShowMainModal(false);
-      
-      // Disable save button
       setIsSaveDisabled(true);
-      
-      // Only show the results modal if there were actual changes
-      const hasChanges = newCount > 0 || updatedCount > 0 || removedCount > 0;
-      
-      
-      if (hasChanges) {
-        
-        // Update the counts to show only successful operations
-        setResultsNewCount(successfulOperations.create);
-        setResultsUpdatedCount(successfulOperations.update);
-        setResultsRemovedCount(successfulOperations.delete);
-        
-        // Use a longer delay to ensure the first modal is fully closed
-        setTimeout(() => {
-          setShowResultsModal(true);
-        }, 500);
-      } else {
+
+      if (newCount > 0 || updatedCount > 0 || removedCount > 0) {
+        setResultsNewCount(newCount);
+        setResultsUpdatedCount(updatedCount);
+        setResultsRemovedCount(removedCount);
+        setTimeout(() => setShowResultsModal(true), 500);
       }
     } catch (error: any) {
       console.error('Error saving alert groups:', error);
@@ -1103,11 +1010,6 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
       setErrorMessage(errorMsg);
       setModalError(errorMsg);
       
-      // Clear error message after a delay
-      setTimeout(() => {
-        setErrorMessage('');
-        setModalError('');
-      }, 5000);
     } finally {
       setLoading(false);
     }
@@ -1214,10 +1116,6 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
       });
       
       
-      // Count how many groups are marked for deletion
-      //@ts-ignore
-      const deletedCount = updatedGroups.filter(g => g.AlertGroup._deleted).length;
-      
       setAlertGroups(updatedGroups);
 
       // Reset states
@@ -1259,11 +1157,10 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
   // Handle setting new group name with validation
   const handleNewGroupNameChange = (name: string): void => {
     setNewGroupName(name);
-    
-    // Check if name is empty
-    if (!name.trim()) {
+    const nameError = validateAlertGroupName(name);
+    if (nameError) {
       setIsNewNameValid(false);
-      setModalError('Group name cannot be empty');
+      setModalError(nameError);
       return;
     }
     
@@ -1280,11 +1177,10 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
   // Handle setting rename group name with validation
   const handleRenameGroupNameChange = (name: string): void => {
     setRenameGroupName(name);
-    
-    // Check if name is empty
-    if (!name.trim()) {
+    const nameError = validateAlertGroupName(name);
+    if (nameError) {
       setIsRenameValid(false);
-      setModalError('Group name cannot be empty');
+      setModalError(nameError);
       return;
     }
     
@@ -1295,7 +1191,7 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
     
     // Check if name already exists (excluding the current group)
     const nameExists = alertGroups.some(group => 
-      group.AlertGroup.name.toLowerCase() === name.toLowerCase() && 
+      group.AlertGroup.name.trim().toLowerCase() === name.trim().toLowerCase() &&
       group.AlertGroup.id !== currentGroupId &&
       !group.AlertGroup._deleted
     );
@@ -1312,11 +1208,10 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
   // Handle setting duplicate group name with validation
   const handleDuplicateGroupNameChange = (name: string): void => {
     setDuplicateGroupName(name);
-    
-    // Check if name is empty
-    if (!name.trim()) {
+    const nameError = validateAlertGroupName(name);
+    if (nameError) {
       setIsDuplicateNameValid(false);
-      setModalError('Group name cannot be empty');
+      setModalError(nameError);
       return;
     }
     
@@ -1339,16 +1234,24 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
 
   // Handle manage alert groups
   const handleManageAlertGroups = (): void => {
+    setModalError('');
+    setGroupLoadError('');
+    setNotificationLoadError('');
     toggleModalContent('Manage Alert Groups');
+    void Promise.all([loadAlertGroups(), loadNotifications()]);
   };
 
   // Handle manage notifications
   const handleManageNotifications = (): void => {
+    setModalError('');
+    setNotificationLoadError('');
     toggleModalContent('Manage Notifications');
+    void loadNotifications();
   };
 
   // Handle manage alert settings
   const handleManageAlertSettings = (): void => {
+    setIsSaveDisabled(true);
     toggleModalContent('Manage Alert Settings');
   };
 
@@ -1374,11 +1277,17 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
             allAlertDefinitions={allAlertDefinitions}
             loadAvailableDefinitions={loadAvailableDefinitions}
             setShowAddDefinitionModal={setShowAddDefinitionModal}
-            errorMessage={modalError}
+            errorMessage={groupLoadError || notificationLoadError || modalError}
             successMessage={modalSuccess}
             notifications={notifications}
             onNotificationsChange={handleNotificationsChange}
             onManageNotifications={handleManageNotifications}
+            onRetry={groupLoadError || notificationLoadError ? () => {
+              setGroupLoadError('');
+              setNotificationLoadError('');
+              setModalError('');
+              void Promise.all([loadAlertGroups(), loadNotifications()]);
+            } : undefined}
           />
         );
       case 'Manage Notifications':
@@ -1394,10 +1303,15 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
             handleDuplicate={handleDuplicateNotification}
             handleToggleEnabled={handleToggleNotificationEnabled}
             handleCreateNotification={handleCreateNotification}
-            errorMessage={modalError}
+            errorMessage={notificationLoadError || modalError}
             successMessage={modalSuccess}
             setErrorMessage={setModalError}
             setSuccessMessage={setModalSuccess}
+            onRetry={notificationLoadError ? () => {
+              setNotificationLoadError('');
+              setModalError('');
+              void loadNotifications();
+            } : undefined}
             alertGroups={alertGroups
               .filter(group => !group.AlertGroup._deleted)
               .map(group => ({ 
@@ -1412,7 +1326,7 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
         return (
           <ManageAlertSettingsModal
             alertCheckCount={alertCheckCount}
-            setAlertCheckCount={setAlertCheckCount as any}
+            setAlertCheckCount={setAlertCheckCount}
             setIsSaveDisabled={setIsSaveDisabled}
             modalError={modalError}
             modalSuccess={modalSuccess}
@@ -1420,6 +1334,22 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
         );
       default:
         return null; // Return null instead of a div to prevent flash of content
+    }
+  };
+
+  const loadAlertGroups = async (): Promise<void> => {
+    if (!clusterName) return;
+
+    try {
+      setLoading(true);
+      const response = await AlertsApi.getAlertGroups(clusterName);
+      setAlertGroups((response?.items || []).map((item: any) => ({ AlertGroup: item.AlertGroup })));
+      setGroupLoadError('');
+    } catch (error) {
+      console.error('Error loading alert groups:', error);
+      setGroupLoadError('Failed to load alert groups.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -1440,22 +1370,23 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
           return {
             AlertTarget: {
               ...alertTarget,
-              is_enabled: alertTarget.enabled,
+              is_enabled: alertTarget.is_enabled ?? alertTarget.enabled,
               // If groups is an array of objects, keep it as is
               // The API returns groups as an array of objects, but our code expects it as an array of numbers
               // when sending data back to the API
               groups: Array.isArray(alertTarget.groups) 
-                ? alertTarget.groups.map((group: any) => group.id)
+                ? alertTarget.groups.map((group: any) => typeof group === 'number' ? group : group.id)
                 : alertTarget.groups
             }
           };
         });
         
         setNotifications(fetchedNotifications);
+        setNotificationLoadError('');
       }
     } catch (error) {
       console.error('Error loading notifications:', error);
-      setModalError('Failed to load notifications');
+      setNotificationLoadError('Failed to load notifications.');
     } finally {
       setLoading(false);
     }
@@ -1491,12 +1422,12 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
         ) {
           const clusterEnvConfig = configResponse.data.items[0];
           const globalCheckCount = clusterEnvConfig.properties?.alerts_repeat_tolerance || "1";
-          setAlertCheckCount(parseInt(globalCheckCount) || 1);
+          setAlertCheckCount(String(globalCheckCount));
         }
       }
     } catch (error) {
       console.error('Error loading global alert settings:', error);
-      setAlertCheckCount(1);
+      setAlertCheckCount('1');
     } finally {
     }
   };
@@ -1508,6 +1439,8 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
   
   // Handle notification deletion modal
   const handleDeleteNotificationModalShow = (notification: AlertNotification): void => {
+    setModalError('');
+    setModalSuccess('');
     setSelectedNotification(notification);
     setShowDeleteNotificationModal(true);
   };
@@ -1555,7 +1488,8 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
       setSelectedNotification(notification);
       setNotificationName(notification.AlertTarget.name);
       setNotificationDescription(notification.AlertTarget.description || '');
-      setNotificationType(notification.AlertTarget.notification_type);
+      const uiType = notificationTypeToUi(notification.AlertTarget.notification_type);
+      setNotificationType(uiType);
       
       // Reset all type-specific fields first
       setNotificationRecipients('');
@@ -1576,7 +1510,7 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
       setScriptDispatchProperty('');
       
       // Set type-specific fields based on notification type
-      if (notification.AlertTarget.notification_type === 'EMAIL') {
+      if (uiType === 'EMAIL') {
         // Handle recipients which may be an array or string
         const recipients = notification.AlertTarget.properties?.['ambari.dispatch.recipients'];
         if (recipients) {
@@ -1593,7 +1527,7 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
         setSmtpPort(notification.AlertTarget.properties?.['mail.smtp.port'] || '');
         setEmailFrom(notification.AlertTarget.properties?.['mail.smtp.from'] || '');
         
-        const hasAuth = notification.AlertTarget.properties?.['mail.smtp.auth'] === true;
+        const hasAuth = String(notification.AlertTarget.properties?.['mail.smtp.auth']) === 'true';
         setUseAuthentication(hasAuth);
         setUsername(notification.AlertTarget.properties?.['ambari.dispatch.credential.username'] || '');
         if (notification.AlertTarget.properties?.['ambari.dispatch.credential.password']) {
@@ -1602,19 +1536,20 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
           setPassword('');
         }
         setPasswordConfirmation('');
-        setStartTls(notification.AlertTarget.properties?.['mail.smtp.starttls.enable'] === true);
-      } else if (notification.AlertTarget.notification_type === 'SNMP' || notification.AlertTarget.notification_type === 'Custom SNMP') {
+        setStartTls(String(notification.AlertTarget.properties?.['mail.smtp.starttls.enable']) === 'true');
+      } else if (uiType === 'SNMP' || uiType === 'Custom SNMP') {
         setSnmpVersion(notification.AlertTarget.properties?.['ambari.dispatch.snmp.version'] || 'SNMPv1');
         setSnmpCommunity(notification.AlertTarget.properties?.['ambari.dispatch.snmp.community'] || '');
-        setSnmpHosts(notification.AlertTarget.properties?.['ambari.dispatch.snmp.host'] || '');
+        const recipients = notification.AlertTarget.properties?.['ambari.dispatch.recipients'];
+        setSnmpHosts(Array.isArray(recipients) ? recipients.join(',') : String(recipients || ''));
         setSnmpPort(notification.AlertTarget.properties?.['ambari.dispatch.snmp.port'] || '');
         
-        if (notification.AlertTarget.notification_type === 'Custom SNMP') {
-          setSnmpOid(notification.AlertTarget.properties?.['ambari.dispatch.snmp.oid'] || '');
+        if (uiType === 'Custom SNMP') {
+          setSnmpOid(notification.AlertTarget.properties?.['ambari.dispatch.snmp.oids.trap'] || '');
         }
-      } else if (notification.AlertTarget.notification_type === 'Alert Script') {
-        setScriptFilename(notification.AlertTarget.properties?.['ambari.dispatch-property.script_file_name'] || '');
-        setScriptDispatchProperty(notification.AlertTarget.properties?.['ambari.dispatch.script.parameter.1'] || '');
+      } else if (uiType === 'Alert Script') {
+        setScriptFilename(notification.AlertTarget.properties?.['ambari.dispatch-property.script.filename'] || '');
+        setScriptDispatchProperty(notification.AlertTarget.properties?.['ambari.dispatch-property.script'] || '');
       }
       
       // Set notification enabled state
@@ -1648,14 +1583,7 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
       // Set custom properties
       const customProps: {name: string, value: string}[] = [];
       if (notification.AlertTarget.properties) {
-        const standardProps = [
-          'ambari.dispatch.recipients', 'mail.smtp.host', 'mail.smtp.port', 'mail.smtp.from',
-          'mail.smtp.auth', 'ambari.dispatch.credential.username', 'ambari.dispatch.credential.password',
-          'mail.smtp.starttls.enable', 'ambari.dispatch.snmp.version', 'ambari.dispatch.snmp.community',
-          'ambari.dispatch.snmp.host', 'ambari.dispatch.snmp.port', 'ambari.dispatch.snmp.oid',
-          'ambari.dispatch-property.script_file_name', 'ambari.dispatch.script.filename',
-          'ambari.dispatch.script.parameter.1'
-        ];
+        const standardProps = notificationBuiltInKeys(uiType);
         
         Object.entries(notification.AlertTarget.properties).forEach(([key, value]) => {
           if (!standardProps.includes(key)) {
@@ -1682,9 +1610,6 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
       // Then override the mode and name
       setNotificationFormMode('duplicate');
       setNotificationName(`Copy of ${notification.AlertTarget.name}`);
-      
-      // Clear the selected notification since we're creating a new one
-      setSelectedNotification(null);
       
     } catch (error) {
       console.error('Error duplicating notification:', error);
@@ -1758,188 +1683,64 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
 
   // Handle notification form submission
   const handleNotificationFormSubmit = async (): Promise<void> => {
-    if (!notificationName.trim()) {
-      setModalError('Notification name is required');
-      return;
-    }
-
     try {
-      setLoading(true);
       setModalError('');
-
-      // Build properties object
-      const properties: Record<string, any> = {};
-      
-      // Add standard properties based on notification type
-      if (notificationType === 'EMAIL') {
-        // Format recipients as an array
-        properties['ambari.dispatch.recipients'] = notificationRecipients.split(',').map(r => r.trim());
-        properties['mail.smtp.host'] = smtpServer;
-        properties['mail.smtp.port'] = smtpPort;
-        properties['mail.smtp.from'] = emailFrom;
-        
-        if (useAuthentication) {
-          properties['mail.smtp.auth'] = true;
-          properties['ambari.dispatch.credential.username'] = username;
-          if (password) {
-            properties['ambari.dispatch.credential.password'] = password;
-          }
-          properties['mail.smtp.starttls.enable'] = startTls;
-        } else {
-          properties['mail.smtp.auth'] = false;
-        }
-      } else if (notificationType === 'SNMP' || notificationType === 'Custom SNMP') {
-        properties['ambari.dispatch.snmp.version'] = snmpVersion;
-        properties['ambari.dispatch.snmp.community'] = snmpCommunity;
-        properties['ambari.dispatch.snmp.host'] = snmpHosts;
-        properties['ambari.dispatch.snmp.port'] = snmpPort;
-        
-        if (notificationType === 'Custom SNMP') {
-          properties['ambari.dispatch.snmp.oid'] = snmpOid;
-        }
-      } else if (notificationType === 'Alert Script') {
-        properties['ambari.dispatch-property.script_file_name'] = scriptFilename;
-        properties['ambari.dispatch.script.filename'] = scriptFilename;
-        if (scriptDispatchProperty) {
-          properties['ambari.dispatch.script.parameter.1'] = scriptDispatchProperty;
-        }
-      }
-      
-      // Add custom properties
-      customProperties.forEach(prop => {
-        properties[prop.name] = prop.value;
-      });
-
-      // Prepare notification data
-      const notificationData: any = {
+      const form: AlertNotificationForm = {
         name: notificationName,
         description: notificationDescription,
-        notification_type: notificationType,
-        properties,
+        type: notificationType as AlertNotificationForm['type'],
         global: groupsOption === 'all',
-        alert_states: selectedSeverities.length > 0 ? selectedSeverities : ['OK', 'WARNING', 'CRITICAL', 'UNKNOWN'],
+        groups: selectedGroups,
+        alertStates: selectedSeverities,
+        recipients: notificationRecipients,
+        smtpHost: smtpServer,
+        smtpPort,
+        emailFrom,
+        useAuthentication,
+        username,
+        password,
+        passwordConfirmation,
+        startTls,
+        snmpVersion,
+        snmpCommunity,
+        snmpHosts,
+        snmpPort,
+        snmpOid,
+        scriptFilename,
+        scriptDispatchProperty,
+        customProperties,
+        existingProperties: selectedNotification?.AlertTarget.properties,
+        preserveSensitivePassword: notificationFormMode === 'edit',
       };
-
-      // Add groups if not global
-      if (!notificationData.global && selectedGroups.length > 0) {
-        // Use the group IDs directly
-        notificationData.groups = selectedGroups;
+      const errors = validateAlertNotificationForm(form);
+      const duplicateName = notifications.some((notification) =>
+        notification.AlertTarget.name.trim().toLowerCase() === notificationName.trim().toLowerCase() &&
+        (notificationFormMode !== 'edit' || notification.AlertTarget.id !== selectedNotification?.AlertTarget.id),
+      );
+      if (duplicateName) errors.unshift('An Alert Notification with this name already exists.');
+      if (errors.length > 0) {
+        setModalError(errors.join(' '));
+        return;
       }
-      
-      const requestData = {
-        AlertTarget: notificationData
-      };
-
-      if (notificationFormMode === 'create') {
-        // Create new notification
-        const response = await AlertsApi.createNotification(clusterName, requestData);
-        
-        if (response) {
-          // Immediately add the new notification to state for instant UI update
-          const newNotification: AlertNotification = {
-            AlertTarget: {
-              id: response.data?.AlertTarget?.id || Date.now(), // Use response ID or fallback
-              name: notificationName,
-              description: notificationDescription,
-              notification_type: notificationType,
-              properties,
-              global: groupsOption === 'all',
-              alert_states: selectedSeverities.length > 0 ? selectedSeverities : ['OK', 'WARNING', 'CRITICAL', 'UNKNOWN'],
-              groups: groupsOption === 'custom' ? selectedGroups : [],
-              is_enabled: true,
-              _isNew: true
-            }
-          };
-          
-          // Update notifications state immediately
-          const updatedNotifications = [...notifications, newNotification];
-          setNotifications(updatedNotifications);
-          
-          setModalSuccess('Notification created successfully');
-        }
-      } else if (notificationFormMode === 'edit' && selectedNotification) {
-        // Update existing notification
-        const notificationId = selectedNotification.AlertTarget.id;
-        if (notificationId) {
-          const updatedNotification = {
-            ...notificationData,
-            id: notificationId
-          };
-          
-          const response = await AlertsApi.updateNotification(clusterName, notificationId, { AlertTarget: updatedNotification });
-          if (response) {
-            // Update the notification in state immediately
-            const updatedNotifications = notifications.map(notification => 
-              notification.AlertTarget.id === notificationId 
-                ? { 
-                    AlertTarget: { 
-                      ...notification.AlertTarget,
-                      name: notificationName,
-                      description: notificationDescription,
-                      notification_type: notificationType,
-                      properties,
-                      global: groupsOption === 'all',
-                      alert_states: selectedSeverities.length > 0 ? selectedSeverities : ['OK', 'WARNING', 'CRITICAL', 'UNKNOWN'],
-                      groups: groupsOption === 'custom' ? selectedGroups : [],
-                      _isModified: true 
-                    } 
-                  }
-                : notification
-            );
-            setNotifications(updatedNotifications);
-            setSelectedNotification({ 
-              AlertTarget: { 
-                ...selectedNotification.AlertTarget,
-                name: notificationName,
-                description: notificationDescription,
-                notification_type: notificationType,
-                properties,
-                global: groupsOption === 'all',
-                alert_states: selectedSeverities.length > 0 ? selectedSeverities : ['OK', 'WARNING', 'CRITICAL', 'UNKNOWN'],
-                groups: groupsOption === 'custom' ? selectedGroups : [],
-                _isModified: true 
-              } 
-            });
-            setModalSuccess('Notification updated successfully');
-          }
-        }
-      } else if (notificationFormMode === 'duplicate') {
-        // Create a duplicate notification
-        const response = await AlertsApi.createNotification(clusterName, requestData);
-        
-        if (response) {
-          // Immediately add the duplicated notification to state
-          const newNotification: AlertNotification = {
-            AlertTarget: {
-              id: response.data?.AlertTarget?.id || Date.now(), // Use response ID or fallback
-              name: notificationName,
-              description: notificationDescription,
-              notification_type: notificationType,
-              properties,
-              global: groupsOption === 'all',
-              alert_states: selectedSeverities.length > 0 ? selectedSeverities : ['OK', 'WARNING', 'CRITICAL', 'UNKNOWN'],
-              groups: groupsOption === 'custom' ? selectedGroups : [],
-              is_enabled: true,
-              _isNew: true
-            }
-          };
-          
-          // Update notifications state immediately
-          const updatedNotifications = [...notifications, newNotification];
-          setNotifications(updatedNotifications);
-          
-          setModalSuccess('Notification duplicated successfully');
-        }
+      setLoading(true);
+      const payload = buildAlertNotificationPayload(form);
+      if (notificationFormMode === 'edit') {
+        const notificationId = selectedNotification?.AlertTarget.id;
+        if (!notificationId) throw new Error('The selected notification has no server ID.');
+        await AlertsApi.updateNotification(clusterName, notificationId, payload);
+      } else {
+        await AlertsApi.createNotification(clusterName, payload);
       }
 
-      // Reset form
+      await loadNotifications();
+      setSelectedNotification(null);
       resetNotificationForm();
       setShowNotificationFormModal(false);
-      
-      // Reload notifications in the background to ensure consistency
-      setTimeout(() => {
-        loadNotifications();
-      }, 1000);
+      setModalSuccess(notificationFormMode === 'edit'
+        ? 'Notification updated successfully.'
+        : notificationFormMode === 'duplicate'
+          ? 'Notification duplicated successfully.'
+          : 'Notification created successfully.');
     } catch (error) {
       console.error('Error submitting notification form:', error);
       setModalError('Failed to save notification. Please try again.');
@@ -2245,8 +2046,6 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
 
   // Handle rename group
   const handleRenameGroup = (group: AlertGroupItem | AlertGroupState): void => {
-  // ...existing code...
-    
     setGroupToRename(group);
     const currentName = getGroupName(group);
     setRenameGroupName(currentName);
@@ -2258,8 +2057,6 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
 
   // Handle duplicate group
   const handleDuplicateGroup = (group: AlertGroupItem | AlertGroupState): void => {
-  // ...existing code...
-    
     setGroupToDuplicate(group);
     
     // Set initial name for the duplicated group
@@ -2284,182 +2081,28 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
   };
 
   // Handle notifications change for a specific group
-  const handleNotificationsChange = async (groupId: number, updatedNotifications: AlertNotification[]): Promise<void> => {
-  // ...existing code...
-    
-    try {
-      setModalError('');
-      
-      // Find the current notifications for this group
-      const currentGroupNotifications = notifications.filter(notification => {
-        const target = notification.AlertTarget;
-        if (target.global) return true;
-        if (target.groups && Array.isArray(target.groups)) {
-          return target.groups.includes(groupId);
+  const handleNotificationsChange = (groupId: number, updatedNotifications: AlertNotification[]): void => {
+    const targets = updatedNotifications.flatMap((notification) =>
+      notification.AlertTarget.id ? [notification.AlertTarget] : [],
+    );
+    const updatedGroups = alertGroups.map((group) => group.AlertGroup.id === groupId
+      ? {
+          ...group,
+          AlertGroup: {
+            ...group.AlertGroup,
+            targets,
+            _isModified: !group.AlertGroup._isNew,
+          },
         }
-        return false;
-      });
-      
-  // ...existing code...
-      
-      // Find notifications to add and remove
-      const notificationsToAdd = updatedNotifications.filter(updated => 
-        !currentGroupNotifications.some(current => current.AlertTarget.id === updated.AlertTarget.id)
-      );
-      
-      const notificationsToRemove = currentGroupNotifications.filter(current => 
-        !updatedNotifications.some(updated => updated.AlertTarget.id === current.AlertTarget.id) &&
-        !current.AlertTarget.global // Don't remove global notifications
-      );
-      
-  // ...existing code...
-      
-      // Update the notifications state immediately to reflect changes in UI
-      const updatedNotificationsState = notifications.map(notification => {
-        const target = notification.AlertTarget;
-        
-        // For notifications being added to this group
-        if (notificationsToAdd.some(toAdd => toAdd.AlertTarget.id === target.id)) {
-          if (!target.global && target.id) {
-            const currentGroups = target.groups || [];
-            const updatedGroups = [...currentGroups, groupId];
-            return {
-              ...notification,
-              AlertTarget: {
-                ...target,
-                groups: updatedGroups
-              }
-            };
-          }
-        }
-        
-        // For notifications being removed from this group
-        if (notificationsToRemove.some(toRemove => toRemove.AlertTarget.id === target.id)) {
-          if (!target.global && target.id) {
-            const currentGroups = target.groups || [];
-            const updatedGroups = currentGroups.filter(id => id !== groupId);
-            return {
-              ...notification,
-              AlertTarget: {
-                ...target,
-                groups: updatedGroups
-              }
-            };
-          }
-        }
-        
-        return notification;
-      });
-      
-  // ...existing code...
-      
-      // Update the notifications state immediately
-      setNotifications(updatedNotificationsState);
-      
-      // Make API calls in the background
-      setLoading(true);
-      
-      // Update notifications by modifying their group assignments
-      for (const notification of notificationsToAdd) {
-        if (!notification.AlertTarget.global && notification.AlertTarget.id) {
-          const currentGroups = notification.AlertTarget.groups || [];
-          const updatedGroups = [...currentGroups, groupId];
-          
-          // ...existing code...
-          
-          await AlertsApi.updateNotification(clusterName, notification.AlertTarget.id, {
-            AlertTarget: {
-              groups: updatedGroups
-            }
-          });
-        }
-      }
-      
-      for (const notification of notificationsToRemove) {
-        if (!notification.AlertTarget.global && notification.AlertTarget.id) {
-          const currentGroups = notification.AlertTarget.groups || [];
-          const updatedGroups = currentGroups.filter(id => id !== groupId);
-          
-          // ...existing code...
-          
-          await AlertsApi.updateNotification(clusterName, notification.AlertTarget.id, {
-            AlertTarget: {
-              groups: updatedGroups
-            }
-          });
-        }
-      }
-      
-      // Mark the selected group as modified to enable the save button
-      if (selectedGroup) {
-        if ('AlertGroup' in selectedGroup) {
-          // Update AlertGroupItem
-          const updatedGroup = {
-            ...selectedGroup,
-            AlertGroup: {
-              ...selectedGroup.AlertGroup,
-              _isModified: true
-            }
-          };
-          
-          // Update the group in the alertGroups array
-          const updatedGroups = alertGroups.map(g => 
-            g.AlertGroup.id === selectedGroup.AlertGroup.id ? updatedGroup : g
-          );
-          
-          setAlertGroups(updatedGroups);
-          setSelectedGroup(updatedGroup);
-        } else {
-          // Update AlertGroupState
-          const updatedGroup: AlertGroupState = {
-            ...selectedGroup,
-            _isModified: true
-          };
-          
-          setSelectedGroup(updatedGroup);
-          
-          // Also update the corresponding group in alertGroups
-          const updatedGroups = alertGroups.map(g => {
-            if (g.AlertGroup.id === selectedGroup.id) {
-              return {
-                ...g,
-                AlertGroup: {
-                  ...g.AlertGroup,
-                  _isModified: true
-                }
-              };
-            }
-            return g;
-          });
-          
-          setAlertGroups(updatedGroups);
-        }
-        
-        // Enable save button
-        setIsSaveDisabled(false);
-        
-        setModalSuccess('Notification assignments updated successfully');
-        
-        setTimeout(() => {
-          setModalSuccess('');
-        }, 5000);
-      }
-    } catch (error) {
-      console.error('Error updating notification assignments:', error);
-      setModalError('Failed to update notification assignments');
-      
-      setTimeout(() => {
-        setModalError('');
-      }, 5000);
-    } finally {
-      setLoading(false);
-    }
+      : group,
+    );
+    setAlertGroups(updatedGroups);
+    const updatedGroup = updatedGroups.find((group) => group.AlertGroup.id === groupId);
+    if (updatedGroup) handleSelectGroup(updatedGroup);
+    setIsSaveDisabled(false);
+    setModalError('');
+    setModalSuccess('Notification assignments changed. Click Save to apply them.');
   };
-
-  // Hide the entire ActionsButton when upgrade is blocking
-  if (isUpgradeBlocking) {
-    return null;
-  }
 
   return (
     <>
@@ -2493,6 +2136,16 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
           ACTIONS&nbsp; <span className="caret"></span>
         </button>
         <ul className={`dropdown-menu dropdown-menu-end ${isActionsDropdownOpen ? 'show' : ''}`} style={{ top: '100%', marginTop: '2px' }}>
+          {actionPolicy.create && (
+            <li>
+              <button
+                className="dropdown-item"
+                onClick={() => navigate('/main/alerts/add/1')}
+              >
+                <FontAwesomeIcon icon={faPlus} />&nbsp; Create Alert
+              </button>
+            </li>
+          )}
           <li>
             <button 
               className="dropdown-item" 
@@ -2502,7 +2155,7 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
             </button>
           </li>
           {/* Manage Notifications - Requires CLUSTER.MANAGE_ALERT_NOTIFICATIONS authorization */}
-          {canManageNotifications && (
+          {actionPolicy.notifications && (
             <li>
               <button 
                 className="dropdown-item" 
@@ -2658,7 +2311,7 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
         isOpen={showDeleteNotificationModal}
         onClose={handleCloseModal}
         modalTitle="Confirm Delete"
-        modalBody={<DeleteNotificationModal notification={selectedNotification} />}
+        modalBody={<DeleteNotificationModal notification={selectedNotification} errorMessage={modalError} />}
         successCallback={() => selectedNotification && handleDeleteNotification(selectedNotification)}
         options={{
           modalSize: 'modal-sm',
@@ -2742,6 +2395,7 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
             successMessage={modalSuccess}
             setErrorMessage={setModalError}
             setSuccessMessage={setModalSuccess}
+            preserveSensitivePassword={notificationFormMode === 'edit'}
           />
         }
         successCallback={handleNotificationFormSubmit}
@@ -2753,7 +2407,7 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
           cancelableViaIcon: true,
           cancelableViaBtn: true,
           okButtonVariant: 'primary',
-          okButtonDisabled: !notificationName.trim() || !isNotificationNameValid || modalError !== '',
+          okButtonDisabled: !notificationName.trim() || !isNotificationNameValid,
         }}
       />
 

@@ -17,11 +17,20 @@
  */
 
 import { act, renderHook } from "@testing-library/react";
-import type { PropsWithChildren } from "react";
+import type { ContextType, PropsWithChildren, ReactElement } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import adminApi from "../api/adminApi";
 import { AppContext } from "../store/context";
 import useKDCSessionState from "./useKDCSessionState";
+
+const modalMocks = vi.hoisted(() => ({
+  show: vi.fn(),
+  hide: vi.fn(),
+}));
+
+vi.mock("../store/ModalManager", () => ({
+  default: modalMocks,
+}));
 
 vi.mock("../api/adminApi", () => ({
   default: {
@@ -34,7 +43,7 @@ vi.mock("../api/adminApi", () => ({
 const contextValue = {
   clusterName: "c1",
   isKerberosEnabled: true,
-} as any;
+} as ContextType<typeof AppContext>;
 
 function wrapper({ children }: PropsWithChildren) {
   return <AppContext.Provider value={contextValue}>{children}</AppContext.Provider>;
@@ -55,7 +64,36 @@ describe("useKDCSessionState", () => {
     vi.clearAllMocks();
     vi.mocked(adminApi.getSecurityStatus).mockResolvedValue({
       Clusters: { security_type: "KERBEROS" },
-    } as any);
+    });
+  });
+
+  it("reports invalid-KDC credential cancellation to the protected operation", async () => {
+    vi.mocked(adminApi.getSecurityType).mockResolvedValue({
+      items: [
+        {
+          configurations: [
+            { type: "kerberos-env", properties: { kdc_type: "mit-kdc" } },
+          ],
+        },
+      ],
+    });
+    vi.mocked(adminApi.getKerberosSessionState).mockResolvedValue({
+      Services: { attributes: { kdc_validation_result: "INVALID" } },
+    });
+    const callback = vi.fn();
+    const errorCallback = vi.fn();
+    const { result } = renderHook(() => useKDCSessionState(() => {}), { wrapper });
+
+    await result.current.getKDCSessionState(callback, errorCallback);
+    const popup = modalMocks.show.mock.calls.at(-1)?.[0] as ReactElement<{
+      onCancel: () => void;
+    }>;
+    popup.props.onCancel();
+
+    expect(callback).not.toHaveBeenCalled();
+    expect(errorCallback).toHaveBeenCalledWith(
+      expect.objectContaining({ message: "KDC credential entry was cancelled." }),
+    );
   });
 
   it("reports a security-type request failure instead of leaving the caller waiting", async () => {
@@ -79,7 +117,7 @@ describe("useKDCSessionState", () => {
           properties: { kdc_type: "none" },
         }],
       }],
-    } as any);
+    });
     let operationCompleted = false;
     const { result } = renderHook(() => useKDCSessionState(() => {}), { wrapper });
 

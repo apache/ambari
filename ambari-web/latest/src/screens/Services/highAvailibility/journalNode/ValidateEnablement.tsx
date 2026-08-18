@@ -18,7 +18,7 @@
 
 import { useContext, useEffect, useState } from "react";
 import Modal from "../../../../components/Modal";
-import { filter, find } from "lodash";
+import { filter, find, flatten } from "lodash";
 import Spinner from "../../../../components/Spinner";
 import useStepWizard from "../../../../hooks/useStepWizard";
 import wizardSteps from "./wizardSteps";
@@ -27,9 +27,11 @@ import ClusterApi from "../../../../api/clusterApi";
 import { LocalStorageOps } from "../../../../Utils/LocalStorageOps";
 import { ManageJournalNodesProvider } from "./store/context";
 import { ServiceContext } from "../../../../store/ServiceContext";
+import { AppContext } from "../../../../store/context";
 
 function ValidateEnablement() {
   const { allServiceModels } = useContext(ServiceContext);
+  const { allHostNames, supports } = useContext(AppContext);
   const stepWizardUtilities = useStepWizard(wizardSteps, 0, () => {
     window.location.href = "/#/main/services/HDFS/summary";
   });
@@ -69,7 +71,9 @@ function ValidateEnablement() {
   const validateCanEnable = () => {
     const messages: string[] = [];
     const hdfsModel = allServiceModels?.["hdfs"];
-    console.log("HDFS model is", allServiceModels?.["hdfs"]);
+    if (!supports.manageJournalNode) {
+      messages.push("This stack does not support Manage JournalNodes.");
+    }
 
     const namenodes: any = find(hdfsModel?.masterComponents, [
       "componentName",
@@ -80,7 +84,6 @@ function ValidateEnablement() {
         "haStatus",
         "active",
       ]);
-      console.log("Active Namenodes", activeNamenodes, namenodes);
       const standbyNamenodes = filter(namenodes?.hostComponents, [
         "haStatus",
         "standby",
@@ -92,6 +95,26 @@ function ValidateEnablement() {
       }
     } else {
       messages.push("Namenodes not present in HDFS service");
+    }
+
+    const journalNodeComponent = find(
+      flatten([
+        hdfsModel?.masterComponents || [],
+        hdfsModel?.slaveComponents || [],
+      ]),
+      ["componentName", "JOURNALNODE"],
+    );
+    const journalNodeCount = Math.max(
+      journalNodeComponent?.totalCount || 0,
+      hdfsModel?.journalNodes?.length || 0,
+    );
+    if (
+      journalNodeCount < 3 ||
+      !(allHostNames.length > journalNodeCount || journalNodeCount > 3)
+    ) {
+      messages.push(
+        "The current host and JournalNode counts do not allow an add or delete operation.",
+      );
     }
 
     if (!messages.length) {

@@ -78,16 +78,20 @@ function useKDCSessionState(_cancelHandler: unknown) {
           if (result.toUpperCase() === "OK") {
             await callback();
           } else {
+            const reportCredentialFailure = (error: unknown) => {
+              errorCallback?.(error);
+            };
             modalManager.show(
               <InvalidKdcPopup
                 getKdcSessionState={() => {
                   void getKDCSessionState(callback, errorCallback, options);
                 }}
-                onCancel={() => {
-                  errorCallback?.(
-                    new Error("KDC administrator credential entry was cancelled."),
-                  );
-                }}
+                onCancel={() =>
+                  reportCredentialFailure(
+                    new Error("KDC credential entry was cancelled."),
+                  )
+                }
+                onError={reportCredentialFailure}
               />
             );
           }

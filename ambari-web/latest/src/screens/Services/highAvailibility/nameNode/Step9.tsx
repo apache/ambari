@@ -16,12 +16,13 @@
  * limitations under the License.
  */
 
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
+import { find, get, map } from "lodash";
+import { t } from "i18next";
 import { EnableHighAvailibilityContext } from "./store/context";
 import { AppContext } from "../../../../store/context";
 import { ServiceContext } from "../../../../store/ServiceContext";
 import { getStepData } from "../../../../Utils/Utility";
-import { filter, find, map } from "lodash";
 import WizardFooter from "../../../../components/StepWizard/WizardFooter";
 import OperationsProgress from "../../../../components/OperationsProgress";
 import {
@@ -32,684 +33,346 @@ import {
   updateComponent,
 } from "../../../../Utils/taskUtils";
 import { enableNamenodeSteps } from "./wizardSteps";
-import { t } from "i18next";
 import ClusterApi from "../../../../api/clusterApi";
 import { HostsApi } from "../../../../api/hostsApi";
 import { ActionTypes } from "./store/types";
 import useKDCSessionState from "../../../../hooks/useKDCSessionState";
+import {
+  getRangerReconfigureSiteGroups,
+  mergeSavedOperations,
+} from "../haWorkflowUtils";
+import modalManager from "../../../../store/ModalManager";
+import { Alert } from "react-bootstrap";
 
 function Step9() {
-  enum COMMANDS {
-    startSecondNameNode = "startSecondNameNode",
-    installZKFC = "installZKFC",
-    startZKFC = "startZKFC",
-    reconfigureRanger = "reconfigureRanger",
-    reconfigureHBase = "reconfigureHBase",
-    reconfigureAMS = "reconfigureAMS",
-    reconfigureAccumulo = "reconfigureAccumulo",
-    reconfigureHawq = "reconfigureHawq",
-    deleteSNameNode = "deleteSNameNode",
-    stopHDFS = "stopHDFS",
-    startAllServices = "startAllServices",
-  }
   const {
     state,
     dispatch,
     flushStateToDb,
-    stepWizardUtilities: { currentStep, jumpToStep },
+    stepWizardUtilities: { currentStep },
   } = useContext(EnableHighAvailibilityContext);
   const { clusterName, services } = useContext(AppContext);
-  const { serviceModels: allServiceModels }: any = useContext(ServiceContext);
+  const { serviceModels, masterSlaveClientsData }: any =
+    useContext(ServiceContext);
   const { getKDCSessionState } = useKDCSessionState(() => {});
   const [completionStatus, setCompletionStatus] = useState(false);
-  const [stepOperations, setStepOperations] = useState<any>([]);
-  const masterComponentHosts = getStepData(
+  const [isCompleting, setIsCompleting] = useState(false);
+  const [completionError, setCompletionError] = useState("");
+  const masterComponentHosts =
+    getStepData(
+      state,
+      enableNamenodeSteps.SELECT_HOSTS,
+      "masterComponentHosts",
+      "enableHighAvailibilitySteps",
+    ) || [];
+  const configData = getStepData(
     state,
-    "SELECT_HOSTS",
-    "masterComponentHosts",
-    "enableHighAvailibilitySteps"
+    enableNamenodeSteps.REVIEW,
+    "overridenProperties",
+    "enableHighAvailibilitySteps",
   );
-
   const selectedServices = map(services, "ServiceInfo.service_name");
-  async function saveReconfiguredConfigs(siteNames: any, data: any) {
-    const note = t("admin.highAvailability.step9.save.configuration.note");
-    const configData = reconfigureSites(siteNames, data, note);
+  const note = t("admin.highAvailability.step9.save.configuration.note");
+
+  const additionalNameNodeHost = find(
+    masterComponentHosts,
+    (hostComponent: any) =>
+      hostComponent.component === "NAMENODE" && !hostComponent.isInstalled,
+  )?.hostName;
+
+  const saveReconfiguredConfigs = async (siteNames: string[]) => {
+    if (!configData?.items) {
+      throw new Error("The reviewed HA configuration snapshot is missing.");
+    }
+    const missingSites = siteNames.filter(
+      (siteName) => !find(configData.items, ["type", siteName]),
+    );
+    if (missingSites.length) {
+      throw new Error(
+        `The reviewed HA configuration is missing: ${missingSites.join(", ")}.`,
+      );
+    }
     return await ClusterApi.updateCluster(clusterName, {
       Clusters: {
-        desired_config: configData,
+        desired_config: reconfigureSites(siteNames, configData, note),
       },
     });
-  }
-  function initializeTasks() {
-    let id = 0;
-    const allOps = [];
-    const tasksToRemove = [];
-    if (!selectedServices.includes("RANGER")) {
-      tasksToRemove.push(COMMANDS.reconfigureRanger);
-    }
-    if (!selectedServices.includes("HBASE")) {
-      tasksToRemove.push(COMMANDS.reconfigureHBase);
-    }
-    if (!selectedServices.includes("AMBARI_METRICS")) {
-      tasksToRemove.push(COMMANDS.reconfigureAMS);
-    }
-    if (!selectedServices.includes("ACCUMULO")) {
-      tasksToRemove.push(COMMANDS.reconfigureAccumulo);
-    }
-    if (!selectedServices.includes("HAWQ")) {
-      tasksToRemove.push(COMMANDS.reconfigureHawq);
-    }
+  };
 
-    if (!tasksToRemove.includes(COMMANDS.startSecondNameNode)) {
-      allOps.push({
-        id: id++,
-        label: "Start NameNode",
+  const initializeTasks = () => {
+    const operations: any[] = [];
+    const nameNodeHosts = masterComponentHosts
+      .filter((hostComponent: any) => hostComponent.component === "NAMENODE")
+      .map((hostComponent: any) => hostComponent.hostName);
+
+    operations.push({
+      id: 0,
+      label: "Start Additional NameNode",
+      skippable: false,
+      callback: async () =>
+        await updateComponent(
+          clusterName,
+          "NAMENODE",
+          additionalNameNodeHost,
+          "HDFS",
+          "Start",
+          1,
+        ),
+    });
+    operations.push({
+      id: 1,
+      label: "Install ZKFC",
+      skippable: false,
+      callback: async () =>
+        await createInstallComponentTask(
+          "ZKFC",
+          nameNodeHosts,
+          "HDFS",
+          clusterName,
+          ["HDFS"],
+          serviceModels.hdfs,
+          getKDCSessionState,
+        ),
+    });
+    operations.push({
+      id: 2,
+      label: "Start ZKFC",
+      skippable: false,
+      callback: async () =>
+        await updateComponent(
+          clusterName,
+          "ZKFC",
+          nameNodeHosts,
+          "HDFS",
+          "Start",
+          1,
+        ),
+    });
+
+    const pxfComponent = find(
+      Object.values(masterSlaveClientsData || {}),
+      ["ServiceComponentInfo.component_name", "PXF"],
+    );
+    const pxfHosts: string[] = map(
+      get(pxfComponent, "host_components", []),
+      (hostComponent: any) => get(hostComponent, "HostRoles.host_name"),
+    ).filter(Boolean);
+    if (
+      selectedServices.includes("PXF") &&
+      additionalNameNodeHost &&
+      !pxfHosts.includes(additionalNameNodeHost)
+    ) {
+      operations.push({
+        id: 3,
+        label: "Install PXF",
         skippable: false,
-        callback: async () => {
-          const hostName = find(masterComponentHosts, (hostComponent: any) => {
-            return (
-              hostComponent.component === "NAMENODE" &&
-              hostComponent.isInstalled === false
-            );
-          })?.hostName;
-          return await updateComponent(
+        callback: async () =>
+          await createInstallComponentTask(
+            "PXF",
+            additionalNameNodeHost,
+            "PXF",
             clusterName,
-            "NAMENODE",
-            hostName,
-            "HDFS",
-            "Start",
-            1
-          );
-        },
-      });
-    }
-
-    if (!tasksToRemove.includes(COMMANDS.installZKFC)) {
-      allOps.push({
-        id: id++,
-        label: "Install ZKFC",
-        skippable: false,
-        callback: async () => {
-          const hostNames = map(
-            filter(masterComponentHosts, ["component", "NAMENODE"]),
-            "hostName"
-          );
-
-          return await createInstallComponentTask(
-            "ZKFC",
-            hostNames,
-            "HDFS",
-            clusterName,
-            ["HDFS"],
-            allServiceModels["hdfs"],
-            getKDCSessionState
-          );
-        },
-      });
-    }
-    if (!tasksToRemove.includes(COMMANDS.startZKFC)) {
-      allOps.push({
-        id: id++,
-        label: "Start ZKFC",
-        skippable: false,
-        callback: async () => {
-          const hostNames = map(
-            filter(masterComponentHosts, ["component", "NAMENODE"]),
-            "hostName"
-          );
-
-          return await updateComponent(
-            clusterName,
-            "ZKFC",
-            hostNames,
-            "HDFS",
-            "Start",
-            1
-          );
-        },
-      });
-    }
-    if (!tasksToRemove.includes(COMMANDS.reconfigureRanger)) {
-      const data = getStepData(
-        state,
-        enableNamenodeSteps.REVIEW,
-        "overridenProperties",
-        "enableHighAvailibilitySteps"
-      );
-      let siteNames = ["ranger-env"];
-      const configs: any = [];
-      configs.push({
-        Clusters: {
-          desired_config: reconfigureSites(
-            siteNames,
-            data,
-            t("admin.highAvailability.step9.save.configuration.note")
+            selectedServices,
+            serviceModels.pxf,
+            getKDCSessionState,
           ),
-        },
       });
-      if (selectedServices.includes("YARN")) {
-        siteNames = [];
-        const yarnAuditConfig = find(data.items, ["type", "ranger-yarn-audit"]);
-        if (yarnAuditConfig) {
-          if (
-            "xasecure.audit.destination.hdfs.dir" in yarnAuditConfig.properties
-          ) {
-            siteNames.push("ranger-yarn-audit");
-            configs.push({
-              Clusters: {
-                desired_config: reconfigureSites(
-                  siteNames,
-                  data,
-                  t("admin.highAvailability.step9.save.configuration.note")
-                ),
-              },
-            });
-          }
-        }
-      }
-      if (selectedServices.includes("STORM")) {
-        const stormPluginConfig = find(data.items, [
-          "type",
-          "ranger-storm-plugin-properties",
-        ]);
-        if (stormPluginConfig) {
-          if (
-            "xasecure.audit.destination.hdfs.dir" in
-            stormPluginConfig.properties
-          ) {
-            siteNames.push("ranger-storm-plugin-properties");
-          }
-        }
-        var stormAuditConfig = find(data.items, ["type", "ranger-storm-audit"]);
-        if (stormAuditConfig) {
-          if (
-            "xasecure.audit.destination.hdfs.dir" in stormAuditConfig.properties
-          ) {
-            siteNames.push("ranger-storm-audit");
-          }
-        }
-        if (siteNames.length) {
-          configs.push({
-            Clusters: {
-              desired_config: reconfigureSites(
-                siteNames,
-                data,
-                t("admin.highAvailability.step9.save.configuration.note")
-              ),
-            },
-          });
-        }
-      }
-      if (selectedServices.includes("KAFKA")) {
-        siteNames = [];
-        const kafkaAuditConfig = find(data.items, [
-          "type",
-          "ranger-kafka-audit",
-        ]);
-        if (kafkaAuditConfig) {
-          if (
-            "xasecure.audit.destination.hdfs.dir" in kafkaAuditConfig.properties
-          ) {
-            siteNames.push("ranger-kafka-audit");
-            configs.push({
-              Clusters: {
-                desired_config: reconfigureSites(
-                  siteNames,
-                  data,
-                  t("admin.highAvailability.step9.save.configuration.note")
-                ),
-              },
-            });
-          }
-        }
-      }
-      if (selectedServices.includes("KNOX")) {
-        siteNames = [];
-        let knoxPluginConfig = find(data.items, [
-          "type",
-          "ranger-knox-plugin-properties",
-        ]);
-        if (knoxPluginConfig) {
-          if (
-            "xasecure.audit.destination.hdfs.dir" in knoxPluginConfig.properties
-          ) {
-            siteNames.push("ranger-knox-plugin-properties");
-          }
-        }
-        var knoxAuditConfig = data.items.findProperty(
-          "type",
-          "ranger-knox-audit"
-        );
-        if (knoxAuditConfig) {
-          if (
-            "xasecure.audit.destination.hdfs.dir" in knoxAuditConfig.properties
-          ) {
-            siteNames.push("ranger-knox-audit");
-          }
-        }
-        if (siteNames.length) {
-          configs.push({
-            Clusters: {
-              desired_config: reconfigureSites(
-                siteNames,
-                data,
-                t("admin.highAvailability.step9.save.configuration.note")
-              ),
-            },
-          });
-        }
-      }
-      if (selectedServices.includes("ATLAS")) {
-        siteNames = [];
-        const atlasAuditConfig = find(data.items, [
-          "type",
-          "ranger-atlas-audit",
-        ]);
-        if (atlasAuditConfig) {
-          if (
-            "xasecure.audit.destination.hdfs.dir" in atlasAuditConfig.properties
-          ) {
-            siteNames.push("ranger-atlas-audit");
-            configs.push({
-              Clusters: {
-                desired_config: reconfigureSites(
-                  siteNames,
-                  data,
-                  t("admin.highAvailability.step4.save.configuration.note")
-                ),
-              },
-            });
-          }
-        }
-      }
-      if (selectedServices.includes("HIVE")) {
-        siteNames = [];
-        var hivePluginConfig = find(data.items, [
-          "type",
-          "ranger-hive-plugin-properties",
-        ]);
-        if (hivePluginConfig) {
-          if (
-            "xasecure.audit.destination.hdfs.dir" in hivePluginConfig.properties
-          ) {
-            siteNames.push("ranger-hive-plugin-properties");
-          }
-        }
-        var hiveAuditConfig = find(data.items, ["type", "ranger-hive-audit"]);
-        if (hiveAuditConfig) {
-          if (
-            "xasecure.audit.destination.hdfs.dir" in hiveAuditConfig.properties
-          ) {
-            siteNames.push("ranger-hive-audit");
-          }
-        }
-        if (siteNames.length) {
-          configs.push({
-            Clusters: {
-              desired_config: reconfigureSites(
-                siteNames,
-                data,
-                t("admin.highAvailability.step9.save.configuration.note")
-              ),
-            },
-          });
-        }
-      }
-      if (selectedServices.includes("RANGER_KMS")) {
-        siteNames = [];
-        let rangerKMSConfig = find(data.items, ["type", "ranger-kms-audit"]);
-        if (rangerKMSConfig) {
-          if (
-            "xasecure.audit.destination.hdfs.dir" in rangerKMSConfig.properties
-          ) {
-            siteNames.push("ranger-kms-audit");
-            configs.push({
-              Clusters: {
-                desired_config: reconfigureSites(
-                  siteNames,
-                  data,
-                  t("admin.highAvailability.step9.save.configuration.note")
-                ),
-              },
-            });
-          }
-        }
-      }
+    }
 
-      allOps.push({
-        id: id++,
+    if (selectedServices.includes("RANGER")) {
+      operations.push({
+        id: 4,
         label: "Reconfigure Ranger",
         skippable: false,
         callback: async () => {
-
-          const data = getStepData(
-            state,
-            enableNamenodeSteps.REVIEW,
-            "overridenProperties",
-            "enableHighAvailibilitySteps"
+          const groups = getRangerReconfigureSiteGroups(
+            selectedServices,
+            configData?.items || [],
           );
-          var siteNames = ["ranger-env"];
-          var configs = [];
-          configs.push({
+          const configs = groups.map((siteNames) => ({
             Clusters: {
-              desired_config: reconfigureSites(
-                siteNames,
-                data,
-                t("admin.highAvailability.step9.save.configuration.note")
-              ),
+              desired_config: reconfigureSites(siteNames, configData, note),
             },
-          });
-          if (selectedServices.includes("YARN")) {
-            siteNames = [];
-            const yarnAuditConfig = find(data.items, [
-              "type",
-              "ranger-yarn-audit",
-            ]);
-            if (yarnAuditConfig) {
-              if (
-                "xasecure.audit.destination.hdfs.dir" in
-                yarnAuditConfig.properties
-              ) {
-                siteNames.push("ranger-yarn-audit");
-                configs.push({
-                  Clusters: {
-                    desired_config: reconfigureSites(
-                      siteNames,
-                      data,
-                      t("admin.highAvailability.step9.save.configuration.note")
-                    ),
-                  },
-                });
-              }
-            }
-          }
-          if (selectedServices.includes("HIVE")) {
-            siteNames = [];
-            var hivePluginConfig = find(data.items, [
-              "type",
-              "ranger-hive-plugin-properties",
-            ]);
-            if (hivePluginConfig) {
-              if (
-                "xasecure.audit.destination.hdfs.dir" in
-                hivePluginConfig.properties
-              ) {
-                siteNames.push("ranger-hive-plugin-properties");
-              }
-            }
-            var hiveAuditConfig = find(data.items, [
-              "type",
-              "ranger-hive-audit",
-            ]);
-            if (hiveAuditConfig) {
-              if (
-                "xasecure.audit.destination.hdfs.dir" in
-                hiveAuditConfig.properties
-              ) {
-                siteNames.push("ranger-hive-audit");
-              }
-            }
-            if (siteNames.length) {
-              configs.push({
-                Clusters: {
-                  desired_config: reconfigureSites(
-                    siteNames,
-                    data,
-                    t("admin.highAvailability.step9.save.configuration.note")
-                  ),
-                },
-              });
-            }
-          }
-          if (selectedServices.includes("RANGER_KMS")) {
-            siteNames = [];
-            let rangerKMSConfig = find(data.items, [
-              "type",
-              "ranger-kms-audit",
-            ]);
-            if (rangerKMSConfig) {
-              if (
-                "xasecure.audit.destination.hdfs.dir" in
-                rangerKMSConfig.properties
-              ) {
-                siteNames.push("ranger-kms-audit");
-                configs.push({
-                  Clusters: {
-                    desired_config: reconfigureSites(
-                      siteNames,
-                      data,
-                      t("admin.highAvailability.step9.save.configuration.note")
-                    ),
-                  },
-                });
-              }
-            }
-          }
+          }));
           return await ClusterApi.updateCluster(clusterName, configs);
         },
       });
     }
-    if (!tasksToRemove.includes(COMMANDS.reconfigureHBase)) {
-      const data = getStepData(
-        state,
-        enableNamenodeSteps.REVIEW,
-        "overridenProperties",
-        "enableHighAvailibilitySteps"
-      );
-      const siteNames = ["hbase-site"];
-      if (selectedServices.includes("RANGER")) {
-        const hbasePluginConfig = find(data.items, [
-          "type",
-          "ranger-hbase-plugin-properties",
-        ]);
-        if (hbasePluginConfig) {
-          if (
-            "xasecure.audit.destination.hdfs.dir" in
-            hbasePluginConfig.properties
-          ) {
-            siteNames.push("ranger-hbase-plugin-properties");
-          }
-        }
-        const hbaseAuditConfig = find(data.items, [
-          "type",
-          "ranger-hbase-audit",
-        ]);
-        if (hbaseAuditConfig) {
-          if (
-            "xasecure.audit.destination.hdfs.dir" in hbaseAuditConfig.properties
-          ) {
-            siteNames.push("ranger-hbase-audit");
-          }
-        }
-      }
-      const configs: any = [];
-      configs.push({
-        Clusters: {
-          desired_config: reconfigureSites(
-            siteNames,
-            data,
-            t("admin.highAvailability.step9.save.configuration.note")
-          ),
-        },
-      });
-      allOps.push({
-        id: id++,
+
+    if (selectedServices.includes("HBASE")) {
+      operations.push({
+        id: 5,
         label: "Reconfigure HBase",
         skippable: false,
         callback: async () => {
-          return await saveReconfiguredConfigs(siteNames, data);
+          const hbaseSites = ["hbase-site"];
+          if (selectedServices.includes("RANGER")) {
+            ["ranger-hbase-plugin-properties", "ranger-hbase-audit"].forEach(
+              (siteName) => {
+                const site = find(configData?.items, ["type", siteName]);
+                if (
+                  site?.properties &&
+                  Object.prototype.hasOwnProperty.call(
+                    site.properties,
+                    "xasecure.audit.destination.hdfs.dir",
+                  )
+                ) {
+                  hbaseSites.push(siteName);
+                }
+              },
+            );
+          }
+          return await saveReconfiguredConfigs(hbaseSites);
         },
       });
     }
-    if (!tasksToRemove.includes(COMMANDS.reconfigureAMS)) {
-      const data = getStepData(
-        state,
-        enableNamenodeSteps.REVIEW,
-        "overridenProperties",
-        "enableHighAvailibilitySteps"
-      );
-      allOps.push({
-        id: id++,
-        label: "Reconfigure AMS",
+    if (selectedServices.includes("AMBARI_METRICS")) {
+      operations.push({
+        id: 6,
+        label: "Reconfigure AMS for NameNode HA",
         skippable: false,
-        callback: async () => {
-          return await saveReconfiguredConfigs(["ams-hbase-site"], data);
-        },
+        callback: async () =>
+          await saveReconfiguredConfigs(["ams-hbase-site"]),
       });
     }
-    if (!tasksToRemove.includes(COMMANDS.reconfigureAccumulo)) {
-      const data = getStepData(
-        state,
-        enableNamenodeSteps.REVIEW,
-        "overridenProperties",
-        "enableHighAvailibilitySteps"
-      );
-      allOps.push({
-        id: id++,
+    if (selectedServices.includes("ACCUMULO")) {
+      operations.push({
+        id: 7,
         label: "Reconfigure Accumulo",
         skippable: false,
-        callback: async () => {
-          return await saveReconfiguredConfigs(["accumulo-site"], data);
-        },
+        callback: async () => await saveReconfiguredConfigs(["accumulo-site"]),
       });
     }
-    if (!tasksToRemove.includes(COMMANDS.reconfigureHawq)) {
-      const data = getStepData(
-        state,
-        enableNamenodeSteps.REVIEW,
-        "overridenProperties",
-        "enableHighAvailibilitySteps"
-      );
-      allOps.push({
-        id: id++,
-        label: "Reconfigure Hawq",
+    if (selectedServices.includes("HAWQ")) {
+      operations.push({
+        id: 8,
+        label: "Reconfigure HAWQ",
         skippable: false,
-        callback: async () => {
-          return await saveReconfiguredConfigs(["hawq-site"], data);
-        },
-      });
-    }
-    if (!tasksToRemove.includes(COMMANDS.deleteSNameNode)) {
-      const hostName = find(masterComponentHosts, (hostComponent: any) => {
-        return (
-          hostComponent.component === "SECONDARY_NAMENODE" &&
-          hostComponent.isInstalled === true
-        );
-      })?.hostName;
-      allOps.push({
-        id: id++,
-        label: "Delete Secondary NameNode",
-        skippable: false,
-        callback: async () => {
-          return await HostsApi.deleteHostComponent(
-            clusterName,
-            hostName,
-            "SECONDARY_NAMENODE"
-          );
-        },
-      });
-    }
-    if (!tasksToRemove.includes(COMMANDS.stopHDFS)) {
-      allOps.push({
-        id: id++,
-        label: "Stop HDFS",
-        skippable: false,
-        callback: async () => {
-          return await stopServices(
-            clusterName,
-            ["HDFS"],
-            true,
-            false,
-            selectedServices
-          );
-        },
-      });
-    }
-    if (!tasksToRemove.includes(COMMANDS.startAllServices)) {
-      allOps.push({
-        id: id++,
-        label: "Start All Services",
-        skippable: false,
-        callback: async () => {
-          return await startServices(clusterName, false, [], false);
-        },
+        callback: async () =>
+          await saveReconfiguredConfigs(["hawq-site", "hdfs-client"]),
       });
     }
 
-    return allOps;
-  }
-
-  useEffect(() => {
-    initializeTasks();
-  }, []);
-
-
+    const secondaryNameNodeHost = find(
+      masterComponentHosts,
+      (hostComponent: any) =>
+        hostComponent.component === "SECONDARY_NAMENODE" &&
+        hostComponent.isInstalled,
+    )?.hostName;
+    operations.push({
+      id: 9,
+      label: "Delete Secondary NameNode",
+      skippable: false,
+      callback: async () =>
+        await HostsApi.deleteHostComponent(
+          clusterName,
+          secondaryNameNodeHost,
+          "SECONDARY_NAMENODE",
+        ),
+    });
+    operations.push({
+      id: 10,
+      label: "Stop HDFS",
+      skippable: false,
+      callback: async () =>
+        await stopServices(
+          clusterName,
+          ["HDFS"],
+          true,
+          false,
+          selectedServices,
+        ),
+    });
+    operations.push({
+      id: 11,
+      label: "Start All Services",
+      skippable: false,
+      callback: async () => await startServices(clusterName, false, [], false),
+    });
+    return operations;
+  };
 
   const savedOperationsState = getStepData(
     state,
     enableNamenodeSteps.FINALIZE,
     "operationsState",
-    "enableHighAvailibilitySteps"
+    "enableHighAvailibilitySteps",
+  );
+  const [stepOperations] = useState(() =>
+    mergeSavedOperations(initializeTasks(), savedOperationsState),
   );
 
-  useEffect(() => {
-    const initialOperations = initializeTasks();
-    const operations = (() => {
-      if (savedOperationsState && Array.isArray(savedOperationsState)) {
-        return initialOperations.map((originalOp) => {
-          const savedOp = savedOperationsState.find(
-            (saved: any) => saved.id === originalOp.id
-          );
-          return savedOp
-            ? { ...originalOp, ...savedOp, callback: originalOp.callback }
-            : originalOp;
-        });
-      }
+  const completeWizard = async () => {
+    setIsCompleting(true);
+    setCompletionError("");
+    try {
+      await flushStateToDb("complete");
+      window.location.href = "#/main/services/HDFS/summary";
+      window.location.reload();
+    } catch (error: any) {
+      setCompletionError(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Ambari could not clear the NameNode HA workflow checkpoint.",
+      );
+      setIsCompleting(false);
+    }
+  };
 
-      return initialOperations;
-    })();
-    setStepOperations(operations);
-  }, [JSON.stringify(savedOperationsState)]);
-
-  if (!stepOperations || stepOperations.length === 0) {
-    return <div>Loading...</div>;
-  }
-
+  const handleComplete = () => {
+    if (!selectedServices.includes("HAWQ")) {
+      void completeWizard();
+      return;
+    }
+    modalManager.show({
+      modalTitle: t(
+        "admin.highAvailability.wizard.step9.hawq.confirmPopup.header",
+      ),
+      modalBody: t(
+        "admin.highAvailability.wizard.step9.hawq.confirmPopup.body",
+      ),
+      onClose: () => {},
+      successCallback: () => {
+        modalManager.hide();
+        void completeWizard();
+      },
+      options: {
+        buttonSize: "sm",
+        cancelableViaIcon: true,
+        cancelableViaBtn: false,
+        okButtonVariant: "primary",
+      },
+    });
+  };
 
   return (
     <>
+      {completionError ? <Alert variant="danger">{completionError}</Alert> : null}
       <OperationsProgress
         title=""
         description=""
         setCompletionStatus={setCompletionStatus}
         operations={stepOperations as any}
-        dispatch={(operationsState: any) => {
+        dispatch={async (operationsState: any) => {
           dispatch({
             type: ActionTypes.STORE_INFORMATION,
             payload: {
               step: currentStep.name,
-              data: {
-                operationsState,
-              },
+              data: { operationsState },
             },
           });
+          await flushStateToDb();
         }}
       />
       <WizardFooter
         step={currentStep}
-        isNextEnabled={completionStatus}
-        onNext={() => {
-          flushStateToDb("cancel");
-          window.location.href = "#/main/services/HDFS/summary";
-          window.location.reload();
-        }}
-        onBack={() => {
-          jumpToStep(8);
-          flushStateToDb("back");
-        }}
+        isNextEnabled={completionStatus && !isCompleting}
+        onNext={handleComplete}
+        onBack={() => {}}
         onCancel={() => {
-          flushStateToDb("cancel");
+          void flushStateToDb("cancel");
         }}
+        cancelConfirmationBody="NameNode HA changes have started. Exiting preserves the workflow checkpoint so the operation can be resumed. Complete the documented manual recovery before making further HDFS topology changes."
       />
     </>
   );

@@ -30,6 +30,7 @@ import WizardFooter from "../../components/StepWizard/WizardFooter";
 import { getStepData } from "../../Utils/Utility";
 import { ContextWrapper } from ".";
 import { prepareHostInput } from "../../Utils/hostWizard";
+import { AppContext } from "../../store/context";
 
 type FormFields = {
   targetHosts: string;
@@ -38,6 +39,7 @@ type FormFields = {
   sshUserAccount: string;
   sshPortNumber: number;
   agentUserAccount: string;
+  skipHostChecks: boolean;
 };
 
 interface Step2Props {
@@ -50,8 +52,8 @@ interface Step2Props {
 export default function Step2({
   wizardName = "clusterCreation",
   installedHosts = [],
-  customizeAgentUserAccount = false,
-  isWindowsStack = false,
+  customizeAgentUserAccount: customizeAgentUserAccountProp,
+  isWindowsStack: isWindowsStackProp,
 }: Step2Props) {
   const [showManualRegistrationWarning, setShowManualRegistrationWarning] =
     useState(false);
@@ -77,6 +79,7 @@ export default function Step2({
       sshUserAccount: "root",
       sshPortNumber: 22,
       agentUserAccount: "root",
+      skipHostChecks: false,
     },
   });
   const [formData, setFormData] = useState<FormFields>();
@@ -92,8 +95,22 @@ export default function Step2({
   const [showInstalledHostnameWarning, setShowInstalledHostnameWarning] =
     useState(false);
   const [showBeforeProceedModal, setShowBeforeProceedModal] = useState(false);
+  const [showSkipHostChecksWarning, setShowSkipHostChecksWarning] =
+    useState(false);
   const isSshRegistration = watch("isSshRegistration", true);
+  const skipHostChecks = watch("skipHostChecks", false);
   const { state, dispatch, flushStateToDb }: any = useContext(Context);
+  const { supports } = useContext(AppContext);
+  const selectedStackName = getStepData(
+    state,
+    "VERSION",
+    "selectedStack.stack_name",
+    `${wizardName}Steps`,
+  );
+  const customizeAgentUserAccount = customizeAgentUserAccountProp
+    ?? Boolean(supports.customizeAgentUserAccount);
+  const isWindowsStack = isWindowsStackProp
+    ?? selectedStackName === "HDPWIN";
 
   const enableNext = () => {
     setNextEnabled(true);
@@ -119,6 +136,7 @@ export default function Step2({
       setValue("sshUserAccount", stepData.sshUserAccount || "root");
       setValue("sshPortNumber", stepData.sshPortNumber || 22);
       setValue("agentUserAccount", stepData.agentUserAccount || "root");
+      setValue("skipHostChecks", Boolean(stepData.skipHostChecks));
       setHostNameArr(stepData.targetHosts || []);
     }
   }, [currentStep.name, setValue, state, wizardName]);
@@ -193,7 +211,7 @@ export default function Step2({
 
   useEffect(() => enableNext(), []);
 
-  const moveToNextStep = (
+  const moveToNextStep = async (
     submission: FormFields | undefined = formData,
     hosts: string[] = hostNameArr,
   ) => {
@@ -213,7 +231,7 @@ export default function Step2({
         },
       },
     });
-    flushStateToDb("next");
+    await Promise.resolve(flushStateToDb("next"));
     handleNextImperitive();
   };
 
@@ -330,6 +348,20 @@ export default function Step2({
             }}
           />
         ) : null}
+        {showSkipHostChecksWarning ? (
+          <Modal
+            isOpen={showSkipHostChecksWarning}
+            onClose={() => setShowSkipHostChecksWarning(false)}
+            modalTitle="Skip Host Checks"
+            modalBody="Host checks will be skipped. The JDK compatibility check will still run before installation."
+            successCallback={() => setShowSkipHostChecksWarning(false)}
+            options={{
+              cancelableViaBtn: false,
+              cancelableViaIcon: false,
+              okButtonText: "OK",
+            }}
+          />
+        ) : null}
         <h2 className="step-title">Install Options</h2>
         <p className="make-all-grey step-description">
           Enter the list of hosts to be included in the cluster and provide your
@@ -421,6 +453,22 @@ export default function Step2({
                 <Alert variant="info">
                   Windows hosts use PowerShell Remoting; SSH settings are not required.
                 </Alert>
+              )}
+              {wizardName === "addHost" && (
+                <Form.Check
+                  className="mb-3"
+                  id="skip-host-checks"
+                  type="checkbox"
+                  checked={skipHostChecks}
+                  label="Skip host checks"
+                  onChange={() => {
+                    const nextValue = !skipHostChecks;
+                    setValue("skipHostChecks", nextValue);
+                    if (nextValue) {
+                      setShowSkipHostChecksWarning(true);
+                    }
+                  }}
+                />
               )}
               {!isWindowsStack && <><div className="d-flex mb-2">
                 <DefaultButton
@@ -569,9 +617,9 @@ export default function Step2({
           //@ts-ignore
           registerRef?.current?.click();
         }}
-        onBack={() => {
+        onBack={async () => {
+          await Promise.resolve(flushStateToDb("back"));
           handleBackImperitive();
-          flushStateToDb("back");
         }}
       />
     </>

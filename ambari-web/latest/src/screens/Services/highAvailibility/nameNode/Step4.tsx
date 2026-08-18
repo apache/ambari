@@ -19,13 +19,14 @@
 import { useContext, useState } from "react";
 import { EnableHighAvailibilityContext } from "./store/context";
 import { getStepData } from "../../../../Utils/Utility";
-import { filter, find, get, isEmpty } from "lodash";
+import { filter, find } from "lodash";
 import adminApi from "../../../../api/adminApi";
 import { AppContext } from "../../../../store/context";
 import usePolling from "../../../../hooks/usePolling";
 import WizardFooter from "../../../../components/StepWizard/WizardFooter";
 import { Alert, Card, ListGroup } from "react-bootstrap";
 import useKDCSessionState from "../../../../hooks/useKDCSessionState";
+import { evaluateNameNodeCheckpoint } from "../haWorkflowUtils";
 
 function Step4() {
   const { clusterName } = useContext(AppContext);
@@ -36,22 +37,18 @@ function Step4() {
   } = useContext(EnableHighAvailibilityContext);
   const [namenodeHost, setNamenodeHost] = useState("");
   const [isNextEnabled, setIsNextEnabled] = useState(false);
-  const { stopPolling } = usePolling(pullCheckPointStatus);
+  const [isNameNodeStarted, setIsNameNodeStarted] = useState(true);
+  const [pollError, setPollError] = useState("");
+  const [kdcError, setKdcError] = useState("");
+  const { pausePolling } = usePolling(pullCheckPointStatus);
   const { getKDCSessionState } = useKDCSessionState(() => {});
-
-  function getNnCheckPointStatus(data: any) {
-    const isInSafeMode = !isEmpty(get(data, "metrics.dfs.namenode.Safemode"));
-    let journalTransactionInfo = JSON.parse(
-      get(data, "metrics.dfs.namenode.JournalTransactionInfo")
-    );
-
-    // in case when transaction info absent or invalid return 2 which will return false in next `if` statement
-    journalTransactionInfo = !!journalTransactionInfo
-      ? parseInt(journalTransactionInfo.LastAppliedOrWrittenTxId) -
-        parseInt(journalTransactionInfo.MostRecentCheckpointTxId)
-      : 2;
-    return journalTransactionInfo <= 1 && isInSafeMode;
-  }
+  const hdfsUser =
+    getStepData(
+      state,
+      "GET_STARTED",
+      "hdfsUser",
+      "enableHighAvailibilitySteps",
+    ) || "hdfs";
 
   async function pullCheckPointStatus() {
     const masterComponentHosts = getStepData(
@@ -68,14 +65,20 @@ function Step4() {
 
     try {
       const data = await adminApi.getNnCheckPointStatus(clusterName, hostName);
-      // const isNamenodeStarted = data.HostRoles.desired_state === "STARTED";
-      const shouldEnableNext = getNnCheckPointStatus(data);
-      if (shouldEnableNext) {
+      const evaluation = evaluateNameNodeCheckpoint(data);
+      setIsNameNodeStarted(evaluation.started);
+      setPollError(evaluation.error || "");
+      setIsNextEnabled(evaluation.ready);
+      if (evaluation.ready) {
         setIsNextEnabled(true);
-        stopPolling();
+        pausePolling();
       }
     } catch (err) {
       console.error("Error in fetching checkpoint status", err);
+      setIsNextEnabled(false);
+      setPollError(
+        "Ambari could not read the NameNode checkpoint status. Polling will retry.",
+      );
     }
   }
 
@@ -96,13 +99,13 @@ function Step4() {
                 <li className="mt-3 fs-12">
                   Put the NameNode in Safe Mode (read only mode):
                   <div className="code-snippet fs-12 mt-2">
-                    sudo su hdfs -l -c 'hdfs dfsadmin -safemode enter'
+                    sudo su {hdfsUser} -l -c 'hdfs dfsadmin -safemode enter'
                   </div>
                 </li>
                 <li className="mt-3 fs-12">
                   Once in Safe Mode, create a Checkpoint:
                   <div className="code-snippet mt-2">
-                    sudo su hdfs -l -c 'hdfs dfsadmin -saveNamespace'
+                    sudo su {hdfsUser} -l -c 'hdfs dfsadmin -saveNamespace'
                   </div>
                 </li>
                 <li className="mt-3 fs-12">
@@ -121,6 +124,21 @@ function Step4() {
               command, it means there is a recent Checkpoint already and you may
               proceed without running the "Step 4: Create a Checkpoint" command.
             </Alert>
+            {!isNameNodeStarted ? (
+              <Alert variant="danger" className="mt-3">
+                The current NameNode is not started.
+              </Alert>
+            ) : null}
+            {pollError ? (
+              <Alert variant="danger" className="mt-3">
+                {pollError}
+              </Alert>
+            ) : null}
+            {kdcError ? (
+              <Alert variant="danger" className="mt-3">
+                {kdcError}
+              </Alert>
+            ) : null}
           </Card.Body>
         </Card>
       </div>
@@ -133,13 +151,23 @@ function Step4() {
         isNextEnabled={isNextEnabled}
         sideItems={isNextEnabled?"Checkpoint created":null}
         onNext={() => {
-          getKDCSessionState(() => {
-            flushStateToDb("next");
-            handleNextImperitive();
-          });
+          setKdcError("");
+          void getKDCSessionState(
+            async () => {
+              await flushStateToDb("next");
+              await handleNextImperitive();
+            },
+            (error: any) => {
+              setKdcError(
+                error?.response?.data?.message ||
+                  error?.message ||
+                  "Ambari could not validate the KDC session.",
+              );
+            },
+          );
         }}
         onCancel={() => {
-          flushStateToDb("cancel");
+          void flushStateToDb("cancel");
         }}
       />
     </>

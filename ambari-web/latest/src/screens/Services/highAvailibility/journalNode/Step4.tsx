@@ -35,6 +35,7 @@ import { ManageJournalNodesContext } from "./store/context";
 import { ActionTypes } from "./store/types";
 import { manageJournalNodesSteps } from "./wizardSteps";
 import useKDCSessionState from "../../../../hooks/useKDCSessionState";
+import { mergeSavedOperations } from "../haWorkflowUtils";
 
 function Step4() {
   const { clusterName } = useContext(AppContext);
@@ -106,6 +107,7 @@ function Step4() {
       );
     } catch (err) {
       console.error("Could not update configs", err);
+      throw err;
     }
   }
 
@@ -202,7 +204,8 @@ function Step4() {
               clusterName,
               "JOURNALNODE",
               hostName,
-              "HDFS"
+              "HDFS",
+              true,
             );
           });
           
@@ -230,14 +233,24 @@ function Step4() {
       },
     },
   ];
+  const savedOperationsState = getStepData(
+    state,
+    manageJournalNodesSteps.ADD_REMOVE_JOURNALNODES,
+    "operationsState",
+    "manageJournalNodesSteps",
+  );
+  const restoredOperations = mergeSavedOperations(
+    operations,
+    savedOperationsState,
+  );
   return (
     <>
       <OperationsProgress
         title=""
         description=""
         setCompletionStatus={setCompletionStatus}
-        operations={operations as any}
-        dispatch={(operationsState: any) => {
+        operations={restoredOperations as any}
+        dispatch={async (operationsState: any) => {
           dispatch({
             type: ActionTypes.STORE_INFORMATION,
             payload: {
@@ -247,22 +260,24 @@ function Step4() {
               },
             },
           });
+          await flushStateToDb();
         }}
       />
       <WizardFooter
         step={currentStep}
         isNextEnabled={completionStatus}
-        onNext={() => {
-          flushStateToDb("next");
-          handleNextImperitive();
+        onNext={async () => {
+          await flushStateToDb("next");
+          await handleNextImperitive();
         }}
         onBack={() => {
           flushStateToDb("back");
           handleBackImperitive();
         }}
         onCancel={() => {
-          flushStateToDb("cancel");
+          void flushStateToDb("cancel");
         }}
+        cancelConfirmationBody="JournalNode changes have started. Exiting preserves the workflow checkpoint so the operation can be resumed. Any incomplete recovery must be performed manually before changing HDFS topology again."
       />
     </>
   );

@@ -19,6 +19,17 @@
 import { find, map } from "lodash";
 import CredentialsApi from "../api/credentialsApi";
 
+type CredentialResource = {
+  principal: string;
+  key: string;
+  type: string;
+};
+
+type StoredCredential = {
+  alias?: string;
+  type?: string;
+};
+
 const credentialsUtils = {
   STORE_TYPES: {
     TEMPORARY: "temporary",
@@ -34,7 +45,7 @@ const credentialsUtils = {
   createCredentials: async function (
     clusterName: string,
     alias: string,
-    resource: any
+    resource: CredentialResource,
   ) {
     return await CredentialsApi.createCredentials(clusterName, alias, {
       resource,
@@ -43,8 +54,8 @@ const credentialsUtils = {
   getCredential: async function (
     clusterName: string,
     alias: string,
-    successCallback: any,
-    errorCallback: any
+    successCallback: (data: unknown) => void,
+    errorCallback: () => void,
   ) {
     try {
       const data = await CredentialsApi.getCredentials(clusterName, alias);
@@ -58,7 +69,7 @@ const credentialsUtils = {
   updateCredentials: async function (
     clusterName: string,
     alias: string,
-    resource: any
+    resource: CredentialResource,
   ) {
     return await CredentialsApi.updateCredentials(clusterName, alias, {
       resource,
@@ -67,31 +78,48 @@ const credentialsUtils = {
   createOrUpdateCredentials: async function (
     clusterName: string,
     alias: string,
-    resource: any
+    resource: CredentialResource,
   ) {
     try {
       await CredentialsApi.getCredentials(clusterName, alias);
       return await this.updateCredentials(clusterName, alias, resource);
-    } catch (error: any) {
-      const status = error?.response?.status ?? error?.status;
-      if (status !== 404) {
-        throw error;
+    } catch (error: unknown) {
+      const credentialError = error as {
+        message?: string;
+        status?: number;
+        response?: { status?: number; data?: { message?: string } };
+      };
+      const message = String(
+        credentialError.response?.data?.message || credentialError.message || "",
+      );
+      if (
+        credentialError.response?.status === 404 ||
+        credentialError.status === 404 ||
+        /NoSuchResourceException|not found/i.test(message)
+      ) {
+        return await this.createCredentials(clusterName, alias, resource);
       }
-      return await this.createCredentials(clusterName, alias, resource);
+      throw error;
     }
   },
-  credentials: async function (clusterName: string, callback: Function) {
+  credentials: async function (
+    clusterName: string,
+    callback: (credentials: StoredCredential[]) => void,
+  ) {
     const data = await CredentialsApi.listCredentials(clusterName);
     callback(map(data?.items, "Credential"));
   },
   removeCredentials: async function (clusterName: string, alias: string) {
     return await CredentialsApi.deleteCredentials(clusterName, alias);
   },
-  storageInfo: async function (clusterName: string, callback?: Function) {
+  storageInfo: async function (
+    clusterName: string,
+    callback?: (storage: Record<string, boolean> | null) => void,
+  ) {
     const json = await CredentialsApi.credentialsStoreInfo(clusterName);
     if (json.Clusters) {
       const storage = json?.Clusters?.credential_store_properties ?? {};
-      let storeTypesObject: any = {};
+      const storeTypesObject: Record<string, boolean> = {};
       storeTypesObject[this.STORE_TYPES.PERSISTENT_KEY] =
         storage[this.STORE_TYPES.PERSISTENT_PATH] === "true";
       storeTypesObject[this.STORE_TYPES.TEMPORARY_KEY] =
@@ -124,8 +152,8 @@ const credentialsUtils = {
       type: type,
     };
   },
-  isKDCCredentialsPersisted: function (credentials: any) {
-    var kdcCredentials = find(credentials, [
+  isKDCCredentialsPersisted: function (credentials: StoredCredential[]) {
+    const kdcCredentials = find(credentials, [
       "alias",
       this.ALIAS.KDC_CREDENTIALS,
     ]);

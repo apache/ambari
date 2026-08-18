@@ -34,9 +34,13 @@ interface ConfigResponse {
 export default function useHDFSConfigsTags() {
   const { clusterName, services } = useContext(AppContext);
   const selectedServices = map(services, "ServiceInfo.service_name");
-const [configsData, setConfigsData] = useState<any>({});
+  const [configsData, setConfigsData] = useState<any>({});
+  const [configsError, setConfigsError] = useState("");
+  const [isConfigsLoading, setIsConfigsLoading] = useState(true);
   async function loadConfigsTags() {
     const inferredTags: any = {};
+    setConfigsError("");
+    setIsConfigsLoading(true);
     try {
       const data: ConfigResponse = await ConfigsApi.loadConfigTags(clusterName);
       const urlParams = [];
@@ -199,6 +203,7 @@ const [configsData, setConfigsData] = useState<any>({});
               value: rangerKnoxPluginPropertiesTag,
             };
           }
+        }
           if (selectedServices.includes("STORM")) {
             if ("ranger-storm-audit" in data.Clusters.desired_configs) {
               const rangerStormAuditTag =
@@ -283,23 +288,30 @@ const [configsData, setConfigsData] = useState<any>({});
               };
             }
           }
-        }
       }
-      try {
-        const configsResponseData: any = await ConfigsApi.getConfigsByTags(
-          clusterName,
-          urlParams.join("|")
-        );
-        setConfigsData(configsResponseData);
-      } catch (configErr) {
-        setConfigsData({});
-      }
-    } catch (err) {
-      return { error: "Error loading config tags", err };
+      const configsResponseData: any = await ConfigsApi.getConfigsByTags(
+        clusterName,
+        urlParams.join("|")
+      );
+      setConfigsData(configsResponseData);
+    } catch (error: any) {
+      setConfigsData({});
+      setConfigsError(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Ambari could not load the current HDFS configurations."
+      );
+    } finally {
+      setIsConfigsLoading(false);
     }
   }
   useEffect(()=>{
-    loadConfigsTags()
+    void loadConfigsTags();
   },[])
-  return {configsData}
+  return {
+    configsData,
+    configsError,
+    isConfigsLoading,
+    reloadConfigs: loadConfigsTags,
+  };
 }

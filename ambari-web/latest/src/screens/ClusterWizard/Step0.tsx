@@ -105,7 +105,7 @@ function Step0({ wizardName = "clusterCreation" }) {
           <CardBody>
             <span> {t("installer.step0.nameClusterInstruction")}</span>
             <OverlayTrigger
-              trigger="hover"
+              trigger={["hover", "focus"]}
               key="learn more"
               placement="right"
               overlay={
@@ -148,13 +148,11 @@ function Step0({ wizardName = "clusterCreation" }) {
               type: ActionTypes.STORE_INFORMATION,
               payload: { step: currentStep.name, data: { clusterName } },
             });
-            flushStateToDb("next");
+            await Promise.resolve(flushStateToDb("next"));
             handleNextImperitive();
           }
         }}
-        onCancel={() => {
-          flushStateToDb("cancel");
-        }}
+        onCancel={() => void flushStateToDb("cancel")}
         onBack={() => {}}
       />
     </>

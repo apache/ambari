@@ -20,6 +20,7 @@ import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faMinus, faGear } from '@fortawesome/free-solid-svg-icons';
 import { AlertNotification, AlertTarget } from '../types';
+import { notificationTypeToUi } from '../../../Utils/alertNotifications';
 
 interface ManageNotificationsModalProps {
   notifications: AlertNotification[];
@@ -30,7 +31,7 @@ interface ManageNotificationsModalProps {
   isDropdownOpen: boolean;
   handleEdit: (notification: AlertNotification) => void;
   handleDuplicate: (notification: AlertNotification) => void;
-  handleToggleEnabled: (notification: AlertNotification) => void;
+  handleToggleEnabled: (notification: AlertNotification) => Promise<void> | void;
   handleCreateNotification: () => void;
   errorMessage: string;
   successMessage: string;
@@ -38,6 +39,7 @@ interface ManageNotificationsModalProps {
   setSuccessMessage: (message: string) => void;
   onFormValidityChange?: (isValid: boolean) => void;
   alertGroups?: { id: number; name: string; default?: boolean }[];
+  onRetry?: () => void;
 }
 
 export const ManageNotificationsModal: React.FC<ManageNotificationsModalProps> = ({
@@ -54,6 +56,7 @@ export const ManageNotificationsModal: React.FC<ManageNotificationsModalProps> =
   errorMessage,
   successMessage,
   alertGroups = [],
+  onRetry,
 }) => {
   // Helper function to safely display groups
   const displayGroups = (target: AlertTarget): string => {
@@ -96,36 +99,9 @@ export const ManageNotificationsModal: React.FC<ManageNotificationsModalProps> =
     return String(recipients);
   };
 
-  // Add new state for tracking modified notifications
-  const [modifiedNotifications, setModifiedNotifications] = useState<Record<string, AlertNotification>>({});
-  const [_isLoading, _setIsLoading] = useState(false);
-
-  // Local handleToggleEnabled to handle immediate UI updates
   const handleToggleEnabled = (notification: AlertNotification) => {
     if (!notification || !notification.AlertTarget) return;
-
-    // Call the parent's toggle function to update the main notifications state immediately
-    parentHandleToggleEnabled(notification);
-
-    const updatedNotification = {
-      ...notification,
-      AlertTarget: {
-        ...notification.AlertTarget,
-        is_enabled: !notification.AlertTarget.is_enabled,
-        _isModified: true
-      }
-    };
-
-    // Update the modified notifications map
-    setModifiedNotifications({
-      ...modifiedNotifications,
-      [String(notification.AlertTarget.id)]: updatedNotification
-    });
-
-    // If this is the selected notification, update it too
-    if (selectedNotification && selectedNotification.AlertTarget.id === notification.AlertTarget.id) {
-      handleSelectNotification(updatedNotification);
-    }
+    void parentHandleToggleEnabled(notification);
   };
 
 
@@ -147,7 +123,8 @@ export const ManageNotificationsModal: React.FC<ManageNotificationsModalProps> =
 
       {errorMessage && (
         <div className="alert alert-danger">
-          {errorMessage}
+          <span>{errorMessage}</span>
+          {onRetry && <button className="btn btn-outline-danger ms-3" onClick={onRetry}>Retry</button>}
         </div>
       )}
 
@@ -270,7 +247,7 @@ export const ManageNotificationsModal: React.FC<ManageNotificationsModalProps> =
                     </div>
                     <div className="row mt-3">
                       <div className="col-md-3 input-label">Type</div>
-                      <div className="col-md-9 input-value">{selectedNotification.AlertTarget?.notification_type}</div>
+                      <div className="col-md-9 input-value">{notificationTypeToUi(selectedNotification.AlertTarget?.notification_type)}</div>
                     </div>
                     {selectedNotification.AlertTarget?.notification_type === 'EMAIL' && (
                       <div className="row mt-3">
@@ -307,10 +284,12 @@ export const ManageNotificationsModal: React.FC<ManageNotificationsModalProps> =
 
 interface DeleteNotificationModalProps {
   notification: AlertNotification | null;
+  errorMessage?: string;
 }
 
 export const DeleteNotificationModal: React.FC<DeleteNotificationModalProps> = ({
-  notification
+  notification,
+  errorMessage,
 }) => {
   if (!notification) {
     return <div>No notification selected</div>;
@@ -323,6 +302,7 @@ export const DeleteNotificationModal: React.FC<DeleteNotificationModalProps> = (
         <strong>{notification.AlertTarget.name}</strong>?
       </p>
       <p>This action cannot be undone.</p>
+      {errorMessage && <div className="alert alert-danger">{errorMessage}</div>}
     </div>
   );
 };
@@ -381,6 +361,7 @@ interface NotificationFormModalProps {
   successMessage: string;
   setErrorMessage: (message: string) => void;
   setSuccessMessage: (message: string) => void;
+  preserveSensitivePassword?: boolean;
 }
 
 export const NotificationFormModal: React.FC<NotificationFormModalProps> = ({
@@ -434,6 +415,7 @@ export const NotificationFormModal: React.FC<NotificationFormModalProps> = ({
   errorMessage,
   successMessage,
   setErrorMessage,
+  preserveSensitivePassword = false,
 }) => {
   const [validationErrors, setValidationErrors] = useState<{[key: string]: string}>({});
   const [showAddPropertyModal, setShowAddPropertyModal] = useState(false);
@@ -519,7 +501,7 @@ export const NotificationFormModal: React.FC<NotificationFormModalProps> = ({
 
       case 'password':
         // Ember smtpPasswordValidation logic
-        if (notificationType === 'EMAIL' && useAuthentication && !value.trim()) {
+        if (notificationType === 'EMAIL' && useAuthentication && !preserveSensitivePassword && !value.trim()) {
           return 'Password is required';
         }
         return '';
@@ -586,7 +568,7 @@ export const NotificationFormModal: React.FC<NotificationFormModalProps> = ({
       if (!recipients.trim()) return false;
       if (useAuthentication) {
         if (!username.trim()) return false;
-        if (!password.trim()) return false;
+        if (!preserveSensitivePassword && !password.trim()) return false;
         if (password !== passwordConfirmation) return false;
       }
     } else if (notificationType === 'SNMP' || notificationType === 'Custom SNMP') {
@@ -662,7 +644,7 @@ export const NotificationFormModal: React.FC<NotificationFormModalProps> = ({
     }
   }, [name, notificationType, recipients, emailFrom, smtpPort, username, password, passwordConfirmation, 
       useAuthentication, snmpHosts, snmpPort, snmpCommunity, scriptFilename, groupsOption, 
-      selectedGroups, selectedSeverities]);
+      selectedGroups, selectedSeverities, preserveSensitivePassword]);
 
   // Add custom property with proper validation
   const handleAddCustomProperty = () => {

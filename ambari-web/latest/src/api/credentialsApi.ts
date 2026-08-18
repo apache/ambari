@@ -24,7 +24,7 @@ const CredentialsApi = {
   createCredentials: async function (
     clusterName: string,
     alias: string,
-    data: { resource: any }
+    data: { resource: unknown }
   ) {
     const url = `/clusters/${pathSegment(clusterName)}/credentials/${pathSegment(alias)}`;
     const response = await ambariApi.request({
@@ -61,7 +61,7 @@ const CredentialsApi = {
   updateCredentials: async function (
     clusterName: string,
     alias: string,
-    data:{resource:any}
+    data:{resource:unknown}
   ) {
     const url = `/clusters/${pathSegment(clusterName)}/credentials/${pathSegment(alias)}`;
     const response = await ambariApi.request({

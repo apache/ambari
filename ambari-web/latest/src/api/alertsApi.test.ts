@@ -42,4 +42,65 @@ describe("alerts API", () => {
       },
     });
   });
+
+  it("loads one definition directly by ID", async () => {
+    await AlertsApi.getAlertDefinitionById("cluster/name", "definition id", 1234);
+
+    expect(mocks.request).toHaveBeenCalledWith({
+      url: "/clusters/cluster%2Fname/alert_definitions/definition%20id",
+      method: "GET",
+      params: { fields: "*", _: 1234 },
+    });
+  });
+
+  it("loads instances for one definition", async () => {
+    await AlertsApi.getAlertInstancesByDefinition("cluster/name", 42, 1234);
+
+    expect(mocks.request).toHaveBeenCalledWith({
+      url: "/clusters/cluster%2Fname/alerts",
+      method: "GET",
+      params: {
+        fields: "*",
+        "Alert/definition_id": "42",
+        _: 1234,
+      },
+    });
+  });
+
+  it("loads the exact definition history window", async () => {
+    await AlertsApi.getAlertHistory("cluster/name", "definition name", 1000);
+
+    expect(mocks.request).toHaveBeenCalledWith({
+      url: "/clusters/cluster%2Fname/alert_history?(AlertHistory/definition_name=definition%20name)&(AlertHistory/timestamp>=1000)",
+      method: "GET",
+    });
+  });
+
+  it("creates a definition on the cluster collection", async () => {
+    const definition = { "AlertDefinition/name": "custom" };
+    await AlertsApi.createAlertDefinition("cluster/name", definition);
+
+    expect(mocks.request).toHaveBeenCalledWith({
+      url: "/clusters/cluster%2Fname/alert_definitions/",
+      method: "POST",
+      data: definition,
+    });
+  });
+
+  it("preserves complete group replacement payloads", async () => {
+    const payload = { AlertGroup: { name: "group", definitions: [1], targets: [2] } };
+    await AlertsApi.createAlertGroup("cluster", payload);
+    await AlertsApi.updateAlertGroup("cluster", 3, payload);
+
+    expect(mocks.request).toHaveBeenNthCalledWith(1, {
+      url: "clusters/cluster/alert_groups",
+      method: "POST",
+      data: payload,
+    });
+    expect(mocks.request).toHaveBeenNthCalledWith(2, {
+      url: "clusters/cluster/alert_groups/3",
+      method: "PUT",
+      data: payload,
+    });
+  });
 });

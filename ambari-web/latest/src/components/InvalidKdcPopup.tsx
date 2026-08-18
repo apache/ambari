@@ -16,80 +16,84 @@
  * limitations under the License.
  */
 
-import { Alert, Form, Stack } from "react-bootstrap";
-import Modal from "./Modal";
-import { useContext, useEffect, useState } from "react";
-import Tooltip from "./Tooltip";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faQuestionCircle } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useContext, useEffect, useState } from "react";
+import { Alert, Form, Stack } from "react-bootstrap";
+import { AppContext } from "../store/context";
 import modalManager from "../store/ModalManager";
 import credentialsUtils from "../Utils/credentialsUtils";
-import { AppContext } from "../store/context";
 import { responseErrorMessage } from "../Utils/httpError";
+import Modal from "./Modal";
+import Tooltip from "./Tooltip";
 
 type InvalidKdcPopupProps = {
   getKdcSessionState?: () => void | Promise<void>;
-  onCancel?: () => void;
+  onCancel?: (error: Error) => void;
+  onError?: (error: unknown) => void;
 };
 
 function InvalidKdcPopup({
   getKdcSessionState,
   onCancel,
+  onError,
 }: InvalidKdcPopupProps) {
+  const { clusterName, cluster } = useContext(AppContext);
+  const configuredPersistentStore =
+    cluster?.Clusters?.credential_store_properties?.["storage.persistent"] ===
+    "true";
   const [principal, setPrincipal] = useState("");
   const [password, setPassword] = useState("");
   const [saveCreds, setSaveCreds] = useState(false);
-  const [persistentStoreAvailable, setPersistentStoreAvailable] = useState(false);
+  const [persistentStoreAvailable, setPersistentStoreAvailable] = useState(
+    configuredPersistentStore,
+  );
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
-  const { clusterName } = useContext(AppContext);
 
   useEffect(() => {
-    let cancelled = false;
-    const loadStorageCapability = async () => {
-      try {
-        const isPersistent = await credentialsUtils.isStorePersisted(clusterName);
-        if (!cancelled) {
-          setPersistentStoreAvailable(isPersistent);
-        }
-      } catch {
-        if (!cancelled) {
-          setPersistentStoreAvailable(false);
-        }
-      }
-    };
-    if (clusterName) {
-      void loadStorageCapability();
+    let active = true;
+    if (!clusterName || configuredPersistentStore) {
+      setPersistentStoreAvailable(configuredPersistentStore);
+      return () => {
+        active = false;
+      };
     }
-    return () => {
-      cancelled = true;
-    };
-  }, [clusterName]);
 
-  if(!clusterName){
-    return null;
-  }
+    void credentialsUtils.isStorePersisted(clusterName)
+      .then((isPersistent) => {
+        if (active) setPersistentStoreAvailable(isPersistent);
+      })
+      .catch(() => {
+        if (active) setPersistentStoreAvailable(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [clusterName, configuredPersistentStore]);
+
+  if (!clusterName) return null;
+
   const principalError = !principal.trim()
     ? "Admin Principal is required."
     : /\s/.test(principal)
       ? "Admin Principal cannot contain whitespace."
       : "";
   const passwordError = password ? "" : "Admin Password is required.";
-  const saveDisabled = isSaving || Boolean(principalError) || Boolean(passwordError);
+  const saveDisabled =
+    isSaving || Boolean(principalError) || Boolean(passwordError);
 
   const close = () => {
     modalManager.hide();
-    onCancel?.();
+    onCancel?.(new Error("KDC credential entry was cancelled."));
   };
 
   return (
     <Modal
-      isOpen={true}
+      isOpen
       onClose={close}
       successCallback={async () => {
-        if (saveDisabled) {
-          return;
-        }
+        if (saveDisabled) return;
         setIsSaving(true);
         setSaveError("");
         const resource = credentialsUtils.createCredentialResource(
@@ -97,17 +101,22 @@ function InvalidKdcPopup({
           password,
           saveCreds
             ? credentialsUtils.STORE_TYPES.PERSISTENT
-            : credentialsUtils.STORE_TYPES.TEMPORARY
+            : credentialsUtils.STORE_TYPES.TEMPORARY,
         );
         try {
           await credentialsUtils.createOrUpdateCredentials(
             clusterName,
             credentialsUtils.ALIAS.KDC_CREDENTIALS,
-            resource as any
+            resource,
           );
           modalManager.hide();
           await getKdcSessionState?.();
         } catch (error) {
+          if (onError) {
+            modalManager.hide();
+            onError(error);
+            return;
+          }
           setSaveError(
             responseErrorMessage(
               error,
@@ -120,83 +129,77 @@ function InvalidKdcPopup({
       }}
       modalTitle="Admin session expiration error"
       modalBody={
-        <>
-          <Stack direction="vertical">
-            <Alert variant="warning">
-              Missing KDC administrator credentials. Please enter admin
-              principal and password.
-            </Alert>
-            {saveError && <Alert variant="danger">{saveError}</Alert>}
-            <Form.Label className="mt-2" htmlFor="invalid-kdc-principal">
-              Admin Principal
-            </Form.Label>
-
-            <Form.Control
-              id="invalid-kdc-principal"
-              type="text"
-              placeholder=""
-              className="mb-2"
-              value={principal}
-              onChange={(e) => {
-                setPrincipal(e.target.value);
-                setSaveError("");
-              }}
-              disabled={isSaving}
-              isInvalid={Boolean(principal) && Boolean(principalError)}
+        <Stack direction="vertical">
+          <Alert variant="warning">
+            Missing KDC administrator credentials. Please enter admin
+            principal and password.
+          </Alert>
+          {saveError && <Alert variant="danger">{saveError}</Alert>}
+          <Form.Label className="mt-2" htmlFor="invalid-kdc-principal">
+            Admin Principal
+          </Form.Label>
+          <Form.Control
+            id="invalid-kdc-principal"
+            type="text"
+            className="mb-2"
+            value={principal}
+            onChange={(event) => {
+              setPrincipal(event.target.value);
+              setSaveError("");
+            }}
+            disabled={isSaving}
+            isInvalid={Boolean(principal) && Boolean(principalError)}
+          />
+          {principal && principalError && (
+            <Form.Control.Feedback type="invalid">
+              {principalError}
+            </Form.Control.Feedback>
+          )}
+          <Form.Label className="mt-2" htmlFor="invalid-kdc-password">
+            Admin password
+          </Form.Label>
+          <Form.Control
+            id="invalid-kdc-password"
+            type="password"
+            className="mb-2"
+            value={password}
+            onChange={(event) => {
+              setPassword(event.target.value);
+              setSaveError("");
+            }}
+            disabled={isSaving}
+          />
+          <div className="d-flex mt-2">
+            <Form.Check
+              id="save-creds"
+              checked={saveCreds}
+              disabled={!persistentStoreAvailable || isSaving}
+              onChange={(event) => setSaveCreds(event.target.checked)}
             />
-            {principal && principalError && (
-              <Form.Control.Feedback type="invalid">
-                {principalError}
-              </Form.Control.Feedback>
-            )}
-            <Form.Label className="mt-2" htmlFor="invalid-kdc-password">
-              Admin password
+            <Form.Label className="ms-2 mt-1" htmlFor="save-creds">
+              Save Admin Credentials
+              <Tooltip
+                message={
+                  persistentStoreAvailable
+                    ? "Store the KDC credential in Ambari's persistent credential store"
+                    : "Ambari is not configured for storing credentials"
+                }
+              >
+                <FontAwesomeIcon
+                  className="ms-1 custom-link cursor-pointer"
+                  icon={faQuestionCircle}
+                />
+              </Tooltip>
             </Form.Label>
-            <Form.Control
-              id="invalid-kdc-password"
-              type="password"
-              placeholder=""
-              className="mb-2"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                setSaveError("");
-              }}
-              disabled={isSaving}
-            />
-            <div className="d-flex mt-2">
-              <Form.Check
-                id="save-creds"
-                checked={saveCreds}
-                disabled={!persistentStoreAvailable || isSaving}
-                onChange={(e) => {
-                  setSaveCreds(e.target.checked);
-                }}
-              ></Form.Check>
-              <Form.Label className="ms-2 mt-1" htmlFor="save-creds">
-                Save Admin Credentials
-                <Tooltip
-                  message={
-                    persistentStoreAvailable
-                      ? "Store these credentials in Ambari's persistent credential store"
-                      : "Ambari is not configured for storing credentials"
-                  }
-                >
-                  <FontAwesomeIcon
-                    className="ms-1 custom-link cursor-pointer"
-                    icon={faQuestionCircle}
-                  />
-                </Tooltip>
-              </Form.Label>
-            </div>
-          </Stack>
-        </>
+          </div>
+        </Stack>
       }
       options={{
         okButtonText: isSaving ? "SAVING..." : "SAVE",
         okButtonDisabled: saveDisabled,
       }}
-    ></Modal>
+    />
   );
 }
+
 export default InvalidKdcPopup;

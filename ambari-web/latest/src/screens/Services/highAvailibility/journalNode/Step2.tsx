@@ -30,13 +30,13 @@ import {
   uniq,
 } from "lodash";
 import { getStepData } from "../../../../Utils/Utility";
-import NnHaConfigInitializer from "../../../../Utils/configs";
 import { HostsApi } from "../../../../api/hostsApi";
 import Spinner from "../../../../components/Spinner";
 import {
   Accordion,
   Alert,
   Badge,
+  Button,
   Card,
   Col,
   Form,
@@ -53,6 +53,7 @@ import { ActionTypes } from "./store/types";
 import useHDFSConfigsTags from "../../../../hooks/useConfigsTags";
 import { ManageJournalNodesContext } from "./store/context";
 import move_journal_node_properties from "../../../../data/configs/wizards/move_journal_node_properties";
+import { buildJournalNodeSharedEditsConfigs } from "../haWorkflowUtils";
 //@ts-ignore
 interface ConfigResponse {
   Clusters: {
@@ -73,9 +74,12 @@ function Step2() {
       currentStep,
       handleNextImperitive,
       handleBackImperitive,
+      setStepsHidden,
     },
   } = useContext(ManageJournalNodesContext);
-  const moveJnConfig = move_journal_node_properties["moveJNConfig"];
+  const moveJnConfig: any = cloneDeep(
+    move_journal_node_properties["moveJNConfig"],
+  );
   const { clusterName, services } = useContext(AppContext);
   const serverConfigDataRef = useRef<any>([]);
   const [clusterHostComponentsMapping, setClusterHostComponentsMapping] =
@@ -83,7 +87,13 @@ function Step2() {
   const [stepConfigs, setStepConfigs] = useState<any>(null);
   const [selectedService, setSelectedService] = useState({});
   const [errors, setErrors] = useState<any>({});
-  const { configsData } = useHDFSConfigsTags();
+  const {
+    configsData,
+    configsError,
+    isConfigsLoading,
+    reloadConfigs,
+  } = useHDFSConfigsTags();
+  const [configBuildError, setConfigBuildError] = useState("");
   const [overridenProperties, setOverridenProperties] = useState({});
   const nameserviceId = useRef("");
 
@@ -96,34 +106,14 @@ function Step2() {
 
   const selectedServices = map(services, "ServiceInfo.service_name");
 
-  function _prepareDependencies() {
-    const ret: any = {};
-    const configsFromServer = serverConfigDataRef.current.items;
-    ret.namespaceId = nameserviceId.current;
-    ret.serverConfigs = configsFromServer;
-    return ret;
-  }
-
-  function tweakServiceConfigs(allConfigsDescriptor: any) {
-    //TODO: check for namenode federation when implemented
-    const configs = filter(allConfigsDescriptor, [
-      "presentForNonFederatedHDFS",
-      true,
-    ]);
-    const nameSpaceDependentConfigs = filter(configs, [
-      "dependsOnNameServiceId",
-      true,
-    ]);
-    console.log("NameSpace dependent configs", nameSpaceDependentConfigs);
-    const nameSpaceIndependentConfigs = filter(configs, [
-      "dependsOnNameServiceId",
-      false,
-    ]);
-    const localDB = getStepData(
-      state,
-      "ASSIGN_JOURNALNODES",
-      "",
-      "manageJournalNodesSteps"
+  function tweakServiceConfigs() {
+    const localDB = cloneDeep(
+      getStepData(
+        state,
+        "ASSIGN_JOURNALNODES",
+        "",
+        "manageJournalNodesSteps",
+      ),
     );
     const allHostComponents = flatten(
       map(clusterHostComponentsMapping, "host_components")
@@ -154,17 +144,22 @@ function Step2() {
         masterComponent.component = masterComponent.component_name;
       }
     }
-    const commonDependencies = _prepareDependencies();
-    const generatedConfigs: any = [];
-    nameSpaceIndependentConfigs.forEach(function (config: any) {
-      NnHaConfigInitializer.prototype.initialValue(
-        config,
-        localDB,
-        commonDependencies
-      );
-      config.isOverridable = false;
-      generatedConfigs.push(config);
-    });
+    const nameservices = nameserviceId.current
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+    const journalNodeHosts = localDB.masterComponentHosts
+      .filter(
+        (item: any) =>
+          item.component === "JOURNALNODE" ||
+          item.component_name === "JOURNALNODE",
+      )
+      .map((item: any) => item.hostName || item.selectedHost);
+    const generatedConfigs = buildJournalNodeSharedEditsConfigs(
+      nameservices,
+      journalNodeHosts,
+      nameservices.length > 1,
+    );
     moveJnConfig.configs = generatedConfigs;
     return generatedConfigs;
   }
@@ -198,6 +193,7 @@ function Step2() {
     setSelectedService(serviceConfig?.configCategories?.[0]?.name);
   }
   async function loadConfigsTags() {
+    setConfigBuildError("");
     try {
       serverConfigDataRef.current = configsData;
       const nameservices = configsData?.items?.find((item: any) =>
@@ -206,7 +202,7 @@ function Step2() {
       if (nameservices) {
         nameserviceId.current = nameservices?.properties["dfs.nameservices"];
       }
-      tweakServiceConfigs(moveJnConfig.configs);
+      tweakServiceConfigs();
       const overridenPropertiesCopy = cloneDeep(configsData);
       for (const siteConfig of moveJnConfig.configs) {
         const site = get(siteConfig, "filename", "");
@@ -228,6 +224,11 @@ function Step2() {
       renderServiceConfigs(moveJnConfig);
     } catch (configErr) {
       console.error("Error loading config tags", configErr);
+      setConfigBuildError(
+        configErr instanceof Error
+          ? configErr.message
+          : "Ambari could not prepare the JournalNode configuration review.",
+      );
     }
   }
   useEffect(() => {
@@ -241,16 +242,26 @@ function Step2() {
   }, [clusterHostComponentsMapping, configsData]);
   useEffect(() => {
     async function makeApiCalls() {
-      await getClusterComponents();
+      try {
+        await getClusterComponents();
+      } catch (error: any) {
+        setConfigBuildError(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Ambari could not load the cluster component topology.",
+        );
+      }
     }
     makeApiCalls();
   }, []);
   function getMastersInfo() {
-    const step1Data = getStepData(
-      state,
-      "ASSIGN_JOURNALNODES",
-      "masterComponentHosts",
-      "manageJournalNodesSteps"
+    const step1Data = cloneDeep(
+      getStepData(
+        state,
+        "ASSIGN_JOURNALNODES",
+        "masterComponentHosts",
+        "manageJournalNodesSteps",
+      ),
     );
 
     if (!step1Data || step1Data.length === 0) {
@@ -446,7 +457,46 @@ function Step2() {
   useEffect(() => {
     validateForErrors();
   }, [stepConfigs]);
-  if (!stepConfigs || isEmpty(overridenProperties)) {
+  const reviewError = configsError || configBuildError;
+  if (reviewError) {
+    return (
+      <>
+        <div className="step-title">Review</div>
+        <Alert variant="danger" className="mt-3">
+          {reviewError}
+          <Button
+            className="ms-3"
+            size="sm"
+            onClick={() => {
+              setConfigBuildError("");
+              setStepConfigs(null);
+              void reloadConfigs();
+              void getClusterComponents().catch((error: any) => {
+                setConfigBuildError(
+                  error?.response?.data?.message ||
+                    error?.message ||
+                    "Ambari could not load the cluster component topology.",
+                );
+              });
+            }}
+          >
+            Retry
+          </Button>
+        </Alert>
+        <WizardFooter
+          step={currentStep}
+          isNextEnabled={false}
+          onNext={() => undefined}
+          onBack={async () => {
+            await flushStateToDb("back");
+            await handleBackImperitive();
+          }}
+          onCancel={() => void flushStateToDb("cancel")}
+        />
+      </>
+    );
+  }
+  if (isConfigsLoading || !stepConfigs || isEmpty(overridenProperties)) {
     return <Spinner />;
   }
   return (
@@ -593,20 +643,19 @@ function Step2() {
             Object.keys(errors)?.filter((error) => errors[error].message !== "")
               .length === 0)
         }
-        onBack={() => {
-          flushStateToDb("back");
-          handleBackImperitive();
+        onBack={async () => {
+          await flushStateToDb("back");
+          await handleBackImperitive();
         }}
         onCancel={() => {
-          flushStateToDb("cancel");
+          void flushStateToDb("cancel");
         }}
-        onNext={() => {
-          const step1Data = getStepData(
-            state,
-            "ASSIGN_JOURNALNODES",
-            "masterComponentHosts",
-            "manageJournalNodesSteps"
-          );
+        onNext={async () => {
+          const mastersInfo = getMastersInfo();
+          const isDeleteOnly =
+            mastersInfo.additionalJournalNodes.length === 0 &&
+            mastersInfo.deletedJournalNodes.length > 0;
+          setStepsHidden([2, 4], isDeleteOnly);
           dispatch({
             type: ActionTypes.STORE_INFORMATION,
             payload: {
@@ -614,21 +663,14 @@ function Step2() {
               data: {
                 stepConfigs,
                 overridenProperties,
-                deletedJournalNodes: getMastersInfo().deletedJournalNodes,
-                addedJournalNodes: map(
-                  filter(
-                    step1Data,
-                    (jn: any) =>
-                      jn.component === "JOURNALNODE" ||
-                      jn.component_name === "JOURNALNODE"
-                  ),
-                  "hostName"
-                ),
+                deletedJournalNodes: mastersInfo.deletedJournalNodes,
+                addedJournalNodes: mastersInfo.additionalJournalNodes,
+                isDeleteOnly,
               },
             },
           });
-          flushStateToDb("next");
-          handleNextImperitive();
+          await flushStateToDb(isDeleteOnly ? "jump" : "next", 3);
+          await handleNextImperitive(isDeleteOnly ? 3 : undefined);
         }}
       />
     </>

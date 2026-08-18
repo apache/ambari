@@ -24,6 +24,7 @@ import {
   cloneDeep,
   filter,
   find,
+  flatten,
   get,
   isEmpty,
   lowerCase,
@@ -138,6 +139,12 @@ export const Actions = ({ serviceName, className }: ActionsProps) => {
   const canAddDeleteComponents = hasAuthorization("HOST.ADD_DELETE_COMPONENTS");
   const canEnableHA = hasAuthorization("SERVICE.ENABLE_HA");
   const canMoveComponents = hasAuthorization("SERVICE.MOVE");
+  const canPersistWorkflow = hasAuthorization(
+    "CLUSTER.MANAGE_USER_PERSISTED_DATA",
+  );
+  const canManageJournalNodesPermission = hasAuthorization(
+    "SERVICE.RUN_CUSTOM_COMMAND, SERVICE.RUN_SERVICE_CHECK, SERVICE.TOGGLE_MAINTENANCE, SERVICE.ENABLE_HA",
+  );
 
   // Check if user has any service-related permissions at all
   // This matches Ember.js logic where Actions dropdown is hidden if no permissions
@@ -958,17 +965,24 @@ export const Actions = ({ serviceName, className }: ActionsProps) => {
       }
     );
     const isHAEnabled = isHFDSInstalled && !hasSNameNode;
-    if (!isHAEnabled) {
+    if (!supports.manageJournalNode || !isHAEnabled) {
       return false;
     }
-    const allJournalNodes = find(hdfsModel?.["slaveComponents"], [
-      "componentName",
-      "JOURNALNODE",
-    ])?.totalCount;
-    if (allHostNames.length === 3 && allJournalNodes === 3) {
-      return false;
-    }
-    return true;
+    const journalNodeComponent = find(
+      flatten([
+        hdfsModel?.masterComponents || [],
+        hdfsModel?.slaveComponents || [],
+      ]),
+      ["componentName", "JOURNALNODE"],
+    );
+    const allJournalNodes = Math.max(
+      journalNodeComponent?.totalCount || 0,
+      hdfsModel?.journalNodes?.length || 0,
+    );
+    return (
+      allJournalNodes >= 3 &&
+      (allHostNames.length > allJournalNodes || allJournalNodes > 3)
+    );
   };
 
   const calcBatchPayload = async (
@@ -1959,14 +1973,17 @@ export const Actions = ({ serviceName, className }: ActionsProps) => {
           )) : null;
         })()}
         {/* High Availability Features - Requires SERVICE.ENABLE_HA authorization */}
-        {canEnableHA && serviceName === "HDFS" && !isHAEnabled() && (
+        {canEnableHA && canPersistWorkflow && serviceName === "HDFS" && !isHAEnabled() && (
           <EnableHighAvailibilityNameNode />
         )}
         {/* Add New HDFS Namespace (Federation) - Requires SERVICE.ENABLE_HA authorization, HDFS service, and FEDERATION serviceType (matches Ember.js logic) */}
         {canEnableHA && serviceName === "HDFS" && (
           <EnableNamenodeFederation />
         )}
-        {canEnableHA && serviceName === "HDFS" && canManageJournalNodes() && (
+        {canManageJournalNodesPermission &&
+          canPersistWorkflow &&
+          serviceName === "HDFS" &&
+          canManageJournalNodes() && (
           <ManageJournalNodes />
         )}
         {canEnableHA && serviceName === "YARN" && !isRMHAEnabled() && (

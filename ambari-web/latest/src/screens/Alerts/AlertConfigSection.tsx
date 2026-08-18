@@ -16,16 +16,22 @@
  * limitations under the License.
  */
 
-import React, { useState, useEffect, useContext } from 'react';
+import React, { forwardRef, useContext, useEffect, useImperativeHandle, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { AlertsApi } from '../../api/alertsApi';
 import { Form, Button, Row, Col, InputGroup } from 'react-bootstrap';
 import "../../styles/app.scss"
 import { useAuth } from '../../hooks/useAuth';
 import { AppContext } from '../../store/context';
+import {
+    buildAlertDefinitionUpdate,
+    validateAlertDefinitionConfiguration,
+} from '../../Utils/alertDefinitions';
+import { AlertEditorHandle } from './types';
 
 interface AlertConfigSectionProps {
     clusterName: string;
+    onDirtyChange?: (dirty: boolean) => void;
 }
 
 interface AlertParameter {
@@ -51,6 +57,7 @@ interface ReportingType {
 }
 
 interface AlertSourceConfig {
+    [key: string]: unknown;
     parameters?: AlertParameter[];
     reporting?: ReportingType;
     path?: string;
@@ -67,11 +74,13 @@ interface AlertDefinitionConfig {
     [key: string]: any;
 }
 
-const AlertConfigSection = ({ clusterName }: AlertConfigSectionProps) => {
+const AlertConfigSection = forwardRef<AlertEditorHandle, AlertConfigSectionProps>(({
+    clusterName,
+    onDirtyChange,
+}, ref) => {
     const { alertId } = useParams<{ alertId: string }>();
     const { upgradeIsRunning, upgradeSuspended } = useContext(AppContext);
     const [canEdit, setCanEdit] = useState(false);
-    const [hasErrors, setHasErrors] = useState(false);
     const [configurations, setConfigurations] = useState<AlertDefinitionConfig>({
         id: 0,
         description: '',
@@ -85,6 +94,7 @@ const AlertConfigSection = ({ clusterName }: AlertConfigSectionProps) => {
     const [loading, setLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
+    const [retryTrigger, setRetryTrigger] = useState(0);
     
     // Authorization hooks - implementing Ember.js alert authorization patterns
     const { hasAuthorization } = useAuth();
@@ -97,29 +107,18 @@ const AlertConfigSection = ({ clusterName }: AlertConfigSectionProps) => {
 
     useEffect(() => {
         const fetchAlertDefinition = async () => {
+            setLoading(true);
+            setErrorMessage('');
             try {
-                const time = new Date().getTime();
-                const data = await AlertsApi.getAlertDefinition(clusterName, 'AlertDefinition/component_name,AlertDefinition/description,AlertDefinition/enabled,AlertDefinition/repeat_tolerance,AlertDefinition/repeat_tolerance_enabled,AlertDefinition/id,AlertDefinition/ignore_host,AlertDefinition/interval,AlertDefinition/label,AlertDefinition/name,AlertDefinition/scope,AlertDefinition/service_name,AlertDefinition/source,AlertDefinition/help_url', time);
-                if (data.items && data.items.length > 0) {
-                    const alertDefinition = data.items.find((item: any) => 
-                        item.AlertDefinition.id === parseInt(alertId || '0')
-                    );
-                    
-                    if (alertDefinition) {
-                        setConfigurations(alertDefinition.AlertDefinition);
-                        setOriginalConfigurations(JSON.parse(JSON.stringify(alertDefinition.AlertDefinition)));
-                    } else {
-                        console.error('Alert definition not found');
-                        setErrorMessage('Alert definition not found');
-                    }
-                } else {
-                    console.error('No alert definitions found');
-                    setErrorMessage('No alert definitions found');
-                }
-                setLoading(false);
+                const data = await AlertsApi.getAlertDefinitionById(clusterName, alertId || '', Date.now());
+                const definition = data?.AlertDefinition || data?.items?.[0]?.AlertDefinition;
+                if (!definition) throw new Error('Alert definition not found');
+                setConfigurations(definition);
+                setOriginalConfigurations(JSON.parse(JSON.stringify(definition)));
             } catch (error) {
                 console.error('Error fetching alert definition:', error);
-                setErrorMessage('Error fetching alert definition');
+                setErrorMessage('Failed to load alert configuration.');
+            } finally {
                 setLoading(false);
             }
         };
@@ -127,83 +126,37 @@ const AlertConfigSection = ({ clusterName }: AlertConfigSectionProps) => {
         if (clusterName && alertId) {
             fetchAlertDefinition();
         }
-    }, [clusterName, alertId]);
+    }, [clusterName, alertId, retryTrigger]);
 
     const handleEditConfigs = () => {
         setCanEdit(true);
+        setErrorMessage('');
+        onDirtyChange?.(true);
     };
 
     const handleCancelEditConfigs = () => {
         // Reset to original values
         setConfigurations(JSON.parse(JSON.stringify(originalConfigurations)));
         setCanEdit(false);
-        setHasErrors(false);
         setErrorMessage('');
+        onDirtyChange?.(false);
     };
 
-    const handleSaveConfigs = async () => {
-        if (hasErrors) {
-            return;
+    const validationErrors = validateAlertDefinitionConfiguration(configurations);
+
+    const handleSaveConfigs = async (): Promise<boolean> => {
+        if (validationErrors.length > 0) {
+            setErrorMessage(validationErrors.join(' '));
+            return false;
         }
         
         setIsSaving(true);
         
         try {
-            // Prepare the payload for the API call
-            const payload: Record<string, any> = {};
-            
-            // Add interval if it has changed
-            if (configurations.interval !== originalConfigurations.interval) {
-                payload["AlertDefinition/interval"] = configurations.interval.toString();
-            }
-            
-            // Add source if it has changed
-            if (configurations.source) {
-                const originalSource = originalConfigurations.source || {};
-                const currentSource = configurations.source;
-                
-                // Deep comparison to check if source has changed
-                const sourceChanged = JSON.stringify(currentSource) !== JSON.stringify(originalSource);
-                
-                if (sourceChanged) {
-                    // Create a complete source object for the payload
-                    const sourcePayload: any = {
-                        type: currentSource.type
-                    };
-                    
-                    // Add parameters if they exist
-                    if (currentSource.parameters && currentSource.parameters.length > 0) {
-                        sourcePayload.parameters = currentSource.parameters;
-                    }
-                    
-                    // Add reporting if it exists
-                    if (currentSource.reporting) {
-                        sourcePayload.reporting = currentSource.reporting;
-                    }
-                    
-                    // Add path if it exists
-                    if (currentSource.path) {
-                        sourcePayload.path = currentSource.path;
-                    }
-                    
-                    // Add default_port if it exists
-                    if (currentSource.default_port) {
-                        sourcePayload.default_port = currentSource.default_port;
-                    }
-                    
-                    // Add uri if it exists
-                    if (currentSource.uri) {
-                        sourcePayload.uri = currentSource.uri;
-                    }
-                    
-                    payload["AlertDefinition/source"] = sourcePayload;
-                }
-            }
+            const payload = buildAlertDefinitionUpdate(configurations, originalConfigurations);
             
             // Only make the API call if there are changes
             if (Object.keys(payload).length > 0) {
-                console.log('Saving configuration with payload:', payload);
-                
                 await AlertsApi.updateAlertDefinition(
                     clusterName,
                     configurations.id,
@@ -217,14 +170,22 @@ const AlertConfigSection = ({ clusterName }: AlertConfigSectionProps) => {
                 // No changes were made
                 setCanEdit(false);
             }
+            setErrorMessage('');
+            onDirtyChange?.(false);
+            return true;
         } catch (error) {
             console.error('Error saving configurations:', error);
             setErrorMessage('Error saving configurations. Please try again.');
-            setHasErrors(true);
+            return false;
         } finally {
             setIsSaving(false);
         }
     };
+
+    useImperativeHandle(ref, () => ({
+        save: handleSaveConfigs,
+        discard: handleCancelEditConfigs,
+    }));
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, key: string) => {
         const value = e.target.value;
@@ -239,18 +200,20 @@ const AlertConfigSection = ({ clusterName }: AlertConfigSectionProps) => {
                 ...prev,
                 description: value
             }));
-        } else if (configurations.source?.parameters) {
+        } else if (configurations.source) {
             // Check if this is a parameter change
-            const paramIndex = configurations.source.parameters.findIndex(param => param.name === key);
+            const paramIndex = (configurations.source.parameters || []).findIndex(param => param.name === key);
             
             if (paramIndex !== -1) {
                 // Handle parameter changes
-                const updatedParams = [...configurations.source.parameters];
+                const updatedParams = [...(configurations.source.parameters || [])];
                 const param = updatedParams[paramIndex];
                 
                 updatedParams[paramIndex] = {
                     ...param,
-                    value: param.type === 'NUMERIC' ? (parseInt(value) || 0) : value
+                    value: param.type === 'NUMERIC' || param.type === 'PERCENT'
+                        ? (value === '' ? '' : Number(value))
+                        : value
                 };
                 
                 setConfigurations(prev => ({
@@ -268,7 +231,7 @@ const AlertConfigSection = ({ clusterName }: AlertConfigSectionProps) => {
                 if (currentReporting[status] && typeof currentReporting[status] === 'object') {
                     const reportingItem = { 
                         ...(currentReporting[status] as AlertReportingItem),
-                        value: parseFloat(value) || 0
+                        value: value === '' ? 0 : Number(value)
                     };
                     
                     setConfigurations(prev => ({
@@ -311,6 +274,15 @@ const AlertConfigSection = ({ clusterName }: AlertConfigSectionProps) => {
 
     if (loading) {
         return <div>Loading...</div>;
+    }
+
+    if (!configurations.id && errorMessage) {
+        return (
+            <div className="col col-md-8">
+                <div className="alert alert-danger">{errorMessage}</div>
+                <Button variant="primary" onClick={() => setRetryTrigger((value) => value + 1)}>Retry</Button>
+            </div>
+        );
     }
 
 
@@ -407,12 +379,12 @@ const AlertConfigSection = ({ clusterName }: AlertConfigSectionProps) => {
                                         )}
                                         <InputGroup>
                                             <Form.Control
-                                                type={param.type === 'NUMERIC' ? 'number' : 'text'}
+                                                type={param.type === 'NUMERIC' || param.type === 'PERCENT' ? 'number' : 'text'}
                                                 value={param.value}
                                                 onChange={(e) => handleChange(e, param.name)}
                                                 aria-label={param.display_name}
                                                 aria-describedby={`basic-addon-${param.name}`}
-                                                disabled={!canEdit || isSaving}
+                                                disabled={!canEdit || isSaving || param.visibility === 'READ_ONLY'}
                                             />
                                             {param.units && (
                                                 <InputGroup.Text id={`basic-addon-${param.name}`}>{param.units}</InputGroup.Text>
@@ -491,7 +463,7 @@ const AlertConfigSection = ({ clusterName }: AlertConfigSectionProps) => {
                             <Button
                                 variant="primary"
                                 onClick={handleSaveConfigs}
-                                disabled={hasErrors || isSaving}
+                                disabled={validationErrors.length > 0 || isSaving}
                                 style={{width: '100px', height: '40px'}}
                             >
                                 {isSaving ? 'Saving...' : 'Save'}
@@ -502,6 +474,8 @@ const AlertConfigSection = ({ clusterName }: AlertConfigSectionProps) => {
             </div>
         </div>
     );
-};
+});
+
+AlertConfigSection.displayName = 'AlertConfigSection';
 
 export default AlertConfigSection;

@@ -18,7 +18,6 @@
 
 import { AlertGroupItem, AlertDefinition } from '../types';
 import { AlertsApi } from '../../../api/alertsApi';
-import { ambariApi } from '../../../api/config/axiosConfig';
 
 /**
  * Check if a group has been modified compared to the original
@@ -39,11 +38,9 @@ export const isGroupModified = (group: AlertGroupItem, originalGroups: AlertGrou
  */
 export const fetchAlertGroups = async (clusterName: string) => {
   if (!clusterName) {
-    console.log('Skipping alert groups fetch - no cluster name');
     throw new Error('Cluster name is required');
   }
 
-  console.log('Fetching alert groups for cluster:', clusterName);
   const response = await AlertsApi.getAlertGroups(clusterName);
 
   if (response && response.items) {
@@ -75,7 +72,6 @@ export const fetchAlertDefinitions = async (clusterName: string) => {
     throw new Error('Cluster name missing. Please ensure you are viewing alerts for a specific cluster.');
   }
 
-  console.log('Fetching alert definitions for cluster:', clusterName);
   const response = await AlertsApi.getAlertDefinition(
     clusterName,
     'AlertDefinition/component_name,AlertDefinition/description,AlertDefinition/enabled,AlertDefinition/id,AlertDefinition/label,AlertDefinition/name,AlertDefinition/service_name',
@@ -102,11 +98,17 @@ export const fetchAlertDefinitions = async (clusterName: string) => {
 /**
  * Create a new alert group
  */
-export const createAlertGroup = async (clusterName: string, name: string, definitions: number[] = []) => {
+export const createAlertGroup = async (
+  clusterName: string,
+  name: string,
+  definitions: number[] = [],
+  targets: number[] = [],
+) => {
   const payload = {
     AlertGroup: {
       name,
-      definitions
+      definitions,
+      targets,
     }
   };
   
@@ -117,33 +119,8 @@ export const createAlertGroup = async (clusterName: string, name: string, defini
  * Update an existing alert group
  */
 export const updateAlertGroup = async (clusterName: string, groupId: number, name: string, definitions: number[] = [], targets: number[] = []) => {
-  // Create a completely new object with ONLY the required fields
-  const alertGroupData: any = {
-    name
-  };
-
-  // Only include definitions if there are any
-  if (definitions && definitions.length > 0) {
-    alertGroupData.definitions = definitions;
-  }
-
-  // Only include targets if there are any
-  if (targets && targets.length > 0) {
-    alertGroupData.targets = targets;
-  }
-
-  const requestBody = {
-    AlertGroup: alertGroupData
-  };
-
-  console.log(`Updating group ${groupId} with payload:`, JSON.stringify(requestBody));
-
-  // Make the PUT request directly
-  const url = `clusters/${clusterName}/alert_groups/${groupId}`;
-  return await ambariApi.request({
-    url: url,
-    method: "PUT",
-    data: requestBody
+  return await AlertsApi.updateAlertGroup(clusterName, groupId, {
+    AlertGroup: { name, definitions, targets },
   });
 };
 
@@ -217,8 +194,6 @@ export const filterAvailableDefinitions = (
       return null;
     }).filter(id => id !== null)
   );
-  
-  console.log('Existing definition IDs:', [...existingIds]);
   
   // Return definitions not already in the group
   return allDefinitions.filter(def => !existingIds.has(def.id));

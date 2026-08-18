@@ -17,61 +17,80 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import CredentialsApi from "../api/credentialsApi";
-import credentialsUtils from "./credentialsUtils";
+
+const mocks = vi.hoisted(() => ({
+  get: vi.fn(),
+  create: vi.fn(),
+  update: vi.fn(),
+  storeInfo: vi.fn(),
+}));
 
 vi.mock("../api/credentialsApi", () => ({
   default: {
-    createCredentials: vi.fn(),
-    getCredentials: vi.fn(),
-    updateCredentials: vi.fn(),
-    deleteCredentials: vi.fn(),
-    listCredentials: vi.fn(),
-    credentialsStoreInfo: vi.fn(),
+    getCredentials: mocks.get,
+    createCredentials: mocks.create,
+    updateCredentials: mocks.update,
+    credentialsStoreInfo: mocks.storeInfo,
   },
 }));
 
-describe("credentials utilities", () => {
-  beforeEach(() => vi.clearAllMocks());
+import credentialsUtils from "./credentialsUtils";
 
-  it("waits for an existing credential update", async () => {
-    vi.mocked(CredentialsApi.getCredentials).mockResolvedValue({} as any);
-    vi.mocked(CredentialsApi.updateCredentials).mockResolvedValue({ saved: true } as any);
+describe("credentialsUtils.createOrUpdateCredentials", () => {
+  const resource = { principal: "admin", key: "secret", type: "temporary" };
 
-    await expect(credentialsUtils.createOrUpdateCredentials("c1", "alias", "resource"))
-      .resolves.toEqual({ saved: true });
-    expect(CredentialsApi.updateCredentials).toHaveBeenCalledOnce();
-    expect(CredentialsApi.createCredentials).not.toHaveBeenCalled();
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.create.mockResolvedValue({});
+    mocks.update.mockResolvedValue({});
   });
 
-  it("creates only after a 404 credential lookup", async () => {
-    vi.mocked(CredentialsApi.getCredentials).mockRejectedValue({ response: { status: 404 } });
-    vi.mocked(CredentialsApi.createCredentials).mockResolvedValue({ created: true } as any);
+  it("waits for an existing credential update", async () => {
+    mocks.get.mockResolvedValue({ Credential: { alias: "kdc" } });
 
-    await expect(credentialsUtils.createOrUpdateCredentials("c1", "alias", "resource"))
-      .resolves.toEqual({ created: true });
-    expect(CredentialsApi.createCredentials).toHaveBeenCalledOnce();
+    await credentialsUtils.createOrUpdateCredentials("c1", "kdc", resource);
+
+    expect(mocks.update).toHaveBeenCalledOnce();
+    expect(mocks.create).not.toHaveBeenCalled();
+    expect(mocks.get.mock.invocationCallOrder[0]).toBeLessThan(
+      mocks.update.mock.invocationCallOrder[0],
+    );
+  });
+
+  it.each([
+    { response: { status: 404 } },
+    { response: { data: { message: "NoSuchResourceException" } } },
+  ])("creates only after an explicit missing-credential response", async (error) => {
+    mocks.get.mockRejectedValue({
+      ...error,
+    });
+
+    await credentialsUtils.createOrUpdateCredentials("c1", "kdc", resource);
+
+    expect(mocks.create).toHaveBeenCalledOnce();
+    expect(mocks.update).not.toHaveBeenCalled();
   });
 
   it.each([401, 403, 500])("propagates lookup status %s without writing", async (status) => {
-    const error = { response: { status } };
-    vi.mocked(CredentialsApi.getCredentials).mockRejectedValue(error);
+    const lookupError = { response: { status } };
+    mocks.get.mockRejectedValue(lookupError);
 
-    await expect(credentialsUtils.createOrUpdateCredentials("c1", "alias", "resource"))
-      .rejects.toBe(error);
-    expect(CredentialsApi.updateCredentials).not.toHaveBeenCalled();
-    expect(CredentialsApi.createCredentials).not.toHaveBeenCalled();
+    await expect(
+      credentialsUtils.createOrUpdateCredentials("c1", "kdc", resource),
+    ).rejects.toBe(lookupError);
+    expect(mocks.create).not.toHaveBeenCalled();
+    expect(mocks.update).not.toHaveBeenCalled();
   });
 
   it("returns credential-store support instead of losing the async result", async () => {
-    vi.mocked(CredentialsApi.credentialsStoreInfo).mockResolvedValue({
+    mocks.storeInfo.mockResolvedValue({
       Clusters: {
         credential_store_properties: {
           "storage.persistent": "true",
           "storage.temporary": "false",
         },
       },
-    } as any);
+    });
 
     await expect(credentialsUtils.isStorePersisted("c1")).resolves.toBe(true);
     await expect(credentialsUtils.isStoreTemporary("c1")).resolves.toBe(false);
