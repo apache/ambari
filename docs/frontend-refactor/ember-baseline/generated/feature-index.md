@@ -219,7 +219,7 @@
 | `VER-LIST-004` | `06-stack-upgrades-admin.md` | Versions List and Package Installation | Views Current/Installed/Not Installed hosts by version status and navigates to filtered Hosts results | [source](../06-stack-upgrades-admin.md#L39) |
 | `VER-LIST-005` | `06-stack-upgrades-admin.md` | Versions List and Package Installation | Installs/reinstalls packages on all applicable hosts | [source](../06-stack-upgrades-admin.md#L40) |
 | `VER-LIST-006` | `06-stack-upgrades-admin.md` | Versions List and Package Installation | Installs a version on a single host | [source](../06-stack-upgrades-admin.md#L41) |
-| `VER-LIST-007` | `06-stack-upgrades-admin.md` | Versions List and Package Installation | Handles an OUT_OF_SYNC component by reinstalling or removing it | [source](../06-stack-upgrades-admin.md#L42) |
+| `VER-LIST-007` | `06-stack-upgrades-admin.md` | Versions List and Package Installation | Handles OUT_OF_SYNC hosts by confirming the affected host list, obtaining the KDC session when needed, and bulk reinstalling or removing only components whose server state is \`INSTALL_FAILED\` | [source](../06-stack-upgrades-admin.md#L42) |
 | `VER-LIST-008` | `06-stack-upgrades-admin.md` | Versions List and Package Installation | Hides an unused or failed repository version | [source](../06-stack-upgrades-admin.md#L43) |
 | `VER-LIST-009` | `06-stack-upgrades-admin.md` | Versions List and Package Installation | Manage Versions navigates to the separate Admin View | [source](../06-stack-upgrades-admin.md#L44) |
 | `UPG-START-001` | `06-stack-upgrades-admin.md` | Start Upgrade/Downgrade | Determines whether the target version is compatible and loads supported upgrade types | [source](../06-stack-upgrades-admin.md#L50) |

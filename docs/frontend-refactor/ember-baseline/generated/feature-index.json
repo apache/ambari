@@ -1373,7 +1373,7 @@
   },
   {
     "id": "VER-LIST-007",
-    "summary": "Handles an OUT_OF_SYNC component by reinstalling or removing it",
+    "summary": "Handles OUT_OF_SYNC hosts by confirming the affected host list, obtaining the KDC session when needed, and bulk reinstalling or removing only components whose server state is `INSTALL_FAILED`",
     "section": "Versions List and Package Installation",
     "moduleFile": "06-stack-upgrades-admin.md",
     "line": 42

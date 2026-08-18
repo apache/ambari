@@ -104,13 +104,15 @@ export default function EnableKerberos() {
   );
 
   const finishWizardExit = () => {
+    const returnPath = localStorage.getItem("module06WizardReturnPath");
+    localStorage.removeItem("module06WizardReturnPath");
     allowWizardExit.current = true;
     setConfirmQuitWizardModal(false);
     setEnableKerberosModal(false);
     if (blocker.state === "blocked") {
       blocker.proceed();
     } else {
-      navigate("/main/admin/kerberos/", { replace: true });
+      navigate(returnPath || "/main/admin/kerberos/", { replace: true });
     }
   };
 

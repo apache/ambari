@@ -164,7 +164,9 @@ export const KerberosWizardProvider: React.FC<{
     if (onWizardExitReady) {
       onWizardExitReady();
     } else {
-      navigate(`/main/admin/kerberos/`);
+      const returnPath = localStorage.getItem("module06WizardReturnPath");
+      localStorage.removeItem("module06WizardReturnPath");
+      navigate(returnPath || `/main/admin/kerberos/`);
     }
   }
 

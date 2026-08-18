@@ -34,11 +34,14 @@ export const UpgradeGuard: React.FC<UpgradeGuardProps> = ({
   children, 
   redirectTo = '/main/dashboard' 
 }) => {
-  const { upgradeIsRunning, upgradeSuspended } = useContext(AppContext);
+  const { upgradeIsRunning, upgradeSuspended, supports } = useContext(AppContext);
 
   // Check if upgrade is blocking operations (running but not suspended)
   // The permission system in UserContext already handles who can access what during upgrades
-  const isUpgradeBlocking = upgradeIsRunning && !upgradeSuspended;
+  const isUpgradeBlocking =
+    upgradeIsRunning
+    && !upgradeSuspended
+    && !supports.opsDuringRollingUpgrade;
 
   // If upgrade is blocking, redirect to dashboard
   if (isUpgradeBlocking) {

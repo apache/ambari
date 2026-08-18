@@ -53,7 +53,9 @@ export const AdminRouteGuard: React.FC<AdminRouteGuardProps> = ({ children }) =>
     hasAuthorization('CLUSTER.TOGGLE_KERBEROS') ||
     hasAuthorization('SERVICE.SET_SERVICE_USERS_GROUPS') ||
     hasAuthorization('CLUSTER.UPGRADE_DOWNGRADE_STACK') ||
-    hasAuthorization('CLUSTER.VIEW_STACK_DETAILS');
+    hasAuthorization('CLUSTER.VIEW_STACK_DETAILS') ||
+    hasAuthorization('SERVICE.MANAGE_AUTO_START') ||
+    hasAuthorization('CLUSTER.MANAGE_AUTO_START');
   
   // If user doesn't have admin permissions and no upgrade is running, redirect to dashboard
   if (!hasAnyAdminPermission && !upgradeInProgress && !upgradeHolding) {

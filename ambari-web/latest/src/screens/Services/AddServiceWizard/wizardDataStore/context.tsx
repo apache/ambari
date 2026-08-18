@@ -417,8 +417,11 @@ export const AddServiceProvider: React.FC<{
       isCancelled.current = false;
       throw error;
     }
+    const returnPath = localStorage.getItem("module06WizardReturnPath")
+      || "/main/dashboard/metrics";
+    localStorage.removeItem("module06WizardReturnPath");
     modalManager.hide();
-    window.location.href = "/#/main/dashboard/metrics";
+    window.location.href = `/#${returnPath}`;
     window.location.reload();
   }
 

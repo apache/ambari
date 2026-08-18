@@ -18,7 +18,7 @@
 
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { ComponentProps, ReactNode } from "react";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, useLocation } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import KerberosApi from "../../api/kerberosApi";
 import ClusterApi from "../../api/clusterApi";
@@ -87,8 +87,17 @@ vi.mock("../Kerberos/DisableKerberos", () => ({
 }));
 
 vi.mock("./index", () => ({
-  default: () => <div>Enable wizard</div>,
+  default: ({ onWizardExitReady }: { onWizardExitReady: () => void }) => (
+    <div>
+      Enable wizard
+      <button onClick={onWizardExitReady}>Finish wizard exit</button>
+    </div>
+  ),
 }));
+
+function LocationProbe() {
+  return <output data-testid="current-path">{useLocation().pathname}</output>;
+}
 
 vi.mock("../../components/Modal", () => ({
   default: ({
@@ -139,6 +148,7 @@ const renderPage = ({
     >
       <MemoryRouter initialEntries={[initialEntry]}>
         <EnableKerberos />
+        <LocationProbe />
       </MemoryRouter>
     </AppContext.Provider>,
   );
@@ -166,6 +176,7 @@ describe("EnableKerberos management entry", () => {
 
   afterEach(() => {
     cleanup();
+    localStorage.removeItem("module06WizardReturnPath");
     vi.restoreAllMocks();
   });
 
@@ -255,6 +266,27 @@ describe("EnableKerberos management entry", () => {
       controllerName: "kerberosWizardController",
     });
     expect(await screen.findByText("Enable wizard")).toBeTruthy();
+  });
+
+  it("returns a Stack Services launch to its one-shot return path", async () => {
+    vi.mocked(KerberosApi.getSecurityType).mockResolvedValue({
+      Clusters: { security_type: "NONE" },
+    } as Awaited<ReturnType<typeof KerberosApi.getSecurityType>>);
+    localStorage.setItem(
+      "module06WizardReturnPath",
+      "/main/admin/stack/services",
+    );
+    renderPage({ contextKerberosEnabled: false });
+    await screen.findByText("Kerberos security is disabled");
+
+    fireEvent.click(screen.getByRole("button", { name: "Enable Kerberos" }));
+    fireEvent.click(await screen.findByRole("button", {
+      name: "Finish wizard exit",
+    }));
+
+    await waitFor(() => expect(screen.getByTestId("current-path").textContent)
+      .toBe("/main/admin/stack/services"));
+    expect(localStorage.getItem("module06WizardReturnPath")).toBeNull();
   });
 
   it("opens Disable from the Classic deep link", async () => {
