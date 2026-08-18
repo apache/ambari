@@ -34,6 +34,7 @@ import HostsList from "../screens/Hosts/HostsList";
 import { Hosts } from "../screens/Hosts";
 import Alerts from "../screens/Alerts/Alerts";
 import AlertDefinitionDetails from "../screens/Alerts/AlertDefinitionDetails";
+import AlertDefinitionWizard from "../screens/Alerts/AlertDefinitionWizard";
 import ServiceAutoStart from "../screens/ServiceAutoStart";
 import ServiceAccounts from "../screens/ServiceAccounts";
 import EnableKerberos from "../screens/KerberosWizard/EnableKerberos";
@@ -215,6 +216,17 @@ const RoutesList: RouteObject[] = [
                 ),
               },
               { path: "alerts", element: <Alerts /> },
+              {
+                path: "alerts/add/:stepNumber",
+                element: (
+                  <ProtectedRoute
+                    requireAuthorization="SERVICE.TOGGLE_ALERTS"
+                    redirectTo="/main/alerts"
+                  >
+                    <AlertDefinitionWizard />
+                  </ProtectedRoute>
+                ),
+              },
               { path: "alerts/:alertId", element: <AlertDefinitionDetails /> },
               {
                 path: "admin",

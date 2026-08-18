@@ -24,7 +24,6 @@ import "../../styles/app.scss";
 import { Button, Form } from 'react-bootstrap';
 import Modal from '../../components/Modal';
 import CopyButton from '../../components/CopyButton';
-import { isWithin24Hours } from '../../Utils/Utility';
 import Paginator from "../../components/Paginator";
 import usePagination from '../../hooks/usePagination';
 import { SortingState } from "@tanstack/react-table";
@@ -33,10 +32,16 @@ import LastStatusChanged from "../../components/LastStatusChanged";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBriefcase } from '@fortawesome/free-solid-svg-icons';
 import { formatStatus } from '../../Utils/Utility';
+import {
+    countAlertHistoryByHost,
+    filterAndSortAlertInstances,
+    openAlertResponseInNewWindow,
+} from '../../Utils/alertDefinitions';
 
 interface AlertInstancesTableProps {
     clusterName: string;
     alert_id: number | string;
+    definitionName: string;
     refreshTrigger?: number;
     alertEnabled?: boolean;
 }
@@ -57,10 +62,9 @@ interface FilterState {
     state: string;
 }
 
-const AlertInstancesTable = ({ clusterName, alert_id, refreshTrigger, alertEnabled = true }: AlertInstancesTableProps) => {
+const AlertInstancesTable = ({ clusterName, alert_id, definitionName, refreshTrigger, alertEnabled = true }: AlertInstancesTableProps) => {
     const [isLoaded, setIsLoaded] = useState(false);
     const [instances, setInstances] = useState<AlertInstance[]>([]);
-    const [filteredInstances, setFilteredInstances] = useState<AlertInstance[]>([]);
     const [filters, setFilters] = useState<FilterState>({
         service: '',
         hostName: '',
@@ -70,130 +74,98 @@ const AlertInstancesTable = ({ clusterName, alert_id, refreshTrigger, alertEnabl
     const [modalText, setModalText] = useState('');
     const [sorting, setSorting] = useState<SortingState>([]);
     const [availableServices, setAvailableServices] = useState<string[]>([]);
-    //@ts-ignore
-    const copyToClipboard = async (text: string) => {
-        try {
-            // Check if clipboard API is available (HTTPS required)
-            if (navigator.clipboard && window.isSecureContext) {
-                await navigator.clipboard.writeText(text);
-                return;
-            }
-            
-            // Fallback for HTTP or older browsers
-            const textArea = document.createElement('textarea');
-            textArea.value = text;
-            textArea.style.position = 'fixed';
-            textArea.style.left = '-999999px';
-            textArea.style.top = '-999999px';
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-            
-            try {
-                document.execCommand('copy');
-            } catch (fallbackErr) {
-                console.error("Fallback copy failed: ", fallbackErr);
-                // Show user a message to manually copy
-                alert(`Please copy this manually: ${text}`);
-            }
-            
-            document.body.removeChild(textArea);
-        } catch (err) {
-            console.error('Failed to copy:', err);
-            // Final fallback - show text for manual copy
-            alert(`Please copy this manually: ${text}`);
-        }
-    };
+    const [historyCounts, setHistoryCounts] = useState<Record<string, number>>({});
+    const [loadError, setLoadError] = useState('');
+    const [historyError, setHistoryError] = useState('');
+    const [refreshError, setRefreshError] = useState('');
+    const [retryTrigger, setRetryTrigger] = useState(0);
 
     useEffect(() => {
+        let active = true;
+        let pollTimer: ReturnType<typeof setTimeout> | undefined;
+
+        const applyInstances = (data: any) => {
+            const instancesData = (data?.items || []).map(
+                (alertObj: { Alert: AlertInstance }) => alertObj.Alert,
+            );
+            const services = [...new Set(instancesData.map(
+                (instance: AlertInstance) => instance.service_name?.toString() || '',
+            ))] as string[];
+            setAvailableServices(services);
+            setInstances(instancesData);
+        };
+
         const fetchData = async () => {
             // If alert is disabled, don't fetch data and clear existing instances
             if (!alertEnabled) {
                 setInstances([]);
-                setFilteredInstances([]);
                 setAvailableServices([]);
+                setHistoryCounts({});
+                setHistoryError('');
                 setIsLoaded(true);
                 return;
             }
             
             setIsLoaded(false);
-            
+            setLoadError('');
+            setHistoryError('');
+            setRefreshError('');
+
+            const now = Date.now();
+            const [instancesResult, historyResult] = await Promise.allSettled([
+                AlertsApi.getAlertInstancesByDefinition(clusterName, alert_id, now),
+                AlertsApi.getAlertHistory(clusterName, definitionName, now - 24 * 60 * 60 * 1000),
+            ]);
+            if (!active) return;
+
+            if (instancesResult.status === 'fulfilled') {
+                applyInstances(instancesResult.value);
+            } else {
+                console.error("Error fetching alert instances:", instancesResult.reason);
+                setInstances([]);
+                setLoadError('Failed to load alert instances.');
+            }
+
+            if (historyResult.status === 'fulfilled') {
+                setHistoryCounts(countAlertHistoryByHost(historyResult.value?.items || []));
+            } else {
+                console.error("Error fetching 24-hour alert history:", historyResult.reason);
+                setHistoryCounts({});
+                setHistoryError('24-hour alert history is temporarily unavailable.');
+            }
+            setIsLoaded(true);
+        };
+
+        const pollInstances = async () => {
             try {
-                const time = new Date().getTime();
-                // FIXED: Get all alert instances including maintenance mode ones
-                const data = await AlertsApi.getAlertsList(clusterName, time);
-                // Filter by the specific alert definition ID
-                const allInstances = data.items.map((alertObj: { Alert: AlertInstance }) => alertObj.Alert);
-                const instancesData = allInstances.filter((instance: AlertInstance) => 
-                    instance.definition_id === parseInt(String(alert_id))
-                );
-
-                // Extract unique service names for the service filter
-                const services = [...new Set(instancesData.map((instance: { service_name: { toString: () => any; }; }) => instance.service_name?.toString() || ''))] as string[];
-                setAvailableServices(services);
-
-                setInstances(instancesData);
-                setFilteredInstances(instancesData);
+                const data = await AlertsApi.getAlertInstancesByDefinition(clusterName, alert_id, Date.now());
+                if (!active) return;
+                applyInstances(data);
+                setLoadError('');
+                setRefreshError('');
                 setIsLoaded(true);
             } catch (error) {
-                console.error("Error fetching alert instances:", error);
-                setIsLoaded(true);
-                setInstances([]);
-                setFilteredInstances([]);
+                if (active) setRefreshError('The latest instance refresh failed. Existing data is still displayed.');
+            } finally {
+                if (active) pollTimer = setTimeout(pollInstances, 30000);
             }
         };
 
-        fetchData();
-    }, [clusterName, alert_id, refreshTrigger, alertEnabled]);
-
-    useEffect(() => {
-        let filtered = instances;
-        if (filters.service && filters.service !== 'All') {
-            filtered = filtered.filter(
-                (instance) => instance.service_name === filters.service
-            );
-        }
-        if (filters.hostName) {
-            filtered = filtered.filter(
-                (instance) => instance.host_name.toLowerCase().includes(filters.hostName.toLowerCase())
-            );
-        }
-        if (filters.state && filters.state !== 'All') {
-            filtered = filtered.filter((instance) => instance.state.toLowerCase() === filters.state.toLowerCase());
-        }
-        setFilteredInstances(filtered);
-    }, [instances, filters]);
-
-    // Apply sorting
-    useEffect(() => {
-        if (sorting.length === 0) return;
-
-        const sortedData = [...filteredInstances].sort((a, b) => {
-            const sortField = sorting[0].id;
-            const isAsc = sorting[0].desc === false;
-            
-            if (sortField === 'last_updated_time') {
-                const aValue = a.last_updated_time || 0;
-                const bValue = b.last_updated_time || 0;
-                return isAsc ? aValue - bValue : bValue - aValue;
-            }
-            
-            const aValue = a[sortField] || '';
-            const bValue = b[sortField] || '';
-            
-            if (typeof aValue === 'string' && typeof bValue === 'string') {
-                return isAsc 
-                    ? aValue.localeCompare(bValue) 
-                    : bValue.localeCompare(aValue);
-            }
-            
-            return isAsc 
-                ? (aValue > bValue ? 1 : -1) 
-                : (bValue > aValue ? 1 : -1);
+        void fetchData().then(() => {
+            if (active && alertEnabled) pollTimer = setTimeout(pollInstances, 30000);
         });
-        
-        setFilteredInstances(sortedData);
-    }, [sorting]);
+        return () => {
+            active = false;
+            if (pollTimer) clearTimeout(pollTimer);
+        };
+    }, [clusterName, alert_id, definitionName, refreshTrigger, alertEnabled, retryTrigger]);
+
+    const filteredInstances = filterAndSortAlertInstances(
+        instances,
+        filters,
+        sorting[0],
+        historyCounts,
+    );
 
     // Use pagination hook
     const {
@@ -296,10 +268,11 @@ const AlertInstancesTable = ({ clusterName, alert_id, refreshTrigger, alertEnabl
         },
         {
             header: '24-Hour',
-            accessorKey: 'last_updated_time',
+            accessorKey: 'history_count',
+            sortingFn: (rowA: { original: AlertInstance }, rowB: { original: AlertInstance }) =>
+                (historyCounts[rowA.original.host_name] || 0) - (historyCounts[rowB.original.host_name] || 0),
             cell: ({ row }: { row: { original: AlertInstance } }) => {
-                const lastUpdatedTime = row.original.last_updated_time;
-                return isWithin24Hours(lastUpdatedTime);
+                return historyCounts[row.original.host_name] || 0;
             },
         },
         {
@@ -332,9 +305,32 @@ const AlertInstancesTable = ({ clusterName, alert_id, refreshTrigger, alertEnabl
         return <Spinner />;
     }
 
+    if (loadError) {
+        return (
+            <div className="col-md-12">
+                <div className="alert alert-danger">{loadError}</div>
+                <Button variant="primary" onClick={() => setRetryTrigger((value) => value + 1)}>Retry</Button>
+            </div>
+        );
+    }
+
     return (
         <div className="col-md-12">
             <h2 className="table-title mb-3">Instances</h2>
+
+            {refreshError && (
+                <div className="alert alert-warning d-flex justify-content-between align-items-center">
+                    <span>{refreshError}</span>
+                    <Button variant="outline-warning" onClick={() => setRetryTrigger((value) => value + 1)}>Retry</Button>
+                </div>
+            )}
+
+            {historyError && (
+                <div className="alert alert-warning d-flex justify-content-between align-items-center">
+                    <span>{historyError}</span>
+                    <Button variant="outline-warning" onClick={() => setRetryTrigger((value) => value + 1)}>Retry</Button>
+                </div>
+            )}
 
             {/* Filters - only show when alert is enabled */}
             {alertEnabled && (
@@ -430,10 +426,7 @@ const AlertInstancesTable = ({ clusterName, alert_id, refreshTrigger, alertEnabl
                         <div className="controls-block pull-right">
                             <CopyButton textToCopy={modalText} buttonText="Copy" />
                             <a title="Open in New Window" onClick={() => {
-                                const newWindow = window.open();
-                                if (newWindow) {
-                                    newWindow.document.write(`<pre>${modalText}</pre>`);
-                                }
+                                openAlertResponseInNewWindow(modalText);
                             }} className="task-detail-open-dialog">
                                 <i className="icon-external-link"></i> <span>Open</span>
                             </a>

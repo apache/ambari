@@ -17,28 +17,19 @@
  */
 
 // ambari-web/ui2/src/screens/Alerts/AlertDefinitionDetails.tsx
-import { useState, useEffect, useContext } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import Spinner from '../../components/Spinner';
 import HeaderSection from './HeaderSection';
 import AlertConfigSection from './AlertConfigSection';
 import InformationSection from './InformationSection';
 import AlertInstancesTable from './AlertInstancesTable';
 import { Container } from "react-bootstrap";
-import { useParams } from "react-router-dom";
+import { useBlocker, useParams } from "react-router-dom";
 import { AlertsApi } from "../../api/alertsApi";
 import { AppContext } from "../../store/context";
-import { processData } from './alertUtils';
-import { AlertStatusObject, MergedAlert } from './types';
-
-interface AlertDefinitionResponseItem {
-    AlertDefinition: {
-        id: number;
-        repeat_tolerance: any;
-        repeat_tolerance_enabled: boolean;
-        help_url?: string;
-        [key: string]: any;
-    };
-}
+import { AlertEditorHandle, AlertStatusObject, MergedAlert } from './types';
+import { buildAlertDefinitionDetails } from '../../Utils/alertDefinitions';
+import Modal from '../../components/Modal';
 
 const AlertDefinitionDetails = () => {
     const { clusterName } = useContext(AppContext);
@@ -48,6 +39,17 @@ const AlertDefinitionDetails = () => {
     const [statuses, setStatuses] = useState<AlertStatusObject[]>([]);
     const [errorMessage, setErrorMessage] = useState('');
     const [refreshTrigger, setRefreshTrigger] = useState(0);
+    const [retryTrigger, setRetryTrigger] = useState(0);
+    const [labelDirty, setLabelDirty] = useState(false);
+    const [configDirty, setConfigDirty] = useState(false);
+    const [isSavingBeforeLeave, setIsSavingBeforeLeave] = useState(false);
+    const [leaveError, setLeaveError] = useState('');
+    const labelEditorRef = useRef<AlertEditorHandle>(null);
+    const configEditorRef = useRef<AlertEditorHandle>(null);
+    const hasUnsavedChanges = labelDirty || configDirty;
+    const blocker = useBlocker(({ currentLocation, nextLocation }) =>
+        hasUnsavedChanges && currentLocation.pathname !== nextLocation.pathname,
+    );
 
     const handleAlertDefinitionUpdate = (updatedFields: Partial<MergedAlert>) => {
         if (alertDefinition) {
@@ -58,53 +60,84 @@ const AlertDefinitionDetails = () => {
     };
 
     useEffect(() => {
+        if (!hasUnsavedChanges) return;
+        const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+            event.preventDefault();
+            event.returnValue = '';
+        };
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, [hasUnsavedChanges]);
+
+    const handleSaveAndLeave = async () => {
+        if (blocker.state !== 'blocked') return;
+        setIsSavingBeforeLeave(true);
+        setLeaveError('');
+        const results = await Promise.all([
+            labelDirty ? labelEditorRef.current?.save() ?? Promise.resolve(false) : Promise.resolve(true),
+            configDirty ? configEditorRef.current?.save() ?? Promise.resolve(false) : Promise.resolve(true),
+        ]);
+        setIsSavingBeforeLeave(false);
+        if (results.every(Boolean)) {
+            blocker.proceed();
+        } else {
+            setLeaveError('One or more changes could not be saved. Correct the errors and try again, or discard the changes.');
+        }
+    };
+
+    const handleDiscardAndLeave = () => {
+        if (blocker.state !== 'blocked') return;
+        labelEditorRef.current?.discard();
+        configEditorRef.current?.discard();
+        setLeaveError('');
+        blocker.proceed();
+    };
+
+    const handleCancelLeave = () => {
+        if (blocker.state !== 'blocked') return;
+        setLeaveError('');
+        blocker.reset();
+    };
+
+    useEffect(() => {
         const fetchAlertDetails = async () => {
+            setIsLoaded(false);
+            setErrorMessage('');
             try {
                 const alertDefinitionId = params.alertId;
                 if (alertDefinitionId) {
-                    const [alertsResponse, summariesResponse, alertDefinitionResponse] = await Promise.all([
+                    const [groupsResponse, summariesResponse, alertDefinitionResponse] = await Promise.all([
                         AlertsApi.getAlerts(
                             clusterName,
                             'AlertGroup/default,AlertGroup/definitions,AlertGroup/id,AlertGroup/name,AlertGroup/targets',
                             Date.now()
                         ),
                         AlertsApi.getGroupFormattedAlertsNotifications(clusterName, Date.now()),
-                        AlertsApi.getAlertDefinition(
-                            clusterName,
-                            'AlertDefinition/component_name,AlertDefinition/description,AlertDefinition/enabled,AlertDefinition/repeat_tolerance,AlertDefinition/repeat_tolerance_enabled,AlertDefinition/id,AlertDefinition/ignore_host,AlertDefinition/interval,AlertDefinition/label,AlertDefinition/name,AlertDefinition/scope,AlertDefinition/service_name,AlertDefinition/source,AlertDefinition/help_url',
-                            Date.now()
-                        )
+                        AlertsApi.getAlertDefinitionById(clusterName, alertDefinitionId, Date.now())
                     ]);
-
-                    const processedAlerts = processData(alertsResponse, summariesResponse);
-                    const alertDetails = processedAlerts.find(alert => alert.alert_definition_id === parseInt(alertDefinitionId));
-                    const alertDefinitionDetails = alertDefinitionResponse.items.find((item: AlertDefinitionResponseItem) => 
-                        item.AlertDefinition.id === parseInt(alertDefinitionId)
+                    const definition = alertDefinitionResponse?.AlertDefinition ||
+                        alertDefinitionResponse?.items?.[0]?.AlertDefinition;
+                    if (!definition) throw new Error('Alert definition not found');
+                    const details = buildAlertDefinitionDetails(
+                        definition,
+                        groupsResponse?.items || [],
+                        summariesResponse?.alerts_summary_grouped || [],
                     );
-
-                    if (alertDetails && alertDefinitionDetails) {
-                        setAlertDefinition({
-                            ...alertDetails,
-                            repeat_tolerance: alertDefinitionDetails.AlertDefinition.repeat_tolerance || 1,
-                            repeat_tolerance_enabled: alertDefinitionDetails.AlertDefinition.repeat_tolerance_enabled || false,
-                            help_url: alertDefinitionDetails.AlertDefinition.help_url
-                        });
-                        setStatuses(alertDetails.statuses);
-                    } else {
-                        setErrorMessage('Alert details not found');
-                    }
+                    setAlertDefinition(details);
+                    setStatuses(details.statuses);
                 } else {
                     setErrorMessage('Alert ID is missing');
                 }
-                setIsLoaded(true);
             } catch (error) {
                 setErrorMessage('Failed to fetch alert definition details');
+                setAlertDefinition(null);
+            } finally {
                 setIsLoaded(true);
             }
         };
 
         fetchAlertDetails();
-    }, [params, clusterName]);
+    }, [params.alertId, clusterName, retryTrigger]);
 
     if (!isLoaded) {
         return <Spinner />;
@@ -114,16 +147,30 @@ const AlertDefinitionDetails = () => {
         return (
             <Container className="p-4">
                 <div className="alert alert-danger">{errorMessage || 'Alert definition not found'}</div>
+                <button className="btn btn-primary" onClick={() => setRetryTrigger((value) => value + 1)}>
+                    Retry
+                </button>
             </Container>
         );
     }
 
     return (
+        <>
         <Container className="p-4">
             <div id="alert-definition-details">
-                <HeaderSection alertDefinition={alertDefinition} statuses={statuses} />
+                <HeaderSection
+                    ref={labelEditorRef}
+                    alertDefinition={alertDefinition}
+                    statuses={statuses}
+                    onDirtyChange={setLabelDirty}
+                    onAlertDefinitionUpdate={handleAlertDefinitionUpdate}
+                />
                 <div className="row gap-3">
-                    <AlertConfigSection clusterName={clusterName} />
+                    <AlertConfigSection
+                        ref={configEditorRef}
+                        clusterName={clusterName}
+                        onDirtyChange={setConfigDirty}
+                    />
                     <InformationSection 
                         alertDefinition={alertDefinition} 
                         onAlertDefinitionUpdate={handleAlertDefinitionUpdate}
@@ -133,12 +180,39 @@ const AlertDefinitionDetails = () => {
                     <AlertInstancesTable 
                         clusterName={clusterName} 
                         alert_id={params.alertId || ''} 
+                        definitionName={alertDefinition.name}
                         refreshTrigger={refreshTrigger}
                         alertEnabled={alertDefinition?.enabled ?? true}
                     />
                 </div>
             </div>
         </Container>
+        <Modal
+            isOpen={blocker.state === 'blocked'}
+            onClose={handleCancelLeave}
+            modalTitle="Unsaved Alert Definition Changes"
+            modalBody={
+                <div>
+                    <p>Save the current label and configuration changes before leaving this page?</p>
+                    {leaveError && <div className="alert alert-danger">{leaveError}</div>}
+                </div>
+            }
+            successCallback={handleSaveAndLeave}
+            options={{
+                okButtonText: isSavingBeforeLeave ? 'Saving...' : 'Save and Leave',
+                cancelButtonText: 'Cancel',
+                cancelableViaIcon: !isSavingBeforeLeave,
+                cancelableViaBtn: true,
+                okButtonDisabled: isSavingBeforeLeave,
+                extraButtons: [{
+                    text: 'Discard and Leave',
+                    onClick: handleDiscardAndLeave,
+                    variant: 'danger',
+                    disabled: isSavingBeforeLeave,
+                }],
+            }}
+        />
+        </>
     );
 };
 
