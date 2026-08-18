@@ -19,6 +19,7 @@
 import {useContext, useEffect, useRef, useState, useCallback } from "react";
 import { messages } from "../../messages";
 import {
+  Alert,
   Badge,
   Button,
   ButtonGroup,
@@ -64,6 +65,16 @@ import { redirectToAdminView } from "../../../Utils/adminViewRedirect";
 import ClusterApi from "../../../api/clusterApi";
 import { useAuth } from "../../../hooks/useAuth";
 import { HostsApi } from "../../../api/hostsApi";
+import { persistedPayload } from "../../../Utils/persistedSettings";
+import {
+  canHideRepositoryVersion,
+  compatibleRepositoryVersionNames,
+  filterVisibleStackVersions,
+  versionMatchesFilter,
+  type VersionFilterKey,
+} from "./versionUtils";
+import useKDCSessionState from "../../../hooks/useKDCSessionState";
+import PreUpgradeCheckItem from "./PreUpgradeCheckItem";
 
 export const iconMapping: { [key: string]: IconDefinition } = {
   faDashboard: faDashboard,
@@ -74,7 +85,9 @@ export default function Versions() {
   const [options, setOptions] = useState(initialOptions);
   const [selectedOption, setSelectedOption] = useState(options[0]);
   const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [services, setServices] = useState<string[]>([]);
+  const [allLoadedStacks, setAllLoadedStacks] = useState<StackVersion[]>([]);
   const [originalStacks, setOriginalStacks] = useState<StackVersion[]>([]);
   const [stacks, setStacks] = useState<StackVersion[]>([]);
   const [stackVersionError, setStackVersionError] = useState<any>(null);
@@ -89,16 +102,25 @@ export default function Versions() {
   const [slaveComponentFailures, setSlaveComponentFailures] = useState(false);
   const [serviceCheckFailures, setServiceCheckFailures] = useState(false);
   const [isRestoring, setIsRestoring] = useState(true);
-  const { clusterName, setUpgradeId, upgradeState, setIsPatchUpgrade, setUpgradeVersionDisplayName, allHostNames, upgradeVersionDisplayName, upgradeId, upgradeDirection, upgradeIsRunning, upgradeSuspended } = useContext(AppContext);
+  const { clusterName, setUpgradeId, upgradeState, setIsPatchUpgrade, setUpgradeVersionDisplayName, allHostNames, upgradeVersionDisplayName, upgradeId, upgradeDirection, upgradeIsRunning, upgradeSuspended, supports, isNonWizardUser } = useContext(AppContext);
   
   const packagesPayloadRef = useRef<any>({});
   
   // Authorization hooks - implementing Ember.js stack/version authorization patterns
-  const { hasAuthorization } = useAuth();
+  const { hasAuthorization, isAdmin, isOperator, user } = useAuth();
   
   // Check specific authorizations for stack/version operations
   const canUpgradeDowngrade = hasAuthorization('CLUSTER.UPGRADE_DOWNGRADE_STACK');
   const canManageStackVersions = hasAuthorization("AMBARI.MANAGE_STACK_VERSIONS");
+  const canSaveRepositories =
+    isAdmin()
+    && !isOperator()
+    && !isNonWizardUser
+    && (!upgradeIsRunning || upgradeSuspended || Boolean(supports.opsDuringRollingUpgrade));
+  const versionMutationBlocked =
+    !canUpgradeDowngrade
+    || isNonWizardUser
+    || (upgradeState !== "NOT_REQUIRED" && upgradeState !== "COMPLETED");
 
   const [versionModal, setVersionModal] = useState(false);
   const [installPackagesModal, setInstallPackagesModal] = useState(false);
@@ -111,6 +133,10 @@ export default function Versions() {
   const [confirmRevertPatchUpradeModal, setConfirmRevertPatchUpgradeModal] = useState(false);
   const [confirmReinstallModal, setConfirmReinstallModal] = useState(false);
   const [confirmRemoveModal, setConfirmRemoveModal] = useState(false);
+  const [hideVersion, setHideVersion] = useState<StackVersion>();
+  const [hideInProgress, setHideInProgress] = useState(false);
+  const [startInProgress, setStartInProgress] = useState(false);
+  const [outOfSyncActionInProgress, setOutOfSyncActionInProgress] = useState(false);
 
   const hostModalContent = useRef("");
   const hostModalTitle = useRef("");
@@ -126,11 +152,13 @@ export default function Versions() {
   
   // Cache for pre-upgrade check results to avoid redundant API calls
   const preCheckCacheRef = useRef<Map<string, any>>(new Map());
+  const preCheckGenerationRef = useRef(0);
   
   // Refs for fast switching between upgrade methods
   const methodTypeRef = useRef("");
   const isUpgradeInProgress = upgradeIsRunning && !upgradeSuspended;
   const navigate = useNavigate();
+  const { getKDCSessionState } = useKDCSessionState(null);
 
   const {} = usePolling(fetchServices, 6000);
 
@@ -151,7 +179,7 @@ export default function Versions() {
     if (selectedMethod) {
       const hasRequiredFailures = selectedMethod.precheckResultsMessage.includes("Required");
       const isStillLoading = selectedMethod.isCheckRequestInProgress;
-      setIsProceedButtonDisabled(hasRequiredFailures && !isStillLoading);
+      setIsProceedButtonDisabled(isStillLoading || hasRequiredFailures);
     }
   }, []);
 
@@ -160,48 +188,46 @@ export default function Versions() {
       if (originalStacks.length === 0) {
         setLoading(true);
       }
+      setLoadError(null);
       const response = await VersionsApi.getAllStacks(clusterName);
-      const stacks = response.items;
-      const currentStack = stacks.find(
+      const loadedStacks: StackVersion[] = response.items || [];
+      setAllLoadedStacks(loadedStacks);
+      const currentStack = loadedStacks.find(
         (stack: StackVersion) => stack.ClusterStackVersions.state === "CURRENT"
       );
-      if (currentStack) {
-        const currentRepositoryVersion =
-          currentStack.ClusterStackVersions.repository_version;
-
-        const filteredStacks = stacks.filter((stack: StackVersion) => {
-          if (stack.ClusterStackVersions.state === "CURRENT") {
-            return true;
-          }
-          
-          const stackVersionType = stack.repository_versions[0]?.RepositoryVersions?.stack_name;
-          const currentStackName = currentStack.repository_versions[0]?.RepositoryVersions?.stack_name;
-          const isPatch = stack.repository_versions[0]?.RepositoryVersions?.type === "PATCH";
-          const isMaint = stack.repository_versions[0]?.RepositoryVersions?.type === "MAINT";
-          const stackRepoVersion = stack.ClusterStackVersions.repository_version;
-          
-          if (stackVersionType === currentStackName) {
-            if (isPatch || isMaint) {
-              const stackVersion = stack.repository_versions[0]?.RepositoryVersions?.repository_version;
-              const currentVersion = currentStack.repository_versions[0]?.RepositoryVersions?.repository_version;
-              return stringUtilsObj.compareVersions(String(stackVersion), String(currentVersion)) > 0;
-            }
-            return stringUtilsObj.compareVersions(String(stackRepoVersion), String(currentRepositoryVersion)) >= 0;
-          }
-          return true;
-        });
-        setOriginalStacks(filteredStacks);
-      } else {
-        setOriginalStacks(stacks)
+      let compatibleVersions = new Set<string>();
+      if (currentStack && !supports.displayOlderVersions) {
+        try {
+          const compatibility = await VersionsApi.getCompatibleRepositoryVersions(
+            currentStack.ClusterStackVersions.stack,
+            currentStack.ClusterStackVersions.version,
+          );
+          compatibleVersions = compatibleRepositoryVersionNames(compatibility);
+        } catch (error: any) {
+          setLoadError(
+            error?.response?.data?.message
+              || error?.message
+              || "Compatible repository versions could not be loaded. Cross-stack targets are hidden until retry."
+          );
+        }
       }
+      setOriginalStacks(filterVisibleStackVersions(
+        loadedStacks,
+        currentStack,
+        compatibleVersions,
+        Boolean(supports.displayOlderVersions),
+      ));
 
-      const services = Object.keys(
-        response.items[0].ClusterStackVersions.repository_summary.services
-      );
-      setServices(services);
-      setLoading(false);
-    } catch (err) {
-      toast.error("Failed to fetch data");
+      setServices(Object.keys(
+        currentStack?.ClusterStackVersions.repository_summary?.services
+          || loadedStacks[0]?.ClusterStackVersions.repository_summary?.services
+          || {},
+      ));
+    } catch (err: any) {
+      const message = err?.response?.data?.message || err?.message || "Stack versions could not be loaded";
+      setLoadError(message);
+      toast.error(message);
+    } finally {
       setLoading(false);
     }
   }
@@ -242,13 +268,17 @@ export default function Versions() {
 
   useEffect(() => {
     if (selectedOption.key !== "ALL") {
-      setStacks(
-        originalStacks.filter((stack) => {
-          return selectedOption.values.includes(
-            stack.ClusterStackVersions.state
-          );
-        })
+      const currentStack = originalStacks.find(
+        (stack) => stack.ClusterStackVersions.state === "CURRENT",
       );
+      setStacks(originalStacks.filter((stack) => versionMatchesFilter(
+        stack,
+        selectedOption.key as VersionFilterKey,
+        currentStack,
+        upgradeState !== "NOT_REQUIRED" && upgradeState !== "COMPLETED"
+          ? upgradeVersionDisplayName
+          : undefined,
+      )));
     } else {
       setStacks(originalStacks);
     }
@@ -258,19 +288,24 @@ export default function Versions() {
       if (option.key === "ALL") {
         count = originalStacks.length;
       } else {
-        count = originalStacks.reduce((acc, stack) => {
-          if (option.values.includes(stack.ClusterStackVersions.state)) {
-            return acc + 1;
-          }
-          return acc;
-        }, 0);
+        const currentStack = originalStacks.find(
+          (stack) => stack.ClusterStackVersions.state === "CURRENT",
+        );
+        count = originalStacks.filter((stack) => versionMatchesFilter(
+          stack,
+          option.key as VersionFilterKey,
+          currentStack,
+          upgradeState !== "NOT_REQUIRED" && upgradeState !== "COMPLETED"
+            ? upgradeVersionDisplayName
+            : undefined,
+        )).length;
       }
 
       return { ...option, count };
     });
 
     setOptions(updatedOptions);
-  }, [originalStacks, selectedOption]);
+  }, [originalStacks, selectedOption, upgradeState, upgradeVersionDisplayName]);
 
   useEffect(() => {
     const errorStack = originalStacks
@@ -341,7 +376,7 @@ export default function Versions() {
         const isStillLoading = selectedMethod.isCheckRequestInProgress;
         
         // Enable button if not loading and no required failures, or if no method is selected yet
-        setIsProceedButtonDisabled(hasRequiredFailures && !isStillLoading);
+        setIsProceedButtonDisabled(isStillLoading || hasRequiredFailures);
       } else {
         // No method selected, disable button
         setIsProceedButtonDisabled(true);
@@ -507,7 +542,7 @@ export default function Versions() {
               >
                 CURRENT
               </Button>
-              {stackData.ClusterStackVersions.supports_revert && (
+              {stackData.ClusterStackVersions.supports_revert && !isNonWizardUser && (
                 <>
                   <Dropdown.Toggle
                     size="sm"
@@ -517,6 +552,7 @@ export default function Versions() {
                   />
                   <Dropdown.Menu className="dropdown-menu-right">
                       <Dropdown.Item
+                        disabled={versionMutationBlocked || startInProgress}
                         onClick={() => {
                           setSelectedStack(stackData)
                           selectedStackRef.current = stackData; 
@@ -536,8 +572,7 @@ export default function Versions() {
                 variant="success"
                 className="text-uppercase"
                 size="sm"
-                disabled={(upgradeState !== "NOT_REQUIRED" &&
-                  upgradeState !== "COMPLETED") || !canUpgradeDowngrade}
+                disabled={versionMutationBlocked || startInProgress}
                 onClick={() => handleUpgradeButton(stackData)}
               >
                 Upgrade
@@ -547,19 +582,17 @@ export default function Versions() {
                 split
                 variant="success"
                 id="dropdown"
-                disabled={!canUpgradeDowngrade}
+                disabled={versionMutationBlocked || startInProgress}
               />
               <Dropdown.Menu className="dropdown-menu-right">
                 <Dropdown.Item
-                disabled={upgradeState !== "NOT_REQUIRED" &&
-                  upgradeState !== "COMPLETED"}
+                disabled={versionMutationBlocked || isOperationInProgress}
                   onClick={() => installPackagesPayloadSet(stackData)}
                 >
                   Re-install
                 </Dropdown.Item>
-                <Dropdown.Item
-                  disabled= {upgradeState !== "NOT_REQUIRED" &&
-                  upgradeState !== "COMPLETED"}
+                {supports.preUpgradeCheck && <Dropdown.Item
+                  disabled={versionMutationBlocked || startInProgress}
                   onClick={() => {
                     showUpgradeProceedButton.current = false;
                     selectedStackRef.current = stackData;
@@ -572,7 +605,7 @@ export default function Versions() {
                   }}
                 >
                   Pre-upgrade check
-                </Dropdown.Item>
+                </Dropdown.Item>}
               </Dropdown.Menu>
             </Dropdown>
           ) : getButtonName(stackData) === "installed" ? (
@@ -595,6 +628,7 @@ export default function Versions() {
               size="sm"
               className="text-uppercase fw-bold"
               onClick={() => handleUpgradeButton(stackData)}
+              disabled={versionMutationBlocked || isOperationInProgress}
             >
               {getButtonName(stackData) === "re-install"
                 ? "RE-INSTALL"
@@ -602,11 +636,24 @@ export default function Versions() {
             </Button>
           )}
         </div>
+        {canUpgradeDowngrade && canHideRepositoryVersion(stackData) && (
+          <div className="text-center mt-2">
+            <Button
+              variant="link"
+              size="sm"
+              disabled={hideInProgress || versionMutationBlocked}
+              onClick={() => setHideVersion(stackData)}
+            >
+              Hide
+            </Button>
+          </div>
+        )}
       </div>
     );
   }
 
   async function installPackagesPayloadSet(stackData: StackVersion) {
+    if (versionMutationBlocked || isOperationInProgress) return;
     
     setOperationsState([]);
     setIsOperationInProgress(false);
@@ -635,6 +682,7 @@ export default function Versions() {
   }
 
   function handleUpgradeButton(stackData: StackVersion) {
+    if (versionMutationBlocked || isOperationInProgress) return;
     setSelectedStack(stackData);
     selectedStackRef.current = stackData;
     switch (getButtonName(stackData)) {
@@ -649,23 +697,59 @@ export default function Versions() {
     }
   }
 
+  async function hideRepositoryVersion() {
+    const repository = hideVersion?.repository_versions?.[0]?.RepositoryVersions;
+    if (!hideVersion || !repository || hideInProgress || versionMutationBlocked) return;
+
+    setHideInProgress(true);
+    try {
+      await VersionsApi.hideRepositoryVersion(
+        repository.stack_name,
+        repository.stack_version,
+        repository.id,
+      );
+      setOriginalStacks((current) => current.filter(
+        (stack) => stack.ClusterStackVersions.id !== hideVersion.ClusterStackVersions.id,
+      ));
+      setHideVersion(undefined);
+      toast.success("Repository version hidden");
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || error?.message || "Repository version could not be hidden");
+    } finally {
+      setHideInProgress(false);
+    }
+  }
+
   async function handleUpgradeClick(stack: StackVersion) {
-    const response = await VersionsApi.get_supported_upgradeTypes(
-      stack.ClusterStackVersions.stack,
-      stack.ClusterStackVersions.version,
-      stack.repository_versions[0].RepositoryVersions.repository_version
-    );
-    const upgradeTypes =
-      response.items[0].CompatibleRepositoryVersions.upgrade_types;
+    preCheckGenerationRef.current += 1;
+    let upgradeTypes: string[];
+    try {
+      const response = await VersionsApi.get_supported_upgradeTypes(
+        stack.ClusterStackVersions.stack,
+        stack.ClusterStackVersions.version,
+        stack.repository_versions[0].RepositoryVersions.repository_version
+      );
+      upgradeTypes = response?.items?.[0]?.CompatibleRepositoryVersions?.upgrade_types || [];
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || error?.message || "Supported upgrade methods could not be loaded");
+      return;
+    }
 
     // Store upgrade types in state instead of in the stack object
     setCurrentUpgradeTypes(upgradeTypes);
+    setMethodType("");
+    methodTypeRef.current = "";
+    setSlaveComponentFailures(false);
+    setServiceCheckFailures(false);
 
     // run upgrade method checks.
-    const updateMethods = upgradeMethodsRef.current.map((method) => ({
+    const updateMethods = initialUpgradeMethods.map((method) => ({
       ...method,
-      isCheckRequestInProgress: true,
-      isCheckComplete: false,
+      allowed: upgradeTypes.includes(method.type)
+        && (method.type !== "HOST_ORDERED" || Boolean(supports.enabledWizardForHostOrderedUpgrade)),
+      isCheckRequestInProgress: Boolean(supports.preUpgradeCheck) && upgradeTypes.includes(method.type),
+      isCheckComplete: !supports.preUpgradeCheck,
+      precheckResultsMessage: supports.preUpgradeCheck ? "" : "Not required",
     }));
     upgradeMethodsRef.current = updateMethods;
     setUpgradeMethods(updateMethods);
@@ -673,12 +757,17 @@ export default function Versions() {
     setUpgradeModal(true);
 
     // Run the pre-upgrade checks after setting the initial modal content
-    runUpgradeMethodCheck(stack);
+    if (supports.preUpgradeCheck) {
+      void runUpgradeMethodCheck(stack);
+    }
   }
 
-  async function runPreUpgradeCheckOnly(data: any) {
+  async function runPreUpgradeCheckOnly(
+    data: any,
+    generation = preCheckGenerationRef.current,
+  ) {
     const methodIndex = upgradeMethodsRef.current.findIndex(
-      (method) => method.displayName === data.type
+      (method) => method.type === data.type
     );
     if (methodIndex !== -1) {
       const updatedMethods = [...upgradeMethodsRef.current];
@@ -692,12 +781,38 @@ export default function Versions() {
       setUpgradeMethods(updatedMethods);
     }
 
-    // run pre upgrade check
-    const response = await VersionsApi.runPreUpgradeCheck(
-      clusterName,
-      data.id,
-      data.type
-    );
+    let response;
+    try {
+      response = await VersionsApi.runPreUpgradeCheck(
+        clusterName,
+        data.id,
+        data.type
+      );
+    } catch (error: any) {
+      if (generation === preCheckGenerationRef.current) {
+        const updatedMethods = upgradeMethodsRef.current.map((candidate) =>
+          candidate.type === data.type
+            ? {
+                ...candidate,
+                isCheckComplete: true,
+                isCheckRequestInProgress: false,
+                precheckResultsMessage: "Required: Check Failed",
+                preCheckResultsModalContent: (
+                  <Alert variant="danger">
+                    {error?.response?.data?.message || error?.message || "Pre-upgrade checks could not be loaded"}
+                  </Alert>
+                ),
+              }
+            : candidate
+        );
+        upgradeMethodsRef.current = updatedMethods;
+        setUpgradeMethods(updatedMethods);
+      }
+      throw error;
+    }
+    if (generation !== preCheckGenerationRef.current) {
+      return;
+    }
 
     let failTitle = translate("popup.clusterCheck.Upgrade.fail.title");
     let failAlert = translate("popup.clusterCheck.Upgrade.fail.alert");
@@ -707,7 +822,7 @@ export default function Versions() {
       ).length > 0;
     if (
       response.items.filter(
-        (item: Item) => item.UpgradeChecks.status === "ERROR"
+        (item: Item) => item.UpgradeChecks.status === "FAIL"
       ).length === 0 &&
       bypassedFailures
     ) {
@@ -791,21 +906,21 @@ export default function Versions() {
           <div>
             <h2>{popup.failTitle}</h2>
             <div className="alert alert-warning">{popup.failAlert}</div>
-            <div>{mapUpgradeChecks(fails)}</div>
+            <div>{mapUpgradeChecks(fails, methodType)}</div>
           </div>
         )}
         {warnings.length > 0 && (
           <div>
             <h2>{popup.warningTitle}</h2>
             <div className="alert alert-warning">{popup.warningAlert}</div>
-            <div>{mapUpgradeChecks(warnings)}</div>
+            <div>{mapUpgradeChecks(warnings, methodType)}</div>
           </div>
         )}
         {bypass.length > 0 && (
           <div>
             <h5>{popup.failTitle}</h5>
             <p>{popup.failAlert}</p>
-            <div>{mapUpgradeChecks(bypass)}</div>
+            <div>{mapUpgradeChecks(bypass, methodType)}</div>
           </div>
         )}
         {configsMergeConflicts?.length > 0 && (
@@ -847,15 +962,12 @@ export default function Versions() {
       </>
     );
 
-    let upgradeCheckResult1 =
-      fails.length > 0 || warnings.length > 0
-        ? `${fails.length > 0 ? `${fails.length} Required` : ""}` +
-          `${
-            warnings.length > 0
-              ? (fails.length > 0 ? ", " : "") + `${warnings.length} Warning`
-              : ""
-          }`
-        : "Passed";
+    const resultParts = [
+      fails.length ? `${fails.length} Required` : "",
+      warnings.length ? `${warnings.length} Warning` : "",
+      bypass.length ? `${bypass.length} Bypassed` : "",
+    ].filter(Boolean);
+    let upgradeCheckResult1 = resultParts.join(", ") || "Passed";
     if(upgradeCheckResult1 === "Passed") {
       upgradeCheckModalContent1 = translate("admin.stackVersions.version.upgrade.upgradeOptions.preCheck.allPassed.msg")
     }
@@ -878,25 +990,18 @@ export default function Versions() {
     }
   }
 
-  function mapUpgradeChecks(items: Item[]) {
+  function mapUpgradeChecks(items: Item[], upgradeType: string) {
+    const repositoryVersionId = selectedStackRef.current?.ClusterStackVersions.id || 0;
     return items.map((item, index) => {
-      const { failed_on, reason, check } = item.UpgradeChecks || {};
       return (
-        <>
-          <ul>
-            <li key={index}>
-              <div className="text-dark mb-2">
-                <FontAwesomeIcon icon={faTimes} className="text-danger" />{" "}
-                {check}
-              </div>
-              <pre className="scrollable-container py-2">
-                <pre className="border-none">Reason: {reason}</pre>
-                <br />
-                <span>Failed on: {Array.isArray(failed_on) ? failed_on.join(', ') : failed_on}</span>
-              </pre>
-            </li>
-          </ul>
-        </>
+        <ul key={`${item.UpgradeChecks.id}-${index}`} className="mb-0">
+          <PreUpgradeCheckItem
+            check={item.UpgradeChecks}
+            repositoryVersionId={repositoryVersionId}
+            upgradeType={upgradeType}
+            onRecheck={runPreUpgradeCheckOnly}
+          />
+        </ul>
       );
     });
   }
@@ -1092,32 +1197,93 @@ export default function Versions() {
 
     // Run all pre-upgrade checks in parallel for allowed methods
     const allowedMethods = upgradeMethodsRef.current.filter(method => method.allowed);
-    const checkPromises = allowedMethods.map(method => 
+    const generation = preCheckGenerationRef.current;
+    const checkPromises = allowedMethods.map(method =>
       runPreUpgradeCheckOnly({
         id: stack.ClusterStackVersions.id,
         label: stack.repository_versions[0].RepositoryVersions.display_name,
         type: method.type,
-      }).catch(error => {
-        console.error(`Pre-upgrade check failed for ${method.type}:`, error);
-        // Return a default failed result
-        return {
-          methodType: method.type,
-          error: true,
-          precheckResultsMessage: "Check Failed",
-        };
-      })
+      }, generation).catch(() => undefined)
     );
 
     try {
       await Promise.all(checkPromises);
       // Cache the results
-      preCheckCacheRef.current.set(cacheKey, upgradeMethodsRef.current);
+      if (generation === preCheckGenerationRef.current) {
+        preCheckCacheRef.current.set(cacheKey, upgradeMethodsRef.current);
+      }
     } catch (error) {
       console.error("Error running upgrade method checks:", error);
     }
   }
 
+  async function claimUpgradeOwnership() {
+    await ClusterApi.postPersistData(persistedPayload({
+      "wizard-data": { userName: user?.user_name || "" },
+    }));
+  }
+
+  async function startUpgrade() {
+    if (!selectedStackRef.current || !methodType || startInProgress || versionMutationBlocked) return;
+    const payload = {
+      Upgrade: {
+        repository_version_id: selectedStackRef.current.repository_versions[0].RepositoryVersions.id,
+        upgrade_type: methodType,
+        skip_failures: slaveComponentFailures.toString(),
+        skip_service_check_failures: serviceCheckFailures.toString(),
+        direction: "UPGRADE",
+      },
+    };
+
+    setStartInProgress(true);
+    try {
+      // Persist the owner before creating the request so other open browsers
+      // become read-only as soon as they receive the upgrade event.
+      await claimUpgradeOwnership();
+      const response = await VersionsApi.getUpgradeId(payload, clusterName);
+      const newUpgradeId = response?.resources?.[0]?.Upgrade?.request_id;
+      if (!newUpgradeId) throw new Error("Ambari did not return an upgrade request ID");
+      setUpgradeId(newUpgradeId);
+
+      const isPatch = get(
+        selectedStackRef.current,
+        "repository_versions[0].RepositoryVersions.type",
+        "STANDARD",
+      ) === "PATCH";
+      if (setIsPatchUpgrade) setIsPatchUpgrade(isPatch);
+      const versionDisplayName = get(
+        selectedStackRef.current,
+        "repository_versions[0].RepositoryVersions.display_name",
+        "",
+      );
+      if (setUpgradeVersionDisplayName) setUpgradeVersionDisplayName(versionDisplayName);
+
+      await Promise.all([
+        ClusterApi.postPersistData(persistedPayload({ isPatchUpgrade: isPatch })),
+        ClusterApi.postPersistData(persistedPayload({ upgradeVersionDisplayName: versionDisplayName })),
+      ]).catch(() => {
+        toast.error("The upgrade started, but its browser state could not be persisted");
+      });
+      setUpgradeCheckModal(false);
+      setUpgradeConfirmationModal(false);
+      modalManager.show(<Upgrade upgradeId={newUpgradeId} />);
+    } catch (error) {
+      modalManager.show({
+        modalTitle: "Upgrade could not be started",
+        modalBody: <div>{error instanceof Error ? error.message : String(error)}</div>,
+        onClose: () => modalManager.hide(),
+        successCallback: () => modalManager.hide(),
+        options: { cancelableViaIcon: true, cancelableViaBtn: false },
+      });
+    } finally {
+      setStartInProgress(false);
+    }
+  }
+
   function installPackages() {
+    if (versionMutationBlocked) {
+      return;
+    }
     if (isOperationInProgress) {
       setInstallPackagesModal(false);
       return;
@@ -1316,7 +1482,7 @@ export default function Versions() {
             </h2>
             <h2 className="mx-2">
               {/* Only show repository edit icon if user has CLUSTER.UPGRADE_DOWNGRADE_STACK permission */}
-              {canUpgradeDowngrade && (
+              {canManageStackVersions && !isNonWizardUser && !isUpgradeInProgress && (
                 <Tooltip message="Click to Edit Repositories" placement="top">
                   <FontAwesomeIcon
                     className="fs-16 text-info"
@@ -1325,6 +1491,7 @@ export default function Versions() {
                         <RepoModal
                           selectedStack={selectedStackRef.current}
                           isOpen
+                          canSave={canSaveRepositories}
                           onClose={() => {
                             modalManager.hide();
                           }}
@@ -1386,8 +1553,7 @@ export default function Versions() {
                   variant="success"
                   size="sm"
                   className="text-uppercase"
-                  disabled={!selectedStackRef.current || (upgradeState !== "NOT_REQUIRED" &&
-                  upgradeState !== "COMPLETED") || !canUpgradeDowngrade}
+                  disabled={!selectedStackRef.current || versionMutationBlocked || startInProgress}
                   onClick={() => {
                     if (selectedStackRef.current) {
                       showUpgradeProceedButton.current = true;
@@ -1401,13 +1567,12 @@ export default function Versions() {
                   split
                   size="sm"
                   variant="success"
-                  disabled={!selectedStackRef.current || !canUpgradeDowngrade}
+                  disabled={!selectedStackRef.current || versionMutationBlocked || startInProgress}
                   id="dropdown-split-basic"
                 />
                 <Dropdown.Menu className="dropdown-menu-right">
                   <Dropdown.Item
-                    disabled={!selectedStackRef.current || (upgradeState !== "NOT_REQUIRED" &&
-                    upgradeState !== "COMPLETED")}
+                    disabled={!selectedStackRef.current || versionMutationBlocked || isOperationInProgress}
                     onClick={() => {
                       if (selectedStackRef.current) {
                         installPackagesPayloadSet(selectedStackRef.current);
@@ -1416,9 +1581,8 @@ export default function Versions() {
                   >
                     Re-install
                   </Dropdown.Item>
-                  <Dropdown.Item
-                    disabled={!selectedStackRef.current || (upgradeState !== "NOT_REQUIRED" &&
-                    upgradeState !== "COMPLETED")}
+                  {supports.preUpgradeCheck && <Dropdown.Item
+                    disabled={!selectedStackRef.current || versionMutationBlocked || startInProgress}
                     onClick={() => {
                       showUpgradeProceedButton.current = false;
                       if (selectedStackRef.current) {
@@ -1429,7 +1593,7 @@ export default function Versions() {
                     }}
                   >
                     Pre-upgrade check
-                  </Dropdown.Item>
+                  </Dropdown.Item>}
                 </Dropdown.Menu>
               </Dropdown>
             ) : (
@@ -1437,7 +1601,7 @@ export default function Versions() {
                 className="text-uppercase"
                 variant="success"
                 size="sm"
-                disabled={!selectedStackRef.current}
+                disabled={!selectedStackRef.current || versionMutationBlocked || isOperationInProgress}
                 onClick={() => {
                   if (selectedStackRef.current) {
                     handleUpgradeButton(selectedStackRef.current);
@@ -1546,7 +1710,7 @@ export default function Versions() {
     
     const parentStackId = selectedStackRef.current?.repository_versions[0].RepositoryVersions.parent_id;
     
-    const parentStack = stacks.find(
+    const parentStack = allLoadedStacks.find(
       stack => stack.ClusterStackVersions.id === parentStackId
     );
     
@@ -1618,43 +1782,56 @@ export default function Versions() {
   }
 
   async function revertPatchUpgrade() {
+    if (versionMutationBlocked || startInProgress) return;
+    const selectedStack = selectedStackRef.current;
+    const parentStackId = selectedStack?.repository_versions?.[0]?.RepositoryVersions.parent_id;
+    const parentStack = allLoadedStacks.find(
+      (stack) => stack.ClusterStackVersions.id === parentStackId,
+    );
+    if (!selectedStack?.ClusterStackVersions.supports_revert || !parentStack) {
+      toast.error("The target stack version for this revert could not be found");
+      return;
+    }
+
     const payload = {
       "Upgrade": {
-        "revert_upgrade_id": selectedStackRef.current?.ClusterStackVersions.revert_upgrade_id,
+        "revert_upgrade_id": selectedStack.ClusterStackVersions.revert_upgrade_id,
       }
     }
 
+    setStartInProgress(true);
     try {
+      await claimUpgradeOwnership();
       const response = await VersionsApi.getUpgradeId(
         payload,
         clusterName
       );
       const upgradeId = response?.resources[0]?.Upgrade?.request_id;
+      if (!upgradeId) throw new Error("Ambari did not return a revert request ID");
       setUpgradeId(upgradeId);
+      const isPatch = get(
+        selectedStack,
+        "repository_versions[0].RepositoryVersions.type",
+        "STANDARD",
+      ) === "PATCH";
+      const targetDisplayName = get(
+        parentStack,
+        "repository_versions[0].RepositoryVersions.display_name",
+        "",
+      );
+      if (setIsPatchUpgrade) setIsPatchUpgrade(isPatch);
+      if (setUpgradeVersionDisplayName) setUpgradeVersionDisplayName(targetDisplayName);
 
-      if(setIsPatchUpgrade) {
-        const isPatch = get(selectedStackRef.current, "repository_versions[0].RepositoryVersions.type", "STANDARD") === "PATCH";
-        setIsPatchUpgrade(isPatch);
-
-        await ClusterApi.postPersistData(
-          JSON.stringify({
-            isPatchUpgrade: JSON.stringify(isPatch)
-          })
-        )
-      }
-      if(setUpgradeVersionDisplayName) {
-        const versionDisplayName = get(selectedStackRef.current, "repository_versions[0].RepositoryVersions.display_name", "");
-        setUpgradeVersionDisplayName(versionDisplayName);
-        await ClusterApi.postPersistData(
-          JSON.stringify({
-            upgradeVersionDisplayName: JSON.stringify(versionDisplayName)
-          })
-        )
-      }
+      await Promise.all([
+        ClusterApi.postPersistData(persistedPayload({ isPatchUpgrade: isPatch })),
+        ClusterApi.postPersistData(persistedPayload({ upgradeVersionDisplayName: targetDisplayName })),
+      ]).catch(() => {
+        toast.error("The revert started, but its browser state could not be persisted");
+      });
       modalManager.show(<Upgrade upgradeId={upgradeId} />);
     } catch (error) {
       modalManager.show({
-        modalTitle: "Upgrade could not be started",
+        modalTitle: "Revert could not be started",
         modalBody: (
           <div>
             {error instanceof Error ? error.message : String(error)}
@@ -1671,12 +1848,14 @@ export default function Versions() {
           cancelableViaBtn: false,
         },
       });
+    } finally {
+      setStartInProgress(false);
     }
   }
 
   // Handle reinstall of out-of-sync components
   async function handleReinstallOutOfSyncComponents() {
-    if (!stackVersionError) return;
+    if (!stackVersionError || isNonWizardUser || outOfSyncActionInProgress) return;
     
     const outOfSyncHosts = stackVersionError.outOfSyncHosts;
     
@@ -1685,35 +1864,32 @@ export default function Versions() {
       return;
     }
     
+    setOutOfSyncActionInProgress(true);
     try {
-      await HostsApi.updateHostComponents(
-        clusterName,
-        `HostRoles/host_name.in(${outOfSyncHosts.join(',')})&HostRoles/state=INSTALL_FAILED`,
-        {
-          context: translate("hosts.host.maintainance.reinstallFailedComponents.context"),
-          HostRoles: {
-            state: 'INSTALLED'
-          },
-          query: `HostRoles/host_name.in(${outOfSyncHosts.join(',')})&HostRoles/state=INSTALL_FAILED`
-        }
-      );
-      
-      toast.success("Reinstall request submitted successfully");
-      setConfirmReinstallModal(false);
-      
-      // Refresh stacks after a delay
-      setTimeout(() => {
-        fetchServices();
-      }, 2000);
+      await getKDCSessionState(async () => {
+        await HostsApi.updateHostComponents(
+          clusterName,
+          `HostRoles/host_name.in(${outOfSyncHosts.join(',')})&HostRoles/state=INSTALL_FAILED`,
+          {
+            context: translate("hosts.host.maintainance.reinstallFailedComponents.context"),
+            HostRoles: { state: 'INSTALLED' },
+            query: `HostRoles/host_name.in(${outOfSyncHosts.join(',')})&HostRoles/state=INSTALL_FAILED`
+          }
+        );
+        toast.success("Reinstall request submitted successfully");
+        setConfirmReinstallModal(false);
+        await fetchServices();
+      });
     } catch (error: any) {
-      console.error("Error reinstalling components:", error);
-      toast.error(error?.message || "Failed to reinstall components");
+      toast.error(error?.response?.data?.message || error?.message || "Failed to reinstall components");
+    } finally {
+      setOutOfSyncActionInProgress(false);
     }
   }
 
   // Handle remove of out-of-sync components
   async function handleRemoveOutOfSyncComponents() {
-    if (!stackVersionError) return;
+    if (!stackVersionError || isNonWizardUser || outOfSyncActionInProgress) return;
     
     const outOfSyncHosts = stackVersionError.outOfSyncHosts;
     
@@ -1722,26 +1898,25 @@ export default function Versions() {
       return;
     }
     
+    setOutOfSyncActionInProgress(true);
     try {
-      await HostsApi.deleteHostComponents(
-        {
-          RequestInfo: {
-            query: `HostRoles/host_name.in(${outOfSyncHosts.join(',')})&HostRoles/state=INSTALL_FAILED`
-          }
-        },
-        clusterName
-      );
-      
-      toast.success("Remove request submitted successfully");
-      setConfirmRemoveModal(false);
-      
-      // Refresh stacks after a delay
-      setTimeout(() => {
-        fetchServices();
-      }, 2000);
+      await getKDCSessionState(async () => {
+        await HostsApi.deleteHostComponents(
+          {
+            RequestInfo: {
+              query: `HostRoles/host_name.in(${outOfSyncHosts.join(',')})&HostRoles/state=INSTALL_FAILED`
+            }
+          },
+          clusterName
+        );
+        toast.success("Remove request submitted successfully");
+        setConfirmRemoveModal(false);
+        await fetchServices();
+      });
     } catch (error: any) {
-      console.error("Error removing components:", error);
-      toast.error(error?.message || "Failed to remove components");
+      toast.error(error?.response?.data?.message || error?.message || "Failed to remove components");
+    } finally {
+      setOutOfSyncActionInProgress(false);
     }
   }
 
@@ -1760,6 +1935,9 @@ export default function Versions() {
         <div className="pt-1">Choose the upgrade method:</div>
 
         <div className="upgrade-options-container">
+          {currentUpgradeTypes.length === 0 && (
+            <Alert variant="warning">The server did not return a supported upgrade method for this target.</Alert>
+          )}
           {upgradeMethods
             .filter(
               (method) =>
@@ -1862,6 +2040,14 @@ export default function Versions() {
 
   return (
     <>
+      {loadError && (
+        <Alert variant="danger" className="mt-3 d-flex justify-content-between align-items-center">
+          <span>{loadError}</span>
+          <Button size="sm" variant="outline-danger" onClick={() => void fetchServices()}>
+            Retry
+          </Button>
+        </Alert>
+      )}
       {stackVersionError && (
         <div className="alert alert-warning mt-3">
           <div className="d-flex align-items-start">
@@ -1875,11 +2061,12 @@ export default function Versions() {
               <span className="badge bg-secondary">{stackVersionError.stackFullName}</span>
               <div className="mt-2">{stackVersionError.description}</div>
             </div>
-            {canManageStackVersions && (
+            {canManageStackVersions && !isNonWizardUser && !isUpgradeInProgress && (
               <div className="d-flex gap-2 ms-3">
                 <Button
                   variant="warning"
                   size="sm"
+                  disabled={outOfSyncActionInProgress}
                   onClick={() => setConfirmReinstallModal(true)}
                 >
                   {translate('common.reinstall')}
@@ -1887,6 +2074,7 @@ export default function Versions() {
                 <Button
                   variant="warning"
                   size="sm"
+                  disabled={outOfSyncActionInProgress}
                   onClick={() => setConfirmRemoveModal(true)}
                 >
                   {translate('common.remove')}
@@ -1899,7 +2087,7 @@ export default function Versions() {
       <div className="mt-4">
         <div className="d-flex">
            {/* Only show Manage versions button if user has CLUSTER.UPGRADE_DOWNGRADE_STACK permission */}
-           {canManageStackVersions && !isUpgradeInProgress && (
+           {canManageStackVersions && !isUpgradeInProgress && !isNonWizardUser && (
              <Button
                   size="sm"
                   variant="success"
@@ -2059,7 +2247,7 @@ export default function Versions() {
           cancelableViaSuccessBtn: showUpgradeProceedButton.current,
           okButtonText: "PROCEED",
           cancelButtonText: "CANCEL",
-          okButtonDisabled: isProceedButtonDisabled,
+            okButtonDisabled: isProceedButtonDisabled || startInProgress,
         }}
         successCallback={() => {
           if (showUpgradeProceedButton.current) {
@@ -2087,71 +2275,15 @@ export default function Versions() {
           successCallback={async () => {
             setUpgradeCheckModal(false);
             if (showRerunButton.current) {
-              runPreUpgradeCheckOnly({
+              void runPreUpgradeCheckOnly({
                 id: selectedStackRef.current?.ClusterStackVersions.id,
                 label:
                   selectedStackRef.current?.repository_versions[0].RepositoryVersions
                     .display_name,
                 type: methodType,
-              });
+              }).catch(() => undefined);
             } else {
-              const payload = {
-                Upgrade: {
-                  repository_version_id:
-                    selectedStackRef.current?.repository_versions[0].RepositoryVersions.id,
-                  upgrade_type: methodType,
-                  skip_failures: slaveComponentFailures.toString(),
-                  skip_service_check_failures: serviceCheckFailures.toString(),
-                  direction: "UPGRADE",
-                },
-              };
-              try {
-                const response = await VersionsApi.getUpgradeId(
-                  payload,
-                  clusterName
-                );
-                const upgradeId = response?.resources[0]?.Upgrade?.request_id;
-                setUpgradeId(upgradeId);
-                if(setIsPatchUpgrade) {
-                  const isPatch = get(selectedStackRef.current, "repository_versions[0].RepositoryVersions.type", "STANDARD") === "PATCH";
-                  setIsPatchUpgrade(isPatch);
-
-                  await ClusterApi.postPersistData(
-                    JSON.stringify({
-                      isPatchUpgrade: JSON.stringify(isPatch)
-                    })
-                  )
-                }
-                if(setUpgradeVersionDisplayName) {
-                  const versionDisplayName = get(selectedStackRef.current, "repository_versions[0].RepositoryVersions.display_name", "");
-                  setUpgradeVersionDisplayName(versionDisplayName);
-                  await ClusterApi.postPersistData(
-                    JSON.stringify({
-                      upgradeVersionDisplayName: JSON.stringify(versionDisplayName)
-                    })
-                  )
-                }
-                modalManager.show(<Upgrade upgradeId={upgradeId} />);
-              } catch (error) {
-                modalManager.show({
-                  modalTitle: "Upgrade could not be started",
-                  modalBody: (
-                    <div>
-                      {error instanceof Error ? error.message : String(error)}
-                    </div>
-                  ),
-                  onClose: () => {
-                    modalManager.hide();
-                  },
-                  successCallback: () => {
-                    modalManager.hide();
-                  },
-                  options: {
-                    cancelableViaIcon: true,
-                    cancelableViaBtn: false,
-                  },
-                });
-              }
+              await startUpgrade();
             }
           }}
         />
@@ -2170,8 +2302,12 @@ export default function Versions() {
           }}
           successCallback={() => {
             setUpgradeConfirmationModal(false);
-            showRerunButton.current = false;
-            setUpgradeCheckModal(true);
+            if (supports.preUpgradeCheck) {
+              showRerunButton.current = false;
+              setUpgradeCheckModal(true);
+            } else {
+              void startUpgrade();
+            }
           }}
         />
       )}
@@ -2192,6 +2328,24 @@ export default function Versions() {
           }}
         />
       )}
+      {hideVersion && (
+        <Modal
+          modalTitle="Hide Repository Version"
+          isOpen
+          onClose={() => {
+            if (!hideInProgress) setHideVersion(undefined);
+          }}
+          modalBody={`Hide ${hideVersion.repository_versions[0]?.RepositoryVersions.display_name || "this repository version"}? It can be restored from Manage Versions.`}
+          options={{
+            cancelableViaBtn: true,
+            cancelableViaIcon: !hideInProgress,
+            okButtonText: hideInProgress ? "HIDING..." : "HIDE",
+            cancelButtonText: "CANCEL",
+            okButtonDisabled: hideInProgress,
+          }}
+          successCallback={hideRepositoryVersion}
+        />
+      )}
 
       { confirmRevertPatchUpradeModal && (
         <Modal 
@@ -2204,6 +2358,7 @@ export default function Versions() {
             cancelableViaIcon: true,
             cancelableViaBtn: true,
             modalSize: "modal-sm",
+            okButtonDisabled: startInProgress,
           }}
           successCallback={() => {
             setConfirmRevertPatchUpgradeModal(false);
@@ -2239,6 +2394,7 @@ export default function Versions() {
             cancelableViaIcon: true,
             okButtonText: translate("common.reinstall"),
             cancelButtonText: translate("common.cancel"),
+            okButtonDisabled: outOfSyncActionInProgress,
           }}
           successCallback={() => {
             handleReinstallOutOfSyncComponents();
@@ -2276,6 +2432,7 @@ export default function Versions() {
             cancelableViaIcon: true,
             okButtonText: translate("common.remove"),
             cancelButtonText: translate("common.cancel"),
+            okButtonDisabled: outOfSyncActionInProgress,
           }}
           successCallback={() => {
             handleRemoveOutOfSyncComponents();

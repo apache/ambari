@@ -19,58 +19,69 @@
 import { useContext, useEffect, useState } from "react";
 import ClusterApi from "../api/clusterApi";
 import { ChooseServicesApi } from "../api/chooseServicesApi";
-import ConfigsApi from "../api/configsApi";
-import { isEmpty } from "lodash";
 import { AppContext } from "../store/context";
 
 function useStackServices() {
   const [services, setServices] = useState<any[]>([]);
-  const [versionDetails, setVersionDetails] = useState<any>({});
-  const {isClusterInstalled}=useContext(AppContext);
-  const getConfigsCollectionMap = async () => { 
-    //@ts-ignore
-    const configs = await ConfigsApi.loadConfigsFromStack(
-      versionDetails.stack,
-      versionDetails.version,
-      []
-    );
-  };
-
-  async function getClusterVersionDetails() {
-    const clusterName = await ClusterApi.getClusterName();
-    const clusterDetails = await ClusterApi.getDesiredClusterConfigs(
-      clusterName,
-      `Clusters/provisioning_state,Clusters/security_type,Clusters/version,Clusters/cluster_id`
-    );
-    const cluster = clusterDetails?.Clusters;
-    console.log("Cluster Details", clusterDetails, cluster);
-    setVersionDetails({
-      stack: cluster.version.split("-")[0],
-      version: cluster.version.split("-")[1],
-    });
-  }
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [retryAttempt, setRetryAttempt] = useState(0);
+  const { isClusterInstalled } = useContext(AppContext);
 
   useEffect(() => {
+    let active = true;
+
     const fetchServices = async () => {
-      const services = await ChooseServicesApi.getServices(
-        versionDetails?.stack,
-        versionDetails?.version
-      );
-      setServices(services.items);
+      if (!isClusterInstalled) {
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+      try {
+        const clusterName = await ClusterApi.getClusterName();
+        const clusterDetails = await ClusterApi.getDesiredClusterConfigs(
+          clusterName,
+          "Clusters/provisioning_state,Clusters/security_type,Clusters/version,Clusters/cluster_id",
+        );
+        const [stack, version] = String(clusterDetails?.Clusters?.version || "").split("-");
+        if (!stack || !version) {
+          throw new Error("The current stack version could not be determined");
+        }
+        const response = await ChooseServicesApi.getServices(stack, version);
+        if (active) {
+          setServices(response.items || []);
+        }
+      } catch (requestError: any) {
+        if (active) {
+          setError(
+            requestError?.response?.data?.message
+              || requestError?.message
+              || "Stack services could not be loaded"
+          );
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
     };
-    console.log("Version Details are",versionDetails);
-    if (!isEmpty(versionDetails)) {
-      fetchServices();
-      getConfigsCollectionMap();
-    }
-  }, [versionDetails]);
 
-  useEffect(()=>{
-    if(isClusterInstalled)
-    getClusterVersionDetails()
-  },[isClusterInstalled])
+    void fetchServices();
+    return () => {
+      active = false;
+    };
+  }, [isClusterInstalled, retryAttempt]);
 
-  return { services };
+  return {
+    services,
+    loading,
+    error,
+    retry: () => {
+      setRetryAttempt((attempt) => attempt + 1);
+    },
+  };
 }
 
 export default useStackServices;

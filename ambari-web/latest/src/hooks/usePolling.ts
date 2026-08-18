@@ -19,12 +19,13 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { useEffect, useRef, useCallback, useState } from 'react';
 
-function usePolling(apiFunction: Function, interval = 2000) {
+function usePolling(apiFunction: Function, interval: number | null = 2000) {
   const savedCallback = useRef<Function | undefined>(undefined);
   const timeoutId = useRef<NodeJS.Timeout | null>(null);
   const isPausedRef = useRef(false);
   const isActiveRef = useRef(false);
   const [isPaused, setIsPaused] = useState(false);
+  const [resumeGeneration, setResumeGeneration] = useState(0);
 
   const stopPolling = useCallback(() => {
     if (timeoutId.current) {
@@ -40,6 +41,7 @@ function usePolling(apiFunction: Function, interval = 2000) {
 
   const resumePolling = useCallback(() => {
     setIsPaused(false);
+    setResumeGeneration((generation) => generation + 1);
   }, []);
 
   useEffect(() => {
@@ -85,7 +87,7 @@ function usePolling(apiFunction: Function, interval = 2000) {
       isActiveRef.current = false;
       stopPolling();
     };
-  }, [interval, isPaused, stopPolling]);
+  }, [interval, isPaused, resumeGeneration, stopPolling]);
 
   return { stopPolling, pausePolling, resumePolling, isPaused };
 }

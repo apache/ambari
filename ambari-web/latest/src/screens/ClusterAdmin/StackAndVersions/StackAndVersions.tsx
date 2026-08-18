@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { Tab, Tabs } from "react-bootstrap";
+import { Alert, Button, Tab, Tabs } from "react-bootstrap";
 import ListStack from "./ListStack";
 import Versions from "./ListVersion";
 import { useNavigate, useParams } from "react-router-dom";
@@ -26,13 +26,17 @@ import { AppContext } from "../../../store/context";
 import { get } from "lodash";
 import UpgradeHistory from "./UpgradeHistory";
 import { useAuth } from "../../../hooks/useAuth";
+import Upgrade from "./Upgrade";
+import { hasFinishedUpgradeHistory } from "./upgradeUtils";
  
 function StackAndVersions() {
   const { tabName } = useParams();
-  const [selectedTab, setSelectedTab] = useState(tabName);
+  const [selectedTab, setSelectedTab] = useState(tabName === "upgrade" ? "versions" : tabName);
   const [showUpgradeHistory, setShowUpgradeHistory] = useState(false);
+  const [historyLoadError, setHistoryLoadError] = useState<string | null>(null);
+  const [historyLoadAttempt, setHistoryLoadAttempt] = useState(0);
   const navigate=useNavigate();
-  const { clusterName } = useContext(AppContext);
+  const { clusterName, upgradeId } = useContext(AppContext);
 
   // Authorization hooks - implementing Ember.js upgrade history authorization patterns
   const { hasAuthorization } = useAuth();
@@ -48,16 +52,51 @@ function StackAndVersions() {
         return;
       }
 
-      const response = await VersionsApi.getUpgradeHistory(clusterName);
-      const upgradeItems = get(response, "items");
-      if(upgradeItems.length !== 0) 
-        setShowUpgradeHistory(true);
+      try {
+        setHistoryLoadError(null);
+        const response = await VersionsApi.getUpgradeHistory(clusterName);
+        const upgradeItems = get(response, "items", []);
+        setShowUpgradeHistory(hasFinishedUpgradeHistory(upgradeItems));
+      } catch (error: any) {
+        setHistoryLoadError(
+          error?.response?.data?.message
+            || error?.message
+            || "Upgrade history availability could not be loaded"
+        );
+      }
     }
-    fetchUpgrades();
-  }, [canViewUpgradeHistory])
+    void fetchUpgrades();
+  }, [canViewUpgradeHistory, clusterName, historyLoadAttempt]);
+
+  useEffect(() => {
+    if (tabName === "upgrade") {
+      setSelectedTab("versions");
+    } else if (["services", "versions", "history"].includes(tabName || "")) {
+      setSelectedTab(tabName);
+    } else {
+      navigate("/main/admin/stack/services", { replace: true });
+    }
+  }, [navigate, tabName]);
 
   return (
     <div className="py-4 mx-5">
+      {historyLoadError && (
+        <Alert variant="danger" className="d-flex justify-content-between align-items-center">
+          <span>{historyLoadError}</span>
+          <Button size="sm" variant="outline-danger" onClick={() => setHistoryLoadAttempt((attempt) => attempt + 1)}>
+            Retry
+          </Button>
+        </Alert>
+      )}
+      {tabName === "upgrade" && upgradeId === 0 && (
+        <Alert variant="warning">No active upgrade is available to restore.</Alert>
+      )}
+      {tabName === "upgrade" && upgradeId > 0 && (
+        <Upgrade
+          upgradeId={upgradeId}
+          onClose={() => navigate("/main/admin/stack/versions", { replace: true })}
+        />
+      )}
       <Tabs
         className="ambari-tabs"
         activeKey={selectedTab}

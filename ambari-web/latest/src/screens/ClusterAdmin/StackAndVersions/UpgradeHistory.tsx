@@ -22,7 +22,7 @@ import { AppContext } from "../../../store/context";
 import { get } from "lodash";
 import Upgrade from "./Upgrade";
 import Table from "../../../components/Table";
-import { Badge, Button } from "react-bootstrap";
+import { Alert, Badge, Button } from "react-bootstrap";
 import { faCaretDown, faCaretRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Spinner from "../../../components/Spinner";
@@ -86,6 +86,8 @@ export default function UpgradeHistory() {
     const [upgrades, setUpgrades] = useState<UpgradeItem[]>([]);
     const [showModal, setShowModal] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [loadError, setLoadError] = useState<string | null>(null);
+    const [loadAttempt, setLoadAttempt] = useState(0);
     const { clusterName } = useContext(AppContext);
     const upgradeIdRef = useRef<number>(0);
 
@@ -97,18 +99,28 @@ export default function UpgradeHistory() {
 
     useEffect(() => {
         async function fetchUpgrades() {
-            if(originalUpgrades.length === 0)
-                setLoading(true);
-            
-            const stacksResponse = await VersionsApi.getAllStacks(clusterName);
-            const stacksArray = get(stacksResponse, "items", []);
-            SetStacks(stacksArray);
-            const response = await VersionsApi.getUpgradeHistory(clusterName);
-            setOriginalUpgrades(get(response, "items").reverse());
-            setLoading(false);
+            setLoading(true);
+            setLoadError(null);
+            try {
+                const [stacksResponse, response] = await Promise.all([
+                    VersionsApi.getAllStacks(clusterName),
+                    VersionsApi.getUpgradeHistory(clusterName),
+                ]);
+                const stacksArray = get(stacksResponse, "items", []);
+                SetStacks(stacksArray);
+                setOriginalUpgrades([...get(response, "items", [])].reverse());
+            } catch (error: any) {
+                setLoadError(
+                    error?.response?.data?.message
+                        || error?.message
+                        || "Upgrade history could not be loaded"
+                );
+            } finally {
+                setLoading(false);
+            }
         }
-        fetchUpgrades();
-    }, []);
+        void fetchUpgrades();
+    }, [clusterName, loadAttempt]);
 
     useEffect(() => {
         if(selectedOption.key !== "All") {
@@ -135,14 +147,12 @@ export default function UpgradeHistory() {
         return parseInt(id || "0", 0);
     }
     function getUpgradeType(upgrade: Upgrade) {
-        const upgradeType = upgrade.upgrade_type;
-        const stackVersion = stacks.find((stack) => stack.repository_versions[0].RepositoryVersions.repository_version === upgrade.associated_version);
-        const isPatch = stackVersion?.repository_versions[0].RepositoryVersions.type === "PATCH";
-        if(isPatch) {
-            return "PATCH";
-        }
-
-        return getUpgradeDisplayName(upgradeType);
+        const repositoryVersion = stacks
+            .flatMap((stack) => stack.repository_versions || [])
+            .find((version) =>
+                version.RepositoryVersions?.repository_version === upgrade.associated_version
+            );
+        return repositoryVersion?.RepositoryVersions?.type || upgrade.type || "Unknown";
     }
 
     const columns = [
@@ -155,7 +165,7 @@ export default function UpgradeHistory() {
                 const toggleExpand = () => {
                     setIsExpanded(!isExpanded);
                 };
-                const versions = get(info, "row.original.Upgrade.versions");
+                const versions = get(info, "row.original.Upgrade.versions", {});
     
                 const handleOpenUpgrade = () => {
                     const upgradeId = getUpgradeId(get(info, "row.original.href"));
@@ -298,6 +308,17 @@ export default function UpgradeHistory() {
 
     if (loading) {
         return <Spinner />
+    }
+
+    if (loadError) {
+        return (
+            <Alert variant="danger" className="mt-4 d-flex justify-content-between align-items-center">
+                <span>{loadError}</span>
+                <Button size="sm" variant="outline-danger" onClick={() => setLoadAttempt((attempt) => attempt + 1)}>
+                    Retry
+                </Button>
+            </Alert>
+        );
     }
 
     if(originalUpgrades.length === 0) {

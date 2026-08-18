@@ -16,11 +16,11 @@
  * limitations under the License.
  */
 
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { HostsApi } from "../../api/hostsApi";
 import { cloneDeep, filter, find, forEach, get, map, uniq } from "lodash";
-import { updatedDiff } from "deep-object-diff";
 import {
+  Alert,
   Button,
   Card,
   CardBody,
@@ -38,14 +38,19 @@ import { AppContext } from "../../store/context";
 import { useAuth } from "../../hooks/useAuth";
 import UpgradeGuard from "../../components/UpgradeGuard";
 import { safeUpdateClusterEnvConfig } from "../../Utils/clusterConfigUtils";
-type ServiceComponentInfo = {
-  category: string;
-  component_name: string;
-  recovery_enabled: string;
-  service_name: string;
-  total_count: number;
+import { useBlocker } from "react-router-dom";
+import Spinner from "../../components/Spinner";
+import {
+  AutoStartComponent,
+  changedRecoveryComponents,
+  filterAutoStartComponents,
+} from "./autoStartUtils";
+
+type Grouping = {
+  serviceName: string;
+  displayServiceName: string;
+  components: AutoStartComponent[];
 };
-type Grouping = { serviceName: string; components: ServiceComponentInfo[] };
 
 function ServiceAutoStart() {
   const [serviceComponentsGroups, setServiceComponentsGroups] = useState<
@@ -54,10 +59,14 @@ function ServiceAutoStart() {
   const [serviceComponentsGroupsApi, setServiceComponentsGroupsApi] = useState<
     Grouping[]
   >([]);
-  const {clusterName}=useContext(AppContext);
-  const [clusterEnvProperties, setClusterEnvProperties] = useState({});
-  const [clusterEnvPropertiesApi, setClusterEnvPropertiesApi] = useState({});
+  const { clusterName, isNonWizardUser } = useContext(AppContext);
+  const [clusterEnvProperties, setClusterEnvProperties] = useState<Record<string, any>>({});
+  const [clusterEnvPropertiesApi, setClusterEnvPropertiesApi] = useState<Record<string, any>>({});
   const [showWarningModal, setShowWarningModal] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   // Authorization hooks - implementing Ember.js service auto-start authorization patterns
   const { hasAuthorization } = useAuth();
@@ -65,75 +74,77 @@ function ServiceAutoStart() {
   // Check specific authorizations for service auto-start operations
   // Based on Ember.js: App.isAuthorized('CLUSTER.MANAGE_AUTO_START')
   const canManageAutoStart = hasAuthorization('CLUSTER.MANAGE_AUTO_START');
-  async function getSetServicesAndComponents() {
-    try {
-      const servicesAndComponentsResponse = await HostsApi.getClusterComponents(
-        clusterName,
-        "ServiceComponentInfo/component_name,ServiceComponentInfo/service_name,ServiceComponentInfo/category,ServiceComponentInfo/recovery_enabled,ServiceComponentInfo/total_count&minimal_response=true"
-      );
-      const servicesAndComponentsItems = sortPropertyLight(
-        servicesAndComponentsResponse.items,
-        "ServiceComponentInfo.service_name"
-      );
-      const servicesAndComponents = {
-        ...servicesAndComponentsResponse,
-        items: servicesAndComponentsItems,
-      };
-      const uniqueServices = uniq(
-        map(servicesAndComponents.items, "ServiceComponentInfo.service_name")
-      );
-      const serviceComponents: any[] = map(
-        uniqueServices,
-        function (service: string) {
-          const components = filter(servicesAndComponents.items, [
-            "ServiceComponentInfo.service_name",
-            service,
-          ]);
-          forEach(components, function (component) {
-            component.ServiceComponentInfo.componentDisplayName = role(
-              component.ServiceComponentInfo.component_name,
-              false
-            );
-          });
-          return {
-            serviceName: service,
-            displayServiceName: role(service, true),
-            components,
-          };
-        }
-      );
-      console.log("Service Components is", serviceComponents);
-      setServiceComponentsGroups(serviceComponents);
-      setServiceComponentsGroupsApi(serviceComponents);
-    } catch (err: any) {
-      console.error("Couldn't get services and it's components", err?.message);
-    }
-  }
-
-  const getConfigBySites = async (tags: any[]) => {
-    let urlParams: string[] = [];
-    tags.forEach(function (_tag: any) {
-      urlParams.push("(type=" + _tag.siteName + "&tag=" + _tag.tagName + ")");
-    });
-    const allProperties = await ConfigsApi.getConfigsByTags(
+  const canEditAutoStart = canManageAutoStart && !isNonWizardUser;
+  const fetchServicesAndComponents = useCallback(async (): Promise<Grouping[]> => {
+    const response = await HostsApi.getClusterComponents(
       clusterName,
-      urlParams.join("|") 
+      "ServiceComponentInfo/component_name,ServiceComponentInfo/service_name,ServiceComponentInfo/category,ServiceComponentInfo/recovery_enabled,ServiceComponentInfo/total_count&minimal_response=true"
     );
-    return get(allProperties, "items.0.properties", []);
-  };
+    const restartableComponents = filterAutoStartComponents(response.items || []);
+    const sortedComponents = sortPropertyLight(
+      [...restartableComponents],
+      "ServiceComponentInfo.service_name"
+    );
+    const uniqueServices = uniq(
+      map(sortedComponents, "ServiceComponentInfo.service_name")
+    ) as string[];
 
-  const getClusterConfigs = async () => {
+    return uniqueServices.map(function (service: string) {
+      const components = cloneDeep(filter(sortedComponents, [
+        "ServiceComponentInfo.service_name",
+        service,
+      ]));
+      forEach(components, function (component) {
+        component.ServiceComponentInfo.componentDisplayName = role(
+          component.ServiceComponentInfo.component_name,
+          false
+        );
+      });
+      return {
+        serviceName: service,
+        displayServiceName: role(service, true),
+        components,
+      };
+    });
+  }, [clusterName]);
+
+  const fetchClusterConfigs = useCallback(async () => {
     const tags = await ConfigsApi.updateConfigTags(clusterName);
-    const envProperties = await getConfigBySites([
-      find(tags, ["siteName", "cluster-env"]),
-    ]);
-    setClusterEnvProperties(envProperties);
-    setClusterEnvPropertiesApi(envProperties);
-  };
+    const clusterEnvTag = find(tags, ["siteName", "cluster-env"]);
+    if (!clusterEnvTag) {
+      throw new Error("The current cluster-env configuration could not be found");
+    }
+    const urlParam = `(type=${clusterEnvTag.siteName}&tag=${clusterEnvTag.tagName})`;
+    const allProperties = await ConfigsApi.getConfigsByTags(clusterName, urlParam);
+    return get(allProperties, "items.0.properties", []);
+  }, [clusterName]);
+
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const [groups, envProperties] = await Promise.all([
+        fetchServicesAndComponents(),
+        fetchClusterConfigs(),
+      ]);
+      setServiceComponentsGroups(cloneDeep(groups));
+      setServiceComponentsGroupsApi(cloneDeep(groups));
+      setClusterEnvProperties(cloneDeep(envProperties));
+      setClusterEnvPropertiesApi(cloneDeep(envProperties));
+    } catch (error: any) {
+      setLoadError(
+        error?.response?.data?.message
+          || error?.message
+          || "Auto-start configuration could not be loaded"
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchClusterConfigs, fetchServicesAndComponents]);
+
   useEffect(() => {
-    getSetServicesAndComponents();
-    getClusterConfigs();
-  }, []);
+    void loadData();
+  }, [loadData]);
 
   const toggleRecoveryFor = (
     service: string,
@@ -167,9 +178,9 @@ function ServiceAutoStart() {
               get(data, "ServiceComponentInfo.recovery_enabled", "false") ===
               "true"
             }
-            disabled={!canManageAutoStart}
+            disabled={!canEditAutoStart}
             onChange={() => {
-              if (canManageAutoStart) {
+              if (canEditAutoStart) {
                 toggleRecoveryFor(
                   data.ServiceComponentInfo.service_name,
                   data.ServiceComponentInfo.component_name,
@@ -240,9 +251,9 @@ function ServiceAutoStart() {
             <FormCheck
               id={selectAllId}
               className="me-2 ms-2"
-              disabled={!canManageAutoStart}
+              disabled={!canEditAutoStart}
               onChange={() => {
-                if (canManageAutoStart) {
+                if (canEditAutoStart) {
                   toggleAllChecked();
                 }
               }}
@@ -267,49 +278,49 @@ function ServiceAutoStart() {
       },
     },
   ];
-  const areControlsDisabled = () => {
-    return (
-      !canManageAutoStart ||
-      (JSON.stringify(serviceComponentsGroupsApi) ===
-        JSON.stringify(serviceComponentsGroups) &&
-      JSON.stringify(clusterEnvProperties) ===
-        JSON.stringify(clusterEnvPropertiesApi))
+  const isModified =
+    JSON.stringify(serviceComponentsGroupsApi) !== JSON.stringify(serviceComponentsGroups)
+    || JSON.stringify(clusterEnvProperties) !== JSON.stringify(clusterEnvPropertiesApi);
+  const areControlsDisabled = !canEditAutoStart || !isModified || saving;
+  const blocker = useBlocker(({ currentLocation, nextLocation }) =>
+    isModified && currentLocation.pathname !== nextLocation.pathname
+  );
+
+  useEffect(() => {
+    if (blocker.state === "blocked") {
+      setShowWarningModal(true);
+    }
+  }, [blocker]);
+
+  useEffect(() => {
+    const warnBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (isModified) {
+        event.preventDefault();
+      }
+    };
+    window.addEventListener("beforeunload", warnBeforeUnload);
+    return () => window.removeEventListener("beforeunload", warnBeforeUnload);
+  }, [isModified]);
+
+  const flattenComponents = (groups: Grouping[]) =>
+    groups.flatMap((group) => group.components);
+
+  const savePreferences = async (): Promise<boolean> => {
+    if (saving || !canEditAutoStart) {
+      return false;
+    }
+    setSaving(true);
+    setSaveError(null);
+    const desiredGroups = cloneDeep(serviceComponentsGroups);
+    const desiredClusterEnv = cloneDeep(clusterEnvProperties);
+    const changes = changedRecoveryComponents(
+      flattenComponents(desiredGroups),
+      flattenComponents(serviceComponentsGroupsApi),
     );
-  };
-  const savePreferences = async () => {
-    if (
-      JSON.stringify(serviceComponentsGroupsApi) !==
-      JSON.stringify(serviceComponentsGroups)
-    ) {
-      const preferencesDiff = updatedDiff(
-        serviceComponentsGroups,
-        serviceComponentsGroupsApi
-      );
-      const changedComponentsArr: any = [];
-      forEach(preferencesDiff, (value: any, key: any) => {
-        const changedComponents = value?.components;
-        forEach(
-          changedComponents,
-          (_changedComponentValue: any, changedComponentKey: any) => {
-            const component =
-              serviceComponentsGroups[key]?.components[changedComponentKey];
-            changedComponentsArr.push(component);
-          }
-        );
-      });
-      const trueRecoveryMode = filter(changedComponentsArr, [
-        "ServiceComponentInfo.recovery_enabled",
-        "true",
-      ]);
-      const falseRecoveryMode = filter(changedComponentsArr, [
-        "ServiceComponentInfo.recovery_enabled",
-        "false",
-      ]);
-      if (trueRecoveryMode.length) {
-        const query = `ServiceComponentInfo/component_name.in(${map(
-          trueRecoveryMode,
-          "ServiceComponentInfo.component_name"
-        ).join(",")})`;
+    const requests: Promise<any>[] = [];
+
+    if (changes.enabled.length) {
+        const query = `ServiceComponentInfo/component_name.in(${changes.enabled.join(",")})`;
         const requestBody = {
           RequestInfo: {
             query,
@@ -318,13 +329,10 @@ function ServiceAutoStart() {
             recovery_enabled: "true",
           },
         };
-        await componentApi.editComponent(clusterName, requestBody);
-      }
-      if (falseRecoveryMode.length) {
-        const query = `ServiceComponentInfo/component_name.in(${map(
-          falseRecoveryMode,
-          "ServiceComponentInfo.component_name"
-        ).join(",")})`;
+        requests.push(componentApi.editComponent(clusterName, requestBody));
+    }
+    if (changes.disabled.length) {
+        const query = `ServiceComponentInfo/component_name.in(${changes.disabled.join(",")})`;
         const requestBody = {
           RequestInfo: {
             query,
@@ -333,51 +341,100 @@ function ServiceAutoStart() {
             recovery_enabled: "false",
           },
         };
-        await componentApi.editComponent(clusterName, requestBody);
-      }
+        requests.push(componentApi.editComponent(clusterName, requestBody));
     }
-    if (
-      JSON.stringify(clusterEnvProperties) !==
-      JSON.stringify(clusterEnvPropertiesApi)
-    ) {
-      // Use safe update function to preserve all existing cluster-env properties
-      await safeUpdateClusterEnvConfig(
+    if (JSON.stringify(desiredClusterEnv) !== JSON.stringify(clusterEnvPropertiesApi)) {
+      requests.push(safeUpdateClusterEnvConfig(
         clusterName,
-        clusterEnvProperties,
+        desiredClusterEnv,
         "Updated auto-start configuration"
-      );
+      ));
     }
-    await getSetServicesAndComponents();
-    await getClusterConfigs();
-    setShowWarningModal(false);
+
+    const results = await Promise.allSettled(requests);
+    const failedRequests = results.filter((result) => result.status === "rejected");
+    try {
+      const [serverGroups, serverClusterEnv] = await Promise.all([
+        fetchServicesAndComponents(),
+        fetchClusterConfigs(),
+      ]);
+      setServiceComponentsGroupsApi(cloneDeep(serverGroups));
+      setClusterEnvPropertiesApi(cloneDeep(serverClusterEnv));
+      if (failedRequests.length) {
+        setServiceComponentsGroups(desiredGroups);
+        setClusterEnvProperties(desiredClusterEnv);
+        setSaveError(
+          `${failedRequests.length} auto-start update request(s) failed. Server state was refreshed; retry the remaining changes.`
+        );
+        return false;
+      }
+      setServiceComponentsGroups(cloneDeep(serverGroups));
+      setClusterEnvProperties(cloneDeep(serverClusterEnv));
+      setShowWarningModal(false);
+      return true;
+    } catch (error: any) {
+      setSaveError(
+        error?.response?.data?.message
+          || error?.message
+          || "The server state could not be refreshed after saving"
+      );
+      return false;
+    } finally {
+      setSaving(false);
+    }
   };
+
+  const discardChanges = () => {
+    setServiceComponentsGroups(cloneDeep(serviceComponentsGroupsApi));
+    setClusterEnvProperties(cloneDeep(clusterEnvPropertiesApi));
+    setSaveError(null);
+  };
+
   return (
     <UpgradeGuard>
       <Modal
-        modalTitle="Save Auto-Start Configuration"
-        modalBody="You are changing the auto-start configuration.Click Save to commit the change or Discard to revert your changes"
+        modalTitle={blocker.state === "blocked" ? "Warning" : "Save Auto-Start Configuration"}
+        modalBody={
+          <>
+            <div>
+              {blocker.state === "blocked"
+                ? "You have unsaved changes."
+                : "You are changing the auto-start configuration. Click Save to commit the change or Discard to revert your changes."}
+            </div>
+            {saveError && <Alert variant="danger" className="mt-3 mb-0">{saveError}</Alert>}
+          </>
+        }
         isOpen={showWarningModal}
         onClose={() => {
+          if (blocker.state === "blocked") {
+            blocker.reset();
+          }
           setShowWarningModal(false);
         }}
         options={{
           okButtonText: "SAVE",
+          okButtonDisabled: saving,
+          cancelableViaIcon: !saving,
           extraButtons: [
             {
               text: "DISCARD",
               variant: "secondary",
+              disabled: saving,
               onClick: () => {
-                setServiceComponentsGroups(
-                  cloneDeep(serviceComponentsGroupsApi)
-                );
-                setClusterEnvProperties(cloneDeep(clusterEnvPropertiesApi));
+                discardChanges();
                 setShowWarningModal(false);
+                if (blocker.state === "blocked") {
+                  blocker.proceed();
+                }
               },
             },
           ],
         }}
-        successCallback={() => {
-          savePreferences();
+        successCallback={async () => {
+          const saved = await savePreferences();
+          if (saved && blocker.state === "blocked") {
+            blocker.proceed();
+          }
         }}
       />
       <Card className="h-100 m-4">
@@ -395,7 +452,7 @@ function ServiceAutoStart() {
               type="switch"
               className="labelled-switch ms-2"
               id="auto-start"
-              disabled={!canManageAutoStart}
+              disabled={!canEditAutoStart || saving || loading || Boolean(loadError)}
               label={
                 get(clusterEnvProperties, "recovery_enabled", "false") ===
                 "false"
@@ -403,7 +460,7 @@ function ServiceAutoStart() {
                   : "Enabled"
               }
               onChange={() => {
-                if (canManageAutoStart) {
+                if (canEditAutoStart) {
                   setClusterEnvProperties({
                     ...clusterEnvProperties,
                     recovery_enabled:
@@ -421,21 +478,27 @@ function ServiceAutoStart() {
               }
             ></FormCheck>
           </div>
-          <Table columns={columns} data={serviceComponentsGroups}></Table>
+          {loadError ? (
+            <Alert variant="danger" className="mt-3 d-flex justify-content-between align-items-center">
+              <span>{loadError}</span>
+              <Button size="sm" variant="outline-danger" onClick={() => void loadData()}>
+                Retry
+              </Button>
+            </Alert>
+          ) : loading ? (
+            <div className="d-flex justify-content-center p-4"><Spinner /></div>
+          ) : (
+            <Table columns={columns} data={serviceComponentsGroups}></Table>
+          )}
+          {saveError && !showWarningModal && <Alert variant="danger" className="mt-3">{saveError}</Alert>}
         </CardBody>
         <CardFooter>
-          {/* <Button> */}
           <Stack direction="horizontal" className="justify-content-end">
             <Button
               size="sm"
               variant="outline-secondary"
-              disabled={areControlsDisabled()}
-              onClick={() => {
-                setServiceComponentsGroups(
-                  cloneDeep(serviceComponentsGroupsApi)
-                );
-                setClusterEnvProperties(cloneDeep(clusterEnvPropertiesApi));
-              }}
+              disabled={areControlsDisabled}
+              onClick={discardChanges}
             >
               CANCEL
             </Button>
@@ -443,7 +506,7 @@ function ServiceAutoStart() {
               size="sm"
               variant="success"
               className="ms-2"
-              disabled={areControlsDisabled()}
+              disabled={areControlsDisabled}
               onClick={() => setShowWarningModal(true)}
             >
               SAVE

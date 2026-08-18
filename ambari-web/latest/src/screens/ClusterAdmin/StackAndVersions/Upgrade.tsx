@@ -17,7 +17,7 @@
  */
 
 import type { JSX } from "react";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import {
   Alert,
   Badge,
@@ -45,6 +45,8 @@ import { faGears, faQuestionCircle } from "@fortawesome/free-solid-svg-icons";
 import { iconMapping } from "./ListVersion";
 import Tooltip from "../../../components/Tooltip";
 import ClusterApi from "../../../api/clusterApi";
+import { waitForUpgradeStatus } from "./upgradeUtils";
+import { persistedPayload } from "../../../Utils/persistedSettings";
 
 type upgradeProps = {
   upgradeId: number;
@@ -65,6 +67,13 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
     handleOpenInNewTab,
     upgradeParameters,
     setUpgradeItemStatus,
+    loadError,
+    loading,
+    detailLoadError,
+    statusUpdateError,
+    resumePolling,
+    retryFetch,
+    retryFailureDetails,
   } = useUpgrade(upgradeId, onlyView);
 
   const [showDetails, setShowDetails] = useState(false);
@@ -76,103 +85,75 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
   const [pauseUpgradeModal, setPauseUpgradeModal] = useState(false);
   const [failedHostsModal, setFailedhostsModal] = useState(false);
   const [upgradeOptionsModal, setUpgradeOptionsModal] = useState(false);
-  const [localLogs, setLocalLogs] = useState<any>(null);
   const [localTasks, setLocalTasks] = useState<any[]>([]);
   const [slaveComponentFailures, setSlaveComponentFailures] = useState(upgradeParameters.slaveComponentFailures);
   const [serviceCheckFailures, setServiceCheckFailures] = useState(upgradeParameters.serviceCheckFailures);
-  const { clusterName, setUpgradeState, setUpgradeId, isPatchUpgrade, upgradeVersionDisplayName, setUpgradeIsFinalizeItem } = useContext(AppContext);
+  const [mutationInProgress, setMutationInProgress] = useState(false);
+  const [mutationError, setMutationError] = useState<string | null>(null);
+  const downgradeWaitController = useRef<AbortController | null>(null);
+  const { clusterName, setUpgradeState, setUpgradeId, isPatchUpgrade, upgradeVersionDisplayName, setUpgradeIsFinalizeItem, isNonWizardUser, wizardUser } = useContext(AppContext);
+  const readOnly = onlyView || isNonWizardUser;
+  const actionInProgress = upgradeParameters.requestInProgress || mutationInProgress;
+
+  useEffect(() => () => downgradeWaitController.current?.abort(), []);
+
+  useEffect(() => {
+    setShowDetails(false);
+    setLocalTasks([]);
+  }, [currUpgradeItem?.UpgradeItem.group_id, currUpgradeItem?.UpgradeItem.stage_id]);
+
+  useEffect(() => {
+    if (!upgradeOptionsModal) {
+      setSlaveComponentFailures(upgradeParameters.slaveComponentFailures);
+      setServiceCheckFailures(upgradeParameters.serviceCheckFailures);
+    }
+  }, [
+    upgradeOptionsModal,
+    upgradeParameters.serviceCheckFailures,
+    upgradeParameters.slaveComponentFailures,
+  ]);
 
   function getShowDetailsButton() {
-    
     const tasksToUse = localTasks.length > 0 ? localTasks : currUpgradeItem?.tasks;
-    const logsToUse = localLogs || (currUpgradeItem?.tasks?.[0]?.logs);
-    
+
     return (
       <Collapse in={showDetails}>
         <div className="mt-2 ms-2">
           {loadingLogs ? (
             <Spinner />
           ) : tasksToUse && tasksToUse.length > 0 ? (
-            <Tabs
-              defaultActiveKey="stdout"
-              id={`logs-tabs-${tasksToUse[0].id}`}
-            >
-              <Tab eventKey="stdout" title="STDOUT">
-                <div className="mt-3">
-                  Host: {logsToUse?.Tasks?.host_name || 'N/A'}
-                </div>
-                <div className="d-flex justify-content-between">
-                  <div className="mt-2">
-                    Output Log:{" "}
-                    {logsToUse?.Tasks?.output_log || 'N/A'}
+            tasksToUse.map((task: any) => {
+              const logs = task.logs;
+              return (
+                <div key={task.id} className="mb-3">
+                  <div className="fw-semibold">
+                    {task.command_detail || task.role || `Task ${task.id}`} on {task.host_name || "N/A"}
                   </div>
-                  <div>
-                    <Button
-                      variant="link"
-                      onClick={() =>
-                        handleCopy(
-                          logsToUse?.Tasks?.stdout ?? ""
-                        )
-                      }
-                    >
-                      Copy
-                    </Button>
-                    <Button
-                      variant="link"
-                      onClick={() =>
-                        handleOpenInNewTab(
-                          logsToUse?.Tasks?.stdout ?? ""
-                        )
-                      }
-                    >
-                      Open
-                    </Button>
-                  </div>
+                  <Tabs defaultActiveKey="stdout" id={`logs-tabs-${task.id}`}>
+                    <Tab eventKey="stdout" title="STDOUT">
+                      <div className="d-flex justify-content-between mt-2">
+                        <div>Output Log: {logs?.Tasks?.output_log || "N/A"}</div>
+                        <div>
+                          <Button variant="link" onClick={() => handleCopy(logs?.Tasks?.stdout ?? "")}>Copy</Button>
+                          <Button variant="link" onClick={() => handleOpenInNewTab(logs?.Tasks?.stdout ?? "")}>Open</Button>
+                        </div>
+                      </div>
+                      <Card className="no-border"><Card.Body><pre>{logs?.Tasks?.stdout || "No stdout logs available"}</pre></Card.Body></Card>
+                    </Tab>
+                    <Tab eventKey="stderr" title="STDERR">
+                      <div className="d-flex justify-content-between mt-2">
+                        <div>Error Log: {logs?.Tasks?.error_log || "N/A"}</div>
+                        <div>
+                          <Button variant="link" onClick={() => handleCopy(logs?.Tasks?.stderr ?? "")}>Copy</Button>
+                          <Button variant="link" onClick={() => handleOpenInNewTab(logs?.Tasks?.stderr ?? "")}>Open</Button>
+                        </div>
+                      </div>
+                      <Card className="no-border"><Card.Body><pre>{logs?.Tasks?.stderr || "No stderr logs available"}</pre></Card.Body></Card>
+                    </Tab>
+                  </Tabs>
                 </div>
-                <Card className="no-border">
-                  <Card.Body>
-                    <pre>{logsToUse?.Tasks?.stdout || 'No stdout logs available'}</pre>
-                  </Card.Body>
-                </Card>
-              </Tab>
-              <Tab eventKey="stderr" title="STDERR">
-                <div className="mt-3">
-                  Host: {logsToUse?.Tasks?.host_name || 'N/A'}
-                </div>
-                <div className="d-flex justify-content-between">
-                  <div className="mt-2">
-                    Error Log: {logsToUse?.Tasks?.error_log || 'N/A'}
-                  </div>
-                  <div>
-                    <Button
-                      variant="link"
-                      onClick={() =>
-                        handleCopy(
-                          logsToUse?.Tasks?.stderr ?? ""
-                        )
-                      }
-                    >
-                      Copy
-                    </Button>
-                    <Button
-                      variant="link"
-                      onClick={() =>
-                        handleOpenInNewTab(
-                          logsToUse?.Tasks?.stderr ?? ""
-                        )
-                      }
-                    >
-                      Open
-                    </Button>
-                  </div>
-                </div>
-                <Card className="no-border">
-                  <Card.Body>
-                    <pre>{logsToUse?.Tasks?.stderr || 'No stderr logs available'}</pre>
-                  </Card.Body>
-                </Card>
-              </Tab>
-            </Tabs>
+              );
+            })
           ) : (
             <div>No tasks available for this upgrade item</div>
           )}
@@ -195,7 +176,7 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
     return (
       <div className="d-flex justify-content-between align-items-center w-100">
         <span>{titleText}</span>
-        {!onlyView && (
+        {!readOnly && (
           <Button
             variant="link"
             size="sm"
@@ -214,11 +195,6 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
 
   async function startDowngrade() {
     setUpgradeIsFinalizeItem(false);
-    await ClusterApi.postPersistData(
-      JSON.stringify({
-        upgradeIsFinalizeItem: JSON.stringify(false)
-      })
-    )
     const payload = {
       "Upgrade": { 
         "upgrade_type": data?.Upgrade.upgrade_type,
@@ -229,18 +205,28 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
     try {
       const response = await VersionsApi.getUpgradeId(payload, clusterName);
       const downgradeId = response?.resources[0]?.Upgrade?.request_id;
+      if (!downgradeId) {
+        throw new Error("The server did not return a downgrade request ID");
+      }
       setUpgradeId(downgradeId);
       setUpgradeState("PENDING");
       setUpgradeModal(false);
+      await ClusterApi.postPersistData(
+        persistedPayload({ upgradeIsFinalizeItem: false }),
+      ).catch(() => {
+        toast.error("The downgrade started, but its browser state could not be persisted");
+      });
       
       modalManager.show(<Upgrade upgradeId={downgradeId} />);
       window.location.reload();
     } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      setMutationError(message);
       modalManager.show({
         modalTitle: "Upgrade could not be started",
         modalBody: (
           <div>
-            {error instanceof Error ? error.message : String(error)}
+            {message}
           </div>
         ),
         onClose: () => {
@@ -262,95 +248,65 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
       updateCurrentStackVersion();
     }
 
-    try {
-      abortUpgrade();
-      var interval = setInterval(async function() {
-        const response = await VersionsApi.getUpgradeOperations(upgradeId, clusterName);
-        if (response?.Upgrade?.request_status === "ABORTED") {
-          clearInterval(interval);
-          startDowngrade();
+    if (mutationInProgress || readOnly) return;
+    setMutationInProgress(true);
+    setMutationError(null);
+    downgradeWaitController.current?.abort();
+    downgradeWaitController.current = new AbortController();
+    void (async () => {
+      try {
+        await VersionsApi.abortUpgrade(clusterName, upgradeId);
+        await waitForUpgradeStatus(
+          async () => (await VersionsApi.getUpgradeOperations(upgradeId, clusterName))?.Upgrade?.request_status,
+          "ABORTED",
+          { signal: downgradeWaitController.current?.signal },
+        );
+        await startDowngrade();
+      } catch (error: any) {
+        if (error?.name !== "AbortError") {
+          const message = error?.response?.data?.message || error?.message || "The upgrade could not be aborted for downgrade";
+          setMutationError(message);
+          toast.error(message);
         }
-      }, 1000);
-    } catch (error) {
-      console.log("Error aborting upgrade:", error);
-    }
-  }
-
-  async function abortUpgrade() {
-    try {
-      await VersionsApi.abortUpgrade(clusterName, upgradeId);
-    } catch (error) {
-      console.error("Error aborting upgrade:", error);
-      if(upgradeParameters.isDowngrade) {
-        // const header = get(messages, "admin.stackDowngrade.state.paused.fail.header");
-        let body = get(messages, "admin.stackDowngrade.state.paused.fail.body");
-        if(error) {
-          body = body + ' ' + error;
-        }
-        toast(body);
-      } else {
-        // const header = get(messages, "admin.stackUpgrade.state.paused.fail.header");
-        let body = get(messages, "admin.stackUpgrade.state.paused.fail.body");
-        if(error) {
-          body = body + ' ' + error;
-        }
-        toast(body);
+      } finally {
+        setMutationInProgress(false);
       }
-    }
+    })();
   }
 
   async function pauseUpgrade() {
+    if (mutationInProgress || readOnly) return;
+    setMutationInProgress(true);
+    setMutationError(null);
     try {
-      await suspendUpgrade();
+      await VersionsApi.suspendUpgrade(clusterName, upgradeId);
+      setUpgradeState("ABORTED");
       setPauseUpgradeModal(false);
       setUpgradeModal(false);
-    } catch (error) {
-      console.log("can't abort upgrade with suspend.");
-    }
-  }
-
-  async function suspendUpgrade() {
-    try {
-      await abortUpgradeWithSuspend();
-      setUpgradeState("ABORTED");
-    } catch (error) {
-      toast.error("Error suspending upgrade");
-      console.log("can't abort upgrade with suspend.");
+      if (onClose) onClose();
+    } catch (error: any) {
+      const message = error?.response?.data?.message || error?.message || "Error suspending upgrade";
+      setMutationError(message);
+      toast.error(message);
+    } finally {
+      setMutationInProgress(false);
     }
   }
 
   async function resumeUpgrade() {
+    if (mutationInProgress || readOnly) return;
+    setMutationInProgress(true);
+    setMutationError(null);
     try {
-      await retryUpgrade();
+      await VersionsApi.retryUpgrade(clusterName, upgradeId);
       setUpgradeState("PENDING");
-    } catch (error) {
-      console.log("can't resume upgrade")
-    }
-  }
-
-  async function retryUpgrade() {
-    await VersionsApi.retryUpgrade(clusterName, upgradeId);
-  }
-
-  async function abortUpgradeWithSuspend() {
-    try {
-      await VersionsApi.suspendUpgrade(clusterName, upgradeId);
-      setUpgradeState("ABORTED");
-    } catch (error) {
-      console.error("Error aborting upgrade:", error);
-      if(upgradeParameters.isDowngrade) {
-        let body = get(messages, "admin.stackDowngrade.state.paused.fail.body");
-        if(error) {
-          body = body + ' ' + error;
-        }
-        toast(body);
-      } else {
-        let body = get(messages, "admin.stackUpgrade.state.paused.fail.body");
-        if(error) {
-          body = body + ' ' + error;
-        }
-        toast(body);
-      }
+      resumePolling();
+    } catch (error: any) {
+      const message = error?.response?.data?.message || error?.message || "Error resuming upgrade";
+      setMutationError(message);
+      toast.error(message);
+    } finally {
+      setMutationInProgress(false);
     }
   }
 
@@ -415,35 +371,19 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
     setShowDetails(!isCurrentlyOpen);
 
     if (!isCurrentlyOpen) {
-      // Only fetch if we don't already have logs
-      if (!currUpgradeItem?.tasks?.[0]?.logs || currUpgradeItem?.tasks?.[0]?.logs === null) {
+      if (!currUpgradeItem?.tasks?.length || currUpgradeItem.tasks.some((task) => !task.logs)) {
         setLoadingLogs(true);
         try {
           const groupId = item?.UpgradeItem.group_id ?? 0;
           const stageId = item?.UpgradeItem.stage_id ?? 0;
-          
-          // First fetch tasks if they don't exist
-          if (!currUpgradeItem?.tasks) {
-            await fetchTasks(groupId, stageId);
-            // Wait a bit for state to update
-            await new Promise(resolve => setTimeout(resolve, 100));
-          }
-          
-          const tasksResponse = await VersionsApi.getTasksList(upgradeId, groupId, stageId, clusterName);
-          if (tasksResponse.tasks && tasksResponse.tasks.length > 0) {
-            const taskId = tasksResponse.tasks[0].Tasks.id;
-            
-            const tasksData = tasksResponse.tasks.map((task: any) => ({ ...task.Tasks, logs: null }));
-            setLocalTasks(tasksData);
-            
-            const logs = await VersionsApi.getTasksLogs(upgradeId, groupId, stageId, taskId, clusterName);
-            setLocalLogs(logs);
-            
-            await fetchTasks(groupId, stageId);
-            await fetchLogs(groupId, stageId, taskId);
-          }
+          const tasks = await fetchTasks(groupId, stageId);
+          const tasksWithLogs = await Promise.all(tasks.map(async (task: any) => ({
+            ...task,
+            logs: await fetchLogs(groupId, stageId, task.id),
+          })));
+          setLocalTasks(tasksWithLogs);
         } catch (error) {
-          console.error("Error fetching logs:", error);
+          toast.error(error instanceof Error ? error.message : "Task logs could not be loaded");
         } finally {
           setLoadingLogs(false);
         }
@@ -452,8 +392,50 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
   }
 
   function getUpgradeModalBody() {
+    if (!data) {
+      return (
+        <>
+          {isNonWizardUser && (
+            <Alert variant="info">
+              Upgrade started by {wizardUser || "another user"}. This view is read-only.
+            </Alert>
+          )}
+          {loadError ? (
+            <Alert variant="danger" className="d-flex justify-content-between align-items-center">
+              <span>{loadError}</span>
+              <Button size="sm" variant="outline-danger" onClick={() => void retryFetch().catch(() => undefined)}>
+                Retry
+              </Button>
+            </Alert>
+          ) : loading ? <Spinner /> : <Alert variant="warning">No upgrade data was returned by the server.</Alert>}
+        </>
+      );
+    }
     return (
       <>
+        {isNonWizardUser && (
+          <Alert variant="info">
+            Upgrade started by {wizardUser || "another user"}. This view is read-only.
+          </Alert>
+        )}
+        {loadError && (
+          <Alert variant="danger" className="d-flex justify-content-between align-items-center">
+            <span>{loadError}</span>
+            <Button size="sm" variant="outline-danger" onClick={() => void retryFetch().catch(() => undefined)}>
+              Retry
+            </Button>
+          </Alert>
+        )}
+        {mutationError && <Alert variant="danger">{mutationError}</Alert>}
+        {statusUpdateError && <Alert variant="danger">{statusUpdateError}</Alert>}
+        {detailLoadError && (
+          <Alert variant="danger" className="d-flex justify-content-between align-items-center">
+            <span>{detailLoadError}</span>
+            <Button size="sm" variant="outline-danger" onClick={retryFailureDetails}>
+              Retry
+            </Button>
+          </Alert>
+        )}
         <div className="d-flex justify-content-between mb-4">
           <div>{get(messages, `${upgradeParameters.upgradeStatusLabel}`, "hello")}</div>
           <div className="d-flex">
@@ -463,12 +445,13 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
             />
             <div className="ms-2">{Math.round(data?.Upgrade.progress_percent || 0)}% </div>
           </div>
-          {upgradeParameters.showPauseButton && !onlyView && (
+          {upgradeParameters.showPauseButton && !readOnly && (
             <Button
               size="sm"
               variant="light"
               className="text-uppercase"
               onClick={() => setPauseUpgradeModal(true)}
+              disabled={mutationInProgress}
             >
               {upgradeParameters.isDowngrade ? 
                 get(messages, "admin.stackUpgrade.pauseDowngrade") : get(messages, "admin.stackUpgrade.pauseUpgrade")
@@ -479,7 +462,7 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
         <Card className="mb-4">
           <Card.Body>
             <div className="d-flex-column">
-            {upgradeParameters.runningItem && !onlyView && (
+            {upgradeParameters.runningItem && !readOnly && (
               <>
                 <div className="d-flex justify-content-between align-items-center">
                   <div>{get(messages, "admin.stackUpgrade.dialog.inProgress")} {" "} {currUpgradeItem?.UpgradeItem.context}</div>
@@ -494,7 +477,7 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
               </>
             )}
 
-            {upgradeParameters.failedItem && !onlyView && !upgradeParameters.upgradeSuspended && !upgradeParameters.runningItem &&
+            {upgradeParameters.failedItem && !readOnly && !upgradeParameters.upgradeSuspended && !upgradeParameters.runningItem &&
             !upgradeParameters.isSlaveComponentFailuresItem ? (
               <>
                 <div className="d-flex justify-content-between">
@@ -517,7 +500,7 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
                       <Button
                         variant="danger"
                         className="text-uppercase me-2"
-                        disabled={upgradeParameters.requestInProgress}
+                        disabled={actionInProgress}
                         onClick={() => setConfirmDowngradeModal(true)}
                       >
                         Downgrade
@@ -527,7 +510,7 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
                       <Button
                         variant="warning"
                         className="text-uppercase me-2"
-                        disabled={upgradeParameters.requestInProgress}
+                        disabled={actionInProgress}
                         onClick={() => {
                             if(currUpgradeItem) {
                               setUpgradeItemStatus(
@@ -544,7 +527,7 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
                     <Button
                       variant="info"
                       className="text-uppercase mx-1"
-                      disabled={upgradeParameters.requestInProgress}
+                      disabled={actionInProgress}
                       onClick={() => {
                         if(currUpgradeItem)
                           setUpgradeItemStatus(currUpgradeItem, "PENDING")
@@ -558,7 +541,7 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
               </>
             ) : null}
 
-            { upgradeParameters.isSlaveComponentFailuresItem && !onlyView && !upgradeParameters.upgradeSuspended && 
+            {upgradeParameters.isSlaveComponentFailuresItem && !readOnly && !upgradeParameters.upgradeSuspended &&
               <>
                 <div className="manual-steps-section">
                   <div className="manual-steps-title">{get(messages, "admin.stackUpgrade.dialog.manual")}</div>
@@ -603,7 +586,7 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
                         size="sm"
                         className="me-2"
                         onClick={() => setConfirmDowngradeModal(true)}
-                        disabled={upgradeParameters.requestInProgress}
+                        disabled={actionInProgress}
                       >
                         {get(messages, "common.downgrade")}
                       </Button>
@@ -616,7 +599,7 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
                         if(currUpgradeItem)
                           setUpgradeItemStatus(currUpgradeItem, "PENDING")
                       }}
-                      disabled={upgradeParameters.requestInProgress}
+                      disabled={actionInProgress}
                     >
                       {get(messages, "common.retry")}
                     </Button>
@@ -628,7 +611,7 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
                         if(currUpgradeItem)
                           setUpgradeItemStatus(currUpgradeItem, "COMPLETED")
                       }}
-                      disabled={upgradeParameters.requestInProgress || !isManualDone}
+                      disabled={actionInProgress || !isManualDone}
                     >
                       {get(messages, "common.proceed")}
                     </Button>
@@ -638,7 +621,7 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
               </>
             }
 
-            { upgradeParameters.isServiceCheckFailuresItem && !onlyView && !upgradeParameters.upgradeSuspended && 
+            {upgradeParameters.isServiceCheckFailuresItem && !readOnly && !upgradeParameters.upgradeSuspended &&
               <>
                 <div>
                   <div>{get(messages, "admin.stackUpgrade.dialog.manual")}</div>
@@ -702,7 +685,7 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
                           variant="danger"
                           className="me-2"
                           onClick={() => setConfirmDowngradeModal(true)}
-                          disabled={upgradeParameters.requestInProgress}
+                          disabled={actionInProgress}
                         >
                           {get(messages, "common.downgrade")}
                         </Button>
@@ -710,6 +693,7 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
                       <Button
                         variant="primary"
                         className="me-2"
+                        disabled={actionInProgress}
                         onClick={() => {
                           setManualDone(false);
                           if(currUpgradeItem)
@@ -719,12 +703,24 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
                       >
                         {get(messages, "common.retry")}
                       </Button>
+                      <Button
+                        variant="success"
+                        disabled={actionInProgress || (!upgradeParameters.isHoldingState && !isManualDone)}
+                        onClick={() => {
+                          setManualDone(false);
+                          if (currUpgradeItem) {
+                            setUpgradeItemStatus(currUpgradeItem, "COMPLETED");
+                          }
+                        }}
+                      >
+                        {get(messages, "common.continue")}
+                      </Button>
                     </div>
                   </div>
               </>
             }
 
-            {upgradeParameters.isFinalizeItem && !onlyView && !upgradeParameters.upgradeSuspended ? (
+            {upgradeParameters.isFinalizeItem && !readOnly && !upgradeParameters.upgradeSuspended ? (
               <>
                 <div className="mb-2">
                   <div className="text-dark mb-2">{get(messages, "admin.stackUpgrade.dialog.manual")}</div>
@@ -756,6 +752,16 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
                       "admin.stackUpgrade.finalize.message.autoStart"
                     )}
                   </div>
+                  {upgradeParameters.skippedServiceChecks.length > 0 && (
+                    <Alert variant="warning" className="mt-2">
+                      <div>Failed service checks:</div>
+                      <ul className="mb-0">
+                        {upgradeParameters.skippedServiceChecks.map((serviceName) => (
+                          <li key={serviceName}>{serviceName}</li>
+                        ))}
+                      </ul>
+                    </Alert>
+                  )}
                   <Form className="mx-2 mt-2">
                     <Form.Group controlId="manualCheck">
                       <Form.Check
@@ -775,7 +781,7 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
                         <Button
                           variant="danger"
                           onClick={() => setConfirmDowngradeModal(true)}
-                          disabled={upgradeParameters.requestInProgress}
+                          disabled={actionInProgress}
                         >
                           {translate("common.downgrade")}
                         </Button>
@@ -784,13 +790,14 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
                         variant="light"
                         className="ms-2"
                         onClick={() => setPauseUpgradeModal(true)}
+                        disabled={actionInProgress}
                       >
                         {translate("admin.stackUpgrade.finalize.later")}
                       </Button>
                       <Button
                         variant="primary"
                         className="ms-2"
-                        disabled={!isManualDone}
+                        disabled={actionInProgress || !isManualDone}
                         onClick={() => {
                           setManualDone(false);
                           if(currUpgradeItem)
@@ -806,7 +813,7 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
               </>
             ) : null}
 
-            {upgradeParameters.plainManualItem && !upgradeParameters.isFinalizeItem && !onlyView && !upgradeParameters.upgradeSuspended ? (
+            {upgradeParameters.plainManualItem && !upgradeParameters.isFinalizeItem && !readOnly && !upgradeParameters.upgradeSuspended ? (
               <div>
                 <div className="mb-3">
                   <div className="me-2 mt-1 text-dark">{get(messages, "admin.stackUpgrade.dialog.manual")}</div>
@@ -842,7 +849,7 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
                       <Button
                         variant="danger"
                         onClick={() => setConfirmDowngradeModal(true)}
-                        disabled={upgradeParameters.requestInProgress}
+                        disabled={actionInProgress}
                       >
                         {get(messages, "common.downgrade")}
                       </Button>
@@ -850,7 +857,7 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
                     <Button
                       variant="primary"
                       className="mx-2"
-                      disabled={!isManualDone}
+                      disabled={actionInProgress || !isManualDone}
                       onClick={() => {
                         setManualDone(false);
                         if(currUpgradeItem)
@@ -865,7 +872,7 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
               </div>
             ) : null}
 
-            {upgradeParameters.upgradeSuspended && !onlyView && (
+            {upgradeParameters.upgradeSuspended && !readOnly && (
               <>
                 <div className="d-flex justify-content-between">
                 <div className="mt-3">
@@ -880,16 +887,32 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
                   <Button
                     variant="primary"
                     onClick={() => resumeUpgrade()}
+                    disabled={actionInProgress}
                   >{get(messages, "admin.stackUpgrade.dialog.resume.downgrade")}</Button>
                 ) : (
                   <Button
                     variant="primary"
                     onClick={() => resumeUpgrade()}
+                    disabled={actionInProgress}
                   >{get(messages, "admin.stackUpgrade.dialog.resume")}</Button>
                 )}
               </div>
             </>
             )}
+            {!readOnly
+              && !upgradeParameters.upgradeSuspended
+              && ["ABORTED", "FAILED", "TIMEDOUT"].includes(upgradeParameters.upgradeStatus)
+              && !upgradeParameters.runningItem
+              && (
+                <div className="d-flex justify-content-between align-items-center">
+                  <Alert variant="warning" className="mb-0 me-3 flex-grow-1">
+                    This upgrade is not running. Retry it to return the request to PENDING.
+                  </Alert>
+                  <Button variant="primary" onClick={() => void resumeUpgrade()} disabled={actionInProgress}>
+                    Retry Upgrade
+                  </Button>
+                </div>
+              )}
             </div>
           </Card.Body>
         </Card>
@@ -910,7 +933,7 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
           fetchLogs={fetchLogs}
           handleCopy={handleCopy}
           handleOpenInNewTab={handleOpenInNewTab}
-          onlyView={onlyView}
+          onlyView={readOnly}
         />
       </>
     );
@@ -933,7 +956,7 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
 
   // Function to update upgrade options during active upgrade
   async function updateUpgradeOptions() {
-    if (!upgradeId) {
+    if (!upgradeId || readOnly || mutationInProgress) {
       toast.error("No active upgrade found");
       return;
     }
@@ -945,13 +968,18 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
       },
     };
 
+    setMutationInProgress(true);
+    setMutationError(null);
     try {
       await VersionsApi.updateUpgrade(upgradeId, payload, clusterName);
       toast.success("Upgrade options updated successfully");
       setUpgradeOptionsModal(false);
-    } catch (error) {
-      toast.error("Failed to update upgrade options");
-      console.error("Error updating upgrade options:", error);
+    } catch (error: any) {
+      const message = error?.response?.data?.message || error?.message || "Failed to update upgrade options";
+      setMutationError(message);
+      toast.error(message);
+    } finally {
+      setMutationInProgress(false);
     }
   }
 
@@ -1002,6 +1030,7 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
                 type="checkbox"
                 label="Skip all Service Check failures"
                 checked={serviceCheckFailures}
+                disabled={actionInProgress}
                 onChange={(e) => setServiceCheckFailures(e.target.checked)}
               />
             </Form.Group>
@@ -1010,6 +1039,7 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
                 type="checkbox"
                 label="Skip all Slave Component failures"
                 checked={slaveComponentFailures}
+                disabled={actionInProgress}
                 onChange={(e) => setSlaveComponentFailures(e.target.checked)}
               />
             </Form.Group>
@@ -1027,7 +1057,7 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
   
   return (
     <>
-      {data && upgradeModal && (
+      {upgradeModal && (
         <Modal
           isOpen={upgradeModal}
           onClose={() => {
@@ -1041,6 +1071,7 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
             cancelableViaIcon: true,
             cancelableViaBtn: false,
             modalSize: "modal-lg",
+            okButtonDisabled: actionInProgress,
           }}
           successCallback={() => {
             setUpgradeModal(false);
@@ -1060,6 +1091,7 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
             cancelableViaIcon: true,
             cancelableViaBtn: true,
             modalSize: "modal-md",
+            okButtonDisabled: actionInProgress,
           }}
           successCallback={() => {
             pauseUpgrade();
@@ -1078,6 +1110,7 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
             cancelableViaIcon: true,
             cancelableViaBtn: true,
             modalSize: "modal-sm",
+            okButtonDisabled: actionInProgress,
           }}
           successCallback={() => {
             setConfirmDowngradeModal(false);
@@ -1113,6 +1146,7 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
             cancelableViaIcon: true,
             okButtonText: "OK",
             cancelButtonText: "CANCEL",
+            okButtonDisabled: actionInProgress,
           }}
           successCallback={() => updateUpgradeOptions()}
         />

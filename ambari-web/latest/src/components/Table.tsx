@@ -46,6 +46,7 @@ interface TableProps {
   entityName?: string;
   scrollable?: boolean;
   showHeader?: boolean;
+  noBorder?: boolean;
   restProps:{[key:string]:any};
 }
 
@@ -57,6 +58,7 @@ const Table: React.FC<TableProps> = ({
   entityName,
   scrollable = true,
   showHeader = true,
+  noBorder = false,
   maxHeight,
   ...restProps
 }) => {
@@ -158,7 +160,7 @@ const Table: React.FC<TableProps> = ({
                         border:
                           row.index === table.getRowModel().rows.length - 1
                             ? "none"
-                            : restProps.noBorder
+                            : noBorder
                             ? "none"
                             : "",
                       }}
