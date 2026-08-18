@@ -36,6 +36,8 @@ import { HostsApi } from "../../../../api/hostsApi";
 import { getAllComponents } from "../../utils";
 import { ClusterProgressStatus } from "../../../../constants";
 import { Alert, Button } from "react-bootstrap";
+import { claimWizard, releaseWizard } from "../../../../Utils/wizardOwnership";
+import { resolveRecoveryStep } from "../../../ClusterWizard/wizardRecovery";
 
 interface AddHostContextProps {
   state: State;
@@ -62,7 +64,7 @@ export const AddHostProvider: React.FC<{
   const [isHydrated, setIsHydrated] = useState(false);
   const [initializationError, setInitializationError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
-  const { clusterName, services, serviceComponentInfo } =
+  const { clusterName, services, serviceComponentInfo, loginName } =
     useContext(AppContext);
 
   const isDataPersisted = useRef(false);
@@ -316,16 +318,23 @@ export const AddHostProvider: React.FC<{
           payload: persistedData,
         });
       }
-      if (get(persistedData, "activeStep", "")) {
+      const clusterState = await ClusterApi.getPersistData("CLUSTER_STATE");
+      const classicStep = resolveRecoveryStep(
+        "addHost",
+        get(clusterState, "clusterState"),
+      );
+      if (get(persistedData, "activeStep", "") || classicStep !== undefined) {
         try {
           const activeStepName = get(persistedData, "activeStep");
-          const restoredStepData = {
-            progressStatus: ClusterProgressStatus.ADDING_HOST,
-            stepName: activeStepName,
-          };
+          const restoredStepData = clusterState && !isEmpty(clusterState)
+            ? clusterState
+            : {
+                progressStatus: ClusterProgressStatus.ADDING_HOST,
+                stepName: activeStepName,
+              };
           currStepDataRef.current = restoredStepData;
           setCurrStepData(restoredStepData);
-          let activeStepNumber = Object.keys(
+          const storedStep = Object.keys(
             stepWizardUtilities.wizardSteps
           ).find((stepName) => {
             return (
@@ -333,12 +342,18 @@ export const AddHostProvider: React.FC<{
               activeStepName
             );
           });
-          stepWizardUtilities.jumpToStep(Number(activeStepNumber), true);
+          stepWizardUtilities.jumpToStep(
+            classicStep ?? Number(storedStep),
+            true,
+          );
         } catch (err) {
           console.error("Error while jumping to step", err);
         }
       } else {
         stepWizardUtilities.jumpToStep(1, true);
+      }
+      if (loginName) {
+        await claimWizard(loginName, "addHostController");
       }
       isDataPersisted.current = true;
       setIsHydrated(true);
@@ -373,10 +388,11 @@ export const AddHostProvider: React.FC<{
         CLUSTER_STATE: JSON.stringify({}),
       }),
     ));
+    await releaseWizard();
     window.location.assign("/main/hosts");
   }
 
-  async function flushOnStepChange(nextStep: number) {
+  async function flushOnStepChange(nextStep: number, clusterState?: string) {
     if (nextStep >= 1) {
       const nextStepDetails = stepWizardUtilities.wizardSteps?.[nextStep];
       const nextAddHostSteps = { ...stateRef.current.addHostSteps };
@@ -393,6 +409,7 @@ export const AddHostProvider: React.FC<{
       const nextStepData = {
         progressStatus: ClusterProgressStatus.ADDING_HOST,
         stepName: stepWizardUtilities?.wizardSteps?.[nextStep]?.name,
+        ...(clusterState ? { clusterState } : {}),
       };
       currStepDataRef.current = nextStepData;
       setCurrStepData(nextStepData);
@@ -402,7 +419,8 @@ export const AddHostProvider: React.FC<{
 
   async function flushStateToDb(
     operation: string = "default",
-    jumpStep: number = -1
+    jumpStep: number = -1,
+    clusterState?: string,
   ) {
     let activeStep = Object.keys(stepWizardUtilities.wizardSteps).find(
       (stepName) => {
@@ -417,14 +435,26 @@ export const AddHostProvider: React.FC<{
         await flushOnCancel();
         break;
       case "back":
-        await flushOnStepChange(Number(activeStep) - 1);
+        await flushOnStepChange(Number(activeStep) - 1, clusterState);
         break;
       case "next":
-        await flushOnStepChange(Number(activeStep) + 1);
+        await flushOnStepChange(Number(activeStep) + 1, clusterState);
         break;
       case "jump":
-        await flushOnStepChange(jumpStep);
+        await flushOnStepChange(jumpStep, clusterState);
         break;
+      case "checkpoint": {
+        const nextStepData = {
+          ...currStepDataRef.current,
+          progressStatus: ClusterProgressStatus.ADDING_HOST,
+          stepName: stepWizardUtilities.currentStep.name,
+          clusterState,
+        };
+        currStepDataRef.current = nextStepData;
+        setCurrStepData(nextStepData);
+        await queuePersistence(() => flushCurrentData(stateRef.current, nextStepData));
+        break;
+      }
       default:
         await queuePersistence(() => flushCurrentData(
           stateRef.current,

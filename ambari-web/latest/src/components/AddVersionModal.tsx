@@ -32,6 +32,12 @@ type ModalProps = {
     onReadVersion: Function
 }
 
+export type VersionDefinitionSource = {
+    type: 'xml' | 'url'
+    payload: string | { VersionDefinition: { version_url: string } }
+    headers?: Record<string, string>
+}
+
 const AddVersionModal = ({ isOpen, onClose, onReadVersion }: ModalProps) => {
     const [uploadOption, setUploadOption] = useState(ReadOptions.FILE)
     const [file, setFile] = useState<File | undefined>(undefined)
@@ -41,27 +47,41 @@ const AddVersionModal = ({ isOpen, onClose, onReadVersion }: ModalProps) => {
             if (uploadOption === ReadOptions.FILE && file) {
                 const reader = new FileReader()
                 reader.onload = async function (event) {
-                    const fileContents = get(event, 'target.result', undefined)
-                    const versionResources = await VersionsApi.readVersionInfo(
-                        fileContents,
-                        {
-                            'Content-Type': 'text/xml',
-                        },
-                    )
-                    onReadVersion(versionResources)
+                    try {
+                        const fileContents = get(event, 'target.result', '')
+                        if (typeof fileContents !== 'string') {
+                            throw new Error('The version definition file is not text.')
+                        }
+                        const headers = { 'Content-Type': 'text/xml' }
+                        const versionResources = await VersionsApi.readVersionInfo(
+                            fileContents,
+                            headers,
+                        )
+                        onReadVersion(versionResources, {
+                            type: 'xml',
+                            payload: fileContents,
+                            headers,
+                        } satisfies VersionDefinitionSource)
+                    } catch {
+                        toast.error('Could not read version definition')
+                    }
                 }
                 reader.readAsText(file)
             } else if (uploadOption === ReadOptions.URL && fileUrl) {
                 // Fetch the content from the URL
-                const versionResources = await VersionsApi.readVersionInfo({
+                const payload = {
                     VersionDefinition: {
                         version_url: fileUrl,
                     },
-                })
-                onReadVersion(versionResources)
+                }
+                const versionResources = await VersionsApi.readVersionInfo(payload)
+                onReadVersion(versionResources, {
+                    type: 'url',
+                    payload,
+                } satisfies VersionDefinitionSource)
             }
         } catch (err) {
-            toast.error('Could not read version defintion')
+            toast.error('Could not read version definition')
         }
     }
     const handleClose=()=>{

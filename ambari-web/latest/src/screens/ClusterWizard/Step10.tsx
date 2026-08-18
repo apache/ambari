@@ -19,11 +19,10 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import { cloneDeep, filter, find, flatten, get, map, some, uniq } from "lodash";
 import { pluralize, role } from "../../Utils/Utility";
-import { Card, CardBody } from "react-bootstrap";
+import { Alert, Card, CardBody } from "react-bootstrap";
 import WizardFooter from "../../components/StepWizard/WizardFooter";
 import ClusterApi from "../../api/clusterApi";
 import { ContextWrapper } from ".";
-import { syncConfigGroupsToServer } from "../../Utils/configGroupUtils";
 
 type Step10Props = {
   wizardName?: string;
@@ -37,6 +36,8 @@ function Step10({ wizardName = "clusterCreation" }: Step10Props) {
     stepWizardUtilities: { currentStep },
   }: any = useContext(Context);
   const [clusterInfoState, setClusterInfoState] = useState([]);
+  const [finishError, setFinishError] = useState("");
+  const [isFinishing, setIsFinishing] = useState(false);
   const clusterInfo = useRef<any>([]);
   const installFlag = useRef<boolean>(true);
   const startFlag = useRef<boolean>(true);
@@ -281,22 +282,53 @@ function Step10({ wizardName = "clusterCreation" }: Step10Props) {
     });
     setClusterInfoState(uniqueRecords);
   }, [clusterInfo.current]);
+
+  const finish = async () => {
+    if (isFinishing) return;
+    setIsFinishing(true);
+    setFinishError("");
+    try {
+      if (wizardName === "clusterCreation") {
+        const clusterName = getStepData("NAME", "clusterName");
+        await ClusterApi.updateCluster(clusterName, {
+          Clusters: { provisioning_state: "INSTALLED" },
+        });
+      }
+      await Promise.resolve(flushStateToDb("complete"));
+      if (wizardName === "clusterCreation") {
+        window.location.href = "/#/main/dashboard/metrics";
+        window.location.reload();
+      }
+    } catch (error: any) {
+      setFinishError(
+        error?.response?.data?.message
+          || error?.message
+          || "Ambari could not complete the installation workflow.",
+      );
+      setIsFinishing(false);
+    }
+  };
+
   return (
     <>
       <div className="step-title">Summary</div>
       <p className="step-description mt-2">
         Here is the summary of the install process.
       </p>
+      {finishError ? <Alert variant="danger">{finishError}</Alert> : null}
       <Card className="mt-2">
         <CardBody>
           {clusterInfoState.map((info: any) => {
             return (
-              <div className={`${info.color} mt-2`}>
+              <div key={info.id} className={`${info.color} mt-2`}>
                 {info?.displayStatement}
                 <div className="ms-2">
-                  {info.status.map((status: any) => {
+                  {info.status.map((status: any, index: number) => {
                     return (
-                      <div className={` mt-2 ${status.color}`}>
+                      <div
+                        key={`${info.id}-${status.displayStatement}-${index}`}
+                        className={` mt-2 ${status.color}`}
+                      >
                         {status.displayStatement}
                       </div>
                     );
@@ -308,28 +340,11 @@ function Step10({ wizardName = "clusterCreation" }: Step10Props) {
         </CardBody>
       </Card>
       <WizardFooter
-        isNextEnabled={true}
+        isNextEnabled={!isFinishing}
+        isCancelEnabled={!isFinishing}
         step={{ ...currentStep, nextLabel: "COMPLETE" }}
-        onNext={async () => {
-          const clusterName = getStepData("NAME", "clusterName");
-
-          if (wizardName === "clusterCreation") {
-            await ClusterApi.updateCluster(clusterName, {
-              Clusters: {
-                provisioning_state: "INSTALLED",
-              },
-            });
-            await syncConfigGroupsToServer(clusterName, state);
-            flushStateToDb("cancel");
-            window.location.href = "#/main/dashboard/metrics";
-            window.location.reload();
-          } else {
-            await flushStateToDb("cancel");
-          }
-        }}
-        onCancel={() => {
-          flushStateToDb("cancel");
-        }}
+        onNext={() => void finish()}
+        onCancel={() => void finish()}
         onBack={() => {}}
       />
     </>

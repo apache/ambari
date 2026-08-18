@@ -66,4 +66,47 @@ describe("versions API", () => {
       },
     });
   });
+
+  it("loads version definitions and operating systems for the selected stack", async () => {
+    await VersionsApi.getVersionDefinitions("HDP/name");
+    await VersionsApi.getVersionOperatingSystems("HDP/name", "3.1 version");
+
+    expect(mocks.request).toHaveBeenNthCalledWith(1, {
+      url: expect.stringContaining(
+        "VersionDefinition/stack_name=HDP%2Fname",
+      ),
+      method: "GET",
+    });
+    expect(mocks.request.mock.calls[0][0].url).not.toContain("_=");
+    expect(mocks.request).toHaveBeenNthCalledWith(2, {
+      url: "/stacks/HDP%2Fname/versions/3.1%20version?fields=operating_systems/repositories/Repositories",
+      method: "GET",
+    });
+  });
+
+  it("preserves exact VDF dry-run and final submission contracts", async () => {
+    const xml = "<repository-version/>";
+    await VersionsApi.readVersionInfo(
+      xml,
+      { "Content-Type": "text/xml" },
+    );
+    await VersionsApi.readVersionInfo(
+      { VersionDefinition: { version_url: "https://repo/vdf.xml" } },
+      {},
+      false,
+    );
+
+    expect(mocks.request).toHaveBeenNthCalledWith(1, {
+      url: "/version_definitions?dry_run=true",
+      method: "POST",
+      headers: { "Content-Type": "text/xml" },
+      data: xml,
+    });
+    expect(mocks.request).toHaveBeenNthCalledWith(2, {
+      url: "/version_definitions",
+      method: "POST",
+      headers: {},
+      data: { VersionDefinition: { version_url: "https://repo/vdf.xml" } },
+    });
+  });
 });

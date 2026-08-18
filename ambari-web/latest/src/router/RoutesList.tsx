@@ -88,11 +88,18 @@ const RoutesList: RouteObject[] = [
               {
                 path: ":stepNumber",
                 element: (
-                  <ClusterCreationWizard
-                    Context={ClusterCreationContext}
-                    Provider={ClusterCreationProvider}
-                    wizardSteps={wizardSteps as any}
-                  />
+                  <ProtectedRoute
+                    requireAuthorization="AMBARI.ADD_DELETE_CLUSTERS"
+                    redirectTo="/main/view"
+                  >
+                    <ServiceOperationRouteGuard>
+                      <ClusterCreationWizard
+                        Context={ClusterCreationContext}
+                        Provider={ClusterCreationProvider}
+                        wizardSteps={wizardSteps as any}
+                      />
+                    </ServiceOperationRouteGuard>
+                  </ProtectedRoute>
                 ),
               },
             ],
@@ -194,7 +201,19 @@ const RoutesList: RouteObject[] = [
               { path: "hosts/component/:componentName", element: <HostsList /> },
               { path: "hosts/version/:versionName/:versionStatus", element: <HostsList /> },
               { path: "hosts/:hostname/:tab", element: <Hosts /> },
-              { path: "host/add/:stepNumber", element: <AddWizardUrlMapping /> },
+              {
+                path: "host/add/:stepNumber",
+                element: (
+                  <ProtectedRoute
+                    requireAuthorization="HOST.ADD_DELETE_HOSTS"
+                    redirectTo="/main/hosts"
+                  >
+                    <ServiceOperationRouteGuard>
+                      <AddWizardUrlMapping />
+                    </ServiceOperationRouteGuard>
+                  </ProtectedRoute>
+                ),
+              },
               { path: "alerts", element: <Alerts /> },
               { path: "alerts/:alertId", element: <AlertDefinitionDetails /> },
               {

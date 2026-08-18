@@ -19,6 +19,7 @@
 import React, {
   createContext,
   Dispatch,
+  useCallback,
   useContext,
   useEffect,
   useReducer,
@@ -41,6 +42,9 @@ import {
   CANCEL_ADD_SERVICE_WIZARD_EVENT,
   clearAddServiceWizardState,
 } from "../../../../Utils/addServicePersistence";
+import { Alert, Button } from "react-bootstrap";
+import { claimWizard, releaseWizard } from "../../../../Utils/wizardOwnership";
+import { resolveRecoveryStep } from "../../../ClusterWizard/wizardRecovery";
 
 interface AddServiceContextProps {
   state: State;
@@ -65,40 +69,37 @@ export const AddServiceProvider: React.FC<{
   stepWizardUtilities: any;
   children: React.ReactNode;
 }> = ({ stepWizardUtilities, children }) => {
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const [state, reducerDispatch] = useReducer(reducer, initialState);
   const [installedHosts, setInstalledHosts] = useState([]);
   const [installedServices, setInstalledServices] = useState([]);
   const [serviceContextLoading, setServiceContextLoading] = useState(true);
   const [currStepData, setCurrStepData] = useState({});
-  const { clusterName, services, serviceComponentInfo } =
+  const [isHydrated, setIsHydrated] = useState(false);
+  const [initializationError, setInitializationError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const { clusterName, services, serviceComponentInfo, loginName } =
     useContext(AppContext);
 
   const isDataPersisted = useRef(false);
   const isCancelled = useRef(false);
-  const requestSequence = useRef(0);
-  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
   const cancelWizardRef = useRef<(() => Promise<void>) | null>(null);
+  const persistenceQueue = useRef<Promise<void>>(Promise.resolve());
+  const stateRef = useRef<State>(initialState);
+  const currStepDataRef = useRef<Record<string, any>>({});
 
-  // Custom debounced persist function with cancellation capability
-  const debouncedPersist = () => {
-    // Clear any existing timer
-    if (debounceTimer.current) {
-      clearTimeout(debounceTimer.current);
-    }
-    
-    // Set new timer
-    debounceTimer.current = setTimeout(() => {
-      flushCurrentData();
-    }, 500);
+  const dispatch: Dispatch<Action> = (action) => {
+    stateRef.current = reducer(stateRef.current, action);
+    reducerDispatch(action);
   };
 
-  // Function to cancel the debounced persist
-  const cancelDebouncedPersist = () => {
-    if (debounceTimer.current) {
-      clearTimeout(debounceTimer.current);
-      debounceTimer.current = null;
-    }
-  };
+  const queuePersistence = useCallback((operation: () => Promise<any>) => {
+    const nextOperation = persistenceQueue.current
+      .catch(() => undefined)
+      .then(operation)
+      .then(() => undefined);
+    persistenceQueue.current = nextOperation.catch(() => undefined);
+    return nextOperation;
+  }, []);
 
   const getInstalledServices = () => {
     const serviceNames = services.map((service: any) =>
@@ -151,6 +152,9 @@ export const AddServiceProvider: React.FC<{
     
     // Use the current stack if found, otherwise fallback to the first one
     const stackToUse = currentStack || response.items[0];
+    if (!stackToUse) {
+      throw new Error("No stack version is available for this cluster.");
+    }
     
     const repoVersionId = get(
       stackToUse,
@@ -215,27 +219,72 @@ export const AddServiceProvider: React.FC<{
   };
 
   useEffect(() => {
-    getAlreadyInstalledServices();
-  }, []);
+    if (isHydrated && clusterName) {
+      void getAlreadyInstalledServices().catch(handleInitializationError);
+    }
+  }, [clusterName, isHydrated, retryCount]);
 
   useEffect(() => {
-    if (!isEmpty(services) && !isEmpty(serviceComponentInfo)) {
+    if (
+      isHydrated
+      && !isEmpty(services)
+      && !isEmpty(serviceComponentInfo)
+      && !state.addServiceSteps?.SERVICES
+    ) {
       getInstalledServices();
     }
-  }, [services, serviceComponentInfo]);
+  }, [isHydrated, services, serviceComponentInfo, state.addServiceSteps?.SERVICES]);
 
   useEffect(() => {
-    syncUserPersistedData();
-    getHostComponents();
-  }, []);
+    void syncUserPersistedData();
+  }, [retryCount]);
+
+  useEffect(() => {
+    if (isHydrated && clusterName && !state.addServiceSteps?.NAME) {
+      setClusterName();
+    }
+  }, [clusterName, isHydrated, state.addServiceSteps?.NAME]);
+
+  useEffect(() => {
+    if (
+      isHydrated
+      && clusterName
+      && !isEmpty(serviceComponentInfo)
+      && (!state.addServiceSteps?.HOST_STATUS || !state.addServiceSteps?.MASTERS)
+    ) {
+      void getHostComponents().catch(handleInitializationError);
+    }
+  }, [clusterName, isHydrated, serviceComponentInfo, retryCount]);
+
+  useEffect(() => {
+    if (isHydrated && clusterName && !state.addServiceSteps?.VERSION) {
+      setServiceContextLoading(true);
+      void setStackAndVersion().catch(handleInitializationError);
+    } else if (isHydrated) {
+      setServiceContextLoading(false);
+    }
+  }, [clusterName, isHydrated, state.addServiceSteps?.VERSION, retryCount]);
 
   useEffect(() => {
     if (isDataPersisted.current) {
-      debouncedPersist();
+      void queuePersistence(() => flushCurrentData(state, currStepData));
     }
   }, [state.addServiceSteps, currStepData]);
 
+  const handleInitializationError = (error: any) => {
+    isDataPersisted.current = false;
+    setInitializationError(
+      error?.response?.data?.message
+        || error?.message
+        || "Ambari could not initialize the Add Service wizard.",
+    );
+  };
+
   async function syncUserPersistedData() {
+    setInitializationError(null);
+    setIsHydrated(false);
+    isDataPersisted.current = false;
+    isCancelled.current = false;
     try {
       const persistedData = await ClusterApi.getPersistData("ADD_SERVICE");
       if (!isEmpty(get(persistedData, "addServiceSteps", {}))) {
@@ -244,33 +293,33 @@ export const AddServiceProvider: React.FC<{
           payload: persistedData,
         });
       }
-      if (get(persistedData, "activeStep", "")) {
-        try {
-          const activeStepName = get(persistedData, "activeStep");
-          setCurrStepData({
+      const clusterState = await ClusterApi.getPersistData("CLUSTER_STATE");
+      const classicStep = resolveRecoveryStep(
+        "addService",
+        get(clusterState, "clusterState"),
+      );
+      const activeStepName = get(persistedData, "activeStep", "");
+      const storedStep = Object.keys(stepWizardUtilities.wizardSteps).find(
+        (stepNumber) =>
+          stepWizardUtilities.wizardSteps?.[stepNumber]?.name === activeStepName,
+      );
+      const activeStep = classicStep ?? (storedStep === undefined ? 1 : Number(storedStep));
+      const restoredStepData = clusterState && !isEmpty(clusterState)
+        ? clusterState
+        : {
             progressStatus: ClusterProgressStatus.ADDING_SERVICE,
-            stepName: activeStepName,
-          });
-          let activeStepNumber = Object.keys(
-            stepWizardUtilities.wizardSteps
-          ).find((stepName) => {
-            return (
-              stepWizardUtilities.wizardSteps?.[stepName]?.name ===
-              activeStepName
-            );
-          });
-          stepWizardUtilities.jumpToStep(Number(activeStepNumber), true);
-        } catch (err) {
-          console.error("Error while jumping to step", err);
-        }
-      } else {
-        getInstalledServices();
-        setClusterName();
-        setStackAndVersion();
-        stepWizardUtilities.jumpToStep(1, true);
+            stepName: stepWizardUtilities.wizardSteps?.[activeStep]?.name,
+          };
+      currStepDataRef.current = restoredStepData;
+      setCurrStepData(restoredStepData);
+      stepWizardUtilities.jumpToStep(activeStep, true);
+      if (loginName) {
+        await claimWizard(loginName, "addServiceController");
       }
-    } finally {
       isDataPersisted.current = true;
+      setIsHydrated(true);
+    } catch (error: any) {
+      handleInitializationError(error);
     }
   }
 
@@ -343,61 +392,34 @@ export const AddServiceProvider: React.FC<{
     });
   };
 
-  async function flushCurrentData() {
-    // Assign a sequence number to this request
-    const currentSequence = ++requestSequence.current;
-    
-    // Don't persist if wizard has been cancelled
+  async function flushCurrentData(
+    stateSnapshot: State = stateRef.current,
+    stepSnapshot: Record<string, any> = currStepDataRef.current,
+  ) {
     if (isCancelled.current) {
       return;
     }
-
-    try {
-      const result = await ClusterApi.postPersistData(
-        JSON.stringify({
-          ADD_SERVICE: JSON.stringify({
-            ...state,
-            activeStep: get(currStepData, "stepName", ""),
-            requestSequence: currentSequence, // Include sequence number in the data
-          }),
-          CLUSTER_STATE: JSON.stringify(currStepData),
-        })
-      );
-      
-      // Check if this request is still the latest after completion
-      if (currentSequence !== requestSequence.current || isCancelled.current) {
-        return;
-      }
-      
-      return result;
-    } catch (error: any) {
-      // Only log errors if the wizard hasn't been cancelled and this is still the latest request
-      if (!isCancelled.current && currentSequence === requestSequence.current) {
-        console.error('Error persisting data:', error);
-      }
-    }
+    await ClusterApi.postPersistData(JSON.stringify({
+      ADD_SERVICE: JSON.stringify({
+        ...stateSnapshot,
+        activeStep: get(stepSnapshot, "stepName", ""),
+      }),
+      CLUSTER_STATE: JSON.stringify(stepSnapshot),
+    }));
   }
 
   async function flushOnCancel() {
-    // Set cancellation flag to prevent any pending flushCurrentData calls
     isCancelled.current = true;
-    
-    // Increment sequence to invalidate any pending requests
-    const cancelSequence = ++requestSequence.current;
-
-    // Cancel the debounced function to prevent it from executing
-    cancelDebouncedPersist();
-
     try {
-      // Clear the persisted state with the latest sequence number
-      await clearAddServiceWizardState(initialState, cancelSequence);
+      await queuePersistence(() => clearAddServiceWizardState(initialState));
+      await releaseWizard();
     } catch (error: any) {
-      console.error('Error clearing persisted data:', error);
-    } finally {
-      modalManager.hide();
-      window.location.href = "/#/main/dashboard/metrics";
-      window.location.reload();
+      isCancelled.current = false;
+      throw error;
     }
+    modalManager.hide();
+    window.location.href = "/#/main/dashboard/metrics";
+    window.location.reload();
   }
 
   cancelWizardRef.current = flushOnCancel;
@@ -409,37 +431,39 @@ export const AddServiceProvider: React.FC<{
     window.addEventListener(CANCEL_ADD_SERVICE_WIZARD_EVENT, cancelWizard);
     return () => {
       window.removeEventListener(CANCEL_ADD_SERVICE_WIZARD_EVENT, cancelWizard);
-      if (debounceTimer.current) {
-        clearTimeout(debounceTimer.current);
-        debounceTimer.current = null;
-      }
       isCancelled.current = true;
     };
   }, []);
 
-  async function flushOnStepChange(nextStep: number) {
+  async function flushOnStepChange(nextStep: number, clusterState?: string) {
     if (nextStep >= 1) {
-      let nextStepDetails = stepWizardUtilities.wizardSteps?.[nextStep];
+      const nextStepDetails = stepWizardUtilities.wizardSteps?.[nextStep];
+      const nextAddServiceSteps = { ...stateRef.current.addServiceSteps };
       if (nextStepDetails?.keysToRemove) {
         nextStepDetails.keysToRemove.forEach((key: string) => {
-          if (state?.addServiceSteps?.[key]) {
-            dispatch({
-              type: ActionTypes.REMOVE_KEY,
-              payload: { key },
-            });
-          }
+          delete nextAddServiceSteps[key];
         });
       }
-      setCurrStepData({
+      const nextState = {
+        ...stateRef.current,
+        addServiceSteps: nextAddServiceSteps,
+      };
+      dispatch({ type: ActionTypes.SYNC_STATE, payload: nextState });
+      const nextStepData = {
         progressStatus: ClusterProgressStatus.ADDING_SERVICE,
         stepName: stepWizardUtilities?.wizardSteps?.[nextStep]?.name,
-      });
+        ...(clusterState ? { clusterState } : {}),
+      };
+      currStepDataRef.current = nextStepData;
+      setCurrStepData(nextStepData);
+      await queuePersistence(() => flushCurrentData(nextState, nextStepData));
     }
   }
 
-  function flushStateToDb(
+  async function flushStateToDb(
     operation: string = "default",
-    jumpStep: number = -1
+    jumpStep: number = -1,
+    clusterState?: string,
   ) {
     let activeStep = Object.keys(stepWizardUtilities.wizardSteps).find(
       (stepName) => {
@@ -451,15 +475,28 @@ export const AddServiceProvider: React.FC<{
     );
     switch (operation) {
       case "cancel":
-        return flushOnCancel();
+        return await flushOnCancel();
+      case "complete":
+        return await flushOnCancel();
       case "back":
-        return flushOnStepChange(Number(activeStep) - 1);
+        return await flushOnStepChange(Number(activeStep) - 1, clusterState);
       case "next":
-        return flushOnStepChange(Number(activeStep) + 1);
+        return await flushOnStepChange(Number(activeStep) + 1, clusterState);
       case "jump":
-        return flushOnStepChange(jumpStep);
+        return await flushOnStepChange(jumpStep, clusterState);
+      case "checkpoint": {
+        const nextStepData = {
+          ...currStepDataRef.current,
+          progressStatus: ClusterProgressStatus.ADDING_SERVICE,
+          stepName: stepWizardUtilities.currentStep.name,
+          clusterState,
+        };
+        currStepDataRef.current = nextStepData;
+        setCurrStepData(nextStepData);
+        return await queuePersistence(() => flushCurrentData(stateRef.current, nextStepData));
+      }
       default:
-        return flushCurrentData();
+        return await queuePersistence(() => flushCurrentData());
     }
   }
 
@@ -475,7 +512,18 @@ export const AddServiceProvider: React.FC<{
         installedServices,
       }}
     >
-      {children}
+      {initializationError ? (
+        <Alert variant="danger" className="m-4">
+          {initializationError}{" "}
+          <Button
+            size="sm"
+            variant="outline-danger"
+            onClick={() => setRetryCount((value) => value + 1)}
+          >
+            Retry
+          </Button>
+        </Alert>
+      ) : children}
     </AddServiceContext.Provider>
   );
 };

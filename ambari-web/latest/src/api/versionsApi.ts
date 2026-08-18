@@ -34,6 +34,13 @@ const VersionsApi = {
     });
     return response.data;
   },
+  getStacks: async function () {
+    const response = await ambariApi.request({
+      url: "/stacks",
+      method: "GET",
+    });
+    return response.data;
+  },
   getClusterInfo: async function () {
     const url = `/clusters?fields=Clusters/cluster_id`;
     const response = await ambariApi.request({
@@ -42,8 +49,8 @@ const VersionsApi = {
     });
     return response.data;
   },
-  getVersionDefinitions: async function () {
-    const url = `/version_definitions?fields=VersionDefinition/stack_default,VersionDefinition/stack_repo_update_link_exists,VersionDefinition/max_jdk,VersionDefinition/min_jdk,operating_systems/repositories/Repositories/*,operating_systems/OperatingSystems/*,VersionDefinition/stack_services,VersionDefinition/repository_version&VersionDefinition/show_available=true&VersionDefinition/stack_name=VDP&_=1727429673209`;
+  getVersionDefinitions: async function (stackName: string) {
+    const url = `/version_definitions?fields=VersionDefinition/stack_default,VersionDefinition/stack_repo_update_link_exists,VersionDefinition/max_jdk,VersionDefinition/min_jdk,operating_systems/repositories/Repositories/*,operating_systems/OperatingSystems/*,VersionDefinition/stack_services,VersionDefinition/repository_version&VersionDefinition/show_available=true&VersionDefinition/stack_name=${encodeURIComponent(stackName)}`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
@@ -58,8 +65,11 @@ const VersionsApi = {
     });
     return response.data;
   },
-  getVersionOperatingSystems: async function (versionName: string) {
-    const url = `/stacks/VDP/versions/${versionName}?fields=operating_systems/repositories/Repositories`;
+  getVersionOperatingSystems: async function (
+    stackName: string,
+    versionName: string,
+  ) {
+    const url = `/stacks/${encodeURIComponent(stackName)}/versions/${encodeURIComponent(versionName)}?fields=operating_systems/repositories/Repositories`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
@@ -69,11 +79,14 @@ const VersionsApi = {
   readVersionInfo: async function (
     payload: any,
     headers = {},
-    isDryRun = true
+    isDryRun = true,
+    skipUrlCheck = false,
   ) {
-    const url = `/version_definitions?skip_url_check=true${
-      isDryRun ? "&dry_run=true" : ""
-    }`;
+    const query = [
+      isDryRun ? "dry_run=true" : "",
+      skipUrlCheck ? "skip_url_check=true" : "",
+    ].filter(Boolean).join("&");
+    const url = `/version_definitions${query ? `?${query}` : ""}`;
     const response = await ambariApi.request({
       url: url,
       method: "POST",
@@ -132,13 +145,15 @@ const VersionsApi = {
     return response.data;
   },
   postVersionDefinitionFile: async function postVersionDefinitionFile(
-    data: any
+    data: any,
+    headers = {},
   ) {
     const url = `/version_definitions`;
     const response = await ambariApi.request({
       url,
       method: "POST",
       data,
+      headers,
     });
     return response.data;
   },

@@ -30,6 +30,10 @@ import {
   AddHostComponentMetadata,
 } from "../../../Utils/hostWizard";
 import { ActionTypes } from "./wizardDataStore/types";
+import {
+  canRetryInstallation,
+  wizardCheckpoint,
+} from "../../ClusterWizard/installationProgress";
 
 type DeploymentPhase = "INSTALL" | "KEYTABS" | "START" | "COMPLETE";
 
@@ -211,6 +215,14 @@ export default function AddHostInstall() {
     setTerminal(false);
     setWorking(true);
     updateDeploymentState(nextStatus, nextPhase);
+    void Promise.resolve(flushStateToDb(
+      "checkpoint",
+      -1,
+      wizardCheckpoint(
+        "addHost",
+        nextPhase === "INSTALL" ? "INSTALLING" : "STARTING",
+      ),
+    ));
     schedulePoll();
   };
 
@@ -528,7 +540,7 @@ export default function AddHostInstall() {
         isBackEnabled={false}
         lifted
         step={currentStep}
-        sideItems={clusterStatus.status?.includes("FAILED") ? (
+        sideItems={canRetryInstallation(clusterStatus.status) ? (
           <Button
             variant="outline-primary"
             className="me-3"
@@ -540,7 +552,11 @@ export default function AddHostInstall() {
         ) : null}
         onNext={async () => {
           persist(hostsRef.current, clusterStatusRef.current, phaseRef.current);
-          await Promise.resolve(flushStateToDb("next"));
+          await Promise.resolve(flushStateToDb(
+            "next",
+            -1,
+            wizardCheckpoint("addHost", "INSTALLED"),
+          ));
           handleNextImperitive();
         }}
         onCancel={() => void flushStateToDb("cancel")}
