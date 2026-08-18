@@ -19,10 +19,20 @@
 import { useContext, useEffect, useState } from "react";
 import adminApi from "../api/adminApi";
 import { AppContext } from "../store/context";
+import { responseErrorMessage } from "../Utils/httpError";
 
-export function kerberosTypeFromConfig(response: any): string {
+type KerberosConfigResponse = {
+  items?: Array<{
+    configurations?: Array<{
+      type?: string;
+      properties?: { kdc_type?: string };
+    }>;
+  }>;
+};
+
+export function kerberosTypeFromConfig(response: KerberosConfigResponse): string {
   return response?.items?.[0]?.configurations?.find(
-    (configuration: any) => configuration.type === "kerberos-env",
+    (configuration) => configuration.type === "kerberos-env",
   )?.properties?.kdc_type || "none";
 }
 
@@ -51,13 +61,14 @@ export default function useKerberosMode() {
           setKdcType(kerberosTypeFromConfig(response));
         }
       })
-      .catch((requestError: any) => {
+      .catch((requestError) => {
         if (active) {
           setKdcType("");
           setError(
-            requestError?.response?.data?.message
-              || requestError?.message
-              || "Ambari could not determine the Kerberos KDC type.",
+            responseErrorMessage(
+              requestError,
+              "Ambari could not determine the current Kerberos mode.",
+            ),
           );
         }
       })
@@ -76,6 +87,8 @@ export default function useKerberosMode() {
     isLoaded,
     isManualKerberos: isKerberosEnabled && kdcType === "none",
     kdcType,
+    loadError: error,
     reload: () => setReloadKey((value) => value + 1),
+    retry: () => setReloadKey((value) => value + 1),
   };
 }

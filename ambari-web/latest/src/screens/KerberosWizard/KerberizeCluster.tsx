@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { RequestApi } from "../../api/requestApi";
 import WizardFooter from "../../components/StepWizard/WizardFooter";
 import { EnableKerberosContext } from "./KerberosStore/context";
@@ -27,6 +27,7 @@ import { get } from "lodash";
 import { ActionTypes } from "./KerberosStore/types";
 import useKDCSessionState from "../../hooks/useKDCSessionState";
 import OperationsProgress from "../../components/OperationsProgress";
+import { ProgressStatus } from "../../constants";
 
 function KerberizeCluster() {
   const {
@@ -34,14 +35,16 @@ function KerberizeCluster() {
     dispatch,
     flushStateToDb,
     onExitPopUp,
-    stepWizardUtilities: { currentStep, wizardSteps, handleNextImperitive, handleBackImperitive},
+    stepWizardUtilities: { currentStep, wizardSteps, handleNextImperitive, jumpToStep},
   } = useContext(EnableKerberosContext);
 
   const [completionStatus, setCompletionStatus] = useState(false);
   const [stepOperations, setStepOperations] = useState<any>([]);
   const [nextEnabled, setNextEnabled] = useState(false);
+  const [hasFailed, setHasFailed] = useState(false);
   const { clusterName } = useContext(AppContext);
   const { getKDCSessionState } = useKDCSessionState(() => {});
+  const attempts = useRef(0);
 
   useEffect(() => {
     if (completionStatus) {
@@ -57,7 +60,8 @@ function KerberizeCluster() {
       skippable: false,
       context: "Preparing Operations",
       callback: async () => {
-        return new Promise((resolve) => {
+        attempts.current += 1;
+        return new Promise((resolve, reject) => {
           getKDCSessionState(async () => {
             const preparingOperationsPayload = {
               Clusters: {
@@ -66,10 +70,11 @@ function KerberizeCluster() {
             };
             const requestData = await RequestApi.preparingOperations(
               clusterName,
-              preparingOperationsPayload
+              preparingOperationsPayload,
+              attempts.current > 1 ? "force_toggle_kerberos=true" : "",
             );
             resolve(requestData);
-          });
+          }, reject, { forceCheck: true });
         });
       },
     },
@@ -81,6 +86,11 @@ function KerberizeCluster() {
   );
 
   useEffect(() => {
+    attempts.current = savedOperationsState?.some(
+      (operation: any) => operation.requestId || operation.status,
+    )
+      ? 1
+      : 0;
     const operations = (() => {
       if (savedOperationsState && Array.isArray(savedOperationsState)) {
         return initialOperations.map((originalOp) => {
@@ -114,6 +124,9 @@ function KerberizeCluster() {
         description="Kerberize Cluster"
         setCompletionStatus={setCompletionStatus}
         dispatch={(operationsState: any) => {
+          setHasFailed(operationsState.some(
+            (operation: any) => operation.status === ProgressStatus.FAILED,
+          ));
           dispatch({
             type: ActionTypes.STORE_INFORMATION,
             payload: {
@@ -136,9 +149,10 @@ function KerberizeCluster() {
           onExitPopUp(true, false);
         }}
         onBack={() => {
-          flushStateToDb("back");
-          handleBackImperitive();
+          flushStateToDb("jump", 4);
+          jumpToStep(4, true);
         }}
+        isBackEnabled={hasFailed}
       />
     </>
   );

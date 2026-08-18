@@ -93,7 +93,7 @@ export default {
       label: "Start and Test Services",
       completed: false,
       Component: <StartAndTestServices />,
-      canGoBack: true,
+      canGoBack: false,
       isNextEnabled: false,
       name: "START_AND_TEST_SERVICES"
     },

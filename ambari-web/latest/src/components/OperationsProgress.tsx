@@ -16,29 +16,42 @@
  * limitations under the License.
  */
 
+import { faUndo } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { cloneDeep, get, has, set } from "lodash";
 import { useContext, useEffect, useRef, useState } from "react";
-import { RequestApi } from "../api/requestApi";
-import { AppContext } from "../store/context";
-import { isFailed, isFinished } from "../Utils/Utility";
-import { ProgressStatus, ViewLevel } from "../constants";
 import { Alert, Button, ProgressBar, Stack } from "react-bootstrap";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUndo } from "@fortawesome/free-solid-svg-icons";
-import modalManager from "../store/ModalManager";
+import { RequestApi } from "../api/requestApi";
+import { ProgressStatus, ViewLevel } from "../constants";
 import BackgroundOperations from "../screens/BackgroundOperations";
+import { AppContext } from "../store/context";
+import modalManager from "../store/ModalManager";
 import { getStatusIcon } from "../Utils/statusIcons";
+import { isFailed, isFinished } from "../Utils/Utility";
 
 type Operation = {
   id: string | number;
   label: string;
-  callback: any;
+  callback: () => Promise<unknown>;
   skippable: boolean;
   requestId?: string | number;
   status?: string;
   progress?: number;
   error?: string;
-  requestInfo?: any;
+  requestInfo?: Record<string, unknown> & { id?: string | number };
+  skipCallback?: () => Promise<unknown>;
+  retryFromOperationId?: string | number;
+};
+
+type OperationResponse = {
+  Requests?: { id: string | number; status?: string };
+  status?: number;
+};
+
+type RequestError = {
+  message?: string;
+  status?: number;
+  response?: { status?: number; data?: { message?: string } };
 };
 
 type PropTypes = {
@@ -46,17 +59,13 @@ type PropTypes = {
   description: string;
   setCompletionStatus: (completed: boolean) => void;
   operations: Operation[];
-  dispatch?: (operationsState: any) => void | Promise<void>;
+  dispatch?: (operationsState: Operation[]) => void | Promise<void>;
   errorCallback?: (errorMsg: string) => void;
 };
 
-type OperationRequestResponse = {
-  Requests: {
-    id: number | string;
-    status: string;
-  };
-  href: string;
-  status?: number;
+type PendingPersistence = {
+  operations: Operation[];
+  continuation?: () => void | Promise<void>;
 };
 
 function OperationsProgress({
@@ -69,27 +78,44 @@ function OperationsProgress({
   const [activeOperationId, setActiveOperationId] = useState<
     string | number | null
   >(null);
+  const [skippingOperationId, setSkippingOperationId] = useState<
+    string | number | null
+  >(null);
   const [persistenceError, setPersistenceError] = useState("");
   const [isRetryingPersistence, setIsRetryingPersistence] = useState(false);
   const { clusterName } = useContext(AppContext);
   const startedTasks = useRef<Set<string | number>>(new Set());
   const operationsStateRef = useRef(operations);
-  const pollingTimers = useRef<Set<number>>(new Set());
-  const pendingPersistence = useRef<{
-    operations: Operation[];
-    continuation?: () => void | Promise<void>;
-  } | null>(null);
+  const pollingTimers = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
+  const operationGeneration = useRef<Map<string | number, number>>(new Map());
+  const pendingPersistence = useRef<PendingPersistence | null>(null);
   const isMounted = useRef(true);
+  const setCompletionStatusRef = useRef(setCompletionStatus);
+  const errorCallbackRef = useRef(errorCallback);
+  const reportedError = useRef("");
+  const executeTaskRef = useRef<(
+    operationId?: string | number | null,
+    forceRetry?: boolean,
+  ) => Promise<void>>(async () => undefined);
+  setCompletionStatusRef.current = setCompletionStatus;
+  errorCallbackRef.current = errorCallback;
 
-  const updateOperationsState = (nextOperations: typeof operations) => {
+  const updateOperationsState = (nextOperations: Operation[]) => {
     operationsStateRef.current = nextOperations;
-    if (isMounted.current) {
-      setOperationsState(nextOperations);
-    }
+    if (isMounted.current) setOperationsState(nextOperations);
   };
 
-  const persistenceMessage = (error: any, fallback: string) =>
-    error?.response?.data?.message || error?.message || fallback;
+  const errorMessage = (error: unknown, fallback: string) => {
+    const requestError = error as RequestError;
+    return requestError.response?.data?.message || requestError.message || fallback;
+  };
+
+  const getGeneration = (operationId: string | number) =>
+    operationGeneration.current.get(operationId) ?? 0;
+
+  const invalidateOperation = (operationId: string | number) => {
+    operationGeneration.current.set(operationId, getGeneration(operationId) + 1);
+  };
 
   const persistAndContinue = async (
     nextOperations: Operation[],
@@ -98,23 +124,17 @@ function OperationsProgress({
   ) => {
     updateOperationsState(nextOperations);
     try {
-      if (dispatch) {
-        await dispatch(nextOperations);
-      }
-    } catch (error: any) {
-      pendingPersistence.current = {
-        operations: nextOperations,
-        continuation,
-      };
+      await dispatch?.(nextOperations);
+    } catch (error) {
+      pendingPersistence.current = { operations: nextOperations, continuation };
       if (isMounted.current) {
-        setPersistenceError(persistenceMessage(error, fallbackMessage));
+        setPersistenceError(errorMessage(error, fallbackMessage));
       }
       return false;
     }
     pendingPersistence.current = null;
-    if (isMounted.current) {
-      setPersistenceError("");
-    }
+    if (!isMounted.current) return false;
+    setPersistenceError("");
     await continuation?.();
     return true;
   };
@@ -124,94 +144,22 @@ function OperationsProgress({
     if (!pending || isRetryingPersistence) return;
     setIsRetryingPersistence(true);
     try {
-      if (dispatch) {
-        await dispatch(pending.operations);
-      }
+      await dispatch?.(pending.operations);
       pendingPersistence.current = null;
-      if (isMounted.current) {
-        setPersistenceError("");
-      }
+      if (!isMounted.current) return;
+      setPersistenceError("");
       await pending.continuation?.();
-    } catch (error: any) {
+    } catch (error) {
       if (isMounted.current) {
         setPersistenceError(
-          persistenceMessage(
+          errorMessage(
             error,
             "Ambari could not persist the operation checkpoint.",
           ),
         );
       }
     } finally {
-      if (isMounted.current) {
-        setIsRetryingPersistence(false);
-      }
-    }
-  };
-
-  const scheduleStatusPoll = (
-    requestId: string | number,
-    operationId: string | number,
-  ) => {
-    if (!isMounted.current) return;
-    const timer = window.setTimeout(() => {
-      pollingTimers.current.delete(timer);
-      void trackCurrentRequestStatus(requestId, operationId);
-    }, 2000);
-    pollingTimers.current.add(timer);
-  };
-
-  const trackCurrentRequestStatus = async (
-    requestId: string | number,
-    operationId: string | number,
-  ) => {
-    const operationsStateCopy = cloneDeep(operationsStateRef.current);
-    const trackingStatusForOperation: any = operationsStateCopy.find(
-      (operation) => operation.id == operationId
-    );
-    if (requestId) {
-      set(trackingStatusForOperation, "requestId", requestId);
-      let requestStatus;
-      try {
-        requestStatus = await RequestApi.getRequestStatus(
-          clusterName,
-          String(requestId)
-        );
-      } catch (error) {
-        set(
-          trackingStatusForOperation,
-          "error",
-          "Ambari could not read the request status. Polling will retry.",
-        );
-        updateOperationsState(operationsStateCopy);
-        scheduleStatusPoll(requestId, operationId);
-        return;
-      }
-      if (requestStatus?.Requests?.request_status) {
-        const { Requests } = requestStatus;
-        set(trackingStatusForOperation, "status", Requests?.request_status);
-        set(trackingStatusForOperation, "progress", Requests?.progress_percent);
-        set(trackingStatusForOperation, "requestInfo", Requests);
-        if (has(trackingStatusForOperation, "error")) {
-          delete trackingStatusForOperation.error;
-        }
-
-
-        await persistAndContinue(operationsStateCopy, () => {
-          if (isFinished(Requests.request_status)) {
-            moveToNextOperation(operationsStateCopy, operationId);
-          } else {
-            scheduleStatusPoll(requestId, operationId);
-          }
-        });
-      } else {
-        set(
-          trackingStatusForOperation,
-          "error",
-          "Ambari returned an incomplete request status. Polling will retry.",
-        );
-        updateOperationsState(operationsStateCopy);
-        scheduleStatusPoll(requestId, operationId);
-      }
+      if (isMounted.current) setIsRetryingPersistence(false);
     }
   };
 
@@ -219,77 +167,140 @@ function OperationsProgress({
     currentOperations: Operation[],
     operationId: string | number,
   ) => {
-    const currentActiveOperation = currentOperations.find(
+    const currentOperation = currentOperations.find(
       (operation) => operation.id == operationId,
     );
-    if (
-      currentActiveOperation &&
-      isFinished(currentActiveOperation?.status || "")
-    ) {
-      if (!isFailed(currentActiveOperation?.status || "")) {
-        if (operationId == currentOperations.at(-1)?.id) {
-          setCompletionStatus(true);
-        } else {
-          const currentActiveIndex = currentOperations.findIndex(
-            (operation) => operation.id == operationId,
-          );
-          setActiveOperationId(currentOperations[currentActiveIndex + 1]?.id);
-        }
-      }
+    if (!currentOperation || currentOperation.status !== ProgressStatus.COMPLETED) {
+      return;
     }
+    if (operationId == currentOperations.at(-1)?.id) {
+      setCompletionStatusRef.current(true);
+      return;
+    }
+    const currentIndex = currentOperations.findIndex(
+      (operation) => operation.id == operationId,
+    );
+    setActiveOperationId(currentOperations[currentIndex + 1]?.id ?? null);
+  };
+
+  const scheduleStatusPoll = (
+    requestId: string | number,
+    operationId: string | number,
+    generation: number,
+  ) => {
+    if (!isMounted.current || generation !== getGeneration(operationId)) return;
+    const timer = setTimeout(() => {
+      pollingTimers.current.delete(timer);
+      void trackCurrentRequestStatus(requestId, operationId, generation);
+    }, 2000);
+    pollingTimers.current.add(timer);
   };
 
   const persistFailedOperation = async (
     operationId: string | number,
-    error: any,
+    error: unknown,
+    generation = getGeneration(operationId),
   ) => {
-    const operationsStateCopy = cloneDeep(operationsStateRef.current);
-    const matchingOperation: any = operationsStateCopy.find(
+    if (!isMounted.current || generation !== getGeneration(operationId)) return;
+    const failedState = cloneDeep(operationsStateRef.current);
+    const failedOperation = failedState.find(
       (operation) => operation.id == operationId,
     );
-    if (!matchingOperation) return;
-    const statusCode = get(error, "status", get(error, "response.status", ""));
-    const errorMessage =
-      get(error, "response.data.message", "") ||
-      error?.message ||
-      "The operation failed.";
-    set(matchingOperation, "status", ProgressStatus.FAILED);
-    set(
-      matchingOperation,
-      "error",
-      statusCode ? `Error ${statusCode}: ${errorMessage}` : errorMessage,
-    );
-    await persistAndContinue(operationsStateCopy);
+    if (!failedOperation) return;
+    const statusCode = get(error, "response.status", get(error, "status", ""));
+    const message = errorMessage(error, "The operation failed.");
+    set(failedOperation, "status", ProgressStatus.FAILED);
+    set(failedOperation, "error", statusCode ? `Error ${statusCode}: ${message}` : message);
+    await persistAndContinue(failedState);
   };
 
-  const runOperationCallback = async (operationId: string | number) => {
-    const matchingOperation = operationsStateRef.current.find(
-      (operation) => operation.id == operationId,
-    );
-    if (!matchingOperation) return;
+  const trackCurrentRequestStatus = async (
+    requestId: string | number,
+    operationId: string | number,
+    generation = getGeneration(operationId),
+  ) => {
+    if (!requestId || generation !== getGeneration(operationId)) return;
     try {
-      const response: OperationRequestResponse =
-        await matchingOperation.callback();
-      const operationsStateCopy = cloneDeep(operationsStateRef.current);
-      const updatedOperation: any = operationsStateCopy.find(
+      const requestStatus = await RequestApi.getRequestStatus(
+        clusterName,
+        String(requestId),
+      );
+      if (!isMounted.current || generation !== getGeneration(operationId)) return;
+
+      const nextState = cloneDeep(operationsStateRef.current);
+      const trackedOperation = nextState.find(
         (operation) => operation.id == operationId,
+      );
+      if (
+        !trackedOperation ||
+        String(trackedOperation.requestId) !== String(requestId)
+      ) {
+        return;
+      }
+      const request = requestStatus?.Requests;
+      if (!request?.request_status) {
+        throw new Error("Ambari returned an invalid request status response.");
+      }
+
+      const requestState = ["ABORTED", "TIMEDOUT"].includes(
+        request.request_status,
+      )
+        ? ProgressStatus.FAILED
+        : request.request_status;
+      set(trackedOperation, "status", requestState);
+      set(trackedOperation, "progress", request.progress_percent);
+      set(trackedOperation, "requestInfo", request);
+      delete trackedOperation.error;
+
+      await persistAndContinue(nextState, () => {
+        if (isFinished(requestState)) {
+          moveToNextOperation(nextState, operationId);
+        } else {
+          scheduleStatusPoll(requestId, operationId, generation);
+        }
+      });
+    } catch (error) {
+      await persistFailedOperation(operationId, error, generation);
+    }
+  };
+
+  const runOperationCallback = async (
+    operationId: string | number,
+    generation: number,
+  ) => {
+    const operation = operationsStateRef.current.find(
+      (candidate) => candidate.id == operationId,
+    );
+    if (!operation || generation !== getGeneration(operationId)) return;
+    try {
+      const response = await operation.callback() as
+        | OperationResponse
+        | Array<{ status?: number }>
+        | undefined;
+      if (!isMounted.current || generation !== getGeneration(operationId)) return;
+      const nextState = cloneDeep(operationsStateRef.current);
+      const updatedOperation = nextState.find(
+        (candidate) => candidate.id == operationId,
       );
       if (!updatedOperation) return;
 
-      if (response?.Requests) {
-        set(updatedOperation, "requestId", response.Requests.id);
+      if (!Array.isArray(response) && response?.Requests) {
+        const requestId = response.Requests.id;
+        set(updatedOperation, "requestId", requestId);
         set(updatedOperation, "status", ProgressStatus.IN_PROGRESS);
         await persistAndContinue(
-          operationsStateCopy,
-          () => trackCurrentRequestStatus(response.Requests.id, operationId),
+          nextState,
+          () => trackCurrentRequestStatus(requestId, operationId, generation),
           "Ambari could not persist the Ambari request ID.",
         );
         return;
       }
 
-      const statusCode = get(response, "[0].status", response?.status);
+      const statusCode = Array.isArray(response)
+        ? response[0]?.status
+        : response?.status;
       if (
-        (statusCode && statusCode >= 200 && statusCode < 300) ||
+        (statusCode !== undefined && statusCode >= 200 && statusCode < 300) ||
         !response
       ) {
         set(updatedOperation, "status", ProgressStatus.COMPLETED);
@@ -304,11 +315,11 @@ function OperationsProgress({
             : `Unknown response format: ${JSON.stringify(response)}`,
         );
       }
-      await persistAndContinue(operationsStateCopy, () =>
-        moveToNextOperation(operationsStateCopy, operationId),
+      await persistAndContinue(nextState, () =>
+        moveToNextOperation(nextState, operationId),
       );
-    } catch (error: any) {
-      await persistFailedOperation(operationId, error);
+    } catch (error) {
+      await persistFailedOperation(operationId, error, generation);
     }
   };
 
@@ -318,81 +329,200 @@ function OperationsProgress({
   ) {
     if (operationId === null || startedTasks.current.has(operationId)) return;
     startedTasks.current.add(operationId);
-    const matchingOperation = operationsStateRef.current.find(
-      (operation) => operation.id == operationId,
+    const operation = operationsStateRef.current.find(
+      (candidate) => candidate.id == operationId,
     );
-    if (!matchingOperation) return;
+    if (!operation) return;
+    const generation = getGeneration(operationId);
 
     if (
       !forceRetry &&
-      matchingOperation.status === ProgressStatus.IN_PROGRESS &&
-      matchingOperation.requestId
+      operation.requestId &&
+      !isFinished(operation.status || "")
     ) {
-      await trackCurrentRequestStatus(matchingOperation.requestId, operationId);
+      await trackCurrentRequestStatus(operation.requestId, operationId, generation);
       return;
     }
-    if (!forceRetry && matchingOperation.status === "QUEUED") {
-      await runOperationCallback(operationId);
+    if (!forceRetry && operation.status === "QUEUED") {
+      await runOperationCallback(operationId, generation);
       return;
     }
-    if (!forceRetry && isFinished(matchingOperation.status || "")) return;
+    if (!forceRetry && operation.status === ProgressStatus.IN_PROGRESS) {
+      await persistFailedOperation(
+        operationId,
+        new Error(
+          "The persisted operation has no Ambari request ID and cannot be recovered.",
+        ),
+        generation,
+      );
+      return;
+    }
+    if (!forceRetry && isFinished(operation.status || "")) return;
 
-    const operationsStateCopy = cloneDeep(operationsStateRef.current);
-    const queuedOperation: any = operationsStateCopy.find(
-      (operation) => operation.id == operationId,
+    const queuedState = cloneDeep(operationsStateRef.current);
+    const queuedOperation = queuedState.find(
+      (candidate) => candidate.id == operationId,
     );
+    if (!queuedOperation) return;
     set(queuedOperation, "status", "QUEUED");
     delete queuedOperation.error;
     await persistAndContinue(
-      operationsStateCopy,
-      () => runOperationCallback(operationId),
+      queuedState,
+      () => runOperationCallback(operationId, generation),
       "Ambari could not persist the task checkpoint before execution.",
     );
   }
+  executeTaskRef.current = executeTask;
 
-  const retryOperation = () => {
-    if (activeOperationId === null) return;
-    startedTasks.current.delete(activeOperationId);
-    void executeTask(activeOperationId, true);
+  const retryOperation = (operationId: string | number) => {
+    if (pendingPersistence.current) return;
+    const retryState = cloneDeep(operationsStateRef.current);
+    const failedOperation = retryState.find(
+      (operation) => operation.id == operationId,
+    );
+    if (!failedOperation) return;
+    const retryOperationId = failedOperation.retryFromOperationId ?? operationId;
+    const retryIndex = retryState.findIndex(
+      (operation) => operation.id == retryOperationId,
+    );
+    if (retryIndex < 0) return;
+
+    retryState.slice(retryIndex).forEach((operation) => {
+      invalidateOperation(operation.id);
+      startedTasks.current.delete(operation.id);
+      delete operation.requestId;
+      delete operation.requestInfo;
+      delete operation.progress;
+      delete operation.error;
+      delete operation.status;
+    });
+    setCompletionStatusRef.current(false);
+    setActiveOperationId(retryOperationId);
+    void persistAndContinue(retryState, () => executeTask(retryOperationId));
+  };
+
+  const skipOperation = async (operationId: string | number) => {
+    if (skippingOperationId !== null || pendingPersistence.current) return;
+    const operation = operationsStateRef.current.find(
+      (candidate) => candidate.id == operationId,
+    );
+    if (!operation?.skippable || !operation.skipCallback) return;
+
+    invalidateOperation(operationId);
+    const generation = getGeneration(operationId);
+    setSkippingOperationId(operationId);
+    const pendingState = cloneDeep(operationsStateRef.current);
+    const pendingOperation = pendingState.find(
+      (candidate) => candidate.id == operationId,
+    );
+    if (!pendingOperation) return;
+    delete pendingOperation.requestId;
+    delete pendingOperation.requestInfo;
+    delete pendingOperation.progress;
+    delete pendingOperation.error;
+    set(pendingOperation, "status", ProgressStatus.IN_PROGRESS);
+    updateOperationsState(pendingState);
+
+    try {
+      const response = await operation.skipCallback() as
+        | OperationResponse
+        | Array<{ status?: number }>
+        | undefined;
+      if (!isMounted.current || generation !== getGeneration(operationId)) return;
+      const nextState = cloneDeep(operationsStateRef.current);
+      const skippedOperation = nextState.find(
+        (candidate) => candidate.id == operationId,
+      );
+      if (!skippedOperation) return;
+      if (!Array.isArray(response) && response?.Requests?.id) {
+        const requestId = response.Requests.id;
+        set(skippedOperation, "requestId", requestId);
+        set(skippedOperation, "status", ProgressStatus.IN_PROGRESS);
+        await persistAndContinue(
+          nextState,
+          () => trackCurrentRequestStatus(requestId, operationId, generation),
+          "Ambari could not persist the Ambari request ID.",
+        );
+      } else {
+        const statusCode = Array.isArray(response)
+          ? response[0]?.status
+          : response?.status;
+        if (
+          response &&
+          !(statusCode !== undefined && statusCode >= 200 && statusCode < 300)
+        ) {
+          throw new Error("Ambari returned an invalid skip response.");
+        }
+        set(skippedOperation, "status", ProgressStatus.COMPLETED);
+        await persistAndContinue(nextState, () =>
+          moveToNextOperation(nextState, operationId),
+        );
+      }
+    } catch (error) {
+      await persistFailedOperation(operationId, error, generation);
+    } finally {
+      if (isMounted.current) setSkippingOperationId(null);
+    }
   };
 
   useEffect(() => {
     if (activeOperationId !== null) {
-      void executeTask(activeOperationId);
+      void executeTaskRef.current(activeOperationId);
     }
   }, [activeOperationId]);
 
   useEffect(() => {
-    let toBeStartedIdx = 0;
-    while (
-      toBeStartedIdx < operations.length &&
-      operations[toBeStartedIdx].status === ProgressStatus.COMPLETED
-    ) {
-      startedTasks.current.add(operations[toBeStartedIdx].id);
-      toBeStartedIdx += 1;
-    }
-    if (toBeStartedIdx >= operations.length && operations.length) {
-      setCompletionStatus(true);
+    const failedOperation = operationsState.find(
+      (operation) => operation.error && isFinished(operation.status || ""),
+    );
+    if (!failedOperation) {
+      reportedError.current = "";
       return;
     }
-    const operation = operations[toBeStartedIdx];
-    if (operation && isFailed(operation.status || "")) {
-      startedTasks.current.add(operation.id);
+    const message =
+      failedOperation.error || "Error: An error occurred during the operation.";
+    const errorKey = `${failedOperation.id}:${failedOperation.status}:${message}`;
+    if (errorCallbackRef.current && reportedError.current !== errorKey) {
+      reportedError.current = errorKey;
+      errorCallbackRef.current(message);
     }
-    setActiveOperationId(operation?.id ?? null);
+  }, [operationsState]);
+
+  useEffect(() => {
+    let activeIndex = 0;
+    while (
+      activeIndex < operationsStateRef.current.length &&
+      operationsStateRef.current[activeIndex].status === ProgressStatus.COMPLETED
+    ) {
+      startedTasks.current.add(operationsStateRef.current[activeIndex].id);
+      activeIndex += 1;
+    }
+    if (activeIndex >= operationsStateRef.current.length) {
+      setCompletionStatusRef.current(true);
+      return;
+    }
+    const activeOperation = operationsStateRef.current[activeIndex];
+    if (isFinished(activeOperation.status || "")) {
+      startedTasks.current.add(activeOperation.id);
+    }
+    setActiveOperationId(activeOperation.id);
   }, []);
 
   useEffect(() => {
+    isMounted.current = true;
+    const timers = pollingTimers.current;
+    const generations = operationGeneration.current;
     return () => {
       isMounted.current = false;
-      pollingTimers.current.forEach((timer) => window.clearTimeout(timer));
-      pollingTimers.current.clear();
+      timers.forEach(clearTimeout);
+      timers.clear();
+      generations.clear();
     };
   }, []);
 
   return (
     <div className="p-3">
-      {persistenceError ? (
+      {persistenceError && (
         <Alert variant="danger">
           {persistenceError}
           <Button
@@ -404,89 +534,92 @@ function OperationsProgress({
             Retry checkpoint
           </Button>
         </Alert>
-      ) : null}
+      )}
       <Stack direction="vertical">
-        {operationsState.map((operation: any) => {
-          return (
-            <Stack
-              direction="horizontal"
-              className="justify-content-between mt-3"
-              key={operation.label}
-            >
-              <div className="d-flex align-items-center">
-                {getStatusIcon(operation?.status)}
-                <div
-                  onClick={() => {
-                    if (operation.requestId || operation?.requestInfo?.id) {
-                      modalManager.show(
-                        <BackgroundOperations
-                          isExplicitClick
-                          isOpen
-                          onClose={() => {
-                            modalManager.hide();
-                          }}
-                          rootLevel={ViewLevel.HOSTS}
-                          requestId={
-                            operation.requestId || operation?.requestInfo?.id
-                          }
-                        />
-                      );
-                    }
-                  }}
-                  className={`${
-                    has(operation, "requestId") ||
-                    has(operation, "requestInfo.id")
-                      ? "custom-link"
-                      : ""
-                  }`}
+        {operationsState.map((operation) => (
+          <Stack
+            direction="horizontal"
+            className="justify-content-between mt-3"
+            key={operation.id}
+          >
+            <div className="d-flex align-items-center">
+              {getStatusIcon(operation.status)}
+              <div
+                onClick={() => {
+                  if (operation.requestId || operation.requestInfo?.id) {
+                    modalManager.show(
+                      <BackgroundOperations
+                        isExplicitClick
+                        isOpen
+                        onClose={() => modalManager.hide()}
+                        rootLevel={ViewLevel.HOSTS}
+                        requestId={operation.requestId || operation.requestInfo?.id}
+                      />,
+                    );
+                  }
+                }}
+                className={
+                  operation.requestId || operation.requestInfo?.id
+                    ? "custom-link"
+                    : ""
+                }
+              >
+                {operation.label}{" "}
+              </div>
+              {isFailed(operation.status || "") && (
+                <Button
+                  size="sm"
+                  onClick={() => retryOperation(operation.id)}
+                  disabled={
+                    skippingOperationId !== null || Boolean(persistenceError)
+                  }
+                  variant="success"
+                  className="mx-2"
                 >
-                  {operation.label}{" "}
-                </div>
-                {isFailed(operation.status) ? (
+                  <FontAwesomeIcon className="me-2" icon={faUndo} />
+                  Retry Operation
+                </Button>
+              )}
+              {operation.skippable &&
+                operation.skipCallback &&
+                isFailed(operation.status || "") && (
                   <Button
                     size="sm"
-                    onClick={retryOperation}
-                    variant="success"
+                    onClick={() => void skipOperation(operation.id)}
+                    disabled={
+                      skippingOperationId !== null || Boolean(persistenceError)
+                    }
+                    variant="warning"
                     className="mx-2"
                   >
-                    <FontAwesomeIcon className="me-2" icon={faUndo} />
-                    Retry Operation
+                    {skippingOperationId == operation.id
+                      ? "Skipping..."
+                      : "Skip Operation"}
                   </Button>
-                ) : null}
-              </div>
-              {has(operation, "progress") && !isFinished(operation.status) ? (
-                <ProgressBar
-                  className={`w-25`}
-                  variant="info"
-                  now={operation.progress}
-                  label={`${Math.floor(operation.progress)}%`}
-                />
-              ) : null}
-
-              {has(operation, "error") &&
-                !isFinished(operation.status) && (
-                  <Alert variant="warning" className="scrollable-h15 mt-3">
-                    {operation.error}
-                  </Alert>
                 )}
-
-              {has(operation, "error") &&
-                isFinished(operation.status) &&
-                (errorCallback ? (
-                  (errorCallback(
-                    operation.error ||
-                      "Error: An error occurred during the operation."
-                  ),
-                  null)
-                ) : (
-                  <Alert variant="danger" className="scrollable-h15 mt-3">
-                    {operation.error ||
-                      "Error: An error occurred during the operation."}
-                  </Alert>
-                ))}
-            </Stack>
-          );
-        })}
+            </div>
+            {has(operation, "progress") && !isFinished(operation.status || "") && (
+              <ProgressBar
+                className="w-25"
+                variant="info"
+                now={operation.progress}
+                label={`${Math.floor(operation.progress || 0)}%`}
+              />
+            )}
+            {operation.error && !isFinished(operation.status || "") && (
+              <Alert variant="warning" className="scrollable-h15 mt-3">
+                {operation.error}
+              </Alert>
+            )}
+            {operation.error &&
+              isFinished(operation.status || "") &&
+              !errorCallback && (
+                <Alert variant="danger" className="scrollable-h15 mt-3">
+                  {operation.error}
+                </Alert>
+              )}
+          </Stack>
+        ))}
       </Stack>
     </div>
   );

@@ -17,12 +17,13 @@
  */
 
 import { cloneDeep } from "lodash";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { Alert, Card, Form } from "react-bootstrap";
-import { preconditionOptions } from "./constants";
+import { createKerberosPreconditionOptions } from "./constants";
 import WizardFooter from "../../components/StepWizard/WizardFooter";
 import { ActionTypes } from "./KerberosStore/types";
 import { EnableKerberosContext } from "./KerberosStore/context"
+import { AppContext } from "../../store/context";
 
 type PreconditionOptions = {
   [key: string]: {
@@ -34,29 +35,32 @@ type PreconditionOptions = {
 
 export default function GetStartedKerberos() {
   const {
+    state,
     dispatch,
     flushStateToDb,
     onExitPopUp,
     stepWizardUtilities: { currentStep, handleNextImperitive },
   } = useContext(EnableKerberosContext);
+  const { services } = useContext(AppContext);
+  const serviceNames = useMemo(() =>
+    services.flatMap((service: { ServiceInfo?: { service_name?: string } }) => {
+      const serviceName = service.ServiceInfo?.service_name;
+      return serviceName ? [serviceName] : [];
+    }),
+  [services]);
 
-  const [preconditions, setPreconditions] = useState<PreconditionOptions>(preconditionOptions);
-  const [selectedKdcPlan, setSelectedKdcPLan] = useState("Existing MIT KDC");
-  //@ts-ignore
-  const [validate, setValidate] = useState(false);
-  const [nextEnabled, setNextEnabled ] = useState(false);
+  const storedStepData = state.kerberosWizardSteps?.[currentStep.name]?.data;
+  const [preconditions, setPreconditions] = useState<PreconditionOptions>(() =>
+    storedStepData?.preconditions
+      ?? createKerberosPreconditionOptions(serviceNames)
+  );
+  const [selectedKdcPlan, setSelectedKdcPLan] = useState(
+    storedStepData?.selectedKdcPlan ?? "Existing MIT KDC",
+  );
 
   const handleKdcPlanChange = (kdcPlan: string) => {
-    setPreconditions(preconditionOptions);
+    setPreconditions(createKerberosPreconditionOptions(serviceNames));
     setSelectedKdcPLan(kdcPlan);
-  };
-
-  const enableNext = () => {
-    setNextEnabled(true);
-  };
-
-  const disableNext = () => {
-    setNextEnabled(false);
   };
 
   const handleOptionChange = (kdcPlan: string, option: string) => {
@@ -68,22 +72,24 @@ export default function GetStartedKerberos() {
 
   const isValid = () => {
     const selectedPlan = preconditions[selectedKdcPlan];
-    if (selectedPlan.Options) {
-      const flag = Object.values(selectedPlan.Options).every(
-        (value) => value === true
-      );
-      if(flag) {
-        enableNext();
-        return flag;
-      }
-    }
-    disableNext();
-    return false;
+    return Boolean(selectedPlan?.Options) && Object.values(
+      selectedPlan.Options,
+    ).every(Boolean);
   };
 
   useEffect(() => {
-    setValidate(isValid());
-  }, [preconditions, selectedKdcPlan]);
+    if (storedStepData?.selectedKdcPlan) {
+      setSelectedKdcPLan(storedStepData.selectedKdcPlan);
+      setPreconditions(
+        storedStepData.preconditions
+          ?? createKerberosPreconditionOptions(serviceNames),
+      );
+    } else {
+      setPreconditions(createKerberosPreconditionOptions(serviceNames));
+    }
+  }, [serviceNames, storedStepData]);
+
+  const nextEnabled = isValid();
 
 
   return (
@@ -165,7 +171,10 @@ export default function GetStartedKerberos() {
           if(isValid()) {
             dispatch({
               type: ActionTypes.STORE_INFORMATION,
-              payload: { step: currentStep.name, data: { selectedKdcPlan }}
+              payload: {
+                step: currentStep.name,
+                data: { selectedKdcPlan, preconditions },
+              }
             })
             flushStateToDb("next");
             handleNextImperitive();
@@ -173,7 +182,7 @@ export default function GetStartedKerberos() {
         }}
         onBack={() => {}}
         onCancel={() => {
-          onExitPopUp(false, true );
+          onExitPopUp(false, false);
         }}
       />
     </>
