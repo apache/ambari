@@ -28,6 +28,7 @@ interface PropTypes {
   onNext: Function;
   isNextEnabled: boolean;
   isBackEnabled?: boolean;
+  isCancelEnabled?: boolean;
   onCancel?: () => void;
   lifted?: boolean;
   sideItems?: any;
@@ -40,6 +41,7 @@ function WizardFooter({
   isNextEnabled,
   onCancel = () => {},
   isBackEnabled = true,
+  isCancelEnabled = true,
   lifted = false,
   sideItems,
 }: PropTypes) {
@@ -86,6 +88,7 @@ function WizardFooter({
           onClick={() => {
             setShowConfirmationModal(true);
           }}
+          disabled={!isCancelEnabled}
         >
           <span className="ms-1">CANCEL</span>
         </Button>

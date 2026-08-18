@@ -22,6 +22,7 @@ export interface AssignMastersProps {
   hostsList: any;
   services: string[];
   setCanProceed: (canProcced: boolean) => void;
+  setHasValidationIssues?: (hasIssues: boolean) => void;
   dispatch: any;
   installedServices?: string[];
   parentState?:any;

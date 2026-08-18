@@ -30,26 +30,35 @@ export default function useKerberosMode() {
   const { clusterName, isKerberosEnabled } = useContext(AppContext);
   const [kdcType, setKdcType] = useState("");
   const [isLoaded, setIsLoaded] = useState(!isKerberosEnabled);
+  const [error, setError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let active = true;
     if (!isKerberosEnabled || !clusterName) {
       setKdcType("");
+      setError("");
       setIsLoaded(true);
       return () => {
         active = false;
       };
     }
     setIsLoaded(false);
+    setError("");
     void adminApi.getSecurityType(clusterName)
       .then((response) => {
         if (active) {
           setKdcType(kerberosTypeFromConfig(response));
         }
       })
-      .catch(() => {
+      .catch((requestError: any) => {
         if (active) {
           setKdcType("");
+          setError(
+            requestError?.response?.data?.message
+              || requestError?.message
+              || "Ambari could not determine the Kerberos KDC type.",
+          );
         }
       })
       .finally(() => {
@@ -60,11 +69,13 @@ export default function useKerberosMode() {
     return () => {
       active = false;
     };
-  }, [clusterName, isKerberosEnabled]);
+  }, [clusterName, isKerberosEnabled, reloadKey]);
 
   return {
+    error,
     isLoaded,
     isManualKerberos: isKerberosEnabled && kdcType === "none",
     kdcType,
+    reload: () => setReloadKey((value) => value + 1),
   };
 }

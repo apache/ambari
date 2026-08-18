@@ -18,7 +18,7 @@
 
 //@ts-nocheck
 import { useContext, useEffect, useRef, useState } from "react";
-import { Card, Stack } from "react-bootstrap";
+import { Alert, Button, Card, Spinner as BootstrapSpinner, Stack } from "react-bootstrap";
 import {
   cloneDeep,
   every,
@@ -41,15 +41,20 @@ import VersionsApi from "../../api/versionsApi";
 import WizardFooter from "../../components/StepWizard/WizardFooter";
 import ClusterDeploymentApi from "../../api/clusterDeployment";
 import ClusterApi from "../../api/clusterApi";
-import ExecuteTasksModal from "../../components/ExecuteTasksModal";
 import { ServiceApi } from "../../api/serviceApi";
 import { ActionTypes } from "./clusterStore/types";
 import { ContextWrapper } from ".";
-import { HostsApi } from "../../api/hostsApi";
 import useKDCSessionState from "../../hooks/useKDCSessionState";
 import KerberosApi from "../../api/kerberosApi";
 import { getConfigTagFromFileName } from "../CommonConfigs/ConfigUtils";
 import { AppContext } from "../../store/context";
+import { runDeploymentPlan } from "./deploymentQueue";
+import ConfigGroupApi from "../../api/configGroupApi";
+import { previousAddServiceStep } from "../Services/AddServiceWizard/addServiceNavigation";
+import useKerberosMode from "../../hooks/useKerberosMode";
+import { saveAs } from "file-saver";
+import JSZip from "jszip";
+import { buildBlueprintExport } from "./blueprintExport";
 
 type Step8Props = {
   wizardName?: string;
@@ -73,31 +78,64 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
     items: [],
   });
   const [completedOperationsCount, setCompletedOperationsCount] = useState(0);
-  const [failedOperationsCount, setFailedOperationsCount] = useState(0);
-  const [showExecutionModal, setShowExecutionModal] = useState(false);
+  const [totalOperationsCount, setTotalOperationsCount] = useState(0);
   const [isNextEnabled, setIsNextEnabled] = useState(true);
   const [deploymentTriggered, setDeploymentTriggered] = useState(false);
+  const [deploymentError, setDeploymentError] = useState("");
+  const [deploymentStage, setDeploymentStage] = useState("Ready to deploy");
+  const [exportError, setExportError] = useState("");
+  const [isExportingBlueprint, setIsExportingBlueprint] = useState(false);
   const getStepData = (stepName: string, dataKey: string) => {
     const stepData = get(state, `${wizardName}Steps.${stepName}.data`, {});
     return get(stepData, dataKey, "");
   };
+  const isAddHostWizard = () => wizardName === "addHost";
+  const isAddServiceWizard = () => wizardName === "addService";
 
   const {
-      clusterName = "",
-      cluster: { stack, versionNum },
-    } = useContext(AppContext);
+    clusterName = "",
+    cluster: { stack, versionNum },
+    isKerberosEnabled,
+  } = useContext(AppContext);
   const { getKDCSessionState } = useKDCSessionState(() => {});
+  const {
+    error: kerberosModeError,
+    isLoaded: isKerberosModeLoaded,
+    isManualKerberos,
+    kdcType,
+    reload: reloadKerberosMode,
+  } = useKerberosMode();
   const versionStepData = get(state, `${wizardName}Steps.VERSION.data`, {});
   const VERSION = versionNum || get(versionStepData, "selectedVersion.stack_version", "");
   const STACK = stack || get(versionStepData, "selectedStack.stack_name", "");
-  const [isGoingToNextStep, setIsGoingToNextStep] = useState(false);
+  const restoredReview = get(state, `${wizardName}Steps.REVIEW.data`, {});
+  const addServiceFlow = get(
+    state,
+    "addServiceSteps.SERVICES.data.addServiceFlow",
+    {},
+  );
+  const reviewDataRef = useRef<Record<string, any>>(restoredReview);
+  const completedOperationIds = useRef<Set<string>>(
+    new Set(restoredReview.completedOperationIds || []),
+  );
+  const deploymentArtifacts = useRef<Record<string, any>>({
+    repositoryVersionId: restoredReview.repositoryVersionId,
+    stackName: restoredReview.stackName,
+    stackVersion: restoredReview.stackVersion,
+  });
 
   // Kerberos-related state variables
   const [kerberosDescriptor, setKerberosDescriptor] = useState<any>(null);
-  const [isKerberosEnabled, setIsKerberosEnabled] = useState<boolean>(false);
-  const [isManualKerberos, setIsManualKerberos] = useState<boolean>(false);
-  const [isClusterDescriptorExists, setIsClusterDescriptorExists] =
-    useState<boolean>(false);
+  const [isKerberosDescriptorReady, setIsKerberosDescriptorReady] =
+    useState(false);
+  const [isKerberosPreparationRunning, setIsKerberosPreparationRunning] =
+    useState(false);
+  const [kerberosPreparationError, setKerberosPreparationError] = useState("");
+  const [kerberosCsv, setKerberosCsv] = useState<string | null>(null);
+  const [kerberosCsvError, setKerberosCsvError] = useState("");
+  const [isKerberosCsvLoading, setIsKerberosCsvLoading] = useState(false);
+  const [kerberosPreparationAttempt, setKerberosPreparationAttempt] = useState(0);
+  const descriptorExistsRef = useRef(false);
 
   /**
    * This function updates stack/service/component level kerberos descriptor identities (principal and keytab)
@@ -228,7 +266,7 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
       );
 
       if (!isConfigUpdated) {
-        kerberosDescriptor.services.forEach((service: any) => {
+        (kerberosDescriptor.services || []).forEach((service: any) => {
           isConfigUpdated = updateResourceIdentityConfigs(service, config);
           if (!isConfigUpdated) {
             (service.components || []).forEach((component: any) => {
@@ -245,59 +283,25 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
 
   /**
    * Updates kerberosDescriptorConfigs
-   * @param {boolean} instant - whether to execute immediately or add to ajax queue
    */
-  const updateKerberosDescriptorMethod = async (
-    instant = false
-  ): Promise<void> => {
-    try {
-      // Use the loaded kerberos descriptor
-      const kerberosDescriptorConfigs = kerberosDescriptor;
-      const descriptorExists = isClusterDescriptorExists;
-
-      if (!kerberosDescriptorConfigs) {
-        console.warn("No kerberos descriptor configs found");
-        return;
-      }
-
-      // Remove identity references before sending to server
-      const cleanedDescriptor = removeIdentityReferences(
-        cloneDeep(kerberosDescriptorConfigs)
-      );
-
-      const payload = {
-        artifact_data: cleanedDescriptor,
-      };
-
-      if (instant) {
-        // Execute immediately
-        await KerberosApi.saveAndEditKerberosData(
-          getStepData("NAME", "clusterName")||clusterName,
-          payload
-        );
-      } else {
-        // Add to deployment promises queue
-        const kerberosPromise = KerberosApi.saveAndEditKerberosData(
-          getStepData("NAME", "clusterName")||clusterName,
-          payload
-        );
-
-        pushTask(
-          kerberosPromise
-            .then(() => {
-              incrementSuccessCount();
-            })
-            .catch(() => {
-              incrementSuccessCount();
-            })
-        );
-      }
-    } catch (error) {
-      console.error("Error updating kerberos descriptor:", error);
-      if (!instant) {
-        incrementSuccessCount();
-      }
+  const saveKerberosDescriptor = async (descriptor: any): Promise<void> => {
+    if (!descriptor) {
+      throw new Error("Ambari did not return a Kerberos descriptor.");
     }
+    const payload = {
+      artifact_data: removeIdentityReferences(cloneDeep(descriptor)),
+    };
+    const resolvedClusterName = getStepData("NAME", "clusterName") || clusterName;
+    if (descriptorExistsRef.current) {
+      await KerberosApi.saveAndEditKerberosData(resolvedClusterName, payload);
+    } else {
+      await KerberosApi.saveKerberosData(resolvedClusterName, payload);
+      descriptorExistsRef.current = true;
+    }
+  };
+
+  const updateKerberosDescriptorMethod = async (): Promise<void> => {
+    await saveKerberosDescriptor(kerberosDescriptor);
   };
 
   /**
@@ -308,7 +312,7 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
    */
   const removeIdentityReferences = (kerberosDescriptor: any): any => {
     const notReference = (identity: any) =>
-      !identity.reference && !identity.name.startsWith("/");
+      !identity.reference && !identity.name?.startsWith("/");
 
     if (kerberosDescriptor.services) {
       kerberosDescriptor.services.forEach((service: any) => {
@@ -328,73 +332,191 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
     return kerberosDescriptor;
   };
 
-  /**
-   * Initialize Kerberos-related data and state
-   */
-  const initializeKerberosData = async (): Promise<void> => {
+  const kerberosErrorMessage = (error: any, fallback: string) =>
+    error?.response?.data?.message || error?.message || fallback;
+
+  const descriptorConfigs = () => {
+    const configProperties = getStepData("CONFIGURATION", "configProperties");
+    const secureConfigs: any[] = [];
+    Object.values(configProperties || {}).forEach((service: any) => {
+      Object.values(service || {}).forEach((configType: any) => {
+        Object.values(configType?.properties || {}).forEach((property: any) => {
+          if (!property?.isSecureConfig) return;
+          secureConfigs.push({
+            ...property,
+            filename: property.filename || property.fileName || property.type,
+            name: property.name || property.propertyName,
+          });
+        });
+      });
+    });
+    return secureConfigs;
+  };
+
+  const loadKerberosCsv = async () => {
+    const resolvedClusterName = getStepData("NAME", "clusterName") || clusterName;
+    setIsKerberosCsvLoading(true);
+    setKerberosCsvError("");
     try {
-      const clusterName = getStepData("NAME", "clusterName")||clusterName;
-
-      // For new cluster creation, assume Kerberos is not enabled initially
-      // This will be determined during the actual deployment process
-      if (!clusterName || wizardName === "clusterCreation") {
-        setIsKerberosEnabled(false);
-        setIsManualKerberos(false);
-        setIsClusterDescriptorExists(false);
-        return;
-      }
-
-      // For existing clusters (Add Service/Add Host), check if Kerberos is enabled
-      try {
-        const securityType = await KerberosApi.getSecurityType(clusterName);
-        const isKerberosEnabledValue =
-          securityType?.Clusters?.security_type === "KERBEROS";
-        setIsKerberosEnabled(isKerberosEnabledValue);
-
-        // For existing clusters, assume it's not manual Kerberos unless specified
-        setIsManualKerberos(false);
-
-        // Load kerberos descriptor if available
-        if (isKerberosEnabledValue) {
-          try {
-            const descriptor =
-              await KerberosApi.getKerberosDescriptorProperties(
-                "true",
-                clusterName
-              );
-            setKerberosDescriptor(
-              descriptor?.KerberosDescriptor?.kerberos_descriptor
-            );
-            setIsClusterDescriptorExists(
-              !!descriptor?.KerberosDescriptor?.kerberos_descriptor
-            );
-          } catch (error) {
-            console.warn("Could not load kerberos descriptor:", error);
-            setIsClusterDescriptorExists(false);
-          }
-        } else {
-          setIsClusterDescriptorExists(false);
-        }
-      } catch (error) {
-        console.warn("Could not check security type:", error);
-        setIsKerberosEnabled(false);
-        setIsManualKerberos(false);
-        setIsClusterDescriptorExists(false);
-      }
-    } catch (error) {
-      console.error("Error initializing Kerberos data:", error);
-      setIsKerberosEnabled(false);
-      setIsManualKerberos(false);
-      setIsClusterDescriptorExists(false);
+      const csv = await KerberosApi.downloadKerberosIdentitiesCsv(
+        resolvedClusterName,
+      );
+      setKerberosCsv(String(csv));
+      return String(csv);
+    } catch (error: any) {
+      setKerberosCsvError(String(kerberosErrorMessage(
+        error,
+        "Ambari could not load the Kerberos principals and keytabs CSV.",
+      )));
+      throw error;
+    } finally {
+      setIsKerberosCsvLoading(false);
     }
   };
 
-  // Initialize Kerberos data on component mount
   useEffect(() => {
-    if (!isAddHostWizard()) {
-      initializeKerberosData();
+    let active = true;
+    const requiresDescriptor = isAddServiceWizard() && isKerberosEnabled;
+    if (!requiresDescriptor) {
+      setIsKerberosDescriptorReady(true);
+      setIsKerberosPreparationRunning(false);
+      setKerberosPreparationError("");
+      return () => {
+        active = false;
+      };
     }
-  }, []);
+    if (!isKerberosModeLoaded) {
+      setIsKerberosPreparationRunning(true);
+      return () => {
+        active = false;
+      };
+    }
+    if (kerberosModeError || !kdcType) {
+      setIsKerberosDescriptorReady(false);
+      setIsKerberosPreparationRunning(false);
+      setKerberosPreparationError(
+        kerberosModeError || "Ambari did not return the Kerberos KDC type.",
+      );
+      return () => {
+        active = false;
+      };
+    }
+
+    const prepareKerberos = async () => {
+      const resolvedClusterName = getStepData("NAME", "clusterName") || clusterName;
+      setIsKerberosPreparationRunning(true);
+      setIsKerberosDescriptorReady(false);
+      setKerberosPreparationError("");
+      try {
+        const response = await KerberosApi.getKerberosDescriptorProperties(
+          "true",
+          resolvedClusterName,
+        );
+        const descriptor = response?.KerberosDescriptor?.kerberos_descriptor;
+        if (!descriptor || typeof descriptor !== "object" || !Array.isArray(descriptor.services)) {
+          throw new Error("Ambari returned an invalid Kerberos descriptor.");
+        }
+        const updatedDescriptor = cloneDeep(descriptor);
+        updateKerberosDescriptor(updatedDescriptor, descriptorConfigs());
+
+        try {
+          await KerberosApi.getKerberosDescriptorArtifact(resolvedClusterName);
+          descriptorExistsRef.current = true;
+        } catch (error: any) {
+          if (error?.response?.status === 404) {
+            descriptorExistsRef.current = false;
+          } else {
+            throw error;
+          }
+        }
+
+        if (isManualKerberos) {
+          await saveKerberosDescriptor(updatedDescriptor);
+        }
+        if (!active) return;
+        setKerberosDescriptor(updatedDescriptor);
+        setIsKerberosDescriptorReady(true);
+      } catch (error: any) {
+        if (!active) return;
+        setKerberosPreparationError(String(kerberosErrorMessage(
+          error,
+          "Ambari could not prepare the Kerberos descriptor.",
+        )));
+      } finally {
+        if (active) setIsKerberosPreparationRunning(false);
+      }
+
+      if (!active) return;
+      try {
+        await loadKerberosCsv();
+      } catch {
+        // CSV download errors are visible but do not prevent deployment.
+      }
+    };
+
+    void prepareKerberos();
+    return () => {
+      active = false;
+    };
+  }, [
+    clusterName,
+    isKerberosEnabled,
+    isKerberosModeLoaded,
+    isManualKerberos,
+    kdcType,
+    kerberosModeError,
+    kerberosPreparationAttempt,
+    wizardName,
+  ]);
+
+  const retryKerberosPreparation = () => {
+    if (kerberosModeError) reloadKerberosMode();
+    setKerberosPreparationAttempt((value) => value + 1);
+  };
+
+  const downloadKerberosCsv = async () => {
+    try {
+      const csv = kerberosCsv ?? await loadKerberosCsv();
+      saveAs(new Blob([csv], { type: "text/csv" }), "kerberos.csv");
+    } catch {
+      // loadKerberosCsv renders the recoverable error.
+    }
+  };
+
+  const downloadBlueprint = async () => {
+    setIsExportingBlueprint(true);
+    setExportError("");
+    try {
+      const resolvedClusterName = getStepData("NAME", "clusterName") || clusterName;
+      const selectedServices = filter(
+        getStepData("SERVICES", "services"),
+        (service: any) => service.selected && !service.installed,
+      ).map((service: any) => service.serviceName);
+      const { blueprint, clusterTemplate } = buildBlueprintExport({
+        clusterName: resolvedClusterName,
+        configProperties: getStepData("CONFIGURATION", "configProperties"),
+        hosts: getHosts(),
+        masterAssignments: getStepData("MASTERS", "mastersData") || [],
+        selectedServiceNames: selectedServices,
+        serviceComponents: serviceComponents.items,
+        slaveAssignments: getStepData("SLAVES_AND_CLIENTS", "serviceComponents") || [],
+        stackName: STACK,
+        stackVersion: VERSION,
+      });
+      const zip = new JSZip();
+      zip.file("blueprint.json", JSON.stringify(blueprint, null, 2));
+      zip.file("clustertemplate.json", JSON.stringify(clusterTemplate, null, 2));
+      const archive = await zip.generateAsync({ type: "blob" });
+      saveAs(archive, `${resolvedClusterName}-blueprint.zip`);
+    } catch (error: any) {
+      setExportError(String(kerberosErrorMessage(
+        error,
+        "The Blueprint archive could not be generated.",
+      )));
+    } finally {
+      setIsExportingBlueprint(false);
+    }
+  };
 
   function renderRepos() {
     const operatingSystems = getStepData("VERSION", "operatingSystems");
@@ -405,7 +527,11 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
     const allRepos = addedOs.map((currentOs: any) => {
       return currentOs.repos.map((repo: any) => {
         return (
-          <Stack direction="vertical" className="m-3">
+          <Stack
+            key={`${currentOs.os}-${repo.id}`}
+            direction="vertical"
+            className="m-3"
+          >
             <div className="text-info">
               {currentOs.os}({repo.id})
             </div>
@@ -416,15 +542,6 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
     });
     return allRepos;
   }
-  useEffect(() => {
-    if (isGoingToNextStep) {
-      setTimeout(() => {
-        flushStateToDb("next");
-      }, 2000);
-    }
-  }, [isGoingToNextStep]);
-  const deploymentPromises = useRef<Promise<any>[]>([]);
-
   async function getServiceComponents() {
     const servicesAndComponents: ServicesResponse =
       await ChooseServicesApi.getServices(STACK, VERSION);
@@ -434,16 +551,6 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
   useEffect(() => {
     getServiceComponents();
   }, []);
-
-  useEffect(() => {
-    if (
-      completedOperationsCount &&
-      deploymentPromises.current.length &&
-      completedOperationsCount === deploymentPromises.current.length
-    ) {
-      setIsNextEnabled(false);
-    }
-  }, [completedOperationsCount, failedOperationsCount]);
 
   function getNewHosts() {
     return getStepData("HOST_STATUS", "hosts")?.filter(
@@ -613,7 +720,11 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
     }
     return selectedServices.map((selectedService) => {
       return selectedService.shouldShow ? (
-        <Stack direction="vertical" className="mt-2">
+        <Stack
+          key={selectedService.service_name}
+          direction="vertical"
+          className="mt-2"
+        >
           <div className="my-2">
             <b>
               <i>{selectedService.service_name}</i>
@@ -621,7 +732,11 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
           </div>
           {selectedService.service_components.map((serviceComponent: any) => {
             return (
-              <Stack direction="horizontal" className="mt-2">
+              <Stack
+                key={serviceComponent.componentName}
+                direction="horizontal"
+                className="mt-2"
+              >
                 <div className="text-info">{serviceComponent.displayName}:</div>
                 <div className="ms-2">{serviceComponent.componentValue}</div>
               </Stack>
@@ -635,8 +750,8 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
   // const createCluster=()=>{
   //   const stackVersion=
   // }
-  async function postVersionDefinition(data: any) {
-    const versionInfo = await VersionsApi.postVersionDefinitionFile(data);
+  async function postVersionDefinition(data: any, headers = {}) {
+    const versionInfo = await VersionsApi.postVersionDefinitionFile(data, headers);
     return versionInfo;
   }
 
@@ -679,13 +794,6 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
     return {};
   }
 
-  const incrementSuccessCount = () => {
-    setCompletedOperationsCount((comp) => comp + 1);
-  };
-  const incrementFailureCount = () => {
-    setFailedOperationsCount((comp) => comp + 1);
-  };
-
   function createCluster() {
     const selectedStackVersion = getStepData("VERSION", "selectedStack.id");
     const clusterName = getStepData("NAME", "clusterName");
@@ -696,7 +804,7 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
     });
   }
 
-  async function createSelectedServices(versionId: string) {
+  async function createSelectedServices(versionId?: string) {
     const selectedServices = filter(
       getStepData("SERVICES", "services"),
       function (service: any) {
@@ -708,7 +816,7 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
         const serviceInfoObj = {
           service_name: selectedService.serviceName,
         };
-        if (!isAddServiceWizard()) {
+        if (!isAddServiceWizard() && versionId) {
           serviceInfoObj["desired_repository_version_id"] = versionId;
         }
         return {
@@ -716,16 +824,11 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
         };
       }
     );
-    return ClusterDeploymentApi.createSelectedServices(
-      getStepData("NAME", "clusterName"),
+    if (!selectedServicesBody.length) return;
+    await ClusterDeploymentApi.createSelectedServices(
+      getStepData("NAME", "clusterName") || clusterName,
       selectedServicesBody
-    )
-      .then(() => {
-        incrementSuccessCount();
-      })
-      .catch(() => {
-        incrementFailureCount();
-      });
+    );
   }
 
   function getServiceComponentsForService(serviceName: string) {
@@ -742,7 +845,6 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
   }
 
   async function createComponents() {
-    const componentsPromise = [];
     const selectedServices = filter(
       getStepData("SERVICES", "services"),
       function (service: any) {
@@ -753,6 +855,7 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
       const matchedServiceComponents = getServiceComponentsForService(
         selectedService.serviceName
       );
+      if (!matchedServiceComponents?.length) continue;
       const requestBody = {
         components: matchedServiceComponents.map((serviceComponent: any) => {
           return {
@@ -763,25 +866,12 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
           };
         }),
       };
-      componentsPromise.push(
-        new Promise((resolve, reject) => {
-          setTimeout(() => {
-            ClusterDeploymentApi.addRequestToCreateComponent(
-              getStepData("NAME", "clusterName")||clusterName,
-              selectedService.serviceName,
-              requestBody
-            )
-              .then(() => {
-                incrementSuccessCount();
-              })
-              .catch(() => {
-                incrementFailureCount();
-              });
-          }, deploymentPromises.current.length * 0.7 * 1000);
-        })
+      await ClusterDeploymentApi.addRequestToCreateComponent(
+        getStepData("NAME", "clusterName") || clusterName,
+        selectedService.serviceName,
+        requestBody
       );
     }
-    return componentsPromise;
   }
 
   async function registerHostsToComponent(
@@ -811,22 +901,10 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
         ],
       },
     };
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        resolve(
-          ClusterDeploymentApi.registerHostToCluster(
-            getStepData("NAME", "clusterName")||clusterName,
-            data
-          )
-            .then(() => {
-              incrementSuccessCount();
-            })
-            .catch(() => {
-              incrementFailureCount();
-            })
-        );
-      }, deploymentPromises.current.length * 0.7 * 1000);
-    });
+    await ClusterDeploymentApi.registerHostToCluster(
+      getStepData("NAME", "clusterName") || clusterName,
+      data
+    );
   }
 
   async function createMasterHostComponents() {
@@ -837,7 +915,7 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
         return !service.installed && service.selected;
       }
     );
-    const registerPromises = [];
+    const registrations: Array<{ hostNames: string[]; component: string }> = [];
     forEach(selectedServices, (service: any) => {
       const selectedServiceComponents = getServiceComponentsForService(
         service.serviceName
@@ -890,7 +968,7 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
             ),
             "hostName"
           );
-          registerPromises.push(registerHostsToComponent(hostNames, component));
+          registrations.push({ hostNames, component });
         }
       } else {
         hostNames = map(
@@ -905,66 +983,29 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
           ),
           "hostName"
         );
-        registerPromises.push(registerHostsToComponent(hostNames, component));
+        registrations.push({ hostNames, component });
       }
     });
-    return registerPromises;
+    for (const registration of registrations) {
+      await registerHostsToComponent(
+        registration.hostNames,
+        registration.component,
+      );
+    }
   }
 
   function saveClusterStatus(clusterStatusLocal) {
+    reviewDataRef.current = {
+      ...reviewDataRef.current,
+      clusterStatus: clusterStatusLocal,
+    };
     dispatch({
       type: ActionTypes.STORE_INFORMATION,
       payload: {
-        step: currentStep.name,
-        data: {
-          clusterStatus: clusterStatusLocal,
-        },
+        step: "REVIEW",
+        data: reviewDataRef.current,
       },
     });
-  }
-
-  async function installComponents() {
-    const data = {
-      context: "Install Components",
-      HostRoles: { state: "INSTALLED" },
-      urlParams: "",
-      level: "HOST_COMPONENT",
-      query: `HostRoles/host_name.in(${getNewHosts()
-        .map((host) => get(host, "name", ""))
-        .join(",")})`,
-    };
-
-    const clusterName = getStepData("NAME", "clusterName")||clusterName;
-
-    try {
-      const response = await HostsApi.updateHostComponents(
-        clusterName,
-        data.urlParams,
-        data
-      );
-      const requestId = response.Requests.id;
-      const responseStatus = {
-        status: "PENDING",
-        requestId,
-        isInstallError: false,
-        isCompleted: false,
-        oldRequestsId: getStepData("REVIEW", "clusterStatus").oldRequestsId
-          ? [...previousRequests, requestId]
-          : [requestId],
-      };
-      saveClusterStatus(responseStatus);
-      setIsGoingToNextStep(true);
-      setTimeout(() => {
-        handleNextImperitive();
-      }, 2000);
-    } catch (err) {
-      const responseStatus = {
-        status: "PENDING",
-        isInstallError: true,
-        isCompleted: false,
-      };
-      saveClusterStatus(responseStatus);
-    }
   }
 
   async function installServices() {
@@ -991,7 +1032,7 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
       urlParams
     );
     const installStartTime = Date.now();
-    if (servicesInit.Requests) {
+    if (servicesInit.Requests?.id != null) {
       const previousRequests = getStepData(
         "REVIEW",
         "clusterStatus"
@@ -1008,10 +1049,14 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
           : [requestId],
       };
       saveClusterStatus(clusterStatus);
-      setIsGoingToNextStep(true);
-      setTimeout(() => {
-        handleNextImperitive();
-      }, 2000);
+      await Promise.resolve(flushStateToDb(
+        "next",
+        -1,
+        `${isAddServiceWizard() ? "ADD_SERVICES" : "CLUSTER"}_INSTALLING_3`,
+      ));
+      handleNextImperitive();
+    } else {
+      throw new Error("Ambari did not return an installation request ID.");
     }
   }
 
@@ -1027,25 +1072,37 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
         },
       };
     });
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        resolve(
-          ClusterDeploymentApi.registerHostToCluster(
-            getStepData("NAME", "clusterName")||clusterName,
-            requestPayload
-          )
-            .then(() => {
-              incrementSuccessCount();
-            })
-            .catch(() => {
-              incrementFailureCount();
-            })
-        );
-      }, deploymentPromises.current.length * 0.7 * 1000);
-    });
+    if (!requestPayload.length) return;
+    await ClusterDeploymentApi.registerHostToCluster(
+      getStepData("NAME", "clusterName") || clusterName,
+      requestPayload
+    );
   }
 
-  async function createConfigurationGroups() {}
+  async function createConfigurationGroups() {
+    const configurationData = getStepData("CONFIGURATION", "configGroupData");
+    const storedGroups = get(configurationData, "items", configurationData);
+    const configGroups = Array.isArray(storedGroups) ? storedGroups : [];
+    for (const group of configGroups) {
+      const value = group.ConfigGroup || group;
+      if (value.is_default || (!value.is_for_update && !value.is_temporary)) {
+        continue;
+      }
+      const payload = group.ConfigGroup ? group : { ConfigGroup: value };
+      if (value.is_for_update && value.id != null) {
+        await ConfigGroupApi.updateConfigGroup(
+          getStepData("NAME", "clusterName") || clusterName,
+          String(value.id),
+          payload,
+        );
+      } else {
+        await ConfigGroupApi.addConfigGroup(
+          getStepData("NAME", "clusterName") || clusterName,
+          [payload],
+        );
+      }
+    }
+  }
 
   function getClientsMap(flag: string, value?: string) {
     const serviceComponentItems = serviceComponents.items;
@@ -1082,8 +1139,7 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
   }
 
   async function createAdditionalHostComponents() {
-    // const masterHosts = flatten(map(getStepData("MASTERS", "mastersData"),"masterServices"));
-    const additionalComponentPromises = [];
+    const registrations: Array<{ hostNames: string[]; component: string }> = [];
     const registeredHosts = filter(getStepData("HOST_STATUS", "hosts"), [
       "bootStatus",
       "REGISTERED",
@@ -1109,12 +1165,10 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
       forEach(servicesRequiredOnAllHosts, (component: any) => {
         const requiredComponent = get(component, "StackServiceComponents", {});
         if (registeredHosts.length) {
-          additionalComponentPromises.push(
-            registerHostsToComponent(
-              map(registeredHosts, "name"),
-              requiredComponent.component_name
-            )
-          );
+          registrations.push({
+            hostNames: map(registeredHosts, "name"),
+            component: requiredComponent.component_name,
+          });
         }
       });
     }
@@ -1123,7 +1177,12 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
     // if(isHiveSelected){
     //   const hiveDb=
     // }
-    return additionalComponentPromises;
+    for (const registration of registrations) {
+      await registerHostsToComponent(
+        registration.hostNames,
+        registration.component,
+      );
+    }
   }
 
   async function createSlaveAndClientsHostComponents() {
@@ -1263,7 +1322,7 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
      * </code>
      */
     const clientsToMasterMap = getClientsMap("is_master");
-    const clientSlavePromises = [];
+    const registrations: Array<{ hostNames: string[]; component: string }> = [];
     const clientsToSlaveMap = getClientsMap("component_category", "SLAVE");
     forEach(slaveHosts, (_slave) => {
       let hostNames: any = [];
@@ -1288,9 +1347,10 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
                 }),
                 "hostName"
               );
-              clientSlavePromises.push(
-                registerHostsToComponent(hostNames, _slave.componentName)
-              );
+              registrations.push({
+                hostNames,
+                component: _slave.componentName,
+              });
             } else {
               hostNames = map(
                 filter(_slave.hosts, (slaveHost) => {
@@ -1301,9 +1361,10 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
                 }),
                 "hostName"
               );
-              clientSlavePromises.push(
-                registerHostsToComponent(hostNames, _slave.componentName)
-              );
+              registrations.push({
+                hostNames,
+                component: _slave.componentName,
+              });
             }
           }
         } else {
@@ -1316,9 +1377,10 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
             }),
             "hostName"
           );
-          clientSlavePromises.push(
-            registerHostsToComponent(hostNames, _slave.componentName)
-          );
+          registrations.push({
+            hostNames,
+            component: _slave.componentName,
+          });
         }
       } else {
         clients.forEach(function (_client: any) {
@@ -1367,23 +1429,30 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
             }
             if (!compOnAllHosts) {
               hostNames = uniq(hostNames);
-              clientSlavePromises.push(
-                registerHostsToComponent(hostNames, _client.component_name)
-              );
+              registrations.push({
+                hostNames,
+                component: _client.component_name,
+              });
             }
           } else {
             hostNames = uniq(hostNames);
-            clientSlavePromises.push(
-              registerHostsToComponent(hostNames, _client.component_name)
-            );
+            registrations.push({
+              hostNames,
+              component: _client.component_name,
+            });
           }
         });
       }
     });
-    return clientSlavePromises;
+    for (const registration of registrations) {
+      await registerHostsToComponent(
+        registration.hostNames,
+        registration.component,
+      );
+    }
   }
 
-  function applyConfigurationsToCluster() {
+  async function applyConfigurationsToCluster() {
     const applyConfigurationsPayload = [];
     const configurations = getStepData("CONFIGURATION", "configProperties");
     Object.keys(configurations).map((service: string) => {
@@ -1459,169 +1528,189 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
         },
       });
     });
-    return ClusterDeploymentApi.applyClusterConfigs(
+    if (!applyConfigurationsPayload.length) return;
+    await ClusterDeploymentApi.applyClusterConfigs(
       getStepData("NAME", "clusterName")||clusterName,
       applyConfigurationsPayload
-    )
-
-      .then(() => {
-        incrementSuccessCount();
-      })
-      .catch(() => {
-        incrementFailureCount();
-      });
+    );
   }
 
-  const pushTask = (task) => {
-    deploymentPromises.current.push(task);
+  const deploymentStatePrefix = isAddServiceWizard()
+    ? "ADD_SERVICES"
+    : "CLUSTER";
+
+  const saveReviewData = async (
+    data: Record<string, any>,
+    clusterState = `${deploymentStatePrefix}_DEPLOY_PREP_2`,
+  ) => {
+    reviewDataRef.current = { ...reviewDataRef.current, ...data };
+    dispatch({
+      type: ActionTypes.STORE_INFORMATION,
+      payload: {
+        step: "REVIEW",
+        data: reviewDataRef.current,
+      },
+    });
+    await Promise.resolve(flushStateToDb("checkpoint", -1, clusterState));
   };
 
-  const startDeployForAddHost = async () => {
-    try {
-      pushTask(registerHostsToCluster());
-      for (const slaveComponentPromise of await createSlaveAndClientsHostComponents()) {
-        pushTask(slaveComponentPromise);
-      }
-      setShowExecutionModal(true);
-      for (const deploymentPromise of deploymentPromises.current) {
-        await deploymentPromise;
-      }
-    } catch (err) {
-      console.log("Could not deploy Cluster", err);
+  const deleteExistingClusters = async () => {
+    const response = await ClusterApi.getAllClusters();
+    await Promise.all(get(response, "items", []).map((item: any) =>
+      ClusterApi.deleteCluster(item.Clusters.cluster_name),
+    ));
+  };
+
+  const deleteExistingVersions = async () => {
+    const response = await VersionsApi.getAllVersionDefinitions();
+    await Promise.all(get(response, "items", []).map((item: any) =>
+      VersionsApi.deleteRepositoryVersion(
+        item.VersionDefinition.stack_name,
+        item.VersionDefinition.stack_version,
+        item.VersionDefinition.id,
+      ),
+    ));
+  };
+
+  const createRepositoryVersion = async () => {
+    const selectedStack = getStepData("VERSION", "selectedStack");
+    const source = getStepData("VERSION", "versionDefinitionSource");
+    const payload = source?.payload || {
+      VersionDefinition: { available: selectedStack.id },
+    };
+    const response = await postVersionDefinition(payload, source?.headers);
+    const versionDefinition = get(
+      response,
+      "resources.0.VersionDefinition",
+      {},
+    );
+    if (
+      !versionDefinition.id
+      || !versionDefinition.stack_name
+      || !versionDefinition.stack_version
+    ) {
+      throw new Error("Ambari did not return the created repository version.");
     }
+    deploymentArtifacts.current.repositoryVersionId = versionDefinition.id;
+    deploymentArtifacts.current.stackName = versionDefinition.stack_name;
+    deploymentArtifacts.current.stackVersion = versionDefinition.stack_version;
   };
 
-  const startDeploymentForAddService = async () => {
-    try {
-      pushTask(createSelectedServices());
-
-      // For manually enabled Kerberos descriptor was updated on transition to this step
-      if (isKerberosEnabled && !isManualKerberos) {
-        await updateKerberosDescriptorMethod();
-      }
-
-      pushTask(applyConfigurationsToCluster());
-      for (const componentPromise of await createComponents()) {
-        pushTask(componentPromise);
-      }
-      for (const masterComponentPromise of await createMasterHostComponents()) {
-        pushTask(masterComponentPromise);
-      }
-      for (const slaveComponentPromise of await createSlaveAndClientsHostComponents()) {
-        pushTask(slaveComponentPromise);
-      }
-      for (const additionalComponentPromise of await createAdditionalHostComponents()) {
-        pushTask(additionalComponentPromise);
-      }
-      setShowExecutionModal(true);
-      await Promise.all(deploymentPromises.current);
-    } catch (err) {
-      console.log("Could not deploy Cluster", err);
+  const updateRepositoryOperatingSystems = async () => {
+    const repositoryVersionId = deploymentArtifacts.current.repositoryVersionId;
+    if (!repositoryVersionId) {
+      throw new Error("The repository version was not created.");
     }
+    await VersionsApi.updateRepoOSInfo(
+      deploymentArtifacts.current.stackName || STACK,
+      deploymentArtifacts.current.stackVersion || VERSION,
+      repositoryVersionId,
+      await getUpdateRepoOSInfoBody(),
+    );
   };
 
-  const startDeploy = async () => {
+  const buildDeploymentStages = () => {
+    const commonOperations = [
+      { id: "create-services", label: "Creating services", run: () =>
+        createSelectedServices(deploymentArtifacts.current.repositoryVersionId) },
+      { id: "apply-configurations", label: "Applying configurations", run: applyConfigurationsToCluster },
+      { id: "create-components", label: "Creating service components", run: createComponents },
+      { id: "create-configuration-groups", label: "Saving configuration groups", run: createConfigurationGroups },
+      { id: "register-masters", label: "Assigning master components", run: createMasterHostComponents },
+      { id: "register-slaves-clients", label: "Assigning slave and client components", run: createSlaveAndClientsHostComponents },
+      { id: "register-required-components", label: "Assigning required components", run: createAdditionalHostComponents },
+    ];
+
+    if (isAddServiceWizard()) {
+      const kerberosOperations = isKerberosEnabled && !isManualKerberos
+        ? [{
+            id: "update-kerberos-descriptor",
+            label: "Updating the Kerberos descriptor",
+            run: updateKerberosDescriptorMethod,
+          }]
+        : [];
+      return [...commonOperations.slice(0, 1), ...kerberosOperations, ...commonOperations.slice(1)]
+        .map((operation) => ({ operations: [operation] }));
+    }
+
+    return [
+      { operations: [{ id: "delete-clusters", label: "Removing incomplete clusters", run: deleteExistingClusters }] },
+      { operations: [{ id: "delete-repository-versions", label: "Removing incomplete repository versions", run: deleteExistingVersions }] },
+      { operations: [{ id: "create-repository-version", label: "Creating the repository version", run: createRepositoryVersion }] },
+      { operations: [{ id: "update-repositories", label: "Saving repositories", run: updateRepositoryOperatingSystems }] },
+      { operations: [{ id: "create-cluster", label: "Creating the cluster", run: createCluster }] },
+      ...commonOperations.slice(0, 3).map((operation) => ({ operations: [operation] })),
+      { operations: [{ id: "register-hosts", label: "Adding hosts to the cluster", run: registerHostsToCluster }] },
+      ...commonOperations.slice(3).map((operation) => ({ operations: [operation] })),
+    ];
+  };
+
+  const waitForKdcSession = () => new Promise<void>((resolve, reject) => {
+    void getKDCSessionState(resolve, reject).catch(reject);
+  });
+
+  const deploy = async () => {
+    if (deploymentTriggered) return;
+    if (isAddServiceWizard() && isKerberosEnabled && !isKerberosDescriptorReady) {
+      setKerberosPreparationError(
+        "The Kerberos descriptor must be prepared before deployment.",
+      );
+      return;
+    }
+    setDeploymentTriggered(true);
+    setIsNextEnabled(false);
+    setDeploymentError("");
+
     try {
-      const versionStepData = getStepData("VERSION", "selectedStack");
-      const versionData = {
-        isXMLdata: false,
-        data: {
-          VersionDefinition: {
-            available: versionStepData.id,
-          },
+      await saveReviewData({
+        completedOperationIds: [...completedOperationIds.current],
+        deploymentStage: "Preparing deployment",
+      });
+      const stages = buildDeploymentStages();
+      const operations = stages.flatMap((stage) => stage.operations);
+      setTotalOperationsCount(operations.length);
+      setCompletedOperationsCount(
+        operations.filter((operation) => completedOperationIds.current.has(operation.id)).length,
+      );
+
+      await runDeploymentPlan(
+        stages,
+        completedOperationIds.current,
+        async ({ completed, operation }) => {
+          setCompletedOperationsCount(completed);
+          setDeploymentStage(operation.label);
+          await saveReviewData({
+            completedOperationIds: [...completedOperationIds.current],
+            deploymentStage: operation.label,
+            ...deploymentArtifacts.current,
+          });
         },
-      };
-      const versionInfoResponse = await postVersionDefinition(versionData.data);
-      if (versionInfoResponse) {
-        const versionInfo = {
-          stackName:
-            versionInfoResponse.resources[0].VersionDefinition.stack_name,
-          id: versionInfoResponse.resources[0].VersionDefinition.id,
-          stackVersion:
-            versionInfoResponse.resources[0].VersionDefinition.stack_version,
-        };
-        if (
-          versionInfo.id &&
-          versionInfo.stackName &&
-          versionInfo.stackVersion
-        ) {
-          const selectedStack = STACK;
-          const selectedVersion = VERSION;
-          const repoId = versionInfo.id;
-          const payload = await getUpdateRepoOSInfoBody();
-          await VersionsApi.updateRepoOSInfo(
-            selectedStack,
-            selectedVersion,
-            repoId,
-            payload
-          );
-          pushTask(
-            createCluster().then(async () => {
-              incrementSuccessCount();
-              pushTask(createSelectedServices(versionInfo.id));
-              pushTask(applyConfigurationsToCluster());
-              for (const componentPromise of await createComponents()) {
-                pushTask(componentPromise);
-              }
-              pushTask(registerHostsToCluster());
-              for (const masterComponentPromise of await createMasterHostComponents()) {
-                pushTask(masterComponentPromise);
-              }
-              for (const slaveComponentPromise of await createSlaveAndClientsHostComponents()) {
-                pushTask(slaveComponentPromise);
-              }
-              for (const additionalComponentPromise of await createAdditionalHostComponents()) {
-                pushTask(additionalComponentPromise);
-              }
-              setShowExecutionModal(true);
-              await Promise.all(deploymentPromises.current);
-            })
-          );
-        }
+      );
+
+      if (isAddServiceWizard()) {
+        await waitForKdcSession();
       }
-    } catch (err) {
-      console.log("Could not deploy Cluster", err);
+      setDeploymentStage("Starting component installation");
+      await installServices();
+    } catch (error: any) {
+      const message = error?.response?.data?.message
+        || error?.message
+        || "Ambari could not prepare the cluster deployment.";
+      setDeploymentError(String(message));
+      setDeploymentStage("Deployment preparation failed");
+      setDeploymentTriggered(false);
+      setIsNextEnabled(true);
+      try {
+        await saveReviewData({
+          completedOperationIds: [...completedOperationIds.current],
+          deploymentStage: "Deployment preparation failed",
+          deploymentError: String(message),
+          ...deploymentArtifacts.current,
+        });
+      } catch {
+        // The visible deployment error remains retryable if checkpoint persistence is unavailable.
+      }
     }
-  };
-  const prepareDeployment = async () => {
-    const existingCluster = await ClusterApi.getAllClusters();
-    const deletionPromises: any = [];
-    if (get(existingCluster, "items", []).length) {
-      forEach(get(existingCluster, "items", []), (cluster) => {
-        deletionPromises.push(
-          ClusterApi.deleteCluster(cluster.Clusters.cluster_name)
-        );
-      });
-    }
-    await Promise.all(deletionPromises);
-    handleExistingVersions();
-  };
-  const handleExistingVersions = async () => {
-    const existingVersions = await VersionsApi.getAllVersionDefinitions();
-    const deletionPromises: any = [];
-    if (existingVersions.items.length) {
-      forEach(existingVersions.items, (version) => {
-        deletionPromises.push(
-          VersionsApi.deleteRepositoryVersion(
-            version.VersionDefinition.stack_name,
-            version.VersionDefinition.stack_version,
-            version.VersionDefinition.id
-          )
-        );
-      });
-    }
-    await Promise.all(deletionPromises);
-    setTimeout(() => {
-      startDeploy();
-    }, 2000);
-  };
-
-  const isAddHostWizard = () => {
-    return wizardName === "addHost";
-  };
-
-  const isAddServiceWizard = () => {
-    return wizardName === "addService";
   };
 
   if (!!!serviceComponents.items.length) {
@@ -1629,29 +1718,6 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
   }
   return (
     <>
-      <ExecuteTasksModal
-        isOpen={showExecutionModal}
-        onClose={() => {
-          setShowExecutionModal(false);
-        }}
-        successCallback={() => {
-          if (wizardName === "clusterCreation") {
-            installServices();
-          } else {
-            getKDCSessionState(() => {
-              if (isAddHostWizard()) {
-                installComponents();
-              } else {
-                installServices();
-              }
-            });
-          }
-          flushStateToDb("next");
-        }}
-        totalCount={deploymentPromises.current.length}
-        successCount={completedOperationsCount}
-        failedCount={failedOperationsCount}
-      />
       <div className="step-title">Review</div>
       <div className="d-flex flex-column">
         <small className="light-text step-description">
@@ -1662,6 +1728,80 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
             Hosts that are assigned master components are shown with{" "}
             <span className="text-info">✵</span>.
           </small>
+        ) : null}
+        {isAddServiceWizard() && isKerberosEnabled && isKerberosPreparationRunning ? (
+          <Alert variant="info" className="mt-3 d-flex align-items-center gap-2">
+            <BootstrapSpinner animation="border" size="sm" />
+            Preparing the Kerberos descriptor
+          </Alert>
+        ) : null}
+        {kerberosPreparationError ? (
+          <Alert variant="danger" className="mt-3">
+            <div>{kerberosPreparationError}</div>
+            <Button
+              className="mt-2"
+              size="sm"
+              variant="outline-danger"
+              disabled={isKerberosPreparationRunning}
+              onClick={retryKerberosPreparation}
+            >
+              Retry Kerberos Preparation
+            </Button>
+          </Alert>
+        ) : null}
+        {isAddServiceWizard() && isKerberosEnabled && isKerberosDescriptorReady ? (
+          <Alert variant={isManualKerberos ? "warning" : "secondary"} className="mt-3">
+            {isManualKerberos ? (
+              <div>
+                Because Kerberos was manually installed on the cluster, you must
+                create and distribute principals and keytabs after this operation.
+              </div>
+            ) : (
+              <div>Kerberos KDC type: {kdcType}</div>
+            )}
+            <Button
+              className="mt-2"
+              size="sm"
+              variant="outline-primary"
+              disabled={isKerberosCsvLoading || deploymentTriggered}
+              onClick={() => void downloadKerberosCsv()}
+            >
+              {isKerberosCsvLoading ? "Loading CSV" : "Download Kerberos CSV"}
+            </Button>
+          </Alert>
+        ) : null}
+        {kerberosCsvError ? (
+          <Alert variant="warning" className="mt-3">
+            <div>{kerberosCsvError}</div>
+            <Button
+              className="mt-2"
+              size="sm"
+              variant="outline-warning"
+              disabled={isKerberosCsvLoading}
+              onClick={() => void loadKerberosCsv().catch(() => undefined)}
+            >
+              Retry CSV
+            </Button>
+          </Alert>
+        ) : null}
+        {exportError ? (
+          <Alert variant="danger" className="mt-3">
+            {exportError}
+          </Alert>
+        ) : null}
+        {deploymentError ? (
+          <Alert variant="danger" className="mt-3">
+            {deploymentError}
+          </Alert>
+        ) : null}
+        {deploymentTriggered ? (
+          <Alert variant="info" className="mt-3 d-flex align-items-center gap-2">
+            <BootstrapSpinner animation="border" size="sm" />
+            {deploymentStage}
+            {totalOperationsCount
+              ? ` (${completedOperationsCount}/${totalOperationsCount})`
+              : ""}
+          </Alert>
         ) : null}
         <Card className="mt-4">
           <Card.Body>
@@ -1692,31 +1832,50 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
         </Card>
       </div>
       <WizardFooter
-        isNextEnabled={isNextEnabled}
+        isNextEnabled={
+          isNextEnabled
+          && (!isAddServiceWizard()
+            || !isKerberosEnabled
+            || isKerberosDescriptorReady)
+        }
         lifted
         step={{ ...currentStep, nextLabel: "DEPLOY" }}
-        onNext={() => {
-          if (!deploymentTriggered) {
-            setDeploymentTriggered(false);
-            deploymentPromises.current = [];
-            if (isAddHostWizard()) {
-              startDeployForAddHost();
-            } else if (isAddServiceWizard()) {
-              startDeploymentForAddService();
-            } else {
-              prepareDeployment();
-            }
-            setIsNextEnabled(false);
+        isCancelEnabled={!deploymentTriggered}
+        isBackEnabled={!deploymentTriggered}
+        onNext={() => void deploy()}
+        onCancel={() => void flushStateToDb("cancel")}
+        onBack={async () => {
+          if (isAddServiceWizard()) {
+            const previousStep = previousAddServiceStep(5, addServiceFlow);
+            await Promise.resolve(flushStateToDb("jump", previousStep));
+            jumpToStep(previousStep);
+          } else {
+            await Promise.resolve(flushStateToDb("back"));
+            handleBackImperitive();
           }
-          // startDeploy();
         }}
-        onCancel={() => {
-          flushStateToDb("cancel");
-        }}
-        onBack={() => {
-          flushStateToDb("back");
-          handleBackImperitive();
-        }}
+        sideItems={(
+          <>
+            <Button
+              className="me-2"
+              size="sm"
+              variant="outline-secondary"
+              disabled={deploymentTriggered}
+              onClick={() => window.print()}
+            >
+              Print Review
+            </Button>
+            <Button
+              className="me-2"
+              size="sm"
+              variant="outline-primary"
+              disabled={deploymentTriggered || isExportingBlueprint}
+              onClick={() => void downloadBlueprint()}
+            >
+              {isExportingBlueprint ? "Generating Blueprint" : "Generate Blueprint"}
+            </Button>
+          </>
+        )}
       />
     </>
   );

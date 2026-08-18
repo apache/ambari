@@ -31,6 +31,15 @@ const KerberosApi = {
     return response.data;
   },
 
+  getKerberosDescriptorArtifact: async function (clusterName: string) {
+    const url = `/clusters/${clusterName}/artifacts/kerberos_descriptor?fields=artifact_data`;
+    const response = await supressErrorAmbariApi.request({
+      url,
+      method: "GET",
+    });
+    return response.data;
+  },
+
   getSecurityType: async function (clusterName: string) {
     const url = `clusters/${clusterName}?fields=Clusters/security_type`;
     const response = await ambariApi.request({
