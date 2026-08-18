@@ -74,6 +74,7 @@ type AdvancedConfigsType = {
   hosts?: string[];
   onValueUpdateProp?: () => void;
   searchString?: string;
+  canEdit?: boolean;
 };
 
 // Map propertyType to InputType for rendering
@@ -123,6 +124,7 @@ function AdvancedConfigs({
   hosts = [],
   onValueUpdateProp,
   searchString = "",
+  canEdit,
 }: AdvancedConfigsType) {
   const [advancedConfigs, setAdvancedConfigs] = useState(configPropertiesData);
   const [configPropertiesLoading] = useState(false);
@@ -131,6 +133,7 @@ function AdvancedConfigs({
     useState<boolean>(false);
   const { havePermissions } = useAuth();
   const canEditConfigs = havePermissions("SERVICE.MODIFY_CONFIGS");
+  const canEditProperties = canEdit ?? canEditConfigs;
   const newPropertyFields = {
     propertyName: "",
     propertyAttributes: { 
@@ -789,7 +792,7 @@ function AdvancedConfigs({
                                     </Form.Label>
                                   </Tooltip>
                                   {currentConfigPropertyValue?.isSecureConfig &&
-                                    canEditConfigs && (
+                                    canEditProperties && (
                                       <Tooltip
                                         message="This is a secure configuration property"
                                         placement="top"
@@ -814,7 +817,7 @@ function AdvancedConfigs({
                                                     ...currentConfigPropertyValue,
                                                     isEditable:
                                                       !hostConfigs &&
-                                                      canEditConfigs &&
+                                                      canEditProperties &&
                                                       configGroup === "Default" &&
                                                       currentConfigPropertyValue.isEditable
                                                   },

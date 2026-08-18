@@ -114,7 +114,7 @@ const credentialsUtils = {
   },
   storageInfo: async function (
     clusterName: string,
-    callback: (storage: Record<string, boolean> | null) => void,
+    callback?: (storage: Record<string, boolean> | null) => void,
   ) {
     const json = await CredentialsApi.credentialsStoreInfo(clusterName);
     if (json.Clusters) {
@@ -124,21 +124,22 @@ const credentialsUtils = {
         storage[this.STORE_TYPES.PERSISTENT_PATH] === "true";
       storeTypesObject[this.STORE_TYPES.TEMPORARY_KEY] =
         storage[this.STORE_TYPES.TEMPORARY_PATH] === "true";
-      callback(storeTypesObject);
+      callback?.(storeTypesObject);
+      return storeTypesObject;
     } else {
-      callback(null);
+      callback?.(null);
+      return null;
     }
   },
-  isStorePersisted: function (clusterName: string) {
-    return this.storeTypeStatus(clusterName, this.STORE_TYPES.PERSISTENT_KEY);
+  isStorePersisted: async function (clusterName: string) {
+    return await this.storeTypeStatus(clusterName, this.STORE_TYPES.PERSISTENT_KEY);
   },
-  isStoreTemporary: function (clusterName: string) {
-    return this.storeTypeStatus(clusterName, this.STORE_TYPES.TEMPORARY_KEY);
+  isStoreTemporary: async function (clusterName: string) {
+    return await this.storeTypeStatus(clusterName, this.STORE_TYPES.TEMPORARY_KEY);
   },
-  storeTypeStatus: function (clusterName: string, type: string) {
-    this.storageInfo(clusterName, function (storage) {
-      return storage?.[type];
-    });
+  storeTypeStatus: async function (clusterName: string, type: string) {
+    const storage = await this.storageInfo(clusterName);
+    return storage?.[type] ?? false;
   },
   createCredentialResource: function (
     principal: string,

@@ -40,6 +40,13 @@ function element(route: RouteObject): ReactElement<GuardProps> {
   return route.element as ReactElement<GuardProps>;
 }
 
+function routePaths(routes: RouteObject[]): string[] {
+  return routes.flatMap((route) => [
+    ...(typeof route.path === "string" ? [route.path] : []),
+    ...routePaths(route.children ?? []),
+  ]);
+}
+
 describe("installation route contracts", () => {
   const root = RoutesList[0];
   const authenticated = child(root);
@@ -65,5 +72,15 @@ describe("installation route contracts", () => {
     expect(permissionRoute.type).toBe(ProtectedRoute);
     expect(permissionRoute.props.requireAuthorization).toBe("SERVICE.ADD_DELETE_SERVICES");
     expect(permissionRoute.props.children.type).toBe(ServiceOperationRouteGuard);
+  });
+});
+
+describe("Kerberos routes", () => {
+  it("registers management, Enable recovery, and Classic Disable paths", () => {
+    const paths = routePaths(RoutesList);
+
+    expect(paths).toContain("kerberos");
+    expect(paths).toContain("kerberos/enable/:stepNumber");
+    expect(paths).toContain("kerberos/disableSecurity");
   });
 });

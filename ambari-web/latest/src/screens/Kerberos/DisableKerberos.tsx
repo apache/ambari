@@ -22,6 +22,7 @@ import { map } from "lodash";
 import { translate } from "../../Utils/Utility";
 import useKDCSessionState from "../../hooks/useKDCSessionState";
 import OperationsProgress from "../../components/OperationsProgress";
+import KerberosApi from "../../api/kerberosApi";
 
 type disableKerberosProps = {
     setDisableKerberosInProgress:any;
@@ -29,7 +30,7 @@ type disableKerberosProps = {
 
 export default function disableKerberos({setDisableKerberosInProgress}:disableKerberosProps) {
   const [completionStatus, setCompletionStatus] = useState(false)
-  const { clusterName, services } = useContext(AppContext);
+  const { clusterName, services, ambariProperties } = useContext(AppContext);
   const { getKDCSessionState } = useKDCSessionState(() => {});
 
   useEffect(()=>{
@@ -103,10 +104,9 @@ export default function disableKerberos({setDisableKerberosInProgress}:disableKe
     {
         id: "3",
         label: "Unkerberize Cluster",
-        skippable: false,
         context: "Unkerbize cluster",
         callback: async () => {
-            return new Promise((resolve) => {
+            return new Promise((resolve, reject) => {
                 getKDCSessionState(async () => {
                     const payload = {
                         "Clusters": {
@@ -118,9 +118,17 @@ export default function disableKerberos({setDisableKerberosInProgress}:disableKe
                         payload
                     )
                     resolve(requestData);   
-                });
+                }, reject);
             })
-        }
+        },
+        skipCallback: async () => {
+            return await RequestApi.preparingOperations(
+                clusterName,
+                { Clusters: { security_type: "NONE" } },
+                "manage_kerberos_identities=false"
+            );
+        },
+        skippable: true,
     },
     {
         id: "4",
@@ -128,18 +136,15 @@ export default function disableKerberos({setDisableKerberosInProgress}:disableKe
         skippable: false,
         context: "remove kerberos",
         callback: async () => {
-            const payload = {
-                "Clusters": {
-                    "security_type": "NONE"
-                }
+            try {
+                return await KerberosApi.deleteKerberosService(
+                    clusterName,
+                    "KERBEROS"
+                );
+            } catch {
+                // Classic continues even when the obsolete service is already absent.
+                return undefined;
             }
-            const params = "manage_kerberos_identities=false"
-            const requestData = await RequestApi.preparingOperations(
-                clusterName,
-                payload,
-                params
-            )
-            return requestData;
         }
     },
     {
@@ -165,7 +170,7 @@ export default function disableKerberos({setDisableKerberosInProgress}:disableKe
         const requestData = await RequestApi.startServices(
           clusterName,
           startAndTestServicesPayload,
-          ""
+          `run_smoke_test=${ambariProperties?.["skip.service.checks"] !== "true"}`
         );
         return requestData;
       },

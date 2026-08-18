@@ -16,29 +16,14 @@
  * limitations under the License.
  */
 
-import { KerberosWizardProvider } from "./KerberosStore/context";
-import StepWizard from "../../components/StepWizard";
-import useStepWizard from "../../hooks/useStepWizard";
-import kerberosWizardSteps from "./kerberosWizardSteps";
+import ClusterApi from "../api/clusterApi";
 
+let persistenceQueue: Promise<unknown> = Promise.resolve();
 
-type KerberosWizardProps = {
-  onWizardExitReady?: () => void;
-};
-
-const KerberosWizard: React.FC<KerberosWizardProps> = ({
-  onWizardExitReady,
-}) => {
-  const stepWizardUtilities = useStepWizard(kerberosWizardSteps, 1, () => {});
-
-  return (
-    <KerberosWizardProvider
-      stepWizardUtilities={stepWizardUtilities}
-      onWizardExitReady={onWizardExitReady}
-    >
-      <StepWizard  wizardUtilities={stepWizardUtilities} />
-    </KerberosWizardProvider>
-  );
-};
-
-export default KerberosWizard;
+export function postKerberosWizardPersistData(payload: string) {
+  const operation = persistenceQueue
+    .catch(() => undefined)
+    .then(() => ClusterApi.postPersistData(payload));
+  persistenceQueue = operation;
+  return operation;
+}

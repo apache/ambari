@@ -16,142 +16,254 @@
  * limitations under the License.
  */
 
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Alert, Form } from "react-bootstrap";
-import { AppContext } from "../../store/context";
-import KerberosApi from "../../api/kerberosApi";
-import { messages } from "../messages";
 import { get } from "lodash";
+import ConfirmationModal from "../../components/ConfirmationModal";
 import Modal from "../../components/Modal";
+import { AppContext } from "../../store/context";
+import credentialsUtils from "../../Utils/credentialsUtils";
+import { responseErrorMessage } from "../../Utils/httpError";
+import { messages } from "../messages";
 
 type ManageKdcCredentialsProps = {
   isOpen: boolean;
   onClose: () => void;
 };
-export default function ManageKdcCredentials({isOpen, onClose }: ManageKdcCredentialsProps) {
+
+export default function ManageKdcCredentials({
+  isOpen,
+  onClose,
+}: ManageKdcCredentialsProps) {
   const [adminPrincipal, setAdminPrincipal] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
-  const [removeButton, setRemoveButton] = useState(false);
-  const credentialsType = useRef("temporary");
+  const [isRemovable, setIsRemovable] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isActionInProgress, setIsActionInProgress] = useState(false);
+  const [actionError, setActionError] = useState("");
+  const [confirmRemove, setConfirmRemove] = useState(false);
   const { clusterName } = useContext(AppContext);
 
+  const principalError = !adminPrincipal.trim()
+    ? "Admin Principal is required."
+    : /\s/.test(adminPrincipal)
+      ? "Admin Principal cannot contain whitespace."
+      : "";
+  const passwordError = adminPassword ? "" : "Admin Password is required.";
+  const submitDisabled =
+    isLoading ||
+    isActionInProgress ||
+    Boolean(principalError) ||
+    Boolean(passwordError);
+
   useEffect(() => {
-    const getKdcCredentials = async () => {
-      const response = await KerberosApi.getKDCAdminCredentials(clusterName);
-      if (response && response.items && response.items.length > 0) {
-        const credentials = response.items[0];
-        if (credentials) {
-          setRemoveButton(true)
-          credentialsType.current = credentials.Credential.type;
-        }
-      }
+    if (!isOpen || !clusterName) {
+      return;
     }
 
-    getKdcCredentials();
-  }, [])
-  
-  function getModalBody() {
-      return (
-          <>
-              <Alert variant="info">
-                { removeButton ? get(messages, "admin.kerberos.credentials.form.header.stored")
-                : get(messages, "admin.kerberos.credentials.form.header.not.stored") }
-              </Alert>
-              <Form>
-                  <Form.Group controlId="adminPrincipal">
-                      <Form.Label>Admin Principal</Form.Label>
-                      <Form.Control
-                      type="text"
-                      value={adminPrincipal}
-                      onChange={(e) => setAdminPrincipal(e.target.value)}
-                      />
-                  </Form.Group>
-                  <Form.Group controlId="adminPassword" className="mt-3">
-                      <Form.Label>Admin Password</Form.Label>
-                      <Form.Control
-                      type="password"
-                      value={adminPassword}
-                      onChange={(e) => setAdminPassword(e.target.value)}
-                      />
-                  </Form.Group>
-              </Form>
-          </>
-      )
-  }
+    let cancelled = false;
+    const loadCredentials = async () => {
+      setIsLoading(true);
+      setActionError("");
+      try {
+        let credentials: any[] = [];
+        await credentialsUtils.credentials(clusterName, (items: any[]) => {
+          credentials = items;
+        });
+        if (!cancelled) {
+          setIsRemovable(
+            credentials.some(
+              (credential) =>
+                credential.alias === credentialsUtils.ALIAS.KDC_CREDENTIALS,
+            ),
+          );
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setActionError(
+            responseErrorMessage(
+              error,
+              "Ambari could not load the KDC credential status.",
+            ),
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    };
 
-  async function removeCredentials() {
+    void loadCredentials();
+    return () => {
+      cancelled = true;
+    };
+  }, [clusterName, isOpen]);
+
+  const handleSaveDetails = async () => {
+    if (
+      isActionInProgress ||
+      !adminPrincipal.trim() ||
+      /\s/.test(adminPrincipal) ||
+      !adminPassword
+    ) {
+      return;
+    }
+
+    setIsActionInProgress(true);
+    setActionError("");
     try {
-      await KerberosApi.deleteKDCAdminCredentials(clusterName);
-      setRemoveButton(false);
+      const resource = credentialsUtils.createCredentialResource(
+        adminPrincipal.trim(),
+        adminPassword,
+        credentialsUtils.STORE_TYPES.PERSISTENT,
+      );
+      await credentialsUtils.createOrUpdateCredentials(
+        clusterName,
+        credentialsUtils.ALIAS.KDC_CREDENTIALS,
+        resource,
+      );
+      setIsRemovable(true);
       setAdminPrincipal("");
       setAdminPassword("");
       onClose();
     } catch (error) {
-      console.error("Error removing credentials:", error);
-    }
-  }
-
-  async function handleSaveDetails() {
-    const payload = {
-      Credential: {
-        key: adminPassword,
-        principal: adminPrincipal,
-        type: credentialsType.current,
-      }
-    };
-
-    try {
-      const method = removeButton ? "PUT" : "POST";
-      await KerberosApi.submitKDCAdminCredentials(
-        clusterName,
-        payload,
-        method
+      setActionError(
+        responseErrorMessage(error, "Ambari could not save the KDC credentials."),
       );
-      setRemoveButton(true);
+    } finally {
+      setIsActionInProgress(false);
+    }
+  };
+
+  const removeCredentials = async () => {
+    if (isActionInProgress) {
+      return;
+    }
+
+    setIsActionInProgress(true);
+    setActionError("");
+    try {
+      await credentialsUtils.removeCredentials(
+        clusterName,
+        credentialsUtils.ALIAS.KDC_CREDENTIALS,
+      );
+      setIsRemovable(false);
       setAdminPrincipal("");
       setAdminPassword("");
+      setConfirmRemove(false);
+      onClose();
     } catch (error) {
-      console.error("Error posting KDC Admin Credentials:", error);
+      setConfirmRemove(false);
+      setActionError(
+        responseErrorMessage(
+          error,
+          "Ambari could not remove the KDC credentials.",
+        ),
+      );
+    } finally {
+      setIsActionInProgress(false);
     }
-  }
+  };
+
+  const updatePrincipal = (value: string) => {
+    setAdminPrincipal(value);
+    setActionError("");
+  };
+
+  const updatePassword = (value: string) => {
+    setAdminPassword(value);
+    setActionError("");
+  };
 
   return (
-    <Modal
+    <>
+      <Modal
         isOpen={isOpen}
         onClose={onClose}
-        modalTitle={get(messages, "admin.kerberos.credentials.store.menu.label")}
-        modalBody={getModalBody()}
+        modalTitle={get(
+          messages,
+          "admin.kerberos.credentials.store.menu.label",
+        )}
+        modalBody={
+          <>
+            <Alert variant="info">
+              {isRemovable
+                ? get(messages, "admin.kerberos.credentials.form.header.stored")
+                : get(
+                    messages,
+                    "admin.kerberos.credentials.form.header.not.stored",
+                  )}
+            </Alert>
+            {actionError && <Alert variant="danger">{actionError}</Alert>}
+            <Form noValidate>
+              <Form.Group controlId="adminPrincipal">
+                <Form.Label>Admin Principal</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={adminPrincipal}
+                  onChange={(event) => updatePrincipal(event.target.value)}
+                  isInvalid={Boolean(adminPrincipal) && Boolean(principalError)}
+                  disabled={isLoading || isActionInProgress}
+                  autoComplete="off"
+                />
+                {adminPrincipal && principalError && (
+                  <Form.Control.Feedback type="invalid">
+                    {principalError}
+                  </Form.Control.Feedback>
+                )}
+              </Form.Group>
+              <Form.Group controlId="adminPassword" className="mt-3">
+                <Form.Label>Admin Password</Form.Label>
+                <Form.Control
+                  type="password"
+                  value={adminPassword}
+                  onChange={(event) => updatePassword(event.target.value)}
+                  disabled={isLoading || isActionInProgress}
+                  autoComplete="new-password"
+                />
+              </Form.Group>
+            </Form>
+          </>
+        }
         options={{
-            okButtonText: "SAVE",
-            modalSize: "modal-md",
-            cancelableViaBtn: false,
-            extraButtons: (removeButton) ? [{
-                text: "REMOVE",
-                onClick: () => {
-                  removeCredentials();
-                },
-                variant: "danger",
-                order: 1,
-              }, {
-                text: "CANCEL",
-                onClick: () => {
-                  onClose();
-                },
-                variant: "dark",
-                order: 2, 
-              }]: [{
-                text: "CANCEL",
-                onClick: () => {
-                  onClose();
-                },
-                variant: "dark",
-                order: 2, 
-              }]
+          okButtonText: isActionInProgress ? "SAVING..." : "SAVE",
+          modalSize: "modal-md",
+          cancelableViaBtn: false,
+          okButtonDisabled: submitDisabled,
+          extraButtons: [
+            ...(isRemovable
+              ? [
+                  {
+                    text: "REMOVE",
+                    onClick: () => setConfirmRemove(true),
+                    variant: "danger",
+                    order: 1,
+                    disabled: isLoading || isActionInProgress,
+                  },
+                ]
+              : []),
+            {
+              text: "CANCEL",
+              onClick: onClose,
+              variant: "dark",
+              order: 2,
+              disabled: isActionInProgress,
+            },
+          ],
         }}
-        successCallback={() => {
-            handleSaveDetails();
-            onClose();
-        }}
-    />
-  )
+        successCallback={() => void handleSaveDetails()}
+      />
+      <ConfirmationModal
+        isOpen={confirmRemove}
+        onClose={() => setConfirmRemove(false)}
+        modalTitle="Remove KDC Credentials"
+        modalBody="Are you sure you want to remove the stored KDC administrator credentials?"
+        successCallback={() => void removeCredentials()}
+        buttonVariant="danger"
+        okButtonText={isActionInProgress ? "REMOVING..." : "REMOVE"}
+        isOkDisabled={isActionInProgress}
+      />
+    </>
+  );
 }

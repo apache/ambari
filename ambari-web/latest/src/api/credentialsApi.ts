@@ -18,13 +18,15 @@
 
 import { ambariApi } from "./config/axiosConfig";
 
+const pathSegment = (value: string) => encodeURIComponent(value);
+
 const CredentialsApi = {
   createCredentials: async function (
     clusterName: string,
     alias: string,
     data: { resource: unknown }
   ) {
-    const url = `/clusters/${clusterName}/credentials/${alias}`;
+    const url = `/clusters/${pathSegment(clusterName)}/credentials/${pathSegment(alias)}`;
     const response = await ambariApi.request({
       url: url,
       method: "POST",
@@ -38,7 +40,7 @@ const CredentialsApi = {
     clusterName: string,
     alias: string,
   ) {
-    const url = `/clusters/${clusterName}/credentials/${alias}`;
+    const url = `/clusters/${pathSegment(clusterName)}/credentials/${pathSegment(alias)}`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
@@ -49,7 +51,7 @@ const CredentialsApi = {
     clusterName: string,
     alias: string,
   ) {
-    const url = `/clusters/${clusterName}/credentials/${alias}`;
+    const url = `/clusters/${pathSegment(clusterName)}/credentials/${pathSegment(alias)}`;
     const response = await ambariApi.request({
       url: url,
       method: "DELETE",
@@ -61,7 +63,7 @@ const CredentialsApi = {
     alias: string,
     data:{resource:unknown}
   ) {
-    const url = `/clusters/${clusterName}/credentials/${alias}`;
+    const url = `/clusters/${pathSegment(clusterName)}/credentials/${pathSegment(alias)}`;
     const response = await ambariApi.request({
       url: url,
       method: "PUT",
@@ -74,7 +76,7 @@ const CredentialsApi = {
   listCredentials: async function (
     clusterName: string,
   ) {
-    const url = `/clusters/${clusterName}/credentials?fields=Credential/*`;
+    const url = `/clusters/${pathSegment(clusterName)}/credentials?fields=Credential/*`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
@@ -84,7 +86,7 @@ const CredentialsApi = {
   credentialsStoreInfo: async function (
     clusterName: string,
   ) {
-    const url = `/clusters/${clusterName}?fields=Clusters/credential_store_properties`;
+    const url = `/clusters/${pathSegment(clusterName)}?fields=Clusters/credential_store_properties`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
