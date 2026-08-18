@@ -29,23 +29,24 @@ import modalManager from "../store/ModalManager";
 import BackgroundOperations from "../screens/BackgroundOperations";
 import { getStatusIcon } from "../Utils/statusIcons";
 
+type Operation = {
+  id: string | number;
+  label: string;
+  callback: any;
+  skippable: boolean;
+  requestId?: string | number;
+  status?: string;
+  progress?: number;
+  error?: string;
+  requestInfo?: any;
+};
+
 type PropTypes = {
   title: string;
   description: string;
   setCompletionStatus: (completed: boolean) => void;
-  operations: [
-    {
-      id: string | number;
-      label: "string";
-      callback: any;
-      skippable: boolean;
-      requestId?: string | number;
-      status?: string;
-      progress?: number;
-      error?: string;
-    }
-  ];
-  dispatch?: (operationsState: any) => void;
+  operations: Operation[];
+  dispatch?: (operationsState: any) => void | Promise<void>;
   errorCallback?: (errorMsg: string) => void;
 };
 
@@ -65,24 +66,126 @@ function OperationsProgress({
   errorCallback,
 }: PropTypes) {
   const [operationsState, setOperationsState] = useState(operations);
-  const [activeOperationId, setActiveOperationId] = useState(-1);
+  const [activeOperationId, setActiveOperationId] = useState<
+    string | number | null
+  >(null);
+  const [persistenceError, setPersistenceError] = useState("");
+  const [isRetryingPersistence, setIsRetryingPersistence] = useState(false);
   const { clusterName } = useContext(AppContext);
-  const startedTasks: any = useRef([]);
+  const startedTasks = useRef<Set<string | number>>(new Set());
+  const operationsStateRef = useRef(operations);
+  const pollingTimers = useRef<Set<number>>(new Set());
+  const pendingPersistence = useRef<{
+    operations: Operation[];
+    continuation?: () => void | Promise<void>;
+  } | null>(null);
+  const isMounted = useRef(true);
+
+  const updateOperationsState = (nextOperations: typeof operations) => {
+    operationsStateRef.current = nextOperations;
+    if (isMounted.current) {
+      setOperationsState(nextOperations);
+    }
+  };
+
+  const persistenceMessage = (error: any, fallback: string) =>
+    error?.response?.data?.message || error?.message || fallback;
+
+  const persistAndContinue = async (
+    nextOperations: Operation[],
+    continuation?: () => void | Promise<void>,
+    fallbackMessage = "Ambari could not persist the operation checkpoint.",
+  ) => {
+    updateOperationsState(nextOperations);
+    try {
+      if (dispatch) {
+        await dispatch(nextOperations);
+      }
+    } catch (error: any) {
+      pendingPersistence.current = {
+        operations: nextOperations,
+        continuation,
+      };
+      if (isMounted.current) {
+        setPersistenceError(persistenceMessage(error, fallbackMessage));
+      }
+      return false;
+    }
+    pendingPersistence.current = null;
+    if (isMounted.current) {
+      setPersistenceError("");
+    }
+    await continuation?.();
+    return true;
+  };
+
+  const retryPersistence = async () => {
+    const pending = pendingPersistence.current;
+    if (!pending || isRetryingPersistence) return;
+    setIsRetryingPersistence(true);
+    try {
+      if (dispatch) {
+        await dispatch(pending.operations);
+      }
+      pendingPersistence.current = null;
+      if (isMounted.current) {
+        setPersistenceError("");
+      }
+      await pending.continuation?.();
+    } catch (error: any) {
+      if (isMounted.current) {
+        setPersistenceError(
+          persistenceMessage(
+            error,
+            "Ambari could not persist the operation checkpoint.",
+          ),
+        );
+      }
+    } finally {
+      if (isMounted.current) {
+        setIsRetryingPersistence(false);
+      }
+    }
+  };
+
+  const scheduleStatusPoll = (
+    requestId: string | number,
+    operationId: string | number,
+  ) => {
+    if (!isMounted.current) return;
+    const timer = window.setTimeout(() => {
+      pollingTimers.current.delete(timer);
+      void trackCurrentRequestStatus(requestId, operationId);
+    }, 2000);
+    pollingTimers.current.add(timer);
+  };
 
   const trackCurrentRequestStatus = async (
-    requestId: number,
-    operationId: number
+    requestId: string | number,
+    operationId: string | number,
   ) => {
-    const operationsStateCopy = cloneDeep(operationsState);
+    const operationsStateCopy = cloneDeep(operationsStateRef.current);
     const trackingStatusForOperation: any = operationsStateCopy.find(
       (operation) => operation.id == operationId
     );
     if (requestId) {
       set(trackingStatusForOperation, "requestId", requestId);
-      const requestStatus = await RequestApi.getRequestStatus(
-        clusterName,
-        String(requestId)
-      );
+      let requestStatus;
+      try {
+        requestStatus = await RequestApi.getRequestStatus(
+          clusterName,
+          String(requestId)
+        );
+      } catch (error) {
+        set(
+          trackingStatusForOperation,
+          "error",
+          "Ambari could not read the request status. Polling will retry.",
+        );
+        updateOperationsState(operationsStateCopy);
+        scheduleStatusPoll(requestId, operationId);
+        return;
+      }
       if (requestStatus?.Requests?.request_status) {
         const { Requests } = requestStatus;
         set(trackingStatusForOperation, "status", Requests?.request_status);
@@ -93,233 +196,215 @@ function OperationsProgress({
         }
 
 
-        setOperationsState(operationsStateCopy);
-
-        if (!isFinished(Requests?.request_status)) {
-          setTimeout(() => {
-            trackCurrentRequestStatus(requestId, operationId);
-          }, 2000);
-        }
+        await persistAndContinue(operationsStateCopy, () => {
+          if (isFinished(Requests.request_status)) {
+            moveToNextOperation(operationsStateCopy, operationId);
+          } else {
+            scheduleStatusPoll(requestId, operationId);
+          }
+        });
+      } else {
+        set(
+          trackingStatusForOperation,
+          "error",
+          "Ambari returned an incomplete request status. Polling will retry.",
+        );
+        updateOperationsState(operationsStateCopy);
+        scheduleStatusPoll(requestId, operationId);
       }
     }
   };
 
-  async function executeTask() {
-    if (!startedTasks.current.includes(activeOperationId)) {
-      startedTasks.current.push(activeOperationId);
-      const operationsStateCopy = cloneDeep(operationsState);
-      const matchingOperation: any = operationsStateCopy.find(
-        (operation) => operation.id == activeOperationId
-      );
-
-      if (
-        matchingOperation &&
-        matchingOperation?.status === ProgressStatus.IN_PROGRESS
-      ) {
-        trackCurrentRequestStatus(
-          matchingOperation.requestId,
-          activeOperationId
-        );
-        return;
-      }
-
-      if (matchingOperation) {
-        try {
-          const operationCallbackResponse: OperationRequestResponse =
-            await matchingOperation?.callback();
-
-          if (operationCallbackResponse?.Requests) {
-            set(
-              matchingOperation,
-              "requestId",
-              operationCallbackResponse?.Requests?.id
-            );
-            trackCurrentRequestStatus(
-              matchingOperation.requestId,
-              activeOperationId
-            );
-          } else {
-            const statusCode = get(operationCallbackResponse, "[0].status", operationCallbackResponse?.status);
-
-            // Handle status codes by ranges in case of success or unknown response
-            if (
-              (statusCode && statusCode >= 200 && statusCode < 300) ||
-              !operationCallbackResponse
-            ) {
-              // 2xx Success status codes or empty response with no status code - treat as success
-              set(matchingOperation, "status", ProgressStatus.COMPLETED);
-              if (has(matchingOperation, "error")) {
-                delete matchingOperation.error;
-              }
-            } else {
-              // Unknown status code or response exists but no status code
-              set(matchingOperation, "status", ProgressStatus.FAILED);
-              if (statusCode) {
-                set(
-                  matchingOperation,
-                  "error",
-                  JSON.stringify(operationCallbackResponse) ||
-                    `Unknown Status Code (${statusCode}): ${JSON.stringify(
-                      operationCallbackResponse
-                    )}`
-                );
-              } else {
-                set(
-                  matchingOperation,
-                  "error",
-                  JSON.stringify(operationCallbackResponse) ||
-                    `Unknown response format: ${JSON.stringify(
-                      operationCallbackResponse
-                    )}`
-                );
-              }
-            }
-            setOperationsState(operationsStateCopy);
-          }
-        } catch (error: any) {
-          const statusCode = get(error, "status", "");
-          const errorMessage = get(error, "response.data.message", "");
-          // Handle status codes by ranges in case of error
-          if (statusCode && statusCode >= 300 && statusCode < 400) {
-            // 3xx Redirection status codes - treat as error for operations
-            set(matchingOperation, "status", ProgressStatus.FAILED);
-            set(
-              matchingOperation,
-              "error",
-              JSON.stringify(errorMessage) ||
-                `Redirection Error (${statusCode}): Operation requires manual intervention`
-            );
-          } else if (statusCode && statusCode >= 400 && statusCode < 500) {
-            // 4xx Client error status codes
-            set(matchingOperation, "status", ProgressStatus.FAILED);
-            set(
-              matchingOperation,
-              "error",
-              JSON.stringify(errorMessage) ||
-                `Client Error (${statusCode}): Please check the request parameters`
-            );
-          } else if (statusCode && statusCode >= 500 && statusCode < 600) {
-            // 5xx Server error status codes
-            set(matchingOperation, "status", ProgressStatus.FAILED);
-            set(
-              matchingOperation,
-              "error",
-              JSON.stringify(errorMessage) ||
-                `Server Error (${statusCode}): Please try again later or contact support`
-            );
-          } else {
-            // Unknown status code or response exists but no status code
-            set(matchingOperation, "status", ProgressStatus.FAILED);
-            if (statusCode) {
-              set(
-                matchingOperation,
-                "error",
-                JSON.stringify(errorMessage) ||
-                  `Unknown Status Code (${statusCode}): ${JSON.stringify(
-                    errorMessage
-                  )}`
-              );
-            } else {
-              set(
-                matchingOperation,
-                "error",
-                JSON.stringify(errorMessage) ||
-                  `Unknown response format: ${JSON.stringify(errorMessage)}`
-              );
-            }
-          }
-          setOperationsState(operationsStateCopy);
-        }
-      }
-    }
-  }
-
-  const handleMoveToNextOperation = () => {
-    const currentActiveOperation = operationsState.find(
-      (operation) => operation.id == activeOperationId
+  const moveToNextOperation = (
+    currentOperations: Operation[],
+    operationId: string | number,
+  ) => {
+    const currentActiveOperation = currentOperations.find(
+      (operation) => operation.id == operationId,
     );
     if (
       currentActiveOperation &&
       isFinished(currentActiveOperation?.status || "")
     ) {
-      if (currentActiveOperation?.status !== ProgressStatus.FAILED) {
-        if (activeOperationId == operationsState?.at(-1)?.id) {
+      if (!isFailed(currentActiveOperation?.status || "")) {
+        if (operationId == currentOperations.at(-1)?.id) {
           setCompletionStatus(true);
         } else {
-          const currentActiveIndex = operationsState.findIndex(
-            (operation) => operation.id == activeOperationId
+          const currentActiveIndex = currentOperations.findIndex(
+            (operation) => operation.id == operationId,
           );
-          setActiveOperationId(
-            Number(operationsState[Number(currentActiveIndex) + 1]?.id)
-          );
+          setActiveOperationId(currentOperations[currentActiveIndex + 1]?.id);
         }
       }
     }
   };
 
+  const persistFailedOperation = async (
+    operationId: string | number,
+    error: any,
+  ) => {
+    const operationsStateCopy = cloneDeep(operationsStateRef.current);
+    const matchingOperation: any = operationsStateCopy.find(
+      (operation) => operation.id == operationId,
+    );
+    if (!matchingOperation) return;
+    const statusCode = get(error, "status", get(error, "response.status", ""));
+    const errorMessage =
+      get(error, "response.data.message", "") ||
+      error?.message ||
+      "The operation failed.";
+    set(matchingOperation, "status", ProgressStatus.FAILED);
+    set(
+      matchingOperation,
+      "error",
+      statusCode ? `Error ${statusCode}: ${errorMessage}` : errorMessage,
+    );
+    await persistAndContinue(operationsStateCopy);
+  };
+
+  const runOperationCallback = async (operationId: string | number) => {
+    const matchingOperation = operationsStateRef.current.find(
+      (operation) => operation.id == operationId,
+    );
+    if (!matchingOperation) return;
+    try {
+      const response: OperationRequestResponse =
+        await matchingOperation.callback();
+      const operationsStateCopy = cloneDeep(operationsStateRef.current);
+      const updatedOperation: any = operationsStateCopy.find(
+        (operation) => operation.id == operationId,
+      );
+      if (!updatedOperation) return;
+
+      if (response?.Requests) {
+        set(updatedOperation, "requestId", response.Requests.id);
+        set(updatedOperation, "status", ProgressStatus.IN_PROGRESS);
+        await persistAndContinue(
+          operationsStateCopy,
+          () => trackCurrentRequestStatus(response.Requests.id, operationId),
+          "Ambari could not persist the Ambari request ID.",
+        );
+        return;
+      }
+
+      const statusCode = get(response, "[0].status", response?.status);
+      if (
+        (statusCode && statusCode >= 200 && statusCode < 300) ||
+        !response
+      ) {
+        set(updatedOperation, "status", ProgressStatus.COMPLETED);
+        delete updatedOperation.error;
+      } else {
+        set(updatedOperation, "status", ProgressStatus.FAILED);
+        set(
+          updatedOperation,
+          "error",
+          statusCode
+            ? `Unknown Status Code (${statusCode}): ${JSON.stringify(response)}`
+            : `Unknown response format: ${JSON.stringify(response)}`,
+        );
+      }
+      await persistAndContinue(operationsStateCopy, () =>
+        moveToNextOperation(operationsStateCopy, operationId),
+      );
+    } catch (error: any) {
+      await persistFailedOperation(operationId, error);
+    }
+  };
+
+  async function executeTask(
+    operationId: string | number | null = activeOperationId,
+    forceRetry = false,
+  ) {
+    if (operationId === null || startedTasks.current.has(operationId)) return;
+    startedTasks.current.add(operationId);
+    const matchingOperation = operationsStateRef.current.find(
+      (operation) => operation.id == operationId,
+    );
+    if (!matchingOperation) return;
+
+    if (
+      !forceRetry &&
+      matchingOperation.status === ProgressStatus.IN_PROGRESS &&
+      matchingOperation.requestId
+    ) {
+      await trackCurrentRequestStatus(matchingOperation.requestId, operationId);
+      return;
+    }
+    if (!forceRetry && matchingOperation.status === "QUEUED") {
+      await runOperationCallback(operationId);
+      return;
+    }
+    if (!forceRetry && isFinished(matchingOperation.status || "")) return;
+
+    const operationsStateCopy = cloneDeep(operationsStateRef.current);
+    const queuedOperation: any = operationsStateCopy.find(
+      (operation) => operation.id == operationId,
+    );
+    set(queuedOperation, "status", "QUEUED");
+    delete queuedOperation.error;
+    await persistAndContinue(
+      operationsStateCopy,
+      () => runOperationCallback(operationId),
+      "Ambari could not persist the task checkpoint before execution.",
+    );
+  }
+
   const retryOperation = () => {
-    startedTasks.current = startedTasks.current.filter((task: any) => {
-      task != activeOperationId;
-    });
-    executeTask();
+    if (activeOperationId === null) return;
+    startedTasks.current.delete(activeOperationId);
+    void executeTask(activeOperationId, true);
   };
 
   useEffect(() => {
-    if (activeOperationId >= 0) {
-      executeTask();
+    if (activeOperationId !== null) {
+      void executeTask(activeOperationId);
     }
   }, [activeOperationId]);
 
   useEffect(() => {
-    if (dispatch) {
-      dispatch(operationsState);
+    let toBeStartedIdx = 0;
+    while (
+      toBeStartedIdx < operations.length &&
+      operations[toBeStartedIdx].status === ProgressStatus.COMPLETED
+    ) {
+      startedTasks.current.add(operations[toBeStartedIdx].id);
+      toBeStartedIdx += 1;
     }
-    handleMoveToNextOperation();
-  }, [JSON.stringify(operationsState)]);
+    if (toBeStartedIdx >= operations.length && operations.length) {
+      setCompletionStatus(true);
+      return;
+    }
+    const operation = operations[toBeStartedIdx];
+    if (operation && isFailed(operation.status || "")) {
+      startedTasks.current.add(operation.id);
+    }
+    setActiveOperationId(operation?.id ?? null);
+  }, []);
 
   useEffect(() => {
-    let activeIdx = -1;
-    let toBeStartedIdx = -1;
-    for (let i = operationsState.length - 1; i >= 0; i--) {
-      if (
-        get(operationsState[i], "requestId", "") ||
-        get(operationsState[i], "status", "")
-      ) {
-        activeIdx = i;
-        break;
-      }
-    }
-
-    if (activeIdx === -1) {
-      toBeStartedIdx = 0;
-    } else {
-      for (let i = 0; i <= activeIdx; i++) {
-        if (
-          get(operationsState[i], "requestId", "") ||
-          get(operationsState[i], "status", "")
-        ) {
-          startedTasks.current.push(operationsState[i].id);
-          if (isFinished(operationsState[i]?.status || "")) {
-            if (operationsState[i]?.status === ProgressStatus.FAILED) {
-              toBeStartedIdx = i;
-            } else {
-              toBeStartedIdx = i + 1;
-            }
-          } else {
-            toBeStartedIdx = i;
-          }
-        }
-      }
-    }
-    setActiveOperationId(Number(operationsState?.[toBeStartedIdx]?.id));
-    if(operationsState?.[toBeStartedIdx]?.requestId){
-      trackCurrentRequestStatus(operationsState?.[toBeStartedIdx]?.requestId as number, operationsState?.[toBeStartedIdx]?.id as number);
-    }
-
+    return () => {
+      isMounted.current = false;
+      pollingTimers.current.forEach((timer) => window.clearTimeout(timer));
+      pollingTimers.current.clear();
+    };
   }, []);
 
   return (
     <div className="p-3">
+      {persistenceError ? (
+        <Alert variant="danger">
+          {persistenceError}
+          <Button
+            size="sm"
+            className="ms-3"
+            disabled={isRetryingPersistence}
+            onClick={() => void retryPersistence()}
+          >
+            Retry checkpoint
+          </Button>
+        </Alert>
+      ) : null}
       <Stack direction="vertical">
         {operationsState.map((operation: any) => {
           return (
@@ -377,6 +462,13 @@ function OperationsProgress({
                   label={`${Math.floor(operation.progress)}%`}
                 />
               ) : null}
+
+              {has(operation, "error") &&
+                !isFinished(operation.status) && (
+                  <Alert variant="warning" className="scrollable-h15 mt-3">
+                    {operation.error}
+                  </Alert>
+                )}
 
               {has(operation, "error") &&
                 isFinished(operation.status) &&

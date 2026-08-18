@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useState } from "react";
 import { EnableHighAvailibilityContext } from "./store/context";
 import { getStepData } from "../../../../Utils/Utility";
 import { filter, find, map } from "lodash";
@@ -24,8 +24,9 @@ import { AppContext } from "../../../../store/context";
 import adminApi from "../../../../api/adminApi";
 import { enableNamenodeSteps } from "./wizardSteps";
 import WizardFooter from "../../../../components/StepWizard/WizardFooter";
-import { Card, ListGroup } from "react-bootstrap";
+import { Alert, Card, ListGroup } from "react-bootstrap";
 import usePolling from "../../../../hooks/usePolling";
+import { evaluateJournalNodeFormatSet } from "../haWorkflowUtils";
 
 function Step6() {
   const {
@@ -34,18 +35,24 @@ function Step6() {
     stepWizardUtilities: { currentStep, handleNextImperitive, jumpToStep },
   } = useContext(EnableHighAvailibilityContext);
   const { clusterName } = useContext(AppContext);
-  const status = useRef("waiting");
-  const initJnCounter = useRef(0);
-  const requestsCounter = useRef(0);
-  const hasStoppedJNs = useRef(false);
-  const [isNextEnabled, setIsNextEnabled] = useState(true);
-  const MINIMAL_JOURNALNODE_COUNT = 3;
+  const [isNextEnabled, setIsNextEnabled] = useState(false);
+  const [statusMessage, setStatusMessage] = useState(
+    "Waiting for all JournalNodes to be formatted.",
+  );
+  const [pollError, setPollError] = useState("");
   const nameServiceId = getStepData(
     state,
     enableNamenodeSteps.GET_STARTED,
     "nameserviceId",
     "enableHighAvailibilitySteps"
   );
+  const hdfsUser =
+    getStepData(
+      state,
+      enableNamenodeSteps.GET_STARTED,
+      "hdfsUser",
+      "enableHighAvailibilitySteps",
+    ) || "hdfs";
   const masterComponentHosts = getStepData(
     state,
     "SELECT_HOSTS",
@@ -53,67 +60,55 @@ function Step6() {
     "enableHighAvailibilitySteps"
   );
 
-  const {stopPolling,pausePolling,resumePolling}=usePolling(pullCheckPointStatus)
+  const { pausePolling } = usePolling(pullCheckPointStatus);
 
-  function resolveJnCheckPointStatus(jNCounter: number) {
-    if (jNCounter === MINIMAL_JOURNALNODE_COUNT) {
-      status.current = "done";
-      pausePolling();
-      setIsNextEnabled(true);
-    } else {
-      if (hasStoppedJNs.current) {
-        status.current = "journalnode_stopped";
-      } else {
-        status.current = "waiting";
-      }
-      resumePolling();
-    }
-  }
-
-  async function pullEachJnStatus(hostName: string) {
-    try {
-      const data = await adminApi.getJnCheckPointStatus(clusterName, hostName);
-      let journalStatusInfo;
-      let jNCounter = 0;
-      if (data?.metrics?.dfs) {
-        journalStatusInfo = JSON.parse(
-          data.metrics.dfs.journalnode.journalsStatus
-        );
-        if (
-          journalStatusInfo[nameServiceId] &&
-          journalStatusInfo[nameServiceId].Formatted === "true"
-        ) {
-          jNCounter += 1;
-        } else {
-          hasStoppedJNs.current = true;
-        }
-        requestsCounter.current = requestsCounter.current + 1;
-        if (requestsCounter.current === MINIMAL_JOURNALNODE_COUNT) {
-          resolveJnCheckPointStatus(jNCounter);
-        }
-      }
-    } catch (err) {
-      console.error("Could not fetch jn status", err);
-    }
-  }
-  function pullCheckPointStatus() {
-    initJnCounter.current = 0;
-    requestsCounter.current = 0;
-    hasStoppedJNs.current = false;
+  async function pullCheckPointStatus() {
     const hostNames = map(
       filter(masterComponentHosts, ["component", "JOURNALNODE"]),
       "hostName"
     );
-    hostNames.forEach(async (hostName: string) => {
-      await pullEachJnStatus(hostName);
-    });
-  }
-  useEffect(() => {
-    pullCheckPointStatus();
-    return ()=>{
-      stopPolling()
+    const responses: Record<string, unknown> = {};
+    const requestErrors: string[] = [];
+    await Promise.all(
+      hostNames.map(async (hostName: string) => {
+        try {
+          responses[hostName] = await adminApi.getJnCheckPointStatus(
+            clusterName,
+            hostName,
+          );
+        } catch (error) {
+          console.error(`Could not fetch JournalNode status for ${hostName}`, error);
+          requestErrors.push(hostName);
+        }
+      }),
+    );
+
+    const evaluation = evaluateJournalNodeFormatSet(
+      hostNames,
+      responses,
+      nameServiceId,
+    );
+    if (requestErrors.length) {
+      setPollError(
+        `Ambari could not read JournalNode status for ${requestErrors.join(", ")}. Polling will retry.`,
+      );
+    } else {
+      setPollError(evaluation.error || "");
     }
-  }, []);
+    setIsNextEnabled(evaluation.ready);
+    if (evaluation.ready) {
+      setStatusMessage("All selected JournalNodes are formatted.");
+      pausePolling();
+    } else if (evaluation.missingHosts.length) {
+      setStatusMessage(
+        `Waiting for JournalNodes: ${evaluation.missingHosts.join(", ")}`,
+      );
+    } else if (evaluation.invalidHosts.length) {
+      setStatusMessage(
+        `JournalNodes not formatted: ${evaluation.invalidHosts.join(", ")}`,
+      );
+    }
+  }
 
   const namenodeHost = find(
     filter(masterComponentHosts, ["component", "NAMENODE"]),
@@ -136,7 +131,7 @@ function Step6() {
                 <li className="mt-3 fs-12">
                   Initialize the JournalNodes by running:
                   <div className="code-snippet fs-12 mt-2">
-                    sudo su hdfs -l -c 'hdfs namenode -initializeSharedEdits'
+                    sudo su {hdfsUser} -l -c 'hdfs namenode -initializeSharedEdits'
                   </div>
                 </li>
                 <li className="mt-3 fs-12">
@@ -145,6 +140,11 @@ function Step6() {
                 </li>
               </ol>
             </ListGroup>
+            {pollError ? (
+              <Alert variant="danger" className="mt-3">
+                {pollError}
+              </Alert>
+            ) : null}
           </Card.Body>
         </Card>
       </div>
@@ -155,13 +155,15 @@ function Step6() {
         }}
         step={currentStep}
         isNextEnabled={isNextEnabled}
-        onNext={() => {
-          flushStateToDb("next");
-          handleNextImperitive();
+        sideItems={statusMessage}
+        onNext={async () => {
+          await flushStateToDb("next");
+          await handleNextImperitive();
         }}
         onCancel={() => {
-          flushStateToDb("cancel");
+          void flushStateToDb("cancel");
         }}
+        cancelConfirmationBody="NameNode HA changes have started. Exiting preserves the workflow checkpoint so the operation can be resumed. Complete the documented manual recovery before making further HDFS topology changes."
       />
     </>
   );

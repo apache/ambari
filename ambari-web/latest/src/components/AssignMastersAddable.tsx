@@ -67,6 +67,7 @@ type AssignMastersAddableProps = {
   showJournalNode?: boolean;
   wizardName?: string;
   servicesData?: any;
+  maximumMasterCount?: number;
 };
 
 function AssignMastersAddable({
@@ -84,6 +85,7 @@ function AssignMastersAddable({
   showJournalNode = false,
   wizardName = "",
   servicesData = {},
+  maximumMasterCount,
 }: AssignMastersAddableProps) {
   const [hosts, setHosts] = useState([]);
   const {
@@ -1042,7 +1044,11 @@ function AssignMastersAddable({
       find(getFlattenedcomponents(), ["component_name", componentName])!
     );
     const hostsNumber = hosts.length;
-    return Math.min(maxByCardinality, hostsNumber);
+    return Math.min(
+      maxByCardinality,
+      hostsNumber,
+      maximumMasterCount ?? Number.POSITIVE_INFINITY,
+    );
   }
 
   function updateComponent(componentName: string) {

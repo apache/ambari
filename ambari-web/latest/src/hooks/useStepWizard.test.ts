@@ -16,15 +16,35 @@
  * limitations under the License.
  */
 
-import { ReactNode } from "react";
+import { describe, expect, it } from "vitest";
+import {
+  getAdjacentVisibleStep,
+  getVisibleStepNumbers,
+} from "./useStepWizard";
 
-export interface Step {
-  label: string;
-  completed: boolean;
-  Component: ReactNode;
-  canGoBack: boolean;
-  isNextEnabled: boolean;
-  hidden?: boolean;
-  onNext?: any;
-  nextLabel?: string;
-}
+const step = (hidden = false) => ({
+  label: "Step",
+  completed: false,
+  Component: null,
+  canGoBack: true,
+  isNextEnabled: true,
+  hidden,
+});
+
+describe("step wizard navigation", () => {
+  it("skips hidden steps while retaining stable physical step IDs", () => {
+    const steps = {
+      0: step(),
+      1: step(),
+      2: step(true),
+      3: step(),
+      4: step(true),
+      5: step(),
+    };
+
+    expect(getVisibleStepNumbers(steps)).toEqual([0, 1, 3, 5]);
+    expect(getAdjacentVisibleStep(steps, 1, 1)).toBe(3);
+    expect(getAdjacentVisibleStep(steps, 5, -1)).toBe(3);
+    expect(getAdjacentVisibleStep(steps, 2, 1)).toBe(3);
+  });
+});

@@ -16,7 +16,8 @@
  * limitations under the License.
  */
 
-import { Navigate, Outlet, RouteObject } from "react-router-dom";
+import { ReactNode } from "react";
+import { Navigate, Outlet, RouteObject, useParams } from "react-router-dom";
 import { AuthenticatedApplication, LandingRoute } from "../AppLoader";
 import { ProtectedRoute } from "../components/AuthGuard";
 import AdminRouteGuard from "../components/AdminRouteGuard";
@@ -51,6 +52,19 @@ import Experimental from "../screens/Experimental";
 import FeatureRouteGuard from "../components/FeatureRouteGuard";
 import AdminViewRouteGuard from "../components/AdminViewRouteGuard";
 import ServiceOperationRouteGuard from "../components/ServiceOperationRouteGuard";
+
+const NameNodePersistenceRouteGuard = ({ children }: { children: ReactNode }) => {
+  const { componentName } = useParams();
+  if (componentName !== "NameNode") return <>{children}</>;
+  return (
+    <ProtectedRoute
+      requireAuthorization="CLUSTER.MANAGE_USER_PERSISTED_DATA"
+      redirectTo="/main/dashboard/metrics"
+    >
+      {children}
+    </ProtectedRoute>
+  );
+};
 
 const RoutesList: RouteObject[] = [
   {
@@ -147,14 +161,16 @@ const RoutesList: RouteObject[] = [
                   {
                     path: "highAvailability/:componentName/enable/:stepNumber",
                     element: (
-                      <ProtectedRoute
-                        requireAuthorization="SERVICE.ENABLE_HA"
-                        redirectTo="/main/dashboard/metrics"
-                      >
-                        <ServiceOperationRouteGuard>
-                          <ServiceLoader />
-                        </ServiceOperationRouteGuard>
-                      </ProtectedRoute>
+                      <NameNodePersistenceRouteGuard>
+                        <ProtectedRoute
+                          requireAuthorization="SERVICE.ENABLE_HA"
+                          redirectTo="/main/dashboard/metrics"
+                        >
+                          <ServiceOperationRouteGuard>
+                            <ServiceLoader />
+                          </ServiceOperationRouteGuard>
+                        </ProtectedRoute>
+                      </NameNodePersistenceRouteGuard>
                     ),
                   },
                   {
@@ -173,14 +189,21 @@ const RoutesList: RouteObject[] = [
                   {
                     path: "highAvailability/:componentName/manage/:stepNumber",
                     element: (
-                      <ProtectedRoute
-                        requireAuthorization="SERVICE.ENABLE_HA"
-                        redirectTo="/main/dashboard/metrics"
-                      >
-                        <ServiceOperationRouteGuard>
-                          <ServiceLoader />
-                        </ServiceOperationRouteGuard>
-                      </ProtectedRoute>
+                      <FeatureRouteGuard feature="manageJournalNode">
+                        <ProtectedRoute
+                          requireAuthorization="CLUSTER.MANAGE_USER_PERSISTED_DATA"
+                          redirectTo="/main/dashboard/metrics"
+                        >
+                          <ProtectedRoute
+                            requireAuthorization="SERVICE.RUN_CUSTOM_COMMAND, SERVICE.RUN_SERVICE_CHECK, SERVICE.TOGGLE_MAINTENANCE, SERVICE.ENABLE_HA, HOST.ADD_DELETE_COMPONENTS"
+                            redirectTo="/main/dashboard/metrics"
+                          >
+                            <ServiceOperationRouteGuard>
+                              <ServiceLoader />
+                            </ServiceOperationRouteGuard>
+                          </ProtectedRoute>
+                        </ProtectedRoute>
+                      </FeatureRouteGuard>
                     ),
                   },
                 ],
