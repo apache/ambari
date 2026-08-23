@@ -10,7 +10,6 @@
     "jquery-ui": "~1.11.4",
     "dagre": "~0.7.4",
     "x2js": "~1.2.0",
-    "form2js": "maxatwork/form2js#v2.0",
     "moment": "~2.11.2",
     "handlebars": "~4.0.5",
     "spin.js": "~2.3.2",
