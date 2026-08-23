@@ -575,6 +575,12 @@ App.HostComponentActionMap = {
         cssClass: 'icon icon-sitemap',
         disabled: !App.get('isHaEnabled') || App.get('allHostNames.length') < 4
       },
+      MULTIPLE_NN: {
+        action: 'enableMultipleNamenode',
+        label: Em.I18n.t('admin.multipleNameNode.button.enable'),
+        cssClass: 'icon icon-sitemap',
+        disabled: !App.get('isHaEnabled'),
+      },
       TOGGLE_RBF_FEDERATION: {
         action: 'openRouterFederationWizard',
         label: Em.I18n.t('admin.routerFederation.button.enable'),

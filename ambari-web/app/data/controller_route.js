@@ -86,6 +86,10 @@ module.exports = [
     route: 'main.services.enableNameNodeFederation'
   },
   {
+    wizardControllerName: App.router.get('multipleNameNodeWizardController.name'),
+    route: 'main.services.enableMultipleNamenode'
+  },
+  {
     wizardControllerName: App.router.get('routerFederationWizardController.name'),
     route: 'main.services.enableRouterFederation'
   },

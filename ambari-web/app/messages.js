@@ -1727,6 +1727,40 @@ Em.I18n.translations = {
   'admin.nameNodeFederation.wizard.step4.task16.title': 'Start NameNode',
   'admin.nameNodeFederation.wizard.step4.task17.title': 'Restart Required Services',
 
+  'admin.multipleNameNode.wizard.header': 'Add Multiple Namenode',
+  'admin.multipleNameNode.closePopup2': 'Add New Namenode Wizard is in progress. You must allow the wizard to complete for Ambari to be in usable state. If you choose to quit, you must follow manual instructions to complete or revert Add New Namenode as documented in the Ambari User Guide. Are you sure you want to exit the wizard?',
+  'admin.multipleNameNode.closePopup': 'Are you sure you want to quit?',
+  'admin.multipleNameNode.wizard.step1.header': 'Get Started',
+  'admin.multipleNameNode.wizard.step1.body':'This wizard will walk you through adding multiple standby namenodes on your cluster.<br/>' +
+      'Once enabled, you will be running a Standby Namenode in addition to your Active and Standby Namenode.<br/>' +
+      'This allows for an Active-Standby Namenode configuration that automatically performs failover.<br/><br/>',
+  'admin.multipleNameNode.wizard.step2.header': 'Select Hosts',
+  'admin.multipleNameNode.wizard.step2.body': 'Select hosts running the NameNodes for {0}',
+  'admin.multipleNameNode.wizard.step3.header': 'Review',
+  'admin.multipleNameNode.wizard.step3.confirm.host.body':'<b>Confirm your host selections.</b>',
+  'admin.multipleNameNode.wizard.step3.currentNN': 'Current Namenodes',
+  'admin.multipleNameNode.wizard.step3.additionalNN': 'Additional Namenodes',
+  'admin.multipleNameNode.wizard.step3.confirm.config.body':'<div class="alert alert-info">' +
+      '<p><b>Review Configuration Changes.</b></p>' +
+      'The following lists the configuration changes that will be made by the Wizard to enable Multiple Namenodes. This information is for <b> review only </b> and is not editable.' +
+      '</div>',
+  'admin.multipleNameNode.wizard.step4.header': 'Configure Components',
+  'admin.multipleNameNode.wizard.step4.task0.title': 'Install Additional Namenode',
+  'admin.multipleNameNode.wizard.step4.task1.title': 'Install ZKFC',
+  'admin.multipleNameNode.wizard.step4.task2.title': 'Enter Safe Mode',
+  'admin.multipleNameNode.wizard.step4.task3.title': 'Save Namespace',
+  'admin.multipleNameNode.wizard.step4.task4.title': 'Leave Safe Mode',
+  'admin.multipleNameNode.wizard.step4.task5.title': 'Format ZKFC',
+  'admin.multipleNameNode.wizard.step4.task6.title': 'Bootstrap Additional Namenode',
+  'admin.multipleNameNode.wizard.step4.task7.title': 'Start ZKFC',
+  'admin.multipleNameNode.wizard.step4.task8.title': 'Start New Namenode',
+  'admin.multipleNameNode.wizard.step4.task9.title': 'Refresh configs',
+  'admin.multipleNameNode.wizard.step4.task10.title': 'Refresh Namenodes',
+  'admin.multipleNameNode.wizard.step4.notice.completed':'Multiple Namenode has been enabled successfully.',
+  'admin.multipleNameNode.wizard.step4.header': 'Configure Components',
+  'admin.multipleNameNode.wizard.step4.notice.inProgress':'Please wait while your new Namenode is being deployed.',
+  'admin.multipleNameNode.button.enable':'Add Multiple Standby',
+
   'admin.routerFederation.button.enable':'Add DFSRouter',
   'admin.routerFederation.wizard.header': 'Add HDFS Router',
   'admin.routerFederation.closePopup': 'Are you sure you want to quit?',

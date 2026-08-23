@@ -3276,6 +3276,83 @@ var urls = {
       }
     }
   },
+  'multipleNameNode.entersafeMode': {
+    'real': '/clusters/{clusterName}/requests',
+    'mock': '',
+    'format': function (data) {
+      return {
+        type: 'POST',
+        data: JSON.stringify({
+          "RequestInfo": {
+            "command" : "ENTER_SAFEMODE", "context" : "Enter Safemode"
+          },
+          "Requests/resource_filters": [{
+            "service_name" : "HDFS",
+            "component_name" : "NAMENODE",
+            "hosts": data.host
+          }]
+        })
+      }
+    }
+  },
+  'multipleNameNode.saveNamespace': {
+    'real': '/clusters/{clusterName}/requests',
+    'mock': '',
+    'format': function (data) {
+      return {
+        type: 'POST',
+        data: JSON.stringify({
+          "RequestInfo": {
+            "command" : "SAVE_NAMESPACE", "context" : "Save Namespace"
+          },
+          "Requests/resource_filters": [{
+            "service_name" : "HDFS",
+            "component_name" : "NAMENODE",
+            "hosts": data.host
+          }]
+        })
+      }
+    }
+  },
+  'multipleNameNode.leavesafeMode': {
+    'real': '/clusters/{clusterName}/requests',
+    'mock': '',
+    'format': function (data) {
+      return {
+        type: 'POST',
+        data: JSON.stringify({
+          "RequestInfo": {
+            "command" : "LEAVE_SAFEMODE", "context" : "Leave Safemode"
+          },
+          "Requests/resource_filters": [{
+            "service_name" : "HDFS",
+            "component_name" : "NAMENODE",
+            "hosts": data.host
+          }]
+        })
+      }
+    }
+  },
+  'multipleNameNode.refreshNamenodes': {
+    'real': '/clusters/{clusterName}/requests',
+    'mock': '',
+    'format': function (data) {
+      return {
+        type: 'POST',
+        data: JSON.stringify({
+          "RequestInfo": {
+            "command" : "REFRESH_NAMENODE", "context" : "Refresh Namenode"
+          },
+          "Requests/resource_filters": [{
+            "service_name" : "HDFS",
+            "component_name" : "DATANODE",
+            "hosts": data.host.join(",")
+          }]
+        })
+      }
+    }
+  },
+
   'hiveServerInteractive.getStatus': {
     real: '',
     mock: '',

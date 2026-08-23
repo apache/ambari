@@ -107,6 +107,23 @@ class DataNode(Script):
     env.set_params(status_params)
     datanode(action="status")
 
+  def refresh_namenode(self, env):
+      import params
+      env.set_params(params)
+
+      if params.security_enabled:
+          Execute(params.dn_kinit_cmd, user = params.hdfs_user)
+
+      hdfs_binary = self.get_hdfs_binary()
+      dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary)
+      command = dfsadmin_base_command + " -refreshNamenodes " + params.dfs_dn_ipc_address
+      Execute(command,
+             user=params.hdfs_user,
+             logoutput=True)
+
+      Logger.info("DataNode has successfully registered to new namenode.")
+      return True
+
   @retry(times=24, sleep_time=5, err_class=Fail)
   def check_datanode_shutdown(self, hdfs_binary):
     """

@@ -207,6 +207,47 @@ class NameNode(Script):
     env.set_params(status_params)
     namenode(action="status", env=env)
 
+  def enter_safemode(self, env):
+      import params
+      env.set_params(params)
+
+      if params.security_enabled:
+           Execute(params.nn_kinit_cmd,
+                   user=params.hdfs_user
+           )
+
+      Execute("hdfs dfsadmin -safemode enter",
+               user=params.hdfs_user,
+               logoutput=True
+      )
+  def save_namespace(self, env):
+      import params
+      env.set_params(params)
+
+      if params.security_enabled:
+          Execute(params.nn_kinit_cmd,
+                  user=params.hdfs_user
+          )
+
+      Execute("hdfs dfsadmin -saveNamespace",
+              user=params.hdfs_user,
+              logoutput=True
+      )
+
+  def leave_safemode(self, env):
+    import params
+    env.set_params(params)
+
+    if params.security_enabled:
+           Execute(params.nn_kinit_cmd,
+                   user=params.hdfs_user
+           )
+
+    Execute("hdfs dfsadmin -safemode leave",
+               user=params.hdfs_user,
+               logoutput=True
+    )
+
   def decommission(self, env):
     import params
 
