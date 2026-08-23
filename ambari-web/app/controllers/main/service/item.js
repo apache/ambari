@@ -1654,7 +1654,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
       popupHeader = Em.I18n.t('services.service.delete.popup.header'),
       dependentServicesToDeleteFmt = this.servicesDisplayNames(interDependentServices);
 
-    if (serviceName === 'KERBEROS') {
+    if (serviceName === 'KERBEROS' && App.get('isKerberosEnabled')) {
       this.kerberosDeleteWarning(popupHeader);
       return;
     }
