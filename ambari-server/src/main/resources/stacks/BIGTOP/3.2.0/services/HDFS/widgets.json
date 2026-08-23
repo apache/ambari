@@ -19,8 +19,8 @@
               "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
             },
             {
-              "name": "jvm.JvmMetrics.GcCountConcurrentMarkSweep._rate",
-              "metric_path": "metrics/jvm/GcCountConcurrentMarkSweep._rate",
+              "name": "jvm.JvmMetrics.GcCountG1 Old Generation._rate",
+              "metric_path": "metrics/jvm/GcCountG1 Old Generation._rate",
               "service_name": "HDFS",
               "component_name": "NAMENODE",
               "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
@@ -33,7 +33,7 @@
             },
             {
               "name": "GC count of type major collection",
-              "value": "${jvm.JvmMetrics.GcCountConcurrentMarkSweep._rate}"
+              "value": "${jvm.JvmMetrics.GcCountG1 Old Generation._rate}"
             }
           ],
           "properties": {
@@ -48,8 +48,8 @@
           "is_visible": true,
           "metrics": [
             {
-              "name": "jvm.JvmMetrics.GcTimeMillisConcurrentMarkSweep._rate",
-              "metric_path": "metrics/jvm/GcTimeMillisConcurrentMarkSweep._rate",
+              "name": "jvm.JvmMetrics.GcTimeMillisG1 Old Generation._rate",
+              "metric_path": "metrics/jvm/GcTimeMillisG1 Old Generation._rate",
               "service_name": "HDFS",
               "component_name": "NAMENODE",
               "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
@@ -58,7 +58,7 @@
           "values": [
             {
               "name": "GC time in major collection",
-              "value": "${jvm.JvmMetrics.GcTimeMillisConcurrentMarkSweep._rate}"
+              "value": "${jvm.JvmMetrics.GcTimeMillisG1 Old Generation._rate}"
             }
           ],
           "properties": {

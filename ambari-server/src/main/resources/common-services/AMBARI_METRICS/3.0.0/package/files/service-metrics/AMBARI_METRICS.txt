@@ -3,8 +3,8 @@ regionserver.WAL.SyncTime_num_ops
 regionserver.WAL.appendCount
 regionserver.WAL.slowAppendCount
 jvm.JvmMetrics.GcTimeMillis
-jvm.JvmMetrics.GcTimeMillisConcurrentMarkSweep
-jvm.JvmMetrics.GcTimeMillisParNew
+jvm.JvmMetrics.GcTimeMillisG1 Old Generation
+jvm.JvmMetrics.GcTimeMillisG1 Young Generation
 ugi.UgiMetrics.GetGroupsAvgTime
 ugi.UgiMetrics.GetGroupsNumOps
 ugi.UgiMetrics.LoginFailureNumOps
@@ -196,7 +196,7 @@ regionserver.Server.checkMutateFailedCount
 regionserver.Server.checkMutatePassedCount
 regionserver.Server.compactionQueueLength
 regionserver.Server.flushQueueLength
-jvm.JvmMetrics.GcCountConcurrentMarkSweep
+jvm.JvmMetrics.GcCountG1 Old Generation
 regionserver.Server.hlogFileCount
 regionserver.Server.hlogFileSize
 regionserver.Server.memStoreSize
@@ -227,7 +227,7 @@ regionserver.WAL.AppendSize_max
 regionserver.WAL.AppendSize_mean
 regionserver.WAL.AppendSize_median
 regionserver.WAL.SyncTime_median
-jvm.JvmMetrics.GcCountParNew
+jvm.JvmMetrics.GcCountG1 Young Generation
 regionserver.WAL.AppendSize_min
 regionserver.WAL.AppendSize_num_ops
 regionserver.WAL.SyncTime_max

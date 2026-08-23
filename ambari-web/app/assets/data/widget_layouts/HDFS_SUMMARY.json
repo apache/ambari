@@ -15,7 +15,7 @@
           {
             "WidgetInfo" : {
               "id" : 4,
-              "metrics" : "[{\"name\":\"jvm.JvmMetrics.GcCount\",\"metric_path\":\"metrics/jvm/gcCount\",\"service_name\":\"HDFS\",\"component_name\":\"NAMENODE\",\"host_component_criteria\":\"host_components/metrics/dfs/FSNamesystem/HAState\\u003dactive\"},{\"name\":\"jvm.JvmMetrics.GcTimeMillisConcurrentMarkSweep\",\"metric_path\":\"metrics/jvm/GcTimeMillisConcurrentMarkSweep\",\"service_name\":\"HDFS\",\"component_name\":\"NAMENODE\",\"host_component_criteria\":\"host_components/metrics/dfs/FSNamesystem/HAState\\u003dactive\"},{\"name\":\"jvm.JvmMetrics.GcCountConcurrentMarkSweep\",\"metric_path\":\"metrics/jvm/GcCountConcurrentMarkSweep\",\"service_name\":\"HDFS\",\"component_name\":\"NAMENODE\",\"host_component_criteria\":\"host_components/metrics/dfs/FSNamesystem/HAState\\u003dactive\"}]",
+              "metrics" : "[{\"name\":\"jvm.JvmMetrics.GcCount\",\"metric_path\":\"metrics/jvm/gcCount\",\"service_name\":\"HDFS\",\"component_name\":\"NAMENODE\",\"host_component_criteria\":\"host_components/metrics/dfs/FSNamesystem/HAState\\u003dactive\"},{\"name\":\"jvm.JvmMetrics.GcTimeMillisG1 Old Generation\",\"metric_path\":\"metrics/jvm/GcTimeMillisG1 Old Generation\",\"service_name\":\"HDFS\",\"component_name\":\"NAMENODE\",\"host_component_criteria\":\"host_components/metrics/dfs/FSNamesystem/HAState\\u003dactive\"},{\"name\":\"jvm.JvmMetrics.GcCountG1 Old Generation\",\"metric_path\":\"metrics/jvm/GcCountG1 Old Generation\",\"service_name\":\"HDFS\",\"component_name\":\"NAMENODE\",\"host_component_criteria\":\"host_components/metrics/dfs/FSNamesystem/HAState\\u003dactive\"}]",
               "author" : "ambari",
               "description" : "This widget shows JVM Garbage collection statistics for Active NameNode",
               "scope" : "CLUSTER",
@@ -24,7 +24,7 @@
               "widget_type" : "GRAPH",
               "time_created" : 1429906622107,
               "display_name" : "GC Statistics",
-              "values" : "[{\"name\":\"GC total count\",\"value\":\"${jvm.JvmMetrics.GcCount}\"},{\"name\":\"GC time in major collection\",\"value\":\"${jvm.JvmMetrics.GcTimeMillisConcurrentMarkSweep}\"},{\"name\":\"GC count of type major collection\",\"value\":\"${jvm.JvmMetrics.GcCountConcurrentMarkSweep}\"}]",
+              "values" : "[{\"name\":\"GC total count\",\"value\":\"${jvm.JvmMetrics.GcCount}\"},{\"name\":\"GC time in major collection\",\"value\":\"${jvm.JvmMetrics.GcTimeMillisG1 Old Generation}\"},{\"name\":\"GC count of type major collection\",\"value\":\"${jvm.JvmMetrics.GcCountG1 Old Generation}\"}]",
               "cluster_name" : "c1"
             }
           },

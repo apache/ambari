@@ -482,7 +482,7 @@
         }
       ],
       "showTitle": true,
-      "title": "GC Count & Time"
+      "title": "GC Count & GC Time"
     },
     {
       "collapse": false,
@@ -538,7 +538,7 @@
               "app": "namenode",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "jvm.JvmMetrics.GcCountParNew",
+              "metric": "jvm.JvmMetrics.GcCountG1 Young Generation",
               "precision": "default",
               "refId": "A",
               "transform": "rate",
@@ -547,7 +547,7 @@
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "GC Count ParNew",
+          "title": "GC Count Young Generation",
           "tooltip": {
             "shared": false,
             "value_type": "cumulative"
@@ -556,7 +556,7 @@
           "x-axis": true,
           "y-axis": true,
           "y_formats": [
-            "short",
+            "ms",
             "short"
           ]
         },
@@ -609,7 +609,7 @@
               "app": "namenode",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "jvm.JvmMetrics.GcTimeMillisParNew",
+              "metric": "jvm.JvmMetrics.GcTimeMillisG1 Young Generation",
               "precision": "default",
               "refId": "A",
               "transform": "rate",
@@ -618,7 +618,7 @@
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "GC Time ParNew",
+          "title": "GC Time Young Generation",
           "tooltip": {
             "shared": false,
             "value_type": "cumulative"
@@ -633,7 +633,7 @@
         }
       ],
       "showTitle": true,
-      "title": "GC Par New"
+      "title": "GC Young Generation"
     },
     {
       "collapse": false,
@@ -689,7 +689,7 @@
               "app": "namenode",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "jvm.JvmMetrics.GcTotalExtraSleepTime",
+              "metric": "jvm.JvmMetrics.GcCountG1 Old Generation",
               "precision": "default",
               "refId": "A",
               "transform": "rate",
@@ -698,7 +698,7 @@
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "GC Extra Sleep Time",
+          "title": "GC Count Old Generation",
           "tooltip": {
             "shared": false,
             "value_type": "cumulative"
@@ -760,7 +760,7 @@
               "app": "namenode",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "jvm.JvmMetrics.GcNumWarnThresholdExceeded",
+              "metric": "jvm.JvmMetrics.GcTimeMillisG1 Old Generation",
               "precision": "default",
               "refId": "A",
               "transform": "rate",
@@ -769,7 +769,7 @@
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "GC Warning Threshold Exceeded Count",
+          "title": "GC Time Old Generation",
           "tooltip": {
             "shared": false,
             "value_type": "cumulative"
@@ -778,13 +778,13 @@
           "x-axis": true,
           "y-axis": true,
           "y_formats": [
-            "short",
+            "ms",
             "short"
           ]
         }
       ],
       "showTitle": true,
-      "title": "GC Extra Sleep & Warning Threshold Exceeded"
+      "title": "GC Old Generation"
     },
     {
       "collapse": false,
@@ -1480,7 +1480,7 @@
     "list": []
   },
   "schemaVersion": 8,
-  "version": 87,
+  "version": 86,
   "links": [
     {
       "asDropdown": true,

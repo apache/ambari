@@ -150,13 +150,13 @@
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/jvm/GcCountConcurrentMarkSweep": {
-              "metric": "jvm.JvmMetrics.GcCountConcurrentMarkSweep",
+            "metrics/hbase/jvm/GcCountG1 Old Generation": {
+              "metric": "jvm.JvmMetrics.GcCountG1 Old Generation",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/jvm/GcCountParNew": {
-              "metric": "jvm.JvmMetrics.GcCountParNew",
+            "metrics/hbase/jvm/GcCountG1 Young Generation": {
+              "metric": "jvm.JvmMetrics.GcCountG1 Young Generation",
               "pointInTime": true,
               "temporal": true
             },
@@ -165,13 +165,13 @@
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/jvm/GcTimeMillisConcurrentMarkSweep": {
-              "metric": "jvm.JvmMetrics.GcTimeMillisConcurrentMarkSweep",
+            "metrics/hbase/jvm/GcTimeMillisG1 Old Generation": {
+              "metric": "jvm.JvmMetrics.GcTimeMillisG1 Old Generation",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/jvm/GcTimeMillisParNew": {
-              "metric": "jvm.JvmMetrics.GcTimeMillisParNew",
+            "metrics/hbase/jvm/GcTimeMillisG1 Young Generation": {
+              "metric": "jvm.JvmMetrics.GcTimeMillisG1 Young Generation",
               "pointInTime": true,
               "temporal": true
             },
@@ -1384,13 +1384,13 @@
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/jvm/GcCountConcurrentMarkSweep": {
-              "metric": "jvm.JvmMetrics.GcCountConcurrentMarkSweep",
+            "metrics/hbase/jvm/GcCountG1 Old Generation": {
+              "metric": "jvm.JvmMetrics.GcCountG1 Old Generation",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/jvm/GcCountParNew": {
-              "metric": "jvm.JvmMetrics.GcCountParNew",
+            "metrics/hbase/jvm/GcCountG1 Young Generation": {
+              "metric": "jvm.JvmMetrics.GcCountG1 Young Generation",
               "pointInTime": true,
               "temporal": true
             },
@@ -1399,13 +1399,13 @@
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/jvm/GcTimeMillisConcurrentMarkSweep": {
-              "metric": "jvm.JvmMetrics.GcTimeMillisConcurrentMarkSweep",
+            "metrics/hbase/jvm/GcTimeMillisG1 Old Generation": {
+              "metric": "jvm.JvmMetrics.GcTimeMillisG1 Old Generation",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/hbase/jvm/GcTimeMillisParNew": {
-              "metric": "jvm.JvmMetrics.GcTimeMillisParNew",
+            "metrics/hbase/jvm/GcTimeMillisG1 Young Generation": {
+              "metric": "jvm.JvmMetrics.GcTimeMillisG1 Young Generation",
               "pointInTime": true,
               "temporal": true
             },

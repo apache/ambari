@@ -58,13 +58,13 @@
               "pointInTime": true,
               "temporal": false
             },
-            "metrics/jvm/GcTimeMillisConcurrentMarkSweep": {
-              "metric": "Hadoop:service=NameNode,name=JvmMetrics.GcTimeMillisConcurrentMarkSweep",
+            "metrics/jvm/GcTimeMillisG1 Old Generation": {
+              "metric": "Hadoop:service=NameNode,name=JvmMetrics.GcTimeMillisG1 Old Generation",
               "pointInTime": true,
               "temporal": false
             },
-            "metrics/jvm/GcCountConcurrentMarkSweep": {
-              "metric": "Hadoop:service=NameNode,name=JvmMetrics.GcCountConcurrentMarkSweep",
+            "metrics/jvm/GcCountG1 Old Generation": {
+              "metric": "Hadoop:service=NameNode,name=JvmMetrics.GcCountG1 Old Generation",
               "pointInTime": true,
               "temporal": false
             },
@@ -125,10 +125,10 @@
               "temporal": true,
               "amsHostMetric" : true
             },
-            "metrics/jvm/JvmMetrics/GcCountConcurrentMarkSweep" : {
+            "metrics/jvm/JvmMetrics/GcCountG1 Old Generation" : {
               "temporal" : true,
               "pointInTime" : true,
-              "metric" : "jvm.JvmMetrics.GcCountConcurrentMarkSweep"
+              "metric" : "jvm.JvmMetrics.GcCountG1 Old Generation"
             },
             "metrics/cpu/cpu_nice" : {
               "temporal" : true,
@@ -230,10 +230,10 @@
               "pointInTime" : false,
               "metric" : "rpc.rpc.RpcProcessingTimeAvgTime"
             },
-            "metrics/jvm/JvmMetrics/GcTimeMillisConcurrentMarkSweep" : {
+            "metrics/jvm/JvmMetrics/GcTimeMillisG1 Old Generation" : {
               "temporal" : true,
               "pointInTime" : true,
-              "metric" : "jvm.JvmMetrics.GcTimeMillisConcurrentMarkSweep"
+              "metric" : "jvm.JvmMetrics.GcTimeMillisG1 Old Generation"
             },
             "metrics/memory/swap_total" : {
               "temporal" : true,
