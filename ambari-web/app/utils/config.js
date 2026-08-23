@@ -652,7 +652,7 @@ App.config = Em.Object.create({
       default:
         return function (value, name) {
           if (['javax.jdo.option.ConnectionURL', 'oozie.service.JPAService.jdbc.url'].contains(name)
-            && !validator.isConfigValueLink(value) && validator.isConfigValueLink(value)) {
+            && !validator.isConfigValueLink(value) && validator.isNotTrimmed(value)) {
             return Em.I18n.t('errorMessage.config.spaces.trim');
           }
           return validator.isNotTrimmedRight(value) ? Em.I18n.t('errorMessage.config.spaces.trailing') : '';
