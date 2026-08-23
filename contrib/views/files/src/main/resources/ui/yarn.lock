@@ -2001,9 +2001,10 @@ ember-cli@2.2.0-beta.4:
     walk-sync "^0.2.6"
     yam "0.0.18"
 
-"ember-collection@git://github.com/emberjs/ember-collection.git#bf752508a501161791e3f3b9a546c9b97d5c387a":
+"ember-collection@git+https://github.com/adopted-ember-addons/ember-collection.git#bf752508a501161791e3f3b9a546c9b97d5c387a":
   version "1.0.0-alpha.4"
-  resolved "git://github.com/emberjs/ember-collection.git#bf752508a501161791e3f3b9a546c9b97d5c387a"
+  uid bf752508a501161791e3f3b9a546c9b97d5c387a
+  resolved "git+https://github.com/adopted-ember-addons/ember-collection.git#bf752508a501161791e3f3b9a546c9b97d5c387a"
   dependencies:
     ember-cli-babel "^5.1.3"
     ember-cli-htmlbars "0.7.9"
@@ -5491,8 +5492,8 @@ tap-parser@^5.1.0:
     readable-stream "^2"
 
 tar-fs@^1.4.1:
-  version "1.15.2"
-  resolved "https://registry.yarnpkg.com/tar-fs/-/tar-fs-1.15.2.tgz#761f5b32932c7b39461a60d537faea0d8084830c"
+  version "1.16.6"
+  resolved "https://registry.yarnpkg.com/tar-fs/-/tar-fs-1.16.6.tgz#b9be1854fe2c88af488a2edcc570be965e9750bd"
   dependencies:
     chownr "^1.0.1"
     mkdirp "^0.5.1"
