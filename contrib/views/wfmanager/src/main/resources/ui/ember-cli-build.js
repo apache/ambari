@@ -78,7 +78,6 @@ module.exports = function(defaults) {
     });
 
     app.import('bower_components/x2js/xml2json.js');
-    app.import('bower_components/form2js/src/form2js.js');
     app.import('bower_components/jquery-ui/jquery-ui.js');
     app.import('bower_components/lodash/lodash.js');
 
