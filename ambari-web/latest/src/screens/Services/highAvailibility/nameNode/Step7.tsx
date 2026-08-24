@@ -43,6 +43,7 @@ function Step7() {
     state,
     dispatch,
     flushStateToDb,
+    showCancel,
     stepWizardUtilities: { currentStep, handleNextImperitive, jumpToStep },
   } = useContext(EnableHighAvailibilityContext);
   const { clusterName, services } = useContext(AppContext);
@@ -286,6 +287,7 @@ function Step7() {
           void flushStateToDb("cancel");
         }}
         cancelConfirmationBody="NameNode HA changes have started. Exiting preserves the workflow checkpoint so the operation can be resumed. Complete the documented manual recovery before making further HDFS topology changes."
+        showCancel={showCancel}
       />
     </>
   );
