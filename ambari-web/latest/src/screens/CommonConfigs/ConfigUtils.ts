@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { cloneDeep, get, isArray } from "lodash";
+import { cloneDeep, get, isEqual } from "lodash";
 import { messages } from "../messages";
 import {
   ConfigPropertiesType,
@@ -32,6 +32,14 @@ import {
   kerberosIdentities,
   KerberosIdentity,
 } from "../Kerberos/Kerberos_identitites";
+import {
+  evaluateThemeVisibility,
+  normalizeThemeResponse,
+  resolveThemeConditionAttributes,
+  ServiceTheme,
+  themeTabKey,
+  ThemePlacement,
+} from "./themeEngine";
 
 const secureConfigsMap: Record<string, boolean> = {};
 secureMappingObj.forEach((sc: any) => {
@@ -72,8 +80,9 @@ const validateSliderBounds = (property: PropertyType, value: any): string => {
   }
 
   // Check if this property has slider widget configuration (maximum or minimum limits)
-  const hasSliderLimits = property.propertyAttributes.maximum !== undefined ||
-                         property.propertyAttributes.minimum !== undefined;
+  const hasSliderLimits =
+    property.propertyAttributes.maximum !== undefined ||
+    property.propertyAttributes.minimum !== undefined;
 
   if (!hasSliderLimits) {
     return "";
@@ -239,19 +248,14 @@ const getSectionErrorCount = (propertiesList: any) => {
   Object.keys(propertiesList).forEach((propertyName) => {
     const property = propertiesList[propertyName];
 
-    const isPropertyVisible = property.isVisible !== false && !property.isHidden;
+    const isPropertyVisible =
+      property.isVisible !== false && !property.isHidden;
 
     if (isPropertyVisible) {
-      if (
-        property.errorMessage &&
-        !property.tabName
-      ) {
+      if (property.errorMessage && !property.tabName) {
         errorCount++;
       }
-      if (
-        property.overrideValues &&
-        Array.isArray(property.overrideValues)
-      ) {
+      if (property.overrideValues && Array.isArray(property.overrideValues)) {
         property.overrideValues.forEach((override: any) => {
           // Only count errors for override values that haven't been removed (value !== null)
           if (override.errorMessage && override.value !== null) {
@@ -274,7 +278,7 @@ const kdcTypesValues: { [key: string]: string } = {
 
 const formatPropertyValue = (
   serviceConfigProperty: PropertyType,
-  originalValue: any
+  originalValue: any,
 ) => {
   const value =
     originalValue == null ? serviceConfigProperty.value : originalValue;
@@ -367,12 +371,12 @@ const formatValue = (value: any) => {
 
 const getConfigPropertyByName = (
   name: string,
-  configProperties: ConfigPropertiesType
+  configProperties: ConfigPropertiesType,
 ) => {
   for (const serviceName of Object.keys(configProperties)) {
     for (const configType of Object.keys(configProperties[serviceName])) {
       for (const propertyName of Object.keys(
-        configProperties[serviceName][configType].properties
+        configProperties[serviceName][configType].properties,
       )) {
         const property =
           configProperties[serviceName][configType].properties[propertyName];
@@ -388,7 +392,7 @@ const getConfigPropertyByName = (
 const getTabErrorCount = (
   configProperties: ConfigPropertiesType,
   serviceName: string,
-  tabName: string
+  tabName: string,
 ) => {
   let errorCount = 0;
   if (!configProperties[serviceName]) {
@@ -397,9 +401,11 @@ const getTabErrorCount = (
   Object.keys(configProperties[serviceName]).map((sections: string) => {
     Object.keys(configProperties[serviceName][sections].properties).map(
       (propertyName: string) => {
-        const property = configProperties[serviceName][sections].properties[propertyName];
+        const property =
+          configProperties[serviceName][sections].properties[propertyName];
 
-        const isPropertyVisible = property.isVisible !== false && !property.isHidden;
+        const isPropertyVisible =
+          property.isVisible !== false && !property.isHidden;
 
         if (
           isPropertyVisible &&
@@ -408,7 +414,7 @@ const getTabErrorCount = (
         ) {
           errorCount++;
         }
-      }
+      },
     );
   });
 
@@ -417,7 +423,7 @@ const getTabErrorCount = (
 
 const getAdvancedErrorCount = (
   configProperties: ConfigPropertiesType,
-  serviceName: string
+  serviceName: string,
 ) => {
   let errorCount = 0;
   Object.keys(configProperties[serviceName]).map((section: string) => {
@@ -428,7 +434,7 @@ const getAdvancedErrorCount = (
 
 export function getConfigCategories(
   serviceName: string,
-  optiions: { isHaEnabled?: boolean } = {}
+  optiions: { isHaEnabled?: boolean } = {},
 ) {
   const { isHaEnabled = false } = optiions;
   const categories = [];
@@ -449,7 +455,7 @@ export function getConfigCategories(
       categories.push(
         { name: "DATANODE", displayName: "DataNode", showHost: true },
         { name: "General", displayName: "General" },
-        { name: "NFS_GATEWAY", displayName: "NFS Gateway", showHost: true }
+        { name: "NFS_GATEWAY", displayName: "NFS Gateway", showHost: true },
       );
       break;
     case "GLUSTERFS":
@@ -482,7 +488,7 @@ export function getConfigCategories(
           displayName: "Container Executor",
           siteFileName: "container-executor.xml",
         },
-        { name: "Registry", displayName: "Registry" }
+        { name: "Registry", displayName: "Registry" },
       );
       break;
     case "MAPREDUCE2":
@@ -492,7 +498,7 @@ export function getConfigCategories(
           displayName: "History Server",
           showHost: true,
         },
-        { name: "General", displayName: "General" }
+        { name: "General", displayName: "General" },
       );
       break;
     case "HIVE":
@@ -510,7 +516,7 @@ export function getConfigCategories(
         { name: "General", displayName: "General" },
         { name: "Performance", displayName: "Performance" },
         { name: "HIVE_SERVER2", displayName: "Hive Server2" },
-        { name: "HIVE_CLIENT", displayName: "Hive Client" }
+        { name: "HIVE_CLIENT", displayName: "Hive Client" },
       );
       break;
     case "HBASE":
@@ -521,7 +527,7 @@ export function getConfigCategories(
           displayName: "RegionServer",
           showHost: true,
         },
-        { name: "General", displayName: "General" }
+        { name: "General", displayName: "General" },
       );
       break;
     case "ZOOKEEPER":
@@ -537,7 +543,7 @@ export function getConfigCategories(
         {
           name: "Falcon - Oozie integration",
           displayName: "Falcon - Oozie integration",
-        }
+        },
       );
       break;
     case "FALCON":
@@ -549,7 +555,7 @@ export function getConfigCategories(
         },
         { name: "FalconStartupSite", displayName: "Falcon startup.properties" },
         { name: "FalconRuntimeSite", displayName: "Falcon runtime.properties" },
-        { name: "General", displayName: "General" }
+        { name: "General", displayName: "General" },
       );
       break;
     case "STORM":
@@ -567,7 +573,7 @@ export function getConfigCategories(
           showHost: true,
         },
         { name: "DRPC_SERVER", displayName: "DRPC Server", showHost: true },
-        { name: "General", displayName: "General" }
+        { name: "General", displayName: "General" },
       );
       break;
     case "TEZ":
@@ -599,13 +605,13 @@ export function getConfigCategories(
       categories.push(
         { name: "KDC", displayName: "KDC" },
         { name: "Kadmin", displayName: "Kadmin" },
-        { name: "General", displayName: "General" }
+        { name: "General", displayName: "General" },
       );
       break;
     case "AMBARI_METRICS":
       categories.push(
         { name: "General", displayName: "General" },
-        { name: "MetricCollector", displayName: "Metric Collector" }
+        { name: "MetricCollector", displayName: "Metric Collector" },
       );
       break;
     case "RANGER":
@@ -619,7 +625,7 @@ export function getConfigCategories(
         },
         { name: "ADSettings", displayName: "AD Settings" },
         { name: "LDAPSettings", displayName: "LDAP Settings" },
-        { name: "KnoxSSOSettings", displayName: "Knox SSO Settings" }
+        { name: "KnoxSSOSettings", displayName: "Knox SSO Settings" },
       );
       break;
     case "RANGER_KMS":
@@ -635,7 +641,7 @@ export function getConfigCategories(
     case "HAWQ":
       categories.push(
         { name: "General", displayName: "General" },
-        { name: "AdvancedHawqCheck", displayName: "Advanced HAWQ Check" }
+        { name: "AdvancedHawqCheck", displayName: "Advanced HAWQ Check" },
       );
       break;
     case "LOGSEARCH":
@@ -651,7 +657,7 @@ export function getConfigCategories(
         { name: "Engine", displayName: "Engine" },
         { name: "Security", displayName: "Security" },
         { name: "Performance", displayName: "Performance" },
-        { name: "Environment", displayName: "Environment" }
+        { name: "Environment", displayName: "Environment" },
       );
       break;
     case "SQOOP":
@@ -659,7 +665,7 @@ export function getConfigCategories(
         { name: "General", displayName: "General" },
         { name: "Performance", displayName: "Performance" },
         { name: "Security", displayName: "Security" },
-        { name: "Environment", displayName: "Environment" }
+        { name: "Environment", displayName: "Environment" },
       );
       break;
     default:
@@ -670,7 +676,7 @@ export function getConfigCategories(
 
 export function fetchComponentHostNamesByComponent(
   components: any[],
-  componentName: string
+  componentName: string,
 ): string[] {
   const component = components.find((c) => c.componentName === componentName);
   if (!component || !component.hostComponents) return [];
@@ -679,7 +685,7 @@ export function fetchComponentHostNamesByComponent(
 
 export const buildConfigsJSON = (
   configProperties: ConfigPropertiesType,
-  excludeKerberos: boolean = false
+  excludeKerberos: boolean = false,
 ) => {
   const configurations: {
     [key: string]: { properties: { [key: string]: string } };
@@ -698,22 +704,28 @@ export const buildConfigsJSON = (
             configProperties[serviceName][configType].properties[propertyName];
           const type = get(property, "type", "");
 
-          if (property.value === null && serviceName !== "MISC") {
+          if (
+            property.isRequiredByAgent === false ||
+            (property.value === null && serviceName !== "MISC")
+          ) {
             return;
           }
 
           if (!configurations[type]) {
             configurations[type] = { properties: {} };
           }
-          
-          const configValue = serviceName === "MISC" && property.value === null ? "" : property.value;
-          configurations[type]["properties"][property.propertyName] = configValue;
-          
-        }
+
+          const configValue =
+            serviceName === "MISC" && property.value === null
+              ? ""
+              : property.value;
+          configurations[type]["properties"][property.propertyName] =
+            configValue;
+        },
       );
     });
   });
-  
+
   return configurations;
 };
 
@@ -735,13 +747,13 @@ const getConfigByName = (
   propertyName: string,
   categoryName: string,
   serviceName: string,
-  configProperties: ConfigPropertiesType
+  configProperties: ConfigPropertiesType,
 ) => {
   if (propertyName && categoryName && serviceName) {
     return get(
       configProperties,
       [serviceName, categoryName, "properties", propertyName],
-      null
+      null,
     );
   }
 };
@@ -753,10 +765,14 @@ function filterConfigProperties(
     showOverridden: boolean;
     showFinal: boolean;
     showIssues: boolean;
-  }
+  },
 ): ConfigPropertiesType {
   const configCopy = cloneDeep(configProperties);
-  const lowerSearch = search.toLowerCase().replace(/\s+/g, "");
+  const normalizeSearchValue = (value: unknown) =>
+    String(value ?? "")
+      .toLowerCase()
+      .replace(/\s+/g, "");
+  const lowerSearch = normalizeSearchValue(search);
 
   Object.keys(configCopy).forEach((service) =>
     Object.keys(configCopy[service]).forEach((type) =>
@@ -769,22 +785,25 @@ function filterConfigProperties(
           }
 
           // Text search filter
-          const propertyDisplayName = (property.propertyDisplayname || "")
-            .toLowerCase()
-            .replace(/\s+/g, "");
-          const propertyValue = property.value
-            ? property.value.toString().toLowerCase().replace(/\s+/g, "")
-            : "";
-
-          const matchesSearch =
-            propertyName
-              .toLowerCase()
-              .replace(/\s+/g, "")
-              .includes(lowerSearch) ||
-            propertyDisplayName.includes(lowerSearch) ||
-            (!!property.value &&
-              property.value !== "" &&
-              propertyValue.includes(lowerSearch));
+          const searchableValues = [
+            propertyName,
+            property.propertyDisplayname,
+            property.propertyDescription,
+            property.description,
+            property.property_description,
+            property.savedValue,
+            property.value,
+            ...(Array.isArray(property.overrideValues)
+              ? property.overrideValues.flatMap((override: any) => [
+                  override?.value,
+                  override?.groupName,
+                  override?.group?.name,
+                ])
+              : []),
+          ];
+          const matchesSearch = searchableValues.some((value) =>
+            normalizeSearchValue(value).includes(lowerSearch),
+          );
 
           // Apply property filters (overridden, final, issues)
           let matchesPropertyFilters = true;
@@ -796,35 +815,20 @@ function filterConfigProperties(
               propertyFilters.showIssues;
 
             if (hasActiveFilters) {
-              matchesPropertyFilters = false;
+              const isOverridden = Boolean(
+                Array.isArray(property.overrideValues) &&
+                property.overrideValues.length > 0,
+              );
+              const isFinal =
+                property.final === "true" || property.final === "True";
+              const hasIssues = Boolean(
+                property.errorMessage || property.hasError,
+              );
 
-              // Check if property matches any active filter
-              if (propertyFilters.showOverridden) {
-                const isOverridden =
-                  property.overrideValues &&
-                  Array.isArray(property.overrideValues) &&
-                  property.overrideValues.length > 0;
-                if (isOverridden) {
-                  matchesPropertyFilters = true;
-                }
-              }
-
-              if (propertyFilters.showFinal) {
-                const isFinal =
-                  property.final === "true" || property.final === "True";
-                if (isFinal) {
-                  matchesPropertyFilters = true;
-                }
-              }
-
-              if (propertyFilters.showIssues) {
-                const hasIssues = !!(
-                  property.errorMessage || property.hasError
-                );
-                if (hasIssues) {
-                  matchesPropertyFilters = true;
-                }
-              }
+              matchesPropertyFilters =
+                (!propertyFilters.showOverridden || isOverridden) &&
+                (!propertyFilters.showFinal || isFinal) &&
+                (!propertyFilters.showIssues || hasIssues);
             }
           }
 
@@ -832,9 +836,9 @@ function filterConfigProperties(
             !search && !propertyFilters
               ? true
               : (search ? matchesSearch : true) && matchesPropertyFilters;
-        }
-      )
-    )
+        },
+      ),
+    ),
   );
 
   return configCopy;
@@ -842,7 +846,7 @@ function filterConfigProperties(
 
 function findPropertyByPropertyName(
   config: ConfigPropertiesType,
-  propertyName: string
+  propertyName: string,
 ) {
   for (const groupKey in config) {
     const group = config[groupKey];
@@ -870,29 +874,44 @@ function updateVisibilityByForeignKeys(configProperties: ConfigPropertiesType) {
           const property = configCopy[service][type].properties[propertyName];
 
           if (service === "RANGER" && propertyName.includes("usersync")) {
-            const enableUserSyncProperty = findPropertyByPropertyName(configCopy, "ranger.usersync.enabled");
-            const syncSourceProperty = findPropertyByPropertyName(configCopy, "ranger.usersync.source.impl.class");
+            const enableUserSyncProperty = findPropertyByPropertyName(
+              configCopy,
+              "ranger.usersync.enabled",
+            );
+            const syncSourceProperty = findPropertyByPropertyName(
+              configCopy,
+              "ranger.usersync.source.impl.class",
+            );
 
-            if (enableUserSyncProperty && (enableUserSyncProperty.value === "false" || enableUserSyncProperty.value === "No")) {
+            if (
+              enableUserSyncProperty &&
+              (enableUserSyncProperty.value === "false" ||
+                enableUserSyncProperty.value === "No")
+            ) {
               property.isVisible = false;
               property.isHidden = true;
               property.errorMessage = "";
-            }
-            else if (syncSourceProperty && propertyName.includes("ldap") && !syncSourceProperty.value.includes("Ldap")) {
+            } else if (
+              syncSourceProperty &&
+              propertyName.includes("ldap") &&
+              !syncSourceProperty.value.includes("Ldap")
+            ) {
               property.isVisible = false;
               property.isHidden = true;
               property.errorMessage = "";
-            }
-            else if (propertyName.includes("usersync.group")) {
+            } else if (propertyName.includes("usersync.group")) {
               const groupPropertiesToHide = [
                 "ranger.usersync.group.nameattribute",
                 "ranger.usersync.group.objectclass",
                 "ranger.usersync.group.searchbase",
-                "ranger.usersync.group.memberattributename"
+                "ranger.usersync.group.memberattributename",
               ];
 
               if (groupPropertiesToHide.includes(propertyName)) {
-                if (!syncSourceProperty || !syncSourceProperty.value.includes("LdapUserGroupBuilder")) {
+                if (
+                  !syncSourceProperty ||
+                  !syncSourceProperty.value.includes("LdapUserGroupBuilder")
+                ) {
                   property.isVisible = false;
                   property.isHidden = true;
                   property.errorMessage = "";
@@ -907,14 +926,14 @@ function updateVisibilityByForeignKeys(configProperties: ConfigPropertiesType) {
                 option.foreignKeys.forEach((foreignKey: string) => {
                   const foreignProperty = findPropertyByPropertyName(
                     configCopy,
-                    foreignKey
+                    foreignKey,
                   );
                   if (foreignProperty) {
                     if (property.value === option.displayName) {
                       foreignProperty.isVisible = true;
                       foreignProperty.errorMessage = validateInput(
                         foreignProperty,
-                        foreignProperty.value
+                        foreignProperty.value,
                       );
                       foreignProperty.isHidden = false;
                     } else {
@@ -927,9 +946,9 @@ function updateVisibilityByForeignKeys(configProperties: ConfigPropertiesType) {
               }
             }
           }
-        }
-      )
-    )
+        },
+      ),
+    ),
   );
 
   return configCopy;
@@ -937,86 +956,31 @@ function updateVisibilityByForeignKeys(configProperties: ConfigPropertiesType) {
 
 function addTabNames(configProperties: ConfigPropertiesType, themes: any) {
   const configCopy = cloneDeep(configProperties);
+  const services = Object.keys(configCopy);
+  const normalized = normalizeThemeResponse(themes, "default", services);
 
-  // Process each theme in the themes array
-  if (themes && themes.items) {
-    themes.items.forEach((item: any) => {
-      const serviceName = item.StackServices.service_name;
-
-      // Process each theme for this service
-      item.themes.forEach((themeInfo: any) => {
-        const themeData = themeInfo.ThemeInfo.theme_data;
-        if (!themeData || !themeData.Theme) return;
-
-        const theme = themeData.Theme;
-
-        if (theme.name !== "default") {
-          return;
-        }
-
-        // Skip if no configuration or placement data
-        if (!theme.configuration || !theme.configuration.placement) return;
-
-        // Create a mapping from config to tab name
-        const configToTabMap: Record<string, string> = {};
-
-        // Process layouts to find tab names
-        if (theme.configuration.layouts) {
-          theme.configuration.layouts.forEach((layout: any) => {
-            if (layout.tabs) {
-              layout.tabs.forEach((tab: any) => {
-                const tabName = tab.name;
-
-                // Process sections in this tab
-                if (tab.layout && tab.layout.sections) {
-                  tab.layout.sections.forEach((section: any) => {
-                    // Each section can have subsections
-                    if (section.subsections) {
-                      section.subsections.forEach((subsection: any) => {
-                        const subsectionName = subsection.name;
-
-                        // Find all configs that belong to this subsection
-                        if (theme.configuration.placement.configs) {
-                          theme.configuration.placement.configs.forEach(
-                            (config: any) => {
-                              if (
-                                config["subsection-name"] === subsectionName
-                              ) {
-                                // Map this config to the current tab
-                                configToTabMap[config.config] = tabName;
-                              }
-                            }
-                          );
-                        }
-                      });
-                    }
-                  });
-                }
-              });
-            }
-          });
-        }
-
-        // Now assign tab names to properties based on the mapping
-        Object.keys(configCopy[serviceName] || {}).forEach((configType) => {
-          Object.keys(
-            configCopy[serviceName][configType].properties || {}
-          ).forEach((propertyName) => {
-            const property =
-              configCopy[serviceName][configType].properties[propertyName];
-
-            // Create the config key in the format used in the theme (e.g., "hadoop-env/hadoop_pid_dir_prefix")
-            const configKey = `${configType}/${propertyName}`;
-
-            // If this config is in our map, assign the tab name
-            if (configToTabMap[configKey]) {
-              property.tabName = configToTabMap[configKey];
-            }
-          });
-        });
+  services.forEach((serviceName) => {
+    const serviceTheme = normalized.byService[serviceName];
+    serviceTheme?.tabs.forEach((tab, tabIndex, tabs) => {
+      if (tab.isAdvanced) return;
+      const attachedPlacements = tab.sections.flatMap((section) =>
+        section.subsections.flatMap((subsection) => [
+          ...subsection.placements,
+          ...subsection.tabs.flatMap(
+            (subsectionTab) => subsectionTab.placements,
+          ),
+        ]),
+      );
+      attachedPlacements.forEach((placement) => {
+        if (!serviceTheme.widgetsByConfigPath[placement.configPath]) return;
+        const property =
+          configCopy[serviceName]?.[placement.configType]?.properties?.[
+            placement.propertyName
+          ];
+        if (property) property.tabName = themeTabKey(tab, tabs, tabIndex);
       });
     });
-  }
+  });
 
   return configCopy;
 }
@@ -1035,12 +999,12 @@ function validateAllProperties(configProperties: ConfigPropertiesType) {
           } else {
             property.errorMessage = "";
           }
-        }
+        },
       );
 
       // Then, after all properties are validated, calculate the error count
       configCopy[service][type].errors = getSectionErrorCount(
-        configCopy[service][type].properties
+        configCopy[service][type].properties,
       );
     });
   });
@@ -1061,29 +1025,44 @@ function setTabErrorCounts(configProperties: any) {
 
           // Special handling for Ranger usersync properties
           if (service === "RANGER" && propertyName.includes("usersync")) {
-            const enableUserSyncProperty = findPropertyByPropertyName(configCopy, "ranger.usersync.enabled");
-            const syncSourceProperty = findPropertyByPropertyName(configCopy, "ranger.usersync.source.impl.class");
+            const enableUserSyncProperty = findPropertyByPropertyName(
+              configCopy,
+              "ranger.usersync.enabled",
+            );
+            const syncSourceProperty = findPropertyByPropertyName(
+              configCopy,
+              "ranger.usersync.source.impl.class",
+            );
 
-            if (enableUserSyncProperty && (enableUserSyncProperty.value === "false" || enableUserSyncProperty.value === "No")) {
+            if (
+              enableUserSyncProperty &&
+              (enableUserSyncProperty.value === "false" ||
+                enableUserSyncProperty.value === "No")
+            ) {
               property.isVisible = false;
               property.isHidden = true;
               property.errorMessage = "";
-            }
-            else if (syncSourceProperty && propertyName.includes("ldap") && !syncSourceProperty.value.includes("Ldap")) {
+            } else if (
+              syncSourceProperty &&
+              propertyName.includes("ldap") &&
+              !syncSourceProperty.value.includes("Ldap")
+            ) {
               property.isVisible = false;
               property.isHidden = true;
               property.errorMessage = "";
-            }
-            else if (propertyName.includes("usersync.group")) {
+            } else if (propertyName.includes("usersync.group")) {
               const groupPropertiesToHide = [
                 "ranger.usersync.group.nameattribute",
                 "ranger.usersync.group.objectclass",
                 "ranger.usersync.group.searchbase",
-                "ranger.usersync.group.memberattributename"
+                "ranger.usersync.group.memberattributename",
               ];
 
               if (groupPropertiesToHide.includes(propertyName)) {
-                if (!syncSourceProperty || !syncSourceProperty.value.includes("LdapUserGroupBuilder")) {
+                if (
+                  !syncSourceProperty ||
+                  !syncSourceProperty.value.includes("LdapUserGroupBuilder")
+                ) {
                   property.isVisible = false;
                   property.isHidden = true;
                   property.errorMessage = "";
@@ -1091,9 +1070,9 @@ function setTabErrorCounts(configProperties: any) {
               }
             }
           }
-        }
-      )
-    )
+        },
+      ),
+    ),
   );
 
   let tabErrorcounts: any = {};
@@ -1102,8 +1081,7 @@ function setTabErrorCounts(configProperties: any) {
     Object.keys(configCopy[service]).forEach((type) => {
       Object.keys(configCopy[service][type].properties).forEach(
         (propertyName) => {
-          const property =
-            configCopy[service][type].properties[propertyName];
+          const property = configCopy[service][type].properties[propertyName];
 
           let tabName = property.tabName || "Advanced";
 
@@ -1120,12 +1098,16 @@ function setTabErrorCounts(configProperties: any) {
             tabErrorcounts[service].tabs[tabName] = 0;
           }
 
-          const isPropertyVisible = property.isVisible !== false && !property.isHidden;
+          const isPropertyVisible =
+            property.isVisible !== false && !property.isHidden;
 
           if (isPropertyVisible) {
             // Check for property errors (main property and override values)
-            const hasMainPropertyError = property.hasError || property.errorMessage;
-            const hasOverrideErrors = property?.overrideValues?.some((o: any) => o.errorMessage && o.value !== null);
+            const hasMainPropertyError =
+              property.hasError || property.errorMessage;
+            const hasOverrideErrors = property?.overrideValues?.some(
+              (o: any) => o.errorMessage && o.value !== null,
+            );
 
             // Increment error count if property has an error
             if (hasMainPropertyError || hasOverrideErrors) {
@@ -1133,9 +1115,9 @@ function setTabErrorCounts(configProperties: any) {
               tabErrorcounts[service].total += 1; // Increment the service total as well
             }
           }
-        }
+        },
       );
-    })
+    }),
   );
 
   return tabErrorcounts;
@@ -1143,7 +1125,7 @@ function setTabErrorCounts(configProperties: any) {
 
 const getTotalErros = (tabErrors: any): boolean => {
   return Object.keys(tabErrors).every(
-    (section) => tabErrors[section].total === 0
+    (section) => tabErrors[section].total === 0,
   );
 };
 
@@ -1151,419 +1133,393 @@ const evaluateDependsOnForConfig = (
   configProperties: ConfigPropertiesType,
   chosenService: string,
   dependsOn: any,
-  services: any
-) => {
-  if (!dependsOn || !Array.isArray(dependsOn)) return true;
+  services: any,
+) =>
+  evaluateThemeVisibility(
+    Array.isArray(dependsOn) ? dependsOn : [],
+    configProperties,
+    chosenService,
+    Array.isArray(services) ? services : [],
+  );
 
-  for (const dependency of dependsOn) {
-    const condition = dependency.if;
-    const resource = dependency.resource;
-
-    let isConditionMet = false;
-
-    try {
-      if (resource?.toLowerCase() === "service") {
-        isConditionMet = services.includes(condition);
-      } else {
-        isConditionMet = calculateConfigCondition(
-          condition,
-          configProperties,
-          chosenService
-        );
-      }
-    } catch (error) {
-      isConditionMet = true;
-    }
-
-    if (isConditionMet) {
-      return dependency.then?.property_value_attributes?.visible ?? true;
-    } else {
-      return dependency.else?.property_value_attributes?.visible ?? true;
-    }
-  }
-
-  return true;
+type ThemeAttributeSnapshot = {
+  exists: boolean;
+  value: unknown;
 };
 
-const calculateConfigCondition = (
-  ifStatement: string,
-  configProperties: ConfigPropertiesType,
-  chosenService: string
-): boolean => {
-  if (!ifStatement) return true;
+type ThemeAttributeState = {
+  base: Record<string, ThemeAttributeSnapshot>;
+  lastApplied: Record<string, unknown>;
+  managed: string[];
+};
 
-  try {
-    // Split `if` statement if it has logical operators (exactly like Ember.js)
-    const ifStatementRegex = /(&&|\|\|)/;
-    const ifConditions = ifStatement.split(ifStatementRegex);
-    const allConditionResult: (boolean | string)[] = [];
+const THEME_ATTRIBUTE_STATE = "__themeAttributeState";
 
-    ifConditions.forEach((condition) => {
-      const trimmedCondition = condition.trim();
-      if (trimmedCondition === "&&" || trimmedCondition === "||") {
-        allConditionResult.push(trimmedCondition);
-      } else {
-        // Handle conditions like "${site/config} === value" or just "${site/config}"
-        const splitIfCondition = trimmedCondition.split("===");
-        const ifCondition = splitIfCondition[0].trim();
-        const result = splitIfCondition[1]
-          ? splitIfCondition[1].trim()
-          : "true";
+const THEME_ATTRIBUTE_TARGETS: Record<string, string> = {
+  type: "displayType",
+  overridable: "isOverridable",
+  visible: "isVisible",
+  empty_value_valid: "isRequired",
+  editable_only_at_install: "isReconfigurable",
+  show_property_name: "showLabel",
+  read_only: "isEditable",
+  ui_only_property: "isRequiredByAgent",
+};
 
-        let parseIfConditionVal = ifCondition;
-        const regex = /\$\{.*?\}/g;
-        const configStrings = ifCondition.match(regex);
+const themeAttributeTarget = (attribute: string) =>
+  THEME_ATTRIBUTE_TARGETS[attribute] ?? attribute;
 
-        if (configStrings) {
-          configStrings.forEach((configString) => {
-            // Extract config path from ${site/config} format (exactly like Ember.js)
-            const configObject = configString
-              .substring(2, configString.length - 1)
-              .split("/");
-            const site = configObject[0]; // e.g., "ranger-kms-site"
-            const propertyName = configObject[1]; // e.g., "ranger_service_name"
-            const filename = site + ".xml"; // e.g., "ranger-kms-site.xml"
+const PROPERTY_ATTRIBUTES_PREFIX = "propertyAttributes.";
 
-            // Find the config property using Ember.js-style lookup
-            // Look for property with matching filename and name
-            let configValue = null;
-            let foundProperty = null;
+const propertyAttributeTarget = (attribute: string) =>
+  `${PROPERTY_ATTRIBUTES_PREFIX}${attribute}`;
 
-            // First try to find in the chosen service
-            Object.keys(configProperties[chosenService] || {}).forEach(
-              (configType) => {
-                Object.keys(
-                  configProperties[chosenService][configType].properties || {}
-                ).forEach((propName) => {
-                  const property =
-                    configProperties[chosenService][configType].properties[
-                      propName
-                    ];
-                  // Match by filename and property name (like Ember.js)
-                  if (
-                    property.fileName === filename &&
-                    property.propertyName === propertyName
-                  ) {
-                    foundProperty = property;
-                    configValue = property.value;
-                  }
-                });
-              }
-            );
+const propertyTargetValue = (
+  property: Record<string, unknown>,
+  target: string,
+) => {
+  if (!target.startsWith(PROPERTY_ATTRIBUTES_PREFIX)) return property[target];
+  const attribute = target.slice(PROPERTY_ATTRIBUTES_PREFIX.length);
+  const propertyAttributes = property.propertyAttributes as
+    Record<string, unknown> | undefined;
+  return propertyAttributes?.[attribute];
+};
 
-            // If not found, search across all services (fallback)
-            if (!foundProperty) {
-              const globalProperty = findPropertyByPropertyName(
-                configProperties,
-                propertyName
-              );
-              if (globalProperty) {
-                foundProperty = globalProperty;
-                configValue = globalProperty.value;
-              }
-            }
-
-            if (configValue !== null) {
-              parseIfConditionVal = parseIfConditionVal.replace(
-                configString,
-                configValue
-              );
-            }
-          });
-        }
-
-        // Evaluate the condition exactly like Ember.js does
-        const conditionResult =
-          eval(JSON.stringify(parseIfConditionVal.trim())) === result.trim();
-        allConditionResult.push(conditionResult);
-      }
-    });
-
-    // Join and evaluate the final result (exactly like Ember.js)
-    return Boolean(eval(allConditionResult.join("")));
-  } catch (error) {
-    // Default to true to avoid hiding properties on evaluation errors
-    return true;
+const propertyTargetExists = (
+  property: Record<string, unknown>,
+  target: string,
+) => {
+  if (!target.startsWith(PROPERTY_ATTRIBUTES_PREFIX)) {
+    return Object.prototype.hasOwnProperty.call(property, target);
   }
+  const attribute = target.slice(PROPERTY_ATTRIBUTES_PREFIX.length);
+  const propertyAttributes = property.propertyAttributes as
+    Record<string, unknown> | undefined;
+  return Boolean(
+    propertyAttributes &&
+    Object.prototype.hasOwnProperty.call(propertyAttributes, attribute),
+  );
+};
+
+const setPropertyTarget = (
+  property: Record<string, unknown>,
+  target: string,
+  value: unknown,
+) => {
+  if (!target.startsWith(PROPERTY_ATTRIBUTES_PREFIX)) {
+    property[target] = value;
+    return;
+  }
+  const attribute = target.slice(PROPERTY_ATTRIBUTES_PREFIX.length);
+  const propertyAttributes =
+    (property.propertyAttributes as Record<string, unknown> | undefined) ?? {};
+  property.propertyAttributes = propertyAttributes;
+  propertyAttributes[attribute] = value;
+};
+
+const deletePropertyTarget = (
+  property: Record<string, unknown>,
+  target: string,
+) => {
+  if (!target.startsWith(PROPERTY_ATTRIBUTES_PREFIX)) {
+    delete property[target];
+    return;
+  }
+  const attribute = target.slice(PROPERTY_ATTRIBUTES_PREFIX.length);
+  const propertyAttributes = property.propertyAttributes as
+    Record<string, unknown> | undefined;
+  if (propertyAttributes) delete propertyAttributes[attribute];
+};
+
+const snapshotProperty = (
+  property: Record<string, unknown>,
+  target: string,
+): ThemeAttributeSnapshot => ({
+  exists: propertyTargetExists(property, target),
+  value: propertyTargetValue(property, target),
+});
+
+const restoreSnapshot = (
+  property: Record<string, unknown>,
+  target: string,
+  snapshot: ThemeAttributeSnapshot,
+) => {
+  if (snapshot.exists) setPropertyTarget(property, target, snapshot.value);
+  else deletePropertyTarget(property, target);
+};
+
+const preparePropertyThemeState = (
+  property: Record<string, unknown>,
+): ThemeAttributeState => {
+  const existing = property[THEME_ATTRIBUTE_STATE] as
+    ThemeAttributeState | undefined;
+  const state = existing ?? { base: {}, lastApplied: {}, managed: [] };
+
+  state.managed.forEach((target) => {
+    if (
+      !isEqual(propertyTargetValue(property, target), state.lastApplied[target])
+    ) {
+      state.base[target] = snapshotProperty(property, target);
+    }
+  });
+  state.managed.forEach((target) => {
+    const snapshot = state.base[target];
+    if (snapshot) restoreSnapshot(property, target, snapshot);
+  });
+  state.lastApplied = {};
+  state.managed = [];
+  property[THEME_ATTRIBUTE_STATE] = state;
+  return state;
+};
+
+const restorePropertyThemeState = (property: Record<string, unknown>) => {
+  const state = preparePropertyThemeState(property);
+  Object.keys(state.base).forEach((target) => {
+    restoreSnapshot(property, target, state.base[target]);
+  });
+  delete property[THEME_ATTRIBUTE_STATE];
+};
+
+const invertedThemeAttributes = new Set([
+  "empty_value_valid",
+  "editable_only_at_install",
+  "read_only",
+  "ui_only_property",
+]);
+
+const themeBoolean = (value: unknown) => {
+  if (value === "true") return true;
+  if (value === "false") return false;
+  return Boolean(value);
+};
+
+const effectiveThemeAttributeValue = (attribute: string, value: unknown) =>
+  invertedThemeAttributes.has(attribute) ? !themeBoolean(value) : value;
+
+const resolvedPlacementAttributes = (
+  placement: ThemePlacement,
+  configProperties: ConfigPropertiesType,
+  serviceName: string,
+  installedServices: readonly string[],
+) => {
+  const attributes: Record<string, unknown> = {};
+  Object.entries(placement.valueAttributes).forEach(([attribute, value]) => {
+    attributes[themeAttributeTarget(attribute)] = effectiveThemeAttributeValue(
+      attribute,
+      value,
+    );
+    if (attribute !== "value") {
+      attributes[propertyAttributeTarget(attribute)] = value;
+    }
+  });
+  Object.entries(
+    resolveThemeConditionAttributes(
+      placement.dependsOn,
+      configProperties,
+      serviceName,
+      installedServices,
+    ),
+  ).forEach(([attribute, value]) => {
+    attributes[themeAttributeTarget(attribute)] = effectiveThemeAttributeValue(
+      attribute,
+      value,
+    );
+    if (attribute !== "value") {
+      attributes[propertyAttributeTarget(attribute)] = value;
+    }
+  });
+  return attributes;
+};
+
+const findPropertyByThemePath = (
+  configProperties: ConfigPropertiesType,
+  serviceName: string,
+  placement: ThemePlacement,
+) => {
+  const direct =
+    configProperties[serviceName]?.[placement.configType]?.properties?.[
+      placement.propertyName
+    ];
+  if (direct) return direct;
+
+  const serviceConfigs = configProperties[serviceName] ?? {};
+  for (const configType of Object.keys(serviceConfigs)) {
+    const property =
+      serviceConfigs[configType]?.properties?.[placement.propertyName];
+    if (property?.fileName?.replace(/\.xml$/, "") === placement.configType) {
+      return property;
+    }
+  }
+  return undefined;
+};
+
+type PlacementThemeState = {
+  placement: ThemePlacement;
+  attributes: Record<string, unknown>;
+  containerVisible: boolean;
+};
+
+const placementThemeStates = (
+  serviceTheme: ServiceTheme,
+  configProperties: ConfigPropertiesType,
+  serviceName: string,
+  installedServices: readonly string[],
+) => {
+  const statesByPath = new Map<string, PlacementThemeState>();
+
+  serviceTheme.placements.forEach((placement) => {
+    statesByPath.set(placement.configPath, {
+      placement,
+      attributes: resolvedPlacementAttributes(
+        placement,
+        configProperties,
+        serviceName,
+        installedServices,
+      ),
+      containerVisible: true,
+    });
+  });
+
+  const constrain = (placement: ThemePlacement, containerVisible: boolean) => {
+    const state = statesByPath.get(placement.configPath);
+    if (state)
+      state.containerVisible = state.containerVisible && containerVisible;
+  };
+
+  serviceTheme.tabs.forEach((tab) => {
+    if (tab.isAdvanced) return;
+    tab.sections.forEach((section) => {
+      section.subsections.forEach((subsection) => {
+        const subsectionVisible = evaluateThemeVisibility(
+          subsection.dependsOn,
+          configProperties,
+          serviceName,
+          installedServices,
+        );
+        subsection.placements.forEach((placement) =>
+          constrain(placement, subsectionVisible),
+        );
+        subsection.tabs.forEach((subsectionTab) => {
+          const subsectionTabVisible = evaluateThemeVisibility(
+            subsectionTab.dependsOn,
+            configProperties,
+            serviceName,
+            installedServices,
+          );
+          subsectionTab.placements.forEach((placement) =>
+            constrain(placement, subsectionVisible && subsectionTabVisible),
+          );
+        });
+      });
+    });
+  });
+
+  return statesByPath;
+};
+
+const constrainedThemeBooleanTargets = new Set([
+  "isEditable",
+  "isOverridable",
+  "isReconfigurable",
+]);
+
+const applyPlacementThemeState = (
+  property: Record<string, unknown>,
+  placementState: PlacementThemeState,
+) => {
+  const state = property[THEME_ATTRIBUTE_STATE] as ThemeAttributeState;
+  const attributes = {
+    isVisible: true,
+    ...placementState.attributes,
+  };
+
+  Object.entries(attributes).forEach(([target, requestedValue]) => {
+    state.base[target] ??= snapshotProperty(property, target);
+    const baseValue = state.base[target].exists
+      ? state.base[target].value
+      : target === "isVisible" || constrainedThemeBooleanTargets.has(target);
+    let value = requestedValue;
+
+    if (target === "isVisible") {
+      value =
+        baseValue !== false &&
+        requestedValue !== false &&
+        placementState.containerVisible &&
+        property.isHidden !== true;
+    } else if (constrainedThemeBooleanTargets.has(target)) {
+      value = baseValue !== false && requestedValue !== false;
+    }
+
+    setPropertyTarget(property, target, value);
+    state.managed.push(target);
+    state.lastApplied[target] = value;
+  });
+
+  Object.keys(state.base).forEach((target) => {
+    if (!state.managed.includes(target)) delete state.base[target];
+  });
 };
 
 function updateVisibilityForDependsOn(
   configProperties: ConfigPropertiesType,
-  themeData: any,
+  themeData: unknown,
   configSection: string,
-  servicesList: string[]
+  installedServices: string[],
 ) {
-  let configsCopy = cloneDeep(configProperties);
+  const configsCopy = cloneDeep(configProperties);
+  const serviceNames = Object.keys(configsCopy);
+  const normalized = normalizeThemeResponse(
+    themeData,
+    configSection,
+    serviceNames,
+  );
 
-  if (themeData?.items?.length) {
-    themeData.items.forEach((serviceItem: any) => {
-      const serviceName = serviceItem?.StackServices?.service_name;
-
-      if (!configsCopy[serviceName]) return;
-
-      serviceItem?.themes?.forEach((item: any) => {
-        const themeData = item.ThemeInfo.theme_data.Theme;
-        if (themeData.name === configSection) {
-          const configByPath: Record<
-            string,
-            {
-              type: string;
-              propertyName: string;
-              property: any;
-            }
-          > = {};
-
-          Object.keys(configsCopy[serviceName]).forEach((type) => {
-            Object.keys(configsCopy[serviceName][type].properties).forEach(
-              (propName) => {
-                const property =
-                  configsCopy[serviceName][type].properties[propName];
-                const configPath = `${type}/${propName}`;
-                configByPath[configPath] = {
-                  type,
-                  propertyName: propName,
-                  property,
-                };
-              }
-            );
-          });
-
-          themeData.configuration.placement.configs.forEach((config: any) => {
-            if (config["depends-on"]) {
-              const configPath = config.config;
-              const [, propertyName] = configPath.split("/");
-
-              let configInfo = configByPath[configPath];
-              let property = configInfo?.property;
-
-              if (!property) {
-                const foundProperty = findPropertyByPropertyName(
-                  configsCopy,
-                  propertyName
-                );
-                if (foundProperty) {
-                  property = foundProperty;
-                }
-              }
-
-              if (!property) {
-                return;
-              }
-
-              const isVisible = isArray(config["depends-on"])
-                ? evaluateDependsOnForConfig(
-                    configsCopy,
-                    serviceName,
-                    config["depends-on"],
-                    servicesList
-                  )
-                : true;
-
-              property.isVisible = isVisible;
-              property.isHidden = !isVisible;
-
-              if (!isVisible) {
-                property.errorMessage = "";
-              }
-
-            }
-          });
-
-          const configMap: Record<
-            string,
-            {
-              subsectionName: string;
-              tabName?: string;
-              configPath: string;
-              type: string;
-              propertyName: string;
-            }
-          > = {};
-
-          themeData.configuration.placement.configs.forEach((config: any) => {
-            if (config["subsection-name"]) {
-              const configPath = config.config;
-              const [type, propertyName] = configPath.split("/");
-              configMap[configPath] = {
-                subsectionName: config["subsection-name"],
-                tabName: config["subsection-tab-name"],
-                configPath,
-                type,
-                propertyName,
-              };
-            }
-          });
-
-          if (themeData.configuration.layouts) {
-            themeData.configuration.layouts.forEach((layout: any) => {
-              if (layout.tabs) {
-                layout.tabs.forEach((tab: any) => {
-                  if (tab.layout && tab.layout.sections) {
-                    tab.layout.sections.forEach((section: any) => {
-                      if (section.subsections) {
-                        section.subsections.forEach((subsection: any) => {
-                          if (subsection["depends-on"]) {
-                            const isSubsectionVisible =
-                              evaluateDependsOnForConfig(
-                                configsCopy,
-                                serviceName,
-                                subsection["depends-on"],
-                                servicesList
-                              );
-
-                            Object.values(configMap).forEach((configInfo) => {
-                              if (
-                                configInfo.subsectionName === subsection.name
-                              ) {
-                                let property =
-                                  configByPath[configInfo.configPath]?.property;
-
-                                if (
-                                  !property &&
-                                  configsCopy[serviceName]?.[configInfo.type]
-                                    ?.properties?.[configInfo.propertyName]
-                                ) {
-                                  property =
-                                    configsCopy[serviceName][configInfo.type]
-                                      .properties[configInfo.propertyName];
-                                }
-
-                                if (!property) {
-                                  const foundProperty =
-                                    findPropertyByPropertyName(
-                                      configsCopy,
-                                      configInfo.propertyName
-                                    );
-                                  if (foundProperty) {
-                                    property = foundProperty;
-                                  }
-                                }
-
-                                if (!property) return;
-
-                                const configHasOwnDependsOn =
-                                  themeData.configuration.placement.configs.some(
-                                    (c: any) =>
-                                      c.config === configInfo.configPath &&
-                                      c["depends-on"]
-                                  );
-
-                                if (
-                                  !isSubsectionVisible &&
-                                  !configHasOwnDependsOn
-                                ) {
-                                  property.isVisible = false;
-                                  property.isHidden = true;
-                                } else if (
-                                  isSubsectionVisible &&
-                                  !configHasOwnDependsOn
-                                ) {
-                                  property.isVisible = true;
-                                  property.isHidden = false;
-                                }
-                              }
-                            });
-                          }
-
-                          if (subsection["subsection-tabs"]) {
-                            subsection["subsection-tabs"].forEach(
-                              (subsectionTab: any) => {
-                                if (subsectionTab["depends-on"]) {
-                                  const isTabVisible =
-                                    evaluateDependsOnForConfig(
-                                      configsCopy,
-                                      serviceName,
-                                      subsectionTab["depends-on"],
-                                      servicesList
-                                    );
-
-                                  Object.values(configMap).forEach(
-                                    (configInfo) => {
-                                      if (
-                                        configInfo.subsectionName ===
-                                          subsection.name &&
-                                        configInfo.tabName ===
-                                          subsectionTab.name
-                                      ) {
-                                        let property =
-                                          configByPath[configInfo.configPath]
-                                            ?.property;
-
-                                        if (
-                                          !property &&
-                                          configsCopy[serviceName]?.[
-                                            configInfo.type
-                                          ]?.properties?.[
-                                            configInfo.propertyName
-                                          ]
-                                        ) {
-                                          property =
-                                            configsCopy[serviceName][
-                                              configInfo.type
-                                            ].properties[
-                                              configInfo.propertyName
-                                            ];
-                                        }
-
-                                        if (!property) {
-                                          const foundProperty =
-                                            findPropertyByPropertyName(
-                                              configsCopy,
-                                              configInfo.propertyName
-                                            );
-                                          if (foundProperty) {
-                                            property = foundProperty;
-                                          }
-                                        }
-
-                                        if (!property) return;
-
-                                        const configHasOwnDependsOn =
-                                          themeData.configuration.placement.configs.some(
-                                            (c: any) =>
-                                              c.config ===
-                                                configInfo.configPath &&
-                                              c["depends-on"]
-                                          );
-
-                                        if (
-                                          !isTabVisible &&
-                                          !configHasOwnDependsOn
-                                        ) {
-                                          property.isVisible = false;
-                                          property.isHidden = true;
-                                        } else if (
-                                          isTabVisible &&
-                                          !configHasOwnDependsOn
-                                        ) {
-                                          property.isVisible = true;
-                                          property.isHidden = false;
-                                        }
-                                      }
-                                    }
-                                  );
-                                }
-                              }
-                            );
-                          }
-                        });
-                      }
-                    });
-                  }
-                });
-              }
-            });
-          }
-        }
+  serviceNames.forEach((serviceName) => {
+    Object.values(configsCopy[serviceName]).forEach((configType) => {
+      Object.values(configType.properties).forEach((property) => {
+        preparePropertyThemeState(property);
       });
     });
-  }
+
+    const serviceTheme = normalized.byService[serviceName];
+    if (!serviceTheme || serviceTheme.isFallback) {
+      Object.values(configsCopy[serviceName]).forEach((configType) => {
+        Object.values(configType.properties).forEach((property) => {
+          restorePropertyThemeState(property);
+        });
+      });
+      return;
+    }
+
+    placementThemeStates(
+      serviceTheme,
+      configsCopy,
+      serviceName,
+      installedServices,
+    ).forEach((placementState) => {
+      const property = findPropertyByThemePath(
+        configsCopy,
+        serviceName,
+        placementState.placement,
+      );
+      if (!property) return;
+      applyPlacementThemeState(property, placementState);
+      if (!property.isVisible) property.errorMessage = "";
+    });
+
+    Object.values(configsCopy[serviceName]).forEach((configType) => {
+      Object.values(configType.properties).forEach((property) => {
+        const state = property[THEME_ATTRIBUTE_STATE] as ThemeAttributeState;
+        if (!state.managed.length) delete property[THEME_ATTRIBUTE_STATE];
+      });
+    });
+  });
 
   return configsCopy;
 }
 
 const getConfigTypesInfoFromService = (
-  stackService: StackServices
+  stackService: StackServices,
 ): ConfigTypeInfo => {
   const serviceName = stackService.service_name;
 
@@ -1607,7 +1563,7 @@ const getConfigTypesInfoFromService = (
 const shouldSupportFinal = (
   serviceName: string,
   filename: string,
-  stackData: StackServicesRoot
+  stackData: StackServicesRoot,
 ): boolean => {
   const unsupportedServiceNames = ["MISC", "Cluster"];
   if (
@@ -1619,7 +1575,7 @@ const shouldSupportFinal = (
   }
 
   const serviceItem = stackData.items.find(
-    (item) => item.StackServices.service_name === serviceName
+    (item) => item.StackServices.service_name === serviceName,
   );
 
   if (!serviceItem) {
@@ -1627,18 +1583,18 @@ const shouldSupportFinal = (
   }
 
   const configTypesInfo = getConfigTypesInfoFromService(
-    serviceItem.StackServices
+    serviceItem.StackServices,
   );
 
   return !!configTypesInfo.supportsFinal.find((configType) =>
-    filename.startsWith(configType)
+    filename.startsWith(configType),
   );
 };
 
 const shouldSupportAddingForbidden = (
   serviceName: string,
   filename: string,
-  stackData: StackServicesRoot
+  stackData: StackServicesRoot,
 ): boolean => {
   const unsupportedServiceNames = ["MISC", "Cluster"];
   if (
@@ -1650,7 +1606,7 @@ const shouldSupportAddingForbidden = (
   }
 
   const serviceItem = stackData.items.find(
-    (item) => item.StackServices.service_name === serviceName
+    (item) => item.StackServices.service_name === serviceName,
   );
 
   if (!serviceItem) {
@@ -1658,13 +1614,12 @@ const shouldSupportAddingForbidden = (
   }
 
   const configTypesInfo = getConfigTypesInfoFromService(
-    serviceItem.StackServices
+    serviceItem.StackServices,
   );
   return !!configTypesInfo.supportsAddingForbidden.find((configType) =>
-    filename.startsWith(configType)
+    filename.startsWith(configType),
   );
 };
-
 
 const kerberosIdentitiesDescription = (propertyName: string): string => {
   const identity = kerberosIdentities.find((id) => id.name === propertyName);
@@ -1674,7 +1629,7 @@ const kerberosIdentitiesDescription = (propertyName: string): string => {
 const setPropertyIsEditable = (
   configProperties: ConfigPropertiesType,
   selectedConfigGroup: { isDefault: boolean },
-  isKerberosEnabled: boolean
+  isKerberosEnabled: boolean,
 ): ConfigPropertiesType => {
   const configCopy = cloneDeep(configProperties);
   const identities = kerberosIdentitiesMap;
@@ -1700,7 +1655,7 @@ const setPropertyIsEditable = (
           }
 
           property.isEditable = canEdit;
-        }
+        },
       );
     });
   });
@@ -1710,7 +1665,7 @@ const setPropertyIsEditable = (
 
 const hideComponentConfigsBasedOnAvailability = (
   configProperties: ConfigPropertiesType,
-  allServiceModels: any
+  allServiceModels: any,
 ): ConfigPropertiesType => {
   const configCopy = cloneDeep(configProperties);
 
@@ -1733,7 +1688,7 @@ const hideComponentConfigsBasedOnAvailability = (
               property.isVisible = false;
               property.isHidden = true;
             }
-          }
+          },
         );
       }
 
@@ -1753,7 +1708,7 @@ const hideComponentConfigsBasedOnAvailability = (
               property.isHidden = true;
             }
           }
-        }
+        },
       );
     });
   }
