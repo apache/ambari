@@ -19,7 +19,6 @@
 import { ActionsApi } from "../../api/actionsApi";
 import { useContext, useEffect, useState } from "react";
 import { AppContext } from "../../store/context";
-import { useAuth } from "../../hooks/useAuth";
 import {
   cloneDeep,
   filter,
@@ -105,76 +104,92 @@ import {
   translateWithVariables,
 } from "../../Utils/Utility";
 import { canManageServices } from "../../Utils/servicePermissions";
+import useAuthorizationPolicy from "../../hooks/useAuthorizationPolicy";
+import WorkflowActions from "./highAvailibility/WorkflowActions";
+import toast from "react-hot-toast";
+import { isOperationTerminal } from "../../Utils/backgroundOperations";
+import {
+  hasActiveServiceRequest,
+  isServiceStartStopBlocked,
+} from "../../Utils/serviceActionPolicy";
+import RequestScheduleApi from "../../api/requestScheduleApi";
+import ServiceRestartModal from "./ServiceRestartModal";
+import {
+  buildExpressServiceRestartRequest,
+  buildServiceRestartSchedule,
+  getServiceRestartGroups,
+  hasActiveServiceComponentRestart,
+  selectServiceRestartComponents,
+  type ServiceRestartMode,
+  type ServiceRestartScope,
+} from "./serviceRestartUtils";
 
 interface ActionsProps {
   serviceName: string;
   className?: string;
 }
 
-export const Actions = ({ serviceName, className }: ActionsProps) => {
-  if (!serviceName) {
-    return null;
-  }
+const TERMINAL_SERVICE_RESTART_SCHEDULE_STATUSES = new Set([
+  "COMPLETED",
+  "DISABLED",
+  "ABORTED",
+]);
+
+export const Actions = (props: ActionsProps) => {
+  const { supports, upgradeIsRunning, upgradeSuspended } = useContext(AppContext);
+  const { isAuthorized } = useAuthorizationPolicy();
+  const hasAnyServicePermissions = [
+    "SERVICE.START_STOP",
+    "SERVICE.RUN_CUSTOM_COMMAND",
+    "SERVICE.RUN_SERVICE_CHECK",
+    "SERVICE.ADD_DELETE_SERVICES",
+    "HOST.ADD_DELETE_COMPONENTS",
+    "SERVICE.ENABLE_HA",
+    "SERVICE.MOVE",
+    "SERVICE.TOGGLE_MAINTENANCE",
+  ].some(isAuthorized);
+  const isUpgradeBlocking =
+    upgradeIsRunning &&
+    !upgradeSuspended &&
+    !supports.opsDuringRollingUpgrade;
+
+  return props.serviceName && hasAnyServicePermissions && !isUpgradeBlocking ? (
+    <ActionsContent {...props} />
+  ) : null;
+};
+
+const ActionsContent = ({ serviceName, className }: ActionsProps) => {
 
   const {
     cluster,
     isKerberosEnabled,
     clusterName,
-    upgradeIsRunning,
-    upgradeSuspended,
     isClusterInstalled,
     supports,
     wizardIsNotFinished,
+    backgroundOperations,
+    fetchBackgroundOperationsSnapshot,
   } = useContext(AppContext);
   const { allServiceModels } = useContext(ServiceContext);
 
   // Authorization hooks - implementing Ember.js App.isAuthorized patterns
-  const { hasAuthorization } = useAuth();
+  const { havePermissions, isAuthorized } = useAuthorizationPolicy();
 
   // Check specific authorizations like in Ember.js ui/app/views/main/service/item.js
-  const canStartStop = hasAuthorization("SERVICE.START_STOP");
-  const canRunCustomCommands = hasAuthorization("SERVICE.RUN_CUSTOM_COMMAND");
-  const canRunServiceCheck = hasAuthorization("SERVICE.RUN_SERVICE_CHECK");
-  const canAddDeleteServices = hasAuthorization("SERVICE.ADD_DELETE_SERVICES");
-  const canAddDeleteComponents = hasAuthorization("HOST.ADD_DELETE_COMPONENTS");
-  const canEnableHA = hasAuthorization("SERVICE.ENABLE_HA");
-  const canMoveComponents = hasAuthorization("SERVICE.MOVE");
-  const canPersistWorkflow = hasAuthorization(
+  const canStartStop = isAuthorized("SERVICE.START_STOP");
+  const canRunCustomCommands = isAuthorized("SERVICE.RUN_CUSTOM_COMMAND");
+  const canRunServiceCheck = isAuthorized("SERVICE.RUN_SERVICE_CHECK");
+  const canAddDeleteServices = isAuthorized("SERVICE.ADD_DELETE_SERVICES");
+  const canAddDeleteComponents = isAuthorized("HOST.ADD_DELETE_COMPONENTS");
+  const canEnableHA = isAuthorized("SERVICE.ENABLE_HA");
+  const canMoveComponents = isAuthorized("SERVICE.MOVE");
+  const canPersistWorkflow = isAuthorized(
     "CLUSTER.MANAGE_USER_PERSISTED_DATA",
   );
-  const canManageJournalNodesPermission = hasAuthorization(
+  const canRunHaCustomCommands = isAuthorized(
     "SERVICE.RUN_CUSTOM_COMMAND, SERVICE.RUN_SERVICE_CHECK, SERVICE.TOGGLE_MAINTENANCE, SERVICE.ENABLE_HA",
   );
 
-  // Check if user has any service-related permissions at all
-  // This matches Ember.js logic where Actions dropdown is hidden if no permissions
-  const hasAnyServicePermissions =
-    canStartStop ||
-    canRunCustomCommands ||
-    canAddDeleteServices ||
-    canAddDeleteComponents ||
-    canEnableHA ||
-    canMoveComponents ||
-    canRunServiceCheck ||
-    hasAuthorization("SERVICE.TOGGLE_MAINTENANCE");
-
-  // Use computed upgrade properties instead of basic state checks
-  // This matches Ember.js logic: upgradeIsRunning && !upgradeSuspended blocks operations
-  // FIXED: Add additional check for upgrade suspended state to prevent flaky behavior
-  // When upgrade is suspended/paused, actions should be available
-  const isUpgradeBlocking = upgradeIsRunning && !upgradeSuspended;
-
-  // If user has no service permissions, don't render the Actions dropdown
-  // FIXED: Remove upgrade blocking check when upgrade is suspended to prevent dropdown from disappearing
-  if (!hasAnyServicePermissions) {
-    return null;
-  }
-
-  // FIXED: Only block actions when upgrade is actively running (not suspended/paused)
-  // This prevents the flaky behavior where dropdown disappears during upgrade pause
-  if (isUpgradeBlocking) {
-    return null;
-  }
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [stopMaintenanceMode, setStopMaintenanceMode] = useState(false);
   const [startMaintenanceModeOff, setStartMaintenanceModeOff] = useState(false);
@@ -193,6 +208,9 @@ export const Actions = ({ serviceName, className }: ActionsProps) => {
   };
 
   const [serviceState, setServiceState] = useState<any>({});
+  const [isStartStopSubmitting, setIsStartStopSubmitting] = useState(false);
+  const [submittedStartStopRequestId, setSubmittedStartStopRequestId] =
+    useState<number | null>(null);
   const [
     showRestartComponentConfirmationModal,
     setShowRestartComponentConfirmationModal,
@@ -222,6 +240,43 @@ export const Actions = ({ serviceName, className }: ActionsProps) => {
     useState<boolean>(true);
   const [isRestartAllSelected, setIsRestartAllSelected] =
     useState<boolean>(false);
+  const [serviceRestartScope, setServiceRestartScope] =
+    useState<ServiceRestartScope | null>(null);
+  const [isServiceRestartSubmitting, setIsServiceRestartSubmitting] =
+    useState(false);
+  const [serviceRestartError, setServiceRestartError] = useState("");
+  const [submittedServiceRestartScheduleId, setSubmittedServiceRestartScheduleId] =
+    useState<number | null>(null);
+  const hasPendingServiceRequest = hasActiveServiceRequest(
+    backgroundOperations,
+    serviceName,
+  );
+  const startStopBlocked = isServiceStartStopBlocked(
+    serviceState.state,
+    hasPendingServiceRequest,
+    isStartStopSubmitting,
+    submittedStartStopRequestId,
+  );
+  const currentServiceModel = allServiceModels[
+    serviceNameModelMapping[serviceName]
+  ] || serviceModels[serviceNameModelMapping[serviceName]];
+  const serviceRestartGroups = getServiceRestartGroups(
+    serviceName,
+    currentServiceModel,
+  );
+  const serviceRestartComponentNames = [
+    ...serviceRestartGroups.masters,
+    ...serviceRestartGroups.slaves,
+  ].map((component) => component.componentName);
+  const hasActiveComponentRestart = hasActiveServiceComponentRestart(
+    backgroundOperations,
+    serviceRestartComponentNames,
+    serviceName,
+  );
+  const serviceActionBlocked = startStopBlocked
+    || isServiceRestartSubmitting
+    || submittedServiceRestartScheduleId !== null
+    || hasActiveComponentRestart;
 
   const [clusterComponents, setClusterComponents] = useState<any>({});
   const { services: stackServices } = useStackServices();
@@ -418,6 +473,87 @@ export const Actions = ({ serviceName, className }: ActionsProps) => {
   }, [socketMessages.length]);
 
   useEffect(() => {
+    if (submittedStartStopRequestId === null) {
+      return;
+    }
+    const trackedRequest = backgroundOperations.find(
+      (request) => Number(request?.Requests?.id) === submittedStartStopRequestId,
+    );
+    if (!isOperationTerminal(trackedRequest?.Requests?.request_status)) {
+      return;
+    }
+
+    let cancelled = false;
+    void ServiceApi.getServiceState(clusterName, serviceName.toUpperCase())
+      .then((response) => {
+        if (!cancelled) {
+          setServiceState(response.data.ServiceInfo);
+          setSubmittedStartStopRequestId(null);
+        }
+      })
+      .catch((error) => {
+        console.error("Failed to refresh the service state:", error);
+        if (!cancelled) {
+          toast.error("The operation finished, but the service state could not be refreshed.");
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    backgroundOperations,
+    clusterName,
+    serviceName,
+    submittedStartStopRequestId,
+  ]);
+
+  useEffect(() => {
+    if (submittedServiceRestartScheduleId === null) {
+      return;
+    }
+
+    let cancelled = false;
+    let pollTimeout: ReturnType<typeof setTimeout> | undefined;
+    const pollSchedule = async () => {
+      try {
+        const response = await RequestScheduleApi.fetch(
+          clusterName,
+          submittedServiceRestartScheduleId,
+        );
+        const status = String(
+          get(response, "RequestSchedule.status", ""),
+        ).toUpperCase();
+        if (TERMINAL_SERVICE_RESTART_SCHEDULE_STATUSES.has(status)) {
+          if (!cancelled) {
+            setSubmittedServiceRestartScheduleId(null);
+            void fetchBackgroundOperationsSnapshot().catch((error) => {
+              console.error("Failed to refresh background operations:", error);
+            });
+          }
+          return;
+        }
+      } catch (error) {
+        console.error("Failed to refresh the service restart schedule:", error);
+      }
+      if (!cancelled) {
+        pollTimeout = setTimeout(pollSchedule, 5000);
+      }
+    };
+
+    pollTimeout = setTimeout(pollSchedule, 5000);
+    return () => {
+      cancelled = true;
+      if (pollTimeout) {
+        clearTimeout(pollTimeout);
+      }
+    };
+  }, [
+    clusterName,
+    fetchBackgroundOperationsSnapshot,
+    submittedServiceRestartScheduleId,
+  ]);
+
+  useEffect(() => {
     if(isClusterInstalled)
     getClusterComponents();
   }, [isClusterInstalled]);
@@ -531,76 +667,107 @@ export const Actions = ({ serviceName, className }: ActionsProps) => {
     // return availableHosts;
   };
 
-  const onStart = async () => {
-    if (startMaintenanceModeOff) {
-      await ActionsApi.turnOnOffMaintenance(
-        clusterName,
-        // @ts-ignore
-        serviceName,
-        {
-          requestInfo: `Turn ${startCase(
-            lowerCase("OFF")
-          )} Maintenance Mode for ${serviceName}`,
-          passive_state: "OFF",
-        }
-      );
+  const trackAcceptedServiceRequest = (
+    response: any,
+    transitionState?: "STARTING" | "STOPPING",
+  ) => {
+    const requestId = Number(get(response, "data.Requests.id"));
+    if (
+      response?.status !== 202
+      || !Number.isSafeInteger(requestId)
+      || requestId <= 0
+    ) {
+      throw new Error("Ambari did not return an accepted request ID.");
     }
-    const payloadData = {
-      RequestInfo: {
-        context: `_PARSE_.START.${serviceName}`,
-        operation_level: {
-          level: "SERVICE",
-          cluster_name: clusterName,
-          service_name: serviceName,
-        },
-      },
-      Body: {
-        ServiceInfo: {
-          state: `${ServiceActionEnums.startedServiceState}`,
-        },
-      },
-    };
-    const response = await ActionsApi.serviceAction(
-      clusterName,
-      serviceName.toUpperCase(),
-      payloadData
+    if (transitionState) {
+      setServiceState((currentState: Record<string, unknown>) => ({
+        ...currentState,
+        state: transitionState,
+      }));
+    }
+    setSubmittedStartStopRequestId(requestId);
+    void fetchBackgroundOperationsSnapshot().catch((error) => {
+      console.error("Failed to refresh background operations:", error);
+    });
+    modalManager.show(
+      <BackgroundOperations
+        isOpen={true}
+        onClose={() => {
+          modalManager.hide();
+        }}
+        requestId={requestId}
+      />
     );
-    if (response && response.status === 202) {
-      setServiceState({
-        ...serviceState,
-        state: ServiceActionEnums.startedServiceState,
-      });
+  };
+
+  const onStart = async () => {
+    if (serviceActionBlocked) {
+      return;
     }
-    const requestId = get(response, "data.Requests.id", -1);
-    setShowStartConfirmation(false);
-    if (requestId !== -1) {
-      modalManager.show(
-        <BackgroundOperations
-          isOpen={true}
-          onClose={() => {
-            modalManager.hide();
-          }}
-          requestId={requestId}
-        />
+    setIsStartStopSubmitting(true);
+    try {
+      if (startMaintenanceModeOff) {
+        await ActionsApi.turnOnOffMaintenance(
+          clusterName,
+          // @ts-ignore
+          serviceName,
+          {
+            requestInfo: `Turn ${startCase(
+              lowerCase("OFF")
+            )} Maintenance Mode for ${serviceName}`,
+            passive_state: "OFF",
+          }
+        );
+      }
+      const payloadData = {
+        RequestInfo: {
+          context: `_PARSE_.START.${serviceName}`,
+          operation_level: {
+            level: "SERVICE",
+            cluster_name: clusterName,
+            service_name: serviceName,
+          },
+        },
+        Body: {
+          ServiceInfo: {
+            state: `${ServiceActionEnums.startedServiceState}`,
+          },
+        },
+      };
+      const response = await ActionsApi.serviceAction(
+        clusterName,
+        serviceName.toUpperCase(),
+        payloadData
       );
+      trackAcceptedServiceRequest(response, "STARTING");
+      setShowStartConfirmation(false);
+    } catch (error) {
+      console.error(`Failed to start ${serviceName}:`, error);
+      toast.error(`Failed to start ${serviceMap[serviceName] || serviceName}.`);
+    } finally {
+      setIsStartStopSubmitting(false);
     }
   };
 
   const onStop = async () => {
-    if (stopMaintenanceMode) {
-      await ActionsApi.turnOnOffMaintenance(
-        clusterName,
-        // @ts-ignore
-        serviceName,
-        {
-          requestInfo: `Turn ${startCase(
-            lowerCase("ON")
-          )} Maintenance Mode for ${serviceName}`,
-          passive_state: "ON",
-        }
-      );
+    if (serviceActionBlocked) {
+      return;
     }
-    {
+    setIsStartStopSubmitting(true);
+    try {
+      if (stopMaintenanceMode) {
+        await ActionsApi.turnOnOffMaintenance(
+          clusterName,
+          // @ts-ignore
+          serviceName,
+          {
+            requestInfo: `Turn ${startCase(
+              lowerCase("ON")
+            )} Maintenance Mode for ${serviceName}`,
+            passive_state: "ON",
+          }
+        );
+      }
       const payloadData = {
         RequestInfo: {
           context: `_PARSE_.STOP.${serviceName}`,
@@ -621,25 +788,13 @@ export const Actions = ({ serviceName, className }: ActionsProps) => {
         serviceName.toUpperCase(),
         payloadData
       );
-      if (response && response.status === 202) {
-        setServiceState({
-          ...serviceState,
-          state: ServiceActionEnums.stoppedServiceState,
-        });
-      }
-      const requestId = get(response, "data.Requests.id", -1);
+      trackAcceptedServiceRequest(response, "STOPPING");
       setShowStopConfirmation(false);
-      if (requestId !== -1) {
-        modalManager.show(
-          <BackgroundOperations
-            isOpen={true}
-            onClose={() => {
-              modalManager.hide();
-            }}
-            requestId={requestId}
-          />
-        );
-      }
+    } catch (error) {
+      console.error(`Failed to stop ${serviceName}:`, error);
+      toast.error(`Failed to stop ${serviceMap[serviceName] || serviceName}.`);
+    } finally {
+      setIsStartStopSubmitting(false);
     }
   };
 
@@ -715,59 +870,155 @@ export const Actions = ({ serviceName, className }: ActionsProps) => {
   };
 
   const onRestartAll = async () => {
-    if (stopMaintenanceMode) {
-      await ActionsApi.turnOnOffMaintenance(
-        clusterName,
-        // @ts-ignore
-        serviceName,
-        {
-          requestInfo: `Turn ${startCase(
-            lowerCase("ON")
-          )} Maintenance Mode for ${serviceName}`,
-          passive_state: "ON",
-        }
-      );
+    if (serviceActionBlocked) {
+      return;
     }
-    const resourceFilterReqForServiceRestartAllObj =
-      createResourceFilterObjForRestartAll();
+    setIsStartStopSubmitting(true);
+    try {
+      if (stopMaintenanceMode) {
+        await ActionsApi.turnOnOffMaintenance(
+          clusterName,
+          // @ts-ignore
+          serviceName,
+          {
+            requestInfo: `Turn ${startCase(
+              lowerCase("ON")
+            )} Maintenance Mode for ${serviceName}`,
+            passive_state: "ON",
+          }
+        );
+      }
+      const resourceFilterReqForServiceRestartAllObj =
+        createResourceFilterObjForRestartAll();
 
-    const payloadData = {
-      RequestInfo: {
-        command: "RESTART",
-        context: `Restart all components for ${serviceName}`,
-        operation_level: {
-          level: "SERVICE",
-          cluster_name: clusterName,
-          service_name: serviceName,
+      const payloadData = {
+        RequestInfo: {
+          command: "RESTART",
+          context: `Restart all components for ${serviceName}`,
+          operation_level: {
+            level: "SERVICE",
+            cluster_name: clusterName,
+            service_name: serviceName,
+          },
         },
-      },
-      "Requests/resource_filters":
-        resourceFilterReqForServiceRestartAllObj["Requests/resource_filters"],
-    };
+        "Requests/resource_filters":
+          resourceFilterReqForServiceRestartAllObj["Requests/resource_filters"],
+      };
 
-    const response = await ActionsApi.actionRequestRebalanceHDFS(
-      clusterName,
-      payloadData
-    );
-    if (response && response.status === 202) {
-      setServiceState({
-        ...serviceState,
-        state: ServiceActionEnums.startedServiceState,
-      });
-    }
-    setShowStopConfirmation(false);
-    setIsRestartAllSelected(false);
-    const requestId = get(response, "data.Requests.id", -1);
-    if (requestId !== -1) {
-      modalManager.show(
-        <BackgroundOperations
-          isOpen={true}
-          onClose={() => {
-            modalManager.hide();
-          }}
-          requestId={requestId}
-        />
+      const response = await ActionsApi.actionRequestRebalanceHDFS(
+        clusterName,
+        payloadData
       );
+      trackAcceptedServiceRequest(response);
+      setShowStopConfirmation(false);
+      setIsRestartAllSelected(false);
+    } catch (error) {
+      console.error(`Failed to restart ${serviceName}:`, error);
+      toast.error(`Failed to restart ${serviceMap[serviceName] || serviceName}.`);
+    } finally {
+      setIsStartStopSubmitting(false);
+    }
+  };
+
+  const openServiceRestart = (scope: ServiceRestartScope) => {
+    const components = selectServiceRestartComponents(
+      serviceRestartGroups,
+      scope,
+    );
+    if (serviceActionBlocked || components.length === 0) {
+      return;
+    }
+    setServiceRestartError("");
+    setServiceRestartScope(scope);
+  };
+
+  const submitServiceRestart = async ({
+    mode,
+    batchSize,
+    intervalTimeSeconds,
+    tolerateSize,
+  }: {
+    mode: ServiceRestartMode;
+    batchSize: number;
+    intervalTimeSeconds: number;
+    tolerateSize: number;
+  }) => {
+    if (!serviceRestartScope || serviceActionBlocked) {
+      return;
+    }
+
+    const components = selectServiceRestartComponents(
+      serviceRestartGroups,
+      serviceRestartScope,
+    );
+    if (!components.length) {
+      setServiceRestartError("No components are available for this restart.");
+      return;
+    }
+
+    setIsServiceRestartSubmitting(true);
+    setServiceRestartError("");
+    try {
+      if (mode === "ROLLING") {
+        const payload = buildServiceRestartSchedule({
+          clusterName,
+          serviceName,
+          components,
+          batchSize,
+          intervalTimeSeconds,
+          tolerateSize,
+        });
+        const response = await ActionsApi.actionRequest(
+          clusterName,
+          JSON.stringify(payload),
+        );
+        const scheduleId = Number(get(
+          response,
+          "data.resources[0].RequestSchedule.id",
+        ));
+        if (!Number.isSafeInteger(scheduleId) || scheduleId <= 0) {
+          throw new Error("Ambari did not return a request schedule ID.");
+        }
+        setSubmittedServiceRestartScheduleId(scheduleId);
+        void fetchBackgroundOperationsSnapshot().catch((error) => {
+          console.error("Failed to refresh background operations:", error);
+        });
+        modalManager.show(
+          <BackgroundOperations
+            isOpen={true}
+            onClose={() => modalManager.hide()}
+          />,
+        );
+      } else {
+        const payload = buildExpressServiceRestartRequest({
+          clusterName,
+          serviceName,
+          scope: serviceRestartScope,
+          components,
+        });
+        if (payload["Requests/resource_filters"].length === 0) {
+          throw new Error(
+            "No components outside maintenance mode are available for this restart.",
+          );
+        }
+        const response = await ActionsApi.actionRequestRebalanceHDFS(
+          clusterName,
+          payload,
+        );
+        trackAcceptedServiceRequest(response);
+      }
+      setServiceRestartScope(null);
+    } catch (error) {
+      const message = get(
+        error,
+        "response.data.message",
+        get(error, "message", `Failed to restart ${serviceName}.`),
+      );
+      console.error(`Failed to restart ${serviceName}:`, error);
+      setServiceRestartError(message);
+      toast.error(`Failed to restart ${serviceMap[serviceName] || serviceName}.`);
+    } finally {
+      setIsServiceRestartSubmitting(false);
     }
   };
 
@@ -1704,6 +1955,31 @@ export const Actions = ({ serviceName, className }: ActionsProps) => {
           </Button>
         </Modal.Footer>
       </Modal>
+      {serviceRestartScope ? (
+        <ServiceRestartModal
+          isOpen={true}
+          serviceDisplayName={
+            serviceNameDisplayMapping[
+              serviceName as keyof typeof serviceNameDisplayMapping
+            ] || serviceName
+          }
+          scope={serviceRestartScope}
+          componentCount={selectServiceRestartComponents(
+            serviceRestartGroups,
+            serviceRestartScope,
+          ).length}
+          blocked={serviceActionBlocked}
+          isSubmitting={isServiceRestartSubmitting}
+          errorMessage={serviceRestartError}
+          onClose={() => {
+            if (!isServiceRestartSubmitting) {
+              setServiceRestartScope(null);
+              setServiceRestartError("");
+            }
+          }}
+          onSubmit={submitServiceRestart}
+        />
+      ) : null}
       <ConfirmationModal
         isOpen={showConfirmationModal}
         onClose={() => setShowConfirmationModal(false)}
@@ -1733,6 +2009,7 @@ export const Actions = ({ serviceName, className }: ActionsProps) => {
           </div>
         }
         okButtonText="CONFIRM START"
+        isOkDisabled={serviceActionBlocked}
         successCallback={onStart}
       />
       <ConfirmationModal
@@ -1772,6 +2049,7 @@ export const Actions = ({ serviceName, className }: ActionsProps) => {
         okButtonText={
           isRestartAllSelected ? "CONFIRM RESTART ALL" : "CONFIRM STOP"
         }
+        isOkDisabled={serviceActionBlocked}
         successCallback={isRestartAllSelected ? onRestartAll : onStop}
       />
       <ConfirmationModal
@@ -1823,13 +2101,17 @@ export const Actions = ({ serviceName, className }: ActionsProps) => {
               <>
                 <Dropdown.Item
                   onClick={() => {
-                    setShowStartConfirmation(true);
+                    if (!serviceActionBlocked) {
+                      setShowStartConfirmation(true);
+                    }
                   }}
                   // @ts-ignore
                   disabled={
-                    serviceState.state ===
-                      ServiceActionEnums.startedServiceState &&
-                    !serviceModelHasStoppedMasterOrSlaveComps()
+                    serviceActionBlocked || (
+                      serviceState.state ===
+                        ServiceActionEnums.startedServiceState &&
+                      !serviceModelHasStoppedMasterOrSlaveComps()
+                    )
                   }
                 >
                   <FontAwesomeIcon
@@ -1841,13 +2123,17 @@ export const Actions = ({ serviceName, className }: ActionsProps) => {
 
                 <Dropdown.Item
                   onClick={() => {
-                    setShowStopConfirmation(true);
+                    if (!serviceActionBlocked) {
+                      setShowStopConfirmation(true);
+                    }
                   }}
                   // @ts-ignore
                   disabled={
-                    serviceState.state ===
-                      ServiceActionEnums.stoppedServiceState &&
-                    !serviceModelHasStartedMasterOrSlaveComps()
+                    serviceActionBlocked || (
+                      serviceState.state ===
+                        ServiceActionEnums.stoppedServiceState &&
+                      !serviceModelHasStartedMasterOrSlaveComps()
+                    )
                   }
                 >
                   <FontAwesomeIcon className="text-danger me-2" icon={faStop} />
@@ -1856,9 +2142,12 @@ export const Actions = ({ serviceName, className }: ActionsProps) => {
 
                 <Dropdown.Item
                   onClick={async () => {
-                    setIsRestartAllSelected(true);
-                    setShowStopConfirmation(true);
+                    if (!serviceActionBlocked) {
+                      setIsRestartAllSelected(true);
+                      setShowStopConfirmation(true);
+                    }
                   }}
+                  disabled={serviceActionBlocked}
                 >
                   <FontAwesomeIcon
                     className="text-secondary me-2"
@@ -1866,11 +2155,59 @@ export const Actions = ({ serviceName, className }: ActionsProps) => {
                   />
                   {ServiceActionEnums.restartAllAction}
                 </Dropdown.Item>
+                {supports.enableNewServiceRestartOptions ? (
+                  <Dropdown drop="end">
+                    <Dropdown.Toggle
+                      id={`restart-service-${serviceName}`}
+                      className="custom-text-toggle w-100 text-start"
+                      disabled={
+                        serviceActionBlocked
+                        || (
+                          serviceRestartGroups.masters.length === 0
+                          && serviceRestartGroups.slaves.length === 0
+                        )
+                      }
+                      data-testid="service-restart-menu"
+                    >
+                      <FontAwesomeIcon
+                        className="text-secondary me-2"
+                        icon={faClock}
+                      />
+                      Restart {
+                        serviceNameDisplayMapping[
+                          serviceName as keyof typeof serviceNameDisplayMapping
+                        ] || serviceName
+                      }
+                    </Dropdown.Toggle>
+                    <Dropdown.Menu>
+                      {([
+                        ["ALL", "Restart All"],
+                        ["MASTERS", "Restart Masters"],
+                        ["SLAVES", "Restart Slaves"],
+                      ] as [ServiceRestartScope, string][]).map(([scope, label]) => {
+                        const unavailable = selectServiceRestartComponents(
+                          serviceRestartGroups,
+                          scope,
+                        ).length === 0;
+                        return (
+                          <Dropdown.Item
+                            key={scope}
+                            disabled={serviceActionBlocked || unavailable}
+                            onClick={() => openServiceRestart(scope)}
+                            data-testid={`service-restart-${scope.toLowerCase()}`}
+                          >
+                            {label}
+                          </Dropdown.Item>
+                        );
+                      })}
+                    </Dropdown.Menu>
+                  </Dropdown>
+                ) : null}
               </>
             )}
 
             {/* SERVICE.TOGGLE_MAINTENANCE authorization check */}
-            {hasAuthorization("SERVICE.TOGGLE_MAINTENANCE") && (
+            {isAuthorized("SERVICE.TOGGLE_MAINTENANCE") && (
               <Dropdown.Item onClick={toggleMaintenanceMode}>
                 <FontAwesomeIcon
                   className="text-secondary me-2"
@@ -1977,19 +2314,25 @@ export const Actions = ({ serviceName, className }: ActionsProps) => {
           <EnableHighAvailibilityNameNode />
         )}
         {/* Add New HDFS Namespace (Federation) - Requires SERVICE.ENABLE_HA authorization, HDFS service, and FEDERATION serviceType (matches Ember.js logic) */}
-        {canEnableHA && serviceName === "HDFS" && (
+        {canEnableHA && canPersistWorkflow && serviceName === "HDFS" && (
           <EnableNamenodeFederation />
         )}
-        {canManageJournalNodesPermission &&
+        <WorkflowActions
+          serviceName={serviceName}
+          canEnableHighAvailability={canEnableHA}
+          canRunHawqCustomCommands={canRunHaCustomCommands}
+          canPersistWorkflow={canPersistWorkflow}
+        />
+        {canRunHaCustomCommands &&
           canPersistWorkflow &&
           serviceName === "HDFS" &&
           canManageJournalNodes() && (
           <ManageJournalNodes />
         )}
-        {canEnableHA && serviceName === "YARN" && !isRMHAEnabled() && (
+        {canEnableHA && canPersistWorkflow && serviceName === "YARN" && !isRMHAEnabled() && (
           <EnableHighAvailibilityResourceManger />
         )}
-        {canEnableHA && serviceName === "RANGER" && (
+        {canEnableHA && canPersistWorkflow && serviceName === "RANGER" && (
           <EnableHighAvailibilityRangerAdmin />
         )}
 
@@ -2005,7 +2348,7 @@ export const Actions = ({ serviceName, className }: ActionsProps) => {
             <ReassignComponent serviceName={serviceName} />
           )}
 
-        {hasAuthorization("CLUSTER.VIEW_CONFIGS") &&
+        {havePermissions("CLUSTER.VIEW_CONFIGS") &&
           serviceName !== "KYUUBI" &&
           serviceName !== "TRINO_GATEWAY" &&
           hasClientComponentsWithInstances() && (

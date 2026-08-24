@@ -185,7 +185,6 @@ export const ServiceApi = {
       url: '/services/AMBARI?fields=components/RootServiceComponents/component_version&components/RootServiceComponents/component_name=AMBARI_SERVER&minimal_response=true',
       method: 'GET'
     });
-    console.log("response", response.data)
     return response.data;
   },
   // @ts-ignore

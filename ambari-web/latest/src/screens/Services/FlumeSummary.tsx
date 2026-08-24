@@ -39,7 +39,7 @@ import BackgroundOperations from "../BackgroundOperations";
 import modalManager from "../../store/ModalManager";
 import { AppContext } from "../../store/context";
 import { ServiceContext } from "../../store/ServiceContext";
-import { useAuth } from "../../hooks/useAuth";
+import useAuthorizationPolicy from "../../hooks/useAuthorizationPolicy";
 
 type FlumeAction = "start" | "stop";
 
@@ -61,10 +61,9 @@ function FlumeSummary() {
   const {
     backgroundOperations,
     clusterName,
-    wizardIsNotFinished,
   } = useContext(AppContext);
   const { masterSlaveClientsData } = useContext(ServiceContext);
-  const { hasAuthorization } = useAuth();
+  const { isAuthorized } = useAuthorizationPolicy();
   const [pendingAgents, setPendingAgents] = useState<Record<string, PendingAgent>>({});
   const submitCommandRef = useRef<
     (_agent: FlumeAgent, _action: FlumeAction) => Promise<void>
@@ -73,7 +72,7 @@ function FlumeSummary() {
     () => extractFlumeAgents(masterSlaveClientsData),
     [masterSlaveClientsData]
   );
-  const canStartStop = hasAuthorization("SERVICE.START_STOP") && !wizardIsNotFinished;
+  const canStartStop = isAuthorized("SERVICE.START_STOP");
 
   const removePendingAgent = useCallback((agentId: string) => {
     setPendingAgents((current) => {
