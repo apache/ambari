@@ -21,7 +21,14 @@ import WizardApi from "../../../api/wizardApi";
 import Spinner from "../../../components/Spinner";
 import CredentialsTab, { processDataForCredentialsTab } from "./CredentialsTab";
 import AccountsTab from "./AccountsTab";
-import { Button, Modal as BootstrapModal, Nav, Row, Tab } from "react-bootstrap";
+import {
+  Alert,
+  Button,
+  Modal as BootstrapModal,
+  Nav,
+  Row,
+  Tab,
+} from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faAlignJustify,
@@ -87,9 +94,107 @@ type PropTypes = {
   wizardName?: string;
 };
 
+const createConfigurationStepPayload = (
+  step: string,
+  configProperties: ConfigPropertiesType,
+  themes: unknown,
+  configs: unknown,
+  stackLevelConfigs: unknown,
+  preInstallChecksWereRun: boolean
+) => ({
+  step,
+  data: {
+    configProperties,
+    themes,
+    configs,
+    stackLevelConfigs,
+    preInstallChecksWereRun,
+  },
+});
+
+export const findNextEnabledConfigurationTab = (
+  currentTab: string,
+  tabMapping: Record<string, { nextTab?: string }>,
+  disabledTabs: string[],
+): string | undefined => {
+  let nextTab = tabMapping[currentTab]?.nextTab;
+  const visited = new Set<string>();
+  while (nextTab && disabledTabs.includes(nextTab) && !visited.has(nextTab)) {
+    visited.add(nextTab);
+    nextTab = tabMapping[nextTab]?.nextTab;
+  }
+  return nextTab;
+};
+
+export const findPreviousEnabledConfigurationTab = (
+  currentTab: string,
+  tabMapping: Record<string, { nextTab?: string }>,
+  disabledTabs: string[],
+): string | undefined => {
+  let previousTab = Object.keys(tabMapping).find(
+    (tabName) => tabMapping[tabName]?.nextTab === currentTab,
+  );
+  const visited = new Set<string>();
+  while (
+    previousTab &&
+    disabledTabs.includes(previousTab) &&
+    !visited.has(previousTab)
+  ) {
+    visited.add(previousTab);
+    const disabledTab = previousTab;
+    previousTab = Object.keys(tabMapping).find(
+      (tabName) => tabMapping[tabName]?.nextTab === disabledTab,
+    );
+  }
+  return previousTab;
+};
+
+const preserveEditedConfigValues = (
+  nextConfigs: ConfigPropertiesType,
+  currentConfigs: ConfigPropertiesType,
+): ConfigPropertiesType => {
+  const currentByPath = new Map<string, any>();
+  Object.entries(currentConfigs).forEach(([serviceName, sections]) => {
+    Object.entries(sections).forEach(([sectionName, section]) => {
+      Object.values(section.properties || {}).forEach((property) => {
+        const configType = property.type || sectionName;
+        currentByPath.set(
+          `${serviceName}/${configType}/${property.propertyName}`,
+          property,
+        );
+      });
+    });
+  });
+
+  const result = cloneDeep(nextConfigs);
+  Object.entries(result).forEach(([serviceName, sections]) => {
+    Object.entries(sections).forEach(([sectionName, section]) => {
+      Object.values(section.properties || {}).forEach((property) => {
+        const configType = property.type || sectionName;
+        const current = currentByPath.get(
+          `${serviceName}/${configType}/${property.propertyName}`,
+        );
+        if (!current) return;
+        [
+          "value",
+          "confirmPassword",
+          "final",
+          "overrideValues",
+          "errorMessage",
+          "hasError",
+          "warnMessage",
+        ].forEach((field) => {
+          if (field in current) property[field] = cloneDeep(current[field]);
+        });
+      });
+    });
+  });
+  return result;
+};
+
 export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
   const { Context } = useContext(ContextWrapper);
-  const { clusterName, supports } = useContext(AppContext);
+  const { ambariProperties, clusterName, supports } = useContext(AppContext);
   const { allServiceModels } = useContext(ServiceContext);
   const {
     state,
@@ -111,6 +216,9 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
   const [themes, setThemes] = useState<any>(
     getStepData("CONFIGURATION", "themes") || {}
   );
+  const [themesSettled, setThemesSettled] = useState(
+    !isEmpty(getStepData("CONFIGURATION", "themes"))
+  );
   const [configs, setConfigs] = useState<any>(
     getStepData("CONFIGURATION", "configs") || {}
   );
@@ -123,6 +231,8 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
   const [configProperties, setConfigProperties] = useState(
     getStepData("CONFIGURATION", "configProperties") || {}
   );
+  const configPropertiesRef = useRef(configProperties);
+  const themeRequestId = useRef(0);
   //@ts-ignore
   const [validationErrors, setValidationErrors] = useState<any>([]);
   const [isNextEnabled, setIsNextEnabled] = useState(true);
@@ -139,6 +249,15 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
   );
   const [showPreInstallChecks, setShowPreInstallChecks] = useState(false);
   const [showSkippedChecksWarning, setShowSkippedChecksWarning] = useState(false);
+  const [themeLoadError, setThemeLoadError] = useState("");
+
+  useEffect(() => {
+    configPropertiesRef.current = configProperties;
+  }, [configProperties]);
+
+  useEffect(() => () => {
+    themeRequestId.current += 1;
+  }, []);
 
   const hostsData = get(
     state,
@@ -192,19 +311,16 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
   );
 
   useEffect(() => {
-    const data = {
-      step: currentStep.name,
-      data: {
+    dispatch({
+      type: ActionTypes.STORE_INFORMATION,
+      payload: createConfigurationStepPayload(
+        currentStep.name,
         configProperties,
         themes,
         configs,
         stackLevelConfigs,
-        preInstallChecksWereRun,
-      },
-    };
-    dispatch({
-      type: ActionTypes.STORE_INFORMATION,
-      payload: data,
+        preInstallChecksWereRun
+      ),
     });
   }, [
     JSON.stringify(configProperties),
@@ -296,7 +412,7 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
       (item: any) => item.level === "NOT_APPLICABLE"
     );
     const warnings = items.filter((item: any) => item.level === "WARN");
-    const validationErrorsCopy = cloneDeep(validationsRef.current);
+    const validationErrorsCopy: any = cloneDeep(validationsRef.current);
     const processedCriticalItems = new Map(); // Track processed items with their details to avoid duplicates
     const detailedCriticalErrors = criticalErrors
       .map((error: any) => {
@@ -371,11 +487,16 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
     
     set(validationErrorsCopy, "warnings", detailedWarnings);
     validationsRef.current = validationErrorsCopy;
+    setValidationErrors(validationErrorsCopy);
+    setIsNextEnabled(
+      detailedCriticalErrors.length === 0 &&
+        (validationErrorsCopy.clientSideErrors?.length || 0) === 0,
+    );
   }
   function validateClientSideValidations() {
     //get all the keys which have hasError nn empty string
     const errorProperties: any = [];
-    const validationErrorsCopy = cloneDeep(validationsRef.current);
+    const validationErrorsCopy: any = cloneDeep(validationsRef.current);
     Object.keys(configProperties).forEach((serviceName) => {
       Object.keys(configProperties[serviceName]).forEach((configType) => {
         Object.keys(
@@ -391,6 +512,11 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
     });
     set(validationErrorsCopy, "clientSideErrors", errorProperties);
     validationsRef.current = validationErrorsCopy;
+    setValidationErrors(validationErrorsCopy);
+    setIsNextEnabled(
+      errorProperties.length === 0 &&
+        (validationErrorsCopy.criticalErrors?.length || 0) === 0,
+    );
   }
   useEffect(() => {
     if (configPropertiesLoaded) {
@@ -570,8 +696,8 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
         installedServices.join(",")
       );
       return response;
-    } catch (error) {
-      console.error("Error fetching property values:", error);
+    } catch {
+      console.error("Error fetching wizard property values.");
     } finally {
       setLoading(false);
     }
@@ -594,8 +720,8 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
         );
         return clusterEnvConfigs;
       }
-    } catch (error) {
-      console.error("Error fetching cluster-env values:", error);
+    } catch {
+      console.error("Error fetching cluster environment values.");
     }
     return null;
   };
@@ -629,6 +755,8 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
         <CredentialsTab
           themes={themes}
           configs={configs}
+          configProperties={configProperties}
+          setConfigProperties={setConfigProperties}
           setIsNextEnabled={setIsNextEnabled}
         />
       ),
@@ -712,25 +840,22 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
     const loadAllData = async () => {
       setLoading(true);
       try {
-        // Load all required data in parallel
-        const promises = [];
+        const requiredDataPromises = [];
         
         if (isEmpty(configs)) {
-          promises.push(getConfigurations());
-        }
-        if (isEmpty(themes)) {
-          promises.push(getThemes());
+          requiredDataPromises.push(getConfigurations());
         }
         if (isEmpty(stackLevelConfigs)) {
-          promises.push(getStackLevelConfigurations());
+          requiredDataPromises.push(getStackLevelConfigurations());
         }
-        
-        // Wait for all API calls to complete
-        await Promise.all(promises);
-      } catch (error) {
-        console.error("Error loading configuration data:", error);
+
+        const themePromise = isEmpty(themes)
+          ? getThemes()
+          : Promise.resolve();
+        await Promise.all([...requiredDataPromises, themePromise]);
+      } catch {
+        console.error("Error loading required wizard configuration data.");
       } finally {
-        // Only set loading to false after all API calls are complete
         setLoading(false);
       }
     };
@@ -739,14 +864,14 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
   }, []);
 
   useEffect(() => {
-    if (!isEmpty(configs) && !isEmpty(themes)) {
-      let tempDisabledTabs = [];
+    if (!isEmpty(configs)) {
+      const tempDisabledTabs = [];
       const credentialsData = processDataForCredentialsTab(configs, themes);
       if (!credentialsData.length) {
         tempDisabledTabs.push("credentials");
       }
 
-      let databasesData: any[] = [];
+      const databasesData: any[] = [];
       get(themes, "items", []).forEach((item: any) => {
         get(item, "themes", []).forEach((theme: any) => {
           if (get(theme, "ThemeInfo.theme_data.Theme.name") === "database") {
@@ -758,10 +883,22 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
         tempDisabledTabs.push("databases");
       }
 
+      const hasDirectoriesData = get(themes, "items", []).some((item: any) =>
+        get(item, "themes", []).some(
+          (theme: any) =>
+            get(theme, "ThemeInfo.theme_data.Theme.name") === "directories"
+        )
+      );
+      if (!hasDirectoriesData) {
+        tempDisabledTabs.push("directories");
+      }
+
       let tempSelectedTab = "credentials";
       if (tempDisabledTabs.includes("credentials")) {
         if (tempDisabledTabs.includes("databases")) {
-          tempSelectedTab = "directories";
+          tempSelectedTab = tempDisabledTabs.includes("directories")
+            ? "allConfigurations"
+            : "directories";
         } else {
           tempSelectedTab = "databases";
         }
@@ -777,8 +914,8 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
         try {
           const response = await getPropertiesValues();
           setPropertyValues(response);
-        } catch (error) {
-          console.error("Error loading property values:", error);
+        } catch {
+          console.error("Error loading wizard property values.");
         }
       }
     };
@@ -786,6 +923,9 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
   }, [wizardName]);
 
   useEffect(() => {
+    if (!themesSettled) {
+      return;
+    }
     if (wizardName === "addService") {
       // For addService, wait for configs and propertyValues
       if (!isEmpty(configs) && !isEmpty(propertyValues) && isEmpty(configProperties)) {
@@ -797,7 +937,7 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
         getConfigProperties();
       }
     }
-  }, [configs, stackLevelConfigs, propertyValues, wizardName]);
+  }, [configs, stackLevelConfigs, propertyValues, themesSettled, wizardName]);
 
   useEffect(() => {
     if (!isEmpty(configProperties)) {
@@ -839,8 +979,8 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
       );
 
       processRecommendations(response, configProperties);
-    } catch (error) {
-      console.error("Error loading config recommendations:", error);
+    } catch {
+      console.error("Error loading configuration recommendations.");
       // Don't fail the entire process if recommendations fail
     }
   };
@@ -933,7 +1073,15 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
     if (stackVersion) {
       localDB.selectedStack = stackVersion;
     }
-    const dependencies = getConfigDependencies(result);
+    const dependencies = {
+      ...getConfigDependencies(result),
+      alwaysEnableManagedMySQLForHive:
+        supports.alwaysEnableManagedMySQLForHive,
+      isManagedMySQLForHiveEnabled: !["redhat5", "suse11"].includes(
+        ambariProperties?.["server.os_family"],
+      ),
+      isServiceConfigRoute: false,
+    };
 
     // Check if we have stored service config properties (like in addService mode)
     const hasStoredServiceConfigProperties = wizardName === "addService";
@@ -1441,6 +1589,7 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
 
         let configValue = config.StackLevelConfigurations.property_value;
         let previousValue = config.StackLevelConfigurations.property_value;
+        let hasExistingClusterValue = false;
         
         if (
           wizardName === "addService" &&
@@ -1452,6 +1601,7 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
           if (clusterEnvItem?.properties?.[propertyName] !== undefined) {
             configValue = clusterEnvItem.properties[propertyName];
             previousValue = clusterEnvItem.properties[propertyName];
+            hasExistingClusterValue = true;
           }
         }
 
@@ -1475,6 +1625,11 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
           type: configType,
           serviceName: serviceName,
           isEditable: true,
+          ...(hasExistingClusterValue && {
+            foundInPropertyValues: true,
+            hasInitialValue: true,
+            initialValue: configValue,
+          }),
         };
 
         // Handle user and group properties
@@ -1684,10 +1839,11 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
                   properties[propertyName]
                 );
 
-              // Mark this property as found in propertyValues
-              result[serviceName][type].properties[
-                propertyName
-              ].foundInPropertyValues = true;
+              const currentProperty =
+                result[serviceName][type].properties[propertyName];
+              currentProperty.foundInPropertyValues = true;
+              currentProperty.hasInitialValue = true;
+              currentProperty.initialValue = currentProperty.value;
 
               if (
                 result[serviceName][type].properties[propertyName]
@@ -1715,6 +1871,8 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
                     type: type,
                     isEditable: true,
                     foundInPropertyValues: true,
+                    hasInitialValue: true,
+                    initialValue: properties[propertyName],
                   };
               }
             }
@@ -2027,12 +2185,16 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
    * Main function to get and process configuration properties
    * Following ServiceConfigs approach exactly
    */
-  const getConfigProperties = async () => {
+  const getConfigProperties = async (
+    themeData = themes,
+    preserveCurrentValues = false,
+    activeThemeRequestId?: number,
+  ) => {
     if (wizardName === "addService") {
       // For addService, use the exact same approach as ServiceConfigs but with host information
       let configPropertiesCopy = initializeConfigStructure();
       
-      configPropertiesCopy = addTabNames(configPropertiesCopy, themes);
+      configPropertiesCopy = addTabNames(configPropertiesCopy, themeData);
       configPropertiesCopy = processDefaultConfigurations(configPropertiesCopy);
       configPropertiesCopy = processOverrideConfigurations(configPropertiesCopy);
       configPropertiesCopy = removePropertiesWithoutValues(configPropertiesCopy);
@@ -2060,15 +2222,28 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
       // Process initializers for newly added services
       updatedConfigProperties = initializeValues(updatedConfigProperties);
       updatedConfigProperties = updateVisibilityByForeignKeys(updatedConfigProperties);
-      updatedConfigProperties = updateVisibilityForDependsOn(updatedConfigProperties, themes, "default", services.map(service => service));
+      updatedConfigProperties = updateVisibilityForDependsOn(updatedConfigProperties, themeData, "default", services.map(service => service));
       updatedConfigProperties = validateAllProperties(updatedConfigProperties);
+      if (preserveCurrentValues) {
+        updatedConfigProperties = preserveEditedConfigValues(
+          updatedConfigProperties,
+          configPropertiesRef.current,
+        );
+      }
+      if (
+        activeThemeRequestId !== undefined &&
+        activeThemeRequestId !== themeRequestId.current
+      ) {
+        return;
+      }
+      configPropertiesRef.current = updatedConfigProperties;
       setConfigProperties(updatedConfigProperties);
     } else {
       // For cluster creation, use the existing wizard approach
       let { configPropertiesCopy, updatedConfigProperties } = initializeBaseConfigStructure();
       ({ configPropertiesCopy, updatedConfigProperties } = processStackConfigurations(configPropertiesCopy, updatedConfigProperties));
       configPropertiesCopy = createCustomConfigTypes(configPropertiesCopy);
-      configPropertiesCopy = addTabNames(configPropertiesCopy, themes);
+      configPropertiesCopy = addTabNames(configPropertiesCopy, themeData);
       updatedConfigProperties = addServiceConfigCategories(configPropertiesCopy, updatedConfigProperties);
       updatedConfigProperties = organizePropertiesByCategories(configPropertiesCopy, updatedConfigProperties);
       updatedConfigProperties = addRemainingProperties(configPropertiesCopy, updatedConfigProperties);
@@ -2077,8 +2252,21 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
       updatedConfigProperties = onLoadOverrides(updatedConfigProperties);
       updatedConfigProperties = initializeValues(updatedConfigProperties);
       updatedConfigProperties = updateVisibilityByForeignKeys(updatedConfigProperties);
-      updatedConfigProperties = updateVisibilityForDependsOn(updatedConfigProperties, themes, "default", filteredServices);
+      updatedConfigProperties = updateVisibilityForDependsOn(updatedConfigProperties, themeData, "default", filteredServices);
       updatedConfigProperties = validateAllProperties(updatedConfigProperties);
+      if (preserveCurrentValues) {
+        updatedConfigProperties = preserveEditedConfigValues(
+          updatedConfigProperties,
+          configPropertiesRef.current,
+        );
+      }
+      if (
+        activeThemeRequestId !== undefined &&
+        activeThemeRequestId !== themeRequestId.current
+      ) {
+        return;
+      }
+      configPropertiesRef.current = updatedConfigProperties;
       setConfigProperties(updatedConfigProperties);
     }
   };
@@ -2096,13 +2284,37 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
   };
 
   const getThemes = async () => {
-    const response = await WizardApi.getStackThemes(
-      stackName,
-      stackVersion,
-      services.join(","),
-      "themes/*"
-    );
-    setThemes(response);
+    const requestId = ++themeRequestId.current;
+    setThemeLoadError("");
+    try {
+      const response = await WizardApi.getStackThemes(
+        stackName,
+        stackVersion,
+        services.join(","),
+        "themes/*"
+      );
+      if (requestId !== themeRequestId.current) {
+        return;
+      }
+      setThemes(response);
+      if (!isEmpty(configPropertiesRef.current)) {
+        await getConfigProperties(response, true, requestId);
+      }
+    } catch (error: any) {
+      if (requestId !== themeRequestId.current) {
+        return;
+      }
+      setThemes({});
+      setThemeLoadError(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Service configuration layouts could not be loaded."
+      );
+    } finally {
+      if (requestId === themeRequestId.current) {
+        setThemesSettled(true);
+      }
+    }
   };
 
   const getConfigurations = async () => {
@@ -2208,6 +2420,17 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
   };
 
   const continueAfterConfiguration = async () => {
+    dispatch({
+      type: ActionTypes.STORE_INFORMATION,
+      payload: createConfigurationStepPayload(
+        currentStep.name,
+        configProperties,
+        themes,
+        configs,
+        stackLevelConfigs,
+        preInstallChecksWereRun
+      ),
+    });
     if (wizardName === "addService") {
       const nextStep = nextAddServiceStep(4, addServiceFlow);
       await Promise.resolve(flushStateToDb("jump", nextStep));
@@ -2226,8 +2449,15 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
 
   const handleNext = async () => {
     if (tabMapping[selectedTab].nextTab && wizardName === "clusterCreation") {
-      setSelectedTab(tabMapping?.[selectedTab]?.nextTab as string);
-      return;
+      const nextTab = findNextEnabledConfigurationTab(
+        selectedTab,
+        tabMapping,
+        disabledTabs,
+      );
+      if (nextTab) {
+        setSelectedTab(nextTab);
+        return;
+      }
     }
     if (shouldWarnBeforeSkippingPreInstallChecks(
       wizardName,
@@ -2310,6 +2540,22 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
         </BootstrapModal.Footer>
       </BootstrapModal>
       <div>
+        {themeLoadError && (
+          <Alert variant="warning" className="mb-3">
+            <div className="d-flex justify-content-between align-items-center gap-3">
+              <span>
+                {themeLoadError} Advanced configurations remain available.
+              </span>
+              <Button
+                size="sm"
+                variant="outline-warning"
+                onClick={() => void getThemes()}
+              >
+                Retry
+              </Button>
+            </div>
+          </Alert>
+        )}
         {/* Dependent Configurations Warning Banner for Add Service */}
         {wizardName === "addService" && getDependentConfigsSummary() && (
           <div className="alert alert-warning mb-3" role="alert">
@@ -2386,6 +2632,15 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
             await Promise.resolve(flushStateToDb("jump", previousStep));
             jumpToStep(previousStep);
           } else {
+            const previousTab = findPreviousEnabledConfigurationTab(
+              selectedTab,
+              tabMapping,
+              disabledTabs,
+            );
+            if (previousTab) {
+              setSelectedTab(previousTab);
+              return;
+            }
             await Promise.resolve(flushStateToDb("back"));
             jumpToStep(6);
           }
