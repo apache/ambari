@@ -134,7 +134,10 @@ public class ThemeArtifactResourceProvider extends AbstractControllerResourcePro
     Set<Resource> resources = new LinkedHashSet<>();
     for (Map<String, Object> properties : getPropertyMaps(predicate)) {
       String themeFileName = (String) properties.get(THEME_FILE_NAME_PROPERTY_ID);
-
+      Object requestedDefaultValue = properties.get(THEME_DEFAULT_PROPERTY_ID);
+      Boolean requestedDefault = requestedDefaultValue == null
+        ? null
+        : Boolean.valueOf(String.valueOf(requestedDefaultValue));
 
       String stackName = (String) properties.get(STACK_NAME_PROPERTY_ID);
       String stackVersion = (String) properties.get(STACK_VERSION_PROPERTY_ID);
@@ -166,9 +169,20 @@ public class ThemeArtifactResourceProvider extends AbstractControllerResourcePro
         List<ThemeInfo> serviceThemes = new ArrayList<>();
         if (themeFileName != null) {
           LOG.debug("Getting themes from service {}, themes = {}", serviceInfo.getName(), serviceInfo.getThemesMap());
-          serviceThemes.add(serviceInfo.getThemesMap().get(themeFileName));
+          ThemeInfo themeInfo = serviceInfo.getThemesMap().get(themeFileName);
+          if (themeInfo == null) {
+            throw new NoSuchResourceException(String.format(
+              "Theme file doesn't exist: stackName='%s', stackVersion='%s', serviceName='%s', fileName='%s'",
+              stackName, stackVersion, serviceInfo.getName(), themeFileName));
+          }
+          if (requestedDefault == null || requestedDefault.equals(themeInfo.getIsDefault())) {
+            serviceThemes.add(themeInfo);
+          }
         } else {
           for (ThemeInfo themeInfo : serviceInfo.getThemesMap().values()) {
+            if (requestedDefault != null && !requestedDefault.equals(themeInfo.getIsDefault())) {
+              continue;
+            }
             if (themeInfo.getIsDefault()) {
               serviceThemes.add(0, themeInfo);
             } else {
@@ -199,6 +213,6 @@ public class ThemeArtifactResourceProvider extends AbstractControllerResourcePro
 
   @Override
   protected Set<String> getPKPropertyIds() {
-    return null;
+    return pkPropertyIds;
   }
 }
