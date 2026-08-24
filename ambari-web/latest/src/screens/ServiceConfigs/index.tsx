@@ -19,7 +19,7 @@
 import { useCallback, useContext, useEffect, useRef, useState, useTransition } from "react";
 import { useBlocker, useLocation, useNavigate, useParams } from "react-router-dom";
 import ConfigsApi from "../../api/configsApi";
-import { useAuth } from "../../hooks/useAuth";
+import useAuthorizationPolicy from "../../hooks/useAuthorizationPolicy";
 import { AuthGuard } from "../../components/AuthGuard";
 import { ConfigPropertiesType } from "../CommonConfigs/types";
 import { ambari_metrics_properties } from "../../data/configs/services/ambari_metrics_properties";
@@ -98,12 +98,20 @@ export default function ServiceConfigs({
   }, [location.pathname, navigate]);
 
   // Authorization hooks - implementing Ember.js App.isAuthorized patterns
-  const { hasAuthorization } = useAuth();
+  const { isAuthorized } = useAuthorizationPolicy();
 
   // Check SERVICE.MODIFY_CONFIGS authorization like in Ember.js ui/app/controllers/main/service/info/configs.js
-  const canModifyConfigs = hasAuthorization('SERVICE.MODIFY_CONFIGS');
+  const canModifyConfigs = isAuthorized('SERVICE.MODIFY_CONFIGS');
   const [loading, setLoading] = useState<boolean>(true);
   const [themes, setThemes] = useState<any>({});
+  const [themeLoading, setThemeLoading] = useState<boolean>(false);
+  const [themeLoadError, setThemeLoadError] = useState<string | null>(null);
+  const [themeRequestSettled, setThemeRequestSettled] =
+    useState<boolean>(false);
+  const themeRequestId = useRef<number>(0);
+  const serviceRequestId = useRef<number>(0);
+  const versionRequestId = useRef<number>(0);
+  const preserveEditsForThemeRequest = useRef<boolean>(false);
   const [configs, setConfigs] = useState<any>({});
   const [configProperties, setConfigProperties] =
     useState<ConfigPropertiesType>({});
@@ -200,6 +208,7 @@ export default function ServiceConfigs({
 
   // Define onVersionChange function before useEffects
   async function onVersionChange(versionNumber: any) {
+    const requestId = ++versionRequestId.current;
     try {
       setSelectedVersion(versionNumber);
       let apiVersionNumber = versionNumber;
@@ -215,23 +224,22 @@ export default function ServiceConfigs({
           )
         : ConfigsApi.getConfigValues(clusterName, serviceName));
 
-      // Merge the response with existing property values for other services
-      const updatedPropertyValues = { ...propertyValues };
-
-      // Filter out items for the current service
-      updatedPropertyValues.items = propertyValues.items.filter(
-        (item: any) => item.service_name !== serviceName
-      );
-
-      // Add the new items for the current service
-      updatedPropertyValues.items = [
-        ...updatedPropertyValues.items,
-        ...response.items,
-      ];
-
-      setPropertyValues(updatedPropertyValues);
-    } catch (error) {
-      console.error("Error changing version:", error);
+      if (requestId !== versionRequestId.current) {
+        return;
+      }
+      setPropertyValues((currentPropertyValues: any) => ({
+        ...currentPropertyValues,
+        items: [
+          ...(currentPropertyValues.items || []).filter(
+            (item: any) => item.service_name !== serviceName
+          ),
+          ...(response.items || []),
+        ],
+      }));
+    } catch {
+      if (requestId === versionRequestId.current) {
+        console.error("Error changing configuration version.");
+      }
     }
   }
 
@@ -242,21 +250,38 @@ export default function ServiceConfigs({
   }, [blocker]);
 
   useEffect(() => {
+    let isCurrentService = true;
+    const requestId = ++serviceRequestId.current;
+
     const fetchInitialData = async () => {
       try {
         setLoading(true);
+        setConfigs({});
+        setPropertyValues({});
+        setConfigProperties({});
+        setIsConfigsLoaded(false);
         await Promise.all([
-          getConfigurations(),
+          getConfigurations(false, requestId),
           getThemes(),
-          getPropertiesValues(),
+          getPropertiesValues(false, requestId),
         ]);
-        setLoading(false);
-      } catch (error) {
-        console.error("Error loading initial data:", error);
+      } catch {
+        console.error("Error loading initial service configuration data.");
+      } finally {
+        if (isCurrentService) {
+          setLoading(false);
+        }
       }
     };
     fetchInitialData();
-  }, [serviceName]);
+
+    return () => {
+      isCurrentService = false;
+      serviceRequestId.current += 1;
+      themeRequestId.current += 1;
+      versionRequestId.current += 1;
+    };
+  }, [clusterName, serviceName, servicesToFetch, stackName, stackVersion]);
 
   useEffect(() => {
     setIsComparing(false);
@@ -269,10 +294,16 @@ export default function ServiceConfigs({
   }, [isComparing, firstVersion, defaultVersionNumber]);
 
   useEffect(() => {
-    if (!isEmpty(configs) && !isEmpty(propertyValues) && configsLoaded) {
-      getConfigProperties();
+    if (
+      !isEmpty(configs) &&
+      !isEmpty(propertyValues) &&
+      configsLoaded &&
+      themeRequestSettled
+    ) {
+      getConfigProperties(themes, preserveEditsForThemeRequest.current);
+      preserveEditsForThemeRequest.current = false;
     }
-  }, [configs, propertyValues, configsLoaded]);
+  }, [configs, propertyValues, configsLoaded, themes, themeRequestSettled]);
 
   useEffect(() => {
     function allMastersLoaded() {
@@ -302,7 +333,7 @@ export default function ServiceConfigs({
       );
     }
     setIsConfigsLoaded(allMastersLoaded());
-  }, [JSON.stringify(allServiceModels)]);
+  }, [JSON.stringify(allServiceModels), serviceName]);
 
  useEffect(() => {
   if (!isEmpty(configProperties)) {
@@ -346,45 +377,88 @@ export default function ServiceConfigs({
     }
   };
 
-  const getThemes = async () => {
-    setLoading(true);
+  const getThemes = async (preserveCurrentEdits = false) => {
+    const requestId = ++themeRequestId.current;
+    preserveEditsForThemeRequest.current = preserveCurrentEdits;
+    setThemeLoading(true);
+    setThemeRequestSettled(false);
+    setThemeLoadError(null);
+    setThemes({});
+
     try {
       const response = await ConfigsApi.getTheme(
         stackName,
         stackVersion,
-        servicesToFetch
+        serviceName
       );
-      setThemes(response);
-    } catch (error) {
-      console.error("Error fetching themes:", error);
+
+      if (requestId === themeRequestId.current) {
+        setThemes(response);
+      }
+    } catch (error: unknown) {
+      if (requestId !== themeRequestId.current) {
+        return;
+      }
+
+      setThemes({});
+      setThemeLoadError(
+        get(error as object, "response.data.message") ||
+          (error instanceof Error ? error.message : "") ||
+          "The Theme request failed."
+      );
+      console.error("Error fetching service Themes.");
     } finally {
-      setLoading(false);
+      if (requestId === themeRequestId.current) {
+        setThemeLoading(false);
+        setThemeRequestSettled(true);
+      }
     }
   };
 
-  const getConfigurations = async () => {
-    setLoading(true);
+  const getConfigurations = async (
+    manageLoading = true,
+    requestId?: number,
+  ) => {
+    if (manageLoading) {
+      setLoading(true);
+    }
     try {
       const response = await ConfigsApi.getServiceConfigurations(
         stackName,
         stackVersion,
         servicesToFetch
       );
+      if (requestId !== undefined && requestId !== serviceRequestId.current) {
+        return;
+      }
       setConfigs(response);
-    } catch (error) {
-      console.error("Error fetching configurations:", error);
+    } catch {
+      console.error("Error fetching service configurations.");
     } finally {
-      setLoading(false);
+      if (
+        manageLoading &&
+        (requestId === undefined || requestId === serviceRequestId.current)
+      ) {
+        setLoading(false);
+      }
     }
   };
 
-  const getPropertiesValues = async () => {
-    setLoading(true);
+  const getPropertiesValues = async (
+    manageLoading = true,
+    requestId?: number,
+  ) => {
+    if (manageLoading) {
+      setLoading(true);
+    }
     try {
       const response = await ConfigsApi.getConfigValues(
         clusterName,
         servicesToFetch
       );
+      if (requestId !== undefined && requestId !== serviceRequestId.current) {
+        return;
+      }
       // Find the default version for the currently selected service
       const currentServiceItems = response.items.filter((item: any) => 
         item.service_name === serviceName && item.group_name === "Default"
@@ -401,6 +475,12 @@ export default function ServiceConfigs({
             serviceName,
             selection.versionsToLoad,
           );
+          if (
+            requestId !== undefined &&
+            requestId !== serviceRequestId.current
+          ) {
+            return;
+          }
           selectedPropertyValues = {
             ...response,
             items: [
@@ -421,10 +501,15 @@ export default function ServiceConfigs({
       } else {
         setPropertyValues(response);
       }
-    } catch (error) {
-      console.error("Error fetching property values:", error);
+    } catch {
+      console.error("Error fetching service property values.");
     } finally {
-      setLoading(false);
+      if (
+        manageLoading &&
+        (requestId === undefined || requestId === serviceRequestId.current)
+      ) {
+        setLoading(false);
+      }
     }
   };
 
@@ -975,14 +1060,124 @@ export default function ServiceConfigs({
     return result;
   };
 
+  const mergeCurrentPropertyEdits = (
+    rebuiltConfigs: ConfigPropertiesType
+  ) => {
+    type ConfigSection = ConfigPropertiesType[string][string];
+    type ConfigProperty = ConfigSection["properties"][string];
+
+    const result = cloneDeep(rebuiltConfigs);
+    const currentProperties = new Map<
+      string,
+      {
+        property: ConfigProperty;
+        sectionName: string;
+        section: ConfigSection;
+      }
+    >();
+
+    const propertyKey = (
+      currentServiceName: string,
+      sectionName: string,
+      propertyName: string,
+      property: ConfigProperty
+    ) =>
+      [
+        currentServiceName,
+        property.type || sectionName.replace(/^Custom /, ""),
+        property.propertyName || propertyName,
+      ].join("\u0000");
+
+    Object.entries(configProperties).forEach(([currentServiceName, sections]) => {
+      Object.entries(sections).forEach(([sectionName, section]) => {
+        Object.entries(section.properties).forEach(([propertyName, property]) => {
+          currentProperties.set(
+            propertyKey(
+              currentServiceName,
+              sectionName,
+              propertyName,
+              property
+            ),
+            { property, sectionName, section }
+          );
+        });
+      });
+    });
+
+    const rebuiltPropertyKeys = new Set<string>();
+    Object.entries(result).forEach(([currentServiceName, sections]) => {
+      Object.entries(sections).forEach(([sectionName, section]) => {
+        Object.entries(section.properties).forEach(([propertyName, property]) => {
+          const key = propertyKey(
+            currentServiceName,
+            sectionName,
+            propertyName,
+            property
+          );
+          rebuiltPropertyKeys.add(key);
+          const currentProperty = currentProperties.get(key)?.property;
+          if (!currentProperty) {
+            return;
+          }
+
+          property.value = cloneDeep(currentProperty.value);
+          property.final = currentProperty.final;
+          if (Object.prototype.hasOwnProperty.call(currentProperty, "confirmPassword")) {
+            property.confirmPassword = cloneDeep(
+              currentProperty.confirmPassword
+            );
+          }
+          if (Object.prototype.hasOwnProperty.call(currentProperty, "overrideValues")) {
+            property.overrideValues = cloneDeep(currentProperty.overrideValues);
+          }
+        });
+      });
+    });
+
+    currentProperties.forEach(
+      ({ property, sectionName, section }, key) => {
+        if (
+          rebuiltPropertyKeys.has(key) ||
+          property.foundInPropertyValues !== false ||
+          property.value === null ||
+          property.value === undefined
+        ) {
+          return;
+        }
+
+        const currentServiceName = property.serviceName;
+        if (!currentServiceName) {
+          return;
+        }
+        if (!result[currentServiceName]) {
+          result[currentServiceName] = {};
+        }
+        if (!result[currentServiceName][sectionName]) {
+          result[currentServiceName][sectionName] = {
+            ...cloneDeep(section),
+            properties: {},
+          };
+        }
+        result[currentServiceName][sectionName].properties[
+          property.propertyName
+        ] = cloneDeep(property);
+      }
+    );
+
+    return result;
+  };
+
   /**
    * Main function to get and process configuration properties
    */
-  const getConfigProperties = async () => {
+  const getConfigProperties = async (
+    themeData: unknown = themes,
+    preserveCurrentEdits = false
+  ) => {
     // Initialize the configuration structure
     let configPropertiesCopy = initializeConfigStructure();
 
-    configPropertiesCopy = addTabNames(configPropertiesCopy, themes);
+    configPropertiesCopy = addTabNames(configPropertiesCopy, themeData);
 
     // Process default and override configurations
     // Each function returns a new object without modifying the input
@@ -1008,6 +1203,12 @@ export default function ServiceConfigs({
       updatedConfigProperties
     );
 
+    if (preserveCurrentEdits) {
+      updatedConfigProperties = mergeCurrentPropertyEdits(
+        updatedConfigProperties
+      );
+    }
+
     // Apply service-specific overrides
     updatedConfigProperties = onLoadOverrides(updatedConfigProperties);
     updatedConfigProperties = setVisibilityForKerberosProperties(
@@ -1022,16 +1223,15 @@ export default function ServiceConfigs({
     );
 
     updatedConfigProperties = updateVisibilityByForeignKeys(updatedConfigProperties);
-    updatedConfigProperties = updateVisibilityForDependsOn(updatedConfigProperties, themes,"default", services.map(service => service.ServiceInfo.service_name) );
+    updatedConfigProperties = updateVisibilityForDependsOn(updatedConfigProperties, themeData,"default", services.map(service => service.ServiceInfo.service_name) );
     
     // Hide component configs based on availability (following Ember.js logic)
     updatedConfigProperties = hideComponentConfigsBasedOnAvailability(updatedConfigProperties, allServiceModels);
     
     updatedConfigProperties = validateAllProperties(updatedConfigProperties);
 
+    setConfigProperties(updatedConfigProperties);
     loadRecommendationsForConfigOnLoad(updatedConfigProperties);
-
-    // setConfigProperties(updatedConfigProperties);
   };
 
   const onLoadOverrides = (updatedConfigProperties: ConfigPropertiesType) => {
@@ -1287,6 +1487,29 @@ export default function ServiceConfigs({
                 />
               </div>
             </div>
+            {themeLoadError && (
+              <Alert
+                variant="warning"
+                className="mx-3 d-flex justify-content-between align-items-center gap-3"
+              >
+                <div>
+                  <div>
+                    Theme layout for {serviceName} could not be loaded.
+                    Configuration properties remain available in the Advanced
+                    tab.
+                  </div>
+                  <small>{themeLoadError}</small>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline-warning"
+                  disabled={themeLoading}
+                  onClick={() => getThemes(true)}
+                >
+                  {themeLoading ? "Retrying..." : "Retry"}
+                </Button>
+              </Alert>
+            )}
             <Config
               configProperties={configProperties}
               setConfigProperties={setConfigProperties}
@@ -1306,7 +1529,7 @@ export default function ServiceConfigs({
               <Button
                 className="mx-1"
                 variant="outline-secondary"
-                onClick={getPropertiesValues}
+                onClick={() => getPropertiesValues()}
                 disabled={isPending || isSubmitDisabled}
               >
                 CANCEL

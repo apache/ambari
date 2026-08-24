@@ -65,18 +65,37 @@ vi.mock("../../components/Modal", () => ({
   ) : null,
 }));
 vi.mock("../CommonConfigs/Config", () => ({
-  default: ({ configGroup, hostConfigs, onServiceChange, servicesList }: any) => (
-    <div>
-      <div data-testid="config-probe">
-        {hostConfigs ? "Read-only" : "Editable"} group: {configGroup}
+  default: ({
+    configGroup,
+    configProperties,
+    hostConfigs,
+    onServiceChange,
+    servicesList,
+    themeData,
+  }: any) => {
+    const hdfsSections = (configProperties?.HDFS || {}) as Record<
+      string,
+      { properties?: Record<string, unknown> }
+    >;
+    const hdfsPropertyNames = Object.values(hdfsSections).flatMap((section) =>
+      Object.keys(section.properties || {}),
+    );
+    return (
+      <div>
+        <div data-testid="config-probe">
+          {hostConfigs ? "Read-only" : "Editable"} group: {configGroup}
+        </div>
+        <div data-testid="theme-item-count">{themeData?.items?.length || 0}</div>
+        <div data-testid="hdfs-sections">{Object.keys(hdfsSections).join(",")}</div>
+        <div data-testid="hdfs-properties">{hdfsPropertyNames.join(",")}</div>
+        {servicesList.map((serviceName: string) => (
+          <button key={serviceName} onClick={() => onServiceChange(serviceName)}>
+            Show {serviceName}
+          </button>
+        ))}
       </div>
-      {servicesList.map((serviceName: string) => (
-        <button key={serviceName} onClick={() => onServiceChange(serviceName)}>
-          Show {serviceName}
-        </button>
-      ))}
-    </div>
-  ),
+    );
+  },
 }));
 
 import HostConfigs from "./HostConfigs";
@@ -194,6 +213,146 @@ describe("Host Configs", () => {
     fireEvent.click(screen.getByRole("button", { name: "Retry" }));
     await waitFor(() => expect(mocks.getHostData).toHaveBeenCalledTimes(2));
     expect(await screen.findByText("Read-only group: HDFS Blue")).toBeTruthy();
+  });
+
+  it("keeps host configurations usable and recovers when the Theme request fails", async () => {
+    mocks.getStackThemes.mockRejectedValueOnce(new Error("Theme unavailable"));
+    renderHostConfigs();
+
+    expect(await screen.findByText("Read-only group: HDFS Blue")).toBeTruthy();
+    expect(screen.getByTestId("theme-item-count").textContent).toBe("0");
+    expect(screen.getByRole("alert").textContent).toContain(
+      "Advanced configurations remain available. Theme unavailable",
+    );
+    expect(mocks.getStackConfigurations).toHaveBeenCalledTimes(1);
+    expect(mocks.getConfigGroupsForServices).toHaveBeenCalledTimes(1);
+    expect(mocks.getConfigValues).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(screen.getByRole("button", { name: "Retry Theme" }));
+    await waitFor(() => expect(mocks.getStackThemes).toHaveBeenCalledTimes(2));
+    await waitFor(() =>
+      expect(screen.queryByRole("alert")).toBeNull(),
+    );
+    expect(screen.getByTestId("theme-item-count").textContent).toBe("0");
+  });
+
+  it("filters traditional NAMENODE categories without pruning Theme properties", async () => {
+    mocks.getHostData.mockResolvedValue({
+      host_components: [
+        { HostRoles: { service_name: "HDFS", component_name: "DATANODE" } },
+      ],
+    });
+    mocks.getStackConfigurations.mockResolvedValue({
+      items: [
+        {
+          configurations: [
+            {
+              StackConfigurations: {
+                type: "hadoop-env.xml",
+                property_name: "namenode_opt_newsize",
+                service_name: "HDFS",
+                property_value: "200m",
+                property_value_attributes: { type: "string" },
+              },
+            },
+            {
+              StackConfigurations: {
+                type: "hadoop-env.xml",
+                property_name: "namenode_opt_maxnewsize",
+                service_name: "HDFS",
+                property_value: "400m",
+                property_value_attributes: { type: "string" },
+              },
+            },
+            {
+              StackConfigurations: {
+                type: "hdfs-site.xml",
+                property_name: "dfs.datanode.data.dir.perm",
+                service_name: "HDFS",
+                property_value: "700",
+                property_value_attributes: { type: "string" },
+              },
+            },
+            {
+              StackConfigurations: {
+                type: "hdfs-site.xml",
+                property_name: "dfs.replication",
+                service_name: "HDFS",
+                property_value: "3",
+                property_value_attributes: { type: "int" },
+              },
+            },
+          ],
+        },
+      ],
+    });
+    mocks.getStackThemes.mockResolvedValue({
+      items: [
+        {
+          StackServices: { service_name: "HDFS" },
+          themes: [
+            {
+              ThemeInfo: {
+                service_name: "HDFS",
+                theme_data: {
+                  Theme: {
+                    name: "default",
+                    configuration: {
+                      layouts: [
+                        {
+                          name: "default",
+                          tabs: [
+                            {
+                              name: "settings",
+                              layout: {
+                                sections: [
+                                  {
+                                    name: "section",
+                                    subsections: [{ name: "subsection" }],
+                                  },
+                                ],
+                              },
+                            },
+                          ],
+                        },
+                      ],
+                      placement: {
+                        configs: [
+                          {
+                            config: "hadoop-env/namenode_opt_newsize",
+                            "subsection-name": "subsection",
+                          },
+                        ],
+                      },
+                      widgets: [
+                        {
+                          config: "hadoop-env/namenode_opt_newsize",
+                          widget: { type: "text-field" },
+                        },
+                      ],
+                    },
+                  },
+                },
+              },
+            },
+          ],
+        },
+      ],
+    });
+
+    renderHostConfigs();
+
+    await waitFor(() => {
+      const sections = screen.getByTestId("hdfs-sections").textContent || "";
+      const properties = screen.getByTestId("hdfs-properties").textContent || "";
+      expect(sections).toContain("DATANODE");
+      expect(sections).toContain("General");
+      expect(sections).not.toContain("NAMENODE");
+      expect(properties).toContain("dfs.datanode.data.dir.perm");
+      expect(properties).toContain("dfs.replication");
+      expect(properties).toContain("namenode_opt_newsize");
+      expect(properties).toContain("namenode_opt_maxnewsize");
+    });
   });
 
   it("serializes both writes when moving between non-default groups", async () => {
