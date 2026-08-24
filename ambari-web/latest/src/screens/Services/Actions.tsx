@@ -125,8 +125,9 @@ export const Actions = ({ serviceName, className }: ActionsProps) => {
     isClusterInstalled,
     supports,
     wizardIsNotFinished,
+    serviceCheckSupportedMap,
   } = useContext(AppContext);
-  const { allServiceModels } = useContext(ServiceContext);
+  const { allServiceModels, serviceStatesData } = useContext(ServiceContext);
 
   // Authorization hooks - implementing Ember.js App.isAuthorized patterns
   const { hasAuthorization } = useAuth();
@@ -334,46 +335,31 @@ export const Actions = ({ serviceName, className }: ActionsProps) => {
       return false;
     }
 
-    async function fetchServiceState() {
+    // OPTIMIZED: Use cached service state data instead of making individual API call
+    // EmberJS uses App.Service.find() which loads from Ember Data store
+    // Modern UI now uses serviceStatesData from ServiceContext (centralized polling)
+    // This eliminates unnecessary /services/{serviceName} API calls
+    function loadServiceStateFromCache() {
       if (
         clusterName &&
         serviceName &&
         installedServiceNames.includes(serviceName)
       ) {
-        const response = await ServiceApi.getServiceState(
-          clusterName,
-          serviceName.toUpperCase()
-        );
-        setServiceState(response.data.ServiceInfo);
+        // Get service state from centralized cache (already being polled)
+        const cachedServiceState = serviceStatesData.get(serviceName.toUpperCase());
+        if (cachedServiceState) {
+          setServiceState(cachedServiceState);
+        }
       }
     }
 
-    async function fetchServiceCheckSupported() {
+    function fetchServiceCheckSupported() {
       if (!allServiceModels || !allServiceModels[serviceNameModelMapping[serviceName]]) {
         return;
       }
 
-      // Match Ember.js logic exactly: check if service supports service check from stack definition
-      let isServiceCheckSupportedFromStack = false;
-      
-      try {
-        const response = await ServiceApi.isServiceCheckSupported(
-          clusterName,
-          //@ts-ignore
-          serviceName,
-          stackName,
-          stackVersion
-        );
-        isServiceCheckSupportedFromStack = get(
-          response.data,
-          "StackServices.service_check_supported",
-          false
-        );
-      } catch (error) {
-        console.error("Error fetching service check support", error);
-        // Default to false if we can't determine support
-        isServiceCheckSupportedFromStack = false;
-      }
+      // Use cached service_check_supported from initial stack configs fetch (like Ember's App.services.supportsServiceCheck)
+      const isServiceCheckSupportedFromStack = serviceCheckSupportedMap[serviceName] || false;
 
       // Apply Ember.js isSmokeTestDisabled logic
       let isSmokeTestDisabled = false;
@@ -397,9 +383,9 @@ export const Actions = ({ serviceName, className }: ActionsProps) => {
     }
 
     //fetchClusterName();
-    fetchServiceState();
+    loadServiceStateFromCache(); // OPTIMIZED: Load from cache instead of API call
     fetchServiceCheckSupported();
-  }, [serviceName, clusterName, allServiceModels, serviceModels]);
+  }, [serviceName, clusterName, allServiceModels, serviceModels, serviceStatesData]);
 
   useEffect(() => {
     const message = socketMessages[0];

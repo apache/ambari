@@ -30,9 +30,12 @@ import { AppContext } from "../../store/context";
 import { AlertEditorHandle, AlertStatusObject, MergedAlert } from './types';
 import { buildAlertDefinitionDetails } from '../../Utils/alertDefinitions';
 import Modal from '../../components/Modal';
+import { useAlerts } from '../../store/AlertsContext';
 
 const AlertDefinitionDetails = () => {
     const { clusterName } = useContext(AppContext);
+    // Alert groups + summary already loaded/kept in sync by AlertsContext - no need to refetch them here.
+    const { alertGroups, alertSummary } = useAlerts();
     const params = useParams<{ alertId?: string }>();
     const [isLoaded, setIsLoaded] = useState(false);
     const [alertDefinition, setAlertDefinition] = useState<MergedAlert | null>(null);
@@ -106,22 +109,20 @@ const AlertDefinitionDetails = () => {
             try {
                 const alertDefinitionId = params.alertId;
                 if (alertDefinitionId) {
-                    const [groupsResponse, summariesResponse, alertDefinitionResponse] = await Promise.all([
-                        AlertsApi.getAlerts(
-                            clusterName,
-                            'AlertGroup/default,AlertGroup/definitions,AlertGroup/id,AlertGroup/name,AlertGroup/targets',
-                            Date.now()
-                        ),
-                        AlertsApi.getGroupFormattedAlertsNotifications(clusterName, Date.now()),
-                        AlertsApi.getAlertDefinitionById(clusterName, alertDefinitionId, Date.now())
-                    ]);
+                    // Alert groups + summary come from AlertsContext (shared, WebSocket-updated) -
+                    // only the full per-definition detail (source/config/help_url) needs its own fetch.
+                    const alertDefinitionResponse = await AlertsApi.getAlertDefinitionById(
+                        clusterName,
+                        alertDefinitionId,
+                        Date.now(),
+                    );
                     const definition = alertDefinitionResponse?.AlertDefinition ||
                         alertDefinitionResponse?.items?.[0]?.AlertDefinition;
                     if (!definition) throw new Error('Alert definition not found');
                     const details = buildAlertDefinitionDetails(
                         definition,
-                        groupsResponse?.items || [],
-                        summariesResponse?.alerts_summary_grouped || [],
+                        alertGroups || [],
+                        alertSummary?.alerts_summary_grouped || [],
                     );
                     setAlertDefinition(details);
                     setStatuses(details.statuses);
@@ -137,7 +138,7 @@ const AlertDefinitionDetails = () => {
         };
 
         fetchAlertDetails();
-    }, [params.alertId, clusterName, retryTrigger]);
+    }, [params.alertId, clusterName, retryTrigger, alertGroups, alertSummary]);
 
     if (!isLoaded) {
         return <Spinner />;

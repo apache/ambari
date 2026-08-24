@@ -33,11 +33,68 @@ class CentralizedServiceStateApi {
   private pendingRequest: Promise<Map<string, ServiceStateData>> | null = null;
 
   /**
-   * Fetches all service states and alerts in a single API call (Ember.js pattern)
-   * This replaces individual ServiceApi.getServiceState() calls
+   * Calculate alert counts per service from alert summary and definitions (EmberJS pattern)
+   * Matches alert_definition_summary_mapper.js logic
+   *
+   * @param alertSummary - Alert summary with grouped alerts (by definition_id)
+   * @param alertDefinitions - Alert definitions with service_name mapping
+   */
+  private calculateServiceAlertCounts(
+    alertSummary?: { alerts_summary_grouped: any[] },
+    alertDefinitions?: any[]
+  ): Map<string, { alertsCount: number, hasCriticalAlerts: boolean }> {
+    const serviceAlerts = new Map<string, { alertsCount: number, hasCriticalAlerts: boolean }>();
+
+    if (!alertSummary?.alerts_summary_grouped || !alertDefinitions) {
+      return serviceAlerts;
+    }
+
+    // Create map of definition_id -> service_name
+    const definitionIdToService = new Map<number, string>();
+    alertDefinitions.forEach((def: any) => {
+      if (def.id && def.service_name) {
+        definitionIdToService.set(def.id, def.service_name);
+      }
+    });
+
+    // Group alerts by service_name and count CRITICAL + WARNING
+    alertSummary.alerts_summary_grouped.forEach((alert: any) => {
+      const definitionId = alert.definition_id;
+      if (!definitionId) return;
+
+      const serviceName = definitionIdToService.get(definitionId);
+      if (!serviceName) return;
+
+      const criticalCount = alert.summary?.CRITICAL?.count || 0;
+      const warningCount = alert.summary?.WARNING?.count || 0;
+      const totalCount = criticalCount + warningCount;
+      const hasCritical = criticalCount > 0;
+
+      if (!serviceAlerts.has(serviceName)) {
+        serviceAlerts.set(serviceName, { alertsCount: 0, hasCriticalAlerts: false });
+      }
+
+      const current = serviceAlerts.get(serviceName)!;
+      current.alertsCount += totalCount;
+      current.hasCriticalAlerts = current.hasCriticalAlerts || hasCritical;
+    });
+
+    return serviceAlerts;
+  }
+
+  /**
+   * Fetches service states and calculates alert counts (EmberJS pattern)
+   *
+   * Alert counts come from /alerts?format=groupedSummary via AlertsContext (useAlerts hook),
+   * not from a separate /alerts API call here - alertSummary/alertDefinitions carry that data.
+   *
    * REQUEST DEDUPLICATION: If a request is already in progress, return the pending promise
    */
-  async fetchAllServiceStatesAndAlerts(clusterName: string): Promise<Map<string, ServiceStateData>> {
+  async fetchAllServiceStatesAndAlerts(
+    clusterName: string,
+    alertSummary?: { alerts_summary_grouped: any[] },
+    alertDefinitions?: any[]
+  ): Promise<Map<string, ServiceStateData>> {
     const now = Date.now();
 
     // Return cached data if still fresh
@@ -57,52 +114,21 @@ class CentralizedServiceStateApi {
           method: "GET",
         });
 
-        // Get alerts with proper maintenance state filtering (following Ember pattern)
-        // This API call will return NO items for services/components in maintenance mode
-        const alertsResponse = await ambariApi.request({
-          url: `/clusters/${clusterName}/alerts?fields=Alert/service_name,Alert/state&Alert/state.in(CRITICAL,WARNING)&Alert/maintenance_state.in(OFF)&minimal_response=true`,
-          method: "GET",
-        });
-
         const newCache = new Map<string, ServiceStateData>();
 
-        // Count alerts per service - API already filters out maintenance mode alerts
-        const serviceAlertsCount: { [key: string]: { critical: number; warning: number } } = {};
-
-        alertsResponse.data.items?.forEach((alert: any) => {
-          const serviceName = alert.Alert?.service_name;
-          const alertState = alert.Alert?.state;
-
-          if (serviceName && alertState) {
-            if (!serviceAlertsCount[serviceName]) {
-              serviceAlertsCount[serviceName] = { critical: 0, warning: 0 };
-            }
-
-            if (alertState === 'CRITICAL') {
-              serviceAlertsCount[serviceName].critical++;
-            } else if (alertState === 'WARNING') {
-              serviceAlertsCount[serviceName].warning++;
-            }
-          }
-        });
+        const serviceAlertCounts = this.calculateServiceAlertCounts(alertSummary, alertDefinitions);
 
         response.data.items?.forEach((service: any) => {
           const serviceName = service.ServiceInfo.service_name;
           const state = service.ServiceInfo.state;
 
-          // Use API-filtered alert counts (already excludes maintenance mode alerts)
-          const serviceAlerts = serviceAlertsCount[serviceName] || { critical: 0, warning: 0 };
-          const criticalAlerts = serviceAlerts.critical;
-          const warningAlerts = serviceAlerts.warning;
-
-          const alertsCount = criticalAlerts + warningAlerts;
-          const hasCriticalAlerts = criticalAlerts > 0;
+          const alertData = serviceAlertCounts.get(serviceName) || { alertsCount: 0, hasCriticalAlerts: false };
 
           newCache.set(serviceName, {
             serviceName,
             state,
-            alertsCount,
-            hasCriticalAlerts,
+            alertsCount: alertData.alertsCount,
+            hasCriticalAlerts: alertData.hasCriticalAlerts,
           });
         });
 
@@ -114,7 +140,7 @@ class CentralizedServiceStateApi {
 
         return this.cache;
       } catch (error) {
-        console.error('Error fetching service states and alerts:', error);
+        console.error('Error fetching service states:', error);
         // Return existing cache on error
         return this.cache;
       } finally {

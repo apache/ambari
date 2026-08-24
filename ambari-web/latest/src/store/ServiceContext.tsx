@@ -36,6 +36,7 @@ import YARNService from "../models/yarn.ts";
 import HiveService from "../models/hive.ts";
 import usePolling from "../hooks/usePolling.ts";
 import { AppContext } from "./context.tsx";
+import { useAlerts } from "./AlertsContext.tsx";
 import usePrevious from "../hooks/usePrevious.ts";
 import { ServiceApi } from "../api/serviceApi.ts";
 import { cachedServiceApi } from "../api/cachedServiceApi.ts";
@@ -92,6 +93,9 @@ const ServiceProvider: React.FC<ServiceProviderProps> = ({ children }) => {
   const [serviceStatesData, setServiceStatesData] = useState<Map<string, any>>(new Map());
 
   const { clusterName } = useContext(AppContext);
+
+  // Alert data from AlertsContext, used to calculate service alert counts without a separate /alerts call
+  const { alertSummary, alertDefinitions } = useAlerts();
   
   const isOnClusterAdminPage = location.pathname.includes('/main/admin/');
 
@@ -299,7 +303,7 @@ const ServiceProvider: React.FC<ServiceProviderProps> = ({ children }) => {
           console.log('Component maintenance mode changed for services:', componentMaintenanceChanges);
           // Force refresh of centralized service state data to get updated alerts
           centralizedServiceStateApi.clearCache();
-          await centralizedServiceStateApi.fetchAllServiceStatesAndAlerts(clusterName);
+          await centralizedServiceStateApi.fetchAllServiceStatesAndAlerts(clusterName, alertSummary, alertDefinitions);
         }
       }
     } catch (error) {
@@ -349,7 +353,7 @@ const ServiceProvider: React.FC<ServiceProviderProps> = ({ children }) => {
             console.log('Maintenance mode changed for services:', changedServices);
             // Force refresh of centralized service state data to get updated alerts
             centralizedServiceStateApi.clearCache();
-            await centralizedServiceStateApi.fetchAllServiceStatesAndAlerts(clusterName);
+            await centralizedServiceStateApi.fetchAllServiceStatesAndAlerts(clusterName, alertSummary, alertDefinitions);
           }
         }
       } catch (error) {
@@ -401,7 +405,7 @@ const ServiceProvider: React.FC<ServiceProviderProps> = ({ children }) => {
         if (!isPollingActive) return;
 
         try {
-          const statesData = await centralizedServiceStateApi.fetchAllServiceStatesAndAlerts(clusterName);
+          const statesData = await centralizedServiceStateApi.fetchAllServiceStatesAndAlerts(clusterName, alertSummary, alertDefinitions);
           setServiceStatesData(statesData);
         } catch (error) {
           console.error('Error polling service states:', error);
