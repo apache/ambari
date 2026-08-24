@@ -48,7 +48,7 @@ import TestConnection from "./TestConnection";
 import Modal from "../../components/Modal";
 import useEnhancedConfigs from "../../hooks/useEnhancedConfigs";
 import OverlayBackdrop from "../../components/OverlayBackdrop";
-import { useAuth } from "../../hooks/useAuth";
+import useAuthorizationPolicy from "../../hooks/useAuthorizationPolicy";
 import Tooltip from "../../components/Tooltip";
 import { formatParamsForDisplay, formatParamsForSave, shouldUseMultilineFormatting } from "../../Utils/jvmFormatUtils";
 import {
@@ -131,8 +131,8 @@ function AdvancedConfigs({
   const [, startTransition] = useTransition();
   const [showAddPropertyModal, setShowAddPropertyModal] =
     useState<boolean>(false);
-  const { havePermissions } = useAuth();
-  const canEditConfigs = havePermissions("SERVICE.MODIFY_CONFIGS");
+  const { isAuthorized } = useAuthorizationPolicy();
+  const canEditConfigs = isAuthorized("SERVICE.MODIFY_CONFIGS");
   const canEditProperties = canEdit ?? canEditConfigs;
   const newPropertyFields = {
     propertyName: "",

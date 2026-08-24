@@ -43,7 +43,7 @@ import {
 } from "./types";
 import ConfigGroupApi from "../../api/configGroupApi";
 import { ActionTypes } from "../ClusterWizard/clusterStore/types";
-import { useAuth } from "../../hooks/useAuth";
+import useAuthorizationPolicy from "../../hooks/useAuthorizationPolicy";
 import classNames from "classnames";
 import {
   buildConfigGroupUpdatePlan,
@@ -96,9 +96,9 @@ export default function ManageConfigGroups({
   const { state, dispatch } = useContext(ClusterCreationContext);
 
   // Authorization hooks - implementing Ember.js config groups authorization patterns
-  const { hasAuthorization } = useAuth();
+  const { isAuthorized } = useAuthorizationPolicy();
 
-  const canManageConfigGroups = hasAuthorization("SERVICE.MANAGE_CONFIG_GROUPS");
+  const canManageConfigGroups = isAuthorized("SERVICE.MANAGE_CONFIG_GROUPS");
 
   const isRenameConfigGroup = useRef(false);
   const isDuplicateConfigGroup = useRef(false);
