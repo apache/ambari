@@ -16,15 +16,57 @@
  * limitations under the License.
  */
 
-import { useContext } from "react";
+import { useContext, useState } from "react";
+import { Alert } from "react-bootstrap";
 import WizardFooter from "../../../../components/StepWizard/WizardFooter";
 import { EnableHighAvailibilityContext } from "./store/context";
+import { ActionTypes } from "./store/types";
+import { enableResourceManagerSteps } from "./wizardSteps";
+import { responseErrorMessage } from "./rmHaUtils";
 
 function Step1() {
   const {
+    dispatch,
     flushStateToDb,
     stepWizardUtilities: { currentStep, handleNextImperitive },
   } = useContext(EnableHighAvailibilityContext);
+  const [persistenceError, setPersistenceError] = useState("");
+
+  async function continueToHostSelection() {
+    setPersistenceError("");
+    try {
+      [
+        enableResourceManagerSteps.SELECT_HOSTS,
+        enableResourceManagerSteps.REVIEW,
+        enableResourceManagerSteps.CONFIGURE_COMPONENTS,
+      ].forEach((key) => {
+        dispatch({ type: ActionTypes.REMOVE_KEY, payload: { key } });
+      });
+      await flushStateToDb("next");
+      await handleNextImperitive();
+    } catch (error) {
+      setPersistenceError(
+        responseErrorMessage(
+          error,
+          "Ambari could not save the ResourceManager HA checkpoint.",
+        ),
+      );
+    }
+  }
+
+  async function cancelWorkflow() {
+    setPersistenceError("");
+    try {
+      await flushStateToDb("cancel");
+    } catch (error) {
+      const message = responseErrorMessage(
+        error,
+        "Ambari could not clear the ResourceManager HA workflow.",
+      );
+      setPersistenceError(message);
+      throw new Error(message);
+    }
+  }
   return (
     <>
       <h3 className="step-title">Get Started</h3>
@@ -42,19 +84,17 @@ function Step1() {
         You should plan a cluster maintenance window and prepare for cluster
         downtime when enabling ResourceManager HA.
       </div>
+      {persistenceError && (
+        <Alert variant="danger" className="mt-3">
+          {persistenceError}
+        </Alert>
+      )}
       <WizardFooter
         step={currentStep}
         isNextEnabled={true}
-        onBack={() => {
-          flushStateToDb("back");
-        }}
-        onNext={() => {
-          flushStateToDb("next");
-          handleNextImperitive();
-        }}
-        onCancel={() => {
-          flushStateToDb("cancel");
-        }}
+        onBack={() => undefined}
+        onNext={() => void continueToHostSelection()}
+        onCancel={cancelWorkflow}
       />
     </>
   );

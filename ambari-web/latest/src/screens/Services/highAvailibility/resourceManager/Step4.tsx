@@ -16,334 +16,204 @@
  * limitations under the License.
  */
 
-import { useContext, useEffect, useState } from "react";
-import { EnableHighAvailibilityContext } from "./store/context";
+import { useContext, useState } from "react";
+import type { ComponentProps } from "react";
+import { Alert } from "react-bootstrap";
 import { AppContext } from "../../../../store/context";
-import { ServiceContext } from "../../../../store/ServiceContext";
-import { getStepData } from "../../../../Utils/Utility";
-import { filter, find, map, startCase } from "lodash";
-import {
-  createInstallComponentTask,
-  reconfigureSites,
-  startAllServices,
-  stopServices,
-} from "../../../../Utils/taskUtils";
-import ConfigsApi from "../../../../api/configsApi";
-import { enableResourceManagerSteps } from "./wizardSteps";
-import { t } from "i18next";
-import ClusterApi from "../../../../api/clusterApi";
 import OperationsProgress from "../../../../components/OperationsProgress";
+import Spinner from "../../../../components/Spinner";
 import WizardFooter from "../../../../components/StepWizard/WizardFooter";
-import { ActionTypes } from "./store/types";
 import useKDCSessionState from "../../../../hooks/useKDCSessionState";
+import modalManager from "../../../../store/ModalManager";
+import { EnableHighAvailibilityContext } from "./store/context";
+import { ActionTypes } from "./store/types";
+import { enableResourceManagerSteps } from "./wizardSteps";
+import {
+  createRmHaOperations,
+  mergePersistedRmHaOperations,
+} from "./rmHaWorkflow";
+import {
+  canCompleteRmHa,
+  getRmHaAssignment,
+  responseErrorMessage,
+  stripOperationCallbacks,
+} from "./rmHaUtils";
+import {
+  PersistedRmHaOperation,
+  RmHaOperation,
+  RmHaReviewConfig,
+} from "./rmHaTypes";
 
-type ServiceHandlersType = {
-  [key: string]: (data: any) => void;
-};
+type ProgressDispatch = NonNullable<
+  ComponentProps<typeof OperationsProgress>["dispatch"]
+>;
 
 function Step4() {
-  enum COMMANDS {
-    stopRequiredServices = "stopRequiredServices",
-    installResourceManager = "installResourceManager",
-    reconfigureYARN = "reconfigureYARN",
-    reconfigureHAWQ = "reconfigureHAWQ",
-    reconfigureHDFS = "reconfigureHDFS",
-    startAllServices = "startAllServices",
-  }
-
   const {
     state,
     dispatch,
     flushStateToDb,
     stepWizardUtilities: { currentStep },
   } = useContext(EnableHighAvailibilityContext);
-  const { clusterName, services } = useContext(AppContext);
-  const { serviceModels: allServiceModels }: any = useContext(ServiceContext);
-  const { getKDCSessionState } = useKDCSessionState(() => {});
-  const [completionStatus, setCompletionStatus] = useState(false);
-  const [stepOperations, setStepOperations] = useState<any>([]);
-  const masterComponentHosts = getStepData(
-    state,
-    "SELECT_HOSTS",
-    "masterComponentHosts",
-    "enableHighAvailibilitySteps"
+  const { clusterName, services, ambariProperties } = useContext(AppContext);
+  const { isLoaded: isKdcLoaded, getKDCSessionState } =
+    useKDCSessionState(() => {});
+  const assignment = getRmHaAssignment(
+    state.enableHighAvailibilitySteps?.[
+      enableResourceManagerSteps.SELECT_HOSTS
+    ],
   );
+  const reviewStepData =
+    state.enableHighAvailibilitySteps?.[enableResourceManagerSteps.REVIEW]?.data;
+  const reviewConfig = (reviewStepData?.reviewConfig ||
+    reviewStepData?.stepConfigs) as RmHaReviewConfig | undefined;
+  const savedOperations = state.enableHighAvailibilitySteps?.[
+    enableResourceManagerSteps.CONFIGURE_COMPONENTS
+  ]?.data?.operationsState as PersistedRmHaOperation[] | undefined;
+  const selectedServices = services
+    .map((service) => service?.ServiceInfo?.service_name)
+    .filter(Boolean) as string[];
+  const setupError = !assignment
+    ? "The ResourceManager host assignment is missing."
+    : !reviewConfig?.configs
+      ? "The ResourceManager HA configuration review is missing."
+      : "";
 
-  const selectedServices = map(services, "ServiceInfo.service_name");
+  const [stepOperations] = useState<RmHaOperation[]>(() => {
+    if (!assignment || !reviewConfig?.configs) return [];
+    const operations = createRmHaOperations({
+      clusterName,
+      services: selectedServices,
+      additionalRM: assignment.additionalRM,
+      reviewConfig,
+      runSmokeTest: ambariProperties?.["skip.service.checks"] !== "true",
+      getKdcSessionState: getKDCSessionState,
+    });
+    return mergePersistedRmHaOperations(operations, savedOperations);
+  });
+  const [completionStatus, setCompletionStatus] = useState(() =>
+    canCompleteRmHa(stripOperationCallbacks(stepOperations)),
+  );
+  const [workflowError, setWorkflowError] = useState("");
+  const [isCompleting, setIsCompleting] = useState(false);
 
-  function initializeTasks() {
-    let id = 0;
-    const allOps = [];
-    const tasksToRemove = [];
-
-    if (!selectedServices.includes("HAWQ")) {
-      {
-        tasksToRemove.push(COMMANDS.reconfigureHAWQ);
-      }
-    }
-
-    if (!tasksToRemove.includes(COMMANDS.stopRequiredServices)) {
-      allOps.push({
-        id: id++,
-        label: "Stop Required Services",
-        skippable: false,
-        callback: async () => {
-          return await stopServices(
-            clusterName,
-            ["HDFS"],
-            true,
-            false,
-            selectedServices
+  const persistOperations: ProgressDispatch = async (operationsState) => {
+    const persistedOperations = operationsState.map(
+      ({ callback: _callback, ...operation }) => {
+        if (typeof operation.id !== "string" || operation.skippable) {
+          throw new Error(
+            "ResourceManager HA received an invalid operation checkpoint.",
           );
-        },
-      });
-    }
-    if (!tasksToRemove.includes(COMMANDS.installResourceManager)) {
-      allOps.push({
-        id: id++,
-        label: "Install ResourceManager",
-        skippable: false,
-        callback: async () => {
-          const hostName = find(
-            filter(masterComponentHosts, ["component", "RESOURCEMANAGER"]),
-            ["isInstalled", false]
-          )?.hostName;
-          console.log("Host name for ResourceManager:", hostName);
-
-          return await createInstallComponentTask(
-            "RESOURCEMANAGER",
-            hostName,
-            "YARN",
-            clusterName,
-            ["YARN"],
-            allServiceModels["yarn"],
-            getKDCSessionState
-          );
-        },
-      });
-    }
-
-    if (!tasksToRemove.includes(COMMANDS.reconfigureYARN)) {
-      allOps.push({
-        id: id++,
-        label: "Reconfigure Yarn",
-        skippable: false,
-        callback: async () => {
-          const reconfigureYarnResponse = await loadConfigTags("Yarn");
-          return reconfigureYarnResponse;
-        },
-      });
-    }
-
-    if (!tasksToRemove.includes(COMMANDS.reconfigureHAWQ)) {
-      allOps.push({
-        id: id++,
-        label: "Reconfigure HAWQ",
-        skippable: false,
-        callback: async () => {
-          return await loadConfigTags("Hawq");
-        },
-      });
-    }
-
-    if (!tasksToRemove.includes(COMMANDS.reconfigureHDFS)) {
-      allOps.push({
-        id: id++,
-        label: "Reconfigure HDFS",
-        skippable: false,
-        callback: async () => {
-          return await loadConfigTags("Hdfs");
-        },
-      });
-    }
-
-    allOps.push({
-      id: id++,
-      label: "Start All Services",
-      skippable: false,
-      callback: async () => {
-        return await startAllServices(clusterName);
+        }
+        return {
+          ...operation,
+          id: operation.id,
+          skippable: false as const,
+        } as PersistedRmHaOperation;
+      },
+    );
+    dispatch({
+      type: ActionTypes.STORE_INFORMATION,
+      payload: {
+        step: currentStep.name,
+        data: { operationsState: persistedOperations },
       },
     });
-
-    return allOps;
-  }
-
-  async function loadConfigTags(service: string) {
-    const onLoadServiceConfigTags =
-      "onLoad" + startCase(service) + "ConfigTags";
-    console.log("Loading config tags for service:", service);
-    try {
-      const response = await ConfigsApi.loadConfigTags(clusterName);
-      const data = response.data || response;
-      if (onLoadServiceConfigTags in serviceHandlers) {
-        return await serviceHandlers[onLoadServiceConfigTags](data);
-      }
-    } catch (error) {
-      console.log(error);
-      throw error;
-    }
-  }
-
-  const serviceHandlers: ServiceHandlersType = {
-    onLoadYarnConfigTags: async (data: any) => {
-      try {
-        const urlParams =
-          "(type=yarn-site&tag=" +
-          data.Clusters.desired_configs["yarn-site"].tag +
-          ")";
-        const response = await ConfigsApi.getConfigsByTags(
-          clusterName,
-          urlParams
-        );
-        if (response) {
-          return await onLoadConfigs(response, "yarn-site");
-        }
-      } catch (error) {
-        console.log(error);
-        throw error;
-      }
-    },
-    onLoadHawqConfigTags: async (data: any) => {
-      try {
-        const urlParams =
-          "(type=yarn-client&tag=" +
-          data.Clusters.desired_configs["yarn-client"].tag +
-          ")";
-        const response = await ConfigsApi.getConfigsByTags(
-          clusterName,
-          urlParams
-        );
-        if (response) {
-          return await onLoadConfigs(response, "yarn-client");
-        }
-      } catch (error) {
-        console.log(error);
-        throw error;
-      }
-    },
-    onLoadHdfsConfigTags: async (data: any) => {
-      try {
-        const urlParams =
-          "(type=core-site&tag=" +
-          data.Clusters.desired_configs["core-site"].tag +
-          ")";
-        const response = await ConfigsApi.getConfigsByTags(
-          clusterName,
-          urlParams
-        );
-        if (response) {
-          return await onLoadConfigs(response, "core-site");
-        }
-      } catch (error) {
-        console.log(error);
-        throw error;
-      }
-    },
+    await flushStateToDb();
+    setCompletionStatus(canCompleteRmHa(persistedOperations));
   };
 
-  async function onLoadConfigs(data: any, type: string) {
-    const configs = getStepData(
-      state,
-      enableResourceManagerSteps.REVIEW,
-      "stepConfigs.configs",
-      "enableHighAvailibilitySteps"
-    );
-    const propertiesToAdd = configs.filter(
-      (config: any) => config.filename === type
-    );
-
-    propertiesToAdd.forEach((property: any) => {
-      if (data?.items?.[0])
-        data.items[0].properties[property.name] = property.value;
-      else {
-        data.items.push({
-          type: type,
-          properties: {
-            [property.name]: property.value,
-          },
-        });
-      }
-    });
-
-    const configData = reconfigureSites(
-      [type],
-      data,
-      t("admin.highAvailability.step4.save.configuration.note")
-    );
-
-    return await ClusterApi.updateCluster(clusterName, {
-      Clusters: {
-        desired_config: configData,
-      },
-    });
+  async function completeWorkflow() {
+    if (!completionStatus || isCompleting) return;
+    setIsCompleting(true);
+    setWorkflowError("");
+    try {
+      await flushStateToDb("complete");
+      modalManager.hide();
+      window.location.href = "/#/main/services/YARN/summary";
+      window.location.reload();
+    } catch (error) {
+      setWorkflowError(
+        responseErrorMessage(
+          error,
+          "Ambari could not clear the completed ResourceManager HA workflow.",
+        ),
+      );
+      setIsCompleting(false);
+    }
   }
 
-  const savedOperationsState = getStepData(
-    state,
-    enableResourceManagerSteps.CREATE_CHECKPOINT,
-    "operationsState",
-    "enableHighAvailibilitySteps"
-  );
+  async function cancelWorkflow() {
+    setWorkflowError("");
+    try {
+      await flushStateToDb("cancel");
+    } catch (error) {
+      const message = responseErrorMessage(
+        error,
+        "Ambari could not save the ResourceManager HA recovery checkpoint.",
+      );
+      setWorkflowError(message);
+      throw new Error(message);
+    }
+  }
 
-  useEffect(() => {
-    const operations = (() => {
-      const initialOperations = initializeTasks();
-
-      if (savedOperationsState && Array.isArray(savedOperationsState)) {
-        return initialOperations.map((originalOp) => {
-          const savedOp = savedOperationsState.find(
-            (saved: any) => saved.id === originalOp.id
-          );
-          return savedOp
-            ? { ...originalOp, ...savedOp, callback: originalOp.callback }
-            : originalOp;
-        });
-      }
-
-      return initialOperations;
-    })();
-    setStepOperations(operations);
-  }, [JSON.stringify(savedOperationsState)]);
-
-
-  if(!stepOperations || stepOperations.length===0){
-    return <div>Loading...</div>
+  if (setupError) {
+    return (
+      <>
+        <h3 className="step-title">Configure Components</h3>
+        <Alert variant="danger" className="mt-3">
+          {setupError} Close the wizard and restart ResourceManager HA.
+        </Alert>
+        <WizardFooter
+          step={currentStep}
+          isNextEnabled={false}
+          onBack={() => undefined}
+          onNext={() => undefined}
+          onCancel={cancelWorkflow}
+          cancelConfirmationBody="Exit the wizard and keep the deployment checkpoint for recovery?"
+        />
+      </>
+    );
   }
 
   return (
     <>
-      <OperationsProgress
-        title=""
-        description=""
-        setCompletionStatus={setCompletionStatus}
-        operations={stepOperations as any}
-        dispatch={(operationsState: any) => {
-          dispatch({
-            type: ActionTypes.STORE_INFORMATION,
-            payload: {
-              step: currentStep.name,
-              data: {
-                operationsState,
-              },
-            },
-          });
-        }}
-      />
+      <h3 className="step-title">Configure Components</h3>
+      <div className="step-description">
+        Ambari is stopping services, installing the additional ResourceManager,
+        saving HA configurations, and starting the cluster.
+      </div>
+
+      {!isKdcLoaded ? (
+        <div className="d-flex align-items-center gap-2 mt-4">
+          <Spinner />
+          <span>Preparing Kerberos session validation...</span>
+        </div>
+      ) : (
+        <OperationsProgress
+          title=""
+          description=""
+          setCompletionStatus={setCompletionStatus}
+          operations={stepOperations}
+          dispatch={persistOperations}
+          errorCallback={setWorkflowError}
+          allowCompleteOnFinalFailure
+        />
+      )}
+
+      {workflowError && (
+        <Alert variant="danger" className="mt-3">
+          {workflowError}
+        </Alert>
+      )}
+
       <WizardFooter
         step={currentStep}
-        isNextEnabled={completionStatus}
-        onNext={() => {
-          flushStateToDb("cancel");
-          window.location.href = "#/main/services/YARN/summary";
-          window.location.reload();
-        }}
-        onBack={() => {
-          flushStateToDb("back");
-        }}
-        onCancel={() => {
-          flushStateToDb("cancel");
-        }}
+        isNextEnabled={completionStatus && !isCompleting}
+        onBack={() => undefined}
+        onNext={() => void completeWorkflow()}
+        onCancel={cancelWorkflow}
+        cancelConfirmationBody="ResourceManager HA deployment may continue on the server. Exit the wizard and keep this checkpoint so progress can be resumed?"
       />
     </>
   );
