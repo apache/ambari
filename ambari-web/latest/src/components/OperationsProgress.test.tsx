@@ -49,6 +49,7 @@ const renderProgress = (
   setCompletionStatus = vi.fn(),
   errorCallback?: (message: string) => void,
   dispatch?: NonNullable<OperationsProgressProps["dispatch"]>,
+  allowCompleteOnFinalFailure = false,
 ) => {
   const result = render(
     <AppContext.Provider
@@ -61,6 +62,7 @@ const renderProgress = (
         setCompletionStatus={setCompletionStatus}
         errorCallback={errorCallback}
         dispatch={dispatch}
+        allowCompleteOnFinalFailure={allowCompleteOnFinalFailure}
       />
     </AppContext.Provider>,
   );
@@ -147,6 +149,26 @@ describe("OperationsProgress", () => {
     expect(callback).toHaveBeenCalledOnce();
   });
 
+  it.each([
+    ["missing ID", { Requests: {} }],
+    ["empty ID", { Requests: { id: "" } }],
+    ["nonnumeric ID", { Requests: { id: "request-42" } }],
+    ["zero ID", { Requests: { id: 0 } }],
+    ["missing Requests", {}],
+  ])("makes a malformed accepted response retryable: %s", async (_label, response) => {
+    const callback = vi.fn().mockResolvedValue(response);
+    const dispatch = vi.fn().mockResolvedValue(undefined);
+    renderProgress([operation(callback)], vi.fn(), undefined, dispatch);
+
+    expect(
+      await screen.findByRole("button", { name: "Retry Operation" }),
+    ).toBeTruthy();
+    expect(mocks.getRequestStatus).not.toHaveBeenCalled();
+    expect(dispatch.mock.calls.at(-1)?.[0][0]).toMatchObject({
+      status: ProgressStatus.FAILED,
+    });
+  });
+
   it("completes without replaying fully recovered operations", async () => {
     const callback = vi.fn();
     const { setCompletionStatus } = renderProgress([
@@ -184,22 +206,118 @@ describe("OperationsProgress", () => {
     expect(callback).not.toHaveBeenCalled();
   });
 
-  it("makes a polling failure visible and retries the operation", async () => {
-    mocks.getRequestStatus.mockRejectedValue(new Error("Request status unavailable"));
-    const callback = vi.fn().mockResolvedValue(undefined);
-    const { setCompletionStatus } = renderProgress([
-      {
-        ...operation(callback),
-        label: "Retry request",
-        requestId: 42,
-        status: ProgressStatus.IN_PROGRESS,
-      },
-    ]);
+  it("retries a failed status check without replaying the Ambari operation", async () => {
+    const callback = vi.fn().mockResolvedValue({
+      Requests: { id: 42, status: "Accepted" },
+    });
+    mocks.getRequestStatus
+      .mockRejectedValueOnce(new Error("Request status unavailable"))
+      .mockResolvedValueOnce({
+        Requests: {
+          id: 42,
+          request_status: ProgressStatus.IN_PROGRESS,
+          progress_percent: 50,
+        },
+      })
+      .mockResolvedValueOnce({
+        Requests: {
+          id: 42,
+          request_status: ProgressStatus.COMPLETED,
+          progress_percent: 100,
+        },
+      });
+    const dispatch = vi.fn().mockResolvedValue(undefined);
+    const { setCompletionStatus } = renderProgress(
+      [operation(callback)],
+      vi.fn(),
+      undefined,
+      dispatch,
+    );
 
     expect(await screen.findByText("Request status unavailable")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Retry Operation" }));
+    expect(callback).toHaveBeenCalledOnce();
+    expect(screen.queryByRole("button", { name: "Retry Operation" })).toBeNull();
+    expect(dispatch.mock.calls.at(-1)?.[0][0]).toMatchObject({
+      requestId: 42,
+      requestInfo: { id: 42, status: "Accepted" },
+      status: ProgressStatus.IN_PROGRESS,
+      statusCheckError: "Request status unavailable",
+    });
 
-    await waitFor(() => expect(callback).toHaveBeenCalledOnce());
+    vi.useFakeTimers();
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Retry Status Check" }));
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(mocks.getRequestStatus).toHaveBeenCalledTimes(2);
+    expect(callback).toHaveBeenCalledOnce();
+
+    await act(async () => {
+      vi.advanceTimersByTime(4000);
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(mocks.getRequestStatus).toHaveBeenCalledTimes(3);
+    expect(callback).toHaveBeenCalledOnce();
+    expect(setCompletionStatus).toHaveBeenCalledWith(true);
+  });
+
+  it("resumes a persisted status-check failure without replaying the operation", async () => {
+    mocks.getRequestStatus.mockResolvedValue({
+      Requests: {
+        id: 42,
+        request_status: ProgressStatus.COMPLETED,
+        progress_percent: 100,
+      },
+    });
+    const callback = vi.fn();
+    const dispatch = vi.fn().mockResolvedValue(undefined);
+    const { setCompletionStatus } = renderProgress(
+      [{
+        ...operation(callback),
+        requestId: 42,
+        requestInfo: {
+          id: 42,
+          request_status: ProgressStatus.IN_PROGRESS,
+        },
+        status: ProgressStatus.IN_PROGRESS,
+        statusCheckError: "Previous status check failed",
+      }],
+      vi.fn(),
+      undefined,
+      dispatch,
+    );
+
+    await waitFor(() => expect(setCompletionStatus).toHaveBeenCalledWith(true));
+    expect(mocks.getRequestStatus).toHaveBeenCalledWith("c1", "42");
+    expect(callback).not.toHaveBeenCalled();
+    expect(dispatch.mock.calls.at(-1)?.[0][0]).not.toHaveProperty(
+      "statusCheckError",
+    );
+  });
+
+  it("only replays an Ambari operation after a confirmed terminal failure", async () => {
+    const callback = vi
+      .fn()
+      .mockResolvedValueOnce({ Requests: { id: 42, status: "Accepted" } })
+      .mockResolvedValueOnce({ status: 204 });
+    mocks.getRequestStatus.mockResolvedValue({
+      Requests: {
+        id: 42,
+        request_status: ProgressStatus.FAILED,
+        progress_percent: 100,
+      },
+    });
+    const { setCompletionStatus } = renderProgress([operation(callback)]);
+
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Retry Operation" }),
+    );
+
+    await waitFor(() => expect(callback).toHaveBeenCalledTimes(2));
     await waitFor(() => expect(setCompletionStatus).toHaveBeenCalledWith(true));
   });
 
@@ -233,6 +351,52 @@ describe("OperationsProgress", () => {
       await Promise.resolve();
     });
     expect(mocks.getRequestStatus).toHaveBeenCalledOnce();
+  });
+
+  it("waits four seconds between Ambari request polls", async () => {
+    vi.useFakeTimers();
+    mocks.getRequestStatus
+      .mockResolvedValueOnce({
+        Requests: {
+          id: 42,
+          request_status: ProgressStatus.IN_PROGRESS,
+          progress_percent: 10,
+        },
+      })
+      .mockResolvedValueOnce({
+        Requests: {
+          id: 42,
+          request_status: ProgressStatus.COMPLETED,
+          progress_percent: 100,
+        },
+      });
+    renderProgress([
+      {
+        ...operation(vi.fn()),
+        label: "Running request",
+        requestId: 42,
+        status: ProgressStatus.IN_PROGRESS,
+      },
+    ]);
+
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(mocks.getRequestStatus).toHaveBeenCalledOnce();
+
+    await act(async () => {
+      vi.advanceTimersByTime(3999);
+      await Promise.resolve();
+    });
+    expect(mocks.getRequestStatus).toHaveBeenCalledOnce();
+
+    await act(async () => {
+      vi.advanceTimersByTime(1);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(mocks.getRequestStatus).toHaveBeenCalledTimes(2);
   });
 
   it("runs an explicit skip branch before advancing", async () => {
@@ -303,6 +467,58 @@ describe("OperationsProgress", () => {
 
     await waitFor(() => expect(errorCallback).toHaveBeenCalledWith("Request failed"));
     expect(errorCallback).toHaveBeenCalledOnce();
+  });
+
+  it("keeps completion disabled after the final task fails by default", async () => {
+    const setCompletionStatus = vi.fn();
+    renderProgress(
+      [operation(vi.fn().mockRejectedValue(new Error("start failed")))],
+      setCompletionStatus,
+    );
+
+    expect(await screen.findByText("start failed")).toBeTruthy();
+    expect(setCompletionStatus).not.toHaveBeenCalledWith(true);
+  });
+
+  it("allows callers to complete after the final task failure is persisted", async () => {
+    const events: string[] = [];
+    const setCompletionStatus = vi.fn(() => events.push("complete"));
+    const dispatch = vi.fn(async (operations: Operation[]) => {
+      if (operations[0].status === ProgressStatus.FAILED) {
+        events.push("persist-failure");
+      }
+    });
+    renderProgress(
+      [operation(vi.fn().mockRejectedValue(new Error("start failed")))],
+      setCompletionStatus,
+      undefined,
+      dispatch,
+      true,
+    );
+
+    expect(await screen.findByText("start failed")).toBeTruthy();
+    await waitFor(() => expect(setCompletionStatus).toHaveBeenCalledWith(true));
+    expect(events).toEqual(["persist-failure", "complete"]);
+  });
+
+  it("allows completion from a recovered final failure only when opted in", async () => {
+    const callback = vi.fn();
+    const { setCompletionStatus } = renderProgress(
+      [
+        {
+          ...operation(callback),
+          status: ProgressStatus.FAILED,
+          error: "Recovered start failure",
+        },
+      ],
+      vi.fn(),
+      undefined,
+      undefined,
+      true,
+    );
+
+    await waitFor(() => expect(setCompletionStatus).toHaveBeenCalledWith(true));
+    expect(callback).not.toHaveBeenCalled();
   });
 
   it("accepts any successful 2xx response", async () => {
