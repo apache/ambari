@@ -16,45 +16,72 @@
  * limitations under the License.
  */
 
-export const wizardConfigs= [
-    {
-      siteName: 'admin-properties',
-      propertyName: 'policymgr_external_url'
-    },
-    {
-      siteName: 'ranger-hdfs-security',
-      propertyName: 'ranger.plugin.hdfs.policy.rest.url'
-    },
-    {
-      siteName: 'ranger-yarn-security',
-      propertyName: 'ranger.plugin.yarn.policy.rest.url'
-    },
-    {
-      siteName: 'ranger-hbase-security',
-      propertyName: 'ranger.plugin.hbase.policy.rest.url'
-    },
-    {
-      siteName: 'ranger-hive-security',
-      propertyName: 'ranger.plugin.hive.policy.rest.url'
-    },
-    {
-      siteName: 'ranger-knox-security',
-      propertyName: 'ranger.plugin.knox.policy.rest.url'
-    },
-    {
-      siteName: 'ranger-kafka-security',
-      propertyName: 'ranger.plugin.kafka.policy.rest.url'
-    },
-    {
-      siteName: 'ranger-kms-security',
-      propertyName: 'ranger.plugin.kms.policy.rest.url'
-    },
-    {
-      siteName: 'ranger-storm-security',
-      propertyName: 'ranger.plugin.storm.policy.rest.url'
-    },
-    {
-      siteName: 'ranger-atlas-security',
-      propertyName: 'ranger.plugin.atlas.policy.rest.url'
-    }
-  ]
+export interface RangerAdminHaConfig {
+  siteName: string;
+  propertyName: string;
+  serviceName: string;
+  serviceDisplayName: string;
+}
+
+export const wizardConfigs: RangerAdminHaConfig[] = [
+  {
+    siteName: "admin-properties",
+    propertyName: "policymgr_external_url",
+    serviceName: "RANGER",
+    serviceDisplayName: "Ranger",
+  },
+  {
+    siteName: "ranger-hdfs-security",
+    propertyName: "ranger.plugin.hdfs.policy.rest.url",
+    serviceName: "HDFS",
+    serviceDisplayName: "HDFS",
+  },
+  {
+    siteName: "ranger-yarn-security",
+    propertyName: "ranger.plugin.yarn.policy.rest.url",
+    serviceName: "YARN",
+    serviceDisplayName: "YARN",
+  },
+  {
+    siteName: "ranger-hbase-security",
+    propertyName: "ranger.plugin.hbase.policy.rest.url",
+    serviceName: "HBASE",
+    serviceDisplayName: "HBase",
+  },
+  {
+    siteName: "ranger-hive-security",
+    propertyName: "ranger.plugin.hive.policy.rest.url",
+    serviceName: "HIVE",
+    serviceDisplayName: "Hive",
+  },
+  {
+    siteName: "ranger-knox-security",
+    propertyName: "ranger.plugin.knox.policy.rest.url",
+    serviceName: "KNOX",
+    serviceDisplayName: "Knox",
+  },
+  {
+    siteName: "ranger-kafka-security",
+    propertyName: "ranger.plugin.kafka.policy.rest.url",
+    serviceName: "KAFKA",
+    serviceDisplayName: "Kafka",
+  },
+  {
+    siteName: "ranger-kms-security",
+    propertyName: "ranger.plugin.kms.policy.rest.url",
+    serviceName: "RANGER_KMS",
+    serviceDisplayName: "Ranger KMS",
+  },
+  {
+    siteName: "ranger-storm-security",
+    propertyName: "ranger.plugin.storm.policy.rest.url",
+    serviceName: "STORM",
+    serviceDisplayName: "Storm",
+  },
+  {
+    siteName: "ranger-atlas-security",
+    propertyName: "ranger.plugin.atlas.policy.rest.url",
+    serviceName: "ATLAS",
+    serviceDisplayName: "Atlas",
+  },
+];
