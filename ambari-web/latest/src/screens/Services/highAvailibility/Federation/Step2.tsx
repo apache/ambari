@@ -17,62 +17,131 @@
  */
 
 import { useContext, useState } from "react";
-import { AppContext } from "../../../../store/context";
+import { Alert, Card } from "react-bootstrap";
 import { map } from "lodash";
+import { AppContext } from "../../../../store/context";
+import { ServiceContext } from "../../../../store/ServiceContext";
+import WizardFooter from "../../../../components/StepWizard/WizardFooter";
+import { getStepData } from "../../../../Utils/Utility";
+import { getHdfsNamespaces } from "../haWorkflowUtils";
+import HostAssignment from "./HostAssignment";
 import { EnableNamenodeFederationContext } from "./store/context";
 import { ActionTypes } from "./store/types";
-import WizardFooter from "../../../../components/StepWizard/WizardFooter";
-import AssignMastersAddable from "../../../../components/AssignMastersAddable";
-import { Card } from "react-bootstrap";
+import { enableNamenodeFederationSteps } from "./wizardSteps";
+import {
+  ComponentAssignment,
+  validateComponentAssignments,
+} from "./workflowUtils";
 
 function Step2() {
   const { services } = useContext(AppContext);
+  const { allServiceModels } = useContext(ServiceContext);
   const {
+    state,
     dispatch,
     flushStateToDb,
-    stepWizardUtilities: { handleNextImperitive, currentStep },
+    stepWizardUtilities: {
+      handleNextImperitive,
+      handleBackImperitive,
+      currentStep,
+    },
   } = useContext(EnableNamenodeFederationContext);
-  const [isNextEnabled] = useState(true);
+  const savedAssignments =
+    getStepData(
+      state,
+      enableNamenodeFederationSteps.SELECT_HOSTS,
+      "masterComponentHosts",
+      "enableNamenodeFederationSteps",
+    ) || [];
+  const installedNameNodeHosts = getHdfsNamespaces(
+    allServiceModels.hdfs,
+  ).flatMap((namespace) => namespace.hosts);
+  const [assignments, setAssignments] = useState<ComponentAssignment[]>(
+    savedAssignments,
+  );
+  const [assignmentError, setAssignmentError] = useState(
+    "Select exactly two additional NAMENODE hosts.",
+  );
+  const [persistenceError, setPersistenceError] = useState("");
+
+  const storeAssignments = (
+    nextAssignments: ComponentAssignment[],
+    unavailableHosts: string[],
+  ) => {
+    setAssignments(nextAssignments);
+    setAssignmentError(
+      validateComponentAssignments(
+        nextAssignments,
+        "NAMENODE",
+        2,
+        unavailableHosts,
+      ),
+    );
+    dispatch({
+      type: ActionTypes.STORE_INFORMATION,
+      payload: {
+        step: currentStep.name,
+        data: { masterComponentHosts: nextAssignments },
+      },
+    });
+  };
+
   return (
     <>
-      <div className="step-title">Select Hosts</div>
-      <div className="step-description">
-        Select a host that will be running the additional NameNode.
-      </div>
+      <h2 className="step-title">Select Hosts</h2>
+      <p className="step-description">
+        Select two hosts for the NameNodes in the new nameservice.
+      </p>
+      {assignmentError && assignments.length ? (
+        <Alert variant="danger">{assignmentError}</Alert>
+      ) : null}
+      {persistenceError ? <Alert variant="danger">{persistenceError}</Alert> : null}
       <Card className="mt-2">
         <Card.Body>
-          <AssignMastersAddable
-            mastersToShow={["NAMENODE"]}
-            mastersToAdd={["NAMENODE", "NAMENODE"]}
-            mastersToCreate={[]}
-            showCurrentPrefix={["NAMENODE"]}
-            showAdditionalPrefix={["NAMENODE"]}
+          <HostAssignment
+            componentName="NAMENODE"
+            componentLabel="NameNode"
+            installedHosts={installedNameNodeHosts}
+            initialAssignments={savedAssignments}
+            additionalCount={2}
             services={map(services, "ServiceInfo.service_name")}
-            dispatch={(payload:any) => {
-              dispatch({
-                type: ActionTypes.STORE_INFORMATION,
-                payload: {
-                  step: currentStep.name,
-                  data: payload,
-                },
-              });
-              flushStateToDb();
-            }}
+            onChange={storeAssignments}
           />
         </Card.Body>
       </Card>
       <WizardFooter
         step={currentStep}
-        isNextEnabled={isNextEnabled}
-        onBack={() => {
-          flushStateToDb("back");
+        isNextEnabled={!assignmentError && assignments.length > 0}
+        onBack={async () => {
+          setPersistenceError("");
+          try {
+            await flushStateToDb("back");
+            await handleBackImperitive();
+          } catch (error: any) {
+            setPersistenceError(
+              error?.response?.data?.message ||
+                error?.message ||
+                "Ambari could not persist the wizard state.",
+            );
+          }
         }}
-        onNext={() => {
-          flushStateToDb("next");
-          handleNextImperitive();
+        onNext={async () => {
+          setPersistenceError("");
+          try {
+            await flushStateToDb("next");
+            await handleNextImperitive();
+          } catch (error: any) {
+            setPersistenceError(
+              error?.response?.data?.message ||
+                error?.message ||
+                "Ambari could not persist the wizard state.",
+            );
+          }
         }}
+        onCancel={() => void flushStateToDb("cancel")}
       />
     </>
   );
 }
+
 export default Step2;

@@ -17,591 +17,323 @@
  */
 
 import { useContext, useEffect, useState } from "react";
+import { Alert } from "react-bootstrap";
+import { map } from "lodash";
+import federationApi from "../../../../api/federationApi";
+import OperationsProgress from "../../../../components/OperationsProgress";
+import WizardFooter from "../../../../components/StepWizard/WizardFooter";
+import useKDCSessionState from "../../../../hooks/useKDCSessionState";
 import { AppContext } from "../../../../store/context";
-import { filter, find, map } from "lodash";
+import { ServiceContext } from "../../../../store/ServiceContext";
 import {
   createInstallComponentTask,
-  reconfigureSites,
-  restartAllRequired,
   startServices,
   stopServices,
   updateComponent,
 } from "../../../../Utils/taskUtils";
-import { EnableNamenodeFederationContext } from "./store/context";
-import { ServiceContext } from "../../../../store/ServiceContext";
 import { getStepData } from "../../../../Utils/Utility";
-import { enableNamenodeFederationSteps } from "./wizardSteps";
-import ConfigsApi from "../../../../api/configsApi";
-import nameNodeFederationApi from "../../../../api/nameNodeFederationApi";
-import WizardFooter from "../../../../components/StepWizard/WizardFooter";
-import OperationsProgress from "../../../../components/OperationsProgress";
-import useKDCSessionState from "../../../../hooks/useKDCSessionState";
+import { mergeSavedOperations } from "../haWorkflowUtils";
+import { EnableNamenodeFederationContext } from "./store/context";
 import { ActionTypes } from "./store/types";
+import { enableNamenodeFederationSteps } from "./wizardSteps";
+import { federationTaskKeys } from "./workflowUtils";
 
-enum COMMANDS {
-  stopRequiredServices = "stopRequiredServices",
-  reconfigureServices = "reconfigureServices",
-  installNameNode = "installNameNode",
-  installZKFC = "installZKFC",
-  startJournalNodes = "startJournalNodes",
-  startInfraSolr = "startInfraSolr",
-  startRangerAdmin = "startRangerAdmin",
-  startRangerUsersync = "startRangerUsersync",
-  startNameNodes = "startNameNodes",
-  startZKFCs = "startZKFCs",
-  formatNameNode = "formatNameNode",
-  formatZKFC = "formatZKFC",
-  startZKFC = "startZKFC",
-  startNameNode = "startNameNode",
-  bootstrapNameNode = "bootstrapNameNode",
-  startZKFC2 = "startZKFC2",
-  startNameNode2 = "startNameNode2",
-  restartAllServices = "restartAllServices",
+interface ProgressOperation {
+  id: string;
+  label: string;
+  skippable: false;
+  callback: () => Promise<unknown>;
+  status?: string;
+  requestId?: string | number;
+  [key: string]: unknown;
 }
+
+const labels: Record<string, string> = {
+  stopRequiredServices: "Stop Required Services",
+  reconfigureServices: "Reconfigure Services",
+  installNameNode: "Install NameNodes",
+  installZKFC: "Install ZKFCs",
+  startJournalNodes: "Start JournalNodes",
+  startInfraSolr: "Start Infra Solr",
+  startRangerAdmin: "Start Ranger Admin",
+  startRangerUsersync: "Start Ranger Usersync",
+  startNameNodes: "Start Existing NameNodes",
+  startZKFCs: "Start Existing ZKFCs",
+  formatNameNode: "Format First NameNode",
+  formatZKFC: "Format ZKFC",
+  startZKFC: "Start First ZKFC",
+  startNameNode: "Start First NameNode",
+  bootstrapNameNode: "Bootstrap Standby NameNode",
+  startZKFC2: "Start Second ZKFC",
+  startNameNode2: "Start Second NameNode",
+  restartAllServices: "Restart Non-Federation Components",
+};
+
+const errorMessage = (error: any, fallback: string) =>
+  error?.response?.data?.message || error?.message || fallback;
 
 export function Step4() {
   const {
     state,
     dispatch,
     flushStateToDb,
-    stepWizardUtilities: { currentStep, jumpToStep },
+    stepWizardUtilities: { currentStep },
   } = useContext(EnableNamenodeFederationContext);
   const { clusterName, services } = useContext(AppContext);
-  const { serviceModels: allServiceModels }: any = useContext(ServiceContext);
+  const { serviceModels, masterSlaveClientsData }: any =
+    useContext(ServiceContext);
+  const { getKDCSessionState } = useKDCSessionState(() => {});
   const [completionStatus, setCompletionStatus] = useState(false);
-  const [stepOperations, setStepOperations] = useState<any>([]);
-  const {getKDCSessionState}=useKDCSessionState(()=>{})
-
-  const masterComponentHosts = getStepData(
-    state,
-    "SELECT_HOSTS",
-    "masterComponentHosts",
-    "enableNamenodeFederationSteps"
-  );
-
+  const [stepOperations, setStepOperations] = useState<ProgressOperation[]>([]);
+  const [planError, setPlanError] = useState("");
+  const [workflowError, setWorkflowError] = useState("");
+  const [isCompleting, setIsCompleting] = useState(false);
   const installedServices = map(services, "ServiceInfo.service_name");
-
-  const newNameNodeHosts = () => {
-    return map(
-      filter(filter(masterComponentHosts, ["component", "NAMENODE"]), [
-        "isInstalled",
-        false,
-      ]),
-      "hostName"
-    );
-  };
-
-  function initializeTasks() {
-    let id = 0;
-    const allOps = [];
-    const tasksToRemove = [];
-
-    if (!installedServices.includes("RANGER")) {
-      tasksToRemove.push(COMMANDS.startInfraSolr);
-      tasksToRemove.push(COMMANDS.startRangerAdmin);
-      tasksToRemove.push(COMMANDS.startRangerUsersync);
-    }
-
-    if (!installedServices.includes("AMBARI_INFRA_SOLR")) {
-      tasksToRemove.push(COMMANDS.startInfraSolr);
-    }
-
-    if (!tasksToRemove.includes(COMMANDS.stopRequiredServices)) {
-      allOps.push({
-        id: ++id,
-        label: "Stop Required Services",
-        skippable: false,
-        callback: async () => {
-          return await stopServices(
-            clusterName,
-            ["ZOOKEEPER"],
-            false,
-            false,
-            installedServices
-          );
-        },
-      });
-    }
-
-    if (!tasksToRemove.includes(COMMANDS.reconfigureServices)) {
-      allOps.push({
-        id: ++id,
-        label: "Reconfigure Services",
-        skippable: false,
-        callback: async () => {
-          let configs = [];
-          const data = getStepData(
-            state,
-            enableNamenodeFederationSteps.REVIEW,
-            "overridenProperties",
-            "enableNamenodeFederationSteps"
-          );
-          const note =
-            "This configuration is created by Enable NameNode Federation wizard";
-
-          configs.push({
-            Clusters: {
-              desired_config: reconfigureSites(["hdfs-site"], data, note),
-            },
-          });
-          if (installedServices.includes("RANGER")) {
-            configs.push({
-              Clusters: {
-                desired_config: reconfigureSites(
-                  ["ranger-tagsync-site"],
-                  data,
-                  note
-                ),
-              },
-            });
-          }
-          if (installedServices.includes("ACCUMULO")) {
-            configs.push({
-              Clusters: {
-                desired_config: reconfigureSites(["accumulo-site"], data, note),
-              },
-            });
-          }
-          try {
-            await ConfigsApi.serviceMultiConfigurations(clusterName, configs);
-            return await installHDFSClients();
-          } catch (error) {
-            console.log(error);
-          }
-        },
-      });
-    }
-    if (!tasksToRemove.includes(COMMANDS.installNameNode)) {
-      allOps.push({
-        id: ++id,
-        label: "Install NameNode",
-        skippable: false,
-        callback: async () => {
-          return await createInstallComponentTask(
-            "NAMENODE",
-            newNameNodeHosts(),
-            "HDFS",
-            clusterName,
-            ["HDFS"],
-            allServiceModels["hdfs"],
-            getKDCSessionState
-          );
-        },
-      });
-    }
-
-    if (!tasksToRemove.includes(COMMANDS.installZKFC)) {
-      allOps.push({
-        id: ++id,
-        label: "Install ZKFC",
-        skippable: false,
-        callback: async () => {
-          return await createInstallComponentTask(
-            "ZKFC",
-            newNameNodeHosts(),
-            "HDFS",
-            clusterName,
-            ["HDFS"],
-            allServiceModels["hdfs"],
-            getKDCSessionState
-          );
-        },
-      });
-    }
-
-    if (!tasksToRemove.includes(COMMANDS.startJournalNodes)) {
-      allOps.push({
-        id: ++id,
-        label: "Start JournalNodes",
-        skippable: false,
-        callback: async () => {
-          // Get JournalNode hostnames from masterComponentHosts (matching nameNode HA pattern)
-
-          let hostNames: string[] =[]
-          const jNComponents = find(allServiceModels["hdfs"]?.slaveComponents, ["componentName", "JOURNALNODE"]);
-          if(jNComponents){
-            hostNames=map(jNComponents?.hostComponents,"HostRoles.host_name")
-          }
-
-          return await updateComponent(
-            clusterName,
-            "JOURNALNODE",
-            hostNames,
-            "HDFS",
-            "Start",
-            id
-          );
-        },
-      });
-    }
-
-    if (!tasksToRemove.includes(COMMANDS.startNameNodes)) {
-      allOps.push({
-        id: ++id,
-        label: "Start NameNodes",
-        skippable: false,
-        callback: async () => {
-          const hostNames = map(
-            filter(filter(masterComponentHosts, ["component", "NAMENODE"]), [
-              "isInstalled",
-              true,
-            ]),
-            "hostName"
-          );
-          return await updateComponent(
-            clusterName,
-            "NAMENODE",
-            hostNames,
-            "HDFS",
-            "Start",
-            id
-          );
-        },
-      });
-    }
-
-    if (!tasksToRemove.includes(COMMANDS.startZKFCs)) {
-      allOps.push({
-        id: ++id,
-        label: "Start ZKFCs",
-        skippable: false,
-        callback: async () => {
-          const hostNames = map(
-            filter(filter(masterComponentHosts, ["component", "NAMENODE"]), [
-              "isInstalled",
-              true,
-            ]),
-            "hostName"
-          );
-          return await updateComponent(
-            clusterName,
-            "ZKFC",
-            hostNames,
-            "HDFS",
-            "Start",
-            id
-          );
-        },
-      });
-    }
-
-    if (!tasksToRemove.includes(COMMANDS.formatNameNode)) {
-      allOps.push({
-        id: ++id,
-        label: "Format NameNode",
-        skippable: false,
-        callback: async () => {
-          const host = newNameNodeHosts()[0];
-          const data: any ={
-            RequestInfo: {
-              command: "FORMAT",
-              context: "Format NameNode",
-            },
-            "Requests/resource_filters": [
-              {
-                service_name: "HDFS",
-                component_name: "NAMENODE",
-                hosts: host,
-              },
-            ],
-          };
-
-          return await nameNodeFederationApi.formatNameNode(clusterName, data);
-        },
-      });
-    }
-
-    if (!tasksToRemove.includes(COMMANDS.formatZKFC)) {
-      allOps.push({
-        id: ++id,
-        label: "Format ZKFC",
-        skippable: false,
-        callback: async () => {
-          const host = newNameNodeHosts()[0];
-          const data: any = {
-            RequestInfo: {
-              command: "FORMAT",
-              context: "Format ZKFC",
-            },
-            "Requests/resource_filters": [
-              {
-                service_name: "HDFS",
-                component_name: "ZKFC",
-                hosts: host,
-              },
-            ],
-          };
-
-          return await nameNodeFederationApi.formatZKFC(clusterName, data);
-        },
-      });
-    }
-
-    if (!tasksToRemove.includes(COMMANDS.startZKFC)) {
-      allOps.push({
-        id: ++id,
-        label: "Start ZKFC",
-        skippable: false,
-        callback: async () => {
-          const host = newNameNodeHosts()[0];
-          return updateComponent(
-            clusterName,
-            "ZKFC",
-            host,
-            "HDFS",
-            "Start",
-            id
-          );
-        },
-      });
-    }
-
-    if (!tasksToRemove.includes(COMMANDS.startInfraSolr)) {
-      allOps.push({
-        id: ++id,
-        label: "Start Infra Solr",
-        skippable: false,
-        callback: async () => {
-          return await startServices(
-            clusterName,
-            false,
-            ["AMBARI_INFRA_SOLR"],
-            true
-          );
-        },
-      });
-    }
-
-    if (!tasksToRemove.includes(COMMANDS.startRangerAdmin)) {
-      const hostNames = map(
-        filter(masterComponentHosts, ["component", "RANGER_ADMIN"]),
-        "hostName"
-      );
-      allOps.push({
-        id: ++id,
-        label: "Start Ranger Admin",
-        skippable: false,
-        callback: async () => {
-          return await updateComponent(
-            clusterName,
-            "RANGER_ADMIN",
-            hostNames,
-            "RANGER",
-            "Start",
-            1
-          );
-        },
-      });
-    }
-
-    if (!tasksToRemove.includes(COMMANDS.startRangerUsersync)) {
-     const hostNames = map(
-        filter(masterComponentHosts, ["component", "RANGER_USERSYNC"]),
-        "hostName"
-      );
-      allOps.push({
-        id: ++id,
-        label: "Start Ranger Usersync",
-        skippable: false,
-        callback: async () => {
-          return await updateComponent(
-            clusterName,
-            "RANGER_USERSYNC",
-            hostNames,
-            "RANGER",
-            "Start",
-            1
-          );
-        },
-      });
-    }
-
-    if (!tasksToRemove.includes(COMMANDS.startNameNode)) {
-      allOps.push({
-        id: ++id,
-        label: "Start NameNode",
-        skippable: false,
-        callback: async () => {
-          const host = newNameNodeHosts()[0];
-          return await updateComponent(
-            clusterName,
-            "NAMENODE",
-            host,
-            "HDFS",
-            "Start",
-            id
-          );
-        },
-      });
-    }
-
-    if (!tasksToRemove.includes(COMMANDS.bootstrapNameNode)) {
-      allOps.push({
-        id: ++id,
-        label: "Bootstrap NameNode",
-        skippable: false,
-        callback: async () => {
-          const host = newNameNodeHosts()[1];
-          const data: any = {
-            RequestInfo: {
-              command: "BOOTSTRAP_STANDBY",
-              context: "Bootstrap NameNode",
-            },
-            "Requests/resource_filters": [
-              {
-                service_name: "HDFS",
-                component_name: "NAMENODE",
-                hosts: host,
-              },
-            ],
-          };
-
-          return await nameNodeFederationApi.bootStrapNameNode(clusterName, data);
-        },
-      });
-    }
-
-    if (!tasksToRemove.includes(COMMANDS.startZKFC2)) {
-      allOps.push({
-        id: ++id,
-        label: "Start ZKFC2",
-        skippable: false,
-        callback: async () => {
-          const host = newNameNodeHosts()[1];
-          return await updateComponent(
-            clusterName,
-            "ZKFC",
-            host,
-            "HDFS",
-            "Start",
-            id
-          );
-        },
-      });
-    }
-
-    if (!tasksToRemove.includes(COMMANDS.startNameNode2)) {
-      allOps.push({
-        id: ++id,
-        label: "Start NameNode2",
-        skippable: false,
-        callback: async () => {
-          const host = newNameNodeHosts()[1];
-          return await updateComponent(
-            clusterName,
-            "NAMENODE",
-            host,
-            "HDFS",
-            "Start",
-            id
-          );
-        },
-      });
-    }
-
-    if (!tasksToRemove.includes(COMMANDS.restartAllServices)) {
-      allOps.push({
-        id: ++id,
-        label: "Restart All Services",
-        skippable: false,
-        callback: async () => {
-          return await restartAllRequired(clusterName);
-        },
-      });
-    }
-
-    return allOps;
-  }
-
-  async function installHDFSClients() {
-    const nnHostNames = map(
-      filter(masterComponentHosts, ["component", "NAMENODE"]),
-      "hostName"
-    );
-
-    // Get JournalNode hostnames from masterComponentHosts (matching nameNode HA pattern)
-    const jnHostNames = map(
-      filter(masterComponentHosts, ["component", "JOURNALNODE"]),
-      "hostName"
-    );
-
-    const hostNames = [...new Set(nnHostNames.concat(jnHostNames))];
-
-    return await createInstallComponentTask(
-      "HDFS_CLIENT",
-      hostNames,
-      "HDFS",
-      clusterName,
-      ["HDFS"],
-      allServiceModels["hdfs"],
-      getKDCSessionState
-    );
-  }
-
-  // Get saved operations state to maintain progress across navigation
-  const savedOperationsState = getStepData(
+  const masterComponentHosts =
+    getStepData(
+      state,
+      enableNamenodeFederationSteps.SELECT_HOSTS,
+      "masterComponentHosts",
+      "enableNamenodeFederationSteps",
+    ) || [];
+  const configSnapshot = getStepData(
+    state,
+    enableNamenodeFederationSteps.REVIEW,
+    "overridenProperties",
+    "enableNamenodeFederationSteps",
+  );
+  const savedOperations = getStepData(
     state,
     enableNamenodeFederationSteps.CONFIGURE_COMPONENTS,
     "operationsState",
-    "enableNamenodeFederationSteps"
+    "enableNamenodeFederationSteps",
   );
+  const newNameNodeHosts = masterComponentHosts
+    .filter(
+      (host: any) => host.component === "NAMENODE" && !host.isInstalled,
+    )
+    .map((host: any) => host.hostName);
+  const existingNameNodeHosts = masterComponentHosts
+    .filter(
+      (host: any) => host.component === "NAMENODE" && host.isInstalled,
+    )
+    .map((host: any) => host.hostName);
+
+  const hostsForComponent = (name: string): string[] => {
+    const component = Object.values(masterSlaveClientsData || {}).find(
+      (item: any) => item?.ServiceComponentInfo?.component_name === name,
+    ) as any;
+    return [
+      ...new Set(
+        (component?.host_components || [])
+          .map((item: any) => item.HostRoles?.host_name)
+          .filter(Boolean),
+      ),
+    ] as string[];
+  };
+  const journalNodeHosts =
+    getStepData(
+      state,
+      enableNamenodeFederationSteps.REVIEW,
+      "journalNodeHosts",
+      "enableNamenodeFederationSteps",
+    ) || [];
 
   useEffect(() => {
-    const operations = initializeTasks();
-    const finalOperations = (() => {
-      if (savedOperationsState && Array.isArray(savedOperationsState)) {
-        return operations.map((originalOp) => {
-          const savedOp = savedOperationsState.find(
-            (saved: any) => saved.id === originalOp.id
-          );
-          return savedOp
-            ? { ...originalOp, ...savedOp, callback: originalOp.callback }
-            : originalOp;
-        });
-      }
-      return operations;
-    })();
-    setStepOperations(finalOperations);
-  }, [JSON.stringify(savedOperationsState)]);
+    if (
+      newNameNodeHosts.length !== 2 ||
+      !existingNameNodeHosts.length ||
+      !journalNodeHosts.length ||
+      !configSnapshot?.items
+    ) {
+      setPlanError(
+        "The persisted Federation host or configuration snapshot is incomplete. Return to Review and rebuild it.",
+      );
+      return;
+    }
+    setPlanError("");
+    const callbacks = taskCallbacks();
+    const operations = federationTaskKeys(installedServices).map((id) => ({
+      id,
+      label: labels[id],
+      skippable: false as const,
+      callback: callbacks[id],
+    }));
+    setStepOperations(
+      mergeSavedOperations<ProgressOperation>(operations, savedOperations),
+    );
+  }, [JSON.stringify(savedOperations)]);
 
-  if (!stepOperations || stepOperations.length === 0) {
-    return <div>Loading...</div>;
+  function taskCallbacks(): Record<string, () => Promise<unknown>> {
+    const componentCommand = (
+      command: string,
+      context: string,
+      componentName: string,
+      host: string,
+    ) =>
+      federationApi.executeComponentCommand(clusterName, {
+        command,
+        context,
+        serviceName: "HDFS",
+        componentName,
+        hosts: host,
+      });
+    const startComponent = (
+      componentName: string,
+      hosts: string | string[],
+      serviceName = "HDFS",
+    ) =>
+      updateComponent(
+        clusterName,
+        componentName,
+        hosts,
+        serviceName,
+        "Start",
+        1,
+      );
+    return {
+      stopRequiredServices: () =>
+        stopServices(
+          clusterName,
+          ["ZOOKEEPER"],
+          false,
+          false,
+          installedServices,
+        ),
+      reconfigureServices: async () => {
+        const types = ["hdfs-site"];
+        if (installedServices.includes("RANGER")) {
+          types.push("ranger-tagsync-site");
+        }
+        if (installedServices.includes("ACCUMULO")) {
+          types.push("accumulo-site");
+        }
+        await federationApi.saveConfigurationTypes(
+          clusterName,
+          configSnapshot,
+          types,
+          "This configuration is created by Enable NameNode Federation wizard",
+        );
+        const clientHosts = [
+          ...new Set([
+            ...existingNameNodeHosts,
+            ...newNameNodeHosts,
+            ...journalNodeHosts,
+          ]),
+        ];
+        return await createInstallComponentTask(
+          "HDFS_CLIENT",
+          clientHosts,
+          "HDFS",
+          clusterName,
+          ["HDFS"],
+          serviceModels.hdfs,
+          getKDCSessionState,
+        );
+      },
+      installNameNode: () =>
+        createInstallComponentTask(
+          "NAMENODE",
+          newNameNodeHosts,
+          "HDFS",
+          clusterName,
+          ["HDFS"],
+          serviceModels.hdfs,
+          getKDCSessionState,
+        ),
+      installZKFC: () =>
+        createInstallComponentTask(
+          "ZKFC",
+          newNameNodeHosts,
+          "HDFS",
+          clusterName,
+          ["HDFS"],
+          serviceModels.hdfs,
+          getKDCSessionState,
+        ),
+      startJournalNodes: () => startComponent("JOURNALNODE", journalNodeHosts),
+      startInfraSolr: () =>
+        startServices(
+          clusterName,
+          false,
+          ["AMBARI_INFRA_SOLR"],
+          true,
+        ),
+      startRangerAdmin: () =>
+        startComponent("RANGER_ADMIN", hostsForComponent("RANGER_ADMIN"), "RANGER"),
+      startRangerUsersync: () =>
+        startComponent(
+          "RANGER_USERSYNC",
+          hostsForComponent("RANGER_USERSYNC"),
+          "RANGER",
+        ),
+      startNameNodes: () => startComponent("NAMENODE", existingNameNodeHosts),
+      startZKFCs: () => startComponent("ZKFC", existingNameNodeHosts),
+      formatNameNode: () =>
+        componentCommand("FORMAT", "Format NameNode", "NAMENODE", newNameNodeHosts[0]),
+      formatZKFC: () =>
+        componentCommand("FORMAT", "Format ZKFC", "ZKFC", newNameNodeHosts[0]),
+      startZKFC: () => startComponent("ZKFC", newNameNodeHosts[0]),
+      startNameNode: () => startComponent("NAMENODE", newNameNodeHosts[0]),
+      bootstrapNameNode: () =>
+        componentCommand(
+          "BOOTSTRAP_STANDBY",
+          "Bootstrap NameNode",
+          "NAMENODE",
+          newNameNodeHosts[1],
+        ),
+      startZKFC2: () => startComponent("ZKFC", newNameNodeHosts[1]),
+      startNameNode2: () => startComponent("NAMENODE", newNameNodeHosts[1]),
+      restartAllServices: () =>
+        federationApi.restartNonFederationComponents(clusterName),
+    };
   }
+
+  if (planError) return <Alert variant="danger">{planError}</Alert>;
+  if (!stepOperations.length) return <div>Loading the Federation task plan...</div>;
 
   return (
     <>
+      {workflowError ? <Alert variant="danger">{workflowError}</Alert> : null}
       <OperationsProgress
         title=""
         description=""
         setCompletionStatus={setCompletionStatus}
-        operations={stepOperations as any}
-        dispatch={(operationsState: any) => {
+        operations={stepOperations}
+        errorCallback={setWorkflowError}
+        dispatch={async (operationsState: any) => {
           dispatch({
             type: ActionTypes.STORE_INFORMATION,
             payload: {
               step: currentStep.name,
-              data: {
-                operationsState,
-              },
+              data: { operationsState },
             },
           });
+          await flushStateToDb();
         }}
       />
       <WizardFooter
         step={currentStep}
-        isNextEnabled={completionStatus}
-        onNext={() => {
-          flushStateToDb("cancel"); // Clear the wizard state on completion
-          window.location.href = "/#/main/services/HDFS/summary";
-          window.location.reload();
+        isNextEnabled={completionStatus && !isCompleting}
+        isBackEnabled={false}
+        cancelConfirmationBody={
+          "Exit this wizard? Completed server changes are not rolled back. Ambari will preserve the checkpoint so the workflow can be resumed."
+        }
+        onNext={async () => {
+          setIsCompleting(true);
+          setWorkflowError("");
+          try {
+            await flushStateToDb("complete");
+            window.location.href = "/#/main/services/HDFS/summary";
+          } catch (error: any) {
+            setWorkflowError(
+              errorMessage(error, "Ambari could not clear the completed workflow."),
+            );
+            setIsCompleting(false);
+          }
         }}
-        onBack={() => {
-          flushStateToDb("back");
-          jumpToStep(2);
-        }}
-        onCancel={() => {
-          flushStateToDb("cancel");
-        }}
+        onBack={() => undefined}
+        onCancel={() => void flushStateToDb("cancel")}
       />
     </>
   );
