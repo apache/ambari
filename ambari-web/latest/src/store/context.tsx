@@ -67,6 +67,7 @@ interface AppContextProps {
   allHostNames: string[];
   ambariProperties: any;
   ambariServerVersion?: string;
+  serverClock: number | string | null;
   supports: Record<string, boolean>;
   setSupports: (supports: Record<string, boolean>) => void;
   upgradeState: string;
@@ -141,6 +142,7 @@ export const AppContext = createContext<AppContextProps>({
   allHostNames: [],
   ambariProperties: {},
   ambariServerVersion: "",
+  serverClock: null,
   supports: DEFAULT_SUPPORTS,
   setSupports: () => {},
   upgradeState: "",
@@ -216,6 +218,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const [currentStackVersion, setCurrentStackVersion] = useState<string>("");
   const [ambariProperties, setAmbariProperties] = useState({});
   const [ambariServerVersion, setAmbariServerVersion] = useState("");
+  const [serverClock, setServerClock] = useState<number | string | null>(null);
   const [supports, setSupports] = useState(DEFAULT_SUPPORTS);
   const [wizardUser, setWizardUser] = useState("");
   const [clusterState, setClusterState] = useState({});
@@ -340,7 +343,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
   useEffect(() => {
     if (isOnlyViewUser) {
-      setAppLoaded(true);
       return;
     }
     if (clusterName && isClusterInstalled) {
@@ -353,7 +355,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [clusterName, isClusterInstalled, isOnlyViewUser, initializationAttempt]);
 
   useEffect(() => {
-    if (!clusterName || !isClusterInstalled) return;
+    if (isOnlyViewUser || !clusterName || !isClusterInstalled) return;
 
     let pollTimeout: NodeJS.Timeout | null = null;
     let isPollingActive = true;
@@ -382,7 +384,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         clearTimeout(pollTimeout);
       }
     };
-  }, [clusterName, fetchBackgroundOperations, isClusterInstalled]);
+  }, [clusterName, fetchBackgroundOperations, isClusterInstalled, isOnlyViewUser]);
 
   useEffect(() => {
     async function fetchStackConfigs() {
@@ -451,6 +453,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     const response = await ClusterApi.loadAmbariProperties();
     setAmbariProperties(response?.RootServiceComponents?.properties || {});
     setAmbariServerVersion(response?.RootServiceComponents?.component_version || "");
+    setServerClock(response?.RootServiceComponents?.server_clock ?? null);
   };
 
   const fetchUpgradeStates = async () => {
@@ -552,7 +555,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       try {
         const [savedSupports, wizardData] = await Promise.all([
           ClusterApi.getPersistData(supportsKey).catch(() => null),
-          ClusterApi.getPersistData("wizard-data").catch(() => null),
+          isOnlyViewUser
+            ? Promise.resolve(null)
+            : ClusterApi.getPersistData("wizard-data").catch(() => null),
         ]);
         setSupports({
           ...DEFAULT_SUPPORTS,
@@ -561,12 +566,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         setWizardUser(parsePersistedValue<{ userName?: string }>(wizardData, {}).userName || "");
 
         await getAmbariProperties();
+        await fetchClusterData();
         if (isOnlyViewUser) {
           setAppLoaded(true);
           return;
         }
 
-        await fetchClusterData();
         await getUserUrl().catch(() => undefined);
       } catch (error: any) {
         setInitializationError(
@@ -578,16 +583,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [initializationAttempt, isOnlyViewUser, loginName]);
 
   useEffect(() => {
-    if (!isEmpty(cluster) && cluster?.versionNum && cluster?.stack) {
+    if (!isOnlyViewUser && !isEmpty(cluster) && cluster?.versionNum && cluster?.stack) {
       fetchServiceComponentInfo();
     }
-  }, [cluster]);
+  }, [cluster, isOnlyViewUser]);
 
   useEffect(() => {
-    if (loginName) {
+    if (loginName && !isOnlyViewUser) {
       void getUserSettings();
     }
-  }, [loginName]);
+  }, [isOnlyViewUser, loginName]);
 
   useEffect(() => {
     const message = parsedSocketMessages[0];
@@ -725,6 +730,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         serviceComponentInfo,
         ambariProperties,
         ambariServerVersion,
+        serverClock,
         supports,
         setSupports,
         isKerberosEnabled,

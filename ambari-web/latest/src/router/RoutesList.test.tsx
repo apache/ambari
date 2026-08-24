@@ -22,7 +22,7 @@ import { describe, expect, it } from "vitest";
 import { ProtectedRoute } from "../components/AuthGuard";
 import FeatureRouteGuard from "../components/FeatureRouteGuard";
 import ServiceOperationRouteGuard from "../components/ServiceOperationRouteGuard";
-import RoutesList from "./RoutesList";
+import RoutesList, { HaPersistenceRouteGuard } from "./RoutesList";
 
 function child(route: RouteObject, path?: string) {
   const result = route.children?.find((candidate) => candidate.path === path);
@@ -32,6 +32,7 @@ function child(route: RouteObject, path?: string) {
 
 type GuardProps = {
   children: ReactElement<GuardProps>;
+  feature?: string;
   requireAuthorization?: string;
 };
 
@@ -82,5 +83,95 @@ describe("Kerberos routes", () => {
     expect(paths).toContain("kerberos");
     expect(paths).toContain("kerberos/enable/:stepNumber");
     expect(paths).toContain("kerberos/disableSecurity");
+  });
+});
+
+describe("Ambari View routes", () => {
+  it("registers both regular and short View URLs", () => {
+    const paths = routePaths(RoutesList);
+
+    expect(paths).toContain("views");
+    expect(paths).toContain("views/:viewName/:viewVersion/:instanceName/*");
+    expect(paths).toContain("view");
+    expect(paths).toContain("view/:viewName/:shortName/*");
+  });
+});
+
+describe("operational authorization routes", () => {
+  const root = RoutesList[0];
+  const authenticated = child(root);
+  const main = child(authenticated, "main");
+  const admin = child(main, "admin");
+
+  it("protects Experimental and Alert creation from runtime operation locks", () => {
+    const experimental = element(child(authenticated, "experimental"));
+    expect(experimental.type).toBe(ProtectedRoute);
+    expect(experimental.props.children.type).toBe(ServiceOperationRouteGuard);
+
+    const createAlert = element(child(main, "alerts/add/:stepNumber"));
+    expect(createAlert.type).toBe(FeatureRouteGuard);
+    expect(createAlert.props.feature).toBe("createAlerts");
+    const alertPermission = createAlert.props.children;
+    expect(alertPermission.type).toBe(ProtectedRoute);
+    expect(alertPermission.props.requireAuthorization).toBe("SERVICE.TOGGLE_ALERTS");
+    expect(alertPermission.props.children.type).toBe(ServiceOperationRouteGuard);
+  });
+
+  it.each([
+    ["serviceAccounts", "SERVICE.SET_SERVICE_USERS_GROUPS"],
+    ["serviceAutoStart", "SERVICE.MANAGE_AUTO_START, CLUSTER.MANAGE_AUTO_START"],
+  ])("protects Admin mutation route %s", (path, permission) => {
+    const route = element(child(admin, path));
+    const permissionRoute = route.type === FeatureRouteGuard
+      ? route.props.children
+      : route;
+    expect(permissionRoute.type).toBe(ProtectedRoute);
+    expect(permissionRoute.props.requireAuthorization).toBe(permission);
+    expect(permissionRoute.props.children.type).toBe(ServiceOperationRouteGuard);
+  });
+});
+
+describe("HA route contracts", () => {
+  const root = RoutesList[0];
+  const authenticated = child(root);
+  const main = child(authenticated, "main");
+  const services = child(main, "services");
+
+  it.each([
+    "highAvailability/:componentName/enable/:stepNumber",
+    ":componentName/federation/:stepNumber",
+    ":componentName/federation/routerBasedFederation/:stepNumber",
+    "highAvailability/:componentName/add/:stepNumber",
+  ])("requires persisted-data capability for %s", (path) => {
+    const route = element(child(services, path));
+    expect(route.type).toBe(HaPersistenceRouteGuard);
+    const renderedGuard = HaPersistenceRouteGuard({ children: route.props.children });
+    expect(renderedGuard.type).toBe(ProtectedRoute);
+    expect(renderedGuard.props.requireAuthorization)
+      .toBe("CLUSTER.MANAGE_USER_PERSISTED_DATA");
+
+    const permissionRoute = route.props.children;
+    expect(permissionRoute.type).toBe(ProtectedRoute);
+    expect(permissionRoute.props.requireAuthorization).toBe("SERVICE.ENABLE_HA");
+    expect(permissionRoute.props.children.type).toBe(ServiceOperationRouteGuard);
+  });
+
+  it.each([
+    "highAvailability/:componentName/remove/:stepNumber",
+    "highAvailability/:componentName/activate/:stepNumber",
+  ])("accepts the HAWQ custom-command permission set for %s", (path) => {
+    const route = element(child(services, path));
+    expect(route.type).toBe(HaPersistenceRouteGuard);
+    const renderedGuard = HaPersistenceRouteGuard({ children: route.props.children });
+    expect(renderedGuard.type).toBe(ProtectedRoute);
+    expect(renderedGuard.props.requireAuthorization)
+      .toBe("CLUSTER.MANAGE_USER_PERSISTED_DATA");
+
+    const permissionRoute = route.props.children;
+    expect(permissionRoute.type).toBe(ProtectedRoute);
+    expect(permissionRoute.props.requireAuthorization).toBe(
+      "SERVICE.RUN_CUSTOM_COMMAND, SERVICE.RUN_SERVICE_CHECK, SERVICE.TOGGLE_MAINTENANCE, SERVICE.ENABLE_HA",
+    );
+    expect(permissionRoute.props.children.type).toBe(ServiceOperationRouteGuard);
   });
 });

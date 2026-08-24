@@ -15,29 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { supressErrorAmbariApi } from "./config/axiosConfig";
 
-const ViewApi = {
-  getDefinitions: async function() {
-    const response = await supressErrorAmbariApi.request({
-      url: "/views",
-      method: "GET",
-    });
-    return response.data;
-  },
+export const VIEW_IFRAME_LOAD_TIMEOUT_MS = 30000;
 
-  getInstances: async function() {
-    const definitions = await ViewApi.getDefinitions();
-    if (!definitions?.items?.length) {
-      return { items: [] };
-    }
-
-    const response = await supressErrorAmbariApi.request({
-      url: "/views?fields=versions/instances/ViewInstanceInfo,versions/ViewVersionInfo/label&versions/ViewVersionInfo/system=false",
-      method: "GET",
-    });
-    return response.data;
-  },
-};
-
-export default ViewApi;
+export function calculateViewIframeHeight(
+  contentHeight: number,
+  bodyHeight: number,
+  headerHeight: number,
+  footerHeight: number,
+) {
+  return Math.max(contentHeight, bodyHeight - headerHeight - footerHeight);
+}
