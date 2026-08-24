@@ -16,30 +16,19 @@
  * limitations under the License.
  */
 
-import { ReactNode, useContext } from "react";
-import { Navigate } from "react-router-dom";
-import { AppContext } from "../store/context";
-
-export default function ServiceOperationRouteGuard({
-  children,
-}: {
-  children: ReactNode;
-}) {
-  const {
-    isNonWizardUser,
-    supports,
-    upgradeIsRunning,
-    upgradeSuspended,
-  } = useContext(AppContext);
-  const operationIsBlocked = isNonWizardUser || (
-    upgradeIsRunning
-    && !upgradeSuspended
-    && !supports?.opsDuringRollingUpgrade
-  );
-
-  return operationIsBlocked ? (
-    <Navigate to="/main/dashboard/metrics" replace />
-  ) : (
-    children
-  );
+export function copyRepositoryCredentials(
+  currentUrl: string,
+  sourceUrl: string,
+): string {
+  let source: URL;
+  let current: URL;
+  try {
+    source = new URL(sourceUrl);
+    current = new URL(currentUrl);
+  } catch {
+    return currentUrl;
+  }
+  current.username = source.username;
+  current.password = source.password;
+  return current.toString();
 }

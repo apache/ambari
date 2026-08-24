@@ -17,29 +17,47 @@
  */
 
 import { ReactNode, useContext } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
+import { isViewOnlyUser } from "../Utils/authPolicy";
 import { useAuth } from "../hooks/useAuth";
+import useAuthorizationPolicy from "../hooks/useAuthorizationPolicy";
 import { AppContext } from "../store/context";
 
 export function canEnterAdminView({
-  ambariAdmin,
+  adminPage,
+  canManageStackVersions,
   canUpgradeStack,
   clusterName,
+  noClusterLanding,
+  viewOnly,
 }: {
-  ambariAdmin: boolean;
+  adminPage: string | null;
+  canManageStackVersions: boolean;
   canUpgradeStack: boolean;
   clusterName: string;
+  noClusterLanding: boolean;
+  viewOnly: boolean;
 }): boolean {
-  return canUpgradeStack || (!clusterName && ambariAdmin);
+  if (adminPage === "stackVersions") {
+    return canManageStackVersions && !viewOnly;
+  }
+  return canUpgradeStack || (!clusterName && noClusterLanding && !viewOnly);
 }
 
 export default function AdminViewRouteGuard({ children }: { children: ReactNode }) {
   const { clusterName } = useContext(AppContext);
-  const { hasAuthorization, isAdmin } = useAuth();
+  const location = useLocation();
+  const { authorizations } = useAuth();
+  const { isAuthorized } = useAuthorizationPolicy();
   return canEnterAdminView({
-    ambariAdmin: isAdmin(),
-    canUpgradeStack: hasAuthorization("CLUSTER.UPGRADE_DOWNGRADE_STACK"),
+    adminPage: new URLSearchParams(location.search).get("page"),
+    canManageStackVersions: isAuthorized("AMBARI.MANAGE_STACK_VERSIONS"),
+    canUpgradeStack: isAuthorized("CLUSTER.UPGRADE_DOWNGRADE_STACK"),
     clusterName,
+    noClusterLanding: Boolean(
+      (location.state as { noClusterLanding?: boolean } | null)?.noClusterLanding,
+    ),
+    viewOnly: isViewOnlyUser(authorizations),
   })
     ? children
     : <Navigate to="/" replace />;

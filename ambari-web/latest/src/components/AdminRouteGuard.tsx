@@ -19,6 +19,7 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import useAuthorizationPolicy from '../hooks/useAuthorizationPolicy';
 import { useContext } from 'react';
 import { AppContext } from '../store/context';
 
@@ -36,7 +37,8 @@ interface AdminRouteGuardProps {
  * }
  */
 export const AdminRouteGuard: React.FC<AdminRouteGuardProps> = ({ children }) => {
-  const { hasAuthorization, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
+  const { isAuthorized } = useAuthorizationPolicy();
   const { upgradeState } = useContext(AppContext);
   
   // Check if user is authenticated
@@ -49,13 +51,14 @@ export const AdminRouteGuard: React.FC<AdminRouteGuardProps> = ({ children }) =>
   const upgradeHolding = upgradeState?.includes('HOLDING') || false;
   
   // Check if user has any admin permissions (matching Ember.js complex check)
-  const hasAnyAdminPermission = 
-    hasAuthorization('CLUSTER.TOGGLE_KERBEROS') ||
-    hasAuthorization('SERVICE.SET_SERVICE_USERS_GROUPS') ||
-    hasAuthorization('CLUSTER.UPGRADE_DOWNGRADE_STACK') ||
-    hasAuthorization('CLUSTER.VIEW_STACK_DETAILS') ||
-    hasAuthorization('SERVICE.MANAGE_AUTO_START') ||
-    hasAuthorization('CLUSTER.MANAGE_AUTO_START');
+  const hasAnyAdminPermission = isAuthorized([
+    'CLUSTER.TOGGLE_KERBEROS',
+    'SERVICE.SET_SERVICE_USERS_GROUPS',
+    'CLUSTER.UPGRADE_DOWNGRADE_STACK',
+    'CLUSTER.VIEW_STACK_DETAILS',
+    'SERVICE.MANAGE_AUTO_START',
+    'CLUSTER.MANAGE_AUTO_START',
+  ].join(', '));
   
   // If user doesn't have admin permissions and no upgrade is running, redirect to dashboard
   if (!hasAnyAdminPermission && !upgradeInProgress && !upgradeHolding) {

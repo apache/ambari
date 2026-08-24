@@ -16,30 +16,30 @@
  * limitations under the License.
  */
 
-import { ReactNode, useContext } from "react";
-import { Navigate } from "react-router-dom";
-import { AppContext } from "../store/context";
+export function normalizeServerClock(value: unknown): number | null {
+  const parsed = typeof value === "number" ? value : Number(String(value || ""));
+  if (!Number.isFinite(parsed) || parsed <= 0) return null;
+  return parsed < 1_000_000_000_000 ? parsed * 1000 : parsed;
+}
 
-export default function ServiceOperationRouteGuard({
-  children,
-}: {
-  children: ReactNode;
-}) {
-  const {
-    isNonWizardUser,
-    supports,
-    upgradeIsRunning,
-    upgradeSuspended,
-  } = useContext(AppContext);
-  const operationIsBlocked = isNonWizardUser || (
-    upgradeIsRunning
-    && !upgradeSuspended
-    && !supports?.opsDuringRollingUpgrade
-  );
-
-  return operationIsBlocked ? (
-    <Navigate to="/main/dashboard/metrics" replace />
-  ) : (
-    children
-  );
+export function formatServerClock(
+  timestamp: number,
+  timeZone?: string,
+): string {
+  try {
+    return new Intl.DateTimeFormat("en-GB", {
+      hour: "2-digit",
+      hour12: false,
+      minute: "2-digit",
+      second: "2-digit",
+      ...(timeZone ? { timeZone } : {}),
+    }).format(timestamp);
+  } catch {
+    return new Intl.DateTimeFormat("en-GB", {
+      hour: "2-digit",
+      hour12: false,
+      minute: "2-digit",
+      second: "2-digit",
+    }).format(timestamp);
+  }
 }

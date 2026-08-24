@@ -16,30 +16,20 @@
  * limitations under the License.
  */
 
-import { ReactNode, useContext } from "react";
-import { Navigate } from "react-router-dom";
-import { AppContext } from "../store/context";
+import { describe, expect, it } from "vitest";
+import { formatServerClock, normalizeServerClock } from "./serverClock";
 
-export default function ServiceOperationRouteGuard({
-  children,
-}: {
-  children: ReactNode;
-}) {
-  const {
-    isNonWizardUser,
-    supports,
-    upgradeIsRunning,
-    upgradeSuspended,
-  } = useContext(AppContext);
-  const operationIsBlocked = isNonWizardUser || (
-    upgradeIsRunning
-    && !upgradeSuspended
-    && !supports?.opsDuringRollingUpgrade
-  );
+describe("Ambari Server clock", () => {
+  it("normalizes both second and millisecond server timestamps", () => {
+    expect(normalizeServerClock("1710000000")).toBe(1_710_000_000_000);
+    expect(normalizeServerClock(1_710_000_000_123)).toBe(1_710_000_000_123);
+    expect(normalizeServerClock("invalid")).toBeNull();
+  });
 
-  return operationIsBlocked ? (
-    <Navigate to="/main/dashboard/metrics" replace />
-  ) : (
-    children
-  );
-}
+  it("formats the clock in the selected user timezone", () => {
+    expect(formatServerClock(Date.UTC(2024, 0, 1, 0, 0, 5), "UTC"))
+      .toBe("00:00:05");
+    expect(formatServerClock(Date.UTC(2024, 0, 1, 0, 0, 5), "Asia/Shanghai"))
+      .toBe("08:00:05");
+  });
+});
