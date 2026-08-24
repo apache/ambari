@@ -28,7 +28,7 @@
 | Review date | 2026-08-13 |
 | Metrics scope | Excluded; `/main/dashboard/metrics` is only an existing default route, and Metrics page capability is not evaluated |
 
-Statuses follow `ember-baseline/14-react-gap-matrix.md`. The current code, unit tests, and production build have passed static validation, but no real Ambari Server, Knox, or Admin View has been connected. All 17 items are therefore marked `NEEDS_RUNTIME_VALIDATION` and must not be marked `COVERED` in advance.
+Statuses follow `ember-baseline/15-react-gap-matrix.md`. The current code, unit tests, and production build have passed static validation, but no real Ambari Server, Knox, or Admin View has been connected. All 17 items are therefore marked `NEEDS_RUNTIME_VALIDATION` and must not be marked `COVERED` in advance.
 
 ## Current Conclusion
 

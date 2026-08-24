@@ -175,6 +175,11 @@ Recovery is determined jointly by three sources: server-side cluster status stor
 | --- | --- | --- | --- |
 | INST-7-001 | Configures all selected services by service/theme/category | Consistent with Service Configs controls, validation, and theme semantics | `configs.theme.services`, stack configs |
 | INST-7-002 | Provides dedicated Accounts, Credentials, Databases, and Directories tabs | Service/stack determines the tabs; validates password/confirmation, DB type/host/port, and other fields | Configs/recommendations |
+
+The exact stack-config-before-Theme request order, five-category state machine,
+canonical save collection, named Theme availability, Add Service differences,
+and failure/retry matrix are specified in
+[Service Theme and Configuration Layout](14-service-theme-layout.md#new-installer-category-state).
 | INST-7-003 | Applies Stack Advisor recommendations, dependent config changes, and required changes | Required recommendations cannot be rejected; displays counts and filters for warnings/validation issues | `config.recommendations` |
 | INST-7-004 | Tests database connections and external dependencies | Conditional functionality such as Hive/Oozie/Ranger | DB/custom action requests |
 | INST-7-005 | Loads existing host overrides/config groups (reused Add Service/Host path) | A new cluster usually has no overrides; behavior must be preserved when reusing the controller | Config groups/overrides |
