@@ -160,7 +160,7 @@ describe("ManageKdcCredentials", () => {
     });
 
     expect(
-      await screen.findByText("Ambari could not save the KDC credentials."),
+      await screen.findByText("Credential write failed"),
     ).toBeTruthy();
     expect(onClose).not.toHaveBeenCalled();
   });

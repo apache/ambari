@@ -22,7 +22,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faThumbsUp } from "@fortawesome/free-solid-svg-icons";
 import { AppContext } from "../../store/context.tsx";
 import { ServiceContext } from "../../store/ServiceContext.tsx";
-import { useAuth } from "../../hooks/useAuth.ts";
+import useAuthorizationPolicy from "../../hooks/useAuthorizationPolicy.ts";
 import ConfirmationModal from "../ConfirmationModal.tsx";
 import { ActionsApi } from "../../api/actionsApi.ts";
 import BackgroundOperations from "../../screens/BackgroundOperations";
@@ -31,19 +31,15 @@ import { get, map } from "lodash";
 import { ServiceApi } from "../../api/serviceApi.ts";
 
 const RunAllServiceCheck = () => {
-  const { clusterName, services, cluster, upgradeIsRunning, upgradeSuspended } = useContext(AppContext);
+  const { clusterName, services, cluster } = useContext(AppContext);
   const { allServiceModels } = useContext(ServiceContext);
-  const { hasAuthorization } = useAuth();
+  const { isAuthorized } = useAuthorizationPolicy();
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
 
-  const canRunServiceCheck = hasAuthorization("SERVICE.RUN_SERVICE_CHECK");
+  const canRunServiceCheck = isAuthorized("SERVICE.RUN_SERVICE_CHECK");
 
-  // Block during active upgrade (not suspended)
-  const isUpgradeBlocking = upgradeIsRunning && !upgradeSuspended;
-
-  // Don't show if no permission or upgrade is blocking
-  if (!canRunServiceCheck || isUpgradeBlocking) {
+  if (!canRunServiceCheck) {
     return null;
   }
 

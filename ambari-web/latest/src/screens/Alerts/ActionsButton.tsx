@@ -39,7 +39,7 @@ import {
   NotificationFormModal
 } from './components/NotificationModals';
 import { AlertsApi } from '../../api/alertsApi';
-import { useAuth } from '../../hooks/useAuth';
+import useAuthorizationPolicy from '../../hooks/useAuthorizationPolicy';
 import ClusterApi from '../../api/clusterApi';
 import ConfigsApi from '../../api/configsApi';
 import { ambariApi } from '../../api/config/axiosConfig';
@@ -76,11 +76,18 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
   const navigate = useNavigate();
   
   // Authorization hooks - implementing Ember.js alert authorization patterns
-  const { hasAuthorization } = useAuth();
+  const { isAuthorized } = useAuthorizationPolicy();
   
   // Check specific authorizations for alert operations
-  const canManageNotifications = hasAuthorization('CLUSTER.MANAGE_ALERT_NOTIFICATIONS');
-  const actionPolicy = getAlertActionPolicy(Boolean(supports.createAlerts), canManageNotifications);
+  const canManageAlerts = isAuthorized(
+    'SERVICE.TOGGLE_ALERTS, CLUSTER.TOGGLE_ALERTS',
+  );
+  const canManageNotifications = isAuthorized('CLUSTER.MANAGE_ALERT_NOTIFICATIONS');
+  const actionPolicy = getAlertActionPolicy(
+    Boolean(supports.createAlerts),
+    canManageAlerts,
+    canManageNotifications,
+  );
   
   const [clusterName] = useState<string>(urlClusterName || contextClusterName || '');
   

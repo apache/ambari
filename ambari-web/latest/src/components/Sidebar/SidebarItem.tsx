@@ -39,12 +39,11 @@ import { AppContext } from "../../store/context";
 import { ServiceContext } from "../../store/ServiceContext";
 import showBackgroundModal from "../../Utils/showBg";
 import modalManager from "../../store/ModalManager";
-import { useAuth } from "../../hooks/useAuth";
+import useAuthorizationPolicy from "../../hooks/useAuthorizationPolicy";
 import { serviceNameModelMapping } from "../../constants";
 import RunAllServiceCheck from "./RunAllServiceCheck";
 import { checkNnLastCheckpointTime } from "../../screens/Hosts/actions";
 import { get } from "lodash";
-import { canManageServices } from "../../Utils/servicePermissions";
 
 // interface SidebarElement {
 //   id: string;
@@ -86,28 +85,22 @@ const SidebarItem = ({
   const navigate = useNavigate();
   const {
     clusterName,
-    upgradeIsRunning,
-    upgradeSuspended,
     services: contextServices,
     supports,
-    wizardIsNotFinished,
     runningOperationsCount,
   } = useContext(AppContext);
   const { allServiceModels } = useContext(ServiceContext);
   const location = useLocation();
 
   // Authorization hooks - implementing Ember.js service menu authorization patterns
-  const { hasAuthorization } = useAuth();
+  const { havePermissions, isAuthorized } = useAuthorizationPolicy();
 
   // Check specific authorizations for service operations
-  const canAddDeleteServices = hasAuthorization("SERVICE.ADD_DELETE_SERVICES");
-  const canStartStopServices = hasAuthorization("SERVICE.START_STOP");
-  const canDownloadConfigs =
-    hasAuthorization("SERVICE.VIEW_CONFIGS") ||
-    hasAuthorization("CLUSTER.VIEW_CONFIGS");
-
-  // Check if upgrade is blocking operations (matches Ember.js logic)
-  const isUpgradeBlocking = upgradeIsRunning && !upgradeSuspended;
+  const canAddDeleteServices = isAuthorized("SERVICE.ADD_DELETE_SERVICES");
+  const canStartStopServices = isAuthorized("SERVICE.START_STOP");
+  const canDownloadConfigs = havePermissions(
+    "SERVICE.VIEW_CONFIGS, CLUSTER.VIEW_CONFIGS",
+  );
 
   // Check service states for conditional button enabling/disabling
   // Following Ember.js pattern where buttons are enabled based on actual service states
@@ -168,16 +161,10 @@ const SidebarItem = ({
     hasServicesRequiringRestart,
   } = getServiceStates();
 
-  const canAddService = canManageServices({
-    authorized: canAddDeleteServices,
-    featureEnabled: supports.enableAddDeleteServices,
-    wizardIsNotFinished,
-  });
+  const canAddService = canAddDeleteServices && supports.enableAddDeleteServices;
   const isStartStopBusy = runningOperationsCount > 0;
 
-  const hasAnyServiceOperationPermissions =
-    (canAddDeleteServices || canStartStopServices) &&
-    !isUpgradeBlocking;
+  const hasAnyServiceOperationPermissions = canAddDeleteServices || canStartStopServices;
 
   const executeAllServicesAction = async (
     label: string,

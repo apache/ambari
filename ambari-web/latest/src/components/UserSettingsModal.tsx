@@ -21,6 +21,7 @@ import { Alert, Form, Table } from "react-bootstrap";
 import ClusterApi from "../api/clusterApi";
 import LoginApi from "../api/loginApi";
 import { useAuth } from "../hooks/useAuth";
+import useAuthorizationPolicy from "../hooks/useAuthorizationPolicy";
 import { detectUserTimezone, parseTimezones } from "../Utils/timezone";
 import { parsePersistedValue, persistedPayload } from "../Utils/persistedSettings";
 import Modal from "./Modal";
@@ -37,7 +38,8 @@ type PrivilegeGroup = {
 };
 
 export default function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
-  const { user, isAdmin, hasAuthorization } = useAuth();
+  const { user, isAdmin } = useAuth();
+  const { isAuthorized } = useAuthorizationPolicy();
   const { syncUserBgPreferences, syncUserTimezone } = useContext(AppContext);
   const [showBackgroundOperations, setShowBackgroundOperations] = useState(true);
   const [timezone, setTimezone] = useState(detectUserTimezone());
@@ -50,7 +52,7 @@ export default function UserSettingsModal({ isOpen, onClose }: UserSettingsModal
   const loginName = user?.user_name || "";
   const showBackgroundKey = `admin-settings-show-bg-${loginName}`;
   const timezoneKey = `admin-settings-timezone-${loginName}`;
-  const canPersist = hasAuthorization("CLUSTER.MANAGE_USER_PERSISTED_DATA");
+  const canPersist = isAuthorized("CLUSTER.MANAGE_USER_PERSISTED_DATA");
 
   useEffect(() => {
     if (!isOpen || !loginName) {

@@ -16,13 +16,12 @@
  * limitations under the License.
  */
 
-import React, { forwardRef, useContext, useEffect, useImperativeHandle, useState } from 'react';
+import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { AlertsApi } from '../../api/alertsApi';
 import { Form, Button, Row, Col, InputGroup } from 'react-bootstrap';
 import "../../styles/app.scss"
-import { useAuth } from '../../hooks/useAuth';
-import { AppContext } from '../../store/context';
+import useAuthorizationPolicy from '../../hooks/useAuthorizationPolicy';
 import {
     buildAlertDefinitionUpdate,
     validateAlertDefinitionConfiguration,
@@ -79,7 +78,6 @@ const AlertConfigSection = forwardRef<AlertEditorHandle, AlertConfigSectionProps
     onDirtyChange,
 }, ref) => {
     const { alertId } = useParams<{ alertId: string }>();
-    const { upgradeIsRunning, upgradeSuspended } = useContext(AppContext);
     const [canEdit, setCanEdit] = useState(false);
     const [configurations, setConfigurations] = useState<AlertDefinitionConfig>({
         id: 0,
@@ -97,13 +95,10 @@ const AlertConfigSection = forwardRef<AlertEditorHandle, AlertConfigSectionProps
     const [retryTrigger, setRetryTrigger] = useState(0);
     
     // Authorization hooks - implementing Ember.js alert authorization patterns
-    const { hasAuthorization } = useAuth();
+    const { isAuthorized } = useAuthorizationPolicy();
     
     // Check specific authorizations for alert operations
-    const canToggleAlerts = hasAuthorization('SERVICE.TOGGLE_ALERTS');
-    
-    // Check if upgrade is blocking operations (running but not suspended)
-    const isUpgradeBlocking = upgradeIsRunning && !upgradeSuspended;
+    const canToggleAlerts = isAuthorized('SERVICE.TOGGLE_ALERTS');
 
     useEffect(() => {
         const fetchAlertDefinition = async () => {
@@ -301,7 +296,7 @@ const AlertConfigSection = forwardRef<AlertEditorHandle, AlertConfigSectionProps
                         </div>
                         <div className="col">
                             {/* Only show EDIT button if user has SERVICE.TOGGLE_ALERTS permission and upgrade is not blocking */}
-                            {!canEdit && canToggleAlerts && !isUpgradeBlocking && (
+                            {!canEdit && canToggleAlerts && (
                                 <Button
                                     variant="link"
                                     onClick={(e) => {

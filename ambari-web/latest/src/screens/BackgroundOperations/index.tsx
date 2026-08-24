@@ -57,6 +57,7 @@ import {
   statusMatchesFilter,
 } from "../../Utils/backgroundOperations";
 import { useAuth } from "../../hooks/useAuth";
+import useAuthorizationPolicy from "../../hooks/useAuthorizationPolicy";
 import toast from "react-hot-toast";
 
 type PropTypes = {
@@ -89,8 +90,10 @@ function BackgroundOperations({
   const [isLoadingRequests, setIsLoadingRequests] = useState(false);
   const [loadError, setLoadError] = useState("");
   const [isAborting, setIsAborting] = useState(false);
-  const { hasAuthorization, isClusterUser } = useAuth();
-  const canAbortRequests = hasAuthorization("SERVICE.START_STOP");
+  const { isClusterUser } = useAuth();
+  const { isAuthorized } = useAuthorizationPolicy();
+  const canAbortRequests = isAuthorized("SERVICE.START_STOP");
+  const canManageBackgroundSettings = isAuthorized("AMBARI.MANAGE_SETTINGS");
   const isBackgroundOperationsRestricted = isClusterUser();
   const {
     clusterName: cName,
@@ -617,7 +620,7 @@ function BackgroundOperations({
                 ?.requestContext
             } operation`}
             successCallback={async () => {
-              if (isAborting) {
+              if (isAborting || !canAbortRequests) {
                 return;
               }
               setIsAborting(true);
@@ -800,19 +803,21 @@ function BackgroundOperations({
         {getSelectedLevelView()}
       </Modal.Body>
       <Modal.Footer className="justify-content-between">
-        <Form.Check // prettier-ignore
-          type={"checkbox"}
-          id={`hide-bg-operations`}
-          onChange={(e) => {
-            setUserBgPreferences(!e.target.checked);
-          }}
-          checked={!userBgPreferences}
-          label={
-            <div className="mt-1">
-              Do not show this dialog again when starting a background operation
-            </div>
-          }
-        />
+        {canManageBackgroundSettings ? (
+          <Form.Check // prettier-ignore
+            type={"checkbox"}
+            id={`hide-bg-operations`}
+            onChange={(e) => {
+              setUserBgPreferences(!e.target.checked);
+            }}
+            checked={!userBgPreferences}
+            label={
+              <div className="mt-1">
+                Do not show this dialog again when starting a background operation
+              </div>
+            }
+          />
+        ) : <span />}
         <Button
           variant="success"
           size="sm"

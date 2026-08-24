@@ -170,25 +170,28 @@ function WizardConfigInitializer(
 
       return configProperty;
     },
-    _initHiveDatabaseValue: (configProperty: any) => {
+    _initHiveDatabaseValue: (
+      configProperty: any,
+      _localDB: any,
+      dependencies: any,
+    ) => {
       var newMySQLDBOption = find(get(configProperty, "options"), [
         "displayName",
         "New MySQL Database",
       ]);
-      // if (newMySQLDBOption) {
-      //   var isNewMySQLDBOptionHidden =
-      //     get("supports.alwaysEnableManagedMySQLForHive") &&
-      //     App.get("router.currentState.name") !== "configs" &&
-      //     !App.get("isManagedMySQLForHiveEnabled");
-      //   if (
-      //     isNewMySQLDBOptionHidden &&
-      //     Em.get(configProperty, "value") === "New MySQL Database"
-      //   ) {
-      //     Em.set(configProperty, "value", "Existing MySQL Database");
-      //   }
-      //   Em.set(newMySQLDBOption, "hidden", isNewMySQLDBOptionHidden);
-      // }
-      console.log("newMySQLDBOption", newMySQLDBOption);
+      if (newMySQLDBOption) {
+        const isNewMySQLDBOptionHidden =
+          !dependencies.alwaysEnableManagedMySQLForHive
+          && !dependencies.isServiceConfigRoute
+          && !dependencies.isManagedMySQLForHiveEnabled;
+        if (
+          isNewMySQLDBOptionHidden
+          && configProperty.value === "New MySQL Database"
+        ) {
+          configProperty.value = "Existing MySQL Database";
+        }
+        newMySQLDBOption.hidden = isNewMySQLDBOptionHidden;
+      }
 
       return configProperty;
     },

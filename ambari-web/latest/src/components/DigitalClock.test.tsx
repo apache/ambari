@@ -16,22 +16,31 @@
  * limitations under the License.
  */
 
-export interface AlertActionPolicy {
-  create: boolean;
-  groups: boolean;
-  notifications: boolean;
-  settings: boolean;
-}
+import { act, cleanup, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import DigitalClock from "./DigitalClock";
 
-export function getAlertActionPolicy(
-  supportsCreateAlerts: boolean,
-  canManageAlerts: boolean,
-  canManageNotifications: boolean,
-): AlertActionPolicy {
-  return {
-    create: supportsCreateAlerts && canManageAlerts,
-    groups: canManageAlerts,
-    notifications: canManageNotifications,
-    settings: canManageAlerts,
-  };
-}
+describe("DigitalClock", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(Date.UTC(2024, 0, 1, 0, 0, 0));
+  });
+
+  afterEach(() => {
+    cleanup();
+    vi.useRealTimers();
+  });
+
+  it("tracks Ambari Server time instead of the client clock", () => {
+    render(
+      <DigitalClock
+        serverClock={Date.UTC(2024, 0, 1, 1, 0, 0)}
+        timeZone="UTC"
+      />,
+    );
+
+    expect(screen.getByTestId("server-clock").textContent).toBe("01:00:00");
+    act(() => vi.advanceTimersByTime(2000));
+    expect(screen.getByTestId("server-clock").textContent).toBe("01:00:02");
+  });
+});
