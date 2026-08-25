@@ -79,20 +79,38 @@ export function isDataType(unit: string): boolean {
 /**
  * Get dimension table map for unit conversion
  */
-function getUnitTable(unit: string, currentDimensionType?: string): Record<string, any> {
-  let unitType: string;
-  
+function getUnitTable(
+  unit: string,
+  currentDimensionType?: string,
+): Record<string, number> {
   if (currentDimensionType) {
-    unitType = currentDimensionType;
-  } else {
-    // Find the dimension type by looking for the unit in conversion tables
-    unitType = Object.keys(convertMapTable).find(item => {
-      const table = convertMapTable[item as keyof typeof convertMapTable];
-      return Object.keys(table).includes(unit?.toLowerCase());
-    }) || 'dimensionless';
+    let table: unknown = convertMapTable;
+    for (const segment of currentDimensionType.split(".")) {
+      if (typeof table !== "object" || table === null || !(segment in table)) {
+        table = undefined;
+        break;
+      }
+      table = (table as Record<string, unknown>)[segment];
+    }
+    if (
+      typeof table === "object" &&
+      table !== null &&
+      Object.values(table).every((value) => typeof value === "number")
+    ) {
+      return table as Record<string, number>;
+    }
   }
-  
-  return convertMapTable[unitType as keyof typeof convertMapTable] || convertMapTable.dimensionless;
+
+  const unitType = Object.keys(convertMapTable).find((item) => {
+    const table = convertMapTable[item as keyof typeof convertMapTable];
+    return Object.keys(table).includes(unit?.toLowerCase());
+  });
+  const table = unitType
+    ? convertMapTable[unitType as keyof typeof convertMapTable]
+    : convertMapTable.dimensionless;
+  return Object.values(table).every((value) => typeof value === "number")
+    ? (table as Record<string, number>)
+    : convertMapTable.dimensionless;
 }
 
 /**
@@ -221,7 +239,7 @@ export function getConfigUnitInfo(property: any): {
   configType: string;
 } {
   // Get config unit from property attributes
-  const configUnit = property?.propertyAttributes?.unit || property?.propertyAttributes?.type || 'int';
+  const configUnit = property?.unit || property?.propertyAttributes?.unit || property?.propertyAttributes?.type || 'int';
   
   // Get widget unit from widget definition or fall back to config unit
   const widgetUnit = property?.widget?.units?.[0]?.['unit-name'] || 
@@ -318,7 +336,13 @@ export function extraRound(value: number): number {
 /**
  * Parse time interval from config value to appropriate time units (days, hours, minutes, seconds)
  */
-export function parseTimeInterval(value: number, configUnit: string): {days: number, hours: number, minutes: number, seconds: number} {
+export function parseTimeInterval(value: number, configUnit: string): {
+  days: number;
+  hours: number;
+  minutes: number;
+  seconds: number;
+  milliseconds: number;
+} {
   // Convert to milliseconds first
   const milliseconds = convertValue(value, configUnit, 'milliseconds') as number;
   
@@ -327,15 +351,32 @@ export function parseTimeInterval(value: number, configUnit: string): {days: num
   const hours = Math.floor((totalSeconds % (24 * 60 * 60)) / (60 * 60));
   const minutes = Math.floor((totalSeconds % (60 * 60)) / 60);
   const seconds = totalSeconds % 60;
+  const remainingMilliseconds = Math.round(milliseconds - totalSeconds * 1000);
   
-  return { days, hours, minutes, seconds };
+  return {
+    days,
+    hours,
+    minutes,
+    seconds,
+    milliseconds: remainingMilliseconds,
+  };
 }
 
 /**
  * Compose time interval from time components back to config unit
  */
-export function composeTimeInterval(days: number, hours: number, minutes: number, seconds: number, configUnit: string): number {
-  const totalMilliseconds = ((days * 24 * 60 * 60) + (hours * 60 * 60) + (minutes * 60) + seconds) * 1000;
+export function composeTimeInterval(
+  days: number,
+  hours: number,
+  minutes: number,
+  seconds: number,
+  configUnit: string,
+  milliseconds = 0,
+): number {
+  const totalMilliseconds =
+    ((days * 24 * 60 * 60) + (hours * 60 * 60) + (minutes * 60) + seconds) *
+      1000 +
+    milliseconds;
   return convertValue(totalMilliseconds, 'milliseconds', configUnit) as number;
 }
 

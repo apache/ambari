@@ -24,6 +24,57 @@ export function isViewOnlyUser(authorizations: Authorization[]): boolean {
       && authorizations[0].authorization_id === "VIEW.USE");
 }
 
+export function clusterNavigationEnabled(
+  clusterControls: boolean,
+  pathname: string,
+): boolean {
+  return clusterControls
+    && !pathname.includes("installer")
+    && !pathname.includes("install");
+}
+
+export function clusterProvisioningRedirect({
+  canAddDeleteClusters,
+  clusterInstalled,
+  clusterName,
+  pathname,
+}: {
+  canAddDeleteClusters: boolean;
+  clusterInstalled: boolean | undefined;
+  clusterName?: string;
+  pathname: string;
+}): string | null {
+  if (pathname.startsWith("/installer")) {
+    if (!canAddDeleteClusters) {
+      return "/main/view";
+    }
+    if (clusterInstalled === true) {
+      return "/main/dashboard/metrics";
+    }
+  }
+  if (
+    clusterName
+    && clusterInstalled === false
+    && pathname.startsWith("/main")
+    && !pathname.startsWith("/main/view")
+  ) {
+    return canAddDeleteClusters ? "/installer/step0" : "/main/view";
+  }
+  return null;
+}
+
+export function shouldUseMinimalViewsShell({
+  clusterInstalled,
+  viewOnly,
+  viewRoute,
+}: {
+  clusterInstalled: boolean | undefined;
+  viewOnly: boolean;
+  viewRoute: boolean;
+}): boolean {
+  return viewOnly || (viewRoute && clusterInstalled !== true);
+}
+
 export function selectLandingPath({
   clusterInstalled,
   clusterName,

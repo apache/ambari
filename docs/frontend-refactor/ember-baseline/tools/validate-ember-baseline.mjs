@@ -40,6 +40,9 @@ const warnings = [];
 const ALLOWED_NEW_FEATURE_IDS = new Set(['INST-MODE-011', 'INST-8-009']);
 const LEGACY_FEATURE_ID_COUNT = 1000;
 const LEGACY_FEATURE_ID_SEQUENCE_SHA256 = '21699bfe0be07648e5124cfd640d8593a83d840ca19de455c40712b74f1f1a23';
+const SERVICE_THEME_MODULE = '14-service-theme-layout.md';
+const SERVICE_THEME_FEATURE_ID_COUNT = 152;
+const SERVICE_THEME_FEATURE_ID_SEQUENCE_SHA256 = '7dc625b3b77624012c4f541ff456f23c606f81f3c491e49a82dfcc467574a1c1';
 const HTTP_METHODS = new Set(['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS', 'DYNAMIC']);
 
 const OPEN_DYNAMIC_AJAX_DISPATCH_KINDS = new Set([
@@ -572,8 +575,9 @@ const requiredDocuments = [
   '11-federation-hawq.md',
   '12-views.md',
   '13-permissions-flags.md',
-  '14-react-gap-matrix.md',
-  '15-five-pass-audit.md',
+  SERVICE_THEME_MODULE,
+  '15-react-gap-matrix.md',
+  '16-five-pass-audit.md',
   'README.md',
   'api/README.md',
 ];
@@ -590,9 +594,9 @@ const markdownTableStats = handWrittenMarkdownFiles.reduce((stats, file) => {
   return stats;
 }, { tables: 0, rows: 0 });
 const featureModuleFiles = markdownFiles.filter((file) =>
-  path.dirname(file) === baselineRoot && /^(?:0[1-9]|1[0-3])-.*\.md$/.test(path.basename(file)),
+  path.dirname(file) === baselineRoot && /^(?:0[1-9]|1[0-4])-.*\.md$/.test(path.basename(file)),
 );
-const expectedModuleFileNames = Array.from({ length: 13 }, (_, index) =>
+const expectedModuleFileNames = Array.from({ length: 14 }, (_, index) =>
   String(index + 1).padStart(2, '0'),
 );
 for (const prefix of expectedModuleFileNames) {
@@ -628,7 +632,12 @@ for (const [featureId, locations] of featureIdLocations) {
 }
 const currentFeatureIds = handWrittenFeatures.map((feature) => feature.id);
 const currentNewFeatureIds = currentFeatureIds.filter((id) => ALLOWED_NEW_FEATURE_IDS.has(id));
-const legacyFeatureIds = currentFeatureIds.filter((id) => !ALLOWED_NEW_FEATURE_IDS.has(id));
+const serviceThemeFeatureIds = handWrittenFeatures
+  .filter((feature) => feature.moduleFile === SERVICE_THEME_MODULE)
+  .map((feature) => feature.id);
+const legacyFeatureIds = handWrittenFeatures
+  .filter((feature) => feature.moduleFile !== SERVICE_THEME_MODULE && !ALLOWED_NEW_FEATURE_IDS.has(feature.id))
+  .map((feature) => feature.id);
 for (const id of ALLOWED_NEW_FEATURE_IDS) {
   if (!currentFeatureIds.includes(id)) errors.push(`Required post-freeze feature ID is missing: ${id}`);
 }
@@ -641,6 +650,13 @@ if (legacyFeatureIds.length !== LEGACY_FEATURE_ID_COUNT) {
 const legacyFeatureIdHash = sha256Json(legacyFeatureIds);
 if (legacyFeatureIdHash !== LEGACY_FEATURE_ID_SEQUENCE_SHA256) {
   errors.push(`Legacy feature ID sequence changed: ${legacyFeatureIdHash}`);
+}
+if (serviceThemeFeatureIds.length !== SERVICE_THEME_FEATURE_ID_COUNT) {
+  errors.push(`Expected ${SERVICE_THEME_FEATURE_ID_COUNT} Service Theme feature IDs, found ${serviceThemeFeatureIds.length}`);
+}
+const serviceThemeFeatureIdHash = sha256Json(serviceThemeFeatureIds);
+if (serviceThemeFeatureIdHash !== SERVICE_THEME_FEATURE_ID_SEQUENCE_SHA256) {
+  errors.push(`Service Theme feature ID sequence changed: ${serviceThemeFeatureIdHash}`);
 }
 
 // Audit complete classic source paths written as code spans in module table rows.
@@ -1475,20 +1491,20 @@ const actualFivePassAuditCounts = {
   itSkipMarkers: actualClassicTestAudit.itSkip,
   skipMarkers: actualClassicTestAudit.describeSkip + actualClassicTestAudit.itSkip,
 };
-const fivePassAuditFile = path.join(baselineRoot, '15-five-pass-audit.md');
+const fivePassAuditFile = path.join(baselineRoot, '16-five-pass-audit.md');
 if (fs.existsSync(fivePassAuditFile)) {
   const auditSource = read(fivePassAuditFile);
   const auditCountBlock = auditSource.match(/## Machine-Frozen Counts[\s\S]*?```json\s*\n([\s\S]*?)\n```/);
   if (!auditCountBlock) {
-    errors.push('15-five-pass-audit.md has no machine count JSON block');
+    errors.push('16-five-pass-audit.md has no machine count JSON block');
   } else {
     try {
       const statedCounts = JSON.parse(auditCountBlock[1]);
       if (JSON.stringify(statedCounts) !== JSON.stringify(actualFivePassAuditCounts)) {
-        errors.push(`15-five-pass-audit.md counts differ from current audit: stated ${JSON.stringify(statedCounts)}, actual ${JSON.stringify(actualFivePassAuditCounts)}`);
+        errors.push(`16-five-pass-audit.md counts differ from current audit: stated ${JSON.stringify(statedCounts)}, actual ${JSON.stringify(actualFivePassAuditCounts)}`);
       }
     } catch (error) {
-      errors.push(`15-five-pass-audit.md machine count JSON is invalid: ${error.message}`);
+      errors.push(`16-five-pass-audit.md machine count JSON is invalid: ${error.message}`);
     }
   }
 }

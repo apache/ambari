@@ -26,6 +26,7 @@ import {
   faWrench 
 } from "@fortawesome/free-solid-svg-icons";
 import AmbariLogo from "../../assets/img/ambari-logo.png"
+import { isWindowsStack } from "../../Utils/stackMetadata";
 
 enum SideItemLabels {
   LOGO = "logo",
@@ -44,16 +45,15 @@ enum SideItemLabels {
  * Based on Ember.js ui/app/views/main/admin.js authorization patterns
  */
 const getSideItemList = (
-  hasAuthorization: (auth: string) => boolean,
+  havePermissions: (auth: string) => boolean,
+  isAuthorized: (auth: string) => boolean,
   supports: Record<string, boolean>,
-  upgradeInProgress: boolean = false,
-  upgradeHolding: boolean = false,
-  isNonWizardUser: boolean = false,
+  stackName = "",
 ): SideItem[] => {
   const adminChildren: SideItem[] = [];
   
   // Stack and Versions - Requires CLUSTER.VIEW_STACK_DETAILS OR CLUSTER.UPGRADE_DOWNGRADE_STACK (matches Ember.js)
-  if (hasAuthorization('CLUSTER.VIEW_STACK_DETAILS, CLUSTER.UPGRADE_DOWNGRADE_STACK') || upgradeInProgress || upgradeHolding) {
+  if (havePermissions('CLUSTER.VIEW_STACK_DETAILS, CLUSTER.UPGRADE_DOWNGRADE_STACK')) {
     adminChildren.push({
       id: SideItemLabels.STACK_AND_VERSIONS,
       icon: <></>,
@@ -65,7 +65,7 @@ const getSideItemList = (
   }
   
   // Service Accounts - Requires SERVICE.SET_SERVICE_USERS_GROUPS
-  if (hasAuthorization('SERVICE.SET_SERVICE_USERS_GROUPS') || upgradeInProgress || upgradeHolding) {
+  if (isAuthorized('SERVICE.SET_SERVICE_USERS_GROUPS')) {
     adminChildren.push({
       id: SideItemLabels.SERVICE_ACCOUNTS,
       icon: <></>,
@@ -77,8 +77,11 @@ const getSideItemList = (
   }
   
   // Kerberos - Requires CLUSTER.TOGGLE_KERBEROS
-  if (!isNonWizardUser && supports.enableToggleKerberos
-    && (hasAuthorization('CLUSTER.TOGGLE_KERBEROS') || upgradeInProgress || upgradeHolding)) {
+  if (
+    !isWindowsStack(stackName)
+    && supports.enableToggleKerberos
+    && isAuthorized('CLUSTER.TOGGLE_KERBEROS')
+  ) {
     adminChildren.push({
       id: SideItemLabels.KERBEROS,
       icon: <></>,
@@ -90,9 +93,9 @@ const getSideItemList = (
   }
   
   // Service Auto Start - Requires SERVICE.START_STOP authorization (matches ServiceAutoStart component)
-  const canSeeAutoStart = hasAuthorization('SERVICE.START_STOP, CLUSTER.MODIFY_CONFIGS')
-    && hasAuthorization('SERVICE.MANAGE_AUTO_START, CLUSTER.MANAGE_AUTO_START');
-  if (supports.serviceAutoStart && (canSeeAutoStart || upgradeInProgress || upgradeHolding)) {
+  const canSeeAutoStart = isAuthorized('SERVICE.START_STOP, CLUSTER.MODIFY_CONFIGS')
+    && isAuthorized('SERVICE.MANAGE_AUTO_START, CLUSTER.MANAGE_AUTO_START');
+  if (supports.serviceAutoStart && canSeeAutoStart) {
     adminChildren.push({
       id: SideItemLabels.SERVICE_AUTO_START,
       icon: <></>,
@@ -151,13 +154,11 @@ const getSideItemList = (
 
   // Only add Cluster Admin if user has any admin permissions
   // This matches Ember.js ui/app/views/main/menu.js logic
-  const hasAnyAdminPermissions = hasAuthorization('CLUSTER.TOGGLE_KERBEROS') ||
-                                 hasAuthorization('CLUSTER.MODIFY_CONFIGS') ||
-                                 hasAuthorization('SERVICE.START_STOP') ||
-                                 hasAuthorization('SERVICE.SET_SERVICE_USERS_GROUPS') ||
-                                 hasAuthorization('CLUSTER.UPGRADE_DOWNGRADE_STACK') ||
-                                 hasAuthorization('CLUSTER.VIEW_STACK_DETAILS') ||
-                                 upgradeInProgress || upgradeHolding;
+  const hasAnyAdminPermissions = havePermissions(
+    'CLUSTER.TOGGLE_KERBEROS, CLUSTER.MODIFY_CONFIGS, SERVICE.START_STOP, '
+      + 'SERVICE.SET_SERVICE_USERS_GROUPS, CLUSTER.UPGRADE_DOWNGRADE_STACK, '
+      + 'CLUSTER.VIEW_STACK_DETAILS',
+  );
 
   if (hasAnyAdminPermissions && adminChildren.length > 0) {
     baseItems.push({

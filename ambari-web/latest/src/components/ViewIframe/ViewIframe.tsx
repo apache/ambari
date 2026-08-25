@@ -16,120 +16,154 @@
  * limitations under the License.
  */
 
-import React, { useEffect, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Alert, Button } from "react-bootstrap";
+import { buildViewIframeSrc } from "../../Utils/viewUtils";
+import {
+  calculateViewIframeHeight,
+  VIEW_IFRAME_LOAD_TIMEOUT_MS,
+} from "./viewIframeUtils";
 
-interface ViewIframeProps {
-    baseUrl?: string;
-}
-
-const ViewIframe: React.FC<ViewIframeProps> = ({ baseUrl }) => {
-    const { viewName, viewVersion, instanceName, viewPath = '' } = useParams<{
-        viewName: string;
-        viewVersion: string;
-        instanceName: string;
-        viewPath: string;
-    }>();
-
-    const iframeRef = useRef<HTMLIFrameElement>(null);
-    const [iframeHeight, setIframeHeight] = useState<string>('100vh');
-    const [isLoading, setIsLoading] = useState(true);
-    const [hasError, setHasError] = useState(false);
-
-    const getIframeSrc = () => {
-        const protocol = window.location.protocol;
-        const host = window.location.host;
-        const urlBase = baseUrl || `${protocol}//${host}`;
-        
-        // Remove /main from the URL and ensure proper path construction
-        let viewUrl = `${urlBase}/views/${viewName}/${viewVersion}/${instanceName}`;
-        //TODO: know the logic behind having viewPath
-        // Add any additional path components
-        if (viewPath) {
-            viewUrl += viewPath.startsWith('/') ? viewPath : `/${viewPath}`;
-        }else{
-            viewUrl += '/';
-        }
-
-        return viewUrl;
-    };
-
-    const handleIframeLoad = () => {
-        setIsLoading(false);
-        try {
-            // Try to access iframe content - if this fails, it means the page didn't load properly
-            if (iframeRef.current?.contentWindow?.location.href) {
-                setHasError(false);
-                resizeIframe();
-            } else {
-                setHasError(true);
-            }
-        } catch (error) {
-            // Cross-origin error or other loading issues
-            setHasError(true);
-            console.error('Error loading iframe content:', error);
-        }
-    };
-
-    const resizeIframe = () => {
-        if (!iframeRef.current) return;
-
-        try {
-            const iframe = iframeRef.current;
-            iframe.style.height = 'auto';
-
-            if (
-                iframe.contentWindow &&
-                iframe.contentWindow.document &&
-                iframe.contentWindow.document.body
-            ) {
-                const iframeContentBody = iframe.contentWindow.document.body;
-                const contentHeight = iframeContentBody.scrollHeight;
-                const windowHeight = window.innerHeight;
-                const newHeight = Math.max(contentHeight, windowHeight - 100) + 'px';
-                setIframeHeight(newHeight);
-            }
-        } catch (error) {
-            // Ignore cross-origin errors during resize
-            console.debug('Could not resize iframe (possibly cross-origin):', error);
-        }
-    };
-
-    useEffect(() => {
-        const interval = setInterval(resizeIframe, 2000);
-        window.addEventListener('resize', resizeIframe);
-
-        return () => {
-            clearInterval(interval);
-            window.removeEventListener('resize', resizeIframe);
-        };
-    }, []);
-
-    if (hasError) {
-        return null; // Render nothing if the URL is not working
-    }
-
-    return (
-        <div className="d-flex flex-column w-100 h-100 overflow-hidden">
-            {isLoading && (
-                <div className="d-flex justify-content-center align-items-center p-4">
-                    <div className="spinner-border text-primary" role="status">
-                        <span className="visually-hidden">Loading...</span>
-                    </div>
-                </div>
-            )}
-            <iframe
-                ref={iframeRef}
-                src={getIframeSrc()}
-                className={`w-100 border-0 flex-grow-1 ${isLoading ? 'd-none' : ''}`}
-                style={{ height: iframeHeight, minHeight: '500px' }}
-                seamless
-                allowFullScreen
-                onLoad={handleIframeLoad}
-                title={`${viewName} View`}
-            />
-        </div>
-    );
+type ViewIframeProps = {
+  contextPath: string;
+  title: string;
+  viewPath?: string;
 };
 
-export default ViewIframe;
+export default function ViewIframe({ contextPath, title, viewPath = "" }: ViewIframeProps) {
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const loadTimeoutRef = useRef<{ id: number; requestKey: string } | null>(null);
+  const [loadAttempt, setLoadAttempt] = useState(0);
+  const src = buildViewIframeSrc(window.location.origin, contextPath, viewPath);
+  const requestKey = `${src}:${loadAttempt}`;
+  const [loadState, setLoadState] = useState({
+    requestKey,
+    phase: "loading" as "loading" | "loaded" | "error",
+  });
+  const phase = loadState.requestKey === requestKey ? loadState.phase : "loading";
+
+  const clearLoadTimeout = useCallback((expectedRequestKey?: string) => {
+    if (
+      loadTimeoutRef.current
+      && (!expectedRequestKey || loadTimeoutRef.current.requestKey === expectedRequestKey)
+    ) {
+      window.clearTimeout(loadTimeoutRef.current.id);
+      loadTimeoutRef.current = null;
+    }
+  }, []);
+
+  const resizeIframe = useCallback(() => {
+    const iframe = iframeRef.current;
+    if (!iframe) return;
+
+    const previousHeight = iframe.style.height;
+    const pageScrollX = window.scrollX;
+    const pageScrollY = window.scrollY;
+    const scrollContainer = iframe.closest<HTMLElement>("[data-view-scroll-container]");
+    const containerScrollLeft = scrollContainer?.scrollLeft;
+    const containerScrollTop = scrollContainer?.scrollTop;
+    try {
+      const bodyHeight = document.body.offsetHeight;
+      const headerHeight = document.getElementById("top-nav")?.offsetHeight || 0;
+      const footerHeight = document.querySelector("footer")?.offsetHeight || 0;
+      iframe.style.height = "auto";
+      const contentHeight = iframe.contentWindow?.document?.body?.scrollHeight || 0;
+      iframe.style.height = `${calculateViewIframeHeight(
+        contentHeight,
+        bodyHeight,
+        headerHeight,
+        footerHeight,
+      )}px`;
+    } catch {
+      iframe.style.height = previousHeight;
+    } finally {
+      window.scrollTo(pageScrollX, pageScrollY);
+      if (scrollContainer) {
+        scrollContainer.scrollLeft = containerScrollLeft || 0;
+        scrollContainer.scrollTop = containerScrollTop || 0;
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    setLoadState({ requestKey, phase: "loading" });
+    clearLoadTimeout();
+    const timeoutId = window.setTimeout(() => {
+      setLoadState((current) => current.requestKey === requestKey && current.phase === "loading"
+        ? { ...current, phase: "error" }
+        : current);
+      if (loadTimeoutRef.current?.id === timeoutId) {
+        loadTimeoutRef.current = null;
+      }
+    }, VIEW_IFRAME_LOAD_TIMEOUT_MS);
+    loadTimeoutRef.current = { id: timeoutId, requestKey };
+
+    return () => clearLoadTimeout(requestKey);
+  }, [clearLoadTimeout, requestKey]);
+
+  useEffect(() => {
+    resizeIframe();
+    const intervalId = window.setInterval(resizeIframe, 5000);
+    window.addEventListener("resize", resizeIframe);
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener("resize", resizeIframe);
+    };
+  }, [resizeIframe]);
+
+  useEffect(() => {
+    if (phase === "loaded") {
+      resizeIframe();
+    }
+  }, [phase, resizeIframe]);
+
+  const handleLoad = () => {
+    clearLoadTimeout(requestKey);
+    setLoadState((current) => (
+      current.requestKey === requestKey && current.phase === "loading"
+        ? { ...current, phase: "loaded" }
+        : current
+    ));
+  };
+
+  const handleError = () => {
+    clearLoadTimeout(requestKey);
+    setLoadState((current) => current.requestKey === requestKey
+      ? { ...current, phase: "error" }
+      : current);
+  };
+
+  return (
+    <div className="d-flex flex-column w-100">
+      {phase === "loading" ? (
+        <div className="d-flex justify-content-center align-items-center p-4">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      ) : null}
+      {phase === "error" ? (
+        <Alert variant="danger" className="m-3">
+          <Alert.Heading>Unable to load View</Alert.Heading>
+          <p>The View did not respond. Check the View deployment and try again.</p>
+          <Button variant="outline-danger" onClick={() => setLoadAttempt((value) => value + 1)}>
+            Retry
+          </Button>
+        </Alert>
+      ) : null}
+      <iframe
+        key={requestKey}
+        ref={iframeRef}
+        src={src}
+        className={`d-block w-100 border-0 ${phase === "loaded" ? "" : "d-none"}`}
+        style={{ height: "100vh" }}
+        seamless
+        allowFullScreen
+        onLoad={handleLoad}
+        onError={handleError}
+        onErrorCapture={handleError}
+        title={title}
+      />
+    </div>
+  );
+}

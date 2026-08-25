@@ -40,6 +40,7 @@ import {
   deriveAddServiceFlow,
   nextAddServiceStep,
 } from "../Services/AddServiceWizard/addServiceNavigation";
+import { filterInstallableStackServices } from "../../Utils/stackMetadata";
 
 type Service = {
   displayName: string;
@@ -130,8 +131,10 @@ export default function Step4({ wizardName = "clusterCreation" }) {
 
     if (coSelectedServices[serviceName]) {
       for (const coSelectedService of coSelectedServices[serviceName]) {
-        updatedServices[coSelectedService].selected =
-          updatedServices[serviceName].selected;
+        if (updatedServices[coSelectedService]) {
+          updatedServices[coSelectedService].selected =
+            updatedServices[serviceName].selected;
+        }
       }
     }
     setServices(updatedServices);
@@ -205,12 +208,15 @@ export default function Step4({ wizardName = "clusterCreation" }) {
   };
 
   const serviceValidation = (service: string, errorStackCopy: ErrorType[]) => {
+    const candidate = services[service];
+    if (!candidate) return;
+
     if (
-      services[service].selected === false &&
+      candidate.selected === false &&
       !errorStackCopy.find(
         (missingService) => missingService.serviceName === service
       ) &&
-      !services[service].isIgnored
+      !candidate.isIgnored
     ) {
       errorStackCopy.push({
         serviceName: service,
@@ -251,6 +257,7 @@ export default function Step4({ wizardName = "clusterCreation" }) {
   const combineCoSelectedServices = (services: { [key: string]: Service }) => {
     Object.keys(coSelectedServices).forEach((service) => {
       forEach(coSelectedServices[service], (coSelectedService) => {
+        if (!services[service] || !services[coSelectedService]) return;
         services[service].displayName =
           services[service].displayName +
           " + " +
@@ -299,7 +306,10 @@ export default function Step4({ wizardName = "clusterCreation" }) {
           version
         );
         const transformedData: { [key: string]: any } = {};
-        chooseServices.items.forEach((service: any) => {
+        const installableServices = filterInstallableStackServices(
+          get(chooseServices, "items", []),
+        );
+        installableServices.forEach((service: any) => {
           const components = get(service, "components", []).map(
             (component: any) => component.StackServiceComponents || {},
           );
@@ -348,7 +358,7 @@ export default function Step4({ wizardName = "clusterCreation" }) {
             return acc;
           }, {} as { [key: string]: Service });
 
-        setServicesFromApi(chooseServices);
+        setServicesFromApi({ ...chooseServices, items: installableServices });
         setServices(sortedServices);
         
         // Handle pre-selection from localStorage (for Add Service from Stack and Versions page)

@@ -16,47 +16,106 @@
  * limitations under the License.
  */
 
-import { FunctionComponent, memo, useContext, useState } from "react";
+import {
+  createContext,
+  FunctionComponent,
+  memo,
+  useContext,
+  useState,
+} from "react";
 import "./styles.scss";
 import classNames from "classnames";
 import { CheckLg } from "react-bootstrap-icons";
+import { Alert } from "react-bootstrap";
 import ConfirmationModal from "../ConfirmationModal";
-import { get } from "lodash";
 import { getVisibleStepNumbers } from "../../hooks/useStepWizard";
+import { Step } from "../../types/StepWizard";
+
+type StepWizardUtilities = {
+  activeStep: number;
+  wizardSteps: { [key: number]: Step };
+  jumpToStep: (stepNumber: number) => void;
+  canJumpFromCurrentStep: (stepNumber: number) => boolean;
+};
+
+type WizardContextValue = {
+  flushStateToDb?: (
+    operation: "jump",
+    jumpStep: number,
+  ) => void | Promise<void>;
+};
+
+const EmptyWizardContext = createContext<unknown>({});
 
 interface StepWizardProps {
-  wizardUtilities: any;
-  Context?: React.Context<any>;
+  wizardUtilities: StepWizardUtilities;
+  Context?: unknown;
 }
 
 const StepWizard: FunctionComponent<StepWizardProps> = ({
   wizardUtilities,
   Context,
-}: any) => {
+}) => {
   const { activeStep, wizardSteps, jumpToStep, canJumpFromCurrentStep } =
     wizardUtilities;
-  const contextValue = useContext<any>(Context || {});
-  const flushStateToDb = get(contextValue, "flushStateToDb", "");
+  const contextValue = useContext(
+    (Context || EmptyWizardContext) as React.Context<unknown>,
+  ) as WizardContextValue;
+  const flushStateToDb = contextValue?.flushStateToDb;
   const [jumpStep, setjumpStep] = useState(0);
   const [showNavigationModal, setShowNavigationModal] = useState(false);
+  const [navigationError, setNavigationError] = useState("");
+  const [isNavigating, setIsNavigating] = useState(false);
   const visibleStepNumbers = getVisibleStepNumbers(wizardSteps);
   const jumpStepDisplayNumber = visibleStepNumbers.indexOf(jumpStep) + 1;
+
+  const persistAndJump = async () => {
+    if (isNavigating) return;
+    setIsNavigating(true);
+    setNavigationError("");
+    try {
+      if (typeof flushStateToDb === "function") {
+        await Promise.resolve(flushStateToDb("jump", jumpStep));
+      }
+      jumpToStep(jumpStep);
+      setShowNavigationModal(false);
+    } catch (error) {
+      const requestError = error as {
+        message?: string;
+        response?: { data?: { message?: string } };
+      };
+      setNavigationError(
+        requestError.response?.data?.message ||
+          requestError.message ||
+          "Ambari could not save the wizard checkpoint.",
+      );
+    } finally {
+      setIsNavigating(false);
+    }
+  };
+
   return (
     <div className="step-wizard h-95" style={{ position: "relative" }}>
       <ConfirmationModal
         isOpen={showNavigationModal}
         onClose={() => {
           setShowNavigationModal(false);
+          setNavigationError("");
         }}
         modalTitle="Navigation Warning"
-        modalBody={`If you proceed to go back to Step ${jumpStepDisplayNumber}, you will lose any changes you made.`}
-        successCallback={() => {
-          jumpToStep(jumpStep);
-          if (flushStateToDb) {
-            flushStateToDb("jump", jumpStep);
-          }
-          setShowNavigationModal(false);
-        }}
+        modalBody={
+          <>
+            <div>{`If you proceed to go back to Step ${jumpStepDisplayNumber}, you will lose any changes you made.`}</div>
+            {navigationError && (
+              <Alert variant="danger" className="mt-3" role="alert">
+                {navigationError}
+              </Alert>
+            )}
+          </>
+        }
+        successCallback={() => void persistAndJump()}
+        isOkDisabled={isNavigating}
+        cancellable={!isNavigating}
       />
       <div className="d-flex h-100">
         <div className="wizard-nav p-2">
@@ -66,7 +125,11 @@ const StepWizard: FunctionComponent<StepWizardProps> = ({
               <div
                 key={currentStep}
                 onClick={() => {
-                  if (wizardSteps[activeStep].canGoBack) {
+                  if (
+                    wizardSteps[activeStep].canGoBack &&
+                    canJumpFromCurrentStep(currentStep)
+                  ) {
+                    setNavigationError("");
                     setShowNavigationModal(true);
                     setjumpStep(Number(currentStep));
                   }

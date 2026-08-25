@@ -26,7 +26,7 @@ import "../../styles/app.scss";
 import { AlertEditorHandle, MergedAlert } from './types';
 import { AlertsApi } from "../../api/alertsApi";
 import { AppContext } from "../../store/context";
-import { useAuth } from '../../hooks/useAuth';
+import useAuthorizationPolicy from '../../hooks/useAuthorizationPolicy';
 
 import {AlertStatus} from "./alertStatus";
 
@@ -51,7 +51,7 @@ const HeaderSection = forwardRef<AlertEditorHandle, HeaderSectionProps>(({
     onDirtyChange,
     onAlertDefinitionUpdate,
 }, ref) => {
-    const { clusterName, upgradeIsRunning, upgradeSuspended } = useContext(AppContext);
+    const { clusterName } = useContext(AppContext);
     const [isEditing, setIsEditing] = useState(false);
     const [label, setLabel] = useState(alertDefinition.label);
     const [hasError, setHasError] = useState(false);
@@ -60,13 +60,10 @@ const HeaderSection = forwardRef<AlertEditorHandle, HeaderSectionProps>(({
     const [isSubmitting, setIsSubmitting] = useState(false);
     
     // Authorization hooks - implementing Ember.js alert authorization patterns
-    const { hasAuthorization } = useAuth();
+    const { isAuthorized } = useAuthorizationPolicy();
     
     // Check specific authorizations for alert operations
-    const canToggleAlerts = hasAuthorization('SERVICE.TOGGLE_ALERTS');
-    
-    // Check if upgrade is blocking operations (running but not suspended)
-    const isUpgradeBlocking = upgradeIsRunning && !upgradeSuspended;
+    const canToggleAlerts = isAuthorized('SERVICE.TOGGLE_ALERTS');
 
     useEffect(() => {
         if (!isEditing) setLabel(alertDefinition.label);
@@ -203,7 +200,7 @@ const HeaderSection = forwardRef<AlertEditorHandle, HeaderSectionProps>(({
                             <h2>
                                 {alertDefinition.label}
                                 {/* Only show edit pencil icon if user has SERVICE.TOGGLE_ALERTS permission and upgrade is not blocking */}
-                                {canToggleAlerts && !isUpgradeBlocking && (
+                                {canToggleAlerts && (
                                     <FontAwesomeIcon
                                         size={'lg'}
                                         className={'mx-2 cursor-pointer'}

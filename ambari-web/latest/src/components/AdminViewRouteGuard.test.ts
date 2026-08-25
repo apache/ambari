@@ -22,22 +22,66 @@ import { canEnterAdminView } from "./AdminViewRouteGuard";
 describe("Admin View route policy", () => {
   it("keeps the classic stack-upgrade guard for an existing cluster", () => {
     expect(canEnterAdminView({
-      ambariAdmin: true,
+      adminPage: null,
+      canManageStackVersions: true,
       canUpgradeStack: false,
       clusterName: "c1",
+      noClusterLanding: false,
+      viewOnly: false,
     })).toBe(false);
     expect(canEnterAdminView({
-      ambariAdmin: false,
+      adminPage: null,
+      canManageStackVersions: false,
       canUpgradeStack: true,
       clusterName: "c1",
+      noClusterLanding: false,
+      viewOnly: false,
     })).toBe(true);
   });
 
-  it("allows the no-cluster Ambari administrator landing", () => {
+  it("allows only the post-login no-cluster Admin View transition", () => {
     expect(canEnterAdminView({
-      ambariAdmin: true,
+      adminPage: null,
+      canManageStackVersions: false,
       canUpgradeStack: false,
       clusterName: "",
+      noClusterLanding: true,
+      viewOnly: false,
     })).toBe(true);
+    expect(canEnterAdminView({
+      adminPage: null,
+      canManageStackVersions: false,
+      canUpgradeStack: false,
+      clusterName: "",
+      noClusterLanding: false,
+      viewOnly: false,
+    })).toBe(false);
+    expect(canEnterAdminView({
+      adminPage: null,
+      canManageStackVersions: false,
+      canUpgradeStack: false,
+      clusterName: "",
+      noClusterLanding: true,
+      viewOnly: true,
+    })).toBe(false);
+  });
+
+  it("uses the Manage Stack Versions policy for that Admin View page", () => {
+    expect(canEnterAdminView({
+      adminPage: "stackVersions",
+      canManageStackVersions: true,
+      canUpgradeStack: false,
+      clusterName: "c1",
+      noClusterLanding: false,
+      viewOnly: false,
+    })).toBe(true);
+    expect(canEnterAdminView({
+      adminPage: "stackVersions",
+      canManageStackVersions: false,
+      canUpgradeStack: true,
+      clusterName: "c1",
+      noClusterLanding: false,
+      viewOnly: false,
+    })).toBe(false);
   });
 });

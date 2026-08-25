@@ -21,7 +21,7 @@ import Select from "react-select";
 import { AppContext } from "../../store/context";
 import ConfigGroupApi from "../../api/configGroupApi";
 import { get } from "lodash";
-import { useAuth } from "../../hooks/useAuth";
+import useAuthorizationPolicy from "../../hooks/useAuthorizationPolicy";
 import { ClusterCreationContext } from "../ClusterWizard/clusterStore/context";
 import { getLocalConfigGroups } from "../../Utils/configGroupUtils";
 
@@ -79,10 +79,10 @@ export default function ChooseConfigGroup({
   const [selectedGroup, setSelectedGroup] = useState<any>(defaultOption);
 
   // Authorization hooks - implementing Ember.js config groups authorization patterns
-  const { hasAuthorization } = useAuth();
+  const { isAuthorized } = useAuthorizationPolicy();
   
   // Check specific authorizations for config groups operations
-  const canManageConfigGroups = hasAuthorization('SERVICE.MANAGE_CONFIG_GROUPS');
+  const canManageConfigGroups = isAuthorized('SERVICE.MANAGE_CONFIG_GROUPS');
 
   const manageConfigGroup = useMemo(
     () => ({

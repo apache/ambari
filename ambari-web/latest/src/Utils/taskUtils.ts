@@ -16,10 +16,19 @@
  * limitations under the License.
  */
 
-import { filter, find, isArray, map } from "lodash";
+import { find, isArray, map } from "lodash";
 import { HostsApi } from "../api/hostsApi";
 import { ServiceApi } from "../api/serviceApi";
 import { role } from "./Utility";
+
+export type InstallComponentTaskOptions = {
+  reconcileHosts?: boolean;
+};
+
+export type StartAllServicesOptions = {
+  runSmokeTest?: boolean;
+  skipServiceChecks?: boolean;
+};
 
 export async function updateComponent(
   clusterName: string,
@@ -59,7 +68,8 @@ export async function createInstallComponentTask(
   clusterName: string,
   services: string[],
   serviceObj: any,
-  getKDCSessionState?: (callback: () => Promise<any>, errorCallback?: () => void) => Promise<void>
+  getKDCSessionState?: (callback: () => Promise<any>, errorCallback?: () => void) => Promise<void>,
+  options: InstallComponentTaskOptions = {},
 ) {
   // Check for KDC session first if getKDCSessionState is provided
   if (getKDCSessionState) {
@@ -73,7 +83,8 @@ export async function createInstallComponentTask(
               serviceName,
               clusterName,
               services,
-              serviceObj
+              serviceObj,
+              options,
             );
             resolve(result);
           } catch (err) {
@@ -94,9 +105,34 @@ export async function createInstallComponentTask(
       serviceName,
       clusterName,
       services,
-      serviceObj
+      serviceObj,
+      options,
     );
   }
+}
+
+function isAlreadyExistsError(error: any) {
+  const status = error?.response?.status ?? error?.status;
+  const message = String(
+    error?.response?.data?.message || error?.message || "",
+  );
+  return status === 409 || /already exists|resourcealreadyexists/i.test(message);
+}
+
+async function getMissingComponentHosts(
+  clusterName: string,
+  componentName: string,
+  hostNames: string[],
+) {
+  const data = await HostsApi.getInstalledHostsForHostComponents(
+    clusterName,
+    componentName,
+    hostNames.join(","),
+  );
+  const installedHosts = new Set<string>(
+    map(data?.items || [], "HostRoles.host_name").filter(Boolean),
+  );
+  return hostNames.filter((host) => !installedHosts.has(host));
 }
 
 async function performCreateInstallComponentTask(
@@ -105,46 +141,18 @@ async function performCreateInstallComponentTask(
   serviceName: string,
   clusterName: string,
   services: string[],
-  serviceObj: any
+  serviceObj: any,
+  options: InstallComponentTaskOptions,
 ) {
   void services;
-  const hostNames = Array.isArray(hostName) ? hostName : [hostName];
-  const data = await HostsApi.getInstalledHostsForHostComponents(
+  const hostNames = [...new Set(Array.isArray(hostName) ? hostName : [hostName])];
+  if (!hostNames.length) return { status: 200 };
+  let hostsWithoutComponents = await getMissingComponentHosts(
     clusterName,
     componentName,
-    hostNames.join(",")
-  );
-  const hostsWithComponents: any = map(data.items, "HostRoles.host_name");
-  const result = hostNames.map(function (item) {
-    return {
-      componentName: componentName,
-      hostName: item,
-      hasComponent: hostsWithComponents.includes(item),
-    };
-  });
-  const hostsWithoutComponents = map(
-    filter(result, ["hasComponent", false]),
-    "hostName"
+    hostNames,
   );
   const taskNum = 1;
-  const requestData = {
-    RequestInfo: {
-      query: hostsWithoutComponents
-        .map(function (item) {
-          return "Hosts/host_name=" + item;
-        })
-        .join("|"),
-    },
-    Body: {
-      host_components: [
-        {
-          HostRoles: {
-            component_name: componentName,
-          },
-        },
-      ],
-    },
-  };
   if (hostsWithoutComponents.length) {
     const allServiceComponents = [
       ...(serviceObj?.masterComponents || []),
@@ -159,25 +167,74 @@ async function performCreateInstallComponentTask(
       try {
         await ServiceApi.createComponent(clusterName, serviceName, componentName);
       } catch (error: any) {
-        const message = String(
-          error?.response?.data?.message || error?.message || "",
-        );
-        if (!/already exists|resourcealreadyexists/i.test(message)) {
-          throw error;
+        if (!isAlreadyExistsError(error)) {
+          if (!options.reconcileHosts) throw error;
+          hostsWithoutComponents = await getMissingComponentHosts(
+            clusterName,
+            componentName,
+            hostNames,
+          );
         }
       }
     }
-    await HostsApi.registerHostToComponent(clusterName, requestData);
+
+    if (hostsWithoutComponents.length) {
+      let registrationVerified = false;
+      const requestData = {
+        RequestInfo: {
+          query: hostsWithoutComponents
+            .map((item) => "Hosts/host_name=" + item)
+            .join("|"),
+        },
+        Body: {
+          host_components: [
+            {
+              HostRoles: {
+                component_name: componentName,
+              },
+            },
+          ],
+        },
+      };
+      try {
+        await HostsApi.registerHostToComponent(clusterName, requestData);
+      } catch (error) {
+        if (!options.reconcileHosts) throw error;
+        hostsWithoutComponents = await getMissingComponentHosts(
+          clusterName,
+          componentName,
+          hostNames,
+        );
+        if (hostsWithoutComponents.length) throw error;
+        registrationVerified = true;
+      }
+
+      if (options.reconcileHosts && !registrationVerified) {
+        hostsWithoutComponents = await getMissingComponentHosts(
+          clusterName,
+          componentName,
+          hostNames,
+        );
+        if (hostsWithoutComponents.length) {
+          throw new Error(
+            `Ambari did not register ${componentName} on: ${hostsWithoutComponents.join(", ")}`,
+          );
+        }
+      }
+    }
   }
 
-  if (!hostsWithoutComponents.length) {
+  const hostsToReconcile = options.reconcileHosts
+    ? hostNames
+    : hostsWithoutComponents;
+  if (!hostsToReconcile.length) {
     return { status: 200 };
   }
 
   return await updateComponent(
     clusterName,
     componentName,
-    hostsWithoutComponents,
+    hostsToReconcile,
     serviceName,
     "Install",
     taskNum
@@ -188,21 +245,27 @@ export async function startServices(
   clusterName: string,
   runSmokeTest: boolean,
   services: string[],
-  startListedServicesFlag: any
+  startListedServicesFlag: any,
+  skipServiceChecks = false,
+  allServices: string[] = [],
 ) {
   startListedServicesFlag = startListedServicesFlag || false;
-  var skipServiceCheck = false;
   let data: any = {
     ServiceInfo: {
       state: "STARTED",
     },
   };
-  var servicesList = "";
+  let servicesList = "";
   if (services && services.length) {
     if (startListedServicesFlag) {
       servicesList = services.join(",");
+    } else {
+      servicesList = allServices
+        .filter((service) => !services.includes(service))
+        .join(",");
     }
     data.context = "Start required services";
+    if (!servicesList) return { status: 200 };
     data.urlParams = "ServiceInfo/service_name.in(" + servicesList + ")";
   } else {
     data.context = "Start all services";
@@ -210,25 +273,27 @@ export async function startServices(
 
   if (runSmokeTest) {
     data.urlParams = data.urlParams ? data.urlParams + "&" : "";
-    data.urlParams += "params/run_smoke_test=" + !skipServiceCheck;
+    data.urlParams += "params/run_smoke_test=" + !skipServiceChecks;
   }
 
   return await ServiceApi.updateService(
     clusterName,
     data,
-    services.length ? "ServiceInfo/service_name.in(" + servicesList + ")" : ""
+    data.urlParams || "",
   );
 }
 
-export async function startAllServices(clusterName: string) {
-  let data: any = {
-    ServiceInfo: {
-      state: "STARTED",
-    },
-  };
-  data.context = "Start all services";
-
-  return await ServiceApi.updateService(clusterName, data, "");
+export async function startAllServices(
+  clusterName: string,
+  options: StartAllServicesOptions = {},
+) {
+  return await startServices(
+    clusterName,
+    options.runSmokeTest || false,
+    [],
+    false,
+    options.skipServiceChecks || false,
+  );
 }
 
 export async function stopAllServices(clusterName: string) {
@@ -320,8 +385,10 @@ export async function stopServices(
   stopAllServices: boolean,
   allServices: string[]
 ) {
-  var stopAllServices = stopAllServices || false;
-  var stopListedServicesFlag = stopListedServicesFlag || false;
+  stopAllServices = stopAllServices || false;
+  stopListedServicesFlag = stopListedServicesFlag || false;
+  services = services || [];
+  allServices = allServices || [];
   let data: any = {
     ServiceInfo: {
       state: "INSTALLED",
@@ -330,13 +397,7 @@ export async function stopServices(
   if (stopAllServices) {
     data.context = "Stop all services";
   } else {
-    if (!services || !services.length) {
-      const servicesButHDFS = services.filter(function (service) {
-        return service != "HDFS";
-      });
-      services = servicesButHDFS;
-    }
-    var servicesList;
+    let servicesList;
     if (stopListedServicesFlag) {
       servicesList = services.join(",");
     } else {
@@ -347,9 +408,10 @@ export async function stopServices(
         .join(",");
     }
     data.context = "Stop required services";
+    if (!servicesList) return { status: 200 };
     data.urlParams = "ServiceInfo/service_name.in(" + servicesList + ")";
   }
-  return await ServiceApi.updateService(clusterName, data, data.urlParams);
+  return await ServiceApi.updateService(clusterName, data, data.urlParams || "");
 }
 
 export async function deleteComponent(

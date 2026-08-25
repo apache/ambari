@@ -82,7 +82,7 @@ describe("InvalidKdcPopup", () => {
 
     expect(
       await screen.findByText(
-        "Ambari could not save the KDC administrator credentials.",
+        "Credential write failed",
       ),
     ).toBeTruthy();
     expect(mocks.hide).not.toHaveBeenCalled();

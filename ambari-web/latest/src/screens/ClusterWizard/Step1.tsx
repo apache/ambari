@@ -70,6 +70,7 @@ import wizardSteps from "./wizardSteps";
 import { ContextWrapper } from ".";
 import { AppContext } from "../../store/context";
 import { isJdkCompatible } from "./versionSelection";
+import { copyRepositoryCredentials } from "../../Utils/repositoryCredentials";
 
 enum RepositoryType {
   PUBLIC = "public",
@@ -134,7 +135,7 @@ export default function Step1({ wizardName = "clusterCreation" }) {
       handleBackImperitive,
     },
   }: any = useContext(Context);
-  const { ambariProperties } = useContext(AppContext);
+  const { ambariProperties, supports } = useContext(AppContext);
 
   const enableNext = () => {
     setNextEnabled(true);
@@ -547,6 +548,18 @@ export default function Step1({ wizardName = "clusterCreation" }) {
           matchingRepo[key as keyof TransformedRepo] =
             value as TransformedRepo[keyof TransformedRepo];
           matchingRepo.hasError = false;
+          if (
+            key === "baseUrl"
+            && supports.disableCredentialsAutocompleteForRepoUrls === false
+          ) {
+            operatingSystemsCopy[selectedVersion.id].forEach(
+              (os: TransformedOperatingSystem) => {
+                os.repos.forEach((repo) => {
+                  repo.baseUrl = copyRepositoryCredentials(repo.baseUrl, value);
+                });
+              },
+            );
+          }
           setOperatingSystems(operatingSystemsCopy);
         }
       } else {

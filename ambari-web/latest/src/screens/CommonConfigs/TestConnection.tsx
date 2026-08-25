@@ -31,6 +31,13 @@ import {
   faCircleXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import Modal from "../../components/Modal";
+import {
+  collectSensitiveConfigValues,
+  connectionSourceHosts,
+  databaseConnectionParameters,
+  resolveRequiredPropertyValues,
+  sanitizeConnectionDiagnostics,
+} from "./testConnectionUtils";
 
 enum TestKdcResponses {
   SUCCESS = "REACHABLE",
@@ -41,6 +48,8 @@ interface TestConnectionProps {
   buttonLabel: string;
   serviceName: string;
   configProperties: ConfigPropertiesType;
+  requiredProperties?: Record<string, string>;
+  disabled?: boolean;
 }
 
 // Service-specific error modal titles
@@ -154,6 +163,8 @@ export default function TestConnection({
   buttonLabel,
   serviceName,
   configProperties,
+  requiredProperties: themeRequiredProperties,
+  disabled = false,
 }: TestConnectionProps) {
   const [taskID, setTaskID] = useState<string | null>(null);
   const [requestId, setRequestId] = useState<string | null>(null);
@@ -166,6 +177,19 @@ export default function TestConnection({
 
   const { services, ambariProperties, clusterName } = useContext(AppContext);
 
+  const setSafeErrorMessage = (diagnostics: Record<string, unknown>) => {
+    setErrorMessage(
+      sanitizeConnectionDiagnostics(
+        diagnostics,
+        collectSensitiveConfigValues(
+          configProperties,
+          serviceName,
+          themeRequiredProperties,
+        ),
+      ),
+    );
+  };
+
   const failConnection = (error: unknown, fallbackMessage: string) => {
     const message = get(error, "response.data.message", get(error, "message", fallbackMessage));
     setTaskID(null);
@@ -173,7 +197,7 @@ export default function TestConnection({
     pausePolling();
     setIsConnecting(false);
     setIsConnectionSuccessful(false);
-    setErrorMessage({
+    setSafeErrorMessage({
       error_log: "Connection Test Failed",
       stderr: message || fallbackMessage,
       output_log: "Connection test did not complete",
@@ -205,11 +229,15 @@ export default function TestConnection({
         setRequestId(null);
         pausePolling();
         setIsConnecting(false);
-        if (structuredOut && Number(structuredOut.exit_code) !== 0) {
+        if (!structuredOut || Number(structuredOut.exit_code) !== 0) {
+          const tasks = get(response, "Tasks", {});
           setIsConnectionSuccessful(false);
-          setErrorMessage({
-            ...get(response, "Tasks", {}),
-            structuredOut: structuredOut.message,
+          setSafeErrorMessage({
+            ...tasks,
+            stderr:
+              tasks.stderr ||
+              structuredOut?.message ||
+              "The completed task did not report a successful database check.",
           });
         } else {
           setIsConnectionSuccessful(true);
@@ -220,9 +248,7 @@ export default function TestConnection({
         pausePolling();
         setIsConnecting(false);
         setIsConnectionSuccessful(false);
-        setErrorMessage(get(response, "Tasks"));
-      } else {
-        console.log("Task is still in progress, current status:", status);
+        setSafeErrorMessage(get(response, "Tasks", {}));
       }
     } else {
       failConnection(response, "The connection test task has no status.");
@@ -244,9 +270,6 @@ export default function TestConnection({
     (service) => service.ServiceInfo.service_name
   );
 
-  // Check if DBA mode is enabled (Setup Database and Database User toggle is ON)
-  // RANGER uses: ranger-env/create_db_dbuser
-  // RANGER_KMS uses: kms-env/create_db_user (different property name!)
   const isDBACreds = (service: string): boolean => {
     if (service === "RANGER") {
       const createDbUser = configProperties[service]?.["ranger-env"]?.properties?.["create_db_dbuser"]?.value;
@@ -258,103 +281,53 @@ export default function TestConnection({
     return false;
   };
 
-  // Compute DBA mode for RANGER and RANGER_KMS
   const rangerUseDBA = isDBACreds("RANGER");
   const rangerKmsUseDBA = isDBACreds("RANGER_KMS");
 
-  const requiredProperties: { [key: string]: string[] } = {
-    KERBEROS: ["kdc_hosts:KDC"],
-    HIVE: [
-      "ambari.hive.db.schema.name:hive-site",
-      "javax.jdo.option.ConnectionUserName:hive-site",
-      "javax.jdo.option.ConnectionPassword:hive-site",
-      "javax.jdo.option.ConnectionDriverName:hive-site",
-      "javax.jdo.option.ConnectionURL:hive-site",
-    ],
-    RANGER: rangerUseDBA
-      ? [
-          "db_root_user:admin-properties",
-          "db_root_password:admin-properties",
-          "db_name:admin-properties",
-          "ranger.jpa.jdbc.url:ranger-admin-site",
-          "ranger.jpa.jdbc.driver:ranger-admin-site",
-        ]
-      : [
-          "db_user:admin-properties",
-          "db_password:admin-properties",
-          "db_name:admin-properties",
-          "ranger.jpa.jdbc.url:ranger-admin-site",
-          "ranger.jpa.jdbc.driver:ranger-admin-site",
-        ],
-    RANGER_KMS: rangerKmsUseDBA
-      ? [
-          "db_root_user:kms-properties",
-          "db_root_password:kms-properties",
-          "ranger.ks.jpa.jdbc.url:dbks-site",
-          "ranger.ks.jpa.jdbc.driver:dbks-site",
-        ]
-      : [
-          "db_user:kms-properties",
-          "db_password:kms-properties",
-          "ranger.ks.jpa.jdbc.url:dbks-site",
-          "ranger.ks.jpa.jdbc.driver:dbks-site",
-        ],
+  const legacyRequiredProperties: Record<
+    string,
+    Record<string, string>
+  > = {
+    HIVE: {
+      "jdbc.driver.class":
+        "hive-site/javax.jdo.option.ConnectionDriverName",
+      "jdbc.driver.url": "hive-site/javax.jdo.option.ConnectionURL",
+      "db.connection.source.host":
+        "HIVE_METASTORE/hive_metastore_hosts",
+      "db.type": "hive-env/hive_database_type",
+      "db.connection.user":
+        "hive-site/javax.jdo.option.ConnectionUserName",
+      "db.connection.password":
+        "hive-site/javax.jdo.option.ConnectionPassword",
+    },
+    RANGER: {
+      "jdbc.driver.class": "ranger-admin-site/ranger.jpa.jdbc.driver",
+      "jdbc.driver.url": "ranger-admin-site/ranger.jpa.jdbc.url",
+      "db.connection.source.host": "RANGER_ADMIN/ranger_admin_hosts",
+      "db.type": "admin-properties/DB_FLAVOR",
+      "db.connection.user": `admin-properties/${
+        rangerUseDBA ? "db_root_user" : "db_user"
+      }`,
+      "db.connection.password": `admin-properties/${
+        rangerUseDBA ? "db_root_password" : "db_password"
+      }`,
+    },
+    RANGER_KMS: {
+      "jdbc.driver.class": "dbks-site/ranger.ks.jpa.jdbc.driver",
+      "jdbc.driver.url": "dbks-site/ranger.ks.jpa.jdbc.url",
+      "db.connection.source.host":
+        "RANGER_KMS_SERVER/ranger_kms_server_hosts",
+      "db.type": "kms-properties/DB_FLAVOR",
+      "db.connection.user": `kms-properties/${
+        rangerKmsUseDBA ? "db_root_user" : "db_user"
+      }`,
+      "db.connection.password": `kms-properties/${
+        rangerKmsUseDBA ? "db_root_password" : "db_password"
+      }`,
+    },
   };
 
-  useEffect(() => {
-    const isRequiredPropertiesPresent = requiredProperties[serviceName]?.every(
-      (property) => {
-        return (
-          !configProperties[serviceName]?.[property.split(":")[1]]?.properties[
-            property.split(":")[0]
-          ]?.errorMessage &&
-          !configProperties[serviceName]?.[property.split(":")[1]]?.properties[
-            property.split(":")[0]
-          ]?.hasError
-        );
-      }
-    );
-    setIsValidated(isRequiredPropertiesPresent);
-  }, [configProperties]);
-
-  const getConnectionProperties = () => {
-    const properties = requiredProperties[serviceName] || [];
-    const connectionProperties: { [key: string]: string } = {};
-
-    properties.forEach((property) => {
-      const [key, configType] = property.split(":");
-      const propertyObj = get(
-        configProperties?.[serviceName]?.[configType]?.properties,
-        key,
-        null
-      );
-      const value =
-        typeof propertyObj === "object" && propertyObj !== null
-          ? propertyObj.value ?? ""
-          : "";
-      connectionProperties[key] = String(value);
-    });
-
-    return connectionProperties;
-  };
-
-  const getDBName = (serviceName: string) => {
-    if (serviceName === "HIVE") {
-      return configProperties[serviceName]["hive-env"].properties[
-        "hive_database_type"
-      ].value;
-    } else if (serviceName === "RANGER") {
-      return configProperties[serviceName]["admin-properties"].properties[
-        "DB_FLAVOR"
-      ].value.toLowerCase();
-    } else if (serviceName === "RANGER_KMS") {
-      return configProperties[serviceName]["kms-properties"].properties[
-        "DB_FLAVOR"
-      ].value.toLowerCase();
-    }
-  };
-
-  const getMasterHost = (serviceName: string) => {
+  const getMasterHosts = (service: string): unknown => {
     const serviceMasterMap: Record<string, string> = {
       OOZIE: "oozie_server_hosts",
       HDFS: "hadoop_host",
@@ -364,101 +337,56 @@ export default function TestConnection({
       RANGER_KMS: "RANGER_KMS_SERVER:ranger_kms_server_hosts",
     };
 
-    const mapValue = serviceMasterMap[serviceName];
-    if (!mapValue) return "";
-
-    if (mapValue.includes(":")) {
-      const [section, property] = mapValue.split(":");
-      return (
-        configProperties[serviceName]?.[section]?.properties?.[property]
-          ?.value[0] || ""
-      );
-    }
-
-    return "";
+    const mapValue = serviceMasterMap[service];
+    if (!mapValue?.includes(":")) return undefined;
+    const [section, property] = mapValue.split(":");
+    return configProperties[service]?.[section]?.properties?.[property]?.value;
   };
+
+  const selectedRequiredProperties =
+    themeRequiredProperties && Object.keys(themeRequiredProperties).length
+      ? themeRequiredProperties
+      : legacyRequiredProperties[serviceName] ?? {};
+  const resolvedRequiredProperties = resolveRequiredPropertyValues(
+    configProperties,
+    serviceName,
+    selectedRequiredProperties,
+    getMasterHosts(serviceName),
+  );
+
+  useEffect(() => {
+    if (serviceName === "KERBEROS") {
+      const property =
+        configProperties.KERBEROS?.KDC?.properties?.kdc_hosts;
+      setIsValidated(
+        Boolean(property && !property.errorMessage && !property.hasError),
+      );
+    } else {
+      setIsValidated(resolvedRequiredProperties.valid);
+    }
+  }, [configProperties, resolvedRequiredProperties.valid, serviceName]);
 
   const createCustomAction = async () => {
     setIsConnecting(true);
     const isServiceInstalled = installedServicesInCluster.includes(serviceName);
-    const connectionProperties = getConnectionProperties();
-
-    const connectionsPropertyKeys: { [key: string]: string[] } = {
-      HIVE: [
-        "user_name:javax.jdo.option.ConnectionUserName",
-        "user_passwd:javax.jdo.option.ConnectionPassword",
-        "db_connection_url:javax.jdo.option.ConnectionURL",
-      ],
-      RANGER: rangerUseDBA
-        ? [
-            "user_name:db_root_user",
-            "user_passwd:db_root_password",
-            "db_connection_url:ranger.jpa.jdbc.url",
-          ]
-        : [
-            "user_name:db_user",
-            "user_passwd:db_password",
-            "db_connection_url:ranger.jpa.jdbc.url",
-          ],
-      RANGER_KMS: rangerKmsUseDBA
-        ? [
-            "user_name:db_root_user",
-            "user_passwd:db_root_password",
-            "db_connection_url:ranger.ks.jpa.jdbc.url",
-          ]
-        : [
-            "user_name:db_user",
-            "user_passwd:db_password",
-            "db_connection_url:ranger.ks.jpa.jdbc.url",
-          ],
-    };
-
-    const transformedConnectionProperties: { [key: string]: string } = (
-      connectionsPropertyKeys[serviceName] || []
-    ).reduce<{ [key: string]: string }>(
-      (acc: { [key: string]: string }, key: string) => {
-        const [newKey, oldKey] = key.split(":");
-        acc[newKey] = connectionProperties[oldKey];
-        return acc;
-      },
-      {}
-    );
-
-    const getAmbariProperties = {
-      ambari_server_host: get(
-        ambariProperties,
-        "hostComponents.0.RootServiceHostComponents.host_name",
-        ""
-      ),
-      java_home: get(
-        ambariProperties,
-        ["RootServiceComponents", "properties", "java.home"],
-        ""
-      ),
-      jdk_location: get(
-        ambariProperties,
-        "RootServiceComponents.properties.jdk_location",
-        ""
-      ),
-    };
 
     const params = {
       action: "check_host",
       context: "Check host",
-      parameters: {
-        ...transformedConnectionProperties,
-        ...getAmbariProperties,
-        db_name: getDBName(serviceName),
-        check_execute_list: "db_connection_check",
-        threshold: "60",
-      },
+      parameters: databaseConnectionParameters(
+        resolvedRequiredProperties.values,
+        ambariProperties,
+        window.location.hostname,
+      ),
     };
 
     const payload = {
       RequestInfo: {
         ...params,
       },
-      "Requests/resource_filters": [{ hosts: getMasterHost(serviceName) }],
+      "Requests/resource_filters": [
+        { hosts: connectionSourceHosts(resolvedRequiredProperties.values) },
+      ],
     };
 
     if (isServiceInstalled) {
@@ -477,7 +405,6 @@ export default function TestConnection({
           failConnection(response, "The connection test request returned no response.");
         }
       } catch (error) {
-        console.error("Error creating cluster custom action");
         failConnection(error, "Unable to create the connection test request.");
       }
     } else {
@@ -493,10 +420,6 @@ export default function TestConnection({
           failConnection(response, "The connection test request returned no response.");
         }
       } catch (error) {
-        console.log(
-          "Error creating custom action for service not installed",
-          error
-        );
         failConnection(error, "Unable to create the connection test request.");
       }
     }
@@ -538,14 +461,13 @@ export default function TestConnection({
       } else {
         // Use enhanced KDC error message generation
         const enhancedErrorMessage = generateKDCErrorMessage(response, null, configProperties, serviceName);
-        setErrorMessage(enhancedErrorMessage);
+        setSafeErrorMessage(enhancedErrorMessage);
         setIsConnectionSuccessful(false);
       }
     } catch (error) {
-      console.error("Error testing KDC connection:", error);
       // Use enhanced KDC error message generation for exceptions
       const enhancedErrorMessage = generateKDCErrorMessage(null, error, configProperties, serviceName);
-      setErrorMessage(enhancedErrorMessage);
+      setSafeErrorMessage(enhancedErrorMessage);
       setIsConnectionSuccessful(false);
     } finally {
       setIsConnecting(false);
@@ -596,7 +518,7 @@ export default function TestConnection({
       <Stack direction="horizontal" gap={3} className="align-items-center">
         <Button
           onClick={handleButtonClick}
-          disabled={!isValidated || isConnecting}
+          disabled={disabled || !isValidated || isConnecting}
         >
           {buttonLabel}
         </Button>

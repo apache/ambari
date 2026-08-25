@@ -374,7 +374,7 @@ describe("EnableKerberos management entry", () => {
     fireEvent.click(screen.getByRole("button", { name: "Enable Kerberos" }));
 
     expect(await screen.findByText(
-      "Ambari could not run the pre-Kerberize checks.",
+      "unavailable",
     )).toBeTruthy();
     expect(screen.getByRole("button", { name: "Retry" })).toBeTruthy();
   });
@@ -387,7 +387,7 @@ describe("EnableKerberos management entry", () => {
 
     expect(
       await screen.findByText(
-        "Ambari could not load the cluster security status.",
+        "status unavailable",
       ),
     ).toBeTruthy();
     expect(screen.getByRole("button", { name: "Retry" })).toBeTruthy();

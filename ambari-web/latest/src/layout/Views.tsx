@@ -16,62 +16,30 @@
  * limitations under the License.
  */
 
-import { useEffect, useState } from "react";
-import { Outlet } from "react-router-dom";
-import ViewApi from "../api/viewApi";
+import { Outlet, useLocation } from "react-router-dom";
 import LicenseFooter from "../components/LicenseFooter";
 import NavBar from "../components/Navbar";
-
-type ViewLink = {
-  instance_name: string;
-  label?: string;
-  version: string;
-  view_name: string;
-};
-
-type ViewInstanceResponse = { ViewInstanceInfo?: Omit<ViewLink, "version" | "view_name"> };
-type ViewVersionResponse = {
-  ViewVersionInfo?: { version?: string };
-  instances?: ViewInstanceResponse[];
-};
-type ViewResponse = {
-  ViewInfo?: { view_name?: string };
-  versions?: ViewVersionResponse[];
-};
-
-function viewLinks(data: { items?: ViewResponse[] }): ViewLink[] {
-  return (data?.items || []).flatMap((item) => {
-    const viewName = item?.ViewInfo?.view_name;
-    return (item?.versions || []).flatMap((version) => (
-      (version?.instances || []).flatMap((instance) => {
-        const instanceInfo = instance.ViewInstanceInfo;
-        const versionNumber = version.ViewVersionInfo?.version;
-        return instanceInfo?.instance_name && versionNumber && viewName
-          ? [{ ...instanceInfo, version: versionNumber, view_name: viewName }]
-          : [];
-      })
-    ));
-  });
-}
+import { useViewInstances } from "../screens/Views/ViewInstancesContext";
+import { viewRouteBreadcrumb } from "../Utils/viewUtils";
 
 export default function ViewsLayout() {
-  const [views, setViews] = useState<ViewLink[]>([]);
-
-  useEffect(() => {
-    ViewApi.getInstances()
-      .then((data) => setViews(viewLinks(data)))
-      .catch(() => setViews([]));
-  }, []);
+  const { instances } = useViewInstances();
+  const location = useLocation();
+  const subPath = viewRouteBreadcrumb(location.pathname, instances) ?? "Views";
 
   return (
     <div className="d-flex flex-column h-100">
       <NavBar
         clusterControls={false}
         homePath="/main/view"
-        viewsList={views}
-        subPath="Views"
+        viewsList={instances}
+        subPath={subPath}
       />
-      <div className="h-100" style={{ paddingBottom: "80px", overflowY: "auto" }}>
+      <div
+        className="flex-grow-1"
+        data-view-scroll-container
+        style={{ minHeight: 0, paddingBottom: "80px", overflowY: "auto" }}
+      >
         <Outlet />
       </div>
       <LicenseFooter hasSidebar={false} />

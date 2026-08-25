@@ -25,9 +25,19 @@ export default function ServiceOperationRouteGuard({
 }: {
   children: ReactNode;
 }) {
-  const { wizardIsNotFinished } = useContext(AppContext);
+  const {
+    isNonWizardUser,
+    supports,
+    upgradeIsRunning,
+    upgradeSuspended,
+  } = useContext(AppContext);
+  const operationIsBlocked = isNonWizardUser || (
+    upgradeIsRunning
+    && !upgradeSuspended
+    && !supports?.opsDuringRollingUpgrade
+  );
 
-  return wizardIsNotFinished ? (
+  return operationIsBlocked ? (
     <Navigate to="/main/dashboard/metrics" replace />
   ) : (
     children

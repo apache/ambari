@@ -1,0 +1,62 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+type StackServiceResource = {
+  StackServices?: {
+    is_installable?: boolean;
+    service_name?: string;
+  };
+};
+
+type ClusterStackResource = {
+  Clusters?: {
+    stack?: string;
+    version?: string;
+  };
+  stack?: string;
+  version?: string;
+};
+
+const CLASSIC_NON_INSTALLABLE_SERVICES = new Set(["KERBEROS"]);
+
+export function isInstallableStackService(resource: unknown): boolean {
+  const stackService = (resource as StackServiceResource | null)?.StackServices;
+  if (!stackService) return false;
+
+  const serviceName = stackService.service_name?.trim().toUpperCase() || "";
+  return stackService.is_installable !== false
+    && !CLASSIC_NON_INSTALLABLE_SERVICES.has(serviceName);
+}
+
+export function filterInstallableStackServices<T>(resources: T[]): T[] {
+  return resources.filter(isInstallableStackService);
+}
+
+export function getClusterStackName(cluster: unknown): string {
+  const clusterResource = cluster as ClusterStackResource | null;
+  const explicitStack = clusterResource?.stack || clusterResource?.Clusters?.stack;
+  if (explicitStack) return explicitStack;
+
+  const version = clusterResource?.version || clusterResource?.Clusters?.version || "";
+  return version.split("-")[0] || "";
+}
+
+export function isWindowsStack(stackName: unknown): boolean {
+  return typeof stackName === "string"
+    && stackName.trim().toUpperCase() === "HDPWIN";
+}

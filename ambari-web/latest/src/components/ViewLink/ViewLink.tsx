@@ -18,7 +18,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { generateViewUrl } from '../../Utils/viewUtils';
+import { generateRegularViewUrl } from '../../Utils/viewUtils';
 
 interface ViewLinkProps {
     viewName: string;
@@ -40,7 +40,7 @@ const ViewLink: React.FC<ViewLinkProps> = ({
                                                className = '',
                                                children
                                            }) => {
-    const viewUrl = generateViewUrl(viewName, viewVersion, instanceName, viewPath);
+    const viewUrl = generateRegularViewUrl(viewName, viewVersion, instanceName, viewPath);
 
     return (
         <Link to={viewUrl} className={className}>
