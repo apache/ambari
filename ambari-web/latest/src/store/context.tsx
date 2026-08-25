@@ -420,38 +420,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [clusterName, isClusterInstalled, isOnlyViewUser, initializationAttempt]);
 
   useEffect(() => {
-    if (isOnlyViewUser || !clusterName || !isClusterInstalled) return;
-
-    let pollTimeout: NodeJS.Timeout | null = null;
-    let isPollingActive = true;
-
-    const poll = async () => {
-      if (!isPollingActive) return;
-
-      try {
-        await fetchBackgroundOperations();
-      } catch (error) {
-        console.error('Error polling background operations:', error);
-      } finally {
-        // Schedule next poll ONLY after current request completes
-        if (isPollingActive) {
-          pollTimeout = setTimeout(poll, 30000); // Poll every 30 seconds like Ember.js
-        }
-      }
-    };
-
-    // Start initial poll
-    poll();
-
-    return () => {
-      isPollingActive = false;
-      if (pollTimeout) {
-        clearTimeout(pollTimeout);
-      }
-    };
-  }, [clusterName, fetchBackgroundOperations, isClusterInstalled, isOnlyViewUser]);
-
-  useEffect(() => {
     async function fetchStackConfigs() {
       const stack = get(cluster, "version", "").split("-")[0];
       const version = get(cluster, "version", "").split("-")[1];

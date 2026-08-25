@@ -93,7 +93,7 @@ export default function HostsList() {
     versionStatus?: string;
   }>();
   const { clusterName, serviceComponentInfo } = useContext(AppContext);
-  const { allServiceModels: serviceModels } = useContext(ServiceContext);
+  const { allServiceModels: serviceModels, polledHostComponentsData } = useContext(ServiceContext);
   const [loading, setLoading] = useState(true);
   const [paginationLoading, setPaginationLoading] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
@@ -154,8 +154,18 @@ export default function HostsList() {
     order: "asc",
   });
 
+  // Reuse centralized polled data from CachedServiceApi instead of making a separate API call
+  // This eliminates the duplicate /components/ call that was previously polled independently
   useEffect(() => {
-    if (clusterName) {
+    if (polledHostComponentsData?.items) {
+      setClusterComponents(polledHostComponentsData);
+      setClusterLoadError(null);
+      setLoading(false);
+    }
+  }, [polledHostComponentsData]);
+
+  useEffect(() => {
+    if (clusterName && clusterRetryCount > 0) {
       void getClusterComponents();
     }
   }, [clusterName, clusterRetryCount]);
@@ -472,7 +482,7 @@ export default function HostsList() {
       const downMasters = get(hostData, "hostComponents", []).filter(
         (component: IHostComponent) =>
           get(component, "isMaster", false) &&
-          get(component, "HostRoles.state", "" as ComponentStatus) !==
+          get(component, "workStatus", "" as ComponentStatus) !==
             ComponentStatus.STARTED
       );
       return downMasters.map((component: IHostComponent) =>
@@ -488,7 +498,7 @@ export default function HostsList() {
         (component: IHostComponent) =>
           !get(component, "isMaster", false) &&
           !get(component, "isClient", false) &&
-          get(component, "HostRoles.state", "" as ComponentStatus) !==
+          get(component, "workStatus", "" as ComponentStatus) !==
             ComponentStatus.STARTED
       );
       return downSlaves.map((component: IHostComponent) =>

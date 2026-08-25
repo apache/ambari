@@ -105,6 +105,10 @@ export const usePinotConfigUpdater = () => {
       return;
     }
 
+    if (!items || items.length === 0) {
+      return;
+    }
+
     const currentConfig = cloneDeep(allServiceModels["pinot"]);
     let masterComponents: any[] = [];
     let slaveComponents: any[] = [];

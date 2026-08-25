@@ -124,6 +124,10 @@ export const useYarnConfigUpdater = () => {
       return;
     }
 
+    if (!items || items.length === 0) {
+      return;
+    }
+
     const currentConfig = cloneDeep(allServiceModels["yarn"]);
     let masterComponents: any[] = [];
     let slaveComponents: any[] = [];

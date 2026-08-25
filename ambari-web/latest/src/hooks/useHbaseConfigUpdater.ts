@@ -117,6 +117,10 @@ export const useHbaseConfigUpdater = () => {
       return;
     }
 
+    if (!items || items.length === 0) {
+      return;
+    }
+
     const currentConfig = cloneDeep(allServiceModels["hbase"]);
     //const hdfsServiceObj = currentConfig.getServiceObject();
     let masterComponents: any[] = [];
