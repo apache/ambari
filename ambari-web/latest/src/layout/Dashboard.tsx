@@ -23,8 +23,6 @@ import { AppContext } from "../store/context";
 import { AlertsApi } from "../api/alertsApi";
 import { useLocation } from "react-router-dom";
 import {
-  chain,
-  flatMap,
   map,
   get,
   cloneDeep,
@@ -32,7 +30,6 @@ import {
   snakeCase,
   startCase,
 } from "lodash";
-import ViewApi from "../api/viewApi";
 import SideBar from "../components/Sidebar/Sidebar";
 import NavBar from "../components/Navbar";
 import LicenseFooter from "../components/LicenseFooter";
@@ -47,6 +44,8 @@ import { processData } from '../screens/Alerts/alertUtils';
 import useAuth from "../hooks/useAuth";
 import { isUpgradeRequest } from "../Utils/backgroundOperations";
 import { HostsApi } from "../api/hostsApi";
+import { useViewInstances } from "../screens/Views/ViewInstancesContext";
+import { viewRouteBreadcrumb } from "../Utils/viewUtils";
 /**
  * DashboardLayout component is responsible for rendering the main layout of the dashboard.
  * It includes a sidebar, a navigation bar, and an outlet for nested routes.
@@ -71,9 +70,7 @@ import { HostsApi } from "../api/hostsApi";
 const DashboardLayout = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const location = useLocation();
-  const [instanceInfoList, setInstanceInfoList] = useState<
-    { name: string; link: string }[]
-  >([]);
+  const { instances: instanceInfoList } = useViewInstances();
   const { clusterName, upgradeId, upgradeState, upgradeDirection, upgradeIsFinalizeItem, runningOperationsCount, cluster, upgradeInProgress, upgradeHolding, upgradeSuspended, parsedSocketMessages } =
     useContext(AppContext);
   const [hostMaintenanceState, setHostMaintenanceState] = useState<string>("OFF");
@@ -113,27 +110,6 @@ const DashboardLayout = () => {
     
   // Check specific authorizations for stack/version operations
   const canUpgradeDowngrade = hasAuthorization('CLUSTER.UPGRADE_DOWNGRADE_STACK');
-
-  //add a function to get list of instance names from instances
-  const fetchInstancesInfo = (data: any) => {
-    const instanceDetails = chain(data?.items || [])
-      .flatMap((item) =>
-        flatMap(get(item, "versions", []), (version) =>
-          map(get(version, "instances", []), (instance) => ({
-            ...get(instance, "ViewInstanceInfo", {}),
-            view_name: get(item, "ViewInfo.view_name"),
-            version: get(version, "ViewVersionInfo.version"),
-            // Ensure all required properties are present
-            label: get(instance, "ViewInstanceInfo.label"),
-            instance_name: get(instance, "ViewInstanceInfo.instance_name"),
-          }))
-        )
-      )
-      .compact()
-      .value();
-
-    setInstanceInfoList(instanceDetails);
-  };
 
   useEffect(() => {
     setClusterRequests(cloneDeep(requestsRef.current));
@@ -193,18 +169,6 @@ const DashboardLayout = () => {
       }
     }
   }, [parsedSocketMessages, hostname]);
-
-  // add a function to fetch view lists instances
-  useEffect(() => {
-    const fetchViewList = async () => {
-      try {
-        fetchInstancesInfo(await ViewApi.getInstances());
-      } catch (error) {
-        console.error("Failed to fetch view list:", error);
-      }
-    };
-    fetchViewList();
-  }, []);
 
   useEffect(() => {
     const fetchAlertsLabel = async () => {
@@ -332,6 +296,10 @@ const DashboardLayout = () => {
   };
 
   const subPath = useMemo(() => {
+    const viewBreadcrumb = viewRouteBreadcrumb(location.pathname, instanceInfoList);
+    if (viewBreadcrumb !== undefined) {
+      return viewBreadcrumb;
+    }
     // Only show "Loading..." for alert-specific pages that need alert labels
     const isAlertPage = location.pathname.includes('/alerts/') && 
                        location.pathname.split('/').pop() && 
@@ -342,7 +310,7 @@ const DashboardLayout = () => {
     }
     
     return getSubPath(location.pathname);
-  }, [location.pathname, alertLabelsLoaded, alertLabels.size]);
+  }, [location.pathname, alertLabelsLoaded, alertLabels.size, instanceInfoList]);
 
   return (
     <>
@@ -353,6 +321,7 @@ const DashboardLayout = () => {
             setIsSidebarCollapsed={setIsSidebarCollapsed}
           />
           <div
+            data-view-scroll-container
             className={`d-flex flex-column ${
               isSidebarCollapsed ? "main-content-collapsed" : "main-content"
             }`}

@@ -30,12 +30,26 @@ const auth = vi.hoisted(() => ({
 vi.mock("../hooks/useAuth", () => ({
   useAuth: () => ({
     isAuthenticated: auth.authenticated,
-    hasAuthorization: (permission: string) => auth.permissions.has(permission),
+    hasAuthorization: (expression: string) => expression
+      .split(",")
+      .some((permission) => auth.permissions.has(permission.trim())),
   }),
 }));
 
-function renderGuard(upgradeState = "NOT_REQUIRED") {
-  const contextValue = { upgradeState } as unknown as ComponentProps<
+function renderGuard({
+  isNonWizardUser = false,
+  upgradeState = "NOT_REQUIRED",
+}: {
+  isNonWizardUser?: boolean;
+  upgradeState?: string;
+} = {}) {
+  const contextValue = {
+    isNonWizardUser,
+    supports: { opsDuringRollingUpgrade: false },
+    upgradeIsRunning: upgradeState === "IN_PROGRESS" || upgradeState.includes("HOLDING"),
+    upgradeState,
+    upgradeSuspended: false,
+  } as unknown as ComponentProps<
     typeof AppContext.Provider
   >["value"];
   return render(
@@ -60,15 +74,24 @@ describe("AdminRouteGuard", () => {
     auth.permissions.clear();
   });
 
-  it("admits both service and cluster auto-start administrators", () => {
-    auth.permissions.add("SERVICE.MANAGE_AUTO_START");
+  it.each([
+    "SERVICE.MANAGE_AUTO_START",
+    "CLUSTER.MANAGE_AUTO_START",
+  ])("admits an auto-start administrator with %s", (permission) => {
+    auth.permissions.add(permission);
     renderGuard();
     expect(screen.getByText("Admin")).toBeTruthy();
   });
 
   it("keeps an active upgrade visible to an otherwise unauthorized user", () => {
-    renderGuard("HOLDING_FAILED");
+    renderGuard({ upgradeState: "HOLDING_FAILED" });
     expect(screen.getByText("Admin")).toBeTruthy();
+  });
+
+  it("blocks an administrator permission owned by another active wizard user", () => {
+    auth.permissions.add("SERVICE.MANAGE_AUTO_START");
+    renderGuard({ isNonWizardUser: true });
+    expect(screen.getByText("Dashboard")).toBeTruthy();
   });
 
   it("redirects an unauthorized idle user", () => {

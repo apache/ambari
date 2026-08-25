@@ -38,6 +38,7 @@ type Operation = {
   status?: string;
   progress?: number;
   error?: string;
+  statusCheckError?: string;
   requestInfo?: Record<string, unknown> & { id?: string | number };
   skipCallback?: () => Promise<unknown>;
   retryFromOperationId?: string | number;
@@ -61,6 +62,7 @@ type PropTypes = {
   operations: Operation[];
   dispatch?: (operationsState: Operation[]) => void | Promise<void>;
   errorCallback?: (errorMsg: string) => void;
+  allowCompleteOnFinalFailure?: boolean;
 };
 
 type PendingPersistence = {
@@ -68,11 +70,23 @@ type PendingPersistence = {
   continuation?: () => void | Promise<void>;
 };
 
+const REQUEST_POLL_INTERVAL_MS = 4000;
+
+const validRequestId = (value: unknown): string | number | null => {
+  if (typeof value === "number") {
+    return Number.isSafeInteger(value) && value > 0 ? value : null;
+  }
+  if (typeof value !== "string" || !/^\d+$/.test(value.trim())) return null;
+  const parsed = Number(value);
+  return Number.isSafeInteger(parsed) && parsed > 0 ? value.trim() : null;
+};
+
 function OperationsProgress({
   setCompletionStatus,
   operations,
   dispatch,
   errorCallback,
+  allowCompleteOnFinalFailure = false,
 }: PropTypes) {
   const [operationsState, setOperationsState] = useState(operations);
   const [activeOperationId, setActiveOperationId] = useState<
@@ -83,6 +97,9 @@ function OperationsProgress({
   >(null);
   const [persistenceError, setPersistenceError] = useState("");
   const [isRetryingPersistence, setIsRetryingPersistence] = useState(false);
+  const [statusCheckOperationId, setStatusCheckOperationId] = useState<
+    string | number | null
+  >(null);
   const { clusterName } = useContext(AppContext);
   const startedTasks = useRef<Set<string | number>>(new Set());
   const operationsStateRef = useRef(operations);
@@ -92,6 +109,7 @@ function OperationsProgress({
   const isMounted = useRef(true);
   const setCompletionStatusRef = useRef(setCompletionStatus);
   const errorCallbackRef = useRef(errorCallback);
+  const allowCompleteOnFinalFailureRef = useRef(allowCompleteOnFinalFailure);
   const reportedError = useRef("");
   const executeTaskRef = useRef<(
     operationId?: string | number | null,
@@ -99,6 +117,7 @@ function OperationsProgress({
   ) => Promise<void>>(async () => undefined);
   setCompletionStatusRef.current = setCompletionStatus;
   errorCallbackRef.current = errorCallback;
+  allowCompleteOnFinalFailureRef.current = allowCompleteOnFinalFailure;
 
   const updateOperationsState = (nextOperations: Operation[]) => {
     operationsStateRef.current = nextOperations;
@@ -170,13 +189,18 @@ function OperationsProgress({
     const currentOperation = currentOperations.find(
       (operation) => operation.id == operationId,
     );
-    if (!currentOperation || currentOperation.status !== ProgressStatus.COMPLETED) {
-      return;
-    }
-    if (operationId == currentOperations.at(-1)?.id) {
+    if (!currentOperation) return;
+    const isLastOperation = operationId == currentOperations.at(-1)?.id;
+    if (
+      isLastOperation &&
+      (currentOperation.status === ProgressStatus.COMPLETED ||
+        (allowCompleteOnFinalFailureRef.current &&
+          isFailed(currentOperation.status || "")))
+    ) {
       setCompletionStatusRef.current(true);
       return;
     }
+    if (currentOperation.status !== ProgressStatus.COMPLETED) return;
     const currentIndex = currentOperations.findIndex(
       (operation) => operation.id == operationId,
     );
@@ -192,7 +216,7 @@ function OperationsProgress({
     const timer = setTimeout(() => {
       pollingTimers.current.delete(timer);
       void trackCurrentRequestStatus(requestId, operationId, generation);
-    }, 2000);
+    }, REQUEST_POLL_INTERVAL_MS);
     pollingTimers.current.add(timer);
   };
 
@@ -211,7 +235,38 @@ function OperationsProgress({
     const message = errorMessage(error, "The operation failed.");
     set(failedOperation, "status", ProgressStatus.FAILED);
     set(failedOperation, "error", statusCode ? `Error ${statusCode}: ${message}` : message);
-    await persistAndContinue(failedState);
+    delete failedOperation.statusCheckError;
+    await persistAndContinue(failedState, () =>
+      moveToNextOperation(failedState, operationId),
+    );
+  };
+
+  const persistStatusCheckError = async (
+    requestId: string | number,
+    operationId: string | number,
+    error: unknown,
+    generation: number,
+  ) => {
+    if (!isMounted.current || generation !== getGeneration(operationId)) return;
+    const nextState = cloneDeep(operationsStateRef.current);
+    const trackedOperation = nextState.find(
+      (operation) => operation.id == operationId,
+    );
+    if (
+      !trackedOperation ||
+      String(trackedOperation.requestId) !== String(requestId) ||
+      isFinished(trackedOperation.status || "")
+    ) {
+      return;
+    }
+    set(trackedOperation, "status", ProgressStatus.IN_PROGRESS);
+    set(
+      trackedOperation,
+      "statusCheckError",
+      errorMessage(error, "Ambari request status is temporarily unavailable."),
+    );
+    delete trackedOperation.error;
+    await persistAndContinue(nextState);
   };
 
   const trackCurrentRequestStatus = async (
@@ -251,6 +306,7 @@ function OperationsProgress({
       set(trackedOperation, "progress", request.progress_percent);
       set(trackedOperation, "requestInfo", request);
       delete trackedOperation.error;
+      delete trackedOperation.statusCheckError;
 
       await persistAndContinue(nextState, () => {
         if (isFinished(requestState)) {
@@ -260,7 +316,41 @@ function OperationsProgress({
         }
       });
     } catch (error) {
-      await persistFailedOperation(operationId, error, generation);
+      await persistStatusCheckError(
+        requestId,
+        operationId,
+        error,
+        generation,
+      );
+    }
+  };
+
+  const retryStatusCheck = async (operationId: string | number) => {
+    if (
+      pendingPersistence.current ||
+      statusCheckOperationId !== null
+    ) {
+      return;
+    }
+    const operation = operationsStateRef.current.find(
+      (candidate) => candidate.id == operationId,
+    );
+    if (
+      !operation?.requestId ||
+      !operation.statusCheckError ||
+      isFinished(operation.status || "")
+    ) {
+      return;
+    }
+    setStatusCheckOperationId(operationId);
+    try {
+      await trackCurrentRequestStatus(
+        operation.requestId,
+        operationId,
+        getGeneration(operationId),
+      );
+    } finally {
+      if (isMounted.current) setStatusCheckOperationId(null);
     }
   };
 
@@ -285,9 +375,17 @@ function OperationsProgress({
       if (!updatedOperation) return;
 
       if (!Array.isArray(response) && response?.Requests) {
-        const requestId = response.Requests.id;
+        const requestId = validRequestId(response.Requests.id);
+        if (requestId === null) {
+          throw new Error(
+            "Ambari accepted the operation without returning a valid request ID.",
+          );
+        }
         set(updatedOperation, "requestId", requestId);
+        set(updatedOperation, "requestInfo", response.Requests);
         set(updatedOperation, "status", ProgressStatus.IN_PROGRESS);
+        delete updatedOperation.error;
+        delete updatedOperation.statusCheckError;
         await persistAndContinue(
           nextState,
           () => trackCurrentRequestStatus(requestId, operationId, generation),
@@ -305,8 +403,10 @@ function OperationsProgress({
       ) {
         set(updatedOperation, "status", ProgressStatus.COMPLETED);
         delete updatedOperation.error;
+        delete updatedOperation.statusCheckError;
       } else {
         set(updatedOperation, "status", ProgressStatus.FAILED);
+        delete updatedOperation.statusCheckError;
         set(
           updatedOperation,
           "error",
@@ -394,6 +494,7 @@ function OperationsProgress({
       delete operation.requestInfo;
       delete operation.progress;
       delete operation.error;
+      delete operation.statusCheckError;
       delete operation.status;
     });
     setCompletionStatusRef.current(false);
@@ -420,6 +521,7 @@ function OperationsProgress({
     delete pendingOperation.requestInfo;
     delete pendingOperation.progress;
     delete pendingOperation.error;
+    delete pendingOperation.statusCheckError;
     set(pendingOperation, "status", ProgressStatus.IN_PROGRESS);
     updateOperationsState(pendingState);
 
@@ -437,7 +539,9 @@ function OperationsProgress({
       if (!Array.isArray(response) && response?.Requests?.id) {
         const requestId = response.Requests.id;
         set(skippedOperation, "requestId", requestId);
+        set(skippedOperation, "requestInfo", response.Requests);
         set(skippedOperation, "status", ProgressStatus.IN_PROGRESS);
+        delete skippedOperation.statusCheckError;
         await persistAndContinue(
           nextState,
           () => trackCurrentRequestStatus(requestId, operationId, generation),
@@ -504,6 +608,7 @@ function OperationsProgress({
     const activeOperation = operationsStateRef.current[activeIndex];
     if (isFinished(activeOperation.status || "")) {
       startedTasks.current.add(activeOperation.id);
+      moveToNextOperation(operationsStateRef.current, activeOperation.id);
     }
     setActiveOperationId(activeOperation.id);
   }, []);
@@ -580,6 +685,25 @@ function OperationsProgress({
                   Retry Operation
                 </Button>
               )}
+              {operation.statusCheckError &&
+                operation.requestId &&
+                !isFinished(operation.status || "") && (
+                  <Button
+                    size="sm"
+                    onClick={() => void retryStatusCheck(operation.id)}
+                    disabled={
+                      statusCheckOperationId !== null ||
+                      Boolean(persistenceError)
+                    }
+                    variant="outline-warning"
+                    className="mx-2"
+                  >
+                    <FontAwesomeIcon className="me-2" icon={faUndo} />
+                    {statusCheckOperationId == operation.id
+                      ? "Checking Status..."
+                      : "Retry Status Check"}
+                  </Button>
+                )}
               {operation.skippable &&
                 operation.skipCallback &&
                 isFailed(operation.status || "") && (
@@ -611,6 +735,12 @@ function OperationsProgress({
                 {operation.error}
               </Alert>
             )}
+            {operation.statusCheckError &&
+              !isFinished(operation.status || "") && (
+                <Alert variant="warning" className="scrollable-h15 mt-3">
+                  {operation.statusCheckError}
+                </Alert>
+              )}
             {operation.error &&
               isFinished(operation.status || "") &&
               !errorCallback && (

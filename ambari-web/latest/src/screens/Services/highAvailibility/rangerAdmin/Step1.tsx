@@ -16,122 +16,99 @@
  * limitations under the License.
  */
 
-import { useContext, useEffect, useState } from "react";
-import {
-  Card,
-  CardBody,
-  Col,
-  FormControl,
-  Row,
-  Stack,
-} from "react-bootstrap";
-import WizardFooter from "../../../../components/StepWizard/WizardFooter";
+import { useContext, useState } from "react";
+import { Card, Col, Form, Row, Stack } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faMultiply } from "@fortawesome/free-solid-svg-icons";
+import { faCircleXmark } from "@fortawesome/free-solid-svg-icons";
 import classNames from "classnames";
+import WizardFooter from "../../../../components/StepWizard/WizardFooter";
+import { configValidator } from "../../../../Utils/validators";
+import { getStepData } from "../../../../Utils/Utility";
 import { ActionTypes } from "./store/types";
 import { EnableHighAvailibilityRangerAdminContext } from "./store/context";
-import { configValidator } from "../../../../Utils/validators";
+import { enableRangerAdminSteps } from "./wizardSteps";
 
 function Step1() {
-  const [isNextEnabled, setIsNextEnabled] = useState(false);
-  const [loadBalancerUrl, setLoadBalancerUrl] = useState("");
   const {
+    state,
     dispatch,
     flushStateToDb,
     stepWizardUtilities: { currentStep, handleNextImperitive },
   } = useContext(EnableHighAvailibilityRangerAdminContext);
-  const [nameError, setNameError] = useState("");
-  useEffect(() => {
-    if (loadBalancerUrl) {
-      if (configValidator.isValidURL(loadBalancerUrl)) {
-        setNameError("");
-        setIsNextEnabled(true);
-      } else {
-        setIsNextEnabled(false);
-        setNameError("Must be valid URL.");
-      }
-    }
-    if (!loadBalancerUrl) {
-      setNameError("");
-      setIsNextEnabled(false);
-    }
-  }, [loadBalancerUrl]);
+  const savedUrl = getStepData(
+    state,
+    enableRangerAdminSteps.GET_STARTED,
+    "loadBalancerUrl",
+    "enableHighAvailibilityRangerAdminSteps",
+  );
+  const [loadBalancerUrl, setLoadBalancerUrl] = useState(
+    typeof savedUrl === "string" ? savedUrl : "",
+  );
+  const isValid = configValidator.isValidURL(loadBalancerUrl);
+  const validationError = loadBalancerUrl && !isValid ? "Must be a valid URL." : "";
+
   return (
     <>
       <h3 className="step-title">Get Started</h3>
-      <p className="step-description light-text">
+      <div className="step-description light-text">
         This wizard will walk you through enabling Ranger Admin HA on your
-        cluster.<br/>Once enabled, you will be running a Standby Ranger Admin in
-        addition to your Active Ranger Admin.<br/>This allows for an Active-Standby
-        Ranger Admin configuration that automatically performs failover.
-        <div className="step-description light-text mt-3 bolder">
-          You should plan a cluster maintenance window and prepare for cluster
-          downtime when enabling Ranger Admin HA.
-        </div>
+        cluster.
+        <br />
+        Once enabled, a Standby Ranger Admin will run in addition to the Active
+        Ranger Admin and provide automatic failover.
+      </div>
+      <div className="fw-bold fs-12 mt-3">
+        Plan a cluster maintenance window and prepare for cluster downtime.
+      </div>
+      <p className="step-description light-text mt-3">
+        Set up the load balancer before proceeding and provide the URL that
+        Ranger clients will use.
       </p>
-      <p className="step-description light-text">
-        Please setup the load balancer and provide the URL to be used. Make sure
-        that the load balancer is setup properly before proceeding.
-      </p>
-      <p className="step-description text-dark mt-2">
-        Be sure that Ranger Admin and load balancer are located on separate
-        hosts.
+      <p className="step-description text-dark">
+        Keep the load balancer on a host separate from every Ranger Admin.
       </p>
 
       <Card className="mt-2">
-        <CardBody>
+        <Card.Body>
           <Row className="align-items-center">
-            <Col md={3} className="bolder">
+            <Col md={3} className="fw-bold">
               URL to load balancer:
             </Col>
-            <Col md={4}>
-              <FormControl
+            <Col md={5}>
+              <Form.Control
+                aria-label="URL to load balancer"
                 type="text"
                 value={loadBalancerUrl}
-                className={classNames({
-                  "is-invalid": nameError,
-                })}
-                onChange={(e) => {
-                  setLoadBalancerUrl(e.target.value);
-                }}
-              ></FormControl>
+                className={classNames({ "is-invalid": validationError })}
+                onChange={(event) => setLoadBalancerUrl(event.target.value)}
+              />
             </Col>
             <Col>
-              {nameError ? (
-                <Stack direction="horizontal">
-                  <FontAwesomeIcon
-                    icon={faMultiply}
-                    color="red"
-                  ></FontAwesomeIcon>
-                  <div className="ms-2 text-muted text-nowrap">{nameError}</div>
+              {validationError && (
+                <Stack direction="horizontal" gap={2} className="text-danger">
+                  <FontAwesomeIcon icon={faCircleXmark} />
+                  <span>{validationError}</span>
                 </Stack>
-              ) : null}
+              )}
             </Col>
           </Row>
-        </CardBody>
+        </Card.Body>
       </Card>
       <WizardFooter
         step={currentStep}
-        isNextEnabled={isNextEnabled}
-        onBack={() => {
-          flushStateToDb("back");
-        }}
-        onCancel={() => {
-          flushStateToDb("cancel");
-        }}
-        onNext={() => {
+        isNextEnabled={isValid}
+        onBack={() => undefined}
+        onCancel={() => void flushStateToDb("cancel")}
+        onNext={async () => {
           dispatch({
             type: ActionTypes.STORE_INFORMATION,
             payload: {
               step: currentStep.name,
-              data: {
-                loadBalancerUrl,
-              },
+              data: { loadBalancerUrl },
             },
           });
-          flushStateToDb("next");
-          handleNextImperitive();
+          await flushStateToDb("next");
+          await handleNextImperitive();
         }}
       />
     </>

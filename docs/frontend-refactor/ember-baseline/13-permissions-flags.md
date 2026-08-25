@@ -112,7 +112,7 @@ This section is the authoritative enumeration of `App.supports.*` flags recogniz
 | `displayOlderVersions=false` | Display of older stack versions in Hosts/Versions | `HOST-TAB-003`, `VER-LIST-001` through `VER-LIST-004` | When false, filters records for versions older than current |
 | `opsDuringRollingUpgrade=false` | Whether ordinary permission-based operations are allowed during upgrade | `GATE-AUTH-004`, `UPG-RUN-010` | Implemented in global `havePermissions`; affects all modules |
 | `serviceAutoStart=true` | Admin Auto Start menu/page | `ADMIN-AUTO-*` | Still requires cluster/service auto-start permission |
-| `enableNewServiceRestartOptions=false` | New Restart Service option in Service Actions | `SVC-ACT-001`, `SVC-ACT-004` | Existing Restart All/rolling actions may still be available |
+| `enableNewServiceRestartOptions=false` | Experimental Restart Service option in Service Actions | `SVC-ACT-001`, `SVC-ACT-004` | Adds to, rather than replaces, the existing Restart All/component actions; exact defects are recorded below |
 | `logSearch=true` | Host Logs tab, task/host Log Search links, and additional logging resource loads | `HOST-TAB-004`, `BG-003` | Also requires LOGSEARCH to be installed and operational logs permission |
 | `logCountVizualization=false` | Log count visualization in Host Summary | `HOST-DETAIL-001` | Operational logs, not Metrics; requires runtime validation with LOGSEARCH |
 | `installGanglia=false` | Whether the legacy GANGLIA service model is retained | `OUT_OF_SCOPE` | Ganglia is the legacy Metrics service and is not an installation requirement here |
@@ -121,6 +121,31 @@ This section is the authoritative enumeration of `App.supports.*` flags recogniz
 | `redhatSatellite=false` | Defined by default in config, with no consumer call in the current classic `app/` | None | Legacy `STATIC_ONLY` capability; not a confirmed feature |
 | `addingNewRepository=false` | Defined by default in config, with no consumer call in the current classic `app/` | None | Legacy `STATIC_ONLY` capability |
 | `kerberosAutomated` | Only a TODO comment exists in the Add Service route; current runtime code does not read it | None | Do not create a React feature flag based on the comment |
+
+### Experimental Service Restart Semantics
+
+When `enableNewServiceRestartOptions` is true, Classic adds `Restart
+{displayName}s` after the existing Restart All action for every non-client-only
+service. Its parent click selects All, and its fixed submenu contains Restart
+All, Restart Masters, and Restart Slaves even when a selected group is empty.
+This entry is inside the broad custom-command/service-check/maintenance/HA
+permission branch rather than the semantic `SERVICE.START_STOP` branch. These
+are executable Classic behaviors, not authorization requirements that a React
+client should copy (`app/views/main/service/item.js`,
+`app/models/host_component.js`, and `app/controllers/main/service/item.js`).
+
+| Path | Executable Classic behavior | Defect or boundary |
+| --- | --- | --- |
+| Rolling All/Masters/Slaves | Masters are submitted one host per ordered request with `RESTART {displayName}` contexts; slaves are grouped by component and use `_PARSE_.ROLLING-RESTART...` contexts; clients are excluded | Host mode uses `noOfHostsInBatch`. Rack mode computes `ceil(percentRackStarted * 100 / rackCount)` as a numeric batch size but never groups hosts by rack. The schedule then hard-codes interval `1` and tolerance `0`; interval inputs, retry/count, failure fields, alert suppression, and pause-after-first do not flow into the request |
+| HDFS masters | Source intends JournalNodes, Standby NameNode/ZKFC pairs, then Active NameNode/ZKFC pairs | The branch checks `isHAEnabled`, but the app property is `isHaEnabled`; normal HA execution falls into the non-HA branch and usually selects only one NameNode. Empty ZKFC lookups can also append `undefined` |
+| Express from any scope | Fetches every non-maintenance host component for the service, including clients, then submits one service-level restart request | Masters and Slaves selections are ignored and can restart the entire service |
+| Empty selection, validation, and recovery | Empty rolling selections close without a request; numeric fields have no bounds; the dialog closes immediately after submit | There is no duplicate-request lock, accepted-schedule tracking, retained error, or in-dialog Retry; failures use the generic global error path |
+
+The migration baseline therefore distinguishes the intended selectable restart
+workflow from these source defects. React may fix permission ownership, empty
+groups, validation, scope loss, HA ordering, locking, or Retry only when the
+corresponding matrix row is marked `BEHAVIOR_DIFF` rather than
+`STATICALLY_ALIGNED`.
 
 ## Other Runtime UI Gates
 
@@ -132,17 +157,24 @@ This section is the authoritative enumeration of `App.supports.*` flags recogniz
 
 ## Stack, Service, and Component Metadata Conditions
 
+Classic's `App.Service.serviceTypes` name is misleading: it is a computed,
+hard-coded map in `app/models/service.js`, not a value loaded from stack
+metadata. HDFS always receives `HA_MODE`, `FEDERATION`, and `DFSRouter`; YARN,
+RANGER, and HAWQ always receive `HA_MODE`. A React implementation that checks
+server stack metadata before exposing these workflows is stricter than Classic
+and must record that decision as `BEHAVIOR_DIFF`.
+
 | ID | Condition source | Legacy impact | Related features |
 | --- | --- | --- | --- |
 | GATE-META-001 | `StackService.isInstallable`, installed service names, and service dependencies | Installer/Add Service options and Delete Service dependency restrictions | `INST-4-*`, `SVC-ADD-001`, `SVC-ACT-005` |
-| GATE-META-002 | Service `serviceTypes` contains `HA_MODE` | Shows corresponding HA actions for HDFS/YARN/RANGER/HAWQ | `NNHA-*`, `JN-*`, `RMHA-*`, `RAHA-*`, `HAWQ-*` |
-| GATE-META-003 | Service `serviceTypes` contains `FEDERATION` | Shows NameNode Federation for HDFS | `FED-*` |
-| GATE-META-004 | Service `serviceTypes` contains `DFSRouter` | Shows Router-based Federation for HDFS | `RBF-*` |
+| GATE-META-002 | Hard-coded `App.Service.serviceTypes` contains `HA_MODE` for HDFS/YARN/RANGER/HAWQ | Shows the corresponding HA actions by service name; topology and direct-workflow checks are separate | `NNHA-*`, `JN-*`, `RMHA-*`, `RAHA-*`, `HAWQ-*` |
+| GATE-META-003 | Hard-coded `App.Service.serviceTypes` contains `FEDERATION` for HDFS | Shows NameNode Federation for HDFS; this tag is not a server-advertised capability | `FED-*` |
+| GATE-META-004 | Hard-coded `App.Service.serviceTypes` contains `DFSRouter` for HDFS | Shows Router-based Federation for HDFS; `App.hasNameNodeFederation` separately disables the action until namespaces exist | `RBF-*` |
 | GATE-META-005 | Component cardinality/min/max, `isMaster`, `isClient`, `isSlave`, and `isHAComponentOnly` | Host assignment, add/delete component, and skipped master/slave steps | `INST-5-*`, `INST-6-*`, `HOST-COMP-002` through `HOST-COMP-004`, `SVC-ADD-*` |
 | GATE-META-006 | `components.reassignable` | Move Master action and target host | `SVC-MOVE-*`, `HOST-COMP-009` |
 | GATE-META-007 | `components.decommissionAllowed` | Decommission menu | `HOST-BULK-004`, `HOST-COMP-005` |
 | GATE-META-008 | Stack component custom commands | Visibility of Refresh/Rebalance/Knox/HBase and arbitrary commands | `SVC-ACT-006` through `SVC-ACT-009`, `HOST-COMP-007`, `HOST-COMP-008` |
-| GATE-META-009 | Config types/themes/value attributes/dependencies | Config tab availability, controls, required/read-only/override behavior, and recommendations | `SVC-CONFIG-*`, `INST-7-*` |
+| GATE-META-009 | Config types/themes/value attributes/dependencies | Config tab availability, controls, required/read-only/override behavior, recommendations, and custom Service Theme compilation | `SVC-CONFIG-*`, `INST-7-*`, `SVC-THEME-*`; see [Service Theme module](14-service-theme-layout.md) |
 | GATE-META-010 | Windows stack/stack family/version | Kerberos menu, selected services/commands, and legacy HAWQ capability | `KRB-ENTRY-002`, `HAWQ-*` |
 
 ## State, Maintenance, and Long-Workflow Exclusion

@@ -16,9 +16,8 @@
  * limitations under the License.
  */
 
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef } from "react";
 import { cloneDeep, find, get, isEmpty, isEqual } from "lodash";
-import { ServiceApi } from "../api/serviceApi";
 import { cachedServiceApi } from "../api/cachedServiceApi";
 import { centralizedServiceStateApi } from "../api/centralizedServiceStateApi";
 import { ServiceComponentMetricsEnums } from "../enums/ServiceComponentMetricsEnums";
@@ -37,31 +36,19 @@ export const useYarnConfigUpdater = () => {
   } = useContext(ServiceContext);
   
   // @ts-ignore
-  const { services, clusterName, parsedSocketMessages } = useContext(AppContext);
-  
+  const { services, clusterName, parsedSocketMessages, clockDistance } = useContext(AppContext);
+
   // Early return if YARN service is not installed
-  const isYarnInstalled = services && Array.isArray(services) && 
+  const isYarnInstalled = services && Array.isArray(services) &&
     services.some((service: any) => service.ServiceInfo.service_name === "YARN");
-  
+
   if (!isYarnInstalled) {
     return;
   }
 
   // @ts-ignore
   const { allServiceModels, updateRegistry } = useContext(ServiceContext);
-  const [serverClockTime, setServerClockTime] = useState<any>();
   const hasResourceManagerHAEnabledUseEffectRunOnce = useRef(false);
-
-  const fetchServerCLockTime = async () => {
-    const fields = "?fields=RootServiceComponents/server_clock";
-    const responseData = await ServiceApi.ambariService(fields);
-    const serverClock = get(
-      responseData,
-      "RootServiceComponents.server_clock",
-      null
-    );
-    setServerClockTime(serverClock);
-  };
 
   const fetchYARNMasterSlaveClientsData = async () => {
     let yarnComponentsData = cachedServiceApi.getServiceComponentData("YARN");
@@ -280,16 +267,6 @@ export const useYarnConfigUpdater = () => {
   const calclateResourceManagereUptime = (startTime: number) => {
     const currentConfig = cloneDeep(allServiceModels["yarn"]);
     const yarnServiceObj = currentConfig.getServiceObject();
-    let clientClock = Date.now();
-
-    let serverClock = serverClockTime;
-    if (!serverClock) {
-      return null; // Return null if serverClockTime is not available
-    }
-    
-    serverClock = serverClock.toString();
-    serverClock = serverClock.length < 13 ? serverClock + "000" : serverClock;
-    const clockDistance = serverClock - clientClock;
     const uptime = startTime;
     if (uptime && uptime > 0) {
       const appDateTime = Date.now() + clockDistance;
@@ -806,7 +783,6 @@ export const useYarnConfigUpdater = () => {
       updateYARNData();
       updateYARNMasterComponents();
       findMasterSlaveClientComponents();
-      fetchServerCLockTime();
       calcDiskUsagePartandPercent();
     }
   }, [polledHostComponentsData]);
@@ -821,12 +797,6 @@ export const useYarnConfigUpdater = () => {
     isRMAEnabled();
     hasResourceManagerHAEnabledUseEffectRunOnce.current = true;
   }, [allServiceModels]);
-
-  useEffect(() => {
-    fetchServerCLockTime();
-    //isRMAEnabled();
-    //findMasterSlaveClientComponents();
-  }, []);
 
   useEffect(() => {
     updateAlertsAndServiceStateData();

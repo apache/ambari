@@ -16,15 +16,10 @@
  * limitations under the License.
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import ConfigsApi from "../../api/configsApi";
-import { cloneDeep, get, isEmpty, isObject } from "lodash";
-import {
-  ConfigPropertiesType,
-  SubsectionPropertiesType,
-  TabType,
-  ThemeType,
-} from "../CommonConfigs/types";
+import { get, isEmpty, isObject } from "lodash";
+import { ConfigPropertiesType } from "../CommonConfigs/types";
 import { formatPropertyValue } from "../CommonConfigs/ConfigUtils";
 import { ambari_metrics_properties } from "../../data/configs/services/ambari_metrics_properties";
 import { hbase_properties } from "../../data/configs/services/hbase_properties";
@@ -44,6 +39,11 @@ import ComparatorFilter from "./ComparatorFilter";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSearch, faLock } from "@fortawesome/free-solid-svg-icons";
 import { FilterLevels } from "./constants";
+import {
+  findComparatorThemeLocation,
+  getComparatorActiveTabs,
+  normalizeComparatorTheme,
+} from "./configsComparatorTheme";
 
 export default function ConfigsComparator({
   version1,
@@ -75,117 +75,24 @@ export default function ConfigsComparator({
     useState<any>(null);
   const [configProperties, setConfigProperties] =
     useState<ConfigPropertiesType>({});
-  const [theme, setTheme] = useState<ThemeType>({});
   const [transformedData, setTransformedData] = useState<any>({});
   const [configGroupsData, setConfigGroupsData] = useState<any[]>([]);
-
-
-  // Tab filtering logic based on Ember.js implementation
-  const getActiveServiceTabs = (serviceName: string, themeData: ThemeType) => {
-    if (!serviceName) {
-      return [];
-    }
-
-    // If no theme data exists for the service, return just the Advanced tab
-    if (!themeData[serviceName]) {
-      console.log(`No theme data found for service: ${serviceName}, returning Advanced tab only`);
-      return [{
-        key: "Advanced",
-        name: "Advanced",
-        displayName: "Advanced",
-      }];
-    }
-
-    const serviceTheme = themeData[serviceName];
-    const tabs = serviceTheme.tabs;
-
-    // Filter tabs based on Ember.js logic:
-    // 1. Service-specific tabs (serviceName matches)
-    // 2. Non-categorized tabs (exclude special themed tabs)
-    // 3. Non-hidden tabs
-
-    const activeServiceTabs = Object.keys(tabs).filter((tabKey) => {
-      const tab = tabs[tabKey];
-
-      // Check if tab is categorized (special themed tabs to exclude)
-      const isCategorized = isTabCategorized(tab);
-
-      // Return tabs that are NOT categorized
-      return !isCategorized;
+  const theme = useMemo(
+    () => normalizeComparatorTheme(themeData, serviceName),
+    [themeData, serviceName],
+  );
+  const activeServiceTabs = getComparatorActiveTabs(theme, serviceName);
+  const themeCategoryDisplayNames = useMemo(() => {
+    const names: Record<string, string> = {};
+    Object.values(theme[serviceName]?.tabs ?? {}).forEach((tab) => {
+      tab.sections.forEach((section) => {
+        section.subsections.forEach((subsection) => {
+          names[subsection.id] = subsection.displayName || subsection.name;
+        });
+      });
     });
-
-    return activeServiceTabs.map((tabKey) => ({
-      key: tabKey,
-      ...tabs[tabKey],
-    }));
-  };
-
-  // Determine if tab is categorized (should be excluded from main config view)
-  // Based on Ember.js logic: !isAdvanced && themeName !== 'default'
-  const isTabCategorized = (tab: any) => {
-    // In React implementation, we need to check if this is a special themed tab
-    // that should be handled separately (like database, directories, credentials)
-
-    // Advanced tabs are never categorized
-    if (tab.name === "Advanced" || tab.displayName === "Advanced") {
-      return false;
-    }
-
-    // Check for special theme names that should be categorized
-    // These correspond to Ember.js categorized tabs
-    const categorizedThemes = ["database", "directories", "credentials"];
-
-    // For now, we'll consider all non-Advanced tabs as non-categorized
-    // unless they match specific patterns that indicate they're special themed tabs
-    const tabName = tab.name?.toLowerCase() || "";
-    const displayName = tab.displayName?.toLowerCase() || "";
-
-    return categorizedThemes.some(
-      (theme) => tabName.includes(theme) || displayName.includes(theme)
-    );
-  };
-
-  // Create proper display name from subsection internal name
-  const createDisplayNameFromSubsectionName = (subsectionName: string) => {
-    // Convert names like "subsection-datanode-col1" to "Datanode"
-    // Extract the meaningful part and capitalize it
-    if (subsectionName.includes("subsection-")) {
-      const parts = subsectionName.split("-");
-      if (parts.length >= 2) {
-        // Take the second part (after 'subsection-') and capitalize it
-        const meaningfulPart = parts[1];
-        return (
-          meaningfulPart.charAt(0).toUpperCase() +
-          meaningfulPart.slice(1).toLowerCase()
-        );
-      }
-    }
-
-    // For other patterns, try to extract meaningful words and capitalize them
-    const words = subsectionName
-      .split(/[-_]/)
-      .filter(
-        (word) =>
-          word && !["subsection", "col", "row"].includes(word.toLowerCase())
-      );
-
-    if (words.length > 0) {
-      return words
-        .map(
-          (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-        )
-        .join(" ");
-    }
-
-    // Fallback: just capitalize the whole name
-    return (
-      subsectionName.charAt(0).toUpperCase() +
-      subsectionName.slice(1).toLowerCase()
-    );
-  };
-
-  // Get filtered tabs for the current service
-  const activeServiceTabs = getActiveServiceTabs(serviceName, theme);
+    return names;
+  }, [theme, serviceName]);
 
   useEffect(() => {
     setFirstVersion(version1);
@@ -229,6 +136,7 @@ export default function ConfigsComparator({
 
   // Fetch config groups data for override detection
   useEffect(() => {
+    let active = true;
     async function fetchConfigGroups() {
       if (clusterName && serviceName) {
         try {
@@ -236,19 +144,22 @@ export default function ConfigsComparator({
             clusterName,
             serviceName
           );
-          setConfigGroupsData(response.items || []);
-        } catch (error) {
-          console.error("Error fetching config groups:", error);
-          setConfigGroupsData([]);
+          if (active) setConfigGroupsData(response.items || []);
+        } catch {
+          if (active) setConfigGroupsData([]);
         }
       }
     }
 
     fetchConfigGroups();
+    return () => {
+      active = false;
+    };
   }, [clusterName, serviceName]);
 
   // New API call for comparing multiple versions - similar to Ember.js ConfigsComparator
   useEffect(() => {
+    let active = true;
     async function getCompareVersionConfigs() {
       if (firstVersion && secondVersion) {
         try {
@@ -260,20 +171,21 @@ export default function ConfigsComparator({
           );
 
           // Process the response similar to Ember.js initCompareConfig
-          processCompareVersionData(response);
-        } catch (error) {
-          console.error("Error fetching compare version configs:", error);
+          if (active) processCompareVersionData(response);
+        } catch {
+          if (active) setTransformedData({ Advanced: {} });
         }
       }
     }
 
     getCompareVersionConfigs();
+    return () => {
+      active = false;
+    };
   }, [firstVersion, secondVersion, clusterName, serviceName, theme]);
 
   // Process the compare version data and transform into tab/category structure
   const processCompareVersionData = (response: any) => {
-    console.log('Processing compare version data:', response);
-    
     const serviceVersionMap: any = {};
     const compareVersionNumber = firstVersion;
     const selectedVersionNumber = secondVersion;
@@ -285,15 +197,11 @@ export default function ConfigsComparator({
     // Process each version's configurations
     response.items?.forEach((item: any) => {
       const versionNumber = item.service_config_version.toString();
-      console.log(`Processing version ${versionNumber} with ${item.configurations?.length || 0} configurations`);
-
       item.configurations?.forEach((configuration: any) => {
         const configType = configuration.type;
         const properties = configuration.properties || {};
         const propertiesAttributes = configuration.properties_attributes || {};
         
-        console.log(`Processing config type: ${configType} with ${Object.keys(properties).length} properties`);
-
         // Process each property in the configuration (first pass - create config objects)
         Object.keys(properties).forEach((propertyName: string) => {
           const configKey = `${propertyName}-${configType}`;
@@ -319,11 +227,6 @@ export default function ConfigsComparator({
               if (config) {
                 config.isFinal =
                   propertiesAttributes.final[finalPropertyName] === "true";
-
-                // Debug logging for final properties
-                console.log(
-                  `Final property detected: ${finalPropertyName} in ${configType}, isFinal: ${config.isFinal}`
-                );
               }
             }
           );
@@ -331,12 +234,9 @@ export default function ConfigsComparator({
       });
     });
 
-    console.log('Service version map:', serviceVersionMap);
-
     // Transform data into tab/category structure and store in state
     const processedTransformedData =
       transformDataByTabsAndCategories(serviceVersionMap);
-    console.log('Processed transformed data:', processedTransformedData);
     setTransformedData(processedTransformedData);
 
     // Store the processed data for comparison (don't overwrite, just store the response)
@@ -351,8 +251,6 @@ export default function ConfigsComparator({
         (item: any) =>
           item.service_config_version.toString() === selectedVersionNumber
       ) || [];
-
-    console.log(`First version data: ${firstVersionData.length} items, Second version data: ${secondVersionData.length} items`);
 
     setFirstVersionProperties({ items: firstVersionData });
     setSecondVersionProperties({ items: secondVersionData });
@@ -378,7 +276,6 @@ export default function ConfigsComparator({
     
     // If no theme data exists for the service, create a minimal theme with just Advanced tab
     if (!serviceTheme) {
-      console.log(`No theme data found for service: ${serviceName}, creating minimal theme`);
       // Initialize with just Advanced tab for services without theme data
       transformedData["Advanced"] = {};
     } else {
@@ -400,8 +297,7 @@ export default function ConfigsComparator({
         // Determine which tab and category this property belongs to
         const { tabName, categoryName } = determineTabAndCategory(
           propertyName,
-          configType,
-          serviceTheme
+          configType
         );
 
         // Initialize tab and category if they don't exist
@@ -413,13 +309,16 @@ export default function ConfigsComparator({
         }
 
         // Add property to the appropriate tab/category
-        if (!transformedData[tabName][categoryName][propertyName]) {
-          transformedData[tabName][categoryName][propertyName] = {};
+        const propertyKey = `${configType}/${propertyName}`;
+        if (!transformedData[tabName][categoryName][propertyKey]) {
+          transformedData[tabName][categoryName][propertyKey] = {};
         }
 
         // Store version-specific data
         const versionKey = `version_${versionNumber}`;
-        transformedData[tabName][categoryName][propertyName][versionKey] = {
+        transformedData[tabName][categoryName][propertyKey][versionKey] = {
+          name: propertyName,
+          configPath: propertyKey,
           value: configData.value,
           isFinal: configData.isFinal,
           type: configData.type,
@@ -434,53 +333,19 @@ export default function ConfigsComparator({
   // Determine which tab and category a property belongs to
   const determineTabAndCategory = (
     propertyName: string,
-    configType: string,
-    serviceTheme: any
+    configType: string
   ) => {
     let tabName = "Advanced"; // Default tab
     let categoryName = getDefaultCategoryName(propertyName, configType); // Default category based on Ember.js logic
 
-    // First, check if property is defined in theme subsection properties
-    // If it's in theme, it goes to the themed tab, otherwise it goes to Advanced
-    let foundInTheme = false;
-
-    if (serviceTheme && serviceTheme.subsectionProperties) {
-      Object.keys(serviceTheme.subsectionProperties).forEach(
-        (subsectionName) => {
-          const subsection = serviceTheme.subsectionProperties[subsectionName];
-          const propertyExists = subsection.properties?.some((prop: any) => {
-            const [propConfigType, propName] = prop.config?.split("/") || [];
-            return propName === propertyName && propConfigType === configType;
-          });
-
-          if (propertyExists) {
-            foundInTheme = true;
-            // Find which tab this subsection belongs to
-            if (serviceTheme.tabs) {
-              Object.keys(serviceTheme.tabs).forEach((currentTabName) => {
-                const tab = serviceTheme.tabs[currentTabName];
-                if (tab.sections) {
-                  Object.values(tab.sections).forEach((section: any) => {
-                    if (section.subsections) {
-                      Object.values(section.subsections).forEach(
-                        (subsection: any) => {
-                          if (subsection.name === subsectionName) {
-                            tabName = currentTabName;
-                            // Use displayName first, fallback to name if displayName doesn't exist
-                            categoryName =
-                              subsection.displayName || subsection.name;
-                          }
-                        }
-                      );
-                    }
-                  });
-                }
-              });
-            }
-          }
-        }
-      );
-    }
+    const location = findComparatorThemeLocation(
+      theme,
+      serviceName,
+      configType,
+      propertyName,
+    );
+    const foundInTheme = location !== null;
+    if (location) ({ tabName, categoryName } = location);
 
     // If NOT found in theme, check properties file map for category information
     // Based on Ember.js logic: properties not in theme go to Advanced tab with their category
@@ -545,10 +410,6 @@ export default function ConfigsComparator({
     // If not found in either, it's a custom/user property
     return false;
   };
-
-  useEffect(() => {
-    setTheme(getTheme(themeData));
-  }, [version1, version2, themeData]);
 
   const getConfigPropertiesWithProperties = (
     configPropertiesCopy: ConfigPropertiesType,
@@ -770,148 +631,6 @@ export default function ConfigsComparator({
     return updatedConfigProperties;
   };
 
-  const getTheme = (themeData: any) => {
-    let theme: ThemeType = {};
-    let reqServices = new Set<string>();
-    const configSection = "default";
-    themeData?.items?.forEach((serviceItem: any) => {
-      const serviceName = serviceItem?.StackServices?.service_name;
-      let tabsData: TabType = {};
-      serviceItem?.themes?.forEach((item: any) => {
-        const themeData = item.ThemeInfo.theme_data.Theme;
-        if (themeData.name === configSection) {
-          reqServices.add(serviceName);
-          themeData.configuration.layouts.forEach((layout: any) => {
-            layout.tabs.forEach((tab: any) => {
-              tabsData[tab.name] = {
-                name: tab.name,
-                displayName: tab["display-name"],
-                tabColumns: tab.layout["tab-columns"],
-                tabRows: tab.layout["tab-rows"],
-                sections: {},
-              };
-              tab.layout.sections.forEach((section: any) => {
-                tabsData[tab.name].sections[section.name] = {
-                  name: section.name,
-                  displayName: section["display-name"],
-                  rowSpan: section["row-span"],
-                  columnSpan: section["column-span"],
-                  rowIndex: section["row-index"],
-                  columnIndex: section["col-index"],
-                  sectionRows: section["section-rows"],
-                  sectionColumns: section["section-columns"],
-                  subsections: {},
-                };
-                section.subsections.forEach((subsection: any) => {
-                  // Create proper displayName from subsection name if display-name is missing
-                  const properDisplayName =
-                    subsection["display-name"] ||
-                    createDisplayNameFromSubsectionName(subsection.name);
-
-                  tabsData[tab.name].sections[section.name].subsections[
-                    subsection.name
-                  ] = {
-                    name: subsection.name,
-                    displayName: properDisplayName,
-                    rowSpan: subsection["row-span"],
-                    columnSpan: subsection["column-span"],
-                    rowIndex: subsection["row-index"],
-                    columnIndex: subsection["column-index"],
-                    ...(subsection["depends-on"] && {
-                      "depends-on": subsection["depends-on"],
-                    }),
-                    ...(subsection["subsection-tabs"] && {
-                      subsectionTabs: subsection["subsection-tabs"],
-                    }),
-                  };
-                });
-              });
-            });
-          });
-        }
-      });
-
-      if (configSection === "default") {
-        tabsData["Advanced"] = {
-          name: "Advanced",
-          displayName: "Advanced",
-          sections: {},
-        };
-      }
-
-      const propertiesData: SubsectionPropertiesType = {};
-
-      serviceItem?.themes?.forEach((item: any) => {
-        const themeData = item.ThemeInfo.theme_data.Theme;
-        themeData.configuration.placement.configs.forEach((config: any) => {
-          if (!propertiesData[config["subsection-name"]]) {
-            propertiesData[config["subsection-name"]] = { properties: [] };
-          }
-          if (
-            !propertiesData[config["subsection-name"]].properties.some(
-              (existingConfig: any) =>
-                existingConfig["config"] === config["config"]
-            )
-          ) {
-            propertiesData[config["subsection-name"]].properties.push(config);
-          }
-        });
-      });
-
-      const propertyWidgets: any = {};
-
-      serviceItem?.themes?.forEach((item: any) => {
-        const themeData = item.ThemeInfo.theme_data.Theme;
-        themeData.configuration.widgets.map((widget: any) => {
-          const propertyName = widget.config.split("/")[1];
-          propertyWidgets[propertyName] = widget;
-        });
-      });
-
-      theme = {
-        ...theme,
-        [serviceName]: {
-          tabs: sortTabs(tabsData),
-          subsectionProperties: propertiesData,
-          widgets: propertyWidgets,
-        },
-      };
-    });
-    return theme;
-  };
-
-  const sortTabs = (tabsData: TabType) => {
-    const sortedTabs = cloneDeep(tabsData);
-
-    Object.keys(sortedTabs).forEach((tabKey) => {
-      const tab = sortedTabs[tabKey];
-
-      if (tab.sections) {
-        tab.sections = Object.values(tab.sections).sort((a: any, b: any) => {
-          if (a.rowIndex === b.rowIndex) {
-            return a.columnIndex - b.columnIndex;
-          }
-          return a.rowIndex - b.rowIndex;
-        });
-
-        tab.sections.forEach((section: any) => {
-          if (section.subsections) {
-            section.subsections = Object.values(section.subsections).sort(
-              (a: any, b: any) => {
-                if (a.rowIndex === b.rowIndex) {
-                  return a.columnIndex - b.columnIndex;
-                }
-                return a.rowIndex - b.rowIndex;
-              }
-            );
-          }
-        });
-      }
-    });
-
-    return sortedTabs;
-  };
-
   // Check if property should be hidden from comparison (based on Ember.js logic)
   const shouldHideProperty = (propertyName: string, configType: string) => {
     // 1. Check if it's a password field (Ember.js: notShownTypes = ['password'])
@@ -1061,6 +780,9 @@ export default function ConfigsComparator({
 
   // Get category display name (similar to Ember.js ServiceConfigCategory displayName)
   const getCategoryDisplayName = (categoryName: string) => {
+    if (themeCategoryDisplayNames[categoryName]) {
+      return themeCategoryDisplayNames[categoryName];
+    }
     // Handle Advanced and Custom categories with proper formatting (like Ember.js)
     if (categoryName.startsWith("Advanced ")) {
       const configType = categoryName.replace("Advanced ", "");
@@ -1204,12 +926,21 @@ export default function ConfigsComparator({
       const propertiesWithMarkers: any = {};
       let differencesInCategory = 0;
 
-      Object.keys(category).forEach((propertyName) => {
-        const property = category[propertyName];
+      Object.keys(category).forEach((propertyKey) => {
+        const property = category[propertyKey];
         const version1Key = `version_${firstVersion}`;
         const version2Key = `version_${secondVersion}`;
         const version1Data = property[version1Key];
         const version2Data = property[version2Key];
+        const propertyName =
+          version1Data?.name ||
+          version2Data?.name ||
+          propertyKey.slice(propertyKey.indexOf("/") + 1);
+        const configType = version1Data?.type || version2Data?.type || "";
+
+        if (shouldHideProperty(propertyName, configType)) {
+          return;
+        }
 
         // Check if this property has differences
         const hasDiff =
@@ -1227,13 +958,13 @@ export default function ConfigsComparator({
         // Check if this property is overridden (has config group overrides or is custom)
         const isOverridden = isPropertyOverridden(
           propertyName,
-          version1Data?.type || version2Data?.type || ""
+          configType
         );
 
         // Check if this property has issues (errors, warnings, or validation issues)
         const hasIssues = checkPropertyHasIssues(
           propertyName,
-          version1Data?.type || version2Data?.type || ""
+          configType
         );
 
         // Check if property matches search string
@@ -1242,12 +973,6 @@ export default function ConfigsComparator({
         // Debug logging for final properties filter
         const isFinal1 = version1Data?.isFinal || false;
         const isFinal2 = version2Data?.isFinal || false;
-
-        if (isFinal1 || isFinal2) {
-          console.log(
-            `Final property in filter: ${propertyName}, version1Final: ${isFinal1}, version2Final: ${isFinal2}`
-          );
-        }
 
         // Check if property should be included based on selected filters
         const shouldIncludeProperty =
@@ -1261,7 +986,7 @@ export default function ConfigsComparator({
 
         // Only include properties that match the filter criteria
         if (shouldIncludeProperty) {
-          propertiesWithMarkers[propertyName] = {
+          propertiesWithMarkers[propertyKey] = {
             ...property,
             hasDifference: hasDiff,
           };
@@ -1643,24 +1368,6 @@ export default function ConfigsComparator({
     return <Spinner />;
   }
 
-  // For services without theme data, ensure we have at least the Advanced tab
-  if (isEmpty(theme) || !theme[serviceName]) {
-    // Create minimal theme structure if missing
-    if (!theme[serviceName]) {
-      theme[serviceName] = {
-        tabs: {
-          Advanced: {
-            name: "Advanced",
-            displayName: "Advanced",
-            sections: {},
-          }
-        },
-        subsectionProperties: {},
-        widgets: {},
-      };
-    }
-  }
-
   return (
     <div className="configs-comparator p-3">
       <div className="d-flex justify-content-between align-items-center mb-3">
@@ -1762,12 +1469,16 @@ export default function ConfigsComparator({
                         </Accordion.Header>
                         <Accordion.Body className="mt-3">
                           {Object.keys(categoryProperties).map(
-                            (propertyName) => {
-                              const property = categoryProperties[propertyName];
+                            (propertyKey) => {
+                              const property = categoryProperties[propertyKey];
                               const version1Data =
                                 property[`version_${firstVersion}`];
                               const version2Data =
                                 property[`version_${secondVersion}`];
+                              const propertyName =
+                                version1Data?.name ||
+                                version2Data?.name ||
+                                propertyKey.slice(propertyKey.indexOf("/") + 1);
                               const hasDifference = property.hasDifference;
 
                               // Get proper display name for the property
@@ -1780,7 +1491,7 @@ export default function ConfigsComparator({
 
                               return (
                                 <div
-                                  key={propertyName}
+                                  key={propertyKey}
                                   className={`comparison-row border-bottom py-2 p-3 fs-14 ${
                                     hasDifference ? "bg-info-subtle" : ""
                                   }`}

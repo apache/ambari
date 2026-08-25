@@ -17,7 +17,7 @@
  */
 
 import { ReactNode } from "react";
-import { Navigate, Outlet, RouteObject, useParams } from "react-router-dom";
+import { Navigate, Outlet, RouteObject } from "react-router-dom";
 import { AuthenticatedApplication, LandingRoute } from "../AppLoader";
 import { ProtectedRoute } from "../components/AuthGuard";
 import AdminRouteGuard from "../components/AdminRouteGuard";
@@ -53,9 +53,7 @@ import FeatureRouteGuard from "../components/FeatureRouteGuard";
 import AdminViewRouteGuard from "../components/AdminViewRouteGuard";
 import ServiceOperationRouteGuard from "../components/ServiceOperationRouteGuard";
 
-const NameNodePersistenceRouteGuard = ({ children }: { children: ReactNode }) => {
-  const { componentName } = useParams();
-  if (componentName !== "NameNode") return <>{children}</>;
+export const HaPersistenceRouteGuard = ({ children }: { children: ReactNode }) => {
   return (
     <ProtectedRoute
       requireAuthorization="CLUSTER.MANAGE_USER_PERSISTED_DATA"
@@ -92,7 +90,9 @@ const RoutesList: RouteObject[] = [
                 requireAuthorization="AMBARI.MANAGE_SETTINGS"
                 redirectTo="/"
               >
-                <Experimental />
+                <ServiceOperationRouteGuard>
+                  <Experimental />
+                </ServiceOperationRouteGuard>
               </ProtectedRoute>
             ),
           },
@@ -161,7 +161,7 @@ const RoutesList: RouteObject[] = [
                   {
                     path: "highAvailability/:componentName/enable/:stepNumber",
                     element: (
-                      <NameNodePersistenceRouteGuard>
+                      <HaPersistenceRouteGuard>
                         <ProtectedRoute
                           requireAuthorization="SERVICE.ENABLE_HA"
                           redirectTo="/main/dashboard/metrics"
@@ -170,22 +170,69 @@ const RoutesList: RouteObject[] = [
                             <ServiceLoader />
                           </ServiceOperationRouteGuard>
                         </ProtectedRoute>
-                      </NameNodePersistenceRouteGuard>
+                      </HaPersistenceRouteGuard>
                     ),
                   },
                   {
                     path: ":componentName/federation/:stepNumber",
                     element: (
-                      <ProtectedRoute
-                        requireAuthorization="SERVICE.ENABLE_HA"
-                        redirectTo="/main/dashboard/metrics"
-                      >
-                        <ServiceOperationRouteGuard>
-                          <ServiceLoader />
-                        </ServiceOperationRouteGuard>
-                      </ProtectedRoute>
+                      <HaPersistenceRouteGuard>
+                        <ProtectedRoute
+                          requireAuthorization="SERVICE.ENABLE_HA"
+                          redirectTo="/main/dashboard/metrics"
+                        >
+                          <ServiceOperationRouteGuard>
+                            <ServiceLoader />
+                          </ServiceOperationRouteGuard>
+                        </ProtectedRoute>
+                      </HaPersistenceRouteGuard>
                     ),
                   },
+                  {
+                    path: ":componentName/federation/routerBasedFederation/:stepNumber",
+                    element: (
+                      <HaPersistenceRouteGuard>
+                        <ProtectedRoute
+                          requireAuthorization="SERVICE.ENABLE_HA"
+                          redirectTo="/main/dashboard/metrics"
+                        >
+                          <ServiceOperationRouteGuard>
+                            <ServiceLoader />
+                          </ServiceOperationRouteGuard>
+                        </ProtectedRoute>
+                      </HaPersistenceRouteGuard>
+                    ),
+                  },
+                  {
+                    path: "highAvailability/:componentName/add/:stepNumber",
+                    element: (
+                      <HaPersistenceRouteGuard>
+                        <ProtectedRoute
+                          requireAuthorization="SERVICE.ENABLE_HA"
+                          redirectTo="/main/dashboard/metrics"
+                        >
+                          <ServiceOperationRouteGuard>
+                            <ServiceLoader />
+                          </ServiceOperationRouteGuard>
+                        </ProtectedRoute>
+                      </HaPersistenceRouteGuard>
+                    ),
+                  },
+                  ...["remove", "activate"].map((mode) => ({
+                    path: `highAvailability/:componentName/${mode}/:stepNumber`,
+                    element: (
+                      <HaPersistenceRouteGuard>
+                        <ProtectedRoute
+                          requireAuthorization="SERVICE.RUN_CUSTOM_COMMAND, SERVICE.RUN_SERVICE_CHECK, SERVICE.TOGGLE_MAINTENANCE, SERVICE.ENABLE_HA"
+                          redirectTo="/main/dashboard/metrics"
+                        >
+                          <ServiceOperationRouteGuard>
+                            <ServiceLoader />
+                          </ServiceOperationRouteGuard>
+                        </ProtectedRoute>
+                      </HaPersistenceRouteGuard>
+                    ),
+                  })),
                   {
                     path: "highAvailability/:componentName/manage/:stepNumber",
                     element: (
@@ -242,12 +289,16 @@ const RoutesList: RouteObject[] = [
               {
                 path: "alerts/add/:stepNumber",
                 element: (
-                  <ProtectedRoute
-                    requireAuthorization="SERVICE.TOGGLE_ALERTS"
-                    redirectTo="/main/alerts"
-                  >
-                    <AlertDefinitionWizard />
-                  </ProtectedRoute>
+                  <FeatureRouteGuard feature="createAlerts">
+                    <ProtectedRoute
+                      requireAuthorization="SERVICE.TOGGLE_ALERTS"
+                      redirectTo="/main/alerts"
+                    >
+                      <ServiceOperationRouteGuard>
+                        <AlertDefinitionWizard />
+                      </ServiceOperationRouteGuard>
+                    </ProtectedRoute>
+                  </FeatureRouteGuard>
                 ),
               },
               { path: "alerts/:alertId", element: <AlertDefinitionDetails /> },
@@ -275,12 +326,14 @@ const RoutesList: RouteObject[] = [
                     path: "serviceAutoStart",
                     element: (
                       <FeatureRouteGuard feature="serviceAutoStart">
-                        <ProtectedRoute
-                          requireAuthorization="SERVICE.MANAGE_AUTO_START, CLUSTER.MANAGE_AUTO_START"
-                          redirectTo="/main/dashboard/metrics"
-                        >
-                          <ServiceAutoStart />
-                        </ProtectedRoute>
+                      <ProtectedRoute
+                        requireAuthorization="SERVICE.MANAGE_AUTO_START, CLUSTER.MANAGE_AUTO_START"
+                        redirectTo="/main/dashboard/metrics"
+                      >
+                          <ServiceOperationRouteGuard>
+                            <ServiceAutoStart />
+                          </ServiceOperationRouteGuard>
+                      </ProtectedRoute>
                       </FeatureRouteGuard>
                     ),
                   },
@@ -291,7 +344,9 @@ const RoutesList: RouteObject[] = [
                         requireAuthorization="SERVICE.SET_SERVICE_USERS_GROUPS"
                         redirectTo="/main/dashboard/metrics"
                       >
-                        <ServiceAccounts />
+                        <ServiceOperationRouteGuard>
+                          <ServiceAccounts />
+                        </ServiceOperationRouteGuard>
                       </ProtectedRoute>
                     ),
                   },
@@ -342,8 +397,10 @@ const RoutesList: RouteObject[] = [
                   },
                 ],
               },
+              { path: "views", element: <ViewsListPage /> },
               { path: "views/:viewName/:viewVersion/:instanceName/*", element: <ViewDetails /> },
               { path: "view", element: <ViewsListPage /> },
+              { path: "view/:viewName/:shortName/*", element: <ViewDetails /> },
               { path: "view/:viewName", element: <Navigate to="/main/view" replace /> },
             ],
           },

@@ -25,7 +25,7 @@ export enum enableRangerAdminSteps {
   GET_STARTED = "GET_STARTED",
   SELECT_HOSTS = "SELECT_HOSTS",
   REVIEW = "REVIEW",
-  INSTALL_START_TEST="INSTALL_START_TEST",
+  INSTALL_START_TEST = "INSTALL_START_TEST",
 }
 
 export default {
@@ -36,21 +36,28 @@ export default {
     canGoBack: false,
     isNextEnabled: false,
     name: enableRangerAdminSteps.GET_STARTED,
-    keysToRemove: [enableRangerAdminSteps.SELECT_HOSTS, enableRangerAdminSteps.REVIEW, enableRangerAdminSteps.INSTALL_START_TEST],
+    keysToRemove: [
+      enableRangerAdminSteps.SELECT_HOSTS,
+      enableRangerAdminSteps.REVIEW,
+      enableRangerAdminSteps.INSTALL_START_TEST,
+    ],
   },
   2: {
     label: "Select Hosts",
     completed: false,
-    Component: <Step2/>,
+    Component: <Step2 />,
     canGoBack: true,
     isNextEnabled: false,
     name: enableRangerAdminSteps.SELECT_HOSTS,
-    keysToRemove: [enableRangerAdminSteps.REVIEW, enableRangerAdminSteps.INSTALL_START_TEST],
+    keysToRemove: [
+      enableRangerAdminSteps.REVIEW,
+      enableRangerAdminSteps.INSTALL_START_TEST,
+    ],
   },
   3: {
     label: "Review",
     completed: false,
-    Component: <Step3/>,
+    Component: <Step3 />,
     canGoBack: true,
     isNextEnabled: false,
     name: enableRangerAdminSteps.REVIEW,
@@ -59,10 +66,10 @@ export default {
   4: {
     label: "Install, Start and Test",
     completed: false,
-    Component: <Step4/>,
+    Component: <Step4 />,
     canGoBack: false,
     isNextEnabled: true,
     name: enableRangerAdminSteps.INSTALL_START_TEST,
-    nextLabel:"Complete"
+    nextLabel: "Complete",
   },
 };

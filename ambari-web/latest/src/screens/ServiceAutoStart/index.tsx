@@ -35,7 +35,7 @@ import ConfigsApi from "../../api/configsApi";
 import componentApi from "../../api/componentApi";
 import Modal from "../../components/Modal";
 import { AppContext } from "../../store/context";
-import { useAuth } from "../../hooks/useAuth";
+import useAuthorizationPolicy from "../../hooks/useAuthorizationPolicy";
 import UpgradeGuard from "../../components/UpgradeGuard";
 import { safeUpdateClusterEnvConfig } from "../../Utils/clusterConfigUtils";
 import { useBlocker } from "react-router-dom";
@@ -59,7 +59,7 @@ function ServiceAutoStart() {
   const [serviceComponentsGroupsApi, setServiceComponentsGroupsApi] = useState<
     Grouping[]
   >([]);
-  const { clusterName, isNonWizardUser } = useContext(AppContext);
+  const { clusterName } = useContext(AppContext);
   const [clusterEnvProperties, setClusterEnvProperties] = useState<Record<string, any>>({});
   const [clusterEnvPropertiesApi, setClusterEnvPropertiesApi] = useState<Record<string, any>>({});
   const [showWarningModal, setShowWarningModal] = useState(false);
@@ -69,12 +69,11 @@ function ServiceAutoStart() {
   const [saving, setSaving] = useState(false);
 
   // Authorization hooks - implementing Ember.js service auto-start authorization patterns
-  const { hasAuthorization } = useAuth();
+  const { isAuthorized } = useAuthorizationPolicy();
   
   // Check specific authorizations for service auto-start operations
   // Based on Ember.js: App.isAuthorized('CLUSTER.MANAGE_AUTO_START')
-  const canManageAutoStart = hasAuthorization('CLUSTER.MANAGE_AUTO_START');
-  const canEditAutoStart = canManageAutoStart && !isNonWizardUser;
+  const canEditAutoStart = isAuthorized('CLUSTER.MANAGE_AUTO_START');
   const fetchServicesAndComponents = useCallback(async (): Promise<Grouping[]> => {
     const response = await HostsApi.getClusterComponents(
       clusterName,

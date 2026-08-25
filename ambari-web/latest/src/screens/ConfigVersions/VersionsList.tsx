@@ -39,7 +39,7 @@ import { ServiceConfigApi } from "../../api/serviceConfigApi";
 import { AppContext } from "../../store/context";
 import { toast } from "react-hot-toast";
 import Config from "../CommonConfigs/Config";
-import { useAuth } from "../../hooks/useAuth";
+import useAuthorizationPolicy from "../../hooks/useAuthorizationPolicy";
 
 interface VersionsListProps {
   serviceName: string;
@@ -77,9 +77,9 @@ export const VersionsList = ({
   const [makeCurrentNote, setMakeCurrentNote] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { clusterName, services } = useContext(AppContext);
-  const { hasAuthorization } = useAuth();
-  const canCompareConfigs = hasAuthorization("SERVICE.COMPARE_CONFIGS");
-  const canModifyConfigs = hasAuthorization("SERVICE.MODIFY_CONFIGS");
+  const { havePermissions, isAuthorized } = useAuthorizationPolicy();
+  const canCompareConfigs = havePermissions("SERVICE.COMPARE_CONFIGS");
+  const canModifyConfigs = isAuthorized("SERVICE.MODIFY_CONFIGS");
   const selectedServices = services.map(
     (service) => service.ServiceInfo.service_name
   );

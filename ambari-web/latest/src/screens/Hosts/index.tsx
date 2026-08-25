@@ -43,7 +43,7 @@ import { useConfigs } from "../../hooks/useConfigs";
 import useComponentAddDelete from "./hooks/useComponentAddDelete";
 import { translate, translateWithVariables } from "../../Utils/Utility";
 import classNames from "classnames";
-import { useAuth } from "../../hooks/useAuth";
+import useAuthorizationPolicy from "../../hooks/useAuthorizationPolicy";
 import HostLogs from "./HostLogs";
 import useKerberosMode from "../../hooks/useKerberosMode";
 
@@ -55,7 +55,6 @@ export function Hosts() {
     clusterName,
     services,
     supports,
-    upgradeIsRunning,
   } =
     useContext(AppContext);
   const { allServiceModels: serviceModels } = useContext(ServiceContext);
@@ -73,18 +72,17 @@ export function Hosts() {
   const [activeTab, setActiveTab] = useState(params.tab || "summary");
 
   // Authorization hooks - implementing Ember.js host authorization patterns
-  const { hasAuthorization, isAdmin, isOperator } = useAuth();
+  const { havePermissions, isAuthorized } = useAuthorizationPolicy();
   const { isLoaded: isKerberosModeLoaded, isManualKerberos } = useKerberosMode();
 
-  // Use computed upgrade property instead of utility function
-  const isUpgradeInProgress = upgradeIsRunning;
-
   // Check specific authorizations for host operations
-  const canStartStopServices = hasAuthorization("SERVICE.START_STOP");
-  const canToggleHostMaintenance = hasAuthorization("HOST.TOGGLE_MAINTENANCE");
-  const canAddDeleteHosts = hasAuthorization("HOST.ADD_DELETE_HOSTS");
-  const canViewOperationalLogs = hasAuthorization("SERVICE.VIEW_OPERATIONAL_LOGS");
-  const canRunHostChecks = isAdmin() || isOperator();
+  const canStartStopServices = isAuthorized("SERVICE.START_STOP");
+  const canToggleHostMaintenance = isAuthorized("HOST.TOGGLE_MAINTENANCE");
+  const canAddDeleteHosts = isAuthorized("HOST.ADD_DELETE_HOSTS");
+  const canViewOperationalLogs = havePermissions("SERVICE.VIEW_OPERATIONAL_LOGS");
+  const canRunHostChecks = isAuthorized(
+    "AMBARI.ADMINISTRATOR, CLUSTER.ADMINISTRATOR",
+  );
   const isLogSearchInstalled = services.some(
     (service: any) => get(service, "ServiceInfo.service_name") === "LOGSEARCH",
   );
@@ -254,7 +252,7 @@ export function Hosts() {
     let result: any[] = [];
 
     // SERVICE.START_STOP authorization check for component operations
-    if (canStartStopServices && !isUpgradeInProgress) {
+    if (canStartStopServices) {
       result = result.concat([
         {
           label: translate("hosts.host.details.startAllComponents"),
@@ -306,7 +304,7 @@ export function Hosts() {
     }
 
     // HOST.TOGGLE_MAINTENANCE authorization check for maintenance operations
-    if (canToggleHostMaintenance && !isUpgradeInProgress) {
+    if (canToggleHostMaintenance) {
       result = result.concat([
         {
           label: translate("hosts.host.details.setRackId"),
@@ -361,7 +359,7 @@ export function Hosts() {
     }
 
     // HOST.ADD_DELETE_HOSTS authorization check for delete host operation
-    if (canAddDeleteHosts && !isUpgradeInProgress) {
+    if (canAddDeleteHosts) {
       result.push({
         label: translate("hosts.host.details.deleteHost"),
         icon: "remove",

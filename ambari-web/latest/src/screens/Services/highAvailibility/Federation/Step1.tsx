@@ -19,6 +19,7 @@
 import { useContext, useEffect, useState } from "react";
 import {
   Alert,
+  Button,
   Card,
   CardBody,
   Col,
@@ -35,58 +36,62 @@ import { ActionTypes } from "./store/types";
 import { messages } from "../../../messages";
 import { get } from "lodash";
 import useConfigsTags from "../../../../hooks/useConfigsTags";
+import { ServiceContext } from "../../../../store/ServiceContext";
+import { getHdfsNamespaces } from "../haWorkflowUtils";
+import { getStepData } from "../../../../Utils/Utility";
+import { enableNamenodeFederationSteps } from "./wizardSteps";
+import { validateNameserviceId } from "./workflowUtils";
+import Spinner from "../../../../components/Spinner";
 
 function Step1() {
-  const [isNextEnabled, setIsNextEnabled] = useState(false);
-  const [existingNameServiceId, setExistingNameServiceId] = useState("");
   const [newNameServiceId, setNewNameServiceId] = useState("");
   const {
+    state,
     dispatch,
     stepWizardUtilities: { currentStep, handleNextImperitive },
-    flushStateToDb
+    flushStateToDb,
   } = useContext(EnableNamenodeFederationContext);
-  const [nameError, setNameError] = useState("");
-  const { configsData } = useConfigsTags();
+  const [persistenceError, setPersistenceError] = useState("");
+  const { allModelsLoaded, allServiceModels } = useContext(ServiceContext);
+  const { configsData, configsError, isConfigsLoading, reloadConfigs } =
+    useConfigsTags();
+  const hdfsModel: any = allServiceModels.hdfs;
+  const topologyReady = Boolean(
+    allModelsLoaded && hdfsModel?.isNamespaceLoaded && !isConfigsLoading,
+  );
+  const modelNames = getHdfsNamespaces(hdfsModel).map(
+    (namespace) => namespace.name,
+  );
+  const configuredNames = Array.isArray(configsData?.items)
+    ? String(
+        configsData.items.find((item: any) => item.type === "hdfs-site")
+          ?.properties?.["dfs.nameservices"] || "",
+      )
+        .split(",")
+        .map((name) => name.trim())
+        .filter(Boolean)
+    : [];
+  const existingNameservices = [...new Set([...modelNames, ...configuredNames])];
+  const nameError = newNameServiceId
+    ? validateNameserviceId(
+        newNameServiceId,
+        existingNameservices,
+        topologyReady,
+      )
+    : "";
+  const isNextEnabled = Boolean(
+    newNameServiceId && !nameError && !configsError && topologyReady,
+  );
 
   useEffect(() => {
-    getExistingNameServiceId();
-  }, [configsData]);
-
-  useEffect(() => {
-    if (newNameServiceId) {
-      let nameSarviceIdRegex =
-        /^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])$/;
-      if (nameSarviceIdRegex.test(newNameServiceId)) {
-        setNameError("");
-        setIsNextEnabled(true);
-      } else {
-        setIsNextEnabled(false);
-        setNameError(
-          "Must consist of letters, numbers, and hyphens. Cannot begin or end with a hyphen."
-        );
-      }
-    }
-    if (!newNameServiceId) {
-      setNameError("");
-      setIsNextEnabled(false);
-    }
-  }, [newNameServiceId]);
-
-  const getExistingNameServiceId = () => {
-    let nameService = "";
-    if (configsData && Array.isArray(configsData.items)) {
-      configsData.items.forEach((item: any) => {
-        if (
-          item.type === "hdfs-site" &&
-          item.properties &&
-          item.properties["dfs.nameservices"]
-        ) {
-          nameService = item.properties["dfs.nameservices"];
-        }
-      });
-    }
-    setExistingNameServiceId(nameService)
-  };
+    const savedName = getStepData(
+      state,
+      enableNamenodeFederationSteps.GET_STARTED,
+      "nameserviceIds.newNameServiceId",
+      "enableNamenodeFederationSteps",
+    );
+    if (savedName) setNewNameServiceId(savedName);
+  }, []);
 
   return (
     <>
@@ -97,6 +102,20 @@ function Step1() {
       <Alert className="mt-2" variant="danger">
         {get(messages, "admin.nameNodeFederation.wizard.step1.alert")}
       </Alert>
+      {configsError ? (
+        <Alert variant="danger">
+          {configsError}
+          <Button size="sm" className="ms-3" onClick={reloadConfigs}>
+            Retry
+          </Button>
+        </Alert>
+      ) : null}
+      {!configsError && !topologyReady ? (
+        <Alert variant="info" className="d-flex align-items-center gap-2">
+          <Spinner /> Loading the current HDFS namespace topology...
+        </Alert>
+      ) : null}
+      {persistenceError ? <Alert variant="danger">{persistenceError}</Alert> : null}
       <Card className="mt-2">
         <CardBody>
           <Row className="align-items-center mb-2">
@@ -104,7 +123,7 @@ function Step1() {
               Existing Nameservice IDs:
             </Col>
             <Col md={4}>
-              <div>{existingNameServiceId}</div>
+              <div>{existingNameservices.join(", ")}</div>
             </Col>
           </Row>
           <Row className="align-items-center">
@@ -141,22 +160,32 @@ function Step1() {
         step={currentStep}
         isNextEnabled={isNextEnabled}
         onBack={() => {}}
-        onNext={() => {
+        onNext={async () => {
+          setPersistenceError("");
           dispatch({
             type: ActionTypes.STORE_INFORMATION,
             payload: {
               step: currentStep.name,
               data: {
-                nameserviceIds: {existingNameServiceId, newNameServiceId},
+                nameserviceIds: {
+                  existingNameServiceId: existingNameservices.join(","),
+                  newNameServiceId,
+                },
               },
             },
           });
-          flushStateToDb("next");
-          handleNextImperitive();
+          try {
+            await flushStateToDb("next");
+            await handleNextImperitive();
+          } catch (error: any) {
+            setPersistenceError(
+              error?.response?.data?.message ||
+                error?.message ||
+                "Ambari could not persist the wizard state.",
+            );
+          }
         }}
-        onCancel={() => {
-          flushStateToDb("cancel");
-        }}
+        onCancel={() => void flushStateToDb("cancel")}
       />
     </>
   );

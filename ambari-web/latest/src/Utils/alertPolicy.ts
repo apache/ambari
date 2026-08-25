@@ -25,12 +25,13 @@ export interface AlertActionPolicy {
 
 export function getAlertActionPolicy(
   supportsCreateAlerts: boolean,
+  canManageAlerts: boolean,
   canManageNotifications: boolean,
 ): AlertActionPolicy {
   return {
-    create: supportsCreateAlerts,
-    groups: true,
+    create: supportsCreateAlerts && canManageAlerts,
+    groups: canManageAlerts,
     notifications: canManageNotifications,
-    settings: true,
+    settings: canManageAlerts,
   };
 }

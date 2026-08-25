@@ -22,15 +22,16 @@ import { useNavigate } from "react-router-dom";
 import ClusterApi from "../../api/clusterApi";
 import Modal from "../../components/Modal";
 import { useAuth } from "../../hooks/useAuth";
+import useAuthorizationPolicy from "../../hooks/useAuthorizationPolicy";
 import { db } from "../../Utils/db";
 import { persistedPayload } from "../../Utils/persistedSettings";
 import { AppContext } from "../../store/context";
 import { responseErrorMessage } from "../../Utils/httpError";
 
 export default function Experimental() {
-  const { user, hasAuthorization } = useAuth();
+  const { user } = useAuth();
+  const { isAuthorized } = useAuthorizationPolicy();
   const {
-    isNonWizardUser,
     setSupports: setSharedSupports,
     supports: sharedSupports,
   } = useContext(AppContext);
@@ -40,9 +41,10 @@ export default function Experimental() {
   const [error, setError] = useState("");
   const [showReset, setShowReset] = useState(false);
   const key = `user-pref-${user?.user_name || ""}-supports`;
-  const canReset = hasAuthorization("CLUSTER.MANAGE_USER_PERSISTED_DATA");
+  const canPersist = isAuthorized("CLUSTER.MANAGE_USER_PERSISTED_DATA");
 
   const save = async () => {
+    if (!canPersist) return;
     setSaving(true);
     setError("");
     try {
@@ -57,6 +59,7 @@ export default function Experimental() {
   };
 
   const reset = async () => {
+    if (!canPersist) return;
     setSaving(true);
     setError("");
     try {
@@ -108,12 +111,11 @@ export default function Experimental() {
       </Table>
       <div className="d-flex justify-content-between">
         <div>
-          {canReset ? (
+          {canPersist ? (
             <Button
               variant="danger"
               onClick={() => setShowReset(true)}
-              disabled={saving || isNonWizardUser}
-              title={isNonWizardUser ? "Another user owns the active wizard." : undefined}
+              disabled={saving}
             >
               Reset UI States
             </Button>
@@ -121,7 +123,7 @@ export default function Experimental() {
         </div>
         <div className="d-flex gap-2">
           <Button variant="secondary" onClick={() => navigate("/", { replace: true })}>Cancel</Button>
-          <Button variant="primary" onClick={() => void save()} disabled={saving}>Save</Button>
+          <Button variant="primary" onClick={() => void save()} disabled={saving || !canPersist}>Save</Button>
         </div>
       </div>
       {showReset ? (

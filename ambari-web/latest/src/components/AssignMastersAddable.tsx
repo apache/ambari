@@ -51,6 +51,12 @@ import { misc } from "../Utils/misc";
 import classNames from "classnames";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons";
+import { responseErrorMessage } from "../Utils/httpError";
+
+export type AssignMastersLoadState = {
+  status: "loading" | "ready" | "error";
+  error?: string;
+};
 
 type AssignMastersAddableProps = {
   services: string[];
@@ -68,7 +74,235 @@ type AssignMastersAddableProps = {
   wizardName?: string;
   servicesData?: any;
   maximumMasterCount?: number;
+  minimumAdditionalMasterCount?: Record<string, number>;
+  validateAssignments?: boolean;
+  onAssignmentValidationChange?: (
+    isValid: boolean,
+    errors: string[],
+  ) => void;
+  onLoadStateChange?: (state: AssignMastersLoadState) => void;
 };
+
+type MasterAssignment = {
+  component_name?: string;
+  component?: string;
+  display_name?: string;
+  selectedHost?: string;
+  movedHost?: string;
+  isInstalled?: boolean;
+};
+
+type AssignmentHost = {
+  Hosts?: {
+    cpu_count?: number;
+    host_name?: string;
+    maintenance_state?: string;
+    total_mem?: number;
+  };
+};
+
+type RecommendationDocument = {
+  blueprint: { host_groups: any[] };
+  blueprint_cluster_binding: { host_groups: any[] };
+};
+
+// eslint-disable-next-line react-refresh/only-export-components
+export function sortAssignmentHosts<T extends AssignmentHost>(hosts: T[]): T[] {
+  const resourceValue = (host: T, path: string) => {
+    const value = Number(get(host, path));
+    return Number.isFinite(value) ? value : Number.NEGATIVE_INFINITY;
+  };
+
+  return [...hosts].sort((left, right) => {
+    const memoryDifference =
+      resourceValue(right, "Hosts.total_mem") -
+      resourceValue(left, "Hosts.total_mem");
+    if (memoryDifference) return memoryDifference;
+
+    const cpuDifference =
+      resourceValue(right, "Hosts.cpu_count") -
+      resourceValue(left, "Hosts.cpu_count");
+    if (cpuDifference) return cpuDifference;
+
+    return String(get(left, "Hosts.host_name", "")).localeCompare(
+      String(get(right, "Hosts.host_name", "")),
+    );
+  });
+}
+
+// eslint-disable-next-line react-refresh/only-export-components
+export function recommendationDocumentFromResponse(
+  response: unknown,
+): RecommendationDocument {
+  const recommendations: any = get(
+    response as any,
+    "resources[0].recommendations",
+  );
+  const blueprintGroups = recommendations?.blueprint?.host_groups;
+  const bindingGroups =
+    recommendations?.blueprint_cluster_binding?.host_groups;
+  const bindingGroupNames = new Set(
+    Array.isArray(bindingGroups)
+      ? bindingGroups.map((group: any) => group?.name)
+      : [],
+  );
+  if (
+    !recommendations ||
+    !Array.isArray(blueprintGroups) ||
+    !blueprintGroups.length ||
+    !Array.isArray(bindingGroups) ||
+    !bindingGroups.length ||
+    blueprintGroups.some(
+      (group: any) =>
+        !group?.name ||
+        !bindingGroupNames.has(group.name) ||
+        !Array.isArray(group.components) ||
+        group.components.some((component: any) => !component?.name),
+    ) ||
+    bindingGroups.some(
+      (group: any) =>
+        !group?.name ||
+        !Array.isArray(group.hosts) ||
+        group.hosts.some((host: any) => !host?.fqdn),
+    ) ||
+    !blueprintGroups.some((group: any) => group.components.length) ||
+    !bindingGroups.some((group: any) => group.hosts.length)
+  ) {
+    throw new Error(
+      "Stack Advisor returned an incomplete host assignment recommendation.",
+    );
+  }
+  return recommendations;
+}
+
+// eslint-disable-next-line react-refresh/only-export-components
+export function buildAssignmentRecommendationRequest({
+  hosts,
+  services,
+  recommendations,
+}: {
+  hosts: string[];
+  services: string[];
+  recommendations: RecommendationDocument;
+}) {
+  return {
+    recommend: "host_groups",
+    hosts,
+    services,
+    recommendations,
+  };
+}
+
+function assignmentLoadErrorMessage(error: unknown, fallback: string): string {
+  const responseMessage = responseErrorMessage(error, fallback);
+  if (
+    responseMessage === fallback &&
+    error instanceof Error &&
+    error.message
+  ) {
+    return error.message;
+  }
+  return responseMessage;
+}
+
+// eslint-disable-next-line react-refresh/only-export-components
+export function validateMasterAssignments(
+  assignments: MasterAssignment[] = [],
+  hosts: AssignmentHost[] = [],
+  minimumAdditionalMasterCount: Record<string, number> = {},
+) {
+  if (!assignments.length) {
+    return ["At least one master component must be assigned to a host."];
+  }
+
+  const errors = new Set<string>();
+  const assignmentsByComponentAndHost = new Map<string, number>();
+  const hostsByName = new Map(
+    hosts.map((host) => [get(host, "Hosts.host_name", ""), host]),
+  );
+
+  Object.entries(minimumAdditionalMasterCount).forEach(
+    ([componentName, minimumCount]) => {
+      const additionalCount = assignments.filter(
+        (assignment) =>
+          (assignment.component_name || assignment.component) === componentName &&
+          !assignment.isInstalled,
+      ).length;
+      if (additionalCount < minimumCount) {
+        const displayName = role(componentName, false) || componentName;
+        errors.add(
+          `Assign at least ${minimumCount} additional ${displayName} instance${minimumCount === 1 ? "" : "s"}.`,
+        );
+      }
+    },
+  );
+
+  assignments.forEach((assignment) => {
+    const componentName =
+      assignment.component_name || assignment.component || "Master component";
+    const displayName =
+      assignment.display_name || role(componentName, false) || componentName;
+    const hostName = (assignment.movedHost || assignment.selectedHost || "").trim();
+
+    if (!hostName) {
+      errors.add(`${displayName} must be assigned to a host.`);
+      return;
+    }
+
+    const assignmentKey = `${componentName}\u0000${hostName}`;
+    const assignmentCount = assignmentsByComponentAndHost.get(assignmentKey) || 0;
+    assignmentsByComponentAndHost.set(assignmentKey, assignmentCount + 1);
+    if (assignmentCount > 0) {
+      errors.add(`${displayName} cannot be assigned to ${hostName} more than once.`);
+    }
+
+    const selectedHost = hostsByName.get(hostName);
+    if (!selectedHost) {
+      errors.add(`${displayName} host ${hostName} is no longer available.`);
+      return;
+    }
+    const maintenanceState = get(selectedHost, "Hosts.maintenance_state", "");
+    if (maintenanceState && maintenanceState !== "OFF") {
+      errors.add(`${displayName} host ${hostName} is in maintenance mode.`);
+    }
+  });
+
+  return [...errors];
+}
+
+export function MasterAssignmentValidationAlert({
+  errors,
+}: {
+  errors: string[];
+}) {
+  if (!errors.length) return null;
+  return (
+    <Alert variant="danger" role="alert">
+      <div className="fw-bold mb-1">Resolve the host assignment errors:</div>
+      {errors.map((error) => (
+        <div key={error}>{error}</div>
+      ))}
+    </Alert>
+  );
+}
+
+// eslint-disable-next-line react-refresh/only-export-components
+export function canRemoveAdditionalMaster(
+  assignments: MasterAssignment[],
+  master: MasterAssignment,
+  minimumAdditionalMasterCount: Record<string, number> = {},
+) {
+  if (master.isInstalled) return false;
+  const componentName = master.component_name || master.component || "";
+  const minimumCount = minimumAdditionalMasterCount[componentName] || 0;
+  if (!minimumCount) return true;
+  const additionalCount = assignments.filter(
+    (assignment) =>
+      (assignment.component_name || assignment.component) === componentName &&
+      !assignment.isInstalled,
+  ).length;
+  return additionalCount > minimumCount;
+}
 
 function AssignMastersAddable({
   services,
@@ -86,6 +320,10 @@ function AssignMastersAddable({
   wizardName = "",
   servicesData = {},
   maximumMasterCount,
+  minimumAdditionalMasterCount = {},
+  validateAssignments = false,
+  onAssignmentValidationChange,
+  onLoadStateChange,
 }: AssignMastersAddableProps) {
   const [hosts, setHosts] = useState([]);
   const {
@@ -108,6 +346,42 @@ function AssignMastersAddable({
   const [inferredMasterComponents, setInferredMasterComponents] = useState<any>(
     []
   );
+  const [loadError, setLoadError] = useState("");
+  const assignmentValidationErrors = validateAssignments
+    ? validateMasterAssignments(
+        addableMasters,
+        hosts,
+        minimumAdditionalMasterCount,
+      )
+    : [];
+  const assignmentValidationKey = assignmentValidationErrors.join("\n");
+  const assignmentValidationCallbackRef = useRef(
+    onAssignmentValidationChange,
+  );
+  assignmentValidationCallbackRef.current = onAssignmentValidationChange;
+  const loadStateCallbackRef = useRef(onLoadStateChange);
+  loadStateCallbackRef.current = onLoadStateChange;
+
+  useEffect(() => {
+    if (!validateAssignments) return;
+    assignmentValidationCallbackRef.current?.(
+      assignmentValidationKey.length === 0,
+      assignmentValidationKey ? assignmentValidationKey.split("\n") : [],
+    );
+  }, [validateAssignments, assignmentValidationKey]);
+
+  const loadStatus = loadError
+    ? "error"
+    : masterHostsMapping.length
+      ? "ready"
+      : "loading";
+
+  useEffect(() => {
+    loadStateCallbackRef.current?.({
+      status: loadStatus,
+      ...(loadError ? { error: loadError } : {}),
+    });
+  }, [loadError, loadStatus]);
 
   // Function to get warning message for hosts not running master services
   function getHostWarningMessage() {
@@ -939,39 +1213,35 @@ function AssignMastersAddable({
     return res;
   }
   function getRecommendationRequestData(opts: any) {
-    return {
-      recommend: "host_groups",
+    return buildAssignmentRecommendationRequest({
       hosts: opts.hosts,
       services,
       recommendations:
-        opts.blueprint || getComponentsBlueprint(opts.components),
-    };
+        opts.recommendations || getComponentsBlueprint(opts.components),
+    });
   }
   async function getRecommendedHosts() {
     const payloadObject = {
       services: [],
       hosts: map(hosts, "Hosts.host_name"),
       components: [],
-      blueprint: null,
+      recommendations: null,
     };
     payloadObject.components = formatRecommendComponents(serviceHostComponents);
     const payload = getRecommendationRequestData(payloadObject);
+    setLoadError("");
     try {
       const data = await AssignMastersApi.postRecommendations(
         payload,
         stack,
         versionNum
       );
-      // const recommendationsServer: any = get(
-      //   data,
-      //   "resources[0].recommendations",
-      //   []
-      // );
+      const firstRecommendations = recommendationDocumentFromResponse(data);
       const payloadWithComponentsObject = {
         services: [],
         hosts: map(hosts, "Hosts.host_name"),
         components: [],
-        blueprint: get(data, "resources[0].recommendations.blueprint", []),
+        recommendations: firstRecommendations,
       };
       const payloadWithComponents = getRecommendationRequestData(
         payloadWithComponentsObject
@@ -981,11 +1251,10 @@ function AssignMastersAddable({
         stack,
         versionNum
       );
-      const recommendationsServerWithComponents: any = get(
-        dataWithComponents,
-        "resources[0].recommendations",
-        []
-      );
+      const recommendationsServerWithComponents =
+        recommendationDocumentFromResponse(
+          dataWithComponents,
+        );
       setRecommendations(recommendationsServerWithComponents);
       const recommendedHostsForComponent: any = {};
       const hostsForHostGroup: any = {};
@@ -1007,27 +1276,61 @@ function AssignMastersAddable({
         }
       );
       setRecommendedHostsForComponents(recommendedHostsForComponent);
-    } catch (err) {
-      console.error("Could not load Recommendations");
+    } catch (error) {
+      setLoadError(
+        assignmentLoadErrorMessage(
+          error,
+          "Ambari could not load host assignment recommendations.",
+        ),
+      );
     }
   }
   async function fetchHosts() {
+    setLoadError("");
     try {
       const allHosts = await HostsApi.getHostComponentsDetails(
         clusterName,
         "fields=Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem,Hosts/maintenance_state&minimal_response=true"
       );
-      allHosts?.items.forEach((host: any) => {
+      if (!Array.isArray(allHosts?.items) || !allHosts.items.length) {
+        throw new Error(
+          "Ambari returned no hosts for master component assignment.",
+        );
+      }
+      if (
+        allHosts.items.some(
+          (host: any) => !String(get(host, "Hosts.host_name", "")).trim(),
+        )
+      ) {
+        throw new Error("Ambari returned malformed host assignment data.");
+      }
+      allHosts.items.forEach((host: any) => {
         host.host_info = {
           cpu_count: host.Hosts.cpu_count,
           disk_info: host.Hosts.disk_info,
           total_mem: host.Hosts.total_mem,
         };
       });
-      setHosts(allHosts?.items);
-    } catch (err) {
-      console.error("Could Not Load Hosts");
+      setHosts(sortAssignmentHosts(allHosts.items) as never[]);
+    } catch (error) {
+      setLoadError(
+        assignmentLoadErrorMessage(
+          error,
+          "Ambari could not load hosts for master component assignment.",
+        ),
+      );
     }
+  }
+
+  function retryLoad() {
+    setLoadError("");
+    setRecommendations([]);
+    setRecommendedHostsForComponents({});
+    if (!hosts.length) {
+      void fetchHosts();
+      return;
+    }
+    void getRecommendedHosts();
   }
 
   function getFlattenedcomponents() {
@@ -1193,6 +1496,21 @@ function AssignMastersAddable({
       loadStepCallback(createComponentInstallationObjects());
     }
   }, [!isEmpty(recommededHostsForComponents), !isEmpty(recommendations)]);
+
+  if (loadError) {
+    return (
+      <Alert
+        variant="danger"
+        role="alert"
+        className="d-flex justify-content-between align-items-center"
+      >
+        <span>{loadError}</span>
+        <Button size="sm" variant="outline-danger" onClick={retryLoad}>
+          Retry
+        </Button>
+      </Alert>
+    );
+  }
 
   if (
     !hosts.length ||
@@ -1509,6 +1827,9 @@ function AssignMastersAddable({
 
   return (
     <>
+      {validateAssignments && (
+        <MasterAssignmentValidationAlert errors={assignmentValidationErrors} />
+      )}
       <Row>
         <Col md={2}></Col>
         <Col md={6}>
@@ -1568,7 +1889,12 @@ function AssignMastersAddable({
                         ) : null}
                       </Col>
                       <Col md={1}>
-                        {addableMaster.showRemoveControl ? (
+                        {addableMaster.showRemoveControl &&
+                        canRemoveAdditionalMaster(
+                          addableMasters,
+                          addableMaster,
+                          minimumAdditionalMasterCount,
+                        ) ? (
                           <Button
                             variant="success"
                             size="sm"

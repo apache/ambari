@@ -147,7 +147,7 @@ describe("Kerberos wizard discard", () => {
     );
 
     expect(await screen.findByText(
-      "Ambari could not load the Enable Kerberos recovery state.",
+      "load failed",
     )).toBeTruthy();
     expect(screen.queryByText("Wizard content")).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Retry" }));
@@ -198,13 +198,13 @@ describe("Kerberos wizard discard", () => {
 
     fireEvent.click(await screen.findByRole("button", { name: "Save checkpoint" }));
     expect(await screen.findByText(
-      "Ambari could not save the Enable Kerberos recovery state.",
+      "save failed",
     )).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Retry" }));
 
     await waitFor(() => expect(ClusterApi.postPersistData).toHaveBeenCalledTimes(2));
     await waitFor(() => expect(screen.queryByText(
-      "Ambari could not save the Enable Kerberos recovery state.",
+      "save failed",
     )).toBeNull());
   });
 });

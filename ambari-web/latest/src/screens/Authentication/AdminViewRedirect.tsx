@@ -20,21 +20,7 @@ import { useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import Spinner from "../../components/Spinner";
 import { ServiceApi } from "../../api/serviceApi";
-
-type ServerVersionResponse = {
-  components?: Array<{
-    RootServiceComponents?: { component_version?: string };
-  }>;
-};
-
-function latestServerVersion(data: ServerVersionResponse): string | null {
-  const versions = (data?.components || [])
-    .map((item) => item.RootServiceComponents?.component_version)
-    .filter((value): value is string => Boolean(value))
-    .map((value) => value.replace(/[^\d.-]/g, ""))
-    .sort();
-  return versions.at(-1) || null;
-}
+import { adminViewUrl, latestServerVersion } from "../../Utils/adminViewRedirect";
 
 export default function AdminViewRedirect() {
   const [failed, setFailed] = useState(false);
@@ -49,9 +35,8 @@ export default function AdminViewRedirect() {
           throw new Error("Ambari Server version is unavailable");
         }
         const page = new URLSearchParams(location.search).get("page");
-        const adminHash = page ? `#/${encodeURIComponent(page)}` : "#/";
-        window.location.assign(
-          `/views/ADMIN_VIEW/${encodeURIComponent(version)}/INSTANCE/${adminHash}`,
+        window.location.replace(
+          adminViewUrl(version, page, window.location.pathname),
         );
       } catch {
         setFailed(true);

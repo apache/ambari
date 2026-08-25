@@ -45,7 +45,7 @@ import {
   upsertTaskEvents,
 } from "../../Utils/backgroundOperations";
 import RequestScheduleApi from "../../api/requestScheduleApi";
-import { useAuth } from "../../hooks/useAuth";
+import useAuthorizationPolicy from "../../hooks/useAuthorizationPolicy";
 import toast from "react-hot-toast";
 
 type HostProgressProps = {
@@ -76,8 +76,8 @@ function HostProgress({
   const [isCancellingSchedule, setIsCancellingSchedule] = useState(false);
   const clusterName = clusterNameProps || cName;
   const { isSocketConnected } = useContext(AppContext);
-  const { hasAuthorization } = useAuth();
-  const canCancelSchedule = hasAuthorization("SERVICE.START_STOP");
+  const { isAuthorized } = useAuthorizationPolicy();
+  const canCancelSchedule = isAuthorized("SERVICE.START_STOP");
 
   const getProgress = (tasks: BackgroundTask[]) => {
     if (!tasks || !tasks.length) {

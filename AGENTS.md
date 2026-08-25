@@ -119,6 +119,32 @@ Submit branches from the contributor's personal fork to `apache/ambari`. The
 pull request author must not approve their own pull request. Another Ambari
 committer or PMC member reviews, approves, and merges it.
 
+### Reviewable Commit Structure
+
+Keep one pull request for one coherent JIRA deliverable, but organize large
+changes into reviewable topic commits.
+
+- A change must use multiple commits when it modifies more than 1,000
+  non-generated lines, touches more than 15 source or test files, spans
+  multiple functional modules or workflows, or combines shared infrastructure
+  with multiple consumers.
+- Split commits by coherent behavior or dependency boundary, such as shared
+  infrastructure, one workflow, one UI integration, server support, and
+  generated evidence. Do not split changes mechanically only to satisfy a
+  commit count.
+- Keep focused tests in the same commit as the behavior they verify. Put
+  generated files, parity matrices, and broad mechanical evidence updates in a
+  separate final commit when practical.
+- Each intermediate commit should compile independently and should pass its
+  applicable focused tests. When an API or type contract change would break an
+  existing consumer, commit the contract and the required consumer updates
+  together.
+- Use the JIRA key in every commit subject. Before pushing, inspect the commit
+  sequence from the target base and verify that every changed path belongs to
+  exactly one intended topic.
+- A large commit that cannot be split without breaking atomicity must have a
+  clear reason in the pull request description.
+
 The helper at `dev-support/ambari-ai/ambari_ai.py` may create JIRA issues,
 commit explicitly selected files, push a branch, and create a pull request.
 Always pass an explicit `--files` list so unrelated worktree changes are not

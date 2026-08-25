@@ -65,6 +65,7 @@ export type PropertyType = {
   hasError?: boolean;
   tabName?: string;
   type?: string;
+  displayType?: string;
   isEditable: boolean;
   overrideValues?: any;
   isVisible?: boolean;
@@ -81,6 +82,7 @@ export type PropertyType = {
   supportsFinal?: boolean;
   isSecureConfig?: boolean;
   unit?: string; // Unit for the property value
+  widget?: Record<string, any>;
 };
 
 export type ThemeType = {

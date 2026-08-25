@@ -18,12 +18,13 @@
 
 import { Button, Modal } from "react-bootstrap";
 import DefaultButton from "./DefaultButton";
+import { ReactNode } from "react";
 
 type ConfirmationModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  modalTitle: any;
-  modalBody: any;
+  modalTitle: ReactNode;
+  modalBody: ReactNode;
   successCallback: () => void;
   buttonVariant?: string;
   cancellable?: boolean;
@@ -46,12 +47,12 @@ export default function ConfirmationModal({
   return (
     <Modal
       show={isOpen}
-      onHide={onClose}
+      onHide={cancellable ? onClose : () => undefined}
       size="lg"
       className="custom-modal-container modal-width"
       data-testid="confirmation-modal"
     >
-      <Modal.Header closeButton>
+      <Modal.Header closeButton={cancellable}>
         <Modal.Title>
           <h3>{modalTitle}</h3>
         </Modal.Title>

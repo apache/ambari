@@ -39,6 +39,7 @@ import {
   EnableHighAvailibilityContext,
   EnableHighAvailibilityProvider,
 } from "./context";
+import { AppContext } from "../../../../../store/context";
 
 const jumpToStep = vi.fn();
 const wizardUtilities = {
@@ -51,20 +52,25 @@ const wizardUtilities = {
 };
 
 function StateProbe() {
-  const { state, flushStateToDb } = useContext(EnableHighAvailibilityContext);
+  const { state, flushStateToDb, showCancel } = useContext(
+    EnableHighAvailibilityContext,
+  );
   return (
     <>
       <div data-testid="state">{JSON.stringify(state)}</div>
+      <div data-testid="show-cancel">{String(showCancel)}</div>
       <button onClick={() => void flushStateToDb()}>Persist</button>
     </>
   );
 }
 
-function renderProvider() {
+function renderProvider(autoRollbackHA = false) {
   return render(
-    <EnableHighAvailibilityProvider stepWizardUtilities={wizardUtilities}>
-      <StateProbe />
-    </EnableHighAvailibilityProvider>,
+    <AppContext.Provider value={{ supports: { autoRollbackHA } } as never}>
+      <EnableHighAvailibilityProvider stepWizardUtilities={wizardUtilities}>
+        <StateProbe />
+      </EnableHighAvailibilityProvider>
+    </AppContext.Provider>,
   );
 }
 
@@ -113,5 +119,14 @@ describe("NameNode HA workflow hydration", () => {
     expect(mocks.postPersistData.mock.calls[0][0]["wizard-data"]).toBe(
       JSON.stringify({ userName: "ha-owner" }),
     );
+  });
+
+  it("locks cancellation on Classic's critical automatic-rollback phases", async () => {
+    mocks.getPersistData.mockRejectedValue({ response: { status: 404 } });
+    wizardUtilities.activeStep = 4;
+    renderProvider(true);
+
+    expect((await screen.findByTestId("show-cancel")).textContent).toBe("false");
+    wizardUtilities.activeStep = 0;
   });
 });

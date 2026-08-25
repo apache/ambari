@@ -16,37 +16,72 @@
  * limitations under the License.
  */
 
-import { useLocation, useParams } from "react-router-dom";
+import { matchPath, useLocation, useParams } from "react-router-dom";
 import EnableHighAvailibilityNameNode from "./highAvailibility/nameNode";
 import ManageJournalNodes from "./highAvailibility/journalNode";
 import EnableNamenodeFederation from "./highAvailibility/Federation";
 import EnableHighAvailibilityRangerAdmin from "./highAvailibility/rangerAdmin";
 import EnableHighAvailibilityResourceManger from "./highAvailibility/resourceManager";
 import ReassignComponent from "./reassign";
+import RouterFederationWizard from "./highAvailibility/RouterFederation";
+import HawqStandbyWizard from "./highAvailibility/HawqStandby";
+import { HawqStandbyMode } from "./highAvailibility/HawqStandby/context";
 
-function ServiceActionsUrlMapping({serviceName}: {serviceName: string}) {
-    const {componentName}=useParams();
-    const location=useLocation();
-    function mapUrlToComponent(){
-        if(location.pathname.includes("highAvailability")&&componentName==="NameNode"){
-            return <EnableHighAvailibilityNameNode isMappingOnly/>
-        }
-        if(location.pathname.includes("federation") && componentName === "NameNode"){
-            return <EnableNamenodeFederation isMappingOnly/>
-        }
-         if(location.pathname.includes("highAvailability")&&componentName==="JournalNode"){
-            return <ManageJournalNodes isMappingOnly/>
-        }
-         if(location.pathname.includes("reassign")){
-            return <ReassignComponent serviceName={serviceName} isMappingOnly/>
-        }
-        if(location.pathname.includes("highAvailability")&&componentName==="RangerAdmin"){
-            return <EnableHighAvailibilityRangerAdmin isMappingOnly/>
-        }
-        if(location.pathname.includes("highAvailability")&&componentName==="ResourceManager"){
-            return <EnableHighAvailibilityResourceManger isMappingOnly/>
-        }
-    }
-    return mapUrlToComponent()
+const hawqModes = new Set<HawqStandbyMode>(["add", "remove", "activate"]);
+
+function ServiceActionsUrlMapping({ serviceName }: { serviceName: string }) {
+  const { componentName } = useParams();
+  const location = useLocation();
+  const hawqMatch = matchPath(
+    "/main/services/highAvailability/:componentName/:mode/:stepNumber",
+    location.pathname,
+  );
+  const hawqMode = hawqMatch?.params.mode as HawqStandbyMode | undefined;
+
+  if (
+    location.pathname.includes("routerBasedFederation") &&
+    componentName === "NameNode"
+  ) {
+    return <RouterFederationWizard />;
+  }
+  if (location.pathname.includes("federation") && componentName === "NameNode") {
+    return <EnableNamenodeFederation isMappingOnly />;
+  }
+  if (
+    hawqMatch?.params.componentName?.toLowerCase() === "hawq" &&
+    hawqMode &&
+    hawqModes.has(hawqMode)
+  ) {
+    return <HawqStandbyWizard mode={hawqMode} />;
+  }
+  if (
+    location.pathname.includes("highAvailability") &&
+    componentName === "NameNode"
+  ) {
+    return <EnableHighAvailibilityNameNode isMappingOnly />;
+  }
+  if (
+    location.pathname.includes("highAvailability") &&
+    componentName === "JournalNode"
+  ) {
+    return <ManageJournalNodes isMappingOnly />;
+  }
+  if (location.pathname.includes("reassign")) {
+    return <ReassignComponent serviceName={serviceName} isMappingOnly />;
+  }
+  if (
+    location.pathname.includes("highAvailability") &&
+    componentName === "RangerAdmin"
+  ) {
+    return <EnableHighAvailibilityRangerAdmin isMappingOnly />;
+  }
+  if (
+    location.pathname.includes("highAvailability") &&
+    componentName === "ResourceManager"
+  ) {
+    return <EnableHighAvailibilityResourceManger isMappingOnly />;
+  }
+
+  return null;
 }
 export default ServiceActionsUrlMapping;

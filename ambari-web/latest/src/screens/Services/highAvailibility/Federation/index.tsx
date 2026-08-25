@@ -16,14 +16,17 @@
  * limitations under the License.
  */
 
-import { Dropdown } from "react-bootstrap";
+import { Alert, Button, Dropdown } from "react-bootstrap";
 import { ServiceActionEnums } from "../../../../enums/ServiceActionEnums";
 import { useContext, useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import ValidateEnablement from "./validateEnablement";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSitemap } from "@fortawesome/free-solid-svg-icons";
+import { faRotate, faSitemap } from "@fortawesome/free-solid-svg-icons";
 import { ServiceContext } from "../../../../store/ServiceContext";
+import { AppContext } from "../../../../store/context";
+import Spinner from "../../../../components/Spinner";
+import useHdfsWorkflowCapabilities from "../useHdfsWorkflowCapabilities";
 
 function EnableNamenodeFederation({ isMappingOnly }:{ isMappingOnly?: boolean }) {  
   const [shouldStartEnableFlow, setShouldStartEnableFlow] = useState(false);
@@ -31,6 +34,13 @@ function EnableNamenodeFederation({ isMappingOnly }:{ isMappingOnly?: boolean })
   const location = useLocation();
   const navigate = useNavigate();
   const { allServiceModels } = useContext(ServiceContext);
+  const { allHostNames } = useContext(AppContext);
+  const {
+    capabilities,
+    error: capabilityError,
+    isLoading: isCapabilityLoading,
+    retry: retryCapabilities,
+  } = useHdfsWorkflowCapabilities();
   
   useEffect(() => {
     if (
@@ -52,8 +62,45 @@ function EnableNamenodeFederation({ isMappingOnly }:{ isMappingOnly?: boolean })
         );
       }
     );
-    return !hasSNameNode; // HA is enabled when there's no Secondary NameNode
+    return Boolean(hdfsModel?.isNameNodeHaEnabled || (
+      hdfsModel?.masterComponents?.length > 1 && !hasSNameNode
+    ));
   };
+
+  const canEnableFederation = isHAEnabled() && allHostNames.length >= 4;
+
+  if (isMappingOnly && isCapabilityLoading) {
+    return <div className="d-flex justify-content-center p-5"><Spinner /></div>;
+  }
+  if (isMappingOnly && capabilityError) {
+    return (
+      <Alert variant="danger">
+        {capabilityError}
+        <Button size="sm" className="ms-3" onClick={retryCapabilities}>
+          <FontAwesomeIcon icon={faRotate} className="me-1" /> Retry
+        </Button>
+      </Alert>
+    );
+  }
+  if (isMappingOnly && !capabilities.nameNodeFederation) {
+    return (
+      <Alert variant="danger">
+        NameNode Federation is not supported by the active HDFS stack.
+      </Alert>
+    );
+  }
+  if (!isMappingOnly && isCapabilityLoading) {
+    return <Dropdown.Item disabled>Checking HDFS Federation support...</Dropdown.Item>;
+  }
+  if (!isMappingOnly && capabilityError) {
+    return (
+      <Dropdown.Item onClick={retryCapabilities} title={capabilityError}>
+        <FontAwesomeIcon className="text-secondary me-2" icon={faRotate} />
+        Retry HDFS Federation capability check
+      </Dropdown.Item>
+    );
+  }
+  if (!capabilities.nameNodeFederation) return null;
 
   return (
     <>
@@ -61,13 +108,13 @@ function EnableNamenodeFederation({ isMappingOnly }:{ isMappingOnly?: boolean })
       {!isMappingOnly ? (
         <Dropdown.Item
           onClick={() => {
-            if (!isHAEnabled()) {
+            if (!canEnableFederation) {
               // Don't navigate if HA is not enabled (matches Ember.js disabled logic)
               return;
             }
             navigate(`/main/services/NameNode/federation/step1`);
           }}
-          disabled={!isHAEnabled()}
+          disabled={!canEnableFederation}
         >
         <FontAwesomeIcon className="text-secondary me-2" icon={faSitemap} />
           {ServiceActionEnums.enableNamenodeFederation}

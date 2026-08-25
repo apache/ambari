@@ -15,30 +15,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ambariApi } from "./config/axiosConfig";
+import { supressErrorAmbariApi } from "./config/axiosConfig";
 
-
-
-/**
- * Fetches a list of instance names from the Ambari API.
- *
- * @returns {Promise<any[]>} A promise that resolves to an array of instance names.
- */
 const ViewApi = {
-  getInstances: async function() {
-    const url = `/views?fields=versions/ViewVersionInfo/version,versions/instances/ViewInstanceInfo,versions/*&versions/ViewVersionInfo/system=false`;
-    const response = await ambariApi.request({
-      url: url,
+  getDefinitions: async function() {
+    const response = await supressErrorAmbariApi.request({
+      url: "/views",
       method: "GET",
     });
+    return response.data;
+  },
 
-    
-    return response.data
-    
-  }
+  getInstances: async function() {
+    const definitions = await ViewApi.getDefinitions();
+    if (!definitions?.items?.length) {
+      return { items: [] };
+    }
+
+    const response = await supressErrorAmbariApi.request({
+      url: "/views?fields=versions/instances/ViewInstanceInfo,versions/ViewVersionInfo/label&versions/ViewVersionInfo/system=false",
+      method: "GET",
+    });
+    return response.data;
+  },
 };
 
-
-
 export default ViewApi;
-

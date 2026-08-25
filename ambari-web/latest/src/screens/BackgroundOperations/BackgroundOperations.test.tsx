@@ -106,7 +106,10 @@ const runningRequest = {
   },
 };
 
-function renderOperations(onClose = vi.fn()) {
+function renderOperations(
+  onClose = vi.fn(),
+  contextOverrides: Record<string, unknown> = {},
+) {
   function Harness() {
     const [pageSize, setPageSize] = useState(20);
     const context = {
@@ -121,6 +124,7 @@ function renderOperations(onClose = vi.fn()) {
       setBackgroundOperationsPageSize: setPageSize,
       updateBackgroundOperations: vi.fn(),
       userBgPreferences: true,
+      ...contextOverrides,
     } as unknown as React.ContextType<typeof AppContext>;
     return (
       <AppContext.Provider value={context}>
@@ -128,10 +132,9 @@ function renderOperations(onClose = vi.fn()) {
       </AppContext.Provider>
     );
   }
-  render(
+  return render(
     <Harness />,
   );
-  return onClose;
 }
 
 function renderRequestProgress(requestId: number) {
@@ -179,6 +182,36 @@ describe("Background Operations permissions and abort recovery", () => {
 
     await waitFor(() => expect(mocks.fetchBackgroundOperationsSnapshot).toHaveBeenCalledWith(20));
     expect(screen.queryByRole("button", { name: "Abort Operation" })).toBeNull();
+  });
+
+  it("does not expose Abort while another user owns a wizard", async () => {
+    mocks.hasAuthorization.mockReturnValue(true);
+    renderOperations(vi.fn(), { isNonWizardUser: true });
+
+    await waitFor(() => expect(mocks.fetchBackgroundOperationsSnapshot).toHaveBeenCalledWith(20));
+    expect(screen.queryByRole("button", { name: "Abort Operation" })).toBeNull();
+  });
+
+  it("uses the rolling-upgrade support flag for Abort capability", async () => {
+    mocks.hasAuthorization.mockReturnValue(true);
+    const { unmount } = renderOperations(vi.fn(), {
+      supports: { opsDuringRollingUpgrade: false },
+      upgradeIsRunning: true,
+      upgradeSuspended: false,
+    });
+
+    await waitFor(() => expect(mocks.fetchBackgroundOperationsSnapshot).toHaveBeenCalledWith(20));
+    expect(screen.queryByRole("button", { name: "Abort Operation" })).toBeNull();
+
+    unmount();
+    mocks.fetchBackgroundOperationsSnapshot.mockClear();
+    renderOperations(vi.fn(), {
+      supports: { opsDuringRollingUpgrade: true },
+      upgradeIsRunning: true,
+      upgradeSuspended: false,
+    });
+
+    expect(await screen.findByRole("button", { name: "Abort Operation" })).toBeTruthy();
   });
 
   it("opens a supplied request at its host progress level", async () => {

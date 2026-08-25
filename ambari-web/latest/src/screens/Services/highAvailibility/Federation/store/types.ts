@@ -17,8 +17,12 @@
  */
 
 export interface State {
-    enableNamenodeFederationSteps: any;
-  }
+  enableNamenodeFederationSteps: Record<
+    string,
+    { step: string; data: Record<string, unknown> }
+  >;
+  activeStep?: string;
+}
   
 export enum ActionTypes {
   STORE_INFORMATION = "STORE INFORMATION",
@@ -27,6 +31,9 @@ export enum ActionTypes {
 }
 
 export type Action =
-  | { type: ActionTypes.STORE_INFORMATION; payload: any }
-  | { type: ActionTypes.SYNC_STATE; payload: any }
+  | {
+      type: ActionTypes.STORE_INFORMATION;
+      payload: { step: string; data: Record<string, unknown> };
+    }
+  | { type: ActionTypes.SYNC_STATE; payload: State }
   | { type: ActionTypes.REMOVE_KEY; payload: { key: string } };

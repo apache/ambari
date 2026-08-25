@@ -21,7 +21,7 @@ import LastStatusChanged from "../../components/LastStatusChanged";
 import Paginator from "../../components/Paginator";
 import usePagination from '../../hooks/usePagination';
 import Spinner from "../../components/Spinner";
-import {useEffect, useState, useContext, useCallback} from 'react';
+import {useEffect, useState, useContext, useCallback, useRef} from 'react';
 import {AlertsApi} from "../../api/alertsApi";
 import {getCurrTimeInSec} from "../../Utils/Utility";
 import {AlertDefinition, AlertGroupItem, AlertRow, MergedAlert, SearchFilter} from "./types";
@@ -36,7 +36,7 @@ import {Link} from "react-router-dom";
 import {SortingState} from "@tanstack/react-table";
 import MenuBar from './MenuBar'
 import {formatAlertStatusDisplay} from "./alertStatus";
-import { useAuth } from '../../hooks/useAuth';
+import useAuthorizationPolicy from '../../hooks/useAuthorizationPolicy';
 
 const DEFAULT_ALERT_SORTING: SortingState = [{ id: 'statuses', desc: true }];
 
@@ -71,12 +71,14 @@ const Alerts = () => {
     const [, setIsModalOpen] = useState(false);
     const [listLoadError, setListLoadError] = useState('');
     const [definitionLoadError, setDefinitionLoadError] = useState('');
+    const listRequestId = useRef(0);
+    const definitionRequestId = useRef(0);
     
     // Authorization hooks - implementing Ember.js alert authorization patterns
-    const { hasAuthorization } = useAuth();
+    const { isAuthorized } = useAuthorizationPolicy();
     
     // Check specific authorizations for alert operations
-    const canToggleAlerts = hasAuthorization('CLUSTER.TOGGLE_ALERTS');
+    const canToggleAlerts = isAuthorized('CLUSTER.TOGGLE_ALERTS');
 
     const countAlertsByService = (alertGroups: AlertGroupItem[]) => {
         if (!alertGroups || !Array.isArray(alertGroups) || alertGroups.length === 0) {
@@ -109,9 +111,9 @@ const Alerts = () => {
             return;
         }
 
+        const requestId = ++listRequestId.current;
         const currTime = getCurrTimeInSec();
         try {
-            setListLoadError('');
             const [alertsResponse, summariesResponse] = await Promise.all([
                 AlertsApi.getAlerts(
                     clusterName,
@@ -124,43 +126,38 @@ const Alerts = () => {
             if (!alertsResponse || !alertsResponse.items) {
                 throw new Error('Invalid Alert Groups response');
             }
+            if (requestId !== listRequestId.current) {
+                return;
+            }
 
             const processedAlerts = processData(alertsResponse, summariesResponse);
+            setListLoadError('');
             setAlerts(processedAlerts);
             const alertGroups = alertsResponse.items;
             setAlertGroups(alertGroups);
         } catch {
-            setListLoadError('Ambari could not load Alerts. Retry the request.');
+            if (requestId === listRequestId.current) {
+                setListLoadError('Ambari could not load Alerts. Retry the request.');
+            }
         } finally {
-            setIsLoading(false);
+            if (requestId === listRequestId.current) {
+                setIsLoading(false);
+            }
         }
     }, [clusterName]);
 
-    // Load once on mount - alert data updates are pushed via WebSocket (/events/alerts),
-    // not polled, matching the EmberJS pattern (no independent 30s poll per page).
-    useEffect(() => {
-        if (clusterName) {
-            fetchData();
-            fetchAlertDefinitions();
-        }
-    }, [clusterName]);
-
-    useEffect(() => {
+    const fetchAlertDefinitions = useCallback(async () => {
         if (!clusterName) return;
-        window.sessionStorage.setItem(`ambari.alerts.view.${clusterName}`, JSON.stringify({
-            sorting,
-            searchFilters,
-        }));
-    }, [clusterName, searchFilters, sorting]);
-
-    const fetchAlertDefinitions = async () => {
+        const requestId = ++definitionRequestId.current;
         try {
-            if (!clusterName) return;
             const response = await AlertsApi.getAlertDefinition(
                 clusterName,
                 'AlertDefinition/component_name,AlertDefinition/description,AlertDefinition/enabled,AlertDefinition/id,AlertDefinition/label,AlertDefinition/name,AlertDefinition/service_name',
                 Date.now()
             );
+            if (requestId !== definitionRequestId.current) {
+                return;
+            }
             if (response && response.items) {
                 const definitions = response.items.map((item: any) => ({
                     ...item.AlertDefinition,
@@ -173,9 +170,33 @@ const Alerts = () => {
                 throw new Error('No Alert Definitions in response');
             }
         } catch {
-            setDefinitionLoadError('Ambari could not load Alert Definitions. Retry the request.');
+            if (requestId === definitionRequestId.current) {
+                setDefinitionLoadError('Ambari could not load Alert Definitions. Retry the request.');
+            }
         }
-    };
+    }, [clusterName]);
+
+    // Load once on mount - alert data updates are pushed via WebSocket (/events/alerts),
+    // not polled, matching the EmberJS pattern (no independent 30s poll per page).
+    useEffect(() => {
+        if (clusterName) {
+            fetchData();
+            fetchAlertDefinitions();
+        }
+    }, [clusterName, fetchAlertDefinitions]);
+
+    useEffect(() => () => {
+        listRequestId.current += 1;
+        definitionRequestId.current += 1;
+    }, [clusterName]);
+
+    useEffect(() => {
+        if (!clusterName) return;
+        window.sessionStorage.setItem(`ambari.alerts.view.${clusterName}`, JSON.stringify({
+            sorting,
+            searchFilters,
+        }));
+    }, [clusterName, searchFilters, sorting]);
 
     // Fetch alert groups when needed
 
@@ -245,8 +266,8 @@ const Alerts = () => {
                 await AlertsApi.updateAlertDefinitionState(clusterName, alert.id, newState);
                 setIsEnabled(newState);
                 // Refresh the alerts list
-                fetchData();
-                fetchAlertDefinitions();
+                void fetchData();
+                void fetchAlertDefinitions();
                 setShowModal(false);
             } catch {
                 setToggleError('Ambari could not update the Alert Definition. Retry the request.');

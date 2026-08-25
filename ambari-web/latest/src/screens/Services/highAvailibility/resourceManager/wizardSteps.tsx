@@ -26,7 +26,7 @@ export enum enableResourceManagerSteps {
   GET_STARTED = "GET_STARTED",
   SELECT_HOSTS = "SELECT_HOSTS",
   REVIEW = "REVIEW",
-  CREATE_CHECKPOINT = "CONFIGURE_COMPONENTS",
+  CONFIGURE_COMPONENTS = "CONFIGURE_COMPONENTS",
 }
 
 export default {
@@ -37,7 +37,7 @@ export default {
     canGoBack: false,
     isNextEnabled: false,
     name: enableResourceManagerSteps.GET_STARTED,
-    keysToRemove: [enableResourceManagerSteps.SELECT_HOSTS, enableResourceManagerSteps.REVIEW, enableResourceManagerSteps.CREATE_CHECKPOINT],
+    keysToRemove: [enableResourceManagerSteps.SELECT_HOSTS, enableResourceManagerSteps.REVIEW, enableResourceManagerSteps.CONFIGURE_COMPONENTS],
   },
   2: {
     label: messages["admin.rm_highAvailability.wizard.step2.header"],
@@ -46,7 +46,7 @@ export default {
     canGoBack: true,
     isNextEnabled: false,
     name: enableResourceManagerSteps.SELECT_HOSTS,
-    keysToRemove: [enableResourceManagerSteps.REVIEW, enableResourceManagerSteps.CREATE_CHECKPOINT],
+    keysToRemove: [enableResourceManagerSteps.REVIEW, enableResourceManagerSteps.CONFIGURE_COMPONENTS],
   },
   3: {
     label: messages["admin.rm_highAvailability.wizard.step3.header"],
@@ -55,7 +55,7 @@ export default {
     canGoBack: true,
     isNextEnabled: false,
     name: enableResourceManagerSteps.REVIEW,
-    keysToRemove: [enableResourceManagerSteps.CREATE_CHECKPOINT],
+    keysToRemove: [enableResourceManagerSteps.CONFIGURE_COMPONENTS],
   },
   4: {
     label: messages["admin.rm_highAvailability.wizard.step4.header"],
@@ -63,6 +63,7 @@ export default {
     Component: <Step4/>,
     canGoBack: false,
     isNextEnabled: true,
-    name: enableResourceManagerSteps.CREATE_CHECKPOINT,
+    name: enableResourceManagerSteps.CONFIGURE_COMPONENTS,
+    nextLabel: "COMPLETE",
   },
 };

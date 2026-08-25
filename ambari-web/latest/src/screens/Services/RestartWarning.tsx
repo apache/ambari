@@ -29,7 +29,7 @@ import { useCopyToClipboard } from "../../hooks/useCopyToClipboard";
 import BackgroundOperations from "../BackgroundOperations";
 import { RequestApi } from "../../api/requestApi";
 import usePolling from "../../hooks/usePolling";
-import { useAuth } from "../../hooks/useAuth";
+import useAuthorizationPolicy from "../../hooks/useAuthorizationPolicy";
 import { showRollingRestartPopup } from "../Hosts/batchUtils";
 
 
@@ -61,11 +61,8 @@ function RestartWarning({ serviceName }: RestartWarningProps) {
   const [, copy] = useCopyToClipboard();
   const { clusterName } = useContext(AppContext);
 
-  // Authorization hooks - implementing Ember.js service restart authorization patterns
-  const { hasAuthorization } = useAuth();
-
-  // Check specific authorizations for service restart operations
-  const canStartStopServices = hasAuthorization('SERVICE.START_STOP');
+  const { isAuthorized } = useAuthorizationPolicy();
+  const canStartStopServices = isAuthorized("SERVICE.START_STOP");
 
   // Assume that the components in serviceSpecificComponents all support rolling restart
   const [_rollingRestartSupportedComponents] = useState<{

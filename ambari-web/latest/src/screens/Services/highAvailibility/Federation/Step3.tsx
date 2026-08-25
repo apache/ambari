@@ -16,749 +16,338 @@
  * limitations under the License.
  */
 
-import { useContext, useEffect, useRef, useState } from "react";
-import { AppContext } from "../../../../store/context";
-import { cloneDeep, find, get, isEmpty, map } from "lodash";
-import { EnableNamenodeFederationContext } from "./store/context";
-import { getStepData } from "../../../../Utils/Utility";
-import { enableNamenodeFederationSteps } from "./wizardSteps";
-import Spinner from "../../../../components/Spinner";
+import { useContext, useEffect, useState } from "react";
 import {
   Accordion,
   Alert,
   Badge,
+  Button,
   Card,
-  CardBody,
   Col,
   Form,
-  FormControl,
   Row,
 } from "react-bootstrap";
+import { map } from "lodash";
+import federationApi from "../../../../api/federationApi";
+import Spinner from "../../../../components/Spinner";
 import WizardFooter from "../../../../components/StepWizard/WizardFooter";
-import { ActionTypes } from "./store/types";
-import useConfigsTags from "../../../../hooks/useConfigsTags";
-import ConfigsApi from "../../../../api/configsApi";
-import { federationProperties } from "./federation_properties";
+import { AppContext } from "../../../../store/context";
 import { ServiceContext } from "../../../../store/ServiceContext";
-import { t } from "i18next";
+import { getStepData } from "../../../../Utils/Utility";
+import { getHdfsNamespaces } from "../haWorkflowUtils";
+import { EnableNamenodeFederationContext } from "./store/context";
+import { ActionTypes } from "./store/types";
+import { enableNamenodeFederationSteps } from "./wizardSteps";
+import {
+  applyReviewedProperty,
+  buildNameNodeFederationConfiguration,
+  GeneratedConfiguration,
+  validateJournalNodeDirectory,
+} from "./workflowUtils";
+
+const errorMessage = (error: any, fallback: string) =>
+  error?.response?.data?.message || error?.message || fallback;
+
+function journalNodeHosts(hdfsModel: any): string[] {
+  const components = [
+    ...(hdfsModel?.journalNodes || []),
+    ...(hdfsModel?.slaveComponents || []).filter(
+      (component: any) =>
+        (component.componentName || component.component_name) === "JOURNALNODE",
+    ),
+  ];
+  return [
+    ...new Set(
+      components.flatMap((component: any) => {
+        const directHost = component.hostName || component.host_name;
+        const hostComponents = component.hostComponents || [];
+        return [
+          directHost,
+          ...hostComponents.map(
+            (hostComponent: any) =>
+              hostComponent.HostRoles?.host_name || hostComponent.hostName,
+          ),
+        ].filter(Boolean);
+      }),
+    ),
+  ];
+}
 
 function Step3() {
   const {
     state,
     dispatch,
-    stepWizardUtilities: { currentStep, handleNextImperitive },
     flushStateToDb,
+    stepWizardUtilities: {
+      currentStep,
+      handleNextImperitive,
+      handleBackImperitive,
+    },
   } = useContext(EnableNamenodeFederationContext);
   const { clusterName, services } = useContext(AppContext);
-  const serverConfigDataRef = useRef<any>([]);
-  // const [clusterHostComponentsMapping, setClusterHostComponentsMapping] =
-  //   useState<any>([]);
-  // const [stepConfigs, setStepConfigs] = useState<any>(null);
-  const stepConfigs = useRef<any>(null);
-  // const [selectedService, setSelectedService] = useState({});
-  const [errors, setErrors] = useState<any>({});
-  const { configsData } = useConfigsTags();
-  const [overridenProperties, setOverridenProperties] = useState({});
-  const configTagsLoaded = useRef(false);
-  const [isNextEnabled, setIsNextEnabled] = useState(true);
-  const configsToRemove: any = {
-    "hdfs-site": ["dfs.namenode.shared.edits.dir", "dfs.journalnode.edits.dir"],
-  };
-
-  const { serviceModels } = useContext(ServiceContext);
-
+  const { allModelsLoaded, allServiceModels } = useContext(ServiceContext);
+  const [generated, setGenerated] =
+    useState<GeneratedConfiguration | null>(null);
+  const [loadError, setLoadError] = useState("");
+  const [directoryError, setDirectoryError] = useState("");
+  const [persistenceError, setPersistenceError] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
   const selectedServices = map(services, "ServiceInfo.service_name");
-
-  function prepareDependencies() {
-    let ret: any = {};
-    const configsFromServer = serverConfigDataRef.current.items;
-
-    const journalNodes = serviceModels["hdfs"]?.slaveComponents
-      .filter(
-        (slaveComp: any) =>
-          slaveComp.componentName === "JOURNALNODE" &&
-          slaveComp.hostComponents &&
-          slaveComp.hostComponents.length > 0
-      )
-      .flatMap((hc: any) => hc.hostComponents);
-
-    // Get nameNodes from step data
-    const nameNodes = getStepData(
+  const hdfsModel: any = allServiceModels.hdfs;
+  const namespaces = getHdfsNamespaces(hdfsModel);
+  const namespaceReady = Boolean(
+    allModelsLoaded && hdfsModel?.isNamespaceLoaded && namespaces.length,
+  );
+  const assignments =
+    getStepData(
       state,
-      "SELECT_HOSTS",
+      enableNamenodeFederationSteps.SELECT_HOSTS,
       "masterComponentHosts",
-      "enableNamenodeFederationSteps"
-    ).filter((host: any) => host.component === "NAMENODE");
-
-
-    // Get HDFS site configs
-    const hdfsSiteConfigs =
-      find(configsFromServer, ["type", "hdfs-site"])?.properties || {};
-
-    // Get HDFS service
-    //@ts-ignore
-    const hdfsService = find(services, ["ServiceInfo.service_name", "HDFS"]);
-
-    // Get new nameservice ID from step 1
-    ret.newNameservice = getStepData(
-      state,
-      enableNamenodeFederationSteps.GET_STARTED,
-      "nameserviceIds.newNameServiceId",
-      "enableNamenodeFederationSteps"
-    );
-
-    // Get existing nameservice ID from step 1
-    ret.existingNameservice = getStepData(
-      state,
-      enableNamenodeFederationSteps.GET_STARTED,
-      "nameserviceIds.existingNameServiceId",
-      "enableNamenodeFederationSteps"
-    );
-
-    ret.nameservice1 = ret.existingNameservice;
-
-    // Get existing nameservices from HDFS service (matching ui version logic)
-    const existingNameServices = hdfsService?.masterComponentGroups?.map((group: any) => group.name) || [ret.existingNameservice];
-    
-    ret.nameServicesList = existingNameServices.join(",");
-
-
-    // Get namenode hostnames
-    ret.namenode1 =
-      hdfsSiteConfigs[
-        `dfs.namenode.rpc-address.${ret.nameservice1}.nn1`
-      ]?.split(":")[0];
-    ret.namenode2 =
-      hdfsSiteConfigs[
-        `dfs.namenode.rpc-address.${ret.nameservice1}.nn2`
-      ]?.split(":")[0];
-
-    // Set up new namenode indices and hostnames
-    ret.newNameNode1Index = `nn${nameNodes.length - 1}`;
-    ret.newNameNode2Index = `nn${nameNodes.length}`;
-    ret.newNameNode1 = nameNodes.filter(
-      (node: any) => node.isInstalled === false
-    )[0]?.hostName;
-    ret.newNameNode2 = nameNodes.filter(
-      (node: any) => node.isInstalled === false
-    )[1]?.hostName;
-
-
-    if (ret.newNameNode1 === undefined) {
-      ret.newNameNode1 = "false";
-    }
-
-    if (ret.newNameNode2 === undefined) {
-      ret.newNameNode2 = "false";
-    }
-
-    ret.journalnodes = journalNodes
-      .map((jn: any) => `${jn.HostRoles?.host_name || jn.host_name}:8485`)
-      .join(";");
-
-    ret.clustername = clusterName;
-
-    const dfsHttpA = hdfsSiteConfigs["dfs.namenode.http-address"];
-    ret.nnHttpPort = dfsHttpA ? dfsHttpA.split(":")[1] : 50070;
-
-    const dfsHttpsA = hdfsSiteConfigs["dfs.namenode.https-address"];
-    ret.nnHttpsPort = dfsHttpsA ? dfsHttpsA.split(":")[1] : 50470;
-
-    const dfsRpcA = hdfsSiteConfigs["dfs.namenode.rpc-address"];
-    ret.nnRpcPort = dfsRpcA ? dfsRpcA.split(":")[1] : 8020;
-
-    ret.journalnode_edits_dir = hdfsSiteConfigs["dfs.journalnode.edits.dir"];
-    return ret;
-  }
-
-  function createRangerServiceProperty(
-    nameservice: string,
-    reponamePrefix: string,
-    propertyName: string
-  ) {
-    return {
-      name: propertyName,
-      displayName: propertyName,
-      isReconfigurable: false,
-      recommendedValue: reponamePrefix + nameservice,
-      value: reponamePrefix + nameservice,
-      category: "RANGER",
-      filename: "ranger-tagsync-site",
-      serviceName: "MISC",
-    };
-  }
-
-  function tweakServiceConfigs(configs: any) {
-    const dependencies = prepareDependencies();
-
-    // Handle special cases for Federation
-    const nameServices = dependencies.nameServicesList.split(",");
-    // Only add the new nameservice if it's not already in the list
-    if (!nameServices.includes(dependencies.newNameservice)) {
-      nameServices.push(dependencies.newNameservice);
-    }
-
-    const result: any[] = [];
-    const configsToRemoveList: string[] = [];
-    const hdfsSiteConfigs = find(serverConfigDataRef.current.items, [
-      "type",
-      "hdfs-site",
-    ])?.properties;
-
-    if (
-      hdfsSiteConfigs &&
-      !hdfsSiteConfigs[
-        "dfs.namenode.servicerpc-address." + dependencies.nameservice1 + ".nn1"
-      ] &&
-      !hdfsSiteConfigs[
-        "dfs.namenode.servicerpc-address." + dependencies.nameservice1 + ".nn2"
-      ]
-    ) {
-      configsToRemoveList.push(
-        "dfs.namenode.servicerpc-address.{{nameservice1}}.nn1",
-        "dfs.namenode.servicerpc-address.{{nameservice1}}.nn2",
-        "dfs.namenode.servicerpc-address.{{newNameservice}}.{{newNameNode1Index}}",
-        "dfs.namenode.servicerpc-address.{{newNameservice}}.{{newNameNode2Index}}"
-      );
-    }
-
-    // Handle Ranger service properties
-    if (selectedServices.includes("RANGER")) {
-      const hdfsRangerConfigs = find(
-        serverConfigDataRef.current.items,
-        (item: any) => item.type === "ranger-hdfs-security"
-      )?.properties;
-      const reponamePrefix =
-        hdfsRangerConfigs &&
-        hdfsRangerConfigs["ranger.plugin.hdfs.service.name"] === "{{repo_name}}"
-          ? dependencies.clustername + "_hadoop_"
-          : hdfsRangerConfigs
-          ? hdfsRangerConfigs["ranger.plugin.hdfs.service.name"] + "_"
-          : "";
-
-      const coreSiteConfigs = find(
-        serverConfigDataRef.current.items,
-        (item: any) => item.type === "core-site"
-      )?.properties;
-      const defaultFSNS =
-        coreSiteConfigs && coreSiteConfigs["fs.defaultFS"]
-          ? coreSiteConfigs["fs.defaultFS"].split("hdfs://")[1]
-          : "";
-
-      nameServices.forEach((nameService: string) => {
-        configs.push(
-          createRangerServiceProperty(
-            nameService,
-            reponamePrefix,
-            "ranger.tagsync.atlas.hdfs.instance." +
-              dependencies.clustername +
-              ".nameservice." +
-              nameService +
-              ".ranger.service"
-          )
-        );
-
-        if (defaultFSNS) {
-          configs.push(
-            createRangerServiceProperty(
-              defaultFSNS,
-              reponamePrefix,
-              "ranger.tagsync.atlas.hdfs.instance." +
-                dependencies.clustername +
-                ".ranger.service"
-            )
-          );
-        }
-      });
-    }
-
-    // Handle Accumulo service properties
-    if (selectedServices.includes("ACCUMULO")) {
-      const hdfsNameSpacesModel =
-        find(services, ["ServiceInfo.service_name", "HDFS"])
-          ?.masterComponentGroups || [];
-      const newNameSpace = dependencies.newNameservice;
-
-      const volumesValue = nameServices
-        .map((ns: string) => {
-          return "hdfs://" + ns + "/apps/accumulo/data";
-        })
-        .join(",");
-
-      const replacementsValue = nameServices
-        .map((ns: string) => {
-          let hostName;
-          if (ns === newNameSpace) {
-            const hostNames = getStepData(
-              state,
-              enableNamenodeFederationSteps.SELECT_HOSTS,
-              "masterComponentHosts",
-              "enableNamenodeFederationSteps"
-            )
-              .filter(
-                (hc: any) => hc.component === "NAMENODE" && !hc.isInstalled
-              )
-              .map((hc: any) => hc.hostName);
-            hostName = hostNames[0];
-          } else {
-            const nameSpaceObject = find(
-              hdfsNameSpacesModel,
-              (item: any) => item.name === ns
-            );
-            hostName =
-              nameSpaceObject && nameSpaceObject.hosts
-                ? nameSpaceObject.hosts[0]
-                : "";
-          }
-          return (
-            "hdfs://" +
-            hostName +
-            ":8020/apps/accumulo/data hdfs://" +
-            ns +
-            "/apps/accumulo/data"
-          );
-        })
-        .join(",");
-
-      configs.push(
-        {
-          name: "instance.volumes",
-          displayName: "instance.volumes",
-          isReconfigurable: false,
-          value: volumesValue,
-          recommendedValue: volumesValue,
-          category: "ACCUMULO",
-          filename: "accumulo-site",
-          serviceName: "MISC",
-        },
-        {
-          name: "instance.volumes.replacements",
-          displayName: "instance.volumes.replacements",
-          isReconfigurable: false,
-          value: replacementsValue,
-          recommendedValue: replacementsValue,
-          category: "ACCUMULO",
-          filename: "accumulo-site",
-          serviceName: "MISC",
-        }
-      );
-    }
-
-    // Process all configs
-    configs.forEach((config: any) => {
-      if (!configsToRemoveList.includes(config.name)) {
-        config.isOverridable = false;
-
-        // Replace dependencies in config properties
-        config.name = config.name.replace(
-          /\{\{(\w+)\}\}/g,
-          (match: string, key: string) => {
-            return dependencies[key] || match;
-          }
-        );
-
-        config.displayName = config.displayName.replace(
-          /\{\{(\w+)\}\}/g,
-          (match: string, key: string) => {
-            return dependencies[key] || match;
-          }
-        );
-
-        config.value = config.value.replace(
-          /\{\{(\w+)\}\}/g,
-          (match: string, key: string) => {
-            if (dependencies[key] !== undefined && dependencies[key] !== null) {
-              return dependencies[key];
-            }
-            // Special handling for journalnode_edits_dir - use default if not found
-            if (key === 'journalnode_edits_dir') {
-              return '/hadoop/hdfs/journal';
-            }
-            return match;
-          }
-        );
-
-        config.recommendedValue = config.recommendedValue.replace(
-          /\{\{(\w+)\}\}/g,
-          (match: string, key: string) => {
-            if (dependencies[key] !== undefined && dependencies[key] !== null) {
-              return dependencies[key];
-            }
-            // Special handling for journalnode_edits_dir - use default if not found
-            if (key === 'journalnode_edits_dir') {
-              return '/hadoop/hdfs/journal';
-            }
-            return match;
-          }
-        );
-
-        result.push(config);
-      }
-    });
-
-    return result;
-  }
-
-  function removeConfigs(configsToRemove: any, configs: any) {
-    Object.keys(configsToRemove).forEach(function (site) {
-      const siteConfigs = find(configs.items, ["type", site]);
-      if (siteConfigs) {
-        configsToRemove[site].forEach(function (property: string) {
-          delete siteConfigs.properties[property];
-        });
-      }
-    });
-    return configs;
-  }
-
-  function loadComponentConfigs(_componentConfig: any, componentConfig: any) {
-    _componentConfig.configs.forEach(function (_serviceConfigProperty: any) {
-      componentConfig.configs.push({
-        ..._serviceConfigProperty,
-        isEditable: _serviceConfigProperty.isReconfigurable,
-      });
-    });
-  }
-
-  function renderServiceConfigs(_serviceConfig: any) {
-    const serviceConfig = {
-      serviceName: _serviceConfig.serviceName,
-      displayName: _serviceConfig.displayName,
-      configCategories: [],
-      showConfig: true,
-      configs: [],
-    };
-
-    _serviceConfig.configCategories.forEach(function (_configCategory: any) {
-      if (selectedServices.includes(_configCategory.name)) {
-        serviceConfig.configCategories.push(_configCategory as never);
-      }
-    });
-
-    loadComponentConfigs(_serviceConfig, serviceConfig);
-    serviceConfig.configs.map((con: any) => (con.changedValue = con.value));
-    // setStepConfigs(serviceConfig as any);
-    stepConfigs.current = serviceConfig;
-    //@ts-ignore
-    setSelectedService(serviceConfig?.configCategories?.[0]?.name);
-  }
-
-  const loadStep = async () => {
-    await loadConfigsTags();
-    validateForErrors();
-  };
-
-  const loadConfigsTags = async () => {
-    try {
-      const configsTagApiResponsedata = await ConfigsApi.loadConfigTags(
-        clusterName
-      );
-      if (JSON.stringify(configsTagApiResponsedata) !== "{}") {
-        await onLoadConfigsTags(configsTagApiResponsedata);
-      }
-    } catch (error) {
-      console.error("Error loading config tags", error);
-    }
-  };
-
-  async function onLoadConfigsTags(data: any) {
-    // Get installed services names
-    const servicesModel = selectedServices;
-    let urlParams = `(type=hdfs-site&tag=${data.Clusters.desired_configs["hdfs-site"].tag})`;
-
-    if (servicesModel.includes("RANGER")) {
-      urlParams +=
-        `|(type=core-site&tag=${data.Clusters.desired_configs["core-site"].tag})` +
-        `|(type=ranger-tagsync-site&tag=${data.Clusters.desired_configs["ranger-tagsync-site"].tag})` +
-        `|(type=ranger-hdfs-security&tag=${data.Clusters.desired_configs["ranger-hdfs-security"].tag})`;
-    }
-
-    // need to check if any issues here
-    // Add Accumulo-related parameters if Accumulo is installed
-    if (servicesModel.includes("ACCUMULO")) {
-      urlParams += `|(type=accumulo-site&tag=${data.Clusters.desired_configs["accumulo-site"].tag})`;
-    }
-
-    try {
-      const configsByTagApiResponseData = await ConfigsApi.getConfigsByTags(
-        clusterName,
-        urlParams
-      );
-      onLoadConfigs(configsByTagApiResponseData);
-    } catch (error) {
-      console.error("Error loading configurations", error);
-    }
-  }
-  const onLoadConfigs = (configsData: any) => {
-    serverConfigDataRef.current = configsData;
-    removeConfigs(configsToRemove, configsData);
-    let federationConfigProperties =
-      federationProperties().federationConfig.configs;
-
-    //TODO: Check if serviceModels field is needed
-
-    // Filter out configs that should only be included on first run if NameNode Federation is already enabled
-    //@ts-ignore
-    const hasNameNodeFederation = services.some(
-      (service: any) =>
-        service.ServiceInfo?.service_name === "HDFS" &&
-        service.masterComponentGroups &&
-        service.masterComponentGroups.length > 1
-    );
-
-    // Filter out firstRun configs if NameNode Federation is already enabled (matching ui version logic)
-    if (hasNameNodeFederation) {
-      federationConfigProperties = federationConfigProperties.filter(
-        (config: any) => !config.firstRun
-      );
-    }
-
-    // Tweak service configs with dependencies
-    const tweakedConfigs = tweakServiceConfigs(federationConfigProperties);
-    federationConfigProperties = tweakedConfigs;
-
-    // Prepare overridden properties
-    const overridenPropertiesCopy = cloneDeep(configsData);
-    for (const siteConfig of federationConfigProperties) {
-      const site = get(siteConfig, "filename", "");
-      const correspondingSite = find(
-        overridenPropertiesCopy.items,
-        (item: any) => item.type === site
-      );
-      if (correspondingSite) {
-        correspondingSite.properties = {
-          ...correspondingSite.properties,
-          ...{
-            //@ts-ignore
-            [siteConfig.name]: siteConfig.changedValue || siteConfig.value,
-          },
-        };
-      }
-    }
-    setOverridenProperties(overridenPropertiesCopy);
-
-    // Create a modified federation config that uses the overridden properties
-    const modifiedFederationConfig = {
-      ...federationProperties().federationConfig,
-      configs: federationConfigProperties,
-    };
-
-    renderServiceConfigs(modifiedFederationConfig);
-  };
+      "enableNamenodeFederationSteps",
+    ) || [];
+  const newNameserviceId = getStepData(
+    state,
+    enableNamenodeFederationSteps.GET_STARTED,
+    "nameserviceIds.newNameServiceId",
+    "enableNamenodeFederationSteps",
+  );
+  const currentJournalNodeHosts = journalNodeHosts(hdfsModel);
+  const namespaceKey = JSON.stringify(namespaces);
+  const assignmentKey = JSON.stringify(assignments);
+  const journalNodeKey = currentJournalNodeHosts.join("|");
+  const serviceKey = selectedServices.join("|");
 
   useEffect(() => {
-    if (
-      // clusterHostComponentsMapping.length &&
-      configsData &&
-      !isEmpty(configsData)
-    ) {
-      configTagsLoaded.current = true;
-      loadStep();
-    }
-  }, [configsData]);
-
-  function getMastersInfo() {
-    const step2Data = getStepData(
-      state,
-      "SELECT_HOSTS",
-      "masterComponentHosts",
-      "enableNamenodeFederationSteps"
-    );
-
-    const currentNameNodes = step2Data.filter(
-      (host: any) => host.component === "NAMENODE" && host.isInstalled
-    );
-
-    const additionalNameNodes = step2Data.filter(
-      (host: any) => host.component === "NAMENODE" && !host.isInstalled
-    );
-
-    return { currentNameNodes, additionalNameNodes };
-  }
-
-  function handleValueChange(propertyName: string, value: string) {
-    const stepConfigsCopy: any = cloneDeep(stepConfigs.current);
-    const property = find(stepConfigsCopy.configs, ["name", propertyName]);
-    if (property) {
-      property.changedValue = value;
-      const copiedProperties = cloneDeep(overridenProperties);
-      const items = get(copiedProperties, "items", []);
-      for (const item of items) {
-        if ((item as any).type === property.filename) {
-          (item as any).properties[propertyName] = value;
-          break;
+    if (!namespaceReady || !newNameserviceId || !assignments.length) return;
+    let cancelled = false;
+    const load = async () => {
+      setIsLoading(true);
+      setLoadError("");
+      try {
+        const requiredTypes = ["hdfs-site"];
+        if (selectedServices.includes("RANGER")) {
+          requiredTypes.push(
+            "core-site",
+            "ranger-tagsync-site",
+            "ranger-hdfs-security",
+          );
         }
-      }
-      setOverridenProperties(copiedProperties);
-      // setStepConfigs(stepConfigsCopy);
-      stepConfigs.current = stepConfigsCopy;
-      validateForErrors();
-    }
-  }
-
-  function validateForErrors() {
-    const errorsCopy = {}; // Start with a fresh object to clear all previous errors
-    let hasErrors = false;
-
-    stepConfigs.current?.configs.forEach((config: any) => {
-      if (config.isEditable) {
-        if (config.isRequired && isEmpty(config.changedValue)) {
-          //@ts-ignore
-          errorsCopy[config.name] = {
-            message: t("errorMessage.config.required"),
-            category: config.category,
-          };
-          hasErrors = true;
-        } else if (
-          config.name.includes("dfs.journalnode.edits.dir") &&
-          !isEmpty(config.changedValue)
-        ) {
-          const value = config.changedValue;
-          // Check if it starts with a slash or drive letter (e.g., C:)
-          const startsWithSlashOrDrive = /^(\/|[a-zA-Z]:)/.test(value);
-          // Check if it contains white spaces
-          const containsWhiteSpace = /\s/.test(value);
-
-          if (!startsWithSlashOrDrive || containsWhiteSpace) {
-            //@ts-ignore
-            errorsCopy[config.name] = {
-              message:
-                "Must be a slash or drive at the start, and must not contain white spaces",
-              category: config.category,
-            };
-            hasErrors = true;
-          }
+        if (selectedServices.includes("ACCUMULO")) {
+          requiredTypes.push("accumulo-site");
         }
+        const snapshot = await federationApi.loadCurrentConfigurations(
+          clusterName,
+          requiredTypes,
+        );
+        const result = buildNameNodeFederationConfiguration({
+          clusterName,
+          newNameserviceId,
+          namespaces,
+          assignments,
+          journalNodeHosts: currentJournalNodeHosts,
+          installedServices: selectedServices,
+          snapshot,
+        });
+        if (!cancelled) {
+          setGenerated(result);
+          const editable = result.reviewedProperties.find(
+            (item) => item.isEditable,
+          );
+          setDirectoryError(
+            editable ? validateJournalNodeDirectory(editable.value) : "",
+          );
+        }
+      } catch (error: any) {
+        if (!cancelled) {
+          setGenerated(null);
+          setLoadError(
+            errorMessage(
+              error,
+              "Ambari could not build the NameNode Federation configuration.",
+            ),
+          );
+        }
+      } finally {
+        if (!cancelled) setIsLoading(false);
       }
-    });
+    };
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    assignmentKey,
+    clusterName,
+    journalNodeKey,
+    namespaceKey,
+    namespaceReady,
+    newNameserviceId,
+    retryCount,
+    serviceKey,
+  ]);
 
-    setErrors(errorsCopy);
-    setIsNextEnabled(!hasErrors);
-  }
+  const currentNameNodes = assignments.filter(
+    (host: any) => host.component === "NAMENODE" && host.isInstalled,
+  );
+  const additionalNameNodes = assignments.filter(
+    (host: any) => host.component === "NAMENODE" && !host.isInstalled,
+  );
+  const categories = ["HDFS", "RANGER", "ACCUMULO"].filter((category) =>
+    generated?.reviewedProperties.some((item) => item.category === category),
+  );
 
-  const { currentNameNodes, additionalNameNodes } = getMastersInfo();
-
-  if (!stepConfigs.current) {
+  if (!newNameserviceId || !assignments.length) {
     return (
-      <div className="d-flex justify-content-center align-items-center p-5">
-        <Spinner />
+      <Alert variant="danger">
+        The persisted Federation nameservice or host assignment is missing.
+        Return to the earlier steps and rebuild the workflow checkpoint.
+      </Alert>
+    );
+  }
+  if (!namespaceReady || isLoading) {
+    return (
+      <div className="d-flex align-items-center justify-content-center gap-2 p-5">
+        <Spinner /> Loading the current HDFS topology and configurations...
       </div>
+    );
+  }
+  if (loadError || !generated) {
+    return (
+      <Alert variant="danger">
+        {loadError || "The Federation configuration is unavailable."}
+        <Button
+          size="sm"
+          className="ms-3"
+          onClick={() => setRetryCount((value) => value + 1)}
+        >
+          Retry
+        </Button>
+      </Alert>
     );
   }
 
   return (
     <>
       <h2 className="step-title">Review</h2>
-      <h3 className="step-description light-text">
-        Confirm your host selections.
-      </h3>
-
+      <p className="step-description">Confirm the NameNode hosts and configuration changes.</p>
+      {persistenceError ? <Alert variant="danger">{persistenceError}</Alert> : null}
       <Card className="mt-3">
-        <CardBody>
-          {currentNameNodes.map((node: any, index: number) => (
-            <Row key={`current-${index}`} className="mb-2">
-              <Col md={3} className="bolder">
-                Current NameNode:
-              </Col>
+        <Card.Body>
+          {currentNameNodes.map((node: any) => (
+            <Row key={`current-${node.hostName}`} className="mb-2">
+              <Col md={3} className="bolder">Current NameNode</Col>
               <Col md={9}>{node.hostName}</Col>
             </Row>
           ))}
-
-          {additionalNameNodes.map((node: any, index: number) => (
-            <Row key={`additional-${index}`} className="mb-2">
-              <Col md={3} className="bolder">
-                Additional NameNode:
-              </Col>
+          {additionalNameNodes.map((node: any) => (
+            <Row key={`additional-${node.hostName}`} className="mb-2">
+              <Col md={3} className="bolder">Additional NameNode</Col>
               <Col md={9}>
-                {node.hostName ? node.hostName : "false"}{" "}
-                <Badge bg="success">TO BE INSTALLED</Badge>
+                {node.hostName} <Badge bg="success">TO BE INSTALLED</Badge>
               </Col>
             </Row>
           ))}
-        </CardBody>
+        </Card.Body>
       </Card>
-
       <Alert variant="info" className="mt-3">
-        <div className="bolder mb-2">Review Configuration Changes.</div>
-        <div>
-          The following lists the configuration changes that will be made by the
-          Wizard to enable NameNode Federation. This information is for{" "}
-          <strong>review only</strong> and is not editable except for the{" "}
-          <strong>dfs.journalnode.edits.dir</strong> properties.
-        </div>
+        Review the generated configuration. Only the new nameservice's
+        JournalNode directory can be edited.
       </Alert>
-
       <Accordion defaultActiveKey="0" className="mt-3">
-        {stepConfigs.current?.configCategories?.map((category: any, categoryIndex: number) => {
-          const categoryConfigs = stepConfigs.current?.configs.filter((config: any) => config.category === category.name);
-          if (!categoryConfigs?.length) return null;
-          
-          // Count errors in this category
-          const categoryErrorCount = categoryConfigs.filter((config: any) => errors[config.name]?.message).length;
-          
-          return (
-            <Accordion.Item eventKey={categoryIndex.toString()} key={categoryIndex}>
-              <Accordion.Header>
-                <div className="d-flex align-items-center">
-                  <span className="me-2">{category.displayName}</span>
-                  {categoryErrorCount > 0 && (
-                    <Badge bg="danger" pill>
-                      {categoryErrorCount}
-                    </Badge>
-                  )}
-                </div>
-              </Accordion.Header>
-              <Accordion.Body>
-                <Form>
-                  {categoryConfigs.map((config: any, index: number) => (
-                    <Form.Group as={Row} key={index} className="mb-3">
-                      <Form.Label column sm={4} className="text-break pe-3" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>
-                        {config.displayName}
-                      </Form.Label>
-                      <Col sm={8}>
-                        <FormControl
-                          type="text"
-                          value={config.changedValue || ""}
-                          onChange={(e) =>
-                            handleValueChange(config.name, e.target.value)
-                          }
-                          disabled={!config.isEditable}
-                          isInvalid={errors[config.name]?.message}
-                        />
-                        {errors[config.name]?.message && (
+        {categories.map((category, categoryIndex) => (
+          <Accordion.Item eventKey={String(categoryIndex)} key={category}>
+            <Accordion.Header>
+              {category}
+              {category === "HDFS" && directoryError ? (
+                <Badge bg="danger" className="ms-2">1</Badge>
+              ) : null}
+            </Accordion.Header>
+            <Accordion.Body>
+              {generated.reviewedProperties
+                .filter((item) => item.category === category)
+                .map((item) => (
+                  <Row key={`${item.filename}-${item.name}`} className="mb-3 align-items-center">
+                    <Col md={5} className="text-break">{item.displayName}</Col>
+                    <Col md={7}>
+                      {item.isEditable ? (
+                        <>
+                          <Form.Control
+                            value={item.value}
+                            isInvalid={Boolean(directoryError)}
+                            onChange={(event) => {
+                              const value = event.target.value;
+                              const error = validateJournalNodeDirectory(value);
+                              setDirectoryError(error);
+                              if (!error) {
+                                setGenerated(
+                                  applyReviewedProperty(generated, item.name, value),
+                                );
+                              } else {
+                                setGenerated({
+                                  ...generated,
+                                  reviewedProperties: generated.reviewedProperties.map(
+                                    (candidate) =>
+                                      candidate.name === item.name
+                                        ? { ...candidate, value }
+                                        : candidate,
+                                  ),
+                                });
+                              }
+                            }}
+                          />
                           <Form.Control.Feedback type="invalid">
-                            {errors[config.name].message}
+                            {directoryError}
                           </Form.Control.Feedback>
-                        )}
-                      </Col>
-                    </Form.Group>
-                  ))}
-                </Form>
-              </Accordion.Body>
-            </Accordion.Item>
-          );
-        })}
+                        </>
+                      ) : (
+                        <code className="text-break">{item.value}</code>
+                      )}
+                    </Col>
+                  </Row>
+                ))}
+            </Accordion.Body>
+          </Accordion.Item>
+        ))}
       </Accordion>
-
       <WizardFooter
         step={currentStep}
-        isNextEnabled={isNextEnabled}
-        onBack={() => {
-          flushStateToDb("back");
+        isNextEnabled={!directoryError}
+        onBack={async () => {
+          setPersistenceError("");
+          try {
+            await flushStateToDb("back");
+            await handleBackImperitive();
+          } catch (error: any) {
+            setPersistenceError(
+              errorMessage(error, "Ambari could not persist the wizard state."),
+            );
+          }
         }}
-        onNext={() => {
+        onNext={async () => {
+          setPersistenceError("");
+          if (directoryError) return;
           dispatch({
             type: ActionTypes.STORE_INFORMATION,
             payload: {
               step: currentStep.name,
               data: {
-                overridenProperties,
+                overridenProperties: generated.snapshot,
+                reviewedProperties: generated.reviewedProperties,
+                journalNodeHosts: currentJournalNodeHosts,
               },
             },
           });
-          flushStateToDb("next");
-          handleNextImperitive();
+          try {
+            await flushStateToDb("next");
+            await handleNextImperitive();
+          } catch (error: any) {
+            setPersistenceError(
+              errorMessage(error, "Ambari could not persist the wizard state."),
+            );
+          }
         }}
+        onCancel={() => void flushStateToDb("cancel")}
       />
     </>
   );

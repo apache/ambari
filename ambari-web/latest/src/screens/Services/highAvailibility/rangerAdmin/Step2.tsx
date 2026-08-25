@@ -16,47 +16,86 @@
  * limitations under the License.
  */
 
-import { useContext, useState } from "react";
-import { AppContext } from "../../../../store/context";
-import { map } from "lodash";
-import { ActionTypes } from "./store/types";
-import WizardFooter from "../../../../components/StepWizard/WizardFooter";
-import AssignMastersAddable from "../../../../components/AssignMastersAddable";
+import { useCallback, useContext, useState } from "react";
 import { Alert, Card } from "react-bootstrap";
+import { map } from "lodash";
+import { AppContext } from "../../../../store/context";
+import WizardFooter from "../../../../components/StepWizard/WizardFooter";
+import AssignMastersAddable, {
+  AssignMastersLoadState,
+} from "../../../../components/AssignMastersAddable";
+import { ActionTypes } from "./store/types";
 import { EnableHighAvailibilityRangerAdminContext } from "./store/context";
+import {
+  RangerAdminAssignment,
+  validateRangerAdminAssignments,
+} from "./rangerAdminHaUtils";
+
+interface AssignmentPayload extends Record<string, unknown> {
+  masterComponentHosts?: RangerAdminAssignment[];
+}
 
 function Step2() {
   const { services } = useContext(AppContext);
   const {
     dispatch,
     flushStateToDb,
-    stepWizardUtilities: { handleNextImperitive, currentStep },
+    stepWizardUtilities: {
+      handleNextImperitive,
+      handleBackImperitive,
+      currentStep,
+    },
   } = useContext(EnableHighAvailibilityRangerAdminContext);
-  const [isNextEnabled] = useState(true);
+  const [assignmentPayload, setAssignmentPayload] =
+    useState<AssignmentPayload | null>(null);
+  const [sharedAssignmentsValid, setSharedAssignmentsValid] = useState(false);
+  const [sharedErrors, setSharedErrors] = useState<string[]>([]);
+  const [assignmentLoadState, setAssignmentLoadState] =
+    useState<AssignMastersLoadState>({ status: "loading" });
+  const rangerErrors = assignmentPayload
+    ? validateRangerAdminAssignments(
+        assignmentPayload.masterComponentHosts || [],
+      )
+    : ["Ranger Admin host assignments are still loading."];
+  const isNextEnabled =
+    assignmentLoadState.status === "ready" &&
+    sharedAssignmentsValid &&
+    rangerErrors.length === 0;
+
+  const onAssignmentValidationChange = useCallback(
+    (valid: boolean, errors: string[]) => {
+      setSharedAssignmentsValid(valid);
+      setSharedErrors(errors);
+    },
+    [],
+  );
+
   return (
     <>
       <div className="step-title">Select Hosts</div>
       <div className="step-description">
-      Select a host or hosts that will be running the additional Ranger Admin components.
+        Select one or more hosts for the additional Ranger Admin components.
       </div>
-      
       <Card className="mt-2">
         <Card.Body>
           <Alert className="my-1 fs-12" variant="warning">
-            Be sure that load balancer located separately from Ranger Admin components. 
+            Keep the load balancer separate from all Ranger Admin components.
           </Alert>
           <AssignMastersAddable
             mastersToShow={["RANGER_ADMIN"]}
-            mastersToAdd={[
-              "RANGER_ADMIN",
-            ]}
+            mastersToAdd={["RANGER_ADMIN"]}
             mastersToCreate={[]}
             showCurrentPrefix={["RANGER_ADMIN"]}
             showAdditionalPrefix={["RANGER_ADMIN"]}
             mastersAddableInHA={["RANGER_ADMIN"]}
+            minimumAdditionalMasterCount={{ RANGER_ADMIN: 1 }}
             services={map(services, "ServiceInfo.service_name")}
-            showInstalledMastersFirst={true}
-            dispatch={(payload:any) => {
+            showInstalledMastersFirst
+            validateAssignments
+            onAssignmentValidationChange={onAssignmentValidationChange}
+            onLoadStateChange={setAssignmentLoadState}
+            dispatch={(payload: AssignmentPayload) => {
+              setAssignmentPayload(payload);
               dispatch({
                 type: ActionTypes.STORE_INFORMATION,
                 payload: {
@@ -66,23 +105,30 @@ function Step2() {
               });
             }}
           />
+          {rangerErrors
+            .filter((error) => !sharedErrors.includes(error))
+            .map((error) => (
+              <Alert variant="danger" className="mt-3 mb-0" key={error}>
+                {error}
+              </Alert>
+            ))}
         </Card.Body>
       </Card>
       <WizardFooter
         step={currentStep}
         isNextEnabled={isNextEnabled}
-        onBack={() => {
-          flushStateToDb("back");
+        onBack={async () => {
+          await flushStateToDb("back");
+          await handleBackImperitive();
         }}
-        onNext={() => {
-          flushStateToDb("next");
-          handleNextImperitive();
+        onNext={async () => {
+          await flushStateToDb("next");
+          await handleNextImperitive();
         }}
-        onCancel={() => {
-          flushStateToDb("cancel");
-        }}
+        onCancel={() => void flushStateToDb("cancel")}
       />
     </>
   );
 }
+
 export default Step2;
