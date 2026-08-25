@@ -200,6 +200,10 @@ export const useSpark3ConfigUpdater =  () => {
       return;
     }
 
+    if (!items || items.length === 0) {
+      return;
+    }
+
     const currentConfig = cloneDeep(allServiceModels["spark3"]);
     let masterComponents: any[] = [];
     let slaveConponents: any[] = [];

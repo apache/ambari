@@ -207,6 +207,10 @@ export const useTrinoConfigUpdater = () => {
       return;
     }
 
+    if (!items || items.length === 0) {
+      return;
+    }
+
     const currentConfig = cloneDeep(allServiceModels["trino"]);
     let masterComponents: any[] = [];
     let slaveConponents: any[] = [];

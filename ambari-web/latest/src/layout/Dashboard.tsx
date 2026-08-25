@@ -366,7 +366,7 @@ const DashboardLayout = () => {
                   )}
                 </div>
               )}
-            <div style={{ paddingBottom: '80px' }}>
+            <div style={{ paddingBottom: location.pathname.includes('/views/') ? '0' : '80px' }}>
               <Outlet></Outlet>
             </div>
           </div>

@@ -133,7 +133,7 @@ function FlumeSummary() {
           />
         );
       } else {
-        await cachedServiceApi.fetchAllServiceComponents(clusterName, true);
+        await cachedServiceApi.fetchAllServiceComponents(clusterName);
         removePendingAgent(agent.id);
       }
     } catch (error) {
@@ -181,7 +181,7 @@ function FlumeSummary() {
           [pending.agent.id]: { ...pending, refreshing: true },
         }));
         void cachedServiceApi
-          .fetchAllServiceComponents(clusterName, true)
+          .fetchAllServiceComponents(clusterName)
           .finally(() => removePendingAgent(pending.agent.id));
       } else {
         removePendingAgent(pending.agent.id);

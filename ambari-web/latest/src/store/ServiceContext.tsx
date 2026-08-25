@@ -16,10 +16,10 @@
  * limitations under the License.
  */
 
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import HDFSService from "../models/hdfs";
-import { cloneDeep, isEmpty, isEqual } from "lodash";
+import { cloneDeep, isEmpty } from "lodash";
 import OptimizedUpdater from "./OptimizedUpdater.tsx";
 import ZkService from "../models/zookeeper.ts";
 import HBaseService from "../models/hbase.ts";
@@ -37,7 +37,6 @@ import HiveService from "../models/hive.ts";
 import usePolling from "../hooks/usePolling.ts";
 import { AppContext } from "./context.tsx";
 import { useAlerts } from "./AlertsContext.tsx";
-import usePrevious from "../hooks/usePrevious.ts";
 import { ServiceApi } from "../api/serviceApi.ts";
 import { cachedServiceApi } from "../api/cachedServiceApi.ts";
 import { centralizedServiceStateApi } from "../api/centralizedServiceStateApi.ts";
@@ -52,10 +51,11 @@ interface ServiceContextType {
   allModelsLoaded: boolean;
   serviceModels: { [key: string]: any };
   updateRegistry: Function;
-  polledHostComponentsData: {};
+  polledHostComponentsData: any;
   quickLinksMapWithAPIResponse: Map<string, any>;
-  masterSlaveClientsData: {};
+  masterSlaveClientsData: any;
   serviceStatesData: Map<string, any>;
+  applyServiceMaintenanceChange: (serviceName: string, newState: string) => void;
 }
 
 export const ServiceContext = React.createContext<ServiceContextType>({
@@ -69,10 +69,56 @@ export const ServiceContext = React.createContext<ServiceContextType>({
   quickLinksMapWithAPIResponse: Map<string, any>,
   //@ts-ignore
   serviceStatesData: new Map(),
+  applyServiceMaintenanceChange: () => {},
 });
 
 interface ServiceProviderProps {
   children: any;
+}
+
+/**
+ * Compute alert counts per service from alert summary and definitions.
+ * Same logic as CentralizedServiceStateApi.calculateServiceAlertCounts but without the API call.
+ */
+function computeServiceAlertCounts(
+  alertSummary?: { alerts_summary_grouped: any[] },
+  alertDefinitions?: any[]
+): Map<string, { alertsCount: number; hasCriticalAlerts: boolean }> {
+  const serviceAlerts = new Map<string, { alertsCount: number; hasCriticalAlerts: boolean }>();
+
+  if (!alertSummary?.alerts_summary_grouped || !alertDefinitions) {
+    return serviceAlerts;
+  }
+
+  const definitionIdToService = new Map<number, string>();
+  alertDefinitions.forEach((def: any) => {
+    if (def.id && def.service_name) {
+      definitionIdToService.set(def.id, def.service_name);
+    }
+  });
+
+  alertSummary.alerts_summary_grouped.forEach((alert: any) => {
+    const definitionId = alert.definition_id;
+    if (!definitionId) return;
+
+    const serviceName = definitionIdToService.get(definitionId);
+    if (!serviceName) return;
+
+    const criticalCount = alert.summary?.CRITICAL?.count || 0;
+    const warningCount = alert.summary?.WARNING?.count || 0;
+    const totalCount = criticalCount + warningCount;
+    const hasCritical = criticalCount > 0;
+
+    if (!serviceAlerts.has(serviceName)) {
+      serviceAlerts.set(serviceName, { alertsCount: 0, hasCriticalAlerts: false });
+    }
+
+    const current = serviceAlerts.get(serviceName)!;
+    current.alertsCount += totalCount;
+    current.hasCriticalAlerts = current.hasCriticalAlerts || hasCritical;
+  });
+
+  return serviceAlerts;
 }
 
 const ServiceProvider: React.FC<ServiceProviderProps> = ({ children }) => {
@@ -84,19 +130,26 @@ const ServiceProvider: React.FC<ServiceProviderProps> = ({ children }) => {
   const [polledHostComponentsData, setPolledHostComponentsData] = useState<any>(
     {}
   );
-  const previousHostComponentsData = usePrevious(polledHostComponentsData);
   const [quickLinksMapWithAPIResponse, setQuickLinksMapWithAPIResponse] =
     useState<any>(null);
 
   const [masterSlaveClientsData, setMasterSlaveClientsData] = useState<any>({});
-  const previousMasterSlaveClientsData = usePrevious(masterSlaveClientsData);
   const [serviceStatesData, setServiceStatesData] = useState<Map<string, any>>(new Map());
 
-  const { clusterName } = useContext(AppContext);
+  const { clusterName, parsedSocketMessages } = useContext(AppContext);
 
   // Alert data from AlertsContext, used to calculate service alert counts without a separate /alerts call
   const { alertSummary, alertDefinitions } = useAlerts();
-  
+
+  // Refs to avoid stale closures in subscriber callback and prevent useEffect re-runs
+  const alertSummaryRef = useRef(alertSummary);
+  const alertDefinitionsRef = useRef(alertDefinitions);
+  const allServiceModelsRef = useRef(allServiceModels);
+
+  useEffect(() => { alertSummaryRef.current = alertSummary; }, [alertSummary]);
+  useEffect(() => { alertDefinitionsRef.current = alertDefinitions; }, [alertDefinitions]);
+  useEffect(() => { allServiceModelsRef.current = allServiceModels; }, [allServiceModels]);
+
   const isOnClusterAdminPage = location.pathname.includes('/main/admin/');
 
   // const [quicklinks, setQuicklinks] = useState<Map<string, any>>(new Map());
@@ -158,12 +211,26 @@ const ServiceProvider: React.FC<ServiceProviderProps> = ({ children }) => {
     setQuickLinksMapWithAPIResponse(quickLinksMap);
   };
 
+  const modelHasComponentData = (model: any): boolean =>
+    !!model &&
+    ((Array.isArray(model.masterComponents) && model.masterComponents.length > 0) ||
+      (Array.isArray(model.slaveComponents) && model.slaveComponents.length > 0) ||
+      (Array.isArray(model.clientComponents) && model.clientComponents.length > 0));
+
   const updateRegistry = (updatedModels: any) => {
-    if (updatedModels) {
-      const modelsCopy: any = cloneDeep(updatedModels);
-      if (JSON.stringify(updatedModels) !== JSON.stringify(allServiceModels))
-        setAllServiceModels(modelsCopy);
-    }
+    if (!updatedModels) return;
+    setAllServiceModels((prev: any) => {
+      const merged: any = { ...prev };
+      for (const key of Object.keys(updatedModels)) {
+        const incoming = updatedModels[key];
+        const existing = prev[key];
+        if (modelHasComponentData(existing) && !modelHasComponentData(incoming)) {
+          continue;
+        }
+        merged[key] = incoming;
+      }
+      return merged;
+    });
   };
   useEffect(() => {
     updateQuickLinksApiResponseForAllServices();
@@ -247,85 +314,37 @@ const ServiceProvider: React.FC<ServiceProviderProps> = ({ children }) => {
           }
         });
 
-        // REACTIVE: Detect component-level maintenance mode changes
-        const componentMaintenanceChanges: string[] = [];
-        
-        if (previousHostComponentsData?.items) {
-          responseData.items?.forEach((currentItem: any) => {
-            const serviceName = currentItem.ServiceComponentInfo?.service_name;
-            const componentName = currentItem.ServiceComponentInfo?.component_name;
-            
-            if (!serviceName || !componentName) return;
-            
-            // Find the previous state of this component
-            const previousItem = previousHostComponentsData.items.find((prevItem: any) =>
-              prevItem.ServiceComponentInfo?.service_name === serviceName &&
-              prevItem.ServiceComponentInfo?.component_name === componentName
-            );
-            
-            if (previousItem) {
-              // Check if any host component maintenance state changed
-              const currentMaintenanceStates = currentItem.host_components?.map((hc: any) => 
-                `${hc.HostRoles?.host_name}:${hc.HostRoles?.maintenance_state}`
-              ).sort() || [];
-              
-              const previousMaintenanceStates = previousItem.host_components?.map((hc: any) => 
-                `${hc.HostRoles?.host_name}:${hc.HostRoles?.maintenance_state}`
-              ).sort() || [];
-              
-              // If maintenance states changed, track this service for alert refresh
-              if (!isEqual(currentMaintenanceStates, previousMaintenanceStates)) {
-                if (!componentMaintenanceChanges.includes(serviceName)) {
-                  componentMaintenanceChanges.push(serviceName);
-                }
-              }
-            }
-          });
-        }
-
-        // Update both polledHostComponentsData and masterSlaveClientsData from single response
-        if (
-          responseData?.items &&
-          (!isEqual(previousHostComponentsData?.items, responseData.items) ||
-           !isEqual(previousMasterSlaveClientsData?.items, responseData.items))
-        ) {
-          setPolledHostComponentsData(responseData);
-          setMasterSlaveClientsData(responseData.items);
-        }
+        // polledHostComponentsData and masterSlaveClientsData are now set by the CachedServiceApi subscriber
+        // No need to set them here - this function only processes stale config logic
 
         // Update registry only if there were changes
         if (hasUpdates) {
           updateRegistry(updatedModels);
         }
 
-        // REACTIVE: Immediately refresh alerts for services with component maintenance changes
-        if (componentMaintenanceChanges.length > 0) {
-          console.log('Component maintenance mode changed for services:', componentMaintenanceChanges);
-          // Force refresh of centralized service state data to get updated alerts
-          centralizedServiceStateApi.clearCache();
-          await centralizedServiceStateApi.fetchAllServiceStatesAndAlerts(clusterName, alertSummary, alertDefinitions);
-        }
+        // Service states (including alerts) are now recomputed in the CachedServiceApi subscriber
+        // whenever components data refreshes - no separate API call needed
       }
     } catch (error) {
       console.error('Error fetching optimized maintenance and stale data:', error);
     }
   };
 
-  // Service-level maintenance mode handling with reactive alert updates
+  // Service-level state and maintenance mode initial load (mirrors Ember's serviceMapper)
+  // Reads ServiceInfo.state and ServiceInfo.maintenance_state from backend - these are
+  // the AUTHORITATIVE source of truth (Ember does NOT derive workStatus from component counts).
   useEffect(() => {
     const fetchMaintenanceModeForService = async () => {
       try {
         const responseData = await ServiceApi.getAllServices(clusterName);
-        
+
         // Collect maintenance states like Ember's passiveStateMap
         const passiveStateMap: { [key: string]: string } = {};
-        const changedServices: string[] = [];
-        
+
         responseData.items.forEach((service: any) => {
           passiveStateMap[service.ServiceInfo.service_name] = service.ServiceInfo.maintenance_state;
         });
 
-        // Track which services had maintenance mode changes
         let hasMaintenanceUpdates = false;
         const updatedModels = cloneDeep(allServiceModels);
 
@@ -334,34 +353,44 @@ const ServiceProvider: React.FC<ServiceProviderProps> = ({ children }) => {
           if (updatedModels[serviceModelKey]) {
             const currentMaintenanceValue = updatedModels[serviceModelKey].isInPassiveForService;
             const newMaintenanceValue = maintenanceState === "ON";
-            
-            // Only update if the maintenance state has actually changed
+
             if (currentMaintenanceValue !== newMaintenanceValue) {
               updatedModels[serviceModelKey].isInPassiveForService = newMaintenanceValue;
               hasMaintenanceUpdates = true;
-              changedServices.push(serviceName);
             }
           }
         });
 
-        // Update registry only if there were actual maintenance state changes
         if (hasMaintenanceUpdates) {
           updateRegistry(updatedModels);
-          
-          // REACTIVE: Immediately refresh alerts for services that changed maintenance mode
-          if (changedServices.length > 0) {
-            console.log('Maintenance mode changed for services:', changedServices);
-            // Force refresh of centralized service state data to get updated alerts
-            centralizedServiceStateApi.clearCache();
-            await centralizedServiceStateApi.fetchAllServiceStatesAndAlerts(clusterName, alertSummary, alertDefinitions);
-          }
         }
+
+        // Populate serviceStatesData with authoritative state from backend ServiceInfo.state
+        // (Ember's service_mapper.js: work_status: 'ServiceInfo.state')
+        setServiceStatesData((prev) => {
+          const updated = new Map(prev);
+          const serviceAlertCounts = computeServiceAlertCounts(alertSummaryRef.current, alertDefinitionsRef.current);
+          responseData.items.forEach((service: any) => {
+            const serviceName = service.ServiceInfo.service_name;
+            const alertData = serviceAlertCounts.get(serviceName) || { alertsCount: 0, hasCriticalAlerts: false };
+            const existing = updated.get(serviceName) || {};
+            updated.set(serviceName, {
+              ...existing,
+              serviceName,
+              state: service.ServiceInfo.state,
+              maintenance_state: service.ServiceInfo.maintenance_state,
+              alertsCount: alertData.alertsCount,
+              hasCriticalAlerts: alertData.hasCriticalAlerts,
+            });
+          });
+          centralizedServiceStateApi.setDerivedServiceStates(updated);
+          return updated;
+        });
       } catch (error) {
         console.error('Error fetching service maintenance mode:', error);
       }
     };
 
-    // Only fetch maintenance mode when models are loaded and stable
     if (allModelsLoaded && Object.keys(allServiceModels).length > 0) {
       fetchMaintenanceModeForService();
     }
@@ -370,90 +399,223 @@ const ServiceProvider: React.FC<ServiceProviderProps> = ({ children }) => {
   // REMOVED: updateStaleConfigsForAllServices - now handled by fetchOptimizedMaintenanceAndStaleData
   // All stale config and maintenance state processing is consolidated in the optimized function
 
-  // Initialize centralized component API polling (Ember.js style)
+  // Centralized component API polling using usePolling hook (mirrors Ember's updateServiceMetric)
+  // ONE poll drives all data updates - no separate /services poll needed
+  const clusterNameRef = useRef(clusterName);
+  useEffect(() => { clusterNameRef.current = clusterName; }, [clusterName]);
+
+  // Process components data and update derived state.
+  // Called both from the subscriber (when ANY caller fetches data) and from pollServiceComponents.
+  // IMPORTANT: This does NOT derive service `state` from component counts. Ember treats
+  // ServiceInfo.state as the authoritative source (set on initial /services load and via
+  // /events/services WebSocket). We preserve existing state and only refresh alerts +
+  // maintenance_state (which tracks the model's isInPassiveForService flag).
+  const processComponentsData = (data: any) => {
+    if (!data?.items) return;
+
+    setMasterSlaveClientsData(data.items);
+    setPolledHostComponentsData(data);
+
+    const presentServiceNames = new Set<string>();
+    data.items.forEach((item: any) => {
+      const serviceName = item.ServiceComponentInfo?.service_name;
+      if (serviceName) presentServiceNames.add(serviceName);
+    });
+
+    const serviceAlertCounts = computeServiceAlertCounts(alertSummaryRef.current, alertDefinitionsRef.current);
+
+    setServiceStatesData((prev) => {
+      const updated = new Map(prev);
+      presentServiceNames.forEach((serviceName) => {
+        const serviceModelKey = serviceNameModelMapping[serviceName];
+        const serviceModel = allServiceModelsRef.current[serviceModelKey];
+        const maintenance_state = serviceModel?.isInPassiveForService ? 'ON' : 'OFF';
+        const alertData = serviceAlertCounts.get(serviceName) || { alertsCount: 0, hasCriticalAlerts: false };
+        const existing = updated.get(serviceName) || { serviceName, state: 'INSTALLED' };
+
+        updated.set(serviceName, {
+          ...existing,
+          serviceName,
+          maintenance_state,
+          alertsCount: alertData.alertsCount,
+          hasCriticalAlerts: alertData.hasCriticalAlerts,
+        });
+      });
+      centralizedServiceStateApi.setDerivedServiceStates(updated);
+      return updated;
+    });
+  };
+
+  // Subscribe to cachedServiceApi - notified whenever ANY caller (e.g. useHDFSConfigUpdater
+  // calling fetchAllServiceComponents directly) returns fresh data.
+  // This ensures state updates flow regardless of which code path initiated the fetch.
+  useEffect(() => {
+    const unsubscribe = cachedServiceApi.subscribe(processComponentsData);
+    return () => unsubscribe();
+  }, []);
+
+  const pollServiceComponents = async () => {
+    const currentClusterName = clusterNameRef.current;
+    if (!currentClusterName || !allModelsLoaded) return;
+
+    // fetchAllServiceComponents notifies subscribers internally - state will be updated via processComponentsData
+    await cachedServiceApi.fetchAllServiceComponents(currentClusterName);
+  };
+
+  // Eager first fetch - fires immediately when clusterName becomes available
   useEffect(() => {
     if (clusterName && allModelsLoaded) {
-      
-      // Start centralized polling for all service components
-      cachedServiceApi.startPolling(clusterName, 5000);
-      
-      // Subscribe to centralized data updates
-      const unsubscribe = cachedServiceApi.subscribe((data) => {
-        
-        // Update BOTH masterSlaveClientsData AND polledHostComponentsData with centralized data
-        // This ensures both component names AND status are available immediately
-        if (data?.items && !isEqual(previousMasterSlaveClientsData?.items, data.items)) {
-          setMasterSlaveClientsData(data.items);
-        }
-        
-        // Also update polledHostComponentsData to provide component status immediately
-        if (data?.items && !isEqual(previousHostComponentsData?.items, data.items)) {
-          setPolledHostComponentsData(data);
-        }
-      });
-
-      // Subscribe to centralized service state updates
-      const unsubscribeServiceStates = centralizedServiceStateApi.subscribe((data) => {
-        setServiceStatesData(data);
-      });
-
-      // Start centralized service state and alerts polling with timeout-based approach
-      let serviceStateTimeout: NodeJS.Timeout | null = null;
-      let isPollingActive = true;
-
-      const pollServiceStates = async () => {
-        if (!isPollingActive) return;
-
-        try {
-          const statesData = await centralizedServiceStateApi.fetchAllServiceStatesAndAlerts(clusterName, alertSummary, alertDefinitions);
-          setServiceStatesData(statesData);
-        } catch (error) {
-          console.error('Error polling service states:', error);
-        } finally {
-          // Schedule next poll ONLY after current request completes
-          if (isPollingActive) {
-            serviceStateTimeout = setTimeout(pollServiceStates, 5000);
-          }
-        }
-      };
-
-      // Start initial poll
-      pollServiceStates();
-
-      return () => {
-        unsubscribe();
-        unsubscribeServiceStates();
-        cachedServiceApi.stopPolling();
-        isPollingActive = false;
-        if (serviceStateTimeout) {
-          clearTimeout(serviceStateTimeout);
-        }
-      };
+      pollServiceComponents();
     }
   }, [clusterName, allModelsLoaded]);
 
-  // Control polling based on current route - pause on cluster admin pages
+  // Subsequent polling every 5s via usePolling hook
+  const pollingInterval = (clusterName && allModelsLoaded) ? 5000 : null;
+  //@ts-ignore
+  const { pausePolling, resumePolling } = usePolling(pollServiceComponents, pollingInterval);
+
+  // Pause on cluster admin pages, resume otherwise
   useEffect(() => {
     if (isOnClusterAdminPage) {
-      cachedServiceApi.pausePolling();
+      pausePolling();
     } else {
-      cachedServiceApi.resumePolling(clusterName);
+      resumePolling();
     }
-  }, [isOnClusterAdminPage, clusterName]);
+  }, [isOnClusterAdminPage]);
 
-  // Use the new optimized polling function that replaces multiple API calls
-  // This polling will be controlled by the pausePolling/resumePolling mechanism
-  const { pausePolling: pauseMaintenancePolling, resumePolling: resumeMaintenancePolling } = 
-    usePolling(fetchOptimizedMaintenanceAndStaleData, 5000);
-
-  // Control maintenance/stale config polling based on route
+  // Process maintenance and stale config data reactively when polled data changes
+  // This replaces the independent 5s usePolling timer - no separate poll needed
   useEffect(() => {
-    if (isOnClusterAdminPage) {
-      pauseMaintenancePolling();
-    } else {
-      resumeMaintenancePolling();
+    if (polledHostComponentsData?.items && allModelsLoaded) {
+      fetchOptimizedMaintenanceAndStaleData();
     }
-  }, [isOnClusterAdminPage, pauseMaintenancePolling, resumeMaintenancePolling]);
+  }, [polledHostComponentsData]);
+
+  // Apply a service-level maintenance state change to all derived state.
+  // Mirrors Ember's pattern of doing optimistic UI updates after the API call returns
+  // (see ui/app/controllers/main/service/item.js:1198 - self.set('content.passiveState', params.passive_state))
+  // Called both from the WebSocket /events/services handler and from optimistic UI updates
+  // in Actions.tsx after the toggleMaintenanceMode API call returns.
+  const applyServiceMaintenanceChange = (service_name: string, maintenance_state: string) => {
+    const serviceModelKey = serviceNameModelMapping[service_name];
+    if (serviceModelKey && allServiceModelsRef.current[serviceModelKey]) {
+      const updatedModels = cloneDeep(allServiceModelsRef.current);
+      updatedModels[serviceModelKey].isInPassiveForService = maintenance_state === 'ON';
+      updateRegistry(updatedModels);
+    }
+    setServiceStatesData((prev) => {
+      const updated = new Map(prev);
+      const existing = updated.get(service_name) || { serviceName: service_name, state: 'INSTALLED', maintenance_state: 'OFF', alertsCount: 0, hasCriticalAlerts: false };
+      updated.set(service_name, { ...existing, maintenance_state });
+      centralizedServiceStateApi.setDerivedServiceStates(updated);
+      return updated;
+    });
+
+    // Cascade to all components of this service
+    const cascadeValue = maintenance_state === 'ON' ? 'IMPLIED_FROM_SERVICE' : 'OFF';
+    setPolledHostComponentsData((prev: any) => {
+      if (!prev?.items) return prev;
+      const updated = cloneDeep(prev);
+      updated.items.forEach((item: any) => {
+        if (item.ServiceComponentInfo?.service_name !== service_name) return;
+        item.host_components?.forEach((hc: any) => {
+          if (hc.HostRoles) hc.HostRoles.maintenance_state = cascadeValue;
+        });
+      });
+      return updated;
+    });
+    setMasterSlaveClientsData((prev: any[]) => {
+      if (!Array.isArray(prev) || prev.length === 0) return prev;
+      const updated = cloneDeep(prev);
+      updated.forEach((item: any) => {
+        if (item.ServiceComponentInfo?.service_name !== service_name) return;
+        item.host_components?.forEach((hc: any) => {
+          if (hc.HostRoles) hc.HostRoles.maintenance_state = cascadeValue;
+        });
+      });
+      return updated;
+    });
+  };
+
+  // WebSocket /events/hostcomponents and /events/services handler
+  // Mirrors Ember's hostComponentStatusMapper + serviceStateMapper: merges WebSocket events
+  // directly into polledHostComponentsData and allServiceModels so UI updates instantly
+  // without waiting for the next 5s poll.
+  const lastProcessedSocketMessageRef = useRef<any>(null);
+  useEffect(() => {
+    if (!parsedSocketMessages?.length) return;
+
+    const latestMessage = parsedSocketMessages[0];
+    if (latestMessage === lastProcessedSocketMessageRef.current) return;
+    lastProcessedSocketMessageRef.current = latestMessage;
+
+    const destination = latestMessage?.destination;
+
+    // /events/hostcomponents - update host component state in polledHostComponentsData
+    // Ember mapping: workStatus<-currentState, staleConfigs<-staleConfigs, passiveState<-maintenanceState
+    if (destination === '/events/hostcomponents' && Array.isArray(latestMessage.hostComponents)) {
+      setPolledHostComponentsData((prev: any) => {
+        if (!prev?.items) return prev;
+        const updated = cloneDeep(prev);
+        latestMessage.hostComponents.forEach((evt: any) => {
+          const componentName = evt.componentName;
+          const hostName = evt.hostName;
+          const componentItem = updated.items.find(
+            (item: any) => item.ServiceComponentInfo?.component_name === componentName
+          );
+          if (!componentItem) return;
+          const hostComp = componentItem.host_components?.find(
+            (hc: any) => hc.HostRoles?.host_name === hostName
+          );
+          if (!hostComp) return;
+          if (evt.currentState !== undefined) hostComp.HostRoles.state = evt.currentState;
+          if (evt.staleConfigs !== undefined) hostComp.HostRoles.stale_configs = evt.staleConfigs;
+          if (evt.maintenanceState !== undefined) hostComp.HostRoles.maintenance_state = evt.maintenanceState;
+        });
+        return updated;
+      });
+      setMasterSlaveClientsData((prev: any[]) => {
+        if (!Array.isArray(prev) || prev.length === 0) return prev;
+        const updated = cloneDeep(prev);
+        latestMessage.hostComponents.forEach((evt: any) => {
+          const componentItem = updated.find(
+            (item: any) => item.ServiceComponentInfo?.component_name === evt.componentName
+          );
+          if (!componentItem) return;
+          const hostComp = componentItem.host_components?.find(
+            (hc: any) => hc.HostRoles?.host_name === evt.hostName
+          );
+          if (!hostComp) return;
+          if (evt.currentState !== undefined) hostComp.HostRoles.state = evt.currentState;
+          if (evt.staleConfigs !== undefined) hostComp.HostRoles.stale_configs = evt.staleConfigs;
+          if (evt.maintenanceState !== undefined) hostComp.HostRoles.maintenance_state = evt.maintenanceState;
+        });
+        return updated;
+      });
+    }
+
+    // /events/services - update service state and maintenance_state
+    // Ember mapping: workStatus<-state, passiveState<-maintenance_state
+    if (destination === '/events/services' && latestMessage.service_name) {
+      const { service_name, state, maintenance_state } = latestMessage;
+
+      // Apply maintenance state change (updates models, serviceStatesData, and cascades to components)
+      if (maintenance_state !== undefined) {
+        applyServiceMaintenanceChange(service_name, maintenance_state);
+      }
+
+      // Update state field independently
+      if (state !== undefined) {
+        setServiceStatesData((prev) => {
+          const updated = new Map(prev);
+          const existing = updated.get(service_name) || { serviceName: service_name, state: 'INSTALLED', maintenance_state: 'OFF', alertsCount: 0, hasCriticalAlerts: false };
+          updated.set(service_name, { ...existing, state });
+          centralizedServiceStateApi.setDerivedServiceStates(updated);
+          return updated;
+        });
+      }
+    }
+  }, [parsedSocketMessages]);
 
   return (
     <ServiceContext.Provider
@@ -466,6 +628,7 @@ const ServiceProvider: React.FC<ServiceProviderProps> = ({ children }) => {
         quickLinksMapWithAPIResponse,
         masterSlaveClientsData,
         serviceStatesData,
+        applyServiceMaintenanceChange,
       }}
     >
       <OptimizedUpdater />
