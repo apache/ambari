@@ -28,9 +28,9 @@ import { HostsApi } from "../../api/hostsApi";
 import { useCopyToClipboard } from "../../hooks/useCopyToClipboard";
 import BackgroundOperations from "../BackgroundOperations";
 import { RequestApi } from "../../api/requestApi";
-import usePolling from "../../hooks/usePolling";
 import useAuthorizationPolicy from "../../hooks/useAuthorizationPolicy";
 import { showRollingRestartPopup } from "../Hosts/batchUtils";
+import { ServiceContext } from "../../store/ServiceContext";
 
 
 type RestartWarningProps = {
@@ -60,6 +60,7 @@ function RestartWarning({ serviceName }: RestartWarningProps) {
   );
   const [, copy] = useCopyToClipboard();
   const { clusterName } = useContext(AppContext);
+  const { polledHostComponentsData } = useContext(ServiceContext);
 
   const { isAuthorized } = useAuthorizationPolicy();
   const canStartStopServices = isAuthorized("SERVICE.START_STOP");
@@ -80,56 +81,42 @@ function RestartWarning({ serviceName }: RestartWarningProps) {
     setComponentsInRestartState([]);
   }, [serviceName]);
 
-  async function loadStaleConfigs() {
-    // Capture current serviceName to prevent race conditions
-    const currentServiceName = serviceName;
-    
-    if (!currentServiceName || !clusterName) {
+  // Reuse centralized polled data from CachedServiceApi instead of making a separate API call
+  // CachedServiceApi already polls /components/ with all required fields (including stale_configs)
+  useEffect(() => {
+    if (!polledHostComponentsData?.items || !serviceName) {
       return;
     }
-    
-    try {
-      const response = await HostsApi.getClusterComponents(
-        clusterName,
-        "ServiceComponentInfo/service_name,host_components/HostRoles/display_name,host_components/HostRoles/host_name,host_components/HostRoles/public_host_name,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,host_components/HostRoles/stale_configs,host_components/HostRoles/ha_state,host_components/HostRoles/desired_admin_state,&minimal_response=true"
-      );
-      
-      // Check if serviceName is still the same (prevent race condition)
-      if (currentServiceName !== serviceName) {
-        return;
-      }
-      
-      for (const component of response.items) {
-        forEach(component.host_components, (comp: any) => {
-          set(
-            comp.HostRoles,
-            "serviceName",
-            component.ServiceComponentInfo.service_name
-          );
-        });
-      }
-      const allHostComponentsWithHostRoles = flatten(
-        response?.items?.map((host: any) => host.host_components)
-      );
-      const allHostComponents = flatten(
-        map(allHostComponentsWithHostRoles, "HostRoles")
-      );
-      const serviceComponents = filter(allHostComponents, [
-        "serviceName",
-        currentServiceName,
-      ]);
-      const componentsWithStaleConfigs = filter(serviceComponents, [
-        "stale_configs",
-        true,
-      ]);
-      setComponentsInRestartState(
-        groupPropertyValues(componentsWithStaleConfigs, "host_name")
-      );
-    } catch (error) {
-      console.error("Error loading stale configs for service:", currentServiceName, error);
+
+    const response = polledHostComponentsData;
+
+    for (const component of response.items) {
+      forEach(component.host_components, (comp: any) => {
+        set(
+          comp.HostRoles,
+          "serviceName",
+          component.ServiceComponentInfo.service_name
+        );
+      });
     }
-  }
-  usePolling(loadStaleConfigs, 5000);
+    const allHostComponentsWithHostRoles = flatten(
+      response?.items?.map((host: any) => host.host_components)
+    );
+    const allHostComponents = flatten(
+      map(allHostComponentsWithHostRoles, "HostRoles")
+    );
+    const serviceComponents = filter(allHostComponents, [
+      "serviceName",
+      serviceName,
+    ]);
+    const componentsWithStaleConfigs = filter(serviceComponents, [
+      "stale_configs",
+      true,
+    ]);
+    setComponentsInRestartState(
+      groupPropertyValues(componentsWithStaleConfigs, "host_name")
+    );
+  }, [polledHostComponentsData, serviceName]);
 
   useEffect(() => {
     const affectedHosts = [];

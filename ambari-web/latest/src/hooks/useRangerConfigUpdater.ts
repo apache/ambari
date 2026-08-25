@@ -103,6 +103,10 @@ export const useRangerConfigUpdater = () => {
       return;
     }
 
+    if (!items || items.length === 0) {
+      return;
+    }
+
     const currentConfig = cloneDeep(allServiceModels["ranger"]);
 
     let masterComponents: any[] = [];

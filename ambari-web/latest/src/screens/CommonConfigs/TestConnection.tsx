@@ -175,7 +175,7 @@ export default function TestConnection({
   const [errorMessage, setErrorMessage] = useState<any>(null);
   const [showErrorMessage, setShowErrorMessage] = useState(false);
 
-  const { services, ambariProperties, clusterName } = useContext(AppContext);
+  const { ambariProperties, clusterName, isClusterInstalled } = useContext(AppContext);
 
   const setSafeErrorMessage = (diagnostics: Record<string, unknown>) => {
     setErrorMessage(
@@ -265,10 +265,6 @@ export default function TestConnection({
       resumePolling();
     }
   }, [taskID, requestId, resumePolling]);
-
-  const installedServicesInCluster = services.map(
-    (service) => service.ServiceInfo.service_name
-  );
 
   const isDBACreds = (service: string): boolean => {
     if (service === "RANGER") {
@@ -368,7 +364,16 @@ export default function TestConnection({
 
   const createCustomAction = async () => {
     setIsConnecting(true);
-    const isServiceInstalled = installedServicesInCluster.includes(serviceName);
+
+    // Route to the cluster-scoped endpoint whenever a cluster already exists.
+    // When a new service (e.g. Ranger Admin/KMS) is being added to an existing
+    // cluster, the service is not yet "installed" but a cluster IS present.
+    // Using the cluster-less POST /requests endpoint in that case produces a
+    // request with clusterID=-1 that the backend ActionScheduler cannot
+    // resolve, leaving it stuck in PENDING forever and blocking all future
+    // requests. Keying off cluster existence (not service install state)
+    // avoids creating the orphaned, cluster-less request.
+    const useClusterScopedAction = Boolean(clusterName) && Boolean(isClusterInstalled);
 
     const params = {
       action: "check_host",
@@ -380,16 +385,23 @@ export default function TestConnection({
       ),
     };
 
+    const targetHost = connectionSourceHosts(resolvedRequiredProperties.values);
+    if (!targetHost) {
+      failConnection(
+        null,
+        "No valid host is available to run the database connection check.",
+      );
+      return;
+    }
+
     const payload = {
       RequestInfo: {
         ...params,
       },
-      "Requests/resource_filters": [
-        { hosts: connectionSourceHosts(resolvedRequiredProperties.values) },
-      ],
+      "Requests/resource_filters": [{ hosts: targetHost }],
     };
 
-    if (isServiceInstalled) {
+    if (useClusterScopedAction) {
       try {
         const response = await ClusterApi.createClusterCustomAction(
           clusterName,

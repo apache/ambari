@@ -306,6 +306,10 @@ export const useHDFSConfigUpdater = () => {
     if (!allServiceModels["hdfs"]) {
       return;
     }
+
+    if (!items || items.length === 0) {
+      return;
+    }
     const isHAEnabled = allServiceModels["hdfs"]?.isNameNodeHaEnabled;
 
     const currentConfig = cloneDeep(allServiceModels["hdfs"]);
@@ -1162,7 +1166,7 @@ export const useHDFSConfigUpdater = () => {
 
   useEffect(() => {
     if (isEmpty(masterSlaveClientsData) && clusterName) {
-      cachedServiceApi.fetchAllServiceComponents(clusterName, true);
+      cachedServiceApi.fetchAllServiceComponents(clusterName);
     }
     findMasterSlaveClientComponents();
   }, [masterSlaveClientsData, clusterName]);

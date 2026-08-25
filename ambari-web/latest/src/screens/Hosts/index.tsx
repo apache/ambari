@@ -57,7 +57,7 @@ export function Hosts() {
     supports,
   } =
     useContext(AppContext);
-  const { allServiceModels: serviceModels } = useContext(ServiceContext);
+  const { allServiceModels: serviceModels, polledHostComponentsData } = useContext(ServiceContext);
   const [allHostModels, setAllHostModels] = useState<IHost[]>([]);
   const { stackVersion, stackVersionList } = useStackVersion();
   const [showHostCheck, setShowHostCheck] = useState(false);
@@ -137,8 +137,18 @@ export function Hosts() {
     }
   }, [params.tab]);
 
+  // Reuse centralized polled data from CachedServiceApi instead of making a separate API call
+  // This eliminates the duplicate /components/ call
   useEffect(() => {
-    if (clusterName && allHostModels.length) {
+    if (polledHostComponentsData?.items) {
+      setClusterComponents(polledHostComponentsData);
+      setClusterLoadError(null);
+      setLoading(false);
+    }
+  }, [polledHostComponentsData]);
+
+  useEffect(() => {
+    if (clusterName && allHostModels.length && clusterRetryCount > 0) {
       void getClusterComponents();
     }
   }, [clusterName, get(allHostModels, "[0].hostComponents", []).length, clusterRetryCount]);

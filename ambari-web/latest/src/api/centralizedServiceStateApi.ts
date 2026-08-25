@@ -21,6 +21,7 @@ import { ambariApi } from "./config/axiosConfig";
 interface ServiceStateData {
   serviceName: string;
   state: string;
+  maintenance_state: string;
   alertsCount: number;
   hasCriticalAlerts: boolean;
 }
@@ -121,12 +122,14 @@ class CentralizedServiceStateApi {
         response.data.items?.forEach((service: any) => {
           const serviceName = service.ServiceInfo.service_name;
           const state = service.ServiceInfo.state;
+          const maintenance_state = service.ServiceInfo.maintenance_state;
 
           const alertData = serviceAlertCounts.get(serviceName) || { alertsCount: 0, hasCriticalAlerts: false };
 
           newCache.set(serviceName, {
             serviceName,
             state,
+            maintenance_state,
             alertsCount: alertData.alertsCount,
             hasCriticalAlerts: alertData.hasCriticalAlerts,
           });
@@ -181,6 +184,16 @@ class CentralizedServiceStateApi {
    */
   private notifySubscribers(): void {
     this.subscribers.forEach(callback => callback(this.cache));
+  }
+
+  /**
+   * Set service state data directly from derived components data.
+   * Allows ServiceContext to populate the cache without a separate /services API call.
+   */
+  setDerivedServiceStates(data: Map<string, ServiceStateData>): void {
+    this.cache = data;
+    this.lastFetchTime = Date.now();
+    this.notifySubscribers();
   }
 
   /**

@@ -171,7 +171,7 @@ const ActionsContent = ({ serviceName, className }: ActionsProps) => {
     backgroundOperations,
     fetchBackgroundOperationsSnapshot,
   } = useContext(AppContext);
-  const { allServiceModels, serviceStatesData } = useContext(ServiceContext);
+  const { allServiceModels, serviceStatesData, applyServiceMaintenanceChange } = useContext(ServiceContext);
 
   // Authorization hooks - implementing Ember.js App.isAuthorized patterns
   const { havePermissions, isAuthorized } = useAuthorizationPolicy();
@@ -1021,6 +1021,9 @@ const ActionsContent = ({ serviceName, className }: ActionsProps) => {
         ...currentState,
         maintenance_state: targetState,
       }));
+      // Update global state (serviceStatesData, allServiceModels, polledHostComponentsData) so
+      // dashboard component icons (passiveState) update immediately on all components
+      applyServiceMaintenanceChange(serviceName, targetState);
       setModalInfo({
         title: `Information`,
         body: `Maintenance Mode has been turned ${lowerCase(
