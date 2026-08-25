@@ -22,13 +22,10 @@ import ServiceComponents from "./ServiceComponents";
 import ServiceMetrics from "./ServiceMetrics";
 import OptimizedServiceQuicklinks from "./OptimizedServiceQuicklinks";
 import HDFSFederationSummary from "./HDFSFederationSummary";
-import { filter, find, get, isNumber, isObject, map } from "lodash";
-import { AlertsApi } from "../../api/alertsApi";
+import { find, isNumber, isObject } from "lodash";
 import { useContext, useEffect, useState } from "react";
-import { AppContext } from "../../store/context";
 import { ServiceContext } from "../../store/ServiceContext";
-import usePolling from "../../hooks/usePolling";
-import { centralizedServiceStateApi } from "../../api/centralizedServiceStateApi";
+import { useAlerts } from "../../store/AlertsContext";
 
 type SummaryProps = {
   serviceName: string;
@@ -37,8 +34,14 @@ type SummaryProps = {
 function ServiceSummary({ serviceName, selectedTab }: SummaryProps) {
   const [alerts, setAlerts] = useState<any>([]);
   const [alertsCount, setAlertsCount] = useState<number>(0);
-  const { clusterName, isClusterInstalled } = useContext(AppContext);
   const { allServiceModels } = useContext(ServiceContext);
+
+  // FOLLOWING EMBERJS PATTERN: Get alert data from useAlerts hook (WebSocket updates)
+  // EmberJS: App.AlertDefinition.find() from Ember Data store
+  // - Loaded once via updateAlertDefinitions() and updateAlertDefinitionSummary()
+  // - Updated via WebSocket /events/alerts
+  // - NO POLLING on service summary page
+  const { alertDefinitions, alertSummary } = useAlerts();
 
   const STATUS_PRIORITY_ORDER = [
     "CRITICAL",
@@ -48,38 +51,39 @@ function ServiceSummary({ serviceName, selectedTab }: SummaryProps) {
     "NONE",
   ];
 
-  async function getAlerts() {
-    const alertDefinitionsFields = `AlertDefinition/component_name,AlertDefinition/description,AlertDefinition/enabled,AlertDefinition/repeat_tolerance,AlertDefinition/repeat_tolerance_enabled,AlertDefinition/id,AlertDefinition/ignore_host,AlertDefinition/interval,AlertDefinition/label,AlertDefinition/name,AlertDefinition/scope,AlertDefinition/service_name,AlertDefinition/source,AlertDefinition/help_url`;
-    const alertDefinitions = await AlertsApi.getAlertDefinition(
-      clusterName,
-      alertDefinitionsFields,
-      Date.now()
+  // REMOVED getAlerts() and polling - using WebSocket data from useAlerts hook
+  // EmberJS pattern: service summary uses App.AlertDefinition.find() from store
+  // which is populated once and updated via WebSocket /events/alerts
+
+  // Process alerts when alertDefinitions or alertSummary changes (from WebSocket)
+  useEffect(() => {
+    if (!alertDefinitions || !alertSummary || !serviceName) {
+      setAlerts([]);
+      return;
+    }
+
+    const allGroupedAlerts = alertSummary?.alerts_summary_grouped || [];
+
+    // Filter alert definitions for this service
+    const alertsForSelectedService = alertDefinitions.filter(
+      (def: any) => def.service_name === serviceName
     );
-    const { items } = alertDefinitions;
 
-    // FIXED: Get ALL alerts (including maintenance mode) to properly display them with maintenance styling
-    const { alerts_summary_grouped: allGroupedAlerts } =
-      await AlertsApi.getGroupFormattedAlertsNotifications(clusterName);
-    
-    const alertsForSelectedService = filter(items, [
-      "AlertDefinition.service_name",
-      serviceName,
-    ]);
-
-    const inferredAlerts = map(alertsForSelectedService, (alert: any) => {
+    // Map definitions to alerts with summary data
+    const inferredAlerts = alertsForSelectedService.map((alert: any) => {
       const matchingAlert = find(allGroupedAlerts, [
         "definition_id",
-        get(alert, "AlertDefinition.id", ""),
+        alert.id,
       ]);
 
       return {
-        label: get(alert, "AlertDefinition.label", ""),
-        name: get(alert, "AlertDefinition.name", ""),
-        description: get(alert, "AlertDefinition.description", ""),
-        id: get(alert, "AlertDefinition.id", ""),
-        component_name: get(alert, "AlertDefinition.component_name", ""),
+        label: alert.label || "",
+        name: alert.name || "",
+        description: alert.description || "",
+        id: alert.id || "",
+        component_name: alert.component_name || "",
         summary: matchingAlert
-          ? matchingAlert?.summary
+          ? matchingAlert.summary
           : {
               NONE: { count: 1, maintenance_count: 0 },
               CRITICAL: { count: 0, maintenance_count: 0 },
@@ -90,59 +94,46 @@ function ServiceSummary({ serviceName, selectedTab }: SummaryProps) {
         highestStatus: "",
       };
     });
+
+    // Determine highest status for each alert
     for (const alert of inferredAlerts) {
       const statuses =
         alert && isObject(alert) && alert.summary
-          ? Object.keys(alert?.summary).map((status: any) => ({
+          ? Object.keys(alert.summary).map((status: any) => ({
               status,
               count: alert.summary[status].count,
               maintenance_count: alert.summary[status].maintenance_count,
             }))
           : [];
-      
-      // FIXED: Determine highest status based on both regular and maintenance alerts
-      // This preserves the actual alert status even when in maintenance mode
+
       let highestStatus = "none";
       const statusOrder = ["critical", "warning", "ok", "unknown"];
-      
+
       for (const priorityStatus of statusOrder) {
-        const statusItem = statuses.find(s => s.status.toLowerCase() === priorityStatus);
-        if (statusItem && (statusItem.count > 0 || statusItem.maintenance_count > 0)) {
+        const statusItem = statuses.find(
+          (s) => s.status.toLowerCase() === priorityStatus
+        );
+        if (
+          statusItem &&
+          (statusItem.count > 0 || statusItem.maintenance_count > 0)
+        ) {
           highestStatus = priorityStatus;
           break;
         }
       }
-      
+
       alert.highestStatus = highestStatus.toUpperCase();
     }
+
+    // Sort by status priority
     const sortedInferredAlerts = STATUS_PRIORITY_ORDER.map((status) => {
       return inferredAlerts.filter(
         (alert: any) => alert.highestStatus === status
       );
     }).flat();
+
     setAlerts(sortedInferredAlerts);
-  }
-  usePolling(getAlerts, 30000);
-  
-  useEffect(() => {
-    if (isClusterInstalled) {
-      setAlertsCount(0);
-      getAlerts();
-    }
-  }, [serviceName, isClusterInstalled]);
-
-  useEffect(() => {
-    if (!clusterName || !serviceName) return;
-
-    const unsubscribe = centralizedServiceStateApi.subscribe((serviceStatesData) => {
-      const serviceStateData = serviceStatesData.get(serviceName);
-      if (serviceStateData) {
-        getAlerts();
-      }
-    });
-
-    return unsubscribe;
-  }, [clusterName, serviceName]);
+  }, [alertDefinitions, alertSummary, serviceName]);
   useEffect(() => {
     if (alerts.length) {
       let inferredAlertsCount = 0;

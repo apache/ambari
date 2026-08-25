@@ -36,12 +36,9 @@ import {
   faMedkit,
 } from "@fortawesome/free-solid-svg-icons";
 import { AppContext } from "../store/context.tsx";
-import { Notifications } from "../screens/Alerts/types";
 import { useLocation, useNavigate } from "react-router-dom";
 import AmbariAboutModal from "../AmbariAboutModal.tsx";
 import "../styles/app.scss";
-import usePolling from "../hooks/usePolling.ts";
-import { AlertsApi } from "../api/alertsApi.ts";
 import {
   classicExperienceUrl,
   redirectToAdminView,
@@ -50,6 +47,7 @@ import modalManager from "../store/ModalManager.ts";
 import BackgroundOperations from "../screens/BackgroundOperations/index.tsx";
 import { useCallback } from "react";
 import { useAuth } from "../hooks/useAuth";
+import { useAlerts } from "../store/AlertsContext";
 import useAuthorizationPolicy from "../hooks/useAuthorizationPolicy";
 import { clusterNavigationEnabled } from "../Utils/authPolicy";
 import { openViewInstance, ViewInstance } from "../Utils/viewUtils";
@@ -85,27 +83,30 @@ export default function NavBar({
   hostname,
   enableDigitalClock,
 }: NavBarProps) {
-  const [notifications, setNotifications] = useState<Notifications[]>([]);
   const [showUserSettingsModal, setShowUserSettingsModal] = useState(false);
-  const [filteredNotifications, setFilteredNotifications] = useState<
-    Notifications[]
-  >([]);
+  const [filteredNotifications, setFilteredNotifications] = useState<any[]>([]);
   const [alertCounts, setAlertCounts] = useState({
     all: 0,
     critical: 0,
     warning: 0,
   });
+
+  // FOLLOWING EMBERJS PATTERN: Get alert data from useAlerts hook (WebSocket updates)
+  // EmberJS: mainAlertDefinitionsController.unhealthyAlertInstancesCount
+  // - Computed from content.@each.summary (App.AlertDefinition.find())
+  // - Updated via WebSocket /events/alerts
+  // - NO POLLING for navbar alerts
+  const { unhealthyAlertInstances } = useAlerts();
+
   const location = useLocation();
   const [selectedFilter, setSelectedFilter] = useState("all");
   const {
     clusterName,
-    cluster,
     serverClock,
     userTimezone,
   } = useContext(AppContext);
   const [showAmbariAboutModal, setShowAmbariAboutModal] = useState(false);
-  
-  const isClusterInstalled = cluster?.provisioning_state === "INSTALLED";
+
   const navigate = useNavigate();
 
   const clusterNavigation = clusterNavigationEnabled(
@@ -113,74 +114,43 @@ export default function NavBar({
     location.pathname,
   );
 
-  const fetchAlerts = async () => {
-    // TLHASD-745: Only fetch alerts if cluster is installed
-    if (!clusterName) {
-      pausePolling(); // Pause polling if clusterName is not available
-      return;
-    } else {
-      resumePolling(); // Resume polling if clusterName is available
-    }
-    
-    if (!isClusterInstalled) {
-      pausePolling(); // Pause polling if cluster is not installed
-      return;
-    }
-    
-    resumePolling(); // Resume polling if clusterName is available and cluster is installed
-    
-    try {
-      const fields =
-        "Alert/component_name,Alert/definition_id,Alert/definition_name,Alert/host_name,Alert/id,Alert/instance,Alert/label,Alert/latest_timestamp,Alert/maintenance_state,Alert/original_timestamp,Alert/scope,Alert/service_name,Alert/state,Alert/text,Alert/repeat_tolerance,Alert/repeat_tolerance_remaining&Alert/state.in(CRITICAL,WARNING)&Alert/maintenance_state.in(OFF)&from=0&page_size=100";
-      const time = Date.now();
-      const data = await AlertsApi.getAlertsNotifications(
-        clusterName,
-        fields,
-        time
-      );
-      setNotifications(data.items);
-      calculateAlertCounts(data.items);
-    } catch (error) {
-      console.error("Error fetching alerts:", error);
-    }
-  };
+  // REMOVED fetchAlerts and polling - using WebSocket data from useAlerts hook
+  // EmberJS pattern: navbar alerts come from mainAlertDefinitionsController computed properties
+  // which are based on alert definitions summary (updated via WebSocket /events/alerts)
 
-  const { stopPolling, pausePolling, resumePolling } = usePolling(
-    fetchAlerts,
-    30000
-  );
-
+  // Update local state when unhealthyAlertInstances changes (from WebSocket)
   useEffect(() => {
-    if (clusterName && isClusterInstalled) {
-      fetchAlerts();
+    if (unhealthyAlertInstances && unhealthyAlertInstances.length > 0) {
+      calculateAlertCounts(unhealthyAlertInstances);
+    } else {
+      setAlertCounts({ all: 0, critical: 0, warning: 0 });
+      setFilteredNotifications([]);
     }
-  }, [clusterName, isClusterInstalled]);
+  }, [unhealthyAlertInstances]);
 
   useEffect(() => {
     filterNotifications();
-  }, [selectedFilter, notifications]);
+  }, [selectedFilter, unhealthyAlertInstances]);
 
-  const calculateAlertCounts = (alerts: Notifications[]) => {
+  const calculateAlertCounts = (alerts: any[]) => {
     const counts = { all: alerts.length, critical: 0, warning: 0 };
     alerts.forEach((alert) => {
-      if (alert.Alert.state === "CRITICAL") counts.critical++;
-      if (alert.Alert.state === "WARNING") counts.warning++;
+      const state = alert.Alert?.state;
+      if (state === "CRITICAL") counts.critical++;
+      if (state === "WARNING") counts.warning++;
     });
     setAlertCounts(counts);
   };
 
-  useEffect(() => {
-    filterNotifications();
-  }, [selectedFilter, notifications]);
-
   const filterNotifications = () => {
+    const alerts = unhealthyAlertInstances || [];
     if (selectedFilter === "all") {
-      setFilteredNotifications(notifications);
+      setFilteredNotifications(alerts);
     } else {
       setFilteredNotifications(
-        notifications.filter(
-          (notification) =>
-            notification.Alert.state === selectedFilter.toUpperCase()
+        alerts.filter(
+          (notification: any) =>
+            notification.Alert?.state === selectedFilter.toUpperCase()
         )
       );
     }
@@ -195,10 +165,10 @@ export default function NavBar({
   const { isAuthorized } = useAuthorizationPolicy();
 
   const handleSignOut = useCallback(async () => {
-    stopPolling();
+    // REMOVED stopPolling() - no longer polling for navbar alerts (using WebSocket)
     await logout();
     navigate("/login", { replace: true });
-  }, [logout, navigate, stopPolling]);
+  }, [logout, navigate]);
 
   const canManageAmbari = isAuthorized(
     "AMBARI.ADD_DELETE_CLUSTERS, AMBARI.ASSIGN_ROLES, AMBARI.EDIT_STACK_REPOS, AMBARI.MANAGE_GROUPS, AMBARI.MANAGE_STACK_VERSIONS, AMBARI.MANAGE_USERS, AMBARI.MANAGE_VIEWS, AMBARI.RENAME_CLUSTER"
