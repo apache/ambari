@@ -37,7 +37,6 @@ import {SortingState} from "@tanstack/react-table";
 import MenuBar from './MenuBar'
 import {formatAlertStatusDisplay} from "./alertStatus";
 import useAuthorizationPolicy from '../../hooks/useAuthorizationPolicy';
-import usePolling from '../../hooks/usePolling';
 
 const DEFAULT_ALERT_SORTING: SortingState = [{ id: 'statuses', desc: true }];
 
@@ -69,7 +68,7 @@ const Alerts = () => {
     const [alertDefinitions, setAlertDefinitions] = useState<AlertDefinition[]>([]);
     const [searchFilters, setSearchFilters] = useState<SearchFilter[]>(initialViewState.searchFilters);
     const [filteredAlerts, setFilteredAlerts] = useState<MergedAlert[]>([]);
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [, setIsModalOpen] = useState(false);
     const [listLoadError, setListLoadError] = useState('');
     const [definitionLoadError, setDefinitionLoadError] = useState('');
     const listRequestId = useRef(0);
@@ -177,11 +176,11 @@ const Alerts = () => {
         }
     }, [clusterName]);
 
-    // Use usePolling hook with pause/resume based on modal state
-    const { pausePolling, resumePolling } = usePolling(fetchData, 30000);
-
+    // Load once on mount - alert data updates are pushed via WebSocket (/events/alerts),
+    // not polled, matching the EmberJS pattern (no independent 30s poll per page).
     useEffect(() => {
         if (clusterName) {
+            fetchData();
             fetchAlertDefinitions();
         }
     }, [clusterName, fetchAlertDefinitions]);
@@ -198,15 +197,6 @@ const Alerts = () => {
             searchFilters,
         }));
     }, [clusterName, searchFilters, sorting]);
-
-    // Control polling based on modal state
-    useEffect(() => {
-        if (isModalOpen) {
-            pausePolling();
-        } else {
-            resumePolling();
-        }
-    }, [isModalOpen, pausePolling, resumePolling]);
 
     // Fetch alert groups when needed
 

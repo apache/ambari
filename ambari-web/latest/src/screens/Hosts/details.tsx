@@ -196,9 +196,6 @@ const hostPassiveModeRequest = async (
 
 const updateHost = (state: string) => {
   infoPassiveState(state);
-  // setTimeout(() => {
-  //   window.location.reload();
-  // }, 2000);
 };
 
 const doStartAllComponents = (context: any) => {

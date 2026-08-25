@@ -28,10 +28,9 @@ import { ActionsApi } from "../../api/actionsApi.ts";
 import BackgroundOperations from "../../screens/BackgroundOperations";
 import modalManager from "../../store/ModalManager.ts";
 import { get, map } from "lodash";
-import { ServiceApi } from "../../api/serviceApi.ts";
 
 const RunAllServiceCheck = () => {
-  const { clusterName, services, cluster } = useContext(AppContext);
+  const { clusterName, services, upgradeIsRunning, upgradeSuspended, serviceCheckSupportedMap } = useContext(AppContext);
   const { allServiceModels } = useContext(ServiceContext);
   const { isAuthorized } = useAuthorizationPolicy();
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -39,13 +38,12 @@ const RunAllServiceCheck = () => {
 
   const canRunServiceCheck = isAuthorized("SERVICE.RUN_SERVICE_CHECK");
 
-  if (!canRunServiceCheck) {
+  // Block during active upgrade (not suspended)
+  const isUpgradeBlocking = upgradeIsRunning && !upgradeSuspended;
+
+  if (!canRunServiceCheck || isUpgradeBlocking) {
     return null;
   }
-
-  const stackInfo = get(cluster, "version", "").split("-");
-  const stackName = stackInfo[0];
-  const stackVersion = stackInfo[1];
 
   const runAllServiceChecks = async () => {
     setIsRunning(true);
@@ -57,28 +55,11 @@ const RunAllServiceCheck = () => {
       // Build array of service check promises to execute in parallel
       const serviceCheckPromises = installedServiceNames.map(async (serviceName) => {
         try {
-          // Check if service supports service check
-          let isServiceCheckSupported = false;
-          try {
-            const response = await ServiceApi.isServiceCheckSupported(
-              clusterName,
-              serviceName,
-              stackName,
-              stackVersion
-            );
-            isServiceCheckSupported = get(
-              response.data,
-              "StackServices.service_check_supported",
-              false
-            );
-          } catch (error) {
-            console.error(`Error checking service check support for ${serviceName}`, error);
-            return null; // Skip this service if we can't determine support
-          }
+          // Use cached service_check_supported from initial stack configs fetch (no per-service API call)
+          const isServiceCheckSupported = serviceCheckSupportedMap[serviceName] || false;
 
           // Skip if service doesn't support service check
           if (!isServiceCheckSupported) {
-            console.log(`Skipping ${serviceName} - service check not supported`);
             return null;
           }
 

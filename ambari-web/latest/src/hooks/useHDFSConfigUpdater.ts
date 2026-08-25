@@ -52,13 +52,12 @@ export const useHDFSConfigUpdater = () => {
   const { configsData } = useHDFSConfigsTags();
 
   // @ts-ignore
-  const { clusterName } = useContext(AppContext);
+  const { clusterName, clockDistance } = useContext(AppContext);
   // @ts-ignore
   const { parsedSocketMessages } = useContext(AppContext);
 
   // @ts-ignore
   const { allServiceModels, updateRegistry } = useContext(ServiceContext);
-  const [serverClockTime, setServerClockTime] = useState<any>();
   //const vdpStackVersion = get(cluster, "version", "").split("-")[1];
   const hasNameNodeHAEnabledUseEffectRunOnce = useRef(false);
   const [isHAEnabledForNamenode, setIsHAEnabledForNamenode] = useState(false);
@@ -143,17 +142,6 @@ export const useHDFSConfigUpdater = () => {
       updateRegistry(allServiceModels);
     }
   };
-  const fetchServerCLockTime = async () => {
-    const fields = "?fields=RootServiceComponents/server_clock";
-    const responseData = await ServiceApi.ambariService(fields);
-    const serverClock = get(
-      responseData,
-      "RootServiceComponents.server_clock",
-      null
-    );
-    setServerClockTime(serverClock);
-  };
-
   function inferNamespace() {
     const hdfsModel = cloneDeep(allServiceModels["hdfs"]);
     const isHAEnabled = hdfsModel?.isNameNodeHaEnabled;
@@ -523,12 +511,6 @@ export const useHDFSConfigUpdater = () => {
   const calclateNamenodeUptime = (startTime: number) => {
     const currentConfig = cloneDeep(allServiceModels["hdfs"]);
     const hdfsServiceObj = currentConfig.getServiceObject();
-    let clientClock = Date.now();
-
-    let serverClock = serverClockTime;
-    serverClock = serverClock.toString();
-    serverClock = serverClock.length < 13 ? serverClock + "000" : serverClock;
-    const clockDistance = serverClock - clientClock;
     const uptime = startTime;
     if (uptime && uptime > 0) {
       const appDateTime = Date.now() + clockDistance;
@@ -1171,7 +1153,6 @@ export const useHDFSConfigUpdater = () => {
       updateHDFSMasterComponents();
       findMasterSlaveClientComponents();
       calcDiskUsagePartandPercent();
-      fetchServerCLockTime();
     }
   }, [polledHostComponentsData]);
 
@@ -1187,7 +1168,6 @@ export const useHDFSConfigUpdater = () => {
   }, [masterSlaveClientsData, clusterName]);
 
   useEffect(() => {
-    fetchServerCLockTime();
     //findMasterSlaveClientComponents();
     updateWorkStatusValues();
   }, []);

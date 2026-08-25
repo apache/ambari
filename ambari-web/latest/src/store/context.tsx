@@ -31,8 +31,9 @@ import { Client } from "@stomp/stompjs";
 import ClusterApi from "../api/clusterApi";
 import { ChooseServicesApi } from "../api/chooseServicesApi";
 import { ServicesApi } from "../api/servicesApi";
-import { get, isEmpty, isUndefined, map, set } from "lodash";
+import { forEach, get, isEmpty, isUndefined, map, set } from "lodash";
 import ConfigsApi from "../api/configsApi";
+import VersionsApi from "../api/versionsApi";
 import { mapStackConfigProperties } from "../Utils/Utility";
 import useAuth from "../hooks/useAuth";
 import { parsePersistedValue, persistedPayload } from "../Utils/persistedSettings";
@@ -117,6 +118,10 @@ interface AppContextProps {
   wizardUser: string;
   isClusterInstalled?: boolean;
   loginName: string;
+  clockDistance: number;
+  serviceCheckSupportedMap: Record<string, boolean>;
+  stackVersion: any;
+  stackVersionList: any[];
 }
 
 type BackgroundRequestPage = {
@@ -189,6 +194,10 @@ export const AppContext = createContext<AppContextProps>({
   wizardUser: "",
   isClusterInstalled: false,
   loginName: "",
+  clockDistance: 0,
+  serviceCheckSupportedMap: {},
+  stackVersion: undefined,
+  stackVersionList: [],
 });
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -243,9 +252,64 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   }));
   const [services, setServices] = useState([]);
   const [stackConfigurations, setStackConfigurations] = useState([]);
+  // Service check supported map - static stack property, loaded once from initial stack configs fetch
+  const [serviceCheckSupportedMap, setServiceCheckSupportedMap] = useState<Record<string, boolean>>({});
+
+  // Stack versions - fetched once at startup, refreshed on /events/upgrade (like Ember's DS.Model store)
+  const [stackVersion, setStackVersion] = useState<any>(undefined);
+  const [stackVersionList, setStackVersionList] = useState<any[]>([]);
+
+  const fetchStackVersionList = async () => {
+    try {
+      const response = await VersionsApi.getServices(clusterName);
+      setStackVersion(response);
+      const items = get(response, "items", []);
+      const list: any[] = [];
+      forEach(items, (item: any) => {
+        const repoVersionId = get(item, "ClusterStackVersions.repository_version");
+        const repoVersion = get(item, "repository_versions", []).find(
+          (repo: any) => get(repo, "RepositoryVersions.id") === repoVersionId
+        )?.RepositoryVersions?.repository_version;
+        list.push({
+          id: get(item, "ClusterStackVersions.id"),
+          cluster_name: get(item, "ClusterStackVersions.cluster_name"),
+          stack: get(item, "ClusterStackVersions.stack"),
+          version: get(item, "ClusterStackVersions.version"),
+          state: get(item, "ClusterStackVersions.state"),
+          displayName: get(item, "repository_versions.[0].RepositoryVersions.display_name"),
+          not_installed_hosts: get(item, "ClusterStackVersions.host_states.NOT_REQUIRED"),
+          installing_hosts: get(item, "ClusterStackVersions.host_states.INSTALLING"),
+          installed_hosts: get(item, "ClusterStackVersions.host_states.INSTALLED"),
+          install_failed_hosts: get(item, "ClusterStackVersions.host_states.INSTALL_FAILED"),
+          out_of_sync_hosts: get(item, "ClusterStackVersions.host_states.OUT_OF_SYNC"),
+          current_hosts: get(item, "ClusterStackVersions.host_states.CURRENT"),
+          supports_revert: get(item, "ClusterStackVersions.supports_revert"),
+          repository_version_id: repoVersionId,
+          repository_version: repoVersion,
+        });
+      });
+      setStackVersionList(list);
+    } catch (error) {
+      console.error("Failed to fetch stack versions:", error);
+    }
+  };
   const [userBgPreferences, setUserBgPreferences] = useState(true);
   const [userTimezone, setUserTimezone] = useState(detectUserTimezone());
   const [allHostNames, setAllHostNames] = useState([]);
+
+  // Clock distance (server - client offset), derived from serverClock (fetched once by
+  // getAmbariProperties) instead of a separate RootServiceComponents/server_clock request.
+  const [clockDistance, setClockDistance] = useState<number>(0);
+
+  useEffect(() => {
+    if (serverClock === null) {
+      return;
+    }
+    const clientClock = Date.now();
+    let serverClockMs = serverClock.toString();
+    serverClockMs = serverClockMs.length < 13 ? serverClockMs + "000" : serverClockMs;
+    setClockDistance(parseInt(serverClockMs, 10) - clientClock);
+  }, [serverClock]);
 
   // Background Operations - persistent cache like Ember.js singleton
   const [backgroundOperations, setBackgroundOperations] = useState<BackgroundRequest[]>([]);
@@ -349,6 +413,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       fetchClusterServices();
       fetchAllHostNames();
       fetchUpgradeStates();
+      fetchStackVersionList();
     } else if (!isUndefined(isClusterInstalled) && !isClusterInstalled) {
       setAppLoaded(true);
     }
@@ -399,6 +464,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         );
         const stackConfigs = mapStackConfigProperties(response);
         setStackConfigurations(stackConfigs);
+
+        // Extract service_check_supported map (static stack property, like Ember's App.services.supportsServiceCheck)
+        const checkSupportedMap: Record<string, boolean> = {};
+        if (response?.items) {
+          response.items.forEach((item: any) => {
+            const svcName = get(item, "StackServices.service_name", "");
+            const supported = get(item, "StackServices.service_check_supported", false);
+            if (svcName) {
+              checkSupportedMap[svcName] = supported;
+            }
+          });
+        }
+        setServiceCheckSupportedMap(checkSupportedMap);
       }
     }
     fetchStackConfigs();
@@ -614,6 +692,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       }
       fetchUpgradeStates();
+      fetchStackVersionList();
     }
 
   }, [parsedSocketMessages]);
@@ -780,6 +859,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         wizardUser,
         isClusterInstalled,
         loginName: loginName || "",
+        clockDistance,
+        serviceCheckSupportedMap,
+        stackVersion,
+        stackVersionList,
       }}
     >
       {children}

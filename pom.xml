@@ -284,6 +284,7 @@
             <exclude>**/hdp_mon_nagios_addons.conf</exclude>
             <exclude>**/*.json</exclude>
             <exclude>**/*.svg</exclude>
+            <exclude>**/*.csv</exclude>
             <exclude>derby.log</exclude>
             <exclude>CHANGES.txt</exclude>
             <exclude>pass.txt</exclude>

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect } from "react";
 import { cloneDeep, find, get, isEmpty, isEqual } from "lodash";
 import { ServiceApi } from "../api/serviceApi";
 import { cachedServiceApi } from "../api/cachedServiceApi";
@@ -38,30 +38,18 @@ export const useHbaseConfigUpdater = () => {
   } = useContext(ServiceContext);
   
   // @ts-ignore
-  const { services, clusterName, parsedSocketMessages } = useContext(AppContext);
-  
+  const { services, clusterName, parsedSocketMessages, clockDistance } = useContext(AppContext);
+
   // Early return if HBASE service is not installed
-  const isHbaseInstalled = services && Array.isArray(services) && 
+  const isHbaseInstalled = services && Array.isArray(services) &&
     services.some((service: any) => service.ServiceInfo.service_name === "HBASE");
-  
+
   if (!isHbaseInstalled) {
     return;
   }
-  
+
   //@ts-ignore
   const { allServiceModels, updateRegistry } = useContext(ServiceContext);
-  const [serverClockTime, setServerClockTime] = useState<any>();
-
-  const fetchServerCLockTime = async () => {
-    const fields = "?fields=RootServiceComponents/server_clock";
-    const responseData = await ServiceApi.ambariService(fields);
-    const serverClock = get(
-      responseData,
-      "RootServiceComponents.server_clock",
-      null
-    );
-    setServerClockTime(serverClock);
-  };
 
   const fetchHbaseMasterSlaveClientsData = async () => {
     let hbaseComponentsData = cachedServiceApi.getServiceComponentData("HBASE");
@@ -246,16 +234,6 @@ export const useHbaseConfigUpdater = () => {
   const calculateHbaseMasterUptime = (startOrActiveTime: number) => {
     const currentConfig = cloneDeep(allServiceModels["hbase"]);
     const hbaseServiceObj = currentConfig?.getServiceObject();
-    let clientClock = Date.now();
-
-    let serverClock = serverClockTime;
-    if (!serverClock) {
-      return null; // Return null if serverClockTime is not available
-    }
-    
-    serverClock = serverClock.toString();
-    serverClock = serverClock.length < 13 ? serverClock + "000" : serverClock;
-    const clockDistance = serverClock - clientClock;
     const uptime = startOrActiveTime;
     if (uptime && uptime > 0) {
       const appDateTime = Date.now() + clockDistance;
@@ -532,7 +510,6 @@ export const useHbaseConfigUpdater = () => {
 
   useEffect(() => {
     updateHbaseHostComponentsData();
-    fetchServerCLockTime();
     findMasterSlaveClientComponents();
     parseAlertsWebSocketMessages();
   }, []);

@@ -26,7 +26,7 @@ const ConfigsApi = {
     verison: string,
     services: string
   ) {
-    const url = `stacks/${stack}/versions/${verison}/services?StackServices/service_name.in(${services})&fields=configurations/*,configurations/dependencies/*,StackServices/config_types/*`;
+    const url = `stacks/${stack}/versions/${verison}/services?StackServices/service_name.in(${services})&fields=configurations/*,configurations/dependencies/*,StackServices/config_types/*,StackServices/service_check_supported`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
