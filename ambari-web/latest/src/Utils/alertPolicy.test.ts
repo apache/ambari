@@ -20,18 +20,24 @@ import { describe, expect, it } from "vitest";
 import { getAlertActionPolicy } from "./alertPolicy";
 
 describe("alert action policy", () => {
-  it("always exposes Groups and Settings while keeping independent gates", () => {
-    expect(getAlertActionPolicy(false, false)).toEqual({
+  it("requires alert mutation authorization independently from notifications", () => {
+    expect(getAlertActionPolicy(false, false, false)).toEqual({
       create: false,
-      groups: true,
+      groups: false,
       notifications: false,
-      settings: true,
+      settings: false,
     });
-    expect(getAlertActionPolicy(true, true)).toEqual({
+    expect(getAlertActionPolicy(true, true, true)).toEqual({
       create: true,
       groups: true,
       notifications: true,
       settings: true,
+    });
+    expect(getAlertActionPolicy(true, false, true)).toEqual({
+      create: false,
+      groups: false,
+      notifications: true,
+      settings: false,
     });
   });
 });

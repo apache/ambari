@@ -16,40 +16,71 @@
  * limitations under the License.
  */
 
-import { cloneDeep, get, set } from "lodash";
-import { useEffect, useState } from "react";
-import {Card, Form } from "react-bootstrap";
+import { cloneDeep, get } from "lodash";
+import {
+  ChangeEvent,
+  Dispatch,
+  SetStateAction,
+  useEffect,
+  useState,
+} from "react";
+import { Card, Form } from "react-bootstrap";
+import { ConfigPropertiesType } from "../../CommonConfigs/types";
 import { CredentialConfigType } from "../types/step7Types";
 import { isValidUserName } from "../utils";
 import TooltipInput from "../../../components/TooltipInput";
 
 interface CredentialsTabProps {
-  themes: Object;
-  configs: Object;
-  setIsNextEnabled:Function;
+  themes: object;
+  configs: object;
+  configProperties: ConfigPropertiesType;
+  setConfigProperties: Dispatch<SetStateAction<ConfigPropertiesType>>;
+  setIsNextEnabled: (enabled: boolean) => void;
 }
 export default function CredentialsTab({
   themes,
   configs,
-  setIsNextEnabled
+  configProperties,
+  setConfigProperties,
+  setIsNextEnabled,
 }: CredentialsTabProps) {
   const [allCredentials, setAllCredentials] = useState<CredentialConfigType[]>(
-    []
+    () => processDataForCredentialsTab(configs, themes, configProperties)
   );
 
   useEffect(() => {
-    setAllCredentials(processDataForCredentialsTab(configs, themes));
-  }, [themes, configs]);
-
-  const updateConfig = (key: string, value: string, config: any) => {
-    let newConfig = { ...config };
-    set(newConfig, key, value);
     setAllCredentials(
-      allCredentials.map((c) => (c === config ? newConfig : c))
+      processDataForCredentialsTab(configs, themes, configProperties)
+    );
+  }, [themes, configs, configProperties]);
+
+  const updateConfig = (
+    propertyType: CredentialPropertyType,
+    value: string,
+    config: CredentialConfigType
+  ) => {
+    const newConfig = cloneDeep(config);
+    newConfig[propertyType].property_value = value;
+    setAllCredentials((credentials) =>
+      credentials.map((credential) =>
+        credential === config ? newConfig : credential
+      )
+    );
+
+    const targetProperty = config[propertyType] as StackCredentialProperty;
+    const targetField =
+      propertyType === "confirmPasswordProperty" ? "confirmPassword" : "value";
+    setConfigProperties((current) =>
+      updateCredentialConfigProperty(
+        current,
+        targetProperty,
+        targetField,
+        value
+      )
     );
   };
 
-  const isValidPassword = (config: Object) => {
+  const isValidPassword = (config: object) => {
     return (
       get(config, "passwordProperty.property_value", "").length > 0 &&
       get(config, "passwordProperty.property_value", "") ===
@@ -57,25 +88,21 @@ export default function CredentialsTab({
     );
   };
 
-  useEffect(()=>{
-    const allCredentialsValid=allCredentials.every((config) => {
+  useEffect(() => {
+    const allCredentialsValid = allCredentials.every((config) => {
       return (
         (get(config, "usernameProperty")
           ? isValidUserName(get(config, "usernameProperty.property_value", ""))
           : true) && isValidPassword(config)
       );
     });
-    console.log("All Credentials Valid",allCredentialsValid)
-    if(allCredentialsValid){
-      setIsNextEnabled(true);
-    }
-    else{
-      setIsNextEnabled(false);
-    }
-  },[allCredentials])
+    setIsNextEnabled(allCredentialsValid);
+  }, [allCredentials, setIsNextEnabled]);
 
-
-  const getTooltipInput = (config: any, propertyType: string) => {
+  const getTooltipInput = (
+    config: CredentialConfigType,
+    propertyType: CredentialPropertyType
+  ) => {
     const property_display_name = get(
       config,
       propertyType + ".property_display_name",
@@ -113,10 +140,17 @@ export default function CredentialsTab({
     const formControlProps = {
       type: isPasswordProperty ? "password" : "text",
       value: property_value,
-      onChange: (e: any) =>
-        updateConfig(propertyType + ".property_value", e.target.value, config),
+      onChange: (e: ChangeEvent<HTMLInputElement>) =>
+        updateConfig(propertyType, e.target.value, config),
       className: isInputValid ? "" : "border-danger",
       placeholder: propertyType === "passwordProperty" ? "Type password" : "",
+      "aria-label": `${get(config, "display-name", "Credentials")} ${
+        propertyType === "usernameProperty"
+          ? "Username"
+          : propertyType === "passwordProperty"
+            ? "Password"
+            : "Confirm Password"
+      }`,
     };
 
     return (
@@ -179,10 +213,11 @@ export default function CredentialsTab({
 }
 
 export const processDataForCredentialsTab = (
-  configsData: Object,
-  themesData: Object
+  configsData: object,
+  themesData: object,
+  configProperties: ConfigPropertiesType = {}
 ) => {
-  let allConfigs: any[] = [];
+  const allConfigs: any[] = [];
   get(configsData, "items", []).forEach((item) => {
     get(item, "configurations", []).forEach((configuration) => {
       allConfigs.push(get(configuration, "StackConfigurations", {}));
@@ -191,13 +226,14 @@ export const processDataForCredentialsTab = (
 
   let tempCredentials: CredentialConfigType[] = [];
   get(themesData, "items", []).forEach((item) => {
+    const themeServiceName = get(item, "StackServices.service_name", "");
     get(item, "themes", [])
       .filter(
         (theme) =>
           get(theme, "ThemeInfo.theme_data.Theme.name") === "credentials"
       )
       .forEach((theme) => {
-        let currCredLayout: CredentialConfigType[] = [];
+        const currCredLayout: CredentialConfigType[] = [];
 
         get(
           theme,
@@ -208,7 +244,7 @@ export const processDataForCredentialsTab = (
             get(tab, "layout.sections", []).forEach((section) => {
               get(section, "subsections", []).forEach((subsection: any) => {
                 if (subsection) {
-                  currCredLayout.push(subsection);
+                  currCredLayout.push(cloneDeep(subsection));
                 }
               });
             });
@@ -228,10 +264,24 @@ export const processDataForCredentialsTab = (
             ).split("/");
             const configMatchingProperty = allConfigs.find(
               (c) =>
-                get(c, "type", "").startsWith(propertyType) &&
-                get(c, "property_name", "") === propertyName
+                normalizeConfigType(get(c, "type", "")) ===
+                  normalizeConfigType(propertyType) &&
+                get(c, "property_name", "") === propertyName &&
+                (!themeServiceName ||
+                  get(c, "service_name", "") === themeServiceName)
             );
             if (configMatchingProperty) {
+              const canonicalProperty = findCanonicalConfigProperty(
+                configProperties,
+                configMatchingProperty
+              );
+              const credentialProperty = {
+                ...cloneDeep(configMatchingProperty),
+                property_value:
+                  canonicalProperty?.value ??
+                  configMatchingProperty.property_value ??
+                  "",
+              };
               currCredLayout.forEach((section) => {
                 if (
                   get(section, "name", "") ===
@@ -239,19 +289,20 @@ export const processDataForCredentialsTab = (
                 ) {
                   if (
                     get(
-                      configMatchingProperty,
+                      credentialProperty,
                       "property_value_attributes.type",
                       ""
                     ) === "password"
                   ) {
-                    set(section, "passwordProperty", configMatchingProperty);
-                    set(
-                      section,
-                      "confirmPasswordProperty",
-                      cloneDeep(configMatchingProperty)
-                    );
+                    section.passwordProperty = credentialProperty;
+                    section.confirmPasswordProperty = {
+                      ...cloneDeep(credentialProperty),
+                      property_value:
+                        canonicalProperty?.confirmPassword ??
+                        credentialProperty.property_value,
+                    };
                   } else {
-                    set(section, "usernameProperty", configMatchingProperty);
+                    section.usernameProperty = credentialProperty;
                   }
                 }
               });
@@ -263,4 +314,63 @@ export const processDataForCredentialsTab = (
       });
   });
   return tempCredentials;
+};
+
+type CredentialPropertyType =
+  | "usernameProperty"
+  | "passwordProperty"
+  | "confirmPasswordProperty";
+
+type CredentialStateField = "value" | "confirmPassword";
+
+type StackCredentialProperty = {
+  property_name?: string;
+  service_name?: string;
+  type?: string;
+  [key: string]: unknown;
+};
+
+const normalizeConfigType = (configType: string) =>
+  configType.endsWith(".xml") ? configType.slice(0, -4) : configType;
+
+const findCanonicalConfigProperty = (
+  configProperties: ConfigPropertiesType,
+  credentialProperty: StackCredentialProperty
+) => {
+  const serviceName = get(credentialProperty, "service_name", "");
+  const propertyName = get(credentialProperty, "property_name", "");
+  const configType = normalizeConfigType(get(credentialProperty, "type", ""));
+
+  for (const service of Object.values(configProperties)) {
+    for (const category of Object.values(service)) {
+      for (const property of Object.values(category.properties || {})) {
+        if (
+          property.propertyName === propertyName &&
+          property.serviceName === serviceName &&
+          normalizeConfigType(property.type || property.fileName || "") ===
+            configType
+        ) {
+          return property;
+        }
+      }
+    }
+  }
+  return undefined;
+};
+
+const updateCredentialConfigProperty = (
+  configProperties: ConfigPropertiesType,
+  credentialProperty: StackCredentialProperty,
+  field: CredentialStateField,
+  value: string
+) => {
+  const updatedConfigProperties = cloneDeep(configProperties);
+  const property = findCanonicalConfigProperty(
+    updatedConfigProperties,
+    credentialProperty
+  );
+  if (property) {
+    property[field] = value;
+  }
+  return updatedConfigProperties;
 };

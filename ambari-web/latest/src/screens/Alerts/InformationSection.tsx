@@ -34,7 +34,7 @@ import ClusterApi from "../../api/clusterApi";
 import { ambariApi } from "../../api/config/axiosConfig";
 import { AppContext } from "../../store/context";
 import { useParams } from "react-router-dom";
-import { useAuth } from "../../hooks/useAuth";
+import useAuthorizationPolicy from "../../hooks/useAuthorizationPolicy";
 import { validateRepeatTolerance } from '../../Utils/alertDefinitions';
 
 const InformationSection = ({
@@ -44,8 +44,7 @@ const InformationSection = ({
   alertDefinition: MergedAlert;
   onAlertDefinitionUpdate?: (updatedDefinition: Partial<MergedAlert>) => void;
 }) => {
-  const { clusterName, upgradeIsRunning, upgradeSuspended } =
-    useContext(AppContext);
+  const { clusterName } = useContext(AppContext);
   const params = useParams<{ alertId?: string }>();
   const [showToleranceModal, setShowToleranceModal] = useState(false);
   const [toleranceValue, setToleranceValue] = useState<string>(
@@ -62,13 +61,10 @@ const InformationSection = ({
     useState<string>("1");
 
   // Authorization hooks - implementing Ember.js alert authorization patterns
-  const { hasAuthorization } = useAuth();
+  const { isAuthorized } = useAuthorizationPolicy();
 
   // Check specific authorizations for alert operations
-  const canToggleAlerts = hasAuthorization("SERVICE.TOGGLE_ALERTS");
-
-  // Check if upgrade is blocking operations (running but not suspended)
-  const isUpgradeBlocking = upgradeIsRunning && !upgradeSuspended;
+  const canToggleAlerts = isAuthorized("SERVICE.TOGGLE_ALERTS");
 
   // Cache for global repeat tolerance to avoid repeated API calls
   const globalRepeatToleranceCache = React.useRef<{
@@ -310,7 +306,7 @@ const InformationSection = ({
     return (
       <>
         {/* Only show toggle functionality if user has SERVICE.TOGGLE_ALERTS permission and upgrade is not blocking */}
-        {canToggleAlerts && !isUpgradeBlocking ? (
+        {canToggleAlerts ? (
           <div className="custom-link" onClick={handleToggleState}>
             <FontAwesomeIcon
               className={`ml-1 ${isUpdating ? "text-muted" : ""}`}
@@ -429,7 +425,7 @@ const InformationSection = ({
                   </span>
                 )}
                 {/* Only show edit pencil icon if user has SERVICE.TOGGLE_ALERTS permission and upgrade is not blocking */}
-                {canToggleAlerts && !isUpgradeBlocking && (
+                {canToggleAlerts && (
                   <Link
                     to="#"
                     className="custom-link"

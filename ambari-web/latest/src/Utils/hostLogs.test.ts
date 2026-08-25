@@ -21,6 +21,7 @@ import {
   buildLogSearchUrl,
   hostLogsToText,
   mapHostLogEntries,
+  mapHostLogLevelCounts,
   mapHostLogRows,
   mergeHostLogEntries,
   openTextInNewWindow,
@@ -71,6 +72,40 @@ describe("host logs mapping", () => {
 
     expect(merged.map((row) => row.id)).toEqual([1, 2, 3]);
     expect(hostLogsToText(merged)).toContain("ERROR updated");
+  });
+
+  it("aggregates server log-level counts by service without synthetic data", () => {
+    const rows = mapHostLogLevelCounts({
+      host_components: [
+        {
+          HostRoles: { service_name: "HDFS" },
+          logging: {
+            log_level_counts: [
+              { name: "ERROR", value: "3" },
+              { name: "WARN", value: "4" },
+            ],
+          },
+        },
+        {
+          HostRoles: { service_name: "HDFS" },
+          logging: { log_level_counts: [{ name: "ERROR", value: "2" }] },
+        },
+        {
+          HostRoles: { service_name: "YARN" },
+          logging: { logs: [] },
+        },
+      ],
+    }, { HDFS: "HDFS Display" });
+
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toMatchObject({
+      available: true,
+      serviceDisplayName: "HDFS Display",
+      serviceName: "HDFS",
+    });
+    expect(rows[0].counts.ERROR).toBe(5);
+    expect(rows[0].counts.WARNING).toBe(4);
+    expect(rows[1]).toMatchObject({ available: false, serviceName: "YARN" });
   });
 
   it("opens loaded text through textContent instead of document.write", () => {

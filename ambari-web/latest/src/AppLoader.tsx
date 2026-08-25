@@ -22,6 +22,7 @@ import { Alert, Button, ProgressBar } from "react-bootstrap";
 import { AppContext, AppProvider } from "./store/context";
 import { ModalProvider } from "./store/ModalContext";
 import { useAuth } from "./hooks/useAuth";
+import useAuthorizationPolicy from "./hooks/useAuthorizationPolicy";
 import usePolling from "./hooks/usePolling";
 import ClusterApi from "./api/clusterApi";
 import { toBePreservedPaths } from "./constants";
@@ -34,7 +35,11 @@ import CustomModal from "./store/CustomModal";
 import DocumentTitleUpdater from "./components/DocumentTitleUpdater";
 import InactivityTimeout from "./InactivityTimeout";
 import LoginMessageModal from "./screens/Authentication/LoginMessageModal";
-import { isViewOnlyUser, selectLandingPath } from "./Utils/authPolicy";
+import {
+  clusterProvisioningRedirect,
+  isViewOnlyUser,
+  selectLandingPath,
+} from "./Utils/authPolicy";
 
 export function AuthenticatedApplication() {
   const {
@@ -113,18 +118,29 @@ export function LandingRoute() {
   const { cluster, isClusterInstalled } = useContext(AppContext);
   const { authorizations } = useAuth();
   const preferredPath = consumePreferredPath();
-  return <Navigate to={selectLandingPath({
+  const landingPath = selectLandingPath({
     clusterInstalled: Boolean(isClusterInstalled),
     clusterName: cluster?.cluster_name,
     preferredPath,
     viewOnly: isViewOnlyUser(authorizations),
-  })} replace />;
+  });
+  return (
+    <Navigate
+      to={landingPath}
+      replace
+      state={landingPath === "/adminView" ? { noClusterLanding: true } : undefined}
+    />
+  );
 }
 
 export function RouteTracker() {
   const { cluster, isClusterInstalled } = useContext(AppContext);
+  const { hasAuthorization } = useAuth();
+  const { isAuthorized } = useAuthorizationPolicy();
   const location = useLocation();
   const navigate = useNavigate();
+  const canAddDeleteClusters = hasAuthorization("AMBARI.ADD_DELETE_CLUSTERS");
+  const canPersistRoute = isAuthorized("CLUSTER.MANAGE_USER_PERSISTED_DATA");
 
   useEffect(() => {
     const currentPath = normalizeInternalPath(`${location.pathname}${location.search}`);
@@ -133,22 +149,31 @@ export function RouteTracker() {
     }
 
     savePreferredPath(currentPath);
-    if (Object.keys(toBePreservedPaths).some((path) => location.pathname.includes(path))) {
+    if (
+      canPersistRoute
+      && Object.keys(toBePreservedPaths).some((path) => location.pathname.includes(path))
+    ) {
       void ClusterApi.postPersistData({ USER_REDIRECTION_URL: currentPath });
     }
-  }, [location.pathname, location.search]);
+  }, [canPersistRoute, location.pathname, location.search]);
 
   useEffect(() => {
-    if (isClusterInstalled && location.pathname.startsWith("/installer")) {
-      navigate("/main/dashboard/metrics", { replace: true });
-    } else if (
-      cluster?.cluster_name
-      && !isClusterInstalled
-      && location.pathname.startsWith("/main")
-    ) {
-      navigate("/installer/step0", { replace: true });
+    const redirect = clusterProvisioningRedirect({
+      canAddDeleteClusters,
+      clusterInstalled: isClusterInstalled,
+      clusterName: cluster?.cluster_name,
+      pathname: location.pathname,
+    });
+    if (redirect) {
+      navigate(redirect, { replace: true });
     }
-  }, [cluster?.cluster_name, isClusterInstalled, location.pathname, navigate]);
+  }, [
+    canAddDeleteClusters,
+    cluster?.cluster_name,
+    isClusterInstalled,
+    location.pathname,
+    navigate,
+  ]);
 
   return null;
 }

@@ -16,20 +16,31 @@
  * limitations under the License.
  */
 
+import { useContext } from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { isViewOnlyUser } from "../Utils/authPolicy";
+import {
+  isViewOnlyUser,
+  shouldUseMinimalViewsShell,
+} from "../Utils/authPolicy";
 import { useAuth } from "../hooks/useAuth";
 import DashboardLayout from "./Dashboard";
 import ViewsLayout from "./Views";
+import { ViewInstancesProvider } from "../screens/Views/ViewInstancesContext";
+import { AppContext } from "../store/context";
 
 export default function MainLayout() {
   const { authorizations } = useAuth();
+  const { isClusterInstalled } = useContext(AppContext);
   const location = useLocation();
-  if (!isViewOnlyUser(authorizations)) {
-    return <DashboardLayout />;
-  }
-  if (!location.pathname.startsWith("/main/view")) {
+  const viewOnly = isViewOnlyUser(authorizations);
+  const viewRoute = location.pathname.startsWith("/main/view");
+  if (viewOnly && !viewRoute) {
     return <Navigate to="/main/view" replace />;
   }
-  return <ViewsLayout />;
+  const Layout = shouldUseMinimalViewsShell({
+    clusterInstalled: isClusterInstalled,
+    viewOnly,
+    viewRoute,
+  }) ? ViewsLayout : DashboardLayout;
+  return <ViewInstancesProvider><Layout /></ViewInstancesProvider>;
 }

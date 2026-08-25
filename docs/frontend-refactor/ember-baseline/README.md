@@ -28,7 +28,7 @@ This document set describes the non-Metrics user features and backend APIs of `a
 | Legacy frontend | `ambari-web/classic`, early Ember `Em.Router/Em.Route` architecture |
 | React comparison project | `ambari-web/latest` |
 | REST default prefix | `/api/v1` |
-| Static baseline size | 288 non-Metrics named AJAX definitions, 394 included call sites (27 dynamic, 3 unregistered), 19 direct HTTP call sites, 56 browser network candidates, 5 client-config downloads, 160 route fragments, 299 template actions, and 1002 stable feature IDs |
+| Static baseline size | 288 non-Metrics named AJAX definitions, 394 included call sites (27 dynamic, 3 unregistered), 19 direct HTTP call sites, 56 browser network candidates, 5 client-config downloads, 160 route fragments, 299 template actions, and 1154 stable feature IDs |
 
 The commit is the analysis starting point and does not restrict the documents to that commit. Rerun the extractor and review generated differences after changes to the legacy frontend.
 
@@ -68,8 +68,9 @@ Note: HA prerequisite checks may read `metrics/...` fields, such as the NameNode
 | [11-federation-hawq.md](11-federation-hawq.md) | NameNode/Router Federation and the HAWQ Standby long workflow |
 | [12-views.md](12-views.md) | Views list, long and short URLs, iframe, View-only users, and Admin View navigation |
 | [13-permissions-flags.md](13-permissions-flags.md) | Unified index of permissions, feature flags, and service/stack/component/status conditions |
-| [14-react-gap-matrix.md](14-react-gap-matrix.md) | Statuses, scenarios, and review gates for later React comparison |
-| [15-five-pass-audit.md](15-five-pass-audit.md) | Inputs, findings, corrections, and remaining risks from the five-pass reverse audit |
+| [14-service-theme-layout.md](14-service-theme-layout.md) | Extensible Service Theme API/model, layout, Widgets, conditions, consumers, fallback, and executable React/server test contract |
+| [15-react-gap-matrix.md](15-react-gap-matrix.md) | Statuses, scenarios, and review gates for later React comparison |
+| [16-five-pass-audit.md](16-five-pass-audit.md) | Inputs, findings, corrections, and remaining risks from the five-pass reverse audit and Service Theme extension audit |
 | [api/README.md](api/README.md) | API catalog entry point, calling conventions, and common payload semantics |
 
 ## Generated Evidence Catalog

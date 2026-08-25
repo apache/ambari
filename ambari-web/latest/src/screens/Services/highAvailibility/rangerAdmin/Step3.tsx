@@ -16,302 +16,258 @@
  * limitations under the License.
  */
 
-import { filter, find, get, has, isEmpty, map } from "lodash";
-import { useContext, useEffect, useRef, useState } from "react";
-import { AppContext } from "../../../../store/context";
-import { wizardConfigs } from "./wizardConstants";
-import ConfigsApi from "../../../../api/configsApi";
-import { allServiceProperties, getStepData } from "../../../../Utils/Utility";
-import { enableRangerAdminSteps } from "./wizardSteps";
-import { EnableHighAvailibilityRangerAdminContext } from "./store/context";
-import { Accordion, Alert, Card, Col, Form, Row, Stack } from "react-bootstrap";
-import { faPlus } from "@fortawesome/free-solid-svg-icons";
+import { useContext, useEffect, useState } from "react";
+import {
+  Accordion,
+  Alert,
+  Button,
+  Card,
+  Col,
+  Form,
+  Row,
+  Stack,
+} from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPlus } from "@fortawesome/free-solid-svg-icons";
+import { get, map } from "lodash";
+import { AppContext } from "../../../../store/context";
+import ConfigsApi from "../../../../api/configsApi";
 import Center from "../../../../components/Center";
 import Spinner from "../../../../components/Spinner";
 import WizardFooter from "../../../../components/StepWizard/WizardFooter";
+import { getStepData } from "../../../../Utils/Utility";
 import { ActionTypes } from "./store/types";
+import { EnableHighAvailibilityRangerAdminContext } from "./store/context";
+import { enableRangerAdminSteps } from "./wizardSteps";
+import {
+  buildRangerAdminPreview,
+  getRangerAdminHosts,
+  RangerAdminPreviewCategory,
+  RangerAdminPreviewProperty,
+  validateRangerAdminAssignments,
+} from "./rangerAdminHaUtils";
 
 function Step3() {
-  const configs = useRef<any>([]);
-  const configCategories = useRef<any>([]);
-  const [serverConfigs, setServerConfigs] = useState([]);
   const { services, cluster } = useContext(AppContext);
   const selectedServices = map(services, "ServiceInfo.service_name");
-  const stack = get(cluster, "version", "").split("-")[0];
-  const version = get(cluster, "version", "").split("-")[1];
-  const [configsState, setConfigsState] = useState([]);
-  const [configCategoriesState, setConfigCategoriesState] = useState([]);
-
+  const selectedServicesKey = selectedServices.join(",");
+  const stackId = String(get(cluster, "version", ""));
+  const stack = get(cluster, "stack", "") || stackId.split("-")[0];
+  const version =
+    get(cluster, "versionNum", "") || stackId.split("-").slice(1).join("-");
   const {
     state,
     dispatch,
     flushStateToDb,
     stepWizardUtilities: { currentStep, handleNextImperitive, jumpToStep },
   } = useContext(EnableHighAvailibilityRangerAdminContext);
+  const [categories, setCategories] = useState<RangerAdminPreviewCategory[]>([]);
+  const [properties, setProperties] = useState<RangerAdminPreviewProperty[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const [retryCount, setRetryCount] = useState(0);
 
-  const [selectedService, setSelectedService] = useState({});
+  const loadBalancerUrl = getStepData(
+    state,
+    enableRangerAdminSteps.GET_STARTED,
+    "loadBalancerUrl",
+    "enableHighAvailibilityRangerAdminSteps",
+  );
+  const assignments = getStepData(
+    state,
+    enableRangerAdminSteps.SELECT_HOSTS,
+    "masterComponentHosts",
+    "enableHighAvailibilityRangerAdminSteps",
+  );
+  const assignmentErrors = validateRangerAdminAssignments(
+    Array.isArray(assignments) ? assignments : [],
+  );
+  const rangerAdminHosts = getRangerAdminHosts(
+    Array.isArray(assignments) ? assignments : [],
+  );
 
-  function getServiceForProperty(propertyName: string, siteName: string) {
-    let serviceObj: any = {};
-    for (const config of serverConfigs) {
-      const serviceConfigs = get(config, "configurations");
-      const matchingConfig = find(serviceConfigs, function (conf) {
-        return (
-          get(conf, "StackConfigurations.property_name") === propertyName &&
-          get(conf, "StackConfigurations.type", "")?.split(".")?.[0] ===
-            siteName
-        );
-      });
-      if (matchingConfig) {
-        serviceObj.service = get(config, "StackServices", {});
-        serviceObj.config = get(matchingConfig, "StackConfigurations", {});
-        break;
-      }
-    }
-    return serviceObj;
-  }
-  console.log("State is", state);
   useEffect(() => {
-    if (configs.current.length) {
-      setConfigsState(configs.current);
-    }
-    if (configCategories.current.length) {
-      setConfigCategoriesState(configCategories.current);
-      setSelectedService(configCategories.current[0].name);
-    }
-  }, [configCategories.current.length, configs.current.length]);
-  useEffect(() => {
-    function getConfigsAndCategories() {
-      wizardConfigs.forEach((config: any) => {
-        const { service, config: serviceConfig } = getServiceForProperty(
-          config.propertyName,
-          config.siteName
-        );
-        if (!isEmpty(service)) {
-          const serviceName = get(service, "service_name", "");
-          const serviceDisplayName = get(service, "display_name", "");
-          if (selectedServices.includes(serviceName)) {
-            const property = {
-              id: `${config.propertyName}__${
-                serviceConfig.type?.split(".")?.[0]
-              }`,
-              name: serviceConfig.property_name,
-              displayName: serviceConfig.property_display_name,
-              fileName: serviceConfig.type,
-              filename: serviceConfig.type,
-              description: serviceConfig.property_description,
-              value: serviceConfig.property_value,
-              recommendedValue: "",
-              serviceName: serviceName,
-              stackName: stack,
-              stackVersion: version,
-              isOverridable: get(
-                serviceConfig,
-                "property_value_attributes.overridable",
-                false
-              ),
-              displayType: get(
-                serviceConfig,
-                "property_value_attributes.type",
-                "string"
-              ),
-              isRequired: true,
-              isReconfigurable: true,
-              isEditable: true,
-              isFinal: serviceConfig.final,
-              propertyDependsOn: serviceConfig.property_depends_on,
-              valueAttributes: serviceConfig.property_value_attributes,
-              category: find(allServiceProperties, [
-                "name",
-                config.propertyName,
-              ])?.category,
-            };
-            if (!find(configCategories.current, ["name", serviceName])) {
-              configCategories.current.push({
-                name: serviceName,
-                displayName: serviceDisplayName,
-              });
-            }
-            if (!find(configs.current, ["name", property.name])) {
-              configs.current.push({
-                ...property,
-                category: serviceName,
-                value: getStepData(
-                  state,
-                  enableRangerAdminSteps.GET_STARTED,
-                  "loadBalancerUrl",
-                  "enableHighAvailibilityRangerAdminSteps"
-                ),
-                isEditable: false,
-              });
-            }
-          }
+    let active = true;
+    async function loadPreview() {
+      setIsLoading(true);
+      setLoadError("");
+      try {
+        if (!stack || !version) {
+          throw new Error("The current stack version is unavailable.");
         }
-      });
-    }
-    if (serverConfigs.length) {
-      getConfigsAndCategories();
-    }
-  }, [serverConfigs]);
-  useEffect(() => {
-    async function getServerConfigs() {
-      const allServicesConfigs = await ConfigsApi.getConfigProperties(
-        stack,
-        version,
-        selectedServices.join(",")
-      );
-      setServerConfigs(allServicesConfigs?.items);
-    }
-    getServerConfigs();
-  }, []);
-  function getMastersInfo() {
-    const step2Data = getStepData(
-      state,
-      "SELECT_HOSTS",
-      "masterComponentHosts",
-      "enableHighAvailibilityRangerAdminSteps"
-    );
-    for (let masterComponent of step2Data) {
-      if (!has(masterComponent, "serviceId") || !masterComponent.serviceId) {
-        //@ts-ignore
-        masterComponent.serviceId = "RANGER";
+        const response = await ConfigsApi.getConfigProperties(
+          stack,
+          version,
+          selectedServicesKey,
+        );
+        const preview = buildRangerAdminPreview(
+          response?.items || [],
+          selectedServicesKey.split(",").filter(Boolean),
+          String(loadBalancerUrl || ""),
+        );
+        if (!preview.properties.length) {
+          throw new Error(
+            "No Ranger Admin HA configuration properties are available for the installed services.",
+          );
+        }
+        if (active) {
+          setCategories(preview.categories);
+          setProperties(preview.properties);
+        }
+      } catch (error: unknown) {
+        const requestError = error as {
+          message?: string;
+          response?: { data?: { message?: string } };
+        };
+        if (active) {
+          setLoadError(
+            requestError.response?.data?.message ||
+              requestError.message ||
+              "Unable to load Ranger Admin HA configuration properties.",
+          );
+        }
+      } finally {
+        if (active) setIsLoading(false);
       }
-      if (!has(masterComponent, "hostName") || !masterComponent.hostName) {
-        masterComponent.hostName = masterComponent.selectedHost;
-        masterComponent.component = masterComponent.component_name;
-      }
     }
-    const currentRangerAdmin = find(
-      filter(step2Data, ["component", "RANGER_ADMIN"]),
-      ["isInstalled", true]
-    ).hostName;
-    const addRangerAdmin = find(
-      filter(step2Data, ["component", "RANGER_ADMIN"]),
-      ["isInstalled", false]
-    ).hostName;
-
-    return {
-      currentRangerAdmin,
-      addRangerAdmin,
+    void loadPreview();
+    return () => {
+      active = false;
     };
-  }
+  }, [stack, version, selectedServicesKey, loadBalancerUrl, retryCount]);
 
   return (
     <>
       <div className="step-title">Review</div>
-      <div className="step-description my-2">Confirm your host selections.</div>
+      <div className="step-description my-2">
+        Confirm the Ranger Admin hosts and load balancer configuration.
+      </div>
       <Card>
         <Card.Body>
           <div className="bg-light-subtle border p-3">
             <Row>
-              <Col md={4}>
-                <b className="fw-bolder">Current Ranger Admin:</b>
+              <Col md={4} className="fw-bold">
+                Current Ranger Admin:
               </Col>
-              <Col>{getMastersInfo().currentRangerAdmin}</Col>
+              <Col>{rangerAdminHosts.currentHosts.join(", ")}</Col>
             </Row>
             <Row className="mt-3">
-              <Col md={4}>
-                <b className="fw-bolder">Additional Ranger Admin:</b>
+              <Col md={4} className="fw-bold">
+                Additional Ranger Admins:
               </Col>
               <Col>
-                <Stack direction="horizontal">
-                  {getMastersInfo().addRangerAdmin}
-                  <Stack direction="horizontal" className="ms-2">
-                    <FontAwesomeIcon icon={faPlus} className="text-success" />
-                    <div className="text-success">TO BE INSTALLED</div>
-                  </Stack>
+                <Stack gap={2}>
+                  {rangerAdminHosts.additionalHosts.map((host) => (
+                    <Stack direction="horizontal" gap={2} key={host}>
+                      <span>{host}</span>
+                      <FontAwesomeIcon icon={faPlus} className="text-success" />
+                      <span className="text-success">TO BE INSTALLED</span>
+                    </Stack>
+                  ))}
                 </Stack>
               </Col>
             </Row>
           </div>
-          {!configsState.length ? (
+
+          {assignmentErrors.map((error) => (
+            <Alert variant="danger" className="mt-3" key={error}>
+              {error}
+            </Alert>
+          ))}
+          {loadError && (
+            <Alert variant="danger" className="mt-3">
+              {loadError}
+              <Button
+                size="sm"
+                className="ms-3"
+                onClick={() => setRetryCount((value) => value + 1)}
+              >
+                Retry
+              </Button>
+            </Alert>
+          )}
+          {isLoading ? (
             <Center>
               <Spinner />
             </Center>
           ) : (
-            <>
-              <Alert variant="info" className="mt-4">
-                <Stack>
-                  <div className="fw-bolder fs-12">
-                    Review Configuration Changes.
-                  </div>
+            !loadError && (
+              <>
+                <Alert variant="info" className="mt-4">
+                  <div className="fw-bold">Review Configuration Changes</div>
                   <div className="fs-12 mt-2">
-                    The following lists the configuration changes that will be
-                    made by the Wizard to enable NameNode HA. This information
-                    is for <span className="fw-bolder fs-12">review only</span>{" "}
-                    and is not editable
+                    These changes are for review only and cannot be edited in
+                    this wizard.
                   </div>
-                </Stack>
-              </Alert>
-              <Accordion
-                defaultActiveKey={selectedService as any}
-                className="mt-4"
-                alwaysOpen
-              >
-                {configCategoriesState?.map((category: any, index: number) => {
-                  return (
-                    <Accordion.Item eventKey={category.name} key={index}>
+                </Alert>
+                <Accordion
+                  defaultActiveKey={categories[0]?.name}
+                  className="mt-4"
+                  alwaysOpen
+                >
+                  {categories.map((category) => (
+                    <Accordion.Item
+                      eventKey={category.name}
+                      key={category.name}
+                    >
                       <Accordion.Header>
                         {category.displayName}
                       </Accordion.Header>
                       <Accordion.Body>
-                        {filter(configsState, ["category", category.name]).map(
-                          (config: any) => {
-                            return (
-                              <Row
-                                key={config.name}
-                                className="mt-3 align-items-center"
-                              >
-                                <Col md={5}>
-                                  <small>
-                                    {config.displayName || config.name}
-                                  </small>
-                                </Col>
-                                <Col>
-                                  <Form.Control
-                                    type="text"
-                                    size="sm"
-                                    value={config.value}
-                                    disabled={!config.isEditable}
-                                  ></Form.Control>
-                                </Col>
-                              </Row>
-                            );
-                          }
-                        )}
+                        {properties
+                          .filter(
+                            (property) =>
+                              property.serviceName === category.name,
+                          )
+                          .map((property) => (
+                            <Row
+                              key={property.id}
+                              className="mt-3 align-items-center"
+                            >
+                              <Col md={5}>
+                                <small>{property.displayName}</small>
+                              </Col>
+                              <Col>
+                                <Form.Control
+                                  type="text"
+                                  size="sm"
+                                  value={property.value}
+                                  disabled
+                                  readOnly
+                                />
+                              </Col>
+                            </Row>
+                          ))}
                       </Accordion.Body>
                     </Accordion.Item>
-                  );
-                })}
-              </Accordion>
-            </>
+                  ))}
+                </Accordion>
+              </>
+            )
           )}
         </Card.Body>
       </Card>
       <WizardFooter
         step={currentStep}
-        isNextEnabled={!!configsState.length}
-        onBack={() => {
-          flushStateToDb("back");
+        isNextEnabled={
+          !isLoading && !loadError && assignmentErrors.length === 0
+        }
+        onBack={async () => {
+          await flushStateToDb("back");
           jumpToStep(2);
         }}
-        onNext={() => {
+        onNext={async () => {
           dispatch({
             type: ActionTypes.STORE_INFORMATION,
             payload: {
               step: currentStep.name,
-              data: {
-                configsState,
-              },
+              data: { categories, properties },
             },
           });
-          flushStateToDb("next");
-          handleNextImperitive();
+          await flushStateToDb("next");
+          await handleNextImperitive();
         }}
-        onCancel={() => {
-          flushStateToDb("cancel");
-        }}
+        onCancel={() => void flushStateToDb("cancel")}
       />
     </>
   );

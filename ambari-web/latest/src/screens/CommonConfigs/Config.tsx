@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import React, { useEffect, useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import {
   Card,
   Col,
@@ -31,7 +31,7 @@ import {
   Badge,
   Button,
 } from "react-bootstrap";
-import { cloneDeep, forEach, get, isArray, isEmpty } from "lodash";
+import { cloneDeep, get, isEmpty } from "lodash";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faLock,
@@ -51,14 +51,7 @@ import CustomSlider from "../../components/CustomSlider";
 import AdvancedConfigs from "./AdvancedConfigs";
 import ChooseConfigGroup from "./ChooseConfigGroup";
 import ManageConfigGroups from "../ConfigGroups/ManageConfigGroups";
-import {
-  ThemeType,
-  TabType,
-  SubsectionPropertiesType,
-  PropertyType,
-  configGroupOverrides,
-  TruthValues,
-} from "./types";
+import { PropertyType, configGroupOverrides, TruthValues } from "./types";
 import TestConnection from "./TestConnection";
 import Spinner from "../../components/Spinner";
 import {
@@ -80,19 +73,53 @@ import {
   formatTickLabel,
   getDisplayUnitLabel,
   getConfigUnitInfo,
+  convertValue,
   parseTimeInterval,
   composeTimeInterval,
 } from "../../Utils/unitConversionUtils";
 import Modal from "../../components/Modal";
 import Table from "../../components/Table";
-import { useAuth } from "../../hooks/useAuth";
+import useAuthorizationPolicy from "../../hooks/useAuthorizationPolicy";
 import Tooltip from "../../components/Tooltip";
 import { useContext } from "react";
 import { AppContext } from "../../store/context";
 import { useDebounce } from "../../hooks/useDebounce";
-import { formatParamsForDisplay, formatParamsForSave, shouldUseMultilineFormatting } from "../../Utils/jvmFormatUtils";
+import {
+  formatParamsForDisplay,
+  formatParamsForSave,
+  shouldUseMultilineFormatting,
+} from "../../Utils/jvmFormatUtils";
+import {
+  ConfigThemeView,
+  findThemeConfigProperty,
+  normalizeThemeResponse,
+  resolveThemeConditionAttributes,
+  ThemePlacement,
+  ThemeWidget,
+  toConfigThemeView,
+} from "./themeEngine";
+import {
+  ThemeDirectoriesControl,
+  ThemeDirectoryControl,
+  ThemeLabelControl,
+  ThemeListControl,
+  ThemeRadioControl,
+} from "./ThemeWidgetControls";
+import {
+  areThemeEntriesEditable,
+  getUnsupportedThemeEntryValues,
+  getThemeCheckboxState,
+  getThemeWidgetEntries,
+  isThemeCheckboxValueSupported,
+} from "./themeWidgetUtils";
 
 dayjs.extend(duration);
+
+const isThemeAttributeTrue = (value: unknown) =>
+  value === true || value === 1 || value === "1" || value === "true";
+
+const isThemeAttributeFalse = (value: unknown) =>
+  value === false || value === 0 || value === "0" || value === "false";
 
 type ConfigProps = {
   configSection: string;
@@ -156,7 +183,7 @@ export default function Config({
 }: ConfigProps) {
   const [chosenService, setChosenService] = useState<string>("");
   const [chosenTab, setChosenTab] = useState<string>("");
-  const [theme, setTheme] = useState<ThemeType>({});
+  const [theme, setTheme] = useState<ConfigThemeView>({});
   const [services, setServices] = useState<string[]>([]);
   const [tabErrors, setTabErrors] = useState<any>({});
   const [versionLoading, setVersionLoading] = useState(false);
@@ -164,11 +191,15 @@ export default function Config({
   const [widgetTextModeMap, setWidgetTextModeMap] = useState<
     Record<string, boolean>
   >({});
+  const [activeSubsectionTabs, setActiveSubsectionTabs] = useState<
+    Record<string, string>
+  >({});
   // @ts-ignore
   const [isFullyLoaded, setIsFullyLoaded] = useState(false);
   const [isServiceSwitching, setIsServiceSwitching] = useState(false);
-  const { havePermissions } = useAuth();
-  const canEditConfigs = havePermissions("SERVICE.MODIFY_CONFIGS");
+  const { isAuthorized } = useAuthorizationPolicy();
+  const canEditConfigs = isAuthorized("SERVICE.MODIFY_CONFIGS");
+  const canEditConfigsInContext = installer || canEditConfigs;
   const [showDependedConfigsModal, setShowDependedConfigsModal] =
     useState(false);
   const [, startTransition] = useTransition();
@@ -231,13 +262,17 @@ export default function Config({
     installer ? "clusterCreation" : "serviceConfigs",
     stack,
     stackVersion,
-    hosts
+    hosts,
   );
 
-  const handleRecommendationChange = (propertyName: string, fileName: string, isChecked: boolean) => {
+  const handleRecommendationChange = (
+    propertyName: string,
+    fileName: string,
+    isChecked: boolean,
+  ) => {
     const updatedChanges = { ...recommendedChanges };
     const key = `${propertyName}${fileName}`;
-    
+
     if (updatedChanges[key]) {
       // Update the recommendation state
       updatedChanges[key] = {
@@ -252,33 +287,38 @@ export default function Config({
       // Search through all services and config types to find the property
       for (const serviceName in newConfigs) {
         if (!newConfigs[serviceName]) continue;
-        
+
         for (const configType in newConfigs[serviceName]) {
-          if (!newConfigs[serviceName][configType] || !newConfigs[serviceName][configType].properties) continue;
-          
-          for (const propKey in newConfigs[serviceName][configType].properties) {
-            const property = newConfigs[serviceName][configType].properties[propKey];
-            if (property && property.propertyName === propertyName && property.fileName === fileName) {
-              console.log(`Found property ${propertyName} in ${serviceName}/${configType}`);
-              console.log(`Current value: ${property.value}`);
-              console.log(`Recommended value: ${updatedChanges[key].recommendedValue}`);
-              console.log(`Original value: ${updatedChanges[key].initialValue || updatedChanges[key].originalValue}`);
-              
+          if (
+            !newConfigs[serviceName][configType] ||
+            !newConfigs[serviceName][configType].properties
+          )
+            continue;
+
+          for (const propKey in newConfigs[serviceName][configType]
+            .properties) {
+            const property =
+              newConfigs[serviceName][configType].properties[propKey];
+            if (
+              property &&
+              property.propertyName === propertyName &&
+              property.fileName === fileName
+            ) {
               if (isChecked) {
                 // Apply recommended value
                 property.value = updatedChanges[key].recommendedValue;
-                console.log(`Applied recommended value: ${property.value}`);
               } else {
                 // Revert to original value
-                const originalValue = updatedChanges[key].initialValue || updatedChanges[key].originalValue;
+                const originalValue =
+                  updatedChanges[key].initialValue ||
+                  updatedChanges[key].originalValue;
                 property.value = originalValue;
-                console.log(`Reverted to original value: ${property.value}`);
               }
 
               // Clear any error messages
               property.errorMessage = "";
               property.warnMessage = "";
-              
+
               propertyFound = true;
               break;
             }
@@ -289,24 +329,18 @@ export default function Config({
       }
 
       if (propertyFound) {
-        console.log(`Updating config properties state`);
         setConfigProperties(newConfigs);
-      } else {
-        console.warn(`Property ${propertyName} in ${fileName} not found in config properties`);
-        console.log('Available properties:', Object.keys(configProperties).map(service => 
-          Object.keys(configProperties[service]).map(configType => 
-            Object.keys(configProperties[service][configType].properties || {}).map(prop => 
-              `${service}/${configType}/${configProperties[service][configType].properties[prop].propertyName} (${configProperties[service][configType].properties[prop].fileName})`
-            )
-          ).flat()
-        ).flat());
       }
     }
-    
+
     setRecommendedChanges(updatedChanges);
   };
 
   useEffect(() => {
+    if (version === undefined || version === null) {
+      setVersionLoading(false);
+      return;
+    }
     setVersionLoading(true);
     setTimeout(() => {
       setVersionLoading(false);
@@ -319,7 +353,7 @@ export default function Config({
       setPropertyFilters((prev) =>
         prev.map((filter) => {
           return { ...filter, selected: false };
-        })
+        }),
       );
     }
   }, [configGroup, installer]);
@@ -329,14 +363,14 @@ export default function Config({
       prev.map((filter) =>
         filter.id === filterId
           ? { ...filter, selected: !filter.selected }
-          : filter
-      )
+          : filter,
+      ),
     );
   };
 
   const handleClearFilters = () => {
     setPropertyFilters((prev) =>
-      prev.map((filter) => ({ ...filter, selected: false }))
+      prev.map((filter) => ({ ...filter, selected: false })),
     );
   };
 
@@ -360,7 +394,7 @@ export default function Config({
               if (property.isHidden !== true) {
                 property.isVisible = true;
               }
-            }
+            },
           );
         });
       });
@@ -376,11 +410,17 @@ export default function Config({
       configsCopy = filterConfigProperties(
         configsCopy,
         searchStr,
-        activeFilters
+        activeFilters,
       );
     }
 
-    // Don't automatically switch tabs when filtering - preserve current tab
+    configsCopy = updateVisibilityForDependsOn(
+      configsCopy,
+      themeData,
+      configSection,
+      installedServices || [],
+    );
+
     setConfigProperties(configsCopy);
   };
 
@@ -391,150 +431,42 @@ export default function Config({
     debouncedApplyFilters(searchString, propertyFilters);
   }, [searchString, propertyFilters, debouncedApplyFilters]);
 
-  const getTheme = async () => {
-    let theme: ThemeType = {};
-    let reqServices = new Set<string>();
-
-    themeData?.items?.forEach((serviceItem: any) => {
-      const serviceName = serviceItem?.StackServices?.service_name;
-      let tabsData: TabType = {};
-      serviceItem?.themes?.forEach((item: any) => {
-        const themeData = item.ThemeInfo.theme_data.Theme;
-        if (themeData.name === configSection) {
-          reqServices.add(serviceName);
-          themeData.configuration.layouts.forEach((layout: any) => {
-            layout.tabs.forEach((tab: any) => {
-              tabsData[tab.name] = {
-                name: tab.name,
-                displayName: tab["display-name"],
-                tabColumns: tab.layout["tab-columns"],
-                tabRows: tab.layout["tab-rows"],
-                sections: {},
-              };
-              tab.layout.sections.forEach((section: any) => {
-                tabsData[tab.name].sections[section.name] = {
-                  name: section.name,
-                  displayName: section["display-name"],
-                  rowSpan: section["row-span"],
-                  columnSpan: section["column-span"],
-                  rowIndex: section["row-index"],
-                  columnIndex: section["col-index"],
-                  sectionRows: section["section-rows"],
-                  sectionColumns: section["section-columns"],
-                  subsections: {},
-                };
-                section.subsections.forEach((subsection: any) => {
-                  tabsData[tab.name].sections[section.name].subsections[
-                    subsection.name
-                  ] = {
-                    name: subsection.name,
-                    displayName: subsection["display-name"],
-                    rowSpan: subsection["row-span"],
-                    columnSpan: subsection["column-span"],
-                    rowIndex: subsection["row-index"],
-                    columnIndex: subsection["column-index"],
-                    ...(subsection["depends-on"] && {
-                      "depends-on": subsection["depends-on"],
-                    }),
-                    ...(subsection["subsection-tabs"] && {
-                      subsectionTabs: subsection["subsection-tabs"],
-                    }),
-                  };
-                });
-              });
-            });
-          });
-        }
-      });
-
-      if (configSection === "default") {
-        tabsData["Advanced"] = {
-          name: "Advanced",
-          displayName: "Advanced",
-          sections: {},
-        };
-      }
-
-      const propertiesData: SubsectionPropertiesType = {};
-
-      serviceItem?.themes?.forEach((item: any) => {
-        const themeData = item.ThemeInfo.theme_data.Theme;
-        themeData.configuration.placement.configs.forEach((config: any) => {
-          if (!propertiesData[config["subsection-name"]]) {
-            propertiesData[config["subsection-name"]] = { properties: [] };
-          }
-          if (
-            !propertiesData[config["subsection-name"]].properties.some(
-              (existingConfig: any) =>
-                existingConfig["config"] === config["config"]
-            )
-          ) {
-            propertiesData[config["subsection-name"]].properties.push(config);
-          }
-        });
-      });
-
-      const propertyWidgets: any = {};
-
-      serviceItem?.themes?.forEach((item: any) => {
-        const themeData = item.ThemeInfo.theme_data.Theme;
-        themeData.configuration.widgets.map((widget: any) => {
-          const propertyName = widget.config.split("/")[1];
-          propertyWidgets[propertyName] = widget;
-        });
-      });
-
-      theme = {
-        ...theme,
-        [serviceName]: {
-          tabs: sortTabs(tabsData),
-          subsectionProperties: propertiesData,
-          widgets: propertyWidgets,
-        },
-      };
-    });
-
-    forEach(servicesList, (service) => {
-      // Skip Kerberos when in installer mode (add service flow)
-      if (installer && service === "KERBEROS") {
-        return;
-      }
-
-      if (!theme[service]) {
-        theme[service] = {
-          tabs: {
-            Advanced: {
-              name: "Advanced",
-              displayName: "Advanced",
-            },
-          },
-          subsectionProperties: {},
-          widgets: {},
-        };
-      }
-    });
-
-    if (configSection !== "default") {
-      setServices(Array.from(reqServices));
-      setChosenService(Array.from(reqServices)[0]);
-      setChosenTab(
-        theme[Array.from(reqServices)[0]] &&
-          Object.keys(theme[Array.from(reqServices)[0]].tabs)[0]
-      );
-    } else {
-      if (servicesList) {
-        if (installer && !servicesList.includes("MISC")) {
-          servicesList.push("MISC");
-        }
-        setServices(servicesList);
-        setChosenService(servicesList[0]);
-        setChosenTab(
-          theme[servicesList[0]] && Object.keys(theme[servicesList[0]].tabs)[0]
-        );
-      }
+  const getTheme = () => {
+    const requestedServices = servicesList.filter(
+      (service) => !(installer && service === "KERBEROS"),
+    );
+    if (
+      configSection === "default" &&
+      installer &&
+      !requestedServices.includes("MISC")
+    ) {
+      requestedServices.push("MISC");
     }
 
-    setTheme(theme);
+    const normalized = normalizeThemeResponse(
+      themeData,
+      configSection,
+      requestedServices,
+    );
+    const nextTheme = toConfigThemeView(normalized);
+    const firstService = normalized.services[0] ?? "";
+
+    setTheme(nextTheme);
+    setServices(normalized.services);
+    setChosenService((currentService) =>
+      normalized.services.includes(currentService)
+        ? currentService
+        : firstService,
+    );
+    setChosenTab((currentTab) => {
+      const service = normalized.services.includes(chosenService)
+        ? chosenService
+        : firstService;
+      const serviceTabs = Object.keys(nextTheme[service]?.tabs ?? {});
+      return serviceTabs.includes(currentTab)
+        ? currentTab
+        : (serviceTabs[0] ?? "");
+    });
   };
 
   useEffect(() => {
@@ -544,16 +476,7 @@ export default function Config({
   }, [configProperties]);
 
   useEffect(() => {
-    if (
-      !isEmpty(themeData) &&
-      themeData?.items?.length &&
-      !isEmpty(configPropertiesData)
-    ) {
-      getTheme();
-    }
-    if (!themeData?.items?.length) {
-      setChosenTab("Advanced");
-    }
+    getTheme();
   }, [themeData, configPropertiesData, JSON.stringify(servicesList)]);
 
   // Track service changes and set switching state
@@ -582,7 +505,7 @@ export default function Config({
         (configType) =>
           configProperties[chosenService][configType].properties &&
           Object.keys(configProperties[chosenService][configType].properties)
-            .length > 0
+            .length > 0,
       );
 
     const hasCurrentServiceTheme =
@@ -628,95 +551,109 @@ export default function Config({
     setConfigProperties(newConfigs);
   };
 
-  const sortTabs = (tabsData: TabType) => {
-    const sortedTabs = cloneDeep(tabsData);
-
-    Object.keys(sortedTabs).forEach((tabKey) => {
-      const tab = sortedTabs[tabKey];
-
-      if (tab.sections) {
-        tab.sections = Object.values(tab.sections).sort((a: any, b: any) => {
-          if (a.rowIndex === b.rowIndex) {
-            return a.columnIndex - b.columnIndex;
-          }
-          return a.rowIndex - b.rowIndex;
-        });
-
-        tab.sections.forEach((section: any) => {
-          if (section.subsections) {
-            section.subsections = Object.values(section.subsections).sort(
-              (a: any, b: any) => {
-                if (a.rowIndex === b.rowIndex) {
-                  return a.columnIndex - b.columnIndex;
-                }
-                return a.rowIndex - b.rowIndex;
-              }
-            );
-          }
-        });
-      }
-    });
-
-    return sortedTabs;
-  };
-
   const evaluateDependsOn = (dependsOn: any): boolean => {
     return evaluateDependsOnForConfig(
       configProperties,
       chosenService,
       dependsOn,
-      installer ? servicesList : installedServices
+      installer ? servicesList : installedServices,
     );
   };
 
-  // Check if current tab has any visible properties
-  const hasVisiblePropertiesInCurrentTab = () => {
-    if (chosenTab === "Advanced") {
+  const getPlacementErrorCount = (
+    serviceName: string,
+    placements: ThemePlacement[],
+  ) =>
+    placements.filter((placement) => {
+      const property = findThemeConfigProperty(
+        configProperties,
+        serviceName,
+        placement.configPath,
+      )?.property;
+      if (!property || property.isVisible === false || property.isHidden) {
+        return false;
+      }
+      const placementIsVisible = placement.dependsOn.length
+        ? evaluateDependsOnForConfig(
+            configProperties,
+            serviceName,
+            placement.dependsOn,
+            installer ? servicesList : installedServices,
+          )
+        : true;
+      return (
+        placementIsVisible && Boolean(property.hasError || property.errorMessage)
+      );
+    }).length;
+
+  const hasVisiblePropertiesInTab = (serviceName: string, tabName: string) => {
+    if (tabName === "Advanced") {
       // For Advanced tab, check if AdvancedConfigs has any visible properties
       return (
-        configProperties[chosenService] &&
-        Object.keys(configProperties[chosenService]).some((config) => {
+        configProperties[serviceName] &&
+        Object.keys(configProperties[serviceName]).some((config) => {
           if (config.includes("Custom") && config.endsWith("env")) {
             return false;
           }
-          const currentConfigValue = configProperties[chosenService][config];
+          const currentConfigValue = configProperties[serviceName][config];
           const filteredPropertiesCount = Object.keys(
-            currentConfigValue.properties || {}
+            currentConfigValue.properties || {},
           ).filter(
             (property) =>
               !currentConfigValue.properties[property].tabName &&
               currentConfigValue.properties[property].isVisible !== false &&
-              !!!currentConfigValue.properties[property].isHidden
+              !!!currentConfigValue.properties[property].isHidden,
           ).length;
           return filteredPropertiesCount > 0;
         })
       );
     } else {
       // For themed tabs, check if any section has visible properties
-      return theme[chosenService]?.tabs[chosenTab]?.sections?.some(
+      return theme[serviceName]?.tabs[tabName]?.sections?.some(
         (section: any) => {
           return section.subsections.some((subsection: any) => {
-            const isVisible = subsection?.["depends-on"]
-              ? evaluateDependsOn(subsection["depends-on"])
+            const isVisible = subsection.dependsOn.length
+              ? evaluateDependsOnForConfig(
+                  configProperties,
+                  serviceName,
+                  subsection.dependsOn,
+                  installer ? servicesList : installedServices,
+                )
               : true;
             if (!isVisible) return false;
 
-            const hasProperties = theme[chosenService].subsectionProperties?.[
-              subsection.name
-            ]?.properties?.some((config: any) => {
-              const type = config["config"].split("/")[0];
-              const propertyName = config["config"].split("/")[1];
-              const property =
-                configProperties?.[chosenService]?.[type]?.properties[
-                  propertyName
-                ];
+            const visibleSubsectionTabs = subsection.tabs.filter(
+              (tab: any) =>
+                tab.dependsOn.length === 0 ||
+                evaluateDependsOnForConfig(
+                  configProperties,
+                  serviceName,
+                  tab.dependsOn,
+                  installer ? servicesList : installedServices,
+                ),
+            );
+            const requestedTab = activeSubsectionTabs[subsection.id];
+            const activeTab =
+              visibleSubsectionTabs.find(
+                (tab: any) => tab.name === requestedTab,
+              ) ?? visibleSubsectionTabs[0];
+            const placements = [
+              ...subsection.placements,
+              ...(activeTab?.placements ?? []),
+            ];
+            const hasProperties = placements.some((config: ThemePlacement) => {
+              const property = findThemeConfigProperty(
+                configProperties,
+                serviceName,
+                config.configPath,
+              )?.property;
 
-              const isPropertyVisible = isArray(config?.["depends-on"])
+              const isPropertyVisible = config.dependsOn.length
                 ? evaluateDependsOnForConfig(
                     configProperties,
-                    chosenService,
-                    config["depends-on"],
-                    installer ? servicesList : installedServices
+                    serviceName,
+                    config.dependsOn,
+                    installer ? servicesList : installedServices,
                   )
                 : true;
 
@@ -725,50 +662,83 @@ export default function Config({
 
             return hasProperties;
           });
-        }
+        },
       );
     }
   };
 
+  const hasVisiblePropertiesInCurrentTab = () =>
+    hasVisiblePropertiesInTab(chosenService, chosenTab);
+
+  useEffect(() => {
+    const tabNames = Object.keys(theme[chosenService]?.tabs ?? {});
+    if (tabNames.length === 0) return;
+    const visibleTabNames = tabNames.filter((tabName) =>
+      hasVisiblePropertiesInTab(chosenService, tabName),
+    );
+    if (visibleTabNames.includes(chosenTab)) return;
+    setChosenTab(visibleTabNames[0] ?? tabNames[0]);
+  }, [chosenService, chosenTab, configProperties, theme]);
+
   const renderWidgets = (
     widgetType: string,
     property: PropertyType,
-    onChange: any
+    onChange: any,
+    widgetStateKey: string,
   ) => {
     switch (widgetType) {
+      case "directory":
+        return (
+          <ThemeDirectoryControl property={property} onChange={onChange} />
+        );
       case "directories":
         return (
-          <Form.Control
-            as="textarea"
-            rows={5}
-            value={property.value}
-            onChange={(e) => onChange(e.target.value)}
-            disabled={!property.isEditable}
-          />
+          <ThemeDirectoriesControl property={property} onChange={onChange} />
         );
       case "slider":
         // Get proper unit information using the helper function
         const unitInfo = getConfigUnitInfo(property);
         const { configUnit, widgetUnit, dimensionType, configType } = unitInfo;
+        const defaultValueAttributes = property.propertyAttributes ?? {};
+        const groupValueAttributes =
+          currentConfigGroup !== "Default" &&
+          typeof defaultValueAttributes[currentConfigGroup] === "object" &&
+          defaultValueAttributes[currentConfigGroup] !== null
+            ? defaultValueAttributes[currentConfigGroup]
+            : {};
+        const getSliderAttribute = (name: string, fallback: number) => {
+          const rawValue =
+            groupValueAttributes[name] ?? defaultValueAttributes[name];
+          const numericValue = Number(rawValue);
+          return Number.isFinite(numericValue) ? numericValue : fallback;
+        };
 
         // Convert boundaries and step from config units to widget units
         let minimum = widgetValueByConfigAttributes(
-          Number(property.propertyAttributes["minimum"]) || 0,
+          getSliderAttribute("minimum", 0),
           configUnit,
           widgetUnit,
-          dimensionType
+          dimensionType,
         );
         let maximum = widgetValueByConfigAttributes(
-          Number(property.propertyAttributes["maximum"]) || 100,
+          getSliderAttribute("maximum", 100),
           configUnit,
           widgetUnit,
-          dimensionType
+          dimensionType,
+        );
+        const configuredStep = getSliderAttribute(
+          "increment_step",
+          configType === "int" ? 1 : 0.1,
         );
         let step = widgetValueByConfigAttributes(
-          Number(property.propertyAttributes["increment_step"]) || 1,
+          configuredStep > 0
+            ? configuredStep
+            : configType === "int"
+              ? 1
+              : 0.1,
           configUnit,
           widgetUnit,
-          dimensionType
+          dimensionType,
         );
 
         // Convert current value from config units to widget units
@@ -776,39 +746,40 @@ export default function Config({
           Number(property.value) || 0,
           configUnit,
           widgetUnit,
-          dimensionType
+          dimensionType,
         );
 
         // Get display unit label (will be empty for int/float)
         const displayUnit = getDisplayUnitLabel(widgetUnit);
+        const rawDisplayUnit = getDisplayUnitLabel(configUnit);
 
         // Create marks with proper formatting
         const marks = {
           [minimum]: formatTickLabel(
             minimum,
             displayUnit,
-            displayUnit ? " " : ""
+            displayUnit ? " " : "",
           ),
           [minimum + (maximum - minimum) / 2]: formatTickLabel(
             minimum + (maximum - minimum) / 2,
             displayUnit,
-            displayUnit ? " " : ""
+            displayUnit ? " " : "",
           ),
           [maximum]: formatTickLabel(
             maximum,
             displayUnit,
-            displayUnit ? " " : ""
+            displayUnit ? " " : "",
           ),
         };
 
         // Check if this slider is in text input mode
-        const isTextMode = widgetTextModeMap[property.propertyName] || false;
+        const isTextMode = widgetTextModeMap[widgetStateKey] || false;
 
         // Toggle between slider and text input mode
         const toggleMode = () => {
           setWidgetTextModeMap((prev) => ({
             ...prev,
-            [property.propertyName]: !prev[property.propertyName],
+            [widgetStateKey]: !prev[widgetStateKey],
           }));
         };
 
@@ -823,8 +794,8 @@ export default function Config({
                   disabled={!property.isEditable}
                   autoFocus
                 />
-                {displayUnit && (
-                  <InputGroup.Text>{displayUnit}</InputGroup.Text>
+                {rawDisplayUnit && (
+                  <InputGroup.Text>{rawDisplayUnit}</InputGroup.Text>
                 )}
               </InputGroup>
             ) : (
@@ -843,7 +814,7 @@ export default function Config({
                       widgetUnit,
                       configUnit,
                       configType,
-                      dimensionType
+                      dimensionType,
                     );
                     onChange(configValue);
                   }}
@@ -852,7 +823,7 @@ export default function Config({
                 />
               </div>
             )}
-            {!hostConfigs && canEditConfigs && (
+            {!hostConfigs && canEditConfigsInContext && (
               <Tooltip
                 message={
                   isTextMode
@@ -876,7 +847,11 @@ export default function Config({
       case "text-field":
         return (
           <InputGroup
-            className={property.propertyAttributes.unit ? "w-50" : "w-100"}
+            className={
+              property.unit || property.propertyAttributes.unit
+                ? "w-50"
+                : "w-100"
+            }
           >
             <Form.Control
               type="text"
@@ -885,9 +860,9 @@ export default function Config({
               placeholder={property.propertyValue}
               disabled={!property.isEditable}
             />
-            {property.propertyAttributes.unit ? (
+            {property.unit || property.propertyAttributes.unit ? (
               <InputGroup.Text>
-                {property.propertyAttributes.unit}
+                {property.unit || property.propertyAttributes.unit}
               </InputGroup.Text>
             ) : null}
           </InputGroup>
@@ -895,40 +870,25 @@ export default function Config({
 
       case "combo":
         // Check if this combo is in text input mode
-        const isComboTextMode =
-          widgetTextModeMap[property.propertyName] || false;
+        const isComboTextMode = widgetTextModeMap[widgetStateKey] || false;
 
-        // Database configuration fields that should not be switchable to text mode
-        const databaseConfigFields = [
-          "hive_database",
-          "oozie_database",
-          "DB_FLAVOR",
-          "ssm_database",
-        ];
-        const isDatabaseConfigField = databaseConfigFields.includes(
-          property.propertyName
-        );
-
-        // Hide edit button when:
-        // 1. entriesEditable is explicitly set to false, OR
-        // 2. This is a database configuration field (hive_database, oozie_database, DB_FLAVOR, ssm_database)
-        const allowSwitchToTextBox = !(
-          (property.propertyAttributes.hasOwnProperty("entriesEditable") &&
-            property.propertyAttributes.entriesEditable === false) ||
-          isDatabaseConfigField
-        );
+        const allowSwitchToTextBox = areThemeEntriesEditable(property);
+        const comboEntries = getThemeWidgetEntries(property);
+        const hasUnsupportedComboValue =
+          getUnsupportedThemeEntryValues(property).length > 0;
+        const showComboTextMode = isComboTextMode || hasUnsupportedComboValue;
 
         // Toggle between combo and text input mode
         const toggleComboMode = () => {
           setWidgetTextModeMap((prev) => ({
             ...prev,
-            [property.propertyName]: !prev[property.propertyName],
+            [widgetStateKey]: !prev[widgetStateKey],
           }));
         };
 
         return (
           <div className="d-flex align-items-center">
-            {isComboTextMode ? (
+            {showComboTextMode ? (
               <InputGroup className="w-50 me-2">
                 <Form.Control
                   type="text"
@@ -945,122 +905,106 @@ export default function Config({
                   onChange={(newValue) => {
                     onChange(newValue?.value);
                   }}
-                  options={property.propertyAttributes.entries.map(
-                    (entry: { value: string; label?: string }) => ({
-                      label: entry.label || entry.value,
-                      value: entry.value,
-                    })
-                  )}
+                  options={comboEntries}
                   isDisabled={!property.isEditable}
                 />
               </div>
             )}
-            {!hostConfigs && allowSwitchToTextBox && canEditConfigs && (
-              <Tooltip
-                message={
-                  isComboTextMode
-                    ? "Switch back to dropdown mode"
-                    : "Switch to text input mode"
-                }
-                placement="top"
-              >
-                <FontAwesomeIcon
-                  icon={faPen}
-                  className={`ms-4 ${isComboTextMode ? "text-primary" : ""} ${
-                    property.isEditable ? "pointer" : ""
-                  }`}
-                  onClick={property.isEditable ? toggleComboMode : undefined}
-                />
-              </Tooltip>
-            )}
+            {!hostConfigs &&
+              !hasUnsupportedComboValue &&
+              allowSwitchToTextBox &&
+              canEditConfigsInContext && (
+                <Tooltip
+                  message={
+                    isComboTextMode
+                      ? "Switch back to dropdown mode"
+                      : "Switch to text input mode"
+                  }
+                  placement="top"
+                >
+                  <FontAwesomeIcon
+                    icon={faPen}
+                    className={`ms-4 ${isComboTextMode ? "text-primary" : ""} ${
+                      property.isEditable ? "pointer" : ""
+                    }`}
+                    onClick={property.isEditable ? toggleComboMode : undefined}
+                  />
+                </Tooltip>
+              )}
           </div>
         );
 
       case "time-interval-spinner":
         // Get the config unit from property attributes, default to milliseconds
         const timeConfigUnit =
-          property?.propertyAttributes?.unit || "milliseconds";
+          property?.unit ||
+          property?.propertyAttributes?.unit ||
+          "milliseconds";
 
         // Parse the time interval using the unit conversion utilities
         const timeComponents = parseTimeInterval(
           Number(property.value) || 0,
-          timeConfigUnit
+          timeConfigUnit,
         );
 
         // Check if this time-interval is in text input mode
-        const isTimeTextMode =
-          widgetTextModeMap[property.propertyName] || false;
+        const isTimeTextMode = widgetTextModeMap[widgetStateKey] || false;
 
         // Toggle between time-interval and text input mode
         const toggleTimeMode = () => {
           setWidgetTextModeMap((prev) => ({
             ...prev,
-            [property.propertyName]: !prev[property.propertyName],
+            [widgetStateKey]: !prev[widgetStateKey],
           }));
         };
 
-        const handleDaysChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-          const newDays = parseInt(e.target.value, 10);
-          if (!isNaN(newDays)) {
-            // Compose the new value back to the config unit
-            const newValue = composeTimeInterval(
-              newDays,
-              timeComponents.hours,
-              timeComponents.minutes,
-              timeComponents.seconds,
-              timeConfigUnit
-            );
-            onChange(newValue);
-          }
+        const configuredTimeUnits = String(
+          property.widget?.units?.[0]?.["unit-name"] ||
+            property.widget?.units?.[0]?.unit ||
+            "days,hours,minutes,seconds",
+        )
+          .split(",")
+          .map((unit) => unit.trim().toLowerCase())
+          .filter((unit) =>
+            ["days", "hours", "minutes", "seconds", "milliseconds"].includes(
+              unit,
+            ),
+          );
+        const timeUnitValues = {
+          days: timeComponents.days,
+          hours: timeComponents.hours,
+          minutes: timeComponents.minutes,
+          seconds: timeComponents.seconds,
+          milliseconds: timeComponents.milliseconds,
         };
-
-        const handleHoursChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-          const newHours = parseInt(e.target.value, 10);
-          if (!isNaN(newHours)) {
-            // Compose the new value back to the config unit
-            const newValue = composeTimeInterval(
-              timeComponents.days,
-              newHours,
-              timeComponents.minutes,
-              timeComponents.seconds,
-              timeConfigUnit
-            );
-            onChange(newValue);
-          }
+        const timeUnitLabels = {
+          days: "Days",
+          hours: "Hours",
+          minutes: "Minutes",
+          seconds: "Seconds",
+          milliseconds: "Milliseconds",
         };
-
-        const handleMinutesChange = (
-          e: React.ChangeEvent<HTMLInputElement>
+        const timeUnitMaximums = {
+          days: 365,
+          hours: 23,
+          minutes: 59,
+          seconds: 59,
+          milliseconds: 999,
+        };
+        const updateTimeUnit = (
+          unit: keyof typeof timeUnitValues,
+          nextValue: number,
         ) => {
-          const newMinutes = parseInt(e.target.value, 10);
-          if (!isNaN(newMinutes)) {
-            // Compose the new value back to the config unit
-            const newValue = composeTimeInterval(
-              timeComponents.days,
-              timeComponents.hours,
-              newMinutes,
-              timeComponents.seconds,
-              timeConfigUnit
-            );
-            onChange(newValue);
-          }
-        };
-
-        const handleSecondsChange = (
-          e: React.ChangeEvent<HTMLInputElement>
-        ) => {
-          const newSeconds = parseInt(e.target.value, 10);
-          if (!isNaN(newSeconds)) {
-            // Compose the new value back to the config unit
-            const newValue = composeTimeInterval(
-              timeComponents.days,
-              timeComponents.hours,
-              timeComponents.minutes,
-              newSeconds,
-              timeConfigUnit
-            );
-            onChange(newValue);
-          }
+          onChange(
+            composeTimeInterval(
+              unit === "days" ? nextValue : timeComponents.days,
+              unit === "hours" ? nextValue : timeComponents.hours,
+              unit === "minutes" ? nextValue : timeComponents.minutes,
+              unit === "seconds" ? nextValue : timeComponents.seconds,
+              timeConfigUnit,
+              unit === "milliseconds" ? nextValue : timeComponents.milliseconds,
+            ),
+          );
         };
 
         return (
@@ -1080,49 +1024,45 @@ export default function Config({
               </InputGroup>
             ) : (
               <div className="d-flex w-75">
-                {timeComponents.days > 0 && (
-                  <div className="d-flex flex-column me-2">
-                    <Form.Control
-                      type="number"
-                      value={timeComponents.days}
-                      onChange={handleDaysChange}
-                      disabled={!property.isEditable}
-                    />
-                    <small>Days</small>
-                  </div>
-                )}
-                {(timeComponents.hours > 0 || timeComponents.days > 0) && (
-                  <div className="d-flex flex-column me-2">
-                    <Form.Control
-                      type="number"
-                      value={timeComponents.hours}
-                      onChange={handleHoursChange}
-                      disabled={!property.isEditable}
-                    />
-                    <small>Hours</small>
-                  </div>
-                )}
-                <div className="d-flex flex-column me-2">
-                  <Form.Control
-                    type="number"
-                    value={timeComponents.minutes}
-                    onChange={handleMinutesChange}
-                    disabled={!property.isEditable}
-                  />
-                  <small>Minutes</small>
-                </div>
-                <div className="d-flex flex-column">
-                  <Form.Control
-                    type="number"
-                    value={timeComponents.seconds}
-                    onChange={handleSecondsChange}
-                    disabled={!property.isEditable}
-                  />
-                  <small>Seconds</small>
-                </div>
+                {configuredTimeUnits.map((unit, index) => {
+                  const typedUnit = unit as keyof typeof timeUnitValues;
+                  return (
+                    <div className="d-flex flex-column me-2" key={typedUnit}>
+                      <Form.Control
+                        type="number"
+                        aria-label={timeUnitLabels[typedUnit]}
+                        min={0}
+                        max={timeUnitMaximums[typedUnit]}
+                        step={
+                          index === configuredTimeUnits.length - 1
+                            ? Number(
+                                convertValue(
+                                  Number(
+                                    property.propertyAttributes
+                                      ?.increment_step || 1,
+                                  ),
+                                  timeConfigUnit,
+                                  typedUnit,
+                                ),
+                              ) || 1
+                            : 1
+                        }
+                        value={timeUnitValues[typedUnit]}
+                        onChange={(event) => {
+                          const nextValue = Number(event.target.value);
+                          if (Number.isFinite(nextValue)) {
+                            updateTimeUnit(typedUnit, nextValue);
+                          }
+                        }}
+                        disabled={!property.isEditable}
+                      />
+                      <small>{timeUnitLabels[typedUnit]}</small>
+                    </div>
+                  );
+                })}
               </div>
             )}
-            {!hostConfigs && canEditConfigs && (
+            {!hostConfigs && canEditConfigsInContext && (
               <Tooltip
                 message={
                   isTimeTextMode
@@ -1144,10 +1084,13 @@ export default function Config({
         );
 
       case "toggle":
-        const entries = property.propertyAttributes.entries || [];
+        const entries = getThemeWidgetEntries(property);
+        const hasUnsupportedToggleValue =
+          entries.length < 2 ||
+          getUnsupportedThemeEntryValues(property).length > 0;
         const valueLabel =
           entries.find(
-            (entry: { value: string }) => entry.value === property.value
+            (entry: { value: string }) => entry.value === property.value,
           )?.label || property.value;
 
         // Assume there are always two options available for toggle
@@ -1156,20 +1099,19 @@ export default function Config({
           entries.length >= 2 ? property.value === entries[0].value : false;
 
         // Check if this toggle is in text input mode
-        const isToggleTextMode =
-          widgetTextModeMap[property.propertyName] || false;
+        const isToggleTextMode = widgetTextModeMap[widgetStateKey] || false;
 
         // Toggle between switch and text input mode
         const toggleToggleMode = () => {
           setWidgetTextModeMap((prev) => ({
             ...prev,
-            [property.propertyName]: !prev[property.propertyName],
+            [widgetStateKey]: !prev[widgetStateKey],
           }));
         };
 
         return (
           <div className="d-flex align-items-center">
-            {isToggleTextMode ? (
+            {isToggleTextMode || hasUnsupportedToggleValue ? (
               <InputGroup className="w-50 me-2">
                 <Form.Control
                   type="text"
@@ -1193,42 +1135,71 @@ export default function Config({
                 </Form>
               </div>
             )}
-            {!hostConfigs && canEditConfigs && (
-              <Tooltip
-                message={
-                  isToggleTextMode
-                    ? "Switch back to toggle mode"
-                    : "Switch to text input mode"
-                }
-                placement="top"
-              >
-                <FontAwesomeIcon
-                  icon={faPen}
-                  className={`ms-4 ${isToggleTextMode ? "text-primary" : ""} ${
-                    property.isEditable ? "pointer" : ""
-                  }`}
-                  onClick={property.isEditable ? toggleToggleMode : undefined}
-                />
-              </Tooltip>
-            )}
+            {!hostConfigs &&
+              !hasUnsupportedToggleValue &&
+              canEditConfigsInContext && (
+                <Tooltip
+                  message={
+                    isToggleTextMode
+                      ? "Switch back to toggle mode"
+                      : "Switch to text input mode"
+                  }
+                  placement="top"
+                >
+                  <FontAwesomeIcon
+                    icon={faPen}
+                    className={`ms-4 ${isToggleTextMode ? "text-primary" : ""} ${
+                      property.isEditable ? "pointer" : ""
+                    }`}
+                    onClick={property.isEditable ? toggleToggleMode : undefined}
+                  />
+                </Tooltip>
+              )}
           </div>
         );
 
       case "checkbox":
-        const checkboxId = `config-checkbox-${property.propertyName}`;
+        const checkboxId = `config-checkbox-${widgetStateKey}`;
+        if (!isThemeCheckboxValueSupported(property)) {
+          return (
+            <Form.Control
+              id={checkboxId}
+              type="text"
+              value={String(property.value ?? "")}
+              aria-label={property.propertyDisplayname || property.propertyName}
+              onChange={(event) => onChange(event.target.value)}
+              disabled={!property.isEditable}
+            />
+          );
+        }
+        const checkboxState = getThemeCheckboxState(property);
         return (
           <Form.Check
             id={checkboxId}
-            checked={property.value === true || property.value === "true"}
+            checked={checkboxState.checked}
             onChange={onChange}
             disabled={!property.isEditable}
           />
         );
+      case "list":
+        return <ThemeListControl property={property} onChange={onChange} />;
+      case "radio-buttons":
+        return <ThemeRadioControl property={property} onChange={onChange} />;
+      case "label":
+        return <ThemeLabelControl property={property} />;
       case "text-area":
         // Check if this property should use multiline formatting
-        const useMultilineFormatting = shouldUseMultilineFormatting(property.value, property.propertyAttributes?.type);
-        const displayValue = useMultilineFormatting ? formatParamsForDisplay(property.value, property.propertyAttributes?.type) : property.value;
-        
+        const useMultilineFormatting = shouldUseMultilineFormatting(
+          property.value,
+          property.propertyAttributes?.type,
+        );
+        const displayValue = useMultilineFormatting
+          ? formatParamsForDisplay(
+              property.value,
+              property.propertyAttributes?.type,
+            )
+          : property.value;
+
         return (
           <Form.Control
             as="textarea"
@@ -1236,7 +1207,9 @@ export default function Config({
             value={displayValue}
             onChange={(e) => {
               // Format the value for saving if it's a multiline config
-              const valueToSave = useMultilineFormatting ? formatParamsForSave(e.target.value) : e.target.value;
+              const valueToSave = useMultilineFormatting
+                ? formatParamsForSave(e.target.value)
+                : e.target.value;
               onChange(valueToSave);
             }}
             disabled={!property.isEditable}
@@ -1264,30 +1237,14 @@ export default function Config({
             </Col>
           </Row>
         );
-      default:
-        // Check if this property should use multiline formatting
-        const useMultilineFormattingDefault = shouldUseMultilineFormatting(property.value, property.propertyAttributes?.type);
-        
-        if (useMultilineFormattingDefault) {
-          const displayValueDefault = formatParamsForDisplay(property.value, property.propertyAttributes?.type);
-          
-          return (
-            <Form.Control
-              as="textarea"
-              rows={10}
-              value={displayValueDefault}
-              onChange={(e) => {
-                const valueToSave = formatParamsForSave(e.target.value);
-                onChange(valueToSave);
-              }}
-              disabled={!property.isEditable}
-            />
-          );
-        }
-        
+      case "text":
         return (
           <InputGroup
-            className={property.propertyAttributes.unit ? "w-50" : "w-100"}
+            className={
+              property.unit || property.propertyAttributes.unit
+                ? "w-50"
+                : "w-100"
+            }
           >
             <Form.Control
               type="text"
@@ -1296,56 +1253,69 @@ export default function Config({
               placeholder={property.propertyValue}
               disabled={!property.isEditable}
             />
-            {property.propertyAttributes.unit ? (
+            {property.unit || property.propertyAttributes.unit ? (
               <InputGroup.Text>
-                {property.propertyAttributes.unit}
+                {property.unit || property.propertyAttributes.unit}
               </InputGroup.Text>
             ) : null}
           </InputGroup>
         );
+      default:
+        return (
+          <Alert variant="warning" role="status" className="mb-0">
+            Unsupported Theme widget type: <strong>{widgetType}</strong>. This
+            property is available from Advanced configurations.
+          </Alert>
+        );
     }
   };
 
-  const renderUIOnlyWidgets = (widget: any) => {
+  const renderUIOnlyWidgets = (
+    widget: ThemeWidget,
+    actionsDisabled: boolean,
+  ) => {
     switch (widget.type) {
       case "test-db-connection":
         return (
           <TestConnection
-            buttonLabel="Test DB Connection"
+            buttonLabel={widget.displayName || "Test DB Connection"}
             serviceName={chosenService}
             configProperties={configProperties}
+            requiredProperties={widget.requiredProperties}
+            disabled={actionsDisabled}
           />
+        );
+      case "label":
+        return <span>{widget.displayName || widget.configPath}</span>;
+      default:
+        return (
+          <Alert variant="warning" role="status" className="mb-0">
+            Unsupported Theme widget type: <strong>{widget.type}</strong>.
+          </Alert>
         );
     }
   };
+
+  const isExplicitUIOnlyPlacement = (placement: ThemePlacement) =>
+    placement.valueAttributes.ui_only_property === true ||
+    placement.valueAttributes.ui_only_property === "true";
 
   const handleInputChangeWidget = (
     configType: string,
     property: PropertyType,
     value: any,
     widgetType: string,
-    confirmPassword?: boolean
+    confirmPassword?: boolean,
   ) => {
     let newConfigs = cloneDeep(configProperties);
     switch (widgetType) {
       case "checkbox":
-        if (property.value === "true") {
-          newConfigs[chosenService][configType].properties[
-            property.propertyName
-          ].value = "false";
-        } else if (property.value === "false") {
-          newConfigs[chosenService][configType].properties[
-            property.propertyName
-          ].value = "true";
-        } else if (property.value === TruthValues.YES) {
-          newConfigs[chosenService][configType].properties[
-            property.propertyName
-          ].value = TruthValues.NO;
-        } else if (property.value === TruthValues.NO) {
-          newConfigs[chosenService][configType].properties[
-            property.propertyName
-          ].value = TruthValues.YES;
-        }
+        const checkboxState = getThemeCheckboxState(property);
+        newConfigs[chosenService][configType].properties[
+          property.propertyName
+        ].value = checkboxState.checked
+          ? checkboxState.uncheckedValue
+          : checkboxState.checkedValue;
         break;
       case "toggle":
         const entries = property.propertyAttributes.entries || [];
@@ -1380,33 +1350,33 @@ export default function Config({
         ].value = value;
         break;
     }
-    
+
     // Only validate the specific property that was changed
     newConfigs[chosenService][configType].properties[
       property.propertyName
     ].errorMessage = validateInput(
       newConfigs[chosenService][configType].properties[property.propertyName],
-      value
+      value,
     );
 
     // Update section error count for the specific config type
     newConfigs[chosenService][configType].errors = getSectionErrorCount(
-      newConfigs[chosenService][configType].properties
+      newConfigs[chosenService][configType].properties,
     );
 
     newConfigs = updateVisibilityByForeignKeys(newConfigs);
     newConfigs = updateVisibilityForDependsOn(
       newConfigs,
       themeData,
-      "default",
-      installedServices || []
+      configSection,
+      installedServices || [],
     );
     // Remove global validation - only validate the changed property above
 
     setConfigProperties(newConfigs);
     onValueUpdate(
       newConfigs[chosenService][configType].properties[property.propertyName],
-      newConfigs
+      newConfigs,
     );
   };
 
@@ -1416,7 +1386,7 @@ export default function Config({
     value: any,
     widgetType: string,
     index: number,
-    confirmPassword?: boolean
+    confirmPassword?: boolean,
   ) => {
     let newConfigs = cloneDeep(configProperties);
 
@@ -1431,7 +1401,7 @@ export default function Config({
         index,
         "value",
       ],
-      ""
+      "",
     );
 
     switch (widgetType) {
@@ -1491,20 +1461,20 @@ export default function Config({
       property.propertyName
     ].overrideValues[index].errorMessage = validateInput(
       newConfigs[chosenService][configType].properties[property.propertyName],
-      value
+      value,
     );
 
     // Update section error count for the specific config type
     newConfigs[chosenService][configType].errors = getSectionErrorCount(
-      newConfigs[chosenService][configType].properties
+      newConfigs[chosenService][configType].properties,
     );
 
     newConfigs = updateVisibilityByForeignKeys(newConfigs);
     newConfigs = updateVisibilityForDependsOn(
       newConfigs,
       themeData,
-      "default",
-      installedServices || []
+      configSection,
+      installedServices || [],
     );
     // Remove global validation - only validate the changed property above
 
@@ -1722,25 +1692,26 @@ export default function Config({
 
   const renderRecommendedChangesAlert = (recommendedChanges: any) => {
     const totalRecommendations = Object.values(recommendedChanges);
-    
+
     if (totalRecommendations.length === 0) {
       return null;
     }
-    
+
     const selectedRecommendations = totalRecommendations.filter(
-      (change: any) => change.isChanged
+      (change: any) => change.isChanged,
     );
-    
+
     const recommendationsCount = selectedRecommendations.length;
     const uniqueServiceCount = new Set(
       selectedRecommendations
         .map((value: any) => value.serviceName)
-        .filter(Boolean)
+        .filter(Boolean),
     ).size;
 
-    const message = recommendationsCount > 0 
-      ? `There are ${recommendationsCount} changes in ${uniqueServiceCount} services. `
-      : `There are ${totalRecommendations.length} available recommendations (none selected). `;
+    const message =
+      recommendationsCount > 0
+        ? `There are ${recommendationsCount} changes in ${uniqueServiceCount} services. `
+        : `There are ${totalRecommendations.length} available recommendations (none selected). `;
 
     return (
       <Alert variant="warning">
@@ -1773,12 +1744,12 @@ export default function Config({
           checked={
             Object.values(recommendedChanges || {}).length > 0 &&
             Object.values(recommendedChanges || {}).every(
-              (change: any) => change.isChanged
+              (change: any) => change.isChanged,
             )
           }
           onChange={() => {
             const allChecked = Object.values(recommendedChanges || {}).every(
-              (change: any) => change.isChanged
+              (change: any) => change.isChanged,
             );
 
             // Apply the change to all recommendations
@@ -1787,7 +1758,7 @@ export default function Config({
               handleRecommendationChange(
                 recommendation.propertyName,
                 recommendation.fileName,
-                !allChecked
+                !allChecked,
               );
             });
           }}
@@ -1804,7 +1775,7 @@ export default function Config({
               handleRecommendationChange(
                 row.original.propertyName,
                 row.original.fileName,
-                !row.original.isChanged
+                !row.original.isChanged,
               );
             }}
           />
@@ -1972,9 +1943,9 @@ export default function Config({
                                   setChosenTab(
                                     theme[serviceKey]?.tabs
                                       ? Object.keys(
-                                          theme[serviceKey]?.tabs
+                                          theme[serviceKey]?.tabs,
                                         )?.[0]
-                                      : "Advanced"
+                                      : "Advanced",
                                   );
                                   onServiceChange?.(serviceKey);
                                 }}
@@ -1997,7 +1968,7 @@ export default function Config({
                               setChosenTab(
                                 theme[serviceKey]?.tabs
                                   ? Object.keys(theme[serviceKey]?.tabs)?.[0]
-                                  : "Advanced"
+                                  : "Advanced",
                               );
                               onServiceChange?.(serviceKey);
                             }}
@@ -2038,10 +2009,10 @@ export default function Config({
                                       <ChooseConfigGroup
                                         serviceName={serviceKey}
                                         selectedConfigGroup={getSelectedConfigGroupForService(
-                                          serviceKey
+                                          serviceKey,
                                         )}
                                         onConfigGroupChange={(
-                                          configGroup: string
+                                          configGroup: string,
                                         ) => {
                                           setSelectedConfigGroups((prev) => ({
                                             ...prev,
@@ -2071,7 +2042,7 @@ export default function Config({
                                                 value={searchString}
                                                 onChange={(e) => {
                                                   setSearchString(
-                                                    e.target.value
+                                                    e.target.value,
                                                   );
                                                 }}
                                               />
@@ -2095,7 +2066,7 @@ export default function Config({
                                                             !filter.disabled
                                                           ) {
                                                             handleFilterToggle(
-                                                              filter.id
+                                                              filter.id,
                                                             );
                                                           }
                                                         }}
@@ -2117,10 +2088,10 @@ export default function Config({
                                                           {filter.label}
                                                         </div>
                                                       </Dropdown.Item>
-                                                    )
+                                                    ),
                                                   )}
                                                   {propertyFilters.some(
-                                                    (f) => f.selected
+                                                    (f) => f.selected,
                                                   ) && (
                                                     <>
                                                       <Dropdown.Divider />
@@ -2150,7 +2121,7 @@ export default function Config({
                                               className="fs-18 text-light"
                                             />
                                             {!isNaN(
-                                              getValidationErrorCount()
+                                              getValidationErrorCount(),
                                             ) ? (
                                               <Badge className="bg-danger rounded-5">
                                                 {getValidationErrorCount()}
@@ -2187,7 +2158,7 @@ export default function Config({
                                                 value={searchString}
                                                 onChange={(e) => {
                                                   setSearchString(
-                                                    e.target.value
+                                                    e.target.value,
                                                   );
                                                 }}
                                               />
@@ -2211,7 +2182,7 @@ export default function Config({
                                                             !filter.disabled
                                                           ) {
                                                             handleFilterToggle(
-                                                              filter.id
+                                                              filter.id,
                                                             );
                                                           }
                                                         }}
@@ -2233,10 +2204,10 @@ export default function Config({
                                                           {filter.label}
                                                         </div>
                                                       </Dropdown.Item>
-                                                    )
+                                                    ),
                                                   )}
                                                   {propertyFilters.some(
-                                                    (f) => f.selected
+                                                    (f) => f.selected,
                                                   ) && (
                                                     <>
                                                       <Dropdown.Divider />
@@ -2266,7 +2237,7 @@ export default function Config({
                                               className="fs-18 text-light"
                                             />
                                             {!isNaN(
-                                              getValidationErrorCount()
+                                              getValidationErrorCount(),
                                             ) ? (
                                               <Badge className="bg-danger rounded-5">
                                                 {getValidationErrorCount()}
@@ -2324,764 +2295,930 @@ export default function Config({
                                     Object.keys(theme[serviceKey].tabs).length >
                                       1 &&
                                     Object.keys(theme[serviceKey].tabs).map(
-                                      (tabName) => (
-                                        <Nav.Item
-                                          key={tabName}
-                                          onClick={() => setChosenTab(tabName)}
-                                        >
-                                          <Nav.Link
-                                            eventKey={tabName}
-                                            as="div"
-                                            className="ambari-tabs nav-link nav-link-underlined"
+                                      (tabName) => {
+                                        const tabIsVisible =
+                                          hasVisiblePropertiesInTab(
+                                            serviceKey,
+                                            tabName,
+                                          );
+                                        return (
+                                          <Nav.Item
+                                            key={tabName}
+                                            className={
+                                              tabIsVisible
+                                                ? undefined
+                                                : "disabled"
+                                            }
+                                            onClick={() => {
+                                              if (tabIsVisible) {
+                                                setChosenTab(tabName);
+                                              }
+                                            }}
                                           >
-                                            {
-                                              theme[serviceKey].tabs[tabName]
-                                                .displayName
-                                            }{" "}
-                                            <span className="bg-danger rounded-pill badge ms-2">
-                                              {tabErrors?.[serviceKey]?.tabs[
-                                                tabName
-                                              ] || ""}
-                                            </span>
-                                          </Nav.Link>
-                                        </Nav.Item>
-                                      )
+                                            <Nav.Link
+                                              eventKey={tabName}
+                                              as="div"
+                                              className="ambari-tabs nav-link nav-link-underlined"
+                                              aria-disabled={!tabIsVisible}
+                                              tabIndex={tabIsVisible ? 0 : -1}
+                                            >
+                                              {
+                                                theme[serviceKey].tabs[tabName]
+                                                  .displayName
+                                              }{" "}
+                                              <span className="bg-danger rounded-pill badge ms-2">
+                                                {tabErrors?.[serviceKey]?.tabs[
+                                                  tabName
+                                                ] || ""}
+                                              </span>
+                                            </Nav.Link>
+                                          </Nav.Item>
+                                        );
+                                      },
                                     )}
                                 </Nav>
                               </Col>
 
                               <Col className="p-4">
                                 <Tab.Content>
-                                  {chosenTab !== "Advanced" ? (
+                                  {!hasVisiblePropertiesInCurrentTab() ? (
+                                    <div
+                                      className="bg-info-subtle p-4 text-center border rounded"
+                                      data-testid="theme-no-content"
+                                    >
+                                      <p className="text-muted mb-0">
+                                        {searchString
+                                          ? "No properties match the current filter."
+                                          : "No configuration properties are available."}
+                                      </p>
+                                    </div>
+                                  ) : chosenTab !== "Advanced" ? (
                                     theme[serviceKey]?.tabs &&
-                                    Object.keys(theme[serviceKey].tabs).map(
-                                      (key) => (
+                                    Object.keys(theme[serviceKey].tabs)
+                                      .filter((key) => key === chosenTab)
+                                      .map((key) => (
                                         <Tab.Pane eventKey={key} key={key}>
-                                          {!hasVisiblePropertiesInCurrentTab() &&
-                                          searchString ? (
-                                            <div className="bg-info-subtle p-4 text-center border rounded">
-                                              <p className="text-muted mb-0">
-                                                No properties match the current
-                                                filter.
-                                              </p>
-                                            </div>
-                                          ) : (
-                                            <Row>
-                                              {theme[serviceKey]?.tabs[key]
-                                                ?.sections &&
-                                                theme[serviceKey].tabs[
-                                                  key
-                                                ].sections.map(
-                                                  (section: any) => (
-                                                    <Col
-                                                      className="p-1"
-                                                      md={
-                                                        (12 /
-                                                          (theme[serviceKey]
-                                                            ?.tabs[key]
-                                                            ?.tabColumns ??
-                                                            1)) *
-                                                        section.columnSpan
-                                                      }
-                                                      key={section.name}
+                                          <div
+                                            className="service-theme-grid"
+                                            data-testid={`theme-grid-${serviceKey}-${key}`}
+                                            style={{
+                                              display: "grid",
+                                              gridTemplateColumns: `repeat(${theme[serviceKey].tabs[key].columns}, minmax(0, 1fr))`,
+                                              gridTemplateRows: `repeat(${theme[serviceKey].tabs[key].rows}, minmax(min-content, auto))`,
+                                              gap: "0.5rem",
+                                            }}
+                                          >
+                                            {theme[serviceKey]?.tabs[key]
+                                              ?.sections &&
+                                              theme[serviceKey].tabs[
+                                                key
+                                              ].sections.map((section) => (
+                                                <div
+                                                  className="p-1"
+                                                  data-theme-section={
+                                                    section.name
+                                                  }
+                                                  data-row-index={
+                                                    section.rowIndex
+                                                  }
+                                                  data-column-index={
+                                                    section.columnIndex
+                                                  }
+                                                  style={{
+                                                    gridColumn: `${section.columnIndex + 1} / span ${section.columnSpan}`,
+                                                    gridRow: `${section.rowIndex + 1} / span ${section.rowSpan}`,
+                                                    minWidth: 0,
+                                                  }}
+                                                  key={section.id}
+                                                >
+                                                  <Card className="p-2 h-100">
+                                                    <div className="p-2">
+                                                      {section.displayName}
+                                                    </div>
+                                                    <div
+                                                      className="service-theme-subsection-grid"
+                                                      style={{
+                                                        display: "grid",
+                                                        gridTemplateColumns: `repeat(${section.columns}, minmax(0, 1fr))`,
+                                                        gridTemplateRows: `repeat(${section.rows}, minmax(min-content, auto))`,
+                                                      }}
                                                     >
-                                                      <Card className="p-2 h-100">
-                                                        <div className="p-2">
-                                                          {section.displayName}
-                                                        </div>
-                                                        <Row>
-                                                          {section.subsections.map(
-                                                            (
-                                                              subsection: any
-                                                            ) => {
-                                                              const isVisible =
-                                                                subsection?.[
-                                                                  "depends-on"
+                                                      {section.subsections.map(
+                                                        (subsection) => {
+                                                          const isVisible =
+                                                            subsection.dependsOn
+                                                              .length
+                                                              ? evaluateDependsOn(
+                                                                  subsection.dependsOn,
+                                                                )
+                                                              : true;
+
+                                                          if (!isVisible)
+                                                            return null;
+
+                                                          const subsectionTabs =
+                                                            subsection.tabs.filter(
+                                                              (tab) =>
+                                                                tab.dependsOn
+                                                                  .length ===
+                                                                  0 ||
+                                                                evaluateDependsOn(
+                                                                  tab.dependsOn,
+                                                                ),
+                                                            );
+                                                          const activeSubsectionTabName =
+                                                            subsectionTabs.some(
+                                                              (tab) =>
+                                                                tab.name ===
+                                                                activeSubsectionTabs[
+                                                                  subsection.id
+                                                                ],
+                                                            )
+                                                              ? activeSubsectionTabs[
+                                                                  subsection.id
                                                                 ]
-                                                                  ? evaluateDependsOn(
-                                                                      subsection[
-                                                                        "depends-on"
-                                                                      ]
-                                                                    )
-                                                                  : true;
+                                                              : subsectionTabs[0]
+                                                                  ?.name;
+                                                          const activeSubsectionTab =
+                                                            subsectionTabs.find(
+                                                              (tab) =>
+                                                                tab.name ===
+                                                                activeSubsectionTabName,
+                                                            );
+                                                          const subsectionPlacements =
+                                                            [
+                                                              ...subsection.placements,
+                                                              ...(activeSubsectionTab?.placements ??
+                                                                []),
+                                                            ];
 
-                                                              if (!isVisible)
-                                                                return null;
-
-                                                              return (
-                                                                <Col
-                                                                  md={
-                                                                    (12 /
-                                                                      section.sectionColumns) *
-                                                                    subsection.columnSpan
-                                                                  }
-                                                                  key={
-                                                                    subsection.name
-                                                                  }
-                                                                >
-                                                                  <div className="p-3">
-                                                                    {subsection.displayName &&
-                                                                      subsection.displayName}
-                                                                    {theme[
-                                                                      serviceKey
-                                                                    ]
-                                                                      .subsectionProperties?.[
-                                                                      subsection
-                                                                        .name
-                                                                    ]
-                                                                      ?.properties && (
-                                                                      <Row>
-                                                                        {theme[
-                                                                          serviceKey
-                                                                        ].subsectionProperties[
-                                                                          subsection
-                                                                            .name
-                                                                        ].properties.map(
-                                                                          (
-                                                                            config: any
-                                                                          ) => {
-                                                                            const type =
-                                                                              config[
-                                                                                "config"
-                                                                              ].split(
-                                                                                "/"
-                                                                              )[0];
-                                                                            const propertyName =
-                                                                              config[
-                                                                                "config"
-                                                                              ].split(
-                                                                                "/"
-                                                                              )[1];
-                                                                            const property =
-                                                                              configProperties?.[
-                                                                                serviceKey
-                                                                              ]?.[
-                                                                                type
-                                                                              ]
-                                                                                ?.properties[
-                                                                                propertyName
-                                                                              ];
-
-                                                                            const isVisible =
-                                                                              isArray(
-                                                                                config?.[
-                                                                                  "depends-on"
-                                                                                ]
-                                                                              )
-                                                                                ? evaluateDependsOnForConfig(
-                                                                                    configProperties,
-                                                                                    serviceKey,
-                                                                                    config[
-                                                                                      "depends-on"
-                                                                                    ],
-                                                                                    installer
-                                                                                      ? servicesList
-                                                                                      : installedServices
-                                                                                  )
-                                                                                : true;
-                                                                            if (
-                                                                              !isVisible
-                                                                            )
-                                                                              return null;
-
-                                                                            // Check subsection tab visibility if property has subsection-tab-name
-                                                                            let isSubsectionTabVisible =
-                                                                              true;
-                                                                            if (
-                                                                              config[
-                                                                                "subsection-tab-name"
-                                                                              ] &&
-                                                                              subsection.subsectionTabs
-                                                                            ) {
-                                                                              const matchingSubsectionTab =
-                                                                                subsection.subsectionTabs.find(
-                                                                                  (
-                                                                                    tab: any
-                                                                                  ) =>
-                                                                                    tab.name ===
-                                                                                    config[
-                                                                                      "subsection-tab-name"
-                                                                                    ]
-                                                                                );
-                                                                              if (
-                                                                                matchingSubsectionTab &&
-                                                                                matchingSubsectionTab[
-                                                                                  "depends-on"
-                                                                                ]
-                                                                              ) {
-                                                                                isSubsectionTabVisible =
-                                                                                  evaluateDependsOnForConfig(
-                                                                                    configProperties,
-                                                                                    serviceKey,
-                                                                                    matchingSubsectionTab[
-                                                                                      "depends-on"
-                                                                                    ],
-                                                                                    installer
-                                                                                      ? servicesList
-                                                                                      : installedServices
-                                                                                  );
-                                                                              }
+                                                          return (
+                                                            <div
+                                                              data-theme-subsection={
+                                                                subsection.name
+                                                              }
+                                                              data-row-index={
+                                                                subsection.rowIndex
+                                                              }
+                                                              data-column-index={
+                                                                subsection.columnIndex
+                                                              }
+                                                              className={`${
+                                                                subsection.border
+                                                                  ? "service-theme-subsection-bordered"
+                                                                  : ""
+                                                              } ${
+                                                                subsection.columnIndex >
+                                                                  0 &&
+                                                                subsection.leftVerticalSplitter
+                                                                  ? "service-theme-subsection-split"
+                                                                  : ""
+                                                              }`}
+                                                              style={{
+                                                                gridColumn: `${subsection.columnIndex + 1} / span ${subsection.columnSpan}`,
+                                                                gridRow: `${subsection.rowIndex + 1} / span ${subsection.rowSpan}`,
+                                                                minWidth: 0,
+                                                              }}
+                                                              key={
+                                                                subsection.id
+                                                              }
+                                                            >
+                                                              <div className="p-3">
+                                                                {subsection.displayName &&
+                                                                  subsection.displayName}
+                                                                {subsectionTabs.length >
+                                                                  0 && (
+                                                                  <Nav
+                                                                    variant="tabs"
+                                                                    className="mt-3"
+                                                                    aria-label={`${subsection.displayName || subsection.name} configuration groups`}
+                                                                  >
+                                                                    {subsectionTabs.map(
+                                                                      (
+                                                                        subsectionTab,
+                                                                      ) => {
+                                                                        const errorCount =
+                                                                          getPlacementErrorCount(
+                                                                            serviceKey,
+                                                                            subsectionTab.placements,
+                                                                          );
+                                                                        return (
+                                                                          <Nav.Item
+                                                                            key={
+                                                                              subsectionTab.id
                                                                             }
+                                                                          >
+                                                                            <Nav.Link
+                                                                              as="button"
+                                                                              type="button"
+                                                                              active={
+                                                                                activeSubsectionTabName ===
+                                                                                subsectionTab.name
+                                                                              }
+                                                                              onClick={() => {
+                                                                                setActiveSubsectionTabs(
+                                                                                  (
+                                                                                    current,
+                                                                                  ) => ({
+                                                                                    ...current,
+                                                                                    [subsection.id]:
+                                                                                      subsectionTab.name,
+                                                                                  }),
+                                                                                );
+                                                                              }}
+                                                                            >
+                                                                              {
+                                                                                subsectionTab.displayName
+                                                                              }
+                                                                              {errorCount >
+                                                                                0 && (
+                                                                                <Badge
+                                                                                  bg="danger"
+                                                                                  className="ms-2"
+                                                                                >
+                                                                                  {
+                                                                                    errorCount
+                                                                                  }
+                                                                                </Badge>
+                                                                              )}
+                                                                            </Nav.Link>
+                                                                          </Nav.Item>
+                                                                        );
+                                                                      },
+                                                                    )}
+                                                                  </Nav>
+                                                                )}
+                                                                {subsectionPlacements && (
+                                                                  <Row>
+                                                                    {subsectionPlacements.map(
+                                                                      (
+                                                                        config: ThemePlacement,
+                                                                      ) => {
+                                                                        const propertyLocation =
+                                                                          findThemeConfigProperty(
+                                                                            configProperties,
+                                                                            serviceKey,
+                                                                            config.configPath,
+                                                                          );
+                                                                        const type =
+                                                                          propertyLocation?.sectionName ??
+                                                                          config.configType;
+                                                                        const propertyName =
+                                                                          config.propertyName;
+                                                                        const sourceProperty =
+                                                                          propertyLocation?.property;
+                                                                        const effectiveValueAttributes =
+                                                                          {
+                                                                            ...config.valueAttributes,
+                                                                            ...resolveThemeConditionAttributes(
+                                                                              config.dependsOn,
+                                                                              configProperties,
+                                                                              serviceKey,
+                                                                              installer
+                                                                                ? servicesList
+                                                                                : installedServices,
+                                                                            ),
+                                                                          };
+                                                                        const property =
+                                                                          sourceProperty
+                                                                            ? ({
+                                                                                ...sourceProperty,
+                                                                                propertyAttributes:
+                                                                                  {
+                                                                                    ...sourceProperty.propertyAttributes,
+                                                                                    ...effectiveValueAttributes,
+                                                                                  },
+                                                                                isEditable:
+                                                                                  sourceProperty.isEditable !==
+                                                                                    false &&
+                                                                                  !isThemeAttributeTrue(
+                                                                                    effectiveValueAttributes.read_only,
+                                                                                  ) &&
+                                                                                  !(
+                                                                                    isThemeAttributeTrue(
+                                                                                      effectiveValueAttributes.editable_only_at_install,
+                                                                                    ) &&
+                                                                                    !installer
+                                                                                  ),
+                                                                                isOverridable:
+                                                                                  sourceProperty.isOverridable !==
+                                                                                    false &&
+                                                                                  !isThemeAttributeFalse(
+                                                                                    effectiveValueAttributes.overridable,
+                                                                                  ),
+                                                                                isVisible:
+                                                                                  sourceProperty.isVisible !==
+                                                                                    false &&
+                                                                                  !isThemeAttributeFalse(
+                                                                                    effectiveValueAttributes.visible,
+                                                                                  ),
+                                                                                showLabel:
+                                                                                  isThemeAttributeFalse(
+                                                                                    effectiveValueAttributes.show_property_name,
+                                                                                  )
+                                                                                    ? false
+                                                                                    : sourceProperty.showLabel,
+                                                                              } as typeof sourceProperty &
+                                                                                Record<
+                                                                                  string,
+                                                                                  any
+                                                                                >)
+                                                                            : undefined;
+                                                                        const widget =
+                                                                          theme[
+                                                                            serviceKey
+                                                                          ]
+                                                                            .widgets[
+                                                                            config
+                                                                              .configPath
+                                                                          ];
 
-                                                                            return property &&
-                                                                              property?.isVisible &&
-                                                                              isSubsectionTabVisible ? (
-                                                                              <Row className="mt-4">
-                                                                                <Row>
-                                                                                  <Col>
-                                                                                    <Tooltip
-                                                                                      message={
-                                                                                        property.propertyDescription ||
-                                                                                        property.description ||
-                                                                                        property.property_description
+                                                                        const isVisible =
+                                                                          config
+                                                                            .dependsOn
+                                                                            .length
+                                                                            ? evaluateDependsOnForConfig(
+                                                                                configProperties,
+                                                                                serviceKey,
+                                                                                config.dependsOn,
+                                                                                installer
+                                                                                  ? servicesList
+                                                                                  : installedServices,
+                                                                              )
+                                                                            : true;
+                                                                        if (
+                                                                          !isVisible ||
+                                                                          !widget
+                                                                        )
+                                                                          return null;
+
+                                                                        return property &&
+                                                                          property?.isVisible &&
+                                                                          !property?.isHidden ? (
+                                                                          <Row
+                                                                            className="mt-4"
+                                                                            key={
+                                                                              config.configPath
+                                                                            }
+                                                                          >
+                                                                            {property.showLabel !==
+                                                                              false && (
+                                                                              <Row>
+                                                                                <Col>
+                                                                                  <Tooltip
+                                                                                    message={
+                                                                                      property.propertyDescription ||
+                                                                                      property.description ||
+                                                                                      property.property_description
+                                                                                    }
+                                                                                    heading={
+                                                                                      property.propertyDisplayname ||
+                                                                                      property.propertyName
+                                                                                    }
+                                                                                    placement="top"
+                                                                                  >
+                                                                                    <Form.Label
+                                                                                      className={
+                                                                                        property.hasError ||
+                                                                                        property.errorMessage
+                                                                                          ? "p-2 text-danger"
+                                                                                          : "p-2"
                                                                                       }
-                                                                                      heading={
-                                                                                        property.propertyDisplayname ||
-                                                                                        property.propertyName
-                                                                                      }
-                                                                                      placement="top"
                                                                                     >
-                                                                                      <Form.Label
-                                                                                        className={
-                                                                                          property.hasError ||
-                                                                                          property.errorMessage
-                                                                                            ? "p-2 text-danger"
-                                                                                            : "p-2"
-                                                                                        }
-                                                                                      >
-                                                                                        {property.propertyDisplayname ||
-                                                                                          property.propertyName}
-                                                                                      </Form.Label>
-                                                                                    </Tooltip>
-                                                                                  </Col>
-                                                                                </Row>
-                                                                                <Row className="d-flex align-items-center">
-                                                                                  <Col>
-                                                                                    <Tooltip
-                                                                                      message={
-                                                                                        property.propertyDescription ||
-                                                                                        property.description ||
-                                                                                        property.property_description
-                                                                                      }
-                                                                                      heading={
-                                                                                        property.propertyDisplayname ||
-                                                                                        property.propertyName
-                                                                                      }
-                                                                                      placement="top"
-                                                                                    >
-                                                                                      <div>
-                                                                                        {renderWidgets(
-                                                                                          theme[
-                                                                                            serviceKey
-                                                                                          ]
-                                                                                            .widgets[
-                                                                                            propertyName
-                                                                                          ]
-                                                                                            .widget
-                                                                                            .type,
-                                                                                          {
-                                                                                            ...property,
-                                                                                            isEditable:
-                                                                                              !hostConfigs &&
-                                                                                              canEditConfigs &&
-                                                                                              currentConfigGroup ===
-                                                                                                "Default" &&
-                                                                                              property.isEditable,
-                                                                                          },
-                                                                                          function (
-                                                                                            e: any,
-                                                                                            confirmPassword: boolean = false
-                                                                                          ) {
-                                                                                            handleInputChangeWidget(
-                                                                                              type,
-                                                                                              property,
-                                                                                              e,
-                                                                                              theme[
-                                                                                                serviceKey
-                                                                                              ]
-                                                                                                .widgets[
-                                                                                                propertyName
-                                                                                              ]
-                                                                                                .widget
-                                                                                                .type,
-                                                                                              confirmPassword
-                                                                                            );
-                                                                                          }
-                                                                                        )}
-                                                                                      </div>
-                                                                                    </Tooltip>
-                                                                                    {/* Display error message for main property */}
-                                                                                    {property.errorMessage && (
-                                                                                      <div className="mt-2 text-danger">
-                                                                                        {property.errorMessage}
-                                                                                      </div>
-                                                                                    )}
-                                                                                    {/* MySQL Warning for Ranger DB_FLAVOR - positioned after the dropdown */}
-                                                                                    {serviceKey ===
-                                                                                      "RANGER" &&
-                                                                                      (chosenTab ===
-                                                                                        "RANGER ADMIN" ||
-                                                                                        chosenTab ===
-                                                                                          "ranger_admin_settings") &&
-                                                                                      property.propertyName ===
-                                                                                        "DB_FLAVOR" &&
-                                                                                      property.value ===
-                                                                                        "MYSQL" && (
-                                                                                        <div
-                                                                                          className="mt-3"
-                                                                                          style={{
-                                                                                            backgroundColor:
-                                                                                              "#fff3cd",
-                                                                                            border:
-                                                                                              "1px solid #ffeaa7",
-                                                                                            borderRadius:
-                                                                                              "4px",
-                                                                                            padding:
-                                                                                              "12px 15px",
-                                                                                            color:
-                                                                                              "#856404",
-                                                                                            fontSize:
-                                                                                              "14px",
-                                                                                            lineHeight:
-                                                                                              "1.4",
-                                                                                          }}
-                                                                                        >
-                                                                                          To
-                                                                                          use
-                                                                                          MySQL
-                                                                                          with
-                                                                                          Ranger,
-                                                                                          you
-                                                                                          must
-                                                                                          download
-                                                                                          the{" "}
-                                                                                          <a
-                                                                                            href="https://dev.mysql.com/downloads/connector/j/"
-                                                                                            target="_blank"
-                                                                                            rel="noopener noreferrer"
-                                                                                            style={{
-                                                                                              color:
-                                                                                                "#856404",
-                                                                                              textDecoration:
-                                                                                                "underline",
-                                                                                            }}
-                                                                                          >
-                                                                                            https://dev.mysql.com/downloads/connector/j/
-                                                                                          </a>{" "}
-                                                                                          from
-                                                                                          MySQL.
-                                                                                          Once
-                                                                                          downloaded
-                                                                                          to
-                                                                                          the
-                                                                                          Ambari
-                                                                                          Server
-                                                                                          host,
-                                                                                          run:
-                                                                                          <br />
-                                                                                          <span
-                                                                                            style={{
-                                                                                              backgroundColor:
-                                                                                                "#ffeaa7",
-                                                                                              padding:
-                                                                                                "2px 4px",
-                                                                                              borderRadius:
-                                                                                                "3px",
-                                                                                              fontFamily:
-                                                                                                "monospace",
-                                                                                              fontSize:
-                                                                                                "13px",
-                                                                                              color:
-                                                                                                "#6c4e00",
-                                                                                            }}
-                                                                                          >
-                                                                                            ambari-server
-                                                                                            setup
-                                                                                            --jdbc-db=mysql
-                                                                                            --jdbc-driver=/path/to/mysql/mysql-connector-java.jar
-                                                                                          </span>
-                                                                                        </div>
-                                                                                      )}
-                                                                                  </Col>
-                                                                                  <Col
-                                                                                    md={
-                                                                                      1
+                                                                                      {property.propertyDisplayname ||
+                                                                                        property.propertyName}
+                                                                                    </Form.Label>
+                                                                                  </Tooltip>
+                                                                                </Col>
+                                                                              </Row>
+                                                                            )}
+                                                                            <Row className="d-flex align-items-center">
+                                                                              <Col>
+                                                                                <Tooltip
+                                                                                  message={
+                                                                                    property.propertyDescription ||
+                                                                                    property.description ||
+                                                                                    property.property_description
+                                                                                  }
+                                                                                  heading={
+                                                                                    property.propertyDisplayname ||
+                                                                                    property.propertyName
+                                                                                  }
+                                                                                  placement="top"
+                                                                                >
+                                                                                  <div
+                                                                                    data-theme-widget-config={
+                                                                                      config.configPath
                                                                                     }
                                                                                   >
-                                                                                    <Stack
-                                                                                      direction="horizontal"
-                                                                                      gap={
-                                                                                        2
-                                                                                      }
+                                                                                    {renderWidgets(
+                                                                                      widget.type,
+                                                                                      {
+                                                                                        ...property,
+                                                                                        widget:
+                                                                                          widget.metadata,
+                                                                                        isEditable:
+                                                                                          !hostConfigs &&
+                                                                                          canEditConfigsInContext &&
+                                                                                          currentConfigGroup ===
+                                                                                            "Default" &&
+                                                                                          property.isEditable,
+                                                                                      },
+                                                                                      function (
+                                                                                        e: any,
+                                                                                        confirmPassword: boolean = false,
+                                                                                      ) {
+                                                                                        handleInputChangeWidget(
+                                                                                          type,
+                                                                                          property,
+                                                                                          e,
+                                                                                          widget.type,
+                                                                                          confirmPassword,
+                                                                                        );
+                                                                                      },
+                                                                                      config.configPath,
+                                                                                    )}
+                                                                                  </div>
+                                                                                </Tooltip>
+                                                                                {/* Display error message for main property */}
+                                                                                {property.errorMessage && (
+                                                                                  <div className="mt-2 text-danger">
+                                                                                    {
+                                                                                      property.errorMessage
+                                                                                    }
+                                                                                  </div>
+                                                                                )}
+                                                                                {/* MySQL Warning for Ranger DB_FLAVOR - positioned after the dropdown */}
+                                                                                {serviceKey ===
+                                                                                  "RANGER" &&
+                                                                                  (chosenTab ===
+                                                                                    "RANGER ADMIN" ||
+                                                                                    chosenTab ===
+                                                                                      "ranger_admin_settings") &&
+                                                                                  property.propertyName ===
+                                                                                    "DB_FLAVOR" &&
+                                                                                  property.value ===
+                                                                                    "MYSQL" && (
+                                                                                    <div
+                                                                                      className="mt-3"
+                                                                                      style={{
+                                                                                        backgroundColor:
+                                                                                          "#fff3cd",
+                                                                                        border:
+                                                                                          "1px solid #ffeaa7",
+                                                                                        borderRadius:
+                                                                                          "4px",
+                                                                                        padding:
+                                                                                          "12px 15px",
+                                                                                        color:
+                                                                                          "#856404",
+                                                                                        fontSize:
+                                                                                          "14px",
+                                                                                        lineHeight:
+                                                                                          "1.4",
+                                                                                      }}
                                                                                     >
-                                                                                      {!hostConfigs &&
-                                                                                        canEditConfigs &&
-                                                                                        property?.supportsFinal && (
-                                                                                          <Tooltip
-                                                                                            message={
+                                                                                      To
+                                                                                      use
+                                                                                      MySQL
+                                                                                      with
+                                                                                      Ranger,
+                                                                                      you
+                                                                                      must
+                                                                                      download
+                                                                                      the{" "}
+                                                                                      <a
+                                                                                        href="https://dev.mysql.com/downloads/connector/j/"
+                                                                                        target="_blank"
+                                                                                        rel="noopener noreferrer"
+                                                                                        style={{
+                                                                                          color:
+                                                                                            "#856404",
+                                                                                          textDecoration:
+                                                                                            "underline",
+                                                                                        }}
+                                                                                      >
+                                                                                        https://dev.mysql.com/downloads/connector/j/
+                                                                                      </a>{" "}
+                                                                                      from
+                                                                                      MySQL.
+                                                                                      Once
+                                                                                      downloaded
+                                                                                      to
+                                                                                      the
+                                                                                      Ambari
+                                                                                      Server
+                                                                                      host,
+                                                                                      run:
+                                                                                      <br />
+                                                                                      <span
+                                                                                        style={{
+                                                                                          backgroundColor:
+                                                                                            "#ffeaa7",
+                                                                                          padding:
+                                                                                            "2px 4px",
+                                                                                          borderRadius:
+                                                                                            "3px",
+                                                                                          fontFamily:
+                                                                                            "monospace",
+                                                                                          fontSize:
+                                                                                            "13px",
+                                                                                          color:
+                                                                                            "#6c4e00",
+                                                                                        }}
+                                                                                      >
+                                                                                        ambari-server
+                                                                                        setup
+                                                                                        --jdbc-db=mysql
+                                                                                        --jdbc-driver=/path/to/mysql/mysql-connector-java.jar
+                                                                                      </span>
+                                                                                    </div>
+                                                                                  )}
+                                                                              </Col>
+                                                                              <Col
+                                                                                md={
+                                                                                  1
+                                                                                }
+                                                                              >
+                                                                                <Stack
+                                                                                  direction="horizontal"
+                                                                                  gap={
+                                                                                    2
+                                                                                  }
+                                                                                >
+                                                                                  {!hostConfigs &&
+                                                                                    canEditConfigsInContext &&
+                                                                                    property.isEditable &&
+                                                                                    property?.supportsFinal && (
+                                                                                      <Tooltip
+                                                                                        message={
+                                                                                          property.final ===
+                                                                                          "true"
+                                                                                            ? "This property is marked as final and cannot be overridden. Click to make it overridable."
+                                                                                            : "Click to mark this property as final (cannot be overridden by child configurations)"
+                                                                                        }
+                                                                                        placement="top"
+                                                                                      >
+                                                                                        <FontAwesomeIcon
+                                                                                          icon={
+                                                                                            faLock
+                                                                                          }
+                                                                                          className={
+                                                                                            property.final ===
+                                                                                            "true"
+                                                                                              ? "lock-selected"
+                                                                                              : "text-light pointer"
+                                                                                          }
+                                                                                          onClick={() => {
+                                                                                            const configsCopy =
+                                                                                              cloneDeep(
+                                                                                                configProperties,
+                                                                                              );
+                                                                                            configsCopy[
+                                                                                              serviceKey
+                                                                                            ][
+                                                                                              type
+                                                                                            ].properties[
+                                                                                              propertyName
+                                                                                            ].final =
                                                                                               property.final ===
                                                                                               "true"
-                                                                                                ? "This property is marked as final and cannot be overridden. Click to make it overridable."
-                                                                                                : "Click to mark this property as final (cannot be overridden by child configurations)"
+                                                                                                ? "false"
+                                                                                                : "true";
+                                                                                            setConfigProperties(
+                                                                                              configsCopy,
+                                                                                            );
+                                                                                          }}
+                                                                                        />
+                                                                                      </Tooltip>
+                                                                                    )}
+                                                                                  {property.isEditable ===
+                                                                                    false ||
+                                                                                  property.isOverridable ===
+                                                                                    false ||
+                                                                                  property
+                                                                                    .propertyAttributes
+                                                                                    ?.overridable ===
+                                                                                    false ||
+                                                                                  (currentConfigGroup !==
+                                                                                    "Default" &&
+                                                                                    property?.overrideValues?.some(
+                                                                                      (
+                                                                                        overrideValue: any,
+                                                                                      ) =>
+                                                                                        overrideValue.value !==
+                                                                                        null,
+                                                                                    ))
+                                                                                    ? null
+                                                                                    : !hostConfigs &&
+                                                                                      canEditConfigsInContext && (
+                                                                                        <Tooltip
+                                                                                          message={
+                                                                                            currentConfigGroup ===
+                                                                                            "Default"
+                                                                                              ? "Add this property to a config group"
+                                                                                              : "Add override value for this config group"
+                                                                                          }
+                                                                                          placement="top"
+                                                                                        >
+                                                                                          <FontAwesomeIcon
+                                                                                            className="text-primary pointer"
+                                                                                            icon={
+                                                                                              faPlusCircle
                                                                                             }
-                                                                                            placement="top"
-                                                                                          >
-                                                                                            <FontAwesomeIcon
-                                                                                              icon={
-                                                                                                faLock
-                                                                                              }
-                                                                                              className={
-                                                                                                property.final ===
-                                                                                                "true"
-                                                                                                  ? "lock-selected"
-                                                                                                  : "text-light pointer"
-                                                                                              }
-                                                                                              onClick={() => {
+                                                                                            onClick={() => {
+                                                                                              if (
+                                                                                                currentConfigGroup ===
+                                                                                                "Default"
+                                                                                              ) {
+                                                                                                setShowAddToGroupModal?.(
+                                                                                                  true,
+                                                                                                );
+                                                                                              } else {
                                                                                                 const configsCopy =
                                                                                                   cloneDeep(
-                                                                                                    configProperties
+                                                                                                    configProperties,
                                                                                                   );
+                                                                                                if (
+                                                                                                  !configsCopy[
+                                                                                                    serviceKey
+                                                                                                  ][
+                                                                                                    type
+                                                                                                  ]
+                                                                                                    .properties[
+                                                                                                    propertyName
+                                                                                                  ]
+                                                                                                    .overrideValues
+                                                                                                ) {
+                                                                                                  configsCopy[
+                                                                                                    serviceKey
+                                                                                                  ][
+                                                                                                    type
+                                                                                                  ].properties[
+                                                                                                    propertyName
+                                                                                                  ].overrideValues =
+                                                                                                    [];
+                                                                                                }
                                                                                                 configsCopy[
                                                                                                   serviceKey
                                                                                                 ][
                                                                                                   type
                                                                                                 ].properties[
                                                                                                   propertyName
-                                                                                                ].final =
-                                                                                                  property.final ===
-                                                                                                  "true"
-                                                                                                    ? "false"
-                                                                                                    : "true";
-                                                                                                setConfigProperties(
-                                                                                                  configsCopy
+                                                                                                ].overrideValues.push(
+                                                                                                  {
+                                                                                                    value:
+                                                                                                      property.value,
+                                                                                                    groupName:
+                                                                                                      currentConfigGroup,
+                                                                                                  },
                                                                                                 );
-                                                                                              }}
-                                                                                            />
-                                                                                          </Tooltip>
-                                                                                        )}
-                                                                                      {property
-                                                                                        .propertyAttributes
-                                                                                        .overridable ===
-                                                                                        false ||
-                                                                                      (currentConfigGroup !==
-                                                                                        "Default" &&
-                                                                                        property?.overrideValues?.some(
-                                                                                          (
-                                                                                            overrideValue: any
-                                                                                          ) =>
-                                                                                            overrideValue.value !==
-                                                                                            null
-                                                                                        ))
-                                                                                        ? null
-                                                                                        : !hostConfigs &&
-                                                                                          canEditConfigs && (
-                                                                                            <Tooltip
-                                                                                              message={
-                                                                                                currentConfigGroup ===
-                                                                                                "Default"
-                                                                                                  ? "Add this property to a config group"
-                                                                                                  : "Add override value for this config group"
+
+                                                                                                setConfigProperties(
+                                                                                                  configsCopy,
+                                                                                                );
                                                                                               }
-                                                                                              placement="top"
-                                                                                            >
-                                                                                              <FontAwesomeIcon
-                                                                                                className="text-primary pointer"
-                                                                                                icon={
-                                                                                                  faPlusCircle
-                                                                                                }
+                                                                                            }}
+                                                                                          />
+                                                                                        </Tooltip>
+                                                                                      )}
+                                                                                  {!hostConfigs &&
+                                                                                  displayUndoRedo &&
+                                                                                  property.value !==
+                                                                                    property.previousValue &&
+                                                                                  canEditConfigsInContext &&
+                                                                                  property.isEditable &&
+                                                                                  currentConfigGroup ===
+                                                                                    "Default" ? (
+                                                                                    <FontAwesomeIcon
+                                                                                      className="text-light pointer"
+                                                                                      icon={
+                                                                                        faUndo
+                                                                                      }
+                                                                                      onClick={() =>
+                                                                                        handleUndo(
+                                                                                          type,
+                                                                                          property,
+                                                                                        )
+                                                                                      }
+                                                                                    />
+                                                                                  ) : null}
+                                                                                  {!hostConfigs &&
+                                                                                    displayUndoRedo &&
+                                                                                    canEditConfigsInContext &&
+                                                                                    property.isEditable &&
+                                                                                    currentConfigGroup ===
+                                                                                      "Default" && (
+                                                                                      <Tooltip
+                                                                                        message="Reset to default value"
+                                                                                        placement="top"
+                                                                                      >
+                                                                                        <FontAwesomeIcon
+                                                                                          className="text-light pointer"
+                                                                                          icon={
+                                                                                            faRedo
+                                                                                          }
+                                                                                          onClick={() =>
+                                                                                            setToDefault(
+                                                                                              type,
+                                                                                              property,
+                                                                                            )
+                                                                                          }
+                                                                                        />
+                                                                                      </Tooltip>
+                                                                                    )}
+                                                                                </Stack>
+                                                                              </Col>
+                                                                            </Row>
+                                                                            {property.overrideValues &&
+                                                                            Array.isArray(
+                                                                              property.overrideValues,
+                                                                            ) &&
+                                                                            property
+                                                                              .overrideValues
+                                                                              .length >
+                                                                              0
+                                                                              ? property.overrideValues.map(
+                                                                                  (
+                                                                                    overrideValue: configGroupOverrides,
+                                                                                    index: number,
+                                                                                  ) => {
+                                                                                    // Only render if value is not null
+                                                                                    if (
+                                                                                      overrideValue.value ===
+                                                                                      null
+                                                                                    ) {
+                                                                                      return null;
+                                                                                    }
+
+                                                                                    return (
+                                                                                      <Row
+                                                                                        key={
+                                                                                          index
+                                                                                        }
+                                                                                        className="mt-5"
+                                                                                      >
+                                                                                        <Col>
+                                                                                          {renderWidgets(
+                                                                                            widget.type,
+                                                                                            {
+                                                                                              ...property,
+                                                                                              widget:
+                                                                                                widget.metadata,
+                                                                                              value:
+                                                                                                overrideValue.value,
+                                                                                              isEditable:
+                                                                                                !hostConfigs &&
+                                                                                                canEditConfigsInContext &&
+                                                                                                currentConfigGroup !==
+                                                                                                  "Default" &&
+                                                                                                property.isEditable &&
+                                                                                                property.isOverridable !==
+                                                                                                  false,
+                                                                                            },
+                                                                                            function (
+                                                                                              e: any,
+                                                                                              confirmPassword: boolean = false,
+                                                                                            ) {
+                                                                                              handleInputChangeWidgetForOverrideValues(
+                                                                                                type,
+                                                                                                property,
+                                                                                                e,
+                                                                                                widget.type,
+                                                                                                index,
+                                                                                                confirmPassword,
+                                                                                              );
+                                                                                            },
+                                                                                            `${config.configPath}:override:${index}`,
+                                                                                          )}
+                                                                                          {overrideValue.errorMessage ? (
+                                                                                            <Col className="mt-2 text-danger">
+                                                                                              {
+                                                                                                overrideValue.errorMessage
+                                                                                              }
+                                                                                            </Col>
+                                                                                          ) : null}
+                                                                                        </Col>
+                                                                                        <Col
+                                                                                          md={
+                                                                                            1
+                                                                                          }
+                                                                                        >
+                                                                                          {!hostConfigs &&
+                                                                                            (currentConfigGroup ===
+                                                                                            "Default" ? (
+                                                                                              <h4
+                                                                                                className="text-info"
                                                                                                 onClick={() => {
                                                                                                   if (
-                                                                                                    currentConfigGroup ===
-                                                                                                    "Default"
+                                                                                                    installer
                                                                                                   ) {
-                                                                                                    setShowAddToGroupModal?.(
-                                                                                                      true
+                                                                                                    setSelectedConfigGroups(
+                                                                                                      (
+                                                                                                        prev,
+                                                                                                      ) => ({
+                                                                                                        ...prev,
+                                                                                                        [serviceKey]:
+                                                                                                          overrideValue.groupName,
+                                                                                                      }),
                                                                                                     );
                                                                                                   } else {
+                                                                                                    setConfigGroup?.(
+                                                                                                      overrideValue.groupName,
+                                                                                                    );
+                                                                                                  }
+                                                                                                }}
+                                                                                              >
+                                                                                                Switch
+                                                                                                to{" "}
+                                                                                                {
+                                                                                                  overrideValue.groupName
+                                                                                                }
+                                                                                              </h4>
+                                                                                            ) : canEditConfigsInContext &&
+                                                                                              property.isEditable &&
+                                                                                              property.isOverridable !==
+                                                                                                false ? (
+                                                                                              <Stack
+                                                                                                direction="horizontal"
+                                                                                                gap={
+                                                                                                  2
+                                                                                                }
+                                                                                              >
+                                                                                                <FontAwesomeIcon
+                                                                                                  className="text-danger pointer"
+                                                                                                  icon={
+                                                                                                    faMinusCircle
+                                                                                                  }
+                                                                                                  onClick={() => {
                                                                                                     const configsCopy =
                                                                                                       cloneDeep(
-                                                                                                        configProperties
+                                                                                                        configProperties,
                                                                                                       );
-                                                                                                    if (
-                                                                                                      !configsCopy[
-                                                                                                        serviceKey
-                                                                                                      ][
-                                                                                                        type
-                                                                                                      ]
-                                                                                                        .properties[
-                                                                                                        propertyName
-                                                                                                      ]
-                                                                                                        .overrideValues
-                                                                                                    ) {
-                                                                                                      configsCopy[
-                                                                                                        serviceKey
-                                                                                                      ][
-                                                                                                        type
-                                                                                                      ].properties[
-                                                                                                        propertyName
-                                                                                                      ].overrideValues =
-                                                                                                        [];
-                                                                                                    }
                                                                                                     configsCopy[
                                                                                                       serviceKey
                                                                                                     ][
                                                                                                       type
                                                                                                     ].properties[
                                                                                                       propertyName
-                                                                                                    ].overrideValues.push(
-                                                                                                      {
-                                                                                                        value:
-                                                                                                          property.value,
-                                                                                                        groupName:
-                                                                                                          currentConfigGroup,
-                                                                                                      }
-                                                                                                    );
+                                                                                                    ].overrideValues[
+                                                                                                      index
+                                                                                                    ].value =
+                                                                                                      null;
 
+                                                                                                    // Recalculate error counts after removing override
+                                                                                                    const validatedConfigs =
+                                                                                                      validateAllProperties(
+                                                                                                        configsCopy,
+                                                                                                      );
                                                                                                     setConfigProperties(
-                                                                                                      configsCopy
+                                                                                                      validatedConfigs,
                                                                                                     );
-                                                                                                  }
-                                                                                                }}
-                                                                                              />
-                                                                                            </Tooltip>
-                                                                                          )}
-                                                                                      {!hostConfigs &&
-                                                                                      displayUndoRedo &&
-                                                                                      property.value !==
-                                                                                        property.previousValue &&
-                                                                                      canEditConfigs &&
-                                                                                      currentConfigGroup ===
-                                                                                        "Default" ? (
-                                                                                        <FontAwesomeIcon
-                                                                                          className="text-light pointer"
-                                                                                          icon={
-                                                                                            faUndo
-                                                                                          }
-                                                                                          onClick={() =>
-                                                                                            handleUndo(
-                                                                                              type,
-                                                                                              property
-                                                                                            )
-                                                                                          }
-                                                                                        />
-                                                                                      ) : null}
-                                                                                      {!hostConfigs &&
-                                                                                        displayUndoRedo &&
-                                                                                        canEditConfigs &&
-                                                                                        currentConfigGroup ===
-                                                                                          "Default" && (
-                                                                                          <Tooltip
-                                                                                            message="Reset to default value"
-                                                                                            placement="top"
-                                                                                          >
-                                                                                            <FontAwesomeIcon
-                                                                                              className="text-light pointer"
-                                                                                              icon={
-                                                                                                faRedo
-                                                                                              }
-                                                                                              onClick={() =>
-                                                                                                setToDefault(
-                                                                                                  type,
-                                                                                                  property
-                                                                                                )
-                                                                                              }
-                                                                                            />
-                                                                                          </Tooltip>
-                                                                                        )}
-                                                                                    </Stack>
-                                                                                  </Col>
-                                                                                </Row>
-                                                                                {property.overrideValues &&
-                                                                                Array.isArray(
-                                                                                  property.overrideValues
-                                                                                ) &&
-                                                                                property
-                                                                                  .overrideValues
-                                                                                  .length >
-                                                                                  0
-                                                                                  ? property.overrideValues.map(
-                                                                                      (
-                                                                                        overrideValue: configGroupOverrides,
-                                                                                        index: number
-                                                                                      ) => {
-                                                                                        // Only render if value is not null
-                                                                                        if (
-                                                                                          overrideValue.value ===
-                                                                                          null
-                                                                                        ) {
-                                                                                          return null;
-                                                                                        }
-
-                                                                                        return (
-                                                                                          <Row
-                                                                                            key={
-                                                                                              index
-                                                                                            }
-                                                                                            className="mt-5"
-                                                                                          >
-                                                                                            <Col>
-                                                                                              {renderWidgets(
-                                                                                                theme[
-                                                                                                  serviceKey
-                                                                                                ]
-                                                                                                  .widgets[
-                                                                                                  propertyName
-                                                                                                ]
-                                                                                                  .widget
-                                                                                                  .type,
-                                                                                                {
-                                                                                                  ...property,
-                                                                                                  value:
-                                                                                                    overrideValue.value,
-                                                                                                  isEditable:
-                                                                                                    !hostConfigs &&
-                                                                                                    canEditConfigs &&
-                                                                                                    currentConfigGroup !==
-                                                                                                    "Default",
-                                                                                                },
-                                                                                                function (
-                                                                                                  e: any,
-                                                                                                  confirmPassword: boolean = false
-                                                                                                ) {
-                                                                                                  handleInputChangeWidgetForOverrideValues(
-                                                                                                    type,
-                                                                                                    property,
-                                                                                                    e,
-                                                                                                    theme[
-                                                                                                      serviceKey
-                                                                                                    ]
-                                                                                                      .widgets[
-                                                                                                      propertyName
-                                                                                                    ]
-                                                                                                      .widget
-                                                                                                      .type,
-                                                                                                    index,
-                                                                                                    confirmPassword
-                                                                                                  );
-                                                                                                }
-                                                                                              )}
-                                                                                              {overrideValue.errorMessage ? (
-                                                                                                <Col className="mt-2 text-danger">
-                                                                                                  {
-                                                                                                    overrideValue.errorMessage
-                                                                                                  }
-                                                                                                </Col>
-                                                                                              ) : null}
-                                                                                            </Col>
-                                                                                            <Col
-                                                                                              md={
-                                                                                                1
-                                                                                              }
-                                                                                            >
-                                                                                              {!hostConfigs && (currentConfigGroup ===
-                                                                                              "Default" ? (
-                                                                                                <h4
-                                                                                                  className="text-info"
-                                                                                                  onClick={() => {
-                                                                                                    if (
-                                                                                                      installer
-                                                                                                    ) {
-                                                                                                      setSelectedConfigGroups(
-                                                                                                        (
-                                                                                                          prev
-                                                                                                        ) => ({
-                                                                                                          ...prev,
-                                                                                                          [serviceKey]:
-                                                                                                            overrideValue.groupName,
-                                                                                                        })
-                                                                                                      );
-                                                                                                    } else {
-                                                                                                      setConfigGroup?.(
-                                                                                                        overrideValue.groupName
-                                                                                                      );
-                                                                                                    }
                                                                                                   }}
-                                                                                                >
-                                                                                                  Switch
-                                                                                                  to{" "}
-                                                                                                  {
-                                                                                                    overrideValue.groupName
-                                                                                                  }
-                                                                                                </h4>
-                                                                                              ) : (
-                                                                                                <Stack
-                                                                                                  direction="horizontal"
-                                                                                                  gap={
-                                                                                                    2
-                                                                                                  }
-                                                                                                >
-                                                                                                  <FontAwesomeIcon
-                                                                                                    className="text-danger pointer"
-                                                                                                    icon={
-                                                                                                      faMinusCircle
-                                                                                                    }
-                                                                                                    onClick={() => {
-                                                                                                      const configsCopy =
-                                                                                                        cloneDeep(
-                                                                                                          configProperties
-                                                                                                        );
-                                                                                                      configsCopy[
-                                                                                                        serviceKey
-                                                                                                      ][
-                                                                                                        type
-                                                                                                      ].properties[
-                                                                                                        propertyName
-                                                                                                      ].overrideValues[
-                                                                                                        index
-                                                                                                      ].value =
-                                                                                                        null;
-
-                                                                                                      // Recalculate error counts after removing override
-                                                                                                      const validatedConfigs =
-                                                                                                        validateAllProperties(
-                                                                                                          configsCopy
-                                                                                                        );
-                                                                                                      setConfigProperties(
-                                                                                                        validatedConfigs
-                                                                                                      );
-                                                                                                    }}
-                                                                                                  />
-                                                                                                </Stack>
-                                                                                              ))}
-                                                                                            </Col>
-                                                                                          </Row>
-                                                                                        );
-                                                                                      }
-                                                                                    )
-                                                                                  : null}
-                                                                              </Row>
-                                                                            ) : (
-                                                                              <Row className="mt-4">
-                                                                                {renderUIOnlyWidgets(
-                                                                                  theme[
-                                                                                    serviceKey
-                                                                                  ]
-                                                                                    .widgets[
-                                                                                    propertyName
-                                                                                  ]
-                                                                                    .widget
-                                                                                )}
-                                                                              </Row>
-                                                                            );
-                                                                          }
-                                                                        )}
-                                                                      </Row>
+                                                                                                />
+                                                                                              </Stack>
+                                                                                            ) : null)}
+                                                                                        </Col>
+                                                                                      </Row>
+                                                                                    );
+                                                                                  },
+                                                                                )
+                                                                              : null}
+                                                                          </Row>
+                                                                        ) : isExplicitUIOnlyPlacement(
+                                                                            config,
+                                                                          ) ? (
+                                                                          <Row
+                                                                            className="mt-4"
+                                                                            key={
+                                                                              config.configPath
+                                                                            }
+                                                                          >
+                                                                            {renderUIOnlyWidgets(
+                                                                              widget,
+                                                                              hostConfigs ||
+                                                                                !canEditConfigsInContext ||
+                                                                                currentConfigGroup !==
+                                                                                  "Default",
+                                                                            )}
+                                                                          </Row>
+                                                                        ) : null;
+                                                                      },
                                                                     )}
-                                                                  </div>
-                                                                </Col>
-                                                              );
-                                                            }
-                                                          )}
-                                                        </Row>
-                                                      </Card>
-                                                    </Col>
-                                                  )
-                                                )}
-                                            </Row>
-                                          )}
+                                                                  </Row>
+                                                                )}
+                                                              </div>
+                                                            </div>
+                                                          );
+                                                        },
+                                                      )}
+                                                    </div>
+                                                  </Card>
+                                                </div>
+                                              ))}
+                                          </div>
                                         </Tab.Pane>
-                                      )
-                                    )
+                                      ))
                                   ) : (
                                     <Tab.Pane eventKey={"Advanced"}>
                                       {chosenTab === "Advanced" ? (
@@ -3111,7 +3248,7 @@ export default function Config({
                                                           ...prev,
                                                           [chosenService]:
                                                             groupName,
-                                                        })
+                                                        }),
                                                       )
                                                   : setConfigGroup
                                               }

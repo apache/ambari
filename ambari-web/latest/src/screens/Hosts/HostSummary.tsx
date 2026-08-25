@@ -120,7 +120,8 @@ import { HostMetrics } from "./HostMetrics";
 import { hostMetricsOption } from "./constants";
 import usePolling from "../../hooks/usePolling";
 import classNames from "classnames";
-import { useAuth } from "../../hooks/useAuth";
+import useAuthorizationPolicy from "../../hooks/useAuthorizationPolicy";
+import HostLogMetrics from "./HostLogMetrics";
 
 type HostSummaryProps = {
   allHostModels: IHost[];
@@ -135,9 +136,12 @@ export default function HostsSummary({
   setAllHostModels,
   clusterComponents,
 }: HostSummaryProps) {
-  const { clusterName, serviceComponentInfo, services, upgradeIsRunning, upgradeSuspended } =
-    useContext(AppContext);
-  const [isUpgradeInProgress, setIsUpgradeInProgress] = useState(false);
+  const {
+    clusterName,
+    serviceComponentInfo,
+    services,
+    supports,
+  } = useContext(AppContext);
   const { allServiceModels: serviceModels } = useContext(ServiceContext);
   const params = useParams();
   const navigate = useNavigate();
@@ -212,10 +216,6 @@ export default function HostsSummary({
     populateHostMetricesData,
     15000
   );
-  useEffect(() => {
-    setIsUpgradeInProgress(upgradeIsRunning && !upgradeSuspended);
-  }, [upgradeIsRunning, upgradeSuspended]);
-
   useEffect(() => {
     if (!selectedMetricsOption.toUpperCase().startsWith("CUSTOM")) {
       populateHostMetricesData();
@@ -318,20 +318,32 @@ export default function HostsSummary({
     useDecommissionable(get(allHostModels, "[0]", {} as IHost));
 
   // Authorization hooks - implementing Ember.js host component authorization patterns
-  const { hasAuthorization } = useAuth();
+  const { havePermissions, isAuthorized } = useAuthorizationPolicy();
 
   // Check specific authorizations for host component operations
-  const canStartStopServices = hasAuthorization("SERVICE.START_STOP");
-  const canAddDeleteServices = hasAuthorization("HOST.ADD_DELETE_COMPONENTS");
-  const canDecommissionRecommission = hasAuthorization(
+  const canStartStopServices = isAuthorized("SERVICE.START_STOP");
+  const canAddDeleteServices = isAuthorized("HOST.ADD_DELETE_COMPONENTS");
+  const canDecommissionRecommission = isAuthorized(
     "SERVICE.DECOMMISSION_RECOMMISSION"
   );
-  const canRunCustomCommands = hasAuthorization("SERVICE.RUN_CUSTOM_COMMAND");
+  const canRunCustomCommands = isAuthorized("SERVICE.RUN_CUSTOM_COMMAND");
   const canToggleComponentMaintenance =
-    hasAuthorization("SERVICE.TOGGLE_MAINTENANCE") ||
-    hasAuthorization("HOST.TOGGLE_MAINTENANCE");
-  const canToggleHostMaintenance = hasAuthorization("HOST.TOGGLE_MAINTENANCE");
-  const canMoveComponents = hasAuthorization("SERVICE.MOVE");
+    isAuthorized("SERVICE.TOGGLE_MAINTENANCE") ||
+    isAuthorized("HOST.TOGGLE_MAINTENANCE");
+  const canToggleHostMaintenance = isAuthorized("HOST.TOGGLE_MAINTENANCE");
+  const canMoveComponents = isAuthorized("SERVICE.MOVE");
+  const canViewOperationalLogs = havePermissions(
+    "SERVICE.VIEW_OPERATIONAL_LOGS",
+  );
+  const isLogSearchInstalled = services.some(
+    (service: any) => get(service, "ServiceInfo.service_name") === "LOGSEARCH",
+  );
+  const canShowLogCounts = Boolean(
+    supports.logCountVizualization &&
+      supports.logSearch &&
+      isLogSearchInstalled &&
+      canViewOperationalLogs,
+  );
 
   const canPerformActions =
     canStartStopServices ||
@@ -1143,7 +1155,7 @@ export default function HostsSummary({
           const availableActions = componentActionsMap[componentId] || [];
 
           // Hide dropdown if user has no access to any actions
-          if (availableActions.length === 0 || isUpgradeInProgress) {
+          if (availableActions.length === 0) {
             return null;
           }
 
@@ -1253,7 +1265,7 @@ export default function HostsSummary({
                     )}
                   </div>
                   {/* Restart Button - Requires SERVICE.START_STOP authorization */}
-                  {canStartStopServices && !isUpgradeInProgress && (
+                  {canStartStopServices && (
                     <Button
                       variant="warning"
                       className="text-light custom-btn"
@@ -1300,7 +1312,7 @@ export default function HostsSummary({
               <div className="d-flex justify-content-between px-3 pt-3">
                 <h3 className="mt-2">{translate("common.components")}</h3>
                 {/* Add Component Dropdown - Requires SERVICE.ADD_DELETE_SERVICES authorization */}
-                {canAddDeleteServices && !isUpgradeInProgress && (
+                {canAddDeleteServices && (
                   <Dropdown>
                     <Dropdown.Toggle
                       variant="transparent"
@@ -1378,8 +1390,7 @@ export default function HostsSummary({
                       {/* Edit Rack - Requires HOST.ADD_DELETE_COMPONENTS authorization */}
                       {key === "Rack" &&
                       get(summary, key) &&
-                      canToggleHostMaintenance &&
-                      !isUpgradeInProgress ? (
+                      canToggleHostMaintenance ? (
                         <FontAwesomeIcon
                           icon={faPencil}
                           className="ms-2 custom-link"
@@ -1412,6 +1423,13 @@ export default function HostsSummary({
               </div>
             </Card>
           </div>
+          {canShowLogCounts ? (
+            <div className="d-flex w-100 mb-4">
+              <HostLogMetrics
+                hostName={String(params.hostname || summary.Hostname)}
+              />
+            </div>
+          ) : null}
         </div>
       </div>
     </div>

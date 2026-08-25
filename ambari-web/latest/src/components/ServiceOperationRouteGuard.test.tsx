@@ -16,18 +16,28 @@
  * limitations under the License.
  */
 
-import { render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import { ComponentProps } from "react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { AppContext } from "../store/context";
 import ServiceOperationRouteGuard from "./ServiceOperationRouteGuard";
 
-const renderGuard = (wizardIsNotFinished: boolean) =>
+const renderGuard = ({
+  isNonWizardUser = false,
+  operationsAllowed = false,
+  upgradeIsRunning = false,
+  upgradeSuspended = false,
+} = {}) =>
   render(
     <AppContext.Provider
       value={
-        { wizardIsNotFinished } as unknown as ComponentProps<
+        {
+          isNonWizardUser,
+          supports: { opsDuringRollingUpgrade: operationsAllowed },
+          upgradeIsRunning,
+          upgradeSuspended,
+        } as unknown as ComponentProps<
           typeof AppContext.Provider
         >["value"]
       }
@@ -52,13 +62,29 @@ const renderGuard = (wizardIsNotFinished: boolean) =>
   );
 
 describe("service operation route guard", () => {
+  afterEach(cleanup);
+
   it("allows the route when no upgrade or other user's wizard is active", () => {
-    renderGuard(false);
+    renderGuard();
     expect(screen.getByText("Operation Wizard")).toBeTruthy();
   });
 
   it("redirects a conflicting wizard route", () => {
-    renderGuard(true);
+    renderGuard({ isNonWizardUser: true });
     expect(screen.getByText("Cluster Dashboard")).toBeTruthy();
+  });
+
+  it("blocks an active upgrade unless the support flag permits operations", () => {
+    const blocked = renderGuard({ upgradeIsRunning: true });
+    expect(screen.getByText("Cluster Dashboard")).toBeTruthy();
+    blocked.unmount();
+
+    renderGuard({ operationsAllowed: true, upgradeIsRunning: true });
+    expect(screen.getByText("Operation Wizard")).toBeTruthy();
+  });
+
+  it("allows operations while an upgrade is suspended", () => {
+    renderGuard({ upgradeIsRunning: true, upgradeSuspended: true });
+    expect(screen.getByText("Operation Wizard")).toBeTruthy();
   });
 });

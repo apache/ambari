@@ -78,7 +78,7 @@ import HostComboSearch, { SelectedFilters } from "./HostComboSearch";
 import { getQueryParameters } from "./host";
 import { computeParameters } from "../../globals/updateControl";
 import { translate, translateWithVariables } from "../../Utils/Utility";
-import { useAuth } from "../../hooks/useAuth";
+import useAuthorizationPolicy from "../../hooks/useAuthorizationPolicy";
 
 export const getCmponentsToBeRestarted = (data: IHost) => {
   return get(data, "hostComponents", []).filter((item: any) =>
@@ -92,8 +92,7 @@ export default function HostsList() {
     versionName?: string;
     versionStatus?: string;
   }>();
-  const { clusterName, serviceComponentInfo, upgradeIsRunning } =
-    useContext(AppContext);
+  const { clusterName, serviceComponentInfo } = useContext(AppContext);
   const { allServiceModels: serviceModels } = useContext(ServiceContext);
   const [loading, setLoading] = useState(true);
   const [paginationLoading, setPaginationLoading] = useState(false);
@@ -123,17 +122,14 @@ export default function HostsList() {
   const { stackVersionList } = useStackVersion();
 
   // Authorization hooks - implementing Ember.js host authorization patterns
-  const { hasAuthorization, havePermissions } = useAuth();
-
-  // Use computed upgrade property instead of utility function
-  const isUpgradeInProgress = upgradeIsRunning;
+  const { havePermissions, isAuthorized } = useAuthorizationPolicy();
 
   // Check specific authorizations for host operations
-  const canStartStopServices = hasAuthorization("SERVICE.START_STOP");
-  const canToggleHostMaintenance = hasAuthorization("HOST.TOGGLE_MAINTENANCE");
-  const canAddDeleteHosts = hasAuthorization("HOST.ADD_DELETE_HOSTS");
-  const canAddDeleteComponents = hasAuthorization("HOST.ADD_DELETE_COMPONENTS");
-  const canDecommissionRecommission = hasAuthorization(
+  const canStartStopServices = isAuthorized("SERVICE.START_STOP");
+  const canToggleHostMaintenance = isAuthorized("HOST.TOGGLE_MAINTENANCE");
+  const canAddDeleteHosts = isAuthorized("HOST.ADD_DELETE_HOSTS");
+  const canAddDeleteComponents = isAuthorized("HOST.ADD_DELETE_COMPONENTS");
+  const canDecommissionRecommission = isAuthorized(
     "SERVICE.DECOMMISSION_RECOMMISSION"
   );
 
@@ -1337,7 +1333,7 @@ export default function HostsList() {
                 <FontAwesomeIcon icon={faFilter} />
               </DefaultButton>
               {/* Only show Actions dropdown if user has required permissions and upgrade is not in progress*/}
-              {canShowHostActions && !isUpgradeInProgress && (
+              {canShowHostActions && (
                 <NestedDropdown
                   menu={hostActionsMenu}
                   dropDirection="start"

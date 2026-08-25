@@ -30,6 +30,7 @@ import {
 } from "../../Utils/hostLogs";
 import HostLogTailModal from "./HostLogTailModal";
 import { useLazyQuicklinks } from "../../hooks/useLazyQuicklinks";
+import { useSearchParams } from "react-router-dom";
 
 type HostLogsProps = { hostName: string };
 type SortField = "componentDisplayName" | "serviceDisplayName";
@@ -38,11 +39,14 @@ export default function HostLogs({ hostName }: HostLogsProps) {
   const { clusterName } = useContext(AppContext);
   const { allServiceModels } = useContext(ServiceContext);
   const { loadQuicklinks, quicklinks } = useLazyQuicklinks("LOGSEARCH");
+  const [searchParams] = useSearchParams();
   const [rows, setRows] = useState<HostLogRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
-  const [serviceFilter, setServiceFilter] = useState("");
+  const [serviceFilter, setServiceFilter] = useState(
+    () => searchParams.get("service_name") || "",
+  );
   const [componentFilter, setComponentFilter] = useState("");
   const [extensionFilter, setExtensionFilter] = useState("");
   const [sortField, setSortField] = useState<SortField>("serviceDisplayName");

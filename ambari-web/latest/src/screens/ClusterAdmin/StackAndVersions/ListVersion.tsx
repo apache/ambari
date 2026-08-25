@@ -74,6 +74,7 @@ import {
   type VersionFilterKey,
 } from "./versionUtils";
 import useKDCSessionState from "../../../hooks/useKDCSessionState";
+import useAuthorizationPolicy from "../../../hooks/useAuthorizationPolicy";
 import PreUpgradeCheckItem from "./PreUpgradeCheckItem";
 
 export const iconMapping: { [key: string]: IconDefinition } = {
@@ -108,10 +109,12 @@ export default function Versions() {
   
   // Authorization hooks - implementing Ember.js stack/version authorization patterns
   const { hasAuthorization, isAdmin, isOperator, user } = useAuth();
+  const { havePermissions } = useAuthorizationPolicy();
   
   // Check specific authorizations for stack/version operations
   const canUpgradeDowngrade = hasAuthorization('CLUSTER.UPGRADE_DOWNGRADE_STACK');
   const canManageStackVersions = hasAuthorization("AMBARI.MANAGE_STACK_VERSIONS");
+  const canViewManageStackVersions = havePermissions("AMBARI.MANAGE_STACK_VERSIONS");
   const canSaveRepositories =
     isAdmin()
     && !isOperator()
@@ -2086,11 +2089,11 @@ export default function Versions() {
       )}
       <div className="mt-4">
         <div className="d-flex">
-           {/* Only show Manage versions button if user has CLUSTER.UPGRADE_DOWNGRADE_STACK permission */}
-           {canManageStackVersions && !isUpgradeInProgress && !isNonWizardUser && (
+           {canViewManageStackVersions && (
              <Button
                   size="sm"
                   variant="success"
+                  disabled={isNonWizardUser}
                   onClick={() => setManageVersionsModal(true)}
                 >
                   <FontAwesomeIcon className="mx-2" icon={faExternalLink} />{" "}

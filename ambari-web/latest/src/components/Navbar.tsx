@@ -42,11 +42,18 @@ import AmbariAboutModal from "../AmbariAboutModal.tsx";
 import "../styles/app.scss";
 import usePolling from "../hooks/usePolling.ts";
 import { AlertsApi } from "../api/alertsApi.ts";
-import { redirectToAdminView } from "../Utils/adminViewRedirect";
+import {
+  classicExperienceUrl,
+  redirectToAdminView,
+} from "../Utils/adminViewRedirect";
 import modalManager from "../store/ModalManager.ts";
 import BackgroundOperations from "../screens/BackgroundOperations/index.tsx";
 import { useCallback } from "react";
 import { useAuth } from "../hooks/useAuth";
+import useAuthorizationPolicy from "../hooks/useAuthorizationPolicy";
+import { clusterNavigationEnabled } from "../Utils/authPolicy";
+import { openViewInstance, ViewInstance } from "../Utils/viewUtils";
+import DigitalClock from "./DigitalClock";
 
 type NavbarOption = {
   label: string;
@@ -59,12 +66,13 @@ type NavbarOption = {
 
 type NavBarProps = {
   subPath: string;
-  viewsList: any[];
+  viewsList: ViewInstance[];
   clusterControls?: boolean;
   homePath?: string;
   runningRequestsCount?: number;
   hostMaintenanceState?: string;
   hostname?: string;
+  enableDigitalClock?: boolean;
 };
 
 export default function NavBar({
@@ -75,6 +83,7 @@ export default function NavBar({
   runningRequestsCount,
   hostMaintenanceState,
   hostname,
+  enableDigitalClock,
 }: NavBarProps) {
   const [notifications, setNotifications] = useState<Notifications[]>([]);
   const [showUserSettingsModal, setShowUserSettingsModal] = useState(false);
@@ -88,19 +97,21 @@ export default function NavBar({
   });
   const location = useLocation();
   const [selectedFilter, setSelectedFilter] = useState("all");
-  const { clusterName, cluster } = useContext(AppContext);
+  const {
+    clusterName,
+    cluster,
+    serverClock,
+    userTimezone,
+  } = useContext(AppContext);
   const [showAmbariAboutModal, setShowAmbariAboutModal] = useState(false);
   
   const isClusterInstalled = cluster?.provisioning_state === "INSTALLED";
   const navigate = useNavigate();
 
-  const isInstaller = () => {
-    const path = location.pathname;
-    if (path.includes("installer") || path.includes("install")) {
-      return true;
-    }
-    return false;
-  };
+  const clusterNavigation = clusterNavigationEnabled(
+    clusterControls,
+    location.pathname,
+  );
 
   const fetchAlerts = async () => {
     // TLHASD-745: Only fetch alerts if cluster is installed
@@ -180,8 +191,8 @@ export default function NavBar({
   };
 
   // Authorization hooks - implementing Ember.js showSettingsPopup authorization pattern
-  const { user, hasAuthorization, isClusterUser, logout } = useAuth();
-  const { isNonWizardUser, upgradeIsRunning, upgradeSuspended } = useContext(AppContext);
+  const { user, isClusterUser, logout } = useAuth();
+  const { isAuthorized } = useAuthorizationPolicy();
 
   const handleSignOut = useCallback(async () => {
     stopPolling();
@@ -189,25 +200,26 @@ export default function NavBar({
     navigate("/login", { replace: true });
   }, [logout, navigate, stopPolling]);
 
-  // Check if upgrade is blocking operations (running but not suspended)
-  // FIXED: Add additional check for upgrade suspended state to prevent flaky behavior
-  // When upgrade is suspended/paused, admin options should be available
-  const isUpgradeBlocking = upgradeIsRunning && !upgradeSuspended;
-
-  const canUseRestrictedNavigation = !isUpgradeBlocking && !isNonWizardUser;
-  const canManageAmbari = canUseRestrictedNavigation && hasAuthorization(
+  const canManageAmbari = isAuthorized(
     "AMBARI.ADD_DELETE_CLUSTERS, AMBARI.ASSIGN_ROLES, AMBARI.EDIT_STACK_REPOS, AMBARI.MANAGE_GROUPS, AMBARI.MANAGE_STACK_VERSIONS, AMBARI.MANAGE_USERS, AMBARI.MANAGE_VIEWS, AMBARI.RENAME_CLUSTER"
   );
-  const canSeeSettings = canUseRestrictedNavigation
-    && hasAuthorization("AMBARI.MANAGE_SETTINGS");
-  const canOpenSettings = !isNonWizardUser
-    && hasAuthorization("CLUSTER.UPGRADE_DOWNGRADE_STACK");
+  const canSeeSettings = isAuthorized("AMBARI.MANAGE_SETTINGS");
+  const canOpenSettings = isAuthorized("CLUSTER.UPGRADE_DOWNGRADE_STACK");
   const canOpenBackgroundOperations = !isClusterUser();
+  const shouldShowDigitalClock = enableDigitalClock ??
+    String(import.meta.env.VITE_ENABLE_DIGITAL_CLOCK || "").toLowerCase() ===
+      "true";
 
   const navbarOptions: NavbarOption[] = [
     {
       label: "About",
       callback: () => setShowAmbariAboutModal(true),
+    },
+    {
+      label: "Switch Experience",
+      callback: () => window.location.assign(
+        classicExperienceUrl(window.location.pathname),
+      ),
     },
     ...(canManageAmbari
       ? [
@@ -247,7 +259,7 @@ export default function NavBar({
           onClose={() => setShowUserSettingsModal(false)}
         />
       )}
-      <Navbar collapseOnSelect expand="lg" className="bg-white">
+      <Navbar id="top-nav" collapseOnSelect expand="lg" className="bg-white">
         <Container className="d-flex justify-content-between">
           <Navbar.Brand
             className="text-black m-0 breadcrumb d-flex align-items-center"
@@ -257,8 +269,12 @@ export default function NavBar({
               <FontAwesomeIcon
                 className="me-1"
                 icon={faHome}
-                style={{ fontSize: 24, cursor: "pointer" }}
-                onClick={() => navigate(homePath)}
+                style={{
+                  fontSize: 24,
+                  cursor: clusterNavigation ? "pointer" : "default",
+                }}
+                aria-disabled={!clusterNavigation}
+                onClick={clusterNavigation ? () => navigate(homePath) : undefined}
               />
               {hostname && hostMaintenanceState === "ON" ? (
                 <div className="d-flex align-items-center">
@@ -285,12 +301,21 @@ export default function NavBar({
             </div>
           </Navbar.Brand>
           <div className="right-nav-container d-flex align-items-center">
+            {shouldShowDigitalClock ? (
+              <>
+                <DigitalClock
+                  serverClock={serverClock}
+                  timeZone={userTimezone}
+                />
+                <div style={{ width: "20px" }}></div>
+              </>
+            ) : null}
             <div style={{ width: "10px" }}></div>
             <Nav.Link className="navbar-text navbar-size me-4">
               {clusterName}
             </Nav.Link>
             <div style={{ width: "20px" }}></div>
-            {isInstaller() || !clusterControls || !canOpenBackgroundOperations ? null : (
+            {!clusterNavigation || !canOpenBackgroundOperations ? null : (
               <div
                 onClick={() => {
                   modalManager.show(
@@ -319,7 +344,7 @@ export default function NavBar({
               </div>
             )}
             <div style={{ width: "20px" }}></div>
-            {isInstaller() || !clusterControls ? null : (
+            {!clusterNavigation ? null : (
               <NotificationDropdown
                 notifications={filteredNotifications}
                 onFilterChange={setSelectedFilter}
@@ -327,7 +352,7 @@ export default function NavBar({
               />
             )}
             <div style={{ width: "20px" }}></div>
-            {isInstaller() ? null : (
+            {!clusterNavigation ? null : (
               <Dropdown>
                 <Dropdown.Toggle
                   as="div"
@@ -342,24 +367,15 @@ export default function NavBar({
                   <Dropdown.Header>Views</Dropdown.Header>
                   <DropdownDivider />
                   {getViewsLength() ? (
-                    viewsList.map((item, index) => {
-                      const displayName =
-                        item.label ||
-                        item.instance_name ||
-                        item.view_name ||
-                        "Unknown View";
+                    viewsList.map((item) => {
                       return (
                         <Dropdown.Item
-                          key={`${item.view_name || "unknown"}-${
-                            item.version || "unknown"
-                          }-${item.instance_name || "unknown"}-${index}`}
+                          key={`${item.viewName}-${item.version}-${item.instanceName}`}
                           onClick={() => {
-                            navigate(
-                              `/main/views/${item.view_name}/${item.version}/${item.instance_name}`
-                            );
+                            openViewInstance(item);
                           }}
                         >
-                          {displayName}
+                          {item.label}
                         </Dropdown.Item>
                       );
                     })

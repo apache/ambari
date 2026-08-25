@@ -20,6 +20,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AppContext } from "../../store/context";
 import { ServiceContext } from "../../store/ServiceContext";
+import { MemoryRouter } from "react-router-dom";
 
 const mocks = vi.hoisted(() => ({ fetchHostLogs: vi.fn() }));
 vi.mock("../../api/hostLogsApi", () => ({
@@ -62,13 +63,15 @@ const response = {
 
 function renderLogs() {
   return render(
-    <AppContext.Provider value={{ clusterName: "c1" } as any}>
-      <ServiceContext.Provider value={{
-        allServiceModels: [{ serviceName: "HDFS", displayName: "HDFS" }],
-      } as any}>
-        <HostLogs hostName="host1" />
-      </ServiceContext.Provider>
-    </AppContext.Provider>,
+    <MemoryRouter>
+      <AppContext.Provider value={{ clusterName: "c1" } as any}>
+        <ServiceContext.Provider value={{
+          allServiceModels: [{ serviceName: "HDFS", displayName: "HDFS" }],
+        } as any}>
+          <HostLogs hostName="host1" />
+        </ServiceContext.Provider>
+      </AppContext.Provider>
+    </MemoryRouter>,
   );
 }
 

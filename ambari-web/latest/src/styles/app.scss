@@ -1684,3 +1684,41 @@ pre {
   opacity: 0.6;
   background-color: #6c757d;
 }
+
+.service-theme-grid,
+.service-theme-subsection-grid {
+  min-width: 0;
+  width: 100%;
+}
+
+.service-theme-subsection-grid {
+  gap: 0.5rem 0;
+}
+
+.service-theme-subsection-bordered {
+  border: 1px solid #d7dde3;
+  padding: 0.5rem;
+}
+
+.service-theme-subsection-split {
+  border-left: 1px solid #d7dde3;
+}
+
+@media (max-width: 991.98px) {
+  .service-theme-grid,
+  .service-theme-subsection-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: auto !important;
+  }
+
+  [data-theme-section],
+  [data-theme-subsection] {
+    grid-column: 1 / -1 !important;
+    grid-row: auto !important;
+  }
+
+  .service-theme-subsection-split {
+    border-left: 0;
+    border-top: 1px solid #d7dde3;
+  }
+}

@@ -28,6 +28,7 @@ import UpgradeHistory from "./UpgradeHistory";
 import { useAuth } from "../../../hooks/useAuth";
 import Upgrade from "./Upgrade";
 import { hasFinishedUpgradeHistory } from "./upgradeUtils";
+import useStackVersion from "../../../hooks/useStackVersion";
  
 function StackAndVersions() {
   const { tabName } = useParams();
@@ -37,6 +38,9 @@ function StackAndVersions() {
   const [historyLoadAttempt, setHistoryLoadAttempt] = useState(0);
   const navigate=useNavigate();
   const { clusterName, upgradeId } = useContext(AppContext);
+  const { stackVersion, stackVersionList } = useStackVersion();
+  const stackVersionStateLoaded = stackVersion !== undefined;
+  const stackVersionsAvailable = stackVersionList.length > 0;
 
   // Authorization hooks - implementing Ember.js upgrade history authorization patterns
   const { hasAuthorization } = useAuth();
@@ -71,12 +75,18 @@ function StackAndVersions() {
   useEffect(() => {
     if (tabName === "upgrade") {
       setSelectedTab("versions");
+    } else if (
+      tabName === "versions"
+      && stackVersionStateLoaded
+      && !stackVersionsAvailable
+    ) {
+      navigate("/main/admin/stack/services", { replace: true });
     } else if (["services", "versions", "history"].includes(tabName || "")) {
       setSelectedTab(tabName);
     } else {
       navigate("/main/admin/stack/services", { replace: true });
     }
-  }, [navigate, tabName]);
+  }, [navigate, stackVersionStateLoaded, stackVersionsAvailable, tabName]);
 
   return (
     <div className="py-4 mx-5">
@@ -108,9 +118,11 @@ function StackAndVersions() {
         <Tab title="Stack" eventKey={"services"}>
           <ListStack />
         </Tab>
-        <Tab title="Versions" eventKey={"versions"}>
-          <Versions />
-        </Tab>
+        {(!stackVersionStateLoaded || stackVersionsAvailable) && (
+          <Tab title="Versions" eventKey={"versions"}>
+            <Versions />
+          </Tab>
+        )}
         { showUpgradeHistory && (
           <Tab title="Upgrade History" eventKey={"history"}>
             <UpgradeHistory />

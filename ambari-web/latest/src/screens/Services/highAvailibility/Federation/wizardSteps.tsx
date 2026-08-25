@@ -57,7 +57,7 @@ export default {
     label: "Configure Components",
     completed: false,
     Component: <Step4/>,
-    canGoBack: true,
+    canGoBack: false,
     isNextEnabled: true,
     name: enableNamenodeFederationSteps.CONFIGURE_COMPONENTS,
   },

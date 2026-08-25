@@ -84,6 +84,12 @@ The entry point is `/main/services/:service_id/{summary|configs|audit}`. Service
 | SVC-CONFIG-008 | Host override: creates or removes an override for a config group, restores the saved/default value, and independently sets a recommended value and final flag for the override | Non-default group; the property must support overrides; both Widgets and traditional property rows provide create/remove override controls | Config group/config save requests | config_overridable mixin, overridden property view, `app/templates/common/configs/widgets/controls/create_override.hbs`, `remove_override.hbs` |
 | SVC-CONFIG-009 | Displays and operates restart required: restarts by service/host/component and supports rolling restart | Filters by permission, maintenance, and state | `restart.hostComponents`, `restart.staleConfigs`, schedule | component_actions_by_configs mixin |
 | SVC-CONFIG-010 | Tests a database connection by creating a custom action, reading the task ID from the request, and polling the task result | Specific configs such as Hive/Oozie/Ranger/Kerberos; a create failure ends Connecting, while task-list or polling GET has no dedicated error callback and may remain in Connecting indefinitely. Failure displays stderr/stdout and the structured check message; success displays only Connection OK | `cluster.custom_action.create`/`custom_action.create`, `custom_action.request` | `app/views/common/configs/widgets/test_db_connection_widget_view.js`, database util |
+
+The metadata compiler behind `SVC-CONFIG-001` through `SVC-CONFIG-003`, Host
+Configs, comparison, and DB-test Widgets is specified independently in
+[Service Theme and Configuration Layout](14-service-theme-layout.md). That
+module is authoritative for custom service layouts, all 14 operational Widget
+types, conditions, fallback, and React test obligations.
 | SVC-CONFIG-011 | Adds a custom property in an allowed Advanced category, supporting a single key/value and multi-line `key=value` bulk mode; user properties can be deleted | `SERVICE.MODIFY_CONFIGS`; validates keys, duplicates, and bulk-line format; deleting a saved property adds its config type to the pending update set | Submitted with config-version save | `app/templates/common/configs/service_config_category.hbs`, `app/views/common/configs/service_configs_by_category_view.js#showAddPropertyWindow`, `removeProperty` |
 
 ## Config Groups

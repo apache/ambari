@@ -19,6 +19,7 @@
 import React, {
   createContext,
   Dispatch,
+  useContext,
   useEffect,
   useReducer,
   useRef,
@@ -37,12 +38,14 @@ import {
   persistedPayload,
 } from "../../../../../Utils/persistedSettings";
 import useAuth from "../../../../../hooks/useAuth";
+import { AppContext } from "../../../../../store/context";
 
 interface EnableHighAvailibilityContextProps {
   state: State;
   dispatch: Dispatch<Action>;
   stepWizardUtilities?: any;
   flushStateToDb?: any;
+  showCancel?: boolean;
 }
 
 export const EnableHighAvailibilityContext =
@@ -50,6 +53,7 @@ export const EnableHighAvailibilityContext =
     state: initialState,
     dispatch: () => undefined,
     flushStateToDb: () => undefined,
+    showCancel: true,
   });
 
 export const EnableHighAvailibilityProvider: React.FC<{
@@ -57,6 +61,7 @@ export const EnableHighAvailibilityProvider: React.FC<{
   children: React.ReactNode;
 }> = ({ stepWizardUtilities, children }) => {
   const { user } = useAuth();
+  const { supports } = useContext(AppContext);
   const workflowOwner = user?.user_name || "";
   const [state, reducerDispatch] = useReducer(reducer, initialState);
   const [isHydrated, setIsHydrated] = useState(false);
@@ -65,6 +70,10 @@ export const EnableHighAvailibilityProvider: React.FC<{
   const stateRef = useRef<State>(initialState);
   const currStepDataRef = useRef<Record<string, any>>({});
   const persistenceQueue = useRef<Promise<void>>(Promise.resolve());
+  const showCancel = !(
+    supports.autoRollbackHA &&
+    [4, 6, 8].includes(stepWizardUtilities.activeStep)
+  );
 
   const dispatch: Dispatch<Action> = (action) => {
     stateRef.current = reducer(stateRef.current, action);
@@ -231,7 +240,13 @@ export const EnableHighAvailibilityProvider: React.FC<{
 
   return (
     <EnableHighAvailibilityContext.Provider
-      value={{ state, dispatch, stepWizardUtilities, flushStateToDb }}
+      value={{
+        state,
+        dispatch,
+        stepWizardUtilities,
+        flushStateToDb,
+        showCancel,
+      }}
     >
       {children}
     </EnableHighAvailibilityContext.Provider>

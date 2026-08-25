@@ -29,7 +29,7 @@ import {
 import { SideItemLabels, getSideItemList } from "./SideItemList";
 import { AppContext } from "../../store/context.tsx";
 import { useContext } from "react";
-import { useAuth } from "../../hooks/useAuth";
+import useAuthorizationPolicy from "../../hooks/useAuthorizationPolicy";
 import { Collapse } from "react-bootstrap";
 import { ServiceContext } from "../../store/ServiceContext.tsx";
 import {
@@ -39,6 +39,7 @@ import {
 import { displayOrder } from "../../screens/ClusterWizard/constants";
 import { isEmpty } from "lodash";
 import { useLocation } from "react-router-dom";
+import { getClusterStackName } from "../../Utils/stackMetadata";
 type SideBarProps = {
   isRoot?: boolean;
   isSidebarCollapsed: boolean;
@@ -52,11 +53,9 @@ const SideBar = ({
 }: SideBarProps) => {
   const {
     clusterName,
+    cluster,
     services: contextServices,
     supports,
-    upgradeHolding,
-    upgradeInProgress,
-    isNonWizardUser,
   } = useContext(AppContext);
   const [openOptions, setOpenOptions] = useState<string[]>([SideItemLabels.SERVICES]);
   const [selectedOption, setSelectedOption] = useState<string>("");
@@ -64,15 +63,14 @@ const SideBar = ({
   const location = useLocation();
   
   // Authorization hooks - implementing Ember.js menu authorization patterns
-  const { hasAuthorization } = useAuth();
+  const { havePermissions, isAuthorized } = useAuthorizationPolicy();
   
   // Get authorization-aware sidebar items using computed upgrade properties
   const authorizedSideItemList = getSideItemList(
-    hasAuthorization,
+    havePermissions,
+    isAuthorized,
     supports,
-    upgradeInProgress,
-    upgradeHolding,
-    isNonWizardUser,
+    getClusterStackName(cluster),
   );
   const [services, setServices] = useState<
     {

@@ -27,7 +27,7 @@ import ConfirmationModal from "../../components/ConfirmationModal";
 import Paginator from "../../components/Paginator";
 import Table from "../../components/Table";
 import usePagination from "../../hooks/usePagination";
-import { useAuth } from "../../hooks/useAuth";
+import useAuthorizationPolicy from "../../hooks/useAuthorizationPolicy";
 import IHost from "../../models/host";
 import HostStackVersion, { IHostStackVersion } from "../../models/hostStackVersion";
 import { AppContext } from "../../store/context";
@@ -59,9 +59,8 @@ const HostStackVersions = ({ host }: HostStackVersionsProps) => {
   const {
     backgroundOperations,
     clusterName,
-    isNonWizardUser,
   } = useContext(AppContext);
-  const { hasAuthorization } = useAuth();
+  const { havePermissions, isAuthorized } = useAuthorizationPolicy();
   const [stackFilter, setStackFilter] = useState("");
   const [nameFilter, setNameFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -73,7 +72,8 @@ const HostStackVersions = ({ host }: HostStackVersionsProps) => {
   const [showProgress, setShowProgress] = useState(false);
   const [optimisticInstalling, setOptimisticInstalling] = useState<Set<string>>(new Set());
 
-  const canManageStackVersions = hasAuthorization("AMBARI.MANAGE_STACK_VERSIONS");
+  const canViewStackVersionActions = havePermissions("AMBARI.MANAGE_STACK_VERSIONS");
+  const canManageStackVersions = isAuthorized("AMBARI.MANAGE_STACK_VERSIONS");
   const visibleVersions = (host?.stackVersions || []).filter(
     (version) => version.isVisible !== false,
   );
@@ -187,13 +187,13 @@ const HostStackVersions = ({ host }: HostStackVersionsProps) => {
       header: "",
       id: "install",
       enableSorting: false,
-      cell: ({ row }) => canManageStackVersions ? (
+      cell: ({ row }) => canViewStackVersionActions ? (
         <Button
           variant="secondary"
           disabled={
             !["OUT_OF_SYNC", "INSTALL_FAILED"].includes(row.original.status)
             || installingVersionKey !== null
-            || isNonWizardUser
+            || !canManageStackVersions
           }
           onClick={() => {
             setInstallError("");

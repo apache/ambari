@@ -19,17 +19,19 @@
 import { describe, expect, it } from "vitest";
 import { getSideItemList, SideItemLabels } from "./SideItemList";
 
-const hasAuthorization = (authorization: string) =>
+const havePermissions = (authorization: string) =>
   authorization.split(",").map((value) => value.trim())
     .includes("CLUSTER.TOGGLE_KERBEROS");
 
-const hasKerberosItem = (isNonWizardUser: boolean) => {
+const hasKerberosItem = (isNonWizardUser: boolean, stackName = "HDP") => {
+  const isAuthorized = (authorization: string) => (
+    !isNonWizardUser && havePermissions(authorization)
+  );
   const items = getSideItemList(
-    hasAuthorization,
+    havePermissions,
+    isAuthorized,
     { enableToggleKerberos: true },
-    false,
-    false,
-    isNonWizardUser,
+    stackName,
   );
   return Boolean(items
     .find((item) => item.id === SideItemLabels.CLUSTER_ADMIN)
@@ -43,5 +45,22 @@ describe("Kerberos sidebar ownership", () => {
 
   it("hides Kerberos while another user owns a wizard", () => {
     expect(hasKerberosItem(true)).toBe(false);
+  });
+
+  it("hides Kerberos for the Classic HDPWIN stack", () => {
+    expect(hasKerberosItem(false, "HDPWIN")).toBe(false);
+  });
+
+  it("keeps read-only Stack and Versions visible when mutations are blocked", () => {
+    const items = getSideItemList(
+      (authorization) => authorization.includes("CLUSTER.VIEW_STACK_DETAILS"),
+      () => false,
+      { enableToggleKerberos: true },
+    );
+
+    expect(items
+      .find((item) => item.id === SideItemLabels.CLUSTER_ADMIN)
+      ?.children.some((item) => item.id === SideItemLabels.STACK_AND_VERSIONS))
+      .toBe(true);
   });
 });

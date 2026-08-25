@@ -16,26 +16,71 @@
  * limitations under the License.
  */
 
-import React from 'react';
-import ViewIframe from '../../components/ViewIframe/ViewIframe';
-import { useParams } from 'react-router-dom';
+import { useEffect } from "react";
+import { Alert, Button } from "react-bootstrap";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import ViewIframe from "../../components/ViewIframe/ViewIframe";
+import Spinner from "../../components/Spinner";
+import {
+  findRegularViewInstance,
+  findShortViewInstance,
+  parseViewPath,
+} from "../../Utils/viewUtils";
+import { useViewInstances } from "./ViewInstancesContext";
 
-/**
- * ViewDetails component that renders a specific Ambari view
- * Uses the ViewIframe component to display the view content
- */
-const ViewDetails: React.FC = () => {
-    useParams<{
-        viewName: string;
-        viewVersion: string;
-        instanceName: string;
-    }>();
+export default function ViewDetails() {
+  const {
+    "*": wildcardPath = "",
+    instanceName = "",
+    shortName = "",
+    viewName = "",
+    viewVersion = "",
+  } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { error, instances, isLoading, reload } = useViewInstances();
+  const selectedInstance = shortName
+    ? findShortViewInstance(instances, viewName, shortName)
+    : findRegularViewInstance(instances, viewName, viewVersion, instanceName);
 
+  useEffect(() => {
+    document.body.classList.add("contrib-view", "contribview");
+    return () => document.body.classList.remove("contrib-view", "contribview");
+  }, []);
+
+  if (isLoading) {
+    return <div className="p-5"><Spinner /></div>;
+  }
+
+  if (error) {
     return (
-        <div className="view-details-container">
-            <ViewIframe />
-        </div>
+      <Alert variant="danger" className="m-4">
+        <Alert.Heading>Unable to load this View</Alert.Heading>
+        <p>{error}</p>
+        <Button variant="outline-danger" onClick={() => void reload()}>Retry</Button>
+      </Alert>
     );
-};
+  }
 
-export default ViewDetails;
+  if (!selectedInstance) {
+    return (
+      <Alert variant="warning" className="m-4">
+        <Alert.Heading>View not available</Alert.Heading>
+        <p>The requested View is hidden, unavailable, or no longer installed.</p>
+        <Button variant="outline-secondary" onClick={() => navigate("/main/view", { replace: true })}>
+          Return to Views
+        </Button>
+      </Alert>
+    );
+  }
+
+  return (
+    <div className="view-details-container">
+      <ViewIframe
+        contextPath={selectedInstance.contextPath}
+        title={`${selectedInstance.label} View`}
+        viewPath={parseViewPath(location.search, wildcardPath)}
+      />
+    </div>
+  );
+}

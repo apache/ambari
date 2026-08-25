@@ -16,19 +16,29 @@
  * limitations under the License.
  */
 
+export type RangerAdminWizardStepData = {
+  step?: string;
+  data?: Record<string, unknown>;
+};
+
 export interface State {
-    enableHighAvailibilityRangerAdminSteps: any;
-  }
-  
-  export enum ActionTypes {
-    STORE_INFORMATION = "STORE INFORMATION",
-    SYNC_STATE = "SYNC STATE",
-    REMOVE_KEY = "REMOVE KEY"
-  }
-  
-  export type Action =
-    | { type: ActionTypes.STORE_INFORMATION; payload: any }
-    | { type: ActionTypes.SYNC_STATE; payload: any }
-    | { type: ActionTypes.REMOVE_KEY; payload: any };
-  
-  
+  enableHighAvailibilityRangerAdminSteps: Record<
+    string,
+    RangerAdminWizardStepData
+  >;
+  activeStep?: string;
+}
+
+export enum ActionTypes {
+  STORE_INFORMATION = "STORE INFORMATION",
+  SYNC_STATE = "SYNC STATE",
+  REMOVE_KEY = "REMOVE KEY",
+}
+
+export type Action =
+  | {
+      type: ActionTypes.STORE_INFORMATION;
+      payload: { step: string; data: Record<string, unknown> };
+    }
+  | { type: ActionTypes.SYNC_STATE; payload: State }
+  | { type: ActionTypes.REMOVE_KEY; payload: { key: string } };

@@ -39,6 +39,24 @@ export type HostLogEntry = {
   logtime: number;
 };
 
+export const HOST_LOG_LEVELS = [
+  "FATAL",
+  "CRITICAL",
+  "ERROR",
+  "WARNING",
+  "INFO",
+  "DEBUG",
+] as const;
+
+export type HostLogLevel = typeof HOST_LOG_LEVELS[number];
+
+export type HostServiceLogCounts = {
+  available: boolean;
+  counts: Record<HostLogLevel, number>;
+  serviceDisplayName: string;
+  serviceName: string;
+};
+
 const nameFromPath = (path: string) => path.split("/").filter(Boolean).pop() || path;
 
 export function mapHostLogRows(
@@ -87,6 +105,48 @@ export function mapHostLogEntries(response: Record<string, unknown>): HostLogEnt
     logMessage: String(item.log_message || ""),
     logtime: Number(item.logtime || 0),
   }));
+}
+
+export function mapHostLogLevelCounts(
+  response: Record<string, unknown>,
+  serviceDisplayNames: Record<string, string> = {},
+): HostServiceLogCounts[] {
+  const components = Array.isArray(response.host_components)
+    ? response.host_components as Record<string, any>[]
+    : [];
+  const byService = new Map<string, HostServiceLogCounts>();
+
+  components.forEach((component) => {
+    const roles = component.HostRoles || {};
+    const serviceName = String(roles.service_name || "");
+    const logging = component.logging;
+    if (!serviceName || !logging) return;
+    const row = byService.get(serviceName) || {
+      available: false,
+      counts: Object.fromEntries(
+        HOST_LOG_LEVELS.map((level) => [level, 0]),
+      ) as Record<HostLogLevel, number>,
+      serviceDisplayName: serviceDisplayNames[serviceName] || serviceName,
+      serviceName,
+    };
+    const levelCounts = Array.isArray(logging.log_level_counts)
+      ? logging.log_level_counts
+      : [];
+    levelCounts.forEach((levelCount: Record<string, unknown>) => {
+      const sourceName = String(levelCount?.name || "").toUpperCase();
+      const level = (sourceName === "WARN" ? "WARNING" : sourceName) as HostLogLevel;
+      const count = Number(levelCount?.value);
+      if (HOST_LOG_LEVELS.includes(level) && Number.isFinite(count) && count >= 0) {
+        row.counts[level] += count;
+        row.available = true;
+      }
+    });
+    byService.set(serviceName, row);
+  });
+
+  return Array.from(byService.values()).sort((left, right) =>
+    left.serviceDisplayName.localeCompare(right.serviceDisplayName),
+  );
 }
 
 export function mergeHostLogEntries(

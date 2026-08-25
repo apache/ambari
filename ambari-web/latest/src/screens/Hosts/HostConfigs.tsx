@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { ConfigPropertiesType } from "../CommonConfigs/types";
 import { ambari_metrics_properties } from "../../data/configs/services/ambari_metrics_properties";
@@ -46,7 +46,7 @@ import Spinner from "../../components/Spinner";
 import { ServiceContext } from "../../store/ServiceContext";
 import { serviceNameModelMapping } from "../../constants";
 import Modal from "../../components/Modal";
-import { useAuth } from "../../hooks/useAuth";
+import useAuthorizationPolicy from "../../hooks/useAuthorizationPolicy";
 import { messages } from "../messages";
 import {
   buildConfigGroupMembershipUpdates,
@@ -69,17 +69,23 @@ export default function Hostconfigs() {
   const [assignedGroupByService, setAssignedGroupByService] = useState<Record<string, string>>({});
   const [currentService, setCurrentService] = useState<string>("");
   const [hostServices, setHostServices] = useState<string[]>([]);
+  const [hostComponentsByService, setHostComponentsByService] = useState<
+    Record<string, string[]>
+  >({});
   const [loadError, setLoadError] = useState("");
+  const [themeLoadError, setThemeLoadError] = useState("");
+  const [themeLoading, setThemeLoading] = useState(false);
   const [groupChangeError, setGroupChangeError] = useState("");
   const [isChangingGroup, setIsChangingGroup] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
+  const themeRequestId = useRef(0);
 
   const { clusterName, services, cluster } = useContext(AppContext);
   const { allServiceModels } = useContext(ServiceContext);
-  const { hasAuthorization } = useAuth();
+  const { isAuthorized } = useAuthorizationPolicy();
   const stackName = get(cluster, "stack");
   const stackVersion = get(cluster, "versionNum");
-  const canManageConfigGroups = hasAuthorization("SERVICE.MANAGE_CONFIG_GROUPS");
+  const canManageConfigGroups = isAuthorized("SERVICE.MANAGE_CONFIG_GROUPS");
 
   const serviceInCluster = map(services, "ServiceInfo.service_name");
   const serviceOrderKey = serviceInCluster.join(",");
@@ -108,17 +114,31 @@ export default function Hostconfigs() {
     const loadHostConfigurations = async () => {
       setLoading(true);
       setLoadError("");
+      setThemeLoadError("");
       try {
         const hostResponse = await HostsApi.getHostData(
           clusterName,
           hostName,
           "host_components/HostRoles/service_name,host_components/HostRoles/component_name,host_components/HostRoles/display_name",
         );
-        const componentServices = [...new Set(
-          get(hostResponse, "host_components", [])
-            .map((component: any) => get(component, "HostRoles.service_name"))
-            .filter(Boolean),
-        )] as string[];
+        const rawHostComponents = get(hostResponse, "host_components", []);
+        const hostComponents = Array.isArray(rawHostComponents)
+          ? rawHostComponents
+          : [];
+        const componentsByService = hostComponents.reduce(
+          (result: Record<string, string[]>, component: unknown) => {
+            const serviceName = get(component, "HostRoles.service_name");
+            const componentName = get(component, "HostRoles.component_name");
+            if (!serviceName || !componentName) return result;
+            if (!result[serviceName]) result[serviceName] = [];
+            if (!result[serviceName].includes(componentName)) {
+              result[serviceName].push(componentName);
+            }
+            return result;
+          },
+          {},
+        );
+        const componentServices = Object.keys(componentsByService);
         const servicesOnHost = componentServices.sort((left, right) => {
           const leftIndex = serviceInCluster.indexOf(left);
           const rightIndex = serviceInCluster.indexOf(right);
@@ -128,6 +148,7 @@ export default function Hostconfigs() {
 
         if (!active) return;
         setHostServices(servicesOnHost);
+        setHostComponentsByService(componentsByService);
         if (!servicesOnHost.length) {
           setCurrentService("");
           setConfigs({});
@@ -139,7 +160,7 @@ export default function Hostconfigs() {
         }
 
         const serviceNames = servicesOnHost.join(",");
-        const [configResponse, themeResponse, groupResponse, valueResponse] = await Promise.all([
+        const [configResponse, themeResult, groupResponse, valueResponse] = await Promise.all([
           WizardApi.getStackConfigurations(
             stackName,
             stackVersion,
@@ -151,7 +172,15 @@ export default function Hostconfigs() {
             stackVersion,
             serviceNames,
             "themes/*",
-          ),
+          )
+            .then((response) => ({ response, error: "" }))
+            .catch((error: unknown) => ({
+              response: { items: [] },
+              error:
+                get(error, "response.data.message") ||
+                (error instanceof Error ? error.message : "") ||
+                "The host configuration Theme request failed.",
+            })),
           ConfigGroupApi.getConfigGroupsForServices(clusterName, servicesOnHost),
           ConfigsApi.getConfigValues(clusterName, serviceNames),
         ]);
@@ -164,7 +193,8 @@ export default function Hostconfigs() {
         );
         const firstService = servicesOnHost[0];
         const firstGroup = groupState.assignedGroupByService[firstService] || "Default";
-        setThemes(themeResponse);
+        setThemes(themeResult.response);
+        setThemeLoadError(themeResult.error);
         setPropertyValues(valueResponse);
         setGroupsByService(groupState.groupsByService);
         setAssignedGroupByService(groupState.assignedGroupByService);
@@ -188,6 +218,7 @@ export default function Hostconfigs() {
     void loadHostConfigurations();
     return () => {
       active = false;
+      themeRequestId.current += 1;
     };
   }, [clusterName, hostName, serviceOrderKey, stackName, stackVersion, retryCount]);
 
@@ -195,7 +226,39 @@ export default function Hostconfigs() {
     if (!isEmpty(configs)) {
       getConfigProperties();
     }
-  }, [configs, propertyValues, JSON.stringify(allServiceModels)]);
+  }, [
+    configs,
+    propertyValues,
+    JSON.stringify(allServiceModels),
+    JSON.stringify(hostComponentsByService),
+    themes,
+  ]);
+
+  const retryThemes = async () => {
+    if (!hostServices.length || !stackName || !stackVersion) return;
+    const requestId = ++themeRequestId.current;
+    setThemeLoading(true);
+    try {
+      const response = await WizardApi.getStackThemes(
+        stackName,
+        stackVersion,
+        hostServices.join(","),
+        "themes/*",
+      );
+      if (requestId !== themeRequestId.current) return;
+      setThemes(response);
+      setThemeLoadError("");
+    } catch (error: unknown) {
+      if (requestId !== themeRequestId.current) return;
+      setThemeLoadError(
+        get(error, "response.data.message") ||
+          (error instanceof Error ? error.message : "") ||
+          "The host configuration Theme request failed.",
+      );
+    } finally {
+      if (requestId === themeRequestId.current) setThemeLoading(false);
+    }
+  };
 
   const onServiceChange = (selectedService: string) => {
     if (selectedService !== currentService && hostServices.includes(selectedService)) {
@@ -450,7 +513,10 @@ export default function Hostconfigs() {
         updatedConfigProperties[serviceName] = {};
       }
 
-      const serviceConfigCategories = getConfigCategories(serviceName);
+      const componentsOnHost = new Set(hostComponentsByService[serviceName] || []);
+      const serviceConfigCategories = getConfigCategories(serviceName).filter(
+        (category) => !category.showHost || componentsOnHost.has(category.name),
+      );
       serviceConfigCategories.forEach((category) => {
         if (!updatedConfigProperties[serviceName][category.name]) {
           updatedConfigProperties[serviceName][category.name] = {
@@ -510,6 +576,16 @@ export default function Hostconfigs() {
             return;
           }
           const configType = filename.slice(0, -4);
+          const isComponentOnlyCategory = getConfigCategories(serviceName).some(
+            (configCategory) =>
+              configCategory.name === category && configCategory.showHost,
+          );
+          if (
+            isComponentOnlyCategory &&
+            !(hostComponentsByService[serviceName] || []).includes(category)
+          ) {
+            return;
+          }
 
           if (configPropertiesCopy[serviceName][configType]?.properties[name]) {
             if (!category.includes("Advanced")) {
@@ -819,6 +895,20 @@ export default function Hostconfigs() {
         />
       )}
       <div>
+        {themeLoadError && (
+          <Alert className="mx-5 mb-3" variant="warning">
+            Host configuration layout could not be loaded. Advanced
+            configurations remain available. {themeLoadError}{" "}
+            <Button
+              size="sm"
+              variant="outline-warning"
+              disabled={themeLoading}
+              onClick={() => void retryThemes()}
+            >
+              {themeLoading ? "Retrying Theme" : "Retry Theme"}
+            </Button>
+          </Alert>
+        )}
         <Card className="rounded-0 mx-5">
           <div className="p-3 d-flex justify-content-between align-items-center">
             <div>

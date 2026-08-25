@@ -19,23 +19,33 @@
 import { useContext, useEffect, useState } from "react";
 import useHostComponents from "../../../ClusterWizard/hooks/useHostComponents";
 import Modal from "../../../../components/Modal";
-import { filter, find, flatten, get, map } from "lodash";
+import { filter, flatten, get, map } from "lodash";
 import Spinner from "../../../../components/Spinner";
 import useStepWizard from "../../../../hooks/useStepWizard";
 import wizardSteps from "./wizardSteps";
-import { EnableNamenodeFederationProvider } from "./store/context";
+import {
+  EnableNamenodeFederationContext,
+  EnableNamenodeFederationProvider,
+} from "./store/context";
 import StepWizard from "../../../../components/StepWizard";
 import ClusterApi from "../../../../api/clusterApi";
 import { LocalStorageOps } from "../../../../Utils/LocalStorageOps";
 import { AppContext } from "../../../../store/context";
 import { messages } from "../../../messages";
 import { ServiceContext } from "../../../../store/ServiceContext";
+import { Alert, Button } from "react-bootstrap";
 
 function ValidateEnablement() {
-  const { services } = useContext(AppContext);
-  const { masterSlaveClientsData } = useContext(ServiceContext);
-  const { hostComponents: serviceHostComponents, serviceComponents } =
-    useHostComponents(map(services, "ServiceInfo.service_name"));
+  const { services, allHostNames } = useContext(AppContext);
+  const { masterSlaveClientsData, allModelsLoaded, allServiceModels } =
+    useContext(ServiceContext);
+  const {
+    hostComponents: serviceHostComponents,
+    serviceComponents,
+    isLoading: isHostDataLoading,
+    error: hostDataError,
+    retry: retryHostData,
+  } = useHostComponents(map(services, "ServiceInfo.service_name"));
   const stepWizardUtilities = useStepWizard(wizardSteps, 0);
   const [canStartEnablement, setCanStartEnablement] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
@@ -43,7 +53,26 @@ function ValidateEnablement() {
   const [showModal, setShowModal] = useState(true);
 
   const getModalBodyContent = () => {
-    if (checkingForEnablement) {
+    if (hostDataError) {
+      return (
+        <Alert variant="danger">
+          {hostDataError}
+          <Button
+            size="sm"
+            className="ms-3"
+            onClick={() => {
+              setCanStartEnablement(false);
+              setValidationErrors([]);
+              setCheckingForEnablement(true);
+              retryHostData();
+            }}
+          >
+            Retry
+          </Button>
+        </Alert>
+      );
+    }
+    if (isHostDataLoading || checkingForEnablement) {
       return (
         <div className="d-flex justify-content-center align-items-center flex-column p-4">
           <Spinner />
@@ -69,7 +98,10 @@ function ValidateEnablement() {
       <EnableNamenodeFederationProvider
         stepWizardUtilities={stepWizardUtilities}
       >
-        <StepWizard wizardUtilities={stepWizardUtilities} />
+        <StepWizard
+          wizardUtilities={stepWizardUtilities}
+          Context={EnableNamenodeFederationContext}
+        />
       </EnableNamenodeFederationProvider>
     );
   };
@@ -106,11 +138,12 @@ function ValidateEnablement() {
         hostComponent.isMaster = false;
       }
     }
+    const zookeeperServers = hostComponents.filter(
+      (component: any) => component.component_name === "ZOOKEEPER_SERVER",
+    );
     if (
-      get(
-        find(hostComponents, ["component_name", "ZOOKEEPER_SERVER"]),
-        "state"
-      ) !== "STARTED"
+      !zookeeperServers.length ||
+      zookeeperServers.some((component: any) => component.state !== "STARTED")
     ) {
       errorMessages.push(get(messages, "admin.nameNodeFederation.wizard.required.zookeepers"));
     }
@@ -121,11 +154,29 @@ function ValidateEnablement() {
     });
 
     if (
-      journalNodes.length > 0 &&
-      // @ts-ignore
-      journalNodes[0]?.ServiceComponentInfo.total_count !== journalNodes[0].ServiceComponentInfo.started_count
+      !journalNodes.length ||
+      journalNodes.some(
+        (journalNode: any) =>
+          journalNode.ServiceComponentInfo.total_count !==
+          journalNode.ServiceComponentInfo.started_count,
+      )
     ) {
       errorMessages.push(get(messages, "admin.nameNodeFederation.wizard.required.journalnodes"));
+    }
+    if ((allHostNames || []).length < 4) {
+      errorMessages.push(
+        "NameNode Federation requires at least four cluster hosts.",
+      );
+    }
+    const hdfsModel: any = allServiceModels.hdfs;
+    if (
+      !allModelsLoaded ||
+      !hdfsModel?.isNamespaceLoaded ||
+      !hdfsModel?.isNameNodeHaEnabled
+    ) {
+      errorMessages.push(
+        "The HDFS HA namespace topology is not ready for Federation.",
+      );
     }
 
     if (!errorMessages.length) {
@@ -139,10 +190,17 @@ function ValidateEnablement() {
   };
 
   useEffect(() => {
-    if (serviceHostComponents.length && serviceComponents.length) {
+    if (!isHostDataLoading && !hostDataError && allModelsLoaded) {
       validateCanEnable();
     }
-  }, [serviceHostComponents.length, serviceComponents.length]);
+  }, [
+    isHostDataLoading,
+    hostDataError,
+    serviceHostComponents.length,
+    serviceComponents.length,
+    allModelsLoaded,
+    masterSlaveClientsData,
+  ]);
   
   return (
     <>
@@ -172,7 +230,7 @@ function ValidateEnablement() {
             shouldShowFooter:
               checkingForEnablement || canStartEnablement ? false : true,
             modalSize: "modal-wizard",
-            cancelableViaIcon: true,
+            cancelableViaIcon: !canStartEnablement,
           }}
         />
       ) : null}
