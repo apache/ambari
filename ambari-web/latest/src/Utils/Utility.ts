@@ -323,13 +323,15 @@ export function commandDetail(
   request_inputs: any,
   ops_display_name: any
 ) {
-  let detailArr = command_detail.split(" ");
   let result = "";
   let isIncludeExcludeFiles = false;
   //if an optional operation display name has been specified in the service metainfo.xml
   if (ops_display_name != null && ops_display_name.length > 0) {
     result = result + " " + ops_display_name;
   } else {
+    const detailArr = typeof command_detail === "string"
+      ? command_detail.split(" ")
+      : [];
     detailArr.forEach(function (item: any) {
       // if the item has the pattern SERVICE/COMPONENT, drop the SERVICE part
       if (item.includes("/") && !isIncludeExcludeFiles) {
