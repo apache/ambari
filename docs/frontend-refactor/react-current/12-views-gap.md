@@ -20,14 +20,27 @@
 This document compares the React Views shell with
 `ember-baseline/12-views.md` and the executable Ember sources. It covers View
 discovery, list and detail routes, iframe hosting, View-only navigation, and
-the transition into the separate AngularJS Admin View. It does not claim to
-replace the applications hosted inside View iframes or the Admin View CRUD
-surface. Metrics remain outside this review.
+the transition into the separately packaged Admin View. It also records the
+React status of the Admin, HDFS Files, and YARN Capacity Scheduler View
+applications. Metrics remain outside this review.
 
 Static alignment below means that routes, request contracts, state handling,
-and focused tests agree with the source baseline. It does not mean that a real
-View artifact, Ambari Server authorization response, proxy deployment, or
-browser iframe lifecycle has been accepted at runtime.
+and focused tests agree with the source baseline. It does not imply runtime
+acceptance unless the corresponding scenario is explicitly marked as
+validated below; authorization variants, proxy deployment, and shell iframe
+lifecycle still require separate acceptance.
+
+## Hosted View Application Status
+
+| Application | React implementation | Legacy comparison | Runtime evidence |
+| --- | --- | --- | --- |
+| Ambari Admin View | Already implemented with React, TypeScript, and Vite under `ambari-admin/src/main/resources/ui/ambari-admin`. The artifact publishes it under `latest/`; the AngularJS application remains under `classic/` for the explicit classic experience. | Existing React routes cover cluster information, remote clusters, versions, users, groups, permissions, repositories, and View instance administration. This migration predates the HDFS and Capacity Scheduler work in this change. | The deployed `ADMIN_VIEW/3.1.0.0/INSTANCE` root redirected to `latest/#/clusterInformation`, loaded the Vite React bundle, and rendered the administration navigation and cluster information against the live server. |
+| HDFS Files View | Migrated from Ember CLI to React, TypeScript, and Vite under `contrib/views/files/src/main/resources/ui`. | Preserves health checking, home/root and Trash navigation, breadcrumbs, filtering, sorting, single/range/multiple selection, create/upload/rename/permissions, copy/move/delete with partial-operation Retry, preview paging, direct download, ZIP download, concatenation, and empty Trash. The existing Java REST resource was migrated from `javax.ws.rs` to `jakarta.ws.rs` so the endpoints register with the current Ambari Server. | The deployed `FILES/1.0.0/FILES_REACT` application loaded in Chrome, passed the HDFS health check, called the View REST resource, rendered all nine entries returned for `/`, and navigated to the three entries under `/user` without a page error. This test cluster has no `/user/admin` home or Trash directory; the application handled those non-fatal 500/404 responses and continued at `/`. |
+| YARN Capacity Scheduler View | Migrated from Ember/Brunch to React, TypeScript, and Vite under `contrib/views/capacity-scheduler/src/main/resources/ui`. | Preserves hierarchy editing; queue add, rename, delete, reset, capacities and state; ACL/Ranger fields; preemption; node labels; scheduler settings; queue mappings; raw properties; version loading; diff and export; validation; save-only, refresh, and ResourceManager restart choices. Unknown properties survive parsing and serialization. | The deployed `CAPACITY-SCHEDULER/1.0.0/CS_REACT` application loaded in Chrome with no console or failed-request errors, read the live `TOPOLOGY_RESOLVED` configuration, showed the `root.default` hierarchy and configuration history, reported the ResourceManager connected, and rendered the Scheduler, Queue mappings, and Advanced editors. No mutating save/restart action was issued during acceptance. |
+
+The hosted applications use their original server-side View APIs and
+authorization boundary. They are separate Vite bundles loaded by the React
+Views shell; they are not copied into `ambari-web/latest`.
 
 ## Final Feature ID Status
 
@@ -184,14 +197,19 @@ the runtime acceptance matrix rather than being claimed as parity.
 | `npm run build` | Passed; existing Sass deprecation, `eval`, and chunk-size warnings remain. |
 | Module 12 canonical-ID reverse comparison | Passed: 92 baseline IDs, 92 final status rows, no missing, extra, duplicate, parse, or selection errors. |
 | `node docs/frontend-refactor/ember-baseline/tools/validate-ember-baseline.mjs` | Passed: 1,154 feature IDs, no warnings or errors. |
-| `node --test docs/frontend-refactor/react-current/tools/react-parity-matrix.test.mjs` | Passed: 9 tests. |
+| `node --test docs/frontend-refactor/react-current/tools/react-parity-matrix.test.mjs` | Passed: 10 tests. |
+| HDFS Files View Vitest and production build | Passed: 3 files, 11 tests; TypeScript and Vite production build passed. |
+| YARN Capacity Scheduler View Vitest and production build | Passed: 3 files, 15 tests; TypeScript and Vite production build passed. |
+| HDFS Files View live REST and Chrome acceptance | Passed for health, root directory listing, bundle rendering, and missing-home/Trash recovery. Mutating file operations were not run. |
+| YARN Capacity Scheduler View live REST and Chrome acceptance | Passed for cluster/configuration reads, ResourceManager state, queue hierarchy, navigation, bundle rendering, and error-free console. Mutating save/refresh/restart was not run. |
+| React Admin View live Chrome acceptance | Passed for root-to-`latest/` redirect, Vite bundle loading, cluster information, and administration navigation. The pre-existing `/vite.svg` favicon request returns 404 without affecting the application. |
 | `git diff --check` | Passed. |
 
 ## Runtime Acceptance Matrix
 
-Every row remains `NOT_RUN` until captured against a real Ambari Server and
-browser. A mock response, hidden control, or TypeScript build is not runtime
-authorization or iframe evidence.
+Rows are updated only for behavior observed against the local Ambari Server
+and real Chrome. A mock response, hidden control, or TypeScript build is not
+runtime authorization or iframe evidence.
 
 | # | Environment/scenario | Required observation | Status |
 | --- | --- | --- | --- |
@@ -204,3 +222,6 @@ authorization or iframe evidence.
 | 7 | View-only no-cluster user, Ambari administrator, ordinary unauthorized user, and another wizard owner | Views/Admin/Installer fallbacks and all three Admin entry permissions agree with server authorization | `NOT_RUN` |
 | 8 | Multiple Ambari Server components with custom suffixes, missing values, `2.9`, and `2.10` | Numeric selection, Admin page target, empty response, and lookup failure recovery are confirmed | `NOT_RUN` |
 | 9 | Supports, Ambari properties, cluster identity, persistence, and logout fault injection with a virtual clock | Initialization Retry, first 60-second keep-alive, no duplicate timer, inactivity setup, and logout cleanup converge | `NOT_RUN` |
+| 10 | Deployed React Admin View | Root redirect, React asset, administration navigation, and cluster information load from the live server | `RUNTIME_VALIDATED` |
+| 11 | Deployed React HDFS Files View with live HDFS | View resource registration, health, root listing, file table, and missing-home/Trash recovery work in Chrome | `RUNTIME_VALIDATED_READ_ONLY`; create/upload/rename/chmod/copy/move/delete/download writes remain `NOT_RUN` |
+| 12 | Deployed React Capacity Scheduler View with live YARN | View resource registration, current configuration, versions, queue hierarchy, ResourceManager state, and tab navigation work without console errors | `RUNTIME_VALIDATED_READ_ONLY`; save/refresh/restart remain `NOT_RUN` |
