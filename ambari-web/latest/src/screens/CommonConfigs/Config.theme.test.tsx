@@ -1221,6 +1221,69 @@ describe("Ember Service Theme page integration", () => {
     expect(await screen.findByDisplayValue("2048")).toBeTruthy();
   });
 
+  it("validates and exactly round-trips time interval spinner values", async () => {
+    const propertyConfigs = configs();
+    propertyConfigs.SVC.site.properties.primary = configProperty(
+      "primary",
+      "invalid",
+      {
+        type: "int",
+        unit: "milliseconds",
+        minimum: 10_000,
+        maximum: 180_000,
+        increment_step: 10_000,
+      },
+    );
+    const spinnerTheme = compactTheme(
+      [{ config: "site/primary", "subsection-name": "subsection" }],
+      [
+        {
+          config: "site/primary",
+          widget: {
+            type: "time-interval-spinner",
+            units: [{ "unit-name": "minutes,seconds" }],
+          },
+        },
+      ],
+    );
+    render(
+      <StatefulConfig
+        themeData={spinnerTheme}
+        initialConfigs={propertyConfigs}
+      />,
+    );
+
+    expect((await screen.findByRole("status")).textContent).toContain(
+      "whole-number",
+    );
+    fireEvent.change(screen.getByDisplayValue("invalid"), {
+      target: { value: "90000" },
+    });
+    expect(
+      (await screen.findByRole("spinbutton", {
+        name: "Minutes",
+      })) as HTMLInputElement,
+    ).toHaveProperty("value", "1");
+    const seconds = screen.getByRole("spinbutton", {
+      name: "Seconds",
+    }) as HTMLInputElement;
+    expect(seconds.value).toBe("30");
+    fireEvent.change(seconds, { target: { value: "40" } });
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Edit time interval as raw text",
+      }),
+    );
+    expect(await screen.findByDisplayValue("100000")).toBeTruthy();
+    fireEvent.change(screen.getByDisplayValue("100000"), {
+      target: { value: "190000" },
+    });
+    expect((await screen.findByRole("status")).textContent).toContain(
+      "maximum",
+    );
+  });
+
   it("keeps an unknown combo value in the dropdown until raw mode is requested", async () => {
     const propertyConfigs = configs();
     propertyConfigs.SVC.site.properties.primary.value = "custom";

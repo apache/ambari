@@ -80,9 +80,8 @@ import {
   formatTickLabel,
   getDisplayUnitLabel,
   getConfigUnitInfo,
-  convertValue,
-  parseTimeInterval,
-  composeTimeInterval,
+  getTimeIntervalCompatibility,
+  normalizeTimeIntervalUnits,
 } from "../../Utils/unitConversionUtils";
 import Modal from "../../components/Modal";
 import Table from "../../components/Table";
@@ -123,6 +122,7 @@ import {
   getThemeWidgetEntries,
   isThemeCheckboxValueSupported,
 } from "./themeWidgetUtils";
+import ThemeTimeIntervalControl from "./ThemeTimeIntervalControl";
 
 dayjs.extend(duration);
 
@@ -1158,70 +1158,28 @@ export default function Config({
           property?.propertyAttributes?.unit ||
           "milliseconds";
 
-        // Parse the time interval using the unit conversion utilities
-        const timeComponents = parseTimeInterval(
-          Number(property.value) || 0,
-          timeConfigUnit,
-        );
-
         // Check if this time-interval is in text input mode
-        const isTimeTextMode = widgetTextModeMap[widgetStateKey] || false;
+        const configuredTimeUnits = normalizeTimeIntervalUnits(
+          property.widget?.units?.[0]?.["unit-name"] ||
+            property.widget?.units?.[0]?.unit ||
+            "days,hours,minutes,seconds",
+        );
+        const timeCompatibility = getTimeIntervalCompatibility(
+          property.value,
+          timeConfigUnit,
+          configuredTimeUnits,
+          property.propertyAttributes ?? {},
+        );
+        const isTimeTextMode =
+          Boolean(widgetTextModeMap[widgetStateKey]) ||
+          !timeCompatibility.compatible;
 
         // Toggle between time-interval and text input mode
         const toggleTimeMode = () => {
           setWidgetTextModeMap((prev) => ({
             ...prev,
-            [widgetStateKey]: !prev[widgetStateKey],
+            [widgetStateKey]: !isTimeTextMode,
           }));
-        };
-
-        const configuredTimeUnits = String(
-          property.widget?.units?.[0]?.["unit-name"] ||
-            property.widget?.units?.[0]?.unit ||
-            "days,hours,minutes,seconds",
-        )
-          .split(",")
-          .map((unit) => unit.trim().toLowerCase())
-          .filter((unit) =>
-            ["days", "hours", "minutes", "seconds", "milliseconds"].includes(
-              unit,
-            ),
-          );
-        const timeUnitValues = {
-          days: timeComponents.days,
-          hours: timeComponents.hours,
-          minutes: timeComponents.minutes,
-          seconds: timeComponents.seconds,
-          milliseconds: timeComponents.milliseconds,
-        };
-        const timeUnitLabels = {
-          days: "Days",
-          hours: "Hours",
-          minutes: "Minutes",
-          seconds: "Seconds",
-          milliseconds: "Milliseconds",
-        };
-        const timeUnitMaximums = {
-          days: 365,
-          hours: 23,
-          minutes: 59,
-          seconds: 59,
-          milliseconds: 999,
-        };
-        const updateTimeUnit = (
-          unit: keyof typeof timeUnitValues,
-          nextValue: number,
-        ) => {
-          onChange(
-            composeTimeInterval(
-              unit === "days" ? nextValue : timeComponents.days,
-              unit === "hours" ? nextValue : timeComponents.hours,
-              unit === "minutes" ? nextValue : timeComponents.minutes,
-              unit === "seconds" ? nextValue : timeComponents.seconds,
-              timeConfigUnit,
-              unit === "milliseconds" ? nextValue : timeComponents.milliseconds,
-            ),
-          );
         };
 
         return (
@@ -1238,46 +1196,17 @@ export default function Config({
                 {timeConfigUnit && (
                   <InputGroup.Text>{timeConfigUnit}</InputGroup.Text>
                 )}
+                {!timeCompatibility.compatible && (
+                  <Form.Text className="text-warning" role="status">
+                    {timeCompatibility.reason}
+                  </Form.Text>
+                )}
               </InputGroup>
             ) : (
-              <div className="d-flex w-75">
-                {configuredTimeUnits.map((unit, index) => {
-                  const typedUnit = unit as keyof typeof timeUnitValues;
-                  return (
-                    <div className="d-flex flex-column me-2" key={typedUnit}>
-                      <Form.Control
-                        type="number"
-                        aria-label={timeUnitLabels[typedUnit]}
-                        min={0}
-                        max={timeUnitMaximums[typedUnit]}
-                        step={
-                          index === configuredTimeUnits.length - 1
-                            ? Number(
-                                convertValue(
-                                  Number(
-                                    property.propertyAttributes
-                                      ?.increment_step || 1,
-                                  ),
-                                  timeConfigUnit,
-                                  typedUnit,
-                                ),
-                              ) || 1
-                            : 1
-                        }
-                        value={timeUnitValues[typedUnit]}
-                        onChange={(event) => {
-                          const nextValue = Number(event.target.value);
-                          if (Number.isFinite(nextValue)) {
-                            updateTimeUnit(typedUnit, nextValue);
-                          }
-                        }}
-                        disabled={!property.isEditable}
-                      />
-                      <small>{timeUnitLabels[typedUnit]}</small>
-                    </div>
-                  );
-                })}
-              </div>
+              <ThemeTimeIntervalControl
+                property={property}
+                onChange={onChange}
+              />
             )}
             {!hostConfigs && canEditConfigsInContext && (
               <ThemeRawModeButton
